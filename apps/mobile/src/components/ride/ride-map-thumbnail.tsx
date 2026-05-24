@@ -1,6 +1,6 @@
 import MapboxGL from '@rnmapbox/maps';
 import { Route } from 'lucide-react-native';
-import { memo, useCallback, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Image, type ImageStyle, View, type ViewStyle } from 'react-native';
 import { useEditorialTheme } from '../../theme/editorial';
 import { MAP_STYLES, getDefaultMapStyle } from '../../utils/map-styles';
@@ -13,6 +13,28 @@ interface RideMapThumbnailProps {
 }
 
 const CACHE_PREFIX = 'ride-thumb-';
+
+// Global concurrency limiter — max 1 MapView snapshot at a time to prevent OOM
+let activeSnapshots = 0;
+const MAX_CONCURRENT_SNAPSHOTS = 1;
+const snapshotQueue: Array<() => void> = [];
+
+function acquireSnapshotSlot(): Promise<void> {
+  if (activeSnapshots < MAX_CONCURRENT_SNAPSHOTS) {
+    activeSnapshots++;
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => snapshotQueue.push(resolve));
+}
+
+function releaseSnapshotSlot() {
+  activeSnapshots--;
+  const next = snapshotQueue.shift();
+  if (next) {
+    activeSnapshots++;
+    next();
+  }
+}
 
 /** Decode Google-encoded polyline string to [lng, lat] coordinate pairs */
 function decodePolyline(encoded: string): [number, number][] {
@@ -100,6 +122,20 @@ export const RideMapThumbnail = memo(function RideMapThumbnail({
     }
   }, [routePolyline]);
 
+  // Concurrency gate — wait for a slot before rendering MapView
+  const [hasSlot, setHasSlot] = useState(false);
+  useEffect(() => {
+    if (snapUri || !routeData) return; // No need for a slot
+    let cancelled = false;
+    acquireSnapshotSlot().then(() => {
+      if (!cancelled) setHasSlot(true);
+    });
+    return () => {
+      cancelled = true;
+      if (hasSlot) releaseSnapshotSlot();
+    };
+  }, [snapUri, routeData, hasSlot]);
+
   const handleMapLoaded = useCallback(async () => {
     if (!mapRef.current) return;
     try {
@@ -108,6 +144,9 @@ export const RideMapThumbnail = memo(function RideMapThumbnail({
       setSnapUri(uri);
     } catch {
       // Snapshot failed — keep showing the live map
+    } finally {
+      releaseSnapshotSlot();
+      setHasSlot(false);
     }
   }, [rideId]);
 
@@ -140,7 +179,18 @@ export const RideMapThumbnail = memo(function RideMapThumbnail({
     );
   }
 
-  // Render hidden map, take snapshot, then swap to cached image
+  // Wait for concurrency slot before mounting MapView
+  if (!hasSlot) {
+    return (
+      <View
+        style={[{ backgroundColor: t.surface2, alignItems: 'center', justifyContent: 'center' }, style]}
+      >
+        <Route size={28} color={t.ink4} />
+      </View>
+    );
+  }
+
+  // Render map, take snapshot, then swap to cached image
   const mapStyleKey = getDefaultMapStyle(isDark);
 
   return (

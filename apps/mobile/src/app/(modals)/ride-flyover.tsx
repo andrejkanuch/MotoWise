@@ -321,7 +321,9 @@ export default function RideFlyoverScreen() {
   const currentWp = waypoints[cursor] ?? null;
   const currentSpeedMps = currentWp?.speedMps ?? 0;
   const currentAltitude = currentWp?.altitude ?? 0;
-  // Bike dot GeoJSON for GPU-rendered CircleLayer (no RN layout overhead)
+  // Bike dot GeoJSON — memoize on coordinates, not object identity
+  const bikeLng = currentWp?.longitude ?? 0;
+  const bikeLat = currentWp?.latitude ?? 0;
   const bikePointGeoJSON = useMemo<GeoJSON.Feature | null>(() => {
     if (!currentWp) return null;
     return {
@@ -329,10 +331,10 @@ export default function RideFlyoverScreen() {
       properties: {},
       geometry: {
         type: 'Point',
-        coordinates: [currentWp.longitude, currentWp.latitude],
+        coordinates: [bikeLng, bikeLat],
       },
     };
-  }, [currentWp]);
+  }, [bikeLng, bikeLat, currentWp !== null]);
 
   // Pre-compute cumulative distances once (O(1) lookup vs O(n) per frame)
   const cumulativeDistances = useMemo(() => {
