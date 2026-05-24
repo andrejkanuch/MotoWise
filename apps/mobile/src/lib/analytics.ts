@@ -223,6 +223,8 @@ export const AnalyticsEvent = {
   PB_TOAST_DISMISSED: 'pb_toast_dismissed',
   ELEVATION_CHART_VIEWED: 'elevation_chart_viewed',
   LEAN_ANGLE_TOOLTIP_OPENED: 'lean_angle_tooltip_opened',
+  RIDE_FLYOVER_STARTED: 'ride_flyover_started',
+  RIDE_FLYOVER_COMPLETED: 'ride_flyover_completed',
   SHARE_CARD_GENERATED: 'share_card_generated',
   SHARE_CARD_FAILED: 'share_card_failed',
   SHARE_COMPLETED: 'share_completed',

@@ -580,9 +580,9 @@ export default function RideDetailScreen() {
           <Pressable
             onPress={() => {
               if (process.env.EXPO_OS === 'ios') {
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
               }
-              Alert.alert('3D Flyover', 'Coming soon');
+              router.push({ pathname: '/(modals)/ride-flyover', params: { rideId } });
             }}
             accessibilityRole="button"
             accessibilityLabel="3D flyover"

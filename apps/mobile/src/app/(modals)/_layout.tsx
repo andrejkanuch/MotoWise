@@ -24,6 +24,10 @@ export default function ModalsLayout() {
         options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
       />
       <Stack.Screen
+        name="ride-flyover"
+        options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
+      />
+      <Stack.Screen
         name="whats-new"
         options={{ presentation: 'fullScreenModal', gestureEnabled: true }}
       />
