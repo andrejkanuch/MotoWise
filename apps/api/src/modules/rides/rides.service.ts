@@ -287,10 +287,19 @@ export class RidesService {
       .eq('id', id)
       .eq('user_id', userId)
       .is('deleted_at', null)
-      .select('id')
+      .select('id, motorcycle_id, started_at, distance_m')
       .single();
 
-    if (data) return true;
+    if (data) {
+      this.eventEmitter.emit('ride.deleted', {
+        rideId: data.id,
+        userId,
+        motorcycleId: data.motorcycle_id,
+        startedAt: data.started_at,
+        distanceM: data.distance_m ?? 0,
+      });
+      return true;
+    }
 
     // Idempotent: if the ride is already soft-deleted, treat as success
     // (sync queue retries, duplicate taps, etc.)

@@ -39,6 +39,7 @@ import { OemSchedulesModule } from './modules/oem-schedules/oem-schedules.module
 import { PlacesModule } from './modules/places/places.module';
 import { QuizzesModule } from './modules/quizzes/quizzes.module';
 import { RedisModule } from './modules/redis/redis.module';
+import { RideAnalyticsModule } from './modules/ride-analytics/ride-analytics.module';
 import { RideSummariesModule } from './modules/ride-summaries/ride-summaries.module';
 import { RidesModule } from './modules/rides/rides.module';
 import { SearchModule } from './modules/search/search.module';
@@ -95,6 +96,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     MaintenanceTasksModule,
     MetaModule,
     OemSchedulesModule,
+    RideAnalyticsModule,
     RideSummariesModule,
     RidesModule,
     SearchModule,
