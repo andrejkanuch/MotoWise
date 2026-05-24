@@ -42,7 +42,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
+import { type MapStyle, getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
 import {
   distanceUnitLabel,
   elevationUnitLabel,
@@ -247,7 +247,7 @@ export default function RideDetailScreen() {
   }, [rideId, queryClient, router, t]);
 
   const handleMapStyleSelect = useCallback(
-    (style: 'dark' | 'light' | 'outdoors' | 'satellite') => {
+    (style: MapStyle) => {
       if (process.env.EXPO_OS === 'ios') {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
@@ -432,6 +432,37 @@ export default function RideDetailScreen() {
                   />
                 </View>
               </MapboxGL.MarkerView>
+
+              {/* 3D terrain (when terrain style selected) */}
+              {mapStyle === 'terrain' && (
+                <>
+                  <MapboxGL.RasterDemSource
+                    id="mapbox-dem"
+                    url="mapbox://mapbox.mapbox-terrain-dem-v1"
+                    tileSize={512}
+                    maxZoomLevel={14}
+                  >
+                    <MapboxGL.Terrain style={{ exaggeration: 1.5 }} />
+                  </MapboxGL.RasterDemSource>
+                  <MapboxGL.SkyLayer
+                    id="sky"
+                    style={{
+                      skyType: 'atmosphere',
+                      skyAtmosphereSun: [0, 90],
+                      skyAtmosphereSunIntensity: 15,
+                    }}
+                  />
+                  <MapboxGL.Atmosphere
+                    style={{
+                      color: 'rgb(186,210,235)',
+                      highColor: 'rgb(36,92,223)',
+                      horizonBlend: 0.02,
+                      spaceColor: 'rgb(11,11,25)',
+                      starIntensity: 0.6,
+                    }}
+                  />
+                </>
+              )}
             </MapboxGL.MapView>
           ) : (
             <View

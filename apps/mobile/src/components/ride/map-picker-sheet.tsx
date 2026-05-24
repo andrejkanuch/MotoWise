@@ -2,25 +2,92 @@ import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { Layers, X } from 'lucide-react-native';
 import { memo, useCallback } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEditorialTheme } from '../../theme/editorial';
+import type { MapStyle } from '../../utils/map-styles';
 
-type FreeStyle = 'light' | 'dark' | 'outdoors';
-
-const FREE_STYLES: { key: FreeStyle; label: string }[] = [
+const FREE_STYLES: { key: MapStyle; label: string }[] = [
   { key: 'light', label: 'Standard' },
   { key: 'dark', label: 'Dark' },
   { key: 'outdoors', label: 'Outdoors' },
 ];
 
-const PRO_STYLES = ['Satellite', 'Hybrid', 'Terrain', 'Heatmap'] as const;
+const PRO_STYLES: { key: MapStyle; label: string }[] = [
+  { key: 'satellite', label: 'Satellite' },
+  { key: 'hybrid', label: 'Hybrid' },
+  { key: 'terrain', label: 'Terrain' },
+  { key: 'heatmap', label: 'Heatmap' },
+];
 
 interface MapPickerSheetProps {
-  currentStyle: string;
-  onSelectStyle: (style: FreeStyle) => void;
+  currentStyle: MapStyle;
+  onSelectStyle: (style: MapStyle) => void;
   onClose: () => void;
+}
+
+function StyleTile({
+  styleKey,
+  label,
+  isSelected,
+  onPress,
+  warm,
+}: {
+  styleKey: MapStyle;
+  label: string;
+  isSelected: boolean;
+  onPress: () => void;
+  warm: string;
+}) {
+  return (
+    <Pressable onPress={onPress} style={{ flex: 1, alignItems: 'center' }}>
+      <View
+        style={{
+          width: '100%',
+          aspectRatio: 1,
+          borderRadius: 14,
+          borderCurve: 'continuous',
+          backgroundColor: '#2a2723',
+          borderWidth: isSelected ? 1.5 : 0,
+          borderColor: isSelected ? warm : 'transparent',
+          overflow: 'hidden',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Layers size={20} color={isSelected ? warm : 'rgba(255,255,255,0.4)'} />
+        {isSelected && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 6,
+              right: 6,
+              width: 18,
+              height: 18,
+              borderRadius: 99,
+              backgroundColor: warm,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={{ color: palette.white, fontSize: 10, fontWeight: '700' }}>✓</Text>
+          </View>
+        )}
+      </View>
+      <Text
+        style={{
+          fontSize: 11.5,
+          fontWeight: '600',
+          color: 'rgba(255,255,255,0.85)',
+          marginTop: 7,
+          textAlign: 'center',
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
 }
 
 export const MapPickerSheet = memo(function MapPickerSheet({
@@ -31,12 +98,25 @@ export const MapPickerSheet = memo(function MapPickerSheet({
   const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
 
-  const handleProTap = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    }
-    Alert.alert('Pro Feature', 'Coming soon');
-  }, []);
+  const handleSelect = useCallback(
+    (style: MapStyle) => {
+      if (process.env.EXPO_OS === 'ios') {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+      onSelectStyle(style);
+    },
+    [onSelectStyle],
+  );
+
+  const sectionLabelStyle = {
+    fontFamily: 'GeistMono-SemiBold' as const,
+    fontSize: 9.5,
+    fontWeight: '600' as const,
+    letterSpacing: 2.09,
+    textTransform: 'uppercase' as const,
+    color: 'rgba(255,255,255,0.45)',
+    marginBottom: 10,
+  };
 
   return (
     <>
@@ -126,139 +206,35 @@ export const MapPickerSheet = memo(function MapPickerSheet({
 
         {/* Free section */}
         <View style={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 8 }}>
-          <Text
-            style={{
-              fontFamily: 'GeistMono-SemiBold',
-              fontSize: 9.5,
-              fontWeight: '600',
-              letterSpacing: 2.09,
-              textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.45)',
-              marginBottom: 10,
-            }}
-          >
-            FREE
-          </Text>
+          <Text style={sectionLabelStyle}>FREE</Text>
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            {FREE_STYLES.map(({ key, label }) => {
-              const isSelected = currentStyle === key;
-              return (
-                <Pressable key={key} onPress={() => onSelectStyle(key)} style={{ flex: 1, alignItems: 'center' }}>
-                  <View
-                    style={{
-                      width: '100%',
-                      aspectRatio: 1,
-                      borderRadius: 14,
-                      borderCurve: 'continuous',
-                      backgroundColor: '#2a2723',
-                      borderWidth: isSelected ? 1.5 : 0,
-                      borderColor: isSelected ? theme.warm : 'transparent',
-                      overflow: 'hidden',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Layers size={20} color={isSelected ? theme.warm : 'rgba(255,255,255,0.4)'} />
-                    {isSelected && (
-                      <View
-                        style={{
-                          position: 'absolute',
-                          top: 6,
-                          right: 6,
-                          width: 18,
-                          height: 18,
-                          borderRadius: 99,
-                          backgroundColor: theme.warm,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Text style={{ color: palette.white, fontSize: 10, fontWeight: '700' }}>
-                          ✓
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text
-                    style={{
-                      fontSize: 11.5,
-                      fontWeight: '600',
-                      color: 'rgba(255,255,255,0.85)',
-                      marginTop: 7,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-            {/* Empty spacer for 4th column */}
+            {FREE_STYLES.map(({ key, label }) => (
+              <StyleTile
+                key={key}
+                styleKey={key}
+                label={label}
+                isSelected={currentStyle === key}
+                onPress={() => handleSelect(key)}
+                warm={theme.warm}
+              />
+            ))}
             <View style={{ flex: 1 }} />
           </View>
         </View>
 
         {/* Pro section */}
         <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8 }}>
-          <Text
-            style={{
-              fontFamily: 'GeistMono-SemiBold',
-              fontSize: 9.5,
-              fontWeight: '600',
-              letterSpacing: 2.09,
-              textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.45)',
-              marginBottom: 10,
-            }}
-          >
-            PRO
-          </Text>
+          <Text style={sectionLabelStyle}>PRO</Text>
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            {PRO_STYLES.map((label) => (
-              <Pressable key={label} onPress={handleProTap} style={{ flex: 1, alignItems: 'center' }}>
-                <View
-                  style={{
-                    width: '100%',
-                    aspectRatio: 1,
-                    borderRadius: 14,
-                    borderCurve: 'continuous',
-                    backgroundColor: '#2a2723',
-                    overflow: 'hidden',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Layers size={20} color="rgba(255,255,255,0.3)" />
-                  <View
-                    style={{
-                      position: 'absolute',
-                      top: 6,
-                      right: 6,
-                      width: 22,
-                      height: 22,
-                      borderRadius: 99,
-                      backgroundColor: 'rgba(15,12,8,0.6)',
-                      borderWidth: 1,
-                      borderColor: 'rgba(255,255,255,0.1)',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Text style={{ color: palette.white, fontSize: 10 }}>🔒</Text>
-                  </View>
-                </View>
-                <Text
-                  style={{
-                    fontSize: 11.5,
-                    fontWeight: '600',
-                    color: 'rgba(255,255,255,0.85)',
-                    marginTop: 7,
-                    textAlign: 'center',
-                  }}
-                >
-                  {label}
-                </Text>
-              </Pressable>
+            {PRO_STYLES.map(({ key, label }) => (
+              <StyleTile
+                key={key}
+                styleKey={key}
+                label={label}
+                isSelected={currentStyle === key}
+                onPress={() => handleSelect(key)}
+                warm={theme.warm}
+              />
             ))}
           </View>
         </View>
