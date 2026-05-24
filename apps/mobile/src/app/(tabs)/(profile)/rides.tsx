@@ -301,7 +301,7 @@ export default function RidesScreen() {
             elevationLoss: null,
             pausedDurationS: node.pausedDurationS,
             autoPausedDurationS: node.autoPausedDurationS,
-            routePolyline: null,
+            routePolyline: node.routePolyline ?? null,
             gpsQuality: node.gpsQuality ?? null,
             mileageApplied: false,
             isPublic: false,

@@ -1,7 +1,8 @@
 import type { Ride } from '@motovault/types';
-import { Route, Trophy } from 'lucide-react-native';
+import { Trophy } from 'lucide-react-native';
 import { memo } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { RideMapThumbnail } from './ride-map-thumbnail';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import {
@@ -44,7 +45,7 @@ export const RideCard = memo(function RideCard({
   const avgSpeed = ride.avgSpeedMps ?? 0;
   const elevation = ride.elevationGain ?? 0;
   const rideName = ride.name || ride.bikeName || 'Ride';
-  const hasMap = !!ride.routeThumbnailUri && distance > 0;
+  const hasRoute = (!!ride.routePolyline || !!ride.routeThumbnailUri) && distance > 0;
 
   const hasStats = duration > 0 || avgSpeed > 0 || elevation > 0;
 
@@ -64,7 +65,7 @@ export const RideCard = memo(function RideCard({
       })}
     >
       {/* Map thumbnail band */}
-      {hasMap ? (
+      {(hasRoute || distance > 0) && (
         <View
           style={{
             width: '100%',
@@ -73,31 +74,13 @@ export const RideCard = memo(function RideCard({
             borderBottomColor: t.line,
           }}
         >
-          <Image
-            source={{ uri: ride.routeThumbnailUri ?? '' }}
-            style={{
-              width: '100%',
-              height: 156,
-              backgroundColor: t.surface2,
-            }}
-            resizeMode="cover"
+          <RideMapThumbnail
+            rideId={ride.id}
+            routePolyline={ride.routePolyline}
+            style={{ width: '100%', height: 156 }}
           />
         </View>
-      ) : distance > 0 ? (
-        <View
-          style={{
-            width: '100%',
-            height: 156,
-            borderBottomWidth: 1,
-            borderBottomColor: t.line,
-            backgroundColor: t.surface2,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Route size={28} color={t.ink4} />
-        </View>
-      ) : null}
+      )}
 
       {/* Info section */}
       <View style={{ padding: 12, paddingHorizontal: 14, paddingBottom: 14, gap: 6 }}>

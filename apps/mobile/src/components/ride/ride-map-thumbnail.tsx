@@ -1,0 +1,186 @@
+import MapboxGL from '@rnmapbox/maps';
+import { Route } from 'lucide-react-native';
+import { memo, useCallback, useMemo, useRef, useState } from 'react';
+import { Image, type ImageStyle, View, type ViewStyle } from 'react-native';
+import { useEditorialTheme } from '../../theme/editorial';
+import { MAP_STYLES, getDefaultMapStyle } from '../../utils/map-styles';
+import { rideStorage } from '../../utils/ride-storage';
+
+interface RideMapThumbnailProps {
+  rideId: string;
+  routePolyline?: string | null;
+  style?: ViewStyle;
+}
+
+const CACHE_PREFIX = 'ride-thumb-';
+
+/** Decode Google-encoded polyline string to [lng, lat] coordinate pairs */
+function decodePolyline(encoded: string): [number, number][] {
+  const coords: [number, number][] = [];
+  let index = 0;
+  let lat = 0;
+  let lng = 0;
+
+  while (index < encoded.length) {
+    let shift = 0;
+    let result = 0;
+    let byte: number;
+    do {
+      byte = encoded.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+    lat += result & 1 ? ~(result >> 1) : result >> 1;
+
+    shift = 0;
+    result = 0;
+    do {
+      byte = encoded.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+    lng += result & 1 ? ~(result >> 1) : result >> 1;
+
+    coords.push([lng / 1e5, lat / 1e5]);
+  }
+  return coords;
+}
+
+export const RideMapThumbnail = memo(function RideMapThumbnail({
+  rideId,
+  routePolyline,
+  style,
+}: RideMapThumbnailProps) {
+  const { t, isDark } = useEditorialTheme();
+  const mapRef = useRef<MapboxGL.MapView>(null);
+
+  // Check MMKV cache on first render
+  const [snapUri, setSnapUri] = useState<string | null>(() => {
+    return rideStorage.getString(`${CACHE_PREFIX}${rideId}`) ?? null;
+  });
+
+  const routeData = useMemo(() => {
+    if (!routePolyline) return null;
+    try {
+      const coordinates = decodePolyline(routePolyline);
+      if (coordinates.length < 2) return null;
+
+      let minLng = coordinates[0][0];
+      let maxLng = coordinates[0][0];
+      let minLat = coordinates[0][1];
+      let maxLat = coordinates[0][1];
+
+      for (const [lng, lat] of coordinates) {
+        if (lng < minLng) minLng = lng;
+        if (lng > maxLng) maxLng = lng;
+        if (lat < minLat) minLat = lat;
+        if (lat > maxLat) maxLat = lat;
+      }
+
+      const geojson: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {},
+            geometry: { type: 'LineString', coordinates },
+          },
+        ],
+      };
+
+      return {
+        geojson,
+        bounds: {
+          ne: [maxLng + 0.005, maxLat + 0.005] as [number, number],
+          sw: [minLng - 0.005, minLat - 0.005] as [number, number],
+        },
+      };
+    } catch {
+      return null;
+    }
+  }, [routePolyline]);
+
+  const handleMapLoaded = useCallback(async () => {
+    if (!mapRef.current) return;
+    try {
+      const uri = await mapRef.current.takeSnap(true);
+      rideStorage.set(`${CACHE_PREFIX}${rideId}`, uri);
+      setSnapUri(uri);
+    } catch {
+      // Snapshot failed — keep showing the live map
+    }
+  }, [rideId]);
+
+  // Cached image available — render it
+  if (snapUri) {
+    return (
+      <Image
+        source={{ uri: snapUri }}
+        style={[{ backgroundColor: t.surface2 }, style as ImageStyle]}
+        resizeMode="cover"
+      />
+    );
+  }
+
+  // No polyline data — show fallback placeholder
+  if (!routeData) {
+    return (
+      <View
+        style={[
+          {
+            backgroundColor: t.surface2,
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+          style,
+        ]}
+      >
+        <Route size={28} color={t.ink4} />
+      </View>
+    );
+  }
+
+  // Render hidden map, take snapshot, then swap to cached image
+  const mapStyleKey = getDefaultMapStyle(isDark);
+
+  return (
+    <View style={[{ overflow: 'hidden' }, style]}>
+      <MapboxGL.MapView
+        ref={mapRef}
+        style={{ width: '100%', height: '100%' }}
+        styleURL={MAP_STYLES[mapStyleKey]}
+        logoEnabled={false}
+        attributionEnabled={false}
+        scaleBarEnabled={false}
+        pitchEnabled={false}
+        rotateEnabled={false}
+        scrollEnabled={false}
+        zoomEnabled={false}
+        onDidFinishLoadingMap={handleMapLoaded}
+      >
+        <MapboxGL.Camera
+          bounds={{
+            ne: routeData.bounds.ne,
+            sw: routeData.bounds.sw,
+            paddingTop: 16,
+            paddingBottom: 16,
+            paddingLeft: 16,
+            paddingRight: 16,
+          }}
+          animationDuration={0}
+        />
+        <MapboxGL.ShapeSource id={`thumb-src-${rideId}`} shape={routeData.geojson}>
+          <MapboxGL.LineLayer
+            id={`thumb-line-${rideId}`}
+            style={{
+              lineColor: t.warm,
+              lineWidth: 3,
+              lineCap: 'round',
+              lineJoin: 'round',
+            }}
+          />
+        </MapboxGL.ShapeSource>
+      </MapboxGL.MapView>
+    </View>
+  );
+});
