@@ -1,6 +1,7 @@
 import { palette } from '@motovault/design-system';
+import { RideOverviewDocument, type RideOverviewQuery } from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -11,23 +12,24 @@ import {
   Clock,
   Compass,
   Gauge,
-  Map as MapIcon,
+  Layers,
+  Pencil,
   Receipt,
   Route,
   Share2,
-  Trash2,
   TrendingUp,
-  Wrench,
+  Trophy,
+  X,
 } from 'lucide-react-native';
 // NOTE: palette is kept only for speed-gradient colors (speedSlow/Medium/Fast)
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, ScrollView, Share, Switch, Text, TextInput, View } from 'react-native';
-import Animated, { FadeIn, FadeInUp, SlideInUp, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PbToast } from '../../components/ride/pb-toast';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { gqlFetcher } from '../../lib/graphql-client';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { maybeRequestReview } from '../../lib/store-review';
@@ -46,6 +48,17 @@ import {
 } from '../../utils/ride-formatters';
 import { clearRideData, getPointBuffer, getWaypointChunks } from '../../utils/ride-storage';
 import { enqueueOrExecute } from '../../utils/ride-sync-queue';
+
+const RECORD_LABELS: Record<string, string> = {
+  longest_distance: 'Longest ride ever',
+  longest_duration: 'Longest duration ever',
+  top_speed: 'New top speed',
+  max_elevation_gain: 'Most elevation ever',
+  longest_streak: 'Longest streak ever',
+};
+
+const MAP_HEIGHT = 260;
+const SHEET_RADIUS = 28;
 
 /** Smart ride naming using time-of-day */
 function smartRideName(startedAt: number): string {
@@ -97,14 +110,40 @@ export default function RideSummaryScreen() {
   const [rideName, setRideName] = useState(defaultRideName);
   const [isSaving, setIsSaving] = useState(false);
   const [shareToDiscover, setShareToDiscover] = useState(false);
-  const [showCelebration, setShowCelebration] = useState(true);
+  const [pbDismissed, setPbDismissed] = useState(false);
   const mapRef = useRef<MapboxGL.MapView>(null);
 
-  // Auto-dismiss celebration after 2 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => setShowCelebration(false), 2200);
-    return () => clearTimeout(timer);
-  }, []);
+  // Fetch bike name from cache
+  const bikeName = useMemo(() => {
+    if (!motorcycleId) return null;
+    // Try to read from existing query cache
+    const cachedData = queryClient.getQueryData<{
+      myMotorcycles?: Array<{ id: string; nickname?: string | null; make: string; model: string }>;
+    }>(queryKeys.motorcycles.lists());
+    const bike = cachedData?.myMotorcycles?.find((m) => m.id === motorcycleId);
+    if (!bike) return null;
+    return bike.nickname || `${bike.make} ${bike.model}`;
+  }, [motorcycleId, queryClient]);
+
+  // Fetch PB data
+  const { data: overviewData } = useQuery<RideOverviewQuery>({
+    queryKey: queryKeys.rides.overview,
+    queryFn: () => gqlFetcher(RideOverviewDocument),
+    staleTime: 0,
+  });
+
+  const newRecords = useMemo(
+    () =>
+      (overviewData?.rideOverview?.personalRecords ?? []).filter(
+        (r) => r.rideId === rideId && r.previousValue != null,
+      ),
+    [overviewData?.rideOverview?.personalRecords, rideId],
+  );
+
+  const pbRecord = newRecords.length > 0 && !pbDismissed ? newRecords[0] : null;
+  const pbDelta = pbRecord?.previousValue
+    ? Math.round(((pbRecord.value - pbRecord.previousValue) / pbRecord.previousValue) * 100)
+    : null;
 
   // Build route from stored waypoints
   const routeData = useMemo(() => {
@@ -146,24 +185,36 @@ export default function RideSummaryScreen() {
       }
     }
 
-    // Speed-gradient color stops (must be strictly ascending for Mapbox interpolate)
+    // Speed-gradient color stops — downsample to max ~200 entries
     const totalDist = cumulativeDistance || 1;
-    const colorStops: [number, string][] = [];
+    const rawStops: [number, string][] = [];
     let lastPct = -1;
     for (let i = 0; i < combined.length; i++) {
-      const pct = Math.round((distances[i] / totalDist) * 10000) / 10000; // 4 decimal precision
-      if (pct <= lastPct) continue; // skip duplicate/non-ascending values
+      const pct = Math.round((distances[i] / totalDist) * 10000) / 10000;
+      if (pct <= lastPct) continue;
       const speedKmh = (speedValues[i] ?? 0) * 3.6;
       let color: string;
       if (speedKmh < 30) color = palette.speedSlow;
       else if (speedKmh < 80) color = palette.speedMedium;
       else color = palette.speedFast;
-      colorStops.push([pct, color]);
+      rawStops.push([pct, color]);
       lastPct = pct;
     }
-    // Ensure we have at least start and end stops
+
+    // Downsample if too many stops
+    let colorStops = rawStops;
+    if (rawStops.length > 200) {
+      const step = Math.ceil(rawStops.length / 200);
+      colorStops = rawStops.filter(
+        (_, i) => i === 0 || i === rawStops.length - 1 || i % step === 0,
+      );
+    }
+
     if (colorStops.length === 0) {
-      colorStops.push([0, palette.speedSlow], [1, palette.speedSlow]);
+      colorStops = [
+        [0, palette.speedSlow],
+        [1, palette.speedSlow],
+      ];
     } else {
       if (colorStops[0][0] !== 0) colorStops.unshift([0, colorStops[0][1]]);
       if (colorStops[colorStops.length - 1][0] !== 1)
@@ -291,245 +342,229 @@ export default function RideSummaryScreen() {
   }, []);
 
   const stats = [
-    { icon: Route, label: 'Distance', value: formatDistance(distanceM, system) },
-    { icon: Clock, label: 'Moving Time', value: formatDuration(durationS) },
-    { icon: TrendingUp, label: 'Avg Speed', value: formatSpeed(avgSpeedMps, system) },
-    { icon: Gauge, label: 'Max Speed', value: formatSpeed(maxSpeedMps, system) },
-    { icon: ArrowUp, label: 'Ascent', value: formatElevation(elevationGain, system) },
-    { icon: ArrowDown, label: 'Descent', value: formatElevation(elevationLoss, system) },
+    { icon: Route, label: 'DISTANCE', value: formatDistance(distanceM, system), copper: true },
+    { icon: Clock, label: 'MOVING TIME', value: formatDuration(durationS) },
+    { icon: TrendingUp, label: 'AVG SPEED', value: formatSpeed(avgSpeedMps, system) },
+    { icon: Gauge, label: 'MAX SPEED', value: formatSpeed(maxSpeedMps, system), priv: true },
+    { icon: ArrowUp, label: 'ASCENT', value: formatElevation(elevationGain, system) },
+    { icon: ArrowDown, label: 'DESCENT', value: formatElevation(elevationLoss, system) },
   ];
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      {/* Celebration overlay */}
-      {showCelebration && (
+      {/* ===== Map band (top) ===== */}
+      <View style={{ height: MAP_HEIGHT, position: 'relative' }}>
+        <MapboxGL.MapView
+          ref={mapRef}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          styleURL={MAP_STYLES[mapStyle]}
+          logoEnabled={false}
+          attributionEnabled={false}
+          scaleBarEnabled={false}
+        >
+          {routeData && (
+            <>
+              <MapboxGL.Camera
+                bounds={{
+                  ne: routeData.bounds.ne,
+                  sw: routeData.bounds.sw,
+                  paddingTop: 60,
+                  paddingBottom: 60,
+                  paddingLeft: 40,
+                  paddingRight: 40,
+                }}
+                animationDuration={0}
+              />
+
+              <MapboxGL.ShapeSource id="route-source" shape={routeData.geojson} lineMetrics>
+                <MapboxGL.LineLayer
+                  id="route-line"
+                  style={{
+                    lineWidth: 4,
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                    lineGradient: [
+                      'interpolate',
+                      ['linear'],
+                      ['line-progress'],
+                      ...routeData.colorStops.flat(),
+                    ],
+                  }}
+                />
+              </MapboxGL.ShapeSource>
+
+              {/* Start marker */}
+              <MapboxGL.MarkerView id="start-marker" coordinate={routeData.startPoint}>
+                <View
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: 8,
+                    backgroundColor: theme.success,
+                    borderWidth: 3,
+                    borderColor: theme.ink,
+                  }}
+                />
+              </MapboxGL.MarkerView>
+
+              {/* End marker */}
+              <MapboxGL.MarkerView id="end-marker" coordinate={routeData.endPoint}>
+                <View
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: 8,
+                    backgroundColor: theme.warm,
+                    borderWidth: 3,
+                    borderColor: theme.ink,
+                  }}
+                />
+              </MapboxGL.MarkerView>
+            </>
+          )}
+        </MapboxGL.MapView>
+
+        {/* Vignette overlay fading to sheet bg */}
+        <LinearGradient
+          colors={['transparent', 'transparent', tint(theme.bg, 0.18), theme.bg]}
+          locations={[0, 0.55, 0.85, 1]}
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: MAP_HEIGHT,
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Map action buttons — glass morphism pills */}
         <View
           style={{
             position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 100,
-            backgroundColor: theme.bg,
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 20,
+            top: insets.top + 10,
+            right: 18,
+            gap: 10,
           }}
         >
-          <Animated.View
-            entering={ZoomIn.springify().damping(12)}
+          <Pressable
+            onPress={handleCycleMapStyle}
+            accessibilityRole="button"
+            accessibilityLabel="Change map style"
             style={{
-              width: 88,
-              height: 88,
-              borderRadius: 44,
-              backgroundColor: theme.success,
+              width: 40,
+              height: 40,
+              borderRadius: 999,
+              borderCurve: 'continuous',
+              backgroundColor: 'rgba(30,28,25,0.78)',
               alignItems: 'center',
               justifyContent: 'center',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.25,
+              shadowRadius: 14,
             }}
           >
-            <Check size={44} color={theme.ink} strokeWidth={3} />
-          </Animated.View>
-          <Animated.Text
-            entering={FadeInUp.delay(200).duration(300)}
+            <Layers size={18} color="rgba(255,255,255,0.85)" />
+          </Pressable>
+          <Pressable
+            onPress={handleShare}
+            accessibilityRole="button"
+            accessibilityLabel="Share ride"
             style={{
-              fontSize: 28,
-              fontWeight: '800',
-              color: theme.ink,
-              letterSpacing: -0.5,
+              width: 40,
+              height: 40,
+              borderRadius: 999,
+              borderCurve: 'continuous',
+              backgroundColor: 'rgba(30,28,25,0.78)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.25,
+              shadowRadius: 14,
             }}
           >
-            Ride Complete!
-          </Animated.Text>
-          <Animated.View
-            entering={FadeIn.delay(400).duration(300)}
-            style={{ flexDirection: 'row', gap: 24 }}
-          >
-            <View style={{ alignItems: 'center' }}>
-              <Text
-                style={{
-                  fontSize: 24,
-                  fontWeight: '700',
-                  color: theme.ink,
-                  fontVariant: ['tabular-nums'],
-                }}
-              >
-                {formatDistance(distanceM, system)}
-              </Text>
-              <Text style={{ fontSize: 13, color: theme.ink3, marginTop: 2 }}>
-                Distance
-              </Text>
-            </View>
-            <View style={{ width: 1, height: 40, backgroundColor: theme.line }} />
-            <View style={{ alignItems: 'center' }}>
-              <Text
-                style={{
-                  fontSize: 24,
-                  fontWeight: '700',
-                  color: theme.ink,
-                  fontVariant: ['tabular-nums'],
-                }}
-              >
-                {formatDuration(durationS)}
-              </Text>
-              <Text style={{ fontSize: 13, color: theme.ink3, marginTop: 2 }}>
-                Duration
-              </Text>
-            </View>
-          </Animated.View>
+            <Share2 size={16} color="rgba(255,255,255,0.85)" />
+          </Pressable>
         </View>
-      )}
+      </View>
 
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
-        showsVerticalScrollIndicator={false}
+      {/* ===== Bottom Sheet ===== */}
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: theme.bg,
+          borderTopLeftRadius: SHEET_RADIUS,
+          borderTopRightRadius: SHEET_RADIUS,
+          borderCurve: 'continuous',
+          marginTop: -SHEET_RADIUS,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -8 },
+          shadowOpacity: 0.2,
+          shadowRadius: 30,
+          overflow: 'hidden',
+        }}
       >
-        {/* Map */}
-        <View style={{ height: 380, position: 'relative' }}>
-          <MapboxGL.MapView
-            ref={mapRef}
-            style={{ flex: 1 }}
-            styleURL={MAP_STYLES[mapStyle]}
-            logoEnabled={false}
-            attributionEnabled={false}
-            scaleBarEnabled={false}
-          >
-            {routeData && (
-              <>
-                <MapboxGL.Camera
-                  bounds={{
-                    ne: routeData.bounds.ne,
-                    sw: routeData.bounds.sw,
-                    paddingTop: 60,
-                    paddingBottom: 60,
-                    paddingLeft: 40,
-                    paddingRight: 40,
-                  }}
-                  animationDuration={1000}
-                />
-
-                <MapboxGL.ShapeSource id="route-source" shape={routeData.geojson} lineMetrics>
-                  <MapboxGL.LineLayer
-                    id="route-line"
-                    style={{
-                      lineWidth: 4,
-                      lineCap: 'round',
-                      lineJoin: 'round',
-                      lineGradient: [
-                        'interpolate',
-                        ['linear'],
-                        ['line-progress'],
-                        ...routeData.colorStops.flat(),
-                      ],
-                    }}
-                  />
-                </MapboxGL.ShapeSource>
-
-                {/* Start marker */}
-                <MapboxGL.MarkerView id="start-marker" coordinate={routeData.startPoint}>
-                  <View
-                    style={{
-                      width: 16,
-                      height: 16,
-                      borderRadius: 8,
-                      backgroundColor: theme.success,
-                      borderWidth: 3,
-                      borderColor: theme.ink,
-                    }}
-                  />
-                </MapboxGL.MarkerView>
-
-                {/* End marker */}
-                <MapboxGL.MarkerView id="end-marker" coordinate={routeData.endPoint}>
-                  <View
-                    style={{
-                      width: 16,
-                      height: 16,
-                      borderRadius: 8,
-                      backgroundColor: theme.warm,
-                      borderWidth: 3,
-                      borderColor: theme.ink,
-                    }}
-                  />
-                </MapboxGL.MarkerView>
-              </>
-            )}
-          </MapboxGL.MapView>
-
-          {/* Bottom gradient fade into content */}
-          <LinearGradient
-            colors={['transparent', theme.bg]}
+        {/* Drag handle */}
+        <View style={{ alignItems: 'center', paddingTop: 8, paddingBottom: 4 }}>
+          <View
             style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: 60,
+              width: 36,
+              height: 4,
+              borderRadius: 99,
+              backgroundColor: isDark ? 'rgba(255,255,255,0.18)' : 'rgba(22,20,18,0.18)',
             }}
           />
-
-          {/* Map controls */}
-          <View
-            style={{
-              position: 'absolute',
-              top: insets.top + 12,
-              right: 16,
-              gap: 8,
-            }}
-          >
-            <Pressable
-              onPress={handleCycleMapStyle}
-              accessibilityRole="button"
-              accessibilityLabel="Change map style"
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                borderCurve: 'continuous',
-                backgroundColor: tint(theme.bg, 0.78),
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <MapIcon size={18} color={theme.ink} />
-            </Pressable>
-            <Pressable
-              onPress={handleShare}
-              accessibilityRole="button"
-              accessibilityLabel="Share ride"
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                borderCurve: 'continuous',
-                backgroundColor: tint(theme.bg, 0.78),
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Share2 size={18} color={theme.ink} />
-            </Pressable>
-          </View>
         </View>
 
-        {/* Content */}
-        <Animated.View
-          entering={SlideInUp.delay(showCelebration ? 2200 : 200).duration(400)}
-          style={{ paddingHorizontal: 20, marginTop: -32 }}
+        <ScrollView
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            paddingTop: 10,
+            paddingBottom: insets.bottom + 38,
+            gap: 12,
+          }}
+          showsVerticalScrollIndicator={false}
+          style={{ flex: 1 }}
         >
-          <View
-            style={{
-              backgroundColor: theme.surface,
-              borderRadius: 24,
-              borderCurve: 'continuous',
-              padding: 20,
-              gap: 20,
-              borderWidth: 1,
-              borderColor: theme.line,
-            }}
-          >
-            {/* Ride name */}
-            <View>
+          {/* Name meta row */}
+          <Animated.View entering={FadeIn.delay(100).duration(250)}>
+            <View
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4 }}
+            >
+              <View
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: 999,
+                  backgroundColor: '#2bb673',
+                }}
+              />
+              <Text
+                style={{
+                  fontFamily: 'GeistMono',
+                  fontSize: 9.5,
+                  fontWeight: '500',
+                  letterSpacing: 1.9,
+                  textTransform: 'uppercase',
+                  color: theme.ink3,
+                }}
+              >
+                Ride saved · just now{bikeName ? ` · ${bikeName}` : ''}
+              </Text>
+            </View>
+
+            {/* Ride name — editable */}
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 10,
+                paddingHorizontal: 4,
+                marginTop: 4,
+              }}
+            >
               <TextInput
                 value={rideName}
                 onChangeText={setRideName}
@@ -547,78 +582,242 @@ export default function RideSummaryScreen() {
                 maxLength={100}
                 accessibilityLabel="Ride name"
                 style={{
-                  backgroundColor: theme.surface2,
-                  borderRadius: 14,
-                  borderCurve: 'continuous',
-                  padding: 14,
-                  fontSize: 18,
-                  fontWeight: '700',
+                  flex: 1,
+                  fontSize: 22,
+                  fontWeight: '600',
+                  letterSpacing: -0.44,
                   color: theme.ink,
-                  borderWidth: 1,
-                  borderColor: theme.line,
+                  lineHeight: 26,
+                  padding: 0,
                 }}
               />
+              <Pencil size={16} color={theme.ink3} />
             </View>
+          </Animated.View>
 
-            {/* Stats grid — proper flexbox */}
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-              {stats.map(({ icon: Icon, label, value }) => (
+          {/* PB banner */}
+          {pbRecord && (
+            <Animated.View entering={FadeInUp.delay(200).duration(300)}>
+              <LinearGradient
+                colors={isDark ? ['#211c17', '#1c1916'] : ['#fbf3e7', '#f7eddd']}
+                style={{
+                  borderRadius: 18,
+                  borderCurve: 'continuous',
+                  padding: 12,
+                  paddingRight: 14,
+                  paddingBottom: 13,
+                  flexDirection: 'row',
+                  alignItems: 'flex-start',
+                  gap: 12,
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(200,119,44,0.22)' : 'rgba(200,119,44,0.28)',
+                  overflow: 'hidden',
+                }}
+              >
+                {/* Radial glow overlay (approx with linear) */}
                 <View
-                  key={label}
                   style={{
-                    flexBasis: '47%',
-                    flexGrow: 1,
-                    backgroundColor: theme.surface2,
-                    borderRadius: 16,
-                    borderCurve: 'continuous',
-                    padding: 14,
-                    gap: 6,
-                    borderWidth: 1,
-                    borderColor: theme.line,
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
                   }}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Icon size={14} color={theme.ink3} />
-                    <Text style={{ fontSize: 12, fontWeight: '600', color: theme.ink3 }}>
-                      {label}
+                  <LinearGradient
+                    colors={[tint('#c8772c', 0.16), tint('#c8772c', 0.04), 'transparent']}
+                    start={{ x: 0, y: 0.5 }}
+                    end={{ x: 0.75, y: 0.5 }}
+                    style={{ flex: 1 }}
+                  />
+                </View>
+
+                {/* Trophy icon box */}
+                <LinearGradient
+                  colors={[tint('#c8772c', 0.22), tint('#c8772c', 0.08)]}
+                  start={{ x: 0.2, y: 0 }}
+                  end={{ x: 0.8, y: 1 }}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 11,
+                    borderCurve: 'continuous',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginTop: 2,
+                    borderWidth: 1,
+                    borderColor: 'rgba(200,119,44,0.25)',
+                  }}
+                >
+                  <Trophy size={20} color="#e89d5a" />
+                </LinearGradient>
+
+                {/* PB body */}
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text
+                      style={{
+                        fontFamily: 'GeistMono',
+                        fontSize: 9,
+                        fontWeight: '600',
+                        letterSpacing: 2,
+                        textTransform: 'uppercase',
+                        color: '#e89d5a',
+                      }}
+                    >
+                      Personal best
                     </Text>
+                    <View
+                      style={{
+                        paddingHorizontal: 6,
+                        paddingVertical: 1.5,
+                        borderRadius: 99,
+                        borderWidth: 1,
+                        borderColor: 'rgba(200,119,44,0.4)',
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontFamily: 'GeistMono',
+                          fontSize: 8,
+                          fontWeight: '600',
+                          letterSpacing: 1.2,
+                          textTransform: 'uppercase',
+                          color: '#e89d5a',
+                        }}
+                      >
+                        PB
+                      </Text>
+                    </View>
                   </View>
                   <Text
                     style={{
-                      fontSize: 20,
-                      fontWeight: '800',
+                      fontSize: 14.5,
+                      fontWeight: '600',
+                      letterSpacing: -0.17,
                       color: theme.ink,
-                      fontVariant: ['tabular-nums'],
+                      marginTop: 3,
+                      lineHeight: 17.4,
                     }}
                   >
-                    {value}
+                    {RECORD_LABELS[pbRecord.recordType] ?? 'New personal best'}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 11.5,
+                      color: theme.ink2,
+                      marginTop: 2,
+                      fontVariant: ['tabular-nums'],
+                      lineHeight: 15,
+                    }}
+                  >
+                    {formatDistance(distanceM, system)}
+                    {pbDelta != null && pbDelta > 0 ? ` · +${pbDelta}% on previous best` : ''}
                   </Text>
                 </View>
-              ))}
-            </View>
 
-            {/* Mileage applied indicator */}
-            {distanceM > 0 && motorcycleId && (
-              <View
+                {/* Dismiss X */}
+                <Pressable
+                  onPress={() => setPbDismissed(true)}
+                  hitSlop={12}
+                  style={{ opacity: 0.6 }}
+                >
+                  <X size={14} color={theme.ink3} />
+                </Pressable>
+              </LinearGradient>
+            </Animated.View>
+          )}
+
+          {/* 2x3 stat grid */}
+          <Animated.View
+            entering={FadeInUp.delay(300).duration(300)}
+            style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}
+          >
+            {stats.map(({ icon: Icon, label, value, copper, priv }, index) => (
+              <Animated.View
+                key={label}
+                entering={FadeInUp.delay(300 + index * 50).duration(250)}
                 style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 8,
-                  backgroundColor: tint(theme.success, 0.12),
-                  borderRadius: 12,
+                  flexBasis: '47%',
+                  flexGrow: 1,
+                  backgroundColor: theme.surface,
+                  borderRadius: 16,
                   borderCurve: 'continuous',
+                  padding: 12,
                   paddingHorizontal: 14,
-                  paddingVertical: 10,
+                  paddingBottom: 14,
+                  minHeight: 78,
+                  borderWidth: 1,
+                  borderColor: theme.line,
                 }}
               >
-                <Wrench size={16} color={theme.success} />
-                <Text style={{ fontSize: 13, color: theme.success, flex: 1 }}>
-                  {formatDistance(distanceM, system)} added to bike odometer
-                </Text>
-              </View>
-            )}
+                {/* Private pill for max speed */}
+                {priv && (
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 12,
+                      right: 12,
+                      backgroundColor: theme.line,
+                      borderRadius: 99,
+                      paddingHorizontal: 5,
+                      paddingVertical: 2,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: 'GeistMono',
+                        fontSize: 7,
+                        fontWeight: '600',
+                        letterSpacing: 1.1,
+                        textTransform: 'uppercase',
+                        color: theme.ink3,
+                      }}
+                    >
+                      Private
+                    </Text>
+                  </View>
+                )}
 
-            {/* Add Expense shortcut */}
+                {/* Icon */}
+                <View style={{ marginBottom: 6 }}>
+                  <Icon size={18} color={copper ? theme.warm : theme.ink3} />
+                </View>
+
+                {/* Label */}
+                <Text
+                  style={{
+                    fontFamily: 'GeistMono',
+                    fontSize: 9,
+                    fontWeight: '500',
+                    letterSpacing: 1.6,
+                    textTransform: 'uppercase',
+                    color: theme.ink3,
+                  }}
+                >
+                  {label}
+                </Text>
+
+                {/* Value */}
+                <Text
+                  style={{
+                    fontSize: 22,
+                    fontWeight: '600',
+                    letterSpacing: -0.48,
+                    color: theme.ink,
+                    fontVariant: ['tabular-nums'],
+                    lineHeight: 22,
+                    marginTop: 4,
+                  }}
+                >
+                  {value}
+                </Text>
+              </Animated.View>
+            ))}
+          </Animated.View>
+
+          {/* Add expense row — dashed border */}
+          <Animated.View entering={FadeInUp.delay(600).duration(250)}>
             <Pressable
               onPress={() => {
                 triggerImpact();
@@ -631,99 +830,170 @@ export default function RideSummaryScreen() {
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 8,
-                paddingVertical: 14,
-                backgroundColor: pressed ? theme.surface3 : theme.surface2,
+                gap: 10,
+                height: 46,
                 borderRadius: 14,
                 borderCurve: 'continuous',
                 borderWidth: 1,
-                borderColor: theme.line,
+                borderStyle: 'dashed',
+                borderColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(22,20,18,0.10)',
+                backgroundColor: 'transparent',
+                opacity: pressed ? 0.7 : 1,
               })}
             >
               <Receipt size={16} color={theme.ink3} />
-              <Text style={{ fontSize: 14, fontWeight: '600', color: theme.ink3 }}>
-                Add Expense (Fuel, Tolls...)
+              <Text
+                style={{
+                  fontSize: 13.5,
+                  fontWeight: '500',
+                  letterSpacing: -0.07,
+                  color: theme.ink2,
+                }}
+              >
+                Add expense <Text style={{ color: theme.ink3 }}>(fuel, tolls...)</Text>
               </Text>
             </Pressable>
+          </Animated.View>
 
-            {/* Action buttons */}
+          {/* Save ride CTA — emerald gradient, pill shape */}
+          <Animated.View entering={FadeInUp.delay(650).duration(250)}>
             <Pressable
               onPress={handleSave}
               disabled={isSaving}
               accessibilityRole="button"
               accessibilityLabel={isSaving ? 'Saving ride' : 'Save ride'}
               style={({ pressed }) => ({
-                borderRadius: 20,
+                borderRadius: 999,
                 borderCurve: 'continuous',
                 overflow: 'hidden',
                 opacity: isSaving ? 0.5 : pressed ? 0.85 : 1,
+                shadowColor: 'rgba(43,182,115,0.45)',
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 1,
+                shadowRadius: 22,
               })}
             >
               <LinearGradient
-                colors={[theme.success, theme.success]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
+                colors={['#34c77a', '#2bb673']}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
                 style={{
-                  paddingVertical: 16,
+                  height: 54,
+                  flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  gap: 10,
                 }}
               >
-                <Text style={{ fontSize: 17, fontWeight: '700', color: theme.ink }}>
-                  {isSaving ? 'Saving...' : 'Save Ride'}
+                {/* Check circle */}
+                <View
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: 999,
+                    backgroundColor: 'rgba(255,255,255,0.92)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Check size={11} color="#2bb673" strokeWidth={2.5} />
+                </View>
+                <Text
+                  style={{
+                    fontSize: 16.5,
+                    fontWeight: '700',
+                    letterSpacing: -0.2,
+                    color: '#052b1a',
+                  }}
+                >
+                  {isSaving ? 'Saving...' : 'Save ride'}
                 </Text>
               </LinearGradient>
             </Pressable>
+          </Animated.View>
 
-            {/* Share to Discover toggle */}
+          {/* Share on Discover row */}
+          <Animated.View
+            entering={FadeInUp.delay(700).duration(250)}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+              paddingHorizontal: 4,
+              paddingTop: 4,
+            }}
+          >
+            {/* Compass icon box */}
             <View
               style={{
-                flexDirection: 'row',
+                width: 32,
+                height: 32,
+                borderRadius: 10,
+                borderCurve: 'continuous',
+                backgroundColor: theme.surface,
+                borderWidth: 1,
+                borderColor: theme.line,
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                paddingVertical: 12,
-                paddingHorizontal: 4,
+                justifyContent: 'center',
               }}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-                <Compass size={18} color={theme.success} />
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: theme.ink }}>
-                    Share on Discover
-                  </Text>
-                  <Text style={{ fontSize: 12, color: theme.ink3 }}>
-                    Other riders can find and ride this route
-                  </Text>
-                </View>
-              </View>
-              <Switch
-                value={shareToDiscover}
-                onValueChange={setShareToDiscover}
-                trackColor={{ false: theme.line2, true: theme.success }}
-                thumbColor={theme.ink}
-              />
+              <Compass size={16} color={theme.ink3} />
             </View>
 
-            {/* Discard option */}
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text
+                style={{
+                  fontSize: 13.5,
+                  fontWeight: '600',
+                  letterSpacing: -0.14,
+                  color: theme.ink,
+                  lineHeight: 16.2,
+                }}
+              >
+                Share on Discover
+              </Text>
+              <Text
+                style={{
+                  fontSize: 11.5,
+                  color: theme.ink3,
+                  marginTop: 1,
+                  letterSpacing: -0.035,
+                }}
+              >
+                Other riders can find and ride this route
+              </Text>
+            </View>
+
+            <Switch
+              value={shareToDiscover}
+              onValueChange={setShareToDiscover}
+              trackColor={{ false: theme.line2, true: theme.success }}
+              thumbColor="#fff"
+            />
+          </Animated.View>
+
+          {/* Discard option — subtle, at the bottom */}
+          <Animated.View
+            entering={FadeIn.delay(800).duration(250)}
+            style={{ alignItems: 'center', paddingTop: 8 }}
+          >
             <Pressable
               onPress={handleDiscard}
               accessibilityRole="button"
               accessibilityLabel="Discard ride"
+              hitSlop={8}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'center',
                 gap: 6,
                 paddingVertical: 8,
               }}
             >
-              <Trash2 size={14} color={theme.ink3} />
-              <Text style={{ fontSize: 14, color: theme.ink3 }}>Discard Ride</Text>
+              <Text style={{ fontSize: 13, color: theme.ink3 }}>Discard ride</Text>
             </Pressable>
-          </View>
-        </Animated.View>
-      </ScrollView>
-      <PbToast rideId={rideId} />
+          </Animated.View>
+        </ScrollView>
+      </View>
     </View>
   );
 }
