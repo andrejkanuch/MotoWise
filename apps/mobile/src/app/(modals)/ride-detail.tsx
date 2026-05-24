@@ -14,17 +14,16 @@ import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   ArrowLeft,
-  ChevronUp,
   Clock,
   Gauge,
   Info,
-  Map as MapIcon,
+  Layers,
   Mountain,
-  Pause,
   Route,
   Share2,
   Trash2,
   TrendingDown,
+  X,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -33,23 +32,26 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
+import { MapPickerSheet } from '../../components/ride/map-picker-sheet';
 import { RideElevationChart } from '../../components/ride/ride-elevation-chart';
 import { RideSpeedChart } from '../../components/ride/ride-speed-chart';
-import { StatTile } from '../../components/ride/stat-tile';
+import { RideStatTile } from '../../components/ride/ride-stat-tile';
 import { shareRide } from '../../components/share/share-ride';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { cycleMapStyle, getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
+import { getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
 import {
-  formatDistance,
+  distanceUnitLabel,
+  elevationUnitLabel,
+  formatDistanceValue,
   formatDuration,
-  formatElevation,
-  formatFullDate,
+  formatElevationValue,
   formatSpeed,
-  formatTime,
+  formatSpeedValue,
+  speedUnitLabel,
 } from '../../utils/ride-formatters';
 import { enqueueOrExecute } from '../../utils/ride-sync-queue';
 
@@ -85,8 +87,6 @@ function decodePolyline(encoded: string): [number, number][] {
   return points;
 }
 
-type ChartType = 'speed' | 'elevation';
-
 type RideDetailPayload = NonNullable<GetRideQuery['ride'] | GetPublicRideQuery['getPublicRide']>;
 
 export default function RideDetailScreen() {
@@ -98,11 +98,10 @@ export default function RideDetailScreen() {
   const { rideId } = useLocalSearchParams<{ rideId: string }>();
   const system = useMeasurementSystem();
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
-  const [activeChart, setActiveChart] = useState<ChartType | null>(null);
-  const [isMapFullScreen, setIsMapFullScreen] = useState(false);
   const [showLeanTooltip, setShowLeanTooltip] = useState(false);
+  const [showMapPicker, setShowMapPicker] = useState(false);
   const sheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ['35%', '60%', '92%'], []);
+  const snapPoints = useMemo(() => [100, '45%', '92%'], []);
 
   const { data: rideBundle, isLoading } = useQuery({
     queryKey: queryKeys.rides.detail(rideId ?? ''),
@@ -146,6 +145,23 @@ export default function RideDetailScreen() {
       });
     }
   }, [rideLoaded, rideId, ride]);
+
+  // Fetch bike name from cache (same pattern as ride-summary)
+  const bikeName = useMemo(() => {
+    const motorcycleId = ride?.motorcycleId;
+    if (!motorcycleId) return null;
+    const cachedData = queryClient.getQueryData<{
+      myMotorcycles?: Array<{
+        id: string;
+        nickname?: string | null;
+        make: string;
+        model: string;
+      }>;
+    }>(queryKeys.motorcycles.lists());
+    const bike = cachedData?.myMotorcycles?.find((m) => m.id === motorcycleId);
+    if (!bike) return null;
+    return bike.nickname || `${bike.make} ${bike.model}`;
+  }, [ride?.motorcycleId, queryClient]);
 
   const routeData = useMemo(() => {
     if (!ride?.routePolyline) return null;
@@ -207,8 +223,9 @@ export default function RideDetailScreen() {
       distanceM: ride.distanceM ?? 0,
       durationS: ride.durationS ?? 0,
       system,
+      bikeName,
     });
-  }, [ride, system, rideId]);
+  }, [ride, system, rideId, bikeName]);
 
   const handleDelete = useCallback(() => {
     if (!rideId) return;
@@ -229,38 +246,20 @@ export default function RideDetailScreen() {
     ]);
   }, [rideId, queryClient, router, t]);
 
-  const handleCycleMapStyle = useCallback(() => {
-    setMapStyle((prev) => {
-      const next = cycleMapStyle(prev);
-      trackEvent(AnalyticsEvent.RIDE_MAP_STYLE_CHANGED, {
-        ride_id: rideId ?? null,
-        from_style: prev,
-        to_style: next,
-      });
-      return next;
-    });
-  }, [rideId]);
-
-  const handleStatTap = useCallback(
-    (chart: ChartType) => {
+  const handleMapStyleSelect = useCallback(
+    (style: 'dark' | 'light' | 'outdoors' | 'satellite') => {
       if (process.env.EXPO_OS === 'ios') {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
-      setActiveChart((prev) => {
-        if (prev === chart) {
-          sheetRef.current?.snapToIndex(1);
-          return null;
-        }
-        sheetRef.current?.snapToIndex(2);
-        trackEvent(AnalyticsEvent.RIDE_CHART_VIEWED, {
-          ride_id: rideId ?? null,
-          chart_type: chart,
-          source: 'ride_detail',
-        });
-        return chart;
+      trackEvent(AnalyticsEvent.RIDE_MAP_STYLE_CHANGED, {
+        ride_id: rideId ?? null,
+        from_style: mapStyle,
+        to_style: style,
       });
+      setMapStyle(style);
+      setShowMapPicker(false);
     },
-    [rideId],
+    [rideId, mapStyle],
   );
 
   const renderBackdrop = useCallback(
@@ -272,14 +271,14 @@ export default function RideDetailScreen() {
 
   useEffect(() => {
     const handler = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (isMapFullScreen) {
-        sheetRef.current?.snapToIndex(0);
+      if (showMapPicker) {
+        setShowMapPicker(false);
         return true;
       }
       return false;
     });
     return () => handler.remove();
-  }, [isMapFullScreen]);
+  }, [showMapPicker]);
 
   if (isLoading || !ride) {
     return (
@@ -302,78 +301,55 @@ export default function RideDetailScreen() {
   const avgSpeedMps = ride.avgSpeedMps ?? 0;
   const elevationGain = ride.elevationGain ?? 0;
   const pausedDurationS = ride.pausedDurationS ?? 0;
-  const pauseCount = pausedDurationS > 0 ? Math.max(1, Math.round(pausedDurationS / 240)) : 0;
-  // Lean angle: cap at 55° (phone IMU noise), display with caveat.
-  // Only available on authenticated rides (not public shares — lean angle policy).
   const rawLean =
     'maxLeanAngle' in ride ? (ride as { maxLeanAngle?: number | null }).maxLeanAngle : null;
   const maxLeanAngle = rawLean != null ? Math.min(rawLean, 55) : null;
 
-  const statTiles: {
-    icon: typeof Route;
-    label: string;
-    value: string;
-    unit: string;
-    chartType?: ChartType;
-    hasChart?: boolean;
-  }[] = [
-    {
-      icon: Route,
-      label: t('rideDetail.distance'),
-      value: formatDistance(distanceM, system),
-      unit: '',
-    },
-    {
-      icon: Clock,
-      label: t('rideDetail.movingTime'),
-      value: formatDuration(durationS),
-      unit: '',
-    },
-    {
-      icon: Mountain,
-      label: t('rideDetail.elevGain'),
-      value: elevationGain > 0 ? formatElevation(elevationGain, system) : 'NA',
-      unit: '',
-      chartType: 'elevation',
-      hasChart: elevationGain > 0,
-    },
-    {
-      icon: Gauge,
-      label: t('rideDetail.avgSpeed'),
-      value: avgSpeedMps > 0 ? formatSpeed(avgSpeedMps, system) : 'NA',
-      unit: '',
-      chartType: 'speed',
-      hasChart: avgSpeedMps > 0,
-    },
-    {
-      icon: Gauge,
-      label: t('rideDetail.maxSpeed'),
-      value: maxSpeedMps > 0 ? formatSpeed(maxSpeedMps, system) : 'NA',
-      unit: '',
-    },
-    {
-      icon: Pause,
-      label: t('rideDetail.pauses'),
-      value: pauseCount > 0 ? String(pauseCount) : '0',
-      unit: pauseCount > 0 && pausedDurationS > 0 ? `${Math.round(pausedDurationS / 60)}m` : '',
-    },
-    ...(maxLeanAngle != null
-      ? [
-          {
-            icon: TrendingDown,
-            label: t('rideDetail.leanAngle'),
-            value: maxLeanAngle >= 55 ? '55°+' : `${Math.round(maxLeanAngle)}°`,
-            unit: '',
-          },
-        ]
-      : []),
-  ];
+  // Elapsed time = moving + paused
+  const elapsedS = durationS + pausedDurationS;
+
+  // Eyebrow: "SATURDAY · MAY 24, 2026 · BMW R 1250 GS"
+  const eyebrowDate = ride.startedAt
+    ? new Date(ride.startedAt)
+        .toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        })
+        .toUpperCase()
+    : '';
+  const eyebrowText = bikeName ? `${eyebrowDate} · ${bikeName.toUpperCase()}` : eyebrowDate;
+
+  const defaultMapStyle = getDefaultMapStyle(isDark);
+  const isNonDefaultStyle = mapStyle !== defaultMapStyle;
+
+  // Glass morphism FAB style
+  const fabStyle = {
+    width: 44,
+    height: 44,
+    borderRadius: 999,
+    borderCurve: 'continuous' as const,
+    backgroundColor: 'rgba(30,28,25,0.74)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  };
+
+  const fabShadow = {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    elevation: 6,
+  };
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: theme.bg }}>
-        {/* Full-screen map */}
-        <View style={{ flex: 1 }}>
+        {/* Full-screen map — absolute, fills screen */}
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
           {routeData ? (
             <MapboxGL.MapView
               style={{ flex: 1 }}
@@ -382,18 +358,34 @@ export default function RideDetailScreen() {
               logoEnabled={false}
               attributionEnabled={false}
               scaleBarEnabled={false}
+              pitchEnabled={false}
+              rotateEnabled={false}
             >
               <MapboxGL.Camera
                 bounds={{
                   ne: routeData.bounds.ne,
                   sw: routeData.bounds.sw,
-                  paddingTop: insets.top + 60,
-                  paddingBottom: 200,
+                  paddingTop: insets.top + 80,
+                  paddingBottom: 160,
                   paddingLeft: 40,
                   paddingRight: 40,
                 }}
-                animationDuration={1000}
+                animationDuration={0}
               />
+              {/* Route glow (wider, semi-transparent) */}
+              <MapboxGL.ShapeSource id="route-glow-source" shape={routeData.geojson}>
+                <MapboxGL.LineLayer
+                  id="route-glow"
+                  style={{
+                    lineColor: theme.warm,
+                    lineWidth: 10,
+                    lineOpacity: 0.15,
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                  }}
+                />
+              </MapboxGL.ShapeSource>
+              {/* Route line */}
               <MapboxGL.ShapeSource id="route-source" shape={routeData.geojson}>
                 <MapboxGL.LineLayer
                   id="route-line"
@@ -405,29 +397,40 @@ export default function RideDetailScreen() {
                   }}
                 />
               </MapboxGL.ShapeSource>
+              {/* Start pin: white circle with copper border */}
               <MapboxGL.MarkerView id="start" coordinate={routeData.startPoint}>
                 <View
                   style={{
                     width: 14,
                     height: 14,
                     borderRadius: 7,
-                    backgroundColor: theme.success,
+                    backgroundColor: palette.white,
                     borderWidth: 3,
-                    borderColor: palette.white,
+                    borderColor: theme.warm,
                   }}
                 />
               </MapboxGL.MarkerView>
+              {/* End pin: copper circle with white inner dot */}
               <MapboxGL.MarkerView id="end" coordinate={routeData.endPoint}>
                 <View
                   style={{
                     width: 14,
                     height: 14,
                     borderRadius: 7,
-                    backgroundColor: theme.danger,
-                    borderWidth: 3,
-                    borderColor: palette.white,
+                    backgroundColor: theme.warm,
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
-                />
+                >
+                  <View
+                    style={{
+                      width: 5,
+                      height: 5,
+                      borderRadius: 2.5,
+                      backgroundColor: palette.white,
+                    }}
+                  />
+                </View>
               </MapboxGL.MarkerView>
             </MapboxGL.MapView>
           ) : (
@@ -446,445 +449,495 @@ export default function RideDetailScreen() {
           )}
         </View>
 
-        {/* Floating controls — top left: back */}
-        <View style={{ position: 'absolute', top: insets.top + 8, left: 16, zIndex: 10 }}>
+        {/* Back FAB — top-left */}
+        <View
+          style={{
+            position: 'absolute',
+            top: insets.top + 12,
+            left: 16,
+            zIndex: 10,
+          }}
+        >
           <Pressable
             onPress={() => router.back()}
             accessibilityRole="button"
             accessibilityLabel="Go back"
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              borderCurve: 'continuous',
-              backgroundColor: tint(theme.bg, 0.85),
-              borderWidth: 1,
-              borderColor: theme.line,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            style={{ ...fabStyle, ...fabShadow }}
           >
-            <ArrowLeft size={16} color={theme.ink} />
+            <ArrowLeft size={18} color="rgba(255,255,255,0.92)" />
           </Pressable>
         </View>
 
-        {/* Floating controls — top right */}
+        {/* FAB cluster — top-right, vertical stack */}
         <View
           style={{
             position: 'absolute',
-            top: insets.top + 8,
+            top: insets.top + 12,
             right: 16,
-            flexDirection: 'row',
-            gap: 8,
             zIndex: 10,
+            gap: 12,
           }}
         >
-          {routeData && (
-            <Pressable
-              onPress={handleCycleMapStyle}
-              accessibilityRole="button"
-              accessibilityLabel="Change map style"
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                borderCurve: 'continuous',
-                backgroundColor: tint(theme.bg, 0.85),
-                borderWidth: 1,
-                borderColor: theme.line,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <MapIcon size={16} color={theme.ink} />
-            </Pressable>
-          )}
+          {/* Share FAB */}
           <Pressable
             onPress={handleShare}
             accessibilityRole="button"
             accessibilityLabel="Share ride"
+            style={{ ...fabStyle, ...fabShadow }}
+          >
+            <Share2 size={18} color="rgba(255,255,255,0.92)" />
+          </Pressable>
+
+          {/* Layers FAB */}
+          {routeData && (
+            <Pressable
+              onPress={() => {
+                if (process.env.EXPO_OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                setShowMapPicker(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Change map style"
+              style={{ ...fabStyle, ...fabShadow }}
+            >
+              <Layers size={18} color="rgba(255,255,255,0.92)" />
+              {/* Copper dot indicator when non-default style */}
+              {isNonDefaultStyle && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 9,
+                    right: 9,
+                    width: 6,
+                    height: 6,
+                    borderRadius: 999,
+                    backgroundColor: theme.warm,
+                  }}
+                />
+              )}
+            </Pressable>
+          )}
+
+          {/* 3D FAB */}
+          <Pressable
+            onPress={() => {
+              if (process.env.EXPO_OS === 'ios') {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+              }
+              Alert.alert('3D Flyover', 'Coming soon');
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="3D flyover"
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
+              width: 44,
+              height: 44,
+              borderRadius: 999,
               borderCurve: 'continuous',
-              backgroundColor: tint(theme.bg, 0.85),
-              borderWidth: 1,
-              borderColor: theme.line,
+              backgroundColor: theme.warm,
               alignItems: 'center',
               justifyContent: 'center',
+              shadowColor: 'rgba(200,119,44,1)',
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.35,
+              shadowRadius: 20,
+              elevation: 8,
             }}
           >
-            <Share2 size={16} color={theme.ink} />
+            <Text
+              style={{
+                fontFamily: 'GeistMono-Bold',
+                fontSize: 11,
+                fontWeight: '700',
+                color: palette.white,
+                letterSpacing: 0.44,
+              }}
+            >
+              3D
+            </Text>
           </Pressable>
         </View>
 
-        {/* Re-open pill */}
-        {isMapFullScreen && (
-          <Animated.View
-            entering={FadeIn.duration(200)}
-            style={{
-              position: 'absolute',
-              bottom: insets.bottom + 16,
-              alignSelf: 'center',
-              zIndex: 10,
-            }}
-          >
-            <Pressable
-              onPress={() => sheetRef.current?.snapToIndex(0)}
-              style={{
-                backgroundColor: theme.surface,
-                paddingHorizontal: 20,
-                paddingVertical: 10,
-                borderRadius: 20,
-                borderCurve: 'continuous',
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 6,
-                borderWidth: 1,
-                borderColor: theme.line,
-              }}
-            >
-              <ChevronUp size={16} color={theme.ink} />
-              <Text style={{ color: theme.ink, fontSize: 14, fontWeight: '600' }}>
-                {t('rideDetail.showDetails')}
-              </Text>
-            </Pressable>
-          </Animated.View>
-        )}
-
-        {/* Bottom sheet */}
+        {/* Ride sheet */}
         <BottomSheet
           ref={sheetRef}
           index={0}
           snapPoints={snapPoints}
-          enablePanDownToClose
-          enableContentPanningGesture={activeChart === null}
-          onChange={(index) => {
-            setIsMapFullScreen(index === -1);
-            if (index === -1) setActiveChart(null);
-          }}
+          enableDynamicSizing={false}
+          enablePanDownToClose={false}
           backgroundStyle={{
-            backgroundColor: theme.bg,
-            borderRadius: 24,
+            backgroundColor: isDark ? '#1E1C19' : '#f5f2ec',
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
             borderCurve: 'continuous',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -10 },
+            shadowOpacity: 0.18,
+            shadowRadius: 30,
           }}
-          handleIndicatorStyle={{ backgroundColor: theme.ink4, width: 38 }}
+          handleIndicatorStyle={{
+            backgroundColor: isDark ? 'rgba(255,255,255,0.18)' : 'rgba(22,20,18,0.18)',
+            width: 36,
+            height: 4,
+          }}
           backdropComponent={renderBackdrop}
         >
           <BottomSheetScrollView
-            contentContainerStyle={{ padding: 20, paddingBottom: 40, gap: 16 }}
+            contentContainerStyle={{ padding: 20, paddingTop: 14, paddingBottom: 40, gap: 14 }}
           >
-            {/* Date kicker */}
+            {/* Eyebrow */}
             <Animated.View entering={FadeInUp.duration(250)} style={{ gap: 4 }}>
               <Text
                 style={{
+                  fontFamily: 'GeistMono-SemiBold',
                   fontSize: 10,
-                  fontWeight: '700',
+                  fontWeight: '600',
                   color: theme.ink3,
                   textTransform: 'uppercase',
-                  letterSpacing: 1.6,
+                  letterSpacing: 2.2,
                 }}
               >
-                {formatFullDate(ride.startedAt)}
-                {ride.startedAt ? ` · ${formatTime(ride.startedAt)}` : ''}
+                {eyebrowText}
               </Text>
+
+              {/* Title */}
               <Text
                 style={{
                   fontSize: 26,
-                  fontWeight: '300',
+                  fontWeight: '700',
                   color: theme.ink,
-                  letterSpacing: -0.5,
-                  lineHeight: 30,
+                  letterSpacing: -0.57,
+                  lineHeight: 29,
+                  marginTop: 4,
                 }}
               >
                 {ride.name || 'Ride'}
               </Text>
-              {/* Time range */}
-              {ride.startedAt && (
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    alignSelf: 'flex-start',
-                    gap: 8,
-                    paddingHorizontal: 12,
-                    paddingVertical: 6,
-                    backgroundColor: theme.surface,
-                    borderRadius: 10,
-                    borderCurve: 'continuous',
-                    borderWidth: 1,
-                    borderColor: theme.line,
-                    marginTop: 4,
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 4,
-                      backgroundColor: theme.success,
-                    }}
-                  />
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      fontVariant: ['tabular-nums'],
-                      color: theme.ink2,
-                    }}
-                  >
-                    {formatTime(ride.startedAt)}
-                  </Text>
-                  <View style={{ width: 12, height: 1, backgroundColor: theme.ink4 }} />
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      fontVariant: ['tabular-nums'],
-                      color: theme.ink2,
-                    }}
-                  >
-                    {ride.endedAt ? formatTime(ride.endedAt) : 'NA'}
-                  </Text>
-                  <View
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 4,
-                      backgroundColor: theme.danger,
-                    }}
-                  />
-                </View>
-              )}
-            </Animated.View>
 
-            {/* Stat grid — 3×2 tappable tiles */}
-            <View
-              style={{
-                flexDirection: 'row',
-                flexWrap: 'wrap',
-                gap: 8,
-              }}
-            >
-              {statTiles.map(({ icon, label, value, unit, chartType, hasChart: hasC }, index) => {
-                const isChartTile = hasC !== undefined ? hasC : chartType != null;
-
-                return (
-                  <Animated.View
-                    key={label}
-                    entering={FadeInUp.delay(index * 40).duration(250)}
-                    style={{ flexBasis: '30%', flexGrow: 1 }}
-                  >
-                    <StatTile
-                      icon={icon}
-                      label={label}
-                      value={value}
-                      unit={unit}
-                      active={isChartTile && activeChart === chartType}
-                      hasChart={isChartTile}
-                      onPress={
-                        isChartTile && chartType ? () => handleStatTap(chartType) : undefined
-                      }
-                    />
-                  </Animated.View>
-                );
-              })}
-            </View>
-
-            {/* Lean angle caveat */}
-            {maxLeanAngle != null && (
-              <Pressable
-                onPress={() => {
-                  setShowLeanTooltip((p) => !p);
-                  trackEvent(AnalyticsEvent.LEAN_ANGLE_TOOLTIP_OPENED, { ride_id: rideId });
-                }}
+              {/* Duration chip */}
+              <View
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  gap: 4,
-                  paddingVertical: 4,
-                }}
-              >
-                <Info size={12} color={theme.ink4} />
-                <Text style={{ fontSize: 10, color: theme.ink4 }}>
-                  {t('rideDetail.leanCaveat')}
-                </Text>
-              </Pressable>
-            )}
-            {showLeanTooltip && (
-              <Animated.View
-                entering={FadeIn.duration(200)}
-                style={{
-                  backgroundColor: theme.surface,
-                  borderWidth: 1,
-                  borderColor: theme.line,
-                  borderRadius: 10,
+                  alignSelf: 'flex-start',
+                  gap: 8,
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  backgroundColor: tint(theme.ink, 0.06),
+                  borderRadius: 99,
                   borderCurve: 'continuous',
-                  padding: 10,
-                  marginBottom: 4,
+                  marginTop: 10,
                 }}
               >
-                <Text style={{ fontSize: 11, color: theme.ink3, lineHeight: 16 }}>
-                  {t('rideDetail.leanTooltip')}
+                {/* Green pip + moving time */}
+                <View
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: 99,
+                    backgroundColor: '#2bb673',
+                  }}
+                />
+                <Text
+                  style={{
+                    fontFamily: 'GeistMono-Medium',
+                    fontSize: 11.5,
+                    fontWeight: '500',
+                    fontVariant: ['tabular-nums'],
+                    color: theme.ink2,
+                    letterSpacing: 0.58,
+                  }}
+                >
+                  {formatDuration(durationS)}
+                </Text>
+                {/* Separator + elapsed if different */}
+                {elapsedS > durationS && (
+                  <>
+                    <Text
+                      style={{
+                        fontFamily: 'GeistMono-Medium',
+                        fontSize: 11.5,
+                        color: theme.ink4,
+                      }}
+                    >
+                      {' '}
+                      ·{' '}
+                    </Text>
+                    <Text
+                      style={{
+                        fontFamily: 'GeistMono-Medium',
+                        fontSize: 11.5,
+                        fontWeight: '500',
+                        fontVariant: ['tabular-nums'],
+                        color: theme.ink2,
+                        letterSpacing: 0.58,
+                      }}
+                    >
+                      {formatDuration(elapsedS)}
+                    </Text>
+                  </>
+                )}
+                {/* Red pip + paused time */}
+                {pausedDurationS > 0 && (
+                  <>
+                    <Text
+                      style={{
+                        fontFamily: 'GeistMono-Medium',
+                        fontSize: 11.5,
+                        color: theme.ink4,
+                      }}
+                    >
+                      {' '}
+                      ·{' '}
+                    </Text>
+                    <View
+                      style={{
+                        width: 7,
+                        height: 7,
+                        borderRadius: 99,
+                        backgroundColor: '#d04a3c',
+                      }}
+                    />
+                    <Text
+                      style={{
+                        fontFamily: 'GeistMono-Medium',
+                        fontSize: 11.5,
+                        fontWeight: '500',
+                        fontVariant: ['tabular-nums'],
+                        color: theme.ink2,
+                        letterSpacing: 0.58,
+                      }}
+                    >
+                      {formatDuration(pausedDurationS)}
+                    </Text>
+                  </>
+                )}
+              </View>
+            </Animated.View>
+
+            {/* 3x2 stat grid */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+              <RideStatTile
+                icon={<Route size={14} color={theme.warm} />}
+                label={t('rideDetail.distance')}
+                value={formatDistanceValue(distanceM, system)}
+                unit={distanceUnitLabel(system)}
+                copper
+                delay={0}
+                theme={theme}
+              />
+              <RideStatTile
+                icon={<Clock size={14} color={theme.ink3} />}
+                label={t('rideDetail.movingTime')}
+                value={formatDuration(durationS)}
+                delay={40}
+                theme={theme}
+              />
+              <RideStatTile
+                icon={<Mountain size={14} color={theme.ink3} />}
+                label={t('rideDetail.elevGain')}
+                value={elevationGain > 0 ? String(formatElevationValue(elevationGain, system)) : 'NA'}
+                unit={elevationGain > 0 ? elevationUnitLabel(system) : undefined}
+                delay={80}
+                theme={theme}
+              />
+              <RideStatTile
+                icon={<Gauge size={14} color={theme.ink3} />}
+                label={t('rideDetail.avgSpeed')}
+                value={avgSpeedMps > 0 ? String(formatSpeedValue(avgSpeedMps, system)) : 'NA'}
+                unit={avgSpeedMps > 0 ? speedUnitLabel(system) : undefined}
+                delay={120}
+                theme={theme}
+              />
+              <RideStatTile
+                icon={<Gauge size={14} color={theme.ink3} />}
+                label={t('rideDetail.maxSpeed')}
+                value={maxSpeedMps > 0 ? String(formatSpeedValue(maxSpeedMps, system)) : 'NA'}
+                unit={maxSpeedMps > 0 ? speedUnitLabel(system) : undefined}
+                delay={160}
+                theme={theme}
+                badge={
+                  <View style={{ paddingHorizontal: 5, paddingVertical: 2, borderRadius: 99, backgroundColor: tint(theme.ink, 0.06) }}>
+                    <Text style={{ fontFamily: 'GeistMono-Bold', fontSize: 7, fontWeight: '700', letterSpacing: 1.12, textTransform: 'uppercase', color: theme.ink3 }}>
+                      PRIVATE
+                    </Text>
+                  </View>
+                }
+              />
+              {maxLeanAngle != null && (
+                <RideStatTile
+                  icon={<TrendingDown size={14} color={theme.ink3} />}
+                  label={t('rideDetail.leanAngle')}
+                  value={maxLeanAngle >= 55 ? '55+' : String(Math.round(maxLeanAngle))}
+                  unit="°"
+                  delay={200}
+                  theme={theme}
+                  trailing={
+                    <Pressable
+                      onPress={() => {
+                        setShowLeanTooltip((p) => !p);
+                        trackEvent(AnalyticsEvent.LEAN_ANGLE_TOOLTIP_OPENED, { ride_id: rideId });
+                      }}
+                      hitSlop={8}
+                      style={{
+                        width: 14, height: 14, borderRadius: 999,
+                        borderWidth: 1, borderColor: tint(theme.ink, 0.25),
+                        alignItems: 'center', justifyContent: 'center',
+                      }}
+                    >
+                      <Info size={9} color={theme.ink3} />
+                    </Pressable>
+                  }
+                />
+              )}
+            </View>
+
+            {/* Lean angle tooltip */}
+            {showLeanTooltip && maxLeanAngle != null && (
+              <Animated.View entering={FadeIn.duration(200)} style={{ padding: 12 }}>
+                <Text
+                  style={{
+                    fontFamily: 'GeistMono-Regular',
+                    fontSize: 12,
+                    color: theme.ink2,
+                    lineHeight: 18,
+                  }}
+                >
+                  Estimated from your phone's IMU sensor. Not a precision instrument — use as a fun
+                  reference, not for track analysis.
                 </Text>
               </Animated.View>
             )}
 
-            {/* Chart */}
-            {activeChart && waypointsLoading && (
+            {/* Elevation chart card */}
+            {elevationGain > 0 && waypoints.length >= 2 && (
+              <Animated.View entering={FadeIn.duration(200)}>
+                <View
+                  style={{
+                    borderRadius: 18,
+                    borderCurve: 'continuous',
+                    padding: 14,
+                    paddingBottom: 12,
+                    backgroundColor: tint(theme.ink, 0.03),
+                    borderWidth: 1,
+                    borderColor: tint(theme.ink, 0.04),
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: 10,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: 'GeistMono-SemiBold',
+                        fontSize: 10,
+                        fontWeight: '600',
+                        letterSpacing: 1.8,
+                        textTransform: 'uppercase',
+                        color: theme.warm,
+                      }}
+                    >
+                      ELEVATION
+                    </Text>
+                    {/* Peak pill */}
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 5,
+                        paddingHorizontal: 7,
+                        paddingVertical: 3,
+                        borderRadius: 99,
+                        backgroundColor: tint(theme.warm, 0.1),
+                        borderWidth: 1,
+                        borderColor: tint(theme.warm, 0.25),
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontFamily: 'GeistMono-SemiBold',
+                          fontSize: 10,
+                          fontWeight: '600',
+                          letterSpacing: 0.6,
+                          color: theme.warm,
+                        }}
+                      >
+                        {`\u2191 ${formatElevationValue(elevationGain, system)}${elevationUnitLabel(system).toUpperCase()} PEAK`}
+                      </Text>
+                    </View>
+                  </View>
+                  <RideElevationChart waypoints={waypoints} system={system} isAnimated={false} />
+                </View>
+              </Animated.View>
+            )}
+
+            {/* Speed chart card */}
+            {maxSpeedMps > 0 && waypoints.length >= 2 && (
+              <Animated.View entering={FadeIn.duration(200)}>
+                <View
+                  style={{
+                    borderRadius: 18,
+                    borderCurve: 'continuous',
+                    padding: 14,
+                    paddingBottom: 12,
+                    backgroundColor: tint(theme.ink, 0.03),
+                    borderWidth: 1,
+                    borderColor: tint(theme.ink, 0.04),
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: 10,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: 'GeistMono-SemiBold',
+                        fontSize: 10,
+                        fontWeight: '600',
+                        letterSpacing: 1.8,
+                        textTransform: 'uppercase',
+                        color: theme.warm,
+                      }}
+                    >
+                      SPEED
+                    </Text>
+                    <Text
+                      style={{
+                        fontFamily: 'GeistMono-SemiBold',
+                        fontSize: 10,
+                        fontWeight: '600',
+                        letterSpacing: 0.8,
+                        fontVariant: ['tabular-nums'],
+                        color: theme.ink3,
+                      }}
+                    >
+                      {formatSpeed(maxSpeedMps, system)}
+                    </Text>
+                  </View>
+                  <RideSpeedChart waypoints={waypoints} system={system} isAnimated={false} />
+                </View>
+              </Animated.View>
+            )}
+
+            {/* Loading indicator for waypoints */}
+            {waypointsLoading && (
               <View style={{ paddingVertical: 24, alignItems: 'center' }}>
                 <ActivityIndicator size="small" color={theme.warm} />
-              </View>
-            )}
-            {activeChart === 'speed' && !waypointsLoading && waypoints.length >= 2 && (
-              <Animated.View entering={FadeIn.duration(200)}>
-                <View
-                  style={{
-                    backgroundColor: theme.surface,
-                    borderWidth: 1,
-                    borderColor: theme.line,
-                    borderRadius: 16,
-                    borderCurve: 'continuous',
-                    padding: 14,
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'baseline',
-                      justifyContent: 'space-between',
-                      marginBottom: 8,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 9,
-                        fontWeight: '700',
-                        color: theme.warm,
-                        textTransform: 'uppercase',
-                        letterSpacing: 1.2,
-                      }}
-                    >
-                      {t('rideDetail.speedOverDistance')}
-                    </Text>
-                    <View style={{ flexDirection: 'row', gap: 4 }}>
-                      <Pressable
-                        onPress={() => setActiveChart('speed')}
-                        style={{
-                          paddingHorizontal: 10,
-                          paddingVertical: 4,
-                          borderRadius: 999,
-                          backgroundColor: theme.ink,
-                        }}
-                      >
-                        <Text style={{ fontSize: 10, fontWeight: '600', color: theme.bg }}>
-                          {t('rideDetail.speed')}
-                        </Text>
-                      </Pressable>
-                      <Pressable
-                        onPress={() => setActiveChart('elevation')}
-                        style={{
-                          paddingHorizontal: 10,
-                          paddingVertical: 4,
-                          borderRadius: 999,
-                          backgroundColor: 'transparent',
-                        }}
-                      >
-                        <Text style={{ fontSize: 10, fontWeight: '600', color: theme.ink3 }}>
-                          {t('rideDetail.elevation')}
-                        </Text>
-                      </Pressable>
-                    </View>
-                  </View>
-                  <RideSpeedChart waypoints={waypoints} system={system} />
-                </View>
-              </Animated.View>
-            )}
-            {activeChart === 'elevation' && !waypointsLoading && waypoints.length >= 2 && (
-              <Animated.View entering={FadeIn.duration(200)}>
-                <View
-                  style={{
-                    backgroundColor: theme.surface,
-                    borderWidth: 1,
-                    borderColor: theme.line,
-                    borderRadius: 16,
-                    borderCurve: 'continuous',
-                    padding: 14,
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'baseline',
-                      justifyContent: 'space-between',
-                      marginBottom: 8,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 9,
-                        fontWeight: '700',
-                        color: theme.info,
-                        textTransform: 'uppercase',
-                        letterSpacing: 1.2,
-                      }}
-                    >
-                      {t('rideDetail.elevationProfile')}
-                    </Text>
-                    <View style={{ flexDirection: 'row', gap: 4 }}>
-                      <Pressable
-                        onPress={() => setActiveChart('speed')}
-                        style={{
-                          paddingHorizontal: 10,
-                          paddingVertical: 4,
-                          borderRadius: 999,
-                          backgroundColor: 'transparent',
-                        }}
-                      >
-                        <Text style={{ fontSize: 10, fontWeight: '600', color: theme.ink3 }}>
-                          {t('rideDetail.speed')}
-                        </Text>
-                      </Pressable>
-                      <Pressable
-                        onPress={() => setActiveChart('elevation')}
-                        style={{
-                          paddingHorizontal: 10,
-                          paddingVertical: 4,
-                          borderRadius: 999,
-                          backgroundColor: theme.ink,
-                        }}
-                      >
-                        <Text style={{ fontSize: 10, fontWeight: '600', color: theme.bg }}>
-                          {t('rideDetail.elevation')}
-                        </Text>
-                      </Pressable>
-                    </View>
-                  </View>
-                  <RideElevationChart waypoints={waypoints} system={system} />
-                </View>
-              </Animated.View>
-            )}
-            {activeChart && !waypointsLoading && waypoints.length < 2 && (
-              <View
-                style={{
-                  backgroundColor: theme.surface,
-                  borderRadius: 16,
-                  borderCurve: 'continuous',
-                  padding: 20,
-                  alignItems: 'center',
-                  borderWidth: 1,
-                  borderColor: theme.line,
-                }}
-              >
-                <Text style={{ color: theme.ink3, fontSize: 14 }}>
-                  {t('rideDetail.insufficientData')}
-                </Text>
               </View>
             )}
 
             {/* Comments section */}
             {ride?.isPublic && <CommentList rideId={rideId} />}
 
-            {/* Delete — owner only */}
+            {/* Delete ride row */}
             {isOwnerViewer && (
               <Pressable
                 onPress={handleDelete}
@@ -894,18 +947,40 @@ export default function RideDetailScreen() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 6,
-                  paddingVertical: 8,
+                  gap: 8,
+                  height: 48,
+                  borderRadius: 14,
+                  borderCurve: 'continuous',
+                  borderWidth: 1,
+                  borderColor: tint('#d04a3c', 0.35),
+                  backgroundColor: 'transparent',
+                  marginTop: 4,
                 }}
               >
-                <Trash2 size={14} color={theme.ink3} />
-                <Text style={{ fontSize: 14, color: theme.ink3 }}>
+                <Trash2 size={16} color="#d04a3c" />
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '600',
+                    color: '#d04a3c',
+                    letterSpacing: -0.07,
+                  }}
+                >
                   {t('rideDetail.deleteRide')}
                 </Text>
               </Pressable>
             )}
           </BottomSheetScrollView>
         </BottomSheet>
+
+        {/* Map Picker Sheet overlay */}
+        {showMapPicker && (
+          <MapPickerSheet
+            currentStyle={mapStyle}
+            onSelectStyle={handleMapStyleSelect}
+            onClose={() => setShowMapPicker(false)}
+          />
+        )}
       </View>
     </GestureHandlerRootView>
   );
