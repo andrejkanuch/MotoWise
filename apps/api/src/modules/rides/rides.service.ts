@@ -88,6 +88,7 @@ export class RidesService {
         gps_quality: input.gpsQuality ?? null,
         paused_duration_s: input.pausedDurationS,
         auto_paused_duration_s: input.autoPausedDurationS,
+        ...(input.maxLeanAngle != null && { max_lean_angle: input.maxLeanAngle }),
       })
       .eq('id', input.rideId)
       .eq('user_id', userId)
