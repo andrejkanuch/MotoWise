@@ -1,0 +1,26 @@
+query RideOverview {
+  rideOverview {
+    lastRide {
+      id
+      distanceM
+      durationS
+      maxSpeedMps
+      date
+      motorcycleName
+    }
+    last7Days {
+      rideCount
+      distanceM
+      durationS
+    }
+    currentStreak
+    personalRecords {
+      recordType
+      value
+      unit
+      achievedAt
+      previousValue
+      rideId
+    }
+  }
+}
