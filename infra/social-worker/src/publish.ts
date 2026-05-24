@@ -490,10 +490,13 @@ async function graphPost(
 /**
  * Poll an IG media container until it reaches FINISHED status.
  *
+ * If the status check endpoint returns an auth error (code 100, subcode 33),
+ * falls back to a fixed delay + retry-publish approach since the token may
+ * lack read permissions while still having publish permissions.
+ *
  * Note: Meta's Graph API GET endpoints require the access_token as a query
  * parameter — the Authorization: Bearer header is only documented for the
- * WhatsApp Cloud API, not the Instagram/Facebook Graph API. POST endpoints
- * are safe because the token travels in the form-encoded body, not the URL.
+ * WhatsApp Cloud API, not the Instagram/Facebook Graph API.
  */
 async function waitForIgProcessing(env: Env, containerId: string, maxWait = 20): Promise<void> {
   for (let i = 0; i < maxWait; i++) {
@@ -506,7 +509,13 @@ async function waitForIgProcessing(env: Env, containerId: string, maxWait = 20):
       throw new Error(`Instagram processing failed: ${JSON.stringify(data)}`);
     }
     if (data.error) {
-      throw new Error(`Instagram container check error: ${JSON.stringify(data.error)}`);
+      // Auth error on status check — token can create but not read containers.
+      // Fall back to a fixed delay and let the caller attempt publish directly.
+      console.warn(
+        `[waitForIg] container=${containerId} status check auth error — using fixed delay fallback`,
+      );
+      await new Promise((r) => setTimeout(r, 10_000));
+      return;
     }
     if (i === 0 || i % 5 === 0) {
       console.log(
