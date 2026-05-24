@@ -38,6 +38,7 @@ import { RideSpeedChart } from '../../components/ride/ride-speed-chart';
 import { RideStatTile } from '../../components/ride/ride-stat-tile';
 import { shareRide } from '../../components/share/share-ride';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import { useRideHeatmapData } from '../../hooks/use-ride-heatmap-data';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -100,6 +101,7 @@ export default function RideDetailScreen() {
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
   const [showLeanTooltip, setShowLeanTooltip] = useState(false);
   const [showMapPicker, setShowMapPicker] = useState(false);
+  const { heatmapGeoJSON } = useRideHeatmapData({ enabled: mapStyle === 'heatmap' });
   const sheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => [100, '45%', '92%'], []);
 
@@ -462,6 +464,30 @@ export default function RideDetailScreen() {
                     }}
                   />
                 </>
+              )}
+
+              {/* Personal heatmap overlay (all rides) */}
+              {mapStyle === 'heatmap' && heatmapGeoJSON && (
+                <MapboxGL.ShapeSource id="ride-heatmap-source" shape={heatmapGeoJSON}>
+                  <MapboxGL.HeatmapLayer
+                    id="ride-heatmap"
+                    maxZoomLevel={16}
+                    style={{
+                      heatmapRadius: ['interpolate', ['linear'], ['zoom'], 8, 15, 15, 30],
+                      heatmapIntensity: ['interpolate', ['linear'], ['zoom'], 8, 1, 15, 3],
+                      heatmapColor: [
+                        'interpolate', ['linear'], ['heatmap-density'],
+                        0,   'rgba(0,0,0,0)',
+                        0.2, '#1a1a2e',
+                        0.4, '#3a2a1d',
+                        0.6, '#c8772c',
+                        0.8, '#e89d5a',
+                        1.0, '#ffffff',
+                      ],
+                      heatmapOpacity: ['interpolate', ['linear'], ['zoom'], 13, 0.8, 16, 0],
+                    }}
+                  />
+                </MapboxGL.ShapeSource>
               )}
             </MapboxGL.MapView>
           ) : (
