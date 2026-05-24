@@ -12,7 +12,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Pause, Play, RotateCcw } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { runOnJS, useFrameCallback, useSharedValue } from 'react-native-reanimated';
+import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
@@ -42,6 +42,12 @@ function bearingTo(
   const x =
     Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
   return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+}
+
+/** Lerp between two angles (handles 360° wrap) */
+function lerpAngle(from: number, to: number, t: number): number {
+  let delta = ((to - from + 540) % 360) - 180;
+  return (from + delta * t + 360) % 360;
 }
 
 /** Format seconds as MM:SS */
@@ -83,6 +89,14 @@ function decodePolyline(encoded: string): [number, number][] {
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const TOTAL_DURATION_MS = 45_000; // 45 seconds at 1x speed
+const CAMERA_INTERVAL_MS = 1000;  // Issue new camera command every 1s
+const CAMERA_DURATION_MS = 1500;  // Each animation lasts 1.5s (overlapping = smooth)
+const HUD_INTERVAL_MS = 200;      // Update HUD stats at 5fps (not 60)
+const LOOK_AHEAD_POINTS = 8;      // Look further ahead for stable bearing
+const BEARING_LERP_FACTOR = 0.3;  // Smooth bearing rotation (30% per update)
+const CAMERA_ZOOM = 14.5;         // Slightly wider than 15 for more terrain context
+const CAMERA_PITCH = 65;          // More dramatic "cockpit" view
+const TERRAIN_EXAGGERATION = 1.3; // Subtle but impactful, less pop-in than 1.5
 const SPEED_OPTIONS = [1, 2, 4] as const;
 
 const GLASS_BG = 'rgba(30,28,25,0.72)';
@@ -98,16 +112,14 @@ export default function RideFlyoverScreen() {
   const system = useMeasurementSystem();
 
   const cameraRef = useRef<MapboxGL.Camera>(null);
-  const lastCameraTickRef = useRef(0);
   const scrubberWidthRef = useRef(0);
+  const lastBearingRef = useRef<number | null>(null);
 
   const [cursor, setCursor] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [activeSpeed, setActiveSpeed] = useState<(typeof SPEED_OPTIONS)[number]>(4);
 
   const progress = useSharedValue(0);
-  const playing = useSharedValue(true);
-  const speedMultiplier = useSharedValue(4);
 
   // ─── Data fetching ──────────────────────────────────────────────────────
 
@@ -202,51 +214,64 @@ export default function RideFlyoverScreen() {
 
   const trackedCompleteRef = useRef(false);
 
-  // ─── Camera animation ────────────────────────────────────────────────
+  // ─── Camera animation (smooth: 1s interval, 1.5s overlapping easeTo) ─
 
-  const onProgress = useCallback(
-    (p: number) => {
-      if (waypoints.length === 0) return;
-      const i = Math.min(waypoints.length - 1, Math.floor(p * waypoints.length));
-      setCursor(i);
+  useEffect(() => {
+    if (!isPlaying || waypoints.length < 2) return;
 
-      // Track completion
-      if (p >= 1 && !trackedCompleteRef.current) {
+    const interval = setInterval(() => {
+      // Advance progress
+      const dt = CAMERA_INTERVAL_MS * activeSpeed;
+      const newP = Math.min(1, progress.value + dt / TOTAL_DURATION_MS);
+      progress.value = newP;
+
+      // Compute camera target
+      const i = Math.min(waypoints.length - 1, Math.floor(newP * waypoints.length));
+      const wp = waypoints[i];
+      const lookAhead = Math.min(i + LOOK_AHEAD_POINTS, waypoints.length - 1);
+      const next = waypoints[lookAhead];
+
+      // Smooth bearing with lerp to avoid rotation jumps on switchbacks
+      const rawBearing = bearingTo(wp, next);
+      const smoothBearing =
+        lastBearingRef.current != null
+          ? lerpAngle(lastBearingRef.current, rawBearing, BEARING_LERP_FACTOR)
+          : rawBearing;
+      lastBearingRef.current = smoothBearing;
+
+      cameraRef.current?.setCamera({
+        centerCoordinate: [wp.longitude, wp.latitude],
+        heading: smoothBearing,
+        pitch: CAMERA_PITCH,
+        zoomLevel: CAMERA_ZOOM,
+        animationMode: 'easeTo',
+        animationDuration: CAMERA_DURATION_MS,
+      });
+
+      // Completion check
+      if (newP >= 1 && !trackedCompleteRef.current) {
         trackedCompleteRef.current = true;
         trackEvent(AnalyticsEvent.RIDE_FLYOVER_COMPLETED, { ride_id: rideId ?? '' });
         setIsPlaying(false);
-        playing.value = false;
       }
+    }, CAMERA_INTERVAL_MS);
 
-      // Throttle camera calls to ~250ms
-      const now = Date.now();
-      if (now - lastCameraTickRef.current < 250) return;
-      lastCameraTickRef.current = now;
+    return () => clearInterval(interval);
+  }, [isPlaying, activeSpeed, waypoints, rideId, progress]);
 
-      const wp = waypoints[i];
-      const next = waypoints[Math.min(i + 4, waypoints.length - 1)];
-      cameraRef.current?.setCamera({
-        centerCoordinate: [wp.longitude, wp.latitude],
-        heading: bearingTo(wp, next),
-        pitch: 60,
-        zoomLevel: 15,
-        animationMode: 'linearTo',
-        animationDuration: 260,
-      });
-    },
-    [waypoints, rideId, playing],
-  );
+  // ─── HUD stat updates (decoupled, 5fps — not every frame) ──────────
 
-  useFrameCallback(
-    ({ timeSincePreviousFrame }) => {
-      'worklet';
-      if (!playing.value) return;
-      const dt = (timeSincePreviousFrame ?? 16) * speedMultiplier.value;
-      progress.value = Math.min(1, progress.value + dt / TOTAL_DURATION_MS);
-      runOnJS(onProgress)(progress.value);
-    },
-    true,
-  );
+  useEffect(() => {
+    if (!isPlaying || waypoints.length < 2) return;
+
+    const interval = setInterval(() => {
+      const p = progress.value;
+      const i = Math.min(waypoints.length - 1, Math.floor(p * waypoints.length));
+      setCursor(i);
+    }, HUD_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [isPlaying, waypoints.length, progress]);
 
   // ─── Playback controls ───────────────────────────────────────────────
 
@@ -254,10 +279,8 @@ export default function RideFlyoverScreen() {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    const next = !isPlaying;
-    setIsPlaying(next);
-    playing.value = next;
-  }, [isPlaying, playing]);
+    setIsPlaying((prev) => !prev);
+  }, []);
 
   const handleRestart = useCallback(() => {
     if (process.env.EXPO_OS === 'ios') {
@@ -265,11 +288,10 @@ export default function RideFlyoverScreen() {
     }
     progress.value = 0;
     trackedCompleteRef.current = false;
+    lastBearingRef.current = null;
     setCursor(0);
     setIsPlaying(true);
-    playing.value = true;
-    lastCameraTickRef.current = 0;
-  }, [progress, playing]);
+  }, [progress]);
 
   const handleSpeedChange = useCallback(
     (speed: (typeof SPEED_OPTIONS)[number]) => {
@@ -277,9 +299,8 @@ export default function RideFlyoverScreen() {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
       setActiveSpeed(speed);
-      speedMultiplier.value = speed;
     },
-    [speedMultiplier],
+    [],
   );
 
   const handleScrub = useCallback(
@@ -289,9 +310,10 @@ export default function RideFlyoverScreen() {
       const p = Math.max(0, Math.min(1, locationX / w));
       progress.value = p;
       trackedCompleteRef.current = false;
-      onProgress(p);
+      const i = Math.min(waypoints.length - 1, Math.floor(p * waypoints.length));
+      setCursor(i);
     },
-    [progress, waypoints.length, onProgress],
+    [progress, waypoints.length],
   );
 
   // ─── Derived stats ───────────────────────────────────────────────────
@@ -299,15 +321,24 @@ export default function RideFlyoverScreen() {
   const currentWp = waypoints[cursor] ?? null;
   const currentSpeedMps = currentWp?.speedMps ?? 0;
   const currentAltitude = currentWp?.altitude ?? 0;
-  const bikePosition = currentWp
-    ? ([currentWp.longitude, currentWp.latitude] as [number, number])
-    : null;
+  // Bike dot GeoJSON for GPU-rendered CircleLayer (no RN layout overhead)
+  const bikePointGeoJSON = useMemo<GeoJSON.Feature | null>(() => {
+    if (!currentWp) return null;
+    return {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'Point',
+        coordinates: [currentWp.longitude, currentWp.latitude],
+      },
+    };
+  }, [currentWp]);
 
-  // Cumulative distance up to cursor
-  const cumulativeDistanceM = useMemo(() => {
-    if (waypoints.length < 2 || cursor === 0) return 0;
-    let dist = 0;
-    for (let i = 1; i <= cursor; i++) {
+  // Pre-compute cumulative distances once (O(1) lookup vs O(n) per frame)
+  const cumulativeDistances = useMemo(() => {
+    if (waypoints.length < 2) return [0];
+    const dists = [0];
+    for (let i = 1; i < waypoints.length; i++) {
       const prev = waypoints[i - 1];
       const curr = waypoints[i];
       const dLat = ((curr.latitude - prev.latitude) * Math.PI) / 180;
@@ -317,10 +348,12 @@ export default function RideFlyoverScreen() {
         Math.cos((prev.latitude * Math.PI) / 180) *
           Math.cos((curr.latitude * Math.PI) / 180) *
           Math.sin(dLon / 2) ** 2;
-      dist += 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      dists.push(dists[i - 1] + 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
     }
-    return dist;
-  }, [waypoints, cursor]);
+    return dists;
+  }, [waypoints]);
+
+  const cumulativeDistanceM = cumulativeDistances[cursor] ?? 0;
 
   // Time progress
   const totalDurationS = ride?.durationS ?? 0;
@@ -399,9 +432,9 @@ export default function RideFlyoverScreen() {
           ref={cameraRef}
           defaultSettings={{
             centerCoordinate: startPoint ?? [0, 0],
-            zoomLevel: 15,
-            pitch: 60,
-            heading: waypoints.length > 1 ? bearingTo(waypoints[0], waypoints[1]) : 0,
+            zoomLevel: CAMERA_ZOOM,
+            pitch: CAMERA_PITCH,
+            heading: waypoints.length > 1 ? bearingTo(waypoints[0], waypoints[Math.min(LOOK_AHEAD_POINTS, waypoints.length - 1)]) : 0,
           }}
           animationDuration={0}
         />
@@ -413,7 +446,7 @@ export default function RideFlyoverScreen() {
           tileSize={512}
           maxZoomLevel={14}
         >
-          <MapboxGL.Terrain style={{ exaggeration: 1.5 }} />
+          <MapboxGL.Terrain style={{ exaggeration: TERRAIN_EXAGGERATION }} />
         </MapboxGL.RasterDemSource>
         <MapboxGL.SkyLayer
           id="sky"
@@ -505,32 +538,26 @@ export default function RideFlyoverScreen() {
           </MapboxGL.MarkerView>
         )}
 
-        {/* Animated bike dot */}
-        {bikePosition && (
-          <MapboxGL.MarkerView id="bike-dot" coordinate={bikePosition}>
-            <View
+        {/* Animated bike dot — GPU-rendered CircleLayer (no RN layout overhead) */}
+        {bikePointGeoJSON && (
+          <MapboxGL.ShapeSource id="bike-source" shape={bikePointGeoJSON}>
+            <MapboxGL.CircleLayer
+              id="bike-glow"
               style={{
-                width: 30,
-                height: 30,
-                borderRadius: 15,
-                backgroundColor: 'rgba(212,98,46,0.18)',
-                alignItems: 'center',
-                justifyContent: 'center',
+                circleRadius: 15,
+                circleColor: 'rgba(212,98,46,0.18)',
               }}
-            >
-              <View
-                style={{
-                  width: 18,
-                  height: 18,
-                  borderRadius: 9,
-                  backgroundColor: theme.warm,
-                  borderWidth: 2.5,
-                  borderColor: palette.white,
-                  borderCurve: 'continuous',
-                }}
-              />
-            </View>
-          </MapboxGL.MarkerView>
+            />
+            <MapboxGL.CircleLayer
+              id="bike-dot"
+              style={{
+                circleRadius: 9,
+                circleColor: theme.warm,
+                circleStrokeWidth: 2.5,
+                circleStrokeColor: '#ffffff',
+              }}
+            />
+          </MapboxGL.ShapeSource>
         )}
       </MapboxGL.MapView>
 
