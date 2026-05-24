@@ -1,5 +1,11 @@
 import { palette } from '@motovault/design-system';
-import { MyMotorcyclesDocument, MyRidesDocument, type MyRidesQuery } from '@motovault/graphql';
+import {
+  MyMotorcyclesDocument,
+  MyRidesDocument,
+  RideOverviewDocument,
+  type MyRidesQuery,
+  type RideOverviewQuery,
+} from '@motovault/graphql';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
@@ -173,6 +179,13 @@ export default function RidesScreen() {
   useEffect(() => {
     trackEvent(AnalyticsEvent.RIDES_HISTORY_VIEWED);
   }, []);
+
+  // Server-side analytics overview (last ride, 7-day summary, streak, records)
+  const { data: overviewData } = useQuery<RideOverviewQuery>({
+    queryKey: queryKeys.rides.overview,
+    queryFn: () => gqlFetcher(RideOverviewDocument),
+  });
+  const overview = overviewData?.rideOverview;
 
   const { data: motorcyclesData } = useQuery({
     queryKey: queryKeys.motorcycles.all,
@@ -411,6 +424,41 @@ export default function RidesScreen() {
           ))}
         </View>
 
+        {/* Streak + records row */}
+        {overview && overview.currentStreak > 0 && (
+          <Animated.View
+            entering={FadeInUp.delay(100).duration(280)}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              backgroundColor: theme.surface,
+              borderWidth: 1,
+              borderColor: theme.line,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              padding: 12,
+            }}
+          >
+            <Text style={{ fontSize: 20 }}>🔥</Text>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '700',
+                  color: theme.ink,
+                  fontVariant: ['tabular-nums'],
+                }}
+              >
+                {overview.currentStreak} {overview.currentStreak === 1 ? t('myRides.streakWeek') : t('myRides.streakWeeks')}
+              </Text>
+              <Text style={{ fontSize: 11, color: theme.ink3, marginTop: 2 }}>
+                {t('myRides.streakDesc')}
+              </Text>
+            </View>
+          </Animated.View>
+        )}
+
         {/* Section header */}
         <View
           style={{
@@ -459,7 +507,7 @@ export default function RidesScreen() {
         </View>
       </Animated.View>
     ),
-    [stats, system, theme, periodLabel, t, sortNewest],
+    [stats, system, theme, periodLabel, t, sortNewest, overview],
   );
 
   const renderEmpty = useCallback(() => {
