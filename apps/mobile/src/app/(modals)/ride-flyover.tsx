@@ -80,7 +80,7 @@ function formatMmSs(seconds: number): string {
 
 const TOTAL_DURATION_MS = 45_000; // 45 seconds at 1x speed
 const CAMERA_INTERVAL_MS = 100; // Issue camera commands at 10fps for smooth motion
-const CAMERA_DURATION_MS = 250; // Each animation lasts 250ms (overlapping at 100ms = seamless)
+const CAMERA_DURATION_MS = 350; // Longer than interval → easeTo overlaps blend into butter
 const HUD_INTERVAL_MS = 200; // Update HUD stats at 5fps (not 60)
 const LOOK_AHEAD_DISTANCE_M = 150; // Look 150m ahead for stable bearing
 const BEARING_LERP_FACTOR = 0.12; // Smoother bearing (smaller per-tick at 10fps ≈ same visual rate)
@@ -89,8 +89,8 @@ const CAMERA_PITCH = 65; // More dramatic "cockpit" view
 const TERRAIN_EXAGGERATION = 1.5; // Dramatic 3D terrain relief
 const SPEED_OPTIONS = [1, 2, 4] as const;
 
-// Satellite-streets shows terrain texture + labels — much more 3D-visible than outdoors
-const FLYOVER_STYLE_URL = 'mapbox://styles/mapbox/satellite-streets-v12';
+// Pure satellite — no road-network lines that visually compete with the route overlay
+const FLYOVER_STYLE_URL = 'mapbox://styles/mapbox/satellite-v9';
 
 const GLASS_BG = 'rgba(30,28,25,0.72)';
 const GLASS_BORDER = 'rgba(255,255,255,0.06)';
@@ -282,7 +282,7 @@ export default function RideFlyoverScreen() {
         heading: smoothBearing,
         pitch: CAMERA_PITCH,
         zoomLevel: CAMERA_ZOOM,
-        animationMode: 'linearTo',
+        animationMode: 'easeTo',
         animationDuration: CAMERA_DURATION_MS,
       });
 
@@ -535,37 +535,6 @@ export default function RideFlyoverScreen() {
             horizonBlend: 0.02,
             spaceColor: 'rgb(11,11,25)',
             starIntensity: 0.6,
-          }}
-        />
-
-        {/* 3D buildings — visible at zoom 15+ for urban rides */}
-        <MapboxGL.FillExtrusionLayer
-          id="3d-buildings"
-          sourceID="composite"
-          sourceLayerID="building"
-          minZoomLevel={15}
-          maxZoomLevel={24}
-          style={{
-            fillExtrusionColor: '#aaa',
-            fillExtrusionHeight: [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              15,
-              0,
-              15.05,
-              ['get', 'height'],
-            ],
-            fillExtrusionBase: [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              15,
-              0,
-              15.05,
-              ['get', 'min_height'],
-            ],
-            fillExtrusionOpacity: 0.6,
           }}
         />
 

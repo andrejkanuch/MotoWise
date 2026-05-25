@@ -45,7 +45,7 @@ export const RideMapThumbnail = memo(function RideMapThumbnail({
   const { t, isDark } = useEditorialTheme();
   const mapRef = useRef<MapboxGL.MapView>(null);
   const slotAcquired = useRef(false);
-  const [layoutReady, setLayoutReady] = useState(false);
+  const [layoutSize, setLayoutSize] = useState<{ w: number; h: number } | null>(null);
 
   // Synchronous MMKV cache check
   const cachedUri = rideStorage.getString(`${CACHE_PREFIX}${rideId}`) ?? null;
@@ -95,7 +95,7 @@ export const RideMapThumbnail = memo(function RideMapThumbnail({
   // Concurrency gate — wait for a slot before rendering MapView
   const [hasSlot, setHasSlot] = useState(false);
   useEffect(() => {
-    if (snapUri || !routeData || !layoutReady) return;
+    if (snapUri || !routeData || !layoutSize) return;
     let cancelled = false;
     acquireSnapshotSlot().then(() => {
       if (!cancelled) {
@@ -113,11 +113,17 @@ export const RideMapThumbnail = memo(function RideMapThumbnail({
         releaseSnapshotSlot();
       }
     };
-  }, [snapUri, routeData, layoutReady]);
+  }, [snapUri, routeData, layoutSize]);
 
-  const handleLayout = useCallback(() => {
-    if (!layoutReady) setLayoutReady(true);
-  }, [layoutReady]);
+  const handleLayout = useCallback(
+    (e: { nativeEvent: { layout: { width: number; height: number } } }) => {
+      const { width, height } = e.nativeEvent.layout;
+      if (width > 0 && height > 0 && !layoutSize) {
+        setLayoutSize({ w: width, h: height });
+      }
+    },
+    [layoutSize],
+  );
 
   const handleMapLoaded = useCallback(() => {
     // Small delay to ensure tiles have rendered after style load
@@ -189,7 +195,7 @@ export const RideMapThumbnail = memo(function RideMapThumbnail({
     <View style={[{ overflow: 'hidden' }, style]}>
       <MapboxGL.MapView
         ref={mapRef}
-        style={{ width: '100%', height: '100%' }}
+        style={{ width: layoutSize!.w, height: layoutSize!.h }}
         styleURL={MAP_STYLES[mapStyleKey]}
         logoEnabled={false}
         attributionEnabled={false}

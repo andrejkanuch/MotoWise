@@ -55,37 +55,18 @@ export async function generateImage(
   prompt: string,
   aspectRatio: AspectRatio = '4:5',
 ): Promise<GeneratedImage> {
-  // --- Primary: OpenAI gpt-image-2 ---
-  try {
-    const openai = createOpenAI({ apiKey: env.OPENAI_API_KEY });
-    const { image } = await aiGenerateImage({
-      model: openai.image('gpt-image-2'),
-      prompt,
-      size: OPENAI_SIZE_MAP[aspectRatio],
-      providerOptions: { openai: { quality: 'high' } },
-      abortSignal: AbortSignal.timeout(45_000),
-    });
+  // Gemini is primary — fast (~15s), reliable, and stays within ctx.waitUntil()
+  // budget on the free Cloudflare plan (30s cap). OpenAI gpt-image-2 is demoted
+  // to last fallback because it consistently times out in background tasks.
 
-    return {
-      image_base64: image.base64,
-      mime_type: 'image/png',
-      engine: 'openai-gpt-image-2',
-      aspect_ratio: aspectRatio,
-    };
-  } catch (err) {
-    console.warn(
-      `[generateImage] gpt-image-2 failed: ${err instanceof Error ? err.message : err} — trying Gemini`,
-    );
-  }
-
-  // --- Fallback 1: Google Gemini image model ---
+  // --- Primary: Google Gemini image model ---
   try {
     const google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_AI_STUDIO_KEY });
     const { image } = await aiGenerateImage({
       model: google.image('gemini-2.5-flash-image'),
       prompt,
       aspectRatio: aspectRatio === '4:5' ? '3:4' : aspectRatio,
-      abortSignal: AbortSignal.timeout(30_000),
+      abortSignal: AbortSignal.timeout(20_000),
     });
 
     return {
@@ -100,20 +81,43 @@ export async function generateImage(
     );
   }
 
-  // --- Fallback 2: Google Imagen 4 ---
+  // --- Fallback 1: Google Imagen 4 ---
   try {
     const google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_AI_STUDIO_KEY });
     const { image } = await aiGenerateImage({
       model: google.image('imagen-4.0-generate-001'),
       prompt,
       aspectRatio: aspectRatio === '4:5' ? '3:4' : aspectRatio,
-      abortSignal: AbortSignal.timeout(30_000),
+      abortSignal: AbortSignal.timeout(20_000),
     });
 
     return {
       image_base64: image.base64,
       mime_type: 'image/png',
       engine: 'google-imagen-4',
+      aspect_ratio: aspectRatio,
+    };
+  } catch (err) {
+    console.warn(
+      `[generateImage] Imagen 4 failed: ${err instanceof Error ? err.message : err} — trying OpenAI`,
+    );
+  }
+
+  // --- Fallback 2: OpenAI gpt-image-2 ---
+  try {
+    const openai = createOpenAI({ apiKey: env.OPENAI_API_KEY });
+    const { image } = await aiGenerateImage({
+      model: openai.image('gpt-image-2'),
+      prompt,
+      size: OPENAI_SIZE_MAP[aspectRatio],
+      providerOptions: { openai: { quality: 'high' } },
+      abortSignal: AbortSignal.timeout(20_000),
+    });
+
+    return {
+      image_base64: image.base64,
+      mime_type: 'image/png',
+      engine: 'openai-gpt-image-2',
       aspect_ratio: aspectRatio,
     };
   } catch (err) {
@@ -590,7 +594,7 @@ async function waitForIgProcessing(env: Env, containerId: string, maxWait = 20):
       console.warn(
         `[waitForIg] container=${containerId} status check auth error — using fixed delay fallback`,
       );
-      await new Promise((r) => setTimeout(r, 10_000));
+      await new Promise((r) => setTimeout(r, 5_000));
       return;
     }
     if (i === 0 || i % 5 === 0) {

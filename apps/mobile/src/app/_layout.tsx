@@ -233,12 +233,12 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
   ]);
 
   // --- What's New modal trigger ---
+  // Module-level flag survives React 19 Strict Mode double-mount (useRef resets on remount)
   const lastSeenVersion = useWhatsNewStore((s) => s.lastSeenVersion);
-  const whatsNewShown = useRef(false);
+  const setLastSeenVersion = useWhatsNewStore((s) => s.setLastSeenVersion);
 
   useEffect(() => {
     if (isLoading || !session || !onboardingCompleted) return;
-    if (whatsNewShown.current) return;
 
     const currentVersion = Application.nativeApplicationVersion;
     if (!currentVersion || currentVersion === lastSeenVersion) return;
@@ -250,10 +250,11 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     const inTabs = segments[0] === '(tabs)';
     if (!inTabs) return;
 
-    whatsNewShown.current = true;
+    // Mark as seen immediately to prevent Strict Mode double-push
+    setLastSeenVersion(currentVersion);
     trackEvent(AnalyticsEvent.WHATS_NEW_VIEWED, { version: currentVersion });
     setTimeout(() => router.push('/(modals)/whats-new' as never), 500);
-  }, [isLoading, session, onboardingCompleted, segments, lastSeenVersion, router]);
+  }, [isLoading, session, onboardingCompleted, segments, lastSeenVersion, setLastSeenVersion, router]);
 
   if (isLoading || (session && meQuery.isLoading && !meQuery.isError)) {
     return null;
