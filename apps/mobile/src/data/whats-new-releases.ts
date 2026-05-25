@@ -1,7 +1,6 @@
 import { palette } from '@motovault/design-system';
 import type { LucideIcon } from 'lucide-react-native';
 import {
-  Award,
   Bike,
   Gauge,
   Map as MapIcon,
@@ -10,8 +9,9 @@ import {
   Paintbrush,
   Route,
   Sparkles,
+  Mountain,
+  Share2,
   TrendingUp,
-  Trophy,
   Users,
   Wrench,
 } from 'lucide-react-native';
@@ -40,20 +40,26 @@ export const WHATS_NEW_RELEASES = [
       {
         icon: TrendingUp,
         iconColor: palette.accent400,
-        titleKey: 'whatsNew.v380.rideStatsTitle' as const,
-        descriptionKey: 'whatsNew.v380.rideStatsDesc' as const,
+        titleKey: 'whatsNew.v380.analyticsTitle' as const,
+        descriptionKey: 'whatsNew.v380.analyticsDesc' as const,
       },
       {
-        icon: Trophy,
+        icon: Paintbrush,
         iconColor: palette.signature400,
-        titleKey: 'whatsNew.v380.personalBestsTitle' as const,
-        descriptionKey: 'whatsNew.v380.personalBestsDesc' as const,
-      },
-      {
-        icon: Award,
-        iconColor: palette.editorialDarkWarm,
         titleKey: 'whatsNew.v380.redesignedRidesTitle' as const,
         descriptionKey: 'whatsNew.v380.redesignedRidesDesc' as const,
+      },
+      {
+        icon: Mountain,
+        iconColor: palette.editorialDarkWarm,
+        titleKey: 'whatsNew.v380.flyoverTitle' as const,
+        descriptionKey: 'whatsNew.v380.flyoverDesc' as const,
+      },
+      {
+        icon: Share2,
+        iconColor: palette.primary400,
+        titleKey: 'whatsNew.v380.shareTitle' as const,
+        descriptionKey: 'whatsNew.v380.shareDesc' as const,
       },
     ],
   },

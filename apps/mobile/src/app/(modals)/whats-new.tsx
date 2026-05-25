@@ -239,7 +239,7 @@ export default function WhatsNewModal() {
             marginBottom: 14,
           }}
         >
-          {t(slide.titleKey)}
+          {t(slide.titleKey as never)}
         </Text>
         <Text
           style={{
@@ -248,7 +248,7 @@ export default function WhatsNewModal() {
             lineHeight: 22.5,
           }}
         >
-          {t(slide.descriptionKey)}
+          {t(slide.descriptionKey as never)}
         </Text>
       </Animated.View>
 
