@@ -64,6 +64,13 @@ export function ShareActivitySheet({ visible, payload, onClose }: ShareActivityS
     }
   }, [payload.isPB, payload.pbType, variants]);
 
+  // Track sheet open
+  useEffect(() => {
+    if (visible) {
+      trackEvent(AnalyticsEvent.SHARE_SHEET_OPENED, {});
+    }
+  }, [visible]);
+
   // Reset state when sheet closes
   useEffect(() => {
     if (!visible) {
@@ -72,12 +79,23 @@ export function ShareActivitySheet({ visible, payload, onClose }: ShareActivityS
     }
   }, [visible]);
 
+  const handleIndexChange = useCallback(
+    (index: number) => {
+      setActiveIndex(index);
+      if (variants[index]) {
+        trackEvent(AnalyticsEvent.SHARE_CARD_SWIPED, { variant: variants[index] });
+      }
+    },
+    [variants],
+  );
+
   const handleDestinationPress = useCallback(
     (destination: ShareDestination) => {
       if (process.env.EXPO_OS === 'ios') {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
       const activeVariant = variants[activeIndex] ?? variants[0];
+      trackEvent(AnalyticsEvent.SHARE_DESTINATION_TAPPED, { destination, variant: activeVariant });
       handleDestinationTap(destination, activeVariant);
     },
     [activeIndex, variants, handleDestinationTap],
@@ -187,7 +205,7 @@ export function ShareActivitySheet({ visible, payload, onClose }: ShareActivityS
           variants={variants}
           payload={payload}
           activeIndex={activeIndex}
-          onIndexChange={setActiveIndex}
+          onIndexChange={handleIndexChange}
         />
 
         {/* Destination Grid */}
