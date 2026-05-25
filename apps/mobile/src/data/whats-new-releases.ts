@@ -1,6 +1,7 @@
 import { palette } from '@motovault/design-system';
 import type { LucideIcon } from 'lucide-react-native';
 import {
+  Award,
   Bike,
   Gauge,
   Map as MapIcon,
@@ -9,6 +10,8 @@ import {
   Paintbrush,
   Route,
   Sparkles,
+  TrendingUp,
+  Trophy,
   Users,
   Wrench,
 } from 'lucide-react-native';
@@ -31,6 +34,29 @@ export interface WhatsNewRelease {
  * the current app version is shown.
  */
 export const WHATS_NEW_RELEASES = [
+  {
+    version: '3.8.0',
+    slides: [
+      {
+        icon: TrendingUp,
+        iconColor: palette.accent400,
+        titleKey: 'whatsNew.v380.rideStatsTitle' as const,
+        descriptionKey: 'whatsNew.v380.rideStatsDesc' as const,
+      },
+      {
+        icon: Trophy,
+        iconColor: palette.signature400,
+        titleKey: 'whatsNew.v380.personalBestsTitle' as const,
+        descriptionKey: 'whatsNew.v380.personalBestsDesc' as const,
+      },
+      {
+        icon: Award,
+        iconColor: palette.editorialDarkWarm,
+        titleKey: 'whatsNew.v380.redesignedRidesTitle' as const,
+        descriptionKey: 'whatsNew.v380.redesignedRidesDesc' as const,
+      },
+    ],
+  },
   {
     version: '3.7.0',
     slides: [
