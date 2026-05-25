@@ -262,9 +262,17 @@ export async function logoutRevenueCat() {
   if (!cleanup) return;
   try {
     const Purchases = await getPurchases();
+    const customerInfo = await Purchases.getCustomerInfo();
+    // RevenueCat anonymous user IDs start with "$RCAnonymousID:"
+    if (customerInfo.originalAppUserId.startsWith('$RCAnonymousID:')) return;
     await Purchases.logOut();
   } catch (e) {
-    console.error('[RevenueCat] logOut failed:', e instanceof Error ? e.message : e);
-    captureException(e);
+    const msg = e instanceof Error ? e.message : String(e);
+    // Suppress known non-fatal error when logOut is called for anonymous users
+    const isAnonymousError = msg.toLowerCase().includes('anonymous');
+    console.warn('[RevenueCat] logOut skipped:', msg);
+    if (!isAnonymousError) {
+      captureException(e);
+    }
   }
 }
