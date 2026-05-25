@@ -26,7 +26,7 @@ import {
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, BackHandler, Pressable, Share, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, BackHandler, Pressable, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -34,6 +34,12 @@ import { CommentList } from '../../components/comments/comment-list';
 import { RideElevationChart } from '../../components/ride/ride-elevation-chart';
 import { RideSpeedChart } from '../../components/ride/ride-speed-chart';
 import { StatTile } from '../../components/ride/stat-tile';
+import { ShareActivitySheet } from '../../components/share/share-activity-sheet';
+import type {
+  CardVariant,
+  RideSharePayload,
+  ShareDestination,
+} from '../../components/share/share-card-types';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -192,22 +198,55 @@ export default function RideDetailScreen() {
     }
   }, [ride?.routePolyline]);
 
-  const handleShare = useCallback(async () => {
-    if (!ride) return;
+  const [showShareSheet, setShowShareSheet] = useState(false);
+
+  const sharePayload = useMemo<RideSharePayload | null>(() => {
+    if (!ride) return null;
+    const coords = routeData?.geojson.features[0]?.geometry;
+    const routeCoordinates =
+      coords && coords.type === 'LineString' ? (coords.coordinates as [number, number][]) : [];
+    const elevProfile = waypoints
+      .filter((w) => w.altitude != null)
+      .map((w) => w.altitude as number);
+    const peakElev = elevProfile.length > 0 ? Math.max(...elevProfile) : null;
+
+    return {
+      rideId: ride.id,
+      rideName: ride.name || 'My Ride',
+      rideNumber: null,
+      date: ride.startedAt ?? new Date().toISOString(),
+      distanceM: ride.distanceM ?? 0,
+      durationS: ride.durationS ?? 0,
+      elevationGainM: ride.elevationGain ?? null,
+      elevationPeakM: peakElev,
+      elevationProfile: elevProfile,
+      maxSpeedMps: ride.maxSpeedMps ?? null,
+      routeCoordinates,
+      mapSnapshotUri: null,
+      bikeName: null,
+      measurementSystem: system,
+      isPB: false,
+      pbType: null,
+      prevPbValue: null,
+    };
+  }, [ride, routeData, waypoints, system]);
+
+  const handleShare = useCallback(() => {
+    if (!ride || (ride.distanceM ?? 0) < 100) return;
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    try {
-      const dist = formatDistance(ride.distanceM ?? 0, system);
-      const dur = formatDuration(ride.durationS ?? 0);
-      await Share.share({
-        message: `${ride.name || 'My Ride'} — ${dist} in ${dur} with MotoVault!`,
-      });
-      trackEvent(AnalyticsEvent.RIDE_SHARED, { ride_id: rideId ?? '' });
-    } catch {
-      // cancelled
-    }
-  }, [ride, system, rideId]);
+    trackEvent(AnalyticsEvent.RIDE_SHARED, { ride_id: rideId ?? '' });
+    setShowShareSheet(true);
+  }, [ride, rideId]);
+
+  const handleShareDestination = useCallback(
+    (_destination: ShareDestination, _variant: CardVariant) => {
+      // TODO: Implement destination handlers in PR3
+      setShowShareSheet(false);
+    },
+    [],
+  );
 
   const handleDelete = useCallback(() => {
     if (!rideId) return;
@@ -852,6 +891,15 @@ export default function RideDetailScreen() {
           </BottomSheetScrollView>
         </BottomSheet>
       </View>
+      {/* Share Activity Sheet overlay */}
+      {sharePayload && (
+        <ShareActivitySheet
+          visible={showShareSheet}
+          payload={sharePayload}
+          onClose={() => setShowShareSheet(false)}
+          onDestinationPress={handleShareDestination}
+        />
+      )}
     </GestureHandlerRootView>
   );
 }
