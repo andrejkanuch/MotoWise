@@ -63,6 +63,7 @@ export async function generateImage(
       prompt,
       size: OPENAI_SIZE_MAP[aspectRatio],
       providerOptions: { openai: { quality: 'high' } },
+      abortSignal: AbortSignal.timeout(45_000),
     });
 
     return {
@@ -84,6 +85,7 @@ export async function generateImage(
       model: google.image('gemini-2.5-flash-image'),
       prompt,
       aspectRatio: aspectRatio === '4:5' ? '3:4' : aspectRatio,
+      abortSignal: AbortSignal.timeout(30_000),
     });
 
     return {
@@ -105,6 +107,7 @@ export async function generateImage(
       model: google.image('imagen-4.0-generate-001'),
       prompt,
       aspectRatio: aspectRatio === '4:5' ? '3:4' : aspectRatio,
+      abortSignal: AbortSignal.timeout(30_000),
     });
 
     return {
@@ -117,6 +120,82 @@ export async function generateImage(
     throw new Error(
       `All image generation engines failed. Last error: ${err instanceof Error ? err.message : err}`,
     );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Phone mockup generation
+// ---------------------------------------------------------------------------
+
+/**
+ * Generate a phone mockup image with an app screenshot composited inside.
+ *
+ * Uses OpenAI's image editing API (POST /images/edits) which accepts an input
+ * image and a prompt. We pass the screenshot and ask GPT to place it on a phone
+ * mockup. This bypasses Gemini's geo-restrictions on image generation.
+ *
+ * The screenshot is sent as the input image, and the prompt instructs the model
+ * to create a phone mockup around it.
+ */
+export async function generatePhoneMockup(
+  env: Env,
+  screenshotBase64: string,
+  _modelOverride?: string,
+): Promise<string> {
+  const prompt = [
+    'Create a professional marketing photo showing this mobile app screenshot displayed on a realistic iPhone 15 Pro.',
+    'The phone should be centered, slightly angled (5-10 degrees), on a dark warm gradient background.',
+    'The screenshot must be clearly visible and unmodified on the phone screen.',
+    'Premium Apple product photography style. No text overlays.',
+  ].join(' ');
+
+  // Use OpenAI's /images/edits endpoint directly — it accepts an input image
+  const imageBytes = base64ToUint8Array(screenshotBase64);
+  const blob = new Blob([imageBytes], { type: 'image/png' });
+
+  const formData = new FormData();
+  formData.append('image', blob, 'screenshot.png');
+  formData.append('prompt', prompt);
+  formData.append('model', 'gpt-image-1');
+  formData.append('size', '1024x1024');
+
+  try {
+    const res = await fetch('https://api.openai.com/v1/images/edits', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+      },
+      body: formData,
+      signal: AbortSignal.timeout(60_000),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`OpenAI edits API returned ${res.status}: ${err.slice(0, 200)}`);
+    }
+
+    const data = (await res.json()) as { data?: Array<{ b64_json?: string; url?: string }> };
+    const entry = data.data?.[0];
+    if (!entry) {
+      throw new Error('OpenAI edits API returned no image data');
+    }
+
+    // If we got a URL, fetch it and convert to base64
+    let b64 = entry.b64_json;
+    if (!b64 && entry.url) {
+      const imgRes = await fetch(entry.url);
+      if (!imgRes.ok) throw new Error(`Failed to fetch generated image: ${imgRes.status}`);
+      b64 = uint8ArrayToBase64(new Uint8Array(await imgRes.arrayBuffer()));
+    }
+    if (!b64) {
+      throw new Error('OpenAI edits API returned no usable image');
+    }
+
+    console.log('[mockup] Generated phone mockup via openai-edits');
+    return b64;
+  } catch (err) {
+    console.warn(`[mockup] OpenAI edits failed: ${err instanceof Error ? err.message : err}`);
+    throw new Error(`Phone mockup generation failed: ${err instanceof Error ? err.message : err}`);
   }
 }
 
@@ -156,39 +235,54 @@ export async function publishPost(
 
   if (platform === 'both' || platform === 'facebook') {
     tasks.push(
-      graphPost(env, `${env.META_PAGE_ID}/photos`, {
-        url: imageUrl,
-        message: fbCaption,
-      }).then((fbRes) => {
-        results.facebook = {
-          post_id: fbRes.post_id ?? fbRes.id,
-          success: !fbRes.error,
-          ...(fbRes.error ? { error: fbRes.error } : {}),
-        };
-      }),
+      (async () => {
+        try {
+          const fbRes = await graphPost(env, `${env.META_PAGE_ID}/photos`, {
+            url: imageUrl,
+            message: fbCaption,
+          });
+          results.facebook = {
+            post_id: fbRes.post_id ?? fbRes.id,
+            success: !fbRes.error,
+            ...(fbRes.error ? { error: fbRes.error } : {}),
+          };
+        } catch (err) {
+          results.facebook = {
+            success: false,
+            error: err instanceof Error ? err.message : err,
+          };
+        }
+      })(),
     );
   }
 
   if (platform === 'both' || platform === 'instagram') {
     tasks.push(
       (async () => {
-        const container = await graphPost(env, `${env.META_IG_USER_ID}/media`, {
-          image_url: imageUrl,
-          caption: igCaption,
-        });
-
-        if (container.id) {
-          await waitForIgProcessing(env, container.id);
-          const pub = await graphPost(env, `${env.META_IG_USER_ID}/media_publish`, {
-            creation_id: container.id,
+        try {
+          const container = await graphPost(env, `${env.META_IG_USER_ID}/media`, {
+            image_url: imageUrl,
+            caption: igCaption,
           });
+
+          if (container.id) {
+            await waitForIgProcessing(env, container.id);
+            const pub = await graphPost(env, `${env.META_IG_USER_ID}/media_publish`, {
+              creation_id: container.id,
+            });
+            results.instagram = {
+              media_id: pub.id,
+              success: !pub.error,
+              ...(pub.error ? { error: pub.error } : {}),
+            };
+          } else {
+            results.instagram = { success: false, error: container.error };
+          }
+        } catch (err) {
           results.instagram = {
-            media_id: pub.id,
-            success: !pub.error,
-            ...(pub.error ? { error: pub.error } : {}),
+            success: false,
+            error: err instanceof Error ? err.message : err,
           };
-        } else {
-          results.instagram = { success: false, error: container.error };
         }
       })(),
     );
@@ -369,27 +463,34 @@ export async function publishStory(
   if (platform === 'both' || platform === 'instagram') {
     tasks.push(
       (async () => {
-        const storyParams: Record<string, string> = {
-          image_url: imageUrl,
-          media_type: 'STORIES',
-        };
-        if (params.link) {
-          storyParams.link = params.link;
-        }
-        const container = await graphPost(env, `${env.META_IG_USER_ID}/media`, storyParams);
-
-        if (container.id) {
-          await waitForIgProcessing(env, container.id);
-          const pub = await graphPost(env, `${env.META_IG_USER_ID}/media_publish`, {
-            creation_id: container.id,
-          });
-          results.instagram = {
-            story_id: pub.id,
-            success: !pub.error,
-            ...(pub.error ? { error: pub.error } : {}),
+        try {
+          const storyParams: Record<string, string> = {
+            image_url: imageUrl,
+            media_type: 'STORIES',
           };
-        } else {
-          results.instagram = { success: false, error: container.error };
+          if (params.link) {
+            storyParams.link = params.link;
+          }
+          const container = await graphPost(env, `${env.META_IG_USER_ID}/media`, storyParams);
+
+          if (container.id) {
+            await waitForIgProcessing(env, container.id);
+            const pub = await graphPost(env, `${env.META_IG_USER_ID}/media_publish`, {
+              creation_id: container.id,
+            });
+            results.instagram = {
+              story_id: pub.id,
+              success: !pub.error,
+              ...(pub.error ? { error: pub.error } : {}),
+            };
+          } else {
+            results.instagram = { success: false, error: container.error };
+          }
+        } catch (err) {
+          results.instagram = {
+            success: false,
+            error: err instanceof Error ? err.message : err,
+          };
         }
       })(),
     );
@@ -398,22 +499,29 @@ export async function publishStory(
   if (platform === 'both' || platform === 'facebook') {
     tasks.push(
       (async () => {
-        const photo = await graphPost(env, `${env.META_PAGE_ID}/photos`, {
-          url: imageUrl,
-          published: 'false',
-        });
-
-        if (photo.id) {
-          const story = await graphPost(env, `${env.META_PAGE_ID}/photo_stories`, {
-            photo_id: photo.id,
+        try {
+          const photo = await graphPost(env, `${env.META_PAGE_ID}/photos`, {
+            url: imageUrl,
+            published: 'false',
           });
+
+          if (photo.id) {
+            const story = await graphPost(env, `${env.META_PAGE_ID}/photo_stories`, {
+              photo_id: photo.id,
+            });
+            results.facebook = {
+              post_id: story.post_id ?? story.id,
+              success: !story.error,
+              ...(story.error ? { error: story.error } : {}),
+            };
+          } else {
+            results.facebook = { success: false, error: photo.error };
+          }
+        } catch (err) {
           results.facebook = {
-            post_id: story.post_id ?? story.id,
-            success: !story.error,
-            ...(story.error ? { error: story.error } : {}),
+            success: false,
+            error: err instanceof Error ? err.message : err,
           };
-        } else {
-          results.facebook = { success: false, error: photo.error };
         }
       })(),
     );
@@ -448,28 +556,53 @@ async function graphPost(
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ ...params, access_token: env.META_API_KEY }).toString(),
   });
-  return (await res.json()) as GraphResponse;
+  const data = (await res.json()) as GraphResponse;
+  if (data.error) {
+    console.error(`[graphPost] ${endpoint} error:`, JSON.stringify(data.error));
+  }
+  return data;
 }
 
 /**
  * Poll an IG media container until it reaches FINISHED status.
  *
+ * If the status check endpoint returns an auth error (code 100, subcode 33),
+ * falls back to a fixed delay + retry-publish approach since the token may
+ * lack read permissions while still having publish permissions.
+ *
  * Note: Meta's Graph API GET endpoints require the access_token as a query
  * parameter — the Authorization: Bearer header is only documented for the
- * WhatsApp Cloud API, not the Instagram/Facebook Graph API. POST endpoints
- * are safe because the token travels in the form-encoded body, not the URL.
+ * WhatsApp Cloud API, not the Instagram/Facebook Graph API.
  */
-async function waitForIgProcessing(env: Env, containerId: string, maxWait = 30): Promise<void> {
+async function waitForIgProcessing(env: Env, containerId: string, maxWait = 20): Promise<void> {
   for (let i = 0; i < maxWait; i++) {
     const res = await fetch(
-      `${GRAPH_API}/${containerId}?fields=status_code&access_token=${env.META_API_KEY}`,
+      `${GRAPH_API}/${containerId}?fields=status_code,status&access_token=${env.META_API_KEY}`,
     );
-    const data = (await res.json()) as GraphResponse;
+    const data = (await res.json()) as GraphResponse & { status?: string };
     if (data.status_code === 'FINISHED') return;
-    if (data.status_code === 'ERROR') throw new Error('Instagram processing failed');
-    await new Promise((r) => setTimeout(r, 1000));
+    if (data.status_code === 'ERROR') {
+      throw new Error(`Instagram processing failed: ${JSON.stringify(data)}`);
+    }
+    if (data.error) {
+      // Auth error on status check — token can create but not read containers.
+      // Fall back to a fixed delay and let the caller attempt publish directly.
+      console.warn(
+        `[waitForIg] container=${containerId} status check auth error — using fixed delay fallback`,
+      );
+      await new Promise((r) => setTimeout(r, 10_000));
+      return;
+    }
+    if (i === 0 || i % 5 === 0) {
+      console.log(
+        `[waitForIg] container=${containerId} poll=${i} status_code=${data.status_code ?? 'none'} status=${data.status ?? 'none'}`,
+      );
+    }
+    await new Promise((r) => setTimeout(r, 2000));
   }
-  throw new Error('Instagram processing timeout');
+  throw new Error(
+    `Instagram processing timeout after ${maxWait * 2}s for container ${containerId}`,
+  );
 }
 
 /** Upload image bytes to Supabase Storage using the service role key. */

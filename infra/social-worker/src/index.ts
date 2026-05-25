@@ -24,6 +24,7 @@ import type { Env } from './env';
 import {
   type AspectRatio,
   generateImage,
+  generatePhoneMockup,
   publishCarousel,
   publishPost,
   publishStory,
@@ -143,6 +144,35 @@ export default {
           }
           await runScheduledPost(env, cron);
           return json({ ok: true, slot, cron });
+        }
+
+        case '/test-mockup': {
+          // Debug endpoint: test phone mockup generation with a screenshot key
+          const key = url.searchParams.get('key') ?? 'home-dashboard-hero';
+          const { SCREENSHOT_CATALOG } = await import('./screenshots');
+          const entry = SCREENSHOT_CATALOG[key];
+          if (!entry) return json({ error: `Unknown key: ${key}` }, 400);
+
+          const screenshotUrl = `${env.SUPABASE_URL}/storage/v1/object/public/social-media/${entry.storagePath}`;
+          const screenshotRes = await fetch(screenshotUrl);
+          if (!screenshotRes.ok)
+            return json({ error: `Fetch failed: ${screenshotRes.status}` }, 500);
+          const { uint8ArrayToBase64 } = await import('./publish');
+          const rawB64 = uint8ArrayToBase64(new Uint8Array(await screenshotRes.arrayBuffer()));
+
+          try {
+            const model = url.searchParams.get('model') ?? undefined;
+            const mockupB64 = await generatePhoneMockup(env, rawB64, model);
+            return json({ success: true, mockup_size: mockupB64.length, key, model });
+          } catch (err) {
+            return json(
+              {
+                error: err instanceof Error ? err.message : String(err),
+                key,
+              },
+              500,
+            );
+          }
         }
 
         default:
