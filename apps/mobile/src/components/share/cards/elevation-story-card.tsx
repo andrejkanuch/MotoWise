@@ -18,7 +18,7 @@ export const ElevationStoryCard = memo(function ElevationStoryCard({
         height: 396,
         borderRadius: 20,
         borderCurve: 'continuous',
-        backgroundColor: '#0c0a08',
+        backgroundColor: palette.shareCardDarkBg,
         overflow: 'hidden',
       }}
     >
@@ -51,12 +51,7 @@ export const ElevationStoryCard = memo(function ElevationStoryCard({
 
       {/* Elevation chart */}
       <View style={{ position: 'absolute', left: 0, right: 0, top: 56, height: 180 }}>
-        <ElevationSparkline
-          profile={data.elevationProfile}
-          peakM={data.elevationPeakM}
-          width={222}
-          height={180}
-        />
+        <ElevationSparkline profile={data.elevationProfile} width={222} height={180} />
         {/* Peak altitude label */}
         {data.elevationPeakM != null && (
           <View style={{ position: 'absolute', top: 8, right: 14 }}>

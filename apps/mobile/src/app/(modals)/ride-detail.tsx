@@ -218,10 +218,10 @@ export default function RideDetailScreen() {
       elevationProfile: elevProfile,
       maxSpeedMps: ride.maxSpeedMps ?? null,
       routeCoordinates,
-      mapSnapshotUri: null,
-      bikeName: null,
+      mapSnapshotUri: null, // TODO: pre-capture from MapView after onDidFinishLoadingMap
+      bikeName: null, // TODO: wire useBikeName hook when available on this branch
       measurementSystem: system,
-      isPB: false,
+      isPB: false, // TODO: wire personalRecords from RideOverview query
       pbType: null,
       prevPbValue: null,
     };

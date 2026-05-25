@@ -309,42 +309,51 @@ export function RouteSilhouette({
 
 export function ElevationSparkline({
   profile,
-  peakM,
   width = 222,
   height = 180,
 }: {
   profile: number[];
-  peakM: number | null;
   width?: number;
   height?: number;
 }) {
   if (profile.length < 2) return null;
 
+  // Downsample to ~80 points for performance
+  const step = Math.max(1, Math.floor(profile.length / 80));
+  const sampled = profile.filter((_, i) => i % step === 0 || i === profile.length - 1);
+
+  // Single-pass min/max/peakIdx — avoids 3x Math.max(...spread) which can stack-overflow on large arrays
+  let min = sampled[0];
+  let max = sampled[0];
+  let peakIdx = 0;
+  for (let i = 1; i < sampled.length; i++) {
+    if (sampled[i] < min) min = sampled[i];
+    if (sampled[i] > max) {
+      max = sampled[i];
+      peakIdx = i;
+    }
+  }
+  min -= 50;
+  max += 50;
+
   const padL = 8;
   const padR = 8;
   const padT = 18;
   const padB = 18;
-  const min = Math.min(...profile) - 50;
-  const max = Math.max(...profile) + 50;
   const range = max - min || 1;
-  const xStep = (width - padL - padR) / (profile.length - 1);
+  const xStep = (width - padL - padR) / (sampled.length - 1);
 
-  const points = profile.map((v, i) => [
+  const points = sampled.map((v, i) => [
     padL + i * xStep,
     padT + (1 - (v - min) / range) * (height - padT - padB),
   ]);
 
-  // Build smooth path
   let d = `M ${points[0][0].toFixed(1)},${points[0][1].toFixed(1)}`;
   for (let i = 1; i < points.length; i++) {
     d += ` L ${points[i][0].toFixed(1)},${points[i][1].toFixed(1)}`;
   }
 
-  // Fill path
   const fillD = `${d} L ${points[points.length - 1][0].toFixed(1)},${height - padB} L ${padL},${height - padB} Z`;
-
-  // Peak marker
-  const peakIdx = profile.indexOf(Math.max(...profile));
   const peak = points[peakIdx];
 
   return (

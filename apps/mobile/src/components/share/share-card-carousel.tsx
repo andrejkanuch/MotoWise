@@ -13,6 +13,8 @@ interface ShareCardCarouselProps {
   variants: CardVariant[];
   payload: RideSharePayload;
   activeIndex: number;
+  /** Ref forwarded to the active card's wrapper View for react-native-view-shot capture */
+  activeCardRef: React.RefObject<View | null>;
   onIndexChange: (index: number) => void;
 }
 
@@ -20,6 +22,7 @@ export const ShareCardCarousel = memo(function ShareCardCarousel({
   variants,
   payload,
   activeIndex,
+  activeCardRef,
   onIndexChange,
 }: ShareCardCarouselProps) {
   const scrollRef = useRef<ScrollView>(null);
@@ -67,6 +70,8 @@ export const ShareCardCarousel = memo(function ShareCardCarousel({
           {variants.map((variant, i) => (
             <View
               key={variant}
+              ref={i === activeIndex ? activeCardRef : undefined}
+              collapsable={false}
               style={{
                 width: CARD_WIDTH,
                 marginRight: i < variants.length - 1 ? CARD_GAP : 0,
