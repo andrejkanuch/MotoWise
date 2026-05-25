@@ -2,6 +2,7 @@ import { palette } from '@motovault/design-system';
 import type { GetRideWaypointsQuery } from '@motovault/graphql';
 import type { MeasurementSystem } from '@motovault/types';
 import { memo, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, useWindowDimensions, View } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -13,6 +14,7 @@ type Waypoint = GetRideWaypointsQuery['rideWaypoints'][number];
 interface RideSpeedChartProps {
   waypoints: Waypoint[];
   system: MeasurementSystem;
+  isAnimated?: boolean;
 }
 
 interface SpeedChartItem {
@@ -49,7 +51,9 @@ const tooltipSecondaryText = {
 export const RideSpeedChart = memo(function RideSpeedChart({
   waypoints,
   system,
+  isAnimated = true,
 }: RideSpeedChartProps) {
+  const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
   const chartWidth = screenWidth - 140;
   const unit = speedUnitLabel(system);
@@ -139,7 +143,7 @@ export const RideSpeedChart = memo(function RideSpeedChart({
           marginBottom: 12,
         }}
       >
-        Speed ({unit})
+        {t('rideChart.speed', { unit })}
       </Text>
       <LineChart
         areaChart
@@ -154,8 +158,8 @@ export const RideSpeedChart = memo(function RideSpeedChart({
         endFillColor={palette.accentTintZero}
         startOpacity={0.4}
         endOpacity={0}
-        isAnimated
-        animationDuration={300}
+        isAnimated={isAnimated}
+        animationDuration={isAnimated ? 300 : 0}
         noOfSections={4}
         maxValue={maxVal}
         rulesColor={palette.surfaceElevated}

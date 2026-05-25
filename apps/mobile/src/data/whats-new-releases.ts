@@ -5,10 +5,13 @@ import {
   Gauge,
   Map as MapIcon,
   MessageCircle,
+  Mountain,
   Navigation,
   Paintbrush,
   Route,
+  Share2,
   Sparkles,
+  TrendingUp,
   Users,
   Wrench,
 } from 'lucide-react-native';
@@ -31,6 +34,35 @@ export interface WhatsNewRelease {
  * the current app version is shown.
  */
 export const WHATS_NEW_RELEASES = [
+  {
+    version: '3.8.0',
+    slides: [
+      {
+        icon: TrendingUp,
+        iconColor: palette.accent400,
+        titleKey: 'whatsNew.v380.analyticsTitle' as const,
+        descriptionKey: 'whatsNew.v380.analyticsDesc' as const,
+      },
+      {
+        icon: Paintbrush,
+        iconColor: palette.signature400,
+        titleKey: 'whatsNew.v380.redesignedRidesTitle' as const,
+        descriptionKey: 'whatsNew.v380.redesignedRidesDesc' as const,
+      },
+      {
+        icon: Mountain,
+        iconColor: palette.editorialDarkWarm,
+        titleKey: 'whatsNew.v380.flyoverTitle' as const,
+        descriptionKey: 'whatsNew.v380.flyoverDesc' as const,
+      },
+      {
+        icon: Share2,
+        iconColor: palette.primary400,
+        titleKey: 'whatsNew.v380.shareTitle' as const,
+        descriptionKey: 'whatsNew.v380.shareDesc' as const,
+      },
+    ],
+  },
   {
     version: '3.7.0',
     slides: [

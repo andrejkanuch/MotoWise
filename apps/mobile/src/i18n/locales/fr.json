@@ -21,7 +21,8 @@
     "genericError": "Une erreur s'est produite. Veuillez réessayer.",
     "tryAgain": "Réessayer",
     "confirm": "Confirmer",
-    "all": "Tout"
+    "all": "Tout",
+    "ride": "Ride"
   },
   "auth": {
     "signIn": "Se connecter",
@@ -1402,6 +1403,16 @@
       "tripsTitle": "Trip Planning",
       "tripsDesc": "Plan multi-stop motorcycle trips with waypoints. Share your itinerary with riding buddies."
     },
+    "v380": {
+      "analyticsTitle": "Analyse des trajets",
+      "analyticsDesc": "Distance totale, temps de conduite, séries et records personnels — tout se met à jour après chaque trajet. Vos statistiques en un coup d'œil.",
+      "redesignedRidesTitle": "Trajets repensés",
+      "redesignedRidesDesc": "Tous les écrans de trajets reconstruits — bannières de carte, badges de records, vues détaillées plus claires et un flux de sauvegarde amélioré.",
+      "flyoverTitle": "Survol 3D",
+      "flyoverDesc": "Rejouez n'importe quel trajet en survol satellite cinématographique avec terrain, élévation et animation de caméra fluide.",
+      "shareTitle": "Partagez vos trajets",
+      "shareDesc": "Créez de belles cartes visuelles de vos trajets et partagez-les partout — Instagram, WhatsApp ou enregistrez-les dans votre galerie."
+    },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",
       "onboardingDesc": "A smoother start — animated experience picker, goal-driven personalization, and real fleet data.",
@@ -1621,9 +1632,23 @@
     "recentRides": "Balades récentes",
     "newestFirst": "Plus récentes d'abord ↓",
     "oldestFirst": "Plus anciennes d'abord ↑",
-    "unlockTitle": "Débloquer l'historique complet",
-    "unlockDesc": "Les comptes gratuits affichent les {{limit}} dernières balades. Passez à Pro pour un historique et des stats illimités.",
-    "upgradePro": "Passer à Pro"
+    "streakWeek": "week streak",
+    "streakWeeks": "week streak",
+    "streakDesc": "Consecutive weeks with a ride",
+    "thisMonth": "This month",
+    "thisYear": "This year",
+    "vsLastWeek": "vs last week",
+    "vsLastMonth": "vs last month",
+    "vsLastYear": "vs last year",
+    "topSpeed": "Top speed",
+    "elevation": "Elevation",
+    "personalBest": "Personal best",
+    "totalGain": "Total gain",
+    "seeAllRides": "See all →",
+    "ride_one": "{{count}} ride",
+    "ride_other": "{{count}} rides",
+    "elev": "elev.",
+    "dur": "Dur"
   },
   "rideDetail": {
     "noRouteData": "Aucune donnée de trajet",
@@ -1645,7 +1670,14 @@
     "deleteTitle": "Supprimer la balade ?",
     "deleteMessage": "Cette action est irréversible.",
     "cancel": "Annuler",
-    "delete": "Supprimer"
+    "delete": "Supprimer",
+    "leanAngle": "Max Lean",
+    "leanCaveat": "Lean angle estimated from phone IMU",
+    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions.",
+    "private": "Private",
+    "elevationChart": "Elevation",
+    "speedChart": "Speed",
+    "peak": "{{value}} peak"
   },
   "startRide": {
     "preFlight": "Pré-vol",
@@ -1722,5 +1754,9 @@
     "topSpeed": "Top speed",
     "longestRide": "Longest ride",
     "mostElevation": "Most elevation"
+  },
+  "rideChart": {
+    "elevation": "Elevation ({{unit}})",
+    "speed": "Speed ({{unit}})"
   }
 }

@@ -21,7 +21,8 @@
     "genericError": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
     "tryAgain": "फिर से प्रयास करें",
     "confirm": "पुष्टि करें",
-    "all": "सभी"
+    "all": "सभी",
+    "ride": "Ride"
   },
   "auth": {
     "signIn": "साइन इन करें",
@@ -1402,6 +1403,16 @@
       "tripsTitle": "Trip Planning",
       "tripsDesc": "Plan multi-stop motorcycle trips with waypoints. Share your itinerary with riding buddies."
     },
+    "v380": {
+      "analyticsTitle": "राइड एनालिटिक्स",
+      "analyticsDesc": "कुल दूरी, राइडिंग समय, स्ट्रीक और पर्सनल बेस्ट — हर राइड के बाद अपडेट होता है। आपके आँकड़े एक नज़र में।",
+      "redesignedRidesTitle": "नया डिज़ाइन राइड्स",
+      "redesignedRidesDesc": "सभी राइड स्क्रीन नए सिरे से बनाई गईं — मैप बैनर, रिकॉर्ड बैज, साफ़ डिटेल व्यू और बेहतर सेव फ़्लो।",
+      "flyoverTitle": "3D फ़्लाइओवर",
+      "flyoverDesc": "किसी भी राइड को टेरेन, एलिवेशन और स्मूद कैमरा एनिमेशन के साथ सिनेमैटिक सैटेलाइट फ़्लाइओवर के रूप में रीप्ले करें।",
+      "shareTitle": "अपनी राइड्स शेयर करें",
+      "shareDesc": "अपनी राइड्स के सुंदर विज़ुअल कार्ड बनाएँ और कहीं भी शेयर करें — Instagram, WhatsApp या अपनी गैलरी में सेव करें।"
+    },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",
       "onboardingDesc": "A smoother start — animated experience picker, goal-driven personalization, and real fleet data.",
@@ -1621,9 +1632,23 @@
     "recentRides": "हाल की राइड्स",
     "newestFirst": "नवीनतम पहले ↓",
     "oldestFirst": "पुरानी पहले ↑",
-    "unlockTitle": "पूरा इतिहास अनलॉक करें",
-    "unlockDesc": "मुफ़्त खाते पिछली {{limit}} राइड्स दिखाते हैं। असीमित इतिहास और आंकड़ों के लिए अपग्रेड करें।",
-    "upgradePro": "Pro में अपग्रेड करें"
+    "streakWeek": "week streak",
+    "streakWeeks": "week streak",
+    "streakDesc": "Consecutive weeks with a ride",
+    "thisMonth": "This month",
+    "thisYear": "This year",
+    "vsLastWeek": "vs last week",
+    "vsLastMonth": "vs last month",
+    "vsLastYear": "vs last year",
+    "topSpeed": "Top speed",
+    "elevation": "Elevation",
+    "personalBest": "Personal best",
+    "totalGain": "Total gain",
+    "seeAllRides": "See all →",
+    "ride_one": "{{count}} ride",
+    "ride_other": "{{count}} rides",
+    "elev": "elev.",
+    "dur": "Dur"
   },
   "rideDetail": {
     "noRouteData": "कोई रूट डेटा नहीं",
@@ -1645,7 +1670,14 @@
     "deleteTitle": "राइड हटाएं?",
     "deleteMessage": "यह क्रिया पूर्ववत नहीं की जा सकती।",
     "cancel": "रद्द करें",
-    "delete": "हटाएं"
+    "delete": "हटाएं",
+    "leanAngle": "Max Lean",
+    "leanCaveat": "Lean angle estimated from phone IMU",
+    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions.",
+    "private": "Private",
+    "elevationChart": "Elevation",
+    "speedChart": "Speed",
+    "peak": "{{value}} peak"
   },
   "startRide": {
     "preFlight": "प्री-फ्लाइट",
@@ -1722,5 +1754,9 @@
     "topSpeed": "Top speed",
     "longestRide": "Longest ride",
     "mostElevation": "Most elevation"
+  },
+  "rideChart": {
+    "elevation": "Elevation ({{unit}})",
+    "speed": "Speed ({{unit}})"
   }
 }

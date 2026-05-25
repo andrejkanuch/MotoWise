@@ -21,6 +21,7 @@
 import { z } from 'zod';
 import { draftPost } from './draft';
 import type { Env } from './env';
+import { createJob, getJob, updateJob } from './jobs';
 import {
   type AspectRatio,
   generateImage,
@@ -28,9 +29,11 @@ import {
   publishCarousel,
   publishPost,
   publishStory,
+  uint8ArrayToBase64,
 } from './publish';
 import { getRecentAngles, type SlotName } from './queue';
 import { CRON_TO_SLOT, runScheduledPost } from './scheduled';
+import { SCREENSHOT_CATALOG } from './screenshots';
 
 /** Constant-time string comparison to prevent timing attacks on auth keys. */
 function timingSafeEqual(a: string, b: string): boolean {
@@ -65,11 +68,19 @@ const generateImageSchema = z.object({
   aspect_ratio: z.enum(['4:5', '9:16', '1:1']).optional(),
 });
 
+const publishNowSchema = z.object({
+  topic: z.string().min(1).max(500),
+  caption: z.string().min(1).max(2200).optional(),
+  facebook_caption: z.string().min(1).max(2200).optional(),
+  image_prompt: z.string().min(1).max(2000).optional(),
+  platform: z.enum(['instagram', 'facebook', 'both']).optional(),
+});
+
 export default {
   // -------------------------------------------------------------------------
   // HTTP entrypoint
   // -------------------------------------------------------------------------
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const authKey = request.headers.get('X-Auth-Key') ?? '';
     if (!timingSafeEqual(authKey, env.WORKER_AUTH_KEY)) {
       return json({ error: 'Unauthorized' }, 401);
@@ -146,10 +157,35 @@ export default {
           return json({ ok: true, slot, cron });
         }
 
+        case '/publish-now': {
+          // Fire-and-forget ad-hoc publish. Returns a job ID immediately,
+          // runs the full pipeline (draft → image → mockups → publish) in
+          // ctx.waitUntil(). Poll GET /job/:id for progress.
+          // Completely bypasses social_post_queue — no queue reads or writes.
+          const body = publishNowSchema.parse(await request.json());
+          const dryRun = url.searchParams.get('dry-run') === '1';
+
+          // Dry-run is synchronous — just draft, no images or publishing.
+          if (dryRun) {
+            const recentAngles = await getRecentAngles(env, 5);
+            const draft = await draftPost(env, 'afternoon' as SlotName, recentAngles, body.topic);
+            return json({ dry_run: true, topic: body.topic, draft });
+          }
+
+          const jobId = crypto.randomUUID();
+          await createJob(env.JOBS, jobId, body.topic);
+
+          ctx.waitUntil(runPublishNow(env, jobId, body));
+
+          return json({
+            job_id: jobId,
+            status: 'pending',
+            poll_url: `/job/${jobId}`,
+          });
+        }
+
         case '/test-mockup': {
-          // Debug endpoint: test phone mockup generation with a screenshot key
           const key = url.searchParams.get('key') ?? 'home-dashboard-hero';
-          const { SCREENSHOT_CATALOG } = await import('./screenshots');
           const entry = SCREENSHOT_CATALOG[key];
           if (!entry) return json({ error: `Unknown key: ${key}` }, 400);
 
@@ -157,7 +193,6 @@ export default {
           const screenshotRes = await fetch(screenshotUrl);
           if (!screenshotRes.ok)
             return json({ error: `Fetch failed: ${screenshotRes.status}` }, 500);
-          const { uint8ArrayToBase64 } = await import('./publish');
           const rawB64 = uint8ArrayToBase64(new Uint8Array(await screenshotRes.arrayBuffer()));
 
           try {
@@ -175,8 +210,16 @@ export default {
           }
         }
 
-        default:
+        default: {
+          // GET /job/:id — poll async job status
+          const jobMatch = url.pathname.match(/^\/job\/([0-9a-f-]+)$/);
+          if (jobMatch) {
+            const job = await getJob(env.JOBS, jobMatch[1]);
+            if (!job) return json({ error: 'Job not found' }, 404);
+            return json(job);
+          }
           return json({ error: 'Not found' }, 404);
+        }
       }
     } catch (err: unknown) {
       // Zod validation errors get a 400 with field-level details.
@@ -206,4 +249,100 @@ function json(data: unknown, status = 200): Response {
     status,
     headers: { 'Content-Type': 'application/json' },
   });
+}
+
+// ---------------------------------------------------------------------------
+// Async publish-now pipeline (runs in ctx.waitUntil)
+// ---------------------------------------------------------------------------
+
+async function runPublishNow(
+  env: Env,
+  jobId: string,
+  body: z.infer<typeof publishNowSchema>,
+): Promise<void> {
+  const kv = env.JOBS;
+  const platform = body.platform ?? 'both';
+
+  try {
+    // Step 1: Draft
+    await updateJob(kv, jobId, { status: 'running', step: 'drafting' });
+    const needsDraft = !body.caption || !body.image_prompt;
+    let caption = body.caption ?? '';
+    let facebookCaption = body.facebook_caption ?? '';
+    let imagePrompt = body.image_prompt ?? '';
+    let screenshotKeys: string[] = [];
+
+    if (needsDraft) {
+      const recentAngles = await getRecentAngles(env, 5);
+      const draft = await draftPost(env, 'afternoon' as SlotName, recentAngles, body.topic);
+      if (!body.caption) caption = draft.caption;
+      if (!body.facebook_caption) facebookCaption = draft.facebookCaption;
+      if (!body.image_prompt) imagePrompt = draft.storyPrompt;
+      screenshotKeys = draft.screenshotKeys;
+    }
+
+    // Step 2: Generate atmospheric image
+    await updateJob(kv, jobId, { step: 'generating_image' });
+    const image = await generateImage(env, imagePrompt, '9:16');
+
+    // Step 3: Fetch raw screenshots (no AI mockups — they produce gibberish text)
+    await updateJob(kv, jobId, { step: 'fetching_screenshots' });
+    const screenshotBase64: string[] = [];
+    for (const key of screenshotKeys) {
+      const entry = SCREENSHOT_CATALOG[key];
+      if (!entry) continue;
+      try {
+        const screenshotUrl = `${env.SUPABASE_URL}/storage/v1/object/public/social-media/${entry.storagePath}`;
+        const res = await fetch(screenshotUrl);
+        if (!res.ok) continue;
+        screenshotBase64.push(uint8ArrayToBase64(new Uint8Array(await res.arrayBuffer())));
+      } catch {
+        // Skip failed fetches
+      }
+    }
+
+    // Step 4: Publish to Meta
+    await updateJob(kv, jobId, { step: 'publishing' });
+    const captions = { instagram: caption, facebook: facebookCaption || caption };
+
+    let postResult: { image_url: string; results: import('./queue').PostResults };
+    if (screenshotBase64.length > 0) {
+      const carouselImages = [image.image_base64, ...screenshotBase64];
+      const result = await publishCarousel(env, {
+        images_base64: carouselImages,
+        captions,
+        platform,
+      });
+      postResult = { image_url: result.image_urls[0], results: result.results };
+    } else {
+      postResult = await publishPost(env, {
+        image_base64: image.image_base64,
+        captions,
+        platform,
+      });
+    }
+
+    const storyResult = await publishStory(env, {
+      image_base64: image.image_base64,
+      platform,
+      link: 'https://motovault.app/download',
+    });
+
+    await updateJob(kv, jobId, {
+      status: 'completed',
+      step: 'completed',
+      result: {
+        caption,
+        image_engine: image.engine,
+        screenshot_keys: screenshotKeys,
+        screenshots_fetched: screenshotBase64.length,
+        post: postResult,
+        story: storyResult,
+      },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[publish-now] job=${jobId} FAILED: ${message}`);
+    await updateJob(kv, jobId, { status: 'failed', step: 'failed', error: message });
+  }
 }

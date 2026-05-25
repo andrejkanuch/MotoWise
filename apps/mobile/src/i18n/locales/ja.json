@@ -21,7 +21,8 @@
     "genericError": "エラーが発生しました。もう一度お試しください。",
     "tryAgain": "再試行",
     "confirm": "確認",
-    "all": "すべて"
+    "all": "すべて",
+    "ride": "Ride"
   },
   "auth": {
     "signIn": "サインイン",
@@ -1402,6 +1403,16 @@
       "tripsTitle": "Trip Planning",
       "tripsDesc": "Plan multi-stop motorcycle trips with waypoints. Share your itinerary with riding buddies."
     },
+    "v380": {
+      "analyticsTitle": "ライド分析",
+      "analyticsDesc": "総距離、走行時間、連続記録、自己ベスト — すべてライドごとに更新。統計を一目で確認。",
+      "redesignedRidesTitle": "リニューアルされたライド",
+      "redesignedRidesDesc": "すべてのライド画面を一新 — マップバナー、記録バッジ、より見やすい詳細画面、スムーズな保存フロー。",
+      "flyoverTitle": "3Dフライオーバー",
+      "flyoverDesc": "どのライドも地形、標高、滑らかなカメラアニメーションによる映画のような衛星フライオーバーで再生。",
+      "shareTitle": "ライドをシェア",
+      "shareDesc": "ライドの美しいビジュアルカードを作成し、Instagram、WhatsApp、ギャラリーなどどこでもシェア。"
+    },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",
       "onboardingDesc": "A smoother start — animated experience picker, goal-driven personalization, and real fleet data.",
@@ -1621,9 +1632,23 @@
     "recentRides": "最近のライド",
     "newestFirst": "新しい順 ↓",
     "oldestFirst": "古い順 ↑",
-    "unlockTitle": "全履歴を解除",
-    "unlockDesc": "無料アカウントでは最新{{limit}}件のライドが表示されます。無制限の履歴と統計にはProにアップグレードしてください。",
-    "upgradePro": "Proにアップグレード"
+    "streakWeek": "week streak",
+    "streakWeeks": "week streak",
+    "streakDesc": "Consecutive weeks with a ride",
+    "thisMonth": "This month",
+    "thisYear": "This year",
+    "vsLastWeek": "vs last week",
+    "vsLastMonth": "vs last month",
+    "vsLastYear": "vs last year",
+    "topSpeed": "Top speed",
+    "elevation": "Elevation",
+    "personalBest": "Personal best",
+    "totalGain": "Total gain",
+    "seeAllRides": "See all →",
+    "ride_one": "{{count}} ride",
+    "ride_other": "{{count}} rides",
+    "elev": "elev.",
+    "dur": "Dur"
   },
   "rideDetail": {
     "noRouteData": "ルートデータなし",
@@ -1645,7 +1670,14 @@
     "deleteTitle": "ライドを削除しますか？",
     "deleteMessage": "この操作は取り消せません。",
     "cancel": "キャンセル",
-    "delete": "削除"
+    "delete": "削除",
+    "leanAngle": "Max Lean",
+    "leanCaveat": "Lean angle estimated from phone IMU",
+    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions.",
+    "private": "Private",
+    "elevationChart": "Elevation",
+    "speedChart": "Speed",
+    "peak": "{{value}} peak"
   },
   "startRide": {
     "preFlight": "プリフライト",
@@ -1722,5 +1754,9 @@
     "topSpeed": "Top speed",
     "longestRide": "Longest ride",
     "mostElevation": "Most elevation"
+  },
+  "rideChart": {
+    "elevation": "Elevation ({{unit}})",
+    "speed": "Speed ({{unit}})"
   }
 }

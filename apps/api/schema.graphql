@@ -1,3 +1,7 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
 input AddExpensePhotoInput {
   expenseId: String!
   fileSizeBytes: Int
@@ -366,6 +370,7 @@ input EndRideInput {
   elevationLoss: Float
   endedAt: String!
   gpsQuality: Float
+  maxLeanAngle: Float
   maxSpeedMps: Float
   pausedDurationS: Int! = 0
   rideId: String!
@@ -675,6 +680,21 @@ type KudosUser {
   displayName: String
   id: ID!
   publicUsername: String
+}
+
+type Last7DaysSummary {
+  distanceM: Float!
+  durationS: Int!
+  rideCount: Int!
+}
+
+type LastRideSummary {
+  date: String!
+  distanceM: Float!
+  durationS: Int!
+  id: String!
+  maxSpeedMps: Float
+  motorcycleName: String
 }
 
 input LatLngInput {
@@ -1093,6 +1113,7 @@ type Query {
   quizByArticle(articleId: String!): Quiz
   ride(id: String!): Ride!
   rideFeed(after: String, first: Int = 20): FeedRideConnection!
+  rideOverview: RideOverview!
   rideWaypoints(maxPoints: Int, rideId: String!): [Waypoint!]!
   routeConditions(routeId: ID!): RouteConditions!
   routeSponsorships(routeId: ID!): [Sponsorship!]!
@@ -1235,6 +1256,22 @@ type RideConnection {
 type RideEdge {
   cursor: String!
   node: Ride!
+}
+
+type RideOverview {
+  currentStreak: Int!
+  last7Days: Last7DaysSummary!
+  lastRide: LastRideSummary
+  personalRecords: [RideRecord!]!
+}
+
+type RideRecord {
+  achievedAt: String!
+  previousValue: Float
+  recordType: String!
+  rideId: String
+  unit: String!
+  value: Float!
 }
 
 """Current status of a ride"""

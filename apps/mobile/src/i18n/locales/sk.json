@@ -21,7 +21,8 @@
     "genericError": "Niečo sa pokazilo. Skúste to prosím znova.",
     "tryAgain": "Skúsiť znova",
     "confirm": "Potvrdiť",
-    "all": "Všetko"
+    "all": "Všetko",
+    "ride": "Ride"
   },
   "auth": {
     "signIn": "Prihlásiť sa",
@@ -1402,6 +1403,16 @@
       "tripsTitle": "Trip Planning",
       "tripsDesc": "Plan multi-stop motorcycle trips with waypoints. Share your itinerary with riding buddies."
     },
+    "v380": {
+      "analyticsTitle": "Analýza jázd",
+      "analyticsDesc": "Celková vzdialenosť, čas jazdy, série a osobné rekordy — všetko sa aktualizuje po každej jazde. Tvoje štatistiky na jeden pohľad.",
+      "redesignedRidesTitle": "Prepracované jazdy",
+      "redesignedRidesDesc": "Všetky obrazovky jázd kompletne prestavané — mapové bannery, odznaky rekordov, prehľadnejšie detaily a plynulejšie ukladanie.",
+      "flyoverTitle": "3D prelet",
+      "flyoverDesc": "Prehraj si akúkoľvek jazdu ako filmový satelitný prelet s terénom, prevýšením a plynulou animáciou kamery.",
+      "shareTitle": "Zdieľaj svoje jazdy",
+      "shareDesc": "Vytvor krásne vizuálne karty svojich jázd a zdieľaj ich kdekoľvek — Instagram, WhatsApp alebo ulož do galérie."
+    },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",
       "onboardingDesc": "A smoother start — animated experience picker, goal-driven personalization, and real fleet data.",
@@ -1621,9 +1632,23 @@
     "recentRides": "Posledné jazdy",
     "newestFirst": "Najnovšie prvé ↓",
     "oldestFirst": "Najstaršie prvé ↑",
-    "unlockTitle": "Odomknúť celú históriu",
-    "unlockDesc": "Bezplatné účty zobrazujú posledných {{limit}} jázd. Prejdite na Pro pre neobmedzené štatistiky a históriu.",
-    "upgradePro": "Prejsť na Pro"
+    "streakWeek": "week streak",
+    "streakWeeks": "week streak",
+    "streakDesc": "Consecutive weeks with a ride",
+    "thisMonth": "This month",
+    "thisYear": "This year",
+    "vsLastWeek": "vs last week",
+    "vsLastMonth": "vs last month",
+    "vsLastYear": "vs last year",
+    "topSpeed": "Top speed",
+    "elevation": "Elevation",
+    "personalBest": "Personal best",
+    "totalGain": "Total gain",
+    "seeAllRides": "See all →",
+    "ride_one": "{{count}} ride",
+    "ride_other": "{{count}} rides",
+    "elev": "elev.",
+    "dur": "Dur"
   },
   "rideDetail": {
     "noRouteData": "Žiadne dáta trasy",
@@ -1645,7 +1670,14 @@
     "deleteTitle": "Vymazať jazdu?",
     "deleteMessage": "Túto akciu nie je možné vrátiť späť.",
     "cancel": "Zrušiť",
-    "delete": "Vymazať"
+    "delete": "Vymazať",
+    "leanAngle": "Max Lean",
+    "leanCaveat": "Lean angle estimated from phone IMU",
+    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions.",
+    "private": "Private",
+    "elevationChart": "Elevation",
+    "speedChart": "Speed",
+    "peak": "{{value}} peak"
   },
   "startRide": {
     "preFlight": "Predjazdná kontrola",
@@ -1722,5 +1754,9 @@
     "topSpeed": "Top speed",
     "longestRide": "Longest ride",
     "mostElevation": "Most elevation"
+  },
+  "rideChart": {
+    "elevation": "Elevation ({{unit}})",
+    "speed": "Speed ({{unit}})"
   }
 }

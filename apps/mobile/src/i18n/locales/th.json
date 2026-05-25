@@ -21,7 +21,8 @@
     "genericError": "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง",
     "tryAgain": "ลองอีกครั้ง",
     "confirm": "ยืนยัน",
-    "all": "ทั้งหมด"
+    "all": "ทั้งหมด",
+    "ride": "Ride"
   },
   "auth": {
     "signIn": "เข้าสู่ระบบ",
@@ -1402,6 +1403,16 @@
       "tripsTitle": "Trip Planning",
       "tripsDesc": "Plan multi-stop motorcycle trips with waypoints. Share your itinerary with riding buddies."
     },
+    "v380": {
+      "analyticsTitle": "วิเคราะห์การขับขี่",
+      "analyticsDesc": "ระยะทางรวม เวลาขับขี่ สถิติต่อเนื่อง และสถิติส่วนตัว — อัปเดตหลังทุกการขับขี่ สถิติของคุณในมุมมองเดียว",
+      "redesignedRidesTitle": "การขับขี่โฉมใหม่",
+      "redesignedRidesDesc": "หน้าจอการขับขี่ทั้งหมดสร้างใหม่ — แบนเนอร์แผนที่ ตราสถิติ มุมมองรายละเอียดที่สะอาดขึ้น และขั้นตอนบันทึกที่ราบรื่นขึ้น",
+      "flyoverTitle": "บินผ่าน 3D",
+      "flyoverDesc": "เล่นซ้ำเส้นทางใดก็ได้เป็นวิดีโอบินผ่านดาวเทียมแบบภาพยนตร์พร้อมภูมิประเทศ ระดับความสูง และแอนิเมชันกล้องที่ลื่นไหล",
+      "shareTitle": "แชร์การขับขี่",
+      "shareDesc": "สร้างการ์ดภาพสวยงามของการขับขี่และแชร์ได้ทุกที่ — Instagram, WhatsApp หรือบันทึกลงแกลเลอรี"
+    },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",
       "onboardingDesc": "A smoother start — animated experience picker, goal-driven personalization, and real fleet data.",
@@ -1621,9 +1632,23 @@
     "recentRides": "การขับขี่ล่าสุด",
     "newestFirst": "ล่าสุดก่อน ↓",
     "oldestFirst": "เก่าสุดก่อน ↑",
-    "unlockTitle": "ปลดล็อกประวัติทั้งหมด",
-    "unlockDesc": "บัญชีฟรีแสดง {{limit}} การขับขี่ล่าสุด อัปเกรดเพื่อประวัติและสถิติไม่จำกัด",
-    "upgradePro": "อัปเกรดเป็น Pro"
+    "streakWeek": "week streak",
+    "streakWeeks": "week streak",
+    "streakDesc": "Consecutive weeks with a ride",
+    "thisMonth": "This month",
+    "thisYear": "This year",
+    "vsLastWeek": "vs last week",
+    "vsLastMonth": "vs last month",
+    "vsLastYear": "vs last year",
+    "topSpeed": "Top speed",
+    "elevation": "Elevation",
+    "personalBest": "Personal best",
+    "totalGain": "Total gain",
+    "seeAllRides": "See all →",
+    "ride_one": "{{count}} ride",
+    "ride_other": "{{count}} rides",
+    "elev": "elev.",
+    "dur": "Dur"
   },
   "rideDetail": {
     "noRouteData": "ไม่มีข้อมูลเส้นทาง",
@@ -1645,7 +1670,14 @@
     "deleteTitle": "ลบการขับขี่?",
     "deleteMessage": "การกระทำนี้ไม่สามารถย้อนกลับได้",
     "cancel": "ยกเลิก",
-    "delete": "ลบ"
+    "delete": "ลบ",
+    "leanAngle": "Max Lean",
+    "leanCaveat": "Lean angle estimated from phone IMU",
+    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions.",
+    "private": "Private",
+    "elevationChart": "Elevation",
+    "speedChart": "Speed",
+    "peak": "{{value}} peak"
   },
   "startRide": {
     "preFlight": "ตรวจสอบก่อนออกเดินทาง",
@@ -1722,5 +1754,9 @@
     "topSpeed": "Top speed",
     "longestRide": "Longest ride",
     "mostElevation": "Most elevation"
+  },
+  "rideChart": {
+    "elevation": "Elevation ({{unit}})",
+    "speed": "Speed ({{unit}})"
   }
 }

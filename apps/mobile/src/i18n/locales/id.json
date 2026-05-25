@@ -21,7 +21,8 @@
     "genericError": "Terjadi kesalahan. Silakan coba lagi.",
     "tryAgain": "Coba Lagi",
     "confirm": "Konfirmasi",
-    "all": "Semua"
+    "all": "Semua",
+    "ride": "Ride"
   },
   "auth": {
     "signIn": "Masuk",
@@ -1402,6 +1403,16 @@
       "tripsTitle": "Trip Planning",
       "tripsDesc": "Plan multi-stop motorcycle trips with waypoints. Share your itinerary with riding buddies."
     },
+    "v380": {
+      "analyticsTitle": "Analisis perjalanan",
+      "analyticsDesc": "Total jarak, waktu berkendara, streak, dan rekor pribadi — semua diperbarui setelah setiap perjalanan. Statistikmu dalam sekali pandang.",
+      "redesignedRidesTitle": "Perjalanan didesain ulang",
+      "redesignedRidesDesc": "Semua layar perjalanan dibangun ulang — banner peta, lencana rekor, tampilan detail lebih bersih, dan alur penyimpanan lebih lancar.",
+      "flyoverTitle": "Terbang 3D",
+      "flyoverDesc": "Putar ulang perjalanan apa pun sebagai penerbangan satelit sinematik dengan medan, elevasi, dan animasi kamera yang halus.",
+      "shareTitle": "Bagikan perjalananmu",
+      "shareDesc": "Buat kartu visual indah dari perjalananmu dan bagikan ke mana saja — Instagram, WhatsApp, atau simpan ke galeri."
+    },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",
       "onboardingDesc": "A smoother start — animated experience picker, goal-driven personalization, and real fleet data.",
@@ -1621,9 +1632,23 @@
     "recentRides": "Perjalanan terbaru",
     "newestFirst": "Terbaru duluan ↓",
     "oldestFirst": "Terlama duluan ↑",
-    "unlockTitle": "Buka riwayat lengkap",
-    "unlockDesc": "Akun gratis menampilkan {{limit}} perjalanan terakhir. Upgrade untuk riwayat dan statistik tanpa batas.",
-    "upgradePro": "Upgrade ke Pro"
+    "streakWeek": "week streak",
+    "streakWeeks": "week streak",
+    "streakDesc": "Consecutive weeks with a ride",
+    "thisMonth": "This month",
+    "thisYear": "This year",
+    "vsLastWeek": "vs last week",
+    "vsLastMonth": "vs last month",
+    "vsLastYear": "vs last year",
+    "topSpeed": "Top speed",
+    "elevation": "Elevation",
+    "personalBest": "Personal best",
+    "totalGain": "Total gain",
+    "seeAllRides": "See all →",
+    "ride_one": "{{count}} ride",
+    "ride_other": "{{count}} rides",
+    "elev": "elev.",
+    "dur": "Dur"
   },
   "rideDetail": {
     "noRouteData": "Tidak ada data rute",
@@ -1645,7 +1670,14 @@
     "deleteTitle": "Hapus perjalanan?",
     "deleteMessage": "Tindakan ini tidak dapat dibatalkan.",
     "cancel": "Batal",
-    "delete": "Hapus"
+    "delete": "Hapus",
+    "leanAngle": "Max Lean",
+    "leanCaveat": "Lean angle estimated from phone IMU",
+    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions.",
+    "private": "Private",
+    "elevationChart": "Elevation",
+    "speedChart": "Speed",
+    "peak": "{{value}} peak"
   },
   "startRide": {
     "preFlight": "Pra-perjalanan",
@@ -1722,5 +1754,9 @@
     "topSpeed": "Top speed",
     "longestRide": "Longest ride",
     "mostElevation": "Most elevation"
+  },
+  "rideChart": {
+    "elevation": "Elevation ({{unit}})",
+    "speed": "Speed ({{unit}})"
   }
 }

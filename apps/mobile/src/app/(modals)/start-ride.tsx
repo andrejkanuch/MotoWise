@@ -3,11 +3,19 @@ import { useQuery } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { AlertTriangle, Bike, ChevronDown, ChevronRight, Route, X, Zap } from 'lucide-react-native';
+import { AlertTriangle, Bike, ChevronDown, ChevronRight, X, Zap } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeInUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PreFlightChecklist } from '../../components/ride/pre-flight-checklist';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
@@ -168,6 +176,30 @@ export default function StartRideScreen() {
     }
   }, [selectedBikeId, selectedBike?.make, startRide, router, t]);
 
+  // Pulsing green dot animation for CTA
+  const pulseScale = useSharedValue(1);
+  const pulseOpacity = useSharedValue(0);
+  useEffect(() => {
+    pulseScale.value = withRepeat(
+      withSequence(withTiming(1, { duration: 0 }), withTiming(2.8, { duration: 1200 })),
+      -1,
+    );
+    pulseOpacity.value = withRepeat(
+      withSequence(withTiming(0.55, { duration: 0 }), withTiming(0, { duration: 1200 })),
+      -1,
+    );
+  }, [pulseScale, pulseOpacity]);
+
+  const pulseRingStyle = useAnimatedStyle(() => ({
+    position: 'absolute' as const,
+    width: 9,
+    height: 9,
+    borderRadius: 9,
+    backgroundColor: '#4ade80',
+    transform: [{ scale: pulseScale.value }],
+    opacity: pulseOpacity.value,
+  }));
+
   const mileageLabel = useMemo(() => {
     if (!selectedBike) return '';
     // biome-ignore lint/suspicious/noExplicitAny: mileageKm may not be in generated type yet
@@ -190,9 +222,9 @@ export default function StartRideScreen() {
           accessibilityLabel="Close"
           style={{
             alignSelf: 'flex-start',
-            width: 36,
-            height: 36,
-            borderRadius: 18,
+            width: 38,
+            height: 38,
+            borderRadius: 19,
             borderCurve: 'continuous',
             backgroundColor: theme.surface,
             borderWidth: 1,
@@ -218,36 +250,46 @@ export default function StartRideScreen() {
         <Animated.View entering={FadeInUp.duration(300)} style={{ marginBottom: 22 }}>
           <Text
             style={{
-              fontSize: 10,
-              fontWeight: '700',
+              fontFamily: 'GeistMono',
+              fontSize: 10.5,
+              fontWeight: '500',
               color: theme.ink3,
               textTransform: 'uppercase',
-              letterSpacing: 1.6,
-              marginBottom: 8,
+              letterSpacing: 10.5 * 0.22,
+              marginBottom: 14,
             }}
           >
             {t('startRide.preFlight')}
           </Text>
           <Text
             style={{
-              fontSize: 50,
-              fontWeight: '200',
+              fontSize: 58,
+              fontWeight: '600',
               color: theme.ink,
-              letterSpacing: -2,
-              lineHeight: 50,
+              letterSpacing: -58 * 0.035,
+              lineHeight: 58 * 0.96,
             }}
           >
             {t('startRide.readyTo')}
             {'\n'}
-            <Text style={{ fontStyle: 'italic', fontWeight: '300' }}>{t('startRide.ride')}</Text>
+            <Text
+              style={{
+                fontFamily: 'InstrumentSerif-Italic',
+                fontWeight: '400',
+                letterSpacing: -58 * 0.025,
+              }}
+            >
+              {t('startRide.ride')}
+            </Text>
           </Text>
           <Text
             style={{
-              fontSize: 13,
-              color: theme.ink3,
-              lineHeight: 20,
-              marginTop: 12,
-              maxWidth: 280,
+              fontSize: 15.5,
+              color: theme.ink2,
+              lineHeight: 15.5 * 1.45,
+              marginTop: 16,
+              maxWidth: 320,
+              letterSpacing: -0.08,
             }}
           >
             {t('startRide.subtitle')}
@@ -326,9 +368,10 @@ export default function StartRideScreen() {
             accessibilityLabel={`Selected bike: ${selectedBikeLabel}. Tap to change.`}
             style={{
               backgroundColor: theme.surface,
-              borderRadius: 18,
+              borderRadius: 22,
               borderCurve: 'continuous',
               padding: 14,
+              paddingRight: 18,
               flexDirection: 'row',
               alignItems: 'center',
               gap: 14,
@@ -341,7 +384,7 @@ export default function StartRideScreen() {
               style={{
                 width: 56,
                 height: 56,
-                borderRadius: 14,
+                borderRadius: 16,
                 borderCurve: 'continuous',
                 backgroundColor: selectedBikeId ? tint(theme.warm, 0.15) : theme.surface2,
                 alignItems: 'center',
@@ -357,30 +400,33 @@ export default function StartRideScreen() {
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text
                 style={{
-                  fontSize: 9,
-                  fontWeight: '700',
-                  color: theme.ink3,
+                  fontFamily: 'GeistMono',
+                  fontSize: 9.5,
+                  fontWeight: '500',
+                  color: theme.warm,
                   textTransform: 'uppercase',
-                  letterSpacing: 1.2,
-                  marginBottom: 3,
+                  letterSpacing: 9.5 * 0.2,
+                  marginBottom: 5,
                 }}
               >
                 {t('startRide.riding')}
               </Text>
               <Text
                 style={{
-                  fontSize: 15,
-                  fontWeight: '700',
+                  fontSize: 17,
+                  fontWeight: '600',
                   color: theme.ink,
-                  letterSpacing: -0.2,
-                  marginBottom: 2,
+                  letterSpacing: -17 * 0.018,
+                  lineHeight: 17 * 1.15,
                 }}
                 numberOfLines={1}
               >
                 {selectedBikeLabel || t('startRide.selectMotorcycle')}
               </Text>
               {selectedBike && (
-                <Text style={{ fontSize: 12, color: theme.ink3 }}>
+                <Text
+                  style={{ fontSize: 12.5, color: theme.ink3, marginTop: 3, letterSpacing: -0.05 }}
+                >
                   {selectedBike.model} · {mileageLabel}
                 </Text>
               )}
@@ -516,42 +562,56 @@ export default function StartRideScreen() {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: 12,
-                padding: 14,
+                gap: 14,
+                padding: 16,
+                paddingRight: 18,
                 backgroundColor: theme.surface,
                 borderWidth: 1,
                 borderColor: theme.line,
-                borderRadius: 14,
+                borderRadius: 22,
                 borderCurve: 'continuous',
               }}
             >
-              <View
+              <Text
                 style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 8,
-                  borderCurve: 'continuous',
-                  backgroundColor: tint(theme.warm, 0.1),
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  fontFamily: 'InstrumentSerif-Italic',
+                  fontSize: 30,
+                  lineHeight: 30,
+                  letterSpacing: -0.6,
+                  color: theme.ink,
+                  minWidth: 36,
                 }}
               >
-                <Route size={14} color={theme.warm} />
-              </View>
+                {totalRides}
+              </Text>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={{ fontSize: 12.5, fontWeight: '600', color: theme.ink }}>
+                <Text
+                  style={{
+                    fontSize: 14.5,
+                    fontWeight: '600',
+                    color: theme.ink,
+                    letterSpacing: -0.15,
+                    lineHeight: 14.5 * 1.2,
+                  }}
+                >
                   {t('startRide.previousRides')}
-                  <Text style={{ fontWeight: '500', color: theme.ink3 }}> · {totalRides}</Text>
                 </Text>
                 {lastRide && (
-                  <Text style={{ fontSize: 11, color: theme.ink3, marginTop: 2 }} numberOfLines={1}>
-                    Last: {lastRide.name || 'Ride'} —{' '}
-                    {formatDistance(lastRide.distanceM ?? 0, system)} ·{' '}
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: theme.ink3,
+                      marginTop: 3,
+                      fontVariant: ['tabular-nums'],
+                    }}
+                    numberOfLines={1}
+                  >
+                    Last: {formatDistance(lastRide.distanceM ?? 0, system)} ·{' '}
                     {formatRelativeDate(lastRide.startedAt)}
                   </Text>
                 )}
               </View>
-              <ChevronRight size={14} color={theme.ink3} />
+              <ChevronRight size={14} color={theme.ink2} />
             </Pressable>
           </Animated.View>
         )}
@@ -568,62 +628,54 @@ export default function StartRideScreen() {
             accessibilityState={{ disabled: isStarting || hasUnfinished }}
             style={({ pressed }) => ({
               width: '100%',
-              paddingVertical: 20,
-              paddingHorizontal: 18,
-              borderRadius: 18,
+              height: 60,
+              borderRadius: 999,
               borderCurve: 'continuous',
               backgroundColor: theme.ink,
               opacity: isStarting || hasUnfinished ? 0.5 : pressed ? 0.85 : 1,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 10,
+              gap: 12,
             })}
           >
             {isStarting ? (
               <ActivityIndicator size="small" color={theme.bg} />
             ) : (
               <>
-                {/* Left spacer to balance the chevron */}
-                <View style={{ width: 18 }} />
                 <View
-                  style={{
-                    flex: 1,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 10,
-                  }}
+                  style={{ width: 9, height: 9, alignItems: 'center', justifyContent: 'center' }}
                 >
+                  <Animated.View style={pulseRingStyle} />
                   <View
                     style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 4,
-                      backgroundColor: theme.success,
+                      width: 9,
+                      height: 9,
+                      borderRadius: 999,
+                      backgroundColor: '#4ade80',
                     }}
                   />
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: '600',
-                      color: theme.bg,
-                      letterSpacing: -0.2,
-                    }}
-                  >
-                    {t('startRide.startButton')}
-                  </Text>
                 </View>
-                <ChevronRight size={18} color={theme.bg} />
+                <Text
+                  style={{
+                    fontSize: 17.5,
+                    fontWeight: '600',
+                    color: theme.bg,
+                    letterSpacing: -17.5 * 0.012,
+                  }}
+                >
+                  {t('startRide.startButton')}
+                </Text>
               </>
             )}
           </Pressable>
           <Text
             style={{
-              fontSize: 11,
+              fontSize: 11.5,
               color: theme.ink3,
               textAlign: 'center',
-              marginTop: 8,
+              marginTop: 12,
+              lineHeight: 11.5 * 1.4,
             }}
           >
             {t('startRide.trackingNote')}

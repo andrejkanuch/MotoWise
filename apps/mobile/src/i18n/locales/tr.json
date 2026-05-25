@@ -21,7 +21,8 @@
     "genericError": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
     "tryAgain": "Tekrar Dene",
     "confirm": "Onayla",
-    "all": "Tümü"
+    "all": "Tümü",
+    "ride": "Ride"
   },
   "auth": {
     "signIn": "Giris Yap",
@@ -1402,6 +1403,16 @@
       "tripsTitle": "Trip Planning",
       "tripsDesc": "Plan multi-stop motorcycle trips with waypoints. Share your itinerary with riding buddies."
     },
+    "v380": {
+      "analyticsTitle": "Sürüş analizi",
+      "analyticsDesc": "Toplam mesafe, sürüş süresi, seriler ve kişisel rekorlar — her sürüşten sonra güncellenir. İstatistiklerin bir bakışta.",
+      "redesignedRidesTitle": "Yenilenen sürüşler",
+      "redesignedRidesDesc": "Tüm sürüş ekranları sıfırdan yeniden inşa edildi — harita afişleri, rekor rozetleri, daha temiz detay görünümleri ve daha akıcı kayıt akışı.",
+      "flyoverTitle": "3D uçuş",
+      "flyoverDesc": "Herhangi bir sürüşü arazi, yükseklik ve akıcı kamera animasyonuyla sinematik uydu uçuşu olarak yeniden oynatın.",
+      "shareTitle": "Sürüşlerini paylaş",
+      "shareDesc": "Sürüşlerinin güzel görsel kartlarını oluştur ve her yerde paylaş — Instagram, WhatsApp veya galerine kaydet."
+    },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",
       "onboardingDesc": "A smoother start — animated experience picker, goal-driven personalization, and real fleet data.",
@@ -1621,9 +1632,23 @@
     "recentRides": "Son sürüşler",
     "newestFirst": "En yeniler önce ↓",
     "oldestFirst": "En eskiler önce ↑",
-    "unlockTitle": "Tüm geçmişi aç",
-    "unlockDesc": "Ücretsiz hesaplar son {{limit}} sürüşü gösterir. Sınırsız geçmiş ve istatistikler için Pro'ya yükseltin.",
-    "upgradePro": "Pro'ya yükselt"
+    "streakWeek": "week streak",
+    "streakWeeks": "week streak",
+    "streakDesc": "Consecutive weeks with a ride",
+    "thisMonth": "This month",
+    "thisYear": "This year",
+    "vsLastWeek": "vs last week",
+    "vsLastMonth": "vs last month",
+    "vsLastYear": "vs last year",
+    "topSpeed": "Top speed",
+    "elevation": "Elevation",
+    "personalBest": "Personal best",
+    "totalGain": "Total gain",
+    "seeAllRides": "See all →",
+    "ride_one": "{{count}} ride",
+    "ride_other": "{{count}} rides",
+    "elev": "elev.",
+    "dur": "Dur"
   },
   "rideDetail": {
     "noRouteData": "Rota verisi yok",
@@ -1645,7 +1670,14 @@
     "deleteTitle": "Sürüş silinsin mi?",
     "deleteMessage": "Bu işlem geri alınamaz.",
     "cancel": "İptal",
-    "delete": "Sil"
+    "delete": "Sil",
+    "leanAngle": "Max Lean",
+    "leanCaveat": "Lean angle estimated from phone IMU",
+    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions.",
+    "private": "Private",
+    "elevationChart": "Elevation",
+    "speedChart": "Speed",
+    "peak": "{{value}} peak"
   },
   "startRide": {
     "preFlight": "Ön kontrol",
@@ -1722,5 +1754,9 @@
     "topSpeed": "Top speed",
     "longestRide": "Longest ride",
     "mostElevation": "Most elevation"
+  },
+  "rideChart": {
+    "elevation": "Elevation ({{unit}})",
+    "speed": "Speed ({{unit}})"
   }
 }

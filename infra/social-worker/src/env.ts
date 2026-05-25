@@ -21,4 +21,7 @@ export interface Env {
 
   // HTTP auth for /publish-post, /publish-story, /generate-image, /fill-queue
   WORKER_AUTH_KEY: string;
+
+  // KV namespace for async job state (/publish-now fire-and-forget)
+  JOBS: KVNamespace;
 }

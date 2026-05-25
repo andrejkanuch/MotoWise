@@ -3,6 +3,7 @@ import type { Ride } from '@motovault/types';
 import { useRouter } from 'expo-router';
 import { ChevronRight, MapPin, Navigation, Route } from 'lucide-react-native';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
@@ -88,6 +89,7 @@ export function RecentRidesWidget({
   isDark,
 }: RecentRidesWidgetProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const system = useMeasurementSystem();
   const recentRides = rides.slice(0, 3);
   const totalDistanceFormatted = formatDistanceValue(totalDistanceM, system);
@@ -253,7 +255,7 @@ export function RecentRidesWidget({
         {recentRides.map((ride) => {
           const distance = ride.distanceM ?? 0;
           const duration = ride.durationS ?? 0;
-          const name = ride.name || ride.bikeName || 'Ride';
+          const name = ride.name || ride.bikeName || t('common.ride');
 
           return (
             <Pressable
