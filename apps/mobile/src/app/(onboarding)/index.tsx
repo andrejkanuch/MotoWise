@@ -147,19 +147,20 @@ export default function WelcomeScreen() {
           </Animated.View>
 
           {/* Subtitle */}
-          <Animated.Text
-            entering={FadeInUp.delay(300).duration(400)}
-            style={{
-              fontSize: 15,
-              lineHeight: 22,
-              color: ONBOARDING_COLORS.textWhite,
-              opacity: 0.82,
-              maxWidth: 280,
-              marginBottom: 32,
-            }}
-          >
-            {t('onboarding.v2WelcomeSubtitle')}
-          </Animated.Text>
+          <Animated.View entering={FadeInUp.delay(300).duration(400)}>
+            <Text
+              style={{
+                fontSize: 15,
+                lineHeight: 22,
+                color: ONBOARDING_COLORS.textWhite,
+                opacity: 0.82,
+                maxWidth: 280,
+                marginBottom: 32,
+              }}
+            >
+              {t('onboarding.v2WelcomeSubtitle')}
+            </Text>
+          </Animated.View>
 
           {/* CTA button */}
           <Animated.View entering={FadeIn.delay(500).duration(300)}>

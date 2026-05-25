@@ -30,6 +30,10 @@ type = "Text"
 globs = ["**/*.md"]
 fallthrough = true
 
+[[kv_namespaces]]
+binding = "JOBS"
+id = "9ff008b49b2049fea31ddc178b33fc1c"
+
 # Secrets (set via `npx wrangler secret put <NAME>`, never commit):
 #   META_API_KEY
 #   META_PAGE_ID
