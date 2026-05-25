@@ -49,6 +49,26 @@ function lerpAngle(from: number, to: number, t: number): number {
   return (from + delta * t + 360) % 360;
 }
 
+/** Linear interpolation */
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+
+/** Haversine distance in meters between two coordinate points */
+function haversineM(
+  a: { latitude: number; longitude: number },
+  b: { latitude: number; longitude: number },
+): number {
+  const dLat = ((b.latitude - a.latitude) * Math.PI) / 180;
+  const dLon = ((b.longitude - a.longitude) * Math.PI) / 180;
+  const sinHalf =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((a.latitude * Math.PI) / 180) *
+      Math.cos((b.latitude * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+  return 6371000 * 2 * Math.atan2(Math.sqrt(sinHalf), Math.sqrt(1 - sinHalf));
+}
+
 /** Format seconds as MM:SS */
 function formatMmSs(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -59,11 +79,11 @@ function formatMmSs(seconds: number): string {
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const TOTAL_DURATION_MS = 45_000; // 45 seconds at 1x speed
-const CAMERA_INTERVAL_MS = 1000; // Issue new camera command every 1s
-const CAMERA_DURATION_MS = 1500; // Each animation lasts 1.5s (overlapping = smooth)
+const CAMERA_INTERVAL_MS = 100; // Issue camera commands at 10fps for smooth motion
+const CAMERA_DURATION_MS = 250; // Each animation lasts 250ms (overlapping at 100ms = seamless)
 const HUD_INTERVAL_MS = 200; // Update HUD stats at 5fps (not 60)
-const LOOK_AHEAD_POINTS = 8; // Look further ahead for stable bearing
-const BEARING_LERP_FACTOR = 0.3; // Smooth bearing rotation (30% per update)
+const LOOK_AHEAD_DISTANCE_M = 150; // Look 150m ahead for stable bearing
+const BEARING_LERP_FACTOR = 0.12; // Smoother bearing (smaller per-tick at 10fps ≈ same visual rate)
 const CAMERA_ZOOM = 14.5; // Slightly wider than 15 for more terrain context
 const CAMERA_PITCH = 65; // More dramatic "cockpit" view
 const TERRAIN_EXAGGERATION = 1.5; // Dramatic 3D terrain relief
@@ -175,6 +195,16 @@ export default function RideFlyoverScreen() {
     [waypoints],
   );
 
+  // Pre-compute cumulative distances once (O(1) lookup vs O(n) per frame)
+  const cumulativeDistances = useMemo(() => {
+    if (waypoints.length < 2) return [0];
+    const dists = [0];
+    for (let i = 1; i < waypoints.length; i++) {
+      dists.push(dists[i - 1] + haversineM(waypoints[i - 1], waypoints[i]));
+    }
+    return dists;
+  }, [waypoints]);
+
   // ─── Analytics ────────────────────────────────────────────────────────
 
   const trackedStartRef = useRef(false);
@@ -187,25 +217,60 @@ export default function RideFlyoverScreen() {
 
   const trackedCompleteRef = useRef(false);
 
-  // ─── Camera animation (smooth: 1s interval, 1.5s overlapping easeTo) ─
+  // ─── Camera animation (smooth: 10fps with interpolated positions) ────
 
   useEffect(() => {
-    if (!isPlaying || waypoints.length < 2) return;
+    if (!isPlaying || waypoints.length < 2 || cumulativeDistances.length < 2) return;
+
+    const totalRouteM = cumulativeDistances[cumulativeDistances.length - 1];
+    if (totalRouteM <= 0) return;
+
+    /**
+     * Given a distance along the route, return the interpolated lat/lng and
+     * the segment index (floor) for HUD waypoint lookup.
+     */
+    const posAtDistance = (distM: number) => {
+      // Binary search for the segment containing distM
+      let lo = 0;
+      let hi = cumulativeDistances.length - 1;
+      while (lo < hi - 1) {
+        const mid = (lo + hi) >> 1;
+        if (cumulativeDistances[mid] <= distM) lo = mid;
+        else hi = mid;
+      }
+      const segLen = cumulativeDistances[hi] - cumulativeDistances[lo];
+      const t = segLen > 0 ? (distM - cumulativeDistances[lo]) / segLen : 0;
+      const a = waypoints[lo];
+      const b = waypoints[hi];
+      return {
+        longitude: lerp(a.longitude, b.longitude, t),
+        latitude: lerp(a.latitude, b.latitude, t),
+        index: lo,
+      };
+    };
+
+    /**
+     * Find the waypoint index at a given distance ahead (for bearing look-ahead).
+     * Returns the farthest waypoint within `aheadM` meters of `fromDist`.
+     */
+    const lookAheadPos = (fromDist: number, aheadM: number) => {
+      const targetDist = Math.min(fromDist + aheadM, totalRouteM);
+      return posAtDistance(targetDist);
+    };
 
     const interval = setInterval(() => {
-      // Advance progress
+      // Advance progress (distance-based for constant speed)
       const dt = CAMERA_INTERVAL_MS * activeSpeed;
       const newP = Math.min(1, progress.value + dt / TOTAL_DURATION_MS);
       progress.value = newP;
 
-      // Compute camera target
-      const i = Math.min(waypoints.length - 1, Math.floor(newP * waypoints.length));
-      const wp = waypoints[i];
-      const lookAhead = Math.min(i + LOOK_AHEAD_POINTS, waypoints.length - 1);
-      const next = waypoints[lookAhead];
+      // Interpolated position along the route
+      const currentDistM = newP * totalRouteM;
+      const pos = posAtDistance(currentDistM);
+      const ahead = lookAheadPos(currentDistM, LOOK_AHEAD_DISTANCE_M);
 
       // Smooth bearing with lerp to avoid rotation jumps on switchbacks
-      const rawBearing = bearingTo(wp, next);
+      const rawBearing = bearingTo(pos, ahead);
       const smoothBearing =
         lastBearingRef.current != null
           ? lerpAngle(lastBearingRef.current, rawBearing, BEARING_LERP_FACTOR)
@@ -213,11 +278,11 @@ export default function RideFlyoverScreen() {
       lastBearingRef.current = smoothBearing;
 
       cameraRef.current?.setCamera({
-        centerCoordinate: [wp.longitude, wp.latitude],
+        centerCoordinate: [pos.longitude, pos.latitude],
         heading: smoothBearing,
         pitch: CAMERA_PITCH,
         zoomLevel: CAMERA_ZOOM,
-        animationMode: 'easeTo',
+        animationMode: 'linearTo',
         animationDuration: CAMERA_DURATION_MS,
       });
 
@@ -230,16 +295,24 @@ export default function RideFlyoverScreen() {
     }, CAMERA_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [isPlaying, activeSpeed, waypoints, rideId, progress]);
+  }, [isPlaying, activeSpeed, waypoints, cumulativeDistances, rideId, progress]);
 
   // ─── HUD stat updates (decoupled, 5fps — not every frame) ──────────
 
   useEffect(() => {
-    if (!isPlaying || waypoints.length < 2) return;
+    if (!isPlaying || waypoints.length < 2 || cumulativeDistances.length < 2) return;
+
+    const totalRouteM = cumulativeDistances[cumulativeDistances.length - 1];
 
     const interval = setInterval(async () => {
       const p = progress.value;
-      const i = Math.min(waypoints.length - 1, Math.floor(p * waypoints.length));
+      // Map progress to distance, then find the nearest waypoint index
+      const distM = p * totalRouteM;
+      let i = 0;
+      for (let j = 1; j < cumulativeDistances.length; j++) {
+        if (cumulativeDistances[j] > distM) break;
+        i = j;
+      }
       setCursor(i);
 
       // Query terrain elevation when waypoint has no altitude
@@ -266,7 +339,7 @@ export default function RideFlyoverScreen() {
     }, HUD_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [isPlaying, waypoints, progress]);
+  }, [isPlaying, waypoints, cumulativeDistances, progress]);
 
   // ─── Playback controls ───────────────────────────────────────────────
 
@@ -300,14 +373,21 @@ export default function RideFlyoverScreen() {
   const handleScrub = useCallback(
     (locationX: number) => {
       const w = scrubberWidthRef.current;
-      if (w <= 0 || waypoints.length === 0) return;
+      if (w <= 0 || waypoints.length === 0 || cumulativeDistances.length < 2) return;
       const p = Math.max(0, Math.min(1, locationX / w));
       progress.value = p;
       trackedCompleteRef.current = false;
-      const i = Math.min(waypoints.length - 1, Math.floor(p * waypoints.length));
+      // Map progress to distance, then find nearest waypoint
+      const totalRouteM = cumulativeDistances[cumulativeDistances.length - 1];
+      const distM = p * totalRouteM;
+      let i = 0;
+      for (let j = 1; j < cumulativeDistances.length; j++) {
+        if (cumulativeDistances[j] > distM) break;
+        i = j;
+      }
       setCursor(i);
     },
-    [progress, waypoints.length],
+    [progress, waypoints.length, cumulativeDistances],
   );
 
   // ─── Derived stats ───────────────────────────────────────────────────
@@ -330,25 +410,6 @@ export default function RideFlyoverScreen() {
       },
     };
   }, [bikeLng, bikeLat, currentWp]);
-
-  // Pre-compute cumulative distances once (O(1) lookup vs O(n) per frame)
-  const cumulativeDistances = useMemo(() => {
-    if (waypoints.length < 2) return [0];
-    const dists = [0];
-    for (let i = 1; i < waypoints.length; i++) {
-      const prev = waypoints[i - 1];
-      const curr = waypoints[i];
-      const dLat = ((curr.latitude - prev.latitude) * Math.PI) / 180;
-      const dLon = ((curr.longitude - prev.longitude) * Math.PI) / 180;
-      const a =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos((prev.latitude * Math.PI) / 180) *
-          Math.cos((curr.latitude * Math.PI) / 180) *
-          Math.sin(dLon / 2) ** 2;
-      dists.push(dists[i - 1] + 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-    }
-    return dists;
-  }, [waypoints]);
 
   const cumulativeDistanceM = cumulativeDistances[cursor] ?? 0;
 
@@ -436,7 +497,14 @@ export default function RideFlyoverScreen() {
               waypoints.length > 1
                 ? bearingTo(
                     waypoints[0],
-                    waypoints[Math.min(LOOK_AHEAD_POINTS, waypoints.length - 1)],
+                    waypoints[
+                      Math.min(
+                        // Find the waypoint ~150m ahead for initial bearing
+                        cumulativeDistances.findIndex((d) => d >= LOOK_AHEAD_DISTANCE_M) ||
+                          waypoints.length - 1,
+                        waypoints.length - 1,
+                      )
+                    ],
                   )
                 : 0,
           }}

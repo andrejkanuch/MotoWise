@@ -372,7 +372,7 @@ export default function RidesScreen() {
       );
     }
     return parts;
-  }, [stats, system]);
+  }, [stats, system, t]);
 
   const renderHeader = useCallback(
     () => (
