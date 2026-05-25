@@ -49,9 +49,7 @@ export class RideAnalyticsService {
       durationS,
       maxSpeedMps: data.max_speed_mps ?? undefined,
       date: data.ended_at,
-      motorcycleName: (data.motorcycles as Record<string, unknown> | null)?.name as
-        | string
-        | undefined,
+      motorcycleName: (data.motorcycles as unknown as { name?: string } | null)?.name ?? undefined,
     };
   }
 
