@@ -21,7 +21,8 @@
     "genericError": "Algo deu errado. Por favor, tente novamente.",
     "tryAgain": "Tentar novamente",
     "confirm": "Confirmar",
-    "all": "Todos"
+    "all": "Todos",
+    "ride": "Ride"
   },
   "auth": {
     "signIn": "Entrar",
@@ -1633,7 +1634,21 @@
     "oldestFirst": "Mais antigos primeiro ↑",
     "streakWeek": "week streak",
     "streakWeeks": "week streak",
-    "streakDesc": "Consecutive weeks with a ride"
+    "streakDesc": "Consecutive weeks with a ride",
+    "thisMonth": "This month",
+    "thisYear": "This year",
+    "vsLastWeek": "vs last week",
+    "vsLastMonth": "vs last month",
+    "vsLastYear": "vs last year",
+    "topSpeed": "Top speed",
+    "elevation": "Elevation",
+    "personalBest": "Personal best",
+    "totalGain": "Total gain",
+    "seeAllRides": "See all →",
+    "ride_one": "{{count}} ride",
+    "ride_other": "{{count}} rides",
+    "elev": "elev.",
+    "dur": "Dur"
   },
   "rideDetail": {
     "noRouteData": "Sem dados de rota",
@@ -1658,7 +1673,11 @@
     "delete": "Excluir",
     "leanAngle": "Max Lean",
     "leanCaveat": "Lean angle estimated from phone IMU",
-    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions."
+    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions.",
+    "private": "Private",
+    "elevationChart": "Elevation",
+    "speedChart": "Speed",
+    "peak": "{{value}} peak"
   },
   "startRide": {
     "preFlight": "Pré-viagem",
@@ -1735,5 +1754,9 @@
     "topSpeed": "Top speed",
     "longestRide": "Longest ride",
     "mostElevation": "Most elevation"
+  },
+  "rideChart": {
+    "elevation": "Elevation ({{unit}})",
+    "speed": "Speed ({{unit}})"
   }
 }

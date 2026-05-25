@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOut, FadeOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getLatestRelease, getWhatsNewRelease } from '../../data/whats-new-releases';
+import { getLatestRelease } from '../../data/whats-new-releases';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useWhatsNewStore } from '../../stores/whats-new.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
@@ -21,7 +21,7 @@ export default function WhatsNewModal() {
   const setLastSeenVersion = useWhatsNewStore((s) => s.setLastSeenVersion);
 
   const currentVersion = Application.nativeApplicationVersion ?? '0.0.0';
-  const release = getWhatsNewRelease(currentVersion) ?? getLatestRelease();
+  const release = getLatestRelease();
   const displayVersion = release.version;
   const slides = release.slides;
 

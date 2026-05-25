@@ -823,7 +823,7 @@ export default function RideDetailScreen() {
                         color: theme.ink3,
                       }}
                     >
-                      PRIVATE
+                      {t('rideDetail.private')}
                     </Text>
                   </View>
                 }
@@ -871,8 +871,7 @@ export default function RideDetailScreen() {
                     lineHeight: 18,
                   }}
                 >
-                  Estimated from your phone's IMU sensor. Not a precision instrument — use as a fun
-                  reference, not for track analysis.
+                  {t('rideDetail.leanTooltip')}
                 </Text>
               </Animated.View>
             )}
@@ -909,7 +908,7 @@ export default function RideDetailScreen() {
                         color: theme.warm,
                       }}
                     >
-                      ELEVATION
+                      {t('rideDetail.elevationChart')}
                     </Text>
                     {/* Peak pill */}
                     <View
@@ -934,7 +933,7 @@ export default function RideDetailScreen() {
                           color: theme.warm,
                         }}
                       >
-                        {`\u2191 ${formatElevationValue(elevationGain, system)}${elevationUnitLabel(system).toUpperCase()} PEAK`}
+                        {`\u2191 ${t('rideDetail.peak', { value: `${formatElevationValue(elevationGain, system)}${elevationUnitLabel(system).toUpperCase()}` })}`}
                       </Text>
                     </View>
                   </View>
@@ -975,7 +974,7 @@ export default function RideDetailScreen() {
                         color: theme.warm,
                       }}
                     >
-                      SPEED
+                      {t('rideDetail.speedChart')}
                     </Text>
                     <Text
                       style={{

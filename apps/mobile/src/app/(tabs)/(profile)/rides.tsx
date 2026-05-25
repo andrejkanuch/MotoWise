@@ -336,35 +336,39 @@ export default function RidesScreen() {
   const periodMetaLabel = useMemo(() => {
     switch (period) {
       case 'week':
-        return 'THIS WEEK';
+        return t('myRides.thisWeek');
       case 'month':
-        return 'THIS MONTH';
+        return t('myRides.thisMonth');
       case 'year':
-        return 'THIS YEAR';
+        return t('myRides.thisYear');
       default:
-        return 'ALL TIME';
+        return t('myRides.allTime');
     }
-  }, [period]);
+  }, [period, t]);
 
   const trendLabel = useMemo(() => {
     if (stats.trendPercent === 0 || period === 'all') return null;
     const sign = stats.trendPercent > 0 ? '+' : '';
     const vs =
-      period === 'week' ? 'VS LAST WEEK' : period === 'month' ? 'VS LAST MONTH' : 'VS LAST YEAR';
+      period === 'week'
+        ? t('myRides.vsLastWeek')
+        : period === 'month'
+          ? t('myRides.vsLastMonth')
+          : t('myRides.vsLastYear');
     return `${sign} ${stats.trendPercent}% ${vs}`;
-  }, [stats.trendPercent, period]);
+  }, [stats.trendPercent, period, t]);
 
   const heroSubText = useMemo(() => {
     const parts: string[] = [];
     if (stats.periodRides > 0) {
-      parts.push(`${stats.periodRides} ${stats.periodRides === 1 ? 'ride' : 'rides'}`);
+      parts.push(t('myRides.ride', { count: stats.periodRides }));
     }
     if (stats.periodDuration > 0) {
       parts.push(fmtDuration(stats.periodDuration));
     }
     if (stats.periodElevation > 0) {
       parts.push(
-        `${formatElevationValue(stats.periodElevation, system)}${elevationUnitLabel(system)} elev.`,
+        `${formatElevationValue(stats.periodElevation, system)}${elevationUnitLabel(system)} ${t('myRides.elev')}`,
       );
     }
     return parts;
@@ -525,7 +529,7 @@ export default function RidesScreen() {
                       color: theme.warm,
                     }}
                   >
-                    See all →
+                    {t('myRides.seeAllRides')}
                   </Text>
                 </>
               )}
@@ -537,28 +541,28 @@ export default function RidesScreen() {
         <View style={{ flexDirection: 'row', gap: 8 }}>
           {[
             {
-              label: 'RIDES',
+              label: t('myRides.rides'),
               value: String(stats.periodRides),
               unit: undefined,
               sub: t('myRides.ofTotal', { count: stats.totalRides }),
             },
             {
-              label: 'TOP SPEED',
+              label: t('myRides.topSpeed'),
               value:
                 stats.periodMaxSpeed > 0
                   ? `${Math.round(stats.periodMaxSpeed * (system === 'imperial' ? 2.237 : 3.6))}`
                   : '--',
               unit: stats.periodMaxSpeed > 0 ? speedUnitLabel(system) : undefined,
-              sub: stats.periodMaxSpeed > 0 ? 'PERSONAL BEST' : '',
+              sub: stats.periodMaxSpeed > 0 ? t('myRides.personalBest') : '',
             },
             {
-              label: 'ELEVATION',
+              label: t('myRides.elevation'),
               value:
                 stats.periodElevation > 0
                   ? `${formatElevationValue(stats.periodElevation, system)}`
                   : '--',
               unit: stats.periodElevation > 0 ? elevationUnitLabel(system) : undefined,
-              sub: stats.periodElevation > 0 ? 'TOTAL GAIN' : '',
+              sub: stats.periodElevation > 0 ? t('myRides.totalGain') : '',
             },
           ].map((s) => (
             <View
@@ -904,7 +908,7 @@ export default function RidesScreen() {
                 fontVariant: ['tabular-nums'],
               }}
             >
-              {stats.totalRides} RIDES
+              {stats.totalRides} {t('myRides.rides')}
             </Text>
           </View>
         </View>

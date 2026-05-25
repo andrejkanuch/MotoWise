@@ -2,6 +2,7 @@ import { palette } from '@motovault/design-system';
 import type { GetRideWaypointsQuery } from '@motovault/graphql';
 import type { MeasurementSystem } from '@motovault/types';
 import { memo, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, useWindowDimensions, View } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -55,6 +56,7 @@ export const RideElevationChart = memo(function RideElevationChart({
   system,
   isAnimated = true,
 }: RideElevationChartProps) {
+  const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
   const chartWidth = screenWidth - 140;
   const elevUnit = elevationUnitLabel(system);
@@ -148,7 +150,7 @@ export const RideElevationChart = memo(function RideElevationChart({
           marginBottom: 12,
         }}
       >
-        Elevation ({elevUnit})
+        {t('rideChart.elevation', { unit: elevUnit })}
       </Text>
       <LineChart
         areaChart

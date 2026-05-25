@@ -1,6 +1,7 @@
 import type { Ride } from '@motovault/types';
 import { Trophy } from 'lucide-react-native';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { tint, useEditorialTheme } from '../../theme/editorial';
@@ -27,13 +28,14 @@ interface RideCardProps {
 
 export const RideCard = memo(function RideCard({ ride, onPress, recordTypes }: RideCardProps) {
   const { t } = useEditorialTheme();
+  const { t: i18n } = useTranslation();
   const system = useMeasurementSystem();
 
   const duration = ride.durationS ?? 0;
   const distance = ride.distanceM ?? 0;
   const avgSpeed = ride.avgSpeedMps ?? 0;
   const elevation = ride.elevationGain ?? 0;
-  const rideName = ride.name || ride.bikeName || 'Ride';
+  const rideName = ride.name || ride.bikeName || i18n('common.ride');
   const hasRoute = (!!ride.routePolyline || !!ride.routeThumbnailUri) && distance > 0;
 
   const hasStats = duration > 0 || avgSpeed > 0 || elevation > 0;
@@ -168,7 +170,7 @@ export const RideCard = memo(function RideCard({ ride, onPress, recordTypes }: R
                     color: t.ink3,
                   }}
                 >
-                  DUR
+                  {i18n('myRides.dur')}
                 </Text>
                 <Text
                   style={{
