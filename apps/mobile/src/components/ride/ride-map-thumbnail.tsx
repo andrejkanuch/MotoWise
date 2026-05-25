@@ -1,5 +1,4 @@
 import MapboxGL from '@rnmapbox/maps';
-import * as FileSystem from 'expo-file-system';
 import { Route } from 'lucide-react-native';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Image, type ImageStyle, View, type ViewStyle } from 'react-native';
@@ -16,9 +15,9 @@ interface RideMapThumbnailProps {
 
 const CACHE_PREFIX = 'ride-thumb-';
 
-// Global concurrency limiter — max 1 MapView snapshot at a time to prevent OOM
+// Global concurrency limiter — max 2 MapView snapshots at a time
 let activeSnapshots = 0;
-const MAX_CONCURRENT_SNAPSHOTS = 1;
+const MAX_CONCURRENT_SNAPSHOTS = 2;
 const snapshotQueue: Array<() => void> = [];
 
 function acquireSnapshotSlot(): Promise<void> {
@@ -30,7 +29,7 @@ function acquireSnapshotSlot(): Promise<void> {
 }
 
 function releaseSnapshotSlot() {
-  activeSnapshots--;
+  activeSnapshots = Math.max(0, activeSnapshots - 1);
   const next = snapshotQueue.shift();
   if (next) {
     activeSnapshots++;
@@ -45,23 +44,12 @@ export const RideMapThumbnail = memo(function RideMapThumbnail({
 }: RideMapThumbnailProps) {
   const { t, isDark } = useEditorialTheme();
   const mapRef = useRef<MapboxGL.MapView>(null);
+  const slotAcquired = useRef(false);
+  const [layoutReady, setLayoutReady] = useState(false);
 
-  // Check MMKV cache on first render; verify file still exists
-  const [snapUri, setSnapUri] = useState<string | null>(null);
-  const cacheChecked = useRef(false);
-  useEffect(() => {
-    if (cacheChecked.current) return;
-    cacheChecked.current = true;
-    const cached = rideStorage.getString(`${CACHE_PREFIX}${rideId}`);
-    if (!cached) return;
-    FileSystem.getInfoAsync(cached).then((info) => {
-      if (info.exists) {
-        setSnapUri(cached);
-      } else {
-        rideStorage.remove(`${CACHE_PREFIX}${rideId}`);
-      }
-    });
-  }, [rideId]);
+  // Synchronous MMKV cache check
+  const cachedUri = rideStorage.getString(`${CACHE_PREFIX}${rideId}`) ?? null;
+  const [snapUri, setSnapUri] = useState<string | null>(cachedUri);
 
   const routeData = useMemo(() => {
     if (!routePolyline) return null;
@@ -107,29 +95,46 @@ export const RideMapThumbnail = memo(function RideMapThumbnail({
   // Concurrency gate — wait for a slot before rendering MapView
   const [hasSlot, setHasSlot] = useState(false);
   useEffect(() => {
-    if (snapUri || !routeData) return; // No need for a slot
+    if (snapUri || !routeData || !layoutReady) return;
     let cancelled = false;
     acquireSnapshotSlot().then(() => {
-      if (!cancelled) setHasSlot(true);
+      if (!cancelled) {
+        slotAcquired.current = true;
+        setHasSlot(true);
+      } else {
+        // Component unmounted while waiting — release immediately
+        releaseSnapshotSlot();
+      }
     });
     return () => {
       cancelled = true;
-      if (hasSlot) releaseSnapshotSlot();
+      if (slotAcquired.current) {
+        slotAcquired.current = false;
+        releaseSnapshotSlot();
+      }
     };
-  }, [snapUri, routeData, hasSlot]);
+  }, [snapUri, routeData, layoutReady]);
 
-  const handleMapLoaded = useCallback(async () => {
-    if (!mapRef.current) return;
-    try {
-      const uri = await mapRef.current.takeSnap(true);
-      rideStorage.set(`${CACHE_PREFIX}${rideId}`, uri);
-      setSnapUri(uri);
-    } catch {
-      // Snapshot failed — keep showing the live map
-    } finally {
-      releaseSnapshotSlot();
-      setHasSlot(false);
-    }
+  const handleLayout = useCallback(() => {
+    if (!layoutReady) setLayoutReady(true);
+  }, [layoutReady]);
+
+  const handleMapLoaded = useCallback(() => {
+    // Small delay to ensure tiles have rendered after style load
+    setTimeout(async () => {
+      if (!mapRef.current) return;
+      try {
+        const uri = await mapRef.current.takeSnap(true);
+        rideStorage.set(`${CACHE_PREFIX}${rideId}`, uri);
+        setSnapUri(uri);
+      } catch {
+        // Snapshot failed — keep showing the live map
+      } finally {
+        slotAcquired.current = false;
+        releaseSnapshotSlot();
+        setHasSlot(false);
+      }
+    }, 500);
   }, [rideId]);
 
   // Cached image available — render it
@@ -147,6 +152,7 @@ export const RideMapThumbnail = memo(function RideMapThumbnail({
   if (!routeData) {
     return (
       <View
+        onLayout={handleLayout}
         style={[
           {
             backgroundColor: t.surface2,
@@ -165,6 +171,7 @@ export const RideMapThumbnail = memo(function RideMapThumbnail({
   if (!hasSlot) {
     return (
       <View
+        onLayout={handleLayout}
         style={[
           { backgroundColor: t.surface2, alignItems: 'center', justifyContent: 'center' },
           style,
@@ -191,7 +198,7 @@ export const RideMapThumbnail = memo(function RideMapThumbnail({
         rotateEnabled={false}
         scrollEnabled={false}
         zoomEnabled={false}
-        onDidFinishRenderingMap={handleMapLoaded}
+        onDidFinishLoadingMap={handleMapLoaded}
       >
         <MapboxGL.Camera
           bounds={{
