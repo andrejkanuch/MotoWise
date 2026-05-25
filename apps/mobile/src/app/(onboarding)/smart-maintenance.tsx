@@ -14,8 +14,9 @@ import {
 } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { NativeToggle } from '../../components/ui/native-toggle';
 import { OnboardingCard } from '../../components/onboarding/onboarding-card';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
@@ -275,14 +276,9 @@ export default function SmartMaintenanceScreen() {
                   </Text>
                 </View>
 
-                <Switch
+                <NativeToggle
                   value={toggles[row.key]}
                   onValueChange={() => handleToggle(row.key)}
-                  trackColor={{
-                    false: ONBOARDING_COLORS.textMuted,
-                    true: ONBOARDING_COLORS.accent,
-                  }}
-                  thumbColor={ONBOARDING_COLORS.textPrimary}
                 />
               </Animated.View>
             );

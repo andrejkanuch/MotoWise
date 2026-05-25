@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Bike, Pencil, Sparkles } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
@@ -17,6 +17,7 @@ import {
   PREDEFINED_TIMING,
   useDiagnosticFlowStore,
 } from '../../stores/diagnostic-flow.store';
+import { NativeToggle } from '../ui/native-toggle';
 import { useDiagnosticColors } from './diagnostic-colors';
 
 const ALL_PREDEFINED = new Set<string>([
@@ -336,10 +337,9 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
                   {t('diagnoseV2.includeMaintenanceHint')}
                 </Text>
               </View>
-              <Switch
+              <NativeToggle
                 value={store.includeMaintenanceHistory}
                 onValueChange={store.setIncludeMaintenanceHistory}
-                trackColor={{ false: colors.switchTrackFalse, true: colors.accent }}
               />
             </View>
           </Animated.View>
@@ -366,10 +366,9 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
           >
             {t('diagnoseV2.dataSharingLabel')}
           </Text>
-          <Switch
+          <NativeToggle
             value={store.dataSharingOptedIn}
             onValueChange={store.setDataSharingOptedIn}
-            trackColor={{ false: colors.switchTrackFalse, true: colors.accent }}
           />
         </Animated.View>
 

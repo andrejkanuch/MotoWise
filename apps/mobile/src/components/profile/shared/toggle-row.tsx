@@ -1,7 +1,8 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import type { LucideIcon } from 'lucide-react-native';
-import { Switch, Text, useColorScheme, View } from 'react-native';
+import { Text, useColorScheme, View } from 'react-native';
+import { NativeToggle } from '../../ui/native-toggle';
 
 interface ToggleRowProps {
   icon: LucideIcon;
@@ -58,12 +59,7 @@ export function ToggleRow({ icon: Icon, title, subtitle, value, onToggle }: Togg
         </Text>
         <Text style={{ fontSize: 12, color: palette.neutral500, marginTop: 1 }}>{subtitle}</Text>
       </View>
-      <Switch
-        value={value}
-        onValueChange={handleChange}
-        trackColor={{ false: palette.neutral300, true: palette.primary500 }}
-        thumbColor={palette.white}
-      />
+      <NativeToggle value={value} onValueChange={handleChange} />
     </View>
   );
 }

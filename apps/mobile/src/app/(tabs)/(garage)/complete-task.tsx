@@ -9,7 +9,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Check, DollarSign, Gauge, Wrench } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, {
   FadeIn,
@@ -22,6 +22,7 @@ import Animated, {
   ZoomIn,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { NativeToggle } from '../../../components/ui/native-toggle';
 import { useCurrency } from '../../../hooks/use-currency';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../../lib/expense-constants';
@@ -385,14 +386,7 @@ export default function CompleteTaskScreen() {
                         })}
                 </Text>
               </View>
-              <Switch
-                value={scheduleNext}
-                onValueChange={setScheduleNext}
-                trackColor={{
-                  false: isDark ? palette.neutral700 : palette.neutral200,
-                  true: palette.success500,
-                }}
-              />
+              <NativeToggle value={scheduleNext} onValueChange={setScheduleNext} />
             </View>
           </Animated.View>
         )}

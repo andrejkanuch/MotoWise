@@ -18,17 +18,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   orientation: 'portrait',
   icon: './src/assets/images/MotoVault.png',
   userInterfaceStyle: 'automatic',
-  newArchEnabled: true,
   scheme: 'motovault',
+  experiments: {
+    reactCompiler: true,
+  },
   owner: 'andykeny',
   runtimeVersion: {
     policy: 'appVersion',
   },
   updates: {
     url: 'https://u.expo.dev/359ae282-329d-455d-b9f3-64919afad0b4',
-  },
-  splash: {
-    backgroundColor: '#1a1510',
   },
   plugins: [
     [
@@ -115,9 +114,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           targetSdkVersion: 35,
           minSdkVersion: 24,
           kotlinVersion: '2.1.20',
+          usePrecompiledHeaders: true,
         },
         ios: {
-          deploymentTarget: '16.0',
+          deploymentTarget: '16.4',
         },
       },
     ],

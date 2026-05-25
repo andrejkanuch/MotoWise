@@ -13,12 +13,12 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  Switch,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { NativeToggle } from '../../../components/ui/native-toggle';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { userFriendlyError } from '../../../lib/graphql-errors';
@@ -284,15 +284,11 @@ export default function EditProfileScreen() {
                   {t('community.publicProfileDesc')}
                 </Text>
               </View>
-              <Switch
+              <NativeToggle
                 value={isPublic}
                 onValueChange={(val) => {
                   haptic();
                   setIsPublic(val);
-                }}
-                trackColor={{
-                  false: isDark ? palette.neutral700 : palette.neutral300,
-                  true: palette.primary500,
                 }}
               />
             </View>

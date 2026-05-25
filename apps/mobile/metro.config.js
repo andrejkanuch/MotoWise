@@ -28,7 +28,6 @@ config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
   path.resolve(monorepoRoot, 'node_modules'),
 ];
-config.resolver.disableHierarchicalLookup = true;
 
 // Resolve workspace packages from source (not dist/) so Metro can
 // follow their dependencies through the normal node_modules chain.

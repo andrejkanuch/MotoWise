@@ -11,9 +11,10 @@ import { router } from 'expo-router';
 import { AlertTriangle, ArrowLeft, Database, Shield } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { NativeToggle } from '../../../components/ui/native-toggle';
 import {
   AnalyticsEvent,
   setAnalyticsEnabled,
@@ -98,14 +99,12 @@ function ToggleRow({
         </Text>
         <Text style={{ fontSize: 12, color: palette.neutral500, marginTop: 1 }}>{subtitle}</Text>
       </View>
-      <Switch
+      <NativeToggle
         value={value}
         onValueChange={(v) => {
           haptic();
           onToggle(v);
         }}
-        trackColor={{ false: palette.neutral300, true: palette.primary500 }}
-        thumbColor={palette.white}
       />
     </View>
   );

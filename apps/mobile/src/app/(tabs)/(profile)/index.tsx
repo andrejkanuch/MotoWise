@@ -272,7 +272,7 @@ export default function ProfileScreen() {
   const handleThemeChange = (value: 'system' | 'light' | 'dark') => {
     haptic();
     setStoredScheme(value);
-    setColorScheme(value === 'system' ? undefined : value);
+    setColorScheme(value === 'system' ? 'unspecified' : value);
   };
 
   const initials =

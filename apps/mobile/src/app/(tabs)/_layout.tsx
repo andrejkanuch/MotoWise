@@ -1,7 +1,7 @@
 import { palette } from '@motovault/design-system';
 import { AllMaintenanceTasksDocument } from '@motovault/graphql';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { CommonActions } from '@react-navigation/native';
+import type { BottomTabBarProps } from "expo-router/js-tabs";
+import { CommonActions } from "expo-router/react-navigation";
 import * as Sentry from '@sentry/react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';

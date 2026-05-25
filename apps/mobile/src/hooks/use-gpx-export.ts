@@ -1,6 +1,6 @@
 import { ExportTripGpxDocument } from '@motovault/graphql';
 import { useQueryClient } from '@tanstack/react-query';
-import { File, Paths } from 'expo-file-system/next';
+import { File, Paths } from 'expo-file-system';
 import * as Haptics from 'expo-haptics';
 import { shareAsync } from 'expo-sharing';
 import { useCallback, useState } from 'react';

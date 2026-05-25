@@ -13,7 +13,7 @@ import {
 } from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
 import { onlineManager, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { File, Paths } from 'expo-file-system/next';
+import { File, Paths } from 'expo-file-system';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';

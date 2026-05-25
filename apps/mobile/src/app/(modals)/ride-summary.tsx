@@ -24,9 +24,10 @@ import {
 // NOTE: palette is kept only for speed-gradient colors (speedSlow/Medium/Fast)
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, ScrollView, Share, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { NativeToggle } from '../../components/ui/native-toggle';
 import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
@@ -948,12 +949,7 @@ export default function RideSummaryScreen() {
               </Text>
             </View>
 
-            <Switch
-              value={shareToDiscover}
-              onValueChange={setShareToDiscover}
-              trackColor={{ false: theme.line2, true: theme.success }}
-              thumbColor="#fff"
-            />
+            <NativeToggle value={shareToDiscover} onValueChange={setShareToDiscover} />
           </Animated.View>
 
           {/* Discard option — subtle, at the bottom */}
