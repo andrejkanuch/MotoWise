@@ -76,7 +76,10 @@ export const EditorialDarkCard = memo(function EditorialDarkCard({
             i === 0 ? (
               <Text key={part.trim()}>{part.trim()}</Text>
             ) : (
-              <Text key={part.trim()} style={{ fontStyle: 'italic', fontWeight: '400', fontSize: 36 }}>
+              <Text
+                key={part.trim()}
+                style={{ fontStyle: 'italic', fontWeight: '400', fontSize: 36 }}
+              >
                 {'\n'}
                 {part.trim()}
               </Text>

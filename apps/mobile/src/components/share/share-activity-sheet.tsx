@@ -1,37 +1,56 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, SlideInUp, SlideOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { ShareCardCarousel } from './share-card-carousel';
 import {
-  type CardVariant,
   getAvailableVariants,
   getInitialCardIndex,
   type RideSharePayload,
   type ShareDestination,
 } from './share-card-types';
 import { ShareDestinationGrid } from './share-destination-grid';
+import { executeShareDestination, getToastMessage } from './share-destinations';
+import { ShareToast } from './share-toast';
+import { useSharePipeline } from './use-share-pipeline';
 
 interface ShareActivitySheetProps {
   visible: boolean;
   payload: RideSharePayload;
   onClose: () => void;
-  onDestinationPress: (destination: ShareDestination, variant: CardVariant) => void;
 }
 
-export function ShareActivitySheet({
-  visible,
-  payload,
-  onClose,
-  onDestinationPress,
-}: ShareActivitySheetProps) {
+export function ShareActivitySheet({ visible, payload, onClose }: ShareActivitySheetProps) {
   const insets = useSafeAreaInsets();
   const hasAutoSelected = useRef(false);
 
   const variants = getAvailableVariants(payload);
   const [activeIndex, setActiveIndex] = useState(() => getInitialCardIndex(variants, payload));
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleHandoff = useCallback(
+    async (destination: ShareDestination, imageUri: string) => {
+      const activeVariant = variants[activeIndex] ?? variants[0];
+      trackEvent(AnalyticsEvent.SHARE_COMPLETED, {
+        destination,
+        variant: activeVariant,
+      });
+
+      const result = await executeShareDestination(destination, imageUri, payload.rideId);
+      const toast = getToastMessage(destination, result);
+      if (toast) setToastMessage(toast);
+      return result;
+    },
+    [activeIndex, variants, payload.rideId],
+  );
+
+  const { isIdle, handleDestinationTap } = useSharePipeline({
+    rideId: payload.rideId,
+    onHandoff: handleHandoff,
+  });
 
   // Auto-select PB card on initial mount only
   useEffect(() => {
@@ -45,10 +64,11 @@ export function ShareActivitySheet({
     }
   }, [payload.isPB, payload.pbType, variants]);
 
-  // Reset auto-select guard when sheet closes
+  // Reset state when sheet closes
   useEffect(() => {
     if (!visible) {
       hasAutoSelected.current = false;
+      setToastMessage(null);
     }
   }, [visible]);
 
@@ -58,9 +78,9 @@ export function ShareActivitySheet({
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
       const activeVariant = variants[activeIndex] ?? variants[0];
-      onDestinationPress(destination, activeVariant);
+      handleDestinationTap(destination, activeVariant);
     },
-    [activeIndex, variants, onDestinationPress],
+    [activeIndex, variants, handleDestinationTap],
   );
 
   const handleClose = useCallback(() => {
@@ -87,21 +107,9 @@ export function ShareActivitySheet({
       <Animated.View
         entering={FadeIn.duration(200)}
         exiting={FadeOut.duration(150)}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-        }}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       >
-        <Pressable
-          onPress={handleClose}
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(8,6,4,0.62)',
-          }}
-        />
+        <Pressable onPress={handleClose} style={{ flex: 1, backgroundColor: 'rgba(8,6,4,0.62)' }} />
       </Animated.View>
 
       {/* Sheet */}
@@ -168,8 +176,10 @@ export function ShareActivitySheet({
             Share Ride
           </Text>
 
-          {/* Empty spacer for centering */}
-          <View style={{ width: 40 }} />
+          {/* Loading indicator when capturing */}
+          <View style={{ width: 40, alignItems: 'flex-end' }}>
+            {!isIdle && <ActivityIndicator size="small" color={palette.shareCopperSoft} />}
+          </View>
         </View>
 
         {/* Carousel */}
@@ -181,7 +191,10 @@ export function ShareActivitySheet({
         />
 
         {/* Destination Grid */}
-        <ShareDestinationGrid disabled={false} onDestinationPress={handleDestinationPress} />
+        <ShareDestinationGrid disabled={!isIdle} onDestinationPress={handleDestinationPress} />
+
+        {/* Toast */}
+        <ShareToast message={toastMessage} />
 
         {/* Safe area bottom */}
         <View style={{ height: insets.bottom }} />

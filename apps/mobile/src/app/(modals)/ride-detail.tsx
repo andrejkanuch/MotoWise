@@ -35,11 +35,7 @@ import { RideElevationChart } from '../../components/ride/ride-elevation-chart';
 import { RideSpeedChart } from '../../components/ride/ride-speed-chart';
 import { StatTile } from '../../components/ride/stat-tile';
 import { ShareActivitySheet } from '../../components/share/share-activity-sheet';
-import type {
-  CardVariant,
-  RideSharePayload,
-  ShareDestination,
-} from '../../components/share/share-card-types';
+import type { RideSharePayload } from '../../components/share/share-card-types';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -239,14 +235,6 @@ export default function RideDetailScreen() {
     trackEvent(AnalyticsEvent.RIDE_SHARED, { ride_id: rideId ?? '' });
     setShowShareSheet(true);
   }, [ride, rideId]);
-
-  const handleShareDestination = useCallback(
-    (_destination: ShareDestination, _variant: CardVariant) => {
-      // TODO: Implement destination handlers in PR3
-      setShowShareSheet(false);
-    },
-    [],
-  );
 
   const handleDelete = useCallback(() => {
     if (!rideId) return;
@@ -897,7 +885,6 @@ export default function RideDetailScreen() {
           visible={showShareSheet}
           payload={sharePayload}
           onClose={() => setShowShareSheet(false)}
-          onDestinationPress={handleShareDestination}
         />
       )}
     </GestureHandlerRootView>
