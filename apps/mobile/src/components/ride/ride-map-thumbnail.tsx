@@ -195,7 +195,7 @@ export const RideMapThumbnail = memo(function RideMapThumbnail({
     <View style={[{ overflow: 'hidden' }, style]}>
       <MapboxGL.MapView
         ref={mapRef}
-        style={{ width: layoutSize!.w, height: layoutSize!.h }}
+        style={{ width: layoutSize?.w, height: layoutSize?.h }}
         styleURL={MAP_STYLES[mapStyleKey]}
         logoEnabled={false}
         attributionEnabled={false}
