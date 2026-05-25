@@ -219,10 +219,24 @@ export const AnalyticsEvent = {
   RIDE_CHART_VIEWED: 'ride_chart_viewed',
   RIDE_MAP_STYLE_CHANGED: 'ride_map_style_changed',
   RIDE_BIKE_CHANGED: 'ride_bike_changed',
-  // Rides — history & monetisation
+  // Rides — history
   RIDES_HISTORY_FILTERED: 'rides_history_filtered',
-  RIDE_UPGRADE_CTA_SHOWN: 'ride_upgrade_cta_shown',
-  RIDE_UPGRADE_CTA_TAPPED: 'ride_upgrade_cta_tapped',
+  // Rides — Phase 0.5 analytics
+  OVERVIEW_VIEWED: 'overview_viewed',
+  RIDES_TAB_SCROLL_DEPTH: 'rides_tab_scroll_depth',
+  RIDES_OVERVIEW_REFRESHED: 'rides_overview_refreshed',
+  RECORD_BADGE_VIEWED: 'record_badge_viewed',
+  RECORD_BADGE_TAPPED: 'record_badge_tapped',
+  PB_TOAST_SEEN: 'pb_toast_seen',
+  PB_TOAST_TAPPED: 'pb_toast_tapped',
+  PB_TOAST_DISMISSED: 'pb_toast_dismissed',
+  ELEVATION_CHART_VIEWED: 'elevation_chart_viewed',
+  LEAN_ANGLE_TOOLTIP_OPENED: 'lean_angle_tooltip_opened',
+  RIDE_FLYOVER_STARTED: 'ride_flyover_started',
+  RIDE_FLYOVER_COMPLETED: 'ride_flyover_completed',
+  SHARE_CARD_GENERATED: 'share_card_generated',
+  SHARE_CARD_FAILED: 'share_card_failed',
+  SHARE_COMPLETED: 'share_completed',
 
   // Routes (discovery)
   ROUTE_VIEWED: 'route_viewed',

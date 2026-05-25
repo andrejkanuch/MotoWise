@@ -34,4 +34,7 @@ export class EndRideInput {
 
   @Field(() => Int, { defaultValue: 0 })
   autoPausedDurationS: number;
+
+  @Field(() => Float, { nullable: true })
+  maxLeanAngle?: number;
 }

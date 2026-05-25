@@ -44,6 +44,7 @@ export const queryKeys = {
   rides: {
     all: ['rides'] as const,
     summary: ['rides', 'summary'] as const,
+    overview: ['rides', 'overview'] as const,
     list: (cursor?: string) => ['rides', 'list', cursor] as const,
     detail: (id: string) => ['rides', 'detail', id] as const,
     waypoints: (id: string) => ['rides', 'waypoints', id] as const,

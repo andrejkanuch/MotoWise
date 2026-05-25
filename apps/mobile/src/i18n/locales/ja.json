@@ -1621,9 +1621,9 @@
     "recentRides": "最近のライド",
     "newestFirst": "新しい順 ↓",
     "oldestFirst": "古い順 ↑",
-    "unlockTitle": "全履歴を解除",
-    "unlockDesc": "無料アカウントでは最新{{limit}}件のライドが表示されます。無制限の履歴と統計にはProにアップグレードしてください。",
-    "upgradePro": "Proにアップグレード"
+    "streakWeek": "week streak",
+    "streakWeeks": "week streak",
+    "streakDesc": "Consecutive weeks with a ride"
   },
   "rideDetail": {
     "noRouteData": "ルートデータなし",
@@ -1645,7 +1645,10 @@
     "deleteTitle": "ライドを削除しますか？",
     "deleteMessage": "この操作は取り消せません。",
     "cancel": "キャンセル",
-    "delete": "削除"
+    "delete": "削除",
+    "leanAngle": "Max Lean",
+    "leanCaveat": "Lean angle estimated from phone IMU",
+    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions."
   },
   "startRide": {
     "preFlight": "プリフライト",

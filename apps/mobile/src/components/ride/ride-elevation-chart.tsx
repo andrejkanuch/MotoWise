@@ -22,6 +22,7 @@ interface ElevationChartItem {
 interface RideElevationChartProps {
   waypoints: Waypoint[];
   system: MeasurementSystem;
+  isAnimated?: boolean;
 }
 
 const CHART_HEIGHT = 180;
@@ -52,6 +53,7 @@ const tooltipSecondaryText = {
 export const RideElevationChart = memo(function RideElevationChart({
   waypoints,
   system,
+  isAnimated = true,
 }: RideElevationChartProps) {
   const { width: screenWidth } = useWindowDimensions();
   const chartWidth = screenWidth - 140;
@@ -161,8 +163,8 @@ export const RideElevationChart = memo(function RideElevationChart({
         endFillColor={palette.signatureTintZero}
         startOpacity={0.4}
         endOpacity={0}
-        isAnimated
-        animationDuration={300}
+        isAnimated={isAnimated}
+        animationDuration={isAnimated ? 300 : 0}
         noOfSections={4}
         maxValue={maxVal}
         rulesColor={palette.surfaceElevated}

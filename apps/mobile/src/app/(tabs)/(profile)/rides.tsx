@@ -1,36 +1,36 @@
 import { palette } from '@motovault/design-system';
-import { MyMotorcyclesDocument, MyRidesDocument, type MyRidesQuery } from '@motovault/graphql';
+import {
+  MyMotorcyclesDocument,
+  MyRidesDocument,
+  type MyRidesQuery,
+  RideOverviewDocument,
+  type RideOverviewQuery,
+} from '@motovault/graphql';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Mountain, Route, Timer, TrendingUp, Zap } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, Route } from 'lucide-react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, Path, Stop, LinearGradient as SvgGradient } from 'react-native-svg';
-import { LottieMotorcycle } from '../../../components/LottieMotorcycle';
 import { RideCard } from '../../../components/ride/ride-card';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { presentPaywall } from '../../../lib/subscription';
-import { useSubscriptionStore } from '../../../stores/subscription.store';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
 import {
   distanceUnitLabel,
-  formatDistance,
+  elevationUnitLabel,
+  formatDuration as fmtDuration,
   formatDistanceValue,
-  formatDuration,
-  formatElevation,
-  formatSpeed,
+  formatElevationValue,
   speedUnitLabel,
 } from '../../../utils/ride-formatters';
 
-const FREE_TIER_LIMIT = 10;
 const PAGE_SIZE = 20;
 
 type Period = 'week' | 'month' | 'year' | 'all';
@@ -66,7 +66,13 @@ function useRideStats(edges: RideEdge[], period: Period) {
     let periodRides = 0;
     let periodDuration = 0;
     let periodMaxSpeed = 0;
+    let periodElevation = 0;
     let totalDistance = 0;
+
+    // Previous period stats for trend calculation
+    const periodDurationMs = now.getTime() - periodStart.getTime();
+    const prevPeriodStart = new Date(periodStart.getTime() - periodDurationMs);
+    let prevPeriodDistance = 0;
 
     // Daily distances for sparkline (last 30 days)
     const dailyDistances: number[] = new Array(30).fill(0);
@@ -78,13 +84,20 @@ function useRideStats(edges: RideEdge[], period: Period) {
       const dist = edge.node.distanceM ?? 0;
       const dur = edge.node.durationS ?? 0;
       const maxSpd = edge.node.maxSpeedMps ?? 0;
+      const elev = edge.node.elevationGain ?? 0;
       totalDistance += dist;
 
       if (d >= periodStart) {
         periodDistance += dist;
         periodRides++;
         periodDuration += dur;
+        periodElevation += elev;
         if (maxSpd > periodMaxSpeed) periodMaxSpeed = maxSpd;
+      }
+
+      // Previous period
+      if (d >= prevPeriodStart && d < periodStart) {
+        prevPeriodDistance += dist;
       }
 
       // Sparkline data
@@ -98,108 +111,28 @@ function useRideStats(edges: RideEdge[], period: Period) {
       }
     }
 
+    // Trend percentage
+    let trendPercent = 0;
+    if (prevPeriodDistance > 0) {
+      trendPercent = Math.round(((periodDistance - prevPeriodDistance) / prevPeriodDistance) * 100);
+    }
+
     return {
       periodDistance,
       periodRides,
       periodDuration,
       periodMaxSpeed,
+      periodElevation,
       totalDistance,
       totalRides: edges.length,
       dailyDistances,
+      trendPercent,
     };
   }, [edges, period]);
-}
-
-// ─── Period Comparison ───────────────────────────────────────────────────────
-
-function usePeriodComparison(edges: RideEdge[], period: Period) {
-  return useMemo(() => {
-    if (period === 'all') return null;
-
-    const now = new Date();
-    let currentStart: Date;
-    let prevStart: Date;
-    let prevEnd: Date;
-
-    switch (period) {
-      case 'week': {
-        currentStart = new Date(now);
-        currentStart.setDate(now.getDate() - now.getDay());
-        currentStart.setHours(0, 0, 0, 0);
-        prevStart = new Date(currentStart);
-        prevStart.setDate(prevStart.getDate() - 7);
-        prevEnd = new Date(currentStart);
-        break;
-      }
-      case 'month': {
-        currentStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        prevEnd = new Date(currentStart);
-        break;
-      }
-      case 'year': {
-        currentStart = new Date(now.getFullYear(), 0, 1);
-        prevStart = new Date(now.getFullYear() - 1, 0, 1);
-        prevEnd = new Date(currentStart);
-        break;
-      }
-    }
-
-    let currentDistance = 0;
-    let currentRides = 0;
-    let prevDistance = 0;
-    let prevRides = 0;
-
-    for (const edge of edges) {
-      const d = new Date(edge.node.startedAt);
-      const dist = edge.node.distanceM ?? 0;
-
-      if (d >= currentStart) {
-        currentDistance += dist;
-        currentRides++;
-      } else if (d >= prevStart && d < prevEnd) {
-        prevDistance += dist;
-        prevRides++;
-      }
-    }
-
-    return {
-      distanceDelta: currentDistance - prevDistance,
-      ridesDelta: currentRides - prevRides,
-    };
-  }, [edges, period]);
-}
-
-// ─── Personal Records ────────────────────────────────────────────────────────
-
-function usePersonalRecords(edges: RideEdge[]) {
-  return useMemo(() => {
-    const realRides = edges.filter((e) => (e.node.distanceM ?? 0) > 100);
-    if (realRides.length === 0) return null;
-
-    let longestDistance = 0;
-    let fastestSpeed = 0;
-    let longestDuration = 0;
-    let mostElevation = 0;
-
-    for (const edge of realRides) {
-      const dist = edge.node.distanceM ?? 0;
-      const speed = edge.node.maxSpeedMps ?? 0;
-      const dur = edge.node.durationS ?? 0;
-      const elev = edge.node.elevationGain ?? 0;
-
-      if (dist > longestDistance) longestDistance = dist;
-      if (speed > fastestSpeed) fastestSpeed = speed;
-      if (dur > longestDuration) longestDuration = dur;
-      if (elev > mostElevation) mostElevation = elev;
-    }
-
-    return { longestDistance, fastestSpeed, longestDuration, mostElevation };
-  }, [edges]);
 }
 
 /** Mini sparkline area chart */
-function Sparkline({
+const Sparkline = React.memo(function Sparkline({
   data,
   color,
   height = 48,
@@ -208,33 +141,44 @@ function Sparkline({
   color: string;
   height?: number;
 }) {
-  if (!data || data.length < 2) return null;
+  const paths = useMemo(() => {
+    if (!data || data.length < 2) return null;
 
-  const max = Math.max(...data, 1);
-  const w = 320;
-  const h = height;
-  const padding = 4;
+    const max = Math.max(...data, 1);
+    const w = 320;
+    const h = height;
+    const padding = 4;
 
-  const points = data.map((v, i) => {
-    const x = padding + (i / (data.length - 1)) * (w - padding * 2);
-    const y = h - padding - (v / max) * (h - padding * 2);
-    return `${x},${y}`;
-  });
+    const points = data.map((v, i) => {
+      const x = padding + (i / (data.length - 1)) * (w - padding * 2);
+      const y = h - padding - (v / max) * (h - padding * 2);
+      return `${x},${y}`;
+    });
 
-  const linePath = `M${points.join(' L')}`;
-  const areaPath = `${linePath} L${w - padding},${h} L${padding},${h} Z`;
+    const linePath = `M${points.join(' L')}`;
+    const areaPath = `${linePath} L${w - padding},${h} L${padding},${h} Z`;
+
+    return { linePath, areaPath, w, h };
+  }, [data, height]);
+
+  if (!paths) return null;
 
   return (
-    <Svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
+    <Svg
+      width="100%"
+      height={paths.h}
+      viewBox={`0 0 ${paths.w} ${paths.h}`}
+      preserveAspectRatio="none"
+    >
       <Defs>
         <SvgGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0%" stopColor={color} stopOpacity="0.30" />
+          <Stop offset="0%" stopColor={color} stopOpacity="0.34" />
           <Stop offset="100%" stopColor={color} stopOpacity="0" />
         </SvgGradient>
       </Defs>
-      <Path d={areaPath} fill="url(#sparkGrad)" />
+      <Path d={paths.areaPath} fill="url(#sparkGrad)" />
       <Path
-        d={linePath}
+        d={paths.linePath}
         fill="none"
         stroke={color}
         strokeWidth="2"
@@ -243,18 +187,16 @@ function Sparkline({
       />
     </Svg>
   );
-}
+});
 
 export default function RidesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t: theme } = useEditorialTheme();
-  const isPro = useSubscriptionStore((s) => s.isPro);
   const { t } = useTranslation();
   const system = useMeasurementSystem();
 
   const [period, setPeriod] = useState<Period>('month');
-  const ctaShownRef = useRef(false);
   const [sortNewest, setSortNewest] = useState(true);
 
   const periodLabelsMap: Record<Period, string> = useMemo(
@@ -270,6 +212,13 @@ export default function RidesScreen() {
   useEffect(() => {
     trackEvent(AnalyticsEvent.RIDES_HISTORY_VIEWED);
   }, []);
+
+  // Server-side analytics overview (last ride, 7-day summary, streak, records)
+  const { data: overviewData } = useQuery<RideOverviewQuery>({
+    queryKey: queryKeys.rides.overview,
+    queryFn: () => gqlFetcher(RideOverviewDocument),
+  });
+  const overview = overviewData?.rideOverview;
 
   const { data: motorcyclesData } = useQuery({
     queryKey: queryKeys.motorcycles.all,
@@ -304,11 +253,20 @@ export default function RidesScreen() {
     () => (sortNewest ? allEdges : [...allEdges].reverse()),
     [allEdges, sortNewest],
   );
-  const visibleEdges = isPro ? sortedEdges : sortedEdges.slice(0, FREE_TIER_LIMIT);
-  const showUpgradeCta = !isPro && allEdges.length > FREE_TIER_LIMIT;
   const stats = useRideStats(allEdges, period);
-  const periodComparison = usePeriodComparison(allEdges, period);
-  const personalRecords = usePersonalRecords(allEdges);
+
+  // Map rideId → record types for badge display
+  const recordsByRideId = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const rec of overview?.personalRecords ?? []) {
+      if (!rec.rideId) continue;
+      const existing = map.get(rec.rideId) ?? [];
+      existing.push(rec.recordType);
+      map.set(rec.rideId, existing);
+    }
+    return map;
+  }, [overview?.personalRecords]);
+
   const handleRidePress = useCallback(
     (rideId: string) => {
       // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
@@ -318,10 +276,10 @@ export default function RidesScreen() {
   );
 
   const handleLoadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage && isPro) {
+    if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage, isPro]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const renderItem = useCallback(
     ({ item, index }: { item: RideEdge; index: number }) => {
@@ -343,7 +301,7 @@ export default function RidesScreen() {
             elevationLoss: null,
             pausedDurationS: node.pausedDurationS,
             autoPausedDurationS: node.autoPausedDurationS,
-            routePolyline: null,
+            routePolyline: node.routePolyline ?? null,
             gpsQuality: node.gpsQuality ?? null,
             mileageApplied: false,
             isPublic: false,
@@ -354,13 +312,14 @@ export default function RidesScreen() {
           }}
           index={index}
           onPress={() => handleRidePress(node.id)}
+          recordTypes={recordsByRideId.get(node.id)}
         />
       );
     },
-    [handleRidePress],
+    [handleRidePress, recordsByRideId],
   );
 
-  const periodLabel = useMemo(() => {
+  const _periodLabel = useMemo(() => {
     const now = new Date();
     switch (period) {
       case 'week':
@@ -374,95 +333,232 @@ export default function RidesScreen() {
     }
   }, [period, t]);
 
+  const periodMetaLabel = useMemo(() => {
+    switch (period) {
+      case 'week':
+        return 'THIS WEEK';
+      case 'month':
+        return 'THIS MONTH';
+      case 'year':
+        return 'THIS YEAR';
+      default:
+        return 'ALL TIME';
+    }
+  }, [period]);
+
+  const trendLabel = useMemo(() => {
+    if (stats.trendPercent === 0 || period === 'all') return null;
+    const sign = stats.trendPercent > 0 ? '+' : '';
+    const vs =
+      period === 'week' ? 'VS LAST WEEK' : period === 'month' ? 'VS LAST MONTH' : 'VS LAST YEAR';
+    return `${sign} ${stats.trendPercent}% ${vs}`;
+  }, [stats.trendPercent, period]);
+
+  const heroSubText = useMemo(() => {
+    const parts: string[] = [];
+    if (stats.periodRides > 0) {
+      parts.push(`${stats.periodRides} ${stats.periodRides === 1 ? 'ride' : 'rides'}`);
+    }
+    if (stats.periodDuration > 0) {
+      parts.push(fmtDuration(stats.periodDuration));
+    }
+    if (stats.periodElevation > 0) {
+      parts.push(
+        `${formatElevationValue(stats.periodElevation, system)}${elevationUnitLabel(system)} elev.`,
+      );
+    }
+    return parts;
+  }, [stats, system]);
+
   const renderHeader = useCallback(
     () => (
       <Animated.View entering={FadeIn.duration(300)} style={{ gap: 12, marginBottom: 16 }}>
-        {/* Hero stat card */}
+        {/* Hero summary card */}
         <View
           style={{
             backgroundColor: theme.surface,
-            borderRadius: 18,
+            borderRadius: 22,
             borderCurve: 'continuous',
             borderWidth: 1,
             borderColor: theme.line,
             overflow: 'hidden',
+            position: 'relative',
           }}
         >
-          <View style={{ padding: 18, paddingBottom: 14 }}>
-            <Text
+          {/* Copper radial gradient accent (decorative) */}
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              bottom: 0,
+              width: '60%',
+              backgroundColor: tint(theme.warm, 0.1),
+              borderTopRightRadius: 22,
+              borderBottomRightRadius: 22,
+              opacity: 0.6,
+            }}
+            pointerEvents="none"
+          />
+
+          <View style={{ padding: 16, paddingHorizontal: 18, paddingBottom: 14 }}>
+            {/* Meta row */}
+            <View
               style={{
-                fontSize: 10,
-                fontWeight: '700',
-                color: theme.ink3,
-                textTransform: 'uppercase',
-                letterSpacing: 1.6,
-                marginBottom: 4,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                position: 'relative',
+                zIndex: 1,
               }}
             >
-              {periodLabel}
-            </Text>
+              <Text
+                style={{
+                  fontFamily: 'GeistMono',
+                  fontSize: 9.5,
+                  fontWeight: '500',
+                  letterSpacing: 0.2 * 9.5,
+                  textTransform: 'uppercase',
+                  color: theme.ink3,
+                }}
+              >
+                {periodMetaLabel}
+              </Text>
+              {trendLabel && (
+                <Text
+                  style={{
+                    fontFamily: 'GeistMono',
+                    fontSize: 9.5,
+                    fontWeight: '500',
+                    letterSpacing: 0.08 * 9.5,
+                    color: theme.warm,
+                  }}
+                >
+                  {trendLabel}
+                </Text>
+              )}
+            </View>
+
+            {/* Large distance number */}
             <View
               style={{
                 flexDirection: 'row',
                 alignItems: 'baseline',
                 gap: 6,
-                marginBottom: 4,
+                marginTop: 6,
+                position: 'relative',
+                zIndex: 1,
               }}
             >
               <Text
                 style={{
-                  fontSize: 44,
-                  fontWeight: '300',
+                  fontSize: 60,
+                  fontWeight: '700',
                   color: theme.ink,
                   fontVariant: ['tabular-nums'],
-                  letterSpacing: -1.5,
+                  letterSpacing: -0.04 * 60,
+                  lineHeight: 64,
                 }}
               >
                 {formatDistanceValue(stats.periodDistance, system)}
               </Text>
               <Text
                 style={{
-                  fontSize: 14,
+                  fontSize: 18,
                   fontWeight: '500',
                   color: theme.ink3,
+                  letterSpacing: -0.01 * 18,
+                  marginLeft: 2,
                 }}
               >
                 {distanceUnitLabel(system)}
               </Text>
             </View>
+
             {/* Sparkline */}
-            <View style={{ marginTop: 8 }}>
+            <View style={{ marginTop: 8, marginHorizontal: -2, position: 'relative', zIndex: 1 }}>
               <Sparkline data={stats.dailyDistances} color={theme.warm} height={48} />
+            </View>
+
+            {/* Sub row */}
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 8,
+                marginTop: 6,
+                position: 'relative',
+                zIndex: 1,
+              }}
+            >
+              {heroSubText.map((part, i) => (
+                <React.Fragment key={part}>
+                  {i > 0 && (
+                    <View
+                      style={{
+                        width: 3,
+                        height: 3,
+                        borderRadius: 99,
+                        backgroundColor: theme.ink4,
+                      }}
+                    />
+                  )}
+                  <Text
+                    style={{
+                      fontSize: 12.5,
+                      fontWeight: '500',
+                      color: theme.ink2,
+                      letterSpacing: -0.005 * 12.5,
+                    }}
+                  >
+                    {part}
+                  </Text>
+                </React.Fragment>
+              ))}
+              {heroSubText.length > 0 && (
+                <>
+                  <View style={{ flex: 1 }} />
+                  <Text
+                    style={{
+                      fontSize: 12.5,
+                      fontWeight: '600',
+                      color: theme.warm,
+                    }}
+                  >
+                    See all →
+                  </Text>
+                </>
+              )}
             </View>
           </View>
         </View>
 
-        {/* 3 stat tiles */}
+        {/* Stats trio */}
         <View style={{ flexDirection: 'row', gap: 8 }}>
           {[
             {
-              label: t('myRides.rides'),
+              label: 'RIDES',
               value: String(stats.periodRides),
+              unit: undefined,
               sub: t('myRides.ofTotal', { count: stats.totalRides }),
-              delta: periodComparison ? periodComparison.ridesDelta : null,
-              deltaLabel: '',
             },
             {
-              label: t('myRides.moving'),
-              value: formatDuration(stats.periodDuration),
-              sub: '',
-              delta: null,
-              deltaLabel: '',
-            },
-            {
-              label: t('myRides.max'),
+              label: 'TOP SPEED',
               value:
                 stats.periodMaxSpeed > 0
                   ? `${Math.round(stats.periodMaxSpeed * (system === 'imperial' ? 2.237 : 3.6))}`
-                  : 'NA',
-              sub: stats.periodMaxSpeed > 0 ? speedUnitLabel(system) : '',
-              delta: null,
-              deltaLabel: '',
+                  : '--',
+              unit: stats.periodMaxSpeed > 0 ? speedUnitLabel(system) : undefined,
+              sub: stats.periodMaxSpeed > 0 ? 'PERSONAL BEST' : '',
+            },
+            {
+              label: 'ELEVATION',
+              value:
+                stats.periodElevation > 0
+                  ? `${formatElevationValue(stats.periodElevation, system)}`
+                  : '--',
+              unit: stats.periodElevation > 0 ? elevationUnitLabel(system) : undefined,
+              sub: stats.periodElevation > 0 ? 'TOTAL GAIN' : '',
             },
           ].map((s) => (
             <View
@@ -472,57 +568,70 @@ export default function RidesScreen() {
                 backgroundColor: theme.surface,
                 borderWidth: 1,
                 borderColor: theme.line,
-                borderRadius: 14,
+                borderRadius: 16,
                 borderCurve: 'continuous',
                 padding: 12,
+                paddingHorizontal: 14,
+                paddingBottom: 14,
+                minHeight: 88,
               }}
             >
               <Text
                 style={{
-                  fontSize: 9,
-                  fontWeight: '700',
-                  color: theme.ink3,
+                  fontFamily: 'GeistMono',
+                  fontSize: 9.5,
+                  fontWeight: '500',
+                  letterSpacing: 0.2 * 9.5,
                   textTransform: 'uppercase',
-                  letterSpacing: 1.2,
-                  marginBottom: 6,
+                  color: theme.ink3,
                 }}
               >
                 {s.label}
               </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'baseline',
+                  gap: 3,
+                  marginTop: 10,
+                }}
+              >
                 <Text
                   style={{
-                    fontSize: 22,
+                    fontSize: 26,
                     fontWeight: '700',
-                    color: theme.ink,
+                    color: s.value === '--' ? theme.ink3 : theme.ink,
                     fontVariant: ['tabular-nums'],
-                    letterSpacing: -0.5,
-                    lineHeight: 24,
+                    letterSpacing: -0.03 * 26,
+                    lineHeight: 26,
                   }}
                 >
                   {s.value}
                 </Text>
-                {s.delta != null && s.delta !== 0 ? (
+                {s.unit && (
                   <Text
                     style={{
-                      fontSize: 10,
-                      fontWeight: '600',
-                      color: s.delta > 0 ? palette.success500 : palette.danger500,
-                      fontVariant: ['tabular-nums'],
+                      fontSize: 12,
+                      fontWeight: '500',
+                      color: theme.ink3,
+                      letterSpacing: -0.01 * 12,
+                      marginLeft: 1,
                     }}
                   >
-                    {s.delta > 0 ? '+' : ''}
-                    {s.delta}
+                    {s.unit}
                   </Text>
-                ) : null}
+                )}
               </View>
+              <View style={{ flex: 1 }} />
               {s.sub ? (
                 <Text
                   style={{
-                    fontSize: 10,
+                    fontFamily: 'GeistMono',
+                    fontSize: 9.5,
+                    fontWeight: '500',
+                    letterSpacing: 0.08 * 9.5,
                     color: theme.ink3,
-                    fontVariant: ['tabular-nums'],
-                    marginTop: 4,
+                    paddingTop: 6,
                   }}
                 >
                   {s.sub}
@@ -532,201 +641,59 @@ export default function RidesScreen() {
           ))}
         </View>
 
-        {/* Period comparison — distance delta */}
-        {periodComparison && periodComparison.distanceDelta !== 0 ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -4 }}>
-            <Text
-              style={{
-                fontSize: 11,
-                fontWeight: '600',
-                color: periodComparison.distanceDelta > 0 ? palette.success500 : palette.danger500,
-              }}
-            >
-              {periodComparison.distanceDelta > 0 ? '+' : ''}
-              {formatDistance(Math.abs(periodComparison.distanceDelta), system)} vs previous
-            </Text>
-          </View>
-        ) : null}
-
-        {/* Personal Records */}
-        {personalRecords ? (
-          <View style={{ gap: 8 }}>
-            <Text
-              style={{
-                fontSize: 10,
-                fontWeight: '700',
-                color: theme.ink3,
-                textTransform: 'uppercase',
-                letterSpacing: 1.6,
-              }}
-            >
-              Personal Records
-            </Text>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <View style={{ flex: 1, gap: 8 }}>
-                {/* Longest distance */}
-                <View
-                  style={{
-                    backgroundColor: theme.surface,
-                    borderRadius: 12,
-                    borderCurve: 'continuous',
-                    borderWidth: 1,
-                    borderColor: theme.line,
-                    padding: 12,
-                    gap: 4,
-                  }}
-                >
-                  <Route size={14} color={palette.signature500} />
-                  <Text
-                    style={{
-                      fontSize: 9,
-                      fontWeight: '600',
-                      color: theme.ink3,
-                      textTransform: 'uppercase',
-                      letterSpacing: 1,
-                    }}
-                  >
-                    Distance
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: '700',
-                      color: palette.signature500,
-                      fontVariant: ['tabular-nums'],
-                    }}
-                  >
-                    {formatDistance(personalRecords.longestDistance, system)}
-                  </Text>
-                </View>
-                {/* Longest duration */}
-                <View
-                  style={{
-                    backgroundColor: theme.surface,
-                    borderRadius: 12,
-                    borderCurve: 'continuous',
-                    borderWidth: 1,
-                    borderColor: theme.line,
-                    padding: 12,
-                    gap: 4,
-                  }}
-                >
-                  <Timer size={14} color={palette.signature500} />
-                  <Text
-                    style={{
-                      fontSize: 9,
-                      fontWeight: '600',
-                      color: theme.ink3,
-                      textTransform: 'uppercase',
-                      letterSpacing: 1,
-                    }}
-                  >
-                    Duration
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: '700',
-                      color: palette.signature500,
-                      fontVariant: ['tabular-nums'],
-                    }}
-                  >
-                    {formatDuration(personalRecords.longestDuration)}
-                  </Text>
-                </View>
-              </View>
-              <View style={{ flex: 1, gap: 8 }}>
-                {/* Fastest speed */}
-                <View
-                  style={{
-                    backgroundColor: theme.surface,
-                    borderRadius: 12,
-                    borderCurve: 'continuous',
-                    borderWidth: 1,
-                    borderColor: theme.line,
-                    padding: 12,
-                    gap: 4,
-                  }}
-                >
-                  <Zap size={14} color={palette.signature500} />
-                  <Text
-                    style={{
-                      fontSize: 9,
-                      fontWeight: '600',
-                      color: theme.ink3,
-                      textTransform: 'uppercase',
-                      letterSpacing: 1,
-                    }}
-                  >
-                    Top Speed
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: '700',
-                      color: palette.signature500,
-                      fontVariant: ['tabular-nums'],
-                    }}
-                  >
-                    {formatSpeed(personalRecords.fastestSpeed, system)}
-                  </Text>
-                </View>
-                {/* Most elevation */}
-                <View
-                  style={{
-                    backgroundColor: theme.surface,
-                    borderRadius: 12,
-                    borderCurve: 'continuous',
-                    borderWidth: 1,
-                    borderColor: theme.line,
-                    padding: 12,
-                    gap: 4,
-                  }}
-                >
-                  <Mountain size={14} color={palette.signature500} />
-                  <Text
-                    style={{
-                      fontSize: 9,
-                      fontWeight: '600',
-                      color: theme.ink3,
-                      textTransform: 'uppercase',
-                      letterSpacing: 1,
-                    }}
-                  >
-                    Elevation
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: '700',
-                      color: palette.signature500,
-                      fontVariant: ['tabular-nums'],
-                    }}
-                  >
-                    {formatElevation(personalRecords.mostElevation, system)}
-                  </Text>
-                </View>
-              </View>
+        {/* Streak + records row */}
+        {overview && overview.currentStreak > 0 && (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              backgroundColor: theme.surface,
+              borderWidth: 1,
+              borderColor: theme.line,
+              borderRadius: 16,
+              borderCurve: 'continuous',
+              padding: 12,
+            }}
+          >
+            <Text style={{ fontSize: 20 }}>🔥</Text>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '700',
+                  color: theme.ink,
+                  fontVariant: ['tabular-nums'],
+                }}
+              >
+                {overview.currentStreak}{' '}
+                {overview.currentStreak === 1 ? t('myRides.streakWeek') : t('myRides.streakWeeks')}
+              </Text>
+              <Text style={{ fontSize: 11, color: theme.ink3, marginTop: 2 }}>
+                {t('myRides.streakDesc')}
+              </Text>
             </View>
           </View>
-        ) : null}
+        )}
 
         {/* Section header */}
         <View
           style={{
             flexDirection: 'row',
-            alignItems: 'baseline',
+            alignItems: 'center',
             justifyContent: 'space-between',
-            marginTop: 4,
+            marginTop: 10,
+            marginHorizontal: 2,
           }}
         >
           <Text
             style={{
-              fontSize: 10,
-              fontWeight: '700',
-              color: theme.ink3,
+              fontFamily: 'GeistMono',
+              fontSize: 10.5,
+              fontWeight: '600',
+              letterSpacing: 0.22 * 10.5,
               textTransform: 'uppercase',
-              letterSpacing: 1.6,
+              color: theme.ink3,
             }}
           >
             {t('myRides.recentRides')}
@@ -748,79 +715,110 @@ export default function RidesScreen() {
           >
             <Text
               style={{
-                fontSize: 11,
+                fontSize: 12.5,
                 fontWeight: '600',
                 color: theme.warm,
+                letterSpacing: -0.01 * 12.5,
               }}
             >
-              {sortNewest ? t('myRides.newestFirst') : t('myRides.oldestFirst')}
+              {sortNewest ? `${t('myRides.newestFirst')} ↓` : `${t('myRides.oldestFirst')} ↑`}
             </Text>
           </Pressable>
         </View>
       </Animated.View>
     ),
-    [stats, system, theme, periodLabel, t, sortNewest, periodComparison, personalRecords],
+    [stats, system, theme, periodMetaLabel, trendLabel, heroSubText, t, sortNewest, overview],
   );
 
   const renderEmpty = useCallback(() => {
     if (isLoading) return null;
     return (
-      <Animated.View
-        entering={FadeIn.duration(300)}
-        style={{ alignItems: 'center', paddingTop: 48, paddingHorizontal: 32, gap: 16 }}
-      >
-        <LottieMotorcycle animation="emptyGarage" size={160} loop />
-        <Text
+      <Animated.View entering={FadeIn.duration(300)} style={{ paddingTop: 24 }}>
+        <View
           style={{
-            fontSize: 18,
-            fontWeight: '700',
-            color: theme.ink,
-            textAlign: 'center',
-          }}
-        >
-          {t('profile.ridesEmptyTitle')}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.ink3,
-            textAlign: 'center',
-            lineHeight: 22,
-          }}
-        >
-          {t('profile.ridesEmptySubtitle')}
-        </Text>
-        <Pressable
-          onPress={() => {
-            triggerImpact();
-            if (hasBikes) {
-              // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-              router.push('/(modals)/start-ride' as any);
-            } else {
-              // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-              router.push('/(tabs)/(garage)/add-bike' as any);
-            }
-          }}
-          accessibilityRole="button"
-          accessibilityLabel={
-            hasBikes ? t('profile.ridesEmptyStartRide') : t('profile.ridesEmptyAddBike')
-          }
-          style={({ pressed }) => ({
-            backgroundColor: theme.warm,
-            borderRadius: 20,
+            borderRadius: 22,
             borderCurve: 'continuous',
-            height: 56,
+            backgroundColor: theme.surface,
+            borderWidth: 1,
+            borderColor: theme.line2,
+            borderStyle: 'dashed',
+            padding: 32,
+            paddingHorizontal: 24,
             alignItems: 'center',
-            justifyContent: 'center',
-            alignSelf: 'stretch',
-            marginTop: 8,
-            transform: [{ scale: pressed ? 0.97 : 1 }],
-          })}
+          }}
         >
-          <Text style={{ color: palette.white, fontSize: 16, fontWeight: '700' }}>
-            {hasBikes ? t('profile.ridesEmptyStartRide') : t('profile.ridesEmptyAddBike')}
+          {/* Icon box */}
+          <View
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 16,
+              borderCurve: 'continuous',
+              backgroundColor: theme.surface2,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 14,
+            }}
+          >
+            <Route size={24} color={theme.ink3} />
+          </View>
+
+          <Text
+            style={{
+              fontSize: 17,
+              fontWeight: '700',
+              letterSpacing: -0.018 * 17,
+              color: theme.ink,
+              textAlign: 'center',
+              marginBottom: 4,
+            }}
+          >
+            {t('profile.ridesEmptyTitle')}
           </Text>
-        </Pressable>
+          <Text
+            style={{
+              fontSize: 13,
+              color: theme.ink2,
+              textAlign: 'center',
+              lineHeight: 18,
+              maxWidth: 240,
+            }}
+          >
+            {t('profile.ridesEmptySubtitle')}
+          </Text>
+
+          <Pressable
+            onPress={() => {
+              triggerImpact();
+              if (hasBikes) {
+                // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
+                router.push('/(modals)/start-ride' as any);
+              } else {
+                // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
+                router.push('/(tabs)/(garage)/add-bike' as any);
+              }
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={
+              hasBikes ? t('profile.ridesEmptyStartRide') : t('profile.ridesEmptyAddBike')
+            }
+            style={({ pressed }) => ({
+              backgroundColor: theme.warm,
+              borderRadius: 20,
+              borderCurve: 'continuous',
+              height: 48,
+              alignItems: 'center',
+              justifyContent: 'center',
+              alignSelf: 'stretch',
+              marginTop: 16,
+              transform: [{ scale: pressed ? 0.97 : 1 }],
+            })}
+          >
+            <Text style={{ color: palette.white, fontSize: 15, fontWeight: '700' }}>
+              {hasBikes ? t('profile.ridesEmptyStartRide') : t('profile.ridesEmptyAddBike')}
+            </Text>
+          </Pressable>
+        </View>
       </Animated.View>
     );
   }, [isLoading, theme, hasBikes, router, t]);
@@ -833,79 +831,8 @@ export default function RidesScreen() {
         </View>
       );
     }
-    if (showUpgradeCta) {
-      if (!ctaShownRef.current) {
-        ctaShownRef.current = true;
-        trackEvent(AnalyticsEvent.RIDE_UPGRADE_CTA_SHOWN, {
-          ride_count: allEdges.length,
-          cta_location: 'rides_history',
-        });
-      }
-      return (
-        <Animated.View
-          entering={FadeInUp.duration(280)}
-          style={{
-            marginTop: 12,
-            backgroundColor: theme.surface,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            padding: 20,
-            alignItems: 'center',
-            gap: 10,
-            borderWidth: 1,
-            borderColor: theme.line,
-          }}
-        >
-          <TrendingUp size={24} color={theme.warm} />
-          <Text style={{ fontSize: 16, fontWeight: '700', color: theme.ink }}>
-            {t('myRides.unlockTitle')}
-          </Text>
-          <Text
-            style={{
-              fontSize: 14,
-              color: theme.ink3,
-              textAlign: 'center',
-            }}
-          >
-            {t('myRides.unlockDesc', { limit: FREE_TIER_LIMIT })}
-          </Text>
-          <Pressable
-            onPress={() => {
-              trackEvent(AnalyticsEvent.RIDE_UPGRADE_CTA_TAPPED, {
-                ride_count: allEdges.length,
-                cta_location: 'rides_history',
-              });
-              presentPaywall({
-                source: 'rides_history',
-                feature: 'subscription',
-                surface: 'rides_history_limit',
-              });
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={t('myRides.upgradePro')}
-            style={{
-              overflow: 'hidden',
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              marginTop: 4,
-            }}
-          >
-            <LinearGradient
-              colors={[palette.signature400, palette.signature500]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{ paddingHorizontal: 24, paddingVertical: 12 }}
-            >
-              <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
-                {t('myRides.upgradePro')}
-              </Text>
-            </LinearGradient>
-          </Pressable>
-        </Animated.View>
-      );
-    }
     return null;
-  }, [isFetchingNextPage, showUpgradeCta, allEdges.length, theme, t]);
+  }, [isFetchingNextPage, theme]);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
@@ -917,12 +844,12 @@ export default function RidesScreen() {
           paddingBottom: 8,
         }}
       >
-        {/* Top row: back + title + count */}
+        {/* Top row: back + title + total pill */}
         <View
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 10,
+            gap: 14,
             marginBottom: 12,
           }}
         >
@@ -931,9 +858,9 @@ export default function RidesScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
+              width: 38,
+              height: 38,
+              borderRadius: 999,
               borderCurve: 'continuous',
               backgroundColor: theme.surface,
               borderWidth: 1,
@@ -947,38 +874,43 @@ export default function RidesScreen() {
           <Text
             style={{
               flex: 1,
-              fontSize: 22,
+              fontSize: 24,
               fontWeight: '700',
               color: theme.ink,
-              letterSpacing: -0.5,
+              letterSpacing: -0.022 * 24,
             }}
           >
             {t('myRides.title')}
           </Text>
           <View
             style={{
-              paddingHorizontal: 10,
-              paddingVertical: 4,
-              borderRadius: 10,
+              paddingHorizontal: 11,
+              paddingVertical: 6,
+              borderRadius: 999,
               borderCurve: 'continuous',
-              backgroundColor: tint(theme.warm, 0.1),
+              backgroundColor: tint(theme.warm, 0.12),
+              borderWidth: 1,
+              borderColor: tint(theme.warm, 0.28),
+              flexShrink: 0,
             }}
           >
             <Text
               style={{
-                fontSize: 12,
-                fontWeight: '700',
+                fontFamily: 'GeistMono',
+                fontSize: 10.5,
+                fontWeight: '500',
+                letterSpacing: 0.08 * 10.5,
                 color: theme.warm,
                 fontVariant: ['tabular-nums'],
               }}
             >
-              {t('myRides.total', { count: stats.totalRides })}
+              {stats.totalRides} RIDES
             </Text>
           </View>
         </View>
 
         {/* Period switcher */}
-        <View style={{ flexDirection: 'row', gap: 6 }}>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
           {PERIOD_KEYS.map((key) => {
             const active = period === key;
             return (
@@ -996,19 +928,31 @@ export default function RidesScreen() {
                 accessibilityRole="tab"
                 accessibilityState={{ selected: active }}
                 style={{
-                  paddingHorizontal: 13,
-                  paddingVertical: 7,
+                  flex: 1,
+                  height: 34,
                   borderRadius: 999,
-                  backgroundColor: active ? theme.ink : theme.surface,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: active ? theme.warm : 'transparent',
                   borderWidth: 1,
-                  borderColor: active ? theme.ink : theme.line,
+                  borderColor: active ? theme.warm : theme.line,
+                  ...(active
+                    ? {
+                        shadowColor: 'rgba(200,119,44,1)',
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.4,
+                        shadowRadius: 12,
+                        elevation: 6,
+                      }
+                    : {}),
                 }}
               >
                 <Text
                   style={{
-                    fontSize: 12,
+                    fontSize: 13.5,
                     fontWeight: '600',
-                    color: active ? theme.bg : theme.ink2,
+                    letterSpacing: -0.005 * 13.5,
+                    color: active ? palette.white : theme.ink2,
                   }}
                 >
                   {periodLabelsMap[key]}
@@ -1025,13 +969,14 @@ export default function RidesScreen() {
         </View>
       ) : (
         <FlatList
-          data={visibleEdges}
+          data={sortedEdges}
           renderItem={renderItem}
           keyExtractor={(item) => item.node.id}
           contentContainerStyle={{
             paddingHorizontal: 20,
+            paddingTop: 12,
             paddingBottom: insets.bottom + 100,
-            gap: 8,
+            gap: 12,
           }}
           ListHeaderComponent={allEdges.length > 0 ? renderHeader : undefined}
           ListEmptyComponent={renderEmpty}
@@ -1042,7 +987,8 @@ export default function RidesScreen() {
             <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.ink3} />
           }
           showsVerticalScrollIndicator={false}
-          windowSize={7}
+          removeClippedSubviews={true}
+          windowSize={5}
           maxToRenderPerBatch={5}
         />
       )}

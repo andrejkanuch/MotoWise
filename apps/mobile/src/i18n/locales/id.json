@@ -1621,9 +1621,9 @@
     "recentRides": "Perjalanan terbaru",
     "newestFirst": "Terbaru duluan ↓",
     "oldestFirst": "Terlama duluan ↑",
-    "unlockTitle": "Buka riwayat lengkap",
-    "unlockDesc": "Akun gratis menampilkan {{limit}} perjalanan terakhir. Upgrade untuk riwayat dan statistik tanpa batas.",
-    "upgradePro": "Upgrade ke Pro"
+    "streakWeek": "week streak",
+    "streakWeeks": "week streak",
+    "streakDesc": "Consecutive weeks with a ride"
   },
   "rideDetail": {
     "noRouteData": "Tidak ada data rute",
@@ -1645,7 +1645,10 @@
     "deleteTitle": "Hapus perjalanan?",
     "deleteMessage": "Tindakan ini tidak dapat dibatalkan.",
     "cancel": "Batal",
-    "delete": "Hapus"
+    "delete": "Hapus",
+    "leanAngle": "Max Lean",
+    "leanCaveat": "Lean angle estimated from phone IMU",
+    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions."
   },
   "startRide": {
     "preFlight": "Pra-perjalanan",

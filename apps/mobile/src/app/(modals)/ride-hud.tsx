@@ -44,6 +44,7 @@ export default function RideHudScreen() {
   const distance = useRideStore((s) => s.distance);
   const currentSpeed = useRideStore((s) => s.currentSpeed);
   const maxSpeed = useRideStore((s) => s.maxSpeed);
+  const maxLeanAngle = useRideStore((s) => s.maxLeanAngle);
   const elevationGain = useRideStore((s) => s.elevationGain);
   const currentAltitude = useRideStore((s) => s.currentAltitude);
   const isNightMode = useRideStore((s) => s.isNightMode);
@@ -274,6 +275,7 @@ export default function RideHudScreen() {
           pausedDurationS: Math.round(totalPausedRef.current / 1000),
           autoPausedDurationS: Math.round(rideMMKV.getTotalAutoPausedMs() / 1000),
           gpsQuality: combined.length > 0 ? 1 : 0,
+          maxLeanAngle: maxLeanAngle > 0 ? maxLeanAngle : null,
         },
       },
     });
@@ -297,7 +299,7 @@ export default function RideHudScreen() {
     };
     // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
     router.replace(summaryRoute as any);
-  }, [endRide, router, isNightMode, isBatterySaver, hudLayout]);
+  }, [endRide, router, isNightMode, isBatterySaver, hudLayout, maxLeanAngle]);
 
   const handleEndRide = useCallback(() => {
     const elapsed = elapsedRef.current;

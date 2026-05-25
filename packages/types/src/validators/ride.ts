@@ -34,6 +34,7 @@ export const EndRideInputSchema = z.object({
   gpsQuality: z.number().min(0).max(1).nullable().optional(),
   pausedDurationS: z.number().int().nonnegative().default(0),
   autoPausedDurationS: z.number().int().nonnegative().default(0),
+  maxLeanAngle: z.number().nonnegative().max(90).nullable().optional(),
 });
 export type EndRideInput = z.infer<typeof EndRideInputSchema>;
 

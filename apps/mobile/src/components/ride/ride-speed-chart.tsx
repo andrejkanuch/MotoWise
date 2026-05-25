@@ -13,6 +13,7 @@ type Waypoint = GetRideWaypointsQuery['rideWaypoints'][number];
 interface RideSpeedChartProps {
   waypoints: Waypoint[];
   system: MeasurementSystem;
+  isAnimated?: boolean;
 }
 
 interface SpeedChartItem {
@@ -49,6 +50,7 @@ const tooltipSecondaryText = {
 export const RideSpeedChart = memo(function RideSpeedChart({
   waypoints,
   system,
+  isAnimated = true,
 }: RideSpeedChartProps) {
   const { width: screenWidth } = useWindowDimensions();
   const chartWidth = screenWidth - 140;
@@ -154,8 +156,8 @@ export const RideSpeedChart = memo(function RideSpeedChart({
         endFillColor={palette.accentTintZero}
         startOpacity={0.4}
         endOpacity={0}
-        isAnimated
-        animationDuration={300}
+        isAnimated={isAnimated}
+        animationDuration={isAnimated ? 300 : 0}
         noOfSections={4}
         maxValue={maxVal}
         rulesColor={palette.surfaceElevated}

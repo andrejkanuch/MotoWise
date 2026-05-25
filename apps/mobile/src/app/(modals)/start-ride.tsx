@@ -1,25 +1,19 @@
-import { palette } from '@motovault/design-system';
 import { MyMotorcyclesDocument, MyRidesDocument, StartRideDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
-import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { AlertTriangle, Bike, ChevronDown, ChevronRight, Route, X, Zap } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertTriangle, Bike, ChevronDown, ChevronRight, X, Zap } from 'lucide-react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInUp,
-  interpolate,
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withSequence,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -36,168 +30,6 @@ import { checkAndRequestPermissions } from '../../utils/ride-permissions';
 import { rideMMKV } from '../../utils/ride-storage';
 import { enqueueOrExecute } from '../../utils/ride-sync-queue';
 
-// ─── Slide to Start Component ───────────────────────────────────────────────────
-
-const TRACK_HEIGHT = 64;
-const THUMB_SIZE = 52;
-const THUMB_MARGIN = 6;
-
-function SlideToAction({
-  onComplete,
-  disabled,
-  label,
-}: {
-  onComplete: () => void;
-  disabled: boolean;
-  label: string;
-}) {
-  const { t: theme } = useEditorialTheme();
-  const translateX = useSharedValue(0);
-  const trackWidth = useSharedValue(0);
-
-  const maxSlide = () => trackWidth.value - THUMB_SIZE - THUMB_MARGIN * 2;
-
-  const handleComplete = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    }
-    onComplete();
-  }, [onComplete]);
-
-  const pan = Gesture.Pan()
-    .enabled(!disabled)
-    .onUpdate((e) => {
-      const max = maxSlide();
-      translateX.value = Math.min(Math.max(0, e.translationX), max);
-    })
-    .onEnd(() => {
-      const max = maxSlide();
-      if (translateX.value > max * 0.85) {
-        translateX.value = withSpring(max, { damping: 15 });
-        runOnJS(handleComplete)();
-      } else {
-        translateX.value = withSpring(0, { damping: 15 });
-      }
-    });
-
-  const thumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
-  const labelStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(translateX.value, [0, maxSlide() * 0.5], [1, 0], 'clamp'),
-  }));
-
-  return (
-    <View
-      onLayout={(e) => {
-        trackWidth.value = e.nativeEvent.layout.width;
-      }}
-      style={{
-        width: '100%',
-        height: TRACK_HEIGHT,
-        borderRadius: TRACK_HEIGHT / 2,
-        borderCurve: 'continuous',
-        backgroundColor: theme.ink,
-        opacity: disabled ? 0.5 : 1,
-        justifyContent: 'center',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Label */}
-      <Animated.Text
-        style={[
-          {
-            position: 'absolute',
-            alignSelf: 'center',
-            fontSize: 15,
-            fontWeight: '600',
-            color: theme.bg,
-            letterSpacing: -0.2,
-          },
-          labelStyle,
-        ]}
-      >
-        {label}
-      </Animated.Text>
-
-      {/* Thumb */}
-      <GestureDetector gesture={pan}>
-        <Animated.View
-          style={[
-            {
-              width: THUMB_SIZE,
-              height: THUMB_SIZE,
-              borderRadius: THUMB_SIZE / 2,
-              borderCurve: 'continuous',
-              backgroundColor: palette.signature500,
-              marginLeft: THUMB_MARGIN,
-              alignItems: 'center',
-              justifyContent: 'center',
-            },
-            thumbStyle,
-          ]}
-        >
-          <ChevronRight size={20} color="#fff" />
-        </Animated.View>
-      </GestureDetector>
-    </View>
-  );
-}
-
-// ─── GPS Status Indicator ───────────────────────────────────────────────────────
-
-function GPSStatusIndicator({ accuracy, isReady }: { accuracy: number | null; isReady: boolean }) {
-  const { t: theme } = useEditorialTheme();
-  const pulse = useSharedValue(1);
-
-  useEffect(() => {
-    if (!isReady) {
-      pulse.value = withRepeat(
-        withSequence(withTiming(0.4, { duration: 600 }), withTiming(1, { duration: 600 })),
-        -1,
-        false,
-      );
-    } else {
-      pulse.value = withTiming(1, { duration: 200 });
-    }
-  }, [isReady, pulse]);
-
-  const dotStyle = useAnimatedStyle(() => ({
-    opacity: pulse.value,
-  }));
-
-  const dotColor = isReady ? theme.success : palette.signature400;
-  const label = accuracy != null ? `GPS: ${Math.round(accuracy)}m` : 'Acquiring GPS...';
-
-  return (
-    <Animated.View
-      entering={FadeIn.duration(250)}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: 16,
-      }}
-    >
-      <Animated.View
-        style={[
-          {
-            width: 8,
-            height: 8,
-            borderRadius: 4,
-            backgroundColor: dotColor,
-          },
-          dotStyle,
-        ]}
-      />
-      <Text style={{ fontSize: 12, color: theme.ink3, fontWeight: '500' }}>{label}</Text>
-    </Animated.View>
-  );
-}
-
-// ─── Main Screen ────────────────────────────────────────────────────────────────
-
 export default function StartRideScreen() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -209,61 +41,6 @@ export default function StartRideScreen() {
   const [isStarting, setIsStarting] = useState(false);
   const [hasUnfinished, setHasUnfinished] = useState(false);
   const [showBikePicker, setShowBikePicker] = useState(false);
-
-  // GPS readiness state
-  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
-  const [gpsReady, setGpsReady] = useState(false);
-  const [gpsOverride, setGpsOverride] = useState(false);
-  const [gpsLowWarning, setGpsLowWarning] = useState(false);
-  const gpsMountTime = useRef(Date.now());
-  const locationWatcher = useRef<Location.LocationSubscription | null>(null);
-
-  // GPS watcher
-  useEffect(() => {
-    gpsMountTime.current = Date.now();
-    let overrideTimer: ReturnType<typeof setTimeout> | null = null;
-
-    const startWatching = async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') return;
-
-      locationWatcher.current = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.BestForNavigation,
-          timeInterval: 1000,
-          distanceInterval: 0,
-        },
-        (location) => {
-          const acc = location.coords.accuracy ?? null;
-          setGpsAccuracy(acc);
-          if (acc != null && acc < 20) {
-            setGpsReady(true);
-          }
-        },
-      );
-
-      // 10s override timeout
-      overrideTimer = setTimeout(() => {
-        setGpsOverride(true);
-      }, 10000);
-    };
-
-    startWatching();
-
-    return () => {
-      locationWatcher.current?.remove();
-      if (overrideTimer) clearTimeout(overrideTimer);
-    };
-  }, []);
-
-  // Show low accuracy warning when override kicks in but GPS not ready
-  useEffect(() => {
-    if (gpsOverride && !gpsReady) {
-      setGpsLowWarning(true);
-    }
-  }, [gpsOverride, gpsReady]);
-
-  const canStart = gpsReady || gpsOverride;
 
   const { data } = useQuery({
     queryKey: queryKeys.motorcycles.lists(),
@@ -380,14 +157,6 @@ export default function StartRideScreen() {
 
       await startGPSListener(() => {});
 
-      // Track GPS readiness analytics
-      const waitTimeS = (Date.now() - gpsMountTime.current) / 1000;
-      trackEvent(AnalyticsEvent.RIDE_GPS_READINESS, {
-        accuracy: gpsAccuracy ?? -1,
-        wait_time_s: Math.round(waitTimeS * 10) / 10,
-        was_override: !gpsReady && gpsOverride,
-      });
-
       trackEvent(AnalyticsEvent.RIDE_STARTED, {
         ride_id: rideId,
         has_motorcycle: !!selectedBikeId,
@@ -405,16 +174,31 @@ export default function StartRideScreen() {
     } finally {
       setIsStarting(false);
     }
-  }, [
-    selectedBikeId,
-    selectedBike?.make,
-    startRide,
-    router,
-    t,
-    gpsAccuracy,
-    gpsReady,
-    gpsOverride,
-  ]);
+  }, [selectedBikeId, selectedBike?.make, startRide, router, t]);
+
+  // Pulsing green dot animation for CTA
+  const pulseScale = useSharedValue(1);
+  const pulseOpacity = useSharedValue(0);
+  useEffect(() => {
+    pulseScale.value = withRepeat(
+      withSequence(withTiming(1, { duration: 0 }), withTiming(2.8, { duration: 1200 })),
+      -1,
+    );
+    pulseOpacity.value = withRepeat(
+      withSequence(withTiming(0.55, { duration: 0 }), withTiming(0, { duration: 1200 })),
+      -1,
+    );
+  }, [pulseScale, pulseOpacity]);
+
+  const pulseRingStyle = useAnimatedStyle(() => ({
+    position: 'absolute' as const,
+    width: 9,
+    height: 9,
+    borderRadius: 9,
+    backgroundColor: '#4ade80',
+    transform: [{ scale: pulseScale.value }],
+    opacity: pulseOpacity.value,
+  }));
 
   const mileageLabel = useMemo(() => {
     if (!selectedBike) return '';
@@ -438,9 +222,9 @@ export default function StartRideScreen() {
           accessibilityLabel="Close"
           style={{
             alignSelf: 'flex-start',
-            width: 36,
-            height: 36,
-            borderRadius: 18,
+            width: 38,
+            height: 38,
+            borderRadius: 19,
             borderCurve: 'continuous',
             backgroundColor: theme.surface,
             borderWidth: 1,
@@ -466,44 +250,51 @@ export default function StartRideScreen() {
         <Animated.View entering={FadeInUp.duration(300)} style={{ marginBottom: 22 }}>
           <Text
             style={{
-              fontSize: 10,
-              fontWeight: '700',
+              fontFamily: 'GeistMono',
+              fontSize: 10.5,
+              fontWeight: '500',
               color: theme.ink3,
               textTransform: 'uppercase',
-              letterSpacing: 1.6,
-              marginBottom: 8,
+              letterSpacing: 10.5 * 0.22,
+              marginBottom: 14,
             }}
           >
             {t('startRide.preFlight')}
           </Text>
           <Text
             style={{
-              fontSize: 50,
-              fontWeight: '200',
+              fontSize: 58,
+              fontWeight: '600',
               color: theme.ink,
-              letterSpacing: -2,
-              lineHeight: 50,
+              letterSpacing: -58 * 0.035,
+              lineHeight: 58 * 0.96,
             }}
           >
             {t('startRide.readyTo')}
             {'\n'}
-            <Text style={{ fontStyle: 'italic', fontWeight: '300' }}>{t('startRide.ride')}</Text>
+            <Text
+              style={{
+                fontFamily: 'InstrumentSerif-Italic',
+                fontWeight: '400',
+                letterSpacing: -58 * 0.025,
+              }}
+            >
+              {t('startRide.ride')}
+            </Text>
           </Text>
           <Text
             style={{
-              fontSize: 13,
-              color: theme.ink3,
-              lineHeight: 20,
-              marginTop: 12,
-              maxWidth: 280,
+              fontSize: 15.5,
+              color: theme.ink2,
+              lineHeight: 15.5 * 1.45,
+              marginTop: 16,
+              maxWidth: 320,
+              letterSpacing: -0.08,
             }}
           >
             {t('startRide.subtitle')}
           </Text>
         </Animated.View>
-
-        {/* GPS Status Indicator */}
-        <GPSStatusIndicator accuracy={gpsAccuracy} isReady={gpsReady} />
 
         {/* Unfinished ride banner */}
         {hasUnfinished && (
@@ -577,9 +368,10 @@ export default function StartRideScreen() {
             accessibilityLabel={`Selected bike: ${selectedBikeLabel}. Tap to change.`}
             style={{
               backgroundColor: theme.surface,
-              borderRadius: 18,
+              borderRadius: 22,
               borderCurve: 'continuous',
               padding: 14,
+              paddingRight: 18,
               flexDirection: 'row',
               alignItems: 'center',
               gap: 14,
@@ -592,7 +384,7 @@ export default function StartRideScreen() {
               style={{
                 width: 56,
                 height: 56,
-                borderRadius: 14,
+                borderRadius: 16,
                 borderCurve: 'continuous',
                 backgroundColor: selectedBikeId ? tint(theme.warm, 0.15) : theme.surface2,
                 alignItems: 'center',
@@ -608,30 +400,33 @@ export default function StartRideScreen() {
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text
                 style={{
-                  fontSize: 9,
-                  fontWeight: '700',
-                  color: theme.ink3,
+                  fontFamily: 'GeistMono',
+                  fontSize: 9.5,
+                  fontWeight: '500',
+                  color: theme.warm,
                   textTransform: 'uppercase',
-                  letterSpacing: 1.2,
-                  marginBottom: 3,
+                  letterSpacing: 9.5 * 0.2,
+                  marginBottom: 5,
                 }}
               >
                 {t('startRide.riding')}
               </Text>
               <Text
                 style={{
-                  fontSize: 15,
-                  fontWeight: '700',
+                  fontSize: 17,
+                  fontWeight: '600',
                   color: theme.ink,
-                  letterSpacing: -0.2,
-                  marginBottom: 2,
+                  letterSpacing: -17 * 0.018,
+                  lineHeight: 17 * 1.15,
                 }}
                 numberOfLines={1}
               >
                 {selectedBikeLabel || t('startRide.selectMotorcycle')}
               </Text>
               {selectedBike && (
-                <Text style={{ fontSize: 12, color: theme.ink3 }}>
+                <Text
+                  style={{ fontSize: 12.5, color: theme.ink3, marginTop: 3, letterSpacing: -0.05 }}
+                >
                   {selectedBike.model} · {mileageLabel}
                 </Text>
               )}
@@ -767,42 +562,56 @@ export default function StartRideScreen() {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: 12,
-                padding: 14,
+                gap: 14,
+                padding: 16,
+                paddingRight: 18,
                 backgroundColor: theme.surface,
                 borderWidth: 1,
                 borderColor: theme.line,
-                borderRadius: 14,
+                borderRadius: 22,
                 borderCurve: 'continuous',
               }}
             >
-              <View
+              <Text
                 style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 8,
-                  borderCurve: 'continuous',
-                  backgroundColor: tint(theme.warm, 0.1),
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  fontFamily: 'InstrumentSerif-Italic',
+                  fontSize: 30,
+                  lineHeight: 30,
+                  letterSpacing: -0.6,
+                  color: theme.ink,
+                  minWidth: 36,
                 }}
               >
-                <Route size={14} color={theme.warm} />
-              </View>
+                {totalRides}
+              </Text>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={{ fontSize: 12.5, fontWeight: '600', color: theme.ink }}>
+                <Text
+                  style={{
+                    fontSize: 14.5,
+                    fontWeight: '600',
+                    color: theme.ink,
+                    letterSpacing: -0.15,
+                    lineHeight: 14.5 * 1.2,
+                  }}
+                >
                   {t('startRide.previousRides')}
-                  <Text style={{ fontWeight: '500', color: theme.ink3 }}> · {totalRides}</Text>
                 </Text>
                 {lastRide && (
-                  <Text style={{ fontSize: 11, color: theme.ink3, marginTop: 2 }} numberOfLines={1}>
-                    Last: {lastRide.name || 'Ride'} —{' '}
-                    {formatDistance(lastRide.distanceM ?? 0, system)} ·{' '}
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: theme.ink3,
+                      marginTop: 3,
+                      fontVariant: ['tabular-nums'],
+                    }}
+                    numberOfLines={1}
+                  >
+                    Last: {formatDistance(lastRide.distanceM ?? 0, system)} ·{' '}
                     {formatRelativeDate(lastRide.startedAt)}
                   </Text>
                 )}
               </View>
-              <ChevronRight size={14} color={theme.ink3} />
+              <ChevronRight size={14} color={theme.ink2} />
             </Pressable>
           </Animated.View>
         )}
@@ -811,35 +620,66 @@ export default function StartRideScreen() {
       {/* CTA — pinned at bottom */}
       <View style={{ paddingHorizontal: 26, paddingBottom: insets.bottom + 16, paddingTop: 12 }}>
         <Animated.View entering={FadeInUp.delay(250).duration(300)}>
-          <SlideToAction
-            onComplete={handleStartRide}
-            disabled={isStarting || hasUnfinished || !canStart}
-            label={t('startRide.slideToStart', { defaultValue: 'Slide to Start Ride' })}
-          />
+          <Pressable
+            onPress={handleStartRide}
+            disabled={isStarting || hasUnfinished}
+            accessibilityRole="button"
+            accessibilityLabel="Start ride"
+            accessibilityState={{ disabled: isStarting || hasUnfinished }}
+            style={({ pressed }) => ({
+              width: '100%',
+              height: 60,
+              borderRadius: 999,
+              borderCurve: 'continuous',
+              backgroundColor: theme.ink,
+              opacity: isStarting || hasUnfinished ? 0.5 : pressed ? 0.85 : 1,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+            })}
+          >
+            {isStarting ? (
+              <ActivityIndicator size="small" color={theme.bg} />
+            ) : (
+              <>
+                <View
+                  style={{ width: 9, height: 9, alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Animated.View style={pulseRingStyle} />
+                  <View
+                    style={{
+                      width: 9,
+                      height: 9,
+                      borderRadius: 999,
+                      backgroundColor: '#4ade80',
+                    }}
+                  />
+                </View>
+                <Text
+                  style={{
+                    fontSize: 17.5,
+                    fontWeight: '600',
+                    color: theme.bg,
+                    letterSpacing: -17.5 * 0.012,
+                  }}
+                >
+                  {t('startRide.startButton')}
+                </Text>
+              </>
+            )}
+          </Pressable>
           <Text
             style={{
-              fontSize: 11,
+              fontSize: 11.5,
               color: theme.ink3,
               textAlign: 'center',
-              marginTop: 8,
+              marginTop: 12,
+              lineHeight: 11.5 * 1.4,
             }}
           >
             {t('startRide.trackingNote')}
           </Text>
-
-          {gpsLowWarning && (
-            <Animated.Text
-              entering={FadeIn.delay(100).duration(200)}
-              style={{
-                fontSize: 12,
-                color: palette.signature400,
-                textAlign: 'center',
-                marginTop: 8,
-              }}
-            >
-              GPS accuracy is low — ride may not track properly
-            </Animated.Text>
-          )}
 
           {hasUnfinished && (
             <Animated.Text
