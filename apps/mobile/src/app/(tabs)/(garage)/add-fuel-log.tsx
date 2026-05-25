@@ -7,9 +7,10 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Check, Droplets, Gauge, Plus } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Pressable, Switch, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { NativeToggle } from '../../../components/ui/native-toggle';
 import { useCurrency } from '../../../hooks/use-currency';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
@@ -236,14 +237,12 @@ export default function AddFuelLogScreen() {
               })}
             </Text>
           </View>
-          <Switch
+          <NativeToggle
             value={isPartial}
             onValueChange={(v) => {
               triggerImpact();
               setIsPartial(v);
             }}
-            trackColor={{ false: palette.neutral300, true: palette.primary500 }}
-            thumbColor={palette.white}
           />
         </View>
 

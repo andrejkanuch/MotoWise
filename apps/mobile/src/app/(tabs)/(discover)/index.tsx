@@ -60,7 +60,7 @@ import { useEditorialTheme } from '../../../theme/editorial';
 import { getDefaultMapStyle, MAP_STYLES } from '../../../utils/map-styles';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as typeof FlatList;
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as unknown as typeof FlatList;
 
 // --- Types ---
 

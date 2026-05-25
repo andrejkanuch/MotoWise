@@ -385,7 +385,7 @@ export function AnimatedSplash({ isReady, children, onDismiss }: AnimatedSplashP
 const styles = StyleSheet.create({
   container: { flex: 1 },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
     zIndex: 999,
     backgroundColor: palette.editorialDarkBg2,
     overflow: 'hidden',
@@ -410,10 +410,10 @@ const styles = StyleSheet.create({
     height: '70%',
   },
   vignette: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
   },
   centerStack: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
     alignItems: 'center',
     justifyContent: 'center',
     paddingBottom: 40,

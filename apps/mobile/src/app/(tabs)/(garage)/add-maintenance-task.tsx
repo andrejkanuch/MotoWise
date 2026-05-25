@@ -6,9 +6,10 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Calendar, Check, Gauge, Plus, Repeat } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { NativeToggle } from '../../../components/ui/native-toggle';
 import { AnalyticsEvent, trackEventWithSurvey } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { MetaAnalytics } from '../../../lib/meta-analytics';
@@ -544,14 +545,7 @@ export default function AddMaintenanceTaskScreen() {
                 {t('maintenance.repeatTask', { defaultValue: 'Repeat this task' })}
               </Text>
             </View>
-            <Switch
-              value={isRecurring}
-              onValueChange={setIsRecurring}
-              trackColor={{
-                false: isDark ? palette.neutral700 : palette.neutral200,
-                true: palette.indigo500,
-              }}
-            />
+            <NativeToggle value={isRecurring} onValueChange={setIsRecurring} />
           </View>
 
           {/* Interval inputs (shown when recurring) */}
