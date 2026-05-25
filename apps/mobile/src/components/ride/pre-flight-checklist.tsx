@@ -227,10 +227,25 @@ export function PreFlightChecklist({ motorcycleId }: PreFlightChecklistProps) {
                 </View>
 
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={{ fontSize: 15, fontWeight: '600', color: theme.ink, letterSpacing: -15 * 0.012, lineHeight: 15 * 1.2 }}>
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: '600',
+                      color: theme.ink,
+                      letterSpacing: -15 * 0.012,
+                      lineHeight: 15 * 1.2,
+                    }}
+                  >
                     {item.label}
                   </Text>
-                  <Text style={{ fontSize: 12.5, color: theme.ink3, marginTop: 2, letterSpacing: -0.05 }}>
+                  <Text
+                    style={{
+                      fontSize: 12.5,
+                      color: theme.ink3,
+                      marginTop: 2,
+                      letterSpacing: -0.05,
+                    }}
+                  >
                     {item.subtitle}
                   </Text>
                 </View>

@@ -319,7 +319,7 @@ export default function RidesScreen() {
     [handleRidePress, recordsByRideId],
   );
 
-  const periodLabel = useMemo(() => {
+  const _periodLabel = useMemo(() => {
     const now = new Date();
     switch (period) {
       case 'week':

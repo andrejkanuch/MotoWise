@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { AlertTriangle, Bike, ChevronDown, ChevronRight, Route, X, Zap } from 'lucide-react-native';
+import { AlertTriangle, Bike, ChevronDown, ChevronRight, X, Zap } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
@@ -12,7 +12,6 @@ import Animated, {
   FadeInUp,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
   withRepeat,
   withSequence,
   withTiming,
@@ -182,17 +181,11 @@ export default function StartRideScreen() {
   const pulseOpacity = useSharedValue(0);
   useEffect(() => {
     pulseScale.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 0 }),
-        withTiming(2.8, { duration: 1200 }),
-      ),
+      withSequence(withTiming(1, { duration: 0 }), withTiming(2.8, { duration: 1200 })),
       -1,
     );
     pulseOpacity.value = withRepeat(
-      withSequence(
-        withTiming(0.55, { duration: 0 }),
-        withTiming(0, { duration: 1200 }),
-      ),
+      withSequence(withTiming(0.55, { duration: 0 }), withTiming(0, { duration: 1200 })),
       -1,
     );
   }, [pulseScale, pulseOpacity]);
@@ -279,7 +272,13 @@ export default function StartRideScreen() {
           >
             {t('startRide.readyTo')}
             {'\n'}
-            <Text style={{ fontFamily: 'InstrumentSerif-Italic', fontWeight: '400', letterSpacing: -58 * 0.025 }}>
+            <Text
+              style={{
+                fontFamily: 'InstrumentSerif-Italic',
+                fontWeight: '400',
+                letterSpacing: -58 * 0.025,
+              }}
+            >
               {t('startRide.ride')}
             </Text>
           </Text>
@@ -425,7 +424,9 @@ export default function StartRideScreen() {
                 {selectedBikeLabel || t('startRide.selectMotorcycle')}
               </Text>
               {selectedBike && (
-                <Text style={{ fontSize: 12.5, color: theme.ink3, marginTop: 3, letterSpacing: -0.05 }}>
+                <Text
+                  style={{ fontSize: 12.5, color: theme.ink3, marginTop: 3, letterSpacing: -0.05 }}
+                >
                   {selectedBike.model} · {mileageLabel}
                 </Text>
               )}
@@ -584,12 +585,29 @@ export default function StartRideScreen() {
                 {totalRides}
               </Text>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={{ fontSize: 14.5, fontWeight: '600', color: theme.ink, letterSpacing: -0.15, lineHeight: 14.5 * 1.2 }}>
+                <Text
+                  style={{
+                    fontSize: 14.5,
+                    fontWeight: '600',
+                    color: theme.ink,
+                    letterSpacing: -0.15,
+                    lineHeight: 14.5 * 1.2,
+                  }}
+                >
                   {t('startRide.previousRides')}
                 </Text>
                 {lastRide && (
-                  <Text style={{ fontSize: 12, color: theme.ink3, marginTop: 3, fontVariant: ['tabular-nums'] }} numberOfLines={1}>
-                    Last: {formatDistance(lastRide.distanceM ?? 0, system)} · {formatRelativeDate(lastRide.startedAt)}
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: theme.ink3,
+                      marginTop: 3,
+                      fontVariant: ['tabular-nums'],
+                    }}
+                    numberOfLines={1}
+                  >
+                    Last: {formatDistance(lastRide.distanceM ?? 0, system)} ·{' '}
+                    {formatRelativeDate(lastRide.startedAt)}
                   </Text>
                 )}
               </View>
@@ -625,7 +643,9 @@ export default function StartRideScreen() {
               <ActivityIndicator size="small" color={theme.bg} />
             ) : (
               <>
-                <View style={{ width: 9, height: 9, alignItems: 'center', justifyContent: 'center' }}>
+                <View
+                  style={{ width: 9, height: 9, alignItems: 'center', justifyContent: 'center' }}
+                >
                   <Animated.View style={pulseRingStyle} />
                   <View
                     style={{
