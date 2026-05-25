@@ -28,7 +28,7 @@ interface MapPickerSheetProps {
 }
 
 function StyleTile({
-  styleKey,
+  styleKey: _styleKey,
   label,
   isSelected,
   onPress,

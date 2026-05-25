@@ -205,7 +205,6 @@ export const AnalyticsEvent = {
   SHARE_SHEET_OPENED: 'share_sheet_opened',
   SHARE_CARD_SWIPED: 'share_card_swiped',
   SHARE_DESTINATION_TAPPED: 'share_destination_tapped',
-  SHARE_COMPLETED: 'share_completed',
   RIDE_VIEWED: 'ride_viewed',
   RIDE_DELETED: 'ride_deleted',
   RIDE_DISCARDED: 'ride_discarded',

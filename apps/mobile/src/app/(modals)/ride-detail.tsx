@@ -23,7 +23,6 @@ import {
   Share2,
   Trash2,
   TrendingDown,
-  X,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -45,12 +44,13 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import {
-  type MapStyle,
   getDefaultMapStyle,
   MAP_STYLES,
+  type MapStyle,
   needsHeatmapOverlay,
   needsTerrain3D,
 } from '../../utils/map-styles';
+import { decodePolylineLatLng } from '../../utils/polyline';
 import {
   distanceUnitLabel,
   elevationUnitLabel,
@@ -61,7 +61,6 @@ import {
   formatSpeedValue,
   speedUnitLabel,
 } from '../../utils/ride-formatters';
-import { decodePolylineLatLng } from '../../utils/polyline';
 import { enqueueOrExecute } from '../../utils/ride-sync-queue';
 
 type RideDetailPayload = NonNullable<GetRideQuery['ride'] | GetPublicRideQuery['getPublicRide']>;
@@ -437,13 +436,21 @@ export default function RideDetailScreen() {
                       heatmapRadius: ['interpolate', ['linear'], ['zoom'], 8, 15, 15, 30],
                       heatmapIntensity: ['interpolate', ['linear'], ['zoom'], 8, 1, 15, 3],
                       heatmapColor: [
-                        'interpolate', ['linear'], ['heatmap-density'],
-                        0,   'rgba(0,0,0,0)',
-                        0.2, '#1a1a2e',
-                        0.4, '#3a2a1d',
-                        0.6, '#c8772c',
-                        0.8, '#e89d5a',
-                        1.0, '#ffffff',
+                        'interpolate',
+                        ['linear'],
+                        ['heatmap-density'],
+                        0,
+                        'rgba(0,0,0,0)',
+                        0.2,
+                        '#1a1a2e',
+                        0.4,
+                        '#3a2a1d',
+                        0.6,
+                        '#c8772c',
+                        0.8,
+                        '#e89d5a',
+                        1.0,
+                        '#ffffff',
                       ],
                       heatmapOpacity: ['interpolate', ['linear'], ['zoom'], 13, 0.8, 16, 0],
                     }}
@@ -754,7 +761,9 @@ export default function RideDetailScreen() {
               <RideStatTile
                 icon={<Mountain size={14} color={theme.ink3} />}
                 label={t('rideDetail.elevGain')}
-                value={elevationGain > 0 ? String(formatElevationValue(elevationGain, system)) : 'NA'}
+                value={
+                  elevationGain > 0 ? String(formatElevationValue(elevationGain, system)) : 'NA'
+                }
                 unit={elevationGain > 0 ? elevationUnitLabel(system) : undefined}
                 delay={80}
                 theme={theme}
@@ -775,8 +784,24 @@ export default function RideDetailScreen() {
                 delay={160}
                 theme={theme}
                 badge={
-                  <View style={{ paddingHorizontal: 5, paddingVertical: 2, borderRadius: 99, backgroundColor: tint(theme.ink, 0.06) }}>
-                    <Text style={{ fontFamily: 'GeistMono-Bold', fontSize: 7, fontWeight: '700', letterSpacing: 1.12, textTransform: 'uppercase', color: theme.ink3 }}>
+                  <View
+                    style={{
+                      paddingHorizontal: 5,
+                      paddingVertical: 2,
+                      borderRadius: 99,
+                      backgroundColor: tint(theme.ink, 0.06),
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: 'GeistMono-Bold',
+                        fontSize: 7,
+                        fontWeight: '700',
+                        letterSpacing: 1.12,
+                        textTransform: 'uppercase',
+                        color: theme.ink3,
+                      }}
+                    >
                       PRIVATE
                     </Text>
                   </View>
@@ -798,9 +823,13 @@ export default function RideDetailScreen() {
                       }}
                       hitSlop={8}
                       style={{
-                        width: 14, height: 14, borderRadius: 999,
-                        borderWidth: 1, borderColor: tint(theme.ink, 0.25),
-                        alignItems: 'center', justifyContent: 'center',
+                        width: 14,
+                        height: 14,
+                        borderRadius: 999,
+                        borderWidth: 1,
+                        borderColor: tint(theme.ink, 0.25),
+                        alignItems: 'center',
+                        justifyContent: 'center',
                       }}
                     >
                       <Info size={9} color={theme.ink3} />

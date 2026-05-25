@@ -32,8 +32,8 @@ import {
   uint8ArrayToBase64,
 } from './publish';
 import { getRecentAngles, type SlotName } from './queue';
-import { SCREENSHOT_CATALOG } from './screenshots';
 import { CRON_TO_SLOT, runScheduledPost } from './scheduled';
+import { SCREENSHOT_CATALOG } from './screenshots';
 
 /** Constant-time string comparison to prevent timing attacks on auth keys. */
 function timingSafeEqual(a: string, b: string): boolean {
