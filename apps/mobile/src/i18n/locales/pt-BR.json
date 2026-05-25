@@ -1404,14 +1404,14 @@
       "tripsDesc": "Plan multi-stop motorcycle trips with waypoints. Share your itinerary with riding buddies."
     },
     "v380": {
-      "analyticsTitle": "Ride Analytics",
-      "analyticsDesc": "Total distance, riding time, streaks, and personal bests — all updating after every ride. Your stats, at a glance.",
-      "redesignedRidesTitle": "Redesigned Rides",
-      "redesignedRidesDesc": "Every ride screen rebuilt from scratch — map banners, record badges, cleaner detail views, and a smoother save flow.",
-      "flyoverTitle": "3D Flyover",
-      "flyoverDesc": "Replay any ride as a cinematic satellite flyover with terrain, elevation, and smooth camera animation.",
-      "shareTitle": "Share Your Rides",
-      "shareDesc": "Generate beautiful visual cards of your rides and share them anywhere — Instagram, WhatsApp, or save to your gallery."
+      "analyticsTitle": "Análise de percursos",
+      "analyticsDesc": "Distância total, tempo de pilotagem, sequências e recordes pessoais — tudo atualizado após cada percurso. Suas estatísticas de relance.",
+      "redesignedRidesTitle": "Percursos redesenhados",
+      "redesignedRidesDesc": "Todas as telas de percursos reconstruídas do zero — banners de mapa, badges de recorde, visualizações mais limpas e um fluxo de salvamento mais fluido.",
+      "flyoverTitle": "Sobrevoo 3D",
+      "flyoverDesc": "Reviva qualquer percurso como um sobrevoo cinematográfico por satélite com terreno, elevação e animação de câmera suave.",
+      "shareTitle": "Compartilhe seus percursos",
+      "shareDesc": "Gere lindos cards visuais dos seus percursos e compartilhe em qualquer lugar — Instagram, WhatsApp ou salve na sua galeria."
     },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",

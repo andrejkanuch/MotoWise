@@ -1404,14 +1404,14 @@
       "tripsDesc": "Plan multi-stop motorcycle trips with waypoints. Share your itinerary with riding buddies."
     },
     "v380": {
-      "analyticsTitle": "Ride Analytics",
-      "analyticsDesc": "Total distance, riding time, streaks, and personal bests — all updating after every ride. Your stats, at a glance.",
-      "redesignedRidesTitle": "Redesigned Rides",
-      "redesignedRidesDesc": "Every ride screen rebuilt from scratch — map banners, record badges, cleaner detail views, and a smoother save flow.",
-      "flyoverTitle": "3D Flyover",
-      "flyoverDesc": "Replay any ride as a cinematic satellite flyover with terrain, elevation, and smooth camera animation.",
-      "shareTitle": "Share Your Rides",
-      "shareDesc": "Generate beautiful visual cards of your rides and share them anywhere — Instagram, WhatsApp, or save to your gallery."
+      "analyticsTitle": "Fahrtanalyse",
+      "analyticsDesc": "Gesamtstrecke, Fahrzeit, Serien und persönliche Bestleistungen — alles aktualisiert sich nach jeder Fahrt. Deine Statistiken auf einen Blick.",
+      "redesignedRidesTitle": "Überarbeitete Fahrten",
+      "redesignedRidesDesc": "Alle Fahrt-Bildschirme komplett neu aufgebaut — Kartenbanner, Rekord-Badges, übersichtlichere Detailansichten und ein flüssigerer Speichervorgang.",
+      "flyoverTitle": "3D-Überflug",
+      "flyoverDesc": "Spiele jede Fahrt als filmischen Satellitenüberflug mit Gelände, Höhenprofil und sanfter Kameraanimation ab.",
+      "shareTitle": "Teile deine Fahrten",
+      "shareDesc": "Erstelle schöne visuelle Karten deiner Fahrten und teile sie überall — Instagram, WhatsApp oder speichere sie in deiner Galerie."
     },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",

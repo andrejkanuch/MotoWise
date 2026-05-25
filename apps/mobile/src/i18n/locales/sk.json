@@ -1404,14 +1404,14 @@
       "tripsDesc": "Plan multi-stop motorcycle trips with waypoints. Share your itinerary with riding buddies."
     },
     "v380": {
-      "analyticsTitle": "Ride Analytics",
-      "analyticsDesc": "Total distance, riding time, streaks, and personal bests — all updating after every ride. Your stats, at a glance.",
-      "redesignedRidesTitle": "Redesigned Rides",
-      "redesignedRidesDesc": "Every ride screen rebuilt from scratch — map banners, record badges, cleaner detail views, and a smoother save flow.",
-      "flyoverTitle": "3D Flyover",
-      "flyoverDesc": "Replay any ride as a cinematic satellite flyover with terrain, elevation, and smooth camera animation.",
-      "shareTitle": "Share Your Rides",
-      "shareDesc": "Generate beautiful visual cards of your rides and share them anywhere — Instagram, WhatsApp, or save to your gallery."
+      "analyticsTitle": "Analýza jázd",
+      "analyticsDesc": "Celková vzdialenosť, čas jazdy, série a osobné rekordy — všetko sa aktualizuje po každej jazde. Tvoje štatistiky na jeden pohľad.",
+      "redesignedRidesTitle": "Prepracované jazdy",
+      "redesignedRidesDesc": "Všetky obrazovky jázd kompletne prestavané — mapové bannery, odznaky rekordov, prehľadnejšie detaily a plynulejšie ukladanie.",
+      "flyoverTitle": "3D prelet",
+      "flyoverDesc": "Prehraj si akúkoľvek jazdu ako filmový satelitný prelet s terénom, prevýšením a plynulou animáciou kamery.",
+      "shareTitle": "Zdieľaj svoje jazdy",
+      "shareDesc": "Vytvor krásne vizuálne karty svojich jázd a zdieľaj ich kdekoľvek — Instagram, WhatsApp alebo ulož do galérie."
     },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",

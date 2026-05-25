@@ -1404,14 +1404,14 @@
       "tripsDesc": "Plan multi-stop motorcycle trips with waypoints. Share your itinerary with riding buddies."
     },
     "v380": {
-      "analyticsTitle": "Ride Analytics",
-      "analyticsDesc": "Total distance, riding time, streaks, and personal bests — all updating after every ride. Your stats, at a glance.",
-      "redesignedRidesTitle": "Redesigned Rides",
-      "redesignedRidesDesc": "Every ride screen rebuilt from scratch — map banners, record badges, cleaner detail views, and a smoother save flow.",
-      "flyoverTitle": "3D Flyover",
-      "flyoverDesc": "Replay any ride as a cinematic satellite flyover with terrain, elevation, and smooth camera animation.",
-      "shareTitle": "Share Your Rides",
-      "shareDesc": "Generate beautiful visual cards of your rides and share them anywhere — Instagram, WhatsApp, or save to your gallery."
+      "analyticsTitle": "राइड एनालिटिक्स",
+      "analyticsDesc": "कुल दूरी, राइडिंग समय, स्ट्रीक और पर्सनल बेस्ट — हर राइड के बाद अपडेट होता है। आपके आँकड़े एक नज़र में।",
+      "redesignedRidesTitle": "नया डिज़ाइन राइड्स",
+      "redesignedRidesDesc": "सभी राइड स्क्रीन नए सिरे से बनाई गईं — मैप बैनर, रिकॉर्ड बैज, साफ़ डिटेल व्यू और बेहतर सेव फ़्लो।",
+      "flyoverTitle": "3D फ़्लाइओवर",
+      "flyoverDesc": "किसी भी राइड को टेरेन, एलिवेशन और स्मूद कैमरा एनिमेशन के साथ सिनेमैटिक सैटेलाइट फ़्लाइओवर के रूप में रीप्ले करें।",
+      "shareTitle": "अपनी राइड्स शेयर करें",
+      "shareDesc": "अपनी राइड्स के सुंदर विज़ुअल कार्ड बनाएँ और कहीं भी शेयर करें — Instagram, WhatsApp या अपनी गैलरी में सेव करें।"
     },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",
