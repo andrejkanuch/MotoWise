@@ -4,7 +4,7 @@ import {
   CreateMaintenanceTaskDocument,
   type MaintenancePriority,
 } from '@motovault/graphql';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { NotificationFeedbackType } from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
