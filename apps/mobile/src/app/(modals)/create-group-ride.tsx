@@ -1,6 +1,6 @@
 import { palette } from '@motovault/design-system';
 import { CreateGroupRideDocument } from '@motovault/graphql';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -226,7 +226,7 @@ export default function CreateGroupRideScreen() {
               <DateTimePicker
                 value={rideDate}
                 mode="time"
-                minuteInterval={15}
+                {...({ minuteInterval: 15 } as any)}
                 onChange={(_e, d) => d && setRideDate(d)}
                 themeVariant={isDark ? 'dark' : 'light'}
                 accentColor={palette.signature500}

@@ -54,7 +54,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         iosUrlScheme: 'com.googleusercontent.apps.276412017775-u00mgu2n51d8kuhfkgkcpetj9bhin6ps',
       },
     ],
-    '@react-native-community/datetimepicker',
     '@rnmapbox/maps',
     [
       'expo-notifications',
@@ -137,10 +136,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       NSCameraUsageDescription: 'MotoVault needs camera access for diagnostic photo capture.',
       NSPhotoLibraryUsageDescription:
         'MotoVault needs photo library access to upload diagnostic images.',
-      // Required so Linking.canOpenURL() can probe whether the user has the
-      // external nav apps installed before offering them as Ride-this handoffs.
-      NSUserTrackingUsageDescription:
-        'MotoVault uses this identifier to deliver personalized ads and measure campaign effectiveness.',
       NSPhotoLibraryAddUsageDescription:
         'Allow MotoVault to save ride share cards to your photo library.',
       LSApplicationQueriesSchemes: [

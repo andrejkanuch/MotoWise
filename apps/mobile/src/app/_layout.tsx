@@ -60,6 +60,7 @@ import {
   trackScreen,
 } from '../lib/analytics';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
+import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
 import { gqlFetcher } from '../lib/graphql-client';
 import { captureMetaAttribution } from '../lib/meta-attribution';
 import {
@@ -390,6 +391,11 @@ export default function RootLayout() {
 
   useEffect(() => {
     return setupFocusManager();
+  }, []);
+
+  // Migrate persisted Zustand stores from AsyncStorage to MMKV (one-time, idempotent)
+  useEffect(() => {
+    migrateAsyncStorageToMMKV();
   }, []);
 
   // Capture Meta ad attribution params (fbclid + UTM) from initial deep link
