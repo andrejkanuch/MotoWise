@@ -1,12 +1,24 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
-import { Layers, X } from 'lucide-react-native';
+import { Image } from 'expo-image';
+import { X } from 'lucide-react-native';
 import { memo, useCallback } from 'react';
+import type { ImageSource } from 'react-native';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEditorialTheme } from '../../theme/editorial';
 import type { MapStyle } from '../../utils/map-styles';
+
+const MAP_PREVIEWS: Record<MapStyle, ImageSource> = {
+  light: require('../../../assets/images/map-previews/standard.png'),
+  dark: require('../../../assets/images/map-previews/dark.png'),
+  outdoors: require('../../../assets/images/map-previews/outdoors.png'),
+  satellite: require('../../../assets/images/map-previews/satellite.png'),
+  hybrid: require('../../../assets/images/map-previews/hybrid.png'),
+  terrain: require('../../../assets/images/map-previews/terrain.png'),
+  heatmap: require('../../../assets/images/map-previews/heatmap.png'),
+};
 
 const FREE_STYLES: { key: MapStyle; label: string }[] = [
   { key: 'light', label: 'Standard' },
@@ -28,7 +40,7 @@ interface MapPickerSheetProps {
 }
 
 function StyleTile({
-  styleKey: _styleKey,
+  styleKey,
   label,
   isSelected,
   onPress,
@@ -52,11 +64,13 @@ function StyleTile({
           borderWidth: isSelected ? 1.5 : 0,
           borderColor: isSelected ? warm : 'transparent',
           overflow: 'hidden',
-          alignItems: 'center',
-          justifyContent: 'center',
         }}
       >
-        <Layers size={20} color={isSelected ? warm : 'rgba(255,255,255,0.4)'} />
+        <Image
+          source={MAP_PREVIEWS[styleKey]}
+          style={{ width: '100%', height: '100%' }}
+          contentFit="cover"
+        />
         {isSelected && (
           <View
             style={{

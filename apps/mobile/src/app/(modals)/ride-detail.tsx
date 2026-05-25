@@ -35,7 +35,8 @@ import { MapPickerSheet } from '../../components/ride/map-picker-sheet';
 import { RideElevationChart } from '../../components/ride/ride-elevation-chart';
 import { RideSpeedChart } from '../../components/ride/ride-speed-chart';
 import { RideStatTile } from '../../components/ride/ride-stat-tile';
-import { shareRide } from '../../components/share/share-ride';
+import { ShareActivitySheet } from '../../components/share/share-activity-sheet';
+import type { RideSharePayload } from '../../components/share/share-card-types';
 import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useRideHeatmapData } from '../../hooks/use-ride-heatmap-data';
@@ -76,6 +77,7 @@ export default function RideDetailScreen() {
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
   const [showLeanTooltip, setShowLeanTooltip] = useState(false);
   const [showMapPicker, setShowMapPicker] = useState(false);
+  const [showShareSheet, setShowShareSheet] = useState(false);
   const { heatmapGeoJSON } = useRideHeatmapData({ enabled: needsHeatmapOverlay(mapStyle) });
   const sheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => [100, '45%', '92%'], []);
@@ -174,20 +176,39 @@ export default function RideDetailScreen() {
     }
   }, [ride?.routePolyline]);
 
-  const handleShare = useCallback(async () => {
+  const handleShare = useCallback(() => {
     if (!ride || !rideId) return;
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    await shareRide({
+    setShowShareSheet(true);
+  }, [ride, rideId]);
+
+  const sharePayload = useMemo<RideSharePayload | null>(() => {
+    if (!ride || !rideId) return null;
+    return {
       rideId,
       rideName: ride.name,
+      rideNumber: null,
+      date: ride.startedAt ?? new Date().toISOString(),
       distanceM: ride.distanceM ?? 0,
       durationS: ride.durationS ?? 0,
-      system,
+      elevationGainM: ride.elevationGain ?? null,
+      elevationPeakM: null,
+      elevationProfile: waypoints.map((w) => w.altitude ?? 0),
+      maxSpeedMps: ride.maxSpeedMps ?? null,
+      routeCoordinates:
+        routeData?.geojson.features[0]?.geometry.type === 'LineString'
+          ? (routeData.geojson.features[0].geometry.coordinates as [number, number][])
+          : [],
+      mapSnapshotUri: null,
       bikeName,
-    });
-  }, [ride, system, rideId, bikeName]);
+      measurementSystem: system,
+      isPB: false,
+      pbType: null,
+      prevPbValue: null,
+    };
+  }, [ride, rideId, waypoints, routeData, bikeName, system]);
 
   const handleDelete = useCallback(() => {
     if (!rideId) return;
@@ -1026,6 +1047,15 @@ export default function RideDetailScreen() {
             currentStyle={mapStyle}
             onSelectStyle={handleMapStyleSelect}
             onClose={() => setShowMapPicker(false)}
+          />
+        )}
+
+        {/* Share Activity Sheet */}
+        {sharePayload && (
+          <ShareActivitySheet
+            visible={showShareSheet}
+            payload={sharePayload}
+            onClose={() => setShowShareSheet(false)}
           />
         )}
       </View>
