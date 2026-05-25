@@ -77,4 +77,6 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   return context.resolveRequest(context, moduleName, platform);
 };
 
-module.exports = withSentryConfig(withNativeWind(config));
+// withSentryConfig wraps the serializer (innermost),
+// withNativeWind wraps the transformer (outermost) — order matters.
+module.exports = withNativeWind(withSentryConfig(config));
