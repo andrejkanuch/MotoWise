@@ -272,7 +272,12 @@ export async function logoutRevenueCat() {
     if (anonymous) return;
     await Purchases.logOut();
   } catch (e) {
-    console.error('[RevenueCat] logOut failed:', e instanceof Error ? e.message : e);
-    captureException(e);
+    const msg = e instanceof Error ? e.message : String(e);
+    // Suppress known non-fatal error when logOut is called for anonymous users
+    const isAnonymousError = msg.toLowerCase().includes('anonymous');
+    console.warn('[RevenueCat] logOut skipped:', msg);
+    if (!isAnonymousError) {
+      captureException(e);
+    }
   }
 }
