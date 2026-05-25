@@ -19,7 +19,6 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useEditorialTheme } from '../../theme/editorial';
-import { MAP_STYLES } from '../../utils/map-styles';
 import { decodePolylineLatLng } from '../../utils/polyline';
 import {
   distanceUnitLabel,
@@ -68,8 +67,11 @@ const LOOK_AHEAD_POINTS = 8;      // Look further ahead for stable bearing
 const BEARING_LERP_FACTOR = 0.3;  // Smooth bearing rotation (30% per update)
 const CAMERA_ZOOM = 14.5;         // Slightly wider than 15 for more terrain context
 const CAMERA_PITCH = 65;          // More dramatic "cockpit" view
-const TERRAIN_EXAGGERATION = 1.3; // Subtle but impactful, less pop-in than 1.5
+const TERRAIN_EXAGGERATION = 1.5; // Dramatic 3D terrain relief
 const SPEED_OPTIONS = [1, 2, 4] as const;
+
+// Satellite-streets shows terrain texture + labels — much more 3D-visible than outdoors
+const FLYOVER_STYLE_URL = 'mapbox://styles/mapbox/satellite-streets-v12';
 
 const GLASS_BG = 'rgba(30,28,25,0.72)';
 const GLASS_BORDER = 'rgba(255,255,255,0.06)';
@@ -83,13 +85,16 @@ export default function RideFlyoverScreen() {
   const { rideId } = useLocalSearchParams<{ rideId: string }>();
   const system = useMeasurementSystem();
 
+  const mapRef = useRef<MapboxGL.MapView>(null);
   const cameraRef = useRef<MapboxGL.Camera>(null);
   const scrubberWidthRef = useRef(0);
   const lastBearingRef = useRef<number | null>(null);
+  const terrainElevationsRef = useRef<(number | null)[]>([]);
 
   const [cursor, setCursor] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [activeSpeed, setActiveSpeed] = useState<(typeof SPEED_OPTIONS)[number]>(4);
+  const [activeSpeed, setActiveSpeed] = useState<(typeof SPEED_OPTIONS)[number]>(2);
+  const [terrainElevation, setTerrainElevation] = useState<number | null>(null);
 
   const progress = useSharedValue(0);
 
@@ -236,14 +241,39 @@ export default function RideFlyoverScreen() {
   useEffect(() => {
     if (!isPlaying || waypoints.length < 2) return;
 
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       const p = progress.value;
       const i = Math.min(waypoints.length - 1, Math.floor(p * waypoints.length));
       setCursor(i);
+
+      // Query terrain elevation when waypoint has no altitude
+      const wp = waypoints[i];
+      if (wp && wp.altitude == null) {
+        // Use cached terrain elevation if available
+        const cached = terrainElevationsRef.current[i];
+        if (cached != null) {
+          setTerrainElevation(cached);
+        } else {
+          try {
+            const elev = await mapRef.current?.queryTerrainElevation([
+              wp.longitude,
+              wp.latitude,
+            ]);
+            if (elev != null) {
+              terrainElevationsRef.current[i] = elev;
+              setTerrainElevation(elev);
+            }
+          } catch {
+            // Terrain not yet loaded — will retry on next tick
+          }
+        }
+      } else if (wp) {
+        setTerrainElevation(null); // Use waypoint altitude directly
+      }
     }, HUD_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [isPlaying, waypoints.length, progress]);
+  }, [isPlaying, waypoints, progress]);
 
   // ─── Playback controls ───────────────────────────────────────────────
 
@@ -261,7 +291,9 @@ export default function RideFlyoverScreen() {
     progress.value = 0;
     trackedCompleteRef.current = false;
     lastBearingRef.current = null;
+    terrainElevationsRef.current = [];
     setCursor(0);
+    setTerrainElevation(null);
     setIsPlaying(true);
   }, [progress]);
 
@@ -292,7 +324,8 @@ export default function RideFlyoverScreen() {
 
   const currentWp = waypoints[cursor] ?? null;
   const currentSpeedMps = currentWp?.speedMps ?? 0;
-  const currentAltitude = currentWp?.altitude ?? 0;
+  // Prefer waypoint altitude, fall back to terrain-queried elevation
+  const currentAltitude = currentWp?.altitude ?? terrainElevation ?? 0;
   // Bike dot GeoJSON — memoize on coordinates, not object identity
   const bikeLng = currentWp?.longitude ?? 0;
   const bikeLat = currentWp?.latitude ?? 0;
@@ -394,13 +427,16 @@ export default function RideFlyoverScreen() {
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Full-screen map */}
       <MapboxGL.MapView
+        ref={mapRef}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-        styleURL={MAP_STYLES.outdoors}
+        styleURL={FLYOVER_STYLE_URL}
         logoEnabled={false}
         attributionEnabled={false}
         scaleBarEnabled={false}
         pitchEnabled={false}
         rotateEnabled={false}
+        scrollEnabled={false}
+        zoomEnabled={false}
       >
         <MapboxGL.Camera
           ref={cameraRef}
@@ -440,15 +476,46 @@ export default function RideFlyoverScreen() {
           }}
         />
 
-        {/* Route glow */}
+        {/* 3D buildings — visible at zoom 15+ for urban rides */}
+        <MapboxGL.FillExtrusionLayer
+          id="3d-buildings"
+          sourceID="composite"
+          sourceLayerID="building"
+          minZoomLevel={15}
+          maxZoomLevel={24}
+          style={{
+            fillExtrusionColor: '#aaa',
+            fillExtrusionHeight: [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              15,
+              0,
+              15.05,
+              ['get', 'height'],
+            ],
+            fillExtrusionBase: [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              15,
+              0,
+              15.05,
+              ['get', 'min_height'],
+            ],
+            fillExtrusionOpacity: 0.6,
+          }}
+        />
+
+        {/* Route glow — brighter on satellite for visibility */}
         {routeGeoJSON && (
           <MapboxGL.ShapeSource id="route-glow-source" shape={routeGeoJSON}>
             <MapboxGL.LineLayer
               id="route-glow"
               style={{
                 lineColor: theme.warm,
-                lineWidth: 10,
-                lineOpacity: 0.15,
+                lineWidth: 12,
+                lineOpacity: 0.3,
                 lineCap: 'round',
                 lineJoin: 'round',
               }}
@@ -463,7 +530,7 @@ export default function RideFlyoverScreen() {
               id="route-line"
               style={{
                 lineColor: theme.warm,
-                lineWidth: 4,
+                lineWidth: 4.5,
                 lineCap: 'round',
                 lineJoin: 'round',
               }}
