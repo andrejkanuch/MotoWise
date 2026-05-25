@@ -3,7 +3,7 @@ import { Route } from 'lucide-react-native';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Image, type ImageStyle, View, type ViewStyle } from 'react-native';
 import { useEditorialTheme } from '../../theme/editorial';
-import { MAP_STYLES, getDefaultMapStyle } from '../../utils/map-styles';
+import { getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
 import { decodePolyline } from '../../utils/polyline';
 import { rideStorage } from '../../utils/ride-storage';
 
@@ -152,7 +152,10 @@ export const RideMapThumbnail = memo(function RideMapThumbnail({
   if (!hasSlot) {
     return (
       <View
-        style={[{ backgroundColor: t.surface2, alignItems: 'center', justifyContent: 'center' }, style]}
+        style={[
+          { backgroundColor: t.surface2, alignItems: 'center', justifyContent: 'center' },
+          style,
+        ]}
       >
         <Route size={28} color={t.ink4} />
       </View>

@@ -280,7 +280,7 @@ export class TripSuggestionsService {
     // unions declared in @motovault/types, so these casts are safe.
     return {
       id: row.id,
-      tripId: row.trip_id!,
+      tripId: row.trip_id ?? '',
       kind: row.kind as TripSuggestion['kind'],
       name: row.name,
       notes: row.notes ?? undefined,

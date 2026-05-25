@@ -2,7 +2,6 @@ import type { Ride } from '@motovault/types';
 import { Trophy } from 'lucide-react-native';
 import { memo } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { RideMapThumbnail } from './ride-map-thumbnail';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { RECORD_LABELS } from '../../utils/ride-constants';
@@ -14,10 +13,10 @@ import {
   formatDistanceValue,
   formatDuration,
   formatElevationValue,
-  formatSpeed,
   formatSpeedValue,
   speedUnitLabel,
 } from '../../utils/ride-formatters';
+import { RideMapThumbnail } from './ride-map-thumbnail';
 
 interface RideCardProps {
   ride: Ride & { bikeName?: string | null; routeThumbnailUri?: string | null };
@@ -26,11 +25,7 @@ interface RideCardProps {
   recordTypes?: string[];
 }
 
-export const RideCard = memo(function RideCard({
-  ride,
-  onPress,
-  recordTypes,
-}: RideCardProps) {
+export const RideCard = memo(function RideCard({ ride, onPress, recordTypes }: RideCardProps) {
   const { t } = useEditorialTheme();
   const system = useMeasurementSystem();
 

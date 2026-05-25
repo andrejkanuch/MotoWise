@@ -43,7 +43,10 @@ export function RideStatTile({
   const unitColor = copper ? tint(theme.warm, 0.6) : theme.ink3;
 
   return (
-    <Animated.View entering={FadeInUp.delay(delay).duration(250)} style={{ flexBasis: '30%', flexGrow: 1 }}>
+    <Animated.View
+      entering={FadeInUp.delay(delay).duration(250)}
+      style={{ flexBasis: '30%', flexGrow: 1 }}
+    >
       <View
         style={{
           borderRadius: 14,
@@ -74,11 +77,7 @@ export function RideStatTile({
           </Text>
           {trailing}
         </View>
-        {badge && (
-          <View style={{ position: 'absolute', top: 11, right: 10 }}>
-            {badge}
-          </View>
-        )}
+        {badge && <View style={{ position: 'absolute', top: 11, right: 10 }}>{badge}</View>}
         <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 10 }}>
           <Text
             style={{

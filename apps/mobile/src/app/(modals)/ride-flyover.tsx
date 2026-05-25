@@ -39,8 +39,7 @@ function bearingTo(
   const [lon2, lat2] = [to.longitude, to.latitude].map((d) => (d * Math.PI) / 180);
   const dLon = lon2 - lon1;
   const y = Math.sin(dLon) * Math.cos(lat2);
-  const x =
-    Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
   return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
 }
 
@@ -60,13 +59,13 @@ function formatMmSs(seconds: number): string {
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const TOTAL_DURATION_MS = 45_000; // 45 seconds at 1x speed
-const CAMERA_INTERVAL_MS = 1000;  // Issue new camera command every 1s
-const CAMERA_DURATION_MS = 1500;  // Each animation lasts 1.5s (overlapping = smooth)
-const HUD_INTERVAL_MS = 200;      // Update HUD stats at 5fps (not 60)
-const LOOK_AHEAD_POINTS = 8;      // Look further ahead for stable bearing
-const BEARING_LERP_FACTOR = 0.3;  // Smooth bearing rotation (30% per update)
-const CAMERA_ZOOM = 14.5;         // Slightly wider than 15 for more terrain context
-const CAMERA_PITCH = 65;          // More dramatic "cockpit" view
+const CAMERA_INTERVAL_MS = 1000; // Issue new camera command every 1s
+const CAMERA_DURATION_MS = 1500; // Each animation lasts 1.5s (overlapping = smooth)
+const HUD_INTERVAL_MS = 200; // Update HUD stats at 5fps (not 60)
+const LOOK_AHEAD_POINTS = 8; // Look further ahead for stable bearing
+const BEARING_LERP_FACTOR = 0.3; // Smooth bearing rotation (30% per update)
+const CAMERA_ZOOM = 14.5; // Slightly wider than 15 for more terrain context
+const CAMERA_PITCH = 65; // More dramatic "cockpit" view
 const TERRAIN_EXAGGERATION = 1.5; // Dramatic 3D terrain relief
 const SPEED_OPTIONS = [1, 2, 4] as const;
 
@@ -122,8 +121,7 @@ export default function RideFlyoverScreen() {
   });
 
   const ride = (rideBundle as { viewer: string; ride: GetRideQuery['ride'] } | undefined)?.ride;
-  const serverWaypoints =
-    (waypointData as GetRideWaypointsQuery | undefined)?.rideWaypoints ?? [];
+  const serverWaypoints = (waypointData as GetRideWaypointsQuery | undefined)?.rideWaypoints ?? [];
 
   // Fall back to decoding route polyline when server waypoints are empty
   const waypoints = useMemo(() => {
@@ -140,9 +138,7 @@ export default function RideFlyoverScreen() {
         latitude: lat,
         longitude: lng,
         altitude: null as number | null,
-        speedMps: totalDistanceM > 0 && totalDurationS > 0
-          ? totalDistanceM / totalDurationS
-          : 0,
+        speedMps: totalDistanceM > 0 && totalDurationS > 0 ? totalDistanceM / totalDurationS : 0,
       }));
     } catch {
       return [];
@@ -255,10 +251,7 @@ export default function RideFlyoverScreen() {
           setTerrainElevation(cached);
         } else {
           try {
-            const elev = await mapRef.current?.queryTerrainElevation([
-              wp.longitude,
-              wp.latitude,
-            ]);
+            const elev = await mapRef.current?.queryTerrainElevation([wp.longitude, wp.latitude]);
             if (elev != null) {
               terrainElevationsRef.current[i] = elev;
               setTerrainElevation(elev);
@@ -297,15 +290,12 @@ export default function RideFlyoverScreen() {
     setIsPlaying(true);
   }, [progress]);
 
-  const handleSpeedChange = useCallback(
-    (speed: (typeof SPEED_OPTIONS)[number]) => {
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }
-      setActiveSpeed(speed);
-    },
-    [],
-  );
+  const handleSpeedChange = useCallback((speed: (typeof SPEED_OPTIONS)[number]) => {
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setActiveSpeed(speed);
+  }, []);
 
   const handleScrub = useCallback(
     (locationX: number) => {
@@ -339,7 +329,7 @@ export default function RideFlyoverScreen() {
         coordinates: [bikeLng, bikeLat],
       },
     };
-  }, [bikeLng, bikeLat, currentWp !== null]);
+  }, [bikeLng, bikeLat, currentWp]);
 
   // Pre-compute cumulative distances once (O(1) lookup vs O(n) per frame)
   const cumulativeDistances = useMemo(() => {
@@ -399,9 +389,7 @@ export default function RideFlyoverScreen() {
           paddingHorizontal: 40,
         }}
       >
-        <Text style={{ fontSize: 17, fontWeight: '600', color: theme.ink }}>
-          Not enough data
-        </Text>
+        <Text style={{ fontSize: 17, fontWeight: '600', color: theme.ink }}>Not enough data</Text>
         <Text style={{ fontSize: 14, color: theme.ink3, textAlign: 'center' }}>
           This ride doesn't have enough GPS waypoints for a 3D flyover.
         </Text>
@@ -444,7 +432,13 @@ export default function RideFlyoverScreen() {
             centerCoordinate: startPoint ?? [0, 0],
             zoomLevel: CAMERA_ZOOM,
             pitch: CAMERA_PITCH,
-            heading: waypoints.length > 1 ? bearingTo(waypoints[0], waypoints[Math.min(LOOK_AHEAD_POINTS, waypoints.length - 1)]) : 0,
+            heading:
+              waypoints.length > 1
+                ? bearingTo(
+                    waypoints[0],
+                    waypoints[Math.min(LOOK_AHEAD_POINTS, waypoints.length - 1)],
+                  )
+                : 0,
           }}
           animationDuration={0}
         />
