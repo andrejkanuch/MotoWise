@@ -5,6 +5,7 @@ import { Pressable, Text, View } from 'react-native';
 import { RideMapThumbnail } from './ride-map-thumbnail';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { tint, useEditorialTheme } from '../../theme/editorial';
+import { RECORD_LABELS } from '../../utils/ride-constants';
 import {
   distanceUnitLabel,
   elevationUnitLabel,
@@ -17,13 +18,6 @@ import {
   formatSpeedValue,
   speedUnitLabel,
 } from '../../utils/ride-formatters';
-
-const RECORD_LABELS: Record<string, string> = {
-  longest_distance: 'Longest ride',
-  longest_duration: 'Longest duration',
-  top_speed: 'Top speed',
-  max_elevation_gain: 'Most elevation',
-};
 
 interface RideCardProps {
   ride: Ride & { bikeName?: string | null; routeThumbnailUri?: string | null };

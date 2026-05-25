@@ -27,6 +27,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, ScrollView, Share, Switch, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -40,6 +41,7 @@ import {
   getDefaultMapStyle,
   MAP_STYLES,
 } from '../../utils/map-styles';
+import { RECORD_LABELS } from '../../utils/ride-constants';
 import {
   formatDistance,
   formatDuration,
@@ -48,14 +50,6 @@ import {
 } from '../../utils/ride-formatters';
 import { clearRideData, getPointBuffer, getWaypointChunks } from '../../utils/ride-storage';
 import { enqueueOrExecute } from '../../utils/ride-sync-queue';
-
-const RECORD_LABELS: Record<string, string> = {
-  longest_distance: 'Longest ride ever',
-  longest_duration: 'Longest duration ever',
-  top_speed: 'New top speed',
-  max_elevation_gain: 'Most elevation ever',
-  longest_streak: 'Longest streak ever',
-};
 
 const MAP_HEIGHT = 260;
 const SHEET_RADIUS = 28;
@@ -113,17 +107,7 @@ export default function RideSummaryScreen() {
   const [pbDismissed, setPbDismissed] = useState(false);
   const mapRef = useRef<MapboxGL.MapView>(null);
 
-  // Fetch bike name from cache
-  const bikeName = useMemo(() => {
-    if (!motorcycleId) return null;
-    // Try to read from existing query cache
-    const cachedData = queryClient.getQueryData<{
-      myMotorcycles?: Array<{ id: string; nickname?: string | null; make: string; model: string }>;
-    }>(queryKeys.motorcycles.lists());
-    const bike = cachedData?.myMotorcycles?.find((m) => m.id === motorcycleId);
-    if (!bike) return null;
-    return bike.nickname || `${bike.make} ${bike.model}`;
-  }, [motorcycleId, queryClient]);
+  const bikeName = useBikeName(motorcycleId);
 
   // Fetch PB data
   const { data: overviewData } = useQuery<RideOverviewQuery>({

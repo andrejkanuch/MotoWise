@@ -4,6 +4,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Image, type ImageStyle, View, type ViewStyle } from 'react-native';
 import { useEditorialTheme } from '../../theme/editorial';
 import { MAP_STYLES, getDefaultMapStyle } from '../../utils/map-styles';
+import { decodePolyline } from '../../utils/polyline';
 import { rideStorage } from '../../utils/ride-storage';
 
 interface RideMapThumbnailProps {
@@ -34,38 +35,6 @@ function releaseSnapshotSlot() {
     activeSnapshots++;
     next();
   }
-}
-
-/** Decode Google-encoded polyline string to [lng, lat] coordinate pairs */
-function decodePolyline(encoded: string): [number, number][] {
-  const coords: [number, number][] = [];
-  let index = 0;
-  let lat = 0;
-  let lng = 0;
-
-  while (index < encoded.length) {
-    let shift = 0;
-    let result = 0;
-    let byte: number;
-    do {
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    lat += result & 1 ? ~(result >> 1) : result >> 1;
-
-    shift = 0;
-    result = 0;
-    do {
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    lng += result & 1 ? ~(result >> 1) : result >> 1;
-
-    coords.push([lng / 1e5, lat / 1e5]);
-  }
-  return coords;
 }
 
 export const RideMapThumbnail = memo(function RideMapThumbnail({

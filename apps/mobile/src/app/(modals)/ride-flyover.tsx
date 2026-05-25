@@ -20,6 +20,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useEditorialTheme } from '../../theme/editorial';
 import { MAP_STYLES } from '../../utils/map-styles';
+import { decodePolylineLatLng } from '../../utils/polyline';
 import {
   distanceUnitLabel,
   elevationUnitLabel,
@@ -55,35 +56,6 @@ function formatMmSs(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-}
-
-/** Decode Google-encoded polyline to [lat, lng] pairs */
-function decodePolyline(encoded: string): [number, number][] {
-  const points: [number, number][] = [];
-  let index = 0;
-  let lat = 0;
-  let lng = 0;
-  while (index < encoded.length) {
-    let shift = 0;
-    let result = 0;
-    let byte: number;
-    do {
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    lat += result & 1 ? ~(result >> 1) : result >> 1;
-    shift = 0;
-    result = 0;
-    do {
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    lng += result & 1 ? ~(result >> 1) : result >> 1;
-    points.push([lat / 1e5, lng / 1e5]);
-  }
-  return points;
 }
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -153,7 +125,7 @@ export default function RideFlyoverScreen() {
     if (serverWaypoints.length >= 2) return serverWaypoints;
     if (!ride?.routePolyline) return [];
     try {
-      const decoded = decodePolyline(ride.routePolyline);
+      const decoded = decodePolylineLatLng(ride.routePolyline);
       if (decoded.length < 2) return [];
       // Distribute ride duration evenly across decoded points for stat overlay
       const totalDurationS = ride.durationS ?? 0;
@@ -257,7 +229,7 @@ export default function RideFlyoverScreen() {
     }, CAMERA_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [isPlaying, activeSpeed, waypoints, rideId, progress]);
+  }, [isPlaying, activeSpeed, waypoints.length, rideId, progress]);
 
   // ─── HUD stat updates (decoupled, 5fps — not every frame) ──────────
 

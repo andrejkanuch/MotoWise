@@ -37,6 +37,7 @@ import { RideElevationChart } from '../../components/ride/ride-elevation-chart';
 import { RideSpeedChart } from '../../components/ride/ride-speed-chart';
 import { RideStatTile } from '../../components/ride/ride-stat-tile';
 import { shareRide } from '../../components/share/share-ride';
+import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useRideHeatmapData } from '../../hooks/use-ride-heatmap-data';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
@@ -60,39 +61,8 @@ import {
   formatSpeedValue,
   speedUnitLabel,
 } from '../../utils/ride-formatters';
+import { decodePolylineLatLng } from '../../utils/polyline';
 import { enqueueOrExecute } from '../../utils/ride-sync-queue';
-
-/** Decode Google-encoded polyline string to [lat, lng] pairs */
-function decodePolyline(encoded: string): [number, number][] {
-  const points: [number, number][] = [];
-  let index = 0;
-  let lat = 0;
-  let lng = 0;
-
-  while (index < encoded.length) {
-    let shift = 0;
-    let result = 0;
-    let byte: number;
-    do {
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    lat += result & 1 ? ~(result >> 1) : result >> 1;
-
-    shift = 0;
-    result = 0;
-    do {
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    lng += result & 1 ? ~(result >> 1) : result >> 1;
-
-    points.push([lat / 1e5, lng / 1e5]);
-  }
-  return points;
-}
 
 type RideDetailPayload = NonNullable<GetRideQuery['ride'] | GetPublicRideQuery['getPublicRide']>;
 
@@ -154,28 +124,13 @@ export default function RideDetailScreen() {
     }
   }, [rideLoaded, rideId, ride]);
 
-  // Fetch bike name from cache (same pattern as ride-summary)
-  const bikeName = useMemo(() => {
-    const motorcycleId = ride?.motorcycleId;
-    if (!motorcycleId) return null;
-    const cachedData = queryClient.getQueryData<{
-      myMotorcycles?: Array<{
-        id: string;
-        nickname?: string | null;
-        make: string;
-        model: string;
-      }>;
-    }>(queryKeys.motorcycles.lists());
-    const bike = cachedData?.myMotorcycles?.find((m) => m.id === motorcycleId);
-    if (!bike) return null;
-    return bike.nickname || `${bike.make} ${bike.model}`;
-  }, [ride?.motorcycleId, queryClient]);
+  const bikeName = useBikeName(ride?.motorcycleId);
 
   const routeData = useMemo(() => {
     if (!ride?.routePolyline) return null;
 
     try {
-      const decoded = decodePolyline(ride.routePolyline);
+      const decoded = decodePolylineLatLng(ride.routePolyline);
       if (decoded.length < 2) return null;
 
       const coordinates: [number, number][] = decoded.map(([lat, lng]: [number, number]) => [
