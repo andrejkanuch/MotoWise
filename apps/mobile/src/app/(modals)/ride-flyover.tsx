@@ -46,7 +46,7 @@ function bearingTo(
 
 /** Lerp between two angles (handles 360° wrap) */
 function lerpAngle(from: number, to: number, t: number): number {
-  let delta = ((to - from + 540) % 360) - 180;
+  const delta = ((to - from + 540) % 360) - 180;
   return (from + delta * t + 360) % 360;
 }
 
@@ -135,7 +135,7 @@ export default function RideFlyoverScreen() {
       // Distribute ride duration evenly across decoded points for stat overlay
       const totalDurationS = ride.durationS ?? 0;
       const totalDistanceM = ride.distanceM ?? 0;
-      return decoded.map(([lat, lng], i) => ({
+      return decoded.map(([lat, lng]) => ({
         recordedAt: '',
         latitude: lat,
         longitude: lng,
@@ -234,7 +234,7 @@ export default function RideFlyoverScreen() {
     }, CAMERA_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [isPlaying, activeSpeed, waypoints.length, rideId, progress]);
+  }, [isPlaying, activeSpeed, waypoints, rideId, progress]);
 
   // ─── HUD stat updates (decoupled, 5fps — not every frame) ──────────
 
