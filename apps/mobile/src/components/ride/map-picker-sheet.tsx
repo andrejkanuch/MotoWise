@@ -1,9 +1,8 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
-import { Image } from 'expo-image';
+import { Image, type ImageSource } from 'expo-image';
 import { X } from 'lucide-react-native';
 import { memo, useCallback } from 'react';
-import type { ImageSource } from 'react-native';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

@@ -188,7 +188,7 @@ export default function RideDetailScreen() {
     if (!ride || !rideId) return null;
     return {
       rideId,
-      rideName: ride.name,
+      rideName: ride.name ?? 'Ride',
       rideNumber: null,
       date: ride.startedAt ?? new Date().toISOString(),
       distanceM: ride.distanceM ?? 0,

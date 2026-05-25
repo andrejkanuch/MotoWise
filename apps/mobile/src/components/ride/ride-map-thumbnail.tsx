@@ -1,4 +1,5 @@
 import MapboxGL from '@rnmapbox/maps';
+import * as FileSystem from 'expo-file-system';
 import { Route } from 'lucide-react-native';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Image, type ImageStyle, View, type ViewStyle } from 'react-native';
@@ -45,10 +46,22 @@ export const RideMapThumbnail = memo(function RideMapThumbnail({
   const { t, isDark } = useEditorialTheme();
   const mapRef = useRef<MapboxGL.MapView>(null);
 
-  // Check MMKV cache on first render
-  const [snapUri, setSnapUri] = useState<string | null>(() => {
-    return rideStorage.getString(`${CACHE_PREFIX}${rideId}`) ?? null;
-  });
+  // Check MMKV cache on first render; verify file still exists
+  const [snapUri, setSnapUri] = useState<string | null>(null);
+  const cacheChecked = useRef(false);
+  useEffect(() => {
+    if (cacheChecked.current) return;
+    cacheChecked.current = true;
+    const cached = rideStorage.getString(`${CACHE_PREFIX}${rideId}`);
+    if (!cached) return;
+    FileSystem.getInfoAsync(cached).then((info) => {
+      if (info.exists) {
+        setSnapUri(cached);
+      } else {
+        rideStorage.remove(`${CACHE_PREFIX}${rideId}`);
+      }
+    });
+  }, [rideId]);
 
   const routeData = useMemo(() => {
     if (!routePolyline) return null;
@@ -178,7 +191,7 @@ export const RideMapThumbnail = memo(function RideMapThumbnail({
         rotateEnabled={false}
         scrollEnabled={false}
         zoomEnabled={false}
-        onDidFinishLoadingMap={handleMapLoaded}
+        onDidFinishRenderingMap={handleMapLoaded}
       >
         <MapboxGL.Camera
           bounds={{
