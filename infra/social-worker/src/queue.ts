@@ -138,6 +138,31 @@ export async function markFailed(env: Env, id: string, error: string): Promise<v
 }
 
 /**
+ * Check whether this slot already has a non-ready row for today (i.e. it's
+ * already been claimed, is publishing, or has published). Used by the auto-
+ * draft branch to avoid creating a duplicate row when a manual /run-slot
+ * already served the slot earlier in the day.
+ */
+export async function hasSlotServedToday(env: Env, slot: SlotName): Promise<boolean> {
+  const today = new Date().toISOString().slice(0, 10);
+  const url =
+    `${env.SUPABASE_URL}/rest/v1/social_post_queue` +
+    `?select=id` +
+    `&slot=eq.${slot}` +
+    `&scheduled_for=eq.${today}` +
+    `&status=in.(publishing,published)` +
+    `&limit=1`;
+
+  const res = await fetch(url, { headers: headers(env) });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`hasSlotServedToday failed (${res.status}): ${body}`);
+  }
+  const rows = (await res.json()) as Array<{ id: string }>;
+  return rows.length > 0;
+}
+
+/**
  * Return the `angle` strings from rows scheduled within the last N days
  * (any status). Used by the Gemini drafter to avoid repeating recent
  * themes when the queue is empty and a fresh post needs to be drafted.

@@ -99,11 +99,16 @@ const draftSchema = z.object({
  *
  * `recentAngles` are angle slugs from rows scheduled in the last ~5 days —
  * passed to the model so it doesn't repeat recent themes.
+ *
+ * `topicOverride` (optional) — when provided, the drafter focuses on this
+ * specific topic instead of picking freely from the angle library. Used by
+ * the `/publish-now` ad-hoc endpoint.
  */
 export async function draftPost(
   env: Env,
   slot: SlotName,
   recentAngles: string[],
+  topicOverride?: string,
 ): Promise<DraftedPost> {
   const recentPosts = PERFORMANCE_LOG.posts.slice(0, 14).map((p) => ({
     date: p.published_at?.slice(0, 10),
@@ -139,8 +144,9 @@ export async function draftPost(
     '## Recent posts (for voice/style — avoid repeating these angles)',
     JSON.stringify(recentPosts, null, 2),
     '',
-    'Draft one complete post for this slot now. Remember: CHALLENGE or PAIN',
-    'hook, ONE benefit, end with a specific question riders can answer.',
+    topicOverride
+      ? `Draft one complete post about this SPECIFIC TOPIC: "${topicOverride}". Use this topic as your angle — adapt it to fit the voice and caption rules above. Remember: CHALLENGE or PAIN hook, ONE benefit, end with a specific question riders can answer.`
+      : 'Draft one complete post for this slot now. Remember: CHALLENGE or PAIN hook, ONE benefit, end with a specific question riders can answer.',
   ].join('\n');
 
   return callModel(env, PRIMARY_MODEL, userPrompt);

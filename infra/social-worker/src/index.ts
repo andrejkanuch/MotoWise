@@ -65,6 +65,14 @@ const generateImageSchema = z.object({
   aspect_ratio: z.enum(['4:5', '9:16', '1:1']).optional(),
 });
 
+const publishNowSchema = z.object({
+  topic: z.string().min(1).max(500),
+  caption: z.string().min(1).max(2200).optional(),
+  facebook_caption: z.string().min(1).max(2200).optional(),
+  image_prompt: z.string().min(1).max(2000).optional(),
+  platform: z.enum(['instagram', 'facebook', 'both']).optional(),
+});
+
 export default {
   // -------------------------------------------------------------------------
   // HTTP entrypoint
@@ -144,6 +152,103 @@ export default {
           }
           await runScheduledPost(env, cron);
           return json({ ok: true, slot, cron });
+        }
+
+        case '/publish-now': {
+          // Ad-hoc publish: draft via Gemini + generate image + publish.
+          // Completely bypasses social_post_queue — no queue reads or writes.
+          // Use for "just publish this now" from CLI without affecting the schedule.
+          const body = publishNowSchema.parse(await request.json());
+          const dryRun = url.searchParams.get('dry-run') === '1';
+          const platform = body.platform ?? 'both';
+
+          // Draft via Gemini using the topic as guidance, unless caption + prompt are provided.
+          const needsDraft = !body.caption || !body.image_prompt;
+          let caption = body.caption ?? '';
+          let facebookCaption = body.facebook_caption ?? '';
+          let imagePrompt = body.image_prompt ?? '';
+          let screenshotKeys: string[] = [];
+          let draftResult: Awaited<ReturnType<typeof draftPost>> | null = null;
+
+          if (needsDraft) {
+            const recentAngles = await getRecentAngles(env, 5);
+            draftResult = await draftPost(env, 'afternoon' as SlotName, recentAngles, body.topic);
+            if (!body.caption) caption = draftResult.caption;
+            if (!body.facebook_caption) facebookCaption = draftResult.facebookCaption;
+            if (!body.image_prompt) imagePrompt = draftResult.storyPrompt;
+            screenshotKeys = draftResult.screenshotKeys;
+          }
+
+          if (dryRun) {
+            return json({
+              dry_run: true,
+              topic: body.topic,
+              caption,
+              facebook_caption: facebookCaption,
+              image_prompt: imagePrompt,
+              screenshot_keys: screenshotKeys,
+              draft: draftResult,
+            });
+          }
+
+          // Generate screenshots mockups if available.
+          const { SCREENSHOT_CATALOG } = await import('./screenshots');
+          const mockupBase64: string[] = [];
+          for (const key of screenshotKeys) {
+            const entry = SCREENSHOT_CATALOG[key];
+            if (!entry) continue;
+            try {
+              const screenshotUrl = `${env.SUPABASE_URL}/storage/v1/object/public/social-media/${entry.storagePath}`;
+              const res = await fetch(screenshotUrl);
+              if (!res.ok) continue;
+              const { uint8ArrayToBase64 } = await import('./publish');
+              const rawBase64 = uint8ArrayToBase64(new Uint8Array(await res.arrayBuffer()));
+              const mockup = await generatePhoneMockup(env, rawBase64);
+              mockupBase64.push(mockup);
+            } catch {
+              // Skip failed mockups, continue with the rest.
+            }
+          }
+
+          // Generate the atmospheric image.
+          const image = await generateImage(env, imagePrompt, '9:16');
+
+          // Publish post (carousel if mockups, single otherwise).
+          const captions = { instagram: caption, facebook: facebookCaption || caption };
+          let postResult: { image_url: string; results: import('./queue').PostResults };
+          if (mockupBase64.length > 0) {
+            const carouselImages = [image.image_base64, ...mockupBase64];
+            const result = await publishCarousel(env, {
+              images_base64: carouselImages,
+              captions,
+              platform,
+            });
+            postResult = { image_url: result.image_urls[0], results: result.results };
+          } else {
+            postResult = await publishPost(env, {
+              image_base64: image.image_base64,
+              captions,
+              platform,
+            });
+          }
+
+          // Publish story.
+          const storyResult = await publishStory(env, {
+            image_base64: image.image_base64,
+            platform,
+            link: 'https://motovault.app/download',
+          });
+
+          return json({
+            ok: true,
+            topic: body.topic,
+            caption,
+            image_engine: image.engine,
+            screenshot_keys: screenshotKeys,
+            mockups_generated: mockupBase64.length,
+            post: postResult,
+            story: storyResult,
+          });
         }
 
         case '/test-mockup': {

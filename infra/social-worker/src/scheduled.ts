@@ -36,6 +36,7 @@ import {
 import {
   claimNextPost,
   getRecentAngles,
+  hasSlotServedToday,
   insertDraftedRow,
   markFailed,
   markPublished,
@@ -64,6 +65,15 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
   // draft a fresh post, insert it as 'ready', then re-claim via the same
   // RPC so attempts/last_attempt_at stay on the canonical update path.
   if (!row) {
+    // Guard: if this slot already published today (e.g. a manual /run-slot
+    // fired earlier), don't auto-draft a duplicate. The DB unique index
+    // (migration 00134) is the hard safety net; this is the cheap early exit.
+    const alreadyServed = await hasSlotServedToday(env, slot);
+    if (alreadyServed) {
+      console.log(`[scheduled] slot=${slot} — already served today, skipping auto-draft`);
+      return;
+    }
+
     console.log(`[scheduled] slot=${slot} — queue empty, auto-drafting via Gemini`);
     try {
       const recentAngles = await getRecentAngles(env, 5);
