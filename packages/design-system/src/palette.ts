@@ -177,6 +177,20 @@ export const palette = {
   editorialDanger: '#d44a4a',
   editorialInfo: '#4a8ad4',
   editorialPurple: '#8a5ad4',
+
+  // ── Share card tokens (hex only — view-shot compatible) ──
+  shareCopper: '#c8772c',
+  shareCopper2: '#d9883a',
+  shareCopperSoft: '#e89d5a',
+  shareRouteBright: '#e25822',
+  shareEmerald: '#2bb673',
+  shareDanger: '#d04a3c',
+  shareSheetBg: '#14110d',
+  shareCardDarkBg: '#0e0c0a',
+  shareCream: '#f1ebdd',
+  shareCreamText: '#1a1612',
+  shareTextLight: '#f2efe9',
+  sharePrBg: '#0b0907',
 } as const;
 
 export type Palette = typeof palette;

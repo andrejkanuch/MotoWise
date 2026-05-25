@@ -98,6 +98,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           ],
         ] as [string, Record<string, unknown>][])
       : []),
+    [
+      'expo-media-library',
+      {
+        photosPermission: 'Allow MotoVault to save ride share cards to your photo library.',
+        savePhotosPermission: 'Allow MotoVault to save ride share cards to your photo library.',
+        isAccessMediaLocationEnabled: true,
+      },
+    ],
     './plugins/remove-activity-recognition',
     [
       'expo-build-properties',
@@ -133,7 +141,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       // external nav apps installed before offering them as Ride-this handoffs.
       NSUserTrackingUsageDescription:
         'MotoVault uses this identifier to deliver personalized ads and measure campaign effectiveness.',
-      LSApplicationQueriesSchemes: ['maps', 'comgooglemaps', 'waze'],
+      NSPhotoLibraryAddUsageDescription:
+        'Allow MotoVault to save ride share cards to your photo library.',
+      LSApplicationQueriesSchemes: [
+        'maps',
+        'comgooglemaps',
+        'waze',
+        'instagram-stories',
+        'instagram',
+        'whatsapp',
+      ],
       // Meta SKAdNetwork identifiers for iOS install attribution
       SKAdNetworkItems: [
         { SKAdNetworkIdentifier: 'v9wttpbfk9.skadnetwork' },
