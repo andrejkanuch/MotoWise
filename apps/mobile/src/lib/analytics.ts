@@ -97,10 +97,9 @@ export function initSentry() {
     beforeSend: sentryBeforeSend,
   });
 
-  // Shake-to-report bug feedback (production only, Sentry v8+)
-  // eslint-disable-next-line -- enableFeedbackOnShake exists in Sentry v8 but not v7 types
-  if (!__DEV__ && 'enableFeedbackOnShake' in Sentry) {
-    (Sentry as Record<string, (...args: unknown[]) => void>).enableFeedbackOnShake();
+  // Shake-to-report bug feedback (production only)
+  if (!__DEV__) {
+    Sentry.enableFeedbackOnShake();
   }
 }
 

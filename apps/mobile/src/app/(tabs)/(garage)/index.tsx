@@ -1,4 +1,5 @@
 import { MyMotorcyclesDocument } from '@motovault/graphql';
+import * as Sentry from '@sentry/react-native';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
@@ -179,6 +180,8 @@ export default function GarageScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <Sentry.TimeToInitialDisplay record />
+      <Sentry.TimeToFullDisplay record />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
