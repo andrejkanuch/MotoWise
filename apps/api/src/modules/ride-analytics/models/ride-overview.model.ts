@@ -20,6 +20,9 @@ export class LastRideSummary {
 
   @Field({ nullable: true })
   motorcycleName?: string;
+
+  @Field({ nullable: true })
+  summaryTitle?: string;
 }
 
 @ObjectType()
@@ -35,6 +38,15 @@ export class RidePeriodSummary {
 }
 
 @ObjectType()
+export class DailyDistance {
+  @Field()
+  date: string;
+
+  @Field(() => Float)
+  distanceM: number;
+}
+
+@ObjectType()
 export class RideOverview {
   @Field(() => LastRideSummary, { nullable: true })
   lastRide?: LastRideSummary;
@@ -43,10 +55,16 @@ export class RideOverview {
   last7Days: RidePeriodSummary;
 
   @Field(() => RidePeriodSummary)
+  last30Days: RidePeriodSummary;
+
+  @Field(() => RidePeriodSummary)
   thisWeek: RidePeriodSummary;
 
   @Field(() => RidePeriodSummary)
   thisMonth: RidePeriodSummary;
+
+  @Field(() => [DailyDistance])
+  dailyDistances: DailyDistance[];
 
   @Field(() => Int)
   currentStreak: number;

@@ -7,8 +7,14 @@ query RideOverview {
       maxSpeedMps
       date
       motorcycleName
+      summaryTitle
     }
     last7Days {
+      rideCount
+      distanceM
+      durationS
+    }
+    last30Days {
       rideCount
       distanceM
       durationS
@@ -22,6 +28,10 @@ query RideOverview {
       rideCount
       distanceM
       durationS
+    }
+    dailyDistances {
+      date
+      distanceM
     }
     currentStreak
     personalRecords {
