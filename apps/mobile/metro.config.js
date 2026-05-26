@@ -1,6 +1,5 @@
-const { getDefaultConfig } = require('expo/metro-config');
+const { getSentryExpoConfig } = require('@sentry/react-native/metro');
 const { withNativeWind } = require('nativewind/metro');
-const { withSentryConfig } = require('@sentry/react-native/metro');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -16,7 +15,12 @@ const TANSTACK_QUERY_SOURCE_PACKAGES = new Set([
 const projectRoot = __dirname;
 const monorepoRoot = path.resolve(projectRoot, '../..');
 
-const config = getDefaultConfig(projectRoot);
+// getSentryExpoConfig replaces getDefaultConfig + withSentryConfig.
+// It uses Expo's unstable_beforeAssetSerializationPlugins API for debug IDs
+// instead of wrapping the serializer, which conflicts with Expo SDK 56's
+// own customSerializer (causes "Cannot read properties of undefined" in
+// determineDebugIdFromBundleSource during EAS builds).
+const config = getSentryExpoConfig(projectRoot);
 
 // Only watch packages this app depends on (not the whole monorepo)
 config.watchFolders = [
@@ -31,6 +35,7 @@ config.resolver.nodeModulesPaths = [
 
 // Resolve workspace packages from source (not dist/) so Metro can
 // follow their dependencies through the normal node_modules chain.
+const sentryResolveRequest = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (TANSTACK_QUERY_SOURCE_PACKAGES.has(moduleName)) {
     const parts = moduleName.split('/');
@@ -73,10 +78,12 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
       } catch {}
     }
   }
-  // Fall back to default resolution
+  // Chain to Sentry's resolver (handles web replay/feedback exclusion),
+  // which falls back to Metro's default resolver.
+  if (sentryResolveRequest) {
+    return sentryResolveRequest(context, moduleName, platform);
+  }
   return context.resolveRequest(context, moduleName, platform);
 };
 
-// withSentryConfig wraps the serializer (innermost),
-// withNativeWind wraps the transformer (outermost) — order matters.
-module.exports = withNativeWind(withSentryConfig(config));
+module.exports = withNativeWind(config);
