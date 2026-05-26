@@ -42,8 +42,13 @@ export async function syncWidgets(
 ): Promise<void> {
   if (Platform.OS !== 'ios') return;
 
+  // Skip if no session — widget sync requires auth for network fetches
+  const { measurementSystem, currency, session } = useAuthStore.getState();
+  if (!session) return;
+
   const currentVersion = ++syncVersion;
-  const { measurementSystem, currency } = useAuthStore.getState();
+
+  console.log('[WidgetSync] starting sync, domains:', domains.join(', '));
 
   const results = await Promise.allSettled([
     domains.includes('maintenance') ? fetchMaintenance() : Promise.resolve(null),
@@ -51,8 +56,18 @@ export async function syncWidgets(
     domains.includes('rides') ? fetchRideOverview() : Promise.resolve(null),
   ]);
 
+  for (let i = 0; i < results.length; i++) {
+    const r = results[i];
+    if (r.status === 'rejected') {
+      console.warn(`[WidgetSync] fetch[${i}] REJECTED:`, r.reason);
+    }
+  }
+
   // Abort if a newer sync or clearAllWidgets was triggered
-  if (currentVersion !== syncVersion) return;
+  if (currentVersion !== syncVersion) {
+    console.log('[WidgetSync] aborted — newer sync version');
+    return;
+  }
 
   // Lazy-import widget definitions (iOS-only native modules)
   const [
@@ -66,6 +81,8 @@ export async function syncWidgets(
     import('../widgets/LastRideWidget'),
     import('../widgets/RideStatsWidget'),
   ]);
+
+  console.log('[WidgetSync] widget modules imported OK');
 
   // Abort again after async imports
   if (currentVersion !== syncVersion) return;
@@ -99,12 +116,15 @@ export async function syncWidgets(
         dueLabel = `At ${next.targetMileage.toLocaleString()} km`;
       }
 
+      // Get bike mileage for display
+      const bikeMileage = next.targetMileage ? `${next.targetMileage.toLocaleString()} km` : '';
+
       safeUpdate(NextServiceWidgetDef, {
         hasData: true,
         taskTitle: next.title,
         dueLabel,
         daysCount: daysUntil !== null ? String(Math.abs(daysUntil)) : '—',
-        bikeName: '',
+        bikeMileage,
         isOverdue,
         deepLink: `motovault:///bike/${next.motorcycleId}`,
       });
@@ -114,11 +134,22 @@ export async function syncWidgets(
         taskTitle: '',
         dueLabel: '',
         daysCount: '',
-        bikeName: '',
+        bikeMileage: '',
         isOverdue: false,
         deepLink: 'motovault:///',
       });
     }
+  } else {
+    // Fetch failed or returned null — still push empty state so widget doesn't show broken placeholder
+    safeUpdate(NextServiceWidgetDef, {
+      hasData: false,
+      taskTitle: '',
+      dueLabel: '',
+      daysCount: '',
+      bikeMileage: '',
+      isOverdue: false,
+      deepLink: 'motovault:///',
+    });
   }
 
   // ── Expenses → ExpenseTrackerWidget ──────────────────────────
@@ -127,13 +158,28 @@ export async function syncWidgets(
     const dashboard = expenseResult.value;
     const symbol = CURRENCY_SYMBOLS[currency] || currency;
     const now = new Date();
-    const monthLabel = now.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
     // Current month bucket
     const currentBucket = dashboard.monthlyBuckets?.find(
       (b) => b.month === now.getMonth() + 1 && b.year === now.getFullYear(),
     );
     const monthTotal = currentBucket?.total ?? 0;
+
+    // Compute average of past months for delta
+    const pastBuckets = (dashboard.monthlyBuckets ?? []).filter(
+      (b) => !(b.month === now.getMonth() + 1 && b.year === now.getFullYear()) && b.total > 0,
+    );
+    let deltaLabel = '';
+    let deltaPositive = false;
+    if (pastBuckets.length >= 2) {
+      const avgPast = pastBuckets.reduce((sum, b) => sum + b.total, 0) / pastBuckets.length;
+      const diff = monthTotal - avgPast;
+      const absDiff = Math.abs(Math.round(diff));
+      if (absDiff > 0) {
+        deltaPositive = diff < 0; // spending less is positive
+        deltaLabel = `${diff < 0 ? '↓' : '↑'} ${symbol}${absDiff} vs avg`;
+      }
+    }
 
     // Top category
     const topCat = dashboard.categoryTotals
@@ -144,9 +190,21 @@ export async function syncWidgets(
       hasData: monthTotal > 0 || (dashboard.categoryTotals?.length ?? 0) > 0,
       monthlyTotal: Math.round(monthTotal).toLocaleString(),
       currencySymbol: symbol,
-      monthLabel,
+      monthLabel: now.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }),
       topCategory: topCat?.category ?? '—',
       topCategoryAmount: topCat ? `${symbol}${Math.round(topCat.total)}` : '',
+      deltaLabel,
+      deltaPositive,
+      deepLink: 'motovault:///',
+    });
+  } else {
+    safeUpdate(ExpenseTrackerWidgetDef, {
+      hasData: false,
+      monthlyTotal: '0',
+      currencySymbol: '',
+      monthLabel: '',
+      topCategory: '',
+      topCategoryAmount: '',
       deltaLabel: '',
       deltaPositive: false,
       deepLink: 'motovault:///',
@@ -158,28 +216,45 @@ export async function syncWidgets(
   if (rideResult.status === 'fulfilled' && rideResult.value) {
     const overview = rideResult.value;
     const ms = measurementSystem;
+    console.log(
+      '[WidgetSync] rideOverview:',
+      overview.lastRide ? `lastRide=${overview.lastRide.id}` : 'lastRide=null',
+      `7d=${overview.last7Days.rideCount} 30d=${overview.last30Days.rideCount}`,
+    );
 
-    // Last ride
+    // ── Last ride widget ──
     if (overview.lastRide) {
       const r = overview.lastRide;
       const avgSpeedMps = r.durationS > 0 ? r.distanceM / r.durationS : 0;
-      const dateStr = new Date(r.date).toLocaleDateString(undefined, {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-      });
+      const rideDate = new Date(r.date);
+      const dateStr = rideDate
+        .toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+        .toUpperCase();
+      const dayName = rideDate.toLocaleDateString(undefined, { weekday: 'long' }).toUpperCase();
+      const distKm = formatDistanceValue(r.distanceM, ms);
+      const distUnit = distanceUnitLabel(ms);
+      const dayLabel = `${dayName} · ${distKm} ${distUnit}`.toUpperCase();
+
+      // Use summary title if available, fallback to motorcycle name
+      const title = r.summaryTitle || r.motorcycleName || 'Ride';
+      // Split title into main + subtitle for copper italic styling
+      const parts = title.split(/[.!]\s*/);
+      const rideName = parts[0] + (parts.length > 1 ? '.' : '');
+      const rideSubtitle = parts.length > 1 ? parts.slice(1).join('. ') : '';
 
       safeUpdate(LastRideWidgetDef, {
         hasData: true,
-        rideName: r.motorcycleName || 'Ride',
-        rideSubtitle: '',
-        distance: formatDistanceValue(r.distanceM, ms),
-        distanceUnit: distanceUnitLabel(ms),
+        rideName,
+        rideSubtitle,
+        distance: distKm,
+        distanceUnit: distUnit,
         duration: formatDuration(r.durationS),
-        durationUnit: '',
+        durationUnit: 'h',
         avgSpeed: String(formatSpeedValue(avgSpeedMps, ms)),
         avgSpeedUnit: speedUnitLabel(ms),
         date: dateStr,
+        dayLabel,
+        distanceLabel: `${distKm} ${distUnit}`,
         deepLink: `motovault:///ride/${r.id}`,
       });
     } else {
@@ -194,27 +269,89 @@ export async function syncWidgets(
         avgSpeed: '',
         avgSpeedUnit: '',
         date: '',
+        dayLabel: '',
+        distanceLabel: '',
         deepLink: 'motovault:///',
       });
     }
 
-    // Ride stats
-    const week = overview.thisWeek;
-    const month = overview.thisMonth;
-    const hasRideData = week.rideCount > 0 || month.rideCount > 0;
-    const monthName = new Date().toLocaleDateString(undefined, { month: 'long' });
+    // ── Ride stats widget ──
+    const week = overview.last7Days;
+    const month30 = overview.last30Days;
+    const hasRideData = week.rideCount > 0 || month30.rideCount > 0;
+
+    // Build 14-day bar heights (0-100 scale)
+    const dailyDistances = overview.dailyDistances ?? [];
+    const maxDist = Math.max(...dailyDistances.map((d) => d.distanceM), 1);
+    const barH = (i: number) => {
+      const dist = dailyDistances[i]?.distanceM ?? 0;
+      return dist > 0 ? Math.round((dist / maxDist) * 100) : 0;
+    };
 
     safeUpdate(RideStatsWidgetDef, {
       hasData: hasRideData,
       weekDistance: formatDistanceValue(week.distanceM, ms),
       weekDistanceUnit: distanceUnitLabel(ms),
       weekRides: `${week.rideCount} ride${week.rideCount !== 1 ? 's' : ''}`,
-      monthDistance: formatDistanceValue(month.distanceM, ms),
+      monthDistance: formatDistanceValue(month30.distanceM, ms),
       monthDistanceUnit: distanceUnitLabel(ms),
-      monthRides: String(month.rideCount),
-      weekLabel: 'This Week',
-      monthLabel: monthName,
+      monthRides: String(month30.rideCount),
+      bar0: barH(0),
+      bar1: barH(1),
+      bar2: barH(2),
+      bar3: barH(3),
+      bar4: barH(4),
+      bar5: barH(5),
+      bar6: barH(6),
+      bar7: barH(7),
+      bar8: barH(8),
+      bar9: barH(9),
+      bar10: barH(10),
+      bar11: barH(11),
+      bar12: barH(12),
+      bar13: barH(13),
       deepLink: 'motovault:///profile/rides',
+    });
+  } else {
+    // Fetch failed — push empty state to both ride widgets
+    safeUpdate(LastRideWidgetDef, {
+      hasData: false,
+      rideName: '',
+      rideSubtitle: '',
+      distance: '',
+      distanceUnit: '',
+      duration: '',
+      durationUnit: '',
+      avgSpeed: '',
+      avgSpeedUnit: '',
+      date: '',
+      dayLabel: '',
+      distanceLabel: '',
+      deepLink: 'motovault:///',
+    });
+    safeUpdate(RideStatsWidgetDef, {
+      hasData: false,
+      weekDistance: '0',
+      weekDistanceUnit: '',
+      weekRides: '',
+      monthDistance: '0',
+      monthDistanceUnit: '',
+      monthRides: '',
+      bar0: 0,
+      bar1: 0,
+      bar2: 0,
+      bar3: 0,
+      bar4: 0,
+      bar5: 0,
+      bar6: 0,
+      bar7: 0,
+      bar8: 0,
+      bar9: 0,
+      bar10: 0,
+      bar11: 0,
+      bar12: 0,
+      bar13: 0,
+      deepLink: 'motovault:///',
     });
   }
 }
@@ -239,7 +376,7 @@ export function clearAllWidgets(): void {
         taskTitle: '',
         dueLabel: '',
         daysCount: '',
-        bikeName: '',
+        bikeMileage: '',
         isOverdue: false,
         deepLink: '',
       });
@@ -265,6 +402,8 @@ export function clearAllWidgets(): void {
         avgSpeed: '',
         avgSpeedUnit: '',
         date: '',
+        dayLabel: '',
+        distanceLabel: '',
         deepLink: '',
       });
       safeUpdate(rs.default, {
@@ -275,8 +414,20 @@ export function clearAllWidgets(): void {
         monthDistance: '0',
         monthDistanceUnit: '',
         monthRides: '',
-        weekLabel: '',
-        monthLabel: '',
+        bar0: 0,
+        bar1: 0,
+        bar2: 0,
+        bar3: 0,
+        bar4: 0,
+        bar5: 0,
+        bar6: 0,
+        bar7: 0,
+        bar8: 0,
+        bar9: 0,
+        bar10: 0,
+        bar11: 0,
+        bar12: 0,
+        bar13: 0,
         deepLink: '',
       });
     })
@@ -340,7 +491,7 @@ function safeUpdate<T extends object>(
 ): void {
   try {
     widget.updateSnapshot(props);
-  } catch {
-    // Widget extension may not be installed on older builds
+  } catch (err) {
+    console.warn('[WidgetSync] updateSnapshot failed:', err);
   }
 }

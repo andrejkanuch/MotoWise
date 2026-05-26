@@ -1,4 +1,4 @@
-import { HStack, Spacer, Text, VStack } from '@expo/ui/swift-ui';
+import { Capsule, HStack, Image, RoundedRectangle, Spacer, Text, VStack } from '@expo/ui/swift-ui';
 import {
   containerBackground,
   font,
@@ -14,7 +14,7 @@ type NextServiceWidgetProps = {
   taskTitle: string;
   dueLabel: string;
   daysCount: string;
-  bikeName: string;
+  bikeMileage: string;
   isOverdue: boolean;
   deepLink: string;
 };
@@ -23,7 +23,6 @@ function NextServiceWidget(props: NextServiceWidgetProps, env: WidgetEnvironment
   'widget';
 
   const isLockScreen = env.widgetFamily === 'accessoryRectangular';
-  const accent = props.isOverdue ? '#d44a4a' : '#D4622E';
 
   if (isLockScreen) {
     return (
@@ -34,23 +33,23 @@ function NextServiceWidget(props: NextServiceWidgetProps, env: WidgetEnvironment
             foregroundStyle('rgba(255,255,255,0.85)'),
           ]}
         >
-          {props.hasData ? `${props.taskTitle} · ${props.dueLabel}` : 'No upcoming service'}
+          {props?.hasData ? `${props.taskTitle} · ${props.dueLabel}` : 'No upcoming service'}
         </Text>
       </HStack>
     );
   }
 
-  if (!props.hasData) {
+  if (!props || !props.hasData) {
     return (
       <VStack
         modifiers={[
           frame({ maxWidth: 99999, maxHeight: 99999 }),
-          containerBackground('#1c1814', 'widget'),
-          padding({ all: 16 }),
+          containerBackground('#faf5ed', 'widget'),
+          padding({ all: 14 }),
         ]}
       >
         <Spacer />
-        <Text modifiers={[font({ size: 13, weight: 'semibold' }), foregroundStyle('#faf5ed')]}>
+        <Text modifiers={[font({ size: 13, weight: 'semibold' }), foregroundStyle('#2c2824')]}>
           No upcoming service
         </Text>
         <Text modifiers={[font({ size: 11 }), foregroundStyle('#8e8880')]}>Open MotoVault</Text>
@@ -59,26 +58,43 @@ function NextServiceWidget(props: NextServiceWidgetProps, env: WidgetEnvironment
     );
   }
 
+  const statusColor = props.isOverdue ? '#C0392B' : '#D4622E';
+  const statusLabel = props.isOverdue ? 'OVERDUE' : 'DUE IN';
+
   return (
     <VStack
       modifiers={[
         frame({ maxWidth: 99999, maxHeight: 99999, alignment: 'leading' }),
-        containerBackground('#1c1814', 'widget'),
-        padding({ all: 16 }),
+        containerBackground('#faf5ed', 'widget'),
+        padding({ all: 14 }),
         widgetURL(props.deepLink),
       ]}
     >
-      {/* Eyebrow */}
-      <Text modifiers={[font({ size: 9, weight: 'bold' }), foregroundStyle(accent)]}>
-        {props.isOverdue ? 'OVERDUE' : 'DUE IN'}
-      </Text>
-
-      {/* Big number + unit */}
-      <HStack modifiers={[padding({ top: 2 })]}>
+      {/* Status + icon row */}
+      <HStack>
+        <Image systemName="wrench.fill" size={11} color={statusColor} />
         <Text
           modifiers={[
-            font({ size: 44, weight: 'regular', design: 'serif' }),
-            foregroundStyle('#faf5ed'),
+            font({ size: 10, weight: 'bold' }),
+            foregroundStyle(statusColor),
+            padding({ leading: 3 }),
+          ]}
+        >
+          {statusLabel}
+        </Text>
+        <Spacer />
+        <RoundedRectangle
+          cornerRadius={4}
+          modifiers={[frame({ width: 18, height: 18 }), foregroundStyle('#D4622E')]}
+        />
+      </HStack>
+
+      {/* Days count */}
+      <HStack modifiers={[padding({ top: 4 })]}>
+        <Text
+          modifiers={[
+            font({ size: 36, weight: 'regular', design: 'serif' }),
+            foregroundStyle('#2c2824'),
           ]}
         >
           {props.daysCount}
@@ -86,7 +102,7 @@ function NextServiceWidget(props: NextServiceWidgetProps, env: WidgetEnvironment
         <Text
           modifiers={[
             font({ size: 12, weight: 'medium' }),
-            foregroundStyle('#c4bdb2'),
+            foregroundStyle('#8e8880'),
             padding({ bottom: 6 }),
           ]}
         >
@@ -94,13 +110,28 @@ function NextServiceWidget(props: NextServiceWidgetProps, env: WidgetEnvironment
         </Text>
       </HStack>
 
+      {/* Progress bar */}
+      <Capsule
+        modifiers={[
+          frame({ width: props.isOverdue ? 60 : 30, height: 3 }),
+          foregroundStyle(statusColor),
+          padding({ top: 4 }),
+        ]}
+      />
+
       <Spacer />
 
       {/* Task name */}
-      <Text modifiers={[font({ size: 12.5, weight: 'semibold' }), foregroundStyle('#faf5ed')]}>
+      <Text modifiers={[font({ size: 13, weight: 'semibold' }), foregroundStyle('#2c2824')]}>
         {props.taskTitle}
       </Text>
-      <Text modifiers={[font({ size: 10.5 }), foregroundStyle('#8e8880')]}>{props.bikeName}</Text>
+
+      {/* Mileage */}
+      {props.bikeMileage ? (
+        <Text modifiers={[font({ size: 11 }), foregroundStyle('#8e8880'), padding({ top: 1 })]}>
+          {props.bikeMileage}
+        </Text>
+      ) : null}
     </VStack>
   );
 }

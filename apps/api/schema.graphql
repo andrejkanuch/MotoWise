@@ -325,6 +325,11 @@ input CreateWaypointInput {
   type: String!
 }
 
+type DailyDistance {
+  date: String!
+  distanceM: Float!
+}
+
 type DataExportRequest {
   completedAt: String
   createdAt: String!
@@ -689,6 +694,7 @@ type LastRideSummary {
   id: String!
   maxSpeedMps: Float
   motorcycleName: String
+  summaryTitle: String
 }
 
 input LatLngInput {
@@ -1254,7 +1260,9 @@ type RideEdge {
 
 type RideOverview {
   currentStreak: Int!
+  dailyDistances: [DailyDistance!]!
   last7Days: RidePeriodSummary!
+  last30Days: RidePeriodSummary!
   lastRide: LastRideSummary
   personalRecords: [RideRecord!]!
   thisMonth: RidePeriodSummary!
