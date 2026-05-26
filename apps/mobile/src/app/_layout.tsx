@@ -260,7 +260,15 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     setLastSeenVersion(currentVersion);
     trackEvent(AnalyticsEvent.WHATS_NEW_VIEWED, { version: currentVersion });
     setTimeout(() => router.push('/(modals)/whats-new' as never), 500);
-  }, [isLoading, session, onboardingCompleted, segments, lastSeenVersion, setLastSeenVersion, router]);
+  }, [
+    isLoading,
+    session,
+    onboardingCompleted,
+    segments,
+    lastSeenVersion,
+    setLastSeenVersion,
+    router,
+  ]);
 
   if (isLoading || (session && meQuery.isLoading && !meQuery.isError)) {
     return null;
