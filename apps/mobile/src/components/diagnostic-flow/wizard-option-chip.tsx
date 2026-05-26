@@ -74,7 +74,6 @@ export function WizardOptionChip({
         paddingVertical: 12,
         paddingHorizontal: 14,
         borderWidth: 1.5,
-        borderStyle: isDontKnow && !selected ? 'dashed' : 'solid',
         borderColor,
         backgroundColor: bgColor,
         borderCurve: 'continuous',

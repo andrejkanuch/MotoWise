@@ -210,7 +210,6 @@ function NewDraftCard({ onPress }: { onPress: () => void }) {
       style={{
         width: 110,
         borderWidth: 1.5,
-        borderStyle: 'dashed',
         borderColor: t.line,
         borderRadius: 16,
         borderCurve: 'continuous',

@@ -88,7 +88,6 @@ export function InviteRidersCard({
               borderRadius: 17,
               backgroundColor: t.surface2,
               borderWidth: 2,
-              borderStyle: 'dashed',
               borderColor: t.line,
               alignItems: 'center',
               justifyContent: 'center',

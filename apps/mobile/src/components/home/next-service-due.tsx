@@ -59,7 +59,6 @@ export function NextServiceDue({ task, bikeName, isDark, onPress }: NextServiceD
           tier="subtle"
           style={{
             borderWidth: 1,
-            borderStyle: 'dashed',
             borderColor: isDark ? palette.neutral700 : palette.neutral200,
           }}
         >

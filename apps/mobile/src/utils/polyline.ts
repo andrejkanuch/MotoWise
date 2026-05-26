@@ -1,3 +1,54 @@
+// ── Encoder ────────────────────────────────────────────────────────────────
+
+function encodeValue(value: number): string {
+  let v = value < 0 ? ~(value << 1) : value << 1;
+  let encoded = '';
+  while (v >= 0x20) {
+    encoded += String.fromCharCode((0x20 | (v & 0x1f)) + 63);
+    v >>= 5;
+  }
+  encoded += String.fromCharCode(v + 63);
+  return encoded;
+}
+
+/** Encode [lat, lng] coordinate pairs into a Google-encoded polyline string */
+export function encodePolyline(coords: [number, number][]): string {
+  let encoded = '';
+  let prevLat = 0;
+  let prevLng = 0;
+
+  for (const [lat, lng] of coords) {
+    const latE5 = Math.round(lat * 1e5);
+    const lngE5 = Math.round(lng * 1e5);
+    encoded += encodeValue(latE5 - prevLat);
+    encoded += encodeValue(lngE5 - prevLng);
+    prevLat = latE5;
+    prevLng = lngE5;
+  }
+
+  return encoded;
+}
+
+/**
+ * Downsample an encoded polyline to at most `maxPoints` points.
+ * Decodes → evenly samples → re-encodes.
+ */
+export function simplifyEncodedPolyline(encoded: string, maxPoints: number): string {
+  const coords = decodePolylineLatLng(encoded);
+  if (coords.length <= maxPoints) return encoded;
+
+  const step = (coords.length - 1) / (maxPoints - 1);
+  const sampled: [number, number][] = [];
+  for (let i = 0; i < maxPoints - 1; i++) {
+    sampled.push(coords[Math.round(i * step)]);
+  }
+  sampled.push(coords[coords.length - 1]);
+
+  return encodePolyline(sampled);
+}
+
+// ── Decoders ───────────────────────────────────────────────────────────────
+
 /** Decode Google-encoded polyline string to [lng, lat] coordinate pairs */
 export function decodePolyline(encoded: string): [number, number][] {
   const coords: [number, number][] = [];

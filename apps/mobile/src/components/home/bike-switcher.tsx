@@ -108,7 +108,6 @@ export function BikeSwitcher({ bikes, selectedIndex, onSelect, onAddBike }: Bike
             paddingHorizontal: 14,
             borderRadius: 999,
             borderWidth: 1,
-            borderStyle: 'dashed',
             borderColor: theme.line,
           }}
         >

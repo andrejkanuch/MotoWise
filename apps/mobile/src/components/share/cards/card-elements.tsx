@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import { Text, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import {
   distanceUnitLabel,
@@ -12,35 +12,24 @@ import type { LngLat, RideSharePayload } from '../share-card-types';
 
 const MONO = process.env.EXPO_OS === 'ios' ? 'Menlo' : 'monospace';
 
-// ── Wordmark ────────────────────────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-var-requires -- static asset
+const APP_ICON = require('../../../assets/images/MotoVaultDark.png');
 
-function BikeGlyph({ size = 8, color = '#fff' }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 14 14" fill="none">
-      <Path
-        d="M2 11h2l1.5-5L7 9l1.5-3L10 11h2"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-      />
-    </Svg>
-  );
-}
+// ── Wordmark ────────────────────────────────────────────────────────────────
 
 export function Wordmark({ color = 'rgba(255,255,255,0.7)' }: { color?: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
       <View
         style={{
-          width: 14,
-          height: 14,
-          borderRadius: 4,
-          backgroundColor: palette.shareCopper,
-          justifyContent: 'center',
-          alignItems: 'center',
+          width: 18,
+          height: 18,
+          borderRadius: 4.5,
+          borderCurve: 'continuous',
+          overflow: 'hidden',
         }}
       >
-        <BikeGlyph />
+        <Image source={APP_ICON} style={{ width: 18, height: 18 }} />
       </View>
       <Text
         style={{

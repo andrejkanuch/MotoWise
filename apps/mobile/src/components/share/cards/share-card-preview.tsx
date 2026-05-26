@@ -4,6 +4,7 @@ import { CARD_VARIANTS, type CardVariant, type RideSharePayload } from '../share
 import { EditorialDarkCard } from './editorial-dark-card';
 import { ElevationStoryCard } from './elevation-story-card';
 import { MapHeroCard } from './map-hero-card';
+import { MapStyleCard } from './map-style-card';
 import { PbSpotlightCard } from './pb-spotlight-card';
 import { RoutePrintCard } from './route-print-card';
 
@@ -20,6 +21,12 @@ export const ShareCardPreview = memo(function ShareCardPreview({
     switch (variant) {
       case CARD_VARIANTS.mapHero:
         return <MapHeroCard data={payload} />;
+      case CARD_VARIANTS.mapSatellite:
+        return <MapStyleCard data={payload} variant="satellite" />;
+      case CARD_VARIANTS.mapHybrid:
+        return <MapStyleCard data={payload} variant="hybrid" />;
+      case CARD_VARIANTS.map3D:
+        return <MapStyleCard data={payload} variant="terrain3D" />;
       case CARD_VARIANTS.editorialDark:
         return <EditorialDarkCard data={payload} />;
       case CARD_VARIANTS.pbSpotlight:

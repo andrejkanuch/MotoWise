@@ -253,7 +253,6 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
               borderCurve: 'continuous',
               borderWidth: 1,
               borderColor: ONBOARDING_COLORS.borderMuted,
-              borderStyle: 'dashed',
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',

@@ -43,7 +43,6 @@ export function MaintenanceSummary({
           tier="subtle"
           style={{
             borderWidth: 1,
-            borderStyle: 'dashed',
             borderColor: isDark ? palette.neutral700 : palette.neutral200,
           }}
         >

@@ -1149,7 +1149,6 @@ export default function CreateTripScreen() {
                   borderRadius: 12,
                   borderCurve: 'continuous',
                   borderWidth: 1.5,
-                  borderStyle: 'dashed',
                   borderColor: t.warm,
                 }}
               >
