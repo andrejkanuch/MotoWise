@@ -6,7 +6,7 @@ import { Image, Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { formatDistance, formatDuration } from '../../utils/ride-formatters';
-import { KudosButton } from './KudosButton';
+import { KudosButton } from './kudos-button';
 
 // TODO: Replace with generated type from @motovault/graphql after codegen
 export interface FeedRide {

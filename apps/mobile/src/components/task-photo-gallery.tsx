@@ -6,20 +6,12 @@ import { Image } from 'expo-image';
 import { Camera, Trash2, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActionSheetIOS,
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Platform,
-  Pressable,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Modal, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { gqlFetcher } from '../lib/graphql-client';
 import { pickImage, takePhoto, uploadMaintenancePhoto } from '../lib/image-upload';
 import { queryKeys } from '../lib/query-keys';
+import { showActionSheet } from '../utils/action-sheet';
 
 const MAX_PHOTOS = 5;
 
@@ -87,45 +79,27 @@ export function TaskPhotoGallery({
 
   const showAddOptions = () => {
     haptic();
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: [
-            t('common.cancel', { defaultValue: 'Cancel' }),
-            t('maintenance.takePhoto', { defaultValue: 'Take Photo' }),
-            t('maintenance.chooseFromLibrary', { defaultValue: 'Choose from Library' }),
-          ],
-          cancelButtonIndex: 0,
+    showActionSheet(t('maintenance.addPhoto', { defaultValue: 'Add Photo' }), [
+      {
+        label: t('maintenance.takePhoto', { defaultValue: 'Take Photo' }),
+        onPress: async () => {
+          const uri = await takePhoto();
+          if (uri) handleUpload(uri);
         },
-        async (buttonIndex) => {
-          if (buttonIndex === 1) {
-            const uri = await takePhoto();
-            if (uri) handleUpload(uri);
-          } else if (buttonIndex === 2) {
-            const uri = await pickImage();
-            if (uri) handleUpload(uri);
-          }
+      },
+      {
+        label: t('maintenance.chooseFromLibrary', { defaultValue: 'Choose from Library' }),
+        onPress: async () => {
+          const uri = await pickImage();
+          if (uri) handleUpload(uri);
         },
-      );
-    } else {
-      Alert.alert(t('maintenance.addPhoto', { defaultValue: 'Add Photo' }), undefined, [
-        { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
-        {
-          text: t('maintenance.takePhoto', { defaultValue: 'Take Photo' }),
-          onPress: async () => {
-            const uri = await takePhoto();
-            if (uri) handleUpload(uri);
-          },
-        },
-        {
-          text: t('maintenance.chooseFromLibrary', { defaultValue: 'Choose from Library' }),
-          onPress: async () => {
-            const uri = await pickImage();
-            if (uri) handleUpload(uri);
-          },
-        },
-      ]);
-    }
+      },
+      {
+        label: t('common.cancel', { defaultValue: 'Cancel' }),
+        onPress: () => {},
+        style: 'cancel',
+      },
+    ]);
   };
 
   const handleDeletePhoto = (photo: Photo) => {

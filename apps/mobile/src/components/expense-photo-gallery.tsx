@@ -6,20 +6,12 @@ import { Image } from 'expo-image';
 import { Camera, Trash2, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActionSheetIOS,
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Platform,
-  Pressable,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Modal, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { gqlFetcher } from '../lib/graphql-client';
 import { pickImage, takePhoto, uploadExpensePhoto } from '../lib/image-upload';
 import { queryKeys } from '../lib/query-keys';
+import { showActionSheet } from '../utils/action-sheet';
 
 const MAX_PHOTOS = 3;
 
@@ -94,45 +86,27 @@ export function ExpensePhotoGallery({
 
   const showAddOptions = () => {
     haptic();
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: [
-            t('common.cancel', { defaultValue: 'Cancel' }),
-            t('expenses.takeReceiptPhoto', { defaultValue: 'Take Receipt Photo' }),
-            t('expenses.chooseFromLibrary', { defaultValue: 'Choose from Library' }),
-          ],
-          cancelButtonIndex: 0,
+    showActionSheet(t('expenses.addReceipt', { defaultValue: 'Add Receipt' }), [
+      {
+        label: t('expenses.takeReceiptPhoto', { defaultValue: 'Take Receipt Photo' }),
+        onPress: async () => {
+          const uri = await takePhoto();
+          if (uri) handleUpload(uri);
         },
-        async (buttonIndex) => {
-          if (buttonIndex === 1) {
-            const uri = await takePhoto();
-            if (uri) handleUpload(uri);
-          } else if (buttonIndex === 2) {
-            const uri = await pickImage();
-            if (uri) handleUpload(uri);
-          }
+      },
+      {
+        label: t('expenses.chooseFromLibrary', { defaultValue: 'Choose from Library' }),
+        onPress: async () => {
+          const uri = await pickImage();
+          if (uri) handleUpload(uri);
         },
-      );
-    } else {
-      Alert.alert(t('expenses.addReceipt', { defaultValue: 'Add Receipt' }), undefined, [
-        { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
-        {
-          text: t('expenses.takeReceiptPhoto', { defaultValue: 'Take Receipt Photo' }),
-          onPress: async () => {
-            const uri = await takePhoto();
-            if (uri) handleUpload(uri);
-          },
-        },
-        {
-          text: t('expenses.chooseFromLibrary', { defaultValue: 'Choose from Library' }),
-          onPress: async () => {
-            const uri = await pickImage();
-            if (uri) handleUpload(uri);
-          },
-        },
-      ]);
-    }
+      },
+      {
+        label: t('common.cancel', { defaultValue: 'Cancel' }),
+        onPress: () => {},
+        style: 'cancel',
+      },
+    ]);
   };
 
   const handleDeletePhoto = (photo: Photo) => {
