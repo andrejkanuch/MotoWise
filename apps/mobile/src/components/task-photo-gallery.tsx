@@ -162,7 +162,6 @@ export function TaskPhotoGallery({
               borderCurve: 'continuous',
               borderWidth: 1.5,
               borderColor: isDark ? palette.neutral600 : palette.neutral300,
-              borderStyle: 'dashed',
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',

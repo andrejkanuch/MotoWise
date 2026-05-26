@@ -2,6 +2,9 @@ import type { MeasurementSystem } from '@motovault/types';
 
 export const CARD_VARIANTS = {
   mapHero: 'mapHero',
+  mapSatellite: 'mapSatellite',
+  mapHybrid: 'mapHybrid',
+  map3D: 'map3D',
   editorialDark: 'editorialDark',
   pbSpotlight: 'pbSpotlight',
   routePrint: 'routePrint',
@@ -34,6 +37,8 @@ export type RideSharePayload = {
   maxSpeedMps: number | null;
   routeCoordinates: LngLat[];
   mapSnapshotUri: string | null;
+  /** Google-encoded polyline (lat/lng) for Mapbox Static Images API */
+  routePolyline: string | null;
   bikeName: string | null;
   measurementSystem: MeasurementSystem;
 } & PbInfo;
@@ -55,9 +60,18 @@ export type ShareResult =
 /** Returns the list of card variants available for this ride data */
 export function getAvailableVariants(payload: RideSharePayload): CardVariant[] {
   const variants: CardVariant[] = [];
+  const hasRoute = payload.routeCoordinates.length >= 2;
+  const hasPolyline = !!payload.routePolyline;
 
-  if (payload.mapSnapshotUri && payload.routeCoordinates.length >= 2) {
+  if (payload.mapSnapshotUri && hasRoute) {
     variants.push(CARD_VARIANTS.mapHero);
+  }
+
+  // Static map style cards — require encoded polyline for Mapbox Static Images API
+  if (hasPolyline) {
+    variants.push(CARD_VARIANTS.mapSatellite);
+    variants.push(CARD_VARIANTS.mapHybrid);
+    variants.push(CARD_VARIANTS.map3D);
   }
 
   variants.push(CARD_VARIANTS.editorialDark);
@@ -66,7 +80,7 @@ export function getAvailableVariants(payload: RideSharePayload): CardVariant[] {
     variants.push(CARD_VARIANTS.pbSpotlight);
   }
 
-  if (payload.routeCoordinates.length >= 2) {
+  if (hasRoute) {
     variants.push(CARD_VARIANTS.routePrint);
   }
 

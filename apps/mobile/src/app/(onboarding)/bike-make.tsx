@@ -464,7 +464,6 @@ export default function BikeMakeScreen() {
                           borderCurve: 'continuous',
                           backgroundColor: ONBOARDING_COLORS.surface,
                           borderWidth: 1,
-                          borderStyle: 'dashed',
                           borderColor: ONBOARDING_COLORS.line,
                           alignItems: 'center',
                           justifyContent: 'center',

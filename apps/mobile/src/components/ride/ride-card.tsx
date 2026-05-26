@@ -68,6 +68,7 @@ export const RideCard = memo(function RideCard({ ride, onPress, recordTypes }: R
           <RideMapThumbnail
             rideId={ride.id}
             routePolyline={ride.routePolyline}
+            routeThumbnailUri={ride.routeThumbnailUri}
             style={{ width: '100%', height: 156 }}
           />
         </View>
@@ -153,7 +154,6 @@ export const RideCard = memo(function RideCard({ ride, onPress, recordTypes }: R
               gap: 8,
               paddingTop: 8,
               borderTopWidth: 1,
-              borderStyle: 'dashed',
               borderTopColor: t.line,
               flexWrap: 'wrap',
             }}

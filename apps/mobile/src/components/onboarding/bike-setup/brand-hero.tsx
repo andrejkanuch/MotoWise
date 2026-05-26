@@ -227,7 +227,6 @@ function RegisteredStamp({
         backgroundColor: ONBOARDING_COLORS.surfaceOverlayMedium,
         borderWidth: 1,
         borderColor: ONBOARDING_COLORS.borderDashed,
-        borderStyle: 'dashed',
       }}
     >
       {/* Seal */}

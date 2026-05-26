@@ -745,7 +745,6 @@ export default function RidesScreen() {
             backgroundColor: theme.surface,
             borderWidth: 1,
             borderColor: theme.line2,
-            borderStyle: 'dashed',
             padding: 32,
             paddingHorizontal: 24,
             alignItems: 'center',

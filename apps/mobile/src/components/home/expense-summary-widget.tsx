@@ -178,7 +178,6 @@ function EmptyExpenseCard({ isDark }: { isDark: boolean }) {
       tier="subtle"
       style={{
         borderWidth: 1,
-        borderStyle: 'dashed',
         borderColor: isDark ? palette.neutral700 : palette.neutral200,
       }}
     >

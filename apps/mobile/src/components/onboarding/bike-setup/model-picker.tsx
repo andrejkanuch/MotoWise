@@ -222,7 +222,6 @@ export function ModelPicker({
             backgroundColor: `${color}1F`,
             borderWidth: 1,
             borderColor: color,
-            borderStyle: 'dashed',
             flexDirection: 'row',
             alignItems: 'center',
             gap: 10,

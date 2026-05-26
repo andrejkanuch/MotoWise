@@ -80,6 +80,8 @@ export default function RideDetailScreen() {
   const [showShareSheet, setShowShareSheet] = useState(false);
   const { heatmapGeoJSON } = useRideHeatmapData({ enabled: needsHeatmapOverlay(mapStyle) });
   const sheetRef = useRef<BottomSheet>(null);
+  const mapRef = useRef<MapboxGL.MapView>(null);
+  const [mapSnapshotUri, setMapSnapshotUri] = useState<string | null>(null);
   const snapPoints = useMemo(() => [100, '45%', '92%'], []);
 
   const { data: rideBundle, isLoading } = useQuery({
@@ -176,13 +178,22 @@ export default function RideDetailScreen() {
     }
   }, [ride?.routePolyline]);
 
-  const handleShare = useCallback(() => {
+  const handleShare = useCallback(async () => {
     if (!ride || !rideId) return;
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+    // Capture a map snapshot for the share card background
+    if (mapRef.current && !mapSnapshotUri) {
+      try {
+        const uri = await mapRef.current.takeSnap(true);
+        setMapSnapshotUri(uri);
+      } catch {
+        // Snapshot failed — proceed without map background
+      }
+    }
     setShowShareSheet(true);
-  }, [ride, rideId]);
+  }, [ride, rideId, mapSnapshotUri]);
 
   const sharePayload = useMemo<RideSharePayload | null>(() => {
     if (!ride || !rideId) return null;
@@ -201,14 +212,15 @@ export default function RideDetailScreen() {
         routeData?.geojson.features[0]?.geometry.type === 'LineString'
           ? (routeData.geojson.features[0].geometry.coordinates as [number, number][])
           : [],
-      mapSnapshotUri: null,
+      mapSnapshotUri,
+      routePolyline: ride.routePolyline ?? null,
       bikeName,
       measurementSystem: system,
       isPB: false,
       pbType: null,
       prevPbValue: null,
     };
-  }, [ride, rideId, waypoints, routeData, bikeName, system]);
+  }, [ride, rideId, waypoints, routeData, mapSnapshotUri, bikeName, system]);
 
   const handleDelete = useCallback(() => {
     if (!rideId) return;
@@ -335,6 +347,7 @@ export default function RideDetailScreen() {
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
           {routeData ? (
             <MapboxGL.MapView
+              ref={mapRef}
               style={{ flex: 1 }}
               styleURL={MAP_STYLES[mapStyle]}
               surfaceView={process.env.EXPO_OS !== 'android'}

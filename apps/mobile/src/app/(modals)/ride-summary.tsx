@@ -820,7 +820,6 @@ export default function RideSummaryScreen() {
                 borderRadius: 14,
                 borderCurve: 'continuous',
                 borderWidth: 1,
-                borderStyle: 'dashed',
                 borderColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(22,20,18,0.10)',
                 backgroundColor: 'transparent',
                 opacity: pressed ? 0.7 : 1,

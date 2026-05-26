@@ -165,7 +165,6 @@ export function GroupRideSection() {
               borderRadius: 16,
               borderCurve: 'continuous',
               borderWidth: 1,
-              borderStyle: 'dashed',
               borderColor: createBorder,
               backgroundColor: createBg,
               alignItems: 'center',

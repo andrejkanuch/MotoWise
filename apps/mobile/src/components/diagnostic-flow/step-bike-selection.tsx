@@ -1010,7 +1010,6 @@ export function StepBikeSelection() {
               alignItems: 'center',
               gap: 12,
               borderWidth: 2,
-              borderStyle: store.showManualForm ? 'solid' : 'dashed',
               borderColor: store.showManualForm ? colors.cardBorderSelected : colors.dontKnowBorder,
               backgroundColor: store.showManualForm ? colors.cardBgSelected : 'transparent',
               borderCurve: 'continuous',
