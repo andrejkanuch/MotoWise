@@ -77,12 +77,12 @@ import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
 import { clearPersistedQueryCache } from '../lib/query-persist';
 import { initRevenueCat, loginRevenueCat, logoutRevenueCat } from '../lib/subscription';
 import { supabase } from '../lib/supabase';
+import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
 import { useAuthStore } from '../stores/auth.store';
 import { useSubscriptionStore } from '../stores/subscription.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
 import { clearRideData, rideMMKV } from '../utils/ride-storage';
 import { clearAll as clearSyncQueue, drainQueue } from '../utils/ride-sync-queue';
-import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
 
 // Keep native splash visible until animated splash is ready
 SplashScreen.preventAutoHideAsync();
