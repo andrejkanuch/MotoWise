@@ -249,12 +249,10 @@ export async function syncWidgets(
         distance: distKm,
         distanceUnit: distUnit,
         duration: formatDuration(r.durationS),
-        durationUnit: 'h',
         avgSpeed: String(formatSpeedValue(avgSpeedMps, ms)),
         avgSpeedUnit: speedUnitLabel(ms),
         date: dateStr,
         dayLabel,
-        distanceLabel: `${distKm} ${distUnit}`,
         deepLink: `motovault:///ride/${r.id}`,
       });
     } else {
@@ -265,12 +263,10 @@ export async function syncWidgets(
         distance: '',
         distanceUnit: '',
         duration: '',
-        durationUnit: '',
         avgSpeed: '',
         avgSpeedUnit: '',
         date: '',
         dayLabel: '',
-        distanceLabel: '',
         deepLink: 'motovault:///',
       });
     }
@@ -398,12 +394,10 @@ export function clearAllWidgets(): void {
         distance: '',
         distanceUnit: '',
         duration: '',
-        durationUnit: '',
         avgSpeed: '',
         avgSpeedUnit: '',
         date: '',
         dayLabel: '',
-        distanceLabel: '',
         deepLink: '',
       });
       safeUpdate(rs.default, {
