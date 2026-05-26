@@ -1,5 +1,5 @@
-import type { MileageUnit } from '@motovault/types';
 import Slider from '@expo/ui/community/slider';
+import type { MileageUnit } from '@motovault/types';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, TextInput, View } from 'react-native';

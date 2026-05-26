@@ -1,6 +1,6 @@
-import { palette } from '@motovault/design-system';
 import { Host, Toggle } from '@expo/ui/swift-ui';
-import { tint as tintModifier, disabled as disabledModifier } from '@expo/ui/swift-ui/modifiers';
+import { disabled as disabledModifier, tint as tintModifier } from '@expo/ui/swift-ui/modifiers';
+import { palette } from '@motovault/design-system';
 import { useMemo } from 'react';
 import { Switch } from 'react-native';
 

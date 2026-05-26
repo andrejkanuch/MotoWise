@@ -60,9 +60,9 @@ import {
   trackScreen,
 } from '../lib/analytics';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
-import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
 import { gqlFetcher } from '../lib/graphql-client';
 import { captureMetaAttribution } from '../lib/meta-attribution';
+import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
 import {
   cancelAllNotifications,
   requestNotificationPermission,
