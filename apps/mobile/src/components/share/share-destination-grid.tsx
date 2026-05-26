@@ -1,16 +1,9 @@
 import { palette } from '@motovault/design-system';
-import { Copy, Download, MoreHorizontal } from 'lucide-react-native';
+import { Download } from 'lucide-react-native';
 import { memo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dimensions, Pressable, Text, View } from 'react-native';
-import Svg, {
-  Circle,
-  Defs,
-  LinearGradient,
-  Path,
-  RadialGradient,
-  Rect,
-  Stop,
-} from 'react-native-svg';
+import Svg, { Circle, Defs, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 import type { ShareDestination } from './share-card-types';
 
 interface ShareDestinationGridProps {
@@ -65,73 +58,23 @@ function InstagramDmIcon() {
   );
 }
 
-function WhatsAppIcon() {
-  return (
-    <Svg width={30} height={30} viewBox="0 0 30 30">
-      <Circle cx={15} cy={15} r={15} fill="#25D366" />
-      <Path
-        d="M 10.5 9.5 C 10.5 9.5 11.5 9 12.5 9.6 C 13.2 10 13.5 11.5 13.5 12.2 C 13.5 12.8 12.7 13.3 12.7 13.8 C 12.7 14.5 14 16 14.8 16.7 C 15.6 17.4 17 18.5 17.6 18.5 C 18.1 18.5 18.6 17.7 19.2 17.7 C 19.9 17.7 21.4 18 21.8 18.7 C 22.4 19.7 21.9 20.7 21.9 20.7 C 21.9 20.7 21.2 22 19.5 22 C 17.5 22 14.5 20.5 12.5 18.5 C 10.5 16.5 8.8 13.4 8.8 11.4 C 8.8 9.6 10.5 9.5 10.5 9.5 Z"
-        fill="#fff"
-      />
-    </Svg>
-  );
-}
-
-function MessagesIcon() {
-  return (
-    <Svg width={28} height={28} viewBox="0 0 28 28">
-      <Defs>
-        <LinearGradient id="msg" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0%" stopColor="#5BF675" />
-          <Stop offset="100%" stopColor="#3BD83D" />
-        </LinearGradient>
-      </Defs>
-      <Circle cx={14} cy={14} r={14} fill="url(#msg)" />
-      <Path
-        d="M 7 13 C 7 10 9.5 8.5 14 8.5 C 18.5 8.5 21 10 21 13 C 21 16 18.5 17.5 14 17.5 C 13.2 17.5 12.6 17.45 12.0 17.35 L 8.5 19 L 9.5 16.5 C 8 15.7 7 14.5 7 13 Z"
-        fill="#fff"
-      />
-    </Svg>
-  );
-}
-
-function MotoVaultIcon() {
-  return (
-    <Svg width={30} height={30} viewBox="0 0 30 30">
-      <Defs>
-        <LinearGradient id="mv" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0%" stopColor="#3a342a" />
-          <Stop offset="100%" stopColor="#1f1c18" />
-        </LinearGradient>
-      </Defs>
-      <Circle cx={15} cy={15} r={15} fill="url(#mv)" />
-      <Path
-        d="M8 19 L10 12 L13 17 L15 11 L17 17 L20 12 L22 19"
-        fill="none"
-        stroke={palette.shareCopperSoft}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
+type DestinationI18nKey =
+  | 'shareSheet.instagramStory'
+  | 'shareSheet.instagramMessages'
+  | 'shareSheet.saveImage';
 
 type DestinationItem = {
   id: ShareDestination;
-  label: string;
+  i18nKey: DestinationI18nKey;
   icon: React.ReactNode;
 };
 
 const DESTINATIONS: DestinationItem[] = [
-  { id: 'instagramStory', label: 'Instagram\nStory', icon: <InstagramIcon /> },
-  { id: 'instagramMessages', label: 'Instagram\nMessages', icon: <InstagramDmIcon /> },
-  { id: 'whatsapp', label: 'WhatsApp', icon: <WhatsAppIcon /> },
-  { id: 'message', label: 'Message', icon: <MessagesIcon /> },
-  { id: 'motovaultDm', label: 'MotoVault\nDM', icon: <MotoVaultIcon /> },
+  { id: 'instagramStory', i18nKey: 'shareSheet.instagramStory', icon: <InstagramIcon /> },
+  { id: 'instagramMessages', i18nKey: 'shareSheet.instagramMessages', icon: <InstagramDmIcon /> },
   {
     id: 'saveImage',
-    label: 'Save image',
+    i18nKey: 'shareSheet.saveImage',
     icon: (
       <View
         style={{
@@ -147,48 +90,14 @@ const DESTINATIONS: DestinationItem[] = [
       </View>
     ),
   },
-  {
-    id: 'copyLink',
-    label: 'Copy link',
-    icon: (
-      <View
-        style={{
-          width: 50,
-          height: 50,
-          borderRadius: 999,
-          backgroundColor: 'rgba(255,255,255,0.10)',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Copy size={22} color="#fff" />
-      </View>
-    ),
-  },
-  {
-    id: 'systemShare',
-    label: 'More',
-    icon: (
-      <View
-        style={{
-          width: 50,
-          height: 50,
-          borderRadius: 999,
-          backgroundColor: 'rgba(255,255,255,0.10)',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <MoreHorizontal size={22} color="#fff" />
-      </View>
-    ),
-  },
 ];
 
 export const ShareDestinationGrid = memo(function ShareDestinationGrid({
   disabled,
   onDestinationPress,
 }: ShareDestinationGridProps) {
+  const { t } = useTranslation();
+
   return (
     <View>
       <Text
@@ -202,7 +111,7 @@ export const ShareDestinationGrid = memo(function ShareDestinationGrid({
           paddingBottom: 12,
         }}
       >
-        Share to
+        {t('shareSheet.shareTo')}
       </Text>
       <View
         style={{
@@ -236,16 +145,17 @@ const DestinationButton = memo(function DestinationButton({
   disabled: boolean;
   onPress: (id: ShareDestination) => void;
 }) {
+  const { t } = useTranslation();
   const handlePress = useCallback(() => onPress(item.id), [item.id, onPress]);
 
-  // Each cell is 1/5 of the grid width minus padding
-  const cellWidth = (Dimensions.get('window').width - 24 - 16) / 5;
+  // Each cell is 1/3 of the grid width minus padding
+  const cellWidth = (Dimensions.get('window').width - 24 - 16) / 3;
 
   return (
     <Pressable
       onPress={handlePress}
       disabled={disabled}
-      accessibilityLabel={`Share to ${item.label.replace('\n', ' ')}`}
+      accessibilityLabel={`${t('shareSheet.shareTo')} ${t(item.i18nKey).replace('\n', ' ')}`}
       accessibilityRole="button"
       style={{
         width: cellWidth,
@@ -268,7 +178,7 @@ const DestinationButton = memo(function DestinationButton({
           maxWidth: 64,
         }}
       >
-        {item.label}
+        {t(item.i18nKey)}
       </Text>
     </Pressable>
   );

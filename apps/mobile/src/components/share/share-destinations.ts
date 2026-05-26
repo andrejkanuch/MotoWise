@@ -1,8 +1,9 @@
-import * as Clipboard from 'expo-clipboard';
+import { File } from 'expo-file-system';
 import * as Haptics from 'expo-haptics';
 import * as MediaLibrary from 'expo-media-library';
-import * as Sharing from 'expo-sharing';
 import { Alert, Linking } from 'react-native';
+import RNShare, { Social } from 'react-native-share';
+import i18n from '../../i18n';
 import type { ShareDestination, ShareResult } from './share-card-types';
 
 function buildDeepLink(rideId: string): string {
@@ -17,116 +18,85 @@ async function checkCanOpen(scheme: string): Promise<boolean> {
   }
 }
 
-// ── Instagram Story ─────────────────────────────────────────────────────────
-
-async function shareToInstagramStory(imageUri: string, _deepLink: string): Promise<ShareResult> {
-  const canOpen = await checkCanOpen('instagram-stories://share');
-  if (!canOpen) {
-    return new Promise((resolve) => {
-      Alert.alert('Instagram not installed', 'Install Instagram to share stories.', [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-          onPress: () => resolve({ success: false, reason: 'unavailable' }),
-        },
-        {
-          text: 'App Store',
-          onPress: () => {
-            Linking.openURL('https://apps.apple.com/app/instagram/id389801252');
-            resolve({ success: false, reason: 'unavailable' });
-          },
-        },
-      ]);
-    });
-  }
-
+function showInstallAlert(
+  title: string,
+  message: string,
+  appStoreUrl: string,
+): Promise<ShareResult> {
   return new Promise((resolve) => {
-    Alert.alert('Open in "Instagram"?', '"MotoVault" will share your ride card to Instagram.', [
+    Alert.alert(title, message, [
       {
-        text: 'Cancel',
+        text: i18n.t('shareSheet.cancel'),
         style: 'cancel',
-        onPress: () => resolve({ success: false, reason: 'cancelled' }),
+        onPress: () => resolve({ success: false, reason: 'unavailable' }),
       },
       {
-        text: 'Open',
-        isPreferred: true,
-        onPress: async () => {
-          try {
-            await Sharing.shareAsync(imageUri, { mimeType: 'image/png', UTI: 'public.png' });
-            resolve({ success: true });
-          } catch {
-            resolve({
-              success: false,
-              reason: 'error',
-              message: 'Failed to share to Instagram Story',
-            });
-          }
+        text: i18n.t('shareSheet.appStore'),
+        onPress: () => {
+          Linking.openURL(appStoreUrl);
+          resolve({ success: false, reason: 'unavailable' });
         },
       },
     ]);
   });
 }
 
+/** Convert a file URI to a base64 data URI for react-native-share compatibility */
+async function toBase64DataUri(fileUri: string): Promise<string> {
+  const file = new File(fileUri);
+  const base64 = await file.base64();
+  return `data:image/png;base64,${base64}`;
+}
+
+// ── Instagram Story ─────────────────────────────────────────────────────────
+
+async function shareToInstagramStory(imageUri: string, deepLink: string): Promise<ShareResult> {
+  const canOpen = await checkCanOpen('instagram-stories://share');
+  if (!canOpen) {
+    return showInstallAlert(
+      i18n.t('shareSheet.instagramNotInstalled'),
+      i18n.t('shareSheet.installInstagram'),
+      'https://apps.apple.com/app/instagram/id389801252',
+    );
+  }
+
+  try {
+    const dataUri = await toBase64DataUri(imageUri);
+    await RNShare.shareSingle({
+      social: Social.InstagramStories,
+      appId: 'motovault',
+      backgroundImage: dataUri,
+      attributionURL: deepLink,
+    });
+    return { success: true };
+  } catch {
+    return { success: false, reason: 'cancelled' };
+  }
+}
+
 // ── Instagram Messages ──────────────────────────────────────────────────────
 
 async function shareToInstagramMessages(imageUri: string, _deepLink: string): Promise<ShareResult> {
-  try {
-    await Sharing.shareAsync(imageUri, { mimeType: 'image/png', UTI: 'public.png' });
-    return { success: true };
-  } catch {
-    return { success: false, reason: 'cancelled' };
-  }
-}
-
-// ── WhatsApp ────────────────────────────────────────────────────────────────
-
-async function shareToWhatsApp(imageUri: string, _deepLink: string): Promise<ShareResult> {
-  const canOpen = await checkCanOpen('whatsapp://send');
+  const canOpen = await checkCanOpen('instagram://');
   if (!canOpen) {
-    return new Promise((resolve) => {
-      Alert.alert('WhatsApp not installed', 'Install WhatsApp to share.', [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-          onPress: () => resolve({ success: false, reason: 'unavailable' }),
-        },
-        {
-          text: 'App Store',
-          onPress: () => {
-            Linking.openURL('https://apps.apple.com/app/whatsapp-messenger/id310633997');
-            resolve({ success: false, reason: 'unavailable' });
-          },
-        },
-      ]);
+    return showInstallAlert(
+      i18n.t('shareSheet.instagramNotInstalled'),
+      i18n.t('shareSheet.installInstagram'),
+      'https://apps.apple.com/app/instagram/id389801252',
+    );
+  }
+
+  try {
+    const dataUri = await toBase64DataUri(imageUri);
+    await RNShare.shareSingle({
+      social: Social.Instagram,
+      url: dataUri,
+      type: 'image/png',
     });
-  }
-
-  try {
-    await Sharing.shareAsync(imageUri, { mimeType: 'image/png', UTI: 'public.png' });
     return { success: true };
   } catch {
     return { success: false, reason: 'cancelled' };
   }
-}
-
-// ── iMessage ────────────────────────────────────────────────────────────────
-
-async function shareToMessage(imageUri: string, _deepLink: string): Promise<ShareResult> {
-  try {
-    await Sharing.shareAsync(imageUri, { mimeType: 'image/png', UTI: 'public.png' });
-    return { success: true };
-  } catch {
-    return { success: false, reason: 'cancelled' };
-  }
-}
-
-// ── MotoVault DM (stub) ─────────────────────────────────────────────────────
-
-async function shareToMotovaultDm(_imageUri: string, _deepLink: string): Promise<ShareResult> {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-  }
-  return { success: false, reason: 'unavailable', message: 'Coming soon' };
 }
 
 // ── Save Image ──────────────────────────────────────────────────────────────
@@ -141,20 +111,24 @@ async function saveImage(imageUri: string, _deepLink: string): Promise<ShareResu
     }
     if (status !== 'granted') {
       return new Promise((resolve) => {
-        Alert.alert('Photos access needed', 'Open Settings to allow MotoVault to save images.', [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-            onPress: () => resolve({ success: false, reason: 'denied' }),
-          },
-          {
-            text: 'Open Settings',
-            onPress: () => {
-              Linking.openSettings();
-              resolve({ success: false, reason: 'denied' });
+        Alert.alert(
+          i18n.t('shareSheet.photosAccessNeeded'),
+          i18n.t('shareSheet.openSettingsForPhotos'),
+          [
+            {
+              text: i18n.t('shareSheet.cancel'),
+              style: 'cancel',
+              onPress: () => resolve({ success: false, reason: 'denied' }),
             },
-          },
-        ]);
+            {
+              text: i18n.t('shareSheet.openSettings'),
+              onPress: () => {
+                Linking.openSettings();
+                resolve({ success: false, reason: 'denied' });
+              },
+            },
+          ],
+        );
       });
     }
   }
@@ -166,32 +140,7 @@ async function saveImage(imageUri: string, _deepLink: string): Promise<ShareResu
     }
     return { success: true };
   } catch {
-    return { success: false, reason: 'error', message: 'Failed to save image' };
-  }
-}
-
-// ── Copy Link ───────────────────────────────────────────────────────────────
-
-async function copyLink(_imageUri: string, deepLink: string): Promise<ShareResult> {
-  try {
-    await Clipboard.setStringAsync(deepLink);
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    return { success: true };
-  } catch {
-    return { success: false, reason: 'error', message: 'Failed to copy link' };
-  }
-}
-
-// ── System Share (More) ─────────────────────────────────────────────────────
-
-async function shareToSystem(imageUri: string, _deepLink: string): Promise<ShareResult> {
-  try {
-    await Sharing.shareAsync(imageUri, { mimeType: 'image/png', UTI: 'public.png' });
-    return { success: true };
-  } catch {
-    return { success: false, reason: 'cancelled' };
+    return { success: false, reason: 'error', message: i18n.t('shareSheet.saveImageFailed') };
   }
 }
 
@@ -202,12 +151,7 @@ type DestinationHandler = (imageUri: string, deepLink: string) => Promise<ShareR
 const HANDLERS: Record<ShareDestination, DestinationHandler> = {
   instagramStory: shareToInstagramStory,
   instagramMessages: shareToInstagramMessages,
-  whatsapp: shareToWhatsApp,
-  message: shareToMessage,
-  motovaultDm: shareToMotovaultDm,
   saveImage,
-  copyLink,
-  systemShare: shareToSystem,
 };
 
 /** Execute the share handler for a destination. Returns structured result. */
@@ -223,9 +167,7 @@ export async function executeShareDestination(
 
 /** Toast messages for each destination result */
 export function getToastMessage(destination: ShareDestination, result: ShareResult): string | null {
-  if (destination === 'copyLink' && result.success) return 'Link copied';
-  if (destination === 'saveImage' && result.success) return 'Image saved';
-  if (destination === 'motovaultDm') return 'Coming soon';
+  if (destination === 'saveImage' && result.success) return i18n.t('shareSheet.imageSaved');
   if (!result.success && result.reason === 'error' && result.message) return result.message;
   return null;
 }
