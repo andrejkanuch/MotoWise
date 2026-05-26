@@ -16,12 +16,10 @@ type LastRideWidgetProps = {
   distance: string;
   distanceUnit: string;
   duration: string;
-  durationUnit: string;
   avgSpeed: string;
   avgSpeedUnit: string;
   date: string;
   dayLabel: string;
-  distanceLabel: string;
   deepLink: string;
 };
 
@@ -55,20 +53,10 @@ function LastRideWidget(props: LastRideWidgetProps, _env: WidgetEnvironment) {
         widgetURL(props.deepLink),
       ]}
     >
-      {/* Left: date badge area */}
-      <VStack modifiers={[frame({ width: 100, maxHeight: 99999 }), padding({ all: 14 })]}>
+      {/* Left: date */}
+      <VStack modifiers={[frame({ width: 90, maxHeight: 99999 }), padding({ all: 14 })]}>
         <Spacer />
-        <RoundedRectangle
-          cornerRadius={8}
-          modifiers={[frame({ height: 26 }), foregroundStyle('rgba(44,40,36,0.08)')]}
-        />
-        <Text
-          modifiers={[
-            font({ size: 10, weight: 'bold' }),
-            foregroundStyle('#2c2824'),
-            padding({ top: -22 }),
-          ]}
-        >
+        <Text modifiers={[font({ size: 11, weight: 'bold' }), foregroundStyle('#8e8880')]}>
           {props.date}
         </Text>
         <Spacer />
@@ -138,16 +126,9 @@ function LastRideWidget(props: LastRideWidgetProps, _env: WidgetEnvironment) {
             <Text modifiers={[font({ size: 9, weight: 'bold' }), foregroundStyle('#8e8880')]}>
               TIME
             </Text>
-            <HStack>
-              <Text
-                modifiers={[font({ size: 17, weight: 'semibold' }), foregroundStyle('#2c2824')]}
-              >
-                {props.duration}
-              </Text>
-              <Text modifiers={[font({ size: 9, weight: 'medium' }), foregroundStyle('#8e8880')]}>
-                h
-              </Text>
-            </HStack>
+            <Text modifiers={[font({ size: 17, weight: 'semibold' }), foregroundStyle('#2c2824')]}>
+              {props.duration}
+            </Text>
           </VStack>
 
           <VStack>
