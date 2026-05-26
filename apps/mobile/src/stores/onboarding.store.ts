@@ -10,18 +10,10 @@ import type {
   RidingFrequency,
   RidingGoal,
 } from '@motovault/types';
-import { createMMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { OnboardingRoute } from '../config/onboarding';
-
-const mmkv = createMMKV({ id: 'onboarding-store' });
-
-const mmkvStorage = {
-  getItem: (key: string) => mmkv.getString(key) ?? null,
-  setItem: (key: string, value: string) => mmkv.set(key, value),
-  removeItem: (key: string) => mmkv.remove(key),
-};
+import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 
 interface BikeData {
   year: number;
@@ -113,7 +105,7 @@ export const useOnboardingStore = create<OnboardingState>()(
     {
       name: 'onboarding-state',
       version: 5,
-      storage: createJSONStorage(() => mmkvStorage),
+      storage: createJSONStorage(() => createZustandMMKVStorage('onboarding-store')),
       partialize: ({
         setExperienceLevel,
         setBikeData,

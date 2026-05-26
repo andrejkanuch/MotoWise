@@ -6,7 +6,7 @@ import { memo } from 'react';
 import { ActivityIndicator, Modal, Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useGpxExport } from '../hooks/use-gpx-export';
-import { useProGate } from '../hooks/useProGate';
+import { useProGate } from '../hooks/use-pro-gate';
 import { gqlFetcher } from '../lib/graphql-client';
 import { queryKeys } from '../lib/query-keys';
 

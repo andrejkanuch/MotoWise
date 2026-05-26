@@ -6,7 +6,6 @@
 import * as Haptics from 'expo-haptics';
 import type { ReactNode } from 'react';
 import {
-  Platform,
   Pressable,
   type StyleProp,
   Text,
@@ -53,7 +52,7 @@ export function ECard({
   const wrapped = onPress ? (
     <Pressable
       onPress={() => {
-        if (Platform.OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress();
       }}
     >
@@ -106,7 +105,7 @@ export function EButton({
   return (
     <Pressable
       onPress={() => {
-        if (Platform.OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress?.();
       }}
       style={[

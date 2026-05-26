@@ -29,11 +29,9 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ActionSheetIOS,
   ActivityIndicator,
   Alert,
   Modal,
-  Platform,
   Pressable,
   ScrollView as RNScrollView,
   Text,
@@ -59,6 +57,7 @@ import { userFriendlyError } from '../../lib/graphql-errors';
 import { queryKeys } from '../../lib/query-keys';
 import { maybeRequestReview } from '../../lib/store-review';
 import { tint, useEditorialTheme } from '../../theme/editorial';
+import { showActionSheet } from '../../utils/action-sheet';
 import {
   cycleMapStyle as cycleMapStyleFn,
   getDefaultMapStyle,
@@ -741,36 +740,21 @@ export default function CreateTripScreen() {
         (_, i) => `Day ${i + 1} — ${formatDayDate(startDate, i)}`,
       );
 
-      if (Platform.OS === 'ios') {
-        ActionSheetIOS.showActionSheetWithOptions(
-          {
-            options: [...dayOptions, 'Cancel'],
-            cancelButtonIndex: dayOptions.length,
-            title: 'Move to Day',
-          },
-          (buttonIndex) => {
-            if (buttonIndex < dayOptions.length) {
-              setWaypoints((prev) =>
-                prev.map((wp) => (wp.id === waypointId ? { ...wp, dayIndex: buttonIndex } : wp)),
-              );
-              if (process.env.EXPO_OS === 'ios')
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            }
-          },
-        );
-      } else {
-        Alert.alert('Move to Day', 'Select a day for this stop', [
+      showActionSheet(
+        'Move to Day',
+        [
           ...dayOptions.map((label, i) => ({
-            text: label,
+            label,
             onPress: () => {
               setWaypoints((prev) =>
                 prev.map((wp) => (wp.id === waypointId ? { ...wp, dayIndex: i } : wp)),
               );
             },
           })),
-          { text: 'Cancel', style: 'cancel' as const },
-        ]);
-      }
+          { label: 'Cancel', onPress: () => {}, style: 'cancel' as const },
+        ],
+        'Select a day for this stop',
+      );
     },
     [numDays, startDate],
   );
@@ -1258,7 +1242,7 @@ export default function CreateTripScreen() {
                         >
                           Start Date
                         </Text>
-                        {Platform.OS === 'android' ? (
+                        {process.env.EXPO_OS === 'android' ? (
                           <>
                             <Pressable
                               onPress={() => setShowStartPicker(true)}
@@ -1326,7 +1310,7 @@ export default function CreateTripScreen() {
                         >
                           End Date
                         </Text>
-                        {Platform.OS === 'android' ? (
+                        {process.env.EXPO_OS === 'android' ? (
                           <>
                             <Pressable
                               onPress={() => setShowEndPicker(true)}

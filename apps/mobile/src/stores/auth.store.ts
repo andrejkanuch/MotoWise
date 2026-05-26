@@ -1,19 +1,10 @@
 import type { Currency, MeasurementSystem, SupportedLocale } from '@motovault/types';
 import type { Session } from '@supabase/supabase-js';
 import { getLocales } from 'expo-localization';
-import { createMMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-
-const mmkv = createMMKV({ id: 'auth-preferences' });
-
-const mmkvStorage = {
-  getItem: (key: string) => mmkv.getString(key) ?? null,
-  setItem: (key: string, value: string) => mmkv.set(key, value),
-  removeItem: (key: string) => mmkv.remove(key),
-};
-
 import i18n from '../i18n';
+import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 
 type ColorScheme = 'system' | 'light' | 'dark';
 
@@ -69,7 +60,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-preferences',
-      storage: createJSONStorage(() => mmkvStorage),
+      storage: createJSONStorage(() => createZustandMMKVStorage('auth-preferences')),
       partialize: (state) => ({
         locale: state.locale,
         colorScheme: state.colorScheme,

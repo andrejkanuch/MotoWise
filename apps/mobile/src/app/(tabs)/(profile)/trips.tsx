@@ -17,7 +17,6 @@ import type { ComponentType } from 'react';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ActionSheetIOS,
   ActivityIndicator,
   Alert,
   FlatList,
@@ -34,6 +33,7 @@ import { Avatar } from '../../../components/ui/avatar';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { showActionSheet } from '../../../utils/action-sheet';
 import { triggerImpact } from '../../../utils/haptics';
 import { computeTripCompleteness } from '../../../utils/trip-completeness';
 
@@ -362,9 +362,6 @@ export default function MyTripsScreen() {
         trip.status === 'draft'
           ? [t('trips.continueEditing'), t('trips.deleteDraft'), t('common.cancel')]
           : [t('trips.share'), t('trips.edit'), t('trips.deleteTrip'), t('common.cancel')];
-      const destructiveIndex = trip.status === 'draft' ? 1 : 2;
-      const cancelIndex = options.length - 1;
-
       const confirmDelete = () => {
         Alert.alert(
           trip.status === 'draft' ? t('trips.confirmDeleteDraft') : t('trips.confirmDeleteTrip'),
@@ -382,31 +379,31 @@ export default function MyTripsScreen() {
         );
       };
 
-      if (process.env.EXPO_OS === 'ios') {
-        ActionSheetIOS.showActionSheetWithOptions(
-          {
-            options,
-            destructiveButtonIndex: destructiveIndex,
-            cancelButtonIndex: cancelIndex,
-            title: trip.title || t('trips.untitledTrip'),
-          },
-          (i) => {
-            if (trip.status === 'draft') {
-              if (i === 0) handleTripPress(trip);
-              else if (i === 1) confirmDelete();
-            } else {
-              if (i === 0) {
-                Share.share({
-                  message: t('trips.shareMessage', { title: trip.title }),
-                });
-              } else if (i === 1) {
-                router.push({ pathname: '/(modals)/create-trip', params: { tripId: trip.id } });
-              } else if (i === 2) confirmDelete();
-            }
-          },
-        );
+      if (trip.status === 'draft') {
+        showActionSheet(trip.title || t('trips.untitledTrip'), [
+          { label: options[0], onPress: () => handleTripPress(trip) },
+          { label: options[1], onPress: confirmDelete, style: 'destructive' },
+          { label: options[2], onPress: () => {}, style: 'cancel' },
+        ]);
       } else {
-        confirmDelete();
+        showActionSheet(trip.title || t('trips.untitledTrip'), [
+          {
+            label: options[0],
+            onPress: () => {
+              Share.share({
+                message: t('trips.shareMessage', { title: trip.title }),
+              });
+            },
+          },
+          {
+            label: options[1],
+            onPress: () => {
+              router.push({ pathname: '/(modals)/create-trip', params: { tripId: trip.id } });
+            },
+          },
+          { label: options[2], onPress: confirmDelete, style: 'destructive' },
+          { label: options[3], onPress: () => {}, style: 'cancel' },
+        ]);
       }
     },
     [deleteMutation, handleTripPress, router, t],

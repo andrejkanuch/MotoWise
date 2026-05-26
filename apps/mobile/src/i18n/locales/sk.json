@@ -1411,7 +1411,9 @@
       "flyoverTitle": "3D prelet",
       "flyoverDesc": "Prehraj si akúkoľvek jazdu ako filmový satelitný prelet s terénom, prevýšením a plynulou animáciou kamery.",
       "shareTitle": "Zdieľaj svoje jazdy",
-      "shareDesc": "Vytvor krásne vizuálne karty svojich jázd a zdieľaj ich kdekoľvek — Instagram, WhatsApp alebo ulož do galérie."
+      "shareDesc": "Vytvor krásne vizuálne karty svojich jázd a zdieľaj ich kdekoľvek — Instagram, WhatsApp alebo ulož do galérie.",
+      "widgetsTitle": "Widgety na obrazovke",
+      "widgetsDesc": "Ďalší servis, výdavky, posledná jazda a týždenné štatistiky — priamo na domovskej obrazovke a zamknutej obrazovke. Bez otvárania aplikácie."
     },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",

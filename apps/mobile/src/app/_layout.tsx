@@ -79,6 +79,7 @@ import { useSubscriptionStore } from '../stores/subscription.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
 import { clearRideData, rideMMKV } from '../utils/ride-storage';
 import { clearAll as clearSyncQueue, drainQueue } from '../utils/ride-sync-queue';
+import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
 
 // Keep native splash visible until animated splash is ready
 SplashScreen.preventAutoHideAsync();
@@ -342,6 +343,7 @@ export default function RootLayout() {
         const activeRideId = rideMMKV.getCurrentId();
         if (activeRideId) clearRideData(activeRideId);
         cancelAllNotifications();
+        clearAllWidgets();
       }
     });
 
@@ -422,7 +424,11 @@ export default function RootLayout() {
     let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
     const appSub = AppState.addEventListener('change', (state: string) => {
-      if (state === 'active') drainQueue();
+      if (state === 'active') {
+        drainQueue();
+        // Delay widget sync to let TanStack Query refetches settle, then read from cache
+        setTimeout(() => syncWidgets(), 3000);
+      }
     });
     const netSub = Network.addNetworkStateListener((state) => {
       if (state.isConnected && state.isInternetReachable) {

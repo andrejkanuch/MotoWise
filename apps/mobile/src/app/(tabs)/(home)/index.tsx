@@ -1,4 +1,6 @@
+import SegmentedControl from '@expo/ui/community/segmented-control';
 import { palette } from '@motovault/design-system';
+import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, DollarSign, MapPin, Sparkles, WifiOff, Wrench } from 'lucide-react-native';
@@ -10,7 +12,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BikeSwitcher } from '../../../components/home/bike-switcher';
 import { EmptyState } from '../../../components/home/empty-state';
 import { FocusHistory } from '../../../components/home/focus-history';
-import { FocusPicker, type FocusTab } from '../../../components/home/focus-picker';
 import { FocusStats } from '../../../components/home/focus-stats';
 import { OnboardingChecklist } from '../../../components/home/onboarding-checklist';
 import { useHomeData } from '../../../components/home/use-home-data';
@@ -18,6 +19,9 @@ import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
 import { ECard, ESectionMasthead } from '../../../components/ui/editorial';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
+
+type FocusTab = 'stats' | 'trip' | 'history';
+const FOCUS_TABS: FocusTab[] = ['stats', 'trip', 'history'];
 
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -878,7 +882,21 @@ export default function HomeScreen() {
         {/* 8. Focus picker — rotating lens: stats / trip / history */}
         {hasMotorcycles && (
           <View style={{ paddingHorizontal: 16, marginBottom: 22 }}>
-            <FocusPicker active={focusTab} onSelect={setFocusTab} />
+            <SegmentedControl
+              values={[
+                t('home.focusThisMonth'),
+                t('home.focusUpcomingTrip'),
+                t('home.focusRideHistory'),
+              ]}
+              selectedIndex={FOCUS_TABS.indexOf(focusTab)}
+              onChange={(e) => {
+                const idx = e.nativeEvent.selectedSegmentIndex;
+                setFocusTab(FOCUS_TABS[idx]);
+                if (process.env.EXPO_OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+              }}
+            />
             <View style={{ marginTop: 12 }}>
               {focusTab === 'stats' && <FocusStats recentRides={recentRides} />}
               {focusTab === 'history' && <FocusHistory rides={recentRides} />}

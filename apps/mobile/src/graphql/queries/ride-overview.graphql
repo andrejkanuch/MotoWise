@@ -13,6 +13,16 @@ query RideOverview {
       distanceM
       durationS
     }
+    thisWeek {
+      rideCount
+      distanceM
+      durationS
+    }
+    thisMonth {
+      rideCount
+      distanceM
+      durationS
+    }
     currentStreak
     personalRecords {
       recordType

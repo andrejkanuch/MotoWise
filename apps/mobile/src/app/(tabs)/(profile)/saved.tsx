@@ -5,7 +5,6 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, Bookmark, Compass, Mountain, Route, Star } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
 import {
-  ActionSheetIOS,
   ActivityIndicator,
   FlatList,
   Pressable,
@@ -20,6 +19,7 @@ import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { showActionSheet } from '../../../utils/action-sheet';
 import { triggerImpact } from '../../../utils/haptics';
 import { formatDistance } from '../../../utils/ride-formatters';
 
@@ -192,30 +192,25 @@ export default function SavedScreen() {
 
   const handleLongPress = useCallback(
     (trip: SavedTripNode) => {
-      if (process.env.EXPO_OS === 'ios') {
-        ActionSheetIOS.showActionSheetWithOptions(
-          {
-            options: ['Share Trip', 'Remove from Saved', 'Cancel'],
-            destructiveButtonIndex: 1,
-            cancelButtonIndex: 2,
-            title: trip.title,
+      showActionSheet(trip.title, [
+        {
+          label: 'Share Trip',
+          onPress: () => {
+            Share.share({
+              message: `Check out this trip on MotoVault: ${trip.title}`,
+            });
           },
-          (buttonIndex) => {
-            if (buttonIndex === 0) {
-              Share.share({
-                message: `Check out this trip on MotoVault: ${trip.title}`,
-              });
-            } else if (buttonIndex === 1) {
-              triggerImpact();
-              unsaveMutation.mutate(trip.id);
-            }
+        },
+        {
+          label: 'Remove from Saved',
+          onPress: () => {
+            triggerImpact();
+            unsaveMutation.mutate(trip.id);
           },
-        );
-      } else {
-        // Android fallback: just unsave for now
-        triggerImpact();
-        unsaveMutation.mutate(trip.id);
-      }
+          style: 'destructive',
+        },
+        { label: 'Cancel', onPress: () => {}, style: 'cancel' },
+      ]);
     },
     [unsaveMutation],
   );

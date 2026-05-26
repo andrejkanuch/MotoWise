@@ -14,7 +14,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: getAppName(),
   slug: 'motowise',
   description: 'AI-powered motorcycle maintenance, diagnostics & expense tracking',
-  version: '3.7.0',
+  version: '3.8.0',
   orientation: 'portrait',
   icon: './src/assets/images/MotoVault.png',
   userInterfaceStyle: 'automatic',
@@ -106,6 +106,39 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     './plugins/remove-activity-recognition',
     [
+      'expo-widgets',
+      {
+        bundleIdentifier: 'com.motovault.app.widgets',
+        groupIdentifier: 'group.com.motovault.app',
+        widgets: [
+          {
+            name: 'NextServiceWidget',
+            displayName: 'Next Service',
+            description: 'Shows your next upcoming maintenance task',
+            supportedFamilies: ['systemSmall', 'accessoryRectangular'],
+          },
+          {
+            name: 'ExpenseTrackerWidget',
+            displayName: 'Expenses',
+            description: 'Shows your monthly motorcycle expenses',
+            supportedFamilies: ['systemSmall'],
+          },
+          {
+            name: 'LastRideWidget',
+            displayName: 'Last Ride',
+            description: 'Shows your most recent ride stats',
+            supportedFamilies: ['systemMedium'],
+          },
+          {
+            name: 'RideStatsWidget',
+            displayName: 'Ride Stats',
+            description: 'Shows your weekly and monthly riding distance',
+            supportedFamilies: ['systemMedium'],
+          },
+        ],
+      },
+    ],
+    [
       'expo-build-properties',
       {
         android: {
@@ -125,6 +158,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: 'com.motovault.app',
     supportsTablet: true,
     usesAppleSignIn: true,
+    entitlements: {
+      'com.apple.security.application-groups': ['group.com.motovault.app'],
+    },
     associatedDomains: ['applinks:motovault.app', 'applinks:www.motovault.app'],
     icon: {
       light: './src/assets/images/MotoVault.png',

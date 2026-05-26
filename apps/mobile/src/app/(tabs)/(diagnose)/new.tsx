@@ -23,7 +23,7 @@ import { StepBikeSelection } from '../../../components/diagnostic-flow/step-bike
 import { StepPhotoDetails } from '../../../components/diagnostic-flow/step-photo-details';
 import { StepProblemDescription } from '../../../components/diagnostic-flow/step-problem-description';
 import { StepReviewSubmit } from '../../../components/diagnostic-flow/step-review-submit';
-import { useProGate } from '../../../hooks/useProGate';
+import { useProGate } from '../../../hooks/use-pro-gate';
 import { AnalyticsEvent, trackEvent, trackEventWithSurvey } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { MetaAnalytics } from '../../../lib/meta-analytics';

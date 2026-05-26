@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { BarChart3, Bell, Compass } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Platform, Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import Animated, {
   FadeInUp,
   useAnimatedStyle,
@@ -203,7 +203,7 @@ export default function NotificationsScreen() {
     });
     const granted = status === 'granted';
 
-    if (granted && Platform.OS === 'android') {
+    if (granted && process.env.EXPO_OS === 'android') {
       await setupNotificationChannels();
     }
 

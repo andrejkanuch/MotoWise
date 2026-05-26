@@ -13,7 +13,6 @@ import { useMemo } from 'react';
 import {
   ActivityIndicator,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -248,7 +247,7 @@ export function RideThisSheet({
       : 'Hand the route off to the app you ride with.';
 
   const visibleProviders = useMemo(
-    () => PROVIDER_ORDER.filter((p) => (p === 'apple' ? Platform.OS === 'ios' : true)),
+    () => PROVIDER_ORDER.filter((p) => (p === 'apple' ? process.env.EXPO_OS === 'ios' : true)),
     [],
   );
 
@@ -414,7 +413,8 @@ export function RideThisSheet({
             const state = providers[provider];
             const Icon = ICONS[provider];
             const isGpx = provider === 'gpx';
-            const disabled = !state.available && !(provider === 'waze' && Platform.OS === 'ios');
+            const disabled =
+              !state.available && !(provider === 'waze' && process.env.EXPO_OS === 'ios');
             const showSpinner = isGpx && gpxExporting;
 
             return (

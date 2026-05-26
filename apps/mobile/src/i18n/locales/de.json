@@ -1411,7 +1411,9 @@
       "flyoverTitle": "3D-Überflug",
       "flyoverDesc": "Spiele jede Fahrt als filmischen Satellitenüberflug mit Gelände, Höhenprofil und sanfter Kameraanimation ab.",
       "shareTitle": "Teile deine Fahrten",
-      "shareDesc": "Erstelle schöne visuelle Karten deiner Fahrten und teile sie überall — Instagram, WhatsApp oder speichere sie in deiner Galerie."
+      "shareDesc": "Erstelle schöne visuelle Karten deiner Fahrten und teile sie überall — Instagram, WhatsApp oder speichere sie in deiner Galerie.",
+      "widgetsTitle": "Homescreen-Widgets",
+      "widgetsDesc": "Nächster Service, Ausgaben, letzte Fahrt und Wochenstatistik — direkt auf deinem Homescreen und Sperrbildschirm. Ohne die App zu öffnen."
     },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",

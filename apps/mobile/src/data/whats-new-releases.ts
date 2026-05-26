@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react-native';
 import {
   Bike,
   Gauge,
+  LayoutGrid,
   Map as MapIcon,
   MessageCircle,
   Mountain,
@@ -60,6 +61,12 @@ export const WHATS_NEW_RELEASES = [
         iconColor: palette.primary400,
         titleKey: 'whatsNew.v380.shareTitle' as const,
         descriptionKey: 'whatsNew.v380.shareDesc' as const,
+      },
+      {
+        icon: LayoutGrid,
+        iconColor: palette.signature500,
+        titleKey: 'whatsNew.v380.widgetsTitle' as const,
+        descriptionKey: 'whatsNew.v380.widgetsDesc' as const,
       },
     ],
   },

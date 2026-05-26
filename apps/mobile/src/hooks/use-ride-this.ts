@@ -55,8 +55,8 @@ interface UseRideThisResult {
   availableDays: number[];
 }
 
-const iosMajor = Platform.OS === 'ios' ? Number.parseInt(String(Platform.Version), 10) : 0;
-const isAndroid = Platform.OS === 'android';
+const iosMajor = process.env.EXPO_OS === 'ios' ? Number.parseInt(String(Platform.Version), 10) : 0;
+const isAndroid = process.env.EXPO_OS === 'android';
 
 /**
  * Owns all state for the "Ride this" sheet: availability probes, provider URL
@@ -107,7 +107,8 @@ export function useRideThis({
     });
     const google = buildGoogleMapsUrls(filteredWaypoints);
     const wazeChain = buildWazeUrls(filteredWaypoints);
-    const canChainApple = Platform.OS === 'ios' && !!appleUrl && (iosMajor === 0 || iosMajor >= 16);
+    const canChainApple =
+      process.env.EXPO_OS === 'ios' && !!appleUrl && (iosMajor === 0 || iosMajor >= 16);
 
     const appleSubtitle = (() => {
       if (!appleUrl) return 'Needs at least two stops.';
@@ -134,7 +135,7 @@ export function useRideThis({
     return {
       apple: {
         provider: 'apple',
-        available: Platform.OS === 'ios' && appleUrl !== null,
+        available: process.env.EXPO_OS === 'ios' && appleUrl !== null,
         totalSegments: appleUrl ? 1 : 0,
         chunked: false,
         subtitle: appleSubtitle,
@@ -225,7 +226,7 @@ export function useRideThis({
       const state = providers[provider];
       if (!state.available) {
         // Waze on iOS without install → App Store fallback.
-        if (provider === 'waze' && Platform.OS === 'ios') {
+        if (provider === 'waze' && process.env.EXPO_OS === 'ios') {
           await Linking.openURL(
             'https://apps.apple.com/app/waze-navigation-live-traffic/id323229106',
           );

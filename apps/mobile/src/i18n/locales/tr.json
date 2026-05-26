@@ -1411,7 +1411,9 @@
       "flyoverTitle": "3D uçuş",
       "flyoverDesc": "Herhangi bir sürüşü arazi, yükseklik ve akıcı kamera animasyonuyla sinematik uydu uçuşu olarak yeniden oynatın.",
       "shareTitle": "Sürüşlerini paylaş",
-      "shareDesc": "Sürüşlerinin güzel görsel kartlarını oluştur ve her yerde paylaş — Instagram, WhatsApp veya galerine kaydet."
+      "shareDesc": "Sürüşlerinin güzel görsel kartlarını oluştur ve her yerde paylaş — Instagram, WhatsApp veya galerine kaydet.",
+      "widgetsTitle": "Ana Ekran Widget'ları",
+      "widgetsDesc": "Sonraki servis, harcamalar, son sürüş ve haftalık istatistikler — doğrudan ana ekranınızda ve kilit ekranınızda. Uygulamayı açmanıza gerek yok."
     },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",

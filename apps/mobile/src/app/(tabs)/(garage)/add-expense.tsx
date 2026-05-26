@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-import { ExpensePhotoGallery } from '../../../components/ExpensePhotoGallery';
+import { ExpensePhotoGallery } from '../../../components/expense-photo-gallery';
 import { useCurrency } from '../../../hooks/use-currency';
 import { AnalyticsEvent, trackEventWithSurvey } from '../../../lib/analytics';
 import {

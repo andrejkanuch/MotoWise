@@ -23,7 +23,7 @@ export class LastRideSummary {
 }
 
 @ObjectType()
-export class Last7DaysSummary {
+export class RidePeriodSummary {
   @Field(() => Int)
   rideCount: number;
 
@@ -39,8 +39,14 @@ export class RideOverview {
   @Field(() => LastRideSummary, { nullable: true })
   lastRide?: LastRideSummary;
 
-  @Field(() => Last7DaysSummary)
-  last7Days: Last7DaysSummary;
+  @Field(() => RidePeriodSummary)
+  last7Days: RidePeriodSummary;
+
+  @Field(() => RidePeriodSummary)
+  thisWeek: RidePeriodSummary;
+
+  @Field(() => RidePeriodSummary)
+  thisMonth: RidePeriodSummary;
 
   @Field(() => Int)
   currentStreak: number;

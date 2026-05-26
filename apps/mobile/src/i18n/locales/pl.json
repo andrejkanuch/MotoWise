@@ -1411,7 +1411,9 @@
       "flyoverTitle": "Przelot 3D",
       "flyoverDesc": "Odtwórz dowolny przejazd jako kinowy przelot satelitarny z terenem, przewyższeniem i płynną animacją kamery.",
       "shareTitle": "Udostępnij przejazdy",
-      "shareDesc": "Twórz piękne karty wizualne swoich przejazdów i udostępniaj je wszędzie — Instagram, WhatsApp lub zapisz w galerii."
+      "shareDesc": "Twórz piękne karty wizualne swoich przejazdów i udostępniaj je wszędzie — Instagram, WhatsApp lub zapisz w galerii.",
+      "widgetsTitle": "Widżety ekranu",
+      "widgetsDesc": "Następny serwis, wydatki, ostatnia jazda i tygodniowe statystyki — bezpośrednio na ekranie głównym i ekranie blokady. Bez otwierania aplikacji."
     },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",

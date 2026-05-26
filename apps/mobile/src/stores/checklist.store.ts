@@ -1,16 +1,8 @@
-import { createMMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { PROFILE_ROUTE, TAB_ROUTE } from '../config/routes';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
-
-const mmkv = createMMKV({ id: 'checklist-store' });
-
-const mmkvStorage = {
-  getItem: (key: string) => mmkv.getString(key) ?? null,
-  setItem: (key: string, value: string) => mmkv.set(key, value),
-  removeItem: (key: string) => mmkv.remove(key),
-};
+import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 
 export interface ChecklistItem {
   id: string;
@@ -125,7 +117,7 @@ export const useChecklistStore = create<ChecklistState>()(
     {
       name: 'checklist-state',
       version: 2,
-      storage: createJSONStorage(() => mmkvStorage),
+      storage: createJSONStorage(() => createZustandMMKVStorage('checklist-store')),
       partialize: ({ initialize, completeItem, dismiss, reset, ...data }) => data,
       migrate: (persisted, version) => {
         if (version < 2) {

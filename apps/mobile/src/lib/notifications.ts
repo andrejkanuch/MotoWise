@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
 
 // MOT-139: Map now stores an ARRAY of notification ids per task so we can
 // cancel all scheduled stages (30d / 7d / 1d) atomically.
@@ -43,7 +42,7 @@ async function removeNotificationIds(taskId: string): Promise<void> {
  * No-op on iOS.
  */
 export async function setupNotificationChannels(): Promise<void> {
-  if (Platform.OS !== 'android') return;
+  if (process.env.EXPO_OS !== 'android') return;
   await Notifications.setNotificationChannelAsync('maintenance', {
     name: 'Maintenance Reminders',
     importance: Notifications.AndroidImportance.HIGH,

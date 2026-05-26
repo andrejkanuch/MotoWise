@@ -172,7 +172,7 @@ Before writing ANY code, read `/CLAUDE.md` at the repo root. It contains mandato
 
 ## Architecture
 
-- apps/mobile: Expo 54 (RN 0.83, React 19.2) — user-facing mobile app
+- apps/mobile: Expo 56 (RN 0.85, React 19.2) — user-facing mobile app
 - apps/api: NestJS 11 — GraphQL API (code-first, Apollo Server) + Claude AI
 - apps/web: Next.js 16 — web app (public pages + admin dashboard)
 - packages/types: @motovault/types — Zod schemas, shared TS types

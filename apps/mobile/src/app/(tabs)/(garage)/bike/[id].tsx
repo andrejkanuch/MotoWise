@@ -30,7 +30,6 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ActionSheetIOS,
   ActivityIndicator,
   Alert,
   Pressable,
@@ -53,6 +52,7 @@ import { pickImage, takePhoto, uploadBikePhoto } from '../../../../lib/image-upl
 import { queryKeys } from '../../../../lib/query-keys';
 import { useAuthStore } from '../../../../stores/auth.store';
 import { useEditorialTheme } from '../../../../theme/editorial';
+import { showActionSheet } from '../../../../utils/action-sheet';
 import { triggerImpact, triggerNotification } from '../../../../utils/haptics';
 
 function InfoRow({ label, value }: { label: string; value: string }) {
@@ -261,45 +261,27 @@ export default function BikeDetailScreen() {
       }
     };
 
-    if (process.env.EXPO_OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: [
-            t('common.cancel', { defaultValue: 'Cancel' }),
-            t('maintenance.takePhoto', { defaultValue: 'Take Photo' }),
-            t('maintenance.chooseFromLibrary', { defaultValue: 'Choose from Library' }),
-          ],
-          cancelButtonIndex: 0,
+    showActionSheet(t('garage.addPhoto', { defaultValue: 'Add Photo' }), [
+      {
+        label: t('maintenance.takePhoto', { defaultValue: 'Take Photo' }),
+        onPress: async () => {
+          const uri = await takePhoto();
+          if (uri) upload(uri);
         },
-        async (buttonIndex) => {
-          if (buttonIndex === 1) {
-            const uri = await takePhoto();
-            if (uri) upload(uri);
-          } else if (buttonIndex === 2) {
-            const uri = await pickImage();
-            if (uri) upload(uri);
-          }
+      },
+      {
+        label: t('maintenance.chooseFromLibrary', { defaultValue: 'Choose from Library' }),
+        onPress: async () => {
+          const uri = await pickImage();
+          if (uri) upload(uri);
         },
-      );
-    } else {
-      Alert.alert(t('garage.addPhoto', { defaultValue: 'Add Photo' }), undefined, [
-        { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
-        {
-          text: t('maintenance.takePhoto', { defaultValue: 'Take Photo' }),
-          onPress: async () => {
-            const uri = await takePhoto();
-            if (uri) upload(uri);
-          },
-        },
-        {
-          text: t('maintenance.chooseFromLibrary', { defaultValue: 'Choose from Library' }),
-          onPress: async () => {
-            const uri = await pickImage();
-            if (uri) upload(uri);
-          },
-        },
-      ]);
-    }
+      },
+      {
+        label: t('common.cancel', { defaultValue: 'Cancel' }),
+        onPress: () => {},
+        style: 'cancel',
+      },
+    ]);
   };
 
   const handleCompleteTask = (taskId: string) => {
@@ -402,27 +384,12 @@ export default function BikeDetailScreen() {
       importOem: t('oem.importButton', { defaultValue: 'Import OEM Schedule' }),
       delete: t('garage.deleteBike', { defaultValue: 'Delete Motorcycle' }),
     };
-    if (process.env.EXPO_OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: [labels.cancel, labels.recalls, labels.importOem, labels.delete],
-          cancelButtonIndex: 0,
-          destructiveButtonIndex: 3,
-        },
-        (buttonIndex) => {
-          if (buttonIndex === 1) handleCheckRecalls();
-          else if (buttonIndex === 2) handleImportOem();
-          else if (buttonIndex === 3) handleDeleteBike();
-        },
-      );
-    } else {
-      Alert.alert(t('common.actions', { defaultValue: 'Actions' }), undefined, [
-        { text: labels.cancel, style: 'cancel' },
-        { text: labels.recalls, onPress: handleCheckRecalls },
-        { text: labels.importOem, onPress: handleImportOem },
-        { text: labels.delete, style: 'destructive', onPress: handleDeleteBike },
-      ]);
-    }
+    showActionSheet(t('common.actions', { defaultValue: 'Actions' }), [
+      { label: labels.recalls, onPress: handleCheckRecalls },
+      { label: labels.importOem, onPress: handleImportOem },
+      { label: labels.delete, onPress: handleDeleteBike, style: 'destructive' },
+      { label: labels.cancel, onPress: () => {}, style: 'cancel' },
+    ]);
   };
 
   const handleToggleExpand = useCallback(
