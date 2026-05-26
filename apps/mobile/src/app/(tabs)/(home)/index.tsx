@@ -1,5 +1,6 @@
 import SegmentedControl from '@expo/ui/community/segmented-control';
 import { palette } from '@motovault/design-system';
+import * as Sentry from '@sentry/react-native';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -212,6 +213,7 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <Sentry.TimeToInitialDisplay record />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 110, paddingTop: insets.top }}
@@ -625,6 +627,8 @@ export default function HomeScreen() {
             </Pressable>
           </Animated.View>
         )}
+
+        <Sentry.TimeToFullDisplay record />
 
         {/* 5. Attention banner (compact) */}
         {priorityAction && priorityAction.type !== 'allClear' && hasMotorcycles && (

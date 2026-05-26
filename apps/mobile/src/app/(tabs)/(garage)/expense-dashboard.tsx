@@ -4,6 +4,7 @@ import {
   type ExpensesByMotorcycleQuery,
   MyMotorcyclesDocument,
 } from '@motovault/graphql';
+import * as Sentry from '@sentry/react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -336,6 +337,8 @@ export default function ExpenseDashboardScreen() {
         <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={theme.warm} />
       }
     >
+      <Sentry.TimeToInitialDisplay record />
+      <Sentry.TimeToFullDisplay record />
       {/* Editorial Header */}
       <Animated.View entering={FadeInDown.duration(300)} style={{ marginTop: 12 }}>
         <Text

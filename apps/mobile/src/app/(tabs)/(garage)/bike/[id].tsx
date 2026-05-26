@@ -10,6 +10,7 @@ import {
   MyRidesDocument,
   UpdateMotorcycleDocument,
 } from '@motovault/graphql';
+import * as Sentry from '@sentry/react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
@@ -437,6 +438,8 @@ export default function BikeDetailScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <Sentry.TimeToInitialDisplay record />
+      <Sentry.TimeToFullDisplay record />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}

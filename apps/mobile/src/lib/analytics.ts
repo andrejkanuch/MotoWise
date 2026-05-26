@@ -71,13 +71,36 @@ export function initSentry() {
   Sentry.init({
     dsn: SENTRY_DSN,
     tracesSampleRate: __DEV__ ? 1.0 : 0.2,
+    profilesSampleRate: __DEV__ ? 1.0 : 0.3,
     enabled: !__DEV__,
     enableAutoSessionTracking: true,
     attachScreenshot: true,
     debug: false,
-    integrations: [sentryNavigationIntegration],
+    // Session Replay — capture all error sessions + 10% of normal sessions
+    replaysOnErrorSampleRate: 1.0,
+    replaysSessionSampleRate: __DEV__ ? 1.0 : 0.1,
+    integrations: [
+      sentryNavigationIntegration,
+      // Mobile Session Replay — privacy-safe screen recording
+      Sentry.mobileReplayIntegration({
+        maskAllText: false,
+        maskAllImages: false,
+        maskAllVectors: false,
+      }),
+      // Hermes CPU profiling — attached to sampled transactions
+      Sentry.hermesProfilingIntegration(),
+      // UI thread stall detection (jank > 300ms)
+      Sentry.stallTrackingIntegration({ minimumStallThresholdMs: 300 }),
+      // Spotlight for local dev — view Sentry events without the dashboard
+      ...(__DEV__ ? [Sentry.spotlightIntegration()] : []),
+    ],
     beforeSend: sentryBeforeSend,
   });
+
+  // Shake-to-report bug feedback (production only)
+  if (!__DEV__) {
+    Sentry.enableFeedbackOnShake();
+  }
 }
 
 export function initPostHog() {
