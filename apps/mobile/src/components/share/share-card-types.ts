@@ -43,15 +43,7 @@ export type RideSharePayload = {
   measurementSystem: MeasurementSystem;
 } & PbInfo;
 
-export type ShareDestination =
-  | 'instagramStory'
-  | 'instagramMessages'
-  | 'whatsapp'
-  | 'message'
-  | 'motovaultDm'
-  | 'saveImage'
-  | 'copyLink'
-  | 'systemShare';
+export type ShareDestination = 'instagramStory' | 'instagramMessages' | 'saveImage';
 
 export type ShareResult =
   | { success: true }
