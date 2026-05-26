@@ -1411,7 +1411,9 @@
       "flyoverTitle": "Sorvolo 3D",
       "flyoverDesc": "Rivivi qualsiasi percorso come un sorvolo satellitare cinematografico con terreno, dislivello e animazione fluida della telecamera.",
       "shareTitle": "Condividi i tuoi percorsi",
-      "shareDesc": "Crea bellissime card visive dei tuoi percorsi e condividile ovunque — Instagram, WhatsApp o salvale nella tua galleria."
+      "shareDesc": "Crea bellissime card visive dei tuoi percorsi e condividile ovunque — Instagram, WhatsApp o salvale nella tua galleria.",
+      "widgetsTitle": "Widget schermata Home",
+      "widgetsDesc": "Prossimo tagliando, spese, ultimo giro e statistiche settimanali — direttamente sulla schermata Home e sulla schermata di blocco. Senza aprire l'app."
     },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",

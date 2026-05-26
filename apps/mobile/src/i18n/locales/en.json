@@ -1392,7 +1392,9 @@
       "flyoverTitle": "3D Flyover",
       "flyoverDesc": "Replay any ride as a cinematic satellite flyover with terrain, elevation, and smooth camera animation.",
       "shareTitle": "Share Your Rides",
-      "shareDesc": "Generate beautiful visual cards of your rides and share them anywhere — Instagram, WhatsApp, or save to your gallery."
+      "shareDesc": "Generate beautiful visual cards of your rides and share them anywhere — Instagram, WhatsApp, or save to your gallery.",
+      "widgetsTitle": "Home Screen Widgets",
+      "widgetsDesc": "Next service, expenses, last ride, and weekly stats — right on your home screen and Lock Screen. No need to open the app."
     },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",

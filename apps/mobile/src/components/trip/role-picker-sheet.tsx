@@ -11,11 +11,10 @@ import {
   type SetTripParticipantRoleMutation,
 } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
 import { useCallback } from 'react';
-import { ActionSheetIOS, Alert, Platform } from 'react-native';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { showActionSheet } from '../../utils/action-sheet';
 
 const ROLE_LABELS: Record<string, string> = {
   rider: 'Rider',
@@ -56,28 +55,17 @@ export function useRolePicker({ tripId }: UseRolePickerParams) {
       const currentLabel = ROLE_LABELS[currentRole] ?? currentRole;
 
       const doChange = () => {
-        if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         mutation.mutate({ userId: participant.id, role: targetRole });
       };
 
-      if (Platform.OS === 'ios') {
-        ActionSheetIOS.showActionSheetWithOptions(
-          {
-            title: participant.displayName,
-            message: `Currently: ${currentLabel}`,
-            options: [`Change to ${targetLabel}`, 'Cancel'],
-            cancelButtonIndex: 1,
-          },
-          (idx) => {
-            if (idx === 0) doChange();
-          },
-        );
-      } else {
-        Alert.alert(participant.displayName, `Currently: ${currentLabel}`, [
-          { text: `Change to ${targetLabel}`, onPress: doChange },
-          { text: 'Cancel', style: 'cancel' },
-        ]);
-      }
+      showActionSheet(
+        participant.displayName,
+        [
+          { label: `Change to ${targetLabel}`, onPress: doChange },
+          { label: 'Cancel', onPress: () => {}, style: 'cancel' },
+        ],
+        `Currently: ${currentLabel}`,
+      );
     },
     [mutation],
   );

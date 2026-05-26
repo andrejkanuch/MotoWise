@@ -682,12 +682,6 @@ type KudosUser {
   publicUsername: String
 }
 
-type Last7DaysSummary {
-  distanceM: Float!
-  durationS: Int!
-  rideCount: Int!
-}
-
 type LastRideSummary {
   date: String!
   distanceM: Float!
@@ -1260,9 +1254,17 @@ type RideEdge {
 
 type RideOverview {
   currentStreak: Int!
-  last7Days: Last7DaysSummary!
+  last7Days: RidePeriodSummary!
   lastRide: LastRideSummary
   personalRecords: [RideRecord!]!
+  thisMonth: RidePeriodSummary!
+  thisWeek: RidePeriodSummary!
+}
+
+type RidePeriodSummary {
+  distanceM: Float!
+  durationS: Int!
+  rideCount: Int!
 }
 
 type RideRecord {

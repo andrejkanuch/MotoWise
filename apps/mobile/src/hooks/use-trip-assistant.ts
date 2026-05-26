@@ -8,7 +8,7 @@ import { useMutation } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
 import { useCallback, useState } from 'react';
 import { gqlFetcher } from '../lib/graphql-client';
-import { useProGate } from './useProGate';
+import { useProGate } from './use-pro-gate';
 
 /**
  * Trip-context AI assistant. Wraps the `askTripAssistant` GraphQL mutation and

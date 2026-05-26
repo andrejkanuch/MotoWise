@@ -1,7 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
-import type { Last7DaysSummary, LastRideSummary, RideOverview } from './models/ride-overview.model';
+import type {
+  LastRideSummary,
+  RideOverview,
+  RidePeriodSummary,
+} from './models/ride-overview.model';
 import type { RideRecord } from './models/ride-record.model';
 import { ALL_BIKES_SENTINEL } from './ride-analytics.constants';
 import { computeMovingTimeS } from './ride-analytics.utils';
@@ -11,14 +15,17 @@ export class RideAnalyticsService {
   constructor(@Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient) {}
 
   async getRideOverview(userId: string): Promise<RideOverview> {
-    const [lastRide, last7Days, currentStreak, personalRecords] = await Promise.all([
-      this.getLastRide(userId),
-      this.getLast7Days(userId),
-      this.getCurrentStreak(userId),
-      this.getPersonalRecords(userId),
-    ]);
+    const [lastRide, last7Days, thisWeek, thisMonth, currentStreak, personalRecords] =
+      await Promise.all([
+        this.getLastRide(userId),
+        this.getLast7Days(userId),
+        this.getThisWeek(userId),
+        this.getThisMonth(userId),
+        this.getCurrentStreak(userId),
+        this.getPersonalRecords(userId),
+      ]);
 
-    return { lastRide, last7Days, currentStreak, personalRecords };
+    return { lastRide, last7Days, thisWeek, thisMonth, currentStreak, personalRecords };
   }
 
   private async getLastRide(userId: string): Promise<LastRideSummary | undefined> {
@@ -53,11 +60,47 @@ export class RideAnalyticsService {
     };
   }
 
-  private async getLast7Days(userId: string): Promise<Last7DaysSummary> {
+  private async getLast7Days(userId: string): Promise<RidePeriodSummary> {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7);
     const cutoff = sevenDaysAgo.toISOString().split('T')[0];
 
+    const { data } = await this.supabaseAdmin
+      .from('ride_rollups')
+      .select('ride_count, distance_m, moving_time_s')
+      .eq('user_id', userId)
+      .eq('motorcycle_id', ALL_BIKES_SENTINEL)
+      .eq('period_kind', 'day')
+      .gte('period_start', cutoff);
+
+    if (!data?.length) {
+      return { rideCount: 0, distanceM: 0, durationS: 0 };
+    }
+
+    return {
+      rideCount: data.reduce((sum, r) => sum + (r.ride_count ?? 0), 0),
+      distanceM: data.reduce((sum, r) => sum + Number(r.distance_m ?? 0), 0),
+      durationS: data.reduce((sum, r) => sum + (r.moving_time_s ?? 0), 0),
+    };
+  }
+
+  private async getThisWeek(userId: string): Promise<RidePeriodSummary> {
+    const now = new Date();
+    const monday = new Date(now);
+    monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7));
+    const cutoff = monday.toISOString().split('T')[0];
+
+    return this.aggregateRollups(userId, cutoff);
+  }
+
+  private async getThisMonth(userId: string): Promise<RidePeriodSummary> {
+    const now = new Date();
+    const cutoff = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`;
+
+    return this.aggregateRollups(userId, cutoff);
+  }
+
+  private async aggregateRollups(userId: string, cutoff: string): Promise<RidePeriodSummary> {
     const { data } = await this.supabaseAdmin
       .from('ride_rollups')
       .select('ride_count, distance_m, moving_time_s')

@@ -1,6 +1,6 @@
 import * as Clipboard from 'expo-clipboard';
-import * as Haptics from 'expo-haptics';
-import { ActionSheetIOS, Alert, Linking, Platform } from 'react-native';
+import { Linking } from 'react-native';
+import { showActionSheet } from './action-sheet';
 
 export interface MarkerActionOptions {
   title: string;
@@ -47,38 +47,22 @@ const openAppleMaps = async (lat: number, lng: number, title?: string) => {
 export function showMarkerActionSheet(opts: MarkerActionOptions) {
   const { title, lat, lng, extraActions = [], message } = opts;
   if (!isValidCoord(lat, lng)) return;
-  if (Platform.OS === 'ios') Haptics.selectionAsync().catch(() => {});
 
   const coords = formatCoords(lat, lng);
 
-  const actions: Array<{ label: string; onPress: () => void }> = [
-    ...extraActions,
-    { label: 'Open in Apple Maps', onPress: () => openAppleMaps(lat, lng, title) },
-    {
-      label: 'Copy coordinates',
-      onPress: () => {
-        Clipboard.setStringAsync(coords).catch(() => {});
-      },
-    },
-  ];
-
-  if (Platform.OS === 'ios') {
-    ActionSheetIOS.showActionSheetWithOptions(
+  showActionSheet(
+    title,
+    [
+      ...extraActions.map((a) => ({ label: a.label, onPress: a.onPress })),
+      { label: 'Open in Apple Maps', onPress: () => openAppleMaps(lat, lng, title) },
       {
-        title,
-        message: message ?? coords,
-        options: [...actions.map((a) => a.label), 'Cancel'],
-        cancelButtonIndex: actions.length,
+        label: 'Copy coordinates',
+        onPress: () => {
+          Clipboard.setStringAsync(coords).catch(() => {});
+        },
       },
-      (idx) => {
-        if (idx < actions.length) actions[idx]?.onPress();
-      },
-    );
-    return;
-  }
-
-  Alert.alert(title, message ?? coords, [
-    ...actions.map((a) => ({ text: a.label, onPress: a.onPress })),
-    { text: 'Cancel', style: 'cancel' as const },
-  ]);
+      { label: 'Cancel', onPress: () => {}, style: 'cancel' as const },
+    ],
+    message ?? coords,
+  );
 }

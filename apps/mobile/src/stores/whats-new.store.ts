@@ -1,14 +1,6 @@
-import { createMMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-
-const mmkv = createMMKV({ id: 'whats-new' });
-
-const mmkvStorage = {
-  getItem: (key: string) => mmkv.getString(key) ?? null,
-  setItem: (key: string, value: string) => mmkv.set(key, value),
-  removeItem: (key: string) => mmkv.remove(key),
-};
+import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 
 interface WhatsNewState {
   lastSeenVersion: string | null;
@@ -23,7 +15,7 @@ export const useWhatsNewStore = create<WhatsNewState>()(
     }),
     {
       name: 'whats-new',
-      storage: createJSONStorage(() => mmkvStorage),
+      storage: createJSONStorage(() => createZustandMMKVStorage('whats-new')),
     },
   ),
 );

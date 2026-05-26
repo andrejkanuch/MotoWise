@@ -1411,7 +1411,9 @@
       "flyoverTitle": "Sobrevoo 3D",
       "flyoverDesc": "Reviva qualquer percurso como um sobrevoo cinematográfico por satélite com terreno, elevação e animação de câmera suave.",
       "shareTitle": "Compartilhe seus percursos",
-      "shareDesc": "Gere lindos cards visuais dos seus percursos e compartilhe em qualquer lugar — Instagram, WhatsApp ou salve na sua galeria."
+      "shareDesc": "Gere lindos cards visuais dos seus percursos e compartilhe em qualquer lugar — Instagram, WhatsApp ou salve na sua galeria.",
+      "widgetsTitle": "Widgets da tela inicial",
+      "widgetsDesc": "Próxima revisão, despesas, último percurso e estatísticas semanais — direto na tela inicial e tela de bloqueio. Sem precisar abrir o app."
     },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",

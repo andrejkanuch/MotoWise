@@ -30,7 +30,7 @@ export async function maybeRequestReview(): Promise<void> {
     if (!StoreReview || reviewInFlight) return;
     const currentVersion = Constants.expoConfig?.version ?? '1.0.0';
     if (storage.getString(REVIEWED_VERSION_KEY) === currentVersion) return;
-    if (count < 5) return;
+    if (count < 1) return;
 
     reviewInFlight = true;
     if (!(await StoreReview.isAvailableAsync())) return;

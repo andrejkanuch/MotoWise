@@ -1411,7 +1411,9 @@
       "flyoverTitle": "Sobrevuelo 3D",
       "flyoverDesc": "Reproduce cualquier ruta como un sobrevuelo satelital cinematográfico con terreno, elevación y animación de cámara suave.",
       "shareTitle": "Comparte tus rutas",
-      "shareDesc": "Genera hermosas tarjetas visuales de tus rutas y compártelas donde quieras — Instagram, WhatsApp o guárdalas en tu galería."
+      "shareDesc": "Genera hermosas tarjetas visuales de tus rutas y compártelas donde quieras — Instagram, WhatsApp o guárdalas en tu galería.",
+      "widgetsTitle": "Widgets de pantalla",
+      "widgetsDesc": "Próximo servicio, gastos, último viaje y estadísticas semanales — directamente en tu pantalla de inicio y pantalla de bloqueo. Sin abrir la app."
     },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",

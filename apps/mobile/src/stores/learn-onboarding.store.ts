@@ -1,14 +1,6 @@
-import { createMMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-
-const mmkv = createMMKV({ id: 'learn-onboarding' });
-
-const mmkvStorage = {
-  getItem: (key: string) => mmkv.getString(key) ?? null,
-  setItem: (key: string, value: string) => mmkv.set(key, value),
-  removeItem: (key: string) => mmkv.remove(key),
-};
+import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 
 interface LearnOnboardingState {
   dismissed: boolean;
@@ -30,7 +22,7 @@ export const useLearnOnboardingStore = create<LearnOnboardingState>()(
     }),
     {
       name: 'learn-onboarding',
-      storage: createJSONStorage(() => mmkvStorage),
+      storage: createJSONStorage(() => createZustandMMKVStorage('learn-onboarding')),
     },
   ),
 );

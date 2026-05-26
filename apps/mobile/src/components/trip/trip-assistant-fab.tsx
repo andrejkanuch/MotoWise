@@ -1,7 +1,7 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { Sparkles } from 'lucide-react-native';
-import { Platform, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 interface TripAssistantFABProps {
@@ -23,7 +23,7 @@ export function TripAssistantFAB({ onPress, bottomOffset = 24 }: TripAssistantFA
     >
       <Pressable
         onPress={() => {
-          if (Platform.OS === 'ios') Haptics.selectionAsync().catch(() => {});
+          if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync().catch(() => {});
           onPress();
         }}
         accessibilityRole="button"

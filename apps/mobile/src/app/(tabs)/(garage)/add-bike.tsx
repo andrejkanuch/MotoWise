@@ -20,7 +20,7 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { useProGate } from '../../../hooks/useProGate';
+import { useProGate } from '../../../hooks/use-pro-gate';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { hasGraphQLCode, userFriendlyError } from '../../../lib/graphql-errors';

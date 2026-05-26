@@ -1001,6 +1001,9 @@ export default function DiscoverScreen() {
         keyboardShouldPersistTaps="handled"
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        windowSize={5}
+        maxToRenderPerBatch={5}
+        removeClippedSubviews
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 160 }}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}

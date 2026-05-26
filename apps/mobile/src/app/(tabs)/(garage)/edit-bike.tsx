@@ -26,12 +26,10 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ActionSheetIOS,
   ActivityIndicator,
   Alert,
   Pressable,
   ScrollView,
-  Switch,
   Text,
   TextInput,
   View,
@@ -39,6 +37,7 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { NativeToggle } from '../../../components/ui/native-toggle';
 import { useCurrency } from '../../../hooks/use-currency';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../lib/image-upload';
@@ -46,6 +45,7 @@ import { queryKeys } from '../../../lib/query-keys';
 import { maybeRequestReview } from '../../../lib/store-review';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { showActionSheet } from '../../../utils/action-sheet';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 export default function EditBikeScreen() {
   const { t } = useTranslation();
@@ -299,45 +299,27 @@ export default function EditBikeScreen() {
       }
     };
 
-    if (process.env.EXPO_OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: [
-            t('common.cancel', { defaultValue: 'Cancel' }),
-            t('maintenance.takePhoto', { defaultValue: 'Take Photo' }),
-            t('maintenance.chooseFromLibrary', { defaultValue: 'Choose from Library' }),
-          ],
-          cancelButtonIndex: 0,
+    showActionSheet(t('garage.changePhoto', { defaultValue: 'Change Photo' }), [
+      {
+        label: t('maintenance.takePhoto', { defaultValue: 'Take Photo' }),
+        onPress: async () => {
+          const uri = await takePhoto();
+          if (uri) upload(uri);
         },
-        async (buttonIndex) => {
-          if (buttonIndex === 1) {
-            const uri = await takePhoto();
-            if (uri) upload(uri);
-          } else if (buttonIndex === 2) {
-            const uri = await pickImage();
-            if (uri) upload(uri);
-          }
+      },
+      {
+        label: t('maintenance.chooseFromLibrary', { defaultValue: 'Choose from Library' }),
+        onPress: async () => {
+          const uri = await pickImage();
+          if (uri) upload(uri);
         },
-      );
-    } else {
-      Alert.alert(t('garage.changePhoto', { defaultValue: 'Change Photo' }), undefined, [
-        { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
-        {
-          text: t('maintenance.takePhoto', { defaultValue: 'Take Photo' }),
-          onPress: async () => {
-            const uri = await takePhoto();
-            if (uri) upload(uri);
-          },
-        },
-        {
-          text: t('maintenance.chooseFromLibrary', { defaultValue: 'Choose from Library' }),
-          onPress: async () => {
-            const uri = await pickImage();
-            if (uri) upload(uri);
-          },
-        },
-      ]);
-    }
+      },
+      {
+        label: t('common.cancel', { defaultValue: 'Cancel' }),
+        onPress: () => {},
+        style: 'cancel',
+      },
+    ]);
   };
 
   // --- Delete handler ---
@@ -945,16 +927,13 @@ export default function EditBikeScreen() {
                     {t('garage.setPrimary', { defaultValue: 'Primary Motorcycle' })}
                   </Text>
                 </View>
-                <Switch
+                <NativeToggle
                   value={isPrimary}
                   onValueChange={(v) => {
                     triggerImpact();
                     setIsPrimary(v);
                   }}
-                  trackColor={{
-                    false: isDark ? palette.neutral700 : palette.neutral200,
-                    true: theme.warm,
-                  }}
+                  tint={theme.warm}
                 />
               </View>
             </View>

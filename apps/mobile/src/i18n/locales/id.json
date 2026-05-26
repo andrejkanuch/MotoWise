@@ -1411,7 +1411,9 @@
       "flyoverTitle": "Terbang 3D",
       "flyoverDesc": "Putar ulang perjalanan apa pun sebagai penerbangan satelit sinematik dengan medan, elevasi, dan animasi kamera yang halus.",
       "shareTitle": "Bagikan perjalananmu",
-      "shareDesc": "Buat kartu visual indah dari perjalananmu dan bagikan ke mana saja — Instagram, WhatsApp, atau simpan ke galeri."
+      "shareDesc": "Buat kartu visual indah dari perjalananmu dan bagikan ke mana saja — Instagram, WhatsApp, atau simpan ke galeri.",
+      "widgetsTitle": "Widget Layar Utama",
+      "widgetsDesc": "Servis berikutnya, pengeluaran, perjalanan terakhir, dan statistik mingguan — langsung di layar utama dan layar kunci. Tanpa perlu membuka aplikasi."
     },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",

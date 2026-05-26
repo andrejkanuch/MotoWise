@@ -259,13 +259,13 @@ export function useHomeData() {
     ? t(greeting.key, { name: firstName })
     : t('home.greetingFallback');
 
-  const today = new Date().toISOString().slice(0, 10);
   const upcomingTrips = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
     const trips = tripsQuery.data?.myTrips?.edges?.map((e) => e.node) ?? [];
     return trips
       .filter((trip) => trip.startDate && trip.startDate >= today)
       .sort((a, b) => (a.startDate ?? '').localeCompare(b.startDate ?? ''));
-  }, [tripsQuery.data, today]);
+  }, [tripsQuery.data]);
 
   return {
     isLoading,

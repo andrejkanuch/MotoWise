@@ -11,7 +11,7 @@ import {
   removeOfflinePack,
 } from '../lib/offline-trips';
 import { MAP_STYLES } from '../utils/map-styles';
-import { useProGate } from './useProGate';
+import { useProGate } from './use-pro-gate';
 
 export type OfflineStatus = 'none' | 'downloading' | 'ready' | 'error';
 

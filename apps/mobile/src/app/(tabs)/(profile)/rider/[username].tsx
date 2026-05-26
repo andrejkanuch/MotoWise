@@ -6,9 +6,9 @@ import { ArrowLeft, Bike } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { FollowButton } from '../../../../components/profile/FollowButton';
-import { ProfileHeader } from '../../../../components/profile/ProfileHeader';
-import { ProfileStats } from '../../../../components/profile/ProfileStats';
+import { FollowButton } from '../../../../components/profile/follow-button';
+import { ProfileHeader } from '../../../../components/profile/profile-header';
+import { ProfileStats } from '../../../../components/profile/profile-stats';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import { queryKeys } from '../../../../lib/query-keys';
 

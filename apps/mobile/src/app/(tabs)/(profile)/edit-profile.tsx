@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -255,7 +254,7 @@ export default function EditProfileScreen() {
         }}
       />
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={process.env.EXPO_OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1, backgroundColor: bgColor }}
       >
         <ScrollView

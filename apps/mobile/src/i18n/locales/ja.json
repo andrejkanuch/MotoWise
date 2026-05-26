@@ -1411,7 +1411,9 @@
       "flyoverTitle": "3Dフライオーバー",
       "flyoverDesc": "どのライドも地形、標高、滑らかなカメラアニメーションによる映画のような衛星フライオーバーで再生。",
       "shareTitle": "ライドをシェア",
-      "shareDesc": "ライドの美しいビジュアルカードを作成し、Instagram、WhatsApp、ギャラリーなどどこでもシェア。"
+      "shareDesc": "ライドの美しいビジュアルカードを作成し、Instagram、WhatsApp、ギャラリーなどどこでもシェア。",
+      "widgetsTitle": "ホーム画面ウィジェット",
+      "widgetsDesc": "次のメンテナンス、経費、前回のライド、週間統計 — ホーム画面とロック画面に直接表示。アプリを開く必要はありません。"
     },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",

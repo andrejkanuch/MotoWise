@@ -1411,7 +1411,9 @@
       "flyoverTitle": "Survol 3D",
       "flyoverDesc": "Rejouez n'importe quel trajet en survol satellite cinématographique avec terrain, élévation et animation de caméra fluide.",
       "shareTitle": "Partagez vos trajets",
-      "shareDesc": "Créez de belles cartes visuelles de vos trajets et partagez-les partout — Instagram, WhatsApp ou enregistrez-les dans votre galerie."
+      "shareDesc": "Créez de belles cartes visuelles de vos trajets et partagez-les partout — Instagram, WhatsApp ou enregistrez-les dans votre galerie.",
+      "widgetsTitle": "Widgets d'écran",
+      "widgetsDesc": "Prochain entretien, dépenses, dernière sortie et stats hebdo — directement sur votre écran d'accueil et écran de verrouillage. Sans ouvrir l'app."
     },
     "v360": {
       "onboardingTitle": "Redesigned Onboarding",

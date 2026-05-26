@@ -1,6 +1,6 @@
 import { Check } from 'lucide-react-native';
 import type React from 'react';
-import { Platform, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from './onboarding-colors';
 
@@ -46,7 +46,7 @@ export function OnboardingCard<T extends string>({
         gap: 12,
         width: '100%',
         transform: [{ scale: pressed ? 0.97 : 1 }],
-        ...(Platform.OS === 'ios'
+        ...(process.env.EXPO_OS === 'ios'
           ? selected
             ? {
                 shadowColor: color,

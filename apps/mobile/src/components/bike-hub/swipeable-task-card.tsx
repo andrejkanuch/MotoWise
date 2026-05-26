@@ -17,7 +17,7 @@ import Animated, { FadeIn, FadeInUp, FadeOutLeft, LinearTransition } from 'react
 import { getRelativeDueDate } from '../../lib/health-score';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
-import { TaskPhotoGallery } from '../TaskPhotoGallery';
+import { TaskPhotoGallery } from '../task-photo-gallery';
 import { EPriority } from '../ui/editorial';
 
 export const PRIORITY_ORDER: Record<string, number> = {

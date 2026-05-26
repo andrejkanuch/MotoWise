@@ -1,4 +1,4 @@
-# Mobile — Expo 54
+# Mobile — Expo 56
 
 ## Commands
 - `pnpm --filter mobile start` — Expo dev server
@@ -15,6 +15,15 @@
 - Zustand for local state (app preferences)
 - Supabase client for auth + storage (photo uploads)
 - Tokens stored in expo-secure-store (never AsyncStorage)
+
+## Expo UI (@expo/ui)
+- Before building any UI component, check if @expo/ui already provides a native equivalent (BottomSheet, Toggle, Slider, Picker, DateTimePicker, SegmentedControl, Button, etc.)
+- SwiftUI components: `import { ... } from '@expo/ui/swift-ui'` — require wrapping in `<Host>` component
+- Jetpack Compose components: `import { ... } from '@expo/ui/jetpack-compose'`
+- Community components (cross-platform): `import ... from '@expo/ui/community/...'` (e.g., datetime-picker, slider)
+- Use Expo UI modifiers for SwiftUI styling: `import { ... } from '@expo/ui/swift-ui/modifiers'`
+- Prefer native Expo UI components over third-party libraries for simpler use cases (pickers, toggles, sheets)
+- For complex interactive sheets (scrollable content, multiple snap points, maps), @gorhom/bottom-sheet is still appropriate
 
 ## Patterns
 - GraphQL operations in src/graphql/{queries,mutations}/*.graphql

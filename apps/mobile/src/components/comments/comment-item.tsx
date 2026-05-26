@@ -1,10 +1,10 @@
 import { palette } from '@motovault/design-system';
 import type { GetCommentsQuery } from '@motovault/graphql';
-import * as Haptics from 'expo-haptics';
 import { Reply } from 'lucide-react-native';
 import { memo, useCallback } from 'react';
-import { ActionSheetIOS, Alert, Image, Pressable, Text, useColorScheme, View } from 'react-native';
+import { Image, Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { showActionSheet } from '../../utils/action-sheet';
 
 type CommentData = GetCommentsQuery['getComments']['comments'][number];
 type ReplyData = NonNullable<CommentData['replies']>[number];
@@ -44,41 +44,21 @@ export const CommentItem = memo(function CommentItem({
   const timeAgo = formatTimeAgo(comment.createdAt);
 
   const handleLongPress = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-
-    const options = isOwn ? ['Delete', 'Cancel'] : ['Report', 'Cancel'];
-    const destructiveIndex = 0;
-    const cancelIndex = options.length - 1;
-
-    if (process.env.EXPO_OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options, destructiveButtonIndex: destructiveIndex, cancelButtonIndex: cancelIndex },
-        (buttonIndex) => {
-          if (buttonIndex === 0) {
+    showActionSheet(
+      isOwn ? 'Delete comment?' : 'Report comment?',
+      [
+        {
+          label: isOwn ? 'Delete' : 'Report',
+          onPress: () => {
             if (isOwn) onDelete?.(comment.id);
             else onFlag?.(comment.id);
-          }
-        },
-      );
-    } else {
-      Alert.alert(
-        isOwn ? 'Delete comment?' : 'Report comment?',
-        isOwn ? 'This action cannot be undone.' : 'This comment will be reviewed by our team.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: isOwn ? 'Delete' : 'Report',
-            style: 'destructive',
-            onPress: () => {
-              if (isOwn) onDelete?.(comment.id);
-              else onFlag?.(comment.id);
-            },
           },
-        ],
-      );
-    }
+          style: 'destructive',
+        },
+        { label: 'Cancel', onPress: () => {}, style: 'cancel' },
+      ],
+      isOwn ? 'This action cannot be undone.' : 'This comment will be reviewed by our team.',
+    );
   }, [comment.id, isOwn, onDelete, onFlag]);
 
   return (
