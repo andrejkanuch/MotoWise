@@ -6,12 +6,12 @@ import {
   MyMotorcyclesDocument,
   UpdateMotorcycleDocument,
 } from '@motovault/graphql';
-import { useNavigation } from "expo-router/react-navigation";
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useNavigation } from 'expo-router/react-navigation';
 import {
   Bike,
   Camera,
@@ -31,7 +31,6 @@ import {
   Alert,
   Pressable,
   ScrollView,
-  StyleSheet,
   Switch,
   Text,
   TextInput,
@@ -525,7 +524,11 @@ export default function EditBikeScreen() {
                 {uploadingPhoto && (
                   <View
                     style={{
-                      position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
+                      position: 'absolute',
+                      top: 0,
+                      right: 0,
+                      bottom: 0,
+                      left: 0,
                       backgroundColor: 'rgba(0,0,0,0.4)',
                       alignItems: 'center',
                       justifyContent: 'center',

@@ -1,11 +1,11 @@
 import { palette } from '@motovault/design-system';
 import { AllMaintenanceTasksDocument } from '@motovault/graphql';
-import type { BottomTabBarProps } from "expo-router/js-tabs";
-import { CommonActions } from "expo-router/react-navigation";
 import * as Sentry from '@sentry/react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Tabs, useRouter } from 'expo-router';
+import type { BottomTabBarProps } from 'expo-router/js-tabs';
+import { CommonActions } from 'expo-router/react-navigation';
 import { Bike, Compass, Home, Route, User } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';

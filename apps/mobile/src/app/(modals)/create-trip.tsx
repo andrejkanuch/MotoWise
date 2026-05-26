@@ -1,3 +1,4 @@
+import DateTimePicker from '@expo/ui/community/datetime-picker';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import {
   CreateTripWithWaypointsDocument,
@@ -7,7 +8,6 @@ import {
   TripDetailDocument,
   UpdateTripDocument,
 } from '@motovault/graphql';
-import DateTimePicker from '@expo/ui/community/datetime-picker';
 import MapboxGL, { type ScreenPointPayload } from '@rnmapbox/maps';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';

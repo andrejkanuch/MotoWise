@@ -12,6 +12,7 @@ const mmkvStorage = {
   setItem: (key: string, value: string) => mmkv.set(key, value),
   removeItem: (key: string) => mmkv.remove(key),
 };
+
 import i18n from '../i18n';
 
 type ColorScheme = 'system' | 'light' | 'dark';
