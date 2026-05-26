@@ -18,7 +18,7 @@
     "@expo/dom-webview": "56.0.5",
     "@expo/metro-runtime": "~56.0.12",
     "@expo/ui": "^56.0.13",
-    "@gorhom/bottom-sheet": "^5.2.8",
+    "@gorhom/bottom-sheet": "^5.2.14",
     "@motovault/design-system": "workspace:*",
     "@motovault/graphql": "workspace:*",
     "@motovault/types": "workspace:*",
