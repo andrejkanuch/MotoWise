@@ -208,9 +208,11 @@ export default function RideFlyoverScreen() {
   // ─── Analytics ────────────────────────────────────────────────────────
 
   const trackedStartRef = useRef(false);
+  const startTimeRef = useRef<number>(0);
   useEffect(() => {
     if (waypoints.length > 0 && !trackedStartRef.current) {
       trackedStartRef.current = true;
+      startTimeRef.current = Date.now();
       trackEvent(AnalyticsEvent.RIDE_FLYOVER_STARTED, { ride_id: rideId ?? '' });
     }
   }, [waypoints.length, rideId]);
@@ -363,12 +365,33 @@ export default function RideFlyoverScreen() {
     setIsPlaying(true);
   }, [progress]);
 
-  const handleSpeedChange = useCallback((speed: (typeof SPEED_OPTIONS)[number]) => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  const handleSpeedChange = useCallback(
+    (speed: (typeof SPEED_OPTIONS)[number]) => {
+      if (process.env.EXPO_OS === 'ios') {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+      trackEvent(AnalyticsEvent.RIDE_FLYOVER_SPEED_CHANGED, {
+        ride_id: rideId ?? '',
+        speed,
+      });
+      setActiveSpeed(speed);
+    },
+    [rideId],
+  );
+
+  const handleExit = useCallback(() => {
+    if (!trackedCompleteRef.current) {
+      const watchDurationS = startTimeRef.current
+        ? Math.round((Date.now() - startTimeRef.current) / 1000)
+        : 0;
+      trackEvent(AnalyticsEvent.RIDE_FLYOVER_EXITED, {
+        ride_id: rideId ?? '',
+        progress_pct: Math.round(progress.value * 100),
+        watch_duration_s: watchDurationS,
+      });
     }
-    setActiveSpeed(speed);
-  }, []);
+    router.back();
+  }, [rideId, progress, router]);
 
   const handleScrub = useCallback(
     (locationX: number) => {
@@ -455,7 +478,7 @@ export default function RideFlyoverScreen() {
           This ride doesn't have enough GPS waypoints for a 3D flyover.
         </Text>
         <Pressable
-          onPress={() => router.back()}
+          onPress={handleExit}
           style={{
             marginTop: 8,
             paddingHorizontal: 20,
@@ -667,7 +690,7 @@ export default function RideFlyoverScreen() {
       {/* ─── Close FAB (top-left) ─────────────────────────────────────── */}
       <View style={{ position: 'absolute', top: insets.top + 12, left: 16, zIndex: 10 }}>
         <Pressable
-          onPress={() => router.back()}
+          onPress={handleExit}
           accessibilityRole="button"
           accessibilityLabel="Go back"
           style={{

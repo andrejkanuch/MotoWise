@@ -71,13 +71,37 @@ export function initSentry() {
   Sentry.init({
     dsn: SENTRY_DSN,
     tracesSampleRate: __DEV__ ? 1.0 : 0.2,
+    profilesSampleRate: __DEV__ ? 1.0 : 0.3,
     enabled: !__DEV__,
     enableAutoSessionTracking: true,
     attachScreenshot: true,
     debug: false,
-    integrations: [sentryNavigationIntegration],
+    // Session Replay — capture all error sessions + 10% of normal sessions
+    replaysOnErrorSampleRate: 1.0,
+    replaysSessionSampleRate: __DEV__ ? 1.0 : 0.1,
+    integrations: [
+      sentryNavigationIntegration,
+      // Mobile Session Replay — privacy-safe screen recording
+      Sentry.mobileReplayIntegration({
+        maskAllText: false,
+        maskAllImages: false,
+        maskAllVectors: false,
+      }),
+      // Hermes CPU profiling — attached to sampled transactions
+      Sentry.hermesProfilingIntegration(),
+      // UI thread stall detection (jank > 300ms)
+      Sentry.stallTrackingIntegration({ minimumStallThresholdMs: 300 }),
+      // Spotlight for local dev — view Sentry events without the dashboard
+      ...(__DEV__ ? [Sentry.spotlightIntegration()] : []),
+    ],
     beforeSend: sentryBeforeSend,
   });
+
+  // Shake-to-report bug feedback (production only, Sentry v8+)
+  // eslint-disable-next-line -- enableFeedbackOnShake exists in Sentry v8 but not v7 types
+  if (!__DEV__ && 'enableFeedbackOnShake' in Sentry) {
+    (Sentry as Record<string, unknown>).enableFeedbackOnShake();
+  }
 }
 
 export function initPostHog() {
@@ -233,9 +257,12 @@ export const AnalyticsEvent = {
   LEAN_ANGLE_TOOLTIP_OPENED: 'lean_angle_tooltip_opened',
   RIDE_FLYOVER_STARTED: 'ride_flyover_started',
   RIDE_FLYOVER_COMPLETED: 'ride_flyover_completed',
+  RIDE_FLYOVER_EXITED: 'ride_flyover_exited',
+  RIDE_FLYOVER_SPEED_CHANGED: 'ride_flyover_speed_changed',
   SHARE_CARD_GENERATED: 'share_card_generated',
   SHARE_CARD_FAILED: 'share_card_failed',
   SHARE_COMPLETED: 'share_completed',
+  SHARE_RESULT: 'share_result',
 
   // Routes (discovery)
   ROUTE_VIEWED: 'route_viewed',
@@ -286,6 +313,8 @@ export const AnalyticsEvent = {
   // What's New
   WHATS_NEW_VIEWED: 'whats_new_viewed',
   WHATS_NEW_DISMISSED: 'whats_new_dismissed',
+  WHATS_NEW_SKIPPED: 'whats_new_skipped',
+  WHATS_NEW_SLIDE_VIEWED: 'whats_new_slide_viewed',
 
   // Profile & Settings
   PROFILE_EDITED: 'profile_edited',
