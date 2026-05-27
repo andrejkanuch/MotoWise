@@ -485,6 +485,15 @@ export default function RootLayout() {
     };
   }, []);
 
+  // Sync widgets once auth session is available (cold start + session restore)
+  const session = useAuthStore((s) => s.session);
+  useEffect(() => {
+    if (!session) return;
+    // Delay to let TanStack Query persist-restore and refetches settle
+    const timer = setTimeout(() => syncWidgets(), 3000);
+    return () => clearTimeout(timer);
+  }, [session]);
+
   // Initialize RevenueCat SDK with cleanup
   useEffect(() => {
     let cancelled = false;
