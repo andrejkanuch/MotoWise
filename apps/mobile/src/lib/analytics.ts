@@ -162,6 +162,7 @@ export const AnalyticsEvent = {
   ONBOARDING_STEP_SKIPPED: 'onboarding_step_skipped',
   ONBOARDING_COMPLETED: 'onboarding_completed',
   ONBOARDING_DROPPED_OFF: 'onboarding_dropped_off',
+  ONBOARDING_RESUMED: 'onboarding_resumed',
 
   // Feature usage — Diagnostics
   DIAGNOSTIC_STARTED: 'diagnostic_started',

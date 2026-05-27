@@ -8,23 +8,39 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
-import { OB_ROUTE } from '../../config/onboarding';
+import { getResumeRoute, OB_ROUTE } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
 export default function WelcomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const lastCompleted = useOnboardingStore((s) => s.lastCompletedScreen);
+  const resumeTarget = lastCompleted ? getResumeRoute(lastCompleted) : null;
 
   useEffect(() => {
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, { step: 'welcome' });
-  }, []);
+    if (resumeTarget) {
+      trackEvent(AnalyticsEvent.ONBOARDING_RESUMED, {
+        last_completed: lastCompleted,
+        resume_target: resumeTarget,
+      });
+      router.replace(resumeTarget);
+    } else {
+      trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, { step: 'welcome' });
+    }
+  }, [lastCompleted, resumeTarget, router]);
 
   const handleGetStarted = () => {
     triggerImpact(ImpactFeedbackStyle.Medium);
     trackEvent(AnalyticsEvent.ONBOARDING_STARTED);
     router.push(OB_ROUTE.EXPERIENCE);
   };
+
+  // Block welcome UI while resume is pending — prevents flash of hero/animations
+  if (resumeTarget) {
+    return <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }} />;
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>

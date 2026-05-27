@@ -41,6 +41,7 @@ export default function MaintenanceScreen() {
   const insets = useSafeAreaInsets();
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const setAcceptedOemScheduleIds = useOnboardingStore((s) => s.setAcceptedOemScheduleIds);
+  const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
 
   const make = bikeData?.make ?? '';
   const model = bikeData?.model ?? undefined;
@@ -171,6 +172,7 @@ export default function MaintenanceScreen() {
   const handleContinue = () => {
     triggerImpact(ImpactFeedbackStyle.Medium);
     setAcceptedOemScheduleIds(accepted);
+    setLastCompletedScreen('maintenance');
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
       step: 'maintenance',
       step_index: 4,
@@ -183,12 +185,13 @@ export default function MaintenanceScreen() {
 
   const handleSkipAll = useCallback(() => {
     setAcceptedOemScheduleIds([]);
+    setLastCompletedScreen('maintenance');
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, {
       step: 'maintenance',
       step_index: 4,
     });
     router.push(OB_ROUTE.PAYWALL);
-  }, [setAcceptedOemScheduleIds, router]);
+  }, [setAcceptedOemScheduleIds, setLastCompletedScreen, router]);
 
   // Auto-skip when no bike data or no tasks available
   useEffect(() => {

@@ -19,6 +19,7 @@ import { OnboardingProgress } from '../../components/onboarding/onboarding-progr
 import { OB_ROUTE, TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { setupNotificationChannels } from '../../lib/notifications';
+import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
 const BENEFITS = [
@@ -158,6 +159,7 @@ export default function NotificationsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const tracked = useRef(false);
+  const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
 
   useEffect(() => {
     if (tracked.current) return;
@@ -169,6 +171,7 @@ export default function NotificationsScreen() {
   }, []);
 
   const navigateForward = () => {
+    setLastCompletedScreen('notifications');
     router.push(OB_ROUTE.PERSONALIZING);
   };
 

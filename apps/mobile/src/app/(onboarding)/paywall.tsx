@@ -21,6 +21,7 @@ export default function PaywallScreen() {
   const router = useRouter();
   const presented = useRef(false);
   const ridingGoals = useOnboardingStore((s) => s.ridingGoals);
+  const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
 
   useEffect(() => {
     if (presented.current) return;
@@ -37,6 +38,7 @@ export default function PaywallScreen() {
 
     if (isExpoGo) {
       // Skip paywall in Expo Go — IAP not available
+      setLastCompletedScreen('paywall');
       trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
         step: 'paywall',
         step_index: 5,
@@ -58,6 +60,7 @@ export default function PaywallScreen() {
         surface: 'onboarding_paywall',
       });
 
+      setLastCompletedScreen('paywall');
       trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
         step: 'paywall',
         step_index: 5,
@@ -71,7 +74,7 @@ export default function PaywallScreen() {
       // The RevenueCat listener in subscription.ts will update the store if purchased
       router.push(OB_ROUTE.NOTIFICATIONS);
     })();
-  }, [router, ridingGoals]);
+  }, [router, ridingGoals, setLastCompletedScreen]);
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
