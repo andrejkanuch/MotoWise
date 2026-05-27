@@ -103,7 +103,8 @@ export function setAnalyticsEnabled(enabled: boolean) {
 export function setCrashReportingEnabled(enabled: boolean) {
   crashReportingEnabled = enabled;
   if (SENTRY_DSN) {
-    const client = Sentry.getClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Sentry v7 types getClient() as unknown in some TS versions
+    const client = Sentry.getClient() as any;
     if (client) {
       client.getOptions().enabled = enabled;
     }
