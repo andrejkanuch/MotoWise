@@ -48,16 +48,28 @@ export default function WhatsNewModal() {
     if (isLast) {
       dismiss();
     } else {
-      setCurrentIndex((prev) => prev + 1);
+      const nextIndex = currentIndex + 1;
+      trackEvent(AnalyticsEvent.WHATS_NEW_SLIDE_VIEWED, {
+        version: currentVersion,
+        slide_index: nextIndex,
+        slide_title: slides[nextIndex]?.titleKey ?? '',
+        total_slides: slides.length,
+      });
+      setCurrentIndex(nextIndex);
     }
-  }, [isLast, dismiss]);
+  }, [isLast, dismiss, currentIndex, currentVersion, slides]);
 
   const handleSkip = useCallback(() => {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+    trackEvent(AnalyticsEvent.WHATS_NEW_SKIPPED, {
+      version: currentVersion,
+      skipped_at_slide: currentIndex,
+      total_slides: slides.length,
+    });
     setCurrentIndex(slides.length - 1);
-  }, [slides.length]);
+  }, [slides.length, currentVersion, currentIndex]);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>

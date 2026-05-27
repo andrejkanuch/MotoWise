@@ -41,9 +41,20 @@ export function ShareActivitySheet({ visible, payload, onClose }: ShareActivityS
   const handleHandoff = useCallback(
     async (destination: ShareDestination, imageUri: string) => {
       const activeVariant = variants[activeIndex] ?? variants[0];
-      trackEvent(AnalyticsEvent.SHARE_COMPLETED, { destination, variant: activeVariant });
 
       const result = await executeShareDestination(destination, imageUri, payload.rideId);
+
+      trackEvent(AnalyticsEvent.SHARE_RESULT, {
+        destination,
+        variant: activeVariant,
+        success: result.success,
+        failure_reason: result.success ? null : result.reason,
+      });
+
+      if (result.success) {
+        trackEvent(AnalyticsEvent.SHARE_COMPLETED, { destination, variant: activeVariant });
+      }
+
       const toast = getToastMessage(destination, result);
       if (toast) showToast(toast);
       return result;

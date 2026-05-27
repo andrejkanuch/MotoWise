@@ -42,8 +42,9 @@ export function shouldDehydratePersistedQuery(query: Query): boolean {
   if (query.state.status !== 'success') return false;
   const root = query.queryKey[0];
   if (typeof root !== 'string' || !PERSISTED_ROOTS.has(root)) return false;
-  // Only persist ride lists, not individual ride detail/waypoints (can be 50-100KB each)
-  if (root === 'rides' && query.queryKey[1] !== 'list') return false;
+  // Only persist ride lists + overview, not individual ride detail/waypoints (can be 50-100KB each)
+  if (root === 'rides' && query.queryKey[1] !== 'list' && query.queryKey[1] !== 'overview')
+    return false;
   // Only persist the all-user maintenance aggregation, not per-motorcycle breakdowns
   if (root === 'maintenance-tasks' && query.queryKey[1] !== 'all-user') return false;
   return true;

@@ -54,6 +54,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         iosUrlScheme: 'com.googleusercontent.apps.276412017775-u00mgu2n51d8kuhfkgkcpetj9bhin6ps',
       },
     ],
+    [
+      'expo-location',
+      {
+        locationAlwaysAndWhenInUsePermission:
+          'MotoVault uses your location to record ride routes, show nearby routes, and display local weather for trip planning.',
+      },
+    ],
     '@rnmapbox/maps',
     [
       'expo-notifications',
@@ -170,6 +177,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     infoPlist: {
       CFBundleDisplayName: 'MotoVault',
+      NSLocationWhenInUseUsageDescription:
+        'MotoVault uses your location to record ride routes, show nearby routes, and display local weather for trip planning.',
       NSCameraUsageDescription: 'MotoVault needs camera access for diagnostic photo capture.',
       NSPhotoLibraryUsageDescription:
         'MotoVault needs photo library access to upload diagnostic images.',

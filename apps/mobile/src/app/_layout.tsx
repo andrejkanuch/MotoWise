@@ -411,7 +411,10 @@ export default function RootLayout() {
   }, []);
 
   // Initialize Meta/Facebook SDK + ATT prompt
+  // Defer ATT request until app is visually ready (splash dismissed) —
+  // iOS 26 suppresses the ATT dialog if the app window isn't fully active yet.
   useEffect(() => {
+    if (!appReady) return;
     async function initMetaSDK() {
       if (process.env.EXPO_OS === 'ios') {
         const { status } = await requestTrackingPermissionsAsync();
@@ -426,7 +429,7 @@ export default function RootLayout() {
       }
     }
     initMetaSDK();
-  }, []);
+  }, [appReady]);
 
   // Drain ride sync queue on app resume, initial mount, and connectivity restore
   useEffect(() => {
@@ -452,6 +455,15 @@ export default function RootLayout() {
       clearTimeout(debounceTimer);
     };
   }, []);
+
+  // Sync widgets once auth session is available (cold start + session restore)
+  const session = useAuthStore((s) => s.session);
+  useEffect(() => {
+    if (!session) return;
+    // Delay to let TanStack Query persist-restore and refetches settle
+    const timer = setTimeout(() => syncWidgets(), 3000);
+    return () => clearTimeout(timer);
+  }, [session]);
 
   // Initialize RevenueCat SDK with cleanup
   useEffect(() => {
