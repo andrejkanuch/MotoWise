@@ -46,10 +46,35 @@ const nextConfig: NextConfig = {
     // Graceful 308 redirects for the 7 locales removed on 2026-04-11.
     // Config-level redirects run before the next-intl middleware, so these
     // take precedence over any downstream locale handling.
-    return DROPPED_LOCALES.flatMap((locale) => [
-      { source: `/${locale}`, destination: '/', permanent: true },
-      { source: `/${locale}/:path*`, destination: '/:path*', permanent: true },
-    ]);
+    return [
+      ...DROPPED_LOCALES.flatMap((locale) => [
+        { source: `/${locale}`, destination: '/', permanent: true },
+        { source: `/${locale}/:path*`, destination: '/:path*', permanent: true },
+      ]),
+      // Blog post consolidation redirects (2026-05-27 SEO cluster architecture).
+      // Warning lights merged into check engine light guide.
+      {
+        source: '/blog/motorcycle-warning-lights-guide',
+        destination: '/blog/motorcycle-check-engine-light-guide',
+        permanent: true,
+      },
+      {
+        source: '/:locale/blog/motorcycle-warning-lights-guide',
+        destination: '/:locale/blog/motorcycle-check-engine-light-guide',
+        permanent: true,
+      },
+      // Battery dying merged into won't-start troubleshooting guide.
+      {
+        source: '/blog/motorcycle-battery-keeps-dying-fix',
+        destination: '/blog/motorcycle-wont-start-troubleshooting-guide',
+        permanent: true,
+      },
+      {
+        source: '/:locale/blog/motorcycle-battery-keeps-dying-fix',
+        destination: '/:locale/blog/motorcycle-wont-start-troubleshooting-guide',
+        permanent: true,
+      },
+    ];
   },
   async rewrites() {
     return [
