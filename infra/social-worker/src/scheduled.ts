@@ -25,10 +25,7 @@
  */
 import { draftPost } from './draft';
 import type { Env } from './env';
-import {
-  generateImage,
-  publishPost,
-} from './publish';
+import { generateImage, publishPost } from './publish';
 import {
   claimNextPost,
   getRecentAngles,
@@ -120,7 +117,9 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
     }
 
     const image = await generateImage(env, fullPrompt, '4:5');
-    console.log(`[scheduled] id=${row.id} image ready (engine=${image.engine}, headline=${!!row.headline})`);
+    console.log(
+      `[scheduled] id=${row.id} image ready (engine=${image.engine}, headline=${!!row.headline})`,
+    );
 
     // Step 3: publish single image post to IG + FB.
     const captions = {
