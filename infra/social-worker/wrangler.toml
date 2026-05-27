@@ -30,6 +30,12 @@ type = "Text"
 globs = ["**/*.md"]
 fallthrough = true
 
+# WASM modules for @resvg/resvg-wasm (image compositing)
+[[rules]]
+type = "CompiledWasm"
+globs = ["**/*.wasm"]
+fallthrough = true
+
 [[kv_namespaces]]
 binding = "JOBS"
 id = "9ff008b49b2049fea31ddc178b33fc1c"

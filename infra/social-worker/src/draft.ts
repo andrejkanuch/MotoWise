@@ -24,6 +24,7 @@ export interface DraftedPost {
   angle: string;
   caption: string;
   facebookCaption: string;
+  headline: string;
   postPrompt: string;
   storyPrompt: string;
   screenshotKeys: string[];
@@ -66,6 +67,13 @@ const draftSchema = z.object({
     .max(2200)
     .describe(
       'Facebook caption. Same angle as Instagram but more conversational and descriptive (100-400 char body). Facebook audience is 30-55, prefers more context. Use 3-5 hashtags.',
+    ),
+  headline: z
+    .string()
+    .min(3)
+    .max(50)
+    .describe(
+      'Bold text overlay for the post image. Max 6 words. The hook line or a punchy benefit statement. Examples: "The Real Cost of Riding", "42° Lean Angle", "Your Brake Fluid Right Now". NOT "Download MotoVault" or "Free App".',
     ),
   postPrompt: z
     .string()
@@ -187,6 +195,7 @@ async function callModel(env: Env, model: string, userPrompt: string): Promise<D
       angle: output.angle,
       caption: output.caption,
       facebookCaption: output.facebookCaption,
+      headline: output.headline,
       postPrompt: output.postPrompt,
       storyPrompt,
       screenshotKeys,

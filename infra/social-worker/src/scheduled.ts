@@ -27,10 +27,7 @@ import { draftPost } from './draft';
 import type { Env } from './env';
 import {
   generateImage,
-  publishCarousel,
   publishPost,
-  publishStory,
-  uint8ArrayToBase64,
 } from './publish';
 import {
   claimNextPost,
@@ -40,7 +37,6 @@ import {
   markPublished,
   type SlotName,
 } from './queue';
-import { SCREENSHOT_CATALOG } from './screenshots';
 
 export const CRON_TO_SLOT: Record<string, SlotName> = {
   '0 14 * * *': 'afternoon',
@@ -111,96 +107,35 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
   console.log(`[scheduled] slot=${slot} id=${row.id} angle=${row.angle} attempt=${row.attempts}`);
 
   try {
-    // Step 2a: fetch raw app screenshots for carousel slides.
-    // Previously used AI mockups (generatePhoneMockup) but these produced
-    // gibberish text and wasted 60s+ per image. Raw screenshots are pixel-
-    // perfect and fetch in <1s each.
-    const screenshotBase64: string[] = [];
-    if (row.screenshot_keys?.length) {
-      console.log(
-        `[scheduled] id=${row.id} fetching ${row.screenshot_keys.length} screenshot(s): ${row.screenshot_keys.join(', ')}`,
-      );
-      const fetched = await Promise.all(
-        row.screenshot_keys.map(async (key) => {
-          const entry = SCREENSHOT_CATALOG[key];
-          if (!entry) {
-            console.warn(`[scheduled] id=${row.id} unknown screenshot key "${key}" — skipping`);
-            return null;
-          }
-          try {
-            const screenshotUrl = `${env.SUPABASE_URL}/storage/v1/object/public/social-media/${entry.storagePath}`;
-            const res = await fetch(screenshotUrl);
-            if (!res.ok) {
-              console.warn(
-                `[scheduled] id=${row.id} screenshot "${key}" fetch failed (${res.status})`,
-              );
-              return null;
-            }
-            return uint8ArrayToBase64(new Uint8Array(await res.arrayBuffer()));
-          } catch (err) {
-            console.warn(
-              `[scheduled] id=${row.id} screenshot "${key}" failed: ${err instanceof Error ? err.message : err}`,
-            );
-            return null;
-          }
-        }),
-      );
-      for (const b64 of fetched) {
-        if (b64) screenshotBase64.push(b64);
-      }
-      console.log(
-        `[scheduled] id=${row.id} ${screenshotBase64.length} screenshot(s) ready for carousel`,
-      );
+    // Step 2: generate image at 4:5 with headline + branding baked in.
+    // Build the full prompt: scene description + text overlay instructions.
+    let fullPrompt = row.post_prompt;
+    if (row.headline) {
+      fullPrompt +=
+        ` The image has bold white text overlay reading "${row.headline}" in the lower-center area` +
+        ' using a clean sans-serif font (Plus Jakarta Sans style). Below the headline,' +
+        ' a small white "MW" monogram logo and the word "MotoVault" in smaller white text.' +
+        ' The lower 35% of the image has a subtle dark gradient for text legibility.' +
+        ' The text should be crisp, centered, and professional — like a premium social media post.';
     }
 
-    // Step 2b: generate ONE atmospheric image at 9:16. When screenshots exist
-    // the prompt instructs Gemini to produce a purely atmospheric scene (no
-    // phone/UI). The 9:16 is reused for both post + story — publishPost
-    // center-crops to 4:5, publishStory uses 9:16 as-is.
-    const image = await generateImage(env, row.story_prompt, '9:16');
+    const image = await generateImage(env, fullPrompt, '4:5');
+    console.log(`[scheduled] id=${row.id} image ready (engine=${image.engine}, headline=${!!row.headline})`);
 
-    console.log(`[scheduled] id=${row.id} image ready (engine=${image.engine})`);
-
-    // Steps 3–4: publish. Platform-specific captions via the captions map —
-    // a single call uploads the image once and publishes to both platforms in
-    // parallel. When facebook_caption is null (e.g. manually-seeded rows),
-    // fall back to the shared caption for both platforms.
+    // Step 3: publish single image post to IG + FB.
     const captions = {
       instagram: row.caption,
       facebook: row.facebook_caption ?? row.caption,
     };
 
-    let postOutcome: { image_url: string; results: import('./queue').PostResults };
-    if (screenshotBase64.length > 0) {
-      const carouselImages = [image.image_base64, ...screenshotBase64];
-      console.log(`[scheduled] id=${row.id} publishing carousel (${carouselImages.length} slides)`);
-
-      const result = await publishCarousel(env, {
-        images_base64: carouselImages,
-        captions,
-      });
-      postOutcome = { image_url: result.image_urls[0], results: result.results };
-    } else {
-      const result = await publishPost(env, {
-        image_base64: image.image_base64,
-        captions,
-      });
-      postOutcome = result;
-    }
-
-    // Stories have no caption, so no platform-specific text needed — single
-    // 'both' call with link sticker for app store taps.
-    const storyOutcome = await publishStory(env, {
+    const postOutcome = await publishPost(env, {
       image_base64: image.image_base64,
-      platform: 'both',
-      link: 'https://motovault.app/download',
+      captions,
     });
 
     await markPublished(env, row.id, {
       post_image_url: postOutcome.image_url,
-      story_image_url: storyOutcome.image_url,
       post_results: postOutcome.results,
-      story_results: storyOutcome.results,
     });
 
     console.log(`[scheduled] id=${row.id} PUBLISHED`);

@@ -270,63 +270,34 @@ async function runPublishNow(
     let caption = body.caption ?? '';
     let facebookCaption = body.facebook_caption ?? '';
     let imagePrompt = body.image_prompt ?? '';
-    let screenshotKeys: string[] = [];
-
     if (needsDraft) {
       const recentAngles = await getRecentAngles(env, 5);
       const draft = await draftPost(env, 'afternoon' as SlotName, recentAngles, body.topic);
       if (!body.caption) caption = draft.caption;
       if (!body.facebook_caption) facebookCaption = draft.facebookCaption;
       if (!body.image_prompt) imagePrompt = draft.storyPrompt;
-      screenshotKeys = draft.screenshotKeys;
     }
 
-    // Step 2: Generate atmospheric image
+    // Step 2: Generate atmospheric image at 4:5 for feed posts
     await updateJob(kv, jobId, { step: 'generating_image' });
-    const image = await generateImage(env, imagePrompt, '9:16');
+    const image = await generateImage(env, imagePrompt, '4:5');
 
-    // Step 3: Fetch raw screenshots (no AI mockups — they produce gibberish text)
-    await updateJob(kv, jobId, { step: 'fetching_screenshots' });
-    const screenshotBase64: string[] = [];
-    for (const key of screenshotKeys) {
-      const entry = SCREENSHOT_CATALOG[key];
-      if (!entry) continue;
-      try {
-        const screenshotUrl = `${env.SUPABASE_URL}/storage/v1/object/public/social-media/${entry.storagePath}`;
-        const res = await fetch(screenshotUrl);
-        if (!res.ok) continue;
-        screenshotBase64.push(uint8ArrayToBase64(new Uint8Array(await res.arrayBuffer())));
-      } catch {
-        // Skip failed fetches
-      }
-    }
-
-    // Step 4: Publish to Meta
+    // Step 3: Publish single image to Meta
     await updateJob(kv, jobId, { step: 'publishing' });
     const captions = { instagram: caption, facebook: facebookCaption || caption };
 
-    let postResult: { image_url: string; results: import('./queue').PostResults };
-    if (screenshotBase64.length > 0) {
-      const carouselImages = [image.image_base64, ...screenshotBase64];
-      const result = await publishCarousel(env, {
-        images_base64: carouselImages,
-        captions,
-        platform,
-      });
-      postResult = { image_url: result.image_urls[0], results: result.results };
-    } else {
-      postResult = await publishPost(env, {
-        image_base64: image.image_base64,
-        captions,
-        platform,
-      });
-    }
-
-    const storyResult = await publishStory(env, {
+    const postResult = await publishPost(env, {
       image_base64: image.image_base64,
+      captions,
       platform,
-      link: 'https://motovault.app/download',
     });
+
+    // // Story publishing (commented out for now)
+    // const storyResult = await publishStory(env, {
+    //   image_base64: image.image_base64,
+    //   platform,
+    //   link: 'https://motovault.app/download',
+    // });
 
     await updateJob(kv, jobId, {
       status: 'completed',
@@ -334,10 +305,7 @@ async function runPublishNow(
       result: {
         caption,
         image_engine: image.engine,
-        screenshot_keys: screenshotKeys,
-        screenshots_fetched: screenshotBase64.length,
         post: postResult,
-        story: storyResult,
       },
     });
   } catch (err) {

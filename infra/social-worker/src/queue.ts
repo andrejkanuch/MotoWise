@@ -22,6 +22,7 @@ export interface QueueRow {
   angle: string;
   caption: string;
   facebook_caption: string | null;
+  headline: string | null;
   post_prompt: string;
   story_prompt: string;
   status: QueueStatus;
@@ -79,9 +80,9 @@ export async function claimNextPost(env: Env, slot: SlotName): Promise<QueueRow 
 
 export interface MarkPublishedInput {
   post_image_url: string;
-  story_image_url: string;
+  story_image_url?: string;
   post_results: PostResults;
-  story_results: PostResults;
+  story_results?: PostResults;
 }
 
 export async function markPublished(
@@ -190,6 +191,7 @@ export async function insertDraftedRow(
     angle: string;
     caption: string;
     facebookCaption: string;
+    headline?: string;
     postPrompt: string;
     storyPrompt: string;
     screenshotKeys?: string[];
@@ -207,6 +209,7 @@ export async function insertDraftedRow(
       angle: draft.angle,
       caption: draft.caption,
       facebook_caption: draft.facebookCaption,
+      headline: draft.headline ?? null,
       post_prompt: draft.postPrompt,
       story_prompt: draft.storyPrompt,
       screenshot_keys: draft.screenshotKeys?.length ? draft.screenshotKeys : null,
