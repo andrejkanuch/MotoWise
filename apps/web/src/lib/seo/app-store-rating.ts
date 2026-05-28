@@ -12,7 +12,7 @@
 
 import type { AggregateRatingInput } from './schema';
 
-const ITUNES_LOOKUP_URL = 'https://itunes.apple.com/lookup?id=6760291360&country=us';
+const ITUNES_LOOKUP_URL = 'https://itunes.apple.com/lookup?id=6760291360&country=sk';
 
 interface iTunesResult {
   averageUserRating?: number;
