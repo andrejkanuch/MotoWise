@@ -107,6 +107,10 @@ Notifications.setNotificationHandler({
 
 setupOnlineManager();
 
+// Module-scoped guard: survives React 19 StrictMode double-mount so the
+// What's New modal is only pushed once per app cold-start.
+let whatsNewPushed = false;
+
 function NavigationGate({ children }: { children: React.ReactNode }) {
   const {
     session,
@@ -238,11 +242,13 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
   ]);
 
   // --- What's New modal trigger ---
+  // Module-scoped `whatsNewPushed` flag survives React 19 StrictMode
+  // double-mount (useRef and even immediate store writes can race).
   const lastSeenVersion = useWhatsNewStore((s) => s.lastSeenVersion);
-  const setLastSeenVersion = useWhatsNewStore((s) => s.setLastSeenVersion);
 
   useEffect(() => {
     if (isLoading || !session || !onboardingCompleted) return;
+    if (whatsNewPushed) return;
 
     const currentVersion = Application.nativeApplicationVersion;
     if (!currentVersion || currentVersion === lastSeenVersion) return;
@@ -254,21 +260,10 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     const inTabs = segments[0] === '(tabs)';
     if (!inTabs) return;
 
-    // Mark as seen immediately to prevent double-push from React 19 Strict Mode
-    // double-mount cycle (useRef resets between mounts, but persisted store does not).
-    // The whats-new modal will also call setLastSeenVersion on dismiss.
-    setLastSeenVersion(currentVersion);
+    whatsNewPushed = true;
     trackEvent(AnalyticsEvent.WHATS_NEW_VIEWED, { version: currentVersion });
     setTimeout(() => router.push('/(modals)/whats-new' as never), 500);
-  }, [
-    isLoading,
-    session,
-    onboardingCompleted,
-    segments,
-    lastSeenVersion,
-    setLastSeenVersion,
-    router,
-  ]);
+  }, [isLoading, session, onboardingCompleted, segments, lastSeenVersion, router]);
 
   if (isLoading || (session && meQuery.isLoading && !meQuery.isError)) {
     return null;
