@@ -16,7 +16,10 @@ import * as Application from 'expo-application';
 import * as Network from 'expo-network';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
-import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
+import {
+  getTrackingPermissionsAsync,
+  requestTrackingPermissionsAsync,
+} from 'expo-tracking-transparency';
 import { Settings } from 'react-native-fbsdk-next';
 
 // expo-quick-actions requires a custom dev build — guard for Expo Go
@@ -33,7 +36,7 @@ import * as Linking from 'expo-linking';
 import { Stack, useNavigationContainerRef, usePathname, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { PostHogProvider } from 'posthog-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { AnimatedSplash } from '../components/animated-splash';
@@ -271,6 +274,8 @@ export default function RootLayout() {
   const { setSession, setLoading, isLoading } = useAuthStore();
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
   const [appReady, setAppReady] = useState(false);
+  const [splashDismissed, setSplashDismissed] = useState(false);
+  const onSplashDismiss = useCallback(() => setSplashDismissed(true), []);
 
   // Load editorial fonts — don't block splash on this; text uses system fallback until loaded
   useFonts({
@@ -393,22 +398,49 @@ export default function RootLayout() {
   }, []);
 
   // Initialize Meta/Facebook SDK + ATT prompt
+  // ATT must be shown AFTER the splash screen is dismissed so the user can see
+  // the system dialog. On Android, skip ATT and initialise the SDK immediately.
   useEffect(() => {
-    async function initMetaSDK() {
-      if (process.env.EXPO_OS === 'ios') {
+    if (process.env.EXPO_OS !== 'ios') {
+      Settings.initializeSDK();
+      return;
+    }
+
+    // On iOS, wait until the splash animation has fully dismissed so the ATT
+    // dialog is not hidden behind it (Apple rejects apps where the prompt is
+    // invisible — Guideline 2.1).
+    if (!splashDismissed) return;
+
+    let cancelled = false;
+
+    async function initATTAndMetaSDK() {
+      // Check if the user has already responded to the ATT prompt in a
+      // previous session — only show the system dialog on first launch.
+      const { status: currentStatus } = await getTrackingPermissionsAsync();
+
+      let finalStatus = currentStatus;
+      if (currentStatus === 'undetermined') {
         const { status } = await requestTrackingPermissionsAsync();
-        Settings.initializeSDK();
-        try {
-          Settings.setAdvertiserTrackingEnabled(status === 'granted');
-        } catch {
-          // setAdvertiserTrackingEnabled can crash on iOS simulator
-        }
-      } else {
-        Settings.initializeSDK();
+        finalStatus = status;
+      }
+
+      if (cancelled) return;
+
+      // Initialise the Facebook SDK only AFTER the ATT decision is made so
+      // no data is collected before consent.
+      Settings.initializeSDK();
+      try {
+        Settings.setAdvertiserTrackingEnabled(finalStatus === 'granted');
+      } catch {
+        // setAdvertiserTrackingEnabled can crash on iOS simulator
       }
     }
-    initMetaSDK();
-  }, []);
+
+    initATTAndMetaSDK();
+    return () => {
+      cancelled = true;
+    };
+  }, [splashDismissed]);
 
   // Drain ride sync queue on app resume, initial mount, and connectivity restore
   useEffect(() => {
@@ -536,7 +568,7 @@ export default function RootLayout() {
         client={posthogClient}
         autocapture={{ captureScreens: false, captureTouches: true }}
       >
-        <AnimatedSplash isReady={appReady}>
+        <AnimatedSplash isReady={appReady} onDismiss={onSplashDismiss}>
           <KeyboardProvider>
             <PersistedQueryClientBoundary>
               <NavigationGate>

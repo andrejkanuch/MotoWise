@@ -92,8 +92,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
               displayName: 'MotoVault',
               scheme: `fb${process.env.EXPO_PUBLIC_META_APP_ID}`,
               advertiserIDCollectionEnabled: false,
-              autoLogAppEventsEnabled: true,
-              isAutoInitEnabled: true,
+              autoLogAppEventsEnabled: false,
+              isAutoInitEnabled: false,
             },
           ],
         ] as [string, Record<string, unknown>][])
