@@ -234,18 +234,31 @@ export interface ArticleInput {
   authorUrl?: string;
   locale: string;
   slug: string;
+  wordCount?: number;
 }
 
 export function buildArticle(article: ArticleInput): JsonLdNode {
   return {
     '@type': 'Article',
-    '@id': `${BASE_URL}/#/${article.locale}/blog/${article.slug}/article`,
+    // Article @id uses canonical URL (not locale-namespaced) because Google
+    // requires @id to match the canonical for Article rich result eligibility.
+    // Other builders (WebPage, BreadcrumbList, FAQPage) intentionally use
+    // locale-namespaced @ids to prevent Google merging locale variants.
+    '@id': `${article.url}#article`,
     mainEntityOfPage: { '@type': 'WebPage', '@id': article.url },
     headline: article.headline,
     description: article.description,
-    image: [article.image],
+    image: [
+      {
+        '@type': 'ImageObject',
+        url: article.image,
+        width: 1200,
+        height: 630,
+      },
+    ],
     datePublished: article.datePublished,
     dateModified: article.dateModified,
+    ...(article.wordCount ? { wordCount: article.wordCount } : {}),
     author: {
       '@type': 'Person',
       name: article.authorName,

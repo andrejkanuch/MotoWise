@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { routing } from '@/i18n/routing';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { buildArticle } from '@/lib/seo/schema';
 import { TclocsChecklist } from './tclocs-checklist';
 
 interface PageProps {
@@ -46,52 +47,19 @@ export default async function TclocsChecklistPage({ params }: PageProps) {
     ],
   };
 
-  const howToSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'HowTo',
-    name: 'TCLOCS Motorcycle Pre-Ride Inspection Checklist',
-    description:
-      'A systematic 6-point motorcycle safety inspection covering Tires, Controls, Lights, Oil, Chassis, and Stands. Complete this check before every ride to catch issues early.',
-    totalTime: 'PT10M',
-    step: [
-      {
-        '@type': 'HowToStep',
-        position: 1,
-        name: 'T — Tires & Wheels',
-        text: 'Check tire pressure, tread depth, and sidewall condition. Inspect wheels for cracks, loose spokes, and proper axle nut torque. Look for nails, cuts, or bulges in the tire surface.',
-      },
-      {
-        '@type': 'HowToStep',
-        position: 2,
-        name: 'C — Controls',
-        text: 'Test front and rear brake levers for firm feel and proper free play. Check clutch lever engagement point and cable condition. Verify throttle snaps closed when released. Test horn and kill switch.',
-      },
-      {
-        '@type': 'HowToStep',
-        position: 3,
-        name: 'L — Lights & Electrics',
-        text: 'Verify headlight (low and high beam), tail light, brake light (both levers), and turn signals are functioning. Check instrument panel warning lights and battery voltage.',
-      },
-      {
-        '@type': 'HowToStep',
-        position: 4,
-        name: 'O — Oil & Fluids',
-        text: 'Check engine oil level via sight glass or dipstick. Inspect brake fluid reservoirs (front and rear) for proper level and color. Check coolant level if liquid-cooled. Look under the bike for any fresh leaks.',
-      },
-      {
-        '@type': 'HowToStep',
-        position: 5,
-        name: 'C — Chassis & Chain',
-        text: 'Inspect chain tension and lubrication. Check sprocket teeth for wear. Verify frame, swingarm, and steering head bearings feel tight with no play. Check suspension for smooth operation and no oil weeping.',
-      },
-      {
-        '@type': 'HowToStep',
-        position: 6,
-        name: 'S — Stands',
-        text: 'Verify side stand retracts fully and spring returns it firmly. Check side stand engine cut-off switch operates correctly. If equipped, test center stand for stability and smooth operation.',
-      },
-    ],
-  };
+  const articleUrl = getCanonicalUrl(locale, '/tools/tclocs-checklist');
+  const articleSchema = buildArticle({
+    url: articleUrl,
+    headline: t('title'),
+    description: t('description'),
+    image: `${BASE_URL}/og-image.png`,
+    datePublished: '2026-01-15',
+    dateModified: '2026-05-27',
+    authorName: 'Andrej Kanuch',
+    authorUrl: `${BASE_URL}/about`,
+    locale,
+    slug: 'tclocs-checklist',
+  });
 
   const categories = [
     {
@@ -180,7 +148,7 @@ export default async function TclocsChecklistPage({ params }: PageProps) {
   return (
     <>
       <JsonLd data={breadcrumbSchema} />
-      <JsonLd data={howToSchema} />
+      <JsonLd data={articleSchema} />
 
       {/* Hero */}
       <section className="px-4 pb-8 pt-24 md:pt-32">

@@ -206,49 +206,183 @@ const GS_INTERVALS: string[] = [
   'A last word on scheduling. The GS is a high-mileage touring bike by nature, and owners routinely cover 15,000–20,000 km in a single riding season. That means the service-interval calendar comes up fast, and planning ahead matters more than it does on a low-mileage bike. Riders who cover 20,000 km per year should be budgeting for a full valve-clearance service every year, a final-drive oil change every year, and tyres at whatever rate their riding demands. Riders who cover 5,000 km per year can let the mileage-based items stretch but must still honour the time-based items — brake fluid at two years, coolant at three. A GS that sits in a garage is not a GS that is being saved; it is a GS that is quietly going out of service spec on the calendar side while its odometer stays low. Either ride the bike or maintain it by the calendar, ideally both.',
 ];
 
-const R1_FAQS: BikeFaqItem[] = [
+const R1_OVERVIEW_FAQS: BikeFaqItem[] = [
   {
-    question: 'Is the 2023 Yamaha YZF-R1 reliable as a daily rider?',
+    question: 'Is the 2023 Yamaha YZF-R1 practical for daily riding?',
     answer:
-      'Mechanically yes, practically no. The engine and gearbox are robust and the electronics are mature, but the aggressive seating position, heat soak in traffic, and short service intervals make it a poor match for year-round commuting. Use it as a weekend and track-day bike for best results.',
-  },
-  {
-    question: 'How often should I change the oil on a 2023 R1?',
-    answer:
-      'Yamaha says every 10,000 km or annually. Most hard-riding owners halve that to 5,000 km, and track-day riders change oil every 3–4 track days. Use a JASO MA2-rated synthetic 10W-40.',
-  },
-  {
-    question: 'What is the valve-clearance interval on the YZF-R1?',
-    answer:
-      'Yamaha specifies 42,000 km for the valve-clearance inspection. It is an unusually long interval and most owners will sell the bike before reaching it, but those who keep the bike should budget six to nine hours of shop labour when the service is due.',
+      'The R1 is mechanically reliable enough for daily use, but the aggressive clip-on riding position, significant heat soak in stop-and-go traffic, and a narrow pillion seat make it a poor commuter. Most owners use it as a dedicated weekend and track-day bike.',
   },
   {
     question: 'Is the YZF-R1 a good first superbike?',
     answer:
       'Only if you already have meaningful middleweight experience. The R1 is forgiving in its electronic safety net but unforgiving in its ergonomics and power delivery. A rider stepping up from a 600 cc sport bike will adapt faster than a rider coming straight from a naked 500.',
   },
+  {
+    question: 'What is the 2023 R1 best suited for?',
+    answer:
+      'The R1 is built as a homologation superbike for track use that happens to be road legal. It excels on circuit days, fast weekend rides on twisty roads, and as a focused sport-bike experience. It is not designed for touring, commuting, or two-up riding.',
+  },
 ];
 
-const GS_FAQS: BikeFaqItem[] = [
+const R1_MAINTENANCE_FAQS: BikeFaqItem[] = [
   {
-    question: 'How reliable is the 2023 BMW R1250GS?',
+    question: 'How often should I change the oil on a 2023 YZF-R1?',
     answer:
-      'Very reliable for a big-bore adventure bike, provided scheduled maintenance is not skipped. The boxer twin and ShiftCam system are mature, and the main reliability risk is owners who skip final-drive oil changes or valve-clearance services.',
+      'Yamaha specifies every 10,000 km or annually. Most hard-riding owners halve that to 5,000 km, and track-day riders change oil every 3–4 track days. Use a JASO MA2-rated full-synthetic 10W-40 — the wet clutch will not tolerate friction-modified automotive oils.',
   },
   {
-    question: 'What is the final-drive oil change interval on the R1250GS?',
+    question: 'When is the valve-clearance inspection due on the R1?',
     answer:
-      'BMW recommends every 20,000 km. This is the single most important service item on the bike, and skipping it is the leading cause of final-drive bearing failures. It is a fifteen-minute job for a capable owner.',
+      'Yamaha schedules it at 42,000 km, an unusually long interval. The job requires removing the tank, airbox, throttle bodies, and cam cover. Budget six to nine hours of shop labour even when no shims need changing.',
   },
   {
-    question: 'Can you ride the R1250GS off-road?',
+    question: 'How often should I replace the coolant on a 2023 R1?',
     answer:
-      'Yes, but it is a heavy bike. In the hands of a rider who has learned to stand on the pegs and use the torque, it is genuinely capable on gravel and easy dirt. It is not an off-road specialist and no 249 kg bike ever will be.',
+      'Coolant should be changed every three years regardless of mileage. The reservoir level should also be checked before any long ride, especially in warm weather when the inline-four generates significant heat.',
+  },
+];
+
+const R1_PROBLEMS_FAQS: BikeFaqItem[] = [
+  {
+    question: 'What is the most common electrical issue on the 2023 R1?',
+    answer:
+      'Battery degradation after the second winter is the number-one complaint. The stock sealed battery is small, the ECU and dash draw parasitic current, and a month of cold garage storage without a tender is enough to leave owners stranded. A quality lithium replacement or a permanent tender lead solves it.',
   },
   {
-    question: 'How much does it cost to own a BMW R1250GS per year?',
+    question: 'How fast does the OEM chain wear on the YZF-R1?',
     answer:
-      'A typical 12,000 km/year European tourer should budget roughly 3,200–4,500 EUR annually for servicing, tyres, insurance, fuel and amortised depreciation. Dealer service is meaningfully more expensive than independent specialists.',
+      'The 530-pitch OEM chain stretches most in its first 2,000 km, then settles. Aggressive track riding — especially hard drive out of slow corners — accelerates front-sprocket wear significantly. Check tension every 500–800 km and inspect both sprockets after every track day.',
+  },
+  {
+    question: 'Are there any known mechanical quirks on the 2020–2023 R1?',
+    answer:
+      'Some bikes developed a weep from the cam-chain tensioner gasket, which Yamaha addressed with a revised gasket under an unpublished running change. A smaller number had hairline cracks in the coolant reservoir from thermal cycling. Neither issue is a recall; both are cheap and fast to fix.',
+  },
+];
+
+const R1_COST_FAQS: BikeFaqItem[] = [
+  {
+    question: 'What is the annual maintenance cost for a 2023 Yamaha R1?',
+    answer:
+      'Scheduled maintenance is surprisingly affordable — oil changes cost the same as any Japanese inline-four, and the 42,000 km valve interval means most owners never face that bill. Chain and sprocket replacement at 25,000–30,000 km runs 280–420 EUR installed. Total predictable maintenance for a 5,000 km/year street rider is modest.',
+  },
+  {
+    question: 'How much does insurance cost for a 2023 YZF-R1?',
+    answer:
+      'In most Western markets a 30-year-old rider with a clean record should expect the R1 to cost roughly 60–90% more to insure than a middleweight naked of similar value. Insurance is one of the two largest ownership cost lines alongside tyres.',
+  },
+  {
+    question: 'How does the R1 depreciate over time?',
+    answer:
+      'Current-generation R1s hold value well for three years, then drop noticeably in year four as the next homologation cycle approaches. Buyers who keep the bike longer than five years are largely insulated from the curve. Those who flip annually should assume a 15–20% annual hit.',
+  },
+];
+
+const R1_INTERVALS_FAQS: BikeFaqItem[] = [
+  {
+    question: 'When is the first service due on a new 2023 R1?',
+    answer:
+      'Yamaha prescribes an oil-and-filter change at the 1,000 km break-in service. This first service also includes a general inspection of fasteners, chain tension, and coolant level. Do not skip it — the break-in oil carries metal particles from the new engine.',
+  },
+  {
+    question: 'Should I change the oil earlier than 10,000 km after break-in?',
+    answer:
+      'Most serious owners halve the factory 10,000 km interval to 5,000 km. The R1 is a high-rpm engine with a wet clutch in a shared sump, and oil shear is real. The cost of five litres of synthetic and a filter is trivial compared to worn cams or a glazed clutch pack.',
+  },
+  {
+    question: 'When should I replace the spark plugs on the YZF-R1?',
+    answer:
+      'The factory iridium spark plugs are rated for 40,000 km. They rarely fail early but should be pulled and inspected at the valve-clearance service. If the bike sees heavy track use, inspect them sooner — fouled plugs at high rpm can cause misfires that mimic sensor faults.',
+  },
+];
+
+const GS_OVERVIEW_FAQS: BikeFaqItem[] = [
+  {
+    question: 'How reliable is the 2023 BMW R1250GS for long-term ownership?',
+    answer:
+      'Very reliable provided scheduled maintenance is not skipped. The ShiftCam boxer twin is a mature design, and bikes that receive timely valve checks and final-drive oil changes routinely exceed 100,000 km without major issues. The main risk is deferred maintenance, not design flaws.',
+  },
+  {
+    question: 'Is the R1250GS a good touring motorcycle?',
+    answer:
+      'It is one of the best in the category. The 20 L tank gives 400+ km range in gentle touring, the optional cruise control is excellent, pillion comfort is among the best in class, and the Telelever front end keeps the bike stable under braking with luggage. Most long-distance riders consider it the default choice.',
+  },
+  {
+    question: 'Is the R1250GS too heavy for off-road riding?',
+    answer:
+      'At 249 kg wet it is heavy, but genuinely capable off-road in the hands of a rider who stands on the pegs and uses the torque. The Enduro Pro ABS mode and ample low-rpm grunt make gravel roads and moderate trails manageable. It is not a lightweight enduro, but it goes places most adventure bikes cannot.',
+  },
+];
+
+const GS_MAINTENANCE_FAQS: BikeFaqItem[] = [
+  {
+    question: 'How often should I change the oil on a 2023 R1250GS?',
+    answer:
+      'BMW specifies every 10,000 km. Unlike high-revving sport bikes, there is no strong argument for halving the interval — the boxer twin is a large, low-stressed engine with generous oil capacity. Use a full-synthetic 5W-40 meeting BMW specifications and avoid friction modifiers.',
+  },
+  {
+    question: 'When is the valve-clearance check due on the R1250GS?',
+    answer:
+      'Every 20,000 km, and unlike many sport bikes this is an interval GS owners actually hit — many cover 15,000–20,000 km per year touring. Expect a shop to quote three to five hours of labour. The two boxer cylinders do not always wear at the same rate, so both must be checked.',
+  },
+  {
+    question: 'How often does the final-drive oil need changing?',
+    answer:
+      'BMW recommends every 20,000 km. It is a trivial 15-minute drain-and-fill job but skipping it is the leading cause of final-drive bearing failures on the GS platform. Always check the drained oil for metal particles — any glitter means the bearings need inspection.',
+  },
+];
+
+const GS_PROBLEMS_FAQS: BikeFaqItem[] = [
+  {
+    question: 'What are the most common issues on the 2023 R1250GS?',
+    answer:
+      'The most-discussed issue in owner forums is final-drive bearing wear from skipped oil changes. Other common complaints include heat from the left cylinder in slow traffic, occasional keyless-ride module failures requiring dealer replacement, and inconsistent Bluetooth pairing with some Android devices.',
+  },
+  {
+    question: 'Is spline wear still a problem on the R1250GS?',
+    answer:
+      'BMW addressed the spline and final-drive bearing issues that affected earlier GS generations with revised designs in the 1250 platform. The reputation lingers, but the actual failure rate is low on 1250 bikes that receive their 20,000 km final-drive oil services on schedule.',
+  },
+  {
+    question: 'Are there known electronic faults on the 2023 GS?',
+    answer:
+      'A small number of 2019–2023 bikes have had keyless-ride module failures that prevent starting — this requires a dealer-only module replacement. The TFT dash is reliable but BMW firmware updates are distributed only through the dealer network, so always request the latest software at each service visit.',
+  },
+];
+
+const GS_COST_FAQS: BikeFaqItem[] = [
+  {
+    question: 'How much cheaper is an independent BMW specialist vs a dealer?',
+    answer:
+      'Independent specialists typically charge 30–50% less than BMW dealers for the same work on a GS. The savings are most significant on the 20,000 km valve service and the 40,000 km major service. Many long-term owners also learn to do oil changes and final-drive oil themselves to save further.',
+  },
+  {
+    question: 'What is the total annual ownership cost of a 2023 R1250GS?',
+    answer:
+      'A typical 12,000 km/year European tourer should budget roughly 3,200–4,500 EUR annually for servicing, tyres, insurance, fuel, and amortised depreciation. The GS depreciates slowly, so total cost of ownership is lower than the sticker price suggests compared to faster-depreciating competitors.',
+  },
+  {
+    question: 'Are BMW GS parts expensive compared to Japanese adventure bikes?',
+    answer:
+      'Individual service items and consumables cost more than on Japanese equivalents — filters, gaskets, and brake pads carry a premium. However, the thriving second-hand parts market and the large independent-specialist network help offset this. Tyres and insurance are actually comparable to or cheaper than sport bikes of similar value.',
+  },
+];
+
+const GS_INTERVALS_FAQS: BikeFaqItem[] = [
+  {
+    question: 'When is the first service due on a new R1250GS?',
+    answer:
+      'BMW schedules the first oil-and-filter service at 1,000 km. This break-in service also includes a general inspection of fasteners, fluid levels, and a check for any warranty items. The break-in oil carries metal particles from new engine components and should not be left in the engine beyond the specified interval.',
+  },
+  {
+    question: 'How often should brake fluid be replaced on the R1250GS?',
+    answer:
+      'Every two years regardless of mileage, and this interval must not be skipped. The GS uses linked and electronically assisted brakes, so degraded fluid is not just a performance issue but a system-health concern. Use DOT 4 fluid rated for a dry boiling point above 260 degrees C.',
+  },
+  {
+    question: 'When does the shaft drive need attention on the GS?',
+    answer:
+      'The final-drive oil should be changed every 20,000 km — this is the single most critical interval on the bike. The shaft itself and its universal joint are long-life items but should be inspected for play at every 40,000 km major service. Listen for whine on trailing throttle at 60–80 km/h as an early warning of bearing wear.',
   },
 ];
 
@@ -288,7 +422,7 @@ export const BIKE_FIXTURES: readonly BikePageData[] = [
     bodyParagraphs: R1_OVERVIEW,
     specs: R1_SPECS,
     telemetry: R1_TELEMETRY,
-    faqItems: R1_FAQS,
+    faqItems: R1_OVERVIEW_FAQS,
   }),
   build('Yamaha', 'YZF-R1', 2023, 'maintenance-schedule', {
     title: '2023 Yamaha YZF-R1 Maintenance Schedule | MotoVault',
@@ -298,7 +432,7 @@ export const BIKE_FIXTURES: readonly BikePageData[] = [
     bodyParagraphs: R1_MAINTENANCE,
     specs: R1_SPECS,
     telemetry: R1_TELEMETRY,
-    faqItems: R1_FAQS,
+    faqItems: R1_MAINTENANCE_FAQS,
   }),
   build('Yamaha', 'YZF-R1', 2023, 'common-problems', {
     title: '2023 Yamaha YZF-R1 Common Problems | MotoVault',
@@ -308,7 +442,7 @@ export const BIKE_FIXTURES: readonly BikePageData[] = [
     bodyParagraphs: R1_PROBLEMS,
     specs: R1_SPECS,
     telemetry: R1_TELEMETRY,
-    faqItems: R1_FAQS,
+    faqItems: R1_PROBLEMS_FAQS,
   }),
   build('Yamaha', 'YZF-R1', 2023, 'cost-of-ownership', {
     title: '2023 Yamaha YZF-R1 Cost of Ownership | MotoVault',
@@ -318,7 +452,7 @@ export const BIKE_FIXTURES: readonly BikePageData[] = [
     bodyParagraphs: R1_COST,
     specs: R1_SPECS,
     telemetry: R1_TELEMETRY,
-    faqItems: R1_FAQS,
+    faqItems: R1_COST_FAQS,
   }),
   build('Yamaha', 'YZF-R1', 2023, 'service-intervals', {
     title: '2023 Yamaha YZF-R1 Service Intervals | MotoVault',
@@ -328,7 +462,7 @@ export const BIKE_FIXTURES: readonly BikePageData[] = [
     bodyParagraphs: R1_INTERVALS,
     specs: R1_SPECS,
     telemetry: R1_TELEMETRY,
-    faqItems: R1_FAQS,
+    faqItems: R1_INTERVALS_FAQS,
   }),
   // BMW R1250GS 2023 × 5
   build('BMW', 'R1250GS', 2023, 'overview', {
@@ -339,7 +473,7 @@ export const BIKE_FIXTURES: readonly BikePageData[] = [
     bodyParagraphs: GS_OVERVIEW,
     specs: GS_SPECS,
     telemetry: GS_TELEMETRY,
-    faqItems: GS_FAQS,
+    faqItems: GS_OVERVIEW_FAQS,
   }),
   build('BMW', 'R1250GS', 2023, 'maintenance-schedule', {
     title: '2023 BMW R1250GS Maintenance Schedule | MotoVault',
@@ -349,7 +483,7 @@ export const BIKE_FIXTURES: readonly BikePageData[] = [
     bodyParagraphs: GS_MAINTENANCE,
     specs: GS_SPECS,
     telemetry: GS_TELEMETRY,
-    faqItems: GS_FAQS,
+    faqItems: GS_MAINTENANCE_FAQS,
   }),
   build('BMW', 'R1250GS', 2023, 'common-problems', {
     title: '2023 BMW R1250GS Common Problems | MotoVault',
@@ -359,7 +493,7 @@ export const BIKE_FIXTURES: readonly BikePageData[] = [
     bodyParagraphs: GS_PROBLEMS,
     specs: GS_SPECS,
     telemetry: GS_TELEMETRY,
-    faqItems: GS_FAQS,
+    faqItems: GS_PROBLEMS_FAQS,
   }),
   build('BMW', 'R1250GS', 2023, 'cost-of-ownership', {
     title: '2023 BMW R1250GS Cost of Ownership | MotoVault',
@@ -369,7 +503,7 @@ export const BIKE_FIXTURES: readonly BikePageData[] = [
     bodyParagraphs: GS_COST,
     specs: GS_SPECS,
     telemetry: GS_TELEMETRY,
-    faqItems: GS_FAQS,
+    faqItems: GS_COST_FAQS,
   }),
   build('BMW', 'R1250GS', 2023, 'service-intervals', {
     title: '2023 BMW R1250GS Service Intervals | MotoVault',
@@ -379,7 +513,7 @@ export const BIKE_FIXTURES: readonly BikePageData[] = [
     bodyParagraphs: GS_INTERVALS,
     specs: GS_SPECS,
     telemetry: GS_TELEMETRY,
-    faqItems: GS_FAQS,
+    faqItems: GS_INTERVALS_FAQS,
   }),
 ] as const;
 

@@ -12,6 +12,8 @@ import {
   websiteSchema,
 } from '../jsonld';
 
+import { buildArticle, buildSoftwareApplication } from '../schema';
+
 describe('routeToTouristAttraction', () => {
   const baseRoute: RouteForJsonLd = {
     name: 'Pacific Coast Highway',
@@ -116,6 +118,85 @@ describe('websiteSchema', () => {
     expect(result['@type']).toBe('WebSite');
     expect(result.name).toBe('MotoVault');
     expect(result.url).toBe('https://motovault.app');
+  });
+});
+
+describe('buildArticle', () => {
+  const baseArticle = {
+    url: 'https://motovault.app/blog/test-article',
+    headline: 'Test Article',
+    description: 'A test article.',
+    image: 'https://motovault.app/images/blog/test-hero.webp',
+    datePublished: '2026-01-01',
+    dateModified: '2026-05-01',
+    authorName: 'Andrej Kanuch',
+    authorUrl: 'https://motovault.app/about',
+    locale: 'en',
+    slug: 'test-article',
+  };
+
+  it('uses canonical URL for @id, not locale-namespaced path', () => {
+    const result = buildArticle(baseArticle);
+    expect(result['@id']).toBe('https://motovault.app/blog/test-article#article');
+  });
+
+  it('uses locale-prefixed canonical URL for non-English @id', () => {
+    const result = buildArticle({
+      ...baseArticle,
+      url: 'https://motovault.app/fr/blog/test-article',
+      locale: 'fr',
+    });
+    expect(result['@id']).toBe('https://motovault.app/fr/blog/test-article#article');
+  });
+
+  it('emits image as ImageObject with dimensions', () => {
+    const result = buildArticle(baseArticle);
+    const images = result.image as Array<Record<string, unknown>>;
+    expect(images).toHaveLength(1);
+    expect(images[0]['@type']).toBe('ImageObject');
+    expect(images[0].url).toBe(baseArticle.image);
+    expect(images[0].width).toBe(1200);
+    expect(images[0].height).toBe(630);
+  });
+
+  it('includes wordCount when provided', () => {
+    const result = buildArticle({ ...baseArticle, wordCount: 2500 });
+    expect(result.wordCount).toBe(2500);
+  });
+
+  it('omits wordCount when not provided', () => {
+    const result = buildArticle(baseArticle);
+    expect(result.wordCount).toBeUndefined();
+  });
+
+  it('omits wordCount when zero', () => {
+    const result = buildArticle({ ...baseArticle, wordCount: 0 });
+    expect(result.wordCount).toBeUndefined();
+  });
+});
+
+describe('buildSoftwareApplication', () => {
+  it('includes aggregateRating when provided', () => {
+    const result = buildSoftwareApplication({
+      name: 'MotoVault',
+      description: 'Test',
+      aggregateRating: { ratingValue: '4.6', reviewCount: '48' },
+    });
+    expect(result.aggregateRating).toEqual({
+      '@type': 'AggregateRating',
+      ratingValue: '4.6',
+      reviewCount: '48',
+      bestRating: '5',
+      worstRating: '1',
+    });
+  });
+
+  it('omits aggregateRating when not provided', () => {
+    const result = buildSoftwareApplication({
+      name: 'MotoVault',
+      description: 'Test',
+    });
+    expect(result.aggregateRating).toBeUndefined();
   });
 });
 

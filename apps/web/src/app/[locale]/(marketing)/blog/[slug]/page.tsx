@@ -164,6 +164,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
       authorUrl: `${BASE_URL}/about`,
       locale,
       slug,
+      wordCount: article.wordCount,
     }),
   );
 

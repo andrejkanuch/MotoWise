@@ -1,9 +1,21 @@
-export function ProofSection() {
+interface ProofSectionProps {
+  appStoreRating?: { ratingValue: string; reviewCount: string } | null;
+}
+
+export function ProofSection({ appStoreRating }: ProofSectionProps) {
   const stats = [
     { value: '4', label: 'Tools in one app — trips, maintenance, expenses, diagnostics.' },
     { value: '0', suffix: ' OBD hardware', label: 'Point your camera. Get the answer.' },
     { value: '100', suffix: '%', label: 'Free. No trial. No credit card.' },
-    { value: 'iOS', suffix: ' + Android', label: 'Native apps, built for motorcycles.' },
+    ...(appStoreRating
+      ? [
+          {
+            value: appStoreRating.ratingValue,
+            suffix: ` ★ (${appStoreRating.reviewCount})`,
+            label: 'App Store rating from real riders.',
+          },
+        ]
+      : [{ value: 'iOS', suffix: ' + Android', label: 'Native apps, built for motorcycles.' }]),
   ];
 
   return (

@@ -54,7 +54,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
       description: article.excerpt,
       datePublished: article.date,
       author: {
-        '@type': 'Organization',
+        '@type': 'Person',
         name: article.author,
       },
       url: `${BASE_URL}/blog/${article.slug}`,

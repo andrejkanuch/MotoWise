@@ -9,6 +9,7 @@ import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { ManifestoSection } from '@/components/marketing/manifesto-section';
 import { ProofSection } from '@/components/marketing/proof-section';
 import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
+import { getAppStoreRating } from '@/lib/seo/app-store-rating';
 import {
   buildFAQPage,
   buildGraph,
@@ -44,10 +45,15 @@ export default async function HomePage({ params }: PageProps) {
   const tJsonLd = await getTranslations('JsonLd');
   const tFaq = await getTranslations('Faq');
 
-  const faqItems = Array.from({ length: 4 }, (_, i) => ({
-    question: tFaq(`items.${i}.question`),
-    answer: tFaq(`items.${i}.answer`),
-  }));
+  const [rating, faqItems] = await Promise.all([
+    getAppStoreRating(),
+    Promise.resolve(
+      Array.from({ length: 4 }, (_, i) => ({
+        question: tFaq(`items.${i}.question`),
+        answer: tFaq(`items.${i}.answer`),
+      })),
+    ),
+  ]);
 
   const graph = buildGraph(
     buildOrganization({
@@ -62,6 +68,7 @@ export default async function HomePage({ params }: PageProps) {
     buildSoftwareApplication({
       name: tJsonLd('organizationName'),
       description: tJsonLd('organizationDescription'),
+      aggregateRating: rating ?? undefined,
     }),
     buildFAQPage(faqItems, `${locale}/home/faq`),
   );
@@ -89,7 +96,7 @@ export default async function HomePage({ params }: PageProps) {
       </p>
       <ManifestoSection />
       <FeaturesGrid />
-      <ProofSection />
+      <ProofSection appStoreRating={rating} />
       <DiagnosticsDemo />
       <Faq />
       <CtaSection />
