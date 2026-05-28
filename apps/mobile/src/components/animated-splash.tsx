@@ -47,12 +47,13 @@ function describeArc(cx: number, cy: number, r: number, startRad: number, endRad
 interface AnimatedSplashProps {
   isReady: boolean;
   children: React.ReactNode;
+  onDismiss?: () => void;
 }
 
 const DURATION = 3200;
 const MAX_SPLASH_MS = 10000;
 
-export function AnimatedSplash({ isReady, children }: AnimatedSplashProps) {
+export function AnimatedSplash({ isReady, children, onDismiss }: AnimatedSplashProps) {
   const [showApp, setShowApp] = useState(false);
   const [splashDone, setSplashDone] = useState(false);
   const forcedExit = useRef(false);
@@ -64,7 +65,8 @@ export function AnimatedSplash({ isReady, children }: AnimatedSplashProps) {
 
   const onSplashComplete = useCallback(() => {
     setSplashDone(true);
-  }, []);
+    onDismiss?.();
+  }, [onDismiss]);
 
   // Failsafe
   useEffect(() => {
@@ -73,10 +75,11 @@ export function AnimatedSplash({ isReady, children }: AnimatedSplashProps) {
         forcedExit.current = true;
         setShowApp(true);
         setSplashDone(true);
+        onDismiss?.();
       }
     }, MAX_SPLASH_MS);
     return () => clearTimeout(timeout);
-  }, [splashDone]);
+  }, [splashDone, onDismiss]);
 
   // Entrance animation — single timeline drives everything
   // biome-ignore lint/correctness/useExhaustiveDependencies: animation shared values are stable refs
