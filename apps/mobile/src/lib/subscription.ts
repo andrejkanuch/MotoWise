@@ -13,10 +13,11 @@ async function getPurchases() {
     try {
       PurchasesModule = await import('react-native-purchases');
     } catch {
-      PurchasesModule = require('react-native-purchases') as typeof import('react-native-purchases');
+      PurchasesModule =
+        require('react-native-purchases') as typeof import('react-native-purchases');
     }
   }
-  return PurchasesModule!.default;
+  return PurchasesModule?.default;
 }
 
 function isExpoGo(): boolean {
