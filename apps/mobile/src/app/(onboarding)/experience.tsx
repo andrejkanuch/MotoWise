@@ -587,6 +587,7 @@ export default function ExperienceScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const setExperienceLevel = useOnboardingStore((s) => s.setExperienceLevel);
+  const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
   const storedLevel = useOnboardingStore((s) => s.experienceLevel);
   const [selected, setSelected] = useState<ExperienceLevel | null>(storedLevel);
   const [pendingId, setPendingId] = useState<ExperienceLevel | null>(null);
@@ -629,6 +630,7 @@ export default function ExperienceScreen() {
     setSelected(id);
     setExperienceLevel(id);
 
+    setLastCompletedScreen('experience');
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
       step: 'experience',
       step_index: 1,

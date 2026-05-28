@@ -127,7 +127,8 @@ export function setAnalyticsEnabled(enabled: boolean) {
 export function setCrashReportingEnabled(enabled: boolean) {
   crashReportingEnabled = enabled;
   if (SENTRY_DSN) {
-    const client = Sentry.getClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Sentry v7 types getClient() as unknown in some TS versions
+    const client = Sentry.getClient() as any;
     if (client) {
       client.getOptions().enabled = enabled;
     }
@@ -186,6 +187,7 @@ export const AnalyticsEvent = {
   ONBOARDING_STEP_SKIPPED: 'onboarding_step_skipped',
   ONBOARDING_COMPLETED: 'onboarding_completed',
   ONBOARDING_DROPPED_OFF: 'onboarding_dropped_off',
+  ONBOARDING_RESUMED: 'onboarding_resumed',
 
   // Feature usage — Diagnostics
   DIAGNOSTIC_STARTED: 'diagnostic_started',

@@ -46,3 +46,13 @@ export const GOAL_TO_PLACEMENT: Record<string, string> = {
   maintain_bike: 'onboarding_rides',
   just_exploring: 'onboarding_default',
 } as const;
+
+type OnboardingRoutePath = `/(onboarding)/${OnboardingRoute}`;
+
+/** Given the last completed screen, return the full route path for the next screen */
+export function getResumeRoute(lastCompleted: OnboardingRoute): OnboardingRoutePath | null {
+  const idx = ONBOARDING_SCREENS.findIndex((s) => s.route === lastCompleted);
+  if (idx === -1 || idx >= ONBOARDING_SCREENS.length - 1) return null;
+  const nextRoute = ONBOARDING_SCREENS[idx + 1].route;
+  return `/(onboarding)/${nextRoute}`;
+}

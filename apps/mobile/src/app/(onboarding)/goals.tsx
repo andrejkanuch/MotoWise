@@ -53,6 +53,7 @@ export default function GoalsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const setRidingGoals = useOnboardingStore((s) => s.setRidingGoals);
+  const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
 
   const [selected, setSelected] = useState<Set<RidingGoal>>(new Set());
   const [showAffirmation, setShowAffirmation] = useState(false);
@@ -101,6 +102,7 @@ export default function GoalsScreen() {
 
     // Batch write to Zustand store
     setRidingGoals(goals);
+    setLastCompletedScreen('goals');
 
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
       step: 'goals',

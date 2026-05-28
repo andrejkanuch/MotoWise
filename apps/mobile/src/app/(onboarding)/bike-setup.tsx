@@ -59,6 +59,7 @@ export default function BikeSetupScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const setBikeData = useOnboardingStore((s) => s.setBikeData);
+  const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
   const existingBikeData = useOnboardingStore((s) => s.bikeData);
   const ridingGoals = useOnboardingStore((s) => s.ridingGoals);
 
@@ -185,6 +186,7 @@ export default function BikeSetupScreen() {
       mileageUnit: existingBikeData?.mileageUnit ?? MileageUnit.MI,
     });
 
+    setLastCompletedScreen('bike-setup');
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
       step: 'bike_setup',
       step_index: 3,
@@ -200,6 +202,7 @@ export default function BikeSetupScreen() {
 
   const handleSkip = () => {
     setBikeData(null);
+    setLastCompletedScreen('bike-setup');
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, {
       step: 'bike_setup',
       step_index: 3,
