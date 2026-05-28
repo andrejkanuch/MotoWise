@@ -9,7 +9,12 @@ let PurchasesModule: typeof import('react-native-purchases') | null = null;
 
 async function getPurchases() {
   if (!PurchasesModule) {
-    PurchasesModule = await import('react-native-purchases');
+    // Dynamic import for lazy loading; require fallback for Jest (where import() is unsupported)
+    try {
+      PurchasesModule = await import('react-native-purchases');
+    } catch {
+      PurchasesModule = require('react-native-purchases');
+    }
   }
   return PurchasesModule.default;
 }
@@ -262,6 +267,8 @@ export async function logoutRevenueCat() {
   if (!cleanup) return;
   try {
     const Purchases = await getPurchases();
+    const anonymous = await Purchases.isAnonymous();
+    if (anonymous) return;
     await Purchases.logOut();
   } catch (e) {
     console.error('[RevenueCat] logOut failed:', e instanceof Error ? e.message : e);
