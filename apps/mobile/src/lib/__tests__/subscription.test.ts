@@ -33,10 +33,7 @@ const mockTrackEvent = jest.fn();
 jest.mock('../analytics', () => ({
   captureException: (...args: unknown[]) => mockCaptureException(...args),
   trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
-  AnalyticsEvent: new Proxy(
-    {},
-    { get: (_t, prop) => String(prop) },
-  ),
+  AnalyticsEvent: new Proxy({}, { get: (_t, prop) => String(prop) }),
 }));
 
 jest.mock('../../stores/subscription.store', () => ({
