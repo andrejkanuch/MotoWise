@@ -29,6 +29,7 @@ import {
   useDashboardData,
   useExpenseDashboard,
 } from '../../../hooks/use-expense-dashboard';
+import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -145,11 +146,12 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
 }
 
 export default function ExpenseDashboardScreen() {
-  const { motorcycleId, currentMileage, mileageUnit } = useLocalSearchParams<{
+  const { motorcycleId, currentMileage } = useLocalSearchParams<{
     motorcycleId: string;
     currentMileage?: string;
-    mileageUnit?: string;
   }>();
+  // Unit follows the user's profile preference, not the deprecated per-bike field.
+  const mileageUnit = useMileageUnit();
 
   const [period, setPeriod] = useState<Period>('thisYear');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);

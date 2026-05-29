@@ -148,29 +148,35 @@ export default function EditBikeScreen() {
     }
   }, [bike, initialized]);
 
-  // Match make from NHTSA list once makes are loaded
-  useEffect(() => {
-    if (bike && initialized && makes.length > 0 && !selectedMake) {
-      const found = makes.find(
-        (m: { makeName: string }) => m.makeName.toLowerCase() === bike.make.toLowerCase(),
-      );
-      if (found) {
-        setSelectedMake({ makeId: found.makeId, makeName: found.makeName });
-      }
-    }
-  }, [bike, initialized, makes, selectedMake]);
+  // Match make/model from the NHTSA list ONCE on initial load. These must not
+  // depend on selectedMake/selectedModel: re-running when the selection clears
+  // would silently re-select the bike's original value while the user is editing
+  // the search field — and then deleting the last character flips the row back
+  // to its read-only state, unmounting the TextInput and dismissing the keyboard.
+  const didAutoMatchMake = useRef(false);
+  const didAutoMatchModel = useRef(false);
 
-  // Match model from NHTSA list once models are loaded
   useEffect(() => {
-    if (bike && initialized && models.length > 0 && !selectedModel) {
-      const found = models.find(
-        (m: { modelName: string }) => m.modelName.toLowerCase() === bike.model.toLowerCase(),
-      );
-      if (found) {
-        setSelectedModel({ modelId: found.modelId, modelName: found.modelName });
-      }
+    if (!bike || !initialized || makes.length === 0 || didAutoMatchMake.current) return;
+    didAutoMatchMake.current = true;
+    const found = makes.find(
+      (m: { makeName: string }) => m.makeName.toLowerCase() === bike.make.toLowerCase(),
+    );
+    if (found) {
+      setSelectedMake({ makeId: found.makeId, makeName: found.makeName });
     }
-  }, [bike, initialized, models, selectedModel]);
+  }, [bike, initialized, makes]);
+
+  useEffect(() => {
+    if (!bike || !initialized || models.length === 0 || didAutoMatchModel.current) return;
+    didAutoMatchModel.current = true;
+    const found = models.find(
+      (m: { modelName: string }) => m.modelName.toLowerCase() === bike.model.toLowerCase(),
+    );
+    if (found) {
+      setSelectedModel({ modelId: found.modelId, modelName: found.modelName });
+    }
+  }, [bike, initialized, models]);
 
   const makeName = selectedMake?.makeName ?? bike?.make ?? '';
   const modelName = selectedModel?.modelName ?? bike?.model ?? '';

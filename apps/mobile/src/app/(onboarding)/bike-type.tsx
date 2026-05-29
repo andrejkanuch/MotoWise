@@ -2,7 +2,6 @@ import { palette } from '@motovault/design-system';
 import type { MileageUnit } from '@motovault/types';
 import { MotorcycleType } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
-import { getLocales } from 'expo-localization';
 import { useRouter } from 'expo-router';
 import { Bike, ChevronRight, Gauge, HelpCircle, MapPin, Mountain } from 'lucide-react-native';
 import { useState } from 'react';
@@ -14,10 +13,9 @@ import { OnboardingCard } from '../../components/onboarding/onboarding-card';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { TOTAL_SCREENS } from '../../config/onboarding';
+import { useMileageUnit } from '../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-
-const defaultUnit: MileageUnit = getLocales()[0]?.measurementSystem === 'metric' ? 'km' : 'mi';
 
 const MOTORCYCLE_TYPE_OPTIONS = [
   {
@@ -50,6 +48,8 @@ export default function BikeTypeScreen() {
   const router = useRouter();
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const setBikeData = useOnboardingStore((s) => s.setBikeData);
+  // Default unit follows the user's profile preference (the per-bike unit is deprecated).
+  const defaultUnit = useMileageUnit();
 
   const [selectedType, setSelectedType] = useState<MotorcycleType | null>(bikeData?.type ?? null);
   const [mileage, setMileage] = useState<number | null>(bikeData?.currentMileage ?? 5000);

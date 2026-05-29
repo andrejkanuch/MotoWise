@@ -49,6 +49,11 @@ export const CompleteOnboardingInputSchema = z.object({
   bikeMileage: z.number().int().min(0).max(999999).optional(),
   bikeNickname: z.string().max(50).optional(),
   bikePhotoUrl: z.string().url().max(500).optional(),
+  /**
+   * @deprecated The mileage unit is now derived from the user's global
+   * `measurementSystem` preference, not stored per bike. Kept for backward
+   * compatibility; new clients send the preference-derived unit.
+   */
   bikeMileageUnit: z.enum(['mi', 'km']).optional(),
   acceptedOemScheduleIds: z.array(z.string().uuid()).max(50).optional(),
   currency: z.enum(currencyValues).optional(),

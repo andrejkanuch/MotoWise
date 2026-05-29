@@ -34,6 +34,11 @@ export const UpdateMotorcycleSchema = z.object({
   isPrimary: z.boolean().optional(),
   primaryPhotoUrl: z.string().url().max(500).nullable().optional(),
   currentMileage: z.number().int().min(0).optional(),
+  /**
+   * @deprecated The mileage unit is now derived from the user's global
+   * `measurementSystem` preference, not stored per bike. Label-only — no value
+   * conversion. Kept for backward compatibility with existing rows/clients.
+   */
   mileageUnit: z.enum(['mi', 'km']).optional(),
   purchasePrice: z.number().min(0).max(999999.99).nullable().optional(),
   purchaseDate: z

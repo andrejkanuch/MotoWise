@@ -33,9 +33,20 @@ export function ModelPicker({
   const color = getBrandColor(makeName);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return models.slice(0, 6);
-    return models.filter((m) => m.modelName.toLowerCase().includes(q)).slice(0, 6);
+    const raw = query.trim().toLowerCase();
+    if (!raw) return models.slice(0, 6);
+    // Normalize away spaces/punctuation so rider-typed variants match the
+    // catalog's canonical names: "goldwing"/"gold-wing"/"GOLD WING" all match
+    // "Gold Wing". (Model codes like "GL1800" still won't match — NHTSA's
+    // motorcycle catalog has no GL codes — so those fall through to the
+    // "Use '<typed>'" manual entry below.)
+    const nq = raw.replace(/[^a-z0-9]/g, '');
+    return models
+      .filter((m) => {
+        const name = m.modelName.toLowerCase();
+        return name.includes(raw) || name.replace(/[^a-z0-9]/g, '').includes(nq);
+      })
+      .slice(0, 6);
   }, [query, models]);
 
   const showCustom = query.trim().length > 0 && filtered.length === 0;

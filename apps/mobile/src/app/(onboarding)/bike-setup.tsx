@@ -3,7 +3,7 @@ import {
   MotorcycleMakesDocument,
   MotorcycleModelsDocument,
 } from '@motovault/graphql';
-import { MileageUnit, MotorcycleType, RidingGoal } from '@motovault/types';
+import { MotorcycleType, RidingGoal } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -29,6 +29,7 @@ import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { OB_ROUTE, TOTAL_SCREENS } from '../../config/onboarding';
+import { useMileageUnit } from '../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -62,6 +63,8 @@ export default function BikeSetupScreen() {
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
   const existingBikeData = useOnboardingStore((s) => s.bikeData);
   const ridingGoals = useOnboardingStore((s) => s.ridingGoals);
+  // Seed the unit from the user's profile preference (the per-bike unit is deprecated).
+  const mileageUnit = useMileageUnit();
 
   // ── Local state ─────────────────────────────────────────────
   const [year, setYear] = useState(
@@ -183,7 +186,7 @@ export default function BikeSetupScreen() {
       model: modelName,
       type: detectedType ?? MotorcycleType.STANDARD,
       currentMileage: existingBikeData?.currentMileage ?? 0,
-      mileageUnit: existingBikeData?.mileageUnit ?? MileageUnit.MI,
+      mileageUnit: existingBikeData?.mileageUnit ?? mileageUnit,
     });
 
     setLastCompletedScreen('bike-setup');

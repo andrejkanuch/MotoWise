@@ -24,7 +24,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { formatDistance, formatRelativeDate } from '../../utils/ride-formatters';
+import { distanceUnitLabel, formatDistance, formatRelativeDate } from '../../utils/ride-formatters';
 import { startGPSListener } from '../../utils/ride-location';
 import { checkAndRequestPermissions } from '../../utils/ride-permissions';
 import { rideMMKV } from '../../utils/ride-storage';
@@ -189,10 +189,11 @@ export default function StartRideScreen() {
     if (!selectedBike) return '';
     const mileage = selectedBike.currentMileage;
     if (mileage != null && mileage > 0) {
-      return `${mileage.toLocaleString()} ${selectedBike.mileageUnit ?? 'km'}`;
+      // Unit follows the user's profile preference, not the deprecated per-bike field.
+      return `${mileage.toLocaleString()} ${distanceUnitLabel(system)}`;
     }
     return 'NA';
-  }, [selectedBike]);
+  }, [selectedBike, system]);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
