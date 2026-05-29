@@ -48,6 +48,19 @@ export function sentryBeforeSend(event: Sentry.ErrorEvent): Sentry.ErrorEvent | 
   if (message.includes('Unable to find viewState for tag')) {
     return null;
   }
+  // Transient connectivity failures — the device was offline/backgrounded
+  // when a request fired. Expected on spotty cellular; the offline sync queue
+  // (ride-sync-queue.ts) already retries these. Not actionable as crashes.
+  // (Sentry MOTO-VAULT-REACT-NATIVE-5)
+  if (
+    message.includes('internet connection appears to be offline') ||
+    message.includes('Network request failed') ||
+    message.includes('Failed to fetch') ||
+    message.includes('The request timed out') ||
+    message.includes('The network connection was lost')
+  ) {
+    return null;
+  }
   // Hermes VM internal native crash — memory corruption or GC bug
   // in the engine itself, not in application JS. Not actionable.
   // Only drop when EVERY frame is a Hermes/RN internal frame (no app JS).

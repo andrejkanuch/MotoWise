@@ -195,7 +195,13 @@ function sleep(ms: number): Promise<void> {
 function isNetworkError(error: unknown): boolean {
   if (error instanceof TypeError && error.message === 'Network request failed') return true;
   const msg = error instanceof Error ? error.message : String(error);
-  return msg.includes('Network request failed') || msg.includes('Failed to fetch');
+  return (
+    msg.includes('Network request failed') ||
+    msg.includes('Failed to fetch') ||
+    msg.includes('internet connection appears to be offline') ||
+    msg.includes('The request timed out') ||
+    msg.includes('The network connection was lost')
+  );
 }
 
 function isNotFoundError(error: unknown): boolean {
