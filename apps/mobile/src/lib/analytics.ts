@@ -96,12 +96,14 @@ export function initSentry() {
     ],
     beforeSend: sentryBeforeSend,
   });
-
-  // Shake-to-report bug feedback (production only)
-  if (!__DEV__) {
-    Sentry.enableFeedbackOnShake();
-  }
 }
+
+/**
+ * Wraps the app's root component with Sentry's error/performance instrumentation.
+ * Required by the SDK as its primary integration entry point — apply to the
+ * default export of the root layout.
+ */
+export const withSentry: typeof Sentry.wrap = Sentry.wrap;
 
 export function initPostHog() {
   // Client is initialized eagerly at module load time; this is a no-op kept for backwards compatibility.

@@ -58,6 +58,7 @@ import {
   setUserProperties,
   trackEvent,
   trackScreen,
+  withSentry,
 } from '../lib/analytics';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
@@ -277,7 +278,7 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const { setSession, setLoading, isLoading } = useAuthStore();
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
   const [appReady, setAppReady] = useState(false);
@@ -607,3 +608,5 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+export default withSentry(RootLayout);
