@@ -25,6 +25,7 @@ import { maybeRequestReview } from '../../../lib/store-review';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
+import { toISODateInput } from '../../../utils/trip-form-dates';
 
 const CATEGORIES = [
   'fuel',
@@ -46,13 +47,6 @@ const CATEGORY_META: Record<Category, { color: string; label: string }> = Object
 ) as Record<Category, { color: string; label: string }>;
 
 const MAIN_CATEGORIES: Category[] = ['fuel', 'maintenance', 'parts', 'tires', 'gear', 'insurance'];
-
-function formatDate(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
 
 export default function AddExpenseScreen() {
   const { t } = useTranslation();
@@ -90,7 +84,7 @@ export default function AddExpenseScreen() {
           motorcycleId,
           amount: parsedAmount,
           category,
-          date: formatDate(date),
+          date: toISODateInput(date),
           description: description.trim() || undefined,
           currency,
         },

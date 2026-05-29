@@ -18,6 +18,7 @@ import { queryKeys } from '../../../lib/query-keys';
 import { maybeRequestReview } from '../../../lib/store-review';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
+import { toISODateInput } from '../../../utils/trip-form-dates';
 
 const PRIORITIES = ['low', 'medium', 'high', 'critical'] as const;
 const PRIORITY_META: Record<string, { color: string }> = {
@@ -26,13 +27,6 @@ const PRIORITY_META: Record<string, { color: string }> = {
   high: { color: palette.warning500 },
   critical: { color: palette.danger500 },
 };
-
-function formatDate(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
 
 export default function AddMaintenanceTaskScreen() {
   const { t } = useTranslation();
@@ -62,7 +56,7 @@ export default function AddMaintenanceTaskScreen() {
           motorcycleId,
           title: title.trim(),
           description: description.trim() || undefined,
-          dueDate: dueDate ? formatDate(dueDate) : undefined,
+          dueDate: dueDate ? toISODateInput(dueDate) : undefined,
           targetMileage: targetMileage ? Number.parseInt(targetMileage, 10) : undefined,
           priority,
           notes: notes.trim() || undefined,
@@ -88,7 +82,7 @@ export default function AddMaintenanceTaskScreen() {
             {
               id: createdTask.id,
               title: title.trim(),
-              dueDate: formatDate(dueDate),
+              dueDate: toISODateInput(dueDate),
               motorcycleId,
               remind30d: createdTask.remind30d ?? false,
               remind7d: createdTask.remind7d ?? false,

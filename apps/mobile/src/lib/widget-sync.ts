@@ -24,6 +24,7 @@ import {
   speedUnitLabel,
 } from '../utils/ride-formatters';
 import { gqlFetcher } from './graphql-client';
+import { logger } from './logger';
 import { queryClient } from './query-client';
 import { queryKeys } from './query-keys';
 
@@ -48,7 +49,7 @@ export async function syncWidgets(
 
   const currentVersion = ++syncVersion;
 
-  console.log('[WidgetSync] starting sync, domains:', domains.join(', '));
+  logger.log('[WidgetSync] starting sync, domains:', domains.join(', '));
 
   const results = await Promise.allSettled([
     domains.includes('maintenance') ? fetchMaintenance() : Promise.resolve(null),
@@ -59,13 +60,13 @@ export async function syncWidgets(
   for (let i = 0; i < results.length; i++) {
     const r = results[i];
     if (r.status === 'rejected') {
-      console.warn(`[WidgetSync] fetch[${i}] REJECTED:`, r.reason);
+      logger.warn(`[WidgetSync] fetch[${i}] REJECTED:`, r.reason);
     }
   }
 
   // Abort if a newer sync or clearAllWidgets was triggered
   if (currentVersion !== syncVersion) {
-    console.log('[WidgetSync] aborted — newer sync version');
+    logger.log('[WidgetSync] aborted — newer sync version');
     return;
   }
 
@@ -82,7 +83,7 @@ export async function syncWidgets(
     import('../widgets/RideStatsWidget'),
   ]);
 
-  console.log('[WidgetSync] widget modules imported OK');
+  logger.log('[WidgetSync] widget modules imported OK');
 
   // Abort again after async imports
   if (currentVersion !== syncVersion) return;
@@ -216,7 +217,7 @@ export async function syncWidgets(
   if (rideResult.status === 'fulfilled' && rideResult.value) {
     const overview = rideResult.value;
     const ms = measurementSystem;
-    console.log(
+    logger.log(
       '[WidgetSync] rideOverview:',
       overview.lastRide ? `lastRide=${overview.lastRide.id}` : 'lastRide=null',
       `7d=${overview.last7Days.rideCount} 30d=${overview.last30Days.rideCount}`,
@@ -486,6 +487,6 @@ function safeUpdate<T extends object>(
   try {
     widget.updateSnapshot(props);
   } catch (err) {
-    console.warn('[WidgetSync] updateSnapshot failed:', err);
+    logger.warn('[WidgetSync] updateSnapshot failed:', err);
   }
 }

@@ -1,4 +1,5 @@
 import { palette } from '@motovault/design-system';
+import type { Waypoint } from '@motovault/types';
 import { BatteryLow, Moon, Sun } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -45,8 +46,7 @@ export interface HudLayoutProps {
   sparklineMode: 'speed' | 'altitude';
 
   // Live map
-  // biome-ignore lint/suspicious/noExplicitAny: Waypoint type from different module
-  liveWaypoints: any[];
+  liveWaypoints: Waypoint[];
   gpsAccuracy: number;
 
   // Callbacks
