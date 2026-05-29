@@ -93,6 +93,7 @@ import { MAP_STYLES } from '../../utils/map-styles';
 import { getRouteSegments } from '../../utils/mapbox-directions';
 import { showMarkerActionSheet } from '../../utils/marker-action-sheet';
 import { groupByPeriod } from '../../utils/period-of-day';
+import { decodePolyline } from '../../utils/polyline';
 import { computeReadiness, formatReadinessBrief } from '../../utils/readiness';
 import { formatDistance, formatElevation } from '../../utils/ride-formatters';
 import { buildGpxFilename, buildTripGpx } from '../../utils/trip-gpx';
@@ -126,34 +127,6 @@ const SURFACE_LABELS: Record<string, string> = {
 };
 
 /** Decode Google-encoded polyline string to [lng, lat] for Mapbox */
-function decodePolylineToCoords(encoded: string): [number, number][] {
-  const points: [number, number][] = [];
-  let index = 0;
-  let lat = 0;
-  let lng = 0;
-  while (index < encoded.length) {
-    let shift = 0;
-    let result = 0;
-    let byte: number;
-    do {
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    lat += result & 1 ? ~(result >> 1) : result >> 1;
-    shift = 0;
-    result = 0;
-    do {
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    lng += result & 1 ? ~(result >> 1) : result >> 1;
-    points.push([lng / 1e5, lat / 1e5]);
-  }
-  return points;
-}
-
 function formatDateRange(start: string, end: string): string {
   const s = new Date(start);
   const e = new Date(end);
@@ -595,7 +568,7 @@ export default function TripDetailScreen() {
   // Polyline-based route line for template map preview
   const polylineRoute = useMemo(() => {
     if (!trip?.polyline) return null;
-    const coords = decodePolylineToCoords(trip.polyline);
+    const coords = decodePolyline(trip.polyline);
     if (coords.length < 2) return null;
     return {
       type: 'Feature' as const,

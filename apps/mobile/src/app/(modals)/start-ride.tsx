@@ -47,20 +47,7 @@ export default function StartRideScreen() {
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
   });
 
-  const motorcycles =
-    (
-      data as {
-        myMotorcycles?: Array<{
-          id: string;
-          make: string;
-          model: string;
-          year: number;
-          nickname?: string | null;
-          isPrimary: boolean;
-          mileageKm?: number | null;
-        }>;
-      }
-    )?.myMotorcycles ?? [];
+  const motorcycles = data?.myMotorcycles ?? [];
 
   const selectedBike = motorcycles.find((m) => m.id === selectedBikeId);
   const selectedBikeLabel = selectedBike
@@ -74,10 +61,8 @@ export default function StartRideScreen() {
     queryKey: queryKeys.rides.summary,
     queryFn: () => gqlFetcher(MyRidesDocument, { first: 1 }),
   });
-  // biome-ignore lint/suspicious/noExplicitAny: MyRidesQuery type doesn't expose totalCount in this query shape
-  const totalRides = (ridesData as any)?.myRides?.totalCount ?? 0;
-  // biome-ignore lint/suspicious/noExplicitAny: extracting node from edges array
-  const lastRide = (ridesData as any)?.myRides?.edges?.[0]?.node;
+  const totalRides = ridesData?.myRides?.totalCount ?? 0;
+  const lastRide = ridesData?.myRides?.edges?.[0]?.node;
 
   // Default to primary bike
   useEffect(() => {
@@ -202,15 +187,12 @@ export default function StartRideScreen() {
 
   const mileageLabel = useMemo(() => {
     if (!selectedBike) return '';
-    // biome-ignore lint/suspicious/noExplicitAny: mileageKm may not be in generated type yet
-    const km = (selectedBike as any).mileageKm;
-    if (km != null && km > 0) {
-      return system === 'imperial'
-        ? `${Math.round(km * 0.621371).toLocaleString()} mi`
-        : `${km.toLocaleString()} km`;
+    const mileage = selectedBike.currentMileage;
+    if (mileage != null && mileage > 0) {
+      return `${mileage.toLocaleString()} ${selectedBike.mileageUnit ?? 'km'}`;
     }
     return 'NA';
-  }, [selectedBike, system]);
+  }, [selectedBike]);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>

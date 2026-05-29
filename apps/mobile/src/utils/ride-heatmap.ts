@@ -9,72 +9,16 @@
  * and doesn't re-run on every re-render when memoised.
  */
 
-/**
- * Encode an array of [lat, lng] pairs into a Google-encoded polyline string.
- */
-export function encodePolyline(points: [number, number][]): string {
-  let encoded = '';
-  let prevLat = 0;
-  let prevLng = 0;
+// Polyline codec lives in ./polyline (single source of truth). These re-exports
+// preserve this module's historical [lat, lng] surface: `encodePolyline` is
+// identical, and heatmap's `decodePolyline` returns [lat, lng] pairs — exactly
+// what `decodePolylineLatLng` produces.
+import { decodePolylineLatLng, encodePolyline } from './polyline';
 
-  for (const [lat, lng] of points) {
-    const latE5 = Math.round(lat * 1e5);
-    const lngE5 = Math.round(lng * 1e5);
-    encoded += encodeSignedValue(latE5 - prevLat);
-    encoded += encodeSignedValue(lngE5 - prevLng);
-    prevLat = latE5;
-    prevLng = lngE5;
-  }
-  return encoded;
-}
+export { encodePolyline };
 
-function encodeSignedValue(value: number): string {
-  let v = value < 0 ? ~(value << 1) : value << 1;
-  let encoded = '';
-  while (v >= 0x20) {
-    encoded += String.fromCharCode((0x20 | (v & 0x1f)) + 63);
-    v >>= 5;
-  }
-  encoded += String.fromCharCode(v + 63);
-  return encoded;
-}
-
-/**
- * Decode a Google-encoded polyline into [lat, lng] pairs.
- *
- * (We duplicated this in two other screens; keep that form because the
- * decoder is ~30 lines and cheaper than another import.)
- */
-export function decodePolyline(encoded: string): [number, number][] {
-  const points: [number, number][] = [];
-  let index = 0;
-  let lat = 0;
-  let lng = 0;
-
-  while (index < encoded.length) {
-    let shift = 0;
-    let result = 0;
-    let byte: number;
-    do {
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    lat += result & 1 ? ~(result >> 1) : result >> 1;
-
-    shift = 0;
-    result = 0;
-    do {
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    lng += result & 1 ? ~(result >> 1) : result >> 1;
-
-    points.push([lat / 1e5, lng / 1e5]);
-  }
-  return points;
-}
+/** Decode a Google-encoded polyline into [lat, lng] pairs. */
+export const decodePolyline = decodePolylineLatLng;
 
 export interface HeatmapRide {
   id: string;

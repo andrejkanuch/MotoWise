@@ -7,6 +7,14 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "*.ts", "*.tsx", "react-native-css-env.d.ts", "nativewind-env.d.ts"],
+  "include": [
+    "src",
+    "*.ts",
+    "*.tsx",
+    "react-native-css-env.d.ts",
+    "nativewind-env.d.ts",
+    "expo-env.d.ts",
+    ".expo/types/**/*.ts"
+  ],
   "exclude": ["src/**/__tests__", "src/**/*.test.ts", "src/**/*.test.tsx"]
 }

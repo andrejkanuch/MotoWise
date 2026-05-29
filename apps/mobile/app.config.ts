@@ -21,6 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   scheme: 'motovault',
   experiments: {
     reactCompiler: true,
+    typedRoutes: true,
   },
   owner: 'andykeny',
   runtimeVersion: {
