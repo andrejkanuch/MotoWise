@@ -8,7 +8,7 @@ type FeatureAccess =
   | { allowed: true; unlimited: false; limit: number; remaining: number }
   | { allowed: false; unlimited: false; limit: number; remaining: number };
 
-function checkFeatureAccess(
+export function checkFeatureAccess(
   feature: keyof typeof FREE_TIER_LIMITS,
   currentCount: number,
   isPro: boolean,
