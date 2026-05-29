@@ -34,6 +34,7 @@
 - Use headerSearchBarOptions for search (not custom search bar)
 - Use presentation: 'formSheet' for modals (add-bike, confirm dialogs)
 - File naming: kebab-case (add-bike.tsx, fault-code-card.tsx)
+  - Exception: `src/widgets/*Widget.tsx` stay PascalCase — the names are coupled to the native iOS widget targets declared in `app.config.ts` (`expo-widgets` plugin) and to the lazy `import('../widgets/NextServiceWidget')` calls in `lib/widget-sync.ts`. Renaming them would break the native widget build.
 
 ## Common Mistakes
 - Forgetting to run `pnpm generate` after modifying .graphql files
