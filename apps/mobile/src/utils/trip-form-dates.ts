@@ -85,8 +85,8 @@ export function validateTripFormDateRangeForSave(start: Date, end: Date): string
     return 'End date is too far in the future (max 5 years)';
   }
 
-  const startDay = localDateString(start);
-  const endDay = localDateString(end);
+  const startDay = toISODateInput(start);
+  const endDay = toISODateInput(end);
   const spanDays = calendarDaysBetweenInclusive(startDay, endDay);
   if (spanDays > MAX_TRIP_SPAN_DAYS) {
     return `Trip length can’t exceed ${MAX_TRIP_SPAN_DAYS} days`;
@@ -99,8 +99,6 @@ export function validateTripFormDateRangeForSave(start: Date, end: Date): string
 export function toISODateInput(d: Date): string {
   return format(d, 'yyyy-MM-dd');
 }
-
-const localDateString = toISODateInput;
 
 function calendarDaysBetweenInclusive(startIso: string, endIso: string): number {
   const a = new Date(`${startIso}T12:00:00`);

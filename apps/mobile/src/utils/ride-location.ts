@@ -131,16 +131,6 @@ export interface AutoPauseDecision {
   abort: boolean;
 }
 
-const CLEARED_STOP: Pick<
-  AutoPauseState,
-  'zeroSpeedTimer' | 'zeroSpeedAnchor' | 'continuousAutoPauseStart' | 'forgotToStopNotified'
-> = {
-  zeroSpeedTimer: null,
-  zeroSpeedAnchor: null,
-  continuousAutoPauseStart: null,
-  forgotToStopNotified: false,
-};
-
 /**
  * Pure auto-pause / forgot-to-stop / auto-end state machine.
  *
@@ -170,7 +160,10 @@ export function decideAutoPause(
             { kind: 'setSubState', value: 'moving' },
           ]
         : [];
-    Object.assign(next, CLEARED_STOP);
+    next.zeroSpeedTimer = null;
+    next.zeroSpeedAnchor = null;
+    next.continuousAutoPauseStart = null;
+    next.forgotToStopNotified = false;
     return { next, effects, abort: false };
   }
 
