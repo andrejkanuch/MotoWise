@@ -11,7 +11,7 @@ const FAQ_ITEMS = [
   {
     question: 'Is MotoVault really free?',
     answer:
-      'MotoVault is free forever for its core feature set, which includes unlimited bikes in your garage, full maintenance tracking with service history, expense logging with per-bike cost breakdowns, ride recording with GPS traces, the trip planner with up to three saved routes, and five AI diagnostic scans per month. There is no trial period and no feature lockout after 30 days. MotoVault Pro costs $4 per month or $36 per year and unlocks unlimited AI diagnostic scans, advanced rider analytics with weekly performance reports, unlimited GPX exports, priority route processing, and extended ride statistics with elevation data. Every feature needed to maintain and manage your motorcycle is included on the free tier with no artificial limitations.',
+      'MotoVault is free forever for its core feature set, which includes one motorcycle in your garage (upgrade to Pro for unlimited bikes), full maintenance tracking with service history, expense logging with per-bike cost breakdowns, ride recording with GPS traces, the full trip planner, and one AI diagnostic scan per month. There is no trial period and no feature lockout after 30 days. MotoVault Pro costs $4 per month or $36 per year and unlocks unlimited AI diagnostic scans, advanced rider analytics with weekly performance reports, unlimited GPX exports, priority route processing, and extended ride statistics with elevation data. Every core feature needed to maintain and manage your motorcycle is available on the free tier.',
   },
   {
     question: 'How does AI diagnostics work?',
@@ -31,7 +31,7 @@ const FAQ_ITEMS = [
   {
     question: 'How does trip planning work?',
     answer:
-      'MotoVault trip planning lets you build multi-day motorcycle routes with typed waypoints that riders actually need: fuel stops, scenic overlooks, border crossings, ferry terminals, restaurants, and overnight accommodations. Each waypoint type displays its own icon on the map for quick visual scanning. The planner includes elevation profiles so you can anticipate mountain passes and plan for altitude changes that affect engine performance. Routes can be rearranged with drag-and-drop, and the system calculates estimated fuel stops based on your specific bike tank capacity. Once finalized, any route exports as a standard GPX file for offline use on Garmin, TomTom, or any compatible GPS unit. Pro users get unlimited saved routes, while free accounts can store up to three active trip plans at any time.',
+      'MotoVault trip planning lets you build multi-day motorcycle routes with typed waypoints that riders actually need: fuel stops, scenic overlooks, border crossings, ferry terminals, restaurants, and overnight accommodations. Each waypoint type displays its own icon on the map for quick visual scanning. The planner includes elevation profiles so you can anticipate mountain passes and plan for altitude changes that affect engine performance. Routes can be rearranged with drag-and-drop, and the system calculates estimated fuel stops based on your specific bike tank capacity. Once finalized, any route exports as a standard GPX file for offline use on Garmin, TomTom, or any compatible GPS unit. Trip planning and saved routes are unlimited on the free tier; MotoVault Pro adds unlimited GPX route exports and unlimited AI trip-assistant questions.',
   },
   {
     question: 'Can I use MotoVault offline?',
@@ -51,7 +51,7 @@ const FAQ_ITEMS = [
   {
     question: 'Can I track expenses for multiple bikes?',
     answer:
-      'MotoVault supports unlimited motorcycles on the free tier with no restrictions, and every expense is tagged to a specific bike in your garage. You can track fuel fill-ups with automatic cost-per-mile calculation, insurance premiums, gear purchases, replacement parts, service labor costs, registration fees, and any custom expense category you define. Each bike displays its own running total, monthly averages, and fuel economy trends over time. At the end of each year, MotoVault generates an annual cost report per bike showing your total cost of ownership broken down by category. This makes it straightforward to compare which bikes are most expensive to run, decide when selling makes financial sense, or simply keep accurate records for resale value documentation and tax purposes.',
+      'The free tier covers one motorcycle, and MotoVault Pro unlocks unlimited bikes in your garage, with every expense tagged to a specific bike. You can track fuel fill-ups with automatic cost-per-mile calculation, insurance premiums, gear purchases, replacement parts, service labor costs, registration fees, and any custom expense category you define. Each bike displays its own running total, monthly averages, and fuel economy trends over time. At the end of each year, MotoVault generates an annual cost report per bike showing your total cost of ownership broken down by category. This makes it straightforward to compare which bikes are most expensive to run, decide when selling makes financial sense, or simply keep accurate records for resale value documentation and tax purposes.',
   },
   {
     question: 'Does MotoVault work with OBD-II scanners?',

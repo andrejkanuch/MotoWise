@@ -17,13 +17,13 @@ describe('checkFeatureAccess', () => {
   });
 
   it('allows a free user below the limit and reports remaining', () => {
-    // MAX_BIKES free limit is 2.
-    const access = checkFeatureAccess('MAX_BIKES', 1, false);
+    const belowLimit = FREE_TIER_LIMITS.MAX_BIKES - 1;
+    const access = checkFeatureAccess('MAX_BIKES', belowLimit, false);
     expect(access).toEqual({
       allowed: true,
       unlimited: false,
       limit: FREE_TIER_LIMITS.MAX_BIKES,
-      remaining: FREE_TIER_LIMITS.MAX_BIKES - 1,
+      remaining: FREE_TIER_LIMITS.MAX_BIKES - belowLimit,
     });
   });
 
