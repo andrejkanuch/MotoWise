@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ArrowRight } from 'lucide-react-native';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -13,23 +13,41 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
+// Module-scoped: resume-after-kill must fire only ONCE per app launch — on the
+// first mount of the welcome screen in a fresh JS runtime (a genuine cold start
+// after the app was killed mid-onboarding). It must NOT fire when the user taps
+// Back to return to welcome during a live session: `router.replace` then
+// collapses the navigation stack to a single screen and Back stops working
+// ("GO_BACK was not handled by any navigator"). A fresh launch resets this flag.
+let resumeHandledThisLaunch = false;
+
 export default function WelcomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const lastCompleted = useOnboardingStore((s) => s.lastCompletedScreen);
-  const resumeTarget = lastCompleted ? getResumeRoute(lastCompleted) : null;
+
+  // Freeze the resume decision at mount. Reading the store imperatively keeps it
+  // non-reactive, so later step screens writing `lastCompletedScreen` cannot
+  // retrigger a resume on this already-mounted welcome screen.
+  const [resume] = useState(() => {
+    if (resumeHandledThisLaunch) return null;
+    const lastCompleted = useOnboardingStore.getState().lastCompletedScreen;
+    if (!lastCompleted) return null;
+    const target = getResumeRoute(lastCompleted);
+    return target ? { lastCompleted, target } : null;
+  });
 
   useEffect(() => {
-    if (resumeTarget) {
+    resumeHandledThisLaunch = true;
+    if (resume) {
       trackEvent(AnalyticsEvent.ONBOARDING_RESUMED, {
-        last_completed: lastCompleted,
-        resume_target: resumeTarget,
+        last_completed: resume.lastCompleted,
+        resume_target: resume.target,
       });
-      router.replace(resumeTarget);
+      router.replace(resume.target);
     } else {
       trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, { step: 'welcome' });
     }
-  }, [lastCompleted, resumeTarget, router]);
+  }, [resume, router]);
 
   const handleGetStarted = () => {
     triggerImpact(ImpactFeedbackStyle.Medium);
@@ -38,7 +56,7 @@ export default function WelcomeScreen() {
   };
 
   // Block welcome UI while resume is pending — prevents flash of hero/animations
-  if (resumeTarget) {
+  if (resume) {
     return <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }} />;
   }
 

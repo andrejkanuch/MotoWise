@@ -24,7 +24,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, Line, Stop, LinearGradient as SvgLinearGradient } from 'react-native-svg';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { OB_ROUTE, TOTAL_SCREENS } from '../../config/onboarding';
+import { OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
+import { useOnboardingBack } from '../../hooks/use-onboarding-back';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerNotification } from '../../utils/haptics';
@@ -630,7 +631,7 @@ export default function ExperienceScreen() {
     setSelected(id);
     setExperienceLevel(id);
 
-    setLastCompletedScreen('experience');
+    setLastCompletedScreen(OB_SCREEN.EXPERIENCE);
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
       step: 'experience',
       step_index: 1,
@@ -643,9 +644,10 @@ export default function ExperienceScreen() {
     }, 1400);
   };
 
+  const onBack = useOnboardingBack(OB_SCREEN.EXPERIENCE);
   const handleBack = () => {
     if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
-    router.back();
+    onBack();
   };
 
   return (

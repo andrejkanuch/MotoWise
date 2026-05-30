@@ -16,7 +16,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { OB_ROUTE, TOTAL_SCREENS } from '../../config/onboarding';
+import { OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { setupNotificationChannels } from '../../lib/notifications';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -171,7 +171,7 @@ export default function NotificationsScreen() {
   }, []);
 
   const navigateForward = () => {
-    setLastCompletedScreen('notifications');
+    setLastCompletedScreen(OB_SCREEN.NOTIFICATIONS);
     router.push(OB_ROUTE.PERSONALIZING);
   };
 

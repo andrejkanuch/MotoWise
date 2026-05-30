@@ -28,8 +28,9 @@ import { YearInput } from '../../components/onboarding/bike-setup/year-input';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { OB_ROUTE, TOTAL_SCREENS } from '../../config/onboarding';
+import { OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
 import { useMileageUnit } from '../../hooks/use-mileage-unit';
+import { useOnboardingBack } from '../../hooks/use-onboarding-back';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -58,6 +59,7 @@ function detectTypeFromModel(modelName: string): MotorcycleType | null {
 export default function BikeSetupScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const onBack = useOnboardingBack(OB_SCREEN.BIKE_SETUP);
   const insets = useSafeAreaInsets();
   const setBikeData = useOnboardingStore((s) => s.setBikeData);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
@@ -189,7 +191,7 @@ export default function BikeSetupScreen() {
       mileageUnit: existingBikeData?.mileageUnit ?? mileageUnit,
     });
 
-    setLastCompletedScreen('bike-setup');
+    setLastCompletedScreen(OB_SCREEN.BIKE_SETUP);
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
       step: 'bike_setup',
       step_index: 3,
@@ -205,7 +207,7 @@ export default function BikeSetupScreen() {
 
   const handleSkip = () => {
     setBikeData(null);
-    setLastCompletedScreen('bike-setup');
+    setLastCompletedScreen(OB_SCREEN.BIKE_SETUP);
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, {
       step: 'bike_setup',
       step_index: 3,
@@ -234,7 +236,7 @@ export default function BikeSetupScreen() {
           style={{ paddingHorizontal: 24, paddingTop: 12 }}
         >
           <Pressable
-            onPress={() => router.back()}
+            onPress={onBack}
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel="Go back"

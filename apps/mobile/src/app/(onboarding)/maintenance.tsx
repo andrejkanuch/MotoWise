@@ -23,7 +23,8 @@ import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { getBrandColor } from '../../config/brand-dna';
-import { OB_ROUTE, TOTAL_SCREENS } from '../../config/onboarding';
+import { OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
+import { useOnboardingBack } from '../../hooks/use-onboarding-back';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -38,6 +39,7 @@ const SNAP_BACK_SPRING = { damping: 18, stiffness: 350, mass: 0.6 };
 export default function MaintenanceScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const onBack = useOnboardingBack(OB_SCREEN.MAINTENANCE);
   const insets = useSafeAreaInsets();
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const setAcceptedOemScheduleIds = useOnboardingStore((s) => s.setAcceptedOemScheduleIds);
@@ -172,7 +174,7 @@ export default function MaintenanceScreen() {
   const handleContinue = () => {
     triggerImpact(ImpactFeedbackStyle.Medium);
     setAcceptedOemScheduleIds(accepted);
-    setLastCompletedScreen('maintenance');
+    setLastCompletedScreen(OB_SCREEN.MAINTENANCE);
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
       step: 'maintenance',
       step_index: 4,
@@ -185,7 +187,7 @@ export default function MaintenanceScreen() {
 
   const handleSkipAll = useCallback(() => {
     setAcceptedOemScheduleIds([]);
-    setLastCompletedScreen('maintenance');
+    setLastCompletedScreen(OB_SCREEN.MAINTENANCE);
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, {
       step: 'maintenance',
       step_index: 4,
@@ -225,7 +227,7 @@ export default function MaintenanceScreen() {
 
       {/* Back button */}
       <Pressable
-        onPress={() => router.back()}
+        onPress={onBack}
         hitSlop={12}
         accessibilityRole="button"
         accessibilityLabel="Go back"
