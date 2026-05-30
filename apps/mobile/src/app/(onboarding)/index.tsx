@@ -101,7 +101,7 @@ export default function WelcomeScreen() {
             }}
           >
             <Image
-              source={require('../../assets/images/MotoVault.png')}
+              source={require('../../assets/images/motovault-logo.webp')}
               style={{ width: '100%', height: '100%' }}
               contentFit="cover"
             />

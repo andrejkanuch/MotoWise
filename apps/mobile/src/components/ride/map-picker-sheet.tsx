@@ -10,13 +10,13 @@ import { useEditorialTheme } from '../../theme/editorial';
 import type { MapStyle } from '../../utils/map-styles';
 
 const MAP_PREVIEWS: Record<MapStyle, ImageSource> = {
-  light: require('../../../assets/images/map-previews/standard.png'),
-  dark: require('../../../assets/images/map-previews/dark.png'),
-  outdoors: require('../../../assets/images/map-previews/outdoors.png'),
-  satellite: require('../../../assets/images/map-previews/satellite.png'),
-  hybrid: require('../../../assets/images/map-previews/hybrid.png'),
-  terrain: require('../../../assets/images/map-previews/terrain.png'),
-  heatmap: require('../../../assets/images/map-previews/heatmap.png'),
+  light: require('../../../assets/images/map-previews/standard.webp'),
+  dark: require('../../../assets/images/map-previews/dark.webp'),
+  outdoors: require('../../../assets/images/map-previews/outdoors.webp'),
+  satellite: require('../../../assets/images/map-previews/satellite.webp'),
+  hybrid: require('../../../assets/images/map-previews/hybrid.webp'),
+  terrain: require('../../../assets/images/map-previews/terrain.webp'),
+  heatmap: require('../../../assets/images/map-previews/heatmap.webp'),
 };
 
 const FREE_STYLES: { key: MapStyle; label: string }[] = [
