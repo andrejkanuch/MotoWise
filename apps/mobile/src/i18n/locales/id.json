@@ -480,7 +480,11 @@
     "myTripsTitle": "Trip Saya",
     "myTripsDescription": "Lacak dan bagikan perjalanan motor Anda",
     "currency": "Mata Uang",
-    "selectCurrency": "Pilih Mata Uang"
+    "selectCurrency": "Pilih Mata Uang",
+    "roadsTitle": "Jalan yang telah kulalui",
+    "roadsSubtitle": "Heatmap sepanjang masa & rekap tahunan",
+    "savedRoutesTitle": "Rute Tersimpan",
+    "savedRoutesSubtitle": "Rute yang ingin kamu lalui nanti"
   },
   "onboarding": {
     "welcomeTitle": "Selamat Datang di MotoVault",

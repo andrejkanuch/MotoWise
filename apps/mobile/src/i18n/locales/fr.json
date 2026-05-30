@@ -480,7 +480,11 @@
     "myTripsTitle": "Mes sorties",
     "myTripsDescription": "Suis et partage tes sorties moto",
     "currency": "Devise",
-    "selectCurrency": "Choisir la devise"
+    "selectCurrency": "Choisir la devise",
+    "roadsTitle": "Routes parcourues",
+    "roadsSubtitle": "Carte de chaleur à vie et bilan de l'année",
+    "savedRoutesTitle": "Itinéraires enregistrés",
+    "savedRoutesSubtitle": "Itinéraires à parcourir plus tard"
   },
   "onboarding": {
     "welcomeTitle": "Bienvenue sur MotoVault",

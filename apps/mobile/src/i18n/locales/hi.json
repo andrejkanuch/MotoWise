@@ -480,7 +480,11 @@
     "myTripsTitle": "मेरी ट्रिप्स",
     "myTripsDescription": "अपनी मोटरसाइकिल यात्राओं को ट्रैक और शेयर करें",
     "currency": "मुद्रा",
-    "selectCurrency": "मुद्रा चुनें"
+    "selectCurrency": "मुद्रा चुनें",
+    "roadsTitle": "मैंने जिन रास्तों पर सवारी की",
+    "roadsSubtitle": "आजीवन हीटमैप और वार्षिक सारांश",
+    "savedRoutesTitle": "सहेजे गए रूट",
+    "savedRoutesSubtitle": "वे रूट जिन पर आप बाद में सवारी करना चाहते हैं"
   },
   "onboarding": {
     "welcomeTitle": "MotoVault में आपका स्वागत है",

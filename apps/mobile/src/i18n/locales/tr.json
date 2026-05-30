@@ -480,7 +480,11 @@
     "myTripsTitle": "Turlarım",
     "myTripsDescription": "Motosiklet yolculuklarını takip et ve paylaş",
     "currency": "Para Birimi",
-    "selectCurrency": "Para Birimi Seç"
+    "selectCurrency": "Para Birimi Seç",
+    "roadsTitle": "Sürdüğüm yollar",
+    "roadsSubtitle": "Tüm zamanların ısı haritası ve yıl özeti",
+    "savedRoutesTitle": "Kayıtlı Rotalar",
+    "savedRoutesSubtitle": "Daha sonra sürmek istediğin rotalar"
   },
   "onboarding": {
     "welcomeTitle": "MotoVault'a Hosgeldin",

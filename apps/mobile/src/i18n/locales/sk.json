@@ -442,6 +442,10 @@
   },
   "profile": {
     "title": "Profil",
+    "roadsTitle": "Cesty, ktoré som prešiel",
+    "roadsSubtitle": "Celoživotná teplotná mapa a ročný prehľad",
+    "savedRoutesTitle": "Uložené trasy",
+    "savedRoutesSubtitle": "Trasy, ktoré chceš prejsť neskôr",
     "rider": "Jazdec",
     "level": "Úroveň",
     "rank": "Hodnosť",

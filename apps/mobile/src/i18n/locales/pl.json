@@ -441,6 +441,10 @@
     "editMastheadSubject": "motocykl."
   },
   "profile": {
+    "roadsTitle": "Przejechane trasy",
+    "roadsSubtitle": "Mapa ciepła i podsumowanie roku",
+    "savedRoutesTitle": "Zapisane trasy",
+    "savedRoutesSubtitle": "Trasy, które chcesz przejechać później",
     "title": "Profil",
     "rider": "Jezdziec",
     "level": "Poziom",

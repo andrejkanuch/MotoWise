@@ -480,7 +480,11 @@
     "myTripsTitle": "Minhas viagens",
     "myTripsDescription": "Acompanhe e compartilhe suas viagens de moto",
     "currency": "Moeda",
-    "selectCurrency": "Selecionar moeda"
+    "selectCurrency": "Selecionar moeda",
+    "roadsTitle": "Estradas que percorri",
+    "roadsSubtitle": "Mapa de calor e retrospectiva do ano",
+    "savedRoutesTitle": "Rotas salvas",
+    "savedRoutesSubtitle": "Rotas que você quer percorrer depois"
   },
   "onboarding": {
     "welcomeTitle": "Bem-vindo ao MotoVault",

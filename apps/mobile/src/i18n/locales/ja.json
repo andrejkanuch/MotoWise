@@ -480,7 +480,11 @@
     "myTripsTitle": "マイトリップ",
     "myTripsDescription": "バイクの旅を記録・共有しましょう",
     "currency": "通貨",
-    "selectCurrency": "通貨を選択"
+    "selectCurrency": "通貨を選択",
+    "roadsTitle": "走った道",
+    "roadsSubtitle": "生涯のヒートマップと年間まとめ",
+    "savedRoutesTitle": "保存したルート",
+    "savedRoutesSubtitle": "あとで走りたいルート"
   },
   "onboarding": {
     "welcomeTitle": "MotoVaultへようこそ",

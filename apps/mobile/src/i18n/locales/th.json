@@ -480,7 +480,11 @@
     "myTripsTitle": "ทริปของฉัน",
     "myTripsDescription": "ติดตามและแชร์การเดินทางมอเตอร์ไซค์ของคุณ",
     "currency": "สกุลเงิน",
-    "selectCurrency": "เลือกสกุลเงิน"
+    "selectCurrency": "เลือกสกุลเงิน",
+    "roadsTitle": "เส้นทางที่ฉันเคยขี่",
+    "roadsSubtitle": "แผนที่ความร้อนตลอดชีวิตและสรุปประจำปี",
+    "savedRoutesTitle": "เส้นทางที่บันทึกไว้",
+    "savedRoutesSubtitle": "เส้นทางที่คุณอยากขี่ในภายหลัง"
   },
   "onboarding": {
     "welcomeTitle": "ยินดีต้อนรับสู่ MotoVault",

@@ -441,6 +441,10 @@
     "editMastheadSubject": "moto."
   },
   "profile": {
+    "roadsTitle": "Strade che ho percorso",
+    "roadsSubtitle": "Mappa di calore di sempre e riepilogo dell'anno",
+    "savedRoutesTitle": "Percorsi salvati",
+    "savedRoutesSubtitle": "Percorsi che vuoi affrontare più tardi",
     "title": "Profilo",
     "rider": "Pilota",
     "level": "Livello",
