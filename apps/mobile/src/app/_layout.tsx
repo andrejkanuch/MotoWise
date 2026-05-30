@@ -112,6 +112,11 @@ setupOnlineManager();
 // What's New modal is only pushed once per app cold-start.
 let whatsNewPushed = false;
 
+// First path segment of public share-link routes that bypass the auth/onboarding
+// gate (token resolvers for shared trips/rides). `r` is a bare short-link host
+// with no matching app/ route, so it isn't part of the generated typed-route union.
+const PUBLIC_SHARE_SEGMENTS = ['t', 'r', 'ride', 'routes', 'route'];
+
 function NavigationGate({ children }: { children: React.ReactNode }) {
   const {
     session,
@@ -202,12 +207,8 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     const inOnboarding = segments[0] === '(onboarding)';
     // Public share-link routes — anonymous recipients must be able to view
     // unlisted trip/ride share previews without being redirected to login.
-    const inPublicShareRoute =
-      segments[0] === 't' ||
-      segments[0] === 'r' ||
-      segments[0] === 'ride' ||
-      segments[0] === 'routes' ||
-      segments[0] === 'route';
+    // (Cast to string: typed routes don't include the bare `r` short-link host.)
+    const inPublicShareRoute = PUBLIC_SHARE_SEGMENTS.includes(segments[0] as string);
 
     // Public share-link routes bypass the entire auth/onboarding gate.
     // Anonymous AND authenticated users (even mid-onboarding) must be able
