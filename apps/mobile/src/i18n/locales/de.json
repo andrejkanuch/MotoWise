@@ -340,6 +340,9 @@
     }
   },
   "garage": {
+    "editMastheadEyebrow": "— GARAGE",
+    "editMastheadTitle": "Bearbeiten",
+    "editMastheadSubject": "Motorrad.",
     "title": "Meine Garage",
     "addBike": "Motorrad hinzufuegen",
     "addBikeTitle": "Motorrad hinzufuegen",
@@ -811,6 +814,12 @@
     "allTasks": "Alle Aufgaben"
   },
   "maintenance": {
+    "headerLabel": "WARTUNG",
+    "newPrefix": "Neue",
+    "taskSuffix": "Aufgabe.",
+    "km": "km",
+    "recordPrefix": "Wartung",
+    "maintenanceSuffix": "erfassen.",
     "healthScore": "Gesundheitswert",
     "grade": "Note",
     "noData": "Noch keine Wartungsdaten",
@@ -1175,6 +1184,20 @@
     "promotionalDesc": "Sonderangebote und Ankündigungen"
   },
   "expenses": {
+    "expensesEyebrow": "— AUSGABEN",
+    "logAn": "Trage eine ",
+    "expenseWord": "Ausgabe ein.",
+    "emptyStateSubtitle": "Verfolge Kraftstoff-, Wartungs-, Teile- und Ausrüstungskosten.",
+    "addFirstExpense": "Erste Ausgabe hinzufügen",
+    "emptyStateTip": "Tipp: Beginne mit deiner letzten Tankfüllung",
+    "failedToLoad": "Ausgabendaten konnten nicht geladen werden",
+    "vsLastYear": "{{arrow}} {{percent}}% ggü. Vorjahr",
+    "totalCostOfOwnership": "GESAMTKOSTEN",
+    "bikePurchase": "Motorradkauf",
+    "allExpenses": "Alle Ausgaben",
+    "addPurchasePriceHint": "Füge den Kaufpreis deines Motorrads unter „Motorrad bearbeiten“ hinzu, um die Gesamtkosten zu sehen",
+    "byCategory": "Nach Kategorie",
+    "monthlyTrend": "Monatlicher Trend",
     "title": "Ausgaben",
     "allTime": "Gesamt",
     "category": "Kategorie",
@@ -1452,6 +1475,23 @@
     "attribution": "Rückrufdaten von NHTSA"
   },
   "trips": {
+    "riders": "Fahrer",
+    "ledBy": "Geleitet von {{name}}",
+    "motoVaultPick": "MotoVault Pick",
+    "curvatureIndex": "Kurvenindex: {{value}}",
+    "reviews": "Bewertungen",
+    "writeAReview": "Bewertung schreiben",
+    "submit": "Absenden",
+    "suggestedFlowHint": "Du legst die Daten beim Klonen oder Planen fest. Unten siehst du den vorgeschlagenen Tagesablauf.",
+    "addToMyTrips": "Zu meinen Touren hinzufügen",
+    "saved": "Gespeichert",
+    "saveForLater": "Für später speichern",
+    "ridersCount": "Fahrer ({{count}})",
+    "lead": "Leiter",
+    "coPlanner": "Mitplaner",
+    "cloneThisTrip": "Diese Tour klonen",
+    "imIn": "Ich bin dabei",
+    "exportGpx": "GPX exportieren",
     "myTrips": "Meine Touren",
     "planATrip": "Tour planen",
     "emptyTitle": "Noch keine Touren",
@@ -1682,6 +1722,7 @@
     "peak": "{{value}} peak"
   },
   "startRide": {
+    "lastRideSummary": "Letzte: {{distance}} · {{date}}",
     "preFlight": "Vorab-Check",
     "readyTo": "Bereit zum",
     "ride": "Fahren.",

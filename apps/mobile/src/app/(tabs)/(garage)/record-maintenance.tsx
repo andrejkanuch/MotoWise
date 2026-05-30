@@ -162,7 +162,7 @@ export default function RecordMaintenanceScreen() {
               letterSpacing: -0.6,
             }}
           >
-            Record{' '}
+            {t('maintenance.recordPrefix', { defaultValue: 'Record' })}{' '}
           </Text>
           <Text
             style={{
@@ -172,7 +172,7 @@ export default function RecordMaintenanceScreen() {
               letterSpacing: -0.6,
             }}
           >
-            maintenance.
+            {t('maintenance.maintenanceSuffix', { defaultValue: 'maintenance.' })}
           </Text>
         </View>
       </View>

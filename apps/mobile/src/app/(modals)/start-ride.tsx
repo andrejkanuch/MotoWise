@@ -589,8 +589,10 @@ export default function StartRideScreen() {
                     }}
                     numberOfLines={1}
                   >
-                    Last: {formatDistance(lastRide.distanceM ?? 0, system)} ·{' '}
-                    {formatRelativeDate(lastRide.startedAt)}
+                    {t('startRide.lastRideSummary', {
+                      distance: formatDistance(lastRide.distanceM ?? 0, system),
+                      date: formatRelativeDate(lastRide.startedAt),
+                    })}
                   </Text>
                 )}
               </View>

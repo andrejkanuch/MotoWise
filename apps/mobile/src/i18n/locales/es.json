@@ -435,7 +435,10 @@
     "bikeDetails": "Detalles de la moto",
     "addMaintenanceTask": "Agregar tarea",
     "recordMaintenance": "Registrar mantenimiento",
-    "editBike": "Editar moto"
+    "editBike": "Editar moto",
+    "editMastheadEyebrow": "— GARAJE",
+    "editMastheadTitle": "Editar",
+    "editMastheadSubject": "moto."
   },
   "profile": {
     "title": "Perfil",
@@ -915,7 +918,13 @@
     "descriptionPlaceholder": "¿Qué hay que hacer?",
     "notesPlaceholder": "Agregar notas...",
     "taskAdded": "¡Tarea agregada!",
-    "saveTask": "Guardar tarea"
+    "saveTask": "Guardar tarea",
+    "headerLabel": "MANTENIMIENTO",
+    "newPrefix": "Nueva",
+    "taskSuffix": "tarea.",
+    "km": "km",
+    "recordPrefix": "Registrar",
+    "maintenanceSuffix": "mantenimiento."
   },
   "paywall": {
     "title": "Tu experiencia MotoVault esta lista",
@@ -1214,7 +1223,21 @@
     "seeAll_one": "Ver todo ({{count}})",
     "seeAll_other": "Ver todo ({{count}})",
     "seeAll_few": "Ver todo ({{count}})",
-    "seeAll_many": "Ver todo ({{count}})"
+    "seeAll_many": "Ver todo ({{count}})",
+    "expensesEyebrow": "— GASTOS",
+    "logAn": "Registra un ",
+    "expenseWord": "gasto.",
+    "emptyStateSubtitle": "Lleva el control de costos de combustible, mantenimiento, repuestos y equipamiento.",
+    "addFirstExpense": "Agregar primer gasto",
+    "emptyStateTip": "Consejo: Empieza con tu último repostaje",
+    "failedToLoad": "Error al cargar los datos de gastos",
+    "vsLastYear": "{{arrow}} {{percent}}% vs año pasado",
+    "totalCostOfOwnership": "COSTO TOTAL DE PROPIEDAD",
+    "bikePurchase": "Compra de la moto",
+    "allExpenses": "Todos los gastos",
+    "addPurchasePriceHint": "Agrega el precio de compra de tu moto en Editar moto para ver el costo total de propiedad",
+    "byCategory": "Por categoría",
+    "monthlyTrend": "Tendencia mensual"
   },
   "privacy": {
     "title": "Privacidad",
@@ -1515,7 +1538,24 @@
     "assistantPlaceholder": "Pregunta sobre tu viaje...",
     "startDateLabel": "Fecha de inicio",
     "draftCount_few": "{{count}} borradores — toca para terminar",
-    "draftCount_many": "{{count}} borradores — toca para terminar"
+    "draftCount_many": "{{count}} borradores — toca para terminar",
+    "riders": "pilotos",
+    "ledBy": "Liderado por {{name}}",
+    "motoVaultPick": "MotoVault Pick",
+    "curvatureIndex": "Índice de curvas: {{value}}",
+    "reviews": "Reseñas",
+    "writeAReview": "Escribir una reseña",
+    "submit": "Enviar",
+    "suggestedFlowHint": "Estableces las fechas al clonar o planificar. A continuación está el itinerario sugerido día a día.",
+    "addToMyTrips": "Agregar a Mis viajes",
+    "saved": "Guardado",
+    "saveForLater": "Guardar para después",
+    "ridersCount": "Pilotos ({{count}})",
+    "lead": "Líder",
+    "coPlanner": "Coplanificador",
+    "cloneThisTrip": "Clonar este viaje",
+    "imIn": "Me apunto",
+    "exportGpx": "Export GPX"
   },
   "groupRide": {
     "titleLabel": "Titulo",
@@ -1700,7 +1740,8 @@
     "locationRequired": "Ubicación requerida",
     "locationMessage": "MotoVault necesita acceso a tu ubicación para registrar tu ruta. Actívalo en Ajustes.",
     "openSettings": "Abrir Ajustes",
-    "startError": "No se pudo iniciar la ruta. Inténtalo de nuevo."
+    "startError": "No se pudo iniciar la ruta. Inténtalo de nuevo.",
+    "lastRideSummary": "Última: {{distance}} · {{date}}"
   },
   "preFlight": {
     "title": "Pre-vuelo",

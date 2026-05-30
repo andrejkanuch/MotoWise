@@ -2,6 +2,7 @@ import { palette } from '@motovault/design-system';
 import type { Waypoint } from '@motovault/types';
 import { BatteryLow, Moon, Sun } from 'lucide-react-native';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
@@ -81,6 +82,7 @@ export function HudLayoutA({
   onResume,
   onEndRide,
 }: HudLayoutProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const system = useMeasurementSystem();
 
@@ -271,7 +273,7 @@ export function HudLayoutA({
               textTransform: 'uppercase',
             }}
           >
-            Speed · {unitLabel}
+            {`${t('rideHud.speedLabel')} · ${unitLabel}`}
           </Text>
 
           {/* Speed row */}

@@ -137,7 +137,7 @@ export default function AddMaintenanceTaskScreen() {
             marginBottom: 6,
           }}
         >
-          — MAINTENANCE
+          — {t('maintenance.headerLabel', { defaultValue: 'MAINTENANCE' })}
         </Text>
         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
           <Text
@@ -148,7 +148,7 @@ export default function AddMaintenanceTaskScreen() {
               letterSpacing: -0.6,
             }}
           >
-            New{' '}
+            {t('maintenance.newPrefix', { defaultValue: 'New' })}{' '}
           </Text>
           <Text
             style={{
@@ -158,7 +158,7 @@ export default function AddMaintenanceTaskScreen() {
               letterSpacing: -0.6,
             }}
           >
-            task.
+            {t('maintenance.taskSuffix', { defaultValue: 'task.' })}
           </Text>
         </View>
       </View>
@@ -475,7 +475,9 @@ export default function AddMaintenanceTaskScreen() {
               }}
             />
             {targetMileage ? (
-              <Text style={{ fontSize: 13, color: palette.neutral400 }}>km</Text>
+              <Text style={{ fontSize: 13, color: palette.neutral400 }}>
+                {t('maintenance.km', { defaultValue: 'km' })}
+              </Text>
             ) : null}
           </View>
         </View>
@@ -611,7 +613,9 @@ export default function AddMaintenanceTaskScreen() {
                     paddingVertical: 4,
                   }}
                 />
-                <Text style={{ fontSize: 13, color: palette.neutral400 }}>km</Text>
+                <Text style={{ fontSize: 13, color: palette.neutral400 }}>
+                  {t('maintenance.km', { defaultValue: 'km' })}
+                </Text>
               </View>
 
               <View

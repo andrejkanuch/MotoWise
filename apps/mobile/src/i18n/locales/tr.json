@@ -435,7 +435,10 @@
     "bikeDetails": "Motor Detayları",
     "addMaintenanceTask": "Görev ekle",
     "recordMaintenance": "Bakım Kaydet",
-    "editBike": "Motosikleti Düzenle"
+    "editBike": "Motosikleti Düzenle",
+    "editMastheadEyebrow": "— GARAJ",
+    "editMastheadTitle": "Düzenle",
+    "editMastheadSubject": "motosiklet."
   },
   "profile": {
     "title": "Profil",
@@ -915,7 +918,13 @@
     "descriptionPlaceholder": "Ne yapılması gerekiyor?",
     "notesPlaceholder": "Not ekle...",
     "taskAdded": "Görev Eklendi!",
-    "saveTask": "Görevi kaydet"
+    "saveTask": "Görevi kaydet",
+    "headerLabel": "BAKIM",
+    "newPrefix": "Yeni",
+    "taskSuffix": "görev.",
+    "km": "km",
+    "recordPrefix": "Kaydet",
+    "maintenanceSuffix": "bakım."
   },
   "paywall": {
     "title": "MotoVault deneyimin hazir",
@@ -1214,7 +1223,21 @@
     "seeAll_one": "Tümünü gör ({{count}})",
     "seeAll_other": "Tümünü gör ({{count}})",
     "seeAll_few": "Tümünü gör ({{count}})",
-    "seeAll_many": "Tümünü gör ({{count}})"
+    "seeAll_many": "Tümünü gör ({{count}})",
+    "expensesEyebrow": "— HARCAMALAR",
+    "logAn": "Bir ",
+    "expenseWord": "harcama kaydet.",
+    "emptyStateSubtitle": "Yakıt, bakım, parça ve ekipman masraflarını takip et.",
+    "addFirstExpense": "İlk Harcamayı Ekle",
+    "emptyStateTip": "İpucu: Son yakıt alımınla başla",
+    "failedToLoad": "Harcama verileri yüklenemedi",
+    "vsLastYear": "{{arrow}} geçen yıla göre %{{percent}}",
+    "totalCostOfOwnership": "TOPLAM SAHİP OLMA MALİYETİ",
+    "bikePurchase": "Motor Alımı",
+    "allExpenses": "Tüm Harcamalar",
+    "addPurchasePriceHint": "Toplam sahip olma maliyetini görmek için Motoru Düzenle'den motorunun alış fiyatını ekle",
+    "byCategory": "Kategoriye göre",
+    "monthlyTrend": "Aylık eğilim"
   },
   "privacy": {
     "title": "Gizlilik",
@@ -1515,7 +1538,24 @@
     "assistantPlaceholder": "Turunla ilgili sor…",
     "startDateLabel": "Baslangic Tarihi",
     "draftCount_few": "{{count}} taslak — tamamlamak için dokun",
-    "draftCount_many": "{{count}} taslak — tamamlamak için dokun"
+    "draftCount_many": "{{count}} taslak — tamamlamak için dokun",
+    "riders": "sürücü",
+    "ledBy": "{{name}} liderliğinde",
+    "motoVaultPick": "MotoVault Pick",
+    "curvatureIndex": "Viraj endeksi: {{value}}",
+    "reviews": "Değerlendirmeler",
+    "writeAReview": "Değerlendirme yaz",
+    "submit": "Gönder",
+    "suggestedFlowHint": "Tarihleri kopyalarken veya planlarken belirlersin. Aşağıda önerilen günlük akış var.",
+    "addToMyTrips": "Turlarıma Ekle",
+    "saved": "Kaydedildi",
+    "saveForLater": "Sonrası için Kaydet",
+    "ridersCount": "Sürücüler ({{count}})",
+    "lead": "Lider",
+    "coPlanner": "Yardımcı planlayıcı",
+    "cloneThisTrip": "Bu turu kopyala",
+    "imIn": "Katılıyorum",
+    "exportGpx": "Export GPX"
   },
   "groupRide": {
     "titleLabel": "Baslik",
@@ -1700,7 +1740,8 @@
     "locationRequired": "Konum gerekli",
     "locationMessage": "MotoVault sürüşünü kaydetmek için konum erişimine ihtiyaç duyar. Lütfen Ayarlar'dan etkinleştir.",
     "openSettings": "Ayarları aç",
-    "startError": "Sürüş başlatılamadı. Lütfen tekrar dene."
+    "startError": "Sürüş başlatılamadı. Lütfen tekrar dene.",
+    "lastRideSummary": "Son: {{distance}} · {{date}}"
   },
   "preFlight": {
     "title": "Ön kontrol",

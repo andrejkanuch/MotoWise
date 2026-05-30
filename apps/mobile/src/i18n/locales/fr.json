@@ -340,6 +340,9 @@
     }
   },
   "garage": {
+    "editMastheadEyebrow": "— GARAGE",
+    "editMastheadTitle": "Modifier",
+    "editMastheadSubject": "la moto.",
     "title": "Mon garage",
     "addBike": "Ajouter une moto",
     "addBikeTitle": "Ajouter une moto",
@@ -811,6 +814,12 @@
     "allTasks": "Toutes les tâches"
   },
   "maintenance": {
+    "headerLabel": "ENTRETIEN",
+    "newPrefix": "Nouvelle",
+    "taskSuffix": "tâche.",
+    "km": "km",
+    "recordPrefix": "Enregistrer",
+    "maintenanceSuffix": "un entretien.",
     "healthScore": "Score de santé",
     "grade": "Note",
     "noData": "Aucune donnée d'entretien pour le moment",
@@ -1175,6 +1184,20 @@
     "promotionalDesc": "Offres spéciales et annonces"
   },
   "expenses": {
+    "expensesEyebrow": "— DÉPENSES",
+    "logAn": "Enregistre une ",
+    "expenseWord": "dépense.",
+    "emptyStateSubtitle": "Suis tes frais de carburant, d'entretien, de pièces et d'équipement.",
+    "addFirstExpense": "Ajouter la première dépense",
+    "emptyStateTip": "Astuce : commence par ton dernier plein",
+    "failedToLoad": "Impossible de charger les données de dépenses",
+    "vsLastYear": "{{arrow}} {{percent}} % vs l'an dernier",
+    "totalCostOfOwnership": "COÛT TOTAL DE POSSESSION",
+    "bikePurchase": "Achat de la moto",
+    "allExpenses": "Toutes les dépenses",
+    "addPurchasePriceHint": "Ajoute le prix d'achat de ta moto dans Modifier la moto pour voir le coût total de possession",
+    "byCategory": "Par catégorie",
+    "monthlyTrend": "Tendance mensuelle",
     "title": "Dépenses",
     "allTime": "Tout",
     "category": "Catégorie",
@@ -1452,6 +1475,23 @@
     "attribution": "Données de rappel de NHTSA"
   },
   "trips": {
+    "riders": "pilotes",
+    "ledBy": "Organisé par {{name}}",
+    "motoVaultPick": "MotoVault Pick",
+    "curvatureIndex": "Indice de sinuosité : {{value}}",
+    "reviews": "Avis",
+    "writeAReview": "Écrire un avis",
+    "submit": "Envoyer",
+    "suggestedFlowHint": "Tu définis les dates lors du clonage ou de la planification. Ci-dessous, le déroulé jour par jour suggéré.",
+    "addToMyTrips": "Ajouter à Mes sorties",
+    "saved": "Enregistré",
+    "saveForLater": "Enregistrer pour plus tard",
+    "ridersCount": "Pilotes ({{count}})",
+    "lead": "Organisateur",
+    "coPlanner": "Co-organisateur",
+    "cloneThisTrip": "Cloner cette sortie",
+    "imIn": "J'en suis",
+    "exportGpx": "Export GPX",
     "myTrips": "Mes sorties",
     "planATrip": "Planifier une sortie",
     "emptyTitle": "Pas encore de sorties",
@@ -1682,6 +1722,7 @@
     "peak": "{{value}} peak"
   },
   "startRide": {
+    "lastRideSummary": "Dernière : {{distance}} · {{date}}",
     "preFlight": "Pré-vol",
     "readyTo": "Prêt à",
     "ride": "rouler.",

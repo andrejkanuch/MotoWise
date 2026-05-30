@@ -435,7 +435,10 @@
     "bikeDetails": "Detail Motor",
     "addMaintenanceTask": "Tambah tugas",
     "recordMaintenance": "Catat Perawatan",
-    "editBike": "Edit Motor"
+    "editBike": "Edit Motor",
+    "editMastheadEyebrow": "— GARASI",
+    "editMastheadTitle": "Edit",
+    "editMastheadSubject": "motor."
   },
   "profile": {
     "title": "Profil",
@@ -915,7 +918,13 @@
     "descriptionPlaceholder": "Apa yang perlu dilakukan?",
     "notesPlaceholder": "Tambahkan catatan...",
     "taskAdded": "Tugas Ditambahkan!",
-    "saveTask": "Simpan tugas"
+    "saveTask": "Simpan tugas",
+    "headerLabel": "PERAWATAN",
+    "newPrefix": "Tugas",
+    "taskSuffix": "baru.",
+    "km": "km",
+    "recordPrefix": "Catat",
+    "maintenanceSuffix": "perawatan."
   },
   "paywall": {
     "title": "Pengalaman MotoVault-mu sudah siap",
@@ -1214,7 +1223,21 @@
     "seeAll_one": "Lihat semua ({{count}})",
     "seeAll_other": "Lihat semua ({{count}})",
     "seeAll_few": "Lihat semua ({{count}})",
-    "seeAll_many": "Lihat semua ({{count}})"
+    "seeAll_many": "Lihat semua ({{count}})",
+    "expensesEyebrow": "— PENGELUARAN",
+    "logAn": "Catat ",
+    "expenseWord": "pengeluaran.",
+    "emptyStateSubtitle": "Lacak biaya bahan bakar, perawatan, suku cadang, dan perlengkapan.",
+    "addFirstExpense": "Tambah Pengeluaran Pertama",
+    "emptyStateTip": "Tip: Mulai dari pengisian bahan bakar terakhir",
+    "failedToLoad": "Gagal memuat data pengeluaran",
+    "vsLastYear": "{{arrow}} {{percent}}% vs tahun lalu",
+    "totalCostOfOwnership": "TOTAL BIAYA KEPEMILIKAN",
+    "bikePurchase": "Pembelian Motor",
+    "allExpenses": "Semua Pengeluaran",
+    "addPurchasePriceHint": "Tambahkan harga beli motormu di Edit Motor untuk melihat total biaya kepemilikan",
+    "byCategory": "Per kategori",
+    "monthlyTrend": "Tren bulanan"
   },
   "privacy": {
     "title": "Privasi",
@@ -1515,7 +1538,24 @@
     "assistantPlaceholder": "Tanya tentang perjalananmu…",
     "startDateLabel": "Tanggal Mulai",
     "draftCount_few": "{{count}} draf — ketuk untuk menyelesaikan",
-    "draftCount_many": "{{count}} draf — ketuk untuk menyelesaikan"
+    "draftCount_many": "{{count}} draf — ketuk untuk menyelesaikan",
+    "riders": "pengendara",
+    "ledBy": "Dipimpin oleh {{name}}",
+    "motoVaultPick": "MotoVault Pick",
+    "curvatureIndex": "Indeks kelokan: {{value}}",
+    "reviews": "Ulasan",
+    "writeAReview": "Tulis Ulasan",
+    "submit": "Kirim",
+    "suggestedFlowHint": "Anda mengatur tanggal saat menyalin atau merencanakan. Di bawah ini adalah alur per hari yang disarankan.",
+    "addToMyTrips": "Tambah ke Perjalananku",
+    "saved": "Tersimpan",
+    "saveForLater": "Simpan untuk Nanti",
+    "ridersCount": "Pengendara ({{count}})",
+    "lead": "Pemimpin",
+    "coPlanner": "Rekan perencana",
+    "cloneThisTrip": "Salin perjalanan ini",
+    "imIn": "Saya ikut",
+    "exportGpx": "Export GPX"
   },
   "groupRide": {
     "titleLabel": "Judul",
@@ -1700,7 +1740,8 @@
     "locationRequired": "Lokasi diperlukan",
     "locationMessage": "MotoVault membutuhkan akses lokasi untuk merekam perjalanan Anda. Aktifkan di Pengaturan.",
     "openSettings": "Buka Pengaturan",
-    "startError": "Gagal memulai perjalanan. Silakan coba lagi."
+    "startError": "Gagal memulai perjalanan. Silakan coba lagi.",
+    "lastRideSummary": "Terakhir: {{distance}} · {{date}}"
   },
   "preFlight": {
     "title": "Pra-perjalanan",

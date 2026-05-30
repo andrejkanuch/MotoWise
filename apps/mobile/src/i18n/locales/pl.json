@@ -435,7 +435,10 @@
     "bikeDetails": "Szczegóły motocykla",
     "addMaintenanceTask": "Dodaj zadanie",
     "recordMaintenance": "Zapisz serwis",
-    "editBike": "Edytuj motocykl"
+    "editBike": "Edytuj motocykl",
+    "editMastheadEyebrow": "— GARAŻ",
+    "editMastheadTitle": "Edytuj",
+    "editMastheadSubject": "motocykl."
   },
   "profile": {
     "title": "Profil",
@@ -915,7 +918,13 @@
     "descriptionPlaceholder": "Co trzeba zrobić?",
     "notesPlaceholder": "Dodaj notatki...",
     "taskAdded": "Zadanie dodane!",
-    "saveTask": "Zapisz zadanie"
+    "saveTask": "Zapisz zadanie",
+    "headerLabel": "SERWIS",
+    "newPrefix": "Nowe",
+    "taskSuffix": "zadanie.",
+    "km": "km",
+    "recordPrefix": "Zapisz",
+    "maintenanceSuffix": "serwis."
   },
   "paywall": {
     "title": "Twoje doswiadczenie MotoVault jest gotowe",
@@ -1214,7 +1223,21 @@
     "seeAll_one": "Zobacz wszystkie ({{count}})",
     "seeAll_other": "Zobacz wszystkie ({{count}})",
     "seeAll_few": "Zobacz wszystkie ({{count}})",
-    "seeAll_many": "Zobacz wszystkie ({{count}})"
+    "seeAll_many": "Zobacz wszystkie ({{count}})",
+    "expensesEyebrow": "— WYDATKI",
+    "logAn": "Zapisz ",
+    "expenseWord": "wydatek.",
+    "emptyStateSubtitle": "Śledź koszty paliwa, serwisu, części i wyposażenia.",
+    "addFirstExpense": "Dodaj pierwszy wydatek",
+    "emptyStateTip": "Wskazówka: zacznij od ostatniego tankowania",
+    "failedToLoad": "Nie udało się wczytać danych o wydatkach",
+    "vsLastYear": "{{arrow}} {{percent}}% vs poprzedni rok",
+    "totalCostOfOwnership": "CAŁKOWITY KOSZT POSIADANIA",
+    "bikePurchase": "Zakup motocykla",
+    "allExpenses": "Wszystkie wydatki",
+    "addPurchasePriceHint": "Dodaj cenę zakupu motocykla w Edytuj motocykl, aby zobaczyć całkowity koszt posiadania",
+    "byCategory": "Wg kategorii",
+    "monthlyTrend": "Trend miesięczny"
   },
   "privacy": {
     "title": "Prywatnosc",
@@ -1515,7 +1538,24 @@
     "assistantPlaceholder": "Zapytaj o swoja trase…",
     "startDateLabel": "Data rozpoczecia",
     "draftCount_few": "{{count}} szkice — dotknij, aby ukończyć",
-    "draftCount_many": "{{count}} szkiców — dotknij, aby ukończyć"
+    "draftCount_many": "{{count}} szkiców — dotknij, aby ukończyć",
+    "riders": "jezdzcow",
+    "ledBy": "Prowadzi {{name}}",
+    "motoVaultPick": "MotoVault Pick",
+    "curvatureIndex": "Indeks krętości: {{value}}",
+    "reviews": "Recenzje",
+    "writeAReview": "Napisz recenzję",
+    "submit": "Wyślij",
+    "suggestedFlowHint": "Daty ustawiasz przy kopiowaniu lub planowaniu. Poniżej proponowany przebieg dzień po dniu.",
+    "addToMyTrips": "Dodaj do Moich tras",
+    "saved": "Zapisano",
+    "saveForLater": "Zapisz na później",
+    "ridersCount": "Jezdzcy ({{count}})",
+    "lead": "Prowadzący",
+    "coPlanner": "Współplanujący",
+    "cloneThisTrip": "Skopiuj tę trasę",
+    "imIn": "Wchodzę w to",
+    "exportGpx": "Export GPX"
   },
   "groupRide": {
     "titleLabel": "Tytul",
@@ -1700,7 +1740,8 @@
     "locationRequired": "Wymagana lokalizacja",
     "locationMessage": "MotoVault potrzebuje dostępu do lokalizacji, aby rejestrować jazdę. Włącz go w Ustawieniach.",
     "openSettings": "Otwórz Ustawienia",
-    "startError": "Nie udało się rozpocząć jazdy. Spróbuj ponownie."
+    "startError": "Nie udało się rozpocząć jazdy. Spróbuj ponownie.",
+    "lastRideSummary": "Ostatnia: {{distance}} · {{date}}"
   },
   "preFlight": {
     "title": "Kontrola przedjazdowa",

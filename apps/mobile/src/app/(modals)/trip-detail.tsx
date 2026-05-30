@@ -1178,7 +1178,7 @@ export default function TripDetailScreen() {
                       letterSpacing: 0.8,
                     }}
                   >
-                    riders
+                    {i18n('trips.riders')}
                   </Text>
                 </View>
               )}
@@ -1205,7 +1205,7 @@ export default function TripDetailScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <User size={13} color={subtitleColor} />
                   <Text style={{ fontSize: 13, color: subtitleColor }}>
-                    Led by {trip.organiser.displayName}
+                    {i18n('trips.ledBy', { name: trip.organiser.displayName })}
                   </Text>
                 </View>
               </Animated.View>
@@ -1271,7 +1271,7 @@ export default function TripDetailScreen() {
                     >
                       <Award size={12} color={t.warm} />
                       <Text style={{ fontSize: 12, fontWeight: '700', color: t.warm }}>
-                        MotoVault Pick
+                        {i18n('trips.motoVaultPick')}
                       </Text>
                     </View>
                   )}
@@ -1409,7 +1409,7 @@ export default function TripDetailScreen() {
                     }}
                   >
                     <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor }}>
-                      Curvature index: {trip.curvatureIndex.toFixed(1)}
+                      {i18n('trips.curvatureIndex', { value: trip.curvatureIndex.toFixed(1) })}
                     </Text>
                   </Animated.View>
                 )}
@@ -1485,7 +1485,7 @@ export default function TripDetailScreen() {
                         letterSpacing: 2.2,
                       }}
                     >
-                      Reviews
+                      {i18n('trips.reviews')}
                     </Text>
                     {reviewsLoading ? (
                       <ActivityIndicator size="small" color={t.warm} />
@@ -1557,7 +1557,7 @@ export default function TripDetailScreen() {
                       >
                         <Star size={14} color={t.warm} />
                         <Text style={{ fontSize: 14, fontWeight: '600', color: titleColor }}>
-                          Write a Review
+                          {i18n('trips.writeAReview')}
                         </Text>
                       </Pressable>
                     ) : (
@@ -1623,7 +1623,7 @@ export default function TripDetailScreen() {
                             }}
                           >
                             <Text style={{ fontSize: 14, fontWeight: '600', color: t.ink3 }}>
-                              Cancel
+                              {i18n('common.cancel')}
                             </Text>
                           </Pressable>
                           <Pressable
@@ -1644,7 +1644,7 @@ export default function TripDetailScreen() {
                               <Text
                                 style={{ fontSize: 14, fontWeight: '600', color: palette.white }}
                               >
-                                Submit
+                                {i18n('trips.submit')}
                               </Text>
                             )}
                           </Pressable>
@@ -1703,7 +1703,7 @@ export default function TripDetailScreen() {
                       marginBottom: 8,
                     }}
                   >
-                    You set dates when you clone or plan. Below is the suggested day-by-day flow.
+                    {i18n('trips.suggestedFlowHint')}
                   </Text>
                 )}
                 {waypointsByDay.map(([dayIndex, dayWaypoints], sectionIdx) => {
@@ -1815,7 +1815,7 @@ export default function TripDetailScreen() {
                       <>
                         <Copy size={18} color={palette.white} />
                         <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
-                          Add to My Trips
+                          {i18n('trips.addToMyTrips')}
                         </Text>
                       </>
                     )}
@@ -1844,7 +1844,9 @@ export default function TripDetailScreen() {
                   ) : isSaved ? (
                     <>
                       <BookmarkCheck size={16} color={t.warm} />
-                      <Text style={{ fontSize: 15, fontWeight: '700', color: t.warm }}>Saved</Text>
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: t.warm }}>
+                        {i18n('trips.saved')}
+                      </Text>
                     </>
                   ) : (
                     <>
@@ -1856,7 +1858,7 @@ export default function TripDetailScreen() {
                           color: t.ink,
                         }}
                       >
-                        Save for Later
+                        {i18n('trips.saveForLater')}
                       </Text>
                     </>
                   )}
@@ -1882,7 +1884,7 @@ export default function TripDetailScreen() {
                     letterSpacing: 2.2,
                   }}
                 >
-                  Riders ({trip.participantCount + 1})
+                  {i18n('trips.ridersCount', { count: trip.participantCount + 1 })}
                 </Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                   {/* Organizer — always shown first */}
@@ -1922,7 +1924,7 @@ export default function TripDetailScreen() {
                         textTransform: 'uppercase',
                       }}
                     >
-                      Lead
+                      {i18n('trips.lead')}
                     </Text>
                   </View>
                   {trip.participants.map((p) => {
@@ -1995,7 +1997,7 @@ export default function TripDetailScreen() {
                               textAlign: 'center',
                             }}
                           >
-                            Co-planner
+                            {i18n('trips.coPlanner')}
                           </Text>
                         )}
                       </Pressable>
@@ -2056,7 +2058,7 @@ export default function TripDetailScreen() {
                         color: t.ink,
                       }}
                     >
-                      Clone this trip
+                      {i18n('trips.cloneThisTrip')}
                     </Text>
                   </Pressable>
                 )}
@@ -2083,7 +2085,7 @@ export default function TripDetailScreen() {
                       <>
                         <Users size={16} color={palette.white} />
                         <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
-                          I'm in
+                          {i18n('trips.imIn')}
                         </Text>
                       </>
                     )}
@@ -2166,7 +2168,9 @@ export default function TripDetailScreen() {
                   }}
                 >
                   <Download size={16} color={t.ink} />
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: t.ink }}>Export GPX</Text>
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: t.ink }}>
+                    {i18n('trips.exportGpx')}
+                  </Text>
                 </Pressable>
               </Animated.View>
             )}

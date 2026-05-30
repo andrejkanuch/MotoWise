@@ -137,7 +137,7 @@ export default function AddExpenseScreen() {
             marginBottom: 6,
           }}
         >
-          — EXPENSES
+          {t('expenses.expensesEyebrow')}
         </Text>
         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
           <Text
@@ -148,7 +148,7 @@ export default function AddExpenseScreen() {
               letterSpacing: -0.6,
             }}
           >
-            Log an{' '}
+            {t('expenses.logAn')}{' '}
           </Text>
           <Text
             style={{
@@ -158,7 +158,7 @@ export default function AddExpenseScreen() {
               letterSpacing: -0.6,
             }}
           >
-            expense.
+            {t('expenses.expenseWord')}
           </Text>
         </View>
       </View>
@@ -502,7 +502,9 @@ export default function AddExpenseScreen() {
             onPress={() => router.back()}
             style={{ paddingVertical: 16, paddingHorizontal: 12 }}
           >
-            <Text style={{ fontSize: 16, fontWeight: '600', color: theme.ink2 }}>Cancel</Text>
+            <Text style={{ fontSize: 16, fontWeight: '600', color: theme.ink2 }}>
+              {t('common.cancel')}
+            </Text>
           </Pressable>
           <Pressable
             onPress={() => {

@@ -590,7 +590,7 @@ export default function EditBikeScreen() {
               marginBottom: 6,
             }}
           >
-            — GARAGE
+            {t('garage.editMastheadEyebrow', { defaultValue: '— GARAGE' })}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
             <Text
@@ -601,7 +601,7 @@ export default function EditBikeScreen() {
                 letterSpacing: -0.6,
               }}
             >
-              Edit{' '}
+              {t('garage.editMastheadTitle', { defaultValue: 'Edit' })}{' '}
             </Text>
             <Text
               style={{
@@ -611,7 +611,7 @@ export default function EditBikeScreen() {
                 letterSpacing: -0.6,
               }}
             >
-              motorcycle.
+              {t('garage.editMastheadSubject', { defaultValue: 'motorcycle.' })}
             </Text>
           </View>
         </View>
