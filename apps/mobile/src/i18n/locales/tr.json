@@ -1640,6 +1640,7 @@
     "planTrip": "Tur planla"
   },
   "mapPicker": {
+    "title": "Harita Stili",
     "searchPlaceholder": "Konum ara..."
   },
   "survey": {

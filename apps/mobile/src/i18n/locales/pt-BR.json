@@ -1640,6 +1640,7 @@
     "planTrip": "Planejar viagem"
   },
   "mapPicker": {
+    "title": "Estilo do mapa",
     "searchPlaceholder": "Buscar um local..."
   },
   "survey": {

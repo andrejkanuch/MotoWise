@@ -1640,6 +1640,7 @@
     "planTrip": "วางแผนทริป"
   },
   "mapPicker": {
+    "title": "รูปแบบแผนที่",
     "searchPlaceholder": "ค้นหาสถานที่..."
   },
   "survey": {

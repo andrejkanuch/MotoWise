@@ -1640,6 +1640,7 @@
     "planTrip": "ツーリング計画"
   },
   "mapPicker": {
+    "title": "地図スタイル",
     "searchPlaceholder": "場所を検索..."
   },
   "survey": {

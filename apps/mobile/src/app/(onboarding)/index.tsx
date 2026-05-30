@@ -132,7 +132,8 @@ export default function WelcomeScreen() {
               fontSize: 15,
             }}
           >
-            MotoVault
+            {/* Brand name — not localized */}
+            {'MotoVault'}
           </Text>
         </Animated.View>
 

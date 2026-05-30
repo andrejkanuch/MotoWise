@@ -1640,6 +1640,7 @@
     "planTrip": "Naplanovat jazdu"
   },
   "mapPicker": {
+    "title": "Štýl mapy",
     "searchPlaceholder": "Hľadať miesto..."
   },
   "survey": {

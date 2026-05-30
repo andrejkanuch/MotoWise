@@ -1744,6 +1744,7 @@
     "planTrip": "Plan trip"
   },
   "mapPicker": {
+    "title": "Map Style",
     "searchPlaceholder": "Search for a location..."
   },
   "survey": {

@@ -1,8 +1,9 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { Image, type ImageSource } from 'expo-image';
-import { X } from 'lucide-react-native';
+import { Check, X } from 'lucide-react-native';
 import { memo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -84,7 +85,7 @@ function StyleTile({
               justifyContent: 'center',
             }}
           >
-            <Text style={{ color: palette.white, fontSize: 10, fontWeight: '700' }}>✓</Text>
+            <Check size={11} color={palette.white} strokeWidth={3} />
           </View>
         )}
       </View>
@@ -108,6 +109,7 @@ export const MapPickerSheet = memo(function MapPickerSheet({
   onSelectStyle,
   onClose,
 }: MapPickerSheetProps) {
+  const { t } = useTranslation();
   const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
 
@@ -200,7 +202,7 @@ export const MapPickerSheet = memo(function MapPickerSheet({
               color: 'rgba(255,255,255,0.7)',
             }}
           >
-            MAP STYLE
+            {t('mapPicker.title')}
           </Text>
           <Pressable
             onPress={onClose}
