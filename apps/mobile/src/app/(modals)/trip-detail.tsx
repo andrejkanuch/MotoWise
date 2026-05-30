@@ -1,18 +1,8 @@
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { palette } from '@motovault/design-system';
-import {
-  CloneTripDocument,
-  CreateTripReviewDocument,
-  JoinTripDocument,
-  LeaveTripDocument,
-  SaveTripDocument,
-  TripDetailDocument,
-  type TripDetailQuery,
-  TripReviewsDocument,
-  UnsaveTripDocument,
-} from '@motovault/graphql';
+import type { TripDetailQuery } from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
-import { onlineManager, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { onlineManager } from '@tanstack/react-query';
 import { File, Paths } from 'expo-file-system';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -81,12 +71,10 @@ import { usePrimaryBikeFuelData } from '../../hooks/use-primary-bike-fuel-data';
 import { useProGate } from '../../hooks/use-pro-gate';
 import { useRideThis } from '../../hooks/use-ride-this';
 import { useTripAssistant } from '../../hooks/use-trip-assistant';
+import { useTripDetailData } from '../../hooks/use-trip-detail-data';
 import { useTripSuggestions } from '../../hooks/use-trip-suggestions';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
-import { gqlFetcher } from '../../lib/graphql-client';
-import { userFriendlyError } from '../../lib/graphql-errors';
-import { cacheTripPayload, getOfflineMeta, readCachedTripPayload } from '../../lib/offline-trips';
-import { queryKeys } from '../../lib/query-keys';
+import { cacheTripPayload } from '../../lib/offline-trips';
 import { useAuthStore } from '../../stores/auth.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { MAP_STYLES } from '../../utils/map-styles';
@@ -289,11 +277,9 @@ export default function TripDetailScreen() {
   const { t: i18n } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const queryClient = useQueryClient();
   const { tripId } = useLocalSearchParams<{ tripId: string }>();
   const sheetRef = useRef<BottomSheet>(null);
   const userId = useAuthStore((s) => s.session?.user?.id);
-  const [actionLoading, setActionLoading] = useState(false);
   const [shareSheetVisible, setShareSheetVisible] = useState(false);
   const { requirePro } = useProGate();
   const [assistantOpen, setAssistantOpen] = useState(false);
@@ -306,22 +292,31 @@ export default function TripDetailScreen() {
   const sheetBg = t.surface;
   const bodyColor = t.ink2;
 
-  const { data, isLoading } = useQuery({
-    queryKey: queryKeys.trips.detail(tripId),
-    queryFn: () => gqlFetcher(TripDetailDocument, { tripId }),
-    enabled: !!tripId,
-    meta: { showErrorAlert: false },
-  });
-
-  const offlineMeta = tripId ? getOfflineMeta(tripId) : null;
-  const cachedPayload = useMemo(() => {
-    if (data?.tripDetail != null || !tripId || !offlineMeta) return null;
-    return readCachedTripPayload<TripDetailQuery>(tripId);
-  }, [data?.tripDetail, tripId, offlineMeta]);
-
-  const hasServerData = data?.tripDetail != null;
-  const trip = data?.tripDetail ?? cachedPayload?.tripDetail ?? null;
-  const isOfflineCopy = !hasServerData && !!cachedPayload;
+  const {
+    trip,
+    isLoading,
+    isOfflineCopy,
+    offlineMeta,
+    actionLoading,
+    joinMutation,
+    handleLeave,
+    isSaved,
+    cloneMutation,
+    handleCloneTemplate,
+    saveMutation,
+    unsaveMutation,
+    handleToggleSave,
+    reviews,
+    reviewsLoading,
+    reviewFormVisible,
+    setReviewFormVisible,
+    reviewRating,
+    setReviewRating,
+    reviewText,
+    setReviewText,
+    createReviewMutation,
+    handleSubmitReview,
+  } = useTripDetailData(tripId);
 
   const tripLoaded = trip?.id;
   useEffect(() => {
@@ -522,48 +517,7 @@ export default function TripDetailScreen() {
   ).toLowerCase() as keyof typeof DIFFICULTY_LABELS;
   const difficultyLabel = DIFFICULTY_LABELS[difficultyKey] ?? 'Chill';
 
-  const invalidateTrip = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(tripId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-    queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
-  }, [queryClient, tripId]);
-
-  const joinMutation = useMutation({
-    mutationFn: (status: string) => gqlFetcher(JoinTripDocument, { input: { tripId, status } }),
-    onMutate: () => setActionLoading(true),
-    onSettled: () => setActionLoading(false),
-    onSuccess: (_data, status) => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      trackEvent(AnalyticsEvent.TRIP_JOINED, { trip_id: tripId, status });
-      invalidateTrip();
-    },
-  });
-
-  const leaveMutation = useMutation({
-    mutationFn: () => gqlFetcher(LeaveTripDocument, { tripId }),
-    onMutate: () => setActionLoading(true),
-    onSettled: () => setActionLoading(false),
-    onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      trackEvent(AnalyticsEvent.TRIP_LEFT, { trip_id: tripId });
-      invalidateTrip();
-    },
-  });
-
-  const handleLeave = useCallback(() => {
-    Alert.alert('Leave this trip?', "You'll drop off the rider list and lose your spot.", [
-      { text: 'Stay in', style: 'cancel' },
-      { text: 'Leave', style: 'destructive', onPress: () => leaveMutation.mutate() },
-    ]);
-  }, [leaveMutation]);
-
-  // ── Template-specific state & mutations ──────────────────────────────
   const isTemplate = trip?.isTemplate === true;
-  const [isSaved, setIsSaved] = useState(false);
-  useEffect(() => {
-    if (trip) setIsSaved(!!trip.isSaved);
-  }, [trip]);
 
   // Polyline-based route line for template map preview
   const polylineRoute = useMemo(() => {
@@ -595,103 +549,6 @@ export default function TripDetailScreen() {
       sw: [minLng, minLat] as [number, number],
     };
   }, [polylineRoute]);
-
-  // Clone template mutation
-  const cloneMutation = useMutation({
-    mutationFn: () => gqlFetcher(CloneTripDocument, { tripId }),
-    onSuccess: (data) => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
-      // Navigate to the cloned trip so the user can see it immediately
-      const clonedId = data?.cloneTrip;
-      if (clonedId) {
-        router.dismiss();
-        router.push({ pathname: '/(modals)/trip-detail', params: { tripId: clonedId } });
-      }
-    },
-    onError: (err: Error) => {
-      if (err.message?.includes('already cloned')) {
-        Alert.alert('Already Cloned', 'You have already cloned this trip.');
-      } else {
-        Alert.alert('Clone Failed', userFriendlyError(err));
-      }
-    },
-  });
-
-  const handleCloneTemplate = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    cloneMutation.mutate();
-  }, [cloneMutation]);
-
-  // Save / unsave mutations
-  const saveMutation = useMutation({
-    mutationFn: () => gqlFetcher(SaveTripDocument, { tripId }),
-    onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setIsSaved(true);
-      invalidateTrip();
-    },
-  });
-
-  const unsaveMutation = useMutation({
-    mutationFn: () => gqlFetcher(UnsaveTripDocument, { tripId }),
-    onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      setIsSaved(false);
-      invalidateTrip();
-    },
-  });
-
-  const handleToggleSave = useCallback(() => {
-    if (isSaved) {
-      unsaveMutation.mutate();
-    } else {
-      saveMutation.mutate();
-    }
-  }, [isSaved, saveMutation, unsaveMutation]);
-
-  // Reviews query for template
-  const { data: reviewsData, isLoading: reviewsLoading } = useQuery({
-    queryKey: queryKeys.tripReviews.byTrip(tripId),
-    queryFn: () => gqlFetcher(TripReviewsDocument, { tripId, first: 10 }),
-    enabled: !!tripId && isTemplate,
-  });
-
-  const reviews = reviewsData?.tripReviews ?? [];
-
-  // Write review state
-  const [reviewFormVisible, setReviewFormVisible] = useState(false);
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewText, setReviewText] = useState('');
-
-  const createReviewMutation = useMutation({
-    mutationFn: () =>
-      gqlFetcher(CreateTripReviewDocument, {
-        input: { tripId, rating: reviewRating, text: reviewText || undefined },
-      }),
-    onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setReviewFormVisible(false);
-      setReviewText('');
-      setReviewRating(5);
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.tripReviews.byTrip(tripId),
-      });
-      invalidateTrip();
-    },
-    onError: (err: Error) => {
-      Alert.alert('Review Failed', userFriendlyError(err));
-    },
-  });
-
-  const handleSubmitReview = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    createReviewMutation.mutate();
-  }, [createReviewMutation]);
 
   const handleOpenShareSheet = useCallback(() => {
     if (!trip) return;
