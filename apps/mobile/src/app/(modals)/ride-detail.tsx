@@ -117,6 +117,7 @@ export default function RideDetailScreen() {
   const waypoints = (waypointData as GetRideWaypointsQuery | undefined)?.rideWaypoints ?? [];
 
   const rideLoaded = ride?.id;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fire RIDE_VIEWED exactly once per ride. Depending on the `ride` query object (whose reference changes on every TanStack refetch) refired this ~31x/user; rideLoaded (= ride.id) is the stable load signal and `ride` is always populated when it is set.
   useEffect(() => {
     if (ride && rideLoaded) {
       trackEvent(AnalyticsEvent.RIDE_VIEWED, {
@@ -125,7 +126,7 @@ export default function RideDetailScreen() {
         duration_s: ride.durationS ?? 0,
       });
     }
-  }, [rideLoaded, rideId, ride]);
+  }, [rideLoaded, rideId]);
 
   const bikeName = useBikeName(ride?.motorcycleId);
 

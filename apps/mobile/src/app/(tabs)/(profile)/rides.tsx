@@ -705,14 +705,15 @@ export default function RidesScreen() {
           <Pressable
             onPress={() => {
               if (process.env.EXPO_OS === 'ios') triggerImpact();
-              setSortNewest((prev) => {
-                trackEvent(AnalyticsEvent.RIDES_HISTORY_FILTERED, {
-                  filter_type: 'sort',
-                  value: prev ? 'oldest_first' : 'newest_first',
-                  total_rides: stats.totalRides,
-                });
-                return !prev;
+              // Track BEFORE the state update — firing inside the setState updater
+              // double-counted under StrictMode (72 events / 2 users). `sortNewest`
+              // here is the pre-toggle value, so this reports the order being switched to.
+              trackEvent(AnalyticsEvent.RIDES_HISTORY_FILTERED, {
+                filter_type: 'sort',
+                value: sortNewest ? 'oldest_first' : 'newest_first',
+                total_rides: stats.totalRides,
               });
+              setSortNewest((prev) => !prev);
             }}
             accessibilityRole="button"
             hitSlop={8}

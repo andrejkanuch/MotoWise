@@ -65,8 +65,11 @@ export default function RegisterScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     try {
-      await signInWithApple();
-      trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'apple' });
+      const { isNewUser } = await signInWithApple();
+      // Attribute from the auth result, not the screen — a returning user may tap OAuth here.
+      trackEvent(isNewUser ? AnalyticsEvent.USER_SIGNED_UP : AnalyticsEvent.USER_SIGNED_IN, {
+        auth_method: 'apple',
+      });
     } catch (err) {
       captureException(err);
       Alert.alert(t('common.error'), userFriendlyError(err));
@@ -78,8 +81,10 @@ export default function RegisterScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     try {
-      await signInWithGoogle();
-      trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'google' });
+      const { isNewUser } = await signInWithGoogle();
+      trackEvent(isNewUser ? AnalyticsEvent.USER_SIGNED_UP : AnalyticsEvent.USER_SIGNED_IN, {
+        auth_method: 'google',
+      });
     } catch (err) {
       captureException(err);
       Alert.alert(t('common.error'), userFriendlyError(err));

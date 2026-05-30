@@ -222,8 +222,6 @@ export const AnalyticsEvent = {
   // Feature usage — Learn
   ARTICLE_VIEWED: 'article_viewed',
   ARTICLE_READ: 'article_read',
-  QUIZ_STARTED: 'quiz_started',
-  QUIZ_COMPLETED: 'quiz_completed',
 
   // Feature usage — Garage
   GARAGE_BIKE_ADDED: 'garage_bike_added',
@@ -232,7 +230,6 @@ export const AnalyticsEvent = {
   MAINTENANCE_TASK_COMPLETED: 'maintenance_task_completed',
   MAINTENANCE_TASK_DELETED: 'maintenance_task_deleted',
   EXPENSE_ADDED: 'expense_added',
-  EXPENSE_DELETED: 'expense_deleted',
   EXPENSE_DASHBOARD_VIEWED: 'expense_dashboard_viewed',
   FUEL_LOG_ADDED: 'fuel_log_added',
   HEALTH_REPORT_VIEWED: 'health_report_viewed',
@@ -308,7 +305,6 @@ export const AnalyticsEvent = {
   TRIP_PUBLISHED: 'trip_published',
   TRIP_JOINED: 'trip_joined',
   TRIP_LEFT: 'trip_left',
-  TRIP_DRAFT_SAVED: 'trip_draft_saved',
   TRIP_WAYPOINT_ADDED: 'trip_waypoint_added',
   TRIP_VIEWED: 'trip_viewed',
   TRIP_SHARED: 'trip_shared',
@@ -345,12 +341,6 @@ export const AnalyticsEvent = {
   SETTINGS_CHANGED: 'settings_changed',
   HEATMAP_VIEWED: 'heatmap_viewed',
   RIDES_HISTORY_VIEWED: 'rides_history_viewed',
-  USER_FOLLOWED: 'user_followed',
-  USER_UNFOLLOWED: 'user_unfollowed',
-
-  // Navigation
-  SCREEN_VIEWED: 'screen_viewed',
-  TAB_CHANGED: 'tab_changed',
 
   // Checklist
   CHECKLIST_ITEM_COMPLETED: 'checklist_item_completed',
@@ -373,7 +363,10 @@ export function trackEvent(event: AnalyticsEventName, properties?: Record<string
   if (posthogClient) {
     posthogClient.capture(event, properties);
     const alias = META_ALIASES[event];
-    if (alias) posthogClient.capture(alias, properties);
+    // Tag alias captures so PostHog insights can exclude them (filter `_meta_alias`
+    // is not set). They exist only to satisfy Meta Conversions API naming (MOT-212);
+    // always analyze diagnostic/trip/maintenance activity on the ORIGINAL event name.
+    if (alias) posthogClient.capture(alias, { ...properties, _meta_alias: true });
   }
 }
 
