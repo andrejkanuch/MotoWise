@@ -1649,7 +1649,8 @@
     "private": "Private",
     "elevationChart": "Elevation",
     "speedChart": "Speed",
-    "peak": "{{value}} peak"
+    "peak": "{{value}} peak",
+    "threeD": "3D"
   },
   "startRide": {
     "preFlight": "Pre-flight",

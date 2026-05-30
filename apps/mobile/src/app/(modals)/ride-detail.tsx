@@ -613,7 +613,7 @@ export default function RideDetailScreen() {
                 letterSpacing: 0.44,
               }}
             >
-              3D
+              {t('rideDetail.threeD')}
             </Text>
           </Pressable>
         </View>
