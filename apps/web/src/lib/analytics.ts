@@ -11,6 +11,11 @@ import posthog from 'posthog-js';
 // now routed through PostHog so all analytics live in one place.
 // -------------------------------------------------------------------
 
+// NOTE: events defined here MUST have a call site. Constants that were defined
+// but never fired (explore/trip/bike page views, hero CTA, pricing, blog list,
+// feed/kudos, error/friction, search, second-page/return-visitor) were removed
+// in the 2026-05-30 PostHog audit — see docs/PostHog-Audit-2026-05-30.md. Re-add
+// only when you wire the corresponding trackEvent() call.
 export const WebEvent = {
   // Auth
   SIGN_IN_SUBMITTED: 'sign_in_submitted',
@@ -19,34 +24,19 @@ export const WebEvent = {
   SIGN_UP_SUBMITTED: 'sign_up_submitted',
   SIGN_UP_ERROR: 'sign_up_error',
   SIGN_UP_OAUTH_CLICKED: 'sign_up_oauth_clicked',
-  SIGN_UP_COMPLETED: 'sign_up_completed',
   PASSWORD_RESET_REQUESTED: 'password_reset_requested',
 
   // Marketing / Conversion
-  HERO_CTA_CLICKED: 'hero_cta_clicked',
   APP_STORE_CLICK: 'app_store_click',
   WAITLIST_SIGNUP: 'waitlist_signup',
-  FEATURE_PAGE_VIEWED: 'feature_page_viewed',
-  COMPARE_PAGE_VIEWED: 'compare_page_viewed',
 
   // Pricing / Checkout
-  PRICING_PAGE_VIEWED: 'pricing_page_viewed',
   CHECKOUT_INITIATED: 'checkout_initiated',
   CHECKOUT_COMPLETED: 'checkout_completed',
   CHECKOUT_CANCELLED: 'checkout_cancelled',
 
   // Blog
-  BLOG_LIST_VIEWED: 'blog_list_viewed',
   BLOG_ARTICLE_READ: 'blog_article_read',
-
-  // Explore / Content
-  EXPLORE_PAGE_VIEWED: 'explore_page_viewed',
-  EXPLORE_COUNTRY_VIEWED: 'explore_country_viewed',
-  EXPLORE_REGION_VIEWED: 'explore_region_viewed',
-  TRIP_DETAIL_VIEWED: 'trip_detail_viewed',
-  ROUTE_DETAIL_VIEWED: 'route_detail_viewed',
-  RIDE_SHARED_VIEWED: 'ride_shared_viewed',
-  BIKE_PAGE_VIEWED: 'bike_page_viewed',
 
   // Content Interaction
   OPEN_IN_APP_CLICKED: 'open_in_app_clicked',
@@ -55,11 +45,8 @@ export const WebEvent = {
   SHARE_BUTTON_CLICKED: 'share_button_clicked',
 
   // Community
-  FEED_VIEWED: 'feed_viewed',
-  KUDOS_TOGGLED: 'kudos_toggled',
   PROFILE_VIEWED: 'profile_viewed',
   PROFILE_EDITED: 'profile_edited',
-  PUBLIC_PROFILE_VIEWED: 'public_profile_viewed',
   GARAGE_VIEWED: 'garage_viewed',
 
   // Tools
@@ -72,30 +59,14 @@ export const WebEvent = {
   REVIEW_SOFTWALL_SHOWN: 'review_softwall.shown',
   REVIEW_SOFTWALL_CTA_CLICKED: 'review_softwall.cta_clicked',
 
-  // Trip engagement (web-side)
-  TRIP_ROUTE_PREVIEWED: 'trip_route_previewed',
-  TRIP_ITINERARY_EXPANDED: 'trip_itinerary_expanded',
-  TRIP_WAYPOINT_CLICKED: 'trip_waypoint_clicked',
-  TRIP_DIFFICULTY_FILTER_USED: 'trip_difficulty_filter_used',
-  TRIP_DURATION_FILTER_USED: 'trip_duration_filter_used',
-  TRIP_COUNTRY_FILTER_USED: 'trip_country_filter_used',
-
   // SEO / Content discovery
-  SEARCH_PERFORMED: 'search_performed',
   SCROLL_DEPTH_50: 'scroll_depth_50',
   SCROLL_DEPTH_100: 'scroll_depth_100',
   TIME_ON_PAGE_30S: 'time_on_page_30s',
   TIME_ON_PAGE_60S: 'time_on_page_60s',
 
   // Engagement quality signals
-  SECOND_PAGE_VIEWED: 'second_page_viewed',
   SESSION_PAGES_3_PLUS: 'session_pages_3_plus',
-  RETURN_VISITOR: 'return_visitor',
-
-  // Error / friction tracking
-  PAGE_NOT_FOUND: 'page_not_found',
-  API_ERROR_SHOWN: 'api_error_shown',
-  SLOW_PAGE_LOAD: 'slow_page_load',
 
   // Explore monetization
   FILTER_APPLIED: 'filter_applied',

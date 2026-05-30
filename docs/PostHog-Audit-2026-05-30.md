@@ -208,7 +208,7 @@ Executed end-to-end on branch `refactor/mobile-audit-remediation` (code changes 
 - **Executive Overview (651619)** — all 8 tiles fixed: dead `trip_created`/`trip_shared`/`trip_published`/`diagnostic_completed` swapped for live events, activation funnels cleaned, WAU relabeled, all test-account-filtered.
 - **`filterTestAccounts: true` + dead-series removal** applied across all remaining survivors: Paywall & Conversion (655463), Rides Deep Dive (680821), Bike Features (679456), Discovery (636268), Feature Usage (636267). The "Skate" junk make is now filtered out (it was the dev's test bike).
 
-### Still open (design decisions — need product input, not done autonomously)
-- Net-new tiles: feature-adoption leaderboard by unique users, expense/maintenance retention loop, `paywall_result = error` monitor, RevenueCat MRR/active-subs/churn.
-- Decide whether to **wire or delete** the ~65 dead web event constants.
-- Enable `sendFeatureFlagEvents` in the SDK if flag-call analytics is wanted (else prefer Experiments).
+### Follow-up items 1–3 (completed 2026-05-30)
+1. **Net-new tiles — done.** Created 4 test-account-filtered insights: *Feature Adoption Leaderboard (unique users, 30d)* + *Expense Logging Retention (weekly)* on Executive (651619); *Paywall Errors (weekly)* + *Subscription Activity — New/Renewal/Churn (weekly)* on Paywall & Conversion (655463). All verified to return real data.
+2. **Dead web events — done.** Deleted the 28 `WebEvent` constants that had **no call site** (explore/trip/bike page-views, hero CTA, pricing, blog-list, feed/kudos, error/friction, search, second-page/return-visitor). Kept the 37 wired-but-dormant events + `CONSENT_GRANTED`. Web typecheck passes. (The wired events don't fire only because web traffic is low — they were NOT deleted.)
+3. **`sendFeatureFlagEvents` — N/A (no action).** Confirmed the app has **zero** `getFeatureFlag`/`isFeatureEnabled`/`useFeatureFlag` calls, so `$feature_flag_called` can never fire and enabling capture is a no-op. The 5 PostHog flags (`onboarding-v2`, `paywall-timing-experiment`, `discover-tab-prominence`, `ride-recording-auto-detect`, `trip-social-features`) are unevaluated experiment scaffolding — **archive them when you confirm those experiments are abandoned, or wire one into code to run a real Experiment.** Left untouched (product decision).
