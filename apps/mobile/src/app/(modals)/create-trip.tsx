@@ -909,7 +909,10 @@ export default function CreateTripScreen() {
                               color: titleColor,
                             }}
                           >
-                            Day {dayIndex + 1} · {formatDayDate(startDate, dayIndex)}
+                            {i18n('trips.dayHeader', {
+                              day: dayIndex + 1,
+                              date: formatDayDate(startDate, dayIndex),
+                            })}
                           </Text>
                         </View>
                         {dayWaypoints.length > 0 && dayDurationS > 0 && (
@@ -994,7 +997,7 @@ export default function CreateTripScreen() {
                             paddingHorizontal: 20,
                           }}
                         >
-                          Search above or long-press the map to add a stop
+                          {i18n('trips.addStopHint')}
                         </Text>
                       )}
                     </View>
@@ -1111,7 +1114,7 @@ export default function CreateTripScreen() {
                             marginBottom: 6,
                           }}
                         >
-                          Start Date
+                          {i18n('trips.startDateLabel')}
                         </Text>
                         {process.env.EXPO_OS === 'android' ? (
                           <>
@@ -1179,7 +1182,7 @@ export default function CreateTripScreen() {
                             marginBottom: 6,
                           }}
                         >
-                          End Date
+                          {i18n('trips.endDateLabel')}
                         </Text>
                         {process.env.EXPO_OS === 'android' ? (
                           <>
@@ -1256,7 +1259,7 @@ export default function CreateTripScreen() {
                         marginBottom: 6,
                       }}
                     >
-                      Difficulty
+                      {i18n('trips.difficultyLabel')}
                     </Text>
                     <View style={{ flexDirection: 'row', gap: 10 }}>
                       {getDifficulties(i18n as TI18n).map((d) => {
@@ -1304,7 +1307,7 @@ export default function CreateTripScreen() {
                         marginBottom: 4,
                       }}
                     >
-                      Visibility
+                      {i18n('trips.visibilityLabel')}
                     </Text>
                     <Text
                       style={{
@@ -1314,8 +1317,7 @@ export default function CreateTripScreen() {
                         lineHeight: 16,
                       }}
                     >
-                      Who can find or open this plan. You can change this any time; it is not the
-                      same as saving a draft or publishing.
+                      {i18n('trips.visibilityHint')}
                     </Text>
                     <View style={{ gap: 8 }}>
                       {getVisibilityOptions(i18n as TI18n).map((opt) => {
@@ -1418,7 +1420,7 @@ export default function CreateTripScreen() {
                       textAlign: 'center',
                     }}
                   >
-                    Failed to save trip
+                    {i18n('trips.saveTripFailed')}
                   </Text>
                   <Text style={{ fontSize: 13, color: t.danger, textAlign: 'center' }}>
                     {userFriendlyError(saveMutation.error)}
@@ -1435,7 +1437,7 @@ export default function CreateTripScreen() {
                       textAlign: 'center',
                     }}
                   >
-                    Failed to publish trip
+                    {i18n('trips.publishTripFailed')}
                   </Text>
                   <Text style={{ fontSize: 13, color: t.danger, textAlign: 'center' }}>
                     {userFriendlyError(publishMutation.error)}
@@ -1452,7 +1454,7 @@ export default function CreateTripScreen() {
                       textAlign: 'center',
                     }}
                   >
-                    Failed to update trip
+                    {i18n('trips.updateTripFailed')}
                   </Text>
                   <Text style={{ fontSize: 13, color: t.danger, textAlign: 'center' }}>
                     {userFriendlyError(updateMutation.error)}
@@ -1477,7 +1479,7 @@ export default function CreateTripScreen() {
                 >
                   <AlertTriangle size={16} color={t.warm} />
                   <Text style={{ fontSize: 13, color: t.warm, flex: 1 }}>
-                    Editing a published trip. Changes will be visible to participants.
+                    {i18n('trips.editPublishedWarning')}
                   </Text>
                 </Animated.View>
               )}
@@ -1501,11 +1503,17 @@ export default function CreateTripScreen() {
                 >
                   <Info size={16} color={t.warm} style={{ marginTop: 1 }} />
                   <Text style={{ fontSize: 12, color: subtitleColor, flex: 1, lineHeight: 18 }}>
-                    <Text style={{ fontWeight: '700', color: inputTextColor }}>Draft</Text>
+                    <Text style={{ fontWeight: '700', color: inputTextColor }}>
+                      {i18n('trips.draftLabel')}
+                    </Text>
                     {` stays in My Trips only. `}
-                    <Text style={{ fontWeight: '700', color: inputTextColor }}>Publish</Text>
+                    <Text style={{ fontWeight: '700', color: inputTextColor }}>
+                      {i18n('trips.publish')}
+                    </Text>
                     {` makes it a live trip (for invites and the app). That is different from `}
-                    <Text style={{ fontWeight: '700', color: inputTextColor }}>Public</Text>
+                    <Text style={{ fontWeight: '700', color: inputTextColor }}>
+                      {i18n('trips.visibilityPublic')}
+                    </Text>
                     {` above — you can publish a private trip (invite-only).`}
                   </Text>
                 </Animated.View>
@@ -1737,8 +1745,7 @@ export default function CreateTripScreen() {
                       paddingHorizontal: 4,
                     }}
                   >
-                    Save Draft keeps it in My Trips. Publish makes it a live trip with the
-                    visibility above.
+                    {i18n('trips.saveDraftPublishHint')}
                   </Text>
                 </View>
               )}
@@ -1777,7 +1784,7 @@ export default function CreateTripScreen() {
                   color: titleColor,
                 }}
               >
-                Edit Stop
+                {i18n('trips.editStop')}
               </Text>
               <Pressable
                 onPress={closeEditModal}
@@ -1823,7 +1830,7 @@ export default function CreateTripScreen() {
                     marginBottom: 6,
                   }}
                 >
-                  Name
+                  {i18n('trips.nameLabel')}
                 </Text>
                 <TextInput
                   value={editName}
@@ -1862,7 +1869,7 @@ export default function CreateTripScreen() {
                     marginBottom: 6,
                   }}
                 >
-                  Type
+                  {i18n('trips.typeLabel')}
                 </Text>
                 <WaypointTypePicker selected={editType} onSelect={setEditType} />
               </View>
@@ -1884,7 +1891,7 @@ export default function CreateTripScreen() {
                     marginBottom: 6,
                   }}
                 >
-                  Period of day
+                  {i18n('trips.periodOfDayLabel')}
                 </Text>
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   {(['morning', 'afternoon', 'evening'] as const).map((p) => {
@@ -1920,7 +1927,7 @@ export default function CreateTripScreen() {
                   })}
                 </View>
                 <Text style={{ fontSize: 11, color: placeholderColor, marginTop: 6 }}>
-                  Groups this stop under the right block on the day list. Optional.
+                  {i18n('trips.periodOfDayHint')}
                 </Text>
               </View>
 
@@ -1941,7 +1948,7 @@ export default function CreateTripScreen() {
                     marginBottom: 6,
                   }}
                 >
-                  Notes
+                  {i18n('trips.notesLabel')}
                 </Text>
                 <TextInput
                   value={editNotes}
@@ -1993,7 +2000,7 @@ export default function CreateTripScreen() {
                     color: '#fff',
                   }}
                 >
-                  Done
+                  {i18n('common.done')}
                 </Text>
               </Pressable>
             </RNScrollView>
