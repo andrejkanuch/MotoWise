@@ -6,6 +6,12 @@
 - `pnpm --filter mobile android` — Android emulator
 - `pnpm --filter mobile test` — Jest tests
 
+## i18n / translations
+- All user-facing copy must go through `t()` (react-i18next). 13 locales live in `src/i18n/locales/*.json`, `en` is the source of truth.
+- **Hard-coded string guard** (`eslint.config.mjs`): this app keeps an **i18n-only ESLint config** — a deliberate exception to the repo's Biome-only rule. It exists for one reason: `eslint-plugin-i18next/no-literal-string` is the only tool that detects hard-coded text inside RN `<Text>` (Biome has no such rule; `i18next-cli lint` only understands web/DOM JSX and silently ignores capitalized RN components). Do NOT add general ESLint rules here and do NOT remove this config thinking it duplicates Biome — it does not. Currently `jsx-text-only` mode; escalate to `jsx-only`/`all` (with excludes) once the legacy backlog is cleared.
+- **Gating is a ratchet** (see root `scripts/check-i18n.sh`, wired into pre-push via `precheck:push` + the CI `i18n` job): it blocks only NEW regressions vs the merge-base — new hard-coded strings in changed files, and new `en.json` keys missing from any locale (`scripts/check-i18n-new-keys.ts`). Pre-existing debt (~324 hard-coded strings, ~36–67 absent keys/locale incl. plural-grammar forms) is intentionally not blocked; fix it opportunistically when you touch a file.
+- Full audits (non-blocking): `pnpm i18n:status` (completeness across all locales) and `pnpm --filter mobile i18n:hardcoded` (every hard-coded string).
+
 ## Architecture
 - Expo Router v7 with file-based routing in src/app/
 - NativeTabs with 4 tabs: (learn), (diagnose), (garage), (profile)

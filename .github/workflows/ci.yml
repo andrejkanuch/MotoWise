@@ -50,6 +50,23 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
 
+  i18n:
+    name: i18n Ratchet
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # need full history so merge-base with origin/main resolves
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Ensure origin/main exists as a ref for the merge-base diff.
+      - run: git fetch origin main --depth=0 || true
+      - run: pnpm check:i18n
+
   audit:
     name: Security Audit
     runs-on: ubuntu-latest

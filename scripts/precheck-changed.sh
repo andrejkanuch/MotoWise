@@ -30,4 +30,4 @@ else
   fi
 fi
 
-pnpm typecheck && pnpm test
+pnpm typecheck && pnpm test && pnpm check:i18n
