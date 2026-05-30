@@ -83,6 +83,18 @@ export function userFriendlyError(error: unknown): string {
   return GENERIC_FALLBACK;
 }
 
+/**
+ * True when a deleteAccount mutation failed because the account is already gone
+ * server-side — deleted in a prior attempt, or the underlying auth user no longer
+ * exists ("User not found or already deleted"). The desired end state is identical
+ * to success, so callers treat this as success (sign out + navigate) instead of
+ * surfacing an error. (Sentry MOTO-VAULT-REACT-NATIVE-1J)
+ */
+export function isAccountAlreadyDeleted(error: unknown): boolean {
+  const message = extractGraphQLMessage(error).toLowerCase();
+  return message.includes('already deleted') || message.includes('user not found');
+}
+
 export function hasGraphQLCode(error: unknown, code: string): boolean {
   const errors = extractGqlErrors(error);
   if (!errors) return false;

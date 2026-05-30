@@ -140,6 +140,28 @@ describe('sentryBeforeSend', () => {
     });
   });
 
+  describe('RevenueCat anonymous logOut filter', () => {
+    it('drops the iOS phrasing "LogOut was called but the current user is anonymous."', () => {
+      const event = makeEvent({
+        exception: {
+          values: [
+            { type: 'Error', value: 'LogOut was called but the current user is anonymous.' },
+          ],
+        },
+      });
+      expect(sentryBeforeSend(event)).toBeNull();
+    });
+
+    it('drops the Android phrasing "Called logOut but the current user is anonymous."', () => {
+      const event = makeEvent({
+        exception: {
+          values: [{ type: 'Error', value: 'Called logOut but the current user is anonymous.' }],
+        },
+      });
+      expect(sentryBeforeSend(event)).toBeNull();
+    });
+  });
+
   describe('regular errors pass through', () => {
     it('passes JS application errors', () => {
       const event = makeEvent({

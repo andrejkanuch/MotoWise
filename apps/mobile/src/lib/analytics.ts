@@ -61,6 +61,14 @@ export function sentryBeforeSend(event: Sentry.ErrorEvent): Sentry.ErrorEvent | 
   ) {
     return null;
   }
+  // RevenueCat logOut() invoked for an already-anonymous user. logoutRevenueCat()
+  // runs on every sign-out and guards with isAnonymous(), but the SDK can still
+  // race and throw this benign error (iOS: "LogOut was called…", Android:
+  // "Called logOut…"). No user impact — drop the noise.
+  // (Sentry MOTO-VAULT-REACT-NATIVE-4 / -6)
+  if (message.includes('current user is anonymous')) {
+    return null;
+  }
   // Hermes VM internal native crash — memory corruption or GC bug
   // in the engine itself, not in application JS. Not actionable.
   // Only drop when EVERY frame is a Hermes/RN internal frame (no app JS).

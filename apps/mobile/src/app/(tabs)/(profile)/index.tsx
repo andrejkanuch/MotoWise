@@ -51,6 +51,7 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { ProBadge } from '../../../components/pro-badge';
 import { useProGate } from '../../../hooks/use-pro-gate';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { isAccountAlreadyDeleted, userFriendlyError } from '../../../lib/graphql-errors';
 import { queryKeys } from '../../../lib/query-keys';
 import { presentPaywall } from '../../../lib/subscription';
 import { safeSignOut } from '../../../lib/supabase';
@@ -219,17 +220,26 @@ export default function ProfileScreen() {
     },
   });
 
+  const finishAccountDeletion = async () => {
+    await safeSignOut();
+    queryClient.clear();
+    router.replace('/(auth)/login');
+  };
+
   const deleteMutation = useMutation({
     mutationFn: () => gqlFetcher(DeleteAccountDocument),
-    onSuccess: async () => {
-      await safeSignOut();
-      queryClient.clear();
-      router.replace('/(auth)/login');
-    },
+    meta: { skipSentryCapture: isAccountAlreadyDeleted },
+    onSuccess: finishAccountDeletion,
     onError: (error: Error) => {
+      // Account already gone server-side (e.g. a retried deletion) — the desired
+      // end state is identical to success, so finish the local sign-out.
+      if (isAccountAlreadyDeleted(error)) {
+        void finishAccountDeletion();
+        return;
+      }
       Alert.alert(
         t('privacy.deleteErrorTitle', { defaultValue: 'Deletion Failed' }),
-        error.message ?? t('privacy.deleteError', { defaultValue: 'Something went wrong.' }),
+        userFriendlyError(error),
       );
     },
   });

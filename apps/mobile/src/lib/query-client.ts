@@ -20,6 +20,12 @@ declare module '@tanstack/react-query' {
     };
     mutationMeta: {
       showErrorAlert?: boolean;
+      /**
+       * Skip Sentry capture for expected/benign errors. Pass `true` to always
+       * skip, or a predicate to skip only for specific errors (e.g. idempotent
+       * "already deleted" responses) while still reporting genuine failures.
+       */
+      skipSentryCapture?: boolean | ((error: unknown) => boolean);
     };
   }
 }
@@ -65,10 +71,14 @@ export const queryClient = new QueryClient({
   }),
   mutationCache: new MutationCache({
     onError: (error, _variables, _context, mutation) => {
-      captureException(error, {
-        mutationKey: JSON.stringify(mutation.options.mutationKey),
-        source: 'mutationCache.onError',
-      });
+      const skip = mutation.meta?.skipSentryCapture;
+      const shouldSkipCapture = typeof skip === 'function' ? skip(error) : skip === true;
+      if (!shouldSkipCapture) {
+        captureException(error, {
+          mutationKey: JSON.stringify(mutation.options.mutationKey),
+          source: 'mutationCache.onError',
+        });
+      }
       if (mutation.options.onError) return;
       if (mutation.meta?.showErrorAlert === false) return;
       Alert.alert('Error', userFriendlyError(error));
