@@ -258,6 +258,7 @@ export function Hero() {
               {t('titleLine1')}
             </span>
           </span>
+          {/* Whitespace text node so the H1 reads "The rider's companion." for crawlers/SR (lines are display:block, so no visual impact) */}{' '}
           <span style={{ display: 'block', overflow: 'hidden' }}>
             <span
               style={{
