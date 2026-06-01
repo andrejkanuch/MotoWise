@@ -1,4 +1,3 @@
-import { Analytics } from '@vercel/analytics/next';
 import { GeistMono } from 'geist/font/mono';
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
@@ -91,7 +90,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </NextIntlClientProvider>
             {process.env.NODE_ENV === 'production' && (
               <>
-                <Analytics />
                 <AnalyticsWithConsent />
                 <MetaPixel />
                 <WebVitalsReporter />

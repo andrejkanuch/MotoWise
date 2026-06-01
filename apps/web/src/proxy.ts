@@ -92,9 +92,6 @@ function buildCspHeader(nonce: string): string {
     'https://www.google-analytics.com',
     'https://*.analytics.google.com',
     'https://*.googletagmanager.com',
-    // Vercel Analytics (@vercel/analytics is still mounted in layout.tsx
-    // alongside PostHog — remove this line when Vercel Analytics is retired).
-    'https://vitals.vercel-insights.com',
     'https://connect.facebook.net',
     'https://www.facebook.com',
     'https://api.stripe.com',
