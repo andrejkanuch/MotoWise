@@ -20,7 +20,7 @@ import {
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { userFriendlyError } from '../../lib/graphql-errors';
-import { isExpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
+import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { supabase } from '../../lib/supabase';
 
 export default function LoginScreen() {
@@ -60,7 +60,7 @@ export default function LoginScreen() {
         auth_method: 'apple',
       });
     } catch (err) {
-      if (!isExpectedAuthError(err)) captureException(err);
+      reportUnexpectedAuthError(err, captureException);
       Alert.alert(t('common.error'), userFriendlyError(err));
     }
   };
@@ -75,7 +75,7 @@ export default function LoginScreen() {
         auth_method: 'google',
       });
     } catch (err) {
-      if (!isExpectedAuthError(err)) captureException(err);
+      reportUnexpectedAuthError(err, captureException);
       Alert.alert(t('common.error'), userFriendlyError(err));
     }
   };
