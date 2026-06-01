@@ -1,6 +1,7 @@
 import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import type { JsonType } from '@posthog/core';
 import Constants from 'expo-constants';
+import type { CustomVariables } from 'react-native-purchases-ui';
 import { useSubscriptionStore } from '../stores/subscription.store';
 import { AnalyticsEvent, captureException, trackEvent } from './analytics';
 
@@ -40,6 +41,13 @@ type PresentPaywallOptions = PaywallAnalyticsOptions & {
   requiredEntitlementIdentifier?: string;
   offeringIdentifier?: string;
   placement?: string;
+  /**
+   * Onboarding answers used to personalize V2 paywall copy via custom variables
+   * (`{{ custom.<key> }}` in the RC editor). Only non-empty answers are sent — any
+   * absent one falls back to the default value configured for that variable in the
+   * paywall editor, so copy never renders a blank.
+   */
+  personalization?: OnboardingAttributes;
 };
 
 function paywallProperties(
@@ -171,6 +179,116 @@ export async function loginRevenueCat(userId: string) {
 }
 
 /**
+ * RevenueCat customer-attribute keys used for paywall personalization.
+ *
+ * ⚠️ Single source of truth — these strings MUST match the `{{ subscriber.<key> }}`
+ * variables referenced in the RevenueCat dashboard paywall editor. Renaming a key
+ * here without updating the dashboard (or vice-versa) silently breaks substitution.
+ */
+export const PAYWALL_ATTRIBUTE = {
+  PRIMARY_GOAL: 'primary_goal',
+  PRIMARY_BIKE_MAKE: 'primary_bike_make',
+  PRIMARY_BIKE_MODEL: 'primary_bike_model',
+  PRIMARY_BIKE_YEAR: 'primary_bike_year',
+  RIDING_EXPERIENCE: 'riding_experience',
+} as const;
+
+export type PaywallAttribute = (typeof PAYWALL_ATTRIBUTE)[keyof typeof PAYWALL_ATTRIBUTE];
+
+/** Onboarding answers projected onto RevenueCat customer attributes. */
+export type OnboardingAttributes = {
+  /** Primary riding goal (e.g. 'track_rides') — drives the goal-specific copy variant. */
+  primaryGoal?: string | null;
+  bikeMake?: string | null;
+  bikeModel?: string | null;
+  bikeYear?: number | null;
+  /** Experience level (e.g. 'beginner') — tone variant. */
+  experience?: string | null;
+};
+
+/**
+ * Declarative projection from onboarding answers → RevenueCat attributes.
+ *
+ * To add a new personalization attribute: add its key to {@link PAYWALL_ATTRIBUTE},
+ * add the source field to {@link OnboardingAttributes}, then add one entry here.
+ * Nothing else in the pipeline changes — {@link setOnboardingAttributes} is fully
+ * data-driven off this spec.
+ */
+const ONBOARDING_ATTRIBUTE_SPEC: ReadonlyArray<{
+  key: PaywallAttribute;
+  select: (a: OnboardingAttributes) => string | number | null | undefined;
+}> = [
+  { key: PAYWALL_ATTRIBUTE.PRIMARY_GOAL, select: (a) => a.primaryGoal },
+  { key: PAYWALL_ATTRIBUTE.PRIMARY_BIKE_MAKE, select: (a) => a.bikeMake },
+  { key: PAYWALL_ATTRIBUTE.PRIMARY_BIKE_MODEL, select: (a) => a.bikeModel },
+  { key: PAYWALL_ATTRIBUTE.PRIMARY_BIKE_YEAR, select: (a) => a.bikeYear },
+  { key: PAYWALL_ATTRIBUTE.RIDING_EXPERIENCE, select: (a) => a.experience },
+];
+
+/** Coerce an onboarding value into an RC attribute string, or null to delete it. */
+function toAttributeValue(value: string | number | null | undefined): string | null {
+  if (value === null || value === undefined) return null;
+  const trimmed = String(value).trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+/**
+ * Push onboarding answers to RevenueCat as **customer attributes**.
+ *
+ * NOTE: customer attributes are NOT substituted into paywall text — RC has no
+ * `{{ subscriber.* }}` variable. They drive **targeting**: Placements, Audiences,
+ * Experiments, and segmentation/export. Paywall *copy* is personalized separately,
+ * via custom variables — see {@link buildPaywallCustomVariables} and the
+ * `personalization` option on {@link presentPaywall}.
+ *
+ * Empty / missing answers are sent as `null`, which *deletes* the attribute, so
+ * stale answers from a previous run never leak into targeting.
+ *
+ * Call before presenting the onboarding paywall. Idempotent and safe to repeat.
+ */
+export async function setOnboardingAttributes(attrs: OnboardingAttributes): Promise<void> {
+  if (isExpoGo()) return;
+  const cleanup = await initRevenueCat();
+  if (!cleanup) return;
+  try {
+    const Purchases = await getPurchases();
+    const payload = Object.fromEntries(
+      ONBOARDING_ATTRIBUTE_SPEC.map(({ key, select }) => [key, toAttributeValue(select(attrs))]),
+    );
+    await Purchases.setAttributes(payload);
+    await Purchases.syncAttributesAndOfferingsIfNeeded?.();
+  } catch (e) {
+    console.error(
+      '[RevenueCat] setOnboardingAttributes failed:',
+      e instanceof Error ? e.message : e,
+    );
+    captureException(e);
+  }
+}
+
+/**
+ * Project onboarding answers onto RC Paywalls v2 **custom variables** for copy
+ * substitution (`{{ custom.<key> }}`). Reuses {@link ONBOARDING_ATTRIBUTE_SPEC} so
+ * the variable names match the customer-attribute keys one-to-one.
+ *
+ * Only non-empty values are included: an omitted key falls back to the default value
+ * set for that variable in the paywall editor, so the copy never renders blank.
+ *
+ * Takes the `CustomVariableValue` factory as an argument so this stays a pure mapping
+ * (the factory comes from the dynamically-imported `react-native-purchases-ui`).
+ */
+function buildPaywallCustomVariables(
+  attrs: OnboardingAttributes,
+  factory: typeof import('react-native-purchases-ui').CustomVariableValue,
+): CustomVariables {
+  const entries = ONBOARDING_ATTRIBUTE_SPEC.flatMap(({ key, select }) => {
+    const value = toAttributeValue(select(attrs));
+    return value === null ? [] : ([[key, factory.string(value)]] as const);
+  });
+  return Object.fromEntries(entries);
+}
+
+/**
  * Present the RevenueCat remote paywall.
  * Uses the paywall configured in the RevenueCat dashboard.
  *
@@ -230,12 +348,19 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
       }),
     );
 
+    // Personalize V2 paywall copy via custom variables ({{ custom.* }}).
+    // Omitted keys fall back to the editor's default value for that variable.
+    const customVariables = options.personalization
+      ? buildPaywallCustomVariables(options.personalization, RevenueCatUI.CustomVariableValue)
+      : undefined;
+
     const result = options.requiredEntitlementIdentifier
       ? await RevenueCatUI.default.presentPaywallIfNeeded({
           requiredEntitlementIdentifier: options.requiredEntitlementIdentifier,
           offering,
+          customVariables,
         })
-      : await RevenueCatUI.default.presentPaywall({ offering });
+      : await RevenueCatUI.default.presentPaywall({ offering, customVariables });
 
     switch (result) {
       case PAYWALL_RESULT.PURCHASED:

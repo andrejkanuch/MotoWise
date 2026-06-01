@@ -9,7 +9,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { getPrimaryGoal, OB_ROUTE, TOTAL_SCREENS } from '../../config/onboarding';
+import { getPrimaryGoal, OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
+import { useOnboardingBack } from '../../hooks/use-onboarding-back';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
@@ -51,6 +52,7 @@ const GOAL_OPTIONS = [
 export default function GoalsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const onBack = useOnboardingBack(OB_SCREEN.GOALS);
   const insets = useSafeAreaInsets();
   const setRidingGoals = useOnboardingStore((s) => s.setRidingGoals);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
@@ -102,7 +104,7 @@ export default function GoalsScreen() {
 
     // Batch write to Zustand store
     setRidingGoals(goals);
-    setLastCompletedScreen('goals');
+    setLastCompletedScreen(OB_SCREEN.GOALS);
 
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
       step: 'goals',
@@ -127,7 +129,7 @@ export default function GoalsScreen() {
 
       {/* Back button */}
       <Pressable
-        onPress={() => router.back()}
+        onPress={onBack}
         hitSlop={12}
         style={{
           position: 'absolute',

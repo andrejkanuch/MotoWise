@@ -62,19 +62,16 @@ export function PreFlightChecklist({ motorcycleId }: PreFlightChecklistProps) {
 
   const bikeStatus = useMemo(() => {
     if (!motorcycleId) return { subtitle: t('preFlight.noBikeSelected'), status: 'na' as const };
-    // biome-ignore lint/suspicious/noExplicitAny: generated type shape
-    const tasks = (tasksData as any)?.maintenanceTasks ?? [];
+    const tasks = tasksData?.maintenanceTasks ?? [];
     if (tasks.length === 0)
       return { subtitle: t('preFlight.noTasksTracked'), status: 'na' as const };
 
     const now = new Date();
     const overdue = tasks.filter(
-      (task: { status: string; dueDate?: string | null }) =>
-        task.status !== 'completed' && task.dueDate && new Date(task.dueDate) < now,
+      (task) => task.status !== 'completed' && task.dueDate && new Date(task.dueDate) < now,
     );
     const upcoming = tasks.filter(
-      (task: { status: string; dueDate?: string | null }) =>
-        task.status !== 'completed' && task.dueDate && new Date(task.dueDate) >= now,
+      (task) => task.status !== 'completed' && task.dueDate && new Date(task.dueDate) >= now,
     );
 
     if (overdue.length > 0) {
@@ -87,8 +84,9 @@ export function PreFlightChecklist({ motorcycleId }: PreFlightChecklistProps) {
 
     if (upcoming.length > 0) {
       const first = upcoming[0];
+      // dueDate is guaranteed non-null by the `upcoming` filter above.
       const daysUntil = Math.ceil(
-        (new Date(first.dueDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+        (new Date(first.dueDate ?? now).getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
       );
       return {
         subtitle: t('preFlight.dueIn', { task: first.title, days: daysUntil }),

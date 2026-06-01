@@ -1,7 +1,9 @@
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
+import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useEditorialTheme } from '../../theme/editorial';
+import { formatDistance, formatDuration } from '../../utils/ride-formatters';
 import { ECard } from '../ui/editorial';
 
 interface Ride {
@@ -18,19 +20,6 @@ interface FocusHistoryProps {
   rides: Ride[];
 }
 
-function formatDuration(seconds: number | null): string {
-  if (seconds == null) return '--';
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
-}
-
-function formatDistance(meters: number | null): string {
-  if (meters == null) return '--';
-  const km = meters / 1000;
-  return km >= 100 ? `${Math.round(km)} km` : `${km.toFixed(1)} km`;
-}
-
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -40,6 +29,7 @@ export function FocusHistory({ rides }: FocusHistoryProps) {
   const { t: theme } = useEditorialTheme();
   const { t } = useTranslation();
   const router = useRouter();
+  const system = useMeasurementSystem();
 
   if (rides.length === 0) {
     return (
@@ -120,7 +110,8 @@ export function FocusHistory({ rides }: FocusHistoryProps) {
               {ride.name ?? t('home.defaultRideName')}
             </Text>
             <Text style={{ fontSize: 11, color: theme.ink3 }} numberOfLines={1}>
-              {formatDate(ride.startedAt)} · {formatDuration(ride.durationS)}
+              {formatDate(ride.startedAt)} ·{' '}
+              {ride.durationS == null ? '--' : formatDuration(ride.durationS)}
               {ride.avgSpeedMps
                 ? ` · ${t('home.avgSpeed', { speed: Math.round(ride.avgSpeedMps * 3.6) })}`
                 : ''}
@@ -134,7 +125,7 @@ export function FocusHistory({ rides }: FocusHistoryProps) {
               letterSpacing: -0.4,
             }}
           >
-            {formatDistance(ride.distanceM)}
+            {ride.distanceM == null ? '--' : formatDistance(ride.distanceM, system)}
           </Text>
         </View>
       ))}

@@ -112,7 +112,7 @@ setupOnlineManager();
 // What's New modal is only pushed once per app cold-start.
 let whatsNewPushed = false;
 
-function NavigationGate({ children }: { children: React.ReactNode }) {
+function NavigationGate() {
   const {
     session,
     isLoading,
@@ -194,54 +194,6 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     });
   }, [session?.user?.id, meData, userPreferences, isPro]);
 
-  useEffect(() => {
-    if (isLoading) return;
-    if (meQuery.isLoading && !meQuery.isError) return;
-
-    const inAuthGroup = segments[0] === '(auth)';
-    const inOnboarding = segments[0] === '(onboarding)';
-    // Public share-link routes — anonymous recipients must be able to view
-    // unlisted trip/ride share previews without being redirected to login.
-    const inPublicShareRoute =
-      segments[0] === 't' ||
-      segments[0] === 'r' ||
-      segments[0] === 'ride' ||
-      segments[0] === 'routes' ||
-      segments[0] === 'route';
-
-    // Public share-link routes bypass the entire auth/onboarding gate.
-    // Anonymous AND authenticated users (even mid-onboarding) must be able
-    // to view shared trip/ride previews. Resolving the token is independent
-    // of any session state.
-    if (inPublicShareRoute) return;
-
-    let target: string | null = null;
-
-    if (!session && !inAuthGroup && !inPublicShareRoute) {
-      target = '/(auth)/login';
-    } else if (session && inAuthGroup) {
-      target = onboardingCompleted ? '/(tabs)/(home)' : '/(onboarding)';
-    } else if (session && !inOnboarding && !onboardingCompleted) {
-      target = '/(onboarding)';
-    } else if (session && inOnboarding && onboardingCompleted) {
-      target = '/(tabs)/(home)';
-    }
-
-    if (target) {
-      // Defer navigation to avoid setState-during-render warning
-      // biome-ignore lint/suspicious/noExplicitAny: expo-router replace expects typed route literal
-      setTimeout(() => router.replace(target as any), 0);
-    }
-  }, [
-    session,
-    segments,
-    isLoading,
-    router,
-    onboardingCompleted,
-    meQuery.isLoading,
-    meQuery.isError,
-  ]);
-
   // --- What's New modal trigger ---
   // Module-scoped `whatsNewPushed` flag survives React 19 StrictMode
   // double-mount (useRef and even immediate store writes can race).
@@ -266,13 +218,45 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     setTimeout(() => router.push('/(modals)/whats-new' as never), 500);
   }, [isLoading, session, onboardingCompleted, segments, lastSeenVersion, router]);
 
+  // Hold the splash (render nothing) until auth + the `me` query resolve, so the
+  // guards below evaluate against settled state — otherwise a returning,
+  // already-onboarded user would briefly route through (onboarding) before `me`
+  // confirms completion.
   if (isLoading || (session && meQuery.isLoading && !meQuery.isError)) {
     return null;
   }
 
+  const isSignedIn = !!session;
+
+  // Declarative gating via Stack.Protected: when a guard flips (sign-in, sign-out,
+  // onboarding completion) Expo Router auto-navigates to the next available
+  // screen. No imperative router.replace — which would collapse the back stack.
   return (
     <>
-      {children}
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Protected guard={!isSignedIn}>
+          <Stack.Screen name="(auth)" />
+        </Stack.Protected>
+
+        <Stack.Protected guard={isSignedIn && !onboardingCompleted}>
+          <Stack.Screen name="(onboarding)" />
+        </Stack.Protected>
+
+        <Stack.Protected guard={isSignedIn && onboardingCompleted}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="(modals)" />
+          <Stack.Screen name="trip/[id]" />
+        </Stack.Protected>
+
+        {/* Public share-link routes — always accessible to anonymous AND
+            authenticated users (even mid-onboarding). Declared last so they are
+            never resolved as the default landing screen. */}
+        <Stack.Screen name="t/[token]/index" />
+        <Stack.Screen name="ride/[id]" />
+        <Stack.Screen name="route/[country]/[region]/[slug]" />
+        <Stack.Screen name="routes/[id]" />
+        <Stack.Screen name="+not-found" />
+      </Stack>
       <SurveyOverlay />
     </>
   );
@@ -598,9 +582,7 @@ function RootLayout() {
         <AnimatedSplash isReady={appReady} onDismiss={onSplashDismiss}>
           <KeyboardProvider>
             <PersistedQueryClientBoundary>
-              <NavigationGate>
-                <Stack screenOptions={{ headerShown: false }} />
-              </NavigationGate>
+              <NavigationGate />
             </PersistedQueryClientBoundary>
           </KeyboardProvider>
         </AnimatedSplash>

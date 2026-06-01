@@ -106,6 +106,131 @@ export async function toggleBatterySaver(enabled: boolean): Promise<void> {
   }
 }
 
+// --- Auto-pause decision (pure) ---
+
+export interface AutoPauseState {
+  zeroSpeedTimer: number | null;
+  zeroSpeedAnchor: { lat: number; lng: number } | null;
+  continuousAutoPauseStart: number | null;
+  forgotToStopNotified: boolean;
+}
+
+/** A side effect the caller should perform after an auto-pause decision. */
+export type AutoPauseEffect =
+  | { kind: 'setSubState'; value: 'stopped' | 'moving' }
+  | { kind: 'updateSpeedZero' }
+  | { kind: 'addAutoPausedMs'; ms: number }
+  | { kind: 'notifyForgotToStop' }
+  | { kind: 'autoEnd'; idleSince: number };
+
+export interface AutoPauseDecision {
+  next: AutoPauseState;
+  /** Ordered side effects for the caller to apply via the effect handlers. */
+  effects: AutoPauseEffect[];
+  /** When true, the caller should stop processing this location sample. */
+  abort: boolean;
+}
+
+/**
+ * Pure auto-pause / forgot-to-stop / auto-end state machine.
+ *
+ * Extracted from `processLocation` so the timer-driven logic can be unit tested
+ * with an injected clock. Written as flat guard clauses that each return a
+ * {next state, effects, abort} decision — the caller commits the state and
+ * dispatches the effects, keeping all GPS/MMKV/Zustand side effects at the
+ * boundary.
+ */
+export function decideAutoPause(
+  state: AutoPauseState,
+  sample: { rawSpeed: number; pos: { lat: number; lng: number } },
+  subState: string | undefined,
+  now: number,
+): AutoPauseDecision {
+  const next: AutoPauseState = { ...state };
+  const { rawSpeed, pos } = sample;
+
+  // Moving fast enough — clear any pending stop, banking the pause if it counted.
+  if (rawSpeed >= AUTO_PAUSE_SPEED_THRESHOLD) {
+    if (!next.zeroSpeedTimer) return { next, effects: [], abort: false };
+    const pauseDuration = now - next.zeroSpeedTimer;
+    const effects: AutoPauseEffect[] =
+      pauseDuration > AUTO_PAUSE_DURATION_MS
+        ? [
+            { kind: 'addAutoPausedMs', ms: pauseDuration },
+            { kind: 'setSubState', value: 'moving' },
+          ]
+        : [];
+    next.zeroSpeedTimer = null;
+    next.zeroSpeedAnchor = null;
+    next.continuousAutoPauseStart = null;
+    next.forgotToStopNotified = false;
+    return { next, effects, abort: false };
+  }
+
+  // Slow/stationary — arm the zero-speed timer on the first slow sample.
+  if (!next.zeroSpeedTimer) {
+    next.zeroSpeedTimer = now;
+    next.zeroSpeedAnchor = pos;
+  }
+  if (!next.zeroSpeedAnchor) return { next, effects: [], abort: true };
+
+  // Creeping forward (>5m) re-anchors instead of pausing.
+  if (distanceMeters(next.zeroSpeedAnchor, pos) > AUTO_PAUSE_DISTANCE_THRESHOLD) {
+    next.zeroSpeedAnchor = pos;
+    next.zeroSpeedTimer = now;
+    return { next, effects: [], abort: false };
+  }
+
+  // Not stopped long enough to auto-pause yet.
+  if (now - next.zeroSpeedTimer <= AUTO_PAUSE_DURATION_MS) {
+    return { next, effects: [], abort: false };
+  }
+
+  const effects: AutoPauseEffect[] = [];
+
+  // First tick past the 60s threshold enters the stopped sub-state.
+  if (subState !== 'stopped') {
+    next.continuousAutoPauseStart = now;
+    effects.push({ kind: 'setSubState', value: 'stopped' }, { kind: 'updateSpeedZero' });
+  }
+
+  if (!next.continuousAutoPauseStart) return { next, effects, abort: false };
+
+  // Forgot-to-stop escalation: notify at 10 min, auto-end at 30 min.
+  const stoppedFor = now - next.continuousAutoPauseStart;
+  if (stoppedFor > FORGOT_TO_STOP_AUTO_END_MS) {
+    effects.push({ kind: 'autoEnd', idleSince: next.continuousAutoPauseStart });
+    return { next, effects, abort: true };
+  }
+  if (stoppedFor > FORGOT_TO_STOP_NOTIFY_MS && !next.forgotToStopNotified) {
+    next.forgotToStopNotified = true;
+    effects.push({ kind: 'notifyForgotToStop' });
+  }
+  return { next, effects, abort: false };
+}
+
+// --- Auto-pause effect handlers (dispatch table — no branching at the call site) ---
+
+type AutoPauseEffectHandlers = {
+  [K in AutoPauseEffect['kind']]: (effect: Extract<AutoPauseEffect, { kind: K }>) => void;
+};
+
+const AUTO_PAUSE_EFFECT_HANDLERS: AutoPauseEffectHandlers = {
+  setSubState: (e) => rideMMKV.setRecordingSubState(e.value),
+  updateSpeedZero: () => useRideStore.getState().updateSpeed(0),
+  addAutoPausedMs: (e) => rideMMKV.setTotalAutoPausedMs(rideMMKV.getTotalAutoPausedMs() + e.ms),
+  notifyForgotToStop: () => {
+    void showForgotToStopNotification();
+  },
+  autoEnd: (e) => autoEndRide(e.idleSince),
+};
+
+function applyAutoPauseEffects(effects: AutoPauseEffect[]): void {
+  for (const effect of effects) {
+    (AUTO_PAUSE_EFFECT_HANDLERS[effect.kind] as (e: AutoPauseEffect) => void)(effect);
+  }
+}
+
 // --- Location processing (auto-pause + filtering + stats + waypoint storage) ---
 
 function processLocation(location: Location.LocationObject): void {
@@ -115,59 +240,17 @@ function processLocation(location: Location.LocationObject): void {
   const rawSpeed = location.coords.speed ?? 0;
   const currentPos = { lat: location.coords.latitude, lng: location.coords.longitude };
 
-  // --- Auto-pause logic ---
-  if (rawSpeed < AUTO_PAUSE_SPEED_THRESHOLD) {
-    if (!zeroSpeedTimer) {
-      zeroSpeedTimer = Date.now();
-      zeroSpeedAnchor = currentPos;
-    }
-
-    if (!zeroSpeedAnchor) return;
-    const delta = distanceMeters(zeroSpeedAnchor, currentPos);
-    const stoppedDuration = Date.now() - zeroSpeedTimer;
-
-    if (delta > AUTO_PAUSE_DISTANCE_THRESHOLD) {
-      // Rider maneuvering slowly — reset anchor
-      zeroSpeedAnchor = currentPos;
-      zeroSpeedTimer = Date.now();
-    } else if (stoppedDuration > AUTO_PAUSE_DURATION_MS) {
-      const subState = rideMMKV.getRecordingSubState();
-      if (subState !== 'stopped') {
-        rideMMKV.setRecordingSubState('stopped');
-        continuousAutoPauseStart = Date.now();
-        useRideStore.getState().updateSpeed(0);
-      }
-
-      // Forgot-to-stop detection
-      if (continuousAutoPauseStart) {
-        const autoPauseDuration = Date.now() - continuousAutoPauseStart;
-
-        if (autoPauseDuration > FORGOT_TO_STOP_AUTO_END_MS) {
-          autoEndRide(continuousAutoPauseStart);
-          return;
-        }
-        if (autoPauseDuration > FORGOT_TO_STOP_NOTIFY_MS && !forgotToStopNotified) {
-          showForgotToStopNotification();
-          forgotToStopNotified = true;
-        }
-      }
-    }
-  } else {
-    // Moving again
-    if (zeroSpeedTimer) {
-      const pauseDuration = Date.now() - zeroSpeedTimer;
-      if (pauseDuration > AUTO_PAUSE_DURATION_MS) {
-        // Was in STOPPED; accumulate auto-pause duration
-        const prev = rideMMKV.getTotalAutoPausedMs();
-        rideMMKV.setTotalAutoPausedMs(prev + pauseDuration);
-        rideMMKV.setRecordingSubState('moving');
-      }
-      zeroSpeedTimer = null;
-      zeroSpeedAnchor = null;
-      continuousAutoPauseStart = null;
-      forgotToStopNotified = false;
-    }
-  }
+  // Auto-pause: pure decision in, side effects out via the dispatch table.
+  const decision = decideAutoPause(
+    { zeroSpeedTimer, zeroSpeedAnchor, continuousAutoPauseStart, forgotToStopNotified },
+    { rawSpeed, pos: currentPos },
+    rideMMKV.getRecordingSubState(),
+    Date.now(),
+  );
+  ({ zeroSpeedTimer, zeroSpeedAnchor, continuousAutoPauseStart, forgotToStopNotified } =
+    decision.next);
+  applyAutoPauseEffects(decision.effects);
+  if (decision.abort) return;
 
   // --- Apply GPS filter (Kalman + smoothing + drift prevention) ---
   const filtered = gpsFilter.process(

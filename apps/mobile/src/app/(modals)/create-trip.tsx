@@ -1,15 +1,7 @@
 import DateTimePicker from '@expo/ui/community/datetime-picker';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import {
-  CreateTripWithWaypointsDocument,
-  DeleteTripDocument,
-  type PeriodOfDay,
-  PublishTripDocument,
-  TripDetailDocument,
-  UpdateTripDocument,
-} from '@motovault/graphql';
+import type { PeriodOfDay } from '@motovault/graphql';
 import MapboxGL, { type ScreenPointPayload } from '@rnmapbox/maps';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -51,11 +43,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GeocodingSearchBar } from '../../components/geocoding-search-bar';
 import { StopListItem } from '../../components/trip/stop-list-item';
 import { getWaypointIcon, WaypointTypePicker } from '../../components/trip/waypoint-type-picker';
-import { AnalyticsEvent, trackEvent, trackEventWithSurvey } from '../../lib/analytics';
-import { gqlFetcher } from '../../lib/graphql-client';
+import { useCreateTripData } from '../../hooks/use-create-trip-data';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { userFriendlyError } from '../../lib/graphql-errors';
-import { queryKeys } from '../../lib/query-keys';
-import { maybeRequestReview } from '../../lib/store-review';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { showActionSheet } from '../../utils/action-sheet';
 import {
@@ -153,7 +143,6 @@ export default function CreateTripScreen() {
   const { t: i18n } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const queryClient = useQueryClient();
   const params = useLocalSearchParams<{
     tripId?: string;
     cloneFromTripId?: string;
@@ -171,13 +160,6 @@ export default function CreateTripScreen() {
   const chevronStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${chevronRotation.value}deg` }],
   }));
-
-  // Fetch existing trip data when in edit OR clone mode
-  const tripQuery = useQuery({
-    queryKey: ['trip-edit', sourceTripId],
-    queryFn: () => gqlFetcher(TripDetailDocument, { tripId: sourceTripId ?? '' }),
-    enabled: !!sourceTripId,
-  });
 
   // Difficulty colors — editorial tokens
   const difficultyColors: Record<Difficulty, string> = {
@@ -273,6 +255,55 @@ export default function CreateTripScreen() {
   // Android: DateTimePicker renders as a dialog, so show only on press
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+
+  // Build the batch input shared by save and publish
+  const buildTripInput = useCallback(() => {
+    const sorted = [...waypoints].sort((a, b) => a.sortOrder - b.sortOrder);
+    // Ensure first waypoint is 'start' and last is 'end' so Zod validation passes.
+    // Users add stops via search/long-press which default to 'scenic'.
+    const hasStart = sorted.some((w) => w.type === 'start');
+    const hasEnd = sorted.some((w) => w.type === 'end');
+    return {
+      title: title.trim(),
+      description: description.trim(),
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+      difficulty,
+      maxRiders: Number.parseInt(maxRiders, 10) || 10,
+      visibility,
+      waypoints: sorted.map((wp, i) => ({
+        sortOrder: wp.sortOrder,
+        type: !hasStart && i === 0 ? 'start' : !hasEnd && i === sorted.length - 1 ? 'end' : wp.type,
+        name: wp.name,
+        notes: wp.notes || undefined,
+        lat: wp.lat,
+        lng: wp.lng,
+        dayIndex: wp.dayIndex,
+        // LocalWaypoint models periodOfDay as the string union for editor
+        // state; the GraphQL input expects the generated PeriodOfDay enum.
+        // The string values are identical, so a narrow cast is safe.
+        periodOfDay: (wp.periodOfDay ?? null) as PeriodOfDay | null,
+      })),
+    };
+  }, [title, description, startDate, endDate, difficulty, maxRiders, visibility, waypoints]);
+
+  // Data layer (queries + mutations) extracted to a colocated hook.
+  const {
+    tripQuery,
+    saveMutation,
+    publishMutation,
+    updateMutation,
+    updateAndPublishMutation,
+    deleteMutation,
+  } = useCreateTripData({
+    sourceTripId,
+    tripId: params.tripId,
+    buildTripInput,
+    difficulty,
+    waypointCount: waypoints.length,
+    maxRiders,
+    router,
+  });
 
   // Pre-populate state from fetched trip in edit OR clone mode.
   // Clone mode rehydrates the shape of another trip (waypoints, description,
@@ -530,165 +561,6 @@ export default function CreateTripScreen() {
     });
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }, []);
-
-  // Build the batch input shared by save and publish
-  const buildTripInput = useCallback(() => {
-    const sorted = [...waypoints].sort((a, b) => a.sortOrder - b.sortOrder);
-    // Ensure first waypoint is 'start' and last is 'end' so Zod validation passes.
-    // Users add stops via search/long-press which default to 'scenic'.
-    const hasStart = sorted.some((w) => w.type === 'start');
-    const hasEnd = sorted.some((w) => w.type === 'end');
-    return {
-      title: title.trim(),
-      description: description.trim(),
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0],
-      difficulty,
-      maxRiders: Number.parseInt(maxRiders, 10) || 10,
-      visibility,
-      waypoints: sorted.map((wp, i) => ({
-        sortOrder: wp.sortOrder,
-        type: !hasStart && i === 0 ? 'start' : !hasEnd && i === sorted.length - 1 ? 'end' : wp.type,
-        name: wp.name,
-        notes: wp.notes || undefined,
-        lat: wp.lat,
-        lng: wp.lng,
-        dayIndex: wp.dayIndex,
-        // LocalWaypoint models periodOfDay as the string union for editor
-        // state; the GraphQL input expects the generated PeriodOfDay enum.
-        // The string values are identical, so a narrow cast is safe.
-        periodOfDay: (wp.periodOfDay ?? null) as PeriodOfDay | null,
-      })),
-    };
-  }, [title, description, startDate, endDate, difficulty, maxRiders, visibility, waypoints]);
-
-  // Save draft mutation
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      const result = await gqlFetcher(CreateTripWithWaypointsDocument, {
-        input: buildTripInput(),
-      });
-      return result.createTripWithWaypoints.id;
-    },
-    onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      trackEventWithSurvey(AnalyticsEvent.TRIP_CREATED, {
-        difficulty,
-        waypoint_count: waypoints.length,
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
-      maybeRequestReview();
-      router.back();
-    },
-    onError: (error) => {
-      Alert.alert('Failed to save trip', userFriendlyError(error));
-    },
-  });
-
-  // Publish mutation
-  const publishMutation = useMutation({
-    mutationFn: async () => {
-      const result = await gqlFetcher(CreateTripWithWaypointsDocument, {
-        input: buildTripInput(),
-      });
-      const tripId = result.createTripWithWaypoints.id;
-      await gqlFetcher(PublishTripDocument, { tripId });
-      return tripId;
-    },
-    onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      trackEvent(AnalyticsEvent.TRIP_PUBLISHED, {
-        difficulty,
-        waypoint_count: waypoints.length,
-        max_riders: Number.parseInt(maxRiders, 10) || 10,
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
-      maybeRequestReview();
-      router.back();
-    },
-    onError: (error) => {
-      Alert.alert('Failed to publish trip', userFriendlyError(error));
-    },
-  });
-
-  // Update mutation (edit mode) — includes waypoints
-  const updateMutation = useMutation({
-    mutationFn: async () => {
-      const tripInput = buildTripInput();
-      await gqlFetcher(UpdateTripDocument, {
-        input: {
-          tripId: params.tripId ?? '',
-          ...tripInput,
-        },
-      });
-    },
-    onSuccess: async () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.trips.detail(params.tripId ?? ''),
-      });
-      router.back();
-    },
-    onError: (error) => {
-      Alert.alert('Failed to update trip', userFriendlyError(error));
-    },
-  });
-
-  // Update + publish mutation (edit mode, draft → published)
-  const updateAndPublishMutation = useMutation({
-    mutationFn: async () => {
-      const tripInput = buildTripInput();
-      const tripId = params.tripId ?? '';
-      await gqlFetcher(UpdateTripDocument, {
-        input: { tripId, ...tripInput },
-      });
-      await gqlFetcher(PublishTripDocument, { tripId });
-    },
-    onSuccess: async () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.trips.detail(params.tripId ?? ''),
-      });
-      router.back();
-    },
-    onError: (error) => {
-      Alert.alert('Failed to publish trip', userFriendlyError(error));
-    },
-  });
-
-  // Delete mutation (edit mode only) — permanently removes the trip.
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      await gqlFetcher(DeleteTripDocument, { tripId: params.tripId ?? '' });
-    },
-    onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
-      queryClient.removeQueries({ queryKey: queryKeys.trips.detail(params.tripId ?? '') });
-      // Pop both the edit modal AND the trip-detail modal underneath it.
-      router.dismissAll();
-    },
-    onError: (error) => {
-      Alert.alert('Failed to delete trip', userFriendlyError(error));
-    },
-  });
 
   const handleDeleteTrip = useCallback(() => {
     Alert.alert(
@@ -1037,7 +909,10 @@ export default function CreateTripScreen() {
                               color: titleColor,
                             }}
                           >
-                            Day {dayIndex + 1} · {formatDayDate(startDate, dayIndex)}
+                            {i18n('trips.dayHeader', {
+                              day: dayIndex + 1,
+                              date: formatDayDate(startDate, dayIndex),
+                            })}
                           </Text>
                         </View>
                         {dayWaypoints.length > 0 && dayDurationS > 0 && (
@@ -1122,7 +997,7 @@ export default function CreateTripScreen() {
                             paddingHorizontal: 20,
                           }}
                         >
-                          Search above or long-press the map to add a stop
+                          {i18n('trips.addStopHint')}
                         </Text>
                       )}
                     </View>
@@ -1239,7 +1114,7 @@ export default function CreateTripScreen() {
                             marginBottom: 6,
                           }}
                         >
-                          Start Date
+                          {i18n('trips.startDateLabel')}
                         </Text>
                         {process.env.EXPO_OS === 'android' ? (
                           <>
@@ -1307,7 +1182,7 @@ export default function CreateTripScreen() {
                             marginBottom: 6,
                           }}
                         >
-                          End Date
+                          {i18n('trips.endDateLabel')}
                         </Text>
                         {process.env.EXPO_OS === 'android' ? (
                           <>
@@ -1384,7 +1259,7 @@ export default function CreateTripScreen() {
                         marginBottom: 6,
                       }}
                     >
-                      Difficulty
+                      {i18n('trips.difficultyLabel')}
                     </Text>
                     <View style={{ flexDirection: 'row', gap: 10 }}>
                       {getDifficulties(i18n as TI18n).map((d) => {
@@ -1432,7 +1307,7 @@ export default function CreateTripScreen() {
                         marginBottom: 4,
                       }}
                     >
-                      Visibility
+                      {i18n('trips.visibilityLabel')}
                     </Text>
                     <Text
                       style={{
@@ -1442,8 +1317,7 @@ export default function CreateTripScreen() {
                         lineHeight: 16,
                       }}
                     >
-                      Who can find or open this plan. You can change this any time; it is not the
-                      same as saving a draft or publishing.
+                      {i18n('trips.visibilityHint')}
                     </Text>
                     <View style={{ gap: 8 }}>
                       {getVisibilityOptions(i18n as TI18n).map((opt) => {
@@ -1546,7 +1420,7 @@ export default function CreateTripScreen() {
                       textAlign: 'center',
                     }}
                   >
-                    Failed to save trip
+                    {i18n('trips.saveTripFailed')}
                   </Text>
                   <Text style={{ fontSize: 13, color: t.danger, textAlign: 'center' }}>
                     {userFriendlyError(saveMutation.error)}
@@ -1563,7 +1437,7 @@ export default function CreateTripScreen() {
                       textAlign: 'center',
                     }}
                   >
-                    Failed to publish trip
+                    {i18n('trips.publishTripFailed')}
                   </Text>
                   <Text style={{ fontSize: 13, color: t.danger, textAlign: 'center' }}>
                     {userFriendlyError(publishMutation.error)}
@@ -1580,7 +1454,7 @@ export default function CreateTripScreen() {
                       textAlign: 'center',
                     }}
                   >
-                    Failed to update trip
+                    {i18n('trips.updateTripFailed')}
                   </Text>
                   <Text style={{ fontSize: 13, color: t.danger, textAlign: 'center' }}>
                     {userFriendlyError(updateMutation.error)}
@@ -1605,7 +1479,7 @@ export default function CreateTripScreen() {
                 >
                   <AlertTriangle size={16} color={t.warm} />
                   <Text style={{ fontSize: 13, color: t.warm, flex: 1 }}>
-                    Editing a published trip. Changes will be visible to participants.
+                    {i18n('trips.editPublishedWarning')}
                   </Text>
                 </Animated.View>
               )}
@@ -1629,11 +1503,17 @@ export default function CreateTripScreen() {
                 >
                   <Info size={16} color={t.warm} style={{ marginTop: 1 }} />
                   <Text style={{ fontSize: 12, color: subtitleColor, flex: 1, lineHeight: 18 }}>
-                    <Text style={{ fontWeight: '700', color: inputTextColor }}>Draft</Text>
+                    <Text style={{ fontWeight: '700', color: inputTextColor }}>
+                      {i18n('trips.draftLabel')}
+                    </Text>
                     {` stays in My Trips only. `}
-                    <Text style={{ fontWeight: '700', color: inputTextColor }}>Publish</Text>
+                    <Text style={{ fontWeight: '700', color: inputTextColor }}>
+                      {i18n('trips.publish')}
+                    </Text>
                     {` makes it a live trip (for invites and the app). That is different from `}
-                    <Text style={{ fontWeight: '700', color: inputTextColor }}>Public</Text>
+                    <Text style={{ fontWeight: '700', color: inputTextColor }}>
+                      {i18n('trips.visibilityPublic')}
+                    </Text>
                     {` above — you can publish a private trip (invite-only).`}
                   </Text>
                 </Animated.View>
@@ -1865,8 +1745,7 @@ export default function CreateTripScreen() {
                       paddingHorizontal: 4,
                     }}
                   >
-                    Save Draft keeps it in My Trips. Publish makes it a live trip with the
-                    visibility above.
+                    {i18n('trips.saveDraftPublishHint')}
                   </Text>
                 </View>
               )}
@@ -1905,7 +1784,7 @@ export default function CreateTripScreen() {
                   color: titleColor,
                 }}
               >
-                Edit Stop
+                {i18n('trips.editStop')}
               </Text>
               <Pressable
                 onPress={closeEditModal}
@@ -1951,7 +1830,7 @@ export default function CreateTripScreen() {
                     marginBottom: 6,
                   }}
                 >
-                  Name
+                  {i18n('trips.nameLabel')}
                 </Text>
                 <TextInput
                   value={editName}
@@ -1990,7 +1869,7 @@ export default function CreateTripScreen() {
                     marginBottom: 6,
                   }}
                 >
-                  Type
+                  {i18n('trips.typeLabel')}
                 </Text>
                 <WaypointTypePicker selected={editType} onSelect={setEditType} />
               </View>
@@ -2012,7 +1891,7 @@ export default function CreateTripScreen() {
                     marginBottom: 6,
                   }}
                 >
-                  Period of day
+                  {i18n('trips.periodOfDayLabel')}
                 </Text>
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   {(['morning', 'afternoon', 'evening'] as const).map((p) => {
@@ -2048,7 +1927,7 @@ export default function CreateTripScreen() {
                   })}
                 </View>
                 <Text style={{ fontSize: 11, color: placeholderColor, marginTop: 6 }}>
-                  Groups this stop under the right block on the day list. Optional.
+                  {i18n('trips.periodOfDayHint')}
                 </Text>
               </View>
 
@@ -2069,7 +1948,7 @@ export default function CreateTripScreen() {
                     marginBottom: 6,
                   }}
                 >
-                  Notes
+                  {i18n('trips.notesLabel')}
                 </Text>
                 <TextInput
                   value={editNotes}
@@ -2121,7 +2000,7 @@ export default function CreateTripScreen() {
                     color: '#fff',
                   }}
                 >
-                  Done
+                  {i18n('common.done')}
                 </Text>
               </Pressable>
             </RNScrollView>

@@ -435,9 +435,16 @@
     "bikeDetails": "Dettagli moto",
     "addMaintenanceTask": "Aggiungi attività",
     "recordMaintenance": "Registra manutenzione",
-    "editBike": "Modifica moto"
+    "editBike": "Modifica moto",
+    "editMastheadEyebrow": "— GARAGE",
+    "editMastheadTitle": "Modifica",
+    "editMastheadSubject": "moto."
   },
   "profile": {
+    "roadsTitle": "Strade che ho percorso",
+    "roadsSubtitle": "Mappa di calore di sempre e riepilogo dell'anno",
+    "savedRoutesTitle": "Percorsi salvati",
+    "savedRoutesSubtitle": "Percorsi che vuoi affrontare più tardi",
     "title": "Profilo",
     "rider": "Pilota",
     "level": "Livello",
@@ -915,7 +922,13 @@
     "descriptionPlaceholder": "Cosa deve essere fatto?",
     "notesPlaceholder": "Aggiungi note...",
     "taskAdded": "Attività aggiunta!",
-    "saveTask": "Salva attività"
+    "saveTask": "Salva attività",
+    "headerLabel": "MANUTENZIONE",
+    "newPrefix": "Nuova",
+    "taskSuffix": "attività.",
+    "km": "km",
+    "recordPrefix": "Registra",
+    "maintenanceSuffix": "manutenzione."
   },
   "paywall": {
     "title": "La tua esperienza MotoVault è pronta",
@@ -1214,7 +1227,21 @@
     "seeAll_one": "Vedi tutto ({{count}})",
     "seeAll_other": "Vedi tutto ({{count}})",
     "seeAll_few": "Vedi tutto ({{count}})",
-    "seeAll_many": "Vedi tutto ({{count}})"
+    "seeAll_many": "Vedi tutto ({{count}})",
+    "expensesEyebrow": "— SPESE",
+    "logAn": "Registra una ",
+    "expenseWord": "spesa.",
+    "emptyStateSubtitle": "Tieni traccia di carburante, manutenzione, ricambi ed equipaggiamento.",
+    "addFirstExpense": "Aggiungi prima spesa",
+    "emptyStateTip": "Consiglio: inizia dal tuo ultimo rifornimento",
+    "failedToLoad": "Impossibile caricare i dati delle spese",
+    "vsLastYear": "{{arrow}} {{percent}}% vs anno scorso",
+    "totalCostOfOwnership": "COSTO TOTALE DI POSSESSO",
+    "bikePurchase": "Acquisto moto",
+    "allExpenses": "Tutte le spese",
+    "addPurchasePriceHint": "Aggiungi il prezzo di acquisto della moto in Modifica moto per vedere il costo totale di possesso",
+    "byCategory": "Per categoria",
+    "monthlyTrend": "Andamento mensile"
   },
   "privacy": {
     "title": "Privacy",
@@ -1515,7 +1542,42 @@
     "assistantPlaceholder": "Chiedi della tua uscita...",
     "startDateLabel": "Data di partenza",
     "draftCount_few": "{{count}} bozze — tocca per completare",
-    "draftCount_many": "{{count}} bozze — tocca per completare"
+    "draftCount_many": "{{count}} bozze — tocca per completare",
+    "riders": "piloti",
+    "ledBy": "Guidata da {{name}}",
+    "motoVaultPick": "MotoVault Pick",
+    "curvatureIndex": "Indice di curvatura: {{value}}",
+    "reviews": "Recensioni",
+    "writeAReview": "Scrivi una recensione",
+    "submit": "Invia",
+    "suggestedFlowHint": "Imposti le date quando cloni o pianifichi. Qui sotto trovi il percorso giorno per giorno suggerito.",
+    "addToMyTrips": "Aggiungi a Le mie uscite",
+    "saved": "Salvata",
+    "saveForLater": "Salva per dopo",
+    "ridersCount": "Piloti ({{count}})",
+    "lead": "Guida",
+    "coPlanner": "Co-pianificatore",
+    "cloneThisTrip": "Clona questa uscita",
+    "imIn": "Ci sono",
+    "exportGpx": "Export GPX",
+    "dayHeader": "Giorno {{day}} · {{date}}",
+    "addStopHint": "Cerca qui sopra o tieni premuto sulla mappa per aggiungere una tappa",
+    "endDateLabel": "Data di fine",
+    "difficultyLabel": "Difficoltà",
+    "visibilityLabel": "Visibilità",
+    "visibilityHint": "Chi può trovare o aprire questo piano. Puoi modificarlo in qualsiasi momento; non equivale a salvare una bozza o pubblicare.",
+    "saveTripFailed": "Salvataggio dell'uscita non riuscito",
+    "publishTripFailed": "Pubblicazione dell'uscita non riuscita",
+    "updateTripFailed": "Aggiornamento dell'uscita non riuscito",
+    "editPublishedWarning": "Stai modificando un'uscita pubblicata. Le modifiche saranno visibili ai partecipanti.",
+    "draftLabel": "Bozza",
+    "saveDraftPublishHint": "Salva bozza la mantiene in Le mie uscite. Pubblica la rende un'uscita attiva con la visibilità impostata sopra.",
+    "editStop": "Modifica tappa",
+    "nameLabel": "Nome",
+    "typeLabel": "Tipo",
+    "periodOfDayLabel": "Periodo del giorno",
+    "periodOfDayHint": "Raggruppa questa tappa nel blocco corretto della lista del giorno. Opzionale.",
+    "notesLabel": "Note"
   },
   "groupRide": {
     "titleLabel": "Titolo",
@@ -1578,6 +1640,7 @@
     "planTrip": "Pianifica viaggio"
   },
   "mapPicker": {
+    "title": "Stile mappa",
     "searchPlaceholder": "Cerca un luogo..."
   },
   "survey": {
@@ -1679,7 +1742,8 @@
     "private": "Private",
     "elevationChart": "Elevation",
     "speedChart": "Speed",
-    "peak": "{{value}} peak"
+    "peak": "{{value}} peak",
+    "threeD": "3D"
   },
   "startRide": {
     "preFlight": "Pre-partenza",
@@ -1694,6 +1758,7 @@
     "endRide": "Termina uscita",
     "previousRides": "Uscite precedenti",
     "lastRide": "Ultima: {{name}} — {{distance}} · {{date}}",
+    "lastRideSummary": "Ultima: {{distance}} · {{date}}",
     "startButton": "Inizia uscita",
     "trackingNote": "Registra GPS, velocità e percorso fino a quando tocchi fine.",
     "resolveUnfinished": "Completa l'uscita sopra per iniziarne una nuova",

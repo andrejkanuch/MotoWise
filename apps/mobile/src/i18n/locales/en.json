@@ -435,7 +435,10 @@
     "bikeDetails": "Bike Details",
     "addMaintenanceTask": "Add task",
     "recordMaintenance": "Record Maintenance",
-    "editBike": "Edit Motorcycle"
+    "editBike": "Edit Motorcycle",
+    "editMastheadEyebrow": "— GARAGE",
+    "editMastheadTitle": "Edit",
+    "editMastheadSubject": "motorcycle."
   },
   "profile": {
     "title": "Profile",
@@ -477,7 +480,11 @@
     "myTripsTitle": "My Trips",
     "myTripsDescription": "Track and share your motorcycle journeys",
     "currency": "Currency",
-    "selectCurrency": "Select Currency"
+    "selectCurrency": "Select Currency",
+    "roadsTitle": "Roads I've ridden",
+    "roadsSubtitle": "Lifetime heatmap & year recap",
+    "savedRoutesTitle": "Saved Routes",
+    "savedRoutesSubtitle": "Routes you want to ride later"
   },
   "onboarding": {
     "welcomeTitle": "Welcome to MotoVault",
@@ -916,7 +923,13 @@
     "descriptionPlaceholder": "What needs to be done?",
     "notesPlaceholder": "Add any notes...",
     "taskAdded": "Task Added!",
-    "saveTask": "Save task"
+    "saveTask": "Save task",
+    "headerLabel": "MAINTENANCE",
+    "newPrefix": "New",
+    "taskSuffix": "task.",
+    "km": "km",
+    "recordPrefix": "Record",
+    "maintenanceSuffix": "maintenance."
   },
   "paywall": {
     "title": "Your MotoVault experience is ready",
@@ -1215,7 +1228,21 @@
     "seeAll_one": "See all ({{count}})",
     "seeAll_other": "See all ({{count}})",
     "seeAll_few": "See all ({{count}})",
-    "seeAll_many": "See all ({{count}})"
+    "seeAll_many": "See all ({{count}})",
+    "expensesEyebrow": "— EXPENSES",
+    "logAn": "Log an ",
+    "expenseWord": "expense.",
+    "emptyStateSubtitle": "Track fuel, maintenance, parts, and gear costs.",
+    "addFirstExpense": "Add First Expense",
+    "emptyStateTip": "Tip: Start with your last fill-up",
+    "failedToLoad": "Failed to load expense data",
+    "vsLastYear": "{{arrow}} {{percent}}% vs last year",
+    "totalCostOfOwnership": "TOTAL COST OF OWNERSHIP",
+    "bikePurchase": "Bike Purchase",
+    "allExpenses": "All Expenses",
+    "addPurchasePriceHint": "Add your bike's purchase price in Edit Bike to see total cost of ownership",
+    "byCategory": "By category",
+    "monthlyTrend": "Monthly trend"
   },
   "privacy": {
     "title": "Privacy",
@@ -1516,7 +1543,42 @@
     "assistantPlaceholder": "Ask about your trip…",
     "startDateLabel": "Start Date",
     "draftCount_few": "{{count}} drafts — tap to finish",
-    "draftCount_many": "{{count}} drafts — tap to finish"
+    "draftCount_many": "{{count}} drafts — tap to finish",
+    "riders": "riders",
+    "ledBy": "Led by {{name}}",
+    "motoVaultPick": "MotoVault Pick",
+    "curvatureIndex": "Curvature index: {{value}}",
+    "reviews": "Reviews",
+    "writeAReview": "Write a Review",
+    "submit": "Submit",
+    "suggestedFlowHint": "You set dates when you clone or plan. Below is the suggested day-by-day flow.",
+    "addToMyTrips": "Add to My Trips",
+    "saved": "Saved",
+    "saveForLater": "Save for Later",
+    "ridersCount": "Riders ({{count}})",
+    "lead": "Lead",
+    "coPlanner": "Co-planner",
+    "cloneThisTrip": "Clone this trip",
+    "imIn": "I'm in",
+    "exportGpx": "Export GPX",
+    "dayHeader": "Day {{day}} · {{date}}",
+    "addStopHint": "Search above or long-press the map to add a stop",
+    "endDateLabel": "End Date",
+    "difficultyLabel": "Difficulty",
+    "visibilityLabel": "Visibility",
+    "visibilityHint": "Who can find or open this plan. You can change this any time; it is not the same as saving a draft or publishing.",
+    "saveTripFailed": "Failed to save trip",
+    "publishTripFailed": "Failed to publish trip",
+    "updateTripFailed": "Failed to update trip",
+    "editPublishedWarning": "Editing a published trip. Changes will be visible to participants.",
+    "draftLabel": "Draft",
+    "saveDraftPublishHint": "Save Draft keeps it in My Trips. Publish makes it a live trip with the visibility above.",
+    "editStop": "Edit Stop",
+    "nameLabel": "Name",
+    "typeLabel": "Type",
+    "periodOfDayLabel": "Period of day",
+    "periodOfDayHint": "Groups this stop under the right block on the day list. Optional.",
+    "notesLabel": "Notes"
   },
   "groupRide": {
     "titleLabel": "Title",
@@ -1587,7 +1649,8 @@
     "private": "Private",
     "elevationChart": "Elevation",
     "speedChart": "Speed",
-    "peak": "{{value}} peak"
+    "peak": "{{value}} peak",
+    "threeD": "3D"
   },
   "startRide": {
     "preFlight": "Pre-flight",
@@ -1608,7 +1671,8 @@
     "locationRequired": "Location Required",
     "locationMessage": "MotoVault needs location access to record your ride. Please enable it in Settings.",
     "openSettings": "Open Settings",
-    "startError": "Failed to start ride. Please try again."
+    "startError": "Failed to start ride. Please try again.",
+    "lastRideSummary": "Last: {{distance}} · {{date}}"
   },
   "preFlight": {
     "title": "Pre-flight",
@@ -1680,6 +1744,7 @@
     "planTrip": "Plan trip"
   },
   "mapPicker": {
+    "title": "Map Style",
     "searchPlaceholder": "Search for a location..."
   },
   "survey": {

@@ -13,6 +13,7 @@ import Animated, {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
+import { useMileageUnit } from '../../hooks/use-mileage-unit';
 import { CardWrapper } from './card-wrapper';
 import { SectionHeader } from './section-header';
 
@@ -91,6 +92,8 @@ function MileageUpdatedRow({ dateStr, t }: { dateStr: string; t: TFunction }) {
 
 export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOverviewProps) {
   const { t } = useTranslation();
+  // Unit comes from the user's profile preference, not the deprecated per-bike field.
+  const mileageUnit = useMileageUnit();
   const hasMileage = motorcycles.some((m) => m.currentMileage != null);
   const isMultiBike = motorcycles.length > 1;
   const scale = useSharedValue(1);
@@ -193,7 +196,7 @@ export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOve
                         marginTop: 2,
                       }}
                     >
-                      {bike.mileageUnit ?? 'km'}
+                      {mileageUnit}
                     </Text>
                   </>
                 ) : (
@@ -244,7 +247,7 @@ export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOve
                   fontWeight: '500',
                 }}
               >
-                {motorcycles[0].mileageUnit ?? 'km'}
+                {mileageUnit}
               </Text>
             </View>
             {motorcycles[0].mileageUpdatedAt && (

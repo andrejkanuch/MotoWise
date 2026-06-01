@@ -21,6 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   scheme: 'motovault',
   experiments: {
     reactCompiler: true,
+    typedRoutes: true,
   },
   owner: 'andykeny',
   runtimeVersion: {
@@ -38,6 +39,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-router',
+    [
+      // Drop the bundled libdav1d AVIF decoder (~9 MB libavif framework). The app
+      // ships no AVIF images and loads only JPEG/PNG/WebP; WebP/SVG coders are
+      // unaffected. iOS 16.4+ decodes static AVIF natively if ever needed.
+      'expo-image',
+      {
+        disableLibdav1d: true,
+      },
+    ],
     [
       'expo-image-picker',
       {
@@ -101,7 +111,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
               isAutoInitEnabled: false,
             },
           ],
-        ] as [string, Record<string, unknown>][])
+          // Drop unused FBSDK Login/Share/GamingServices subspecs (~2.9 MB) —
+          // we only use App Events (Core). Must run after the fbsdk plugin.
+          './plugins/fbsdk-core-only',
+        ] as (string | [string, Record<string, unknown>])[])
       : []),
     [
       'expo-media-library',

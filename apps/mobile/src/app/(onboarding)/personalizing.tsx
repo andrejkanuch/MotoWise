@@ -1,7 +1,6 @@
 import { CompleteOnboardingDocument, type CompleteOnboardingInput } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
-import { useRouter } from 'expo-router';
 import {
   Bike,
   Check,
@@ -25,7 +24,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
-import { getPrimaryGoal, OB_ROUTE, TOTAL_SCREENS } from '../../config/onboarding';
+import { getPrimaryGoal, TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { detectCurrency } from '../../lib/locale-detection';
@@ -56,7 +55,6 @@ const MIN_ANIMATION_MS = 2500;
 
 export default function PersonalizingScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const [visibleSteps, setVisibleSteps] = useState(0);
   const {
     experienceLevel,
@@ -91,7 +89,6 @@ export default function PersonalizingScreen() {
   const [animationDone, setAnimationDone] = useState(false);
   const [showRetry, setShowRetry] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  const [navFailed, setNavFailed] = useState(false);
 
   const primaryGoal = useMemo(() => getPrimaryGoal(ridingGoals), [ridingGoals]);
   const goalConfig = GOAL_STEP_CONFIG[primaryGoal];
@@ -189,7 +186,6 @@ export default function PersonalizingScreen() {
       // Initialize checklist store based on user goals
       useChecklistStore.getState().initialize(ridingGoals);
 
-      setOnboardingCompleted(true);
       setMutationDone(true);
     };
 
@@ -217,17 +213,16 @@ export default function PersonalizingScreen() {
     };
   }, []);
 
-  // Navigate only when BOTH mutation succeeded AND animation finished
+  // Complete onboarding only when BOTH the server mutation succeeded AND the
+  // minimum animation finished. Flipping `onboardingCompleted` is the single
+  // completion trigger: the root Stack.Protected guard then auto-redirects to
+  // (tabs) — no imperative navigation here.
   useEffect(() => {
     if (mutationDone && animationDone) {
-      try {
-        reset();
-        router.replace(OB_ROUTE.HOME);
-      } catch {
-        setNavFailed(true);
-      }
+      reset();
+      setOnboardingCompleted(true);
     }
-  }, [mutationDone, animationDone, router, reset]);
+  }, [mutationDone, animationDone, reset, setOnboardingCompleted]);
 
   // Safety net: if stuck for 8s total, show continue button
   useEffect(() => {
@@ -240,9 +235,8 @@ export default function PersonalizingScreen() {
   }, [mutationDone, showRetry]);
 
   const handleContinue = () => {
-    setOnboardingCompleted(true);
     reset();
-    router.replace(OB_ROUTE.HOME);
+    setOnboardingCompleted(true);
   };
 
   return (
@@ -333,26 +327,6 @@ export default function PersonalizingScreen() {
           ) : null;
         })}
       </View>
-
-      {/* Fallback continue button if auto-navigation didn't fire */}
-      {navFailed && (
-        <Animated.View entering={FadeIn.duration(300)} style={{ marginTop: 32 }}>
-          <Pressable
-            onPress={handleContinue}
-            style={{
-              paddingHorizontal: 32,
-              paddingVertical: 14,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              backgroundColor: ONBOARDING_COLORS.accent,
-            }}
-          >
-            <Text style={{ color: ONBOARDING_COLORS.background, fontSize: 17, fontWeight: '700' }}>
-              {t('common.done')}
-            </Text>
-          </Pressable>
-        </Animated.View>
-      )}
 
       {showRetry && (
         <Animated.View

@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import { MileageUnit, MotorcycleType } from '@motovault/types';
+import { MotorcycleType } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Calendar, ChevronRight, SkipForward } from 'lucide-react-native';
@@ -18,6 +18,7 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { TOTAL_SCREENS } from '../../config/onboarding';
+import { useMileageUnit } from '../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
@@ -29,6 +30,8 @@ export default function BikeYearScreen() {
   const router = useRouter();
   const setBikeData = useOnboardingStore((s) => s.setBikeData);
   const existingBikeData = useOnboardingStore((s) => s.bikeData);
+  // Seed the unit from the user's profile preference (the per-bike unit is deprecated).
+  const mileageUnit = useMileageUnit();
 
   const [year, setYear] = useState(
     existingBikeData?.year ? String(existingBikeData.year) : defaultYear,
@@ -49,7 +52,7 @@ export default function BikeYearScreen() {
         model: '',
         type: MotorcycleType.STANDARD,
         currentMileage: 0,
-        mileageUnit: MileageUnit.MI,
+        mileageUnit,
       }),
       year: yearNum,
     });

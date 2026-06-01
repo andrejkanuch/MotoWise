@@ -24,6 +24,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeToggle } from '../../../components/ui/native-toggle';
 import { useCurrency } from '../../../hooks/use-currency';
+import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -51,19 +52,14 @@ export default function CompleteTaskScreen() {
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
 
-  const {
-    taskId,
-    motorcycleId,
-    bikeName,
-    currentMileage,
-    mileageUnit = 'km',
-  } = useLocalSearchParams<{
+  const { taskId, motorcycleId, bikeName, currentMileage } = useLocalSearchParams<{
     taskId: string;
     motorcycleId: string;
     bikeName: string;
     currentMileage?: string;
-    mileageUnit?: string;
   }>();
+  // Unit follows the user's profile preference, not the deprecated per-bike field.
+  const mileageUnit = useMileageUnit();
 
   const [scheduleNext, setScheduleNext] = useState(true);
   const [completed, setCompleted] = useState(false);

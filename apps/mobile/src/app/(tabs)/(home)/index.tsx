@@ -19,6 +19,7 @@ import { useHomeData } from '../../../components/home/use-home-data';
 import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
 import { ECard, ESectionMasthead } from '../../../components/ui/editorial';
+import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
 
 type FocusTab = 'stats' | 'trip' | 'history';
@@ -28,6 +29,8 @@ export default function HomeScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { t: theme, isDark } = useEditorialTheme();
+  // Unit label follows the user's profile preference (deprecated per-bike field).
+  const mileageUnit = useMileageUnit();
 
   const {
     isLoading,
@@ -523,7 +526,7 @@ export default function HomeScreen() {
                             fontWeight: '500',
                           }}
                         >
-                          {activeBike.mileageUnit ?? 'km'}
+                          {mileageUnit}
                         </Text>
                       </View>
                     </View>

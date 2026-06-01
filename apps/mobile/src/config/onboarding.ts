@@ -1,15 +1,33 @@
-export const ONBOARDING_SCREENS = [
-  { route: 'index' },
-  { route: 'experience' },
-  { route: 'goals' },
-  { route: 'bike-setup' },
-  { route: 'maintenance' },
-  { route: 'paywall' },
-  { route: 'notifications' },
-  { route: 'personalizing' },
-] as const;
+/**
+ * Onboarding screen identifiers (route segment names) — the single source of
+ * truth. Use these constants instead of magic strings anywhere a screen is
+ * referenced (resume tracking, Back fallback, progress index).
+ */
+export const OB_SCREEN = {
+  WELCOME: 'index',
+  EXPERIENCE: 'experience',
+  GOALS: 'goals',
+  BIKE_SETUP: 'bike-setup',
+  MAINTENANCE: 'maintenance',
+  PAYWALL: 'paywall',
+  NOTIFICATIONS: 'notifications',
+  PERSONALIZING: 'personalizing',
+} as const;
 
-export type OnboardingRoute = (typeof ONBOARDING_SCREENS)[number]['route'];
+export type OnboardingRoute = (typeof OB_SCREEN)[keyof typeof OB_SCREEN];
+
+/** Ordered flow — drives the progress index, resume target, and Back fallback. */
+export const ONBOARDING_SCREENS = [
+  { route: OB_SCREEN.WELCOME },
+  { route: OB_SCREEN.EXPERIENCE },
+  { route: OB_SCREEN.GOALS },
+  { route: OB_SCREEN.BIKE_SETUP },
+  { route: OB_SCREEN.MAINTENANCE },
+  { route: OB_SCREEN.PAYWALL },
+  { route: OB_SCREEN.NOTIFICATIONS },
+  { route: OB_SCREEN.PERSONALIZING },
+] as const satisfies ReadonlyArray<{ route: OnboardingRoute }>;
+
 export const TOTAL_SCREENS = ONBOARDING_SCREENS.length;
 
 /** Type-safe onboarding route paths for router.push / router.replace */
@@ -55,4 +73,16 @@ export function getResumeRoute(lastCompleted: OnboardingRoute): OnboardingRouteP
   if (idx === -1 || idx >= ONBOARDING_SCREENS.length - 1) return null;
   const nextRoute = ONBOARDING_SCREENS[idx + 1].route;
   return `/(onboarding)/${nextRoute}`;
+}
+
+/**
+ * Full route path for the screen immediately before `current`, or null if it is
+ * the first screen. Used as a fallback for Back when there is no navigation
+ * history to pop (e.g. after resume-after-kill drops the user onto a mid-flow
+ * screen) — `router.back()` would otherwise throw "GO_BACK was not handled".
+ */
+export function getPreviousRoute(current: OnboardingRoute): OnboardingRoutePath | null {
+  const idx = ONBOARDING_SCREENS.findIndex((s) => s.route === current);
+  if (idx <= 0) return null;
+  return `/(onboarding)/${ONBOARDING_SCREENS[idx - 1].route}`;
 }

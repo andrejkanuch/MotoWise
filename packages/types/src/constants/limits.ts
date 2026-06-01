@@ -2,7 +2,7 @@ export const MAX_MOTORCYCLE_YEAR = new Date().getFullYear() + 2;
 export const MIN_MOTORCYCLE_YEAR = 1900;
 
 export const FREE_TIER_LIMITS = {
-  MAX_BIKES: 2,
+  MAX_BIKES: 1,
   MAX_AI_DIAGNOSTICS_PER_MONTH: 1,
   MAX_ARTICLES_PER_MONTH: 2,
   MAX_MILEAGE: 999999,

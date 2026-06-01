@@ -435,7 +435,10 @@
     "bikeDetails": "बाइक विवरण",
     "addMaintenanceTask": "टास्क जोड़ें",
     "recordMaintenance": "मेंटेनेंस रिकॉर्ड करें",
-    "editBike": "मोटरसाइकिल संपादित करें"
+    "editBike": "मोटरसाइकिल संपादित करें",
+    "editMastheadEyebrow": "— गैराज",
+    "editMastheadTitle": "संपादित करें",
+    "editMastheadSubject": "मोटरसाइकिल।"
   },
   "profile": {
     "title": "प्रोफाइल",
@@ -477,7 +480,11 @@
     "myTripsTitle": "मेरी ट्रिप्स",
     "myTripsDescription": "अपनी मोटरसाइकिल यात्राओं को ट्रैक और शेयर करें",
     "currency": "मुद्रा",
-    "selectCurrency": "मुद्रा चुनें"
+    "selectCurrency": "मुद्रा चुनें",
+    "roadsTitle": "मैंने जिन रास्तों पर सवारी की",
+    "roadsSubtitle": "आजीवन हीटमैप और वार्षिक सारांश",
+    "savedRoutesTitle": "सहेजे गए रूट",
+    "savedRoutesSubtitle": "वे रूट जिन पर आप बाद में सवारी करना चाहते हैं"
   },
   "onboarding": {
     "welcomeTitle": "MotoVault में आपका स्वागत है",
@@ -915,7 +922,13 @@
     "descriptionPlaceholder": "क्या करना है?",
     "notesPlaceholder": "कोई नोट जोड़ें...",
     "taskAdded": "टास्क जोड़ा गया!",
-    "saveTask": "टास्क सेव करें"
+    "saveTask": "टास्क सेव करें",
+    "headerLabel": "मेंटेनेंस",
+    "newPrefix": "नया",
+    "taskSuffix": "टास्क।",
+    "km": "km",
+    "recordPrefix": "रिकॉर्ड करें",
+    "maintenanceSuffix": "मेंटेनेंस।"
   },
   "paywall": {
     "title": "आपका MotoVault अनुभव तैयार है",
@@ -1214,7 +1227,21 @@
     "seeAll_one": "सभी देखें ({{count}})",
     "seeAll_other": "सभी देखें ({{count}})",
     "seeAll_few": "सभी देखें ({{count}})",
-    "seeAll_many": "सभी देखें ({{count}})"
+    "seeAll_many": "सभी देखें ({{count}})",
+    "expensesEyebrow": "— खर्चे",
+    "logAn": "लॉग करें ",
+    "expenseWord": "खर्चा।",
+    "emptyStateSubtitle": "ईंधन, मेंटेनेंस, पार्ट्स और गियर की लागत ट्रैक करें।",
+    "addFirstExpense": "पहला खर्चा जोड़ें",
+    "emptyStateTip": "टिप: अपने पिछले फिल-अप से शुरू करें",
+    "failedToLoad": "खर्चे का डेटा लोड नहीं हो पाया",
+    "vsLastYear": "{{arrow}} {{percent}}% पिछले साल से",
+    "totalCostOfOwnership": "स्वामित्व की कुल लागत",
+    "bikePurchase": "बाइक की खरीद",
+    "allExpenses": "सभी खर्चे",
+    "addPurchasePriceHint": "स्वामित्व की कुल लागत देखने के लिए Edit Bike में अपनी बाइक का खरीद मूल्य जोड़ें",
+    "byCategory": "श्रेणी के अनुसार",
+    "monthlyTrend": "मासिक रुझान"
   },
   "privacy": {
     "title": "प्राइवेसी",
@@ -1515,7 +1542,42 @@
     "assistantPlaceholder": "अपनी ट्रिप के बारे में पूछें…",
     "startDateLabel": "प्रारंभ तिथि",
     "draftCount_few": "{{count}} ड्राफ्ट — पूरा करने के लिए टैप करें",
-    "draftCount_many": "{{count}} ड्राफ्ट — पूरा करने के लिए टैप करें"
+    "draftCount_many": "{{count}} ड्राफ्ट — पूरा करने के लिए टैप करें",
+    "riders": "राइडर्स",
+    "ledBy": "{{name}} द्वारा लीड",
+    "motoVaultPick": "MotoVault Pick",
+    "curvatureIndex": "कर्वेचर इंडेक्स: {{value}}",
+    "reviews": "रिव्यू",
+    "writeAReview": "रिव्यू लिखें",
+    "submit": "सबमिट करें",
+    "suggestedFlowHint": "जब आप क्लोन या प्लान करते हैं तो तारीखें आप तय करते हैं। नीचे सुझाया गया दिन-दर-दिन फ्लो है।",
+    "addToMyTrips": "मेरी ट्रिप्स में जोड़ें",
+    "saved": "सेव हो गया",
+    "saveForLater": "बाद के लिए सेव करें",
+    "ridersCount": "राइडर्स ({{count}})",
+    "lead": "लीड",
+    "coPlanner": "को-प्लानर",
+    "cloneThisTrip": "इस ट्रिप को क्लोन करें",
+    "imIn": "मैं भी शामिल",
+    "exportGpx": "Export GPX",
+    "dayHeader": "दिन {{day}} · {{date}}",
+    "addStopHint": "स्टॉप जोड़ने के लिए ऊपर खोजें या मैप पर लॉन्ग-प्रेस करें",
+    "endDateLabel": "समाप्ति तिथि",
+    "difficultyLabel": "कठिनाई",
+    "visibilityLabel": "विज़िबिलिटी",
+    "visibilityHint": "इस प्लान को कौन ढूंढ या खोल सकता है। आप इसे कभी भी बदल सकते हैं; यह ड्राफ्ट सेव करने या प्रकाशित करने जैसा नहीं है।",
+    "saveTripFailed": "ट्रिप सेव नहीं हो सकी",
+    "publishTripFailed": "ट्रिप प्रकाशित नहीं हो सकी",
+    "updateTripFailed": "ट्रिप अपडेट नहीं हो सकी",
+    "editPublishedWarning": "एक प्रकाशित ट्रिप एडिट हो रही है। बदलाव सभी प्रतिभागियों को दिखेंगे।",
+    "draftLabel": "ड्राफ्ट",
+    "saveDraftPublishHint": "ड्राफ्ट सेव करें इसे मेरी ट्रिप्स में रखता है। प्रकाशित करें इसे ऊपर दी गई विज़िबिलिटी के साथ एक लाइव ट्रिप बनाता है।",
+    "editStop": "स्टॉप एडिट करें",
+    "nameLabel": "नाम",
+    "typeLabel": "प्रकार",
+    "periodOfDayLabel": "दिन का समय",
+    "periodOfDayHint": "इस स्टॉप को दिन की सूची में सही ब्लॉक के अंतर्गत समूहित करता है। वैकल्पिक।",
+    "notesLabel": "नोट्स"
   },
   "groupRide": {
     "titleLabel": "शीर्षक",
@@ -1578,6 +1640,7 @@
     "planTrip": "ट्रिप प्लान करें"
   },
   "mapPicker": {
+    "title": "मानचित्र शैली",
     "searchPlaceholder": "स्थान खोजें..."
   },
   "survey": {
@@ -1679,7 +1742,8 @@
     "private": "Private",
     "elevationChart": "Elevation",
     "speedChart": "Speed",
-    "peak": "{{value}} peak"
+    "peak": "{{value}} peak",
+    "threeD": "3D"
   },
   "startRide": {
     "preFlight": "प्री-फ्लाइट",
@@ -1700,7 +1764,8 @@
     "locationRequired": "लोकेशन आवश्यक",
     "locationMessage": "MotoVault को आपकी राइड रिकॉर्ड करने के लिए लोकेशन एक्सेस चाहिए। कृपया सेटिंग्स में इसे सक्रिय करें।",
     "openSettings": "सेटिंग्स खोलें",
-    "startError": "राइड शुरू नहीं हो सकी। कृपया पुनः प्रयास करें।"
+    "startError": "राइड शुरू नहीं हो सकी। कृपया पुनः प्रयास करें।",
+    "lastRideSummary": "पिछली: {{distance}} · {{date}}"
   },
   "preFlight": {
     "title": "प्री-फ्लाइट",

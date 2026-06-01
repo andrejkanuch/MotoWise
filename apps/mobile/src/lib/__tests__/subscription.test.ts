@@ -47,7 +47,7 @@ jest.mock('../../stores/subscription.store', () => ({
   },
 }));
 
-import { logoutRevenueCat } from '../subscription';
+import { logoutRevenueCat, setOnboardingAttributes } from '../subscription';
 
 beforeAll(() => {
   process.env.EXPO_PUBLIC_RC_IOS_KEY = 'test_key';
@@ -96,6 +96,55 @@ describe('logoutRevenueCat', () => {
 
     expect(mockIsAnonymous).not.toHaveBeenCalled();
     expect(mockLogOut).not.toHaveBeenCalled();
+
+    Constants.appOwnership = null;
+  });
+});
+
+describe('setOnboardingAttributes', () => {
+  it('maps onboarding answers to RevenueCat attributes', async () => {
+    await setOnboardingAttributes({
+      primaryGoal: 'track_rides',
+      bikeMake: 'BMW',
+      bikeModel: 'R1250GS',
+      bikeYear: 2023,
+      experience: 'advanced',
+    });
+
+    expect(mockPurchases.setAttributes).toHaveBeenCalledWith({
+      primary_goal: 'track_rides',
+      primary_bike_make: 'BMW',
+      primary_bike_model: 'R1250GS',
+      primary_bike_year: '2023',
+      riding_experience: 'advanced',
+    });
+    expect(mockPurchases.syncAttributesAndOfferingsIfNeeded).toHaveBeenCalled();
+  });
+
+  it('sends null for empty / missing answers so attributes are deleted', async () => {
+    await setOnboardingAttributes({
+      primaryGoal: 'just_exploring',
+      bikeMake: '   ',
+      bikeModel: undefined,
+      bikeYear: null,
+    });
+
+    expect(mockPurchases.setAttributes).toHaveBeenCalledWith({
+      primary_goal: 'just_exploring',
+      primary_bike_make: null,
+      primary_bike_model: null,
+      primary_bike_year: null,
+      riding_experience: null,
+    });
+  });
+
+  it('returns early in Expo Go without touching the SDK', async () => {
+    const Constants = require('expo-constants');
+    Constants.appOwnership = 'expo';
+
+    await setOnboardingAttributes({ primaryGoal: 'track_rides' });
+
+    expect(mockPurchases.setAttributes).not.toHaveBeenCalled();
 
     Constants.appOwnership = null;
   });

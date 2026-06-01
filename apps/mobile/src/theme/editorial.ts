@@ -60,14 +60,25 @@ export function useEditorialTheme() {
   return { t: isDark ? dark : light, isDark } as const;
 }
 
+// Memoise hex→rgba conversions: tint() is called per-row in lists and the
+// keyspace (palette color × alpha) is tiny and bounded. React Compiler can't
+// cache a pure module-level function, so this stays a manual cache.
+const tintCache = new Map<string, string>();
+
 /** Tint a color with transparency — e.g. tint(t.warm, 0.18) */
 export function tint(color: string, alpha: number): string {
-  // For rgba colors, extract and adjust
+  // rgba inputs are returned as-is (cheap, no parse needed).
   if (color.startsWith('rgba')) return color;
-  // For hex colors, convert to rgba
+
+  const key = `${color}|${alpha}`;
+  const cached = tintCache.get(key);
+  if (cached !== undefined) return cached;
+
   const hex = color.replace('#', '');
   const r = Number.parseInt(hex.substring(0, 2), 16);
   const g = Number.parseInt(hex.substring(2, 4), 16);
   const b = Number.parseInt(hex.substring(4, 6), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
+  const result = `rgba(${r},${g},${b},${alpha})`;
+  tintCache.set(key, result);
+  return result;
 }

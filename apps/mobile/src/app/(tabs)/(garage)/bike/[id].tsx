@@ -44,6 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ExpensesSection } from '../../../../components/bike-hub/expenses-section';
 import { MaintenanceSection } from '../../../../components/bike-hub/maintenance-section';
 import { MileageDisplay } from '../../../../components/bike-hub/mileage-display';
+import { useMileageUnit } from '../../../../hooks/use-mileage-unit';
 
 import { AnalyticsEvent, trackEvent } from '../../../../lib/analytics';
 import { formatCurrency } from '../../../../lib/expense-constants';
@@ -89,6 +90,9 @@ export default function BikeDetailScreen() {
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
   const session = useAuthStore((s) => s.session);
+  // Source of truth for the unit label — the user's profile preference, not the
+  // deprecated per-bike `bike.mileageUnit`.
+  const mileageUnit = useMileageUnit();
 
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -294,7 +298,7 @@ export default function BikeDetailScreen() {
         motorcycleId: id,
         bikeName,
         currentMileage: bike?.currentMileage ? String(bike.currentMileage) : '',
-        mileageUnit: bike?.mileageUnit ?? 'mi',
+        mileageUnit,
       },
     });
   };
@@ -609,7 +613,7 @@ export default function BikeDetailScreen() {
             >
               <Gauge size={13} color={theme.ink2} />
               <Text style={{ fontSize: 12, color: theme.ink2, fontWeight: '600' }}>
-                {(bike.currentMileage ?? 0).toLocaleString()} {bike.mileageUnit ?? 'km'}
+                {(bike.currentMileage ?? 0).toLocaleString()} {mileageUnit}
               </Text>
             </View>
             {tasks.length > 0 && healthScore.hasData && (
@@ -655,7 +659,7 @@ export default function BikeDetailScreen() {
 
           <MileageDisplay
             currentMileage={bike.currentMileage ?? undefined}
-            mileageUnit={bike.mileageUnit ?? 'mi'}
+            mileageUnit={mileageUnit}
             mileageUpdatedAt={bike.mileageUpdatedAt ?? undefined}
             isDark={isDark}
           />
@@ -856,7 +860,7 @@ export default function BikeDetailScreen() {
                 params: {
                   motorcycleId: id,
                   currentMileage: bike?.currentMileage ? String(bike.currentMileage) : '',
-                  mileageUnit: bike?.mileageUnit ?? 'mi',
+                  mileageUnit,
                 },
               });
             }}
@@ -964,7 +968,7 @@ export default function BikeDetailScreen() {
             onToggleExpand={handleToggleExpand}
             onComplete={handleCompleteTask}
             onDelete={handleDeleteTask}
-            mileageUnit={bike.mileageUnit ?? 'mi'}
+            mileageUnit={mileageUnit}
           />
         </Animated.View>
 
@@ -974,7 +978,7 @@ export default function BikeDetailScreen() {
             motorcycleId={id}
             isDark={isDark}
             currentMileage={bike.currentMileage ?? undefined}
-            mileageUnit={bike.mileageUnit ?? 'mi'}
+            mileageUnit={mileageUnit}
           />
         </Animated.View>
 

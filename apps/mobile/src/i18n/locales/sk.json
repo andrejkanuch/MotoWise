@@ -435,10 +435,17 @@
     "bikeDetails": "Detaily motorky",
     "addMaintenanceTask": "Pridať úlohu",
     "recordMaintenance": "Zaznamenať servis",
-    "editBike": "Upraviť motorku"
+    "editBike": "Upraviť motorku",
+    "editMastheadEyebrow": "— GARÁŽ",
+    "editMastheadTitle": "Upraviť",
+    "editMastheadSubject": "motorku."
   },
   "profile": {
     "title": "Profil",
+    "roadsTitle": "Cesty, ktoré som prešiel",
+    "roadsSubtitle": "Celoživotná teplotná mapa a ročný prehľad",
+    "savedRoutesTitle": "Uložené trasy",
+    "savedRoutesSubtitle": "Trasy, ktoré chceš prejsť neskôr",
     "rider": "Jazdec",
     "level": "Úroveň",
     "rank": "Hodnosť",
@@ -915,7 +922,13 @@
     "descriptionPlaceholder": "Čo treba urobiť?",
     "notesPlaceholder": "Pridaj poznámky...",
     "taskAdded": "Úloha pridaná!",
-    "saveTask": "Uložiť úlohu"
+    "saveTask": "Uložiť úlohu",
+    "headerLabel": "ÚDRŽBA",
+    "newPrefix": "Nová",
+    "taskSuffix": "úloha.",
+    "km": "km",
+    "recordPrefix": "Zaznamenať",
+    "maintenanceSuffix": "údržbu."
   },
   "paywall": {
     "title": "Tvoj MotoVault zážitok je pripravený",
@@ -1214,7 +1227,21 @@
     "seeAll_one": "Zobraziť všetko ({{count}})",
     "seeAll_other": "Zobraziť všetko ({{count}})",
     "seeAll_few": "Zobraziť všetko ({{count}})",
-    "seeAll_many": "Zobraziť všetko ({{count}})"
+    "seeAll_many": "Zobraziť všetko ({{count}})",
+    "expensesEyebrow": "— VÝDAVKY",
+    "logAn": "Zaznamenaj ",
+    "expenseWord": "výdavok.",
+    "emptyStateSubtitle": "Sleduj náklady na palivo, údržbu, diely a výbavu.",
+    "addFirstExpense": "Pridať prvý výdavok",
+    "emptyStateTip": "Tip: Začni svojím posledným tankovaním",
+    "failedToLoad": "Nepodarilo sa načítať údaje o výdavkoch",
+    "vsLastYear": "{{arrow}} {{percent}} % oproti minulému roku",
+    "totalCostOfOwnership": "CELKOVÉ NÁKLADY NA VLASTNÍCTVO",
+    "bikePurchase": "Kúpa motorky",
+    "allExpenses": "Všetky výdavky",
+    "addPurchasePriceHint": "Pridaj kúpnu cenu motorky v Upraviť motorku, aby si videl celkové náklady na vlastníctvo",
+    "byCategory": "Podľa kategórie",
+    "monthlyTrend": "Mesačný trend"
   },
   "privacy": {
     "title": "Súkromie",
@@ -1515,7 +1542,42 @@
     "assistantPlaceholder": "Opýtaj sa na svoju jazdu…",
     "startDateLabel": "Dátum začiatku",
     "draftCount_few": "{{count}} návrhy — klepni pre dokončenie",
-    "draftCount_many": "{{count}} návrhov — klepni pre dokončenie"
+    "draftCount_many": "{{count}} návrhov — klepni pre dokončenie",
+    "riders": "jazdci",
+    "ledBy": "Vedie {{name}}",
+    "motoVaultPick": "MotoVault Pick",
+    "curvatureIndex": "Index zákrut: {{value}}",
+    "reviews": "Recenzie",
+    "writeAReview": "Napísať recenziu",
+    "submit": "Odoslať",
+    "suggestedFlowHint": "Dátumy nastavíš pri kopírovaní alebo plánovaní. Nižšie je navrhovaný priebeh deň po dni.",
+    "addToMyTrips": "Pridať do Mojich jázd",
+    "saved": "Uložené",
+    "saveForLater": "Uložiť na neskôr",
+    "ridersCount": "Jazdci ({{count}})",
+    "lead": "Vedúci",
+    "coPlanner": "Spoluplánovač",
+    "cloneThisTrip": "Skopírovať túto jazdu",
+    "imIn": "Idem do toho",
+    "exportGpx": "Export GPX",
+    "dayHeader": "Deň {{day}} · {{date}}",
+    "addStopHint": "Vyhľadaj vyššie alebo podrž prst na mape na pridanie zastávky",
+    "endDateLabel": "Dátum konca",
+    "difficultyLabel": "Náročnosť",
+    "visibilityLabel": "Viditeľnosť",
+    "visibilityHint": "Kto môže nájsť alebo otvoriť tento plán. Môžeš to kedykoľvek zmeniť; nie je to to isté ako uloženie návrhu alebo publikovanie.",
+    "saveTripFailed": "Nepodarilo sa uložiť jazdu",
+    "publishTripFailed": "Nepodarilo sa publikovať jazdu",
+    "updateTripFailed": "Nepodarilo sa aktualizovať jazdu",
+    "editPublishedWarning": "Upravuješ publikovanú jazdu. Zmeny uvidia účastníci.",
+    "draftLabel": "Návrh",
+    "saveDraftPublishHint": "Uložiť návrh ho ponechá v Mojich jazdách. Publikovať z neho urobí aktívnu jazdu s viditeľnosťou nastavenou vyššie.",
+    "editStop": "Upraviť zastávku",
+    "nameLabel": "Názov",
+    "typeLabel": "Typ",
+    "periodOfDayLabel": "Časť dňa",
+    "periodOfDayHint": "Zaradí túto zastávku pod správny blok v zozname dňa. Voliteľné.",
+    "notesLabel": "Poznámky"
   },
   "groupRide": {
     "titleLabel": "Názov",
@@ -1578,6 +1640,7 @@
     "planTrip": "Naplanovat jazdu"
   },
   "mapPicker": {
+    "title": "Štýl mapy",
     "searchPlaceholder": "Hľadať miesto..."
   },
   "survey": {
@@ -1679,7 +1742,8 @@
     "private": "Private",
     "elevationChart": "Elevation",
     "speedChart": "Speed",
-    "peak": "{{value}} peak"
+    "peak": "{{value}} peak",
+    "threeD": "3D"
   },
   "startRide": {
     "preFlight": "Predjazdná kontrola",
@@ -1700,7 +1764,8 @@
     "locationRequired": "Vyžaduje sa poloha",
     "locationMessage": "MotoVault potrebuje prístup k polohe na zaznamenanie jazdy. Prosím, povol ho v Nastaveniach.",
     "openSettings": "Otvoriť Nastavenia",
-    "startError": "Nepodarilo sa spustiť jazdu. Skúste to znova."
+    "startError": "Nepodarilo sa spustiť jazdu. Skúste to znova.",
+    "lastRideSummary": "Posledná: {{distance}} · {{date}}"
   },
   "preFlight": {
     "title": "Predjazdná kontrola",

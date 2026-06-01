@@ -24,7 +24,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { formatDistance, formatRelativeDate } from '../../utils/ride-formatters';
+import { distanceUnitLabel, formatDistance, formatRelativeDate } from '../../utils/ride-formatters';
 import { startGPSListener } from '../../utils/ride-location';
 import { checkAndRequestPermissions } from '../../utils/ride-permissions';
 import { rideMMKV } from '../../utils/ride-storage';
@@ -47,20 +47,7 @@ export default function StartRideScreen() {
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
   });
 
-  const motorcycles =
-    (
-      data as {
-        myMotorcycles?: Array<{
-          id: string;
-          make: string;
-          model: string;
-          year: number;
-          nickname?: string | null;
-          isPrimary: boolean;
-          mileageKm?: number | null;
-        }>;
-      }
-    )?.myMotorcycles ?? [];
+  const motorcycles = data?.myMotorcycles ?? [];
 
   const selectedBike = motorcycles.find((m) => m.id === selectedBikeId);
   const selectedBikeLabel = selectedBike
@@ -74,10 +61,8 @@ export default function StartRideScreen() {
     queryKey: queryKeys.rides.summary,
     queryFn: () => gqlFetcher(MyRidesDocument, { first: 1 }),
   });
-  // biome-ignore lint/suspicious/noExplicitAny: MyRidesQuery type doesn't expose totalCount in this query shape
-  const totalRides = (ridesData as any)?.myRides?.totalCount ?? 0;
-  // biome-ignore lint/suspicious/noExplicitAny: extracting node from edges array
-  const lastRide = (ridesData as any)?.myRides?.edges?.[0]?.node;
+  const totalRides = ridesData?.myRides?.totalCount ?? 0;
+  const lastRide = ridesData?.myRides?.edges?.[0]?.node;
 
   // Default to primary bike
   useEffect(() => {
@@ -202,12 +187,10 @@ export default function StartRideScreen() {
 
   const mileageLabel = useMemo(() => {
     if (!selectedBike) return '';
-    // biome-ignore lint/suspicious/noExplicitAny: mileageKm may not be in generated type yet
-    const km = (selectedBike as any).mileageKm;
-    if (km != null && km > 0) {
-      return system === 'imperial'
-        ? `${Math.round(km * 0.621371).toLocaleString()} mi`
-        : `${km.toLocaleString()} km`;
+    const mileage = selectedBike.currentMileage;
+    if (mileage != null && mileage > 0) {
+      // Unit follows the user's profile preference, not the deprecated per-bike field.
+      return `${mileage.toLocaleString()} ${distanceUnitLabel(system)}`;
     }
     return 'NA';
   }, [selectedBike, system]);
@@ -606,8 +589,10 @@ export default function StartRideScreen() {
                     }}
                     numberOfLines={1}
                   >
-                    Last: {formatDistance(lastRide.distanceM ?? 0, system)} ·{' '}
-                    {formatRelativeDate(lastRide.startedAt)}
+                    {t('startRide.lastRideSummary', {
+                      distance: formatDistance(lastRide.distanceM ?? 0, system),
+                      date: formatRelativeDate(lastRide.startedAt),
+                    })}
                   </Text>
                 )}
               </View>

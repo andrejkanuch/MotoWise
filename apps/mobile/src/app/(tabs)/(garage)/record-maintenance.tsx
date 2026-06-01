@@ -15,6 +15,7 @@ import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useCurrency } from '../../../hooks/use-currency';
+import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
@@ -34,16 +35,16 @@ type ServiceKey = (typeof SERVICE_TYPES)[number]['key'];
 
 export default function RecordMaintenanceScreen() {
   const { t } = useTranslation();
-  const { motorcycleId, currentMileage, mileageUnit } = useLocalSearchParams<{
+  const { motorcycleId, currentMileage } = useLocalSearchParams<{
     motorcycleId: string;
     currentMileage?: string;
-    mileageUnit?: string;
   }>();
   const { t: theme, isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
   const { currency, symbol } = useCurrency();
 
-  const unit = mileageUnit || 'km';
+  // Unit follows the user's profile preference, not the deprecated per-bike field.
+  const unit = useMileageUnit();
 
   const [serviceType, setServiceType] = useState<ServiceKey | null>(null);
   const [customDescription, setCustomDescription] = useState('');
@@ -161,7 +162,7 @@ export default function RecordMaintenanceScreen() {
               letterSpacing: -0.6,
             }}
           >
-            Record{' '}
+            {t('maintenance.recordPrefix', { defaultValue: 'Record' })}{' '}
           </Text>
           <Text
             style={{
@@ -171,7 +172,7 @@ export default function RecordMaintenanceScreen() {
               letterSpacing: -0.6,
             }}
           >
-            maintenance.
+            {t('maintenance.maintenanceSuffix', { defaultValue: 'maintenance.' })}
           </Text>
         </View>
       </View>

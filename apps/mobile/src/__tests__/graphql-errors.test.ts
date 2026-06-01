@@ -1,4 +1,9 @@
-import { extractGraphQLMessage, hasGraphQLCode, userFriendlyError } from '../lib/graphql-errors';
+import {
+  extractGraphQLMessage,
+  hasGraphQLCode,
+  isAccountAlreadyDeleted,
+  userFriendlyError,
+} from '../lib/graphql-errors';
 
 describe('graphql-errors', () => {
   it('extractGraphQLMessage reads first GraphQL error message', () => {
@@ -21,6 +26,24 @@ describe('graphql-errors', () => {
     };
     expect(hasGraphQLCode(err, 'UNAUTHENTICATED')).toBe(true);
     expect(hasGraphQLCode(err, 'FORBIDDEN')).toBe(false);
+  });
+
+  describe('isAccountAlreadyDeleted', () => {
+    it('matches the backend "User not found or already deleted" message', () => {
+      const err = {
+        response: {
+          errors: [
+            { message: 'User not found or already deleted', extensions: { code: 'BAD_REQUEST' } },
+          ],
+        },
+      };
+      expect(isAccountAlreadyDeleted(err)).toBe(true);
+    });
+
+    it('is false for unrelated errors', () => {
+      expect(isAccountAlreadyDeleted(new Error('Network request failed'))).toBe(false);
+      expect(isAccountAlreadyDeleted(null)).toBe(false);
+    });
   });
 
   describe('userFriendlyError', () => {

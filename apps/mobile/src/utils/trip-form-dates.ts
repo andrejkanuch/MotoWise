@@ -2,6 +2,8 @@
  * Date rules for create/edit trip form — keep in sync with
  * `packages/types/src/validators/trip.ts` (validateTripDateRange).
  */
+import { format } from 'date-fns';
+
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_PAST_DAYS = 365;
 const MAX_FUTURE_DAYS = 5 * 365;
@@ -83,8 +85,8 @@ export function validateTripFormDateRangeForSave(start: Date, end: Date): string
     return 'End date is too far in the future (max 5 years)';
   }
 
-  const startDay = localDateString(start);
-  const endDay = localDateString(end);
+  const startDay = toISODateInput(start);
+  const endDay = toISODateInput(end);
   const spanDays = calendarDaysBetweenInclusive(startDay, endDay);
   if (spanDays > MAX_TRIP_SPAN_DAYS) {
     return `Trip length can’t exceed ${MAX_TRIP_SPAN_DAYS} days`;
@@ -93,11 +95,9 @@ export function validateTripFormDateRangeForSave(start: Date, end: Date): string
   return null;
 }
 
-function localDateString(d: Date): string {
-  const y = d.getFullYear();
-  const m = d.getMonth() + 1;
-  const day = d.getDate();
-  return `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+/** Format a Date as a local `YYYY-MM-DD` string for date-input fields. */
+export function toISODateInput(d: Date): string {
+  return format(d, 'yyyy-MM-dd');
 }
 
 function calendarDaysBetweenInclusive(startIso: string, endIso: string): number {

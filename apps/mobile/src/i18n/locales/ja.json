@@ -340,6 +340,9 @@
     }
   },
   "garage": {
+    "editMastheadEyebrow": "— ガレージ",
+    "editMastheadTitle": "編集",
+    "editMastheadSubject": "バイク。",
     "title": "マイガレージ",
     "addBike": "バイクを追加",
     "addBikeTitle": "バイクを追加",
@@ -477,7 +480,11 @@
     "myTripsTitle": "マイトリップ",
     "myTripsDescription": "バイクの旅を記録・共有しましょう",
     "currency": "通貨",
-    "selectCurrency": "通貨を選択"
+    "selectCurrency": "通貨を選択",
+    "roadsTitle": "走った道",
+    "roadsSubtitle": "生涯のヒートマップと年間まとめ",
+    "savedRoutesTitle": "保存したルート",
+    "savedRoutesSubtitle": "あとで走りたいルート"
   },
   "onboarding": {
     "welcomeTitle": "MotoVaultへようこそ",
@@ -811,6 +818,12 @@
     "allTasks": "すべてのタスク"
   },
   "maintenance": {
+    "headerLabel": "メンテナンス",
+    "newPrefix": "新しい",
+    "taskSuffix": "タスク。",
+    "km": "km",
+    "recordPrefix": "メンテナンスを",
+    "maintenanceSuffix": "記録。",
     "healthScore": "ヘルススコア",
     "grade": "グレード",
     "noData": "メンテナンスデータがまだありません",
@@ -1175,6 +1188,20 @@
     "promotionalDesc": "特別オファーとお知らせ"
   },
   "expenses": {
+    "expensesEyebrow": "— 費用",
+    "logAn": "費用を",
+    "expenseWord": "記録。",
+    "emptyStateSubtitle": "燃料、メンテナンス、部品、用品の費用を追跡しましょう。",
+    "addFirstExpense": "最初の費用を追加",
+    "emptyStateTip": "ヒント: 前回の給油から始めましょう",
+    "failedToLoad": "費用データの読み込みに失敗しました",
+    "vsLastYear": "{{arrow}} 前年比 {{percent}}%",
+    "totalCostOfOwnership": "総所有コスト",
+    "bikePurchase": "バイク購入",
+    "allExpenses": "すべての費用",
+    "addPurchasePriceHint": "総所有コストを表示するには、バイクの編集で購入価格を追加してください",
+    "byCategory": "カテゴリー別",
+    "monthlyTrend": "月別の推移",
     "title": "費用",
     "allTime": "全期間",
     "category": "カテゴリー",
@@ -1452,6 +1479,23 @@
     "attribution": "リコールデータはNHTSA提供"
   },
   "trips": {
+    "riders": "ライダー",
+    "ledBy": "リーダー: {{name}}",
+    "motoVaultPick": "MotoVault Pick",
+    "curvatureIndex": "ワインディング指数: {{value}}",
+    "reviews": "レビュー",
+    "writeAReview": "レビューを書く",
+    "submit": "送信",
+    "suggestedFlowHint": "日程はクローンまたは計画時に設定します。以下は提案された日ごとの行程です。",
+    "addToMyTrips": "マイツーリングに追加",
+    "saved": "保存済み",
+    "saveForLater": "後で見る",
+    "ridersCount": "ライダー（{{count}}人）",
+    "lead": "リーダー",
+    "coPlanner": "共同プランナー",
+    "cloneThisTrip": "このツーリングをクローン",
+    "imIn": "参加する",
+    "exportGpx": "Export GPX",
     "myTrips": "マイツーリング",
     "planATrip": "ツーリングを計画",
     "emptyTitle": "まだツーリングがありません",
@@ -1515,7 +1559,25 @@
     "assistantPlaceholder": "ツーリングについて質問...",
     "startDateLabel": "開始日",
     "draftCount_few": "{{count}}件の下書き — タップして完成",
-    "draftCount_many": "{{count}}件の下書き — タップして完成"
+    "draftCount_many": "{{count}}件の下書き — タップして完成",
+    "dayHeader": "{{day}}日目 · {{date}}",
+    "addStopHint": "上で検索するか、マップを長押ししてストップを追加",
+    "endDateLabel": "終了日",
+    "difficultyLabel": "難易度",
+    "visibilityLabel": "公開設定",
+    "visibilityHint": "このプランを見つけたり開いたりできる人を設定します。いつでも変更できます。下書きの保存や公開とは異なります。",
+    "saveTripFailed": "ツーリングの保存に失敗しました",
+    "publishTripFailed": "ツーリングの公開に失敗しました",
+    "updateTripFailed": "ツーリングの更新に失敗しました",
+    "editPublishedWarning": "公開済みのツーリングを編集しています。変更は参加者に表示されます。",
+    "draftLabel": "下書き",
+    "saveDraftPublishHint": "「下書きを保存」はマイツーリングに保存します。「公開する」は上の公開設定でライブのツーリングにします。",
+    "editStop": "ストップを編集",
+    "nameLabel": "名前",
+    "typeLabel": "種類",
+    "periodOfDayLabel": "時間帯",
+    "periodOfDayHint": "このストップを日程リストの適切なブロックにまとめます。任意です。",
+    "notesLabel": "メモ"
   },
   "groupRide": {
     "titleLabel": "タイトル",
@@ -1578,6 +1640,7 @@
     "planTrip": "ツーリング計画"
   },
   "mapPicker": {
+    "title": "地図スタイル",
     "searchPlaceholder": "場所を検索..."
   },
   "survey": {
@@ -1679,7 +1742,8 @@
     "private": "Private",
     "elevationChart": "Elevation",
     "speedChart": "Speed",
-    "peak": "{{value}} peak"
+    "peak": "{{value}} peak",
+    "threeD": "3D"
   },
   "startRide": {
     "preFlight": "プリフライト",
@@ -1694,6 +1758,7 @@
     "endRide": "ライド終了",
     "previousRides": "過去のライド",
     "lastRide": "前回: {{name}} — {{distance}} · {{date}}",
+    "lastRideSummary": "前回: {{distance}} · {{date}}",
     "startButton": "ライド開始",
     "trackingNote": "終了をタップするまでGPS、速度、ルートを記録します。",
     "resolveUnfinished": "新しいライドを開始するには、上の未完了のライドを解決してください",

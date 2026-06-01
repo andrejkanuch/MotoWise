@@ -53,12 +53,12 @@ const PRO_FEATURES = [
 
 const COMPARISON = [
   { name: 'Motorcycles in garage', free: '1', pro: 'Unlimited' },
-  { name: 'AI diagnostic scans', free: '3 / month', pro: 'Unlimited' },
-  { name: 'Ride recording & history', free: '5 rides', pro: 'Unlimited' },
+  { name: 'AI diagnostic scans', free: '1 / month', pro: 'Unlimited' },
+  { name: 'Ride recording & history', free: true, pro: true },
   { name: 'Maintenance reminders', free: true, pro: true },
   { name: 'Expense tracking', free: true, pro: true },
-  { name: 'Multi-day trip planning', free: false, pro: true },
-  { name: 'Route discovery', free: false, pro: true },
+  { name: 'Multi-day trip planning', free: true, pro: true },
+  { name: 'Route discovery', free: true, pro: true },
   { name: 'Advanced ride analytics', free: false, pro: true },
   { name: 'AI Health Reports', free: false, pro: true },
   { name: 'Export data (CSV / PDF)', free: false, pro: true },

@@ -10,6 +10,7 @@ import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { BarChart3, Info, X } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
@@ -29,6 +30,7 @@ import {
   useDashboardData,
   useExpenseDashboard,
 } from '../../../hooks/use-expense-dashboard';
+import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -42,6 +44,7 @@ const PERIOD_LABELS: Record<Period, string> = {
 };
 
 function EmptyState({ motorcycleId }: { motorcycleId: string }) {
+  const { t } = useTranslation();
   const { t: theme } = useEditorialTheme();
   const ctaScale = useSharedValue(1);
   const ctaAnimatedStyle = useAnimatedStyle(() => ({
@@ -71,7 +74,7 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
             textAlign: 'center',
           }}
         >
-          No expenses yet
+          {t('expenses.empty')}
         </Text>
       </Animated.View>
       <Animated.View entering={FadeInUp.delay(280).duration(300)}>
@@ -84,7 +87,7 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
             maxWidth: 280,
           }}
         >
-          Track fuel, maintenance, parts, and gear costs.
+          {t('expenses.emptyStateSubtitle')}
         </Text>
       </Animated.View>
       <Animated.View entering={FadeInUp.delay(360).duration(300)} style={ctaAnimatedStyle}>
@@ -124,7 +127,7 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
               color: palette.white,
             }}
           >
-            Add First Expense
+            {t('expenses.addFirstExpense')}
           </Text>
         </Pressable>
       </Animated.View>
@@ -137,7 +140,7 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
             marginTop: 12,
           }}
         >
-          Tip: Start with your last fill-up
+          {t('expenses.emptyStateTip')}
         </Text>
       </Animated.View>
     </View>
@@ -145,11 +148,13 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
 }
 
 export default function ExpenseDashboardScreen() {
-  const { motorcycleId, currentMileage, mileageUnit } = useLocalSearchParams<{
+  const { motorcycleId, currentMileage } = useLocalSearchParams<{
     motorcycleId: string;
     currentMileage?: string;
-    mileageUnit?: string;
   }>();
+  // Unit follows the user's profile preference, not the deprecated per-bike field.
+  const mileageUnit = useMileageUnit();
+  const { t } = useTranslation();
 
   const [period, setPeriod] = useState<Period>('thisYear');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -259,7 +264,7 @@ export default function ExpenseDashboardScreen() {
             marginBottom: 16,
           }}
         >
-          Failed to load expense data
+          {t('expenses.failedToLoad')}
         </Text>
         <Pressable
           onPress={() => refetch()}
@@ -280,7 +285,7 @@ export default function ExpenseDashboardScreen() {
               color: palette.white,
             }}
           >
-            Retry
+            {t('common.retry')}
           </Text>
         </Pressable>
       </View>
@@ -350,7 +355,7 @@ export default function ExpenseDashboardScreen() {
             color: theme.ink3,
           }}
         >
-          EXPENSE INSIGHTS
+          {t('expenses.dashboard')}
         </Text>
         {bikeName ? (
           <Text
@@ -449,7 +454,10 @@ export default function ExpenseDashboardScreen() {
               marginTop: 4,
             }}
           >
-            {yoyChange <= 0 ? '\u2193' : '\u2191'} {Math.abs(yoyChange).toFixed(0)}% vs last year
+            {t('expenses.vsLastYear', {
+              arrow: yoyChange <= 0 ? '\u2193' : '\u2191',
+              percent: Math.abs(yoyChange).toFixed(0),
+            })}
           </Text>
         )}
 
@@ -537,7 +545,7 @@ export default function ExpenseDashboardScreen() {
                 marginBottom: 8,
               }}
             >
-              TOTAL COST OF OWNERSHIP
+              {t('expenses.totalCostOfOwnership')}
             </Text>
             <Text
               style={{
@@ -568,7 +576,7 @@ export default function ExpenseDashboardScreen() {
                     color: theme.ink3,
                   }}
                 >
-                  Bike Purchase
+                  {t('expenses.bikePurchase')}
                 </Text>
                 <Text
                   style={{
@@ -592,7 +600,7 @@ export default function ExpenseDashboardScreen() {
                     color: theme.ink3,
                   }}
                 >
-                  All Expenses
+                  {t('expenses.allExpenses')}
                 </Text>
                 <Text
                   style={{
@@ -642,7 +650,7 @@ export default function ExpenseDashboardScreen() {
                 color: theme.ink2,
               }}
             >
-              Add your bike's purchase price in Edit Bike to see total cost of ownership
+              {t('expenses.addPurchasePriceHint')}
             </Text>
           </Pressable>
         </Animated.View>
@@ -670,7 +678,7 @@ export default function ExpenseDashboardScreen() {
             paddingLeft: 2,
           }}
         >
-          By category
+          {t('expenses.byCategory')}
         </Text>
         <View
           style={{
@@ -807,7 +815,7 @@ export default function ExpenseDashboardScreen() {
             paddingLeft: 2,
           }}
         >
-          Monthly trend
+          {t('expenses.monthlyTrend')}
         </Text>
         <MonthlyTrend buckets={filteredBuckets} isDark={isDark} />
       </Animated.View>

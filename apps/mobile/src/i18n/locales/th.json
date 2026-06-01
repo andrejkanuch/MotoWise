@@ -435,7 +435,10 @@
     "bikeDetails": "รายละเอียดรถ",
     "addMaintenanceTask": "เพิ่มงาน",
     "recordMaintenance": "บันทึกการบำรุงรักษา",
-    "editBike": "แก้ไขมอเตอร์ไซค์"
+    "editBike": "แก้ไขมอเตอร์ไซค์",
+    "editMastheadEyebrow": "— โรงรถ",
+    "editMastheadTitle": "แก้ไข",
+    "editMastheadSubject": "มอเตอร์ไซค์"
   },
   "profile": {
     "title": "โปรไฟล์",
@@ -477,7 +480,11 @@
     "myTripsTitle": "ทริปของฉัน",
     "myTripsDescription": "ติดตามและแชร์การเดินทางมอเตอร์ไซค์ของคุณ",
     "currency": "สกุลเงิน",
-    "selectCurrency": "เลือกสกุลเงิน"
+    "selectCurrency": "เลือกสกุลเงิน",
+    "roadsTitle": "เส้นทางที่ฉันเคยขี่",
+    "roadsSubtitle": "แผนที่ความร้อนตลอดชีวิตและสรุปประจำปี",
+    "savedRoutesTitle": "เส้นทางที่บันทึกไว้",
+    "savedRoutesSubtitle": "เส้นทางที่คุณอยากขี่ในภายหลัง"
   },
   "onboarding": {
     "welcomeTitle": "ยินดีต้อนรับสู่ MotoVault",
@@ -915,7 +922,13 @@
     "descriptionPlaceholder": "ต้องทำอะไร?",
     "notesPlaceholder": "เพิ่มบันทึก...",
     "taskAdded": "เพิ่มงานแล้ว!",
-    "saveTask": "บันทึกงาน"
+    "saveTask": "บันทึกงาน",
+    "headerLabel": "การบำรุงรักษา",
+    "newPrefix": "ใหม่",
+    "taskSuffix": "งาน",
+    "km": "km",
+    "recordPrefix": "บันทึก",
+    "maintenanceSuffix": "การบำรุงรักษา"
   },
   "paywall": {
     "title": "ประสบการณ์ MotoVault ของคุณพร้อมแล้ว",
@@ -1214,7 +1227,21 @@
     "seeAll_one": "ดูทั้งหมด ({{count}})",
     "seeAll_other": "ดูทั้งหมด ({{count}})",
     "seeAll_few": "ดูทั้งหมด ({{count}})",
-    "seeAll_many": "ดูทั้งหมด ({{count}})"
+    "seeAll_many": "ดูทั้งหมด ({{count}})",
+    "expensesEyebrow": "— ค่าใช้จ่าย",
+    "logAn": "บันทึก",
+    "expenseWord": "ค่าใช้จ่าย",
+    "emptyStateSubtitle": "ติดตามค่าน้ำมัน การบำรุงรักษา อะไหล่ และอุปกรณ์",
+    "addFirstExpense": "เพิ่มค่าใช้จ่ายแรก",
+    "emptyStateTip": "เคล็ดลับ: เริ่มจากการเติมน้ำมันครั้งล่าสุด",
+    "failedToLoad": "โหลดข้อมูลค่าใช้จ่ายไม่สำเร็จ",
+    "vsLastYear": "{{arrow}} {{percent}}% เทียบกับปีที่แล้ว",
+    "totalCostOfOwnership": "ต้นทุนการเป็นเจ้าของทั้งหมด",
+    "bikePurchase": "การซื้อรถ",
+    "allExpenses": "ค่าใช้จ่ายทั้งหมด",
+    "addPurchasePriceHint": "เพิ่มราคาซื้อรถของคุณในแก้ไขมอเตอร์ไซค์เพื่อดูต้นทุนการเป็นเจ้าของทั้งหมด",
+    "byCategory": "ตามหมวดหมู่",
+    "monthlyTrend": "แนวโน้มรายเดือน"
   },
   "privacy": {
     "title": "ความเป็นส่วนตัว",
@@ -1452,6 +1479,24 @@
     "attribution": "ข้อมูลเรียกคืนจาก NHTSA"
   },
   "trips": {
+    "dayHeader": "วันที่ {{day}} · {{date}}",
+    "addStopHint": "ค้นหาด้านบนหรือกดค้างบนแผนที่เพื่อเพิ่มจุดแวะ",
+    "endDateLabel": "วันที่สิ้นสุด",
+    "difficultyLabel": "ระดับความยาก",
+    "visibilityLabel": "การมองเห็น",
+    "visibilityHint": "ใครสามารถค้นหาหรือเปิดแผนนี้ได้ คุณเปลี่ยนได้ตลอดเวลา ซึ่งไม่เหมือนกับการบันทึกแบบร่างหรือการเผยแพร่",
+    "saveTripFailed": "บันทึกทริปไม่สำเร็จ",
+    "publishTripFailed": "เผยแพร่ทริปไม่สำเร็จ",
+    "updateTripFailed": "อัปเดตทริปไม่สำเร็จ",
+    "editPublishedWarning": "กำลังแก้ไขทริปที่เผยแพร่แล้ว การเปลี่ยนแปลงจะแสดงให้ผู้เข้าร่วมเห็น",
+    "draftLabel": "แบบร่าง",
+    "saveDraftPublishHint": "บันทึกแบบร่างจะเก็บไว้ในทริปของฉัน เผยแพร่จะทำให้เป็นทริปจริงตามการมองเห็นที่ระบุด้านบน",
+    "editStop": "แก้ไขจุดแวะ",
+    "nameLabel": "ชื่อ",
+    "typeLabel": "ประเภท",
+    "periodOfDayLabel": "ช่วงเวลาของวัน",
+    "periodOfDayHint": "จัดกลุ่มจุดแวะนี้ไว้ในช่วงที่เหมาะสมในรายการของวัน ไม่บังคับ",
+    "notesLabel": "บันทึก",
     "myTrips": "ทริปของฉัน",
     "planATrip": "วางแผนทริป",
     "emptyTitle": "ยังไม่มีทริป",
@@ -1515,7 +1560,24 @@
     "assistantPlaceholder": "ถามเกี่ยวกับทริปของคุณ…",
     "startDateLabel": "วันเริ่มต้น",
     "draftCount_few": "{{count}} แบบร่าง — แตะเพื่อดำเนินการต่อ",
-    "draftCount_many": "{{count}} แบบร่าง — แตะเพื่อดำเนินการต่อ"
+    "draftCount_many": "{{count}} แบบร่าง — แตะเพื่อดำเนินการต่อ",
+    "riders": "ไรเดอร์",
+    "ledBy": "นำโดย {{name}}",
+    "motoVaultPick": "MotoVault Pick",
+    "curvatureIndex": "ดัชนีความคดเคี้ยว: {{value}}",
+    "reviews": "รีวิว",
+    "writeAReview": "เขียนรีวิว",
+    "submit": "ส่ง",
+    "suggestedFlowHint": "คุณกำหนดวันที่เมื่อโคลนหรือวางแผน ด้านล่างคือลำดับการเดินทางรายวันที่แนะนำ",
+    "addToMyTrips": "เพิ่มในทริปของฉัน",
+    "saved": "บันทึกแล้ว",
+    "saveForLater": "บันทึกไว้ทีหลัง",
+    "ridersCount": "ไรเดอร์ ({{count}})",
+    "lead": "ผู้นำ",
+    "coPlanner": "ผู้ร่วมวางแผน",
+    "cloneThisTrip": "โคลนทริปนี้",
+    "imIn": "ฉันเข้าร่วม",
+    "exportGpx": "Export GPX"
   },
   "groupRide": {
     "titleLabel": "ชื่อ",
@@ -1578,6 +1640,7 @@
     "planTrip": "วางแผนทริป"
   },
   "mapPicker": {
+    "title": "รูปแบบแผนที่",
     "searchPlaceholder": "ค้นหาสถานที่..."
   },
   "survey": {
@@ -1679,7 +1742,8 @@
     "private": "Private",
     "elevationChart": "Elevation",
     "speedChart": "Speed",
-    "peak": "{{value}} peak"
+    "peak": "{{value}} peak",
+    "threeD": "3D"
   },
   "startRide": {
     "preFlight": "ตรวจสอบก่อนออกเดินทาง",
@@ -1700,7 +1764,8 @@
     "locationRequired": "ต้องการตำแหน่ง",
     "locationMessage": "MotoVault ต้องการการเข้าถึงตำแหน่งเพื่อบันทึกการขับขี่ กรุณาเปิดใช้งานในการตั้งค่า",
     "openSettings": "เปิดการตั้งค่า",
-    "startError": "ไม่สามารถเริ่มการขับขี่ได้ กรุณาลองอีกครั้ง"
+    "startError": "ไม่สามารถเริ่มการขับขี่ได้ กรุณาลองอีกครั้ง",
+    "lastRideSummary": "ครั้งล่าสุด: {{distance}} · {{date}}"
   },
   "preFlight": {
     "title": "ตรวจสอบก่อนออกเดินทาง",

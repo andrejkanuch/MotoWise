@@ -185,8 +185,9 @@ export class MotorcyclesService {
       this.logger.warn(
         `User ${userId} hit free tier bike limit: ${count}/${FREE_TIER_LIMITS.MAX_BIKES}`,
       );
+      const max = FREE_TIER_LIMITS.MAX_BIKES;
       throw new ForbiddenException(
-        `Free plan allows up to ${FREE_TIER_LIMITS.MAX_BIKES} motorcycles. Upgrade to Pro for unlimited bikes.`,
+        `Your free plan includes ${max} motorcycle${max === 1 ? '' : 's'}. Upgrade to Pro for unlimited bikes.`,
       );
     }
   }

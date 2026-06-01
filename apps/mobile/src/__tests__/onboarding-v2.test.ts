@@ -42,7 +42,13 @@ const {
   detectMileageUnit,
 } = require('../lib/locale-detection');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { getPrimaryGoal, GOAL_TO_PLACEMENT } = require('../config/onboarding');
+const {
+  getPrimaryGoal,
+  GOAL_TO_PLACEMENT,
+  getResumeRoute,
+  getPreviousRoute,
+  OB_SCREEN,
+} = require('../config/onboarding');
 
 // ---------- Checklist Store ----------
 
@@ -257,6 +263,28 @@ describe('Onboarding Config', () => {
         expect(GOAL_TO_PLACEMENT[goal]).toBeDefined();
         expect(GOAL_TO_PLACEMENT[goal]).toMatch(/^onboarding_/);
       }
+    });
+  });
+
+  describe('getResumeRoute', () => {
+    it('returns the next screen after the last completed one', () => {
+      expect(getResumeRoute(OB_SCREEN.EXPERIENCE)).toBe('/(onboarding)/goals');
+      expect(getResumeRoute(OB_SCREEN.WELCOME)).toBe('/(onboarding)/experience');
+    });
+
+    it('returns null for the final screen (nothing to resume)', () => {
+      expect(getResumeRoute(OB_SCREEN.PERSONALIZING)).toBeNull();
+    });
+  });
+
+  describe('getPreviousRoute', () => {
+    it('returns the screen immediately before the current one', () => {
+      expect(getPreviousRoute(OB_SCREEN.GOALS)).toBe('/(onboarding)/experience');
+      expect(getPreviousRoute(OB_SCREEN.PERSONALIZING)).toBe('/(onboarding)/notifications');
+    });
+
+    it('returns null for the first screen (nothing to go back to)', () => {
+      expect(getPreviousRoute(OB_SCREEN.WELCOME)).toBeNull();
     });
   });
 });

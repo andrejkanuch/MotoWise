@@ -17,6 +17,7 @@ import {
   PRIORITY_ORDER,
   SwipeableTaskCard,
 } from '../../../components/bike-hub/swipeable-task-card';
+import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { useEditorialTheme } from '../../../theme/editorial';
@@ -27,15 +28,12 @@ type FilterTab = 'all' | 'overdue' | 'upcoming' | 'completed';
 
 export default function BikeTasksScreen() {
   const { t } = useTranslation();
-  const {
-    motorcycleId,
-    bikeName,
-    mileageUnit = 'mi',
-  } = useLocalSearchParams<{
+  const { motorcycleId, bikeName } = useLocalSearchParams<{
     motorcycleId: string;
     bikeName?: string;
-    mileageUnit?: string;
   }>();
+  // Unit follows the user's profile preference, not the deprecated per-bike field.
+  const mileageUnit = useMileageUnit();
   const router = useRouter();
   const { isDark } = useEditorialTheme();
   const queryClient = useQueryClient();

@@ -340,6 +340,9 @@
     }
   },
   "garage": {
+    "editMastheadEyebrow": "— GARAGE",
+    "editMastheadTitle": "Modifier",
+    "editMastheadSubject": "la moto.",
     "title": "Mon garage",
     "addBike": "Ajouter une moto",
     "addBikeTitle": "Ajouter une moto",
@@ -477,7 +480,11 @@
     "myTripsTitle": "Mes sorties",
     "myTripsDescription": "Suis et partage tes sorties moto",
     "currency": "Devise",
-    "selectCurrency": "Choisir la devise"
+    "selectCurrency": "Choisir la devise",
+    "roadsTitle": "Routes parcourues",
+    "roadsSubtitle": "Carte de chaleur à vie et bilan de l'année",
+    "savedRoutesTitle": "Itinéraires enregistrés",
+    "savedRoutesSubtitle": "Itinéraires à parcourir plus tard"
   },
   "onboarding": {
     "welcomeTitle": "Bienvenue sur MotoVault",
@@ -811,6 +818,12 @@
     "allTasks": "Toutes les tâches"
   },
   "maintenance": {
+    "headerLabel": "ENTRETIEN",
+    "newPrefix": "Nouvelle",
+    "taskSuffix": "tâche.",
+    "km": "km",
+    "recordPrefix": "Enregistrer",
+    "maintenanceSuffix": "un entretien.",
     "healthScore": "Score de santé",
     "grade": "Note",
     "noData": "Aucune donnée d'entretien pour le moment",
@@ -1175,6 +1188,20 @@
     "promotionalDesc": "Offres spéciales et annonces"
   },
   "expenses": {
+    "expensesEyebrow": "— DÉPENSES",
+    "logAn": "Enregistre une ",
+    "expenseWord": "dépense.",
+    "emptyStateSubtitle": "Suis tes frais de carburant, d'entretien, de pièces et d'équipement.",
+    "addFirstExpense": "Ajouter la première dépense",
+    "emptyStateTip": "Astuce : commence par ton dernier plein",
+    "failedToLoad": "Impossible de charger les données de dépenses",
+    "vsLastYear": "{{arrow}} {{percent}} % vs l'an dernier",
+    "totalCostOfOwnership": "COÛT TOTAL DE POSSESSION",
+    "bikePurchase": "Achat de la moto",
+    "allExpenses": "Toutes les dépenses",
+    "addPurchasePriceHint": "Ajoute le prix d'achat de ta moto dans Modifier la moto pour voir le coût total de possession",
+    "byCategory": "Par catégorie",
+    "monthlyTrend": "Tendance mensuelle",
     "title": "Dépenses",
     "allTime": "Tout",
     "category": "Catégorie",
@@ -1452,6 +1479,23 @@
     "attribution": "Données de rappel de NHTSA"
   },
   "trips": {
+    "riders": "pilotes",
+    "ledBy": "Organisé par {{name}}",
+    "motoVaultPick": "MotoVault Pick",
+    "curvatureIndex": "Indice de sinuosité : {{value}}",
+    "reviews": "Avis",
+    "writeAReview": "Écrire un avis",
+    "submit": "Envoyer",
+    "suggestedFlowHint": "Tu définis les dates lors du clonage ou de la planification. Ci-dessous, le déroulé jour par jour suggéré.",
+    "addToMyTrips": "Ajouter à Mes sorties",
+    "saved": "Enregistré",
+    "saveForLater": "Enregistrer pour plus tard",
+    "ridersCount": "Pilotes ({{count}})",
+    "lead": "Organisateur",
+    "coPlanner": "Co-organisateur",
+    "cloneThisTrip": "Cloner cette sortie",
+    "imIn": "J'en suis",
+    "exportGpx": "Export GPX",
     "myTrips": "Mes sorties",
     "planATrip": "Planifier une sortie",
     "emptyTitle": "Pas encore de sorties",
@@ -1515,7 +1559,25 @@
     "assistantPlaceholder": "Pose une question sur ta sortie...",
     "startDateLabel": "Date de depart",
     "draftCount_few": "{{count}} brouillons — appuie pour terminer",
-    "draftCount_many": "{{count}} brouillons — appuie pour terminer"
+    "draftCount_many": "{{count}} brouillons — appuie pour terminer",
+    "dayHeader": "Jour {{day}} · {{date}}",
+    "addStopHint": "Recherche ci-dessus ou appuie longuement sur la carte pour ajouter un arrêt",
+    "endDateLabel": "Date de fin",
+    "difficultyLabel": "Difficulté",
+    "visibilityLabel": "Visibilité",
+    "visibilityHint": "Qui peut trouver ou ouvrir ce plan. Tu peux le modifier à tout moment ; ce n'est pas la même chose qu'enregistrer un brouillon ou publier.",
+    "saveTripFailed": "Impossible d'enregistrer la sortie",
+    "publishTripFailed": "Impossible de publier la sortie",
+    "updateTripFailed": "Impossible de mettre à jour la sortie",
+    "editPublishedWarning": "Modification d'une sortie publiée. Les changements seront visibles par les participants.",
+    "draftLabel": "Brouillon",
+    "saveDraftPublishHint": "Sauvegarder le brouillon le garde dans Mes sorties. Publier en fait une sortie active avec la visibilité ci-dessus.",
+    "editStop": "Modifier l'arrêt",
+    "nameLabel": "Nom",
+    "typeLabel": "Type",
+    "periodOfDayLabel": "Moment de la journée",
+    "periodOfDayHint": "Regroupe cet arrêt sous le bon bloc dans la liste du jour. Optionnel.",
+    "notesLabel": "Notes"
   },
   "groupRide": {
     "titleLabel": "Titre",
@@ -1578,6 +1640,7 @@
     "planTrip": "Planifier un trajet"
   },
   "mapPicker": {
+    "title": "Style de carte",
     "searchPlaceholder": "Rechercher un lieu..."
   },
   "survey": {
@@ -1679,9 +1742,11 @@
     "private": "Private",
     "elevationChart": "Elevation",
     "speedChart": "Speed",
-    "peak": "{{value}} peak"
+    "peak": "{{value}} peak",
+    "threeD": "3D"
   },
   "startRide": {
+    "lastRideSummary": "Dernière : {{distance}} · {{date}}",
     "preFlight": "Pré-vol",
     "readyTo": "Prêt à",
     "ride": "rouler.",

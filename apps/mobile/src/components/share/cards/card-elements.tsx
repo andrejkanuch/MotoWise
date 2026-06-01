@@ -12,8 +12,7 @@ import type { LngLat, RideSharePayload } from '../share-card-types';
 
 const MONO = process.env.EXPO_OS === 'ios' ? 'Menlo' : 'monospace';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires -- static asset
-const APP_ICON = require('../../../assets/images/MotoVaultDark.png');
+const APP_ICON = require('../../../assets/images/motovault-icon-card.png');
 
 // ── Wordmark ────────────────────────────────────────────────────────────────
 

@@ -340,6 +340,9 @@
     }
   },
   "garage": {
+    "editMastheadEyebrow": "— GARAGE",
+    "editMastheadTitle": "Bearbeiten",
+    "editMastheadSubject": "Motorrad.",
     "title": "Meine Garage",
     "addBike": "Motorrad hinzufuegen",
     "addBikeTitle": "Motorrad hinzufuegen",
@@ -477,7 +480,11 @@
     "myTripsTitle": "Meine Touren",
     "myTripsDescription": "Verfolge und teile deine Motorradtouren",
     "currency": "Währung",
-    "selectCurrency": "Währung auswählen"
+    "selectCurrency": "Währung auswählen",
+    "roadsTitle": "Befahrene Strecken",
+    "roadsSubtitle": "Lebenslange Heatmap & Jahresrückblick",
+    "savedRoutesTitle": "Gespeicherte Routen",
+    "savedRoutesSubtitle": "Routen, die du später fahren möchtest"
   },
   "onboarding": {
     "welcomeTitle": "Willkommen bei MotoVault",
@@ -811,6 +818,12 @@
     "allTasks": "Alle Aufgaben"
   },
   "maintenance": {
+    "headerLabel": "WARTUNG",
+    "newPrefix": "Neue",
+    "taskSuffix": "Aufgabe.",
+    "km": "km",
+    "recordPrefix": "Wartung",
+    "maintenanceSuffix": "erfassen.",
     "healthScore": "Gesundheitswert",
     "grade": "Note",
     "noData": "Noch keine Wartungsdaten",
@@ -1175,6 +1188,20 @@
     "promotionalDesc": "Sonderangebote und Ankündigungen"
   },
   "expenses": {
+    "expensesEyebrow": "— AUSGABEN",
+    "logAn": "Trage eine ",
+    "expenseWord": "Ausgabe ein.",
+    "emptyStateSubtitle": "Verfolge Kraftstoff-, Wartungs-, Teile- und Ausrüstungskosten.",
+    "addFirstExpense": "Erste Ausgabe hinzufügen",
+    "emptyStateTip": "Tipp: Beginne mit deiner letzten Tankfüllung",
+    "failedToLoad": "Ausgabendaten konnten nicht geladen werden",
+    "vsLastYear": "{{arrow}} {{percent}}% ggü. Vorjahr",
+    "totalCostOfOwnership": "GESAMTKOSTEN",
+    "bikePurchase": "Motorradkauf",
+    "allExpenses": "Alle Ausgaben",
+    "addPurchasePriceHint": "Füge den Kaufpreis deines Motorrads unter „Motorrad bearbeiten“ hinzu, um die Gesamtkosten zu sehen",
+    "byCategory": "Nach Kategorie",
+    "monthlyTrend": "Monatlicher Trend",
     "title": "Ausgaben",
     "allTime": "Gesamt",
     "category": "Kategorie",
@@ -1452,6 +1479,23 @@
     "attribution": "Rückrufdaten von NHTSA"
   },
   "trips": {
+    "riders": "Fahrer",
+    "ledBy": "Geleitet von {{name}}",
+    "motoVaultPick": "MotoVault Pick",
+    "curvatureIndex": "Kurvenindex: {{value}}",
+    "reviews": "Bewertungen",
+    "writeAReview": "Bewertung schreiben",
+    "submit": "Absenden",
+    "suggestedFlowHint": "Du legst die Daten beim Klonen oder Planen fest. Unten siehst du den vorgeschlagenen Tagesablauf.",
+    "addToMyTrips": "Zu meinen Touren hinzufügen",
+    "saved": "Gespeichert",
+    "saveForLater": "Für später speichern",
+    "ridersCount": "Fahrer ({{count}})",
+    "lead": "Leiter",
+    "coPlanner": "Mitplaner",
+    "cloneThisTrip": "Diese Tour klonen",
+    "imIn": "Ich bin dabei",
+    "exportGpx": "GPX exportieren",
     "myTrips": "Meine Touren",
     "planATrip": "Tour planen",
     "emptyTitle": "Noch keine Touren",
@@ -1515,7 +1559,25 @@
     "assistantPlaceholder": "Frage zu deiner Tour...",
     "startDateLabel": "Startdatum",
     "draftCount_few": "{{count}} Entwürfe — tippe zum Fertigstellen",
-    "draftCount_many": "{{count}} Entwürfe — tippe zum Fertigstellen"
+    "draftCount_many": "{{count}} Entwürfe — tippe zum Fertigstellen",
+    "dayHeader": "Tag {{day}} · {{date}}",
+    "addStopHint": "Suche oben oder halte die Karte gedrückt, um einen Stopp hinzuzufügen",
+    "endDateLabel": "Enddatum",
+    "difficultyLabel": "Schwierigkeit",
+    "visibilityLabel": "Sichtbarkeit",
+    "visibilityHint": "Wer diesen Plan finden oder öffnen kann. Du kannst dies jederzeit ändern; es ist nicht dasselbe wie das Speichern eines Entwurfs oder das Veröffentlichen.",
+    "saveTripFailed": "Tour konnte nicht gespeichert werden",
+    "publishTripFailed": "Tour konnte nicht veröffentlicht werden",
+    "updateTripFailed": "Tour konnte nicht aktualisiert werden",
+    "editPublishedWarning": "Du bearbeitest eine veröffentlichte Tour. Änderungen sind für Teilnehmer sichtbar.",
+    "draftLabel": "Entwurf",
+    "saveDraftPublishHint": "Entwurf speichern behält die Tour in Meine Touren. Veröffentlichen macht daraus eine aktive Tour mit der oben gewählten Sichtbarkeit.",
+    "editStop": "Stopp bearbeiten",
+    "nameLabel": "Name",
+    "typeLabel": "Typ",
+    "periodOfDayLabel": "Tageszeit",
+    "periodOfDayHint": "Ordnet diesen Stopp dem passenden Block in der Tagesliste zu. Optional.",
+    "notesLabel": "Notizen"
   },
   "groupRide": {
     "titleLabel": "Titel",
@@ -1578,6 +1640,7 @@
     "planTrip": "Tour planen"
   },
   "mapPicker": {
+    "title": "Kartenstil",
     "searchPlaceholder": "Ort suchen..."
   },
   "survey": {
@@ -1679,9 +1742,11 @@
     "private": "Private",
     "elevationChart": "Elevation",
     "speedChart": "Speed",
-    "peak": "{{value}} peak"
+    "peak": "{{value}} peak",
+    "threeD": "3D"
   },
   "startRide": {
+    "lastRideSummary": "Letzte: {{distance}} · {{date}}",
     "preFlight": "Vorab-Check",
     "readyTo": "Bereit zum",
     "ride": "Fahren.",

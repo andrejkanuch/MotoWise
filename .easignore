@@ -112,13 +112,17 @@ marketing-material/
 outputs/
 
 # Root-level docs, PRDs, reports, marketing files
-PLAN-*
-MotoWise_*
-Architecture-*
+# NOTE: these are ANCHORED with a leading slash so they only match at the repo
+# root. Without it, gitignore/easignore globs match at every depth — e.g. an
+# unanchored `motovault-*.png` also strips the bundled app asset
+# apps/mobile/src/assets/images/motovault-icon-card.png and breaks the iOS build.
+/PLAN-*
+/MotoWise_*
+/Architecture-*
 /SEO-*
-Reddit-*
-motovault-*.png
-mw-logo-*.png
+/Reddit-*
+/motovault-*.png
+/mw-logo-*.png
 HOMEPAGE_PROMPT.md
 *.html
 *.md

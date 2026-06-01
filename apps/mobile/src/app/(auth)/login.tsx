@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 
-const logo = require('../../assets/images/MotoVault.png');
+const logo = require('../../assets/images/motovault-logo.webp');
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -54,8 +54,11 @@ export default function LoginScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     try {
-      await signInWithApple();
-      trackEvent(AnalyticsEvent.USER_SIGNED_IN, { auth_method: 'apple' });
+      const { isNewUser } = await signInWithApple();
+      // OAuth can't tell signup from sign-in by screen — attribute from the auth result.
+      trackEvent(isNewUser ? AnalyticsEvent.USER_SIGNED_UP : AnalyticsEvent.USER_SIGNED_IN, {
+        auth_method: 'apple',
+      });
     } catch (err) {
       if (!isExpectedAuthError(err)) captureException(err);
       Alert.alert(t('common.error'), userFriendlyError(err));
@@ -67,8 +70,10 @@ export default function LoginScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     try {
-      await signInWithGoogle();
-      trackEvent(AnalyticsEvent.USER_SIGNED_IN, { auth_method: 'google' });
+      const { isNewUser } = await signInWithGoogle();
+      trackEvent(isNewUser ? AnalyticsEvent.USER_SIGNED_UP : AnalyticsEvent.USER_SIGNED_IN, {
+        auth_method: 'google',
+      });
     } catch (err) {
       if (!isExpectedAuthError(err)) captureException(err);
       Alert.alert(t('common.error'), userFriendlyError(err));

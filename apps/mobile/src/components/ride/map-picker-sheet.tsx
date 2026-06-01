@@ -1,8 +1,9 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { Image, type ImageSource } from 'expo-image';
-import { X } from 'lucide-react-native';
+import { Check, X } from 'lucide-react-native';
 import { memo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,13 +11,13 @@ import { useEditorialTheme } from '../../theme/editorial';
 import type { MapStyle } from '../../utils/map-styles';
 
 const MAP_PREVIEWS: Record<MapStyle, ImageSource> = {
-  light: require('../../../assets/images/map-previews/standard.png'),
-  dark: require('../../../assets/images/map-previews/dark.png'),
-  outdoors: require('../../../assets/images/map-previews/outdoors.png'),
-  satellite: require('../../../assets/images/map-previews/satellite.png'),
-  hybrid: require('../../../assets/images/map-previews/hybrid.png'),
-  terrain: require('../../../assets/images/map-previews/terrain.png'),
-  heatmap: require('../../../assets/images/map-previews/heatmap.png'),
+  light: require('../../../assets/images/map-previews/standard.webp'),
+  dark: require('../../../assets/images/map-previews/dark.webp'),
+  outdoors: require('../../../assets/images/map-previews/outdoors.webp'),
+  satellite: require('../../../assets/images/map-previews/satellite.webp'),
+  hybrid: require('../../../assets/images/map-previews/hybrid.webp'),
+  terrain: require('../../../assets/images/map-previews/terrain.webp'),
+  heatmap: require('../../../assets/images/map-previews/heatmap.webp'),
 };
 
 const FREE_STYLES: { key: MapStyle; label: string }[] = [
@@ -84,7 +85,7 @@ function StyleTile({
               justifyContent: 'center',
             }}
           >
-            <Text style={{ color: palette.white, fontSize: 10, fontWeight: '700' }}>✓</Text>
+            <Check size={11} color={palette.white} strokeWidth={3} />
           </View>
         )}
       </View>
@@ -108,6 +109,7 @@ export const MapPickerSheet = memo(function MapPickerSheet({
   onSelectStyle,
   onClose,
 }: MapPickerSheetProps) {
+  const { t } = useTranslation();
   const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
 
@@ -200,7 +202,7 @@ export const MapPickerSheet = memo(function MapPickerSheet({
               color: 'rgba(255,255,255,0.7)',
             }}
           >
-            MAP STYLE
+            {t('mapPicker.title')}
           </Text>
           <Pressable
             onPress={onClose}
