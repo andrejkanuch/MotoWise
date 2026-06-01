@@ -4,8 +4,9 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin();
 
-// Locales removed 2026-04-11 — keep 308 redirects for 90 days (remove after 2026-07-11).
-const DROPPED_LOCALES = ['pt-BR', 'ja', 'hi', 'th', 'id', 'tr', 'pl'] as const;
+// Still-disabled locales — keep 308 redirects to default. (pt-BR, ja, pl were
+// re-enabled 2026-06-01 after full translation; hi/th/id/tr remain out of scope.)
+const DROPPED_LOCALES = ['hi', 'th', 'id', 'tr'] as const;
 
 const nextConfig: NextConfig = {
   cacheComponents: false,

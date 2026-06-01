@@ -132,7 +132,7 @@ function applySecurityHeaders(response: NextResponse, nonce: string) {
 // community (feed/garage/profile), auth, and share-link routes which are
 // user-specific or token-scoped.
 const MARKETING_CACHEABLE_RE =
-  /^\/($|explore|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|(?:en|de|fr|es|it)(?:\/|$))/;
+  /^\/($|explore|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|(?:en|de|fr|es|it|ja|pl|pt-BR)(?:\/|$))/;
 
 const NOINDEX_PREFIXES = ['/login', '/signup', '/forgot-password', '/explore/search'];
 

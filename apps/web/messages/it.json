@@ -27,7 +27,8 @@
     "blog": "Blog",
     "riders": "Motociclisti",
     "explore": "Esplora Percorsi",
-    "compare": "Confronta"
+    "compare": "Confronta",
+    "pro": "Pro"
   },
   "Hero": {
     "line1": "TRACCIA LA TUA MOTO.",
@@ -2797,7 +2798,10 @@
     "trialBadge": "Prova · {days}g rimasti",
     "upgrade": "Upgrade",
     "rider": "Pilota",
-    "myGarage": "Il mio garage"
+    "myGarage": "Il mio garage",
+    "menu": "Menu",
+    "trial": "Prova",
+    "daysLeft": "{days}g rimasti"
   },
   "Garage": {
     "title": "Il mio",
@@ -2894,7 +2898,49 @@
     "priCritical": "Critica",
     "priHigh": "Alta",
     "priNormal": "Normale",
-    "priLow": "Bassa"
+    "priLow": "Bassa",
+    "pageTitle": "Il mio",
+    "pageTitleSerif": "garage",
+    "tasksOverdue": "{count, plural, one {1 intervento} other {# interventi}} in ritardo.",
+    "motorcycles": "Moto",
+    "inGarage": "{count} in garage",
+    "oneVisible": "1 visibile",
+    "expenseDashboard": "Dashboard",
+    "expenseDashboardSerif": "spese",
+    "maintenance": "Manutenzione",
+    "tasksCount": "{count, plural, one {1 intervento} other {# interventi}}",
+    "overdueCount": "{count} in ritardo",
+    "savedTrips": "Itinerari",
+    "savedTripsSerif": "salvati",
+    "saveYourFavourites": "e salva qui i tuoi preferiti.",
+    "days": "{count, plural, one {1 giorno} other {# giorni}}",
+    "bikes": "Moto",
+    "unlimited": "illimitate",
+    "free": "1 gratis",
+    "ytdSpend": "Spesa da inizio anno",
+    "ytd": "Da inizio anno",
+    "upcomingTasks": "Interventi in programma",
+    "allClear": "Tutto in regola",
+    "overdue": "in ritardo",
+    "totalRides": "Uscite totali",
+    "mileage": "Chilometraggio",
+    "multiBikeTitle": "Il garage multi-moto è",
+    "multiBikeDesc": "I rider gratuiti hanno una sola moto. Passa a Pro per gestire ogni moto con cronologie separate.",
+    "upgradeToPro": "Passa a Pro",
+    "expenseTracking": "monitoraggio spese",
+    "expenseTrackingDesc": "Tieni traccia di ogni euro speso per le tue moto con dettagli completi e andamenti mensili — carburante, ricambi, tagliandi, tutto quanto.",
+    "maintenanceTracking": "monitoraggio manutenzione",
+    "maintenanceTrackingDesc": "Non perdere mai un cambio olio, una regolazione della catena o una sostituzione delle gomme. Promemoria basati su chilometraggio e tempo per ogni moto che possiedi.",
+    "yearToDate": "Da inizio anno",
+    "upVsLastYear": "In aumento",
+    "downVsLastYear": "In calo",
+    "vsLastYear": "rispetto all'anno scorso.",
+    "expensesLoggedThisYear": "{count, plural, one {1 spesa registrata} other {# spese registrate}} quest'anno.",
+    "critical": "Critico",
+    "high": "Alta",
+    "normal": "Normale",
+    "dLate": "{days}g di ritardo",
+    "dRemaining": "{days}g"
   },
   "Profile": {
     "title": "Profilo",
@@ -2914,7 +2960,16 @@
     "failedToLoad": "Impossibile caricare il profilo",
     "tryAgain": "Si è verificato un errore. Riprova.",
     "retryBtn": "Riprova",
-    "setupProfile": "Configura il tuo profilo pilota"
+    "setupProfile": "Configura il tuo profilo pilota",
+    "somethingWentWrong": "Qualcosa è andato storto. Riprova.",
+    "retry": "Riprova",
+    "setupDesc": "Crea un profilo pubblico così altri rider possono trovarti e seguirti.",
+    "createProfile": "Crea profilo",
+    "rider": "Rider",
+    "proBannerTitle": "MotoVault Pro",
+    "trial": "Prova",
+    "daysRemaining": "{days} giorni rimanenti",
+    "daysLeft": "{days} giorni rimasti"
   },
   "ProfileEdit": {
     "setupTitle": "Configura il tuo profilo pubblico",
@@ -2945,7 +3000,10 @@
     "noFollowing": "Non segui ancora nessuno.",
     "loadMore": "Carica altri",
     "loading": "Caricamento...",
-    "error": "Impossibile caricare. Riprova."
+    "error": "Impossibile caricare. Riprova.",
+    "title": "Connessioni",
+    "followers": "Follower",
+    "following": "Seguiti"
   },
   "FeaturesMaintenance": {
     "title": "Tracker manutenzione moto — Storico interventi e promemoria",
