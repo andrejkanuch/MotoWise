@@ -896,52 +896,6 @@
     "breadcrumbHome": "Startseite",
     "breadcrumbFeatures": "Funktionen"
   },
-  "FeaturesProgress": {
-    "title": "Verfolge Dein Motorradwissen",
-    "description": "Verdiene Abzeichen, verfolge Quizpunkte, baue Lernsträhnen auf. Gamifizierte Motorradausbildung, die dich motiviert hält.",
-    "heroTitle": "Verfolge Deinen Fortschritt",
-    "heroSubtitle": "Gamifiziertes Lernen, das dich motiviert hält. Verdiene Abzeichen, baue Strähnen auf und beobachte, wie dein Fachwissen wächst.",
-    "badgesTitle": "Verdiene Leistungsabzeichen",
-    "badgesDesc": "Schließe Kurse ab, meistere Quizze und erreiche Meilensteine, um Leistungsabzeichen freizuschalten. Zeige dein Motorradwissen.",
-    "streaksTitle": "Baue Lernsträhnen Auf",
-    "streaksDesc": "Lerne jeden Tag etwas Neues. Baue Strähnen auf, um konsistent zu bleiben und dauerhaftes Motorradwissen aufzubauen.",
-    "scoresTitle": "Verfolge Quizpunkte",
-    "scoresDesc": "Sieh deine Leistung über alle Module hinweg. Identifiziere schwache Bereiche und fokussiere dein Lernen dort, wo es am meisten zählt.",
-    "faq": [
-      {
-        "question": "Welche Metriken zeigt der Fortschrittstracker?",
-        "answer": "Der Fortschrittstracker von MotoVault gibt dir einen umfassenden Überblick über deine Motorrad-Wissensreise. Zu den wichtigsten Metriken gehören Abschlussraten von Wartungsaufgaben, anstehende Servicepläne, Ausgabentrends, Lernfortschritt durch Fähigkeitsbäume, Quizpunkte, verdiente Abzeichen und Lernsträhnen."
-      },
-      {
-        "question": "Kann ich benutzerdefinierte Wartungserinnerungen einstellen?",
-        "answer": "Ja. MotoVault ermöglicht vollständig anpassbare Erinnerungen basierend auf Kilometerstand, Zeitintervallen oder beidem. Gängige Erinnerungen umfassen Ölwechsel, Kettenschmierung, Reifenkontrollen und Bremsinspektionen, aber du kannst benutzerdefinierte Erinnerungen für jede Aufgabe erstellen."
-      },
-      {
-        "question": "Funktioniert die Fortschrittsverfolgung mit mehreren Bikes?",
-        "answer": "Ja. MotoVault bietet Dashboards pro Bike, sodass du den Wartungsstatus, anstehende Aufgaben und Ausgabenverlauf für jedes Motorrad einzeln sehen kannst. Du kannst auch eine aggregierte Übersicht über alle deine Bikes anzeigen."
-      },
-      {
-        "question": "Kann ich meine Wartungsdaten exportieren?",
-        "answer": "Ja. MotoVault ermöglicht den Export umfassender Wartungsberichte für jedes Bike in deiner Garage. Diese Berichte enthalten die vollständige Servicehistorie mit Daten, Kilometerstand, Kosten und Notizen — perfekt für die Dokumentation beim Verkauf oder für Versicherungsansprüche."
-      }
-    ],
-    "longFormTitle": "Motorrad-Fortschrittsverfolgung: Motiviert und auf Kurs bleiben",
-    "longFormIntro": "Ein Motorrad zu warten und mechanisches Wissen aufzubauen sind langfristige Verpflichtungen. Ohne eine Möglichkeit, deinen Fortschritt zu verfolgen, verliert man leicht den Schwung. Das Fortschrittsverfolgungssystem von MotoVault hält alles sichtbar und organisiert.",
-    "longFormDashboardTitle": "Dein persönliches Motorrad-Dashboard",
-    "longFormDashboard": "Das Dashboard von MotoVault bringt alles zusammen, was du sehen musst, an einem Ort. Auf einen Blick kannst du prüfen, welche Bikes bald Wartung brauchen, was deine nächste Lektion ist, wie sich deine Quizpunkte entwickeln und wo deine monatlichen Ausgaben stehen.",
-    "longFormRemindersTitle": "Intelligente Erinnerungen, die dich am Fahren halten",
-    "longFormReminders": "Das Erinnerungssystem ist das Rückgrat der Wartungsverfolgung von MotoVault. Stelle Erinnerungen basierend auf Kilometerstand, Zeit oder beidem ein, und MotoVault kümmert sich um den Rest. Du erhältst Benachrichtigungen, wenn der Service ansteht — nicht erst, wenn er bereits überfällig ist.",
-    "longFormAnalyticsTitle": "Analysen und Berichte für intelligentere Besitzer",
-    "longFormAnalytics": "MotoVault geht über einfaches Tracking hinaus und bietet Analysen, die dir helfen, klügere Entscheidungen über deine Motorräder zu treffen. Ausgabenanalysen zeigen Gesamtausgaben pro Bike, nach Kategorie und über die Zeit. Wartungsanalysen zeigen, welche Aufgaben du pünktlich erledigst und welche tendenziell ausrutschen. Alle Daten können in saubere Berichte exportiert werden.",
-    "sectionLabel": "Fortschrittsverfolgung",
-    "featuresLabel": "Bleib motiviert",
-    "featuresTitle": "Verfolge jeden Meilenstein",
-    "longFormLabel": "Unter der Haube",
-    "faqLabel": "Fragen?",
-    "faqTitle": "Häufig gestellte Fragen",
-    "faqMore": "Noch Fragen?",
-    "faqSupportLink": "Besuche unsere Support-Seite"
-  },
   "CostCalculator": {
     "title": "Motorrad-Gesamtkostenrechner",
     "description": "Berechne die wahren Kosten eines Motorrads. Schätze Kraftstoff, Versicherung, Wartung, Reifen und Zulassungsgebühren. Finde heraus, wie viel ein Motorrad pro Jahr und pro Kilometer kostet.",
@@ -1072,8 +1026,12 @@
     "garageDesc": "Verfolge jedes Motorrad, das du besitzt — Kilometerstand, Servicehistorie, Kraftstoff und Ausgaben — in einer einzigen Zeitleiste pro Bike.",
     "learningTitle": "Lernpfade",
     "learningDesc": "Strukturierte Module und KI-generierte Artikel, zugeschnitten auf dein Motorrad — vom Bremsenservice bis zur Wintereinlagerung.",
-    "progressTitle": "Fortschrittsverfolgung",
-    "progressDesc": "Jede Fahrt, jede Aufgabe, jede Ausgabe wird automatisch protokolliert, damit du immer weißt, wo dein Motorrad steht."
+    "maintenanceTitle": "Wartungs-Tracking",
+    "maintenanceDesc": "Erfasse jeden Service, richte Erinnerungen nach Kilometerstand und Zeit ein und führe für jedes Bike einen dokumentierten Verlauf.",
+    "expensesTitle": "Ausgaben-Tracking",
+    "expensesDesc": "Verfolge Sprit, Teile und Service nach Kategorie und sieh die Kosten pro Kilometer für jedes deiner Motorräder.",
+    "ridesTitle": "Fahrten-Tracking",
+    "ridesDesc": "Zeichne Fahrten per GPS auf — Distanz, Geschwindigkeit und Höhenmeter — verknüpft mit dem richtigen Bike in deiner Garage."
   },
   "FeaturesTripPlanning": {
     "title": "Motorrad-Tourenplanung — Routenbuilder & Reiseplan",
@@ -2839,5 +2797,149 @@
     "noFollowing": "Du folgst noch niemandem.",
     "loadMore": "Mehr laden",
     "loading": "Laden..."
+  },
+  "FeaturesMaintenance": {
+    "title": "Motorrad-Wartungs-Tracker — Serviceverlauf & Erinnerungen",
+    "description": "Erfasse jeden Service, richte Erinnerungen nach Kilometerstand und Zeit ein und führe für jedes Motorrad in deiner Garage einen vollständigen Wartungsverlauf. Kostenlos für iOS und Android.",
+    "sectionLabel": "Wartungs-Tracking",
+    "heroTitle": "Verpasse nie wieder einen Service",
+    "heroSubtitle": "Der Wartungs-Tracker von MotoVault führt für jedes deiner Motorräder einen vollständigen Serviceverlauf und erinnert dich rechtzeitig vor fälligen Arbeiten — nach Kilometerstand, Zeit oder beidem. Erfasse Ölwechsel, Kettenpflege, Bremsenservice und eigene Aufgaben mit Datum, Kilometerstand, Kosten und Fotos, damit nichts untergeht und die Unterlagen deines Bikes verkaufsbereit bleiben.",
+    "featuresLabel": "Immer im Plan",
+    "featuresTitle": "Wartung, die sich selbst organisiert",
+    "f1Title": "Intelligente Service-Erinnerungen",
+    "f1Desc": "Lege Erinnerungen nach Kilometerintervall, Zeitintervall oder beidem fest. MotoVault benachrichtigt dich vor dem fälligen Service — nicht erst danach — und setzt sie automatisch zurück, wenn du die Aufgabe erfasst.",
+    "f2Title": "Vollständiger Serviceverlauf",
+    "f2Desc": "Jede Arbeit wird mit Datum, Kilometerstand, Kosten, Kategorie, Notizen und Fotos protokolliert. So entsteht für jedes Bike ein dokumentierter Verlauf, der den Wiederverkaufswert steigert und Versicherungsfälle vereinfacht.",
+    "f3Title": "Pläne pro Motorrad",
+    "f3Desc": "Ein Sportbike und ein Cruiser haben unterschiedliche Bedürfnisse. Richte für jedes Motorrad in deiner Garage einen eigenen Wartungsplan ein.",
+    "longFormLabel": "Hinter den Kulissen",
+    "longFormTitle": "Motorrad-Wartungs-Tracking, das dein Bike gesund hält",
+    "longFormIntro": "Motorradwartung ist eine langfristige Aufgabe, und verpasste Intervalle sind teuer. Der Wartungs-Tracker von MotoVault ersetzt den Schuhkarton voller Belege und die Tabelle durch einen einzigen, geordneten Serviceverlauf pro Bike — plus Erinnerungen, die dich erreichen, bevor ein Service fällig wird.",
+    "s1Title": "Erfasse jede Arbeit in Sekunden",
+    "s1Body": "Protokolliere Wartung mit Datum, Kilometerstand, Kosten, Kategorie und ausführlichen Notizen und füge Fotos von Teilen oder Belegen hinzu. Aufgaben sind in überfällig, anstehend und erledigt unterteilt, sodass du immer weißt, was als Nächstes ansteht.",
+    "s2Title": "Erinnerungen, die zu deiner Fahrweise passen",
+    "s2Body": "Lege Erinnerungen nach Kilometerstand (Öl alle 5.000 km), Zeit (Bremsflüssigkeit alle 2 Jahre) oder beidem fest. Da Erinnerungen pro Bike gelten, können ein Pendler-Motorrad und ein Wochenend-Tourer völlig unterschiedlichen Plänen folgen. Erfasse eine erledigte Aufgabe und die nächste Erinnerung setzt sich automatisch zurück.",
+    "s3Title": "Unterlagen, die sich auszahlen",
+    "s3Body": "Exportiere einen vollständigen Wartungsbericht für jedes Bike — Daten, Kilometerstand, Kosten und Notizen. Ein dokumentierter Serviceverlauf überzeugt Käufer, stützt Versicherungs- und Garantieansprüche und kann den Wiederverkaufswert spürbar erhöhen.",
+    "faqLabel": "Fragen?",
+    "faqTitle": "Häufig gestellte Fragen",
+    "faq": [
+      {
+        "question": "Verfolgt MotoVault die Wartung für mehrere Motorräder?",
+        "answer": "Ja. MotoVault gibt jedem Motorrad in deiner Garage einen eigenen Serviceverlauf, eigene Erinnerungen und einen eigenen Plan. Du kannst jedes Bike einzeln betrachten oder dir eine Gesamtübersicht ansehen, welches Bike als Nächstes Aufmerksamkeit braucht."
+      },
+      {
+        "question": "Kann ich eigene Wartungserinnerungen einrichten?",
+        "answer": "Ja. Erinnerungen sind vollständig anpassbar nach Kilometerintervall, Zeitintervall oder beidem. Über Vorlagen wie Ölwechsel und Kettenpflege hinaus kannst du für jede Aufgabe eine Erinnerung erstellen, jeweils pro Bike. Sobald du die Aufgabe als erledigt erfasst, setzt sich die nächste Erinnerung automatisch zurück."
+      },
+      {
+        "question": "Kann ich den Serviceverlauf meines Motorrads exportieren?",
+        "answer": "Ja. MotoVault exportiert einen vollständigen Wartungsbericht für jedes Bike, inklusive Daten, Kilometerstand, Kosten und Notizen — ideal für die Verkaufsdokumentation, Versicherungsfälle oder deine eigenen Unterlagen."
+      },
+      {
+        "question": "Ist der Wartungs-Tracker kostenlos?",
+        "answer": "Ja. Wartungs-Tracking ist auf iOS und Android kostenlos. Ein optionales MotoVault-Pro-Abo (4,99 $/Monat) schaltet erweiterte Funktionen frei."
+      }
+    ],
+    "faqMore": "Noch Fragen?",
+    "faqSupportLink": "Zur Support-Seite",
+    "breadcrumbHome": "Startseite",
+    "breadcrumbFeatures": "Funktionen"
+  },
+  "FeaturesExpenses": {
+    "title": "Motorrad-Ausgaben-Tracker — Sprit, Teile & Kosten pro Kilometer",
+    "description": "Erfasse jede Motorradausgabe nach Kategorie, sieh die Kosten pro Kilometer und vergleiche Ausgaben über Bikes und Jahre hinweg. Kostenlos für iOS und Android.",
+    "sectionLabel": "Ausgaben-Tracking",
+    "heroTitle": "Wisse genau, was dein Bike kostet",
+    "heroSubtitle": "Der Ausgaben-Tracker von MotoVault erfasst jede Motorradausgabe — Sprit, Wartung, Teile und Ausrüstung — und macht daraus übersichtliche Auswertungen: Ausgaben seit Jahresbeginn, Kosten pro Kilometer, Monatstrends und Vergleiche pro Bike. Endlich siehst du die echten Unterhaltskosten, statt zu raten.",
+    "featuresLabel": "Dem Geld folgen",
+    "featuresTitle": "Jede Ausgabe, kategorisiert und klar",
+    "f1Title": "Vier Ausgabenkategorien",
+    "f1Desc": "Erfasse Sprit, Wartung, Teile und Ausrüstung in Sekunden. Jede Ausgabe ist einem bestimmten Bike zugeordnet, sodass Besitzer mehrerer Motorräder genau sehen, wohin das Geld fließt.",
+    "f2Title": "Kosten-pro-Kilometer-Auswertung",
+    "f2Desc": "MotoVault berechnet Kosten pro Kilometer und pro Meile automatisch, damit du Bikes vergleichen und verstehen kannst, was jedes Motorrad wirklich im Unterhalt kostet.",
+    "f3Title": "Trends und Vergleiche",
+    "f3Desc": "Sieh die Ausgaben seit Jahresbeginn mit Kategorie-Aufschlüsselung, Monatstrends und Vergleichen aktuelles Jahr vs. gesamte Zeit — in metrischen und imperialen Einheiten.",
+    "longFormLabel": "Hinter den Kulissen",
+    "longFormTitle": "Motorrad-Ausgaben-Tracking, das die echten Unterhaltskosten zeigt",
+    "longFormIntro": "Die meisten Fahrer unterschätzen die Kosten ihres Motorrads, weil die Ausgaben über Tankbelege, Teilebestellungen und Servicerechnungen verstreut sind. Der Ausgaben-Tracker von MotoVault bündelt alles an einem Ort und macht aus reinen Kosten die Kennzahlen, die wirklich zählen — Kosten pro Kilometer, Kategorie-Aufschlüsselungen und Jahresvergleiche.",
+    "s1Title": "Ausgaben in vier klaren Kategorien erfassen",
+    "s1Body": "Sprit, Wartung, Teile und Ausrüstung — jede Ausgabe wird einem bestimmten Motorrad mit Datum, Betrag und Notizen zugeordnet. Bei mehreren Bikes siehst du so, welche Maschine dein Budget belastet und welche günstig zu halten ist.",
+    "s2Title": "Ausgaben in Kosten pro Kilometer verwandeln",
+    "s2Body": "MotoVault berechnet automatisch Kosten pro Kilometer und pro Meile aus deinen erfassten Ausgaben und Fahrtstrecken. Es ist die nützlichste Kennzahl, um Bikes zu vergleichen, über Behalten oder Verkaufen zu entscheiden und das kommende Jahr zu budgetieren.",
+    "s3Title": "Trends erkennen, bevor sie dich überraschen",
+    "s3Body": "Das Ausgaben-Dashboard zeigt Jahressummen mit Kategorie-Balken, Monatstrends und einen Vergleich aktuelles Jahr gegen gesamte Zeit. Wenn die Wartungskosten bei einem älteren Bike steigen, siehst du es früh — wahlweise in metrischen oder imperialen Einheiten.",
+    "faqLabel": "Fragen?",
+    "faqTitle": "Häufig gestellte Fragen",
+    "faq": [
+      {
+        "question": "Ist der Ausgaben-Tracker kostenlos?",
+        "answer": "Ja. Ausgaben-Tracking ist auf iOS und Android kostenlos. Ein optionales MotoVault-Pro-Abo (4,99 $/Monat) schaltet erweiterte Funktionen frei."
+      },
+      {
+        "question": "Welche Ausgaben kann ich erfassen?",
+        "answer": "MotoVault erfasst vier Kategorien: Sprit, Wartung, Teile und Ausrüstung. Jede Ausgabe ist mit Datum, Betrag und Notizen einem bestimmten Motorrad zugeordnet, sodass deine Ausgaben pro Bike geordnet sind."
+      },
+      {
+        "question": "Berechnet MotoVault die Kosten pro Kilometer?",
+        "answer": "Ja. MotoVault berechnet Kosten pro Kilometer und pro Meile automatisch aus deinen erfassten Ausgaben und aufgezeichneten Fahrtstrecken, in metrischen und imperialen Einheiten."
+      },
+      {
+        "question": "Kann ich Ausgaben für mehr als ein Motorrad erfassen?",
+        "answer": "Ja. Jede Ausgabe wird einem bestimmten Bike zugeordnet, und das Dashboard lässt dich die Ausgaben über alle Motorräder deiner Garage vergleichen."
+      }
+    ],
+    "faqMore": "Noch Fragen?",
+    "faqSupportLink": "Zur Support-Seite",
+    "breadcrumbHome": "Startseite",
+    "breadcrumbFeatures": "Funktionen"
+  },
+  "FeaturesRides": {
+    "title": "Motorrad-Fahrten-Tracker — GPS-Aufzeichnung & Fahrtanalysen",
+    "description": "Zeichne jede Fahrt per GPS auf — Distanz, Geschwindigkeit, Höhenmeter und eine interaktive Routenkarte — verknüpft mit dem richtigen Bike in deiner Garage. Kostenlos für iOS und Android.",
+    "sectionLabel": "Fahrten-Tracking",
+    "heroTitle": "Zeichne jede Fahrt im Detail auf",
+    "heroSubtitle": "Der Fahrten-Tracker von MotoVault zeichnet jede Fahrt per GPS auf — Distanz, Fahrzeit, Höchst- und Durchschnittsgeschwindigkeit, Höhenmeter bergauf und bergab sowie eine vollständige Routenkarte. Jede Fahrt ist mit einem bestimmten Bike verknüpft und zeichnet so ein Bild der Nutzung jedes Motorrads neben Wartung und Ausgaben.",
+    "featuresLabel": "Jeder Kilometer zählt",
+    "featuresTitle": "GPS-Tracking, gemacht für Fahrer",
+    "f1Title": "Vollständige GPS-Aufzeichnung",
+    "f1Desc": "Erfasse Distanz, Dauer, Fahr- und Pausenzeit, Höchst- und Durchschnittsgeschwindigkeit sowie Höhenmeter bergauf und bergab — dargestellt als interaktive Routenkarte.",
+    "f2Title": "Geschwindigkeits- & Höhenprofile",
+    "f2Desc": "Jede Fahrt enthält interaktive Geschwindigkeits- und Höhendiagramme über die Distanz, mit Höhe, Geschwindigkeit und GPS-Genauigkeit pro Wegpunkt.",
+    "f3Title": "Mit deiner Garage verknüpft",
+    "f3Desc": "Fahrten werden einem bestimmten Bike zugeordnet, sodass Kilometerstand und Nutzung jedes Motorrads direkt neben Wartungsverlauf und Ausgaben stehen.",
+    "longFormLabel": "Hinter den Kulissen",
+    "longFormTitle": "Motorrad-Fahrten-Tracking, das mit dem Rest deiner Garage verbunden ist",
+    "longFormIntro": "Ein Fahrtenbuch ist nützlicher, wenn es nicht in einer separaten App festsitzt. MotoVault zeichnet jede Fahrt mit vollständigen GPS-Daten auf und verknüpft sie mit dem konkreten Motorrad, das du gefahren bist — sodass Distanz, Wartung und Kosten an einem Ort liegen.",
+    "s1Title": "Umfangreiche GPS-Daten zu jeder Fahrt",
+    "s1Body": "MotoVault erfasst Distanz, Dauer mit Fahr- und Pausenzeit, Höchst- und Durchschnittsgeschwindigkeit sowie Höhenmeter bergauf und bergab und stellt die gesamte Route als interaktive Linienkarte dar. Die Daten pro Wegpunkt umfassen Höhe, Geschwindigkeit und GPS-Genauigkeit.",
+    "s2Title": "Profile, die die Geschichte erzählen",
+    "s2Body": "Die Fahrtdetailansicht zeigt ein interaktives Geschwindigkeits- und Höhenprofil über die Distanz, mit Tooltips beim Überfahren. So lässt sich eine Route leicht noch einmal erleben und sehen, wie sich ein Bike schlägt — in metrischen oder imperialen Einheiten.",
+    "s3Title": "Jede Fahrt fließt in die Historie deines Bikes ein",
+    "s3Body": "Da jede Fahrt mit einem Motorrad in deiner Garage verknüpft ist, bleibt dein Kilometerstand automatisch aktuell — das hält kilometerbasierte Wartungserinnerungen genau und die Kosten-pro-Kilometer-Auswertung ehrlich.",
+    "faqLabel": "Fragen?",
+    "faqTitle": "Häufig gestellte Fragen",
+    "faq": [
+      {
+        "question": "Ist Fahrten-Tracking kostenlos?",
+        "answer": "Ja. GPS-Fahrten-Tracking ist auf iOS und Android kostenlos. Ein optionales MotoVault-Pro-Abo (4,99 $/Monat) schaltet erweiterte Funktionen frei."
+      },
+      {
+        "question": "Welche Daten zeichnet MotoVault bei einer Fahrt auf?",
+        "answer": "Jede Fahrt erfasst Distanz, Dauer (Fahr- und Pausenzeit), Höchst- und Durchschnittsgeschwindigkeit, Höhenmeter bergauf und bergab sowie eine vollständige Routenkarte, dazu Höhe, Geschwindigkeit und GPS-Genauigkeit pro Wegpunkt."
+      },
+      {
+        "question": "Kann ich Geschwindigkeit und Höhe einer Fahrt sehen?",
+        "answer": "Ja. Jede Fahrt enthält interaktive Geschwindigkeits- und Höhenprofil-Diagramme über die Distanz, mit Tooltips, in metrischen und imperialen Einheiten."
+      },
+      {
+        "question": "Sind Fahrten mit meinen Motorrädern verknüpft?",
+        "answer": "Ja. Jede Fahrt ist mit einem bestimmten Bike in deiner Garage verknüpft, sodass sich der Kilometerstand automatisch aktualisiert und mit dem Wartungs- und Ausgabenverlauf dieses Motorrads übereinstimmt."
+      }
+    ],
+    "faqMore": "Noch Fragen?",
+    "faqSupportLink": "Zur Support-Seite",
+    "breadcrumbHome": "Startseite",
+    "breadcrumbFeatures": "Funktionen"
   }
 }

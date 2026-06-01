@@ -162,6 +162,13 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
       dateModified: article.dateModified ?? article.date,
       authorName: author.name,
       authorUrl: `${BASE_URL}/about`,
+      authorJobTitle: author.role,
+      authorBio: author.bio,
+      authorKnowsAbout: author.credentials,
+      // Verified profiles only — empty until real handles are added to the registry.
+      authorSameAs: author.socials
+        ? Object.values(author.socials).filter((url): url is string => Boolean(url))
+        : undefined,
       locale,
       slug,
       wordCount: article.wordCount,

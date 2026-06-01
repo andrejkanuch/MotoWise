@@ -895,52 +895,6 @@
     "breadcrumbHome": "Home",
     "breadcrumbFeatures": "Funzionalità"
   },
-  "FeaturesProgress": {
-    "title": "Traccia le Tue Conoscenze Moto",
-    "description": "Guadagna badge, traccia i punteggi dei quiz, costruisci serie di apprendimento. Educazione moto gamificata che ti mantiene motivato.",
-    "heroTitle": "Traccia i Tuoi Progressi",
-    "heroSubtitle": "Apprendimento gamificato che ti mantiene motivato. Guadagna badge, costruisci serie e guarda la tua competenza crescere.",
-    "badgesTitle": "Guadagna Badge di Risultati",
-    "badgesDesc": "Completa corsi, supera quiz e raggiungi traguardi per sbloccare badge di risultati. Mostra le tue conoscenze moto.",
-    "streaksTitle": "Costruisci Serie di Apprendimento",
-    "streaksDesc": "Impara qualcosa di nuovo ogni giorno. Costruisci serie per restare costante e sviluppare conoscenze moto durature.",
-    "scoresTitle": "Traccia i Punteggi dei Quiz",
-    "scoresDesc": "Visualizza le tue prestazioni su tutti i moduli. Identifica i punti deboli e concentra il tuo apprendimento dove conta di più.",
-    "faq": [
-      {
-        "question": "Quali metriche mostra il tracker dei progressi?",
-        "answer": "Il tracker dei progressi di MotoVault ti dà una vista completa del tuo percorso di conoscenze moto. Le metriche chiave includono tassi di completamento delle attività di manutenzione, calendari di servizio in arrivo, tendenze delle spese, progressi di apprendimento tramite alberi delle competenze, punteggi dei quiz, badge guadagnati e durata delle serie di apprendimento."
-      },
-      {
-        "question": "Posso impostare promemoria di manutenzione personalizzati?",
-        "answer": "Sì. MotoVault ti permette di impostare promemoria completamente personalizzabili basati su chilometraggio, intervalli di tempo, o entrambi. I promemoria comuni includono cambio olio, lubrificazione catena, controlli pneumatici e ispezioni freni, ma puoi creare promemoria personalizzati per qualsiasi attività."
-      },
-      {
-        "question": "Il monitoraggio dei progressi funziona con più moto?",
-        "answer": "Sì. MotoVault fornisce dashboard per singola moto in modo da poter vedere lo stato di manutenzione, le attività in arrivo e la cronologia delle spese per ogni moto individualmente. Puoi anche visualizzare una panoramica aggregata di tutte le tue moto."
-      },
-      {
-        "question": "Posso esportare i miei dati di manutenzione?",
-        "answer": "Sì. MotoVault ti permette di esportare report di manutenzione completi per qualsiasi moto nel tuo garage. Questi report includono la cronologia completa del servizio con date, chilometraggio, costi e note — perfetto per documentare le condizioni della tua moto per potenziali acquirenti o richieste assicurative."
-      }
-    ],
-    "longFormTitle": "Monitoraggio progressi moto: Resta motivato, resta organizzato",
-    "longFormIntro": "Mantenere una moto e costruire conoscenze meccaniche sono impegni a lungo termine. Senza un modo per tracciare i tuoi progressi, è facile perdere slancio. Il sistema di monitoraggio dei progressi di MotoVault mantiene tutto visibile e organizzato.",
-    "longFormDashboardTitle": "La tua dashboard personale moto",
-    "longFormDashboard": "La dashboard di MotoVault riunisce tutto ciò che devi vedere in un unico posto. A colpo d'occhio, puoi verificare quali moto hanno bisogno di manutenzione presto, qual è la tua prossima lezione, come stanno andando i tuoi punteggi dei quiz e dove si trovano le tue spese del mese.",
-    "longFormRemindersTitle": "Promemoria intelligenti che ti tengono in strada",
-    "longFormReminders": "Il sistema di promemoria è la spina dorsale del tracciamento della manutenzione di MotoVault. Imposta promemoria basati sul chilometraggio, sul tempo, o su entrambi, e MotoVault si occupa del resto. Riceverai notifiche quando il servizio si avvicina — non dopo che è già in ritardo.",
-    "longFormAnalyticsTitle": "Analisi e report per una proprietà più intelligente",
-    "longFormAnalytics": "MotoVault va oltre il semplice tracciamento fornendo analisi che ti aiutano a prendere decisioni più intelligenti sulle tue moto. Le analisi delle spese mostrano la spesa totale per moto, per categoria e nel tempo. Le analisi di manutenzione evidenziano quali attività completi puntualmente rispetto a quelle che tendono a slittare. Tutti i dati possono essere esportati in report puliti.",
-    "sectionLabel": "Monitoraggio Progressi",
-    "featuresLabel": "Resta Motivato",
-    "featuresTitle": "Traccia Ogni Traguardo",
-    "longFormLabel": "Sotto il Cofano",
-    "faqLabel": "Hai Domande?",
-    "faqTitle": "Domande Frequenti",
-    "faqMore": "Hai altre domande?",
-    "faqSupportLink": "Visita la nostra pagina di supporto"
-  },
   "CostCalculator": {
     "title": "Calcolatore del Costo di Proprietà della Moto",
     "description": "Calcola il costo reale di possedere una moto. Stima carburante, assicurazione, manutenzione, pneumatici e tasse di immatricolazione. Scopri quanto costa mantenere una moto all'anno e al chilometro.",
@@ -1071,8 +1025,12 @@
     "garageDesc": "Tieni traccia di ogni moto che possiedi — chilometri, storico degli interventi, carburante e spese — in un'unica linea temporale per moto.",
     "learningTitle": "Percorsi di apprendimento",
     "learningDesc": "Moduli strutturati e articoli generati dall'AI, pensati per la tua moto, dal servizio freni al rimessaggio invernale.",
-    "progressTitle": "Monitoraggio progressi",
-    "progressDesc": "Ogni giro, ogni intervento, ogni spesa registrati automaticamente così sai sempre come sta la tua moto."
+    "maintenanceTitle": "Tracciamento manutenzione",
+    "maintenanceDesc": "Registra ogni intervento, imposta promemoria a chilometraggio e a tempo e mantieni uno storico documentato per ogni moto.",
+    "expensesTitle": "Tracciamento spese",
+    "expensesDesc": "Tieni traccia di carburante, ricambi e interventi per categoria e vedi il costo al chilometro per ogni moto che possiedi.",
+    "ridesTitle": "Tracciamento percorsi",
+    "ridesDesc": "Registra le uscite con GPS completo — distanza, velocità e dislivello — collegate alla moto giusta del tuo garage."
   },
   "FeaturesTripPlanning": {
     "title": "Pianificatore di viaggi in moto — Costruttore di percorsi e itinerario",
@@ -2836,5 +2794,149 @@
     "loadMore": "Carica altri",
     "loading": "Caricamento...",
     "error": "Impossibile caricare. Riprova."
+  },
+  "FeaturesMaintenance": {
+    "title": "Tracker manutenzione moto — Storico interventi e promemoria",
+    "description": "Registra ogni intervento, imposta promemoria a chilometraggio e a tempo e mantieni uno storico di manutenzione completo per ogni moto del tuo garage. Gratis su iOS e Android.",
+    "sectionLabel": "Tracciamento manutenzione",
+    "heroTitle": "Non saltare mai più un tagliando",
+    "heroSubtitle": "Il tracker di manutenzione di MotoVault mantiene uno storico interventi completo per ogni moto che possiedi e ti avvisa prima della scadenza dei lavori — in base a chilometraggio, tempo o entrambi. Registra cambi olio, lubrificazione catena, interventi ai freni e attività personalizzate con data, chilometraggio, costo e foto, così non ti sfugge nulla e la documentazione della tua moto resta pronta per la rivendita.",
+    "featuresLabel": "Sempre in regola",
+    "featuresTitle": "Una manutenzione che si gestisce da sola",
+    "f1Title": "Promemoria intelligenti",
+    "f1Desc": "Imposta promemoria per intervallo di chilometraggio, di tempo o entrambi. MotoVault ti avvisa prima della scadenza — non quando è già in ritardo — e si reimposta automaticamente quando registri l'intervento.",
+    "f2Title": "Storico interventi completo",
+    "f2Desc": "Ogni lavoro viene registrato con data, chilometraggio, costo, categoria, note e foto. Costruisci per ogni moto uno storico documentato che aumenta il valore di rivendita e semplifica le pratiche assicurative.",
+    "f3Title": "Programmi per ogni moto",
+    "f3Desc": "Una sportiva e una custom hanno esigenze diverse. Configura un programma di manutenzione indipendente per ogni moto del tuo garage.",
+    "longFormLabel": "Sotto il cofano",
+    "longFormTitle": "Un tracciamento della manutenzione che mantiene la moto in salute",
+    "longFormIntro": "La manutenzione di una moto è un impegno a lungo termine e gli intervalli saltati costano cari. Il tracker di MotoVault sostituisce la scatola di ricevute e il foglio di calcolo con un unico storico interventi ordinato per moto — con promemoria che ti raggiungono prima che un tagliando ti sfugga.",
+    "s1Title": "Registra ogni lavoro in pochi secondi",
+    "s1Body": "Annota la manutenzione con data, chilometraggio, costo, categoria e note dettagliate, e allega foto di componenti o ricevute. Le attività sono organizzate in scadute, in arrivo e completate, così sai sempre cosa richiede attenzione.",
+    "s2Title": "Promemoria basati su come guidi davvero",
+    "s2Body": "Imposta promemoria a chilometraggio (olio ogni 5.000 km), a tempo (liquido freni ogni 2 anni) o entrambi. Poiché i promemoria sono per ogni moto, una da pendolare e una tourer del weekend possono seguire programmi completamente diversi. Registra un'attività completata e il promemoria successivo si reimposta automaticamente.",
+    "s3Title": "Una documentazione che ti ripaga",
+    "s3Body": "Esporta un report di manutenzione completo per qualsiasi moto — date, chilometraggio, costi e note. Uno storico interventi documentato rassicura gli acquirenti, supporta le pratiche di assicurazione e garanzia e può aumentare sensibilmente il valore di rivendita.",
+    "faqLabel": "Hai domande?",
+    "faqTitle": "Domande frequenti",
+    "faq": [
+      {
+        "question": "MotoVault tiene traccia della manutenzione di più moto?",
+        "answer": "Sì. MotoVault assegna a ogni moto del garage il proprio storico interventi, i propri promemoria e il proprio programma. Puoi vedere ogni moto singolarmente o avere una panoramica complessiva di quale richiede attenzione per prima."
+      },
+      {
+        "question": "Posso creare promemoria di manutenzione personalizzati?",
+        "answer": "Sì. I promemoria sono completamente personalizzabili per intervallo di chilometraggio, di tempo o entrambi. Oltre ai modelli come cambio olio e lubrificazione catena, puoi creare un promemoria per qualsiasi attività, configurato per ogni moto. Quando segni l'attività come completata, il promemoria successivo si reimposta automaticamente."
+      },
+      {
+        "question": "Posso esportare lo storico interventi della mia moto?",
+        "answer": "Sì. MotoVault esporta un report di manutenzione completo per qualsiasi moto, con date, chilometraggio, costi e note — ideale per la documentazione di vendita, le pratiche assicurative o i tuoi archivi."
+      },
+      {
+        "question": "Il tracker di manutenzione è gratuito?",
+        "answer": "Sì. Il tracciamento della manutenzione è gratuito su iOS e Android. Un abbonamento opzionale MotoVault Pro (4,99 $/mese) sblocca funzioni avanzate."
+      }
+    ],
+    "faqMore": "Altre domande?",
+    "faqSupportLink": "Vai alla pagina di supporto",
+    "breadcrumbHome": "Home",
+    "breadcrumbFeatures": "Funzionalità"
+  },
+  "FeaturesExpenses": {
+    "title": "Tracker spese moto — Carburante, ricambi e costo al chilometro",
+    "description": "Tieni traccia di ogni spesa della moto per categoria, vedi il costo al chilometro e confronta le spese tra moto e anni. Gratis su iOS e Android.",
+    "sectionLabel": "Tracciamento spese",
+    "heroTitle": "Sai esattamente quanto ti costa la moto",
+    "heroSubtitle": "Il tracker spese di MotoVault registra ogni costo della moto — carburante, manutenzione, ricambi e attrezzatura — e lo trasforma in analisi chiare: spesa da inizio anno, costo al chilometro, andamenti mensili e confronti per ogni moto. Finalmente vedi il vero costo di gestione, senza tirare a indovinare.",
+    "featuresLabel": "Segui i soldi",
+    "featuresTitle": "Ogni costo, categorizzato e chiaro",
+    "f1Title": "Quattro categorie di spesa",
+    "f1Desc": "Registra carburante, manutenzione, ricambi e attrezzatura in pochi secondi. Ogni spesa è legata a una moto specifica, così chi ne possiede più di una vede esattamente dove vanno i soldi.",
+    "f2Title": "Analisi del costo al chilometro",
+    "f2Desc": "MotoVault calcola automaticamente il costo al chilometro e al miglio, così puoi confrontare le moto e capire quanto costa davvero gestirne ciascuna.",
+    "f3Title": "Andamenti e confronti",
+    "f3Desc": "Vedi la spesa da inizio anno con suddivisione per categoria, andamenti mensili e confronto anno corrente / da sempre — in unità metriche e imperiali.",
+    "longFormLabel": "Sotto il cofano",
+    "longFormTitle": "Un tracciamento delle spese che rivela il vero costo di gestione",
+    "longFormIntro": "La maggior parte dei motociclisti sottovaluta quanto costa la propria moto perché le spese sono sparse tra scontrini del carburante, ordini di ricambi e fatture del meccanico. Il tracker spese di MotoVault raccoglie tutto in un unico posto e trasforma i costi grezzi nelle metriche che contano davvero — costo al chilometro, suddivisione per categoria e andamenti anno su anno.",
+    "s1Title": "Registra le spese in quattro categorie chiare",
+    "s1Body": "Carburante, manutenzione, ricambi e attrezzatura — ogni spesa è registrata per una moto specifica con data, importo e note. Con più moto, vedi quale prosciuga il budget e quale è economica da mantenere.",
+    "s2Title": "Trasforma le spese in costo al chilometro",
+    "s2Body": "MotoVault calcola automaticamente il costo al chilometro e al miglio dalle spese registrate e dalle distanze percorse. È il dato più utile per confrontare le moto, decidere se tenerle o venderle e pianificare il budget dell'anno.",
+    "s3Title": "Individua gli andamenti prima che ti sorprendano",
+    "s3Body": "La dashboard delle spese mostra i totali dell'anno con barre per categoria, andamenti mensili e un confronto anno corrente / da sempre. Se i costi di manutenzione crescono su una moto più vecchia, lo vedi in anticipo — in unità metriche o imperiali, a tua scelta.",
+    "faqLabel": "Hai domande?",
+    "faqTitle": "Domande frequenti",
+    "faq": [
+      {
+        "question": "Il tracker spese è gratuito?",
+        "answer": "Sì. Il tracciamento delle spese è gratuito su iOS e Android. Un abbonamento opzionale MotoVault Pro (4,99 $/mese) sblocca funzioni avanzate."
+      },
+      {
+        "question": "Quali spese posso registrare?",
+        "answer": "MotoVault gestisce quattro categorie: carburante, manutenzione, ricambi e attrezzatura. Ogni spesa è legata a una moto specifica, con data, importo e note, così le spese sono organizzate per moto."
+      },
+      {
+        "question": "MotoVault calcola il costo al chilometro?",
+        "answer": "Sì. MotoVault calcola automaticamente il costo al chilometro e al miglio dalle spese registrate e dalle distanze percorse, in unità metriche e imperiali."
+      },
+      {
+        "question": "Posso registrare le spese di più di una moto?",
+        "answer": "Sì. Ogni spesa è assegnata a una moto specifica e la dashboard consente di confrontare le spese tra tutte le moto del garage."
+      }
+    ],
+    "faqMore": "Altre domande?",
+    "faqSupportLink": "Vai alla pagina di supporto",
+    "breadcrumbHome": "Home",
+    "breadcrumbFeatures": "Funzionalità"
+  },
+  "FeaturesRides": {
+    "title": "Tracker percorsi moto — Registrazione GPS e analisi delle uscite",
+    "description": "Registra ogni uscita con GPS — distanza, velocità, dislivello e una mappa del percorso interattiva — collegata alla moto giusta del tuo garage. Gratis su iOS e Android.",
+    "sectionLabel": "Tracciamento percorsi",
+    "heroTitle": "Registra ogni uscita nel dettaglio",
+    "heroSubtitle": "Il tracker percorsi di MotoVault registra ogni uscita con GPS completo — distanza, tempo in movimento, velocità massima e media, dislivello in salita e in discesa e una mappa del percorso completa. Ogni uscita è collegata a una moto specifica, costruendo un quadro dell'utilizzo di ciascuna accanto a manutenzione e spese.",
+    "featuresLabel": "Ogni chilometro conta",
+    "featuresTitle": "Tracciamento GPS pensato per i motociclisti",
+    "f1Title": "Registrazione GPS completa",
+    "f1Desc": "Acquisisci distanza, durata, tempo in movimento e in sosta, velocità massima e media e dislivello in salita e in discesa — il tutto su una mappa del percorso interattiva.",
+    "f2Title": "Profili di velocità e dislivello",
+    "f2Desc": "Ogni uscita include grafici interattivi di velocità e dislivello sulla distanza, con quota, velocità e precisione GPS per ogni waypoint.",
+    "f3Title": "Collegato al tuo garage",
+    "f3Desc": "Le uscite sono associate a una moto specifica, così chilometraggio e utilizzo di ciascuna stanno accanto al suo storico di manutenzione e alle spese.",
+    "longFormLabel": "Sotto il cofano",
+    "longFormTitle": "Un tracciamento delle uscite collegato al resto del garage",
+    "longFormIntro": "Un diario delle uscite è più utile quando non è isolato in un'altra app. MotoVault registra ogni uscita con tutti i dettagli GPS e la collega alla moto che hai effettivamente guidato — così distanza, manutenzione e costi stanno in un unico posto.",
+    "s1Title": "Dati GPS ricchi a ogni uscita",
+    "s1Body": "MotoVault acquisisce distanza, durata con tempo in movimento e in sosta, velocità massima e media e dislivello in salita e in discesa, poi traccia l'intero percorso su una mappa interattiva. I dati per waypoint includono quota, velocità e precisione GPS.",
+    "s2Title": "Profili che raccontano l'uscita",
+    "s2Body": "La schermata di dettaglio mostra un profilo di velocità e un profilo di dislivello interattivi sulla distanza, con tooltip al passaggio. Un modo semplice per rivivere un percorso e vedere come si comporta una moto — in unità metriche o imperiali.",
+    "s3Title": "Ogni uscita alimenta lo storico della moto",
+    "s3Body": "Poiché ogni uscita è collegata a una moto del garage, il chilometraggio resta aggiornato automaticamente — il che mantiene precisi i promemoria di manutenzione a chilometraggio e onesta l'analisi del costo al chilometro.",
+    "faqLabel": "Hai domande?",
+    "faqTitle": "Domande frequenti",
+    "faq": [
+      {
+        "question": "Il tracciamento delle uscite è gratuito?",
+        "answer": "Sì. Il tracciamento GPS delle uscite è gratuito su iOS e Android. Un abbonamento opzionale MotoVault Pro (4,99 $/mese) sblocca funzioni avanzate."
+      },
+      {
+        "question": "Quali dati registra MotoVault durante un'uscita?",
+        "answer": "Ogni uscita acquisisce distanza, durata (tempo in movimento e in sosta), velocità massima e media, dislivello in salita e in discesa e una mappa del percorso completa, oltre a quota, velocità e precisione GPS per ogni waypoint."
+      },
+      {
+        "question": "Posso vedere velocità e dislivello di un'uscita?",
+        "answer": "Sì. Ogni uscita include grafici interattivi del profilo di velocità e di dislivello sulla distanza, con tooltip, in unità metriche e imperiali."
+      },
+      {
+        "question": "Le uscite sono collegate alle mie moto?",
+        "answer": "Sì. Ogni uscita è collegata a una moto specifica del garage, così il chilometraggio si aggiorna automaticamente e resta coerente con lo storico di manutenzione e spese di quella moto."
+      }
+    ],
+    "faqMore": "Altre domande?",
+    "faqSupportLink": "Vai alla pagina di supporto",
+    "breadcrumbHome": "Home",
+    "breadcrumbFeatures": "Funzionalità"
   }
 }

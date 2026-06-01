@@ -896,52 +896,6 @@
     "breadcrumbHome": "Inicio",
     "breadcrumbFeatures": "Funciones"
   },
-  "FeaturesProgress": {
-    "title": "Rastrea Tu Conocimiento de Motos",
-    "description": "Gana insignias, rastrea puntuaciones de cuestionarios, construye rachas de aprendizaje. Educación de motos gamificada que te mantiene motivado.",
-    "heroTitle": "Rastrea Tu Progreso",
-    "heroSubtitle": "Aprendizaje gamificado que te mantiene motivado. Gana insignias, construye rachas y mira crecer tu experiencia.",
-    "badgesTitle": "Gana Insignias de Logros",
-    "badgesDesc": "Completa cursos, domina cuestionarios y alcanza hitos para desbloquear insignias de logros. Muestra tu conocimiento de motos.",
-    "streaksTitle": "Construye Rachas de Aprendizaje",
-    "streaksDesc": "Aprende algo nuevo cada día. Construye rachas para mantenerte constante y construir conocimiento duradero de motos.",
-    "scoresTitle": "Rastrea Puntuaciones de Cuestionarios",
-    "scoresDesc": "Ve tu rendimiento en todos los módulos. Identifica áreas débiles y enfoca tu aprendizaje donde más importa.",
-    "faq": [
-      {
-        "question": "¿Qué métricas muestra el rastreador de progreso?",
-        "answer": "El rastreador de progreso de MotoVault te da una vista completa de tu recorrido de conocimiento de motos. Las métricas clave incluyen tasas de finalización de tareas de mantenimiento, calendarios de servicio próximos, tendencias de gastos, progreso de aprendizaje a través de árboles de habilidades, puntuaciones de cuestionarios, insignias ganadas y longitud de rachas de aprendizaje."
-      },
-      {
-        "question": "¿Puedo configurar recordatorios de mantenimiento personalizados?",
-        "answer": "Sí. MotoVault te permite configurar recordatorios totalmente personalizables basados en intervalos de kilometraje, intervalos de tiempo, o ambos. Los recordatorios comunes incluyen cambios de aceite, lubricación de cadena, revisiones de neumáticos e inspecciones de frenos, pero puedes crear recordatorios personalizados para cualquier tarea."
-      },
-      {
-        "question": "¿Funciona el seguimiento de progreso con múltiples motos?",
-        "answer": "Sí. MotoVault proporciona paneles por moto para que puedas ver el estado de mantenimiento, tareas próximas e historial de gastos de cada moto individualmente. También puedes ver una vista general agregada de todas tus motos."
-      },
-      {
-        "question": "¿Puedo exportar mis datos de mantenimiento?",
-        "answer": "Sí. MotoVault te permite exportar informes completos de mantenimiento para cualquier moto en tu garaje. Estos informes incluyen el historial de servicio completo con fechas, kilometraje, costos y notas — perfecto para documentar la condición de tu moto para compradores potenciales o reclamaciones de seguros."
-      }
-    ],
-    "longFormTitle": "Seguimiento de Progreso de Motos: Mantente Motivado, Mantente al Día",
-    "longFormIntro": "Mantener una moto y construir conocimiento mecánico son compromisos a largo plazo. Sin una forma de rastrear tu progreso, es fácil perder impulso. El sistema de seguimiento de progreso de MotoVault mantiene todo visible y organizado, combinando métricas de aprendizaje gamificado con paneles prácticos de mantenimiento.",
-    "longFormDashboardTitle": "Tu Panel Personal de Motos",
-    "longFormDashboard": "El panel de MotoVault reúne todo lo que necesitas ver en un solo lugar. De un vistazo, puedes verificar qué motos necesitan mantenimiento pronto, cuál es tu próxima lección, cómo están evolucionando tus puntuaciones de cuestionarios y dónde está tu gasto del mes.",
-    "longFormRemindersTitle": "Recordatorios Inteligentes que Te Mantienen Rodando",
-    "longFormReminders": "El sistema de recordatorios es la columna vertebral del seguimiento de mantenimiento de MotoVault. Configura recordatorios basados en kilometraje, tiempo, o ambos, y MotoVault se encarga del resto. Recibirás notificaciones cuando el servicio se acerque — no después de que ya sea tarde.",
-    "longFormAnalyticsTitle": "Análisis e Informes para una Propiedad más Inteligente",
-    "longFormAnalytics": "MotoVault va más allá del simple seguimiento al proporcionar análisis que te ayudan a tomar decisiones más inteligentes sobre tus motos. Los análisis de gastos muestran el gasto total por moto, por categoría y a lo largo del tiempo. Los análisis de mantenimiento destacan qué tareas completas a tiempo versus cuáles tienden a retrasarse. Todos los datos se pueden exportar en informes limpios.",
-    "sectionLabel": "Seguimiento de progreso",
-    "featuresLabel": "Mantente motivado",
-    "featuresTitle": "Registra cada hito",
-    "longFormLabel": "Bajo el capó",
-    "faqLabel": "¿Preguntas?",
-    "faqTitle": "Preguntas frecuentes",
-    "faqMore": "¿Más preguntas?",
-    "faqSupportLink": "Visita nuestra página de soporte"
-  },
   "CostCalculator": {
     "title": "Calculadora de Coste de Propiedad de Moto",
     "description": "Calcula el coste real de tener una moto. Estima combustible, seguro, mantenimiento, neumáticos y tasas de registro. Descubre cuánto cuesta mantener una moto al año y por kilómetro.",
@@ -1072,8 +1026,12 @@
     "garageDesc": "Controla cada moto que tienes: kilometraje, historial de servicio, combustible y gastos, en una única línea de tiempo por moto.",
     "learningTitle": "Rutas de aprendizaje",
     "learningDesc": "Módulos estructurados y artículos generados por IA adaptados a tu moto, desde el servicio de frenos hasta el almacenamiento invernal.",
-    "progressTitle": "Seguimiento del progreso",
-    "progressDesc": "Cada ruta, cada tarea, cada gasto registrado automáticamente para que siempre sepas cómo está tu moto."
+    "maintenanceTitle": "Seguimiento de mantenimiento",
+    "maintenanceDesc": "Registra cada servicio, programa recordatorios por kilometraje y tiempo, y mantén un historial documentado de cada moto.",
+    "expensesTitle": "Control de gastos",
+    "expensesDesc": "Controla combustible, piezas y servicio por categoría y consulta el coste por kilómetro de cada moto que tienes.",
+    "ridesTitle": "Registro de rutas",
+    "ridesDesc": "Graba rutas con GPS completo — distancia, velocidad y desnivel — vinculadas a la moto correcta de tu garaje."
   },
   "FeaturesTripPlanning": {
     "title": "Planificador de viajes en moto — Constructor de rutas e itinerario",
@@ -2839,5 +2797,149 @@
     "noFollowing": "Aún no sigues a nadie.",
     "loadMore": "Cargar más",
     "loading": "Cargando..."
+  },
+  "FeaturesMaintenance": {
+    "title": "Registro de mantenimiento de moto — Historial de servicio y recordatorios",
+    "description": "Registra cada servicio, programa recordatorios por kilometraje y tiempo, y mantén un historial de mantenimiento completo para cada moto de tu garaje. Gratis en iOS y Android.",
+    "sectionLabel": "Seguimiento de mantenimiento",
+    "heroTitle": "No vuelvas a saltarte un servicio",
+    "heroSubtitle": "El registro de mantenimiento de MotoVault mantiene un historial de servicio completo para cada moto que tienes y te avisa antes de que toque hacer el trabajo — según el kilometraje, el tiempo o ambos. Registra cambios de aceite, engrase de cadena, servicio de frenos y tareas personalizadas con fecha, kilometraje, coste y fotos, para que nada se te escape y la documentación de tu moto esté siempre lista para la venta.",
+    "featuresLabel": "Siempre al día",
+    "featuresTitle": "Un mantenimiento que se organiza solo",
+    "f1Title": "Recordatorios de servicio inteligentes",
+    "f1Desc": "Configura recordatorios por intervalo de kilometraje, de tiempo o ambos. MotoVault te avisa antes de que toque el servicio — no cuando ya va con retraso — y se reinicia automáticamente al registrar la tarea.",
+    "f2Title": "Historial de servicio completo",
+    "f2Desc": "Cada trabajo se registra con fecha, kilometraje, coste, categoría, notas y fotos. Construyes para cada moto un historial documentado que aumenta el valor de reventa y simplifica las reclamaciones al seguro.",
+    "f3Title": "Programas por moto",
+    "f3Desc": "Una deportiva y una custom tienen necesidades distintas. Configura un programa de mantenimiento independiente para cada moto de tu garaje.",
+    "longFormLabel": "Bajo el capó",
+    "longFormTitle": "Un seguimiento de mantenimiento que mantiene tu moto en forma",
+    "longFormIntro": "El mantenimiento de una moto es un compromiso a largo plazo, y los intervalos olvidados salen caros. El registro de mantenimiento de MotoVault sustituye la caja de recibos y la hoja de cálculo por un único historial de servicio ordenado por moto — con recordatorios que te llegan antes de que se te pase un servicio.",
+    "s1Title": "Registra cada trabajo en segundos",
+    "s1Body": "Anota el mantenimiento con fecha, kilometraje, coste, categoría y notas detalladas, y adjunta fotos de piezas o recibos. Las tareas se organizan en atrasadas, próximas y completadas, para que siempre sepas qué necesita atención.",
+    "s2Title": "Recordatorios según cómo ruedas de verdad",
+    "s2Body": "Configura recordatorios por kilometraje (aceite cada 5.000 km), por tiempo (líquido de frenos cada 2 años) o ambos. Como los recordatorios son por moto, una de diario y una tourer de fin de semana pueden seguir programas totalmente distintos. Registra una tarea completada y el siguiente recordatorio se reinicia automáticamente.",
+    "s3Title": "Una documentación que te devuelve dinero",
+    "s3Body": "Exporta un informe de mantenimiento completo de cualquier moto — fechas, kilometraje, costes y notas. Un historial de servicio documentado tranquiliza a los compradores, respalda reclamaciones de seguro y garantía, y puede aumentar notablemente el valor de reventa.",
+    "faqLabel": "¿Tienes preguntas?",
+    "faqTitle": "Preguntas frecuentes",
+    "faq": [
+      {
+        "question": "¿MotoVault hace seguimiento del mantenimiento de varias motos?",
+        "answer": "Sí. MotoVault da a cada moto de tu garaje su propio historial de servicio, recordatorios y programa. Puedes ver cada moto por separado o consultar una vista general de cuál necesita atención antes en todo tu garaje."
+      },
+      {
+        "question": "¿Puedo crear recordatorios de mantenimiento personalizados?",
+        "answer": "Sí. Los recordatorios son totalmente personalizables por intervalo de kilometraje, de tiempo o ambos. Más allá de plantillas como el cambio de aceite y el engrase de cadena, puedes crear un recordatorio para cualquier tarea, configurado por moto. Al marcar la tarea como completada, el siguiente recordatorio se reinicia automáticamente."
+      },
+      {
+        "question": "¿Puedo exportar el historial de servicio de mi moto?",
+        "answer": "Sí. MotoVault exporta un informe de mantenimiento completo de cualquier moto, con fechas, kilometraje, costes y notas — ideal para la documentación de venta, reclamaciones al seguro o tus propios registros."
+      },
+      {
+        "question": "¿El registro de mantenimiento es gratis?",
+        "answer": "Sí. El seguimiento de mantenimiento es gratis en iOS y Android. Una suscripción opcional a MotoVault Pro (4,99 $/mes) desbloquea funciones avanzadas."
+      }
+    ],
+    "faqMore": "¿Más preguntas?",
+    "faqSupportLink": "Visita nuestra página de soporte",
+    "breadcrumbHome": "Inicio",
+    "breadcrumbFeatures": "Funciones"
+  },
+  "FeaturesExpenses": {
+    "title": "Control de gastos de moto — Combustible, piezas y coste por kilómetro",
+    "description": "Controla cada gasto de la moto por categoría, consulta el coste por kilómetro y compara gastos entre motos y años. Gratis en iOS y Android.",
+    "sectionLabel": "Control de gastos",
+    "heroTitle": "Sabe exactamente cuánto te cuesta tu moto",
+    "heroSubtitle": "El control de gastos de MotoVault registra cada coste de la moto — combustible, mantenimiento, piezas y equipamiento — y lo convierte en análisis claros: gasto del año en curso, coste por kilómetro, tendencias mensuales y comparativas por moto. Por fin conoces el coste real de tenerla, en lugar de suponerlo.",
+    "featuresLabel": "Sigue el dinero",
+    "featuresTitle": "Cada gasto, categorizado y claro",
+    "f1Title": "Cuatro categorías de gasto",
+    "f1Desc": "Registra combustible, mantenimiento, piezas y equipamiento en segundos. Cada gasto se asocia a una moto concreta, así quien tiene varias ve exactamente adónde va el dinero.",
+    "f2Title": "Análisis de coste por kilómetro",
+    "f2Desc": "MotoVault calcula el coste por kilómetro y por milla automáticamente, para que compares motos y entiendas lo que cuesta de verdad mantener cada una.",
+    "f3Title": "Tendencias y comparativas",
+    "f3Desc": "Consulta el gasto del año con desglose por categorías, tendencias mensuales y comparativa año actual frente a histórico — en unidades métricas e imperiales.",
+    "longFormLabel": "Bajo el capó",
+    "longFormTitle": "Un control de gastos que revela el coste real de tener una moto",
+    "longFormIntro": "La mayoría de los moteros subestima lo que cuesta su moto porque el gasto está repartido entre recibos de combustible, pedidos de piezas y facturas de taller. El control de gastos de MotoVault lo reúne todo en un solo lugar y convierte los costes en las métricas que de verdad importan — coste por kilómetro, desglose por categorías y tendencias interanuales.",
+    "s1Title": "Registra gastos en cuatro categorías claras",
+    "s1Body": "Combustible, mantenimiento, piezas y equipamiento — cada gasto se registra para una moto concreta con fecha, importe y notas. Con varias motos, ves cuál se come tu presupuesto y cuál es barata de mantener.",
+    "s2Title": "Convierte el gasto en coste por kilómetro",
+    "s2Body": "MotoVault calcula automáticamente el coste por kilómetro y por milla a partir de tus gastos y las distancias recorridas. Es el dato más útil para comparar motos, decidir si conservarla o venderla y planificar el presupuesto del año.",
+    "s3Title": "Detecta tendencias antes de que te sorprendan",
+    "s3Body": "El panel de gastos muestra los totales del año con barras por categoría, tendencias mensuales y una comparativa año actual frente a histórico. Si los costes de mantenimiento suben en una moto antigua, lo ves pronto — en unidades métricas o imperiales, a tu elección.",
+    "faqLabel": "¿Tienes preguntas?",
+    "faqTitle": "Preguntas frecuentes",
+    "faq": [
+      {
+        "question": "¿El control de gastos es gratis?",
+        "answer": "Sí. El control de gastos es gratis en iOS y Android. Una suscripción opcional a MotoVault Pro (4,99 $/mes) desbloquea funciones avanzadas."
+      },
+      {
+        "question": "¿Qué gastos puedo controlar?",
+        "answer": "MotoVault controla cuatro categorías: combustible, mantenimiento, piezas y equipamiento. Cada gasto se asocia a una moto concreta, con fecha, importe y notas, así el gasto queda organizado por moto."
+      },
+      {
+        "question": "¿MotoVault calcula el coste por kilómetro?",
+        "answer": "Sí. MotoVault calcula automáticamente el coste por kilómetro y por milla a partir de tus gastos registrados y las distancias recorridas, en unidades métricas e imperiales."
+      },
+      {
+        "question": "¿Puedo controlar los gastos de más de una moto?",
+        "answer": "Sí. Cada gasto se asigna a una moto concreta, y el panel permite comparar el gasto entre todas las motos de tu garaje."
+      }
+    ],
+    "faqMore": "¿Más preguntas?",
+    "faqSupportLink": "Visita nuestra página de soporte",
+    "breadcrumbHome": "Inicio",
+    "breadcrumbFeatures": "Funciones"
+  },
+  "FeaturesRides": {
+    "title": "Registro de rutas en moto — Grabación GPS y análisis de ruta",
+    "description": "Graba cada ruta con GPS — distancia, velocidad, desnivel y un mapa de ruta interactivo — vinculada a la moto correcta de tu garaje. Gratis en iOS y Android.",
+    "sectionLabel": "Registro de rutas",
+    "heroTitle": "Graba cada ruta con detalle",
+    "heroSubtitle": "El registro de rutas de MotoVault graba cada salida con GPS completo — distancia, tiempo en movimiento, velocidad máxima y media, desnivel positivo y negativo, y un mapa de ruta completo. Cada ruta se vincula a una moto concreta, formando una imagen del uso de cada máquina junto a su mantenimiento y sus gastos.",
+    "featuresLabel": "Cada kilómetro cuenta",
+    "featuresTitle": "Grabación GPS pensada para moteros",
+    "f1Title": "Grabación GPS completa",
+    "f1Desc": "Captura distancia, duración, tiempo en movimiento y detenido, velocidad máxima y media, y desnivel positivo y negativo — todo en un mapa de ruta interactivo.",
+    "f2Title": "Perfiles de velocidad y desnivel",
+    "f2Desc": "Cada ruta incluye gráficos interactivos de velocidad y desnivel sobre la distancia, con altitud, velocidad y precisión GPS en cada punto.",
+    "f3Title": "Vinculado a tu garaje",
+    "f3Desc": "Las rutas se asocian a una moto concreta, así el kilometraje y el uso de cada máquina conviven con su historial de mantenimiento y sus gastos.",
+    "longFormLabel": "Bajo el capó",
+    "longFormTitle": "Un registro de rutas conectado con el resto de tu garaje",
+    "longFormIntro": "Un registro de rutas es más útil cuando no está aislado en otra app. MotoVault graba cada salida con todo el detalle del GPS y la vincula a la moto que realmente usaste — así distancia, mantenimiento y coste están en un solo lugar.",
+    "s1Title": "Datos GPS completos en cada ruta",
+    "s1Body": "MotoVault captura distancia, duración con tiempo en movimiento y detenido, velocidad máxima y media, y desnivel positivo y negativo, y luego dibuja la ruta completa en un mapa interactivo. Los datos por punto incluyen altitud, velocidad y precisión GPS.",
+    "s2Title": "Perfiles que cuentan la historia",
+    "s2Body": "La pantalla de detalle de la ruta dibuja un perfil de velocidad y un perfil de desnivel interactivos sobre la distancia, con información al pasar el cursor. Una forma sencilla de revivir una ruta y ver cómo se comporta una moto — en unidades métricas o imperiales.",
+    "s3Title": "Cada ruta alimenta el historial de tu moto",
+    "s3Body": "Como cada ruta está vinculada a una moto de tu garaje, tu kilometraje se mantiene al día automáticamente — lo que mantiene precisos los recordatorios de mantenimiento por kilometraje y honesto el coste por kilómetro.",
+    "faqLabel": "¿Tienes preguntas?",
+    "faqTitle": "Preguntas frecuentes",
+    "faq": [
+      {
+        "question": "¿El registro de rutas es gratis?",
+        "answer": "Sí. El registro de rutas por GPS es gratis en iOS y Android. Una suscripción opcional a MotoVault Pro (4,99 $/mes) desbloquea funciones avanzadas."
+      },
+      {
+        "question": "¿Qué datos graba MotoVault en una ruta?",
+        "answer": "Cada ruta captura distancia, duración (tiempo en movimiento y detenido), velocidad máxima y media, desnivel positivo y negativo, y un mapa de ruta completo, además de altitud, velocidad y precisión GPS en cada punto."
+      },
+      {
+        "question": "¿Puedo ver la velocidad y el desnivel de una ruta?",
+        "answer": "Sí. Cada ruta incluye gráficos interactivos de perfil de velocidad y desnivel sobre la distancia, con información al pasar el cursor, en unidades métricas e imperiales."
+      },
+      {
+        "question": "¿Las rutas se conectan con mis motos?",
+        "answer": "Sí. Cada ruta se vincula a una moto concreta de tu garaje, así el kilometraje se actualiza automáticamente y se mantiene coherente con el historial de mantenimiento y gastos de esa moto."
+      }
+    ],
+    "faqMore": "¿Más preguntas?",
+    "faqSupportLink": "Visita nuestra página de soporte",
+    "breadcrumbHome": "Inicio",
+    "breadcrumbFeatures": "Funciones"
   }
 }

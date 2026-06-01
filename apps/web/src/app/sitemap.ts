@@ -6,7 +6,7 @@ import { scoreBikePage } from '@/lib/bikes/quality-gate';
 import { getArticles } from '@/lib/blog';
 import { BASE_URL } from '@/lib/constants';
 import { gqlServerFetcher } from '@/lib/graphql-server';
-import { canonicalCountry, canonicalExplore, canonicalRegion } from '@/lib/seo/canonical';
+import { canonicalCountry, canonicalRegion } from '@/lib/seo/canonical';
 
 const host = BASE_URL;
 const locales = routing.locales;
@@ -16,7 +16,9 @@ const featureImages: Record<string, string> = {
   '/features/ai-diagnostics': `${host}/screenshots/diagnose-hub.png`,
   '/features/learning-paths': `${host}/screenshots/home-alerts-articles.png`,
   '/features/garage-management': `${host}/screenshots/garage.png`,
-  '/features/progress-tracking': `${host}/screenshots/home-dashboard.png`,
+  '/features/maintenance': `${host}/screenshots/flow-add-maintenance.png`,
+  '/features/expense-tracking': `${host}/screenshots/home-rides-expenses.png`,
+  '/features/ride-tracking': `${host}/screenshots/home-rides-expenses.png`,
 };
 
 const pages = [
@@ -30,7 +32,10 @@ const pages = [
   '/features/ai-diagnostics',
   '/features/learning-paths',
   '/features/garage-management',
-  '/features/progress-tracking',
+  '/features/maintenance',
+  '/features/expense-tracking',
+  '/features/ride-tracking',
+  '/explore',
   '/blog',
   '/tools/cost-calculator',
   '/tools/tclocs-checklist',
@@ -64,10 +69,13 @@ const PAGE_LAST_EDITED: Record<string, string> = {
   '/account-deletion': '2026-03-01',
   '/features': '2026-04-11',
   '/features/trip-planning': '2026-04-11',
-  '/features/ai-diagnostics': '2026-04-11',
+  '/features/ai-diagnostics': '2026-06-01',
   '/features/learning-paths': '2026-04-11',
   '/features/garage-management': '2026-04-11',
-  '/features/progress-tracking': '2026-04-11',
+  '/features/maintenance': '2026-06-01',
+  '/features/expense-tracking': '2026-06-01',
+  '/features/ride-tracking': '2026-06-01',
+  '/explore': '2026-06-01',
   '/blog': '2026-04-11',
   '/tools/cost-calculator': '2026-03-22',
   '/tools/tclocs-checklist': '2026-03-22',
@@ -191,9 +199,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     regionSet.add(`${t.countryCode.toLowerCase()}/${t.regionCode.toLowerCase()}`);
   }
 
-  const exploreEntry =
-    publishedTrips.length > 0 ? [{ url: canonicalExplore(), lastModified: new Date() }] : [];
-
   const countryEntries = [...countrySet].map((cc) => ({
     url: canonicalCountry(cc),
     lastModified: new Date(),
@@ -210,7 +215,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     bikeIndexEntry,
     ...bikeLeafEntries,
     ...tripTemplateEntries,
-    ...exploreEntry,
     ...countryEntries,
     ...regionEntries,
   ];
