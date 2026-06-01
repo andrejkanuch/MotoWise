@@ -215,6 +215,34 @@ export function buildBreadcrumbList(
   };
 }
 
+export interface ItemListEntry {
+  name: string;
+  url: string;
+}
+
+/**
+ * Ordered ItemList for listing/collection pages (countries, regions, routes).
+ * Gives AI engines and rich results an explicit, enumerated set of child links.
+ */
+export function buildItemList(
+  items: ItemListEntry[],
+  idFragment: string,
+  name?: string,
+): JsonLdNode {
+  return {
+    '@type': 'ItemList',
+    '@id': `${BASE_URL}/#/${idFragment}/itemlist`,
+    ...(name ? { name } : {}),
+    numberOfItems: items.length,
+    itemListElement: items.map((entry, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: entry.name,
+      url: entry.url,
+    })),
+  };
+}
+
 export interface WebPageOptions {
   url: string;
   name: string;
