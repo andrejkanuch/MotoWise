@@ -40,7 +40,27 @@
     "scrollDown": "Nach unten scrollen",
     "seoTitle": "Motorrad-Wartungstracker & Ausgabenmanager",
     "subtitleShort": "Maintenance tracking, trip planning, and expense logging — all in one free app for iOS and Android.",
-    "trustLine": "Free to download — no credit card required."
+    "trustLine": "Free to download — no credit card required.",
+    "tickerTripsLabel": "TOUREN",
+    "tickerTripsSub": "MEHRTAGESROUTEN PLANEN",
+    "tickerMaintenanceLabel": "WARTUNG",
+    "tickerMaintenanceSub": "KEINE INSPEKTION VERPASSEN",
+    "tickerExpensesLabel": "AUSGABEN",
+    "tickerExpensesSub": "KENNE DEINE WAHREN KOSTEN",
+    "tickerDiagnosticsLabel": "KI-DIAGNOSE",
+    "tickerDiagnosticsSub": "FOTO MACHEN, ANTWORTEN ERHALTEN",
+    "tickerFreeLabel": "GRATIS",
+    "tickerFreeSub": "KEINE TESTPHASE, KEINE KREDITKARTE",
+    "tickerPlatformLabel": "iOS + ANDROID",
+    "tickerPlatformSub": "FÜR MOTORRÄDER ENTWICKELT",
+    "cornerFreePlatforms": "Gratis · iOS · Android",
+    "badgeNew": "Neu",
+    "badgeDiagnosticsLive": "KI-Fotodiagnose ist jetzt verfügbar",
+    "titleLine1": "Der Begleiter",
+    "titleLine2": "jedes Fahrers.",
+    "description": "Tourenplanung, Wartung, Ausgaben und KI-Diagnose – die vier Werkzeuge, die jeder Motorradfahrer braucht, in einer wunderbar einfachen App.",
+    "downloadIos": "Für iOS herunterladen",
+    "trustLineStrip": "GRATIS · iOS + ANDROID · FÜR MOTORRÄDER ENTWICKELT"
   },
   "Features": {
     "sectionLabel": "Funktionen",
@@ -85,7 +105,79 @@
     "tripAlt": "MotoVault trip planning screen showing Dolomites Loop route on a map",
     "maintenanceAlt": "MotoVault maintenance tracking with active service tasks and reminders",
     "expensesAlt": "MotoVault expense tracking showing cost breakdowns by category",
-    "plusLine": "Plus ride logging, AI diagnostics, digital garage, and more."
+    "plusLine": "Plus ride logging, AI diagnostics, digital garage, and more.",
+    "grid": {
+      "sectionMeta": "Funktionen · 01",
+      "sectionTitleLead": "Fünf Werkzeuge.",
+      "sectionTitleEmphasis": "Eine App.",
+      "sectionSub": "Speziell für Motorräder entwickelt. Keine nachgerüstete Auto-Software. Keine OBD-Hardware. Nur das, was du wirklich brauchst – lesbar mit Handschuhen bei 110 km/h.",
+      "screenshotAlt": "Screenshot: {feature}",
+      "trip": {
+        "title": "Plane mehrtägige Routen auf einer Live-Karte.",
+        "body": "Setze typisierte Wegpunkte – Tankstopp, Aussicht, Übernachtung, Passhöhe – auf echtem Straßen-Routing. Teile eine GPX-Datei mit einem Tippen auf das Handy jedes Fahrers.",
+        "kv1Label": "Wegpunkte",
+        "kv1Value": "Typisiert & landschaftlich",
+        "kv2Label": "Export",
+        "kv2Value": "GPX · Google Maps",
+        "badge": "Tourenplanung",
+        "chip1Label": "Route fertig",
+        "chip1Value": "Dolomiten · 4 Tage",
+        "chip2Label": "2 Fahrer",
+        "chip2Value": "· 3 Wegpunkte"
+      },
+      "diag": {
+        "title": "Foto machen. Antworten bekommen.",
+        "body": "Richte die Kamera auf eine Warnleuchte, einen Ölverlust oder ein verdächtiges Teil. Ein Bildmodell sagt dir, was es ist und was zu tun ist – in weniger als fünf Sekunden.",
+        "kv1Label": "Hardware",
+        "kv1Value": "Kein OBD nötig",
+        "kv2Label": "Eingabe",
+        "kv2Value": "Foto oder Text",
+        "badge": "KI-Diagnose",
+        "chip1Label": "Scan-Ergebnis",
+        "chip1Value": "Kettenspannung zu gering",
+        "chip2Label": "Bereitgestellt von",
+        "chip2Value": "Claude AI"
+      },
+      "maintenance": {
+        "title": "Verpasse nie wieder einen Service.",
+        "body": "Protokolliere jeden Ölwechsel, jede Kettenschmierung und jeden Reifenwechsel. Kilometer- oder zeitbasierte Erinnerungen zeigen dir, was fällig ist – bevor es überfällig wird.",
+        "kv1Label": "Erinnerungen",
+        "kv1Value": "Kilometerbasiert",
+        "kv2Label": "Verlauf",
+        "kv2Value": "Für immer, pro Motorrad",
+        "badge": "Wartungs-Tracking",
+        "chip1Label": "Nächster Service",
+        "chip1Value": "Ölwechsel · 420 mi",
+        "chip2Label": "Kettenschmierung",
+        "chip2Value": "Fällig bei 1.200 mi"
+      },
+      "expenses": {
+        "title": "Erfahre, was dein Motorrad wirklich kostet.",
+        "body": "Verfolge Kraftstoff, Teile, Ausrüstung und Versicherung mit monatlichen Aufschlüsselungen. Kosten-pro-Kilometer-Analysen, damit du Bescheid weißt, bevor du das zweite Motorrad kaufst.",
+        "kv1Label": "Aufschlüsselung",
+        "kv1Value": "Kosten pro Kilometer",
+        "kv2Label": "Kategorien",
+        "kv2Value": "8 integriert",
+        "badge": "Ausgaben-Tracking",
+        "chip1Label": "Diesen Monat",
+        "chip1Value": "214,80 $ · 12 Einträge",
+        "chip2Label": "Kosten / Kilometer",
+        "chip2Value": "Automatisch berechnet"
+      },
+      "rides": {
+        "title": "Jede Fahrt, kartiert und gespeichert.",
+        "body": "Zeichne GPS-Routen mit Geschwindigkeit, Distanz und Höhenmeter auf. Sieh dir deine Statistiken an, teile die Highlights und baue eine vollständige Fahrhistorie auf.",
+        "kv1Label": "Tracking",
+        "kv1Value": "GPS-Routen",
+        "kv2Label": "Statistiken",
+        "kv2Value": "Geschwindigkeit · Höhe",
+        "badge": "Fahrten-Tracking",
+        "chip1Label": "Letzte Fahrt",
+        "chip1Value": "86 mi · 1 Std. 42 Min.",
+        "chip2Label": "Höchstgeschwindigkeit",
+        "chip2Value": "72 mph · aufgezeichnet"
+      }
+    }
   },
   "SocialProof": {
     "riders": "Tools",
@@ -170,7 +262,16 @@
     "successMessage": "Danke! Lade MotoVault im App Store oder bei Google Play herunter.",
     "successTagline": "Dein Motorrad verdient mehr als eine Tabelle.",
     "errorMessage": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
-    "personality": "Dein Motorrad verdient mehr als eine Tabelle."
+    "personality": "Dein Motorrad verdient mehr als eine Tabelle.",
+    "metaLabel": "Herunterladen · für immer kostenlos",
+    "headlineLead": "Fahre",
+    "headlineEmphasis": "smarter.",
+    "subtitleDownload": "Kostenlos für iOS und Android. Richte deine Garage in unter 90 Sekunden ein.",
+    "appStore": "App Store",
+    "googlePlay": "Google Play",
+    "trustFreeForever": "Für immer kostenlos",
+    "trustNoCreditCard": "Keine Kreditkarte",
+    "trustUnlimitedBikes": "Unbegrenzte Motorräder"
   },
   "Faq": {
     "sectionLabel": "FAQ",
@@ -178,29 +279,67 @@
     "items": [
       {
         "question": "Was ist MotoVault?",
-        "answer": "MotoVault ist eine Motorrad-Management-App für Fahrer. Verfolge Wartungsaufgaben mit smarten Erinnerungen, protokolliere jede Ausgabe (Kraftstoff, Ausrüstung, Teile), zeichne deine Fahrten auf und diagnostiziere Probleme mit KI-Fotoanalyse — alles in einer App."
+        "answer": "MotoVault ist eine kostenlose iOS- und Android-App, die die vier Dinge, die jeder Motorradfahrer braucht, in einer einzigen Plattform vereint: mehrtägige Tourenplanung mit Turn-by-Turn-Navigation, vorausschauende Wartungsverfolgung, Ausgabenverwaltung pro Motorrad und KI-gestützte Foto-Diagnose. Die App unterstützt über 12.000 Motorradmodelle aus der NHTSA-vPIC-Datenbank und deckt jeden großen Hersteller der letzten 30 Jahre ab. Fahrer können Routen planen, die Servicehistorie protokollieren, mechanische Probleme für eine sofortige KI-Analyse fotografieren und die Gesamtbetriebskosten ihrer gesamten Garage verfolgen. Es ist keine OBD-II-Hardware erforderlich und für den Einstieg kein Abo nötig. MotoVault wurde von Fahrern entwickelt, die es leid waren, fünf separate Apps für Aufgaben zu jonglieren, die zusammengehören. Quelle: NHTSA-vPIC-Datenbank für den Modellkatalog."
       },
       {
-        "question": "Ist MotoVault kostenlos?",
-        "answer": "Ja! MotoVault bietet einen kostenlosen Plan, der grundlegende Lerninhalte, ein Bike in deiner Garage und begrenzte KI-Diagnosen umfasst. Für unbegrenzte Diagnosen, alle Lerninhalte und unbegrenzte Bikes kannst du in der App auf MotoVault Pro upgraden."
-      },
-      {
-        "question": "Welche Motorräder werden unterstützt?",
-        "answer": "MotoVault unterstützt alle Motorradmarken und -modelle. Unsere Datenbank nutzt die offiziellen NHTSA-Fahrzeugdaten und umfasst Tausende von Marken und Modellen über alle Baujahre hinweg. Suche einfach nach deinem Bike, wenn du es zu deiner Garage hinzufügst."
+        "question": "Ist MotoVault wirklich kostenlos?",
+        "answer": "MotoVault ist für seinen Kernfunktionsumfang für immer kostenlos. Dazu gehören ein Motorrad in deiner Garage (Upgrade auf Pro für unbegrenzte Motorräder), vollständige Wartungsverfolgung mit Servicehistorie, Ausgabenprotokollierung mit Kostenaufschlüsselung pro Motorrad, Fahrtenaufzeichnung mit GPS-Tracks, der vollständige Tourenplaner und ein KI-Diagnose-Scan pro Monat. Es gibt keine Testphase und keine Funktionssperre nach 30 Tagen. MotoVault Pro kostet 4 $ pro Monat oder 36 $ pro Jahr und schaltet unbegrenzte KI-Diagnose-Scans, erweiterte Fahreranalysen mit wöchentlichen Leistungsberichten, unbegrenzte GPX-Exporte, bevorzugte Routenverarbeitung und erweiterte Fahrtstatistiken mit Höhendaten frei. Jede Kernfunktion, die du zur Wartung und Verwaltung deines Motorrads brauchst, ist im kostenlosen Tarif verfügbar."
       },
       {
         "question": "Wie funktioniert die KI-Diagnose?",
-        "answer": "Mache ein Foto von einem beliebigen Teil deines Motorrads und beschreibe das Problem. Unsere KI analysiert das Bild und liefert eine diagnostische Bewertung mit Schweregradeinschätzung — von kritischen Problemen, die sofortige Aufmerksamkeit erfordern, bis hin zu kleineren Wartungsvorschlägen."
+        "answer": "Die KI-Diagnose von MotoVault basiert auf dem Claude-AI-Vision-Modell von Anthropic, einem der fortschrittlichsten verfügbaren multimodalen KI-Systeme. Öffne dazu die Diagnosekamera in der App, richte sie auf das Bauteil, die Warnleuchte oder den betroffenen Bereich und tippe auf den Auslöser. Das Vision-Modell erkennt, was es sieht, gleicht bekannte Fehlerbilder für deine konkrete Marke und dein Modell ab und liefert eine strukturierte Diagnose mit wahrscheinlicher Ursache, Schweregrad-Bewertung und empfohlenem nächsten Schritt. Die meisten Ergebnisse erscheinen in weniger als fünf Sekunden. Das System gibt für jede Bewertung eine Konfidenz von niedrig, mittel oder hoch an. Die KI-Diagnose soll dir helfen, mögliche Probleme zu verstehen und die Dringlichkeit einzuschätzen – sie ersetzt bei komplexen Reparaturen keinen qualifizierten Motorradmechaniker."
+      },
+      {
+        "question": "Welche Motorräder unterstützt MotoVault?",
+        "answer": "MotoVault unterstützt jede große Motorradmarke und jedes Modell der letzten 30 Jahre – insgesamt über 12.000 verschiedene Modelle in der Datenbank. Modellspezifikationen wie Hubraum, Serviceintervalle und empfohlene Betriebsstoffe werden automatisch geladen, wenn du ein Motorrad zu deiner Garage hinzufügst. Die Abdeckung umfasst alle großen Hersteller, darunter Honda, Yamaha, Kawasaki, Suzuki, BMW, Ducati, KTM, Harley-Davidson, Triumph, Royal Enfield, Aprilia und Indian. Der Modellkatalog stammt aus dem NHTSA Vehicle Product Information Catalog, der maßgeblichen Datenbank der US-Bundesregierung zur Fahrzeugidentifikation. Falls dein konkretes Modell nicht aufgeführt ist, kannst du jedes beliebige Motorrad manuell mit eigenen Serviceintervallen hinzufügen. Quelle: NHTSA Vehicle Product Information Catalog, gepflegt von der National Highway Traffic Safety Administration."
       },
       {
         "question": "Sind meine Daten sicher?",
-        "answer": "Deine Daten sind durch Verschlüsselung auf Unternehmensniveau und strenge Zugriffskontrollen geschützt. Authentifizierungstoken werden sicher über plattformeigenen sicheren Speicher gespeichert, und alle Daten werden über HTTPS übertragen. Wir geben deine persönlichen Informationen oder Bike-Daten niemals an Dritte weiter."
+        "answer": "MotoVault nimmt Datensicherheit ernst und schützt jedes Fahrerkonto mit Schutzmaßnahmen auf Enterprise-Niveau. Alle Daten – einschließlich GPS-Tracks der Fahrten, Wartungsunterlagen, Ausgabenprotokolle und Diagnosebilder – werden bei der Übertragung mit TLS 1.3 und im Ruhezustand mit AES-256 auf in der EU gehosteter Infrastruktur verschlüsselt. Die Plattform ist vollständig DSGVO-konform, das heißt, europäische Fahrer haben volle Datenportabilität und das Recht auf Löschung. Du kannst deinen gesamten Verlauf als strukturierte Daten exportieren oder mit einem einzigen Tippen in den Einstellungen alles dauerhaft löschen. MotoVault verkauft niemals Fahrerdaten an Dritte, gibt niemals den Standortverlauf an Werbetreibende weiter und verwendet deine Diagnosefotos für nichts anderes als die Erstellung deines Ergebnisses. Row-Level-Security stellt sicher, dass jeder Fahrer selbst auf Datenbankebene nur auf seine eigenen Datensätze zugreifen kann."
       },
       {
-        "question": "Was ist in MotoVault Pro enthalten?",
-        "answer": "MotoVault Pro schaltet unbegrenzte KI-Diagnosen, Zugang zu allen Lernmodulen und Kursen, unbegrenzte Bikes in deiner Garage, bevorzugten Support und exklusive Inhalte frei. Du kannst monatlich oder jährlich über die App abonnieren."
+        "question": "Wie funktioniert die Tourenplanung?",
+        "answer": "Mit der Tourenplanung von MotoVault erstellst du mehrtägige Motorradrouten mit kategorisierten Wegpunkten, die Fahrer wirklich brauchen: Tankstopps, Aussichtspunkte, Grenzübergänge, Fährterminals, Restaurants und Übernachtungsmöglichkeiten. Jeder Wegpunkttyp zeigt sein eigenes Symbol auf der Karte, damit du sie schnell visuell erfassen kannst. Der Planer enthält Höhenprofile, sodass du Gebirgspässe vorhersehen und Höhenwechsel einplanen kannst, die die Motorleistung beeinflussen. Routen lassen sich per Drag-and-Drop umsortieren, und das System berechnet voraussichtliche Tankstopps anhand der Tankkapazität deines konkreten Motorrads. Nach der Fertigstellung lässt sich jede Route als standardmäßige GPX-Datei für die Offline-Nutzung auf Garmin, TomTom oder jedem kompatiblen GPS-Gerät exportieren. Tourenplanung und gespeicherte Routen sind im kostenlosen Tarif unbegrenzt; MotoVault Pro ergänzt unbegrenzte GPX-Routenexporte und unbegrenzte Fragen an den KI-Tourenassistenten."
+      },
+      {
+        "question": "Kann ich MotoVault offline nutzen?",
+        "answer": "MotoVault funktioniert offline für die Funktionen, die am wichtigsten sind, wenn du ohne Mobilfunkempfang unterwegs bist. Die Fahrtenaufzeichnung protokolliert weiterhin GPS-Koordinaten, Geschwindigkeit, Höhe und Dauer über die Sensoren deines Telefons – ganz ohne Datenverbindung. Du kannst auch offline Wartungseinträge und Ausgaben erfassen, und alle Einträge werden automatisch synchronisiert, sobald dein Gerät wieder verbunden ist. Zuvor geladene Tourenpläne lassen sich ebenfalls offline ansehen. Die Datensynchronisierung ist konfliktfrei, das heißt, offline und online vorgenommene Änderungen werden sauber und ohne Datenverlust zusammengeführt. Die einzige Funktion, die eine aktive Internetverbindung erfordert, ist die KI-Diagnose, da das Bild zur Analyse das cloudbasierte Vision-Modell erreichen muss. Alle anderen Kernfunktionen arbeiten auch in abgelegenen Gegenden zuverlässig."
+      },
+      {
+        "question": "Wie unterscheidet sich MotoVault von REVER oder Calimoto?",
+        "answer": "REVER und Calimoto sind hervorragende, navigationsorientierte Apps, aber sie lösen jeweils nur einen Teil des Motorradbesitz-Puzzles. MotoVault ist eine All-in-one-Plattform, die Tourenplanung, Wartungsverfolgung, Ausgabenverwaltung und KI-gestützte Diagnose in einer einzigen App mit einer einheitlichen Garage vereint. Statt zwischen Calimoto für Routen, einer Tabelle für Ausgaben, einer Notiz-App für die Servicehistorie und Google für die Deutung von Warnleuchten zu wechseln, erledigt MotoVault alle vier an einem Ort. Das heißt, deine Kraftstoffausgaben fließen in die Reichweitenschätzungen des Tourenplaners ein, deine Wartungshistorie liefert den Diagnosekontext und deine Fahrtenaufzeichnungen aktualisieren automatisch die Kilometerstände für Servicereminder. Der integrierte Ansatz vermeidet doppelte Dateneingaben und gibt dir ein vollständiges Bild jedes Motorrads, das du besitzt."
+      },
+      {
+        "question": "Welche Wartungserinnerungen sendet MotoVault?",
+        "answer": "MotoVault sendet smarte Wartungserinnerungen auf Basis von Kilometerstand oder verstrichener Zeit – je nachdem, welcher Schwellenwert zuerst erreicht wird. Zu den Standard-Servicekategorien gehören Öl- und Filterwechsel, Kettenreinigung und -einstellung, Reifenkontrolle und -wechsel, Bremsbelagverschleiß, Kühlmittelwechsel, Ventilspielprüfung, Luftfilterwechsel und Zündkerzenservice. Jede Erinnerung passt sich dem konkreten Serviceplan deines Motorrads an, statt generische Intervalle zu verwenden, denn ein Sportmotorrad bei Trackdays braucht weit häufiger einen Ölwechsel als ein Tourer auf der Autobahn. Wenn du ein Motorrad mit unterstütztem Modell hinzufügst, werden empfohlene Intervalle aus den Herstellerangaben vorausgefüllt. Du kannst jedes Intervall anpassen, eigene, für dein Motorrad spezifische Servicekategorien hinzufügen und Erinnerungen zurückstellen, wenn ein Service bereits mit deiner Werkstatt vereinbart ist."
+      },
+      {
+        "question": "Kann ich Ausgaben für mehrere Motorräder verfolgen?",
+        "answer": "Der kostenlose Tarif umfasst ein Motorrad, und MotoVault Pro schaltet unbegrenzt viele Motorräder in deiner Garage frei – wobei jede Ausgabe einem bestimmten Motorrad zugeordnet wird. Du kannst Tankvorgänge mit automatischer Berechnung der Kosten pro Kilometer, Versicherungsprämien, Ausrüstungskäufe, Ersatzteile, Arbeitskosten für Service, Zulassungsgebühren und jede selbst definierte Ausgabenkategorie erfassen. Jedes Motorrad zeigt seine eigene laufende Summe, Monatsdurchschnitte und Kraftstoffverbrauchstrends im Zeitverlauf. Am Ende jedes Jahres erstellt MotoVault einen jährlichen Kostenbericht pro Motorrad, der deine Gesamtbetriebskosten nach Kategorien aufschlüsselt. So lässt sich leicht vergleichen, welche Motorräder am teuersten im Unterhalt sind, entscheiden, wann ein Verkauf finanziell sinnvoll ist, oder einfach genaue Aufzeichnungen für die Wiederverkaufsdokumentation und Steuerzwecke führen."
+      },
+      {
+        "question": "Funktioniert MotoVault mit OBD-II-Scannern?",
+        "answer": "MotoVault benötigt keine OBD-II-Hardware, keine Bluetooth-Adapter, keine Diagnosekabel und kein externes Scangerät. Die KI-Diagnosefunktion arbeitet vollständig über die Kamera deines Smartphones – du kannst also ein Bauteil, eine Warnleuchte, eine undichte Stelle oder jedes sichtbare Problem fotografieren und eine KI-generierte Einschätzung erhalten, ohne zusätzliche Geräte kaufen zu müssen. Dieser Ansatz wurde bewusst gewählt, weil die meisten Motorräder entweder keine standardmäßigen OBD-II-Anschlüsse haben, proprietäre Diagnosestecker verwenden oder herstellerspezifische Diagnosegeräte erfordern, die Hunderte von Dollar kosten. Durch den Einsatz von Computer Vision statt Hardware-Protokollen funktioniert die MotoVault-Diagnose an jedem Motorrad – unabhängig von Alter, Hersteller oder elektronischer Ausstattung. Richte einfach deine Kamera auf das Problem, und das KI-Vision-Modell vergleicht das Gesehene mit bekannten Fehlermustern für dein konkretes Motorrad."
+      },
+      {
+        "question": "Kann ich meine Fahrtdaten als GPX exportieren?",
+        "answer": "MotoVault unterstützt den GPX-Export sowohl für aufgezeichnete Fahrten als auch für geplante Routen. Jede Fahrt, die du mit GPS-Tracking aufzeichnest, lässt sich als standardmäßige GPX-Datei mit dem vollständigen Track samt Zeitstempeln, Höhendaten und Geschwindigkeit exportieren. Auch im Routenplaner erstellte Tourenpläne werden als GPX-Routendateien exportiert, die sich direkt in Garmin Zumo, TomTom Rider, Hammerhead Karoo oder jedes GPS-Navigationsgerät importieren lassen, das das GPX-Format akzeptiert. Kostenlose Konten umfassen fünf GPX-Exporte pro Monat, was den Bedarf der meisten Fahrer für gelegentliches Teilen oder die Geräteübertragung deckt. MotoVault Pro schaltet unbegrenzte Exporte ohne monatliches Limit frei. Exportierte GPX-Dateien entsprechen der Spezifikation GPX 1.1 und funktionieren ohne Anpassung mit Drittanbieter-Tools wie Google Earth, Strava, Komoot und Basecamp."
+      },
+      {
+        "question": "In welchen Ländern sind Motorradrouten verfügbar?",
+        "answer": "MotoVault-Routen sind in mehr als 40 Ländern weltweit verfügbar, mit der besten Abdeckung in den USA, Deutschland, Österreich, der Schweiz, Italien, Frankreich, Spanien und Norwegen. Diese Länder verfügen über die vollständigsten Straßendaten, einschließlich Angaben zur Oberflächenart, Höhengenauigkeit und Kurvigkeitsbewertungen, die helfen, die schönsten Strecken zu finden. Die Abdeckung erstreckt sich außerdem auf das Vereinigte Königreich, Portugal, Griechenland, Kroatien, die Tschechische Republik, Kanada, Mexiko, Argentinien, Brasilien, Kolumbien, Australien, Neuseeland, Japan und Thailand. Von der Community beigesteuerte Routen wachsen täglich, da Fahrer ihre Lieblingsstraßen und Tourenrouten über die App teilen. Die Routenabdeckung hängt von der Qualität der OpenStreetMap-Straßendaten der jeweiligen Region ab – das heißt, gut kartierte europäische und nordamerikanische Straßen verfügen über die umfangreichsten Metadaten für motorradspezifisches Routing."
+      },
+      {
+        "question": "Wie genau ist die KI-Diagnosefunktion?",
+        "answer": "Die KI-Diagnose von MotoVault versieht jede Einschätzung mit einer Konfidenz von niedrig, mittel oder hoch, damit du die Zuverlässigkeit auf einen Blick beurteilen kannst. Ergebnisse mit hoher Konfidenz betreffen typischerweise klar sichtbare Probleme wie verschlissene Bremsbeläge, beschädigte Kettenglieder, austretende Flüssigkeiten mit erkennbarer Farbe oder gängige Armaturenbrett-Warnleuchten. Ergebnisse mit mittlerer Konfidenz deuten darauf hin, dass die KI ein wahrscheinliches Problem erkannt hat, aber eine fachliche Überprüfung empfiehlt. Ergebnisse mit niedriger Konfidenz bedeuten, dass das Bild mehrdeutig war oder das Problem eine physische Inspektion über das auf einem Foto Sichtbare hinaus erfordert. Die KI-Diagnosefunktion ist ausdrücklich kein Ersatz für einen qualifizierten Motorradmechaniker. Sie eignet sich am besten, um mögliche Probleme zu erkennen, bevor sie sich verschlimmern, zu verstehen, was Armaturenbrett-Warnleuchten für dein konkretes Modell bedeuten, und zu entscheiden, ob ein Problem sofortige Aufmerksamkeit erfordert oder bis zum nächsten geplanten Servicetermin warten kann."
       }
-    ]
+    ],
+    "sectionMeta": "FAQ · 02",
+    "titleLead": "Fragen,",
+    "titleAccent": "beantwortet.",
+    "introLead": "Alles, was du in den ersten fünf Minuten fragen würdest. Falls deine Frage fehlt,",
+    "introLink": "schreib uns",
+    "introTrailing": "."
   },
   "Footer": {
     "product": "Produkt",
@@ -217,7 +356,20 @@
     "terms": "Nutzungsbedingungen",
     "accountDeletion": "Kontolöschung",
     "builtWithAi": "Angetrieben von KI",
-    "about": "Über uns"
+    "about": "Über uns",
+    "brandText": "Der Begleiter für Fahrer. Planen, verfolgen, warten und diagnostizieren — alles in einer kostenlosen App, gemacht von Fahrern.",
+    "appStore": "App Store",
+    "googlePlay": "Google Play",
+    "resources": "Ressourcen",
+    "legal": "Rechtliches",
+    "riders": "Fahrer",
+    "contact": "Kontakt",
+    "bottomBar": "© 2026 MotoVault · Von Fahrern, für Fahrer.",
+    "linkTripPlanning": "Tourenplanung",
+    "linkAiDiagnostics": "KI-Diagnose",
+    "linkMaintenance": "Wartungs-Tracking",
+    "linkExpenseTracking": "Ausgaben-Tracking",
+    "linkRideTracking": "Fahrten-Tracking"
   },
   "About": {
     "metaTitle": "Über MotoVault",
@@ -2941,5 +3093,31 @@
     "faqSupportLink": "Zur Support-Seite",
     "breadcrumbHome": "Startseite",
     "breadcrumbFeatures": "Funktionen"
+  },
+  "Manifesto": {
+    "eyebrow": "Unser Versprechen",
+    "lead": "Jeder Fahrer verdient einen Begleiter, der sein Motorrad besser kennt als die Werkstatt —",
+    "emphasis": "und die Straße vor sich."
+  },
+  "Proof": {
+    "toolsLabel": "Tools in einer App — Touren, Wartung, Ausgaben, Diagnose.",
+    "obdSuffix": "OBD-Hardware",
+    "cameraLabel": "Kamera draufhalten. Antwort erhalten.",
+    "freeLabel": "Kostenlos. Keine Testphase. Keine Kreditkarte.",
+    "ratingLabel": "App-Store-Bewertung von echten Bikern.",
+    "nativeLabel": "Native Apps, gemacht für Motorräder."
+  },
+  "DiagnosticsDemo": {
+    "aiTag": "Mit KI",
+    "titleLead": "Zielen. Tippen.",
+    "titleEmphasis": "Beantwortet.",
+    "description": "Unser Vision-Modell erkennt Teile, liest Warnleuchten und diagnostiziert Probleme aus einem einzigen Foto. Keine Forenthreads. Kein 1.200-$-OBD-Gerät. Nur die Antwort.",
+    "step1": "Kamera öffnen, das Problem ins Bild nehmen.",
+    "step2": "Die KI erkennt und analysiert das Problem.",
+    "step3": "Erhalten Sie eine Diagnose + empfohlene Lösung.",
+    "screenAlt": "KI-Diagnosebildschirm",
+    "scanComplete": "Scan abgeschlossen",
+    "resultTitle": "Kettenspannung zu niedrig",
+    "resultDesc": "Auf 25–35 mm Durchhang gemäß Bedienungsanleitung einstellen."
   }
 }

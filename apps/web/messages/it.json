@@ -39,7 +39,27 @@
     "scrollDown": "Scorri verso il basso",
     "seoTitle": "Tracker Manutenzione Moto e Gestore Spese",
     "subtitleShort": "Maintenance tracking, trip planning, and expense logging — all in one free app for iOS and Android.",
-    "trustLine": "Free to download — no credit card required."
+    "trustLine": "Free to download — no credit card required.",
+    "tickerTripsLabel": "VIAGGI",
+    "tickerTripsSub": "PIANIFICA PERCORSI DI PIÙ GIORNI",
+    "tickerMaintenanceLabel": "MANUTENZIONE",
+    "tickerMaintenanceSub": "NON SALTARE MAI UN TAGLIANDO",
+    "tickerExpensesLabel": "SPESE",
+    "tickerExpensesSub": "CONOSCI IL TUO COSTO REALE",
+    "tickerDiagnosticsLabel": "DIAGNOSI IA",
+    "tickerDiagnosticsSub": "SCATTA UNA FOTO, OTTIENI RISPOSTE",
+    "tickerFreeLabel": "GRATIS",
+    "tickerFreeSub": "NESSUNA PROVA, NESSUNA CARTA DI CREDITO",
+    "tickerPlatformLabel": "iOS + ANDROID",
+    "tickerPlatformSub": "PROGETTATO PER LE MOTO",
+    "cornerFreePlatforms": "Gratis · iOS · Android",
+    "badgeNew": "Novità",
+    "badgeDiagnosticsLive": "La diagnosi fotografica con IA è disponibile",
+    "titleLine1": "Il compagno",
+    "titleLine2": "di ogni motociclista.",
+    "description": "Pianificazione dei viaggi, manutenzione, spese e diagnosi IA: i quattro strumenti di cui ogni motociclista ha bisogno, in un'app meravigliosamente semplice.",
+    "downloadIos": "Scarica per iOS",
+    "trustLineStrip": "GRATIS · iOS + ANDROID · PROGETTATO PER LE MOTO"
   },
   "Features": {
     "sectionLabel": "Funzionalità",
@@ -84,7 +104,79 @@
     "tripAlt": "MotoVault trip planning screen showing Dolomites Loop route on a map",
     "maintenanceAlt": "MotoVault maintenance tracking with active service tasks and reminders",
     "expensesAlt": "MotoVault expense tracking showing cost breakdowns by category",
-    "plusLine": "Plus ride logging, AI diagnostics, digital garage, and more."
+    "plusLine": "Plus ride logging, AI diagnostics, digital garage, and more.",
+    "grid": {
+      "sectionMeta": "Funzionalità · 01",
+      "sectionTitleLead": "Cinque strumenti.",
+      "sectionTitleEmphasis": "Una sola app.",
+      "sectionSub": "Pensato appositamente per le moto. Niente software auto riadattato. Nessun hardware OBD. Solo ciò che ti serve davvero, leggibile con i guanti a 110 km/h.",
+      "screenshotAlt": "Schermata: {feature}",
+      "trip": {
+        "title": "Pianifica itinerari di più giorni su una mappa in tempo reale.",
+        "body": "Inserisci waypoint tipizzati — carburante, panorama, pernottamento, cima del passo — su routing stradale reale. Condividi un GPX sul telefono di qualsiasi motociclista con un tocco.",
+        "kv1Label": "Waypoint",
+        "kv1Value": "Tipizzati e panoramici",
+        "kv2Label": "Esporta",
+        "kv2Value": "GPX · Google Maps",
+        "badge": "Pianificazione Viaggi",
+        "chip1Label": "Itinerario pronto",
+        "chip1Value": "Dolomiti · 4 giorni",
+        "chip2Label": "2 motociclisti",
+        "chip2Value": "· 3 waypoint"
+      },
+      "diag": {
+        "title": "Scatta una foto. Ottieni risposte.",
+        "body": "Punta la fotocamera su una spia, una perdita d'olio o un componente sospetto. Un modello di visione ti dice cos'è e cosa fare — in meno di cinque secondi.",
+        "kv1Label": "Hardware",
+        "kv1Value": "Nessun OBD necessario",
+        "kv2Label": "Input",
+        "kv2Value": "Foto o testo",
+        "badge": "Diagnostica IA",
+        "chip1Label": "Risultato della scansione",
+        "chip1Value": "Tensione catena bassa",
+        "chip2Label": "Basato su",
+        "chip2Value": "Claude AI"
+      },
+      "maintenance": {
+        "title": "Non saltare mai più un tagliando.",
+        "body": "Registra ogni cambio d'olio, lubrificazione della catena e sostituzione degli pneumatici. I promemoria basati su chilometraggio o tempo ti mostrano cosa è in scadenza — prima che sia troppo tardi.",
+        "kv1Label": "Promemoria",
+        "kv1Value": "In base al chilometraggio",
+        "kv2Label": "Cronologia",
+        "kv2Value": "Per sempre, per ogni moto",
+        "badge": "Tracciamento Manutenzione",
+        "chip1Label": "Prossimo tagliando",
+        "chip1Value": "Cambio olio · 420 mi",
+        "chip2Label": "Lubrificazione catena",
+        "chip2Value": "In scadenza a 1.200 mi"
+      },
+      "expenses": {
+        "title": "Scopri quanto ti costa davvero la moto.",
+        "body": "Tieni traccia di carburante, ricambi, equipaggiamento e assicurazione con riepiloghi mensili. Analisi del costo al chilometro per saperlo prima di comprare la seconda moto.",
+        "kv1Label": "Dettaglio",
+        "kv1Value": "Costo al chilometro",
+        "kv2Label": "Categorie",
+        "kv2Value": "8 integrate",
+        "badge": "Tracciamento Spese",
+        "chip1Label": "Questo mese",
+        "chip1Value": "214,80 $ · 12 voci",
+        "chip2Label": "Costo / chilometro",
+        "chip2Value": "Calcolato automaticamente"
+      },
+      "rides": {
+        "title": "Ogni percorso, mappato e salvato.",
+        "body": "Registra percorsi GPS con velocità, distanza e dislivello. Consulta le tue statistiche, condividi i momenti migliori e crea uno storico di guida completo.",
+        "kv1Label": "Tracciamento",
+        "kv1Value": "Percorsi GPS",
+        "kv2Label": "Statistiche",
+        "kv2Value": "Velocità · dislivello",
+        "badge": "Tracciamento Percorsi",
+        "chip1Label": "Ultimo percorso",
+        "chip1Value": "86 mi · 1h 42m",
+        "chip2Label": "Velocità max",
+        "chip2Value": "72 mph · registrato"
+      }
+    }
   },
   "SocialProof": {
     "riders": "Tools",
@@ -169,7 +261,16 @@
     "successMessage": "Grazie! Scarica MotoVault dall'App Store o da Google Play.",
     "successTagline": "La tua moto merita di meglio di un foglio di calcolo.",
     "errorMessage": "Qualcosa è andato storto. Per favore riprova.",
-    "personality": "La tua moto merita di meglio di un foglio di calcolo."
+    "personality": "La tua moto merita di meglio di un foglio di calcolo.",
+    "metaLabel": "Scarica · gratis per sempre",
+    "headlineLead": "Guida",
+    "headlineEmphasis": "in modo più intelligente.",
+    "subtitleDownload": "Gratis su iOS e Android. Configura il tuo garage in meno di 90 secondi.",
+    "appStore": "App Store",
+    "googlePlay": "Google Play",
+    "trustFreeForever": "Gratis per sempre",
+    "trustNoCreditCard": "Nessuna carta di credito",
+    "trustUnlimitedBikes": "Moto illimitate"
   },
   "Faq": {
     "sectionLabel": "FAQ",
@@ -177,29 +278,67 @@
     "items": [
       {
         "question": "Cos'è MotoVault?",
-        "answer": "MotoVault è un'app di gestione moto pensata per i motociclisti. Traccia le attività di manutenzione con promemoria intelligenti, registra ogni spesa (carburante, accessori, ricambi), registra i tuoi viaggi e diagnostica i problemi con l'analisi fotografica IA — tutto in un'unica app."
+        "answer": "MotoVault è un'app gratuita per iOS e Android che unifica in un'unica piattaforma le quattro cose di cui ogni motociclista ha bisogno: pianificazione di viaggi di più giorni con navigazione svolta per svolta, monitoraggio predittivo della manutenzione, gestione delle spese per ogni moto e diagnostica fotografica basata sull'IA. L'app supporta oltre 12.000 modelli di moto tratti dal database NHTSA vPIC, coprendo tutti i principali produttori degli ultimi 30 anni. I motociclisti possono pianificare itinerari, registrare lo storico della manutenzione, fotografare i problemi meccanici per un'analisi IA istantanea e monitorare il costo totale di proprietà dell'intero garage. Non è richiesto alcun hardware OBD-II e non serve alcun abbonamento per iniziare. MotoVault è stata creata da motociclisti stanchi di destreggiarsi tra cinque app separate per attività che vanno di pari passo. Fonte: database NHTSA vPIC per il catalogo dei modelli."
       },
       {
-        "question": "MotoVault è gratuito?",
-        "answer": "Sì! MotoVault offre un piano gratuito che include contenuti di apprendimento di base, una moto nel tuo garage e diagnostiche IA limitate. Puoi fare un upgrade a MotoVault Pro per accesso illimitato a tutte le funzioni."
-      },
-      {
-        "question": "Quali moto sono supportate?",
-        "answer": "MotoVault supporta tutte le marche e i modelli di moto. Il nostro database utilizza i dati ufficiali dei veicoli NHTSA, coprendo migliaia di marche e modelli in tutti gli anni. Semplicemente cerca la tua moto quando la aggiungi al tuo garage."
+        "question": "MotoVault è davvero gratuito?",
+        "answer": "MotoVault è gratuito per sempre per il suo set di funzioni principali, che include una moto nel tuo garage (passa a Pro per moto illimitate), il monitoraggio completo della manutenzione con lo storico dei servizi, la registrazione delle spese con ripartizione dei costi per moto, la registrazione dei viaggi con tracce GPS, il pianificatore di viaggi completo e una scansione diagnostica IA al mese. Non c'è alcun periodo di prova né blocco delle funzioni dopo 30 giorni. MotoVault Pro costa 4 $ al mese o 36 $ all'anno e sblocca scansioni diagnostiche IA illimitate, analisi avanzate del pilota con report settimanali sulle prestazioni, esportazioni GPX illimitate, elaborazione prioritaria degli itinerari e statistiche di viaggio estese con dati di altitudine. Ogni funzione principale necessaria per mantenere e gestire la tua moto è disponibile nel piano gratuito."
       },
       {
         "question": "Come funziona la diagnostica IA?",
-        "answer": "Scatta una foto di qualsiasi parte della tua moto e descrivi il problema. La nostra IA analizza l'immagine e fornisce una valutazione diagnostica con livelli di gravità — da problemi critici che richiedono attenzione immediata a suggerimenti di manutenzione minore."
+        "answer": "La diagnostica IA di MotoVault è alimentata dal modello di visione Claude AI di Anthropic, uno dei sistemi di IA multimodali più avanzati disponibili. Per usarla, apri la fotocamera diagnostica nell'app, inquadra il componente, la spia o l'area di interesse e tocca il pulsante di scatto. Il modello di visione identifica ciò che osserva, confronta le modalità di guasto note per la tua marca e il tuo modello specifici e restituisce una diagnosi strutturata con causa probabile, livello di gravità e un passo successivo consigliato. La maggior parte dei risultati compare in meno di cinque secondi. Il sistema fornisce un livello di affidabilità basso, medio o alto per ogni valutazione. La diagnostica IA è pensata per aiutarti a comprendere i potenziali problemi e a valutarne l'urgenza, non a sostituire un meccanico moto qualificato nelle riparazioni complesse."
       },
       {
-        "question": "I miei dati sono sicuri?",
-        "answer": "I tuoi dati sono protetti da crittografia a livello aziendale e controlli di accesso rigorosi. I token di autenticazione vengono archiviati in modo sicuro utilizzando lo spazio di archiviazione sicuro nativo della piattaforma e tutte le comunicazioni sono crittografate in transito. Non condividiamo mai le tue informazioni personali o i dati della moto con terze parti."
+        "question": "Quali moto supporta MotoVault?",
+        "answer": "MotoVault supporta tutte le principali marche e modelli di moto prodotti negli ultimi 30 anni, per un totale di oltre 12.000 modelli distinti nel database. Le specifiche del modello, tra cui cilindrata, intervalli di manutenzione e fluidi consigliati, vengono caricate automaticamente quando aggiungi una moto al tuo garage. La copertura comprende tutti i principali produttori, tra cui Honda, Yamaha, Kawasaki, Suzuki, BMW, Ducati, KTM, Harley-Davidson, Triumph, Royal Enfield, Aprilia e Indian. Il catalogo dei modelli proviene dal NHTSA Vehicle Product Information Catalog, il database di riferimento del governo federale degli Stati Uniti per l'identificazione dei veicoli. Se il tuo modello specifico non è elencato, puoi aggiungere manualmente qualsiasi moto personalizzata con i tuoi intervalli di manutenzione. Fonte: NHTSA Vehicle Product Information Catalog, gestito dalla National Highway Traffic Safety Administration."
       },
       {
-        "question": "Cosa è incluso in MotoVault Pro?",
-        "answer": "MotoVault Pro sblocca diagnostiche IA illimitate, accesso a tutti i moduli e corsi di apprendimento, moto illimitate nel tuo garage, supporto prioritario e contenuti esclusivi. Puoi sottoscrivere mensilmente o annualmente dall'app."
+        "question": "I miei dati sono al sicuro?",
+        "answer": "MotoVault prende sul serio la sicurezza dei dati, con protezioni di livello enterprise applicate a ogni account motociclista. Tutti i dati — incluse le tracce GPS dei viaggi, i registri di manutenzione, i registri delle spese e le immagini diagnostiche — sono cifrati in transito con TLS 1.3 e a riposo con AES-256 su infrastruttura ospitata nell'UE. La piattaforma è pienamente conforme al GDPR, il che significa che i motociclisti europei dispongono di completa portabilità dei dati e del diritto alla cancellazione. Puoi esportare l'intero storico come dati strutturati o eliminare tutto in modo permanente con un solo tocco nelle impostazioni. MotoVault non vende mai i dati dei motociclisti a terzi, non condivide mai lo storico delle posizioni con gli inserzionisti e non usa mai le tue foto diagnostiche per scopi diversi dalla generazione del tuo risultato. La sicurezza a livello di riga garantisce che ogni motociclista possa accedere solo ai propri dati, anche a livello di database."
+      },
+      {
+        "question": "Come funziona la pianificazione dei viaggi?",
+        "answer": "La pianificazione dei viaggi di MotoVault ti consente di creare itinerari in moto di più giorni con punti di passaggio categorizzati di cui i motociclisti hanno davvero bisogno: soste carburante, punti panoramici, valichi di frontiera, terminal dei traghetti, ristoranti e sistemazioni per la notte. Ogni tipo di punto di passaggio mostra la propria icona sulla mappa per una rapida lettura visiva. Il pianificatore include i profili altimetrici, così puoi prevedere i passi di montagna e pianificare i cambi di quota che incidono sulle prestazioni del motore. Gli itinerari possono essere riordinati con il trascinamento e il sistema calcola le soste carburante stimate in base alla capacità del serbatoio della tua moto. Una volta finalizzato, qualsiasi itinerario si esporta come file GPX standard per l'uso offline su Garmin, TomTom o qualsiasi GPS compatibile. La pianificazione dei viaggi e gli itinerari salvati sono illimitati nel piano gratuito; MotoVault Pro aggiunge esportazioni di itinerari GPX illimitate e domande illimitate all'assistente di viaggio IA."
+      },
+      {
+        "question": "Posso usare MotoVault offline?",
+        "answer": "MotoVault funziona offline per le funzioni che contano di più quando sei in viaggio senza copertura mobile. La registrazione dei viaggi continua a registrare coordinate GPS, velocità, altitudine e durata tramite i sensori del telefono, senza bisogno di connessione dati. Puoi anche registrare voci di manutenzione e spese offline, e tutte le voci si sincronizzeranno automaticamente non appena il dispositivo si riconnette. Anche gli itinerari caricati in precedenza sono consultabili offline. La sincronizzazione dei dati è priva di conflitti, il che significa che le modifiche effettuate offline e online si uniscono in modo pulito senza perdita di dati. L'unica funzione che richiede una connessione a internet attiva è la diagnostica IA, perché l'immagine deve raggiungere il modello di visione nel cloud per essere analizzata. Tutte le altre funzioni principali funzionano in modo affidabile anche nelle zone remote."
+      },
+      {
+        "question": "In cosa MotoVault è diverso da REVER o Calimoto?",
+        "answer": "REVER e Calimoto sono ottime app incentrate sulla navigazione, ma ciascuna risolve solo un pezzo del puzzle del possesso di una moto. MotoVault è una piattaforma all-in-one che combina pianificazione dei viaggi, monitoraggio della manutenzione, gestione delle spese e diagnostica basata sull'IA in un'unica app con un garage unificato. Invece di passare da Calimoto per gli itinerari, a un foglio di calcolo per le spese, a un'app di note per lo storico dei servizi e a Google per interpretare le spie, MotoVault gestisce tutte e quattro le cose in un unico posto. Questo significa che i dati sulle tue spese di carburante alimentano le stime di autonomia del pianificatore, il tuo storico di manutenzione fornisce contesto alla diagnostica e le registrazioni dei tuoi viaggi aggiornano automaticamente il contachilometri per i promemoria di servizio. L'approccio integrato elimina l'inserimento duplicato dei dati e ti offre un quadro completo di ogni moto che possiedi."
+      },
+      {
+        "question": "Quali promemoria di manutenzione invia MotoVault?",
+        "answer": "MotoVault invia promemoria di manutenzione intelligenti basati sul chilometraggio o sul tempo trascorso, a seconda della soglia raggiunta per prima. Le categorie di servizio standard includono cambi di olio e filtro, pulizia e regolazione della catena, ispezione e sostituzione degli pneumatici, usura delle pastiglie dei freni, sostituzione del liquido di raffreddamento, controllo del gioco valvole, sostituzione del filtro dell'aria e servizio delle candele. Ogni promemoria si adatta al programma di manutenzione specifico della tua moto anziché usare intervalli generici, perché una sportiva nelle giornate in pista richiede cambi d'olio molto più frequenti di una turistica in autostrada. Quando aggiungi una moto con un modello supportato, gli intervalli consigliati vengono precompilati dalle specifiche del produttore. Puoi personalizzare qualsiasi intervallo, aggiungere categorie di servizio specifiche per la tua moto e posticipare i promemoria quando un servizio è già stato programmato con il tuo meccanico."
+      },
+      {
+        "question": "Posso monitorare le spese di più moto?",
+        "answer": "Il piano gratuito copre una moto, e MotoVault Pro sblocca moto illimitate nel tuo garage, con ogni spesa associata a una moto specifica. Puoi monitorare i rifornimenti di carburante con il calcolo automatico del costo al chilometro, i premi assicurativi, gli acquisti di attrezzatura, i ricambi, i costi della manodopera dei servizi, le tasse di immatricolazione e qualsiasi categoria di spesa personalizzata che definisci. Ogni moto mostra il proprio totale progressivo, le medie mensili e l'andamento dei consumi nel tempo. Alla fine di ogni anno, MotoVault genera un report annuale dei costi per moto che mostra il costo totale di proprietà suddiviso per categoria. Questo rende semplice confrontare quali moto sono più costose da mantenere, decidere quando vendere ha senso dal punto di vista finanziario o semplicemente tenere registri precisi per documentare il valore di rivendita e per fini fiscali."
+      },
+      {
+        "question": "MotoVault funziona con gli scanner OBD-II?",
+        "answer": "MotoVault non richiede hardware OBD-II, adattatori Bluetooth, cavi diagnostici o alcun dispositivo di scansione esterno. La funzione di diagnostica IA funziona interamente tramite la fotocamera del tuo smartphone, il che significa che puoi fotografare un componente, una spia, una perdita di fluido o qualsiasi problema visibile e ricevere una valutazione generata dall'IA senza acquistare attrezzatura aggiuntiva. Questo approccio è stato scelto deliberatamente perché la maggior parte delle moto o non dispone di porte OBD-II standard, usa connettori diagnostici proprietari oppure richiede strumenti di scansione specifici del produttore che costano centinaia di dollari. Usando la visione artificiale anziché protocolli hardware, la diagnostica di MotoVault funziona su qualsiasi moto indipendentemente da età, produttore o sofisticazione elettronica. Punta semplicemente la fotocamera sul problema e il modello di visione IA analizza ciò che vede confrontandolo con schemi di guasto noti per la tua moto specifica."
+      },
+      {
+        "question": "Posso esportare i dati dei miei viaggi in GPX?",
+        "answer": "MotoVault supporta l'esportazione GPX sia per i viaggi registrati sia per gli itinerari pianificati. Ogni viaggio che registri con il tracciamento GPS può essere esportato come file GPX standard contenente la traccia completa con timestamp, dati di altitudine e velocità. Anche gli itinerari creati nel pianificatore di percorsi vengono esportati come file di itinerario GPX, importabili direttamente in Garmin Zumo, TomTom Rider, Hammerhead Karoo o qualsiasi navigatore GPS che accetti il formato GPX. Gli account gratuiti includono cinque esportazioni GPX al mese, sufficienti per le esigenze della maggior parte dei motociclisti per condivisioni occasionali o trasferimenti su dispositivo. MotoVault Pro sblocca esportazioni illimitate senza limite mensile. I file GPX esportati sono conformi alla specifica GPX 1.1 e funzionano con strumenti di terze parti come Google Earth, Strava, Komoot e Basecamp senza modifiche."
+      },
+      {
+        "question": "In quali paesi sono disponibili gli itinerari in moto?",
+        "answer": "Gli itinerari di MotoVault sono disponibili in più di 40 paesi nel mondo, con la copertura migliore negli Stati Uniti, in Germania, Austria, Svizzera, Italia, Francia, Spagna e Norvegia. Questi paesi dispongono dei dati stradali più completi, inclusi indicatori del tipo di fondo, precisione altimetrica e valutazioni di tortuosità che aiutano a individuare le strade più piacevoli da percorrere. La copertura si estende anche a Regno Unito, Portogallo, Grecia, Croazia, Repubblica Ceca, Canada, Messico, Argentina, Brasile, Colombia, Australia, Nuova Zelanda, Giappone e Thailandia. Gli itinerari contribuiti dalla community crescono ogni giorno, man mano che i motociclisti condividono le loro strade preferite e gli itinerari di viaggio tramite l'app. La copertura degli itinerari dipende dalla qualità dei dati stradali di OpenStreetMap per ciascuna regione, il che significa che le strade europee e nordamericane ben mappate dispongono dei metadati più ricchi per il routing specifico per moto."
+      },
+      {
+        "question": "Quanto è accurata la funzione di diagnostica IA?",
+        "answer": "La diagnostica IA di MotoVault fornisce ogni valutazione con un livello di affidabilità basso, medio o alto, così puoi giudicare l'attendibilità a colpo d'occhio. I risultati ad alta affidabilità riguardano in genere problemi chiaramente visibili come pastiglie dei freni usurate, maglie della catena danneggiate, perdite di fluido dal colore identificabile o spie standard del cruscotto. I risultati a media affidabilità indicano che l'IA ha rilevato un problema probabile ma consiglia una verifica professionale. I risultati a bassa affidabilità significano che l'immagine era ambigua o che il problema richiede un'ispezione fisica oltre a quanto visibile in una fotografia. La funzione di diagnostica IA non sostituisce esplicitamente un meccanico moto qualificato. È ideale per individuare potenziali problemi prima che peggiorino, capire cosa significano le spie del cruscotto per il tuo modello specifico e decidere se un problema richiede attenzione immediata o può attendere il prossimo appuntamento di manutenzione programmato."
       }
-    ]
+    ],
+    "sectionMeta": "FAQ · 02",
+    "titleLead": "Domande,",
+    "titleAccent": "con risposta.",
+    "introLead": "Tutto ciò che chiederesti nei primi cinque minuti. Se manca la tua,",
+    "introLink": "scrivici",
+    "introTrailing": "."
   },
   "Footer": {
     "product": "Prodotto",
@@ -216,7 +355,20 @@
     "terms": "Termini",
     "accountDeletion": "Eliminazione Account",
     "builtWithAi": "Powered by IA",
-    "about": "Chi siamo"
+    "about": "Chi siamo",
+    "brandText": "Il compagno del motociclista. Pianifica, traccia, mantieni e diagnostica — tutto in un'unica app gratuita, creata dai motociclisti.",
+    "appStore": "App Store",
+    "googlePlay": "Google Play",
+    "resources": "Risorse",
+    "legal": "Note legali",
+    "riders": "Motociclisti",
+    "contact": "Contatto",
+    "bottomBar": "© 2026 MotoVault · Fatto per i motociclisti, dai motociclisti.",
+    "linkTripPlanning": "Pianificazione Viaggi",
+    "linkAiDiagnostics": "Diagnostica IA",
+    "linkMaintenance": "Tracciamento Manutenzione",
+    "linkExpenseTracking": "Tracciamento Spese",
+    "linkRideTracking": "Tracciamento Percorsi"
   },
   "About": {
     "metaTitle": "Chi siamo - MotoVault",
@@ -2938,5 +3090,31 @@
     "faqSupportLink": "Vai alla pagina di supporto",
     "breadcrumbHome": "Home",
     "breadcrumbFeatures": "Funzionalità"
+  },
+  "Manifesto": {
+    "eyebrow": "La nostra promessa",
+    "lead": "Ogni motociclista merita un compagno che conosce la sua moto meglio dell'officina —",
+    "emphasis": "e la strada davanti a sé."
+  },
+  "Proof": {
+    "toolsLabel": "Strumenti in un'unica app: viaggi, manutenzione, spese, diagnostica.",
+    "obdSuffix": "hardware OBD",
+    "cameraLabel": "Inquadra con la fotocamera. Ottieni la risposta.",
+    "freeLabel": "Gratis. Nessuna prova. Nessuna carta di credito.",
+    "ratingLabel": "Valutazione sull'App Store da motociclisti veri.",
+    "nativeLabel": "App native, pensate per le moto."
+  },
+  "DiagnosticsDemo": {
+    "aiTag": "Basato sull'IA",
+    "titleLead": "Punta. Tocca.",
+    "titleEmphasis": "Risposto.",
+    "description": "Il nostro modello di visione identifica i componenti, legge le spie di avviso e diagnostica i problemi da una sola foto. Niente thread di forum. Nessuno strumento OBD da 1.200 $. Solo la risposta.",
+    "step1": "Apri la fotocamera e inquadra il problema.",
+    "step2": "L'IA identifica e analizza il problema.",
+    "step3": "Ottieni una diagnosi + la soluzione consigliata.",
+    "screenAlt": "Schermata di diagnostica IA",
+    "scanComplete": "Scansione completata",
+    "resultTitle": "Tensione della catena bassa",
+    "resultDesc": "Regola a 25-35 mm di gioco secondo il manuale d'uso."
   }
 }

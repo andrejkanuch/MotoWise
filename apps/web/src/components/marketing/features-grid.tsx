@@ -1,9 +1,10 @@
 'use client';
 
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
-type FeatureKey = 'trip' | 'maintenance' | 'expenses' | 'diag';
+type FeatureKey = 'trip' | 'diag' | 'maintenance' | 'expenses' | 'rides';
 
 interface FeatureData {
   key: FeatureKey;
@@ -17,70 +18,86 @@ interface FeatureData {
   chip2: { label: string; value: string };
 }
 
-const FEATURES: FeatureData[] = [
-  {
-    key: 'trip',
-    num: '01',
-    title: 'Plan multi-day routes on a live map.',
-    body: 'Drop typed waypoints \u2014 fuel, scenic, overnight, pass summit \u2014 on real road routing. Share a GPX to any rider\u2019s phone in a single tap.',
-    kv: [
-      { label: 'Waypoints', value: 'Typed & scenic' },
-      { label: 'Export', value: 'GPX \u00b7 Google Maps' },
-    ],
-    screenshot: '/images/marketing/mw/trip-detail-hero.png',
-    badgeLabel: 'Trip planning',
-    chip1: { label: 'Route ready', value: 'Dolomites \u00b7 4 days' },
-    chip2: { label: '2 riders', value: '\u00b7 3 waypoints' },
-  },
-  {
-    key: 'maintenance',
-    num: '02',
-    title: 'Never miss a service again.',
-    body: 'Log every oil change, chain lube and tire swap. Mileage or time-based reminders surface what\u2019s due \u2014 before you\u2019re overdue.',
-    kv: [
-      { label: 'Reminders', value: 'Mileage-aware' },
-      { label: 'History', value: 'Forever, per bike' },
-    ],
-    screenshot: '/images/marketing/mw/flow-add-maintenance.png',
-    badgeLabel: 'Maintenance log',
-    chip1: { label: 'Next service', value: 'Oil change \u00b7 420 mi' },
-    chip2: { label: 'Chain lube', value: 'Due 1,200 mi' },
-  },
-  {
-    key: 'expenses',
-    num: '03',
-    title: 'Know what your bike really costs.',
-    body: 'Track fuel, parts, gear and insurance with monthly breakdowns. Cost-per-mile analytics so you know before you buy the second bike.',
-    kv: [
-      { label: 'Breakdown', value: 'Per-mile cost' },
-      { label: 'Categories', value: '8 built-in' },
-    ],
-    screenshot: '/images/marketing/mw/home-rides-expenses.png',
-    badgeLabel: 'Expense tracking',
-    chip1: { label: 'This month', value: '$214.80 \u00b7 12 entries' },
-    chip2: { label: 'Cost / mile', value: 'Auto-calculated' },
-  },
-  {
-    key: 'diag',
-    num: '04',
-    title: 'Snap a photo. Get answers.',
-    body: 'Point the camera at a warning light, an oil leak, or a suspicious part. A vision model tells you what it is and what to do \u2014 in under five seconds.',
-    kv: [
-      { label: 'Hardware', value: 'No OBD needed' },
-      { label: 'Input', value: 'Photo or text' },
-    ],
-    screenshot: '/images/marketing/mw/diagnostic-result.png',
-    badgeLabel: 'AI diagnostics',
-    chip1: { label: 'Scan result', value: 'Chain tension low' },
-    chip2: { label: 'Powered by', value: 'Claude AI' },
-  },
-];
-
-const KEYS: FeatureKey[] = ['trip', 'maintenance', 'expenses', 'diag'];
+const KEYS: FeatureKey[] = ['trip', 'diag', 'maintenance', 'expenses', 'rides'];
 
 export function FeaturesGrid() {
+  const t = useTranslations('Features');
   const [active, setActive] = useState<FeatureKey>('trip');
   const [chipsVisible, setChipsVisible] = useState(true);
+
+  const FEATURES: FeatureData[] = [
+    {
+      key: 'trip',
+      num: '01',
+      title: t('grid.trip.title'),
+      body: t('grid.trip.body'),
+      kv: [
+        { label: t('grid.trip.kv1Label'), value: t('grid.trip.kv1Value') },
+        { label: t('grid.trip.kv2Label'), value: t('grid.trip.kv2Value') },
+      ],
+      screenshot: '/images/marketing/mw/trip-detail-hero.png',
+      badgeLabel: t('grid.trip.badge'),
+      chip1: { label: t('grid.trip.chip1Label'), value: t('grid.trip.chip1Value') },
+      chip2: { label: t('grid.trip.chip2Label'), value: t('grid.trip.chip2Value') },
+    },
+    {
+      key: 'diag',
+      num: '02',
+      title: t('grid.diag.title'),
+      body: t('grid.diag.body'),
+      kv: [
+        { label: t('grid.diag.kv1Label'), value: t('grid.diag.kv1Value') },
+        { label: t('grid.diag.kv2Label'), value: t('grid.diag.kv2Value') },
+      ],
+      screenshot: '/images/marketing/mw/diagnostic-result.png',
+      badgeLabel: t('grid.diag.badge'),
+      chip1: { label: t('grid.diag.chip1Label'), value: t('grid.diag.chip1Value') },
+      chip2: { label: t('grid.diag.chip2Label'), value: t('grid.diag.chip2Value') },
+    },
+    {
+      key: 'maintenance',
+      num: '03',
+      title: t('grid.maintenance.title'),
+      body: t('grid.maintenance.body'),
+      kv: [
+        { label: t('grid.maintenance.kv1Label'), value: t('grid.maintenance.kv1Value') },
+        { label: t('grid.maintenance.kv2Label'), value: t('grid.maintenance.kv2Value') },
+      ],
+      screenshot: '/images/marketing/mw/flow-add-maintenance.png',
+      badgeLabel: t('grid.maintenance.badge'),
+      chip1: { label: t('grid.maintenance.chip1Label'), value: t('grid.maintenance.chip1Value') },
+      chip2: { label: t('grid.maintenance.chip2Label'), value: t('grid.maintenance.chip2Value') },
+    },
+    {
+      key: 'expenses',
+      num: '04',
+      title: t('grid.expenses.title'),
+      body: t('grid.expenses.body'),
+      kv: [
+        { label: t('grid.expenses.kv1Label'), value: t('grid.expenses.kv1Value') },
+        { label: t('grid.expenses.kv2Label'), value: t('grid.expenses.kv2Value') },
+      ],
+      screenshot: '/images/marketing/mw/home-rides-expenses.png',
+      badgeLabel: t('grid.expenses.badge'),
+      chip1: { label: t('grid.expenses.chip1Label'), value: t('grid.expenses.chip1Value') },
+      chip2: { label: t('grid.expenses.chip2Label'), value: t('grid.expenses.chip2Value') },
+    },
+    {
+      key: 'rides',
+      num: '05',
+      title: t('grid.rides.title'),
+      body: t('grid.rides.body'),
+      kv: [
+        { label: t('grid.rides.kv1Label'), value: t('grid.rides.kv1Value') },
+        { label: t('grid.rides.kv2Label'), value: t('grid.rides.kv2Value') },
+      ],
+      screenshot: '/images/marketing/mw/home-rides-expenses.png',
+      badgeLabel: t('grid.rides.badge'),
+      chip1: { label: t('grid.rides.chip1Label'), value: t('grid.rides.chip1Value') },
+      chip2: { label: t('grid.rides.chip2Label'), value: t('grid.rides.chip2Value') },
+    },
+  ];
+
   const activeFeature = FEATURES.find((f) => f.key === active) ?? FEATURES[0];
 
   // Auto-rotate
@@ -111,14 +128,12 @@ export function FeaturesGrid() {
     >
       {/* Section header */}
       <div style={{ maxWidth: '880px' }}>
-        <div className="mv-section-meta">Features &middot; 01</div>
+        <div className="mv-section-meta">{t('grid.sectionMeta')}</div>
         <h2 className="mv-section-title">
-          Four tools. <span className="mv-serif mv-muted">One app.</span>
+          {t('grid.sectionTitleLead')}{' '}
+          <span className="mv-serif mv-muted">{t('grid.sectionTitleEmphasis')}</span>
         </h2>
-        <p className="mv-section-sub">
-          Built specifically for motorcycles. No retrofitted car software. No OBD hardware. Just the
-          things you actually need, designed to be read in gloves at 70 mph.
-        </p>
+        <p className="mv-section-sub">{t('grid.sectionSub')}</p>
       </div>
 
       {/* Feature stage: left accordion + right phone */}
@@ -558,7 +573,7 @@ export function FeaturesGrid() {
                   <Image
                     key={feature.key}
                     src={feature.screenshot}
-                    alt={`${feature.badgeLabel} screenshot`}
+                    alt={t('grid.screenshotAlt', { feature: feature.badgeLabel })}
                     fill
                     sizes="360px"
                     style={{

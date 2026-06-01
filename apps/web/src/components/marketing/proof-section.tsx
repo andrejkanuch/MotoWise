@@ -1,21 +1,25 @@
+import { getTranslations } from 'next-intl/server';
+
 interface ProofSectionProps {
   appStoreRating?: { ratingValue: string; reviewCount: string } | null;
 }
 
-export function ProofSection({ appStoreRating }: ProofSectionProps) {
+export async function ProofSection({ appStoreRating }: ProofSectionProps) {
+  const t = await getTranslations('Proof');
+
   const stats = [
-    { value: '4', label: 'Tools in one app — trips, maintenance, expenses, diagnostics.' },
-    { value: '0', suffix: ' OBD hardware', label: 'Point your camera. Get the answer.' },
-    { value: '100', suffix: '%', label: 'Free. No trial. No credit card.' },
+    { value: '4', label: t('toolsLabel') },
+    { value: '0', suffix: ` ${t('obdSuffix')}`, label: t('cameraLabel') },
+    { value: '100', suffix: '%', label: t('freeLabel') },
     ...(appStoreRating
       ? [
           {
             value: appStoreRating.ratingValue,
             suffix: ` ★ (${appStoreRating.reviewCount})`,
-            label: 'App Store rating from real riders.',
+            label: t('ratingLabel'),
           },
         ]
-      : [{ value: 'iOS', suffix: ' + Android', label: 'Native apps, built for motorcycles.' }]),
+      : [{ value: 'iOS', suffix: ' + Android', label: t('nativeLabel') }]),
   ];
 
   return (

@@ -1,46 +1,40 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-
-const WORDS = [
-  { id: 'every', text: 'Every', serif: false },
-  { id: 'rider', text: 'rider', serif: false },
-  { id: 'deserves', text: 'deserves', serif: false },
-  { id: 'a', text: 'a', serif: false },
-  { id: 'companion', text: 'companion', serif: false },
-  { id: 'that', text: 'that', serif: false },
-  { id: 'knows', text: 'knows', serif: false },
-  { id: 'their', text: 'their', serif: false },
-  { id: 'bike', text: 'bike', serif: false },
-  { id: 'better', text: 'better', serif: false },
-  { id: 'than', text: 'than', serif: false },
-  { id: 'the1', text: 'the', serif: false },
-  { id: 'shop', text: 'shop', serif: false },
-  { id: 'dash', text: '\u2014', serif: false },
-  { id: 'and', text: 'and', serif: true },
-  { id: 'the2', text: 'the', serif: true },
-  { id: 'road', text: 'road', serif: true },
-  { id: 'ahead', text: 'ahead.', serif: true },
-];
+import { useTranslations } from 'next-intl';
+import { useEffect, useMemo, useRef } from 'react';
 
 export function ManifestoSection() {
+  const t = useTranslations('Manifesto');
   const quoteRef = useRef<HTMLParagraphElement>(null);
 
+  const words = useMemo(() => {
+    const lead = t('lead')
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((text, i) => ({ id: `lead-${i}`, text, serif: false }));
+    const emphasis = t('emphasis')
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((text, i) => ({ id: `emphasis-${i}`, text, serif: true }));
+    return [...lead, ...emphasis];
+  }, [t]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `words` is the trigger — when the translated word list changes (e.g. locale switch) the spans re-render and the scroll handler must re-bind to the new elements.
   useEffect(() => {
     const el = quoteRef.current;
     if (!el) return;
 
-    const words = el.querySelectorAll<HTMLSpanElement>('span[data-word]');
+    const wordEls = el.querySelectorAll<HTMLSpanElement>('span[data-word]');
 
     const update = () => {
       const rect = el.getBoundingClientRect();
       const vh = window.innerHeight;
       const progress = Math.max(0, Math.min(1, (vh * 0.7 - rect.top) / (rect.height + vh * 0.3)));
-      const onCount = Math.floor(progress * words.length);
-      for (let i = 0; i < words.length; i++) {
-        words[i].style.color =
+      const onCount = Math.floor(progress * wordEls.length);
+      for (let i = 0; i < wordEls.length; i++) {
+        wordEls[i].style.color =
           i < onCount
-            ? words[i].dataset.serif === 'true'
+            ? wordEls[i].dataset.serif === 'true'
               ? 'var(--mv-warm-400)'
               : 'var(--mv-ink)'
             : 'var(--mv-ink-4)';
@@ -51,7 +45,7 @@ export function ManifestoSection() {
     update();
 
     return () => window.removeEventListener('scroll', update);
-  }, []);
+  }, [words]);
 
   return (
     <section
@@ -71,7 +65,7 @@ export function ManifestoSection() {
           textTransform: 'uppercase',
         }}
       >
-        Our promise
+        {t('eyebrow')}
       </div>
       <p
         ref={quoteRef}
@@ -84,7 +78,7 @@ export function ManifestoSection() {
           maxWidth: '1000px',
         }}
       >
-        {WORDS.map((w) => (
+        {words.map((w) => (
           <span
             key={w.id}
             data-word=""

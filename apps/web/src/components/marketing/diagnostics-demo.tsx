@@ -1,6 +1,9 @@
 import Image from 'next/image';
+import { getTranslations } from 'next-intl/server';
 
-export function DiagnosticsDemo() {
+export async function DiagnosticsDemo() {
+  const t = await getTranslations('DiagnosticsDemo');
+
   return (
     <section
       id="diag"
@@ -64,7 +67,7 @@ export function DiagnosticsDemo() {
                 boxShadow: '0 0 8px var(--mv-warm-400)',
               }}
             />
-            Powered by AI
+            {t('aiTag')}
           </div>
 
           {/* Title */}
@@ -77,7 +80,7 @@ export function DiagnosticsDemo() {
               margin: '20px 0 0',
             }}
           >
-            Point. Tap.{' '}
+            {t('titleLead')}{' '}
             <span
               style={{
                 fontFamily: "var(--font-instrument-serif, 'Instrument Serif', serif)",
@@ -85,7 +88,7 @@ export function DiagnosticsDemo() {
                 color: 'var(--mv-warm-400)',
               }}
             >
-              Answered.
+              {t('titleEmphasis')}
             </span>
           </h2>
 
@@ -99,17 +102,12 @@ export function DiagnosticsDemo() {
               letterSpacing: '-0.01em',
             }}
           >
-            Our vision model identifies parts, reads warning lights, and diagnoses issues from a
-            single photo. No forum threads. No $1,200 OBD tool. Just the answer.
+            {t('description')}
           </p>
 
           {/* Steps */}
           <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {[
-              'Open camera, frame the issue.',
-              'AI identifies and analyzes the issue.',
-              'Get a diagnosis + recommended fix.',
-            ].map((text, i) => (
+            {[t('step1'), t('step2'), t('step3')].map((text, i) => (
               <div
                 key={text}
                 style={{
@@ -185,7 +183,7 @@ export function DiagnosticsDemo() {
           >
             <Image
               src="/images/marketing/mw/diagnose-hub.png"
-              alt="AI diagnostics screen"
+              alt={t('screenAlt')}
               fill
               sizes="340px"
               style={{ objectFit: 'cover', objectPosition: 'top' }}
@@ -243,7 +241,7 @@ export function DiagnosticsDemo() {
                 textTransform: 'uppercase',
               }}
             >
-              Scan complete
+              {t('scanComplete')}
             </div>
             <div
               style={{
@@ -253,7 +251,7 @@ export function DiagnosticsDemo() {
                 letterSpacing: '-0.01em',
               }}
             >
-              Chain tension low
+              {t('resultTitle')}
             </div>
             <div
               style={{
@@ -263,7 +261,7 @@ export function DiagnosticsDemo() {
                 lineHeight: 1.4,
               }}
             >
-              Adjust to 25-35mm slack per owner's manual.
+              {t('resultDesc')}
             </div>
           </div>
         </div>
