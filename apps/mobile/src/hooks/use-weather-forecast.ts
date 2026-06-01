@@ -34,11 +34,44 @@ export interface WeatherSummary {
   isGoodWeekend: boolean;
 }
 
-type LocationStatus = 'pending' | 'granted' | 'denied';
+// 'unavailable' = permission granted but the device couldn't produce a fix
+// (GPS cold start, indoors, low-end hardware). Distinct from 'denied'.
+export type LocationStatus = 'pending' | 'granted' | 'denied' | 'unavailable';
 
 export interface Coordinates {
   lat: number;
   lon: number;
+}
+
+export interface ResolvedWeatherLocation {
+  status: LocationStatus;
+  coords: Coordinates | null;
+}
+
+/**
+ * Resolve the device location for the weather forecast, translating every
+ * failure mode into a typed result instead of a rejected promise.
+ *
+ * expo-location rejects with "Current location is unavailable" when it can't
+ * get a fix even with permission granted (GPS cold start, indoors, low-end
+ * hardware). Previously that rejection escaped an uncaught `try/finally` and
+ * surfaced as an unhandled rejection. (Sentry MOTO-VAULT-REACT-NATIVE-19)
+ */
+export async function resolveWeatherLocation(): Promise<ResolvedWeatherLocation> {
+  try {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') return { status: 'denied', coords: null };
+
+    const point =
+      (await Location.getLastKnownPositionAsync()) ??
+      (await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low }));
+    return {
+      status: 'granted',
+      coords: { lat: point.coords.latitude, lon: point.coords.longitude },
+    };
+  } catch {
+    return { status: 'unavailable', coords: null };
+  }
 }
 
 export interface UseWeatherResult {
@@ -136,21 +169,9 @@ export function useWeatherForecast(): UseWeatherResult {
     if (isResolving.current) return;
     isResolving.current = true;
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setLocationStatus('denied');
-        return;
-      }
-      setLocationStatus('granted');
-      const loc = await Location.getLastKnownPositionAsync();
-      if (loc) {
-        setCoords({ lat: loc.coords.latitude, lon: loc.coords.longitude });
-      } else {
-        const current = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Low,
-        });
-        setCoords({ lat: current.coords.latitude, lon: current.coords.longitude });
-      }
+      const result = await resolveWeatherLocation();
+      setLocationStatus(result.status);
+      if (result.coords) setCoords(result.coords);
     } finally {
       isResolving.current = false;
     }

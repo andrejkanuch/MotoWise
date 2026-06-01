@@ -10,7 +10,7 @@ jest.mock('expo-secure-store', () => ({
 }));
 jest.mock('../supabase', () => ({ supabase: { auth: { signInWithIdToken: jest.fn() } } }));
 
-import { isExpectedAuthError } from '../oauth';
+import { isExpectedAuthError, reportUnexpectedAuthError } from '../oauth';
 
 describe('isExpectedAuthError', () => {
   it('returns true for Apple "cancelled" error', () => {
@@ -50,5 +50,35 @@ describe('isExpectedAuthError', () => {
       isExpectedAuthError(new Error('THE AUTHORIZATION ATTEMPT FAILED FOR AN UNKNOWN REASON')),
     ).toBe(true);
     expect(isExpectedAuthError(new Error('CANCELLED'))).toBe(true);
+  });
+});
+
+describe('reportUnexpectedAuthError', () => {
+  it('reports genuine failures (network) to the reporter', () => {
+    const report = jest.fn();
+    reportUnexpectedAuthError(new Error('Network request failed'), report);
+    expect(report).toHaveBeenCalledTimes(1);
+  });
+
+  it('does NOT report Apple\'s "unknown reason" — the source of MOTO-VAULT-REACT-NATIVE-C', () => {
+    const report = jest.fn();
+    reportUnexpectedAuthError(
+      new Error('The authorization attempt failed for an unknown reason'),
+      report,
+    );
+    expect(report).not.toHaveBeenCalled();
+  });
+
+  it('does NOT report user cancellations', () => {
+    const report = jest.fn();
+    reportUnexpectedAuthError(new Error('The operation was cancelled'), report);
+    expect(report).not.toHaveBeenCalled();
+  });
+
+  it('passes the original error through to the reporter unchanged', () => {
+    const report = jest.fn();
+    const err = new Error('Something went wrong');
+    reportUnexpectedAuthError(err, report);
+    expect(report).toHaveBeenCalledWith(err);
   });
 });

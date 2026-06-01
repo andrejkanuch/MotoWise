@@ -20,7 +20,7 @@ import {
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { userFriendlyError } from '../../lib/graphql-errors';
-import { signInWithApple, signInWithGoogle } from '../../lib/oauth';
+import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { supabase } from '../../lib/supabase';
 
 export default function RegisterScreen() {
@@ -71,7 +71,9 @@ export default function RegisterScreen() {
         auth_method: 'apple',
       });
     } catch (err) {
-      captureException(err);
+      // Cancellations and Apple's generic "unknown reason" failure are expected
+      // user outcomes, not bugs — don't report them to Sentry. (MOTO-VAULT-REACT-NATIVE-C)
+      reportUnexpectedAuthError(err, captureException);
       Alert.alert(t('common.error'), userFriendlyError(err));
     }
   };
@@ -86,7 +88,7 @@ export default function RegisterScreen() {
         auth_method: 'google',
       });
     } catch (err) {
-      captureException(err);
+      reportUnexpectedAuthError(err, captureException);
       Alert.alert(t('common.error'), userFriendlyError(err));
     }
   };
