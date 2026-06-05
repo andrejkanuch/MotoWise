@@ -1,7 +1,8 @@
 import { palette } from '@motovault/design-system';
+import * as Haptics from 'expo-haptics';
 import { Gauge } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
 interface MileageDisplayProps {
@@ -9,6 +10,7 @@ interface MileageDisplayProps {
   mileageUnit?: string;
   mileageUpdatedAt?: string;
   isDark: boolean;
+  onUpdate: (newMileage: number) => void;
 }
 
 export function MileageDisplay({
@@ -16,6 +18,7 @@ export function MileageDisplay({
   mileageUnit = 'mi',
   mileageUpdatedAt,
   isDark,
+  onUpdate,
 }: MileageDisplayProps) {
   const { t } = useTranslation();
 
@@ -31,9 +34,51 @@ export function MileageDisplay({
     });
   };
 
+  const handlePress = () => {
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Alert.prompt(
+      t('bikeHub.updateMileage', { defaultValue: 'Update Mileage' }),
+      t('bikeHub.enterCurrentMileage', {
+        defaultValue: `Enter current odometer reading (${mileageUnit})`,
+        unit: mileageUnit,
+      }),
+      [
+        { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
+        {
+          text: t('common.save', { defaultValue: 'Save' }),
+          onPress: (value: string | undefined) => {
+            const num = Number.parseInt(value ?? '', 10);
+            if (Number.isNaN(num) || num < 0) return;
+            if (currentMileage != null && num < currentMileage) {
+              Alert.alert(
+                t('bikeHub.mileageWarning', { defaultValue: 'Lower mileage?' }),
+                t('bikeHub.mileageWarningMessage', {
+                  defaultValue: 'The new reading is lower than current. Are you sure?',
+                }),
+                [
+                  { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
+                  {
+                    text: t('common.confirm', { defaultValue: 'Confirm' }),
+                    onPress: () => onUpdate(num),
+                  },
+                ],
+              );
+              return;
+            }
+            onUpdate(num);
+          },
+        },
+      ],
+      'plain-text',
+      currentMileage?.toString() ?? '',
+      'number-pad',
+    );
+  };
+
   return (
     <Animated.View entering={FadeInUp.delay(50).duration(300)}>
-      <View
+      <Pressable
+        onPress={handlePress}
         style={{
           flexDirection: 'row',
           alignItems: 'center',
@@ -62,7 +107,7 @@ export function MileageDisplay({
           </Text>
           <Text style={{ fontSize: 11, color: palette.neutral500 }}>{getLastUpdatedText()}</Text>
         </View>
-      </View>
+      </Pressable>
     </Animated.View>
   );
 }

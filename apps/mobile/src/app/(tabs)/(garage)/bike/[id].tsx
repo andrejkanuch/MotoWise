@@ -402,6 +402,10 @@ export default function BikeDetailScreen() {
     [],
   );
 
+  const handleMileageUpdate = (newMileage: number) => {
+    updateBikeMutation.mutate({ currentMileage: newMileage });
+  };
+
   // --- Loading / not found states ---
 
   if (isLoading && !data) {
@@ -662,6 +666,7 @@ export default function BikeDetailScreen() {
             mileageUnit={mileageUnit}
             mileageUpdatedAt={bike.mileageUpdatedAt ?? undefined}
             isDark={isDark}
+            onUpdate={handleMileageUpdate}
           />
         </Animated.View>
 
