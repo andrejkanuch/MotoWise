@@ -8,6 +8,7 @@ import { Hero } from '@/components/marketing/hero';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { ManifestoSection } from '@/components/marketing/manifesto-section';
 import { ProofSection } from '@/components/marketing/proof-section';
+import { getDefaultAuthor } from '@/lib/authors';
 import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
 import { getAppStoreRating } from '@/lib/seo/app-store-rating';
 import {
@@ -55,10 +56,18 @@ export default async function HomePage({ params }: PageProps) {
     ),
   ]);
 
+  const founder = getDefaultAuthor();
   const graph = buildGraph(
     buildOrganization({
       name: tJsonLd('organizationName'),
       description: tJsonLd('organizationDescription'),
+      founder: {
+        name: founder.name,
+        jobTitle: founder.role,
+        sameAs: founder.socials
+          ? Object.values(founder.socials).filter((url): url is string => Boolean(url))
+          : undefined,
+      },
     }),
     buildWebSite({
       name: tJsonLd('organizationName'),

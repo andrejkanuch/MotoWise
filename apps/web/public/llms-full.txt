@@ -1,5 +1,5 @@
 # MotoVault — Full Content Reference
-Last-Updated: 2026-04-14
+Last-Updated: 2026-06-01
 
 > MotoVault is the only motorcycle app that combines maintenance tracking, expense logging, ride recording, AI-powered diagnostics, and structured learning in a single platform. Free on iOS and Android.
 
@@ -142,6 +142,10 @@ The MotoVault blog publishes motorcycle maintenance guides, troubleshooting arti
 
 Full blog: https://motovault.app/blog
 
+## Guides
+
+MotoVault publishes step-by-step motorcycle maintenance and repair guides at https://motovault.app/guides. Each guide walks through a specific procedure — oil changes, chain adjustment, brake pad replacement, pre-ride inspection — with the tools required, difficulty level, and safety notes. Guides complement the blog (which covers troubleshooting and cost analysis) and the in-app Learning Paths.
+
 ## Technical Details
 
 - Mobile app built with React Native (Expo) for iOS and Android
@@ -151,6 +155,29 @@ Full blog: https://motovault.app/blog
 - Motorcycle database from NHTSA vPIC API
 - Auth via Supabase (email, Google, Apple Sign-In)
 - Available in 5 languages (English, German, French, Spanish, Italian)
+
+## Frequently Asked Questions
+
+**Is MotoVault free?**
+Yes. MotoVault is free to download and use on iOS and Android. An optional MotoVault Pro subscription ($4.99/month) unlocks advanced features.
+
+**Does MotoVault need OBD hardware or a scanner?**
+No. MotoVault's AI diagnostics work from a photo or a plain-language description of the symptom — no OBD-II adapter, scanner, or cable required. Most motorcycles lack an OBD port, which is why MotoVault uses Anthropic's Claude AI instead.
+
+**What motorcycles does MotoVault support?**
+All makes, models, and years, via the official NHTSA vehicle database — thousands of manufacturers and model years.
+
+**What platforms is MotoVault available on?**
+iOS and Android. A public motorcycle-route discovery website is also available at https://motovault.app/explore.
+
+**What does MotoVault do?**
+It combines maintenance tracking, expense logging, GPS ride recording, multi-day trip planning, AI photo diagnostics, and structured learning in a single app — replacing the two or three separate apps most riders juggle.
+
+**How much does MotoVault Pro cost?**
+MotoVault Pro is $4.99 per month. The core app is free.
+
+**What languages does MotoVault support?**
+English, German, French, Spanish, and Italian.
 
 ## Contact
 

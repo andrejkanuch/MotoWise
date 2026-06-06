@@ -6,7 +6,7 @@ import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { RouteCard } from '@/components/marketing/route-card';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import { fetchRegionBySlug, fetchRoutesByRegion } from '@/lib/fetch-places';
-import { buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
+import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/lib/seo/schema';
 
 export const revalidate = 3600; // 1 hour
 
@@ -79,6 +79,21 @@ export default async function RegionPage({ params }: PageProps) {
   const description = `Explore ${region.routeCount} motorcycle routes in ${region.name}, ${country.name}.`;
   const canonical = getCanonicalUrl(locale, `/explore/${countrySlug}/${regionSlug}`);
 
+  // Enumerate the routes for an ItemList (complements the CollectionPage below).
+  const routeItems = routes
+    .map((route) =>
+      route.slug && route.regionSlug && route.countryCode
+        ? {
+            name: route.displayName ?? route.name ?? 'Motorcycle route',
+            url: getCanonicalUrl(
+              locale,
+              `/explore/${route.countryCode.toLowerCase()}/${route.regionSlug}/${route.slug}`,
+            ),
+          }
+        : null,
+    )
+    .filter((entry): entry is { name: string; url: string } => entry !== null);
+
   const graph = buildGraph(
     buildWebPage({
       url: canonical,
@@ -107,6 +122,9 @@ export default async function RegionPage({ params }: PageProps) {
       isPartOf: { '@type': 'WebSite', url: BASE_URL },
       numberOfItems: routes.length,
     },
+    routeItems.length > 0
+      ? buildItemList(routeItems, `${locale}/explore/${countrySlug}/${regionSlug}`, title)
+      : null,
   );
 
   return (

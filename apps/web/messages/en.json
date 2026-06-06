@@ -436,7 +436,7 @@
     "title": "AI Motorcycle Diagnostics — Free Photo Scanner",
     "description": "Point your camera at any motorcycle problem. Get an instant AI diagnosis with severity rating and fix steps. Free for all 18,000+ bike models.",
     "heroTitle": "AI-Powered Motorcycle Diagnostics",
-    "heroSubtitle": "Point your camera at any part, warning light, or issue. Our AI identifies the problem and suggests fixes — all in seconds.",
+    "heroSubtitle": "MotoVault's AI diagnostics identifies motorcycle problems from a single photo — no OBD hardware required. Point your camera at any part, warning light, or symptom, and the AI names the likely issue, rates its severity, and suggests fixes in seconds.",
     "howItWorksTitle": "See It in Action",
     "step1Label": "Bike",
     "step1Title": "Select Your Motorcycle",
@@ -903,52 +903,6 @@
     "longFormScheduling": "MotoVault's reminder system is built around how real riders maintain their bikes. Set reminders by mileage interval, time interval, or both — and MotoVault notifies you when service is coming due. Oil changes every 5,000 miles or 6 months. Chain lubrication every 500 miles. Tire inspection every spring. Coolant flush every 2 years. Each reminder is customizable per bike, because your sportbike and your touring bike have different needs. When you complete a maintenance task, simply log it and the next reminder is automatically scheduled. No more guessing when you last changed the oil or whether the brake fluid is overdue.",
     "longFormResaleTitle": "Documentation That Protects Your Investment",
     "longFormResale": "A complete, documented maintenance history is one of the most valuable things you can show a potential buyer. MotoVault's garage creates a professional, verifiable record of every service performed on your motorcycle — dates, mileage, costs, parts used, and notes. When it comes time to sell, you can export a comprehensive maintenance report that demonstrates responsible ownership and justifies your asking price. Buyers pay more for bikes with documented service histories, and MotoVault makes maintaining that documentation effortless. Even if you never plan to sell, having a complete record helps you spot patterns, plan ahead for major services, and ensure nothing falls through the cracks."
-  },
-  "FeaturesProgress": {
-    "title": "Track Your Motorcycle Knowledge",
-    "description": "Earn badges, track quiz scores, build learning streaks. Gamified motorcycle education that keeps you motivated.",
-    "heroTitle": "Track Your Progress",
-    "heroSubtitle": "Gamified learning that keeps you motivated. Earn badges, build streaks, and watch your expertise grow.",
-    "badgesTitle": "Earn Achievement Badges",
-    "badgesDesc": "Complete courses, ace quizzes, and hit milestones to unlock achievement badges. Show off your motorcycle knowledge.",
-    "streaksTitle": "Build Learning Streaks",
-    "streaksDesc": "Learn something new every day. Build streaks to stay consistent and build lasting motorcycle knowledge.",
-    "scoresTitle": "Track Quiz Scores",
-    "scoresDesc": "See your performance across all modules. Identify weak areas and focus your learning where it matters most.",
-    "faq": [
-      {
-        "question": "What metrics does the progress tracker show?",
-        "answer": "MotoVault's progress tracker gives you a comprehensive view of your motorcycle knowledge journey. Key metrics include maintenance task completion rates, upcoming service schedules across all your bikes, expense trends with monthly and yearly breakdowns, learning progress through skill trees and course completion percentages, quiz scores and performance history across all modules, achievement badges earned, and learning streak length. Everything is presented in a clean dashboard so you can see your status at a glance."
-      },
-      {
-        "question": "Can I set custom maintenance reminders?",
-        "answer": "Yes. MotoVault lets you set fully customizable reminders based on mileage intervals, time intervals, or both. Common reminders include oil changes, chain lubrication, tire checks, and brake inspections, but you can create custom reminders for any task. Each reminder is configurable per bike, so different motorcycles can have different schedules tailored to their specific needs."
-      },
-      {
-        "question": "Does progress tracking work with multiple bikes?",
-        "answer": "Yes. MotoVault provides per-bike dashboards so you can see the maintenance status, upcoming tasks, and expense history for each motorcycle individually. You can also view an aggregate overview across all your bikes to see which one needs attention next and how your total maintenance spending breaks down."
-      },
-      {
-        "question": "Can I export my maintenance data?",
-        "answer": "Yes. MotoVault lets you export comprehensive maintenance reports for any bike in your garage. These reports include the complete service history with dates, mileage, costs, and notes — perfect for documenting your motorcycle's condition for potential buyers, insurance claims, or your own records. A documented maintenance history can significantly increase your motorcycle's resale value."
-      }
-    ],
-    "longFormTitle": "Motorcycle Progress Tracking: Stay Motivated, Stay on Top",
-    "longFormIntro": "Maintaining a motorcycle and building mechanical knowledge are long-term commitments. Without a way to track your progress, it is easy to lose momentum — skipping maintenance tasks, forgetting where you left off in a course, or letting service intervals slip. MotoVault's progress tracking system keeps everything visible and organized, combining gamified learning metrics with practical maintenance dashboards that keep you motivated and your bikes in top shape.",
-    "longFormDashboardTitle": "Your Personal Motorcycle Dashboard",
-    "longFormDashboard": "MotoVault's dashboard brings together everything you need to see in one place. At a glance, you can check which bikes need maintenance soon, what your next learning lesson is, how your quiz scores are trending, and where your spending stands for the month. The dashboard is personalized to your garage — if you own three bikes, you see the status of all three with color-coded indicators showing what is on track, what is coming due, and what is overdue. This bird's-eye view eliminates the guesswork from motorcycle ownership and helps you prioritize your time and budget effectively.",
-    "longFormRemindersTitle": "Smart Reminders That Keep You Riding",
-    "longFormReminders": "The reminder system is the backbone of MotoVault's maintenance tracking. Set reminders based on mileage, time, or both, and MotoVault handles the rest. You will receive notifications when service is approaching — not after it is already overdue. Popular reminder configurations include oil changes every 3,000 to 6,000 miles, chain lubrication every 300 to 500 miles, tire pressure checks monthly, brake fluid replacement every two years, and coolant changes per your manufacturer's schedule. Every reminder is configurable per bike, because a high-performance sportbike and a low-mileage cruiser have very different maintenance demands. When you log a completed task, the next reminder automatically resets.",
-    "longFormAnalyticsTitle": "Analytics and Reports for Smarter Ownership",
-    "longFormAnalytics": "MotoVault goes beyond simple tracking by providing analytics that help you make smarter decisions about your motorcycles. Expense analytics show total spending by bike, by category, and over time — so you can see whether a particular motorcycle is costing you more than expected or whether your maintenance spending is trending up. Maintenance analytics highlight which tasks you complete on time versus which ones tend to slip, helping you identify habits to improve. Learning analytics show your quiz performance across modules, revealing areas where you are strong and topics where you could benefit from review. All of this data can be exported into clean reports — perfect for insurance documentation, resale preparation, or simply understanding the true cost of motorcycle ownership.",
-    "sectionLabel": "Progress Tracking",
-    "featuresLabel": "Stay Motivated",
-    "featuresTitle": "Track Every Milestone",
-    "longFormLabel": "Under the Hood",
-    "faqLabel": "Got Questions?",
-    "faqTitle": "Frequently Asked Questions",
-    "faqMore": "Have more questions?",
-    "faqSupportLink": "Visit our support page"
   },
   "CostCalculator": {
     "title": "Motorcycle Cost of Ownership Calculator",
@@ -2472,8 +2426,12 @@
     "garageDesc": "Track every motorcycle you own — mileage, service history, fuel and expenses — in a single timeline per bike.",
     "learningTitle": "Learning Paths",
     "learningDesc": "Structured modules and AI-generated articles tailored to your specific bike, from brake service to winter storage.",
-    "progressTitle": "Progress Tracking",
-    "progressDesc": "Every ride, every task, every spend logged automatically so you always know where your motorcycle stands."
+    "maintenanceTitle": "Maintenance Tracking",
+    "maintenanceDesc": "Log every service, set mileage and time-based reminders, and keep a documented history for every bike.",
+    "expensesTitle": "Expense Tracking",
+    "expensesDesc": "Track fuel, parts, and service by category and see cost-per-mile across every motorcycle you own.",
+    "ridesTitle": "Ride Tracking",
+    "ridesDesc": "Record rides with full GPS — distance, speed, and elevation — linked to the right bike in your garage."
   },
   "FeaturesTripPlanning": {
     "title": "Motorcycle Trip Planning App — Multi-Day Routes & Navigation",
@@ -2744,9 +2702,9 @@
     "upgradeToPro": "Upgrade to Pro",
     "unlockFeature": "Unlock {feature}",
     "lockCtaLabel": "Upgrade to Pro",
-    "lockPrice": "From $5.99/mo \u00B7 7-day free trial",
+    "lockPrice": "From $5.99/mo · 7-day free trial",
     "expenseTracking": "expense tracking",
-    "expenseTrackingDesc": "Track every dollar spent on your bikes with detailed breakdowns and monthly trends \u2014 fuel, parts, service, the lot.",
+    "expenseTrackingDesc": "Track every dollar spent on your bikes with detailed breakdowns and monthly trends — fuel, parts, service, the lot.",
     "maintenanceTracking": "maintenance tracking",
     "maintenanceTrackingDesc": "Never miss an oil change, chain adjustment, or tire swap. Mileage- and time-based reminders for every bike you own.",
     "yearToDate": "Year to date",
@@ -2847,5 +2805,149 @@
     "noFollowing": "You are not following anyone yet.",
     "loadMore": "Load more",
     "loading": "Loading..."
+  },
+  "FeaturesMaintenance": {
+    "title": "Motorcycle Maintenance Tracker — Service History & Reminders",
+    "description": "Log every service, set mileage and time-based reminders, and keep a full maintenance history for every motorcycle in your garage. Free on iOS and Android.",
+    "sectionLabel": "Maintenance Tracking",
+    "heroTitle": "Never miss a service again",
+    "heroSubtitle": "MotoVault's maintenance tracker keeps a complete service history for every motorcycle you own and reminds you before work is due — based on mileage, time, or both. Log oil changes, chain lube, brake service, and custom tasks with date, mileage, cost, and photos, so nothing slips and your bike's records stay resale-ready.",
+    "featuresLabel": "Stay on schedule",
+    "featuresTitle": "Maintenance that manages itself",
+    "f1Title": "Smart service reminders",
+    "f1Desc": "Set reminders by mileage interval, time interval, or both. MotoVault notifies you before service is due — not after it's overdue — and resets automatically when you log the task.",
+    "f2Title": "Complete service history",
+    "f2Desc": "Every job is logged with date, mileage, cost, category, notes, and photos. Build a documented timeline for each bike that increases resale value and simplifies insurance claims.",
+    "f3Title": "Per-bike schedules",
+    "f3Desc": "A sportbike and a cruiser have different needs. Configure independent maintenance schedules for every motorcycle in your garage.",
+    "longFormLabel": "Under the hood",
+    "longFormTitle": "Motorcycle maintenance tracking that keeps your bike healthy",
+    "longFormIntro": "Motorcycle maintenance is a long-term commitment, and missed intervals are expensive. MotoVault's maintenance tracker replaces the shoebox of receipts and the spreadsheet with a single, organized service history per bike — plus reminders that reach you before a service slips.",
+    "s1Title": "Log every job in seconds",
+    "s1Body": "Record maintenance with date, odometer reading, cost, category, and detailed notes, and attach photos of parts or receipts. Tasks are organized into overdue, upcoming, and completed tabs so you always know what needs attention next.",
+    "s2Title": "Reminders based on how you actually ride",
+    "s2Body": "Set reminders on mileage (oil every 5,000 mi), time (brake fluid every 2 years), or both. Because reminders are per bike, a daily commuter and a weekend tourer can follow completely different schedules. Log a completed task and the next reminder resets automatically.",
+    "s3Title": "Records that pay you back",
+    "s3Body": "Export a full maintenance report for any bike — dates, mileage, costs, and notes. A documented service history reassures buyers, supports insurance and warranty claims, and can meaningfully raise resale value.",
+    "faqLabel": "Got questions?",
+    "faqTitle": "Frequently Asked Questions",
+    "faq": [
+      {
+        "question": "Does MotoVault track maintenance for multiple motorcycles?",
+        "answer": "Yes. MotoVault gives every motorcycle in your garage its own service history, reminders, and schedule. You can view each bike individually or see an aggregate overview of which bike needs attention next across your whole garage."
+      },
+      {
+        "question": "Can I set custom maintenance reminders?",
+        "answer": "Yes. Reminders are fully customizable by mileage interval, time interval, or both. Beyond presets like oil changes and chain lubrication, you can create a reminder for any task, configured per bike. When you log the task as done, the next reminder resets automatically."
+      },
+      {
+        "question": "Can I export my motorcycle's service history?",
+        "answer": "Yes. MotoVault exports a complete maintenance report for any bike, including dates, mileage, costs, and notes — ideal for resale documentation, insurance claims, or your own records."
+      },
+      {
+        "question": "Is the maintenance tracker free?",
+        "answer": "Yes. Maintenance tracking is free on iOS and Android. An optional MotoVault Pro subscription ($4.99/month) unlocks advanced features."
+      }
+    ],
+    "faqMore": "Have more questions?",
+    "faqSupportLink": "Visit our support page",
+    "breadcrumbHome": "Home",
+    "breadcrumbFeatures": "Features"
+  },
+  "FeaturesExpenses": {
+    "title": "Motorcycle Expense Tracker — Fuel, Parts & Cost-per-Mile",
+    "description": "Track every motorcycle expense by category, see cost-per-mile, and compare spending across bikes and years. Free on iOS and Android.",
+    "sectionLabel": "Expense Tracking",
+    "heroTitle": "Know exactly what your bike costs",
+    "heroSubtitle": "MotoVault's expense tracker logs every motorcycle cost — fuel, maintenance, parts, and gear — and turns it into clear analytics: year-to-date spending, cost-per-mile, monthly trends, and per-bike comparisons. Finally see the true cost of ownership instead of guessing.",
+    "featuresLabel": "Follow the money",
+    "featuresTitle": "Every cost, categorized and clear",
+    "f1Title": "Four expense categories",
+    "f1Desc": "Log fuel, maintenance, parts, and gear in seconds. Each expense ties to a specific bike so multi-bike owners can see exactly where the money goes.",
+    "f2Title": "Cost-per-mile analytics",
+    "f2Desc": "MotoVault calculates cost-per-mile and per-kilometer automatically, so you can compare bikes and understand what each motorcycle really costs to run.",
+    "f3Title": "Trends and comparisons",
+    "f3Desc": "See year-to-date spending with category breakdowns, monthly trends, and current-year-vs-all-time comparisons — in both metric and imperial units.",
+    "longFormLabel": "Under the hood",
+    "longFormTitle": "Motorcycle expense tracking that reveals the true cost of ownership",
+    "longFormIntro": "Most riders underestimate what their motorcycle costs because the spending is scattered across fuel receipts, parts orders, and service invoices. MotoVault's expense tracker pulls all of it into one place and turns raw costs into the metrics that actually matter — cost-per-mile, category breakdowns, and year-over-year trends.",
+    "s1Title": "Log expenses in four clear categories",
+    "s1Body": "Fuel, maintenance, parts, and gear — every expense is recorded against a specific motorcycle with date, amount, and notes. For multi-bike owners, that means you can see which machine is draining your budget and which is cheap to keep.",
+    "s2Title": "Turn spending into cost-per-mile",
+    "s2Body": "MotoVault automatically computes cost-per-mile and cost-per-kilometer from your logged expenses and ride distances. It's the single most useful number for comparing bikes, deciding whether to keep or sell, and budgeting for the year ahead.",
+    "s3Title": "Spot trends before they surprise you",
+    "s3Body": "The expense dashboard shows year-to-date totals with category bars, monthly spending trends, and a current-year-versus-all-time comparison. If maintenance costs are creeping up on an older bike, you'll see it early — in your choice of metric or imperial units.",
+    "faqLabel": "Got questions?",
+    "faqTitle": "Frequently Asked Questions",
+    "faq": [
+      {
+        "question": "Is the expense tracker free?",
+        "answer": "Yes. Expense tracking is free on iOS and Android. An optional MotoVault Pro subscription ($4.99/month) unlocks advanced features."
+      },
+      {
+        "question": "What expenses can I track?",
+        "answer": "MotoVault tracks four categories: fuel, maintenance, parts, and gear. Each expense is tied to a specific motorcycle, with date, amount, and notes, so your spending is organized per bike."
+      },
+      {
+        "question": "Does MotoVault calculate cost-per-mile?",
+        "answer": "Yes. MotoVault automatically calculates cost-per-mile and cost-per-kilometer from your logged expenses and recorded ride distances, in both metric and imperial units."
+      },
+      {
+        "question": "Can I track expenses for more than one motorcycle?",
+        "answer": "Yes. Every expense is assigned to a specific bike, and the dashboard lets you compare spending across all the motorcycles in your garage."
+      }
+    ],
+    "faqMore": "Have more questions?",
+    "faqSupportLink": "Visit our support page",
+    "breadcrumbHome": "Home",
+    "breadcrumbFeatures": "Features"
+  },
+  "FeaturesRides": {
+    "title": "Motorcycle Ride Tracker — GPS Logging & Ride Analytics",
+    "description": "Record every ride with GPS — distance, speed, elevation, and an interactive route map — linked to the right bike in your garage. Free on iOS and Android.",
+    "sectionLabel": "Ride Tracking",
+    "heroTitle": "Record every ride in detail",
+    "heroSubtitle": "MotoVault's ride tracker records each ride with full GPS — distance, moving time, max and average speed, elevation gain and loss, and a complete route map. Every ride links to a specific bike, building a picture of each motorcycle's usage alongside its maintenance and expenses.",
+    "featuresLabel": "Every mile counts",
+    "featuresTitle": "GPS tracking built for riders",
+    "f1Title": "Full GPS recording",
+    "f1Desc": "Capture distance, duration, moving vs paused time, max and average speed, and elevation gain and loss — rendered as an interactive route map.",
+    "f2Title": "Speed & elevation profiles",
+    "f2Desc": "Each ride includes interactive speed and elevation charts plotted over distance, with per-waypoint altitude, speed, and GPS accuracy.",
+    "f3Title": "Linked to your garage",
+    "f3Desc": "Rides attach to a specific bike, so each motorcycle's mileage and usage sit right alongside its maintenance history and expenses.",
+    "longFormLabel": "Under the hood",
+    "longFormTitle": "Motorcycle ride tracking that connects to the rest of your garage",
+    "longFormIntro": "A ride log is more useful when it's not stranded in a separate app. MotoVault records every ride with full GPS detail and ties it back to the specific motorcycle you rode — so distance, maintenance, and cost all live in one place.",
+    "s1Title": "Rich GPS data on every ride",
+    "s1Body": "MotoVault captures distance, duration with moving and paused time, max and average speed, and elevation gain and loss, then renders the full route as an interactive polyline map. Per-waypoint data includes altitude, speed, and GPS accuracy.",
+    "s2Title": "Profiles that tell the story",
+    "s2Body": "The ride detail screen plots an interactive speed profile and elevation profile over distance, with hover tooltips. It's an easy way to relive a route and to see how a bike performs — all in metric or imperial units.",
+    "s3Title": "Every ride feeds your bike's record",
+    "s3Body": "Because each ride is linked to a motorcycle in your garage, your mileage stays current automatically — which keeps mileage-based maintenance reminders accurate and cost-per-mile analytics honest.",
+    "faqLabel": "Got questions?",
+    "faqTitle": "Frequently Asked Questions",
+    "faq": [
+      {
+        "question": "Is ride tracking free?",
+        "answer": "Yes. GPS ride tracking is free on iOS and Android. An optional MotoVault Pro subscription ($4.99/month) unlocks advanced features."
+      },
+      {
+        "question": "What data does MotoVault record on a ride?",
+        "answer": "Each ride captures distance, duration (moving and paused time), max and average speed, elevation gain and loss, and a complete route map, plus per-waypoint altitude, speed, and GPS accuracy."
+      },
+      {
+        "question": "Can I see speed and elevation for a ride?",
+        "answer": "Yes. Every ride includes interactive speed and elevation profile charts plotted over distance, with hover tooltips, in both metric and imperial units."
+      },
+      {
+        "question": "Do rides connect to my motorcycles?",
+        "answer": "Yes. Each ride is linked to a specific bike in your garage, so mileage updates automatically and stays consistent with that motorcycle's maintenance and expense history."
+      }
+    ],
+    "faqMore": "Have more questions?",
+    "faqSupportLink": "Visit our support page",
+    "breadcrumbHome": "Home",
+    "breadcrumbFeatures": "Features"
   }
 }

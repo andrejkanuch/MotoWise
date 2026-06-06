@@ -12,7 +12,7 @@ import {
   fetchRoutesByCountry,
 } from '@/lib/fetch-places';
 import { COUNTRY_INTROS } from '@/lib/seo/country-intros';
-import { buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
+import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/lib/seo/schema';
 
 export const revalidate = 86400; // 24 hours
 
@@ -105,6 +105,16 @@ export default async function CountryPage({ params }: PageProps) {
       locale,
       `/explore/${countrySlug}`,
     ),
+    regions.length > 0
+      ? buildItemList(
+          regions.map((region) => ({
+            name: region.name,
+            url: getCanonicalUrl(locale, `/explore/${countrySlug}/${region.slug}`),
+          })),
+          `${locale}/explore/${countrySlug}`,
+          `Motorcycle routes by region in ${country.name}`,
+        )
+      : null,
   );
 
   return (

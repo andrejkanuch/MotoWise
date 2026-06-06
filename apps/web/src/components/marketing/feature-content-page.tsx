@@ -1,47 +1,28 @@
-import type { Metadata } from 'next';
-import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { getTranslations } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { FeatureScreenshotPair } from '@/components/marketing/feature-screenshot';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
-import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
+import { getCanonicalUrl } from '@/lib/constants';
 import { buildBreadcrumbList, buildFAQPage, buildGraph, buildWebPage } from '@/lib/seo/schema';
 
-export const revalidate = 3600;
-
-interface PageProps {
-  params: Promise<{ locale: string }>;
+interface FeatureContentPageProps {
+  locale: string;
+  namespace: string;
+  route: string;
+  screenshots: { src: string; alt: string }[];
+  featureIcons: readonly [string, string, string];
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { locale } = await params;
-  setRequestLocale(locale);
-  const t = await getTranslations('FeaturesProgress');
-  return {
-    title: t('title'),
-    description: t('description'),
-    alternates: {
-      canonical: getCanonicalUrl(locale, '/features/progress-tracking'),
-      languages: getHreflangMap('/features/progress-tracking'),
-    },
-  };
-}
-
-const FEATURE_ICONS = [
-  // Badges — trophy
-  'M8 21h8m-4-4v4m-2-8a6 6 0 01-6-6V4h4l2-3 2 3h4v3a6 6 0 01-6 6z',
-  // Streaks — flame
-  'M12 2c.5 3.5-1 6-3 8 1 2 3 3.5 3 6 0 3-2 5-5 5s-5-2-5-5c0-4 3-6 5-9 1.5 1 3.5 2 5-1z',
-  // Scores — chart
-  'M18 20V10m-6 10V4M6 20v-6',
-];
-
-export default async function ProgressTrackingPage({ params }: PageProps) {
-  const { locale } = await params;
-  setRequestLocale(locale);
-  const t = await getTranslations('FeaturesProgress');
-
-  const canonical = getCanonicalUrl(locale, '/features/progress-tracking');
+export async function FeatureContentPage({
+  locale,
+  namespace,
+  route,
+  screenshots,
+  featureIcons,
+}: FeatureContentPageProps) {
+  const t = await getTranslations(namespace);
+  const canonical = getCanonicalUrl(locale, route);
 
   const faqItems = [0, 1, 2, 3].map((i) => ({
     question: t(`faq.${i}.question`),
@@ -54,7 +35,7 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
       name: t('title'),
       description: t('description'),
       locale,
-      pageKey: '/features/progress-tracking',
+      pageKey: route,
     }),
     buildBreadcrumbList(
       [
@@ -63,27 +44,32 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
         { name: t('title'), url: canonical },
       ],
       locale,
-      '/features/progress-tracking',
+      route,
     ),
-    buildFAQPage(faqItems, `${locale}/features/progress-tracking/faq`),
+    buildFAQPage(faqItems, `${locale}${route}/faq`),
   );
 
   const features = [
-    { titleKey: 'badgesTitle', descKey: 'badgesDesc' },
-    { titleKey: 'streaksTitle', descKey: 'streaksDesc' },
-    { titleKey: 'scoresTitle', descKey: 'scoresDesc' },
+    { titleKey: 'f1Title', descKey: 'f1Desc' },
+    { titleKey: 'f2Title', descKey: 'f2Desc' },
+    { titleKey: 'f3Title', descKey: 'f3Desc' },
+  ] as const;
+
+  const sections = [
+    { titleKey: 's1Title', bodyKey: 's1Body' },
+    { titleKey: 's2Title', bodyKey: 's2Body' },
+    { titleKey: 's3Title', bodyKey: 's3Body' },
   ] as const;
 
   return (
     <>
       <JsonLdGraph nodes={graph} />
 
-      {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
         <ol className="mx-auto flex max-w-7xl items-center gap-2 text-sm text-neutral-500">
           <li>
             <Link href="/" className="transition-colors hover:text-neutral-300">
-              Home
+              {t('breadcrumbHome')}
             </Link>
           </li>
           <li aria-hidden="true">
@@ -97,7 +83,6 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
               strokeLinecap="round"
               strokeLinejoin="round"
               className="text-neutral-600"
-              aria-hidden="true"
             >
               <title>Separator</title>
               <polyline points="9 18 15 12 9 6" />
@@ -105,7 +90,7 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
           </li>
           <li>
             <Link href="/features" className="transition-colors hover:text-neutral-300">
-              Features
+              {t('breadcrumbFeatures')}
             </Link>
           </li>
           <li aria-hidden="true">
@@ -119,25 +104,19 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
               strokeLinecap="round"
               strokeLinejoin="round"
               className="text-neutral-600"
-              aria-hidden="true"
             >
               <title>Separator</title>
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </li>
           <li>
-            <Link
-              href="/features/progress-tracking"
-              className="text-neutral-300"
-              aria-current="page"
-            >
+            <span className="text-neutral-300" aria-current="page">
               {t('title')}
-            </Link>
+            </span>
           </li>
         </ol>
       </nav>
 
-      {/* Hero */}
       <section className="px-6 pb-16 pt-8 md:pt-12">
         <div className="reveal-on-scroll mx-auto max-w-4xl text-center">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
@@ -153,27 +132,13 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* App Screenshots */}
-      <FeatureScreenshotPair
-        screenshots={[
-          {
-            src: '/images/features/home.png',
-            alt: 'MotoVault dashboard with bike health score and progress overview',
-          },
-          {
-            src: '/images/features/alerts.png',
-            alt: 'MotoVault maintenance alerts and recommended learning content',
-          },
-        ]}
-      />
+      <FeatureScreenshotPair screenshots={screenshots} />
 
-      {/* Decorative rule */}
       <div
         className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
         aria-hidden="true"
       />
 
-      {/* Features */}
       <section className="px-6 py-24">
         <div className="mx-auto max-w-5xl">
           <div className="reveal-on-scroll mb-16 text-center">
@@ -184,7 +149,6 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
               {t('featuresTitle')}
             </h2>
           </div>
-
           <div className="grid gap-4 md:grid-cols-3">
             {features.map(({ titleKey, descKey }, index) => (
               <article
@@ -198,9 +162,9 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
                     background:
                       'radial-gradient(ellipse at 50% 0%, oklch(0.76 0.13 70 / 0.08), transparent 70%)',
                   }}
+                  aria-hidden="true"
                 />
-                <div className="absolute inset-x-0 bottom-0 h-[3px] bg-transparent transition-colors duration-300 group-hover:bg-warm-500" />
-
+                <div className="absolute inset-x-0 bottom-0 h-[3px] transition-colors group-hover:bg-warm-500" />
                 <div className="relative z-10">
                   <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-neutral-800/80 text-warm-400">
                     <svg
@@ -213,7 +177,7 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
                       className="size-6"
                       aria-hidden="true"
                     >
-                      <path d={FEATURE_ICONS[index]} />
+                      <path d={featureIcons[index]} />
                     </svg>
                   </div>
                   <h3 className="text-lg font-semibold text-neutral-50">{t(titleKey)}</h3>
@@ -225,13 +189,11 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Decorative rule */}
       <div
         className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
         aria-hidden="true"
       />
 
-      {/* Long-form Content */}
       <section className="reveal-on-scroll px-6 py-24">
         <div className="mx-auto max-w-3xl">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
@@ -241,40 +203,27 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
             {t('longFormTitle')}
           </h2>
           <p className="mt-6 text-lg leading-relaxed text-neutral-300">{t('longFormIntro')}</p>
-
-          <div
-            className="my-12 h-px w-full bg-gradient-to-r from-transparent via-neutral-700/50 to-transparent"
-            aria-hidden="true"
-          />
-          <h3 className="text-2xl font-semibold text-neutral-50">{t('longFormDashboardTitle')}</h3>
-          <p className="mt-4 leading-relaxed text-neutral-300">{t('longFormDashboard')}</p>
-
-          <div
-            className="my-12 h-px w-full bg-gradient-to-r from-transparent via-neutral-700/50 to-transparent"
-            aria-hidden="true"
-          />
-          <h3 className="text-2xl font-semibold text-neutral-50">{t('longFormRemindersTitle')}</h3>
-          <p className="mt-4 leading-relaxed text-neutral-300">{t('longFormReminders')}</p>
-
-          <div
-            className="my-12 h-px w-full bg-gradient-to-r from-transparent via-neutral-700/50 to-transparent"
-            aria-hidden="true"
-          />
-          <h3 className="text-2xl font-semibold text-neutral-50">{t('longFormAnalyticsTitle')}</h3>
-          <p className="mt-4 leading-relaxed text-neutral-300">{t('longFormAnalytics')}</p>
+          {sections.map(({ titleKey, bodyKey }) => (
+            <div key={titleKey}>
+              <div
+                className="my-12 h-px w-full bg-gradient-to-r from-transparent via-neutral-700/50 to-transparent"
+                aria-hidden="true"
+              />
+              <h3 className="text-2xl font-semibold text-neutral-50">{t(titleKey)}</h3>
+              <p className="mt-4 leading-relaxed text-neutral-300">{t(bodyKey)}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Decorative rule */}
       <div
         className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
         aria-hidden="true"
       />
 
-      {/* FAQ */}
       <section className="reveal-on-scroll px-6 py-24">
         <div className="mx-auto max-w-4xl">
-          <div className="reveal-on-scroll mb-16 text-center">
+          <div className="mb-16 text-center">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
               {t('faqLabel')}
             </p>
@@ -282,7 +231,6 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
               {t('faqTitle')}
             </h2>
           </div>
-
           <div className="flex flex-col gap-2">
             {faqItems.map(({ question, answer }, index) => (
               <details
@@ -316,7 +264,6 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
               </details>
             ))}
           </div>
-
           <p className="mt-12 text-center text-neutral-500">
             {t('faqMore')}{' '}
             <Link
@@ -329,7 +276,6 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* CTA */}
       <FeatureCta />
     </>
   );

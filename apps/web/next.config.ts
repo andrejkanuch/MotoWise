@@ -74,6 +74,16 @@ const nextConfig: NextConfig = {
         destination: '/:locale/blog/motorcycle-wont-start-troubleshooting-guide',
         permanent: true,
       },
+      {
+        source: '/features/progress-tracking',
+        destination: '/features/ride-tracking',
+        permanent: true,
+      },
+      {
+        source: '/:locale/features/progress-tracking',
+        destination: '/:locale/features/ride-tracking',
+        permanent: true,
+      },
     ];
   },
   async rewrites() {
