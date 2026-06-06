@@ -17,6 +17,19 @@ export function isExpectedAuthError(err: unknown): boolean {
   return EXPECTED_AUTH_MESSAGES.some((m) => msg.includes(m));
 }
 
+/**
+ * Report an OAuth error to crash reporting only when it is NOT an expected
+ * user outcome (cancellation, Apple's generic "unknown reason"). Both the
+ * login and register screens route through this so neither can drift into
+ * reporting expected failures as bugs. (MOTO-VAULT-REACT-NATIVE-C)
+ *
+ * @param report the crash reporter (e.g. `captureException` from analytics);
+ *   injected so this module stays decoupled from the analytics layer.
+ */
+export function reportUnexpectedAuthError(err: unknown, report: (e: unknown) => void): void {
+  if (!isExpectedAuthError(err)) report(err);
+}
+
 /** Result of an OAuth sign-in, used to attribute user_signed_up vs user_signed_in correctly. */
 export type OAuthResult = { isNewUser: boolean };
 

@@ -60,6 +60,12 @@ import {
   trackScreen,
   withSentry,
 } from '../lib/analytics';
+import {
+  AUTH_HYDRATION_TIMEOUT_MESSAGE,
+  AUTH_HYDRATION_TIMEOUT_MS,
+  AUTH_HYDRATION_TIMEOUT_SOURCE,
+  shouldReportHydrationTimeout,
+} from '../lib/auth-hydration';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
 import { captureMetaAttribution } from '../lib/meta-attribution';
@@ -296,13 +302,20 @@ function RootLayout() {
   // Safety timeout: if auth takes too long, unblock the splash anyway
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (useAuthStore.getState().isLoading) {
-        captureException(new Error('Auth hydration timeout — forcing app ready'), {
-          source: 'RootLayout.authTimeout',
+      // Only report when the app is actually foregrounded — a real user
+      // staring at a stuck splash. On background launches (widget sync,
+      // location updates) iOS throttles JS so getSession() can't resolve in
+      // wall-clock time and this timer fires harmlessly. Reporting that is
+      // pure noise. (Sentry MOTO-VAULT-REACT-NATIVE-W)
+      if (shouldReportHydrationTimeout(useAuthStore.getState().isLoading, AppState.currentState)) {
+        captureException(new Error(AUTH_HYDRATION_TIMEOUT_MESSAGE), {
+          source: AUTH_HYDRATION_TIMEOUT_SOURCE,
         });
+      }
+      if (useAuthStore.getState().isLoading) {
         setLoading(false);
       }
-    }, 8000);
+    }, AUTH_HYDRATION_TIMEOUT_MS);
     return () => clearTimeout(timeout);
   }, [setLoading]);
 
