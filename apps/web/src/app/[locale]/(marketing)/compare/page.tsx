@@ -175,6 +175,20 @@ const FEATURE_KEYS = [
   'free',
 ] as const;
 
+// Deep links from each ranked app to its in-depth head-to-head page. This wires
+// the hub (/compare) to its spokes (/compare/motovault-vs-*) for internal-link
+// equity + discovery. Apps without a dedicated comparison page are omitted.
+const VS_PAGE_SLUG: Record<string, string> = {
+  app1: 'motovault-vs-ridelog',
+  app2: 'motovault-vs-rever',
+  app3: 'motovault-vs-calimoto',
+  app4: 'motovault-vs-motormanage',
+  app5: 'motovault-vs-moto-shed',
+  app7: 'motovault-vs-eatsleepride',
+  app8: 'motovault-vs-scenic',
+  app9: 'motovault-vs-motoscan',
+};
+
 function Check() {
   return (
     <svg
@@ -521,6 +535,29 @@ export default async function ComparePage({ params }: PageProps) {
                     </ul>
                   </div>
                 </div>
+
+                {VS_PAGE_SLUG[app.key] ? (
+                  <Link
+                    href={`/compare/${VS_PAGE_SLUG[app.key]}`}
+                    className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-warm-400 transition-colors hover:text-warm-300"
+                  >
+                    MotoVault vs {t(`${app.key}.name`)} — full comparison
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                  </Link>
+                ) : null}
               </article>
             ))}
           </div>
@@ -569,7 +606,18 @@ export default async function ComparePage({ params }: PageProps) {
           <h2 className="mb-6 text-center text-xl font-bold text-neutral-50">
             Related Comparisons
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Link
+              href="/compare/motovault-vs-kurviger"
+              className="group rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-5 transition-colors hover:border-warm-500/40"
+            >
+              <p className="font-semibold text-neutral-200 transition-colors group-hover:text-warm-400">
+                MotoVault vs Kurviger
+              </p>
+              <p className="mt-1 text-sm text-neutral-500">
+                All-in-one companion vs curvy-road navigation — features and pricing compared.
+              </p>
+            </Link>
             <Link
               href="/compare/alternatives"
               className="group rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-5 transition-colors hover:border-warm-500/40"

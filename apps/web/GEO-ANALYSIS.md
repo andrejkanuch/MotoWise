@@ -1,85 +1,102 @@
-# GEO / AI-Search Analysis — motovault.app
+# GEO Analysis — https://motovault.app
+_Date: 2026-06-01 (re-audit) · Scope: site (2 pages sampled: `/`, `/blog/best-motorcycle-maintenance-apps-2026`) · Rendering measured: raw HTTP (un-rendered, GPTBot-equivalent)_
 
-_Generated: 2026-06-01 · Standard: AI Search / GEO (Feb 2026) · Crawler tested: GPTBot (raw HTML, no JS)_
+## GEO Readiness Score: 77/100 — strong
 
-## GEO Readiness Score: **76 / 100** — strong
+MotoVault sits in the top tier of GEO-ready sites. The **technical foundation is excellent** (SSR, schema, crawler access, llms.txt). The remaining gap is **off-page authority** (no Wikipedia/Reddit/YouTube entity) and a few **content-level citability** fixes (HTML tables, answer-first blog openings, attributed stats). Essentially unchanged from the prior 76 — re-scored with confirmed JSON-LD evidence.
 
-MotoVault is already in the top tier of GEO-ready sites. The technical foundation is excellent; the gap is **content-level citability** (marketing-fragment headings + no self-contained answer blocks) and **thin author authority signals**.
+| Criterion | Weight | Score | Evidence |
+|-----------|--------|-------|----------|
+| Citability | 25% | 86 | Answer-first definition on homepage ("MotoVault is a free motorcycle management app that combines…"); 13-question FAQ; unique data points (cost-per-mile, in-house diagnostics testing). Blog sections open with positioning, not direct answers; the "~85% accuracy" stat is unattributed. |
+| Structural | 20% | 75 | Clean H1→H2→H3; short paragraphs; homepage FAQ in clean Q&A. **No HTML comparison tables** — the blog's "Head-to-Head" is prose, not `<table>`. Section headings are brand-y ("Four tools. One app.") rather than question-based. |
+| Multi-Modal | 15% | 50 | App screenshots + `ImageObject` schema present; free interactive tools (cost calculator, TCLOCS checklist). No embedded video, no on-page charts/infographics. |
+| Authority/Entity | 20% | 64 | Blog ships `Article` + `Person` author (Andrej Kanuch, visible "Founder & Rider" byline) + `datePublished`/`dateModified`. But author has **no `jobTitle`/`sameAs`**, `dateModified == datePublished` (not tracking real edits), and there is **no Wikipedia/Wikidata entity, no Reddit/YouTube footprint**. |
+| Technical | 20% | 100 | Fully SSR; retrieval AI crawlers allowed; valid JSON-LD (Organization, Article, ImageObject, BreadcrumbList, FAQ); canonical present; `llms.txt` + `llms-full.txt` present and current. |
 
-| Criterion | Weight | Score | Notes |
-|-----------|--------|-------|-------|
-| Citability | 25% | 17/25 | Short punchy copy + FAQ schema, but no 134–167w self-contained answer blocks; headings are stylized fragments |
-| Structural readability | 20% | 15/20 | Clean H1→H2→H3, FAQ, lists. But split marketing headings ("From photo to fix in" / "Skip the") fragment the semantic signal |
-| Multi-modal | 15% | 11/15 | Images + og-image + maps/GPX. No evidence of embedded video/charts on feature pages |
-| Authority & brand | 20% | 14/20 | Author Person schema + dates present, but author has no `sameAs`/`jobTitle`; brand-mention footprint untested |
-| Technical accessibility | 20% | 19/20 | SSR confirmed, AI crawlers allowed, llms.txt + llms-full.txt, comprehensive JSON-LD |
+`GEO = 0.25·86 + 0.20·75 + 0.15·50 + 0.20·64 + 0.20·100 = 77`
 
----
+## Platform Breakdown
 
-## Platform Breakdown (estimated)
+| Platform | Score | Top gap |
+|----------|-------|---------|
+| Google AIO / AI Mode | 78 | Add HTML comparison tables + question-based headings; SSR + schema + FAQ already strong. |
+| ChatGPT | 60 | ChatGPT cites Wikipedia ~48% of the time — MotoVault has **no Wikipedia/Wikidata entity**. |
+| Perplexity | 54 | Perplexity cites Reddit ~47% — MotoVault has **zero Reddit footprint**. |
 
-| Platform | Score | Why |
-|----------|-------|-----|
-| **Google AI Overviews** | High | Strong traditional SEO signals, FAQPage/Article/Breadcrumb schema, SSR, hreflang. Best-positioned surface. |
-| **ChatGPT** | Medium-High | GPTBot + OAI-SearchBot allowed; entity schema solid. Weak point = no Wikipedia presence, thin author `sameAs`. |
-| **Perplexity** | Medium | PerplexityBot allowed, SSR good. Perplexity leans 46% on Reddit — community footprint untested/likely thin. |
-| **Bing Copilot** | Medium-High | IndexNow route exists (`/api/indexnow`). Good. |
+## AI Crawler Access
 
----
+| Crawler | Allowed? | Directive |
+|---------|----------|-----------|
+| GPTBot | ✅ | `Allow: /` |
+| OAI-SearchBot | ✅ | `Allow: /` |
+| ChatGPT-User | ✅ | `Allow: /` |
+| ClaudeBot | ✅ | `Allow: /` |
+| PerplexityBot | ✅ | `Allow: /` |
+| Google-Extended | ✅ | `Allow: /` (Gemini/AIO training — intentionally enabled ✔) |
+| Applebot-Extended | ✅ | `Allow: /` |
+| Meta-ExternalAgent | ✅ | `Allow: /` |
+| Amazonbot | ✅ | `Allow: /` |
+| CCBot | ❌ | `Disallow: /` (training-only — acceptable licensing choice) |
 
-## 1. AI Crawler Access — ✅ Excellent
+Default rules disallow `/api/*`, `/_next/*`, `/admin/*`, auth pages. Sitemap declared at `/sitemap.xml`. **Verdict: well-configured.** `Claude-User`/`Perplexity-User` (on-demand fetchers) inherit the permissive default — correct for citation.
 
-Source: `src/app/robots.ts` (deployed & verified live).
+## llms.txt / RSL
 
-Allowed: `GPTBot`, `OAI-SearchBot`, `ChatGPT-User`, `ClaudeBot`, `PerplexityBot`, `Amazonbot`, `Google-Extended`, `Applebot-Extended`, `Meta-ExternalAgent`. Blocked: `CCBot` (training-only — correct).
+**Present** ✅ — `/llms.txt` (200) and `/llms-full.txt` (200), both `Last-Updated: 2026-04-14`, well-structured (description, core features, competitive comparison, links). Informational only (no engine confirms using it; Google says it doesn't) — but correct and current. **No RSL file detected** (informational; adoption is early).
 
-No action needed. Optionally add explicit `Bytespider`/`cohere-ai` directives, but the `*: Allow /` default already covers them.
+## Brand Mentions (Tier 1 — WebSearch, no paid tools)
 
-## 2. llms.txt — ✅ Best-in-class
+| Platform | Present? | Evidence/URL |
+|----------|----------|--------------|
+| Wikipedia / Wikidata | ❌ | No entity found |
+| Reddit | ❌ | No discussion in `reddit.com` search |
+| YouTube | ❌ | No channel/mentions surfaced |
+| LinkedIn | ✅ | https://www.linkedin.com/company/motovault |
+| Apple App Store | ✅ | https://apps.apple.com/us/app/motovault-motorcycle-garage/id6760291360 |
+| Google Play | ✅ | https://play.google.com/store/apps/details?id=com.motovault.app |
+| 3rd-party listicles | ⚠️ partial | motorcycledictionary.com, vikingbags.com cover the category |
 
-Both `/llms.txt` (HTTP 200, structured with sections + descriptions) and `/llms-full.txt` (11.7 KB) present. Includes `Last-Updated: 2026-04-14`, feature links with descriptions, comparison pages, tools, and a pointer to the full reference. This is exactly the recommended structure.
+**Off-page presence is the single biggest weakness.** The three highest-correlated AI-citation signals (YouTube mentions ~0.74, branded web mentions ~0.66, Reddit/Wikipedia) are largely absent.
 
-⚠️ **Keep `Last-Updated` fresh** — it's dated 2026-04-14 (7 weeks stale). Wire it to build time or update on content changes.
+## Prompt-Level Visibility
 
-## 3. Server-Side Rendering — ✅ Confirmed
+Live engine: `WebSearch` only (not ChatGPT/Perplexity/AIO APIs) — directional, not ground-truth AI-answer measurement.
 
-`GPTBot`-spoofed fetch of `/features/ai-diagnostics` returns 379 KB of fully-rendered HTML with headings, paragraph copy, and 2 JSON-LD blocks present. AI crawlers (which don't run JS) see real content. No client-only gaps detected on tested pages.
+| Query | Brand surfaced? | Notes |
+|-------|-----------------|-------|
+| "MotoVault motorcycle app" (branded) | ✅ Owns result + synthesis | Own pages rank #1; stores + LinkedIn present |
+| "best motorcycle maintenance tracking app 2026" | ✅ Cited first in synthesis | But competitor **MotorManage's own page outranks** MotoVault's blog organically |
+| "MotoVault … reddit review" | ⚠️ Brand pages only | No actual Reddit discussion exists |
 
-## 4. Structured Data — ✅ Comprehensive
+- **Branded Mention Rate:** ~100%.
+- **Non-branded Mention Rate:** present but contested — MotorManage holds the #1 organic slot on the generic maintenance query.
+- **Share-of-Voice vs top 3** (MotorManage, Moto Shed, Drivvo/Fuelly): competitive on all-in-one framing; behind on focused-maintenance intent.
+- ChatGPT/Perplexity ground-truth = **Not measured (no live engine)**. Run a 15–25 prompt battery for the 30-day baseline.
 
-`src/lib/seo/schema.ts` builds: `Organization`, `WebSite`, `SoftwareApplication` (+ `Offer` free tier + `AggregateRating`), `FAQPage`, `BreadcrumbList`, `Article` (+ `Person` author), `WebPage`, `TouristAttraction` (+ `GeoCoordinates`/`AggregateRating` for routes). Homepage carries 10+ types. Blog articles carry `Article` + `Person` author + `datePublished` + `dateModified`. Strong.
+## SSR Check
 
----
+**Fully SSR** ✅ — raw HTTP fetch (no JS) of `/` and the blog post returned complete content (H1, headings, author byline, body text, JSON-LD all present in un-rendered HTML). Ideal for GPTBot/ClaudeBot/PerplexityBot, which do not render JS.
 
 ## Top 5 Highest-Impact Changes
 
-### 1. Add self-contained "answer blocks" to feature & comparison pages (highest impact on citability)
-AI engines extract 134–167 word passages that answer a question without surrounding context. Current feature copy is great marketing but fragmented (one-sentence punches). Add one extractable block per page opening:
+1. **Create a Wikipedia/Wikidata entity** for MotoVault (+ `sameAs` from Organization schema). _High effort / High impact_ — directly addresses the ChatGPT gap (its #1 source). Requires notability/press first.
+2. **Build a Reddit + YouTube footprint** (r/motorcycles app threads; diagnostics demo videos). _Medium effort / High impact_ — Perplexity's top source + the strongest single mention correlate.
+3. **Convert prose comparisons to real HTML `<table>`s** on `/compare` and `/blog/best-motorcycle-maintenance-apps-2026`. _Low effort / High impact_ — tables are preferentially extracted as AI answer chunks.
+4. **Wire `dateModified` to real edits** (currently equals `datePublished`) and surface "Last updated …" in the byline. _Low effort / Medium impact_ — freshness is an Authority indicator.
+5. **Attribute every statistic** (e.g. "AI correctly identified issues ~85% of the time" → cite methodology/sample size). _Low effort / Medium impact_ — unattributed numbers reduce citability.
 
-> **What is MotoVault's AI diagnostics?** MotoVault's AI diagnostics lets riders point a phone camera at any motorcycle part, warning light, or symptom and get a Claude-vision identification of the likely problem plus suggested fixes in seconds — no OBD-II hardware, scanner, or wiring required. It covers eight failure categories… Each diagnosis is saved to the bike's maintenance timeline…
+## Schema & Content Reformatting
 
-Self-contained, names the entity, leads with the definition, packs specific facts. This is the single biggest lever.
+- **Enrich `Person` schema** on author bylines: add `jobTitle: "Founder"`, `knowsAbout: [...]`, and **only verified** `sameAs` (LinkedIn). Never fabricate Wikipedia/Twitter URLs.
+- **Blog answer-first rewrite (before → after):**
+  - Before: MotoVault "Overview" opens with positioning language.
+  - After: _"MotoVault is a free all-in-one motorcycle app that tracks maintenance, expenses, and rides while adding AI photo diagnostics — the only app in this comparison covering all five categories. Best for riders who want one tool instead of three."_ (answer-first, names entity, self-contained ~35 words).
+- **Add `FAQPage` schema to the blog post** (homepage already has a strong 13-Q FAQ — ensure it's marked up as `FAQPage`).
+- **Fix homepage H1 rendering:** raw HTML emits `The rider'scompanion.` — missing space between two `<span>`s. Add a trailing space / `&nbsp;` so the H1 reads cleanly for crawlers and screen readers. _(Also flagged by the drift baseline.)_
 
-### 2. Convert stylized marketing headings → question/answer-pattern H2s
-Tested H2/H3s read as fragments: _"From photo to fix in" / "Eight categories." / "Skip the" / "Your bike's"_. AI pairs a heading with the passage beneath it; fragments break that pairing. Keep the visual treatment but make the **semantic heading** a real question or claim — e.g. `How does photo-based motorcycle diagnostics work?`, `Which problems can MotoVault diagnose?`. (Can be done via visually-styled spans inside a complete heading, or `aria-label`/structured heading text.)
+## Not assessed
 
-### 3. Strengthen author authority (`sameAs` + `jobTitle`)
-Per the Ahrefs 75k-brand study, brand/entity mentions correlate ~3× more with AI citation than backlinks. Current author = `Person{name, url:/about}` only. Add `jobTitle`, `sameAs` (LinkedIn, X, GitHub, any press), and ideally an `Organization` `founder` link. Build out the `/about` page as a real entity hub.
-
-### 4. Refresh dates programmatically
-`sitemap.xml` homepage `lastmod` = 2026-04-11 and `llms.txt` `Last-Updated` = 2026-04-14 (both ~7 weeks stale as of today). Freshness is a ranking + citation signal. Derive these from build time or last content edit rather than hardcoding.
-
-### 5. Build community/entity footprint (off-site, compounding)
-The weakest GEO surface is Perplexity (46% Reddit) and ChatGPT (48% Wikipedia). On-site is near-maxed; the next gains are off-site: authentic Reddit presence (r/motorcycles, r/Suup), YouTube mentions (strongest single correlate at ~0.737), and eventually a Wikipedia/Wikidata entity. This is the long-term moat.
-
----
-
-## Schema Recommendations (incremental)
-
-- Add `HowTo` schema to maintenance/diagnostics guide articles (step-by-step → AI loves these).
-- Add `VideoObject` if/when feature pages embed demo video (multi-modal = +156% selection rate).
-- Consider `Review`/`Rating` individual reviews feeding the existing `AggregateRating` for credibility.
-
-## What NOT to change
-- Crawler config, llms.txt structure, SSR, and core schema graph are all correct — leave them.
-- Don't over-FAQ commercial pages with schema spam; current FAQPage usage is appropriately scoped.
+- **JS-rendered DOM diff** — no headless fetch; SSR verdict from raw HTML only (content fully present, so the diff is moot).
+- **CWV / performance** — out of GEO scope; run `/seo technical https://motovault.app`.
+- **Ground-truth ChatGPT/Perplexity/AIO answers** — no live AI-engine API; WebSearch used as proxy.
+- **Per-image alt-text audit** — run `/seo images` for a full pass.
