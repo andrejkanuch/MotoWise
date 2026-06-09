@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
-import { STORE_LINKS } from './store-buttons';
+import { storeAnchorProps } from './store-buttons';
 
 const HERO_IMAGES = [
   '/images/marketing/hero-rider.jpg',
@@ -14,6 +14,8 @@ const HERO_IMAGES = [
 
 export function Hero() {
   const t = useTranslations('Hero');
+  const iosLink = storeAnchorProps('ios', 'hero');
+  const androidLink = storeAnchorProps('android', 'hero');
   const [activeSlide, setActiveSlide] = useState(0);
 
   const tickerItems = [
@@ -328,7 +330,7 @@ export function Hero() {
         >
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <a
-              href={STORE_LINKS.appStore}
+              {...iosLink}
               className="mv-btn mv-btn-primary"
               style={{
                 position: 'relative',
@@ -360,7 +362,7 @@ export function Hero() {
               <span style={{ position: 'relative', zIndex: 1 }}>{t('downloadIos')}</span>
             </a>
             <a
-              href={STORE_LINKS.googlePlay}
+              {...androidLink}
               className="mv-btn mv-btn-ghost"
               style={{
                 display: 'inline-flex',

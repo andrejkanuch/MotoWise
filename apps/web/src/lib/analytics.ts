@@ -98,7 +98,16 @@ export const WebEvent = {
 
 export type WebEventName = (typeof WebEvent)[keyof typeof WebEvent];
 
+/** App-store platforms (no magic strings). */
+export const StorePlatform = { Ios: 'ios', Android: 'android' } as const;
+export type StorePlatform = (typeof StorePlatform)[keyof typeof StorePlatform];
+
+/** Where a store CTA was clicked — the acquisition-funnel dimension. */
+export const StoreLocation = { Cta: 'cta', Hero: 'hero', FeatureCta: 'feature_cta' } as const;
+export type StoreLocation = (typeof StoreLocation)[keyof typeof StoreLocation];
+
 type WebEventProperties = {
+  [WebEvent.APP_STORE_CLICK]: { platform: StorePlatform; location?: StoreLocation };
   [WebEvent.FILTER_APPLIED]: { dimension: string; value: string; resultCount: number };
   [WebEvent.SORT_CHANGED]: { sortBy: string; direction: 'asc' | 'desc' };
   [WebEvent.MAP_VIEW_TOGGLED]: { enabled: boolean };
@@ -141,8 +150,8 @@ export function resetUser() {
 }
 
 // Legacy gtag-compatible helpers (now routed through PostHog)
-export function trackAppStoreClick(platform: 'ios' | 'android') {
-  trackEvent(WebEvent.APP_STORE_CLICK, { platform });
+export function trackAppStoreClick(platform: StorePlatform, location?: StoreLocation) {
+  trackEvent(WebEvent.APP_STORE_CLICK, location ? { platform, location } : { platform });
 }
 
 export function trackWaitlistSignup() {
