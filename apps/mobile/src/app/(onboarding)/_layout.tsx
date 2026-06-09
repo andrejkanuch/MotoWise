@@ -1,7 +1,11 @@
 import { type ErrorBoundaryProps, Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { View } from 'react-native';
 import { ErrorFallback } from '../../components/error-fallback';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { captureException } from '../../lib/analytics';
+import { resolveOnboardingVariant } from '../../lib/onboarding-experiment';
+import { useExperimentStore } from '../../stores/experiment.store';
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   captureException(error, { boundary: 'onboarding' });
@@ -9,6 +13,21 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 }
 
 export default function OnboardingLayout() {
+  // A/B assignment gate — the variant must be resolved BEFORE any onboarding
+  // screen renders (it drives flow order, progress, and analytics). Resolution
+  // is instant on later launches (persisted) and capped at ~2s on first launch
+  // (offline → 'lean' fallback), so the gate can never hold indefinitely.
+  const variant = useExperimentStore((s) => s.onboardingVariant);
+
+  useEffect(() => {
+    // Also re-registers the variant super property in a fresh JS runtime.
+    void resolveOnboardingVariant();
+  }, []);
+
+  if (!variant) {
+    return <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }} />;
+  }
+
   return (
     <Stack
       screenOptions={{

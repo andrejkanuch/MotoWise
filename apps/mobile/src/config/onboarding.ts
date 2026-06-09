@@ -3,6 +3,26 @@
  * truth. Use these constants instead of magic strings anywhere a screen is
  * referenced (resume tracking, Back fallback, progress index).
  */
+/**
+ * Onboarding A/B experiment (2026) — PostHog multivariate flag key + variants.
+ * `lean` (A) and `invested` (B) are the test arms; `control` maps to the
+ * pre-test V4 flow and doubles as the safe degradation when the flag is
+ * disabled or returns an unknown value.
+ */
+export const EXPERIMENT_FLAG_KEY = 'onboarding_ab_2026';
+
+export const OB_VARIANT = {
+  LEAN: 'lean',
+  INVESTED: 'invested',
+  CONTROL: 'control',
+} as const;
+
+export type ObVariant = (typeof OB_VARIANT)[keyof typeof OB_VARIANT];
+
+export function isObVariant(value: unknown): value is ObVariant {
+  return typeof value === 'string' && Object.values(OB_VARIANT).includes(value as ObVariant);
+}
+
 export const OB_SCREEN = {
   WELCOME: 'index',
   EXPERIENCE: 'experience',
