@@ -255,7 +255,12 @@ export class RidesService {
     const updates: Record<string, unknown> = {};
     if (input.name !== undefined) updates.name = input.name;
     if (input.mileageApplied !== undefined) updates.mileage_applied = input.mileageApplied;
-    if (input.isPublic !== undefined) updates.is_public = input.isPublic;
+    if (input.isPublic !== undefined) {
+      // Dual-write: `visibility` is canonical (RLS gates on it); `is_public` stays in
+      // sync until every SQL consumer is migrated and the column is dropped (00143).
+      updates.is_public = input.isPublic;
+      updates.visibility = input.isPublic ? 'public' : 'private';
+    }
 
     const { data, error } = await this.supabase
       .from('rides')
@@ -323,9 +328,10 @@ export class RidesService {
     rideId: string,
     visibility: 'private' | 'unlisted' | 'public',
   ): Promise<Ride> {
+    // Dual-write is_public until every SQL consumer is migrated off it (00143)
     const { data, error } = await this.supabase
       .from('rides')
-      .update({ visibility })
+      .update({ visibility, is_public: visibility === 'public' })
       .eq('id', rideId)
       .eq('user_id', userId)
       .is('deleted_at', null)
@@ -465,13 +471,15 @@ export class RidesService {
   async getPublicRide(id: string): Promise<Ride> {
     this.logger.debug(`getPublicRide: rideId=${id}`);
 
+    // `visibility` is the canonical access column (RLS gates on it); the previous
+    // is_public gate disagreed with RLS whenever the two columns drifted (audit C6).
     const { data, error } = await this.supabaseAdmin
       .from('rides')
       .select(
-        'id, user_id, motorcycle_id, status, name, started_at, ended_at, distance_m, max_speed_mps, avg_speed_mps, max_lean_angle, elevation_gain, elevation_loss, gps_quality, paused_duration_s, auto_paused_duration_s, mileage_applied, is_public, region, route_polyline, route_thumbnail_uri, created_at, updated_at',
+        'id, user_id, motorcycle_id, status, name, started_at, ended_at, distance_m, max_speed_mps, avg_speed_mps, max_lean_angle, elevation_gain, elevation_loss, gps_quality, paused_duration_s, auto_paused_duration_s, mileage_applied, visibility, region, route_polyline, route_thumbnail_uri, created_at, updated_at',
       )
       .eq('id', id)
-      .eq('is_public', true)
+      .eq('visibility', 'public')
       .is('deleted_at', null)
       .single();
 
@@ -560,6 +568,11 @@ export class RidesService {
   }
 
   private mapRow(row: Record<string, unknown>): Ride {
+    // `isPublic` is DERIVED from canonical `visibility` so old OTA bundles reading
+    // either field always see consistent values (audit C6). The is_public fallback
+    // covers selects that predate the visibility column in their column list.
+    const visibility =
+      (row.visibility as string) ?? ((row.is_public as boolean) ? 'public' : 'private');
     return {
       id: row.id as string,
       userId: row.user_id as string,
@@ -586,8 +599,8 @@ export class RidesService {
       routePolyline: (row.route_polyline as string) ?? undefined,
       gpsQuality: (row.gps_quality as number) ?? undefined,
       mileageApplied: (row.mileage_applied as boolean) ?? false,
-      isPublic: (row.is_public as boolean) ?? false,
-      visibility: (row.visibility as string) ?? 'private',
+      isPublic: visibility === 'public',
+      visibility,
       region: (row.region as string) ?? undefined,
       routeThumbnailUri: (row.route_thumbnail_uri as string) ?? undefined,
       createdAt: row.created_at as string,

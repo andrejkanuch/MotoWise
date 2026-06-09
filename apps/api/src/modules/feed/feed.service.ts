@@ -89,7 +89,9 @@ export class FeedService {
         'id, name, distance_m, elevation_gain, elevation_loss, started_at, ended_at, ai_summary, kudos_count, comment_count, route_thumbnail_uri, user_id, motorcycle_id, users!inner(display_name, avatar_url, public_username), motorcycles(make, model, year, nickname)',
       )
       .in('user_id', followingIds)
-      .eq('is_public', true)
+      // visibility is the canonical access column (00143); matching partial index
+      // idx_rides_feed_user_visibility
+      .eq('visibility', 'public')
       .is('deleted_at', null)
       .order('started_at', { ascending: false })
       .limit(limit + 1);

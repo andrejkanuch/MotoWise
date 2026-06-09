@@ -319,7 +319,8 @@ export class UsersService {
       .eq('user_id', p.id)
       .is('deleted_at', null);
     if (!isOwnProfile) {
-      ridesQuery = ridesQuery.eq('is_public', true);
+      // visibility is the canonical access column for rides (00143)
+      ridesQuery = ridesQuery.eq('visibility', 'public');
     }
     const { data: rides } = await ridesQuery;
 
