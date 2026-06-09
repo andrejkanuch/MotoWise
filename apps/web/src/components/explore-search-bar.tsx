@@ -3,6 +3,7 @@
 import type { SearchTypeaheadQuery } from '@motovault/graphql';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { DURATION_OPTIONS } from '@/lib/explore-filters';
 
 /* ── Types ────────────────────────────────────────────────────── */
 
@@ -45,15 +46,6 @@ const FALLBACK_COUNTRIES = [
   { code: 'CH', label: 'Switzerland' },
   { code: 'US', label: 'United States' },
   { code: 'NO', label: 'Norway' },
-] as const;
-
-const DURATIONS = [
-  { value: '', label: 'Any length' },
-  { value: 'short', label: 'Under 1 hour' },
-  { value: 'medium', label: '1–3 hours' },
-  { value: 'long', label: '3–6 hours' },
-  { value: 'day', label: 'Full day' },
-  { value: 'multi', label: 'Multi-day' },
 ] as const;
 
 /* ── Helpers ──────────────────────────────────────────────────── */
@@ -553,7 +545,7 @@ export function ExploreSearchBar({
                 style={selectStyle}
                 aria-label="Filter by duration"
               >
-                {DURATIONS.map((d) => (
+                {DURATION_OPTIONS.map((d) => (
                   <option key={d.value} value={d.value} style={{ background: '#1a1a1a' }}>
                     {d.label}
                   </option>

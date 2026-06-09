@@ -3,23 +3,20 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { Suspense } from 'react';
 import { ExploreSearchBar } from '@/components/explore-search-bar';
+import {
+  buildSearchAttempts,
+  type DropKey,
+  DURATION_LABELS,
+  VALID_DURATIONS,
+} from '@/lib/explore-filters';
 import type { TripTemplateNode } from '@/lib/fetch-places';
 import { fetchCountries } from '@/lib/fetch-places';
 import { COUNTRY_NAMES } from '@/lib/geo-names';
 import { gqlServerFetcher } from '@/lib/graphql-server';
 
-const VALID_DURATIONS = new Set<string>(['short', 'medium', 'long', 'day', 'multi']);
 const VALID_COUNTRIES = new Set(Object.keys(COUNTRY_NAMES));
 
 /* ── Helpers ─────────────────────────────────────────────────── */
-
-// All single-day durations (short/medium/long/day) map to dayCountMax:1 because
-// the API only has dayCount, not estimated_duration_minutes. Only "multi" is distinct.
-function mapDuration(d?: string): { dayCountMin?: number; dayCountMax?: number } {
-  if (d === 'multi') return { dayCountMin: 2 };
-  if (d && VALID_DURATIONS.has(d)) return { dayCountMax: 1 };
-  return {};
-}
 
 function formatDistance(meters: number): string {
   const km = meters / 1000;
@@ -84,21 +81,32 @@ export default async function ExploreSearchPage({
   const rawDuration = typeof params.duration === 'string' ? params.duration : undefined;
   const duration = rawDuration && VALID_DURATIONS.has(rawDuration) ? rawDuration : undefined;
 
-  // Build GraphQL filter
-  const filter = {
-    ...(q ? { searchText: q } : {}),
-    ...(country ? { country: country.toLowerCase() } : {}),
-    ...mapDuration(duration),
-  };
+  // A specific query (text + country + length) can dead-end when one input has
+  // no matches — e.g. a city we don't cover yet. Rather than show "No routes
+  // found", walk a fallback ladder that progressively relaxes the least-
+  // essential filters and surfaces the closest routes we do have.
+  const attempts = buildSearchAttempts({ q, country, duration });
 
-  // Fetch filtered trips
   let trips: TripTemplateNode[] = [];
-  try {
-    const data = await gqlServerFetcher(TripTemplatesDocument, { filter, first: 24 });
-    trips = data.tripTemplates.edges.map((e) => e.node);
-  } catch (err) {
-    console.error('[explore/search] Failed to fetch trips:', err);
+  let dropped: DropKey[] = [];
+  for (const attempt of attempts) {
+    try {
+      const data = await gqlServerFetcher(TripTemplatesDocument, {
+        filter: attempt.filter,
+        first: 24,
+      });
+      const nodes = data.tripTemplates.edges.map((e) => e.node);
+      if (nodes.length > 0) {
+        trips = nodes;
+        dropped = attempt.dropped;
+        break;
+      }
+    } catch (err) {
+      console.error('[explore/search] Failed to fetch trips:', err);
+      break;
+    }
   }
+  const isFallback = trips.length > 0 && dropped.length > 0;
 
   // Fetch countries for search bar dropdown
   let allCountries: Array<{ code: string; label: string }> = [];
@@ -112,13 +120,21 @@ export default async function ExploreSearchPage({
     console.error('[explore/search] Failed to fetch countries:', err);
   }
 
-  // Build search summary
-  const summaryParts = [
-    q && `"${q}"`,
-    country && (COUNTRY_NAMES[country] ?? country),
-    duration === 'multi' ? 'multi-day' : undefined,
-  ].filter(Boolean);
-  const searchSummary = summaryParts.length > 0 ? summaryParts.join(' in ') : '';
+  // Build search summaries. `searchSummary` describes the user's full query;
+  // `keptSummary` describes the (broadened) query that actually returned routes.
+  const countryName = country ? (COUNTRY_NAMES[country] ?? country) : undefined;
+  const durationLabel = duration ? DURATION_LABELS[duration] : undefined;
+  const summarize = (parts: Array<string | undefined | false>) => parts.filter(Boolean).join(' · ');
+
+  const searchSummary = summarize([q && `"${q}"`, countryName, durationLabel]);
+  const keptSummary = summarize([
+    !dropped.includes('query') && q && `"${q}"`,
+    !dropped.includes('country') && countryName,
+    !dropped.includes('duration') && durationLabel,
+  ]);
+  const fallbackNotice = keptSummary
+    ? `No exact matches for ${searchSummary} — showing the closest routes (${keptSummary}).`
+    : `No exact matches for ${searchSummary} — here are some popular routes to explore.`;
 
   return (
     <>
@@ -150,7 +166,7 @@ export default async function ExploreSearchPage({
           {trips.length > 0 ? (
             <>
               {trips.length} route{trips.length !== 1 ? 's' : ''}
-              {searchSummary && (
+              {!isFallback && searchSummary && (
                 <>
                   {' '}
                   for{' '}
@@ -189,6 +205,41 @@ export default async function ExploreSearchPage({
           margin: '0 auto',
         }}
       >
+        {isFallback && (
+          <output
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              margin: '0 0 28px',
+              padding: '14px 18px',
+              borderRadius: 'var(--mv-radius)',
+              border: '1px solid var(--mv-line)',
+              background: 'oklch(0.76 0.18 60 / 0.06)',
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                width: 7,
+                height: 7,
+                flexShrink: 0,
+                borderRadius: '50%',
+                background: 'var(--mv-warm-500)',
+              }}
+            />
+            <p
+              style={{
+                margin: 0,
+                fontSize: 14,
+                lineHeight: 1.5,
+                color: 'var(--mv-ink-2)',
+              }}
+            >
+              {fallbackNotice}
+            </p>
+          </output>
+        )}
         {trips.length > 0 ? (
           <div className="mv-grid-4" style={{ gap: 20 }}>
             {trips.map((trip) => {
