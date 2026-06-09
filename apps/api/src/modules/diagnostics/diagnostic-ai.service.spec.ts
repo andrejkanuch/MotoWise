@@ -5,15 +5,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AiBudgetService } from '../ai-budget/ai-budget.service';
 import { DiagnosticAiService } from './diagnostic-ai.service';
 
-// Mock OpenAI SDK
+// Mock OpenAI SDK — use a `function` expression so the mock is constructable
+// (vitest 4 rejects arrow functions used with `new`).
 vi.mock('openai', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    chat: {
-      completions: {
-        parse: vi.fn(),
+  default: vi.fn().mockImplementation(function () {
+    return {
+      chat: {
+        completions: {
+          parse: vi.fn(),
+        },
       },
-    },
-  })),
+    };
+  }),
 }));
 
 vi.mock('openai/helpers/zod', () => ({
