@@ -18,7 +18,7 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
   const t = useTranslations('CommunityNav');
   const router = useRouter();
   const pathname = usePathname();
-  const { isPro, isTrialing, trialDaysLeft } = useProStatus();
+  const { isPro, isTrialing, trialDaysLeft, isLoading } = useProStatus();
   const [menuOpen, setMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -73,8 +73,9 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
 
       {/* Right side */}
       <div className="nav-right">
-        {/* Free user upgrade link */}
-        {!isPro && !isTrialing && (
+        {/* Free user upgrade link — gated on !isLoading so Pro users don't get
+            a one-tick "Upgrade" flash before status resolves post-hydration. */}
+        {!isLoading && !isPro && !isTrialing && (
           <a href="/pro" className="nav-upgrade">
             {t('upgrade')} <span style={{ fontSize: '11px' }}>&rarr;</span>
           </a>

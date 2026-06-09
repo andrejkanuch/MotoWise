@@ -1,6 +1,6 @@
 'use client';
 
-import { trackEvent, WebEvent } from '@/lib/analytics';
+import { type StoreLocation, type StorePlatform, trackAppStoreClick } from '@/lib/analytics';
 
 const STORE_LINKS = {
   appStore: 'https://apps.apple.com/us/app/motovault/id6760291360',
@@ -9,7 +9,35 @@ const STORE_LINKS = {
 
 export { STORE_LINKS };
 
-export function StoreButtons({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
+/**
+ * Anchor props for a "download the app" CTA.
+ *
+ * Session replays showed users double-clicking the App Store link (no feedback
+ * that the click worked) and abandoning after the tab navigated away from the
+ * landing page. Opening the store in a NEW tab fixes both: the landing page
+ * stays put, and the new tab appearing IS the feedback that the click landed —
+ * no lingering spinner needed (a spinner still showing after the store opened
+ * reads as "stuck" and re-invites the double-click). Tactile press feedback is
+ * handled with a CSS `:active` transform on the button.
+ *
+ * Spread onto an `<a>`: `<a {...storeAnchorProps('ios')} className="…">`.
+ */
+export function storeAnchorProps(platform: StorePlatform, location: StoreLocation = 'cta') {
+  return {
+    href: platform === 'ios' ? STORE_LINKS.appStore : STORE_LINKS.googlePlay,
+    target: '_blank',
+    rel: 'noopener noreferrer',
+    onClick: () => trackAppStoreClick(platform, location),
+  } as const;
+}
+
+export function StoreButtons({
+  size = 'md',
+  location = 'cta',
+}: {
+  size?: 'sm' | 'md' | 'lg';
+  location?: StoreLocation;
+}) {
   const styles = {
     sm: 'px-5 py-2.5 text-sm gap-3',
     md: 'px-6 sm:px-8 py-3.5 text-base gap-4',
@@ -17,11 +45,10 @@ export function StoreButtons({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   } as const;
 
   return (
-    <div className={`flex flex-wrap items-center ${styles[size]}`} style={{ gap: undefined }}>
+    <div className={`flex flex-wrap items-center ${styles[size]}`}>
       <a
-        href={STORE_LINKS.appStore}
-        onClick={() => trackEvent(WebEvent.APP_STORE_CLICK, { platform: 'ios', location: 'cta' })}
-        className="cta-primary cta-glow group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-6 sm:px-10 py-4 text-base sm:text-lg font-semibold text-neutral-950 shadow-lg shadow-warm-500/25 transition-colors hover:bg-warm-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+        {...storeAnchorProps('ios', location)}
+        className="cta-primary cta-glow group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-6 sm:px-10 py-4 text-base sm:text-lg font-semibold text-neutral-950 shadow-lg shadow-warm-500/25 transition hover:bg-warm-400 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
       >
         <span className="absolute inset-0 -translate-x-full bg-warm-300 transition-transform duration-300 ease-out group-hover:translate-x-0" />
         <span className="relative flex items-center gap-2">
@@ -30,11 +57,8 @@ export function StoreButtons({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
         </span>
       </a>
       <a
-        href={STORE_LINKS.googlePlay}
-        onClick={() =>
-          trackEvent(WebEvent.APP_STORE_CLICK, { platform: 'android', location: 'cta' })
-        }
-        className="cta-secondary inline-flex items-center justify-center rounded-full border-2 border-neutral-600 px-6 sm:px-8 py-3.5 text-neutral-300 transition-colors hover:border-neutral-500 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+        {...storeAnchorProps('android', location)}
+        className="cta-secondary inline-flex items-center justify-center rounded-full border-2 border-neutral-600 px-6 sm:px-8 py-3.5 text-neutral-300 transition hover:border-neutral-500 hover:text-neutral-100 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
       >
         <span className="flex items-center gap-2">
           <PlayIcon />

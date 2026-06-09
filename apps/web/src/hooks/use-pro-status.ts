@@ -1,18 +1,18 @@
 'use client';
 
 import { type ProStatus, REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
-const INITIAL: ProStatus = {
+export const INITIAL: ProStatus = {
   isPro: false,
   isTrialing: false,
   trialDaysLeft: null,
   isLoading: true,
 };
 
-const CACHE_KEY = 'mv_pro_status';
+export const CACHE_KEY = 'mv_pro_status';
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 /** Clear cached Pro status — call after checkout success */
@@ -24,7 +24,7 @@ export function clearProStatusCache() {
   }
 }
 
-function readCache(): ProStatus | null {
+export function readCache(): ProStatus | null {
   try {
     const raw = sessionStorage.getItem(CACHE_KEY);
     if (!raw) return null;
@@ -118,65 +118,77 @@ async function checkViaGraphQL(): Promise<ProStatus | null> {
   }
 }
 
+/**
+ * Resolve current Pro status: cache → Supabase session → RevenueCat → DB.
+ * Returns the status (and warms the cache) instead of calling setState, so the
+ * caller can commit it under a cancellation guard (see `useProStatus`).
+ */
+async function resolveProStatus(): Promise<ProStatus> {
+  const cached = readCache();
+  if (cached) return cached;
+
+  const supabase = getSupabaseBrowserClient();
+  const { data } = await supabase.auth.getSession();
+  const user = data.session?.user;
+  // Don't cache "no session" — the user might log in at any moment.
+  if (!user) return { ...INITIAL, isLoading: false };
+
+  // Strategy 1: RevenueCat (has trial info, but only covers web billing).
+  const rcResult = await checkViaRevenueCat(user.id);
+  if (rcResult?.isPro) {
+    writeCache(rcResult);
+    return rcResult;
+  }
+
+  // Strategy 2: GraphQL/DB fallback (covers all sources — App Store, Play Store, web).
+  const dbResult = await checkViaGraphQL();
+  if (dbResult) {
+    writeCache(dbResult);
+    return dbResult;
+  }
+
+  // Both failed — treat as free, don't cache so it retries next time.
+  return { ...INITIAL, isLoading: false };
+}
+
 export function useProStatus(): ProStatus {
-  const [status, setStatus] = useState<ProStatus>(() => readCache() ?? INITIAL);
-
-  const check = useCallback(async () => {
-    const cached = readCache();
-    if (cached) {
-      setStatus(cached);
-      return;
-    }
-
-    const supabase = getSupabaseBrowserClient();
-    const sessionResult = await supabase.auth.getSession();
-    const user = sessionResult.data.session?.user;
-
-    if (!user) {
-      const free = { ...INITIAL, isLoading: false };
-      setStatus(free);
-      // Don't cache "no session" — user might log in any moment
-      return;
-    }
-
-    // Strategy 1: RevenueCat (has trial info, but only covers web billing)
-    const rcResult = await checkViaRevenueCat(user.id);
-    console.debug('[useProStatus] RC result:', rcResult);
-    if (rcResult?.isPro) {
-      setStatus(rcResult);
-      writeCache(rcResult);
-      return;
-    }
-
-    // Strategy 2: GraphQL / DB fallback (covers all subscription sources — App Store, Play Store, web)
-    const dbResult = await checkViaGraphQL();
-    console.debug('[useProStatus] DB fallback result:', dbResult);
-    if (dbResult) {
-      setStatus(dbResult);
-      writeCache(dbResult);
-      return;
-    }
-
-    // Both failed — show as free, don't cache so it retries
-    console.debug('[useProStatus] Both strategies failed, defaulting to free');
-    setStatus({ ...INITIAL, isLoading: false });
-  }, []);
+  // INITIAL on both the server and the client's FIRST render. Reading the
+  // sessionStorage cache during the initial render would desync server/client
+  // HTML and throw React hydration error #418 (the flicker behind the rage
+  // clicks on /garage, /profile, /profile/edit). The cached value is applied
+  // one tick later, post-mount — warm-cache users still skip the loading flash.
+  const [status, setStatus] = useState<ProStatus>(INITIAL);
 
   useEffect(() => {
-    check();
+    let mounted = true;
+    let latest = 0;
+
+    // Each run gets a token; only the newest run may commit, and only while
+    // mounted. Guards against (a) setState after unmount on fast route changes
+    // and (b) an older in-flight resolve overwriting a newer one after the
+    // cache is cleared on tab refocus (out-of-order resolve → badge flicker).
+    const run = () => {
+      const token = ++latest;
+      resolveProStatus().then((next) => {
+        if (mounted && token === latest) setStatus(next);
+      });
+    };
+
+    run();
 
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         clearProStatusCache();
-        check();
+        run();
       }
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
 
     return () => {
+      mounted = false;
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [check]);
+  }, []);
 
   return status;
 }

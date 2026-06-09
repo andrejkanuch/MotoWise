@@ -24,7 +24,7 @@ export async function FeatureCta() {
         </h2>
         <p className="mt-4 text-lg text-neutral-300">{t('subtitle')}</p>
         <div className="mt-8 flex justify-center">
-          <StoreButtons />
+          <StoreButtons location="feature_cta" />
         </div>
       </div>
     </section>
