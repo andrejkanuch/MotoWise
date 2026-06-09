@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { STORE_LINKS } from './store-buttons';
 
@@ -11,17 +12,18 @@ const HERO_IMAGES = [
   '/images/marketing/hero-street.jpg',
 ];
 
-const TICKER_ITEMS = [
-  { label: 'TRIPS', sub: 'PLAN MULTI-DAY ROUTES' },
-  { label: 'MAINTENANCE', sub: 'NEVER MISS A SERVICE' },
-  { label: 'EXPENSES', sub: 'KNOW YOUR REAL COST' },
-  { label: 'AI DIAGNOSTICS', sub: 'SNAP A PHOTO, GET ANSWERS' },
-  { label: 'FREE', sub: 'NO TRIAL, NO CREDIT CARD' },
-  { label: 'iOS + ANDROID', sub: 'BUILT FOR MOTORCYCLES' },
-];
-
 export function Hero() {
+  const t = useTranslations('Hero');
   const [activeSlide, setActiveSlide] = useState(0);
+
+  const tickerItems = [
+    { label: t('tickerTripsLabel'), sub: t('tickerTripsSub') },
+    { label: t('tickerMaintenanceLabel'), sub: t('tickerMaintenanceSub') },
+    { label: t('tickerExpensesLabel'), sub: t('tickerExpensesSub') },
+    { label: t('tickerDiagnosticsLabel'), sub: t('tickerDiagnosticsSub') },
+    { label: t('tickerFreeLabel'), sub: t('tickerFreeSub') },
+    { label: t('tickerPlatformLabel'), sub: t('tickerPlatformSub') },
+  ];
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -30,10 +32,12 @@ export function Hero() {
     return () => clearInterval(interval);
   }, []);
 
-  const tickerHtml = TICKER_ITEMS.map(
-    (i) =>
-      `<span style="display:inline-flex;align-items:center;gap:14px;color:var(--mv-ink-3);font-size:13px;font-family:var(--font-geist-mono,'Geist Mono',monospace);letter-spacing:0.02em"><strong style="color:var(--mv-ink);font-weight:500">${i.label}</strong> ${i.sub} <span style="width:3px;height:3px;border-radius:50%;background:var(--mv-warm-500)"></span></span>`,
-  ).join('');
+  const tickerHtml = tickerItems
+    .map(
+      (i) =>
+        `<span style="display:inline-flex;align-items:center;gap:14px;color:var(--mv-ink-3);font-size:13px;font-family:var(--font-geist-mono,'Geist Mono',monospace);letter-spacing:0.02em"><strong style="color:var(--mv-ink);font-weight:500">${i.label}</strong> ${i.sub} <span style="width:3px;height:3px;border-radius:50%;background:var(--mv-warm-500)"></span></span>`,
+    )
+    .join('');
 
   return (
     <section
@@ -168,7 +172,7 @@ export function Hero() {
         }}
         className="hidden lg:block"
       >
-        Free &middot; iOS &middot; Android
+        {t('cornerFreePlatforms')}
       </div>
 
       {/* Top content */}
@@ -208,9 +212,9 @@ export function Hero() {
               textTransform: 'uppercase',
             }}
           >
-            New
+            {t('badgeNew')}
           </span>
-          AI photo diagnostics is live
+          {t('badgeDiagnosticsLive')}
           <svg
             width="14"
             height="14"
@@ -251,9 +255,10 @@ export function Hero() {
                 animationDelay: '.2s',
               }}
             >
-              The rider&apos;s
+              {t('titleLine1')}
             </span>
           </span>
+          {/* Whitespace text node so the H1 reads "The rider's companion." for crawlers/SR (lines are display:block, so no visual impact) */}{' '}
           <span style={{ display: 'block', overflow: 'hidden' }}>
             <span
               style={{
@@ -272,7 +277,7 @@ export function Hero() {
                   letterSpacing: '-0.03em',
                 }}
               >
-                companion.
+                {t('titleLine2')}
               </em>
             </span>
           </span>
@@ -306,8 +311,7 @@ export function Hero() {
             animation: 'mv-rise 1s 1s var(--mv-ease-expo) forwards',
           }}
         >
-          Trip planning, maintenance, expenses and AI diagnostics — the four tools every
-          motorcyclist needs, in one beautifully simple app.
+          {t('description')}
         </p>
 
         <div
@@ -353,7 +357,7 @@ export function Hero() {
               >
                 <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
               </svg>
-              <span style={{ position: 'relative', zIndex: 1 }}>Download for iOS</span>
+              <span style={{ position: 'relative', zIndex: 1 }}>{t('downloadIos')}</span>
             </a>
             <a
               href={STORE_LINKS.googlePlay}
@@ -407,7 +411,7 @@ export function Hero() {
                 animation: 'mv-pulse 2s ease-in-out infinite',
               }}
             />
-            <span>FREE &middot; iOS + ANDROID &middot; BUILT FOR MOTORCYCLES</span>
+            <span>{t('trustLineStrip')}</span>
           </div>
         </div>
       </div>

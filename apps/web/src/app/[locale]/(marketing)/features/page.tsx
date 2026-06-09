@@ -47,12 +47,28 @@ const FEATURES = [
     icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253',
   },
   {
-    titleKey: 'progressTitle',
-    descKey: 'progressDesc',
-    href: '/features/progress-tracking',
+    titleKey: 'maintenanceTitle',
+    descKey: 'maintenanceDesc',
+    href: '/features/maintenance',
     accentClass: 'text-warm-400',
     glowColor: 'oklch(0.76 0.13 70 / 0.08)',
-    icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+    icon: 'M14.7 6.3a4 4 0 0 0-5.6 5.6L3 18l3 3 6.1-6.1a4 4 0 0 0 5.6-5.6l-2.5 2.5-2.8-2.8 2.5-2.5z',
+  },
+  {
+    titleKey: 'expensesTitle',
+    descKey: 'expensesDesc',
+    href: '/features/expense-tracking',
+    accentClass: 'text-accent-400',
+    glowColor: 'oklch(0.65 0.15 160 / 0.08)',
+    icon: 'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',
+  },
+  {
+    titleKey: 'ridesTitle',
+    descKey: 'ridesDesc',
+    href: '/features/ride-tracking',
+    accentClass: 'text-primary-400',
+    glowColor: 'oklch(0.65 0.14 230 / 0.08)',
+    icon: 'M12 22s7-7.58 7-13a7 7 0 1 0-14 0c0 5.42 7 13 7 13zM12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
   },
 ] as const;
 

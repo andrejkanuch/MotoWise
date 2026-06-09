@@ -56,8 +56,8 @@ export const WebEvent = {
   CONSENT_GRANTED: '$consent_granted',
 
   // Review soft-wall
-  REVIEW_SOFTWALL_SHOWN: 'review_softwall.shown',
-  REVIEW_SOFTWALL_CTA_CLICKED: 'review_softwall.cta_clicked',
+  REVIEW_SOFTWALL_SHOWN: 'review_softwall_shown',
+  REVIEW_SOFTWALL_CTA_CLICKED: 'review_softwall_cta_clicked',
 
   // SEO / Content discovery
   SCROLL_DEPTH_50: 'scroll_depth_50',

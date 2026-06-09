@@ -25,7 +25,7 @@ const I18N_ROUTE_PREFIXES = [
 
 function isI18nRoute(path: string): boolean {
   // Strip locale prefix if present (e.g. /es/features → /features)
-  const stripped = path.replace(/^\/(en|de|fr|es|it)(?=\/|$)/, '') || '/';
+  const stripped = path.replace(/^\/(en|de|fr|es|it|ja|pl|pt-BR)(?=\/|$)/, '') || '/';
   // The homepage (/) is i18n-aware
   if (stripped === '/') return true;
   return I18N_ROUTE_PREFIXES.some((prefix) => stripped.startsWith(prefix));

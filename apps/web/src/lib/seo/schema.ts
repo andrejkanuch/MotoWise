@@ -36,7 +36,14 @@ export const SCHEMA_IDS = {
   app: `${BASE_URL}/#app`,
 } as const;
 
-export function buildOrganization(args: { name: string; description: string }): JsonLdNode {
+export function buildOrganization(args: {
+  name: string;
+  description: string;
+  /** Founder identity for the knowledge-graph entity (real values only). */
+  founder?: { name: string; jobTitle?: string; sameAs?: string[] };
+  /** Extra verified profile URLs to merge into `sameAs` (e.g. LinkedIn/X). Never fabricated. */
+  sameAs?: string[];
+}): JsonLdNode {
   return {
     '@type': 'Organization',
     '@id': SCHEMA_IDS.organization,
@@ -50,12 +57,24 @@ export function buildOrganization(args: { name: string; description: string }): 
     },
     description: args.description,
     foundingDate: '2025',
+    ...(args.founder
+      ? {
+          founder: {
+            '@type': 'Person',
+            name: args.founder.name,
+            url: `${BASE_URL}/about`,
+            ...(args.founder.jobTitle ? { jobTitle: args.founder.jobTitle } : {}),
+            ...(args.founder.sameAs?.length ? { sameAs: args.founder.sameAs } : {}),
+          },
+        }
+      : {}),
     contactPoint: {
       '@type': 'ContactPoint',
       email: 'support@motovault.app',
       contactType: 'customer support',
     },
-    sameAs: [APP_STORE_URL, PLAY_STORE_URL],
+    // Verified, owned URLs only — store listings plus any explicitly-provided profiles.
+    sameAs: [APP_STORE_URL, PLAY_STORE_URL, ...(args.sameAs ?? [])],
   };
 }
 
@@ -196,6 +215,34 @@ export function buildBreadcrumbList(
   };
 }
 
+export interface ItemListEntry {
+  name: string;
+  url: string;
+}
+
+/**
+ * Ordered ItemList for listing/collection pages (countries, regions, routes).
+ * Gives AI engines and rich results an explicit, enumerated set of child links.
+ */
+export function buildItemList(
+  items: ItemListEntry[],
+  idFragment: string,
+  name?: string,
+): JsonLdNode {
+  return {
+    '@type': 'ItemList',
+    '@id': `${BASE_URL}/#/${idFragment}/itemlist`,
+    ...(name ? { name } : {}),
+    numberOfItems: items.length,
+    itemListElement: items.map((entry, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: entry.name,
+      url: entry.url,
+    })),
+  };
+}
+
 export interface WebPageOptions {
   url: string;
   name: string;
@@ -232,6 +279,14 @@ export interface ArticleInput {
   dateModified: string;
   authorName: string;
   authorUrl?: string;
+  /** Author's role/title, e.g. "Founder & Rider" — strengthens E-E-A-T. */
+  authorJobTitle?: string;
+  /** Short author bio used as the Person `description`. */
+  authorBio?: string;
+  /** Topics the author is credibly knowledgeable about (from real credentials). */
+  authorKnowsAbout?: string[];
+  /** Verified author profile URLs ONLY (e.g. LinkedIn/X). Never fabricated. */
+  authorSameAs?: string[];
   locale: string;
   slug: string;
   wordCount?: number;
@@ -263,6 +318,10 @@ export function buildArticle(article: ArticleInput): JsonLdNode {
       '@type': 'Person',
       name: article.authorName,
       ...(article.authorUrl ? { url: article.authorUrl } : {}),
+      ...(article.authorJobTitle ? { jobTitle: article.authorJobTitle } : {}),
+      ...(article.authorBio ? { description: article.authorBio } : {}),
+      ...(article.authorKnowsAbout?.length ? { knowsAbout: article.authorKnowsAbout } : {}),
+      ...(article.authorSameAs?.length ? { sameAs: article.authorSameAs } : {}),
     },
     publisher: { '@id': SCHEMA_IDS.organization },
     inLanguage: article.locale,

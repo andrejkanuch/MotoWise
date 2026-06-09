@@ -5,7 +5,13 @@ import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import { fetchCountries } from '@/lib/fetch-places';
-import { buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
+import {
+  buildBreadcrumbList,
+  buildFAQPage,
+  buildGraph,
+  buildItemList,
+  buildWebPage,
+} from '@/lib/seo/schema';
 
 export const revalidate = 86400; // 24 hours
 
@@ -16,6 +22,26 @@ interface PageProps {
 const PAGE_TITLE = 'Discover the Best Motorcycle Routes Worldwide';
 const PAGE_DESCRIPTION =
   'Discover the best motorcycle routes worldwide. Browse by country and region to find twisty mountain passes, scenic coastal roads, and epic multi-day touring routes curated by real riders.';
+
+// Explore is intentionally non-translated (English-only, canonical to /explore),
+// so this route-discovery FAQ copy stays inline rather than going through i18n.
+const EXPLORE_FAQ = [
+  {
+    question: 'Are MotoVault routes free to browse?',
+    answer:
+      'Yes. Every motorcycle route on MotoVault is free to browse on the web — by country and region — with no account required. Routes are also free to ride in the MotoVault app for iOS and Android with turn-by-turn navigation.',
+  },
+  {
+    question: 'Where do MotoVault routes come from?',
+    answer:
+      'Routes are shared by real riders in the MotoVault community and rated by other riders, so the highest-rated twisty passes, scenic coastal roads, and multi-day touring routes rise to the top of each country and region.',
+  },
+  {
+    question: 'How do I ride a route I find on MotoVault?',
+    answer:
+      'Open the route in the free MotoVault app for iOS or Android to navigate it with turn-by-turn directions. You can also review the full details — distance, elevation, surface type, and community rating — right here on the web before you go.',
+  },
+];
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params;
@@ -56,6 +82,17 @@ export default async function ExplorePage({ params }: PageProps) {
       locale,
       '/explore',
     ),
+    countries.length > 0
+      ? buildItemList(
+          countries.map((country) => ({
+            name: country.name,
+            url: getCanonicalUrl(locale, `/explore/${country.slug}`),
+          })),
+          `${locale}/explore`,
+          'Motorcycle routes by country',
+        )
+      : null,
+    buildFAQPage(EXPLORE_FAQ, `${locale}/explore/faq`),
   );
 
   return (

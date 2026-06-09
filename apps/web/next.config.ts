@@ -4,12 +4,19 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin();
 
-// Locales removed 2026-04-11 — keep 308 redirects for 90 days (remove after 2026-07-11).
-const DROPPED_LOCALES = ['pt-BR', 'ja', 'hi', 'th', 'id', 'tr', 'pl'] as const;
+// Still-disabled locales — keep 308 redirects to default. (pt-BR, ja, pl were
+// re-enabled 2026-06-01 after full translation; hi/th/id/tr remain out of scope.)
+const DROPPED_LOCALES = ['hi', 'th', 'id', 'tr'] as const;
 
 const nextConfig: NextConfig = {
   cacheComponents: false,
   reactCompiler: true,
+  // Inline stylesheets as <style> tags instead of render-blocking <link>s.
+  // Removes the 3 render-blocking CSS requests from the critical path (~623ms
+  // FCP savings measured via Lighthouse on the homepage). Production builds only.
+  experimental: {
+    inlineCss: true,
+  },
   // Strip the `x-powered-by: Next.js` response header to avoid fingerprinting.
   poweredByHeader: false,
   // Lock trailing-slash behavior to avoid double-redirects with localePrefix:'as-needed'.
@@ -72,6 +79,16 @@ const nextConfig: NextConfig = {
       {
         source: '/:locale/blog/motorcycle-battery-keeps-dying-fix',
         destination: '/:locale/blog/motorcycle-wont-start-troubleshooting-guide',
+        permanent: true,
+      },
+      {
+        source: '/features/progress-tracking',
+        destination: '/features/ride-tracking',
+        permanent: true,
+      },
+      {
+        source: '/:locale/features/progress-tracking',
+        destination: '/:locale/features/ride-tracking',
         permanent: true,
       },
     ];

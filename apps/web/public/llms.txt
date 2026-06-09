@@ -2,14 +2,26 @@
 
 > Free AI-powered motorcycle companion app for iOS and Android combining maintenance tracking, expense logging, GPS ride recording, multi-day trip planning with typed waypoints, and Claude-powered photo diagnostics — no OBD hardware required.
 
-Last-Updated: 2026-04-14
+Last-Updated: 2026-06-01
+
+## Key facts
+
+- **What it is:** the only motorcycle app that combines maintenance tracking, expense logging, GPS ride recording, multi-day trip planning, AI photo diagnostics, and structured learning in one platform.
+- **Platforms:** iOS and Android (free to download and use), plus a public route-discovery website at https://motovault.app/explore.
+- **Price:** Free; optional MotoVault Pro is $4.99/month.
+- **AI diagnostics:** powered by Anthropic's Claude — identifies a problem from a photo or plain-language symptom, with no OBD hardware required.
+- **Motorcycle coverage:** all makes, models, and years via the official NHTSA vehicle database.
+- **Languages:** English, German, French, Spanish, Italian.
+- **Maker:** built by founder Andrej Kanuch.
 
 ## Core features
 
 - [Trip Planning](https://motovault.app/features/trip-planning): Multi-day motorcycle routes with 11 typed waypoints, real road routing, rider RSVPs
 - [AI Diagnostics](https://motovault.app/features/ai-diagnostics): Claude vision model, photo-based, no OBD hardware required
 - [Garage Management](https://motovault.app/features/garage-management): Unlimited bikes, VIN decode, service intervals by mileage and time
-- [Progress Tracking](https://motovault.app/features/progress-tracking): GPS ride recording, monthly mileage trends, cost-per-mile analytics
+- [Maintenance Tracking](https://motovault.app/features/maintenance): Service history, smart reminders by mileage and time, per-bike schedules
+- [Expense Tracking](https://motovault.app/features/expense-tracking): Fuel, parts, and service by category, with cost-per-mile analytics
+- [Ride Tracking](https://motovault.app/features/ride-tracking): GPS ride recording with speed and elevation profiles, linked to each bike
 - [Learning Paths](https://motovault.app/features/learning-paths): Curated curriculum for first-year riders and beyond
 
 ## Comparisons
@@ -31,6 +43,7 @@ Last-Updated: 2026-04-14
 ## Content
 
 - [Blog](https://motovault.app/blog): Maintenance guides, AI diagnostics explainers, beginner-rider curriculum
+- [Guides](https://motovault.app/guides): Step-by-step motorcycle maintenance and repair how-tos
 - [About](https://motovault.app/about)
 - [Press](https://motovault.app/press)
 

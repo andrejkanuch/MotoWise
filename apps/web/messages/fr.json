@@ -40,7 +40,27 @@
     "scrollDown": "Faites défiler vers le bas",
     "seoTitle": "Suivi d'Entretien Moto & Gestionnaire de Dépenses",
     "subtitleShort": "Maintenance tracking, trip planning, and expense logging — all in one free app for iOS and Android.",
-    "trustLine": "Free to download — no credit card required."
+    "trustLine": "Free to download — no credit card required.",
+    "tickerTripsLabel": "VOYAGES",
+    "tickerTripsSub": "PLANIFIEZ DES ITINÉRAIRES SUR PLUSIEURS JOURS",
+    "tickerMaintenanceLabel": "ENTRETIEN",
+    "tickerMaintenanceSub": "NE MANQUEZ JAMAIS UNE RÉVISION",
+    "tickerExpensesLabel": "DÉPENSES",
+    "tickerExpensesSub": "CONNAISSEZ VOTRE COÛT RÉEL",
+    "tickerDiagnosticsLabel": "DIAGNOSTIC IA",
+    "tickerDiagnosticsSub": "PRENEZ UNE PHOTO, OBTENEZ DES RÉPONSES",
+    "tickerFreeLabel": "GRATUIT",
+    "tickerFreeSub": "SANS ESSAI, SANS CARTE BANCAIRE",
+    "tickerPlatformLabel": "iOS + ANDROID",
+    "tickerPlatformSub": "CONÇU POUR LES MOTOS",
+    "cornerFreePlatforms": "Gratuit · iOS · Android",
+    "badgeNew": "Nouveau",
+    "badgeDiagnosticsLive": "Le diagnostic photo par IA est disponible",
+    "titleLine1": "Le compagnon",
+    "titleLine2": "de chaque motard.",
+    "description": "Planification de voyages, entretien, dépenses et diagnostic IA – les quatre outils dont chaque motard a besoin, dans une application magnifiquement simple.",
+    "downloadIos": "Télécharger pour iOS",
+    "trustLineStrip": "GRATUIT · iOS + ANDROID · CONÇU POUR LES MOTOS"
   },
   "Features": {
     "sectionLabel": "Fonctionnalités",
@@ -85,7 +105,79 @@
     "tripAlt": "MotoVault trip planning screen showing Dolomites Loop route on a map",
     "maintenanceAlt": "MotoVault maintenance tracking with active service tasks and reminders",
     "expensesAlt": "MotoVault expense tracking showing cost breakdowns by category",
-    "plusLine": "Plus ride logging, AI diagnostics, digital garage, and more."
+    "plusLine": "Plus ride logging, AI diagnostics, digital garage, and more.",
+    "grid": {
+      "sectionMeta": "Fonctionnalités · 01",
+      "sectionTitleLead": "Cinq outils.",
+      "sectionTitleEmphasis": "Une seule app.",
+      "sectionSub": "Conçu spécialement pour les motos. Pas de logiciel auto recyclé. Pas de matériel OBD. Juste ce dont vous avez vraiment besoin, lisible avec des gants à 110 km/h.",
+      "screenshotAlt": "Capture d'écran : {feature}",
+      "trip": {
+        "title": "Planifiez des itinéraires sur plusieurs jours sur une carte en direct.",
+        "body": "Placez des points de passage typés — carburant, panorama, étape nuit, sommet de col — sur un véritable routage routier. Partagez un GPX vers le téléphone de n'importe quel motard en un seul geste.",
+        "kv1Label": "Points de passage",
+        "kv1Value": "Typés & panoramiques",
+        "kv2Label": "Export",
+        "kv2Value": "GPX · Google Maps",
+        "badge": "Planification d'itinéraires",
+        "chip1Label": "Itinéraire prêt",
+        "chip1Value": "Dolomites · 4 jours",
+        "chip2Label": "2 motards",
+        "chip2Value": "· 3 points de passage"
+      },
+      "diag": {
+        "title": "Prenez une photo. Obtenez des réponses.",
+        "body": "Pointez l'appareil photo sur un voyant, une fuite d'huile ou une pièce suspecte. Un modèle de vision vous dit ce que c'est et quoi faire — en moins de cinq secondes.",
+        "kv1Label": "Matériel",
+        "kv1Value": "Pas d'OBD requis",
+        "kv2Label": "Entrée",
+        "kv2Value": "Photo ou texte",
+        "badge": "Diagnostic IA",
+        "chip1Label": "Résultat du scan",
+        "chip1Value": "Tension de chaîne faible",
+        "chip2Label": "Propulsé par",
+        "chip2Value": "Claude AI"
+      },
+      "maintenance": {
+        "title": "Ne manquez plus jamais un entretien.",
+        "body": "Consignez chaque vidange, chaque graissage de chaîne et chaque changement de pneu. Des rappels basés sur le kilométrage ou la date vous indiquent ce qui est à faire — avant le retard.",
+        "kv1Label": "Rappels",
+        "kv1Value": "Selon le kilométrage",
+        "kv2Label": "Historique",
+        "kv2Value": "Pour toujours, par moto",
+        "badge": "Suivi d'entretien",
+        "chip1Label": "Prochain entretien",
+        "chip1Value": "Vidange · 420 mi",
+        "chip2Label": "Graissage de chaîne",
+        "chip2Value": "À faire à 1 200 mi"
+      },
+      "expenses": {
+        "title": "Sachez ce que votre moto coûte vraiment.",
+        "body": "Suivez le carburant, les pièces, l'équipement et l'assurance avec des récapitulatifs mensuels. Des analyses de coût au kilomètre pour savoir avant d'acheter la deuxième moto.",
+        "kv1Label": "Détail",
+        "kv1Value": "Coût au kilomètre",
+        "kv2Label": "Catégories",
+        "kv2Value": "8 intégrées",
+        "badge": "Suivi de dépenses",
+        "chip1Label": "Ce mois-ci",
+        "chip1Value": "214,80 $ · 12 entrées",
+        "chip2Label": "Coût / kilomètre",
+        "chip2Value": "Calculé automatiquement"
+      },
+      "rides": {
+        "title": "Chaque trajet, cartographié et sauvegardé.",
+        "body": "Enregistrez vos trajets GPS avec vitesse, distance et dénivelé. Consultez vos stats, partagez les temps forts et constituez un historique de conduite complet.",
+        "kv1Label": "Suivi",
+        "kv1Value": "Trajets GPS",
+        "kv2Label": "Statistiques",
+        "kv2Value": "Vitesse · dénivelé",
+        "badge": "Suivi des trajets",
+        "chip1Label": "Dernier trajet",
+        "chip1Value": "86 mi · 1 h 42 min",
+        "chip2Label": "Vitesse max",
+        "chip2Value": "72 mph · enregistré"
+      }
+    }
   },
   "SocialProof": {
     "riders": "Tools",
@@ -170,37 +262,84 @@
     "successMessage": "Merci ! Téléchargez MotoVault sur l'App Store ou Google Play.",
     "successTagline": "Votre moto mérite mieux qu'un tableur.",
     "errorMessage": "Une erreur s'est produite. Veuillez réessayer.",
-    "personality": "Votre moto mérite mieux qu'un tableur."
+    "personality": "Votre moto mérite mieux qu'un tableur.",
+    "metaLabel": "Télécharger · gratuit pour toujours",
+    "headlineLead": "Roulez",
+    "headlineEmphasis": "plus intelligemment.",
+    "subtitleDownload": "Gratuit sur iOS et Android. Configurez votre garage en moins de 90 secondes.",
+    "appStore": "App Store",
+    "googlePlay": "Google Play",
+    "trustFreeForever": "Gratuit pour toujours",
+    "trustNoCreditCard": "Sans carte bancaire",
+    "trustUnlimitedBikes": "Motos illimitées"
   },
   "Faq": {
     "sectionLabel": "FAQ",
     "sectionTitle": "Questions Fréquemment Posées",
     "items": [
       {
-        "question": "Qu'est-ce que MotoVault?",
-        "answer": "MotoVault est une app de gestion moto conçue pour les motards. Suivez les tâches d'entretien avec des rappels intelligents, enregistrez chaque dépense (carburant, équipement, pièces), enregistrez vos trajets et diagnostiquez les problèmes avec l'analyse photo IA — tout dans une seule app."
+        "question": "Qu'est-ce que MotoVault ?",
+        "answer": "MotoVault est une application gratuite pour iOS et Android qui réunit en une seule plateforme les quatre besoins de tout motard : la planification d'itinéraires sur plusieurs jours avec navigation virage par virage, le suivi prédictif de l'entretien, la gestion des dépenses par moto et le diagnostic photo assisté par IA. L'application prend en charge plus de 12 000 modèles de motos issus de la base de données NHTSA vPIC, couvrant tous les grands constructeurs des 30 dernières années. Les motards peuvent planifier des itinéraires, enregistrer l'historique d'entretien, photographier les problèmes mécaniques pour une analyse IA instantanée et suivre le coût total de possession de tout leur garage. Aucun matériel OBD-II n'est requis, et aucun abonnement n'est nécessaire pour commencer. MotoVault a été conçu par des motards lassés de jongler entre cinq applications distinctes pour des tâches qui vont de pair. Source : base de données NHTSA vPIC pour le catalogue de modèles."
       },
       {
-        "question": "MotoVault est-il gratuit?",
-        "answer": "Oui! MotoVault offre un plan gratuit incluant le contenu d'apprentissage basique, une moto dans votre garage et des diagnostics IA limités. Pour les diagnostics illimités, tout le contenu d'apprentissage et les motos illimitées, vous pouvez passer à MotoVault Pro depuis l'app."
+        "question": "MotoVault est-il vraiment gratuit ?",
+        "answer": "MotoVault est gratuit pour toujours pour son ensemble de fonctionnalités de base, qui comprend une moto dans votre garage (passez à Pro pour un nombre illimité de motos), le suivi complet de l'entretien avec historique de service, l'enregistrement des dépenses avec ventilation des coûts par moto, l'enregistrement des trajets avec traces GPS, le planificateur d'itinéraires complet et un scan de diagnostic IA par mois. Il n'y a ni période d'essai ni blocage de fonctionnalités après 30 jours. MotoVault Pro coûte 4 $ par mois ou 36 $ par an et débloque les scans de diagnostic IA illimités, des analyses avancées du pilote avec rapports de performance hebdomadaires, des exports GPX illimités, le traitement prioritaire des itinéraires et des statistiques de trajet étendues avec données d'altitude. Toutes les fonctionnalités de base nécessaires à l'entretien et à la gestion de votre moto sont disponibles dans la version gratuite."
       },
       {
-        "question": "Quelles motos sont supportées?",
-        "answer": "MotoVault supporte toutes les marques et modèles de motos. Notre base de données utilise les données officielles des véhicules de la NHTSA, couvrant des milliers de marques et de modèles sur toutes les années. Cherchez simplement votre moto en l'ajoutant à votre garage."
+        "question": "Comment fonctionne le diagnostic IA ?",
+        "answer": "Le diagnostic IA de MotoVault s'appuie sur le modèle de vision Claude AI d'Anthropic, l'un des systèmes d'IA multimodaux les plus avancés disponibles. Pour l'utiliser, ouvrez la caméra de diagnostic dans l'application, cadrez la pièce, le voyant ou la zone concernée, puis appuyez sur le déclencheur. Le modèle de vision identifie ce qu'il observe, recoupe les modes de défaillance connus pour votre marque et votre modèle précis, et renvoie un diagnostic structuré incluant la cause probable, le niveau de gravité et une prochaine étape recommandée. La plupart des résultats apparaissent en moins de cinq secondes. Le système fournit un indice de confiance faible, moyen ou élevé pour chaque évaluation. Le diagnostic IA est conçu pour vous aider à comprendre les problèmes potentiels et à juger de l'urgence, non à remplacer un mécanicien moto qualifié pour des réparations complexes."
       },
       {
-        "question": "Comment fonctionne le diagnostic IA?",
-        "answer": "Prenez une photo d'une partie quelconque de votre moto et décrivez le problème. Notre IA analyse l'image et fournit une évaluation diagnostique avec des niveaux de gravité — des problèmes critiques nécessitant une attention immédiate aux suggestions de maintenance mineures."
+        "question": "Quelles motos MotoVault prend-il en charge ?",
+        "answer": "MotoVault prend en charge toutes les grandes marques et tous les modèles de motos fabriqués au cours des 30 dernières années, soit plus de 12 000 modèles distincts dans la base de données. Les spécifications du modèle, notamment la cylindrée, les intervalles d'entretien et les fluides recommandés, se chargent automatiquement lorsque vous ajoutez une moto à votre garage. La couverture englobe tous les grands constructeurs, dont Honda, Yamaha, Kawasaki, Suzuki, BMW, Ducati, KTM, Harley-Davidson, Triumph, Royal Enfield, Aprilia et Indian. Le catalogue de modèles provient du NHTSA Vehicle Product Information Catalog, la base de données de référence du gouvernement fédéral américain pour l'identification des véhicules. Si votre modèle précis n'est pas répertorié, vous pouvez ajouter manuellement n'importe quelle moto personnalisée avec vos propres intervalles d'entretien. Source : NHTSA Vehicle Product Information Catalog, maintenu par la National Highway Traffic Safety Administration."
       },
       {
-        "question": "Mes données sont-elles en sécurité?",
-        "answer": "Vos données sont protégées par chiffrement au niveau entreprise et des contrôles d'accès stricts. Les tokens d'authentification sont stockés de manière sécurisée via le stockage sécurisé natif de la plateforme, et toutes les communications sont chiffrées en transit. Nous ne partageons jamais vos informations personnelles ou données de moto avec des tiers."
+        "question": "Mes données sont-elles en sécurité ?",
+        "answer": "MotoVault prend la sécurité des données au sérieux avec des protections de niveau entreprise appliquées à chaque compte de motard. Toutes les données — y compris les traces GPS des trajets, les dossiers d'entretien, les journaux de dépenses et les images de diagnostic — sont chiffrées en transit avec TLS 1.3 et au repos avec AES-256 sur une infrastructure hébergée dans l'UE. La plateforme est entièrement conforme au RGPD, ce qui signifie que les motards européens bénéficient d'une portabilité complète des données et du droit à l'effacement. Vous pouvez exporter tout votre historique sous forme de données structurées ou tout supprimer définitivement d'une simple pression dans les paramètres. MotoVault ne vend jamais les données des motards à des tiers, ne partage jamais l'historique de localisation avec des annonceurs et n'utilise jamais vos photos de diagnostic à d'autres fins que la production de votre résultat. La sécurité au niveau des lignes garantit que chaque motard ne peut accéder qu'à ses propres enregistrements, même au niveau de la base de données."
       },
       {
-        "question": "Qu'est-ce qui est inclus dans MotoVault Pro?",
-        "answer": "MotoVault Pro déverrouille les diagnostics IA illimités, l'accès à tous les modules et cours d'apprentissage, les motos illimitées dans votre garage, le support prioritaire et le contenu exclusif. Vous pouvez vous abonner mensuellement ou annuellement depuis l'app."
+        "question": "Comment fonctionne la planification d'itinéraires ?",
+        "answer": "La planification d'itinéraires de MotoVault vous permet de créer des parcours moto sur plusieurs jours avec des points de passage typés dont les motards ont réellement besoin : arrêts carburant, points de vue, postes frontières, terminaux de ferry, restaurants et hébergements pour la nuit. Chaque type de point de passage affiche sa propre icône sur la carte pour un repérage visuel rapide. Le planificateur inclut des profils d'altitude afin que vous puissiez anticiper les cols de montagne et prévoir les changements d'altitude qui influencent les performances du moteur. Les itinéraires peuvent être réorganisés par glisser-déposer, et le système calcule les arrêts carburant estimés selon la capacité du réservoir de votre moto. Une fois finalisé, tout itinéraire s'exporte sous forme de fichier GPX standard pour une utilisation hors ligne sur Garmin, TomTom ou tout appareil GPS compatible. La planification d'itinéraires et les itinéraires enregistrés sont illimités dans la version gratuite ; MotoVault Pro ajoute des exports d'itinéraires GPX illimités et des questions illimitées à l'assistant de voyage IA."
+      },
+      {
+        "question": "Puis-je utiliser MotoVault hors ligne ?",
+        "answer": "MotoVault fonctionne hors ligne pour les fonctionnalités les plus importantes lorsque vous roulez sans réseau mobile. L'enregistrement des trajets continue de consigner les coordonnées GPS, la vitesse, l'altitude et la durée grâce aux capteurs de votre téléphone, sans connexion de données. Vous pouvez aussi enregistrer des entrées d'entretien et des dépenses hors ligne, et toutes les entrées se synchroniseront automatiquement dès que votre appareil se reconnectera. Les itinéraires précédemment chargés sont également consultables hors ligne. La synchronisation des données est sans conflit, ce qui signifie que les modifications effectuées hors ligne et en ligne fusionnent proprement sans perte de données. La seule fonctionnalité nécessitant une connexion Internet active est le diagnostic IA, car l'image doit atteindre le modèle de vision dans le cloud pour être analysée. Toutes les autres fonctions principales fonctionnent de manière fiable dans les zones reculées."
+      },
+      {
+        "question": "En quoi MotoVault diffère-t-il de REVER ou Calimoto ?",
+        "answer": "REVER et Calimoto sont d'excellentes applications axées sur la navigation, mais chacune ne résout qu'une partie du casse-tête de la possession d'une moto. MotoVault est une plateforme tout-en-un qui combine la planification d'itinéraires, le suivi de l'entretien, la gestion des dépenses et le diagnostic assisté par IA dans une seule application avec un garage unifié. Au lieu de jongler entre Calimoto pour les itinéraires, un tableur pour les dépenses, une application de notes pour l'historique d'entretien et Google pour interpréter les voyants, MotoVault gère les quatre au même endroit. Ainsi, vos données de dépenses en carburant alimentent les estimations d'autonomie du planificateur, votre historique d'entretien nourrit le contexte de diagnostic et vos enregistrements de trajets mettent automatiquement à jour le compteur kilométrique pour les rappels d'entretien. L'approche intégrée élimine la double saisie de données et vous offre une vue complète de chaque moto que vous possédez."
+      },
+      {
+        "question": "Quels rappels d'entretien MotoVault envoie-t-il ?",
+        "answer": "MotoVault envoie des rappels d'entretien intelligents basés sur le kilométrage ou le temps écoulé, selon le seuil atteint en premier. Les catégories d'entretien standard comprennent les vidanges d'huile et de filtre, le nettoyage et le réglage de la chaîne, l'inspection et le remplacement des pneus, l'usure des plaquettes de frein, la purge du liquide de refroidissement, la vérification du jeu aux soupapes, le remplacement du filtre à air et l'entretien des bougies. Chaque rappel s'adapte au programme d'entretien propre à votre moto plutôt que d'utiliser des intervalles génériques, car une sportive en journées circuit nécessite des vidanges bien plus fréquentes qu'une routière sur autoroute. Lorsque vous ajoutez une moto à modèle pris en charge, les intervalles recommandés se préremplissent à partir des spécifications du constructeur. Vous pouvez personnaliser n'importe quel intervalle, ajouter des catégories d'entretien propres à votre moto et reporter les rappels lorsqu'un entretien est déjà programmé avec votre mécanicien."
+      },
+      {
+        "question": "Puis-je suivre les dépenses de plusieurs motos ?",
+        "answer": "La version gratuite couvre une moto, et MotoVault Pro débloque un nombre illimité de motos dans votre garage, chaque dépense étant associée à une moto précise. Vous pouvez suivre les pleins de carburant avec calcul automatique du coût au kilomètre, les primes d'assurance, les achats d'équipement, les pièces de rechange, la main-d'œuvre d'entretien, les frais d'immatriculation et toute catégorie de dépense personnalisée que vous définissez. Chaque moto affiche son propre total cumulé, ses moyennes mensuelles et l'évolution de sa consommation dans le temps. À la fin de chaque année, MotoVault génère un rapport de coût annuel par moto présentant votre coût total de possession ventilé par catégorie. Il devient ainsi simple de comparer les motos les plus coûteuses à entretenir, de décider quand une vente a un sens financier, ou simplement de tenir des registres précis pour la documentation de la valeur de revente et les besoins fiscaux."
+      },
+      {
+        "question": "MotoVault fonctionne-t-il avec les scanners OBD-II ?",
+        "answer": "MotoVault ne nécessite ni matériel OBD-II, ni adaptateurs Bluetooth, ni câbles de diagnostic, ni aucun dispositif de scan externe. La fonction de diagnostic IA fonctionne entièrement via l'appareil photo de votre smartphone, ce qui signifie que vous pouvez photographier une pièce, un voyant, une fuite de fluide ou tout problème visible et recevoir une évaluation générée par l'IA sans acheter d'équipement supplémentaire. Cette approche a été choisie délibérément car la plupart des motos n'ont pas de ports OBD-II standard, utilisent des connecteurs de diagnostic propriétaires ou exigent des outils de scan spécifiques au constructeur coûtant des centaines de dollars. En utilisant la vision par ordinateur plutôt que des protocoles matériels, le diagnostic MotoVault fonctionne sur n'importe quelle moto, quel que soit son âge, son constructeur ou sa sophistication électronique. Pointez simplement votre appareil photo vers le problème, et le modèle de vision IA analyse ce qu'il voit au regard des schémas de défaillance connus pour votre moto."
+      },
+      {
+        "question": "Puis-je exporter mes données de trajet au format GPX ?",
+        "answer": "MotoVault prend en charge l'export GPX à la fois pour les trajets enregistrés et les itinéraires planifiés. Chaque trajet que vous enregistrez avec le suivi GPS peut être exporté en fichier GPX standard contenant la trace complète avec horodatages, données d'altitude et vitesse. Les itinéraires créés dans le planificateur s'exportent également en fichiers d'itinéraire GPX, importables directement dans un Garmin Zumo, un TomTom Rider, un Hammerhead Karoo ou tout GPS de navigation acceptant le format GPX. Les comptes gratuits incluent cinq exports GPX par mois, ce qui couvre les besoins de la plupart des motards pour un partage occasionnel ou un transfert vers un appareil. MotoVault Pro débloque des exports illimités sans plafond mensuel. Les fichiers GPX exportés sont conformes à la spécification GPX 1.1 et fonctionnent avec des outils tiers, notamment Google Earth, Strava, Komoot et Basecamp, sans modification."
+      },
+      {
+        "question": "Dans quels pays les itinéraires moto sont-ils disponibles ?",
+        "answer": "Les itinéraires MotoVault sont disponibles dans plus de 40 pays à travers le monde, avec la meilleure couverture aux États-Unis, en Allemagne, en Autriche, en Suisse, en Italie, en France, en Espagne et en Norvège. Ces pays disposent des données routières les plus complètes, notamment des indicateurs de type de revêtement, une précision d'altitude et des notes de sinuosité qui aident à repérer les routes les plus agréables à parcourir. La couverture s'étend également au Royaume-Uni, au Portugal, à la Grèce, à la Croatie, à la République tchèque, au Canada, au Mexique, à l'Argentine, au Brésil, à la Colombie, à l'Australie, à la Nouvelle-Zélande, au Japon et à la Thaïlande. Les itinéraires contribués par la communauté augmentent chaque jour, les motards partageant leurs routes préférées et leurs circuits via l'application. La couverture des itinéraires dépend de la qualité des données routières OpenStreetMap pour chaque région, ce qui signifie que les routes européennes et nord-américaines bien cartographiées disposent des métadonnées les plus riches pour le routage spécifique aux motos."
+      },
+      {
+        "question": "Quelle est la précision de la fonction de diagnostic IA ?",
+        "answer": "Le diagnostic IA de MotoVault fournit chaque évaluation avec un indice de confiance faible, moyen ou élevé afin que vous puissiez juger la fiabilité d'un coup d'œil. Les résultats à confiance élevée concernent généralement des problèmes clairement visibles comme des plaquettes de frein usées, des maillons de chaîne endommagés, des fuites de fluide à la couleur identifiable ou des voyants de tableau de bord standard. Les résultats à confiance moyenne indiquent que l'IA a détecté un problème probable mais recommande une vérification par un professionnel. Les résultats à confiance faible signifient que l'image était ambiguë ou que le problème nécessite une inspection physique au-delà de ce qui est visible sur une photo. La fonction de diagnostic IA ne remplace explicitement pas un mécanicien moto qualifié. Elle est idéale pour repérer les problèmes potentiels avant qu'ils ne s'aggravent, comprendre la signification des voyants du tableau de bord pour votre modèle précis et décider si un problème nécessite une attention immédiate ou peut attendre votre prochain rendez-vous d'entretien."
       }
-    ]
+    ],
+    "sectionMeta": "FAQ · 02",
+    "titleLead": "Questions,",
+    "titleAccent": "réponses.",
+    "introLead": "Tout ce que vous demanderiez dans les cinq premières minutes. Si la vôtre manque,",
+    "introLink": "écrivez-nous",
+    "introTrailing": "."
   },
   "Footer": {
     "product": "Produit",
@@ -217,7 +356,20 @@
     "terms": "Conditions",
     "accountDeletion": "Suppression de Compte",
     "builtWithAi": "Alimenté par l'IA",
-    "about": "À propos"
+    "about": "À propos",
+    "brandText": "Le compagnon du motard. Planifiez, suivez, entretenez et diagnostiquez — le tout dans une application gratuite, créée par des motards.",
+    "appStore": "App Store",
+    "googlePlay": "Google Play",
+    "resources": "Ressources",
+    "legal": "Mentions légales",
+    "riders": "Motards",
+    "contact": "Contact",
+    "bottomBar": "© 2026 MotoVault · Fait pour les motards, par des motards.",
+    "linkTripPlanning": "Planification d'itinéraires",
+    "linkAiDiagnostics": "Diagnostic IA",
+    "linkMaintenance": "Suivi d'entretien",
+    "linkExpenseTracking": "Suivi de dépenses",
+    "linkRideTracking": "Suivi des trajets"
   },
   "About": {
     "metaTitle": "À propos de MotoVault",
@@ -896,52 +1048,6 @@
     "breadcrumbHome": "Accueil",
     "breadcrumbFeatures": "Fonctionnalités"
   },
-  "FeaturesProgress": {
-    "title": "Suivez Vos Connaissances Moto",
-    "description": "Gagnez des badges, suivez les scores de quiz, construisez des séries d'apprentissage. Éducation moto gamifiée qui vous maintient motivé.",
-    "heroTitle": "Suivez Votre Progression",
-    "heroSubtitle": "Apprentissage gamifié qui vous maintient motivé. Gagnez des badges, construisez des séries et regardez votre expertise grandir.",
-    "badgesTitle": "Gagnez des Badges de Réussite",
-    "badgesDesc": "Complétez des cours, réussissez des quiz et atteignez des jalons pour débloquer des badges de réussite. Montrez vos connaissances moto.",
-    "streaksTitle": "Construisez des Séries d'Apprentissage",
-    "streaksDesc": "Apprenez quelque chose de nouveau chaque jour. Construisez des séries pour rester constant et développer des connaissances moto durables.",
-    "scoresTitle": "Suivez les Scores de Quiz",
-    "scoresDesc": "Voyez vos performances sur tous les modules. Identifiez les points faibles et concentrez votre apprentissage là où c'est le plus important.",
-    "faq": [
-      {
-        "question": "Quelles métriques le suivi de progression affiche-t-il ?",
-        "answer": "Le suivi de progression de MotoVault vous donne une vue complète de votre parcours de connaissances moto. Les métriques clés incluent les taux d'achèvement des tâches de maintenance, les calendriers de service à venir, les tendances de dépenses, la progression d'apprentissage via les arbres de compétences, les scores de quiz, les badges gagnés et la durée des séries d'apprentissage."
-      },
-      {
-        "question": "Puis-je définir des rappels de maintenance personnalisés ?",
-        "answer": "Oui. MotoVault vous permet de définir des rappels entièrement personnalisables basés sur le kilométrage, le temps, ou les deux. Les rappels courants incluent les vidanges, la lubrification de chaîne, les vérifications de pneus et les inspections de freins, mais vous pouvez créer des rappels personnalisés pour n'importe quelle tâche."
-      },
-      {
-        "question": "Le suivi de progression fonctionne-t-il avec plusieurs motos ?",
-        "answer": "Oui. MotoVault fournit des tableaux de bord par moto pour que vous puissiez voir l'état de maintenance, les tâches à venir et l'historique des dépenses pour chaque moto individuellement. Vous pouvez également afficher une vue d'ensemble agrégée de toutes vos motos."
-      },
-      {
-        "question": "Puis-je exporter mes données de maintenance ?",
-        "answer": "Oui. MotoVault vous permet d'exporter des rapports de maintenance complets pour n'importe quelle moto de votre garage. Ces rapports incluent l'historique complet du service avec les dates, le kilométrage, les coûts et les notes — parfait pour documenter l'état de votre moto pour les acheteurs potentiels ou les réclamations d'assurance."
-      }
-    ],
-    "longFormTitle": "Suivi de progression moto : Restez motivé, restez organisé",
-    "longFormIntro": "Entretenir une moto et développer des connaissances mécaniques sont des engagements à long terme. Sans moyen de suivre votre progression, il est facile de perdre l'élan. Le système de suivi de progression de MotoVault garde tout visible et organisé.",
-    "longFormDashboardTitle": "Votre tableau de bord moto personnel",
-    "longFormDashboard": "Le tableau de bord de MotoVault rassemble tout ce que vous devez voir en un seul endroit. D'un coup d'œil, vous pouvez vérifier quelles motos ont besoin d'entretien bientôt, quelle est votre prochaine leçon, comment évoluent vos scores de quiz et où en sont vos dépenses du mois.",
-    "longFormRemindersTitle": "Des rappels intelligents qui vous gardent sur la route",
-    "longFormReminders": "Le système de rappels est l'épine dorsale du suivi de maintenance de MotoVault. Définissez des rappels basés sur le kilométrage, le temps, ou les deux, et MotoVault s'occupe du reste. Vous recevrez des notifications quand le service approche — pas après qu'il soit déjà en retard.",
-    "longFormAnalyticsTitle": "Analyses et rapports pour une propriété plus intelligente",
-    "longFormAnalytics": "MotoVault va au-delà du simple suivi en fournissant des analyses qui vous aident à prendre des décisions plus intelligentes concernant vos motos. Les analyses de dépenses montrent les dépenses totales par moto, par catégorie et dans le temps. Les analyses de maintenance mettent en évidence les tâches que vous accomplissez à temps par rapport à celles qui ont tendance à glisser. Toutes les données peuvent être exportées dans des rapports propres.",
-    "sectionLabel": "Suivi de progression",
-    "featuresLabel": "Reste motivé",
-    "featuresTitle": "Suis chaque étape",
-    "longFormLabel": "Sous le capot",
-    "faqLabel": "Des questions ?",
-    "faqTitle": "Questions fréquentes",
-    "faqMore": "D’autres questions ?",
-    "faqSupportLink": "Visite notre page d’assistance"
-  },
   "CostCalculator": {
     "title": "Calculateur du Coût de Possession Moto",
     "description": "Calculez le coût réel de possession d'une moto. Estimez carburant, assurance, entretien, pneus et frais d'immatriculation. Découvrez combien coûte l'entretien d'une moto par an et par kilomètre.",
@@ -1072,8 +1178,12 @@
     "garageDesc": "Suivez chaque moto que vous possédez — kilométrage, historique d'entretien, carburant et dépenses — dans une seule chronologie par moto.",
     "learningTitle": "Parcours d'apprentissage",
     "learningDesc": "Modules structurés et articles générés par IA, adaptés à votre moto, du service des freins au remisage hivernal.",
-    "progressTitle": "Suivi de la progression",
-    "progressDesc": "Chaque trajet, chaque tâche, chaque dépense enregistrés automatiquement pour que vous sachiez toujours où en est votre moto."
+    "maintenanceTitle": "Suivi d'entretien",
+    "maintenanceDesc": "Enregistrez chaque entretien, programmez des rappels au kilométrage et dans le temps, et gardez un historique documenté pour chaque moto.",
+    "expensesTitle": "Suivi des dépenses",
+    "expensesDesc": "Suivez carburant, pièces et entretien par catégorie et voyez le coût au kilomètre pour chacune de vos motos.",
+    "ridesTitle": "Suivi des trajets",
+    "ridesDesc": "Enregistrez vos sorties en GPS complet — distance, vitesse et dénivelé — liées à la bonne moto de votre garage."
   },
   "FeaturesTripPlanning": {
     "title": "Planification de voyage moto — Créateur d'itinéraire & feuille de route",
@@ -2839,5 +2949,175 @@
     "noFollowing": "Vous ne suivez personne pour l'instant.",
     "loadMore": "Charger plus",
     "loading": "Chargement..."
+  },
+  "FeaturesMaintenance": {
+    "title": "Suivi d'entretien moto — Historique de service et rappels",
+    "description": "Enregistrez chaque entretien, programmez des rappels au kilométrage et dans le temps, et conservez un historique d'entretien complet pour chaque moto de votre garage. Gratuit sur iOS et Android.",
+    "sectionLabel": "Suivi d'entretien",
+    "heroTitle": "Ne manquez plus jamais un entretien",
+    "heroSubtitle": "Le suivi d'entretien de MotoVault conserve un historique de service complet pour chacune de vos motos et vous prévient avant l'échéance des travaux — selon le kilométrage, le temps, ou les deux. Enregistrez vidanges, graissage de chaîne, entretien des freins et tâches personnalisées avec date, kilométrage, coût et photos, pour que rien ne passe à la trappe et que le carnet de votre moto reste prêt pour la revente.",
+    "featuresLabel": "Toujours dans les temps",
+    "featuresTitle": "Un entretien qui se gère tout seul",
+    "f1Title": "Rappels d'entretien intelligents",
+    "f1Desc": "Définissez des rappels par intervalle de kilométrage, de temps, ou les deux. MotoVault vous avertit avant l'échéance — pas une fois le retard pris — et réinitialise automatiquement dès que vous enregistrez la tâche.",
+    "f2Title": "Historique de service complet",
+    "f2Desc": "Chaque opération est consignée avec date, kilométrage, coût, catégorie, notes et photos. Vous construisez pour chaque moto un historique documenté qui augmente la valeur de revente et simplifie les démarches d'assurance.",
+    "f3Title": "Plannings par moto",
+    "f3Desc": "Une sportive et un custom n'ont pas les mêmes besoins. Configurez un planning d'entretien indépendant pour chaque moto de votre garage.",
+    "longFormLabel": "Sous le capot",
+    "longFormTitle": "Un suivi d'entretien moto qui garde votre machine en forme",
+    "longFormIntro": "L'entretien d'une moto est un engagement de longue durée, et les intervalles manqués coûtent cher. Le suivi d'entretien de MotoVault remplace la boîte à chaussures pleine de reçus et le tableur par un historique de service unique et organisé par moto — avec des rappels qui vous parviennent avant qu'un entretien ne soit oublié.",
+    "s1Title": "Enregistrez chaque opération en quelques secondes",
+    "s1Body": "Consignez l'entretien avec date, kilométrage, coût, catégorie et notes détaillées, et ajoutez des photos de pièces ou de reçus. Les tâches sont classées en retard, à venir et terminées, pour toujours savoir ce qui demande votre attention.",
+    "s2Title": "Des rappels adaptés à votre façon de rouler",
+    "s2Body": "Définissez des rappels au kilométrage (vidange tous les 5 000 km), dans le temps (liquide de frein tous les 2 ans), ou les deux. Comme les rappels sont propres à chaque moto, un deux-roues du quotidien et une routière de week-end peuvent suivre des plannings totalement différents. Enregistrez une tâche terminée et le prochain rappel se réinitialise automatiquement.",
+    "s3Title": "Un carnet qui vous rapporte",
+    "s3Body": "Exportez un rapport d'entretien complet pour n'importe quelle moto — dates, kilométrage, coûts et notes. Un historique de service documenté rassure les acheteurs, appuie les démarches d'assurance et de garantie, et peut nettement augmenter la valeur de revente.",
+    "faqLabel": "Des questions ?",
+    "faqTitle": "Questions fréquentes",
+    "faq": [
+      {
+        "question": "MotoVault suit-il l'entretien de plusieurs motos ?",
+        "answer": "Oui. MotoVault attribue à chaque moto de votre garage son propre historique de service, ses rappels et son planning. Vous pouvez consulter chaque moto individuellement ou obtenir une vue d'ensemble indiquant laquelle réclame de l'attention en priorité."
+      },
+      {
+        "question": "Puis-je créer des rappels d'entretien personnalisés ?",
+        "answer": "Oui. Les rappels sont entièrement personnalisables par intervalle de kilométrage, de temps, ou les deux. Au-delà des modèles comme la vidange et le graissage de chaîne, vous pouvez créer un rappel pour n'importe quelle tâche, propre à chaque moto. Dès que vous marquez la tâche comme terminée, le prochain rappel se réinitialise automatiquement."
+      },
+      {
+        "question": "Puis-je exporter l'historique de service de ma moto ?",
+        "answer": "Oui. MotoVault exporte un rapport d'entretien complet pour n'importe quelle moto, avec dates, kilométrage, coûts et notes — idéal pour la documentation de revente, les démarches d'assurance ou vos propres archives."
+      },
+      {
+        "question": "Le suivi d'entretien est-il gratuit ?",
+        "answer": "Oui. Le suivi d'entretien est gratuit sur iOS et Android. Un abonnement MotoVault Pro facultatif (4,99 $/mois) débloque des fonctionnalités avancées."
+      }
+    ],
+    "faqMore": "D'autres questions ?",
+    "faqSupportLink": "Consultez notre page d'assistance",
+    "breadcrumbHome": "Accueil",
+    "breadcrumbFeatures": "Fonctionnalités"
+  },
+  "FeaturesExpenses": {
+    "title": "Suivi des dépenses moto — Carburant, pièces et coût au kilomètre",
+    "description": "Suivez chaque dépense moto par catégorie, voyez le coût au kilomètre et comparez les dépenses entre motos et années. Gratuit sur iOS et Android.",
+    "sectionLabel": "Suivi des dépenses",
+    "heroTitle": "Sachez exactement ce que coûte votre moto",
+    "heroSubtitle": "Le suivi des dépenses de MotoVault enregistre chaque coût de la moto — carburant, entretien, pièces et équipement — et le transforme en statistiques claires : dépenses depuis le début de l'année, coût au kilomètre, tendances mensuelles et comparaisons par moto. Connaissez enfin le vrai coût de possession au lieu de deviner.",
+    "featuresLabel": "Suivez l'argent",
+    "featuresTitle": "Chaque coût, classé et clair",
+    "f1Title": "Quatre catégories de dépenses",
+    "f1Desc": "Enregistrez carburant, entretien, pièces et équipement en quelques secondes. Chaque dépense est liée à une moto précise : les propriétaires de plusieurs motos voient exactement où passe l'argent.",
+    "f2Title": "Analyse du coût au kilomètre",
+    "f2Desc": "MotoVault calcule automatiquement le coût au kilomètre et au mile, pour comparer vos motos et comprendre ce que chacune coûte réellement à l'usage.",
+    "f3Title": "Tendances et comparaisons",
+    "f3Desc": "Visualisez les dépenses depuis le début de l'année avec répartition par catégorie, tendances mensuelles et comparaison année en cours / depuis toujours — en unités métriques et impériales.",
+    "longFormLabel": "Sous le capot",
+    "longFormTitle": "Un suivi des dépenses qui révèle le vrai coût de possession",
+    "longFormIntro": "La plupart des motards sous-estiment le coût de leur moto car les dépenses sont éparpillées entre reçus de carburant, commandes de pièces et factures d'entretien. Le suivi des dépenses de MotoVault rassemble tout au même endroit et transforme les coûts bruts en indicateurs qui comptent vraiment — coût au kilomètre, répartition par catégorie et tendances d'une année sur l'autre.",
+    "s1Title": "Enregistrez les dépenses en quatre catégories claires",
+    "s1Body": "Carburant, entretien, pièces et équipement — chaque dépense est enregistrée pour une moto précise avec date, montant et notes. Avec plusieurs motos, vous voyez laquelle plombe votre budget et laquelle est peu coûteuse à entretenir.",
+    "s2Title": "Transformez les dépenses en coût au kilomètre",
+    "s2Body": "MotoVault calcule automatiquement le coût au kilomètre et au mile à partir de vos dépenses et de vos distances parcourues. C'est l'indicateur le plus utile pour comparer des motos, décider de garder ou vendre, et préparer le budget de l'année.",
+    "s3Title": "Repérez les tendances avant qu'elles ne vous surprennent",
+    "s3Body": "Le tableau de bord des dépenses affiche les totaux de l'année avec des barres par catégorie, les tendances mensuelles et une comparaison année en cours / depuis toujours. Si les frais d'entretien grimpent sur une moto plus ancienne, vous le voyez tôt — en unités métriques ou impériales, à votre choix.",
+    "faqLabel": "Des questions ?",
+    "faqTitle": "Questions fréquentes",
+    "faq": [
+      {
+        "question": "Le suivi des dépenses est-il gratuit ?",
+        "answer": "Oui. Le suivi des dépenses est gratuit sur iOS et Android. Un abonnement MotoVault Pro facultatif (4,99 $/mois) débloque des fonctionnalités avancées."
+      },
+      {
+        "question": "Quelles dépenses puis-je suivre ?",
+        "answer": "MotoVault suit quatre catégories : carburant, entretien, pièces et équipement. Chaque dépense est liée à une moto précise, avec date, montant et notes, pour des dépenses organisées par moto."
+      },
+      {
+        "question": "MotoVault calcule-t-il le coût au kilomètre ?",
+        "answer": "Oui. MotoVault calcule automatiquement le coût au kilomètre et au mile à partir de vos dépenses enregistrées et des distances parcourues, en unités métriques et impériales."
+      },
+      {
+        "question": "Puis-je suivre les dépenses de plusieurs motos ?",
+        "answer": "Oui. Chaque dépense est attribuée à une moto précise, et le tableau de bord permet de comparer les dépenses entre toutes les motos de votre garage."
+      }
+    ],
+    "faqMore": "D'autres questions ?",
+    "faqSupportLink": "Consultez notre page d'assistance",
+    "breadcrumbHome": "Accueil",
+    "breadcrumbFeatures": "Fonctionnalités"
+  },
+  "FeaturesRides": {
+    "title": "Suivi de trajets moto — Enregistrement GPS et analyses de sortie",
+    "description": "Enregistrez chaque sortie en GPS — distance, vitesse, dénivelé et carte d'itinéraire interactive — liée à la bonne moto de votre garage. Gratuit sur iOS et Android.",
+    "sectionLabel": "Suivi des trajets",
+    "heroTitle": "Enregistrez chaque sortie en détail",
+    "heroSubtitle": "Le suivi de trajets de MotoVault enregistre chaque sortie en GPS complet — distance, temps en mouvement, vitesses maximale et moyenne, dénivelé positif et négatif, et carte d'itinéraire complète. Chaque sortie est liée à une moto précise, dressant le portrait de l'usage de chaque machine aux côtés de son entretien et de ses dépenses.",
+    "featuresLabel": "Chaque kilomètre compte",
+    "featuresTitle": "Un suivi GPS pensé pour les motards",
+    "f1Title": "Enregistrement GPS complet",
+    "f1Desc": "Capturez distance, durée, temps en mouvement et à l'arrêt, vitesses maximale et moyenne, et dénivelé positif et négatif — le tout sur une carte d'itinéraire interactive.",
+    "f2Title": "Profils de vitesse et de dénivelé",
+    "f2Desc": "Chaque sortie inclut des graphiques interactifs de vitesse et de dénivelé tracés sur la distance, avec altitude, vitesse et précision GPS à chaque point.",
+    "f3Title": "Liée à votre garage",
+    "f3Desc": "Les sorties sont rattachées à une moto précise : le kilométrage et l'usage de chaque machine côtoient son historique d'entretien et ses dépenses.",
+    "longFormLabel": "Sous le capot",
+    "longFormTitle": "Un suivi de trajets relié au reste de votre garage",
+    "longFormIntro": "Un carnet de sorties est plus utile quand il n'est pas isolé dans une autre application. MotoVault enregistre chaque sortie avec tout le détail GPS et la relie à la moto que vous avez réellement utilisée — distance, entretien et coûts au même endroit.",
+    "s1Title": "Des données GPS riches à chaque sortie",
+    "s1Body": "MotoVault capture distance, durée avec temps en mouvement et à l'arrêt, vitesses maximale et moyenne, et dénivelé positif et négatif, puis trace l'itinéraire complet sur une carte interactive. Les données par point incluent altitude, vitesse et précision GPS.",
+    "s2Title": "Des profils qui racontent la sortie",
+    "s2Body": "L'écran de détail affiche un profil de vitesse et un profil de dénivelé interactifs sur la distance, avec infobulles au survol. Une façon simple de revivre un itinéraire et de voir le comportement d'une moto — en unités métriques ou impériales.",
+    "s3Title": "Chaque sortie alimente l'historique de votre moto",
+    "s3Body": "Comme chaque sortie est liée à une moto de votre garage, votre kilométrage reste à jour automatiquement — ce qui garde les rappels d'entretien au kilométrage précis et le coût au kilomètre fiable.",
+    "faqLabel": "Des questions ?",
+    "faqTitle": "Questions fréquentes",
+    "faq": [
+      {
+        "question": "Le suivi des trajets est-il gratuit ?",
+        "answer": "Oui. Le suivi des trajets en GPS est gratuit sur iOS et Android. Un abonnement MotoVault Pro facultatif (4,99 $/mois) débloque des fonctionnalités avancées."
+      },
+      {
+        "question": "Quelles données MotoVault enregistre-t-il pour une sortie ?",
+        "answer": "Chaque sortie capture distance, durée (temps en mouvement et à l'arrêt), vitesses maximale et moyenne, dénivelé positif et négatif, et une carte d'itinéraire complète, plus altitude, vitesse et précision GPS à chaque point."
+      },
+      {
+        "question": "Puis-je voir la vitesse et le dénivelé d'une sortie ?",
+        "answer": "Oui. Chaque sortie inclut des graphiques interactifs de profil de vitesse et de dénivelé tracés sur la distance, avec infobulles, en unités métriques et impériales."
+      },
+      {
+        "question": "Les sorties sont-elles reliées à mes motos ?",
+        "answer": "Oui. Chaque sortie est liée à une moto précise de votre garage : le kilométrage se met à jour automatiquement et reste cohérent avec l'historique d'entretien et de dépenses de cette moto."
+      }
+    ],
+    "faqMore": "D'autres questions ?",
+    "faqSupportLink": "Consultez notre page d'assistance",
+    "breadcrumbHome": "Accueil",
+    "breadcrumbFeatures": "Fonctionnalités"
+  },
+  "Manifesto": {
+    "eyebrow": "Notre promesse",
+    "lead": "Chaque motard mérite un compagnon qui connaît sa moto mieux que l'atelier —",
+    "emphasis": "et la route à venir."
+  },
+  "Proof": {
+    "toolsLabel": "Outils dans une seule app — trajets, entretien, dépenses, diagnostics.",
+    "obdSuffix": "matériel OBD",
+    "cameraLabel": "Pointez votre caméra. Obtenez la réponse.",
+    "freeLabel": "Gratuit. Sans essai. Sans carte bancaire.",
+    "ratingLabel": "Note sur l'App Store par de vrais motards.",
+    "nativeLabel": "Applis natives, conçues pour les motos."
+  },
+  "DiagnosticsDemo": {
+    "aiTag": "Propulsé par l'IA",
+    "titleLead": "Visez. Touchez.",
+    "titleEmphasis": "Répondu.",
+    "description": "Notre modèle de vision identifie les pièces, lit les voyants d'alerte et diagnostique les problèmes à partir d'une seule photo. Pas de fils de forum. Pas d'outil OBD à 1 200 $. Juste la réponse.",
+    "step1": "Ouvrez l'appareil photo, cadrez le problème.",
+    "step2": "L'IA identifie et analyse le problème.",
+    "step3": "Obtenez un diagnostic + la réparation recommandée.",
+    "screenAlt": "Écran de diagnostic IA",
+    "scanComplete": "Analyse terminée",
+    "resultTitle": "Tension de chaîne faible",
+    "resultDesc": "Réglez à 25-35 mm de jeu selon le manuel du propriétaire."
   }
 }
