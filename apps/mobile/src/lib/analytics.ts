@@ -210,6 +210,11 @@ export const AnalyticsEvent = {
   ONBOARDING_COMPLETED: 'onboarding_completed',
   ONBOARDING_DROPPED_OFF: 'onboarding_dropped_off',
   ONBOARDING_RESUMED: 'onboarding_resumed',
+  // Onboarding A/B (2026) funnel — see docs/onboarding-ab-event-schema.md
+  BIKE_ADDED: 'bike_added',
+  REVEAL_VIEWED: 'reveal_viewed',
+  COMMITMENT_COMPLETED: 'commitment_completed',
+  ACCOUNT_CREATED: 'account_created',
 
   // Feature usage — Diagnostics
   DIAGNOSTIC_STARTED: 'diagnostic_started',

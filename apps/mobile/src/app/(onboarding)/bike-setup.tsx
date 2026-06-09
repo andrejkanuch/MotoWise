@@ -31,8 +31,9 @@ import { OnboardingProgress } from '../../components/onboarding/onboarding-progr
 import { OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
 import { useMileageUnit } from '../../hooks/use-mileage-unit';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
@@ -95,10 +96,7 @@ export default function BikeSetupScreen() {
   const canContinue = isValidYear && hasMake;
 
   useEffect(() => {
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
-      step: 'bike_setup',
-      step_index: 3,
-    });
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.BIKE_SETUP);
   }, []);
 
   // ── Bridge subtitle based on goals ──────────────────────────
@@ -192,9 +190,7 @@ export default function BikeSetupScreen() {
     });
 
     setLastCompletedScreen(OB_SCREEN.BIKE_SETUP);
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
-      step: 'bike_setup',
-      step_index: 3,
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.BIKE_SETUP, {
       bike_year: yearNum,
       bike_make: makeName,
       bike_model: modelName || 'skipped',
@@ -208,9 +204,7 @@ export default function BikeSetupScreen() {
   const handleSkip = () => {
     setBikeData(null);
     setLastCompletedScreen(OB_SCREEN.BIKE_SETUP);
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, {
-      step: 'bike_setup',
-      step_index: 3,
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, OB_SCREEN.BIKE_SETUP, {
       skipped_section: 'bike_setup',
     });
     router.push(OB_ROUTE.MAINTENANCE);

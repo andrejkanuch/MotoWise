@@ -12,7 +12,8 @@ import {
   OB_SCREEN,
   TOTAL_SCREENS,
 } from '../../config/onboarding';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { AnalyticsEvent } from '../../lib/analytics';
+import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { presentPaywall, setOnboardingAttributes } from '../../lib/subscription';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
@@ -34,17 +35,12 @@ export default function PaywallScreen() {
     const placement = GOAL_TO_PLACEMENT[primaryGoal];
     const goalsJoined = ridingGoals.join(',');
 
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
-      step: 'paywall',
-      step_index: 5,
-    });
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.PAYWALL);
 
     if (isExpoGo) {
       // Skip paywall in Expo Go — IAP not available
       setLastCompletedScreen(OB_SCREEN.PAYWALL);
-      trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
-        step: 'paywall',
-        step_index: 5,
+      trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.PAYWALL, {
         paywall_result: 'skipped_expo_go',
         goals: goalsJoined,
         primary_goal: primaryGoal,
@@ -79,9 +75,7 @@ export default function PaywallScreen() {
       });
 
       setLastCompletedScreen(OB_SCREEN.PAYWALL);
-      trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
-        step: 'paywall',
-        step_index: 5,
+      trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.PAYWALL, {
         paywall_result: result,
         goals: goalsJoined,
         primary_goal: primaryGoal,

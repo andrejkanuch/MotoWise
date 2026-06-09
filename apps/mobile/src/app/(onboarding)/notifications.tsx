@@ -17,8 +17,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { AnalyticsEvent } from '../../lib/analytics';
 import { setupNotificationChannels } from '../../lib/notifications';
+import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
@@ -164,10 +165,7 @@ export default function NotificationsScreen() {
   useEffect(() => {
     if (tracked.current) return;
     tracked.current = true;
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
-      step: 'notifications',
-      step_index: 6,
-    });
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.NOTIFICATIONS);
   }, []);
 
   const navigateForward = () => {
@@ -210,9 +208,7 @@ export default function NotificationsScreen() {
       await setupNotificationChannels();
     }
 
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
-      step: 'notifications',
-      step_index: 6,
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.NOTIFICATIONS, {
       permission_granted: granted,
       skipped: false,
     });
@@ -222,9 +218,7 @@ export default function NotificationsScreen() {
 
   const handleSkip = () => {
     triggerImpact(Haptics.ImpactFeedbackStyle.Light);
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
-      step: 'notifications',
-      step_index: 6,
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.NOTIFICATIONS, {
       permission_granted: false,
       skipped: true,
     });

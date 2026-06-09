@@ -8,8 +8,9 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
-import { getResumeRoute, OB_ROUTE } from '../../config/onboarding';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { getResumeRoute, OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
+import { AnalyticsEvent } from '../../lib/analytics';
+import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
@@ -39,19 +40,19 @@ export default function WelcomeScreen() {
   useEffect(() => {
     resumeHandledThisLaunch = true;
     if (resume) {
-      trackEvent(AnalyticsEvent.ONBOARDING_RESUMED, {
+      trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_RESUMED, {
         last_completed: resume.lastCompleted,
         resume_target: resume.target,
       });
       router.replace(resume.target);
     } else {
-      trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, { step: 'welcome' });
+      trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.WELCOME);
     }
   }, [resume, router]);
 
   const handleGetStarted = () => {
     triggerImpact(ImpactFeedbackStyle.Medium);
-    trackEvent(AnalyticsEvent.ONBOARDING_STARTED);
+    trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_STARTED);
     router.push(OB_ROUTE.EXPERIENCE);
   };
 

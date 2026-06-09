@@ -25,8 +25,9 @@ import { OnboardingProgress } from '../../components/onboarding/onboarding-progr
 import { getBrandColor } from '../../config/brand-dna';
 import { OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
@@ -61,10 +62,7 @@ export default function MaintenanceScreen() {
   const tasks = data?.oemSchedulesPreview ?? [];
 
   useEffect(() => {
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
-      step: 'maintenance',
-      step_index: 4,
-    });
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.MAINTENANCE);
   }, []);
 
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -175,9 +173,7 @@ export default function MaintenanceScreen() {
     triggerImpact(ImpactFeedbackStyle.Medium);
     setAcceptedOemScheduleIds(accepted);
     setLastCompletedScreen(OB_SCREEN.MAINTENANCE);
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
-      step: 'maintenance',
-      step_index: 4,
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.MAINTENANCE, {
       accepted_count: accepted.length,
       skipped_count: skipped.length,
       total_tasks: tasks.length,
@@ -188,10 +184,7 @@ export default function MaintenanceScreen() {
   const handleSkipAll = useCallback(() => {
     setAcceptedOemScheduleIds([]);
     setLastCompletedScreen(OB_SCREEN.MAINTENANCE);
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, {
-      step: 'maintenance',
-      step_index: 4,
-    });
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, OB_SCREEN.MAINTENANCE);
     router.push(OB_ROUTE.PAYWALL);
   }, [setAcceptedOemScheduleIds, setLastCompletedScreen, router]);
 

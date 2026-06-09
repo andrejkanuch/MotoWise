@@ -50,6 +50,40 @@ export const ONBOARDING_SCREENS = [
 
 export const TOTAL_SCREENS = ONBOARDING_SCREENS.length;
 
+/**
+ * Analytics step names per screen (snake_case, stable identifiers — these are
+ * the values PostHog funnels filter on; never rename without migrating the
+ * funnel definitions).
+ */
+export const OB_STEP_NAME: Record<OnboardingRoute, string> = {
+  [OB_SCREEN.WELCOME]: 'welcome',
+  [OB_SCREEN.EXPERIENCE]: 'experience',
+  [OB_SCREEN.GOALS]: 'goals',
+  [OB_SCREEN.BIKE_SETUP]: 'bike_setup',
+  [OB_SCREEN.MAINTENANCE]: 'maintenance',
+  [OB_SCREEN.PAYWALL]: 'paywall',
+  [OB_SCREEN.NOTIFICATIONS]: 'notifications',
+  [OB_SCREEN.PERSONALIZING]: 'personalizing',
+};
+
+/**
+ * Ordered screen list for a variant. lean/invested are filled in by the
+ * variant-aware flow restructure (W3) — until then every variant runs the
+ * current V4 order, so analytics indices stay correct in the interim.
+ */
+export function getFlowScreens(_variant: ObVariant): ReadonlyArray<OnboardingRoute> {
+  return ONBOARDING_SCREENS.map((s) => s.route);
+}
+
+/**
+ * Zero-based position of a screen within its variant's flow — drives the
+ * `step_index` analytics property and the progress bar. Returns -1 for
+ * screens not in the variant's flow (should not happen in practice).
+ */
+export function getStepIndex(variant: ObVariant, route: OnboardingRoute): number {
+  return getFlowScreens(variant).indexOf(route);
+}
+
 /** Type-safe onboarding route paths for router.push / router.replace */
 export const OB_ROUTE = {
   EXPERIENCE: '/(onboarding)/experience',

@@ -24,12 +24,13 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
-import { getPrimaryGoal, TOTAL_SCREENS } from '../../config/onboarding';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { getPrimaryGoal, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
+import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { detectCurrency } from '../../lib/locale-detection';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { clearStoredFbclid, getStoredFbclid } from '../../lib/meta-attribution';
+import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { maybeRequestReview } from '../../lib/store-review';
 import { useAuthStore } from '../../stores/auth.store';
@@ -114,10 +115,7 @@ export default function PersonalizingScreen() {
 
   // Track step viewed once on mount
   useEffect(() => {
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
-      step: 'personalizing',
-      step_index: 7,
-    });
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.PERSONALIZING);
   }, []);
 
   // Persist preferences to server
@@ -165,7 +163,7 @@ export default function PersonalizingScreen() {
       input.eventId = eventId;
 
       await completeOnboarding(input);
-      trackEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {
+      trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {
         experience_level: experienceLevel ?? 'beginner',
         has_bike: !!bikeData,
         has_photo: !!bikeData?.nickname,

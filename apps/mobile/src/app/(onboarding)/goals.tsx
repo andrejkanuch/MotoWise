@@ -11,7 +11,8 @@ import { OnboardingContinueButton } from '../../components/onboarding/onboarding
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { getPrimaryGoal, OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { AnalyticsEvent } from '../../lib/analytics';
+import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
@@ -73,10 +74,7 @@ export default function GoalsScreen() {
   );
 
   useEffect(() => {
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
-      step: 'goals',
-      step_index: 2,
-    });
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.GOALS);
   }, []);
 
   useEffect(() => {
@@ -106,9 +104,7 @@ export default function GoalsScreen() {
     setRidingGoals(goals);
     setLastCompletedScreen(OB_SCREEN.GOALS);
 
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
-      step: 'goals',
-      step_index: 2,
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.GOALS, {
       goals: goals.join(','),
       goals_count: goals.length,
       primary_goal: primaryGoal,

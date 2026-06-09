@@ -26,7 +26,8 @@ import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { AnalyticsEvent } from '../../lib/analytics';
+import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerNotification } from '../../utils/haptics';
 
@@ -599,10 +600,7 @@ export default function ExperienceScreen() {
     ONBOARDING_COLORS.accentIntermediate;
 
   useEffect(() => {
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
-      step: 'experience',
-      step_index: 1,
-    });
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.EXPERIENCE);
   }, []);
 
   // Reset pending state when returning to this screen
@@ -632,9 +630,7 @@ export default function ExperienceScreen() {
     setExperienceLevel(id);
 
     setLastCompletedScreen(OB_SCREEN.EXPERIENCE);
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
-      step: 'experience',
-      step_index: 1,
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.EXPERIENCE, {
       experience_level: id,
     });
 
