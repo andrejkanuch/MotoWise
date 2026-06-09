@@ -22,8 +22,23 @@ const POSTHOG_HOST = Constants.expoConfig?.extra?.posthogHost ?? 'https://eu.i.p
 // The client is disabled when no API key is configured, so events are no-ops.
 export const posthogClient: PostHog = new PostHog(POSTHOG_API_KEY || 'placeholder', {
   host: POSTHOG_HOST,
-  enableSessionReplay: false,
-  disabled: !POSTHOG_API_KEY,
+  // No PostHog data is sent in development — only release builds report to
+  // PostHog. `__DEV__` is true under Metro/dev-client and false in EAS
+  // preview/production builds, mirroring the Sentry `enabled: !__DEV__` gate
+  // above. `disabled: true` makes all capture/screen/replay calls safe no-ops.
+  disabled: __DEV__ || !POSTHOG_API_KEY,
+  // Session replay only in release builds (redundant with `disabled` in dev,
+  // but explicit). Privacy-first masking: inputs (email/password), images, and
+  // sandboxed pickers are masked so no PII (emails, VINs, bike photos) is ever
+  // captured; replays still show layout, taps, scroll, and screen transitions —
+  // enough to watch behaviour (e.g. hesitation/abandonment at the login wall).
+  enableSessionReplay: !__DEV__,
+  sessionReplayConfig: {
+    maskAllTextInputs: true,
+    maskAllImages: true,
+    maskAllSandboxedViews: true,
+    captureLog: true,
+  },
 });
 
 let analyticsEnabled = true;

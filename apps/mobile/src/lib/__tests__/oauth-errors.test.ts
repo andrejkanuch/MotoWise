@@ -10,7 +10,12 @@ jest.mock('expo-secure-store', () => ({
 }));
 jest.mock('../supabase', () => ({ supabase: { auth: { signInWithIdToken: jest.fn() } } }));
 
-import { isExpectedAuthError, reportUnexpectedAuthError } from '../oauth';
+import type { User } from '@supabase/supabase-js';
+import { isExpectedAuthError, isNewlyCreatedUser, reportUnexpectedAuthError } from '../oauth';
+
+const NOW = new Date('2026-06-09T12:00:00.000Z');
+const user = (created: string, lastSignIn: string | null): User =>
+  ({ created_at: created, last_sign_in_at: lastSignIn }) as User;
 
 describe('isExpectedAuthError', () => {
   it('returns true for Apple "cancelled" error', () => {
@@ -50,6 +55,39 @@ describe('isExpectedAuthError', () => {
       isExpectedAuthError(new Error('THE AUTHORIZATION ATTEMPT FAILED FOR AN UNKNOWN REASON')),
     ).toBe(true);
     expect(isExpectedAuthError(new Error('CANCELLED'))).toBe(true);
+  });
+});
+
+describe('isNewlyCreatedUser', () => {
+  it('returns true when last_sign_in_at equals created_at (first-ever sign-in)', () => {
+    expect(
+      isNewlyCreatedUser(user('2026-06-09T11:59:59.000Z', '2026-06-09T11:59:59.000Z'), NOW),
+    ).toBe(true);
+  });
+
+  it('returns true when last_sign_in_at is null (no prior sign-in) but created just now', () => {
+    expect(isNewlyCreatedUser(user('2026-06-09T11:59:58.000Z', null), NOW)).toBe(true);
+  });
+
+  it('returns true when created moments ago even if last_sign_in_at is advanced (the prod bug)', () => {
+    // Returned object had last_sign_in_at 40s after created — old 5s check failed here.
+    expect(
+      isNewlyCreatedUser(user('2026-06-09T11:59:20.000Z', '2026-06-09T12:00:00.000Z'), NOW),
+    ).toBe(true);
+  });
+
+  it('returns false for a returning user (old account, recent sign-in)', () => {
+    expect(
+      isNewlyCreatedUser(user('2026-03-01T10:00:00.000Z', '2026-06-09T12:00:00.000Z'), NOW),
+    ).toBe(false);
+  });
+
+  it('returns false when created_at is missing', () => {
+    expect(isNewlyCreatedUser({ last_sign_in_at: NOW.toISOString() } as User, NOW)).toBe(false);
+  });
+
+  it('returns false for null user', () => {
+    expect(isNewlyCreatedUser(null, NOW)).toBe(false);
   });
 });
 

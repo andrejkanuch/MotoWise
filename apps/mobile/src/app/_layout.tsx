@@ -267,6 +267,9 @@ function NavigationGate() {
 function RootLayout() {
   const { setSession, setLoading, isLoading } = useAuthStore();
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
+  // Tracks the last identified user so a null session is only treated as a
+  // logout when we actually had one — see onAuthStateChange below.
+  const prevUserIdRef = useRef<string | null>(null);
   const [appReady, setAppReady] = useState(false);
   const [splashDismissed, setSplashDismissed] = useState(false);
   const onSplashDismiss = useCallback(() => setSplashDismissed(true), []);
@@ -334,12 +337,19 @@ function RootLayout() {
       setSession(session);
       if (session?.user) {
         loginRevenueCat(session.user.id);
+        // identify() merges the current anonymous distinct_id onto the user,
+        // so pre-signup events (install, /login views) attach to the person.
         identifyUser(session.user.id);
-      } else {
+        prevUserIdRef.current = session.user.id;
+      } else if (prevUserIdRef.current) {
+        // Only treat a null session as a logout when we PREVIOUSLY had a user.
+        // On a cold-start anonymous launch, onAuthStateChange fires with a null
+        // session (INITIAL_SESSION) — calling reset() there rotates the
+        // anonymous id and orphans all pre-signup events, which silently breaks
+        // every cross-signup funnel. Reset/cleanup only on a real sign-out.
+        prevUserIdRef.current = null;
         logoutRevenueCat();
         resetUser();
-      }
-      if (!session) {
         queryClient.clear();
         clearPersistedQueryCache();
         SecureStore.deleteItemAsync(LAST_USER_KEY);
