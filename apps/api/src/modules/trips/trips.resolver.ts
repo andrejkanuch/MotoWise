@@ -19,14 +19,18 @@ import {
   InternalServerErrorException,
   Logger,
   Scope,
+  UseGuards,
 } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Throttle } from '@nestjs/throttler';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
+import { GqlThrottlerGuard } from '../../common/guards/gql-throttler.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { THROTTLE_PRESETS } from '../../config/constants';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { CreateTripInput } from './dto/create-trip.input';
 import { CreateTripReviewInput } from './dto/create-trip-review.input';
@@ -582,6 +586,8 @@ export class TripsResolver {
   // Premium Waitlist (moved from RoutesResolver)
   // ==========================================
 
+  @UseGuards(GqlThrottlerGuard)
+  @Throttle({ default: THROTTLE_PRESETS.WAITLIST })
   @Mutation(() => Boolean)
   async joinPremiumWaitlist(
     @CurrentUser() user: AuthUser,

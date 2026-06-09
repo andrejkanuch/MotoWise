@@ -13,7 +13,7 @@
 - Each module: {feature}.module.ts, .resolver.ts, .service.ts, dto/, models/
 - Dual Supabase clients: SUPABASE_ADMIN (system) + SUPABASE_USER (per-request RLS)
 - Auth via GqlAuthGuard (local JWT validation with jose, no network call)
-- Rate limiting via @nestjs/throttler (stricter on AI endpoints)
+- Rate limiting is OPT-IN per resolver: `@UseGuards(GqlThrottlerGuard)` + `@Throttle({ default: THROTTLE_PRESETS.X })` on AI + abuse-prone mutations only. NO global throttler guard (a global guard 429'd public SSR queries — 24d066b5). Register exactly ONE named throttler in AppModule; v6 applies every registered throttler to every guarded route.
 
 ## Patterns
 - Resolvers are thin — business logic in services
