@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { HealthReportsService } from '../health-reports/health-reports.service';
@@ -39,6 +39,12 @@ export class RevenueCatService {
           `Created pending health report for user ${event.app_user_id} via IAP ${transactionId}`,
         );
       } catch (err) {
+        // Duplicate delivery must return 200 — anything else makes RevenueCat retry
+        // a permanently-failing event forever.
+        if (err instanceof ConflictException) {
+          this.logger.log(`Duplicate NON_RENEWING_PURCHASE ${transactionId}, skipping`);
+          return;
+        }
         const message = err instanceof Error ? err.message : 'Unknown error';
         this.logger.error(
           `Failed to create health report from purchase for user ${event.app_user_id}: ${message}`,
@@ -106,10 +112,12 @@ export class RevenueCatService {
     // StartTrial: INITIAL_PURCHASE with trial period
     const isTrialStart = event.type === 'INITIAL_PURCHASE' && event.period_type === 'TRIAL';
 
-    // Subscribe: RENEWAL (trial→paid) or INITIAL_PURCHASE without trial
+    // Subscribe: first paid conversion ONLY — direct purchase, or the single RENEWAL
+    // that converts a trial. Plain monthly renewals must NOT re-fire Subscribe, or ad
+    // attribution counts every billing cycle as a new conversion.
     const isPaidConversion =
-      event.type === 'RENEWAL' ||
-      (event.type === 'INITIAL_PURCHASE' && event.period_type !== 'TRIAL');
+      (event.type === 'INITIAL_PURCHASE' && event.period_type !== 'TRIAL') ||
+      (event.type === 'RENEWAL' && event.is_trial_conversion === true);
 
     if (!isTrialStart && !isPaidConversion) return;
 

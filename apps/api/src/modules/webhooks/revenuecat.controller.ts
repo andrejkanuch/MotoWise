@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Response } from 'express';
+import { Public } from '../../common/decorators/public.decorator';
 import { revenueCatWebhookPayloadSchema } from './dto/revenuecat-event.dto';
 import { RevenueCatService } from './revenuecat.service';
 
@@ -22,6 +23,9 @@ function safeCompare(a: string, b: string): boolean {
   return timingSafeEqual(hmac(a), hmac(b));
 }
 
+// @Public() exempts the route from the JWT guard; the HMAC secret comparison below
+// is the real authentication and fails closed when the secret env is unset.
+@Public()
 @Controller('webhooks')
 export class RevenueCatWebhookController {
   private readonly logger = new Logger(RevenueCatWebhookController.name);

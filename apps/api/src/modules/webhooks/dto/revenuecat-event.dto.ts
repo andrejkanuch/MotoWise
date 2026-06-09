@@ -7,6 +7,7 @@ export const revenueCatEventSchema = z.object({
   product_id: z.string().optional(),
   entitlement_ids: z.array(z.string()).optional(),
   period_type: z.string().optional(),
+  is_trial_conversion: z.boolean().optional(),
   expiration_at_ms: z.number().optional(),
   purchased_at_ms: z.number().optional(),
   environment: z.string().optional(),

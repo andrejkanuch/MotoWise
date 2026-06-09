@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
-import { GqlExecutionContext } from '@nestjs/graphql';
+import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Tier } from '../../modules/entitlements/entitlements.types';
 import { SUPABASE_ADMIN } from '../../modules/supabase/supabase-admin.provider';
@@ -27,6 +27,9 @@ export class GqlAuthGuard implements CanActivate {
   private tierCache = new Map<string, { tier: Tier; expiresAt: number }>();
   private readonly TIER_CACHE_TTL_MS = 60_000;
   private readonly TIER_CACHE_MAX_SIZE = 10_000;
+
+  private hs256Count = 0;
+  private hs256LastLoggedAt = 0;
 
   constructor(
     private configService: ConfigService,
@@ -56,13 +59,32 @@ export class GqlAuthGuard implements CanActivate {
     return this.jwks;
   }
 
+  /**
+   * Retirement metric for the legacy HS256 shared-secret path: once Supabase finishes
+   * the signing-key migration this counter flatlines and the branch can be deleted,
+   * closing the permanent secret-leak downgrade surface. Logged hourly to avoid noise.
+   */
+  private countLegacyHs256Verification() {
+    this.hs256Count++;
+    const now = Date.now();
+    if (now - this.hs256LastLoggedAt >= 3_600_000) {
+      this.logger.warn(`Legacy HS256 JWT verifications since last report: ${this.hs256Count}`);
+      this.hs256Count = 0;
+      this.hs256LastLoggedAt = now;
+    }
+  }
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
-    const ctx = GqlExecutionContext.create(context);
-    const request = ctx.getContext().req;
+    // REST controllers and GraphQL resolvers share this guard: REST routes stay
+    // default-closed and must opt out with @Public() (webhooks carry their own HMAC auth).
+    const request =
+      context.getType<GqlContextType>() === 'graphql'
+        ? GqlExecutionContext.create(context).getContext().req
+        : context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
 
     if (isPublic) {
@@ -96,19 +118,39 @@ export class GqlAuthGuard implements CanActivate {
 
     let payload: Record<string, unknown>;
 
-    const header = await decodeProtectedHeader(token);
+    // Algorithms are pinned PER PATH so a token with a forged `kid` (or an HS256 token
+    // routed to the JWKS branch) can never verify against the wrong key material.
+    // `audience: 'authenticated'` + required `sub` reject the public anon/service keys,
+    // which are valid HS256 JWTs signed with the same secret but carry role claims only.
+    const verifyOptions = {
+      audience: 'authenticated',
+      issuer: `${this.supabaseUrl}/auth/v1`,
+    };
+
+    const header = decodeProtectedHeader(token);
     if (header.kid) {
       // ECC/asymmetric key — verify against Supabase JWKS
       const jwks = await this.getJwks();
-      const result = await jwtVerify(token, jwks);
+      const result = await jwtVerify(token, jwks, {
+        ...verifyOptions,
+        algorithms: ['ES256', 'RS256'],
+      });
       payload = result.payload as Record<string, unknown>;
     } else {
       // Legacy HS256 — verify with shared secret
-      const result = await jwtVerify(token, this.legacySecret);
+      const result = await jwtVerify(token, this.legacySecret, {
+        ...verifyOptions,
+        algorithms: ['HS256'],
+      });
       payload = result.payload as Record<string, unknown>;
+      this.countLegacyHs256Verification();
     }
 
-    const userId = payload.sub as string;
+    if (typeof payload.sub !== 'string' || payload.sub.length === 0) {
+      throw new UnauthorizedException('Token has no subject');
+    }
+
+    const userId = payload.sub;
     const tier = await this.resolveEffectiveTier(userId);
 
     request.user = {

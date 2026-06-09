@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GqlAuthGuard } from './gql-auth.guard';
 
 // Mock jose at the top level (guard uses dynamic `await import('jose')`)
+// NOTE: decodeProtectedHeader is SYNC in jose v6 → mockReturnValue;
+// jwtVerify is async → mockResolvedValue (sync mocks on async fns hide missing awaits).
 const mockJwtVerify = vi.fn();
 const mockDecodeProtectedHeader = vi.fn();
 const mockCreateRemoteJWKSet = vi.fn();
@@ -21,6 +23,11 @@ vi.mock('@nestjs/graphql', () => ({
   },
 }));
 
+const VERIFY_OPTIONS = {
+  audience: 'authenticated',
+  issuer: 'https://test.supabase.co/auth/v1',
+};
+
 describe('GqlAuthGuard', () => {
   let guard: GqlAuthGuard;
   let mockConfigService: { getOrThrow: ReturnType<typeof vi.fn> };
@@ -30,10 +37,12 @@ describe('GqlAuthGuard', () => {
   const mockExecutionContext = {
     getHandler: vi.fn(),
     getClass: vi.fn(),
+    getType: vi.fn().mockReturnValue('graphql'),
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockExecutionContext.getType.mockReturnValue('graphql');
 
     mockConfigService = {
       getOrThrow: vi.fn((key: string) => {
@@ -81,7 +90,7 @@ describe('GqlAuthGuard', () => {
   // Helper to set up a valid HS256 token scenario
   function setupHs256Token(token: string, payload: Record<string, unknown>) {
     mockRequest.headers.authorization = `Bearer ${token}`;
-    mockDecodeProtectedHeader.mockResolvedValue({ alg: 'HS256' });
+    mockDecodeProtectedHeader.mockReturnValue({ alg: 'HS256' });
     mockJwtVerify.mockResolvedValue({ payload });
   }
 
@@ -106,13 +115,15 @@ describe('GqlAuthGuard', () => {
 
   it('should throw UnauthorizedException for Bearer with empty token', async () => {
     mockRequest.headers.authorization = 'Bearer ';
-    mockDecodeProtectedHeader.mockRejectedValue(new Error('Invalid token'));
+    mockDecodeProtectedHeader.mockImplementation(() => {
+      throw new Error('Invalid token');
+    });
     await expect(guard.canActivate(mockExecutionContext as never)).rejects.toThrow(
       'Invalid or expired token',
     );
   });
 
-  it('should validate HS256 token and extract user (no kid in header)', async () => {
+  it('should validate HS256 token with pinned algorithm + audience + issuer', async () => {
     setupHs256Token('valid-hs256-token', {
       sub: 'user-123',
       email: 'test@example.com',
@@ -122,13 +133,16 @@ describe('GqlAuthGuard', () => {
     const result = await guard.canActivate(mockExecutionContext as never);
 
     expect(result).toBe(true);
-    expect(mockJwtVerify).toHaveBeenCalledWith('valid-hs256-token', expect.anything());
+    expect(mockJwtVerify).toHaveBeenCalledWith('valid-hs256-token', expect.anything(), {
+      ...VERIFY_OPTIONS,
+      algorithms: ['HS256'],
+    });
   });
 
-  it('should validate JWKS token when header has kid', async () => {
+  it('should validate JWKS token when header has kid, pinning asymmetric algorithms', async () => {
     mockRequest.headers.authorization = 'Bearer valid-jwks-token';
     const mockJwksKeySet = vi.fn();
-    mockDecodeProtectedHeader.mockResolvedValue({ kid: 'key-1', alg: 'RS256' });
+    mockDecodeProtectedHeader.mockReturnValue({ kid: 'key-1', alg: 'RS256' });
     mockCreateRemoteJWKSet.mockReturnValue(mockJwksKeySet);
     mockJwtVerify.mockResolvedValue({
       payload: {
@@ -144,15 +158,65 @@ describe('GqlAuthGuard', () => {
     expect(mockCreateRemoteJWKSet).toHaveBeenCalledWith(
       new URL('https://test.supabase.co/auth/v1/.well-known/jwks.json'),
     );
-    expect(mockJwtVerify).toHaveBeenCalledWith('valid-jwks-token', mockJwksKeySet);
+    expect(mockJwtVerify).toHaveBeenCalledWith('valid-jwks-token', mockJwksKeySet, {
+      ...VERIFY_OPTIONS,
+      algorithms: ['ES256', 'RS256'],
+    });
   });
 
   it('should throw UnauthorizedException for expired/invalid token', async () => {
     mockRequest.headers.authorization = 'Bearer expired-token';
-    mockDecodeProtectedHeader.mockRejectedValue(new Error('Token expired'));
+    mockDecodeProtectedHeader.mockImplementation(() => {
+      throw new Error('Token expired');
+    });
     await expect(guard.canActivate(mockExecutionContext as never)).rejects.toThrow(
       'Invalid or expired token',
     );
+  });
+
+  it('should reject a token without sub (anon/service keys verify but carry no subject)', async () => {
+    // The Supabase anon key is a valid HS256 JWT signed with the same secret —
+    // requiring `sub` is what stops it from authenticating as a user.
+    setupHs256Token('anon-key-token', { role: 'anon' });
+
+    await expect(guard.canActivate(mockExecutionContext as never)).rejects.toThrow(
+      'Invalid or expired token',
+    );
+    expect(mockRequest.user).toBeUndefined();
+  });
+
+  it('should proceed WITHOUT a user when anon key is sent to a @Public() route', async () => {
+    mockReflector.getAllAndOverride.mockReturnValue(true);
+    setupHs256Token('anon-key-token', { role: 'anon' });
+
+    const result = await guard.canActivate(mockExecutionContext as never);
+
+    expect(result).toBe(true);
+    expect(mockRequest.user).toBeUndefined();
+  });
+
+  it('should enforce auth on REST (http) routes that are not @Public()', async () => {
+    mockExecutionContext.getType.mockReturnValue('http');
+    const restContext = {
+      ...mockExecutionContext,
+      switchToHttp: () => ({ getRequest: () => mockRequest }),
+    };
+
+    await expect(guard.canActivate(restContext as never)).rejects.toThrow(
+      'Missing authorization header',
+    );
+  });
+
+  it('should allow @Public() REST (http) routes through without a token', async () => {
+    mockReflector.getAllAndOverride.mockReturnValue(true);
+    mockExecutionContext.getType.mockReturnValue('http');
+    const restContext = {
+      ...mockExecutionContext,
+      switchToHttp: () => ({ getRequest: () => mockRequest }),
+    };
+
+    const result = await guard.canActivate(restContext as never);
+    expect(result).toBe(true);
   });
 
   it('should extract user correctly with id, email, and role', async () => {

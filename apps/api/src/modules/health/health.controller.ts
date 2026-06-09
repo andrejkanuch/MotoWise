@@ -1,8 +1,10 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 import { HealthCheck, HealthCheckService, MemoryHealthIndicator } from '@nestjs/terminus';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { Public } from '../../common/decorators/public.decorator';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(

@@ -688,7 +688,7 @@ export type HealthReport = {
   createdAt: Scalars['String']['output'];
   iapTransactionId?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
-  motorcycleId: Scalars['String']['output'];
+  motorcycleId?: Maybe<Scalars['ID']['output']>;
   pdfUrl?: Maybe<Scalars['String']['output']>;
   status: HealthReportStatus;
   userId: Scalars['String']['output'];
@@ -2956,7 +2956,7 @@ export type GenerateBikeHealthReportMutationVariables = Exact<{
 }>;
 
 
-export type GenerateBikeHealthReportMutation = { __typename?: 'Mutation', generateBikeHealthReport: { __typename?: 'HealthReport', id: string, userId: string, motorcycleId: string, status: HealthReportStatus, pdfUrl?: string | null, iapTransactionId?: string | null, createdAt: string, completedAt?: string | null } };
+export type GenerateBikeHealthReportMutation = { __typename?: 'Mutation', generateBikeHealthReport: { __typename?: 'HealthReport', id: string, userId: string, motorcycleId?: string | null, status: HealthReportStatus, pdfUrl?: string | null, iapTransactionId?: string | null, createdAt: string, completedAt?: string | null } };
 
 export type GenerateOnboardingInsightsMutationVariables = Exact<{
   input: GenerateInsightsInput;
@@ -3470,7 +3470,7 @@ export type MyDiagnosticsQuery = { __typename?: 'Query', myDiagnostics: Array<{ 
 export type GetMyHealthReportsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetMyHealthReportsQuery = { __typename?: 'Query', getMyHealthReports: Array<{ __typename?: 'HealthReport', id: string, userId: string, motorcycleId: string, status: HealthReportStatus, pdfUrl?: string | null, iapTransactionId?: string | null, createdAt: string, completedAt?: string | null }> };
+export type GetMyHealthReportsQuery = { __typename?: 'Query', getMyHealthReports: Array<{ __typename?: 'HealthReport', id: string, userId: string, motorcycleId?: string | null, status: HealthReportStatus, pdfUrl?: string | null, iapTransactionId?: string | null, createdAt: string, completedAt?: string | null }> };
 
 export type MyMotorcyclesQueryVariables = Exact<{ [key: string]: never; }>;
 
