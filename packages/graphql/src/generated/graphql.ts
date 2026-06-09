@@ -2133,8 +2133,8 @@ export type ShareLink = {
   expiresAt: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   motorcycleId: Scalars['String']['output'];
-  token: Scalars['String']['output'];
-  url: Scalars['String']['output'];
+  token?: Maybe<Scalars['String']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type ShareRideAsTripInput = {
@@ -2809,7 +2809,7 @@ export type CreateShareLinkMutationVariables = Exact<{
 }>;
 
 
-export type CreateShareLinkMutation = { __typename?: 'Mutation', createShareLink: { __typename?: 'ShareLink', id: string, token: string, motorcycleId: string, expiresAt: string, createdAt: string, url: string } };
+export type CreateShareLinkMutation = { __typename?: 'Mutation', createShareLink: { __typename?: 'ShareLink', id: string, token?: string | null, motorcycleId: string, expiresAt: string, createdAt: string, url?: string | null } };
 
 export type CreateTripReviewMutationVariables = Exact<{
   input: CreateTripReviewInput;
@@ -3504,7 +3504,7 @@ export type MyShareLinksQueryVariables = Exact<{
 }>;
 
 
-export type MyShareLinksQuery = { __typename?: 'Query', myShareLinks: Array<{ __typename?: 'ShareLink', id: string, token: string, motorcycleId: string, expiresAt: string, createdAt: string, url: string }> };
+export type MyShareLinksQuery = { __typename?: 'Query', myShareLinks: Array<{ __typename?: 'ShareLink', id: string, token?: string | null, motorcycleId: string, expiresAt: string, createdAt: string, url?: string | null }> };
 
 export type MyTripsQueryVariables = Exact<{
   first?: InputMaybe<Scalars['Int']['input']>;

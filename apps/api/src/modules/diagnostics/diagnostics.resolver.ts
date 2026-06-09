@@ -57,10 +57,13 @@ export class DiagnosticsResolver {
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(SubmitDiagnosticSchema)) input: SubmitDiagnosticInput,
   ): Promise<Diagnostic> {
+    // Log ids/flags only — freeTextDescription/additionalNotes/wizardAnswers are PII
     this.logger.log(
       `[submitDiagnostic] input received: ${JSON.stringify({
-        ...input,
-        photoBase64: input.photoBase64 ? `[base64 ${input.photoBase64.length} chars]` : undefined,
+        motorcycleId: input.motorcycleId,
+        hasPhoto: !!input.photoBase64,
+        urgency: input.urgency,
+        includeMaintenanceHistory: input.includeMaintenanceHistory,
       })}`,
     );
 

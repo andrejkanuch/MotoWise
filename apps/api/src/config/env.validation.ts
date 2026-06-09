@@ -27,6 +27,7 @@ export const envSchema = z.object({
   UPSTASH_REDIS_REST_URL: optionalUrl,
   UPSTASH_REDIS_REST_TOKEN: optionalString,
   GRAPHQL_PLAYGROUND: z.string().optional(),
+  SHARE_BASE_URL: optionalString,
   THROTTLE_TTL: z.string().default('60'),
   THROTTLE_LIMIT: z.string().default('100'),
   THROTTLE_AI_LIMIT: z.string().default('10'),
