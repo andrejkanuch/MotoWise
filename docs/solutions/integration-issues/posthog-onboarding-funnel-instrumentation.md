@@ -1,4 +1,26 @@
+---
+title: Onboarding-funnel instrumentation blindness — PostHog identity, OAuth signup undercount, replay & dev gating
+category: integration-issues
+date: 2026-06-09
+tags:
+  - posthog
+  - analytics
+  - mobile
+  - identity
+  - reset
+  - oauth
+  - signup
+  - session-replay
+  - funnel
+problem_type: integration_issue
+component: mobile-analytics
+severity: high
+status: resolved
+---
+
 # Task: Fix onboarding-funnel instrumentation blindness
+
+> **Web analogues:** The same PostHog gotchas on the web app are tracked as items **W2** (consent gating), **W3** (email PII in `identify`), and **W4** (`posthog.reset()` on sign-out) in [`docs/plans/2026-04-11-001-posthog-analytics-audit-plan.md`](../../plans/2026-04-11-001-posthog-analytics-audit-plan.md).
 
 **Created:** 2026-06-09
 **Owner:** mobile / analytics

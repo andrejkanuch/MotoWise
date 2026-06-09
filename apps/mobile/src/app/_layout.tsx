@@ -65,6 +65,7 @@ import {
   AUTH_HYDRATION_TIMEOUT_SOURCE,
   shouldReportHydrationTimeout,
 } from '../lib/auth-hydration';
+import { decideAuthStateChange } from '../lib/auth-state-change';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
 import { captureMetaAttribution } from '../lib/meta-attribution';
@@ -335,30 +336,53 @@ function RootLayout() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       invalidateGqlAccessTokenCache();
       setSession(session);
-      if (session?.user) {
-        loginRevenueCat(session.user.id);
-        // identify() merges the current anonymous distinct_id onto the user,
-        // so pre-signup events (install, /login views) attach to the person.
-        identifyUser(session.user.id);
-        prevUserIdRef.current = session.user.id;
-      } else if (prevUserIdRef.current) {
-        // Only treat a null session as a logout when we PREVIOUSLY had a user.
-        // On a cold-start anonymous launch, onAuthStateChange fires with a null
-        // session (INITIAL_SESSION) — calling reset() there rotates the
-        // anonymous id and orphans all pre-signup events, which silently breaks
-        // every cross-signup funnel. Reset/cleanup only on a real sign-out.
-        prevUserIdRef.current = null;
-        logoutRevenueCat();
-        resetUser();
-        queryClient.clear();
-        clearPersistedQueryCache();
-        SecureStore.deleteItemAsync(LAST_USER_KEY);
-        clearSyncQueue();
-        const activeRideId = rideMMKV.getCurrentId();
-        if (activeRideId) clearRideData(activeRideId);
-        cancelAllNotifications();
-        clearAllWidgets();
+
+      const sessionUserId = session?.user?.id ?? null;
+      const decision = decideAuthStateChange({
+        sessionUserId,
+        prevUserId: prevUserIdRef.current,
+        // Persistent "a user was signed in on this device" signal that survives
+        // cold starts (the per-mount ref is null on every launch). Lets a
+        // server-revoked session surfacing as a null INITIAL_SESSION still run
+        // local cleanup. (todo 188)
+        hasPersistedUser: SecureStore.getItem(LAST_USER_KEY) !== null,
+      });
+
+      if (sessionUserId) {
+        loginRevenueCat(sessionUserId);
+        if (decision.shouldIdentify) {
+          // identify() merges the current anonymous distinct_id onto the user,
+          // so pre-signup events (install, /login views) attach to the person.
+          // Skipped on TOKEN_REFRESHED/USER_UPDATED for the same id. (todo 191)
+          identifyUser(sessionUserId);
+        }
+      } else {
+        if (decision.shouldResetUser) {
+          // Reset only when we PREVIOUSLY had a user in this app session. On a
+          // cold-start anonymous launch, onAuthStateChange fires with a null
+          // session (INITIAL_SESSION) — calling reset() there rotates the
+          // anonymous id and orphans pre-signup events, breaking cross-signup
+          // funnels. (Defect 1) Reset/RC-logout only on a real sign-out.
+          logoutRevenueCat();
+          resetUser();
+        }
+        if (decision.shouldClearLocalData) {
+          // Decoupled from reset (todo 188): runs whenever a user previously
+          // existed by EITHER the per-mount ref OR the persisted signal, so a
+          // server-revoked session that only surfaces on the next cold start
+          // still clears this device's user data.
+          queryClient.clear();
+          clearPersistedQueryCache();
+          SecureStore.deleteItemAsync(LAST_USER_KEY);
+          clearSyncQueue();
+          const activeRideId = rideMMKV.getCurrentId();
+          if (activeRideId) clearRideData(activeRideId);
+          cancelAllNotifications();
+          clearAllWidgets();
+        }
       }
+
+      prevUserIdRef.current = sessionUserId;
     });
 
     return () => subscription.unsubscribe();

@@ -23,6 +23,7 @@ import {
   Star,
   Trash2,
 } from 'lucide-react-native';
+import { PostHogMaskView } from 'posthog-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -924,8 +925,10 @@ export default function EditBikeScreen() {
 
               <View style={{ height: 0.5, backgroundColor: separator, marginLeft: 60 }} />
 
-              {/* VIN */}
-              <View style={rowStyle}>
+              {/* VIN — masked from session replay. The TextInput is covered by
+                  `maskAllTextInputs`, but wrap the whole row so the value stays
+                  masked regardless of that config. (todo 186) */}
+              <PostHogMaskView style={rowStyle}>
                 <View style={iconBadge(isDark ? palette.primary900 : palette.primary50)}>
                   <Fingerprint size={16} color={palette.primary500} strokeWidth={2} />
                 </View>
@@ -940,7 +943,7 @@ export default function EditBikeScreen() {
                   maxLength={17}
                   style={{ ...inputInRow, flex: 1, textAlign: 'left' }}
                 />
-              </View>
+              </PostHogMaskView>
             </View>
             {!vinIsValid && (
               <Text style={{ fontSize: 12, color: palette.danger500, marginTop: 6, marginLeft: 4 }}>
