@@ -550,8 +550,15 @@ export default function CreateTripScreen() {
 
   // Cycle map style
   const cycleMapStyle = useCallback(() => {
-    setMapStyle((prev) => cycleMapStyleFn(prev));
-  }, []);
+    // Compute next outside the state updater (StrictMode double-fire guard, B2).
+    const next = cycleMapStyleFn(mapStyle);
+    trackEvent(AnalyticsEvent.RIDE_MAP_STYLE_CHANGED, {
+      from_style: mapStyle,
+      to_style: next,
+      surface: 'create_trip',
+    });
+    setMapStyle(next);
+  }, [mapStyle]);
 
   const handleAddDay = useCallback(() => {
     setEndDate((prev) => {

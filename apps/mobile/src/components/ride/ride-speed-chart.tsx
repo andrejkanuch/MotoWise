@@ -1,11 +1,12 @@
 import { palette } from '@motovault/design-system';
 import type { GetRideWaypointsQuery } from '@motovault/graphql';
 import type { MeasurementSystem } from '@motovault/types';
-import { memo, useMemo } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, useWindowDimensions, View } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { haversineDistance } from '../../utils/geo-utils';
 import { distanceUnitLabel, formatSpeedValue, speedUnitLabel } from '../../utils/ride-formatters';
 
@@ -15,6 +16,8 @@ interface RideSpeedChartProps {
   waypoints: Waypoint[];
   system: MeasurementSystem;
   isAnimated?: boolean;
+  rideId?: string;
+  viewer?: 'owner' | 'public';
 }
 
 interface SpeedChartItem {
@@ -52,6 +55,8 @@ export const RideSpeedChart = memo(function RideSpeedChart({
   waypoints,
   system,
   isAnimated = true,
+  rideId,
+  viewer,
 }: RideSpeedChartProps) {
   const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
@@ -119,6 +124,34 @@ export const RideSpeedChart = memo(function RideSpeedChart({
 
     return { chartData: data, xLabels: labels, maxVal: rounded, spacing: sp };
   }, [waypoints, system, chartWidth, isImperial, distUnit]);
+
+  // Fire once per mount when the speed graph actually renders (chart has data).
+  const viewFiredRef = useRef(false);
+  useEffect(() => {
+    if (chartData.length > 0 && !viewFiredRef.current) {
+      viewFiredRef.current = true;
+      trackEvent(AnalyticsEvent.RIDE_CHART_VIEWED, {
+        ride_id: rideId ?? '',
+        viewer: viewer ?? 'unknown',
+        chart_type: 'speed',
+        waypoint_count: chartData.length,
+        interaction: 'view',
+      });
+    }
+  }, [chartData.length, rideId, viewer]);
+
+  // Distinguishes passive viewing from active inspection — fired once on first scrub.
+  const scrubFiredRef = useRef(false);
+  const markScrubbed = () => {
+    if (scrubFiredRef.current) return;
+    scrubFiredRef.current = true;
+    trackEvent(AnalyticsEvent.RIDE_CHART_VIEWED, {
+      ride_id: rideId ?? '',
+      viewer: viewer ?? 'unknown',
+      chart_type: 'speed',
+      interaction: 'scrub',
+    });
+  };
 
   if (chartData.length === 0) return null;
 
@@ -197,6 +230,7 @@ export const RideSpeedChart = memo(function RideSpeedChart({
           pointerLabelComponent: (items: SpeedChartItem[]) => {
             const item = items[0];
             if (!item) return null;
+            markScrubbed();
             return (
               <View style={tooltipContainer}>
                 <Text style={tooltipValueText}>

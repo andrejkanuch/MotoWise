@@ -323,8 +323,17 @@ export default function RideSummaryScreen() {
   }, [rideId, router]);
 
   const handleCycleMapStyle = useCallback(() => {
-    setMapStyle((prev) => cycleMapStyleFn(prev));
-  }, []);
+    // Compute next outside the state updater — firing inside it double-counts
+    // under StrictMode (see B2). ride-summary is hit on every ride_completed,
+    // far higher traffic than ride-detail, so this is where preference shows up.
+    const next = cycleMapStyleFn(mapStyle);
+    trackEvent(AnalyticsEvent.RIDE_MAP_STYLE_CHANGED, {
+      from_style: mapStyle,
+      to_style: next,
+      surface: 'ride_summary',
+    });
+    setMapStyle(next);
+  }, [mapStyle]);
 
   const stats = [
     { icon: Route, label: 'DISTANCE', value: formatDistance(distanceM, system), copper: true },

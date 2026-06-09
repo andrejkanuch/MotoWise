@@ -8,7 +8,7 @@ import {
 import MapboxGL from '@rnmapbox/maps';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { ArrowLeft, Pause, Play, RotateCcw } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
@@ -379,19 +379,38 @@ export default function RideFlyoverScreen() {
     [rideId],
   );
 
+  // Idempotent exit emit. Guarded so it fires at most once, and never when the
+  // flyover completed (that's the success path) or never started (no waypoints).
+  const trackedExitRef = useRef(false);
+  const emitFlyoverExit = useCallback(() => {
+    if (trackedExitRef.current || trackedCompleteRef.current || !trackedStartRef.current) return;
+    trackedExitRef.current = true;
+    const watchDurationS = startTimeRef.current
+      ? Math.round((Date.now() - startTimeRef.current) / 1000)
+      : 0;
+    trackEvent(AnalyticsEvent.RIDE_FLYOVER_EXITED, {
+      ride_id: rideId ?? '',
+      progress_pct: Math.round(progress.value * 100),
+      watch_duration_s: watchDurationS,
+    });
+  }, [rideId, progress]);
+
   const handleExit = useCallback(() => {
-    if (!trackedCompleteRef.current) {
-      const watchDurationS = startTimeRef.current
-        ? Math.round((Date.now() - startTimeRef.current) / 1000)
-        : 0;
-      trackEvent(AnalyticsEvent.RIDE_FLYOVER_EXITED, {
-        ride_id: rideId ?? '',
-        progress_pct: Math.round(progress.value * 100),
-        watch_duration_s: watchDurationS,
-      });
-    }
+    emitFlyoverExit();
     router.back();
-  }, [rideId, progress, router]);
+  }, [emitFlyoverExit, router]);
+
+  // The exit logic above only ran from button presses; iOS swipe-down / hardware
+  // back dismiss the modal via router.back() and skip the JS handler entirely, so
+  // ride_flyover_exited never fired in prod. `beforeRemove` catches EVERY dismissal
+  // (the emit is idempotent, so the button-press path doesn't double-count).
+  const navigation = useNavigation();
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      emitFlyoverExit();
+    });
+    return unsubscribe;
+  }, [navigation, emitFlyoverExit]);
 
   const handleScrub = useCallback(
     (locationX: number) => {

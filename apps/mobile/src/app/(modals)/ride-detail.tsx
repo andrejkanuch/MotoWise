@@ -72,7 +72,7 @@ export default function RideDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
-  const { rideId } = useLocalSearchParams<{ rideId: string }>();
+  const { rideId, source } = useLocalSearchParams<{ rideId: string; source?: string }>();
   const system = useMeasurementSystem();
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
   const [showLeanTooltip, setShowLeanTooltip] = useState(false);
@@ -117,13 +117,25 @@ export default function RideDetailScreen() {
   const waypoints = (waypointData as GetRideWaypointsQuery | undefined)?.rideWaypoints ?? [];
 
   const rideLoaded = ride?.id;
-  // biome-ignore lint/correctness/useExhaustiveDependencies: fire RIDE_VIEWED exactly once per ride. Depending on the `ride` query object (whose reference changes on every TanStack refetch) refired this ~31x/user; rideLoaded (= ride.id) is the stable load signal and `ride` is always populated when it is set.
+  // Latch so RIDE_VIEWED fires exactly ONCE per mount. Narrowing the deps to
+  // [rideLoaded] killed intra-mount refetch refires, but modal remount/refocus
+  // still inflated the count (~32x/user). The ref guarantees one event per view.
+  const viewedRef = useRef(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fire RIDE_VIEWED exactly once per mount (viewedRef latch). rideLoaded (= ride.id) is the stable load signal; `ride`, `source`, viewer and `isDark` are all populated/stable by the time it flips and are intentionally read from the latched closure rather than re-subscribed.
   useEffect(() => {
-    if (ride && rideLoaded) {
+    if (ride && rideLoaded && !viewedRef.current) {
+      viewedRef.current = true;
       trackEvent(AnalyticsEvent.RIDE_VIEWED, {
         ride_id: rideId ?? '',
         distance_m: ride.distanceM ?? 0,
         duration_s: ride.durationS ?? 0,
+        // owner vs visitor — lets every downstream rate be sliced by audience
+        viewer: rideBundle?.viewer ?? 'unknown',
+        // where the open came from (e.g. my_rides_tab) — enables tap-through funnels
+        source: source ?? 'direct',
+        has_route: !!ride.routePolyline,
+        // the style the map opens with, so the silent default-keeping majority is countable
+        default_style: getDefaultMapStyle(isDark),
       });
     }
   }, [rideLoaded, rideId]);
@@ -251,6 +263,7 @@ export default function RideDetailScreen() {
         ride_id: rideId ?? null,
         from_style: mapStyle,
         to_style: style,
+        surface: 'ride_detail',
       });
       setMapStyle(style);
       setShowMapPicker(false);
@@ -555,6 +568,12 @@ export default function RideDetailScreen() {
                 if (process.env.EXPO_OS === 'ios') {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 }
+                // Distinguishes "opened the picker but kept the default" from
+                // "never opened it" — the change event alone can't tell them apart.
+                trackEvent(AnalyticsEvent.RIDE_MAP_PICKER_OPENED, {
+                  ride_id: rideId ?? '',
+                  current_style: mapStyle,
+                });
                 setShowMapPicker(true);
               }}
               accessibilityRole="button"
@@ -853,8 +872,12 @@ export default function RideDetailScreen() {
                   trailing={
                     <Pressable
                       onPress={() => {
+                        // Fire only on OPEN, and outside the state updater — firing
+                        // inside the updater double-counts under StrictMode (see B2).
+                        if (!showLeanTooltip) {
+                          trackEvent(AnalyticsEvent.LEAN_ANGLE_TOOLTIP_OPENED, { ride_id: rideId });
+                        }
                         setShowLeanTooltip((p) => !p);
-                        trackEvent(AnalyticsEvent.LEAN_ANGLE_TOOLTIP_OPENED, { ride_id: rideId });
                       }}
                       hitSlop={8}
                       style={{
@@ -951,7 +974,13 @@ export default function RideDetailScreen() {
                       </Text>
                     </View>
                   </View>
-                  <RideElevationChart waypoints={waypoints} system={system} isAnimated={false} />
+                  <RideElevationChart
+                    waypoints={waypoints}
+                    system={system}
+                    isAnimated={false}
+                    rideId={rideId}
+                    viewer={rideBundle?.viewer}
+                  />
                 </View>
               </Animated.View>
             )}
@@ -1003,7 +1032,13 @@ export default function RideDetailScreen() {
                       {formatSpeed(maxSpeedMps, system)}
                     </Text>
                   </View>
-                  <RideSpeedChart waypoints={waypoints} system={system} isAnimated={false} />
+                  <RideSpeedChart
+                    waypoints={waypoints}
+                    system={system}
+                    isAnimated={false}
+                    rideId={rideId}
+                    viewer={rideBundle?.viewer}
+                  />
                 </View>
               </Animated.View>
             )}

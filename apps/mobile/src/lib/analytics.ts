@@ -262,6 +262,7 @@ export const AnalyticsEvent = {
   RIDE_NAME_EDITED: 'ride_name_edited',
   RIDE_CHART_VIEWED: 'ride_chart_viewed',
   RIDE_MAP_STYLE_CHANGED: 'ride_map_style_changed',
+  RIDE_MAP_PICKER_OPENED: 'ride_map_picker_opened',
   RIDE_BIKE_CHANGED: 'ride_bike_changed',
   // Rides — history
   RIDES_HISTORY_FILTERED: 'rides_history_filtered',

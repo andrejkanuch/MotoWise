@@ -1,11 +1,12 @@
 import { palette } from '@motovault/design-system';
 import type { GetRideWaypointsQuery } from '@motovault/graphql';
 import type { MeasurementSystem } from '@motovault/types';
-import { memo, useMemo } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, useWindowDimensions, View } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { haversineDistance } from '../../utils/geo-utils';
 import {
   distanceUnitLabel,
@@ -24,6 +25,8 @@ interface RideElevationChartProps {
   waypoints: Waypoint[];
   system: MeasurementSystem;
   isAnimated?: boolean;
+  rideId?: string;
+  viewer?: 'owner' | 'public';
 }
 
 const CHART_HEIGHT = 180;
@@ -55,6 +58,8 @@ export const RideElevationChart = memo(function RideElevationChart({
   waypoints,
   system,
   isAnimated = true,
+  rideId,
+  viewer,
 }: RideElevationChartProps) {
   const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
@@ -126,6 +131,34 @@ export const RideElevationChart = memo(function RideElevationChart({
       spacing: sp,
     };
   }, [waypoints, system, chartWidth, isImperial, distUnit]);
+
+  // Fire once per mount when the altitude graph actually renders (chart has data).
+  const viewFiredRef = useRef(false);
+  useEffect(() => {
+    if (chartData.length > 0 && !viewFiredRef.current) {
+      viewFiredRef.current = true;
+      trackEvent(AnalyticsEvent.ELEVATION_CHART_VIEWED, {
+        ride_id: rideId ?? '',
+        viewer: viewer ?? 'unknown',
+        chart_type: 'elevation',
+        waypoint_count: chartData.length,
+        interaction: 'view',
+      });
+    }
+  }, [chartData.length, rideId, viewer]);
+
+  // Distinguishes passive viewing from active inspection — fired once on first scrub.
+  const scrubFiredRef = useRef(false);
+  const markScrubbed = () => {
+    if (scrubFiredRef.current) return;
+    scrubFiredRef.current = true;
+    trackEvent(AnalyticsEvent.ELEVATION_CHART_VIEWED, {
+      ride_id: rideId ?? '',
+      viewer: viewer ?? 'unknown',
+      chart_type: 'elevation',
+      interaction: 'scrub',
+    });
+  };
 
   if (chartData.length === 0) return null;
 
@@ -204,6 +237,7 @@ export const RideElevationChart = memo(function RideElevationChart({
           pointerLabelComponent: (items: ElevationChartItem[]) => {
             const item = items[0];
             if (!item) return null;
+            markScrubbed();
             return (
               <View style={tooltipContainer}>
                 <Text style={tooltipValueText}>

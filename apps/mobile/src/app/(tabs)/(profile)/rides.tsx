@@ -7,11 +7,19 @@ import {
   type RideOverviewQuery,
 } from '@motovault/graphql';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { ArrowLeft, Route } from 'lucide-react-native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  Text,
+  View,
+  type ViewToken,
+} from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, Path, Stop, LinearGradient as SvgGradient } from 'react-native-svg';
@@ -220,6 +228,19 @@ export default function RidesScreen() {
   });
   const overview = overviewData?.rideOverview;
 
+  // Fire once when the overview block (streak / records / summary) is actually
+  // populated — lets us measure how often the rich header is seen vs the raw list.
+  const overviewViewedRef = useRef(false);
+  useEffect(() => {
+    if (overview && !overviewViewedRef.current) {
+      overviewViewedRef.current = true;
+      trackEvent(AnalyticsEvent.OVERVIEW_VIEWED, {
+        has_streak: (overview.currentStreak ?? 0) > 0,
+        record_count: overview.personalRecords?.length ?? 0,
+      });
+    }
+  }, [overview]);
+
   const { data: motorcyclesData } = useQuery({
     queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
@@ -268,12 +289,78 @@ export default function RidesScreen() {
   }, [overview?.personalRecords]);
 
   const handleRidePress = useCallback(
-    (rideId: string) => {
-      // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-      router.push({ pathname: '/(modals)/ride-detail' as const, params: { rideId } } as any);
+    (rideId: string, listIndex: number, hasRecord: boolean) => {
+      // Tapping a card that carries a personal-record badge counts as engaging the badge.
+      if (hasRecord) {
+        trackEvent(AnalyticsEvent.RECORD_BADGE_TAPPED, { ride_id: rideId });
+      }
+      // `source` attributes the ride_viewed back to this tab so we can build a
+      // My-Rides → ride-detail tap-through funnel.
+      router.push({
+        pathname: '/(modals)/ride-detail' as const,
+        params: { rideId, source: 'my_rides_tab', listIndex: String(listIndex) },
+        // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
+      } as any);
     },
     [router],
   );
+
+  // --- My Rides engagement: scroll depth + record-badge visibility (per visit) ---
+  // recordsByRideId can update after the overview query resolves, so read it from a
+  // ref inside the (stable) viewability callback rather than closing over a stale value.
+  const recordsByRideIdRef = useRef(recordsByRideId);
+  recordsByRideIdRef.current = recordsByRideId;
+
+  const maxIndexRef = useRef(0);
+  const viewedRecordRidesRef = useRef<Set<string>>(new Set());
+  const scrollMetaRef = useRef({ total: 0, pages: 0, hasNext: true });
+  scrollMetaRef.current = {
+    total: stats.totalRides,
+    pages: data?.pages?.length ?? 0,
+    hasNext: !!hasNextPage,
+  };
+
+  const handleViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    for (const vi of viewableItems) {
+      if (typeof vi.index === 'number' && vi.index > maxIndexRef.current) {
+        maxIndexRef.current = vi.index;
+      }
+      const id = (vi.item as RideEdge | undefined)?.node?.id;
+      if (
+        id &&
+        (recordsByRideIdRef.current.get(id)?.length ?? 0) > 0 &&
+        !viewedRecordRidesRef.current.has(id)
+      ) {
+        viewedRecordRidesRef.current.add(id);
+        trackEvent(AnalyticsEvent.RECORD_BADGE_VIEWED, { ride_id: id });
+      }
+    }
+  }).current;
+
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 }).current;
+
+  // Emit how far the rider scrolled when they leave the tab (one event per visit).
+  useFocusEffect(
+    useCallback(() => {
+      maxIndexRef.current = 0;
+      return () => {
+        if (maxIndexRef.current > 0) {
+          trackEvent(AnalyticsEvent.RIDES_TAB_SCROLL_DEPTH, {
+            max_index_reached: maxIndexRef.current,
+            total_rides: scrollMetaRef.current.total,
+            pages_loaded: scrollMetaRef.current.pages,
+            reached_end: !scrollMetaRef.current.hasNext,
+          });
+        }
+      };
+    }, []),
+  );
+
+  // P10 — pull-to-refresh re-engagement on the rides overview.
+  const handleRefresh = useCallback(() => {
+    trackEvent(AnalyticsEvent.RIDES_OVERVIEW_REFRESHED, { total_rides: stats.totalRides });
+    refetch();
+  }, [refetch, stats.totalRides]);
 
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -311,7 +398,9 @@ export default function RidesScreen() {
             routeThumbnailUri: node.routeThumbnailUri ?? null,
           }}
           index={index}
-          onPress={() => handleRidePress(node.id)}
+          onPress={() =>
+            handleRidePress(node.id, index, (recordsByRideId.get(node.id)?.length ?? 0) > 0)
+          }
           recordTypes={recordsByRideId.get(node.id)}
         />
       );
@@ -987,8 +1076,14 @@ export default function RidesScreen() {
           ListFooterComponent={renderFooter}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.3}
+          onViewableItemsChanged={handleViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
           refreshControl={
-            <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.ink3} />
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={handleRefresh}
+              tintColor={theme.ink3}
+            />
           }
           showsVerticalScrollIndicator={false}
           removeClippedSubviews={true}
