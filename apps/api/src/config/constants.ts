@@ -4,7 +4,29 @@ export const AI_MODELS = {
   TOPIC_CLASSIFIER: 'gpt-4.1-nano',
   DIAGNOSTIC: 'gpt-4.1',
   INSIGHTS: 'gpt-4.1-mini',
+  RIDE_SUMMARY: 'gpt-4.1-nano',
 } as const;
+
+export type AiModel = (typeof AI_MODELS)[keyof typeof AI_MODELS];
+
+/**
+ * Per-model cost in USD per million tokens. The previous single AI_COSTS table
+ * applied gpt-4.1 pricing to every model, overstating nano/mini spend 5-25x and
+ * tripping the global circuit breaker early. AI_COSTS remains only until all call
+ * sites migrate here (Phase 3), then dies.
+ */
+export const MODEL_COSTS: Record<AiModel, { inputUsdPerMTok: number; outputUsdPerMTok: number }> = {
+  'gpt-4.1': { inputUsdPerMTok: 2, outputUsdPerMTok: 8 },
+  'gpt-4.1-mini': { inputUsdPerMTok: 0.4, outputUsdPerMTok: 1.6 },
+  'gpt-4.1-nano': { inputUsdPerMTok: 0.1, outputUsdPerMTok: 0.4 },
+};
+
+/** Cost of one completion in integer cents (rounded up so spend is never undercounted). */
+export function costCentsFor(model: AiModel, inputTokens: number, outputTokens: number): number {
+  const { inputUsdPerMTok, outputUsdPerMTok } = MODEL_COSTS[model];
+  const usd = (inputTokens * inputUsdPerMTok + outputTokens * outputUsdPerMTok) / 1_000_000;
+  return Math.ceil(usd * 100);
+}
 
 /** OpenAI API client defaults */
 export const AI_CLIENT = {

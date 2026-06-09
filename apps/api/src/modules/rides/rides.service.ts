@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { RIDE_EVENTS } from '../../common/constants/events';
 import { QUERY_LIMITS } from '../../config/constants';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -179,7 +180,7 @@ export class RidesService {
     }
 
     // Emit event for async AI ride summary generation
-    this.eventEmitter.emit('ride.completed', {
+    this.eventEmitter.emit(RIDE_EVENTS.COMPLETED, {
       rideId: ride.id,
       userId,
       locale: 'en', // TODO: pass user's preferred locale
