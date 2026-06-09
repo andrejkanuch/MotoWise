@@ -176,8 +176,9 @@ export class ExpensesService {
   ): Promise<Expense | null> {
     this.logger.log(`createFromTask: userId=${userId}, taskId=${taskId}, amount=${amount}`);
 
-    // Look up user's currency preference so task-generated expenses match manual ones
-    const { data: userRow } = await this.supabase
+    // Look up user's currency preference so task-generated expenses match manual ones.
+    // Admin client: `currency` is not in the authenticated column grants (00141).
+    const { data: userRow } = await this.adminClient
       .from('users')
       .select('currency')
       .eq('id', userId)

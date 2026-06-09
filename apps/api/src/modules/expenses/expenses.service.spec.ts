@@ -25,14 +25,15 @@ function createSupabaseMock() {
 describe('ExpensesService', () => {
   let service: ExpensesService;
   let mock: ReturnType<typeof createSupabaseMock>;
+  let adminMock: ReturnType<typeof createSupabaseMock>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mock = createSupabaseMock();
     // MOT-143: ExpensesService now takes SUPABASE_USER + SUPABASE_ADMIN + ConfigService.
-    // Tests use the same chainable mock for both clients — no test exercises
-    // admin-only behaviour here, so pointing them at the same mock is fine.
-    const adminMock = createSupabaseMock();
+    // The admin mock is separate: createFromTask reads users.currency via service role
+    // (column grants, migration 00141).
+    adminMock = createSupabaseMock();
     const configMock = { get: vi.fn().mockReturnValue('https://example.supabase.co') };
     // biome-ignore lint/suspicious/noExplicitAny: test mock instantiation
     service = new (ExpensesService as any)(mock, adminMock, configMock);
@@ -231,12 +232,12 @@ describe('ExpensesService', () => {
   // ---------------------------------------------------------------------------
   describe('createFromTask', () => {
     it('inserts expense linked to task', async () => {
-      // First single() call: user currency lookup
-      mock.chain.single.mockResolvedValueOnce({
+      // Admin-client single(): user currency lookup (column grants, 00141)
+      adminMock.chain.single.mockResolvedValueOnce({
         data: { currency: 'EUR' },
         error: null,
       });
-      // Second single() call: expense insert
+      // User-client single(): expense insert
       mock.chain.single.mockResolvedValueOnce({
         data: {
           id: 'exp-task-1',
@@ -271,8 +272,8 @@ describe('ExpensesService', () => {
     });
 
     it('suppresses duplicate (Postgres error code 23505, returns null)', async () => {
-      // User currency lookup
-      mock.chain.single.mockResolvedValueOnce({
+      // Admin-client single(): user currency lookup
+      adminMock.chain.single.mockResolvedValueOnce({
         data: { currency: 'USD' },
         error: null,
       });

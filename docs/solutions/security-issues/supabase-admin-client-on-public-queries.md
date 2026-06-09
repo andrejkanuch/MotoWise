@@ -76,3 +76,12 @@ constructor(@Inject(SUPABASE_ANON) private readonly anonClient: SupabaseClient) 
 - `CLAUDE.md` → "Supabase Client Rules" section
 - `apps/api/CLAUDE.md` → "Use SUPABASE_ADMIN only for system operations"
 - PR #28: `feat(learn): Learn Pages v2` — where this was caught and fixed
+
+## Reconciliation note (2026-06-09)
+
+The blanket "never adminClient on public reads" rule above is now **per-table** (see root
+CLAUDE.md "Supabase Client Rules"): anon/user client for tables with public-read RLS
+(articles, places — this doc's case, still correct); **adminClient + explicit code filters
++ app-layer redaction** for tables with owner-only RLS read from `@Public()` resolvers
+(trips organiser joins, rider profiles). The constant across both: keep defense-in-depth
+filters in code regardless of which client runs the query.

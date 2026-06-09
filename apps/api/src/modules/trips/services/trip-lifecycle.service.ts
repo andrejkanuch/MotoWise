@@ -247,9 +247,11 @@ export class TripLifecycleService {
   async getTrips(first: number, after?: string): Promise<TripConnection> {
     const limit = Math.min(first, 50);
 
-    // Use per-request user client so RLS enforces visibility. Explicit
-    // visibility='public' filter is defense-in-depth for the Discover feed.
-    let query = this.supabase
+    // Admin client: this @Public() feed selects only public trips via the explicit
+    // filters below, and the embedded organiser join needs rows the users-table RLS
+    // hides from anon viewers (handle-gated). redactOrganiser() in mapRowToTrip is
+    // the privacy gate for organiser fields.
+    let query = this.supabaseAdmin
       .from('trips')
       .select(TRIP_SELECT)
       .in('status', ['published', 'active'])
@@ -315,7 +317,8 @@ export class TripLifecycleService {
     }
     const adminIds = (adminRows ?? []).map((r: { id: string }) => r.id);
 
-    let query = this.supabase
+    // Admin client for the same reason as getTrips: public-only filters + redactOrganiser
+    let query = this.supabaseAdmin
       .from('trips')
       .select(TRIP_SELECT)
       .eq('is_template', false)

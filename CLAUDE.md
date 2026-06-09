@@ -56,12 +56,12 @@ Monorepo for MotoVault — AI-powered motorcycle learning & diagnostics platform
 - Always export both Zod schema AND inferred type from validators
 - Use `as const` objects for enums, not TypeScript `enum` keyword
 
-## Supabase Client Rules
-- **SUPABASE_ADMIN** (service-role): Article/quiz generation, admin operations, system tasks, **and all reads from `@Public()` resolvers**
-- **SUPABASE_USER** (per-request JWT): User-scoped CRUD — RLS enforced. **Only use from authenticated resolvers.**
-- `@Public()` resolvers MUST use SUPABASE_ADMIN for reads — the user client with anon key lacks `authenticated` role, so tables with owner-only RLS (motorcycles, users, trip_saves) return empty results
-- NEVER use service-role for user-scoped writes (bypasses RLS author checks)
+## Supabase Client Rules (per-table)
+- **SUPABASE_USER** (per-request JWT): all user-scoped CRUD — RLS enforced. Also fine for `@Public()` reads of tables with public-read RLS (articles, places).
+- **SUPABASE_ADMIN** (service-role): system tasks (generation, webhooks, event listeners), `@Public()` reads of tables with **owner-only RLS** (pair with explicit filters + app-layer redaction as defense-in-depth), and own-profile reads of `users` columns outside the authenticated column grants (00141: email, preferences, currency, subscription_* are service-role-only reads — `select('*')` on users via the user client FAILS with permission denied).
+- NEVER use service-role for user-scoped writes (bypasses RLS author checks); documented RLS-footgun exceptions only (see deleteRide)
 - NEVER expose service-role key to clients
+- `users` writes go through the user client — column-level UPDATE grants (00141) are the immutable-column protection
 
 ## Auth Pattern
 - Supabase Auth for all auth (email, Google, Apple)

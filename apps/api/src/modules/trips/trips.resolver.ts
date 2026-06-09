@@ -133,8 +133,11 @@ export class TripsResolver {
   @Public()
   async tripDetail(
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
+    @CurrentUser() user?: AuthUser,
   ): Promise<Trip> {
-    return this.tripLifecycle.tripDetail(tripId);
+    // Caller identity drives redactOrganiser: without it, private-profile organisers
+    // saw their own trip redacted and participants lost organiser details.
+    return this.tripLifecycle.tripDetail(tripId, user?.id);
   }
 
   @Query(() => SharedTrip, { nullable: true })
