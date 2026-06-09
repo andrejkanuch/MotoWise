@@ -1603,7 +1603,14 @@
     "rec": "KYT"
   },
   "rideSummary": {
-    "namePlaceholder": "Surusune isim ver..."
+    "namePlaceholder": "Surusune isim ver...",
+    "savedJustNow": "Sürüş kaydedildi · az önce",
+    "personalBest": "Kişisel rekor",
+    "addExpense": "Gider ekle",
+    "addExpenseHint": "(yakıt, geçiş ücretleri...)",
+    "shareOnDiscover": "Discover'da paylaş",
+    "shareOnDiscoverHint": "Diğer sürücüler bu rotayı bulup sürebilir",
+    "discardRide": "Sürüşü sil"
   },
   "heatmap": {
     "rides": "Surusler",
@@ -1826,5 +1833,10 @@
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
     "speed": "Speed ({{unit}})"
+  },
+  "rideFlyover": {
+    "notEnoughData": "Yeterli veri yok",
+    "notEnoughDataBody": "Bu sürüşte 3D uçuş için yeterli GPS noktası yok.",
+    "goBack": "Geri dön"
   }
 }

@@ -1603,7 +1603,14 @@
     "rec": "NAHR"
   },
   "rideSummary": {
-    "namePlaceholder": "Pomenuj svoju jazdu..."
+    "namePlaceholder": "Pomenuj svoju jazdu...",
+    "savedJustNow": "Jazda uložená · práve teraz",
+    "personalBest": "Osobný rekord",
+    "addExpense": "Pridať výdavok",
+    "addExpenseHint": "(palivo, mýto...)",
+    "shareOnDiscover": "Zdieľať na Discover",
+    "shareOnDiscoverHint": "Ostatní jazdci môžu nájsť a prejsť túto trasu",
+    "discardRide": "Zahodiť jazdu"
   },
   "heatmap": {
     "rides": "Jazdy",
@@ -1826,5 +1833,10 @@
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
     "speed": "Speed ({{unit}})"
+  },
+  "rideFlyover": {
+    "notEnoughData": "Nedostatok údajov",
+    "notEnoughDataBody": "Táto jazda nemá dostatok GPS bodov pre 3D prelet.",
+    "goBack": "Späť"
   }
 }

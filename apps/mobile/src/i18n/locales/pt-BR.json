@@ -1603,7 +1603,14 @@
     "rec": "GRAV"
   },
   "rideSummary": {
-    "namePlaceholder": "Dê um nome ao seu passeio..."
+    "namePlaceholder": "Dê um nome ao seu passeio...",
+    "savedJustNow": "Pilotagem salva · agora mesmo",
+    "personalBest": "Recorde pessoal",
+    "addExpense": "Adicionar despesa",
+    "addExpenseHint": "(combustível, pedágios...)",
+    "shareOnDiscover": "Compartilhar no Discover",
+    "shareOnDiscoverHint": "Outros motociclistas podem encontrar e percorrer esta rota",
+    "discardRide": "Descartar pilotagem"
   },
   "heatmap": {
     "rides": "Passeios",
@@ -1826,5 +1833,10 @@
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
     "speed": "Speed ({{unit}})"
+  },
+  "rideFlyover": {
+    "notEnoughData": "Dados insuficientes",
+    "notEnoughDataBody": "Esta pilotagem não tem pontos de GPS suficientes para um sobrevoo em 3D.",
+    "goBack": "Voltar"
   }
 }

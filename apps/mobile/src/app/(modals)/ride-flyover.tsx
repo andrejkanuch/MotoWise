@@ -11,6 +11,7 @@ import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { ArrowLeft, Pause, Play, RotateCcw } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -103,6 +104,7 @@ export default function RideFlyoverScreen() {
   const insets = useSafeAreaInsets();
   const { rideId } = useLocalSearchParams<{ rideId: string }>();
   const system = useMeasurementSystem();
+  const { t } = useTranslation();
 
   const mapRef = useRef<MapboxGL.MapView>(null);
   const cameraRef = useRef<MapboxGL.Camera>(null);
@@ -492,9 +494,11 @@ export default function RideFlyoverScreen() {
           paddingHorizontal: 40,
         }}
       >
-        <Text style={{ fontSize: 17, fontWeight: '600', color: theme.ink }}>Not enough data</Text>
+        <Text style={{ fontSize: 17, fontWeight: '600', color: theme.ink }}>
+          {t('rideFlyover.notEnoughData')}
+        </Text>
         <Text style={{ fontSize: 14, color: theme.ink3, textAlign: 'center' }}>
-          This ride doesn't have enough GPS waypoints for a 3D flyover.
+          {t('rideFlyover.notEnoughDataBody')}
         </Text>
         <Pressable
           onPress={handleExit}
@@ -506,7 +510,9 @@ export default function RideFlyoverScreen() {
             backgroundColor: theme.warm,
           }}
         >
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' }}>Go back</Text>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' }}>
+            {t('rideFlyover.goBack')}
+          </Text>
         </Pressable>
       </View>
     );
@@ -988,7 +994,7 @@ export default function RideFlyoverScreen() {
                     letterSpacing: 0.3,
                   }}
                 >
-                  {speed}x
+                  {`${speed}x`}
                 </Text>
               </Pressable>
             ))}

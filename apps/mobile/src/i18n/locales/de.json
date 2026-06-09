@@ -1603,7 +1603,14 @@
     "rec": "AUFN"
   },
   "rideSummary": {
-    "namePlaceholder": "Benenne deine Fahrt..."
+    "namePlaceholder": "Benenne deine Fahrt...",
+    "savedJustNow": "Fahrt gespeichert · gerade eben",
+    "personalBest": "Persönliche Bestleistung",
+    "addExpense": "Ausgabe hinzufügen",
+    "addExpenseHint": "(Kraftstoff, Maut...)",
+    "shareOnDiscover": "Auf Discover teilen",
+    "shareOnDiscoverHint": "Andere Fahrer können diese Route finden und fahren",
+    "discardRide": "Fahrt verwerfen"
   },
   "heatmap": {
     "rides": "Fahrten",
@@ -1826,5 +1833,10 @@
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
     "speed": "Speed ({{unit}})"
+  },
+  "rideFlyover": {
+    "notEnoughData": "Nicht genügend Daten",
+    "notEnoughDataBody": "Diese Fahrt hat nicht genügend GPS-Wegpunkte für einen 3D-Überflug.",
+    "goBack": "Zurück"
   }
 }

@@ -1603,7 +1603,14 @@
     "rec": "บันทึก"
   },
   "rideSummary": {
-    "namePlaceholder": "ตั้งชื่อการขับขี่..."
+    "namePlaceholder": "ตั้งชื่อการขับขี่...",
+    "savedJustNow": "บันทึกการขับขี่แล้ว · เมื่อสักครู่",
+    "personalBest": "สถิติส่วนตัว",
+    "addExpense": "เพิ่มค่าใช้จ่าย",
+    "addExpenseHint": "(น้ำมัน, ค่าทางด่วน...)",
+    "shareOnDiscover": "แชร์บน Discover",
+    "shareOnDiscoverHint": "ผู้ขับขี่คนอื่นสามารถค้นหาและขับเส้นทางนี้ได้",
+    "discardRide": "ละทิ้งการขับขี่"
   },
   "heatmap": {
     "rides": "การขับขี่",
@@ -1826,5 +1833,10 @@
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
     "speed": "Speed ({{unit}})"
+  },
+  "rideFlyover": {
+    "notEnoughData": "ข้อมูลไม่เพียงพอ",
+    "notEnoughDataBody": "การขับขี่นี้มีจุด GPS ไม่เพียงพอสำหรับการบินผ่านแบบ 3 มิติ",
+    "goBack": "ย้อนกลับ"
   }
 }

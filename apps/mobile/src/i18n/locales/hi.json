@@ -1603,7 +1603,14 @@
     "rec": "रेक"
   },
   "rideSummary": {
-    "namePlaceholder": "राइड को नाम दें..."
+    "namePlaceholder": "राइड को नाम दें...",
+    "savedJustNow": "राइड सहेजी गई · अभी-अभी",
+    "personalBest": "व्यक्तिगत सर्वश्रेष्ठ",
+    "addExpense": "खर्च जोड़ें",
+    "addExpenseHint": "(ईंधन, टोल...)",
+    "shareOnDiscover": "Discover पर साझा करें",
+    "shareOnDiscoverHint": "अन्य राइडर इस रूट को ढूंढ और चला सकते हैं",
+    "discardRide": "राइड हटाएं"
   },
   "heatmap": {
     "rides": "राइड्स",
@@ -1826,5 +1833,10 @@
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
     "speed": "Speed ({{unit}})"
+  },
+  "rideFlyover": {
+    "notEnoughData": "पर्याप्त डेटा नहीं",
+    "notEnoughDataBody": "इस राइड में 3D फ्लाईओवर के लिए पर्याप्त GPS वेपॉइंट नहीं हैं।",
+    "goBack": "वापस जाएं"
   }
 }

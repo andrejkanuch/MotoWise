@@ -1603,7 +1603,14 @@
     "rec": "NAGR"
   },
   "rideSummary": {
-    "namePlaceholder": "Nazwij swoja jazde..."
+    "namePlaceholder": "Nazwij swoja jazde...",
+    "savedJustNow": "Przejazd zapisany · przed chwilą",
+    "personalBest": "Rekord życiowy",
+    "addExpense": "Dodaj wydatek",
+    "addExpenseHint": "(paliwo, opłaty...)",
+    "shareOnDiscover": "Udostępnij w Discover",
+    "shareOnDiscoverHint": "Inni motocykliści mogą znaleźć i przejechać tę trasę",
+    "discardRide": "Odrzuć przejazd"
   },
   "heatmap": {
     "rides": "Jazdy",
@@ -1826,5 +1833,10 @@
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
     "speed": "Speed ({{unit}})"
+  },
+  "rideFlyover": {
+    "notEnoughData": "Za mało danych",
+    "notEnoughDataBody": "Ten przejazd nie ma wystarczającej liczby punktów GPS do przelotu 3D.",
+    "goBack": "Wróć"
   }
 }

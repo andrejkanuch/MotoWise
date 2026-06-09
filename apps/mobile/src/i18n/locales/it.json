@@ -1603,7 +1603,14 @@
     "rec": "REG"
   },
   "rideSummary": {
-    "namePlaceholder": "Dai un nome alla tua uscita..."
+    "namePlaceholder": "Dai un nome alla tua uscita...",
+    "savedJustNow": "Giro salvato · proprio ora",
+    "personalBest": "Record personale",
+    "addExpense": "Aggiungi spesa",
+    "addExpenseHint": "(carburante, pedaggi...)",
+    "shareOnDiscover": "Condividi su Discover",
+    "shareOnDiscoverHint": "Altri motociclisti possono trovare e percorrere questo percorso",
+    "discardRide": "Elimina giro"
   },
   "heatmap": {
     "rides": "Uscite",
@@ -1826,5 +1833,10 @@
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
     "speed": "Speed ({{unit}})"
+  },
+  "rideFlyover": {
+    "notEnoughData": "Dati insufficienti",
+    "notEnoughDataBody": "Questo giro non ha abbastanza punti GPS per un sorvolo 3D.",
+    "goBack": "Indietro"
   }
 }

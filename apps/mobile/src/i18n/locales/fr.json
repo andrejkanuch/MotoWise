@@ -1603,7 +1603,14 @@
     "rec": "ENRG"
   },
   "rideSummary": {
-    "namePlaceholder": "Nomme ta balade..."
+    "namePlaceholder": "Nomme ta balade...",
+    "savedJustNow": "Trajet enregistré · à l'instant",
+    "personalBest": "Record personnel",
+    "addExpense": "Ajouter une dépense",
+    "addExpenseHint": "(carburant, péages...)",
+    "shareOnDiscover": "Partager sur Discover",
+    "shareOnDiscoverHint": "D'autres motards peuvent trouver et rouler cet itinéraire",
+    "discardRide": "Supprimer le trajet"
   },
   "heatmap": {
     "rides": "Balades",
@@ -1826,5 +1833,10 @@
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
     "speed": "Speed ({{unit}})"
+  },
+  "rideFlyover": {
+    "notEnoughData": "Données insuffisantes",
+    "notEnoughDataBody": "Ce trajet n'a pas assez de points GPS pour un survol en 3D.",
+    "goBack": "Retour"
   }
 }

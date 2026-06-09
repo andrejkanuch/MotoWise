@@ -1603,7 +1603,14 @@
     "rec": "録画"
   },
   "rideSummary": {
-    "namePlaceholder": "ライドに名前をつける..."
+    "namePlaceholder": "ライドに名前をつける...",
+    "savedJustNow": "ライドを保存しました · たった今",
+    "personalBest": "自己ベスト",
+    "addExpense": "費用を追加",
+    "addExpenseHint": "(燃料、通行料...)",
+    "shareOnDiscover": "Discoverで共有",
+    "shareOnDiscoverHint": "他のライダーがこのルートを見つけて走れます",
+    "discardRide": "ライドを破棄"
   },
   "heatmap": {
     "rides": "走行",
@@ -1826,5 +1833,10 @@
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
     "speed": "Speed ({{unit}})"
+  },
+  "rideFlyover": {
+    "notEnoughData": "データが不足しています",
+    "notEnoughDataBody": "このライドには3Dフライオーバーに十分なGPSポイントがありません。",
+    "goBack": "戻る"
   }
 }

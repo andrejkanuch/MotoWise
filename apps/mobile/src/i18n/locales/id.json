@@ -1603,7 +1603,14 @@
     "rec": "RKM"
   },
   "rideSummary": {
-    "namePlaceholder": "Beri nama perjalananmu..."
+    "namePlaceholder": "Beri nama perjalananmu...",
+    "savedJustNow": "Perjalanan disimpan · baru saja",
+    "personalBest": "Rekor pribadi",
+    "addExpense": "Tambah pengeluaran",
+    "addExpenseHint": "(bahan bakar, tol...)",
+    "shareOnDiscover": "Bagikan di Discover",
+    "shareOnDiscoverHint": "Pengendara lain dapat menemukan dan menyusuri rute ini",
+    "discardRide": "Buang perjalanan"
   },
   "heatmap": {
     "rides": "Perjalanan",
@@ -1826,5 +1833,10 @@
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
     "speed": "Speed ({{unit}})"
+  },
+  "rideFlyover": {
+    "notEnoughData": "Data tidak cukup",
+    "notEnoughDataBody": "Perjalanan ini tidak memiliki cukup titik GPS untuk flyover 3D.",
+    "goBack": "Kembali"
   }
 }

@@ -1603,7 +1603,14 @@
     "rec": "GRAB"
   },
   "rideSummary": {
-    "namePlaceholder": "Nombra tu ruta..."
+    "namePlaceholder": "Nombra tu ruta...",
+    "savedJustNow": "Ruta guardada · ahora mismo",
+    "personalBest": "Récord personal",
+    "addExpense": "Añadir gasto",
+    "addExpenseHint": "(combustible, peajes...)",
+    "shareOnDiscover": "Compartir en Discover",
+    "shareOnDiscoverHint": "Otros moteros pueden encontrar y recorrer esta ruta",
+    "discardRide": "Descartar ruta"
   },
   "heatmap": {
     "rides": "Rutas",
@@ -1826,5 +1833,10 @@
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
     "speed": "Speed ({{unit}})"
+  },
+  "rideFlyover": {
+    "notEnoughData": "Datos insuficientes",
+    "notEnoughDataBody": "Esta ruta no tiene suficientes puntos GPS para un sobrevuelo en 3D.",
+    "goBack": "Volver"
   }
 }

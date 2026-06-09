@@ -1711,7 +1711,14 @@
     "rec": "REC"
   },
   "rideSummary": {
-    "namePlaceholder": "Name your ride..."
+    "namePlaceholder": "Name your ride...",
+    "savedJustNow": "Ride saved · just now",
+    "personalBest": "Personal best",
+    "addExpense": "Add expense",
+    "addExpenseHint": "(fuel, tolls...)",
+    "shareOnDiscover": "Share on Discover",
+    "shareOnDiscoverHint": "Other riders can find and ride this route",
+    "discardRide": "Discard ride"
   },
   "heatmap": {
     "rides": "Rides",
@@ -1821,5 +1828,10 @@
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
     "speed": "Speed ({{unit}})"
+  },
+  "rideFlyover": {
+    "notEnoughData": "Not enough data",
+    "notEnoughDataBody": "This ride doesn't have enough GPS waypoints for a 3D flyover.",
+    "goBack": "Go back"
   }
 }

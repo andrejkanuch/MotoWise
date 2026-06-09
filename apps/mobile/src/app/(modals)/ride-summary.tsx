@@ -545,7 +545,8 @@ export default function RideSummaryScreen() {
                   color: theme.ink3,
                 }}
               >
-                Ride saved · just now{bikeName ? ` · ${bikeName}` : ''}
+                {t('rideSummary.savedJustNow')}
+                {bikeName ? ` · ${bikeName}` : ''}
               </Text>
             </View>
 
@@ -659,7 +660,7 @@ export default function RideSummaryScreen() {
                         color: '#e89d5a',
                       }}
                     >
-                      Personal best
+                      {t('rideSummary.personalBest')}
                     </Text>
                     <View
                       style={{
@@ -768,7 +769,7 @@ export default function RideSummaryScreen() {
                         color: theme.ink3,
                       }}
                     >
-                      Private
+                      {t('rideDetail.private')}
                     </Text>
                   </View>
                 )}
@@ -843,7 +844,8 @@ export default function RideSummaryScreen() {
                   color: theme.ink2,
                 }}
               >
-                Add expense <Text style={{ color: theme.ink3 }}>(fuel, tolls...)</Text>
+                {t('rideSummary.addExpense')}{' '}
+                <Text style={{ color: theme.ink3 }}>{t('rideSummary.addExpenseHint')}</Text>
               </Text>
             </Pressable>
           </Animated.View>
@@ -943,7 +945,7 @@ export default function RideSummaryScreen() {
                   lineHeight: 16.2,
                 }}
               >
-                Share on Discover
+                {t('rideSummary.shareOnDiscover')}
               </Text>
               <Text
                 style={{
@@ -953,7 +955,7 @@ export default function RideSummaryScreen() {
                   letterSpacing: -0.035,
                 }}
               >
-                Other riders can find and ride this route
+                {t('rideSummary.shareOnDiscoverHint')}
               </Text>
             </View>
 
@@ -977,7 +979,9 @@ export default function RideSummaryScreen() {
                 paddingVertical: 8,
               }}
             >
-              <Text style={{ fontSize: 13, color: theme.ink3 }}>Discard ride</Text>
+              <Text style={{ fontSize: 13, color: theme.ink3 }}>
+                {t('rideSummary.discardRide')}
+              </Text>
             </Pressable>
           </Animated.View>
         </ScrollView>
