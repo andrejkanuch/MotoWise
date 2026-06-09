@@ -10,7 +10,7 @@ import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { NativeToggle } from '../../../components/ui/native-toggle';
-import { AnalyticsEvent, trackEventWithSurvey } from '../../../lib/analytics';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { scheduleMaintenanceReminder } from '../../../lib/notifications';
@@ -93,7 +93,7 @@ export default function AddMaintenanceTaskScreen() {
         }
       }
 
-      trackEventWithSurvey(AnalyticsEvent.MAINTENANCE_TASK_CREATED, {
+      trackEvent(AnalyticsEvent.MAINTENANCE_TASK_CREATED, {
         priority,
         is_recurring: isRecurring,
         has_due_date: !!dueDate,

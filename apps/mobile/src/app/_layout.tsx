@@ -35,12 +35,11 @@ try {
 import * as Linking from 'expo-linking';
 import { Stack, useNavigationContainerRef, usePathname, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { PostHogProvider } from 'posthog-react-native';
+import { PostHogProvider, PostHogSurveyProvider } from 'posthog-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { AnimatedSplash } from '../components/animated-splash';
-import { SurveyOverlay } from '../components/survey/survey-overlay';
 import { getWhatsNewRelease } from '../data/whats-new-releases';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import i18n from '../i18n';
@@ -238,33 +237,30 @@ function NavigationGate() {
   // onboarding completion) Expo Router auto-navigates to the next available
   // screen. No imperative router.replace — which would collapse the back stack.
   return (
-    <>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Protected guard={!isSignedIn}>
-          <Stack.Screen name="(auth)" />
-        </Stack.Protected>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Protected guard={!isSignedIn}>
+        <Stack.Screen name="(auth)" />
+      </Stack.Protected>
 
-        <Stack.Protected guard={isSignedIn && !onboardingCompleted}>
-          <Stack.Screen name="(onboarding)" />
-        </Stack.Protected>
+      <Stack.Protected guard={isSignedIn && !onboardingCompleted}>
+        <Stack.Screen name="(onboarding)" />
+      </Stack.Protected>
 
-        <Stack.Protected guard={isSignedIn && onboardingCompleted}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="(modals)" />
-          <Stack.Screen name="trip/[id]" />
-        </Stack.Protected>
+      <Stack.Protected guard={isSignedIn && onboardingCompleted}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(modals)" />
+        <Stack.Screen name="trip/[id]" />
+      </Stack.Protected>
 
-        {/* Public share-link routes — always accessible to anonymous AND
-            authenticated users (even mid-onboarding). Declared last so they are
-            never resolved as the default landing screen. */}
-        <Stack.Screen name="t/[token]/index" />
-        <Stack.Screen name="ride/[id]" />
-        <Stack.Screen name="route/[country]/[region]/[slug]" />
-        <Stack.Screen name="routes/[id]" />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <SurveyOverlay />
-    </>
+      {/* Public share-link routes — always accessible to anonymous AND
+          authenticated users (even mid-onboarding). Declared last so they are
+          never resolved as the default landing screen. */}
+      <Stack.Screen name="t/[token]/index" />
+      <Stack.Screen name="ride/[id]" />
+      <Stack.Screen name="route/[country]/[region]/[slug]" />
+      <Stack.Screen name="routes/[id]" />
+      <Stack.Screen name="+not-found" />
+    </Stack>
   );
 }
 
@@ -592,13 +588,19 @@ function RootLayout() {
         client={posthogClient}
         autocapture={{ captureScreens: false, captureTouches: true }}
       >
-        <AnimatedSplash isReady={appReady} onDismiss={onSplashDismiss}>
-          <KeyboardProvider>
-            <PersistedQueryClientBoundary>
-              <NavigationGate />
-            </PersistedQueryClientBoundary>
-          </KeyboardProvider>
-        </AnimatedSplash>
+        {/* Renders PostHog-managed popover surveys natively. Display timing,
+            targeting, and appearance are all configured server-side in PostHog;
+            the SDK auto-captures `survey shown/sent/dismissed` and respects the
+            client opt-out set by setAnalyticsEnabled(). */}
+        <PostHogSurveyProvider androidKeyboardBehavior="padding">
+          <AnimatedSplash isReady={appReady} onDismiss={onSplashDismiss}>
+            <KeyboardProvider>
+              <PersistedQueryClientBoundary>
+                <NavigationGate />
+              </PersistedQueryClientBoundary>
+            </KeyboardProvider>
+          </AnimatedSplash>
+        </PostHogSurveyProvider>
       </PostHogProvider>
     </GestureHandlerRootView>
   );

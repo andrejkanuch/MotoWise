@@ -9,7 +9,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Alert } from 'react-native';
-import { AnalyticsEvent, trackEvent, trackEventWithSurvey } from '../lib/analytics';
+import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
 import { userFriendlyError } from '../lib/graphql-errors';
 import { queryKeys } from '../lib/query-keys';
@@ -59,7 +59,7 @@ export function useCreateTripData({
     onSuccess: () => {
       if (process.env.EXPO_OS === 'ios')
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      trackEventWithSurvey(AnalyticsEvent.TRIP_CREATED, {
+      trackEvent(AnalyticsEvent.TRIP_CREATED, {
         difficulty,
         waypoint_count: waypointCount,
       });
