@@ -10,6 +10,7 @@ import {
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { RIDE_EVENTS } from '../../common/constants/events';
+import { buildConnection, decodeCursor, encodeCursor } from '../../common/pagination/connection';
 import { QUERY_LIMITS } from '../../config/constants';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -453,12 +454,11 @@ export class RidesService {
     }
 
     if (after) {
-      const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      const ts = Date.parse(decoded);
-      if (Number.isNaN(ts)) {
+      const decoded = decodeCursor(after);
+      if (!decoded) {
         throw new BadRequestException('Invalid cursor');
       }
-      query = query.lt('started_at', decoded);
+      query = query.lt('started_at', decoded[0]);
     }
 
     const { data, error, count } = await query;
@@ -468,28 +468,14 @@ export class RidesService {
       throw new InternalServerErrorException('Failed to fetch rides');
     }
 
-    const rows = data ?? [];
-    const hasNextPage = rows.length > limit;
-    const sliced = hasNextPage ? rows.slice(0, limit) : rows;
-
-    const edges = sliced.map((row) => {
-      const ride = this.mapRow(row);
-      return {
-        node: ride,
-        cursor: Buffer.from(ride.startedAt).toString('base64'),
-      };
-    });
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        hasPreviousPage: !!after,
-        startCursor: edges[0]?.cursor,
-        endCursor: edges[edges.length - 1]?.cursor,
-      },
+    return buildConnection({
+      rows: data ?? [],
+      limit,
+      mapNode: (row) => this.mapRow(row),
+      cursorOf: (row) => encodeCursor(row.started_at),
       totalCount: count ?? 0,
-    };
+      hasPreviousPage: !!after,
+    });
   }
 
   async getPublicRide(id: string): Promise<Ride> {

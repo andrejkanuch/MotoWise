@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { buildConnection, decodeCursor, encodeCursor } from '../../common/pagination/connection';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import type { Article } from './models/article.model';
 import { ArticleConnection } from './models/article-connection.model';
@@ -41,34 +42,24 @@ export class ArticlesService {
       query = query.textSearch('search_vector', input.query, { type: 'websearch' });
     }
     if (input.after) {
-      const cursorDate = Buffer.from(input.after, 'base64').toString('utf-8');
-      if (Number.isNaN(Date.parse(cursorDate))) {
+      const decoded = decodeCursor(input.after);
+      if (!decoded) {
         throw new BadRequestException('Invalid cursor');
       }
-      query = query.lt('generated_at', cursorDate);
+      query = query.lt('generated_at', decoded[0]);
     }
 
     const { data, count, error } = await query;
     if (error) throw new InternalServerErrorException('Failed to search articles');
 
-    const hasNextPage = (data?.length ?? 0) > limit;
-    const rows = hasNextPage ? data?.slice(0, limit) : (data ?? []);
-
-    const edges = rows.map((row) => ({
-      node: this.mapRow(row),
-      cursor: Buffer.from(row.generated_at).toString('base64'),
-    }));
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        hasPreviousPage: !!input.after,
-        startCursor: edges[0]?.cursor,
-        endCursor: edges[edges.length - 1]?.cursor,
-      },
+    return buildConnection({
+      rows: data ?? [],
+      limit,
+      mapNode: (row) => this.mapRow(row),
+      cursorOf: (row) => encodeCursor(row.generated_at),
       totalCount: count ?? 0,
-    };
+      hasPreviousPage: !!input.after,
+    });
   }
 
   async findBySlug(slug: string): Promise<Article | null> {

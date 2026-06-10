@@ -8,6 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { decodeCursor, encodeCursor } from '../../common/pagination/connection';
 import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { Comment, CommentConnection } from './models/comment.model';
@@ -68,11 +69,11 @@ export class CommentsService {
       .limit(limit + 1);
 
     if (after) {
-      const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      if (Number.isNaN(Date.parse(decoded))) {
+      const decoded = decodeCursor(after);
+      if (!decoded) {
         throw new BadRequestException('Invalid cursor');
       }
-      query = query.gt('created_at', decoded);
+      query = query.gt('created_at', decoded[0]);
     }
 
     const { data, error } = await query;
@@ -144,9 +145,7 @@ export class CommentsService {
     }));
 
     const lastComment = sliced[sliced.length - 1];
-    const endCursor = lastComment
-      ? Buffer.from(lastComment.created_at).toString('base64')
-      : undefined;
+    const endCursor = lastComment ? encodeCursor(lastComment.created_at) : undefined;
 
     return {
       comments,

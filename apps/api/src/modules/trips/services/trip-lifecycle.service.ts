@@ -8,6 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { buildConnection, decodeCursor, encodeCursor } from '../../../common/pagination/connection';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { Trip, TripConnection, TripWaypoint } from '../models/trip.model';
@@ -261,12 +262,11 @@ export class TripLifecycleService {
       .limit(limit + 1);
 
     if (after) {
-      const cursor = this.decodeCursor(after);
+      const cursor = decodeCursor(after);
       if (cursor) {
         // Composite cursor: rows strictly after (start_date, id)
-        query = query.or(
-          `start_date.gt.${cursor.startDate},and(start_date.eq.${cursor.startDate},id.gt.${cursor.id})`,
-        );
+        const [startDate, id] = cursor;
+        query = query.or(`start_date.gt.${startDate},and(start_date.eq.${startDate},id.gt.${id})`);
       }
     }
 
@@ -277,27 +277,12 @@ export class TripLifecycleService {
       throw new InternalServerErrorException('Failed to fetch trips');
     }
 
-    const rows = (data ?? []) as unknown as TripRow[];
-    const hasNextPage = rows.length > limit;
-    const sliced = hasNextPage ? rows.slice(0, limit) : rows;
-
-    const edges = sliced.map((row) => {
-      const node = mapRowToTrip(row);
-      return {
-        node,
-        cursor: Buffer.from(`${row.start_date}|${row.id}`).toString('base64'),
-      };
+    return buildConnection({
+      rows: (data ?? []) as unknown as TripRow[],
+      limit,
+      mapNode: (row) => mapRowToTrip(row),
+      cursorOf: (row) => encodeCursor(row.start_date, row.id),
     });
-
-    const lastEdge = edges[edges.length - 1];
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        endCursor: lastEdge?.cursor,
-      },
-    };
   }
 
   /**
@@ -336,11 +321,10 @@ export class TripLifecycleService {
     }
 
     if (after) {
-      const cursor = this.decodeCursor(after);
+      const cursor = decodeCursor(after);
       if (cursor) {
-        query = query.or(
-          `start_date.gt.${cursor.startDate},and(start_date.eq.${cursor.startDate},id.gt.${cursor.id})`,
-        );
+        const [startDate, id] = cursor;
+        query = query.or(`start_date.gt.${startDate},and(start_date.eq.${startDate},id.gt.${id})`);
       }
     }
 
@@ -351,27 +335,12 @@ export class TripLifecycleService {
       throw new InternalServerErrorException('Failed to fetch trips');
     }
 
-    const rows = (data ?? []) as unknown as TripRow[];
-    const hasNextPage = rows.length > limit;
-    const sliced = hasNextPage ? rows.slice(0, limit) : rows;
-
-    const edges = sliced.map((row) => {
-      const node = mapRowToTrip(row);
-      return {
-        node,
-        cursor: Buffer.from(`${row.start_date}|${row.id}`).toString('base64'),
-      };
+    return buildConnection({
+      rows: (data ?? []) as unknown as TripRow[],
+      limit,
+      mapNode: (row) => mapRowToTrip(row),
+      cursorOf: (row) => encodeCursor(row.start_date, row.id),
     });
-
-    const lastEdge = edges[edges.length - 1];
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        endCursor: lastEdge?.cursor,
-      },
-    };
   }
 
   async myTrips(userId: string, first: number, after?: string): Promise<TripConnection> {
@@ -408,13 +377,12 @@ export class TripLifecycleService {
     }
 
     if (after) {
-      const cursor = this.decodeCursor(after);
+      const cursor = decodeCursor(after);
       if (cursor) {
         // myTrips is ordered DESC, so "after" means strictly before
         // (start_date, id).
-        query = query.or(
-          `start_date.lt.${cursor.startDate},and(start_date.eq.${cursor.startDate},id.lt.${cursor.id})`,
-        );
+        const [startDate, id] = cursor;
+        query = query.or(`start_date.lt.${startDate},and(start_date.eq.${startDate},id.lt.${id})`);
       }
     }
 
@@ -425,26 +393,14 @@ export class TripLifecycleService {
       throw new InternalServerErrorException('Failed to fetch my trips');
     }
 
-    const rows = (data ?? []) as unknown as TripRow[];
-    const hasNextPage = rows.length > limit;
-    const sliced = hasNextPage ? rows.slice(0, limit) : rows;
-
-    const edges = sliced.map((row) => ({
+    return buildConnection({
+      rows: (data ?? []) as unknown as TripRow[],
+      limit,
       // Caller is always organiser or participant of their own trips — no
       // organiser redaction needed.
-      node: mapRowToTrip(row, userId, true),
-      cursor: Buffer.from(`${row.start_date}|${row.id}`).toString('base64'),
-    }));
-
-    const lastEdge = edges[edges.length - 1];
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        endCursor: lastEdge?.cursor,
-      },
-    };
+      mapNode: (row) => mapRowToTrip(row, userId, true),
+      cursorOf: (row) => encodeCursor(row.start_date, row.id),
+    });
   }
 
   async tripDetail(tripId: string, callerUserId?: string): Promise<Trip> {
@@ -940,19 +896,5 @@ export class TripLifecycleService {
     }
 
     return mapRowToTrip(tripData as unknown as TripRow, userId);
-  }
-
-  private decodeCursor(cursor: string): { startDate: string; id: string } | null {
-    try {
-      const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
-      const parts = decoded.split('|');
-      if (parts.length !== 2) return null;
-      const [startDate, id] = parts;
-      if (!/^\d{4}-\d{2}-\d{2}/.test(startDate)) return null;
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
-      return { startDate, id };
-    } catch {
-      return null;
-    }
   }
 }

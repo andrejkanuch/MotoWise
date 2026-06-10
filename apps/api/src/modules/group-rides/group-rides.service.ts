@@ -8,6 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { buildConnection, decodeCursor, encodeCursor } from '../../common/pagination/connection';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { GroupRide, GroupRideConnection } from './models/group-ride.model';
@@ -108,11 +109,11 @@ export class GroupRidesService {
       .limit(limit + 1);
 
     if (after) {
-      const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      if (Number.isNaN(Date.parse(decoded))) {
+      const decoded = decodeCursor(after);
+      if (!decoded) {
         throw new BadRequestException('Invalid cursor');
       }
-      query = query.gt('date_time', decoded);
+      query = query.gt('date_time', decoded[0]);
     }
 
     // Note: spatial filtering (nearLat/nearLng/radiusKm) would ideally use
@@ -126,27 +127,12 @@ export class GroupRidesService {
       throw new InternalServerErrorException('Failed to fetch group rides');
     }
 
-    const rows = (data ?? []) as unknown as GroupRideRow[];
-    const hasNextPage = rows.length > limit;
-    const sliced = hasNextPage ? rows.slice(0, limit) : rows;
-
-    const edges = sliced.map((row) => {
-      const node = mapRowToGroupRide(row);
-      return {
-        node,
-        cursor: Buffer.from(row.date_time).toString('base64'),
-      };
+    return buildConnection({
+      rows: (data ?? []) as unknown as GroupRideRow[],
+      limit,
+      mapNode: (row) => mapRowToGroupRide(row),
+      cursorOf: (row) => encodeCursor(row.date_time),
     });
-
-    const lastEdge = edges[edges.length - 1];
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        endCursor: lastEdge?.cursor,
-      },
-    };
   }
 
   async getGroupRideDetail(groupRideId: string): Promise<GroupRide> {

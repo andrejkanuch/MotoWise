@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { decodeCursor, encodeCursor } from '../../../common/pagination/connection';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { TripConnection } from '../models/trip.model';
@@ -87,10 +88,11 @@ export class TripSavesService {
       .limit(limit + 1);
 
     if (after) {
-      const decoded = this.decodeCursor(after);
+      const decoded = decodeCursor(after);
       if (decoded) {
+        const [savedAt, id] = decoded;
         savesQuery = savesQuery.or(
-          `saved_at.lt.${decoded.savedAt},and(saved_at.eq.${decoded.savedAt},id.lt.${decoded.id})`,
+          `saved_at.lt.${savedAt},and(saved_at.eq.${savedAt},id.lt.${id})`,
         );
       }
     }
@@ -140,7 +142,7 @@ export class TripSavesService {
         const tripRow = tripMap.get(save.trip_id)!;
         return {
           node: mapRowToTrip(tripRow, userId),
-          cursor: this.encodeCursor(save.saved_at, save.id),
+          cursor: encodeCursor(save.saved_at, save.id),
         };
       });
 
@@ -181,10 +183,11 @@ export class TripSavesService {
       .limit(limit + 1);
 
     if (after) {
-      const decoded = this.decodeCursor(after);
+      const decoded = decodeCursor(after);
       if (decoded) {
+        const [savedAt, id] = decoded;
         savesQuery = savesQuery.or(
-          `saved_at.lt.${decoded.savedAt},and(saved_at.eq.${decoded.savedAt},id.lt.${decoded.id})`,
+          `saved_at.lt.${savedAt},and(saved_at.eq.${savedAt},id.lt.${id})`,
         );
       }
     }
@@ -234,7 +237,7 @@ export class TripSavesService {
         const tripRow = tripMap.get(save.trip_id)!;
         return {
           node: mapRowToTrip(tripRow),
-          cursor: this.encodeCursor(save.saved_at, save.id),
+          cursor: encodeCursor(save.saved_at, save.id),
         };
       });
 
@@ -245,27 +248,5 @@ export class TripSavesService {
         endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : undefined,
       },
     };
-  }
-
-  // ==========================================
-  // Helpers
-  // ==========================================
-
-  private encodeCursor(savedAt: string, id: string): string {
-    return Buffer.from(`${savedAt}|${id}`).toString('base64');
-  }
-
-  private decodeCursor(cursor: string): { savedAt: string; id: string } | null {
-    try {
-      const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
-      const parts = decoded.split('|');
-      if (parts.length !== 2) return null;
-      const [savedAt, id] = parts;
-      if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(savedAt)) return null;
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
-      return { savedAt, id };
-    } catch {
-      return null;
-    }
   }
 }

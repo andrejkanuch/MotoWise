@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { mapboxCountryShortCodeFromJson } from '../../../common/mapbox-geocode';
+import { buildConnection, decodeCursor, encodeCursor } from '../../../common/pagination/connection';
 import { applySlugFilters } from '../../../common/slug-lookup';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
@@ -86,10 +87,11 @@ export class TripTemplatesService {
 
     // Cursor pagination: composite (published_at, id)
     if (after) {
-      const decoded = this.decodeCursor(after);
+      const decoded = decodeCursor(after);
       if (decoded) {
+        const [publishedAt, id] = decoded;
         query = query.or(
-          `published_at.lt.${decoded.publishedAt},and(published_at.eq.${decoded.publishedAt},id.lt.${decoded.id})`,
+          `published_at.lt.${publishedAt},and(published_at.eq.${publishedAt},id.lt.${id})`,
         );
       }
     }
@@ -100,20 +102,12 @@ export class TripTemplatesService {
       throw new InternalServerErrorException('Failed to fetch templates');
     }
 
-    const rows = (data ?? []) as unknown as TripRow[];
-    const hasNextPage = rows.length > limit;
-    const edges = rows.slice(0, limit).map((row) => ({
-      node: mapRowToTrip(row),
-      cursor: this.encodeCursor(row.published_at ?? row.created_at, row.id),
-    }));
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : undefined,
-      },
-    };
+    return buildConnection({
+      rows: (data ?? []) as unknown as TripRow[],
+      limit,
+      mapNode: (row) => mapRowToTrip(row),
+      cursorOf: (row) => encodeCursor(row.published_at ?? row.created_at, row.id),
+    });
   }
 
   /**
@@ -455,24 +449,5 @@ export class TripTemplatesService {
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '')
       .slice(0, 75);
-  }
-
-  private encodeCursor(publishedAt: string, id: string): string {
-    return Buffer.from(`${publishedAt}|${id}`).toString('base64');
-  }
-
-  private decodeCursor(cursor: string): { publishedAt: string; id: string } | null {
-    try {
-      const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
-      const parts = decoded.split('|');
-      if (parts.length !== 2) return null;
-      const [publishedAt, id] = parts;
-      // Validate to prevent PostgREST filter injection via crafted cursors
-      if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(publishedAt)) return null;
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
-      return { publishedAt, id };
-    } catch {
-      return null;
-    }
   }
 }
