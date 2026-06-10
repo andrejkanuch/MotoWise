@@ -34,6 +34,8 @@ export const queryKeys = {
   },
   onboarding: {
     insights: (input: Record<string, unknown>) => ['onboarding', 'insights', input] as const,
+    reveal: (make: string, year: number, model?: string | null) =>
+      ['onboarding', 'reveal', make, year, model ?? null] as const,
   },
   shareLinks: {
     byMotorcycle: (motorcycleId: string) => ['shareLinks', 'byMotorcycle', motorcycleId] as const,

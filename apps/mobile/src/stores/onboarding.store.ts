@@ -32,6 +32,15 @@ interface OnboardingState {
   bikeData: BikeData | null;
   ridingGoals: RidingGoal[];
   ridingFrequency: RidingFrequency | null;
+  /**
+   * Variant B "stay on top of" multi-select (concern ids). Drives the Reveal's
+   * emphasis bias and paywall value-prop ordering. Client-side only (no server
+   * field yet — informs day-0 personalization, not stored preferences).
+   */
+  stayOnTopOf: string[];
+  /** Pre-bike mileage captured in B's "last service" step (km/mi by unit). */
+  preBikeMileage: number | null;
+  preBikeMileageUnit: MileageUnit | null;
   maintenanceStyle: MaintenanceStyle | null;
   annualRepairSpend: AnnualRepairSpend | null;
   maintenanceReminders: boolean;
@@ -50,6 +59,8 @@ interface OnboardingState {
   setBikeData: (data: BikeData | null) => void;
   setRidingGoals: (goals: RidingGoal[]) => void;
   setRidingFrequency: (frequency: RidingFrequency) => void;
+  setStayOnTopOf: (ids: string[]) => void;
+  setPreBikeMileage: (mileage: number | null, unit: MileageUnit | null) => void;
   setMaintenanceStyle: (style: MaintenanceStyle) => void;
   setAnnualRepairSpend: (spend: AnnualRepairSpend) => void;
   setMaintenanceReminders: (enabled: boolean) => void;
@@ -68,6 +79,9 @@ const initialState = {
   bikeData: null as BikeData | null,
   ridingGoals: [] as RidingGoal[],
   ridingFrequency: null as RidingFrequency | null,
+  stayOnTopOf: [] as string[],
+  preBikeMileage: null as number | null,
+  preBikeMileageUnit: null as MileageUnit | null,
   maintenanceStyle: null as MaintenanceStyle | null,
   annualRepairSpend: null as AnnualRepairSpend | null,
   maintenanceReminders: true,
@@ -89,6 +103,9 @@ export const useOnboardingStore = create<OnboardingState>()(
       setBikeData: (data) => set({ bikeData: data }),
       setRidingGoals: (goals) => set({ ridingGoals: goals }),
       setRidingFrequency: (frequency) => set({ ridingFrequency: frequency }),
+      setStayOnTopOf: (ids) => set({ stayOnTopOf: ids }),
+      setPreBikeMileage: (preBikeMileage, preBikeMileageUnit) =>
+        set({ preBikeMileage, preBikeMileageUnit }),
       setMaintenanceStyle: (style) => set({ maintenanceStyle: style }),
       setAnnualRepairSpend: (spend) => set({ annualRepairSpend: spend }),
       setAcceptedOemScheduleIds: (ids) => set({ acceptedOemScheduleIds: ids }),
@@ -104,13 +121,15 @@ export const useOnboardingStore = create<OnboardingState>()(
     }),
     {
       name: 'onboarding-state',
-      version: 5,
+      version: 6,
       storage: createJSONStorage(() => createZustandMMKVStorage('onboarding-store')),
       partialize: ({
         setExperienceLevel,
         setBikeData,
         setRidingGoals,
         setRidingFrequency,
+        setStayOnTopOf,
+        setPreBikeMileage,
         setMaintenanceStyle,
         setAnnualRepairSpend,
         setAcceptedOemScheduleIds,
@@ -142,6 +161,13 @@ export const useOnboardingStore = create<OnboardingState>()(
           }
           // Otherwise append missing v4 fields
           state.lastCompletedScreen = null;
+        }
+
+        // V6: A/B 2026 — Variant B profiling fields.
+        if (version < 6) {
+          state.stayOnTopOf = state.stayOnTopOf ?? [];
+          state.preBikeMileage = state.preBikeMileage ?? null;
+          state.preBikeMileageUnit = state.preBikeMileageUnit ?? null;
         }
 
         if (version < 3) {
