@@ -1388,6 +1388,48 @@ export type Database = {
           },
         ]
       }
+      model_insights: {
+        Row: {
+          created_at: string
+          generated_at: string | null
+          id: string
+          make: string
+          model: string
+          normalized_key: string | null
+          payload: Json | null
+          source_model: string | null
+          status: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          generated_at?: string | null
+          id?: string
+          make: string
+          model: string
+          normalized_key?: string | null
+          payload?: Json | null
+          source_model?: string | null
+          status?: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          generated_at?: string | null
+          id?: string
+          make?: string
+          model?: string
+          normalized_key?: string | null
+          payload?: Json | null
+          source_model?: string | null
+          status?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       motorcycles: {
         Row: {
           created_at: string
@@ -2501,6 +2543,7 @@ export type Database = {
           created_at: string
           error: string | null
           facebook_caption: string | null
+          headline: string | null
           id: string
           last_attempt_at: string | null
           post_image_url: string | null
@@ -2524,6 +2567,7 @@ export type Database = {
           created_at?: string
           error?: string | null
           facebook_caption?: string | null
+          headline?: string | null
           id?: string
           last_attempt_at?: string | null
           post_image_url?: string | null
@@ -2547,6 +2591,7 @@ export type Database = {
           created_at?: string
           error?: string | null
           facebook_caption?: string | null
+          headline?: string | null
           id?: string
           last_attempt_at?: string | null
           post_image_url?: string | null
@@ -3702,6 +3747,7 @@ export type Database = {
           created_at: string
           error: string | null
           facebook_caption: string | null
+          headline: string | null
           id: string
           last_attempt_at: string | null
           post_image_url: string | null

@@ -1,0 +1,23 @@
+query GetOnboardingReveal($make: String!, $year: Int!, $model: String) {
+  onboardingReveal(make: $make, year: $year, model: $model) {
+    year
+    make
+    model
+    recallCount
+    recallsChecked
+    recalls {
+      component
+      summary
+    }
+    oemTaskCount
+    projectedYearlyCostEur
+    riderCount
+    insights {
+      status
+      knownIssues {
+        title
+        detail
+      }
+    }
+  }
+}

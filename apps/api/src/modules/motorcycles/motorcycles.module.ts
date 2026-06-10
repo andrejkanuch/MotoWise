@@ -7,6 +7,6 @@ import { NhtsaService } from './nhtsa.service';
 @Module({
   imports: [OemSchedulesModule],
   providers: [MotorcyclesResolver, MotorcyclesService, NhtsaService],
-  exports: [MotorcyclesService],
+  exports: [MotorcyclesService, NhtsaService],
 })
 export class MotorcyclesModule {}
