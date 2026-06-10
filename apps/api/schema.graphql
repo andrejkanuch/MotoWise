@@ -693,11 +693,6 @@ type LastRideSummary {
   summaryTitle: String
 }
 
-input LatLngInput {
-  lat: Float!
-  lng: Float!
-}
-
 type LearningProgress {
   articleId: String!
   articleRead: Boolean!
@@ -1151,7 +1146,7 @@ type Query {
   routeSponsorships(routeId: ID!): [Sponsorship!]!
   savedTrips(after: String, first: Int = 20): TripConnection!
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
-  searchTypeahead(limit: Int! = 8, near: LatLngInput, q: String): TypeaheadResult!
+  searchTypeahead(limit: Int! = 8, q: String): TypeaheadResult!
   sharedBikeHistory(token: String!): SharedBikeHistory!
 
   """
@@ -1383,8 +1378,8 @@ type ShareLink {
   expiresAt: String!
   id: ID!
   motorcycleId: String!
-  token: String!
-  url: String!
+  token: String
+  url: String
 }
 
 input ShareRideAsTripInput {
@@ -1467,7 +1462,6 @@ type SpendingSummary {
 
 type Sponsorship {
   clicksCount: Int!
-  costPerImpression: Float!
   createdAt: DateTime!
   ctaText: String
   ctaUrl: String
@@ -1476,10 +1470,8 @@ type Sponsorship {
   id: ID!
   imageUrl: String
   impressionsCount: Int!
-  monthlyBudget: Float!
   placementType: SponsorshipPlacementType!
   routeId: ID!
-  spentThisMonth: Float!
   sponsorId: ID!
   startsAt: DateTime!
   status: SponsorshipStatus!

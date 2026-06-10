@@ -10,6 +10,8 @@ import {
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { RIDE_EVENTS } from '../../common/constants/events';
+import { buildConnection, decodeCursor, encodeCursor } from '../../common/pagination/connection';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { QUERY_LIMITS } from '../../config/constants';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -99,6 +101,24 @@ export class RidesService {
       .single();
 
     if (error || !data) {
+      // Idempotent retry (MOT-140): a sync-queue retry or duplicate tap arrives
+      // after the ride is already completed; the status filter above matched 0
+      // rows. Return the completed ride as success — do NOT re-emit ride.completed
+      // or re-apply mileage.
+      if (error?.code === PG_ERROR.NOT_FOUND) {
+        const { data: existing } = await this.supabase
+          .from('rides')
+          .select('*')
+          .eq('id', input.rideId)
+          .eq('user_id', userId)
+          .eq('status', 'completed')
+          .is('deleted_at', null)
+          .single();
+        if (existing) {
+          this.logger.log(`endRide: ride ${input.rideId} already completed — idempotent success`);
+          return { ride: this.mapRow(existing), triggeredMaintenanceTasks: [] };
+        }
+      }
       this.logger.error(`endRide failed: ${error?.message} (${error?.code})`);
       throw new BadRequestException('Failed to end ride');
     }
@@ -106,15 +126,23 @@ export class RidesService {
     const ride = this.mapRow(data);
     let triggeredMaintenanceTasks: { id: string; title: string; priority: string }[] = [];
 
-    // Auto-apply mileage to motorcycle
-    const motorcycleId = data.motorcycle_id;
-    const distanceM = input.distanceM ?? 0;
+    // MOT-140: claim-first odometer sync. A single conditional UPDATE flips
+    // mileage_applied false→true and returns the row to exactly ONE caller;
+    // concurrent endRides (two devices) and retries match 0 rows and skip the
+    // odometer, so mileage is applied exactly once with no read-modify-write race.
+    const { data: claimed } = await this.supabase
+      .from('rides')
+      .update({ mileage_applied: true })
+      .eq('id', input.rideId)
+      .eq('user_id', userId)
+      .eq('mileage_applied', false)
+      .select('distance_m, motorcycle_id')
+      .single();
 
-    // MOT-140: Idempotency — only sync each ride into the odometer once.
-    // The existing rides.mileage_applied flag already exists from 00047 and
-    // is reused here as the sync guard so re-running endRide (e.g. after a
-    // network retry) cannot double-count.
-    if (motorcycleId && distanceM > 0 && !data.mileage_applied) {
+    const motorcycleId = claimed?.motorcycle_id;
+    const distanceM = claimed?.distance_m ?? 0;
+
+    if (claimed && motorcycleId && distanceM > 0) {
       try {
         // Defense-in-depth: filter by user_id alongside RLS
         const { data: bike } = await this.supabase
@@ -146,12 +174,10 @@ export class RidesService {
           .eq('id', motorcycleId)
           .eq('user_id', userId);
 
-        await this.supabase
-          .from('rides')
-          .update({ mileage_applied: true })
-          .eq('id', input.rideId)
-          .eq('user_id', userId);
-
+        // NOTE: mileage_applied was already claimed above, so a failure in this
+        // block leaves it true — the ride won't re-sync on retry. A missed
+        // odometer update is rare and user-correctable via manual edit; this is
+        // the deliberate trade for race-free exactly-once application.
         this.logger.log(
           `Odometer sync: +${roundedDelta}${unit} to motorcycle ${motorcycleId} (total: ${newMileage}${unit}, ride=${input.rideId})`,
         );
@@ -300,7 +326,7 @@ export class RidesService {
 
     // Idempotent: if the ride is already soft-deleted, treat as success
     // (sync queue retries, duplicate taps, etc.)
-    if (error?.code === 'PGRST116') {
+    if (error?.code === PG_ERROR.NOT_FOUND) {
       const { count } = await this.supabaseAdmin
         .from('rides')
         .select('id', { count: 'exact', head: true })
@@ -354,7 +380,7 @@ export class RidesService {
 
     if (error) {
       // Idempotent on duplicate — already shared
-      if (error.code === '23505') return true;
+      if (error.code === PG_ERROR.UNIQUE_VIOLATION) return true;
       this.logger.error(`shareRide failed: ${error.message}`);
       throw new BadRequestException('Failed to share ride');
     }
@@ -429,12 +455,11 @@ export class RidesService {
     }
 
     if (after) {
-      const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      const ts = Date.parse(decoded);
-      if (Number.isNaN(ts)) {
+      const decoded = decodeCursor(after);
+      if (!decoded) {
         throw new BadRequestException('Invalid cursor');
       }
-      query = query.lt('started_at', decoded);
+      query = query.lt('started_at', decoded[0]);
     }
 
     const { data, error, count } = await query;
@@ -444,28 +469,14 @@ export class RidesService {
       throw new InternalServerErrorException('Failed to fetch rides');
     }
 
-    const rows = data ?? [];
-    const hasNextPage = rows.length > limit;
-    const sliced = hasNextPage ? rows.slice(0, limit) : rows;
-
-    const edges = sliced.map((row) => {
-      const ride = this.mapRow(row);
-      return {
-        node: ride,
-        cursor: Buffer.from(ride.startedAt).toString('base64'),
-      };
-    });
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        hasPreviousPage: !!after,
-        startCursor: edges[0]?.cursor,
-        endCursor: edges[edges.length - 1]?.cursor,
-      },
+    return buildConnection({
+      rows: data ?? [],
+      limit,
+      mapNode: (row) => this.mapRow(row),
+      cursorOf: (row) => encodeCursor(row.started_at),
       totalCount: count ?? 0,
-    };
+      hasPreviousPage: !!after,
+    });
   }
 
   async getPublicRide(id: string): Promise<Ride> {

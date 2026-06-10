@@ -1,4 +1,5 @@
-import { CreateCommentInputSchema } from '@motovault/types/validators';
+import { CreateCommentInputSchema, GetCommentsTargetSchema } from '@motovault/types/validators';
+import { BadRequestException } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -23,6 +24,14 @@ export class CommentsResolver {
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<CommentConnection> {
+    // Require exactly one target. Without this, zero args fell through to
+    // group_ride_id = '' (querying nothing) and multiple args silently picked
+    // one. Reuses the create-path's exactly-one-target rule.
+    const parsed = GetCommentsTargetSchema.safeParse({ rideId, routeId, groupRideId, tripId });
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.issues[0]?.message ?? 'Invalid comment target');
+    }
+
     const targetField = rideId
       ? 'ride_id'
       : routeId
@@ -30,7 +39,7 @@ export class CommentsResolver {
         : tripId
           ? 'trip_id'
           : 'group_ride_id';
-    const targetId = rideId ?? routeId ?? tripId ?? groupRideId ?? '';
+    const targetId = (rideId ?? routeId ?? tripId ?? groupRideId) as string;
 
     return this.commentsService.getComments(targetField, targetId, first ?? 20, after);
   }

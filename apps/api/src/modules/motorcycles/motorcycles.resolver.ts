@@ -10,6 +10,7 @@ import { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { CreateMotorcycleInput } from './dto/create-motorcycle.input';
 import { UpdateMotorcycleInput } from './dto/update-motorcycle.input';
+import { MakeStatsService } from './make-stats.service';
 import { MakeStats } from './models/make-stats.model';
 import { Motorcycle } from './models/motorcycle.model';
 import { MotorcycleMake } from './models/motorcycle-make.model';
@@ -24,6 +25,7 @@ export class MotorcyclesResolver {
 
   constructor(
     private readonly motorcyclesService: MotorcyclesService,
+    private readonly makeStatsService: MakeStatsService,
     private readonly nhtsaService: NhtsaService,
     private readonly oemSchedulesService: OemSchedulesService,
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
@@ -52,7 +54,7 @@ export class MotorcyclesResolver {
     description: 'Aggregated fleet stats per motorcycle make (riders, models, total bikes)',
   })
   async makeStats(): Promise<MakeStats[]> {
-    return this.motorcyclesService.getMakeStats();
+    return this.makeStatsService.getMakeStats();
   }
 
   @Mutation(() => Motorcycle)

@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { decodeCursor } from '../../common/pagination/connection';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { KudosResult } from './models/kudos.model';
 import type { KudosUser } from './models/kudos-user.model';
@@ -124,12 +125,11 @@ export class KudosService {
       .limit(limit + 1);
 
     if (after) {
-      const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      const ts = Date.parse(decoded);
-      if (Number.isNaN(ts)) {
+      const decoded = decodeCursor(after);
+      if (!decoded) {
         throw new BadRequestException('Invalid cursor');
       }
-      query = query.lt('created_at', decoded);
+      query = query.lt('created_at', decoded[0]);
     }
 
     const { data, error } = await query;

@@ -67,21 +67,6 @@ export class DiagnosticsService {
     return this.mapRow(data);
   }
 
-  async countUserDiagnosticsThisMonth(userId: string): Promise<number> {
-    const monthStart = new Date();
-    monthStart.setUTCDate(1);
-    monthStart.setUTCHours(0, 0, 0, 0);
-
-    const { count, error } = await this.supabase
-      .from('diagnostics')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .gte('created_at', monthStart.toISOString());
-
-    if (error) throw new InternalServerErrorException('Failed to count diagnostics');
-    return count ?? 0;
-  }
-
   private mapRow(
     row: Pick<
       Tables<'diagnostics'>,

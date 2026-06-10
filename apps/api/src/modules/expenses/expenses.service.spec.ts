@@ -18,8 +18,9 @@ function createSupabaseMock() {
   chain.order = vi.fn().mockReturnValue(chain);
 
   const from = vi.fn().mockReturnValue(chain);
+  const rpc = vi.fn();
 
-  return { from, chain };
+  return { from, chain, rpc };
 }
 
 describe('ExpensesService', () => {
@@ -293,29 +294,52 @@ describe('ExpensesService', () => {
   // getDashboard
   // ---------------------------------------------------------------------------
   describe('getDashboard', () => {
-    it('returns currentYearTotal, previousYearTotal, allTimeTotal, monthlyBuckets, categoryTotals', async () => {
+    it('maps the SQL-aggregated RPC payload into the dashboard shape', async () => {
       const currentYear = new Date().getFullYear();
       const previousYear = currentYear - 1;
 
-      mock.chain.limit.mockResolvedValueOnce({
-        data: [
-          { amount: '100.00', category: 'fuel', date: `${currentYear}-03-15` },
-          { amount: '200.50', category: 'maintenance', date: `${currentYear}-03-20` },
-          { amount: '50.00', category: 'fuel', date: `${previousYear}-11-10` },
-          { amount: '75.25', category: 'parts', date: `${previousYear}-11-15` },
-        ],
+      // H10: aggregation now runs in SQL (expense_dashboard_aggregates) — the
+      // service maps the JSONB payload rather than summing rows in JS.
+      mock.rpc.mockResolvedValueOnce({
+        data: {
+          currentYearTotal: 300.5,
+          previousYearTotal: 125.25,
+          allTimeTotal: 425.75,
+          expenseCount: 4,
+          monthlyBuckets: [
+            {
+              year: currentYear,
+              month: 3,
+              categories: { fuel: 100, maintenance: 200.5 },
+              total: 300.5,
+            },
+            {
+              year: previousYear,
+              month: 11,
+              categories: { fuel: 50, parts: 75.25 },
+              total: 125.25,
+            },
+          ],
+          categoryTotals: [
+            { category: 'maintenance', total: 200.5 },
+            { category: 'fuel', total: 150 },
+            { category: 'parts', total: 75.25 },
+          ],
+        },
         error: null,
       });
 
       const result = await service.getDashboard('u1', 'm1');
+
+      expect(mock.rpc).toHaveBeenCalledWith('expense_dashboard_aggregates', {
+        p_motorcycle_id: 'm1',
+      });
 
       expect(result.currentYearTotal).toBe(300.5);
       expect(result.previousYearTotal).toBe(125.25);
       expect(result.allTimeTotal).toBe(425.75);
       expect(result.expenseCount).toBe(4);
 
-      // Monthly buckets
-      expect(result.monthlyBuckets.length).toBeGreaterThanOrEqual(2);
       const marchBucket = result.monthlyBuckets.find(
         (b) => b.year === currentYear && b.month === 3,
       );
@@ -323,22 +347,23 @@ describe('ExpensesService', () => {
       expect(marchBucket?.fuel).toBe(100);
       expect(marchBucket?.maintenance).toBe(200.5);
       expect(marchBucket?.total).toBe(300.5);
+      // Categories not present in the bucket default to 0.
+      expect(marchBucket?.parts).toBe(0);
 
-      // Category totals
       const fuelCat = result.categoryTotals.find((c) => c.category === 'fuel');
       expect(fuelCat?.total).toBe(150);
-
-      // Sorted descending by total
-      for (let i = 1; i < result.categoryTotals.length; i++) {
-        expect(result.categoryTotals[i - 1].total).toBeGreaterThanOrEqual(
-          result.categoryTotals[i].total,
-        );
-      }
     });
 
-    it('handles empty expense list (returns zeros)', async () => {
-      mock.chain.limit.mockResolvedValueOnce({
-        data: [],
+    it('handles an empty dashboard (RPC returns zeros + empty arrays)', async () => {
+      mock.rpc.mockResolvedValueOnce({
+        data: {
+          currentYearTotal: 0,
+          previousYearTotal: 0,
+          allTimeTotal: 0,
+          expenseCount: 0,
+          monthlyBuckets: [],
+          categoryTotals: [],
+        },
         error: null,
       });
 

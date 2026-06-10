@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { PG_ERROR, unwrap } from '../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { Expense } from './models/expense.model';
@@ -20,6 +21,29 @@ import type { ExpensePhoto } from './models/expense-photo.model';
 import type { ExpenseCategory, ExpenseSummary } from './models/expense-summary.model';
 
 const MAX_PHOTOS_PER_EXPENSE = 3;
+
+/** Rounds a money value to 2 decimal places. */
+function roundCurrency(value: number): number {
+  return Math.round(Number(value) * 100) / 100;
+}
+
+/** One month bucket as returned by the expense_dashboard_aggregates RPC. */
+interface DashboardAggregateBucket {
+  year: number;
+  month: number;
+  categories: Record<string, number> | null;
+  total: number;
+}
+
+/** JSONB payload returned by the expense_dashboard_aggregates RPC. */
+interface DashboardAggregateResult {
+  currentYearTotal: number;
+  previousYearTotal: number;
+  allTimeTotal: number;
+  expenseCount: number;
+  monthlyBuckets: DashboardAggregateBucket[];
+  categoryTotals: { category: string; total: number }[];
+}
 
 /** Mirrors the selected columns from the expenses table (not yet in generated database.types.ts). */
 interface ExpenseRow {
@@ -79,12 +103,12 @@ export class ExpensesService {
       query = query.gte('date', yearStart).lte('date', yearEnd);
     }
 
-    const { data, error } = await query;
-
-    if (error) {
-      this.logger.error(`findByMotorcycle failed: ${error.message} (${error.code})`);
-      throw new InternalServerErrorException('Failed to fetch expenses');
-    }
+    const result = await query;
+    const data = unwrap(result, {
+      logger: this.logger,
+      op: 'findByMotorcycle',
+      message: 'Failed to fetch expenses',
+    });
 
     const rows = (data ?? []).map((row) => this.mapRow(row));
 
@@ -203,7 +227,7 @@ export class ExpensesService {
 
     if (error) {
       // Handle unique constraint violation (duplicate maintenance_task_id) gracefully
-      if (error.code === '23505') {
+      if (error.code === PG_ERROR.UNIQUE_VIOLATION) {
         this.logger.warn(`createFromTask: duplicate expense for taskId=${taskId}, skipping`);
         return null;
       }
@@ -217,96 +241,58 @@ export class ExpensesService {
   async getDashboard(userId: string, motorcycleId: string): Promise<ExpenseDashboardSummary> {
     this.logger.debug(`getDashboard: userId=${userId}, motorcycleId=${motorcycleId}`);
 
-    const { data, error } = await this.supabase
-      .from('expenses')
-      .select('amount, category, date')
-      .eq('user_id', userId)
-      .eq('motorcycle_id', motorcycleId)
-      .is('deleted_at', null)
-      .limit(5000);
+    // H10: aggregation runs in SQL (00147_expense_dashboard_aggregates). The old
+    // path fetched a 5000-row slice with no ORDER BY and summed in JS — silently
+    // wrong past 5000 expenses. The RPC scopes rows to auth.uid() internally
+    // (SECURITY INVOKER + user client), so it needs only the motorcycle id.
+    const rpcResult = await this.supabase.rpc('expense_dashboard_aggregates', {
+      p_motorcycle_id: motorcycleId,
+    });
+    const data = unwrap(rpcResult, {
+      logger: this.logger,
+      op: 'getDashboard',
+      message: 'Failed to fetch expense dashboard',
+    });
 
-    if (error) {
-      this.logger.error(`getDashboard failed: ${error.message} (${error.code})`);
-      throw new InternalServerErrorException('Failed to fetch expense dashboard');
-    }
+    const result = (data ?? {}) as DashboardAggregateResult;
 
-    const rows = data ?? [];
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const previousYear = currentYear - 1;
+    const monthlyBuckets: MonthlyBucket[] = (result.monthlyBuckets ?? []).map((bucket) =>
+      this.mapMonthlyBucket(bucket),
+    );
 
-    let currentYearTotal = 0;
-    let previousYearTotal = 0;
-    let allTimeTotal = 0;
-
-    // month key → category → amount
-    const bucketMap = new Map<string, Record<string, number>>();
-    const categoryTotalMap = new Map<string, number>();
-
-    for (const row of rows) {
-      const amount = Math.round(Number(row.amount) * 100) / 100;
-      const [yearStr, monthStr] = (row.date as string).split('-');
-      const year = Number(yearStr);
-      const month = Number(monthStr);
-
-      allTimeTotal += amount;
-      if (year === currentYear) currentYearTotal += amount;
-      if (year === previousYear) previousYearTotal += amount;
-
-      // Monthly bucket
-      const bucketKey = `${year}-${month}`;
-      if (!bucketMap.has(bucketKey)) {
-        bucketMap.set(bucketKey, {});
-      }
-      const bucket = bucketMap.get(bucketKey);
-      if (bucket) {
-        bucket[row.category] = (bucket[row.category] ?? 0) + amount;
-      }
-
-      // Category total
-      categoryTotalMap.set(row.category, (categoryTotalMap.get(row.category) ?? 0) + amount);
-    }
-
-    // Build monthly buckets sorted by year desc, month desc
-    const monthlyBuckets: MonthlyBucket[] = [];
-    for (const [key, categories] of bucketMap) {
-      const [yearStr, monthStr] = key.split('-');
-      monthlyBuckets.push({
-        year: Number(yearStr),
-        month: Number(monthStr),
-        fuel: Math.round((categories.fuel ?? 0) * 100) / 100,
-        maintenance: Math.round((categories.maintenance ?? 0) * 100) / 100,
-        parts: Math.round((categories.parts ?? 0) * 100) / 100,
-        gear: Math.round((categories.gear ?? 0) * 100) / 100,
-        tires: Math.round((categories.tires ?? 0) * 100) / 100,
-        insurance: Math.round((categories.insurance ?? 0) * 100) / 100,
-        registration: Math.round((categories.registration ?? 0) * 100) / 100,
-        tolls: Math.round((categories.tolls ?? 0) * 100) / 100,
-        parking: Math.round((categories.parking ?? 0) * 100) / 100,
-        modifications: Math.round((categories.modifications ?? 0) * 100) / 100,
-        training: Math.round((categories.training ?? 0) * 100) / 100,
-        total: Math.round(Object.values(categories).reduce((sum, v) => sum + v, 0) * 100) / 100,
-      });
-    }
-    monthlyBuckets.sort((a, b) => b.year - a.year || b.month - a.month);
-
-    // Build category totals
-    const categoryTotals: CategoryTotal[] = [];
-    for (const [category, total] of categoryTotalMap) {
-      categoryTotals.push({
-        category,
-        total: Math.round(total * 100) / 100,
-      });
-    }
-    categoryTotals.sort((a, b) => b.total - a.total);
+    const categoryTotals: CategoryTotal[] = (result.categoryTotals ?? []).map((c) => ({
+      category: c.category,
+      total: roundCurrency(c.total),
+    }));
 
     return {
-      currentYearTotal: Math.round(currentYearTotal * 100) / 100,
-      previousYearTotal: Math.round(previousYearTotal * 100) / 100,
-      allTimeTotal: Math.round(allTimeTotal * 100) / 100,
-      expenseCount: rows.length,
+      currentYearTotal: roundCurrency(result.currentYearTotal ?? 0),
+      previousYearTotal: roundCurrency(result.previousYearTotal ?? 0),
+      allTimeTotal: roundCurrency(result.allTimeTotal ?? 0),
+      expenseCount: result.expenseCount ?? 0,
       monthlyBuckets,
       categoryTotals,
+    };
+  }
+
+  /** Maps one SQL month bucket (category→amount map) into the GraphQL shape. */
+  private mapMonthlyBucket(bucket: DashboardAggregateBucket): MonthlyBucket {
+    const categories = bucket.categories ?? {};
+    return {
+      year: bucket.year,
+      month: bucket.month,
+      fuel: roundCurrency(categories.fuel ?? 0),
+      maintenance: roundCurrency(categories.maintenance ?? 0),
+      parts: roundCurrency(categories.parts ?? 0),
+      gear: roundCurrency(categories.gear ?? 0),
+      tires: roundCurrency(categories.tires ?? 0),
+      insurance: roundCurrency(categories.insurance ?? 0),
+      registration: roundCurrency(categories.registration ?? 0),
+      tolls: roundCurrency(categories.tolls ?? 0),
+      parking: roundCurrency(categories.parking ?? 0),
+      modifications: roundCurrency(categories.modifications ?? 0),
+      training: roundCurrency(categories.training ?? 0),
+      total: roundCurrency(bucket.total),
     };
   }
 

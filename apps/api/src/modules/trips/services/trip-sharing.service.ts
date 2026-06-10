@@ -8,6 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { PG_ERROR } from '../../../common/supabase/unwrap';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import { TripShareTokenError } from '../errors/trip-share-token.errors';
 import type { SharedTrip } from '../models/shared-trip.model';
@@ -116,7 +117,7 @@ export class TripSharingService {
     });
 
     if (error) {
-      if (error.code === '23505') {
+      if (error.code === PG_ERROR.UNIQUE_VIOLATION) {
         // Already invited — idempotent success
         return true;
       }
@@ -158,7 +159,11 @@ export class TripSharingService {
         p_bike_id: null,
       });
       if (joinError) {
-        this.logger.warn(`Accepted invite but join_trip failed: ${joinError.message}`);
+        // Previously this only warned and returned true, so the caller saw the
+        // invite as accepted while never becoming a participant. Throw so the
+        // failure surfaces (and the accepted_at write is reconciled by retry).
+        this.logger.error(`Accepted invite but join_trip failed: ${joinError.message}`);
+        throw new InternalServerErrorException('Failed to join trip after accepting invite');
       }
     }
     return true;

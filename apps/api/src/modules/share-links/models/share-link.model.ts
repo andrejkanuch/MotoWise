@@ -5,8 +5,9 @@ export class ShareLink {
   @Field(() => ID)
   id: string;
 
-  @Field()
-  token: string;
+  /** Plaintext token — only present in the createShareLink response (show-once). */
+  @Field(() => String, { nullable: true })
+  token?: string;
 
   @Field()
   motorcycleId: string;
@@ -17,6 +18,7 @@ export class ShareLink {
   @Field()
   createdAt: string;
 
-  @Field()
-  url: string;
+  /** Full share URL — only present in the createShareLink response (show-once). */
+  @Field(() => String, { nullable: true })
+  url?: string;
 }

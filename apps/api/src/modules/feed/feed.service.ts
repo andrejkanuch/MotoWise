@@ -6,6 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { decodeCursor, encodeCursor } from '../../common/pagination/connection';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { FeedRideConnection } from './models/feed-connection.model';
 import type { FeedBike, FeedRide, FeedRider } from './models/feed-ride.model';
@@ -97,12 +98,11 @@ export class FeedService {
       .limit(limit + 1);
 
     if (after) {
-      const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      const ts = Date.parse(decoded);
-      if (Number.isNaN(ts)) {
+      const decoded = decodeCursor(after);
+      if (!decoded) {
         throw new BadRequestException('Invalid cursor');
       }
-      query = query.lt('started_at', decoded);
+      query = query.lt('started_at', decoded[0]);
     }
 
     const { data, error } = await query;
@@ -140,7 +140,7 @@ export class FeedService {
       const node = this.mapFeedRow(row, kudosSet);
       return {
         node,
-        cursor: Buffer.from(node.startedAt).toString('base64'),
+        cursor: encodeCursor(node.startedAt),
       };
     });
 

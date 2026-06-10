@@ -7,10 +7,13 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { QUERY_LIMITS } from '../../config/constants';
 import { EmailService } from '../email/email.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { DataExportRequest } from './models/data-export-request.model';
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 @Injectable()
 export class DataExportService {
@@ -79,7 +82,18 @@ export class DataExportService {
         .update({ status: 'processing' })
         .eq('id', exportId);
 
+      // userId is the verified JWT sub (always a UUID from Supabase), but the
+      // follows export interpolates it into a PostgREST .or() filter string —
+      // validate the shape as defense-in-depth before that one non-parameterized sink.
+      if (!UUID_REGEX.test(userId)) {
+        throw new BadRequestException('Invalid user id');
+      }
+
       // Gather all user data
+      const maxRows = QUERY_LIMITS.MAX_EXPORT_ROWS_PER_TABLE;
+      const byUserId = (table: string) =>
+        this.supabaseAdmin.from(table).select('*').eq('user_id', userId).limit(maxRows);
+
       const [
         profileResult,
         motorcyclesResult,
@@ -89,18 +103,38 @@ export class DataExportService {
         quizAttemptsResult,
       ] = await Promise.all([
         this.supabaseAdmin.from('users').select('*').eq('id', userId).single(),
-        this.supabaseAdmin.from('motorcycles').select('*').eq('user_id', userId).limit(10000),
-        this.supabaseAdmin.from('maintenance_tasks').select('*').eq('user_id', userId).limit(10000),
-        this.supabaseAdmin.from('diagnostics').select('*').eq('user_id', userId).limit(10000),
-        this.supabaseAdmin.from('learning_progress').select('*').eq('user_id', userId).limit(10000),
-        this.supabaseAdmin.from('quiz_attempts').select('*').eq('user_id', userId).limit(10000),
+        byUserId('motorcycles'),
+        byUserId('maintenance_tasks'),
+        byUserId('diagnostics'),
+        byUserId('learning_progress'),
+        byUserId('quiz_attempts'),
       ]);
 
-      const expensesResult = await this.supabaseAdmin
-        .from('expenses')
-        .select('*')
-        .eq('user_id', userId)
-        .limit(10000);
+      const [
+        expensesResult,
+        ridesResult,
+        fuelLogsResult,
+        commentsResult,
+        rideKudosResult,
+        surfaceReportsResult,
+      ] = await Promise.all([
+        byUserId('expenses'),
+        byUserId('rides'),
+        byUserId('fuel_logs'),
+        byUserId('comments'),
+        byUserId('ride_kudos'),
+        byUserId('surface_reports'),
+      ]);
+
+      const [tripsResult, followsResult] = await Promise.all([
+        this.supabaseAdmin.from('trips').select('*').eq('organiser_user_id', userId).limit(maxRows),
+        // Both directions: follows the user initiated AND follows of the user
+        this.supabaseAdmin
+          .from('follows')
+          .select('*')
+          .or(`follower_id.eq.${userId},following_id.eq.${userId}`)
+          .limit(maxRows),
+      ]);
 
       const exportData = {
         exportedAt: new Date().toISOString(),
@@ -111,6 +145,13 @@ export class DataExportService {
         learningProgress: progressResult.data ?? [],
         quizAttempts: quizAttemptsResult.data ?? [],
         expenses: expensesResult.data ?? [],
+        rides: ridesResult.data ?? [],
+        trips: tripsResult.data ?? [],
+        fuelLogs: fuelLogsResult.data ?? [],
+        comments: commentsResult.data ?? [],
+        follows: followsResult.data ?? [],
+        rideKudos: rideKudosResult.data ?? [],
+        surfaceReports: surfaceReportsResult.data ?? [],
       };
 
       // Store export as JSON in Supabase Storage

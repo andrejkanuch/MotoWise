@@ -8,6 +8,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { buildConnection, decodeCursor, encodeCursor } from '../../../common/pagination/connection';
+import { PG_ERROR } from '../../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { Trip, TripConnection, TripWaypoint } from '../models/trip.model';
@@ -221,7 +223,7 @@ export async function verifyOrganiser(
     .single();
 
   if (error || !existing) {
-    if (error?.code === 'PGRST116') {
+    if (error?.code === PG_ERROR.NOT_FOUND) {
       throw new NotFoundException('Trip not found');
     }
     logger.error(`verifyOrganiser failed: ${error?.message}`);
@@ -261,12 +263,11 @@ export class TripLifecycleService {
       .limit(limit + 1);
 
     if (after) {
-      const cursor = this.decodeCursor(after);
+      const cursor = decodeCursor(after);
       if (cursor) {
         // Composite cursor: rows strictly after (start_date, id)
-        query = query.or(
-          `start_date.gt.${cursor.startDate},and(start_date.eq.${cursor.startDate},id.gt.${cursor.id})`,
-        );
+        const [startDate, id] = cursor;
+        query = query.or(`start_date.gt.${startDate},and(start_date.eq.${startDate},id.gt.${id})`);
       }
     }
 
@@ -277,27 +278,12 @@ export class TripLifecycleService {
       throw new InternalServerErrorException('Failed to fetch trips');
     }
 
-    const rows = (data ?? []) as unknown as TripRow[];
-    const hasNextPage = rows.length > limit;
-    const sliced = hasNextPage ? rows.slice(0, limit) : rows;
-
-    const edges = sliced.map((row) => {
-      const node = mapRowToTrip(row);
-      return {
-        node,
-        cursor: Buffer.from(`${row.start_date}|${row.id}`).toString('base64'),
-      };
+    return buildConnection({
+      rows: (data ?? []) as unknown as TripRow[],
+      limit,
+      mapNode: (row) => mapRowToTrip(row),
+      cursorOf: (row) => encodeCursor(row.start_date, row.id),
     });
-
-    const lastEdge = edges[edges.length - 1];
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        endCursor: lastEdge?.cursor,
-      },
-    };
   }
 
   /**
@@ -336,11 +322,10 @@ export class TripLifecycleService {
     }
 
     if (after) {
-      const cursor = this.decodeCursor(after);
+      const cursor = decodeCursor(after);
       if (cursor) {
-        query = query.or(
-          `start_date.gt.${cursor.startDate},and(start_date.eq.${cursor.startDate},id.gt.${cursor.id})`,
-        );
+        const [startDate, id] = cursor;
+        query = query.or(`start_date.gt.${startDate},and(start_date.eq.${startDate},id.gt.${id})`);
       }
     }
 
@@ -351,27 +336,12 @@ export class TripLifecycleService {
       throw new InternalServerErrorException('Failed to fetch trips');
     }
 
-    const rows = (data ?? []) as unknown as TripRow[];
-    const hasNextPage = rows.length > limit;
-    const sliced = hasNextPage ? rows.slice(0, limit) : rows;
-
-    const edges = sliced.map((row) => {
-      const node = mapRowToTrip(row);
-      return {
-        node,
-        cursor: Buffer.from(`${row.start_date}|${row.id}`).toString('base64'),
-      };
+    return buildConnection({
+      rows: (data ?? []) as unknown as TripRow[],
+      limit,
+      mapNode: (row) => mapRowToTrip(row),
+      cursorOf: (row) => encodeCursor(row.start_date, row.id),
     });
-
-    const lastEdge = edges[edges.length - 1];
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        endCursor: lastEdge?.cursor,
-      },
-    };
   }
 
   async myTrips(userId: string, first: number, after?: string): Promise<TripConnection> {
@@ -408,13 +378,12 @@ export class TripLifecycleService {
     }
 
     if (after) {
-      const cursor = this.decodeCursor(after);
+      const cursor = decodeCursor(after);
       if (cursor) {
         // myTrips is ordered DESC, so "after" means strictly before
         // (start_date, id).
-        query = query.or(
-          `start_date.lt.${cursor.startDate},and(start_date.eq.${cursor.startDate},id.lt.${cursor.id})`,
-        );
+        const [startDate, id] = cursor;
+        query = query.or(`start_date.lt.${startDate},and(start_date.eq.${startDate},id.lt.${id})`);
       }
     }
 
@@ -425,26 +394,14 @@ export class TripLifecycleService {
       throw new InternalServerErrorException('Failed to fetch my trips');
     }
 
-    const rows = (data ?? []) as unknown as TripRow[];
-    const hasNextPage = rows.length > limit;
-    const sliced = hasNextPage ? rows.slice(0, limit) : rows;
-
-    const edges = sliced.map((row) => ({
+    return buildConnection({
+      rows: (data ?? []) as unknown as TripRow[],
+      limit,
       // Caller is always organiser or participant of their own trips — no
       // organiser redaction needed.
-      node: mapRowToTrip(row, userId, true),
-      cursor: Buffer.from(`${row.start_date}|${row.id}`).toString('base64'),
-    }));
-
-    const lastEdge = edges[edges.length - 1];
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        endCursor: lastEdge?.cursor,
-      },
-    };
+      mapNode: (row) => mapRowToTrip(row, userId, true),
+      cursorOf: (row) => encodeCursor(row.start_date, row.id),
+    });
   }
 
   async tripDetail(tripId: string, callerUserId?: string): Promise<Trip> {
@@ -461,7 +418,7 @@ export class TripLifecycleService {
       .single();
 
     if (tripError || !tripData) {
-      if (tripError?.code === 'PGRST116') {
+      if (tripError?.code === PG_ERROR.NOT_FOUND) {
         this.logger.warn(
           `tripDetail: trip=${tripId} not found for caller=${callerUserId ?? 'anon'} ` +
             '(RLS may be blocking — check visibility + participant status)',
@@ -764,36 +721,50 @@ export class TripLifecycleService {
 
     const trip = mapRowToTrip(data as unknown as TripRow);
 
-    // Replace waypoints if provided (delete existing + insert new)
+    // Replace waypoints if provided. H11: the old path did a bare delete then a
+    // separate insert — a failed insert (or a dropped request between them) left
+    // the trip with zero waypoints and no rollback. replace_trip_waypoints
+    // (00148) does the delete + bulk insert atomically and checks organiser
+    // ownership via auth.uid() internally.
     if (input.waypoints) {
-      await this.supabase.from('trip_waypoints').delete().eq('trip_id', tripId);
+      const waypointPayload = input.waypoints.map((wp) => ({
+        type: wp.type,
+        name: wp.name,
+        lat: wp.lat,
+        lng: wp.lng,
+        notes: wp.notes ?? null,
+        sort_order: wp.sortOrder,
+        day_index: wp.dayIndex ?? 0,
+        period_of_day: wp.periodOfDay ?? null,
+      }));
 
-      if (input.waypoints.length > 0) {
-        const waypointRows = input.waypoints.map((wp) => ({
-          trip_id: tripId,
-          type: wp.type,
-          name: wp.name,
-          lat: wp.lat,
-          lng: wp.lng,
-          notes: wp.notes ?? null,
-          sort_order: wp.sortOrder,
-          day_index: wp.dayIndex ?? 0,
-          period_of_day: wp.periodOfDay ?? null,
-        }));
+      const { error: replaceError } = await this.supabase.rpc('replace_trip_waypoints', {
+        p_trip_id: tripId,
+        p_waypoints: waypointPayload,
+      });
 
-        const { data: waypointData, error: wpError } = await this.supabase
+      if (replaceError) {
+        this.logger.error(
+          `updateTrip waypoints failed: ${replaceError.message} (${replaceError.code})`,
+        );
+        throw new InternalServerErrorException('Failed to update trip waypoints');
+      }
+
+      if (waypointPayload.length > 0) {
+        const { data: waypointData, error: wpFetchError } = await this.supabase
           .from('trip_waypoints')
-          .insert(waypointRows)
-          .select('*');
+          .select('*')
+          .eq('trip_id', tripId)
+          .order('sort_order', { ascending: true });
 
-        if (wpError) {
-          this.logger.error(`updateTrip waypoints failed: ${wpError.message} (${wpError.code})`);
+        if (wpFetchError) {
+          this.logger.error(
+            `updateTrip waypoint refetch failed: ${wpFetchError.message} (${wpFetchError.code})`,
+          );
           throw new InternalServerErrorException('Failed to update trip waypoints');
         }
 
-        if (waypointData) {
-          trip.waypoints = (waypointData as unknown as WaypointRow[]).map(mapRowToWaypoint);
-        }
+        trip.waypoints = ((waypointData ?? []) as unknown as WaypointRow[]).map(mapRowToWaypoint);
       } else {
         trip.waypoints = [];
       }
@@ -869,13 +840,24 @@ export class TripLifecycleService {
       throw new BadRequestException('Ride has no route data');
     }
 
-    // 2. Check if already shared as a trip template
-    const { data: existing } = await this.supabase
+    // 2. Check if already shared as a trip template. Use maybeSingle(): .single()
+    // raises PGRST116 on 0 rows (the normal "not yet shared" case, which would
+    // surface as a 500) and silently passes the duplicate check when >1 row
+    // matches — exactly the rows we must reject.
+    const { data: existing, error: existingError } = await this.supabase
       .from('trips')
       .select('id')
       .eq('source_ride_id', input.rideId)
       .eq('is_template', true)
-      .single();
+      .limit(1)
+      .maybeSingle();
+
+    if (existingError) {
+      this.logger.error(
+        `shareRideAsTrip duplicate check failed: ${existingError.message} (${existingError.code})`,
+      );
+      throw new InternalServerErrorException('Failed to check existing shared ride');
+    }
 
     if (existing) {
       throw new BadRequestException('This ride is already shared on Discover');
@@ -915,19 +897,5 @@ export class TripLifecycleService {
     }
 
     return mapRowToTrip(tripData as unknown as TripRow, userId);
-  }
-
-  private decodeCursor(cursor: string): { startDate: string; id: string } | null {
-    try {
-      const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
-      const parts = decoded.split('|');
-      if (parts.length !== 2) return null;
-      const [startDate, id] = parts;
-      if (!/^\d{4}-\d{2}-\d{2}/.test(startDate)) return null;
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
-      return { startDate, id };
-    } catch {
-      return null;
-    }
   }
 }

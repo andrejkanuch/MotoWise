@@ -304,7 +304,11 @@ export class MaintenanceTasksService {
         ? completedTask.completedMileage + completedTask.intervalKm
         : null;
 
-    const { data, error } = await this.adminClient
+    // Use the RLS-enforcing user client for this user-scoped write (the admin
+    // client bypasses RLS author checks) and log failures — the old path
+    // swallowed insert errors with no log, so a broken recurring chain died
+    // silently.
+    const { data, error } = await this.supabase
       .from('maintenance_tasks')
       .insert({
         user_id: completedTask.userId,
@@ -324,7 +328,12 @@ export class MaintenanceTasksService {
       .select()
       .single();
 
-    if (error || !data) return null;
+    if (error || !data) {
+      this.logger.error(
+        `createNextRecurrence failed for taskId=${completedTask.id}: ${error?.message ?? 'no row returned'}`,
+      );
+      return null;
+    }
     return this.mapRow(data);
   }
 

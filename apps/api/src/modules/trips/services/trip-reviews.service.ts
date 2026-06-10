@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { buildConnection, decodeCursor, encodeCursor } from '../../../common/pagination/connection';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 
@@ -111,11 +112,10 @@ export class TripReviewsService {
 
     // Cursor pagination: composite (created_at, id)
     if (after) {
-      const decoded = this.decodeCursor(after);
+      const decoded = decodeCursor(after);
       if (decoded) {
-        query = query.or(
-          `created_at.lt.${decoded.createdAt},and(created_at.eq.${decoded.createdAt},id.lt.${decoded.id})`,
-        );
+        const [createdAt, id] = decoded;
+        query = query.or(`created_at.lt.${createdAt},and(created_at.eq.${createdAt},id.lt.${id})`);
       }
     }
 
@@ -125,20 +125,12 @@ export class TripReviewsService {
       throw new InternalServerErrorException('Failed to fetch reviews');
     }
 
-    const rows = (data ?? []) as unknown as ReviewRow[];
-    const hasNextPage = rows.length > limit;
-    const edges = rows.slice(0, limit).map((row) => ({
-      node: this.mapRow(row),
-      cursor: this.encodeCursor(row.created_at, row.id),
-    }));
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : undefined,
-      },
-    };
+    return buildConnection({
+      rows: (data ?? []) as unknown as ReviewRow[],
+      limit,
+      mapNode: (row) => this.mapRow(row),
+      cursorOf: (row) => encodeCursor(row.created_at, row.id),
+    });
   }
 
   async createReview(
@@ -222,23 +214,5 @@ export class TripReviewsService {
       author,
       bike,
     };
-  }
-
-  private encodeCursor(createdAt: string, id: string): string {
-    return Buffer.from(`${createdAt}|${id}`).toString('base64');
-  }
-
-  private decodeCursor(cursor: string): { createdAt: string; id: string } | null {
-    try {
-      const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
-      const parts = decoded.split('|');
-      if (parts.length !== 2) return null;
-      const [createdAt, id] = parts;
-      if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(createdAt)) return null;
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
-      return { createdAt, id };
-    } catch {
-      return null;
-    }
   }
 }

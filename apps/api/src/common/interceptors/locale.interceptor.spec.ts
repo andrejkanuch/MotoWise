@@ -43,6 +43,24 @@ describe('LocaleInterceptor', () => {
     expect(mockRequest.locale).toBe('es');
   });
 
+  it('should resolve pt-BR from Accept-Language (full tag, not collapsed to pt)', () => {
+    mockRequest.headers['accept-language'] = 'pt-BR,pt;q=0.9';
+    interceptor.intercept({} as never, mockNext);
+    expect(mockRequest.locale).toBe('pt-BR');
+  });
+
+  it('should resolve pt-BR from x-locale', () => {
+    mockRequest.headers['x-locale'] = 'pt-BR';
+    interceptor.intercept({} as never, mockNext);
+    expect(mockRequest.locale).toBe('pt-BR');
+  });
+
+  it('should fall back to base subtag when the full tag is unsupported (de-DE -> de)', () => {
+    mockRequest.headers['accept-language'] = 'de-DE,de;q=0.9';
+    interceptor.intercept({} as never, mockNext);
+    expect(mockRequest.locale).toBe('de');
+  });
+
   it('should fall back to en for invalid locale', () => {
     mockRequest.headers['accept-language'] = 'xx';
     interceptor.intercept({} as never, mockNext);

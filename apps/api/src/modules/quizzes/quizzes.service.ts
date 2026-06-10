@@ -1,28 +1,32 @@
 import { QuizQuestionSchema } from '@motovault/types';
 import type { Tables } from '@motovault/types/database';
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
+import { unwrap } from '../../common/supabase/unwrap';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { Quiz, QuizAttempt } from './models/quiz.model';
 
 @Injectable()
 export class QuizzesService {
+  private readonly logger = new Logger(QuizzesService.name);
+
   constructor(@Inject(SUPABASE_USER) private readonly userClient: SupabaseClient) {}
 
   async findByArticle(articleId: string): Promise<Quiz | null> {
+    // maybeSingle(): 0 rows → null (no quiz for this article); a real DB error
+    // is logged and rethrown rather than masked as "no quiz".
     const { data, error } = await this.userClient
       .from('quizzes')
       .select('*')
       .eq('article_id', articleId)
-      .single();
+      .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) {
+      this.logger.error(`findByArticle failed: ${error.message} (${error.code})`);
+      throw new InternalServerErrorException('Failed to fetch quiz');
+    }
+    if (!data) return null;
     return this.mapQuizRow(data);
   }
 
@@ -32,14 +36,19 @@ export class QuizzesService {
   ): Promise<QuizAttempt> {
     // Quiz read uses userClient — quizzes have SELECT USING (true) RLS policy.
     // Scoring happens server-side to prevent correct-answer leakage to clients.
-    const quiz = await this.userClient
+    const quizResult = await this.userClient
       .from('quizzes')
       .select('questions_json')
       .eq('id', input.quizId)
       .single();
-    if (!quiz.data) throw new NotFoundException('Quiz not found');
+    const quizData = unwrap(quizResult, {
+      logger: this.logger,
+      op: 'submitAttempt',
+      message: 'Failed to fetch quiz',
+      notFound: 'Quiz not found',
+    });
 
-    const questions = z.array(QuizQuestionSchema).parse(quiz.data.questions_json);
+    const questions = z.array(QuizQuestionSchema).parse(quizData.questions_json);
     const score = input.answers.reduce((acc, answer, i) => {
       return acc + (questions[i]?.correctIndex === answer ? 1 : 0);
     }, 0);

@@ -7,6 +7,8 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { decodeCursor, encodeCursor } from '../../common/pagination/connection';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 
 /** Row shape for the follows table (not yet in database.types.ts) */
@@ -58,7 +60,7 @@ export class FollowsService {
 
     if (error || !data) {
       // Unique constraint violation = already following
-      if (error?.code === '23505') {
+      if (error?.code === PG_ERROR.UNIQUE_VIOLATION) {
         throw new BadRequestException('Already following this user');
       }
       this.logger.error(`follow failed: ${error?.message} (${error?.code})`);
@@ -94,34 +96,18 @@ export class FollowsService {
     after?: string,
   ): Promise<FollowConnection> {
     this.logger.debug(`getFollowers: userId=${userId}, first=${first}, after=${after}`);
-
-    await this.assertProfileVisible(currentUserId, userId);
-
-    const limit = Math.min(first, 50);
-    let query = this.supabase
-      .from('follows')
-      .select('follower_id, following_id, created_at', { count: 'exact' })
-      .eq('following_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(limit + 1);
-
-    if (after) {
-      const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      const ts = Date.parse(decoded);
-      if (Number.isNaN(ts)) {
-        throw new BadRequestException('Invalid cursor');
-      }
-      query = query.lt('created_at', decoded);
-    }
-
-    const { data, error, count } = await query;
-
-    if (error) {
-      this.logger.error(`getFollowers failed: ${error.message} (${error.code})`);
-      throw new InternalServerErrorException('Failed to fetch followers');
-    }
-
-    return this.buildConnection(data ?? [], limit, count ?? 0, !!after, 'follower_id');
+    // Followers = rows where this user is being followed → filter on following_id,
+    // enrich the follower side.
+    return this.listFollows({
+      currentUserId,
+      userId,
+      first,
+      after,
+      filterField: 'following_id',
+      enrichField: 'follower_id',
+      op: 'getFollowers',
+      errorMessage: 'Failed to fetch followers',
+    });
   }
 
   async getFollowing(
@@ -131,6 +117,36 @@ export class FollowsService {
     after?: string,
   ): Promise<FollowConnection> {
     this.logger.debug(`getFollowing: userId=${userId}, first=${first}, after=${after}`);
+    // Following = rows where this user is the follower → filter on follower_id,
+    // enrich the followed side.
+    return this.listFollows({
+      currentUserId,
+      userId,
+      first,
+      after,
+      filterField: 'follower_id',
+      enrichField: 'following_id',
+      op: 'getFollowing',
+      errorMessage: 'Failed to fetch following',
+    });
+  }
+
+  /**
+   * Shared body for {@link getFollowers} and {@link getFollowing} — byte-identical
+   * except for the filter column, the enriched column, and log/error text.
+   */
+  private async listFollows(args: {
+    currentUserId: string;
+    userId: string;
+    first: number;
+    after?: string;
+    filterField: 'follower_id' | 'following_id';
+    enrichField: 'follower_id' | 'following_id';
+    op: string;
+    errorMessage: string;
+  }): Promise<FollowConnection> {
+    const { currentUserId, userId, first, after, filterField, enrichField, op, errorMessage } =
+      args;
 
     await this.assertProfileVisible(currentUserId, userId);
 
@@ -138,27 +154,26 @@ export class FollowsService {
     let query = this.supabase
       .from('follows')
       .select('follower_id, following_id, created_at', { count: 'exact' })
-      .eq('follower_id', userId)
+      .eq(filterField, userId)
       .order('created_at', { ascending: false })
       .limit(limit + 1);
 
     if (after) {
-      const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      const ts = Date.parse(decoded);
-      if (Number.isNaN(ts)) {
+      const decoded = decodeCursor(after);
+      if (!decoded) {
         throw new BadRequestException('Invalid cursor');
       }
-      query = query.lt('created_at', decoded);
+      query = query.lt('created_at', decoded[0]);
     }
 
     const { data, error, count } = await query;
 
     if (error) {
-      this.logger.error(`getFollowing failed: ${error.message} (${error.code})`);
-      throw new InternalServerErrorException('Failed to fetch following');
+      this.logger.error(`${op} failed: ${error.message} (${error.code})`);
+      throw new InternalServerErrorException(errorMessage);
     }
 
-    return this.buildConnection(data ?? [], limit, count ?? 0, !!after, 'following_id');
+    return this.buildConnection(data ?? [], limit, count ?? 0, !!after, enrichField);
   }
 
   private async assertProfileVisible(currentUserId: string, targetUserId: string): Promise<void> {
@@ -203,7 +218,7 @@ export class FollowsService {
       }
       return {
         node,
-        cursor: Buffer.from(node.createdAt).toString('base64'),
+        cursor: encodeCursor(node.createdAt),
       };
     });
 

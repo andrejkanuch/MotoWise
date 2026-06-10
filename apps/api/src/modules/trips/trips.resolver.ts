@@ -30,6 +30,7 @@ import { Public } from '../../common/decorators/public.decorator';
 import { GqlThrottlerGuard } from '../../common/guards/gql-throttler.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { THROTTLE_PRESETS } from '../../config/constants';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { CreateTripInput } from './dto/create-trip.input';
@@ -600,7 +601,7 @@ export class TripsResolver {
       .from('premium_waitlist')
       .insert({ user_id: user.id, feature });
     if (error) {
-      if (error.code === '23505') return true; // Already on waitlist
+      if (error.code === PG_ERROR.UNIQUE_VIOLATION) return true; // Already on waitlist
       this.logger.error(`joinPremiumWaitlist failed: ${error.message}`);
       throw new InternalServerErrorException('Failed to join waitlist');
     }

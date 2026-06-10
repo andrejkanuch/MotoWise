@@ -57,12 +57,14 @@ describe('MotorcyclesResolver', () => {
       autoPopulateForBike: vi.fn(),
     } as unknown as OemSchedulesService;
 
+    const mockMakeStatsService = { getMakeStats: vi.fn() } as never;
     const mockSupabase = {} as any;
 
     beforeEach(() => {
       vi.clearAllMocks();
       resolver = new MotorcyclesResolver(
         mockMotorcyclesService,
+        mockMakeStatsService,
         mockNhtsaService,
         mockOemSchedulesService,
         mockSupabase,

@@ -29,6 +29,21 @@ export const CreateCommentInputSchema = z
 
 export type CreateCommentInput = z.infer<typeof CreateCommentInputSchema>;
 
+// --- Get Comments target (exactly one of the four target ids) ---
+
+export const GetCommentsTargetSchema = z
+  .object({
+    rideId: z.string().uuid().optional(),
+    routeId: z.string().uuid().optional(),
+    groupRideId: z.string().uuid().optional(),
+    tripId: z.string().uuid().optional(),
+  })
+  .refine((d) => [d.rideId, d.routeId, d.groupRideId, d.tripId].filter(Boolean).length === 1, {
+    message: 'Exactly one target (rideId, routeId, groupRideId, or tripId) must be provided',
+  });
+
+export type GetCommentsTarget = z.infer<typeof GetCommentsTargetSchema>;
+
 // --- Flag Comment ---
 
 export const FlagCommentInputSchema = z.object({

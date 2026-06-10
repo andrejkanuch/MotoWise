@@ -10,6 +10,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type {
   CreateTripSuggestionInput,
@@ -257,7 +258,7 @@ export class TripSuggestionsService {
       }
 
       // 23505 = unique_violation — another co-planner grabbed this slot. Retry.
-      if (insertErr?.code === '23505') {
+      if (insertErr?.code === PG_ERROR.UNIQUE_VIOLATION) {
         this.logger.debug(
           `materialise race on (${sug.trip_id}, ${dayIndex}, ${nextOrder}), attempt ${attempt + 1}`,
         );

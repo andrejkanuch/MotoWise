@@ -6,15 +6,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { decodeCursor, encodeCursor } from '../../../common/pagination/connection';
+import { PG_ERROR } from '../../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { TripConnection } from '../models/trip.model';
-import {
-  mapRowToTrip,
-  TRIP_DETAIL_SELECT,
-  TRIP_SELECT,
-  type TripRow,
-} from './trip-lifecycle.service';
+import { mapRowToTrip, TRIP_DETAIL_SELECT, type TripRow } from './trip-lifecycle.service';
 
 /** Row shape for trip_saves join */
 interface SaveRow {
@@ -40,7 +37,7 @@ export class TripSavesService {
 
     if (error) {
       // Unique constraint violation = already saved, treat as success
-      if (error.code === '23505') return true;
+      if (error.code === PG_ERROR.UNIQUE_VIOLATION) return true;
       this.logger.error(`saveTrip failed: ${error.message} (${error.code})`);
       throw new InternalServerErrorException('Failed to save trip');
     }
@@ -92,10 +89,11 @@ export class TripSavesService {
       .limit(limit + 1);
 
     if (after) {
-      const decoded = this.decodeCursor(after);
+      const decoded = decodeCursor(after);
       if (decoded) {
+        const [savedAt, id] = decoded;
         savesQuery = savesQuery.or(
-          `saved_at.lt.${decoded.savedAt},and(saved_at.eq.${decoded.savedAt},id.lt.${decoded.id})`,
+          `saved_at.lt.${savedAt},and(saved_at.eq.${savedAt},id.lt.${id})`,
         );
       }
     }
@@ -119,9 +117,11 @@ export class TripSavesService {
 
     // Fetch the actual trip rows
     const tripIds = sliced.map((s) => s.trip_id);
+    // Use TRIP_DETAIL_SELECT: the list select omits template fields (polyline,
+    // distance, ratings, etc.) so saved template trips rendered with blanks.
     const { data: trips, error: tripsError } = await this.supabase
       .from('trips')
-      .select(TRIP_SELECT)
+      .select(TRIP_DETAIL_SELECT)
       .in('id', tripIds);
 
     if (tripsError) {
@@ -143,7 +143,7 @@ export class TripSavesService {
         const tripRow = tripMap.get(save.trip_id)!;
         return {
           node: mapRowToTrip(tripRow, userId),
-          cursor: this.encodeCursor(save.saved_at, save.id),
+          cursor: encodeCursor(save.saved_at, save.id),
         };
       });
 
@@ -184,10 +184,11 @@ export class TripSavesService {
       .limit(limit + 1);
 
     if (after) {
-      const decoded = this.decodeCursor(after);
+      const decoded = decodeCursor(after);
       if (decoded) {
+        const [savedAt, id] = decoded;
         savesQuery = savesQuery.or(
-          `saved_at.lt.${decoded.savedAt},and(saved_at.eq.${decoded.savedAt},id.lt.${decoded.id})`,
+          `saved_at.lt.${savedAt},and(saved_at.eq.${savedAt},id.lt.${id})`,
         );
       }
     }
@@ -237,7 +238,7 @@ export class TripSavesService {
         const tripRow = tripMap.get(save.trip_id)!;
         return {
           node: mapRowToTrip(tripRow),
-          cursor: this.encodeCursor(save.saved_at, save.id),
+          cursor: encodeCursor(save.saved_at, save.id),
         };
       });
 
@@ -248,27 +249,5 @@ export class TripSavesService {
         endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : undefined,
       },
     };
-  }
-
-  // ==========================================
-  // Helpers
-  // ==========================================
-
-  private encodeCursor(savedAt: string, id: string): string {
-    return Buffer.from(`${savedAt}|${id}`).toString('base64');
-  }
-
-  private decodeCursor(cursor: string): { savedAt: string; id: string } | null {
-    try {
-      const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
-      const parts = decoded.split('|');
-      if (parts.length !== 2) return null;
-      const [savedAt, id] = parts;
-      if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(savedAt)) return null;
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
-      return { savedAt, id };
-    } catch {
-      return null;
-    }
   }
 }

@@ -106,6 +106,43 @@ export class NhtsaService implements OnModuleInit {
   private readonly modelsCache = new Map<string, CacheEntry<MotorcycleModelDto[]>>();
   private readonly recallsCache = new Map<string, CacheEntry<RecallDto[]>>();
 
+  /**
+   * Shared NHTSA fetch: 10s abort-timeout, non-ok → log + ServiceUnavailable,
+   * abort → timeout message, network failure → unreachable message. Extracted
+   * from the three near-identical fetch blocks below.
+   *
+   * `on404` lets a caller treat HTTP 404 as a sentinel value (NHTSA returns 404
+   * for "no recalls found") instead of an error — when omitted, 404 falls
+   * through to the generic non-ok branch.
+   */
+  private async fetchJson<T>(
+    url: string,
+    messages: { notOkLog: string; notOkThrow: string; timeout: string; unreachable: string },
+    on404?: () => T,
+  ): Promise<T> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10_000);
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) {
+        if (response.status === 404 && on404) {
+          return on404();
+        }
+        this.logger.error(`${messages.notOkLog}: ${response.status}`);
+        throw new ServiceUnavailableException(messages.notOkThrow);
+      }
+      return (await response.json()) as T;
+    } catch (error) {
+      if (error instanceof ServiceUnavailableException) throw error;
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new ServiceUnavailableException(messages.timeout);
+      }
+      throw new ServiceUnavailableException(messages.unreachable);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
   async onModuleInit() {
     try {
       await this.getMakes();
@@ -123,25 +160,12 @@ export class NhtsaService implements OnModuleInit {
     const url =
       'https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/motorcycle?format=json';
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10_000);
-    let json: NhtsaMakeResponse;
-    try {
-      const response = await fetch(url, { signal: controller.signal });
-      if (!response.ok) {
-        this.logger.error(`NHTSA makes request failed: ${response.status}`);
-        throw new ServiceUnavailableException('Failed to fetch motorcycle makes from NHTSA');
-      }
-      json = (await response.json()) as NhtsaMakeResponse;
-    } catch (error) {
-      if (error instanceof ServiceUnavailableException) throw error;
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        throw new ServiceUnavailableException('NHTSA API request timed out');
-      }
-      throw new ServiceUnavailableException('Failed to reach NHTSA API');
-    } finally {
-      clearTimeout(timeout);
-    }
+    const json = await this.fetchJson<NhtsaMakeResponse>(url, {
+      notOkLog: 'NHTSA makes request failed',
+      notOkThrow: 'Failed to fetch motorcycle makes from NHTSA',
+      timeout: 'NHTSA API request timed out',
+      unreachable: 'Failed to reach NHTSA API',
+    });
 
     const makes: MotorcycleMakeDto[] = json.Results.map((r) => ({
       makeId: r.MakeId,
@@ -171,25 +195,12 @@ export class NhtsaService implements OnModuleInit {
 
     const url = `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeIdYear/makeId/${makeId}/modelyear/${year}/vehicletype/motorcycle?format=json`;
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10_000);
-    let json: NhtsaModelResponse;
-    try {
-      const response = await fetch(url, { signal: controller.signal });
-      if (!response.ok) {
-        this.logger.error(`NHTSA models request failed: ${response.status}`);
-        throw new ServiceUnavailableException('Failed to fetch motorcycle models from NHTSA');
-      }
-      json = (await response.json()) as NhtsaModelResponse;
-    } catch (error) {
-      if (error instanceof ServiceUnavailableException) throw error;
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        throw new ServiceUnavailableException('NHTSA API request timed out');
-      }
-      throw new ServiceUnavailableException('Failed to reach NHTSA API');
-    } finally {
-      clearTimeout(timeout);
-    }
+    const json = await this.fetchJson<NhtsaModelResponse>(url, {
+      notOkLog: 'NHTSA models request failed',
+      notOkThrow: 'Failed to fetch motorcycle models from NHTSA',
+      timeout: 'NHTSA API request timed out',
+      unreachable: 'Failed to reach NHTSA API',
+    });
 
     const models: MotorcycleModelDto[] = json.Results.map((r) => ({
       modelId: r.Model_ID,
@@ -239,29 +250,21 @@ export class NhtsaService implements OnModuleInit {
       );
     }
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10_000);
-    let json: NhtsaRecallResponse;
-    try {
-      const response = await fetch(url, { signal: controller.signal });
-      if (!response.ok) {
-        // 404 from NHTSA means "no recalls found" — return empty cached result
-        if (response.status === 404) {
-          this.recallsCache.set(cacheKey, { data: [], expiresAt: Date.now() + RECALLS_TTL });
-          return [];
-        }
-        this.logger.error(`NHTSA recalls request failed: ${response.status}`);
-        throw new ServiceUnavailableException('Failed to fetch recalls from NHTSA');
-      }
-      json = (await response.json()) as NhtsaRecallResponse;
-    } catch (error) {
-      if (error instanceof ServiceUnavailableException) throw error;
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        throw new ServiceUnavailableException('NHTSA recalls request timed out');
-      }
-      throw new ServiceUnavailableException('Failed to reach NHTSA recalls API');
-    } finally {
-      clearTimeout(timeout);
+    // 404 from NHTSA means "no recalls found" — cache + return an empty result.
+    const json = await this.fetchJson<NhtsaRecallResponse | null>(
+      url,
+      {
+        notOkLog: 'NHTSA recalls request failed',
+        notOkThrow: 'Failed to fetch recalls from NHTSA',
+        timeout: 'NHTSA recalls request timed out',
+        unreachable: 'Failed to reach NHTSA recalls API',
+      },
+      () => null,
+    );
+
+    if (json === null) {
+      this.recallsCache.set(cacheKey, { data: [], expiresAt: Date.now() + RECALLS_TTL });
+      return [];
     }
 
     const rawResults = json.results ?? json.Results ?? [];

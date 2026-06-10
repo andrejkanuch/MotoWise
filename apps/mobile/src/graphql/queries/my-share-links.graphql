@@ -1,10 +1,8 @@
 query MyShareLinks($motorcycleId: ID!) {
   myShareLinks(motorcycleId: $motorcycleId) {
     id
-    token
     motorcycleId
     expiresAt
     createdAt
-    url
   }
 }

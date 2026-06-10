@@ -10,9 +10,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
-import { MakeStats } from './models/make-stats.model';
 import { Motorcycle } from './models/motorcycle.model';
 import { RecallResult } from './models/recall.model';
 import { NhtsaService } from './nhtsa.service';
@@ -23,8 +23,6 @@ const MOTORCYCLE_SELECT =
 @Injectable()
 export class MotorcyclesService {
   private readonly logger = new Logger(MotorcyclesService.name);
-  private makeStatsCache: { data: MakeStats[]; expiresAt: number } | null = null;
-  private static readonly MAKE_STATS_TTL = 900_000; // 15 minutes
 
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
@@ -47,6 +45,23 @@ export class MotorcyclesService {
     }
     this.logger.debug(`findByUser: found ${data?.length ?? 0} motorcycles`);
     return (data ?? []).map((row) => this.mapRow(row));
+  }
+
+  /** Fetches a single owned motorcycle by id, or null if not found / not owned. */
+  async findById(userId: string, motorcycleId: string): Promise<Motorcycle | null> {
+    this.logger.debug(`findById: userId=${userId}, motorcycleId=${motorcycleId}`);
+    const { data, error } = await this.supabase
+      .from('motorcycles')
+      .select(MOTORCYCLE_SELECT)
+      .eq('user_id', userId)
+      .eq('id', motorcycleId)
+      .maybeSingle();
+
+    if (error) {
+      this.logger.error(`findById failed: ${error.message} (${error.code})`);
+      throw new InternalServerErrorException('Failed to fetch motorcycle');
+    }
+    return data ? this.mapRow(data) : null;
   }
 
   async create(
@@ -133,7 +148,7 @@ export class MotorcyclesService {
       // P1-106: VIN uniqueness violation — the existing unique index
       // idx_motorcycles_user_vin_active from migration 00005 throws 23505
       // when a user tries to assign the same VIN to two bikes.
-      if (error?.code === '23505' && error?.message?.includes('vin')) {
+      if (error?.code === PG_ERROR.UNIQUE_VIOLATION && error?.message?.includes('vin')) {
         throw new BadRequestException(
           'That VIN is already registered on another motorcycle in your garage.',
         );
@@ -284,42 +299,5 @@ export class MotorcyclesService {
       odometerLastRideId: row.odometer_last_ride_id ?? undefined,
       createdAt: row.created_at,
     };
-  }
-
-  /**
-   * Aggregate fleet stats per make — riders, models, total bikes.
-   * Uses SUPABASE_ADMIN because this is public aggregate data (no user-scoped RLS).
-   * Results are ranked by rider count descending.
-   */
-  async getMakeStats(): Promise<MakeStats[]> {
-    if (this.makeStatsCache && Date.now() < this.makeStatsCache.expiresAt) {
-      return this.makeStatsCache.data;
-    }
-
-    const { data, error } = await this.adminClient.rpc('get_make_stats');
-
-    if (error) {
-      this.logger.warn(`Failed to fetch make stats: ${error.message}`);
-      return [];
-    }
-
-    const result = (data ?? []).map(
-      (
-        row: { make: string; riders: number; distinct_models: number; total_bikes: number },
-        index: number,
-      ) => ({
-        make: row.make,
-        riders: row.riders,
-        models: row.distinct_models,
-        totalBikes: row.total_bikes,
-        rank: index + 1,
-      }),
-    );
-
-    this.makeStatsCache = {
-      data: result,
-      expiresAt: Date.now() + MotorcyclesService.MAKE_STATS_TTL,
-    };
-    return result;
   }
 }

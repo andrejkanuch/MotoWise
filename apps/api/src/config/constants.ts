@@ -12,8 +12,7 @@ export type AiModel = (typeof AI_MODELS)[keyof typeof AI_MODELS];
 /**
  * Per-model cost in USD per million tokens. The previous single AI_COSTS table
  * applied gpt-4.1 pricing to every model, overstating nano/mini spend 5-25x and
- * tripping the global circuit breaker early. AI_COSTS remains only until all call
- * sites migrate here (Phase 3), then dies.
+ * tripping the global circuit breaker early.
  */
 export const MODEL_COSTS: Record<AiModel, { inputUsdPerMTok: number; outputUsdPerMTok: number }> = {
   'gpt-4.1': { inputUsdPerMTok: 2, outputUsdPerMTok: 8 },
@@ -40,14 +39,6 @@ export const AI_TOKEN_LIMITS = {
   TOPIC_CLASSIFIER_MAX_TOKENS: 100,
   ARTICLE_MAX_TOKENS: 4096,
   DIAGNOSTIC_MAX_TOKENS: 2048,
-} as const;
-
-/** Cost per million tokens in cents (gpt-4.1 pricing) */
-export const AI_COSTS = {
-  INPUT_COST_PER_MTOK: 3,
-  OUTPUT_COST_PER_MTOK: 12,
-  /** Divisor to convert (tokens * cost_per_mtok) → cents */
-  MTOK_DIVISOR: 10_000,
 } as const;
 
 /** Read time calculation */

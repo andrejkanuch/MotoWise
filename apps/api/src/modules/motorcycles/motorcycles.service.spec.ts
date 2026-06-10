@@ -88,6 +88,58 @@ describe('MotorcyclesService', () => {
     });
   });
 
+  describe('findById', () => {
+    it('returns the mapped motorcycle when found', async () => {
+      (mockUserClient.from as ReturnType<typeof vi.fn>).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi.fn().mockResolvedValue({ data: sampleRow, error: null }),
+            }),
+          }),
+        }),
+      });
+
+      const result = await service.findById('user-1', 'moto-1');
+
+      expect(result).toEqual(expectedMapped);
+    });
+
+    it('returns null when no row matches (not found / not owned)', async () => {
+      (mockUserClient.from as ReturnType<typeof vi.fn>).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+            }),
+          }),
+        }),
+      });
+
+      const result = await service.findById('user-1', 'missing');
+
+      expect(result).toBeNull();
+    });
+
+    it('throws InternalServerErrorException on query error', async () => {
+      (mockUserClient.from as ReturnType<typeof vi.fn>).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi
+                .fn()
+                .mockResolvedValue({ data: null, error: { message: 'DB error', code: '42P01' } }),
+            }),
+          }),
+        }),
+      });
+
+      await expect(service.findById('user-1', 'moto-1')).rejects.toThrow(
+        InternalServerErrorException,
+      );
+    });
+  });
+
   describe('create', () => {
     it('should insert and return mapped result', async () => {
       // Mock enforceFreeTierBikeLimit (admin user lookup + count)
@@ -258,49 +310,5 @@ describe('MotorcyclesService', () => {
     });
   });
 
-  describe('getMakeStats', () => {
-    it('should return ranked stats from RPC', async () => {
-      const rpcData = [
-        { make: 'Bmw', riders: 22, distinct_models: 12, total_bikes: 25 },
-        { make: 'Honda', riders: 19, distinct_models: 17, total_bikes: 20 },
-        { make: 'Kawasaki', riders: 8, distinct_models: 8, total_bikes: 10 },
-      ];
-      (mockAdminClient as Record<string, ReturnType<typeof vi.fn>>).rpc = vi
-        .fn()
-        .mockResolvedValue({ data: rpcData, error: null });
-
-      const result = await service.getMakeStats();
-
-      expect(result).toHaveLength(3);
-      expect(result[0]).toEqual({
-        make: 'Bmw',
-        riders: 22,
-        models: 12,
-        totalBikes: 25,
-        rank: 1,
-      });
-      expect(result[1].rank).toBe(2);
-      expect(result[2].rank).toBe(3);
-    });
-
-    it('should return empty array when RPC fails', async () => {
-      (mockAdminClient as Record<string, ReturnType<typeof vi.fn>>).rpc = vi
-        .fn()
-        .mockResolvedValue({ data: null, error: { message: 'DB error' } });
-
-      const result = await service.getMakeStats();
-
-      expect(result).toEqual([]);
-    });
-
-    it('should return empty array when no data', async () => {
-      (mockAdminClient as Record<string, ReturnType<typeof vi.fn>>).rpc = vi
-        .fn()
-        .mockResolvedValue({ data: [], error: null });
-
-      const result = await service.getMakeStats();
-
-      expect(result).toEqual([]);
-    });
-  });
+  // getMakeStats moved to MakeStatsService (singleton) — see make-stats.service.spec.ts
 });

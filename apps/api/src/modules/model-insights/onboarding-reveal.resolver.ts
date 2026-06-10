@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { Args, Int, Query, Resolver } from '@nestjs/graphql';
 import { Public } from '../../common/decorators/public.decorator';
-import { MotorcyclesService } from '../motorcycles/motorcycles.service';
+import { MakeStatsService } from '../motorcycles/make-stats.service';
 import { NhtsaService } from '../motorcycles/nhtsa.service';
 import { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
 import { projectFirstYearCostEur } from './cost-projection';
@@ -26,7 +26,7 @@ export class OnboardingRevealResolver {
     private readonly modelInsights: ModelInsightsService,
     private readonly oemSchedules: OemSchedulesService,
     private readonly nhtsa: NhtsaService,
-    private readonly motorcycles: MotorcyclesService,
+    private readonly makeStats: MakeStatsService,
   ) {}
 
   @Public()
@@ -89,7 +89,7 @@ export class OnboardingRevealResolver {
 
   private async safeRiderCount(make: string): Promise<number> {
     try {
-      const stats = await this.motorcycles.getMakeStats();
+      const stats = await this.makeStats.getMakeStats();
       const match = stats.find((s) => s.make.toLowerCase() === make.toLowerCase());
       return match?.riders ?? 0;
     } catch (err) {
