@@ -1,24 +1,6 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { PageInfo } from '../../../common/models/page-info.model';
+import { ObjectType } from '@nestjs/graphql';
+import { Paginated } from '../../../common/models/paginated.factory';
 import { Article } from './article.model';
 
 @ObjectType()
-export class ArticleEdge {
-  @Field(() => Article)
-  node: Article;
-
-  @Field()
-  cursor: string;
-}
-
-@ObjectType()
-export class ArticleConnection {
-  @Field(() => [ArticleEdge])
-  edges: ArticleEdge[];
-
-  @Field(() => PageInfo)
-  pageInfo: PageInfo;
-
-  @Field(() => Int)
-  totalCount: number;
-}
+export class ArticleConnection extends Paginated(Article, 'Article', { totalCount: true }) {}
