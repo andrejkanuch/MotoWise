@@ -186,6 +186,16 @@ export function setUserProperties(properties: Record<string, JsonType>) {
   posthogClient.capture('$set', { $set: properties });
 }
 
+/**
+ * The current PostHog distinct_id (anonymous before sign-in). Used to stamp
+ * RevenueCat's `$posthogUserId` pre-auth so anonymous purchases join the same
+ * PostHog person once the account is created. Undefined when analytics is off.
+ */
+export function getAnalyticsDistinctId(): string | undefined {
+  if (!analyticsEnabled || !posthogClient) return undefined;
+  return posthogClient.getDistinctId();
+}
+
 export function resetUser() {
   if (posthogClient) {
     posthogClient.reset();

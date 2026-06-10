@@ -160,6 +160,31 @@ async function doInit(): Promise<(() => void) | null> {
   }
 }
 
+/**
+ * Configure RevenueCat ANONYMOUSLY at launch for users who reach the paywall
+ * without an account (onboarding A/B 2026 — anonymous through purchase). The
+ * SDK generates an anonymous App User ID; the purchase later aliases onto the
+ * Supabase UUID via {@link loginRevenueCat} when the account is created.
+ *
+ * Stamps `$posthogUserId` with the PostHog anonymous distinct_id so server-side
+ * RevenueCat → PostHog purchase events join the same person before sign-in.
+ */
+export async function configureRevenueCatAnonymously(posthogDistinctId?: string): Promise<void> {
+  if (isExpoGo()) return;
+  const cleanup = await initRevenueCat();
+  if (!cleanup || !posthogDistinctId) return;
+  try {
+    const Purchases = await getPurchases();
+    // Only stamp while still anonymous — never clobber an identified customer.
+    if (await Purchases.isAnonymous()) {
+      await Purchases.setAttributes({ $posthogUserId: posthogDistinctId });
+    }
+  } catch (e) {
+    console.error('[RevenueCat] anonymous configure failed:', e instanceof Error ? e.message : e);
+    captureException(e);
+  }
+}
+
 export async function loginRevenueCat(userId: string) {
   if (isExpoGo()) return;
   // Wait for configure() to complete before calling logIn()

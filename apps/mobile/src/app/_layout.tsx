@@ -47,6 +47,7 @@ import i18n from '../i18n';
 import {
   AnalyticsEvent,
   captureException,
+  getAnalyticsDistinctId,
   identifyUser,
   initPostHog,
   initSentry,
@@ -83,7 +84,12 @@ import { queryClient } from '../lib/query-client';
 import { queryKeys } from '../lib/query-keys';
 import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
 import { clearPersistedQueryCache } from '../lib/query-persist';
-import { initRevenueCat, loginRevenueCat, logoutRevenueCat } from '../lib/subscription';
+import {
+  configureRevenueCatAnonymously,
+  initRevenueCat,
+  loginRevenueCat,
+  logoutRevenueCat,
+} from '../lib/subscription';
 import { supabase } from '../lib/supabase';
 import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
 import { useAuthStore } from '../stores/auth.store';
@@ -241,6 +247,15 @@ function NavigationGate() {
     // settle; signed-in users resolve inside (onboarding)/_layout as before.
     if (isAnonOnboarding && !variant) void resolveOnboardingVariant();
   }, [isAnonOnboarding, variant]);
+
+  // Configure RevenueCat anonymously for sessionless onboarders so the paywall
+  // can present + purchase without an account; $posthogUserId is stamped with
+  // the anonymous distinct_id so the purchase joins this person post-signup.
+  useEffect(() => {
+    if (isAnonOnboarding) {
+      void configureRevenueCatAnonymously(getAnalyticsDistinctId());
+    }
+  }, [isAnonOnboarding]);
 
   const inOnboarding = segments[0] === '(onboarding)';
 
