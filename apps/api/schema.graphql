@@ -1413,7 +1413,6 @@ type SpendingSummary {
 
 type Sponsorship {
   clicksCount: Int!
-  costPerImpression: Float!
   createdAt: DateTime!
   ctaText: String
   ctaUrl: String
@@ -1422,10 +1421,8 @@ type Sponsorship {
   id: ID!
   imageUrl: String
   impressionsCount: Int!
-  monthlyBudget: Float!
   placementType: SponsorshipPlacementType!
   routeId: ID!
-  spentThisMonth: Float!
   sponsorId: ID!
   startsAt: DateTime!
   status: SponsorshipStatus!

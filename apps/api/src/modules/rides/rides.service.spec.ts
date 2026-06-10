@@ -5,6 +5,7 @@ import { RidesService } from './rides.service';
 describe('RidesService', () => {
   let service: RidesService;
   let mockUserClient: ReturnType<typeof createMockClient>;
+  let mockEventEmitter: { emit: ReturnType<typeof vi.fn> };
 
   const userId = 'user-123';
 
@@ -95,11 +96,12 @@ describe('RidesService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUserClient = createMockClient();
+    mockEventEmitter = { emit: vi.fn() };
 
     service = new RidesService(
       mockUserClient as never,
       mockUserClient as never,
-      { emit: vi.fn() } as never,
+      mockEventEmitter as never,
     );
   });
 
@@ -187,6 +189,12 @@ describe('RidesService', () => {
     });
 
     it('should throw BadRequestException when ride not found', async () => {
+      // Completion UPDATE matches 0 rows (PGRST116)...
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'Row not found', code: 'PGRST116' },
+      });
+      // ...and the idempotent-retry SELECT finds no completed ride either.
       mockUserClient._pushResult({
         data: null,
         error: { message: 'Row not found', code: 'PGRST116' },
@@ -201,6 +209,36 @@ describe('RidesService', () => {
           autoPausedDurationS: 0,
         }),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should return the completed ride idempotently on retry-after-success (MOT-140)', async () => {
+      const completedRow = {
+        ...fakeRow,
+        status: 'completed',
+        ended_at: '2026-03-22T15:30:00Z',
+        distance_m: 45000,
+        mileage_applied: true,
+      };
+      // Completion UPDATE matches 0 rows because status is already 'completed'...
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'Row not found', code: 'PGRST116' },
+      });
+      // ...the idempotent-retry SELECT returns the already-completed ride.
+      mockUserClient._pushResult({ data: completedRow });
+
+      const result = await service.endRide(userId, {
+        rideId: 'ride-123',
+        endedAt: '2026-03-22T15:30:00Z',
+        distanceM: 45000,
+        pausedDurationS: 0,
+        autoPausedDurationS: 0,
+      });
+
+      expect(result.ride.status).toBe('completed');
+      expect(result.triggeredMaintenanceTasks).toEqual([]);
+      // No ride.completed event re-emitted on an idempotent retry
+      expect(mockEventEmitter.emit).not.toHaveBeenCalled();
     });
   });
 

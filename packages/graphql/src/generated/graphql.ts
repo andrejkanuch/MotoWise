@@ -2226,7 +2226,6 @@ export type SpendingSummary = {
 export type Sponsorship = {
   __typename?: 'Sponsorship';
   clicksCount: Scalars['Int']['output'];
-  costPerImpression: Scalars['Float']['output'];
   createdAt: Scalars['DateTime']['output'];
   ctaText?: Maybe<Scalars['String']['output']>;
   ctaUrl?: Maybe<Scalars['String']['output']>;
@@ -2235,10 +2234,8 @@ export type Sponsorship = {
   id: Scalars['ID']['output'];
   imageUrl?: Maybe<Scalars['String']['output']>;
   impressionsCount: Scalars['Int']['output'];
-  monthlyBudget: Scalars['Float']['output'];
   placementType: SponsorshipPlacementType;
   routeId: Scalars['ID']['output'];
-  spentThisMonth: Scalars['Float']['output'];
   sponsorId: Scalars['ID']['output'];
   startsAt: Scalars['DateTime']['output'];
   status: SponsorshipStatus;

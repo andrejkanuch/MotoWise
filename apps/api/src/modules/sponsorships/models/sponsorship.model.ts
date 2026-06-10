@@ -1,4 +1,4 @@
-import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import {
   GqlSponsorshipPlacementType,
   GqlSponsorshipStatus,
@@ -42,14 +42,8 @@ export class Sponsorship {
   @Field(() => GqlSponsorshipStatus)
   status: string;
 
-  @Field(() => Float)
-  costPerImpression: number;
-
-  @Field(() => Float)
-  monthlyBudget: number;
-
-  @Field(() => Float)
-  spentThisMonth: number;
+  // costPerImpression / monthlyBudget / spentThisMonth are intentionally NOT
+  // exposed: sponsor billing internals are not public API (audit H8).
 
   @Field()
   startsAt: Date;

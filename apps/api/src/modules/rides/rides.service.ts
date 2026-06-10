@@ -99,6 +99,24 @@ export class RidesService {
       .single();
 
     if (error || !data) {
+      // Idempotent retry (MOT-140): a sync-queue retry or duplicate tap arrives
+      // after the ride is already completed; the status filter above matched 0
+      // rows. Return the completed ride as success — do NOT re-emit ride.completed
+      // or re-apply mileage.
+      if (error?.code === 'PGRST116') {
+        const { data: existing } = await this.supabase
+          .from('rides')
+          .select('*')
+          .eq('id', input.rideId)
+          .eq('user_id', userId)
+          .eq('status', 'completed')
+          .is('deleted_at', null)
+          .single();
+        if (existing) {
+          this.logger.log(`endRide: ride ${input.rideId} already completed — idempotent success`);
+          return { ride: this.mapRow(existing), triggeredMaintenanceTasks: [] };
+        }
+      }
       this.logger.error(`endRide failed: ${error?.message} (${error?.code})`);
       throw new BadRequestException('Failed to end ride');
     }
@@ -106,15 +124,23 @@ export class RidesService {
     const ride = this.mapRow(data);
     let triggeredMaintenanceTasks: { id: string; title: string; priority: string }[] = [];
 
-    // Auto-apply mileage to motorcycle
-    const motorcycleId = data.motorcycle_id;
-    const distanceM = input.distanceM ?? 0;
+    // MOT-140: claim-first odometer sync. A single conditional UPDATE flips
+    // mileage_applied false→true and returns the row to exactly ONE caller;
+    // concurrent endRides (two devices) and retries match 0 rows and skip the
+    // odometer, so mileage is applied exactly once with no read-modify-write race.
+    const { data: claimed } = await this.supabase
+      .from('rides')
+      .update({ mileage_applied: true })
+      .eq('id', input.rideId)
+      .eq('user_id', userId)
+      .eq('mileage_applied', false)
+      .select('distance_m, motorcycle_id')
+      .single();
 
-    // MOT-140: Idempotency — only sync each ride into the odometer once.
-    // The existing rides.mileage_applied flag already exists from 00047 and
-    // is reused here as the sync guard so re-running endRide (e.g. after a
-    // network retry) cannot double-count.
-    if (motorcycleId && distanceM > 0 && !data.mileage_applied) {
+    const motorcycleId = claimed?.motorcycle_id;
+    const distanceM = claimed?.distance_m ?? 0;
+
+    if (claimed && motorcycleId && distanceM > 0) {
       try {
         // Defense-in-depth: filter by user_id alongside RLS
         const { data: bike } = await this.supabase
@@ -146,12 +172,10 @@ export class RidesService {
           .eq('id', motorcycleId)
           .eq('user_id', userId);
 
-        await this.supabase
-          .from('rides')
-          .update({ mileage_applied: true })
-          .eq('id', input.rideId)
-          .eq('user_id', userId);
-
+        // NOTE: mileage_applied was already claimed above, so a failure in this
+        // block leaves it true — the ride won't re-sync on retry. A missed
+        // odometer update is rare and user-correctable via manual edit; this is
+        // the deliberate trade for race-free exactly-once application.
         this.logger.log(
           `Odometer sync: +${roundedDelta}${unit} to motorcycle ${motorcycleId} (total: ${newMileage}${unit}, ride=${input.rideId})`,
         );
