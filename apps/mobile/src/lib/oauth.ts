@@ -1,5 +1,5 @@
 import { GoogleSignin, isSuccessResponse } from '@react-native-google-signin/google-signin';
-import type { User } from '@supabase/supabase-js';
+import type { Session, User } from '@supabase/supabase-js';
 import { differenceInSeconds } from 'date-fns';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Crypto from 'expo-crypto';
@@ -34,15 +34,47 @@ export function reportUnexpectedAuthError(err: unknown, report: (e: unknown) => 
 export type OAuthResult = { isNewUser: boolean };
 
 /**
- * A freshly-created OAuth user has `created_at` within a few seconds of `last_sign_in_at`.
- * Using the auth result (not which screen the button was on) is the only reliable way to
- * tell signups from returning sign-ins — the same Apple/Google buttons appear on both screens.
+ * Determine whether an OAuth sign-in just created a brand-new account, so we can
+ * attribute `user_signed_up` vs `user_signed_in`. The same Apple/Google buttons
+ * appear on both the login and register screens, so the screen can't tell us.
+ *
+ * We can't trust a single field on the `signInWithIdToken` response: in production
+ * a tight `last_sign_in_at ≈ created_at` (< 5s) check mis-tagged ~80% of real
+ * OAuth signups as sign-ins, because the returned user's timestamps were
+ * inconsistent across providers. So we use two independent signals and treat
+ * EITHER as "new":
+ *   1. First-ever sign-in — `last_sign_in_at` within 30s of `created_at`
+ *      (server vs server, immune to device clock skew).
+ *   2. Created moments ago — `created_at` within 5 min of `now` (catches the
+ *      case where `last_sign_in_at` is advanced or absent on the returned user).
+ *
+ * Returning users have `created_at` hours-to-days old and a large sign-in gap, so
+ * neither signal fires — no false positives. Exported + `now` injectable for tests.
  */
-function isNewlyCreatedUser(user: User | null): boolean {
+export function isNewlyCreatedUser(
+  user: Pick<User, 'created_at' | 'last_sign_in_at'> | null,
+  now: Date = new Date(),
+): boolean {
   if (!user?.created_at) return false;
   const created = new Date(user.created_at);
   const lastSignIn = user.last_sign_in_at ? new Date(user.last_sign_in_at) : created;
-  return Math.abs(differenceInSeconds(lastSignIn, created)) < 5;
+  const firstEverSignIn = Math.abs(differenceInSeconds(lastSignIn, created)) < 30;
+  const createdJustNow = differenceInSeconds(now, created) < 300;
+  return firstEverSignIn || createdJustNow;
+}
+
+/**
+ * Pick the user from a successful `signInWithIdToken` response. After
+ * `if (error) throw error`, the SDK types narrow `data` to a non-null
+ * `{ user, session }`, so `data.user` is statically always present. We still
+ * fall back to `data.session.user` defensively: this is the only place that
+ * decides which user object feeds new-vs-returning attribution, and keeping the
+ * fallback in one spot means a single edit covers both Apple and Google. The
+ * fallback is otherwise a no-op, so the cast surface is zero. (No trailing
+ * `?? null` — both fields are typed non-null.)
+ */
+export function resolveUser(data: { user: User; session: Session }): User {
+  return data.user ?? data.session.user;
 }
 
 GoogleSignin.configure({
@@ -67,7 +99,7 @@ export async function signInWithApple(): Promise<OAuthResult> {
     nonce,
   });
   if (error) throw error;
-  return { isNewUser: isNewlyCreatedUser(data.user) };
+  return { isNewUser: isNewlyCreatedUser(resolveUser(data)) };
 }
 
 export async function signInWithGoogle(): Promise<OAuthResult> {
@@ -86,5 +118,5 @@ export async function signInWithGoogle(): Promise<OAuthResult> {
     token: idToken,
   });
   if (error) throw error;
-  return { isNewUser: isNewlyCreatedUser(data.user) };
+  return { isNewUser: isNewlyCreatedUser(resolveUser(data)) };
 }

@@ -1,6 +1,7 @@
 import { palette } from '@motovault/design-system';
 import type { Waypoint } from '@motovault/types';
 import MapboxGL, { UserTrackingMode } from '@rnmapbox/maps';
+import { PostHogMaskView } from 'posthog-react-native';
 import { useMemo } from 'react';
 import { useColorScheme, View } from 'react-native';
 import { MAP_STYLES } from '../../utils/map-styles';
@@ -46,7 +47,10 @@ export function HudMap({ waypoints, gpsAccuracy }: HudMapProps) {
   const gpsColor = getGpsColor(gpsAccuracy);
 
   return (
-    <View style={{ flex: 1, backgroundColor: palette.neutral950 }}>
+    // Mask the live GPS track from session replay — `maskAllImages` does not
+    // cover native/GPU mapbox surfaces, so the rider's route would otherwise be
+    // captured in plaintext. (todo 186)
+    <PostHogMaskView style={{ flex: 1, backgroundColor: palette.neutral950 }}>
       <MapboxGL.MapView
         style={{ flex: 1 }}
         styleURL={MAP_STYLES[isDark ? 'dark' : 'light']}
@@ -93,6 +97,6 @@ export function HudMap({ waypoints, gpsAccuracy }: HudMapProps) {
           borderColor: palette.surfaceOverlay,
         }}
       />
-    </View>
+    </PostHogMaskView>
   );
 }

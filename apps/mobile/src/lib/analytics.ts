@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/react-native';
 import Constants from 'expo-constants';
 import PostHog from 'posthog-react-native';
 import { Settings } from 'react-native-fbsdk-next';
+import { getStoredAnalyticsConsent, setStoredAnalyticsConsent } from './analytics-consent';
 import { getStoredUtmProperties } from './meta-attribution';
 
 // -------------------------------------------------------------------
@@ -22,9 +23,48 @@ const POSTHOG_HOST = Constants.expoConfig?.extra?.posthogHost ?? 'https://eu.i.p
 // The client is disabled when no API key is configured, so events are no-ops.
 export const posthogClient: PostHog = new PostHog(POSTHOG_API_KEY || 'placeholder', {
   host: POSTHOG_HOST,
-  enableSessionReplay: false,
-  disabled: !POSTHOG_API_KEY,
+  // No PostHog data is sent in development — only release builds report to
+  // PostHog. `__DEV__` is true under Metro/dev-client and false in EAS
+  // preview/production builds, mirroring the Sentry `enabled: !__DEV__` gate
+  // above. `disabled: true` makes all capture/screen/replay calls safe no-ops.
+  disabled: __DEV__ || !POSTHOG_API_KEY,
+  // Session replay only in release builds (redundant with `disabled` in dev,
+  // but explicit). The recorder is CONSENT-GATED: the SDK auto-starts replay on
+  // init based only on `enableSessionReplay` + remote config — it does NOT check
+  // the user's opt-out — so we immediately `stopSessionRecording()` after init
+  // unless last-known consent is true, and `setAnalyticsEnabled` is the single
+  // source of truth that starts/stops the recorder thereafter (see todo 184).
+  //
+  // Masking is best-effort, NOT a guarantee that no PII is captured:
+  //  - `maskAllTextInputs` masks `TextInput` only — read-only `<Text>` (VIN,
+  //    email, paywall copy) is captured unless wrapped in `<PostHogMaskView>`.
+  //  - `maskAllImages` masks RN `<Image>` only — native/GPU map surfaces
+  //    (mapbox GPS tracks) are NOT covered; those screens are wrapped in
+  //    `<PostHogMaskView>` (see todo 186).
+  //  - `captureLog` is OFF: `console.*` is a text side-channel masking can't
+  //    touch and the app logs coordinates/auth/purchase context (see todo 185).
+  enableSessionReplay: !__DEV__,
+  sessionReplayConfig: {
+    maskAllTextInputs: true,
+    maskAllImages: true,
+    maskAllSandboxedViews: true,
+    captureLog: false,
+  },
 });
+
+// Default replay OFF until consent is confirmed. The SDK auto-starts the
+// recorder at construction (gated only by `enableSessionReplay`/remote config,
+// NOT by opt-out), so without this a pre-consent user — including the
+// cold-start/login/onboarding window before the server `me` query resolves —
+// would be recorded. We stop immediately unless the last-known consent
+// (persisted locally) is true, then `setAnalyticsEnabled` takes over.
+if (!__DEV__ && POSTHOG_API_KEY) {
+  const consented = getStoredAnalyticsConsent();
+  if (!consented) {
+    // Fire-and-forget: stop any recording the SDK may have auto-started.
+    void posthogClient.stopSessionRecording();
+  }
+}
 
 let analyticsEnabled = true;
 let crashReportingEnabled = true;
@@ -134,10 +174,22 @@ export function initPostHog() {
 
 export function setAnalyticsEnabled(enabled: boolean) {
   analyticsEnabled = enabled;
-  if (!enabled && posthogClient) {
-    posthogClient.optOut();
-  } else if (enabled && posthogClient) {
-    posthogClient.optIn();
+  // Persist consent so the recorder can be gated synchronously on the next
+  // cold start, before the server `me` query resolves (closes the pre-consent
+  // recording window — todo 184).
+  setStoredAnalyticsConsent(enabled);
+  if (posthogClient) {
+    if (enabled) {
+      posthogClient.optIn();
+      // `optIn`/`optOut` only gate the JS event queue — they do NOT control the
+      // native session-replay recorder. Drive it explicitly so consent is
+      // actually enforced for replay (todo 184). No-op when replay is disabled
+      // (dev / no API key) or not on iOS/Android.
+      void posthogClient.startSessionRecording();
+    } else {
+      posthogClient.optOut();
+      void posthogClient.stopSessionRecording();
+    }
   }
   try {
     Settings.setAdvertiserTrackingEnabled(enabled);

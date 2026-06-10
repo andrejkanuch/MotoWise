@@ -15,6 +15,7 @@ import {
   Star,
   TrendingUp,
 } from 'lucide-react-native';
+import { PostHogMaskView } from 'posthog-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
@@ -303,7 +304,9 @@ export default function UpgradeScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: palette.surfaceDark }}>
+    // Mask the paywall price/entitlement copy from session replay — read-only
+    // `<Text>` is not covered by `maskAllTextInputs`. (todo 186)
+    <PostHogMaskView style={{ flex: 1, backgroundColor: palette.surfaceDark }}>
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: 24,
@@ -552,6 +555,6 @@ export default function UpgradeScreen() {
           </Pressable>
         </View>
       </ScrollView>
-    </View>
+    </PostHogMaskView>
   );
 }
