@@ -1,5 +1,5 @@
 import { type ModelInsightsPayload, ModelInsightsPayloadSchema } from '@motovault/types';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
@@ -11,7 +11,6 @@ import { buildInsightsUserPrompt, INSIGHTS_SYSTEM_PROMPT } from '../insights-pro
 @Injectable()
 export class OpenAiInsightsProvider implements AiInsightsProvider {
   readonly name = 'openai';
-  private readonly logger = new Logger(OpenAiInsightsProvider.name);
   private readonly client: OpenAI | null;
 
   constructor(configService: ConfigService) {

@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { jsonSchemaOutputFormat } from '@anthropic-ai/sdk/helpers/json-schema';
 import { type ModelInsightsPayload, ModelInsightsPayloadSchema } from '@motovault/types';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { AiInsightsProvider, ModelInsightsRequest } from '../ai-provider.interface';
 import { buildInsightsUserPrompt, INSIGHTS_SYSTEM_PROMPT } from '../insights-prompt';
@@ -44,7 +44,6 @@ const OUTPUT_SCHEMA = {
 @Injectable()
 export class AnthropicInsightsProvider implements AiInsightsProvider {
   readonly name = 'claude';
-  private readonly logger = new Logger(AnthropicInsightsProvider.name);
   private readonly client: Anthropic | null;
   private readonly model: string;
 

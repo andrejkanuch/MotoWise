@@ -46,3 +46,49 @@ Step-specific `onboarding_step_completed` properties (pre-existing, unchanged): 
 - Exclude internal users/Expo Go (paywall step emits `paywall_result: skipped_expo_go` — exclude from primary metric).
 - `filterTestAccounts` per PostHog audit 2026-05-30.
 - The variant is assigned pre-auth on the anonymous distinct_id; `identifyUser(supabaseUUID)` at account creation merges the anonymous person into the identified person, so pre- and post-auth events join.
+
+
+---
+
+## Manual QA checklist (both arms)
+
+Run on a dev build (not Expo Go — RC paywall is unavailable there). Toggle the
+variant by forcing the flag in PostHog (or clear the `experiment-store` MMKV to
+re-roll). Verify in PostHog Live Events that `variant` is on every event.
+
+**Variant A (lean) — happy path**
+- [ ] Fresh install → Welcome renders only after the variant resolves (no flash)
+- [ ] Flow order: Experience → Bike → Reveal → Goals → Maintenance → Commitment → Paywall → Account → Notifications → Personalizing
+- [ ] Reveal leads with the recall check; AI known-issues card shows when ready, hides otherwise
+- [ ] Commitment: press-and-hold fills (~0.85s) + success haptic
+- [ ] Paywall presents anonymously (no account yet); purchase unlocks Pro
+- [ ] Account screen shows "You're Pro / Secure your subscription"; Apple/Google/email create account → advances
+- [ ] `onboarding_completed` fires with `variant=lean`, `has_bike=true`, `primary_goal`
+
+**Variant B (invested) — happy path**
+- [ ] Flow adds Frequency → Stay-on-top → Last service before Bike, and Building-plan before Reveal
+- [ ] Building-plan advances at data-ready or the 2.5s cap (never spins)
+- [ ] Reveal leads with the cost projection (EUR) + recall check + AI known-issues
+- [ ] Commitment hold is longer (~1.5s)
+- [ ] Progress bar shows more segments than A
+
+**Bike activation (both)**
+- [ ] Full make+model capture → `bike_added` with `capture_level=model`
+- [ ] Demoted skip / partial capture → still sets a make-level bike → `bike_added` with `capture_level=make`; `has_bike=true` at completion
+- [ ] Maintenance never dead-ends (bike always present in lean/invested)
+
+**Auth / RevenueCat**
+- [ ] Free path: dismiss paywall → Account framed "Save your setup" → account still required to enter app
+- [ ] Restore purchases (native RC paywall button) → entitlement restored → Account/continue
+- [ ] "Already have an account? Sign in" (account screen) → sign-in → returning, already-onboarded user lands in tabs
+- [ ] Purchase made anonymously then account created → entitlement persists (RC logIn(uuid) aliased)
+
+**Degradation**
+- [ ] Airplane mode at first launch → variant defaults to `lean` (fallback), flow still runs
+- [ ] API/AI down → Reveal shows facts (recalls/cost/community) with the AI card hidden; never blocks
+- [ ] `control` variant (or flag disabled) → unchanged V4 flow (auth-first)
+
+**Config tasks (out of code)**
+- [ ] RevenueCat: Restore Behavior = "Transfer to new App User ID"
+- [ ] API env: `ANTHROPIC_API_KEY` (optional), `AI_INSIGHTS_ENABLED=true`, `AI_INSIGHTS_TIMEOUT_MS=2000`
+- [ ] PostHog flag `onboarding_ab_2026` rollout set (lean/invested 50/50, control 0)
