@@ -188,6 +188,48 @@ describe('RidesService', () => {
       expect(mockUserClient._chain.is).toHaveBeenCalledWith('deleted_at', null);
     });
 
+    it('applies mileage once (claim-first) and returns triggered maintenance (MOT-140)', async () => {
+      const completedRow = {
+        ...fakeRow,
+        status: 'completed',
+        ended_at: '2026-03-22T15:30:00Z',
+        distance_m: 32186, // ~20 mi in meters
+      };
+      // 0: completion UPDATE .single()
+      mockUserClient._pushResult({ data: completedRow });
+      // 1: claim UPDATE (mileage_applied false→true) .select(...).single() — this caller wins
+      mockUserClient._pushResult({ data: { distance_m: 32186, motorcycle_id: 'moto-456' } });
+      // 2: bike read .single() — mileage stored in miles
+      mockUserClient._pushResult({ data: { current_mileage: 1000, mileage_unit: 'mi' } });
+      // 3: motorcycle odometer UPDATE (thenable)
+      mockUserClient._pushResult({ data: null, error: null });
+      // 4: due maintenance_tasks query (thenable) — none due
+      mockUserClient._pushResult({ data: [] });
+
+      const result = await service.endRide(userId, {
+        rideId: 'ride-123',
+        endedAt: '2026-03-22T15:30:00Z',
+        distanceM: 32186,
+        pausedDurationS: 0,
+        autoPausedDurationS: 0,
+      });
+
+      expect(result.ride.status).toBe('completed');
+      // claim-first: exactly one mileage_applied=true UPDATE gated on mileage_applied=false
+      expect(mockUserClient._chain.update).toHaveBeenCalledWith({ mileage_applied: true });
+      expect(mockUserClient._chain.eq).toHaveBeenCalledWith('mileage_applied', false);
+      // odometer advanced by the ride distance converted to the bike's unit (miles)
+      expect(mockUserClient._chain.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          current_mileage: 1020, // 1000 + round(metersToUnit(32186, 'mi')) === 1020
+          odometer_sync_source: 'gps_ride',
+          odometer_last_ride_id: 'ride-123',
+        }),
+      );
+      // ride.completed event emitted exactly once on a real completion
+      expect(mockEventEmitter.emit).toHaveBeenCalledTimes(1);
+    });
+
     it('should throw BadRequestException when ride not found', async () => {
       // Completion UPDATE matches 0 rows (PGRST116)...
       mockUserClient._pushResult({

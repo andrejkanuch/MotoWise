@@ -302,6 +302,13 @@ export class AiBudgetService {
    * Enforce the free-tier per-feature quota for a content type (dispatch
    * table above). Pro users are never limited. Fails CLOSED on lookup errors
    * — these checks gate paid AI spend (precedent: ride-summaries).
+   *
+   * NOTE: this is a MONTHLY count-then-act check, so a burst of concurrent
+   * free-tier requests can overrun the monthly cap by up to (concurrency - 1).
+   * That residual race is intentionally NOT closed here (unlike the daily
+   * insights path, which uses the advisory-locked reserve_ai_generation RPC):
+   * the global per-day spend cap (checkGlobalSpend, fail-closed circuit breaker)
+   * is the financial backstop, and the bounded monthly overage is acceptable.
    */
   async enforceFeatureLimit(userId: string, feature: LimitedAiFeature): Promise<void> {
     const rule: FeatureLimitRule = AI_FEATURE_LIMIT_RULES[feature];

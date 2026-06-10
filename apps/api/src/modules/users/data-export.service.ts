@@ -13,6 +13,8 @@ import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { DataExportRequest } from './models/data-export-request.model';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 @Injectable()
 export class DataExportService {
   private readonly logger = new Logger(DataExportService.name);
@@ -79,6 +81,13 @@ export class DataExportService {
         .from('data_export_requests')
         .update({ status: 'processing' })
         .eq('id', exportId);
+
+      // userId is the verified JWT sub (always a UUID from Supabase), but the
+      // follows export interpolates it into a PostgREST .or() filter string —
+      // validate the shape as defense-in-depth before that one non-parameterized sink.
+      if (!UUID_REGEX.test(userId)) {
+        throw new BadRequestException('Invalid user id');
+      }
 
       // Gather all user data
       const maxRows = QUERY_LIMITS.MAX_EXPORT_ROWS_PER_TABLE;
