@@ -414,4 +414,65 @@ describe('RidesService', () => {
       await expect(service.findById(userId, 'ride-123')).rejects.toThrow(NotFoundException);
     });
   });
+
+  // Visibility canonicalization (audit C6): `visibility` is the canonical access column
+  // (RLS gates on it); `is_public` is dual-written until every SQL consumer migrates off
+  // it. mapRow DERIVES isPublic from visibility so old + new clients never disagree.
+  describe('visibility dual-write', () => {
+    it('updateRide({ isPublic: true }) writes BOTH is_public=true AND visibility=public', async () => {
+      mockUserClient._pushResult({ data: { ...fakeRow, is_public: true, visibility: 'public' } });
+
+      const result = await service.updateRide(userId, { rideId: 'ride-123', isPublic: true });
+
+      expect(mockUserClient._chain.update).toHaveBeenCalledWith(
+        expect.objectContaining({ is_public: true, visibility: 'public' }),
+      );
+      expect(result.isPublic).toBe(true);
+      expect(result.visibility).toBe('public');
+    });
+
+    it('updateRide({ isPublic: false }) writes is_public=false AND visibility=private', async () => {
+      mockUserClient._pushResult({ data: { ...fakeRow, is_public: false, visibility: 'private' } });
+
+      await service.updateRide(userId, { rideId: 'ride-123', isPublic: false });
+
+      expect(mockUserClient._chain.update).toHaveBeenCalledWith(
+        expect.objectContaining({ is_public: false, visibility: 'private' }),
+      );
+    });
+
+    it('updateRideVisibility("public") writes visibility=public AND is_public=true', async () => {
+      mockUserClient._pushResult({ data: { ...fakeRow, is_public: true, visibility: 'public' } });
+
+      const result = await service.updateRideVisibility(userId, 'ride-123', 'public');
+
+      expect(mockUserClient._chain.update).toHaveBeenCalledWith(
+        expect.objectContaining({ visibility: 'public', is_public: true }),
+      );
+      expect(result.visibility).toBe('public');
+      expect(result.isPublic).toBe(true);
+    });
+
+    it('updateRideVisibility("unlisted") sets is_public=false (only "public" is public)', async () => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, is_public: false, visibility: 'unlisted' },
+      });
+
+      await service.updateRideVisibility(userId, 'ride-123', 'unlisted');
+
+      expect(mockUserClient._chain.update).toHaveBeenCalledWith(
+        expect.objectContaining({ visibility: 'unlisted', is_public: false }),
+      );
+    });
+
+    it('mapRow derives isPublic from canonical visibility, ignoring a stale is_public column', async () => {
+      // Drifted row: is_public=false but visibility=public → canonical wins.
+      mockUserClient._pushResult({ data: { ...fakeRow, is_public: false, visibility: 'public' } });
+
+      const result = await service.findById(userId, 'ride-123');
+
+      expect(result.visibility).toBe('public');
+      expect(result.isPublic).toBe(true);
+    });
+  });
 });
