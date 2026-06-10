@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { PG_ERROR, unwrap } from '../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { Expense } from './models/expense.model';
@@ -102,12 +103,12 @@ export class ExpensesService {
       query = query.gte('date', yearStart).lte('date', yearEnd);
     }
 
-    const { data, error } = await query;
-
-    if (error) {
-      this.logger.error(`findByMotorcycle failed: ${error.message} (${error.code})`);
-      throw new InternalServerErrorException('Failed to fetch expenses');
-    }
+    const result = await query;
+    const data = unwrap(result, {
+      logger: this.logger,
+      op: 'findByMotorcycle',
+      message: 'Failed to fetch expenses',
+    });
 
     const rows = (data ?? []).map((row) => this.mapRow(row));
 
@@ -226,7 +227,7 @@ export class ExpensesService {
 
     if (error) {
       // Handle unique constraint violation (duplicate maintenance_task_id) gracefully
-      if (error.code === '23505') {
+      if (error.code === PG_ERROR.UNIQUE_VIOLATION) {
         this.logger.warn(`createFromTask: duplicate expense for taskId=${taskId}, skipping`);
         return null;
       }
@@ -244,14 +245,14 @@ export class ExpensesService {
     // path fetched a 5000-row slice with no ORDER BY and summed in JS — silently
     // wrong past 5000 expenses. The RPC scopes rows to auth.uid() internally
     // (SECURITY INVOKER + user client), so it needs only the motorcycle id.
-    const { data, error } = await this.supabase.rpc('expense_dashboard_aggregates', {
+    const rpcResult = await this.supabase.rpc('expense_dashboard_aggregates', {
       p_motorcycle_id: motorcycleId,
     });
-
-    if (error) {
-      this.logger.error(`getDashboard failed: ${error.message} (${error.code})`);
-      throw new InternalServerErrorException('Failed to fetch expense dashboard');
-    }
+    const data = unwrap(rpcResult, {
+      logger: this.logger,
+      op: 'getDashboard',
+      message: 'Failed to fetch expense dashboard',
+    });
 
     const result = (data ?? {}) as DashboardAggregateResult;
 

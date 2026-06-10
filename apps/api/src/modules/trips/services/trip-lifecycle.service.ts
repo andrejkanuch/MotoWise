@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { buildConnection, decodeCursor, encodeCursor } from '../../../common/pagination/connection';
+import { PG_ERROR } from '../../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { Trip, TripConnection, TripWaypoint } from '../models/trip.model';
@@ -222,7 +223,7 @@ export async function verifyOrganiser(
     .single();
 
   if (error || !existing) {
-    if (error?.code === 'PGRST116') {
+    if (error?.code === PG_ERROR.NOT_FOUND) {
       throw new NotFoundException('Trip not found');
     }
     logger.error(`verifyOrganiser failed: ${error?.message}`);
@@ -417,7 +418,7 @@ export class TripLifecycleService {
       .single();
 
     if (tripError || !tripData) {
-      if (tripError?.code === 'PGRST116') {
+      if (tripError?.code === PG_ERROR.NOT_FOUND) {
         this.logger.warn(
           `tripDetail: trip=${tripId} not found for caller=${callerUserId ?? 'anon'} ` +
             '(RLS may be blocking — check visibility + participant status)',

@@ -8,6 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { PG_ERROR } from '../../../common/supabase/unwrap';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import { TripShareTokenError } from '../errors/trip-share-token.errors';
 import type { SharedTrip } from '../models/shared-trip.model';
@@ -116,7 +117,7 @@ export class TripSharingService {
     });
 
     if (error) {
-      if (error.code === '23505') {
+      if (error.code === PG_ERROR.UNIQUE_VIOLATION) {
         // Already invited — idempotent success
         return true;
       }

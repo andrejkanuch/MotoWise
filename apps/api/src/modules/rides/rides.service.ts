@@ -11,6 +11,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { RIDE_EVENTS } from '../../common/constants/events';
 import { buildConnection, decodeCursor, encodeCursor } from '../../common/pagination/connection';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { QUERY_LIMITS } from '../../config/constants';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -104,7 +105,7 @@ export class RidesService {
       // after the ride is already completed; the status filter above matched 0
       // rows. Return the completed ride as success — do NOT re-emit ride.completed
       // or re-apply mileage.
-      if (error?.code === 'PGRST116') {
+      if (error?.code === PG_ERROR.NOT_FOUND) {
         const { data: existing } = await this.supabase
           .from('rides')
           .select('*')
@@ -325,7 +326,7 @@ export class RidesService {
 
     // Idempotent: if the ride is already soft-deleted, treat as success
     // (sync queue retries, duplicate taps, etc.)
-    if (error?.code === 'PGRST116') {
+    if (error?.code === PG_ERROR.NOT_FOUND) {
       const { count } = await this.supabaseAdmin
         .from('rides')
         .select('id', { count: 'exact', head: true })
@@ -379,7 +380,7 @@ export class RidesService {
 
     if (error) {
       // Idempotent on duplicate — already shared
-      if (error.code === '23505') return true;
+      if (error.code === PG_ERROR.UNIQUE_VIOLATION) return true;
       this.logger.error(`shareRide failed: ${error.message}`);
       throw new BadRequestException('Failed to share ride');
     }

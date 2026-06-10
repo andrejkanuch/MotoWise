@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { decodeCursor, encodeCursor } from '../../../common/pagination/connection';
+import { PG_ERROR } from '../../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { TripConnection } from '../models/trip.model';
@@ -36,7 +37,7 @@ export class TripSavesService {
 
     if (error) {
       // Unique constraint violation = already saved, treat as success
-      if (error.code === '23505') return true;
+      if (error.code === PG_ERROR.UNIQUE_VIOLATION) return true;
       this.logger.error(`saveTrip failed: ${error.message} (${error.code})`);
       throw new InternalServerErrorException('Failed to save trip');
     }

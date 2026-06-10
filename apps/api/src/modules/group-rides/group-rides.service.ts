@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { buildConnection, decodeCursor, encodeCursor } from '../../common/pagination/connection';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { GroupRide, GroupRideConnection } from './models/group-ride.model';
@@ -145,7 +146,7 @@ export class GroupRidesService {
       .single();
 
     if (rideError || !rideData) {
-      if (rideError?.code === 'PGRST116') {
+      if (rideError?.code === PG_ERROR.NOT_FOUND) {
         throw new NotFoundException('Group ride not found');
       }
       this.logger.error(`getGroupRideDetail failed: ${rideError?.message} (${rideError?.code})`);
@@ -255,7 +256,7 @@ export class GroupRidesService {
       .single();
 
     if (checkError || !existing) {
-      if (checkError?.code === 'PGRST116') {
+      if (checkError?.code === PG_ERROR.NOT_FOUND) {
         throw new NotFoundException('Group ride not found');
       }
       this.logger.error(`updateGroupRide check failed: ${checkError?.message}`);
@@ -305,7 +306,7 @@ export class GroupRidesService {
       .single();
 
     if (checkError || !existing) {
-      if (checkError?.code === 'PGRST116') {
+      if (checkError?.code === PG_ERROR.NOT_FOUND) {
         throw new NotFoundException('Group ride not found');
       }
       this.logger.error(`cancelGroupRide check failed: ${checkError?.message}`);
@@ -360,7 +361,7 @@ export class GroupRidesService {
       .single();
 
     if (rideError || !ride) {
-      if (rideError?.code === 'PGRST116') {
+      if (rideError?.code === PG_ERROR.NOT_FOUND) {
         throw new NotFoundException('Group ride not found');
       }
       this.logger.error(`leaveGroupRide check failed: ${rideError?.message}`);
@@ -380,7 +381,7 @@ export class GroupRidesService {
       .single();
 
     if (error || !data) {
-      if (error?.code === 'PGRST116') {
+      if (error?.code === PG_ERROR.NOT_FOUND) {
         throw new BadRequestException('You are not a participant in this ride');
       }
       this.logger.error(`leaveGroupRide delete failed: ${error?.message}`);

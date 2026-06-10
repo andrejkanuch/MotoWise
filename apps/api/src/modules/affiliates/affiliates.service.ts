@@ -1,6 +1,7 @@
 import { AffiliatePartner } from '@motovault/types';
 import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { TrackClickInput } from './dto/track-click.input';
 import type { AffiliateProduct } from './models/affiliate-product.model';
@@ -45,7 +46,7 @@ export class AffiliatesService {
     });
 
     // Unique constraint violation (duplicate click same day) is non-fatal
-    const isDuplicate = error?.code === '23505';
+    const isDuplicate = error?.code === PG_ERROR.UNIQUE_VIOLATION;
 
     if (error && !isDuplicate) {
       this.logger.error(`trackClick failed: ${error.message} (${error.code})`);

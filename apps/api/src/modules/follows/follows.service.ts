@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { decodeCursor, encodeCursor } from '../../common/pagination/connection';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 
 /** Row shape for the follows table (not yet in database.types.ts) */
@@ -59,7 +60,7 @@ export class FollowsService {
 
     if (error || !data) {
       // Unique constraint violation = already following
-      if (error?.code === '23505') {
+      if (error?.code === PG_ERROR.UNIQUE_VIOLATION) {
         throw new BadRequestException('Already following this user');
       }
       this.logger.error(`follow failed: ${error?.message} (${error?.code})`);

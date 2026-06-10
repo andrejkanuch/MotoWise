@@ -10,6 +10,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { Motorcycle } from './models/motorcycle.model';
@@ -147,7 +148,7 @@ export class MotorcyclesService {
       // P1-106: VIN uniqueness violation — the existing unique index
       // idx_motorcycles_user_vin_active from migration 00005 throws 23505
       // when a user tries to assign the same VIN to two bikes.
-      if (error?.code === '23505' && error?.message?.includes('vin')) {
+      if (error?.code === PG_ERROR.UNIQUE_VIOLATION && error?.message?.includes('vin')) {
         throw new BadRequestException(
           'That VIN is already registered on another motorcycle in your garage.',
         );
