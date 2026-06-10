@@ -8,6 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { Comment, CommentConnection } from './models/comment.model';
 
@@ -233,7 +234,7 @@ export class CommentsService {
       .single();
 
     if (error || !data) {
-      if (error?.code === 'PGRST116') {
+      if (error?.code === PG_ERROR.NOT_FOUND) {
         throw new ForbiddenException('You can only delete your own comments');
       }
       this.logger.error(`deleteComment failed: ${error?.message}`);

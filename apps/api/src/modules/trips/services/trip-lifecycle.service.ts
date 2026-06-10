@@ -764,36 +764,50 @@ export class TripLifecycleService {
 
     const trip = mapRowToTrip(data as unknown as TripRow);
 
-    // Replace waypoints if provided (delete existing + insert new)
+    // Replace waypoints if provided. H11: the old path did a bare delete then a
+    // separate insert — a failed insert (or a dropped request between them) left
+    // the trip with zero waypoints and no rollback. replace_trip_waypoints
+    // (00148) does the delete + bulk insert atomically and checks organiser
+    // ownership via auth.uid() internally.
     if (input.waypoints) {
-      await this.supabase.from('trip_waypoints').delete().eq('trip_id', tripId);
+      const waypointPayload = input.waypoints.map((wp) => ({
+        type: wp.type,
+        name: wp.name,
+        lat: wp.lat,
+        lng: wp.lng,
+        notes: wp.notes ?? null,
+        sort_order: wp.sortOrder,
+        day_index: wp.dayIndex ?? 0,
+        period_of_day: wp.periodOfDay ?? null,
+      }));
 
-      if (input.waypoints.length > 0) {
-        const waypointRows = input.waypoints.map((wp) => ({
-          trip_id: tripId,
-          type: wp.type,
-          name: wp.name,
-          lat: wp.lat,
-          lng: wp.lng,
-          notes: wp.notes ?? null,
-          sort_order: wp.sortOrder,
-          day_index: wp.dayIndex ?? 0,
-          period_of_day: wp.periodOfDay ?? null,
-        }));
+      const { error: replaceError } = await this.supabase.rpc('replace_trip_waypoints', {
+        p_trip_id: tripId,
+        p_waypoints: waypointPayload,
+      });
 
-        const { data: waypointData, error: wpError } = await this.supabase
+      if (replaceError) {
+        this.logger.error(
+          `updateTrip waypoints failed: ${replaceError.message} (${replaceError.code})`,
+        );
+        throw new InternalServerErrorException('Failed to update trip waypoints');
+      }
+
+      if (waypointPayload.length > 0) {
+        const { data: waypointData, error: wpFetchError } = await this.supabase
           .from('trip_waypoints')
-          .insert(waypointRows)
-          .select('*');
+          .select('*')
+          .eq('trip_id', tripId)
+          .order('sort_order', { ascending: true });
 
-        if (wpError) {
-          this.logger.error(`updateTrip waypoints failed: ${wpError.message} (${wpError.code})`);
+        if (wpFetchError) {
+          this.logger.error(
+            `updateTrip waypoint refetch failed: ${wpFetchError.message} (${wpFetchError.code})`,
+          );
           throw new InternalServerErrorException('Failed to update trip waypoints');
         }
 
-        if (waypointData) {
-          trip.waypoints = (waypointData as unknown as WaypointRow[]).map(mapRowToWaypoint);
-        }
+        trip.waypoints = ((waypointData ?? []) as unknown as WaypointRow[]).map(mapRowToWaypoint);
       } else {
         trip.waypoints = [];
       }
@@ -869,13 +883,24 @@ export class TripLifecycleService {
       throw new BadRequestException('Ride has no route data');
     }
 
-    // 2. Check if already shared as a trip template
-    const { data: existing } = await this.supabase
+    // 2. Check if already shared as a trip template. Use maybeSingle(): .single()
+    // raises PGRST116 on 0 rows (the normal "not yet shared" case, which would
+    // surface as a 500) and silently passes the duplicate check when >1 row
+    // matches — exactly the rows we must reject.
+    const { data: existing, error: existingError } = await this.supabase
       .from('trips')
       .select('id')
       .eq('source_ride_id', input.rideId)
       .eq('is_template', true)
-      .single();
+      .limit(1)
+      .maybeSingle();
+
+    if (existingError) {
+      this.logger.error(
+        `shareRideAsTrip duplicate check failed: ${existingError.message} (${existingError.code})`,
+      );
+      throw new InternalServerErrorException('Failed to check existing shared ride');
+    }
 
     if (existing) {
       throw new BadRequestException('This ride is already shared on Discover');

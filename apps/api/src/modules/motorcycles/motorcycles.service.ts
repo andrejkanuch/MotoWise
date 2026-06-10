@@ -46,6 +46,23 @@ export class MotorcyclesService {
     return (data ?? []).map((row) => this.mapRow(row));
   }
 
+  /** Fetches a single owned motorcycle by id, or null if not found / not owned. */
+  async findById(userId: string, motorcycleId: string): Promise<Motorcycle | null> {
+    this.logger.debug(`findById: userId=${userId}, motorcycleId=${motorcycleId}`);
+    const { data, error } = await this.supabase
+      .from('motorcycles')
+      .select(MOTORCYCLE_SELECT)
+      .eq('user_id', userId)
+      .eq('id', motorcycleId)
+      .maybeSingle();
+
+    if (error) {
+      this.logger.error(`findById failed: ${error.message} (${error.code})`);
+      throw new InternalServerErrorException('Failed to fetch motorcycle');
+    }
+    return data ? this.mapRow(data) : null;
+  }
+
   async create(
     userId: string,
     input: { make: string; model: string; year: number; nickname?: string },

@@ -9,12 +9,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { TripConnection } from '../models/trip.model';
-import {
-  mapRowToTrip,
-  TRIP_DETAIL_SELECT,
-  TRIP_SELECT,
-  type TripRow,
-} from './trip-lifecycle.service';
+import { mapRowToTrip, TRIP_DETAIL_SELECT, type TripRow } from './trip-lifecycle.service';
 
 /** Row shape for trip_saves join */
 interface SaveRow {
@@ -119,9 +114,11 @@ export class TripSavesService {
 
     // Fetch the actual trip rows
     const tripIds = sliced.map((s) => s.trip_id);
+    // Use TRIP_DETAIL_SELECT: the list select omits template fields (polyline,
+    // distance, ratings, etc.) so saved template trips rendered with blanks.
     const { data: trips, error: tripsError } = await this.supabase
       .from('trips')
-      .select(TRIP_SELECT)
+      .select(TRIP_DETAIL_SELECT)
       .in('id', tripIds);
 
     if (tripsError) {

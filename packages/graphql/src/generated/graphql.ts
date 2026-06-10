@@ -749,11 +749,6 @@ export type LastRideSummary = {
   summaryTitle?: Maybe<Scalars['String']['output']>;
 };
 
-export type LatLngInput = {
-  lat: Scalars['Float']['input'];
-  lng: Scalars['Float']['input'];
-};
-
 export type LearningProgress = {
   __typename?: 'LearningProgress';
   articleId: Scalars['String']['output'];
@@ -1861,7 +1856,6 @@ export type QuerySearchArticlesArgs = {
 
 export type QuerySearchTypeaheadArgs = {
   limit?: Scalars['Int']['input'];
-  near?: InputMaybe<LatLngInput>;
   q?: InputMaybe<Scalars['String']['input']>;
 };
 

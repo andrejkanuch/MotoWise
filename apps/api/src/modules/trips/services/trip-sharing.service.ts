@@ -158,7 +158,11 @@ export class TripSharingService {
         p_bike_id: null,
       });
       if (joinError) {
-        this.logger.warn(`Accepted invite but join_trip failed: ${joinError.message}`);
+        // Previously this only warned and returned true, so the caller saw the
+        // invite as accepted while never becoming a participant. Throw so the
+        // failure surfaces (and the accepted_at write is reconciled by retry).
+        this.logger.error(`Accepted invite but join_trip failed: ${joinError.message}`);
+        throw new InternalServerErrorException('Failed to join trip after accepting invite');
       }
     }
     return true;

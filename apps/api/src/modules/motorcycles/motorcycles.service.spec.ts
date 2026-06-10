@@ -88,6 +88,58 @@ describe('MotorcyclesService', () => {
     });
   });
 
+  describe('findById', () => {
+    it('returns the mapped motorcycle when found', async () => {
+      (mockUserClient.from as ReturnType<typeof vi.fn>).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi.fn().mockResolvedValue({ data: sampleRow, error: null }),
+            }),
+          }),
+        }),
+      });
+
+      const result = await service.findById('user-1', 'moto-1');
+
+      expect(result).toEqual(expectedMapped);
+    });
+
+    it('returns null when no row matches (not found / not owned)', async () => {
+      (mockUserClient.from as ReturnType<typeof vi.fn>).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+            }),
+          }),
+        }),
+      });
+
+      const result = await service.findById('user-1', 'missing');
+
+      expect(result).toBeNull();
+    });
+
+    it('throws InternalServerErrorException on query error', async () => {
+      (mockUserClient.from as ReturnType<typeof vi.fn>).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi
+                .fn()
+                .mockResolvedValue({ data: null, error: { message: 'DB error', code: '42P01' } }),
+            }),
+          }),
+        }),
+      });
+
+      await expect(service.findById('user-1', 'moto-1')).rejects.toThrow(
+        InternalServerErrorException,
+      );
+    });
+  });
+
   describe('create', () => {
     it('should insert and return mapped result', async () => {
       // Mock enforceFreeTierBikeLimit (admin user lookup + count)

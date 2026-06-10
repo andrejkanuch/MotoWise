@@ -72,14 +72,20 @@ export class ArticlesService {
   }
 
   async findBySlug(slug: string): Promise<Article | null> {
+    // maybeSingle(): 0 rows is a legitimate "not found" (returns null), while a
+    // real DB error is logged and rethrown rather than masked as a 404.
     const { data, error } = await this.adminClient
       .from('articles')
       .select('*')
       .eq('slug', slug)
       .eq('is_hidden', false)
-      .single();
+      .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) {
+      this.logger.error(`findBySlug failed: ${error.message} (${error.code})`);
+      throw new InternalServerErrorException('Failed to fetch article');
+    }
+    if (!data) return null;
 
     // Fire-and-forget view count increment
     this.adminClient
@@ -97,9 +103,13 @@ export class ArticlesService {
       .select('*')
       .eq('slug', slug)
       .eq('is_hidden', false)
-      .single();
+      .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) {
+      this.logger.error(`findBySlugFull failed: ${error.message} (${error.code})`);
+      throw new InternalServerErrorException('Failed to fetch article');
+    }
+    if (!data) return null;
 
     // Fire-and-forget view count increment
     this.adminClient

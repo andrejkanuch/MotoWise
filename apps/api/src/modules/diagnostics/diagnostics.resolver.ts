@@ -96,8 +96,8 @@ export class DiagnosticsResolver {
     let engineCc: number | undefined;
 
     if (input.motorcycleId) {
-      const motorcycles = await this.motorcyclesService.findByUser(user.id);
-      const motorcycle = motorcycles.find((m) => m.id === input.motorcycleId);
+      // Fetch the one bike directly instead of pulling the whole garage to .find() it.
+      const motorcycle = await this.motorcyclesService.findById(user.id, input.motorcycleId);
       if (!motorcycle) {
         throw new BadRequestException('Motorcycle not found');
       }

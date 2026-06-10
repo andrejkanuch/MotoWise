@@ -693,11 +693,6 @@ type LastRideSummary {
   summaryTitle: String
 }
 
-input LatLngInput {
-  lat: Float!
-  lng: Float!
-}
-
 type LearningProgress {
   articleId: String!
   articleRead: Boolean!
@@ -1115,7 +1110,7 @@ type Query {
   routeSponsorships(routeId: ID!): [Sponsorship!]!
   savedTrips(after: String, first: Int = 20): TripConnection!
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
-  searchTypeahead(limit: Int! = 8, near: LatLngInput, q: String): TypeaheadResult!
+  searchTypeahead(limit: Int! = 8, q: String): TypeaheadResult!
   sharedBikeHistory(token: String!): SharedBikeHistory!
 
   """
