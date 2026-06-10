@@ -48,6 +48,7 @@ const {
   getResumeRoute,
   getPreviousRoute,
   OB_SCREEN,
+  OB_VARIANT,
 } = require('../config/onboarding');
 
 // ---------- Checklist Store ----------
@@ -266,25 +267,31 @@ describe('Onboarding Config', () => {
     });
   });
 
-  describe('getResumeRoute', () => {
+  describe('getResumeRoute (control / V4 flow)', () => {
     it('returns the next screen after the last completed one', () => {
-      expect(getResumeRoute(OB_SCREEN.EXPERIENCE)).toBe('/(onboarding)/goals');
-      expect(getResumeRoute(OB_SCREEN.WELCOME)).toBe('/(onboarding)/experience');
+      expect(getResumeRoute(OB_VARIANT.CONTROL, OB_SCREEN.EXPERIENCE)).toBe('/(onboarding)/goals');
+      expect(getResumeRoute(OB_VARIANT.CONTROL, OB_SCREEN.WELCOME)).toBe(
+        '/(onboarding)/experience',
+      );
     });
 
     it('returns null for the final screen (nothing to resume)', () => {
-      expect(getResumeRoute(OB_SCREEN.PERSONALIZING)).toBeNull();
+      expect(getResumeRoute(OB_VARIANT.CONTROL, OB_SCREEN.PERSONALIZING)).toBeNull();
     });
   });
 
-  describe('getPreviousRoute', () => {
+  describe('getPreviousRoute (control / V4 flow)', () => {
     it('returns the screen immediately before the current one', () => {
-      expect(getPreviousRoute(OB_SCREEN.GOALS)).toBe('/(onboarding)/experience');
-      expect(getPreviousRoute(OB_SCREEN.PERSONALIZING)).toBe('/(onboarding)/notifications');
+      expect(getPreviousRoute(OB_VARIANT.CONTROL, OB_SCREEN.GOALS)).toBe(
+        '/(onboarding)/experience',
+      );
+      expect(getPreviousRoute(OB_VARIANT.CONTROL, OB_SCREEN.PERSONALIZING)).toBe(
+        '/(onboarding)/notifications',
+      );
     });
 
     it('returns null for the first screen (nothing to go back to)', () => {
-      expect(getPreviousRoute(OB_SCREEN.WELCOME)).toBeNull();
+      expect(getPreviousRoute(OB_VARIANT.CONTROL, OB_SCREEN.WELCOME)).toBeNull();
     });
   });
 });

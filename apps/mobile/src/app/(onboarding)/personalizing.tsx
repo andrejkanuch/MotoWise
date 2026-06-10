@@ -24,7 +24,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
-import { getPrimaryGoal, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
+import { getPrimaryGoal, OB_SCREEN } from '../../config/onboarding';
+import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { detectCurrency } from '../../lib/locale-detection';
@@ -56,6 +57,7 @@ const MIN_ANIMATION_MS = 2500;
 
 export default function PersonalizingScreen() {
   const { t } = useTranslation();
+  const { totalScreens } = useOnboardingStep(OB_SCREEN.PERSONALIZING);
   const [visibleSteps, setVisibleSteps] = useState(0);
   const {
     experienceLevel,
@@ -170,7 +172,7 @@ export default function PersonalizingScreen() {
         goals_count: ridingGoals.length,
         goals: ridingGoals.join(','),
         primary_goal: primaryGoal,
-        total_screens: TOTAL_SCREENS,
+        total_screens: totalScreens,
         ...(bikeData && {
           bike_make: bikeData.make,
           bike_model: bikeData.model,

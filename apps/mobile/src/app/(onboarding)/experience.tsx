@@ -2,7 +2,7 @@ import { palette } from '@motovault/design-system';
 import type { ExperienceLevel } from '@motovault/types';
 import { NotificationFeedbackType } from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { Bike, Check, Flame, Gauge } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -24,8 +24,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, Line, Stop, LinearGradient as SvgLinearGradient } from 'react-native-svg';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
+import { OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
+import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -586,8 +587,9 @@ function AffirmDot({ accent }: { accent: string }) {
 
 export default function ExperienceScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.EXPERIENCE);
+  const goNext = useOnboardingNext(OB_SCREEN.EXPERIENCE);
   const setExperienceLevel = useOnboardingStore((s) => s.setExperienceLevel);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
   const storedLevel = useOnboardingStore((s) => s.experienceLevel);
@@ -636,7 +638,7 @@ export default function ExperienceScreen() {
 
     // Longer delay so the affirmation text can be read
     autoAdvanceRef.current = setTimeout(() => {
-      router.push(OB_ROUTE.GOALS);
+      goNext();
     }, 1400);
   };
 
@@ -678,7 +680,7 @@ export default function ExperienceScreen() {
       />
 
       {/* ═══ Content ═══ */}
-      <OnboardingProgress screenIndex={1} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
       {/* Back button */}
       <Pressable

@@ -1,5 +1,5 @@
 import type { RidingGoal } from '@motovault/types';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { Check, ChevronLeft, Compass, MapPin, Sparkles, Wallet, Wrench } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,8 +9,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { getPrimaryGoal, OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
+import { getPrimaryGoal, OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
+import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -52,8 +53,9 @@ const GOAL_OPTIONS = [
 
 export default function GoalsScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const onBack = useOnboardingBack(OB_SCREEN.GOALS);
+  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.GOALS);
+  const goNext = useOnboardingNext(OB_SCREEN.GOALS);
   const insets = useSafeAreaInsets();
   const setRidingGoals = useOnboardingStore((s) => s.setRidingGoals);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
@@ -113,7 +115,7 @@ export default function GoalsScreen() {
     // Show affirmation, then navigate
     setShowAffirmation(true);
     navigateTimerRef.current = setTimeout(() => {
-      router.push(OB_ROUTE.BIKE_SETUP);
+      goNext();
     }, 500);
   };
 
@@ -121,7 +123,7 @@ export default function GoalsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={2} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
       {/* Back button */}
       <Pressable

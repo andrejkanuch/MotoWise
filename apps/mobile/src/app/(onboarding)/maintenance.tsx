@@ -1,7 +1,6 @@
 import { OemSchedulesPreviewDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { ImpactFeedbackStyle } from 'expo-haptics';
-import { useRouter } from 'expo-router';
 import { Check, ChevronLeft, X } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -23,8 +22,9 @@ import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { getBrandColor } from '../../config/brand-dna';
-import { OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
+import { OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
+import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
@@ -39,8 +39,9 @@ const SNAP_BACK_SPRING = { damping: 18, stiffness: 350, mass: 0.6 };
 
 export default function MaintenanceScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const onBack = useOnboardingBack(OB_SCREEN.MAINTENANCE);
+  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.MAINTENANCE);
+  const goNext = useOnboardingNext(OB_SCREEN.MAINTENANCE);
   const insets = useSafeAreaInsets();
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const setAcceptedOemScheduleIds = useOnboardingStore((s) => s.setAcceptedOemScheduleIds);
@@ -178,15 +179,15 @@ export default function MaintenanceScreen() {
       skipped_count: skipped.length,
       total_tasks: tasks.length,
     });
-    router.push(OB_ROUTE.PAYWALL);
+    goNext();
   };
 
   const handleSkipAll = useCallback(() => {
     setAcceptedOemScheduleIds([]);
     setLastCompletedScreen(OB_SCREEN.MAINTENANCE);
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, OB_SCREEN.MAINTENANCE);
-    router.push(OB_ROUTE.PAYWALL);
-  }, [setAcceptedOemScheduleIds, setLastCompletedScreen, router]);
+    goNext();
+  }, [setAcceptedOemScheduleIds, setLastCompletedScreen, goNext]);
 
   // Auto-skip when no bike data or no tasks available
   useEffect(() => {
@@ -216,7 +217,7 @@ export default function MaintenanceScreen() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={4} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
       {/* Back button */}
       <Pressable

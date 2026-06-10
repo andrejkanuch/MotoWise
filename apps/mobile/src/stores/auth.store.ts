@@ -25,6 +25,12 @@ interface AuthState {
   locale: SupportedLocale;
   colorScheme: ColorScheme;
   onboardingCompleted: boolean;
+  /**
+   * Persisted: true once ANY session has existed on this install. Drives the
+   * anonymous-onboarding gate — fresh installs onboard before auth (A/B 2026),
+   * while returning users who sign out land on the (auth) login screen.
+   */
+  hasAuthenticatedBefore: boolean;
   measurementSystem: MeasurementSystem;
   currency: Currency;
   setSession: (session: Session | null) => void;
@@ -44,10 +50,14 @@ export const useAuthStore = create<AuthState>()(
       locale: 'en',
       colorScheme: 'system',
       onboardingCompleted: false,
+      hasAuthenticatedBefore: false,
       measurementSystem: detectMeasurementSystem(),
       currency: 'USD',
       setSession: (session) =>
-        set({ session, ...(session === null ? { onboardingCompleted: false } : {}) }),
+        set({
+          session,
+          ...(session === null ? { onboardingCompleted: false } : { hasAuthenticatedBefore: true }),
+        }),
       setLoading: (isLoading) => set({ isLoading }),
       setOnboardingCompleted: (onboardingCompleted) => set({ onboardingCompleted }),
       setLocale: (locale) => {
@@ -66,6 +76,7 @@ export const useAuthStore = create<AuthState>()(
         colorScheme: state.colorScheme,
         measurementSystem: state.measurementSystem,
         currency: state.currency,
+        hasAuthenticatedBefore: state.hasAuthenticatedBefore,
       }),
     },
   ),

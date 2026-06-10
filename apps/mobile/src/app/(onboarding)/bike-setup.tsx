@@ -6,7 +6,6 @@ import {
 import { MotorcycleType, RidingGoal } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import { ImpactFeedbackStyle } from 'expo-haptics';
-import { useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -28,9 +27,10 @@ import { YearInput } from '../../components/onboarding/bike-setup/year-input';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
+import { OB_SCREEN } from '../../config/onboarding';
 import { useMileageUnit } from '../../hooks/use-mileage-unit';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
+import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
@@ -59,8 +59,9 @@ function detectTypeFromModel(modelName: string): MotorcycleType | null {
 
 export default function BikeSetupScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const onBack = useOnboardingBack(OB_SCREEN.BIKE_SETUP);
+  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.BIKE_SETUP);
+  const goNext = useOnboardingNext(OB_SCREEN.BIKE_SETUP);
   const insets = useSafeAreaInsets();
   const setBikeData = useOnboardingStore((s) => s.setBikeData);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
@@ -198,7 +199,7 @@ export default function BikeSetupScreen() {
       type_auto_detected: !!detectedType,
     });
 
-    router.push(OB_ROUTE.MAINTENANCE);
+    goNext();
   };
 
   const handleSkip = () => {
@@ -207,7 +208,7 @@ export default function BikeSetupScreen() {
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, OB_SCREEN.BIKE_SETUP, {
       skipped_section: 'bike_setup',
     });
-    router.push(OB_ROUTE.MAINTENANCE);
+    goNext();
   };
 
   // ── Stage: make selected vs not ─────────────────────────────
@@ -215,7 +216,7 @@ export default function BikeSetupScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={3} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}

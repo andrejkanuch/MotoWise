@@ -11,6 +11,7 @@ import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors
 import { getResumeRoute, OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
+import { getOnboardingVariant } from '../../lib/onboarding-experiment';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
@@ -33,7 +34,7 @@ export default function WelcomeScreen() {
     if (resumeHandledThisLaunch) return null;
     const lastCompleted = useOnboardingStore.getState().lastCompletedScreen;
     if (!lastCompleted) return null;
-    const target = getResumeRoute(lastCompleted);
+    const target = getResumeRoute(getOnboardingVariant(), lastCompleted);
     return target ? { lastCompleted, target } : null;
   });
 

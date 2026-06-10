@@ -1,7 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
-import { useRouter } from 'expo-router';
 import { BarChart3, Bell, Compass } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +15,8 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
+import { OB_SCREEN } from '../../config/onboarding';
+import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { setupNotificationChannels } from '../../lib/notifications';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
@@ -157,8 +157,9 @@ function NotificationIllustration() {
 
 export default function NotificationsScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.NOTIFICATIONS);
+  const goNext = useOnboardingNext(OB_SCREEN.NOTIFICATIONS);
   const tracked = useRef(false);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
 
@@ -170,7 +171,7 @@ export default function NotificationsScreen() {
 
   const navigateForward = () => {
     setLastCompletedScreen(OB_SCREEN.NOTIFICATIONS);
-    router.push(OB_ROUTE.PERSONALIZING);
+    goNext();
   };
 
   const handleEnable = async () => {
@@ -227,7 +228,7 @@ export default function NotificationsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={5} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
       <View
         style={{

@@ -40,6 +40,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { AnimatedSplash } from '../components/animated-splash';
+import { OB_VARIANT } from '../config/onboarding';
 import { getWhatsNewRelease } from '../data/whats-new-releases';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import i18n from '../i18n';
@@ -76,6 +77,7 @@ import {
   setupNotificationChannels,
   snoozeTaskNotification,
 } from '../lib/notifications';
+import { resolveOnboardingVariant } from '../lib/onboarding-experiment';
 import { LAST_USER_KEY, PersistedQueryClientBoundary } from '../lib/persisted-query-provider';
 import { queryClient } from '../lib/query-client';
 import { queryKeys } from '../lib/query-keys';
@@ -85,6 +87,7 @@ import { initRevenueCat, loginRevenueCat, logoutRevenueCat } from '../lib/subscr
 import { supabase } from '../lib/supabase';
 import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
 import { useAuthStore } from '../stores/auth.store';
+import { useExperimentStore } from '../stores/experiment.store';
 import { useSubscriptionStore } from '../stores/subscription.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
 import { clearRideData, rideMMKV } from '../utils/ride-storage';
@@ -223,11 +226,31 @@ function NavigationGate() {
     setTimeout(() => router.push('/(modals)/whats-new' as never), 500);
   }, [isLoading, session, onboardingCompleted, segments, lastSeenVersion, router]);
 
+  // --- Anonymous-first onboarding (A/B 2026) ---
+  // Fresh installs (never authenticated on this install) onboard BEFORE auth:
+  // the account step lives inside the onboarding flow, after the paywall.
+  // `control` keeps the V4 auth-first gate. While the variant is unresolved
+  // (null, first launch) the (onboarding) layout holds a blank frame for up to
+  // ~2s and then always resolves, so this can never wedge the app.
+  const variant = useExperimentStore((s) => s.onboardingVariant);
+  const hasAuthenticatedBefore = useAuthStore((s) => s.hasAuthenticatedBefore);
+  const isAnonOnboarding = !session && !hasAuthenticatedBefore && variant !== OB_VARIANT.CONTROL;
+
+  useEffect(() => {
+    // Kick off assignment for signed-out fresh installs so the gate above can
+    // settle; signed-in users resolve inside (onboarding)/_layout as before.
+    if (isAnonOnboarding && !variant) void resolveOnboardingVariant();
+  }, [isAnonOnboarding, variant]);
+
+  const inOnboarding = segments[0] === '(onboarding)';
+
   // Hold the splash (render nothing) until auth + the `me` query resolve, so the
   // guards below evaluate against settled state — otherwise a returning,
   // already-onboarded user would briefly route through (onboarding) before `me`
-  // confirms completion.
-  if (isLoading || (session && meQuery.isLoading && !meQuery.isError)) {
+  // confirms completion. Exception: when the session appears MID-onboarding
+  // (post-paywall account step signs the user in), keep the stack mounted —
+  // unmounting would reset onboarding navigation state.
+  if (isLoading || (session && meQuery.isLoading && !meQuery.isError && !inOnboarding)) {
     return null;
   }
 
@@ -236,13 +259,16 @@ function NavigationGate() {
   // Declarative gating via Stack.Protected: when a guard flips (sign-in, sign-out,
   // onboarding completion) Expo Router auto-navigates to the next available
   // screen. No imperative router.replace — which would collapse the back stack.
+  // NOTE: the returning-user "Sign in" surface for anonymous onboarders lives
+  // INSIDE (onboarding) (sign-in screen), so (auth) stays hidden during
+  // anonymous onboarding without any cross-group navigation.
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={!isSignedIn}>
+      <Stack.Protected guard={!isSignedIn && !isAnonOnboarding}>
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
 
-      <Stack.Protected guard={isSignedIn && !onboardingCompleted}>
+      <Stack.Protected guard={isAnonOnboarding || (isSignedIn && !onboardingCompleted)}>
         <Stack.Screen name="(onboarding)" />
       </Stack.Protected>
 
