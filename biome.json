@@ -23,7 +23,8 @@
       "!**/next-env.d.ts",
       "!marketing/video",
       "!figma-paywall-v3.js",
-      "!figma-paywall-script.js"
+      "!figma-paywall-script.js",
+      "!docs/design-reference"
     ]
   },
   "formatter": {
