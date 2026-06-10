@@ -9,12 +9,12 @@ export interface ModelInsightsRequest {
 
 /**
  * One link in the AI personalization failover chain. Providers are tried in
- * order (Claude → OpenAI → static); the first to return a Zod-valid payload
+ * order (Gemini → OpenAI → static); the first to return a Zod-valid payload
  * within the timeout wins. A provider that is not configured reports
  * `isAvailable() === false` and is skipped.
  */
 export interface AiInsightsProvider {
-  /** Stable id stored in `model_insights.source_model` (e.g. 'claude', 'openai', 'static'). */
+  /** Stable id stored in `model_insights.source_model` (e.g. 'gemini', 'openai', 'static'). */
   readonly name: string;
   /** False when the provider has no API key / SDK — the chain skips it. */
   isAvailable(): boolean;

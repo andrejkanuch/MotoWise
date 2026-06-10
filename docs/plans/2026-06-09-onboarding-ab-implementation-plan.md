@@ -32,7 +32,7 @@
 2. **Offline fallback.** Flag fetch fails/times out (~2s budget) → assign `lean` locally (`source: 'fallback'`), persist, never re-roll. When PostHog later connects we push the locally-assigned variant as person/super property + `$feature_flag_called` so funnels stay truthful. We do **not** re-assign mid-flow.
 3. ⚠ **Free users get the Account step at the end of onboarding** (after paywall-dismiss → before notifications), framed "Save your setup", instead of "no wall + contextual prompt later". Reason: the entire app (tabs, GraphQL, RLS) requires a Supabase session; app-wide anonymous support (e.g. Supabase anonymous sign-ins + identity linking) is a product-scale change far beyond this test and risky on native OAuth (no idToken-based identity linking). The test's lever is preserved: **anonymous through onboarding AND the paywall; purchase friction = Buy button only; purchasers see "Secure your subscription"**. Both arms identical on auth so the A/B comparison is unaffected.
 4. ⚠ **Post-purchase Account "Not now" is omitted** (same reason — a session is required to enter tabs). Purchasers are already Pro on-device; account screen is one-tap Apple/Google-first.
-5. ⚠ **AI provider chain = Anthropic Claude (new `@anthropic-ai/sdk`, primary, used when `ANTHROPIC_API_KEY` set) → OpenAI (existing key, secondary) → static template.** Spec said "Claude (primary, existing API integration)" but the existing integration is OpenAI; Gemini omitted (no key/SDK in repo) — chain is built on a provider interface so adding Gemini later is one class.
+5. ⚠ **AI provider chain = Gemini (primary, when `GOOGLE_GENERATIVE_AI_API_KEY` set) → OpenAI (existing `OPENAI_API_KEY`, secondary) → static template**, all via the **Vercel AI SDK** (`ai` + `@ai-sdk/google` + `@ai-sdk/openai`, `generateObject` with Zod). Anthropic is NOT used (per product direction — we hold Gemini/OpenAI keys). Spec said "Claude (primary)"; superseded.
 6. **Recalls by year/make/model** via NHTSA `api.nhtsa.gov/recalls/recallsByVehicle?make=&model=&modelYear=` (new service method, cached in `model_insights`-adjacent cache, separate from vPIC). Make-only bikes (partial capture, no model): recall card degrades to "we'll watch recalls for your {make}" — no fabricated count.
 7. **Cost projection** = OEM schedule preview × in-code `as const` per-category cost table (EUR), shipped in API service (no DB table for v1 — fewer moving parts; table can come later). Hedged copy ("about €X").
 8. **One composed public query** `onboardingReveal(year, make, model?)` returns recalls + oemTaskCount + projectedYearlyCost + riderCount + `insights {status, knownIssues[]}` — single round-trip behind B's 04L loader; A uses the same query (ignores AI fields). All onboarding-time resolvers are `@Public()` + `SUPABASE_ADMIN` (anonymous users have no JWT).
@@ -80,7 +80,7 @@ Match `docs/design-reference/onboarding-v4/` (layout, copy, motion); reanimated 
 
 ### W6 — AI personalization service (API)
 - **New module** `apps/api/src/modules/model-insights/`:
-  - `ai-provider.interface.ts` + `anthropic.provider.ts` / `openai.provider.ts` / `static.provider.ts`; failover chain w/ per-call timeout (env `AI_INSIGHTS_TIMEOUT_MS`, default 2000) + Zod validation (`ModelInsightsPayloadSchema` in `@motovault/types`) — invalid = fail down chain.
+  - `ai-provider.interface.ts` + `gemini.provider.ts` / `openai.provider.ts` / `static.provider.ts` (shared `generate-insights.ts` using the AI SDK `generateObject`); failover chain w/ per-call timeout via `AbortSignal.timeout` (env `AI_INSIGHTS_TIMEOUT_MS`, default 2000) + Zod validation (`ModelInsightsPayloadSchema` in `@motovault/types`) — invalid/timeout = fail down chain.
   - `model-insights.service.ts`: cache-first read of `model_insights` by normalized (year, make, model); on miss insert `pending` row + fire-and-forget generation; periodic regen by `generated_at` age.
   - `onboarding-reveal.resolver.ts`: `@Public()` `onboardingReveal(year, make, model?)` → composed payload (recalls via new `nhtsa.service.getRecallsByYearMakeModel`, oemTaskCount + projected cost via OemSchedules + cost table, riderCount via existing stats, insights).
   - Known-issues prompt: Y/M/M only (no PII), hedged output enforced by schema (`bullets: 3 × {title, detail}` + mandatory hedge phrasing), token-capped.
@@ -110,5 +110,5 @@ Match `docs/design-reference/onboarding-v4/` (layout, copy, motion); reanimated 
 ## Out-of-code config tasks
 - PostHog: create `onboarding_ab_2026` flag (done via MCP during W1).
 - RevenueCat dashboard: Restore Behavior → "Transfer to new App User ID".
-- API env: `ANTHROPIC_API_KEY` (optional but recommended), `AI_INSIGHTS_ENABLED=true`, `AI_INSIGHTS_TIMEOUT_MS=2000`.
+- API env: `GOOGLE_GENERATIVE_AI_API_KEY` (Gemini primary; falls back to OpenAI without it), `AI_INSIGHTS_ENABLED=true`, `AI_INSIGHTS_TIMEOUT_MS=2000`.
 - Supabase: `npx supabase db push` for 00143 (done during W7).

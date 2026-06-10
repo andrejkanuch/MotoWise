@@ -63,7 +63,7 @@ describe('ModelInsightsService', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns cached ready payload instantly without calling providers', async () => {
-    const provider = makeProvider('claude', vi.fn());
+    const provider = makeProvider('gemini', vi.fn());
     const supabase = createSupabaseStub({
       status: 'ready',
       payload: VALID_PAYLOAD,
@@ -79,25 +79,25 @@ describe('ModelInsightsService', () => {
   });
 
   it('on cache miss returns pending and generates with the first available provider', async () => {
-    const claude = makeProvider('claude', () => Promise.resolve(VALID_PAYLOAD));
+    const gemini = makeProvider('gemini', () => Promise.resolve(VALID_PAYLOAD));
     const supabase = createSupabaseStub(null);
-    const service = makeService([claude, makeProvider('static', vi.fn())], supabase);
+    const service = makeService([gemini, makeProvider('static', vi.fn())], supabase);
 
     const result = await service.getInsights(REQ);
     expect(result.status).toBe('pending');
 
     await flush();
-    // Generation persisted a ready row from claude.
+    // Generation persisted a ready row from gemini.
     const ready = supabase.updates.find((u) => u.status === 'ready');
     expect(ready).toBeDefined();
-    expect(ready?.source_model).toBe('claude');
+    expect(ready?.source_model).toBe('gemini');
   });
 
   it('fails over to the next provider when the first throws', async () => {
-    const claude = makeProvider('claude', () => Promise.reject(new Error('rate limited')));
+    const gemini = makeProvider('gemini', () => Promise.reject(new Error('rate limited')));
     const openai = makeProvider('openai', () => Promise.resolve(VALID_PAYLOAD));
     const supabase = createSupabaseStub(null);
-    const service = makeService([claude, openai], supabase);
+    const service = makeService([gemini, openai], supabase);
 
     await service.getInsights(REQ);
     await flush();
@@ -108,10 +108,10 @@ describe('ModelInsightsService', () => {
 
   it('treats a payload with fewer than 3 issues as a failure and falls through', async () => {
     const tooFew: ModelInsightsPayload = { knownIssues: [VALID_PAYLOAD.knownIssues[0]] };
-    const claude = makeProvider('claude', () => Promise.resolve(tooFew));
+    const gemini = makeProvider('gemini', () => Promise.resolve(tooFew));
     const staticP = makeProvider('static', () => Promise.resolve(VALID_PAYLOAD));
     const supabase = createSupabaseStub(null);
-    const service = makeService([claude, staticP], supabase);
+    const service = makeService([gemini, staticP], supabase);
 
     await service.getInsights(REQ);
     await flush();
@@ -121,21 +121,21 @@ describe('ModelInsightsService', () => {
   });
 
   it('skips unavailable providers', async () => {
-    const claude = makeProvider('claude', vi.fn(), false); // unavailable
+    const gemini = makeProvider('gemini', vi.fn(), false); // unavailable
     const openai = makeProvider('openai', () => Promise.resolve(VALID_PAYLOAD));
     const supabase = createSupabaseStub(null);
-    const service = makeService([claude, openai], supabase);
+    const service = makeService([gemini, openai], supabase);
 
     await service.getInsights(REQ);
     await flush();
 
-    expect(claude.generate).not.toHaveBeenCalled();
+    expect(gemini.generate).not.toHaveBeenCalled();
     expect(supabase.updates.find((u) => u.status === 'ready')?.source_model).toBe('openai');
   });
 
   it('times out a slow provider and falls through', async () => {
     const slow = makeProvider(
-      'claude',
+      'gemini',
       () =>
         new Promise<ModelInsightsPayload>((resolve) =>
           setTimeout(() => resolve(VALID_PAYLOAD), 1000),
@@ -153,15 +153,15 @@ describe('ModelInsightsService', () => {
   });
 
   it('when disabled, uses only the static provider', async () => {
-    const claude = makeProvider('claude', vi.fn());
+    const gemini = makeProvider('gemini', vi.fn());
     const staticP = makeProvider('static', () => Promise.resolve(VALID_PAYLOAD));
     const supabase = createSupabaseStub(null);
-    const service = makeService([claude, staticP], supabase, { AI_INSIGHTS_ENABLED: 'false' });
+    const service = makeService([gemini, staticP], supabase, { AI_INSIGHTS_ENABLED: 'false' });
 
     await service.getInsights(REQ);
     await flush();
 
-    expect(claude.generate).not.toHaveBeenCalled();
+    expect(gemini.generate).not.toHaveBeenCalled();
     expect(supabase.updates.find((u) => u.status === 'ready')?.source_model).toBe('static');
   });
 });

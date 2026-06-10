@@ -103,7 +103,7 @@ export class ModelInsightsService {
   }
 
   /**
-   * Run the failover chain (Claude → OpenAI → static) and persist the result.
+   * Run the failover chain (Gemini → OpenAI → static) and persist the result.
    * Each provider gets the tight per-call timeout; a throw, timeout, or
    * Zod-invalid payload falls through to the next. The static provider never
    * fails, so this always resolves to a `ready` row.

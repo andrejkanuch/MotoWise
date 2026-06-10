@@ -90,5 +90,5 @@ re-roll). Verify in PostHog Live Events that `variant` is on every event.
 
 **Config tasks (out of code)**
 - [ ] RevenueCat: Restore Behavior = "Transfer to new App User ID"
-- [ ] API env: `ANTHROPIC_API_KEY` (optional), `AI_INSIGHTS_ENABLED=true`, `AI_INSIGHTS_TIMEOUT_MS=2000`
+- [ ] API env: `GOOGLE_GENERATIVE_AI_API_KEY` (Gemini primary; OpenAI fallback via existing `OPENAI_API_KEY`), `AI_INSIGHTS_ENABLED=true`, `AI_INSIGHTS_TIMEOUT_MS=2000`
 - [ ] PostHog flag `onboarding_ab_2026` rollout set (lean/invested 50/50, control 0)

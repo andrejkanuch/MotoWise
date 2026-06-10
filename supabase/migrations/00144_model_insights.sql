@@ -29,7 +29,7 @@ CREATE TABLE public.model_insights (
   -- Zod-validated ModelInsightsPayload (known_issues bullets + copy),
   -- written only after schema validation in the API layer
   payload       JSONB,
-  -- Which provider produced the payload ('claude', 'openai', 'static')
+  -- Which provider produced the payload ('gemini', 'openai', 'static')
   source_model  TEXT,
   generated_at  TIMESTAMPTZ,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),

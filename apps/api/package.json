@@ -14,7 +14,8 @@
     "generate:schema": "ts-node --transpile-only scripts/generate-schema.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.104.1",
+    "@ai-sdk/google": "^3.0.80",
+    "@ai-sdk/openai": "^3.0.69",
     "@apollo/server": "^4.11.0",
     "@as-integrations/express5": "^1.1.2",
     "@motovault/types": "workspace:*",
@@ -33,6 +34,7 @@
     "@supabase/supabase-js": "^2.98.0",
     "@types/react": "^19.2.14",
     "@upstash/redis": "^1.37.0",
+    "ai": "^6.0.199",
     "dataloader": "^2.2.3",
     "graphql": "^16.10.0",
     "graphql-depth-limit": "^1.1.0",
