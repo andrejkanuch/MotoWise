@@ -1,8 +1,5 @@
 {
   "ios": {
     "bundleIdentifier": "com.andykeny.-motovaultapi"
-  },
-  "android": {
-    "package": "com.andykeny.motovaultapi"
   }
 }
