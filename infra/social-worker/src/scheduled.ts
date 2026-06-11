@@ -4,11 +4,14 @@
  * Flow per slot:
  *   1. claim_next_social_post(slot)        → atomic pop from queue
  *   1a. (if empty) draftPost() via Gemini  → insert as 'ready' → re-claim
- *   2. generateImage(post_prompt,  4:5)    → Gemini
- *   3. generateImage(story_prompt, 9:16)   → Gemini
- *   4. publishPost({ image, caption })     → Meta (FB + IG)
- *   5. publishStory({ image })             → Meta (FB + IG)
- *   6. markPublished(id, ...)              → queue row → 'published'
+ *   2. image generation at 4:5:
+ *      - screenshot_keys present → composeShowcaseImage(): real app
+ *        screenshot + brand icon passed as REFERENCE IMAGES so the model
+ *        composites the real UI into the scene (rider showing their phone
+ *        to the camera)
+ *      - otherwise → generateImage(post_prompt) atmospheric scene
+ *   3. publishPost({ image, caption })     → Meta (FB + IG)
+ *   4. markPublished(id, ...)              → queue row → 'published'
  *
  * Step 1a is the Gemini auto-draft branch added alongside migration 00090.
  * When the queue has no ready row for the current slot, the Worker drafts
@@ -23,9 +26,15 @@
  * draft / insert / re-claim) are logged and the cron exits — next tick will
  * retry. There's no row to markFailed at that point.
  */
-import { draftPost } from './draft';
+import { draftPost, scrubDeviceWords } from './draft';
 import type { Env } from './env';
-import { generateImage, publishPost } from './publish';
+import {
+  composeShowcaseImage,
+  type GeneratedImage,
+  generateImage,
+  headlineOverlay,
+  publishPost,
+} from './publish';
 import {
   claimNextPost,
   getRecentAngles,
@@ -34,6 +43,7 @@ import {
   markPublished,
   type SlotName,
 } from './queue';
+import { BRAND_ICON_STORAGE_PATH, fetchBucketBytes, SCREENSHOT_CATALOG } from './screenshots';
 
 export const CRON_TO_SLOT: Record<string, SlotName> = {
   '0 14 * * *': 'afternoon',
@@ -104,21 +114,46 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
   console.log(`[scheduled] slot=${slot} id=${row.id} angle=${row.angle} attempt=${row.attempts}`);
 
   try {
-    // Step 2: generate image at 4:5 with headline + branding baked in.
-    // Build the full prompt: scene description + text overlay instructions.
-    let fullPrompt = row.post_prompt;
-    if (row.headline) {
-      fullPrompt +=
-        ` The image has bold white text overlay reading "${row.headline}" in the lower-center area` +
-        ' using a clean sans-serif font (Plus Jakarta Sans style). Below the headline,' +
-        ' a small white "MW" monogram logo and the word "MotoVault" in smaller white text.' +
-        ' The lower 35% of the image has a subtle dark gradient for text legibility.' +
-        ' The text should be crisp, centered, and professional — like a premium social media post.';
-    }
+    // Step 2: generate the 4:5 feed image with headline + branding baked in.
+    // The showcase path gets the real app icon composited from a reference
+    // image; the atmospheric path renders a "MW" monogram via the prompt.
+    const headlineSuffix = (withMonogram: boolean): string =>
+      row.headline ? headlineOverlay(row.headline, withMonogram) : '';
 
-    const image = await generateImage(env, fullPrompt, '4:5');
+    // APP-SHOWCASE path: composite the real screenshot + brand icon into the
+    // scene (rider showing their phone to the camera). Falls back to the
+    // atmospheric path if composition fails, with device words scrubbed so
+    // the generator can't hallucinate a fake app UI.
+    let image: GeneratedImage | null = null;
+    const screenshotKey = row.screenshot_keys?.find((key) => key in SCREENSHOT_CATALOG);
+    if (screenshotKey) {
+      try {
+        const [screenshot, brandIcon] = await Promise.all([
+          fetchBucketBytes(env, SCREENSHOT_CATALOG[screenshotKey].storagePath),
+          fetchBucketBytes(env, BRAND_ICON_STORAGE_PATH),
+        ]);
+        // Real icon is composited from the reference image — no monogram text.
+        image = await composeShowcaseImage(
+          env,
+          row.post_prompt + headlineSuffix(false),
+          screenshot,
+          brandIcon,
+        );
+      } catch (err) {
+        console.warn(
+          `[scheduled] id=${row.id} showcase composition failed (key=${screenshotKey}): ${err instanceof Error ? err.message : err} — falling back to atmospheric`,
+        );
+      }
+    }
+    if (!image) {
+      image = await generateImage(
+        env,
+        scrubDeviceWords(row.post_prompt) + headlineSuffix(true),
+        '4:5',
+      );
+    }
     console.log(
-      `[scheduled] id=${row.id} image ready (engine=${image.engine}, headline=${!!row.headline})`,
+      `[scheduled] id=${row.id} image ready (engine=${image.engine}, showcase=${!!screenshotKey}, headline=${!!row.headline})`,
     );
 
     // Step 3: publish single image post to IG + FB.

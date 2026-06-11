@@ -124,6 +124,132 @@ export async function generateImage(
 }
 
 // ---------------------------------------------------------------------------
+// Headline overlay typography
+// ---------------------------------------------------------------------------
+
+/**
+ * Build the text-overlay instruction appended to image prompts.
+ *
+ * Typography direction (brand: rugged premium, Porsche-meets-Strava):
+ * condensed uppercase grotesque headline with ONE word in signature copper,
+ * tiny wide-tracked MOTOVAULT wordmark below. Described by style (not font
+ * name alone) because image models approximate fonts.
+ */
+export function headlineOverlay(headline: string, withMonogram: boolean): string {
+  return (
+    ` The image has a bold text overlay reading "${headline}" in the lower-center area.` +
+    ' TYPOGRAPHY: large condensed uppercase grotesque sans-serif (Druk / Helvetica Now' +
+    ' Condensed Bold style), tight letter-spacing, set in crisp pure white — except the' +
+    ' single most impactful word of the headline, which is set in warm copper orange' +
+    ' (#D4622E). Below the headline, the word "MOTOVAULT" in very small, widely' +
+    ' letter-spaced uppercase white text.' +
+    (withMonogram ? ' Next to the wordmark, a small white "MW" script monogram.' : '') +
+    ' The lower 35% of the image has a subtle dark gradient for text legibility.' +
+    ' The type is crisp, perfectly kerned, centered, and premium — like a Porsche or' +
+    ' Strava campaign graphic, never like a meme caption.'
+  );
+}
+
+// ---------------------------------------------------------------------------
+// App-showcase composition (real screenshot + brand icon as reference images)
+// ---------------------------------------------------------------------------
+
+/**
+ * Generate a lifestyle scene with the REAL app screenshot composited onto the
+ * phone in the shot — e.g. a gloved rider holding their phone toward the
+ * camera with the actual MotoVault UI on screen — plus the brand icon as a
+ * small badge.
+ *
+ * Both files are passed as reference images so the model reproduces the real
+ * UI instead of hallucinating one (the reason phone scenes were previously
+ * banned from generated imagery).
+ *
+ * Primary: Gemini 2.5 Flash Image (strongest at multi-reference composition).
+ * Fallback: OpenAI /images/edits with both reference images attached.
+ */
+export async function composeShowcaseImage(
+  env: Env,
+  scenePrompt: string,
+  screenshot: Uint8Array,
+  brandIcon: Uint8Array,
+): Promise<GeneratedImage> {
+  const prompt = [
+    scenePrompt,
+    'COMPOSITION RULES: the phone screen in this scene displays the FIRST',
+    'reference image — a real MotoVault app screenshot. Treat it as a texture',
+    'applied to the phone screen: same layout, same colors, every character of',
+    'text preserved exactly as provided, pixel-faithful, no invented or redrawn',
+    'UI elements. The screen is bright, crisp, fully legible, facing the camera',
+    'squarely, and is the focal point of the composition. The SECOND reference',
+    'image is the MotoVault app icon — a navy rounded square with transparent',
+    'background: place it directly over the photo near the bottom of the frame',
+    'exactly as provided, floating on the photo itself with NO background',
+    'plate, NO white box, NO card, and NO border behind or around it.',
+  ].join(' ');
+
+  // --- Primary: Gemini 2.5 Flash Image with reference images ---
+  try {
+    const google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_AI_STUDIO_KEY });
+    const { image } = await aiGenerateImage({
+      model: google.image('gemini-2.5-flash-image'),
+      prompt: { text: prompt, images: [screenshot, brandIcon] },
+      aspectRatio: '3:4',
+      abortSignal: AbortSignal.timeout(60_000),
+    });
+
+    return {
+      image_base64: image.base64,
+      mime_type: 'image/png',
+      engine: 'google-gemini-image-showcase',
+      aspect_ratio: '4:5',
+    };
+  } catch (err) {
+    console.warn(
+      `[composeShowcase] Gemini failed: ${err instanceof Error ? err.message : err} — trying OpenAI edits`,
+    );
+  }
+
+  // --- Fallback: OpenAI /images/edits with both reference images ---
+  const formData = new FormData();
+  formData.append('image[]', new Blob([screenshot], { type: 'image/png' }), 'screenshot.png');
+  formData.append('image[]', new Blob([brandIcon], { type: 'image/png' }), 'icon.png');
+  formData.append('prompt', prompt);
+  formData.append('model', 'gpt-image-1');
+  formData.append('size', '1024x1536');
+
+  const res = await fetch('https://api.openai.com/v1/images/edits', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${env.OPENAI_API_KEY}` },
+    body: formData,
+    signal: AbortSignal.timeout(90_000),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`OpenAI edits API returned ${res.status}: ${err.slice(0, 200)}`);
+  }
+
+  const data = (await res.json()) as { data?: Array<{ b64_json?: string; url?: string }> };
+  const entry = data.data?.[0];
+  let b64 = entry?.b64_json;
+  if (!b64 && entry?.url) {
+    const imgRes = await fetch(entry.url);
+    if (!imgRes.ok) throw new Error(`Failed to fetch generated image: ${imgRes.status}`);
+    b64 = uint8ArrayToBase64(new Uint8Array(await imgRes.arrayBuffer()));
+  }
+  if (!b64) {
+    throw new Error('OpenAI edits API returned no usable image');
+  }
+
+  return {
+    image_base64: b64,
+    mime_type: 'image/png',
+    engine: 'openai-edits-showcase',
+    aspect_ratio: '4:5',
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Phone mockup generation
 // ---------------------------------------------------------------------------
 
@@ -606,7 +732,7 @@ async function waitForIgProcessing(env: Env, containerId: string, maxWait = 20):
 }
 
 /** Upload image bytes to Supabase Storage using the service role key. */
-async function uploadToSupabase(env: Env, path: string, data: Uint8Array): Promise<string> {
+export async function uploadToSupabase(env: Env, path: string, data: Uint8Array): Promise<string> {
   const url = `${env.SUPABASE_URL}/storage/v1/object/social-media/${path}`;
   const res = await fetch(url, {
     method: 'POST',
@@ -637,7 +763,7 @@ function renderUrl(env: Env, path: string, width: number, height: number): strin
   );
 }
 
-function base64ToUint8Array(base64: string): Uint8Array {
+export function base64ToUint8Array(base64: string): Uint8Array {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
