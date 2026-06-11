@@ -220,7 +220,9 @@ export const GOAL_TO_PLACEMENT: Record<string, string> = {
   just_exploring: 'onboarding_default',
 } as const;
 
-type OnboardingRoutePath = `/(onboarding)/${OnboardingRoute}` | '/(onboarding)';
+type OnboardingRoutePath =
+  | `/(onboarding)/${Exclude<OnboardingRoute, typeof OB_SCREEN.WELCOME>}`
+  | '/(onboarding)';
 
 /**
  * Href for a screen. The welcome screen is the group's index file, so its route
@@ -229,7 +231,9 @@ type OnboardingRoutePath = `/(onboarding)/${OnboardingRoute}` | '/(onboarding)';
  * falls through to the welcome step).
  */
 function routeForScreen(screen: OnboardingRoute): OnboardingRoutePath {
-  return screen === OB_SCREEN.WELCOME ? '/(onboarding)' : `/(onboarding)/${screen}`;
+  return screen === OB_SCREEN.WELCOME
+    ? '/(onboarding)'
+    : `/(onboarding)/${screen as Exclude<OnboardingRoute, typeof OB_SCREEN.WELCOME>}`;
 }
 
 /**

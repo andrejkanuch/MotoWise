@@ -8,6 +8,7 @@ import { AppState, LogBox } from 'react-native';
 
 LogBox.ignoreLogs(['Method readAsStringAsync imported from "expo-file-system" is deprecated']);
 
+import { palette } from '@motovault/design-system';
 import { CompleteMaintenanceTaskDocument, MeDocument } from '@motovault/graphql';
 import { Currency, MeasurementSystem } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
@@ -35,11 +36,11 @@ try {
 import * as Linking from 'expo-linking';
 import { Stack, useNavigationContainerRef, usePathname, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import * as SystemUI from 'expo-system-ui';
 import { PostHogProvider, PostHogSurveyProvider } from 'posthog-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
-import { AnimatedSplash } from '../components/animated-splash';
 import { OB_VARIANT } from '../config/onboarding';
 import { getWhatsNewRelease } from '../data/whats-new-releases';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
@@ -99,8 +100,20 @@ import { useWhatsNewStore } from '../stores/whats-new.store';
 import { clearRideData, rideMMKV } from '../utils/ride-storage';
 import { clearAll as clearSyncQueue, drainQueue } from '../utils/ride-sync-queue';
 
-// Keep native splash visible until animated splash is ready
+// Native splash is the ONLY splash: hold it while the app boots (auth hydration
+// + the `me` gate), then fade it out directly into real UI. The app tree mounts
+// and fetches underneath it from the first frame.
 SplashScreen.preventAutoHideAsync();
+const SPLASH_FADE_MS = 400;
+SplashScreen.setOptions({ duration: SPLASH_FADE_MS, fade: true });
+
+/** Hard cap — if hydration or the `me` query ever hangs, never wedge the splash. */
+const SPLASH_FAILSAFE_MS = 10000;
+
+// Root view defaults to white — paint it the splash color so no frame between
+// the native splash and React's first paint can flash white. (The app.config
+// `backgroundColor` covers builds; this covers dev reloads at runtime.)
+SystemUI.setBackgroundColorAsync(palette.editorialDarkBg2);
 
 // Initialize Sentry and PostHog as early as possible
 initSentry();
@@ -126,7 +139,7 @@ setupOnlineManager();
 // What's New modal is only pushed once per app cold-start.
 let whatsNewPushed = false;
 
-function NavigationGate() {
+function NavigationGate({ onSettled }: { onSettled: () => void }) {
   const {
     session,
     isLoading,
@@ -265,7 +278,16 @@ function NavigationGate() {
   // confirms completion. Exception: when the session appears MID-onboarding
   // (post-paywall account step signs the user in), keep the stack mounted —
   // unmounting would reset onboarding navigation state.
-  if (isLoading || (session && meQuery.isLoading && !meQuery.isError && !inOnboarding)) {
+  const holding =
+    isLoading || (!!session && meQuery.isLoading && !meQuery.isError && !inOnboarding);
+
+  // The gate settling means real UI is about to paint — tell the root to drop
+  // the native splash (it fades out over the first frames of the stack).
+  useEffect(() => {
+    if (!holding) onSettled();
+  }, [holding, onSettled]);
+
+  if (holding) {
     return null;
   }
 
@@ -306,14 +328,28 @@ function NavigationGate() {
 }
 
 function RootLayout() {
-  const { setSession, setLoading, isLoading } = useAuthStore();
+  const { setSession, setLoading } = useAuthStore();
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
   // Tracks the last identified user so a null session is only treated as a
   // logout when we actually had one — see onAuthStateChange below.
   const prevUserIdRef = useRef<string | null>(null);
-  const [appReady, setAppReady] = useState(false);
+
+  // Native splash lifecycle: hidden once (idempotent) when the navigation gate
+  // settles — or by the failsafe below. `splashDismissed` flips after the fade
+  // completes and gates the ATT prompt (it must never appear under the splash).
   const [splashDismissed, setSplashDismissed] = useState(false);
-  const onSplashDismiss = useCallback(() => setSplashDismissed(true), []);
+  const splashHiddenRef = useRef(false);
+  const hideSplash = useCallback(() => {
+    if (splashHiddenRef.current) return;
+    splashHiddenRef.current = true;
+    SplashScreen.hideAsync();
+    setTimeout(() => setSplashDismissed(true), SPLASH_FADE_MS + 50);
+  }, []);
+
+  useEffect(() => {
+    const timeout = setTimeout(hideSplash, SPLASH_FAILSAFE_MS);
+    return () => clearTimeout(timeout);
+  }, [hideSplash]);
 
   // Load editorial fonts — don't block splash on this; text uses system fallback until loaded
   useFonts({
@@ -453,11 +489,6 @@ function RootLayout() {
     const sub = Linking.addEventListener('url', ({ url }) => handleDeepLink(url));
     return () => sub.remove();
   }, []);
-
-  // Mark app as ready once auth state is resolved
-  useEffect(() => {
-    if (!isLoading) setAppReady(true);
-  }, [isLoading]);
 
   useEffect(() => {
     const locale = useAuthStore.getState().locale;
@@ -668,13 +699,11 @@ function RootLayout() {
             the SDK auto-captures `survey shown/sent/dismissed` and respects the
             client opt-out set by setAnalyticsEnabled(). */}
         <PostHogSurveyProvider androidKeyboardBehavior="padding">
-          <AnimatedSplash isReady={appReady} onDismiss={onSplashDismiss}>
-            <KeyboardProvider>
-              <PersistedQueryClientBoundary>
-                <NavigationGate />
-              </PersistedQueryClientBoundary>
-            </KeyboardProvider>
-          </AnimatedSplash>
+          <KeyboardProvider>
+            <PersistedQueryClientBoundary>
+              <NavigationGate onSettled={hideSplash} />
+            </PersistedQueryClientBoundary>
+          </KeyboardProvider>
         </PostHogSurveyProvider>
       </PostHogProvider>
     </GestureHandlerRootView>

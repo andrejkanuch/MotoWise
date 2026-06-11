@@ -1,6 +1,7 @@
 import { CompleteOnboardingDocument, type CompleteOnboardingInput } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
+import { useLocalSearchParams } from 'expo-router';
 import {
   Bike,
   Check,
@@ -80,6 +81,12 @@ function buildBikeLabel(bike: BikeLike): string | null {
 export default function PersonalizingScreen() {
   const { t } = useTranslation();
   const { totalScreens } = useOnboardingStep(OB_SCREEN.PERSONALIZING);
+  // Resume-after-kill entry (welcome's resume replace) — the rider already sat
+  // through the staged setup once; don't replay it on app load. Skip the
+  // minimum-animation gate and complete straight into the garage on mutation
+  // success, so the whole thing finishes behind the launch splash.
+  const { resumed } = useLocalSearchParams<{ resumed?: string }>();
+  const isResumed = resumed === '1';
   const [visibleSteps, setVisibleSteps] = useState(0);
   const {
     experienceLevel,
@@ -111,7 +118,7 @@ export default function PersonalizingScreen() {
 
   const setOnboardingCompleted = useAuthStore((s) => s.setOnboardingCompleted);
   const [mutationDone, setMutationDone] = useState(false);
-  const [animationDone, setAnimationDone] = useState(false);
+  const [animationDone, setAnimationDone] = useState(isResumed);
   const [showDone, setShowDone] = useState(false);
   const [showRetry, setShowRetry] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
@@ -146,10 +153,14 @@ export default function PersonalizingScreen() {
     transform: [{ scale: checkScale.value }],
   }));
 
-  // Track step viewed once on mount
+  // Track step viewed once on mount. Resume entries already fired this in the
+  // original session (welcome fires ONBOARDING_RESUMED instead) — re-firing
+  // would inflate the funnel step.
   useEffect(() => {
-    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.PERSONALIZING);
-  }, []);
+    if (!isResumed) {
+      trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.PERSONALIZING);
+    }
+  }, [isResumed]);
 
   // Persist preferences to server
   // biome-ignore lint/correctness/useExhaustiveDependencies: fire on mount and on manual retry
@@ -272,11 +283,18 @@ export default function PersonalizingScreen() {
   // The actual completion trigger — flipping `onboardingCompleted`, which makes
   // the root Stack.Protected guard auto-redirect to (tabs) — is deferred to the
   // explicit "Open my garage" CTA so the user sees the payoff first.
+  // EXCEPTION: on a cold-start resume there is no payoff to earn — complete
+  // immediately so the rider lands in the garage, ideally before the launch
+  // splash even dismisses.
   useEffect(() => {
-    if (mutationDone && animationDone) {
+    if (!mutationDone || !animationDone) return;
+    if (isResumed) {
+      reset();
+      setOnboardingCompleted(true);
+    } else {
       setShowDone(true);
     }
-  }, [mutationDone, animationDone]);
+  }, [mutationDone, animationDone, isResumed, reset, setOnboardingCompleted]);
 
   // Pop the check badge in when the payoff phase appears.
   useEffect(() => {
@@ -305,6 +323,14 @@ export default function PersonalizingScreen() {
     reset();
     setOnboardingCompleted(true);
   };
+
+  // Cold-start resume: the staged setup UI must not appear on app load. Hold a
+  // bare background while the mutation completes silently (then the root guard
+  // flips to the garage). Only if the silent completion errors or stalls past
+  // the 8s safety net does the full UI surface, with the retry controls.
+  if (isResumed && !showRetry) {
+    return <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }} />;
+  }
 
   if (showDone) {
     return (

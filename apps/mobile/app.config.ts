@@ -17,6 +17,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: '3.10.1',
   orientation: 'portrait',
   icon: './src/assets/images/MotoVault.png',
+  // Root view color (behind all React views) — matches the splash background
+  // so the native-splash → first-frame handoff never flashes white. Requires
+  // expo-system-ui on iOS.
+  backgroundColor: '#110e0a',
   userInterfaceStyle: 'automatic',
   scheme: 'motovault',
   experiments: {

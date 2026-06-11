@@ -49,7 +49,10 @@ export default function WelcomeScreen() {
         last_completed: resume.lastCompleted,
         resume_target: resume.target,
       });
-      router.replace(resume.target);
+      // `resumed` lets auto-advancing screens (personalizing) tell a cold-start
+      // resume apart from the live flow: on resume they complete silently behind
+      // the splash instead of replaying their staged animation on app load.
+      router.replace({ pathname: resume.target, params: { resumed: '1' } });
     } else {
       trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.WELCOME);
     }
