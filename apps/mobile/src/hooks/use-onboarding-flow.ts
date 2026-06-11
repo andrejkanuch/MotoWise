@@ -39,14 +39,22 @@ export function useOnboardingStep(route: OnboardingRoute) {
 export function useOnboardingNext(current: OnboardingRoute) {
   const router = useRouter();
   const variant = useOnboardingVariant();
-  return useCallback(() => {
-    // Bike-dependent screens (reveal/maintenance/commitment) are skipped when the
-    // rider has no bike. Read the flag at CALL time — bike-setup calls
-    // setBikeData() then goNext() synchronously, so a value captured from the
-    // render would be stale (false) and wrongly skip the Reveal. Zustand's
-    // set() is synchronous, so getState() already reflects the just-saved bike.
-    const hasBike = !!useOnboardingStore.getState().bikeData?.make;
-    const next = getNextRoute(variant, current, { hasBike });
-    if (next) router.push(next);
-  }, [router, variant, current]);
+  // `opts.replace` is for pass-through steps (e.g. maintenance with no OEM
+  // schedules) that auto-advance: replacing instead of pushing drops them from
+  // history so Back skips over them rather than re-triggering the auto-advance.
+  return useCallback(
+    (opts?: { replace?: boolean }) => {
+      // Bike-dependent screens (reveal/maintenance/commitment) are skipped when the
+      // rider has no bike. Read the flag at CALL time — bike-setup calls
+      // setBikeData() then goNext() synchronously, so a value captured from the
+      // render would be stale (false) and wrongly skip the Reveal. Zustand's
+      // set() is synchronous, so getState() already reflects the just-saved bike.
+      const hasBike = !!useOnboardingStore.getState().bikeData?.make;
+      const next = getNextRoute(variant, current, { hasBike });
+      if (!next) return;
+      if (opts?.replace === true) router.replace(next);
+      else router.push(next);
+    },
+    [router, variant, current],
+  );
 }

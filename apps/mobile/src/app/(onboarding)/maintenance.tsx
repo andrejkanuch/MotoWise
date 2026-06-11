@@ -183,35 +183,44 @@ export default function MaintenanceScreen() {
     goNext();
   };
 
-  const handleSkipAll = useCallback(() => {
-    setAcceptedOemScheduleIds([]);
-    setLastCompletedScreen(OB_SCREEN.MAINTENANCE);
-    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, OB_SCREEN.MAINTENANCE);
-    goNext();
-  }, [setAcceptedOemScheduleIds, setLastCompletedScreen, goNext]);
+  const skipMaintenance = useCallback(
+    ({ replace }: { replace: boolean }) => {
+      setAcceptedOemScheduleIds([]);
+      setLastCompletedScreen(OB_SCREEN.MAINTENANCE);
+      trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, OB_SCREEN.MAINTENANCE);
+      goNext({ replace });
+    },
+    [setAcceptedOemScheduleIds, setLastCompletedScreen, goNext],
+  );
 
-  // Auto-skip when no bike data or no tasks available
+  // Auto-skip when no bike data or no tasks available. Use `replace` so this
+  // pass-through drops out of history — otherwise Back from Commitment lands
+  // here and the auto-skip immediately bounces the rider forward again (with a
+  // loading flash), making Back appear broken.
   useEffect(() => {
     if (!make || (tasks.length === 0 && !isLoading)) {
-      handleSkipAll();
+      skipMaintenance({ replace: true });
     }
-  }, [make, tasks.length, isLoading, handleSkipAll]);
+  }, [make, tasks.length, isLoading, skipMaintenance]);
 
   if (!make || (tasks.length === 0 && !isLoading)) {
     return null;
   }
 
   if (isLoading) {
+    // Keep the Back button + progress visible while fetching — a bare,
+    // escape-less spinner would trap the rider if the request hangs (e.g. slow
+    // network, or a cold cache after Back re-enters this screen).
     return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: ONBOARDING_COLORS.background,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <ActivityIndicator size="large" color={ONBOARDING_COLORS.warm} />
+      <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+        <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
+        <OnboardingBackButton
+          onPress={onBack}
+          style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
+        />
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color={ONBOARDING_COLORS.warm} />
+        </View>
       </View>
     );
   }
@@ -437,7 +446,7 @@ export default function MaintenanceScreen() {
 
           {/* Skip all + reassurance */}
           <View style={{ alignItems: 'center', paddingBottom: insets.bottom + 16, gap: 6 }}>
-            <Pressable onPress={handleSkipAll} style={{ padding: 8 }}>
+            <Pressable onPress={() => skipMaintenance({ replace: false })} style={{ padding: 8 }}>
               <Text
                 style={{
                   fontSize: 13,
