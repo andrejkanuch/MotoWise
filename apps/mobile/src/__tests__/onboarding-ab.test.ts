@@ -48,6 +48,7 @@ const {
   getNextRoute,
   getResumeRoute,
   getPreviousRoute,
+  getPrimaryConcern,
 } = require('../config/onboarding');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { useExperimentStore } = require('../stores/experiment.store');
@@ -112,6 +113,25 @@ describe('variant flow config', () => {
     expect(getStepIndex(OB_VARIANT.LEAN, OB_SCREEN.GOALS)).toBe(4);
   });
 
+  it('no-bike branch (§4): lean skips reveal/maintenance/commitment', () => {
+    const noBike = { hasBike: false };
+    // bike-setup skip routes around reveal → goals
+    expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.BIKE_SETUP, noBike)).toBe('/(onboarding)/goals');
+    // goals with no bike jumps past maintenance + commitment → paywall
+    expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.GOALS, noBike)).toBe('/(onboarding)/paywall');
+    // with a bike, the normal flow is preserved
+    expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.BIKE_SETUP, { hasBike: true })).toBe(
+      '/(onboarding)/reveal',
+    );
+    expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.GOALS, { hasBike: true })).toBe(
+      '/(onboarding)/maintenance',
+    );
+    // control is the untouched V4 flow — the branch never applies
+    expect(getNextRoute(OB_VARIANT.CONTROL, OB_SCREEN.GOALS, noBike)).toBe(
+      getNextRoute(OB_VARIANT.CONTROL, OB_SCREEN.GOALS),
+    );
+  });
+
   it('next / resume / previous walk the active variant flow', () => {
     expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.BIKE_SETUP)).toBe('/(onboarding)/reveal');
     expect(getResumeRoute(OB_VARIANT.LEAN, OB_SCREEN.REVEAL)).toBe('/(onboarding)/goals');
@@ -120,12 +140,38 @@ describe('variant flow config', () => {
     );
     expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.PERSONALIZING)).toBeNull();
   });
+
+  it('Back to the welcome step targets the group root, not /index (404 guard)', () => {
+    // The welcome screen is the (onboarding) group's index file; its href is the
+    // group root. `/(onboarding)/index` is not a real route and renders "Page
+    // not found", which Back used to hit when falling through to welcome.
+    expect(getPreviousRoute(OB_VARIANT.LEAN, OB_SCREEN.EXPERIENCE)).toBe('/(onboarding)');
+    expect(getPreviousRoute(OB_VARIANT.INVESTED, OB_SCREEN.EXPERIENCE)).toBe('/(onboarding)');
+  });
+});
+
+describe('getPrimaryConcern', () => {
+  it('returns the highest-priority concern regardless of selection order', () => {
+    // costs outranks issues even when issues was tapped first
+    expect(getPrimaryConcern(['catch_issues_early', 'avoid_surprise_costs'])).toBe(
+      'avoid_surprise_costs',
+    );
+    expect(getPrimaryConcern(['keep_resale_value', 'catch_issues_early'])).toBe(
+      'catch_issues_early',
+    );
+  });
+
+  it('falls back to the casual concern when nothing maps', () => {
+    expect(getPrimaryConcern([])).toBe('just_enjoy');
+    expect(getPrimaryConcern(['unknown'])).toBe('just_enjoy');
+  });
 });
 
 describe('resolveOnboardingVariant', () => {
   it('assigns from the PostHog flag and persists it', async () => {
-    mockPosthog.reloadFeatureFlagsAsync.mockResolvedValue({});
-    mockPosthog.getFeatureFlag.mockReturnValue('invested');
+    // Variant is read from the resolved flags map (not getFeatureFlag), so no
+    // auto $feature_flag_called fires before the super property is registered.
+    mockPosthog.reloadFeatureFlagsAsync.mockResolvedValue({ onboarding_ab_2026: 'invested' });
 
     const variant = await resolveOnboardingVariant();
 
@@ -133,6 +179,15 @@ describe('resolveOnboardingVariant', () => {
     expect(useExperimentStore.getState().onboardingVariant).toBe('invested');
     expect(useExperimentStore.getState().source).toBe('posthog');
     expect(mockPosthog.register).toHaveBeenCalledWith({ onboarding_variant: 'invested' });
+    // Exposure is emitted manually (after register) on the happy path too.
+    expect(mockPosthog.capture).toHaveBeenCalledWith(
+      '$feature_flag_called',
+      expect.objectContaining({
+        $feature_flag_response: 'invested',
+        onboarding_variant: 'invested',
+        locally_defaulted: false,
+      }),
+    );
   });
 
   it('falls back to lean when the flag fetch fails (offline)', async () => {
@@ -150,23 +205,37 @@ describe('resolveOnboardingVariant', () => {
   });
 
   it('maps a disabled/unknown flag value to control (V4 kill switch)', async () => {
-    mockPosthog.reloadFeatureFlagsAsync.mockResolvedValue({});
-    mockPosthog.getFeatureFlag.mockReturnValue(false);
+    mockPosthog.reloadFeatureFlagsAsync.mockResolvedValue({ onboarding_ab_2026: false });
 
     expect(await resolveOnboardingVariant()).toBe('control');
   });
 
   it('never re-rolls once assigned (sticky across calls)', async () => {
-    mockPosthog.reloadFeatureFlagsAsync.mockResolvedValue({});
-    mockPosthog.getFeatureFlag.mockReturnValue('lean');
+    mockPosthog.reloadFeatureFlagsAsync.mockResolvedValue({ onboarding_ab_2026: 'lean' });
     await resolveOnboardingVariant();
 
     // A later evaluation returns a different value — assignment must not change.
-    mockPosthog.getFeatureFlag.mockReturnValue('invested');
+    mockPosthog.reloadFeatureFlagsAsync.mockResolvedValue({ onboarding_ab_2026: 'invested' });
     const second = await resolveOnboardingVariant();
 
     expect(second).toBe('lean');
     expect(mockPosthog.reloadFeatureFlagsAsync).toHaveBeenCalledTimes(1);
+  });
+
+  it('dev EXPO_PUBLIC_OB_VARIANT override forces the arm without touching the network', async () => {
+    process.env.EXPO_PUBLIC_OB_VARIANT = 'invested';
+    try {
+      // Even if the flag would resolve to lean, the dev override wins.
+      mockPosthog.reloadFeatureFlagsAsync.mockResolvedValue({ onboarding_ab_2026: 'lean' });
+
+      const variant = await resolveOnboardingVariant();
+
+      expect(variant).toBe('invested');
+      expect(useExperimentStore.getState().source).toBe('override');
+      expect(mockPosthog.reloadFeatureFlagsAsync).not.toHaveBeenCalled();
+    } finally {
+      delete process.env.EXPO_PUBLIC_OB_VARIANT;
+    }
   });
 
   it('getOnboardingVariant returns control before assignment', () => {
@@ -176,8 +245,7 @@ describe('resolveOnboardingVariant', () => {
 
 describe('trackOnboardingEvent parity', () => {
   it('attaches variant, step, and step_index to every onboarding event', async () => {
-    mockPosthog.reloadFeatureFlagsAsync.mockResolvedValue({});
-    mockPosthog.getFeatureFlag.mockReturnValue('lean');
+    mockPosthog.reloadFeatureFlagsAsync.mockResolvedValue({ onboarding_ab_2026: 'lean' });
     await resolveOnboardingVariant();
 
     trackOnboardingEvent('onboarding_step_viewed', OB_SCREEN.REVEAL, { foo: 'bar' });

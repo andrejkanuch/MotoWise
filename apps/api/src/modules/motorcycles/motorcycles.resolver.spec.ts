@@ -13,18 +13,30 @@ describe('MotorcyclesResolver', () => {
   };
 
   describe('auth guard audit', () => {
+    // User-scoped reads/writes — must require a JWT.
     const protectedMethods = [
       'myMotorcycles',
-      'motorcycleMakes',
-      'motorcycleModels',
       'createMotorcycle',
       'updateMotorcycle',
       'deleteMotorcycle',
+      'motorcycleRecalls',
     ];
 
     for (const method of protectedMethods) {
       it(`${method} should NOT be @Public()`, () => {
         expect(isPublic(method)).toBe(false);
+      });
+    }
+
+    // Public read-only catalog/aggregate queries — consumed during
+    // anonymous-first onboarding (bike-setup runs before the account step), so
+    // they must NOT require a JWT. NHTSA catalog data is public; makeStats is
+    // aggregate fleet counts already exposed via the @Public() onboarding reveal.
+    const publicMethods = ['motorcycleMakes', 'motorcycleModels', 'makeStats'];
+
+    for (const method of publicMethods) {
+      it(`${method} should be @Public()`, () => {
+        expect(isPublic(method)).toBe(true);
       });
     }
   });

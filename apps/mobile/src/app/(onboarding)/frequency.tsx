@@ -1,10 +1,23 @@
 import { RidingFrequency } from '@motovault/types';
-import { Calendar, CalendarClock, ChevronLeft, Gauge, Sun } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { NotificationFeedbackType } from 'expo-haptics';
+import { useFocusEffect } from 'expo-router';
+import { Calendar, CalendarClock, Gauge, Sun } from 'lucide-react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import Animated, {
+  Easing,
+  FadeIn,
+  FadeInDown,
+  FadeInUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { OB_SCREEN } from '../../config/onboarding';
@@ -13,31 +26,133 @@ import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { triggerImpact } from '../../utils/haptics';
+import { triggerNotification } from '../../utils/haptics';
 
 const FREQUENCY_OPTIONS = [
-  { id: RidingFrequency.DAILY, labelKey: 'obFreqDaily', subKey: 'obFreqDailySub', icon: Gauge },
+  {
+    id: RidingFrequency.DAILY,
+    labelKey: 'obFreqDaily',
+    subKey: 'obFreqDailySub',
+    previewKey: 'obFreqDailyPreview',
+    affirmKey: 'obFreqDailyAffirm',
+    icon: Gauge,
+  },
   {
     id: RidingFrequency.WEEKLY,
     labelKey: 'obFreqWeekly',
     subKey: 'obFreqWeeklySub',
+    previewKey: 'obFreqWeeklyPreview',
+    affirmKey: 'obFreqWeeklyAffirm',
     icon: Calendar,
   },
   {
     id: RidingFrequency.MONTHLY,
     labelKey: 'obFreqMonthly',
     subKey: 'obFreqMonthlySub',
+    previewKey: 'obFreqMonthlyPreview',
+    affirmKey: 'obFreqMonthlyAffirm',
     icon: CalendarClock,
   },
   {
     id: RidingFrequency.SEASONALLY,
     labelKey: 'obFreqSeasonally',
     subKey: 'obFreqSeasonallySub',
+    previewKey: 'obFreqSeasonallyPreview',
+    affirmKey: 'obFreqSeasonallyAffirm',
     icon: Sun,
   },
 ] as const;
 
-const ADVANCE_DELAY_MS = 700;
+const ADVANCE_DELAY_MS = 1000;
+
+/* ─── Eyebrow pill (mirrors experience.tsx) ─── */
+
+function EyebrowPill({ label }: { label: string }) {
+  const dotScale = useSharedValue(1);
+
+  useEffect(() => {
+    dotScale.value = withRepeat(
+      withSequence(
+        withTiming(1.4, { duration: 900, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 900, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+      false,
+    );
+  }, [dotScale]);
+
+  const dotStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: dotScale.value }],
+  }));
+
+  return (
+    <Animated.View
+      entering={FadeIn.delay(100).duration(500)}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        gap: 6,
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+        borderRadius: 999,
+        backgroundColor: `${ONBOARDING_COLORS.warm}1F`,
+        borderWidth: 1,
+        borderColor: `${ONBOARDING_COLORS.warm}4D`,
+        marginBottom: 14,
+      }}
+    >
+      <Animated.View
+        style={[
+          { width: 4, height: 4, borderRadius: 2, backgroundColor: ONBOARDING_COLORS.warm2 },
+          dotStyle,
+        ]}
+      />
+      <Text
+        style={{
+          fontFamily: 'GeistMono-Medium',
+          fontSize: 9.5,
+          fontWeight: '600',
+          letterSpacing: 1.7,
+          textTransform: 'uppercase',
+          color: ONBOARDING_COLORS.warm2,
+        }}
+      >
+        {label}
+      </Text>
+    </Animated.View>
+  );
+}
+
+/* ─── Pulsing affirmation dot (mirrors experience.tsx AffirmDot) ─── */
+
+function AffirmDot() {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    scale.value = withRepeat(
+      withSequence(
+        withTiming(1.6, { duration: 700, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 700, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+      false,
+    );
+  }, [scale]);
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        { width: 5, height: 5, borderRadius: 2.5, backgroundColor: ONBOARDING_COLORS.warm2 },
+        animStyle,
+      ]}
+    />
+  );
+}
 
 export default function FrequencyScreen() {
   const { t } = useTranslation();
@@ -53,6 +168,20 @@ export default function FrequencyScreen() {
 
   useEffect(() => {
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.FREQUENCY);
+  }, []);
+
+  // Reset pending state when returning to this screen
+  useFocusEffect(
+    useCallback(() => {
+      setPending(null);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    }, []),
+  );
+
+  useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
@@ -60,7 +189,7 @@ export default function FrequencyScreen() {
 
   const handleSelect = (id: RidingFrequency) => {
     if (pending) return;
-    triggerImpact();
+    triggerNotification(NotificationFeedbackType.Success);
     setPending(id);
     setRidingFrequency(id);
     setLastCompletedScreen(OB_SCREEN.FREQUENCY);
@@ -70,26 +199,19 @@ export default function FrequencyScreen() {
     timerRef.current = setTimeout(goNext, ADVANCE_DELAY_MS);
   };
 
+  const handleBack = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    onBack();
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
-      <Pressable
-        onPress={onBack}
-        hitSlop={12}
-        style={{
-          position: 'absolute',
-          top: insets.top + 44,
-          left: 16,
-          zIndex: 10,
-          width: 36,
-          height: 36,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <ChevronLeft size={24} color={ONBOARDING_COLORS.textPrimary} />
-      </Pressable>
+      <OnboardingBackButton
+        onPress={handleBack}
+        style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
+      />
 
       <View
         style={{
@@ -100,18 +222,7 @@ export default function FrequencyScreen() {
         }}
       >
         <Animated.View entering={FadeInDown.duration(300)}>
-          <Text
-            style={{
-              fontFamily: 'GeistMono-Medium',
-              fontSize: 11,
-              letterSpacing: 2,
-              textTransform: 'uppercase',
-              color: ONBOARDING_COLORS.warm2,
-              marginBottom: 12,
-            }}
-          >
-            {t('onboarding.obFreqEyebrow')}
-          </Text>
+          <EyebrowPill label={t('onboarding.obFreqEyebrow')} />
           <Text
             style={{
               fontFamily: 'InstrumentSerif-Regular',
@@ -153,61 +264,97 @@ export default function FrequencyScreen() {
                 <Pressable
                   onPress={() => handleSelect(option.id)}
                   accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  accessibilityLabel={`${t(`onboarding.${option.labelKey}`)}, ${t(`onboarding.${option.subKey}`)}`}
                   style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 14,
                     padding: 14,
                     borderRadius: 16,
                     borderCurve: 'continuous',
-                    backgroundColor: active
-                      ? ONBOARDING_COLORS.cardBgSelected
-                      : ONBOARDING_COLORS.cardBg,
-                    borderWidth: 1,
+                    backgroundColor: active ? ONBOARDING_COLORS.accentBg : ONBOARDING_COLORS.cardBg,
+                    borderWidth: active ? 2 : 1,
                     borderColor: active
                       ? ONBOARDING_COLORS.warm
                       : ONBOARDING_COLORS.cardBorderDefault,
                   }}
                 >
-                  <View
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                    <View
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 13,
+                        borderCurve: 'continuous',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: active
+                          ? ONBOARDING_COLORS.warm
+                          : ONBOARDING_COLORS.surface2,
+                      }}
+                    >
+                      <Icon
+                        size={21}
+                        color={active ? ONBOARDING_COLORS.textOnAccent : ONBOARDING_COLORS.warm2}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontSize: 15.5,
+                          fontWeight: '600',
+                          color: ONBOARDING_COLORS.textPrimary,
+                        }}
+                      >
+                        {t(`onboarding.${option.labelKey}`)}
+                      </Text>
+                      <Text
+                        style={{
+                          fontFamily: 'GeistMono-Medium',
+                          fontSize: 10,
+                          letterSpacing: 1.6,
+                          textTransform: 'uppercase',
+                          color: active ? ONBOARDING_COLORS.warm2 : ONBOARDING_COLORS.ink3,
+                          marginTop: 3,
+                        }}
+                      >
+                        {t(`onboarding.${option.subKey}`)}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Preview / "why" line — always visible */}
+                  <Text
                     style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 13,
-                      borderCurve: 'continuous',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: active ? ONBOARDING_COLORS.warm : ONBOARDING_COLORS.surface2,
+                      fontSize: 12.5,
+                      lineHeight: 18,
+                      fontStyle: 'italic',
+                      color: active ? ONBOARDING_COLORS.textBright : ONBOARDING_COLORS.textSoft,
+                      marginTop: 10,
+                      paddingLeft: 58,
                     }}
                   >
-                    <Icon
-                      size={21}
-                      color={active ? ONBOARDING_COLORS.textOnAccent : ONBOARDING_COLORS.warm2}
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text
+                    {t(`onboarding.${option.previewKey}` as never)}
+                  </Text>
+
+                  {/* Affirmation — only after selection */}
+                  {active && (
+                    <Animated.View
+                      entering={FadeInUp.duration(260)}
                       style={{
-                        fontSize: 15.5,
-                        fontWeight: '600',
-                        color: ONBOARDING_COLORS.textPrimary,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 6,
+                        marginTop: 10,
+                        paddingLeft: 58,
                       }}
                     >
-                      {t(`onboarding.${option.labelKey}`)}
-                    </Text>
-                    <Text
-                      style={{
-                        fontFamily: 'GeistMono-Medium',
-                        fontSize: 10,
-                        letterSpacing: 1.6,
-                        textTransform: 'uppercase',
-                        color: active ? ONBOARDING_COLORS.warm2 : ONBOARDING_COLORS.ink3,
-                        marginTop: 3,
-                      }}
-                    >
-                      {t(`onboarding.${option.subKey}`)}
-                    </Text>
-                  </View>
+                      <AffirmDot />
+                      <Text
+                        style={{ fontSize: 13, color: ONBOARDING_COLORS.warm2, fontWeight: '500' }}
+                      >
+                        {t(`onboarding.${option.affirmKey}` as never)}
+                      </Text>
+                    </Animated.View>
+                  )}
                 </Pressable>
               </Animated.View>
             );

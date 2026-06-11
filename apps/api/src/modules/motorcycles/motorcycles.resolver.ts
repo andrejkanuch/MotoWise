@@ -4,6 +4,7 @@ import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
@@ -36,11 +37,15 @@ export class MotorcyclesResolver {
     return this.motorcyclesService.findByUser(user.id);
   }
 
+  // Public: NHTSA catalog data is consumed during anonymous-first onboarding
+  // (bike-setup runs before the account step), so these must not require a JWT.
+  @Public()
   @Query(() => [MotorcycleMake], { name: 'motorcycleMakes' })
   async motorcycleMakes(): Promise<MotorcycleMake[]> {
     return this.nhtsaService.getMakes();
   }
 
+  @Public()
   @Query(() => [MotorcycleModelResult], { name: 'motorcycleModels' })
   async motorcycleModels(
     @Args('makeId', { type: () => Int }) makeId: number,
@@ -49,6 +54,10 @@ export class MotorcyclesResolver {
     return this.nhtsaService.getModels(makeId, year);
   }
 
+  // Public: aggregate fleet counts (no per-user data) shown on the anonymous
+  // bike-setup + reveal screens. The onboarding-reveal resolver already exposes
+  // these same stats via a @Public() query.
+  @Public()
   @Query(() => [MakeStats], {
     name: 'makeStats',
     description: 'Aggregated fleet stats per motorcycle make (riders, models, total bikes)',

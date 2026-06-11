@@ -20,6 +20,12 @@ export const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   SUPABASE_JWT_SECRET: z.string().min(1),
   OPENAI_API_KEY: z.string().min(1),
+  // AI model-insights (onboarding Reveal known-issues card). Gemini is the
+  // primary provider, OpenAI the fallback; all optional — the Reveal degrades
+  // to factual cards and never blocks when AI is absent/slow.
+  GOOGLE_GENERATIVE_AI_API_KEY: optionalString,
+  AI_INSIGHTS_ENABLED: optionalString,
+  AI_INSIGHTS_TIMEOUT_MS: optionalString,
   CORS_ORIGINS: z.string().default('http://localhost:8081,http://localhost:3000'),
   REVENUECAT_WEBHOOK_SECRET: optionalString,
   REVENUECAT_SECRET_API_KEY: optionalString,

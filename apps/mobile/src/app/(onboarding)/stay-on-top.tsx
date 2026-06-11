@@ -1,21 +1,14 @@
-import {
-  Bell,
-  BookMarked,
-  Check,
-  ChevronLeft,
-  DollarSign,
-  Shield,
-  Sparkles,
-} from 'lucide-react-native';
+import { Bell, BookMarked, Check, DollarSign, Shield, Sparkles } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { OB_SCREEN } from '../../config/onboarding';
+import { getPrimaryConcern, OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
 import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
@@ -25,12 +18,32 @@ import { triggerImpact } from '../../utils/haptics';
 
 /** Concern ids — drive the Reveal emphasis + paywall value-prop ordering. */
 export const STAY_ON_TOP_OPTIONS = [
-  { id: 'service', labelKey: 'obStayServiceLabel', subKey: 'obStayServiceSub', icon: Bell },
-  { id: 'costs', labelKey: 'obStayCostsLabel', subKey: 'obStayCostsSub', icon: DollarSign },
-  { id: 'resale', labelKey: 'obStayResaleLabel', subKey: 'obStayResaleSub', icon: BookMarked },
-  { id: 'issues', labelKey: 'obStayIssuesLabel', subKey: 'obStayIssuesSub', icon: Shield },
   {
-    id: 'enjoy',
+    id: 'never_miss_service',
+    labelKey: 'obStayServiceLabel',
+    subKey: 'obStayServiceSub',
+    icon: Bell,
+  },
+  {
+    id: 'avoid_surprise_costs',
+    labelKey: 'obStayCostsLabel',
+    subKey: 'obStayCostsSub',
+    icon: DollarSign,
+  },
+  {
+    id: 'keep_resale_value',
+    labelKey: 'obStayResaleLabel',
+    subKey: 'obStayResaleSub',
+    icon: BookMarked,
+  },
+  {
+    id: 'catch_issues_early',
+    labelKey: 'obStayIssuesLabel',
+    subKey: 'obStayIssuesSub',
+    icon: Shield,
+  },
+  {
+    id: 'just_enjoy',
     labelKey: 'obStayEnjoyLabel',
     subKey: 'obStayEnjoySub',
     icon: Sparkles,
@@ -69,6 +82,7 @@ export default function StayOnTopScreen() {
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.STAY_ON_TOP, {
       concerns: ids.join(','),
       concerns_count: ids.length,
+      primary_concern: getPrimaryConcern(ids),
     });
     goNext();
   };
@@ -77,22 +91,10 @@ export default function StayOnTopScreen() {
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
-      <Pressable
+      <OnboardingBackButton
         onPress={onBack}
-        hitSlop={12}
-        style={{
-          position: 'absolute',
-          top: insets.top + 44,
-          left: 16,
-          zIndex: 10,
-          width: 36,
-          height: 36,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <ChevronLeft size={24} color={ONBOARDING_COLORS.textPrimary} />
-      </Pressable>
+        style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
+      />
 
       <ScrollView
         style={{ flex: 1 }}
@@ -153,7 +155,8 @@ export default function StayOnTopScreen() {
                   onPress={() => toggle(option.id)}
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: on }}
-                  style={{
+                  accessibilityLabel={`${t(`onboarding.${option.labelKey}`)}, ${t(`onboarding.${option.subKey}`)}`}
+                  style={({ pressed }) => ({
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 13,
@@ -161,12 +164,11 @@ export default function StayOnTopScreen() {
                     minHeight: 62,
                     borderRadius: 15,
                     borderCurve: 'continuous',
-                    backgroundColor: on
-                      ? ONBOARDING_COLORS.cardBgSelected
-                      : ONBOARDING_COLORS.cardBg,
-                    borderWidth: 1,
+                    backgroundColor: on ? ONBOARDING_COLORS.accentBg : ONBOARDING_COLORS.cardBg,
+                    borderWidth: on ? 2 : 1,
                     borderColor: on ? ONBOARDING_COLORS.warm : ONBOARDING_COLORS.cardBorderDefault,
-                  }}
+                    transform: [{ scale: pressed ? 0.97 : 1 }],
+                  })}
                 >
                   <View
                     style={{
@@ -197,29 +199,39 @@ export default function StayOnTopScreen() {
                         color: ONBOARDING_COLORS.ink3,
                         lineHeight: 16,
                         marginTop: 2,
-                        fontStyle: option.id === 'enjoy' ? 'italic' : 'normal',
+                        fontStyle: option.id === 'just_enjoy' ? 'italic' : 'normal',
                       }}
                     >
                       {t(`onboarding.${option.subKey}`)}
                     </Text>
                   </View>
-                  <View
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 7,
-                      borderCurve: 'continuous',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: on ? ONBOARDING_COLORS.warm : 'transparent',
-                      borderWidth: on ? 0 : 1.5,
-                      borderColor: ONBOARDING_COLORS.textMuted,
-                    }}
-                  >
-                    {on ? (
-                      <Check size={13} color={ONBOARDING_COLORS.textOnAccent} strokeWidth={3} />
-                    ) : null}
-                  </View>
+                  {on ? (
+                    <Animated.View
+                      entering={ZoomIn.duration(200).springify()}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 8,
+                        borderCurve: 'continuous',
+                        backgroundColor: ONBOARDING_COLORS.warm,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Check size={16} color={ONBOARDING_COLORS.textOnAccent} strokeWidth={3} />
+                    </Animated.View>
+                  ) : (
+                    <View
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 8,
+                        borderCurve: 'continuous',
+                        borderWidth: 1.5,
+                        borderColor: ONBOARDING_COLORS.cardBorderDefault,
+                      }}
+                    />
+                  )}
                 </Pressable>
               </Animated.View>
             );

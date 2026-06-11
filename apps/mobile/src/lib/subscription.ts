@@ -117,6 +117,27 @@ function updateStoreFromCustomerInfo(info: {
   store.setVerified(true);
 }
 
+/**
+ * Restore previous purchases (e.g. from the sign-in surface). Updates the
+ * subscription store from the restored entitlements and resolves to whether Pro
+ * is now active. No-op in Expo Go (RC native module unavailable).
+ */
+export async function restorePurchases(): Promise<boolean> {
+  if (isExpoGo()) return false;
+  try {
+    const Purchases = await getPurchases();
+    if (!Purchases) return false;
+    const info = await Purchases.restorePurchases();
+    updateStoreFromCustomerInfo(info);
+    const isPro = info.entitlements.active[REVENUECAT_ENTITLEMENT_PRO] !== undefined;
+    trackEvent(AnalyticsEvent.SUBSCRIPTION_RESTORED, { is_pro: isPro });
+    return isPro;
+  } catch (e) {
+    captureException(e, { context: 'restorePurchases' });
+    return false;
+  }
+}
+
 async function doInit(): Promise<(() => void) | null> {
   try {
     const Purchases = await getPurchases();

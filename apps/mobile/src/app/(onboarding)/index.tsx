@@ -32,9 +32,13 @@ export default function WelcomeScreen() {
   // retrigger a resume on this already-mounted welcome screen.
   const [resume] = useState(() => {
     if (resumeHandledThisLaunch) return null;
-    const lastCompleted = useOnboardingStore.getState().lastCompletedScreen;
+    const { lastCompletedScreen: lastCompleted, bikeData } = useOnboardingStore.getState();
     if (!lastCompleted) return null;
-    const target = getResumeRoute(getOnboardingVariant(), lastCompleted);
+    // Same bike-aware branch as forward nav so resume-after-kill lands on the
+    // screen the rider would have reached, not a bike-dependent dead-end.
+    const target = getResumeRoute(getOnboardingVariant(), lastCompleted, {
+      hasBike: !!bikeData?.make,
+    });
     return target ? { lastCompleted, target } : null;
   });
 
@@ -76,8 +80,8 @@ export default function WelcomeScreen() {
         }}
       >
         <Image
-          source={require('../../assets/images/onboarding-hero.webp')}
-          style={{ width: '100%', height: '100%', opacity: 0.65 }}
+          source={require('../../assets/images/hero-rider.jpg')}
+          style={{ width: '100%', height: '100%', opacity: 0.8 }}
           contentFit="cover"
           contentPosition="center"
         />

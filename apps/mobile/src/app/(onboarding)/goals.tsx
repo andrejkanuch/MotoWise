@@ -1,11 +1,12 @@
 import type { RidingGoal } from '@motovault/types';
 import { useFocusEffect } from 'expo-router';
-import { Check, ChevronLeft, Compass, MapPin, Sparkles, Wallet, Wrench } from 'lucide-react-native';
+import { Check, Compass, MapPin, Sparkles, Wallet, Wrench } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
@@ -53,12 +54,21 @@ const GOAL_OPTIONS = [
 
 export default function GoalsScreen() {
   const { t } = useTranslation();
+  // Widened wrapper for onboarding copy keys that are pending addition to en.json.
+  // Routes through i18next at runtime; sidesteps the generated-from-en.json key union
+  // so this screen can reference its spec'd copy keys without editing locale files.
+  const tx = (key: string, options?: Record<string, unknown>) =>
+    (t as (k: string, o?: Record<string, unknown>) => string)(key, options);
   const onBack = useOnboardingBack(OB_SCREEN.GOALS);
   const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.GOALS);
   const goNext = useOnboardingNext(OB_SCREEN.GOALS);
   const insets = useSafeAreaInsets();
   const setRidingGoals = useOnboardingStore((s) => s.setRidingGoals);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
+  const bikeMake = useOnboardingStore((s) => s.bikeData?.make);
+
+  // Interpolate the rider's bike make into the title; fall back to a generic word.
+  const titleMake = bikeMake?.trim() || tx('onboarding.goalsTitleFallback');
 
   const [selected, setSelected] = useState<Set<RidingGoal>>(new Set());
   const [showAffirmation, setShowAffirmation] = useState(false);
@@ -126,32 +136,33 @@ export default function GoalsScreen() {
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
       {/* Back button */}
-      <Pressable
+      <OnboardingBackButton
         onPress={onBack}
-        hitSlop={12}
-        style={{
-          position: 'absolute',
-          top: insets.top + 44,
-          left: 16,
-          zIndex: 10,
-          width: 36,
-          height: 36,
-          borderRadius: 18,
-          borderCurve: 'continuous',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <ChevronLeft size={24} color={ONBOARDING_COLORS.textPrimary} />
-      </Pressable>
+        style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
+      />
 
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 72, paddingBottom: 180 }}
         showsVerticalScrollIndicator={false}
       >
+        {/* Eyebrow */}
+        <Animated.Text
+          entering={FadeInDown.duration(300)}
+          style={{
+            fontFamily: 'GeistMono-Medium',
+            fontSize: 11,
+            letterSpacing: 1.8,
+            textTransform: 'uppercase',
+            color: ONBOARDING_COLORS.warm2,
+            marginBottom: 12,
+          }}
+        >
+          {tx('onboarding.goalsEyebrow')}
+        </Animated.Text>
+
         {/* Headline */}
-        <Animated.View entering={FadeInDown.duration(300)}>
+        <Animated.View entering={FadeInDown.delay(60).duration(300)}>
           <Text
             style={{
               fontFamily: 'InstrumentSerif-Regular',
@@ -162,10 +173,10 @@ export default function GoalsScreen() {
               marginBottom: 6,
             }}
           >
-            {t('onboarding.v2GoalsTitle')}
+            {tx('onboarding.goalsTitle')}
             {'\n'}
             <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
-              {t('onboarding.v2GoalsTitleItalic')}
+              {tx('onboarding.goalsTitleAccent', { make: titleMake })}
             </Text>
           </Text>
         </Animated.View>
@@ -180,7 +191,7 @@ export default function GoalsScreen() {
             marginBottom: 32,
           }}
         >
-          {t('onboarding.v2GoalsSubtitle')}
+          {tx('onboarding.goalsSubtitle')}
         </Animated.Text>
 
         {/* Goal cards */}
@@ -203,7 +214,9 @@ export default function GoalsScreen() {
                   accessibilityState={{ checked: isSelected }}
                   accessibilityLabel={`${t(`onboarding.${goal.labelKey}`)}, ${t(`onboarding.${goal.descKey}`)}`}
                   style={({ pressed }) => ({
-                    backgroundColor: ONBOARDING_COLORS.cardBg,
+                    backgroundColor: isSelected
+                      ? ONBOARDING_COLORS.accentBg
+                      : ONBOARDING_COLORS.cardBg,
                     borderWidth: isSelected ? 2 : 1,
                     borderColor: isSelected
                       ? ONBOARDING_COLORS.warm
@@ -224,12 +237,17 @@ export default function GoalsScreen() {
                       height: 44,
                       borderRadius: 22,
                       borderCurve: 'continuous',
-                      backgroundColor: `${ONBOARDING_COLORS.warm}22`,
+                      backgroundColor: isSelected
+                        ? ONBOARDING_COLORS.accentBg
+                        : ONBOARDING_COLORS.surface2,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Icon size={22} color={ONBOARDING_COLORS.warm} />
+                    <Icon
+                      size={22}
+                      color={isSelected ? ONBOARDING_COLORS.warm2 : ONBOARDING_COLORS.ink3}
+                    />
                   </View>
 
                   {/* Text */}
@@ -273,7 +291,7 @@ export default function GoalsScreen() {
                         justifyContent: 'center',
                       }}
                     >
-                      <Check size={16} color={ONBOARDING_COLORS.textPrimary} />
+                      <Check size={16} color={ONBOARDING_COLORS.textOnAccent} />
                     </Animated.View>
                   ) : (
                     <View
@@ -318,7 +336,7 @@ export default function GoalsScreen() {
               paddingVertical: 18,
             }}
           >
-            {t('onboarding.v2GoalsAffirmation')}
+            {tx('onboarding.goalsAffirmation')}
           </Animated.Text>
         ) : (
           <>
@@ -329,13 +347,18 @@ export default function GoalsScreen() {
             />
             <Text
               style={{
-                fontSize: 13,
+                fontFamily: 'GeistMono-Medium',
+                fontSize: 11,
+                letterSpacing: 1,
                 color: ONBOARDING_COLORS.textMuted,
                 textAlign: 'center',
                 marginTop: 10,
               }}
             >
-              {t('onboarding.v2GoalsPicked', { count: selected.size })}
+              {tx('onboarding.goalsPicked', {
+                count: selected.size,
+                total: GOAL_OPTIONS.length,
+              })}
             </Text>
           </>
         )}

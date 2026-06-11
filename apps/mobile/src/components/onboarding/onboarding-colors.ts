@@ -70,12 +70,22 @@ export const ONBOARDING_COLORS = {
   underlineFaint: 'rgba(255,255,255,0.15)',
 
   // ── Experience-level accent colors ──
-  /** Beginner level — sage olive (#A3B18A) */
-  accentBeginner: '#A3B18A',
+  /** Beginner level — warm amber (design intent; brand is warm-only, no cool sage) */
+  accentBeginner: '#E0A03F',
   /** Intermediate level — warm amber (maps to editorialDarkWarm) */
   accentIntermediate: palette.editorialDarkWarm,
   /** Advanced level — dusty copper (#C4634A) */
   accentAdvanced: '#C4634A',
+
+  // ── Semantic accent hues (design spec palette) ──
+  /** Trust blue (#5B8DEF) — used for info rows / low-priority signals */
+  blue: '#5B8DEF',
+  /** Growth teal (#3FB8A0) — used for routes / secondary positive rows */
+  teal: '#3FB8A0',
+  /** Warm amber (#E0A03F) — encouragement / weekly-stats row */
+  amber: '#E0A03F',
+  /** Positive green (#5BBF7A) — confirmations / "ready" states */
+  green: '#5BBF7A',
 
   // ── Semantic action colors ──
   /** Accept / add green (matches editorialSuccess) */

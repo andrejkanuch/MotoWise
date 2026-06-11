@@ -1,16 +1,20 @@
 import { GetOnboardingRevealDocument, type GetOnboardingRevealQuery } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, DollarSign, Lightbulb, ShieldCheck, Users } from 'lucide-react-native';
-import { useEffect } from 'react';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { DollarSign, Lightbulb, ShieldCheck, Users, Wrench } from 'lucide-react-native';
+import { type ReactNode, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { getBikeImage } from '../../config/bike-images';
 import { getBrandColor, getBrandDna } from '../../config/brand-dna';
-import { OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
+import { getPrimaryConcern, OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
 import {
   useOnboardingNext,
@@ -25,6 +29,13 @@ import { useOnboardingStore } from '../../stores/onboarding.store';
 
 type RevealData = GetOnboardingRevealQuery['onboardingReveal'];
 
+/** Brand archetype → Category spec-tile i18n key (falls back to "Tracked"). */
+const CATEGORY_LABEL_KEYS: Record<string, string> = {
+  adv: 'obRevealCatAdventure',
+  sport: 'obRevealCatSport',
+  cruiser: 'obRevealCatCruiser',
+};
+
 export default function RevealScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -33,13 +44,20 @@ export default function RevealScreen() {
   const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.REVEAL);
   const goNext = useOnboardingNext(OB_SCREEN.REVEAL);
   const bikeData = useOnboardingStore((s) => s.bikeData);
+  const stayOnTopOf = useOnboardingStore((s) => s.stayOnTopOf);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
+
+  // B biases the Reveal's lead emphasis to the rider's top concern.
+  const primaryConcern = getPrimaryConcern(stayOnTopOf);
 
   const make = bikeData?.make ?? '';
   const model = bikeData?.model || undefined;
   const year = bikeData?.year ?? new Date().getFullYear() - 3;
   const brandColor = getBrandColor(make);
   const dna = getBrandDna(make);
+  const categoryLabel = t(
+    `onboarding.${CATEGORY_LABEL_KEYS[dna?.type ?? ''] ?? 'obRevealCatTracked'}` as never,
+  ) as string;
 
   // Variant B leads with the cost projection; A leads with the recall check.
   const projectionLed = variant === OB_VARIANT.INVESTED;
@@ -238,31 +256,44 @@ export default function RevealScreen() {
     </Animated.View>
   );
 
-  // Order: B → cost, recall, issues, community. A → recall, issues, community.
-  const proofs = projectionLed
-    ? [costProof, recallProof, knownIssuesProof, communityProof]
-    : [recallProof, knownIssuesProof, communityProof];
+  const scheduleProof = (
+    <Animated.View
+      key="schedule"
+      entering={FadeInUp.delay(465).duration(360)}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 13 }}
+    >
+      <ProofIcon color={brandColor}>
+        <Wrench size={18} color={brandColor} />
+      </ProofIcon>
+      <Text
+        style={{ flex: 1, fontSize: 13.5, color: ONBOARDING_COLORS.textSecondary, lineHeight: 19 }}
+      >
+        {t('onboarding.obRevealScheduleProof')}
+      </Text>
+    </Animated.View>
+  );
+
+  // Card order. A always leads with the recall check. B leads with the cost
+  // projection, then biases the second slot to the rider's primary concern:
+  // an "issues"-led rider sees the AI known-issues card promoted directly
+  // under the projection (A's order already places issues second).
+  let proofs: ReactNode[];
+  if (!projectionLed) {
+    proofs = [recallProof, scheduleProof, knownIssuesProof, communityProof];
+  } else if (primaryConcern === 'catch_issues_early') {
+    proofs = [costProof, knownIssuesProof, recallProof, scheduleProof, communityProof];
+  } else {
+    proofs = [costProof, recallProof, scheduleProof, knownIssuesProof, communityProof];
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
-      <Pressable
+      <OnboardingBackButton
         onPress={onBack}
-        hitSlop={12}
-        style={{
-          position: 'absolute',
-          top: insets.top + 44,
-          left: 16,
-          zIndex: 10,
-          width: 36,
-          height: 36,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <ChevronLeft size={24} color={ONBOARDING_COLORS.textPrimary} />
-      </Pressable>
+        style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
+      />
 
       <ScrollView
         style={{ flex: 1 }}
@@ -330,57 +361,71 @@ export default function RevealScreen() {
             backgroundColor: ONBOARDING_COLORS.surface,
             borderWidth: 1,
             borderColor: `${brandColor}55`,
+            shadowColor: brandColor,
+            shadowOpacity: 0.2,
+            shadowRadius: 24,
+            shadowOffset: { width: 0, height: 14 },
+            elevation: 8,
           }}
         >
-          <View
-            style={{
-              height: 6,
-              backgroundColor: brandColor,
-            }}
-          />
-          <View style={{ padding: 18 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <View
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 11,
-                  borderCurve: 'continuous',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: brandColor,
-                }}
-              >
-                <Text
-                  style={{ fontSize: 19, fontWeight: '800', color: ONBOARDING_COLORS.textWhite }}
-                >
-                  {make.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontFamily: 'GeistMono-Medium',
-                    fontSize: 10,
-                    letterSpacing: 1.4,
-                    color: ONBOARDING_COLORS.ink3,
-                  }}
-                >
-                  {year}
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: 'InstrumentSerif-Regular',
-                    fontSize: 26,
-                    lineHeight: 28,
-                    color: ONBOARDING_COLORS.textPrimary,
-                  }}
-                >
-                  {make}
-                  {model ? <Text style={{ color: ONBOARDING_COLORS.warm2 }}> {model}</Text> : null}
-                </Text>
-              </View>
+          {/* bike hero photo */}
+          <View style={{ height: 132 }}>
+            <Image
+              source={getBikeImage(make)}
+              style={{ width: '100%', height: '100%' }}
+              contentFit="cover"
+              transition={250}
+            />
+            <LinearGradient
+              colors={['transparent', `${brandColor}1F`, ONBOARDING_COLORS.surface]}
+              locations={[0, 0.5, 1]}
+              style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 96 }}
+            />
+            <View
+              style={{
+                position: 'absolute',
+                left: 16,
+                bottom: 12,
+                width: 44,
+                height: 44,
+                borderRadius: 13,
+                borderCurve: 'continuous',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: brandColor,
+                shadowColor: brandColor,
+                shadowOpacity: 0.5,
+                shadowRadius: 12,
+                shadowOffset: { width: 0, height: 4 },
+              }}
+            >
+              <Text style={{ fontSize: 20, fontWeight: '800', color: ONBOARDING_COLORS.textWhite }}>
+                {make.charAt(0).toUpperCase()}
+              </Text>
             </View>
+          </View>
+          <View style={{ padding: 18 }}>
+            <Text
+              style={{
+                fontFamily: 'GeistMono-Medium',
+                fontSize: 10,
+                letterSpacing: 1.4,
+                color: ONBOARDING_COLORS.ink3,
+              }}
+            >
+              {year}
+            </Text>
+            <Text
+              style={{
+                fontFamily: 'InstrumentSerif-Regular',
+                fontSize: 26,
+                lineHeight: 28,
+                color: ONBOARDING_COLORS.textPrimary,
+              }}
+            >
+              {make}
+              {model ? <Text style={{ color: ONBOARDING_COLORS.warm2 }}> {model}</Text> : null}
+            </Text>
 
             {/* spec tiles */}
             <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
@@ -390,13 +435,13 @@ export default function RevealScreen() {
                 color={brandColor}
               />
               <SpecTile
-                value={reveal?.oemTaskCount != null ? String(reveal.oemTaskCount) : '—'}
-                label={t('onboarding.obRevealSpecTasks')}
+                value={String(reveal?.recallCount ?? 0)}
+                label={t('onboarding.obRevealSpecRecalls')}
                 color={brandColor}
               />
               <SpecTile
-                value={String(reveal?.recallCount ?? 0)}
-                label={t('onboarding.obRevealSpecRecalls')}
+                value={categoryLabel}
+                label={t('onboarding.obRevealSpecCategory')}
                 color={brandColor}
               />
             </View>

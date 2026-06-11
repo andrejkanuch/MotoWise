@@ -1,21 +1,18 @@
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import { BarChart3, Bell, Compass } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, View } from 'react-native';
-import Animated, {
-  FadeInUp,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { OB_SCREEN } from '../../config/onboarding';
+import { useOnboardingBack } from '../../hooks/use-onboarding-back';
 import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { setupNotificationChannels } from '../../lib/notifications';
@@ -23,142 +20,142 @@ import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
+/**
+ * Three benefit rows, each with a two-tier title + subtitle and an icon in a
+ * per-row colored rounded tile (copper / blue / teal). No gamification copy.
+ */
 const BENEFITS = [
-  { icon: Bell, labelKey: 'v2NotificationsBenefit1' },
-  { icon: BarChart3, labelKey: 'v2NotificationsBenefit2' },
-  { icon: Compass, labelKey: 'v2NotificationsBenefit3' },
+  {
+    icon: Bell,
+    tile: ONBOARDING_COLORS.warm,
+    titleKey: 'v2NotificationsBenefit1Title',
+    subtitleKey: 'v2NotificationsBenefit1Subtitle',
+  },
+  {
+    icon: BarChart3,
+    tile: ONBOARDING_COLORS.blue,
+    titleKey: 'v2NotificationsBenefit2Title',
+    subtitleKey: 'v2NotificationsBenefit2Subtitle',
+  },
+  {
+    icon: Compass,
+    tile: ONBOARDING_COLORS.teal,
+    titleKey: 'v2NotificationsBenefit3Title',
+    subtitleKey: 'v2NotificationsBenefit3Subtitle',
+  },
 ] as const;
 
-function PulseRings() {
-  const ring1Scale = useSharedValue(1);
-  const ring2Scale = useSharedValue(1);
+/**
+ * Widened wrapper for onboarding copy keys that are pending addition to en.json.
+ * Routes through i18next at runtime; sidesteps the generated-from-en.json key
+ * union so this screen can reference its spec'd copy keys without editing locale
+ * files. (Mirrors the `tx` helper used on goals.tsx.)
+ */
+type TWide = (key: string, options?: Record<string, unknown>) => string;
 
-  useEffect(() => {
-    ring1Scale.value = withRepeat(withTiming(1.4, { duration: 2000 }), -1, true);
-    ring2Scale.value = withRepeat(withTiming(1.7, { duration: 2400 }), -1, true);
-  }, [ring1Scale, ring2Scale]);
-
-  const ring1Style = useAnimatedStyle(() => ({
-    transform: [{ scale: ring1Scale.value }],
-  }));
-
-  const ring2Style = useAnimatedStyle(() => ({
-    transform: [{ scale: ring2Scale.value }],
-  }));
-
+/** A realistic sample push-notification card: logo tile, app name · time, body. */
+function NotificationCard() {
+  const { t } = useTranslation();
+  const tx = t as unknown as TWide;
   return (
-    <>
-      <Animated.View
-        style={[
-          {
-            position: 'absolute',
-            width: 160,
-            height: 160,
-            borderRadius: 80,
-            borderCurve: 'continuous',
-            backgroundColor: ONBOARDING_COLORS.warm,
-            opacity: 0.08,
-          },
-          ring2Style,
-        ]}
-      />
-      <Animated.View
-        style={[
-          {
-            position: 'absolute',
-            width: 130,
-            height: 130,
-            borderRadius: 65,
-            borderCurve: 'continuous',
-            backgroundColor: ONBOARDING_COLORS.warm,
-            opacity: 0.15,
-          },
-          ring1Style,
-        ]}
-      />
-    </>
-  );
-}
-
-function NotificationIllustration() {
-  return (
-    <View
-      style={{
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: 260,
-        marginBottom: 32,
-      }}
-    >
-      <PulseRings />
-      {/* Phone frame */}
+    <View style={{ alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
+      {/* soft copper glow behind the card */}
       <View
         style={{
-          width: 100,
-          height: 160,
-          borderRadius: 16,
+          position: 'absolute',
+          top: -8,
+          width: 260,
+          height: 120,
+          borderRadius: 60,
           borderCurve: 'continuous',
-          borderWidth: 2,
-          borderColor: ONBOARDING_COLORS.textSecondary,
+          backgroundColor: ONBOARDING_COLORS.warm,
+          opacity: 0.16,
+        }}
+      />
+      <Animated.View
+        entering={FadeInDown.duration(500)}
+        style={{
+          width: '100%',
+          maxWidth: 320,
+          flexDirection: 'row',
           alignItems: 'center',
-          paddingTop: 24,
+          gap: 11,
+          paddingVertical: 13,
+          paddingHorizontal: 14,
+          borderRadius: 18,
+          borderCurve: 'continuous',
+          backgroundColor: ONBOARDING_COLORS.surface2,
+          borderWidth: 1,
+          borderColor: ONBOARDING_COLORS.cardBorderDefault,
         }}
       >
-        {/* Notification card mockup */}
         <View
           style={{
-            width: 72,
-            height: 44,
-            borderRadius: 10,
+            width: 36,
+            height: 36,
+            borderRadius: 9,
             borderCurve: 'continuous',
-            backgroundColor: ONBOARDING_COLORS.surface2,
-            padding: 8,
-            gap: 4,
+            overflow: 'hidden',
+            backgroundColor: ONBOARDING_COLORS.warm,
           }}
         >
+          <Image
+            source={require('../../assets/images/motovault-icon-card.png')}
+            style={{ width: '100%', height: '100%' }}
+            contentFit="cover"
+          />
+        </View>
+        <View style={{ flex: 1, minWidth: 0 }}>
           <View
             style={{
               flexDirection: 'row',
-              alignItems: 'center',
-              gap: 4,
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
             }}
           >
-            <Bell size={10} color={ONBOARDING_COLORS.warm} />
-            <View
+            <Text
               style={{
-                height: 4,
-                width: 32,
-                borderRadius: 2,
-                backgroundColor: ONBOARDING_COLORS.textSecondary,
+                fontFamily: 'Geist',
+                fontSize: 12.5,
+                fontWeight: '700',
+                color: ONBOARDING_COLORS.textPrimary,
               }}
-            />
+            >
+              {tx('onboarding.v2NotificationsSampleApp')}
+            </Text>
+            <Text
+              style={{
+                fontFamily: 'GeistMono-Medium',
+                fontSize: 9.5,
+                color: ONBOARDING_COLORS.textMuted,
+              }}
+            >
+              {tx('onboarding.v2NotificationsSampleTime')}
+            </Text>
           </View>
-          <View
+          <Text
             style={{
-              height: 3,
-              width: 48,
-              borderRadius: 2,
-              backgroundColor: ONBOARDING_COLORS.textMuted,
+              fontFamily: 'Geist-Regular',
+              fontSize: 12.5,
+              lineHeight: 17,
+              color: ONBOARDING_COLORS.textSecondary,
+              marginTop: 2,
             }}
-          />
-          <View
-            style={{
-              height: 3,
-              width: 36,
-              borderRadius: 2,
-              backgroundColor: ONBOARDING_COLORS.textMuted,
-            }}
-          />
+          >
+            {tx('onboarding.v2NotificationsSampleBody')}
+          </Text>
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 }
 
 export default function NotificationsScreen() {
   const { t } = useTranslation();
+  const tx = t as unknown as TWide;
   const insets = useSafeAreaInsets();
   const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.NOTIFICATIONS);
+  const onBack = useOnboardingBack(OB_SCREEN.NOTIFICATIONS);
   const goNext = useOnboardingNext(OB_SCREEN.NOTIFICATIONS);
   const tracked = useRef(false);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
@@ -230,74 +227,125 @@ export default function NotificationsScreen() {
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
+      {/* Header — back button + eyebrow */}
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingTop: 12,
+          paddingHorizontal: 16,
+          gap: 8,
+        }}
+      >
+        <OnboardingBackButton onPress={onBack} />
+        <Text
+          style={{
+            fontFamily: 'GeistMono-Medium',
+            fontSize: 11,
+            letterSpacing: 1.8,
+            textTransform: 'uppercase',
+            color: ONBOARDING_COLORS.warm2,
+          }}
+        >
+          {tx('onboarding.v2NotificationsEyebrow')}
+        </Text>
+      </View>
+
       <View
         style={{
           flex: 1,
           paddingHorizontal: 24,
-          paddingTop: 32,
+          paddingTop: 20,
           justifyContent: 'space-between',
         }}
       >
-        {/* Content */}
-        <View style={{ alignItems: 'center' }}>
+        <View>
+          {/* Sample push-notification card illustration */}
           <Animated.View entering={FadeInUp.duration(400)}>
-            <NotificationIllustration />
+            <NotificationCard />
           </Animated.View>
 
           <Animated.Text
             entering={FadeInUp.delay(100).duration(300)}
             style={{
               fontFamily: 'InstrumentSerif-Regular',
-              fontSize: 26,
+              fontSize: 30,
+              lineHeight: 34,
               color: ONBOARDING_COLORS.textPrimary,
-              textAlign: 'center',
               letterSpacing: -0.5,
-              marginBottom: 10,
+              marginTop: 24,
             }}
           >
-            {t('onboarding.v2NotificationsTitle')}
+            {tx('onboarding.v2NotificationsTitleLead')}
+            {'\n'}
+            {tx('onboarding.v2NotificationsTitleBike')}{' '}
+            <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
+              {tx('onboarding.v2NotificationsTitleHealth')}
+            </Text>
           </Animated.Text>
 
           <Animated.Text
             entering={FadeInUp.delay(200).duration(300)}
             style={{
               fontFamily: 'Geist-Regular',
-              fontSize: 15,
+              fontSize: 14,
               color: ONBOARDING_COLORS.textSecondary,
-              textAlign: 'center',
-              lineHeight: 22,
-              marginBottom: 32,
-              paddingHorizontal: 12,
+              lineHeight: 21,
+              marginTop: 8,
+              maxWidth: 320,
             }}
           >
             {t('onboarding.v2NotificationsSubtitle')}
           </Animated.Text>
 
-          {/* Benefits */}
-          <View style={{ gap: 18, alignItems: 'center' }}>
+          {/* Benefit rows */}
+          <View style={{ gap: 18, marginTop: 28 }}>
             {BENEFITS.map((benefit, index) => (
               <Animated.View
-                key={benefit.labelKey}
+                key={benefit.titleKey}
                 entering={FadeInUp.delay(300 + index * 80)
                   .duration(300)
                   .springify()
                   .damping(18)}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 12,
-                }}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}
               >
-                <benefit.icon size={20} color={ONBOARDING_COLORS.warm} />
-                <Text
+                <View
                   style={{
-                    fontSize: 14,
-                    color: ONBOARDING_COLORS.textSecondary,
-                    lineHeight: 20,
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    borderCurve: 'continuous',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: `${benefit.tile}29`,
                   }}
                 >
-                  {t(`onboarding.${benefit.labelKey}`)}
-                </Text>
+                  <benefit.icon size={19} color={benefit.tile} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      fontFamily: 'Geist',
+                      fontSize: 14.5,
+                      fontWeight: '600',
+                      color: ONBOARDING_COLORS.textPrimary,
+                      letterSpacing: -0.15,
+                    }}
+                  >
+                    {tx(`onboarding.${benefit.titleKey}`)}
+                  </Text>
+                  <Text
+                    style={{
+                      fontFamily: 'Geist-Regular',
+                      fontSize: 12.5,
+                      color: ONBOARDING_COLORS.ink3,
+                      lineHeight: 17,
+                      marginTop: 1,
+                    }}
+                  >
+                    {tx(`onboarding.${benefit.subtitleKey}`)}
+                  </Text>
+                </View>
               </Animated.View>
             ))}
           </View>
@@ -309,6 +357,8 @@ export default function NotificationsScreen() {
             onPress={handleEnable}
             accessibilityRole="button"
             style={({ pressed }) => ({
+              flexDirection: 'row',
+              gap: 9,
               backgroundColor: ONBOARDING_COLORS.warm,
               borderRadius: 16,
               borderCurve: 'continuous',
@@ -319,6 +369,7 @@ export default function NotificationsScreen() {
               transform: [{ scale: pressed ? 0.98 : 1 }],
             })}
           >
+            <Bell size={18} color={ONBOARDING_COLORS.textOnAccent} />
             <Text
               style={{
                 fontSize: 16,
@@ -335,8 +386,8 @@ export default function NotificationsScreen() {
             onPress={handleSkip}
             accessibilityRole="button"
             style={({ pressed }) => ({
-              borderWidth: 1.5,
-              borderColor: ONBOARDING_COLORS.warm,
+              borderWidth: 1,
+              borderColor: ONBOARDING_COLORS.cardBorderDefault,
               borderRadius: 16,
               borderCurve: 'continuous',
               paddingVertical: 18,
@@ -350,7 +401,7 @@ export default function NotificationsScreen() {
               style={{
                 fontSize: 16,
                 fontWeight: '600',
-                color: ONBOARDING_COLORS.warm,
+                color: ONBOARDING_COLORS.textSecondary,
                 letterSpacing: -0.15,
               }}
             >

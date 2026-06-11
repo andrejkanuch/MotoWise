@@ -25,13 +25,15 @@ Event names are identical across arms (parity); variant B simply emits the same 
 | `onboarding_step_skipped` | demoted skip used | `skipped_section` |
 | `bike_added` | bike captured during onboarding (**activation metric**, fires for full AND partial capture) | `capture_level: 'model' \| 'make'`, `bike_make`, `bike_year` |
 | `reveal_viewed` | Bike Dossier shown | `recall_count`, `has_projection`, `has_known_issues` |
-| `commitment_completed` | pledge done | `commitment_style: 'tap' \| 'hold'` |
+| `commitment_completed` | pledge done | `commitment_style: 'tap' \| 'hold' \| 'signature'` (A = `hold`; B = `signature`, a drawn signature) |
 | `paywall_viewed` / `paywall_result` | RC paywall lifecycle (fired by `subscription.ts`) | `paywall_result: purchased \| restored \| cancelled \| …`, `placement` |
 | `account_created` | post-purchase/post-paywall account created or signed in | `context: 'post_purchase' \| 'post_paywall_free'`, `method: apple \| google \| email` |
 | `onboarding_completed` | personalizing finished | `has_bike`, `primary_goal`, `variant`, `goals`, `experience_level`, … |
 | `onboarding_resumed` | resume-after-kill | `last_completed`, `resume_target` |
 
 Step-specific `onboarding_step_completed` properties (pre-existing, unchanged): experience → `experience_level`; goals → `goals`, `goals_count`, `primary_goal`; bike_setup → `bike_year/make/model`, `is_custom_make`; maintenance → `accepted_count`, `skipped_count`, `total_tasks`; paywall → `paywall_result`, `goals`, `primary_goal`, `placement`; notifications → `permission_granted`, `skipped`.
+
+Variant B's extra steps: frequency → `riding_frequency`; stay_on_top → `concerns`, `concerns_count`, `primary_concern` (derived via `CONCERN_PRIORITY`/`getPrimaryConcern`, biases the Reveal's lead card + paywall framing); last_service → `last_service`, `has_mileage`, `unit`; building_plan → loader, no extra props.
 
 ## Metrics → PostHog definitions
 
@@ -69,7 +71,7 @@ re-roll). Verify in PostHog Live Events that `variant` is on every event.
 - [ ] Flow adds Frequency → Stay-on-top → Last service before Bike, and Building-plan before Reveal
 - [ ] Building-plan advances at data-ready or the 2.5s cap (never spins)
 - [ ] Reveal leads with the cost projection (EUR) + recall check + AI known-issues
-- [ ] Commitment hold is longer (~1.5s)
+- [ ] Commitment is a drawn signature: Seal enables only after a minimal stroke (a dot does not count); Clear resets; seal fires success haptic → `commitment_completed` with `commitment_style=signature`
 - [ ] Progress bar shows more segments than A
 
 **Bike activation (both)**

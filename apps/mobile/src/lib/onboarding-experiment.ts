@@ -15,6 +15,14 @@ import { isAnalyticsEnabled, posthogClient, setUserProperties } from './analytic
 // - Flag fetched but disabled / unknown value (deliberate kill switch)
 //   → CONTROL = the pre-test V4 flow (safe degradation).
 // The user is never left without a flow.
+//
+// Exposure: we read the variant from `reloadFeatureFlagsAsync()`'s resolved map
+// rather than `getFeatureFlag()`. `getFeatureFlag()` auto-fires
+// `$feature_flag_called` *before* we can register the `onboarding_variant`
+// super property, so that one exposure event would miss it. Reading the map
+// fires nothing, so we register first and then emit a single enriched exposure
+// on BOTH the happy and fallback paths — symmetric, and always carrying the
+// variant as a super property.
 // -------------------------------------------------------------------
 
 /** Budget for the flag fetch — onboarding must never block on the network. */
@@ -22,7 +30,22 @@ const FLAG_FETCH_TIMEOUT_MS = 2000;
 
 const FETCH_TIMEOUT = Symbol('flag-fetch-timeout');
 
-async function reloadFlagsWithTimeout(): Promise<void> {
+const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
+
+/**
+ * Dev-only variant override. In a `__DEV__` build PostHog is disabled
+ * (analytics.ts), so the flag never evaluates and every install would resolve
+ * to CONTROL — making it impossible to exercise lean/invested locally. Set
+ * `EXPO_PUBLIC_OB_VARIANT=invested` (or `lean`/`control`) in the dev shell to
+ * force an arm. No effect in release builds.
+ */
+function getDevVariantOverride(): ObVariant | null {
+  if (!isDev) return null;
+  const raw = process.env.EXPO_PUBLIC_OB_VARIANT;
+  return isObVariant(raw) ? raw : null;
+}
+
+async function reloadFlagsWithTimeout(): Promise<Record<string, boolean | string> | undefined> {
   const result = await Promise.race([
     posthogClient.reloadFeatureFlagsAsync(),
     new Promise<typeof FETCH_TIMEOUT>((resolve) =>
@@ -30,6 +53,7 @@ async function reloadFlagsWithTimeout(): Promise<void> {
     ),
   ]);
   if (result === FETCH_TIMEOUT) throw new Error('PostHog flag fetch timed out');
+  return result;
 }
 
 /**
@@ -43,16 +67,20 @@ function registerVariantWithAnalytics(variant: ObVariant) {
   setUserProperties({ onboarding_variant: variant });
 }
 
-/** Exposure event so PostHog experiment results include locally-defaulted users. */
-function captureFallbackExposure(variant: ObVariant) {
+/**
+ * Exposure event (`$feature_flag_called`). Emitted manually for every source so
+ * the series is complete and consistent: PostHog-evaluated, offline-defaulted,
+ * and dev-overridden users all get one exposure that carries the variant as a
+ * super property (registered just before this call). `locally_defaulted` flags
+ * the non-PostHog assignments so they can be reconciled / excluded.
+ */
+function captureExposure(variant: ObVariant, locallyDefaulted: boolean) {
   if (!isAnalyticsEnabled()) return;
-  // getFeatureFlag() fires `$feature_flag_called` automatically on the happy
-  // path; on the fallback path we mirror it manually (flagged as a local
-  // default) so the exposure series stays complete and reconcilable.
   posthogClient.capture('$feature_flag_called', {
     $feature_flag: EXPERIMENT_FLAG_KEY,
     $feature_flag_response: variant,
-    locally_defaulted: true,
+    onboarding_variant: variant,
+    locally_defaulted: locallyDefaulted,
   });
 }
 
@@ -65,6 +93,19 @@ let inFlight: Promise<ObVariant> | null = null;
  * assignment it returns the persisted variant without touching the network.
  */
 export function resolveOnboardingVariant(): Promise<ObVariant> {
+  // Dev override wins over persistence so QA can re-roll by changing the env
+  // var and relaunching (no need to clear MMKV).
+  const override = getDevVariantOverride();
+  if (override) {
+    const store = useExperimentStore.getState();
+    if (store.onboardingVariant !== override) {
+      store.reset();
+      store.assignVariant(override, 'override');
+    }
+    registerVariantWithAnalytics(override);
+    return Promise.resolve(override);
+  }
+
   const persisted = useExperimentStore.getState().onboardingVariant;
   if (persisted) {
     registerVariantWithAnalytics(persisted);
@@ -82,9 +123,8 @@ async function doResolve(): Promise<ObVariant> {
   let variant: ObVariant;
   let source: VariantSource;
   try {
-    await reloadFlagsWithTimeout();
-    // Fires `$feature_flag_called` (exposure) automatically.
-    const value = posthogClient.getFeatureFlag(EXPERIMENT_FLAG_KEY);
+    const flags = await reloadFlagsWithTimeout();
+    const value = flags?.[EXPERIMENT_FLAG_KEY];
     // Disabled or unknown variant after a successful fetch = kill switch →
     // route to the existing V4 flow.
     variant = isObVariant(value) ? value : OB_VARIANT.CONTROL;
@@ -95,8 +135,9 @@ async function doResolve(): Promise<ObVariant> {
   }
 
   useExperimentStore.getState().assignVariant(variant, source);
+  // Register BEFORE the exposure so `$feature_flag_called` carries the variant.
   registerVariantWithAnalytics(variant);
-  if (source === 'fallback') captureFallbackExposure(variant);
+  captureExposure(variant, source !== 'posthog');
   return variant;
 }
 

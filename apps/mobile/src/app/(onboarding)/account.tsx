@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppleGlyph, GoogleGlyph } from '../../components/onboarding/oauth-glyphs';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
@@ -243,6 +244,7 @@ export default function AccountScreen() {
             <Animated.View entering={FadeInUp.delay(180).duration(320)} style={{ gap: 11 }}>
               {process.env.EXPO_OS === 'ios' ? (
                 <Pressable onPress={handleApple} style={authButton(ONBOARDING_COLORS.textWhite)}>
+                  <AppleGlyph size={18} color={ONBOARDING_COLORS.background} />
                   <Text
                     style={{
                       fontSize: 15.5,
@@ -258,11 +260,7 @@ export default function AccountScreen() {
                 onPress={handleGoogle}
                 style={authButton(ONBOARDING_COLORS.cardBg, ONBOARDING_COLORS.cardBorderDefault)}
               >
-                <Text
-                  style={{ fontSize: 18, fontWeight: '700', color: ONBOARDING_COLORS.textPrimary }}
-                >
-                  G
-                </Text>
+                <GoogleGlyph size={18} />
                 <Text
                   style={{
                     fontSize: 15.5,

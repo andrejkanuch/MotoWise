@@ -1,10 +1,10 @@
 import { LastServiceDate, type MileageUnit } from '@motovault/types';
-import { ChevronLeft } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
@@ -58,7 +58,7 @@ export default function LastServiceScreen() {
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.LAST_SERVICE, {
       last_service: lastService ?? 'unset',
       has_mileage: mileage.length > 0,
-      mileage_unit: unit,
+      unit,
     });
     goNext();
   };
@@ -73,22 +73,10 @@ export default function LastServiceScreen() {
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
-      <Pressable
+      <OnboardingBackButton
         onPress={onBack}
-        hitSlop={12}
-        style={{
-          position: 'absolute',
-          top: insets.top + 44,
-          left: 16,
-          zIndex: 10,
-          width: 36,
-          height: 36,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <ChevronLeft size={24} color={ONBOARDING_COLORS.textPrimary} />
-      </Pressable>
+        style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
+      />
 
       <ScrollView
         style={{ flex: 1 }}
@@ -161,21 +149,25 @@ export default function LastServiceScreen() {
                     triggerImpact();
                     setLastService(on ? null : chip.id);
                   }}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}
                   style={{
                     paddingVertical: 10,
                     paddingHorizontal: 15,
                     borderRadius: 999,
                     borderCurve: 'continuous',
-                    backgroundColor: on ? ONBOARDING_COLORS.warm : ONBOARDING_COLORS.cardBg,
-                    borderWidth: 1,
-                    borderColor: on ? 'transparent' : ONBOARDING_COLORS.cardBorderDefault,
+                    backgroundColor: on ? ONBOARDING_COLORS.accentBg : ONBOARDING_COLORS.cardBg,
+                    borderWidth: on ? 2 : 1,
+                    borderColor: on ? ONBOARDING_COLORS.warm : ONBOARDING_COLORS.cardBorderDefault,
                   }}
                 >
                   <Text
                     style={{
-                      fontSize: 13.5,
-                      fontWeight: '600',
-                      color: on ? ONBOARDING_COLORS.textOnAccent : ONBOARDING_COLORS.textBody,
+                      fontFamily: 'GeistMono-Medium',
+                      fontSize: 12.5,
+                      letterSpacing: 0.6,
+                      textTransform: 'uppercase',
+                      color: on ? ONBOARDING_COLORS.warm2 : ONBOARDING_COLORS.textBody,
                     }}
                   >
                     {t(`onboarding.${chip.labelKey}`)}

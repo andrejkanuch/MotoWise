@@ -3,8 +3,11 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import type { ObVariant } from '../config/onboarding';
 import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 
-/** How the variant was decided — `posthog` = flag evaluated, `fallback` = offline default. */
-export type VariantSource = 'posthog' | 'fallback';
+/**
+ * How the variant was decided — `posthog` = flag evaluated, `fallback` = offline
+ * default, `override` = forced via `EXPO_PUBLIC_OB_VARIANT` in a dev build.
+ */
+export type VariantSource = 'posthog' | 'fallback' | 'override';
 
 interface ExperimentState {
   /**

@@ -190,6 +190,27 @@ export function getPrimaryGoal(goals: string[]): string {
   return GOAL_PRIORITY.find((g) => goals.includes(g)) ?? 'just_exploring';
 }
 
+/**
+ * Variant B "stay on top of" concern priority ranking (fixed, not tap order).
+ * Mirrors `GOAL_PRIORITY`: the highest-priority selected concern becomes
+ * `primaryConcern`, which biases the Reveal's lead emphasis and the paywall
+ * framing. Ids match `STAY_ON_TOP_OPTIONS` in the stay-on-top screen.
+ * Costs leads (loss aversion → projection card first); `enjoy` is the casual
+ * fallback (parallels `just_exploring`).
+ */
+export const CONCERN_PRIORITY = [
+  'avoid_surprise_costs',
+  'catch_issues_early',
+  'never_miss_service',
+  'keep_resale_value',
+  'just_enjoy',
+] as const;
+
+/** Get the primary concern from selected concern ids (fixed priority, not tap order). */
+export function getPrimaryConcern(concerns: string[]): string {
+  return CONCERN_PRIORITY.find((c) => concerns.includes(c)) ?? 'just_enjoy';
+}
+
 /** Map primary goal to RevenueCat placement string */
 export const GOAL_TO_PLACEMENT: Record<string, string> = {
   track_rides: 'onboarding_rides',
@@ -199,25 +220,65 @@ export const GOAL_TO_PLACEMENT: Record<string, string> = {
   just_exploring: 'onboarding_default',
 } as const;
 
-type OnboardingRoutePath = `/(onboarding)/${OnboardingRoute}`;
+type OnboardingRoutePath = `/(onboarding)/${OnboardingRoute}` | '/(onboarding)';
 
-/** Full route path for the screen after `current` in the variant's flow. */
+/**
+ * Href for a screen. The welcome screen is the group's index file, so its route
+ * is the group root `/(onboarding)` — NOT `/(onboarding)/index`, which Expo
+ * Router does not recognize and renders as "Page not found" (hit when Back
+ * falls through to the welcome step).
+ */
+function routeForScreen(screen: OnboardingRoute): OnboardingRoutePath {
+  return screen === OB_SCREEN.WELCOME ? '/(onboarding)' : `/(onboarding)/${screen}`;
+}
+
+/**
+ * Screens that only pay off when the rider has a bike. When there's no bike,
+ * the lean/invested flows route *around* them (spec §4): a true bike-skip goes
+ * straight to `goals` (no Reveal to pay off), and `goals` jumps to `paywall`
+ * (no Maintenance/Commitment to build a plan for).
+ */
+const BIKE_DEPENDENT_SCREENS: ReadonlySet<OnboardingRoute> = new Set([
+  OB_SCREEN.REVEAL,
+  OB_SCREEN.MAINTENANCE,
+  OB_SCREEN.COMMITMENT,
+]);
+
+/** Context for branch-aware navigation — derived from store state, not hardcoded. */
+export interface OnboardingNavContext {
+  /** Whether the rider captured a bike (full make+model OR make-level partial). */
+  hasBike: boolean;
+}
+
+/**
+ * Full route path for the screen after `current` in the variant's flow. When
+ * `ctx.hasBike` is false, bike-dependent screens are skipped (lean/invested
+ * only — `control` is the untouched V4 flow and ignores the branch).
+ */
 export function getNextRoute(
   variant: ObVariant,
   current: OnboardingRoute,
+  ctx?: OnboardingNavContext,
 ): OnboardingRoutePath | null {
   const flow = ONBOARDING_FLOWS[variant];
-  const idx = flow.indexOf(current);
+  let idx = flow.indexOf(current);
   if (idx === -1 || idx >= flow.length - 1) return null;
-  return `/(onboarding)/${flow[idx + 1]}`;
+  if (ctx && !ctx.hasBike && variant !== OB_VARIANT.CONTROL) {
+    while (idx < flow.length - 1 && BIKE_DEPENDENT_SCREENS.has(flow[idx + 1])) {
+      idx++;
+    }
+    if (idx >= flow.length - 1) return null;
+  }
+  return routeForScreen(flow[idx + 1]);
 }
 
 /** Given the last completed screen, return the full route path for the next screen */
 export function getResumeRoute(
   variant: ObVariant,
   lastCompleted: OnboardingRoute,
+  ctx?: OnboardingNavContext,
 ): OnboardingRoutePath | null {
-  return getNextRoute(variant, lastCompleted);
+  return getNextRoute(variant, lastCompleted, ctx);
 }
 
 /**
@@ -233,5 +294,5 @@ export function getPreviousRoute(
   const flow = ONBOARDING_FLOWS[variant];
   const idx = flow.indexOf(current);
   if (idx <= 0) return null;
-  return `/(onboarding)/${flow[idx - 1]}`;
+  return routeForScreen(flow[idx - 1]);
 }

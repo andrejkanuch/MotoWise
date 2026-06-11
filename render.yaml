@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: motovault-api
+    name: MotoWise
     runtime: docker
     plan: starter
-    region: frankfurt
+    region: ohio
     dockerfilePath: ./apps/api/Dockerfile
     dockerContext: .
     healthCheckPath: /health
@@ -20,7 +20,14 @@ services:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: "10000"
+        value: "4000"
+      # AI model-insights (onboarding Reveal known-issues card). Non-secret
+      # config: Gemini is primary (key lives in motovault-secrets), OpenAI is
+      # the fallback. Timeout fits the onboarding building-plan 2.5s cap.
+      - key: AI_INSIGHTS_ENABLED
+        value: "true"
+      - key: AI_INSIGHTS_TIMEOUT_MS
+        value: "2000"
       - fromGroup: motovault-secrets
 
 envVarGroups:
@@ -35,6 +42,9 @@ envVarGroups:
       - key: SUPABASE_JWT_SECRET
         sync: false
       - key: OPENAI_API_KEY
+        sync: false
+      # Gemini API key for AI model-insights (primary provider; OpenAI is fallback).
+      - key: GOOGLE_GENERATIVE_AI_API_KEY
         sync: false
       - key: REVENUECAT_SECRET_API_KEY
         sync: false

@@ -9,6 +9,7 @@ import {
   type OnboardingRoute,
 } from '../config/onboarding';
 import { useExperimentStore } from '../stores/experiment.store';
+import { useOnboardingStore } from '../stores/onboarding.store';
 
 /**
  * Reactive onboarding variant. CONTROL while unassigned — pre-experiment users
@@ -38,8 +39,11 @@ export function useOnboardingStep(route: OnboardingRoute) {
 export function useOnboardingNext(current: OnboardingRoute) {
   const router = useRouter();
   const variant = useOnboardingVariant();
+  // Bike-dependent screens (reveal/maintenance/commitment) are skipped when the
+  // rider has no bike — drives A's §4 branches off store state, not literals.
+  const hasBike = useOnboardingStore((s) => !!s.bikeData?.make);
   return useCallback(() => {
-    const next = getNextRoute(variant, current);
+    const next = getNextRoute(variant, current, { hasBike });
     if (next) router.push(next);
-  }, [router, variant, current]);
+  }, [router, variant, current, hasBike]);
 }
