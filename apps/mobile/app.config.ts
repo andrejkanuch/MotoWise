@@ -14,7 +14,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: getAppName(),
   slug: 'motowise',
   description: 'AI-powered motorcycle maintenance, diagnostics & expense tracking',
-  version: '3.9.1',
+  version: '3.10.1',
   orientation: 'portrait',
   icon: './src/assets/images/MotoVault.png',
   userInterfaceStyle: 'automatic',
@@ -81,12 +81,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-splash-screen',
       {
+        // White MW mark on transparent bg — identical to the mark drawn by
+        // AnimatedSplash, on its overlay color (palette.editorialDarkBg2),
+        // so the native→animated splash handoff is seamless in both modes.
         image: './src/assets/images/MotoVault.png',
         imageWidth: 100,
-        backgroundColor: '#1a1510',
+        backgroundColor: '#110e0a',
         dark: {
           image: './src/assets/images/MotoVaultDark.png',
-          backgroundColor: '#1a1510',
+          backgroundColor: '#110e0a',
         },
       },
     ],
