@@ -1,7 +1,13 @@
 # PostHog Spec — Onboarding A/B Test (events, flag, funnels)
 
+> ⚠️ **SUPERSEDED for naming + taxonomy by [`docs/onboarding-ab-event-schema.md`](docs/onboarding-ab-event-schema.md)** (the as-built source of truth). This is the original planning spec; the implementation deliberately diverged. When they conflict, the schema doc wins. Key divergences:
+> - **Variant property:** the spec proposes `ab_variant`; the build uses **`variant`** (event property) + **`onboarding_variant`** (super + person property). `ab_variant` is not emitted.
+> - **Event taxonomy:** the build emits **parity events** (`onboarding_step_viewed/completed/skipped` with a `step` property) rather than the per-step dedicated events below (`experience_selected`, `profiling_*`, `goals_selected`, …). `app_first_open` and `experiment_assigned` are **not** emitted; exposure is the standard `$feature_flag_called`.
+> - **Paywall:** `paywall_viewed` / `paywall_result` are emitted by `subscription.ts` (as in the build) — these match.
+> - **PostHog Experiment:** created as [#83476](https://eu.posthog.com/project/155556/experiments/83476) (draft). Metric defs live in the schema doc.
+
 **Purpose:** the analytics contract for the onboarding A/B test — feature-flag config, identity strategy, event taxonomy, person/super properties, and the funnels/insights to build. Hand this to whoever configures PostHog and use it to verify the app instrumentation.
-**Companions:** `onboarding-ab-implementation-prompt.md`, `onboarding-abc-test-plan.md`.
+**Companions:** `onboarding-ab-implementation-prompt.md`, `onboarding-abc-test-plan.md`, `docs/onboarding-ab-event-schema.md` (as-built).
 **Date:** 9 June 2026
 **Conventions:** event + property names are `snake_case`; booleans prefixed `is_`/`has_`; the variant is on **every** onboarding event AND set as a **person property** (so RevenueCat-sourced revenue events can be broken down by variant too).
 

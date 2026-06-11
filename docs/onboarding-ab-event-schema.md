@@ -1,7 +1,8 @@
 # Onboarding A/B (2026) — Event Schema
 
-**Experiment:** PostHog flag [`onboarding_ab_2026`](https://eu.posthog.com/project/155556/feature_flags/202343) — variants `lean` (A) / `invested` (B) / `control` (V4 holdout, 0% by default).
+**Experiment:** PostHog [Experiment #83476](https://eu.posthog.com/project/155556/experiments/83476) on flag [`onboarding_ab_2026`](https://eu.posthog.com/project/155556/feature_flags/202343) — variants `lean` (A) / `invested` (B) / `control` (V4 holdout, 0% by default).
 **Source of truth in code:** `apps/mobile/src/lib/onboarding-analytics.ts` + `apps/mobile/src/config/onboarding.ts`.
+**Property naming:** the variant is `variant` on every onboarding event AND `onboarding_variant` as a super + person property. (The earlier planning doc `posthog-ab-spec.md` proposed `ab_variant`; that name was **not** adopted — this schema is authoritative.)
 
 ## Contract
 
@@ -37,11 +38,28 @@ Variant B's extra steps: frequency → `riding_frequency`; stay_on_top → `conc
 
 ## Metrics → PostHog definitions
 
-- **Primary — install → trial start:** funnel `onboarding_started` → `paywall_result` where `paywall_result = purchased`, broken down by `variant`. (Trial = purchase of the trial-bearing package; refine with RC webhook events if needed.)
-- **Activation guardrail — bike-add rate:** funnel `onboarding_started` → `bike_added`, by `variant`.
-- **Per-step drop-off:** funnel over `onboarding_step_viewed` filtered per `step`, by `variant` (use `step` property values in flow order per variant).
+- **Primary — install → trial start:** funnel `onboarding_started` → `paywall_result` where `paywall_result = purchased`. (Trial = purchase of the trial-bearing package; refine with RC webhook events if needed.)
+- **Activation guardrail — bike-add rate:** funnel `onboarding_started` → `bike_added`.
+- **Per-step drop-off:** funnel over `onboarding_step_viewed` filtered per `step` (use `step` property values in flow order per variant).
 - **Trial→paid / retention / LTV:** RevenueCat events + PostHog cohorts on person property `onboarding_variant` (set at assignment, persists post-signup).
 - **Exposure:** `$feature_flag_called` with `$feature_flag = onboarding_ab_2026`; offline-defaulted users carry `locally_defaulted: true`.
+
+## PostHog Experiment (configured 2026-06-11)
+
+[Experiment #83476](https://eu.posthog.com/project/155556/experiments/83476) — **draft**, `filterTestAccounts: true`, exposure = `$feature_flag_called`. Metrics:
+
+| Slot | Metric | Funnel |
+|---|---|---|
+| Primary | Install → trial start (purchase) | `onboarding_started` → `paywall_result` [`paywall_result = purchased`] |
+| Secondary | Activation — bike added | `onboarding_started` → `bike_added` |
+| Secondary | Paywall reach | `onboarding_started` → `paywall_viewed` |
+| Secondary | Onboarding completion | `onboarding_started` → `onboarding_completed` |
+
+**Native experiment caveats (read before launching):**
+
+1. **`control` is at 0% rollout** → no holdout traffic, so PostHog's native lift-vs-control stats have no baseline. This is a 2-arm `lean`-vs-`invested` test by design. For the head-to-head read, either (a) give `control` traffic if you want absolute lift vs the old V4 flow, or (b) compare arms with funnels **broken down by `onboarding_variant`** (person property) — works without a control baseline.
+2. **No data until a release build ships.** PostHog is `disabled` under `__DEV__`; the flag's `last_called_at` is null and the A/B-instrumented events (`variant` property, `bike_added`, `account_created`) are not yet in the project taxonomy. The activation metric's `bike_added` was added with `allow_unknown_events` and starts populating once the build with this branch is released.
+3. **Launch when the release goes live** (`experiment-launch` / UI) so `start_date` matches first real exposure — don't launch against the empty draft.
 
 ## Hygiene
 
