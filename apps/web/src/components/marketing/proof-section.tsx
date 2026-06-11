@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { ProofStat } from './proof-stat';
 
 interface ProofSectionProps {
   appStoreRating?: { ratingValue: string; reviewCount: string } | null;
@@ -38,47 +39,7 @@ export async function ProofSection({ appStoreRating }: ProofSectionProps) {
       className="proof-grid"
     >
       {stats.map((stat) => (
-        <div
-          key={stat.label}
-          style={{
-            borderLeft: '1px solid var(--mv-line)',
-            paddingLeft: '24px',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 'clamp(40px, 4.5vw, 68px)',
-              fontWeight: 500,
-              letterSpacing: '-0.04em',
-              lineHeight: 1,
-              fontVariantNumeric: 'tabular-nums',
-              color: 'var(--mv-ink)',
-            }}
-          >
-            {stat.value}
-            {stat.suffix && (
-              <span
-                style={{
-                  fontSize: '0.5em',
-                  fontWeight: 400,
-                  color: 'var(--mv-ink-2)',
-                }}
-              >
-                {stat.suffix}
-              </span>
-            )}
-          </div>
-          <div
-            style={{
-              marginTop: '14px',
-              color: 'var(--mv-ink-3)',
-              fontSize: '13px',
-              letterSpacing: '-0.005em',
-            }}
-          >
-            {stat.label}
-          </div>
-        </div>
+        <ProofStat key={stat.label} value={stat.value} suffix={stat.suffix} label={stat.label} />
       ))}
 
       <style

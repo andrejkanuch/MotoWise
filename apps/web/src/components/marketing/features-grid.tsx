@@ -2,9 +2,10 @@
 
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { gsap, ScrollTrigger } from './motion';
 
-type FeatureKey = 'trip' | 'diag' | 'maintenance' | 'expenses' | 'rides';
+type FeatureKey = 'expenses' | 'maintenance' | 'rides' | 'trip';
 
 interface FeatureData {
   key: FeatureKey;
@@ -18,104 +19,97 @@ interface FeatureData {
   chip2: { label: string; value: string };
 }
 
-const KEYS: FeatureKey[] = ['trip', 'diag', 'maintenance', 'expenses', 'rides'];
+/** Ordered by validated demand (PostHog): expenses → maintenance → rides → trips.
+ *  AI diagnostics lives in its own DiagnosticsDemo section below. */
+const KEYS: FeatureKey[] = ['expenses', 'maintenance', 'rides', 'trip'];
+
+const SCREENSHOTS: Record<FeatureKey, string> = {
+  expenses: '/images/marketing/mw/flow-add-expense.png',
+  maintenance: '/images/marketing/mw/flow-add-maintenance.png',
+  rides: '/images/marketing/mw/home-rides-expenses.png',
+  trip: '/images/marketing/mw/trip-detail-hero.png',
+};
 
 export function FeaturesGrid() {
   const t = useTranslations('Features');
-  const [active, setActive] = useState<FeatureKey>('trip');
+  const [active, setActive] = useState<FeatureKey>('expenses');
   const [chipsVisible, setChipsVisible] = useState(true);
+  const panelsRef = useRef<HTMLDivElement>(null);
 
-  const FEATURES: FeatureData[] = [
-    {
-      key: 'trip',
-      num: '01',
-      title: t('grid.trip.title'),
-      body: t('grid.trip.body'),
-      kv: [
-        { label: t('grid.trip.kv1Label'), value: t('grid.trip.kv1Value') },
-        { label: t('grid.trip.kv2Label'), value: t('grid.trip.kv2Value') },
-      ],
-      screenshot: '/images/marketing/mw/trip-detail-hero.png',
-      badgeLabel: t('grid.trip.badge'),
-      chip1: { label: t('grid.trip.chip1Label'), value: t('grid.trip.chip1Value') },
-      chip2: { label: t('grid.trip.chip2Label'), value: t('grid.trip.chip2Value') },
-    },
-    {
-      key: 'diag',
-      num: '02',
-      title: t('grid.diag.title'),
-      body: t('grid.diag.body'),
-      kv: [
-        { label: t('grid.diag.kv1Label'), value: t('grid.diag.kv1Value') },
-        { label: t('grid.diag.kv2Label'), value: t('grid.diag.kv2Value') },
-      ],
-      screenshot: '/images/marketing/mw/diagnostic-result.png',
-      badgeLabel: t('grid.diag.badge'),
-      chip1: { label: t('grid.diag.chip1Label'), value: t('grid.diag.chip1Value') },
-      chip2: { label: t('grid.diag.chip2Label'), value: t('grid.diag.chip2Value') },
-    },
-    {
-      key: 'maintenance',
-      num: '03',
-      title: t('grid.maintenance.title'),
-      body: t('grid.maintenance.body'),
-      kv: [
-        { label: t('grid.maintenance.kv1Label'), value: t('grid.maintenance.kv1Value') },
-        { label: t('grid.maintenance.kv2Label'), value: t('grid.maintenance.kv2Value') },
-      ],
-      screenshot: '/images/marketing/mw/flow-add-maintenance.png',
-      badgeLabel: t('grid.maintenance.badge'),
-      chip1: { label: t('grid.maintenance.chip1Label'), value: t('grid.maintenance.chip1Value') },
-      chip2: { label: t('grid.maintenance.chip2Label'), value: t('grid.maintenance.chip2Value') },
-    },
-    {
-      key: 'expenses',
-      num: '04',
-      title: t('grid.expenses.title'),
-      body: t('grid.expenses.body'),
-      kv: [
-        { label: t('grid.expenses.kv1Label'), value: t('grid.expenses.kv1Value') },
-        { label: t('grid.expenses.kv2Label'), value: t('grid.expenses.kv2Value') },
-      ],
-      screenshot: '/images/marketing/mw/home-rides-expenses.png',
-      badgeLabel: t('grid.expenses.badge'),
-      chip1: { label: t('grid.expenses.chip1Label'), value: t('grid.expenses.chip1Value') },
-      chip2: { label: t('grid.expenses.chip2Label'), value: t('grid.expenses.chip2Value') },
-    },
-    {
-      key: 'rides',
-      num: '05',
-      title: t('grid.rides.title'),
-      body: t('grid.rides.body'),
-      kv: [
-        { label: t('grid.rides.kv1Label'), value: t('grid.rides.kv1Value') },
-        { label: t('grid.rides.kv2Label'), value: t('grid.rides.kv2Value') },
-      ],
-      screenshot: '/images/marketing/mw/home-rides-expenses.png',
-      badgeLabel: t('grid.rides.badge'),
-      chip1: { label: t('grid.rides.chip1Label'), value: t('grid.rides.chip1Value') },
-      chip2: { label: t('grid.rides.chip2Label'), value: t('grid.rides.chip2Value') },
-    },
-  ];
+  const FEATURES: FeatureData[] = KEYS.map((key, i) => ({
+    key,
+    num: `0${i + 1}`,
+    title: t(`grid.${key}.title`),
+    body: t(`grid.${key}.body`),
+    kv: [
+      { label: t(`grid.${key}.kv1Label`), value: t(`grid.${key}.kv1Value`) },
+      { label: t(`grid.${key}.kv2Label`), value: t(`grid.${key}.kv2Value`) },
+    ],
+    screenshot: SCREENSHOTS[key],
+    badgeLabel: t(`grid.${key}.badge`),
+    chip1: { label: t(`grid.${key}.chip1Label`), value: t(`grid.${key}.chip1Value`) },
+    chip2: { label: t(`grid.${key}.chip2Label`), value: t(`grid.${key}.chip2Value`) },
+  }));
 
   const activeFeature = FEATURES.find((f) => f.key === active) ?? FEATURES[0];
 
-  // Auto-rotate
+  // Re-pop the floating chips whenever the active feature changes.
+  const isFirstRender = useRef(true);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `active` is the trigger — the effect reacts to the active feature changing, it does not read it.
   useEffect(() => {
-    const timer = setInterval(() => {
-      setActive((prev) => {
-        const idx = KEYS.indexOf(prev);
-        return KEYS[(idx + 1) % KEYS.length];
-      });
-    }, 5500);
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleClick = (key: FeatureKey) => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     setChipsVisible(false);
-    setActive(key);
-    setTimeout(() => setChipsVisible(true), 200);
-  };
+    const timer = setTimeout(() => setChipsVisible(true), 200);
+    return () => clearTimeout(timer);
+  }, [active]);
+
+  useEffect(() => {
+    const panels = panelsRef.current;
+    if (!panels) return;
+
+    const mm = gsap.matchMedia();
+
+    // Scroll-driven activation: as each panel crosses the viewport center,
+    // it becomes the active feature and the pinned phone crossfades.
+    mm.add('(min-width: 1041px)', () => {
+      const triggers = Array.from(panels.querySelectorAll<HTMLElement>('[data-feature-panel]')).map(
+        (panel) =>
+          ScrollTrigger.create({
+            trigger: panel,
+            start: 'top 55%',
+            end: 'bottom 55%',
+            onToggle: (self) => {
+              if (self.isActive) setActive(panel.dataset.featurePanel as FeatureKey);
+            },
+          }),
+      );
+      return () => {
+        for (const st of triggers) st.kill();
+      };
+    });
+
+    // Entrance rise for each panel (skipped for reduced motion).
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      const tweens = Array.from(panels.querySelectorAll<HTMLElement>('[data-feature-panel]')).map(
+        (panel) =>
+          gsap.from(panel, {
+            y: 48,
+            autoAlpha: 0,
+            duration: 1,
+            ease: 'expo.out',
+            scrollTrigger: { trigger: panel, start: 'top 82%', once: true },
+          }),
+      );
+      return () => {
+        for (const tw of tweens) tw.kill();
+      };
+    });
+
+    return () => mm.revert();
+  }, []);
 
   return (
     <section
@@ -136,7 +130,7 @@ export function FeaturesGrid() {
         <p className="mv-section-sub">{t('grid.sectionSub')}</p>
       </div>
 
-      {/* Feature stage: left accordion + right phone */}
+      {/* Feature stage: scrolling panels + sticky phone */}
       <div
         style={{
           marginTop: '96px',
@@ -147,152 +141,129 @@ export function FeaturesGrid() {
         }}
         className="features-stage-grid"
       >
-        {/* Left: feature rows */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {/* Left: feature panels */}
+        <div ref={panelsRef} style={{ display: 'flex', flexDirection: 'column' }}>
           {FEATURES.map((feature) => {
             const isActive = active === feature.key;
             return (
-              <button
+              <article
                 key={feature.key}
-                type="button"
-                onClick={() => handleClick(feature.key)}
+                data-feature-panel={feature.key}
+                className="feature-panel"
                 style={{
-                  padding: '28px',
-                  borderRadius: 'var(--mv-radius)',
-                  cursor: 'pointer',
-                  background: isActive ? 'oklch(0.18 0.012 55 / 0.5)' : 'transparent',
-                  border: isActive ? '1px solid var(--mv-line)' : '1px solid transparent',
-                  transition: 'background .35s var(--mv-ease), border-color .35s var(--mv-ease)',
-                  color: 'inherit',
-                  textAlign: 'left',
-                  fontFamily: 'inherit',
-                  display: 'grid',
-                  gridTemplateColumns: '40px 1fr auto',
-                  gap: '20px',
-                  alignItems: 'start',
-                  position: 'relative',
-                  width: '100%',
+                  opacity: isActive ? 1 : 0.35,
+                  transition: 'opacity .5s var(--mv-ease)',
                 }}
               >
-                {/* Number */}
                 <div
                   style={{
                     fontFamily: "var(--font-geist-mono, 'Geist Mono', monospace)",
-                    fontSize: '11px',
+                    fontSize: '12px',
+                    letterSpacing: '0.12em',
                     color: isActive ? 'var(--mv-warm-400)' : 'var(--mv-ink-4)',
-                    paddingTop: '6px',
-                    letterSpacing: '0.1em',
-                    transition: 'color .3s',
+                    transition: 'color .4s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
                   }}
                 >
                   {feature.num}
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      height: '1px',
+                      width: '48px',
+                      background: isActive ? 'var(--mv-warm-500)' : 'var(--mv-line)',
+                      transition: 'background .4s',
+                    }}
+                  />
                 </div>
-
-                {/* Content */}
-                <div>
-                  <div
-                    style={{
-                      fontSize: '22px',
-                      fontWeight: 500,
-                      letterSpacing: '-0.02em',
-                      color: isActive ? 'var(--mv-ink)' : 'var(--mv-ink-2)',
-                      transition: 'color .3s',
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {feature.title}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '14px',
-                      lineHeight: 1.55,
-                      color: 'var(--mv-ink-3)',
-                      maxHeight: isActive ? '160px' : '0',
-                      opacity: isActive ? 1 : 0,
-                      overflow: 'hidden',
-                      marginTop: isActive ? '12px' : '0',
-                      transition: 'max-height .5s var(--mv-ease-expo), opacity .4s, margin-top .3s',
-                    }}
-                  >
-                    {feature.body}
-                  </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '20px',
-                      marginTop: '14px',
-                      maxHeight: isActive ? '60px' : '0',
-                      opacity: isActive ? 1 : 0,
-                      overflow: 'hidden',
-                      transition: 'max-height .5s var(--mv-ease-expo), opacity .4s',
-                    }}
-                  >
-                    {feature.kv.map((item) => (
-                      <div
-                        key={item.label}
+                <h3
+                  style={{
+                    fontSize: 'clamp(28px, 3.4vw, 44px)',
+                    fontWeight: 500,
+                    letterSpacing: '-0.03em',
+                    lineHeight: 1.08,
+                    color: 'var(--mv-ink)',
+                    margin: '18px 0 0',
+                  }}
+                >
+                  {feature.title}
+                </h3>
+                <p
+                  style={{
+                    fontSize: '16px',
+                    lineHeight: 1.6,
+                    color: 'var(--mv-ink-2)',
+                    maxWidth: '460px',
+                    margin: '18px 0 0',
+                  }}
+                >
+                  {feature.body}
+                </p>
+                <div style={{ display: 'flex', gap: '40px', marginTop: '28px' }}>
+                  {feature.kv.map((item) => (
+                    <div
+                      key={item.label}
+                      style={{
+                        fontFamily: "var(--font-geist-mono, 'Geist Mono', monospace)",
+                        fontSize: '11px',
+                        color: 'var(--mv-ink-3)',
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {item.label}
+                      <strong
                         style={{
-                          fontFamily: "var(--font-geist-mono, 'Geist Mono', monospace)",
-                          fontSize: '11px',
-                          color: 'var(--mv-ink-3)',
-                          letterSpacing: '0.04em',
-                          textTransform: 'uppercase',
+                          display: 'block',
+                          fontFamily: "var(--font-geist, 'Geist', sans-serif)",
+                          fontSize: '18px',
+                          color: 'var(--mv-ink)',
+                          fontWeight: 500,
+                          textTransform: 'none',
+                          letterSpacing: '-0.01em',
+                          marginTop: '4px',
                         }}
                       >
-                        {item.label}
-                        <strong
-                          style={{
-                            display: 'block',
-                            fontFamily: "var(--font-geist, 'Geist', sans-serif)",
-                            fontSize: '15px',
-                            color: 'var(--mv-ink)',
-                            fontWeight: 500,
-                            textTransform: 'none',
-                            letterSpacing: '-0.01em',
-                            marginTop: '2px',
-                          }}
-                        >
-                          {item.value}
-                        </strong>
-                      </div>
-                    ))}
-                  </div>
+                        {item.value}
+                      </strong>
+                    </div>
+                  ))}
                 </div>
 
-                {/* Arrow */}
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{
-                    color: isActive ? 'var(--mv-warm-400)' : 'var(--mv-ink-4)',
-                    transition: 'transform .4s var(--mv-ease), color .3s',
-                    paddingTop: '4px',
-                    transform: isActive ? 'translateX(6px)' : 'none',
-                  }}
-                  aria-hidden="true"
-                >
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </button>
+                {/* Inline screenshot — mobile only (the sticky phone is hidden there) */}
+                <div className="feature-panel-shot">
+                  <Image
+                    src={feature.screenshot}
+                    alt={t('grid.screenshotAlt', { feature: feature.badgeLabel })}
+                    width={360}
+                    height={780}
+                    sizes="(max-width: 1040px) 80vw, 360px"
+                    style={{
+                      width: '100%',
+                      maxWidth: '320px',
+                      height: 'auto',
+                      borderRadius: '28px',
+                      border: '1px solid var(--mv-line)',
+                      boxShadow: '0 40px 80px -24px oklch(0 0 0 / 0.7)',
+                    }}
+                  />
+                </div>
+              </article>
             );
           })}
         </div>
 
         {/* Right: sticky phone mockup */}
         <div
-          style={{ position: 'sticky', top: '120px', paddingTop: '40px' }}
+          style={{ position: 'sticky', top: 'max(96px, calc(50vh - 390px))', paddingTop: '24px' }}
           className="feature-preview-wrap"
         >
           <div
             style={{
               position: 'relative',
-              width: 'clamp(240px, 50vw, 360px)',
+              width: 'clamp(240px, min(50vw, 38vh), 360px)',
               margin: '0 auto',
               perspective: '2200px',
             }}
@@ -597,9 +568,25 @@ export function FeaturesGrid() {
         // biome-ignore lint/security/noDangerouslySetInnerHtml: static CSS
         dangerouslySetInnerHTML={{
           __html: `
+            .feature-panel {
+              min-height: 64vh;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              padding: 48px 0;
+            }
+            .feature-panel-shot { display: none; }
             @media (max-width: 1040px) {
-              .features-stage-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
-              .feature-preview-wrap { position: relative !important; top: auto !important; margin: 0 auto; }
+              .features-stage-grid { grid-template-columns: 1fr !important; gap: 0 !important; }
+              .feature-preview-wrap { display: none; }
+              .feature-panel {
+                min-height: 0;
+                opacity: 1 !important;
+                padding: 56px 0;
+                border-bottom: 1px solid var(--mv-line-2);
+              }
+              .feature-panel:last-child { border-bottom: none; }
+              .feature-panel-shot { display: block; margin-top: 36px; }
             }
           `,
         }}
