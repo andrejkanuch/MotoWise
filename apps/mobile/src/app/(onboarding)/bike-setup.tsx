@@ -93,6 +93,11 @@ export default function BikeSetupScreen() {
   const setBikeData = useOnboardingStore((s) => s.setBikeData);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
   const existingBikeData = useOnboardingStore((s) => s.bikeData);
+  // Mileage captured on the (invested-flow) last-service step, which runs BEFORE
+  // this screen. bike-setup has no mileage input of its own, so this is the only
+  // place the rider enters it — fold it onto the bike here or it is lost.
+  const preBikeMileage = useOnboardingStore((s) => s.preBikeMileage);
+  const preBikeMileageUnit = useOnboardingStore((s) => s.preBikeMileageUnit);
   // Seed the unit from the user's profile preference (the per-bike unit is deprecated).
   const mileageUnit = useMileageUnit();
 
@@ -230,8 +235,8 @@ export default function BikeSetupScreen() {
       makeId,
       model: modelName,
       type: detectedType ?? MotorcycleType.STANDARD,
-      currentMileage: existingBikeData?.currentMileage ?? 0,
-      mileageUnit: existingBikeData?.mileageUnit ?? mileageUnit,
+      currentMileage: preBikeMileage ?? existingBikeData?.currentMileage ?? 0,
+      mileageUnit: preBikeMileageUnit ?? existingBikeData?.mileageUnit ?? mileageUnit,
       ...(photoUri ? { photoUri } : {}),
     });
 
@@ -267,8 +272,8 @@ export default function BikeSetupScreen() {
       makeId: make.makeId,
       model: '',
       type: typeFromMake(make.makeName),
-      currentMileage: existingBikeData?.currentMileage ?? 0,
-      mileageUnit: existingBikeData?.mileageUnit ?? mileageUnit,
+      currentMileage: preBikeMileage ?? existingBikeData?.currentMileage ?? 0,
+      mileageUnit: preBikeMileageUnit ?? existingBikeData?.mileageUnit ?? mileageUnit,
     });
 
     setLastCompletedScreen(OB_SCREEN.BIKE_SETUP);
