@@ -110,6 +110,9 @@ importers:
       dataloader:
         specifier: ^2.2.3
         version: 2.2.3
+      expo:
+        specifier: ~56.0.4
+        version: 56.0.4(@babel/core@7.29.0)(@expo/dom-webview@56.0.5)(@expo/metro-runtime@56.0.12)(expo-router@56.2.6)(expo-widgets@56.0.14)(react-dom@19.2.3(react@19.2.3))(react-native-worklets@0.8.3(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(react-native@0.85.3(@babel/core@7.29.0)(@react-native/jest-preset@0.85.3(@babel/core@7.29.0)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native@0.85.3(@babel/core@7.29.0)(@react-native/jest-preset@0.85.3(@babel/core@7.29.0)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)(typescript@5.7.3)
       graphql:
         specifier: ^16.10.0
         version: 16.13.1
@@ -131,6 +134,9 @@ importers:
       react:
         specifier: 19.2.3
         version: 19.2.3
+      react-native:
+        specifier: 0.85.3
+        version: 0.85.3(@babel/core@7.29.0)(@react-native/jest-preset@0.85.3(@babel/core@7.29.0)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3)
       reflect-metadata:
         specifier: ^0.2.0
         version: 0.2.2
