@@ -29,7 +29,7 @@ export function OnboardingContinueButton({
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       style={({ pressed }) => ({
-        backgroundColor: disabled ? ONBOARDING_COLORS.textDimmed : ONBOARDING_COLORS.warm,
+        backgroundColor: disabled ? ONBOARDING_COLORS.surface2 : ONBOARDING_COLORS.warm,
         borderRadius: 16,
         borderCurve: 'continuous',
         paddingVertical: 18,
@@ -47,7 +47,7 @@ export function OnboardingContinueButton({
         style={{
           fontSize: 16,
           fontWeight: '600',
-          color: disabled ? ONBOARDING_COLORS.textMuted : ONBOARDING_COLORS.textOnAccent,
+          color: disabled ? ONBOARDING_COLORS.textSecondary : ONBOARDING_COLORS.textOnAccent,
           letterSpacing: -0.15,
         }}
       >
@@ -56,7 +56,7 @@ export function OnboardingContinueButton({
       {showIcon ? (
         <ArrowRight
           size={18}
-          color={disabled ? ONBOARDING_COLORS.textMuted : ONBOARDING_COLORS.textOnAccent}
+          color={disabled ? ONBOARDING_COLORS.textSecondary : ONBOARDING_COLORS.textOnAccent}
         />
       ) : null}
     </Pressable>
