@@ -24,7 +24,7 @@
     "check:api-bans": "sh scripts/check-api-bans.sh",
     "precheck": "pnpm check:api-bans && pnpm lint && pnpm typecheck && pnpm test",
     "precheck:push": "sh scripts/precheck-changed.sh",
-    "prepare": "git config core.hooksPath .githooks",
+    "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
     "android": "expo run:android",
     "ios": "expo run:ios"
   },
