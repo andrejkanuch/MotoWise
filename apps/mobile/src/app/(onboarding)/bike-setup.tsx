@@ -71,7 +71,11 @@ function detectTypeFromModel(modelName: string): MotorcycleType | null {
     return MotorcycleType.CRUISER;
   if (/goldwing|gold wing|electra|road king|road glide|voyager|k\s?1600/i.test(lower))
     return MotorcycleType.TOURING;
-  if (/dr-z|drz|klx|crf|wr\d|xr\d|rally|tenere|versys|v-strom|vstrom|tiger|adventure/i.test(lower))
+  if (
+    /dr-z|drz|klx|crf|wr\d|xr\d|rally|tenere|versys|v-strom|vstrom|tiger|adventure|africa|gs\b|multistrada|africa twin/i.test(
+      lower,
+    )
+  )
     return MotorcycleType.DUAL_SPORT;
   if (/crf\d+f|yz\d+f|kx\d+|rm-z|rmz|tc\d|fc\d|sx|exc/i.test(lower))
     return MotorcycleType.DIRT_BIKE;

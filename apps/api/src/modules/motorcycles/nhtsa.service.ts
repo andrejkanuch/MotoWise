@@ -125,7 +125,12 @@ export class NhtsaService implements OnModuleInit {
     try {
       const response = await fetch(url, { signal: controller.signal });
       if (!response.ok) {
-        if (response.status === 404 && on404) {
+        // NHTSA's recalls endpoint returns 400 (not 404) with a valid
+        // "Results returned successfully" body (Count: 0) when a make/model/year
+        // has no matching recalls — extremely common for motorcycles. Vehicles
+        // that DO have recalls return 200, so treating 400/404 as "none found"
+        // (for callers that opt in via on404) never drops real recalls.
+        if ((response.status === 404 || response.status === 400) && on404) {
           return on404();
         }
         this.logger.error(`${messages.notOkLog}: ${response.status}`);

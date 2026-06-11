@@ -19,7 +19,11 @@ export interface ModelInsightsResult {
   payload: ModelInsightsPayload | null;
 }
 
-const DEFAULT_TIMEOUT_MS = 2000;
+// Insights generate in the BACKGROUND (getInsights returns `pending` instantly
+// and never blocks the Reveal), so this budget only bounds the detached task —
+// not request latency. 2s aborted Gemini/OpenAI before they could answer
+// (structured LLM output needs ~3-8s), forcing the static fallback every time.
+const DEFAULT_TIMEOUT_MS = 12000;
 /** Regenerate cached insights older than this (ms). */
 const STALE_AFTER_MS = 1000 * 60 * 60 * 24 * 90; // 90 days
 
@@ -54,11 +58,15 @@ export class ModelInsightsService {
   async getInsights(req: ModelInsightsRequest): Promise<ModelInsightsResult> {
     const key = ModelInsightsService.normalizeKey(req);
 
-    const { data: row } = await this.supabase
+    const { data: row, error: readError } = await this.supabase
       .from('model_insights')
       .select('status, payload, generated_at')
       .eq('normalized_key', key)
       .maybeSingle();
+
+    if (readError) {
+      this.logger.error(`model_insights read failed for ${key}: ${readError.message}`);
+    }
 
     if (row) {
       const parsed = this.safeParse(row.payload);
@@ -77,9 +85,11 @@ export class ModelInsightsService {
     }
 
     // First sighting — enqueue (insert pending) and generate in the background.
-    await this.supabase.from('model_insights').upsert(
+    // `normalized_key` is a GENERATED ALWAYS column (lower(make)|lower(model)|year),
+    // so it must NOT be written explicitly — Postgres rejects it otherwise. The
+    // stored make/model are trimmed to match the key the service computes.
+    const { error: enqueueError } = await this.supabase.from('model_insights').upsert(
       {
-        normalized_key: key,
         year: req.year,
         make: req.make.trim(),
         model: req.model.trim(),
@@ -87,6 +97,9 @@ export class ModelInsightsService {
       },
       { onConflict: 'normalized_key', ignoreDuplicates: true },
     );
+    if (enqueueError) {
+      this.logger.error(`model_insights enqueue failed for ${key}: ${enqueueError.message}`);
+    }
     void this.generateInBackground(req, key);
     return { status: ModelInsightsStatus.PENDING, payload: null };
   }

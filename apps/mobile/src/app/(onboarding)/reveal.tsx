@@ -1,4 +1,5 @@
 import { GetOnboardingRevealDocument, type GetOnboardingRevealQuery } from '@motovault/graphql';
+import { MotorcycleType } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -29,11 +30,23 @@ import { useOnboardingStore } from '../../stores/onboarding.store';
 
 type RevealData = GetOnboardingRevealQuery['onboardingReveal'];
 
-/** Brand archetype → Category spec-tile i18n key (falls back to "Tracked"). */
+/** Archetype → Category spec-tile i18n key (falls back to "Tracked"). */
 const CATEGORY_LABEL_KEYS: Record<string, string> = {
   adv: 'obRevealCatAdventure',
   sport: 'obRevealCatSport',
   cruiser: 'obRevealCatCruiser',
+};
+
+/**
+ * The bike's actual type → archetype. Preferred over the brand archetype, which
+ * is brand-wide and wrong for multi-segment makes (e.g. Honda is tagged "sport"
+ * but the Africa Twin is an adventure bike). Unmapped types fall back to brand.
+ */
+const TYPE_TO_ARCHETYPE: Partial<Record<MotorcycleType, string>> = {
+  [MotorcycleType.SPORTBIKE]: 'sport',
+  [MotorcycleType.DUAL_SPORT]: 'adv',
+  [MotorcycleType.DIRT_BIKE]: 'adv',
+  [MotorcycleType.CRUISER]: 'cruiser',
 };
 
 export default function RevealScreen() {
@@ -55,8 +68,10 @@ export default function RevealScreen() {
   const year = bikeData?.year ?? new Date().getFullYear() - 3;
   const brandColor = getBrandColor(make);
   const dna = getBrandDna(make);
+  // Prefer the bike's detected type; fall back to the brand archetype.
+  const archetype = (bikeData?.type && TYPE_TO_ARCHETYPE[bikeData.type]) || dna?.type || '';
   const categoryLabel = t(
-    `onboarding.${CATEGORY_LABEL_KEYS[dna?.type ?? ''] ?? 'obRevealCatTracked'}` as never,
+    `onboarding.${CATEGORY_LABEL_KEYS[archetype] ?? 'obRevealCatTracked'}` as never,
   ) as string;
 
   // Variant B leads with the cost projection; A leads with the recall check.
