@@ -27,6 +27,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BikePhotoField } from '../../components/onboarding/bike-setup/bike-photo-field';
 import { BrandHero } from '../../components/onboarding/bike-setup/brand-hero';
 import { MakeGrid } from '../../components/onboarding/bike-setup/make-grid';
 import { ModelPicker } from '../../components/onboarding/bike-setup/model-picker';
@@ -35,7 +36,7 @@ import { OnboardingBackButton } from '../../components/onboarding/onboarding-bac
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { getBrandDna, MAKE_COLORS, POPULAR_MAKES } from '../../config/brand-dna';
+import { getBrandColor, getBrandDna, MAKE_COLORS, POPULAR_MAKES } from '../../config/brand-dna';
 import { OB_SCREEN } from '../../config/onboarding';
 import { useMileageUnit } from '../../hooks/use-mileage-unit';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
@@ -110,6 +111,7 @@ export default function BikeSetupScreen() {
     modelName: string;
   } | null>(existingBikeData?.model ? { modelId: 0, modelName: existingBikeData.model } : null);
   const [showPartialCapture, setShowPartialCapture] = useState(false);
+  const [photoUri, setPhotoUri] = useState<string | null>(existingBikeData?.photoUri ?? null);
 
   // ── Derived ─────────────────────────────────────────────────
   const yearNum = Number.parseInt(year, 10);
@@ -226,6 +228,7 @@ export default function BikeSetupScreen() {
       type: detectedType ?? MotorcycleType.STANDARD,
       currentMileage: existingBikeData?.currentMileage ?? 0,
       mileageUnit: existingBikeData?.mileageUnit ?? mileageUnit,
+      ...(photoUri ? { photoUri } : {}),
     });
 
     setLastCompletedScreen(OB_SCREEN.BIKE_SETUP);
@@ -418,6 +421,12 @@ export default function BikeSetupScreen() {
                     selectedModel={selectedModel}
                     onSelect={handleSelectModel}
                     onDismiss={() => setSelectedModel(null)}
+                  />
+
+                  <BikePhotoField
+                    photoUri={photoUri}
+                    onChange={setPhotoUri}
+                    accent={getBrandColor(activeMakeName)}
                   />
                 </>
               )}

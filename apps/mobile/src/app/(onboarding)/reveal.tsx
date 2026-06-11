@@ -368,10 +368,10 @@ export default function RevealScreen() {
             elevation: 8,
           }}
         >
-          {/* bike hero photo */}
+          {/* bike hero photo — rider's own if they added one, else stock per-make */}
           <View style={{ height: 132 }}>
             <Image
-              source={getBikeImage(make)}
+              source={bikeData?.photoUri ? { uri: bikeData.photoUri } : getBikeImage(make)}
               style={{ width: '100%', height: '100%' }}
               contentFit="cover"
               transition={250}
