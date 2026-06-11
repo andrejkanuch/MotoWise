@@ -1,3 +1,5 @@
+import { MeDocument } from '@motovault/graphql';
+import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { ShieldCheck } from 'lucide-react-native';
@@ -22,9 +24,11 @@ import { OnboardingProgress } from '../../components/onboarding/onboarding-progr
 import { OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent, captureException } from '../../lib/analytics';
+import { gqlFetcher } from '../../lib/graphql-client';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
+import { queryKeys } from '../../lib/query-keys';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/auth.store';
 import { useSubscriptionStore } from '../../stores/subscription.store';
@@ -59,19 +63,50 @@ export default function AccountScreen() {
     });
   }, [isPro]);
 
+  // Server onboarding state for the just-authenticated account. Shares the root
+  // NavigationGate's cache key, so this is usually a cache hit (no extra fetch).
+  // Drives the advance decision below; the returning-user case hinges on it.
+  const meQuery = useQuery({
+    queryKey: queryKeys.user.me,
+    queryFn: () => gqlFetcher(MeDocument),
+    enabled: !!session,
+    retry: 1,
+    meta: { showErrorAlert: false },
+  });
+
   // A session appearing here means the account was created / signed in — record
   // it and advance. _layout keeps the onboarding stack mounted mid-sign-in, and
   // already calls loginRevenueCat(uuid) + identifyUser, so the anonymous
   // purchase aliases automatically.
+  //
+  // BUT: this screen also accepts returning users (Apple/Google don't separate
+  // sign-up from sign-in, and the "Already have an account?" link lands here on
+  // OAuth). For an account that has ALREADY completed onboarding, advancing into
+  // the notifications step would flash it for ~1-2s before the root gate detects
+  // onboardingCompleted and redirects to the app — the user can't actually act
+  // on it. So we wait for the server onboarding state and only continue the flow
+  // for accounts that still need it; already-onboarded accounts fall through to
+  // the NavigationGate's (tabs) redirect with no flash.
   useEffect(() => {
     if (!session || advancedRef.current) return;
+    // Wait for the server onboarding state to settle (unless it errored — then we
+    // can't know, so proceed with the flow rather than strand the user here).
+    if (meQuery.isLoading && !meQuery.isError) return;
+
+    const alreadyOnboarded =
+      (meQuery.data?.me?.preferences as { onboardingCompleted?: boolean } | null | undefined)
+        ?.onboardingCompleted === true;
+
     advancedRef.current = true;
     trackOnboardingEvent(AnalyticsEvent.ACCOUNT_CREATED, OB_SCREEN.ACCOUNT, {
       context: isPro ? 'post_purchase' : 'post_paywall_free',
       method: methodRef.current,
     });
-    goNext();
-  }, [session, isPro, goNext]);
+
+    // Already-onboarded → let the root gate redirect to (tabs); don't push the
+    // notifications step. New accounts → continue the onboarding flow.
+    if (!alreadyOnboarded) goNext();
+  }, [session, isPro, goNext, meQuery.isLoading, meQuery.isError, meQuery.data]);
 
   const handleApple = async () => {
     methodRef.current = 'apple';
@@ -334,7 +369,7 @@ export default function AccountScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {busy ? (
+      {busy || session ? (
         <View
           style={{
             position: 'absolute',
