@@ -1,6 +1,10 @@
-import { GetOnboardingRevealDocument, type GetOnboardingRevealQuery } from '@motovault/graphql';
+import {
+  GetOnboardingRevealDocument,
+  type GetOnboardingRevealQuery,
+  OemSchedulesPreviewDocument,
+} from '@motovault/graphql';
 import { MotorcycleType } from '@motovault/types';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { DollarSign, Lightbulb, ShieldCheck, Users, Wrench } from 'lucide-react-native';
@@ -87,6 +91,24 @@ export default function RevealScreen() {
   const reveal: RevealData | undefined = data?.onboardingReveal;
   const insightsReady =
     reveal?.insights.status === 'ready' && reveal.insights.knownIssues.length > 0;
+
+  // Warm the Maintenance screen's OEM-schedule query while the rider reads the
+  // Reveal and picks Goals — by the time they reach Maintenance it's cached, so
+  // it renders instantly instead of showing a multi-second spinner. Key + vars
+  // mirror Maintenance exactly (queryKeys.onboarding.oemSchedules) or the
+  // prefetch silently misses.
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (!make) return;
+    const obModel = bikeData?.model ?? undefined;
+    const obYear = bikeData?.year ?? undefined;
+    void queryClient.prefetchQuery({
+      queryKey: queryKeys.onboarding.oemSchedules(make, obModel, obYear),
+      queryFn: () =>
+        gqlFetcher(OemSchedulesPreviewDocument, { make, model: obModel, year: obYear }),
+      staleTime: Number.POSITIVE_INFINITY,
+    });
+  }, [queryClient, make, bikeData?.model, bikeData?.year]);
 
   useEffect(() => {
     setLastCompletedScreen(OB_SCREEN.REVEAL);

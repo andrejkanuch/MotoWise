@@ -29,6 +29,7 @@ import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding
 import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
+import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
@@ -56,7 +57,7 @@ export default function MaintenanceScreen() {
 
   // Fetch OEM schedules for this make/model/year
   const { data, isLoading } = useQuery({
-    queryKey: ['oemSchedulesPreview', make, model, year],
+    queryKey: queryKeys.onboarding.oemSchedules(make, model, year),
     queryFn: () => gqlFetcher(OemSchedulesPreviewDocument, { make, model, year }),
     enabled: !!make,
     staleTime: Number.POSITIVE_INFINITY,

@@ -174,7 +174,7 @@ export default function CommitmentScreen() {
         >
           <View style={{ width: '100%', height: '100%', borderRadius: 60, overflow: 'hidden' }}>
             <Image
-              source={getBikeImage(make)}
+              source={bikeData?.photoUri ? { uri: bikeData.photoUri } : getBikeImage(make)}
               style={{ width: '100%', height: '100%' }}
               contentFit="cover"
               transition={250}
