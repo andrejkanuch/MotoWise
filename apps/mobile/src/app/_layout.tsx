@@ -74,7 +74,6 @@ import { captureMetaAttribution } from '../lib/meta-attribution';
 import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
 import {
   cancelAllNotifications,
-  requestNotificationPermission,
   setupNotificationCategories,
   setupNotificationChannels,
   snoozeTaskNotification,
@@ -602,12 +601,13 @@ function RootLayout() {
     ]);
   }, []);
 
-  // Set up notification channels, categories, and request permission
+  // Set up notification channels and categories. Permission is requested
+  // ONLY on the onboarding notifications screen — never at app launch
+  // (iOS shows the system prompt once; asking here would consume it).
   useEffect(() => {
     async function initNotifications() {
       await setupNotificationChannels();
       await setupNotificationCategories();
-      await requestNotificationPermission();
     }
     initNotifications();
   }, []);
