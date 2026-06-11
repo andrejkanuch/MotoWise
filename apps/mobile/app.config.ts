@@ -81,14 +81,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-splash-screen',
       {
-        // White MW mark on transparent bg — identical to the mark drawn by
-        // AnimatedSplash, on its overlay color (palette.editorialDarkBg2),
-        // so the native→animated splash handoff is seamless in both modes.
-        image: './src/assets/images/MotoVault.png',
+        // White MW mark on transparent bg (dedicated asset — MotoVault.png is
+        // the app icon, do NOT reuse it here) on the AnimatedSplash overlay
+        // color (palette.editorialDarkBg2), so the native→animated splash
+        // handoff is seamless in both modes.
+        image: './src/assets/images/splash-icon.png',
         imageWidth: 100,
         backgroundColor: '#110e0a',
         dark: {
-          image: './src/assets/images/MotoVaultDark.png',
+          image: './src/assets/images/splash-icon.png',
           backgroundColor: '#110e0a',
         },
       },
