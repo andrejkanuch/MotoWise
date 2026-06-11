@@ -1,8 +1,4 @@
-import {
-  CompleteOnboardingDocument,
-  type CompleteOnboardingInput,
-  MyMotorcyclesDocument,
-} from '@motovault/graphql';
+import { CompleteOnboardingDocument, type CompleteOnboardingInput } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
 import {
@@ -165,6 +161,25 @@ export default function PersonalizingScreen() {
       // Auto-detect currency if not set during onboarding
       const detectedCurrency = detectCurrency();
 
+      // Upload the rider's bike photo BEFORE completing onboarding so its URL is
+      // persisted atomically — `complete_onboarding` writes `primary_photo_url`
+      // on bike creation when given `bikePhotoUrl`. Best-effort: a failed upload
+      // still lets onboarding finish without a photo (it can be added later from
+      // the garage). The upload overlaps the minimum payoff animation, so it adds
+      // no perceptible latency.
+      let bikePhotoUrl: string | undefined;
+      if (bikeData?.photoUri) {
+        try {
+          const userId = useAuthStore.getState().session?.user?.id;
+          if (userId) {
+            const { publicUrl } = await uploadBikePhoto(bikeData.photoUri, userId);
+            bikePhotoUrl = publicUrl;
+          }
+        } catch (err) {
+          console.warn('[Personalizing] bike photo upload skipped:', err);
+        }
+      }
+
       const input: CompleteOnboardingInput = {
         experienceLevel: experienceLevel ?? 'beginner',
         ridingGoals: ridingGoals.length > 0 ? ridingGoals : [],
@@ -188,6 +203,7 @@ export default function PersonalizingScreen() {
           bikeMileage: bikeData.currentMileage,
           bikeMileageUnit: bikeData.mileageUnit,
           ...(bikeData.nickname && { bikeNickname: bikeData.nickname }),
+          ...(bikePhotoUrl && { bikePhotoUrl }),
         }),
         ...(acceptedOemScheduleIds.length > 0 && { acceptedOemScheduleIds }),
       };
@@ -200,28 +216,6 @@ export default function PersonalizingScreen() {
       input.eventId = eventId;
 
       await completeOnboarding(input);
-
-      // Best-effort: attach the rider's onboarding photo to the just-created
-      // bike. Detached + swallowed so it never blocks the payoff or breaks
-      // completion (the photo can also be added later from the garage).
-      if (bikeData?.photoUri) {
-        const localPhotoUri = bikeData.photoUri;
-        void (async () => {
-          try {
-            const userId = useAuthStore.getState().session?.user?.id;
-            if (!userId) return;
-            const { myMotorcycles } = await gqlFetcher(MyMotorcyclesDocument);
-            const bike =
-              myMotorcycles?.find((m) => m.make === bikeData.make && m.year === bikeData.year) ??
-              myMotorcycles?.[0];
-            if (!bike) return;
-            await uploadBikePhoto(localPhotoUri, userId, bike.id);
-            queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
-          } catch (err) {
-            console.warn('[Personalizing] bike photo upload skipped:', err);
-          }
-        })();
-      }
 
       trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {
         experience_level: experienceLevel ?? 'beginner',
