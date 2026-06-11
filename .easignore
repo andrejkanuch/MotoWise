@@ -4,7 +4,11 @@
 # ============================================
 
 # Git history (not needed for build)
-.git/
+# NOTE: no trailing slash — eas-cli checks `ignores('.git')` without one, and
+# the `ignore` package treats `.git/` as directory-only, so it returns false
+# for the slash-less query. With `.git/` here, the ~290 MB depth-1 clone pack
+# ships in the archive even though every other rule works.
+.git
 
 # --- Everything from .gitignore ---
 
