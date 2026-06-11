@@ -1,4 +1,5 @@
 import { Injectable, Logger, type OnModuleInit, ServiceUnavailableException } from '@nestjs/common';
+import { buildCandidateModels } from './recall-model-matching';
 
 interface NhtsaMakeResponse {
   Results: Array<{ MakeId: number; MakeName: string }>;
@@ -22,6 +23,11 @@ interface NhtsaRecallResponse {
   Message?: string;
   results?: NhtsaRecallRawResult[];
   Results?: NhtsaRecallRawResult[];
+}
+
+/** api.nhtsa.gov/products/vehicle/models — model names as filed in the recall DB. */
+interface NhtsaProductsResponse {
+  results?: Array<{ model?: string }>;
 }
 
 export interface RecallDto {
@@ -101,10 +107,13 @@ export class NhtsaService implements OnModuleInit {
   // attackers spraying unique VINs through the motorcycleRecalls query.
   private static readonly MAX_RECALLS_CACHE = 1_000;
 
+  private static readonly MAX_RECALL_MODELS_CACHE = 500;
+
   private readonly logger = new Logger(NhtsaService.name);
   private makesCache: CacheEntry<MotorcycleMakeDto[]> | null = null;
   private readonly modelsCache = new Map<string, CacheEntry<MotorcycleModelDto[]>>();
   private readonly recallsCache = new Map<string, CacheEntry<RecallDto[]>>();
+  private readonly recallModelsCache = new Map<string, CacheEntry<string[]>>();
 
   /**
    * Shared NHTSA fetch: 10s abort-timeout, non-ok → log + ServiceUnavailable,
@@ -227,7 +236,11 @@ export class NhtsaService implements OnModuleInit {
   /**
    * Fetch open NHTSA recall campaigns for a motorcycle.
    *
-   * Prefers VIN-based lookup (more precise). Falls back to make/model/year if no VIN.
+   * Prefers VIN-based lookup (more precise). Falls back to make/model/year if
+   * no VIN. The MMY path queries multiple model-name candidates because the
+   * recall database files campaigns under homologation codes ("CRF1100") while
+   * we store vPIC marketing names ("Africa Twin") — a single-name query would
+   * silently miss real recalls (see recall-model-matching.ts).
    * Results are cached for 24h per cache key to stay well within NHTSA's rate guidelines.
    */
   async getRecalls(params: {
@@ -244,18 +257,47 @@ export class NhtsaService implements OnModuleInit {
       return cached.data;
     }
 
-    let url: string;
+    let recalls: RecallDto[];
     if (vin) {
-      url = `https://api.nhtsa.gov/recalls/recallsByVin?vin=${encodeURIComponent(vin)}`;
+      recalls = await this.fetchRecallList(
+        `https://api.nhtsa.gov/recalls/recallsByVin?vin=${encodeURIComponent(vin)}`,
+      );
     } else if (make && model && year) {
-      url = `https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&modelYear=${year}`;
+      const recallSideModels = await this.getRecallSideModels(make, year);
+      const candidates = buildCandidateModels(make, model, recallSideModels);
+      const perCandidate = await Promise.all(
+        candidates.map((candidate) =>
+          this.fetchRecallList(
+            `https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(candidate)}&modelYear=${year}`,
+          ),
+        ),
+      );
+      // NHTSA returns one row per affected product, so the same campaign can
+      // appear several times within AND across candidate queries — dedup.
+      const byCampaign = new Map<string, RecallDto>();
+      for (const recall of perCandidate.flat()) {
+        if (!byCampaign.has(recall.campaignNumber)) {
+          byCampaign.set(recall.campaignNumber, recall);
+        }
+      }
+      recalls = [...byCampaign.values()];
     } else {
       throw new ServiceUnavailableException(
         'Need either a VIN or make/model/year to check for recalls',
       );
     }
 
-    // 404 from NHTSA means "no recalls found" — cache + return an empty result.
+    // P2-112: Enforce cache size cap before adding new entries
+    if (this.recallsCache.size >= NhtsaService.MAX_RECALLS_CACHE) {
+      const oldestKey = this.recallsCache.keys().next().value;
+      if (oldestKey) this.recallsCache.delete(oldestKey);
+    }
+    this.recallsCache.set(cacheKey, { data: recalls, expiresAt: Date.now() + RECALLS_TTL });
+    return recalls;
+  }
+
+  /** Run one recalls query and map the rows. 400/404 means "no recalls found". */
+  private async fetchRecallList(url: string): Promise<RecallDto[]> {
     const json = await this.fetchJson<NhtsaRecallResponse | null>(
       url,
       {
@@ -266,14 +308,10 @@ export class NhtsaService implements OnModuleInit {
       },
       () => null,
     );
-
-    if (json === null) {
-      this.recallsCache.set(cacheKey, { data: [], expiresAt: Date.now() + RECALLS_TTL });
-      return [];
-    }
+    if (json === null) return [];
 
     const rawResults = json.results ?? json.Results ?? [];
-    const recalls: RecallDto[] = rawResults.map((r) => ({
+    return rawResults.map((r) => ({
       campaignNumber: r.NHTSACampaignNumber ?? '—',
       reportDate: r.ReportReceivedDate ?? '',
       component: r.Component ?? '',
@@ -281,13 +319,47 @@ export class NhtsaService implements OnModuleInit {
       consequence: r.Consequence ?? '',
       remedy: r.Remedy ?? '',
     }));
+  }
 
-    // P2-112: Enforce cache size cap before adding new entries
-    if (this.recallsCache.size >= NhtsaService.MAX_RECALLS_CACHE) {
-      const oldestKey = this.recallsCache.keys().next().value;
-      if (oldestKey) this.recallsCache.delete(oldestKey);
+  /**
+   * Model names with recall records for a make/year, as filed in the recall
+   * database (products API). Used to translate vPIC marketing names into the
+   * names recallsByVehicle actually matches. Non-fatal: any failure returns []
+   * so the primary single-name lookup still runs.
+   */
+  private async getRecallSideModels(make: string, year: number): Promise<string[]> {
+    const cacheKey = `${make.toUpperCase()}|${year}`;
+    const cached = this.recallModelsCache.get(cacheKey);
+    if (cached && Date.now() < cached.expiresAt) {
+      return cached.data;
     }
-    this.recallsCache.set(cacheKey, { data: recalls, expiresAt: Date.now() + RECALLS_TTL });
-    return recalls;
+
+    let models: string[];
+    try {
+      const url = `https://api.nhtsa.gov/products/vehicle/models?modelYear=${year}&make=${encodeURIComponent(make)}&issueType=r`;
+      const json = await this.fetchJson<NhtsaProductsResponse | null>(
+        url,
+        {
+          notOkLog: 'NHTSA recall-models request failed',
+          notOkThrow: 'Failed to fetch recall model list from NHTSA',
+          timeout: 'NHTSA recall-models request timed out',
+          unreachable: 'Failed to reach NHTSA products API',
+        },
+        () => null,
+      );
+      models = [...new Set((json?.results ?? []).map((r) => r.model ?? '').filter(Boolean))];
+    } catch (err) {
+      this.logger.warn(
+        `Recall model list lookup failed for ${cacheKey} (non-fatal): ${(err as Error).message}`,
+      );
+      return [];
+    }
+
+    if (this.recallModelsCache.size >= NhtsaService.MAX_RECALL_MODELS_CACHE) {
+      const oldestKey = this.recallModelsCache.keys().next().value;
+      if (oldestKey) this.recallModelsCache.delete(oldestKey);
+    }
+    this.recallModelsCache.set(cacheKey, { data: models, expiresAt: Date.now() + RECALLS_TTL });
+    return models;
   }
 }

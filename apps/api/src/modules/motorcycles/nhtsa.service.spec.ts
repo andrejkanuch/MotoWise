@@ -157,4 +157,120 @@ describe('NhtsaService', () => {
       expect(globalThis.fetch).toHaveBeenCalled();
     });
   });
+
+  describe('getRecalls', () => {
+    const CAMPAIGN = {
+      NHTSACampaignNumber: '20V797000',
+      ReportReceivedDate: '2020-12-15',
+      Component: 'FUEL SYSTEM, GASOLINE:STORAGE:TANK ASSEMBLY',
+      Summary: 'Fuel tank may crack',
+      Consequence: 'Fuel leak',
+      Remedy: 'Replace tank',
+    };
+
+    /**
+     * Dispatch mocked responses by URL: the recall-side model list comes from
+     * the products API; recallsByVehicle answers depend on the model param.
+     */
+    function mockNhtsaApis(opts: {
+      recallSideModels?: string[];
+      recallsByModel?: Record<string, unknown[]>;
+      productsFail?: boolean;
+    }) {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockImplementation((rawUrl: string) => {
+        const url = new URL(rawUrl);
+        if (url.pathname.startsWith('/products/')) {
+          if (opts.productsFail) return Promise.reject(new TypeError('network down'));
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                results: (opts.recallSideModels ?? []).map((model) => ({ model })),
+              }),
+          });
+        }
+        const model = url.searchParams.get('model') ?? '';
+        const results = opts.recallsByModel?.[model] ?? [];
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ Count: results.length, results }),
+        });
+      });
+    }
+
+    it('finds recalls filed under the recall-side code when the stored vPIC name misses', async () => {
+      mockNhtsaApis({
+        recallSideModels: ['CRF1100 AFRICA TWIN', 'GL1800', 'CIVIC'],
+        recallsByModel: { 'CRF1100 AFRICA TWIN': [CAMPAIGN] },
+      });
+
+      const recalls = await service.getRecalls({ make: 'Honda', model: 'Africa Twin', year: 2020 });
+
+      expect(recalls).toHaveLength(1);
+      expect(recalls[0].campaignNumber).toBe('20V797000');
+    });
+
+    it('finds recalls via curated alias when no string matching can bridge the names', async () => {
+      mockNhtsaApis({
+        recallSideModels: [],
+        recallsByModel: { GL1800: [CAMPAIGN] },
+      });
+
+      const recalls = await service.getRecalls({ make: 'Honda', model: 'Gold Wing', year: 2020 });
+
+      expect(recalls).toHaveLength(1);
+    });
+
+    it('dedupes the same campaign returned by multiple candidate queries', async () => {
+      mockNhtsaApis({
+        recallSideModels: ['CRF1100 AFRICA TWIN'],
+        recallsByModel: {
+          'Africa Twin': [CAMPAIGN],
+          'CRF1100 AFRICA TWIN': [CAMPAIGN, CAMPAIGN],
+        },
+      });
+
+      const recalls = await service.getRecalls({ make: 'Honda', model: 'Africa Twin', year: 2020 });
+
+      expect(recalls).toHaveLength(1);
+    });
+
+    it('still returns stored-name results when the products API fails (non-fatal)', async () => {
+      mockNhtsaApis({
+        productsFail: true,
+        recallsByModel: { 'Africa Twin': [CAMPAIGN] },
+      });
+
+      const recalls = await service.getRecalls({ make: 'Honda', model: 'Africa Twin', year: 2020 });
+
+      expect(recalls).toHaveLength(1);
+    });
+
+    it('uses a single VIN query without touching the products API', async () => {
+      mockNhtsaApis({ recallsByModel: {} });
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ Count: 1, results: [CAMPAIGN] }),
+      });
+
+      const recalls = await service.getRecalls({ vin: 'JH2SC8210MK000000' });
+
+      expect(recalls).toHaveLength(1);
+      expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+      expect((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][0]).toContain(
+        'recallsByVin',
+      );
+    });
+
+    it('serves cached results without re-fetching', async () => {
+      mockNhtsaApis({ recallsByModel: { 'Africa Twin': [CAMPAIGN] } });
+      await service.getRecalls({ make: 'Honda', model: 'Africa Twin', year: 2020 });
+
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockClear();
+      const recalls = await service.getRecalls({ make: 'Honda', model: 'Africa Twin', year: 2020 });
+
+      expect(globalThis.fetch).not.toHaveBeenCalled();
+      expect(recalls).toHaveLength(1);
+    });
+  });
 });
