@@ -72,7 +72,10 @@ export default function BuildingPlanScreen() {
     const advance = () => {
       if (advancedRef.current) return;
       advancedRef.current = true;
-      goNext();
+      // Pass-through loader: replace (don't push) so it drops out of history.
+      // Otherwise Back from the Reveal pops here, the loader re-runs and pushes
+      // Reveal again — an inescapable building-plan↔reveal loop.
+      goNext({ replace: true });
     };
     const capTimer = setTimeout(advance, MAX_DURATION_MS);
 

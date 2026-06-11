@@ -282,17 +282,33 @@ export function getResumeRoute(
 }
 
 /**
+ * Auto-advancing loader screens that must never be a Back target: re-entering
+ * one re-runs its timer and bounces the user forward again (a building-plan↔
+ * reveal loop). Back skips over them to the previous real step. (Forward nav
+ * already replaces past them — see BuildingPlanScreen's `goNext({ replace })`.)
+ */
+const AUTO_ADVANCE_SCREENS: ReadonlySet<OnboardingRoute> = new Set([OB_SCREEN.BUILDING_PLAN]);
+
+/**
  * Full route path for the screen immediately before `current`, or null if it is
  * the first screen. Used as a fallback for Back when there is no navigation
  * history to pop (e.g. after resume-after-kill drops the user onto a mid-flow
  * screen) — `router.back()` would otherwise throw "GO_BACK was not handled".
+ * Skips auto-advancing loader screens so Back never lands on one.
  */
 export function getPreviousRoute(
   variant: ObVariant,
   current: OnboardingRoute,
 ): OnboardingRoutePath | null {
   const flow = ONBOARDING_FLOWS[variant];
-  const idx = flow.indexOf(current);
-  if (idx <= 0) return null;
-  return routeForScreen(flow[idx - 1]);
+  const currentIndex = flow.indexOf(current);
+
+  // Walk backward to the nearest real step, skipping auto-advance loaders.
+  for (let i = currentIndex - 1; i >= 0; i--) {
+    const screen = flow[i];
+    if (!AUTO_ADVANCE_SCREENS.has(screen)) return routeForScreen(screen);
+  }
+
+  // First step, or only loaders precede it — nothing to go back to.
+  return null;
 }

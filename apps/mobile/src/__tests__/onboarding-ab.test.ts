@@ -141,6 +141,15 @@ describe('variant flow config', () => {
     expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.PERSONALIZING)).toBeNull();
   });
 
+  it('Back from the Reveal skips the building-plan loader (no re-loop)', () => {
+    // building-plan auto-advances to reveal; Back must skip past it to the
+    // previous real step (bike-setup), or the loader re-runs and bounces the
+    // user forward again — the building-plan↔reveal loop.
+    expect(getPreviousRoute(OB_VARIANT.INVESTED, OB_SCREEN.REVEAL)).toBe(
+      '/(onboarding)/bike-setup',
+    );
+  });
+
   it('Back to the welcome step targets the group root, not /index (404 guard)', () => {
     // The welcome screen is the (onboarding) group's index file; its href is the
     // group root. `/(onboarding)/index` is not a real route and renders "Page
