@@ -12,6 +12,7 @@ import {
   RidingGoal,
 } from '../constants/enums';
 import { MotorcycleMakeSchema } from './motorcycle';
+import { nullishToUndefined } from './nullish';
 
 const experienceLevelValues = Object.values(ExperienceLevel) as [string, ...string[]];
 const ridingGoalValues = Object.values(RidingGoal) as [string, ...string[]];
@@ -27,38 +28,39 @@ const currencyValues = Object.values(Currency) as [string, ...string[]];
 export const CompleteOnboardingInputSchema = z.object({
   experienceLevel: z.enum(experienceLevelValues),
   ridingGoals: z.array(z.enum(ridingGoalValues)).min(0),
-  ridingFrequency: z.enum(ridingFrequencyValues).optional(),
-  maintenanceStyle: z.enum(maintenanceStyleValues).optional(),
+  ridingFrequency: nullishToUndefined(z.enum(ridingFrequencyValues)),
+  maintenanceStyle: nullishToUndefined(z.enum(maintenanceStyleValues)),
   learningFormats: z.array(z.enum(learningFormatValues)).max(4),
-  annualRepairSpend: z.enum(annualRepairSpendValues).optional(),
-  reminderChannel: z.enum(reminderChannelValues).optional(),
-  lastServiceDate: z.enum(lastServiceDateValues).optional(),
+  annualRepairSpend: nullishToUndefined(z.enum(annualRepairSpendValues)),
+  reminderChannel: nullishToUndefined(z.enum(reminderChannelValues)),
+  lastServiceDate: nullishToUndefined(z.enum(lastServiceDateValues)),
   maintenanceReminders: z.boolean().optional().default(true),
   seasonalTips: z.boolean().optional().default(false),
   recallAlerts: z.boolean().optional().default(false),
   weeklySummary: z.boolean().optional().default(false),
-  bikeMake: MotorcycleMakeSchema.optional(),
-  bikeModel: z.string().min(1).max(100).optional(),
-  bikeYear: z
-    .number()
-    .int()
-    .min(1900)
-    .max(new Date().getFullYear() + 2)
-    .optional(),
-  bikeType: z.enum(motorcycleTypeValues).optional(),
-  bikeMileage: z.number().int().min(0).max(999999).optional(),
-  bikeNickname: z.string().max(50).optional(),
-  bikePhotoUrl: z.string().url().max(500).optional(),
+  bikeMake: nullishToUndefined(MotorcycleMakeSchema),
+  bikeModel: nullishToUndefined(z.string().min(1).max(100)),
+  bikeYear: nullishToUndefined(
+    z
+      .number()
+      .int()
+      .min(1900)
+      .max(new Date().getFullYear() + 2),
+  ),
+  bikeType: nullishToUndefined(z.enum(motorcycleTypeValues)),
+  bikeMileage: nullishToUndefined(z.number().int().min(0).max(999999)),
+  bikeNickname: nullishToUndefined(z.string().max(50)),
+  bikePhotoUrl: nullishToUndefined(z.string().url().max(500)),
   /**
    * @deprecated The mileage unit is now derived from the user's global
    * `measurementSystem` preference, not stored per bike. Kept for backward
    * compatibility; new clients send the preference-derived unit.
    */
-  bikeMileageUnit: z.enum(['mi', 'km']).optional(),
-  acceptedOemScheduleIds: z.array(z.string().uuid()).max(50).optional(),
-  currency: z.enum(currencyValues).optional(),
-  fbclid: z.string().max(256).optional(),
-  eventId: z.string().uuid().optional(),
+  bikeMileageUnit: nullishToUndefined(z.enum(['mi', 'km'])),
+  acceptedOemScheduleIds: nullishToUndefined(z.array(z.string().uuid()).max(50)),
+  currency: nullishToUndefined(z.enum(currencyValues)),
+  fbclid: nullishToUndefined(z.string().max(256)),
+  eventId: nullishToUndefined(z.string().uuid()),
 });
 
 export type CompleteOnboardingInput = z.infer<typeof CompleteOnboardingInputSchema>;

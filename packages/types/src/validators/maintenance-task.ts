@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Currency } from '../constants/enums';
+import { nullishToUndefined } from './nullish';
 
 const currencyValues = Object.values(Currency) as [string, ...string[]];
 
@@ -24,7 +25,7 @@ export const CreateMaintenanceTaskSchema = z.object({
 export type CreateMaintenanceTask = z.infer<typeof CreateMaintenanceTaskSchema>;
 
 export const UpdateMaintenanceTaskSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
+  title: nullishToUndefined(z.string().min(1).max(200)),
   description: z.string().max(1000).nullable().optional(),
   dueDate: z
     .string()
@@ -32,13 +33,13 @@ export const UpdateMaintenanceTaskSchema = z.object({
     .nullable()
     .optional(),
   targetMileage: z.number().int().positive().nullable().optional(),
-  priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  priority: nullishToUndefined(z.enum(['low', 'medium', 'high', 'critical'])),
   notes: z.string().max(2000).nullable().optional(),
   partsNeeded: z.array(z.string().max(100)).max(20).nullable().optional(),
   // MOT-139 multi-stage reminder flags
-  remind30d: z.boolean().optional(),
-  remind7d: z.boolean().optional(),
-  remind1d: z.boolean().optional(),
+  remind30d: nullishToUndefined(z.boolean()),
+  remind7d: nullishToUndefined(z.boolean()),
+  remind1d: nullishToUndefined(z.boolean()),
 });
 export type UpdateMaintenanceTask = z.infer<typeof UpdateMaintenanceTaskSchema>;
 

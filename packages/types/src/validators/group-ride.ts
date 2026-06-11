@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { nullishToUndefined } from './nullish';
 
 // --- Difficulty ---
 
@@ -24,9 +25,9 @@ export const CreateGroupRideInputSchema = z.object({
     }),
   meetingPointLat: z.number().min(-90).max(90),
   meetingPointLng: z.number().min(-180).max(180),
-  meetingPointName: z.string().max(200).optional(),
-  routeId: z.string().uuid().optional(),
-  routeDescription: z.string().min(1).max(1000).optional(),
+  meetingPointName: nullishToUndefined(z.string().max(200)),
+  routeId: nullishToUndefined(z.string().uuid()),
+  routeDescription: nullishToUndefined(z.string().min(1).max(1000)),
   difficulty: GroupRideDifficultySchema,
   maxRiders: z.number().int().min(2).max(50),
 });
@@ -37,19 +38,20 @@ export type CreateGroupRideInput = z.infer<typeof CreateGroupRideInputSchema>;
 
 export const UpdateGroupRideInputSchema = z.object({
   groupRideId: z.string().uuid(),
-  title: z.string().min(1).max(100).optional(),
-  description: z.string().min(1).max(1000).optional(),
-  dateTime: z
-    .string()
-    .datetime()
-    .refine((dt) => new Date(dt).getTime() > Date.now(), {
-      message: 'dateTime must be in the future',
-    })
-    .optional(),
-  meetingPointLat: z.number().min(-90).max(90).optional(),
-  meetingPointLng: z.number().min(-180).max(180).optional(),
-  meetingPointName: z.string().max(200).optional(),
-  maxRiders: z.number().int().min(2).max(50).optional(),
+  title: nullishToUndefined(z.string().min(1).max(100)),
+  description: nullishToUndefined(z.string().min(1).max(1000)),
+  dateTime: nullishToUndefined(
+    z
+      .string()
+      .datetime()
+      .refine((dt) => new Date(dt).getTime() > Date.now(), {
+        message: 'dateTime must be in the future',
+      }),
+  ),
+  meetingPointLat: nullishToUndefined(z.number().min(-90).max(90)),
+  meetingPointLng: nullishToUndefined(z.number().min(-180).max(180)),
+  meetingPointName: nullishToUndefined(z.string().max(200)),
+  maxRiders: nullishToUndefined(z.number().int().min(2).max(50)),
 });
 
 export type UpdateGroupRideInput = z.infer<typeof UpdateGroupRideInputSchema>;
