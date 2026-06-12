@@ -24,16 +24,20 @@ import type { Env } from './env';
 import { createJob, getJob, updateJob } from './jobs';
 import {
   type AspectRatio,
+  base64ToUint8Array,
+  composeShowcaseImage,
   generateImage,
   generatePhoneMockup,
+  headlineOverlay,
   publishCarousel,
   publishPost,
   publishStory,
   uint8ArrayToBase64,
+  uploadToSupabase,
 } from './publish';
 import { getRecentAngles, type SlotName } from './queue';
 import { CRON_TO_SLOT, runScheduledPost } from './scheduled';
-import { SCREENSHOT_CATALOG } from './screenshots';
+import { BRAND_ICON_STORAGE_PATH, fetchBucketBytes, SCREENSHOT_CATALOG } from './screenshots';
 
 /** Constant-time string comparison to prevent timing attacks on auth keys. */
 function timingSafeEqual(a: string, b: string): boolean {
@@ -181,6 +185,36 @@ export default {
             job_id: jobId,
             status: 'pending',
             poll_url: `/job/${jobId}`,
+          });
+        }
+
+        case '/test-showcase': {
+          // Compose a showcase image (real screenshot + brand icon as
+          // reference images) and upload it to Supabase for inspection.
+          // Never touches Meta. ?key=<catalog-key>&headline=<text>
+          const key = url.searchParams.get('key') ?? 'expense-insights-total-cost';
+          const entry = SCREENSHOT_CATALOG[key];
+          if (!entry) return json({ error: `Unknown key: ${key}` }, 400);
+
+          const scene =
+            url.searchParams.get('scene') ??
+            'A motorcyclist in a black riding jacket and gloves holds a phone up toward the camera, screen facing the lens. Behind them, out of focus, a parked adventure motorcycle on a golden-hour alpine road. Moody, cinematic, warm key light, shallow depth of field.';
+          const headline = url.searchParams.get('headline');
+          const scenePrompt = headline ? scene + headlineOverlay(headline, false) : scene;
+
+          const [screenshot, brandIcon] = await Promise.all([
+            fetchBucketBytes(env, entry.storagePath),
+            fetchBucketBytes(env, BRAND_ICON_STORAGE_PATH),
+          ]);
+
+          const image = await composeShowcaseImage(env, scenePrompt, screenshot, brandIcon);
+          const path = `test/${Date.now()}-showcase-${key}.png`;
+          await uploadToSupabase(env, path, base64ToUint8Array(image.image_base64));
+          return json({
+            success: true,
+            key,
+            engine: image.engine,
+            url: `${env.SUPABASE_URL}/storage/v1/object/public/social-media/${path}`,
           });
         }
 

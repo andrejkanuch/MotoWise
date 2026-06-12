@@ -11,6 +11,7 @@ export * from './fuel-stops';
 export * from './group-ride';
 export * from './locale';
 export * from './maintenance-task';
+export * from './model-insights';
 export * from './motorcycle';
 export * from './quiz';
 export * from './ride';

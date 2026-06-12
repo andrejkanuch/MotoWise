@@ -1,6 +1,10 @@
+import { UseGuards } from '@nestjs/common';
 import { Args, Float, ID, Query, Resolver } from '@nestjs/graphql';
+import { Throttle } from '@nestjs/throttler';
 import { Public } from '../../common/decorators/public.decorator';
+import { GqlThrottlerGuard } from '../../common/guards/gql-throttler.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
+import { THROTTLE_PRESETS } from '../../config/constants';
 import { FuelStopsService } from './fuel-stops.service';
 import { FuelRangeResult, FuelStop } from './models/fuel-stop.model';
 
@@ -14,6 +18,8 @@ export class FuelStopsResolver {
    * bike lookup uses SUPABASE_USER (RLS-scoped) so only the bike owner
    * gets personalised range data.
    */
+  @UseGuards(GqlThrottlerGuard)
+  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
   @Query(() => FuelRangeResult)
   @Public()
   async fuelStopsNearRoute(

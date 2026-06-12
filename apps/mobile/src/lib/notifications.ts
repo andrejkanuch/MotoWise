@@ -70,17 +70,6 @@ export async function setupNotificationCategories(): Promise<void> {
   ]);
 }
 
-/**
- * Request notification permissions from the user.
- * Returns true if granted.
- */
-export async function requestNotificationPermission(): Promise<boolean> {
-  const { status: existing } = await Notifications.getPermissionsAsync();
-  if (existing === 'granted') return true;
-  const { status } = await Notifications.requestPermissionsAsync();
-  return status === 'granted';
-}
-
 interface ReminderTask {
   id: string;
   title: string;

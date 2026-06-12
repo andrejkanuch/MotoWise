@@ -8,6 +8,7 @@ import { AppState, LogBox } from 'react-native';
 
 LogBox.ignoreLogs(['Method readAsStringAsync imported from "expo-file-system" is deprecated']);
 
+import { palette } from '@motovault/design-system';
 import { CompleteMaintenanceTaskDocument, MeDocument } from '@motovault/graphql';
 import { Currency, MeasurementSystem } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
@@ -35,17 +36,19 @@ try {
 import * as Linking from 'expo-linking';
 import { Stack, useNavigationContainerRef, usePathname, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import * as SystemUI from 'expo-system-ui';
 import { PostHogProvider, PostHogSurveyProvider } from 'posthog-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
-import { AnimatedSplash } from '../components/animated-splash';
+import { OB_VARIANT } from '../config/onboarding';
 import { getWhatsNewRelease } from '../data/whats-new-releases';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import i18n from '../i18n';
 import {
   AnalyticsEvent,
   captureException,
+  getAnalyticsDistinctId,
   identifyUser,
   initPostHog,
   initSentry,
@@ -65,33 +68,52 @@ import {
   AUTH_HYDRATION_TIMEOUT_SOURCE,
   shouldReportHydrationTimeout,
 } from '../lib/auth-hydration';
+import { decideAuthStateChange } from '../lib/auth-state-change';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
 import { captureMetaAttribution } from '../lib/meta-attribution';
 import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
 import {
   cancelAllNotifications,
-  requestNotificationPermission,
   setupNotificationCategories,
   setupNotificationChannels,
   snoozeTaskNotification,
 } from '../lib/notifications';
+import { resolveOnboardingVariant } from '../lib/onboarding-experiment';
 import { LAST_USER_KEY, PersistedQueryClientBoundary } from '../lib/persisted-query-provider';
 import { queryClient } from '../lib/query-client';
 import { queryKeys } from '../lib/query-keys';
 import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
 import { clearPersistedQueryCache } from '../lib/query-persist';
-import { initRevenueCat, loginRevenueCat, logoutRevenueCat } from '../lib/subscription';
+import {
+  configureRevenueCatAnonymously,
+  initRevenueCat,
+  loginRevenueCat,
+  logoutRevenueCat,
+} from '../lib/subscription';
 import { supabase } from '../lib/supabase';
 import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
 import { useAuthStore } from '../stores/auth.store';
+import { useExperimentStore } from '../stores/experiment.store';
 import { useSubscriptionStore } from '../stores/subscription.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
 import { clearRideData, rideMMKV } from '../utils/ride-storage';
 import { clearAll as clearSyncQueue, drainQueue } from '../utils/ride-sync-queue';
 
-// Keep native splash visible until animated splash is ready
+// Native splash is the ONLY splash: hold it while the app boots (auth hydration
+// + the `me` gate), then fade it out directly into real UI. The app tree mounts
+// and fetches underneath it from the first frame.
 SplashScreen.preventAutoHideAsync();
+const SPLASH_FADE_MS = 400;
+SplashScreen.setOptions({ duration: SPLASH_FADE_MS, fade: true });
+
+/** Hard cap — if hydration or the `me` query ever hangs, never wedge the splash. */
+const SPLASH_FAILSAFE_MS = 10000;
+
+// Root view defaults to white — paint it the splash color so no frame between
+// the native splash and React's first paint can flash white. (The app.config
+// `backgroundColor` covers builds; this covers dev reloads at runtime.)
+SystemUI.setBackgroundColorAsync(palette.editorialDarkBg2);
 
 // Initialize Sentry and PostHog as early as possible
 initSentry();
@@ -117,7 +139,7 @@ setupOnlineManager();
 // What's New modal is only pushed once per app cold-start.
 let whatsNewPushed = false;
 
-function NavigationGate() {
+function NavigationGate({ onSettled }: { onSettled: () => void }) {
   const {
     session,
     isLoading,
@@ -223,11 +245,49 @@ function NavigationGate() {
     setTimeout(() => router.push('/(modals)/whats-new' as never), 500);
   }, [isLoading, session, onboardingCompleted, segments, lastSeenVersion, router]);
 
+  // --- Anonymous-first onboarding (A/B 2026) ---
+  // Fresh installs (never authenticated on this install) onboard BEFORE auth:
+  // the account step lives inside the onboarding flow, after the paywall.
+  // `control` keeps the V4 auth-first gate. While the variant is unresolved
+  // (null, first launch) the (onboarding) layout holds a blank frame for up to
+  // ~2s and then always resolves, so this can never wedge the app.
+  const variant = useExperimentStore((s) => s.onboardingVariant);
+  const hasAuthenticatedBefore = useAuthStore((s) => s.hasAuthenticatedBefore);
+  const isAnonOnboarding = !session && !hasAuthenticatedBefore && variant !== OB_VARIANT.CONTROL;
+
+  useEffect(() => {
+    // Kick off assignment for signed-out fresh installs so the gate above can
+    // settle; signed-in users resolve inside (onboarding)/_layout as before.
+    if (isAnonOnboarding && !variant) void resolveOnboardingVariant();
+  }, [isAnonOnboarding, variant]);
+
+  // Configure RevenueCat anonymously for sessionless onboarders so the paywall
+  // can present + purchase without an account; $posthogUserId is stamped with
+  // the anonymous distinct_id so the purchase joins this person post-signup.
+  useEffect(() => {
+    if (isAnonOnboarding) {
+      void configureRevenueCatAnonymously(getAnalyticsDistinctId());
+    }
+  }, [isAnonOnboarding]);
+
+  const inOnboarding = segments[0] === '(onboarding)';
+
   // Hold the splash (render nothing) until auth + the `me` query resolve, so the
   // guards below evaluate against settled state — otherwise a returning,
   // already-onboarded user would briefly route through (onboarding) before `me`
-  // confirms completion.
-  if (isLoading || (session && meQuery.isLoading && !meQuery.isError)) {
+  // confirms completion. Exception: when the session appears MID-onboarding
+  // (post-paywall account step signs the user in), keep the stack mounted —
+  // unmounting would reset onboarding navigation state.
+  const holding =
+    isLoading || (!!session && meQuery.isLoading && !meQuery.isError && !inOnboarding);
+
+  // The gate settling means real UI is about to paint — tell the root to drop
+  // the native splash (it fades out over the first frames of the stack).
+  useEffect(() => {
+    if (!holding) onSettled();
+  }, [holding, onSettled]);
+
+  if (holding) {
     return null;
   }
 
@@ -236,13 +296,16 @@ function NavigationGate() {
   // Declarative gating via Stack.Protected: when a guard flips (sign-in, sign-out,
   // onboarding completion) Expo Router auto-navigates to the next available
   // screen. No imperative router.replace — which would collapse the back stack.
+  // NOTE: the returning-user "Sign in" surface for anonymous onboarders lives
+  // INSIDE (onboarding) (sign-in screen), so (auth) stays hidden during
+  // anonymous onboarding without any cross-group navigation.
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={!isSignedIn}>
+      <Stack.Protected guard={!isSignedIn && !isAnonOnboarding}>
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
 
-      <Stack.Protected guard={isSignedIn && !onboardingCompleted}>
+      <Stack.Protected guard={isAnonOnboarding || (isSignedIn && !onboardingCompleted)}>
         <Stack.Screen name="(onboarding)" />
       </Stack.Protected>
 
@@ -265,11 +328,28 @@ function NavigationGate() {
 }
 
 function RootLayout() {
-  const { setSession, setLoading, isLoading } = useAuthStore();
+  const { setSession, setLoading } = useAuthStore();
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
-  const [appReady, setAppReady] = useState(false);
+  // Tracks the last identified user so a null session is only treated as a
+  // logout when we actually had one — see onAuthStateChange below.
+  const prevUserIdRef = useRef<string | null>(null);
+
+  // Native splash lifecycle: hidden once (idempotent) when the navigation gate
+  // settles — or by the failsafe below. `splashDismissed` flips after the fade
+  // completes and gates the ATT prompt (it must never appear under the splash).
   const [splashDismissed, setSplashDismissed] = useState(false);
-  const onSplashDismiss = useCallback(() => setSplashDismissed(true), []);
+  const splashHiddenRef = useRef(false);
+  const hideSplash = useCallback(() => {
+    if (splashHiddenRef.current) return;
+    splashHiddenRef.current = true;
+    SplashScreen.hideAsync();
+    setTimeout(() => setSplashDismissed(true), SPLASH_FADE_MS + 50);
+  }, []);
+
+  useEffect(() => {
+    const timeout = setTimeout(hideSplash, SPLASH_FAILSAFE_MS);
+    return () => clearTimeout(timeout);
+  }, [hideSplash]);
 
   // Load editorial fonts — don't block splash on this; text uses system fallback until loaded
   useFonts({
@@ -332,23 +412,53 @@ function RootLayout() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       invalidateGqlAccessTokenCache();
       setSession(session);
-      if (session?.user) {
-        loginRevenueCat(session.user.id);
-        identifyUser(session.user.id);
+
+      const sessionUserId = session?.user?.id ?? null;
+      const decision = decideAuthStateChange({
+        sessionUserId,
+        prevUserId: prevUserIdRef.current,
+        // Persistent "a user was signed in on this device" signal that survives
+        // cold starts (the per-mount ref is null on every launch). Lets a
+        // server-revoked session surfacing as a null INITIAL_SESSION still run
+        // local cleanup. (todo 188)
+        hasPersistedUser: SecureStore.getItem(LAST_USER_KEY) !== null,
+      });
+
+      if (sessionUserId) {
+        loginRevenueCat(sessionUserId);
+        if (decision.shouldIdentify) {
+          // identify() merges the current anonymous distinct_id onto the user,
+          // so pre-signup events (install, /login views) attach to the person.
+          // Skipped on TOKEN_REFRESHED/USER_UPDATED for the same id. (todo 191)
+          identifyUser(sessionUserId);
+        }
       } else {
-        logoutRevenueCat();
-        resetUser();
+        if (decision.shouldResetUser) {
+          // Reset only when we PREVIOUSLY had a user in this app session. On a
+          // cold-start anonymous launch, onAuthStateChange fires with a null
+          // session (INITIAL_SESSION) — calling reset() there rotates the
+          // anonymous id and orphans pre-signup events, breaking cross-signup
+          // funnels. (Defect 1) Reset/RC-logout only on a real sign-out.
+          logoutRevenueCat();
+          resetUser();
+        }
+        if (decision.shouldClearLocalData) {
+          // Decoupled from reset (todo 188): runs whenever a user previously
+          // existed by EITHER the per-mount ref OR the persisted signal, so a
+          // server-revoked session that only surfaces on the next cold start
+          // still clears this device's user data.
+          queryClient.clear();
+          clearPersistedQueryCache();
+          SecureStore.deleteItemAsync(LAST_USER_KEY);
+          clearSyncQueue();
+          const activeRideId = rideMMKV.getCurrentId();
+          if (activeRideId) clearRideData(activeRideId);
+          cancelAllNotifications();
+          clearAllWidgets();
+        }
       }
-      if (!session) {
-        queryClient.clear();
-        clearPersistedQueryCache();
-        SecureStore.deleteItemAsync(LAST_USER_KEY);
-        clearSyncQueue();
-        const activeRideId = rideMMKV.getCurrentId();
-        if (activeRideId) clearRideData(activeRideId);
-        cancelAllNotifications();
-        clearAllWidgets();
-      }
+
+      prevUserIdRef.current = sessionUserId;
     });
 
     return () => subscription.unsubscribe();
@@ -379,11 +489,6 @@ function RootLayout() {
     const sub = Linking.addEventListener('url', ({ url }) => handleDeepLink(url));
     return () => sub.remove();
   }, []);
-
-  // Mark app as ready once auth state is resolved
-  useEffect(() => {
-    if (!isLoading) setAppReady(true);
-  }, [isLoading]);
 
   useEffect(() => {
     const locale = useAuthStore.getState().locale;
@@ -527,12 +632,13 @@ function RootLayout() {
     ]);
   }, []);
 
-  // Set up notification channels, categories, and request permission
+  // Set up notification channels and categories. Permission is requested
+  // ONLY on the onboarding notifications screen — never at app launch
+  // (iOS shows the system prompt once; asking here would consume it).
   useEffect(() => {
     async function initNotifications() {
       await setupNotificationChannels();
       await setupNotificationCategories();
-      await requestNotificationPermission();
     }
     initNotifications();
   }, []);
@@ -593,13 +699,11 @@ function RootLayout() {
             the SDK auto-captures `survey shown/sent/dismissed` and respects the
             client opt-out set by setAnalyticsEnabled(). */}
         <PostHogSurveyProvider androidKeyboardBehavior="padding">
-          <AnimatedSplash isReady={appReady} onDismiss={onSplashDismiss}>
-            <KeyboardProvider>
-              <PersistedQueryClientBoundary>
-                <NavigationGate />
-              </PersistedQueryClientBoundary>
-            </KeyboardProvider>
-          </AnimatedSplash>
+          <KeyboardProvider>
+            <PersistedQueryClientBoundary>
+              <NavigationGate onSettled={hideSplash} />
+            </PersistedQueryClientBoundary>
+          </KeyboardProvider>
         </PostHogSurveyProvider>
       </PostHogProvider>
     </GestureHandlerRootView>

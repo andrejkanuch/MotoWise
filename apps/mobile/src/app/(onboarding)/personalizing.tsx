@@ -1,6 +1,7 @@
 import { CompleteOnboardingDocument, type CompleteOnboardingInput } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
+import { useLocalSearchParams } from 'expo-router';
 import {
   Bike,
   Check,
@@ -19,17 +20,23 @@ import Animated, {
   FadeIn,
   FadeInUp,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withRepeat,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
-import { getPrimaryGoal, TOTAL_SCREENS } from '../../config/onboarding';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
+import { getPrimaryGoal, OB_SCREEN } from '../../config/onboarding';
+import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
+import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { uploadBikePhoto } from '../../lib/image-upload';
 import { detectCurrency } from '../../lib/locale-detection';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { clearStoredFbclid, getStoredFbclid } from '../../lib/meta-attribution';
+import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { maybeRequestReview } from '../../lib/store-review';
 import { useAuthStore } from '../../stores/auth.store';
@@ -53,8 +60,33 @@ const GOAL_STEP_CONFIG: Record<string, { i18nKey: string; icon: typeof MapPin }>
 
 const MIN_ANIMATION_MS = 2500;
 
+const SERIF_REGULAR = 'InstrumentSerif-Regular' as const;
+const SERIF_ITALIC = 'InstrumentSerif-Italic' as const;
+const MONO_MEDIUM = 'GeistMono-Medium' as const;
+const BODY = 'Geist-Regular' as const;
+
+type BikeLike = { year?: number | null; make?: string | null; model?: string | null } | null;
+
+/** Builds a human-readable bike label (e.g. "2023 BMW R 1250 GS"), or null if no bike. */
+function buildBikeLabel(bike: BikeLike): string | null {
+  if (!bike?.make?.trim()) return null;
+  const parts = [
+    bike.year ? String(bike.year) : null,
+    bike.make.trim(),
+    bike.model?.trim() || null,
+  ];
+  return parts.filter(Boolean).join(' ');
+}
+
 export default function PersonalizingScreen() {
   const { t } = useTranslation();
+  const { totalScreens } = useOnboardingStep(OB_SCREEN.PERSONALIZING);
+  // Resume-after-kill entry (welcome's resume replace) — the rider already sat
+  // through the staged setup once; don't replay it on app load. Skip the
+  // minimum-animation gate and complete straight into the garage on mutation
+  // success, so the whole thing finishes behind the launch splash.
+  const { resumed } = useLocalSearchParams<{ resumed?: string }>();
+  const isResumed = resumed === '1';
   const [visibleSteps, setVisibleSteps] = useState(0);
   const {
     experienceLevel,
@@ -86,12 +118,15 @@ export default function PersonalizingScreen() {
 
   const setOnboardingCompleted = useAuthStore((s) => s.setOnboardingCompleted);
   const [mutationDone, setMutationDone] = useState(false);
-  const [animationDone, setAnimationDone] = useState(false);
+  const [animationDone, setAnimationDone] = useState(isResumed);
+  const [showDone, setShowDone] = useState(false);
   const [showRetry, setShowRetry] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const reducedMotion = useReducedMotion();
 
   const primaryGoal = useMemo(() => getPrimaryGoal(ridingGoals), [ridingGoals]);
   const goalConfig = GOAL_STEP_CONFIG[primaryGoal];
+  const bikeLabel = useMemo(() => buildBikeLabel(bikeData), [bikeData]);
 
   const steps = useMemo(() => [...FIXED_STEPS, goalConfig.i18nKey] as const, [goalConfig.i18nKey]);
   const stepIcons = useMemo(
@@ -112,13 +147,20 @@ export default function PersonalizingScreen() {
     opacity: pulseOpacity.value,
   }));
 
-  // Track step viewed once on mount
+  // Check-badge pop on the payoff phase (spring scale; respects reduced motion).
+  const checkScale = useSharedValue(0);
+  const checkBadgeStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: checkScale.value }],
+  }));
+
+  // Track step viewed once on mount. Resume entries already fired this in the
+  // original session (welcome fires ONBOARDING_RESUMED instead) — re-firing
+  // would inflate the funnel step.
   useEffect(() => {
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
-      step: 'personalizing',
-      step_index: 7,
-    });
-  }, []);
+    if (!isResumed) {
+      trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.PERSONALIZING);
+    }
+  }, [isResumed]);
 
   // Persist preferences to server
   // biome-ignore lint/correctness/useExhaustiveDependencies: fire on mount and on manual retry
@@ -129,6 +171,25 @@ export default function PersonalizingScreen() {
 
       // Auto-detect currency if not set during onboarding
       const detectedCurrency = detectCurrency();
+
+      // Upload the rider's bike photo BEFORE completing onboarding so its URL is
+      // persisted atomically — `complete_onboarding` writes `primary_photo_url`
+      // on bike creation when given `bikePhotoUrl`. Best-effort: a failed upload
+      // still lets onboarding finish without a photo (it can be added later from
+      // the garage). The upload overlaps the minimum payoff animation, so it adds
+      // no perceptible latency.
+      let bikePhotoUrl: string | undefined;
+      if (bikeData?.photoUri) {
+        try {
+          const userId = useAuthStore.getState().session?.user?.id;
+          if (userId) {
+            const { publicUrl } = await uploadBikePhoto(bikeData.photoUri, userId);
+            bikePhotoUrl = publicUrl;
+          }
+        } catch (err) {
+          console.warn('[Personalizing] bike photo upload skipped:', err);
+        }
+      }
 
       const input: CompleteOnboardingInput = {
         experienceLevel: experienceLevel ?? 'beginner',
@@ -153,6 +214,7 @@ export default function PersonalizingScreen() {
           bikeMileage: bikeData.currentMileage,
           bikeMileageUnit: bikeData.mileageUnit,
           ...(bikeData.nickname && { bikeNickname: bikeData.nickname }),
+          ...(bikePhotoUrl && { bikePhotoUrl }),
         }),
         ...(acceptedOemScheduleIds.length > 0 && { acceptedOemScheduleIds }),
       };
@@ -165,14 +227,15 @@ export default function PersonalizingScreen() {
       input.eventId = eventId;
 
       await completeOnboarding(input);
-      trackEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {
+
+      trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {
         experience_level: experienceLevel ?? 'beginner',
         has_bike: !!bikeData,
-        has_photo: !!bikeData?.nickname,
+        has_photo: !!bikeData?.photoUri,
         goals_count: ridingGoals.length,
         goals: ridingGoals.join(','),
         primary_goal: primaryGoal,
-        total_screens: TOTAL_SCREENS,
+        total_screens: totalScreens,
         ...(bikeData && {
           bike_make: bikeData.make,
           bike_model: bikeData.model,
@@ -213,16 +276,35 @@ export default function PersonalizingScreen() {
     };
   }, []);
 
-  // Complete onboarding only when BOTH the server mutation succeeded AND the
-  // minimum animation finished. Flipping `onboardingCompleted` is the single
-  // completion trigger: the root Stack.Protected guard then auto-redirects to
-  // (tabs) — no imperative navigation here.
+  // When BOTH the server mutation succeeded AND the minimum animation finished,
+  // transition to the DONE / payoff phase instead of redirecting immediately.
+  // The `onboarding_completed` analytics event has already fired inside the
+  // mutation `run()` above (before any navigation), so we do NOT re-fire it here.
+  // The actual completion trigger — flipping `onboardingCompleted`, which makes
+  // the root Stack.Protected guard auto-redirect to (tabs) — is deferred to the
+  // explicit "Open my garage" CTA so the user sees the payoff first.
+  // EXCEPTION: on a cold-start resume there is no payoff to earn — complete
+  // immediately so the rider lands in the garage, ideally before the launch
+  // splash even dismisses.
   useEffect(() => {
-    if (mutationDone && animationDone) {
+    if (!mutationDone || !animationDone) return;
+    if (isResumed) {
       reset();
       setOnboardingCompleted(true);
+    } else {
+      setShowDone(true);
     }
-  }, [mutationDone, animationDone, reset, setOnboardingCompleted]);
+  }, [mutationDone, animationDone, isResumed, reset, setOnboardingCompleted]);
+
+  // Pop the check badge in when the payoff phase appears.
+  useEffect(() => {
+    if (!showDone) return;
+    if (reducedMotion) {
+      checkScale.value = 1;
+      return;
+    }
+    checkScale.value = withSpring(1, { damping: 11, stiffness: 180, mass: 0.7 });
+  }, [showDone, reducedMotion, checkScale]);
 
   // Safety net: if stuck for 8s total, show continue button
   useEffect(() => {
@@ -234,10 +316,119 @@ export default function PersonalizingScreen() {
     return () => clearTimeout(timeout);
   }, [mutationDone, showRetry]);
 
+  // Single completion trigger: reset onboarding state + flip the auth flag, which
+  // makes the root guard redirect to OB_ROUTE.HOME. Used by the payoff CTA and the
+  // retry/safety-net skip link (both before any navigation).
   const handleContinue = () => {
     reset();
     setOnboardingCompleted(true);
   };
+
+  // Cold-start resume: the staged setup UI must not appear on app load. Hold a
+  // bare background while the mutation completes silently (then the root guard
+  // flips to the garage). Only if the silent completion errors or stalls past
+  // the 8s safety net does the full UI surface, with the retry controls.
+  if (isResumed && !showRetry) {
+    return <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }} />;
+  }
+
+  if (showDone) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: ONBOARDING_COLORS.background,
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingHorizontal: 32,
+        }}
+      >
+        <Animated.View
+          entering={FadeIn.duration(300)}
+          style={{ alignItems: 'center', width: '100%' }}
+        >
+          {/* Copper rounded CHECK badge — pops in with a spring scale */}
+          <Animated.View
+            style={[
+              {
+                width: 84,
+                height: 84,
+                borderRadius: 26,
+                borderCurve: 'continuous',
+                backgroundColor: ONBOARDING_COLORS.warm,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 24,
+              },
+              checkBadgeStyle,
+            ]}
+          >
+            <Check size={40} color={ONBOARDING_COLORS.textOnAccent} strokeWidth={3} />
+          </Animated.View>
+
+          <Animated.Text
+            entering={FadeInUp.delay(80).duration(300)}
+            style={{
+              fontFamily: MONO_MEDIUM,
+              fontSize: 12,
+              letterSpacing: 1.6,
+              textTransform: 'uppercase',
+              color: ONBOARDING_COLORS.warm2,
+              marginBottom: 14,
+            }}
+          >
+            {t('onboarding.personalizingDoneEyebrow' as never)}
+          </Animated.Text>
+
+          <Animated.Text
+            entering={FadeInUp.delay(120).duration(300)}
+            style={{
+              fontFamily: SERIF_REGULAR,
+              fontSize: 40,
+              lineHeight: 44,
+              color: ONBOARDING_COLORS.textPrimary,
+              textAlign: 'center',
+              marginBottom: 12,
+            }}
+          >
+            {t('onboarding.personalizingDoneTitleLead' as never)}{' '}
+            <Text style={{ fontFamily: SERIF_ITALIC, color: ONBOARDING_COLORS.warm2 }}>
+              {t('onboarding.personalizingDoneTitleAccent' as never)}
+            </Text>
+          </Animated.Text>
+
+          <Animated.Text
+            entering={FadeInUp.delay(160).duration(300)}
+            style={{
+              fontFamily: BODY,
+              fontSize: 15,
+              lineHeight: 22,
+              color: ONBOARDING_COLORS.textSecondary,
+              textAlign: 'center',
+              maxWidth: 320,
+              marginBottom: 32,
+            }}
+          >
+            {bikeLabel
+              ? (t(
+                  'onboarding.personalizingDoneSubWithBike' as never,
+                  {
+                    bikeLabel,
+                  } as never,
+                ) as unknown as string)
+              : t('onboarding.personalizingDoneSub' as never)}
+          </Animated.Text>
+
+          <Animated.View entering={FadeInUp.delay(200).duration(300)} style={{ width: '100%' }}>
+            <OnboardingContinueButton
+              label={t('onboarding.personalizingDoneCta' as never)}
+              onPress={handleContinue}
+            />
+          </Animated.View>
+        </Animated.View>
+      </View>
+    );
+  }
 
   return (
     <View
@@ -288,17 +479,45 @@ export default function PersonalizingScreen() {
         </View>
       </View>
 
+      {/* Title — Instrument Serif with italic-copper accent on the key phrase */}
       <Text
         style={{
-          fontSize: 24,
-          fontWeight: '800',
+          fontFamily: SERIF_REGULAR,
+          fontSize: 30,
+          lineHeight: 34,
           color: ONBOARDING_COLORS.textPrimary,
           textAlign: 'center',
-          marginBottom: 32,
+          marginBottom: 8,
         }}
       >
-        {t('onboarding.v2PersonalizingTitle')}
+        {t('onboarding.v2PersonalizingTitleLead' as never)}{' '}
+        <Text style={{ fontFamily: SERIF_ITALIC, color: ONBOARDING_COLORS.warm2 }}>
+          {t('onboarding.v2PersonalizingTitleAccent' as never)}
+        </Text>
       </Text>
+
+      {bikeLabel ? (
+        <Text
+          style={{
+            fontFamily: BODY,
+            fontSize: 13,
+            color: ONBOARDING_COLORS.ink3,
+            textAlign: 'center',
+            marginBottom: 32,
+          }}
+        >
+          {
+            t(
+              'onboarding.v2PersonalizingSubtitle' as never,
+              {
+                bikeLabel,
+              } as never,
+            ) as unknown as string
+          }
+        </Text>
+      ) : (
+        <View style={{ marginBottom: 32 }} />
+      )}
 
       <View style={{ gap: 16, alignItems: 'flex-start' }}>
         {steps.map((stepKey, index) => {
@@ -316,6 +535,7 @@ export default function PersonalizingScreen() {
               <StepIcon size={18} color={ONBOARDING_COLORS.textMuted} />
               <Text
                 style={{
+                  fontFamily: BODY,
                   fontSize: 16,
                   color: ONBOARDING_COLORS.textSecondary,
                 }}

@@ -4,7 +4,6 @@ import { RideSummariesService } from './ride-summaries.service';
 
 describe('RideSummariesService', () => {
   let service: RideSummariesService;
-  let mockUserClient: ReturnType<typeof createMockClient>;
   let mockAdminClient: ReturnType<typeof createMockClient>;
   let mockAiBudgetService: { checkBudgetForUser: ReturnType<typeof vi.fn> };
   let mockConfigService: { getOrThrow: ReturnType<typeof vi.fn> };
@@ -115,14 +114,14 @@ describe('RideSummariesService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUserClient = createMockClient();
     mockAdminClient = createMockClient();
     mockAiBudgetService = { checkBudgetForUser: vi.fn().mockResolvedValue(undefined) };
     mockConfigService = { getOrThrow: vi.fn().mockReturnValue('fake-openai-key') };
 
+    // Singleton service: admin client only (the user client made it request-scoped,
+    // which broke the event listener — see service doc-comment).
     service = new RideSummariesService(
       mockConfigService as never,
-      mockUserClient as never,
       mockAdminClient as never,
       mockAiBudgetService as never,
     );
@@ -144,12 +143,11 @@ describe('RideSummariesService', () => {
   describe('generateSummary', () => {
     it('should generate a summary for a valid ride with AI call', async () => {
       allowFreeTierSummaryGeneration();
-      // User client result 0: ride fetch (.single())
-      mockUserClient._pushResult({ data: fakeRideRow });
-      // User client result 1: motorcycle fetch (.single())
-      mockUserClient._pushResult({ data: fakeBikeRow });
-
-      // Admin client result 2: existing summary check (.single() via maybeSingle)
+      // Admin result 2: ride fetch (.single())
+      mockAdminClient._pushResult({ data: fakeRideRow });
+      // Admin result 3: motorcycle fetch (.single())
+      mockAdminClient._pushResult({ data: fakeBikeRow });
+      // Admin result 4: existing summary check (maybeSingle)
       mockAdminClient._pushResult({ data: null });
 
       // Mock OpenAI call
@@ -170,13 +168,13 @@ describe('RideSummariesService', () => {
         chat: { completions: { parse: mockParse } },
       };
 
-      // Admin client result 3: insert summary (.single())
+      // Admin result 5: insert summary (.single())
       mockAdminClient._pushResult({ data: fakeSummaryRow });
-      // Admin client result 4: update rides.ai_summary (thenable)
+      // Admin result 6: update rides.ai_summary (thenable)
       mockAdminClient._pushResult({ data: null, error: null });
-      // Admin client result 5: log generation (thenable — fire-and-forget, via .then())
+      // Admin result 7: log generation (thenable)
       mockAdminClient._pushResult({ data: null, error: null });
-      // Admin client result 6: fetch saved summary (.single())
+      // Admin result 8: fetch saved summary (.single())
       mockAdminClient._pushResult({ data: fakeSummaryRow });
 
       const result = await service.generateSummary(rideId, userId, 'en');
@@ -193,7 +191,7 @@ describe('RideSummariesService', () => {
 
     it('should throw NotFoundException when ride is below distance threshold', async () => {
       allowFreeTierSummaryGeneration();
-      mockUserClient._pushResult({ data: fakeShortRide });
+      mockAdminClient._pushResult({ data: fakeShortRide });
 
       await expect(service.generateSummary(rideId, userId, 'en')).rejects.toThrow(
         NotFoundException,
@@ -202,7 +200,7 @@ describe('RideSummariesService', () => {
 
     it('should throw NotFoundException when ride is below duration threshold', async () => {
       allowFreeTierSummaryGeneration();
-      mockUserClient._pushResult({ data: fakeShortDurationRide });
+      mockAdminClient._pushResult({ data: fakeShortDurationRide });
 
       await expect(service.generateSummary(rideId, userId, 'en')).rejects.toThrow(
         NotFoundException,
@@ -240,7 +238,7 @@ describe('RideSummariesService', () => {
 
     it('should throw NotFoundException when ride not found', async () => {
       allowFreeTierSummaryGeneration();
-      mockUserClient._pushResult({
+      mockAdminClient._pushResult({
         data: null,
         error: { message: 'Row not found', code: 'PGRST116' },
       });
@@ -257,6 +255,9 @@ describe('RideSummariesService', () => {
         .spyOn(service, 'generateSummary')
         .mockResolvedValue(fakeSummaryRow as never);
 
+      // Idempotency pre-check finds no existing summary
+      mockAdminClient._pushResult({ data: null });
+
       await service.onRideCompleted({
         rideId,
         userId,
@@ -264,6 +265,20 @@ describe('RideSummariesService', () => {
       });
 
       expect(generateSpy).toHaveBeenCalledWith(rideId, userId, 'en');
+    });
+
+    it('should skip generation when a completed summary already exists (duplicate event)', async () => {
+      const generateSpy = vi
+        .spyOn(service, 'generateSummary')
+        .mockResolvedValue(fakeSummaryRow as never);
+
+      mockAdminClient._pushResult({
+        data: { id: fakeSummaryRow.id, generation_status: 'completed' },
+      });
+
+      await service.onRideCompleted({ rideId, userId, locale: 'en' });
+
+      expect(generateSpy).not.toHaveBeenCalled();
     });
 
     it('should not throw when generateSummary fails (non-fatal)', async () => {

@@ -173,6 +173,38 @@ export async function getRecentAngles(env: Env, days = 5): Promise<string[]> {
 }
 
 /**
+ * Return screenshot catalog keys used by rows scheduled within the last N
+ * days. The drafter avoids these so coverage rotates through the whole
+ * catalog over time — giving every app screen impression/engagement data.
+ */
+export async function getRecentScreenshotKeys(env: Env, days = 7): Promise<string[]> {
+  const cutoff = new Date();
+  cutoff.setUTCDate(cutoff.getUTCDate() - days);
+  const cutoffDate = cutoff.toISOString().slice(0, 10);
+
+  const url =
+    `${env.SUPABASE_URL}/rest/v1/social_post_queue` +
+    `?select=screenshot_keys` +
+    `&scheduled_for=gte.${cutoffDate}` +
+    `&screenshot_keys=not.is.null` +
+    `&order=scheduled_for.desc`;
+
+  const res = await fetch(url, { headers: headers(env) });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`getRecentScreenshotKeys failed (${res.status}): ${body}`);
+  }
+  const rows = (await res.json()) as Array<{ screenshot_keys: string[] | null }>;
+  const seen = new Set<string>();
+  for (const row of rows) {
+    for (const key of row.screenshot_keys ?? []) {
+      seen.add(key);
+    }
+  }
+  return [...seen];
+}
+
+/**
  * Insert a Gemini-drafted row into social_post_queue with status='ready'
  * and source='gemini-autodraft'. Returns the inserted row id.
  *

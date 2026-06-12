@@ -34,6 +34,13 @@ export const queryKeys = {
   },
   onboarding: {
     insights: (input: Record<string, unknown>) => ['onboarding', 'insights', input] as const,
+    reveal: (make: string, year: number, model?: string | null) =>
+      ['onboarding', 'reveal', make, year, model ?? null] as const,
+    /** OEM maintenance-schedule preview — shared by the Maintenance screen and
+     *  the Reveal prefetch that warms it. Both MUST use this key or the prefetch
+     *  silently misses and the spinner returns. */
+    oemSchedules: (make: string, model?: string | null, year?: number | null) =>
+      ['oemSchedulesPreview', make, model ?? null, year ?? null] as const,
   },
   shareLinks: {
     byMotorcycle: (motorcycleId: string) => ['shareLinks', 'byMotorcycle', motorcycleId] as const,

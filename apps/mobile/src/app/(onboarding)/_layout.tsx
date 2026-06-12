@@ -1,7 +1,11 @@
 import { type ErrorBoundaryProps, Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { View } from 'react-native';
 import { ErrorFallback } from '../../components/error-fallback';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { captureException } from '../../lib/analytics';
+import { resolveOnboardingVariant } from '../../lib/onboarding-experiment';
+import { useExperimentStore } from '../../stores/experiment.store';
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   captureException(error, { boundary: 'onboarding' });
@@ -9,6 +13,21 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 }
 
 export default function OnboardingLayout() {
+  // A/B assignment gate — the variant must be resolved BEFORE any onboarding
+  // screen renders (it drives flow order, progress, and analytics). Resolution
+  // is instant on later launches (persisted) and capped at ~2s on first launch
+  // (offline → 'lean' fallback), so the gate can never hold indefinitely.
+  const variant = useExperimentStore((s) => s.onboardingVariant);
+
+  useEffect(() => {
+    // Also re-registers the variant super property in a fresh JS runtime.
+    void resolveOnboardingVariant();
+  }, []);
+
+  if (!variant) {
+    return <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }} />;
+  }
+
   return (
     <Stack
       screenOptions={{
@@ -22,13 +41,26 @@ export default function OnboardingLayout() {
       <Stack.Screen name="index" options={{ gestureEnabled: false }} />
       <Stack.Screen name="experience" options={{ gestureEnabled: false }} />
 
+      {/* A/B 2026 — Variant B profiling steps (invested arm only) */}
+      <Stack.Screen name="frequency" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="stay-on-top" options={{ gestureEnabled: true }} />
+      <Stack.Screen name="last-service" options={{ gestureEnabled: true }} />
+
       {/* Section B: Personalization & Bike */}
       <Stack.Screen name="goals" options={{ gestureEnabled: true }} />
       <Stack.Screen name="bike-setup" options={{ gestureEnabled: true }} />
+      {/* A/B 2026 — invested loader before the Reveal */}
+      <Stack.Screen name="building-plan" options={{ gestureEnabled: false }} />
+      {/* A/B 2026 — shared new steps (lean + invested) */}
+      <Stack.Screen name="reveal" options={{ gestureEnabled: false }} />
       <Stack.Screen name="maintenance" options={{ gestureEnabled: true }} />
+      <Stack.Screen name="commitment" options={{ gestureEnabled: false }} />
 
       {/* Section C: Conversion & Finalization */}
       <Stack.Screen name="paywall" options={{ gestureEnabled: false }} />
+      {/* A/B 2026 — post-paywall account step + returning-user sign-in */}
+      <Stack.Screen name="account" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="sign-in" options={{ gestureEnabled: true, presentation: 'card' }} />
       <Stack.Screen name="notifications" options={{ gestureEnabled: false }} />
       <Stack.Screen name="personalizing" options={{ gestureEnabled: false }} />
 

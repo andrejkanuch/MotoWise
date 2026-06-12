@@ -14,9 +14,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: getAppName(),
   slug: 'motowise',
   description: 'AI-powered motorcycle maintenance, diagnostics & expense tracking',
-  version: '3.9.0',
+  version: '3.10.1',
   orientation: 'portrait',
   icon: './src/assets/images/MotoVault.png',
+  // Root view color (behind all React views) — matches the splash background
+  // so the native-splash → first-frame handoff never flashes white. Requires
+  // expo-system-ui on iOS.
+  backgroundColor: '#110e0a',
   userInterfaceStyle: 'automatic',
   scheme: 'motovault',
   experiments: {
@@ -81,12 +85,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-splash-screen',
       {
-        image: './src/assets/images/MotoVault.png',
+        // White MW mark on transparent bg (dedicated asset — MotoVault.png is
+        // the app icon, do NOT reuse it here) on the AnimatedSplash overlay
+        // color (palette.editorialDarkBg2), so the native→animated splash
+        // handoff is seamless in both modes.
+        image: './src/assets/images/splash-icon.png',
         imageWidth: 100,
-        backgroundColor: '#1a1510',
+        backgroundColor: '#110e0a',
         dark: {
-          image: './src/assets/images/MotoVaultDark.png',
-          backgroundColor: '#1a1510',
+          image: './src/assets/images/splash-icon.png',
+          backgroundColor: '#110e0a',
         },
       },
     ],

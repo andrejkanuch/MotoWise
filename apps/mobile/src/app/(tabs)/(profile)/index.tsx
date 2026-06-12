@@ -44,6 +44,7 @@ import {
   Trash2,
 } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
+import { PostHogMaskView } from 'posthog-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Modal, Pressable, ScrollView, Text, View } from 'react-native';
@@ -327,7 +328,10 @@ export default function ProfileScreen() {
             borderColor: theme.line,
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          {/* Mask the rider's identity (name, @username, initials) from session
+              replay — read-only `<Text>` is not covered by `maskAllTextInputs`.
+              (todo 186) */}
+          <PostHogMaskView style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
             <View
               style={{
                 width: 60,
@@ -379,7 +383,7 @@ export default function ProfileScreen() {
                 </Text>
               )}
             </View>
-          </View>
+          </PostHogMaskView>
 
           {/* Action buttons row */}
           <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>

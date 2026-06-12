@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef } from 'react';
+import { ScrollTrigger } from './motion';
 
 export function ManifestoSection() {
   const t = useTranslations('Manifesto');
@@ -19,17 +20,14 @@ export function ManifestoSection() {
     return [...lead, ...emphasis];
   }, [t]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: `words` is the trigger — when the translated word list changes (e.g. locale switch) the spans re-render and the scroll handler must re-bind to the new elements.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `words` is the trigger — when the translated word list changes (e.g. locale switch) the spans re-render and the ScrollTrigger must re-bind to the new elements.
   useEffect(() => {
     const el = quoteRef.current;
     if (!el) return;
 
     const wordEls = el.querySelectorAll<HTMLSpanElement>('span[data-word]');
 
-    const update = () => {
-      const rect = el.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const progress = Math.max(0, Math.min(1, (vh * 0.7 - rect.top) / (rect.height + vh * 0.3)));
+    const paint = (progress: number) => {
       const onCount = Math.floor(progress * wordEls.length);
       for (let i = 0; i < wordEls.length; i++) {
         wordEls[i].style.color =
@@ -41,10 +39,16 @@ export function ManifestoSection() {
       }
     };
 
-    window.addEventListener('scroll', update, { passive: true });
-    update();
+    const st = ScrollTrigger.create({
+      trigger: el,
+      start: 'top 72%',
+      end: 'bottom 45%',
+      scrub: true,
+      onUpdate: (self) => paint(self.progress),
+    });
+    paint(st.progress);
 
-    return () => window.removeEventListener('scroll', update);
+    return () => st.kill();
   }, [words]);
 
   return (

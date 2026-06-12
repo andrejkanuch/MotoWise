@@ -20,6 +20,10 @@ crons = [
 [observability]
 enabled = true
 
+# NOTE: this Worker is on the FREE plan (10ms CPU) — keep heavy pixel work
+# (PNG decode/encode, compositing) out of the Worker; it gets killed with
+# error 1102.
+
 # Bundle markdown files as Text modules so src/content-references.ts can
 # import brand-voice reference docs at build time via `import md from "../../../path.md"`.
 # Wrangler's default loaders do NOT cover .md (only .txt/.html/.sql/.bin/.wasm).

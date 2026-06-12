@@ -17,7 +17,7 @@ import { z } from 'zod';
 import { APP_FEATURES_MD, DESIGN_SYSTEM_MD, PERFORMANCE_LOG } from './content-references';
 import type { Env } from './env';
 import { DRAFT_SYSTEM_PROMPT } from './prompts';
-import type { SlotName } from './queue';
+import { getRecentScreenshotKeys, type SlotName } from './queue';
 import { SCREENSHOT_CATALOG, screenshotCatalogForPrompt } from './screenshots';
 
 export interface DraftedPost {
@@ -39,6 +39,19 @@ const VALID_SCREENSHOT_KEYS = Object.keys(SCREENSHOT_CATALOG) as [string, ...str
 /** Words that indicate a phone/device in the image prompt — must never appear. */
 const DEVICE_WORDS_RE =
   /\b(smartphone|phone|mockup|device|screen|display(?:ing)|iphone|android|mobile|app\s*(?:screen|ui|interface|view)|tablet|hand(?:set|held))\b/gi;
+
+/**
+ * Strip phone/device words from an image prompt. Used for ATMOSPHERIC prompts
+ * only — without a reference screenshot the image generator hallucinates fake
+ * app UIs. APP-SHOWCASE prompts legitimately describe a phone in the scene
+ * because the real screenshot is composited onto it at publish time.
+ */
+export function scrubDeviceWords(prompt: string): string {
+  return prompt
+    .replace(DEVICE_WORDS_RE, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
 
 /** Zod schema for structured output — replaces the hand-rolled JSON schema. */
 const draftSchema = z.object({
@@ -79,7 +92,9 @@ const draftSchema = z.object({
     .string()
     .min(40)
     .max(1000)
-    .describe('Reference 4:5 scene description. 80-200 characters.'),
+    .describe(
+      '4:5 photorealistic feed-image scene. 200-400 chars. APP-SHOWCASE posts: describe a rider showing their phone to the camera — never describe what is ON the screen (the real screenshot is composited in by the worker). ATMOSPHERIC posts: no phone, no device, no screen anywhere in the scene.',
+    ),
   storyPrompt: z
     .string()
     .min(40)
@@ -89,10 +104,9 @@ const draftSchema = z.object({
     ),
   screenshotKeys: z
     .array(z.enum(VALID_SCREENSHOT_KEYS))
-    .min(1)
-    .max(2)
+    .max(1)
     .describe(
-      'Array of 1-2 screenshot catalog keys (must be exact keys from the catalog). ALWAYS include at least 1 screenshot — every post should showcase the real app UI as carousel slides. Pick the screenshot that best matches the angle.',
+      'APP-SHOWCASE posts: exactly 1 screenshot catalog key (exact key from the catalog) — this real screenshot is composited onto the phone screen in the generated image. ATMOSPHERIC posts: empty array []. Pick the screenshot that best matches the angle.',
     ),
   altText: z
     .string()
@@ -123,10 +137,22 @@ export async function draftPost(
     content_category: p.classification?.content_category ?? '',
   }));
 
+  // Screenshot coverage rotation — avoid recently-shown screens so every
+  // catalog entry accumulates impression data over time. Non-fatal on error.
+  let recentScreenshotKeys: string[] = [];
+  try {
+    recentScreenshotKeys = await getRecentScreenshotKeys(env, 7);
+  } catch (err) {
+    console.warn(
+      `[draft] getRecentScreenshotKeys failed (non-fatal): ${err instanceof Error ? err.message : err}`,
+    );
+  }
+
   const userPrompt = [
     `Slot: ${slot}`,
     `Today (UTC): ${new Date().toISOString().slice(0, 10)}`,
     `Recent angles to AVOID (used within last 5 days): ${recentAngles.join(', ') || '(none)'}`,
+    `Recently shown screenshots to AVOID (used within last 7 days — rotate coverage so every screen gets impression data): ${recentScreenshotKeys.join(', ') || '(none)'}`,
     '',
     '## Current engagement crisis (IMPORTANT — shape your output around this)',
     'Our IG account gets 55K reach/month but only 7 comments and near-zero',
@@ -142,7 +168,7 @@ export async function draftPost(
     '## Design system reference',
     DESIGN_SYSTEM_MD,
     '',
-    '## Available app screenshots (pick 1-2 for screenshotKeys)',
+    '## Available app screenshots (pick 1 for APP-SHOWCASE posts, [] for atmospheric)',
     screenshotCatalogForPrompt(),
     '',
     '## Recent posts (for voice/style — avoid repeating these angles)',
@@ -166,7 +192,9 @@ async function callModel(env: Env, model: string, userPrompt: string): Promise<D
       prompt: userPrompt,
       output: Output.object({ schema: draftSchema }),
       temperature: 0.7,
-      maxOutputTokens: 2048,
+      // Generous cap: Gemini flash models spend "thinking" tokens from the
+      // same output budget — 2048 starved the JSON after the prompt grew.
+      maxOutputTokens: 8192,
     });
 
     if (!output) {
@@ -174,21 +202,28 @@ async function callModel(env: Env, model: string, userPrompt: string): Promise<D
     }
 
     // Screenshot keys are already constrained by the z.enum — no silent
-    // filtering needed.
+    // filtering needed. Non-empty = APP-SHOWCASE post (real screenshot
+    // composited onto the phone in the image), empty = ATMOSPHERIC post.
     const screenshotKeys = output.screenshotKeys;
 
-    // ALWAYS strip device words from the story prompt — the image generator
-    // must never render phone/app screens regardless of whether screenshots
-    // are present. When screenshotKeys is non-empty the real app UI ships as
-    // carousel slides; when empty the image should still be purely atmospheric.
+    // Stories are always atmospheric — strip device words so the generator
+    // never invents fake app screens.
     let storyPrompt = output.storyPrompt;
-    const scrubbed = storyPrompt
-      .replace(DEVICE_WORDS_RE, '')
-      .replace(/\s{2,}/g, ' ')
-      .trim();
-    if (scrubbed !== storyPrompt) {
+    const scrubbedStory = scrubDeviceWords(storyPrompt);
+    if (scrubbedStory !== storyPrompt) {
       console.warn(`[draft] storyPrompt contains device words — scrubbing`);
-      storyPrompt = scrubbed;
+      storyPrompt = scrubbedStory;
+    }
+
+    // The feed prompt may describe a phone ONLY when a real screenshot will
+    // be composited onto it. Without one, scrub device words.
+    let postPrompt = output.postPrompt;
+    if (screenshotKeys.length === 0) {
+      const scrubbedPost = scrubDeviceWords(postPrompt);
+      if (scrubbedPost !== postPrompt) {
+        console.warn(`[draft] atmospheric postPrompt contains device words — scrubbing`);
+        postPrompt = scrubbedPost;
+      }
     }
 
     return {
@@ -196,7 +231,7 @@ async function callModel(env: Env, model: string, userPrompt: string): Promise<D
       caption: output.caption,
       facebookCaption: output.facebookCaption,
       headline: output.headline,
-      postPrompt: output.postPrompt,
+      postPrompt,
       storyPrompt,
       screenshotKeys,
     };

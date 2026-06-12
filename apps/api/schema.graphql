@@ -634,7 +634,7 @@ type HealthReport {
   createdAt: String!
   iapTransactionId: String
   id: ID!
-  motorcycleId: String!
+  motorcycleId: ID
   pdfUrl: String
   status: HealthReportStatus!
   userId: String!
@@ -695,11 +695,6 @@ type LastRideSummary {
   maxSpeedMps: Float
   motorcycleName: String
   summaryTitle: String
-}
-
-input LatLngInput {
-  lat: Float!
-  lng: Float!
 }
 
 type LearningProgress {
@@ -989,6 +984,37 @@ type OnboardingInsight {
   type: InsightType!
 }
 
+type OnboardingReveal {
+  insights: RevealInsights!
+  make: String!
+  model: String
+
+  """Number of OEM scheduled tasks loaded for this bike."""
+  oemTaskCount: Int!
+
+  """
+  Estimated first-year scheduled-service cost in EUR (hedged "about €X").
+  """
+  projectedYearlyCostEur: Int
+
+  """Open recall count. 0 is a positive, reassuring state."""
+  recallCount: Int!
+
+  """Open recalls (capped). Empty when none/unknown."""
+  recalls: [RevealRecall!]!
+
+  """
+  False when recalls could not be checked (e.g. make-only capture, NHTSA down).
+  """
+  recallsChecked: Boolean!
+
+  """Riders on MotoVault with this make."""
+  riderCount: Int!
+
+  """Year echoed back for client convenience."""
+  year: Int!
+}
+
 type PageInfo {
   endCursor: String
   hasNextPage: Boolean!
@@ -1106,6 +1132,11 @@ type Query {
   myTrips(after: String, first: Int = 20): TripConnection!
   oemSchedulesForBike(motorcycleId: String!): [OemSchedule!]!
   oemSchedulesPreview(make: String!, model: String, year: Int): [OemSchedule!]!
+
+  """
+  Composed Bike Dossier for the onboarding Reveal (recalls, plan, cost, AI flavor).
+  """
+  onboardingReveal(make: String!, model: String, year: Int!): OnboardingReveal!
   popularArticles(first: Int! = 10): [Article!]!
 
   """Public saved trips for a user by handle (public_username)"""
@@ -1119,7 +1150,7 @@ type Query {
   routeSponsorships(routeId: ID!): [Sponsorship!]!
   savedTrips(after: String, first: Int = 20): TripConnection!
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
-  searchTypeahead(limit: Int! = 8, near: LatLngInput, q: String): TypeaheadResult!
+  searchTypeahead(limit: Int! = 8, q: String): TypeaheadResult!
   sharedBikeHistory(token: String!): SharedBikeHistory!
 
   """
@@ -1217,6 +1248,24 @@ input RespondToTripSuggestionInput {
   decision: TripSuggestionDecision!
   note: String
   suggestionId: ID!
+}
+
+type RevealInsights {
+  """Hedged community observations. Empty unless status is "ready"."""
+  knownIssues: [RevealKnownIssue!]!
+
+  """Generation status: 'pending' | 'ready' | 'failed'."""
+  status: String!
+}
+
+type RevealKnownIssue {
+  detail: String!
+  title: String!
+}
+
+type RevealRecall {
+  component: String!
+  summary: String!
 }
 
 type Ride {
@@ -1333,8 +1382,8 @@ type ShareLink {
   expiresAt: String!
   id: ID!
   motorcycleId: String!
-  token: String!
-  url: String!
+  token: String
+  url: String
 }
 
 input ShareRideAsTripInput {
@@ -1417,7 +1466,6 @@ type SpendingSummary {
 
 type Sponsorship {
   clicksCount: Int!
-  costPerImpression: Float!
   createdAt: DateTime!
   ctaText: String
   ctaUrl: String
@@ -1426,10 +1474,8 @@ type Sponsorship {
   id: ID!
   imageUrl: String
   impressionsCount: Int!
-  monthlyBudget: Float!
   placementType: SponsorshipPlacementType!
   routeId: ID!
-  spentThisMonth: Float!
   sponsorId: ID!
   startsAt: DateTime!
   status: SponsorshipStatus!

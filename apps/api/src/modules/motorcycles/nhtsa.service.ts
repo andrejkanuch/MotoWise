@@ -1,4 +1,5 @@
 import { Injectable, Logger, type OnModuleInit, ServiceUnavailableException } from '@nestjs/common';
+import { buildCandidateModels } from './recall-model-matching';
 
 interface NhtsaMakeResponse {
   Results: Array<{ MakeId: number; MakeName: string }>;
@@ -22,6 +23,11 @@ interface NhtsaRecallResponse {
   Message?: string;
   results?: NhtsaRecallRawResult[];
   Results?: NhtsaRecallRawResult[];
+}
+
+/** api.nhtsa.gov/products/vehicle/models — model names as filed in the recall DB. */
+interface NhtsaProductsResponse {
+  results?: Array<{ model?: string }>;
 }
 
 export interface RecallDto {
@@ -101,10 +107,55 @@ export class NhtsaService implements OnModuleInit {
   // attackers spraying unique VINs through the motorcycleRecalls query.
   private static readonly MAX_RECALLS_CACHE = 1_000;
 
+  private static readonly MAX_RECALL_MODELS_CACHE = 500;
+
   private readonly logger = new Logger(NhtsaService.name);
   private makesCache: CacheEntry<MotorcycleMakeDto[]> | null = null;
   private readonly modelsCache = new Map<string, CacheEntry<MotorcycleModelDto[]>>();
   private readonly recallsCache = new Map<string, CacheEntry<RecallDto[]>>();
+  private readonly recallModelsCache = new Map<string, CacheEntry<string[]>>();
+
+  /**
+   * Shared NHTSA fetch: 10s abort-timeout, non-ok → log + ServiceUnavailable,
+   * abort → timeout message, network failure → unreachable message. Extracted
+   * from the three near-identical fetch blocks below.
+   *
+   * `on404` lets a caller treat HTTP 404 as a sentinel value (NHTSA returns 404
+   * for "no recalls found") instead of an error — when omitted, 404 falls
+   * through to the generic non-ok branch.
+   */
+  private async fetchJson<T>(
+    url: string,
+    messages: { notOkLog: string; notOkThrow: string; timeout: string; unreachable: string },
+    on404?: () => T,
+  ): Promise<T> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10_000);
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) {
+        // NHTSA's recalls endpoint returns 400 (not 404) with a valid
+        // "Results returned successfully" body (Count: 0) when a make/model/year
+        // has no matching recalls — extremely common for motorcycles. Vehicles
+        // that DO have recalls return 200, so treating 400/404 as "none found"
+        // (for callers that opt in via on404) never drops real recalls.
+        if ((response.status === 404 || response.status === 400) && on404) {
+          return on404();
+        }
+        this.logger.error(`${messages.notOkLog}: ${response.status}`);
+        throw new ServiceUnavailableException(messages.notOkThrow);
+      }
+      return (await response.json()) as T;
+    } catch (error) {
+      if (error instanceof ServiceUnavailableException) throw error;
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new ServiceUnavailableException(messages.timeout);
+      }
+      throw new ServiceUnavailableException(messages.unreachable);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
 
   async onModuleInit() {
     try {
@@ -123,25 +174,12 @@ export class NhtsaService implements OnModuleInit {
     const url =
       'https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/motorcycle?format=json';
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10_000);
-    let json: NhtsaMakeResponse;
-    try {
-      const response = await fetch(url, { signal: controller.signal });
-      if (!response.ok) {
-        this.logger.error(`NHTSA makes request failed: ${response.status}`);
-        throw new ServiceUnavailableException('Failed to fetch motorcycle makes from NHTSA');
-      }
-      json = (await response.json()) as NhtsaMakeResponse;
-    } catch (error) {
-      if (error instanceof ServiceUnavailableException) throw error;
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        throw new ServiceUnavailableException('NHTSA API request timed out');
-      }
-      throw new ServiceUnavailableException('Failed to reach NHTSA API');
-    } finally {
-      clearTimeout(timeout);
-    }
+    const json = await this.fetchJson<NhtsaMakeResponse>(url, {
+      notOkLog: 'NHTSA makes request failed',
+      notOkThrow: 'Failed to fetch motorcycle makes from NHTSA',
+      timeout: 'NHTSA API request timed out',
+      unreachable: 'Failed to reach NHTSA API',
+    });
 
     const makes: MotorcycleMakeDto[] = json.Results.map((r) => ({
       makeId: r.MakeId,
@@ -171,25 +209,12 @@ export class NhtsaService implements OnModuleInit {
 
     const url = `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeIdYear/makeId/${makeId}/modelyear/${year}/vehicletype/motorcycle?format=json`;
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10_000);
-    let json: NhtsaModelResponse;
-    try {
-      const response = await fetch(url, { signal: controller.signal });
-      if (!response.ok) {
-        this.logger.error(`NHTSA models request failed: ${response.status}`);
-        throw new ServiceUnavailableException('Failed to fetch motorcycle models from NHTSA');
-      }
-      json = (await response.json()) as NhtsaModelResponse;
-    } catch (error) {
-      if (error instanceof ServiceUnavailableException) throw error;
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        throw new ServiceUnavailableException('NHTSA API request timed out');
-      }
-      throw new ServiceUnavailableException('Failed to reach NHTSA API');
-    } finally {
-      clearTimeout(timeout);
-    }
+    const json = await this.fetchJson<NhtsaModelResponse>(url, {
+      notOkLog: 'NHTSA models request failed',
+      notOkThrow: 'Failed to fetch motorcycle models from NHTSA',
+      timeout: 'NHTSA API request timed out',
+      unreachable: 'Failed to reach NHTSA API',
+    });
 
     const models: MotorcycleModelDto[] = json.Results.map((r) => ({
       modelId: r.Model_ID,
@@ -211,7 +236,11 @@ export class NhtsaService implements OnModuleInit {
   /**
    * Fetch open NHTSA recall campaigns for a motorcycle.
    *
-   * Prefers VIN-based lookup (more precise). Falls back to make/model/year if no VIN.
+   * Prefers VIN-based lookup (more precise). Falls back to make/model/year if
+   * no VIN. The MMY path queries multiple model-name candidates because the
+   * recall database files campaigns under homologation codes ("CRF1100") while
+   * we store vPIC marketing names ("Africa Twin") — a single-name query would
+   * silently miss real recalls (see recall-model-matching.ts).
    * Results are cached for 24h per cache key to stay well within NHTSA's rate guidelines.
    */
   async getRecalls(params: {
@@ -228,51 +257,35 @@ export class NhtsaService implements OnModuleInit {
       return cached.data;
     }
 
-    let url: string;
+    let recalls: RecallDto[];
     if (vin) {
-      url = `https://api.nhtsa.gov/recalls/recallsByVin?vin=${encodeURIComponent(vin)}`;
+      recalls = await this.fetchRecallList(
+        `https://api.nhtsa.gov/recalls/recallsByVin?vin=${encodeURIComponent(vin)}`,
+      );
     } else if (make && model && year) {
-      url = `https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&modelYear=${year}`;
+      const recallSideModels = await this.getRecallSideModels(make, year);
+      const candidates = buildCandidateModels(make, model, recallSideModels);
+      const perCandidate = await Promise.all(
+        candidates.map((candidate) =>
+          this.fetchRecallList(
+            `https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(candidate)}&modelYear=${year}`,
+          ),
+        ),
+      );
+      // NHTSA returns one row per affected product, so the same campaign can
+      // appear several times within AND across candidate queries — dedup.
+      const byCampaign = new Map<string, RecallDto>();
+      for (const recall of perCandidate.flat()) {
+        if (!byCampaign.has(recall.campaignNumber)) {
+          byCampaign.set(recall.campaignNumber, recall);
+        }
+      }
+      recalls = [...byCampaign.values()];
     } else {
       throw new ServiceUnavailableException(
         'Need either a VIN or make/model/year to check for recalls',
       );
     }
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10_000);
-    let json: NhtsaRecallResponse;
-    try {
-      const response = await fetch(url, { signal: controller.signal });
-      if (!response.ok) {
-        // 404 from NHTSA means "no recalls found" — return empty cached result
-        if (response.status === 404) {
-          this.recallsCache.set(cacheKey, { data: [], expiresAt: Date.now() + RECALLS_TTL });
-          return [];
-        }
-        this.logger.error(`NHTSA recalls request failed: ${response.status}`);
-        throw new ServiceUnavailableException('Failed to fetch recalls from NHTSA');
-      }
-      json = (await response.json()) as NhtsaRecallResponse;
-    } catch (error) {
-      if (error instanceof ServiceUnavailableException) throw error;
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        throw new ServiceUnavailableException('NHTSA recalls request timed out');
-      }
-      throw new ServiceUnavailableException('Failed to reach NHTSA recalls API');
-    } finally {
-      clearTimeout(timeout);
-    }
-
-    const rawResults = json.results ?? json.Results ?? [];
-    const recalls: RecallDto[] = rawResults.map((r) => ({
-      campaignNumber: r.NHTSACampaignNumber ?? '—',
-      reportDate: r.ReportReceivedDate ?? '',
-      component: r.Component ?? '',
-      summary: r.Summary ?? '',
-      consequence: r.Consequence ?? '',
-      remedy: r.Remedy ?? '',
-    }));
 
     // P2-112: Enforce cache size cap before adding new entries
     if (this.recallsCache.size >= NhtsaService.MAX_RECALLS_CACHE) {
@@ -281,5 +294,72 @@ export class NhtsaService implements OnModuleInit {
     }
     this.recallsCache.set(cacheKey, { data: recalls, expiresAt: Date.now() + RECALLS_TTL });
     return recalls;
+  }
+
+  /** Run one recalls query and map the rows. 400/404 means "no recalls found". */
+  private async fetchRecallList(url: string): Promise<RecallDto[]> {
+    const json = await this.fetchJson<NhtsaRecallResponse | null>(
+      url,
+      {
+        notOkLog: 'NHTSA recalls request failed',
+        notOkThrow: 'Failed to fetch recalls from NHTSA',
+        timeout: 'NHTSA recalls request timed out',
+        unreachable: 'Failed to reach NHTSA recalls API',
+      },
+      () => null,
+    );
+    if (json === null) return [];
+
+    const rawResults = json.results ?? json.Results ?? [];
+    return rawResults.map((r) => ({
+      campaignNumber: r.NHTSACampaignNumber ?? '—',
+      reportDate: r.ReportReceivedDate ?? '',
+      component: r.Component ?? '',
+      summary: r.Summary ?? '',
+      consequence: r.Consequence ?? '',
+      remedy: r.Remedy ?? '',
+    }));
+  }
+
+  /**
+   * Model names with recall records for a make/year, as filed in the recall
+   * database (products API). Used to translate vPIC marketing names into the
+   * names recallsByVehicle actually matches. Non-fatal: any failure returns []
+   * so the primary single-name lookup still runs.
+   */
+  private async getRecallSideModels(make: string, year: number): Promise<string[]> {
+    const cacheKey = `${make.toUpperCase()}|${year}`;
+    const cached = this.recallModelsCache.get(cacheKey);
+    if (cached && Date.now() < cached.expiresAt) {
+      return cached.data;
+    }
+
+    let models: string[];
+    try {
+      const url = `https://api.nhtsa.gov/products/vehicle/models?modelYear=${year}&make=${encodeURIComponent(make)}&issueType=r`;
+      const json = await this.fetchJson<NhtsaProductsResponse | null>(
+        url,
+        {
+          notOkLog: 'NHTSA recall-models request failed',
+          notOkThrow: 'Failed to fetch recall model list from NHTSA',
+          timeout: 'NHTSA recall-models request timed out',
+          unreachable: 'Failed to reach NHTSA products API',
+        },
+        () => null,
+      );
+      models = [...new Set((json?.results ?? []).map((r) => r.model ?? '').filter(Boolean))];
+    } catch (err) {
+      this.logger.warn(
+        `Recall model list lookup failed for ${cacheKey} (non-fatal): ${(err as Error).message}`,
+      );
+      return [];
+    }
+
+    if (this.recallModelsCache.size >= NhtsaService.MAX_RECALL_MODELS_CACHE) {
+      const oldestKey = this.recallModelsCache.keys().next().value;
+      if (oldestKey) this.recallModelsCache.delete(oldestKey);
+    }
+    this.recallModelsCache.set(cacheKey, { data: models, expiresAt: Date.now() + RECALLS_TTL });
+    return models;
   }
 }

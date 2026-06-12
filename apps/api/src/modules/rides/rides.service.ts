@@ -9,6 +9,9 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { RIDE_EVENTS } from '../../common/constants/events';
+import { buildConnection, decodeCursor, encodeCursor } from '../../common/pagination/connection';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { QUERY_LIMITS } from '../../config/constants';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -98,6 +101,24 @@ export class RidesService {
       .single();
 
     if (error || !data) {
+      // Idempotent retry (MOT-140): a sync-queue retry or duplicate tap arrives
+      // after the ride is already completed; the status filter above matched 0
+      // rows. Return the completed ride as success — do NOT re-emit ride.completed
+      // or re-apply mileage.
+      if (error?.code === PG_ERROR.NOT_FOUND) {
+        const { data: existing } = await this.supabase
+          .from('rides')
+          .select('*')
+          .eq('id', input.rideId)
+          .eq('user_id', userId)
+          .eq('status', 'completed')
+          .is('deleted_at', null)
+          .single();
+        if (existing) {
+          this.logger.log(`endRide: ride ${input.rideId} already completed — idempotent success`);
+          return { ride: this.mapRow(existing), triggeredMaintenanceTasks: [] };
+        }
+      }
       this.logger.error(`endRide failed: ${error?.message} (${error?.code})`);
       throw new BadRequestException('Failed to end ride');
     }
@@ -105,15 +126,23 @@ export class RidesService {
     const ride = this.mapRow(data);
     let triggeredMaintenanceTasks: { id: string; title: string; priority: string }[] = [];
 
-    // Auto-apply mileage to motorcycle
-    const motorcycleId = data.motorcycle_id;
-    const distanceM = input.distanceM ?? 0;
+    // MOT-140: claim-first odometer sync. A single conditional UPDATE flips
+    // mileage_applied false→true and returns the row to exactly ONE caller;
+    // concurrent endRides (two devices) and retries match 0 rows and skip the
+    // odometer, so mileage is applied exactly once with no read-modify-write race.
+    const { data: claimed } = await this.supabase
+      .from('rides')
+      .update({ mileage_applied: true })
+      .eq('id', input.rideId)
+      .eq('user_id', userId)
+      .eq('mileage_applied', false)
+      .select('distance_m, motorcycle_id')
+      .single();
 
-    // MOT-140: Idempotency — only sync each ride into the odometer once.
-    // The existing rides.mileage_applied flag already exists from 00047 and
-    // is reused here as the sync guard so re-running endRide (e.g. after a
-    // network retry) cannot double-count.
-    if (motorcycleId && distanceM > 0 && !data.mileage_applied) {
+    const motorcycleId = claimed?.motorcycle_id;
+    const distanceM = claimed?.distance_m ?? 0;
+
+    if (claimed && motorcycleId && distanceM > 0) {
       try {
         // Defense-in-depth: filter by user_id alongside RLS
         const { data: bike } = await this.supabase
@@ -145,12 +174,10 @@ export class RidesService {
           .eq('id', motorcycleId)
           .eq('user_id', userId);
 
-        await this.supabase
-          .from('rides')
-          .update({ mileage_applied: true })
-          .eq('id', input.rideId)
-          .eq('user_id', userId);
-
+        // NOTE: mileage_applied was already claimed above, so a failure in this
+        // block leaves it true — the ride won't re-sync on retry. A missed
+        // odometer update is rare and user-correctable via manual edit; this is
+        // the deliberate trade for race-free exactly-once application.
         this.logger.log(
           `Odometer sync: +${roundedDelta}${unit} to motorcycle ${motorcycleId} (total: ${newMileage}${unit}, ride=${input.rideId})`,
         );
@@ -179,7 +206,7 @@ export class RidesService {
     }
 
     // Emit event for async AI ride summary generation
-    this.eventEmitter.emit('ride.completed', {
+    this.eventEmitter.emit(RIDE_EVENTS.COMPLETED, {
       rideId: ride.id,
       userId,
       locale: 'en', // TODO: pass user's preferred locale
@@ -254,7 +281,12 @@ export class RidesService {
     const updates: Record<string, unknown> = {};
     if (input.name !== undefined) updates.name = input.name;
     if (input.mileageApplied !== undefined) updates.mileage_applied = input.mileageApplied;
-    if (input.isPublic !== undefined) updates.is_public = input.isPublic;
+    if (input.isPublic !== undefined) {
+      // Dual-write: `visibility` is canonical (RLS gates on it); `is_public` stays in
+      // sync until every SQL consumer is migrated and the column is dropped (00143).
+      updates.is_public = input.isPublic;
+      updates.visibility = input.isPublic ? 'public' : 'private';
+    }
 
     const { data, error } = await this.supabase
       .from('rides')
@@ -294,7 +326,7 @@ export class RidesService {
 
     // Idempotent: if the ride is already soft-deleted, treat as success
     // (sync queue retries, duplicate taps, etc.)
-    if (error?.code === 'PGRST116') {
+    if (error?.code === PG_ERROR.NOT_FOUND) {
       const { count } = await this.supabaseAdmin
         .from('rides')
         .select('id', { count: 'exact', head: true })
@@ -322,9 +354,10 @@ export class RidesService {
     rideId: string,
     visibility: 'private' | 'unlisted' | 'public',
   ): Promise<Ride> {
+    // Dual-write is_public until every SQL consumer is migrated off it (00143)
     const { data, error } = await this.supabase
       .from('rides')
-      .update({ visibility })
+      .update({ visibility, is_public: visibility === 'public' })
       .eq('id', rideId)
       .eq('user_id', userId)
       .is('deleted_at', null)
@@ -347,7 +380,7 @@ export class RidesService {
 
     if (error) {
       // Idempotent on duplicate — already shared
-      if (error.code === '23505') return true;
+      if (error.code === PG_ERROR.UNIQUE_VIOLATION) return true;
       this.logger.error(`shareRide failed: ${error.message}`);
       throw new BadRequestException('Failed to share ride');
     }
@@ -422,12 +455,11 @@ export class RidesService {
     }
 
     if (after) {
-      const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      const ts = Date.parse(decoded);
-      if (Number.isNaN(ts)) {
+      const decoded = decodeCursor(after);
+      if (!decoded) {
         throw new BadRequestException('Invalid cursor');
       }
-      query = query.lt('started_at', decoded);
+      query = query.lt('started_at', decoded[0]);
     }
 
     const { data, error, count } = await query;
@@ -437,40 +469,28 @@ export class RidesService {
       throw new InternalServerErrorException('Failed to fetch rides');
     }
 
-    const rows = data ?? [];
-    const hasNextPage = rows.length > limit;
-    const sliced = hasNextPage ? rows.slice(0, limit) : rows;
-
-    const edges = sliced.map((row) => {
-      const ride = this.mapRow(row);
-      return {
-        node: ride,
-        cursor: Buffer.from(ride.startedAt).toString('base64'),
-      };
-    });
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        hasPreviousPage: !!after,
-        startCursor: edges[0]?.cursor,
-        endCursor: edges[edges.length - 1]?.cursor,
-      },
+    return buildConnection({
+      rows: data ?? [],
+      limit,
+      mapNode: (row) => this.mapRow(row),
+      cursorOf: (row) => encodeCursor(row.started_at),
       totalCount: count ?? 0,
-    };
+      hasPreviousPage: !!after,
+    });
   }
 
   async getPublicRide(id: string): Promise<Ride> {
     this.logger.debug(`getPublicRide: rideId=${id}`);
 
+    // `visibility` is the canonical access column (RLS gates on it); the previous
+    // is_public gate disagreed with RLS whenever the two columns drifted (audit C6).
     const { data, error } = await this.supabaseAdmin
       .from('rides')
       .select(
-        'id, user_id, motorcycle_id, status, name, started_at, ended_at, distance_m, max_speed_mps, avg_speed_mps, max_lean_angle, elevation_gain, elevation_loss, gps_quality, paused_duration_s, auto_paused_duration_s, mileage_applied, is_public, region, route_polyline, route_thumbnail_uri, created_at, updated_at',
+        'id, user_id, motorcycle_id, status, name, started_at, ended_at, distance_m, max_speed_mps, avg_speed_mps, max_lean_angle, elevation_gain, elevation_loss, gps_quality, paused_duration_s, auto_paused_duration_s, mileage_applied, visibility, region, route_polyline, route_thumbnail_uri, created_at, updated_at',
       )
       .eq('id', id)
-      .eq('is_public', true)
+      .eq('visibility', 'public')
       .is('deleted_at', null)
       .single();
 
@@ -559,6 +579,11 @@ export class RidesService {
   }
 
   private mapRow(row: Record<string, unknown>): Ride {
+    // `isPublic` is DERIVED from canonical `visibility` so old OTA bundles reading
+    // either field always see consistent values (audit C6). The is_public fallback
+    // covers selects that predate the visibility column in their column list.
+    const visibility =
+      (row.visibility as string) ?? ((row.is_public as boolean) ? 'public' : 'private');
     return {
       id: row.id as string,
       userId: row.user_id as string,
@@ -585,8 +610,8 @@ export class RidesService {
       routePolyline: (row.route_polyline as string) ?? undefined,
       gpsQuality: (row.gps_quality as number) ?? undefined,
       mileageApplied: (row.mileage_applied as boolean) ?? false,
-      isPublic: (row.is_public as boolean) ?? false,
-      visibility: (row.visibility as string) ?? 'private',
+      isPublic: visibility === 'public',
+      visibility,
       region: (row.region as string) ?? undefined,
       routeThumbnailUri: (row.route_thumbnail_uri as string) ?? undefined,
       createdAt: row.created_at as string,

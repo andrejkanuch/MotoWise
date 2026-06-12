@@ -5,6 +5,18 @@ import { ConfigService } from '@nestjs/config';
 const CAPI_TIMEOUT_MS = 5000;
 const BUNDLE_ID = 'com.motovault.app';
 
+/**
+ * Defaults for the Meta CAPI `extinfo` positional array. App/OS versions were
+ * hardcoded as a stale `'3.0.0'`/`'16.0'` inline, which corrupts ad attribution
+ * (Meta segments installs/conversions by reported app version). Keep
+ * APP_VERSION in step with the mobile app's runtime version (CLAUDE.md: 3.9.1).
+ */
+const META_DEFAULTS = {
+  PLATFORM_IOS: 'i2',
+  APP_VERSION: '3.9.1',
+  OS_VERSION: '16.0',
+} as const;
+
 @Injectable()
 export class MetaEventsService {
   private readonly logger = new Logger(MetaEventsService.name);
@@ -56,11 +68,11 @@ export class MetaEventsService {
             // Server-side events use minimum required values; device-specific
             // fields are left empty since they're unknowable from the API.
             extinfo: [
-              'i2',
+              META_DEFAULTS.PLATFORM_IOS,
               BUNDLE_ID,
               '',
               '',
-              '3.0.0',
+              META_DEFAULTS.APP_VERSION,
               '',
               '',
               '',
@@ -71,7 +83,7 @@ export class MetaEventsService {
               '',
               '',
               '',
-              '16.0',
+              META_DEFAULTS.OS_VERSION,
               '',
             ],
           },

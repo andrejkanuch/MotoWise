@@ -105,7 +105,14 @@ export class UsersService {
   }
 
   async findById(id: string): Promise<User> {
-    const { data, error } = await this.supabase.from('users').select('*').eq('id', id).single();
+    // Admin client: column-level grants (00141) restrict the authenticated role to
+    // public-profile columns, so the full own-profile read (email, preferences,
+    // subscription) must use service role. `id` always comes from the verified JWT.
+    const { data, error } = await this.supabaseAdmin
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single();
 
     if (error || !data) {
       this.logger.error(`findById failed — id: ${id}, error: ${JSON.stringify(error)}`);
@@ -139,7 +146,8 @@ export class UsersService {
       }
       const validatedPrefs = result.data;
 
-      const { data: current } = await this.supabase
+      // Admin read: `preferences` is not in the authenticated column grants (00141)
+      const { data: current } = await this.supabaseAdmin
         .from('users')
         .select('preferences')
         .eq('id', id)
@@ -151,15 +159,12 @@ export class UsersService {
       };
     }
 
-    const { data, error } = await this.supabase
-      .from('users')
-      .update(payload)
-      .eq('id', id)
-      .select()
-      .single();
+    // User-client write (RLS + column UPDATE grants enforced); no .select() — the
+    // RETURNING clause would require SELECT privilege on non-granted columns.
+    const { error } = await this.supabase.from('users').update(payload).eq('id', id);
 
-    if (error || !data) throw new BadRequestException(error?.message ?? 'Failed to update user');
-    return this.mapRow(data);
+    if (error) throw new BadRequestException(error.message ?? 'Failed to update user');
+    return this.findById(id);
   }
 
   async completeOnboarding(userId: string, input: CompleteOnboardingInput): Promise<User> {
@@ -314,7 +319,8 @@ export class UsersService {
       .eq('user_id', p.id)
       .is('deleted_at', null);
     if (!isOwnProfile) {
-      ridesQuery = ridesQuery.eq('is_public', true);
+      // visibility is the canonical access column for rides (00143)
+      ridesQuery = ridesQuery.eq('visibility', 'public');
     }
     const { data: rides } = await ridesQuery;
 
@@ -380,8 +386,9 @@ export class UsersService {
       if (RESERVED_USERNAMES.includes(username as never)) {
         throw new BadRequestException('This username is reserved');
       }
-      // Check uniqueness
-      const { data: existing } = await this.supabase
+      // Check uniqueness via admin client: private profiles are invisible to the
+      // authenticated role, so a user-client check would miss taken usernames.
+      const { data: existing } = await this.supabaseAdmin
         .from('users')
         .select('id')
         .eq('public_username', username)
@@ -419,8 +426,9 @@ export class UsersService {
       throw new BadRequestException('This handle is reserved');
     }
 
-    // Check uniqueness
-    const { data: existing } = await this.supabase
+    // Check uniqueness via admin client: private profiles are invisible to the
+    // authenticated role, so a user-client check would miss taken handles.
+    const { data: existing } = await this.supabaseAdmin
       .from('users')
       .select('id')
       .eq('handle', normalized)

@@ -19,14 +19,19 @@ import {
   InternalServerErrorException,
   Logger,
   Scope,
+  UseGuards,
 } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Throttle } from '@nestjs/throttler';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
+import { GqlThrottlerGuard } from '../../common/guards/gql-throttler.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { PG_ERROR } from '../../common/supabase/unwrap';
+import { THROTTLE_PRESETS } from '../../config/constants';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { CreateTripInput } from './dto/create-trip.input';
 import { CreateTripReviewInput } from './dto/create-trip-review.input';
@@ -133,8 +138,11 @@ export class TripsResolver {
   @Public()
   async tripDetail(
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
+    @CurrentUser() user?: AuthUser,
   ): Promise<Trip> {
-    return this.tripLifecycle.tripDetail(tripId);
+    // Caller identity drives redactOrganiser: without it, private-profile organisers
+    // saw their own trip redacted and participants lost organiser details.
+    return this.tripLifecycle.tripDetail(tripId, user?.id);
   }
 
   @Query(() => SharedTrip, { nullable: true })
@@ -579,6 +587,8 @@ export class TripsResolver {
   // Premium Waitlist (moved from RoutesResolver)
   // ==========================================
 
+  @UseGuards(GqlThrottlerGuard)
+  @Throttle({ default: THROTTLE_PRESETS.WAITLIST })
   @Mutation(() => Boolean)
   async joinPremiumWaitlist(
     @CurrentUser() user: AuthUser,
@@ -591,7 +601,7 @@ export class TripsResolver {
       .from('premium_waitlist')
       .insert({ user_id: user.id, feature });
     if (error) {
-      if (error.code === '23505') return true; // Already on waitlist
+      if (error.code === PG_ERROR.UNIQUE_VIOLATION) return true; // Already on waitlist
       this.logger.error(`joinPremiumWaitlist failed: ${error.message}`);
       throw new InternalServerErrorException('Failed to join waitlist');
     }

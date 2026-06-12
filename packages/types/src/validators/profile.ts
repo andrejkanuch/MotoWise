@@ -8,6 +8,7 @@ import {
   USERNAME_MIN_LENGTH,
   USERNAME_REGEX,
 } from '../constants/profile';
+import { nullishToUndefined } from './nullish';
 
 export const UsernameSchema = z
   .string()
@@ -20,10 +21,10 @@ export const UsernameSchema = z
 export type Username = z.infer<typeof UsernameSchema>;
 
 export const UpdateProfileInputSchema = z.object({
-  publicUsername: UsernameSchema.optional(),
-  displayName: z.string().max(DISPLAY_NAME_MAX_LENGTH).optional(),
-  bio: z.string().max(BIO_MAX_LENGTH).optional(),
-  city: z.string().max(CITY_MAX_LENGTH).optional(),
-  isPublic: z.boolean().optional(),
+  publicUsername: nullishToUndefined(UsernameSchema),
+  displayName: nullishToUndefined(z.string().max(DISPLAY_NAME_MAX_LENGTH)),
+  bio: nullishToUndefined(z.string().max(BIO_MAX_LENGTH)),
+  city: nullishToUndefined(z.string().max(CITY_MAX_LENGTH)),
+  isPublic: nullishToUndefined(z.boolean()),
 });
 export type UpdateProfileInput = z.infer<typeof UpdateProfileInputSchema>;

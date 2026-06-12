@@ -6,6 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { decodeCursor, encodeCursor } from '../../common/pagination/connection';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { FeedRideConnection } from './models/feed-connection.model';
 import type { FeedBike, FeedRide, FeedRider } from './models/feed-ride.model';
@@ -89,18 +90,19 @@ export class FeedService {
         'id, name, distance_m, elevation_gain, elevation_loss, started_at, ended_at, ai_summary, kudos_count, comment_count, route_thumbnail_uri, user_id, motorcycle_id, users!inner(display_name, avatar_url, public_username), motorcycles(make, model, year, nickname)',
       )
       .in('user_id', followingIds)
-      .eq('is_public', true)
+      // visibility is the canonical access column (00143); matching partial index
+      // idx_rides_feed_user_visibility
+      .eq('visibility', 'public')
       .is('deleted_at', null)
       .order('started_at', { ascending: false })
       .limit(limit + 1);
 
     if (after) {
-      const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      const ts = Date.parse(decoded);
-      if (Number.isNaN(ts)) {
+      const decoded = decodeCursor(after);
+      if (!decoded) {
         throw new BadRequestException('Invalid cursor');
       }
-      query = query.lt('started_at', decoded);
+      query = query.lt('started_at', decoded[0]);
     }
 
     const { data, error } = await query;
@@ -138,7 +140,7 @@ export class FeedService {
       const node = this.mapFeedRow(row, kudosSet);
       return {
         node,
-        cursor: Buffer.from(node.startedAt).toString('base64'),
+        cursor: encodeCursor(node.startedAt),
       };
     });
 

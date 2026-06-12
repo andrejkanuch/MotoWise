@@ -8,6 +8,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { HealthReport } from './models/health-report.model';
@@ -281,6 +282,11 @@ export class HealthReportsService {
     });
 
     if (error) {
+      // Unique-index race on iap_transaction_id: a concurrent duplicate delivery slipped
+      // past validatePurchase — surface as Conflict so the webhook treats it as already done.
+      if (error.code === PG_ERROR.UNIQUE_VIOLATION) {
+        throw new ConflictException('Transaction already used for a health report');
+      }
       this.logger.error(`Failed to create report from purchase: ${error.message}`);
       throw new InternalServerErrorException('Failed to create health report from purchase');
     }
@@ -312,7 +318,7 @@ export class HealthReportsService {
     return {
       id: row.id,
       userId: row.user_id,
-      motorcycleId: row.bike_id,
+      motorcycleId: row.bike_id ?? undefined,
       status: row.status,
       pdfUrl: row.pdf_signed_url ?? undefined,
       iapTransactionId: row.iap_transaction_id ?? undefined,

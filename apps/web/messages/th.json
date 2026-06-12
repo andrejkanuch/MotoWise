@@ -38,7 +38,8 @@
     "scrollDown": "เลื่อนลง",
     "seoTitle": "ตัวติดตามการบำรุงรักษามอเตอร์ไซค์และจัดการค่าใช้จ่าย",
     "subtitleShort": "Maintenance tracking, trip planning, and expense logging — all in one free app for iOS and Android.",
-    "trustLine": "Free to download — no credit card required."
+    "trustLine": "Free to download — no credit card required.",
+    "badgeExpensesHook": "รู้ต้นทุนที่แท้จริงของมอเตอร์ไซค์คุณ"
   },
   "Features": {
     "sectionLabel": "ฟีเจอร์",

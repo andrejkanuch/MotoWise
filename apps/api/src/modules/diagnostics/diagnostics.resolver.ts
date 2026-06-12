@@ -1,10 +1,14 @@
-import { CreateDiagnosticSchema, FREE_TIER_LIMITS, SubmitDiagnosticSchema } from '@motovault/types';
-import { BadRequestException, ForbiddenException, Logger } from '@nestjs/common';
+import { CreateDiagnosticSchema, SubmitDiagnosticSchema } from '@motovault/types';
+import { BadRequestException, Logger, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { GqlThrottlerGuard } from '../../common/guards/gql-throttler.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { THROTTLE_PRESETS } from '../../config/constants';
+import { AI_CONTENT_TYPES, AiBudgetService } from '../ai-budget/ai-budget.service';
 import { MaintenanceTasksService } from '../maintenance-tasks/maintenance-tasks.service';
 import { MotorcyclesService } from '../motorcycles/motorcycles.service';
 import { UsersService } from '../users/users.service';
@@ -24,6 +28,7 @@ export class DiagnosticsResolver {
     private readonly motorcyclesService: MotorcyclesService,
     private readonly maintenanceTasksService: MaintenanceTasksService,
     private readonly usersService: UsersService,
+    private readonly aiBudgetService: AiBudgetService,
   ) {}
 
   @Query(() => [Diagnostic])
@@ -47,29 +52,28 @@ export class DiagnosticsResolver {
     return this.diagnosticsService.create(user.id, input);
   }
 
+  @UseGuards(GqlThrottlerGuard)
+  @Throttle({ default: THROTTLE_PRESETS.AI_DIAGNOSTIC })
   @Mutation(() => Diagnostic)
   async submitDiagnostic(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(SubmitDiagnosticSchema)) input: SubmitDiagnosticInput,
   ): Promise<Diagnostic> {
+    // Log ids/flags only — freeTextDescription/additionalNotes/wizardAnswers are PII
     this.logger.log(
       `[submitDiagnostic] input received: ${JSON.stringify({
-        ...input,
-        photoBase64: input.photoBase64 ? `[base64 ${input.photoBase64.length} chars]` : undefined,
+        motorcycleId: input.motorcycleId,
+        hasPhoto: !!input.photoBase64,
+        urgency: input.urgency,
+        includeMaintenanceHistory: input.includeMaintenanceHistory,
       })}`,
     );
 
-    // 0. Server-side monthly diagnostic limit check
+    // 0. Server-side monthly diagnostic limit check (free tier only; counts
+    // successful generations in content_generation_log)
+    await this.aiBudgetService.enforceFeatureLimit(user.id, AI_CONTENT_TYPES.DIAGNOSTIC);
+
     const userRecord = await this.usersService.findById(user.id);
-    const tier = (userRecord.subscriptionTier as 'free' | 'pro') ?? 'free';
-    if (tier === 'free') {
-      const monthCount = await this.diagnosticsService.countUserDiagnosticsThisMonth(user.id);
-      if (monthCount >= FREE_TIER_LIMITS.MAX_AI_DIAGNOSTICS_PER_MONTH) {
-        throw new ForbiddenException(
-          `Free plan allows ${FREE_TIER_LIMITS.MAX_AI_DIAGNOSTICS_PER_MONTH} AI diagnostics per month. Upgrade to Pro for unlimited diagnostics.`,
-        );
-      }
-    }
 
     // 1. Create diagnostic record with processing status
     const diagnostic = await this.diagnosticsService.create(user.id, {
@@ -92,8 +96,8 @@ export class DiagnosticsResolver {
     let engineCc: number | undefined;
 
     if (input.motorcycleId) {
-      const motorcycles = await this.motorcyclesService.findByUser(user.id);
-      const motorcycle = motorcycles.find((m) => m.id === input.motorcycleId);
+      // Fetch the one bike directly instead of pulling the whole garage to .find() it.
+      const motorcycle = await this.motorcyclesService.findById(user.id, input.motorcycleId);
       if (!motorcycle) {
         throw new BadRequestException('Motorcycle not found');
       }

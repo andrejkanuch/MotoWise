@@ -5,6 +5,7 @@ import { RidesService } from './rides.service';
 describe('RidesService', () => {
   let service: RidesService;
   let mockUserClient: ReturnType<typeof createMockClient>;
+  let mockEventEmitter: { emit: ReturnType<typeof vi.fn> };
 
   const userId = 'user-123';
 
@@ -95,11 +96,12 @@ describe('RidesService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUserClient = createMockClient();
+    mockEventEmitter = { emit: vi.fn() };
 
     service = new RidesService(
       mockUserClient as never,
       mockUserClient as never,
-      { emit: vi.fn() } as never,
+      mockEventEmitter as never,
     );
   });
 
@@ -186,7 +188,55 @@ describe('RidesService', () => {
       expect(mockUserClient._chain.is).toHaveBeenCalledWith('deleted_at', null);
     });
 
+    it('applies mileage once (claim-first) and returns triggered maintenance (MOT-140)', async () => {
+      const completedRow = {
+        ...fakeRow,
+        status: 'completed',
+        ended_at: '2026-03-22T15:30:00Z',
+        distance_m: 32186, // ~20 mi in meters
+      };
+      // 0: completion UPDATE .single()
+      mockUserClient._pushResult({ data: completedRow });
+      // 1: claim UPDATE (mileage_applied false→true) .select(...).single() — this caller wins
+      mockUserClient._pushResult({ data: { distance_m: 32186, motorcycle_id: 'moto-456' } });
+      // 2: bike read .single() — mileage stored in miles
+      mockUserClient._pushResult({ data: { current_mileage: 1000, mileage_unit: 'mi' } });
+      // 3: motorcycle odometer UPDATE (thenable)
+      mockUserClient._pushResult({ data: null, error: null });
+      // 4: due maintenance_tasks query (thenable) — none due
+      mockUserClient._pushResult({ data: [] });
+
+      const result = await service.endRide(userId, {
+        rideId: 'ride-123',
+        endedAt: '2026-03-22T15:30:00Z',
+        distanceM: 32186,
+        pausedDurationS: 0,
+        autoPausedDurationS: 0,
+      });
+
+      expect(result.ride.status).toBe('completed');
+      // claim-first: exactly one mileage_applied=true UPDATE gated on mileage_applied=false
+      expect(mockUserClient._chain.update).toHaveBeenCalledWith({ mileage_applied: true });
+      expect(mockUserClient._chain.eq).toHaveBeenCalledWith('mileage_applied', false);
+      // odometer advanced by the ride distance converted to the bike's unit (miles)
+      expect(mockUserClient._chain.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          current_mileage: 1020, // 1000 + round(metersToUnit(32186, 'mi')) === 1020
+          odometer_sync_source: 'gps_ride',
+          odometer_last_ride_id: 'ride-123',
+        }),
+      );
+      // ride.completed event emitted exactly once on a real completion
+      expect(mockEventEmitter.emit).toHaveBeenCalledTimes(1);
+    });
+
     it('should throw BadRequestException when ride not found', async () => {
+      // Completion UPDATE matches 0 rows (PGRST116)...
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'Row not found', code: 'PGRST116' },
+      });
+      // ...and the idempotent-retry SELECT finds no completed ride either.
       mockUserClient._pushResult({
         data: null,
         error: { message: 'Row not found', code: 'PGRST116' },
@@ -201,6 +251,36 @@ describe('RidesService', () => {
           autoPausedDurationS: 0,
         }),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should return the completed ride idempotently on retry-after-success (MOT-140)', async () => {
+      const completedRow = {
+        ...fakeRow,
+        status: 'completed',
+        ended_at: '2026-03-22T15:30:00Z',
+        distance_m: 45000,
+        mileage_applied: true,
+      };
+      // Completion UPDATE matches 0 rows because status is already 'completed'...
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'Row not found', code: 'PGRST116' },
+      });
+      // ...the idempotent-retry SELECT returns the already-completed ride.
+      mockUserClient._pushResult({ data: completedRow });
+
+      const result = await service.endRide(userId, {
+        rideId: 'ride-123',
+        endedAt: '2026-03-22T15:30:00Z',
+        distanceM: 45000,
+        pausedDurationS: 0,
+        autoPausedDurationS: 0,
+      });
+
+      expect(result.ride.status).toBe('completed');
+      expect(result.triggeredMaintenanceTasks).toEqual([]);
+      // No ride.completed event re-emitted on an idempotent retry
+      expect(mockEventEmitter.emit).not.toHaveBeenCalled();
     });
   });
 
@@ -374,6 +454,67 @@ describe('RidesService', () => {
       });
 
       await expect(service.findById(userId, 'ride-123')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  // Visibility canonicalization (audit C6): `visibility` is the canonical access column
+  // (RLS gates on it); `is_public` is dual-written until every SQL consumer migrates off
+  // it. mapRow DERIVES isPublic from visibility so old + new clients never disagree.
+  describe('visibility dual-write', () => {
+    it('updateRide({ isPublic: true }) writes BOTH is_public=true AND visibility=public', async () => {
+      mockUserClient._pushResult({ data: { ...fakeRow, is_public: true, visibility: 'public' } });
+
+      const result = await service.updateRide(userId, { rideId: 'ride-123', isPublic: true });
+
+      expect(mockUserClient._chain.update).toHaveBeenCalledWith(
+        expect.objectContaining({ is_public: true, visibility: 'public' }),
+      );
+      expect(result.isPublic).toBe(true);
+      expect(result.visibility).toBe('public');
+    });
+
+    it('updateRide({ isPublic: false }) writes is_public=false AND visibility=private', async () => {
+      mockUserClient._pushResult({ data: { ...fakeRow, is_public: false, visibility: 'private' } });
+
+      await service.updateRide(userId, { rideId: 'ride-123', isPublic: false });
+
+      expect(mockUserClient._chain.update).toHaveBeenCalledWith(
+        expect.objectContaining({ is_public: false, visibility: 'private' }),
+      );
+    });
+
+    it('updateRideVisibility("public") writes visibility=public AND is_public=true', async () => {
+      mockUserClient._pushResult({ data: { ...fakeRow, is_public: true, visibility: 'public' } });
+
+      const result = await service.updateRideVisibility(userId, 'ride-123', 'public');
+
+      expect(mockUserClient._chain.update).toHaveBeenCalledWith(
+        expect.objectContaining({ visibility: 'public', is_public: true }),
+      );
+      expect(result.visibility).toBe('public');
+      expect(result.isPublic).toBe(true);
+    });
+
+    it('updateRideVisibility("unlisted") sets is_public=false (only "public" is public)', async () => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, is_public: false, visibility: 'unlisted' },
+      });
+
+      await service.updateRideVisibility(userId, 'ride-123', 'unlisted');
+
+      expect(mockUserClient._chain.update).toHaveBeenCalledWith(
+        expect.objectContaining({ visibility: 'unlisted', is_public: false }),
+      );
+    });
+
+    it('mapRow derives isPublic from canonical visibility, ignoring a stale is_public column', async () => {
+      // Drifted row: is_public=false but visibility=public → canonical wins.
+      mockUserClient._pushResult({ data: { ...fakeRow, is_public: false, visibility: 'public' } });
+
+      const result = await service.findById(userId, 'ride-123');
+
+      expect(result.visibility).toBe('public');
+      expect(result.isPublic).toBe(true);
     });
   });
 });

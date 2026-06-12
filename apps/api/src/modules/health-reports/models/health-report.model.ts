@@ -9,8 +9,9 @@ export class HealthReport {
   @Field()
   userId: string;
 
-  @Field()
-  motorcycleId: string;
+  // Nullable: webhook-created pending reports have no bike until the user generates
+  @Field(() => ID, { nullable: true })
+  motorcycleId?: string;
 
   @Field(() => GqlHealthReportStatus)
   status: string;

@@ -4,12 +4,14 @@ import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { CreateMotorcycleInput } from './dto/create-motorcycle.input';
 import { UpdateMotorcycleInput } from './dto/update-motorcycle.input';
+import { MakeStatsService } from './make-stats.service';
 import { MakeStats } from './models/make-stats.model';
 import { Motorcycle } from './models/motorcycle.model';
 import { MotorcycleMake } from './models/motorcycle-make.model';
@@ -24,6 +26,7 @@ export class MotorcyclesResolver {
 
   constructor(
     private readonly motorcyclesService: MotorcyclesService,
+    private readonly makeStatsService: MakeStatsService,
     private readonly nhtsaService: NhtsaService,
     private readonly oemSchedulesService: OemSchedulesService,
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
@@ -34,11 +37,15 @@ export class MotorcyclesResolver {
     return this.motorcyclesService.findByUser(user.id);
   }
 
+  // Public: NHTSA catalog data is consumed during anonymous-first onboarding
+  // (bike-setup runs before the account step), so these must not require a JWT.
+  @Public()
   @Query(() => [MotorcycleMake], { name: 'motorcycleMakes' })
   async motorcycleMakes(): Promise<MotorcycleMake[]> {
     return this.nhtsaService.getMakes();
   }
 
+  @Public()
   @Query(() => [MotorcycleModelResult], { name: 'motorcycleModels' })
   async motorcycleModels(
     @Args('makeId', { type: () => Int }) makeId: number,
@@ -47,12 +54,16 @@ export class MotorcyclesResolver {
     return this.nhtsaService.getModels(makeId, year);
   }
 
+  // Public: aggregate fleet counts (no per-user data) shown on the anonymous
+  // bike-setup + reveal screens. The onboarding-reveal resolver already exposes
+  // these same stats via a @Public() query.
+  @Public()
   @Query(() => [MakeStats], {
     name: 'makeStats',
     description: 'Aggregated fleet stats per motorcycle make (riders, models, total bikes)',
   })
   async makeStats(): Promise<MakeStats[]> {
-    return this.motorcyclesService.getMakeStats();
+    return this.makeStatsService.getMakeStats();
   }
 
   @Mutation(() => Motorcycle)

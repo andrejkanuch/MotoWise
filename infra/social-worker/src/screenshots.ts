@@ -12,6 +12,15 @@
  *   3. Run `scripts/upload-screenshots.ts` to sync to Supabase Storage
  */
 
+import type { Env } from './env';
+
+/**
+ * Storage path of the MotoVault app icon — composited into showcase images.
+ * Transparent-background version (navy rounded square only, alpha outside) so
+ * the image model doesn't render a white plate around the logo.
+ */
+export const BRAND_ICON_STORAGE_PATH = 'branding/mw-icon-transparent.png';
+
 export interface ScreenshotEntry {
   /** Storage path relative to the `social-media` bucket. */
   storagePath: string;
@@ -159,6 +168,20 @@ export const SCREENSHOT_CATALOG: Record<string, ScreenshotEntry> = {
     feature: 'diagnostics',
   },
 };
+
+/**
+ * Fetch a file from the public `social-media` bucket as raw bytes.
+ * Used at publish time to load the real screenshot + brand icon that get
+ * passed to the image model as reference images.
+ */
+export async function fetchBucketBytes(env: Env, storagePath: string): Promise<Uint8Array> {
+  const url = `${env.SUPABASE_URL}/storage/v1/object/public/social-media/${storagePath}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`fetchBucketBytes failed for ${storagePath}: ${res.status}`);
+  }
+  return new Uint8Array(await res.arrayBuffer());
+}
 
 /** Keys suitable for Gemini prompt injection — lists available options. */
 export function screenshotCatalogForPrompt(): string {

@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { getPreviousRoute, type OnboardingRoute } from '../config/onboarding';
+import { useOnboardingVariant } from './use-onboarding-flow';
 
 /**
  * Returns a Back handler for an onboarding screen that pops the navigation
@@ -15,12 +16,13 @@ import { getPreviousRoute, type OnboardingRoute } from '../config/onboarding';
  */
 export function useOnboardingBack(current: OnboardingRoute) {
   const router = useRouter();
+  const variant = useOnboardingVariant();
   return useCallback(() => {
     if (router.canGoBack()) {
       router.back();
       return;
     }
-    const previous = getPreviousRoute(current);
+    const previous = getPreviousRoute(variant, current);
     if (previous) router.replace(previous);
-  }, [router, current]);
+  }, [router, variant, current]);
 }

@@ -1,24 +1,6 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { PageInfo } from '../../../common/models/page-info.model';
+import { ObjectType } from '@nestjs/graphql';
+import { Paginated } from '../../../common/models/paginated.factory';
 import { Ride } from './ride.model';
 
 @ObjectType()
-export class RideEdge {
-  @Field(() => Ride)
-  node: Ride;
-
-  @Field()
-  cursor: string;
-}
-
-@ObjectType()
-export class RideConnection {
-  @Field(() => [RideEdge])
-  edges: RideEdge[];
-
-  @Field(() => PageInfo)
-  pageInfo: PageInfo;
-
-  @Field(() => Int)
-  totalCount: number;
-}
+export class RideConnection extends Paginated(Ride, 'Ride', { totalCount: true }) {}

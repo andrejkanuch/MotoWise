@@ -6,6 +6,7 @@ import {
   RidingFrequency,
   RidingGoal,
 } from '../constants/enums';
+import { nullishToUndefined } from './nullish';
 
 const experienceLevelValues = Object.values(ExperienceLevel) as [string, ...string[]];
 const ridingGoalValues = Object.values(RidingGoal) as [string, ...string[]];
@@ -15,12 +16,12 @@ const learningFormatValues = Object.values(LearningFormat) as [string, ...string
 
 export const UserPreferencesSchema = z
   .object({
-    onboardingCompleted: z.boolean().optional(),
-    experienceLevel: z.enum(experienceLevelValues).optional(),
-    ridingGoals: z.array(z.enum(ridingGoalValues)).max(10).optional(),
-    ridingFrequency: z.enum(ridingFrequencyValues).optional(),
-    maintenanceStyle: z.enum(maintenanceStyleValues).optional(),
-    learningFormats: z.array(z.enum(learningFormatValues)).max(4).optional(),
+    onboardingCompleted: nullishToUndefined(z.boolean()),
+    experienceLevel: nullishToUndefined(z.enum(experienceLevelValues)),
+    ridingGoals: nullishToUndefined(z.array(z.enum(ridingGoalValues)).max(10)),
+    ridingFrequency: nullishToUndefined(z.enum(ridingFrequencyValues)),
+    maintenanceStyle: nullishToUndefined(z.enum(maintenanceStyleValues)),
+    learningFormats: nullishToUndefined(z.array(z.enum(learningFormatValues)).max(4)),
   })
   .passthrough();
 

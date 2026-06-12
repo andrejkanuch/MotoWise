@@ -12,13 +12,13 @@ import { OnEvent } from '@nestjs/event-emitter';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
-import { AI_CLIENT, AI_COSTS } from '../../config/constants';
+import { RIDE_EVENTS, type RideCompletedEvent } from '../../common/constants/events';
+import { AI_CLIENT, AI_MODELS, costCentsFor } from '../../config/constants';
 import { AiBudgetService } from '../ai-budget/ai-budget.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
-import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { RideSummary } from './models/ride-summary.model';
 
-const MODEL = 'gpt-4.1-nano';
+const MODEL = AI_MODELS.RIDE_SUMMARY;
 const MAX_SUMMARY_TOKENS = 512;
 
 /** Local row interface matching ride_summaries DB columns */
@@ -65,6 +65,15 @@ interface SummaryIdRow {
 const MIN_DISTANCE_M = 1000;
 const MIN_DURATION_S = 300;
 
+/**
+ * SINGLETON, admin-client only — deliberately. The previous version injected
+ * SUPABASE_USER, which made the service request-scoped; @nestjs/event-emitter
+ * builds request-scoped listeners' DI context from the EVENT PAYLOAD, so the
+ * ride.completed listener got an anon client and silently failed RLS for every
+ * private ride (the default visibility). Every query below carries an explicit
+ * user_id/ride_id filter as the ownership check; userId always originates from
+ * a verified JWT or the trusted event payload.
+ */
 @Injectable()
 export class RideSummariesService {
   private readonly logger = new Logger(RideSummariesService.name);
@@ -72,7 +81,6 @@ export class RideSummariesService {
 
   constructor(
     private readonly configService: ConfigService,
-    @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
     @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
     private readonly aiBudgetService: AiBudgetService,
   ) {
@@ -89,8 +97,8 @@ export class RideSummariesService {
     // Check AI budget before processing
     await this.aiBudgetService.checkBudgetForUser(userId);
 
-    // Fetch ride data via user-scoped client (respects RLS)
-    const { data: ride, error: rideError } = await this.supabase
+    // Admin client + explicit user_id filter (see class doc-comment)
+    const { data: ride, error: rideError } = await this.adminClient
       .from('rides')
       .select(
         'id, user_id, motorcycle_id, name, distance_m, started_at, ended_at, max_speed_mps, avg_speed_mps, elevation_gain, elevation_loss, region, paused_duration_s',
@@ -121,13 +129,14 @@ export class RideSummariesService {
       );
     }
 
-    // Fetch motorcycle info if linked
+    // Fetch motorcycle info if linked (scoped to the ride owner)
     let bikeInfo = 'motorcycle';
     if (typedRide.motorcycle_id) {
-      const { data: bike } = await this.supabase
+      const { data: bike } = await this.adminClient
         .from('motorcycles')
         .select('make, model, year')
         .eq('id', typedRide.motorcycle_id)
+        .eq('user_id', userId)
         .single();
 
       if (bike) {
@@ -247,11 +256,7 @@ export class RideSummariesService {
         }
       }
 
-      const costCents = Math.round(
-        (inputTokens * AI_COSTS.INPUT_COST_PER_MTOK +
-          outputTokens * AI_COSTS.OUTPUT_COST_PER_MTOK) /
-          AI_COSTS.MTOK_DIVISOR,
-      );
+      const costCents = costCentsFor(MODEL, inputTokens, outputTokens);
 
       const { error: logError } = await this.adminClient.from('content_generation_log').insert({
         user_id: userId,
@@ -328,8 +333,9 @@ export class RideSummariesService {
       .gte('created_at', monthStart.toISOString());
 
     if (error) {
+      // Fail CLOSED: this gates paid AI spend; the tier lookup above already does.
       this.logger.error('Failed to count monthly ride summary usage', error);
-      return;
+      throw new InternalServerErrorException('Unable to verify ride summary quota.');
     }
 
     const limit = AI_FEATURE_LIMITS.FREE_RIDE_SUMMARIES_PER_MONTH;
@@ -340,14 +346,23 @@ export class RideSummariesService {
     }
   }
 
-  @OnEvent('ride.completed', { async: true })
-  async onRideCompleted(payload: {
-    rideId: string;
-    userId: string;
-    locale: string;
-  }): Promise<void> {
+  // suppressErrors:false — event-emitter v3 swallows listener errors by default;
+  // the try/catch below is the deliberate error boundary instead.
+  @OnEvent(RIDE_EVENTS.COMPLETED, { async: true, suppressErrors: false })
+  async onRideCompleted(payload: RideCompletedEvent): Promise<void> {
     this.logger.log(`ride.completed event received for ride ${payload.rideId}`);
     try {
+      // Idempotency: a duplicate event must not pay for a second generation
+      const { data: existing } = await this.adminClient
+        .from('ride_summaries')
+        .select('id, generation_status')
+        .eq('ride_id', payload.rideId)
+        .maybeSingle();
+      if ((existing as { generation_status?: string } | null)?.generation_status === 'completed') {
+        this.logger.log(`Summary already exists for ride ${payload.rideId}, skipping`);
+        return;
+      }
+
       await this.generateSummary(payload.rideId, payload.userId, payload.locale);
       this.logger.log(`Ride summary generated for ride ${payload.rideId}`);
     } catch (err) {

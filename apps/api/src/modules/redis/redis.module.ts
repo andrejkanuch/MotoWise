@@ -2,6 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Redis } from '@upstash/redis';
 import { REDIS } from './redis.constants';
+import { RedisThrottlerStorage } from './redis-throttler.storage';
 
 @Global()
 @Module({
@@ -20,7 +21,8 @@ import { REDIS } from './redis.constants';
         return new Redis({ url, token });
       },
     },
+    RedisThrottlerStorage,
   ],
-  exports: [REDIS],
+  exports: [REDIS, RedisThrottlerStorage],
 })
 export class RedisModule {}

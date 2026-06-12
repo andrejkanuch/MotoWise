@@ -2,8 +2,8 @@ import { palette } from '@motovault/design-system';
 import type { ExperienceLevel } from '@motovault/types';
 import { NotificationFeedbackType } from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { Bike, Check, Flame, Gauge } from 'lucide-react-native';
+import { useFocusEffect } from 'expo-router';
+import { Bike, Check, Gauge, Medal } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -22,11 +22,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, Line, Stop, LinearGradient as SvgLinearGradient } from 'react-native-svg';
+import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
+import { OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
+import { AnalyticsEvent } from '../../lib/analytics';
+import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerNotification } from '../../utils/haptics';
 
@@ -38,6 +41,7 @@ const EXPERIENCE_OPTIONS: {
   tenureKey: string;
   previewKey: string;
   affirmKey: string;
+  badgeKey?: string;
   icon: typeof Bike;
   accent: string;
 }[] = [
@@ -62,10 +66,11 @@ const EXPERIENCE_OPTIONS: {
   {
     id: 'advanced',
     labelKey: 'v2ExperienceAdvanced',
-    tenureKey: 'v2ExperienceAdvancedTenure',
+    tenureKey: 'expAdvancedTenure',
     previewKey: 'v2ExperienceAdvancedPreview',
-    affirmKey: 'v2AffirmAdvanced',
-    icon: Flame,
+    affirmKey: 'expAffirmAdvanced',
+    badgeKey: 'expPowerMode',
+    icon: Medal,
     accent: ONBOARDING_COLORS.accentAdvanced,
   },
 ];
@@ -397,7 +402,7 @@ function ExperienceCard({
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={`${t(`onboarding.${option.labelKey}` as never)}, ${t(`onboarding.${option.tenureKey}` as never)}`}
+        accessibilityLabel={`${t(`onboarding.${option.labelKey}` as never)}, ${t(`onboarding.${option.tenureKey}` as never)}${option.badgeKey ? `, ${t(`onboarding.${option.badgeKey}` as never)}` : ''}`}
         accessibilityState={{ selected }}
         style={{
           position: 'relative',
@@ -486,18 +491,46 @@ function ExperienceCard({
             >
               {t(`onboarding.${option.labelKey}` as never)}
             </Text>
-            <Text
-              style={{
-                fontFamily: 'GeistMono-Medium',
-                fontSize: 10,
-                fontWeight: '500',
-                letterSpacing: 1.3,
-                textTransform: 'uppercase',
-                color: selected ? option.accent : ONBOARDING_COLORS.textLabel,
-              }}
-            >
-              {t(`onboarding.${option.tenureKey}` as never)}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text
+                style={{
+                  fontFamily: 'GeistMono-Medium',
+                  fontSize: 10,
+                  fontWeight: '500',
+                  letterSpacing: 1.3,
+                  textTransform: 'uppercase',
+                  color: selected ? option.accent : ONBOARDING_COLORS.textLabel,
+                }}
+              >
+                {t(`onboarding.${option.tenureKey}` as never)}
+              </Text>
+              {option.badgeKey && (
+                <View
+                  style={{
+                    paddingVertical: 2,
+                    paddingHorizontal: 7,
+                    borderRadius: 999,
+                    borderCurve: 'continuous',
+                    backgroundColor: `${option.accent}2E`,
+                    borderWidth: 1,
+                    borderColor: `${option.accent}66`,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: 'GeistMono-Medium',
+                      fontSize: 8.5,
+                      fontWeight: '600',
+                      letterSpacing: 1.4,
+                      textTransform: 'uppercase',
+                      color: option.accent,
+                    }}
+                  >
+                    {t(`onboarding.${option.badgeKey}` as never)}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
 
           {selected && (
@@ -585,8 +618,9 @@ function AffirmDot({ accent }: { accent: string }) {
 
 export default function ExperienceScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.EXPERIENCE);
+  const goNext = useOnboardingNext(OB_SCREEN.EXPERIENCE);
   const setExperienceLevel = useOnboardingStore((s) => s.setExperienceLevel);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
   const storedLevel = useOnboardingStore((s) => s.experienceLevel);
@@ -599,10 +633,7 @@ export default function ExperienceScreen() {
     ONBOARDING_COLORS.accentIntermediate;
 
   useEffect(() => {
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
-      step: 'experience',
-      step_index: 1,
-    });
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.EXPERIENCE);
   }, []);
 
   // Reset pending state when returning to this screen
@@ -632,15 +663,13 @@ export default function ExperienceScreen() {
     setExperienceLevel(id);
 
     setLastCompletedScreen(OB_SCREEN.EXPERIENCE);
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
-      step: 'experience',
-      step_index: 1,
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.EXPERIENCE, {
       experience_level: id,
     });
 
     // Longer delay so the affirmation text can be read
     autoAdvanceRef.current = setTimeout(() => {
-      router.push(OB_ROUTE.GOALS);
+      goNext();
     }, 1400);
   };
 
@@ -682,30 +711,13 @@ export default function ExperienceScreen() {
       />
 
       {/* ═══ Content ═══ */}
-      <OnboardingProgress screenIndex={1} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
       {/* Back button */}
-      <Pressable
+      <OnboardingBackButton
         onPress={handleBack}
-        hitSlop={12}
-        style={{
-          position: 'absolute',
-          top: insets.top + 44,
-          left: 16,
-          zIndex: 10,
-          width: 36,
-          height: 36,
-          borderRadius: 18,
-          borderCurve: 'continuous',
-          backgroundColor: ONBOARDING_COLORS.surface2,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Animated.View entering={FadeIn.duration(300)}>
-          <Text style={{ fontSize: 18, color: ONBOARDING_COLORS.textPrimary }}>‹</Text>
-        </Animated.View>
-      </Pressable>
+        style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
+      />
 
       <ScrollView
         style={{ flex: 1 }}

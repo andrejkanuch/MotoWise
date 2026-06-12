@@ -129,11 +129,11 @@ describe('UsersService', () => {
     });
 
     it('should throw BadRequestException on invalid preferences', async () => {
-      // UserPreferencesSchema.safeParse will fail for invalid input
-      // We pass something that Zod won't accept
+      // UserPreferencesSchema is .passthrough() — unknown keys are accepted, so the
+      // invalid value must target a key the schema actually validates.
       await expect(
         service.update(userId, {
-          preferences: { maintenanceReminders: 'not-a-boolean' } as unknown as Record<
+          preferences: { experienceLevel: 'not-a-valid-level' } as unknown as Record<
             string,
             unknown
           >,

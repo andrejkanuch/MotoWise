@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { MAX_MOTORCYCLE_YEAR, MIN_MOTORCYCLE_YEAR } from '../constants/limits';
+import { nullishToUndefined } from './nullish';
 
 /**
  * Shared refinement for motorcycle make/model strings.
@@ -27,19 +28,19 @@ export type CreateMotorcycle = z.infer<typeof CreateMotorcycleSchema>;
 const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/;
 
 export const UpdateMotorcycleSchema = z.object({
-  make: MotorcycleMakeSchema.optional(),
-  model: z.string().min(1).max(100).optional(),
-  year: z.number().int().min(MIN_MOTORCYCLE_YEAR).max(MAX_MOTORCYCLE_YEAR).optional(),
+  make: nullishToUndefined(MotorcycleMakeSchema),
+  model: nullishToUndefined(z.string().min(1).max(100)),
+  year: nullishToUndefined(z.number().int().min(MIN_MOTORCYCLE_YEAR).max(MAX_MOTORCYCLE_YEAR)),
   nickname: z.string().max(50).nullable().optional(),
-  isPrimary: z.boolean().optional(),
+  isPrimary: nullishToUndefined(z.boolean()),
   primaryPhotoUrl: z.string().url().max(500).nullable().optional(),
-  currentMileage: z.number().int().min(0).optional(),
+  currentMileage: nullishToUndefined(z.number().int().min(0)),
   /**
    * @deprecated The mileage unit is now derived from the user's global
    * `measurementSystem` preference, not stored per bike. Label-only — no value
    * conversion. Kept for backward compatibility with existing rows/clients.
    */
-  mileageUnit: z.enum(['mi', 'km']).optional(),
+  mileageUnit: nullishToUndefined(z.enum(['mi', 'km'])),
   purchasePrice: z.number().min(0).max(999999.99).nullable().optional(),
   purchaseDate: z
     .string()

@@ -1,16 +1,11 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { RIDE_EVENTS, type RideCompletedEvent } from '../../common/constants/events';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { MIN_RIDE_DISTANCE_M, MIN_RIDE_MOVING_TIME_S } from './ride-analytics.constants';
 import { computeMovingTimeS } from './ride-analytics.utils';
 import { RideRecordDetector } from './ride-record-detector.service';
-
-interface RideCompletedEvent {
-  rideId: string;
-  userId: string;
-  locale: string;
-}
 
 @Injectable()
 export class RideRollupAggregator {
@@ -21,7 +16,7 @@ export class RideRollupAggregator {
     private readonly recordDetector: RideRecordDetector,
   ) {}
 
-  @OnEvent('ride.completed', { async: true })
+  @OnEvent(RIDE_EVENTS.COMPLETED, { async: true })
   async onRideCompleted(payload: RideCompletedEvent): Promise<void> {
     this.logger.log(`ride.completed event received for ride ${payload.rideId}`);
 

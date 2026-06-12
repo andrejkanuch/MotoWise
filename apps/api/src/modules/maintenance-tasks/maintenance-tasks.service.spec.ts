@@ -241,20 +241,21 @@ describe('MaintenanceTasksService', () => {
         updatedAt: '2026-01-01T00:00:00Z',
       };
 
-      mockAdminClient._pushResult({
+      // createNextRecurrence writes via the RLS-enforcing user client (not admin).
+      mockUserClient._pushResult({
         data: { ...fakeRow, is_recurring: true, due_date: '2026-04-01T00:00:00.000Z' },
       });
 
       await service.createNextRecurrence(completedTask as never);
 
-      expect(mockAdminClient._chain.insert).toHaveBeenCalledWith(
+      expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           due_date: expect.any(String),
           is_recurring: true,
         }),
       );
 
-      const insertArg = mockAdminClient._chain.insert.mock.calls[0][0];
+      const insertArg = mockUserClient._chain.insert.mock.calls[0][0];
       const dueDate = new Date(insertArg.due_date);
       const completedDate = new Date('2026-01-01T00:00:00Z');
       const diffDays = Math.round(
@@ -284,13 +285,13 @@ describe('MaintenanceTasksService', () => {
         updatedAt: '2026-01-01T00:00:00Z',
       };
 
-      mockAdminClient._pushResult({
+      mockUserClient._pushResult({
         data: { ...fakeRow, is_recurring: true, target_mileage: 25000 },
       });
 
       await service.createNextRecurrence(completedTask as never);
 
-      expect(mockAdminClient._chain.insert).toHaveBeenCalledWith(
+      expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           target_mileage: 25000,
         }),
@@ -316,6 +317,35 @@ describe('MaintenanceTasksService', () => {
 
       expect(result).toBeNull();
       expect(mockAdminClient.from).not.toHaveBeenCalled();
+      expect(mockUserClient.from).not.toHaveBeenCalled();
+    });
+
+    it('logs the error and returns null when the insert fails (no silent swallow)', async () => {
+      const completedTask = {
+        id: taskId,
+        userId,
+        motorcycleId,
+        title: 'Oil Change',
+        priority: 'medium',
+        status: 'completed',
+        source: 'user',
+        isRecurring: true,
+        intervalDays: 90,
+        completedAt: '2026-01-01T00:00:00Z',
+        photos: [],
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      };
+
+      const loggerError = vi
+        .spyOn((service as unknown as { logger: { error: () => void } }).logger, 'error')
+        .mockImplementation(() => undefined);
+      mockUserClient._pushResult({ data: null, error: { message: 'insert blew up', code: '500' } });
+
+      const result = await service.createNextRecurrence(completedTask as never);
+
+      expect(result).toBeNull();
+      expect(loggerError).toHaveBeenCalled();
     });
   });
 

@@ -21,9 +21,10 @@
     "db:types": "turbo generate:types",
     "check:i18n": "sh scripts/check-i18n.sh",
     "i18n:status": "pnpm --filter mobile i18n:status",
-    "precheck": "pnpm lint && pnpm typecheck && pnpm test",
+    "check:api-bans": "sh scripts/check-api-bans.sh",
+    "precheck": "pnpm check:api-bans && pnpm lint && pnpm typecheck && pnpm test",
     "precheck:push": "sh scripts/precheck-changed.sh",
-    "prepare": "git config core.hooksPath .githooks",
+    "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
     "android": "expo run:android",
     "ios": "expo run:ios"
   },
@@ -51,7 +52,8 @@
       "react-dom": "19.2.3",
       "graphql": "^16.10.0",
       "lightningcss": "1.30.1",
-      "protobufjs": ">=7.5.5"
+      "protobufjs": ">=7.5.5",
+      "shell-quote": ">=1.8.4"
     }
   },
   "version": "1.0.0",

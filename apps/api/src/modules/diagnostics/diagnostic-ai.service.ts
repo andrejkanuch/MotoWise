@@ -13,7 +13,7 @@ import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
-import { AI_CLIENT, AI_COSTS, AI_MODELS, AI_TOKEN_LIMITS } from '../../config/constants';
+import { AI_CLIENT, AI_MODELS, AI_TOKEN_LIMITS, costCentsFor } from '../../config/constants';
 import { AiBudgetService } from '../ai-budget/ai-budget.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { EXPERIENCE_PROMPTS, MAINTENANCE_PROMPTS, URGENCY_PROMPTS } from './prompt-templates';
@@ -273,11 +273,7 @@ export class DiagnosticAiService {
         throw new InternalServerErrorException('Failed to save diagnostic result');
       }
 
-      const costCents = Math.round(
-        (inputTokens * AI_COSTS.INPUT_COST_PER_MTOK +
-          outputTokens * AI_COSTS.OUTPUT_COST_PER_MTOK) /
-          AI_COSTS.MTOK_DIVISOR,
-      );
+      const costCents = costCentsFor(MODEL, inputTokens, outputTokens);
 
       // Wait for photo upload to finish before returning
       await photoUploadPromise;

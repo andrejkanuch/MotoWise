@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { ALL_BIKES_SENTINEL } from './ride-analytics.constants';
 import { computeMovingTimeS } from './ride-analytics.utils';
@@ -115,7 +116,7 @@ export class RideRecordDetector {
         previous_value: null,
       });
 
-      if (error && error.code !== '23505') {
+      if (error && error.code !== PG_ERROR.UNIQUE_VIOLATION) {
         this.logger.warn(`Failed to insert record ${candidate.recordType}: ${error.message}`);
       } else if (!error) {
         this.logger.log(`First record set: ${candidate.recordType} = ${candidate.value}`);

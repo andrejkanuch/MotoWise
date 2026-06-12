@@ -6,12 +6,14 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GraphQLModule } from '@nestjs/graphql';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { SentryModule } from '@sentry/nestjs/setup';
 import depthLimit from 'graphql-depth-limit';
 import { AllExceptionsFilter } from './common/filters/gql-exception.filter';
 import { GqlAuthGuard } from './common/guards/gql-auth.guard';
 import { CorrelationIdInterceptor } from './common/interceptors/correlation-id.interceptor';
 import { LocaleInterceptor } from './common/interceptors/locale.interceptor';
+import { THROTTLE_PRESETS } from './config/constants';
 import { envSchema } from './config/env.validation';
 import { AffiliatesModule } from './modules/affiliates/affiliates.module';
 import { AiBudgetModule } from './modules/ai-budget/ai-budget.module';
@@ -34,11 +36,13 @@ import { KudosModule } from './modules/kudos/kudos.module';
 import { LearningProgressModule } from './modules/learning-progress/learning-progress.module';
 import { MaintenanceTasksModule } from './modules/maintenance-tasks/maintenance-tasks.module';
 import { MetaModule } from './modules/meta/meta.module';
+import { ModelInsightsModule } from './modules/model-insights/model-insights.module';
 import { MotorcyclesModule } from './modules/motorcycles/motorcycles.module';
 import { OemSchedulesModule } from './modules/oem-schedules/oem-schedules.module';
 import { PlacesModule } from './modules/places/places.module';
 import { QuizzesModule } from './modules/quizzes/quizzes.module';
 import { RedisModule } from './modules/redis/redis.module';
+import { RedisThrottlerStorage } from './modules/redis/redis-throttler.storage';
 import { RideAnalyticsModule } from './modules/ride-analytics/ride-analytics.module';
 import { RideSummariesModule } from './modules/ride-summaries/ride-summaries.module';
 import { RidesModule } from './modules/rides/rides.module';
@@ -71,6 +75,19 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
       validationRules: [depthLimit(7)],
     }),
     EventEmitterModule.forRoot(),
+    // Selective rate limiting: NO global guard (a global GqlThrottlerGuard caused
+    // mass 429s on public SSR — 24d066b5). Expensive resolvers opt in with
+    // @UseGuards(GqlThrottlerGuard) + @Throttle({ default: THROTTLE_PRESETS.X }).
+    // Exactly ONE named throttler: v6 applies EVERY registered throttler to every
+    // guarded route, so multiple named presets would all fire at once.
+    ThrottlerModule.forRootAsync({
+      imports: [RedisModule],
+      inject: [RedisThrottlerStorage],
+      useFactory: (storage: RedisThrottlerStorage) => ({
+        throttlers: [{ name: 'default', ...THROTTLE_PRESETS.STANDARD }],
+        storage,
+      }),
+    }),
     RedisModule,
     SupabaseModule,
     EmailModule,
@@ -95,6 +112,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     LearningProgressModule,
     MaintenanceTasksModule,
     MetaModule,
+    ModelInsightsModule,
     OemSchedulesModule,
     RideAnalyticsModule,
     RideSummariesModule,

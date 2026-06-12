@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { PG_ERROR } from '../../../common/supabase/unwrap';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 
 @Injectable()
@@ -69,7 +70,7 @@ export class TripParticipantsService {
       .single();
 
     if (error || !data) {
-      if (error?.code === 'PGRST116') {
+      if (error?.code === PG_ERROR.NOT_FOUND) {
         throw new BadRequestException('You are not a participant in this trip');
       }
       this.logger.error(`updateParticipantStatus failed: ${error?.message}`);
@@ -89,7 +90,7 @@ export class TripParticipantsService {
       .single();
 
     if (error || !data) {
-      if (error?.code === 'PGRST116') {
+      if (error?.code === PG_ERROR.NOT_FOUND) {
         throw new BadRequestException('You are not a participant in this trip');
       }
       this.logger.error(`leaveTrip failed: ${error?.message}`);

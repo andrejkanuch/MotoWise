@@ -19,6 +19,7 @@ export * from './validators/handle';
 export * from './validators/health-report';
 export * from './validators/locale';
 export * from './validators/maintenance-task';
+export * from './validators/model-insights';
 export * from './validators/motorcycle';
 export * from './validators/onboarding-input';
 export * from './validators/paywall';

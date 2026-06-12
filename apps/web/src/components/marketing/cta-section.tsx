@@ -21,10 +21,10 @@ export async function CtaSection() {
         style={{
           position: 'absolute',
           inset: 0,
-          backgroundImage: 'url("/images/marketing/hero-explore.jpg")',
+          backgroundImage: 'url("/images/marketing/cta-night.jpg")',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          filter: 'saturate(0.6) brightness(0.28)',
+          filter: 'saturate(0.95) brightness(0.62)',
           zIndex: -2,
           transform: 'scale(1.04)',
           animation: 'mv-bg-breath 22s ease-in-out infinite alternate',

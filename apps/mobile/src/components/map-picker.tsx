@@ -1,6 +1,7 @@
 import { palette } from '@motovault/design-system';
 import MapboxGL from '@rnmapbox/maps';
 import { MapPin, Search, X } from 'lucide-react-native';
+import { PostHogMaskView } from 'posthog-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -189,24 +190,27 @@ export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: 
 
   return (
     <View style={{ flex: 1, backgroundColor: bg }}>
-      {/* Map */}
-      <MapboxGL.MapView
-        style={{ flex: 1 }}
-        styleURL={mapStyle}
-        compassEnabled={false}
-        logoEnabled={false}
-        attributionEnabled={false}
-        scaleBarEnabled={false}
-        onRegionDidChange={handleRegionDidChange}
-      >
-        <MapboxGL.Camera
-          ref={cameraRef}
-          defaultSettings={{
-            centerCoordinate: [startLng, startLat],
-            zoomLevel: DEFAULT_ZOOM,
-          }}
-        />
-      </MapboxGL.MapView>
+      {/* Map — masked from session replay so the picked location (often a home
+          address) is not captured on the native mapbox surface. (todo 186) */}
+      <PostHogMaskView style={{ flex: 1 }}>
+        <MapboxGL.MapView
+          style={{ flex: 1 }}
+          styleURL={mapStyle}
+          compassEnabled={false}
+          logoEnabled={false}
+          attributionEnabled={false}
+          scaleBarEnabled={false}
+          onRegionDidChange={handleRegionDidChange}
+        >
+          <MapboxGL.Camera
+            ref={cameraRef}
+            defaultSettings={{
+              centerCoordinate: [startLng, startLat],
+              zoomLevel: DEFAULT_ZOOM,
+            }}
+          />
+        </MapboxGL.MapView>
+      </PostHogMaskView>
 
       {/* Fixed center pin (like Uber pickup) */}
       <View

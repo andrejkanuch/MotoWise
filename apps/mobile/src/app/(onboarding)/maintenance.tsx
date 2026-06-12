@@ -1,8 +1,7 @@
 import { OemSchedulesPreviewDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { ImpactFeedbackStyle } from 'expo-haptics';
-import { useRouter } from 'expo-router';
-import { Check, ChevronLeft, X } from 'lucide-react-native';
+import { Check, X } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
@@ -19,14 +18,18 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TaskCard } from '../../components/onboarding/maintenance/task-card';
+import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { getBrandColor } from '../../config/brand-dna';
-import { OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
+import { OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
+import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
+import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
@@ -38,8 +41,9 @@ const SNAP_BACK_SPRING = { damping: 18, stiffness: 350, mass: 0.6 };
 
 export default function MaintenanceScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const onBack = useOnboardingBack(OB_SCREEN.MAINTENANCE);
+  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.MAINTENANCE);
+  const goNext = useOnboardingNext(OB_SCREEN.MAINTENANCE);
   const insets = useSafeAreaInsets();
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const setAcceptedOemScheduleIds = useOnboardingStore((s) => s.setAcceptedOemScheduleIds);
@@ -53,7 +57,7 @@ export default function MaintenanceScreen() {
 
   // Fetch OEM schedules for this make/model/year
   const { data, isLoading } = useQuery({
-    queryKey: ['oemSchedulesPreview', make, model, year],
+    queryKey: queryKeys.onboarding.oemSchedules(make, model, year),
     queryFn: () => gqlFetcher(OemSchedulesPreviewDocument, { make, model, year }),
     enabled: !!make,
     staleTime: Number.POSITIVE_INFINITY,
@@ -61,10 +65,7 @@ export default function MaintenanceScreen() {
   const tasks = data?.oemSchedulesPreview ?? [];
 
   useEffect(() => {
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
-      step: 'maintenance',
-      step_index: 4,
-    });
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.MAINTENANCE);
   }, []);
 
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -175,78 +176,65 @@ export default function MaintenanceScreen() {
     triggerImpact(ImpactFeedbackStyle.Medium);
     setAcceptedOemScheduleIds(accepted);
     setLastCompletedScreen(OB_SCREEN.MAINTENANCE);
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
-      step: 'maintenance',
-      step_index: 4,
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.MAINTENANCE, {
       accepted_count: accepted.length,
       skipped_count: skipped.length,
       total_tasks: tasks.length,
     });
-    router.push(OB_ROUTE.PAYWALL);
+    goNext();
   };
 
-  const handleSkipAll = useCallback(() => {
-    setAcceptedOemScheduleIds([]);
-    setLastCompletedScreen(OB_SCREEN.MAINTENANCE);
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, {
-      step: 'maintenance',
-      step_index: 4,
-    });
-    router.push(OB_ROUTE.PAYWALL);
-  }, [setAcceptedOemScheduleIds, setLastCompletedScreen, router]);
+  const skipMaintenance = useCallback(
+    ({ replace }: { replace: boolean }) => {
+      setAcceptedOemScheduleIds([]);
+      setLastCompletedScreen(OB_SCREEN.MAINTENANCE);
+      trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, OB_SCREEN.MAINTENANCE);
+      goNext({ replace });
+    },
+    [setAcceptedOemScheduleIds, setLastCompletedScreen, goNext],
+  );
 
-  // Auto-skip when no bike data or no tasks available
+  // Auto-skip when no bike data or no tasks available. Use `replace` so this
+  // pass-through drops out of history — otherwise Back from Commitment lands
+  // here and the auto-skip immediately bounces the rider forward again (with a
+  // loading flash), making Back appear broken.
   useEffect(() => {
     if (!make || (tasks.length === 0 && !isLoading)) {
-      handleSkipAll();
+      skipMaintenance({ replace: true });
     }
-  }, [make, tasks.length, isLoading, handleSkipAll]);
+  }, [make, tasks.length, isLoading, skipMaintenance]);
 
   if (!make || (tasks.length === 0 && !isLoading)) {
     return null;
   }
 
   if (isLoading) {
+    // Keep the Back button + progress visible while fetching — a bare,
+    // escape-less spinner would trap the rider if the request hangs (e.g. slow
+    // network, or a cold cache after Back re-enters this screen).
     return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: ONBOARDING_COLORS.background,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <ActivityIndicator size="large" color={ONBOARDING_COLORS.warm} />
+      <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+        <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
+        <OnboardingBackButton
+          onPress={onBack}
+          style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
+        />
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color={ONBOARDING_COLORS.warm} />
+        </View>
       </View>
     );
   }
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={4} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
       {/* Back button */}
-      <Pressable
+      <OnboardingBackButton
         onPress={onBack}
-        hitSlop={12}
-        accessibilityRole="button"
-        accessibilityLabel="Go back"
-        style={{
-          position: 'absolute',
-          top: insets.top + 44,
-          left: 16,
-          zIndex: 10,
-          width: 36,
-          height: 36,
-          borderRadius: 18,
-          borderCurve: 'continuous',
-          backgroundColor: ONBOARDING_COLORS.surface2,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <ChevronLeft size={20} color={ONBOARDING_COLORS.textPrimary} />
-      </Pressable>
+        style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
+      />
 
       {/* Header */}
       <View style={{ paddingHorizontal: 26, paddingTop: 56 }}>
@@ -459,7 +447,7 @@ export default function MaintenanceScreen() {
 
           {/* Skip all + reassurance */}
           <View style={{ alignItems: 'center', paddingBottom: insets.bottom + 16, gap: 6 }}>
-            <Pressable onPress={handleSkipAll} style={{ padding: 8 }}>
+            <Pressable onPress={() => skipMaintenance({ replace: false })} style={{ padding: 8 }}>
               <Text
                 style={{
                   fontSize: 13,

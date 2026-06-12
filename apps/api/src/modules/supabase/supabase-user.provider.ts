@@ -15,8 +15,13 @@ export const supabaseUserProvider: Provider = {
     context: any,
   ): SupabaseClient => {
     const req = context?.req ?? context;
+    // Prefer the token the GqlAuthGuard already verified (request.accessToken).
+    // Fall back to the raw Authorization header ONLY when the guard didn't verify
+    // one (e.g. @Public() routes) — RLS still gates whatever that token can do.
+    const verifiedToken: string | undefined = req?.accessToken;
     const authHeader: string | undefined = req?.headers?.authorization;
-    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const headerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const accessToken = verifiedToken ?? headerToken;
 
     return createClient(
       configService.getOrThrow('SUPABASE_URL'),

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { nullishToUndefined } from './nullish';
 
 // --- Trip Difficulty ---
 
@@ -315,7 +316,7 @@ const InlineWaypointSchema = z.object({
   name: z.string().min(1).max(200),
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
-  notes: z.string().max(1000).optional(),
+  notes: nullishToUndefined(z.string().max(1000)),
   sortOrder: z.number().int().min(0).max(1000),
   dayIndex: z.number().int().min(0).max(365).default(0),
   /** @deprecated kept for backward compat — optional on new data */
@@ -407,7 +408,7 @@ export const CreateTripInputSchema = z
     endDate: z.string().date(),
     difficulty: TripDifficultySchema,
     maxRiders: z.number().int().min(2).max(50),
-    visibility: TripVisibilitySchema.optional(),
+    visibility: nullishToUndefined(TripVisibilitySchema),
   })
   .superRefine((data, ctx) => {
     validateTripDateRange(ctx, data.startDate, data.endDate, {
@@ -438,7 +439,7 @@ export const CreateTripWithWaypointsInputSchema = z
     endDate: z.string().date(),
     difficulty: TripDifficultySchema,
     maxRiders: z.number().int().min(2).max(50),
-    visibility: TripVisibilitySchema.optional(),
+    visibility: nullishToUndefined(TripVisibilitySchema),
     waypoints: z.array(InlineWaypointSchema).min(0).max(25),
   })
   .superRefine((data, ctx) => {
@@ -456,14 +457,14 @@ export type CreateTripWithWaypointsInput = z.infer<typeof CreateTripWithWaypoint
 export const UpdateTripInputSchema = z
   .object({
     tripId: z.string().uuid(),
-    title: z.string().min(1).max(100).optional(),
-    description: z.string().min(1).max(2000).optional(),
-    startDate: z.string().date().optional(),
-    endDate: z.string().date().optional(),
-    difficulty: TripDifficultySchema.optional(),
-    maxRiders: z.number().int().min(2).max(50).optional(),
-    visibility: TripVisibilitySchema.optional(),
-    waypoints: z.array(InlineWaypointSchema).min(0).max(25).optional(),
+    title: nullishToUndefined(z.string().min(1).max(100)),
+    description: nullishToUndefined(z.string().min(1).max(2000)),
+    startDate: nullishToUndefined(z.string().date()),
+    endDate: nullishToUndefined(z.string().date()),
+    difficulty: nullishToUndefined(TripDifficultySchema),
+    maxRiders: nullishToUndefined(z.number().int().min(2).max(50)),
+    visibility: nullishToUndefined(TripVisibilitySchema),
+    waypoints: nullishToUndefined(z.array(InlineWaypointSchema).min(0).max(25)),
   })
   .superRefine((data, ctx) => {
     validateTripDateRange(ctx, data.startDate, data.endDate, {
@@ -482,11 +483,11 @@ export const CreateWaypointInputSchema = z.object({
   name: z.string().min(1).max(200),
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
-  notes: z.string().max(1000).optional(),
+  notes: nullishToUndefined(z.string().max(1000)),
   sortOrder: z.number().int().min(0).max(1000),
   dayIndex: z.number().int().min(0).max(365).default(0),
   /** @deprecated kept for backward compat — optional on new data */
-  periodOfDay: PeriodOfDaySchema.optional(),
+  periodOfDay: nullishToUndefined(PeriodOfDaySchema),
 });
 
 export type CreateWaypointInput = z.infer<typeof CreateWaypointInputSchema>;
@@ -495,13 +496,13 @@ export type CreateWaypointInput = z.infer<typeof CreateWaypointInputSchema>;
 
 export const UpdateWaypointInputSchema = z.object({
   waypointId: z.string().uuid(),
-  type: WaypointTypeSchema.optional(),
-  name: z.string().min(1).max(200).optional(),
-  lat: z.number().min(-90).max(90).optional(),
-  lng: z.number().min(-180).max(180).optional(),
-  notes: z.string().max(1000).optional(),
-  sortOrder: z.number().int().min(0).max(1000).optional(),
-  dayIndex: z.number().int().min(0).max(365).optional(),
+  type: nullishToUndefined(WaypointTypeSchema),
+  name: nullishToUndefined(z.string().min(1).max(200)),
+  lat: nullishToUndefined(z.number().min(-90).max(90)),
+  lng: nullishToUndefined(z.number().min(-180).max(180)),
+  notes: nullishToUndefined(z.string().max(1000)),
+  sortOrder: nullishToUndefined(z.number().int().min(0).max(1000)),
+  dayIndex: nullishToUndefined(z.number().int().min(0).max(365)),
   /** @deprecated kept for backward compat — optional on new data */
   periodOfDay: PeriodOfDaySchema.nullable().optional(),
 });
@@ -522,7 +523,7 @@ export type ReorderWaypointsInput = z.infer<typeof ReorderWaypointsInputSchema>;
 export const JoinTripInputSchema = z.object({
   tripId: z.string().uuid(),
   status: ParticipantStatusSchema.optional().default('going'),
-  bikeId: z.string().uuid().optional(),
+  bikeId: nullishToUndefined(z.string().uuid()),
 });
 
 export type JoinTripInput = z.infer<typeof JoinTripInputSchema>;
@@ -645,9 +646,9 @@ export type TripReview = z.infer<typeof TripReviewSchema>;
 export const CreateTripReviewInputSchema = z.object({
   tripId: z.string().uuid(),
   rating: z.number().int().min(1).max(5),
-  text: z.string().min(1).max(500).transform(stripHtml).optional(),
-  conditionTags: z.array(ConditionTagSchema).max(10).optional(),
-  bikeId: z.string().uuid().optional(),
+  text: nullishToUndefined(z.string().min(1).max(500).transform(stripHtml)),
+  conditionTags: nullishToUndefined(z.array(ConditionTagSchema).max(10)),
+  bikeId: nullishToUndefined(z.string().uuid()),
 });
 export type CreateTripReviewInput = z.infer<typeof CreateTripReviewInputSchema>;
 

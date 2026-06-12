@@ -3,11 +3,9 @@ import {
   MotorcycleMakesDocument,
   MotorcycleModelsDocument,
 } from '@motovault/graphql';
-import { MotorcycleType, RidingGoal } from '@motovault/types';
+import { MotorcycleType } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import { ImpactFeedbackStyle } from 'expo-haptics';
-import { useRouter } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -19,25 +17,51 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, {
+  Easing,
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BikePhotoField } from '../../components/onboarding/bike-setup/bike-photo-field';
 import { BrandHero } from '../../components/onboarding/bike-setup/brand-hero';
 import { MakeGrid } from '../../components/onboarding/bike-setup/make-grid';
 import { ModelPicker } from '../../components/onboarding/bike-setup/model-picker';
-import { YearInput } from '../../components/onboarding/bike-setup/year-input';
+import { YearStepper } from '../../components/onboarding/bike-setup/year-stepper';
+import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { OB_ROUTE, OB_SCREEN, TOTAL_SCREENS } from '../../config/onboarding';
+import { getBrandColor, getBrandDna, MAKE_COLORS, POPULAR_MAKES } from '../../config/brand-dna';
+import { OB_SCREEN } from '../../config/onboarding';
 import { useMileageUnit } from '../../hooks/use-mileage-unit';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
+import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
 const currentYear = new Date().getFullYear();
+
+// Map a brand's visual archetype (from getBrandDna) to a MotorcycleType so
+// make-only partial captures still get a sensible default type.
+const ARCHETYPE_TO_TYPE: Record<string, MotorcycleType> = {
+  sport: MotorcycleType.SPORTBIKE,
+  adv: MotorcycleType.DUAL_SPORT,
+  cruiser: MotorcycleType.CRUISER,
+};
+
+function typeFromMake(makeName: string): MotorcycleType {
+  const dna = getBrandDna(makeName);
+  return (dna && ARCHETYPE_TO_TYPE[dna.type]) ?? MotorcycleType.STANDARD;
+}
 
 function detectTypeFromModel(modelName: string): MotorcycleType | null {
   const lower = modelName.toLowerCase();
@@ -47,7 +71,11 @@ function detectTypeFromModel(modelName: string): MotorcycleType | null {
     return MotorcycleType.CRUISER;
   if (/goldwing|gold wing|electra|road king|road glide|voyager|k\s?1600/i.test(lower))
     return MotorcycleType.TOURING;
-  if (/dr-z|drz|klx|crf|wr\d|xr\d|rally|tenere|versys|v-strom|vstrom|tiger|adventure/i.test(lower))
+  if (
+    /dr-z|drz|klx|crf|wr\d|xr\d|rally|tenere|versys|v-strom|vstrom|tiger|adventure|africa|gs\b|multistrada|africa twin/i.test(
+      lower,
+    )
+  )
     return MotorcycleType.DUAL_SPORT;
   if (/crf\d+f|yz\d+f|kx\d+|rm-z|rmz|tc\d|fc\d|sx|exc/i.test(lower))
     return MotorcycleType.DIRT_BIKE;
@@ -58,13 +86,18 @@ function detectTypeFromModel(modelName: string): MotorcycleType | null {
 
 export default function BikeSetupScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const onBack = useOnboardingBack(OB_SCREEN.BIKE_SETUP);
+  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.BIKE_SETUP);
+  const goNext = useOnboardingNext(OB_SCREEN.BIKE_SETUP);
   const insets = useSafeAreaInsets();
   const setBikeData = useOnboardingStore((s) => s.setBikeData);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
   const existingBikeData = useOnboardingStore((s) => s.bikeData);
-  const ridingGoals = useOnboardingStore((s) => s.ridingGoals);
+  // Mileage captured on the (invested-flow) last-service step, which runs BEFORE
+  // this screen. bike-setup has no mileage input of its own, so this is the only
+  // place the rider enters it — fold it onto the bike here or it is lost.
+  const preBikeMileage = useOnboardingStore((s) => s.preBikeMileage);
+  const preBikeMileageUnit = useOnboardingStore((s) => s.preBikeMileageUnit);
   // Seed the unit from the user's profile preference (the per-bike unit is deprecated).
   const mileageUnit = useMileageUnit();
 
@@ -86,6 +119,8 @@ export default function BikeSetupScreen() {
     modelId: number;
     modelName: string;
   } | null>(existingBikeData?.model ? { modelId: 0, modelName: existingBikeData.model } : null);
+  const [showPartialCapture, setShowPartialCapture] = useState(false);
+  const [photoUri, setPhotoUri] = useState<string | null>(existingBikeData?.photoUri ?? null);
 
   // ── Derived ─────────────────────────────────────────────────
   const yearNum = Number.parseInt(year, 10);
@@ -95,30 +130,36 @@ export default function BikeSetupScreen() {
   const canContinue = isValidYear && hasMake;
 
   useEffect(() => {
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
-      step: 'bike_setup',
-      step_index: 3,
-    });
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.BIKE_SETUP);
   }, []);
 
-  // ── Bridge subtitle based on goals ──────────────────────────
-  const bridgeSubtitle = useMemo(() => {
-    if (ridingGoals.includes(RidingGoal.TRACK_RIDES))
-      return t('onboarding.v2BikeSetupBridgeRides', {
-        defaultValue: "We'll set up ride tracking and stats tailored to your motorcycle.",
-      });
-    if (ridingGoals.includes(RidingGoal.MANAGE_EXPENSES))
-      return t('onboarding.v2BikeSetupBridgeExpenses', {
-        defaultValue: "We'll help you track costs and find savings for your ride.",
-      });
-    if (ridingGoals.includes(RidingGoal.DISCOVER_ROUTES))
-      return t('onboarding.v2BikeSetupBridgeRoutes', {
-        defaultValue: "We'll recommend routes and riding spots matched to your bike.",
-      });
-    return t('onboarding.v2BikeSetupSubtitle', {
-      defaultValue: "We'll personalize everything — service data, specs, and common issues.",
-    });
-  }, [ridingGoals, t]);
+  // ── Stage: make selected vs not ─────────────────────────────
+  // Leave the grid (Stage A) once a make is picked OR "Other make" is tapped —
+  // the latter reveals the custom-name input even before a name is typed.
+  const showMakeDetails = !!selectedMake || isCustomMake;
+  // Brand hero/headline only once we actually have a name to show.
+  const showBrandHero = !!selectedMake || (isCustomMake && !!customMakeName.trim());
+
+  // ── Dynamic headline + reward subtitle (empty → picked) ─────
+  const headline = useMemo(() => {
+    if (showBrandHero && activeMakeName) {
+      return {
+        lead: t('onboarding.v2BikeSetupTitlePicked' as never),
+        accent: t('onboarding.v2BikeSetupTitlePickedAccent' as never, {
+          makeName: activeMakeName,
+        }) as string,
+        sub: isCustomMake
+          ? t('onboarding.v2BikeSetupSubtitleReward' as never)
+          : (getBrandDna(activeMakeName)?.tagline ??
+            t('onboarding.v2BikeSetupSubtitleReward' as never)),
+      };
+    }
+    return {
+      lead: t('onboarding.v2BikeSetupTitleEmpty' as never),
+      accent: t('onboarding.v2BikeSetupTitleEmptyAccent' as never),
+      sub: t('onboarding.v2BikeSetupSubtitleReward' as never),
+    };
+  }, [showBrandHero, activeMakeName, isCustomMake, t]);
 
   // ── Queries ─────────────────────────────────────────────────
   const makesResult = useQuery({
@@ -127,6 +168,13 @@ export default function BikeSetupScreen() {
     staleTime: Number.POSITIVE_INFINITY,
   });
   const makes = makesResult.data?.motorcycleMakes ?? [];
+
+  // First 4 popular makes (matched to real NHTSA make ids) for the partial-capture chips.
+  const quickMakes = useMemo(() => {
+    return POPULAR_MAKES.slice(0, 4)
+      .map((name) => makes.find((m) => m.makeName.toLowerCase() === name.toLowerCase()) ?? null)
+      .filter((m): m is (typeof makes)[number] => m !== null);
+  }, [makes]);
 
   const makeStatsResult = useQuery({
     queryKey: ['makeStats'],
@@ -187,14 +235,13 @@ export default function BikeSetupScreen() {
       makeId,
       model: modelName,
       type: detectedType ?? MotorcycleType.STANDARD,
-      currentMileage: existingBikeData?.currentMileage ?? 0,
-      mileageUnit: existingBikeData?.mileageUnit ?? mileageUnit,
+      currentMileage: preBikeMileage ?? existingBikeData?.currentMileage ?? 0,
+      mileageUnit: preBikeMileageUnit ?? existingBikeData?.mileageUnit ?? mileageUnit,
+      ...(photoUri ? { photoUri } : {}),
     });
 
     setLastCompletedScreen(OB_SCREEN.BIKE_SETUP);
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
-      step: 'bike_setup',
-      step_index: 3,
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.BIKE_SETUP, {
       bike_year: yearNum,
       bike_make: makeName,
       bike_model: modelName || 'skipped',
@@ -202,26 +249,63 @@ export default function BikeSetupScreen() {
       type_auto_detected: !!detectedType,
     });
 
-    router.push(OB_ROUTE.MAINTENANCE);
+    // Activation metric — fires for full (make+model) and partial (make-only)
+    // capture so the install→bike-add guardrail counts both. See the A/B schema.
+    trackOnboardingEvent(AnalyticsEvent.BIKE_ADDED, OB_SCREEN.BIKE_SETUP, {
+      capture_level: modelName ? 'model' : 'make',
+      bike_make: makeName,
+      bike_year: yearNum,
+    });
+
+    goNext();
+  };
+
+  // Make-only partial capture — picking a quick chip creates a make-level bike
+  // (year defaulted, make/makeId set, no model, type inferred from brand DNA)
+  // and advances. Emits bike_added with capture_level: 'make'.
+  const handleQuickMake = (make: { makeId: number; makeName: string }) => {
+    triggerImpact(ImpactFeedbackStyle.Medium);
+
+    setBikeData({
+      year: yearNum,
+      make: make.makeName,
+      makeId: make.makeId,
+      model: '',
+      type: typeFromMake(make.makeName),
+      currentMileage: preBikeMileage ?? existingBikeData?.currentMileage ?? 0,
+      mileageUnit: preBikeMileageUnit ?? existingBikeData?.mileageUnit ?? mileageUnit,
+    });
+
+    setLastCompletedScreen(OB_SCREEN.BIKE_SETUP);
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.BIKE_SETUP, {
+      bike_year: yearNum,
+      bike_make: make.makeName,
+      bike_model: 'skipped',
+      is_custom_make: false,
+      type_auto_detected: false,
+    });
+
+    trackOnboardingEvent(AnalyticsEvent.BIKE_ADDED, OB_SCREEN.BIKE_SETUP, {
+      capture_level: 'make',
+      bike_make: make.makeName,
+      bike_year: yearNum,
+    });
+
+    goNext();
   };
 
   const handleSkip = () => {
     setBikeData(null);
     setLastCompletedScreen(OB_SCREEN.BIKE_SETUP);
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, {
-      step: 'bike_setup',
-      step_index: 3,
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, OB_SCREEN.BIKE_SETUP, {
       skipped_section: 'bike_setup',
     });
-    router.push(OB_ROUTE.MAINTENANCE);
+    goNext();
   };
-
-  // ── Stage: make selected vs not ─────────────────────────────
-  const showBrandHero = !!selectedMake || (isCustomMake && !!customMakeName.trim());
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={3} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -235,29 +319,17 @@ export default function BikeSetupScreen() {
           }}
           style={{ paddingHorizontal: 24, paddingTop: 12 }}
         >
-          <Pressable
+          <OnboardingBackButton
             onPress={onBack}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 16,
-              zIndex: 10,
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              borderCurve: 'continuous',
-              backgroundColor: ONBOARDING_COLORS.surface2,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <ChevronLeft size={20} color={ONBOARDING_COLORS.textPrimary} />
-          </Pressable>
+            style={{ position: 'absolute', top: 0, left: 16, zIndex: 10 }}
+          />
 
           <View style={{ height: 48 }} />
+
+          <EyebrowPill
+            accent={ONBOARDING_COLORS.warm2}
+            label={t('onboarding.v2BikeSetupEyebrow' as never)}
+          />
 
           <Animated.View entering={FadeInDown.duration(300)}>
             <Text
@@ -270,12 +342,12 @@ export default function BikeSetupScreen() {
                 marginBottom: 8,
               }}
             >
-              {t('onboarding.v2BikeSetupTitle')}
+              {headline.lead}
               {'\n'}
               <Text
                 style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}
               >
-                {t('onboarding.v2BikeSetupTitleItalic')}
+                {headline.accent}
               </Text>
             </Text>
             <Text
@@ -286,7 +358,7 @@ export default function BikeSetupScreen() {
                 maxWidth: 330,
               }}
             >
-              {bridgeSubtitle}
+              {headline.sub}
             </Text>
           </Animated.View>
         </View>
@@ -299,64 +371,19 @@ export default function BikeSetupScreen() {
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
         >
-          {!showBrandHero ? (
-            /* ═══ Stage A: Year + Make grid ═══ */
-            <>
-              <YearInput value={year} onChange={setYear} isValid={isValidYear} />
-              <MakeGrid
-                makes={makes}
-                stats={makeStats}
-                onSelect={handleSelectMake}
-                onSelectOther={handleSelectOther}
-              />
-            </>
+          {!showMakeDetails ? (
+            /* ═══ Stage A: Make grid (year is set after a make is picked) ═══ */
+            <MakeGrid
+              makes={makes}
+              stats={makeStats}
+              onSelect={handleSelectMake}
+              onSelectOther={handleSelectOther}
+            />
           ) : (
             /* ═══ Stage B: Brand hero + model picker ═══ */
             <>
-              {/* Compact year pill */}
-              <View
-                style={{
-                  alignSelf: 'flex-start',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 10,
-                  paddingVertical: 8,
-                  paddingLeft: 14,
-                  paddingRight: 12,
-                  borderRadius: 999,
-                  backgroundColor: ONBOARDING_COLORS.surfaceInput,
-                  borderWidth: 1,
-                  borderColor: ONBOARDING_COLORS.borderSubtle,
-                }}
-              >
-                <Text
-                  style={{
-                    fontFamily: 'GeistMono-Medium',
-                    fontSize: 9.5,
-                    fontWeight: '600',
-                    letterSpacing: 1.5,
-                    textTransform: 'uppercase',
-                    color: ONBOARDING_COLORS.textLabel,
-                  }}
-                >
-                  {t('onboarding.v2BikeSetupYearCompact')}
-                </Text>
-                <TextInput
-                  value={year}
-                  onChangeText={setYear}
-                  keyboardType="number-pad"
-                  maxLength={4}
-                  style={{
-                    width: 52,
-                    textAlign: 'center',
-                    color: ONBOARDING_COLORS.textWhite,
-                    fontWeight: '700',
-                    fontSize: 16,
-                    letterSpacing: 1,
-                    padding: 0,
-                  }}
-                />
-              </View>
+              {/* Model year stepper */}
+              <YearStepper value={year} onChange={setYear} onStep={triggerImpact} />
 
               {/* Custom make name input (only for "Other") */}
               {isCustomMake && !customMakeName.trim() && (
@@ -404,6 +431,12 @@ export default function BikeSetupScreen() {
                     onSelect={handleSelectModel}
                     onDismiss={() => setSelectedModel(null)}
                   />
+
+                  <BikePhotoField
+                    photoUri={photoUri}
+                    onChange={setPhotoUri}
+                    accent={getBrandColor(activeMakeName)}
+                  />
                 </>
               )}
             </>
@@ -419,15 +452,123 @@ export default function BikeSetupScreen() {
             backgroundColor: ONBOARDING_COLORS.background,
           }}
         >
+          {/* Make-only partial capture — reveals quick make chips. */}
+          {!showMakeDetails && showPartialCapture && quickMakes.length > 0 && (
+            <Animated.View
+              entering={FadeInDown.duration(260)}
+              style={{
+                marginBottom: 12,
+                padding: 14,
+                borderRadius: 16,
+                borderCurve: 'continuous',
+                backgroundColor: ONBOARDING_COLORS.surfaceInput,
+                borderWidth: 1,
+                borderColor: ONBOARDING_COLORS.borderSubtle,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 12.5,
+                  color: ONBOARDING_COLORS.textSoft,
+                  lineHeight: 18,
+                  marginBottom: 10,
+                }}
+              >
+                {t('onboarding.v2BikeSetupPartialHelper' as never)}
+              </Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {quickMakes.map((m) => (
+                  <Pressable
+                    key={m.makeId}
+                    onPress={() => handleQuickMake(m)}
+                    accessibilityRole="button"
+                    accessibilityLabel={m.makeName}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 8,
+                      paddingVertical: 8,
+                      paddingHorizontal: 12,
+                      borderRadius: 999,
+                      backgroundColor: ONBOARDING_COLORS.surfaceCardTranslucent,
+                      borderWidth: 1,
+                      borderColor: ONBOARDING_COLORS.borderSubtle,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: 6,
+                        borderCurve: 'continuous',
+                        backgroundColor: MAKE_COLORS[m.makeName] ?? ONBOARDING_COLORS.warm,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 10,
+                          fontWeight: '800',
+                          color: ONBOARDING_COLORS.textWhite,
+                        }}
+                      >
+                        {m.makeName[0]}
+                      </Text>
+                    </View>
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: '600',
+                        color: ONBOARDING_COLORS.textPrimary,
+                      }}
+                    >
+                      {m.makeName}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              {/* True skip — no bike, keeps existing handleSkip navigation. */}
+              <Pressable
+                onPress={handleSkip}
+                accessibilityRole="button"
+                accessibilityLabel="Skip bike setup"
+                style={{ alignSelf: 'flex-start', marginTop: 12, paddingVertical: 4 }}
+              >
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: ONBOARDING_COLORS.textFaded,
+                    fontWeight: '500',
+                    textDecorationLine: 'underline',
+                    textDecorationColor: ONBOARDING_COLORS.underlineSubtle,
+                  }}
+                >
+                  {t('onboarding.v2BikeSetupSkip')}
+                </Text>
+              </Pressable>
+            </Animated.View>
+          )}
+
           <OnboardingContinueButton
-            label={t('onboarding.continue', { defaultValue: 'Continue' })}
+            label={t('onboarding.v2BikeSetupCta' as never)}
             onPress={handleContinue}
             disabled={!canContinue}
           />
           <Pressable
-            onPress={handleSkip}
+            onPress={() => {
+              // With a make picked / custom entry open, the footer is a true skip.
+              // In the empty grid it reveals the make-only partial-capture chips.
+              if (showMakeDetails) {
+                handleSkip();
+              } else {
+                triggerImpact();
+                setShowPartialCapture((v) => !v);
+              }
+            }}
             accessibilityRole="button"
-            accessibilityLabel="Skip bike setup"
+            accessibilityLabel={showMakeDetails ? 'Skip bike setup' : 'Not sure of the details'}
             style={{ alignSelf: 'center', marginTop: 14, padding: 8 }}
           >
             <Text
@@ -440,7 +581,9 @@ export default function BikeSetupScreen() {
                 letterSpacing: -0.1,
               }}
             >
-              {t('onboarding.v2BikeSetupSkip')}
+              {showMakeDetails
+                ? t('onboarding.v2BikeSetupSkip')
+                : t('onboarding.v2BikeSetupNotSure' as never)}
             </Text>
           </Pressable>
         </View>
@@ -458,3 +601,58 @@ const sectionLabel = {
   marginBottom: 12,
   paddingLeft: 2,
 };
+
+// Eyebrow pill — matches the styling used on experience.tsx (pulsing dot + caps mono label).
+function EyebrowPill({ accent, label }: { accent: string; label: string }) {
+  const dotScale = useSharedValue(1);
+
+  useEffect(() => {
+    dotScale.value = withRepeat(
+      withSequence(
+        withTiming(1.4, { duration: 900, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 900, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+      false,
+    );
+  }, [dotScale]);
+
+  const dotStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: dotScale.value }],
+  }));
+
+  return (
+    <Animated.View
+      entering={FadeInDown.delay(100).duration(500)}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        gap: 6,
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+        borderRadius: 999,
+        backgroundColor: `${accent}1F`,
+        borderWidth: 1,
+        borderColor: `${accent}4D`,
+        marginBottom: 14,
+      }}
+    >
+      <Animated.View
+        style={[{ width: 4, height: 4, borderRadius: 2, backgroundColor: accent }, dotStyle]}
+      />
+      <Text
+        style={{
+          fontFamily: 'GeistMono-Medium',
+          fontSize: 9.5,
+          fontWeight: '600',
+          letterSpacing: 1.7,
+          textTransform: 'uppercase',
+          color: accent,
+        }}
+      >
+        {label}
+      </Text>
+    </Animated.View>
+  );
+}

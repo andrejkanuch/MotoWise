@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
@@ -11,7 +11,7 @@ export class SponsorshipsService {
 
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
-    @Inject(SUPABASE_ADMIN) readonly _supabaseAdmin: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
     private readonly configService: ConfigService,
   ) {}
 
@@ -42,69 +42,44 @@ export class SponsorshipsService {
     return (data ?? []).map(this.mapRow);
   }
 
-  /** Increment impressions_count for a sponsorship */
+  /**
+   * Atomically increment impressions_count + spend (with budget clamp and
+   * auto-pause) via the track_sponsorship_impression RPC (audit H8). The RPC
+   * is service_role-only — the previous user-client read-modify-write both
+   * raced on spent_this_month and silently no-oped under RLS for any viewer
+   * who wasn't the sponsor.
+   *
+   * @returns true when an active, in-window sponsorship was updated
+   */
   async trackImpression(sponsorshipId: string): Promise<boolean> {
     if (!this.isEnabled()) return false;
 
-    const { data: existing, error: fetchError } = await this.supabase
-      .from('sponsorships')
-      .select('id, impressions_count, cost_per_impression, spent_this_month, monthly_budget')
-      .eq('id', sponsorshipId)
-      .eq('status', 'active')
-      .single();
-
-    if (fetchError || !existing) {
-      throw new NotFoundException(`Sponsorship ${sponsorshipId} not found or inactive`);
-    }
-
-    const newSpent = Number(existing.spent_this_month) + Number(existing.cost_per_impression);
-
-    const { error } = await this.supabase
-      .from('sponsorships')
-      .update({
-        impressions_count: existing.impressions_count + 1,
-        spent_this_month: newSpent,
-        // Auto-pause if budget is exhausted
-        ...(newSpent >= Number(existing.monthly_budget) && Number(existing.monthly_budget) > 0
-          ? { status: 'paused' }
-          : {}),
-      })
-      .eq('id', sponsorshipId);
+    const { data, error } = await this.supabaseAdmin.rpc('track_sponsorship_impression', {
+      p_id: sponsorshipId,
+    });
 
     if (error) {
       this.logger.error(`trackImpression failed: ${error.message}`);
       return false;
     }
 
-    return true;
+    return data === true;
   }
 
-  /** Increment clicks_count for a sponsorship */
+  /** Atomically increment clicks_count via the track_sponsorship_click RPC (audit H8). */
   async trackClick(sponsorshipId: string): Promise<boolean> {
     if (!this.isEnabled()) return false;
 
-    const { data: existing, error: fetchError } = await this.supabase
-      .from('sponsorships')
-      .select('id, clicks_count')
-      .eq('id', sponsorshipId)
-      .eq('status', 'active')
-      .single();
-
-    if (fetchError || !existing) {
-      throw new NotFoundException(`Sponsorship ${sponsorshipId} not found or inactive`);
-    }
-
-    const { error } = await this.supabase
-      .from('sponsorships')
-      .update({ clicks_count: existing.clicks_count + 1 })
-      .eq('id', sponsorshipId);
+    const { data, error } = await this.supabaseAdmin.rpc('track_sponsorship_click', {
+      p_id: sponsorshipId,
+    });
 
     if (error) {
       this.logger.error(`trackClick failed: ${error.message}`);
       return false;
     }
 
-    return true;
+    return data === true;
   }
 
   /** Map a snake_case DB row to a camelCase Sponsorship */
@@ -122,9 +97,6 @@ export class SponsorshipsService {
       impressionsCount: row.impressions_count as number,
       clicksCount: row.clicks_count as number,
       status: row.status as string,
-      costPerImpression: Number(row.cost_per_impression),
-      monthlyBudget: Number(row.monthly_budget),
-      spentThisMonth: Number(row.spent_this_month),
       startsAt: new Date(row.starts_at as string),
       endsAt: row.ends_at ? new Date(row.ends_at as string) : undefined,
       createdAt: new Date(row.created_at as string),

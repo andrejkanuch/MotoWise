@@ -1,9 +1,13 @@
 import { GenerateArticleSchema } from '@motovault/types';
+import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
+import { GqlThrottlerGuard } from '../../common/guards/gql-throttler.guard';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { THROTTLE_PRESETS } from '../../config/constants';
 import { ArticleGeneratorService } from './article-generator.service';
 import { ArticlesService } from './articles.service';
 import { GenerateArticleInput } from './dto/generate-article.input';
@@ -47,6 +51,8 @@ export class ArticlesResolver {
     return this.articlesService.findPopular(first);
   }
 
+  @UseGuards(GqlThrottlerGuard)
+  @Throttle({ default: THROTTLE_PRESETS.AI_GENERATION })
   @Mutation(() => Article)
   async generateArticle(
     @CurrentUser() user: AuthUser,

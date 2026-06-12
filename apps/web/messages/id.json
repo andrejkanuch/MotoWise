@@ -38,7 +38,8 @@
     "scrollDown": "Gulir ke bawah",
     "seoTitle": "Pelacak Perawatan Motor & Manajer Pengeluaran",
     "subtitleShort": "Maintenance tracking, trip planning, and expense logging — all in one free app for iOS and Android.",
-    "trustLine": "Free to download — no credit card required."
+    "trustLine": "Free to download — no credit card required.",
+    "badgeExpensesHook": "Ketahui biaya sebenarnya motor Anda"
   },
   "Features": {
     "sectionLabel": "Fitur",
