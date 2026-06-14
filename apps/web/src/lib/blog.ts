@@ -82,6 +82,22 @@ export function getArticleUrl(slug: string, locale: string): string {
   return `${BASE_URL}${prefix}/blog/${slug}`;
 }
 
+/**
+ * Canonical URL for a blog article served in `locale`.
+ *
+ * Self-canonical only when a real translated MDX file exists for that locale.
+ * Otherwise the page is rendering English fallback content (see `getArticles`),
+ * so it must canonicalize to the English URL — never self-canonicalize fallback
+ * content, or Google sees identical English text at /blog/x, /ja/blog/x,
+ * /pl/blog/x, … as competing duplicates ("Duplicate without user-selected
+ * canonical"). Mirrors the locale-detection used by `getArticleHreflangMap`.
+ */
+export function getCanonicalArticleUrl(slug: string, locale: string): string {
+  const hasTranslation =
+    locale === 'en' || readArticlesFromDisk(locale).some((a) => a.slug === slug);
+  return getArticleUrl(slug, hasTranslation ? locale : 'en');
+}
+
 /** Returns the hreflang map for a blog article, only including locales where the article exists. */
 export function getArticleHreflangMap(slug: string): Record<string, string> {
   const languages: Record<string, string> = {};

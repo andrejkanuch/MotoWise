@@ -16,6 +16,7 @@ import {
   getArticleHreflangMap,
   getArticleSlugs,
   getArticleUrl,
+  getCanonicalArticleUrl,
   getRelatedArticles,
 } from '@/lib/blog';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
@@ -43,6 +44,10 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
   }
 
   const ogImage = article.heroImage || '/og-image.png';
+  // Self-canonical only when a real translation exists; fallback locales
+  // (English content under /ja, /pl, /pt-BR, or any untranslated slug) point at
+  // the English URL so Google doesn't treat them as duplicate pages.
+  const canonicalUrl = getCanonicalArticleUrl(slug, locale);
 
   return {
     title: article.title,
@@ -50,7 +55,7 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
     keywords: article.keywords,
     authors: [{ name: article.author }],
     alternates: {
-      canonical: getArticleUrl(slug, locale),
+      canonical: canonicalUrl,
       languages: getArticleHreflangMap(slug),
     },
     openGraph: {
@@ -59,7 +64,7 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
       type: 'article',
       publishedTime: article.date,
       authors: [article.author],
-      url: getArticleUrl(slug, locale),
+      url: canonicalUrl,
       images: [{ url: ogImage, width: 1200, height: 630, alt: article.heroAlt || article.title }],
     },
   };

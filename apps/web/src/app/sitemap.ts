@@ -1,4 +1,4 @@
-import { SitemapPublishedTripsDocument, TripTemplatesDocument } from '@motovault/graphql';
+import { SitemapPublishedTripsDocument } from '@motovault/graphql';
 import type { MetadataRoute } from 'next';
 import { routing } from '@/i18n/routing';
 import { BIKE_FIXTURES } from '@/lib/bikes/bike-data';
@@ -6,7 +6,7 @@ import { scoreBikePage } from '@/lib/bikes/quality-gate';
 import { getArticles } from '@/lib/blog';
 import { BASE_URL } from '@/lib/constants';
 import { gqlServerFetcher } from '@/lib/graphql-server';
-import { canonicalCountry, canonicalRegion } from '@/lib/seo/canonical';
+import { canonicalCountry, canonicalRegion, canonicalTrip } from '@/lib/seo/canonical';
 
 const host = BASE_URL;
 const locales = routing.locales;
@@ -101,23 +101,17 @@ function getPageImages(path: string): string[] {
   return [];
 }
 
-/** Published trip templates for explore/country/region sitemap URLs. */
+/**
+ * All published trips — powers both the `/trips/` detail URLs and the explore
+ * country/region discovery pages. Uses `sitemapPublishedTrips` (returns every
+ * published trip) rather than the paginated `tripTemplates` query, which is
+ * capped at 50 per page server-side and silently dropped ~85% of live trip
+ * pages from the sitemap.
+ */
 async function getPublishedTripsForSitemap() {
   try {
     const data = await gqlServerFetcher(SitemapPublishedTripsDocument);
     return data.sitemapPublishedTrips;
-  } catch {
-    return [];
-  }
-}
-
-/** Trip templates for /trips/ URLs. */
-async function getTripTemplates() {
-  try {
-    const data = await gqlServerFetcher(TripTemplatesDocument, { first: 500 });
-    return data.tripTemplates.edges
-      .map((e) => e.node)
-      .filter((t) => t.slug && t.countryCode && t.regionCode);
   } catch {
     return [];
   }
@@ -181,17 +175,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date('2026-04-11'),
   }));
 
-  // ---- Trip Template pages ----
-  const tripTemplates = await getTripTemplates();
-
-  const tripTemplateEntries = tripTemplates.map((t) => ({
-    url: `${host}/trips/${(t.countryCode ?? '').toLowerCase()}/${(t.regionCode ?? '').toLowerCase()}/${(t.slug ?? '').toLowerCase()}`,
-    lastModified: t.publishedAt ? new Date(t.publishedAt) : new Date(),
-  }));
-
-  // ---- Explore discovery pages (derived from trip templates) ----
+  // ---- Trip detail pages + explore discovery (one fetch, both derived) ----
   const publishedTrips = await getPublishedTripsForSitemap();
 
+  const tripTemplateEntries = publishedTrips.map((t) => ({
+    url: canonicalTrip(
+      t.countryCode.toLowerCase(),
+      t.regionCode.toLowerCase(),
+      t.slug.toLowerCase(),
+    ),
+    lastModified: t.updatedAt ? new Date(t.updatedAt) : new Date(),
+  }));
+
+  // ---- Explore discovery pages (derived from the same published trips) ----
   const countrySet = new Set<string>();
   const regionSet = new Set<string>();
   for (const t of publishedTrips) {
