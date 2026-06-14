@@ -22,7 +22,13 @@ import {
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import type { TocHeading } from '@/lib/rehype-extract-headings';
 import { rehypeExtractHeadings } from '@/lib/rehype-extract-headings';
-import { buildArticle, buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
+import {
+  buildArticle,
+  buildBreadcrumbList,
+  buildFAQPage,
+  buildGraph,
+  buildWebPage,
+} from '@/lib/seo/schema';
 
 export const revalidate = 3600;
 
@@ -178,6 +184,9 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
       slug,
       wordCount: article.wordCount,
     }),
+    article.faq && article.faq.length > 0
+      ? buildFAQPage(article.faq, `${locale}/blog/${slug}/faq`)
+      : null,
   );
 
   return (
@@ -232,6 +241,30 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
         <TableOfContents headings={headings} />
 
         <div className="prose prose-invert max-w-none">{content}</div>
+
+        {article.faq && article.faq.length > 0 && (
+          <section className="mt-16" aria-labelledby="faq-heading">
+            <h2 id="faq-heading" className="mb-6 text-2xl font-bold text-neutral-50">
+              Frequently Asked Questions
+            </h2>
+            <div className="divide-y divide-neutral-800 border-y border-neutral-800">
+              {article.faq.map((item) => (
+                <details key={item.question} className="group py-4">
+                  <summary className="flex cursor-pointer items-center justify-between gap-4 text-base font-semibold text-neutral-100 marker:content-none">
+                    {item.question}
+                    <span
+                      aria-hidden="true"
+                      className="text-amber-400 transition-transform group-open:rotate-45"
+                    >
+                      +
+                    </span>
+                  </summary>
+                  <p className="mt-3 leading-relaxed text-neutral-300">{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        )}
 
         <div className="mt-16">
           <AuthorBio author={author} />

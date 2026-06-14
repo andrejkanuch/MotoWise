@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import matter from 'gray-matter';
 import { BASE_URL } from './constants';
+import type { FaqItem } from './seo/schema';
 
 export interface Article {
   slug: string;
@@ -18,6 +19,8 @@ export interface Article {
   category?: string;
   wordCount?: number;
   dateModified?: string;
+  /** Optional Q&A pairs surfaced as FAQPage structured data (AI Overviews / PAA). */
+  faq?: FaqItem[];
 }
 
 const CONTENT_DIR = path.join(process.cwd(), 'content/blog');
@@ -51,6 +54,12 @@ function readArticlesFromDisk(locale: string): Article[] {
         category: data.category,
         wordCount: data.wordCount ? Number(data.wordCount) : undefined,
         dateModified: data.dateModified || undefined,
+        faq: Array.isArray(data.faq)
+          ? data.faq.filter((f: unknown): f is FaqItem => {
+              const item = f as Partial<FaqItem>;
+              return Boolean(item?.question && item?.answer);
+            })
+          : undefined,
       } satisfies Article;
     })
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
