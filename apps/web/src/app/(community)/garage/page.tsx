@@ -340,6 +340,13 @@ function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () 
 // ═══════════════════════════════════════════════
 // Main Garage Page
 // ═══════════════════════════════════════════════
+// TODO(perf, big-refactor): this whole dashboard is client-rendered — it ships
+// a loading spinner, then fetches bikes/expenses/maintenance/trips/profile via
+// TanStack Query and paints content only after they resolve. Field CWV (p75):
+// LCP ~4.5s (content appears post-fetch) and CLS ~0.14 (spinner→content swap +
+// async sections expanding). Properly fixing both needs server-side rendering
+// of the authenticated dashboard (fetch on the server, stream sections, reserve
+// per-section heights) — a sizable refactor of this route's data layer + auth.
 export default function GaragePage() {
   const t = useTranslations('Garage');
   const { isPro } = useProStatus();

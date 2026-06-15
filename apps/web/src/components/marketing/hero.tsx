@@ -19,7 +19,7 @@ function StaggeredChars({ text, baseDelay }: { text: string; baseDelay: number }
     <span aria-hidden="true">
       {words.map((word, wi) => {
         const chars = Array.from(word).map((char) => {
-          const delay = baseDelay + charIndex * 0.028;
+          const delay = baseDelay + charIndex * 0.018;
           charIndex += 1;
           return (
             <span
@@ -300,7 +300,7 @@ export function Hero() {
             {t('titleLine1')} {t('titleLine2')}
           </span>
           <span style={{ display: 'block', overflow: 'hidden', paddingBottom: '0.06em' }}>
-            <StaggeredChars text={t('titleLine1')} baseDelay={0.15} />
+            <StaggeredChars text={t('titleLine1')} baseDelay={0.08} />
           </span>
           <span style={{ display: 'block', overflow: 'hidden', padding: '0 0.06em 0.12em 0' }}>
             <span className="hero-line2" aria-hidden="true">

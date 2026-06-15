@@ -43,6 +43,15 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // TODO(perf, big-refactor): getLocale()/getMessages() here read request
+  // headers and force EVERY route into dynamic rendering, because this root
+  // layout sits above the [locale] segment and cannot call setRequestLocale().
+  // Marketing pages work around this with `export const dynamic = 'force-static'`
+  // (see (marketing)/layout.tsx). The proper fix is to relocate i18n message
+  // loading + NextIntlClientProvider into the [locale] layout (which has the
+  // locale param and can render statically), leaving this root layout
+  // locale-agnostic. Touches all non-localed routes too, so it's a larger,
+  // separately-reviewed change.
   const locale = await getLocale();
   const messages = await getMessages();
   // Only pass the CookieBanner namespace to avoid bloating the client bundle
