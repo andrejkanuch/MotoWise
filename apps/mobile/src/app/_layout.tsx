@@ -3,15 +3,13 @@ import {
   InstrumentSerif_400Regular,
   InstrumentSerif_400Regular_Italic,
 } from '@expo-google-fonts/instrument-serif';
-import { useFonts } from 'expo-font';
-import { AppState } from 'react-native';
-
 import { palette } from '@motovault/design-system';
 import { CompleteMaintenanceTaskDocument, MeDocument } from '@motovault/graphql';
 import { Currency, MeasurementSystem } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
 import { useQuery } from '@tanstack/react-query';
 import * as Application from 'expo-application';
+import { useFonts } from 'expo-font';
 import * as Network from 'expo-network';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
@@ -19,6 +17,7 @@ import {
   getTrackingPermissionsAsync,
   requestTrackingPermissionsAsync,
 } from 'expo-tracking-transparency';
+import { Alert, AppState } from 'react-native';
 import { Settings } from 'react-native-fbsdk-next';
 
 // expo-quick-actions requires a custom dev build — guard for Expo Go
@@ -96,7 +95,12 @@ import { useExperimentStore } from '../stores/experiment.store';
 import { useSubscriptionStore } from '../stores/subscription.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
 import { clearRideData, rideMMKV } from '../utils/ride-storage';
-import { clearAll as clearSyncQueue, drainQueue } from '../utils/ride-sync-queue';
+import {
+  clearAll as clearSyncQueue,
+  drainQueue,
+  redriveDeadLetterQueue,
+  setDeadLetterListener,
+} from '../utils/ride-sync-queue';
 
 // Native splash is the ONLY splash: hold it while the app boots (auth hydration
 // + the `me` gate), then fade it out directly into real UI. The app tree mounts
@@ -556,6 +560,28 @@ function RootLayout() {
   useEffect(() => {
     drainQueue();
     let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+    let deadLetterAlertOpen = false;
+
+    // Surface permanently-failed ride ops (silent data loss otherwise) with a
+    // retry path. Guarded so repeated drains don't stack alerts.
+    setDeadLetterListener((count) => {
+      if (deadLetterAlertOpen) return;
+      deadLetterAlertOpen = true;
+      Alert.alert(
+        'Ride sync failed',
+        `${count} ride update${count === 1 ? '' : 's'} couldn't be synced. Retry now?`,
+        [
+          { text: 'Later', style: 'cancel', onPress: () => (deadLetterAlertOpen = false) },
+          {
+            text: 'Retry',
+            onPress: () => {
+              deadLetterAlertOpen = false;
+              redriveDeadLetterQueue();
+            },
+          },
+        ],
+      );
+    });
 
     const appSub = AppState.addEventListener('change', (state: string) => {
       if (state === 'active') {
@@ -574,6 +600,7 @@ function RootLayout() {
       appSub.remove();
       netSub.remove();
       clearTimeout(debounceTimer);
+      setDeadLetterListener(null);
     };
   }, []);
 

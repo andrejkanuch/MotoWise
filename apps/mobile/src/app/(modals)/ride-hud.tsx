@@ -19,6 +19,7 @@ import {
   flushBufferToMMKV,
   getPointBuffer,
   getWaypointChunks,
+  removeWaypointBuffer,
   rideMMKV,
   rideStorage,
 } from '../../utils/ride-storage';
@@ -206,6 +207,9 @@ export default function RideHudScreen() {
         variables: { input: { rideId, waypoints: bufferPoints } },
       });
     }
+    // Drop the persisted buffer key now that the points are durably enqueued —
+    // prevents crash-recovery from re-enqueuing them as duplicates after end.
+    removeWaypointBuffer(rideId);
 
     let totalDistance = 0;
     let maxSpd = 0;

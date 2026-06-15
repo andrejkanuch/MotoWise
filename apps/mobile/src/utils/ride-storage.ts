@@ -18,6 +18,7 @@ export const RIDE_KEYS = {
 } as const;
 
 const waypointChunkKey = (rideId: string, chunkIndex: number) => `ride:${rideId}:wp:${chunkIndex}`;
+const waypointBufferKey = (rideId: string) => `ride:${rideId}:wp:buffer`;
 
 export const CHUNK_SIZE = 50;
 
@@ -92,15 +93,25 @@ export function appendWaypoint(rideId: string, waypoint: Waypoint): Waypoint[] |
 export function flushBufferToMMKV(rideId: string): void {
   if (pointBuffer.length === 0) return;
   // Save partial buffer so it survives app kill
-  rideStorage.set(`ride:${rideId}:wp:buffer`, JSON.stringify(pointBuffer));
+  rideStorage.set(waypointBufferKey(rideId), JSON.stringify(pointBuffer));
 }
 
 export function restoreBufferFromMMKV(rideId: string): void {
-  const raw = rideStorage.getString(`ride:${rideId}:wp:buffer`);
+  const raw = rideStorage.getString(waypointBufferKey(rideId));
   if (raw) {
     pointBuffer = JSON.parse(raw) as Waypoint[];
-    rideStorage.remove(`ride:${rideId}:wp:buffer`);
+    rideStorage.remove(waypointBufferKey(rideId));
   }
+}
+
+/**
+ * Remove the persisted partial-buffer key. Call on the graceful/auto end path
+ * right after the in-memory buffer has been enqueued for upload, so a kill after
+ * end does not let `restoreBufferFromMMKV` re-enqueue the same points (duplicate
+ * waypoints). The durable copy now lives in the sync queue, not here.
+ */
+export function removeWaypointBuffer(rideId: string): void {
+  rideStorage.remove(waypointBufferKey(rideId));
 }
 
 export function getPointBuffer(): readonly Waypoint[] {
@@ -143,7 +154,7 @@ export function clearRideData(rideId: string): void {
     i++;
   }
   // Clear waypoint buffer
-  rideStorage.remove(`ride:${rideId}:wp:buffer`);
+  rideStorage.remove(waypointBufferKey(rideId));
   // Clear ride-level keys
   for (const key of Object.values(RIDE_KEYS)) {
     rideStorage.remove(key);

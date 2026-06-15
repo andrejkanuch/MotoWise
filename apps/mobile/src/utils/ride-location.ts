@@ -12,6 +12,7 @@ import {
   flushBufferToMMKV,
   getPointBuffer,
   getWaypointChunks,
+  removeWaypointBuffer,
   restoreBufferFromMMKV,
   rideMMKV,
 } from './ride-storage';
@@ -339,12 +340,15 @@ function autoEndRide(idleSince: number): void {
       ? encodePolyline(allWaypoints.map((wp) => [wp.latitude, wp.longitude] as [number, number]))
       : null;
 
-  // Upload any remaining waypoints that didn't fill a full chunk
+  // Upload any remaining waypoints that didn't fill a full chunk, then drop the
+  // persisted buffer key — the durable copy now lives in the sync queue, so a
+  // kill after this point must not let crash-recovery re-enqueue the same points.
   if (bufferPoints.length > 0) {
     enqueueOrExecute('uploadWaypoints', {
       variables: { input: { rideId, waypoints: bufferPoints } },
     });
   }
+  removeWaypointBuffer(rideId);
 
   useRideStore.getState().endRide();
   stopGPSListener();
