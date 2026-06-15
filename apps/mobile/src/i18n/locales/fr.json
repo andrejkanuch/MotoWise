@@ -1776,7 +1776,12 @@
     "speedLabel": "Vitesse",
     "layoutA": "Vue vitesse",
     "layoutB": "Vue carte",
-    "rec": "ENRG"
+    "rec": "ENRG",
+    "endRideTitle": "Terminer le trajet ?",
+    "shortRideWarning": "Votre trajet était très court ({{seconds}}s, {{meters}}m). Êtes-vous sûr ?",
+    "gpsTip": "Astuce : assurez-vous que votre téléphone a une vue dégagée sur le ciel pour le suivi GPS",
+    "keepRiding": "Continuer à rouler",
+    "endAnyway": "Terminer quand même"
   },
   "rideSummary": {
     "namePlaceholder": "Nomme ta balade...",

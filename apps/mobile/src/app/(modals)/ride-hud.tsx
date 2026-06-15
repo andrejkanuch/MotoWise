@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { HudLayoutA } from '../../components/ride/hud-layout-a';
 import { HudLayoutB } from '../../components/ride/hud-layout-b';
@@ -39,6 +40,7 @@ function persistLayout(layout: HudLayout) {
 }
 
 export default function RideHudScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const status = useRideStore((s) => s.status);
   const distance = useRideStore((s) => s.distance);
@@ -449,7 +451,7 @@ export default function RideHudScreen() {
               marginBottom: 8,
             }}
           >
-            End ride?
+            {t('rideHud.endRideTitle')}
           </Text>
           <Text
             style={{
@@ -459,8 +461,10 @@ export default function RideHudScreen() {
               marginBottom: 16,
             }}
           >
-            Your ride was very short ({guardData?.elapsed_s ?? 0}s, {guardData?.distance_m ?? 0}m).
-            Are you sure?
+            {t('rideHud.shortRideWarning', {
+              seconds: guardData?.elapsed_s ?? 0,
+              meters: guardData?.distance_m ?? 0,
+            })}
           </Text>
 
           {showGuardTip && (
@@ -474,7 +478,7 @@ export default function RideHudScreen() {
               }}
             >
               <Text style={{ color: palette.warning500, fontSize: 13, lineHeight: 18 }}>
-                Tip: Make sure your phone has clear sky view for GPS tracking
+                {t('rideHud.gpsTip')}
               </Text>
             </View>
           )}
@@ -492,7 +496,7 @@ export default function RideHudScreen() {
               }}
             >
               <Text style={{ color: palette.neutral50, fontSize: 15, fontWeight: '600' }}>
-                Keep Riding
+                {t('rideHud.keepRiding')}
               </Text>
             </Pressable>
             <Pressable
@@ -513,7 +517,7 @@ export default function RideHudScreen() {
               }}
             >
               <Text style={{ color: palette.neutral50, fontSize: 15, fontWeight: '600' }}>
-                End Anyway
+                {t('rideHud.endAnyway')}
               </Text>
             </Pressable>
           </View>

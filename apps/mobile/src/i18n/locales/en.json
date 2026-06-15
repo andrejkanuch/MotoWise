@@ -1884,7 +1884,12 @@
     "speedLabel": "Speed",
     "layoutA": "Speed view",
     "layoutB": "Map view",
-    "rec": "REC"
+    "rec": "REC",
+    "endRideTitle": "End ride?",
+    "shortRideWarning": "Your ride was very short ({{seconds}}s, {{meters}}m). Are you sure?",
+    "gpsTip": "Tip: Make sure your phone has clear sky view for GPS tracking",
+    "keepRiding": "Keep Riding",
+    "endAnyway": "End Anyway"
   },
   "rideSummary": {
     "namePlaceholder": "Name your ride...",

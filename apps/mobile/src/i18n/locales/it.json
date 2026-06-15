@@ -1776,7 +1776,12 @@
     "speedLabel": "Velocità",
     "layoutA": "Vista velocità",
     "layoutB": "Vista mappa",
-    "rec": "REG"
+    "rec": "REG",
+    "endRideTitle": "Terminare il giro?",
+    "shortRideWarning": "Il tuo giro è stato molto breve ({{seconds}}s, {{meters}}m). Sei sicuro?",
+    "gpsTip": "Suggerimento: assicurati che il telefono abbia una visuale libera del cielo per il tracciamento GPS",
+    "keepRiding": "Continua a guidare",
+    "endAnyway": "Termina comunque"
   },
   "rideSummary": {
     "namePlaceholder": "Dai un nome alla tua uscita...",

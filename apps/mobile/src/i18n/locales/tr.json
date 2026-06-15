@@ -1776,7 +1776,12 @@
     "speedLabel": "Hız",
     "layoutA": "Hız görünümü",
     "layoutB": "Harita görünümü",
-    "rec": "KYT"
+    "rec": "KYT",
+    "endRideTitle": "Sürüş bitirilsin mi?",
+    "shortRideWarning": "Sürüşün çok kısaydı ({{seconds}}sn, {{meters}}m). Emin misin?",
+    "gpsTip": "İpucu: GPS takibi için telefonunun gökyüzünü net gördüğünden emin ol",
+    "keepRiding": "Sürüşe devam et",
+    "endAnyway": "Yine de bitir"
   },
   "rideSummary": {
     "namePlaceholder": "Surusune isim ver...",
