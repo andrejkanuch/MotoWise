@@ -94,10 +94,11 @@ import { useAuthStore } from '../stores/auth.store';
 import { useExperimentStore } from '../stores/experiment.store';
 import { useSubscriptionStore } from '../stores/subscription.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
-import { clearRideData, rideMMKV } from '../utils/ride-storage';
+import { rideMMKV } from '../utils/ride-storage';
 import {
   clearAll as clearSyncQueue,
   drainQueue,
+  getQueueLength,
   redriveDeadLetterQueue,
   setDeadLetterListener,
 } from '../utils/ride-sync-queue';
@@ -452,9 +453,25 @@ function RootLayout() {
           queryClient.clear();
           clearPersistedQueryCache();
           SecureStore.deleteItemAsync(LAST_USER_KEY);
-          clearSyncQueue();
+          // Preserve unsynced rides across a forced sign-out / token revocation:
+          // keep the sync queue AND the active ride's local data while a ride is
+          // in progress or ops are still pending, so they drain once auth is
+          // restored instead of silently vanishing. (Edge case: a different user
+          // signing in inherits these; the backend rejects cross-owner ops, which
+          // the queue dead-letters + surfaces.)
           const activeRideId = rideMMKV.getCurrentId();
-          if (activeRideId) clearRideData(activeRideId);
+          if (getQueueLength() === 0 && activeRideId == null) {
+            clearSyncQueue();
+          } else {
+            captureException(
+              new Error('Forced sign-out with unsynced ride data — preserving sync queue'),
+              {
+                source: 'auth-state-change.localCleanup',
+                queueLength: String(getQueueLength()),
+                hasActiveRide: String(activeRideId != null),
+              },
+            );
+          }
           cancelAllNotifications();
           clearAllWidgets();
         }

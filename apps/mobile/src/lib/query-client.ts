@@ -2,7 +2,6 @@ import { MutationCache, onlineManager, QueryCache, QueryClient } from '@tanstack
 import { Alert } from 'react-native';
 import { captureException } from './analytics';
 import { hasGraphQLCode, userFriendlyError } from './graphql-errors';
-import { supabase } from './supabase';
 
 const NETWORK_ERROR_RE =
   /network.*(fail|error)|failed to fetch|internet.*offline|econnrefused|timeout/i;
@@ -58,7 +57,8 @@ export const queryClient = new QueryClient({
     onError: (error, query) => {
       const isAuthError = hasGraphQLCode(error, 'UNAUTHENTICATED');
       if (isAuthError) {
-        supabase.auth.refreshSession();
+        // gqlFetcher owns the (de-duped) refresh-and-retry on UNAUTHENTICATED.
+        // Here we only suppress the global error alert + Sentry noise.
         return;
       }
       // Don't alert or report to Sentry for expected offline failures
