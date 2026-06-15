@@ -4,7 +4,7 @@ import {
   InstrumentSerif_400Regular_Italic,
 } from '@expo-google-fonts/instrument-serif';
 import { palette } from '@motovault/design-system';
-import { CompleteMaintenanceTaskDocument, MeDocument } from '@motovault/graphql';
+import { CompleteMaintenanceTaskDocument } from '@motovault/graphql';
 import { Currency, MeasurementSystem } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
 import { useQuery } from '@tanstack/react-query';
@@ -81,6 +81,7 @@ import { LAST_USER_KEY, PersistedQueryClientBoundary } from '../lib/persisted-qu
 import { queryClient } from '../lib/query-client';
 import { queryKeys } from '../lib/query-keys';
 import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
+import { meOptions } from '../lib/query-options';
 import { clearPersistedQueryCache } from '../lib/query-persist';
 import {
   configureRevenueCatAnonymously,
@@ -152,14 +153,7 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
   const segments = useSegments();
   const router = useRouter();
 
-  const meQuery = useQuery({
-    queryKey: queryKeys.user.me,
-    queryFn: () => gqlFetcher(MeDocument),
-    enabled: !!session,
-    retry: 1,
-    retryDelay: 1000,
-    meta: { showErrorAlert: false },
-  });
+  const meQuery = useQuery({ ...meOptions(), enabled: !!session });
 
   const preferences = meQuery.data?.me?.preferences as
     | { onboardingCompleted?: boolean }

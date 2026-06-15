@@ -119,7 +119,7 @@ export default function BikeDetailScreen() {
   });
 
   const { data: ridesData } = useQuery({
-    queryKey: ['rides', 'motorcycle', id],
+    queryKey: queryKeys.rides.byMotorcycle(id),
     queryFn: () => gqlFetcher(MyRidesDocument, { first: 1, motorcycleId: id }),
   });
 
@@ -150,7 +150,7 @@ export default function BikeDetailScreen() {
           refetchType: 'active',
         }),
         queryClient.invalidateQueries({
-          queryKey: ['rides', 'motorcycle', id],
+          queryKey: queryKeys.rides.byMotorcycle(id),
           refetchType: 'active',
         }),
       ]);

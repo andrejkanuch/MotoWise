@@ -6,6 +6,7 @@ import {
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
 import { gqlFetcher } from '../lib/graphql-client';
+import { queryKeys } from '../lib/query-keys';
 import { decodePolyline } from '../utils/polyline';
 
 const PAGE_SIZE = 50;
@@ -16,7 +17,7 @@ const MAX_POINTS = 5_000;
 
 export function useRideHeatmapData({ enabled }: { enabled: boolean }) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
-    queryKey: ['rides', 'heatmap'] as const,
+    queryKey: queryKeys.rides.heatmap,
     queryFn: ({ pageParam }: { pageParam: string | null }) => {
       const variables: MyRidesForHeatmapQueryVariables = {
         first: PAGE_SIZE,

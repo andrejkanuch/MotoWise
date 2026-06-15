@@ -74,7 +74,8 @@ export function useHomeData() {
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me }),
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all }),
       queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.rides.list('home') }),
+      // Broaden to the rides root so every ride-list variant refreshes (MOT-268).
+      queryClient.invalidateQueries({ queryKey: queryKeys.rides.all }),
     ]).then(() => {
       if (process.env.EXPO_OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

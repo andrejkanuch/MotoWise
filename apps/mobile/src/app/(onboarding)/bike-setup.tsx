@@ -177,7 +177,7 @@ export default function BikeSetupScreen() {
   }, [makes]);
 
   const makeStatsResult = useQuery({
-    queryKey: ['makeStats'],
+    queryKey: queryKeys.makeStats.all,
     queryFn: () => gqlFetcher(MakeStatsDocument),
     staleTime: 24 * 60 * 60 * 1000, // 24h — fleet stats change slowly
   });

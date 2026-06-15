@@ -22,6 +22,7 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { queryKeys } from '../../../lib/query-keys';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { MAP_STYLES } from '../../../utils/map-styles';
 import {
@@ -48,7 +49,7 @@ export default function RideHeatmapScreen() {
   const insets = useSafeAreaInsets();
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
-    queryKey: ['rides', 'heatmap'] as const,
+    queryKey: queryKeys.rides.heatmap,
     queryFn: ({ pageParam }: { pageParam: string | null }) => {
       const variables: MyRidesForHeatmapQueryVariables = {
         first: PAGE_SIZE,

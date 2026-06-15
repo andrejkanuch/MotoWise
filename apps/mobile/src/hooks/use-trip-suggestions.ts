@@ -16,6 +16,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 import { gqlFetcher } from '../lib/graphql-client';
+import { queryKeys } from '../lib/query-keys';
 
 export type TripSuggestion = TripSuggestionsQuery['tripSuggestions'][number];
 export type TripSuggestionAuthor = TripSuggestion['author'];
@@ -67,7 +68,7 @@ const PERIOD_MAP: Record<string, PeriodOfDay | undefined> = {
 export function useTripSuggestions(tripId: string | undefined) {
   const qc = useQueryClient();
   const resolvedTripId = tripId ?? '';
-  const queryKey = ['trip-suggestions', resolvedTripId];
+  const queryKey = queryKeys.trips.suggestions(resolvedTripId);
 
   // #126 — track in-flight respond mutations per-suggestion so one row's
   // pending state doesn't disable action buttons on every other row.
@@ -101,7 +102,7 @@ export function useTripSuggestions(tripId: string | undefined) {
     // #110 — scope invalidate to this trip's key using the mutation variables
     // so other trips' caches are untouched.
     onSuccess: (_data, variables) => {
-      qc.invalidateQueries({ queryKey: ['trip-suggestions', variables.tripId] });
+      qc.invalidateQueries({ queryKey: queryKeys.trips.suggestions(variables.tripId) });
     },
   });
 
@@ -131,8 +132,9 @@ export function useTripSuggestions(tripId: string | undefined) {
     },
     // #110 — scope invalidate to this trip's suggestions.
     onSuccess: (_data, vars) => {
-      qc.invalidateQueries({ queryKey: ['trip-suggestions', vars.tripId] });
+      qc.invalidateQueries({ queryKey: queryKeys.trips.suggestions(vars.tripId) });
       // If an accept materialised a waypoint, trip-detail should refetch.
+      // one-off legacy key — distinct from queryKeys.trips.detail; left inline.
       if (vars.decision === 'accepted') {
         qc.invalidateQueries({ queryKey: ['trip', vars.tripId] });
       }

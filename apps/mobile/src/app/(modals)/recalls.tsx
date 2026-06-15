@@ -8,6 +8,7 @@ import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'r
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { queryKeys } from '../../lib/query-keys';
 import { useEditorialTheme } from '../../theme/editorial';
 
 /**
@@ -28,7 +29,7 @@ export default function RecallsScreen() {
   }>();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['motorcycle-recalls', motorcycleId],
+    queryKey: queryKeys.motorcycleRecalls.byMotorcycle(motorcycleId),
     queryFn: () => gqlFetcher(MotorcycleRecallsDocument, { motorcycleId }),
     enabled: !!motorcycleId,
     staleTime: 60 * 60 * 1000, // 1 hour client-side (server caches 24h)
