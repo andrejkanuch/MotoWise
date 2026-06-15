@@ -1,6 +1,6 @@
 import { type MotorcycleType, SubmitDiagnosticDocument, type Urgency } from '@motovault/graphql';
 import { useQueryClient } from '@tanstack/react-query';
-import * as FileSystem from 'expo-file-system';
+import { File } from 'expo-file-system';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { ArrowLeft, X } from 'lucide-react-native';
 import { useCallback, useEffect, useRef } from 'react';
@@ -150,9 +150,9 @@ export default function NewDiagnosticScreen() {
       // Read base64 from photoUri at submission time
       let photoBase64: string | undefined;
       if (state.photoUri) {
-        photoBase64 = await FileSystem.readAsStringAsync(state.photoUri, {
-          encoding: 'base64',
-        });
+        // New expo-file-system File API — readAsStringAsync is documented to throw
+        // in a future SDK. Matches the byte-read pattern in lib/image-upload.ts.
+        photoBase64 = await new File(state.photoUri).base64();
       }
 
       // Build wizard answers only if any options were selected

@@ -4,9 +4,7 @@ import {
   InstrumentSerif_400Regular_Italic,
 } from '@expo-google-fonts/instrument-serif';
 import { useFonts } from 'expo-font';
-import { AppState, LogBox } from 'react-native';
-
-LogBox.ignoreLogs(['Method readAsStringAsync imported from "expo-file-system" is deprecated']);
+import { AppState } from 'react-native';
 
 import { palette } from '@motovault/design-system';
 import { CompleteMaintenanceTaskDocument, MeDocument } from '@motovault/graphql';
