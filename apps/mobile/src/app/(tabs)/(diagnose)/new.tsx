@@ -24,7 +24,7 @@ import { StepPhotoDetails } from '../../../components/diagnostic-flow/step-photo
 import { StepProblemDescription } from '../../../components/diagnostic-flow/step-problem-description';
 import { StepReviewSubmit } from '../../../components/diagnostic-flow/step-review-submit';
 import { useProGate } from '../../../hooks/use-pro-gate';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
+import { AnalyticsEvent, captureException, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { queryKeys } from '../../../lib/query-keys';
@@ -202,7 +202,7 @@ export default function NewDiagnosticScreen() {
           message = error.message;
         }
       }
-      console.error('[submitDiagnostic] error:', JSON.stringify(error, null, 2));
+      captureException(error, { source: 'diagnose.submitDiagnostic', message });
       state.setSubmitError(message);
     } finally {
       state.setIsSubmitting(false);

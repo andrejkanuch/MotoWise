@@ -17,5 +17,9 @@ type LogMethod = 'log' | 'info' | 'warn' | 'debug';
 const LOG_METHODS: readonly LogMethod[] = ['log', 'info', 'warn', 'debug'];
 
 export const logger = Object.fromEntries(
-  LOG_METHODS.map((name) => [name, isDev ? console[name].bind(console) : noop]),
+  LOG_METHODS.map((name) => [
+    name,
+    // biome-ignore lint/suspicious/noConsole: dev-only logger wrapper
+    isDev ? console[name].bind(console) : noop,
+  ]),
 ) as Record<LogMethod, (...args: unknown[]) => void>;

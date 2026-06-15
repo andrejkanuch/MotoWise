@@ -2,6 +2,7 @@ import type { Waypoint } from '@motovault/types';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
+import { captureException } from '../lib/analytics';
 import { useRideStore } from '../stores/ride.store';
 import { haversineMeters } from './geo-utils';
 import { gpsFilter } from './ride-gps-filter';
@@ -311,7 +312,7 @@ TaskManager.defineTask<{ locations: Location.LocationObject[] }>(
   BACKGROUND_LOCATION_TASK,
   async ({ data, error }) => {
     if (error) {
-      console.error('Background GPS error:', error);
+      captureException(error, { source: 'ride-location.backgroundLocationTask' });
       return;
     }
 

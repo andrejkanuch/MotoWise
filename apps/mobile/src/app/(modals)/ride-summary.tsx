@@ -30,8 +30,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeToggle } from '../../components/ui/native-toggle';
 import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { maybeRequestReview } from '../../lib/store-review';
@@ -280,9 +281,7 @@ export default function RideSummaryScreen() {
           import('../../lib/graphql-client').then(({ gqlFetcher: fetcher }) => {
             fetcher(ShareRideAsTripDocument, {
               input: { rideId, name: rideName || undefined },
-            }).catch((err: unknown) =>
-              console.warn('[RideSummary] Share to Discover failed:', err),
-            );
+            }).catch((err: unknown) => logger.warn('[RideSummary] Share to Discover failed:', err));
           });
         });
       }
@@ -290,7 +289,7 @@ export default function RideSummaryScreen() {
       // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
       router.replace('/(tabs)/(profile)' as any);
     } catch (error) {
-      console.error('[RideSummary] Save error:', error);
+      captureException(error, { source: 'ride-summary.saveRide', rideId });
     } finally {
       setIsSaving(false);
     }

@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { TOTAL_SCREENS } from '../../config/onboarding';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
@@ -121,7 +121,7 @@ export default function InsightsScreen() {
       maintenanceStyle?: string;
     }) => gqlFetcher(GenerateOnboardingInsightsDocument, { input }),
     onError: (error) => {
-      console.error('[Insights] AI insights generation failed:', error);
+      captureException(error, { source: 'onboarding.insights.generate' });
     },
   });
 

@@ -3,6 +3,7 @@ import { SUPPORTED_LOCALES } from '@motovault/types';
 import { getLocales } from 'expo-localization';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { logger } from '../lib/logger';
 import de from './locales/de.json';
 import en from './locales/en.json';
 import es from './locales/es.json';
@@ -45,6 +46,6 @@ i18n
     interpolation: { escapeValue: false },
     react: { useSuspense: false },
   })
-  .catch(console.error);
+  .catch((error) => logger.warn('[i18n] init failed', error));
 
 export default i18n;

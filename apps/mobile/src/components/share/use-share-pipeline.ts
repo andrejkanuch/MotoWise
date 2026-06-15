@@ -1,5 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import type { View } from 'react-native';
+import { captureException } from '../../lib/analytics';
+import { logger } from '../../lib/logger';
 import { renderShareCard } from './render-share-card';
 import type { CardVariant, ShareDestination, ShareResult } from './share-card-types';
 
@@ -17,7 +19,7 @@ export function useSharePipeline({ rideId, updatedAt, onHandoff }: UseSharePipel
     async (destination: ShareDestination, activeVariant: CardVariant) => {
       if (isBusy) return;
       if (!activeCardRef.current) {
-        console.warn('[SharePipeline] No active card ref');
+        logger.warn('[SharePipeline] No active card ref');
         return;
       }
 
@@ -26,7 +28,7 @@ export function useSharePipeline({ rideId, updatedAt, onHandoff }: UseSharePipel
         const imageUri = await renderShareCard(activeCardRef, rideId, activeVariant, updatedAt);
         await onHandoff(destination, imageUri);
       } catch (error) {
-        console.warn('[SharePipeline] Error:', error);
+        captureException(error, { source: 'share-pipeline.handleDestinationTap', destination });
       } finally {
         setIsBusy(false);
       }

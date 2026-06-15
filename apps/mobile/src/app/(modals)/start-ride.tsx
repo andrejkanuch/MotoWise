@@ -19,7 +19,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PreFlightChecklist } from '../../components/ride/pre-flight-checklist';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
@@ -154,7 +154,7 @@ export default function StartRideScreen() {
       // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
       router.replace('/(modals)/ride-hud' as any);
     } catch (error) {
-      console.error('[StartRide] Error:', error);
+      captureException(error, { source: 'start-ride.startRide' });
       Alert.alert(t('common.error'), t('startRide.startError'));
     } finally {
       setIsStarting(false);

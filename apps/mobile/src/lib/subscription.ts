@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 import type { CustomVariables } from 'react-native-purchases-ui';
 import { useSubscriptionStore } from '../stores/subscription.store';
 import { AnalyticsEvent, captureException, trackEvent } from './analytics';
+import { logger } from './logger';
 
 // Module-level cached import — resolve once, reuse everywhere
 let PurchasesModule: typeof import('react-native-purchases') | null = null;
@@ -148,7 +149,7 @@ async function doInit(): Promise<(() => void) | null> {
         : process.env.EXPO_PUBLIC_RC_ANDROID_KEY;
 
     if (!apiKey) {
-      console.warn('[RevenueCat] No API key configured');
+      logger.warn('[RevenueCat] No API key configured');
       return null;
     }
 
@@ -175,8 +176,7 @@ async function doInit(): Promise<(() => void) | null> {
       Purchases.removeCustomerInfoUpdateListener(listener);
     };
   } catch (e) {
-    console.error('[RevenueCat] Init failed:', e instanceof Error ? e.message : e);
-    captureException(e);
+    captureException(e, { source: 'revenuecat.doInit' });
     return null;
   }
 }
@@ -201,8 +201,7 @@ export async function configureRevenueCatAnonymously(posthogDistinctId?: string)
       await Purchases.setAttributes({ $posthogUserId: posthogDistinctId });
     }
   } catch (e) {
-    console.error('[RevenueCat] anonymous configure failed:', e instanceof Error ? e.message : e);
-    captureException(e);
+    captureException(e, { source: 'revenuecat.configureRevenueCatAnonymously' });
   }
 }
 
@@ -219,8 +218,7 @@ export async function loginRevenueCat(userId: string) {
     await Purchases.setAttributes({ $posthogUserId: userId });
     await Purchases.syncAttributesAndOfferingsIfNeeded?.();
   } catch (e) {
-    console.error('[RevenueCat] logIn failed:', e instanceof Error ? e.message : e);
-    captureException(e);
+    captureException(e, { source: 'revenuecat.loginRevenueCat' });
   }
 }
 
@@ -304,11 +302,7 @@ export async function setOnboardingAttributes(attrs: OnboardingAttributes): Prom
     await Purchases.setAttributes(payload);
     await Purchases.syncAttributesAndOfferingsIfNeeded?.();
   } catch (e) {
-    console.error(
-      '[RevenueCat] setOnboardingAttributes failed:',
-      e instanceof Error ? e.message : e,
-    );
-    captureException(e);
+    captureException(e, { source: 'revenuecat.setOnboardingAttributes' });
   }
 }
 
@@ -354,7 +348,7 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
   trackEvent(AnalyticsEvent.PAYWALL_PRESENT_REQUESTED, paywallProperties(options));
 
   if (isExpoGo()) {
-    console.warn('[RevenueCat] Paywall not available in Expo Go');
+    logger.warn('[RevenueCat] Paywall not available in Expo Go');
     trackPaywallResult(options, 'not_presented');
     return 'not_presented';
   }
@@ -426,8 +420,7 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
         return 'cancelled';
     }
   } catch (e) {
-    console.error('[RevenueCat] presentPaywall failed:', e instanceof Error ? e.message : e);
-    captureException(e);
+    captureException(e, { source: 'revenuecat.presentPaywall' });
     trackPaywallResult(options, 'error');
     return 'error';
   }
@@ -446,9 +439,9 @@ export async function logoutRevenueCat() {
     const msg = e instanceof Error ? e.message : String(e);
     // Suppress known non-fatal error when logOut is called for anonymous users
     const isAnonymousError = msg.toLowerCase().includes('anonymous');
-    console.warn('[RevenueCat] logOut skipped:', msg);
+    logger.warn('[RevenueCat] logOut skipped:', msg);
     if (!isAnonymousError) {
-      captureException(e);
+      captureException(e, { source: 'revenuecat.logoutRevenueCat' });
     }
   }
 }
