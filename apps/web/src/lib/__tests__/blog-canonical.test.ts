@@ -34,4 +34,12 @@ describe('getCanonicalArticleUrl', () => {
   ])('canonicalizes untranslated fallback locale %s to the English URL', (locale) => {
     expect(getCanonicalArticleUrl(slug, locale)).toBe(`${BASE_URL}/blog/${slug}`);
   });
+
+  it('self-canonicalizes a real translation to its locale-prefixed URL', () => {
+    // A slug that actually exists as an `es` MDX file must NOT collapse to English —
+    // the load-bearing branch the fallback cases alone would not catch.
+    const esSlug = getArticleSlugs('es')[0];
+    expect(esSlug, 'expected at least one Spanish article fixture').toBeTruthy();
+    expect(getCanonicalArticleUrl(esSlug, 'es')).toBe(`${BASE_URL}/es/blog/${esSlug}`);
+  });
 });

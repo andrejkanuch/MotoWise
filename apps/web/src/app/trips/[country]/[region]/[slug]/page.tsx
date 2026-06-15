@@ -12,6 +12,7 @@ import { BASE_URL } from '@/lib/constants';
 import { fetchTripTemplatesByCountry, type TripTemplateNode } from '@/lib/fetch-places';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { gqlServerFetcher } from '@/lib/graphql-server';
+import { relativeTrip } from '@/lib/seo/canonical';
 import '@/components/trip-detail/trip-detail.css';
 
 type TripData = NonNullable<WebTripBySlugQuery['tripBySlug']>;
@@ -57,7 +58,15 @@ async function fetchSiblingRoutes(
 ): Promise<TripTemplateNode[]> {
   try {
     const all = await fetchTripTemplatesByCountry(country, 24);
-    const others = all.filter((t) => t.slug?.toLowerCase() !== currentSlug.toLowerCase());
+    // Only fully-addressable trips — a null slug/region/country would render a
+    // /trips// link that soft-404s (the class blog-internal-links guards for /blog/).
+    const others = all.filter(
+      (t) =>
+        t.slug != null &&
+        t.regionCode != null &&
+        t.countryCode != null &&
+        t.slug.toLowerCase() !== currentSlug.toLowerCase(),
+    );
     const sameRegion = others.filter((t) => t.regionCode?.toLowerCase() === region.toLowerCase());
     return (sameRegion.length >= 3 ? sameRegion : others).slice(0, 6);
   } catch {
@@ -240,6 +249,14 @@ export default async function TripPage({ params }: PageParams) {
   const dayCount = trip.dayCount ?? 1;
   const countryName = countryDisplayName(countryCode);
   const regionName = trip.regionCode ? regionDisplayName(countryCode, trip.regionCode) : null;
+  // Label the "More routes" cluster by region only when every sibling is actually
+  // in this region; fetchSiblingRoutes falls back to country-wide when the region
+  // has < 3 siblings, and a region heading over country-wide cards is misleading.
+  const siblingScope =
+    siblingRoutes.length > 0 &&
+    siblingRoutes.every((r) => r.regionCode?.toLowerCase() === region.toLowerCase())
+      ? (regionName ?? countryName)
+      : countryName;
 
   // Group waypoints by day
   const waypoints = trip.waypoints ?? [];
@@ -861,7 +878,7 @@ export default async function TripPage({ params }: PageParams) {
           >
             More routes in{' '}
             <span className="serif" style={{ color: 'var(--mv-warm-400)' }}>
-              {regionName ?? countryName}
+              {siblingScope}
             </span>
           </h2>
           <div
@@ -872,7 +889,7 @@ export default async function TripPage({ params }: PageParams) {
             }}
           >
             {siblingRoutes.map((r) => {
-              const href = `/trips/${(r.countryCode ?? '').toLowerCase()}/${(r.regionCode ?? '').toLowerCase()}/${(r.slug ?? '').toLowerCase()}`;
+              const href = relativeTrip(r.countryCode ?? '', r.regionCode ?? '', r.slug ?? '');
               const km = r.distanceM ? Math.round(r.distanceM / 1000) : null;
               const meta = [
                 r.regionCode ? regionDisplayName(r.countryCode ?? countryCode, r.regionCode) : null,

@@ -57,7 +57,14 @@ function readArticlesFromDisk(locale: string): Article[] {
         faq: Array.isArray(data.faq)
           ? data.faq.filter((f: unknown): f is FaqItem => {
               const item = f as Partial<FaqItem>;
-              return Boolean(item?.question && item?.answer);
+              // Require real strings — YAML can coerce `answer: yes` to a boolean
+              // or `question: 2026` to a number, which would poison FAQPage JSON-LD.
+              return (
+                typeof item?.question === 'string' &&
+                typeof item?.answer === 'string' &&
+                item.question.trim() !== '' &&
+                item.answer.trim() !== ''
+              );
             })
           : undefined,
       } satisfies Article;

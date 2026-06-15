@@ -14,6 +14,10 @@ export const canonicalCountry = (country: string) => `${BASE_URL}/explore/${coun
 /** Canonical URL for the explore index page: /explore */
 export const canonicalExplore = () => `${BASE_URL}/explore`;
 
+/** Relative path for a trip template page: /trips/{country}/{region}/{slug} (lowercased). */
+export const relativeTrip = (country: string, region: string, slug: string) =>
+  `/trips/${country.toLowerCase()}/${region.toLowerCase()}/${slug.toLowerCase()}`;
+
 /** Canonical URL for a trip template page: /trips/{country}/{region}/{slug} */
 export const canonicalTrip = (country: string, region: string, slug: string) =>
   `${BASE_URL}/trips/${country}/${region}/${slug}`;

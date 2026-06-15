@@ -15,7 +15,6 @@ import {
   getArticleBySlug,
   getArticleHreflangMap,
   getArticleSlugs,
-  getArticleUrl,
   getCanonicalArticleUrl,
   getRelatedArticles,
 } from '@/lib/blog';
@@ -141,7 +140,10 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
   const related = getRelatedArticles(slug, article.category, locale);
   const author = getAuthor(article.author) ?? getDefaultAuthor();
 
-  const articleUrl = getArticleUrl(slug, locale);
+  // Use the canonical URL (English for fallback locales) so the JSON-LD graph
+  // self-identifies as the same URL as <link rel="canonical">, rather than the
+  // locale-prefixed duplicate.
+  const articleUrl = getCanonicalArticleUrl(slug, locale);
   const heroImageUrl = article.heroImage
     ? `${BASE_URL}${article.heroImage}`
     : `${BASE_URL}/og-image.png`;
