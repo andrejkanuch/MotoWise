@@ -438,7 +438,11 @@
     "editBike": "Upraviť motorku",
     "editMastheadEyebrow": "— GARÁŽ",
     "editMastheadTitle": "Upraviť",
-    "editMastheadSubject": "motorku."
+    "editMastheadSubject": "motorku.",
+    "dotKm": "· {{km}} km",
+    "bikeNumberYear": "č.{{num}} · {{year}}",
+    "kmUnit": "km",
+    "mileageKm": "{{km}} km"
   },
   "profile": {
     "title": "Profil",
@@ -1761,7 +1765,14 @@
     "descriptionLabel": "Popis",
     "descriptionPlaceholder": "Opíš jazdu, zaujímavosti trasy, čo si vziať...",
     "maxRidersLabel": "Max jazdcov",
-    "maxRidersPlaceholder": "10"
+    "maxRidersPlaceholder": "10",
+    "ridersCount": "{{count}}/{{max}} jazdcov",
+    "full": "Plné",
+    "organiser": "Organizátor",
+    "participants": "Účastníci",
+    "joinRide": "Pripojiť sa k jazde",
+    "leaveRide": "Opustiť jazdu",
+    "cancelRide": "Zrušiť jazdu"
   },
   "rideHud": {
     "dist": "VZDI",
@@ -1796,7 +1807,18 @@
   "heatmap": {
     "rides": "Jazdy",
     "lifetime": "Celkovo",
-    "countries": "Krajiny"
+    "countries": "Krajiny",
+    "title": "Cesty, ktoré som prešiel",
+    "emptyMap": "Vaša teplotná mapa sa zapĺňa, keď dokončíte jazdy so záznamom GPS.",
+    "loadingRides": "Načítavajú sa jazdy…",
+    "showingRecent": "Zobrazuje sa vašich posledných ~{{count}} jázd",
+    "yearRecap": "Zhrnutie {{year}}",
+    "noRidesThisYear": "Tento rok zatiaľ žiadne jazdy. Keď ich pár uložíte, zobrazíme tu vašu najdlhšiu jazdu a prejazdené krajiny.",
+    "recapSummary": "{{distance}} počas {{count}} jázd{{countries}}.",
+    "recapInCountries": " v {{count}} krajinách",
+    "topRideLabel": "Najlepšia jazda:",
+    "topRideValue": "— {{distance}}.",
+    "shareRecap": "Zdieľať zhrnutie"
   },
   "discoverSearch": {
     "notAvailableTitle": "Nedostupné",
@@ -2019,5 +2041,18 @@
     "notEnoughData": "Nedostatok údajov",
     "notEnoughDataBody": "Táto jazda nemá dostatok GPS bodov pre 3D prelet.",
     "goBack": "Späť"
+  },
+  "comments": {
+    "title": "Komentáre",
+    "titleWithCount": "Komentáre ({{count}})",
+    "empty": "Zatiaľ žiadne komentáre. Buďte prvý!",
+    "reply": "Odpovedať"
+  },
+  "discover": {
+    "reviewsCount": "Recenzie ({{count}})",
+    "pick": "Tip",
+    "editorsPick": "Tip redakcie",
+    "metersUnit": "m",
+    "ridersCount": "· {{riders}} jazdcov"
   }
 }

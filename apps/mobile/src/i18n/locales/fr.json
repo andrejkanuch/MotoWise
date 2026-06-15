@@ -438,7 +438,11 @@
     "bikeDetails": "Détails de la moto",
     "addMaintenanceTask": "Ajouter une tâche",
     "recordMaintenance": "Enregistrer un entretien",
-    "editBike": "Modifier la moto"
+    "editBike": "Modifier la moto",
+    "dotKm": "· {{km}} km",
+    "bikeNumberYear": "N°{{num}} · {{year}}",
+    "kmUnit": "km",
+    "mileageKm": "{{km}} km"
   },
   "profile": {
     "title": "Profil",
@@ -1761,7 +1765,14 @@
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Decris la balade, les points forts de l'itineraire, ce qu'il faut emporter...",
     "maxRidersLabel": "Pilotes max.",
-    "maxRidersPlaceholder": "10"
+    "maxRidersPlaceholder": "10",
+    "ridersCount": "{{count}}/{{max}} motards",
+    "full": "Complet",
+    "organiser": "Organisateur",
+    "participants": "Participants",
+    "joinRide": "Rejoindre le trajet",
+    "leaveRide": "Quitter le trajet",
+    "cancelRide": "Annuler le trajet"
   },
   "rideHud": {
     "dist": "DIST",
@@ -1796,7 +1807,18 @@
   "heatmap": {
     "rides": "Balades",
     "lifetime": "Total",
-    "countries": "Pays"
+    "countries": "Pays",
+    "title": "Routes que j'ai parcourues",
+    "emptyMap": "Votre carte de chaleur se remplit au fur et à mesure que vous terminez des trajets avec des tracés GPS.",
+    "loadingRides": "Chargement des trajets…",
+    "showingRecent": "Affichage de vos ~{{count}} trajets les plus récents",
+    "yearRecap": "Bilan {{year}}",
+    "noRidesThisYear": "Aucun trajet cette année pour l'instant. Une fois que vous en aurez enregistré quelques-uns, nous afficherons ici votre trajet le plus long et les pays parcourus.",
+    "recapSummary": "{{distance}} sur {{count}} trajets{{countries}}.",
+    "recapInCountries": " dans {{count}} pays",
+    "topRideLabel": "Meilleur trajet :",
+    "topRideValue": "— {{distance}}.",
+    "shareRecap": "Partager le bilan"
   },
   "discoverSearch": {
     "notAvailableTitle": "Non disponible",
@@ -2019,5 +2041,18 @@
     "notEnoughData": "Données insuffisantes",
     "notEnoughDataBody": "Ce trajet n'a pas assez de points GPS pour un survol en 3D.",
     "goBack": "Retour"
+  },
+  "comments": {
+    "title": "Commentaires",
+    "titleWithCount": "Commentaires ({{count}})",
+    "empty": "Pas encore de commentaires. Soyez le premier !",
+    "reply": "Répondre"
+  },
+  "discover": {
+    "reviewsCount": "Avis ({{count}})",
+    "pick": "Choix",
+    "editorsPick": "Choix de la rédaction",
+    "metersUnit": "m",
+    "ridersCount": "· {{riders}} motards"
   }
 }

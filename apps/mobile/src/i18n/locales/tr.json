@@ -438,7 +438,11 @@
     "editBike": "Motosikleti Düzenle",
     "editMastheadEyebrow": "— GARAJ",
     "editMastheadTitle": "Düzenle",
-    "editMastheadSubject": "motosiklet."
+    "editMastheadSubject": "motosiklet.",
+    "dotKm": "· {{km}} km",
+    "bikeNumberYear": "N°{{num}} · {{year}}",
+    "kmUnit": "km",
+    "mileageKm": "{{km}} km"
   },
   "profile": {
     "title": "Profil",
@@ -1761,7 +1765,14 @@
     "descriptionLabel": "Aciklama",
     "descriptionPlaceholder": "Surusu, rotayi, yanina alinacaklari acikla...",
     "maxRidersLabel": "Maks Surucu",
-    "maxRidersPlaceholder": "10"
+    "maxRidersPlaceholder": "10",
+    "ridersCount": "{{count}}/{{max}} riders",
+    "full": "Full",
+    "organiser": "Organiser",
+    "participants": "Participants",
+    "joinRide": "Join Ride",
+    "leaveRide": "Leave Ride",
+    "cancelRide": "Cancel Ride"
   },
   "rideHud": {
     "dist": "MSFE",
@@ -1796,7 +1807,18 @@
   "heatmap": {
     "rides": "Surusler",
     "lifetime": "Toplam",
-    "countries": "Ulkeler"
+    "countries": "Ulkeler",
+    "title": "Roads I've ridden",
+    "emptyMap": "Your heatmap fills in as you finish rides with GPS tracks.",
+    "loadingRides": "Loading rides…",
+    "showingRecent": "Showing your most recent ~{{count}} rides",
+    "yearRecap": "{{year}} recap",
+    "noRidesThisYear": "No rides yet this year. Once you save a few, we'll surface your longest ride and countries ridden here.",
+    "recapSummary": "{{distance}} across {{count}} rides{{countries}}.",
+    "recapInCountries": " in {{count}} countries",
+    "topRideLabel": "Top ride:",
+    "topRideValue": "— {{distance}}.",
+    "shareRecap": "Share recap"
   },
   "discoverSearch": {
     "notAvailableTitle": "Mevcut degil",
@@ -2019,5 +2041,18 @@
     "notEnoughData": "Yeterli veri yok",
     "notEnoughDataBody": "Bu sürüşte 3D uçuş için yeterli GPS noktası yok.",
     "goBack": "Geri dön"
+  },
+  "comments": {
+    "title": "Comments",
+    "titleWithCount": "Comments ({{count}})",
+    "empty": "No comments yet. Be the first!",
+    "reply": "Reply"
+  },
+  "discover": {
+    "reviewsCount": "Reviews ({{count}})",
+    "pick": "Pick",
+    "editorsPick": "Editor's Pick",
+    "metersUnit": "m",
+    "ridersCount": "· {{riders}} riders"
   }
 }

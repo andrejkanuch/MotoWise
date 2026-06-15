@@ -438,7 +438,11 @@
     "editBike": "Editar moto",
     "editMastheadEyebrow": "— GARAJE",
     "editMastheadTitle": "Editar",
-    "editMastheadSubject": "moto."
+    "editMastheadSubject": "moto.",
+    "dotKm": "· {{km}} km",
+    "bikeNumberYear": "N.º{{num}} · {{year}}",
+    "kmUnit": "km",
+    "mileageKm": "{{km}} km"
   },
   "profile": {
     "title": "Perfil",
@@ -1761,7 +1765,14 @@
     "descriptionLabel": "Descripcion",
     "descriptionPlaceholder": "Describe la ruta, puntos de interes, que llevar...",
     "maxRidersLabel": "Max. pilotos",
-    "maxRidersPlaceholder": "10"
+    "maxRidersPlaceholder": "10",
+    "ridersCount": "{{count}}/{{max}} pilotos",
+    "full": "Completo",
+    "organiser": "Organizador",
+    "participants": "Participantes",
+    "joinRide": "Unirse al viaje",
+    "leaveRide": "Abandonar el viaje",
+    "cancelRide": "Cancelar el viaje"
   },
   "rideHud": {
     "dist": "DIST",
@@ -1796,7 +1807,18 @@
   "heatmap": {
     "rides": "Rutas",
     "lifetime": "Total",
-    "countries": "Paises"
+    "countries": "Paises",
+    "title": "Carreteras que he recorrido",
+    "emptyMap": "Tu mapa de calor se completa a medida que terminas viajes con rutas GPS.",
+    "loadingRides": "Cargando viajes…",
+    "showingRecent": "Mostrando tus ~{{count}} viajes más recientes",
+    "yearRecap": "Resumen {{year}}",
+    "noRidesThisYear": "Aún no hay viajes este año. Cuando guardes algunos, aquí mostraremos tu viaje más largo y los países recorridos.",
+    "recapSummary": "{{distance}} en {{count}} viajes{{countries}}.",
+    "recapInCountries": " en {{count}} países",
+    "topRideLabel": "Mejor viaje:",
+    "topRideValue": "— {{distance}}.",
+    "shareRecap": "Compartir resumen"
   },
   "discoverSearch": {
     "notAvailableTitle": "No disponible",
@@ -2019,5 +2041,18 @@
     "notEnoughData": "Datos insuficientes",
     "notEnoughDataBody": "Esta ruta no tiene suficientes puntos GPS para un sobrevuelo en 3D.",
     "goBack": "Volver"
+  },
+  "comments": {
+    "title": "Comentarios",
+    "titleWithCount": "Comentarios ({{count}})",
+    "empty": "Aún no hay comentarios. ¡Sé el primero!",
+    "reply": "Responder"
+  },
+  "discover": {
+    "reviewsCount": "Reseñas ({{count}})",
+    "pick": "Selección",
+    "editorsPick": "Selección del editor",
+    "metersUnit": "m",
+    "ridersCount": "· {{riders}} pilotos"
   }
 }

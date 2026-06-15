@@ -438,7 +438,11 @@
     "editBike": "Edit Motorcycle",
     "editMastheadEyebrow": "— GARAGE",
     "editMastheadTitle": "Edit",
-    "editMastheadSubject": "motorcycle."
+    "editMastheadSubject": "motorcycle.",
+    "dotKm": "· {{km}} km",
+    "bikeNumberYear": "N°{{num}} · {{year}}",
+    "kmUnit": "km",
+    "mileageKm": "{{km}} km"
   },
   "profile": {
     "title": "Profile",
@@ -1766,7 +1770,14 @@
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Describe the ride, route highlights, what to bring...",
     "maxRidersLabel": "Max Riders",
-    "maxRidersPlaceholder": "10"
+    "maxRidersPlaceholder": "10",
+    "ridersCount": "{{count}}/{{max}} riders",
+    "full": "Full",
+    "organiser": "Organiser",
+    "participants": "Participants",
+    "joinRide": "Join Ride",
+    "leaveRide": "Leave Ride",
+    "cancelRide": "Cancel Ride"
   },
   "myRides": {
     "title": "My rides",
@@ -1904,7 +1915,18 @@
   "heatmap": {
     "rides": "Rides",
     "lifetime": "Lifetime",
-    "countries": "Countries"
+    "countries": "Countries",
+    "title": "Roads I've ridden",
+    "emptyMap": "Your heatmap fills in as you finish rides with GPS tracks.",
+    "loadingRides": "Loading rides…",
+    "showingRecent": "Showing your most recent ~{{count}} rides",
+    "yearRecap": "{{year}} recap",
+    "noRidesThisYear": "No rides yet this year. Once you save a few, we'll surface your longest ride and countries ridden here.",
+    "recapSummary": "{{distance}} across {{count}} rides{{countries}}.",
+    "recapInCountries": " in {{count}} countries",
+    "topRideLabel": "Top ride:",
+    "topRideValue": "— {{distance}}.",
+    "shareRecap": "Share recap"
   },
   "discoverSearch": {
     "notAvailableTitle": "Not available",
@@ -2014,5 +2036,18 @@
     "notEnoughData": "Not enough data",
     "notEnoughDataBody": "This ride doesn't have enough GPS waypoints for a 3D flyover.",
     "goBack": "Go back"
+  },
+  "comments": {
+    "title": "Comments",
+    "titleWithCount": "Comments ({{count}})",
+    "empty": "No comments yet. Be the first!",
+    "reply": "Reply"
+  },
+  "discover": {
+    "reviewsCount": "Reviews ({{count}})",
+    "pick": "Pick",
+    "editorsPick": "Editor's Pick",
+    "metersUnit": "m",
+    "ridersCount": "· {{riders}} riders"
   }
 }

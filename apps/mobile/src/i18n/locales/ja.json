@@ -438,7 +438,11 @@
     "bikeDetails": "バイクの詳細",
     "addMaintenanceTask": "タスクを追加",
     "recordMaintenance": "メンテナンスを記録",
-    "editBike": "バイクを編集"
+    "editBike": "バイクを編集",
+    "dotKm": "· {{km}} km",
+    "bikeNumberYear": "No.{{num}} · {{year}}",
+    "kmUnit": "km",
+    "mileageKm": "{{km}} km"
   },
   "profile": {
     "title": "プロフィール",
@@ -1761,7 +1765,14 @@
     "descriptionLabel": "説明",
     "descriptionPlaceholder": "ライドの内容、ルートの見どころ、持ち物などを記入...",
     "maxRidersLabel": "最大ライダー数",
-    "maxRidersPlaceholder": "10"
+    "maxRidersPlaceholder": "10",
+    "ridersCount": "{{count}}/{{max}}人のライダー",
+    "full": "満員",
+    "organiser": "主催者",
+    "participants": "参加者",
+    "joinRide": "ライドに参加",
+    "leaveRide": "ライドから退出",
+    "cancelRide": "ライドをキャンセル"
   },
   "rideHud": {
     "dist": "距離",
@@ -1796,7 +1807,18 @@
   "heatmap": {
     "rides": "走行",
     "lifetime": "累計",
-    "countries": "国数"
+    "countries": "国数",
+    "title": "走った道",
+    "emptyMap": "GPSトラック付きのライドを完了するとヒートマップが埋まっていきます。",
+    "loadingRides": "ライドを読み込み中…",
+    "showingRecent": "最新の約{{count}}件のライドを表示しています",
+    "yearRecap": "{{year}}年のまとめ",
+    "noRidesThisYear": "今年はまだライドがありません。いくつか保存すると、最長ライドと走行した国がここに表示されます。",
+    "recapSummary": "{{count}}回のライドで{{distance}}{{countries}}。",
+    "recapInCountries": "（{{count}}か国）",
+    "topRideLabel": "ベストライド:",
+    "topRideValue": "— {{distance}}。",
+    "shareRecap": "まとめを共有"
   },
   "discoverSearch": {
     "notAvailableTitle": "利用不可",
@@ -2019,5 +2041,18 @@
     "notEnoughData": "データが不足しています",
     "notEnoughDataBody": "このライドには3Dフライオーバーに十分なGPSポイントがありません。",
     "goBack": "戻る"
+  },
+  "comments": {
+    "title": "コメント",
+    "titleWithCount": "コメント ({{count}})",
+    "empty": "まだコメントはありません。最初のコメントを投稿しましょう！",
+    "reply": "返信"
+  },
+  "discover": {
+    "reviewsCount": "レビュー ({{count}})",
+    "pick": "おすすめ",
+    "editorsPick": "編集者のおすすめ",
+    "metersUnit": "m",
+    "ridersCount": "· {{riders}}人のライダー"
   }
 }

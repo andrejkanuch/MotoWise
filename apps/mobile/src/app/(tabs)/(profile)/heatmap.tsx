@@ -132,7 +132,7 @@ export default function RideHeatmapScreen() {
           style={{ flex: 1, color: tok.ink, fontSize: 18, fontWeight: '700' }}
           numberOfLines={1}
         >
-          Roads I've ridden
+          {i18n('heatmap.title')}
         </Text>
         <Pressable
           onPress={handleShareRecap}
@@ -177,7 +177,7 @@ export default function RideHeatmapScreen() {
             >
               <Flame size={28} color={tok.ink3} />
               <Text style={{ color: tok.ink3, fontSize: 14, textAlign: 'center' }}>
-                Your heatmap fills in as you finish rides with GPS tracks.
+                {i18n('heatmap.emptyMap')}
               </Text>
             </View>
           ) : (
@@ -231,7 +231,7 @@ export default function RideHeatmapScreen() {
             >
               <ActivityIndicator size="small" color={palette.white} />
               <Text style={{ color: palette.white, fontSize: 11, fontWeight: '600' }}>
-                Loading rides…
+                {i18n('heatmap.loadingRides')}
               </Text>
             </Animated.View>
           )}
@@ -257,7 +257,7 @@ export default function RideHeatmapScreen() {
                   textAlign: 'center',
                 }}
               >
-                Showing your most recent ~{MAX_PAGES * PAGE_SIZE} rides
+                {i18n('heatmap.showingRecent', { count: MAX_PAGES * PAGE_SIZE })}
               </Text>
             </View>
           )}
@@ -311,12 +311,11 @@ export default function RideHeatmapScreen() {
           }}
         >
           <Text style={{ color: tok.ink3, fontSize: 12, fontWeight: '700' }}>
-            {recap.year} recap
+            {i18n('heatmap.yearRecap', { year: recap.year })}
           </Text>
           {recap.rideCount === 0 ? (
             <Text style={{ color: tok.ink3, fontSize: 14, lineHeight: 20 }}>
-              No rides yet this year. Once you save a few, we'll surface your longest ride and
-              countries ridden here.
+              {i18n('heatmap.noRidesThisYear')}
             </Text>
           ) : (
             <>
@@ -329,13 +328,22 @@ export default function RideHeatmapScreen() {
                   lineHeight: 26,
                 }}
               >
-                {formatKm(recap.totalDistanceM)} across {recap.rideCount} rides
-                {recap.countries.length > 0 ? ` in ${recap.countries.length} countries` : ''}.
+                {i18n('heatmap.recapSummary', {
+                  distance: formatKm(recap.totalDistanceM),
+                  count: recap.rideCount,
+                  countries:
+                    recap.countries.length > 0
+                      ? i18n('heatmap.recapInCountries', { count: recap.countries.length })
+                      : '',
+                })}
               </Text>
               {recap.longestRide?.name && (
                 <Text style={{ color: tok.ink3, fontSize: 14, lineHeight: 20 }}>
-                  Top ride: <Text style={{ fontWeight: '700' }}>{recap.longestRide.name}</Text> —{' '}
-                  {formatKm(recap.longestRide.distanceM)}.
+                  {i18n('heatmap.topRideLabel')}{' '}
+                  <Text style={{ fontWeight: '700' }}>{recap.longestRide.name}</Text>{' '}
+                  {i18n('heatmap.topRideValue', {
+                    distance: formatKm(recap.longestRide.distanceM),
+                  })}
                 </Text>
               )}
               <Pressable
@@ -356,7 +364,7 @@ export default function RideHeatmapScreen() {
               >
                 <Share2 size={14} color={tok.warm} />
                 <Text style={{ color: tok.warm, fontSize: 13, fontWeight: '700' }}>
-                  Share recap
+                  {i18n('heatmap.shareRecap')}
                 </Text>
               </Pressable>
             </>

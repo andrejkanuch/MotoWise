@@ -438,7 +438,11 @@
     "editBike": "Edytuj motocykl",
     "editMastheadEyebrow": "— GARAŻ",
     "editMastheadTitle": "Edytuj",
-    "editMastheadSubject": "motocykl."
+    "editMastheadSubject": "motocykl.",
+    "dotKm": "· {{km}} km",
+    "bikeNumberYear": "Nr{{num}} · {{year}}",
+    "kmUnit": "km",
+    "mileageKm": "{{km}} km"
   },
   "profile": {
     "roadsTitle": "Przejechane trasy",
@@ -1761,7 +1765,14 @@
     "descriptionLabel": "Opis",
     "descriptionPlaceholder": "Opisz jazde, atrakcje trasy, co zabrac...",
     "maxRidersLabel": "Maks. jezdzcy",
-    "maxRidersPlaceholder": "10"
+    "maxRidersPlaceholder": "10",
+    "ridersCount": "{{count}}/{{max}} motocyklistów",
+    "full": "Pełny",
+    "organiser": "Organizator",
+    "participants": "Uczestnicy",
+    "joinRide": "Dołącz do przejazdu",
+    "leaveRide": "Opuść przejazd",
+    "cancelRide": "Anuluj przejazd"
   },
   "rideHud": {
     "dist": "DYST",
@@ -1796,7 +1807,18 @@
   "heatmap": {
     "rides": "Jazdy",
     "lifetime": "Lacznie",
-    "countries": "Kraje"
+    "countries": "Kraje",
+    "title": "Przejechane drogi",
+    "emptyMap": "Twoja mapa ciepła wypełnia się w miarę kończenia przejazdów ze śladami GPS.",
+    "loadingRides": "Wczytywanie przejazdów…",
+    "showingRecent": "Wyświetlanie ostatnich ~{{count}} przejazdów",
+    "yearRecap": "Podsumowanie {{year}}",
+    "noRidesThisYear": "W tym roku nie ma jeszcze przejazdów. Gdy zapiszesz kilka, pokażemy tutaj najdłuższy przejazd i odwiedzone kraje.",
+    "recapSummary": "{{distance}} w {{count}} przejazdach{{countries}}.",
+    "recapInCountries": " w {{count}} krajach",
+    "topRideLabel": "Najlepszy przejazd:",
+    "topRideValue": "— {{distance}}.",
+    "shareRecap": "Udostępnij podsumowanie"
   },
   "discoverSearch": {
     "notAvailableTitle": "Niedostepne",
@@ -2019,5 +2041,18 @@
     "notEnoughData": "Za mało danych",
     "notEnoughDataBody": "Ten przejazd nie ma wystarczającej liczby punktów GPS do przelotu 3D.",
     "goBack": "Wróć"
+  },
+  "comments": {
+    "title": "Komentarze",
+    "titleWithCount": "Komentarze ({{count}})",
+    "empty": "Brak komentarzy. Bądź pierwszy!",
+    "reply": "Odpowiedz"
+  },
+  "discover": {
+    "reviewsCount": "Recenzje ({{count}})",
+    "pick": "Wybór",
+    "editorsPick": "Wybór redakcji",
+    "metersUnit": "m",
+    "ridersCount": "· {{riders}} motocyklistów"
   }
 }

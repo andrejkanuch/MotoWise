@@ -3,6 +3,7 @@ import type { TripTemplatesQuery } from '@motovault/graphql';
 import { Image } from 'expo-image';
 import { Award, Bookmark, Clock, Mountain, Route, Star } from 'lucide-react-native';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
@@ -39,6 +40,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
   onPress,
 }: DiscoverTripCardProps) {
   const { t } = useEditorialTheme();
+  const { t: i18n } = useTranslation();
   const system = useMeasurementSystem();
   const reducedMotion = useReducedMotion();
   const animDelay = Math.min(index * 40, 300);
@@ -114,7 +116,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
                     color: palette.editorialDarkBg,
                   }}
                 >
-                  Pick
+                  {i18n('discover.pick')}
                 </Text>
               </View>
             )}
@@ -202,7 +204,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
                   letterSpacing: 0.5,
                 }}
               >
-                Editor's Pick
+                {i18n('discover.editorsPick')}
               </Text>
             </View>
           )}
@@ -276,7 +278,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
                     <Text style={{ fontWeight: '600' }}>
                       +{Math.round(trip.elevationGainM ?? 0)}
                     </Text>
-                    m
+                    {i18n('discover.metersUnit')}
                   </Text>
                 </View>
               </>
@@ -326,7 +328,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
               )}
               {trip.cloneCount > 0 && (
                 <Text style={{ fontSize: 11.5, color: t.ink4, marginLeft: 4 }}>
-                  · {trip.cloneCount.toLocaleString()} riders
+                  {i18n('discover.ridersCount', { riders: trip.cloneCount.toLocaleString() })}
                 </Text>
               )}
             </View>

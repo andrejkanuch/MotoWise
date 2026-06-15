@@ -438,7 +438,11 @@
     "editBike": "แก้ไขมอเตอร์ไซค์",
     "editMastheadEyebrow": "— โรงรถ",
     "editMastheadTitle": "แก้ไข",
-    "editMastheadSubject": "มอเตอร์ไซค์"
+    "editMastheadSubject": "มอเตอร์ไซค์",
+    "dotKm": "· {{km}} km",
+    "bikeNumberYear": "N°{{num}} · {{year}}",
+    "kmUnit": "km",
+    "mileageKm": "{{km}} km"
   },
   "profile": {
     "title": "โปรไฟล์",
@@ -1761,7 +1765,14 @@
     "descriptionLabel": "รายละเอียด",
     "descriptionPlaceholder": "อธิบายการขี่ จุดเด่นของเส้นทาง สิ่งที่ต้องเตรียม...",
     "maxRidersLabel": "จำนวนนักขี่สูงสุด",
-    "maxRidersPlaceholder": "10"
+    "maxRidersPlaceholder": "10",
+    "ridersCount": "{{count}}/{{max}} riders",
+    "full": "Full",
+    "organiser": "Organiser",
+    "participants": "Participants",
+    "joinRide": "Join Ride",
+    "leaveRide": "Leave Ride",
+    "cancelRide": "Cancel Ride"
   },
   "rideHud": {
     "dist": "ระยะ",
@@ -1796,7 +1807,18 @@
   "heatmap": {
     "rides": "การขับขี่",
     "lifetime": "ตลอดเวลา",
-    "countries": "ประเทศ"
+    "countries": "ประเทศ",
+    "title": "Roads I've ridden",
+    "emptyMap": "Your heatmap fills in as you finish rides with GPS tracks.",
+    "loadingRides": "Loading rides…",
+    "showingRecent": "Showing your most recent ~{{count}} rides",
+    "yearRecap": "{{year}} recap",
+    "noRidesThisYear": "No rides yet this year. Once you save a few, we'll surface your longest ride and countries ridden here.",
+    "recapSummary": "{{distance}} across {{count}} rides{{countries}}.",
+    "recapInCountries": " in {{count}} countries",
+    "topRideLabel": "Top ride:",
+    "topRideValue": "— {{distance}}.",
+    "shareRecap": "Share recap"
   },
   "discoverSearch": {
     "notAvailableTitle": "ไม่พร้อมใช้งาน",
@@ -2019,5 +2041,18 @@
     "notEnoughData": "ข้อมูลไม่เพียงพอ",
     "notEnoughDataBody": "การขับขี่นี้มีจุด GPS ไม่เพียงพอสำหรับการบินผ่านแบบ 3 มิติ",
     "goBack": "ย้อนกลับ"
+  },
+  "comments": {
+    "title": "Comments",
+    "titleWithCount": "Comments ({{count}})",
+    "empty": "No comments yet. Be the first!",
+    "reply": "Reply"
+  },
+  "discover": {
+    "reviewsCount": "Reviews ({{count}})",
+    "pick": "Pick",
+    "editorsPick": "Editor's Pick",
+    "metersUnit": "m",
+    "ridersCount": "· {{riders}} riders"
   }
 }
