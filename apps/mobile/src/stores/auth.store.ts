@@ -42,6 +42,17 @@ interface AuthState {
   setCurrency: (currency: Currency) => void;
 }
 
+/** Exactly the keys persisted to MMKV — excludes `session`/`isLoading`/`onboardingCompleted`. */
+export function partializeAuthState(state: AuthState) {
+  return {
+    locale: state.locale,
+    colorScheme: state.colorScheme,
+    measurementSystem: state.measurementSystem,
+    currency: state.currency,
+    hasAuthenticatedBefore: state.hasAuthenticatedBefore,
+  };
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -71,13 +82,7 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-preferences',
       storage: createJSONStorage(() => createZustandMMKVStorage('auth-preferences')),
-      partialize: (state) => ({
-        locale: state.locale,
-        colorScheme: state.colorScheme,
-        measurementSystem: state.measurementSystem,
-        currency: state.currency,
-        hasAuthenticatedBefore: state.hasAuthenticatedBefore,
-      }),
+      partialize: partializeAuthState,
     },
   ),
 );

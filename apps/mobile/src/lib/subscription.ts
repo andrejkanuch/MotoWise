@@ -96,7 +96,8 @@ export function initRevenueCat(): Promise<(() => void) | null> {
   return initPromise;
 }
 
-function updateStoreFromCustomerInfo(info: {
+// Exported for unit testing — sole source of isPro/isTrialing/trialDaysLeft.
+export function updateStoreFromCustomerInfo(info: {
   entitlements: { active: Record<string, { periodType?: string; expirationDate?: string | null }> };
 }) {
   const store = useSubscriptionStore.getState();
