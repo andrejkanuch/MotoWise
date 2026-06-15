@@ -5,15 +5,20 @@ import {
   type WebTripReviewsQuery,
 } from '@motovault/graphql';
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { GpxDownloadButton } from '@/components/gpx-download-button';
 import { SiblingRoutesSection } from '@/components/trip-detail/sibling-routes-section';
 import { TripDetailMap } from '@/components/trip-detail/trip-detail-map';
 import { BASE_URL } from '@/lib/constants';
-import { fetchTripTemplatesByCountry, type TripTemplateNode } from '@/lib/fetch-places';
+import {
+  fetchPublishedTripSlugRefs,
+  fetchTripTemplatesByCountry,
+  type TripTemplateNode,
+} from '@/lib/fetch-places';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { gqlServerFetcher } from '@/lib/graphql-server';
 import { relativeTrip } from '@/lib/seo/canonical';
+import { findBareSlugRedirect } from '@/lib/trips/bare-slug-redirect';
 import { selectSiblingRoutes, siblingsAreRegionScoped } from '@/lib/trips/sibling-routes';
 import '@/components/trip-detail/trip-detail.css';
 
@@ -238,7 +243,20 @@ export default async function TripPage({ params }: PageParams) {
     fetchReviews(country, region, slug),
     fetchSiblingRoutes(country, region, slug),
   ]);
-  if (!trip) notFound();
+  if (!trip) {
+    // Bare slug (missing the dedup hash) → 301 to the canonical hashed slug when
+    // there's an unambiguous match. Recovers old/typed links without serving
+    // duplicate content. Only runs on the 404 path, so no happy-path cost.
+    const canonicalSlug = await fetchPublishedTripSlugRefs()
+      .then((refs) => findBareSlugRedirect(refs, country, region, slug))
+      .catch(() => null);
+    if (canonicalSlug && canonicalSlug !== slug.toLowerCase()) {
+      // Permanent (308) — this consolidates a stale/bare URL onto its canonical,
+      // so crawlers should update the index rather than keep both.
+      permanentRedirect(relativeTrip(country, region, canonicalSlug));
+    }
+    notFound();
+  }
 
   const countryCode = trip.countryCode ?? country.toUpperCase();
   const dayCount = trip.dayCount ?? 1;

@@ -218,6 +218,10 @@ export function ResultsDesktop({
           ref={listRef}
           style={{
             borderRight: '1px solid var(--mv-line)',
+            // minHeight:0 lets this grid item scroll internally; without it the
+            // item keeps its intrinsic content height, ballooning the grid row
+            // (and the height:100% map next to it) to the full list height.
+            minHeight: 0,
             overflowY: 'auto',
             padding: '20px 20px 60px',
             background: 'var(--mv-bg, oklch(0.12 0.01 55))',
