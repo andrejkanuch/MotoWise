@@ -1,8 +1,9 @@
 import { palette } from '@motovault/design-system';
 import type { TripTemplatesQuery } from '@motovault/graphql';
+import { Image } from 'expo-image';
 import { Award, Bookmark, Clock, Mountain, Route, Star } from 'lucide-react-native';
 import { memo } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useEditorialTheme } from '../../theme/editorial';
@@ -81,7 +82,10 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
             <Image
               source={{ uri: trip.coverImageUrl ?? '' }}
               style={{ width: '100%', height: '100%' }}
-              resizeMode="cover"
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={200}
+              recyclingKey={trip.id}
             />
 
             {/* MotoVault Pick badge */}

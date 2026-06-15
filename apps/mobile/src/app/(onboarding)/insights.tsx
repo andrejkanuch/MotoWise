@@ -2,11 +2,12 @@ import { palette } from '@motovault/design-system';
 import { GenerateOnboardingInsightsDocument } from '@motovault/graphql';
 import { useMutation } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { AlertCircle, BookOpen, Info, Users2, Wrench } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -198,6 +199,9 @@ export default function InsightsScreen() {
                 height: 90,
                 borderRadius: 16,
               }}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={200}
             />
           </Animated.View>
         )}

@@ -9,6 +9,7 @@ import {
 import MapboxGL from '@rnmapbox/maps';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   AlertTriangle,
@@ -21,7 +22,7 @@ import {
   Users,
 } from 'lucide-react-native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
@@ -358,6 +359,9 @@ export default function GroupRideDetailScreen() {
                 <Image
                   source={{ uri: ride.organiser.avatarUrl }}
                   style={{ width: 32, height: 32, borderRadius: 16 }}
+                  contentFit="cover"
+                  cachePolicy="memory-disk"
+                  transition={200}
                 />
               ) : (
                 <View
@@ -413,6 +417,10 @@ export default function GroupRideDetailScreen() {
                       <Image
                         source={{ uri: p.avatarUrl }}
                         style={{ width: 36, height: 36, borderRadius: 18 }}
+                        contentFit="cover"
+                        cachePolicy="memory-disk"
+                        transition={200}
+                        recyclingKey={p.id}
                       />
                     ) : (
                       <View

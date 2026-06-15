@@ -353,6 +353,7 @@ export default function GarageScreen() {
                         source={{ uri: bike.primaryPhotoUrl }}
                         style={{ position: 'absolute', width: '100%', height: '100%' }}
                         contentFit="cover"
+                        recyclingKey={bike.id}
                       />
                     ) : (
                       <View
@@ -652,6 +653,7 @@ export default function GarageScreen() {
                           source={{ uri: bike.primaryPhotoUrl }}
                           style={{ width: '100%', height: '100%' }}
                           contentFit="cover"
+                          recyclingKey={bike.id}
                         />
                       ) : (
                         <View

@@ -1,8 +1,9 @@
 import { palette } from '@motovault/design-system';
 import type { GetCommentsQuery } from '@motovault/graphql';
+import { Image } from 'expo-image';
 import { Reply } from 'lucide-react-native';
 import { memo, useCallback } from 'react';
-import { Image, Pressable, Text, useColorScheme, View } from 'react-native';
+import { Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { showActionSheet } from '../../utils/action-sheet';
 
@@ -77,6 +78,10 @@ export const CommentItem = memo(function CommentItem({
             <Image
               source={{ uri: comment.author.avatarUrl }}
               style={{ width: 32, height: 32, borderRadius: 16 }}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={200}
+              recyclingKey={comment.id}
             />
           ) : (
             <View

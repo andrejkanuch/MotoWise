@@ -1,9 +1,10 @@
 import { palette } from '@motovault/design-system';
 import { TripReviewsDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
+import { Image } from 'expo-image';
 import { Star } from 'lucide-react-native';
 import { memo } from 'react';
-import { ActivityIndicator, Image, Text, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -61,6 +62,10 @@ export const ReviewList = memo(function ReviewList({ tripId }: ReviewListProps) 
               <Image
                 source={{ uri: review.author.avatarUrl }}
                 style={{ width: 28, height: 28, borderRadius: 14 }}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                transition={200}
+                recyclingKey={review.id}
               />
             ) : (
               <View

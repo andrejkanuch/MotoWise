@@ -532,6 +532,7 @@ export default function EditBikeScreen() {
                   source={{ uri: photoUrl }}
                   style={{ width: '100%', height: 220 }}
                   contentFit="cover"
+                  recyclingKey={id}
                 />
                 {uploadingPhoto && (
                   <View
