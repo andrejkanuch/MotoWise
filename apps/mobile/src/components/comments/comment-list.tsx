@@ -66,7 +66,6 @@ export function CommentList({ rideId, routeId, groupRideId, tripId }: CommentLis
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
-      queryClient.invalidateQueries({ queryKey: queryKeys.feed.all });
       setReplyingTo(undefined);
       if (process.env.EXPO_OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -78,7 +77,6 @@ export function CommentList({ rideId, routeId, groupRideId, tripId }: CommentLis
     mutationFn: (commentId: string) => gqlFetcher(DeleteCommentDocument, { commentId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
-      queryClient.invalidateQueries({ queryKey: queryKeys.feed.all });
     },
   });
 

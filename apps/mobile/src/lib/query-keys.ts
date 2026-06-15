@@ -61,12 +61,6 @@ export const queryKeys = {
     byMotorcycle: (motorcycleId: string) =>
       ['healthReports', 'byMotorcycle', motorcycleId] as const,
   },
-  feed: {
-    all: ['feed'] as const,
-  },
-  kudos: {
-    list: (rideId: string) => ['kudos', 'list', rideId] as const,
-  },
   routes: {
     all: ['routes'] as const,
     discover: (filters: string) => ['routes', 'discover', filters] as const,
