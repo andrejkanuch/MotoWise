@@ -21,6 +21,7 @@ describe('blog faq frontmatter', () => {
     'ducati-monster-panigale-maintenance-schedule',
     'kawasaki-ninja-z-maintenance-schedule',
     'honda-cbr-cb-maintenance-schedule',
+    'motorcycle-maintenance-schedules-by-brand',
   ];
 
   it.each(CLUSTER)('%s parses 5+ well-formed FAQ items', (slug) => {

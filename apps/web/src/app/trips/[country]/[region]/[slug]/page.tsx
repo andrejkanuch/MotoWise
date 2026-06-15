@@ -9,6 +9,7 @@ import { notFound } from 'next/navigation';
 import { GpxDownloadButton } from '@/components/gpx-download-button';
 import { TripDetailMap } from '@/components/trip-detail/trip-detail-map';
 import { BASE_URL } from '@/lib/constants';
+import { fetchTripTemplatesByCountry, type TripTemplateNode } from '@/lib/fetch-places';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { gqlServerFetcher } from '@/lib/graphql-server';
 import '@/components/trip-detail/trip-detail.css';
@@ -39,6 +40,26 @@ async function fetchReviews(country: string, region: string, slug: string): Prom
       first: 10,
     });
     return data.tripReviews ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Sibling routes for internal linking: prefer same-region trips, fall back to
+ * the rest of the country. Interlinks the published trip pages into a cluster
+ * so link equity flows between them instead of each page being a dead end.
+ */
+async function fetchSiblingRoutes(
+  country: string,
+  region: string,
+  currentSlug: string,
+): Promise<TripTemplateNode[]> {
+  try {
+    const all = await fetchTripTemplatesByCountry(country, 24);
+    const others = all.filter((t) => t.slug?.toLowerCase() !== currentSlug.toLowerCase());
+    const sameRegion = others.filter((t) => t.regionCode?.toLowerCase() === region.toLowerCase());
+    return (sameRegion.length >= 3 ? sameRegion : others).slice(0, 6);
   } catch {
     return [];
   }
@@ -208,9 +229,10 @@ function buildSections(trip: TripData) {
 
 export default async function TripPage({ params }: PageParams) {
   const { country, region, slug } = await params;
-  const [trip, reviews] = await Promise.all([
+  const [trip, reviews, siblingRoutes] = await Promise.all([
     fetchTrip(country, region, slug),
     fetchReviews(country, region, slug),
+    fetchSiblingRoutes(country, region, slug),
   ]);
   if (!trip) notFound();
 
@@ -825,6 +847,76 @@ export default async function TripPage({ params }: PageParams) {
         routeName={trip.title}
         variant="bottom"
       />
+
+      {/* ══════════ MORE ROUTES (internal-link cluster) ══════════ */}
+      {siblingRoutes.length > 0 && (
+        <section style={{ maxWidth: 1080, margin: '0 auto', padding: '8px 24px 48px' }}>
+          <h2
+            style={{
+              fontSize: 'clamp(22px, 2.5vw, 30px)',
+              fontWeight: 500,
+              letterSpacing: '-0.02em',
+              marginBottom: 20,
+            }}
+          >
+            More routes in{' '}
+            <span className="serif" style={{ color: 'var(--mv-warm-400)' }}>
+              {regionName ?? countryName}
+            </span>
+          </h2>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+              gap: 12,
+            }}
+          >
+            {siblingRoutes.map((r) => {
+              const href = `/trips/${(r.countryCode ?? '').toLowerCase()}/${(r.regionCode ?? '').toLowerCase()}/${(r.slug ?? '').toLowerCase()}`;
+              const km = r.distanceM ? Math.round(r.distanceM / 1000) : null;
+              const meta = [
+                r.regionCode ? regionDisplayName(r.countryCode ?? countryCode, r.regionCode) : null,
+                km ? `${km} km` : null,
+              ]
+                .filter(Boolean)
+                .join(' · ');
+              return (
+                <a
+                  key={r.id}
+                  href={href}
+                  style={{
+                    display: 'block',
+                    padding: 18,
+                    borderRadius: 14,
+                    border: '1px solid var(--mv-line)',
+                    background: 'var(--mv-bg)',
+                    textDecoration: 'none',
+                    color: 'inherit',
+                  }}
+                >
+                  <span
+                    style={{ display: 'block', fontWeight: 600, fontSize: 15, lineHeight: 1.3 }}
+                  >
+                    {r.title}
+                  </span>
+                  {meta && (
+                    <span
+                      style={{
+                        display: 'block',
+                        marginTop: 6,
+                        fontSize: 13,
+                        color: 'var(--mv-ink-3)',
+                      }}
+                    >
+                      {meta}
+                    </span>
+                  )}
+                </a>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* ══════════ END CTA ══════════ */}
       <section className="end-cta">
