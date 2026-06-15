@@ -347,7 +347,7 @@ export default async function TripPage({ params }: PageParams) {
             {regionName && (
               <>
                 <span className="rh-crumb-sep">/</span>
-                <span>{regionName}</span>
+                <a href={`/explore/${country}/${region}`}>{regionName}</a>
               </>
             )}
             <span className="rh-crumb-sep">/</span>
