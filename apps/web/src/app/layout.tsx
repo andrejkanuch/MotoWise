@@ -46,12 +46,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // TODO(perf, big-refactor): getLocale()/getMessages() here read request
   // headers and force EVERY route into dynamic rendering, because this root
   // layout sits above the [locale] segment and cannot call setRequestLocale().
-  // Marketing pages work around this with `export const dynamic = 'force-static'`
-  // (see (marketing)/layout.tsx). The proper fix is to relocate i18n message
-  // loading + NextIntlClientProvider into the [locale] layout (which has the
-  // locale param and can render statically), leaving this root layout
-  // locale-agnostic. Touches all non-localed routes too, so it's a larger,
-  // separately-reviewed change.
+  // Marketing pages neutralize this with `export const dynamic = 'force-static'`
+  // (see (marketing)/layout.tsx), which is the pragmatic fix and works today.
+  //
+  // Investigated 2026-06-15: the clean fix is NOT a simple "move getMessages
+  // into [locale]". `<html lang>` still needs the locale here, and Next 16's
+  // `next/root-params` only exposes segments that PRECEDE the root layout — but
+  // this root layout sits at app/ above [locale], with many non-localed routes
+  // (/login, /signup, /garage, /admin, /t, /r, /u) sharing it, so [locale] is
+  // not a root param and `locale()` does not resolve. A real decouple requires
+  // either multiple root layouts (route groups, duplicated <html>/<body> +
+  // providers, full reloads between groups) or `localePrefix: 'always'` URL
+  // routing (an SEO-sensitive URL change). Both are large, separately-reviewed
+  // initiatives — out of scope. Keep force-static on marketing until then.
   const locale = await getLocale();
   const messages = await getMessages();
   // Only pass the CookieBanner namespace to avoid bloating the client bundle
