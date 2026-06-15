@@ -46,6 +46,7 @@ import { useEffect, useState } from 'react';
 import { useProStatus } from '@/hooks/use-pro-status';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { garageQueryKeys } from './query-keys';
 import './garage.css';
 
 // ─── Type aliases ───
@@ -203,7 +204,7 @@ function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () 
         },
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['garage', 'expenses'] });
+      queryClient.invalidateQueries({ queryKey: garageQueryKeys.expensesBase });
       onClose();
     },
   });
@@ -358,7 +359,7 @@ export function GarageDashboard() {
 
   // ─── Data fetching ───
   const { data: meData } = useQuery({
-    queryKey: ['me'],
+    queryKey: garageQueryKeys.me,
     queryFn: () => gqlFetcher(MeDocument),
   });
 
@@ -368,7 +369,7 @@ export function GarageDashboard() {
     isError: bikesError,
     refetch: refetchBikes,
   } = useQuery({
-    queryKey: ['garage', 'motorcycles'],
+    queryKey: garageQueryKeys.motorcycles,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
   });
 
@@ -377,23 +378,23 @@ export function GarageDashboard() {
   const user = meData?.me;
 
   const { data: expenseData } = useQuery({
-    queryKey: ['garage', 'expenses', primaryBike?.id],
+    queryKey: garageQueryKeys.expenses(primaryBike?.id),
     queryFn: () => gqlFetcher(ExpenseDashboardDocument, { motorcycleId: primaryBike?.id ?? '' }),
     enabled: !!primaryBike,
   });
 
   const { data: maintenanceData } = useQuery({
-    queryKey: ['garage', 'maintenance'],
+    queryKey: garageQueryKeys.maintenance,
     queryFn: () => gqlFetcher(AllMaintenanceTasksDocument),
   });
 
   const { data: tripsData } = useQuery({
-    queryKey: ['garage', 'trips'],
+    queryKey: garageQueryKeys.trips,
     queryFn: () => gqlFetcher(SavedTripsDocument, { first: 10 }),
   });
 
   const { data: profileData } = useQuery({
-    queryKey: ['garage', 'profile', user?.publicUsername],
+    queryKey: garageQueryKeys.profile(user?.publicUsername),
     queryFn: () => gqlFetcher(GetRiderProfileDocument, { username: user?.publicUsername ?? '' }),
     enabled: !!user?.publicUsername,
   });
@@ -403,7 +404,7 @@ export function GarageDashboard() {
     mutationFn: (id: string) =>
       gqlFetcher(CompleteMaintenanceTaskDocument, { id, createNextOccurrence: true }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['garage', 'maintenance'] });
+      queryClient.invalidateQueries({ queryKey: garageQueryKeys.maintenance });
     },
   });
 

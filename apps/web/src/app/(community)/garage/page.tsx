@@ -9,6 +9,7 @@ import {
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
 import { gqlServerFetcherAuthed } from '@/lib/graphql-server';
 import { GarageDashboard } from './garage-dashboard';
+import { garageQueryKeys } from './query-keys';
 
 /**
  * Server entry for /garage. Prefetches the dashboard's data with the user's
@@ -31,11 +32,14 @@ export default async function GaragePage() {
   // the dependent queries' keys (primary bike id, public username).
   const [meData, bikesData] = await Promise.all([
     queryClient
-      .fetchQuery({ queryKey: ['me'], queryFn: () => gqlServerFetcherAuthed(MeDocument) })
+      .fetchQuery({
+        queryKey: garageQueryKeys.me,
+        queryFn: () => gqlServerFetcherAuthed(MeDocument),
+      })
       .catch(() => null),
     queryClient
       .fetchQuery({
-        queryKey: ['garage', 'motorcycles'],
+        queryKey: garageQueryKeys.motorcycles,
         queryFn: () => gqlServerFetcherAuthed(MyMotorcyclesDocument),
       })
       .catch(() => null),
@@ -51,22 +55,22 @@ export default async function GaragePage() {
   await Promise.all([
     primaryBike
       ? queryClient.prefetchQuery({
-          queryKey: ['garage', 'expenses', primaryBike.id],
+          queryKey: garageQueryKeys.expenses(primaryBike.id),
           queryFn: () =>
             gqlServerFetcherAuthed(ExpenseDashboardDocument, { motorcycleId: primaryBike.id }),
         })
       : Promise.resolve(),
     queryClient.prefetchQuery({
-      queryKey: ['garage', 'maintenance'],
+      queryKey: garageQueryKeys.maintenance,
       queryFn: () => gqlServerFetcherAuthed(AllMaintenanceTasksDocument),
     }),
     queryClient.prefetchQuery({
-      queryKey: ['garage', 'trips'],
+      queryKey: garageQueryKeys.trips,
       queryFn: () => gqlServerFetcherAuthed(SavedTripsDocument, { first: 10 }),
     }),
     username
       ? queryClient.prefetchQuery({
-          queryKey: ['garage', 'profile', username],
+          queryKey: garageQueryKeys.profile(username),
           queryFn: () => gqlServerFetcherAuthed(GetRiderProfileDocument, { username }),
         })
       : Promise.resolve(),
