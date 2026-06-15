@@ -4,7 +4,7 @@ vi.mock('@/lib/constants', () => ({
   BASE_URL: 'https://motovault.app',
 }));
 
-import { canonicalCountry, canonicalRegion, canonicalRoute } from '../canonical';
+import { canonicalCountry, canonicalRegion, canonicalRoute, relativeTrip } from '../canonical';
 
 describe('canonical URL builders', () => {
   it('canonicalRoute builds /route/{country}/{region}/{slug}', () => {
@@ -19,5 +19,9 @@ describe('canonical URL builders', () => {
 
   it('canonicalCountry builds /explore/{country}', () => {
     expect(canonicalCountry('us')).toBe('https://motovault.app/explore/us');
+  });
+
+  it('relativeTrip builds a lowercased /trips/ path (route is case-insensitive)', () => {
+    expect(relativeTrip('ZA', 'ZA-WC', 'Cape-Ride')).toBe('/trips/za/za-wc/cape-ride');
   });
 });

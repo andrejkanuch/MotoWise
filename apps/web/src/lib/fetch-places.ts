@@ -4,11 +4,13 @@ import {
   BrowseCountryBySlugDocument,
   BrowseExploreRegionDocument,
   BrowseRegionsByCountrySlugDocument,
+  SitemapPublishedTripsDocument,
   TripTemplatesDocument,
 } from '@motovault/graphql';
 import type { BrowsePlace, RouteListItem } from '@motovault/types';
 import { unstable_cache } from 'next/cache';
 import { gqlServerFetcher } from '@/lib/graphql-server';
+import type { TripSlugRef } from '@/lib/trips/bare-slug-redirect';
 
 /** Alias for `BrowsePlace` — shared type lives in `@motovault/types`. */
 export type Place = BrowsePlace;
@@ -154,4 +156,18 @@ export async function fetchTripTemplatesByRegion(
   // so we fetch by country and filter client-side.
   const all = await fetchTripTemplatesByCountry(countryCode, limit);
   return all.filter((t) => t.regionCode?.toLowerCase() === regionSlug.toLowerCase());
+}
+
+/**
+ * All published trip slug refs (country/region/slug), uncapped. Backs the
+ * bare-slug → canonical 301 fallback on trip detail 404s, where the paginated
+ * `tripTemplates` query (capped at 50 server-side) could miss the target trip.
+ */
+export async function fetchPublishedTripSlugRefs(): Promise<TripSlugRef[]> {
+  const data = await gqlServerFetcher(SitemapPublishedTripsDocument);
+  return data.sitemapPublishedTrips.map((t) => ({
+    countryCode: t.countryCode,
+    regionCode: t.regionCode,
+    slug: t.slug,
+  }));
 }

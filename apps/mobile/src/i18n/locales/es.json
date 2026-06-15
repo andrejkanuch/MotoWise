@@ -1776,7 +1776,12 @@
     "speedLabel": "Velocidad",
     "layoutA": "Vista velocidad",
     "layoutB": "Vista mapa",
-    "rec": "GRAB"
+    "rec": "GRAB",
+    "endRideTitle": "¿Finalizar ruta?",
+    "shortRideWarning": "Tu ruta fue muy corta ({{seconds}}s, {{meters}}m). ¿Estás seguro?",
+    "gpsTip": "Consejo: asegúrate de que tu teléfono tenga vista despejada al cielo para el seguimiento GPS",
+    "keepRiding": "Seguir conduciendo",
+    "endAnyway": "Finalizar de todos modos"
   },
   "rideSummary": {
     "namePlaceholder": "Nombra tu ruta...",

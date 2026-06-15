@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useCallback, useMemo, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 
@@ -75,21 +75,46 @@ interface Labels {
 
 export function CostCalculator({ labels }: { labels: Labels }) {
   const searchParams = useSearchParams();
-  const router = useRouter();
 
-  const bikeType = (searchParams.get('type') as BikeType) || 'naked';
-  const mileage = parseNum(searchParams.get('miles'), 5000);
-  const fuelPrice = parseNum(searchParams.get('fuel'), 3.5);
-  const insurance = parseNum(searchParams.get('insurance'), 800);
-  const maintenance = (searchParams.get('maintenance') as MaintenanceTier) || 'moderate';
+  // Seed once from the URL (shareable links), then own the values in local
+  // state. Previously every keystroke called router.replace(), which triggers a
+  // full RSC server round-trip + route re-render per character — the cause of
+  // the ~1.8s INP measured in the field. We now update local state for instant
+  // feedback and mirror the values into the URL via history.replaceState, which
+  // updates the address bar without any navigation or refetch.
+  const [bikeType, setBikeType] = useState<BikeType>(
+    () => (searchParams.get('type') as BikeType) || 'naked',
+  );
+  const [mileage, setMileage] = useState(() => parseNum(searchParams.get('miles'), 5000));
+  const [fuelPrice, setFuelPrice] = useState(() => parseNum(searchParams.get('fuel'), 3.5));
+  const [insurance, setInsurance] = useState(() => parseNum(searchParams.get('insurance'), 800));
+  const [maintenance, setMaintenance] = useState<MaintenanceTier>(
+    () => (searchParams.get('maintenance') as MaintenanceTier) || 'moderate',
+  );
+  const [hasInput, setHasInput] = useState(() => searchParams.toString().length > 0);
+
+  // Dispatch table: URL param key → local state updater. Avoids a per-field
+  // branch and keeps the JSX onChange handlers unchanged.
+  const fieldSetters = useMemo(
+    () => ({
+      type: (raw: string) => setBikeType((raw as BikeType) || 'naked'),
+      miles: (raw: string) => setMileage(parseNum(raw, 5000)),
+      fuel: (raw: string) => setFuelPrice(parseNum(raw, 3.5)),
+      insurance: (raw: string) => setInsurance(parseNum(raw, 800)),
+      maintenance: (raw: string) => setMaintenance((raw as MaintenanceTier) || 'moderate'),
+    }),
+    [],
+  );
 
   const updateParam = useCallback(
-    (key: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
+    (key: keyof typeof fieldSetters, value: string) => {
+      fieldSetters[key](value);
+      const params = new URLSearchParams(window.location.search);
       params.set(key, value);
-      router.replace(`?${params.toString()}`, { scroll: false });
+      window.history.replaceState(null, '', `?${params.toString()}`);
+      setHasInput(true);
     },
-    [searchParams, router],
+    [fieldSetters],
   );
 
   const results = useMemo(() => {
@@ -111,8 +136,6 @@ export function CostCalculator({ labels }: { labels: Labels }) {
       mpg,
     };
   }, [bikeType, mileage, fuelPrice, insurance, maintenance]);
-
-  const hasInput = searchParams.toString().length > 0;
 
   return (
     <section className="px-4 py-8">

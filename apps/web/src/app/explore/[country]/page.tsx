@@ -116,7 +116,15 @@ export default async function CountryPage({ params }: PageProps) {
       }}
     >
       {/* Desktop layout (hidden on mobile) */}
-      <div className="hidden md:flex md:flex-col md:flex-1" style={{ minHeight: 0 }}>
+      <div
+        className="hidden md:flex md:flex-col"
+        // Definite height (not just min-height) so the inner grid bounds the
+        // scrollable list and gives the map a real height instead of stretching
+        // to the full list content. `flex: none` overrides `md:flex-1` (flex-basis
+        // 0%, which would otherwise override `height`). Harmless on mobile — this
+        // block is display:none there.
+        style={{ minHeight: 0, height: 'calc(100dvh - 72px)', flex: 'none' }}
+      >
         <Suspense>
           <ResultsDesktop
             allTrips={trips}

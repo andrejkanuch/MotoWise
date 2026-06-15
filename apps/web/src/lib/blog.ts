@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import matter from 'gray-matter';
 import { BASE_URL } from './constants';
+import type { FaqItem } from './seo/schema';
 
 export interface Article {
   slug: string;
@@ -18,6 +19,8 @@ export interface Article {
   category?: string;
   wordCount?: number;
   dateModified?: string;
+  /** Optional Q&A pairs surfaced as FAQPage structured data (AI Overviews / PAA). */
+  faq?: FaqItem[];
 }
 
 const CONTENT_DIR = path.join(process.cwd(), 'content/blog');
@@ -51,6 +54,19 @@ function readArticlesFromDisk(locale: string): Article[] {
         category: data.category,
         wordCount: data.wordCount ? Number(data.wordCount) : undefined,
         dateModified: data.dateModified || undefined,
+        faq: Array.isArray(data.faq)
+          ? data.faq.filter((f: unknown): f is FaqItem => {
+              const item = f as Partial<FaqItem>;
+              // Require real strings — YAML can coerce `answer: yes` to a boolean
+              // or `question: 2026` to a number, which would poison FAQPage JSON-LD.
+              return (
+                typeof item?.question === 'string' &&
+                typeof item?.answer === 'string' &&
+                item.question.trim() !== '' &&
+                item.answer.trim() !== ''
+              );
+            })
+          : undefined,
       } satisfies Article;
     })
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -80,6 +96,22 @@ export function getArticleSlugs(locale: string = 'en'): string[] {
 export function getArticleUrl(slug: string, locale: string): string {
   const prefix = locale === 'en' ? '' : `/${locale}`;
   return `${BASE_URL}${prefix}/blog/${slug}`;
+}
+
+/**
+ * Canonical URL for a blog article served in `locale`.
+ *
+ * Self-canonical only when a real translated MDX file exists for that locale.
+ * Otherwise the page is rendering English fallback content (see `getArticles`),
+ * so it must canonicalize to the English URL — never self-canonicalize fallback
+ * content, or Google sees identical English text at /blog/x, /ja/blog/x,
+ * /pl/blog/x, … as competing duplicates ("Duplicate without user-selected
+ * canonical"). Mirrors the locale-detection used by `getArticleHreflangMap`.
+ */
+export function getCanonicalArticleUrl(slug: string, locale: string): string {
+  const hasTranslation =
+    locale === 'en' || readArticlesFromDisk(locale).some((a) => a.slug === slug);
+  return getArticleUrl(slug, hasTranslation ? locale : 'en');
 }
 
 /** Returns the hreflang map for a blog article, only including locales where the article exists. */

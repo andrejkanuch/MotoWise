@@ -90,7 +90,12 @@ export default async function CostCalculatorPage({ params }: PageProps) {
     perMonth: t('perMonth'),
     shareResults: t('shareResults'),
     copyLink: t('copyLink'),
-    trackActualCosts: t('trackActualCosts'),
+    // Message contains a <strong> tag and is rendered via dangerouslySetInnerHTML
+    // in the client component, so use t.markup (returns an HTML string with the
+    // tag applied). Plain t() throws a FORMATTING_ERROR on tag-bearing messages.
+    trackActualCosts: t.markup('trackActualCosts', {
+      strong: (chunks) => `<strong>${chunks}</strong>`,
+    }),
     getEarlyAccess: t('getEarlyAccess'),
     perYear: t('perYear'),
     mpgAvg: t('mpgAvg'),

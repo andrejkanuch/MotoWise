@@ -1776,7 +1776,12 @@
     "speedLabel": "Kecepatan",
     "layoutA": "Tampilan kecepatan",
     "layoutB": "Tampilan peta",
-    "rec": "RKM"
+    "rec": "RKM",
+    "endRideTitle": "Akhiri perjalanan?",
+    "shortRideWarning": "Perjalanan Anda sangat singkat ({{seconds}}d, {{meters}}m). Anda yakin?",
+    "gpsTip": "Tip: Pastikan ponsel Anda memiliki pandangan langit yang jelas untuk pelacakan GPS",
+    "keepRiding": "Lanjutkan berkendara",
+    "endAnyway": "Tetap akhiri"
   },
   "rideSummary": {
     "namePlaceholder": "Beri nama perjalananmu...",

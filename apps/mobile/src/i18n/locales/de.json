@@ -1776,7 +1776,12 @@
     "speedLabel": "Geschwindigkeit",
     "layoutA": "Tacho-Ansicht",
     "layoutB": "Karten-Ansicht",
-    "rec": "AUFN"
+    "rec": "AUFN",
+    "endRideTitle": "Fahrt beenden?",
+    "shortRideWarning": "Deine Fahrt war sehr kurz ({{seconds}}s, {{meters}}m). Bist du sicher?",
+    "gpsTip": "Tipp: Achte auf freie Sicht zum Himmel für das GPS-Tracking",
+    "keepRiding": "Weiterfahren",
+    "endAnyway": "Trotzdem beenden"
   },
   "rideSummary": {
     "namePlaceholder": "Benenne deine Fahrt...",

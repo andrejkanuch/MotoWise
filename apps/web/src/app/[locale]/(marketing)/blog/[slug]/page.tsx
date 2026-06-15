@@ -15,13 +15,19 @@ import {
   getArticleBySlug,
   getArticleHreflangMap,
   getArticleSlugs,
-  getArticleUrl,
+  getCanonicalArticleUrl,
   getRelatedArticles,
 } from '@/lib/blog';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import type { TocHeading } from '@/lib/rehype-extract-headings';
 import { rehypeExtractHeadings } from '@/lib/rehype-extract-headings';
-import { buildArticle, buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
+import {
+  buildArticle,
+  buildBreadcrumbList,
+  buildFAQPage,
+  buildGraph,
+  buildWebPage,
+} from '@/lib/seo/schema';
 
 export const revalidate = 3600;
 
@@ -43,6 +49,10 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
   }
 
   const ogImage = article.heroImage || '/og-image.png';
+  // Self-canonical only when a real translation exists; fallback locales
+  // (English content under /ja, /pl, /pt-BR, or any untranslated slug) point at
+  // the English URL so Google doesn't treat them as duplicate pages.
+  const canonicalUrl = getCanonicalArticleUrl(slug, locale);
 
   return {
     title: article.title,
@@ -50,7 +60,7 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
     keywords: article.keywords,
     authors: [{ name: article.author }],
     alternates: {
-      canonical: getArticleUrl(slug, locale),
+      canonical: canonicalUrl,
       languages: getArticleHreflangMap(slug),
     },
     openGraph: {
@@ -59,7 +69,7 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
       type: 'article',
       publishedTime: article.date,
       authors: [article.author],
-      url: getArticleUrl(slug, locale),
+      url: canonicalUrl,
       images: [{ url: ogImage, width: 1200, height: 630, alt: article.heroAlt || article.title }],
     },
   };
@@ -130,7 +140,10 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
   const related = getRelatedArticles(slug, article.category, locale);
   const author = getAuthor(article.author) ?? getDefaultAuthor();
 
-  const articleUrl = getArticleUrl(slug, locale);
+  // Use the canonical URL (English for fallback locales) so the JSON-LD graph
+  // self-identifies as the same URL as <link rel="canonical">, rather than the
+  // locale-prefixed duplicate.
+  const articleUrl = getCanonicalArticleUrl(slug, locale);
   const heroImageUrl = article.heroImage
     ? `${BASE_URL}${article.heroImage}`
     : `${BASE_URL}/og-image.png`;
@@ -173,6 +186,9 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
       slug,
       wordCount: article.wordCount,
     }),
+    article.faq && article.faq.length > 0
+      ? buildFAQPage(article.faq, `${locale}/blog/${slug}/faq`)
+      : null,
   );
 
   return (
@@ -227,6 +243,30 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
         <TableOfContents headings={headings} />
 
         <div className="prose prose-invert max-w-none">{content}</div>
+
+        {article.faq && article.faq.length > 0 && (
+          <section className="mt-16" aria-labelledby="faq-heading">
+            <h2 id="faq-heading" className="mb-6 text-2xl font-bold text-neutral-50">
+              Frequently Asked Questions
+            </h2>
+            <div className="divide-y divide-neutral-800 border-y border-neutral-800">
+              {article.faq.map((item) => (
+                <details key={item.question} className="group py-4">
+                  <summary className="flex cursor-pointer items-center justify-between gap-4 text-base font-semibold text-neutral-100 marker:content-none">
+                    {item.question}
+                    <span
+                      aria-hidden="true"
+                      className="text-amber-400 transition-transform group-open:rotate-45"
+                    >
+                      +
+                    </span>
+                  </summary>
+                  <p className="mt-3 leading-relaxed text-neutral-300">{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        )}
 
         <div className="mt-16">
           <AuthorBio author={author} />

@@ -83,7 +83,11 @@ function sanitizeCspHost(url: string): string {
   }
 }
 
-function buildCspHeader(nonce: string): string {
+// Shared CSP builder. `scriptInlineToken` is how inline scripts are permitted:
+// a per-request `'nonce-…'` on dynamically rendered routes, or `'unsafe-inline'`
+// on statically prerendered marketing routes (which cannot carry a nonce — see
+// buildMarketingCsp). All other directives are identical across both modes.
+function buildCsp(scriptInlineToken: string): string {
   const connectSources = [
     "'self'",
     sanitizeCspHost(supabaseUrl),
@@ -105,7 +109,7 @@ function buildCspHeader(nonce: string): string {
 
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://va.vercel-scripts.com https://api.mapbox.com https://js.stripe.com${isDev ? " 'unsafe-eval'" : ''}`,
+    `script-src 'self' ${scriptInlineToken} https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://va.vercel-scripts.com https://api.mapbox.com https://js.stripe.com${isDev ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline' https://api.mapbox.com",
     "img-src 'self' data: https: https://www.facebook.com",
     "font-src 'self' https://fonts.gstatic.com",
@@ -116,13 +120,32 @@ function buildCspHeader(nonce: string): string {
   ].join('; ');
 }
 
-function applySecurityHeaders(response: NextResponse, nonce: string) {
+function buildCspHeader(nonce: string): string {
+  return buildCsp(`'nonce-${nonce}'`);
+}
+
+// Nonce-free CSP for public marketing routes (no auth, no user input). A
+// per-request nonce would force dynamic rendering — Next.js applies nonces only
+// during SSR, so static/ISR pages cannot carry one (and serving a cached body
+// with a fresh per-request nonce header would mismatch and break every inline
+// script). Using 'unsafe-inline' here lets marketing pages be statically
+// prerendered and edge-cached, collapsing TTFB. The strict per-request nonce
+// CSP (buildCspHeader) still guards authed/community/admin/share routes.
+function buildMarketingCsp(): string {
+  return buildCsp("'unsafe-inline'");
+}
+
+function applySecurityHeaders(response: NextResponse, nonce: string | null) {
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
-  response.headers.set('Content-Security-Policy', buildCspHeader(nonce));
+  // nonce === null → nonce-free marketing CSP (statically cacheable routes).
+  response.headers.set(
+    'Content-Security-Policy',
+    nonce === null ? buildMarketingCsp() : buildCspHeader(nonce),
+  );
 }
 
 // Public marketing paths that are safe to cache at the edge. Excludes admin,
@@ -427,10 +450,16 @@ export async function proxy(request: NextRequest) {
     response = intlMiddleware(request) as NextResponse;
   }
 
-  // Apply nonce-based CSP and security headers to all responses
+  // Apply CSP and security headers to all responses. Marketing routes are
+  // statically prerendered, so they get the nonce-free CSP (a static page can't
+  // carry a per-request nonce); everything else keeps the strict nonce CSP.
+  // CSP selection is path-based (not session-based) so the static HTML's inline
+  // scripts are permitted for logged-in visitors too — only the shared edge
+  // cache header is withheld when a session cookie is present.
   if (!response.headers.has('Location')) {
-    applySecurityHeaders(response, nonce);
-    if (isMarketingCacheable(pathname) && !hasSupabaseSession(request)) {
+    const marketingPath = isMarketingCacheable(pathname);
+    applySecurityHeaders(response, marketingPath ? null : nonce);
+    if (marketingPath && !hasSupabaseSession(request)) {
       applyMarketingCacheHeader(response);
     }
     // Prevent search engines from indexing auth and user-generated pages.

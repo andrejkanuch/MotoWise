@@ -443,11 +443,15 @@ export class TripTemplatesService {
 
   private generateSlug(title: string): string {
     return title
+      .normalize('NFKD') // split accents from base letters (é → e + combining mark)
+      .replace(/[̀-ͯ]/g, '') // strip the combining diacritics
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/[‐-―]/g, '-') // en/em/figure dashes → hyphen ("Zion–Mount" → "zion-mount")
+      .replace(/[^a-z0-9\s-]/g, ' ') // other punctuation → space, preserving word breaks
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '')
-      .slice(0, 75);
+      .slice(0, 75)
+      .replace(/-$/, ''); // a 75-char cut can land on a hyphen
   }
 }

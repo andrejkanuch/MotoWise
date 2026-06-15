@@ -581,6 +581,10 @@
   border-radius: 20px;
   overflow: hidden;
   border: 1px solid var(--mv-line);
+  /* Reserve the panel's loaded height so a client refetch (when the server
+     prefetch missed) doesn't shift the sections below it. Loaded content is
+     normally taller; this only sets a floor. */
+  min-height: 320px;
 }
 
 .exp-left {
