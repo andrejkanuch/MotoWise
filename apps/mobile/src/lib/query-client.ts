@@ -38,7 +38,11 @@ export const queryClient = new QueryClient({
       retry: 3,
       retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
       networkMode: 'offlineFirst',
-      structuralSharing: false,
+      // structuralSharing left at its v5 default (true): it preserves referential
+      // identity of unchanged result subtrees across refetches, which is what lets
+      // React.memo'd cards and memoized renderItems skip re-renders on background
+      // refetch/focus/invalidation. Opt out per-query only if one returns
+      // non-plain-object data that must not be structurally merged.
     },
     mutations: {
       retry: (failureCount, error) => {
