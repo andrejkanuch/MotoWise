@@ -20,6 +20,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useEditorialTheme } from '../../theme/editorial';
+import { haversineMeters } from '../../utils/geo-utils';
 import { decodePolylineLatLng } from '../../utils/polyline';
 import {
   distanceUnitLabel,
@@ -53,21 +54,6 @@ function lerpAngle(from: number, to: number, t: number): number {
 /** Linear interpolation */
 function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
-}
-
-/** Haversine distance in meters between two coordinate points */
-function haversineM(
-  a: { latitude: number; longitude: number },
-  b: { latitude: number; longitude: number },
-): number {
-  const dLat = ((b.latitude - a.latitude) * Math.PI) / 180;
-  const dLon = ((b.longitude - a.longitude) * Math.PI) / 180;
-  const sinHalf =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((a.latitude * Math.PI) / 180) *
-      Math.cos((b.latitude * Math.PI) / 180) *
-      Math.sin(dLon / 2) ** 2;
-  return 6371000 * 2 * Math.atan2(Math.sqrt(sinHalf), Math.sqrt(1 - sinHalf));
 }
 
 /** Format seconds as MM:SS */
@@ -202,7 +188,7 @@ export default function RideFlyoverScreen() {
     if (waypoints.length < 2) return [0];
     const dists = [0];
     for (let i = 1; i < waypoints.length; i++) {
-      dists.push(dists[i - 1] + haversineM(waypoints[i - 1], waypoints[i]));
+      dists.push(dists[i - 1] + haversineMeters(waypoints[i - 1], waypoints[i]));
     }
     return dists;
   }, [waypoints]);

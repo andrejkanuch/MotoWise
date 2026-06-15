@@ -3,6 +3,7 @@ import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 import { useRideStore } from '../stores/ride.store';
+import { haversineMeters } from './geo-utils';
 import { gpsFilter } from './ride-gps-filter';
 import { encodePolyline } from './ride-heatmap';
 import {
@@ -35,17 +36,12 @@ let forgotToStopNotified = false;
 
 // --- Haversine ---
 
+/** Great-circle distance in meters between two `{lat,lng}` points. */
 export function distanceMeters(
   a: { lat: number; lng: number },
   b: { lat: number; lng: number },
 ): number {
-  const R = 6371000;
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-  const sin2 =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(sin2), Math.sqrt(1 - sin2));
+  return haversineMeters(a, b);
 }
 
 // --- GPS Listener ---
