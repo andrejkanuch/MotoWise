@@ -11,7 +11,8 @@
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "i18n:status": "npx i18next-cli status --config ./i18next-toolkit.config.mjs",
-    "i18n:hardcoded": "eslint \"src/**/*.{ts,tsx}\""
+    "i18n:hardcoded": "eslint \"src/**/*.{ts,tsx}\"",
+    "clean:artifacts": "find . -maxdepth 1 \\( -name 'build-*.aab' -o -name 'build-*.ipa' \\) -mtime +7 -delete && rm -rf dist"
   },
   "dependencies": {
     "@expo-google-fonts/instrument-serif": "^0.4.1",
@@ -37,6 +38,7 @@
     "expo-constants": "~56.0.15",
     "expo-crypto": "~56.0.3",
     "expo-dev-client": "~56.0.20",
+    "expo-file-system": "~56.0.7",
     "expo-haptics": "~56.0.3",
     "expo-image": "^56.0.9",
     "expo-image-manipulator": "^56.0.14",
