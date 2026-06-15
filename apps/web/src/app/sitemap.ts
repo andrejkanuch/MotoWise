@@ -6,7 +6,7 @@ import { scoreBikePage } from '@/lib/bikes/quality-gate';
 import { getArticles } from '@/lib/blog';
 import { BASE_URL } from '@/lib/constants';
 import { gqlServerFetcher } from '@/lib/graphql-server';
-import { canonicalCountry, canonicalRegion, canonicalTrip } from '@/lib/seo/canonical';
+import { exploreDiscoveryEntries, tripDetailEntries } from '@/lib/seo/sitemap-trips';
 
 const host = BASE_URL;
 const locales = routing.locales;
@@ -112,7 +112,11 @@ async function getPublishedTripsForSitemap() {
   try {
     const data = await gqlServerFetcher(SitemapPublishedTripsDocument);
     return data.sitemapPublishedTrips;
-  } catch {
+  } catch (err) {
+    // One fetch backs every trip + explore URL, so a silent [] would drop all of
+    // them and read as "no trips". Log so the failure is visible; the empty
+    // result still degrades gracefully (static + blog + bike URLs are unaffected).
+    console.error('[sitemap] sitemapPublishedTrips failed — trip + explore URLs omitted', err);
     return [];
   }
 }
@@ -177,33 +181,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // ---- Trip detail pages + explore discovery (one fetch, both derived) ----
   const publishedTrips = await getPublishedTripsForSitemap();
-
-  const tripTemplateEntries = publishedTrips.map((t) => ({
-    url: canonicalTrip(
-      t.countryCode.toLowerCase(),
-      t.regionCode.toLowerCase(),
-      t.slug.toLowerCase(),
-    ),
-    lastModified: t.updatedAt ? new Date(t.updatedAt) : new Date(),
-  }));
-
-  // ---- Explore discovery pages (derived from the same published trips) ----
-  const countrySet = new Set<string>();
-  const regionSet = new Set<string>();
-  for (const t of publishedTrips) {
-    countrySet.add(t.countryCode.toLowerCase());
-    regionSet.add(`${t.countryCode.toLowerCase()}/${t.regionCode.toLowerCase()}`);
-  }
-
-  const countryEntries = [...countrySet].map((cc) => ({
-    url: canonicalCountry(cc),
-    lastModified: new Date(),
-  }));
-
-  const regionEntries = [...regionSet].map((key) => {
-    const [cc, rs] = key.split('/');
-    return { url: canonicalRegion(cc, rs), lastModified: new Date() };
-  });
+  const now = new Date();
+  const tripTemplateEntries = tripDetailEntries(publishedTrips, now);
+  const exploreEntries = exploreDiscoveryEntries(publishedTrips, now);
 
   return [
     ...staticEntries,
@@ -211,7 +191,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     bikeIndexEntry,
     ...bikeLeafEntries,
     ...tripTemplateEntries,
-    ...countryEntries,
-    ...regionEntries,
+    ...exploreEntries,
   ];
 }

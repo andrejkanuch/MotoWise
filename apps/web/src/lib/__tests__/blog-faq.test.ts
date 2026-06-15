@@ -6,7 +6,7 @@ vi.mock('@/lib/constants', () => ({
   BASE_URL: 'https://motovault.app',
 }));
 
-const { getArticleBySlug } = await import('../blog');
+const { getArticleBySlug, getArticleSlugs } = await import('../blog');
 
 /**
  * Guards the FAQ pipeline: `faq` frontmatter must parse into structured Q&A
@@ -38,5 +38,21 @@ describe('blog faq frontmatter', () => {
     const article = getArticleBySlug('best-motorcycle-app-for-beginners-2026', 'en');
     expect(article).toBeDefined();
     expect(article?.faq).toBeUndefined();
+  });
+
+  // Non-brittle guard: any post that declares `faq` (current or future) must
+  // parse to well-formed Q&A — a malformed entry would poison its FAQPage JSON-LD.
+  it('every post with faq frontmatter has only well-formed items', () => {
+    for (const slug of getArticleSlugs('en')) {
+      const faq = getArticleBySlug(slug, 'en')?.faq;
+      if (!faq) continue;
+      expect(faq.length, `${slug} declares an empty faq`).toBeGreaterThan(0);
+      for (const item of faq) {
+        expect(typeof item.question, `${slug} faq question`).toBe('string');
+        expect(typeof item.answer, `${slug} faq answer`).toBe('string');
+        expect(item.question.trim(), `${slug} blank question`).not.toBe('');
+        expect(item.answer.trim(), `${slug} blank answer`).not.toBe('');
+      }
+    }
   });
 });

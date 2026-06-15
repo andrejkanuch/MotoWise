@@ -7,12 +7,14 @@ import {
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { GpxDownloadButton } from '@/components/gpx-download-button';
+import { SiblingRoutesSection } from '@/components/trip-detail/sibling-routes-section';
 import { TripDetailMap } from '@/components/trip-detail/trip-detail-map';
 import { BASE_URL } from '@/lib/constants';
 import { fetchTripTemplatesByCountry, type TripTemplateNode } from '@/lib/fetch-places';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { gqlServerFetcher } from '@/lib/graphql-server';
 import { relativeTrip } from '@/lib/seo/canonical';
+import { selectSiblingRoutes, siblingsAreRegionScoped } from '@/lib/trips/sibling-routes';
 import '@/components/trip-detail/trip-detail.css';
 
 type TripData = NonNullable<WebTripBySlugQuery['tripBySlug']>;
@@ -58,17 +60,7 @@ async function fetchSiblingRoutes(
 ): Promise<TripTemplateNode[]> {
   try {
     const all = await fetchTripTemplatesByCountry(country, 24);
-    // Only fully-addressable trips — a null slug/region/country would render a
-    // /trips// link that soft-404s (the class blog-internal-links guards for /blog/).
-    const others = all.filter(
-      (t) =>
-        t.slug != null &&
-        t.regionCode != null &&
-        t.countryCode != null &&
-        t.slug.toLowerCase() !== currentSlug.toLowerCase(),
-    );
-    const sameRegion = others.filter((t) => t.regionCode?.toLowerCase() === region.toLowerCase());
-    return (sameRegion.length >= 3 ? sameRegion : others).slice(0, 6);
+    return selectSiblingRoutes(all, region, currentSlug);
   } catch {
     return [];
   }
@@ -85,6 +77,9 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   const dayCount = trip.dayCount ?? 1;
   const title = `${trip.title} — ${dayCount}-Day Motorcycle Trip${regionName ? ` in ${regionName}` : ''}, ${countryName}`;
   const description = trip.description.slice(0, 155);
+  // Lowercase canonical — the route is case-insensitive, so a page reached via an
+  // uppercased path must still canonicalize to the single lowercase URL.
+  const canonicalUrl = `${BASE_URL}${relativeTrip(country, region, slug)}`;
 
   return {
     title,
@@ -92,11 +87,11 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
     openGraph: {
       title,
       description,
-      url: `${BASE_URL}/trips/${country}/${region}/${slug}`,
+      url: canonicalUrl,
       type: 'article',
     },
     alternates: {
-      canonical: `${BASE_URL}/trips/${country}/${region}/${slug}`,
+      canonical: canonicalUrl,
     },
   };
 }
@@ -250,13 +245,11 @@ export default async function TripPage({ params }: PageParams) {
   const countryName = countryDisplayName(countryCode);
   const regionName = trip.regionCode ? regionDisplayName(countryCode, trip.regionCode) : null;
   // Label the "More routes" cluster by region only when every sibling is actually
-  // in this region; fetchSiblingRoutes falls back to country-wide when the region
+  // in this region; selectSiblingRoutes falls back to country-wide when the region
   // has < 3 siblings, and a region heading over country-wide cards is misleading.
-  const siblingScope =
-    siblingRoutes.length > 0 &&
-    siblingRoutes.every((r) => r.regionCode?.toLowerCase() === region.toLowerCase())
-      ? (regionName ?? countryName)
-      : countryName;
+  const siblingScope = siblingsAreRegionScoped(siblingRoutes, region)
+    ? (regionName ?? countryName)
+    : countryName;
 
   // Group waypoints by day
   const waypoints = trip.waypoints ?? [];
@@ -866,74 +859,11 @@ export default async function TripPage({ params }: PageParams) {
       />
 
       {/* ══════════ MORE ROUTES (internal-link cluster) ══════════ */}
-      {siblingRoutes.length > 0 && (
-        <section style={{ maxWidth: 1080, margin: '0 auto', padding: '8px 24px 48px' }}>
-          <h2
-            style={{
-              fontSize: 'clamp(22px, 2.5vw, 30px)',
-              fontWeight: 500,
-              letterSpacing: '-0.02em',
-              marginBottom: 20,
-            }}
-          >
-            More routes in{' '}
-            <span className="serif" style={{ color: 'var(--mv-warm-400)' }}>
-              {siblingScope}
-            </span>
-          </h2>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-              gap: 12,
-            }}
-          >
-            {siblingRoutes.map((r) => {
-              const href = relativeTrip(r.countryCode ?? '', r.regionCode ?? '', r.slug ?? '');
-              const km = r.distanceM ? Math.round(r.distanceM / 1000) : null;
-              const meta = [
-                r.regionCode ? regionDisplayName(r.countryCode ?? countryCode, r.regionCode) : null,
-                km ? `${km} km` : null,
-              ]
-                .filter(Boolean)
-                .join(' · ');
-              return (
-                <a
-                  key={r.id}
-                  href={href}
-                  style={{
-                    display: 'block',
-                    padding: 18,
-                    borderRadius: 14,
-                    border: '1px solid var(--mv-line)',
-                    background: 'var(--mv-bg)',
-                    textDecoration: 'none',
-                    color: 'inherit',
-                  }}
-                >
-                  <span
-                    style={{ display: 'block', fontWeight: 600, fontSize: 15, lineHeight: 1.3 }}
-                  >
-                    {r.title}
-                  </span>
-                  {meta && (
-                    <span
-                      style={{
-                        display: 'block',
-                        marginTop: 6,
-                        fontSize: 13,
-                        color: 'var(--mv-ink-3)',
-                      }}
-                    >
-                      {meta}
-                    </span>
-                  )}
-                </a>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      <SiblingRoutesSection
+        routes={siblingRoutes}
+        scopeLabel={siblingScope}
+        fallbackCountryCode={countryCode}
+      />
 
       {/* ══════════ END CTA ══════════ */}
       <section className="end-cta">
