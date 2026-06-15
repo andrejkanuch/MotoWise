@@ -44,9 +44,9 @@ Variant B's extra steps: frequency → `riding_frequency`; stay_on_top → `conc
 - **Trial→paid / retention / LTV:** RevenueCat events + PostHog cohorts on person property `onboarding_variant` (set at assignment, persists post-signup).
 - **Exposure:** `$feature_flag_called` with `$feature_flag = onboarding_ab_2026`; offline-defaulted users carry `locally_defaulted: true`.
 
-## PostHog Experiment (configured 2026-06-11)
+## PostHog Experiment (configured 2026-06-11, launched 2026-06-15)
 
-[Experiment #83476](https://eu.posthog.com/project/155556/experiments/83476) — **draft**, `filterTestAccounts: true`, exposure = `$feature_flag_called`. Metrics:
+[Experiment #83476](https://eu.posthog.com/project/155556/experiments/83476) — **running** (launched 2026-06-15 13:14 UTC), `filterTestAccounts: true`, exposure = `$feature_flag_called`. Metrics:
 
 | Slot | Metric | Funnel |
 |---|---|---|
@@ -57,9 +57,9 @@ Variant B's extra steps: frequency → `riding_frequency`; stay_on_top → `conc
 
 **Native experiment caveats (read before launching):**
 
-1. **`control` is at 0% rollout** → no holdout traffic, so PostHog's native lift-vs-control stats have no baseline. This is a 2-arm `lean`-vs-`invested` test by design. For the head-to-head read, either (a) give `control` traffic if you want absolute lift vs the old V4 flow, or (b) compare arms with funnels **broken down by `onboarding_variant`** (person property) — works without a control baseline.
-2. **No data until a release build ships.** PostHog is `disabled` under `__DEV__`; the flag's `last_called_at` is null and the A/B-instrumented events (`variant` property, `bike_added`, `account_created`) are not yet in the project taxonomy. The activation metric's `bike_added` was added with `allow_unknown_events` and starts populating once the build with this branch is released.
-3. **Launch when the release goes live** (`experiment-launch` / UI) so `start_date` matches first real exposure — don't launch against the empty draft.
+1. **`control` is at 0% rollout — 2-arm by decision (2026-06-15).** No holdout traffic, so PostHog's native lift-vs-control stats have no baseline; this is a `lean`-vs-`invested` test read via funnels **broken down by `onboarding_variant`** (the super property — attaches to every event, including `paywall_viewed`/`paywall_result`, which the wrapper-added `variant` does not). The dashboard [Onboarding A/B 2026 (738337)](https://eu.posthog.com/project/155556/dashboard/738337) tiles now all break down by `onboarding_variant`. Revisit `control` traffic only if absolute lift vs the old V4 flow is later needed.
+2. **No real data until a release build ships.** PostHog is `disabled` under `__DEV__`, so production exposures are 0 until a release/TestFlight/EAS-production build carrying this branch reaches users. As of 2026-06-15 the flag's `last_called_at` IS populated and `$feature_flag_called` fires, but only from dev/QA devices — the A/B events (`variant`/`onboarding_variant`, `bike_added`, `account_created`) are in the taxonomy with dev-only volume. Don't read results until exposures per arm reach the hundreds.
+3. **Already launched** (2026-06-15 13:14 UTC). `start_date` predates first real exposure because it was launched ahead of the release build — discount pre-release exposures when reading.
 
 ## Hygiene
 

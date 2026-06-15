@@ -243,6 +243,7 @@ export default function RideHudScreen() {
 
     trackEvent(AnalyticsEvent.RIDE_ENDED, {
       ride_id: rideId,
+      motorcycle_id: rideMMKV.getMotorcycleId() ?? null,
       duration_s: elapsedRef.current,
       distance_m: Math.round(totalDistance),
       pause_count: totalPausedRef.current > 0 ? 1 : 0,

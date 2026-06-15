@@ -23,7 +23,7 @@ import { OnboardingContinueButton } from '../../components/onboarding/onboarding
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
-import { AnalyticsEvent, captureException } from '../../lib/analytics';
+import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
@@ -146,6 +146,12 @@ export default function AccountScreen() {
       } else if (data.user && !data.session) {
         // Email confirmation required — can't proceed into the app yet.
         Alert.alert(t('auth.checkEmail'), t('auth.confirmationSent'));
+      } else if (data.session) {
+        // New account with an active session (no email confirmation needed).
+        // OAuth paths fire USER_SIGNED_UP in oauth.ts; the email-in-onboarding
+        // path must too, otherwise onboarding email signups never reach the
+        // canonical signup metric (the Executive "Daily Signups" denominator).
+        trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'email' });
       }
       // data.session present → onAuthStateChange fires → session effect advances.
     } catch (err) {
