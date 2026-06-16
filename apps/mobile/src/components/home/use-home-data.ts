@@ -1,7 +1,6 @@
 import { palette } from '@motovault/design-system';
 import {
   AllMaintenanceTasksDocument,
-  MeDocument,
   MyMotorcyclesDocument,
   MyRidesDocument,
   type MyRidesQuery,
@@ -16,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { computeHealthScore, getRelativeDueDate } from '../../lib/health-score';
 import { queryKeys } from '../../lib/query-keys';
+import { meOptions } from '../../lib/query-options';
 import { getContextualSubtitleKey, getGreeting } from './home-helpers';
 import type { FleetHealth, PriorityAction, TaskItem, TaskWithRelative } from './home-types';
 
@@ -24,11 +24,7 @@ export function useHomeData() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const meQuery = useQuery({
-    queryKey: queryKeys.user.me,
-    queryFn: () => gqlFetcher(MeDocument),
-    meta: { showErrorAlert: false },
-  });
+  const meQuery = useQuery(meOptions());
   const bikesQuery = useQuery({
     queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),

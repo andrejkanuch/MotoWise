@@ -125,6 +125,8 @@ export const queryKeys = {
   trips: {
     all: ['trips'] as const,
     detail: (id: string) => ['trips', 'detail', id] as const,
+    /** Source trip loaded into the create/edit screen (edit or clone mode). */
+    edit: (tripId: string) => ['trip-edit', tripId] as const,
     list: (scope: string) => ['trips', 'list', scope] as const,
     my: ['trips', 'my'] as const,
     /** Discover draft strip: user's draft trips (non-paginated). */

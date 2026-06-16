@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import { MeDocument, UpdateUserDocument } from '@motovault/graphql';
+import { UpdateUserDocument } from '@motovault/graphql';
 import { RidingGoal } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -25,6 +25,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { meOptions } from '../../../lib/query-options';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
 
 /* ─── Experience levels ─── */
@@ -101,10 +102,7 @@ export default function SettingsScreen() {
   const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
 
-  const meQuery = useQuery({
-    queryKey: queryKeys.user.me,
-    queryFn: () => gqlFetcher(MeDocument),
-  });
+  const meQuery = useQuery(meOptions());
 
   const user = meQuery.data?.me;
   const preferences = user?.preferences as UserPreferences | null | undefined;

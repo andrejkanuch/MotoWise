@@ -17,6 +17,7 @@ import {
   Settings,
 } from 'lucide-react-native';
 import { PostHogMaskView } from 'posthog-react-native';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -27,6 +28,69 @@ import { triggerImpact } from '../../../../utils/haptics';
 
 type User = MeQuery['me'];
 type Motorcycle = MyMotorcyclesQuery['myMotorcycles'][number];
+type EditorialTheme = ReturnType<typeof useEditorialTheme>['t'];
+
+/** One row in the profile navigation list — icon bubble + title/subtitle +
+ *  chevron. Extracted from five structurally identical cards. */
+function ProfileNavCard({
+  icon,
+  iconBg,
+  title,
+  subtitle,
+  onPress,
+  delay,
+  theme,
+  isDark,
+}: {
+  icon: ReactNode;
+  iconBg: string;
+  title: string;
+  subtitle: string;
+  onPress: () => void;
+  delay: number;
+  theme: EditorialTheme;
+  isDark: boolean;
+}) {
+  return (
+    <Animated.View entering={FadeInUp.delay(delay).duration(400)}>
+      <Pressable
+        onPress={() => {
+          triggerImpact();
+          onPress();
+        }}
+        style={{
+          backgroundColor: theme.surface,
+          borderRadius: 20,
+          borderCurve: 'continuous',
+          padding: 20,
+          flexDirection: 'row',
+          alignItems: 'center',
+          boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
+        }}
+      >
+        <View
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 14,
+            borderCurve: 'continuous',
+            backgroundColor: iconBg,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: 14,
+          }}
+        >
+          {icon}
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: theme.ink, fontSize: 17, fontWeight: '700' }}>{title}</Text>
+          <Text style={{ color: theme.ink3, fontSize: 13, marginTop: 2 }}>{subtitle}</Text>
+        </View>
+        <ChevronRight size={17} color={theme.ink3} strokeWidth={2} />
+      </Pressable>
+    </Animated.View>
+  );
+}
 
 export function AccountSection({
   user,
@@ -104,7 +168,9 @@ export function AccountSection({
                   justifyContent: 'center',
                 }}
               >
-                <Text style={{ fontSize: 22, fontWeight: '600', color: '#fff' }}>{initials}</Text>
+                <Text style={{ fontSize: 22, fontWeight: '600', color: palette.white }}>
+                  {initials}
+                </Text>
               </LinearGradient>
             </View>
             <View style={{ flex: 1 }}>
@@ -430,255 +496,70 @@ export function AccountSection({
       </Animated.View>
 
       {/* My Rides */}
-      <Animated.View entering={FadeInUp.delay(120).duration(400)}>
-        <Pressable
-          onPress={() => {
-            triggerImpact();
-            router.push('/(tabs)/(profile)/rides');
-          }}
-          style={{
-            backgroundColor: theme.surface,
-            borderRadius: 20,
-            borderCurve: 'continuous',
-            padding: 20,
-            flexDirection: 'row',
-            alignItems: 'center',
-            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
-          }}
-        >
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              backgroundColor: tint(palette.accent500, 0.12),
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: 14,
-            }}
-          >
-            <Navigation size={22} color={palette.accent500} strokeWidth={2} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                color: theme.ink,
-                fontSize: 17,
-                fontWeight: '700',
-              }}
-            >
-              {t('profile.myRidesTitle', { defaultValue: 'My Rides' })}
-            </Text>
-            <Text style={{ color: theme.ink3, fontSize: 13, marginTop: 2 }}>
-              {t('profile.myRidesDescription', {
-                defaultValue: 'Ride history, stats & route maps',
-              })}
-            </Text>
-          </View>
-          <ChevronRight size={17} color={theme.ink3} strokeWidth={2} />
-        </Pressable>
-      </Animated.View>
+      <ProfileNavCard
+        delay={120}
+        theme={theme}
+        isDark={isDark}
+        iconBg={tint(palette.accent500, 0.12)}
+        icon={<Navigation size={22} color={palette.accent500} strokeWidth={2} />}
+        title={t('profile.myRidesTitle', { defaultValue: 'My Rides' })}
+        subtitle={t('profile.myRidesDescription', {
+          defaultValue: 'Ride history, stats & route maps',
+        })}
+        onPress={() => router.push('/(tabs)/(profile)/rides')}
+      />
 
       {/* Roads I've ridden — lifetime heatmap + annual recap */}
-      <Animated.View entering={FadeInUp.delay(125).duration(400)}>
-        <Pressable
-          onPress={() => {
-            triggerImpact();
-            router.push('/(tabs)/(profile)/heatmap');
-          }}
-          style={{
-            backgroundColor: theme.surface,
-            borderRadius: 20,
-            borderCurve: 'continuous',
-            padding: 20,
-            flexDirection: 'row',
-            alignItems: 'center',
-            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
-          }}
-        >
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              backgroundColor: tint(theme.danger, 0.12),
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: 14,
-            }}
-          >
-            <Flame size={22} color={theme.danger} strokeWidth={2} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                color: theme.ink,
-                fontSize: 17,
-                fontWeight: '700',
-              }}
-            >
-              {t('profile.roadsTitle')}
-            </Text>
-            <Text style={{ color: theme.ink3, fontSize: 13, marginTop: 2 }}>
-              {t('profile.roadsSubtitle')}
-            </Text>
-          </View>
-          <ChevronRight size={17} color={theme.ink3} strokeWidth={2} />
-        </Pressable>
-      </Animated.View>
+      <ProfileNavCard
+        delay={125}
+        theme={theme}
+        isDark={isDark}
+        iconBg={tint(theme.danger, 0.12)}
+        icon={<Flame size={22} color={theme.danger} strokeWidth={2} />}
+        title={t('profile.roadsTitle')}
+        subtitle={t('profile.roadsSubtitle')}
+        onPress={() => router.push('/(tabs)/(profile)/heatmap')}
+      />
 
       {/* My Trips */}
-      <Animated.View entering={FadeInUp.delay(130).duration(400)}>
-        <Pressable
-          onPress={() => {
-            triggerImpact();
-            router.push('/(profile)/trips');
-          }}
-          style={{
-            backgroundColor: theme.surface,
-            borderRadius: 20,
-            borderCurve: 'continuous',
-            padding: 20,
-            flexDirection: 'row',
-            alignItems: 'center',
-            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
-          }}
-        >
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              backgroundColor: tint(palette.warning500, 0.12),
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: 14,
-            }}
-          >
-            <MapRoute size={22} color={palette.warning500} strokeWidth={2} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                color: theme.ink,
-                fontSize: 17,
-                fontWeight: '700',
-              }}
-            >
-              {t('profile.myTripsTitle', { defaultValue: 'My Trips' })}
-            </Text>
-            <Text style={{ color: theme.ink3, fontSize: 13, marginTop: 2 }}>
-              {t('profile.myTripsDescription', {
-                defaultValue: 'Drafts & published multi-day plans',
-              })}
-            </Text>
-          </View>
-          <ChevronRight size={17} color={theme.ink3} strokeWidth={2} />
-        </Pressable>
-      </Animated.View>
+      <ProfileNavCard
+        delay={130}
+        theme={theme}
+        isDark={isDark}
+        iconBg={tint(palette.warning500, 0.12)}
+        icon={<MapRoute size={22} color={palette.warning500} strokeWidth={2} />}
+        title={t('profile.myTripsTitle', { defaultValue: 'My Trips' })}
+        subtitle={t('profile.myTripsDescription', {
+          defaultValue: 'Drafts & published multi-day plans',
+        })}
+        onPress={() => router.push('/(profile)/trips')}
+      />
 
       {/* Saved Routes */}
-      <Animated.View entering={FadeInUp.delay(140).duration(400)}>
-        <Pressable
-          onPress={() => {
-            triggerImpact();
-            router.push('/(tabs)/(profile)/saved');
-          }}
-          style={{
-            backgroundColor: theme.surface,
-            borderRadius: 20,
-            borderCurve: 'continuous',
-            padding: 20,
-            flexDirection: 'row',
-            alignItems: 'center',
-            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
-          }}
-        >
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              backgroundColor: tint(theme.purple, 0.12),
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: 14,
-            }}
-          >
-            <Bookmark size={22} color={theme.purple} strokeWidth={2} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                color: theme.ink,
-                fontSize: 17,
-                fontWeight: '700',
-              }}
-            >
-              {t('profile.savedRoutesTitle')}
-            </Text>
-            <Text style={{ color: theme.ink3, fontSize: 13, marginTop: 2 }}>
-              {t('profile.savedRoutesSubtitle')}
-            </Text>
-          </View>
-          <ChevronRight size={17} color={theme.ink3} strokeWidth={2} />
-        </Pressable>
-      </Animated.View>
+      <ProfileNavCard
+        delay={140}
+        theme={theme}
+        isDark={isDark}
+        iconBg={tint(theme.purple, 0.12)}
+        icon={<Bookmark size={22} color={theme.purple} strokeWidth={2} />}
+        title={t('profile.savedRoutesTitle')}
+        subtitle={t('profile.savedRoutesSubtitle')}
+        onPress={() => router.push('/(tabs)/(profile)/saved')}
+      />
 
       {/* Learn */}
-      <Animated.View entering={FadeInUp.delay(160).duration(400)}>
-        <Pressable
-          onPress={() => {
-            triggerImpact();
-            router.push('/(tabs)/(learn)');
-          }}
-          style={{
-            backgroundColor: theme.surface,
-            borderRadius: 20,
-            borderCurve: 'continuous',
-            padding: 20,
-            flexDirection: 'row',
-            alignItems: 'center',
-            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
-          }}
-        >
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              backgroundColor: tint(theme.warm, 0.12),
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: 14,
-            }}
-          >
-            <BookOpen size={22} color={theme.warm} strokeWidth={2} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                color: theme.ink,
-                fontSize: 17,
-                fontWeight: '700',
-              }}
-            >
-              {t('tabs.learn')}
-            </Text>
-            <Text style={{ color: theme.ink3, fontSize: 13, marginTop: 2 }}>
-              {t('learn.profileDescription', {
-                defaultValue: 'Articles, quizzes & motorcycle knowledge',
-              })}
-            </Text>
-          </View>
-          <ChevronRight size={17} color={theme.ink3} strokeWidth={2} />
-        </Pressable>
-      </Animated.View>
+      <ProfileNavCard
+        delay={160}
+        theme={theme}
+        isDark={isDark}
+        iconBg={tint(theme.warm, 0.12)}
+        icon={<BookOpen size={22} color={theme.warm} strokeWidth={2} />}
+        title={t('tabs.learn')}
+        subtitle={t('learn.profileDescription', {
+          defaultValue: 'Articles, quizzes & motorcycle knowledge',
+        })}
+        onPress={() => router.push('/(tabs)/(learn)')}
+      />
     </>
   );
 }

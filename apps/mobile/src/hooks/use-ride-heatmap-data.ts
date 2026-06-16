@@ -30,6 +30,11 @@ export function useRideHeatmapData({ enabled }: { enabled: boolean }) {
       const pi = lastPage?.myRides?.pageInfo;
       return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
     },
+    // The heatmap eagerly pages up to 20×50 rides — by far the heaviest ride
+    // query. Keep it fresh for 5 min so re-entering the screen (or a sibling
+    // mounting it) doesn't refetch every page; a ride save still invalidates
+    // `rides.all` and marks it stale for the next view.
+    staleTime: 5 * 60 * 1000,
     enabled,
   });
 

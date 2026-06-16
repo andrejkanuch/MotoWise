@@ -1,4 +1,3 @@
-import { MeDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -24,11 +23,10 @@ import { OnboardingProgress } from '../../components/onboarding/onboarding-progr
 import { OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
-import { gqlFetcher } from '../../lib/graphql-client';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
-import { queryKeys } from '../../lib/query-keys';
+import { meOptions } from '../../lib/query-options';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/auth.store';
 import { useSubscriptionStore } from '../../stores/subscription.store';
@@ -66,13 +64,7 @@ export default function AccountScreen() {
   // Server onboarding state for the just-authenticated account. Shares the root
   // NavigationGate's cache key, so this is usually a cache hit (no extra fetch).
   // Drives the advance decision below; the returning-user case hinges on it.
-  const meQuery = useQuery({
-    queryKey: queryKeys.user.me,
-    queryFn: () => gqlFetcher(MeDocument),
-    enabled: !!session,
-    retry: 1,
-    meta: { showErrorAlert: false },
-  });
+  const meQuery = useQuery({ ...meOptions(), enabled: !!session });
 
   // A session appearing here means the account was created / signed in — record
   // it and advance. _layout keeps the onboarding stack mounted mid-sign-in, and

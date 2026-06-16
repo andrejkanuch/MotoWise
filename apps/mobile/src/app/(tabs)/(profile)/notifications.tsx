@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import { MeDocument, UpdateUserDocument } from '@motovault/graphql';
+import { UpdateUserDocument } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeToggle } from '../../../components/ui/native-toggle';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { meOptions } from '../../../lib/query-options';
 import { useEditorialTheme } from '../../../theme/editorial';
 
 type NotificationPrefs = {
@@ -111,10 +112,7 @@ export default function NotificationsScreen() {
   const { isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
 
-  const meQuery = useQuery({
-    queryKey: queryKeys.user.me,
-    queryFn: () => gqlFetcher(MeDocument),
-  });
+  const meQuery = useQuery(meOptions());
 
   const prefs = (
     meQuery.data?.me?.preferences as { notifications?: Partial<NotificationPrefs> } | null

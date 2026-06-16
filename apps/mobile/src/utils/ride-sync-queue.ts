@@ -84,6 +84,18 @@ function setQueue(queue: SyncOperation[]): void {
   syncStorage.set(QUEUE_KEY, JSON.stringify(queue));
 }
 
+// Remove a single delivered op by seq, re-reading the live queue so an op
+// appended by a concurrent enqueue (while drainQueue awaited the network) is
+// preserved rather than clobbered by a stale snapshot.
+function removeOpBySeq(seq: number): void {
+  setQueue(getQueue().filter((op) => op.seq !== seq));
+}
+
+// Bump the retry count of a single op by seq against the live queue.
+function bumpRetryBySeq(seq: number): void {
+  setQueue(getQueue().map((op) => (op.seq === seq ? { ...op, retries: op.retries + 1 } : op)));
+}
+
 function getDeadLetterQueue(): SyncOperation[] {
   const raw = syncStorage.getString(DEAD_LETTER_KEY);
   if (!raw) return [];
@@ -121,49 +133,24 @@ export function enqueue(type: SyncOperationType, payload: Record<string, unknown
   setQueue(queue);
 }
 
+/**
+ * Durably enqueue an operation and immediately attempt to drain the queue.
+ *
+ * We ALWAYS enqueue first (assigning a sequence number synchronously, in call
+ * order) instead of racing an inline fetch. The end-of-ride burst fires
+ * `uploadWaypoints` then `endRide` back-to-back without awaiting; an inline
+ * fast-path let those two run concurrently on an empty queue, so `endRide`
+ * could reach the server before its waypoints and corrupt ride reconstruction.
+ * Routing every op through the single-flight, seq-ordered drain guarantees
+ * in-order delivery — and a transient failure now re-queues in the original
+ * position rather than appending behind a later op.
+ */
 export async function enqueueOrExecute(
   type: SyncOperationType,
   payload: Record<string, unknown>,
 ): Promise<void> {
-  // Ordering guarantee: if the queue already holds an op (e.g. a backed-off
-  // earlier uploadWaypoints chunk), NEVER run this one inline — a later op
-  // reaching the server before an earlier queued one corrupts ride
-  // reconstruction (waypoints after endRide, endRide before startRide). Append
-  // and let drainQueue deliver everything in seq order.
-  if (getQueue().length > 0) {
-    enqueue(type, payload);
-    void drainQueue();
-    return;
-  }
-
-  // A failing network probe must never drop the op — treat a thrown
-  // getNetworkStateAsync as "offline" and fall through to enqueue so the
-  // ride survives for the next drain instead of being silently lost.
-  let networkState: Network.NetworkState;
-  try {
-    networkState = await Network.getNetworkStateAsync();
-  } catch {
-    enqueue(type, payload);
-    return;
-  }
-  if (networkState.isConnected && networkState.isInternetReachable) {
-    try {
-      const document = MUTATION_DOCUMENT_MAP[type];
-      const { variables } = payload as { variables: Record<string, unknown> };
-      await gqlFetcher(document, variables as never);
-      return;
-    } catch (error) {
-      // Deletes are idempotent — NOT_FOUND means already deleted, no retry needed
-      if (type === 'deleteRide' && isNotFoundError(error)) return;
-      // Network failures are expected (spotty cellular, backgrounded by iOS)
-      // — the queue handles retry, so only report non-network errors to Sentry.
-      if (!isNetworkError(error)) {
-        captureException(error);
-      }
-      // Transient failure — fall through to queue
-    }
-  }
   enqueue(type, payload);
+  await drainQueue();
 }
 
 let isDraining = false;
@@ -183,14 +170,17 @@ export async function drainQueue(): Promise<void> {
     }
     if (!networkState.isConnected || !networkState.isInternetReachable) return;
 
-    const queue = getQueue();
-    if (queue.length === 0) return;
-
-    const remaining: SyncOperation[] = [];
     let deadLettered = 0;
 
-    for (let i = 0; i < queue.length; i++) {
-      const op = queue[i];
+    // Deliver strictly in seq order, persisting after EVERY op so an app kill
+    // mid-drain can't re-deliver an op that already reached the server. The
+    // queue is re-read each pass, so an op enqueued while we were draining (the
+    // endRide that lands behind an in-flight uploadWaypoints) is picked up in
+    // order within the same drain.
+    while (true) {
+      const queue = getQueue();
+      if (queue.length === 0) break;
+      const op = queue[0];
 
       // Exponential backoff with jitter — only sleep on retries, not first attempt
       if (op.retries > 0) {
@@ -201,34 +191,34 @@ export async function drainQueue(): Promise<void> {
 
       try {
         await executeSyncOperation(op);
-        // delivered — drop from queue, advance to next op
+        // Delivered — drop just this op from the live queue and advance.
+        removeOpBySeq(op.seq);
       } catch (error) {
         if (isNetworkError(error)) {
-          // Transient outage: stop draining and keep this op + every op after it
-          // at the head, in order, to retry next cycle. Network errors must NEVER
-          // dead-letter (would drop a fully-recorded offline ride), so retries is
-          // left untouched.
-          remaining.push(...queue.slice(i));
+          // Transient outage: stop draining and leave this op + everything after
+          // it at the head, in order, for the next cycle. Network errors must
+          // NEVER dead-letter (would drop a fully-recorded offline ride), so
+          // retries is left untouched.
           break;
         }
 
-        op.retries++;
-        if (isNonRetryableError(error) || op.retries >= MAX_RETRIES) {
+        const nextRetries = op.retries + 1;
+        if (isNonRetryableError(error) || nextRetries >= MAX_RETRIES) {
           // Permanent failure — this op will never deliver. Dead-letter it and
           // advance; later independent ops still get a chance.
-          moveToDeadLetter(op, error);
+          moveToDeadLetter({ ...op, retries: nextRetries }, error);
+          removeOpBySeq(op.seq);
           deadLettered++;
         } else {
-          // Retryable server error (e.g. 5xx): head-of-line block so a dependent
-          // later op can't be delivered ahead of this one.
+          // Retryable server error (e.g. 5xx): bump retries and head-of-line
+          // block so a dependent later op can't be delivered ahead of this one.
+          bumpRetryBySeq(op.seq);
           captureException(error);
-          remaining.push(...queue.slice(i));
           break;
         }
       }
     }
 
-    setQueue(remaining);
     if (deadLettered > 0) onDeadLetter?.(getDeadLetterCount());
   } finally {
     isDraining = false;

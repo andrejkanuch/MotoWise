@@ -5,7 +5,7 @@ import MapboxGL from '@rnmapbox/maps';
 import { onlineManager } from '@tanstack/react-query';
 import { File, Paths } from 'expo-file-system';
 import * as Haptics from 'expo-haptics';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import {
   ArrowLeft,
@@ -726,7 +726,7 @@ export default function TripDetailScreen() {
                 router.push({
                   pathname: '/(modals)/create-trip',
                   params: { tripId: trip.id },
-                } as never)
+                } as Href)
               }
               icon={<Pencil size={16} color={t.ink} />}
             />

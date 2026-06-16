@@ -172,6 +172,66 @@ describe('ordering hardening (MOT-262)', () => {
     expect(queue()[0].seq).toBeLessThan(queue()[1].seq);
   });
 
+  it('delivers a back-to-back uploadWaypoints->endRide burst in order even when the upload is slow', async () => {
+    const order: string[] = [];
+    let releaseWp: (() => void) | undefined;
+    mockGqlFetcher.mockImplementation((_doc: unknown, vars: { input: { tag: string } }) => {
+      const { tag } = vars.input;
+      if (tag === 'wp') {
+        return new Promise<void>((resolve) => {
+          releaseWp = () => {
+            order.push('wp');
+            resolve();
+          };
+        });
+      }
+      order.push('end');
+      return Promise.resolve();
+    });
+
+    // Fire both without awaiting — mirrors the end-of-ride call sites that the
+    // old inline fast-path let race (endRide could land before its waypoints).
+    const p1 = enqueueOrExecute('uploadWaypoints', { variables: { input: { tag: 'wp' } } });
+    const p2 = enqueueOrExecute('endRide', { variables: { input: { tag: 'end' } } });
+
+    // Settle microtasks: endRide must be blocked behind the in-flight upload.
+    await new Promise((r) => setImmediate(r));
+    expect(order).toEqual([]);
+
+    releaseWp?.();
+    await Promise.all([p1, p2]);
+
+    expect(order).toEqual(['wp', 'end']);
+  });
+
+  it('persists each delivery immediately so an interrupted drain cannot re-send delivered ops', async () => {
+    enqueue('startRide', { variables: { input: {} } });
+    enqueue('uploadWaypoints', { variables: { input: {} } });
+    enqueue('endRide', { variables: { input: {} } });
+
+    // startRide + uploadWaypoints deliver; endRide hangs (app killed mid-drain).
+    let releaseEnd: (() => void) | undefined;
+    let calls = 0;
+    mockGqlFetcher.mockImplementation(() => {
+      calls += 1;
+      if (calls <= 2) return Promise.resolve({});
+      return new Promise<void>((resolve) => {
+        releaseEnd = resolve;
+      });
+    });
+
+    const p = drainQueue();
+    await new Promise((r) => setImmediate(r));
+
+    // The two delivered ops must already be gone from the persisted queue —
+    // only the still-in-flight endRide remains.
+    expect(queue().map((o) => o.type)).toEqual(['endRide']);
+
+    releaseEnd?.();
+    await p;
+    expect(getQueueLength()).toBe(0);
+  });
+
   it('stops draining at the first transient network failure, preserving order', async () => {
     enqueue('startRide', { variables: { input: {} } });
     enqueue('uploadWaypoints', { variables: { input: {} } });

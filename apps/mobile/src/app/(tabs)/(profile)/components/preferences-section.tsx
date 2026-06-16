@@ -181,7 +181,11 @@ export function PreferencesSection({
           onRequestClose={() => setShowLangPicker(false)}
         >
           <Pressable
-            style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}
+            style={{
+              flex: 1,
+              backgroundColor: tint(palette.neutral950, 0.4),
+              justifyContent: 'flex-end',
+            }}
             onPress={() => setShowLangPicker(false)}
           >
             <Pressable

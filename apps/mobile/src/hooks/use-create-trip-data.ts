@@ -43,7 +43,7 @@ export function useCreateTripData({
 
   // Fetch existing trip data when in edit OR clone mode
   const tripQuery = useQuery({
-    queryKey: ['trip-edit', sourceTripId],
+    queryKey: queryKeys.trips.edit(sourceTripId ?? ''),
     queryFn: () => gqlFetcher(TripDetailDocument, { tripId: sourceTripId ?? '' }),
     enabled: !!sourceTripId,
   });

@@ -1,4 +1,3 @@
-import { MeDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import type { LucideIcon } from 'lucide-react-native';
@@ -36,8 +35,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
-import { gqlFetcher } from '../../lib/graphql-client';
-import { queryKeys } from '../../lib/query-keys';
+import { meOptions } from '../../lib/query-options';
 import {
   PREDEFINED_LOCATION,
   PREDEFINED_SYMPTOMS,
@@ -225,10 +223,7 @@ export function StepProblemDescription() {
     })),
   );
 
-  const { data: meData } = useQuery({
-    queryKey: queryKeys.user.me,
-    queryFn: () => gqlFetcher(MeDocument),
-  });
+  const { data: meData } = useQuery(meOptions());
   const experienceLevel = meData?.me?.preferences?.experienceLevel ?? 'beginner';
   const isBeginner = experienceLevel === 'beginner';
 

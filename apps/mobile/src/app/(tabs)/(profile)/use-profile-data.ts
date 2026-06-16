@@ -1,6 +1,5 @@
 import {
   DeleteAccountDocument,
-  MeDocument,
   MyMotorcyclesDocument,
   UpdateUserDocument,
 } from '@motovault/graphql';
@@ -12,6 +11,7 @@ import { Alert } from 'react-native';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { isAccountAlreadyDeleted, userFriendlyError } from '../../../lib/graphql-errors';
 import { queryKeys } from '../../../lib/query-keys';
+import { meOptions } from '../../../lib/query-options';
 import { presentPaywall } from '../../../lib/subscription';
 import { safeSignOut } from '../../../lib/supabase';
 import { triggerImpact } from '../../../utils/haptics';
@@ -24,10 +24,7 @@ interface UseProfileDataParams {
 export function useProfileData({ t, isPro }: UseProfileDataParams) {
   const queryClient = useQueryClient();
 
-  const meQuery = useQuery({
-    queryKey: queryKeys.user.me,
-    queryFn: () => gqlFetcher(MeDocument),
-  });
+  const meQuery = useQuery(meOptions());
   const user = meQuery.data?.me;
 
   const bikesQuery = useQuery({

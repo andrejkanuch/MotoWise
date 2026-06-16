@@ -87,7 +87,7 @@ export function SubscriptionSection({ isPro, isDark }: { isPro: boolean; isDark:
               height: 44,
               borderRadius: 14,
               borderCurve: 'continuous',
-              backgroundColor: 'rgba(255,255,255,0.15)',
+              backgroundColor: tint(palette.white, 0.15),
               alignItems: 'center',
               justifyContent: 'center',
               marginRight: 14,
@@ -99,11 +99,11 @@ export function SubscriptionSection({ isPro, isDark }: { isPro: boolean; isDark:
             <Text style={{ color: palette.white, fontSize: 17, fontWeight: '700' }}>
               {t('profile.proBanner')}
             </Text>
-            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 2 }}>
+            <Text style={{ color: tint(palette.white, 0.7), fontSize: 13, marginTop: 2 }}>
               {t('profile.proDescription')}
             </Text>
           </View>
-          <ChevronRight size={20} color="rgba(255,255,255,0.6)" strokeWidth={2} />
+          <ChevronRight size={20} color={tint(palette.white, 0.6)} strokeWidth={2} />
         </View>
       </Pressable>
     </Animated.View>

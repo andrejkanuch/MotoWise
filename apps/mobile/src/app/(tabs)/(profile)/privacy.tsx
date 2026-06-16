@@ -1,7 +1,6 @@
 import { palette } from '@motovault/design-system';
 import {
   DeleteAccountDocument,
-  MeDocument,
   RequestDataExportDocument,
   UpdateUserDocument,
 } from '@motovault/graphql';
@@ -25,6 +24,7 @@ import {
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { isAccountAlreadyDeleted, userFriendlyError } from '../../../lib/graphql-errors';
 import { queryKeys } from '../../../lib/query-keys';
+import { meOptions } from '../../../lib/query-options';
 import { safeSignOut } from '../../../lib/supabase';
 import { useEditorialTheme } from '../../../theme/editorial';
 
@@ -117,10 +117,7 @@ export default function PrivacyScreen() {
   const { isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
 
-  const meQuery = useQuery({
-    queryKey: queryKeys.user.me,
-    queryFn: () => gqlFetcher(MeDocument),
-  });
+  const meQuery = useQuery(meOptions());
 
   const prefs = (meQuery.data?.me?.preferences as { privacy?: Partial<PrivacyPrefs> } | null)
     ?.privacy;
