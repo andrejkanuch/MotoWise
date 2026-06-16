@@ -211,7 +211,14 @@
     "dueInDays_one": "Due in {{count}} day",
     "dueInDays_other": "Due in {{count}} days",
     "dueInDays_few": "Due in {{count}} days",
-    "dueInDays_many": "Due in {{count}} days"
+    "dueInDays_many": "Due in {{count}} days",
+    "startFirstRide": "Start your first ride",
+    "startFirstRideDesc": "Tap the ride button to begin tracking your route, speed, and distance.",
+    "recentRidesTitle": "Recent Rides",
+    "thisWeekLabel": "THIS WEEK",
+    "seeAll": "See All",
+    "rideCount_one": "{{count}} ride",
+    "rideCount_other": "{{count}} rides"
   },
   "learn": {
     "explore": "Explore motorcycle topics",
@@ -1910,7 +1917,10 @@
     "addExpenseHint": "(fuel, tolls...)",
     "shareOnDiscover": "Share on Discover",
     "shareOnDiscoverHint": "Other riders can find and ride this route",
-    "discardRide": "Discard ride"
+    "discardRide": "Discard ride",
+    "newPersonalBest": "New personal best!",
+    "newPersonalBests_one": "{{count}} new personal best!",
+    "newPersonalBests_other": "{{count}} new personal bests!"
   },
   "heatmap": {
     "rides": "Rides",
@@ -2048,6 +2058,17 @@
     "pick": "Pick",
     "editorsPick": "Editor's Pick",
     "metersUnit": "m",
-    "ridersCount": "· {{riders}} riders"
+    "ridersCount": "· {{riders}} riders",
+    "openingDiscover": "Opening Discover…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}}m",
+    "byOrganiser": "by {{name}}",
+    "emptyTitle": "No saved trips yet",
+    "emptyDesc": "Browse trips on the Discover tab and save the ones you want to ride later.",
+    "exploreTrips": "Explore Trips",
+    "title": "Saved Trips",
+    "tripCount_one": "{{count}} trip",
+    "tripCount_other": "{{count}} trips"
   }
 }

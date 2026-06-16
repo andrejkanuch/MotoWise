@@ -211,7 +211,15 @@
     "dueInDays_one": "Scade tra {{count}} giorno",
     "dueInDays_other": "Scade tra {{count}} giorni",
     "dueInDays_few": "Scade tra {{count}} giorni",
-    "dueInDays_many": "Scade tra {{count}} giorni"
+    "dueInDays_many": "Scade tra {{count}} giorni",
+    "startFirstRide": "Inizia la tua prima uscita",
+    "startFirstRideDesc": "Tocca il pulsante uscita per iniziare a registrare percorso, velocità e distanza.",
+    "recentRidesTitle": "Uscite recenti",
+    "thisWeekLabel": "QUESTA SETTIMANA",
+    "seeAll": "Vedi tutto",
+    "rideCount_one": "{{count}} uscita",
+    "rideCount_other": "{{count}} uscite",
+    "rideCount_many": "{{count}} uscite"
   },
   "learn": {
     "explore": "Esplora argomenti moto",
@@ -1802,7 +1810,11 @@
     "addExpenseHint": "(carburante, pedaggi...)",
     "shareOnDiscover": "Condividi su Discover",
     "shareOnDiscoverHint": "Altri motociclisti possono trovare e percorrere questo percorso",
-    "discardRide": "Elimina giro"
+    "discardRide": "Elimina giro",
+    "newPersonalBest": "Nuovo record personale!",
+    "newPersonalBests_one": "{{count}} nuovo record personale!",
+    "newPersonalBests_other": "{{count}} nuovi record personali!",
+    "newPersonalBests_many": "{{count}} nuovi record personali!"
   },
   "heatmap": {
     "rides": "Uscite",
@@ -2053,6 +2065,18 @@
     "pick": "Scelta",
     "editorsPick": "Scelta della redazione",
     "metersUnit": "m",
-    "ridersCount": "· {{riders}} motociclisti"
+    "ridersCount": "· {{riders}} motociclisti",
+    "openingDiscover": "Apertura di Esplora…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}} m",
+    "byOrganiser": "di {{name}}",
+    "emptyTitle": "Nessun itinerario salvato",
+    "emptyDesc": "Sfoglia gli itinerari nella scheda Esplora e salva quelli che vuoi percorrere più tardi.",
+    "exploreTrips": "Esplora itinerari",
+    "title": "Itinerari salvati",
+    "tripCount_one": "{{count}} itinerario",
+    "tripCount_other": "{{count}} itinerari",
+    "tripCount_many": "{{count}} itinerari"
   }
 }

@@ -211,7 +211,16 @@
     "dueInDays_one": "O {{count}} deň",
     "dueInDays_other": "O {{count}} dní",
     "dueInDays_few": "O {{count}} dni",
-    "dueInDays_many": "O {{count}} dní"
+    "dueInDays_many": "O {{count}} dní",
+    "startFirstRide": "Začni svoju prvú jazdu",
+    "startFirstRideDesc": "Klepni na tlačidlo jazdy a začni zaznamenávať trasu, rýchlosť a vzdialenosť.",
+    "recentRidesTitle": "Nedávne jazdy",
+    "thisWeekLabel": "TENTO TÝŽDEŇ",
+    "seeAll": "Zobraziť všetko",
+    "rideCount_one": "{{count}} jazda",
+    "rideCount_few": "{{count}} jázd",
+    "rideCount_many": "{{count}} jázd",
+    "rideCount_other": "{{count}} jázd"
   },
   "learn": {
     "explore": "Preskúmaj témy o motocykloch",
@@ -1802,7 +1811,12 @@
     "addExpenseHint": "(palivo, mýto...)",
     "shareOnDiscover": "Zdieľať na Discover",
     "shareOnDiscoverHint": "Ostatní jazdci môžu nájsť a prejsť túto trasu",
-    "discardRide": "Zahodiť jazdu"
+    "discardRide": "Zahodiť jazdu",
+    "newPersonalBest": "Nový osobný rekord!",
+    "newPersonalBests_one": "{{count}} nový osobný rekord!",
+    "newPersonalBests_few": "{{count}} nových osobných rekordov!",
+    "newPersonalBests_many": "{{count}} nových osobných rekordov!",
+    "newPersonalBests_other": "{{count}} nových osobných rekordov!"
   },
   "heatmap": {
     "rides": "Jazdy",
@@ -2053,6 +2067,19 @@
     "pick": "Tip",
     "editorsPick": "Tip redakcie",
     "metersUnit": "m",
-    "ridersCount": "· {{riders}} jazdcov"
+    "ridersCount": "· {{riders}} jazdcov",
+    "openingDiscover": "Otvára sa Objavuj…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}} m",
+    "byOrganiser": "autor: {{name}}",
+    "emptyTitle": "Žiadne uložené trasy",
+    "emptyDesc": "Prehliadaj trasy na karte Objavuj a ulož si tie, ktoré chceš ísť neskôr.",
+    "exploreTrips": "Objaviť trasy",
+    "title": "Uložené trasy",
+    "tripCount_one": "{{count}} trasa",
+    "tripCount_few": "{{count}} trás",
+    "tripCount_many": "{{count}} trás",
+    "tripCount_other": "{{count}} trás"
   }
 }

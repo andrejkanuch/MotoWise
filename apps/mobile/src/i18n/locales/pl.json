@@ -211,7 +211,16 @@
     "dueInDays_one": "Za {{count}} dzień",
     "dueInDays_other": "Za {{count}} dni",
     "dueInDays_few": "Za {{count}} dni",
-    "dueInDays_many": "Za {{count}} dni"
+    "dueInDays_many": "Za {{count}} dni",
+    "startFirstRide": "Rozpocznij pierwszą jazdę",
+    "startFirstRideDesc": "Dotknij przycisku jazdy, aby zacząć śledzić trasę, prędkość i dystans.",
+    "recentRidesTitle": "Ostatnie jazdy",
+    "thisWeekLabel": "W TYM TYGODNIU",
+    "seeAll": "Zobacz wszystko",
+    "rideCount_one": "{{count}} jazda",
+    "rideCount_few": "{{count}} jazd",
+    "rideCount_many": "{{count}} jazd",
+    "rideCount_other": "{{count}} jazd"
   },
   "learn": {
     "explore": "Odkrywaj tematy motocyklowe",
@@ -1802,7 +1811,12 @@
     "addExpenseHint": "(paliwo, opłaty...)",
     "shareOnDiscover": "Udostępnij w Discover",
     "shareOnDiscoverHint": "Inni motocykliści mogą znaleźć i przejechać tę trasę",
-    "discardRide": "Odrzuć przejazd"
+    "discardRide": "Odrzuć przejazd",
+    "newPersonalBest": "Nowy rekord życiowy!",
+    "newPersonalBests_one": "{{count}} nowy rekord życiowy!",
+    "newPersonalBests_few": "{{count}} nowych rekordów życiowych!",
+    "newPersonalBests_many": "{{count}} nowych rekordów życiowych!",
+    "newPersonalBests_other": "{{count}} nowych rekordów życiowych!"
   },
   "heatmap": {
     "rides": "Jazdy",
@@ -2053,6 +2067,19 @@
     "pick": "Wybór",
     "editorsPick": "Wybór redakcji",
     "metersUnit": "m",
-    "ridersCount": "· {{riders}} motocyklistów"
+    "ridersCount": "· {{riders}} motocyklistów",
+    "openingDiscover": "Otwieranie Odkrywaj…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}} m",
+    "byOrganiser": "autor: {{name}}",
+    "emptyTitle": "Brak zapisanych tras",
+    "emptyDesc": "Przeglądaj trasy w zakładce Odkrywaj i zapisuj te, którymi chcesz pojechać później.",
+    "exploreTrips": "Odkrywaj trasy",
+    "title": "Zapisane trasy",
+    "tripCount_one": "{{count}} trasa",
+    "tripCount_few": "{{count}} tras",
+    "tripCount_many": "{{count}} tras",
+    "tripCount_other": "{{count}} tras"
   }
 }

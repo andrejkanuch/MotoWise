@@ -130,7 +130,7 @@ export function RecentRidesWidget({
               color: isDark ? palette.white : palette.neutral900,
             }}
           >
-            Start your first ride
+            {t('home.startFirstRide')}
           </Text>
           <Text
             style={{
@@ -140,7 +140,7 @@ export function RecentRidesWidget({
               lineHeight: 20,
             }}
           >
-            Tap the ride button to begin tracking your route, speed, and distance.
+            {t('home.startFirstRideDesc')}
           </Text>
         </View>
       </Animated.View>
@@ -174,7 +174,7 @@ export function RecentRidesWidget({
                   color: isDark ? palette.white : palette.neutral900,
                 }}
               >
-                Recent Rides
+                {t('home.recentRidesTitle')}
               </Text>
             </View>
             <Pressable
@@ -184,7 +184,7 @@ export function RecentRidesWidget({
               accessibilityLabel="See all rides"
             >
               <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
-                See All
+                {t('home.seeAll')}
               </Text>
               <ChevronRight size={14} color={palette.accent500} />
             </Pressable>
@@ -215,10 +215,10 @@ export function RecentRidesWidget({
                   letterSpacing: 0.5,
                 }}
               >
-                THIS WEEK
+                {t('home.thisWeekLabel')}
               </Text>
               <Text style={{ fontSize: 12, fontWeight: '600', color: palette.neutral400 }}>
-                {totalRides} ride{totalRides !== 1 ? 's' : ''}
+                {t('home.rideCount', { count: totalRides })}
               </Text>
             </View>
             <View

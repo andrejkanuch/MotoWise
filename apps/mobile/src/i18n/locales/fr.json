@@ -211,7 +211,15 @@
     "dueInDays_one": "Dans {{count}} jour",
     "dueInDays_other": "Dans {{count}} jours",
     "dueInDays_few": "Dans {{count}} jours",
-    "dueInDays_many": "Dans {{count}} jours"
+    "dueInDays_many": "Dans {{count}} jours",
+    "startFirstRide": "Commencez votre première sortie",
+    "startFirstRideDesc": "Touchez le bouton de sortie pour commencer à suivre votre trajet, votre vitesse et votre distance.",
+    "recentRidesTitle": "Sorties récentes",
+    "thisWeekLabel": "CETTE SEMAINE",
+    "seeAll": "Tout voir",
+    "rideCount_one": "{{count}} sortie",
+    "rideCount_other": "{{count}} sorties",
+    "rideCount_many": "{{count}} sorties"
   },
   "learn": {
     "explore": "Explore les sujets moto",
@@ -1802,7 +1810,11 @@
     "addExpenseHint": "(carburant, péages...)",
     "shareOnDiscover": "Partager sur Discover",
     "shareOnDiscoverHint": "D'autres motards peuvent trouver et rouler cet itinéraire",
-    "discardRide": "Supprimer le trajet"
+    "discardRide": "Supprimer le trajet",
+    "newPersonalBest": "Nouveau record personnel !",
+    "newPersonalBests_one": "{{count}} nouveau record personnel !",
+    "newPersonalBests_other": "{{count}} nouveaux records personnels !",
+    "newPersonalBests_many": "{{count}} nouveaux records personnels !"
   },
   "heatmap": {
     "rides": "Balades",
@@ -2053,6 +2065,18 @@
     "pick": "Choix",
     "editorsPick": "Choix de la rédaction",
     "metersUnit": "m",
-    "ridersCount": "· {{riders}} motards"
+    "ridersCount": "· {{riders}} motards",
+    "openingDiscover": "Ouverture de Découvrir…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}} m",
+    "byOrganiser": "par {{name}}",
+    "emptyTitle": "Aucun itinéraire enregistré",
+    "emptyDesc": "Parcourez les itinéraires dans l’onglet Découvrir et enregistrez ceux que vous voulez rouler plus tard.",
+    "exploreTrips": "Explorer les itinéraires",
+    "title": "Itinéraires enregistrés",
+    "tripCount_one": "{{count}} itinéraire",
+    "tripCount_other": "{{count}} itinéraires",
+    "tripCount_many": "{{count}} itinéraires"
   }
 }

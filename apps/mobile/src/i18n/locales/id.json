@@ -211,7 +211,14 @@
     "dueInDays_one": "Dalam {{count}} hari",
     "dueInDays_other": "Dalam {{count}} hari",
     "dueInDays_few": "Dalam {{count}} hari",
-    "dueInDays_many": "Dalam {{count}} hari"
+    "dueInDays_many": "Dalam {{count}} hari",
+    "startFirstRide": "Start your first ride",
+    "startFirstRideDesc": "Tap the ride button to begin tracking your route, speed, and distance.",
+    "recentRidesTitle": "Recent Rides",
+    "thisWeekLabel": "THIS WEEK",
+    "seeAll": "See All",
+    "rideCount_other": "{{count}} rides",
+    "rideCount_one": "{{count}} rides"
   },
   "learn": {
     "explore": "Jelajahi topik motor",
@@ -1802,7 +1809,10 @@
     "addExpenseHint": "(bahan bakar, tol...)",
     "shareOnDiscover": "Bagikan di Discover",
     "shareOnDiscoverHint": "Pengendara lain dapat menemukan dan menyusuri rute ini",
-    "discardRide": "Buang perjalanan"
+    "discardRide": "Buang perjalanan",
+    "newPersonalBest": "New personal best!",
+    "newPersonalBests_other": "{{count}} new personal bests!",
+    "newPersonalBests_one": "{{count}} new personal bests!"
   },
   "heatmap": {
     "rides": "Perjalanan",
@@ -2053,6 +2063,17 @@
     "pick": "Pick",
     "editorsPick": "Editor's Pick",
     "metersUnit": "m",
-    "ridersCount": "· {{riders}} riders"
+    "ridersCount": "· {{riders}} riders",
+    "openingDiscover": "Opening Discover…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}}m",
+    "byOrganiser": "by {{name}}",
+    "emptyTitle": "No saved trips yet",
+    "emptyDesc": "Browse trips on the Discover tab and save the ones you want to ride later.",
+    "exploreTrips": "Explore Trips",
+    "title": "Saved Trips",
+    "tripCount_other": "{{count}} trips",
+    "tripCount_one": "{{count}} trips"
   }
 }

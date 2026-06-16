@@ -211,7 +211,14 @@
     "dueInDays_one": "{{count}}日後に期限",
     "dueInDays_other": "{{count}}日後に期限",
     "dueInDays_few": "{{count}}日後に期限",
-    "dueInDays_many": "{{count}}日後に期限"
+    "dueInDays_many": "{{count}}日後に期限",
+    "startFirstRide": "最初のライドを始めましょう",
+    "startFirstRideDesc": "ライドボタンをタップして、ルート・速度・距離の記録を始めましょう。",
+    "recentRidesTitle": "最近のライド",
+    "thisWeekLabel": "今週",
+    "seeAll": "すべて表示",
+    "rideCount_other": "{{count}} 件のライド",
+    "rideCount_one": "{{count}} 件のライド"
   },
   "learn": {
     "explore": "バイクのトピックを探索しましょう",
@@ -1802,7 +1809,10 @@
     "addExpenseHint": "(燃料、通行料...)",
     "shareOnDiscover": "Discoverで共有",
     "shareOnDiscoverHint": "他のライダーがこのルートを見つけて走れます",
-    "discardRide": "ライドを破棄"
+    "discardRide": "ライドを破棄",
+    "newPersonalBest": "自己ベスト更新！",
+    "newPersonalBests_other": "自己ベストを {{count}} 件更新！",
+    "newPersonalBests_one": "自己ベストを {{count}} 件更新！"
   },
   "heatmap": {
     "rides": "走行",
@@ -2053,6 +2063,17 @@
     "pick": "おすすめ",
     "editorsPick": "編集者のおすすめ",
     "metersUnit": "m",
-    "ridersCount": "· {{riders}}人のライダー"
+    "ridersCount": "· {{riders}}人のライダー",
+    "openingDiscover": "「探す」を開いています…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}} m",
+    "byOrganiser": "{{name}} さん",
+    "emptyTitle": "保存したルートはまだありません",
+    "emptyDesc": "「探す」タブでルートを探して、後で走りたいものを保存しましょう。",
+    "exploreTrips": "ルートを探す",
+    "title": "保存したルート",
+    "tripCount_other": "{{count}} 件のルート",
+    "tripCount_one": "{{count}} 件のルート"
   }
 }

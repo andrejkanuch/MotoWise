@@ -211,7 +211,15 @@
     "dueInDays_one": "Vence em {{count}} dia",
     "dueInDays_other": "Vence em {{count}} dias",
     "dueInDays_few": "Vence em {{count}} dias",
-    "dueInDays_many": "Vence em {{count}} dias"
+    "dueInDays_many": "Vence em {{count}} dias",
+    "startFirstRide": "Comece sua primeira pilotagem",
+    "startFirstRideDesc": "Toque no botão de pilotagem para começar a registrar sua rota, velocidade e distância.",
+    "recentRidesTitle": "Pilotagens recentes",
+    "thisWeekLabel": "ESTA SEMANA",
+    "seeAll": "Ver tudo",
+    "rideCount_one": "{{count}} pilotagem",
+    "rideCount_other": "{{count}} pilotagens",
+    "rideCount_many": "{{count}} pilotagens"
   },
   "learn": {
     "explore": "Explore tópicos sobre motos",
@@ -1802,7 +1810,11 @@
     "addExpenseHint": "(combustível, pedágios...)",
     "shareOnDiscover": "Compartilhar no Discover",
     "shareOnDiscoverHint": "Outros motociclistas podem encontrar e percorrer esta rota",
-    "discardRide": "Descartar pilotagem"
+    "discardRide": "Descartar pilotagem",
+    "newPersonalBest": "Novo recorde pessoal!",
+    "newPersonalBests_one": "{{count}} novo recorde pessoal!",
+    "newPersonalBests_other": "{{count}} novos recordes pessoais!",
+    "newPersonalBests_many": "{{count}} novos recordes pessoais!"
   },
   "heatmap": {
     "rides": "Passeios",
@@ -2053,6 +2065,18 @@
     "pick": "Escolha",
     "editorsPick": "Escolha do editor",
     "metersUnit": "m",
-    "ridersCount": "· {{riders}} pilotos"
+    "ridersCount": "· {{riders}} pilotos",
+    "openingDiscover": "Abrindo Descobrir…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}} m",
+    "byOrganiser": "por {{name}}",
+    "emptyTitle": "Nenhuma rota salva ainda",
+    "emptyDesc": "Explore rotas na aba Descobrir e salve as que você quer pilotar depois.",
+    "exploreTrips": "Explorar rotas",
+    "title": "Rotas salvas",
+    "tripCount_one": "{{count}} rota",
+    "tripCount_other": "{{count}} rotas",
+    "tripCount_many": "{{count}} rotas"
   }
 }

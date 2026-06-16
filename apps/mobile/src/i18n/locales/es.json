@@ -211,7 +211,15 @@
     "dueInDays_one": "Vence en {{count}} día",
     "dueInDays_other": "Vence en {{count}} días",
     "dueInDays_few": "Vence en {{count}} días",
-    "dueInDays_many": "Vence en {{count}} días"
+    "dueInDays_many": "Vence en {{count}} días",
+    "startFirstRide": "Empieza tu primera ruta",
+    "startFirstRideDesc": "Toca el botón de ruta para empezar a registrar tu recorrido, velocidad y distancia.",
+    "recentRidesTitle": "Rutas recientes",
+    "thisWeekLabel": "ESTA SEMANA",
+    "seeAll": "Ver todo",
+    "rideCount_one": "{{count}} ruta",
+    "rideCount_other": "{{count}} rutas",
+    "rideCount_many": "{{count}} rutas"
   },
   "learn": {
     "explore": "Explora temas de motocicletas",
@@ -1802,7 +1810,11 @@
     "addExpenseHint": "(combustible, peajes...)",
     "shareOnDiscover": "Compartir en Discover",
     "shareOnDiscoverHint": "Otros moteros pueden encontrar y recorrer esta ruta",
-    "discardRide": "Descartar ruta"
+    "discardRide": "Descartar ruta",
+    "newPersonalBest": "¡Nuevo récord personal!",
+    "newPersonalBests_one": "¡{{count}} nuevo récord personal!",
+    "newPersonalBests_other": "¡{{count}} nuevos récords personales!",
+    "newPersonalBests_many": "¡{{count}} nuevos récords personales!"
   },
   "heatmap": {
     "rides": "Rutas",
@@ -2053,6 +2065,18 @@
     "pick": "Selección",
     "editorsPick": "Selección del editor",
     "metersUnit": "m",
-    "ridersCount": "· {{riders}} pilotos"
+    "ridersCount": "· {{riders}} pilotos",
+    "openingDiscover": "Abriendo Descubrir…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}} m",
+    "byOrganiser": "por {{name}}",
+    "emptyTitle": "Aún no hay rutas guardadas",
+    "emptyDesc": "Explora rutas en la pestaña Descubrir y guarda las que quieras conducir más tarde.",
+    "exploreTrips": "Explorar rutas",
+    "title": "Rutas guardadas",
+    "tripCount_one": "{{count}} ruta",
+    "tripCount_other": "{{count}} rutas",
+    "tripCount_many": "{{count}} rutas"
   }
 }
