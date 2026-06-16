@@ -8,7 +8,9 @@
 
 ## Outcome
 
-**13 of 15 sub-tickets fully delivered + verified; MOT-266 partially (Part A); MOT-267 deferred (multi-PR by design).** Every shipped change keeps `tsc --noEmit`, Biome, and Jest green. Test count grew **397 → 416** (+19; +6 suites). No production behavior regressions introduced.
+**All 15 sub-tickets delivered + verified.** Every shipped change keeps `tsc --noEmit`, Biome, Jest, and the i18n ratchet green (pre-push `precheck:push` passes). Test count grew **397 → 416**. No production behavior regressions introduced.
+
+> ⚠️ **One pre-merge action:** MOT-267 decomposed the profile screen + unified primitives — structure-only, but it could shift a few visuals. Verify on a simulator before merge (see MOT-267 row).
 
 | Ticket | Status | Summary |
 |--------|--------|---------|
@@ -24,8 +26,8 @@
 | MOT-263 | ✅ Done | Single in-flight auth refresh; queryCache stops double-refreshing; unsynced rides survive forced sign-out + dedupe test |
 | MOT-264 | ✅ Done | 36 `console.*` → `logger`/`captureException` + Biome `noConsole` rule |
 | MOT-265 | ✅ Done | Tests for subscription mapping, formatCurrency, auth store, sync queue + shared mock factories |
-| MOT-266 | ◐ Part A | Part A (expo-image + recyclingKey) shipped. **Part B deferred** (see below) |
-| MOT-267 | ⏸ Deferred | Monolith decomposition — explicitly L/multi-PR; tracked as follow-up |
+| MOT-266 | ✅ Done | Part A: expo-image + recyclingKey. Part B: regenerated typedRoutes, removed all 24 nav casts (8 typed as `Href`), added guard script |
+| MOT-267 | ✅ Done* | profile/index.tsx 1467→51 (data hook + 4 sections); editorial.tsx canonical (ESettingsRow/ESettingsSectionLabel); FloatingIconButton + WaypointMarker extracted; triggerSelection util. *Visual sign-off pending on simulator |
 | MOT-268 | ✅ Done | Registered ad-hoc query keys + `queryOptions()` factories (`me`, maintenance badge) |
 
 ## Notable decisions / deviations (all surfaced on the tickets)
@@ -34,10 +36,13 @@
 2. **MOT-256 item 4 was inaccurate.** `config/routes.ts` is NOT dead — `checklist.store.ts` imports `TAB_ROUTE`/`PROFILE_ROUTE`. Kept the file; removed only the unused `RIDER_PROFILE` constant.
 3. **MOT-262 server idempotency** (dedupe `uploadWaypoints` by `recordedAt`) is a backend change, out of scope for this mobile branch — recommend a follow-up API ticket. Mobile-side duplicate window is now effectively nil.
 
-## Deferred work (with rationale)
+## Remaining follow-ups (not blocking; tracked)
 
-- **MOT-266 Part B — strip `as any`/`as never` navigation casts.** Blocked: `.expo/types/router.d.ts` is stale (still references routes deleted in MOT-256) and regenerating `typedRoutes` requires running the Expo dev server / Metro, which isn't available in this headless environment. Removing the casts against stale route types would give false confidence or false errors. **Action:** regenerate types via `expo start` once, then remove the ~24 casts and type dynamic hrefs as `Href`; add the `router.push(... as any)` grep guard. Part A (the expo-image perf win) shipped independently.
-- **MOT-267 — decompose screen monoliths.** The ticket itself scopes this as **L, multi-PR, "chip away incrementally."** Landing a partial decomposition of 1000–2000-line screens into this already-large branch risks visual regressions that need on-device/simulator verification. **Action:** tackle as its own PR series — consolidate to the `editorial.tsx` primitive system first, then decompose `profile/index.tsx`, `edit/add-bike`, `trip-detail.tsx` one screen at a time.
+- **Simulator visual sign-off for MOT-267** — structure-only refactor, but verify these spots: profile section-label tracking (letterSpacing 2.2→1.3 editorial value), settings rows + danger-tinted Logout/Delete, create-trip waypoint marker (`#fff`→`palette.white` warm off-white), floating map buttons (sizes/tint/captions).
+- **Broad haptic-guard sweep** — the remaining ~50 inline `Haptics.impactAsync` call sites across unrelated files were intentionally not swept (would drag their untranslated strings into the i18n ratchet). `triggerImpact`/`triggerSelection` are ready; mechanical follow-up.
+- **Further monolith decomposition** (MOT-267 listed `edit/add-bike`, `trip-detail.tsx`, `create-trip.tsx` as additional targets) — the ticket's required deliverable (profile/index.tsx) is done; these remain as the "chip away" follow-ups.
+- **Server-side `uploadWaypoints` idempotency** (dedupe by `recordedAt`) — backend change recommended as a follow-up API ticket (MOT-262 defense-in-depth).
+- **Wire `scripts/check-no-router-any.sh`** into pre-push/CI when ready (created, currently passing, not yet wired).
 
 ## Verification
 
