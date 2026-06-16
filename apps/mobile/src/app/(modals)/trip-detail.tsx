@@ -63,8 +63,10 @@ import { ReadinessRing } from '../../components/trip/readiness-ring';
 import { useRolePicker } from '../../components/trip/role-picker-sheet';
 import { SuggestionsSection } from '../../components/trip/suggestions-section';
 import { TripAssistantSheet } from '../../components/trip/trip-assistant-sheet';
+import { WaypointMarker } from '../../components/trip/waypoint-marker';
 import { getWaypointIcon } from '../../components/trip/waypoint-type-picker';
 import { TripShareSheet } from '../../components/trip-share-sheet';
+import { FloatingIconButton } from '../../components/ui/floating-icon-button';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useOfflineTrip } from '../../hooks/use-offline-trip';
 import { usePrimaryBikeFuelData } from '../../hooks/use-primary-bike-fuel-data';
@@ -662,35 +664,20 @@ export default function TripDetailScreen() {
               />
             </MapboxGL.ShapeSource>
           )}
-          {waypoints.map((wp) => {
-            const wt = getWaypointIcon(wp.type);
-            return (
-              <MapboxGL.MarkerView key={wp.id} id={`wp-${wp.id}`} coordinate={[wp.lng, wp.lat]}>
-                <Pressable
-                  onPress={() =>
-                    showMarkerActionSheet({
-                      title: wp.name || 'Waypoint',
-                      lat: wp.lat,
-                      lng: wp.lng,
-                    })
-                  }
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 14,
-                    borderCurve: 'continuous',
-                    backgroundColor: wt.color,
-                    borderWidth: 2.5,
-                    borderColor: palette.white,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <wt.Icon size={14} color={palette.white} />
-                </Pressable>
-              </MapboxGL.MarkerView>
-            );
-          })}
+          {waypoints.map((wp) => (
+            <MapboxGL.MarkerView key={wp.id} id={`wp-${wp.id}`} coordinate={[wp.lng, wp.lat]}>
+              <WaypointMarker
+                type={wp.type}
+                onPress={() =>
+                  showMarkerActionSheet({
+                    title: wp.name || 'Waypoint',
+                    lat: wp.lat,
+                    lng: wp.lng,
+                  })
+                }
+              />
+            </MapboxGL.MarkerView>
+          ))}
         </MapboxGL.MapView>
 
         {/* Floating controls */}
@@ -703,22 +690,11 @@ export default function TripDetailScreen() {
             gap: 8,
           }}
         >
-          <Pressable
+          <FloatingIconButton
             onPress={() => router.back()}
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
-              borderCurve: 'continuous',
-              backgroundColor: tint(t.bg, 0.7),
-              borderWidth: 1,
-              borderColor: t.line,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <ArrowLeft size={20} color={t.ink} />
-          </Pressable>
+            bordered
+            icon={<ArrowLeft size={20} color={t.ink} />}
+          />
         </View>
 
         <View
@@ -731,85 +707,38 @@ export default function TripDetailScreen() {
           }}
         >
           {!isTemplate && !isOfflineCopy && (
-            <Pressable
-              onPress={() => {
-                if (process.env.EXPO_OS === 'ios')
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setAssistantOpen(true);
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Ask trip assistant"
-              style={{ alignItems: 'center', gap: 3 }}
-            >
-              <View
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
-                  borderCurve: 'continuous',
-                  backgroundColor: tint(t.bg, 0.7),
-                  borderWidth: 1,
-                  borderColor: t.line,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Sparkles size={18} color={t.warm} />
-              </View>
-              <Text style={{ fontSize: 9, fontWeight: '600', color: t.ink }}>AI</Text>
-            </Pressable>
+            <FloatingIconButton
+              size={44}
+              bordered
+              haptics
+              accessibilityLabel={i18n('trips.askAssistant')}
+              label={i18n('trips.aiBadge')}
+              onPress={() => setAssistantOpen(true)}
+              icon={<Sparkles size={18} color={t.warm} />}
+            />
           )}
           {isOrganiser && (
-            <Pressable
+            <FloatingIconButton
+              size={44}
+              bordered
+              label={i18n('trips.edit')}
               onPress={() =>
                 router.push({
                   pathname: '/(modals)/create-trip',
                   params: { tripId: trip.id },
                 } as never)
               }
-              style={{ alignItems: 'center', gap: 3 }}
-            >
-              <View
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
-                  borderCurve: 'continuous',
-                  backgroundColor: tint(t.bg, 0.7),
-                  borderWidth: 1,
-                  borderColor: t.line,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Pencil size={16} color={t.ink} />
-              </View>
-              <Text style={{ fontSize: 9, fontWeight: '600', color: t.ink }}>
-                {i18n('trips.edit')}
-              </Text>
-            </Pressable>
+              icon={<Pencil size={16} color={t.ink} />}
+            />
           )}
           {isOrganiser && (
-            <Pressable onPress={handleOpenShareSheet} style={{ alignItems: 'center', gap: 3 }}>
-              <View
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
-                  borderCurve: 'continuous',
-                  backgroundColor: tint(t.bg, 0.7),
-                  borderWidth: 1,
-                  borderColor: t.line,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Share2 size={16} color={t.ink} />
-              </View>
-              <Text style={{ fontSize: 9, fontWeight: '600', color: t.ink }}>
-                {i18n('trips.share')}
-              </Text>
-            </Pressable>
+            <FloatingIconButton
+              size={44}
+              bordered
+              label={i18n('trips.share')}
+              onPress={handleOpenShareSheet}
+              icon={<Share2 size={16} color={t.ink} />}
+            />
           )}
         </View>
 

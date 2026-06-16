@@ -42,7 +42,9 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GeocodingSearchBar } from '../../components/geocoding-search-bar';
 import { StopListItem } from '../../components/trip/stop-list-item';
-import { getWaypointIcon, WaypointTypePicker } from '../../components/trip/waypoint-type-picker';
+import { WaypointMarker } from '../../components/trip/waypoint-marker';
+import { WaypointTypePicker } from '../../components/trip/waypoint-type-picker';
+import { FloatingIconButton } from '../../components/ui/floating-icon-button';
 import { useCreateTripData } from '../../hooks/use-create-trip-data';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { userFriendlyError } from '../../lib/graphql-errors';
@@ -708,27 +710,11 @@ export default function CreateTripScreen() {
           )}
 
           {/* Waypoint markers */}
-          {sortedWaypoints.map((wp) => {
-            const wt = getWaypointIcon(wp.type);
-            return (
-              <MapboxGL.MarkerView key={wp.id} id={wp.id} coordinate={[wp.lng, wp.lat]}>
-                <View
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 14,
-                    backgroundColor: wt.color,
-                    borderWidth: 2.5,
-                    borderColor: '#fff',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <wt.Icon size={14} color={'#fff'} />
-                </View>
-              </MapboxGL.MarkerView>
-            );
-          })}
+          {sortedWaypoints.map((wp) => (
+            <MapboxGL.MarkerView key={wp.id} id={wp.id} coordinate={[wp.lng, wp.lat]}>
+              <WaypointMarker type={wp.type} />
+            </MapboxGL.MarkerView>
+          ))}
         </MapboxGL.MapView>
 
         {/* Floating back button */}
@@ -741,22 +727,11 @@ export default function CreateTripScreen() {
             gap: 8,
           }}
         >
-          <Pressable
+          <FloatingIconButton
             onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
-              borderCurve: 'continuous',
-              backgroundColor: tint(t.bg, 0.7),
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <ArrowLeft size={20} color={t.ink} />
-          </Pressable>
+            accessibilityLabel={i18n('common.back')}
+            icon={<ArrowLeft size={20} color={t.ink} />}
+          />
         </View>
 
         {/* Floating map style toggle */}
@@ -769,22 +744,11 @@ export default function CreateTripScreen() {
             gap: 8,
           }}
         >
-          <Pressable
+          <FloatingIconButton
             onPress={cycleMapStyle}
-            accessibilityRole="button"
-            accessibilityLabel="Change map style"
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
-              borderCurve: 'continuous',
-              backgroundColor: tint(t.bg, 0.7),
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <MapIcon size={18} color={t.ink} />
-          </Pressable>
+            accessibilityLabel={i18n('trips.changeMapStyle')}
+            icon={<MapIcon size={18} color={t.ink} />}
+          />
         </View>
 
         {/* Bottom Sheet */}
