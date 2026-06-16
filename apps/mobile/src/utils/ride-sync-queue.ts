@@ -136,7 +136,16 @@ export async function enqueueOrExecute(
     return;
   }
 
-  const networkState = await Network.getNetworkStateAsync();
+  // A failing network probe must never drop the op — treat a thrown
+  // getNetworkStateAsync as "offline" and fall through to enqueue so the
+  // ride survives for the next drain instead of being silently lost.
+  let networkState: Network.NetworkState;
+  try {
+    networkState = await Network.getNetworkStateAsync();
+  } catch {
+    enqueue(type, payload);
+    return;
+  }
   if (networkState.isConnected && networkState.isInternetReachable) {
     try {
       const document = MUTATION_DOCUMENT_MAP[type];
@@ -163,7 +172,15 @@ export async function drainQueue(): Promise<void> {
   if (isDraining) return;
   isDraining = true;
   try {
-    const networkState = await Network.getNetworkStateAsync();
+    // A thrown network probe is treated as no-connectivity: leave the queue
+    // intact and return so it drains on the next trigger, rather than throwing
+    // an unhandled rejection out of a fire-and-forget drainQueue() call.
+    let networkState: Network.NetworkState;
+    try {
+      networkState = await Network.getNetworkStateAsync();
+    } catch {
+      return;
+    }
     if (!networkState.isConnected || !networkState.isInternetReachable) return;
 
     const queue = getQueue();
