@@ -286,8 +286,7 @@ export default function RideSummaryScreen() {
         });
       }
 
-      // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-      router.replace('/(tabs)/(profile)' as any);
+      router.replace('/(tabs)/(profile)');
     } catch (error) {
       captureException(error, { source: 'ride-summary.saveRide', rideId });
     } finally {
@@ -314,8 +313,7 @@ export default function RideSummaryScreen() {
         style: 'destructive',
         onPress: () => {
           clearRideData(rideId);
-          // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-          router.replace('/(tabs)/(profile)' as any);
+          router.replace('/(tabs)/(profile)');
         },
       },
     ]);

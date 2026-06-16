@@ -90,8 +90,7 @@ export default function StartRideScreen() {
       hud_layout: rideMMKV.getHudLayout() ?? 'A',
       is_resumed: true,
     });
-    // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-    router.replace('/(modals)/ride-hud' as any);
+    router.replace('/(modals)/ride-hud');
   }, [startRide, router]);
 
   const handleEndUnfinished = useCallback(() => {
@@ -151,8 +150,7 @@ export default function StartRideScreen() {
         is_resumed: false,
       });
 
-      // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-      router.replace('/(modals)/ride-hud' as any);
+      router.replace('/(modals)/ride-hud');
     } catch (error) {
       captureException(error, { source: 'start-ride.startRide' });
       Alert.alert(t('common.error'), t('startRide.startError'));
@@ -539,8 +537,7 @@ export default function StartRideScreen() {
           <Animated.View entering={FadeInUp.delay(200).duration(300)} style={{ marginTop: 14 }}>
             <Pressable
               onPress={() => {
-                // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-                router.push('/(tabs)/(profile)/rides' as any);
+                router.push('/(tabs)/(profile)/rides');
               }}
               style={{
                 flexDirection: 'row',

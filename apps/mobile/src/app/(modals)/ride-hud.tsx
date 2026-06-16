@@ -4,7 +4,7 @@ import { EndRideDocument } from '@motovault/graphql';
 import type { Waypoint } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
@@ -290,8 +290,8 @@ export default function RideHudScreen() {
     const pending = getQueueLength();
     if (pending > 0) setSyncPending(true);
 
-    const summaryRoute = {
-      pathname: '/(modals)/ride-summary' as const,
+    const summaryRoute: Href = {
+      pathname: '/(modals)/ride-summary',
       params: {
         rideId,
         distanceM: String(Math.round(totalDistance)),
@@ -304,8 +304,7 @@ export default function RideHudScreen() {
         motorcycleId: rideMMKV.getMotorcycleId() ?? '',
       },
     };
-    // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-    router.replace(summaryRoute as any);
+    router.replace(summaryRoute);
   }, [endRide, router, isNightMode, isBatterySaver, hudLayout, maxLeanAngle]);
 
   const handleEndRide = useCallback(() => {

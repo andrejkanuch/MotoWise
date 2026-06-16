@@ -277,8 +277,7 @@ export default function SavedScreen() {
         <Pressable
           onPress={() => {
             triggerImpact();
-            // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-            router.push('/(tabs)/(discover)' as any);
+            router.push('/(tabs)/(discover)');
           }}
           accessibilityRole="button"
           accessibilityLabel="Explore Trips"

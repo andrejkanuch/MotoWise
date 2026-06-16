@@ -884,11 +884,9 @@ export default function RidesScreen() {
             onPress={() => {
               triggerImpact();
               if (hasBikes) {
-                // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-                router.push('/(modals)/start-ride' as any);
+                router.push('/(modals)/start-ride');
               } else {
-                // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-                router.push('/(tabs)/(garage)/add-bike' as any);
+                router.push('/(tabs)/(garage)/add-bike');
               }
             }}
             accessibilityRole="button"

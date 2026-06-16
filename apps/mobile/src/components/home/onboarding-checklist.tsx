@@ -1,6 +1,6 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import {
   Bike,
   Check,
@@ -124,7 +124,7 @@ export function OnboardingChecklist() {
                   completeItem(item.id);
                 }
                 const knownItem = ALL_CHECKLIST_ITEMS.find((ci) => ci.id === item.id);
-                if (knownItem) router.push(knownItem.deepLink as never);
+                if (knownItem) router.push(knownItem.deepLink as Href);
               }}
               style={({ pressed }) => ({
                 flexDirection: 'row',

@@ -1,6 +1,6 @@
 import { palette } from '@motovault/design-system';
 import type { Ride } from '@motovault/types';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { ChevronRight, MapPin, Navigation, Route } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -178,10 +178,7 @@ export function RecentRidesWidget({
               </Text>
             </View>
             <Pressable
-              onPress={() =>
-                // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-                router.push('/(tabs)/(profile)/rides' as any)
-              }
+              onPress={() => router.push('/(tabs)/(profile)/rides')}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
               accessibilityRole="button"
               accessibilityLabel="See all rides"
@@ -261,12 +258,11 @@ export function RecentRidesWidget({
             <Pressable
               key={ride.id}
               onPress={() => {
-                const route = {
-                  pathname: '/(modals)/ride-detail' as const,
+                const route: Href = {
+                  pathname: '/(modals)/ride-detail',
                   params: { rideId: ride.id },
                 };
-                // biome-ignore lint/suspicious/noExplicitAny: expo-router does not export typed route params
-                router.push(route as any);
+                router.push(route);
               }}
               accessibilityRole="button"
               accessibilityLabel={`${name}, ${formatRelativeDate(ride.startedAt)}, ${formatDistance(distance, system)}`}

@@ -69,11 +69,9 @@ function RideFAB() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     if (isActive) {
-      // biome-ignore lint/suspicious/noExplicitAny: dynamic route
-      router.push('/(modals)/ride-hud' as any);
+      router.push('/(modals)/ride-hud');
     } else {
-      // biome-ignore lint/suspicious/noExplicitAny: dynamic route
-      router.push('/(modals)/start-ride' as any);
+      router.push('/(modals)/start-ride');
     }
   }, [isActive, router]);
 

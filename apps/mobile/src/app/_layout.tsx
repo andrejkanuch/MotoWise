@@ -239,7 +239,7 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
 
     whatsNewPushed = true;
     trackEvent(AnalyticsEvent.WHATS_NEW_VIEWED, { version: currentVersion });
-    setTimeout(() => router.push('/(modals)/whats-new' as never), 500);
+    setTimeout(() => router.push('/(modals)/whats-new'), 500);
   }, [isLoading, session, onboardingCompleted, segments, lastSeenVersion, router]);
 
   // --- Anonymous-first onboarding (A/B 2026) ---

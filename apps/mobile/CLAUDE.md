@@ -35,6 +35,7 @@
 - GraphQL operations in src/graphql/{queries,mutations}/*.graphql
 - Import generated types from @motovault/graphql
 - Auth gating in root _layout.tsx (Redirect to (auth) if no session)
+- Navigation casts (`as any`/`as never` on `router.push/replace/navigate` / `<Redirect>`) are BANNED — `typedRoutes: true` validates route literals at compile time; type dynamic hrefs as `Href` from `expo-router` instead (guard: `scripts/check-no-router-any.sh`)
 - Use process.env.EXPO_OS not Platform.OS
 - Use borderCurve: 'continuous' for rounded corners
 - Use headerSearchBarOptions for search (not custom search bar)

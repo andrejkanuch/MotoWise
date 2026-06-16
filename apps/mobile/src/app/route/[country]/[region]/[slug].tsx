@@ -40,7 +40,7 @@ export default function RouteSlugDeepLinkScreen() {
   useEffect(() => {
     if (!isError || navigatedRef.current) return;
     navigatedRef.current = true;
-    router.replace('/(tabs)/(discover)' as never);
+    router.replace('/(tabs)/(discover)');
   }, [isError, router]);
 
   return (

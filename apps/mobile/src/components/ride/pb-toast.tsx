@@ -1,7 +1,7 @@
 import { RideOverviewDocument, type RideOverviewQuery } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { Trophy } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -93,8 +93,8 @@ export function PbToast({ rideId }: PbToastProps) {
       recordType: newRecords[0]?.recordType,
       rideId,
     });
-    // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-    router.push({ pathname: '/(modals)/ride-detail' as const, params: { rideId } } as any);
+    const route: Href = { pathname: '/(modals)/ride-detail', params: { rideId } };
+    router.push(route);
   }, [newRecords, rideId, router]);
 
   if (!visible || newRecords.length === 0) return null;

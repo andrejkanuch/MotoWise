@@ -681,8 +681,7 @@ export default function ProfileScreen() {
         <Pressable
           onPress={() => {
             haptic();
-            // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-            router.push('/(tabs)/(profile)/rides' as any);
+            router.push('/(tabs)/(profile)/rides');
           }}
           style={{
             backgroundColor: theme.surface,
@@ -733,8 +732,7 @@ export default function ProfileScreen() {
         <Pressable
           onPress={() => {
             haptic();
-            // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-            router.push('/(tabs)/(profile)/heatmap' as any);
+            router.push('/(tabs)/(profile)/heatmap');
           }}
           style={{
             backgroundColor: theme.surface,
@@ -834,8 +832,7 @@ export default function ProfileScreen() {
         <Pressable
           onPress={() => {
             haptic();
-            // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-            router.push('/(tabs)/(profile)/saved' as any);
+            router.push('/(tabs)/(profile)/saved');
           }}
           style={{
             backgroundColor: theme.surface,
@@ -1066,7 +1063,7 @@ export default function ProfileScreen() {
           <SettingsRow
             icon={Megaphone}
             label={t('whatsNew.badge')}
-            onPress={() => router.push('/(modals)/whats-new' as never)}
+            onPress={() => router.push('/(modals)/whats-new')}
           />
           <SettingsRow
             icon={HelpCircle}
