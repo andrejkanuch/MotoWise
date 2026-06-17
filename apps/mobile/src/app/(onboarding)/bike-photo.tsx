@@ -21,6 +21,7 @@ import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { logger } from '../../lib/logger';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
 /** Crop to 4:3 center and compress */
@@ -107,12 +108,12 @@ export default function BikePhotoScreen() {
           try {
             uri = await cropAndCompress(uri);
           } catch (processingError) {
-            console.warn('Image processing failed, using original image:', processingError);
+            logger.warn('Image processing failed, using original image:', processingError);
           }
           setPhotoUri(uri);
         }
       } catch (error) {
-        console.warn('Image picker failed:', error);
+        logger.warn('Image picker failed:', error);
         Alert.alert(t('common.error'), t('onboarding.imagePickerError'));
       }
     },

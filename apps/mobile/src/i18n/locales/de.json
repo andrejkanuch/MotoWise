@@ -211,7 +211,14 @@
     "dueInDays_one": "Fällig in {{count}} Tag",
     "dueInDays_other": "Fällig in {{count}} Tagen",
     "dueInDays_few": "Fällig in {{count}} Tagen",
-    "dueInDays_many": "Fällig in {{count}} Tagen"
+    "dueInDays_many": "Fällig in {{count}} Tagen",
+    "startFirstRide": "Starte deine erste Fahrt",
+    "startFirstRideDesc": "Tippe auf die Fahrt-Taste, um Route, Geschwindigkeit und Distanz aufzuzeichnen.",
+    "recentRidesTitle": "Letzte Fahrten",
+    "thisWeekLabel": "DIESE WOCHE",
+    "seeAll": "Alle ansehen",
+    "rideCount_one": "{{count}} Fahrt",
+    "rideCount_other": "{{count}} Fahrten"
   },
   "learn": {
     "explore": "Motorradthemen erkunden",
@@ -438,7 +445,11 @@
     "bikeDetails": "Motorraddetails",
     "addMaintenanceTask": "Aufgabe hinzufügen",
     "recordMaintenance": "Wartung erfassen",
-    "editBike": "Motorrad bearbeiten"
+    "editBike": "Motorrad bearbeiten",
+    "dotKm": "· {{km}} km",
+    "bikeNumberYear": "Nr.{{num}} · {{year}}",
+    "kmUnit": "km",
+    "mileageKm": "{{km}} km"
   },
   "profile": {
     "title": "Profil",
@@ -1701,6 +1712,9 @@
     "continueEditing": "Weiter bearbeiten",
     "deleteDraft": "Entwurf loeschen",
     "share": "Teilen",
+    "aiBadge": "KI",
+    "askAssistant": "Reiseassistent fragen",
+    "changeMapStyle": "Kartenstil ändern",
     "edit": "Bearbeiten",
     "deleteTrip": "Tour loeschen",
     "confirmDeleteDraft": "Diesen Entwurf loeschen?",
@@ -1761,7 +1775,14 @@
     "descriptionLabel": "Beschreibung",
     "descriptionPlaceholder": "Beschreibe die Fahrt, Strecken-Highlights, was mitgebracht werden soll...",
     "maxRidersLabel": "Max. Fahrer",
-    "maxRidersPlaceholder": "10"
+    "maxRidersPlaceholder": "10",
+    "ridersCount": "{{count}}/{{max}} Fahrer",
+    "full": "Voll",
+    "organiser": "Organisator",
+    "participants": "Teilnehmer",
+    "joinRide": "Fahrt beitreten",
+    "leaveRide": "Fahrt verlassen",
+    "cancelRide": "Fahrt absagen"
   },
   "rideHud": {
     "dist": "DIST",
@@ -1791,12 +1812,26 @@
     "addExpenseHint": "(Kraftstoff, Maut...)",
     "shareOnDiscover": "Auf Discover teilen",
     "shareOnDiscoverHint": "Andere Fahrer können diese Route finden und fahren",
-    "discardRide": "Fahrt verwerfen"
+    "discardRide": "Fahrt verwerfen",
+    "newPersonalBest": "Neuer persönlicher Rekord!",
+    "newPersonalBests_one": "{{count}} neuer persönlicher Rekord!",
+    "newPersonalBests_other": "{{count}} neue persönliche Rekorde!"
   },
   "heatmap": {
     "rides": "Fahrten",
     "lifetime": "Gesamt",
-    "countries": "Laender"
+    "countries": "Laender",
+    "title": "Gefahrene Straßen",
+    "emptyMap": "Deine Heatmap füllt sich, sobald du Fahrten mit GPS-Tracks abschließt.",
+    "loadingRides": "Fahrten werden geladen…",
+    "showingRecent": "Zeige deine letzten ~{{count}} Fahrten",
+    "yearRecap": "Rückblick {{year}}",
+    "noRidesThisYear": "Dieses Jahr noch keine Fahrten. Sobald du einige speicherst, zeigen wir hier deine längste Fahrt und besuchte Länder.",
+    "recapSummary": "{{distance}} in {{count}} Fahrten{{countries}}.",
+    "recapInCountries": " in {{count}} Ländern",
+    "topRideLabel": "Top-Fahrt:",
+    "topRideValue": "— {{distance}}.",
+    "shareRecap": "Rückblick teilen"
   },
   "discoverSearch": {
     "notAvailableTitle": "Nicht verfuegbar",
@@ -2019,5 +2054,29 @@
     "notEnoughData": "Nicht genügend Daten",
     "notEnoughDataBody": "Diese Fahrt hat nicht genügend GPS-Wegpunkte für einen 3D-Überflug.",
     "goBack": "Zurück"
+  },
+  "comments": {
+    "title": "Kommentare",
+    "titleWithCount": "Kommentare ({{count}})",
+    "empty": "Noch keine Kommentare. Sei der Erste!",
+    "reply": "Antworten"
+  },
+  "discover": {
+    "reviewsCount": "Bewertungen ({{count}})",
+    "pick": "Tipp",
+    "editorsPick": "Empfehlung der Redaktion",
+    "metersUnit": "m",
+    "ridersCount": "· {{riders}} Fahrer",
+    "openingDiscover": "Entdecken wird geöffnet…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}} m",
+    "byOrganiser": "von {{name}}",
+    "emptyTitle": "Noch keine gespeicherten Touren",
+    "emptyDesc": "Stöbere im Tab „Entdecken“ nach Touren und speichere die, die du später fahren willst.",
+    "exploreTrips": "Touren entdecken",
+    "title": "Gespeicherte Touren",
+    "tripCount_one": "{{count}} Tour",
+    "tripCount_other": "{{count}} Touren"
   }
 }

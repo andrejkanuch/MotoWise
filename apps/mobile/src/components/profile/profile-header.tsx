@@ -1,8 +1,9 @@
 import { palette } from '@motovault/design-system';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { MapPin, Pencil } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { Image, Pressable, Text, useColorScheme, View } from 'react-native';
+import { Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { triggerImpact } from '../../utils/haptics';
 
@@ -58,6 +59,9 @@ export function ProfileHeader({
           <Image
             source={{ uri: avatarUrl }}
             style={{ width: 80, height: 80 }}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={200}
             accessibilityLabel={displayName ?? publicUsername ?? 'Avatar'}
           />
         ) : (

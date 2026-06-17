@@ -208,8 +208,7 @@ export default function UpgradeScreen() {
       const result = await Purchases.getOfferings();
       setOfferings(result);
     } catch (error) {
-      console.error('[Upgrade] Failed to load offerings:', error);
-      captureException(error);
+      captureException(error, { source: 'upgrade.fetchOfferings' });
       setFetchError(
         error instanceof Error ? error.message : 'Failed to load subscription options.',
       );
@@ -272,8 +271,7 @@ export default function UpgradeScreen() {
         trackEvent(AnalyticsEvent.PURCHASE_CANCELLED);
         return;
       }
-      console.error('[Upgrade] Purchase failed:', error);
-      captureException(error);
+      captureException(error, { source: 'upgrade.handlePurchase', plan: selectedPlan });
       Alert.alert(t('common.error'), t('paywall.purchaseFailed'), [{ text: t('common.cancel') }]);
     } finally {
       setIsLoading(false);
@@ -295,8 +293,7 @@ export default function UpgradeScreen() {
         ]);
       }
     } catch (error) {
-      console.error('[Upgrade] Restore failed:', error);
-      captureException(error);
+      captureException(error, { source: 'upgrade.handleRestore' });
       Alert.alert(t('common.error'), t('paywall.restoreFailed'), [{ text: t('common.cancel') }]);
     } finally {
       setIsLoading(false);

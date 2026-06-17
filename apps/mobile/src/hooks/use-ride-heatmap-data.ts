@@ -6,6 +6,8 @@ import {
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
 import { gqlFetcher } from '../lib/graphql-client';
+import { queryKeys } from '../lib/query-keys';
+import { decodePolyline } from '../utils/polyline';
 
 const PAGE_SIZE = 50;
 const MAX_PAGES = 20;
@@ -13,42 +15,9 @@ const MAX_PAGES = 20;
 const DOWNSAMPLE_STEP = 5;
 const MAX_POINTS = 5_000;
 
-/** Decode Google-encoded polyline string to [lng, lat] pairs (GeoJSON order). */
-function decodePolyline(encoded: string): [number, number][] {
-  const points: [number, number][] = [];
-  let index = 0;
-  let lat = 0;
-  let lng = 0;
-
-  while (index < encoded.length) {
-    let shift = 0;
-    let result = 0;
-    let byte: number;
-    do {
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    lat += result & 1 ? ~(result >> 1) : result >> 1;
-
-    shift = 0;
-    result = 0;
-    do {
-      byte = encoded.charCodeAt(index++) - 63;
-      result |= (byte & 0x1f) << shift;
-      shift += 5;
-    } while (byte >= 0x20);
-    lng += result & 1 ? ~(result >> 1) : result >> 1;
-
-    // GeoJSON uses [lng, lat]
-    points.push([lng / 1e5, lat / 1e5]);
-  }
-  return points;
-}
-
 export function useRideHeatmapData({ enabled }: { enabled: boolean }) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
-    queryKey: ['rides', 'heatmap'] as const,
+    queryKey: queryKeys.rides.heatmap,
     queryFn: ({ pageParam }: { pageParam: string | null }) => {
       const variables: MyRidesForHeatmapQueryVariables = {
         first: PAGE_SIZE,
@@ -61,6 +30,11 @@ export function useRideHeatmapData({ enabled }: { enabled: boolean }) {
       const pi = lastPage?.myRides?.pageInfo;
       return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
     },
+    // The heatmap eagerly pages up to 20×50 rides — by far the heaviest ride
+    // query. Keep it fresh for 5 min so re-entering the screen (or a sibling
+    // mounting it) doesn't refetch every page; a ride save still invalidates
+    // `rides.all` and marks it stale for the next view.
+    staleTime: 5 * 60 * 1000,
     enabled,
   });
 

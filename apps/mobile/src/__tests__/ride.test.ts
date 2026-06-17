@@ -26,6 +26,11 @@ jest.mock('expo-secure-store', () => ({
 jest.mock('../utils/ride-sync-queue', () => ({
   enqueue: jest.fn(),
 }));
+// ride-location now imports captureException from lib/analytics, which
+// transitively pulls in native SDKs (Sentry / PostHog / fbsdk). Stub it out.
+jest.mock('../lib/analytics', () => ({
+  captureException: jest.fn(),
+}));
 
 import { useRideStore } from '../stores/ride.store';
 import { distanceMeters } from '../utils/ride-location';

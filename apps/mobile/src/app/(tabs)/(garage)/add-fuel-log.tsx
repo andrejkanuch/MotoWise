@@ -65,7 +65,7 @@ export default function AddFuelLogScreen() {
 
   // History list
   const logsQuery = useQuery({
-    queryKey: ['fuel-logs', motorcycleId],
+    queryKey: queryKeys.fuelLogs.byMotorcycle(motorcycleId),
     queryFn: () => gqlFetcher(FuelLogsDocument, { motorcycleId }),
     enabled: !!motorcycleId,
   });
@@ -90,7 +90,7 @@ export default function AddFuelLogScreen() {
         volume_litres: fuelLitres,
         cost: parsedCost ?? null,
       });
-      queryClient.invalidateQueries({ queryKey: ['fuel-logs', motorcycleId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.fuelLogs.byMotorcycle(motorcycleId) });
       queryClient.invalidateQueries({
         queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),
       });

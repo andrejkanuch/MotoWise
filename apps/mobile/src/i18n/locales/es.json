@@ -211,7 +211,15 @@
     "dueInDays_one": "Vence en {{count}} día",
     "dueInDays_other": "Vence en {{count}} días",
     "dueInDays_few": "Vence en {{count}} días",
-    "dueInDays_many": "Vence en {{count}} días"
+    "dueInDays_many": "Vence en {{count}} días",
+    "startFirstRide": "Empieza tu primera ruta",
+    "startFirstRideDesc": "Toca el botón de ruta para empezar a registrar tu recorrido, velocidad y distancia.",
+    "recentRidesTitle": "Rutas recientes",
+    "thisWeekLabel": "ESTA SEMANA",
+    "seeAll": "Ver todo",
+    "rideCount_one": "{{count}} ruta",
+    "rideCount_other": "{{count}} rutas",
+    "rideCount_many": "{{count}} rutas"
   },
   "learn": {
     "explore": "Explora temas de motocicletas",
@@ -438,7 +446,11 @@
     "editBike": "Editar moto",
     "editMastheadEyebrow": "— GARAJE",
     "editMastheadTitle": "Editar",
-    "editMastheadSubject": "moto."
+    "editMastheadSubject": "moto.",
+    "dotKm": "· {{km}} km",
+    "bikeNumberYear": "N.º{{num}} · {{year}}",
+    "kmUnit": "km",
+    "mileageKm": "{{km}} km"
   },
   "profile": {
     "title": "Perfil",
@@ -1684,6 +1696,9 @@
     "continueEditing": "Seguir editando",
     "deleteDraft": "Eliminar borrador",
     "share": "Compartir",
+    "aiBadge": "IA",
+    "askAssistant": "Preguntar al asistente de viaje",
+    "changeMapStyle": "Cambiar estilo de mapa",
     "edit": "Editar",
     "deleteTrip": "Eliminar viaje",
     "confirmDeleteDraft": "Eliminar este borrador?",
@@ -1761,7 +1776,14 @@
     "descriptionLabel": "Descripcion",
     "descriptionPlaceholder": "Describe la ruta, puntos de interes, que llevar...",
     "maxRidersLabel": "Max. pilotos",
-    "maxRidersPlaceholder": "10"
+    "maxRidersPlaceholder": "10",
+    "ridersCount": "{{count}}/{{max}} pilotos",
+    "full": "Completo",
+    "organiser": "Organizador",
+    "participants": "Participantes",
+    "joinRide": "Unirse al viaje",
+    "leaveRide": "Abandonar el viaje",
+    "cancelRide": "Cancelar el viaje"
   },
   "rideHud": {
     "dist": "DIST",
@@ -1791,12 +1813,27 @@
     "addExpenseHint": "(combustible, peajes...)",
     "shareOnDiscover": "Compartir en Discover",
     "shareOnDiscoverHint": "Otros moteros pueden encontrar y recorrer esta ruta",
-    "discardRide": "Descartar ruta"
+    "discardRide": "Descartar ruta",
+    "newPersonalBest": "¡Nuevo récord personal!",
+    "newPersonalBests_one": "¡{{count}} nuevo récord personal!",
+    "newPersonalBests_other": "¡{{count}} nuevos récords personales!",
+    "newPersonalBests_many": "¡{{count}} nuevos récords personales!"
   },
   "heatmap": {
     "rides": "Rutas",
     "lifetime": "Total",
-    "countries": "Paises"
+    "countries": "Paises",
+    "title": "Carreteras que he recorrido",
+    "emptyMap": "Tu mapa de calor se completa a medida que terminas viajes con rutas GPS.",
+    "loadingRides": "Cargando viajes…",
+    "showingRecent": "Mostrando tus ~{{count}} viajes más recientes",
+    "yearRecap": "Resumen {{year}}",
+    "noRidesThisYear": "Aún no hay viajes este año. Cuando guardes algunos, aquí mostraremos tu viaje más largo y los países recorridos.",
+    "recapSummary": "{{distance}} en {{count}} viajes{{countries}}.",
+    "recapInCountries": " en {{count}} países",
+    "topRideLabel": "Mejor viaje:",
+    "topRideValue": "— {{distance}}.",
+    "shareRecap": "Compartir resumen"
   },
   "discoverSearch": {
     "notAvailableTitle": "No disponible",
@@ -2019,5 +2056,30 @@
     "notEnoughData": "Datos insuficientes",
     "notEnoughDataBody": "Esta ruta no tiene suficientes puntos GPS para un sobrevuelo en 3D.",
     "goBack": "Volver"
+  },
+  "comments": {
+    "title": "Comentarios",
+    "titleWithCount": "Comentarios ({{count}})",
+    "empty": "Aún no hay comentarios. ¡Sé el primero!",
+    "reply": "Responder"
+  },
+  "discover": {
+    "reviewsCount": "Reseñas ({{count}})",
+    "pick": "Selección",
+    "editorsPick": "Selección del editor",
+    "metersUnit": "m",
+    "ridersCount": "· {{riders}} pilotos",
+    "openingDiscover": "Abriendo Descubrir…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}} m",
+    "byOrganiser": "por {{name}}",
+    "emptyTitle": "Aún no hay rutas guardadas",
+    "emptyDesc": "Explora rutas en la pestaña Descubrir y guarda las que quieras conducir más tarde.",
+    "exploreTrips": "Explorar rutas",
+    "title": "Rutas guardadas",
+    "tripCount_one": "{{count}} ruta",
+    "tripCount_other": "{{count}} rutas",
+    "tripCount_many": "{{count}} rutas"
   }
 }

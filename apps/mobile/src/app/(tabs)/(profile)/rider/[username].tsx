@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import { GetRiderProfileDocument, MeDocument } from '@motovault/graphql';
+import { GetRiderProfileDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Bike } from 'lucide-react-native';
@@ -12,6 +12,7 @@ import { ProfileStats } from '../../../../components/profile/profile-stats';
 import { QueryBoundary } from '../../../../components/ui/query-boundary';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import { queryKeys } from '../../../../lib/query-keys';
+import { meOptions } from '../../../../lib/query-options';
 
 export default function RiderProfileScreen() {
   const { t } = useTranslation();
@@ -25,10 +26,7 @@ export default function RiderProfileScreen() {
   const cardBorder = isDark ? 'rgba(255,255,255,0.08)' : palette.neutral200;
 
   // Current user to detect own profile
-  const meQuery = useQuery({
-    queryKey: queryKeys.user.me,
-    queryFn: () => gqlFetcher(MeDocument),
-  });
+  const meQuery = useQuery(meOptions());
   const currentUser = meQuery.data?.me;
 
   const profileQuery = useQuery({

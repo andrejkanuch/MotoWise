@@ -13,6 +13,7 @@ import type {
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { OnboardingRoute } from '../config/onboarding';
+import { captureException } from '../lib/analytics';
 import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 
 interface BikeData {
@@ -187,7 +188,7 @@ export const useOnboardingStore = create<OnboardingState>()(
       onRehydrateStorage: () => {
         return (_state, error) => {
           if (error) {
-            console.error('[OnboardingStore] Migration/rehydration failed:', error);
+            captureException(error, { source: 'onboarding.store.onRehydrateStorage' });
           }
         };
       },

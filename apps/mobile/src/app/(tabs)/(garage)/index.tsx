@@ -223,7 +223,7 @@ export default function GarageScreen() {
                   {motorcycles.length === 1
                     ? t('garage.bike', { defaultValue: 'bike' })
                     : t('garage.bikes', { defaultValue: 'bikes' })}{' '}
-                  · {totalKm.toLocaleString()} km
+                  {t('garage.dotKm', { km: totalKm.toLocaleString() })}
                 </Text>
               </View>
               <Text
@@ -353,6 +353,7 @@ export default function GarageScreen() {
                         source={{ uri: bike.primaryPhotoUrl }}
                         style={{ position: 'absolute', width: '100%', height: '100%' }}
                         contentFit="cover"
+                        recyclingKey={bike.id}
                       />
                     ) : (
                       <View
@@ -446,7 +447,10 @@ export default function GarageScreen() {
                           marginBottom: 6,
                         }}
                       >
-                        N°{String(i + 1).padStart(2, '0')} · {bike.year}
+                        {t('garage.bikeNumberYear', {
+                          num: String(i + 1).padStart(2, '0'),
+                          year: bike.year,
+                        })}
                       </Text>
                       <Text
                         style={{
@@ -500,7 +504,7 @@ export default function GarageScreen() {
                             }}
                           >
                             {(bike.currentMileage ?? 0).toLocaleString()}{' '}
-                            <Text style={{ fontSize: 11, opacity: 0.7 }}>km</Text>
+                            <Text style={{ fontSize: 11, opacity: 0.7 }}>{t('garage.kmUnit')}</Text>
                           </Text>
                         </View>
                         <View style={{ flex: 1 }}>
@@ -652,6 +656,7 @@ export default function GarageScreen() {
                           source={{ uri: bike.primaryPhotoUrl }}
                           style={{ width: '100%', height: '100%' }}
                           contentFit="cover"
+                          recyclingKey={bike.id}
                         />
                       ) : (
                         <View
@@ -737,7 +742,9 @@ export default function GarageScreen() {
                             color: theme.ink3,
                           }}
                         >
-                          {(bike.currentMileage ?? 0).toLocaleString()} km
+                          {t('garage.mileageKm', {
+                            km: (bike.currentMileage ?? 0).toLocaleString(),
+                          })}
                         </Text>
                       </View>
                     </View>

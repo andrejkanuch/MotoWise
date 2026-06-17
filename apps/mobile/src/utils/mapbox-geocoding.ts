@@ -1,3 +1,5 @@
+import { logger } from '../lib/logger';
+
 const MAPBOX_GEOCODING_BASE = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 
 export type GeocodingResult = {
@@ -35,9 +37,7 @@ export async function searchPlaces(
 ): Promise<GeocodingResult[]> {
   const token = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
   if (!token) {
-    if (__DEV__) {
-      console.warn('[mapbox-geocoding] EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN is not set');
-    }
+    logger.warn('[mapbox-geocoding] EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN is not set');
     return [];
   }
 
@@ -65,9 +65,7 @@ export async function searchPlaces(
     const response = await fetch(url);
 
     if (!response.ok) {
-      if (__DEV__) {
-        console.warn(`[mapbox-geocoding] HTTP ${response.status}: ${response.statusText}`);
-      }
+      logger.warn(`[mapbox-geocoding] HTTP ${response.status}: ${response.statusText}`);
       return [];
     }
 
@@ -82,9 +80,7 @@ export async function searchPlaces(
       category: feature.properties.category ?? '',
     }));
   } catch (error) {
-    if (__DEV__) {
-      console.warn('[mapbox-geocoding] Request failed:', error);
-    }
+    logger.warn('[mapbox-geocoding] Request failed:', error);
     return [];
   }
 }
@@ -147,9 +143,7 @@ export async function reverseGeocodeShortLabel(lat: number, lng: number): Promis
     if (t) return t;
     return f.place_name?.split(',')[0]?.trim() ?? '';
   } catch (error) {
-    if (__DEV__) {
-      console.warn('[mapbox-geocoding] reverseGeocodeShortLabel failed:', error);
-    }
+    logger.warn('[mapbox-geocoding] reverseGeocodeShortLabel failed:', error);
     return '';
   }
 }
@@ -174,9 +168,7 @@ export async function reverseGeocodeFullPlaceName(lat: number, lng: number): Pro
     const data: MapboxGeocodingResponse = await response.json();
     return data.features[0]?.place_name ?? '';
   } catch (error) {
-    if (__DEV__) {
-      console.warn('[mapbox-geocoding] reverseGeocodeFullPlaceName failed:', error);
-    }
+    logger.warn('[mapbox-geocoding] reverseGeocodeFullPlaceName failed:', error);
     return '';
   }
 }

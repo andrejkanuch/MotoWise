@@ -13,3 +13,9 @@ export function triggerNotification(type: Haptics.NotificationFeedbackType): voi
     Haptics.notificationAsync(type);
   }
 }
+
+export function triggerSelection(): void {
+  if (process.env.EXPO_OS === 'ios') {
+    Haptics.selectionAsync();
+  }
+}

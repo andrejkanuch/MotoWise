@@ -1,9 +1,10 @@
 import { RideOverviewDocument, type RideOverviewQuery } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { Trophy } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
@@ -30,6 +31,7 @@ interface PbToastProps {
  */
 export function PbToast({ rideId }: PbToastProps) {
   const { t: theme } = useEditorialTheme();
+  const { t } = useTranslation();
   const router = useRouter();
   const [visible, setVisible] = useState(false);
   const dismissTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -93,8 +95,8 @@ export function PbToast({ rideId }: PbToastProps) {
       recordType: newRecords[0]?.recordType,
       rideId,
     });
-    // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-    router.push({ pathname: '/(modals)/ride-detail' as const, params: { rideId } } as any);
+    const route: Href = { pathname: '/(modals)/ride-detail', params: { rideId } };
+    router.push(route);
   }, [newRecords, rideId, router]);
 
   if (!visible || newRecords.length === 0) return null;
@@ -154,7 +156,7 @@ export function PbToast({ rideId }: PbToastProps) {
           {isSingle ? (
             <>
               <Text style={{ fontSize: 14, fontWeight: '700', color: theme.ink }}>
-                New personal best!
+                {t('rideSummary.newPersonalBest')}
               </Text>
               <Text style={{ fontSize: 12, color: theme.ink3, marginTop: 2 }}>
                 {RECORD_LABELS[record.recordType] ?? record.recordType}
@@ -164,7 +166,7 @@ export function PbToast({ rideId }: PbToastProps) {
           ) : (
             <>
               <Text style={{ fontSize: 14, fontWeight: '700', color: theme.ink }}>
-                {newRecords.length} new personal bests!
+                {t('rideSummary.newPersonalBests', { count: newRecords.length })}
               </Text>
               <Text style={{ fontSize: 12, color: theme.ink3, marginTop: 2 }}>
                 {newRecords.map((r) => RECORD_LABELS[r.recordType] ?? r.recordType).join(' · ')}

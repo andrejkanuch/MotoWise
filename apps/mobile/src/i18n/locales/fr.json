@@ -211,7 +211,15 @@
     "dueInDays_one": "Dans {{count}} jour",
     "dueInDays_other": "Dans {{count}} jours",
     "dueInDays_few": "Dans {{count}} jours",
-    "dueInDays_many": "Dans {{count}} jours"
+    "dueInDays_many": "Dans {{count}} jours",
+    "startFirstRide": "Commencez votre première sortie",
+    "startFirstRideDesc": "Touchez le bouton de sortie pour commencer à suivre votre trajet, votre vitesse et votre distance.",
+    "recentRidesTitle": "Sorties récentes",
+    "thisWeekLabel": "CETTE SEMAINE",
+    "seeAll": "Tout voir",
+    "rideCount_one": "{{count}} sortie",
+    "rideCount_other": "{{count}} sorties",
+    "rideCount_many": "{{count}} sorties"
   },
   "learn": {
     "explore": "Explore les sujets moto",
@@ -438,7 +446,11 @@
     "bikeDetails": "Détails de la moto",
     "addMaintenanceTask": "Ajouter une tâche",
     "recordMaintenance": "Enregistrer un entretien",
-    "editBike": "Modifier la moto"
+    "editBike": "Modifier la moto",
+    "dotKm": "· {{km}} km",
+    "bikeNumberYear": "N°{{num}} · {{year}}",
+    "kmUnit": "km",
+    "mileageKm": "{{km}} km"
   },
   "profile": {
     "title": "Profil",
@@ -1701,6 +1713,9 @@
     "continueEditing": "Continuer a editer",
     "deleteDraft": "Supprimer le brouillon",
     "share": "Partager",
+    "aiBadge": "IA",
+    "askAssistant": "Demander à l'assistant de voyage",
+    "changeMapStyle": "Changer le style de carte",
     "edit": "Modifier",
     "deleteTrip": "Supprimer la sortie",
     "confirmDeleteDraft": "Supprimer ce brouillon ?",
@@ -1761,7 +1776,14 @@
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Decris la balade, les points forts de l'itineraire, ce qu'il faut emporter...",
     "maxRidersLabel": "Pilotes max.",
-    "maxRidersPlaceholder": "10"
+    "maxRidersPlaceholder": "10",
+    "ridersCount": "{{count}}/{{max}} motards",
+    "full": "Complet",
+    "organiser": "Organisateur",
+    "participants": "Participants",
+    "joinRide": "Rejoindre le trajet",
+    "leaveRide": "Quitter le trajet",
+    "cancelRide": "Annuler le trajet"
   },
   "rideHud": {
     "dist": "DIST",
@@ -1791,12 +1813,27 @@
     "addExpenseHint": "(carburant, péages...)",
     "shareOnDiscover": "Partager sur Discover",
     "shareOnDiscoverHint": "D'autres motards peuvent trouver et rouler cet itinéraire",
-    "discardRide": "Supprimer le trajet"
+    "discardRide": "Supprimer le trajet",
+    "newPersonalBest": "Nouveau record personnel !",
+    "newPersonalBests_one": "{{count}} nouveau record personnel !",
+    "newPersonalBests_other": "{{count}} nouveaux records personnels !",
+    "newPersonalBests_many": "{{count}} nouveaux records personnels !"
   },
   "heatmap": {
     "rides": "Balades",
     "lifetime": "Total",
-    "countries": "Pays"
+    "countries": "Pays",
+    "title": "Routes que j'ai parcourues",
+    "emptyMap": "Votre carte de chaleur se remplit au fur et à mesure que vous terminez des trajets avec des tracés GPS.",
+    "loadingRides": "Chargement des trajets…",
+    "showingRecent": "Affichage de vos ~{{count}} trajets les plus récents",
+    "yearRecap": "Bilan {{year}}",
+    "noRidesThisYear": "Aucun trajet cette année pour l'instant. Une fois que vous en aurez enregistré quelques-uns, nous afficherons ici votre trajet le plus long et les pays parcourus.",
+    "recapSummary": "{{distance}} sur {{count}} trajets{{countries}}.",
+    "recapInCountries": " dans {{count}} pays",
+    "topRideLabel": "Meilleur trajet :",
+    "topRideValue": "— {{distance}}.",
+    "shareRecap": "Partager le bilan"
   },
   "discoverSearch": {
     "notAvailableTitle": "Non disponible",
@@ -2019,5 +2056,30 @@
     "notEnoughData": "Données insuffisantes",
     "notEnoughDataBody": "Ce trajet n'a pas assez de points GPS pour un survol en 3D.",
     "goBack": "Retour"
+  },
+  "comments": {
+    "title": "Commentaires",
+    "titleWithCount": "Commentaires ({{count}})",
+    "empty": "Pas encore de commentaires. Soyez le premier !",
+    "reply": "Répondre"
+  },
+  "discover": {
+    "reviewsCount": "Avis ({{count}})",
+    "pick": "Choix",
+    "editorsPick": "Choix de la rédaction",
+    "metersUnit": "m",
+    "ridersCount": "· {{riders}} motards",
+    "openingDiscover": "Ouverture de Découvrir…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}} m",
+    "byOrganiser": "par {{name}}",
+    "emptyTitle": "Aucun itinéraire enregistré",
+    "emptyDesc": "Parcourez les itinéraires dans l’onglet Découvrir et enregistrez ceux que vous voulez rouler plus tard.",
+    "exploreTrips": "Explorer les itinéraires",
+    "title": "Itinéraires enregistrés",
+    "tripCount_one": "{{count}} itinéraire",
+    "tripCount_other": "{{count}} itinéraires",
+    "tripCount_many": "{{count}} itinéraires"
   }
 }

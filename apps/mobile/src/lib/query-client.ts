@@ -2,7 +2,6 @@ import { MutationCache, onlineManager, QueryCache, QueryClient } from '@tanstack
 import { Alert } from 'react-native';
 import { captureException } from './analytics';
 import { hasGraphQLCode, userFriendlyError } from './graphql-errors';
-import { supabase } from './supabase';
 
 const NETWORK_ERROR_RE =
   /network.*(fail|error)|failed to fetch|internet.*offline|econnrefused|timeout/i;
@@ -38,7 +37,11 @@ export const queryClient = new QueryClient({
       retry: 3,
       retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
       networkMode: 'offlineFirst',
-      structuralSharing: false,
+      // structuralSharing left at its v5 default (true): it preserves referential
+      // identity of unchanged result subtrees across refetches, which is what lets
+      // React.memo'd cards and memoized renderItems skip re-renders on background
+      // refetch/focus/invalidation. Opt out per-query only if one returns
+      // non-plain-object data that must not be structurally merged.
     },
     mutations: {
       retry: (failureCount, error) => {
@@ -54,7 +57,8 @@ export const queryClient = new QueryClient({
     onError: (error, query) => {
       const isAuthError = hasGraphQLCode(error, 'UNAUTHENTICATED');
       if (isAuthError) {
-        supabase.auth.refreshSession();
+        // gqlFetcher owns the (de-duped) refresh-and-retry on UNAUTHENTICATED.
+        // Here we only suppress the global error alert + Sentry noise.
         return;
       }
       // Don't alert or report to Sentry for expected offline failures

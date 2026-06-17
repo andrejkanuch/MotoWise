@@ -85,7 +85,9 @@ describe('logoutRevenueCat', () => {
     await logoutRevenueCat();
 
     expect(mockLogOut).not.toHaveBeenCalled();
-    expect(mockCaptureException).toHaveBeenCalledWith(error);
+    expect(mockCaptureException).toHaveBeenCalledWith(error, {
+      source: 'revenuecat.logoutRevenueCat',
+    });
   });
 
   it('returns early in Expo Go', async () => {

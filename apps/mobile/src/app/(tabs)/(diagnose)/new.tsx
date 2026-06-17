@@ -1,6 +1,6 @@
 import { type MotorcycleType, SubmitDiagnosticDocument, type Urgency } from '@motovault/graphql';
 import { useQueryClient } from '@tanstack/react-query';
-import * as FileSystem from 'expo-file-system';
+import { File } from 'expo-file-system';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { ArrowLeft, X } from 'lucide-react-native';
 import { useCallback, useEffect, useRef } from 'react';
@@ -24,7 +24,7 @@ import { StepPhotoDetails } from '../../../components/diagnostic-flow/step-photo
 import { StepProblemDescription } from '../../../components/diagnostic-flow/step-problem-description';
 import { StepReviewSubmit } from '../../../components/diagnostic-flow/step-review-submit';
 import { useProGate } from '../../../hooks/use-pro-gate';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
+import { AnalyticsEvent, captureException, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { queryKeys } from '../../../lib/query-keys';
@@ -150,9 +150,9 @@ export default function NewDiagnosticScreen() {
       // Read base64 from photoUri at submission time
       let photoBase64: string | undefined;
       if (state.photoUri) {
-        photoBase64 = await FileSystem.readAsStringAsync(state.photoUri, {
-          encoding: 'base64',
-        });
+        // New expo-file-system File API — readAsStringAsync is documented to throw
+        // in a future SDK. Matches the byte-read pattern in lib/image-upload.ts.
+        photoBase64 = await new File(state.photoUri).base64();
       }
 
       // Build wizard answers only if any options were selected
@@ -202,7 +202,7 @@ export default function NewDiagnosticScreen() {
           message = error.message;
         }
       }
-      console.error('[submitDiagnostic] error:', JSON.stringify(error, null, 2));
+      captureException(error, { source: 'diagnose.submitDiagnostic', message });
       state.setSubmitError(message);
     } finally {
       state.setIsSubmitting(false);

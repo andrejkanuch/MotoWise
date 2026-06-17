@@ -3,7 +3,7 @@
  * Matches the warm magazine aesthetic from the design preview.
  */
 
-import * as Haptics from 'expo-haptics';
+import { ChevronRight, type LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import {
   Pressable,
@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { tint, useEditorialTheme } from '../../theme/editorial';
+import { triggerImpact } from '../../utils/haptics';
 
 // ── Card ──
 export function ECard({
@@ -52,7 +53,7 @@ export function ECard({
   const wrapped = onPress ? (
     <Pressable
       onPress={() => {
-        if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        triggerImpact();
         onPress();
       }}
     >
@@ -105,7 +106,7 @@ export function EButton({
   return (
     <Pressable
       onPress={() => {
-        if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        triggerImpact();
         onPress?.();
       }}
       style={[
@@ -477,6 +478,107 @@ export function EKicker({
     >
       {children}
     </Text>
+  );
+}
+
+// ── Settings section label (caption above a settings group) ──
+export function ESettingsSectionLabel({ label }: { label: string }) {
+  const { t } = useEditorialTheme();
+  return (
+    <Text
+      style={{
+        fontSize: 11,
+        fontWeight: '700',
+        color: t.ink2,
+        textTransform: 'uppercase',
+        letterSpacing: 1.3,
+        marginBottom: 10,
+        marginLeft: 4,
+      }}
+    >
+      {label}
+    </Text>
+  );
+}
+
+// ── Settings row (tinted icon + label, optional value/badge, chevron) ──
+export function ESettingsRow({
+  icon: Icon,
+  label,
+  value,
+  onPress,
+  isLast,
+  color,
+  badge,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value?: string;
+  onPress?: () => void;
+  isLast?: boolean;
+  color?: string;
+  badge?: ReactNode;
+}) {
+  const { t } = useEditorialTheme();
+  const isInteractive = !!onPress;
+  const labelColor = color ?? t.ink;
+  const iconColor = color ?? t.ink3;
+
+  const content = (
+    <>
+      <View
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 8,
+          borderCurve: 'continuous',
+          backgroundColor: t.surface2,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Icon size={17} color={iconColor} strokeWidth={1.8} />
+      </View>
+      <Text style={{ flex: 1, fontSize: 16, color: labelColor, marginLeft: 12 }}>{label}</Text>
+      {badge ? <View style={{ marginRight: 8 }}>{badge}</View> : null}
+      {value ? (
+        <Text
+          numberOfLines={1}
+          style={{ fontSize: 14, color: t.ink3, marginRight: isInteractive ? 6 : 0, maxWidth: 160 }}
+        >
+          {value}
+        </Text>
+      ) : null}
+      {!color && isInteractive ? <ChevronRight size={17} color={t.ink3} strokeWidth={2} /> : null}
+    </>
+  );
+
+  const containerStyle = {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: isLast ? 0 : 0.5,
+    borderBottomColor: t.line,
+  };
+
+  if (!isInteractive) {
+    return <View style={containerStyle}>{content}</View>;
+  }
+
+  return (
+    <Pressable
+      onPress={() => {
+        triggerImpact();
+        onPress();
+      }}
+      style={({ pressed }) => ({
+        ...containerStyle,
+        backgroundColor: pressed ? tint(t.ink, 0.05) : 'transparent',
+      })}
+    >
+      {content}
+    </Pressable>
   );
 }
 

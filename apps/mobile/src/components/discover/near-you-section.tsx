@@ -2,10 +2,11 @@ import { palette } from '@motovault/design-system';
 import { TripTemplatesDocument, type TripTemplatesQuery } from '@motovault/graphql';
 import { COUNTRY_NAMES, type SupportedCountryCode } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
+import { Image } from 'expo-image';
 import { Award, ChevronRight } from 'lucide-react-native';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useUserCountry } from '../../hooks/use-user-country';
@@ -197,7 +198,10 @@ const NearYouCard = memo(function NearYouCard({
             <Image
               source={{ uri: trip.coverImageUrl }}
               style={{ width: '100%', height: '100%' }}
-              resizeMode="cover"
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={200}
+              recyclingKey={trip.id}
             />
             {trip.isMotovaultPick && (
               <View

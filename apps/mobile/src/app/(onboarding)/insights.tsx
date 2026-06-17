@@ -2,11 +2,12 @@ import { palette } from '@motovault/design-system';
 import { GenerateOnboardingInsightsDocument } from '@motovault/graphql';
 import { useMutation } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { AlertCircle, BookOpen, Info, Users2, Wrench } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -19,7 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { TOTAL_SCREENS } from '../../config/onboarding';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
@@ -121,7 +122,7 @@ export default function InsightsScreen() {
       maintenanceStyle?: string;
     }) => gqlFetcher(GenerateOnboardingInsightsDocument, { input }),
     onError: (error) => {
-      console.error('[Insights] AI insights generation failed:', error);
+      captureException(error, { source: 'onboarding.insights.generate' });
     },
   });
 
@@ -198,6 +199,9 @@ export default function InsightsScreen() {
                 height: 90,
                 borderRadius: 16,
               }}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={200}
             />
           </Animated.View>
         )}

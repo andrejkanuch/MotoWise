@@ -1,6 +1,7 @@
 import { isSupportedCountry, type SupportedCountryCode } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import * as Location from 'expo-location';
+import { queryKeys } from '../lib/query-keys';
 import { reverseGeocodeCountryCode } from '../utils/mapbox-geocoding';
 
 async function detectUserCountry(): Promise<SupportedCountryCode | null> {
@@ -17,7 +18,7 @@ async function detectUserCountry(): Promise<SupportedCountryCode | null> {
 
 export function useUserCountry() {
   return useQuery({
-    queryKey: ['user-country'],
+    queryKey: queryKeys.userCountry.detected,
     queryFn: detectUserCountry,
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,

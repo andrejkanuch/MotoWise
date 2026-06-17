@@ -1,3 +1,4 @@
+import type { Session } from '@supabase/supabase-js';
 import { useAuthStore } from '../stores/auth.store';
 import { supabase } from './supabase';
 
@@ -10,6 +11,38 @@ export function invalidateGqlAccessTokenCache(): void {
   cachedAccess = null;
 }
 
+// Single in-flight refresh: a burst of concurrent UNAUTHENTICATED retries (or a
+// proactive near-expiry refresh) collapses to ONE supabase.auth.refreshSession()
+// call instead of a stampede. Subsequent callers await the same promise.
+let refreshPromise: Promise<Session | null> | null = null;
+
+function dedupedRefresh(): Promise<Session | null> {
+  if (refreshPromise) return refreshPromise;
+  refreshPromise = (async () => {
+    try {
+      const { data } = await supabase.auth.refreshSession();
+      return data.session;
+    } catch {
+      return null;
+    }
+  })();
+  // Clear the slot once settled so the next genuine expiry can refresh again.
+  void refreshPromise.finally(() => {
+    refreshPromise = null;
+  });
+  return refreshPromise;
+}
+
+/**
+ * Refresh-and-invalidate entry point for gqlFetcher's UNAUTHENTICATED retry.
+ * De-duped across concurrent callers; the next buildGqlRequestHeaders re-reads
+ * the freshly-refreshed session.
+ */
+export async function refreshGqlSession(): Promise<void> {
+  invalidateGqlAccessTokenCache();
+  await dedupedRefresh();
+}
+
 async function materializeSession(): Promise<CachedAccess | null> {
   let {
     data: { session },
@@ -18,14 +51,10 @@ async function materializeSession(): Promise<CachedAccess | null> {
   if (session?.expires_at) {
     const expiresAt = session.expires_at * 1000;
     if (expiresAt - Date.now() < 60_000) {
-      try {
-        const { data } = await supabase.auth.refreshSession();
-        session = data.session;
-      } catch {
-        // Offline or transient failure — keep using current session.
-        // The token may be expired, but gqlFetcher's UNAUTHENTICATED
-        // retry in graphql-client.ts handles refresh-and-retry on drain.
-      }
+      // Offline/transient failures resolve to null and keep the current session;
+      // gqlFetcher's UNAUTHENTICATED retry handles refresh-and-retry on drain.
+      const refreshed = await dedupedRefresh();
+      if (refreshed) session = refreshed;
     }
   }
 

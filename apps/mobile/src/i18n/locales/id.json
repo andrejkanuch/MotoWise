@@ -211,7 +211,14 @@
     "dueInDays_one": "Dalam {{count}} hari",
     "dueInDays_other": "Dalam {{count}} hari",
     "dueInDays_few": "Dalam {{count}} hari",
-    "dueInDays_many": "Dalam {{count}} hari"
+    "dueInDays_many": "Dalam {{count}} hari",
+    "startFirstRide": "Start your first ride",
+    "startFirstRideDesc": "Tap the ride button to begin tracking your route, speed, and distance.",
+    "recentRidesTitle": "Recent Rides",
+    "thisWeekLabel": "THIS WEEK",
+    "seeAll": "See All",
+    "rideCount_other": "{{count}} rides",
+    "rideCount_one": "{{count}} rides"
   },
   "learn": {
     "explore": "Jelajahi topik motor",
@@ -438,7 +445,11 @@
     "editBike": "Edit Motor",
     "editMastheadEyebrow": "— GARASI",
     "editMastheadTitle": "Edit",
-    "editMastheadSubject": "motor."
+    "editMastheadSubject": "motor.",
+    "dotKm": "· {{km}} km",
+    "bikeNumberYear": "N°{{num}} · {{year}}",
+    "kmUnit": "km",
+    "mileageKm": "{{km}} km"
   },
   "profile": {
     "title": "Profil",
@@ -1684,6 +1695,9 @@
     "continueEditing": "Lanjut edit",
     "deleteDraft": "Hapus draf",
     "share": "Bagikan",
+    "aiBadge": "AI",
+    "askAssistant": "Ask trip assistant",
+    "changeMapStyle": "Change map style",
     "edit": "Edit",
     "deleteTrip": "Hapus perjalanan",
     "confirmDeleteDraft": "Hapus draf ini?",
@@ -1761,7 +1775,14 @@
     "descriptionLabel": "Deskripsi",
     "descriptionPlaceholder": "Jelaskan perjalanan, sorotan rute, apa yang perlu dibawa...",
     "maxRidersLabel": "Maks Pengendara",
-    "maxRidersPlaceholder": "10"
+    "maxRidersPlaceholder": "10",
+    "ridersCount": "{{count}}/{{max}} riders",
+    "full": "Full",
+    "organiser": "Organiser",
+    "participants": "Participants",
+    "joinRide": "Join Ride",
+    "leaveRide": "Leave Ride",
+    "cancelRide": "Cancel Ride"
   },
   "rideHud": {
     "dist": "JARAK",
@@ -1791,12 +1812,26 @@
     "addExpenseHint": "(bahan bakar, tol...)",
     "shareOnDiscover": "Bagikan di Discover",
     "shareOnDiscoverHint": "Pengendara lain dapat menemukan dan menyusuri rute ini",
-    "discardRide": "Buang perjalanan"
+    "discardRide": "Buang perjalanan",
+    "newPersonalBest": "New personal best!",
+    "newPersonalBests_other": "{{count}} new personal bests!",
+    "newPersonalBests_one": "{{count}} new personal bests!"
   },
   "heatmap": {
     "rides": "Perjalanan",
     "lifetime": "Total",
-    "countries": "Negara"
+    "countries": "Negara",
+    "title": "Roads I've ridden",
+    "emptyMap": "Your heatmap fills in as you finish rides with GPS tracks.",
+    "loadingRides": "Loading rides…",
+    "showingRecent": "Showing your most recent ~{{count}} rides",
+    "yearRecap": "{{year}} recap",
+    "noRidesThisYear": "No rides yet this year. Once you save a few, we'll surface your longest ride and countries ridden here.",
+    "recapSummary": "{{distance}} across {{count}} rides{{countries}}.",
+    "recapInCountries": " in {{count}} countries",
+    "topRideLabel": "Top ride:",
+    "topRideValue": "— {{distance}}.",
+    "shareRecap": "Share recap"
   },
   "discoverSearch": {
     "notAvailableTitle": "Tidak tersedia",
@@ -2019,5 +2054,29 @@
     "notEnoughData": "Data tidak cukup",
     "notEnoughDataBody": "Perjalanan ini tidak memiliki cukup titik GPS untuk flyover 3D.",
     "goBack": "Kembali"
+  },
+  "comments": {
+    "title": "Comments",
+    "titleWithCount": "Comments ({{count}})",
+    "empty": "No comments yet. Be the first!",
+    "reply": "Reply"
+  },
+  "discover": {
+    "reviewsCount": "Reviews ({{count}})",
+    "pick": "Pick",
+    "editorsPick": "Editor's Pick",
+    "metersUnit": "m",
+    "ridersCount": "· {{riders}} riders",
+    "openingDiscover": "Opening Discover…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}}m",
+    "byOrganiser": "by {{name}}",
+    "emptyTitle": "No saved trips yet",
+    "emptyDesc": "Browse trips on the Discover tab and save the ones you want to ride later.",
+    "exploreTrips": "Explore Trips",
+    "title": "Saved Trips",
+    "tripCount_other": "{{count}} trips",
+    "tripCount_one": "{{count}} trips"
   }
 }

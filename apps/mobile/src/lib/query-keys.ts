@@ -48,24 +48,45 @@ export const queryKeys = {
   expenses: {
     byMotorcycle: (motorcycleId: string) => ['expenses', 'byMotorcycle', motorcycleId] as const,
   },
+  fuelLogs: {
+    byMotorcycle: (motorcycleId: string) => ['fuel-logs', motorcycleId] as const,
+  },
+  expensePhotos: {
+    byExpense: (expenseId: string) => ['expense-photos', expenseId] as const,
+  },
+  makeStats: {
+    all: ['makeStats'] as const,
+  },
+  motorcycleRecalls: {
+    byMotorcycle: (motorcycleId: string) => ['motorcycle-recalls', motorcycleId] as const,
+  },
+  weatherForecast: {
+    byCoords: (lat?: number, lon?: number) => ['weather-forecast', lat, lon] as const,
+  },
+  userCountry: {
+    detected: ['user-country'] as const,
+  },
   rides: {
+    /**
+     * Broad invalidation root: EVERY ride-list variant below descends from
+     * this prefix (`summary`, `overview`, `list`, `byMotorcycle`, `heatmap`).
+     * Invalidating `queryKeys.rides.all` therefore refetches all ride lists —
+     * use it after ride create/delete instead of a single narrow list key so
+     * no list silently shows stale data.
+     */
     all: ['rides'] as const,
     summary: ['rides', 'summary'] as const,
     overview: ['rides', 'overview'] as const,
     list: (cursor?: string) => ['rides', 'list', cursor] as const,
     detail: (id: string) => ['rides', 'detail', id] as const,
     waypoints: (id: string) => ['rides', 'waypoints', id] as const,
+    heatmap: ['rides', 'heatmap'] as const,
+    byMotorcycle: (motorcycleId: string) => ['rides', 'motorcycle', motorcycleId] as const,
   },
   healthReports: {
     all: ['healthReports'] as const,
     byMotorcycle: (motorcycleId: string) =>
       ['healthReports', 'byMotorcycle', motorcycleId] as const,
-  },
-  feed: {
-    all: ['feed'] as const,
-  },
-  kudos: {
-    list: (rideId: string) => ['kudos', 'list', rideId] as const,
   },
   routes: {
     all: ['routes'] as const,
@@ -104,6 +125,8 @@ export const queryKeys = {
   trips: {
     all: ['trips'] as const,
     detail: (id: string) => ['trips', 'detail', id] as const,
+    /** Source trip loaded into the create/edit screen (edit or clone mode). */
+    edit: (tripId: string) => ['trip-edit', tripId] as const,
     list: (scope: string) => ['trips', 'list', scope] as const,
     my: ['trips', 'my'] as const,
     /** Discover draft strip: user's draft trips (non-paginated). */
@@ -111,6 +134,7 @@ export const queryKeys = {
     /** Discover horizontal strip: upcoming non-template public trips. */
     discoverRiderStrip: ['trips', 'discoverRiderStrip'] as const,
     gpxQuota: ['trips', 'gpx-quota'] as const,
+    suggestions: (tripId: string) => ['trip-suggestions', tripId] as const,
   },
   tripTemplates: {
     all: ['tripTemplates'] as const,

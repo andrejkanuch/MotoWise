@@ -3,6 +3,8 @@
  * Based on Strava/Calimoto-level best practices for ride tracking.
  */
 
+import { haversineDistance } from './geo-utils';
+
 // --- 1D Kalman Filter (per-axis: latitude and longitude) ---
 
 class KalmanAxis {
@@ -218,7 +220,7 @@ class GPSFilter {
     // Compute segment distance
     let segmentDistance = 0;
     if (this.lastAccepted) {
-      segmentDistance = haversine(
+      segmentDistance = haversineDistance(
         this.lastAccepted.latitude,
         this.lastAccepted.longitude,
         filteredLat,
@@ -303,18 +305,6 @@ class GPSFilter {
     this._stopCount = 0;
     this._wasStopped = false;
   }
-}
-
-// --- Haversine (fast, accurate enough for segment distances) ---
-
-function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371000;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 // --- Singleton instance (module-level, survives across callbacks) ---

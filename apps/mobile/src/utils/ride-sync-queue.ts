@@ -9,6 +9,7 @@ import * as Network from 'expo-network';
 import { createMMKV } from 'react-native-mmkv';
 import { captureException } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
+import { hasGraphQLCode } from '../lib/graphql-errors';
 
 // --- Types ---
 
@@ -44,6 +45,23 @@ const SEQ_KEY = 'sync.seq';
 const MAX_RETRIES = 5;
 const BASE_DELAY_MS = 1000;
 
+// GraphQL error codes that will never succeed on retry — dead-letter immediately
+// instead of burning the retry budget (and head-of-line-blocking the queue).
+const NON_RETRYABLE_CODES = ['FORBIDDEN', 'BAD_USER_INPUT', 'BAD_REQUEST', 'NOT_FOUND'] as const;
+
+function isNonRetryableError(error: unknown): boolean {
+  return NON_RETRYABLE_CODES.some((code) => hasGraphQLCode(error, code));
+}
+
+// Notified (with the current dead-letter count) whenever drainQueue dead-letters
+// one or more ops, so the app can surface a "rides failed to sync" prompt with a
+// retry path. Registered once from the root layout.
+let onDeadLetter: ((deadLetterCount: number) => void) | null = null;
+
+export function setDeadLetterListener(listener: ((deadLetterCount: number) => void) | null): void {
+  onDeadLetter = listener;
+}
+
 // --- Monotonic sequence counter ---
 
 function nextSeq(): number {
@@ -66,16 +84,41 @@ function setQueue(queue: SyncOperation[]): void {
   syncStorage.set(QUEUE_KEY, JSON.stringify(queue));
 }
 
+// Remove a single delivered op by seq, re-reading the live queue so an op
+// appended by a concurrent enqueue (while drainQueue awaited the network) is
+// preserved rather than clobbered by a stale snapshot.
+function removeOpBySeq(seq: number): void {
+  setQueue(getQueue().filter((op) => op.seq !== seq));
+}
+
+// Bump the retry count of a single op by seq against the live queue.
+function bumpRetryBySeq(seq: number): void {
+  setQueue(getQueue().map((op) => (op.seq === seq ? { ...op, retries: op.retries + 1 } : op)));
+}
+
 function getDeadLetterQueue(): SyncOperation[] {
   const raw = syncStorage.getString(DEAD_LETTER_KEY);
   if (!raw) return [];
   return JSON.parse(raw) as SyncOperation[];
 }
 
-function moveToDeadLetter(op: SyncOperation): void {
+function moveToDeadLetter(op: SyncOperation, error?: unknown): void {
   const dlq = getDeadLetterQueue();
   dlq.push(op);
   syncStorage.set(DEAD_LETTER_KEY, JSON.stringify(dlq));
+  // A dead-lettered ride op is silent data loss — always report it with enough
+  // context to identify which op/ride and how long it had been queued.
+  captureException(
+    error instanceof Error ? error : new Error(`Ride sync dead-letter: ${op.type}`),
+    {
+      source: 'ride-sync-queue.moveToDeadLetter',
+      opType: op.type,
+      seq: String(op.seq),
+      retries: String(op.retries),
+      ageMs: String(Date.now() - new Date(op.createdAt).getTime()),
+      deadLetterQueueLength: String(dlq.length),
+    },
+  );
 }
 
 export function enqueue(type: SyncOperationType, payload: Record<string, unknown>): void {
@@ -90,29 +133,24 @@ export function enqueue(type: SyncOperationType, payload: Record<string, unknown
   setQueue(queue);
 }
 
+/**
+ * Durably enqueue an operation and immediately attempt to drain the queue.
+ *
+ * We ALWAYS enqueue first (assigning a sequence number synchronously, in call
+ * order) instead of racing an inline fetch. The end-of-ride burst fires
+ * `uploadWaypoints` then `endRide` back-to-back without awaiting; an inline
+ * fast-path let those two run concurrently on an empty queue, so `endRide`
+ * could reach the server before its waypoints and corrupt ride reconstruction.
+ * Routing every op through the single-flight, seq-ordered drain guarantees
+ * in-order delivery — and a transient failure now re-queues in the original
+ * position rather than appending behind a later op.
+ */
 export async function enqueueOrExecute(
   type: SyncOperationType,
   payload: Record<string, unknown>,
 ): Promise<void> {
-  const networkState = await Network.getNetworkStateAsync();
-  if (networkState.isConnected && networkState.isInternetReachable) {
-    try {
-      const document = MUTATION_DOCUMENT_MAP[type];
-      const { variables } = payload as { variables: Record<string, unknown> };
-      await gqlFetcher(document, variables as never);
-      return;
-    } catch (error) {
-      // Deletes are idempotent — NOT_FOUND means already deleted, no retry needed
-      if (type === 'deleteRide' && isNotFoundError(error)) return;
-      // Network failures are expected (spotty cellular, backgrounded by iOS)
-      // — the queue handles retry, so only report non-network errors to Sentry.
-      if (!isNetworkError(error)) {
-        captureException(error);
-      }
-      // Transient failure — fall through to queue
-    }
-  }
   enqueue(type, payload);
+  await drainQueue();
 }
 
 let isDraining = false;
@@ -121,15 +159,29 @@ export async function drainQueue(): Promise<void> {
   if (isDraining) return;
   isDraining = true;
   try {
-    const networkState = await Network.getNetworkStateAsync();
+    // A thrown network probe is treated as no-connectivity: leave the queue
+    // intact and return so it drains on the next trigger, rather than throwing
+    // an unhandled rejection out of a fire-and-forget drainQueue() call.
+    let networkState: Network.NetworkState;
+    try {
+      networkState = await Network.getNetworkStateAsync();
+    } catch {
+      return;
+    }
     if (!networkState.isConnected || !networkState.isInternetReachable) return;
 
-    const queue = getQueue();
-    if (queue.length === 0) return;
+    let deadLettered = 0;
 
-    const remaining: SyncOperation[] = [];
+    // Deliver strictly in seq order, persisting after EVERY op so an app kill
+    // mid-drain can't re-deliver an op that already reached the server. The
+    // queue is re-read each pass, so an op enqueued while we were draining (the
+    // endRide that lands behind an in-flight uploadWaypoints) is picked up in
+    // order within the same drain.
+    while (true) {
+      const queue = getQueue();
+      if (queue.length === 0) break;
+      const op = queue[0];
 
-    for (const op of queue) {
       // Exponential backoff with jitter — only sleep on retries, not first attempt
       if (op.retries > 0) {
         const baseDelay = BASE_DELAY_MS * 2 ** op.retries;
@@ -139,18 +191,35 @@ export async function drainQueue(): Promise<void> {
 
       try {
         await executeSyncOperation(op);
+        // Delivered — drop just this op from the live queue and advance.
+        removeOpBySeq(op.seq);
       } catch (error) {
-        captureException(error);
-        op.retries++;
-        if (op.retries >= MAX_RETRIES) {
-          moveToDeadLetter(op);
+        if (isNetworkError(error)) {
+          // Transient outage: stop draining and leave this op + everything after
+          // it at the head, in order, for the next cycle. Network errors must
+          // NEVER dead-letter (would drop a fully-recorded offline ride), so
+          // retries is left untouched.
+          break;
+        }
+
+        const nextRetries = op.retries + 1;
+        if (isNonRetryableError(error) || nextRetries >= MAX_RETRIES) {
+          // Permanent failure — this op will never deliver. Dead-letter it and
+          // advance; later independent ops still get a chance.
+          moveToDeadLetter({ ...op, retries: nextRetries }, error);
+          removeOpBySeq(op.seq);
+          deadLettered++;
         } else {
-          remaining.push(op);
+          // Retryable server error (e.g. 5xx): bump retries and head-of-line
+          // block so a dependent later op can't be delivered ahead of this one.
+          bumpRetryBySeq(op.seq);
+          captureException(error);
+          break;
         }
       }
     }
 
-    setQueue(remaining);
+    if (deadLettered > 0) onDeadLetter?.(getDeadLetterCount());
   } finally {
     isDraining = false;
   }
@@ -176,6 +245,26 @@ async function executeSyncOperation(op: SyncOperation): Promise<void> {
 
 export function getQueueLength(): number {
   return getQueue().length;
+}
+
+export function getDeadLetterCount(): number {
+  return getDeadLetterQueue().length;
+}
+
+/**
+ * Move every dead-lettered op back into the main queue (retries reset) and drain.
+ * Used by the "rides failed to sync — retry" affordance. Ops are re-sorted by seq
+ * so a redrive preserves the original ordering.
+ */
+export function redriveDeadLetterQueue(): void {
+  const dlq = getDeadLetterQueue();
+  if (dlq.length === 0) return;
+  const merged = [...getQueue(), ...dlq.map((op) => ({ ...op, retries: 0 }))].sort(
+    (a, b) => a.seq - b.seq,
+  );
+  setQueue(merged);
+  syncStorage.remove(DEAD_LETTER_KEY);
+  void drainQueue();
 }
 
 export function clearDeadLetterQueue(): void {

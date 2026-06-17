@@ -1,5 +1,4 @@
 import { palette } from '@motovault/design-system';
-import { AllMaintenanceTasksDocument } from '@motovault/graphql';
 import * as Sentry from '@sentry/react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -21,8 +20,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ErrorFallback } from '../../components/error-fallback';
-import { gqlFetcher } from '../../lib/graphql-client';
-import { queryKeys } from '../../lib/query-keys';
+import { maintenanceBadgeOptions } from '../../lib/query-options';
 import { useRideStore } from '../../stores/ride.store';
 import { useEditorialTheme } from '../../theme/editorial';
 
@@ -71,11 +69,9 @@ function RideFAB() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     if (isActive) {
-      // biome-ignore lint/suspicious/noExplicitAny: dynamic route
-      router.push('/(modals)/ride-hud' as any);
+      router.push('/(modals)/ride-hud');
     } else {
-      // biome-ignore lint/suspicious/noExplicitAny: dynamic route
-      router.push('/(modals)/start-ride' as any);
+      router.push('/(modals)/start-ride');
     }
   }, [isActive, router]);
 
@@ -129,11 +125,7 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
   const queryClient = useQueryClient();
 
   // Badge count for garage tab
-  const { data: maintenanceData } = useQuery({
-    queryKey: queryKeys.maintenanceTasks.allUser,
-    queryFn: () => gqlFetcher(AllMaintenanceTasksDocument),
-    meta: { showErrorAlert: false },
-  });
+  const { data: maintenanceData } = useQuery(maintenanceBadgeOptions());
 
   const garageBadgeCount = useMemo(() => {
     const tasks = maintenanceData?.allMaintenanceTasks ?? [];

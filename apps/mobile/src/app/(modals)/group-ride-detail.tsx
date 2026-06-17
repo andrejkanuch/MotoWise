@@ -9,6 +9,7 @@ import {
 import MapboxGL from '@rnmapbox/maps';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   AlertTriangle,
@@ -21,7 +22,8 @@ import {
   Users,
 } from 'lucide-react-native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
@@ -55,6 +57,7 @@ const DIFFICULTY_COLORS = {
 } as const;
 
 export default function GroupRideDetailScreen() {
+  const { t } = useTranslation();
   const { isDark } = useEditorialTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -277,7 +280,7 @@ export default function GroupRideDetailScreen() {
                   marginBottom: 4,
                 }}
               >
-                Description
+                {t('groupRide.descriptionLabel')}
               </Text>
               <Text style={{ fontSize: 14, lineHeight: 20, color: bodyColor }}>
                 {ride.description}
@@ -317,7 +320,10 @@ export default function GroupRideDetailScreen() {
           >
             <Users size={16} color={palette.accent500} />
             <Text style={{ fontSize: 14, fontWeight: '700', color: titleColor }}>
-              {ride.participantCount}/{ride.maxRiders} riders
+              {t('groupRide.ridersCount', {
+                count: ride.participantCount,
+                max: ride.maxRiders,
+              })}
             </Text>
             {isFull && (
               <View
@@ -330,7 +336,7 @@ export default function GroupRideDetailScreen() {
                 }}
               >
                 <Text style={{ fontSize: 11, fontWeight: '700', color: palette.danger500 }}>
-                  Full
+                  {t('groupRide.full')}
                 </Text>
               </View>
             )}
@@ -346,7 +352,7 @@ export default function GroupRideDetailScreen() {
                 marginBottom: 8,
               }}
             >
-              Organiser
+              {t('groupRide.organiser')}
             </Text>
             <Pressable
               onPress={() =>
@@ -358,6 +364,9 @@ export default function GroupRideDetailScreen() {
                 <Image
                   source={{ uri: ride.organiser.avatarUrl }}
                   style={{ width: 32, height: 32, borderRadius: 16 }}
+                  contentFit="cover"
+                  cachePolicy="memory-disk"
+                  transition={200}
                 />
               ) : (
                 <View
@@ -400,7 +409,7 @@ export default function GroupRideDetailScreen() {
                   marginBottom: 8,
                 }}
               >
-                Participants
+                {t('groupRide.participants')}
               </Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {ride.participants.map((p) => (
@@ -413,6 +422,10 @@ export default function GroupRideDetailScreen() {
                       <Image
                         source={{ uri: p.avatarUrl }}
                         style={{ width: 36, height: 36, borderRadius: 18 }}
+                        contentFit="cover"
+                        cachePolicy="memory-disk"
+                        transition={200}
+                        recyclingKey={p.id}
                       />
                     ) : (
                       <View
@@ -467,7 +480,7 @@ export default function GroupRideDetailScreen() {
                   <>
                     <Users size={16} color={palette.white} />
                     <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
-                      Join Ride
+                      {t('groupRide.joinRide')}
                     </Text>
                   </>
                 )}
@@ -494,7 +507,7 @@ export default function GroupRideDetailScreen() {
               >
                 <LogOut size={16} color={palette.danger500} />
                 <Text style={{ fontSize: 15, fontWeight: '700', color: palette.danger500 }}>
-                  Leave Ride
+                  {t('groupRide.leaveRide')}
                 </Text>
               </Pressable>
             )}
@@ -517,7 +530,7 @@ export default function GroupRideDetailScreen() {
               >
                 <AlertTriangle size={16} color={palette.danger500} />
                 <Text style={{ fontSize: 15, fontWeight: '700', color: palette.danger500 }}>
-                  Cancel Ride
+                  {t('groupRide.cancelRide')}
                 </Text>
               </Pressable>
             )}

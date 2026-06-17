@@ -1,8 +1,10 @@
 import { palette } from '@motovault/design-system';
 import type { GetCommentsQuery } from '@motovault/graphql';
+import { Image } from 'expo-image';
 import { Reply } from 'lucide-react-native';
 import { memo, useCallback } from 'react';
-import { Image, Pressable, Text, useColorScheme, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { showActionSheet } from '../../utils/action-sheet';
 
@@ -30,6 +32,7 @@ export const CommentItem = memo(function CommentItem({
   onFlag,
   onAuthorPress,
 }: CommentItemProps) {
+  const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';
   const isOwn = currentUserId === comment.author.id;
 
@@ -77,6 +80,10 @@ export const CommentItem = memo(function CommentItem({
             <Image
               source={{ uri: comment.author.avatarUrl }}
               style={{ width: 32, height: 32, borderRadius: 16 }}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={200}
+              recyclingKey={comment.id}
             />
           ) : (
             <View
@@ -115,7 +122,9 @@ export const CommentItem = memo(function CommentItem({
               style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}
             >
               <Reply size={14} color={actionColor} />
-              <Text style={{ fontSize: 12, fontWeight: '600', color: actionColor }}>Reply</Text>
+              <Text style={{ fontSize: 12, fontWeight: '600', color: actionColor }}>
+                {t('comments.reply')}
+              </Text>
             </Pressable>
           )}
         </Pressable>

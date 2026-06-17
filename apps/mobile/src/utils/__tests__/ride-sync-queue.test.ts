@@ -32,16 +32,31 @@ jest.mock('../../lib/graphql-client', () => ({
 
 jest.mock('../../lib/analytics', () => ({ captureException: jest.fn() }));
 
+import { captureException } from '../../lib/analytics';
 import {
   clearAll,
   drainQueue,
   enqueue,
   enqueueOrExecute,
+  getDeadLetterCount,
   getQueueLength,
+  redriveDeadLetterQueue,
+  setDeadLetterListener,
 } from '../ride-sync-queue';
+
+const mockCapture = captureException as jest.Mock;
 
 const ONLINE = { isConnected: true, isInternetReachable: true };
 const OFFLINE = { isConnected: false, isInternetReachable: false };
+
+function gqlError(code: string): { response: { errors: { extensions: { code: string } }[] } } {
+  return { response: { errors: [{ extensions: { code } }] } };
+}
+
+function queue(): { seq: number; type: string; retries: number }[] {
+  const raw = mockSyncStore.get('sync.queue');
+  return typeof raw === 'string' ? JSON.parse(raw) : [];
+}
 
 function deadLetter(): unknown[] {
   const raw = mockSyncStore.get('sync.dead_letter');
@@ -51,6 +66,8 @@ function deadLetter(): unknown[] {
 beforeEach(() => {
   clearAll();
   mockGqlFetcher.mockReset();
+  mockCapture.mockReset();
+  setDeadLetterListener(null);
   mockGetNetworkStateAsync.mockReset().mockResolvedValue(ONLINE);
 });
 
@@ -139,5 +156,139 @@ describe('drainQueue', () => {
     timeoutSpy.mockRestore();
     expect(getQueueLength()).toBe(0);
     expect(deadLetter()).toHaveLength(1);
+  });
+});
+
+describe('ordering hardening (MOT-262)', () => {
+  it('appends instead of executing inline when the queue is already non-empty', async () => {
+    // Offline so the fire-and-forget drain is a no-op and we can inspect order.
+    mockGetNetworkStateAsync.mockResolvedValue(OFFLINE);
+    enqueue('startRide', { variables: { input: { x: 1 } } });
+
+    await enqueueOrExecute('endRide', { variables: { input: { y: 2 } } });
+
+    expect(mockGqlFetcher).not.toHaveBeenCalled();
+    expect(queue().map((o) => o.type)).toEqual(['startRide', 'endRide']);
+    expect(queue()[0].seq).toBeLessThan(queue()[1].seq);
+  });
+
+  it('delivers a back-to-back uploadWaypoints->endRide burst in order even when the upload is slow', async () => {
+    const order: string[] = [];
+    let releaseWp: (() => void) | undefined;
+    mockGqlFetcher.mockImplementation((_doc: unknown, vars: { input: { tag: string } }) => {
+      const { tag } = vars.input;
+      if (tag === 'wp') {
+        return new Promise<void>((resolve) => {
+          releaseWp = () => {
+            order.push('wp');
+            resolve();
+          };
+        });
+      }
+      order.push('end');
+      return Promise.resolve();
+    });
+
+    // Fire both without awaiting — mirrors the end-of-ride call sites that the
+    // old inline fast-path let race (endRide could land before its waypoints).
+    const p1 = enqueueOrExecute('uploadWaypoints', { variables: { input: { tag: 'wp' } } });
+    const p2 = enqueueOrExecute('endRide', { variables: { input: { tag: 'end' } } });
+
+    // Settle microtasks: endRide must be blocked behind the in-flight upload.
+    await new Promise((r) => setImmediate(r));
+    expect(order).toEqual([]);
+
+    releaseWp?.();
+    await Promise.all([p1, p2]);
+
+    expect(order).toEqual(['wp', 'end']);
+  });
+
+  it('persists each delivery immediately so an interrupted drain cannot re-send delivered ops', async () => {
+    enqueue('startRide', { variables: { input: {} } });
+    enqueue('uploadWaypoints', { variables: { input: {} } });
+    enqueue('endRide', { variables: { input: {} } });
+
+    // startRide + uploadWaypoints deliver; endRide hangs (app killed mid-drain).
+    let releaseEnd: (() => void) | undefined;
+    let calls = 0;
+    mockGqlFetcher.mockImplementation(() => {
+      calls += 1;
+      if (calls <= 2) return Promise.resolve({});
+      return new Promise<void>((resolve) => {
+        releaseEnd = resolve;
+      });
+    });
+
+    const p = drainQueue();
+    await new Promise((r) => setImmediate(r));
+
+    // The two delivered ops must already be gone from the persisted queue —
+    // only the still-in-flight endRide remains.
+    expect(queue().map((o) => o.type)).toEqual(['endRide']);
+
+    releaseEnd?.();
+    await p;
+    expect(getQueueLength()).toBe(0);
+  });
+
+  it('stops draining at the first transient network failure, preserving order', async () => {
+    enqueue('startRide', { variables: { input: {} } });
+    enqueue('uploadWaypoints', { variables: { input: {} } });
+    enqueue('endRide', { variables: { input: {} } });
+    mockGqlFetcher
+      .mockResolvedValueOnce({}) // startRide delivers
+      .mockRejectedValueOnce(new Error('Network request failed')); // uploadWaypoints fails
+
+    await drainQueue();
+
+    // endRide must NOT have been attempted ahead of the stuck uploadWaypoints.
+    expect(mockGqlFetcher).toHaveBeenCalledTimes(2);
+    expect(queue().map((o) => o.type)).toEqual(['uploadWaypoints', 'endRide']);
+    // Network errors must not consume the retry budget or dead-letter.
+    expect(queue()[0].retries).toBe(0);
+    expect(deadLetter()).toHaveLength(0);
+  });
+
+  it('dead-letters immediately on a non-retryable GraphQL error and reports it', async () => {
+    enqueue('updateRide', { variables: { input: {} } });
+    mockGqlFetcher.mockRejectedValue(gqlError('FORBIDDEN'));
+
+    await drainQueue();
+
+    expect(getQueueLength()).toBe(0);
+    expect(deadLetter()).toHaveLength(1);
+    expect(mockCapture).toHaveBeenCalled();
+  });
+
+  it('notifies the dead-letter listener with the current count', async () => {
+    const listener = jest.fn();
+    setDeadLetterListener(listener);
+    enqueue('updateRide', { variables: { input: {} } });
+    mockGqlFetcher.mockRejectedValue(gqlError('BAD_USER_INPUT'));
+
+    await drainQueue();
+
+    expect(listener).toHaveBeenCalledWith(1);
+  });
+});
+
+describe('redriveDeadLetterQueue (MOT-262)', () => {
+  it('moves dead-lettered ops back to the queue (retries reset) sorted by seq', () => {
+    mockSyncStore.set(
+      'sync.dead_letter',
+      JSON.stringify([
+        { seq: 2, type: 'endRide', payload: { variables: {} }, retries: 5, createdAt: '' },
+        { seq: 1, type: 'startRide', payload: { variables: {} }, retries: 5, createdAt: '' },
+      ]),
+    );
+    // Offline so the trailing drain is a no-op and the redriven queue is observable.
+    mockGetNetworkStateAsync.mockResolvedValue(OFFLINE);
+
+    redriveDeadLetterQueue();
+
+    expect(getDeadLetterCount()).toBe(0);
+    expect(queue().map((o) => o.type)).toEqual(['startRide', 'endRide']);
+    expect(queue().every((o) => o.retries === 0)).toBe(true);
   });
 });

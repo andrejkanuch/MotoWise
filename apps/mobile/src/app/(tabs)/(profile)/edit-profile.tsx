@@ -22,6 +22,7 @@ import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { userFriendlyError } from '../../../lib/graphql-errors';
 import { queryKeys } from '../../../lib/query-keys';
+import { meOptions } from '../../../lib/query-options';
 import { useEditorialTheme } from '../../../theme/editorial';
 
 function haptic() {
@@ -52,10 +53,7 @@ export default function EditProfileScreen() {
   const queryClient = useQueryClient();
 
   // Load current profile data
-  const meQuery = useQuery({
-    queryKey: queryKeys.user.me,
-    queryFn: () => gqlFetcher(MeDocument),
-  });
+  const meQuery = useQuery(meOptions());
   const user = meQuery.data?.me;
 
   // Form state

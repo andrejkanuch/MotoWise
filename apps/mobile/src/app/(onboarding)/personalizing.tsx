@@ -30,10 +30,11 @@ import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { getPrimaryGoal, OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
-import { AnalyticsEvent } from '../../lib/analytics';
+import { AnalyticsEvent, captureException } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { uploadBikePhoto } from '../../lib/image-upload';
 import { detectCurrency } from '../../lib/locale-detection';
+import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { clearStoredFbclid, getStoredFbclid } from '../../lib/meta-attribution';
 import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
@@ -187,7 +188,7 @@ export default function PersonalizingScreen() {
             bikePhotoUrl = publicUrl;
           }
         } catch (err) {
-          console.warn('[Personalizing] bike photo upload skipped:', err);
+          logger.warn('[Personalizing] bike photo upload skipped:', err);
         }
       }
 
@@ -253,10 +254,10 @@ export default function PersonalizingScreen() {
     };
 
     run().catch((error) => {
-      console.error(
-        '[Personalizing] Attempt failed:',
-        error instanceof Error ? error.message : 'Unknown error',
-      );
+      captureException(error, {
+        source: 'onboarding.personalizing.completeOnboarding',
+        attempt: String(retryCount),
+      });
       setShowRetry(true);
     });
   }, [retryCount]);

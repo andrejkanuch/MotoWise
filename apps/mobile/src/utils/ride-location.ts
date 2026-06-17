@@ -2,7 +2,9 @@ import type { Waypoint } from '@motovault/types';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
+import { captureException } from '../lib/analytics';
 import { useRideStore } from '../stores/ride.store';
+import { haversineMeters } from './geo-utils';
 import { gpsFilter } from './ride-gps-filter';
 import { encodePolyline } from './ride-heatmap';
 import {
@@ -11,6 +13,7 @@ import {
   flushBufferToMMKV,
   getPointBuffer,
   getWaypointChunks,
+  removeWaypointBuffer,
   restoreBufferFromMMKV,
   rideMMKV,
 } from './ride-storage';
@@ -35,17 +38,12 @@ let forgotToStopNotified = false;
 
 // --- Haversine ---
 
+/** Great-circle distance in meters between two `{lat,lng}` points. */
 export function distanceMeters(
   a: { lat: number; lng: number },
   b: { lat: number; lng: number },
 ): number {
-  const R = 6371000;
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-  const sin2 =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(sin2), Math.sqrt(1 - sin2));
+  return haversineMeters(a, b);
 }
 
 // --- GPS Listener ---
@@ -314,7 +312,7 @@ TaskManager.defineTask<{ locations: Location.LocationObject[] }>(
   BACKGROUND_LOCATION_TASK,
   async ({ data, error }) => {
     if (error) {
-      console.error('Background GPS error:', error);
+      captureException(error, { source: 'ride-location.backgroundLocationTask' });
       return;
     }
 
@@ -343,12 +341,15 @@ function autoEndRide(idleSince: number): void {
       ? encodePolyline(allWaypoints.map((wp) => [wp.latitude, wp.longitude] as [number, number]))
       : null;
 
-  // Upload any remaining waypoints that didn't fill a full chunk
+  // Upload any remaining waypoints that didn't fill a full chunk, then drop the
+  // persisted buffer key — the durable copy now lives in the sync queue, so a
+  // kill after this point must not let crash-recovery re-enqueue the same points.
   if (bufferPoints.length > 0) {
     enqueueOrExecute('uploadWaypoints', {
       variables: { input: { rideId, waypoints: bufferPoints } },
     });
   }
+  removeWaypointBuffer(rideId);
 
   useRideStore.getState().endRide();
   stopGPSListener();

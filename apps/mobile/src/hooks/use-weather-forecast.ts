@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { format, isSaturday, isSunday, parseISO } from 'date-fns';
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { queryKeys } from '../lib/query-keys';
 
 // --- Open-Meteo API types ---
 
@@ -182,7 +183,7 @@ export function useWeatherForecast(): UseWeatherResult {
   }, [resolveLocation]);
 
   const query = useQuery({
-    queryKey: ['weather-forecast', coords?.lat, coords?.lon],
+    queryKey: queryKeys.weatherForecast.byCoords(coords?.lat, coords?.lon),
     queryFn: () => fetchForecast(coords as Coordinates),
     enabled: coords != null,
     staleTime: 30 * 60 * 1000,

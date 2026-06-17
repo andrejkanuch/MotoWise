@@ -1,6 +1,0 @@
-mutation ToggleKudos($rideId: String!) {
-  toggleKudos(rideId: $rideId) {
-    hasKudos
-    kudosCount
-  }
-}

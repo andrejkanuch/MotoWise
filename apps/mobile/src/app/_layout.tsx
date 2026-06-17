@@ -3,17 +3,13 @@ import {
   InstrumentSerif_400Regular,
   InstrumentSerif_400Regular_Italic,
 } from '@expo-google-fonts/instrument-serif';
-import { useFonts } from 'expo-font';
-import { AppState, LogBox } from 'react-native';
-
-LogBox.ignoreLogs(['Method readAsStringAsync imported from "expo-file-system" is deprecated']);
-
 import { palette } from '@motovault/design-system';
-import { CompleteMaintenanceTaskDocument, MeDocument } from '@motovault/graphql';
+import { CompleteMaintenanceTaskDocument } from '@motovault/graphql';
 import { Currency, MeasurementSystem } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
 import { useQuery } from '@tanstack/react-query';
 import * as Application from 'expo-application';
+import { useFonts } from 'expo-font';
 import * as Network from 'expo-network';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
@@ -21,6 +17,7 @@ import {
   getTrackingPermissionsAsync,
   requestTrackingPermissionsAsync,
 } from 'expo-tracking-transparency';
+import { Alert, AppState } from 'react-native';
 import { Settings } from 'react-native-fbsdk-next';
 
 // expo-quick-actions requires a custom dev build — guard for Expo Go
@@ -84,6 +81,7 @@ import { LAST_USER_KEY, PersistedQueryClientBoundary } from '../lib/persisted-qu
 import { queryClient } from '../lib/query-client';
 import { queryKeys } from '../lib/query-keys';
 import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
+import { meOptions } from '../lib/query-options';
 import { clearPersistedQueryCache } from '../lib/query-persist';
 import {
   configureRevenueCatAnonymously,
@@ -97,8 +95,14 @@ import { useAuthStore } from '../stores/auth.store';
 import { useExperimentStore } from '../stores/experiment.store';
 import { useSubscriptionStore } from '../stores/subscription.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
-import { clearRideData, rideMMKV } from '../utils/ride-storage';
-import { clearAll as clearSyncQueue, drainQueue } from '../utils/ride-sync-queue';
+import { rideMMKV } from '../utils/ride-storage';
+import {
+  clearAll as clearSyncQueue,
+  drainQueue,
+  getQueueLength,
+  redriveDeadLetterQueue,
+  setDeadLetterListener,
+} from '../utils/ride-sync-queue';
 
 // Native splash is the ONLY splash: hold it while the app boots (auth hydration
 // + the `me` gate), then fade it out directly into real UI. The app tree mounts
@@ -149,14 +153,7 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
   const segments = useSegments();
   const router = useRouter();
 
-  const meQuery = useQuery({
-    queryKey: queryKeys.user.me,
-    queryFn: () => gqlFetcher(MeDocument),
-    enabled: !!session,
-    retry: 1,
-    retryDelay: 1000,
-    meta: { showErrorAlert: false },
-  });
+  const meQuery = useQuery({ ...meOptions(), enabled: !!session });
 
   const preferences = meQuery.data?.me?.preferences as
     | { onboardingCompleted?: boolean }
@@ -242,7 +239,7 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
 
     whatsNewPushed = true;
     trackEvent(AnalyticsEvent.WHATS_NEW_VIEWED, { version: currentVersion });
-    setTimeout(() => router.push('/(modals)/whats-new' as never), 500);
+    setTimeout(() => router.push('/(modals)/whats-new'), 500);
   }, [isLoading, session, onboardingCompleted, segments, lastSeenVersion, router]);
 
   // --- Anonymous-first onboarding (A/B 2026) ---
@@ -450,9 +447,25 @@ function RootLayout() {
           queryClient.clear();
           clearPersistedQueryCache();
           SecureStore.deleteItemAsync(LAST_USER_KEY);
-          clearSyncQueue();
+          // Preserve unsynced rides across a forced sign-out / token revocation:
+          // keep the sync queue AND the active ride's local data while a ride is
+          // in progress or ops are still pending, so they drain once auth is
+          // restored instead of silently vanishing. (Edge case: a different user
+          // signing in inherits these; the backend rejects cross-owner ops, which
+          // the queue dead-letters + surfaces.)
           const activeRideId = rideMMKV.getCurrentId();
-          if (activeRideId) clearRideData(activeRideId);
+          if (getQueueLength() === 0 && activeRideId == null) {
+            clearSyncQueue();
+          } else {
+            captureException(
+              new Error('Forced sign-out with unsynced ride data — preserving sync queue'),
+              {
+                source: 'auth-state-change.localCleanup',
+                queueLength: String(getQueueLength()),
+                hasActiveRide: String(activeRideId != null),
+              },
+            );
+          }
           cancelAllNotifications();
           clearAllWidgets();
         }
@@ -558,6 +571,28 @@ function RootLayout() {
   useEffect(() => {
     drainQueue();
     let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+    let deadLetterAlertOpen = false;
+
+    // Surface permanently-failed ride ops (silent data loss otherwise) with a
+    // retry path. Guarded so repeated drains don't stack alerts.
+    setDeadLetterListener((count) => {
+      if (deadLetterAlertOpen) return;
+      deadLetterAlertOpen = true;
+      Alert.alert(
+        'Ride sync failed',
+        `${count} ride update${count === 1 ? '' : 's'} couldn't be synced. Retry now?`,
+        [
+          { text: 'Later', style: 'cancel', onPress: () => (deadLetterAlertOpen = false) },
+          {
+            text: 'Retry',
+            onPress: () => {
+              deadLetterAlertOpen = false;
+              redriveDeadLetterQueue();
+            },
+          },
+        ],
+      );
+    });
 
     const appSub = AppState.addEventListener('change', (state: string) => {
       if (state === 'active') {
@@ -576,6 +611,7 @@ function RootLayout() {
       appSub.remove();
       netSub.remove();
       clearTimeout(debounceTimer);
+      setDeadLetterListener(null);
     };
   }, []);
 

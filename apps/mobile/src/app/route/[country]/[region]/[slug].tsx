@@ -3,6 +3,7 @@ import { TripBySlugDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 
@@ -17,6 +18,7 @@ export default function RouteSlugDeepLinkScreen() {
     slug: string;
   }>();
   const router = useRouter();
+  const { t } = useTranslation();
   const navigatedRef = useRef(false);
 
   const c = typeof country === 'string' ? country : Array.isArray(country) ? country[0] : '';
@@ -40,7 +42,7 @@ export default function RouteSlugDeepLinkScreen() {
   useEffect(() => {
     if (!isError || navigatedRef.current) return;
     navigatedRef.current = true;
-    router.replace('/(tabs)/(discover)' as never);
+    router.replace('/(tabs)/(discover)');
   }, [isError, router]);
 
   return (
@@ -57,7 +59,9 @@ export default function RouteSlugDeepLinkScreen() {
       {isLoading && !isError ? (
         <ActivityIndicator size="large" color={palette.accent500} />
       ) : isError ? (
-        <Text style={{ color: palette.neutral400, textAlign: 'center' }}>Opening Discover…</Text>
+        <Text style={{ color: palette.neutral400, textAlign: 'center' }}>
+          {t('discover.openingDiscover')}
+        </Text>
       ) : (
         <ActivityIndicator size="large" color={palette.accent500} />
       )}

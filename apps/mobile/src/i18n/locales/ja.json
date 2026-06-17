@@ -211,7 +211,14 @@
     "dueInDays_one": "{{count}}日後に期限",
     "dueInDays_other": "{{count}}日後に期限",
     "dueInDays_few": "{{count}}日後に期限",
-    "dueInDays_many": "{{count}}日後に期限"
+    "dueInDays_many": "{{count}}日後に期限",
+    "startFirstRide": "最初のライドを始めましょう",
+    "startFirstRideDesc": "ライドボタンをタップして、ルート・速度・距離の記録を始めましょう。",
+    "recentRidesTitle": "最近のライド",
+    "thisWeekLabel": "今週",
+    "seeAll": "すべて表示",
+    "rideCount_other": "{{count}} 件のライド",
+    "rideCount_one": "{{count}} 件のライド"
   },
   "learn": {
     "explore": "バイクのトピックを探索しましょう",
@@ -438,7 +445,11 @@
     "bikeDetails": "バイクの詳細",
     "addMaintenanceTask": "タスクを追加",
     "recordMaintenance": "メンテナンスを記録",
-    "editBike": "バイクを編集"
+    "editBike": "バイクを編集",
+    "dotKm": "· {{km}} km",
+    "bikeNumberYear": "No.{{num}} · {{year}}",
+    "kmUnit": "km",
+    "mileageKm": "{{km}} km"
   },
   "profile": {
     "title": "プロフィール",
@@ -1701,6 +1712,9 @@
     "continueEditing": "編集を続ける",
     "deleteDraft": "下書きを削除",
     "share": "共有",
+    "aiBadge": "AI",
+    "askAssistant": "旅行アシスタントに質問",
+    "changeMapStyle": "地図スタイルを変更",
     "edit": "編集",
     "deleteTrip": "ツーリングを削除",
     "confirmDeleteDraft": "この下書きを削除しますか？",
@@ -1761,7 +1775,14 @@
     "descriptionLabel": "説明",
     "descriptionPlaceholder": "ライドの内容、ルートの見どころ、持ち物などを記入...",
     "maxRidersLabel": "最大ライダー数",
-    "maxRidersPlaceholder": "10"
+    "maxRidersPlaceholder": "10",
+    "ridersCount": "{{count}}/{{max}}人のライダー",
+    "full": "満員",
+    "organiser": "主催者",
+    "participants": "参加者",
+    "joinRide": "ライドに参加",
+    "leaveRide": "ライドから退出",
+    "cancelRide": "ライドをキャンセル"
   },
   "rideHud": {
     "dist": "距離",
@@ -1791,12 +1812,26 @@
     "addExpenseHint": "(燃料、通行料...)",
     "shareOnDiscover": "Discoverで共有",
     "shareOnDiscoverHint": "他のライダーがこのルートを見つけて走れます",
-    "discardRide": "ライドを破棄"
+    "discardRide": "ライドを破棄",
+    "newPersonalBest": "自己ベスト更新！",
+    "newPersonalBests_other": "自己ベストを {{count}} 件更新！",
+    "newPersonalBests_one": "自己ベストを {{count}} 件更新！"
   },
   "heatmap": {
     "rides": "走行",
     "lifetime": "累計",
-    "countries": "国数"
+    "countries": "国数",
+    "title": "走った道",
+    "emptyMap": "GPSトラック付きのライドを完了するとヒートマップが埋まっていきます。",
+    "loadingRides": "ライドを読み込み中…",
+    "showingRecent": "最新の約{{count}}件のライドを表示しています",
+    "yearRecap": "{{year}}年のまとめ",
+    "noRidesThisYear": "今年はまだライドがありません。いくつか保存すると、最長ライドと走行した国がここに表示されます。",
+    "recapSummary": "{{count}}回のライドで{{distance}}{{countries}}。",
+    "recapInCountries": "（{{count}}か国）",
+    "topRideLabel": "ベストライド:",
+    "topRideValue": "— {{distance}}。",
+    "shareRecap": "まとめを共有"
   },
   "discoverSearch": {
     "notAvailableTitle": "利用不可",
@@ -2019,5 +2054,29 @@
     "notEnoughData": "データが不足しています",
     "notEnoughDataBody": "このライドには3Dフライオーバーに十分なGPSポイントがありません。",
     "goBack": "戻る"
+  },
+  "comments": {
+    "title": "コメント",
+    "titleWithCount": "コメント ({{count}})",
+    "empty": "まだコメントはありません。最初のコメントを投稿しましょう！",
+    "reply": "返信"
+  },
+  "discover": {
+    "reviewsCount": "レビュー ({{count}})",
+    "pick": "おすすめ",
+    "editorsPick": "編集者のおすすめ",
+    "metersUnit": "m",
+    "ridersCount": "· {{riders}}人のライダー",
+    "openingDiscover": "「探す」を開いています…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}} m",
+    "byOrganiser": "{{name}} さん",
+    "emptyTitle": "保存したルートはまだありません",
+    "emptyDesc": "「探す」タブでルートを探して、後で走りたいものを保存しましょう。",
+    "exploreTrips": "ルートを探す",
+    "title": "保存したルート",
+    "tripCount_other": "{{count}} 件のルート",
+    "tripCount_one": "{{count}} 件のルート"
   }
 }

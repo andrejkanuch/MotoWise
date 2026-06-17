@@ -23,5 +23,4 @@ export const PROFILE_ROUTE = {
   PRIVACY: '/(tabs)/(profile)/privacy',
   UPGRADE: '/(tabs)/(profile)/upgrade',
   EDIT_PROFILE: '/(tabs)/(profile)/edit-profile',
-  RIDER_PROFILE: '/(tabs)/(profile)/rider-profile',
 } as const;

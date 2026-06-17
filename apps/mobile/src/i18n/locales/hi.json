@@ -211,7 +211,14 @@
     "dueInDays_one": "{{count}} दिन में",
     "dueInDays_other": "{{count}} दिन में",
     "dueInDays_few": "{{count}} दिन में",
-    "dueInDays_many": "{{count}} दिन में"
+    "dueInDays_many": "{{count}} दिन में",
+    "startFirstRide": "Start your first ride",
+    "startFirstRideDesc": "Tap the ride button to begin tracking your route, speed, and distance.",
+    "recentRidesTitle": "Recent Rides",
+    "thisWeekLabel": "THIS WEEK",
+    "seeAll": "See All",
+    "rideCount_one": "{{count}} ride",
+    "rideCount_other": "{{count}} rides"
   },
   "learn": {
     "explore": "मोटरसाइकिल टॉपिक्स एक्सप्लोर करें",
@@ -438,7 +445,11 @@
     "editBike": "मोटरसाइकिल संपादित करें",
     "editMastheadEyebrow": "— गैराज",
     "editMastheadTitle": "संपादित करें",
-    "editMastheadSubject": "मोटरसाइकिल।"
+    "editMastheadSubject": "मोटरसाइकिल।",
+    "dotKm": "· {{km}} km",
+    "bikeNumberYear": "N°{{num}} · {{year}}",
+    "kmUnit": "km",
+    "mileageKm": "{{km}} km"
   },
   "profile": {
     "title": "प्रोफाइल",
@@ -1684,6 +1695,9 @@
     "continueEditing": "एडिट जारी रखें",
     "deleteDraft": "ड्राफ्ट हटाएं",
     "share": "शेयर",
+    "aiBadge": "AI",
+    "askAssistant": "Ask trip assistant",
+    "changeMapStyle": "Change map style",
     "edit": "एडिट",
     "deleteTrip": "ट्रिप हटाएं",
     "confirmDeleteDraft": "यह ड्राफ्ट हटाएं?",
@@ -1761,7 +1775,14 @@
     "descriptionLabel": "विवरण",
     "descriptionPlaceholder": "राइड, रूट हाइलाइट्स, क्या लाना है बताएं...",
     "maxRidersLabel": "अधिकतम राइडर्स",
-    "maxRidersPlaceholder": "10"
+    "maxRidersPlaceholder": "10",
+    "ridersCount": "{{count}}/{{max}} riders",
+    "full": "Full",
+    "organiser": "Organiser",
+    "participants": "Participants",
+    "joinRide": "Join Ride",
+    "leaveRide": "Leave Ride",
+    "cancelRide": "Cancel Ride"
   },
   "rideHud": {
     "dist": "दूरी",
@@ -1791,12 +1812,26 @@
     "addExpenseHint": "(ईंधन, टोल...)",
     "shareOnDiscover": "Discover पर साझा करें",
     "shareOnDiscoverHint": "अन्य राइडर इस रूट को ढूंढ और चला सकते हैं",
-    "discardRide": "राइड हटाएं"
+    "discardRide": "राइड हटाएं",
+    "newPersonalBest": "New personal best!",
+    "newPersonalBests_one": "{{count}} new personal best!",
+    "newPersonalBests_other": "{{count}} new personal bests!"
   },
   "heatmap": {
     "rides": "राइड्स",
     "lifetime": "कुल",
-    "countries": "देश"
+    "countries": "देश",
+    "title": "Roads I've ridden",
+    "emptyMap": "Your heatmap fills in as you finish rides with GPS tracks.",
+    "loadingRides": "Loading rides…",
+    "showingRecent": "Showing your most recent ~{{count}} rides",
+    "yearRecap": "{{year}} recap",
+    "noRidesThisYear": "No rides yet this year. Once you save a few, we'll surface your longest ride and countries ridden here.",
+    "recapSummary": "{{distance}} across {{count}} rides{{countries}}.",
+    "recapInCountries": " in {{count}} countries",
+    "topRideLabel": "Top ride:",
+    "topRideValue": "— {{distance}}.",
+    "shareRecap": "Share recap"
   },
   "discoverSearch": {
     "notAvailableTitle": "उपलब्ध नहीं",
@@ -2019,5 +2054,29 @@
     "notEnoughData": "पर्याप्त डेटा नहीं",
     "notEnoughDataBody": "इस राइड में 3D फ्लाईओवर के लिए पर्याप्त GPS वेपॉइंट नहीं हैं।",
     "goBack": "वापस जाएं"
+  },
+  "comments": {
+    "title": "Comments",
+    "titleWithCount": "Comments ({{count}})",
+    "empty": "No comments yet. Be the first!",
+    "reply": "Reply"
+  },
+  "discover": {
+    "reviewsCount": "Reviews ({{count}})",
+    "pick": "Pick",
+    "editorsPick": "Editor's Pick",
+    "metersUnit": "m",
+    "ridersCount": "· {{riders}} riders",
+    "openingDiscover": "Opening Discover…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}}m",
+    "byOrganiser": "by {{name}}",
+    "emptyTitle": "No saved trips yet",
+    "emptyDesc": "Browse trips on the Discover tab and save the ones you want to ride later.",
+    "exploreTrips": "Explore Trips",
+    "title": "Saved Trips",
+    "tripCount_one": "{{count}} trip",
+    "tripCount_other": "{{count}} trips"
   }
 }

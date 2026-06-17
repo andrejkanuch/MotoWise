@@ -211,7 +211,15 @@
     "dueInDays_one": "Scade tra {{count}} giorno",
     "dueInDays_other": "Scade tra {{count}} giorni",
     "dueInDays_few": "Scade tra {{count}} giorni",
-    "dueInDays_many": "Scade tra {{count}} giorni"
+    "dueInDays_many": "Scade tra {{count}} giorni",
+    "startFirstRide": "Inizia la tua prima uscita",
+    "startFirstRideDesc": "Tocca il pulsante uscita per iniziare a registrare percorso, velocità e distanza.",
+    "recentRidesTitle": "Uscite recenti",
+    "thisWeekLabel": "QUESTA SETTIMANA",
+    "seeAll": "Vedi tutto",
+    "rideCount_one": "{{count}} uscita",
+    "rideCount_other": "{{count}} uscite",
+    "rideCount_many": "{{count}} uscite"
   },
   "learn": {
     "explore": "Esplora argomenti moto",
@@ -438,7 +446,11 @@
     "editBike": "Modifica moto",
     "editMastheadEyebrow": "— GARAGE",
     "editMastheadTitle": "Modifica",
-    "editMastheadSubject": "moto."
+    "editMastheadSubject": "moto.",
+    "dotKm": "· {{km}} km",
+    "bikeNumberYear": "N°{{num}} · {{year}}",
+    "kmUnit": "km",
+    "mileageKm": "{{km}} km"
   },
   "profile": {
     "roadsTitle": "Strade che ho percorso",
@@ -1684,6 +1696,9 @@
     "continueEditing": "Continua a modificare",
     "deleteDraft": "Elimina bozza",
     "share": "Condividi",
+    "aiBadge": "IA",
+    "askAssistant": "Chiedi all'assistente di viaggio",
+    "changeMapStyle": "Cambia stile mappa",
     "edit": "Modifica",
     "deleteTrip": "Elimina uscita",
     "confirmDeleteDraft": "Eliminare questa bozza?",
@@ -1761,7 +1776,14 @@
     "descriptionLabel": "Descrizione",
     "descriptionPlaceholder": "Descrivi il giro, i punti salienti del percorso, cosa portare...",
     "maxRidersLabel": "Max. piloti",
-    "maxRidersPlaceholder": "10"
+    "maxRidersPlaceholder": "10",
+    "ridersCount": "{{count}}/{{max}} motociclisti",
+    "full": "Al completo",
+    "organiser": "Organizzatore",
+    "participants": "Partecipanti",
+    "joinRide": "Partecipa al viaggio",
+    "leaveRide": "Abbandona il viaggio",
+    "cancelRide": "Annulla il viaggio"
   },
   "rideHud": {
     "dist": "DIST",
@@ -1791,12 +1813,27 @@
     "addExpenseHint": "(carburante, pedaggi...)",
     "shareOnDiscover": "Condividi su Discover",
     "shareOnDiscoverHint": "Altri motociclisti possono trovare e percorrere questo percorso",
-    "discardRide": "Elimina giro"
+    "discardRide": "Elimina giro",
+    "newPersonalBest": "Nuovo record personale!",
+    "newPersonalBests_one": "{{count}} nuovo record personale!",
+    "newPersonalBests_other": "{{count}} nuovi record personali!",
+    "newPersonalBests_many": "{{count}} nuovi record personali!"
   },
   "heatmap": {
     "rides": "Uscite",
     "lifetime": "Totale",
-    "countries": "Paesi"
+    "countries": "Paesi",
+    "title": "Strade che ho percorso",
+    "emptyMap": "La tua heatmap si riempie man mano che completi i viaggi con tracce GPS.",
+    "loadingRides": "Caricamento dei viaggi…",
+    "showingRecent": "Visualizzazione dei tuoi ultimi ~{{count}} viaggi",
+    "yearRecap": "Riepilogo {{year}}",
+    "noRidesThisYear": "Ancora nessun viaggio questʼanno. Una volta salvati alcuni, qui mostreremo il tuo viaggio più lungo e i paesi percorsi.",
+    "recapSummary": "{{distance}} in {{count}} viaggi{{countries}}.",
+    "recapInCountries": " in {{count}} paesi",
+    "topRideLabel": "Viaggio migliore:",
+    "topRideValue": "— {{distance}}.",
+    "shareRecap": "Condividi il riepilogo"
   },
   "discoverSearch": {
     "notAvailableTitle": "Non disponibile",
@@ -2019,5 +2056,30 @@
     "notEnoughData": "Dati insufficienti",
     "notEnoughDataBody": "Questo giro non ha abbastanza punti GPS per un sorvolo 3D.",
     "goBack": "Indietro"
+  },
+  "comments": {
+    "title": "Commenti",
+    "titleWithCount": "Commenti ({{count}})",
+    "empty": "Ancora nessun commento. Sii il primo!",
+    "reply": "Rispondi"
+  },
+  "discover": {
+    "reviewsCount": "Recensioni ({{count}})",
+    "pick": "Scelta",
+    "editorsPick": "Scelta della redazione",
+    "metersUnit": "m",
+    "ridersCount": "· {{riders}} motociclisti",
+    "openingDiscover": "Apertura di Esplora…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}} m",
+    "byOrganiser": "di {{name}}",
+    "emptyTitle": "Nessun itinerario salvato",
+    "emptyDesc": "Sfoglia gli itinerari nella scheda Esplora e salva quelli che vuoi percorrere più tardi.",
+    "exploreTrips": "Esplora itinerari",
+    "title": "Itinerari salvati",
+    "tripCount_one": "{{count}} itinerario",
+    "tripCount_other": "{{count}} itinerari",
+    "tripCount_many": "{{count}} itinerari"
   }
 }

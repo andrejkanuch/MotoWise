@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { MessageCircle } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, useColorScheme, View } from 'react-native';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -24,6 +25,7 @@ interface CommentListProps {
 }
 
 export function CommentList({ rideId, routeId, groupRideId, tripId }: CommentListProps) {
+  const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';
   const queryClient = useQueryClient();
   const userId = useAuthStore((s) => s.session?.user?.id);
@@ -66,7 +68,6 @@ export function CommentList({ rideId, routeId, groupRideId, tripId }: CommentLis
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
-      queryClient.invalidateQueries({ queryKey: queryKeys.feed.all });
       setReplyingTo(undefined);
       if (process.env.EXPO_OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -78,7 +79,6 @@ export function CommentList({ rideId, routeId, groupRideId, tripId }: CommentLis
     mutationFn: (commentId: string) => gqlFetcher(DeleteCommentDocument, { commentId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
-      queryClient.invalidateQueries({ queryKey: queryKeys.feed.all });
     },
   });
 
@@ -121,7 +121,9 @@ export function CommentList({ rideId, routeId, groupRideId, tripId }: CommentLis
       >
         <MessageCircle size={16} color={headerColor} />
         <Text style={{ fontSize: 14, fontWeight: '700', color: headerColor }}>
-          Comments{totalCount > 0 ? ` (${totalCount})` : ''}
+          {totalCount > 0
+            ? t('comments.titleWithCount', { count: totalCount })
+            : t('comments.title')}
         </Text>
       </View>
 
@@ -144,7 +146,7 @@ export function CommentList({ rideId, routeId, groupRideId, tripId }: CommentLis
               paddingVertical: 16,
             }}
           >
-            No comments yet. Be the first!
+            {t('comments.empty')}
           </Text>
         )}
 

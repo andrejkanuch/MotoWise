@@ -55,7 +55,7 @@ export function ExpensePhotoGallery({
     queryClient.invalidateQueries({
       queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),
     });
-    queryClient.invalidateQueries({ queryKey: ['expense-photos', expenseId] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.expensePhotos.byExpense(expenseId) });
   };
 
   const addPhotoMutation = useMutation({

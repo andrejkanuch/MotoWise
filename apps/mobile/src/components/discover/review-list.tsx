@@ -1,9 +1,11 @@
 import { palette } from '@motovault/design-system';
 import { TripReviewsDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
+import { Image } from 'expo-image';
 import { Star } from 'lucide-react-native';
 import { memo } from 'react';
-import { ActivityIndicator, Image, Text, useColorScheme, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -13,6 +15,7 @@ interface ReviewListProps {
 }
 
 export const ReviewList = memo(function ReviewList({ tripId }: ReviewListProps) {
+  const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';
 
   const { data, isLoading } = useQuery({
@@ -46,7 +49,7 @@ export const ReviewList = memo(function ReviewList({ tripId }: ReviewListProps) 
           color: isDark ? palette.neutral300 : palette.neutral600,
         }}
       >
-        Reviews ({reviews.length})
+        {t('discover.reviewsCount', { count: reviews.length })}
       </Text>
 
       {reviews.map((review, index) => (
@@ -61,6 +64,10 @@ export const ReviewList = memo(function ReviewList({ tripId }: ReviewListProps) 
               <Image
                 source={{ uri: review.author.avatarUrl }}
                 style={{ width: 28, height: 28, borderRadius: 14 }}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                transition={200}
+                recyclingKey={review.id}
               />
             ) : (
               <View

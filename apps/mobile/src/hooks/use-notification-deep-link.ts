@@ -1,11 +1,11 @@
 import * as Notifications from 'expo-notifications';
-import { useRouter, useSegments } from 'expo-router';
+import { type Href, useRouter, useSegments } from 'expo-router';
 import { useEffect, useMemo, useRef } from 'react';
 import { useAuthStore } from '../stores/auth.store';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function extractRoute(data: Record<string, unknown> | undefined): string | null {
+function extractRoute(data: Record<string, unknown> | undefined): Href | null {
   if (!data?.motorcycleId) return null;
   const id = String(data.motorcycleId);
   if (!UUID_RE.test(id)) return null; // Security: validate UUID
@@ -17,7 +17,7 @@ export function useNotificationDeepLink() {
   const segments = useSegments();
   const session = useAuthStore((s) => s.session);
   const isLoading = useAuthStore((s) => s.isLoading);
-  const pendingRoute = useRef<string | null>(null);
+  const pendingRoute = useRef<Href | null>(null);
   const isReady = useMemo(
     () => !isLoading && !!session && segments[0] === '(tabs)',
     [isLoading, session, segments[0]],
@@ -36,7 +36,7 @@ export function useNotificationDeepLink() {
     );
     if (!route) return;
     if (isReady) {
-      router.push(route as never);
+      router.push(route);
       Notifications.clearLastNotificationResponse();
     } else {
       pendingRoute.current = route;
@@ -48,7 +48,7 @@ export function useNotificationDeepLink() {
     if (isReady && pendingRoute.current) {
       const route = pendingRoute.current;
       pendingRoute.current = null;
-      router.push(route as never);
+      router.push(route);
     }
   }, [isReady, router]);
 
@@ -61,7 +61,7 @@ export function useNotificationDeepLink() {
         response.notification.request.content.data as Record<string, unknown> | undefined,
       );
       if (!route) return;
-      if (isReadyRef.current) router.push(route as never);
+      if (isReadyRef.current) router.push(route);
       else pendingRoute.current = route;
     });
     return () => sub.remove();

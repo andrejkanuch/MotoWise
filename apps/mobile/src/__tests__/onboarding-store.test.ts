@@ -20,6 +20,12 @@ jest.mock('react-native-mmkv', () => ({
   }),
 }));
 
+// The store now imports captureException from lib/analytics, which transitively
+// pulls in native SDKs (Sentry / PostHog / fbsdk). Stub it out for this unit test.
+jest.mock('../lib/analytics', () => ({
+  captureException: jest.fn(),
+}));
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { useOnboardingStore } = require('../stores/onboarding.store');
 

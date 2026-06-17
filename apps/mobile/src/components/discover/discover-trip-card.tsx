@@ -1,8 +1,10 @@
 import { palette } from '@motovault/design-system';
 import type { TripTemplatesQuery } from '@motovault/graphql';
+import { Image } from 'expo-image';
 import { Award, Bookmark, Clock, Mountain, Route, Star } from 'lucide-react-native';
 import { memo } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useEditorialTheme } from '../../theme/editorial';
@@ -38,6 +40,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
   onPress,
 }: DiscoverTripCardProps) {
   const { t } = useEditorialTheme();
+  const { t: i18n } = useTranslation();
   const system = useMeasurementSystem();
   const reducedMotion = useReducedMotion();
   const animDelay = Math.min(index * 40, 300);
@@ -81,7 +84,10 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
             <Image
               source={{ uri: trip.coverImageUrl ?? '' }}
               style={{ width: '100%', height: '100%' }}
-              resizeMode="cover"
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={200}
+              recyclingKey={trip.id}
             />
 
             {/* MotoVault Pick badge */}
@@ -110,7 +116,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
                     color: palette.editorialDarkBg,
                   }}
                 >
-                  Pick
+                  {i18n('discover.pick')}
                 </Text>
               </View>
             )}
@@ -198,7 +204,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
                   letterSpacing: 0.5,
                 }}
               >
-                Editor's Pick
+                {i18n('discover.editorsPick')}
               </Text>
             </View>
           )}
@@ -272,7 +278,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
                     <Text style={{ fontWeight: '600' }}>
                       +{Math.round(trip.elevationGainM ?? 0)}
                     </Text>
-                    m
+                    {i18n('discover.metersUnit')}
                   </Text>
                 </View>
               </>
@@ -322,7 +328,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
               )}
               {trip.cloneCount > 0 && (
                 <Text style={{ fontSize: 11.5, color: t.ink4, marginLeft: 4 }}>
-                  · {trip.cloneCount.toLocaleString()} riders
+                  {i18n('discover.ridersCount', { riders: trip.cloneCount.toLocaleString() })}
                 </Text>
               )}
             </View>

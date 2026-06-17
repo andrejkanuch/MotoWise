@@ -36,7 +36,7 @@
     "next-mdx-remote": "^6.0.0",
     "nuqs": "^2.8.9",
     "postcss": "^8.5.8",
-    "posthog-js": "^1.366.0",
+    "posthog-js": "^1.386.8",
     "react": "19.2.3",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "19.2.3",

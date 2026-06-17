@@ -211,7 +211,14 @@
     "dueInDays_one": "{{count}} gün içinde",
     "dueInDays_other": "{{count}} gün içinde",
     "dueInDays_few": "{{count}} gün içinde",
-    "dueInDays_many": "{{count}} gün içinde"
+    "dueInDays_many": "{{count}} gün içinde",
+    "startFirstRide": "Start your first ride",
+    "startFirstRideDesc": "Tap the ride button to begin tracking your route, speed, and distance.",
+    "recentRidesTitle": "Recent Rides",
+    "thisWeekLabel": "THIS WEEK",
+    "seeAll": "See All",
+    "rideCount_one": "{{count}} ride",
+    "rideCount_other": "{{count}} rides"
   },
   "learn": {
     "explore": "Motosiklet konularini kesfet",
@@ -438,7 +445,11 @@
     "editBike": "Motosikleti Düzenle",
     "editMastheadEyebrow": "— GARAJ",
     "editMastheadTitle": "Düzenle",
-    "editMastheadSubject": "motosiklet."
+    "editMastheadSubject": "motosiklet.",
+    "dotKm": "· {{km}} km",
+    "bikeNumberYear": "N°{{num}} · {{year}}",
+    "kmUnit": "km",
+    "mileageKm": "{{km}} km"
   },
   "profile": {
     "title": "Profil",
@@ -1684,6 +1695,9 @@
     "continueEditing": "Duzenlemeye devam et",
     "deleteDraft": "Taslagi sil",
     "share": "Paylas",
+    "aiBadge": "AI",
+    "askAssistant": "Ask trip assistant",
+    "changeMapStyle": "Change map style",
     "edit": "Duzenle",
     "deleteTrip": "Turu sil",
     "confirmDeleteDraft": "Bu taslagi sil?",
@@ -1761,7 +1775,14 @@
     "descriptionLabel": "Aciklama",
     "descriptionPlaceholder": "Surusu, rotayi, yanina alinacaklari acikla...",
     "maxRidersLabel": "Maks Surucu",
-    "maxRidersPlaceholder": "10"
+    "maxRidersPlaceholder": "10",
+    "ridersCount": "{{count}}/{{max}} riders",
+    "full": "Full",
+    "organiser": "Organiser",
+    "participants": "Participants",
+    "joinRide": "Join Ride",
+    "leaveRide": "Leave Ride",
+    "cancelRide": "Cancel Ride"
   },
   "rideHud": {
     "dist": "MSFE",
@@ -1791,12 +1812,26 @@
     "addExpenseHint": "(yakıt, geçiş ücretleri...)",
     "shareOnDiscover": "Discover'da paylaş",
     "shareOnDiscoverHint": "Diğer sürücüler bu rotayı bulup sürebilir",
-    "discardRide": "Sürüşü sil"
+    "discardRide": "Sürüşü sil",
+    "newPersonalBest": "New personal best!",
+    "newPersonalBests_one": "{{count}} new personal best!",
+    "newPersonalBests_other": "{{count}} new personal bests!"
   },
   "heatmap": {
     "rides": "Surusler",
     "lifetime": "Toplam",
-    "countries": "Ulkeler"
+    "countries": "Ulkeler",
+    "title": "Roads I've ridden",
+    "emptyMap": "Your heatmap fills in as you finish rides with GPS tracks.",
+    "loadingRides": "Loading rides…",
+    "showingRecent": "Showing your most recent ~{{count}} rides",
+    "yearRecap": "{{year}} recap",
+    "noRidesThisYear": "No rides yet this year. Once you save a few, we'll surface your longest ride and countries ridden here.",
+    "recapSummary": "{{distance}} across {{count}} rides{{countries}}.",
+    "recapInCountries": " in {{count}} countries",
+    "topRideLabel": "Top ride:",
+    "topRideValue": "— {{distance}}.",
+    "shareRecap": "Share recap"
   },
   "discoverSearch": {
     "notAvailableTitle": "Mevcut degil",
@@ -2019,5 +2054,29 @@
     "notEnoughData": "Yeterli veri yok",
     "notEnoughDataBody": "Bu sürüşte 3D uçuş için yeterli GPS noktası yok.",
     "goBack": "Geri dön"
+  },
+  "comments": {
+    "title": "Comments",
+    "titleWithCount": "Comments ({{count}})",
+    "empty": "No comments yet. Be the first!",
+    "reply": "Reply"
+  },
+  "discover": {
+    "reviewsCount": "Reviews ({{count}})",
+    "pick": "Pick",
+    "editorsPick": "Editor's Pick",
+    "metersUnit": "m",
+    "ridersCount": "· {{riders}} riders",
+    "openingDiscover": "Opening Discover…"
+  },
+  "saved": {
+    "elevationMeters": "{{value}}m",
+    "byOrganiser": "by {{name}}",
+    "emptyTitle": "No saved trips yet",
+    "emptyDesc": "Browse trips on the Discover tab and save the ones you want to ride later.",
+    "exploreTrips": "Explore Trips",
+    "title": "Saved Trips",
+    "tripCount_one": "{{count}} trip",
+    "tripCount_other": "{{count}} trips"
   }
 }

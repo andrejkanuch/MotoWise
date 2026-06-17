@@ -4,6 +4,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Bookmark, Compass, Mountain, Route, Star } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   FlatList,
@@ -39,7 +40,8 @@ function SavedTripCard({
   onPress: () => void;
   onLongPress: () => void;
 }) {
-  const { t, isDark } = useEditorialTheme();
+  const { t: theme, isDark } = useEditorialTheme();
+  const { t } = useTranslation();
   const system = useMeasurementSystem();
 
   const surfaceLabel =
@@ -62,11 +64,15 @@ function SavedTripCard({
         accessibilityRole="button"
         accessibilityLabel={`Saved trip: ${trip.title}`}
         style={({ pressed }) => ({
-          backgroundColor: pressed ? (isDark ? palette.neutral800 : palette.neutral100) : t.surface,
+          backgroundColor: pressed
+            ? isDark
+              ? palette.neutral800
+              : palette.neutral100
+            : theme.surface,
           borderRadius: 16,
           borderCurve: 'continuous',
           borderWidth: 1,
-          borderColor: t.line,
+          borderColor: theme.line,
           padding: 14,
           gap: 8,
         })}
@@ -75,7 +81,7 @@ function SavedTripCard({
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Route size={16} color={palette.accent500} />
           <Text
-            style={{ flex: 1, fontSize: 15, fontWeight: '700', color: t.ink }}
+            style={{ flex: 1, fontSize: 15, fontWeight: '700', color: theme.ink }}
             numberOfLines={1}
           >
             {trip.title}
@@ -90,7 +96,7 @@ function SavedTripCard({
               style={{
                 fontSize: 13,
                 fontWeight: '600',
-                color: t.ink2,
+                color: theme.ink2,
                 fontVariant: ['tabular-nums'],
               }}
             >
@@ -105,16 +111,16 @@ function SavedTripCard({
                 style={{
                   fontSize: 13,
                   fontWeight: '600',
-                  color: t.ink2,
+                  color: theme.ink2,
                   fontVariant: ['tabular-nums'],
                 }}
               >
-                {Math.round(trip.elevationGainM ?? 0)}m
+                {t('saved.elevationMeters', { value: Math.round(trip.elevationGainM ?? 0) })}
               </Text>
             </View>
           )}
 
-          {surfaceLabel && <Text style={{ fontSize: 12, color: t.ink3 }}>{surfaceLabel}</Text>}
+          {surfaceLabel && <Text style={{ fontSize: 12, color: theme.ink3 }}>{surfaceLabel}</Text>}
 
           {trip.averageRating != null && trip.reviewCount > 0 && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
@@ -123,22 +129,25 @@ function SavedTripCard({
                 style={{
                   fontSize: 12,
                   fontWeight: '600',
-                  color: t.ink2,
+                  color: theme.ink2,
                   fontVariant: ['tabular-nums'],
                 }}
               >
                 {trip.averageRating.toFixed(1)}
               </Text>
-              <Text style={{ fontSize: 11, color: t.ink3 }}>({trip.reviewCount})</Text>
+              <Text style={{ fontSize: 11, color: theme.ink3 }}>({trip.reviewCount})</Text>
             </View>
           )}
         </View>
 
         {/* Organiser */}
         {trip.organiser && (
-          <Text style={{ fontSize: 12, color: t.ink3 }}>
-            by {trip.organiser.displayName}
-            {trip.organiser.publicUsername ? ` @${trip.organiser.publicUsername}` : ''}
+          <Text style={{ fontSize: 12, color: theme.ink3 }}>
+            {t('saved.byOrganiser', {
+              name: trip.organiser.publicUsername
+                ? `${trip.organiser.displayName} @${trip.organiser.publicUsername}`
+                : trip.organiser.displayName,
+            })}
           </Text>
         )}
       </Pressable>
@@ -149,7 +158,8 @@ function SavedTripCard({
 export default function SavedScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { t } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch, isRefetching } =
     useInfiniteQuery<SavedTripsQuery>({
@@ -246,44 +256,43 @@ export default function SavedScreen() {
             height: 80,
             borderRadius: 40,
             borderCurve: 'continuous',
-            backgroundColor: t.surface2,
+            backgroundColor: theme.surface2,
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: 8,
           }}
         >
-          <Bookmark size={36} color={t.ink3} />
+          <Bookmark size={36} color={theme.ink3} />
         </View>
         <Text
           style={{
             fontSize: 18,
             fontWeight: '700',
-            color: t.ink,
+            color: theme.ink,
             textAlign: 'center',
           }}
         >
-          No saved trips yet
+          {t('saved.emptyTitle')}
         </Text>
         <Text
           style={{
             fontSize: 15,
-            color: t.ink3,
+            color: theme.ink3,
             textAlign: 'center',
             lineHeight: 22,
           }}
         >
-          Browse trips on the Discover tab and save the ones you want to ride later.
+          {t('saved.emptyDesc')}
         </Text>
         <Pressable
           onPress={() => {
             triggerImpact();
-            // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-            router.push('/(tabs)/(discover)' as any);
+            router.push('/(tabs)/(discover)');
           }}
           accessibilityRole="button"
-          accessibilityLabel="Explore Trips"
+          accessibilityLabel={t('saved.exploreTrips')}
           style={({ pressed }) => ({
-            backgroundColor: t.warm,
+            backgroundColor: theme.warm,
             borderRadius: 20,
             borderCurve: 'continuous',
             height: 56,
@@ -298,12 +307,12 @@ export default function SavedScreen() {
         >
           <Compass size={20} color={palette.white} />
           <Text style={{ color: palette.white, fontSize: 16, fontWeight: '700' }}>
-            Explore Trips
+            {t('saved.exploreTrips')}
           </Text>
         </Pressable>
       </Animated.View>
     );
-  }, [isLoading, t, router]);
+  }, [isLoading, t, theme, router]);
 
   const renderFooter = useCallback(() => {
     if (isFetchingNextPage) {
@@ -317,7 +326,7 @@ export default function SavedScreen() {
   }, [isFetchingNextPage]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.bg }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Header */}
       <View
         style={{
@@ -338,23 +347,23 @@ export default function SavedScreen() {
             height: 40,
             borderRadius: 20,
             borderCurve: 'continuous',
-            backgroundColor: t.surface2,
+            backgroundColor: theme.surface2,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <ArrowLeft size={20} color={t.ink} />
+          <ArrowLeft size={20} color={theme.ink} />
         </Pressable>
         <Text
           style={{
             flex: 1,
             fontSize: 28,
             fontWeight: '800',
-            color: t.ink,
+            color: theme.ink,
             letterSpacing: -0.5,
           }}
         >
-          Saved Trips
+          {t('saved.title')}
         </Text>
         <View
           style={{
@@ -362,7 +371,7 @@ export default function SavedScreen() {
             paddingVertical: 4,
             borderRadius: 10,
             borderCurve: 'continuous',
-            backgroundColor: t.surface2,
+            backgroundColor: theme.surface2,
           }}
         >
           <Text
@@ -373,7 +382,7 @@ export default function SavedScreen() {
               fontVariant: ['tabular-nums'],
             }}
           >
-            {allEdges?.length ?? 0} trip{(allEdges?.length ?? 0) !== 1 ? 's' : ''}
+            {t('saved.tripCount', { count: allEdges?.length ?? 0 })}
           </Text>
         </View>
       </View>
@@ -403,7 +412,7 @@ export default function SavedScreen() {
                 triggerImpact();
                 refetch();
               }}
-              tintColor={t.ink3}
+              tintColor={theme.ink3}
             />
           }
           showsVerticalScrollIndicator={false}

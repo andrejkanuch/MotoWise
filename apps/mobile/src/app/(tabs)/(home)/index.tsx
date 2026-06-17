@@ -392,6 +392,7 @@ export default function HomeScreen() {
                     source={{ uri: activeBike.primaryPhotoUrl }}
                     style={{ position: 'absolute', width: '100%', height: '100%' }}
                     contentFit="cover"
+                    recyclingKey={activeBike.id}
                   />
                 ) : (
                   <View

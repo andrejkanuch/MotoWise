@@ -1,6 +1,6 @@
 import { palette } from '@motovault/design-system';
 import type { Ride } from '@motovault/types';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { ChevronRight, MapPin, Navigation, Route } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -130,7 +130,7 @@ export function RecentRidesWidget({
               color: isDark ? palette.white : palette.neutral900,
             }}
           >
-            Start your first ride
+            {t('home.startFirstRide')}
           </Text>
           <Text
             style={{
@@ -140,7 +140,7 @@ export function RecentRidesWidget({
               lineHeight: 20,
             }}
           >
-            Tap the ride button to begin tracking your route, speed, and distance.
+            {t('home.startFirstRideDesc')}
           </Text>
         </View>
       </Animated.View>
@@ -174,20 +174,17 @@ export function RecentRidesWidget({
                   color: isDark ? palette.white : palette.neutral900,
                 }}
               >
-                Recent Rides
+                {t('home.recentRidesTitle')}
               </Text>
             </View>
             <Pressable
-              onPress={() =>
-                // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-                router.push('/(tabs)/(profile)/rides' as any)
-              }
+              onPress={() => router.push('/(tabs)/(profile)/rides')}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
               accessibilityRole="button"
               accessibilityLabel="See all rides"
             >
               <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
-                See All
+                {t('home.seeAll')}
               </Text>
               <ChevronRight size={14} color={palette.accent500} />
             </Pressable>
@@ -218,10 +215,10 @@ export function RecentRidesWidget({
                   letterSpacing: 0.5,
                 }}
               >
-                THIS WEEK
+                {t('home.thisWeekLabel')}
               </Text>
               <Text style={{ fontSize: 12, fontWeight: '600', color: palette.neutral400 }}>
-                {totalRides} ride{totalRides !== 1 ? 's' : ''}
+                {t('home.rideCount', { count: totalRides })}
               </Text>
             </View>
             <View
@@ -261,12 +258,11 @@ export function RecentRidesWidget({
             <Pressable
               key={ride.id}
               onPress={() => {
-                const route = {
-                  pathname: '/(modals)/ride-detail' as const,
+                const route: Href = {
+                  pathname: '/(modals)/ride-detail',
                   params: { rideId: ride.id },
                 };
-                // biome-ignore lint/suspicious/noExplicitAny: expo-router does not export typed route params
-                router.push(route as any);
+                router.push(route);
               }}
               accessibilityRole="button"
               accessibilityLabel={`${name}, ${formatRelativeDate(ride.startedAt)}, ${formatDistance(distance, system)}`}
