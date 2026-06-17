@@ -21,6 +21,13 @@ services:
         value: production
       - key: PORT
         value: "4000"
+      # Cap V8's old-space below the Starter container ceiling (512MB) so the
+      # heap is reclaimed by GC instead of the process being OOM-killed at the
+      # limit. An OOM kill restarts the (single) instance — a ~45s full outage
+      # with no redundancy (Sentry MOTOVAULT-WEB-N + mobile 504/abort). 384MB
+      # leaves headroom for non-heap RSS (buffers, native, stacks).
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=384"
       # AI model-insights (onboarding Reveal known-issues card). Non-secret
       # config: Gemini is primary (key lives in motovault-secrets), OpenAI is
       # the fallback. Timeout fits the onboarding building-plan 2.5s cap.

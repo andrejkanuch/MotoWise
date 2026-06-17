@@ -1,4 +1,9 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RidesService } from './rides.service';
 
@@ -334,6 +339,61 @@ describe('RidesService', () => {
           waypoints: [{ recordedAt: '2026-03-22T14:00:00Z', latitude: 45.0, longitude: 14.0 }],
         }),
       ).rejects.toThrow(NotFoundException);
+    });
+
+    it('proceeds with the upsert when the quota count read fails (soft guard)', async () => {
+      // Result 0: ride ownership check
+      mockUserClient._pushResult({ data: { id: 'ride-123' } });
+      // Result 1: count query fails transiently — must NOT block the upload
+      mockUserClient._pushResult({ error: { message: 'timeout', code: '57014' } });
+      // Result 2: upsert succeeds
+      mockUserClient._pushResult({ data: null, error: null });
+
+      const result = await service.uploadWaypoints(userId, {
+        rideId: 'ride-123',
+        waypoints: [{ recordedAt: '2026-03-22T14:00:00Z', latitude: 45.0, longitude: 14.0 }],
+      });
+
+      expect(result).toBe(1);
+      expect(mockUserClient._chain.upsert).toHaveBeenCalled();
+    });
+
+    it('maps a transient upsert error to 503 and attaches the pg code as cause', async () => {
+      mockUserClient._pushResult({ data: { id: 'ride-123' } });
+      mockUserClient._pushResult({ count: 0 });
+      // statement_timeout (class 57) → retryable
+      mockUserClient._pushResult({
+        error: { message: 'canceling statement due to statement timeout', code: '57014' },
+      });
+
+      const err = await service
+        .uploadWaypoints(userId, {
+          rideId: 'ride-123',
+          waypoints: [{ recordedAt: '2026-03-22T14:00:00Z', latitude: 45.0, longitude: 14.0 }],
+        })
+        .catch((e) => e);
+
+      expect(err).toBeInstanceOf(ServiceUnavailableException);
+      expect((err.cause as Error)?.message).toContain('57014');
+    });
+
+    it('maps a permanent upsert error to 500 and attaches the pg code as cause', async () => {
+      mockUserClient._pushResult({ data: { id: 'ride-123' } });
+      mockUserClient._pushResult({ count: 0 });
+      // not_null_violation (class 23) → permanent
+      mockUserClient._pushResult({
+        error: { message: 'null value in column violates not-null constraint', code: '23502' },
+      });
+
+      const err = await service
+        .uploadWaypoints(userId, {
+          rideId: 'ride-123',
+          waypoints: [{ recordedAt: '2026-03-22T14:00:00Z', latitude: 45.0, longitude: 14.0 }],
+        })
+        .catch((e) => e);
+
+      expect(err).toBeInstanceOf(InternalServerErrorException);
+      expect((err.cause as Error)?.message).toContain('23502');
     });
   });
 

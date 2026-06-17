@@ -6,9 +6,10 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { RIDE_EVENTS } from '../../common/constants/events';
 import { buildConnection, decodeCursor, encodeCursor } from '../../common/pagination/connection';
 import { PG_ERROR } from '../../common/supabase/unwrap';
@@ -24,6 +25,23 @@ import type { RideConnection } from './models/ride-connection.model';
 import type { Waypoint } from './models/waypoint.model';
 
 const MAX_WAYPOINTS_PER_RIDE = QUERY_LIMITS.MAX_WAYPOINTS_PER_RIDE;
+
+/**
+ * Postgres SQLSTATE classes that signal a transient, retryable failure rather
+ * than a permanent one (bad input, constraint violation). Matched by class
+ * prefix so every code in the class is covered:
+ *   08 — connection exception        53 — insufficient resources (e.g. 53300 too_many_connections)
+ *   40 — transaction rollback (40001 serialization, 40P01 deadlock)
+ *   57 — operator intervention (57014 statement_timeout / query_canceled)
+ * These map to 503 (retryable) so the mobile sync queue backs off and retries
+ * instead of dead-lettering the batch as a hard failure.
+ */
+const TRANSIENT_PG_ERROR_CLASSES = ['08', '40', '53', '57'] as const;
+
+function isTransientDbError(code: string | null | undefined): boolean {
+  if (!code) return false;
+  return TRANSIENT_PG_ERROR_CLASSES.some((cls) => code.startsWith(cls));
+}
 
 @Injectable()
 export class RidesService {
@@ -234,17 +252,21 @@ export class RidesService {
       throw new NotFoundException('Ride not found or not active');
     }
 
-    // Check waypoint quota
+    // Check waypoint quota. This is a SOFT abuse guard, not a correctness gate:
+    // a transient read failure (pooler hiccup, statement timeout) must not block
+    // the user's own waypoints from persisting. On a count error we log and skip
+    // enforcement — the cap is re-checked on the next successful upload. Blocking
+    // here was a source of opaque 500s (Sentry MOTO-VAULT-REACT-NATIVE-1J).
     const { count, error: countError } = await this.supabase
       .from('ride_waypoints')
       .select('ride_id', { count: 'exact', head: true })
       .eq('ride_id', input.rideId);
 
     if (countError) {
-      throw new InternalServerErrorException('Failed to check waypoint count');
-    }
-
-    if ((count ?? 0) + input.waypoints.length > MAX_WAYPOINTS_PER_RIDE) {
+      this.logger.warn(
+        `uploadWaypoints: quota count failed, proceeding without it: ${countError.message} (${countError.code}) rideId=${input.rideId}`,
+      );
+    } else if ((count ?? 0) + input.waypoints.length > MAX_WAYPOINTS_PER_RIDE) {
       throw new BadRequestException(
         `Waypoint limit exceeded. Maximum ${MAX_WAYPOINTS_PER_RIDE} per ride.`,
       );
@@ -268,11 +290,31 @@ export class RidesService {
     });
 
     if (error) {
-      this.logger.error(`uploadWaypoints failed: ${error.message} (${error.code})`);
-      throw new InternalServerErrorException('Failed to upload waypoints');
+      this.throwWaypointUploadError(error, input);
     }
 
     return input.waypoints.length;
+  }
+
+  /**
+   * Translate a waypoint-upsert Postgres error into the right HTTP exception and
+   * make it diagnosable. The client-facing message stays generic (the global
+   * filter hides 5xx internals), but the Postgres code + message are attached as
+   * the exception `cause` so Sentry's linked-errors integration records exactly
+   * which DB failure occurred — previously every occurrence collapsed into an
+   * opaque "Failed to upload waypoints" with no code (Sentry
+   * MOTO-VAULT-REACT-NATIVE-1J). Transient classes map to 503 so the mobile sync
+   * queue retries rather than dead-letters.
+   */
+  private throwWaypointUploadError(error: PostgrestError, input: UploadWaypointsInput): never {
+    this.logger.error(
+      `uploadWaypoints failed: ${error.message} (${error.code}) rideId=${input.rideId} count=${input.waypoints.length}`,
+    );
+    const cause = new Error(`pg ${error.code ?? 'unknown'}: ${error.message}`);
+    if (isTransientDbError(error.code)) {
+      throw new ServiceUnavailableException('Failed to upload waypoints', { cause });
+    }
+    throw new InternalServerErrorException('Failed to upload waypoints', { cause });
   }
 
   async updateRide(userId: string, input: UpdateRideInput): Promise<Ride> {

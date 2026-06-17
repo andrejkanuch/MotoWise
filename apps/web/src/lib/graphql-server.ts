@@ -6,19 +6,74 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql
 
 const serverClient = new GraphQLClient(apiUrl);
 
+/** Per-attempt timeout for the public fetcher. */
+const PUBLIC_FETCH_TIMEOUT_MS = 8_000;
+/** Total attempts (1 initial + retries) for transient API failures. */
+const PUBLIC_FETCH_ATTEMPTS = 3;
+/** Base backoff between attempts; grows linearly per attempt. */
+const PUBLIC_FETCH_BACKOFF_MS = 750;
+
+/**
+ * The API runs on Render (motowise.onrender.com). A spun-down instance or a
+ * rolling deploy leaves a window where requests time out or return 502/503/504
+ * for a few seconds while the new instance boots. Before this guard, a single
+ * such request 500'd the whole public page (Sentry MOTOVAULT-WEB-N: 107
+ * TimeoutErrors on /explore/[country] in one ~1-minute burst). These failures
+ * are transient and idempotent for public reads, so a bounded retry absorbs the
+ * boot window instead of surfacing it to crawlers and users.
+ */
+function isRetryableApiError(err: unknown): boolean {
+  if (err instanceof Error) {
+    // AbortSignal.timeout() rejects with a DOMException named 'TimeoutError';
+    // a manual abort uses 'AbortError'.
+    if (err.name === 'TimeoutError' || err.name === 'AbortError') return true;
+    // undici/fetch transport failures (instance not yet accepting connections).
+    const msg = err.message;
+    if (
+      msg.includes('fetch failed') ||
+      msg.includes('ECONNRESET') ||
+      msg.includes('ECONNREFUSED') ||
+      msg.includes('socket hang up')
+    ) {
+      return true;
+    }
+  }
+  // graphql-request throws ClientError carrying the HTTP status. Gateway/boot
+  // statuses are retryable; 4xx and GraphQL-level errors (status 200) are not.
+  const status = (err as { response?: { status?: number } })?.response?.status;
+  return status === 502 || status === 503 || status === 504;
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
  * Server-side GraphQL fetcher for use in RSC / generateMetadata.
  * No auth — only call public queries with this.
+ *
+ * Retries transient API failures (cold-start / deploy windows) up to
+ * {@link PUBLIC_FETCH_ATTEMPTS} times with linear backoff. Non-transient errors
+ * (4xx, GraphQL validation errors) throw immediately without retrying.
  */
 export async function gqlServerFetcher<TData, TVariables>(
   document: TypedDocumentNode<TData, TVariables>,
   variables?: TVariables,
 ): Promise<TData> {
-  return serverClient.request<TData>({
-    document,
-    variables: variables as Record<string, unknown>,
-    signal: AbortSignal.timeout(8_000),
-  });
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= PUBLIC_FETCH_ATTEMPTS; attempt++) {
+    try {
+      return await serverClient.request<TData>({
+        document,
+        variables: variables as Record<string, unknown>,
+        signal: AbortSignal.timeout(PUBLIC_FETCH_TIMEOUT_MS),
+      });
+    } catch (err) {
+      lastError = err;
+      if (attempt === PUBLIC_FETCH_ATTEMPTS || !isRetryableApiError(err)) throw err;
+      await sleep(PUBLIC_FETCH_BACKOFF_MS * attempt);
+    }
+  }
+  // Unreachable — the loop either returns or throws — but satisfies the type checker.
+  throw lastError;
 }
 
 /**
