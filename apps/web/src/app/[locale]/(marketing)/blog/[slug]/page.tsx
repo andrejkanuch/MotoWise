@@ -29,7 +29,7 @@ import {
   buildWebPage,
 } from '@/lib/seo/schema';
 
-export const revalidate = 3600;
+export const revalidate = 604800; // 7 days — repo-sourced, rebuilds on deploy
 
 interface BlogArticlePageProps {
   params: Promise<{ slug: string; locale: string }>;

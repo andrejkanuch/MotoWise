@@ -18,6 +18,7 @@ import {
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { gqlServerFetcher } from '@/lib/graphql-server';
 import { relativeTrip } from '@/lib/seo/canonical';
+import { reportSoftNotFound } from '@/lib/seo/soft-404';
 import { findBareSlugRedirect } from '@/lib/trips/bare-slug-redirect';
 import { selectSiblingRoutes, siblingsAreRegionScoped } from '@/lib/trips/sibling-routes';
 import '@/components/trip-detail/trip-detail.css';
@@ -101,7 +102,14 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   };
 }
 
-export const revalidate = 300;
+// Render statically (ISR) instead of dynamically. The dynamic root layout
+// (getLocale/getMessages) would otherwise force this route dynamic, so every
+// request hit the origin AND notFound() served as a 200 soft-404. force-static
+// neutralizes that: pages render on first request and are cached (no build-time
+// API spike across ~400 trips), notFound() emits a real 404, and content stays
+// fresh via the long window below + on-demand revalidation (/api/revalidate).
+export const dynamic = 'force-static';
+export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand on publish/edit
 
 const WAYPOINT_LABELS: Record<string, string> = {
   start: 'Start',
@@ -255,6 +263,7 @@ export default async function TripPage({ params }: PageParams) {
       // so crawlers should update the index rather than keep both.
       permanentRedirect(relativeTrip(country, region, canonicalSlug));
     }
+    reportSoftNotFound('trip-detail', { country, region, slug });
     notFound();
   }
 

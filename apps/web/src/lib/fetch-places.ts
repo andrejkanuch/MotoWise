@@ -10,6 +10,7 @@ import {
 import type { BrowsePlace, RouteListItem } from '@motovault/types';
 import { unstable_cache } from 'next/cache';
 import { gqlServerFetcher } from '@/lib/graphql-server';
+import { CACHE_TAGS } from '@/lib/seo/cache-tags';
 import type { TripSlugRef } from '@/lib/trips/bare-slug-redirect';
 
 /** Alias for `BrowsePlace` — shared type lives in `@motovault/types`. */
@@ -40,7 +41,9 @@ export const fetchCountries = unstable_cache(
     return data.browseCountries.map(gqlPlaceToPlace);
   },
   ['browse-countries'],
-  { revalidate: 3600 },
+  // Taxonomy is effectively static; refresh daily and invalidate on-demand via
+  // revalidateTag(CACHE_TAGS.places) when the API mutates `places`.
+  { revalidate: 86400, tags: [CACHE_TAGS.places] },
 );
 
 /** Fetch a country by its slug (lowercase country code, e.g. "it"). */

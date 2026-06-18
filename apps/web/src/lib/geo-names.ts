@@ -141,11 +141,54 @@ const AT_REGIONS: Record<string, string> = {
   W: 'Vienna',
 };
 
+/** Canadian provinces & territories (ISO 3166-2:CA). */
+const CA_REGIONS: Record<string, string> = {
+  AB: 'Alberta',
+  BC: 'British Columbia',
+  MB: 'Manitoba',
+  NB: 'New Brunswick',
+  NL: 'Newfoundland and Labrador',
+  NS: 'Nova Scotia',
+  NT: 'Northwest Territories',
+  NU: 'Nunavut',
+  ON: 'Ontario',
+  PE: 'Prince Edward Island',
+  QC: 'Quebec',
+  SK: 'Saskatchewan',
+  YT: 'Yukon',
+};
+
+/** Italian regions — codes as stored on trips (3-letter abbreviations). */
+const IT_REGIONS: Record<string, string> = {
+  LOM: 'Lombardy',
+  TAA: 'Trentino-Alto Adige',
+  TOS: 'Tuscany',
+  PIE: 'Piedmont',
+  VEN: 'Veneto',
+  LIG: 'Liguria',
+  LAZ: 'Lazio',
+  CAM: 'Campania',
+  SIC: 'Sicily',
+  SAR: 'Sardinia',
+  PUG: 'Apulia',
+  EMR: 'Emilia-Romagna',
+  ABR: 'Abruzzo',
+  UMB: 'Umbria',
+  MAR: 'Marche',
+  CAL: 'Calabria',
+  FVG: 'Friuli-Venezia Giulia',
+  VDA: 'Aosta Valley',
+  MOL: 'Molise',
+  BAS: 'Basilicata',
+};
+
 /** Country → region code → region name */
 const REGION_NAMES: Record<string, Record<string, string>> = {
   US: US_STATES,
   DE: DE_REGIONS,
   AT: AT_REGIONS,
+  CA: CA_REGIONS,
+  IT: IT_REGIONS,
 };
 
 function titleCase(slug: string): string {
@@ -157,12 +200,15 @@ export function countryDisplayName(slug: string): string {
   return COUNTRY_NAMES[slug.toUpperCase()] ?? titleCase(slug);
 }
 
-/** Resolve a region URL slug (e.g. "ca") within a country to a display name (e.g. "California") */
-export function regionDisplayName(regionSlug: string, countrySlug: string): string {
+/**
+ * Resolve a region URL slug to a display name within a country
+ * (e.g. ("us", "ca") → "California"). Args are (country, region) to read in URL
+ * order; falls back to a title-cased slug for regions we don't have a name map
+ * for (every caller already passed this order — the previous (region, country)
+ * signature silently mis-resolved every region name).
+ */
+export function regionDisplayName(countrySlug: string, regionSlug: string): string {
   const regionMap = REGION_NAMES[countrySlug.toUpperCase()];
-  if (regionMap) {
-    const name = regionMap[regionSlug.toUpperCase()];
-    if (name) return name;
-  }
-  return titleCase(regionSlug);
+  const name = regionMap?.[regionSlug.toUpperCase()];
+  return name ?? titleCase(regionSlug);
 }

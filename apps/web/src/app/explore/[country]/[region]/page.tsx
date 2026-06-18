@@ -5,12 +5,20 @@ import { ResultsDesktop } from '@/components/explore/results-desktop';
 import { ResultsMobile } from '@/components/explore/results-mobile';
 import { BASE_URL, getCanonicalUrl, getHreflangMap } from '@/lib/constants';
 import {
+  fetchPublishedTripSlugRefs,
   fetchRegionBySlug,
   fetchRegionsByCountrySlug,
   fetchTripTemplatesByRegion,
 } from '@/lib/fetch-places';
+import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
+import { reportSoftNotFound } from '@/lib/seo/soft-404';
 
-export const revalidate = 3600;
+// Statically prerendered (force-static) so the dynamic root layout
+// (getLocale/getMessages read headers) doesn't drag this route into dynamic
+// rendering — which is what served the not-found page with a 200 (soft 404).
+// Static rendering lets notFound() emit a real 404, and ISR keeps it fresh.
+export const dynamic = 'force-static';
+export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand via /api/revalidate
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
 
@@ -18,20 +26,66 @@ interface PageProps {
   params: Promise<{ country: string; region: string }>;
 }
 
+/**
+ * Resolve a region to its display names + published trips. The region page is
+ * trip-derived (same source of truth as the sitemap and trip detail pages):
+ * a `places` taxonomy row enriches the names when present, but its absence is
+ * NOT a 404 as long as published trips exist for the country+region. This is
+ * what previously broke — the sitemap advertises every region that has a trip,
+ * but the page resolved only via `places`, which is missing most non-US regions
+ * (e.g. all of Canada), so every such URL soft-404'd.
+ */
+async function resolveRegion(countrySlug: string, regionSlug: string) {
+  const code = countrySlug.toUpperCase();
+  const [places, allRegions, trips] = await Promise.all([
+    fetchRegionBySlug(countrySlug, regionSlug).catch(() => null),
+    fetchRegionsByCountrySlug(countrySlug).catch(() => []),
+    fetchTripTemplatesByRegion(code, regionSlug, 50).catch(() => []),
+  ]);
+
+  // A region with neither a taxonomy row nor any trips is a genuine 404.
+  if (!places && trips.length === 0) return null;
+
+  return {
+    code,
+    trips,
+    regionCount: allRegions.length,
+    countryName: places?.country.name ?? countryDisplayName(countrySlug),
+    regionName: places?.region.name ?? regionDisplayName(countrySlug, regionSlug),
+  };
+}
+
+/** Prebuild every country/region that has a published trip — matches the sitemap. */
+export async function generateStaticParams(): Promise<{ country: string; region: string }[]> {
+  const refs = await fetchPublishedTripSlugRefs().catch(() => []);
+  const seen = new Set<string>();
+  const params: { country: string; region: string }[] = [];
+  for (const ref of refs) {
+    if (!ref.regionCode) continue;
+    const country = ref.countryCode.toLowerCase();
+    const region = ref.regionCode.toLowerCase();
+    const key = `${country}/${region}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    params.push({ country, region });
+  }
+  return params;
+}
+
 /* ── Metadata ────────────────────────────────────────────────── */
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { country: countrySlug, region: regionSlug } = await params;
-  const result = await fetchRegionBySlug(countrySlug, regionSlug);
+  const result = await resolveRegion(countrySlug, regionSlug);
   if (!result) return {};
 
-  const { country, region } = result;
-  const title = `Motorcycle Routes in ${region.name}, ${country.name}`;
-  const rc = region.routeCount;
+  const { countryName, regionName } = result;
+  const title = `Motorcycle Routes in ${regionName}, ${countryName}`;
+  const rc = result.trips.length;
   const description =
     rc > 0
-      ? `Explore ${rc} motorcycle route${rc === 1 ? '' : 's'} in ${region.name}, ${country.name}. Twisty roads, scenic passes, and rides rated by the community.`
-      : `Motorcycle routes in ${region.name}, ${country.name} are coming soon. Browse nearby regions on MotoVault.`;
+      ? `Explore ${rc} motorcycle route${rc === 1 ? '' : 's'} in ${regionName}, ${countryName}. Twisty roads, scenic passes, and rides rated by the community.`
+      : `Motorcycle routes in ${regionName}, ${countryName} are coming soon. Browse nearby regions on MotoVault.`;
 
   const canonical = getCanonicalUrl('en', `/explore/${countrySlug}/${regionSlug}`);
   const base: Metadata = {
@@ -69,16 +123,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function RegionPage({ params }: PageProps) {
   const { country: countrySlug, region: regionSlug } = await params;
-  const result = await fetchRegionBySlug(countrySlug, regionSlug);
-  if (!result) notFound();
+  const result = await resolveRegion(countrySlug, regionSlug);
+  if (!result) {
+    reportSoftNotFound('explore-region', { country: countrySlug, region: regionSlug });
+    notFound();
+  }
 
-  const { country, region } = result;
-  const code = country.countryCode.toUpperCase();
-
-  const [allRegions, trips] = await Promise.all([
-    fetchRegionsByCountrySlug(countrySlug).catch(() => []),
-    fetchTripTemplatesByRegion(code, regionSlug, 50).catch(() => []),
-  ]);
+  const { code, trips, regionCount, countryName, regionName } = result;
 
   // Compute center from trip coordinates, fallback to country center
   let center: [number, number] = [10, 46];
@@ -112,10 +163,10 @@ export default async function RegionPage({ params }: PageProps) {
         <Suspense>
           <ResultsDesktop
             allTrips={trips}
-            country={country.name}
+            country={countryName}
             countryCode={code}
-            region={region.name}
-            regionCount={allRegions.length}
+            region={regionName}
+            regionCount={regionCount}
             mapCenter={center}
             mapZoom={7}
           />
@@ -127,8 +178,8 @@ export default async function RegionPage({ params }: PageProps) {
         <Suspense>
           <ResultsMobile
             allTrips={trips}
-            country={country.name}
-            region={region.name}
+            country={countryName}
+            region={regionName}
             mapCenter={center}
             mapZoom={7}
           />

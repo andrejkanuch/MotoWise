@@ -6,7 +6,7 @@ import { getCanonicalUrl } from '@/lib/constants';
 import { getGuides } from '@/lib/guides';
 import { buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
 
-export const revalidate = 3600;
+export const revalidate = 604800; // 7 days — repo-sourced, rebuilds on deploy
 
 interface GuidesPageProps {
   params: Promise<{ locale: string }>;
