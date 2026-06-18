@@ -141,11 +141,54 @@ const AT_REGIONS: Record<string, string> = {
   W: 'Vienna',
 };
 
+/** Canadian provinces & territories (ISO 3166-2:CA). */
+const CA_REGIONS: Record<string, string> = {
+  AB: 'Alberta',
+  BC: 'British Columbia',
+  MB: 'Manitoba',
+  NB: 'New Brunswick',
+  NL: 'Newfoundland and Labrador',
+  NS: 'Nova Scotia',
+  NT: 'Northwest Territories',
+  NU: 'Nunavut',
+  ON: 'Ontario',
+  PE: 'Prince Edward Island',
+  QC: 'Quebec',
+  SK: 'Saskatchewan',
+  YT: 'Yukon',
+};
+
+/** Italian regions — codes as stored on trips (3-letter abbreviations). */
+const IT_REGIONS: Record<string, string> = {
+  LOM: 'Lombardy',
+  TAA: 'Trentino-Alto Adige',
+  TOS: 'Tuscany',
+  PIE: 'Piedmont',
+  VEN: 'Veneto',
+  LIG: 'Liguria',
+  LAZ: 'Lazio',
+  CAM: 'Campania',
+  SIC: 'Sicily',
+  SAR: 'Sardinia',
+  PUG: 'Apulia',
+  EMR: 'Emilia-Romagna',
+  ABR: 'Abruzzo',
+  UMB: 'Umbria',
+  MAR: 'Marche',
+  CAL: 'Calabria',
+  FVG: 'Friuli-Venezia Giulia',
+  VDA: 'Aosta Valley',
+  MOL: 'Molise',
+  BAS: 'Basilicata',
+};
+
 /** Country → region code → region name */
 const REGION_NAMES: Record<string, Record<string, string>> = {
   US: US_STATES,
   DE: DE_REGIONS,
   AT: AT_REGIONS,
+  CA: CA_REGIONS,
+  IT: IT_REGIONS,
 };
 
 function titleCase(slug: string): string {
