@@ -157,12 +157,15 @@ export function countryDisplayName(slug: string): string {
   return COUNTRY_NAMES[slug.toUpperCase()] ?? titleCase(slug);
 }
 
-/** Resolve a region URL slug (e.g. "ca") within a country to a display name (e.g. "California") */
-export function regionDisplayName(regionSlug: string, countrySlug: string): string {
+/**
+ * Resolve a region URL slug to a display name within a country
+ * (e.g. ("us", "ca") → "California"). Args are (country, region) to read in URL
+ * order; falls back to a title-cased slug for regions we don't have a name map
+ * for (every caller already passed this order — the previous (region, country)
+ * signature silently mis-resolved every region name).
+ */
+export function regionDisplayName(countrySlug: string, regionSlug: string): string {
   const regionMap = REGION_NAMES[countrySlug.toUpperCase()];
-  if (regionMap) {
-    const name = regionMap[regionSlug.toUpperCase()];
-    if (name) return name;
-  }
-  return titleCase(regionSlug);
+  const name = regionMap?.[regionSlug.toUpperCase()];
+  return name ?? titleCase(regionSlug);
 }

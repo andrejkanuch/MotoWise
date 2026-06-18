@@ -6,11 +6,25 @@ import { ResultsMobile } from '@/components/explore/results-mobile';
 import { BASE_URL, getHreflangMap } from '@/lib/constants';
 import {
   fetchCountryBySlug,
+  fetchPublishedTripSlugRefs,
   fetchRegionsByCountrySlug,
   fetchTripTemplatesByCountry,
 } from '@/lib/fetch-places';
+import { reportSoftNotFound } from '@/lib/seo/soft-404';
 
+// Prerender statically so notFound() returns a real 404 (the dynamic root
+// layout would otherwise force this dynamic and serve the not-found page as a
+// 200 soft-404). See the region page for the full rationale.
+export const dynamic = 'force-static';
 export const revalidate = 86400;
+
+/** Prebuild every country that has a published trip — matches the sitemap. */
+export async function generateStaticParams(): Promise<{ country: string }[]> {
+  const refs = await fetchPublishedTripSlugRefs().catch(() => []);
+  const seen = new Set<string>();
+  for (const ref of refs) seen.add(ref.countryCode.toLowerCase());
+  return [...seen].map((country) => ({ country }));
+}
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
 
@@ -96,7 +110,10 @@ const COUNTRY_ZOOM: Record<string, number> = {
 export default async function CountryPage({ params }: PageProps) {
   const { country: countrySlug } = await params;
   const country = await fetchCountryBySlug(countrySlug);
-  if (!country) notFound();
+  if (!country) {
+    reportSoftNotFound('explore-country', { country: countrySlug });
+    notFound();
+  }
 
   const [regions, trips] = await Promise.all([
     fetchRegionsByCountrySlug(countrySlug).catch(() => []),

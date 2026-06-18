@@ -8,7 +8,7 @@ import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
 import { buildBreadcrumbList, buildFAQPage, buildGraph, buildWebPage } from '@/lib/seo/schema';
 import { DiagnosticsFaq } from './diagnostics-faq';
 
-export const revalidate = 3600;
+export const revalidate = 604800; // 7 days — repo-sourced, rebuilds on deploy
 
 interface PageProps {
   params: Promise<{ locale: string }>;

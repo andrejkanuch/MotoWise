@@ -16,7 +16,7 @@ import { buildBreadcrumbList, buildFAQPage, buildGraph, buildWebPage } from '@/l
 
 export const dynamic = 'force-static';
 export const dynamicParams = false;
-export const revalidate = 3600;
+export const revalidate = 604800; // 7 days — repo-sourced, rebuilds on deploy
 
 interface PageProps {
   params: Promise<{

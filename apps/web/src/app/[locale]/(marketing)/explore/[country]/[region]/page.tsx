@@ -6,9 +6,11 @@ import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { RouteCard } from '@/components/marketing/route-card';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import { fetchRegionBySlug, fetchRoutesByRegion } from '@/lib/fetch-places';
+import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/lib/seo/schema';
+import { reportSoftNotFound } from '@/lib/seo/soft-404';
 
-export const revalidate = 3600; // 1 hour
+export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand via /api/revalidate
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
 
@@ -16,20 +18,41 @@ interface PageProps {
   params: Promise<{ locale: string; country: string; region: string }>;
 }
 
+/**
+ * Trip-derived region resolution (mirrors the non-locale explore page): names
+ * come from the `places` taxonomy when a row exists, otherwise from geo-names.
+ * A region is only a 404 when it has neither a taxonomy row nor any routes —
+ * so sitemap-advertised regions without a `places` row (most non-US regions)
+ * resolve instead of soft-404ing.
+ */
+async function resolveRegion(countrySlug: string, regionSlug: string) {
+  const code = countrySlug.toUpperCase();
+  const [places, routes] = await Promise.all([
+    fetchRegionBySlug(countrySlug, regionSlug).catch(() => null),
+    fetchRoutesByRegion(code, regionSlug, 50).catch(() => []),
+  ]);
+  if (!places && routes.length === 0) return null;
+  return {
+    routes,
+    countryName: places?.country.name ?? countryDisplayName(countrySlug),
+    regionName: places?.region.name ?? regionDisplayName(countrySlug, regionSlug),
+    routeCount: places?.region.routeCount ?? routes.length,
+  };
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, country: countrySlug, region: regionSlug } = await params;
   setRequestLocale(locale);
 
-  const result = await fetchRegionBySlug(countrySlug, regionSlug);
+  const result = await resolveRegion(countrySlug, regionSlug);
   if (!result) return {};
 
-  const { country, region } = result;
-  const title = `Motorcycle Routes in ${region.name}, ${country.name}`;
-  const routeCount = region.routeCount;
+  const { countryName, regionName, routeCount } = result;
+  const title = `Motorcycle Routes in ${regionName}, ${countryName}`;
   const description =
     routeCount > 0
-      ? `Explore ${routeCount} motorcycle route${routeCount === 1 ? '' : 's'} in ${region.name}, ${country.name}. Find the best twisty roads, scenic passes, and rides rated by the community.`
-      : `Motorcycle routes in ${region.name}, ${country.name} are coming soon. Browse nearby regions on MotoVault.`;
+      ? `Explore ${routeCount} motorcycle route${routeCount === 1 ? '' : 's'} in ${regionName}, ${countryName}. Find the best twisty roads, scenic passes, and rides rated by the community.`
+      : `Motorcycle routes in ${regionName}, ${countryName} are coming soon. Browse nearby regions on MotoVault.`;
 
   // Explore content is not translated — always canonical to the non-localized version
   // to prevent Google from seeing locale variants as duplicates.
@@ -69,14 +92,16 @@ export default async function RegionPage({ params }: PageProps) {
   const { locale, country: countrySlug, region: regionSlug } = await params;
   setRequestLocale(locale);
 
-  const result = await fetchRegionBySlug(countrySlug, regionSlug);
-  if (!result) notFound();
+  const result = await resolveRegion(countrySlug, regionSlug);
+  if (!result) {
+    reportSoftNotFound('explore-region', { locale, country: countrySlug, region: regionSlug });
+    notFound();
+  }
 
-  const { country, region } = result;
-  const routes = await fetchRoutesByRegion(country.countryCode, regionSlug);
+  const { routes, countryName, regionName, routeCount } = result;
 
-  const title = `Motorcycle Routes in ${region.name}, ${country.name}`;
-  const description = `Explore ${region.routeCount} motorcycle routes in ${region.name}, ${country.name}.`;
+  const title = `Motorcycle Routes in ${regionName}, ${countryName}`;
+  const description = `Explore ${routeCount} motorcycle routes in ${regionName}, ${countryName}.`;
   const canonical = getCanonicalUrl(locale, `/explore/${countrySlug}/${regionSlug}`);
 
   // Enumerate the routes for an ItemList (complements the CollectionPage below).
@@ -106,8 +131,8 @@ export default async function RegionPage({ params }: PageProps) {
       [
         { name: 'Home', url: getCanonicalUrl(locale) },
         { name: 'Explore', url: getCanonicalUrl(locale, '/explore') },
-        { name: country.name, url: getCanonicalUrl(locale, `/explore/${countrySlug}`) },
-        { name: region.name, url: canonical },
+        { name: countryName, url: getCanonicalUrl(locale, `/explore/${countrySlug}`) },
+        { name: regionName, url: canonical },
       ],
       locale,
       `/explore/${countrySlug}/${regionSlug}`,
@@ -135,8 +160,8 @@ export default async function RegionPage({ params }: PageProps) {
         items={[
           { label: 'Home', href: '/' },
           { label: 'Explore', href: '/explore' },
-          { label: country.name, href: `/explore/${countrySlug}` },
-          { label: region.name },
+          { label: countryName, href: `/explore/${countrySlug}` },
+          { label: regionName },
         ]}
       />
 
@@ -144,15 +169,15 @@ export default async function RegionPage({ params }: PageProps) {
       <section className="px-6 pb-16 pt-8 md:pb-24 md:pt-12">
         <div className="reveal-on-scroll mx-auto max-w-4xl">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            {country.name}
+            {countryName}
           </p>
           <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
             {title}
           </h1>
           <div className="mx-auto mt-6 h-1.5 w-32 rounded-full bg-signature-500" />
           <p className="mt-6 max-w-2xl text-lg text-neutral-400 md:text-xl">
-            {region.routeCount} {region.routeCount === 1 ? 'route' : 'routes'} in {region.name}.
-            Sorted by community rating.
+            {routeCount} {routeCount === 1 ? 'route' : 'routes'} in {regionName}. Sorted by
+            community rating.
           </p>
         </div>
       </section>
@@ -162,7 +187,7 @@ export default async function RegionPage({ params }: PageProps) {
         <div className="mx-auto max-w-5xl">
           {routes.length === 0 ? (
             <p className="text-center text-neutral-500">
-              No routes available in {region.name} yet. Check back soon!
+              No routes available in {regionName} yet. Check back soon!
             </p>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

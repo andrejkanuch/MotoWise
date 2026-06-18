@@ -103,6 +103,14 @@ const nextConfig: NextConfig = {
         source: '/ingest/:path*',
         destination: 'https://eu.i.posthog.com/:path*',
       },
+      // Apple only fetches `/.well-known/apple-app-site-association`, but the
+      // bare-root path is still requested by tooling, validators, and humans —
+      // and 404'd before this. Rewrite (not redirect) so both paths serve the
+      // same JSON with a 200. Android's assetlinks has no bare-root convention.
+      {
+        source: '/apple-app-site-association',
+        destination: '/.well-known/apple-app-site-association',
+      },
     ];
   },
 };
