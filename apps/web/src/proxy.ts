@@ -475,5 +475,9 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
+  // `apple-app-site-association` is excluded explicitly: it has no file
+  // extension, so the `.*\\..*` exclusion (which covers `/.well-known/...`)
+  // doesn't catch it, and the next-intl proxy would otherwise try to localize
+  // the bare-root path and 404 it. Its route handler must be reached directly.
+  matcher: ['/((?!api|_next|_vercel|apple-app-site-association|.*\\..*).*)'],
 };
