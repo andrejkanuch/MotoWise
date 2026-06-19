@@ -10,10 +10,12 @@ import {
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { mapboxCountryShortCodeFromJson } from '../../../common/mapbox-geocode';
 import { buildConnection, decodeCursor, encodeCursor } from '../../../common/pagination/connection';
+import { RevalidationService } from '../../../common/revalidation/revalidation.service';
 import { applySlugFilters } from '../../../common/slug-lookup';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { Trip, TripConnection } from '../models/trip.model';
+import { tripTemplateRevalidation } from '../trip-revalidation';
 import {
   mapRowToTrip,
   mapRowToWaypoint,
@@ -38,6 +40,7 @@ export class TripTemplatesService {
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
     @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
+    private readonly revalidation: RevalidationService,
   ) {}
 
   // ==========================================
@@ -272,21 +275,31 @@ export class TripTemplatesService {
       throw new InternalServerErrorException('Failed to publish template');
     }
 
-    return mapRowToTrip(updated as unknown as TripRow);
+    const published = mapRowToTrip(updated as unknown as TripRow);
+    // Refresh the now-published explore + trip pages immediately (best-effort).
+    this.revalidation.revalidate(
+      tripTemplateRevalidation(published.countryCode, published.regionCode, published.slug),
+    );
+    return published;
   }
 
   async unpublishTemplate(userId: string, tripId: string): Promise<boolean> {
-    // Verify ownership via user client (RLS + explicit check)
+    // Verify ownership via user client (RLS + explicit check). Select the
+    // location/slug so the now-removed explore + trip pages can be revalidated.
     const { data, error } = await this.supabase
       .from('trips')
       .update({ is_template: false })
       .eq('id', tripId)
       .eq('organiser_user_id', userId)
       .eq('is_template', true)
-      .select('id')
+      .select('id, country_code, region_code, slug')
       .single();
 
     if (error || !data) throw new NotFoundException('Template not found or not owned by you');
+
+    // Refresh the explore + trip pages so the unpublished template drops out (best-effort).
+    const { country_code: countryCode, region_code: regionCode, slug } = data;
+    this.revalidation.revalidate(tripTemplateRevalidation(countryCode, regionCode, slug));
     return true;
   }
 
