@@ -10,11 +10,12 @@ import {
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { mapboxCountryShortCodeFromJson } from '../../../common/mapbox-geocode';
 import { buildConnection, decodeCursor, encodeCursor } from '../../../common/pagination/connection';
+import { RevalidationService } from '../../../common/revalidation/revalidation.service';
 import { applySlugFilters } from '../../../common/slug-lookup';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { Trip, TripConnection } from '../models/trip.model';
-import { RevalidationService } from './revalidation.service';
+import { tripTemplateRevalidation } from '../trip-revalidation';
 import {
   mapRowToTrip,
   mapRowToWaypoint,
@@ -276,10 +277,8 @@ export class TripTemplatesService {
 
     const published = mapRowToTrip(updated as unknown as TripRow);
     // Refresh the now-published explore + trip pages immediately (best-effort).
-    this.revalidation.revalidateTripTemplate(
-      published.countryCode,
-      published.regionCode,
-      published.slug,
+    this.revalidation.revalidate(
+      tripTemplateRevalidation(published.countryCode, published.regionCode, published.slug),
     );
     return published;
   }
@@ -299,7 +298,8 @@ export class TripTemplatesService {
     if (error || !data) throw new NotFoundException('Template not found or not owned by you');
 
     // Refresh the explore + trip pages so the unpublished template drops out (best-effort).
-    this.revalidation.revalidateTripTemplate(data.country_code, data.region_code, data.slug);
+    const { country_code: countryCode, region_code: regionCode, slug } = data;
+    this.revalidation.revalidate(tripTemplateRevalidation(countryCode, regionCode, slug));
     return true;
   }
 

@@ -1,3 +1,4 @@
+export * from './constants/cache-tags';
 export * from './constants/countries';
 export * from './constants/enums';
 export * from './constants/limits';

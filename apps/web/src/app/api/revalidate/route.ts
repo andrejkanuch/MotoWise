@@ -1,8 +1,26 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { type NextRequest, NextResponse } from 'next/server';
+import { routing } from '@/i18n/routing';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+/**
+ * Expand a non-localized path to every locale variant it's served at. The
+ * default locale is served bare (localePrefix: 'as-needed'); other locales get
+ * a `/<locale>` prefix. revalidatePath doesn't cascade across locale prefixes,
+ * so the API sends bare paths and we fan them out here — locale routing is the
+ * web app's knowledge, not the API's.
+ */
+function localeVariants(path: string): string[] {
+  if (!path.startsWith('/')) return [path];
+  return [
+    path,
+    ...routing.locales
+      .filter((locale) => locale !== routing.defaultLocale)
+      .map((locale) => `/${locale}${path === '/' ? '' : path}`),
+  ];
+}
 
 /**
  * On-demand revalidation for DB-sourced static pages (trips, explore taxonomy).
@@ -40,7 +58,10 @@ export async function POST(req: NextRequest) {
     Array.isArray(v) && v.every((item) => typeof item === 'string');
 
   const tags = isStringArray(body.tags) ? body.tags : [];
-  const paths = isStringArray(body.paths) ? body.paths : [];
+  const inputPaths = isStringArray(body.paths) ? body.paths : [];
+  // Fan each path out to its locale variants; dedupe so a path passed both bare
+  // and localized isn't revalidated twice.
+  const paths = [...new Set(inputPaths.flatMap(localeVariants))];
 
   // Next 16: revalidateTag requires a cacheLife profile; 'max' gives
   // stale-while-revalidate semantics (serve stale, refresh in the background).
