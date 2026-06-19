@@ -6,6 +6,12 @@ const WEB_CACHE_TAGS = {
   trips: 'trips',
 } as const;
 
+/** Web route prefixes for ISR-cached, DB-sourced pages (mirror of web routes). */
+const WEB_PATHS = {
+  explore: '/explore',
+  trips: '/trips',
+} as const;
+
 const REVALIDATE_TIMEOUT_MS = 4000;
 
 /**
@@ -31,10 +37,11 @@ export class RevalidationService {
   ): string[] {
     const cc = countryCode?.toLowerCase();
     const rc = regionCode?.toLowerCase();
-    const paths = ['/explore'];
-    if (cc) paths.push(`/explore/${cc}`);
-    if (cc && rc) paths.push(`/explore/${cc}/${rc}`);
-    if (cc && rc && slug) paths.push(`/trips/${cc}/${rc}/${slug.toLowerCase()}`);
+    const paths: string[] = [WEB_PATHS.explore];
+    // Country-level: explore hub + the /trips/<cc> listing (revalidate=300).
+    if (cc) paths.push(`${WEB_PATHS.explore}/${cc}`, `${WEB_PATHS.trips}/${cc}`);
+    if (cc && rc) paths.push(`${WEB_PATHS.explore}/${cc}/${rc}`);
+    if (cc && rc && slug) paths.push(`${WEB_PATHS.trips}/${cc}/${rc}/${slug.toLowerCase()}`);
     return paths;
   }
 
@@ -45,6 +52,9 @@ export class RevalidationService {
     slug?: string | null,
   ): void {
     this.revalidate({
+      // 'places' refreshes the cached country list (fetchCountries is tagged
+      // CACHE_TAGS.places). 'trips' is forward-looking — no web read is tagged
+      // with it yet, so trip/region freshness rides on `paths` below, not the tag.
       tags: [WEB_CACHE_TAGS.trips, WEB_CACHE_TAGS.places],
       paths: this.tripTemplatePaths(countryCode, regionCode, slug),
     });
@@ -65,7 +75,9 @@ export class RevalidationService {
     })
       .then((res) => {
         if (!res.ok) {
-          this.logger.warn(`Revalidation returned ${res.status} for ${JSON.stringify(payload)}`);
+          this.logger.warn(
+            `Revalidation returned ${res.status} ${res.statusText} for ${JSON.stringify(payload)}`,
+          );
         }
       })
       .catch((err: unknown) => {
