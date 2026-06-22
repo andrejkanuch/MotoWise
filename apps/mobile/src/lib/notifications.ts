@@ -50,6 +50,13 @@ export async function setupNotificationChannels(): Promise<void> {
     lightColor: '#FF6B35',
     sound: 'default',
   });
+  await Notifications.setNotificationChannelAsync('documents', {
+    name: 'Document Renewal Reminders',
+    importance: Notifications.AndroidImportance.HIGH,
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: '#FF6B35',
+    sound: 'default',
+  });
 }
 
 /**
@@ -61,6 +68,19 @@ export async function setupNotificationCategories(): Promise<void> {
       buttonTitle: 'Mark Done',
       identifier: 'MARK_DONE',
       options: { opensAppToForeground: false },
+    },
+    {
+      buttonTitle: 'Snooze 1 Day',
+      identifier: 'SNOOZE_1D',
+      options: { opensAppToForeground: false },
+    },
+  ]);
+  // Document expiry — informational/renewal; no "Mark Done" (R8: keyed off expiry).
+  await Notifications.setNotificationCategoryAsync('DOCUMENT_EXPIRY', [
+    {
+      buttonTitle: 'View',
+      identifier: 'VIEW_DOCUMENT',
+      options: { opensAppToForeground: true },
     },
     {
       buttonTitle: 'Snooze 1 Day',
@@ -200,6 +220,109 @@ export async function cancelTaskNotification(taskId: string): Promise<void> {
 export async function cancelAllNotifications(): Promise<void> {
   await Notifications.cancelAllScheduledNotificationsAsync();
   await AsyncStorage.removeItem(NOTIFICATION_MAP_KEY);
+}
+
+// ============================================================================
+// Document expiry reminders (Bike Document Vault, U11)
+//
+// Mirrors scheduleMaintenanceReminder: 30/7/1 stages at 09:00 local, skip past
+// stages, bail when the expiry is <0 or >90 days out (iOS 64-budget guard).
+// Uses a SEPARATE `doc:` keyspace in the same notification map and a
+// DOCUMENT_EXPIRY action category (no "Mark Done"). Reminders key off the
+// document's expiry_date only — category rename/hide never affects them (R8).
+// ============================================================================
+
+/** Map key namespace so document ids never collide with maintenance task ids. */
+const docKey = (documentId: string) => `doc:${documentId}`;
+
+interface DocumentReminder {
+  id: string;
+  title: string;
+  expiryDate: string;
+  motorcycleId: string;
+}
+
+const DOC_STAGE_COPY: Record<
+  Stage,
+  (title: string, bikeName: string) => { title: string; body: string }
+> = {
+  '30d': (title, bikeName) => ({
+    title: `${title} expires in 30 days`,
+    body: `${bikeName} — start the renewal`,
+  }),
+  '7d': (title, bikeName) => ({
+    title: `${title} expires in 7 days`,
+    body: `${bikeName} — renew this week`,
+  }),
+  '1d': (title, bikeName) => ({
+    title: `${title} expires tomorrow`,
+    body: `${bikeName} — tap to view the document`,
+  }),
+};
+
+export async function scheduleDocumentExpiryReminder(
+  doc: DocumentReminder,
+  bikeName: string,
+): Promise<void> {
+  const expiry = new Date(doc.expiryDate);
+  const now = new Date();
+  const daysUntil = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+
+  // Always clear existing stages first so an expiry edit reschedules cleanly.
+  await cancelDocumentNotifications(doc.id);
+  if (daysUntil < 0 || daysUntil > 90) return;
+
+  const stages: Array<{ daysBefore: number; label: Stage }> = [
+    { daysBefore: 30, label: '30d' },
+    { daysBefore: 7, label: '7d' },
+    { daysBefore: 1, label: '1d' },
+  ];
+
+  const scheduledIds: string[] = [];
+  for (const stage of stages) {
+    const reminderDate = new Date(expiry);
+    reminderDate.setDate(reminderDate.getDate() - stage.daysBefore);
+    reminderDate.setHours(9, 0, 0, 0);
+    if (reminderDate <= now) continue;
+
+    const { title, body } = DOC_STAGE_COPY[stage.label](doc.title, bikeName);
+    const id = await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body,
+        data: {
+          kind: 'document',
+          documentId: doc.id,
+          motorcycleId: doc.motorcycleId,
+          stage: stage.label,
+        },
+        ...(stage.label === '1d' ? { categoryIdentifier: 'DOCUMENT_EXPIRY' } : {}),
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: reminderDate,
+        channelId: 'documents',
+      },
+    });
+    scheduledIds.push(id);
+  }
+
+  if (scheduledIds.length > 0) {
+    await setNotificationIds(docKey(doc.id), scheduledIds);
+  }
+}
+
+/** Cancel all scheduled expiry stages for a document (on delete or expiry clear). */
+export async function cancelDocumentNotifications(documentId: string): Promise<void> {
+  const map = await getNotificationMap();
+  const key = docKey(documentId);
+  const ids = map[key] ?? [];
+  for (const id of ids) {
+    await Notifications.cancelScheduledNotificationAsync(id);
+  }
+  if (ids.length > 0) {
+    await removeNotificationIds(key);
+  }
 }
 
 /**

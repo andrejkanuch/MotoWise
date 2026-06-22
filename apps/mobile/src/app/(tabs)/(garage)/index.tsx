@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DocumentExpiryAlerts } from '../../../components/garage/document-expiry-alerts';
 import { LottieMotorcycle } from '../../../components/lottie-motorcycle';
 import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
@@ -29,7 +30,7 @@ function haptic() {
 
 export default function GarageScreen() {
   const { t } = useTranslation();
-  const { t: theme } = useEditorialTheme();
+  const { t: theme, isDark } = useEditorialTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { requireAccess, isPro } = useProGate();
@@ -579,6 +580,9 @@ export default function GarageScreen() {
                 </Text>
               </Pressable>
             </ScrollView>
+
+            {/* ── Document expiry alerts (R11) — only renders when ≥1 expiring ── */}
+            <DocumentExpiryAlerts isDark={isDark} />
 
             {/* ── Summary shelf ── */}
             <View style={{ paddingHorizontal: 16, paddingTop: 20 }}>

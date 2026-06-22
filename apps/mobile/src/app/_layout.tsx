@@ -31,7 +31,15 @@ try {
 }
 
 import * as Linking from 'expo-linking';
-import { Stack, useNavigationContainerRef, usePathname, useRouter, useSegments } from 'expo-router';
+import {
+  router as expoRouter,
+  type Href,
+  Stack,
+  useNavigationContainerRef,
+  usePathname,
+  useRouter,
+  useSegments,
+} from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui';
 import { PostHogProvider, PostHogSurveyProvider } from 'posthog-react-native';
@@ -685,9 +693,21 @@ function RootLayout() {
       async (response) => {
         const actionId = response.actionIdentifier;
         const data = response.notification.request.content.data as {
+          kind?: string;
           taskId?: string;
+          documentId?: string;
           motorcycleId?: string;
         };
+
+        // Document expiry reminders: tap or "View" deep-links to the document.
+        if (data?.kind === 'document' && data.documentId) {
+          if (actionId !== 'SNOOZE_1D') {
+            expoRouter.push(
+              `/(tabs)/(garage)/document/${data.documentId}?motorcycleId=${data.motorcycleId ?? ''}` as Href,
+            );
+          }
+          return;
+        }
 
         if (!data?.taskId) return;
 
