@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { compileMDX } from 'next-mdx-remote/rsc';
 import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
+import { DownloadAppButton } from '@/components/download-app-button';
 import { AuthorBio } from '@/components/marketing/author-bio';
 import { AuthorByline } from '@/components/marketing/author-byline';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
@@ -306,12 +307,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
             MotoVault combines AI diagnostics, structured learning, and garage management in one
             app.
           </p>
-          <Link
-            href="/"
-            className="inline-block rounded-full bg-amber-500 px-8 py-3 text-sm font-semibold text-neutral-950 transition-colors hover:bg-amber-400"
-          >
-            Download Free
-          </Link>
+          <DownloadAppButton source="blog_cta" />
         </div>
 
         {related.length > 0 && (

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
+import { DownloadAppButton } from '@/components/download-app-button';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { TableOfContents } from '@/components/marketing/table-of-contents';
 import { Link } from '@/i18n/navigation';
@@ -163,12 +164,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
             Discover curated routes, track your rides, and plan multi-day trips with waypoints, GPX
             export, and community reviews.
           </p>
-          <Link
-            href="/"
-            className="inline-block rounded-full bg-amber-500 px-8 py-3 text-sm font-semibold text-neutral-950 transition-colors hover:bg-amber-400"
-          >
-            Download Free
-          </Link>
+          <DownloadAppButton source="guide_cta" />
         </div>
       </article>
     </>
