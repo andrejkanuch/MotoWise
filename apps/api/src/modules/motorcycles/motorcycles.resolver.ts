@@ -1,12 +1,14 @@
 import { CreateMotorcycleSchema, UpdateMotorcycleSchema } from '@motovault/types';
 import { Inject, Logger } from '@nestjs/common';
-import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { DocumentsByMotorcycleLoader } from '../documents/document.loader';
+import { Document } from '../documents/models/document.model';
 import { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { CreateMotorcycleInput } from './dto/create-motorcycle.input';
@@ -29,8 +31,15 @@ export class MotorcyclesResolver {
     private readonly makeStatsService: MakeStatsService,
     private readonly nhtsaService: NhtsaService,
     private readonly oemSchedulesService: OemSchedulesService,
+    private readonly documentsByMotorcycleLoader: DocumentsByMotorcycleLoader,
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
   ) {}
+
+  /** Documents filed under this bike, batched via DataLoader (R12). */
+  @ResolveField(() => [Document])
+  async documents(@Parent() motorcycle: Motorcycle): Promise<Document[]> {
+    return this.documentsByMotorcycleLoader.load(motorcycle.id);
+  }
 
   @Query(() => [Motorcycle])
   async myMotorcycles(@CurrentUser() user: AuthUser): Promise<Motorcycle[]> {

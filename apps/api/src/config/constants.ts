@@ -67,6 +67,18 @@ export const THROTTLE_PRESETS = {
   COMMENT: { limit: 30, ttl: 60_000 },
   GROUP_RIDE: { limit: 10, ttl: 60_000 },
   CLONE: { limit: 10, ttl: 3_600_000 },
+  DOCUMENT_UPLOAD: { limit: 30, ttl: 60_000 },
+  DOCUMENT_SIGN: { limit: 120, ttl: 60_000 },
+} as const;
+
+/**
+ * Document vault signed-URL TTLs (seconds), within the R16 ceilings
+ * (≤60s display, ≤5min download). Signed URLs are minted on demand and never
+ * persisted.
+ */
+export const DOCUMENT_SIGNED_URL_TTL = {
+  DISPLAY: 60,
+  DOWNLOAD: 300,
 } as const;
 
 /** Query and data limits */

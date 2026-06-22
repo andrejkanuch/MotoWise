@@ -20,6 +20,10 @@ export type Scalars = {
   JSON: { input: Record<string, unknown>; output: Record<string, unknown>; }
 };
 
+export type AddDocumentCategoryInput = {
+  name: Scalars['String']['input'];
+};
+
 export type AddExpensePhotoInput = {
   expenseId: Scalars['String']['input'];
   fileSizeBytes?: InputMaybe<Scalars['Int']['input']>;
@@ -283,6 +287,16 @@ export type CreateDiagnosticInput = {
   wizardAnswers?: InputMaybe<Scalars['JSON']['input']>;
 };
 
+export type CreateDocumentInput = {
+  categoryId: Scalars['String']['input'];
+  documentId: Scalars['String']['input'];
+  expiryDate?: InputMaybe<Scalars['String']['input']>;
+  files: Array<DocumentFileInput>;
+  motorcycleId: Scalars['String']['input'];
+  note?: InputMaybe<Scalars['String']['input']>;
+  title: Scalars['String']['input'];
+};
+
 export type CreateFlagInput = {
   articleId: Scalars['String']['input'];
   comment: Scalars['String']['input'];
@@ -434,6 +448,47 @@ export enum DiagnosticSeverity {
   Low = 'low',
   Medium = 'medium'
 }
+
+export type Document = {
+  __typename?: 'Document';
+  categoryId: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  expiryDate?: Maybe<Scalars['String']['output']>;
+  files: Array<DocumentFile>;
+  id: Scalars['ID']['output'];
+  isPinned: Scalars['Boolean']['output'];
+  motorcycleId: Scalars['String']['output'];
+  note?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+};
+
+export type DocumentCategory = {
+  __typename?: 'DocumentCategory';
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  isHidden: Scalars['Boolean']['output'];
+  kind: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  promptsExpiry: Scalars['Boolean']['output'];
+  updatedAt: Scalars['String']['output'];
+};
+
+export type DocumentFile = {
+  __typename?: 'DocumentFile';
+  createdAt: Scalars['String']['output'];
+  documentId: Scalars['String']['output'];
+  fileSizeBytes?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['ID']['output'];
+  mimeType: Scalars['String']['output'];
+  storagePath: Scalars['String']['output'];
+};
+
+export type DocumentFileInput = {
+  fileSizeBytes: Scalars['Int']['input'];
+  mimeType: Scalars['String']['input'];
+  storagePath: Scalars['String']['input'];
+};
 
 export type EndRideInput = {
   autoPausedDurationS?: Scalars['Int']['input'];
@@ -913,6 +968,7 @@ export type Motorcycle = {
   __typename?: 'Motorcycle';
   createdAt: Scalars['String']['output'];
   currentMileage?: Maybe<Scalars['Int']['output']>;
+  documents: Array<Document>;
   engineCc?: Maybe<Scalars['Int']['output']>;
   id: Scalars['ID']['output'];
   isPrimary: Scalars['Boolean']['output'];
@@ -962,6 +1018,7 @@ export enum MotorcycleType {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  addDocumentCategory: DocumentCategory;
   addExpensePhoto: ExpensePhoto;
   addTaskPhoto: TaskPhoto;
   addWaypoint: TripWaypoint;
@@ -974,6 +1031,7 @@ export type Mutation = {
   completeOnboarding: User;
   createComment: Comment;
   createDiagnostic: Diagnostic;
+  createDocument: Document;
   createFlag: ContentFlag;
   createFuelLog: FuelLog;
   createGroupRide: GroupRide;
@@ -986,6 +1044,7 @@ export type Mutation = {
   createTripWithWaypoints: Trip;
   deleteAccount: Scalars['Boolean']['output'];
   deleteComment: Scalars['Boolean']['output'];
+  deleteDocument: Scalars['Boolean']['output'];
   deleteExpense: Scalars['Boolean']['output'];
   deleteExpensePhoto: Scalars['Boolean']['output'];
   deleteFuelLog: Scalars['Boolean']['output'];
@@ -1042,6 +1101,8 @@ export type Mutation = {
   unpublishTemplate: Scalars['Boolean']['output'];
   unsaveTrip: Scalars['Boolean']['output'];
   unshareRide: Scalars['Boolean']['output'];
+  updateDocument: Document;
+  updateDocumentCategory: DocumentCategory;
   updateGroupRide: GroupRide;
   updateHandle: User;
   updateMaintenanceTask: MaintenanceTask;
@@ -1054,6 +1115,11 @@ export type Mutation = {
   updateUser: User;
   updateWaypoint: TripWaypoint;
   uploadWaypoints: Scalars['Int']['output'];
+};
+
+
+export type MutationAddDocumentCategoryArgs = {
+  input: AddDocumentCategoryInput;
 };
 
 
@@ -1114,6 +1180,11 @@ export type MutationCreateDiagnosticArgs = {
 };
 
 
+export type MutationCreateDocumentArgs = {
+  input: CreateDocumentInput;
+};
+
+
 export type MutationCreateFlagArgs = {
   input: CreateFlagInput;
 };
@@ -1166,6 +1237,11 @@ export type MutationCreateTripWithWaypointsArgs = {
 
 export type MutationDeleteCommentArgs = {
   commentId: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteDocumentArgs = {
+  id: Scalars['String']['input'];
 };
 
 
@@ -1430,6 +1506,18 @@ export type MutationUnshareRideArgs = {
 };
 
 
+export type MutationUpdateDocumentArgs = {
+  id: Scalars['String']['input'];
+  input: UpdateDocumentInput;
+};
+
+
+export type MutationUpdateDocumentCategoryArgs = {
+  id: Scalars['String']['input'];
+  input: UpdateDocumentCategoryInput;
+};
+
+
 export type MutationUpdateGroupRideArgs = {
   input: UpdateGroupRideInput;
 };
@@ -1618,13 +1706,17 @@ export type Query = {
   browseRegionsByCountrySlug: Array<BrowsePlace>;
   diagnosticById?: Maybe<Diagnostic>;
   discoverRiderTrips: TripConnection;
+  documentCategories: Array<DocumentCategory>;
+  documents: Array<Document>;
   expenseDashboard: ExpenseDashboardSummary;
   expensePhotos: Array<ExpensePhoto>;
   expenses: ExpenseSummary;
+  expiringDocuments: Array<Document>;
   fuelLogs: Array<FuelLog>;
   fuelStops: Array<FuelStop>;
   fuelStopsNearRoute: FuelRangeResult;
   getComments: CommentConnection;
+  getDocumentSignedUrl: Scalars['String']['output'];
   getFollowers: FollowConnection;
   getFollowing: FollowConnection;
   /** Returns current GPX export quota usage and limits for the authenticated user */
@@ -1725,6 +1817,16 @@ export type QueryDiscoverRiderTripsArgs = {
 };
 
 
+export type QueryDocumentCategoriesArgs = {
+  includeHidden?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type QueryDocumentsArgs = {
+  motorcycleId: Scalars['String']['input'];
+};
+
+
 export type QueryExpenseDashboardArgs = {
   motorcycleId: Scalars['String']['input'];
 };
@@ -1738,6 +1840,11 @@ export type QueryExpensePhotosArgs = {
 export type QueryExpensesArgs = {
   motorcycleId: Scalars['String']['input'];
   year?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryExpiringDocumentsArgs = {
+  withinDays?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1766,6 +1873,12 @@ export type QueryGetCommentsArgs = {
   rideId?: InputMaybe<Scalars['ID']['input']>;
   routeId?: InputMaybe<Scalars['ID']['input']>;
   tripId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type QueryGetDocumentSignedUrlArgs = {
+  download?: InputMaybe<Scalars['Boolean']['input']>;
+  fileId: Scalars['String']['input'];
 };
 
 
@@ -2638,6 +2751,19 @@ export type TypeaheadResult = {
 
 export type UnfollowRiderInput = {
   targetUserId: Scalars['String']['input'];
+};
+
+export type UpdateDocumentCategoryInput = {
+  isHidden?: InputMaybe<Scalars['Boolean']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateDocumentInput = {
+  categoryId?: InputMaybe<Scalars['String']['input']>;
+  expiryDate?: InputMaybe<Scalars['String']['input']>;
+  isPinned?: InputMaybe<Scalars['Boolean']['input']>;
+  note?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateGroupRideInput = {
