@@ -211,7 +211,8 @@ export default function EditBikeScreen() {
       isPrimary !== init.isPrimary ||
       photoUrl !== init.photoUrl ||
       purchasePrice !== init.purchasePrice ||
-      vin !== init.vin
+      vin !== init.vin ||
+      variant !== init.variant
     );
   }, [
     nickname,
@@ -223,6 +224,7 @@ export default function EditBikeScreen() {
     photoUrl,
     purchasePrice,
     vin,
+    variant,
     initialized,
   ]);
 

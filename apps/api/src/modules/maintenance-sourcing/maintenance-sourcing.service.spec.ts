@@ -188,6 +188,30 @@ describe('MaintenanceSourcingService — out-of-range spec rejection', () => {
     expect(ins?.insertPayload?.value_display).toBe('0.20 mm');
     expect(ins?.insertPayload?.unit).toBe('mm');
   });
+
+  it('accepts a realistic kPa tire-pressure spec (range guard is in kPa, not bar)', async () => {
+    const { service } = serviceWith((q) =>
+      q.op === 'select' ? NOT_FOUND : { data: { id: 'new' }, error: null },
+    );
+
+    // Canonical pressure unit is kPa (see unit-convert.ts); 250 kPa (~2.5 bar / 36 psi) is typical.
+    const result = await service.persistDrafts({
+      sourceId: 'src-1',
+      schedules: [],
+      specs: [
+        specDraft({
+          specType: 'pressure',
+          specName: 'Front tire pressure',
+          valueNumeric: 250,
+          valueDisplay: '250 kPa',
+          unit: 'kPa',
+        }),
+      ],
+    });
+
+    expect(result.specsUpserted).toBe(1);
+    expect(result.specsRejected).toBe(0);
+  });
 });
 
 describe('MaintenanceSourcingService — idempotency & provenance', () => {

@@ -4,16 +4,18 @@
  * OEM maintenance intervals are stored in kilometers (`intervalKm`) in the same
  * dataset that feeds the web article's spec tables. To satisfy unit parity
  * (plan U7 / audit P0-4) the mobile app must render the SAME number the article
- * renders for a given unit system — so this uses the identical imperial
- * derivation the article uses: km × 0.621371, rounded to a whole number.
+ * renders for a given unit system — so this uses the article's EXACT operation
+ * (`generate-maintenance-article` / `unit-convert.ts`): Math.round(km / 1.609344).
+ * (A `km × 0.621371` form rounds to a different whole mile at some intervals, so the
+ * divide form is mirrored verbatim to keep parity exact.)
  *
  * Distance is the only converted dimension; day-based intervals are unit-agnostic.
  */
 
 import type { MeasurementSystem } from '@motovault/types';
 
-/** Exact km→mi factor shared with the web article's interval table (audit P0-4). */
-export const KM_TO_MI = 0.621371;
+/** Exact km-per-mile divisor, identical to the web article's `unit-convert.ts` (audit P0-4). */
+export const KM_PER_MILE = 1.609_344;
 
 /**
  * Convert a kilometer interval into the user's measurement system, rounded the
@@ -21,7 +23,7 @@ export const KM_TO_MI = 0.621371;
  */
 export function convertIntervalDistance(intervalKm: number, system: MeasurementSystem): number {
   if (system === 'imperial') {
-    return Math.round(intervalKm * KM_TO_MI);
+    return Math.round(intervalKm / KM_PER_MILE);
   }
   return Math.round(intervalKm);
 }

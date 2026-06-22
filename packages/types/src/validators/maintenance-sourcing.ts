@@ -15,7 +15,7 @@ export const SPEC_VALUE_RANGES = {
   torque: { min: 1, max: 500 }, // Nm
   valve_clearance: { min: 0.01, max: 2 }, // mm
   capacity: { min: 0.01, max: 30 }, // L
-  pressure: { min: 0.3, max: 6 }, // bar
+  pressure: { min: 30, max: 700 }, // kPa (canonical metric unit; matches unit-convert.ts)
   plug_gap: { min: 0.1, max: 2 }, // mm
 } as const;
 
