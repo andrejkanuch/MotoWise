@@ -776,8 +776,8 @@
     "v2TaskCardCritical": "Kritik",
     "v2TaskCardRecommended": "Önerilen",
     "v2TaskCardOptional": "İsteğe bağlı",
-    "v2TaskCardEveryKm": "Her {{km}} km'de",
-    "v2TaskCardEveryKmMo": "Her {{km}} km / {{months}} ayda",
+    "v2TaskCardEveryKm": "Her {{distance}} {{unit}}",
+    "v2TaskCardEveryKmMo": "Her {{distance}} {{unit}} / {{months}} ayda",
     "v2TaskCardEveryMonths": "Her {{months}} ayda",
     "v2TaskCardEveryYears_one": "Her {{count}} yılda",
     "v2TaskCardEveryYears_other": "Her {{count}} yılda",
@@ -961,7 +961,12 @@
     "cpPromptBodyRide": "Ücretsiz bir hesap oluştur, böylece sürüşün yedeklenir ve tüm cihazlarında senkronize edilir.",
     "cpPromptBodyExpense": "Ücretsiz bir hesap oluştur, böylece harcaman yedeklenir ve tüm cihazlarında senkronize edilir.",
     "cpPromptBodyBike": "Ücretsiz bir hesap oluştur, böylece motorun yedeklenir ve tüm cihazlarında senkronize edilir.",
-    "cpPromptNotNow": "Şimdi değil"
+    "cpPromptNotNow": "Şimdi değil",
+    "v2BikeSetupVariantLabel": "Transmission",
+    "v2BikeSetupVariantHelper": "Some models offer a dual-clutch (DCT) gearbox with its own service schedule.",
+    "v2BikeSetupVariantDct": "DCT",
+    "v2BikeSetupVariantMt": "Manual",
+    "v2BikeSetupVariantNone": "Not applicable"
   },
   "bikeHub": {
     "upcoming": "Yaklasan",

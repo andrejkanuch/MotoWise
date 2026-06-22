@@ -777,8 +777,8 @@
     "v2TaskCardCritical": "Critico",
     "v2TaskCardRecommended": "Consigliato",
     "v2TaskCardOptional": "Opzionale",
-    "v2TaskCardEveryKm": "Ogni {{km}} km",
-    "v2TaskCardEveryKmMo": "Ogni {{km}} km / {{months}} mesi",
+    "v2TaskCardEveryKm": "Ogni {{distance}} {{unit}}",
+    "v2TaskCardEveryKmMo": "Ogni {{distance}} {{unit}} / {{months}} mesi",
     "v2TaskCardEveryMonths": "Ogni {{months}} mesi",
     "v2TaskCardEveryYears_one": "Ogni {{count}} anno",
     "v2TaskCardEveryYears_other": "Ogni {{count}} anni",
@@ -962,7 +962,12 @@
     "cpPromptBodyRide": "Crea un account gratuito per salvare e sincronizzare la tua corsa su tutti i tuoi dispositivi.",
     "cpPromptBodyExpense": "Crea un account gratuito per salvare e sincronizzare la tua spesa su tutti i tuoi dispositivi.",
     "cpPromptBodyBike": "Crea un account gratuito per salvare e sincronizzare la tua moto su tutti i tuoi dispositivi.",
-    "cpPromptNotNow": "Non ora"
+    "cpPromptNotNow": "Non ora",
+    "v2BikeSetupVariantLabel": "Trasmissione",
+    "v2BikeSetupVariantHelper": "Alcuni modelli offrono un cambio a doppia frizione (DCT) con un proprio programma di manutenzione.",
+    "v2BikeSetupVariantDct": "DCT",
+    "v2BikeSetupVariantMt": "Manuale",
+    "v2BikeSetupVariantNone": "Non applicabile"
   },
   "bikeHub": {
     "upcoming": "In arrivo",

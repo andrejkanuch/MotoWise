@@ -776,8 +776,8 @@
     "v2TaskCardCritical": "重要",
     "v2TaskCardRecommended": "推奨",
     "v2TaskCardOptional": "任意",
-    "v2TaskCardEveryKm": "{{km}} kmごと",
-    "v2TaskCardEveryKmMo": "{{km}} km / {{months}}か月ごと",
+    "v2TaskCardEveryKm": "{{distance}} {{unit}}ごと",
+    "v2TaskCardEveryKmMo": "{{distance}} {{unit}} / {{months}}か月ごと",
     "v2TaskCardEveryMonths": "{{months}}か月ごと",
     "v2TaskCardEveryYears_one": "{{count}}年ごと",
     "v2TaskCardEveryYears_other": "{{count}}年ごと",
@@ -961,7 +961,12 @@
     "cpPromptBodyRide": "無料アカウントを作成すると、ライドがバックアップされ、すべてのデバイスで同期されます。",
     "cpPromptBodyExpense": "無料アカウントを作成すると、費用がバックアップされ、すべてのデバイスで同期されます。",
     "cpPromptBodyBike": "無料アカウントを作成すると、バイクがバックアップされ、すべてのデバイスで同期されます。",
-    "cpPromptNotNow": "今はしない"
+    "cpPromptNotNow": "今はしない",
+    "v2BikeSetupVariantLabel": "トランスミッション",
+    "v2BikeSetupVariantHelper": "一部のモデルには独自のメンテナンス計画を持つデュアルクラッチ（DCT）が搭載されています。",
+    "v2BikeSetupVariantDct": "DCT",
+    "v2BikeSetupVariantMt": "マニュアル",
+    "v2BikeSetupVariantNone": "該当なし"
   },
   "bikeHub": {
     "upcoming": "予定",

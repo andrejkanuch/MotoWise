@@ -777,8 +777,8 @@
     "v2TaskCardCritical": "Crítico",
     "v2TaskCardRecommended": "Recomendado",
     "v2TaskCardOptional": "Opcional",
-    "v2TaskCardEveryKm": "A cada {{km}} km",
-    "v2TaskCardEveryKmMo": "A cada {{km}} km / {{months}} meses",
+    "v2TaskCardEveryKm": "A cada {{distance}} {{unit}}",
+    "v2TaskCardEveryKmMo": "A cada {{distance}} {{unit}} / {{months}} meses",
     "v2TaskCardEveryMonths": "A cada {{months}} meses",
     "v2TaskCardEveryYears_one": "A cada {{count}} ano",
     "v2TaskCardEveryYears_other": "A cada {{count}} anos",
@@ -962,7 +962,12 @@
     "cpPromptBodyRide": "Crie uma conta gratuita para que sua pilotagem seja salva e sincronizada em todos os seus dispositivos.",
     "cpPromptBodyExpense": "Crie uma conta gratuita para que sua despesa seja salva e sincronizada em todos os seus dispositivos.",
     "cpPromptBodyBike": "Crie uma conta gratuita para que sua moto seja salva e sincronizada em todos os seus dispositivos.",
-    "cpPromptNotNow": "Agora não"
+    "cpPromptNotNow": "Agora não",
+    "v2BikeSetupVariantLabel": "Transmissão",
+    "v2BikeSetupVariantHelper": "Alguns modelos oferecem câmbio de dupla embreagem (DCT) com seu próprio plano de manutenção.",
+    "v2BikeSetupVariantDct": "DCT",
+    "v2BikeSetupVariantMt": "Manual",
+    "v2BikeSetupVariantNone": "Não aplicável"
   },
   "bikeHub": {
     "upcoming": "Próximas",

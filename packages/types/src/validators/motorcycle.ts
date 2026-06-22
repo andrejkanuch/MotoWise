@@ -20,6 +20,8 @@ export const CreateMotorcycleSchema = z.object({
   model: z.string().min(1).max(100),
   year: z.number().int().min(MIN_MOTORCYCLE_YEAR).max(MAX_MOTORCYCLE_YEAR),
   nickname: z.string().max(50).optional(),
+  // Drivetrain/trim variant (e.g. DCT). Optional — "not applicable" omits it.
+  variant: z.enum(['DCT', 'MT']).optional(),
 });
 export type CreateMotorcycle = z.infer<typeof CreateMotorcycleSchema>;
 
@@ -52,5 +54,7 @@ export const UpdateMotorcycleSchema = z.object({
     .regex(VIN_REGEX, 'VIN must be 17 uppercase characters (no I, O, or Q)')
     .nullable()
     .optional(),
+  // Drivetrain/trim variant; nullable so it can be cleared to "not applicable".
+  variant: z.enum(['DCT', 'MT']).nullable().optional(),
 });
 export type UpdateMotorcycle = z.infer<typeof UpdateMotorcycleSchema>;

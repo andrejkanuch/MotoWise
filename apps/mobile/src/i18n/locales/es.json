@@ -777,8 +777,8 @@
     "v2TaskCardCritical": "Crítico",
     "v2TaskCardRecommended": "Recomendado",
     "v2TaskCardOptional": "Opcional",
-    "v2TaskCardEveryKm": "Cada {{km}} km",
-    "v2TaskCardEveryKmMo": "Cada {{km}} km / {{months}} meses",
+    "v2TaskCardEveryKm": "Cada {{distance}} {{unit}}",
+    "v2TaskCardEveryKmMo": "Cada {{distance}} {{unit}} / {{months}} meses",
     "v2TaskCardEveryMonths": "Cada {{months}} meses",
     "v2TaskCardEveryYears_one": "Cada {{count}} año",
     "v2TaskCardEveryYears_other": "Cada {{count}} años",
@@ -962,7 +962,12 @@
     "cpPromptBodyRide": "Crea una cuenta gratis para que tu ruta se respalde y sincronice en todos tus dispositivos.",
     "cpPromptBodyExpense": "Crea una cuenta gratis para que tu gasto se respalde y sincronice en todos tus dispositivos.",
     "cpPromptBodyBike": "Crea una cuenta gratis para que tu moto se respalde y sincronice en todos tus dispositivos.",
-    "cpPromptNotNow": "Ahora no"
+    "cpPromptNotNow": "Ahora no",
+    "v2BikeSetupVariantLabel": "Transmisión",
+    "v2BikeSetupVariantHelper": "Algunos modelos ofrecen una caja de doble embrague (DCT) con su propio plan de mantenimiento.",
+    "v2BikeSetupVariantDct": "DCT",
+    "v2BikeSetupVariantMt": "Manual",
+    "v2BikeSetupVariantNone": "No aplica"
   },
   "bikeHub": {
     "upcoming": "Proximos",

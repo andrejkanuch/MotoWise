@@ -102,13 +102,20 @@ export default function RevealScreen() {
     if (!make) return;
     const obModel = bikeData?.model ?? undefined;
     const obYear = bikeData?.year ?? undefined;
+    const obVariant = bikeData?.variant ?? undefined;
     void queryClient.prefetchQuery({
-      queryKey: queryKeys.onboarding.oemSchedules(make, obModel, obYear),
+      // Key + vars MUST mirror Maintenance (incl. variant) or the prefetch misses.
+      queryKey: queryKeys.onboarding.oemSchedules(make, obModel, obYear, obVariant),
       queryFn: () =>
-        gqlFetcher(OemSchedulesPreviewDocument, { make, model: obModel, year: obYear }),
+        gqlFetcher(OemSchedulesPreviewDocument, {
+          make,
+          model: obModel,
+          year: obYear,
+          variant: obVariant,
+        }),
       staleTime: Number.POSITIVE_INFINITY,
     });
-  }, [queryClient, make, bikeData?.model, bikeData?.year]);
+  }, [queryClient, make, bikeData?.model, bikeData?.year, bikeData?.variant]);
 
   useEffect(() => {
     setLastCompletedScreen(OB_SCREEN.REVEAL);

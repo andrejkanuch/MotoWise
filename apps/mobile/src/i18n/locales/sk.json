@@ -778,8 +778,8 @@
     "v2TaskCardCritical": "Kritické",
     "v2TaskCardRecommended": "Odporúčané",
     "v2TaskCardOptional": "Voliteľné",
-    "v2TaskCardEveryKm": "Každých {{km}} km",
-    "v2TaskCardEveryKmMo": "Každých {{km}} km / {{months}} mes.",
+    "v2TaskCardEveryKm": "Každých {{distance}} {{unit}}",
+    "v2TaskCardEveryKmMo": "Každých {{distance}} {{unit}} / {{months}} mes.",
     "v2TaskCardEveryMonths": "Každých {{months}} mesiacov",
     "v2TaskCardEveryYears_one": "Každý {{count}} rok",
     "v2TaskCardEveryYears_other": "Každých {{count}} rokov",
@@ -963,7 +963,12 @@
     "cpPromptBodyRide": "Vytvor si bezplatný účet, aby bola tvoja jazda zálohovaná a synchronizovaná na všetkých zariadeniach.",
     "cpPromptBodyExpense": "Vytvor si bezplatný účet, aby bol tvoj výdavok zálohovaný a synchronizovaný na všetkých zariadeniach.",
     "cpPromptBodyBike": "Vytvor si bezplatný účet, aby bola tvoja motorka zálohovaná a synchronizovaná na všetkých zariadeniach.",
-    "cpPromptNotNow": "Teraz nie"
+    "cpPromptNotNow": "Teraz nie",
+    "v2BikeSetupVariantLabel": "Prevodovka",
+    "v2BikeSetupVariantHelper": "Niektoré modely ponúkajú dvojspojkovú prevodovku (DCT) s vlastným servisným plánom.",
+    "v2BikeSetupVariantDct": "DCT",
+    "v2BikeSetupVariantMt": "Manuálna",
+    "v2BikeSetupVariantNone": "Neuplatňuje sa"
   },
   "bikeHub": {
     "upcoming": "Nadchádzajúce",

@@ -3,7 +3,7 @@ import {
   MotorcycleMakesDocument,
   MotorcycleModelsDocument,
 } from '@motovault/graphql';
-import { MotorcycleType } from '@motovault/types';
+import { MotorcycleType, type MotorcycleVariant } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { useEffect, useMemo, useState } from 'react';
@@ -31,6 +31,7 @@ import { BikePhotoField } from '../../components/onboarding/bike-setup/bike-phot
 import { BrandHero } from '../../components/onboarding/bike-setup/brand-hero';
 import { MakeGrid } from '../../components/onboarding/bike-setup/make-grid';
 import { ModelPicker } from '../../components/onboarding/bike-setup/model-picker';
+import { VariantSelector } from '../../components/onboarding/bike-setup/variant-selector';
 import { YearStepper } from '../../components/onboarding/bike-setup/year-stepper';
 import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
@@ -121,6 +122,10 @@ export default function BikeSetupScreen() {
   } | null>(existingBikeData?.model ? { modelId: 0, modelName: existingBikeData.model } : null);
   const [showPartialCapture, setShowPartialCapture] = useState(false);
   const [photoUri, setPhotoUri] = useState<string | null>(existingBikeData?.photoUri ?? null);
+  // Minimal variant capture (U7) — null = "Not applicable" / baseline rows.
+  const [variant, setVariant] = useState<MotorcycleVariant | null>(
+    existingBikeData?.variant ?? null,
+  );
 
   // ── Derived ─────────────────────────────────────────────────
   const yearNum = Number.parseInt(year, 10);
@@ -238,6 +243,7 @@ export default function BikeSetupScreen() {
       currentMileage: preBikeMileage ?? existingBikeData?.currentMileage ?? 0,
       mileageUnit: preBikeMileageUnit ?? existingBikeData?.mileageUnit ?? mileageUnit,
       ...(photoUri ? { photoUri } : {}),
+      ...(variant ? { variant } : {}),
     });
 
     setLastCompletedScreen(OB_SCREEN.BIKE_SETUP);
@@ -431,6 +437,16 @@ export default function BikeSetupScreen() {
                     onSelect={handleSelectModel}
                     onDismiss={() => setSelectedModel(null)}
                   />
+
+                  {/* Variant capture (U7) — only once a specific model is chosen;
+                      it's meaningless at the make level. */}
+                  {selectedModel && (
+                    <VariantSelector
+                      value={variant}
+                      onChange={setVariant}
+                      accent={getBrandColor(activeMakeName)}
+                    />
+                  )}
 
                   <BikePhotoField
                     photoUri={photoUri}

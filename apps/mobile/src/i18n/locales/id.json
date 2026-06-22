@@ -776,8 +776,8 @@
     "v2TaskCardCritical": "Kritis",
     "v2TaskCardRecommended": "Direkomendasikan",
     "v2TaskCardOptional": "Opsional",
-    "v2TaskCardEveryKm": "Setiap {{km}} km",
-    "v2TaskCardEveryKmMo": "Setiap {{km}} km / {{months}} bln",
+    "v2TaskCardEveryKm": "Setiap {{distance}} {{unit}}",
+    "v2TaskCardEveryKmMo": "Setiap {{distance}} {{unit}} / {{months}} bln",
     "v2TaskCardEveryMonths": "Setiap {{months}} bulan",
     "v2TaskCardEveryYears_one": "Setiap {{count}} tahun",
     "v2TaskCardEveryYears_other": "Setiap {{count}} tahun",
@@ -961,7 +961,12 @@
     "cpPromptBodyRide": "Buat akun gratis agar perjalananmu dicadangkan dan tersinkron di semua perangkatmu.",
     "cpPromptBodyExpense": "Buat akun gratis agar pengeluaranmu dicadangkan dan tersinkron di semua perangkatmu.",
     "cpPromptBodyBike": "Buat akun gratis agar motormu dicadangkan dan tersinkron di semua perangkatmu.",
-    "cpPromptNotNow": "Nanti saja"
+    "cpPromptNotNow": "Nanti saja",
+    "v2BikeSetupVariantLabel": "Transmission",
+    "v2BikeSetupVariantHelper": "Some models offer a dual-clutch (DCT) gearbox with its own service schedule.",
+    "v2BikeSetupVariantDct": "DCT",
+    "v2BikeSetupVariantMt": "Manual",
+    "v2BikeSetupVariantNone": "Not applicable"
   },
   "bikeHub": {
     "upcoming": "Akan Datang",

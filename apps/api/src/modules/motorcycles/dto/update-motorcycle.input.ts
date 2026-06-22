@@ -35,4 +35,7 @@ export class UpdateMotorcycleInput {
   // MOT-142: optional VIN (17 chars, validated by Zod)
   @Field(() => String, { nullable: true })
   vin?: string;
+
+  @Field(() => String, { nullable: true })
+  variant?: string;
 }

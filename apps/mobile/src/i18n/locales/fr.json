@@ -777,8 +777,8 @@
     "v2TaskCardCritical": "Critique",
     "v2TaskCardRecommended": "Recommandé",
     "v2TaskCardOptional": "Optionnel",
-    "v2TaskCardEveryKm": "Tous les {{km}} km",
-    "v2TaskCardEveryKmMo": "Tous les {{km}} km / {{months}} mois",
+    "v2TaskCardEveryKm": "Tous les {{distance}} {{unit}}",
+    "v2TaskCardEveryKmMo": "Tous les {{distance}} {{unit}} / {{months}} mois",
     "v2TaskCardEveryMonths": "Tous les {{months}} mois",
     "v2TaskCardEveryYears_one": "Tous les {{count}} an",
     "v2TaskCardEveryYears_other": "Tous les {{count}} ans",
@@ -962,7 +962,12 @@
     "cpPromptBodyRide": "Crée un compte gratuit pour que ta sortie soit sauvegardée et synchronisée sur tous tes appareils.",
     "cpPromptBodyExpense": "Crée un compte gratuit pour que ta dépense soit sauvegardée et synchronisée sur tous tes appareils.",
     "cpPromptBodyBike": "Crée un compte gratuit pour que ta moto soit sauvegardée et synchronisée sur tous tes appareils.",
-    "cpPromptNotNow": "Pas maintenant"
+    "cpPromptNotNow": "Pas maintenant",
+    "v2BikeSetupVariantLabel": "Transmission",
+    "v2BikeSetupVariantHelper": "Certains modèles proposent une boîte à double embrayage (DCT) avec son propre programme d entretien.",
+    "v2BikeSetupVariantDct": "DCT",
+    "v2BikeSetupVariantMt": "Manuelle",
+    "v2BikeSetupVariantNone": "Sans objet"
   },
   "bikeHub": {
     "upcoming": "À venir",

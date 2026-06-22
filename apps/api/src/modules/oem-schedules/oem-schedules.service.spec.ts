@@ -48,6 +48,7 @@ function createMockSupabase(resultFor: (q: RecordedQuery) => QueryResult) {
       or: () => builder,
       order: () => Promise.resolve(result()),
       single: () => Promise.resolve(result()),
+      // biome-ignore lint/suspicious/noThenProperty: chainable Supabase mock must be awaitable
       then: (onFulfilled: (r: QueryResult) => unknown) =>
         Promise.resolve(result()).then(onFulfilled),
     };
@@ -112,8 +113,7 @@ describe('OemSchedulesService — verification gate', () => {
 
     expect(count).toBe(0);
     const pkQuery = queries.find(
-      (q) =>
-        q.table === 'oem_maintenance_schedules' && q.filters.some((f) => f.column === 'id'),
+      (q) => q.table === 'oem_maintenance_schedules' && q.filters.some((f) => f.column === 'id'),
     );
     expect(pkQuery).toBeDefined();
     expect(pkQuery?.filters).toContainEqual(GATE);
@@ -127,9 +127,7 @@ describe('OemSchedulesService — admin approval', () => {
 
   it('rejects a non-admin from approving a draft', async () => {
     const { client } = serviceWith((q) =>
-      q.table === 'users'
-        ? { data: { role: 'user' }, error: null }
-        : { data: null, error: null },
+      q.table === 'users' ? { data: { role: 'user' }, error: null } : { data: null, error: null },
     );
     const service = new OemSchedulesService(client);
 

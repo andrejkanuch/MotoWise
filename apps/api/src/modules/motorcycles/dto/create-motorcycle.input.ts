@@ -13,4 +13,7 @@ export class CreateMotorcycleInput {
 
   @Field({ nullable: true })
   nickname?: string;
+
+  @Field({ nullable: true })
+  variant?: string;
 }

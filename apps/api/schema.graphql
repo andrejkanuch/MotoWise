@@ -300,6 +300,7 @@ input CreateMotorcycleInput {
   make: String!
   model: String!
   nickname: String
+  variant: String
   year: Int!
 }
 
@@ -869,6 +870,7 @@ type Motorcycle {
   recallLastCheckedAt: String
   type: MotorcycleType
   userId: String!
+  variant: String
   vin: String
   year: Int!
 }
@@ -1841,6 +1843,7 @@ input UpdateMotorcycleInput {
   primaryPhotoUrl: String
   purchaseDate: String
   purchasePrice: Float
+  variant: String
   vin: String
   year: Int
 }

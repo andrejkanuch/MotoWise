@@ -776,8 +776,8 @@
     "v2TaskCardCritical": "Critical",
     "v2TaskCardRecommended": "Recommended",
     "v2TaskCardOptional": "Optional",
-    "v2TaskCardEveryKm": "Every {{km}} km",
-    "v2TaskCardEveryKmMo": "Every {{km}} km / {{months}} mo",
+    "v2TaskCardEveryKm": "Every {{distance}} {{unit}}",
+    "v2TaskCardEveryKmMo": "Every {{distance}} {{unit}} / {{months}} mo",
     "v2TaskCardEveryMonths": "Every {{months}} months",
     "v2TaskCardEveryYears_one": "Every {{count}} year",
     "v2TaskCardEveryYears_other": "Every {{count}} years",
@@ -961,7 +961,12 @@
     "cpPromptBodyRide": "Create a free account so your ride is backed up and synced across your devices.",
     "cpPromptBodyExpense": "Create a free account so your expense is backed up and synced across your devices.",
     "cpPromptBodyBike": "Create a free account so your bike is backed up and synced across your devices.",
-    "cpPromptNotNow": "Not now"
+    "cpPromptNotNow": "Not now",
+    "v2BikeSetupVariantLabel": "Transmission",
+    "v2BikeSetupVariantHelper": "Some models offer a dual-clutch (DCT) gearbox with its own service schedule.",
+    "v2BikeSetupVariantDct": "DCT",
+    "v2BikeSetupVariantMt": "Manual",
+    "v2BikeSetupVariantNone": "Not applicable"
   },
   "checklist": {
     "getStarted": "Get Started",
