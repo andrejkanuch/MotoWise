@@ -1645,6 +1645,7 @@
     }
   },
   "oem": {
+    "disclaimer": "Estas informações são apenas informativas. Sempre confira no manual do proprietário e no manual de serviço antes de realizar qualquer manutenção.",
     "importedTitle": "Plano OEM importado",
     "importedCount": "{{count}} tarefa(s) de manutencao adicionada(s) do plano do fabricante.",
     "importedNone": "Nenhuma tarefa nova para importar — seu plano ja esta atualizado.",

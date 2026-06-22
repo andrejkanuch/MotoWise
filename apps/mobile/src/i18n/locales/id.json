@@ -1644,6 +1644,7 @@
     }
   },
   "oem": {
+    "disclaimer": "This information is informative only. Always verify against your owner's and service manual before performing any maintenance.",
     "importedTitle": "Jadwal OEM diimpor",
     "importedCount": "Menambahkan {{count}} tugas perawatan dari jadwal pabrikan.",
     "importedNone": "Tidak ada tugas baru — jadwalmu sudah terkini.",

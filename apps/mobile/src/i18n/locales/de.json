@@ -1644,6 +1644,7 @@
     }
   },
   "oem": {
+    "disclaimer": "Diese Informationen dienen nur zur Orientierung. Überprüfe sie immer anhand deiner Betriebs- und Werkstattanleitung, bevor du Wartungsarbeiten durchführst.",
     "importedTitle": "OEM-Wartungsplan importiert",
     "importedCount": "{{count}} Wartungsaufgabe(n) aus dem Herstellerplan hinzugefuegt.",
     "importedNone": "Keine neuen Aufgaben zu importieren — dein Plan ist bereits aktuell.",

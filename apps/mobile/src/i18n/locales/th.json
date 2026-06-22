@@ -1644,6 +1644,7 @@
     }
   },
   "oem": {
+    "disclaimer": "This information is informative only. Always verify against your owner's and service manual before performing any maintenance.",
     "importedTitle": "นำเข้าตาราง OEM แล้ว",
     "importedCount": "เพิ่ม {{count}} งานบำรุงรักษาจากตารางผู้ผลิตแล้ว",
     "importedNone": "ไม่มีงานใหม่ — ตารางของคุณเป็นปัจจุบันแล้ว",

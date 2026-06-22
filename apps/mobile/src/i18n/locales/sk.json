@@ -1646,6 +1646,7 @@
     }
   },
   "oem": {
+    "disclaimer": "Tieto informácie sú len informatívne. Pred vykonaním akejkoľvek údržby si ich vždy over v návode na obsluhu a v servisnej príručke.",
     "importedTitle": "OEM plan naimportovany",
     "importedCount": "Pridane {{count}} udrzbarskych uloh z planu vyrobcu.",
     "importedNone": "Ziadne nove ulohy na import — tvoj plan je aktualny.",

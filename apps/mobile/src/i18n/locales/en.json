@@ -1649,6 +1649,7 @@
     }
   },
   "oem": {
+    "disclaimer": "This information is informative only. Always verify against your owner's and service manual before performing any maintenance.",
     "importedTitle": "OEM schedule imported",
     "importedCount": "Added {{count}} maintenance task(s) from the manufacturer schedule.",
     "importedNone": "No new tasks to import — your schedule is already up to date.",

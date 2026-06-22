@@ -1644,6 +1644,7 @@
     }
   },
   "oem": {
+    "disclaimer": "This information is informative only. Always verify against your owner's and service manual before performing any maintenance.",
     "importedTitle": "OEM शेड्यूल इम्पोर्ट किया",
     "importedCount": "मैन्युफैक्चरर शेड्यूल से {{count}} मेंटेनेंस टास्क जोड़े गए।",
     "importedNone": "इम्पोर्ट करने के लिए कोई नया टास्क नहीं — आपका शेड्यूल पहले से अपडेट है।",

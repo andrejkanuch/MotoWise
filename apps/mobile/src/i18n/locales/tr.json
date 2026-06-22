@@ -1644,6 +1644,7 @@
     }
   },
   "oem": {
+    "disclaimer": "This information is informative only. Always verify against your owner's and service manual before performing any maintenance.",
     "importedTitle": "OEM plani iceri aktarildi",
     "importedCount": "Uretici planindan {{count}} bakim gorevi eklendi.",
     "importedNone": "Iceri aktarilacak yeni gorev yok — planin guncel.",

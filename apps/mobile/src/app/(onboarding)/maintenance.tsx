@@ -17,6 +17,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { OemDisclaimerCard } from '../../components/maintenance/oem-disclaimer-card';
 import { TaskCard } from '../../components/onboarding/maintenance/task-card';
 import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
@@ -623,6 +624,9 @@ export default function MaintenanceScreen() {
                 })}
               </View>
             )}
+
+            {/* Spec-data disclaimer (R5) — after the schedule list */}
+            <OemDisclaimerCard isDark delay={accepted.length * 50} style={{ marginTop: 4 }} />
 
             {/* Reconsider link */}
             {skipped.length > 0 && (

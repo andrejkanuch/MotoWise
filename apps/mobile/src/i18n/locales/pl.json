@@ -1646,6 +1646,7 @@
     }
   },
   "oem": {
+    "disclaimer": "Te informacje mają charakter wyłącznie informacyjny. Zawsze sprawdzaj je w instrukcji obsługi i instrukcji serwisowej przed wykonaniem jakiejkolwiek konserwacji.",
     "importedTitle": "Plan OEM zaimportowany",
     "importedCount": "Dodano {{count}} zadan serwisowych z planu producenta.",
     "importedNone": "Brak nowych zadan do importu — twoj plan jest aktualny.",

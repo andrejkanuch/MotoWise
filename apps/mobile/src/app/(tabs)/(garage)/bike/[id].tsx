@@ -44,6 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ExpensesSection } from '../../../../components/bike-hub/expenses-section';
 import { MaintenanceSection } from '../../../../components/bike-hub/maintenance-section';
 import { MileageDisplay } from '../../../../components/bike-hub/mileage-display';
+import { OemDisclaimerCard } from '../../../../components/maintenance/oem-disclaimer-card';
 import { useMileageUnit } from '../../../../hooks/use-mileage-unit';
 
 import { AnalyticsEvent, trackEvent } from '../../../../lib/analytics';
@@ -976,6 +977,11 @@ export default function BikeDetailScreen() {
             mileageUnit={mileageUnit}
           />
         </Animated.View>
+
+        {/* Spec-data disclaimer (R5) — applies to the OEM/maintenance section */}
+        <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
+          <OemDisclaimerCard isDark={isDark} delay={210} />
+        </View>
 
         {/* 5. Expenses Section */}
         <Animated.View entering={FadeInUp.delay(240).duration(400)} style={{ marginTop: 24 }}>
