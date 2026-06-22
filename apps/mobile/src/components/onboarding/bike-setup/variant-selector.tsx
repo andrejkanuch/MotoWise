@@ -1,3 +1,4 @@
+import { withAlpha } from '@motovault/design-system';
 import { MotorcycleVariant } from '@motovault/types';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
@@ -64,7 +65,9 @@ export function VariantSelector({ value, onChange, accent }: VariantSelectorProp
                 borderCurve: 'continuous',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: selected ? `${accent}24` : ONBOARDING_COLORS.surfaceInput,
+                backgroundColor: selected
+                  ? withAlpha(accent, 0.14)
+                  : ONBOARDING_COLORS.surfaceInput,
                 borderWidth: 1.5,
                 borderColor: selected ? accent : ONBOARDING_COLORS.borderSubtle,
               }}

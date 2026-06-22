@@ -7,8 +7,10 @@ import { Field, ID, InputType } from '@nestjs/graphql';
  */
 @InputType()
 export class ApproveMaintenanceDraftInput {
+  // Narrowed to the literal union (emits `String` in the schema; Zod is the runtime guard) so the
+  // service call needs no unsafe cast.
   @Field()
-  kind: string;
+  kind: 'schedule' | 'spec';
 
   @Field(() => ID)
   id: string;

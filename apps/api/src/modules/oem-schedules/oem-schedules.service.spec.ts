@@ -86,13 +86,53 @@ describe('OemSchedulesService — verification gate', () => {
     }
   });
 
-  it('queries the variant tier first when a variant is supplied', async () => {
+  it('queries the variant-specific rows (gated) when a variant is supplied', async () => {
     const service = serviceWith(() => ({ data: [], error: null }));
     await service.findByMotorcycle('HONDA', 'CRF1100', null, null, 'DCT');
 
-    const first = queries.find((q) => q.table === 'oem_maintenance_schedules');
-    expect(first?.filters).toContainEqual({ column: 'variant', value: 'DCT' });
-    expect(first?.filters).toContainEqual(GATE);
+    const variantQuery = queries.find(
+      (q) =>
+        q.table === 'oem_maintenance_schedules' &&
+        q.filters.some((f) => f.column === 'variant' && f.value === 'DCT'),
+    );
+    expect(variantQuery).toBeDefined();
+    expect(variantQuery?.filters).toContainEqual(GATE);
+  });
+
+  it('merges variant-specific rows over the variant-null baseline (variant wins, baseline kept)', async () => {
+    // Baseline (variant IS NULL) has oil + chain; the DCT variant overrides "oil change" and
+    // adds a DCT-only task. A DCT bike must get the DCT oil row + the DCT task + the baseline
+    // chain row (audit P2: a variant hit must not hide baseline tasks).
+    const service = serviceWith((q) => {
+      if (q.table !== 'oem_maintenance_schedules') return { data: [], error: null };
+      const isVariant = q.filters.some((f) => f.column === 'variant' && f.value === 'DCT');
+      if (isVariant) {
+        return {
+          data: [
+            { id: 'v1', make: 'HONDA', task_name: 'Oil change', sort_order: 1, priority: 'high' },
+            { id: 'v2', make: 'HONDA', task_name: 'DCT fluid', sort_order: 3, priority: 'high' },
+          ],
+          error: null,
+        };
+      }
+      const isBaselineModel = q.filters.some((f) => f.column === 'variant' && f.value === null);
+      if (isBaselineModel) {
+        return {
+          data: [
+            { id: 'b1', make: 'HONDA', task_name: 'Oil change', sort_order: 1, priority: 'low' },
+            { id: 'b2', make: 'HONDA', task_name: 'Chain', sort_order: 2, priority: 'medium' },
+          ],
+          error: null,
+        };
+      }
+      return { data: [], error: null };
+    });
+
+    const result = await service.findByMotorcycle('HONDA', 'CRF1100', null, null, 'DCT');
+    const byTask = Object.fromEntries(result.map((r) => [r.taskName, r]));
+    expect(Object.keys(byTask).sort()).toEqual(['Chain', 'DCT fluid', 'Oil change']);
+    expect(byTask['Oil change'].id).toBe('v1'); // variant row won the conflict
+    expect(byTask.Chain.id).toBe('b2'); // baseline-only task preserved
   });
 
   it('gates the scheduleIdFilter PK branch so an unverified draft id cannot be imported', async () => {

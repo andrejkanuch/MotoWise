@@ -1,9 +1,10 @@
 import { ApproveMaintenanceDraftInputSchema } from '@motovault/types';
-import { Inject } from '@nestjs/common';
+import { Inject, UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -12,6 +13,10 @@ import { MaintenanceDraftReview } from './models/maintenance-draft.model';
 import { OemSchedule } from './models/oem-schedule.model';
 import { OemSchedulesService } from './oem-schedules.service';
 
+// Explicit auth guard (redundant with the global APP_GUARD but makes the protected status
+// machine-readable for the resolver-auth audit). Admin-only methods additionally enforce a
+// DB role check in the service (assertAdmin) — the guard alone does not gate admin access.
+@UseGuards(GqlAuthGuard)
 @Resolver(() => OemSchedule)
 export class OemSchedulesResolver {
   constructor(
@@ -120,7 +125,7 @@ export class OemSchedulesResolver {
     input: ApproveMaintenanceDraftInput,
   ): Promise<boolean> {
     return this.oemSchedulesService.approveMaintenanceDraft(user.id, {
-      kind: input.kind as 'schedule' | 'spec',
+      kind: input.kind,
       id: input.id,
     });
   }

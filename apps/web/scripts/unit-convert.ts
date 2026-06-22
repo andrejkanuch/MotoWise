@@ -15,15 +15,13 @@
  * spec whose round-tripped value drifts beyond a stated per-type tolerance — that
  * spec's DISPLAYED imperial needs human review before it ships.
  *
- * No imports — kept self-contained so it is trivially unit-testable and so a
- * standalone `tsx` script can import it without app path-alias resolution.
+ * Only a type-only import (erased at runtime) — kept otherwise self-contained so it is
+ * trivially unit-testable and a standalone `tsx` script can import it.
  */
 
-// Spec types that carry a per-spec_type rounding rule. Mirrors
-// MaintenanceSpecType in @motovault/types (kept inline to avoid cross-package
-// alias resolution from a standalone script). Distance is handled separately
-// because interval rows are not specs.
-export type ImperialSpecType = 'torque' | 'valve_clearance' | 'capacity' | 'pressure' | 'plug_gap';
+// Spec types that carry a per-spec_type rounding rule — the shared union from @motovault/types
+// (distance is handled separately because interval rows are not specs).
+import type { MaintenanceSpecType } from '@motovault/types';
 
 export interface ImperialResult {
   /** Converted + rounded imperial magnitude. */
@@ -75,7 +73,7 @@ interface SpecRule {
   metricTolerance: number;
 }
 
-const SPEC_RULES: Record<ImperialSpecType, SpecRule> = {
+const SPEC_RULES: Record<MaintenanceSpecType, SpecRule> = {
   // Torque: 1 decimal lb-ft. Tight tolerance — over-torque is a fastener risk.
   torque: {
     toImperial: (nm) => nm / NM_PER_LBFT,
@@ -122,7 +120,10 @@ const SPEC_RULES: Record<ImperialSpecType, SpecRule> = {
  * Convert a metric spec value to its rounded imperial display, with the
  * round-trip tolerance check. Pure.
  */
-export function convertSpecToImperial(specType: ImperialSpecType, metric: number): ImperialResult {
+export function convertSpecToImperial(
+  specType: MaintenanceSpecType,
+  metric: number,
+): ImperialResult {
   const rule = SPEC_RULES[specType];
   const rounded = rule.round(rule.toImperial(metric));
   const roundTripMetric = rule.backToMetric(rounded);

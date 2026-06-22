@@ -1,4 +1,4 @@
-import { palette } from '@motovault/design-system';
+import { palette, withAlpha } from '@motovault/design-system';
 import {
   DeleteMotorcycleDocument,
   MotorcycleMakesDocument,
@@ -926,7 +926,7 @@ export default function EditBikeScreen() {
                           alignItems: 'center',
                           justifyContent: 'center',
                           backgroundColor: selected
-                            ? `${theme.warm}24`
+                            ? withAlpha(theme.warm, 0.14)
                             : isDark
                               ? palette.neutral800
                               : palette.neutral100,

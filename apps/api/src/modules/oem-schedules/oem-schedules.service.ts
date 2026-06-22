@@ -50,6 +50,43 @@ export class OemSchedulesService {
     return data;
   }
 
+  /** Fetch verified model-level rows for a specific variant (`null` = the variant-agnostic baseline). */
+  private async queryModelRows(
+    makeUpper: string,
+    model: string,
+    variant: string | null,
+    year: number | null,
+  ): Promise<Record<string, unknown>[]> {
+    let query = this.verifiedSchedules().eq('make', makeUpper).eq('model', model);
+    query = variant === null ? query.is('variant', null) : query.eq('variant', variant);
+    query = this.applyYearRange(query, year);
+    const { data, error } = await query.order('sort_order', { ascending: true });
+    if (error) {
+      this.logger.error(
+        `Failed to fetch OEM schedules (model${variant ? `+${variant}` : ' baseline'})`,
+        error.message,
+      );
+    }
+    return data ?? [];
+  }
+
+  /**
+   * Merge variant-specific rows over the variant-agnostic baseline by `task_name` (variant wins),
+   * preserving baseline tasks that have no variant entry. Result is ordered by `sort_order`.
+   */
+  private mergeRowsByTaskName(
+    baseline: Record<string, unknown>[],
+    variantRows: Record<string, unknown>[],
+  ): Record<string, unknown>[] {
+    if (variantRows.length === 0) return baseline;
+    const byTask = new Map<string, Record<string, unknown>>();
+    for (const row of baseline) byTask.set(row.task_name as string, row);
+    for (const row of variantRows) byTask.set(row.task_name as string, row); // variant overrides
+    return [...byTask.values()].sort(
+      (a, b) => ((a.sort_order as number) ?? 0) - ((b.sort_order as number) ?? 0),
+    );
+  }
+
   /**
    * Resolve OEM schedules via the verified waterfall (gate applied per-row in every tier):
    *   1. verified make + model + variant   (only when a variant is supplied)
@@ -81,29 +118,15 @@ export class OemSchedulesService {
         this.filterByEngine(rows, engineCc).map((row) => this.mapRow(row)),
       );
 
-    // Tier 1: verified make + model + variant
-    if (model && variant) {
-      let query = this.verifiedSchedules()
-        .eq('make', makeUpper)
-        .eq('model', model)
-        .eq('variant', variant);
-      query = this.applyYearRange(query, year);
-      const { data, error } = await query.order('sort_order', { ascending: true });
-      if (error)
-        this.logger.error('Failed to fetch OEM schedules (tier 1: variant)', error.message);
-      if (data && data.length > 0) return finalize(data);
-    }
-
-    // Tier 2: verified make + model, variant-agnostic rows (variant IS NULL)
+    // Model level (tier 1 + tier 2 merged): variant-specific rows OVERRIDE variant-agnostic
+    // (variant IS NULL) baseline rows per task_name, but baseline tasks WITHOUT a variant-specific
+    // entry are still included — so a DCT bike gets its DCT-specific rows AND keeps generic tasks.
+    // (Audit P2: a variant hit must not short-circuit and hide the variant-null baseline.)
     if (model) {
-      let query = this.verifiedSchedules()
-        .eq('make', makeUpper)
-        .eq('model', model)
-        .is('variant', null);
-      query = this.applyYearRange(query, year);
-      const { data, error } = await query.order('sort_order', { ascending: true });
-      if (error) this.logger.error('Failed to fetch OEM schedules (tier 2: model)', error.message);
-      if (data && data.length > 0) return finalize(data);
+      const baseline = await this.queryModelRows(makeUpper, model, null, year);
+      const variantRows = variant ? await this.queryModelRows(makeUpper, model, variant, year) : [];
+      const merged = this.mergeRowsByTaskName(baseline, variantRows);
+      if (merged.length > 0) return finalize(merged);
     }
 
     // Tier 3: make-generic baseline (model IS NULL)
@@ -278,7 +301,14 @@ export class OemSchedulesService {
     };
   }
 
-  /** Approve a single draft row (per-row; bulk non-critical = N calls from the UI). */
+  /**
+   * Approve a single draft row (per-row; bulk non-critical = N calls from the UI).
+   *
+   * RLS-footgun exception (documented per CLAUDE.md Supabase Client Rules): this write uses
+   * SUPABASE_ADMIN because `oem_maintenance_schedules`/`motorcycle_specs` are reference tables
+   * with deny-all RLS (service-role-only) — there is no user-owned RLS author check to bypass.
+   * Authorization is enforced app-layer by `assertAdmin` (a DB role check) above.
+   */
   async approveMaintenanceDraft(
     userId: string,
     input: ApproveMaintenanceDraftInput,
@@ -286,6 +316,8 @@ export class OemSchedulesService {
     await this.assertAdmin(userId);
 
     const table = input.kind === 'spec' ? 'motorcycle_specs' : 'oem_maintenance_schedules';
+    // `is_verified = false` guard makes re-approving a no-op-by-rejection (a second concurrent
+    // approve matches no pending row) so verified_by/verified_at are stamped exactly once.
     const { data, error } = await this.supabase
       .from(table)
       .update({
@@ -294,6 +326,7 @@ export class OemSchedulesService {
         verified_at: new Date().toISOString(),
       })
       .eq('id', input.id)
+      .eq('is_verified', false)
       .select('id')
       .single();
 

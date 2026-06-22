@@ -1,5 +1,5 @@
+import { findDigitViolations, isDigitFreeNarrative } from '@motovault/types';
 import { describe, expect, it } from 'vitest';
-import { findDigitViolations, isDigitFreeNarrative } from './article-generator.service';
 
 /**
  * No-digit guard (KTD 5) — allowlist, not unit denylist. Any standalone digit

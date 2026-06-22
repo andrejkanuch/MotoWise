@@ -1,4 +1,9 @@
-import { ArticleContentSchema } from '@motovault/types';
+import {
+  ArticleContentSchema,
+  findDigitViolations,
+  type MaintenanceNarrative,
+  MaintenanceNarrativeSchema,
+} from '@motovault/types';
 import type { Tables } from '@motovault/types/database';
 import {
   BadRequestException,
@@ -45,72 +50,9 @@ const TOPIC_CLASSIFIER_MODEL = AI_MODELS.TOPIC_CLASSIFIER;
 // or hyphenated forms — verified against the existing CBR article. The narrative
 // must refer to tables generically ("see the schedule below").
 
-/** Matches any decimal digit (Unicode-aware). The single source of truth for the no-digit rule. */
-const DIGIT_PATTERN = /\d/u;
-
-/**
- * Pure predicate: true when `value` is safe to use as maintenance-narrative
- * prose — i.e. it contains NO standalone digit. Exported for unit testing
- * against the KTD-5 reject/accept fixtures.
- *
- * This is an allowlist (digit-free passes) rather than a unit denylist, because
- * a denylist cannot enumerate every numeric form (`10W-30`, `4.8 L`, `3.4
- * quarts`, `every 16,000 km`, `8,000-mile interval`, `0.20–0.24 mm`, `kPa`,
- * `34 Nm`, `2 years`, …). Any digit at all = rejected.
- */
-export function isDigitFreeNarrative(value: string): boolean {
-  return !DIGIT_PATTERN.test(value);
-}
-
-/**
- * Walks every string field of a narrative payload and returns the dotted paths
- * of fields that contain a digit. Empty array = the whole narrative is clean.
- * Pure + recursion-based so nested arrays/objects (sections, key takeaways) are
- * all covered, not just the top level.
- */
-export function findDigitViolations(payload: unknown, path = ''): string[] {
-  if (typeof payload === 'string') {
-    return isDigitFreeNarrative(payload) ? [] : [path || '(root)'];
-  }
-  if (Array.isArray(payload)) {
-    return payload.flatMap((item, i) => findDigitViolations(item, `${path}[${i}]`));
-  }
-  if (payload && typeof payload === 'object') {
-    return Object.entries(payload).flatMap(([key, val]) =>
-      findDigitViolations(val, path ? `${path}.${key}` : key),
-    );
-  }
-  return [];
-}
-
-// Narrative-only schema: PROSE sections, key takeaways, intro — and NO numeric
-// or interval fields at all (KTD 5). zodResponseFormat-compatible (no .optional/
-// .refine). The digit guard runs after parsing, not as a Zod refinement, so it
-// can be unit-tested as a pure function and report exact field paths.
-const MaintenanceNarrativeSchema = z.object({
-  intro: z
-    .string()
-    .describe(
-      'Opening prose for a motorcycle maintenance article. Mention NO numbers — refer to schedules generically (e.g. "see the schedule below").',
-    ),
-  diyVsDealer: z
-    .string()
-    .describe('Prose comparing DIY vs dealer servicing. NO numbers, costs, intervals, or units.'),
-  ownershipNotes: z
-    .string()
-    .describe('Prose on living with and caring for the bike. NO numbers of any kind.'),
-  sections: z
-    .array(
-      z.object({
-        heading: z.string().describe('Section heading — NO numbers.'),
-        body: z.string().describe('Section body prose — NO numbers, intervals, or units.'),
-      }),
-    )
-    .describe('2-4 additional prose sections, no numbers anywhere.'),
-  keyTakeaways: z.array(z.string()).describe('3-5 takeaways as prose — NO numbers.'),
-});
-
-export type MaintenanceNarrative = z.infer<typeof MaintenanceNarrativeSchema>;
+// The no-digit guard (`findDigitViolations`/`isDigitFreeNarrative`) and
+// `MaintenanceNarrativeSchema` now live in `@motovault/types` so the web build-time MDX
+// generator enforces the identical rule at its write boundary (imported above).
 
 // zodResponseFormat-compatible schema (no .optional(), no .refine())
 const ArticleAiResponseSchema = z.object({

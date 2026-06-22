@@ -42,8 +42,14 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import {
+  findDigitViolations,
+  type MaintenanceNarrative,
+  MaintenanceNarrativeSchema,
+  type MaintenanceSpecType,
+} from '@motovault/types';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { convertKmToMiles, convertSpecToImperial, type ImperialSpecType } from './unit-convert';
+import { convertKmToMiles, convertSpecToImperial } from './unit-convert';
 
 // --- Pilot constants ---------------------------------------------------------
 
@@ -62,7 +68,7 @@ const TABLES_END = '<!-- SPEC_TABLES_END -->';
 
 // Imperial display is only derived for known spec types; an unknown type is
 // rendered metric-only rather than guessing a conversion.
-const IMPERIAL_SPEC_TYPES = new Set<ImperialSpecType>([
+const IMPERIAL_SPEC_TYPES = new Set<MaintenanceSpecType>([
   'torque',
   'valve_clearance',
   'capacity',
@@ -70,15 +76,8 @@ const IMPERIAL_SPEC_TYPES = new Set<ImperialSpecType>([
   'plug_gap',
 ]);
 
-// --- Narrative shape (produced by the API narrative-only LLM path) -----------
-
-interface MaintenanceNarrative {
-  intro: string;
-  diyVsDealer: string;
-  ownershipNotes: string;
-  sections: { heading: string; body: string }[];
-  keyTakeaways: string[];
-}
+// Narrative shape (`MaintenanceNarrative`) is imported from @motovault/types — the same schema
+// the API narrative path produces, so loadNarrative can validate + digit-guard it (see below).
 
 // Minimal row shapes — only the columns this script reads.
 interface ScheduleRow {
@@ -184,8 +183,8 @@ function buildSpecTable(rows: SpecRow[]): { md: string; outOfTolerance: string[]
     // Metric display prefers the verbatim manual string the human verified.
     const metric = r.value_display?.trim() || `${r.value_numeric} ${r.unit}`;
     let imperial = '—';
-    if (IMPERIAL_SPEC_TYPES.has(r.spec_type as ImperialSpecType)) {
-      const conv = convertSpecToImperial(r.spec_type as ImperialSpecType, r.value_numeric);
+    if (IMPERIAL_SPEC_TYPES.has(r.spec_type as MaintenanceSpecType)) {
+      const conv = convertSpecToImperial(r.spec_type as MaintenanceSpecType, r.value_numeric);
       imperial = `${conv.value} ${conv.unit}`;
       // KTD 7: flag any spec whose displayed imperial drifted beyond tolerance —
       // it needs human review before shipping. Safety-critical drift is fatal.
@@ -336,7 +335,17 @@ function loadNarrative(): MaintenanceNarrative {
         'tables + merges prose; it never writes prose itself.',
     );
   }
-  const parsed = JSON.parse(readFileSync(path, 'utf-8')) as MaintenanceNarrative;
+  // Validate the JSON against the shared schema, then re-run the no-digit guard HERE — the
+  // write boundary — not just at API generation time. A hand-edited or stale narrative JSON
+  // with a stray number would otherwise bake a digit into the live MDX (KTD 5).
+  const parsed = MaintenanceNarrativeSchema.parse(JSON.parse(readFileSync(path, 'utf-8')));
+  const violations = findDigitViolations(parsed);
+  if (violations.length > 0) {
+    throw new Error(
+      `Narrative contains digits at: ${violations.join(', ')}. Numbers must come only from the ` +
+        'dataset-driven tables (KTD 5). Regenerate the narrative; do not hand-edit numbers in.',
+    );
+  }
   return parsed;
 }
 

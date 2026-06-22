@@ -82,7 +82,10 @@ export class MotorcyclesResolver {
         motorcycle.make,
         motorcycle.model ?? null,
         motorcycle.year ?? null,
-        null,
+        null, // engineCc
+        0, // currentMileage
+        undefined, // scheduleIdFilter
+        motorcycle.variant ?? null,
       );
     } catch (err) {
       // Don't fail motorcycle creation if auto-populate fails
