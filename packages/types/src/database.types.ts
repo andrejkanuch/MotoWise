@@ -1228,6 +1228,45 @@ export type Database = {
           },
         ]
       }
+      maintenance_data_sources: {
+        Row: {
+          created_at: string
+          edition_language: string | null
+          id: string
+          market_applicability: string | null
+          reference: string | null
+          retrieved_at: string
+          source_type: string
+          source_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          edition_language?: string | null
+          id?: string
+          market_applicability?: string | null
+          reference?: string | null
+          retrieved_at?: string
+          source_type: string
+          source_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          edition_language?: string | null
+          id?: string
+          market_applicability?: string | null
+          reference?: string | null
+          retrieved_at?: string
+          source_type?: string
+          source_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       maintenance_task_photos: {
         Row: {
           created_at: string
@@ -1430,6 +1469,97 @@ export type Database = {
         }
         Relationships: []
       }
+      motorcycle_specs: {
+        Row: {
+          created_at: string
+          id: string
+          is_safety_critical: boolean
+          is_verified: boolean
+          make: string
+          model: string | null
+          source_context: string | null
+          source_id: string | null
+          source_page: string | null
+          spec_name: string
+          spec_type: string
+          unit: string
+          updated_at: string
+          value_display: string | null
+          value_numeric: number
+          variant: string | null
+          verified_at: string | null
+          verified_by: string | null
+          year_from: number | null
+          year_to: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_safety_critical?: boolean
+          is_verified?: boolean
+          make: string
+          model?: string | null
+          source_context?: string | null
+          source_id?: string | null
+          source_page?: string | null
+          spec_name: string
+          spec_type: string
+          unit: string
+          updated_at?: string
+          value_display?: string | null
+          value_numeric: number
+          variant?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_safety_critical?: boolean
+          is_verified?: boolean
+          make?: string
+          model?: string | null
+          source_context?: string | null
+          source_id?: string | null
+          source_page?: string | null
+          spec_name?: string
+          spec_type?: string
+          unit?: string
+          updated_at?: string
+          value_display?: string | null
+          value_numeric?: number
+          variant?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "motorcycle_specs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_data_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "motorcycle_specs_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "motorcycle_specs_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       motorcycles: {
         Row: {
           created_at: string
@@ -1536,124 +1666,6 @@ export type Database = {
           },
         ]
       }
-      // BRIDGE (migration 00149, U1): hand-authored until `pnpm generate:types` is run
-      // after pushing 00149. Regeneration overwrites this whole file.
-      maintenance_data_sources: {
-        Row: {
-          created_at: string
-          edition_language: string | null
-          id: string
-          market_applicability: string | null
-          reference: string | null
-          retrieved_at: string
-          source_type: string
-          source_url: string | null
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          edition_language?: string | null
-          id?: string
-          market_applicability?: string | null
-          reference?: string | null
-          retrieved_at?: string
-          source_type: string
-          source_url?: string | null
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          edition_language?: string | null
-          id?: string
-          market_applicability?: string | null
-          reference?: string | null
-          retrieved_at?: string
-          source_type?: string
-          source_url?: string | null
-          title?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      motorcycle_specs: {
-        Row: {
-          created_at: string
-          id: string
-          is_safety_critical: boolean
-          is_verified: boolean
-          make: string
-          model: string | null
-          source_context: string | null
-          source_id: string | null
-          source_page: string | null
-          spec_name: string
-          spec_type: string
-          unit: string
-          updated_at: string
-          value_display: string | null
-          value_numeric: number
-          variant: string | null
-          verified_at: string | null
-          verified_by: string | null
-          year_from: number | null
-          year_to: number | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_safety_critical?: boolean
-          is_verified?: boolean
-          make: string
-          model?: string | null
-          source_context?: string | null
-          source_id?: string | null
-          source_page?: string | null
-          spec_name: string
-          spec_type: string
-          unit: string
-          updated_at?: string
-          value_display?: string | null
-          value_numeric: number
-          variant?: string | null
-          verified_at?: string | null
-          verified_by?: string | null
-          year_from?: number | null
-          year_to?: number | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_safety_critical?: boolean
-          is_verified?: boolean
-          make?: string
-          model?: string | null
-          source_context?: string | null
-          source_id?: string | null
-          source_page?: string | null
-          spec_name?: string
-          spec_type?: string
-          unit?: string
-          updated_at?: string
-          value_display?: string | null
-          value_numeric?: number
-          variant?: string | null
-          verified_at?: string | null
-          verified_by?: string | null
-          year_from?: number | null
-          year_to?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "motorcycle_specs_source_id_fkey"
-            columns: ["source_id"]
-            isOneToOne: false
-            referencedRelation: "maintenance_data_sources"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       oem_maintenance_schedules: {
         Row: {
           created_at: string
@@ -1736,6 +1748,20 @@ export type Database = {
             columns: ["source_id"]
             isOneToOne: false
             referencedRelation: "maintenance_data_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oem_maintenance_schedules_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oem_maintenance_schedules_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -3989,6 +4015,10 @@ export type Database = {
       earth: { Args: never; Returns: number }
       enablelongtransactions: { Args: never; Returns: string }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      expense_dashboard_aggregates: {
+        Args: { p_motorcycle_id: string }
+        Returns: Json
+      }
       find_nearest_place: {
         Args: { p_kind?: string; p_lat: number; p_lng: number }
         Returns: {
@@ -4226,6 +4256,18 @@ export type Database = {
       reorder_trip_waypoints: {
         Args: { p_trip_id: string; p_waypoint_ids: string[] }
         Returns: undefined
+      }
+      replace_trip_waypoints: {
+        Args: { p_trip_id: string; p_waypoints: Json }
+        Returns: undefined
+      }
+      reserve_ai_generation: {
+        Args: {
+          p_content_type: string
+          p_daily_limit: number
+          p_user_id: string
+        }
+        Returns: string
       }
       resolve_trip_by_token: { Args: { p_token: string }; Returns: Json }
       rotate_trip_share_token: { Args: { p_trip_id: string }; Returns: string }
@@ -4821,6 +4863,8 @@ export type Database = {
         Args: { geom: unknown; move: number; wrap: number }
         Returns: unknown
       }
+      track_sponsorship_click: { Args: { p_id: string }; Returns: boolean }
+      track_sponsorship_impression: { Args: { p_id: string }; Returns: boolean }
       trip_is_public: { Args: { p_trip_id: string }; Returns: boolean }
       typeahead_search: {
         Args: { result_limit?: number; search_term: string }
