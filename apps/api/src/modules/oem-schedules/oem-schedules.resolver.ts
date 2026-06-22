@@ -1,6 +1,6 @@
+import { ApproveMaintenanceDraftInputSchema } from '@motovault/types';
 import { Inject } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { ApproveMaintenanceDraftInputSchema } from '@motovault/types';
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';

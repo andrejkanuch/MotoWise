@@ -59,8 +59,7 @@ export function isSpecValueInRange(draft: ExtractedSpecDraft): boolean {
 // --- Admin approve input (U3) -----------------------------------------------
 // One draft table per row; the mutation approves a single id (bulk non-critical = N calls).
 export const MaintenanceDraftKind = { SCHEDULE: 'schedule', SPEC: 'spec' } as const;
-export type MaintenanceDraftKind =
-  (typeof MaintenanceDraftKind)[keyof typeof MaintenanceDraftKind];
+export type MaintenanceDraftKind = (typeof MaintenanceDraftKind)[keyof typeof MaintenanceDraftKind];
 
 export const ApproveMaintenanceDraftInputSchema = z.object({
   kind: z.enum(['schedule', 'spec']),

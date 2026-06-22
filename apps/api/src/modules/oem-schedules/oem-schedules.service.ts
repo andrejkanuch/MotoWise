@@ -1,3 +1,4 @@
+import type { ApproveMaintenanceDraftInput } from '@motovault/types';
 import {
   BadRequestException,
   ForbiddenException,
@@ -7,7 +8,6 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import type { ApproveMaintenanceDraftInput } from '@motovault/types';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { GqlMaintenancePriority } from '../../common/enums/graphql-enums';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
@@ -34,10 +34,7 @@ export class OemSchedulesService {
    * branch build on this, so the gate can never drift across paths.
    */
   private verifiedSchedules() {
-    return this.supabase
-      .from('oem_maintenance_schedules')
-      .select('*')
-      .eq('is_verified', true);
+    return this.supabase.from('oem_maintenance_schedules').select('*').eq('is_verified', true);
   }
 
   /** Year-range predicate shared by the model-level tiers. */
@@ -92,7 +89,8 @@ export class OemSchedulesService {
         .eq('variant', variant);
       query = this.applyYearRange(query, year);
       const { data, error } = await query.order('sort_order', { ascending: true });
-      if (error) this.logger.error('Failed to fetch OEM schedules (tier 1: variant)', error.message);
+      if (error)
+        this.logger.error('Failed to fetch OEM schedules (tier 1: variant)', error.message);
       if (data && data.length > 0) return finalize(data);
     }
 
@@ -287,8 +285,7 @@ export class OemSchedulesService {
   ): Promise<boolean> {
     await this.assertAdmin(userId);
 
-    const table =
-      input.kind === 'spec' ? 'motorcycle_specs' : 'oem_maintenance_schedules';
+    const table = input.kind === 'spec' ? 'motorcycle_specs' : 'oem_maintenance_schedules';
     const { data, error } = await this.supabase
       .from(table)
       .update({
