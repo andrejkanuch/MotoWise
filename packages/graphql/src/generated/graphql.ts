@@ -32,6 +32,41 @@ export type AddTaskPhotoInput = {
   taskId: Scalars['String']['input'];
 };
 
+export type AdminMotorcycleSpecDraft = {
+  __typename?: 'AdminMotorcycleSpecDraft';
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  isSafetyCritical: Scalars['Boolean']['output'];
+  make: Scalars['String']['output'];
+  model?: Maybe<Scalars['String']['output']>;
+  sourceContext?: Maybe<Scalars['String']['output']>;
+  sourcePage?: Maybe<Scalars['String']['output']>;
+  sourceTitle?: Maybe<Scalars['String']['output']>;
+  specName: Scalars['String']['output'];
+  specType: Scalars['String']['output'];
+  unit: Scalars['String']['output'];
+  valueDisplay?: Maybe<Scalars['String']['output']>;
+  valueNumeric: Scalars['Float']['output'];
+  variant?: Maybe<Scalars['String']['output']>;
+};
+
+export type AdminOemScheduleDraft = {
+  __typename?: 'AdminOemScheduleDraft';
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  intervalDays?: Maybe<Scalars['Int']['output']>;
+  intervalKm?: Maybe<Scalars['Int']['output']>;
+  isSafetyCritical: Scalars['Boolean']['output'];
+  make: Scalars['String']['output'];
+  model?: Maybe<Scalars['String']['output']>;
+  priority: MaintenancePriority;
+  sourceContext?: Maybe<Scalars['String']['output']>;
+  sourcePage?: Maybe<Scalars['String']['output']>;
+  sourceTitle?: Maybe<Scalars['String']['output']>;
+  taskName: Scalars['String']['output'];
+  variant?: Maybe<Scalars['String']['output']>;
+};
+
 /** Affiliate partner for product recommendations */
 export enum AffiliatePartner {
   Amazon = 'amazon',
@@ -53,6 +88,11 @@ export type AiBudgetStatus = {
   dailySpendCapCents: Scalars['Int']['output'];
   todayGenerationCount: Scalars['Int']['output'];
   todaySpendCents: Scalars['Int']['output'];
+};
+
+export type ApproveMaintenanceDraftInput = {
+  id: Scalars['ID']['input'];
+  kind: Scalars['String']['input'];
 };
 
 export type Article = {
@@ -770,6 +810,12 @@ export type LogExpenseInput = {
   motorcycleId: Scalars['String']['input'];
 };
 
+export type MaintenanceDraftReview = {
+  __typename?: 'MaintenanceDraftReview';
+  schedules: Array<AdminOemScheduleDraft>;
+  specs: Array<AdminMotorcycleSpecDraft>;
+};
+
 export enum MaintenancePriority {
   Critical = 'critical',
   High = 'high',
@@ -917,6 +963,7 @@ export type Mutation = {
   addExpensePhoto: ExpensePhoto;
   addTaskPhoto: TaskPhoto;
   addWaypoint: TripWaypoint;
+  approveMaintenanceDraft: Scalars['Boolean']['output'];
   askTripAssistant: TripAssistantMessage;
   cancelGroupRide: Scalars['Boolean']['output'];
   /** Returns the new trip ID */
@@ -1020,6 +1067,11 @@ export type MutationAddTaskPhotoArgs = {
 
 export type MutationAddWaypointArgs = {
   input: CreateWaypointInput;
+};
+
+
+export type MutationApproveMaintenanceDraftArgs = {
+  input: ApproveMaintenanceDraftInput;
 };
 
 
@@ -1583,6 +1635,7 @@ export type Query = {
   groupRideDetail: GroupRide;
   isTripSaved: Scalars['Boolean']['output'];
   kudosList: Array<KudosUser>;
+  maintenanceDraftReview: MaintenanceDraftReview;
   maintenanceTaskHistory: Array<MaintenanceTask>;
   maintenanceTasks: Array<MaintenanceTask>;
   /** Aggregated fleet stats per motorcycle make (riders, models, total bikes) */
@@ -1818,6 +1871,7 @@ export type QueryOemSchedulesForBikeArgs = {
 export type QueryOemSchedulesPreviewArgs = {
   make: Scalars['String']['input'];
   model?: InputMaybe<Scalars['String']['input']>;
+  variant?: InputMaybe<Scalars['String']['input']>;
   year?: InputMaybe<Scalars['Int']['input']>;
 };
 

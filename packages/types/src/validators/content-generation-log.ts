@@ -1,7 +1,13 @@
 import { z } from 'zod';
 
 export const ContentGenerationLogSchema = z.object({
-  contentType: z.enum(['article', 'quiz', 'diagnostic_response']),
+  contentType: z.enum([
+    'article',
+    'quiz',
+    'diagnostic_response',
+    'maintenance_extraction',
+    'maintenance_narrative',
+  ]),
   contentId: z.string().uuid().optional(),
   inputTokens: z.number().int().min(0).optional(),
   outputTokens: z.number().int().min(0).optional(),

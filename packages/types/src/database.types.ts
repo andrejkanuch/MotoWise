@@ -1454,6 +1454,7 @@ export type Database = {
           type: Database["public"]["Enums"]["motorcycle_type"] | null
           updated_at: string
           user_id: string
+          variant: string | null
           vin: string | null
           year: number
         }
@@ -1480,6 +1481,7 @@ export type Database = {
           type?: Database["public"]["Enums"]["motorcycle_type"] | null
           updated_at?: string
           user_id: string
+          variant?: string | null
           vin?: string | null
           year: number
         }
@@ -1506,6 +1508,7 @@ export type Database = {
           type?: Database["public"]["Enums"]["motorcycle_type"] | null
           updated_at?: string
           user_id?: string
+          variant?: string | null
           vin?: string | null
           year?: number
         }
@@ -1533,6 +1536,124 @@ export type Database = {
           },
         ]
       }
+      // BRIDGE (migration 00149, U1): hand-authored until `pnpm generate:types` is run
+      // after pushing 00149. Regeneration overwrites this whole file.
+      maintenance_data_sources: {
+        Row: {
+          created_at: string
+          edition_language: string | null
+          id: string
+          market_applicability: string | null
+          reference: string | null
+          retrieved_at: string
+          source_type: string
+          source_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          edition_language?: string | null
+          id?: string
+          market_applicability?: string | null
+          reference?: string | null
+          retrieved_at?: string
+          source_type: string
+          source_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          edition_language?: string | null
+          id?: string
+          market_applicability?: string | null
+          reference?: string | null
+          retrieved_at?: string
+          source_type?: string
+          source_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      motorcycle_specs: {
+        Row: {
+          created_at: string
+          id: string
+          is_safety_critical: boolean
+          is_verified: boolean
+          make: string
+          model: string | null
+          source_context: string | null
+          source_id: string | null
+          source_page: string | null
+          spec_name: string
+          spec_type: string
+          unit: string
+          updated_at: string
+          value_display: string | null
+          value_numeric: number
+          variant: string | null
+          verified_at: string | null
+          verified_by: string | null
+          year_from: number | null
+          year_to: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_safety_critical?: boolean
+          is_verified?: boolean
+          make: string
+          model?: string | null
+          source_context?: string | null
+          source_id?: string | null
+          source_page?: string | null
+          spec_name: string
+          spec_type: string
+          unit: string
+          updated_at?: string
+          value_display?: string | null
+          value_numeric: number
+          variant?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_safety_critical?: boolean
+          is_verified?: boolean
+          make?: string
+          model?: string | null
+          source_context?: string | null
+          source_id?: string | null
+          source_page?: string | null
+          spec_name?: string
+          spec_type?: string
+          unit?: string
+          updated_at?: string
+          value_display?: string | null
+          value_numeric?: number
+          variant?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "motorcycle_specs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       oem_maintenance_schedules: {
         Row: {
           created_at: string
@@ -1543,11 +1664,19 @@ export type Database = {
           id: string
           interval_days: number | null
           interval_km: number | null
+          is_safety_critical: boolean
+          is_verified: boolean
           make: string
           model: string | null
           priority: string
           sort_order: number | null
+          source_context: string | null
+          source_id: string | null
+          source_page: string | null
           task_name: string
+          variant: string | null
+          verified_at: string | null
+          verified_by: string | null
           year_from: number | null
           year_to: number | null
         }
@@ -1560,11 +1689,19 @@ export type Database = {
           id?: string
           interval_days?: number | null
           interval_km?: number | null
+          is_safety_critical?: boolean
+          is_verified?: boolean
           make: string
           model?: string | null
           priority?: string
           sort_order?: number | null
+          source_context?: string | null
+          source_id?: string | null
+          source_page?: string | null
           task_name: string
+          variant?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
           year_from?: number | null
           year_to?: number | null
         }
@@ -1577,15 +1714,31 @@ export type Database = {
           id?: string
           interval_days?: number | null
           interval_km?: number | null
+          is_safety_critical?: boolean
+          is_verified?: boolean
           make?: string
           model?: string | null
           priority?: string
           sort_order?: number | null
+          source_context?: string | null
+          source_id?: string | null
+          source_page?: string | null
           task_name?: string
+          variant?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
           year_from?: number | null
           year_to?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "oem_maintenance_schedules_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       places: {
         Row: {

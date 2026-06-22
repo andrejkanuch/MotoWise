@@ -10,6 +10,7 @@ export * from './fuel-log';
 export * from './fuel-stops';
 export * from './group-ride';
 export * from './locale';
+export * from './maintenance-sourcing';
 export * from './maintenance-task';
 export * from './model-insights';
 export * from './motorcycle';

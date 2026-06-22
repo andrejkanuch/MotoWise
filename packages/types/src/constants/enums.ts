@@ -296,3 +296,49 @@ export const SUPPORTED_LOCALES = [
   'sk',
 ] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
+
+// Maintenance data-sourcing pilot (U1) ---------------------------------------
+
+// A bike's drivetrain/trim variant. NULL on a schedule/spec row = applies to all variants.
+export const MotorcycleVariant = {
+  DCT: 'DCT',
+  MT: 'MT',
+} as const;
+export type MotorcycleVariant = (typeof MotorcycleVariant)[keyof typeof MotorcycleVariant];
+
+// Point-value spec categories stored in motorcycle_specs.
+export const MaintenanceSpecType = {
+  TORQUE: 'torque',
+  VALVE_CLEARANCE: 'valve_clearance',
+  CAPACITY: 'capacity',
+  PRESSURE: 'pressure',
+  PLUG_GAP: 'plug_gap',
+} as const;
+export type MaintenanceSpecType = (typeof MaintenanceSpecType)[keyof typeof MaintenanceSpecType];
+
+// Provenance document type for maintenance_data_sources.
+export const MaintenanceSourceType = {
+  OWNER_MANUAL: 'owner_manual',
+  SERVICE_MANUAL: 'service_manual',
+  COMMUNITY: 'community',
+} as const;
+export type MaintenanceSourceType =
+  (typeof MaintenanceSourceType)[keyof typeof MaintenanceSourceType];
+
+// Server-side safety-critical classification. A task/spec name is safety-critical when its
+// lowercased text contains one of these terms. NEVER set by the LLM (plan KTD 8) — the
+// extraction path computes is_safety_critical from this list, not from model output.
+export const SAFETY_CRITICAL_ALLOWLIST = [
+  'valve clearance',
+  'brake fluid',
+  'clutch fluid',
+  'engine oil',
+  'tire pressure',
+] as const;
+export type SafetyCriticalTerm = (typeof SAFETY_CRITICAL_ALLOWLIST)[number];
+
+/** True when a task/spec name maps to a safety-critical value per the allowlist. */
+export function isSafetyCriticalName(name: string): boolean {
+  const lower = name.toLowerCase();
+  return SAFETY_CRITICAL_ALLOWLIST.some((term) => lower.includes(term));
+}
