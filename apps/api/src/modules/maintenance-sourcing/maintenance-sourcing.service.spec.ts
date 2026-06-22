@@ -80,10 +80,10 @@ const specDraft = (over: Partial<ExtractedSpecDraft> = {}): ExtractedSpecDraft =
   specType: 'valve_clearance',
   specName: 'Valve clearance (intake)',
   valueNumeric: 0.2,
-  valueDisplay: '0,20 mm',
+  valueDisplay: '0.20 mm',
   unit: 'mm',
   sourcePage: 'p.230',
-  sourceContext: 'Holgura de válvula (admisión): 0,20 mm en frío',
+  sourceContext: 'Valve clearance (intake): 0.20 mm (cold)',
   ...over,
 });
 
@@ -185,7 +185,7 @@ describe('MaintenanceSourcingService — out-of-range spec rejection', () => {
     expect(result.specsUpserted).toBe(1);
     const ins = queries.find((q) => q.table === 'motorcycle_specs' && q.op === 'insert');
     expect(ins?.insertPayload?.value_numeric).toBe(0.2);
-    expect(ins?.insertPayload?.value_display).toBe('0,20 mm');
+    expect(ins?.insertPayload?.value_display).toBe('0.20 mm');
     expect(ins?.insertPayload?.unit).toBe('mm');
   });
 });
@@ -241,7 +241,7 @@ describe('MaintenanceSourcingService — idempotency & provenance', () => {
             id: 'src-new',
             source_type: 'owner_manual',
             title: 'CRF1100 OM',
-            reference: '35MLN610',
+            reference: '31MKS800',
           },
           error: null,
         };
@@ -251,9 +251,9 @@ describe('MaintenanceSourcingService — idempotency & provenance', () => {
     const source = await service.registerSource({
       sourceType: 'owner_manual',
       title: 'CRF1100 OM',
-      editionLanguage: 'es',
-      marketApplicability: 'EU',
-      reference: '35MLN610',
+      editionLanguage: 'en',
+      marketApplicability: 'US',
+      reference: '31MKS800',
     });
     expect(source.id).toBe('src-new');
 

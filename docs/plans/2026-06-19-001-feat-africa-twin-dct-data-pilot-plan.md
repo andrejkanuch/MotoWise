@@ -8,7 +8,7 @@
 - **7-agent audit applied 2026-06-22** (feasibility, data-integrity, security, coherence, scope, product, adversarial — see `docs/reviews/2026-06-22-africa-twin-pilot-plan-audit.md`). Resolved 5 new P0s + ~12 P1s. Two forks resolved here: render half is **disposable scaffolding** (not blocked behind the CMS); minimal **variant capture pulled into scope** so the in-app value is real on ship.
 **Origin:** `docs/brainstorms/2026-06-19-motorcycle-data-sourcing-requirements.md`
 **Pilot bike:** Honda CRF1100D (Africa Twin DCT)
-**Source document:** Honda CRF1100 owner's manual — `CRF1100-OM-35MLN610_spa_WEB.pdf` (Spanish edition, 14 MB; user-supplied)
+**Source document:** Honda CRF1100 owner's manual — `ml.remawmom.2020_31mks800_crf1100_africa_twin.pdf` (English edition, ref `31MKS800`, 2020, ~4 MB; user-supplied at `/Users/andrejmacm5/Downloads/`)
 
 ---
 
@@ -72,12 +72,12 @@ Carried from origin (`docs/brainstorms/2026-06-19-motorcycle-data-sourcing-requi
    - **Service-role key handling (audit P1):** add `SUPABASE_SERVICE_ROLE_KEY` to `apps/web/.env.example` as a comment-only entry; the script runs as a standalone Node process (a `package.json` script, run before/outside `next build`), never via `NEXT_PUBLIC_*`, never bundled.
 
 7. **Units are stored in the manual's native metric; imperial is derived, never stored in the dataset.** *(Audit P0-5, reworded.)*
-   - The Spanish edition is metric-only, so extraction stores a single canonical metric value (the value the human verifies against the cited page) as **`value_numeric NUMERIC`** plus `value_display TEXT` (the verbatim manual string, e.g. `0,20 mm`). See KTD note below — TEXT-only storage was rejected.
+   - Extraction stores a single canonical **metric** value (the value the human verifies against the cited page) as **`value_numeric NUMERIC`** plus `value_display TEXT` (the verbatim manual string, e.g. `0.20 mm`). The English manual prints values in dot-decimal (comma = thousands); the parser normalizes accordingly. The manual may print imperial alongside metric — we still **derive** imperial deterministically rather than transcribing the printed imperial, so the article and app always agree and no second printed number is hand-/AI-typed. See KTD note below — TEXT-only storage was rejected.
    - Imperial (lb-ft, psi, mi, in) is computed by a **pure conversion function**. On the **web article** it is computed at *generation* time and baked into the committed MDX as text (static MDX has no per-request render hook — so on the web path imperial *is* persisted, in the file, exactly as the existing articles already do). On **mobile** it is computed at *render* time. It is **never stored in the dataset DB rows**.
-   - **Rounding is a safety concern (audit P0-5):** imperial is never verified against any source (the manual is metric-only), and rounding can change a practical value (`24 Nm → 17.7 → 18 lb-ft` is a ~5% over-torque; valve clearance must keep thousandths-of-an-inch precision). Define rounding precision **per `spec_type`** (torque → 1 decimal lb-ft; clearance → 3 sig figs / thousandths in; pressure → whole psi; capacity → 1 decimal). Add a `convert → round → convert-back` test asserting the round-tripped value stays within a stated tolerance of the stored metric per spec_type, and flag any spec exceeding tolerance for human review of the *displayed imperial*.
+   - **Rounding is a safety concern (audit P0-5):** the derived imperial value isn't separately verified (we round a deterministic conversion of the verified metric), and rounding can change a practical value (`24 Nm → 17.7 → 18 lb-ft` is a ~5% over-torque; valve clearance must keep thousandths-of-an-inch precision). Define rounding precision **per `spec_type`** (torque → 1 decimal lb-ft; clearance → 3 sig figs / thousandths in; pressure → whole psi; capacity → 1 decimal). Add a `convert → round → convert-back` test asserting the round-tripped value stays within a stated tolerance of the stored metric per spec_type, and flag any spec exceeding tolerance for human review of the *displayed imperial*.
 
 8. **Extraction stores numeric values once; `is_safety_critical` is server-set from an allowlist; injection-hardened.**
-   - Store `value_numeric NUMERIC NOT NULL` (canonical, dot-decimal, parsed+validated **once** at extraction) — NOT `TEXT`. TEXT-only defeats the Zod range guard after insert (a later SQL/import write of `5000` or `0.020` wouldn't be rejected), defeats numeric dedup (`"0,20"` ≠ `"0.20"`), and forces a locale-format reparse at render that can produce a 100×-wrong torque on a decimal-comma slip. Keep `value_display TEXT` for the verbatim manual string the human verifies against. Add a DB `CHECK (value_numeric > 0)` (and tighter per-spec_type bounds where cheap).
+   - Store `value_numeric NUMERIC NOT NULL` (canonical, dot-decimal, parsed+validated **once** at extraction) — NOT `TEXT`. TEXT-only defeats the Zod range guard after insert (a later SQL/import write of `5000` or `0.020` wouldn't be rejected), defeats numeric dedup (`"10,000"` ≠ `"10000"`), and forces a locale-format reparse at render that can mis-handle a thousands separator and produce an orders-of-magnitude-wrong value. Keep `value_display TEXT` for the verbatim manual string the human verifies against. Add a DB `CHECK (value_numeric > 0)` (and tighter per-spec_type bounds where cheap).
    - **`is_safety_critical` is computed server-side from an allowlist** of task/spec names (valve clearance, brake fluid, clutch fluid, engine oil, tire pressure) defined as an `as const` constant in `packages/types`. **Do NOT copy** the existing `article-generator.service.ts` approach, which derives `is_safety_critical` from LLM-output keyword matching (`apps/api/.../article-generator.service.ts:233`) — that trusts the model and is the opposite of the rule here. Flag this divergence explicitly in U2.
    - **Injection hardening (KTD):** treat PDF content as data behind an explicit boundary marker; constrain numeric outputs to plausible physical ranges via Zod before insert. The verification gate (U4) is the backstop, not the only line. Note Zod range-checks an in-range-but-wrong number cannot catch (e.g. `0.22` vs `0.20`) — that is the human reviewer's job (U4 makes that job harder to rubber-stamp).
 
@@ -146,7 +146,7 @@ erDiagram
     text spec_type "torque|valve_clearance|capacity|pressure|plug_gap"
     text spec_name
     numeric value_numeric "metric canonical, CHECK > 0"
-    text value_display "verbatim manual string e.g. 0,20 mm"
+    text value_display "verbatim manual string e.g. 0.20 mm"
     text unit "metric unit"
     uuid source_id FK
     text source_page
@@ -220,10 +220,10 @@ flowchart TD
 - a reviewable draft artifact (JSON/SQL) for the pilot
 
 **Approach:**
-- **Pre-flight (audit P1):** confirm the owner's manual actually contains each targeted `spec_type` before extracting it. Torque/valve-clearance depth is frequently service-manual-only (and service manuals are deferred) — if the owner's manual lacks them, narrow the pilot's spec scope honestly rather than producing empty rows. Record the source's `market_applicability` (the es-edition's market) and note the assumption that es-edition values apply to the EN/US-facing article.
-- Register one `maintenance_data_sources` row (`source_type='owner_manual'`, title, `edition_language='es'`, `market_applicability`, reference `35MLN610`, `source_url` = storage path if uploaded, `retrieved_at`).
+- **Pre-flight (audit P1):** confirm the owner's manual actually contains each targeted `spec_type` before extracting it. Torque/valve-clearance depth is frequently service-manual-only (and service manuals are deferred) — if the owner's manual lacks them, narrow the pilot's spec scope honestly rather than producing empty rows. Record the source's `market_applicability` (the manual's market, e.g. US) so market-specific values aren't applied to the wrong audience.
+- Register one `maintenance_data_sources` row (`source_type='owner_manual'`, title, `edition_language='en'`, `market_applicability`, reference `31MKS800`, `source_url` = storage path if uploaded, `retrieved_at`).
 - Extract the periodic-maintenance schedule (intervals) → draft `oem_maintenance_schedules` rows: `make='HONDA'`, `model='CRF1100'` (confirm the NHTSA model string at execution), `variant='DCT'`, `source_id`, `source_page`, `source_context`, `is_verified=false`.
-- Extract point-values (oil/coolant capacity, tire pressures, torque, valve clearance, DCT fluid) → draft `motorcycle_specs` rows: parse each value **once** into `value_numeric` (dot-decimal; decimal-comma `0,20` → `0.20` handled explicitly) and keep the verbatim `value_display` (`0,20 mm`), with `unit`, same provenance/critical flags.
+- Extract point-values (oil/coolant capacity, tire pressures, torque, valve clearance, DCT fluid) → draft `motorcycle_specs` rows: parse each value **once** into `value_numeric` (English: dot decimal, comma thousands — e.g. `10,000` → `10000`) and keep the verbatim `value_display` (`0.20 mm`), with `unit`, same provenance/critical flags.
 - **`is_safety_critical` is set server-side from `SAFETY_CRITICAL_ALLOWLIST`** (U1 const), never by the LLM. Explicitly do NOT replicate `article-generator.service.ts:233`'s LLM-keyword approach.
 - **Facts only** (R2): store values + page reference + a short context snippet for review; never copy manual prose, procedures, diagrams, **or the manual's table selection/arrangement** (EU sui-generis database right can attach to reproducing schedule structure, not just verbatim text).
 - **Injection hardening:** label PDF content as data behind a boundary marker; constrain numeric outputs to plausible ranges via Zod (e.g. interval_km 500–100000, torque 1–500 Nm) so out-of-range fabrications fail before insert.
@@ -231,14 +231,14 @@ flowchart TD
 
 **Patterns to follow:** `article-generator.service.ts` (OpenAI client, Zod-validated structured output, `sanitizeTopicInput` injection list, `content_generation_log` insert, budget enforcement) — **but NOT its `is_safety_critical` logic**; `gemini-autodraft-social-worker.md` (explicit `source` + dedup).
 
-**Execution note:** 14 MB Spanish PDF, no local PDF lib — choose ingestion at execution (LLM-vision vs parsing lib). Capture a page number AND a context snippet for every value.
+**Execution note:** ~4 MB English PDF (`ml.remawmom.2020_31mks800_crf1100_africa_twin.pdf`), no local PDF lib — choose ingestion at execution (LLM-vision vs parsing lib). Capture a page number AND a context snippet for every value.
 
 **Test scenarios:**
 - Produces ≥1 interval row and ≥1 spec row, each with non-null `source_id`, `source_page`, and `source_context`.
 - DCT-specific items (transmission/DCT fluid) present with `variant='DCT'`.
 - Safety-critical fields land with `is_safety_critical=true` (server-set, allowlist) and `is_verified=false`.
 - An out-of-physical-range extracted value (e.g. torque 5000 Nm) is rejected by the Zod range guard.
-- A Spanish decimal-comma value parses into `value_numeric` correctly (`0,20 mm` → `value_numeric=0.20`, `value_display='0,20 mm'`).
+- A metric value parses into `value_numeric` correctly (`0.20 mm` → `0.20`; `10,000 km` → `10000`), keeping the verbatim `value_display`.
 - Re-running extraction creates no duplicates (ON CONFLICT, backed by the unique constraint).
 - `content_generation_log` records the run with `content_type='maintenance_extraction'`.
 
@@ -420,10 +420,10 @@ flowchart TD
 - **AI-typed safety number leaks into article prose.** → No-digit allowlist guard on every narrative string field (not a unit denylist); CBR-format test fixtures.
 - **Imperial rounding mints an unverified/unsafe value.** → Per-spec_type rounding precision; `convert→round→convert-back` tolerance test flags out-of-tolerance specs; imperial never stored in dataset rows.
 - **App and website show different safety numbers (parity / 7-day ISR).** → Generator triggers atomic on-demand revalidation; mobile converts to the user's `measurementSystem` with the same function as the article; parity asserts the displayed string. Bounded staleness acknowledged in Success criteria.
-- **Confidently-wrong extraction rubber-stamped (single human, single Spanish source).** → Review surface shows the `source_context` snippet; safety-critical approval requires re-typing the value; single-source limitation stated; cross-source check deferred explicitly.
+- **Confidently-wrong extraction rubber-stamped (single human, single source).** → Review surface shows the `source_context` snippet; safety-critical approval requires re-typing the value; single-source limitation stated; cross-source check deferred explicitly.
 - **`value TEXT` defeats range guard / dedup / conversion.** → `value_numeric NUMERIC NOT NULL CHECK (> 0)` parsed once + `value_display` verbatim; unique constraint enables idempotent `ON CONFLICT`.
 - **GDPR erasure blocked by `verified_by` FK.** → `ON DELETE SET NULL` (keeps `is_verified`/`verified_at` as the durable audit fact).
-- **Owner's manual lacks targeted specs / es-edition market mismatch / database-right on table structure.** → U2 pre-flight confirms spec presence; `market_applicability` recorded; facts-only extended to table structure.
+- **Owner's manual lacks targeted specs / market-edition mismatch / database-right on table structure.** → U2 pre-flight confirms spec presence; `market_applicability` recorded; facts-only extended to table structure.
 - **Legacy articles + baseline rows remain uncited/unverified.** → Acknowledged explicitly (Problem Frame); disclaimer retrofitted onto legacy articles (U6); legacy baseline rows trusted-by-backfill, not remediated (out of pilot scope, flagged).
 - **Migration number collision.** → Use `00149`; re-verify highest at execution; duplicate-key pre-check (with `year_to` + `variant` COALESCE) before index recreation.
 - **Admin authz bypass via stale/forged JWT.** → Resolver DB role check on `public.users.role`, not the JWT claim; mutation not `@Public()`; covered by `resolver-public-mutation-audit.spec.ts`.
@@ -438,7 +438,7 @@ flowchart TD
 - The CRF1100 owner's manual PDF (supplied). Service manual not required for the pilot.
 - `pnpm generate` after every resolver/`.graphql`/model change (pre-commit hook enforces on staged `.graphql`).
 - `SUPABASE_SERVICE_ROLE_KEY` available to the `apps/web/scripts/` generator at run time (server-only; comment-only in `.env.example`).
-- Owner (you) available to verify safety-critical values against the manual (reads Spanish well enough to verify the cited page + context).
+- Owner (you) available to verify safety-critical values against the manual (English edition — verification is against the cited English page + context).
 
 ---
 

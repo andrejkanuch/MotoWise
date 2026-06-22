@@ -7,8 +7,8 @@
  * is baked into the committed MDX at generation time (static MDX has no
  * per-request render hook); on mobile the same math runs at render time.
  *
- * Rounding is a SAFETY concern (KTD 7): imperial is never verified against any
- * source (the manual is metric-only), and naive rounding can mint a practically
+ * Rounding is a SAFETY concern (KTD 7): the derived imperial value isn't separately
+ * verified (it's a deterministic conversion of the verified metric), and naive rounding can mint a practically
  * wrong value (24 Nm → 17.7 → 18 lb-ft is a ~5% over-torque; valve clearance
  * must keep thousandths-of-an-inch precision). So rounding precision is defined
  * PER spec_type, and a `convert → round → convert-back` tolerance check flags any

@@ -12,8 +12,8 @@
  *      valve-clearance depth is frequently service-manual-only (service manuals are deferred).
  *      If the owner's manual lacks a spec_type, narrow the pilot scope honestly — do NOT
  *      persist empty/guessed rows.
- *   2. Record the source's `market_applicability` (the es-edition's market) and note the
- *      working assumption that es-edition values apply to the EN/US-facing article.
+ *   2. Record the source's `market_applicability` (the manual's market, e.g. US) so values
+ *      that differ by market edition aren't silently applied to the wrong audience.
  *   3. Capture a page number AND a context snippet for EVERY value (intake vs exhaust,
  *      hot vs cold, DCT vs MT) so U4's reviewer can confirm the value is for the right spec.
  *
@@ -70,7 +70,7 @@ export interface RegisterSourceInput {
   editionLanguage?: string;
   /** The edition/market the values apply to (e.g. 'EU'). Recorded for traceability. */
   marketApplicability?: string;
-  /** Edition / part no., e.g. '35MLN610'. */
+  /** Edition / part no., e.g. '31MKS800' (CRF1100 EN owner's manual). */
   reference?: string;
   /** Link or Supabase Storage path to the doc (nullable). */
   sourceUrl?: string;

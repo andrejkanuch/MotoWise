@@ -13,19 +13,20 @@ this session** (no PDF parsing, no OpenAI call here).
      valve-clearance depth is frequently **service-manual-only**, and service manuals are deferred.
      If the owner's manual lacks a spec_type, **narrow the pilot scope honestly** — do not persist
      empty or guessed rows.
-   - Record the source's `market_applicability` (the es-edition's market). Note the working
-     assumption that es-edition values apply to the EN/US-facing article.
+   - Record the source's `market_applicability` (the manual's market, e.g. US) so market-specific
+     values aren't silently applied to the wrong audience.
    - Capture a **page number AND a context snippet** for every value (intake vs exhaust, hot vs
      cold, DCT vs MT) so the U4 reviewer can confirm the value is for the right spec.
 
 2. **Register the source** — `registerSource()` creates/finds one `maintenance_data_sources` row:
-   `source_type='owner_manual'`, `edition_language='es'`, `market_applicability`,
-   `reference='35MLN610'`, `source_url` (Storage path if uploaded), `retrieved_at`.
+   `source_type='owner_manual'`, `edition_language='en'`, `market_applicability`,
+   `reference='31MKS800'`, `source_url` (Storage path if uploaded), `retrieved_at`.
+   (Source file: `ml.remawmom.2020_31mks800_crf1100_africa_twin.pdf` — English, 2020.)
 
 3. **Extract upstream** (not in this module): produce `ExtractedScheduleDraft[]` /
    `ExtractedSpecDraft[]`, each Zod-validated against `@motovault/types`. Parse every numeric spec
-   value **once** with `parseMetricValue()` (decimal-comma → dot-decimal) to build `value_numeric`,
-   keeping the verbatim manual string as `value_display`.
+   value **once** with `parseMetricValue()` (English: dot decimal, comma thousands) to build
+   `value_numeric`, keeping the verbatim manual string as `value_display`.
 
 4. **Persist** — `persistDrafts()`:
    - stamps `make='HONDA'`, `model='CRF1100'`, `variant='DCT'`, `source_id`, `is_verified=false`;
