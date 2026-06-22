@@ -14,6 +14,39 @@ input AddTaskPhotoInput {
   taskId: String!
 }
 
+type AdminMotorcycleSpecDraft {
+  createdAt: String!
+  id: ID!
+  isSafetyCritical: Boolean!
+  make: String!
+  model: String
+  sourceContext: String
+  sourcePage: String
+  sourceTitle: String
+  specName: String!
+  specType: String!
+  unit: String!
+  valueDisplay: String
+  valueNumeric: Float!
+  variant: String
+}
+
+type AdminOemScheduleDraft {
+  createdAt: String!
+  id: ID!
+  intervalDays: Int
+  intervalKm: Int
+  isSafetyCritical: Boolean!
+  make: String!
+  model: String
+  priority: MaintenancePriority!
+  sourceContext: String
+  sourcePage: String
+  sourceTitle: String
+  taskName: String!
+  variant: String
+}
+
 """Affiliate partner for product recommendations"""
 enum AffiliatePartner {
   amazon
@@ -33,6 +66,11 @@ type AiBudgetStatus {
   dailySpendCapCents: Int!
   todayGenerationCount: Int!
   todaySpendCents: Int!
+}
+
+input ApproveMaintenanceDraftInput {
+  id: ID!
+  kind: String!
 }
 
 type Article {
@@ -266,6 +304,7 @@ input CreateMotorcycleInput {
   make: String!
   model: String!
   nickname: String
+  variant: String
   year: Int!
 }
 
@@ -717,6 +756,11 @@ input LogExpenseInput {
   motorcycleId: String!
 }
 
+type MaintenanceDraftReview {
+  schedules: [AdminOemScheduleDraft!]!
+  specs: [AdminMotorcycleSpecDraft!]!
+}
+
 enum MaintenancePriority {
   critical
   high
@@ -830,6 +874,7 @@ type Motorcycle {
   recallLastCheckedAt: String
   type: MotorcycleType
   userId: String!
+  variant: String
   vin: String
   year: Int!
 }
@@ -861,6 +906,7 @@ type Mutation {
   addExpensePhoto(input: AddExpensePhotoInput!): ExpensePhoto!
   addTaskPhoto(input: AddTaskPhotoInput!): TaskPhoto!
   addWaypoint(input: CreateWaypointInput!): TripWaypoint!
+  approveMaintenanceDraft(input: ApproveMaintenanceDraftInput!): Boolean!
   askTripAssistant(input: AskTripAssistantInput!): TripAssistantMessage!
   cancelGroupRide(groupRideId: ID!): Boolean!
 
@@ -1113,6 +1159,7 @@ type Query {
   groupRideDetail(groupRideId: ID!): GroupRide!
   isTripSaved(tripId: ID!): Boolean!
   kudosList(after: String, first: Int = 20, rideId: String!): [KudosUser!]!
+  maintenanceDraftReview: MaintenanceDraftReview!
   maintenanceTaskHistory(limit: Int = 100, motorcycleId: String!): [MaintenanceTask!]!
   maintenanceTasks(motorcycleId: String!): [MaintenanceTask!]!
 
@@ -1131,7 +1178,7 @@ type Query {
   myShareLinks(motorcycleId: ID!): [ShareLink!]!
   myTrips(after: String, first: Int = 20): TripConnection!
   oemSchedulesForBike(motorcycleId: String!): [OemSchedule!]!
-  oemSchedulesPreview(make: String!, model: String, year: Int): [OemSchedule!]!
+  oemSchedulesPreview(make: String!, model: String, variant: String, year: Int): [OemSchedule!]!
 
   """
   Composed Bike Dossier for the onboarding Reveal (recalls, plan, cost, AI flavor).
@@ -1800,6 +1847,7 @@ input UpdateMotorcycleInput {
   primaryPhotoUrl: String
   purchaseDate: String
   purchasePrice: Float
+  variant: String
   vin: String
   year: Int
 }

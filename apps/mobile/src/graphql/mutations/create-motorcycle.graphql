@@ -5,6 +5,7 @@ mutation CreateMotorcycle($input: CreateMotorcycleInput!) {
     model
     year
     nickname
+    variant
     isPrimary
     createdAt
   }

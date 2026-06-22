@@ -212,7 +212,7 @@ export class UsersService {
         // Find the user's most recently created motorcycle (the one the RPC just made)
         const { data: bike } = await this.supabaseAdmin
           .from('motorcycles')
-          .select('id, make, model, year, current_mileage')
+          .select('id, make, model, year, variant, current_mileage')
           .eq('user_id', userId)
           .is('deleted_at', null)
           .order('created_at', { ascending: false })
@@ -227,9 +227,10 @@ export class UsersService {
             bike.make,
             bike.model ?? null,
             bike.year ?? null,
-            null,
+            null, // engineCc
             bike.current_mileage ?? 0,
             input.acceptedOemScheduleIds,
+            bike.variant ?? null,
           );
         } else {
           this.logger.warn(`No motorcycle found for user ${userId} after onboarding`);

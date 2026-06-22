@@ -1,0 +1,3 @@
+mutation ApproveMaintenanceDraft($input: ApproveMaintenanceDraftInput!) {
+  approveMaintenanceDraft(input: $input)
+}

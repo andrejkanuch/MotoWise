@@ -1,0 +1,35 @@
+query MaintenanceDraftReview {
+  maintenanceDraftReview {
+    schedules {
+      id
+      make
+      model
+      variant
+      taskName
+      intervalKm
+      intervalDays
+      priority
+      isSafetyCritical
+      sourcePage
+      sourceContext
+      sourceTitle
+      createdAt
+    }
+    specs {
+      id
+      make
+      model
+      variant
+      specType
+      specName
+      valueNumeric
+      valueDisplay
+      unit
+      isSafetyCritical
+      sourcePage
+      sourceContext
+      sourceTitle
+      createdAt
+    }
+  }
+}

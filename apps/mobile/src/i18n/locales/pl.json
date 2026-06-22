@@ -778,8 +778,8 @@
     "v2TaskCardCritical": "Krytyczne",
     "v2TaskCardRecommended": "Zalecane",
     "v2TaskCardOptional": "Opcjonalne",
-    "v2TaskCardEveryKm": "Co {{km}} km",
-    "v2TaskCardEveryKmMo": "Co {{km}} km / {{months}} mies.",
+    "v2TaskCardEveryKm": "Co {{distance}} {{unit}}",
+    "v2TaskCardEveryKmMo": "Co {{distance}} {{unit}} / {{months}} mies.",
     "v2TaskCardEveryMonths": "Co {{months}} miesięcy",
     "v2TaskCardEveryYears_one": "Co {{count}} rok",
     "v2TaskCardEveryYears_other": "Co {{count}} lat",
@@ -963,7 +963,12 @@
     "cpPromptBodyRide": "Załóż darmowe konto, aby Twój przejazd był zapisany i zsynchronizowany na wszystkich urządzeniach.",
     "cpPromptBodyExpense": "Załóż darmowe konto, aby Twój wydatek był zapisany i zsynchronizowany na wszystkich urządzeniach.",
     "cpPromptBodyBike": "Załóż darmowe konto, aby Twój motocykl był zapisany i zsynchronizowany na wszystkich urządzeniach.",
-    "cpPromptNotNow": "Nie teraz"
+    "cpPromptNotNow": "Nie teraz",
+    "v2BikeSetupVariantLabel": "Skrzynia biegów",
+    "v2BikeSetupVariantHelper": "Niektóre modele oferują dwusprzęgłową skrzynię biegów (DCT) z własnym planem serwisowym.",
+    "v2BikeSetupVariantDct": "DCT",
+    "v2BikeSetupVariantMt": "Manualna",
+    "v2BikeSetupVariantNone": "Nie dotyczy"
   },
   "bikeHub": {
     "upcoming": "Nadchodzace",
@@ -1641,6 +1646,7 @@
     }
   },
   "oem": {
+    "disclaimer": "Te informacje mają charakter wyłącznie informacyjny. Zawsze sprawdzaj je w instrukcji obsługi i instrukcji serwisowej przed wykonaniem jakiejkolwiek konserwacji.",
     "importedTitle": "Plan OEM zaimportowany",
     "importedCount": "Dodano {{count}} zadan serwisowych z planu producenta.",
     "importedNone": "Brak nowych zadan do importu — twoj plan jest aktualny.",

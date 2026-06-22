@@ -1,4 +1,4 @@
-import { palette } from '@motovault/design-system';
+import { palette, withAlpha } from '@motovault/design-system';
 import {
   DeleteMotorcycleDocument,
   MotorcycleMakesDocument,
@@ -6,6 +6,7 @@ import {
   MyMotorcyclesDocument,
   UpdateMotorcycleDocument,
 } from '@motovault/graphql';
+import { MotorcycleVariant } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
@@ -20,6 +21,7 @@ import {
   Fingerprint,
   Gauge,
   Search,
+  Settings2,
   Star,
   Trash2,
 } from 'lucide-react-native';
@@ -85,6 +87,10 @@ export default function EditBikeScreen() {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [purchasePrice, setPurchasePrice] = useState('');
   const [vin, setVin] = useState('');
+  // Minimal variant capture (U7). null = "Not applicable" / baseline schedule rows.
+  // Seeded from bike.variant and persisted via the update mutation (the Motorcycle
+  // type + Update/CreateMotorcycleInput now carry `variant`).
+  const [variant, setVariant] = useState<MotorcycleVariant | null>(null);
   const [initialized, setInitialized] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
@@ -99,6 +105,7 @@ export default function EditBikeScreen() {
     photoUrl: null as string | null,
     purchasePrice: '',
     vin: '',
+    variant: null as MotorcycleVariant | null,
   });
 
   // --- NHTSA queries ---
@@ -143,6 +150,7 @@ export default function EditBikeScreen() {
         photoUrl: bike.primaryPhotoUrl ?? null,
         purchasePrice: bike.purchasePrice != null ? String(bike.purchasePrice) : '',
         vin: bike.vin ?? '',
+        variant: (bike.variant as MotorcycleVariant | null) ?? null,
       };
       initialValues.current = vals;
       setNickname(vals.nickname);
@@ -152,6 +160,7 @@ export default function EditBikeScreen() {
       setPhotoUrl(vals.photoUrl);
       setPurchasePrice(vals.purchasePrice);
       setVin(vals.vin);
+      setVariant(vals.variant);
       setInitialized(true);
     }
   }, [bike, initialized]);
@@ -202,7 +211,8 @@ export default function EditBikeScreen() {
       isPrimary !== init.isPrimary ||
       photoUrl !== init.photoUrl ||
       purchasePrice !== init.purchasePrice ||
-      vin !== init.vin
+      vin !== init.vin ||
+      variant !== init.variant
     );
   }, [
     nickname,
@@ -214,6 +224,7 @@ export default function EditBikeScreen() {
     photoUrl,
     purchasePrice,
     vin,
+    variant,
     initialized,
   ]);
 
@@ -277,6 +288,7 @@ export default function EditBikeScreen() {
           ...(vinTrimmed !== initialValues.current.vin
             ? { vin: vinTrimmed.length === 17 ? vinTrimmed : null }
             : {}),
+          ...(variant !== initialValues.current.variant ? { variant } : {}),
         },
       });
     },
@@ -864,6 +876,97 @@ export default function EditBikeScreen() {
                   {t('garage.noModelsFound', { defaultValue: 'No models found' })}
                 </Text>
               )}
+          </Animated.View>
+
+          {/* ─── Transmission / Variant — grouped card (U7 minimal capture) ─── */}
+          <Animated.View entering={FadeInDown.delay(112).duration(250)}>
+            <Text style={sectionLabel}>
+              {t('onboarding.v2BikeSetupVariantLabel', { defaultValue: 'Transmission' })}
+            </Text>
+            <View style={cardStyle}>
+              <View style={rowStyle}>
+                <View style={iconBadge(isDark ? palette.indigoBg : palette.primary50)}>
+                  <Settings2 size={16} color={palette.indigo500} strokeWidth={2} />
+                </View>
+                <View style={{ flexDirection: 'row', flex: 1, gap: 8 }}>
+                  {(
+                    [
+                      {
+                        value: MotorcycleVariant.DCT,
+                        labelKey: 'onboarding.v2BikeSetupVariantDct',
+                        fallback: 'DCT',
+                      },
+                      {
+                        value: MotorcycleVariant.MT,
+                        labelKey: 'onboarding.v2BikeSetupVariantMt',
+                        fallback: 'Manual',
+                      },
+                      {
+                        value: null,
+                        labelKey: 'onboarding.v2BikeSetupVariantNone',
+                        fallback: 'N/A',
+                      },
+                    ] as const
+                  ).map((opt) => {
+                    const selected = variant === opt.value;
+                    return (
+                      <Pressable
+                        key={opt.value ?? 'none'}
+                        onPress={() => {
+                          triggerImpact();
+                          setVariant(opt.value);
+                        }}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected }}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 9,
+                          borderRadius: 10,
+                          borderCurve: 'continuous',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: selected
+                            ? withAlpha(theme.warm, 0.14)
+                            : isDark
+                              ? palette.neutral800
+                              : palette.neutral100,
+                          borderWidth: 1.5,
+                          borderColor: selected
+                            ? theme.warm
+                            : isDark
+                              ? palette.neutral700
+                              : palette.neutral200,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: '600',
+                            color: selected ? theme.warm : theme.ink2,
+                          }}
+                        >
+                          {t(opt.labelKey, { defaultValue: opt.fallback })}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            </View>
+            <Text
+              style={{
+                fontSize: 12,
+                color: theme.ink3,
+                marginTop: 6,
+                marginLeft: 4,
+                lineHeight: 17,
+              }}
+            >
+              {t('onboarding.v2BikeSetupVariantHelper', {
+                defaultValue:
+                  'Some models offer a dual-clutch (DCT) gearbox with its own service schedule.',
+              })}
+            </Text>
           </Animated.View>
 
           {/* ─── Odometer — grouped card ─── */}

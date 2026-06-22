@@ -776,8 +776,8 @@
     "v2TaskCardCritical": "สำคัญมาก",
     "v2TaskCardRecommended": "แนะนำ",
     "v2TaskCardOptional": "ไม่บังคับ",
-    "v2TaskCardEveryKm": "ทุก {{km}} กม.",
-    "v2TaskCardEveryKmMo": "ทุก {{km}} กม. / {{months}} เดือน",
+    "v2TaskCardEveryKm": "ทุก {{distance}} {{unit}}",
+    "v2TaskCardEveryKmMo": "ทุก {{distance}} {{unit}} / {{months}} เดือน",
     "v2TaskCardEveryMonths": "ทุก {{months}} เดือน",
     "v2TaskCardEveryYears_one": "ทุก {{count}} ปี",
     "v2TaskCardEveryYears_other": "ทุก {{count}} ปี",
@@ -961,7 +961,12 @@
     "cpPromptBodyRide": "สร้างบัญชีฟรีเพื่อให้การขี่ของคุณถูกสำรองและซิงค์ทุกอุปกรณ์",
     "cpPromptBodyExpense": "สร้างบัญชีฟรีเพื่อให้ค่าใช้จ่ายของคุณถูกสำรองและซิงค์ทุกอุปกรณ์",
     "cpPromptBodyBike": "สร้างบัญชีฟรีเพื่อให้รถของคุณถูกสำรองและซิงค์ทุกอุปกรณ์",
-    "cpPromptNotNow": "ยังไม่ใช่ตอนนี้"
+    "cpPromptNotNow": "ยังไม่ใช่ตอนนี้",
+    "v2BikeSetupVariantLabel": "Transmission",
+    "v2BikeSetupVariantHelper": "Some models offer a dual-clutch (DCT) gearbox with its own service schedule.",
+    "v2BikeSetupVariantDct": "DCT",
+    "v2BikeSetupVariantMt": "Manual",
+    "v2BikeSetupVariantNone": "Not applicable"
   },
   "bikeHub": {
     "upcoming": "กำลังจะถึง",
@@ -1639,6 +1644,7 @@
     }
   },
   "oem": {
+    "disclaimer": "This information is informative only. Always verify against your owner's and service manual before performing any maintenance.",
     "importedTitle": "นำเข้าตาราง OEM แล้ว",
     "importedCount": "เพิ่ม {{count}} งานบำรุงรักษาจากตารางผู้ผลิตแล้ว",
     "importedNone": "ไม่มีงานใหม่ — ตารางของคุณเป็นปัจจุบันแล้ว",

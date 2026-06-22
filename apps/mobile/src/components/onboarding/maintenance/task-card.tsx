@@ -1,4 +1,5 @@
 import type { OemSchedulesPreviewQuery } from '@motovault/graphql';
+import type { MeasurementSystem } from '@motovault/types';
 import { Droplets, Fuel, Gauge, Shield, Sun, Thermometer, Wrench, Zap } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
@@ -6,6 +7,7 @@ import Animated, { type SharedValue, useAnimatedStyle } from 'react-native-reani
 
 type OemTask = OemSchedulesPreviewQuery['oemSchedulesPreview'][number];
 
+import { convertIntervalDistance, intervalDistanceUnit } from '../../../utils/maintenance-interval';
 import { ONBOARDING_COLORS } from '../onboarding-colors';
 
 const PRIORITY_TONE = {
@@ -45,15 +47,31 @@ function getTaskIcon(taskName: string) {
   return Wrench;
 }
 
-function formatIntervalKey(task: OemTask): { key: string; opts?: Record<string, unknown> } {
+function formatIntervalKey(
+  task: OemTask,
+  system: MeasurementSystem,
+): { key: string; opts?: Record<string, unknown> } {
+  // Distance intervals render in the user's measurement system using the same
+  // km→mi derivation the web article uses, so the displayed string matches the
+  // article per unit system (unit parity — plan U7 / audit P0-4).
   if (task.intervalKm && task.intervalDays) {
     return {
       key: 'onboarding.v2TaskCardEveryKmMo',
-      opts: { km: task.intervalKm.toLocaleString(), months: Math.round(task.intervalDays / 30) },
+      opts: {
+        distance: convertIntervalDistance(task.intervalKm, system).toLocaleString(),
+        unit: intervalDistanceUnit(system),
+        months: Math.round(task.intervalDays / 30),
+      },
     };
   }
   if (task.intervalKm)
-    return { key: 'onboarding.v2TaskCardEveryKm', opts: { km: task.intervalKm.toLocaleString() } };
+    return {
+      key: 'onboarding.v2TaskCardEveryKm',
+      opts: {
+        distance: convertIntervalDistance(task.intervalKm, system).toLocaleString(),
+        unit: intervalDistanceUnit(system),
+      },
+    };
   if (task.intervalDays) {
     const months = Math.round(task.intervalDays / 30);
     if (months >= 12) {
@@ -68,13 +86,14 @@ interface TaskCardProps {
   task: OemTask;
   brandColor: string;
   dragDirection: SharedValue<'left' | 'right' | null>;
+  measurementSystem: MeasurementSystem;
 }
 
-export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
+export function TaskCard({ task, brandColor, dragDirection, measurementSystem }: TaskCardProps) {
   const { t } = useTranslation();
   const tone = PRIORITY_TONE[task.priority as keyof typeof PRIORITY_TONE] ?? PRIORITY_TONE.medium;
   const Icon = getTaskIcon(task.taskName);
-  const { key: intervalKey, opts: intervalOpts } = formatIntervalKey(task);
+  const { key: intervalKey, opts: intervalOpts } = formatIntervalKey(task, measurementSystem);
   const interval = t(intervalKey as 'onboarding.v2TaskCardAsNeeded', intervalOpts);
 
   const borderStyle = useAnimatedStyle(() => ({

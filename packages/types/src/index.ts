@@ -19,6 +19,8 @@ export * from './validators/fuel-stops';
 export * from './validators/handle';
 export * from './validators/health-report';
 export * from './validators/locale';
+export * from './validators/maintenance-narrative';
+export * from './validators/maintenance-sourcing';
 export * from './validators/maintenance-task';
 export * from './validators/model-insights';
 export * from './validators/motorcycle';

@@ -6,6 +6,7 @@ query MyMotorcycles {
     model
     year
     nickname
+    variant
     isPrimary
     primaryPhotoUrl
     currentMileage

@@ -17,6 +17,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { OemDisclaimerCard } from '../../components/maintenance/oem-disclaimer-card';
 import { TaskCard } from '../../components/onboarding/maintenance/task-card';
 import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
@@ -30,8 +31,10 @@ import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { queryKeys } from '../../lib/query-keys';
+import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
+import { convertIntervalDistance, intervalDistanceUnit } from '../../utils/maintenance-interval';
 
 const SWIPE_THRESHOLD = 80;
 const VELOCITY_THRESHOLD = 500;
@@ -49,16 +52,21 @@ export default function MaintenanceScreen() {
   const setAcceptedOemScheduleIds = useOnboardingStore((s) => s.setAcceptedOemScheduleIds);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
 
+  const measurementSystem = useAuthStore((s) => s.measurementSystem);
+
   const make = bikeData?.make ?? '';
   const model = bikeData?.model ?? undefined;
   const year = bikeData?.year ?? undefined;
+  const variant = bikeData?.variant ?? undefined;
   const brandColor = getBrandColor(make);
   const bikeLabel = [model, make].filter(Boolean).join(' · ') || 'your bike';
 
-  // Fetch OEM schedules for this make/model/year
+  // Fetch OEM schedules for this make/model/year[/variant]. Threading the bike's
+  // variant surfaces the verified per-variant intervals (e.g. DCT) when present;
+  // the API waterfall falls back to the make+model baseline otherwise.
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.onboarding.oemSchedules(make, model, year),
-    queryFn: () => gqlFetcher(OemSchedulesPreviewDocument, { make, model, year }),
+    queryKey: queryKeys.onboarding.oemSchedules(make, model, year, variant),
+    queryFn: () => gqlFetcher(OemSchedulesPreviewDocument, { make, model, year, variant }),
     enabled: !!make,
     staleTime: Number.POSITIVE_INFINITY,
   });
@@ -344,6 +352,7 @@ export default function MaintenanceScreen() {
                     task={tasks[currentIdx + 2]}
                     brandColor={brandColor}
                     dragDirection={noDrag}
+                    measurementSystem={measurementSystem}
                   />
                 </Animated.View>
               )}
@@ -359,6 +368,7 @@ export default function MaintenanceScreen() {
                     task={tasks[currentIdx + 1]}
                     brandColor={brandColor}
                     dragDirection={noDrag}
+                    measurementSystem={measurementSystem}
                   />
                 </Animated.View>
               )}
@@ -377,6 +387,7 @@ export default function MaintenanceScreen() {
                       task={currentTask}
                       brandColor={brandColor}
                       dragDirection={dragDirection}
+                      measurementSystem={measurementSystem}
                     />
                   </Animated.View>
                 </GestureDetector>
@@ -598,7 +609,12 @@ export default function MaintenanceScreen() {
                             marginTop: 2,
                           }}
                         >
-                          {task.intervalKm ? `${task.intervalKm.toLocaleString()} km` : ''}
+                          {task.intervalKm
+                            ? `${convertIntervalDistance(
+                                task.intervalKm,
+                                measurementSystem,
+                              ).toLocaleString()} ${intervalDistanceUnit(measurementSystem)}`
+                            : ''}
                           {task.intervalKm && task.intervalDays ? ' · ' : ''}
                           {task.intervalDays ? `${Math.round(task.intervalDays / 30)} mo` : ''}
                         </Text>
@@ -608,6 +624,9 @@ export default function MaintenanceScreen() {
                 })}
               </View>
             )}
+
+            {/* Spec-data disclaimer (R5) — after the schedule list */}
+            <OemDisclaimerCard isDark delay={accepted.length * 50} style={{ marginTop: 4 }} />
 
             {/* Reconsider link */}
             {skipped.length > 0 && (

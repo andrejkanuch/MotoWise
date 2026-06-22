@@ -6,6 +6,7 @@ import type {
   MaintenanceStyle,
   MileageUnit,
   MotorcycleType,
+  MotorcycleVariant,
   ReminderChannel,
   RidingFrequency,
   RidingGoal,
@@ -26,6 +27,13 @@ interface BikeData {
   currentMileage: number;
   mileageUnit: MileageUnit;
   photoUri?: string;
+  /**
+   * Drivetrain/trim variant (U7). Threaded into the OEM-schedule preview so a
+   * DCT bike surfaces the verified per-variant intervals; undefined matches the
+   * make+model baseline rows. Persisted into the bike on signup (TODO: needs a
+   * `variant` field on CreateMotorcycleInput — see U7 summary).
+   */
+  variant?: MotorcycleVariant;
 }
 
 interface OnboardingState {

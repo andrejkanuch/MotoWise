@@ -1,5 +1,5 @@
-query OemSchedulesPreview($make: String!, $model: String, $year: Int) {
-  oemSchedulesPreview(make: $make, model: $model, year: $year) {
+query OemSchedulesPreview($make: String!, $model: String, $year: Int, $variant: String) {
+  oemSchedulesPreview(make: $make, model: $model, year: $year, variant: $variant) {
     id
     taskName
     description

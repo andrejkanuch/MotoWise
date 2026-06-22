@@ -19,6 +19,13 @@ export interface Article {
   category?: string;
   wordCount?: number;
   dateModified?: string;
+  /**
+   * When `true`, the article asserts spec-bearing maintenance data and must
+   * carry the release-blocking "informative only / verify against official
+   * sources" disclaimer (see blog article page). Set by the U5 generator and
+   * retrofitted onto the legacy maintenance-schedule articles.
+   */
+  specData?: boolean;
   /** Optional Q&A pairs surfaced as FAQPage structured data (AI Overviews / PAA). */
   faq?: FaqItem[];
 }
@@ -54,6 +61,7 @@ function readArticlesFromDisk(locale: string): Article[] {
         category: data.category,
         wordCount: data.wordCount ? Number(data.wordCount) : undefined,
         dateModified: data.dateModified || undefined,
+        specData: data.specData === true,
         faq: Array.isArray(data.faq)
           ? data.faq.filter((f: unknown): f is FaqItem => {
               const item = f as Partial<FaqItem>;

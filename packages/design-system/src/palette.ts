@@ -194,3 +194,24 @@ export const palette = {
 } as const;
 
 export type Palette = typeof palette;
+
+/**
+ * Append an alpha channel to a hex color, returning an `rgba()` string. Centralizes the
+ * "tinted dynamic color" pattern so components never hand-concatenate a hex-alpha suffix
+ * (e.g. `${accent}24`). Accepts #RGB / #RRGGBB; returns the input unchanged if not parseable.
+ */
+export function withAlpha(color: string, alpha: number): string {
+  const hex = color.replace('#', '');
+  const full =
+    hex.length === 3
+      ? hex
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : hex;
+  if (!/^[0-9a-fA-F]{6}$/.test(full)) return color;
+  const r = Number.parseInt(full.slice(0, 2), 16);
+  const g = Number.parseInt(full.slice(2, 4), 16);
+  const b = Number.parseInt(full.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}

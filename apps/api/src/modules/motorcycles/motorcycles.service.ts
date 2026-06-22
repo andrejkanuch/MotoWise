@@ -18,7 +18,7 @@ import { RecallResult } from './models/recall.model';
 import { NhtsaService } from './nhtsa.service';
 
 const MOTORCYCLE_SELECT =
-  'id, user_id, make, model, year, nickname, is_primary, primary_photo_url, current_mileage, mileage_unit, mileage_updated_at, type, engine_cc, purchase_price, purchase_date, vin, recall_count, recall_last_checked_at, odometer_sync_source, odometer_last_ride_id, created_at';
+  'id, user_id, make, model, year, nickname, variant, is_primary, primary_photo_url, current_mileage, mileage_unit, mileage_updated_at, type, engine_cc, purchase_price, purchase_date, vin, recall_count, recall_last_checked_at, odometer_sync_source, odometer_last_ride_id, created_at';
 
 @Injectable()
 export class MotorcyclesService {
@@ -66,7 +66,7 @@ export class MotorcyclesService {
 
   async create(
     userId: string,
-    input: { make: string; model: string; year: number; nickname?: string },
+    input: { make: string; model: string; year: number; nickname?: string; variant?: string },
   ): Promise<Motorcycle> {
     this.logger.log(`create: userId=${userId}, make=${input.make}, model=${input.model}`);
 
@@ -81,8 +81,9 @@ export class MotorcyclesService {
         model: input.model,
         year: input.year,
         nickname: input.nickname,
+        variant: input.variant ?? null,
       })
-      .select()
+      .select(MOTORCYCLE_SELECT)
       .single();
 
     if (error || !data) {
@@ -107,6 +108,7 @@ export class MotorcyclesService {
       purchasePrice?: number | null;
       purchaseDate?: string | null;
       vin?: string | null;
+      variant?: string | null;
     },
   ): Promise<Motorcycle> {
     this.logger.log(
@@ -124,6 +126,7 @@ export class MotorcyclesService {
     if (input.purchasePrice !== undefined) updates.purchase_price = input.purchasePrice;
     if (input.purchaseDate !== undefined) updates.purchase_date = input.purchaseDate;
     if (input.vin !== undefined) updates.vin = input.vin ? input.vin.toUpperCase() : null;
+    if (input.variant !== undefined) updates.variant = input.variant;
 
     // P2-111: Any manual mileage edit must reset the odometer provenance so
     // the garage UI's "Auto-updated · today" label doesn't lie after a user
@@ -259,6 +262,7 @@ export class MotorcyclesService {
       | 'model'
       | 'year'
       | 'nickname'
+      | 'variant'
       | 'is_primary'
       | 'primary_photo_url'
       | 'current_mileage'
@@ -283,6 +287,7 @@ export class MotorcyclesService {
       model: row.model,
       year: row.year,
       nickname: row.nickname ?? undefined,
+      variant: row.variant ?? undefined,
       isPrimary: row.is_primary,
       primaryPhotoUrl: row.primary_photo_url ?? undefined,
       currentMileage: row.current_mileage ?? undefined,

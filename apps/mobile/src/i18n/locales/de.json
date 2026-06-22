@@ -776,8 +776,8 @@
     "v2TaskCardCritical": "Kritisch",
     "v2TaskCardRecommended": "Empfohlen",
     "v2TaskCardOptional": "Optional",
-    "v2TaskCardEveryKm": "Alle {{km}} km",
-    "v2TaskCardEveryKmMo": "Alle {{km}} km / {{months}} Mon.",
+    "v2TaskCardEveryKm": "Alle {{distance}} {{unit}}",
+    "v2TaskCardEveryKmMo": "Alle {{distance}} {{unit}} / {{months}} Mon.",
     "v2TaskCardEveryMonths": "Alle {{months}} Monate",
     "v2TaskCardEveryYears_one": "Jedes {{count}} Jahr",
     "v2TaskCardEveryYears_other": "Alle {{count}} Jahre",
@@ -961,7 +961,12 @@
     "cpPromptBodyRide": "Erstelle ein kostenloses Konto, damit deine Fahrt gesichert und auf all deinen Geräten synchronisiert wird.",
     "cpPromptBodyExpense": "Erstelle ein kostenloses Konto, damit deine Ausgabe gesichert und auf all deinen Geräten synchronisiert wird.",
     "cpPromptBodyBike": "Erstelle ein kostenloses Konto, damit dein Motorrad gesichert und auf all deinen Geräten synchronisiert wird.",
-    "cpPromptNotNow": "Jetzt nicht"
+    "cpPromptNotNow": "Jetzt nicht",
+    "v2BikeSetupVariantLabel": "Getriebe",
+    "v2BikeSetupVariantHelper": "Manche Modelle bieten ein Doppelkupplungsgetriebe (DCT) mit eigenem Wartungsplan.",
+    "v2BikeSetupVariantDct": "DCT",
+    "v2BikeSetupVariantMt": "Manuell",
+    "v2BikeSetupVariantNone": "Nicht zutreffend"
   },
   "bikeHub": {
     "upcoming": "Anstehend",
@@ -1639,6 +1644,7 @@
     }
   },
   "oem": {
+    "disclaimer": "Diese Informationen dienen nur zur Orientierung. Überprüfe sie immer anhand deiner Betriebs- und Werkstattanleitung, bevor du Wartungsarbeiten durchführst.",
     "importedTitle": "OEM-Wartungsplan importiert",
     "importedCount": "{{count}} Wartungsaufgabe(n) aus dem Herstellerplan hinzugefuegt.",
     "importedNone": "Keine neuen Aufgaben zu importieren — dein Plan ist bereits aktuell.",

@@ -101,7 +101,10 @@ describe('MotorcyclesResolver', () => {
         'Honda',
         'CB500F',
         2023,
-        null,
+        null, // engineCc
+        0, // currentMileage
+        undefined, // scheduleIdFilter
+        null, // variant
       );
     });
   });

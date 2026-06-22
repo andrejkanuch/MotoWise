@@ -222,38 +222,32 @@ async function adminAuth(request: NextRequest) {
     },
   });
 
-  // Security tradeoff: we use getSession() instead of getUser() here to avoid
-  // a network round-trip to Supabase Auth on every /admin/* navigation.
-  // getSession() reads from the cookie-cached JWT — no network call. The JWT is
-  // cryptographically signed, so the claims (including the user role stored in
-  // app_metadata) can be trusted for middleware-level routing decisions.
-  //
-  // For sensitive operations (data mutations, role changes, etc.), individual
-  // admin pages / API routes should still verify via getUser() + a DB query
-  // against public.users to guard against stale JWTs.
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  // Verify identity with getClaims() — it validates the access token (locally via the WebCrypto
+  // API for asymmetric JWT signing keys, falling back to a getUser() network check for symmetric
+  // keys), so the claims are trustworthy for an authorization decision. getSession()'s user object
+  // is read straight from cookies and is NOT safe to authorize against (Supabase warns on it).
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const claims = claimsData?.claims;
 
   // Not logged in — redirect to login
-  if (!session?.user) {
+  if (!claims) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Fast path: read role from JWT claims (app_metadata is set by Supabase Auth
-  // triggers / admin API and included in the signed JWT).
-  const roleFromJwt = session.user.app_metadata?.role;
+  // Fast path: role from the verified JWT claims (app_metadata is set by Supabase Auth
+  // triggers / admin API and included in the signed token).
+  const roleFromJwt = (claims.app_metadata as { role?: string } | undefined)?.role;
 
   if (roleFromJwt === 'admin') {
     return response;
   }
 
-  // Fallback: if the JWT doesn't carry the role claim yet (e.g. the
-  // handle_new_user trigger hasn't populated app_metadata), hit the DB.
+  // Fallback: if the JWT doesn't carry the role claim yet (e.g. the handle_new_user trigger
+  // hasn't populated app_metadata), confirm against the DB using the verified subject.
   const { data: profile } = await supabase
     .from('users')
     .select('role')
-    .eq('id', session.user.id)
+    .eq('id', claims.sub)
     .single();
 
   if (profile?.role !== 'admin') {
@@ -307,14 +301,11 @@ async function communityAuth(request: NextRequest) {
     },
   });
 
-  // Use getSession() to read from cookies (no network call).
-  // getUser() validates with Supabase Auth but can fail during the
-  // brief window after signInWithPassword before cookies propagate.
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  // Verify identity with getClaims() (validates the JWT; the getSession() user object is
+  // cookie-derived and must not be trusted for an auth gate).
+  const { data: claimsData } = await supabase.auth.getClaims();
 
-  if (!session) {
+  if (!claimsData?.claims) {
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('redirect', request.nextUrl.pathname);
     return NextResponse.redirect(redirectUrl);

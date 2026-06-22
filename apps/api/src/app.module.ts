@@ -34,6 +34,7 @@ import { HealthReportsModule } from './modules/health-reports/health-reports.mod
 import { InsightsModule } from './modules/insights/insights.module';
 import { KudosModule } from './modules/kudos/kudos.module';
 import { LearningProgressModule } from './modules/learning-progress/learning-progress.module';
+import { MaintenanceSourcingModule } from './modules/maintenance-sourcing/maintenance-sourcing.module';
 import { MaintenanceTasksModule } from './modules/maintenance-tasks/maintenance-tasks.module';
 import { MetaModule } from './modules/meta/meta.module';
 import { ModelInsightsModule } from './modules/model-insights/model-insights.module';
@@ -110,6 +111,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     KudosModule,
     ContentFlagsModule,
     LearningProgressModule,
+    MaintenanceSourcingModule,
     MaintenanceTasksModule,
     MetaModule,
     ModelInsightsModule,
