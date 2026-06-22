@@ -136,6 +136,13 @@ export class DataExportService {
           .limit(maxRows),
       ]);
 
+      // Document vault: metadata + storage paths only (not the raw file bytes).
+      // document_files carries a denormalized user_id (00150) so byUserId works.
+      const [documentsResult, documentFilesResult] = await Promise.all([
+        byUserId('documents'),
+        byUserId('document_files'),
+      ]);
+
       const exportData = {
         exportedAt: new Date().toISOString(),
         profile: profileResult.data ?? null,
@@ -152,6 +159,8 @@ export class DataExportService {
         follows: followsResult.data ?? [],
         rideKudos: rideKudosResult.data ?? [],
         surfaceReports: surfaceReportsResult.data ?? [],
+        documents: documentsResult.data ?? [],
+        documentFiles: documentFilesResult.data ?? [],
       };
 
       // Store export as JSON in Supabase Storage

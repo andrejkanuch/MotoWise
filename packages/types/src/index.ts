@@ -1,5 +1,6 @@
 export * from './constants/cache-tags';
 export * from './constants/countries';
+export * from './constants/document-limits';
 export * from './constants/enums';
 export * from './constants/limits';
 export * from './constants/profile';
@@ -12,6 +13,7 @@ export * from './validators/browse';
 export * from './validators/content-flag';
 export * from './validators/diagnostic';
 export * from './validators/diagnostic-ai-response';
+export * from './validators/document';
 export * from './validators/expense';
 export * from './validators/follow';
 export * from './validators/fuel-log';
