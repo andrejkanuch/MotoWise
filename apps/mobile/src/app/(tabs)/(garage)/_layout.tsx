@@ -151,6 +151,38 @@ export default function GarageLayout() {
           contentStyle: sheetContentStyle,
         }}
       />
+      <Stack.Screen
+        name="add-document"
+        options={{
+          title: t('documents.addTitle', { defaultValue: 'Add Document' }),
+          presentation: 'fullScreenModal',
+          headerLargeTitle: false,
+          headerTransparent: false,
+          headerStyle: sheetHeaderStyle,
+          contentStyle: sheetContentStyle,
+          headerBackButtonDisplayMode: 'default',
+        }}
+      />
+      <Stack.Screen
+        name="document/[id]"
+        options={{
+          presentation: 'fullScreenModal',
+          headerShown: false,
+          contentStyle: sheetContentStyle,
+        }}
+      />
+      <Stack.Screen
+        name="manage-document-categories"
+        options={{
+          title: t('documents.manageCategories', { defaultValue: 'Manage Categories' }),
+          presentation: 'fullScreenModal',
+          headerLargeTitle: false,
+          headerTransparent: false,
+          headerStyle: sheetHeaderStyle,
+          contentStyle: sheetContentStyle,
+          headerBackButtonDisplayMode: 'default',
+        }}
+      />
     </Stack>
   );
 }

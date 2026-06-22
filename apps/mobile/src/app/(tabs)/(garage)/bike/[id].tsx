@@ -41,6 +41,7 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DocumentsSection } from '../../../../components/bike-hub/documents-section';
 import { ExpensesSection } from '../../../../components/bike-hub/expenses-section';
 import { MaintenanceSection } from '../../../../components/bike-hub/maintenance-section';
 import { MileageDisplay } from '../../../../components/bike-hub/mileage-display';
@@ -990,6 +991,15 @@ export default function BikeDetailScreen() {
             isDark={isDark}
             currentMileage={bike.currentMileage ?? undefined}
             mileageUnit={mileageUnit}
+          />
+        </Animated.View>
+
+        {/* 5b. Documents Section */}
+        <Animated.View entering={FadeInUp.delay(270).duration(400)} style={{ marginTop: 24 }}>
+          <DocumentsSection
+            motorcycleId={id}
+            isDark={isDark}
+            bikeName={bike.nickname ?? `${bike.make} ${bike.model}`}
           />
         </Animated.View>
 

@@ -58,6 +58,11 @@ export const queryKeys = {
   expensePhotos: {
     byExpense: (expenseId: string) => ['expense-photos', expenseId] as const,
   },
+  documents: {
+    byMotorcycle: (motorcycleId: string) => ['documents', 'byMotorcycle', motorcycleId] as const,
+    categories: (includeHidden: boolean) => ['documents', 'categories', includeHidden] as const,
+    expiring: ['documents', 'expiring'] as const,
+  },
   makeStats: {
     all: ['makeStats'] as const,
   },

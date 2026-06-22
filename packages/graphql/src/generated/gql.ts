@@ -14,6 +14,7 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
+    "mutation AddDocumentCategory($input: AddDocumentCategoryInput!) {\n  addDocumentCategory(input: $input) {\n    id\n    name\n    kind\n    isHidden\n    promptsExpiry\n    createdAt\n    updatedAt\n  }\n}": typeof types.AddDocumentCategoryDocument,
     "mutation AddExpensePhoto($input: AddExpensePhotoInput!) {\n  addExpensePhoto(input: $input) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": typeof types.AddExpensePhotoDocument,
     "mutation AddTaskPhoto($input: AddTaskPhotoInput!) {\n  addTaskPhoto(input: $input) {\n    id\n    taskId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": typeof types.AddTaskPhotoDocument,
     "mutation AddWaypoint($input: CreateWaypointInput!) {\n  addWaypoint(input: $input) {\n    id\n    tripId\n    sortOrder\n    dayIndex\n    periodOfDay\n    type\n    name\n    notes\n    lat\n    lng\n    createdAt\n  }\n}": typeof types.AddWaypointDocument,
@@ -24,6 +25,7 @@ type Documents = {
     "mutation CompleteOnboarding($input: CompleteOnboardingInput!) {\n  completeOnboarding(input: $input) {\n    id\n    preferences\n    currency\n    createdAt\n    updatedAt\n  }\n}": typeof types.CompleteOnboardingDocument,
     "mutation CreateComment($input: CreateCommentInput!) {\n  createComment(input: $input) {\n    id\n    text\n    createdAt\n    flaggedCount\n    parentCommentId\n    author {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n  }\n}": typeof types.CreateCommentDocument,
     "mutation CreateDiagnostic($input: CreateDiagnosticInput!) {\n  createDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}": typeof types.CreateDiagnosticDocument,
+    "mutation CreateDocument($input: CreateDocumentInput!) {\n  createDocument(input: $input) {\n    id\n    motorcycleId\n    categoryId\n    title\n    expiryDate\n    note\n    isPinned\n    createdAt\n    updatedAt\n    files {\n      id\n      documentId\n      mimeType\n      fileSizeBytes\n      createdAt\n    }\n  }\n}": typeof types.CreateDocumentDocument,
     "mutation CreateFlag($input: CreateFlagInput!) {\n  createFlag(input: $input) {\n    id\n    articleId\n    userId\n    sectionReference\n    comment\n    status\n    createdAt\n  }\n}": typeof types.CreateFlagDocument,
     "mutation CreateFuelLog($input: CreateFuelLogInput!) {\n  createFuelLog(input: $input) {\n    id\n    odometerKm\n    fuelLitres\n    totalCost\n    currency\n    fuelType\n    isPartial\n    filledAt\n    litresPer100Km\n    mpgUs\n  }\n}": typeof types.CreateFuelLogDocument,
     "mutation CreateGroupRide($input: CreateGroupRideInput!) {\n  createGroupRide(input: $input) {\n    id\n    title\n  }\n}": typeof types.CreateGroupRideDocument,
@@ -36,6 +38,7 @@ type Documents = {
     "mutation CreateTrip($input: CreateTripInput!) {\n  createTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    createdAt\n    organiser {\n      id\n      displayName\n    }\n  }\n}": typeof types.CreateTripDocument,
     "mutation DeleteAccount {\n  deleteAccount\n}": typeof types.DeleteAccountDocument,
     "mutation DeleteComment($commentId: ID!) {\n  deleteComment(commentId: $commentId)\n}": typeof types.DeleteCommentDocument,
+    "mutation DeleteDocument($id: String!) {\n  deleteDocument(id: $id)\n}": typeof types.DeleteDocumentDocument,
     "mutation DeleteExpensePhoto($photoId: String!) {\n  deleteExpensePhoto(photoId: $photoId)\n}": typeof types.DeleteExpensePhotoDocument,
     "mutation DeleteExpense($id: String!) {\n  deleteExpense(id: $id)\n}": typeof types.DeleteExpenseDocument,
     "mutation DeleteFuelLog($id: String!) {\n  deleteFuelLog(id: $id)\n}": typeof types.DeleteFuelLogDocument,
@@ -82,6 +85,8 @@ type Documents = {
     "mutation UnpublishTemplate($tripId: ID!) {\n  unpublishTemplate(tripId: $tripId)\n}": typeof types.UnpublishTemplateDocument,
     "mutation UnsaveTrip($tripId: ID!) {\n  unsaveTrip(tripId: $tripId)\n}": typeof types.UnsaveTripDocument,
     "mutation UnshareRide($rideId: String!, $sharedWithUserId: String!) {\n  unshareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)\n}": typeof types.UnshareRideDocument,
+    "mutation UpdateDocumentCategory($id: String!, $input: UpdateDocumentCategoryInput!) {\n  updateDocumentCategory(id: $id, input: $input) {\n    id\n    name\n    kind\n    isHidden\n    promptsExpiry\n    updatedAt\n  }\n}": typeof types.UpdateDocumentCategoryDocument,
+    "mutation UpdateDocument($id: String!, $input: UpdateDocumentInput!) {\n  updateDocument(id: $id, input: $input) {\n    id\n    motorcycleId\n    categoryId\n    title\n    expiryDate\n    note\n    isPinned\n    updatedAt\n  }\n}": typeof types.UpdateDocumentDocument,
     "mutation UpdateMotorcycle($id: String!, $input: UpdateMotorcycleInput!) {\n  updateMotorcycle(id: $id, input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    variant\n    isPrimary\n    primaryPhotoUrl\n    currentMileage\n    mileageUnit\n    mileageUpdatedAt\n    purchasePrice\n    purchaseDate\n    vin\n    recallCount\n    recallLastCheckedAt\n  }\n}": typeof types.UpdateMotorcycleDocument,
     "mutation UpdateMyProfile($input: UpdateProfileInput!) {\n  updateMyProfile(input: $input) {\n    id\n    fullName\n    publicUsername\n    displayName\n    bio\n    city\n    isPublic\n    followerCount\n    followingCount\n  }\n}": typeof types.UpdateMyProfileDocument,
     "mutation UpdateParticipantStatus($input: UpdateParticipantStatusInput!) {\n  updateParticipantStatus(input: $input)\n}": typeof types.UpdateParticipantStatusDocument,
@@ -95,9 +100,13 @@ type Documents = {
     "query ArticleBySlugFull($slug: String!) {\n  articleBySlugFull(slug: $slug) {\n    id\n    slug\n    title\n    difficulty\n    category\n    viewCount\n    isSafetyCritical\n    contentJson\n    readTime\n    generatedAt\n    updatedAt\n  }\n}": typeof types.ArticleBySlugFullDocument,
     "query DiagnosticById($id: String!) {\n  diagnosticById(id: $id) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}": typeof types.DiagnosticByIdDocument,
     "query DiscoverRiderTrips($first: Int, $after: String) {\n  discoverRiderTrips(first: $first, after: $after) {\n    edges {\n      node {\n        id\n        title\n        description\n        startDate\n        endDate\n        difficulty\n        maxRiders\n        participantCount\n        status\n        visibility\n        coverImageUrl\n        createdAt\n        organiser {\n          id\n          displayName\n          publicUsername\n          avatarUrl\n        }\n        waypoints {\n          id\n          sortOrder\n          dayIndex\n          lat\n          lng\n        }\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}": typeof types.DiscoverRiderTripsDocument,
+    "query DocumentCategories($includeHidden: Boolean) {\n  documentCategories(includeHidden: $includeHidden) {\n    id\n    name\n    kind\n    isHidden\n    promptsExpiry\n    createdAt\n    updatedAt\n  }\n}": typeof types.DocumentCategoriesDocument,
+    "query GetDocumentSignedUrl($fileId: String!, $download: Boolean) {\n  getDocumentSignedUrl(fileId: $fileId, download: $download)\n}": typeof types.GetDocumentSignedUrlDocument,
+    "query DocumentsByMotorcycle($motorcycleId: String!) {\n  documents(motorcycleId: $motorcycleId) {\n    id\n    motorcycleId\n    categoryId\n    title\n    expiryDate\n    note\n    isPinned\n    createdAt\n    updatedAt\n    files {\n      id\n      documentId\n      mimeType\n      fileSizeBytes\n      createdAt\n    }\n  }\n}": typeof types.DocumentsByMotorcycleDocument,
     "query ExpenseDashboard($motorcycleId: String!) {\n  expenseDashboard(motorcycleId: $motorcycleId) {\n    currentYearTotal\n    previousYearTotal\n    allTimeTotal\n    expenseCount\n    monthlyBuckets {\n      month\n      year\n      fuel\n      maintenance\n      parts\n      gear\n      tires\n      insurance\n      registration\n      tolls\n      parking\n      modifications\n      training\n      total\n    }\n    categoryTotals {\n      category\n      total\n    }\n  }\n}": typeof types.ExpenseDashboardDocument,
     "query ExpensePhotos($expenseId: String!) {\n  expensePhotos(expenseId: $expenseId) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": typeof types.ExpensePhotosDocument,
     "query ExpensesByMotorcycle($motorcycleId: String!, $year: Int!) {\n  expenses(motorcycleId: $motorcycleId, year: $year) {\n    ytdTotal\n    categories {\n      category\n      total\n      expenses {\n        id\n        amount\n        category\n        currency\n        description\n        date\n        createdAt\n      }\n    }\n  }\n}": typeof types.ExpensesByMotorcycleDocument,
+    "query ExpiringDocuments($withinDays: Int) {\n  expiringDocuments(withinDays: $withinDays) {\n    id\n    motorcycleId\n    categoryId\n    title\n    expiryDate\n    isPinned\n  }\n}": typeof types.ExpiringDocumentsDocument,
     "query FuelLogs($motorcycleId: String!) {\n  fuelLogs(motorcycleId: $motorcycleId) {\n    id\n    motorcycleId\n    odometerKm\n    fuelLitres\n    totalCost\n    currency\n    fuelType\n    isPartial\n    notes\n    filledAt\n    kmSincePrevious\n    litresPer100Km\n    mpgUs\n  }\n}": typeof types.FuelLogsDocument,
     "query GetArticleBySlug($slug: String!) {\n  articleBySlug(slug: $slug) {\n    id\n    slug\n    title\n    difficulty\n    category\n    viewCount\n    isSafetyCritical\n    generatedAt\n    updatedAt\n  }\n}": typeof types.GetArticleBySlugDocument,
     "query GetComments($rideId: ID, $routeId: ID, $groupRideId: ID, $tripId: ID, $first: Int, $after: String) {\n  getComments(\n    rideId: $rideId\n    routeId: $routeId\n    groupRideId: $groupRideId\n    tripId: $tripId\n    first: $first\n    after: $after\n  ) {\n    comments {\n      id\n      text\n      createdAt\n      flaggedCount\n      parentCommentId\n      author {\n        id\n        displayName\n        publicUsername\n        avatarUrl\n      }\n      replies {\n        id\n        text\n        createdAt\n        flaggedCount\n        parentCommentId\n        author {\n          id\n          displayName\n          publicUsername\n          avatarUrl\n        }\n      }\n    }\n    hasNextPage\n    endCursor\n    totalCount\n  }\n}": typeof types.GetCommentsDocument,
@@ -154,6 +163,7 @@ type Documents = {
     "query WebTripReviews($country: String!, $region: String!, $slug: String!, $first: Int) {\n  tripReviews(country: $country, region: $region, slug: $slug, first: $first) {\n    id\n    rating\n    text\n    conditionTags\n    createdAt\n    author {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n    bike {\n      make\n      model\n      year\n    }\n  }\n}": typeof types.WebTripReviewsDocument,
 };
 const documents: Documents = {
+    "mutation AddDocumentCategory($input: AddDocumentCategoryInput!) {\n  addDocumentCategory(input: $input) {\n    id\n    name\n    kind\n    isHidden\n    promptsExpiry\n    createdAt\n    updatedAt\n  }\n}": types.AddDocumentCategoryDocument,
     "mutation AddExpensePhoto($input: AddExpensePhotoInput!) {\n  addExpensePhoto(input: $input) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": types.AddExpensePhotoDocument,
     "mutation AddTaskPhoto($input: AddTaskPhotoInput!) {\n  addTaskPhoto(input: $input) {\n    id\n    taskId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": types.AddTaskPhotoDocument,
     "mutation AddWaypoint($input: CreateWaypointInput!) {\n  addWaypoint(input: $input) {\n    id\n    tripId\n    sortOrder\n    dayIndex\n    periodOfDay\n    type\n    name\n    notes\n    lat\n    lng\n    createdAt\n  }\n}": types.AddWaypointDocument,
@@ -164,6 +174,7 @@ const documents: Documents = {
     "mutation CompleteOnboarding($input: CompleteOnboardingInput!) {\n  completeOnboarding(input: $input) {\n    id\n    preferences\n    currency\n    createdAt\n    updatedAt\n  }\n}": types.CompleteOnboardingDocument,
     "mutation CreateComment($input: CreateCommentInput!) {\n  createComment(input: $input) {\n    id\n    text\n    createdAt\n    flaggedCount\n    parentCommentId\n    author {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n  }\n}": types.CreateCommentDocument,
     "mutation CreateDiagnostic($input: CreateDiagnosticInput!) {\n  createDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}": types.CreateDiagnosticDocument,
+    "mutation CreateDocument($input: CreateDocumentInput!) {\n  createDocument(input: $input) {\n    id\n    motorcycleId\n    categoryId\n    title\n    expiryDate\n    note\n    isPinned\n    createdAt\n    updatedAt\n    files {\n      id\n      documentId\n      mimeType\n      fileSizeBytes\n      createdAt\n    }\n  }\n}": types.CreateDocumentDocument,
     "mutation CreateFlag($input: CreateFlagInput!) {\n  createFlag(input: $input) {\n    id\n    articleId\n    userId\n    sectionReference\n    comment\n    status\n    createdAt\n  }\n}": types.CreateFlagDocument,
     "mutation CreateFuelLog($input: CreateFuelLogInput!) {\n  createFuelLog(input: $input) {\n    id\n    odometerKm\n    fuelLitres\n    totalCost\n    currency\n    fuelType\n    isPartial\n    filledAt\n    litresPer100Km\n    mpgUs\n  }\n}": types.CreateFuelLogDocument,
     "mutation CreateGroupRide($input: CreateGroupRideInput!) {\n  createGroupRide(input: $input) {\n    id\n    title\n  }\n}": types.CreateGroupRideDocument,
@@ -176,6 +187,7 @@ const documents: Documents = {
     "mutation CreateTrip($input: CreateTripInput!) {\n  createTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    createdAt\n    organiser {\n      id\n      displayName\n    }\n  }\n}": types.CreateTripDocument,
     "mutation DeleteAccount {\n  deleteAccount\n}": types.DeleteAccountDocument,
     "mutation DeleteComment($commentId: ID!) {\n  deleteComment(commentId: $commentId)\n}": types.DeleteCommentDocument,
+    "mutation DeleteDocument($id: String!) {\n  deleteDocument(id: $id)\n}": types.DeleteDocumentDocument,
     "mutation DeleteExpensePhoto($photoId: String!) {\n  deleteExpensePhoto(photoId: $photoId)\n}": types.DeleteExpensePhotoDocument,
     "mutation DeleteExpense($id: String!) {\n  deleteExpense(id: $id)\n}": types.DeleteExpenseDocument,
     "mutation DeleteFuelLog($id: String!) {\n  deleteFuelLog(id: $id)\n}": types.DeleteFuelLogDocument,
@@ -222,6 +234,8 @@ const documents: Documents = {
     "mutation UnpublishTemplate($tripId: ID!) {\n  unpublishTemplate(tripId: $tripId)\n}": types.UnpublishTemplateDocument,
     "mutation UnsaveTrip($tripId: ID!) {\n  unsaveTrip(tripId: $tripId)\n}": types.UnsaveTripDocument,
     "mutation UnshareRide($rideId: String!, $sharedWithUserId: String!) {\n  unshareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)\n}": types.UnshareRideDocument,
+    "mutation UpdateDocumentCategory($id: String!, $input: UpdateDocumentCategoryInput!) {\n  updateDocumentCategory(id: $id, input: $input) {\n    id\n    name\n    kind\n    isHidden\n    promptsExpiry\n    updatedAt\n  }\n}": types.UpdateDocumentCategoryDocument,
+    "mutation UpdateDocument($id: String!, $input: UpdateDocumentInput!) {\n  updateDocument(id: $id, input: $input) {\n    id\n    motorcycleId\n    categoryId\n    title\n    expiryDate\n    note\n    isPinned\n    updatedAt\n  }\n}": types.UpdateDocumentDocument,
     "mutation UpdateMotorcycle($id: String!, $input: UpdateMotorcycleInput!) {\n  updateMotorcycle(id: $id, input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    variant\n    isPrimary\n    primaryPhotoUrl\n    currentMileage\n    mileageUnit\n    mileageUpdatedAt\n    purchasePrice\n    purchaseDate\n    vin\n    recallCount\n    recallLastCheckedAt\n  }\n}": types.UpdateMotorcycleDocument,
     "mutation UpdateMyProfile($input: UpdateProfileInput!) {\n  updateMyProfile(input: $input) {\n    id\n    fullName\n    publicUsername\n    displayName\n    bio\n    city\n    isPublic\n    followerCount\n    followingCount\n  }\n}": types.UpdateMyProfileDocument,
     "mutation UpdateParticipantStatus($input: UpdateParticipantStatusInput!) {\n  updateParticipantStatus(input: $input)\n}": types.UpdateParticipantStatusDocument,
@@ -235,9 +249,13 @@ const documents: Documents = {
     "query ArticleBySlugFull($slug: String!) {\n  articleBySlugFull(slug: $slug) {\n    id\n    slug\n    title\n    difficulty\n    category\n    viewCount\n    isSafetyCritical\n    contentJson\n    readTime\n    generatedAt\n    updatedAt\n  }\n}": types.ArticleBySlugFullDocument,
     "query DiagnosticById($id: String!) {\n  diagnosticById(id: $id) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}": types.DiagnosticByIdDocument,
     "query DiscoverRiderTrips($first: Int, $after: String) {\n  discoverRiderTrips(first: $first, after: $after) {\n    edges {\n      node {\n        id\n        title\n        description\n        startDate\n        endDate\n        difficulty\n        maxRiders\n        participantCount\n        status\n        visibility\n        coverImageUrl\n        createdAt\n        organiser {\n          id\n          displayName\n          publicUsername\n          avatarUrl\n        }\n        waypoints {\n          id\n          sortOrder\n          dayIndex\n          lat\n          lng\n        }\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}": types.DiscoverRiderTripsDocument,
+    "query DocumentCategories($includeHidden: Boolean) {\n  documentCategories(includeHidden: $includeHidden) {\n    id\n    name\n    kind\n    isHidden\n    promptsExpiry\n    createdAt\n    updatedAt\n  }\n}": types.DocumentCategoriesDocument,
+    "query GetDocumentSignedUrl($fileId: String!, $download: Boolean) {\n  getDocumentSignedUrl(fileId: $fileId, download: $download)\n}": types.GetDocumentSignedUrlDocument,
+    "query DocumentsByMotorcycle($motorcycleId: String!) {\n  documents(motorcycleId: $motorcycleId) {\n    id\n    motorcycleId\n    categoryId\n    title\n    expiryDate\n    note\n    isPinned\n    createdAt\n    updatedAt\n    files {\n      id\n      documentId\n      mimeType\n      fileSizeBytes\n      createdAt\n    }\n  }\n}": types.DocumentsByMotorcycleDocument,
     "query ExpenseDashboard($motorcycleId: String!) {\n  expenseDashboard(motorcycleId: $motorcycleId) {\n    currentYearTotal\n    previousYearTotal\n    allTimeTotal\n    expenseCount\n    monthlyBuckets {\n      month\n      year\n      fuel\n      maintenance\n      parts\n      gear\n      tires\n      insurance\n      registration\n      tolls\n      parking\n      modifications\n      training\n      total\n    }\n    categoryTotals {\n      category\n      total\n    }\n  }\n}": types.ExpenseDashboardDocument,
     "query ExpensePhotos($expenseId: String!) {\n  expensePhotos(expenseId: $expenseId) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": types.ExpensePhotosDocument,
     "query ExpensesByMotorcycle($motorcycleId: String!, $year: Int!) {\n  expenses(motorcycleId: $motorcycleId, year: $year) {\n    ytdTotal\n    categories {\n      category\n      total\n      expenses {\n        id\n        amount\n        category\n        currency\n        description\n        date\n        createdAt\n      }\n    }\n  }\n}": types.ExpensesByMotorcycleDocument,
+    "query ExpiringDocuments($withinDays: Int) {\n  expiringDocuments(withinDays: $withinDays) {\n    id\n    motorcycleId\n    categoryId\n    title\n    expiryDate\n    isPinned\n  }\n}": types.ExpiringDocumentsDocument,
     "query FuelLogs($motorcycleId: String!) {\n  fuelLogs(motorcycleId: $motorcycleId) {\n    id\n    motorcycleId\n    odometerKm\n    fuelLitres\n    totalCost\n    currency\n    fuelType\n    isPartial\n    notes\n    filledAt\n    kmSincePrevious\n    litresPer100Km\n    mpgUs\n  }\n}": types.FuelLogsDocument,
     "query GetArticleBySlug($slug: String!) {\n  articleBySlug(slug: $slug) {\n    id\n    slug\n    title\n    difficulty\n    category\n    viewCount\n    isSafetyCritical\n    generatedAt\n    updatedAt\n  }\n}": types.GetArticleBySlugDocument,
     "query GetComments($rideId: ID, $routeId: ID, $groupRideId: ID, $tripId: ID, $first: Int, $after: String) {\n  getComments(\n    rideId: $rideId\n    routeId: $routeId\n    groupRideId: $groupRideId\n    tripId: $tripId\n    first: $first\n    after: $after\n  ) {\n    comments {\n      id\n      text\n      createdAt\n      flaggedCount\n      parentCommentId\n      author {\n        id\n        displayName\n        publicUsername\n        avatarUrl\n      }\n      replies {\n        id\n        text\n        createdAt\n        flaggedCount\n        parentCommentId\n        author {\n          id\n          displayName\n          publicUsername\n          avatarUrl\n        }\n      }\n    }\n    hasNextPage\n    endCursor\n    totalCount\n  }\n}": types.GetCommentsDocument,
@@ -311,6 +329,10 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "mutation AddDocumentCategory($input: AddDocumentCategoryInput!) {\n  addDocumentCategory(input: $input) {\n    id\n    name\n    kind\n    isHidden\n    promptsExpiry\n    createdAt\n    updatedAt\n  }\n}"): (typeof documents)["mutation AddDocumentCategory($input: AddDocumentCategoryInput!) {\n  addDocumentCategory(input: $input) {\n    id\n    name\n    kind\n    isHidden\n    promptsExpiry\n    createdAt\n    updatedAt\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "mutation AddExpensePhoto($input: AddExpensePhotoInput!) {\n  addExpensePhoto(input: $input) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}"): (typeof documents)["mutation AddExpensePhoto($input: AddExpensePhotoInput!) {\n  addExpensePhoto(input: $input) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -348,6 +370,10 @@ export function graphql(source: "mutation CreateComment($input: CreateCommentInp
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation CreateDiagnostic($input: CreateDiagnosticInput!) {\n  createDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}"): (typeof documents)["mutation CreateDiagnostic($input: CreateDiagnosticInput!) {\n  createDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation CreateDocument($input: CreateDocumentInput!) {\n  createDocument(input: $input) {\n    id\n    motorcycleId\n    categoryId\n    title\n    expiryDate\n    note\n    isPinned\n    createdAt\n    updatedAt\n    files {\n      id\n      documentId\n      mimeType\n      fileSizeBytes\n      createdAt\n    }\n  }\n}"): (typeof documents)["mutation CreateDocument($input: CreateDocumentInput!) {\n  createDocument(input: $input) {\n    id\n    motorcycleId\n    categoryId\n    title\n    expiryDate\n    note\n    isPinned\n    createdAt\n    updatedAt\n    files {\n      id\n      documentId\n      mimeType\n      fileSizeBytes\n      createdAt\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -396,6 +422,10 @@ export function graphql(source: "mutation DeleteAccount {\n  deleteAccount\n}"):
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation DeleteComment($commentId: ID!) {\n  deleteComment(commentId: $commentId)\n}"): (typeof documents)["mutation DeleteComment($commentId: ID!) {\n  deleteComment(commentId: $commentId)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation DeleteDocument($id: String!) {\n  deleteDocument(id: $id)\n}"): (typeof documents)["mutation DeleteDocument($id: String!) {\n  deleteDocument(id: $id)\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -583,6 +613,14 @@ export function graphql(source: "mutation UnshareRide($rideId: String!, $sharedW
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "mutation UpdateDocumentCategory($id: String!, $input: UpdateDocumentCategoryInput!) {\n  updateDocumentCategory(id: $id, input: $input) {\n    id\n    name\n    kind\n    isHidden\n    promptsExpiry\n    updatedAt\n  }\n}"): (typeof documents)["mutation UpdateDocumentCategory($id: String!, $input: UpdateDocumentCategoryInput!) {\n  updateDocumentCategory(id: $id, input: $input) {\n    id\n    name\n    kind\n    isHidden\n    promptsExpiry\n    updatedAt\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation UpdateDocument($id: String!, $input: UpdateDocumentInput!) {\n  updateDocument(id: $id, input: $input) {\n    id\n    motorcycleId\n    categoryId\n    title\n    expiryDate\n    note\n    isPinned\n    updatedAt\n  }\n}"): (typeof documents)["mutation UpdateDocument($id: String!, $input: UpdateDocumentInput!) {\n  updateDocument(id: $id, input: $input) {\n    id\n    motorcycleId\n    categoryId\n    title\n    expiryDate\n    note\n    isPinned\n    updatedAt\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "mutation UpdateMotorcycle($id: String!, $input: UpdateMotorcycleInput!) {\n  updateMotorcycle(id: $id, input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    variant\n    isPrimary\n    primaryPhotoUrl\n    currentMileage\n    mileageUnit\n    mileageUpdatedAt\n    purchasePrice\n    purchaseDate\n    vin\n    recallCount\n    recallLastCheckedAt\n  }\n}"): (typeof documents)["mutation UpdateMotorcycle($id: String!, $input: UpdateMotorcycleInput!) {\n  updateMotorcycle(id: $id, input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    variant\n    isPrimary\n    primaryPhotoUrl\n    currentMileage\n    mileageUnit\n    mileageUpdatedAt\n    purchasePrice\n    purchaseDate\n    vin\n    recallCount\n    recallLastCheckedAt\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -635,6 +673,18 @@ export function graphql(source: "query DiscoverRiderTrips($first: Int, $after: S
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "query DocumentCategories($includeHidden: Boolean) {\n  documentCategories(includeHidden: $includeHidden) {\n    id\n    name\n    kind\n    isHidden\n    promptsExpiry\n    createdAt\n    updatedAt\n  }\n}"): (typeof documents)["query DocumentCategories($includeHidden: Boolean) {\n  documentCategories(includeHidden: $includeHidden) {\n    id\n    name\n    kind\n    isHidden\n    promptsExpiry\n    createdAt\n    updatedAt\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query GetDocumentSignedUrl($fileId: String!, $download: Boolean) {\n  getDocumentSignedUrl(fileId: $fileId, download: $download)\n}"): (typeof documents)["query GetDocumentSignedUrl($fileId: String!, $download: Boolean) {\n  getDocumentSignedUrl(fileId: $fileId, download: $download)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query DocumentsByMotorcycle($motorcycleId: String!) {\n  documents(motorcycleId: $motorcycleId) {\n    id\n    motorcycleId\n    categoryId\n    title\n    expiryDate\n    note\n    isPinned\n    createdAt\n    updatedAt\n    files {\n      id\n      documentId\n      mimeType\n      fileSizeBytes\n      createdAt\n    }\n  }\n}"): (typeof documents)["query DocumentsByMotorcycle($motorcycleId: String!) {\n  documents(motorcycleId: $motorcycleId) {\n    id\n    motorcycleId\n    categoryId\n    title\n    expiryDate\n    note\n    isPinned\n    createdAt\n    updatedAt\n    files {\n      id\n      documentId\n      mimeType\n      fileSizeBytes\n      createdAt\n    }\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "query ExpenseDashboard($motorcycleId: String!) {\n  expenseDashboard(motorcycleId: $motorcycleId) {\n    currentYearTotal\n    previousYearTotal\n    allTimeTotal\n    expenseCount\n    monthlyBuckets {\n      month\n      year\n      fuel\n      maintenance\n      parts\n      gear\n      tires\n      insurance\n      registration\n      tolls\n      parking\n      modifications\n      training\n      total\n    }\n    categoryTotals {\n      category\n      total\n    }\n  }\n}"): (typeof documents)["query ExpenseDashboard($motorcycleId: String!) {\n  expenseDashboard(motorcycleId: $motorcycleId) {\n    currentYearTotal\n    previousYearTotal\n    allTimeTotal\n    expenseCount\n    monthlyBuckets {\n      month\n      year\n      fuel\n      maintenance\n      parts\n      gear\n      tires\n      insurance\n      registration\n      tolls\n      parking\n      modifications\n      training\n      total\n    }\n    categoryTotals {\n      category\n      total\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -644,6 +694,10 @@ export function graphql(source: "query ExpensePhotos($expenseId: String!) {\n  e
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "query ExpensesByMotorcycle($motorcycleId: String!, $year: Int!) {\n  expenses(motorcycleId: $motorcycleId, year: $year) {\n    ytdTotal\n    categories {\n      category\n      total\n      expenses {\n        id\n        amount\n        category\n        currency\n        description\n        date\n        createdAt\n      }\n    }\n  }\n}"): (typeof documents)["query ExpensesByMotorcycle($motorcycleId: String!, $year: Int!) {\n  expenses(motorcycleId: $motorcycleId, year: $year) {\n    ytdTotal\n    categories {\n      category\n      total\n      expenses {\n        id\n        amount\n        category\n        currency\n        description\n        date\n        createdAt\n      }\n    }\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query ExpiringDocuments($withinDays: Int) {\n  expiringDocuments(withinDays: $withinDays) {\n    id\n    motorcycleId\n    categoryId\n    title\n    expiryDate\n    isPinned\n  }\n}"): (typeof documents)["query ExpiringDocuments($withinDays: Int) {\n  expiringDocuments(withinDays: $withinDays) {\n    id\n    motorcycleId\n    categoryId\n    title\n    expiryDate\n    isPinned\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

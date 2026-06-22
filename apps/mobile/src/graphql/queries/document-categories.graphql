@@ -1,0 +1,11 @@
+query DocumentCategories($includeHidden: Boolean) {
+  documentCategories(includeHidden: $includeHidden) {
+    id
+    name
+    kind
+    isHidden
+    promptsExpiry
+    createdAt
+    updatedAt
+  }
+}
