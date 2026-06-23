@@ -63,8 +63,11 @@ const DATASET_MODELS = [`${MAKE}/${MODEL}/${VARIANT}`];
 const OUTPUT_PATH = join(process.cwd(), 'content', 'blog', 'en', `${SLUG}.mdx`);
 const REVALIDATE_PATH = `/blog/${SLUG}`;
 
-const TABLES_START = '<!-- SPEC_TABLES_START -->';
-const TABLES_END = '<!-- SPEC_TABLES_END -->';
+// JSX-style comments, NOT HTML `<!-- -->`: MDX (next-mdx-remote) rejects `<!--`
+// ("Unexpected character `!`") and would fail to compile the article body. `{/* */}`
+// is a valid MDX comment, renders to nothing, and still works as an indexOf region marker.
+const TABLES_START = '{/* SPEC_TABLES_START */}';
+const TABLES_END = '{/* SPEC_TABLES_END */}';
 
 // Imperial display is only derived for known spec types; an unknown type is
 // rendered metric-only rather than guessing a conversion.
@@ -111,32 +114,91 @@ function getServiceClient(): SupabaseClient {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
+/**
+ * Merge variant-specific rows OVER the variant-agnostic (`variant IS NULL`) baseline,
+ * keyed by `task_name` (variant wins), preserving baseline tasks with no variant entry.
+ * Mirrors the runtime resolver's `mergeRowsByTaskName` (oem-schedules.service.ts) so the
+ * published article matches what mobile shows. Without this the article would render ONLY
+ * the variant-specific rows and silently drop every verified all-variant task.
+ */
+function mergeByKey<T extends Record<string, unknown>>(
+  baseline: T[],
+  variantRows: T[],
+  key: keyof T,
+): T[] {
+  if (variantRows.length === 0) return baseline;
+  const byKey = new Map<unknown, T>();
+  for (const row of baseline) byKey.set(row[key], row);
+  for (const row of variantRows) byKey.set(row[key], row); // variant overrides baseline
+  return [...byKey.values()];
+}
+
 async function fetchVerifiedSchedules(db: SupabaseClient): Promise<ScheduleRow[]> {
   // is_verified = true is THE gate (KTD 3). Service role bypasses RLS, so the
-  // explicit filter is also the trust boundary here.
-  const { data, error } = await db
+  // explicit filter is also the trust boundary here. Fetch the variant tier and the
+  // variant-agnostic (NULL) baseline, then merge variant-over-baseline by task_name —
+  // a flat `.eq('variant', …)` would exclude NULL rows in PostgREST and drop them.
+  const select = 'task_name, interval_km, interval_days, priority, is_safety_critical, sort_order';
+  const base = db
     .from('oem_maintenance_schedules')
-    .select('task_name, interval_km, interval_days, priority, is_safety_critical')
+    .select(select)
     .eq('make', MAKE)
-    .eq('model', MODEL)
-    .eq('variant', VARIANT)
-    .eq('is_verified', true)
-    .order('interval_km', { ascending: true, nullsFirst: false });
-  if (error) throw new Error(`Failed to load verified schedules: ${error.message}`);
-  return (data ?? []) as ScheduleRow[];
+    .eq('model', MODEL);
+  const [variantRes, baselineRes] = await Promise.all([
+    base.eq('variant', VARIANT).eq('is_verified', true),
+    db
+      .from('oem_maintenance_schedules')
+      .select(select)
+      .eq('make', MAKE)
+      .eq('model', MODEL)
+      .is('variant', null)
+      .eq('is_verified', true),
+  ]);
+  if (variantRes.error)
+    throw new Error(`Failed to load verified schedules: ${variantRes.error.message}`);
+  if (baselineRes.error)
+    throw new Error(`Failed to load verified schedules: ${baselineRes.error.message}`);
+  const merged = mergeByKey(
+    (baselineRes.data ?? []) as (ScheduleRow & { sort_order: number | null })[],
+    (variantRes.data ?? []) as (ScheduleRow & { sort_order: number | null })[],
+    'task_name',
+  );
+  // Order by interval_km (NULLs last) so the rendered table is shortest-interval-first.
+  return merged.sort(
+    (a, b) =>
+      (a.interval_km ?? Number.POSITIVE_INFINITY) - (b.interval_km ?? Number.POSITIVE_INFINITY),
+  );
 }
 
 async function fetchVerifiedSpecs(db: SupabaseClient): Promise<SpecRow[]> {
-  const { data, error } = await db
-    .from('motorcycle_specs')
-    .select('spec_type, spec_name, value_numeric, value_display, unit, is_safety_critical')
-    .eq('make', MAKE)
-    .eq('model', MODEL)
-    .eq('variant', VARIANT)
-    .eq('is_verified', true)
-    .order('spec_type', { ascending: true });
-  if (error) throw new Error(`Failed to load verified specs: ${error.message}`);
-  return (data ?? []) as SpecRow[];
+  const select = 'spec_type, spec_name, value_numeric, value_display, unit, is_safety_critical';
+  const [variantRes, baselineRes] = await Promise.all([
+    db
+      .from('motorcycle_specs')
+      .select(select)
+      .eq('make', MAKE)
+      .eq('model', MODEL)
+      .eq('variant', VARIANT)
+      .eq('is_verified', true),
+    db
+      .from('motorcycle_specs')
+      .select(select)
+      .eq('make', MAKE)
+      .eq('model', MODEL)
+      .is('variant', null)
+      .eq('is_verified', true),
+  ]);
+  if (variantRes.error)
+    throw new Error(`Failed to load verified specs: ${variantRes.error.message}`);
+  if (baselineRes.error)
+    throw new Error(`Failed to load verified specs: ${baselineRes.error.message}`);
+  // Spec identity is per spec_name (a variant-specific spec overrides the baseline of the same name).
+  const merged = mergeByKey(
+    (baselineRes.data ?? []) as SpecRow[],
+    (variantRes.data ?? []) as SpecRow[],
+    'spec_name',
+  );
+  return merged.sort((a, b) => a.spec_type.localeCompare(b.spec_type));
 }
 
 // --- GFM table builders ------------------------------------------------------
@@ -184,7 +246,11 @@ function buildSpecTable(rows: SpecRow[]): { md: string; outOfTolerance: string[]
     const metric = r.value_display?.trim() || `${r.value_numeric} ${r.unit}`;
     let imperial = '—';
     if (IMPERIAL_SPEC_TYPES.has(r.spec_type as MaintenanceSpecType)) {
-      const conv = convertSpecToImperial(r.spec_type as MaintenanceSpecType, r.value_numeric);
+      const conv = convertSpecToImperial(
+        r.spec_type as MaintenanceSpecType,
+        r.value_numeric,
+        r.value_display,
+      );
       imperial = `${conv.value} ${conv.unit}`;
       // KTD 7: flag any spec whose displayed imperial drifted beyond tolerance —
       // it needs human review before shipping. Safety-critical drift is fatal.

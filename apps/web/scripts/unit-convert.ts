@@ -41,7 +41,11 @@ const NM_PER_LBFT = 1.355_817_948;
 const MM_PER_INCH = 25.4;
 const KPA_PER_PSI = 6.894_757_293;
 const L_PER_QUART_US = 0.946_352_946;
+const L_PER_GALLON_US = 3.785_411_784;
 const KM_PER_MILE = 1.609_344;
+
+/** Token marking a verified capacity that is expressed in US gallons (fuel) rather than quarts (oil). */
+const GALLON_UNIT_TOKEN = /\bgal\b/i;
 
 /** Round `n` to `decimals` decimal places (half-up, sign-safe). */
 function roundTo(n: number, decimals: number): number {
@@ -90,7 +94,8 @@ const SPEC_RULES: Record<MaintenanceSpecType, SpecRule> = {
     unit: 'in',
     metricTolerance: 0.01, // mm
   },
-  // Capacity: 1 decimal US quarts.
+  // Capacity (oil/fluid): 1 decimal US quarts. Fuel capacity uses the gallon
+  // rule below instead — selected at call time from the verified display unit.
   capacity: {
     toImperial: (l) => l / L_PER_QUART_US,
     round: (qt) => roundTo(qt, 1),
@@ -116,15 +121,35 @@ const SPEC_RULES: Record<MaintenanceSpecType, SpecRule> = {
   },
 };
 
+// Fuel capacity is universally expressed in US gallons, never quarts (a "26 qt fuel
+// tank" reads as an error). Capacity specs share one spec_type, so the target unit is
+// chosen from the unit the human verified in `value_display` (gal → gallons, else quarts).
+// 2 decimals so the round-trip stays inside the 0.1 L tolerance (6.55 gal, not 6.6).
+const GALLON_RULE: SpecRule = {
+  toImperial: (l) => l / L_PER_GALLON_US,
+  round: (gal) => roundTo(gal, 2),
+  backToMetric: (gal) => gal * L_PER_GALLON_US,
+  unit: 'gal',
+  metricTolerance: 0.1, // L
+};
+
 /**
  * Convert a metric spec value to its rounded imperial display, with the
  * round-trip tolerance check. Pure.
+ *
+ * `verifiedDisplay` is the human-verified `value_display` string; for capacity it
+ * selects gallons (fuel) vs quarts (oil/fluid) so the derived unit matches the unit
+ * the manual actually used. Ignored for all other spec types.
  */
 export function convertSpecToImperial(
   specType: MaintenanceSpecType,
   metric: number,
+  verifiedDisplay?: string | null,
 ): ImperialResult {
-  const rule = SPEC_RULES[specType];
+  const rule =
+    specType === 'capacity' && verifiedDisplay && GALLON_UNIT_TOKEN.test(verifiedDisplay)
+      ? GALLON_RULE
+      : SPEC_RULES[specType];
   const rounded = rule.round(rule.toImperial(metric));
   const roundTripMetric = rule.backToMetric(rounded);
   const withinTolerance = Math.abs(roundTripMetric - metric) <= rule.metricTolerance;

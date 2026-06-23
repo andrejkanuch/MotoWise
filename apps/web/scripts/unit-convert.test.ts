@@ -37,6 +37,20 @@ describe('convertSpecToImperial', () => {
     expect(r.withinTolerance).toBe(true);
   });
 
+  it('capacity defaults to quarts when the verified display has no gallon unit', () => {
+    const r = convertSpecToImperial('capacity', 4.2, '4.2 L (4.4 US qt)'); // engine oil
+    expect(r.unit).toBe('qt');
+    expect(r.value).toBeCloseTo(4.4, 1);
+    expect(r.withinTolerance).toBe(true);
+  });
+
+  it('capacity → US gallons (not quarts) when the verified display is fuel', () => {
+    const r = convertSpecToImperial('capacity', 24.8, '24.8 L (6.55 US gal)'); // fuel tank
+    expect(r.unit).toBe('gal');
+    expect(r.value).toBeCloseTo(6.55, 2);
+    expect(r.withinTolerance).toBe(true);
+  });
+
   it('flags a spec whose whole-unit rounding drifts beyond tolerance', () => {
     // Whole-psi rounding has a max round-trip drift near the 0.5 psi boundary.
     // 0.5 psi ≈ 3.45 kPa, inside the 5 kPa tolerance, so normal pressures stay
