@@ -80,6 +80,7 @@ import { captureMetaAttribution } from '../lib/meta-attribution';
 import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
 import {
   cancelAllNotifications,
+  NOTIFICATION_KIND,
   setupNotificationCategories,
   setupNotificationChannels,
   snoozeTaskNotification,
@@ -700,7 +701,7 @@ function RootLayout() {
         };
 
         // Document expiry reminders: tap or "View" deep-links to the document.
-        if (data?.kind === 'document' && data.documentId) {
+        if (data?.kind === NOTIFICATION_KIND.DOCUMENT && data.documentId) {
           if (actionId !== 'SNOOZE_1D') {
             expoRouter.push(
               `/(tabs)/(garage)/document/${data.documentId}?motorcycleId=${data.motorcycleId ?? ''}` as Href,

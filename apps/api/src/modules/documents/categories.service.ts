@@ -1,5 +1,9 @@
-import type { AddDocumentCategory, UpdateDocumentCategory } from '@motovault/types';
-import { SEEDED_CATEGORIES } from '@motovault/types';
+import type {
+  AddDocumentCategory,
+  DocumentCategoryKind,
+  UpdateDocumentCategory,
+} from '@motovault/types';
+import { DOCUMENT_CATEGORY_KIND, SEEDED_CATEGORIES } from '@motovault/types';
 import {
   BadRequestException,
   Inject,
@@ -16,7 +20,7 @@ import type { DocumentCategory } from './models/document-category.model';
 interface CategoryRow {
   id: string;
   name: string;
-  kind: string;
+  kind: DocumentCategoryKind;
   is_hidden: boolean;
   prompts_expiry: boolean;
   created_at: string;
@@ -53,7 +57,7 @@ export class DocumentCategoriesService {
     const rows = SEEDED_CATEGORIES.map((c) => ({
       user_id: userId,
       name: c.name,
-      kind: 'seeded',
+      kind: DOCUMENT_CATEGORY_KIND.SEEDED,
       prompts_expiry: c.promptsExpiry,
     }));
     const { error } = await this.supabase
@@ -81,7 +85,12 @@ export class DocumentCategoriesService {
   async add(userId: string, input: AddDocumentCategory): Promise<DocumentCategory> {
     const { data, error } = await this.supabase
       .from('document_categories')
-      .insert({ user_id: userId, name: input.name, kind: 'custom', prompts_expiry: false })
+      .insert({
+        user_id: userId,
+        name: input.name,
+        kind: DOCUMENT_CATEGORY_KIND.CUSTOM,
+        prompts_expiry: false,
+      })
       .select('*')
       .single();
     if (error || !data) {

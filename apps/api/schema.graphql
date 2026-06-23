@@ -445,7 +445,6 @@ type DocumentFile {
   fileSizeBytes: Int
   id: ID!
   mimeType: String!
-  storagePath: String!
 }
 
 input DocumentFileInput {

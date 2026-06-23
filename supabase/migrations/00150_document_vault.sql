@@ -88,6 +88,11 @@ CREATE POLICY "Users own documents" ON public.documents
       SELECT id FROM public.motorcycles
       WHERE user_id = (SELECT auth.uid()) AND deleted_at IS NULL
     )
+    -- The category FK only guarantees existence; verify ownership too so a row
+    -- can't be filed under another user's category via direct PostgREST.
+    AND category_id IN (
+      SELECT id FROM public.document_categories WHERE user_id = (SELECT auth.uid())
+    )
   );
 
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.documents
@@ -95,6 +100,9 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.documents
 
 COMMENT ON TABLE public.documents IS
   'Bike document vault parent row. Private PII; files live in document_files + the private documents bucket. "Follow the bike": queries exclude documents whose motorcycle is soft-deleted (filter on motorcycles.deleted_at), never stamping documents on bike soft-delete.';
+
+COMMENT ON COLUMN public.documents.deleted_at IS
+  'Reserved for a future document/bike hard-delete soft-stage. Currently never written; read paths filter `deleted_at IS NULL` so the column is forward-compatible. Bike soft-delete is reflected via motorcycles.deleted_at, not this column.';
 
 -- =============================================================================
 -- 3. document_files — 1..N files per document (front/back of a card, etc.)
@@ -118,7 +126,15 @@ ALTER TABLE public.document_files ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users own document files" ON public.document_files
   FOR ALL
   USING ((SELECT auth.uid()) = user_id)
-  WITH CHECK ((SELECT auth.uid()) = user_id);
+  WITH CHECK (
+    (SELECT auth.uid()) = user_id
+    -- The document FK only guarantees existence; verify the caller owns the
+    -- parent document too, so a file row can't be attached to another user's
+    -- document (orphan-sweep evasion / integrity) via direct PostgREST.
+    AND document_id IN (
+      SELECT id FROM public.documents WHERE user_id = (SELECT auth.uid())
+    )
+  );
 
 COMMENT ON TABLE public.document_files IS
   'Files belonging to a document. storage_path points into the private documents bucket: {userId}/{motorcycleId}/{documentId}/{filename}.';

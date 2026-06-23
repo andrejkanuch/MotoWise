@@ -17,6 +17,7 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { cancelDocumentNotifications } from '../../lib/notifications';
 import { queryKeys } from '../../lib/query-keys';
+import { triggerImpact, triggerNotification } from '../../utils/haptics';
 
 type DocumentItem = DocumentsByMotorcycleQuery['documents'][number];
 
@@ -46,9 +47,7 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
   const deleteMutation = useMutation({
     mutationFn: (id: string) => gqlFetcher(DeleteDocumentDocument, { id }),
     onSuccess: (_res, id) => {
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       cancelDocumentNotifications(id).catch(() => {});
       queryClient.invalidateQueries({ queryKey: queryKeys.documents.byMotorcycle(motorcycleId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.documents.expiring });
@@ -113,7 +112,7 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
   };
 
   const openDocument = (doc: DocumentItem) => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact();
     // String href cast (new routes aren't in the generated typed-routes until the
     // dev server regenerates them); params travel as query string.
     router.push(
@@ -146,8 +145,7 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Pressable
             onPress={() => {
-              if (process.env.EXPO_OS === 'ios')
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              triggerImpact();
               router.push('/(tabs)/(garage)/manage-document-categories' as Href);
             }}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -165,8 +163,7 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
           </Pressable>
           <Pressable
             onPress={() => {
-              if (process.env.EXPO_OS === 'ios')
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              triggerImpact();
               router.push(
                 `/(tabs)/(garage)/add-document?motorcycleId=${motorcycleId}&bikeName=${encodeURIComponent(
                   bikeName ?? '',

@@ -481,7 +481,6 @@ export type DocumentFile = {
   fileSizeBytes?: Maybe<Scalars['Int']['output']>;
   id: Scalars['ID']['output'];
   mimeType: Scalars['String']['output'];
-  storagePath: Scalars['String']['output'];
 };
 
 export type DocumentFileInput = {

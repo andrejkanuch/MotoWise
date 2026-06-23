@@ -13,7 +13,12 @@ export class DocumentFile {
   @Field()
   documentId: string;
 
-  @Field()
+  /**
+   * Internal private-bucket key ({userId}/{motorcycleId}/{documentId}/{filename}).
+   * Deliberately NOT a GraphQL field — clients never need the raw path; they mint
+   * short-lived access via getDocumentSignedUrl. Kept as a plain property for the
+   * service/loader/delete paths only.
+   */
   storagePath: string;
 
   @Field(() => Int, { nullable: true })

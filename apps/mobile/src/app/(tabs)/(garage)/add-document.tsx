@@ -1,15 +1,18 @@
-import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { palette } from '@motovault/design-system';
 import { CreateDocumentDocument, DocumentCategoriesDocument } from '@motovault/graphql';
 import { MAX_FILES_PER_DOCUMENT } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Calendar, Check, FileText, Plus, RotateCw, X } from 'lucide-react-native';
+import { Check, FileText, Plus, RotateCw, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import {
+  DocumentCategoryChips,
+  DocumentExpiryField,
+} from '../../../components/documents/document-form-fields';
 import {
   generateDocumentId,
   type PickedDocument,
@@ -24,6 +27,19 @@ import { useAuthStore } from '../../../stores/auth.store';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 import { toISODateInput } from '../../../utils/trip-form-dates';
+
+/** Per-file upload timeout so a stalled storage request can't pin a tray file in
+ *  'uploading' forever (which would block Save, gated on allUploaded). On timeout
+ *  the slot flips to 'error' (retryable); the orphaned object is reclaimed by the
+ *  U13 reconciliation sweep. */
+const UPLOAD_TIMEOUT_MS = 60_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('upload_timeout')), ms)),
+  ]);
+}
 
 type FileStatus = 'uploading' | 'done' | 'error';
 
@@ -63,7 +79,10 @@ export default function AddDocumentScreen() {
   const uploadOne = async (key: string, picked: PickedDocument) => {
     if (!userId) return;
     try {
-      const uploaded = await uploadDocumentFile(picked, userId, motorcycleId, documentId);
+      const uploaded = await withTimeout(
+        uploadDocumentFile(picked, userId, motorcycleId, documentId),
+        UPLOAD_TIMEOUT_MS,
+      );
       setFiles((prev) => prev.map((f) => (f.key === key ? { ...f, status: 'done', uploaded } : f)));
     } catch {
       setFiles((prev) => prev.map((f) => (f.key === key ? { ...f, status: 'error' } : f)));
@@ -260,39 +279,12 @@ export default function AddDocumentScreen() {
       {/* Category chips */}
       <View>
         <Text style={labelStyle}>{t('documents.categoryLabel', { defaultValue: 'Category' })}</Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {categories.map((c) => {
-            const selected = categoryId === c.id;
-            return (
-              <Pressable
-                key={c.id}
-                onPress={() => {
-                  triggerImpact();
-                  setCategoryId(c.id);
-                }}
-                style={{
-                  paddingVertical: 10,
-                  paddingHorizontal: 16,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  backgroundColor: selected ? `${palette.primary500}18` : theme.surface,
-                  borderWidth: selected ? 1.5 : 1,
-                  borderColor: selected ? palette.primary500 : theme.line,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: selected ? '700' : '500',
-                    color: selected ? palette.primary500 : theme.ink2,
-                  }}
-                >
-                  {c.name}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <DocumentCategoryChips
+          categories={categories}
+          selectedId={categoryId}
+          onSelect={setCategoryId}
+          theme={theme}
+        />
       </View>
 
       {/* Expiry (prompted for expiry-bearing categories, R9) */}
@@ -301,58 +293,13 @@ export default function AddDocumentScreen() {
           {t('documents.expiryLabel', { defaultValue: 'Expiry date' })}
           {promptsExpiry ? '' : ` (${t('common.optional', { defaultValue: 'optional' })})`}
         </Text>
-        <View
-          style={{
-            backgroundColor: cardBg,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            overflow: 'hidden',
-          }}
-        >
-          <Pressable
-            onPress={() => {
-              triggerImpact();
-              setShowDatePicker((s) => !s);
-            }}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 12,
-              paddingHorizontal: 16,
-              paddingVertical: 14,
-            }}
-          >
-            <Calendar size={16} color={theme.warm} strokeWidth={2} />
-            <Text style={{ flex: 1, fontSize: 15, color: theme.ink }}>
-              {expiryDate
-                ? expiryDate.toLocaleDateString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })
-                : t('documents.noExpiry', { defaultValue: 'No expiry' })}
-            </Text>
-            {expiryDate && (
-              <Pressable onPress={() => setExpiryDate(null)} hitSlop={8}>
-                <X size={16} color={theme.ink3} strokeWidth={2} />
-              </Pressable>
-            )}
-          </Pressable>
-          {showDatePicker && (
-            <View style={{ borderTopWidth: 0.5, borderTopColor: theme.line, paddingHorizontal: 8 }}>
-              <DateTimePicker
-                value={expiryDate ?? new Date()}
-                mode="date"
-                display={process.env.EXPO_OS === 'ios' ? 'inline' : 'default'}
-                onChange={(event, selectedDate) => {
-                  if (process.env.EXPO_OS === 'android') setShowDatePicker(false);
-                  if (event.type === 'set' && selectedDate) setExpiryDate(selectedDate);
-                }}
-                style={process.env.EXPO_OS === 'ios' ? { height: 320 } : undefined}
-              />
-            </View>
-          )}
-        </View>
+        <DocumentExpiryField
+          value={expiryDate}
+          onChange={setExpiryDate}
+          show={showDatePicker}
+          setShow={setShowDatePicker}
+          theme={theme}
+        />
         {promptsExpiry && !expiryDate && (
           <Text style={{ fontSize: 12, color: palette.warning500, marginTop: 6, marginLeft: 4 }}>
             {t('documents.expiryPrompt', {

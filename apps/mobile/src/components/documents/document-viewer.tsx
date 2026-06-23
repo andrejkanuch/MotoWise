@@ -53,12 +53,23 @@ export function DocumentViewer({ documentId, files, isDark }: DocumentViewerProp
   const [page, setPage] = useState(0);
   const [width, setWidth] = useState(0);
   const cacheDirRef = useRef<Directory | null>(null);
+  // True until the component unmounts — guards async setState / cache writes in
+  // retry() from racing the effect-cleanup that deletes the cache directory.
+  const mountedRef = useRef(true);
+  useEffect(
+    () => () => {
+      mountedRef.current = false;
+    },
+    [],
+  );
 
   const downloadFile = useCallback(async (file: ViewerFile, dir: Directory): Promise<string> => {
     // Re-sign per open (the TTL window starts here); download to local cache.
+    // Use the DOWNLOAD TTL (longer) — we fetch the full bytes to disk before
+    // rendering, so the short DISPLAY TTL can lapse on large PDFs over cellular.
     const { getDocumentSignedUrl } = await gqlFetcher(GetDocumentSignedUrlDocument, {
       fileId: file.id,
-      download: false,
+      download: true,
     });
     const downloaded = await File.downloadFileAsync(getDocumentSignedUrl, dir);
     return downloaded.uri;
@@ -98,12 +109,15 @@ export function DocumentViewer({ documentId, files, isDark }: DocumentViewerProp
   const retry = useCallback(
     async (file: ViewerFile) => {
       const dir = cacheDirRef.current;
-      if (!dir) return;
+      if (!dir || !mountedRef.current) return;
       setItems((prev) => prev.map((it) => (it.id === file.id ? { ...it, error: false } : it)));
       try {
         const uri = await downloadFile(file, dir);
+        // Bail if we unmounted mid-download — the cache dir is being wiped.
+        if (!mountedRef.current) return;
         setItems((prev) => prev.map((it) => (it.id === file.id ? { ...it, uri } : it)));
       } catch {
+        if (!mountedRef.current) return;
         setItems((prev) => prev.map((it) => (it.id === file.id ? { ...it, error: true } : it)));
       }
     },
@@ -173,7 +187,7 @@ export function DocumentViewer({ documentId, files, isDark }: DocumentViewerProp
             paddingVertical: 6,
             borderRadius: 999,
             borderCurve: 'continuous',
-            backgroundColor: 'rgba(0,0,0,0.6)',
+            backgroundColor: palette.surfaceOverlay,
           }}
         >
           <Text style={{ color: palette.white, fontSize: 13, fontWeight: '600' }}>

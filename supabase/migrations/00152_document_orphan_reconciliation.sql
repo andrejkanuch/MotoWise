@@ -31,6 +31,10 @@ BEGIN
       AND NOT EXISTS (
         SELECT 1 FROM public.document_files df WHERE df.storage_path = o.name
       )
+    -- Bound each run so a large orphan backlog can't hold one long locking
+    -- transaction over storage.objects; the remainder is reclaimed next run.
+    ORDER BY o.created_at
+    LIMIT 1000
   LOOP
     DELETE FROM storage.objects WHERE bucket_id = 'documents' AND name = obj.name;
     RAISE LOG 'reconcile_orphaned_document_objects: deleted orphan %', obj.name;

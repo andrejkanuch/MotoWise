@@ -43,7 +43,7 @@ export default function ManageDocumentCategoriesScreen() {
   const hidden = categories.filter((c) => c.isHidden);
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ['documents', 'categories'] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.documents.categoriesAll });
   };
 
   const addMutation = useMutation({

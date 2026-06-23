@@ -149,8 +149,18 @@ export class DocumentsService {
       .select('*');
     if (filesError || !filesData) {
       this.logger.error(`create files insert failed: ${filesError?.message}`);
-      // Roll back the parent row; cascade removes any partial file rows.
-      await this.supabase.from('documents').delete().eq('id', documentId);
+      // Roll back the parent row; cascade removes any partial file rows. Guard the
+      // rollback itself — if it also fails, a parent row with zero files would
+      // otherwise survive silently (a phantom document); log it so it surfaces.
+      const { error: rollbackError } = await this.supabase
+        .from('documents')
+        .delete()
+        .eq('id', documentId);
+      if (rollbackError) {
+        this.logger.error(
+          `create rollback failed: orphaned document row ${documentId}: ${rollbackError.message}`,
+        );
+      }
       await this.cleanupObjects(files.map((f) => f.storagePath));
       throw new BadRequestException('Failed to create document files');
     }
@@ -160,7 +170,14 @@ export class DocumentsService {
     return doc;
   }
 
-  /** Sums the user's stored bytes; rejects + cleans up if this upload would exceed the cap. */
+  /**
+   * Sums the user's stored bytes; rejects + cleans up if this upload would exceed
+   * the cap. The total is bounded (a 500 MB cap over ≤20 MB files ⇒ at most a few
+   * hundred rows), so summing client-side is cheap; a DB-side SUM RPC is the
+   * upgrade if the per-document/file caps are ever raised. This is a deliberate
+   * SOFT cap: the read-then-insert is non-atomic, so two highly concurrent creates
+   * could jointly exceed it by at most one document's worth — acceptable for v1.
+   */
   private async enforceQuota(
     userId: string,
     files: CreateDocument['files'],
@@ -250,9 +267,11 @@ export class DocumentsService {
     const activeBikeIds = (bikes ?? []).map((b: { id: string }) => b.id);
     if (activeBikeIds.length === 0) return [];
 
-    const horizon = new Date(Date.now() + withinDays * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split('T')[0];
+    // Horizon = today + withinDays, as a yyyy-mm-dd string for the DATE column.
+    // setUTCDate handles month/year rollover without raw millisecond arithmetic.
+    const horizonDate = new Date();
+    horizonDate.setUTCDate(horizonDate.getUTCDate() + withinDays);
+    const horizon = horizonDate.toISOString().split('T')[0];
 
     const { data, error } = await this.supabase
       .from('documents')

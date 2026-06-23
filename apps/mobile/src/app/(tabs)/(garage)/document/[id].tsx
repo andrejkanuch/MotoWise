@@ -1,4 +1,3 @@
-import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { palette } from '@motovault/design-system';
 import {
   DeleteDocumentDocument,
@@ -11,8 +10,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { parseISO } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Calendar, Check, Pin, Trash2, X } from 'lucide-react-native';
-import { useState } from 'react';
+import { Check, Pin, Trash2, X } from 'lucide-react-native';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -24,6 +23,10 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  DocumentCategoryChips,
+  DocumentExpiryField,
+} from '../../../../components/documents/document-form-fields';
 import { DocumentViewer } from '../../../../components/documents/document-viewer';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import {
@@ -59,6 +62,14 @@ export default function DocumentDetailScreen() {
 
   const doc: DocumentItem | undefined = data?.documents.find((d) => d.id === id);
   const categories = categoryData?.documentCategories ?? [];
+
+  // Stable reference for the viewer's `files` prop — a fresh `.map()` each render
+  // would re-trigger the viewer's sign→download→wipe effect mid-view (e.g. while
+  // editing metadata). Keyed on doc.files, which is stable until the query refetches.
+  const viewerFiles = useMemo(
+    () => doc?.files.map((f) => ({ id: f.id, mimeType: f.mimeType })) ?? [],
+    [doc?.files],
+  );
 
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState('');
@@ -217,11 +228,7 @@ export default function DocumentDetailScreen() {
 
       {/* Viewer */}
       <View style={{ flex: 1 }}>
-        <DocumentViewer
-          documentId={doc.id}
-          files={doc.files.map((f) => ({ id: f.id, mimeType: f.mimeType }))}
-          isDark={isDark}
-        />
+        <DocumentViewer documentId={doc.id} files={viewerFiles} isDark={isDark} />
       </View>
 
       {/* Metadata / edit panel */}
@@ -264,91 +271,20 @@ export default function DocumentDetailScreen() {
               }}
             />
 
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              {categories.map((c) => {
-                const selected = categoryId === c.id;
-                return (
-                  <Pressable
-                    key={c.id}
-                    onPress={() => {
-                      triggerImpact();
-                      setCategoryId(c.id);
-                    }}
-                    style={{
-                      paddingVertical: 8,
-                      paddingHorizontal: 14,
-                      borderRadius: 12,
-                      borderCurve: 'continuous',
-                      backgroundColor: selected ? `${palette.primary500}18` : theme.surface,
-                      borderWidth: selected ? 1.5 : 1,
-                      borderColor: selected ? palette.primary500 : theme.line,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        fontWeight: selected ? '700' : '500',
-                        color: selected ? palette.primary500 : theme.ink2,
-                      }}
-                    >
-                      {c.name}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+            <DocumentCategoryChips
+              categories={categories}
+              selectedId={categoryId}
+              onSelect={setCategoryId}
+              theme={theme}
+            />
 
-            <View
-              style={{
-                backgroundColor: theme.surface,
-                borderRadius: 14,
-                borderCurve: 'continuous',
-                overflow: 'hidden',
-              }}
-            >
-              <Pressable
-                onPress={() => setShowDatePicker((s) => !s)}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 12,
-                  paddingHorizontal: 14,
-                  paddingVertical: 12,
-                }}
-              >
-                <Calendar size={16} color={theme.warm} strokeWidth={2} />
-                <Text style={{ flex: 1, fontSize: 15, color: theme.ink }}>
-                  {expiryDate
-                    ? expiryDate.toLocaleDateString(undefined, {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })
-                    : t('documents.noExpiry', { defaultValue: 'No expiry' })}
-                </Text>
-                {expiryDate && (
-                  <Pressable onPress={() => setExpiryDate(null)} hitSlop={8}>
-                    <X size={16} color={theme.ink3} strokeWidth={2} />
-                  </Pressable>
-                )}
-              </Pressable>
-              {showDatePicker && (
-                <View
-                  style={{ borderTopWidth: 0.5, borderTopColor: theme.line, paddingHorizontal: 8 }}
-                >
-                  <DateTimePicker
-                    value={expiryDate ?? new Date()}
-                    mode="date"
-                    display={process.env.EXPO_OS === 'ios' ? 'inline' : 'default'}
-                    onChange={(event, selectedDate) => {
-                      if (process.env.EXPO_OS === 'android') setShowDatePicker(false);
-                      if (event.type === 'set' && selectedDate) setExpiryDate(selectedDate);
-                    }}
-                    style={process.env.EXPO_OS === 'ios' ? { height: 320 } : undefined}
-                  />
-                </View>
-              )}
-            </View>
+            <DocumentExpiryField
+              value={expiryDate}
+              onChange={setExpiryDate}
+              show={showDatePicker}
+              setShow={setShowDatePicker}
+              theme={theme}
+            />
 
             <TextInput
               value={note}

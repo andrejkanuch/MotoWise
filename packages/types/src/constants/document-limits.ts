@@ -50,6 +50,10 @@ export const EXPIRY_BEARING_CATEGORIES = SEEDED_CATEGORIES.filter((c) => c.promp
   (c) => c.name,
 ) as readonly string[];
 
-/** Category kinds. */
-export const DOCUMENT_CATEGORY_KINDS = ['seeded', 'custom'] as const;
+/** Category kinds (as-const object — referenced directly instead of magic strings). */
+export const DOCUMENT_CATEGORY_KIND = { SEEDED: 'seeded', CUSTOM: 'custom' } as const;
+export const DOCUMENT_CATEGORY_KINDS = [
+  DOCUMENT_CATEGORY_KIND.SEEDED,
+  DOCUMENT_CATEGORY_KIND.CUSTOM,
+] as const;
 export type DocumentCategoryKind = (typeof DOCUMENT_CATEGORY_KINDS)[number];

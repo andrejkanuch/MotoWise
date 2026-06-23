@@ -1,5 +1,10 @@
+import { palette } from '@motovault/design-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { differenceInCalendarDays } from 'date-fns';
 import * as Notifications from 'expo-notifications';
+
+/** Notification `data.kind` discriminator — shared with the tap handler in _layout. */
+export const NOTIFICATION_KIND = { DOCUMENT: 'document' } as const;
 
 // MOT-139: Map now stores an ARRAY of notification ids per task so we can
 // cancel all scheduled stages (30d / 7d / 1d) atomically.
@@ -47,14 +52,14 @@ export async function setupNotificationChannels(): Promise<void> {
     name: 'Maintenance Reminders',
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
-    lightColor: '#FF6B35',
+    lightColor: palette.signature500,
     sound: 'default',
   });
   await Notifications.setNotificationChannelAsync('documents', {
     name: 'Document Renewal Reminders',
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
-    lightColor: '#FF6B35',
+    lightColor: palette.signature500,
     sound: 'default',
   });
 }
@@ -119,7 +124,7 @@ export async function scheduleMaintenanceReminder(
 ): Promise<void> {
   const dueDate = new Date(task.dueDate);
   const now = new Date();
-  const daysUntilDue = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+  const daysUntilDue = differenceInCalendarDays(dueDate, now);
 
   if (daysUntilDue < 0 || daysUntilDue > 90) return;
 
@@ -144,7 +149,7 @@ export async function scheduleMaintenanceReminder(
     // Skip stages whose reminder date is already in the past
     if (reminderDate <= now) continue;
 
-    const { title, body } = buildStageNotificationCopy(stage.label, task.title, bikeName);
+    const { title, body } = STAGE_COPY[stage.label](task.title, bikeName);
 
     const id = await Notifications.scheduleNotificationAsync({
       content: {
@@ -191,14 +196,6 @@ const STAGE_COPY: Record<
     body: `${bikeName} — tap to view details`,
   }),
 };
-
-function buildStageNotificationCopy(
-  stage: Stage,
-  taskTitle: string,
-  bikeName: string,
-): { title: string; body: string } {
-  return STAGE_COPY[stage](taskTitle, bikeName);
-}
 
 /**
  * Cancel all scheduled notification stages for a specific task.
@@ -266,7 +263,7 @@ export async function scheduleDocumentExpiryReminder(
 ): Promise<void> {
   const expiry = new Date(doc.expiryDate);
   const now = new Date();
-  const daysUntil = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+  const daysUntil = differenceInCalendarDays(expiry, now);
 
   // Always clear existing stages first so an expiry edit reschedules cleanly.
   await cancelDocumentNotifications(doc.id);
@@ -279,36 +276,40 @@ export async function scheduleDocumentExpiryReminder(
   ];
 
   const scheduledIds: string[] = [];
-  for (const stage of stages) {
-    const reminderDate = new Date(expiry);
-    reminderDate.setDate(reminderDate.getDate() - stage.daysBefore);
-    reminderDate.setHours(9, 0, 0, 0);
-    if (reminderDate <= now) continue;
+  try {
+    for (const stage of stages) {
+      const reminderDate = new Date(expiry);
+      reminderDate.setDate(reminderDate.getDate() - stage.daysBefore);
+      reminderDate.setHours(9, 0, 0, 0);
+      if (reminderDate <= now) continue;
 
-    const { title, body } = DOC_STAGE_COPY[stage.label](doc.title, bikeName);
-    const id = await Notifications.scheduleNotificationAsync({
-      content: {
-        title,
-        body,
-        data: {
-          kind: 'document',
-          documentId: doc.id,
-          motorcycleId: doc.motorcycleId,
-          stage: stage.label,
+      const { title, body } = DOC_STAGE_COPY[stage.label](doc.title, bikeName);
+      const id = await Notifications.scheduleNotificationAsync({
+        content: {
+          title,
+          body,
+          data: {
+            kind: NOTIFICATION_KIND.DOCUMENT,
+            documentId: doc.id,
+            motorcycleId: doc.motorcycleId,
+            stage: stage.label,
+          },
+          ...(stage.label === '1d' ? { categoryIdentifier: 'DOCUMENT_EXPIRY' } : {}),
         },
-        ...(stage.label === '1d' ? { categoryIdentifier: 'DOCUMENT_EXPIRY' } : {}),
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: reminderDate,
-        channelId: 'documents',
-      },
-    });
-    scheduledIds.push(id);
-  }
-
-  if (scheduledIds.length > 0) {
-    await setNotificationIds(docKey(doc.id), scheduledIds);
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: reminderDate,
+          channelId: 'documents',
+        },
+      });
+      scheduledIds.push(id);
+    }
+  } finally {
+    // Persist whatever was scheduled — even if a stage failed mid-loop — so
+    // cancelDocumentNotifications can later cancel every stage we registered.
+    if (scheduledIds.length > 0) {
+      await setNotificationIds(docKey(doc.id), scheduledIds);
+    }
   }
 }
 
