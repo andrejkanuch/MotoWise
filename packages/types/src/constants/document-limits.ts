@@ -46,9 +46,9 @@ export const SEEDED_CATEGORIES = [
 ] as const;
 
 /** Seeded category names that prompt for an expiry date on add (R9). */
-export const EXPIRY_BEARING_CATEGORIES = SEEDED_CATEGORIES.filter(
-  (c) => c.promptsExpiry,
-).map((c) => c.name) as readonly string[];
+export const EXPIRY_BEARING_CATEGORIES = SEEDED_CATEGORIES.filter((c) => c.promptsExpiry).map(
+  (c) => c.name,
+) as readonly string[];
 
 /** Category kinds. */
 export const DOCUMENT_CATEGORY_KINDS = ['seeded', 'custom'] as const;
