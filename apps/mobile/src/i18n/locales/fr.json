@@ -1434,7 +1434,12 @@
     "seeAll_one": "Tout voir ({{count}})",
     "seeAll_other": "Tout voir ({{count}})",
     "seeAll_few": "Tout voir ({{count}})",
-    "seeAll_many": "Tout voir ({{count}})"
+    "seeAll_many": "Tout voir ({{count}})",
+    "category_accessories": "Accessoires",
+    "category_taxes_fees": "Taxes et frais",
+    "category_other": "Autre",
+    "itemName": "Nom de l'article",
+    "itemNamePlaceholder": "Qu’avez-vous acheté ?"
   },
   "privacy": {
     "title": "Confidentialité",

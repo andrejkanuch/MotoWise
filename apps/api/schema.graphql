@@ -485,6 +485,7 @@ type Expense {
   date: String!
   description: String
   id: ID!
+  itemName: String
   maintenanceTaskId: String
   motorcycleId: String!
   photos: [ExpensePhoto!]
@@ -804,6 +805,7 @@ input LogExpenseInput {
   currency: String
   date: String!
   description: String
+  itemName: String
   motorcycleId: String!
 }
 
@@ -889,19 +891,9 @@ input ManualBikeInfoInput {
 }
 
 type MonthlyBucket {
-  fuel: Float!
-  gear: Float!
-  insurance: Float!
-  maintenance: Float!
-  modifications: Float!
+  categories: [CategoryTotal!]!
   month: Int!
-  parking: Float!
-  parts: Float!
-  registration: Float!
-  tires: Float!
-  tolls: Float!
   total: Float!
-  training: Float!
   year: Int!
 }
 

@@ -1433,7 +1433,12 @@
     "allExpenses": "Semua Pengeluaran",
     "addPurchasePriceHint": "Tambahkan harga beli motormu di Edit Motor untuk melihat total biaya kepemilikan",
     "byCategory": "Per kategori",
-    "monthlyTrend": "Tren bulanan"
+    "monthlyTrend": "Tren bulanan",
+    "category_accessories": "Aksesori",
+    "category_taxes_fees": "Pajak & biaya",
+    "category_other": "Lainnya",
+    "itemName": "Nama barang",
+    "itemNamePlaceholder": "Apa yang Anda beli?"
   },
   "privacy": {
     "title": "Privasi",

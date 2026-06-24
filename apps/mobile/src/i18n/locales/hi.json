@@ -1433,7 +1433,12 @@
     "allExpenses": "सभी खर्चे",
     "addPurchasePriceHint": "स्वामित्व की कुल लागत देखने के लिए Edit Bike में अपनी बाइक का खरीद मूल्य जोड़ें",
     "byCategory": "श्रेणी के अनुसार",
-    "monthlyTrend": "मासिक रुझान"
+    "monthlyTrend": "मासिक रुझान",
+    "category_accessories": "सहायक उपकरण",
+    "category_taxes_fees": "कर और शुल्क",
+    "category_other": "अन्य",
+    "itemName": "वस्तु का नाम",
+    "itemNamePlaceholder": "आपने क्या खरीदा?"
   },
   "privacy": {
     "title": "प्राइवेसी",

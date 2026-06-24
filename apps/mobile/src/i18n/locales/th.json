@@ -1433,7 +1433,12 @@
     "allExpenses": "ค่าใช้จ่ายทั้งหมด",
     "addPurchasePriceHint": "เพิ่มราคาซื้อรถของคุณในแก้ไขมอเตอร์ไซค์เพื่อดูต้นทุนการเป็นเจ้าของทั้งหมด",
     "byCategory": "ตามหมวดหมู่",
-    "monthlyTrend": "แนวโน้มรายเดือน"
+    "monthlyTrend": "แนวโน้มรายเดือน",
+    "category_accessories": "อุปกรณ์เสริม",
+    "category_taxes_fees": "ภาษีและค่าธรรมเนียม",
+    "category_other": "อื่นๆ",
+    "itemName": "ชื่อสินค้า",
+    "itemNamePlaceholder": "คุณซื้ออะไร?"
   },
   "privacy": {
     "title": "ความเป็นส่วนตัว",

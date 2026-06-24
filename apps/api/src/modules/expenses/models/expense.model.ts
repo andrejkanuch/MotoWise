@@ -21,6 +21,9 @@ export class Expense {
   @Field({ nullable: true })
   description?: string;
 
+  @Field({ nullable: true })
+  itemName?: string;
+
   @Field()
   currency: string;
 

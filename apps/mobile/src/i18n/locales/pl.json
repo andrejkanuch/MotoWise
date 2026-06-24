@@ -1435,7 +1435,12 @@
     "allExpenses": "Wszystkie wydatki",
     "addPurchasePriceHint": "Dodaj cenę zakupu motocykla w Edytuj motocykl, aby zobaczyć całkowity koszt posiadania",
     "byCategory": "Wg kategorii",
-    "monthlyTrend": "Trend miesięczny"
+    "monthlyTrend": "Trend miesięczny",
+    "category_accessories": "Akcesoria",
+    "category_taxes_fees": "Podatki i opłaty",
+    "category_other": "Inne",
+    "itemName": "Nazwa produktu",
+    "itemNamePlaceholder": "Co kupiłeś?"
   },
   "privacy": {
     "title": "Prywatnosc",

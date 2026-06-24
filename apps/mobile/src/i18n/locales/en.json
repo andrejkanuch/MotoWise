@@ -1438,7 +1438,12 @@
     "allExpenses": "All Expenses",
     "addPurchasePriceHint": "Add your bike's purchase price in Edit Bike to see total cost of ownership",
     "byCategory": "By category",
-    "monthlyTrend": "Monthly trend"
+    "monthlyTrend": "Monthly trend",
+    "category_accessories": "Accessories",
+    "category_taxes_fees": "Taxes & Fees",
+    "category_other": "Other",
+    "itemName": "Item name",
+    "itemNamePlaceholder": "What did you buy?"
   },
   "privacy": {
     "title": "Privacy",

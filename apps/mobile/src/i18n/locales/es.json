@@ -1434,7 +1434,12 @@
     "allExpenses": "Todos los gastos",
     "addPurchasePriceHint": "Agrega el precio de compra de tu moto en Editar moto para ver el costo total de propiedad",
     "byCategory": "Por categoría",
-    "monthlyTrend": "Tendencia mensual"
+    "monthlyTrend": "Tendencia mensual",
+    "category_accessories": "Accesorios",
+    "category_taxes_fees": "Impuestos y tasas",
+    "category_other": "Otros",
+    "itemName": "Nombre del artículo",
+    "itemNamePlaceholder": "¿Qué compraste?"
   },
   "privacy": {
     "title": "Privacidad",

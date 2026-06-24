@@ -1433,7 +1433,12 @@
     "allExpenses": "Tüm Harcamalar",
     "addPurchasePriceHint": "Toplam sahip olma maliyetini görmek için Motoru Düzenle'den motorunun alış fiyatını ekle",
     "byCategory": "Kategoriye göre",
-    "monthlyTrend": "Aylık eğilim"
+    "monthlyTrend": "Aylık eğilim",
+    "category_accessories": "Aksesuarlar",
+    "category_taxes_fees": "Vergi ve harçlar",
+    "category_other": "Diğer",
+    "itemName": "Ürün adı",
+    "itemNamePlaceholder": "Ne satın aldınız?"
   },
   "privacy": {
     "title": "Gizlilik",

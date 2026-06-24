@@ -1433,7 +1433,12 @@
     "seeAll_one": "すべて見る ({{count}})",
     "seeAll_other": "すべて見る ({{count}})",
     "seeAll_few": "すべて見る ({{count}})",
-    "seeAll_many": "すべて見る ({{count}})"
+    "seeAll_many": "すべて見る ({{count}})",
+    "category_accessories": "アクセサリー",
+    "category_taxes_fees": "税金・手数料",
+    "category_other": "その他",
+    "itemName": "商品名",
+    "itemNamePlaceholder": "何を購入しましたか？"
   },
   "privacy": {
     "title": "プライバシー",

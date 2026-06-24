@@ -2,6 +2,7 @@ export * from './constants/cache-tags';
 export * from './constants/countries';
 export * from './constants/document-limits';
 export * from './constants/enums';
+export * from './constants/expense-categories';
 export * from './constants/limits';
 export * from './constants/profile';
 export * from './constants/subscription';

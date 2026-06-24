@@ -1,34 +1,29 @@
 import { palette } from '@motovault/design-system';
+import {
+  CURRENCY_SYMBOLS,
+  type Currency,
+  EXPENSE_CATEGORY_META,
+  type ExpenseCategory,
+} from '@motovault/types';
 
-export const CATEGORY_COLORS: Record<string, string> = {
-  fuel: palette.warning500,
-  maintenance: palette.primary500,
-  parts: palette.accent500,
-  gear: palette.signature500,
-  insurance: palette.indigo500,
-  registration: palette.moduleSuspension,
-  tolls: palette.neutral500,
-  parking: palette.indigo400,
-  tires: palette.danger500,
-  modifications: palette.moduleEngine,
-  training: palette.success500,
-};
+// Colours, labels and the primary chip set all derive from the single source of
+// truth (packages/types EXPENSE_CATEGORY_META). `colorToken` is a palette key,
+// resolved here so @motovault/types stays free of a design-system dependency.
+export const CATEGORY_COLORS: Record<string, string> = Object.fromEntries(
+  EXPENSE_CATEGORY_META.map((m) => [
+    m.key,
+    palette[m.colorToken as keyof typeof palette] ?? palette.neutral500,
+  ]),
+);
 
-export const CATEGORY_LABELS: Record<string, string> = {
-  fuel: 'Fuel',
-  maintenance: 'Service',
-  parts: 'Parts',
-  gear: 'Gear',
-  insurance: 'Insurance',
-  registration: 'Registration',
-  tolls: 'Tolls',
-  parking: 'Parking',
-  tires: 'Tires',
-  modifications: 'Mods',
-  training: 'Training',
-};
+export const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(
+  EXPENSE_CATEGORY_META.map((m) => [m.key, m.label]),
+);
 
-import { CURRENCY_SYMBOLS, type Currency } from '@motovault/types';
+/** Categories shown as chips in the simple/default form state. */
+export const PRIMARY_CATEGORIES: ExpenseCategory[] = EXPENSE_CATEGORY_META.filter(
+  (m) => m.primary,
+).map((m) => m.key);
 
 // Intl.NumberFormat construction is expensive (~0.5-1ms). Cache instances per currency.
 // With max 24 currencies, memory is ~24KB — negligible.

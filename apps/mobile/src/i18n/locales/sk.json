@@ -1435,7 +1435,12 @@
     "allExpenses": "Všetky výdavky",
     "addPurchasePriceHint": "Pridaj kúpnu cenu motorky v Upraviť motorku, aby si videl celkové náklady na vlastníctvo",
     "byCategory": "Podľa kategórie",
-    "monthlyTrend": "Mesačný trend"
+    "monthlyTrend": "Mesačný trend",
+    "category_accessories": "Príslušenstvo",
+    "category_taxes_fees": "Dane a poplatky",
+    "category_other": "Iné",
+    "itemName": "Názov položky",
+    "itemNamePlaceholder": "Čo ste kúpili?"
   },
   "privacy": {
     "title": "Súkromie",
