@@ -416,20 +416,15 @@ export class DocumentsService {
       // Defense-in-depth: never hand the admin client a path outside the user prefix.
       .filter((p: string) => p.startsWith(`${userId}/`));
 
-    // Storage-first: remove objects, THEN the row. If object delete fails, leave the
-    // row so the operation can be retried (U13 reconciles any truly-orphaned objects).
-    if (paths.length > 0) {
-      const { error: storageError } = await this.adminClient.storage
-        .from(STORAGE_BUCKET)
-        .remove(paths);
-      if (storageError) {
-        this.logger.error(
-          `delete: storage removal failed for document ${id}: ${storageError.message}`,
-        );
-        throw new InternalServerErrorException('Failed to delete document files');
-      }
-    }
-
+    // Row-first: delete the row (cascade removes document_files), THEN the objects.
+    // Ordering is the whole correctness argument here. If the row delete fails, no
+    // objects were touched and the operation is fully retryable. If object removal
+    // fails AFTER the row is gone, those objects are now true orphans (no
+    // document_files row) that the U13 reconciliation sweep reclaims — a benign,
+    // self-healing state. The inverse (storage-first) could leave a row whose bytes
+    // are already gone, which the orphan sweep CANNOT reclaim (it only deletes an
+    // object lacking a row), stranding a permanently-404 document. Row-first makes
+    // both failure directions recoverable.
     const { error: rowError } = await this.supabase
       .from('documents')
       .delete()
@@ -438,6 +433,20 @@ export class DocumentsService {
     if (rowError) {
       this.logger.error(`delete: row removal failed for document ${id}: ${rowError.message}`);
       throw new InternalServerErrorException('Failed to delete document');
+    }
+
+    if (paths.length > 0) {
+      const { error: storageError } = await this.adminClient.storage
+        .from(STORAGE_BUCKET)
+        .remove(paths);
+      if (storageError) {
+        // The row is already gone, so the delete succeeded from the caller's view;
+        // the objects are now reclaimable orphans. Log and let the reconciliation
+        // sweep handle them rather than failing an operation that already committed.
+        this.logger.warn(
+          `delete: storage removal failed for document ${id} (orphan sweep will reconcile): ${storageError.message}`,
+        );
+      }
     }
     return true;
   }

@@ -1,3 +1,4 @@
+import type { DocumentMimeType } from '@motovault/types';
 import { Field, InputType, Int } from '@nestjs/graphql';
 
 @InputType()
@@ -8,8 +9,11 @@ export class DocumentFileInput {
   @Field(() => Int)
   fileSizeBytes: number;
 
+  // GraphQL wire type stays String; the TS type narrows to the shared allowlist
+  // union so this DTO stays assignable to the (now literal-typed) Zod CreateDocument
+  // and the ZodValidationPipe remains the runtime gate.
   @Field()
-  mimeType: string;
+  mimeType: DocumentMimeType;
 }
 
 @InputType()

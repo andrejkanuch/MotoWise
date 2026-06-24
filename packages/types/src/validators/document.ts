@@ -5,8 +5,6 @@ import {
   MAX_FILES_PER_DOCUMENT,
 } from '../constants/document-limits';
 
-const mimeValues = DOCUMENT_MIME_ALLOWLIST as unknown as [string, ...string[]];
-
 const DateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format');
 
 /**
@@ -17,7 +15,11 @@ const DateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD for
 export const DocumentFileInputSchema = z.object({
   storagePath: z.string().min(1).max(500),
   fileSizeBytes: z.number().int().positive().max(MAX_DOCUMENT_FILE_BYTES),
-  mimeType: z.enum(mimeValues),
+  // Pass the readonly allowlist directly: Zod 3.25 infers the literal union
+  // ('application/pdf' | 'image/jpeg' | ...) from the `as const` tuple, so
+  // DocumentFileInput['mimeType'] keeps its narrow type instead of widening to
+  // `string` (the old `as unknown as [string, ...]` cast erased it).
+  mimeType: z.enum(DOCUMENT_MIME_ALLOWLIST),
 });
 export type DocumentFileInput = z.infer<typeof DocumentFileInputSchema>;
 

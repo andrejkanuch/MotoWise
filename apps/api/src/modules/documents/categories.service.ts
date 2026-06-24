@@ -46,7 +46,10 @@ export class DocumentCategoriesService {
       .from('document_categories')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', userId);
-    if ((anyExist.count ?? 0) === 0) {
+    // Guard on the count query succeeding: a transient read error must not be read
+    // as "empty vault" (count → null → 0) and trigger a seed attempt on every
+    // request during a DB outage.
+    if (!anyExist.error && (anyExist.count ?? 0) === 0) {
       await this.seed(userId);
     }
     return this.fetch(userId, includeHidden);
@@ -95,12 +98,37 @@ export class DocumentCategoriesService {
       .single();
     if (error || !data) {
       if (error?.code === PG_ERROR.UNIQUE_VIOLATION) {
-        throw new BadRequestException('A category with that name already exists');
+        // A category with this name already exists. If it is merely hidden, treat
+        // "add" as an idempotent restore (unhide + return) — re-adding a name the
+        // rider previously hid should bring it back, not surface a confusing
+        // "already exists" error (R7). If it is already visible, the name is taken.
+        return this.restoreHiddenOrConflict(userId, input.name);
       }
       this.logger.error(`add category failed: ${error?.message}`);
       throw new BadRequestException('Failed to add category');
     }
     return this.mapRow(data as CategoryRow);
+  }
+
+  /** Unhide an existing same-name category, or surface a genuine name conflict. */
+  private async restoreHiddenOrConflict(userId: string, name: string): Promise<DocumentCategory> {
+    const { data: existing } = await this.supabase
+      .from('document_categories')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('name', name)
+      .single();
+    if (existing && (existing as CategoryRow).is_hidden) {
+      const { data: unhidden, error: unhideError } = await this.supabase
+        .from('document_categories')
+        .update({ is_hidden: false })
+        .eq('id', (existing as CategoryRow).id)
+        .eq('user_id', userId)
+        .select('*')
+        .single();
+      if (!unhideError && unhidden) return this.mapRow(unhidden as CategoryRow);
+    }
+    throw new BadRequestException('A category with that name already exists');
   }
 
   /**

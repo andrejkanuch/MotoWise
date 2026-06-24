@@ -1,6 +1,7 @@
 import {
   AddDocumentCategorySchema,
   CreateDocumentSchema,
+  EXPIRING_DOCUMENTS_WINDOW_DAYS,
   UpdateDocumentCategorySchema,
   UpdateDocumentSchema,
 } from '@motovault/types';
@@ -23,9 +24,6 @@ import { UpdateDocumentCategoryInput } from './dto/update-document-category.inpu
 import { Document } from './models/document.model';
 import { DocumentCategory } from './models/document-category.model';
 import { DocumentFile } from './models/document-file.model';
-
-/** Default horizon for the garage soon-expiring aggregate (R11). */
-const DEFAULT_EXPIRING_WINDOW_DAYS = 60;
 
 @Resolver(() => Document)
 @Injectable({ scope: Scope.REQUEST })
@@ -50,7 +48,10 @@ export class DocumentsResolver {
     @CurrentUser() user: AuthUser,
     @Args('withinDays', { type: () => Int, nullable: true }) withinDays?: number,
   ): Promise<Document[]> {
-    return this.documentsService.findExpiring(user.id, withinDays ?? DEFAULT_EXPIRING_WINDOW_DAYS);
+    return this.documentsService.findExpiring(
+      user.id,
+      withinDays ?? EXPIRING_DOCUMENTS_WINDOW_DAYS,
+    );
   }
 
   @Query(() => [DocumentCategory])

@@ -1,5 +1,5 @@
 import { CreateMotorcycleSchema, UpdateMotorcycleSchema } from '@motovault/types';
-import { Inject, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Scope } from '@nestjs/common';
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
@@ -23,6 +23,12 @@ import { MotorcyclesService } from './motorcycles.service';
 import { NhtsaService } from './nhtsa.service';
 
 @Resolver(() => Motorcycle)
+// Request-scoped because it injects the request-scoped DocumentsByMotorcycleLoader
+// (and SUPABASE_USER). Scope bubbling already promotes this resolver today via the
+// user-client injection, but the explicit decorator makes the per-request guarantee
+// resilient if that injection is ever removed, and matches DocumentsResolver +
+// the project standard (resolver+loader pairs are marked Scope.REQUEST).
+@Injectable({ scope: Scope.REQUEST })
 export class MotorcyclesResolver {
   private readonly logger = new Logger(MotorcyclesResolver.name);
 

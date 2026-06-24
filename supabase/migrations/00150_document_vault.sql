@@ -120,6 +120,10 @@ CREATE TABLE public.document_files (
 
 CREATE INDEX idx_document_files_document ON public.document_files (document_id);
 CREATE INDEX idx_document_files_user ON public.document_files (user_id);
+-- Backs the orphan-reconciliation sweep (00152), which probes
+-- `NOT EXISTS (... WHERE storage_path = o.name)` per storage object; without this
+-- index each probe is a sequential scan of document_files.
+CREATE INDEX idx_document_files_storage_path ON public.document_files (storage_path);
 
 ALTER TABLE public.document_files ENABLE ROW LEVEL SECURITY;
 

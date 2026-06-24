@@ -80,6 +80,7 @@ import { captureMetaAttribution } from '../lib/meta-attribution';
 import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
 import {
   cancelAllNotifications,
+  NOTIFICATION_ACTION,
   NOTIFICATION_KIND,
   setupNotificationCategories,
   setupNotificationChannels,
@@ -702,7 +703,7 @@ function RootLayout() {
 
         // Document expiry reminders: tap or "View" deep-links to the document.
         if (data?.kind === NOTIFICATION_KIND.DOCUMENT && data.documentId) {
-          if (actionId !== 'SNOOZE_1D') {
+          if (actionId !== NOTIFICATION_ACTION.SNOOZE_1D) {
             expoRouter.push(
               `/(tabs)/(garage)/document/${data.documentId}?motorcycleId=${data.motorcycleId ?? ''}` as Href,
             );
@@ -712,7 +713,7 @@ function RootLayout() {
 
         if (!data?.taskId) return;
 
-        if (actionId === 'MARK_DONE') {
+        if (actionId === NOTIFICATION_ACTION.MARK_DONE) {
           try {
             await gqlFetcher(CompleteMaintenanceTaskDocument, { id: data.taskId });
             queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
@@ -724,7 +725,7 @@ function RootLayout() {
           } catch {
             // Silently fail — user can mark done manually in app
           }
-        } else if (actionId === 'SNOOZE_1D') {
+        } else if (actionId === NOTIFICATION_ACTION.SNOOZE_1D) {
           const title = response.notification.request.content.title ?? 'Maintenance task';
           await snoozeTaskNotification(
             {

@@ -6,6 +6,19 @@ import * as Notifications from 'expo-notifications';
 /** Notification `data.kind` discriminator — shared with the tap handler in _layout. */
 export const NOTIFICATION_KIND = { DOCUMENT: 'document' } as const;
 
+/** iOS UNNotificationCategory identifiers (also the Android channel-less category key). */
+export const NOTIFICATION_CATEGORY = {
+  MAINTENANCE_REMINDER: 'MAINTENANCE_REMINDER',
+  DOCUMENT_EXPIRY: 'DOCUMENT_EXPIRY',
+} as const;
+
+/** Notification action-button identifiers — shared with the tap handler in _layout. */
+export const NOTIFICATION_ACTION = {
+  MARK_DONE: 'MARK_DONE',
+  SNOOZE_1D: 'SNOOZE_1D',
+  VIEW_DOCUMENT: 'VIEW_DOCUMENT',
+} as const;
+
 // MOT-139: Map now stores an ARRAY of notification ids per task so we can
 // cancel all scheduled stages (30d / 7d / 1d) atomically.
 const NOTIFICATION_MAP_KEY = '@motovault/notification-map';
@@ -68,29 +81,27 @@ export async function setupNotificationChannels(): Promise<void> {
  * Register actionable notification categories (Mark Done / Snooze).
  */
 export async function setupNotificationCategories(): Promise<void> {
-  await Notifications.setNotificationCategoryAsync('MAINTENANCE_REMINDER', [
+  await Notifications.setNotificationCategoryAsync(NOTIFICATION_CATEGORY.MAINTENANCE_REMINDER, [
     {
       buttonTitle: 'Mark Done',
-      identifier: 'MARK_DONE',
+      identifier: NOTIFICATION_ACTION.MARK_DONE,
       options: { opensAppToForeground: false },
     },
     {
       buttonTitle: 'Snooze 1 Day',
-      identifier: 'SNOOZE_1D',
+      identifier: NOTIFICATION_ACTION.SNOOZE_1D,
       options: { opensAppToForeground: false },
     },
   ]);
-  // Document expiry — informational/renewal; no "Mark Done" (R8: keyed off expiry).
-  await Notifications.setNotificationCategoryAsync('DOCUMENT_EXPIRY', [
+  // Document expiry — informational/renewal; no "Mark Done" and no "Snooze". R8:
+  // reminders key off the document's expiry_date, so there is nothing to snooze —
+  // the only action is a deep-link to view the document. (A standalone "Snooze 1
+  // Day" button here was inert: the tap handler has no document snooze path.)
+  await Notifications.setNotificationCategoryAsync(NOTIFICATION_CATEGORY.DOCUMENT_EXPIRY, [
     {
       buttonTitle: 'View',
-      identifier: 'VIEW_DOCUMENT',
+      identifier: NOTIFICATION_ACTION.VIEW_DOCUMENT,
       options: { opensAppToForeground: true },
-    },
-    {
-      buttonTitle: 'Snooze 1 Day',
-      identifier: 'SNOOZE_1D',
-      options: { opensAppToForeground: false },
     },
   ]);
 }
@@ -158,7 +169,9 @@ export async function scheduleMaintenanceReminder(
         data: { motorcycleId: task.motorcycleId, taskId: task.id, stage: stage.label },
         // Only the 1-day notification keeps the actionable category — earlier
         // stages are informational (per PRD open questions).
-        ...(stage.label === '1d' ? { categoryIdentifier: 'MAINTENANCE_REMINDER' } : {}),
+        ...(stage.label === '1d'
+          ? { categoryIdentifier: NOTIFICATION_CATEGORY.MAINTENANCE_REMINDER }
+          : {}),
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -261,7 +274,11 @@ export async function scheduleDocumentExpiryReminder(
   doc: DocumentReminder,
   bikeName: string,
 ): Promise<void> {
-  const expiry = new Date(doc.expiryDate);
+  // expiryDate is a date-only string (YYYY-MM-DD). `new Date('2026-08-01')` parses
+  // as UTC midnight, which in negative-UTC (Americas) timezones is the PREVIOUS
+  // calendar day locally — shifting every reminder stage one day early. Append a
+  // local time component so the date anchors to local midnight on the right day.
+  const expiry = new Date(`${doc.expiryDate}T00:00:00`);
   const now = new Date();
   const daysUntil = differenceInCalendarDays(expiry, now);
 
@@ -294,7 +311,9 @@ export async function scheduleDocumentExpiryReminder(
             motorcycleId: doc.motorcycleId,
             stage: stage.label,
           },
-          ...(stage.label === '1d' ? { categoryIdentifier: 'DOCUMENT_EXPIRY' } : {}),
+          ...(stage.label === '1d'
+            ? { categoryIdentifier: NOTIFICATION_CATEGORY.DOCUMENT_EXPIRY }
+            : {}),
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -344,7 +363,7 @@ export async function snoozeTaskNotification(
       title: `Reminder: ${task.title}`,
       body: `${bikeName} — snoozed reminder`,
       data: { motorcycleId: task.motorcycleId, taskId: task.id },
-      categoryIdentifier: 'MAINTENANCE_REMINDER',
+      categoryIdentifier: NOTIFICATION_CATEGORY.MAINTENANCE_REMINDER,
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DATE,

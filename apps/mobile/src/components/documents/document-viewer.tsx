@@ -81,8 +81,12 @@ export function DocumentViewer({ documentId, files, isDark }: DocumentViewerProp
     cacheDirRef.current = dir;
     if (!dir.exists) dir.create({ intermediates: true });
 
-    (async () => {
-      for (const file of files) {
+    // Sign + download every file concurrently so a multi-file document opens in
+    // the time of its slowest file, not the sum. Each result updates its own item
+    // progressively; the `cancelled` guard still short-circuits stale setState
+    // after unmount (the cache dir is wiped in cleanup).
+    void Promise.allSettled(
+      files.map(async (file) => {
         try {
           const uri = await downloadFile(file, dir);
           if (cancelled) return;
@@ -91,8 +95,8 @@ export function DocumentViewer({ documentId, files, isDark }: DocumentViewerProp
           if (cancelled) return;
           setItems((prev) => prev.map((it) => (it.id === file.id ? { ...it, error: true } : it)));
         }
-      }
-    })();
+      }),
+    );
 
     return () => {
       cancelled = true;

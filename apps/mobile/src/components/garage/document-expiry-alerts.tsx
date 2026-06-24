@@ -1,5 +1,6 @@
 import { palette } from '@motovault/design-system';
 import { ExpiringDocumentsDocument } from '@motovault/graphql';
+import { EXPIRING_DOCUMENTS_WINDOW_DAYS } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import { differenceInCalendarDays, parseISO } from 'date-fns';
 import * as Haptics from 'expo-haptics';
@@ -24,7 +25,8 @@ export function DocumentExpiryAlerts({ isDark }: DocumentExpiryAlertsProps) {
   const { t } = useTranslation();
   const { data } = useQuery({
     queryKey: queryKeys.documents.expiring,
-    queryFn: () => gqlFetcher(ExpiringDocumentsDocument, { withinDays: 60 }),
+    queryFn: () =>
+      gqlFetcher(ExpiringDocumentsDocument, { withinDays: EXPIRING_DOCUMENTS_WINDOW_DAYS }),
   });
 
   const docs = data?.expiringDocuments ?? [];

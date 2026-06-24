@@ -1,4 +1,9 @@
-import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DocumentsService } from './documents.service';
 
@@ -177,23 +182,45 @@ describe('DocumentsService.getSignedUrl', () => {
 describe('DocumentsService.delete', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('removes storage objects before the row (storage-first, R19)', async () => {
+  it('removes the row before the storage objects (row-first, R19)', async () => {
+    // Row-first ordering is the correctness guarantee: a failed storage removal
+    // after the row is gone leaves only reclaimable orphans (object-without-row),
+    // never an unreclaimable phantom (row-without-object).
     const { service, user, admin } = makeService();
     const order: string[] = [];
     user.chain.single.mockResolvedValueOnce({ data: { id: DOC }, error: null }); // ownership
     // file-paths read (awaited chain)
     user.chain.awaitResults.push({ data: [{ storage_path: `${USER}/b/d/f.pdf` }], error: null });
-    admin.remove.mockImplementationOnce(async () => {
-      order.push('storage');
-      return { error: null };
-    });
     user.chain.delete.mockImplementationOnce(() => {
       order.push('row');
       return user.chain;
     });
-    // the row delete is awaited via .eq → push a result for the final await
+    // the row delete is awaited via .eq → push a result for that await
     user.chain.awaitResults.push({ data: null, error: null });
+    admin.remove.mockImplementationOnce(async () => {
+      order.push('storage');
+      return { error: null };
+    });
     await service.delete(USER, DOC);
-    expect(order).toEqual(['storage', 'row']);
+    expect(order).toEqual(['row', 'storage']);
+  });
+
+  it('still succeeds when storage removal fails after the row is deleted (orphan sweep reclaims)', async () => {
+    const { service, user, admin } = makeService();
+    user.chain.single.mockResolvedValueOnce({ data: { id: DOC }, error: null }); // ownership
+    user.chain.awaitResults.push({ data: [{ storage_path: `${USER}/b/d/f.pdf` }], error: null });
+    user.chain.awaitResults.push({ data: null, error: null }); // row delete succeeds
+    admin.remove.mockResolvedValueOnce({ error: { message: 'bucket unavailable' } });
+    await expect(service.delete(USER, DOC)).resolves.toBe(true);
+    expect(admin.remove).toHaveBeenCalled();
+  });
+
+  it('throws and leaves storage untouched when the row delete fails (fully retryable)', async () => {
+    const { service, user, admin } = makeService();
+    user.chain.single.mockResolvedValueOnce({ data: { id: DOC }, error: null }); // ownership
+    user.chain.awaitResults.push({ data: [{ storage_path: `${USER}/b/d/f.pdf` }], error: null });
+    user.chain.awaitResults.push({ data: null, error: { message: 'row delete failed' } });
+    await expect(service.delete(USER, DOC)).rejects.toThrow(InternalServerErrorException);
+    expect(admin.remove).not.toHaveBeenCalled();
   });
 });

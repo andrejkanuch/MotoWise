@@ -18,9 +18,12 @@ SET search_path = public
 AS $$
 DECLARE
   deleted_count integer := 0;
-  obj record;
 BEGIN
-  FOR obj IN
+  -- Single batched DELETE rather than a per-row loop: one statement, one set of
+  -- locks. The CTE selects up to 1000 orphans (bounding each run so a large
+  -- backlog can't hold one long locking transaction over storage.objects; the
+  -- remainder is reclaimed next run) and deletes them in one pass.
+  WITH orphans AS (
     SELECT o.name
     FROM storage.objects o
     WHERE o.bucket_id = 'documents'
@@ -31,15 +34,20 @@ BEGIN
       AND NOT EXISTS (
         SELECT 1 FROM public.document_files df WHERE df.storage_path = o.name
       )
-    -- Bound each run so a large orphan backlog can't hold one long locking
-    -- transaction over storage.objects; the remainder is reclaimed next run.
     ORDER BY o.created_at
     LIMIT 1000
-  LOOP
-    DELETE FROM storage.objects WHERE bucket_id = 'documents' AND name = obj.name;
-    RAISE LOG 'reconcile_orphaned_document_objects: deleted orphan %', obj.name;
-    deleted_count := deleted_count + 1;
-  END LOOP;
+  ),
+  deleted AS (
+    DELETE FROM storage.objects
+    WHERE bucket_id = 'documents'
+      AND name IN (SELECT name FROM orphans)
+    RETURNING name
+  )
+  SELECT count(*) INTO deleted_count FROM deleted;
+
+  IF deleted_count > 0 THEN
+    RAISE LOG 'reconcile_orphaned_document_objects: deleted % orphan(s)', deleted_count;
+  END IF;
 
   RETURN deleted_count;
 END;

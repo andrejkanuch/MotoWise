@@ -21,6 +21,12 @@ export const MAX_PDF_BYTES = 20 * 1024 * 1024;
 /** Per-user vault storage cap (bounds growth of a private PII bucket). */
 export const MAX_VAULT_BYTES_PER_USER = 500 * 1024 * 1024;
 
+/**
+ * Default horizon (days) for the garage "expiring soon" surface (R11). Single
+ * source of truth for the API resolver default and the mobile garage query.
+ */
+export const EXPIRING_DOCUMENTS_WINDOW_DAYS = 60;
+
 /** Largest allowed single file across all types (PDF). */
 export const MAX_DOCUMENT_FILE_BYTES = MAX_PDF_BYTES;
 
