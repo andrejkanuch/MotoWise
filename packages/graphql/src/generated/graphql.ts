@@ -153,6 +153,69 @@ export enum AssistantMessageRole {
   User = 'user'
 }
 
+export type BlogCategory = {
+  __typename?: 'BlogCategory';
+  id: Scalars['ID']['output'];
+  isPrimary?: Maybe<Scalars['Boolean']['output']>;
+  name: Scalars['String']['output'];
+  parentId?: Maybe<Scalars['ID']['output']>;
+  slug: Scalars['String']['output'];
+};
+
+export type BlogKeyword = {
+  __typename?: 'BlogKeyword';
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  slug: Scalars['String']['output'];
+};
+
+export type BlogPost = {
+  __typename?: 'BlogPost';
+  author?: Maybe<Scalars['String']['output']>;
+  categories: Array<BlogCategory>;
+  coverAlt?: Maybe<Scalars['String']['output']>;
+  coverImage?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  isSafetyCritical: Scalars['Boolean']['output'];
+  keywords: Array<BlogKeyword>;
+  publishedAt?: Maybe<Scalars['String']['output']>;
+  scheduledFor?: Maybe<Scalars['String']['output']>;
+  slug: Scalars['String']['output'];
+  specData: Scalars['Boolean']['output'];
+  status: Scalars['String']['output'];
+  translations: Array<BlogTranslation>;
+  type: Scalars['String']['output'];
+  typeData?: Maybe<Scalars['JSON']['output']>;
+  updatedAt: Scalars['String']['output'];
+};
+
+export type BlogPostConnection = {
+  __typename?: 'BlogPostConnection';
+  edges: Array<BlogPostEdge>;
+  pageInfo: PageInfo;
+  totalCount: Scalars['Int']['output'];
+};
+
+export type BlogPostEdge = {
+  __typename?: 'BlogPostEdge';
+  cursor: Scalars['String']['output'];
+  node: BlogPost;
+};
+
+export type BlogTranslation = {
+  __typename?: 'BlogTranslation';
+  bodyRaw: Scalars['String']['output'];
+  excerpt?: Maybe<Scalars['String']['output']>;
+  faq?: Maybe<Scalars['JSON']['output']>;
+  locale: Scalars['String']['output'];
+  readingTime?: Maybe<Scalars['String']['output']>;
+  seoDescription?: Maybe<Scalars['String']['output']>;
+  seoTitle?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+  wordCount?: Maybe<Scalars['Int']['output']>;
+};
+
 export type BrowseExploreRegionResult = {
   __typename?: 'BrowseExploreRegionResult';
   country: BrowsePlace;
@@ -800,6 +863,13 @@ export type LearningProgress = {
   quizBestScore?: Maybe<Scalars['Int']['output']>;
   quizCompleted: Scalars['Boolean']['output'];
   userId: Scalars['String']['output'];
+};
+
+export type ListBlogPostsInput = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+  type?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type LogExpenseInput = {
@@ -1604,6 +1674,8 @@ export type PublicRiderProfile = {
 
 export type Query = {
   __typename?: 'Query';
+  adminBlogPost?: Maybe<BlogPost>;
+  adminBlogPosts: BlogPostConnection;
   aiBudgetStatus: AiBudgetStatus;
   allMaintenanceTasks: Array<MaintenanceTask>;
   articleBySlug?: Maybe<Article>;
@@ -1685,6 +1757,16 @@ export type Query = {
   tripSuggestions: Array<TripSuggestion>;
   tripTemplates: TripConnection;
   user: User;
+};
+
+
+export type QueryAdminBlogPostArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type QueryAdminBlogPostsArgs = {
+  input?: InputMaybe<ListBlogPostsInput>;
 };
 
 

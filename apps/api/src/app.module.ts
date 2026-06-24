@@ -18,6 +18,7 @@ import { envSchema } from './config/env.validation';
 import { AffiliatesModule } from './modules/affiliates/affiliates.module';
 import { AiBudgetModule } from './modules/ai-budget/ai-budget.module';
 import { ArticlesModule } from './modules/articles/articles.module';
+import { BlogModule } from './modules/blog/blog.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { ContentFlagsModule } from './modules/content-flags/content-flags.module';
 import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
@@ -99,6 +100,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     MotorcyclesModule,
     PlacesModule,
     ArticlesModule,
+    BlogModule,
     QuizzesModule,
     DiagnosticsModule,
     ExpensesModule,

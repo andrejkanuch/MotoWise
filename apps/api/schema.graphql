@@ -128,6 +128,63 @@ enum AssistantMessageRole {
   user
 }
 
+type BlogCategory {
+  id: ID!
+  isPrimary: Boolean
+  name: String!
+  parentId: ID
+  slug: String!
+}
+
+type BlogKeyword {
+  id: ID!
+  name: String!
+  slug: String!
+}
+
+type BlogPost {
+  author: String
+  categories: [BlogCategory!]!
+  coverAlt: String
+  coverImage: String
+  createdAt: String!
+  id: ID!
+  isSafetyCritical: Boolean!
+  keywords: [BlogKeyword!]!
+  publishedAt: String
+  scheduledFor: String
+  slug: String!
+  specData: Boolean!
+  status: String!
+  translations: [BlogTranslation!]!
+  type: String!
+  typeData: JSON
+  updatedAt: String!
+}
+
+type BlogPostConnection {
+  edges: [BlogPostEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type BlogPostEdge {
+  cursor: String!
+  node: BlogPost!
+}
+
+type BlogTranslation {
+  bodyRaw: String!
+  excerpt: String
+  faq: JSON
+  locale: String!
+  readingTime: String
+  seoDescription: String
+  seoTitle: String
+  title: String!
+  wordCount: Int
+}
+
 type BrowseExploreRegionResult {
   country: BrowsePlace!
   region: BrowsePlace!
@@ -747,6 +804,13 @@ type LearningProgress {
   userId: String!
 }
 
+input ListBlogPostsInput {
+  after: String
+  first: Int
+  status: String
+  type: String
+}
+
 input LogExpenseInput {
   amount: Float!
   category: String!
@@ -1119,6 +1183,8 @@ type PublicRiderProfile {
 }
 
 type Query {
+  adminBlogPost(id: String!): BlogPost
+  adminBlogPosts(input: ListBlogPostsInput): BlogPostConnection!
   aiBudgetStatus: AiBudgetStatus!
   allMaintenanceTasks: [MaintenanceTask!]!
   articleBySlug(slug: String!): Article
