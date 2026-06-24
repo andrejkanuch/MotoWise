@@ -208,6 +208,397 @@ export type Database = {
           },
         ]
       }
+      blog_post_categories: {
+        Row: {
+          category_id: string
+          is_primary: boolean
+          post_id: string
+        }
+        Insert: {
+          category_id: string
+          is_primary?: boolean
+          post_id: string
+        }
+        Update: {
+          category_id?: string
+          is_primary?: boolean
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_categories_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_post_gear: {
+        Row: {
+          brand: string | null
+          meta: Json
+          model: string | null
+          post_id: string
+          price_eur: number | null
+          rating: number | null
+          verdict: string | null
+        }
+        Insert: {
+          brand?: string | null
+          meta?: Json
+          model?: string | null
+          post_id: string
+          price_eur?: number | null
+          rating?: number | null
+          verdict?: string | null
+        }
+        Update: {
+          brand?: string | null
+          meta?: Json
+          model?: string | null
+          post_id?: string
+          price_eur?: number | null
+          rating?: number | null
+          verdict?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_gear_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_post_guide: {
+        Row: {
+          difficulty: string | null
+          meta: Json
+          post_id: string
+        }
+        Insert: {
+          difficulty?: string | null
+          meta?: Json
+          post_id: string
+        }
+        Update: {
+          difficulty?: string | null
+          meta?: Json
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_guide_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_post_keywords: {
+        Row: {
+          keyword_id: string
+          post_id: string
+        }
+        Insert: {
+          keyword_id: string
+          post_id: string
+        }
+        Update: {
+          keyword_id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_keywords_keyword_id_fkey"
+            columns: ["keyword_id"]
+            isOneToOne: false
+            referencedRelation: "keywords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_keywords_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_post_maintenance: {
+        Row: {
+          applicable_models: string[]
+          dataset_models: string[]
+          make: string | null
+          meta: Json
+          model: string | null
+          post_id: string
+          variant: string | null
+        }
+        Insert: {
+          applicable_models?: string[]
+          dataset_models?: string[]
+          make?: string | null
+          meta?: Json
+          model?: string | null
+          post_id: string
+          variant?: string | null
+        }
+        Update: {
+          applicable_models?: string[]
+          dataset_models?: string[]
+          make?: string | null
+          meta?: Json
+          model?: string | null
+          post_id?: string
+          variant?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_maintenance_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_post_translations: {
+        Row: {
+          body_json: Json | null
+          body_raw: string
+          body_text: string
+          created_at: string
+          excerpt: string | null
+          faq: Json
+          keyword_text: string
+          locale: string
+          post_id: string
+          reading_time: string | null
+          search_vector: unknown
+          seo_description: string | null
+          seo_title: string | null
+          title: string
+          updated_at: string
+          word_count: number | null
+        }
+        Insert: {
+          body_json?: Json | null
+          body_raw?: string
+          body_text?: string
+          created_at?: string
+          excerpt?: string | null
+          faq?: Json
+          keyword_text?: string
+          locale: string
+          post_id: string
+          reading_time?: string | null
+          search_vector?: unknown
+          seo_description?: string | null
+          seo_title?: string | null
+          title: string
+          updated_at?: string
+          word_count?: number | null
+        }
+        Update: {
+          body_json?: Json | null
+          body_raw?: string
+          body_text?: string
+          created_at?: string
+          excerpt?: string | null
+          faq?: Json
+          keyword_text?: string
+          locale?: string
+          post_id?: string
+          reading_time?: string | null
+          search_vector?: unknown
+          seo_description?: string | null
+          seo_title?: string | null
+          title?: string
+          updated_at?: string
+          word_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_translations_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_post_trip: {
+        Row: {
+          country_codes: string[]
+          distance_km: number | null
+          meta: Json
+          post_id: string
+          route_gpx: string | null
+        }
+        Insert: {
+          country_codes?: string[]
+          distance_km?: number | null
+          meta?: Json
+          post_id: string
+          route_gpx?: string | null
+        }
+        Update: {
+          country_codes?: string[]
+          distance_km?: number | null
+          meta?: Json
+          post_id?: string
+          route_gpx?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_trip_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_post_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          post_id: string
+          snapshot: Json
+          version_num: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          post_id: string
+          snapshot: Json
+          version_num: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          post_id?: string
+          snapshot?: Json
+          version_num?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_versions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_posts: {
+        Row: {
+          author: string | null
+          cover_alt: string | null
+          cover_image: string | null
+          created_at: string
+          id: string
+          is_safety_critical: boolean
+          published_at: string | null
+          scheduled_for: string | null
+          slug: string
+          spec_data: boolean
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string | null
+          cover_alt?: string | null
+          cover_image?: string | null
+          created_at?: string
+          id?: string
+          is_safety_critical?: boolean
+          published_at?: string | null
+          scheduled_for?: string | null
+          slug: string
+          spec_data?: boolean
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string | null
+          cover_alt?: string | null
+          cover_image?: string | null
+          created_at?: string
+          id?: string
+          is_safety_critical?: boolean
+          published_at?: string | null
+          scheduled_for?: string | null
+          slug?: string
+          spec_data?: boolean
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          parent_id: string | null
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          parent_id?: string | null
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          parent_id?: string | null
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comment_flags: {
         Row: {
           comment_id: string
@@ -826,6 +1217,134 @@ export type Database = {
           },
         ]
       }
+      document_categories: {
+        Row: {
+          created_at: string
+          id: string
+          is_hidden: boolean
+          kind: string
+          name: string
+          prompts_expiry: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_hidden?: boolean
+          kind?: string
+          name: string
+          prompts_expiry?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_hidden?: boolean
+          kind?: string
+          name?: string
+          prompts_expiry?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      document_files: {
+        Row: {
+          created_at: string
+          document_id: string
+          file_size_bytes: number | null
+          id: string
+          mime_type: string
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type: string
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_files_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          category_id: string
+          created_at: string
+          deleted_at: string | null
+          expiry_date: string | null
+          id: string
+          is_pinned: boolean
+          motorcycle_id: string
+          note: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          deleted_at?: string | null
+          expiry_date?: string | null
+          id?: string
+          is_pinned?: boolean
+          motorcycle_id: string
+          note?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          expiry_date?: string | null
+          id?: string
+          is_pinned?: boolean
+          motorcycle_id?: string
+          note?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "document_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expense_photos: {
         Row: {
           created_at: string
@@ -875,6 +1394,7 @@ export type Database = {
           description: string | null
           fuel_log_id: string | null
           id: string
+          item_name: string | null
           maintenance_task_id: string | null
           motorcycle_id: string
           updated_at: string
@@ -890,6 +1410,7 @@ export type Database = {
           description?: string | null
           fuel_log_id?: string | null
           id?: string
+          item_name?: string | null
           maintenance_task_id?: string | null
           motorcycle_id: string
           updated_at?: string
@@ -905,6 +1426,7 @@ export type Database = {
           description?: string | null
           fuel_log_id?: string | null
           id?: string
+          item_name?: string | null
           maintenance_task_id?: string | null
           motorcycle_id?: string
           updated_at?: string
@@ -1172,6 +1694,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      keywords: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
       }
       learning_progress: {
         Row: {
@@ -2684,6 +3227,7 @@ export type Database = {
           motorcycle_id: string
           revoked_at: string | null
           token: string
+          token_hashed_at: string | null
           user_id: string
         }
         Insert: {
@@ -2692,7 +3236,8 @@ export type Database = {
           id?: string
           motorcycle_id: string
           revoked_at?: string | null
-          token?: string
+          token: string
+          token_hashed_at?: string | null
           user_id: string
         }
         Update: {
@@ -2702,6 +3247,7 @@ export type Database = {
           motorcycle_id?: string
           revoked_at?: string | null
           token?: string
+          token_hashed_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -3913,6 +4459,7 @@ export type Database = {
           }
       all_bikes_sentinel: { Args: never; Returns: string }
       auth_uid_check: { Args: never; Returns: string }
+      blog_locale_config: { Args: { loc: string }; Returns: unknown }
       cancel_account_deletion: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -3982,6 +4529,7 @@ export type Database = {
         Returns: Json
       }
       disablelongtransactions: { Args: never; Returns: string }
+      document_vault_bytes_used: { Args: never; Returns: number }
       dropgeometrycolumn:
         | {
             Args: {
@@ -4242,7 +4790,9 @@ export type Database = {
         }
         Returns: undefined
       }
+      publish_due_blog_posts: { Args: never; Returns: undefined }
       purge_soft_deleted_rides: { Args: never; Returns: undefined }
+      reconcile_orphaned_document_objects: { Args: never; Returns: number }
       record_ride_analytics: {
         Args: {
           p_motorcycle_id: string
@@ -4251,6 +4801,10 @@ export type Database = {
           p_started_at: string
           p_user_id: string
         }
+        Returns: undefined
+      }
+      refresh_blog_post_keyword_text: {
+        Args: { p_post_id: string }
         Returns: undefined
       }
       reorder_trip_waypoints: {
@@ -4271,6 +4825,13 @@ export type Database = {
       }
       resolve_trip_by_token: { Args: { p_token: string }; Returns: Json }
       rotate_trip_share_token: { Args: { p_trip_id: string }; Returns: string }
+      search_blog_posts: {
+        Args: { loc?: string; query: string }
+        Returns: {
+          post_id: string
+          rank: number
+        }[]
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       soft_delete_maintenance_task: {
