@@ -1,0 +1,5 @@
+mutation PublishBlogPost($id: String!) {
+  publishBlogPost(id: $id) {
+    ...BlogPostFields
+  }
+}

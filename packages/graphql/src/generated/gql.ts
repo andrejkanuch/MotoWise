@@ -142,8 +142,22 @@ type Documents = {
     "query TripReviews($tripId: ID!, $first: Int, $after: String) {\n  tripReviews(tripId: $tripId, first: $first, after: $after) {\n    id\n    rating\n    text\n    conditionTags\n    createdAt\n    tripId\n    userId\n    bikeId\n    author {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n    bike {\n      make\n      model\n      year\n      type\n    }\n  }\n}": typeof types.TripReviewsDocument,
     "query TripSuggestions($tripId: ID!) {\n  tripSuggestions(tripId: $tripId) {\n    id\n    tripId\n    kind\n    name\n    notes\n    lat\n    lng\n    dayIndex\n    periodOfDay\n    status\n    decidedBy\n    decidedAt\n    decidedNote\n    waypointId\n    createdAt\n    author {\n      id\n      displayName\n      avatarUrl\n      publicUsername\n    }\n  }\n}": typeof types.TripSuggestionsDocument,
     "query TripTemplates($filter: TripTemplateFilterInput, $first: Int, $after: String) {\n  tripTemplates(filter: $filter, first: $first, after: $after) {\n    edges {\n      node {\n        id\n        slug\n        title\n        description\n        difficulty\n        dayCount\n        startLat\n        startLng\n        countryCode\n        regionCode\n        city\n        distanceM\n        elevationGainM\n        surfaceType\n        polyline\n        curvatureIndex\n        estimatedDurationMinutes\n        isFeatured\n        isMotovaultPick\n        coverImageUrl\n        viewCount\n        cloneCount\n        averageRating\n        reviewCount\n        publishedAt\n        organiser {\n          id\n          displayName\n          publicUsername\n          avatarUrl\n        }\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}": typeof types.TripTemplatesDocument,
+    "fragment BlogPostFields on BlogPost {\n  id\n  type\n  slug\n  status\n  publishedAt\n  scheduledFor\n  author\n  coverImage\n  coverAlt\n  specData\n  isSafetyCritical\n  createdAt\n  updatedAt\n  typeData\n  translations {\n    locale\n    title\n    excerpt\n    seoTitle\n    seoDescription\n    bodyRaw\n    faq\n    readingTime\n    wordCount\n  }\n  categories {\n    id\n    slug\n    name\n    parentId\n    isPrimary\n  }\n  keywords {\n    id\n    slug\n    name\n  }\n}": typeof types.BlogPostFieldsFragmentDoc,
     "mutation ApproveMaintenanceDraft($input: ApproveMaintenanceDraftInput!) {\n  approveMaintenanceDraft(input: $input)\n}": typeof types.ApproveMaintenanceDraftDocument,
+    "mutation CreateBlogCategory($input: CreateBlogCategoryInput!) {\n  createBlogCategory(input: $input) {\n    id\n    slug\n    name\n    parentId\n  }\n}": typeof types.CreateBlogCategoryDocument,
+    "mutation CreateBlogKeyword($input: CreateBlogKeywordInput!) {\n  createBlogKeyword(input: $input) {\n    id\n    slug\n    name\n  }\n}": typeof types.CreateBlogKeywordDocument,
+    "mutation CreateBlogPost($input: CreateBlogPostInput!) {\n  createBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}": typeof types.CreateBlogPostDocument,
+    "mutation DeleteBlogPost($id: String!) {\n  deleteBlogPost(id: $id)\n}": typeof types.DeleteBlogPostDocument,
     "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}": typeof types.JoinWaitlistDocument,
+    "mutation PublishBlogPost($id: String!) {\n  publishBlogPost(id: $id) {\n    ...BlogPostFields\n  }\n}": typeof types.PublishBlogPostDocument,
+    "mutation RevertBlogPostVersion($id: String!, $versionNum: Int!) {\n  revertBlogPostVersion(id: $id, versionNum: $versionNum) {\n    ...BlogPostFields\n  }\n}": typeof types.RevertBlogPostVersionDocument,
+    "mutation ScheduleBlogPost($input: ScheduleBlogPostInput!) {\n  scheduleBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}": typeof types.ScheduleBlogPostDocument,
+    "mutation UnpublishBlogPost($id: String!) {\n  unpublishBlogPost(id: $id) {\n    ...BlogPostFields\n  }\n}": typeof types.UnpublishBlogPostDocument,
+    "mutation UpdateBlogPost($input: UpdateBlogPostInput!) {\n  updateBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}": typeof types.UpdateBlogPostDocument,
+    "query AdminBlogPostVersions($id: String!) {\n  adminBlogPostVersions(id: $id) {\n    versionNum\n    title\n    status\n    createdBy\n    createdAt\n  }\n}": typeof types.AdminBlogPostVersionsDocument,
+    "query AdminBlogPost($id: String!) {\n  adminBlogPost(id: $id) {\n    ...BlogPostFields\n  }\n}": typeof types.AdminBlogPostDocument,
+    "query AdminBlogPosts($input: ListBlogPostsInput) {\n  adminBlogPosts(input: $input) {\n    totalCount\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n    edges {\n      cursor\n      node {\n        ...BlogPostFields\n      }\n    }\n  }\n}": typeof types.AdminBlogPostsDocument,
+    "query BlogTaxonomy {\n  adminBlogCategories {\n    id\n    slug\n    name\n    parentId\n  }\n  adminBlogKeywords {\n    id\n    slug\n    name\n  }\n}": typeof types.BlogTaxonomyDocument,
     "fragment BrowsePlaceFields on BrowsePlace {\n  id\n  kind\n  name\n  countryCode\n  regionCode\n  slug\n  parentId\n  routeCount\n}\n\nquery BrowseCountries {\n  browseCountries {\n    ...BrowsePlaceFields\n  }\n}\n\nquery BrowseCountryBySlug($slug: String!) {\n  browseCountryBySlug(slug: $slug) {\n    ...BrowsePlaceFields\n  }\n}\n\nquery BrowseRegionsByCountrySlug($countrySlug: String!) {\n  browseRegionsByCountrySlug(countrySlug: $countrySlug) {\n    ...BrowsePlaceFields\n  }\n}\n\nquery BrowseExploreRegion($countrySlug: String!, $regionSlug: String!) {\n  browseExploreRegion(countrySlug: $countrySlug, regionSlug: $regionSlug) {\n    country {\n      ...BrowsePlaceFields\n    }\n    region {\n      ...BrowsePlaceFields\n    }\n  }\n}": typeof types.BrowsePlaceFieldsFragmentDoc,
     "query GetGPXQuotaStatus {\n  getGPXQuotaStatus {\n    feature\n    limit\n    used\n    remaining\n    resetDate\n    isExhausted\n  }\n}": typeof types.GetGpxQuotaStatusDocument,
     "query MaintenanceDraftReview {\n  maintenanceDraftReview {\n    schedules {\n      id\n      make\n      model\n      variant\n      taskName\n      intervalKm\n      intervalDays\n      priority\n      isSafetyCritical\n      sourcePage\n      sourceContext\n      sourceTitle\n      createdAt\n    }\n    specs {\n      id\n      make\n      model\n      variant\n      specType\n      specName\n      valueNumeric\n      valueDisplay\n      unit\n      isSafetyCritical\n      sourcePage\n      sourceContext\n      sourceTitle\n      createdAt\n    }\n  }\n}": typeof types.MaintenanceDraftReviewDocument,
@@ -282,8 +296,22 @@ const documents: Documents = {
     "query TripReviews($tripId: ID!, $first: Int, $after: String) {\n  tripReviews(tripId: $tripId, first: $first, after: $after) {\n    id\n    rating\n    text\n    conditionTags\n    createdAt\n    tripId\n    userId\n    bikeId\n    author {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n    bike {\n      make\n      model\n      year\n      type\n    }\n  }\n}": types.TripReviewsDocument,
     "query TripSuggestions($tripId: ID!) {\n  tripSuggestions(tripId: $tripId) {\n    id\n    tripId\n    kind\n    name\n    notes\n    lat\n    lng\n    dayIndex\n    periodOfDay\n    status\n    decidedBy\n    decidedAt\n    decidedNote\n    waypointId\n    createdAt\n    author {\n      id\n      displayName\n      avatarUrl\n      publicUsername\n    }\n  }\n}": types.TripSuggestionsDocument,
     "query TripTemplates($filter: TripTemplateFilterInput, $first: Int, $after: String) {\n  tripTemplates(filter: $filter, first: $first, after: $after) {\n    edges {\n      node {\n        id\n        slug\n        title\n        description\n        difficulty\n        dayCount\n        startLat\n        startLng\n        countryCode\n        regionCode\n        city\n        distanceM\n        elevationGainM\n        surfaceType\n        polyline\n        curvatureIndex\n        estimatedDurationMinutes\n        isFeatured\n        isMotovaultPick\n        coverImageUrl\n        viewCount\n        cloneCount\n        averageRating\n        reviewCount\n        publishedAt\n        organiser {\n          id\n          displayName\n          publicUsername\n          avatarUrl\n        }\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}": types.TripTemplatesDocument,
+    "fragment BlogPostFields on BlogPost {\n  id\n  type\n  slug\n  status\n  publishedAt\n  scheduledFor\n  author\n  coverImage\n  coverAlt\n  specData\n  isSafetyCritical\n  createdAt\n  updatedAt\n  typeData\n  translations {\n    locale\n    title\n    excerpt\n    seoTitle\n    seoDescription\n    bodyRaw\n    faq\n    readingTime\n    wordCount\n  }\n  categories {\n    id\n    slug\n    name\n    parentId\n    isPrimary\n  }\n  keywords {\n    id\n    slug\n    name\n  }\n}": types.BlogPostFieldsFragmentDoc,
     "mutation ApproveMaintenanceDraft($input: ApproveMaintenanceDraftInput!) {\n  approveMaintenanceDraft(input: $input)\n}": types.ApproveMaintenanceDraftDocument,
+    "mutation CreateBlogCategory($input: CreateBlogCategoryInput!) {\n  createBlogCategory(input: $input) {\n    id\n    slug\n    name\n    parentId\n  }\n}": types.CreateBlogCategoryDocument,
+    "mutation CreateBlogKeyword($input: CreateBlogKeywordInput!) {\n  createBlogKeyword(input: $input) {\n    id\n    slug\n    name\n  }\n}": types.CreateBlogKeywordDocument,
+    "mutation CreateBlogPost($input: CreateBlogPostInput!) {\n  createBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}": types.CreateBlogPostDocument,
+    "mutation DeleteBlogPost($id: String!) {\n  deleteBlogPost(id: $id)\n}": types.DeleteBlogPostDocument,
     "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}": types.JoinWaitlistDocument,
+    "mutation PublishBlogPost($id: String!) {\n  publishBlogPost(id: $id) {\n    ...BlogPostFields\n  }\n}": types.PublishBlogPostDocument,
+    "mutation RevertBlogPostVersion($id: String!, $versionNum: Int!) {\n  revertBlogPostVersion(id: $id, versionNum: $versionNum) {\n    ...BlogPostFields\n  }\n}": types.RevertBlogPostVersionDocument,
+    "mutation ScheduleBlogPost($input: ScheduleBlogPostInput!) {\n  scheduleBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}": types.ScheduleBlogPostDocument,
+    "mutation UnpublishBlogPost($id: String!) {\n  unpublishBlogPost(id: $id) {\n    ...BlogPostFields\n  }\n}": types.UnpublishBlogPostDocument,
+    "mutation UpdateBlogPost($input: UpdateBlogPostInput!) {\n  updateBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}": types.UpdateBlogPostDocument,
+    "query AdminBlogPostVersions($id: String!) {\n  adminBlogPostVersions(id: $id) {\n    versionNum\n    title\n    status\n    createdBy\n    createdAt\n  }\n}": types.AdminBlogPostVersionsDocument,
+    "query AdminBlogPost($id: String!) {\n  adminBlogPost(id: $id) {\n    ...BlogPostFields\n  }\n}": types.AdminBlogPostDocument,
+    "query AdminBlogPosts($input: ListBlogPostsInput) {\n  adminBlogPosts(input: $input) {\n    totalCount\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n    edges {\n      cursor\n      node {\n        ...BlogPostFields\n      }\n    }\n  }\n}": types.AdminBlogPostsDocument,
+    "query BlogTaxonomy {\n  adminBlogCategories {\n    id\n    slug\n    name\n    parentId\n  }\n  adminBlogKeywords {\n    id\n    slug\n    name\n  }\n}": types.BlogTaxonomyDocument,
     "fragment BrowsePlaceFields on BrowsePlace {\n  id\n  kind\n  name\n  countryCode\n  regionCode\n  slug\n  parentId\n  routeCount\n}\n\nquery BrowseCountries {\n  browseCountries {\n    ...BrowsePlaceFields\n  }\n}\n\nquery BrowseCountryBySlug($slug: String!) {\n  browseCountryBySlug(slug: $slug) {\n    ...BrowsePlaceFields\n  }\n}\n\nquery BrowseRegionsByCountrySlug($countrySlug: String!) {\n  browseRegionsByCountrySlug(countrySlug: $countrySlug) {\n    ...BrowsePlaceFields\n  }\n}\n\nquery BrowseExploreRegion($countrySlug: String!, $regionSlug: String!) {\n  browseExploreRegion(countrySlug: $countrySlug, regionSlug: $regionSlug) {\n    country {\n      ...BrowsePlaceFields\n    }\n    region {\n      ...BrowsePlaceFields\n    }\n  }\n}": types.BrowsePlaceFieldsFragmentDoc,
     "query GetGPXQuotaStatus {\n  getGPXQuotaStatus {\n    feature\n    limit\n    used\n    remaining\n    resetDate\n    isExhausted\n  }\n}": types.GetGpxQuotaStatusDocument,
     "query MaintenanceDraftReview {\n  maintenanceDraftReview {\n    schedules {\n      id\n      make\n      model\n      variant\n      taskName\n      intervalKm\n      intervalDays\n      priority\n      isSafetyCritical\n      sourcePage\n      sourceContext\n      sourceTitle\n      createdAt\n    }\n    specs {\n      id\n      make\n      model\n      variant\n      specType\n      specName\n      valueNumeric\n      valueDisplay\n      unit\n      isSafetyCritical\n      sourcePage\n      sourceContext\n      sourceTitle\n      createdAt\n    }\n  }\n}": types.MaintenanceDraftReviewDocument,
@@ -823,11 +851,67 @@ export function graphql(source: "query TripTemplates($filter: TripTemplateFilter
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "fragment BlogPostFields on BlogPost {\n  id\n  type\n  slug\n  status\n  publishedAt\n  scheduledFor\n  author\n  coverImage\n  coverAlt\n  specData\n  isSafetyCritical\n  createdAt\n  updatedAt\n  typeData\n  translations {\n    locale\n    title\n    excerpt\n    seoTitle\n    seoDescription\n    bodyRaw\n    faq\n    readingTime\n    wordCount\n  }\n  categories {\n    id\n    slug\n    name\n    parentId\n    isPrimary\n  }\n  keywords {\n    id\n    slug\n    name\n  }\n}"): (typeof documents)["fragment BlogPostFields on BlogPost {\n  id\n  type\n  slug\n  status\n  publishedAt\n  scheduledFor\n  author\n  coverImage\n  coverAlt\n  specData\n  isSafetyCritical\n  createdAt\n  updatedAt\n  typeData\n  translations {\n    locale\n    title\n    excerpt\n    seoTitle\n    seoDescription\n    bodyRaw\n    faq\n    readingTime\n    wordCount\n  }\n  categories {\n    id\n    slug\n    name\n    parentId\n    isPrimary\n  }\n  keywords {\n    id\n    slug\n    name\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "mutation ApproveMaintenanceDraft($input: ApproveMaintenanceDraftInput!) {\n  approveMaintenanceDraft(input: $input)\n}"): (typeof documents)["mutation ApproveMaintenanceDraft($input: ApproveMaintenanceDraftInput!) {\n  approveMaintenanceDraft(input: $input)\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "mutation CreateBlogCategory($input: CreateBlogCategoryInput!) {\n  createBlogCategory(input: $input) {\n    id\n    slug\n    name\n    parentId\n  }\n}"): (typeof documents)["mutation CreateBlogCategory($input: CreateBlogCategoryInput!) {\n  createBlogCategory(input: $input) {\n    id\n    slug\n    name\n    parentId\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation CreateBlogKeyword($input: CreateBlogKeywordInput!) {\n  createBlogKeyword(input: $input) {\n    id\n    slug\n    name\n  }\n}"): (typeof documents)["mutation CreateBlogKeyword($input: CreateBlogKeywordInput!) {\n  createBlogKeyword(input: $input) {\n    id\n    slug\n    name\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation CreateBlogPost($input: CreateBlogPostInput!) {\n  createBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}"): (typeof documents)["mutation CreateBlogPost($input: CreateBlogPostInput!) {\n  createBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation DeleteBlogPost($id: String!) {\n  deleteBlogPost(id: $id)\n}"): (typeof documents)["mutation DeleteBlogPost($id: String!) {\n  deleteBlogPost(id: $id)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}"): (typeof documents)["mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation PublishBlogPost($id: String!) {\n  publishBlogPost(id: $id) {\n    ...BlogPostFields\n  }\n}"): (typeof documents)["mutation PublishBlogPost($id: String!) {\n  publishBlogPost(id: $id) {\n    ...BlogPostFields\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation RevertBlogPostVersion($id: String!, $versionNum: Int!) {\n  revertBlogPostVersion(id: $id, versionNum: $versionNum) {\n    ...BlogPostFields\n  }\n}"): (typeof documents)["mutation RevertBlogPostVersion($id: String!, $versionNum: Int!) {\n  revertBlogPostVersion(id: $id, versionNum: $versionNum) {\n    ...BlogPostFields\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation ScheduleBlogPost($input: ScheduleBlogPostInput!) {\n  scheduleBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}"): (typeof documents)["mutation ScheduleBlogPost($input: ScheduleBlogPostInput!) {\n  scheduleBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation UnpublishBlogPost($id: String!) {\n  unpublishBlogPost(id: $id) {\n    ...BlogPostFields\n  }\n}"): (typeof documents)["mutation UnpublishBlogPost($id: String!) {\n  unpublishBlogPost(id: $id) {\n    ...BlogPostFields\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation UpdateBlogPost($input: UpdateBlogPostInput!) {\n  updateBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}"): (typeof documents)["mutation UpdateBlogPost($input: UpdateBlogPostInput!) {\n  updateBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query AdminBlogPostVersions($id: String!) {\n  adminBlogPostVersions(id: $id) {\n    versionNum\n    title\n    status\n    createdBy\n    createdAt\n  }\n}"): (typeof documents)["query AdminBlogPostVersions($id: String!) {\n  adminBlogPostVersions(id: $id) {\n    versionNum\n    title\n    status\n    createdBy\n    createdAt\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query AdminBlogPost($id: String!) {\n  adminBlogPost(id: $id) {\n    ...BlogPostFields\n  }\n}"): (typeof documents)["query AdminBlogPost($id: String!) {\n  adminBlogPost(id: $id) {\n    ...BlogPostFields\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query AdminBlogPosts($input: ListBlogPostsInput) {\n  adminBlogPosts(input: $input) {\n    totalCount\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n    edges {\n      cursor\n      node {\n        ...BlogPostFields\n      }\n    }\n  }\n}"): (typeof documents)["query AdminBlogPosts($input: ListBlogPostsInput) {\n  adminBlogPosts(input: $input) {\n    totalCount\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n    edges {\n      cursor\n      node {\n        ...BlogPostFields\n      }\n    }\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query BlogTaxonomy {\n  adminBlogCategories {\n    id\n    slug\n    name\n    parentId\n  }\n  adminBlogKeywords {\n    id\n    slug\n    name\n  }\n}"): (typeof documents)["query BlogTaxonomy {\n  adminBlogCategories {\n    id\n    slug\n    name\n    parentId\n  }\n  adminBlogKeywords {\n    id\n    slug\n    name\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

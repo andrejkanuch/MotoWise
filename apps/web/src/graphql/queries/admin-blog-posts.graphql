@@ -1,0 +1,15 @@
+query AdminBlogPosts($input: ListBlogPostsInput) {
+  adminBlogPosts(input: $input) {
+    totalCount
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    edges {
+      cursor
+      node {
+        ...BlogPostFields
+      }
+    }
+  }
+}

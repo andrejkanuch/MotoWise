@@ -76,3 +76,15 @@ export const ScheduleBlogPostInputSchema = z.object({
   scheduledFor: z.string().datetime(),
 });
 export type ScheduleBlogPostInput = z.infer<typeof ScheduleBlogPostInputSchema>;
+
+/** Create a category from a free-text name; the service derives the slug (plan U9 picker). */
+export const CreateBlogCategoryInputSchema = z.object({
+  name: z.string().min(1).max(120),
+  parentId: z.string().uuid().optional(),
+});
+export type CreateBlogCategoryInput = z.infer<typeof CreateBlogCategoryInputSchema>;
+
+export const CreateBlogKeywordInputSchema = z.object({
+  name: z.string().min(1).max(120),
+});
+export type CreateBlogKeywordInput = z.infer<typeof CreateBlogKeywordInputSchema>;

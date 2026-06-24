@@ -68,6 +68,26 @@ export class BlogKeyword {
   name: string;
 }
 
+/** A published-state snapshot (plan U5/KTD7). Listed in the admin version drawer (U9). */
+@ObjectType()
+export class BlogPostVersion {
+  @Field(() => Int)
+  versionNum: number;
+
+  /** Best-effort title pulled from the snapshot (en, else first translation) for the drawer label. */
+  @Field({ nullable: true })
+  title?: string;
+
+  @Field({ nullable: true })
+  status?: string;
+
+  @Field(() => ID, { nullable: true })
+  createdBy?: string;
+
+  @Field()
+  createdAt: string;
+}
+
 @ObjectType()
 export class BlogPost {
   @Field(() => ID)

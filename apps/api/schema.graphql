@@ -173,6 +173,14 @@ type BlogPostEdge {
   node: BlogPost!
 }
 
+type BlogPostVersion {
+  createdAt: String!
+  createdBy: ID
+  status: String
+  title: String
+  versionNum: Int!
+}
+
 type BlogTranslation {
   bodyRaw: String!
   excerpt: String
@@ -303,6 +311,15 @@ type ContentFlag {
   sectionReference: String
   status: FlagStatus!
   userId: String!
+}
+
+input CreateBlogCategoryInput {
+  name: String!
+  parentId: ID
+}
+
+input CreateBlogKeywordInput {
+  name: String!
 }
 
 input CreateBlogPostInput {
@@ -1005,6 +1022,8 @@ type Mutation {
   cloneTrip(tripId: ID!): ID!
   completeMaintenanceTask(createNextOccurrence: Boolean, id: String!, input: CompleteMaintenanceTaskInput): CompleteTaskResult!
   completeOnboarding(input: CompleteOnboardingInput!): User!
+  createBlogCategory(input: CreateBlogCategoryInput!): BlogCategory!
+  createBlogKeyword(input: CreateBlogKeywordInput!): BlogKeyword!
   createBlogPost(input: CreateBlogPostInput!): BlogPost!
   createComment(input: CreateCommentInput!): Comment!
   createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
@@ -1217,7 +1236,10 @@ type PublicRiderProfile {
 }
 
 type Query {
+  adminBlogCategories: [BlogCategory!]!
+  adminBlogKeywords: [BlogKeyword!]!
   adminBlogPost(id: String!): BlogPost
+  adminBlogPostVersions(id: String!): [BlogPostVersion!]!
   adminBlogPosts(input: ListBlogPostsInput): BlogPostConnection!
   aiBudgetStatus: AiBudgetStatus!
   allMaintenanceTasks: [MaintenanceTask!]!

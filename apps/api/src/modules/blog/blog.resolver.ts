@@ -1,4 +1,6 @@
 import {
+  CreateBlogCategoryInputSchema,
+  CreateBlogKeywordInputSchema,
   CreateBlogPostInputSchema,
   ScheduleBlogPostInputSchema,
   UpdateBlogPostInputSchema,
@@ -12,10 +14,11 @@ import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { BlogService } from './blog.service';
 import { CreateBlogPostInput } from './dto/create-blog-post.input';
+import { CreateBlogCategoryInput, CreateBlogKeywordInput } from './dto/create-taxonomy.input';
 import { ListBlogPostsInput } from './dto/list-blog-posts.input';
 import { ScheduleBlogPostInput } from './dto/schedule-blog-post.input';
 import { UpdateBlogPostInput } from './dto/update-blog-post.input';
-import { BlogPost } from './models/blog-post.model';
+import { BlogCategory, BlogKeyword, BlogPost, BlogPostVersion } from './models/blog-post.model';
 import { BlogPostConnection } from './models/blog-post-connection.model';
 
 /**
@@ -42,6 +45,42 @@ export class BlogResolver {
     @Args('id', ParseUUIDPipe) id: string,
   ): Promise<BlogPost | null> {
     return this.blogService.adminGet(user.id, id);
+  }
+
+  @Query(() => [BlogPostVersion])
+  async adminBlogPostVersions(
+    @CurrentUser() user: AuthUser,
+    @Args('id', ParseUUIDPipe) id: string,
+  ): Promise<BlogPostVersion[]> {
+    return this.blogService.listVersions(user.id, id);
+  }
+
+  @Query(() => [BlogCategory])
+  async adminBlogCategories(@CurrentUser() user: AuthUser): Promise<BlogCategory[]> {
+    return this.blogService.listCategories(user.id);
+  }
+
+  @Query(() => [BlogKeyword])
+  async adminBlogKeywords(@CurrentUser() user: AuthUser): Promise<BlogKeyword[]> {
+    return this.blogService.listKeywords(user.id);
+  }
+
+  @Mutation(() => BlogCategory)
+  async createBlogCategory(
+    @CurrentUser() user: AuthUser,
+    @Args('input', new ZodValidationPipe(CreateBlogCategoryInputSchema))
+    input: CreateBlogCategoryInput,
+  ): Promise<BlogCategory> {
+    return this.blogService.createCategory(user.id, input);
+  }
+
+  @Mutation(() => BlogKeyword)
+  async createBlogKeyword(
+    @CurrentUser() user: AuthUser,
+    @Args('input', new ZodValidationPipe(CreateBlogKeywordInputSchema))
+    input: CreateBlogKeywordInput,
+  ): Promise<BlogKeyword> {
+    return this.blogService.createKeyword(user.id, input);
   }
 
   @Mutation(() => BlogPost)

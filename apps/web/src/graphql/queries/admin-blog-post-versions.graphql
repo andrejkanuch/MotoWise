@@ -1,0 +1,9 @@
+query AdminBlogPostVersions($id: String!) {
+  adminBlogPostVersions(id: $id) {
+    versionNum
+    title
+    status
+    createdBy
+    createdAt
+  }
+}

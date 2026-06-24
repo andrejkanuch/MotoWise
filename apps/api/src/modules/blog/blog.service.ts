@@ -1,3 +1,4 @@
+import type { CreateBlogCategoryInput, CreateBlogKeywordInput } from '@motovault/types';
 import { BlogTypeDataSchema, CACHE_TAGS } from '@motovault/types';
 import {
   BadRequestException,
@@ -25,9 +26,20 @@ import type {
   BlogCategory,
   BlogKeyword,
   BlogPost,
+  BlogPostVersion,
   BlogTranslation,
 } from './models/blog-post.model';
 import { BlogPostConnection } from './models/blog-post-connection.model';
+
+/** kebab-case a free-text taxonomy label into a slug (mirrors the import script's slugify). */
+function slugify(label: string): string {
+  return label
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '') // strip combining diacritics
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
 
 /** Joined select used for both list and detail — base + translations + taxonomy + per-type rows. */
 const POST_SELECT = `
@@ -360,6 +372,89 @@ export class BlogService {
     return this.requireGet(userId, id);
   }
 
+  // --- Versions + taxonomy (admin) -------------------------------------------
+
+  /** List a post's snapshots, newest first, for the admin version-history drawer (U9). */
+  async listVersions(userId: string, postId: string): Promise<BlogPostVersion[]> {
+    await this.assertAdmin(userId);
+    const { data, error } = await this.supabase
+      .from('blog_post_versions')
+      .select('version_num, snapshot, created_by, created_at')
+      .eq('post_id', postId)
+      .order('version_num', { ascending: false });
+    if (error) throw new InternalServerErrorException(`Failed to list versions: ${error.message}`);
+
+    return ((data ?? []) as RawVersionRow[]).map((v) => {
+      const translations = Array.isArray(v.snapshot?.translations) ? v.snapshot.translations : [];
+      const en = translations.find((t) => t.locale === 'en') ?? translations[0];
+      return {
+        versionNum: v.version_num,
+        title: typeof en?.title === 'string' ? en.title : undefined,
+        status: typeof v.snapshot?.post?.status === 'string' ? v.snapshot.post.status : undefined,
+        createdBy: v.created_by ?? undefined,
+        createdAt: v.created_at,
+      };
+    });
+  }
+
+  /** All categories for the editor's picker (public-read, admin-gated through the resolver). */
+  async listCategories(userId: string): Promise<BlogCategory[]> {
+    await this.assertAdmin(userId);
+    const { data, error } = await this.supabase
+      .from('categories')
+      .select('id, slug, name, parent_id')
+      .order('name', { ascending: true });
+    if (error)
+      throw new InternalServerErrorException(`Failed to list categories: ${error.message}`);
+    return ((data ?? []) as RawCategory[]).map((c) => ({
+      id: c.id,
+      slug: c.slug,
+      name: c.name,
+      parentId: c.parent_id ?? undefined,
+    }));
+  }
+
+  /** All keywords for the editor's picker. */
+  async listKeywords(userId: string): Promise<BlogKeyword[]> {
+    await this.assertAdmin(userId);
+    const { data, error } = await this.supabase
+      .from('keywords')
+      .select('id, slug, name')
+      .order('name', { ascending: true });
+    if (error) throw new InternalServerErrorException(`Failed to list keywords: ${error.message}`);
+    return ((data ?? []) as RawKeyword[]).map(mapKeyword);
+  }
+
+  /** Create-or-return a category by name (slug derived; idempotent on slug). */
+  async createCategory(userId: string, input: CreateBlogCategoryInput): Promise<BlogCategory> {
+    await this.assertAdmin(userId);
+    const slug = slugify(input.name);
+    if (!slug) throw new BadRequestException('Category name produced an empty slug');
+    const { data, error } = await this.supabase
+      .from('categories')
+      .upsert({ slug, name: input.name, parent_id: input.parentId ?? null }, { onConflict: 'slug' })
+      .select('id, slug, name, parent_id')
+      .single();
+    if (error)
+      throw new InternalServerErrorException(`Failed to create category: ${error.message}`);
+    const c = data as RawCategory;
+    return { id: c.id, slug: c.slug, name: c.name, parentId: c.parent_id ?? undefined };
+  }
+
+  /** Create-or-return a keyword by name (slug derived; idempotent on slug). */
+  async createKeyword(userId: string, input: CreateBlogKeywordInput): Promise<BlogKeyword> {
+    await this.assertAdmin(userId);
+    const slug = slugify(input.name);
+    if (!slug) throw new BadRequestException('Keyword name produced an empty slug');
+    const { data, error } = await this.supabase
+      .from('keywords')
+      .upsert({ slug, name: input.name }, { onConflict: 'slug' })
+      .select('id, slug, name')
+      .single();
+    if (error) throw new InternalServerErrorException(`Failed to create keyword: ${error.message}`);
+    return mapKeyword(data as RawKeyword);
+  }
+
   // --- Mutation helpers ------------------------------------------------------
 
   private async requireGet(userId: string, id: string): Promise<BlogPost> {
@@ -588,6 +683,15 @@ interface RawGear {
   price_eur: number | null;
   verdict: string | null;
   meta: Record<string, unknown> | null;
+}
+interface RawVersionRow {
+  version_num: number;
+  created_by: string | null;
+  created_at: string;
+  snapshot: {
+    post?: { status?: unknown } | null;
+    translations?: { locale?: string; title?: unknown }[];
+  } | null;
 }
 interface RawPostRow {
   id: string;

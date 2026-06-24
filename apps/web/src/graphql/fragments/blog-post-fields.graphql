@@ -1,0 +1,39 @@
+fragment BlogPostFields on BlogPost {
+  id
+  type
+  slug
+  status
+  publishedAt
+  scheduledFor
+  author
+  coverImage
+  coverAlt
+  specData
+  isSafetyCritical
+  createdAt
+  updatedAt
+  typeData
+  translations {
+    locale
+    title
+    excerpt
+    seoTitle
+    seoDescription
+    bodyRaw
+    faq
+    readingTime
+    wordCount
+  }
+  categories {
+    id
+    slug
+    name
+    parentId
+    isPrimary
+  }
+  keywords {
+    id
+    slug
+    name
+  }
+}
