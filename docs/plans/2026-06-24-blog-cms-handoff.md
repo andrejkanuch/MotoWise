@@ -6,35 +6,45 @@
 
 ---
 
-## State: backend + admin path complete; public read rewrite remaining
+## State: ALL 10 UNITS COMPLETE — ready for PR review
 
-8 of 10 units done and committed. The migration is **applied to production** (`tpsoneenbrmdwvzcbifw`, version `00157`, in the migration history; 11 blog tables live with RLS enabled).
+The migration is **applied to production** (`tpsoneenbrmdwvzcbifw`, version `00157`; 11 blog tables live with RLS). The MDX→DB **import has been run against prod** (35 posts / 51 translations / 34 guide + 1 maintenance / 11 categories / 146 keywords) and the public blog **builds statically from the DB**.
 
 ### Done (committed)
 - **U1** — `supabase/migrations/00157_blog_cms.sql`, applied to prod.
-- **U2** — enums + Zod (`packages/types/src/constants/enums.ts`, `validators/blog-post.ts`, `validators/blog-content-types.ts`, `utils/blog-text.ts`); `database.types.ts` regenerated from live schema.
-- **U3** — `apps/web/scripts/migrate-blog-to-db.ts` (+ test). **NOT yet run** (see Caveats).
-- **U4** — `apps/api/src/modules/blog/` read layer (models, connection, service, resolver) + registered in `app.module.ts`.
-- **U5** — same module: admin mutations + versioning + revalidation + `blog-write.ts` (+ spec).
-- **U6** — web GraphQL ops (`apps/web/src/graphql/{queries,mutations}/*-blog-*.graphql` + `fragments/blog-post-fields.graphql`), regenerated `@motovault/graphql`. Commit `178c7042`.
-- **U9** — admin blog UI (`apps/web/src/app/admin/blog/{page,new,[id]}`, `components/admin/{blog-editor,markdown-editor,blog-status}.tsx`, nav link). CodeMirror 6 source editor (KTD12). Commit `2c867e73`.
+- **U2** — enums + Zod (`constants/enums.ts`, `validators/blog-post.ts`, `validators/blog-content-types.ts`, `utils/blog-text.ts`); `database.types.ts` regenerated.
+- **U3** — `apps/web/scripts/migrate-blog-to-db.ts` (+ test). **RUN against prod** (idempotent upserts; safe to re-run).
+- **U4** — `apps/api/src/modules/blog/` read layer + registered in `app.module.ts`.
+- **U5** — admin mutations + versioning + revalidation + `blog-write.ts` (+ spec).
+- **U6** — web GraphQL ops + `fragments/blog-post-fields.graphql`, regenerated `@motovault/graphql`. Commit `178c7042`.
+- **U7** — public read rewrite: `lib/supabase-blog.ts` (cookie-less anon reader, `unstable_cache` tagged `blog`), `lib/blog.ts` now async + DB-backed, all call sites awaited (list, `[slug]`, sitemap, feed). Commit `254fc349`.
+- **U8** — reader search + filters: `search_blog_posts` RPC via `/api/blog/search`, `lib/blog-filters.ts` (unit-tested), `components/marketing/blog-search.tsx`. Commit `254fc349`.
+- **U9** — admin blog UI (`app/admin/blog/{page,new,[id]}`, `components/admin/{blog-editor,markdown-editor,blog-status}.tsx`, nav link). CodeMirror 6 source editor (KTD12). Commit `2c867e73`.
 - **U10** — `apps/web/scripts/generate-maintenance-article.ts` repointed to CMS tables.
 
-**Backend additions during U6/U9** (extend U4/U5 — the editor needed them): `adminBlogPostVersions(id)` query + `BlogPostVersion` model (version drawer); `adminBlogCategories`/`adminBlogKeywords` queries + `createBlogCategory`/`createBlogKeyword` mutations (taxonomy pickers). Schema regenerated.
+**Backend additions during U6/U9** (extend U4/U5): `adminBlogPostVersions(id)` + `BlogPostVersion` (version drawer); `adminBlogCategories`/`adminBlogKeywords` + `createBlogCategory`/`createBlogKeyword` (taxonomy pickers).
 
-**U9 v1 simplifications vs plan:** (1) post `type` + `slug` are **create-only** (immutable in edit) — `UpdateBlogPostInput` carries neither, so there are no orphaned per-type rows and no type-switch-clears-`typeData` confirm is needed. (2) No live MDX **preview pane** — true MDX+JSX render would duplicate U7's server pipeline and risk divergence; the source editor is lossless and authors verify on the published/draft page. (3) Per-row scheduling lives in the editor (datetime-local), not the list.
+**U9 v1 simplifications vs plan:** (1) `type` + `slug` are **create-only** (`UpdateBlogPostInput` carries neither → no orphaned per-type rows, no type-switch confirm). (2) No live MDX preview pane (would duplicate U7's server render + risk divergence; the source editor is lossless). (3) Per-row scheduling lives in the editor, not the list.
 
-**Not yet verified end-to-end:** the admin create→edit→publish→revert walkthrough needs a running web+api against prod (auth as an admin). Typecheck (api+web), Biome, and the blog unit spec all pass. The new service methods are thin Supabase wrappers and are not mock-tested (matches the module's existing untested service methods); `slugify` mirrors the import script's tested impl.
+**U8 scope note:** type + category filters run client-side over the in-memory list; free-text `q` uses the FTS RPC. Keyword filtering is supported via `?keyword=` but there's no 146-item keyword picker UI (categories are the browse facet). New search UI strings are English literals (no next-intl keys added).
 
-Commits: `93f70952` (migration) → `2c867e73` (U9). `git log --oneline 9a6a368a..HEAD`.
+**Verified:** prod `pnpm --filter web build` statically generates `● /[locale]/blog` + `● /blog/[slug]` from the live DB (R8 ✓); `pnpm --filter {api,web} typecheck`, Biome, and 24 blog unit tests pass.
+
+**Still needs a human pass (not blockers):**
+- Admin `create→edit→publish→schedule→revert` end-to-end against a running web+api as an admin user (logic verified, not click-tested).
+- New service methods are thin Supabase wrappers, not mock-tested (matches the module's existing untested service methods); `slugify` mirrors the tested import-script impl.
+
+Commits: `93f70952` (migration) → `254fc349` (U7+U8). `git log --oneline 9a6a368a..HEAD`.
 
 ---
 
-## Remaining units (public-facing web — both blocked on the prod import)
+## Post-merge follow-up: delete the file pipeline
 
-> **Blocker:** U7/U8 render the public blog from Postgres, so they need the MDX→DB import (U3) **run against prod first** (Caveat 4 — needs explicit user OK + `SUPABASE_SERVICE_ROLE_KEY` in shell). Until then there is no published data to read.
+`apps/web/content/blog/**` is **still in the repo** — `blog.ts` no longer reads it (it's inert), but per the plan deletion is gated behind **live-site verification after deploy** + a render-parity pass over all EN posts + translations. Do this as a **separate commit** once the deployed site is confirmed serving from the DB (one-commit rollback via git history). U10 (generator no longer writes files) has already shipped, so nothing recreates the dir.
 
-### U7 — Web read rewrite (highest user value)
+---
+
+## (Shipped) U7 — Web read rewrite
 - Add `apps/web/src/lib/supabase-blog.ts`: cookie-less anon reader — `createClient(NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false } })` (no cookie adapter → stays static-generatable; KTD4/R8).
 - Rewrite `apps/web/src/lib/blog.ts`: replace `readArticlesFromDisk` with Supabase queries (filter `status='published'` + locale, en-fallback). Keep the `Article` interface shape. **Functions become async** — update every sync call site: `blog/page.tsx`, `blog/[slug]/page.tsx` (incl. `generateMetadata` + `generateStaticParams`), `apps/web/src/app/sitemap.ts`, `apps/web/src/app/blog/feed.xml/route.ts`.
 - Render body from `body_raw` via `compileMDX` with **`blockJS: true`** wrapped in `unstable_cache(tag:'blog')`. No `rendered_html` column (KTD11). Never pass HTML to `dangerouslySetInnerHTML`.
