@@ -6,9 +6,9 @@
 
 ---
 
-## State: backend complete, frontend remaining
+## State: backend + admin path complete; public read rewrite remaining
 
-6 of 10 units done and committed. The migration is **applied to production** (`tpsoneenbrmdwvzcbifw`, version `00157`, in the migration history; 11 blog tables live with RLS enabled).
+8 of 10 units done and committed. The migration is **applied to production** (`tpsoneenbrmdwvzcbifw`, version `00157`, in the migration history; 11 blog tables live with RLS enabled).
 
 ### Done (committed)
 - **U1** — `supabase/migrations/00157_blog_cms.sql`, applied to prod.
@@ -16,18 +16,23 @@
 - **U3** — `apps/web/scripts/migrate-blog-to-db.ts` (+ test). **NOT yet run** (see Caveats).
 - **U4** — `apps/api/src/modules/blog/` read layer (models, connection, service, resolver) + registered in `app.module.ts`.
 - **U5** — same module: admin mutations + versioning + revalidation + `blog-write.ts` (+ spec).
+- **U6** — web GraphQL ops (`apps/web/src/graphql/{queries,mutations}/*-blog-*.graphql` + `fragments/blog-post-fields.graphql`), regenerated `@motovault/graphql`. Commit `178c7042`.
+- **U9** — admin blog UI (`apps/web/src/app/admin/blog/{page,new,[id]}`, `components/admin/{blog-editor,markdown-editor,blog-status}.tsx`, nav link). CodeMirror 6 source editor (KTD12). Commit `2c867e73`.
 - **U10** — `apps/web/scripts/generate-maintenance-article.ts` repointed to CMS tables.
 
-Commits: `93f70952` (migration) → `5a91814a` (U5). `git log --oneline 9a6a368a..HEAD`.
+**Backend additions during U6/U9** (extend U4/U5 — the editor needed them): `adminBlogPostVersions(id)` query + `BlogPostVersion` model (version drawer); `adminBlogCategories`/`adminBlogKeywords` queries + `createBlogCategory`/`createBlogKeyword` mutations (taxonomy pickers). Schema regenerated.
+
+**U9 v1 simplifications vs plan:** (1) post `type` + `slug` are **create-only** (immutable in edit) — `UpdateBlogPostInput` carries neither, so there are no orphaned per-type rows and no type-switch-clears-`typeData` confirm is needed. (2) No live MDX **preview pane** — true MDX+JSX render would duplicate U7's server pipeline and risk divergence; the source editor is lossless and authors verify on the published/draft page. (3) Per-row scheduling lives in the editor (datetime-local), not the list.
+
+**Not yet verified end-to-end:** the admin create→edit→publish→revert walkthrough needs a running web+api against prod (auth as an admin). Typecheck (api+web), Biome, and the blog unit spec all pass. The new service methods are thin Supabase wrappers and are not mock-tested (matches the module's existing untested service methods); `slugify` mirrors the import script's tested impl.
+
+Commits: `93f70952` (migration) → `2c867e73` (U9). `git log --oneline 9a6a368a..HEAD`.
 
 ---
 
-## Remaining units (all frontend / Next.js web)
+## Remaining units (public-facing web — both blocked on the prod import)
 
-### U6 — Web GraphQL operations + codegen (small)
-- Create `apps/web/src/graphql/queries/admin-blog-posts.graphql`, `queries/admin-blog-post.graphql`, and `mutations/{create,update,publish,schedule,unpublish,delete,revert}-blog-post.graphql` (one op per kebab-case file).
-- Run `pnpm generate` (or let the pre-commit hook regen `packages/graphql/src/generated`), then stage generated files.
-- Schema already has the types/mutations (`apps/api/schema.graphql`). Mirror `apps/web/src/graphql/{queries,mutations}/maintenance-draft-review.graphql` etc.
+> **Blocker:** U7/U8 render the public blog from Postgres, so they need the MDX→DB import (U3) **run against prod first** (Caveat 4 — needs explicit user OK + `SUPABASE_SERVICE_ROLE_KEY` in shell). Until then there is no published data to read.
 
 ### U7 — Web read rewrite (highest user value)
 - Add `apps/web/src/lib/supabase-blog.ts`: cookie-less anon reader — `createClient(NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false } })` (no cookie adapter → stays static-generatable; KTD4/R8).
