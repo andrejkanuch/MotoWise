@@ -826,6 +826,134 @@ export type Database = {
           },
         ]
       }
+      document_categories: {
+        Row: {
+          created_at: string
+          id: string
+          is_hidden: boolean
+          kind: string
+          name: string
+          prompts_expiry: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_hidden?: boolean
+          kind?: string
+          name: string
+          prompts_expiry?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_hidden?: boolean
+          kind?: string
+          name?: string
+          prompts_expiry?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      document_files: {
+        Row: {
+          created_at: string
+          document_id: string
+          file_size_bytes: number | null
+          id: string
+          mime_type: string
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type: string
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_files_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          category_id: string
+          created_at: string
+          deleted_at: string | null
+          expiry_date: string | null
+          id: string
+          is_pinned: boolean
+          motorcycle_id: string
+          note: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          deleted_at?: string | null
+          expiry_date?: string | null
+          id?: string
+          is_pinned?: boolean
+          motorcycle_id: string
+          note?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          expiry_date?: string | null
+          id?: string
+          is_pinned?: boolean
+          motorcycle_id?: string
+          note?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "document_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expense_photos: {
         Row: {
           created_at: string
@@ -875,6 +1003,7 @@ export type Database = {
           description: string | null
           fuel_log_id: string | null
           id: string
+          item_name: string | null
           maintenance_task_id: string | null
           motorcycle_id: string
           updated_at: string
@@ -890,6 +1019,7 @@ export type Database = {
           description?: string | null
           fuel_log_id?: string | null
           id?: string
+          item_name?: string | null
           maintenance_task_id?: string | null
           motorcycle_id: string
           updated_at?: string
@@ -905,6 +1035,7 @@ export type Database = {
           description?: string | null
           fuel_log_id?: string | null
           id?: string
+          item_name?: string | null
           maintenance_task_id?: string | null
           motorcycle_id?: string
           updated_at?: string
@@ -3982,6 +4113,7 @@ export type Database = {
         Returns: Json
       }
       disablelongtransactions: { Args: never; Returns: string }
+      document_vault_bytes_used: { Args: never; Returns: number }
       dropgeometrycolumn:
         | {
             Args: {
@@ -4243,6 +4375,7 @@ export type Database = {
         Returns: undefined
       }
       purge_soft_deleted_rides: { Args: never; Returns: undefined }
+      reconcile_orphaned_document_objects: { Args: never; Returns: number }
       record_ride_analytics: {
         Args: {
           p_motorcycle_id: string
