@@ -342,3 +342,35 @@ export function isSafetyCriticalName(name: string): boolean {
   const lower = name.toLowerCase();
   return SAFETY_CRITICAL_ALLOWLIST.some((term) => lower.includes(term));
 }
+
+// Blog CMS (extensible content platform) ------------------------------------
+// Content type discriminator on blog_posts. Adding a type = extend this list +
+// the per-type table + the typeData Zod union (see validators/blog-content-types.ts).
+export const BlogPostType = {
+  GUIDE: 'guide',
+  MAINTENANCE: 'maintenance',
+  TRIP: 'trip',
+  GEAR: 'gear',
+} as const;
+export type BlogPostType = (typeof BlogPostType)[keyof typeof BlogPostType];
+
+// Editorial workflow state. Scheduled posts are flipped to published by pg_cron.
+export const BlogPostStatus = {
+  DRAFT: 'draft',
+  PUBLISHED: 'published',
+  SCHEDULED: 'scheduled',
+} as const;
+export type BlogPostStatus = (typeof BlogPostStatus)[keyof typeof BlogPostStatus];
+
+// Locales the web blog is authored/imported in (subset of SUPPORTED_LOCALES).
+// The 8-locale site routing keeps its en-fallback for the rest (plan KTD10).
+export const BLOG_LOCALES = ['en', 'es', 'de', 'fr', 'it'] as const;
+export type BlogLocale = (typeof BLOG_LOCALES)[number];
+
+// Guide difficulty (per-type field on blog_post_guide).
+export const BlogGuideDifficulty = {
+  BEGINNER: 'beginner',
+  INTERMEDIATE: 'intermediate',
+  ADVANCED: 'advanced',
+} as const;
+export type BlogGuideDifficulty = (typeof BlogGuideDifficulty)[keyof typeof BlogGuideDifficulty];
