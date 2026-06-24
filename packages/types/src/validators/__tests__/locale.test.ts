@@ -9,7 +9,9 @@ describe('SupportedLocaleSchema', () => {
   });
 
   it('rejects invalid locales', () => {
-    expect(() => SupportedLocaleSchema.parse('fr')).toThrow();
+    // 'ru'/'zh' are not in SUPPORTED_LOCALES (which now includes fr/it/ja/etc.).
+    expect(() => SupportedLocaleSchema.parse('ru')).toThrow();
+    expect(() => SupportedLocaleSchema.parse('zh')).toThrow();
     expect(() => SupportedLocaleSchema.parse('xyz')).toThrow();
     expect(() => SupportedLocaleSchema.parse('')).toThrow();
   });
