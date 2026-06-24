@@ -1,11 +1,17 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import matter from 'gray-matter';
 import { BASE_URL } from './constants';
 import type { FaqItem } from './seo/schema';
+import {
+  fetchArticleBody,
+  listBlogCategories,
+  listPublishedArticles,
+  listTranslatedLocales,
+  searchArticleSlugs,
+} from './supabase-blog';
 
 export interface Article {
   slug: string;
+  /** Content type — guide | maintenance | trip | gear (powers reader type filters). */
+  type: string;
   title: string;
   excerpt: string;
   content: string;
@@ -13,92 +19,67 @@ export interface Article {
   date: string;
   readingTime: string;
   keywords: string[];
+  /** Assigned-keyword slugs (for reader `?keyword=` filtering). */
+  keywordSlugs: string[];
+  /** Assigned-category slugs (for reader `?category=` filtering). */
+  categorySlugs: string[];
   locale: string;
   heroImage?: string;
   heroAlt?: string;
+  /** Primary category name (display + related-article matching). */
   category?: string;
   wordCount?: number;
   dateModified?: string;
   /**
    * When `true`, the article asserts spec-bearing maintenance data and must
    * carry the release-blocking "informative only / verify against official
-   * sources" disclaimer (see blog article page). Set by the U5 generator and
-   * retrofitted onto the legacy maintenance-schedule articles.
+   * sources" disclaimer (see blog article page).
    */
   specData?: boolean;
   /** Optional Q&A pairs surfaced as FAQPage structured data (AI Overviews / PAA). */
   faq?: FaqItem[];
 }
 
-const CONTENT_DIR = path.join(process.cwd(), 'content/blog');
+// Locales the blog is authored in (matches BLOG_LOCALES). The 8-locale site
+// routing keeps its en-fallback for the rest (plan KTD10).
 const ALLOWED_LOCALES = ['en', 'es', 'de', 'fr', 'it'] as const;
 
-const articlesCache = new Map<string, { articles: Article[]; timestamp: number }>();
-const CACHE_TTL = process.env.NODE_ENV === 'production' ? 300_000 : 5_000;
-
-function readArticlesFromDisk(locale: string): Article[] {
-  if (!ALLOWED_LOCALES.includes(locale as (typeof ALLOWED_LOCALES)[number])) return [];
-  const localeDir = path.join(CONTENT_DIR, locale);
-  if (!fs.existsSync(localeDir)) return [];
-
-  const files = fs.readdirSync(localeDir).filter((f) => f.endsWith('.mdx'));
-  return files
-    .map((file) => {
-      const source = fs.readFileSync(path.join(localeDir, file), 'utf-8');
-      const { data, content } = matter(source);
-      return {
-        slug: data.slug || file.replace('.mdx', ''),
-        title: data.title || '',
-        excerpt: data.excerpt || '',
-        content,
-        author: data.author || 'MotoVault Team',
-        date: data.date || '',
-        readingTime: data.readingTime || '5',
-        keywords: data.keywords || [],
-        locale: data.locale || locale,
-        heroImage: data.heroImage,
-        heroAlt: data.heroAlt,
-        category: data.category,
-        wordCount: data.wordCount ? Number(data.wordCount) : undefined,
-        dateModified: data.dateModified || undefined,
-        specData: data.specData === true,
-        faq: Array.isArray(data.faq)
-          ? data.faq.filter((f: unknown): f is FaqItem => {
-              const item = f as Partial<FaqItem>;
-              // Require real strings — YAML can coerce `answer: yes` to a boolean
-              // or `question: 2026` to a number, which would poison FAQPage JSON-LD.
-              return (
-                typeof item?.question === 'string' &&
-                typeof item?.answer === 'string' &&
-                item.question.trim() !== '' &&
-                item.answer.trim() !== ''
-              );
-            })
-          : undefined,
-      } satisfies Article;
-    })
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+function isAllowed(locale: string): locale is (typeof ALLOWED_LOCALES)[number] {
+  return ALLOWED_LOCALES.includes(locale as (typeof ALLOWED_LOCALES)[number]);
 }
 
-export function getArticles(locale: string = 'en'): Article[] {
-  const cached = articlesCache.get(locale);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) return cached.articles;
-
-  let articles = readArticlesFromDisk(locale);
-  if (articles.length === 0 && locale !== 'en') {
-    articles = readArticlesFromDisk('en');
+/**
+ * Published posts for `locale` (metadata only — bodies load on demand in the
+ * detail page). A non-blog locale (e.g. ja/pl) and a blog locale with zero
+ * posts both fall back to the full English set — mirrors the former
+ * file-pipeline behaviour where a missing/empty locale dir served English.
+ */
+export async function getArticles(locale: string = 'en'): Promise<Article[]> {
+  const effLocale = isAllowed(locale) ? locale : 'en';
+  const articles = await listPublishedArticles(effLocale);
+  if (articles.length === 0 && effLocale !== 'en') {
+    return listPublishedArticles('en');
   }
-
-  articlesCache.set(locale, { articles, timestamp: Date.now() });
   return articles;
 }
 
-export function getArticleBySlug(slug: string, locale: string = 'en'): Article | undefined {
-  return getArticles(locale).find((a) => a.slug === slug);
+/**
+ * One article (with body) for the detail page. Existence + locale fallback
+ * follow {@link getArticles} exactly (e.g. an en-only slug under `/es` 404s,
+ * matching the file pipeline), then the body for the resolved locale is hydrated.
+ */
+export async function getArticleBySlug(
+  slug: string,
+  locale: string = 'en',
+): Promise<Article | undefined> {
+  const meta = (await getArticles(locale)).find((a) => a.slug === slug);
+  if (!meta) return undefined;
+  const content = await fetchArticleBody(slug, meta.locale);
+  return { ...meta, content: content ?? '' };
 }
 
-export function getArticleSlugs(locale: string = 'en'): string[] {
-  return getArticles(locale).map((a) => a.slug);
+export async function getArticleSlugs(locale: string = 'en'): Promise<string[]> {
+  return (await getArticles(locale)).map((a) => a.slug);
 }
 
 export function getArticleUrl(slug: string, locale: string): string {
@@ -109,25 +90,23 @@ export function getArticleUrl(slug: string, locale: string): string {
 /**
  * Canonical URL for a blog article served in `locale`.
  *
- * Self-canonical only when a real translated MDX file exists for that locale.
- * Otherwise the page is rendering English fallback content (see `getArticles`),
- * so it must canonicalize to the English URL — never self-canonicalize fallback
- * content, or Google sees identical English text at /blog/x, /ja/blog/x,
- * /pl/blog/x, … as competing duplicates ("Duplicate without user-selected
- * canonical"). Mirrors the locale-detection used by `getArticleHreflangMap`.
+ * Self-canonical only when a real translation exists for that locale; otherwise
+ * the page renders English fallback content, so it canonicalizes to the English
+ * URL (never self-canonicalize fallback content, or Google sees duplicate
+ * English text across locale prefixes). Mirrors {@link getArticleHreflangMap}.
  */
-export function getCanonicalArticleUrl(slug: string, locale: string): string {
+export async function getCanonicalArticleUrl(slug: string, locale: string): Promise<string> {
   const hasTranslation =
-    locale === 'en' || readArticlesFromDisk(locale).some((a) => a.slug === slug);
+    locale === 'en' || (isAllowed(locale) && (await listTranslatedLocales(slug)).includes(locale));
   return getArticleUrl(slug, hasTranslation ? locale : 'en');
 }
 
-/** Returns the hreflang map for a blog article, only including locales where the article exists. */
-export function getArticleHreflangMap(slug: string): Record<string, string> {
+/** hreflang map for a blog article — only locales with a real translation. */
+export async function getArticleHreflangMap(slug: string): Promise<Record<string, string>> {
+  const translated = new Set(await listTranslatedLocales(slug));
   const languages: Record<string, string> = {};
   for (const locale of ALLOWED_LOCALES) {
-    const articles = readArticlesFromDisk(locale);
-    if (articles.some((a) => a.slug === slug)) {
+    if (translated.has(locale)) {
       const prefix = locale === 'en' ? '' : `/${locale}`;
       languages[locale] = `${BASE_URL}${prefix}/blog/${slug}`;
     }
@@ -138,13 +117,30 @@ export function getArticleHreflangMap(slug: string): Record<string, string> {
   return languages;
 }
 
-export function getRelatedArticles(
+/**
+ * Reader full-text search → published article slugs in rank order, for `locale`
+ * (falls back to en for non-blog locales). Throws on RPC failure so the UI can
+ * show the "search unavailable — browse by category" state (plan U8).
+ */
+export async function searchBlogPostSlugs(query: string, locale: string = 'en'): Promise<string[]> {
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+  const effLocale = isAllowed(locale) ? locale : 'en';
+  return searchArticleSlugs(trimmed, effLocale);
+}
+
+/** Reader-facing category facets ({slug,name}) for the blog filter UI. */
+export async function getBlogCategories(): Promise<{ slug: string; name: string }[]> {
+  return listBlogCategories();
+}
+
+export async function getRelatedArticles(
   currentSlug: string,
   category: string | undefined,
   locale: string = 'en',
   limit: number = 3,
-): Article[] {
-  const articles = getArticles(locale);
+): Promise<Article[]> {
+  const articles = await getArticles(locale);
   if (!category) return articles.filter((a) => a.slug !== currentSlug).slice(0, limit);
   const sameCategory = articles.filter((a) => a.slug !== currentSlug && a.category === category);
   const others = articles.filter((a) => a.slug !== currentSlug && a.category !== category);

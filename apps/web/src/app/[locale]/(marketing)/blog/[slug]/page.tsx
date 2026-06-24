@@ -37,13 +37,13 @@ interface BlogArticlePageProps {
 }
 
 export async function generateStaticParams() {
-  return getArticleSlugs().map((slug) => ({ slug }));
+  return (await getArticleSlugs()).map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: BlogArticlePageProps): Promise<Metadata> {
   const { slug, locale } = await params;
   setRequestLocale(locale);
-  const article = getArticleBySlug(slug, locale);
+  const article = await getArticleBySlug(slug, locale);
 
   if (!article) {
     return { title: 'Article Not Found' };
@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
   // Self-canonical only when a real translation exists; fallback locales
   // (English content under /ja, /pl, /pt-BR, or any untranslated slug) point at
   // the English URL so Google doesn't treat them as duplicate pages.
-  const canonicalUrl = getCanonicalArticleUrl(slug, locale);
+  const canonicalUrl = await getCanonicalArticleUrl(slug, locale);
 
   return {
     title: article.title,
@@ -62,7 +62,7 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
     authors: [{ name: article.author }],
     alternates: {
       canonical: canonicalUrl,
-      languages: getArticleHreflangMap(slug),
+      languages: await getArticleHreflangMap(slug),
     },
     openGraph: {
       title: article.title,
@@ -119,7 +119,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
   const { slug, locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('Blog');
-  const article = getArticleBySlug(slug, locale);
+  const article = await getArticleBySlug(slug, locale);
 
   if (!article) {
     notFound();
@@ -138,13 +138,13 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
     components: mdxComponents,
   });
 
-  const related = getRelatedArticles(slug, article.category, locale);
+  const related = await getRelatedArticles(slug, article.category, locale);
   const author = getAuthor(article.author) ?? getDefaultAuthor();
 
   // Use the canonical URL (English for fallback locales) so the JSON-LD graph
   // self-identifies as the same URL as <link rel="canonical">, rather than the
   // locale-prefixed duplicate.
-  const articleUrl = getCanonicalArticleUrl(slug, locale);
+  const articleUrl = await getCanonicalArticleUrl(slug, locale);
   const heroImageUrl = article.heroImage
     ? `${BASE_URL}${article.heroImage}`
     : `${BASE_URL}/og-image.png`;

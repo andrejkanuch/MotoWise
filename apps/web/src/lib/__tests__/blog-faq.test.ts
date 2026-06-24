@@ -1,58 +1,82 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Article } from '../blog';
 
-// constants.ts pulls in next-intl navigation, which can't resolve under the
-// node test environment — mock it to the bare BASE_URL the helper needs.
-vi.mock('@/lib/constants', () => ({
-  BASE_URL: 'https://motovault.app',
+vi.mock('@/lib/constants', () => ({ BASE_URL: 'https://motovault.app' }));
+
+// blog.ts reads from Postgres via supabase-blog; mock the reader so the
+// list/fallback/body-composition LOGIC is under test (not live data).
+const listPublishedArticles = vi.fn<(locale: string) => Promise<Article[]>>();
+const fetchArticleBody = vi.fn<(slug: string, locale: string) => Promise<string | null>>();
+vi.mock('../supabase-blog', () => ({
+  listPublishedArticles: (locale: string) => listPublishedArticles(locale),
+  fetchArticleBody: (slug: string, locale: string) => fetchArticleBody(slug, locale),
+  listTranslatedLocales: vi.fn(async () => ['en']),
 }));
 
-const { getArticleBySlug, getArticleSlugs } = await import('../blog');
+const { getArticles, getArticleBySlug } = await import('../blog');
 
-/**
- * Guards the FAQ pipeline: `faq` frontmatter must parse into structured Q&A
- * pairs (rendered as both FAQPage JSON-LD and a visible section). The
- * maintenance cluster relies on this for AI Overview / featured-snippet capture.
- */
-describe('blog faq frontmatter', () => {
-  const CLUSTER = [
-    'yamaha-mt-r-series-maintenance-schedule',
-    'harley-davidson-maintenance-schedule-costs',
-    'bmw-gs-r-maintenance-schedule',
-    'ducati-monster-panigale-maintenance-schedule',
-    'kawasaki-ninja-z-maintenance-schedule',
-    'honda-cbr-cb-maintenance-schedule',
-    'motorcycle-maintenance-schedules-by-brand',
-  ];
+function article(over: Partial<Article> = {}): Article {
+  return {
+    slug: 'a',
+    type: 'guide',
+    title: 'A',
+    excerpt: '',
+    content: '',
+    author: 'MotoVault Team',
+    date: '2026-01-01T00:00:00.000Z',
+    readingTime: '5',
+    keywords: [],
+    keywordSlugs: [],
+    categorySlugs: [],
+    locale: 'en',
+    specData: false,
+    ...over,
+  };
+}
 
-  it.each(CLUSTER)('%s parses 5+ well-formed FAQ items', (slug) => {
-    const article = getArticleBySlug(slug, 'en');
-    expect(article).toBeDefined();
-    expect(article?.faq?.length ?? 0).toBeGreaterThanOrEqual(5);
-    for (const item of article?.faq ?? []) {
-      expect(item.question.trim()).not.toBe('');
-      expect(item.answer.trim()).not.toBe('');
-    }
+beforeEach(() => {
+  listPublishedArticles.mockReset();
+  fetchArticleBody.mockReset();
+});
+
+describe('getArticles locale fallback', () => {
+  it('returns the locale set when the blog locale has posts', async () => {
+    listPublishedArticles.mockResolvedValueOnce([article({ slug: 'es-post', locale: 'es' })]);
+    const out = await getArticles('es');
+    expect(out.map((a) => a.slug)).toEqual(['es-post']);
+    expect(listPublishedArticles).toHaveBeenCalledWith('es');
   });
 
-  it('leaves faq undefined when frontmatter has none', () => {
-    const article = getArticleBySlug('best-motorcycle-app-for-beginners-2026', 'en');
-    expect(article).toBeDefined();
-    expect(article?.faq).toBeUndefined();
+  it('falls back to English when a blog locale has zero posts', async () => {
+    listPublishedArticles
+      .mockResolvedValueOnce([]) // es: empty
+      .mockResolvedValueOnce([article({ slug: 'en-post' })]); // en fallback
+    const out = await getArticles('it');
+    expect(out.map((a) => a.slug)).toEqual(['en-post']);
   });
 
-  // Non-brittle guard: any post that declares `faq` (current or future) must
-  // parse to well-formed Q&A — a malformed entry would poison its FAQPage JSON-LD.
-  it('every post with faq frontmatter has only well-formed items', () => {
-    for (const slug of getArticleSlugs('en')) {
-      const faq = getArticleBySlug(slug, 'en')?.faq;
-      if (!faq) continue;
-      expect(faq.length, `${slug} declares an empty faq`).toBeGreaterThan(0);
-      for (const item of faq) {
-        expect(typeof item.question, `${slug} faq question`).toBe('string');
-        expect(typeof item.answer, `${slug} faq answer`).toBe('string');
-        expect(item.question.trim(), `${slug} blank question`).not.toBe('');
-        expect(item.answer.trim(), `${slug} blank answer`).not.toBe('');
-      }
-    }
+  it('treats a non-blog locale (ja) as English directly', async () => {
+    listPublishedArticles.mockResolvedValueOnce([article({ slug: 'en-post' })]);
+    await getArticles('ja');
+    expect(listPublishedArticles).toHaveBeenCalledWith('en');
+  });
+});
+
+describe('getArticleBySlug', () => {
+  it('hydrates the body for the resolved locale and carries faq through', async () => {
+    listPublishedArticles.mockResolvedValueOnce([
+      article({ slug: 'oil', faq: [{ question: 'Q', answer: 'A' }] }),
+    ]);
+    fetchArticleBody.mockResolvedValueOnce('## Body');
+    const found = await getArticleBySlug('oil', 'en');
+    expect(found?.content).toBe('## Body');
+    expect(found?.faq).toEqual([{ question: 'Q', answer: 'A' }]);
+    expect(fetchArticleBody).toHaveBeenCalledWith('oil', 'en');
+  });
+
+  it('returns undefined for a slug not in the locale set (e.g. en-only slug under es)', async () => {
+    listPublishedArticles.mockResolvedValueOnce([article({ slug: 'es-only', locale: 'es' })]);
+    expect(await getArticleBySlug('oil', 'es')).toBeUndefined();
+    expect(fetchArticleBody).not.toHaveBeenCalled();
   });
 });

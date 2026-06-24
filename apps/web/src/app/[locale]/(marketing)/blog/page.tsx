@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { Suspense } from 'react';
+import { BlogSearch } from '@/components/marketing/blog-search';
 import { JsonLd } from '@/components/marketing/json-ld';
-import { Link } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
-import { getArticles } from '@/lib/blog';
+import { getArticles, getBlogCategories } from '@/lib/blog';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 
 interface BlogPageProps {
@@ -34,7 +35,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('Blog');
-  const articles = getArticles(locale);
+  const [articles, categories] = await Promise.all([getArticles(locale), getBlogCategories()]);
 
   const blogSchema = {
     '@context': 'https://schema.org',
@@ -72,36 +73,14 @@ export default async function BlogPage({ params }: BlogPageProps) {
           <p className="mt-4 text-lg text-neutral-400">{t('description')}</p>
         </div>
 
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {articles.map((article) => (
-            <Link
-              key={article.slug}
-              href={`/blog/${article.slug}`}
-              className="group rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 transition-colors hover:border-neutral-700 hover:bg-neutral-900/80"
-            >
-              <div className="mb-3 flex items-center gap-3 text-sm text-neutral-500">
-                <time dateTime={article.date}>
-                  {new Date(article.date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </time>
-                <span aria-hidden="true">&middot;</span>
-                <span>
-                  {article.readingTime} {t('readingTime')}
-                </span>
-              </div>
-              <h2 className="mb-3 text-xl font-semibold text-neutral-100 transition-colors group-hover:text-white">
-                {article.title}
-              </h2>
-              <p className="mb-4 text-sm leading-relaxed text-neutral-400">{article.excerpt}</p>
-              <span className="text-sm font-medium text-amber-400 transition-colors group-hover:text-amber-300">
-                {t('readMore')} &rarr;
-              </span>
-            </Link>
-          ))}
-        </div>
+        <Suspense fallback={null}>
+          <BlogSearch
+            articles={articles}
+            categories={categories}
+            locale={locale}
+            strings={{ readingTime: t('readingTime'), readMore: t('readMore') }}
+          />
+        </Suspense>
       </section>
     </>
   );
