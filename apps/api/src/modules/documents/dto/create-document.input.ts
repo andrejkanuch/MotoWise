@@ -11,8 +11,10 @@ export class DocumentFileInput {
 
   // GraphQL wire type stays String; the TS type narrows to the shared allowlist
   // union so this DTO stays assignable to the (now literal-typed) Zod CreateDocument
-  // and the ZodValidationPipe remains the runtime gate.
-  @Field()
+  // and the ZodValidationPipe remains the runtime gate. The explicit `() => String`
+  // is required because DocumentMimeType is a type-only union — reflect-metadata
+  // can't infer a runtime type, so schema generation throws without it.
+  @Field(() => String)
   mimeType: DocumentMimeType;
 }
 
