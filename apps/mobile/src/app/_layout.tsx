@@ -80,6 +80,7 @@ import { captureMetaAttribution } from '../lib/meta-attribution';
 import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
 import {
   cancelAllNotifications,
+  cancelTaskNotification,
   NOTIFICATION_ACTION,
   NOTIFICATION_KIND,
   setupNotificationCategories,
@@ -716,6 +717,8 @@ function RootLayout() {
         if (actionId === NOTIFICATION_ACTION.MARK_DONE) {
           try {
             await gqlFetcher(CompleteMaintenanceTaskDocument, { id: data.taskId });
+            // Cancel any remaining reminder stages for the now-completed task.
+            await cancelTaskNotification(data.taskId);
             queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
             if (data.motorcycleId) {
               queryClient.invalidateQueries({

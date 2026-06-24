@@ -28,6 +28,7 @@ import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { cancelTaskNotification } from '../../../lib/notifications';
 import { queryKeys } from '../../../lib/query-keys';
 import { maybeRequestReview } from '../../../lib/store-review';
 import { useEditorialTheme } from '../../../theme/editorial';
@@ -97,6 +98,10 @@ export default function CompleteTaskScreen() {
         createNextOccurrence: task?.isRecurring ? scheduleNext : false,
       }),
     onSuccess: () => {
+      // Cancel the completed task's pending reminder stages so a stale "due
+      // tomorrow" notification can't fire after it's done. A recurring next
+      // occurrence (new task id) is picked up by the launch reconciliation.
+      void cancelTaskNotification(taskId);
       triggerNotification(Haptics.NotificationFeedbackType.Success);
       trackEvent(AnalyticsEvent.MAINTENANCE_TASK_COMPLETED, {
         has_cost: !!cost,

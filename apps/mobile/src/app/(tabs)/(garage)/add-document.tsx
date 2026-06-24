@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Check, FileText, Plus, RotateCw, X } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -17,8 +17,11 @@ import {
   generateDocumentId,
   type PickedDocument,
   pickDocuments,
+  removeUploadedDocumentFile,
+  UPLOAD_TIMEOUT_MS,
   type UploadedDocumentFile,
   uploadDocumentFile,
+  withUploadTimeout,
 } from '../../../lib/document-upload';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { scheduleDocumentExpiryReminder } from '../../../lib/notifications';
@@ -27,19 +30,6 @@ import { useAuthStore } from '../../../stores/auth.store';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 import { toISODateInput } from '../../../utils/trip-form-dates';
-
-/** Per-file upload timeout so a stalled storage request can't pin a tray file in
- *  'uploading' forever (which would block Save, gated on allUploaded). On timeout
- *  the slot flips to 'error' (retryable); the orphaned object is reclaimed by the
- *  U13 reconciliation sweep. */
-const UPLOAD_TIMEOUT_MS = 60_000;
-
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('upload_timeout')), ms)),
-  ]);
-}
 
 type FileStatus = 'uploading' | 'done' | 'error';
 
@@ -68,6 +58,22 @@ export default function AddDocumentScreen() {
   const [note, setNote] = useState('');
   const [files, setFiles] = useState<TrayFile[]>([]);
 
+  // Track uploaded objects + whether the document was saved, so abandoning the
+  // screen (or removing a file) cleans up bytes instead of orphaning them until
+  // the daily reconciliation sweep. A ref mirrors state for the unmount cleanup.
+  const filesRef = useRef<TrayFile[]>([]);
+  filesRef.current = files;
+  const savedRef = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      if (savedRef.current) return;
+      for (const f of filesRef.current) {
+        if (f.uploaded) void removeUploadedDocumentFile(f.uploaded.storagePath);
+      }
+    };
+  }, []);
+
   const { data: categoryData } = useQuery({
     queryKey: queryKeys.documents.categories(false),
     queryFn: () => gqlFetcher(DocumentCategoriesDocument, { includeHidden: false }),
@@ -79,7 +85,7 @@ export default function AddDocumentScreen() {
   const uploadOne = async (key: string, picked: PickedDocument) => {
     if (!userId) return;
     try {
-      const uploaded = await withTimeout(
+      const uploaded = await withUploadTimeout(
         uploadDocumentFile(picked, userId, motorcycleId, documentId),
         UPLOAD_TIMEOUT_MS,
       );
@@ -113,7 +119,14 @@ export default function AddDocumentScreen() {
     for (const item of newItems) uploadOne(item.key, item.picked);
   };
 
-  const removeFile = (key: string) => setFiles((prev) => prev.filter((f) => f.key !== key));
+  const removeFile = (key: string) => {
+    setFiles((prev) => {
+      const removed = prev.find((f) => f.key === key);
+      // Already uploaded → reclaim its bytes now rather than waiting for the sweep.
+      if (removed?.uploaded) void removeUploadedDocumentFile(removed.uploaded.storagePath);
+      return prev.filter((f) => f.key !== key);
+    });
+  };
   const retryFile = (item: TrayFile) => {
     setFiles((prev) => prev.map((f) => (f.key === item.key ? { ...f, status: 'uploading' } : f)));
     uploadOne(item.key, item.picked);
@@ -137,6 +150,8 @@ export default function AddDocumentScreen() {
         },
       }),
     onSuccess: async () => {
+      // Mark saved so the unmount cleanup leaves the now-persisted objects alone.
+      savedRef.current = true;
       triggerNotification(Haptics.NotificationFeedbackType.Success);
       if (expiryDate) {
         await scheduleDocumentExpiryReminder(

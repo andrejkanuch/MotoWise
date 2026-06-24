@@ -53,6 +53,7 @@ import { formatCurrency } from '../../../../lib/expense-constants';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import { computeHealthScore } from '../../../../lib/health-score';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../../lib/image-upload';
+import { cancelDocumentNotificationsForBike } from '../../../../lib/notifications';
 import { queryKeys } from '../../../../lib/query-keys';
 import { useAuthStore } from '../../../../stores/auth.store';
 import { useEditorialTheme } from '../../../../theme/editorial';
@@ -168,6 +169,9 @@ export default function BikeDetailScreen() {
     mutationFn: () => gqlFetcher(DeleteMotorcycleDocument, { id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+      // Soft-deleting a bike hides its documents — stop their expiry reminders
+      // from firing for documents the rider can no longer see.
+      void cancelDocumentNotificationsForBike(id);
       trackEvent(AnalyticsEvent.GARAGE_BIKE_REMOVED, { motorcycle_id: id });
       triggerNotification(Haptics.NotificationFeedbackType.Warning);
     },

@@ -3,9 +3,10 @@
 --
 -- CREATE OR REPLACE of hard_delete_expired_accounts() based on the LIVE body
 -- (00033_account_deletion.sql — neither 00035 nor 00142 redefined it; 00142 only
--- re-granted other RPCs). The ONLY change vs the live body is adding 'documents'
--- to the storage bucket list. Every existing bucket (bike-photos,
--- diagnostic-photos, user-exports) is preserved.
+-- re-granted other RPCs). Changes vs the live body: (1) add 'documents' to the
+-- storage bucket list; (2) wrap the per-user delete in a BEGIN/EXCEPTION block so
+-- one account's failure no longer aborts the whole nightly sweep. Every existing
+-- bucket (bike-photos, diagnostic-photos, user-exports) is preserved.
 --
 -- Ordering is already correct in the live body: storage objects are deleted
 -- INSIDE the per-user loop BEFORE `delete from auth.users`, so the documents /
@@ -36,17 +37,25 @@ BEGIN
       AND deletion_scheduled_at <= now()
       AND deleted_at IS NOT NULL
   LOOP
-    -- Delete storage files for this user BEFORE the auth.users cascade fires.
-    -- (bike photos, diagnostic photos, export files, vault documents)
-    DELETE FROM storage.objects
-    WHERE bucket_id IN ('bike-photos', 'diagnostic-photos', 'user-exports', 'documents')
-      AND (storage.foldername(name))[1] = user_record.id::text;
+    -- Isolate per-user failures: one account's storage/cascade error must not
+    -- abort the entire nightly sweep and strand every remaining account.
+    BEGIN
+      -- Delete storage files for this user BEFORE the auth.users cascade fires.
+      -- (bike photos, diagnostic photos, export files, vault documents)
+      DELETE FROM storage.objects
+      WHERE bucket_id IN ('bike-photos', 'diagnostic-photos', 'user-exports', 'documents')
+        AND (storage.foldername(name))[1] = user_record.id::text;
 
-    -- Delete the auth user (cascades to public.users and all FK-dependent tables,
-    -- including documents + document_files)
-    DELETE FROM auth.users WHERE id = user_record.id;
+      -- Delete the auth user (cascades to public.users and all FK-dependent tables,
+      -- including documents + document_files)
+      DELETE FROM auth.users WHERE id = user_record.id;
 
-    deleted_count := deleted_count + 1;
+      deleted_count := deleted_count + 1;
+    EXCEPTION
+      WHEN OTHERS THEN
+        RAISE WARNING 'hard_delete_expired_accounts: failed to delete user %: %',
+          user_record.id, SQLERRM;
+    END;
   END LOOP;
 
   RETURN deleted_count;

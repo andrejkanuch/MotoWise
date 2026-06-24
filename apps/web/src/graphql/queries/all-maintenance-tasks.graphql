@@ -8,5 +8,8 @@ query AllMaintenanceTasks {
     priority
     status
     completedAt
+    remind30d
+    remind7d
+    remind1d
   }
 }

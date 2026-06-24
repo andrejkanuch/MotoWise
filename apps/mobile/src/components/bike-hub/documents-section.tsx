@@ -5,6 +5,7 @@ import {
   DocumentsByMotorcycleDocument,
   type DocumentsByMotorcycleQuery,
 } from '@motovault/graphql';
+import { NEAR_EXPIRY_BADGE_DAYS } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { differenceInCalendarDays, parseISO } from 'date-fns';
 import * as Haptics from 'expo-haptics';
@@ -26,8 +27,6 @@ interface DocumentsSectionProps {
   isDark: boolean;
   bikeName?: string;
 }
-
-const NEAR_EXPIRY_DAYS = 30;
 
 export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSectionProps) {
   const { t } = useTranslation();
@@ -465,7 +464,7 @@ function expiryStatus(
       opts: { defaultValue: 'Expired' },
     };
   }
-  if (days <= NEAR_EXPIRY_DAYS) {
+  if (days <= NEAR_EXPIRY_BADGE_DAYS) {
     return {
       color: palette.warning500,
       key: 'documents.expiresInDays',

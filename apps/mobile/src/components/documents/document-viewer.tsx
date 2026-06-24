@@ -16,6 +16,10 @@ import {
 } from 'react-native';
 import Pdf from 'react-native-pdf';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { withTimeout } from '../../lib/with-timeout';
+
+/** Bound the per-file sign + download so a hung request shows a retry, not a spinner forever. */
+const VIEWER_FETCH_TIMEOUT_MS = 30_000;
 
 export interface ViewerFile {
   id: string;
@@ -67,11 +71,16 @@ export function DocumentViewer({ documentId, files, isDark }: DocumentViewerProp
     // Re-sign per open (the TTL window starts here); download to local cache.
     // Use the DOWNLOAD TTL (longer) — we fetch the full bytes to disk before
     // rendering, so the short DISPLAY TTL can lapse on large PDFs over cellular.
-    const { getDocumentSignedUrl } = await gqlFetcher(GetDocumentSignedUrlDocument, {
-      fileId: file.id,
-      download: true,
-    });
-    const downloaded = await File.downloadFileAsync(getDocumentSignedUrl, dir);
+    const { getDocumentSignedUrl } = await withTimeout(
+      gqlFetcher(GetDocumentSignedUrlDocument, { fileId: file.id, download: true }),
+      VIEWER_FETCH_TIMEOUT_MS,
+      'sign_timeout',
+    );
+    const downloaded = await withTimeout(
+      File.downloadFileAsync(getDocumentSignedUrl, dir),
+      VIEWER_FETCH_TIMEOUT_MS,
+      'download_timeout',
+    );
     return downloaded.uri;
   }, []);
 

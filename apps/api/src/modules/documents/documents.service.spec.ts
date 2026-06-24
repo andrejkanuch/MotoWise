@@ -64,8 +64,11 @@ function createSupabaseMock() {
   const remove = vi.fn().mockResolvedValue({ error: null });
   const storageFrom = vi.fn().mockReturnValue({ createSignedUrl, remove });
 
+  // enforceQuota uses the document_vault_bytes_used RPC; default to an empty vault.
+  const rpc = vi.fn().mockResolvedValue({ data: 0, error: null });
+
   const from = vi.fn().mockReturnValue(chain);
-  return { from, chain, storage: { from: storageFrom }, createSignedUrl, remove };
+  return { from, chain, rpc, storage: { from: storageFrom }, createSignedUrl, remove };
 }
 
 function makeService() {
@@ -130,8 +133,8 @@ describe('DocumentsService.create', () => {
     user.chain.single
       .mockResolvedValueOnce({ data: { id: BIKE }, error: null }) // bike owned
       .mockResolvedValueOnce({ data: { id: 'cat-1' }, error: null }); // category owned
-    // enforceQuota awaits the chain → existing usage already at the cap
-    user.chain.awaitResults.push({ data: [{ file_size_bytes: 999_999_999 }], error: null });
+    // enforceQuota RPC → existing usage already at the cap
+    user.rpc.mockResolvedValueOnce({ data: 999_999_999, error: null });
     await expect(service.create(USER, baseInput())).rejects.toThrow('Vault storage limit reached');
     expect(admin.remove).toHaveBeenCalled();
   });

@@ -27,6 +27,9 @@ export const MAX_VAULT_BYTES_PER_USER = 500 * 1024 * 1024;
  */
 export const EXPIRING_DOCUMENTS_WINDOW_DAYS = 60;
 
+/** Days-before-expiry at which the bike Documents section flags a "near expiry" badge. */
+export const NEAR_EXPIRY_BADGE_DAYS = 30;
+
 /** Largest allowed single file across all types (PDF). */
 export const MAX_DOCUMENT_FILE_BYTES = MAX_PDF_BYTES;
 

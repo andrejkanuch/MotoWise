@@ -171,30 +171,23 @@ export class DocumentsService {
   }
 
   /**
-   * Sums the user's stored bytes; rejects + cleans up if this upload would exceed
-   * the cap. The total is bounded (a 500 MB cap over ≤20 MB files ⇒ at most a few
-   * hundred rows), so summing client-side is cheap; a DB-side SUM RPC is the
-   * upgrade if the per-document/file caps are ever raised. This is a deliberate
-   * SOFT cap: the read-then-insert is non-atomic, so two highly concurrent creates
-   * could jointly exceed it by at most one document's worth — acceptable for v1.
+   * Sums the user's stored bytes (via the RLS-scoped document_vault_bytes_used RPC,
+   * so one integer crosses the wire instead of every file row); rejects + cleans up
+   * if this upload would exceed the cap. This is a deliberate SOFT cap: the
+   * read-then-insert is non-atomic, so two highly concurrent creates could jointly
+   * exceed it by at most one document's worth — acceptable for v1.
    */
   private async enforceQuota(
     userId: string,
     files: CreateDocument['files'],
     cleanupPrefix: string,
   ): Promise<void> {
-    const { data, error } = await this.supabase
-      .from('document_files')
-      .select('file_size_bytes')
-      .eq('user_id', userId);
+    const { data, error } = await this.supabase.rpc('document_vault_bytes_used');
     if (error) {
       this.logger.error(`enforceQuota read failed: ${error.message}`);
       throw new InternalServerErrorException('Failed to check vault quota');
     }
-    const existing = (data ?? []).reduce(
-      (sum: number, r: { file_size_bytes: number | null }) => sum + (r.file_size_bytes ?? 0),
-      0,
-    );
+    const existing = Number(data ?? 0);
     const incoming = files.reduce((sum, f) => sum + f.fileSizeBytes, 0);
     if (existing + incoming > MAX_VAULT_BYTES_PER_USER) {
       this.logger.warn(`create: vault quota exceeded for userId=${userId}`);
@@ -332,10 +325,13 @@ export class DocumentsService {
     }
 
     const ttl = forDownload ? DOCUMENT_SIGNED_URL_TTL.DOWNLOAD : DOCUMENT_SIGNED_URL_TTL.DISPLAY;
+    // For downloads, ask Storage to set Content-Disposition: attachment so the
+    // URL is self-describing for direct/web consumers; display mode streams inline.
+    const signOptions = forDownload ? { download: true } : undefined;
 
     const userSign = await this.supabase.storage
       .from(STORAGE_BUCKET)
-      .createSignedUrl(storagePath, ttl);
+      .createSignedUrl(storagePath, ttl, signOptions);
     if (!userSign.error && userSign.data) {
       return userSign.data.signedUrl;
     }
@@ -345,7 +341,7 @@ export class DocumentsService {
     );
     const adminSign = await this.adminClient.storage
       .from(STORAGE_BUCKET)
-      .createSignedUrl(storagePath, ttl);
+      .createSignedUrl(storagePath, ttl, signOptions);
     if (adminSign.error || !adminSign.data) {
       throw new InternalServerErrorException('Failed to create signed URL');
     }

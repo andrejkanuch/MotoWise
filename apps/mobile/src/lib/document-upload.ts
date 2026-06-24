@@ -3,6 +3,7 @@ import * as Crypto from 'expo-crypto';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { supabase } from './supabase';
+import { withTimeout } from './with-timeout';
 
 const DOCUMENTS_BUCKET = 'documents';
 const MIME_ALLOWLIST = new Set<string>(DOCUMENT_MIME_ALLOWLIST);
@@ -23,6 +24,34 @@ export interface UploadedDocumentFile {
 /** A new document id (uuid v4). Generated client-side so the upload path is known before the row exists. */
 export function generateDocumentId(): string {
   return Crypto.randomUUID();
+}
+
+/** Per-file upload timeout so a stalled storage request can't pin a tray file in
+ *  'uploading' forever (which would block Save, gated on allUploaded). On timeout
+ *  the slot flips to 'error' (retryable); any orphaned object is reclaimed by the
+ *  U13 reconciliation sweep. */
+export const UPLOAD_TIMEOUT_MS = 60_000;
+
+/** Reject `promise` if it hasn't settled within `ms` (default UPLOAD_TIMEOUT_MS). */
+export function withUploadTimeout<T>(
+  promise: Promise<T>,
+  ms: number = UPLOAD_TIMEOUT_MS,
+): Promise<T> {
+  return withTimeout(promise, ms, 'upload_timeout');
+}
+
+/**
+ * Best-effort removal of an already-uploaded object — used when the rider removes
+ * a file from the tray or abandons the add-document screen before saving, so bytes
+ * don't linger until the daily reconciliation sweep. Silent on failure (the sweep
+ * is the backstop).
+ */
+export async function removeUploadedDocumentFile(storagePath: string): Promise<void> {
+  try {
+    await supabase.storage.from(DOCUMENTS_BUCKET).remove([storagePath]);
+  } catch {
+    // best-effort; the U13 orphan sweep reclaims anything left behind
+  }
 }
 
 /**

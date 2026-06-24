@@ -2,6 +2,7 @@ import { palette } from '@motovault/design-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { differenceInCalendarDays } from 'date-fns';
 import * as Notifications from 'expo-notifications';
+import { logger } from './logger';
 
 /** Notification `data.kind` discriminator — shared with the tap handler in _layout. */
 export const NOTIFICATION_KIND = { DOCUMENT: 'document' } as const;
@@ -51,6 +52,86 @@ async function removeNotificationIds(taskId: string): Promise<void> {
   const map = await getNotificationMap();
   delete map[taskId];
   await AsyncStorage.setItem(NOTIFICATION_MAP_KEY, JSON.stringify(map));
+}
+
+// --- Scheduling primitives (shared by maintenance + document reminders) ---
+
+// iOS hard-limits an app to 64 pending local notifications. Stay under it with
+// headroom so a burst of tasks/documents never silently overflows — once the OS
+// cap is hit, further scheduleNotificationAsync calls are dropped without error.
+const IOS_NOTIFICATION_BUDGET = 60;
+
+/** Current count of pending scheduled notifications (across all features). */
+async function getScheduledCount(): Promise<number> {
+  try {
+    return (await Notifications.getAllScheduledNotificationsAsync()).length;
+  } catch {
+    return 0;
+  }
+}
+
+/** True only when the OS notification permission is granted. */
+export async function hasNotificationPermission(): Promise<boolean> {
+  const { status } = await Notifications.getPermissionsAsync();
+  return status === 'granted';
+}
+
+interface StagePlan {
+  daysBefore: number;
+  enabled: boolean;
+  label: Stage;
+}
+
+/**
+ * Shared multi-stage scheduler. For each enabled stage it computes the 09:00-local
+ * fire date, skips past-due stages, and schedules the rest — returning the created
+ * ids for the caller to persist under its own keyspace. Enforces the iOS budget
+ * ACROSS ALL features (documents + maintenance share the 64 cap), and surfaces
+ * per-stage failures via the dev logger instead of swallowing them.
+ */
+async function scheduleStages(params: {
+  targetDate: Date;
+  stages: StagePlan[];
+  channelId: string;
+  buildContent: (label: Stage) => Notifications.NotificationContentInput;
+}): Promise<string[]> {
+  const now = new Date();
+  const scheduledIds: string[] = [];
+  let remainingBudget = IOS_NOTIFICATION_BUDGET - (await getScheduledCount());
+
+  for (const stage of params.stages) {
+    if (!stage.enabled) continue;
+
+    const reminderDate = new Date(params.targetDate);
+    reminderDate.setDate(reminderDate.getDate() - stage.daysBefore);
+    reminderDate.setHours(9, 0, 0, 0);
+    if (reminderDate <= now) continue;
+
+    if (remainingBudget <= 0) {
+      logger.warn(
+        `notifications: iOS budget (${IOS_NOTIFICATION_BUDGET}) reached; skipping "${stage.label}" stage`,
+      );
+      continue;
+    }
+
+    try {
+      const id = await Notifications.scheduleNotificationAsync({
+        content: params.buildContent(stage.label),
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: reminderDate,
+          channelId: params.channelId,
+        },
+      });
+      scheduledIds.push(id);
+      remainingBudget -= 1;
+    } catch (err) {
+      // One failed stage must not abort the rest — but surface it (not silent).
+      logger.warn(`notifications: failed to schedule "${stage.label}" stage:`, err);
+    }
+  }
+
+  return scheduledIds;
 }
 
 // --- Public API ---
@@ -134,54 +215,35 @@ export async function scheduleMaintenanceReminder(
   bikeName: string,
 ): Promise<void> {
   const dueDate = new Date(task.dueDate);
-  const now = new Date();
-  const daysUntilDue = differenceInCalendarDays(dueDate, now);
+  const daysUntilDue = differenceInCalendarDays(dueDate, new Date());
 
   if (daysUntilDue < 0 || daysUntilDue > 90) return;
 
   // Cancel any existing stages for this task first
   await cancelTaskNotification(task.id);
 
-  const stages: Array<{ daysBefore: number; enabled: boolean; label: Stage }> = [
-    { daysBefore: 30, enabled: task.remind30d ?? false, label: '30d' },
-    { daysBefore: 7, enabled: task.remind7d ?? false, label: '7d' },
-    { daysBefore: 1, enabled: task.remind1d ?? true, label: '1d' },
-  ];
-
-  const scheduledIds: string[] = [];
-
-  for (const stage of stages) {
-    if (!stage.enabled) continue;
-
-    const reminderDate = new Date(dueDate);
-    reminderDate.setDate(reminderDate.getDate() - stage.daysBefore);
-    reminderDate.setHours(9, 0, 0, 0);
-
-    // Skip stages whose reminder date is already in the past
-    if (reminderDate <= now) continue;
-
-    const { title, body } = STAGE_COPY[stage.label](task.title, bikeName);
-
-    const id = await Notifications.scheduleNotificationAsync({
-      content: {
+  const scheduledIds = await scheduleStages({
+    targetDate: dueDate,
+    channelId: 'maintenance',
+    stages: [
+      { daysBefore: 30, enabled: task.remind30d ?? false, label: '30d' },
+      { daysBefore: 7, enabled: task.remind7d ?? false, label: '7d' },
+      { daysBefore: 1, enabled: task.remind1d ?? true, label: '1d' },
+    ],
+    buildContent: (label) => {
+      const { title, body } = STAGE_COPY[label](task.title, bikeName);
+      return {
         title,
         body,
-        data: { motorcycleId: task.motorcycleId, taskId: task.id, stage: stage.label },
+        data: { motorcycleId: task.motorcycleId, taskId: task.id, stage: label },
         // Only the 1-day notification keeps the actionable category — earlier
         // stages are informational (per PRD open questions).
-        ...(stage.label === '1d'
+        ...(label === '1d'
           ? { categoryIdentifier: NOTIFICATION_CATEGORY.MAINTENANCE_REMINDER }
           : {}),
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: reminderDate,
-        channelId: 'maintenance',
-      },
-    });
-
-    scheduledIds.push(id);
-  }
+      };
+    },
+  });
 
   if (scheduledIds.length > 0) {
     await setNotificationIds(task.id, scheduledIds);
@@ -286,49 +348,32 @@ export async function scheduleDocumentExpiryReminder(
   await cancelDocumentNotifications(doc.id);
   if (daysUntil < 0 || daysUntil > 90) return;
 
-  const stages: Array<{ daysBefore: number; label: Stage }> = [
-    { daysBefore: 30, label: '30d' },
-    { daysBefore: 7, label: '7d' },
-    { daysBefore: 1, label: '1d' },
-  ];
-
-  const scheduledIds: string[] = [];
-  try {
-    for (const stage of stages) {
-      const reminderDate = new Date(expiry);
-      reminderDate.setDate(reminderDate.getDate() - stage.daysBefore);
-      reminderDate.setHours(9, 0, 0, 0);
-      if (reminderDate <= now) continue;
-
-      const { title, body } = DOC_STAGE_COPY[stage.label](doc.title, bikeName);
-      const id = await Notifications.scheduleNotificationAsync({
-        content: {
-          title,
-          body,
-          data: {
-            kind: NOTIFICATION_KIND.DOCUMENT,
-            documentId: doc.id,
-            motorcycleId: doc.motorcycleId,
-            stage: stage.label,
-          },
-          ...(stage.label === '1d'
-            ? { categoryIdentifier: NOTIFICATION_CATEGORY.DOCUMENT_EXPIRY }
-            : {}),
+  const scheduledIds = await scheduleStages({
+    targetDate: expiry,
+    channelId: 'documents',
+    stages: [
+      { daysBefore: 30, enabled: true, label: '30d' },
+      { daysBefore: 7, enabled: true, label: '7d' },
+      { daysBefore: 1, enabled: true, label: '1d' },
+    ],
+    buildContent: (label) => {
+      const { title, body } = DOC_STAGE_COPY[label](doc.title, bikeName);
+      return {
+        title,
+        body,
+        data: {
+          kind: NOTIFICATION_KIND.DOCUMENT,
+          documentId: doc.id,
+          motorcycleId: doc.motorcycleId,
+          stage: label,
         },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DATE,
-          date: reminderDate,
-          channelId: 'documents',
-        },
-      });
-      scheduledIds.push(id);
-    }
-  } finally {
-    // Persist whatever was scheduled — even if a stage failed mid-loop — so
-    // cancelDocumentNotifications can later cancel every stage we registered.
-    if (scheduledIds.length > 0) {
-      await setNotificationIds(docKey(doc.id), scheduledIds);
-    }
+        ...(label === '1d' ? { categoryIdentifier: NOTIFICATION_CATEGORY.DOCUMENT_EXPIRY } : {}),
+      };
+    },
+  });
+
+  if (scheduledIds.length > 0) {
+    await setNotificationIds(docKey(doc.id), scheduledIds);
   }
 }
 
@@ -342,6 +387,36 @@ export async function cancelDocumentNotifications(documentId: string): Promise<v
   }
   if (ids.length > 0) {
     await removeNotificationIds(key);
+  }
+}
+
+/**
+ * Cancel every scheduled document-expiry reminder for one bike. Used when a bike
+ * is (soft-)deleted: its documents are hidden from the rider, so their reminders
+ * must stop firing even though the document rows are retained server-side. The map
+ * is keyed by document id, so we scan scheduled notifications by data.motorcycleId.
+ */
+export async function cancelDocumentNotificationsForBike(motorcycleId: string): Promise<void> {
+  let scheduled: Notifications.NotificationRequest[];
+  try {
+    scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  } catch {
+    return;
+  }
+
+  const clearedDocumentIds = new Set<string>();
+  for (const n of scheduled) {
+    const data = n.content.data as { kind?: string; motorcycleId?: string; documentId?: string };
+    if (data?.kind === NOTIFICATION_KIND.DOCUMENT && data.motorcycleId === motorcycleId) {
+      await Notifications.cancelScheduledNotificationAsync(n.identifier);
+      if (data.documentId) clearedDocumentIds.add(data.documentId);
+    }
+  }
+
+  if (clearedDocumentIds.size > 0) {
+    const map = await getNotificationMap();
+    for (const id of clearedDocumentIds) delete map[docKey(id)];
+    await AsyncStorage.setItem(NOTIFICATION_MAP_KEY, JSON.stringify(map));
   }
 }
 
@@ -373,4 +448,76 @@ export async function snoozeTaskNotification(
   });
 
   await setNotificationIds(task.id, [id]);
+}
+
+// ============================================================================
+// Launch-time reconciliation
+//
+// Reminders are scheduled at task/document mutation time, but the dominant
+// sources of tasks never pass through those screens: OEM tasks auto-populated
+// server-side on bike add, recurring next-occurrences created on completion,
+// tasks that predate the user granting notification permission, and edits made
+// on another device. Without reconciliation those tasks have NO local reminder.
+// This runs on app launch (and after task refreshes) to guarantee every
+// upcoming, incomplete, date-based task has its reminder scheduled, and clears
+// reminders for tasks that are no longer upcoming (completed / deleted / past).
+// ============================================================================
+
+interface ReconcileTask {
+  id: string;
+  title: string;
+  dueDate?: string | null;
+  status: string;
+  motorcycleId: string;
+  remind30d?: boolean | null;
+  remind7d?: boolean | null;
+  remind1d?: boolean | null;
+}
+
+const ACTIVE_TASK_STATUSES = new Set(['pending', 'in_progress']);
+
+/**
+ * Idempotently ensure every upcoming, incomplete, date-based maintenance task has
+ * its reminder scheduled, and cancel reminders for tasks that are no longer active.
+ * No-op without notification permission. Safe to call on every launch: already
+ * scheduled tasks are skipped (no churn), and scheduleMaintenanceReminder itself
+ * cancels+reschedules per task.
+ */
+export async function reconcileMaintenanceReminders(
+  tasks: ReconcileTask[],
+  bikeNames: Record<string, string>,
+): Promise<void> {
+  if (!(await hasNotificationPermission())) return;
+
+  const map = await getNotificationMap();
+  const activeIds = new Set<string>();
+
+  for (const task of tasks) {
+    const isActive = ACTIVE_TASK_STATUSES.has(task.status) && !!task.dueDate;
+    if (!isActive) continue;
+    activeIds.add(task.id);
+    // Already scheduled — leave it (avoids re-scheduling churn on every launch).
+    if (map[task.id]?.length) continue;
+    await scheduleMaintenanceReminder(
+      {
+        id: task.id,
+        title: task.title,
+        dueDate: task.dueDate as string,
+        motorcycleId: task.motorcycleId,
+        remind30d: task.remind30d ?? undefined,
+        remind7d: task.remind7d ?? undefined,
+        remind1d: task.remind1d ?? undefined,
+      },
+      bikeNames[task.motorcycleId] ?? 'Your bike',
+    );
+  }
+
+  // Clear reminders for maintenance tasks no longer active (completed, deleted,
+  // or now past-due). Skip the document keyspace, which reconciles separately.
+  for (const key of Object.keys(map)) {
+    if (key.startsWith('doc:')) continue;
+    if (!activeIds.has(key)) {
+      await cancelTaskNotification(key);
+    }
+  }
 }
