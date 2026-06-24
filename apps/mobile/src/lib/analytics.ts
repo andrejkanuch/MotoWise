@@ -306,6 +306,14 @@ export const AnalyticsEvent = {
   RECALLS_CHECKED: 'recalls_checked',
   OEM_SCHEDULE_IMPORTED: 'oem_schedule_imported',
 
+  // Feature usage — Garage / Document Vault
+  DOCUMENT_ADDED: 'document_added',
+  DOCUMENT_VIEWED: 'document_viewed',
+  DOCUMENT_DELETED: 'document_deleted',
+  DOCUMENT_CATEGORY_ADDED: 'document_category_added',
+  DOCUMENTS_SECTION_VIEWED: 'documents_section_viewed',
+  DOCUMENT_EXPIRY_ALERT_TAPPED: 'document_expiry_alert_tapped',
+
   // Rides — lifecycle
   RIDE_STARTED: 'ride_started',
   RIDE_PAUSED: 'ride_paused',
@@ -403,6 +411,7 @@ export const AnalyticsEvent = {
   WHATS_NEW_DISMISSED: 'whats_new_dismissed',
   WHATS_NEW_SKIPPED: 'whats_new_skipped',
   WHATS_NEW_SLIDE_VIEWED: 'whats_new_slide_viewed',
+  WHATS_NEW_CTA_TAPPED: 'whats_new_cta_tapped',
 
   // Profile & Settings
   PROFILE_EDITED: 'profile_edited',

@@ -1641,6 +1641,13 @@
       "maintenanceDesc": "Swipe through OEM tasks to build your bike's maintenance plan during setup. Accept what matters, skip the rest.",
       "bikeSetupTitle": "Brand Hero Setup",
       "bikeSetupDesc": "See real rider stats, service intervals, and a welcome message when you add your bike."
+    },
+    "v3110": {
+      "vaultTitle": "A Vault for Every Document",
+      "vaultDesc": "Insurance, registration, title, service records — keep every important paper for each bike in one private, secure place. Snap a photo or import a PDF in seconds.",
+      "remindersTitle": "Never Miss a Renewal",
+      "remindersDesc": "Add an expiry date and we'll remind you 30, 7, and 1 day before — so your insurance or registration never lapses again.",
+      "cta": "Add your first document"
     }
   },
   "oem": {

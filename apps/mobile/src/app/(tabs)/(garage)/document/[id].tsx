@@ -11,7 +11,7 @@ import { parseISO } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Check, Pin, Trash2, X } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -28,6 +28,7 @@ import {
   DocumentExpiryField,
 } from '../../../../components/documents/document-form-fields';
 import { DocumentViewer } from '../../../../components/documents/document-viewer';
+import { AnalyticsEvent, trackEvent } from '../../../../lib/analytics';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import {
   cancelDocumentNotifications,
@@ -70,6 +71,18 @@ export default function DocumentDetailScreen() {
     () => doc?.files.map((f) => ({ id: f.id, mimeType: f.mimeType })) ?? [],
     [doc?.files],
   );
+
+  // Track a view once per opened document (fires when the id resolves).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fire once per document id, not on every field change
+  useEffect(() => {
+    if (!doc) return;
+    trackEvent(AnalyticsEvent.DOCUMENT_VIEWED, {
+      file_count: doc.files.length,
+      mime_types: [...new Set(doc.files.map((f) => f.mimeType))],
+      has_expiry: !!doc.expiryDate,
+      is_pinned: doc.isPinned,
+    });
+  }, [doc?.id]);
 
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState('');
@@ -137,6 +150,10 @@ export default function DocumentDetailScreen() {
   const deleteMutation = useMutation({
     mutationFn: () => gqlFetcher(DeleteDocumentDocument, { id }),
     onSuccess: () => {
+      trackEvent(AnalyticsEvent.DOCUMENT_DELETED, {
+        file_count: doc?.files.length ?? 0,
+        had_expiry: !!doc?.expiryDate,
+      });
       triggerNotification(Haptics.NotificationFeedbackType.Success);
       cancelDocumentNotifications(id).catch(() => {});
       invalidate();

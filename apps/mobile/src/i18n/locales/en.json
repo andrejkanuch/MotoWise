@@ -1646,6 +1646,13 @@
       "commentsDesc": "Drop warnings about road hazards, recommend pit stops, and help the riding community.",
       "tripsTitle": "Plan Your Trip",
       "tripsDesc": "Map multi-stop rides with waypoints. Share your itinerary with riding buddies."
+    },
+    "v3110": {
+      "vaultTitle": "A Vault for Every Document",
+      "vaultDesc": "Insurance, registration, title, service records — keep every important paper for each bike in one private, secure place. Snap a photo or import a PDF in seconds.",
+      "remindersTitle": "Never Miss a Renewal",
+      "remindersDesc": "Add an expiry date and we'll remind you 30, 7, and 1 day before — so your insurance or registration never lapses again.",
+      "cta": "Add your first document"
     }
   },
   "oem": {

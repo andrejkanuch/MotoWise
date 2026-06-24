@@ -13,6 +13,7 @@ import {
   DocumentCategoryChips,
   DocumentExpiryField,
 } from '../../../components/documents/document-form-fields';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import {
   generateDocumentId,
   type PickedDocument,
@@ -152,6 +153,18 @@ export default function AddDocumentScreen() {
     onSuccess: async () => {
       // Mark saved so the unmount cleanup leaves the now-persisted objects alone.
       savedRef.current = true;
+      const uploadedFiles = files
+        .map((f) => f.uploaded)
+        .filter((u): u is UploadedDocumentFile => !!u);
+      trackEvent(AnalyticsEvent.DOCUMENT_ADDED, {
+        file_count: uploadedFiles.length,
+        mime_types: [...new Set(uploadedFiles.map((u) => u.mimeType))],
+        category: selectedCategory?.name ?? null,
+        category_prompts_expiry: promptsExpiry,
+        has_expiry: !!expiryDate,
+        has_note: note.trim().length > 0,
+        total_bytes: uploadedFiles.reduce((sum, u) => sum + u.fileSizeBytes, 0),
+      });
       triggerNotification(Haptics.NotificationFeedbackType.Success);
       if (expiryDate) {
         await scheduleDocumentExpiryReminder(

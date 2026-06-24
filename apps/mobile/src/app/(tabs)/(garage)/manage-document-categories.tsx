@@ -18,6 +18,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { useEditorialTheme } from '../../../theme/editorial';
@@ -49,6 +50,7 @@ export default function ManageDocumentCategoriesScreen() {
   const addMutation = useMutation({
     mutationFn: (name: string) => gqlFetcher(AddDocumentCategoryDocument, { input: { name } }),
     onSuccess: () => {
+      trackEvent(AnalyticsEvent.DOCUMENT_CATEGORY_ADDED, {});
       setNewName('');
       invalidate();
     },

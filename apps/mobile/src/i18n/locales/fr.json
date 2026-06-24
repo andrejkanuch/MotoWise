@@ -1642,6 +1642,13 @@
       "maintenanceDesc": "Swipe through OEM tasks to build your bike's maintenance plan during setup. Accept what matters, skip the rest.",
       "bikeSetupTitle": "Brand Hero Setup",
       "bikeSetupDesc": "See real rider stats, service intervals, and a welcome message when you add your bike."
+    },
+    "v3110": {
+      "vaultTitle": "Un coffre-fort pour chaque document",
+      "vaultDesc": "Assurance, carte grise, titre, carnet d'entretien : gardez tous les papiers importants de chaque moto dans un endroit privé et sécurisé. Prenez une photo ou importez un PDF en quelques secondes.",
+      "remindersTitle": "Ne manquez plus aucun renouvellement",
+      "remindersDesc": "Ajoutez une date d'expiration et nous vous préviendrons 30, 7 et 1 jour avant — pour que votre assurance ou votre carte grise n'expire jamais.",
+      "cta": "Ajoutez votre premier document"
     }
   },
   "oem": {

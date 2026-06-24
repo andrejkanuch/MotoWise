@@ -8,6 +8,7 @@ import { type Href, router } from 'expo-router';
 import { ChevronRight, TriangleAlert } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { ECard, ESectionMasthead } from '../ui/editorial';
@@ -48,6 +49,10 @@ export function DocumentExpiryAlerts({ isDark }: DocumentExpiryAlertsProps) {
                 if (process.env.EXPO_OS === 'ios') {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 }
+                trackEvent(AnalyticsEvent.DOCUMENT_EXPIRY_ALERT_TAPPED, {
+                  overdue,
+                  days_until: days,
+                });
                 router.push(
                   `/(tabs)/(garage)/document/${doc.id}?motorcycleId=${doc.motorcycleId}` as Href,
                 );

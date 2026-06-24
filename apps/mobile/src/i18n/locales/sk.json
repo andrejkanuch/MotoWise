@@ -1643,6 +1643,13 @@
       "maintenanceDesc": "Swipe through OEM tasks to build your bike's maintenance plan during setup. Accept what matters, skip the rest.",
       "bikeSetupTitle": "Brand Hero Setup",
       "bikeSetupDesc": "See real rider stats, service intervals, and a welcome message when you add your bike."
+    },
+    "v3110": {
+      "vaultTitle": "Trezor na každý dokument",
+      "vaultDesc": "Poistenie, evidencia, technický preukaz, servisná história — maj všetky dôležité doklady každého motocykla na jednom súkromnom a bezpečnom mieste. Odfoť alebo importuj PDF za pár sekúnd.",
+      "remindersTitle": "Nezmeškaj žiadne obnovenie",
+      "remindersDesc": "Pridaj dátum platnosti a pripomenieme ti to 30, 7 a 1 deň vopred — aby ti poistenie či evidencia nikdy nevypršali.",
+      "cta": "Pridaj svoj prvý dokument"
     }
   },
   "oem": {

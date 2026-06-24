@@ -11,10 +11,11 @@ import { differenceInCalendarDays, parseISO } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { type Href, router } from 'expo-router';
 import { ChevronRight, FileText, Pin, Plus, Settings2 } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { cancelDocumentNotifications } from '../../lib/notifications';
 import { queryKeys } from '../../lib/query-keys';
@@ -46,6 +47,12 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
   const deleteMutation = useMutation({
     mutationFn: (id: string) => gqlFetcher(DeleteDocumentDocument, { id }),
     onSuccess: (_res, id) => {
+      const removed = documents.find((d) => d.id === id);
+      trackEvent(AnalyticsEvent.DOCUMENT_DELETED, {
+        file_count: removed?.files.length ?? 0,
+        had_expiry: !!removed?.expiryDate,
+        source: 'section',
+      });
       triggerNotification(Haptics.NotificationFeedbackType.Success);
       cancelDocumentNotifications(id).catch(() => {});
       queryClient.invalidateQueries({ queryKey: queryKeys.documents.byMotorcycle(motorcycleId) });
@@ -64,6 +71,18 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
   const categoryById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
 
   const pinned = documents.filter((d) => d.isPinned);
+
+  // Track engagement with the vault once per mount, with how many documents the
+  // rider has on this bike (feeds the "how many documents are people saving" view).
+  const sectionTrackedRef = useRef(false);
+  useEffect(() => {
+    if (isLoading || sectionTrackedRef.current) return;
+    sectionTrackedRef.current = true;
+    trackEvent(AnalyticsEvent.DOCUMENTS_SECTION_VIEWED, {
+      document_count: documents.length,
+      pinned_count: pinned.length,
+    });
+  }, [isLoading, documents.length, pinned.length]);
 
   // Group documents by category; hidden-category groups appear only when toggled (R7).
   const groups = useMemo(() => {

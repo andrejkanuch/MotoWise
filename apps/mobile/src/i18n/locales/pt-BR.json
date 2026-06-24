@@ -1642,6 +1642,13 @@
       "maintenanceDesc": "Swipe through OEM tasks to build your bike's maintenance plan during setup. Accept what matters, skip the rest.",
       "bikeSetupTitle": "Brand Hero Setup",
       "bikeSetupDesc": "See real rider stats, service intervals, and a welcome message when you add your bike."
+    },
+    "v3110": {
+      "vaultTitle": "Um cofre para cada documento",
+      "vaultDesc": "Seguro, licenciamento, documento de propriedade, histórico de revisões — guarde todos os papéis importantes de cada moto em um lugar privado e seguro. Tire uma foto ou importe um PDF em segundos.",
+      "remindersTitle": "Nunca perca uma renovação",
+      "remindersDesc": "Adicione uma data de validade e avisaremos 30, 7 e 1 dia antes — para que seu seguro ou licenciamento nunca vença.",
+      "cta": "Adicione seu primeiro documento"
     }
   },
   "oem": {

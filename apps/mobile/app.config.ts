@@ -14,7 +14,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: getAppName(),
   slug: 'motowise',
   description: 'AI-powered motorcycle maintenance, diagnostics & expense tracking',
-  version: '3.10.2',
+  version: '3.11.0',
   orientation: 'portrait',
   icon: './src/assets/images/MotoVault.png',
   // Root view color (behind all React views) — matches the splash background
