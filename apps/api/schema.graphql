@@ -185,6 +185,17 @@ type BlogTranslation {
   wordCount: Int
 }
 
+input BlogTranslationInput {
+  bodyRaw: String!
+  excerpt: String
+  faq: JSON
+  locale: String!
+  readingTime: String
+  seoDescription: String
+  seoTitle: String
+  title: String!
+}
+
 type BrowseExploreRegionResult {
   country: BrowsePlace!
   region: BrowsePlace!
@@ -292,6 +303,22 @@ type ContentFlag {
   sectionReference: String
   status: FlagStatus!
   userId: String!
+}
+
+input CreateBlogPostInput {
+  author: String
+  categoryIds: [ID!]
+  coverAlt: String
+  coverImage: String
+  isSafetyCritical: Boolean
+  keywordIds: [ID!]
+  scheduledFor: String
+  slug: String!
+  specData: Boolean
+  status: String
+  translations: [BlogTranslationInput!]!
+  type: String!
+  typeData: JSON!
 }
 
 input CreateCommentInput {
@@ -978,6 +1005,7 @@ type Mutation {
   cloneTrip(tripId: ID!): ID!
   completeMaintenanceTask(createNextOccurrence: Boolean, id: String!, input: CompleteMaintenanceTaskInput): CompleteTaskResult!
   completeOnboarding(input: CompleteOnboardingInput!): User!
+  createBlogPost(input: CreateBlogPostInput!): BlogPost!
   createComment(input: CreateCommentInput!): Comment!
   createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
   createFlag(input: CreateFlagInput!): ContentFlag!
@@ -991,6 +1019,7 @@ type Mutation {
   createTripSuggestion(input: CreateTripSuggestionInput!): TripSuggestion!
   createTripWithWaypoints(input: CreateTripWithWaypointsInput!): Trip!
   deleteAccount: Boolean!
+  deleteBlogPost(id: String!): Boolean!
   deleteComment(commentId: ID!): Boolean!
   deleteExpense(id: String!): Boolean!
   deleteExpensePhoto(photoId: String!): Boolean!
@@ -1025,6 +1054,7 @@ type Mutation {
   logExpense(input: LogExpenseInput!): Expense!
   markArticleRead(articleId: String!): LearningProgress!
   publishAsTemplate(tripId: ID!): Trip!
+  publishBlogPost(id: String!): BlogPost!
   publishTrip(tripId: ID!): Trip!
   regenerateRideSummary(rideId: String!): RideSummary!
   removeWaypoint(waypointId: ID!): Boolean!
@@ -1034,9 +1064,11 @@ type Mutation {
   resetAiCircuitBreaker: Boolean!
   respondToTripInvite(accept: Boolean!, inviteId: ID!): Boolean!
   respondToTripSuggestion(input: RespondToTripSuggestionInput!): TripSuggestion!
+  revertBlogPostVersion(id: String!, versionNum: Int!): BlogPost!
   revokeShareLink(linkId: ID!): Boolean!
   rotateTripShareToken(tripId: ID!): String!
   saveTrip(tripId: ID!): Boolean!
+  scheduleBlogPost(input: ScheduleBlogPostInput!): BlogPost!
   setTripParticipantRole(input: SetParticipantRoleInput!): Boolean!
   shareRide(rideId: String!, sharedWithUserId: String!): Boolean!
 
@@ -1052,9 +1084,11 @@ type Mutation {
   trackSponsorshipClick(input: TrackSponsorshipClickInput!): Boolean!
   trackSponsorshipImpression(input: TrackSponsorshipImpressionInput!): Boolean!
   unfollowRider(input: UnfollowRiderInput!): Boolean!
+  unpublishBlogPost(id: String!): BlogPost!
   unpublishTemplate(tripId: ID!): Boolean!
   unsaveTrip(tripId: ID!): Boolean!
   unshareRide(rideId: String!, sharedWithUserId: String!): Boolean!
+  updateBlogPost(input: UpdateBlogPostInput!): BlogPost!
   updateGroupRide(input: UpdateGroupRideInput!): GroupRide!
   updateHandle(input: UpdateHandleInput!): User!
   updateMaintenanceTask(id: String!, input: UpdateMaintenanceTaskInput!): MaintenanceTask!
@@ -1476,6 +1510,11 @@ type RouteSuggestion {
   slug: String!
 }
 
+input ScheduleBlogPostInput {
+  id: ID!
+  scheduledFor: String!
+}
+
 input SearchArticlesInput {
   after: String
   category: ArticleCategory
@@ -1873,6 +1912,19 @@ type TypeaheadResult {
 
 input UnfollowRiderInput {
   targetUserId: String!
+}
+
+input UpdateBlogPostInput {
+  author: String
+  categoryIds: [ID!]
+  coverAlt: String
+  coverImage: String
+  id: ID!
+  isSafetyCritical: Boolean
+  keywordIds: [ID!]
+  specData: Boolean
+  translations: [BlogTranslationInput!]
+  typeData: JSON
 }
 
 input UpdateGroupRideInput {

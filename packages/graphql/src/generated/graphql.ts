@@ -216,6 +216,17 @@ export type BlogTranslation = {
   wordCount?: Maybe<Scalars['Int']['output']>;
 };
 
+export type BlogTranslationInput = {
+  bodyRaw: Scalars['String']['input'];
+  excerpt?: InputMaybe<Scalars['String']['input']>;
+  faq?: InputMaybe<Scalars['JSON']['input']>;
+  locale: Scalars['String']['input'];
+  readingTime?: InputMaybe<Scalars['String']['input']>;
+  seoDescription?: InputMaybe<Scalars['String']['input']>;
+  seoTitle?: InputMaybe<Scalars['String']['input']>;
+  title: Scalars['String']['input'];
+};
+
 export type BrowseExploreRegionResult = {
   __typename?: 'BrowseExploreRegionResult';
   country: BrowsePlace;
@@ -329,6 +340,22 @@ export type ContentFlag = {
   sectionReference?: Maybe<Scalars['String']['output']>;
   status: FlagStatus;
   userId: Scalars['String']['output'];
+};
+
+export type CreateBlogPostInput = {
+  author?: InputMaybe<Scalars['String']['input']>;
+  categoryIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  coverAlt?: InputMaybe<Scalars['String']['input']>;
+  coverImage?: InputMaybe<Scalars['String']['input']>;
+  isSafetyCritical?: InputMaybe<Scalars['Boolean']['input']>;
+  keywordIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  scheduledFor?: InputMaybe<Scalars['String']['input']>;
+  slug: Scalars['String']['input'];
+  specData?: InputMaybe<Scalars['Boolean']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+  translations: Array<BlogTranslationInput>;
+  type: Scalars['String']['input'];
+  typeData: Scalars['JSON']['input'];
 };
 
 export type CreateCommentInput = {
@@ -1042,6 +1069,7 @@ export type Mutation = {
   cloneTrip: Scalars['ID']['output'];
   completeMaintenanceTask: CompleteTaskResult;
   completeOnboarding: User;
+  createBlogPost: BlogPost;
   createComment: Comment;
   createDiagnostic: Diagnostic;
   createFlag: ContentFlag;
@@ -1055,6 +1083,7 @@ export type Mutation = {
   createTripSuggestion: TripSuggestion;
   createTripWithWaypoints: Trip;
   deleteAccount: Scalars['Boolean']['output'];
+  deleteBlogPost: Scalars['Boolean']['output'];
   deleteComment: Scalars['Boolean']['output'];
   deleteExpense: Scalars['Boolean']['output'];
   deleteExpensePhoto: Scalars['Boolean']['output'];
@@ -1085,6 +1114,7 @@ export type Mutation = {
   logExpense: Expense;
   markArticleRead: LearningProgress;
   publishAsTemplate: Trip;
+  publishBlogPost: BlogPost;
   publishTrip: Trip;
   regenerateRideSummary: RideSummary;
   removeWaypoint: Scalars['Boolean']['output'];
@@ -1094,9 +1124,11 @@ export type Mutation = {
   resetAiCircuitBreaker: Scalars['Boolean']['output'];
   respondToTripInvite: Scalars['Boolean']['output'];
   respondToTripSuggestion: TripSuggestion;
+  revertBlogPostVersion: BlogPost;
   revokeShareLink: Scalars['Boolean']['output'];
   rotateTripShareToken: Scalars['String']['output'];
   saveTrip: Scalars['Boolean']['output'];
+  scheduleBlogPost: BlogPost;
   setTripParticipantRole: Scalars['Boolean']['output'];
   shareRide: Scalars['Boolean']['output'];
   /** Share a completed ride as a published template trip on Discover. Replaces shareRideToDiscover. */
@@ -1109,9 +1141,11 @@ export type Mutation = {
   trackSponsorshipClick: Scalars['Boolean']['output'];
   trackSponsorshipImpression: Scalars['Boolean']['output'];
   unfollowRider: Scalars['Boolean']['output'];
+  unpublishBlogPost: BlogPost;
   unpublishTemplate: Scalars['Boolean']['output'];
   unsaveTrip: Scalars['Boolean']['output'];
   unshareRide: Scalars['Boolean']['output'];
+  updateBlogPost: BlogPost;
   updateGroupRide: GroupRide;
   updateHandle: User;
   updateMaintenanceTask: MaintenanceTask;
@@ -1174,6 +1208,11 @@ export type MutationCompleteOnboardingArgs = {
 };
 
 
+export type MutationCreateBlogPostArgs = {
+  input: CreateBlogPostInput;
+};
+
+
 export type MutationCreateCommentArgs = {
   input: CreateCommentInput;
 };
@@ -1231,6 +1270,11 @@ export type MutationCreateTripSuggestionArgs = {
 
 export type MutationCreateTripWithWaypointsArgs = {
   input: CreateTripWithWaypointsInput;
+};
+
+
+export type MutationDeleteBlogPostArgs = {
+  id: Scalars['String']['input'];
 };
 
 
@@ -1377,6 +1421,11 @@ export type MutationPublishAsTemplateArgs = {
 };
 
 
+export type MutationPublishBlogPostArgs = {
+  id: Scalars['String']['input'];
+};
+
+
 export type MutationPublishTripArgs = {
   tripId: Scalars['ID']['input'];
 };
@@ -1413,6 +1462,12 @@ export type MutationRespondToTripSuggestionArgs = {
 };
 
 
+export type MutationRevertBlogPostVersionArgs = {
+  id: Scalars['String']['input'];
+  versionNum: Scalars['Int']['input'];
+};
+
+
 export type MutationRevokeShareLinkArgs = {
   linkId: Scalars['ID']['input'];
 };
@@ -1425,6 +1480,11 @@ export type MutationRotateTripShareTokenArgs = {
 
 export type MutationSaveTripArgs = {
   tripId: Scalars['ID']['input'];
+};
+
+
+export type MutationScheduleBlogPostArgs = {
+  input: ScheduleBlogPostInput;
 };
 
 
@@ -1484,6 +1544,11 @@ export type MutationUnfollowRiderArgs = {
 };
 
 
+export type MutationUnpublishBlogPostArgs = {
+  id: Scalars['String']['input'];
+};
+
+
 export type MutationUnpublishTemplateArgs = {
   tripId: Scalars['ID']['input'];
 };
@@ -1497,6 +1562,11 @@ export type MutationUnsaveTripArgs = {
 export type MutationUnshareRideArgs = {
   rideId: Scalars['String']['input'];
   sharedWithUserId: Scalars['String']['input'];
+};
+
+
+export type MutationUpdateBlogPostArgs = {
+  input: UpdateBlogPostInput;
 };
 
 
@@ -2295,6 +2365,11 @@ export type RouteSuggestion = {
   slug: Scalars['String']['output'];
 };
 
+export type ScheduleBlogPostInput = {
+  id: Scalars['ID']['input'];
+  scheduledFor: Scalars['String']['input'];
+};
+
 export type SearchArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>;
   category?: InputMaybe<ArticleCategory>;
@@ -2720,6 +2795,19 @@ export type TypeaheadResult = {
 
 export type UnfollowRiderInput = {
   targetUserId: Scalars['String']['input'];
+};
+
+export type UpdateBlogPostInput = {
+  author?: InputMaybe<Scalars['String']['input']>;
+  categoryIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  coverAlt?: InputMaybe<Scalars['String']['input']>;
+  coverImage?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+  isSafetyCritical?: InputMaybe<Scalars['Boolean']['input']>;
+  keywordIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  specData?: InputMaybe<Scalars['Boolean']['input']>;
+  translations?: InputMaybe<Array<BlogTranslationInput>>;
+  typeData?: InputMaybe<Scalars['JSON']['input']>;
 };
 
 export type UpdateGroupRideInput = {

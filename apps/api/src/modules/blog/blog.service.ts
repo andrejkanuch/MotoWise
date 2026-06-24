@@ -1,3 +1,4 @@
+import { BlogTypeDataSchema, CACHE_TAGS } from '@motovault/types';
 import {
   BadRequestException,
   ForbiddenException,
@@ -13,8 +14,13 @@ import {
   decodeCursor,
   encodeCursor,
 } from '../../common/pagination/connection';
+import { RevalidationService } from '../../common/revalidation/revalidation.service';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
+import { translationToRow, typeDataToRow } from './blog-write';
+import type { CreateBlogPostInput } from './dto/create-blog-post.input';
 import type { ListBlogPostsInput } from './dto/list-blog-posts.input';
+import type { ScheduleBlogPostInput } from './dto/schedule-blog-post.input';
+import type { UpdateBlogPostInput } from './dto/update-blog-post.input';
 import type {
   BlogCategory,
   BlogKeyword,
@@ -47,7 +53,10 @@ function firstOf<T>(value: T | T[] | null | undefined): T | null {
 export class BlogService {
   private readonly logger = new Logger(BlogService.name);
 
-  constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {
+  constructor(
+    @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    private readonly revalidation: RevalidationService,
+  ) {
     this.mapRow = this.mapRow.bind(this);
   }
 
@@ -194,6 +203,302 @@ export class BlogService {
         return undefined;
     }
   }
+
+  // --- Mutations (admin) -----------------------------------------------------
+
+  async create(userId: string, input: CreateBlogPostInput): Promise<BlogPost> {
+    await this.assertAdmin(userId);
+    const status = input.status ?? 'draft';
+
+    const { data: post, error } = await this.supabase
+      .from('blog_posts')
+      .insert({
+        type: input.type,
+        slug: input.slug,
+        status,
+        author: input.author ?? null,
+        cover_image: input.coverImage ?? null,
+        cover_alt: input.coverAlt ?? null,
+        spec_data: input.specData ?? false,
+        is_safety_critical: input.isSafetyCritical ?? false,
+        scheduled_for: input.scheduledFor ?? null,
+        published_at: status === 'published' ? new Date().toISOString() : null,
+      })
+      .select('id')
+      .single();
+    if (error) {
+      this.logger.error(`create failed: ${error.message}`);
+      throw new InternalServerErrorException('Failed to create blog post');
+    }
+    const postId = (post as { id: string }).id;
+
+    await this.writeTypeRow(postId, input.typeData);
+    const keywordText = await this.resolveKeywordText(input.keywordIds ?? []);
+    await this.writeTranslations(postId, input.translations, keywordText);
+    await this.writeTaxonomy(postId, input.categoryIds ?? [], input.keywordIds ?? []);
+
+    if (status === 'published') {
+      await this.writeVersionSnapshot(postId, userId);
+      this.revalidatePost(input.slug);
+    }
+    return this.requireGet(userId, postId);
+  }
+
+  async update(userId: string, input: UpdateBlogPostInput): Promise<BlogPost> {
+    await this.assertAdmin(userId);
+
+    const patch: Record<string, unknown> = {};
+    if (input.author !== undefined) patch.author = input.author;
+    if (input.coverImage !== undefined) patch.cover_image = input.coverImage;
+    if (input.coverAlt !== undefined) patch.cover_alt = input.coverAlt;
+    if (input.specData !== undefined) patch.spec_data = input.specData;
+    if (input.isSafetyCritical !== undefined) patch.is_safety_critical = input.isSafetyCritical;
+    if (Object.keys(patch).length > 0) {
+      const { error } = await this.supabase.from('blog_posts').update(patch).eq('id', input.id);
+      if (error) throw new InternalServerErrorException(`Failed to update post: ${error.message}`);
+    }
+
+    if (input.typeData) await this.writeTypeRow(input.id, input.typeData);
+
+    if (input.translations) {
+      const keywordText =
+        input.keywordIds !== undefined
+          ? await this.resolveKeywordText(input.keywordIds)
+          : await this.currentKeywordText(input.id);
+      await this.writeTranslations(input.id, input.translations, keywordText);
+    }
+
+    if (input.categoryIds !== undefined || input.keywordIds !== undefined) {
+      await this.writeTaxonomy(
+        input.id,
+        input.categoryIds ?? (await this.currentCategoryIds(input.id)),
+        input.keywordIds ?? (await this.currentKeywordIds(input.id)),
+      );
+    }
+
+    const basic = await this.fetchBasic(input.id);
+    if (basic.status === 'published') this.revalidatePost(basic.slug);
+    return this.requireGet(userId, input.id);
+  }
+
+  async publish(userId: string, id: string): Promise<BlogPost> {
+    await this.assertAdmin(userId);
+    const basic = await this.fetchBasic(id);
+    await this.writeVersionSnapshot(id, userId);
+    const { error } = await this.supabase
+      .from('blog_posts')
+      .update({ status: 'published', published_at: basic.publishedAt ?? new Date().toISOString() })
+      .eq('id', id);
+    if (error) throw new InternalServerErrorException(`Failed to publish: ${error.message}`);
+    this.revalidatePost(basic.slug);
+    return this.requireGet(userId, id);
+  }
+
+  async schedule(userId: string, input: ScheduleBlogPostInput): Promise<BlogPost> {
+    await this.assertAdmin(userId);
+    const { error } = await this.supabase
+      .from('blog_posts')
+      .update({ status: 'scheduled', scheduled_for: input.scheduledFor })
+      .eq('id', input.id);
+    if (error) throw new InternalServerErrorException(`Failed to schedule: ${error.message}`);
+    return this.requireGet(userId, input.id);
+  }
+
+  async unpublish(userId: string, id: string): Promise<BlogPost> {
+    await this.assertAdmin(userId);
+    const basic = await this.fetchBasic(id);
+    const { error } = await this.supabase
+      .from('blog_posts')
+      .update({ status: 'draft' })
+      .eq('id', id);
+    if (error) throw new InternalServerErrorException(`Failed to unpublish: ${error.message}`);
+    this.revalidatePost(basic.slug); // drop it from the public listing
+    return this.requireGet(userId, id);
+  }
+
+  async remove(userId: string, id: string): Promise<boolean> {
+    await this.assertAdmin(userId);
+    const basic = await this.fetchBasic(id);
+    const { error } = await this.supabase.from('blog_posts').delete().eq('id', id);
+    if (error) throw new InternalServerErrorException(`Failed to delete: ${error.message}`);
+    this.revalidatePost(basic.slug);
+    return true;
+  }
+
+  async revertVersion(userId: string, id: string, versionNum: number): Promise<BlogPost> {
+    await this.assertAdmin(userId);
+    const { data: v, error: vErr } = await this.supabase
+      .from('blog_post_versions')
+      .select('snapshot')
+      .eq('post_id', id)
+      .eq('version_num', versionNum)
+      .maybeSingle();
+    if (vErr) throw new InternalServerErrorException(`Failed to load version: ${vErr.message}`);
+    if (!v) throw new BadRequestException('Version not found');
+    const snapshot = (v as { snapshot: VersionSnapshot }).snapshot;
+
+    // Snapshot the current state first so a revert is itself versioned (non-destructive).
+    await this.writeVersionSnapshot(id, userId);
+
+    const { id: _id, created_at: _c, updated_at: _u, ...restorable } = snapshot.post ?? {};
+    if (Object.keys(restorable).length > 0) {
+      await this.supabase.from('blog_posts').update(restorable).eq('id', id);
+    }
+    if (Array.isArray(snapshot.translations) && snapshot.translations.length > 0) {
+      // search_vector is trigger-maintained; created_at/updated_at are managed — drop them.
+      const rows = snapshot.translations.map((t) => {
+        const { search_vector: _sv, created_at: _tc, updated_at: _tu, ...rest } = t;
+        return rest;
+      });
+      await this.supabase
+        .from('blog_post_translations')
+        .upsert(rows, { onConflict: 'post_id,locale' });
+    }
+
+    const basic = await this.fetchBasic(id);
+    if (basic.status === 'published') this.revalidatePost(basic.slug);
+    return this.requireGet(userId, id);
+  }
+
+  // --- Mutation helpers ------------------------------------------------------
+
+  private async requireGet(userId: string, id: string): Promise<BlogPost> {
+    const post = await this.adminGet(userId, id);
+    if (!post) throw new InternalServerErrorException('Post not found after write');
+    return post;
+  }
+
+  private async writeTypeRow(postId: string, typeData: Record<string, unknown>): Promise<void> {
+    const parsed = BlogTypeDataSchema.parse(typeData);
+    const { table, row } = typeDataToRow(postId, parsed);
+    const { error } = await this.supabase.from(table).upsert(row, { onConflict: 'post_id' });
+    if (error) throw new InternalServerErrorException(`Failed to write ${table}: ${error.message}`);
+  }
+
+  private async writeTranslations(
+    postId: string,
+    translations: CreateBlogPostInput['translations'],
+    keywordText: string,
+  ): Promise<void> {
+    if (translations.length === 0) return;
+    const rows = translations.map((t) => translationToRow(postId, t, keywordText));
+    const { error } = await this.supabase
+      .from('blog_post_translations')
+      .upsert(rows, { onConflict: 'post_id,locale' });
+    if (error)
+      throw new InternalServerErrorException(`Failed to write translations: ${error.message}`);
+  }
+
+  /** Replace a post's category + keyword links (the keyword trigger refreshes keyword_text). */
+  private async writeTaxonomy(
+    postId: string,
+    categoryIds: string[],
+    keywordIds: string[],
+  ): Promise<void> {
+    await this.supabase.from('blog_post_categories').delete().eq('post_id', postId);
+    if (categoryIds.length > 0) {
+      const rows = categoryIds.map((categoryId, i) => ({
+        post_id: postId,
+        category_id: categoryId,
+        is_primary: i === 0,
+      }));
+      const { error } = await this.supabase.from('blog_post_categories').insert(rows);
+      if (error)
+        throw new InternalServerErrorException(`Failed to link categories: ${error.message}`);
+    }
+
+    await this.supabase.from('blog_post_keywords').delete().eq('post_id', postId);
+    if (keywordIds.length > 0) {
+      const rows = keywordIds.map((keywordId) => ({ post_id: postId, keyword_id: keywordId }));
+      const { error } = await this.supabase.from('blog_post_keywords').insert(rows);
+      if (error)
+        throw new InternalServerErrorException(`Failed to link keywords: ${error.message}`);
+    }
+  }
+
+  private async writeVersionSnapshot(postId: string, userId: string): Promise<void> {
+    const { data: base } = await this.supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('id', postId)
+      .single();
+    const { data: translations } = await this.supabase
+      .from('blog_post_translations')
+      .select('*')
+      .eq('post_id', postId);
+    const { data: maxRow } = await this.supabase
+      .from('blog_post_versions')
+      .select('version_num')
+      .eq('post_id', postId)
+      .order('version_num', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const nextVersion = ((maxRow as { version_num?: number } | null)?.version_num ?? 0) + 1;
+
+    const { error } = await this.supabase.from('blog_post_versions').insert({
+      post_id: postId,
+      version_num: nextVersion,
+      snapshot: { post: base, translations: translations ?? [] },
+      created_by: userId,
+    });
+    if (error) throw new InternalServerErrorException(`Failed to write version: ${error.message}`);
+  }
+
+  private revalidatePost(slug: string): void {
+    this.revalidation.revalidate({ tags: [CACHE_TAGS.blog], paths: ['/blog', `/blog/${slug}`] });
+  }
+
+  private async fetchBasic(
+    id: string,
+  ): Promise<{ slug: string; status: string; publishedAt: string | null }> {
+    const { data } = await this.supabase
+      .from('blog_posts')
+      .select('slug, status, published_at')
+      .eq('id', id)
+      .single();
+    const row = data as { slug: string; status: string; published_at: string | null } | null;
+    if (!row) throw new BadRequestException('Post not found');
+    return { slug: row.slug, status: row.status, publishedAt: row.published_at };
+  }
+
+  private async resolveKeywordText(keywordIds: string[]): Promise<string> {
+    if (keywordIds.length === 0) return '';
+    const { data } = await this.supabase.from('keywords').select('name').in('id', keywordIds);
+    return ((data ?? []) as { name: string }[])
+      .map((k) => k.name)
+      .sort()
+      .join(' ');
+  }
+
+  private async currentKeywordIds(postId: string): Promise<string[]> {
+    const { data } = await this.supabase
+      .from('blog_post_keywords')
+      .select('keyword_id')
+      .eq('post_id', postId);
+    return ((data ?? []) as { keyword_id: string }[]).map((r) => r.keyword_id);
+  }
+
+  private async currentCategoryIds(postId: string): Promise<string[]> {
+    const { data } = await this.supabase
+      .from('blog_post_categories')
+      .select('category_id, is_primary')
+      .eq('post_id', postId)
+      .order('is_primary', { ascending: false });
+    return ((data ?? []) as { category_id: string }[]).map((r) => r.category_id);
+  }
+
+  private async currentKeywordText(postId: string): Promise<string> {
+    return this.resolveKeywordText(await this.currentKeywordIds(postId));
+  }
+}
+
+interface VersionSnapshot {
+  post: Record<string, unknown> & { id?: string; created_at?: string; updated_at?: string };
+  translations: (Record<string, unknown> & {
+    search_vector?: unknown;
+    created_at?: string;
+    updated_at?: string;
+  })[];
 }
 
 // --- Pure row-shape mappers ---------------------------------------------------
