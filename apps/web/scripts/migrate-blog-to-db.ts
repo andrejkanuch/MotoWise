@@ -16,9 +16,12 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { BLOG_LOCALES, BlogPostType } from '@motovault/types';
+import { BLOG_LOCALES, BlogPostType, stripMdxToText } from '@motovault/types';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import matter from 'gray-matter';
+
+// Re-exported so the generator (U10) and tests keep importing it from here.
+export { stripMdxToText };
 
 // --- Frontmatter shape (mirrors apps/web/src/lib/blog.ts Article fields) ------
 interface BlogFrontmatter {
@@ -57,24 +60,6 @@ export function slugify(label: string): string {
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
-}
-
-/**
- * Reduce MDX/markdown body to plain text for the FTS `body_text` column. Strips
- * code fences, HTML/JSX tags, MDX comment markers, table pipes, link/emphasis
- * syntax, and collapses whitespace. Not a renderer — just denoised text.
- */
-export function stripMdxToText(body: string): string {
-  return body
-    .replace(/```[\s\S]*?```/g, ' ') // fenced code
-    .replace(/`[^`]*`/g, ' ') // inline code
-    .replace(/<!--[\s\S]*?-->/g, ' ') // mdx/html comments (SPEC_TABLES markers)
-    .replace(/<[^>]+>/g, ' ') // html/jsx tags
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ') // images
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // links -> text
-    .replace(/[|#>*_~]/g, ' ') // table/heading/emphasis punctuation
-    .replace(/\s+/g, ' ')
-    .trim();
 }
 
 /** Dataset-driven maintenance posts carry `dataset_models`; everything else is a guide. */
