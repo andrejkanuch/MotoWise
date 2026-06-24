@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { DOCUMENT_SIGNED_URL_TTL } from '../../config/constants';
 import { DocumentsService } from './documents.service';
 
 const USER = 'user-1';
@@ -179,6 +180,52 @@ describe('DocumentsService.getSignedUrl', () => {
       error: null,
     });
     await expect(service.getSignedUrl(USER, 'file-1', false)).resolves.toBe('https://admin');
+  });
+
+  it('uses the DOWNLOAD ttl and sets Content-Disposition for downloads (R16)', async () => {
+    const { service, user } = makeService();
+    user.chain.single.mockResolvedValueOnce({
+      data: { storage_path: `${USER}/b/d/f.pdf`, user_id: USER },
+      error: null,
+    });
+    user.createSignedUrl.mockResolvedValueOnce({ data: { signedUrl: 'https://dl' }, error: null });
+    await expect(service.getSignedUrl(USER, 'file-1', true)).resolves.toBe('https://dl');
+    expect(user.createSignedUrl).toHaveBeenCalledWith(
+      `${USER}/b/d/f.pdf`,
+      DOCUMENT_SIGNED_URL_TTL.DOWNLOAD,
+      { download: true },
+    );
+  });
+
+  it('uses the DISPLAY ttl with no download option for inline display (R16)', async () => {
+    const { service, user } = makeService();
+    user.chain.single.mockResolvedValueOnce({
+      data: { storage_path: `${USER}/b/d/f.pdf`, user_id: USER },
+      error: null,
+    });
+    user.createSignedUrl.mockResolvedValueOnce({
+      data: { signedUrl: 'https://disp' },
+      error: null,
+    });
+    await service.getSignedUrl(USER, 'file-1', false);
+    expect(user.createSignedUrl).toHaveBeenCalledWith(
+      `${USER}/b/d/f.pdf`,
+      DOCUMENT_SIGNED_URL_TTL.DISPLAY,
+      undefined,
+    );
+  });
+
+  it('throws when both user and admin signing fail', async () => {
+    const { service, user, admin } = makeService();
+    user.chain.single.mockResolvedValueOnce({
+      data: { storage_path: `${USER}/b/d/f.pdf`, user_id: USER },
+      error: null,
+    });
+    user.createSignedUrl.mockResolvedValueOnce({ data: null, error: { message: 'rls blocked' } });
+    admin.createSignedUrl.mockResolvedValueOnce({ data: null, error: { message: 'down' } });
+    await expect(service.getSignedUrl(USER, 'file-1', false)).rejects.toThrow(
+      InternalServerErrorException,
+    );
   });
 });
 

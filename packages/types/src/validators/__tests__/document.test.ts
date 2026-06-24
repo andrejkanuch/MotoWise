@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_FILES_PER_DOCUMENT } from '../../constants/document-limits';
-import { CreateDocumentSchema } from '../document';
+import { MAX_FILES_PER_DOCUMENT, MAX_IMAGE_BYTES } from '../../constants/document-limits';
+import {
+  AddDocumentCategorySchema,
+  CreateDocumentSchema,
+  UpdateDocumentCategorySchema,
+  UpdateDocumentSchema,
+} from '../document';
 
 const validFile = {
   storagePath: 'user/bike/doc/insurance.pdf',
@@ -47,5 +52,47 @@ describe('CreateDocumentSchema', () => {
 
   it('rejects a malformed expiry date', () => {
     expect(() => CreateDocumentSchema.parse({ ...baseInput, expiryDate: '06/22/2026' })).toThrow();
+  });
+
+  it('accepts an image above the per-image cap (per-MIME cap is service-enforced)', () => {
+    // The Zod ceiling is the largest single-file cap (PDF, 20 MB); the per-type
+    // image cap (5 MB) is enforced in DocumentsService.create via maxBytesForMime.
+    // This documents that split: an over-image-cap JPEG passes Zod but the service
+    // rejects it.
+    const bigImage = {
+      ...baseInput,
+      files: [{ ...validFile, mimeType: 'image/jpeg', fileSizeBytes: MAX_IMAGE_BYTES + 1 }],
+    };
+    expect(() => CreateDocumentSchema.parse(bigImage)).not.toThrow();
+  });
+});
+
+describe('UpdateDocumentSchema', () => {
+  it('treats null expiryDate (clear) and omission (leave) as distinct', () => {
+    expect(UpdateDocumentSchema.parse({ expiryDate: null }).expiryDate).toBeNull();
+    expect('expiryDate' in UpdateDocumentSchema.parse({ title: 'x' })).toBe(false);
+  });
+
+  it('accepts a null note (clear) and a boolean isPinned', () => {
+    expect(UpdateDocumentSchema.parse({ note: null }).note).toBeNull();
+    expect(UpdateDocumentSchema.parse({ isPinned: true }).isPinned).toBe(true);
+  });
+
+  it('rejects an empty title and a non-uuid categoryId', () => {
+    expect(() => UpdateDocumentSchema.parse({ title: '' })).toThrow();
+    expect(() => UpdateDocumentSchema.parse({ categoryId: 'nope' })).toThrow();
+  });
+});
+
+describe('document category schemas', () => {
+  it('AddDocumentCategorySchema enforces a 1–60 char name', () => {
+    expect(AddDocumentCategorySchema.parse({ name: 'Toll Tags' }).name).toBe('Toll Tags');
+    expect(() => AddDocumentCategorySchema.parse({ name: '' })).toThrow();
+    expect(() => AddDocumentCategorySchema.parse({ name: 'x'.repeat(61) })).toThrow();
+  });
+
+  it('UpdateDocumentCategorySchema accepts name and/or isHidden', () => {
+    expect(UpdateDocumentCategorySchema.parse({ isHidden: true }).isHidden).toBe(true);
+    expect(UpdateDocumentCategorySchema.parse({ name: 'Renamed' }).name).toBe('Renamed');
   });
 });
