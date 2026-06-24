@@ -1,4 +1,10 @@
--- Migration: 00139_social_queue_one_autodraft_per_slot_day
+-- Migration: 00155_social_queue_one_autodraft_per_slot_day
+--
+-- NOTE: originally authored as 00139, which collided with the already-applied
+-- prod migration 00139_secure_rollup_rpcs. Renumbered to 00155. This change's
+-- effect (the unique index below) is ALREADY present on production, so the index
+-- creation is made idempotent (IF NOT EXISTS) and this migration is a safe no-op
+-- there; it remains here so a fresh/local DB still gets the index.
 --
 -- Fixes duplicate publishing caused by manual /run-slot calls consuming the
 -- auto-drafted row early, then the real cron tick auto-drafting and publishing
@@ -42,11 +48,11 @@ WHERE source = 'gemini-autodraft'
   );
 
 -- New index: one autodraft row per slot per day, any status
-CREATE UNIQUE INDEX idx_social_post_queue_autodraft_unique
+CREATE UNIQUE INDEX IF NOT EXISTS idx_social_post_queue_autodraft_unique
   ON public.social_post_queue (slot, scheduled_for)
   WHERE source = 'gemini-autodraft';
 
 COMMENT ON INDEX public.idx_social_post_queue_autodraft_unique IS
-  'Ensures at most one gemini-autodraft row per slot+date. See migration 00139.';
+  'Ensures at most one gemini-autodraft row per slot+date. See migration 00155.';
 
 COMMIT;

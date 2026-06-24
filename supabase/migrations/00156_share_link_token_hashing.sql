@@ -1,4 +1,10 @@
--- Migration: 00144_share_link_token_hashing
+-- Migration: 00156_share_link_token_hashing
+--
+-- NOTE: originally authored as 00144, which collided with the already-applied
+-- prod migration 00144_model_insights. Renumbered to 00156. This migration is NOT
+-- yet applied to production. DEPLOY COUPLING: it must ship together with the API
+-- code that hashes the presented token before lookup (resolve()) — applying it
+-- ahead of that code would break every existing share link.
 --
 -- C7 follow-through (audit 2026-06-09): share_links.token was stored in PLAINTEXT
 -- and (until 00141 dropped the anon policy) anon-dumpable. Hash-in-place chosen for
