@@ -69,17 +69,21 @@ describe('toPostRow', () => {
 
 describe('toTranslationRow', () => {
   it('filters invalid faq entries and folds keywords into keyword_text', () => {
-    const row = toTranslationRow('post-1', 'en', {
-      title: 'T',
-      excerpt: 'E',
-      keywords: ['oil change', 'valve'],
-      readingTime: '8',
-      faq: [
-        { question: 'Q', answer: 'A' },
-        // biome-ignore lint: intentionally malformed for the filter test
-        { question: '', answer: 'x' } as { question: string; answer: string },
-      ],
-    }, '# Body\n\nHello world.');
+    const row = toTranslationRow(
+      'post-1',
+      'en',
+      {
+        title: 'T',
+        excerpt: 'E',
+        keywords: ['oil change', 'valve'],
+        readingTime: '8',
+        faq: [
+          { question: 'Q', answer: 'A' },
+          { question: '', answer: 'x' }, // empty question -> filtered out
+        ],
+      },
+      '# Body\n\nHello world.',
+    );
     expect(row.keyword_text).toBe('oil change valve');
     expect(row.faq).toHaveLength(1);
     expect(row.seo_title).toBe('T');

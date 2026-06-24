@@ -100,7 +100,12 @@ export function toPostRow(slug: string, fm: BlogFrontmatter) {
 }
 
 /** Build a translation row for one locale of a post. */
-export function toTranslationRow(postId: string, locale: string, fm: BlogFrontmatter, body: string) {
+export function toTranslationRow(
+  postId: string,
+  locale: string,
+  fm: BlogFrontmatter,
+  body: string,
+) {
   const faq = Array.isArray(fm.faq)
     ? fm.faq.filter(
         (f) =>
@@ -138,7 +143,12 @@ export function readAllDocs(): ParsedDoc[] {
       const raw = readFileSync(join(dir, file), 'utf-8');
       const { data, content } = matter(raw);
       const fm = data as BlogFrontmatter;
-      docs.push({ slug: fm.slug || file.replace(/\.mdx$/, ''), locale, frontmatter: fm, body: content });
+      docs.push({
+        slug: fm.slug || file.replace(/\.mdx$/, ''),
+        locale,
+        frontmatter: fm,
+        body: content,
+      });
     }
   }
   return docs;
@@ -210,7 +220,10 @@ async function importPost(db: SupabaseClient, slug: string, group: ParsedDoc[]):
   if (type === BlogPostType.MAINTENANCE) {
     const { error } = await db
       .from('blog_post_maintenance')
-      .upsert({ post_id: postId, dataset_models: fm.dataset_models ?? [] }, { onConflict: 'post_id' });
+      .upsert(
+        { post_id: postId, dataset_models: fm.dataset_models ?? [] },
+        { onConflict: 'post_id' },
+      );
     if (error) throw new Error(`maintenance row failed (${slug}): ${error.message}`);
   } else {
     const { error } = await db
@@ -232,11 +245,12 @@ async function importPost(db: SupabaseClient, slug: string, group: ParsedDoc[]):
   // 4) category (single, primary) — from the base frontmatter
   if (fm.category) {
     const categoryId = await upsertCategory(db, fm.category);
-    const { error } = await db
-      .from('blog_post_categories')
-      .upsert({ post_id: postId, category_id: categoryId, is_primary: true }, {
+    const { error } = await db.from('blog_post_categories').upsert(
+      { post_id: postId, category_id: categoryId, is_primary: true },
+      {
         onConflict: 'post_id,category_id',
-      });
+      },
+    );
     if (error) throw new Error(`post-category link failed (${slug}): ${error.message}`);
   }
 
