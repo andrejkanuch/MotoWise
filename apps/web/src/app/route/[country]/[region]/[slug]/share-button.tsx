@@ -27,12 +27,25 @@ const iconBtnStyle: React.CSSProperties = {
 };
 
 export function ShareButton({ routeName, variant = 'icon' }: ShareButtonProps) {
-  const handleShare = () => {
+  const handleShare = async () => {
     trackEvent(WebEvent.SHARE_BUTTON_CLICKED, { source: 'route_detail' });
+    const url = window.location.href;
     if (navigator.share) {
-      navigator.share({ title: routeName, url: window.location.href });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
+      try {
+        await navigator.share({ title: routeName, url });
+        return;
+      } catch (err) {
+        // User dismissed the OS share sheet — nothing to recover from.
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        // Any other failure (e.g. SecurityError in a restricted webview) falls
+        // through to the clipboard as a best-effort fallback.
+      }
+    }
+    try {
+      await navigator.clipboard?.writeText(url);
+    } catch {
+      // Clipboard blocked (insecure context / permissions). Give up silently
+      // rather than surface an unhandled rejection.
     }
   };
 

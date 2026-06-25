@@ -328,7 +328,9 @@ export function CostCalculator({ labels }: { labels: Labels }) {
                   <button
                     type="button"
                     onClick={() => {
-                      navigator.clipboard.writeText(window.location.href);
+                      // Swallow rejection — clipboard can be blocked in
+                      // insecure contexts / restricted webviews.
+                      navigator.clipboard?.writeText(window.location.href).catch(() => {});
                       trackEvent(WebEvent.TOOL_USED, {
                         tool: 'cost_calculator',
                         action: 'result_shared',
