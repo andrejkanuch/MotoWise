@@ -28,19 +28,16 @@ The migration is **applied to production** (`tpsoneenbrmdwvzcbifw`, version `001
 
 **U8 scope note:** type + category filters run client-side over the in-memory list; free-text `q` uses the FTS RPC. Keyword filtering is supported via `?keyword=` but there's no 146-item keyword picker UI (categories are the browse facet). New search UI strings are English literals (no next-intl keys added).
 
-**Verified:** prod `pnpm --filter web build` statically generates `● /[locale]/blog` + `● /blog/[slug]` from the live DB (R8 ✓); `pnpm --filter {api,web} typecheck`, Biome, and 24 blog unit tests pass.
+**Verified:** prod `pnpm --filter web build` statically generates `● /[locale]/blog` + `● /blog/[slug]` from the live DB (R8 ✓); `pnpm --filter {api,web} typecheck`, Biome, and blog unit tests pass.
 
-**Still needs a human pass (not blockers):**
-- Admin `create→edit→publish→schedule→revert` end-to-end against a running web+api as an admin user (logic verified, not click-tested).
-- New service methods are thin Supabase wrappers, not mock-tested (matches the module's existing untested service methods); `slugify` mirrors the tested import-script impl.
+**File pipeline DELETED** (commit `d024e3d3`): render-parity gate passed — DB `body_raw` matched every file body verbatim across all 51 translations / 35 posts (same source → identical `compileMDX`), titles + FAQ counts matched. Removed the 51 MDX files + the file-based `blog-internal-links.test.ts`. Kept `content/blog/_data` (generator input) and `migrate-blog-to-db.ts` (one-off importer, historical).
 
-Commits: `93f70952` (migration) → `254fc349` (U7+U8). `git log --oneline 9a6a368a..HEAD`.
+**Admin flow browser-tested** (`/ce-test-browser`, against prod DB via local web :3001 + api :4001): create → edit/save → publish (+ version snapshot) → revert → schedule (local→UTC ✓) → delete (cascade ✓) all pass; list, editor hydration, taxonomy queries (11 categories / 146 keywords), and the version drawer all work. Test post fully cleaned up (back to 35 posts).
+- **Bug found + fixed** (commit `0c92ea0f`): revert was silently unpublishing live posts (publish snapshots pre-status-flip → snapshot carried `status='draft'`). `revertVersion` now strips `status`/`published_at`/`scheduled_for` → revert is a content-only rollback.
 
----
+**Still untested (not blockers):** the service's Supabase methods aren't mock-tested (matches the module's existing pattern); `slugify` mirrors the tested import-script impl.
 
-## Post-merge follow-up: delete the file pipeline
-
-`apps/web/content/blog/**` is **still in the repo** — `blog.ts` no longer reads it (it's inert), but per the plan deletion is gated behind **live-site verification after deploy** + a render-parity pass over all EN posts + translations. Do this as a **separate commit** once the deployed site is confirmed serving from the DB (one-commit rollback via git history). U10 (generator no longer writes files) has already shipped, so nothing recreates the dir.
+Commits: `93f70952` (migration) → `0c92ea0f` (revert fix). `git log --oneline 9a6a368a..HEAD`.
 
 ---
 
