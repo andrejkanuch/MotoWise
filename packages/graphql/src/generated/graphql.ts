@@ -492,7 +492,7 @@ export type DocumentFileInput = {
 export type EndRideInput = {
   autoPausedDurationS?: Scalars['Int']['input'];
   avgSpeedMps?: InputMaybe<Scalars['Float']['input']>;
-  distanceM: Scalars['Float']['input'];
+  distanceM?: Scalars['Float']['input'];
   elevationGain?: InputMaybe<Scalars['Float']['input']>;
   elevationLoss?: InputMaybe<Scalars['Float']['input']>;
   endedAt: Scalars['String']['input'];

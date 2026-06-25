@@ -12,7 +12,6 @@ import * as Application from 'expo-application';
 import { useFonts } from 'expo-font';
 import * as Network from 'expo-network';
 import * as Notifications from 'expo-notifications';
-import * as SecureStore from 'expo-secure-store';
 import {
   getTrackingPermissionsAsync,
   requestTrackingPermissionsAsync,
@@ -88,7 +87,11 @@ import {
   snoozeTaskNotification,
 } from '../lib/notifications';
 import { resolveOnboardingVariant } from '../lib/onboarding-experiment';
-import { LAST_USER_KEY, PersistedQueryClientBoundary } from '../lib/persisted-query-provider';
+import {
+  clearLastUserId,
+  getLastUserId,
+  PersistedQueryClientBoundary,
+} from '../lib/persisted-query-provider';
 import { queryClient } from '../lib/query-client';
 import { queryKeys } from '../lib/query-keys';
 import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
@@ -429,7 +432,7 @@ function RootLayout() {
         // cold starts (the per-mount ref is null on every launch). Lets a
         // server-revoked session surfacing as a null INITIAL_SESSION still run
         // local cleanup. (todo 188)
-        hasPersistedUser: SecureStore.getItem(LAST_USER_KEY) !== null,
+        hasPersistedUser: getLastUserId() !== null,
       });
 
       if (sessionUserId) {
@@ -457,7 +460,7 @@ function RootLayout() {
           // still clears this device's user data.
           queryClient.clear();
           clearPersistedQueryCache();
-          SecureStore.deleteItemAsync(LAST_USER_KEY);
+          clearLastUserId();
           // Preserve unsynced rides across a forced sign-out / token revocation:
           // keep the sync queue AND the active ride's local data while a ride is
           // in progress or ops are still pending, so they drain once auth is

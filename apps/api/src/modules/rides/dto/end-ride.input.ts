@@ -8,7 +8,10 @@ export class EndRideInput {
   @Field()
   endedAt: string;
 
-  @Field(() => Float)
+  // Defaulted (not Float!) so abandoned-ride recovery and the forgot-to-stop
+  // auto-end path — which legitimately have no computed distance — can omit it
+  // without tripping BAD_USER_INPUT. (Sentry MOTO-VAULT-REACT-NATIVE-1J)
+  @Field(() => Float, { defaultValue: 0 })
   distanceM: number;
 
   @Field(() => Float, { nullable: true })
