@@ -1,0 +1,7 @@
+mutation CreateBlogKeyword($input: CreateBlogKeywordInput!) {
+  createBlogKeyword(input: $input) {
+    id
+    slug
+    name
+  }
+}

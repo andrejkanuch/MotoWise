@@ -1,0 +1,5 @@
+mutation UnpublishBlogPost($id: String!) {
+  unpublishBlogPost(id: $id) {
+    ...BlogPostFields
+  }
+}

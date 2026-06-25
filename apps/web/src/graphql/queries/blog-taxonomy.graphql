@@ -1,0 +1,13 @@
+query BlogTaxonomy {
+  adminBlogCategories {
+    id
+    slug
+    name
+    parentId
+  }
+  adminBlogKeywords {
+    id
+    slug
+    name
+  }
+}

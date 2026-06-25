@@ -138,10 +138,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // a translated MDX file for the same slug. Prevents Google from seeing
   // reciprocity errors for locales that fall back to English.
   const articlesByLocale: Record<string, Set<string>> = Object.fromEntries(
-    locales.map((locale) => [locale, new Set(getArticles(locale).map((a) => a.slug))]),
+    await Promise.all(
+      locales.map(
+        async (locale) =>
+          [locale, new Set((await getArticles(locale)).map((a) => a.slug))] as const,
+      ),
+    ),
   );
 
-  const englishArticles = getArticles('en');
+  const englishArticles = await getArticles('en');
   const blogEntries = englishArticles.map((article) => {
     const localesWithTranslation = locales.filter((locale) =>
       articlesByLocale[locale]?.has(article.slug),

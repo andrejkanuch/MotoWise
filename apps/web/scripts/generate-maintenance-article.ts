@@ -1,12 +1,12 @@
 /**
- * Build-time MDX generator for the Africa Twin DCT maintenance article
- * (U5 / KTD 6 — disposable scaffolding).
+ * Maintenance-article generator for the Africa Twin DCT (plan U10).
  *
  * THIS IS NOT PART OF `next build`. It is a standalone Node step
  * (`pnpm --filter web generate:maintenance-article`) run on demand by a
  * developer/admin. It reads VERIFIED dataset rows (`is_verified = true`) from
- * Supabase via the SERVICE ROLE key and writes the article MDX to
- * `content/blog/en/`.
+ * Supabase via the SERVICE ROLE key and UPSERTS the article into the blog CMS
+ * tables (blog_posts + blog_post_maintenance + blog_post_translations.body_raw),
+ * landing as a draft for the admin-review gate. It no longer writes an MDX file.
  *
  * Two generators, never conflated (KTD 5):
  *   - The PROSE comes from the narrative-only LLM path in the API
@@ -40,15 +40,17 @@
  * read from the shell env at run time, NEVER `NEXT_PUBLIC_*`, never bundled.
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { readFileSync } from 'node:fs';
 import {
+  BlogPostStatus,
+  BlogPostType,
   findDigitViolations,
   type MaintenanceNarrative,
   MaintenanceNarrativeSchema,
   type MaintenanceSpecType,
 } from '@motovault/types';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { stripMdxToText } from './migrate-blog-to-db';
 import { convertKmToMiles, convertSpecToImperial } from './unit-convert';
 
 // --- Pilot constants ---------------------------------------------------------
@@ -60,8 +62,16 @@ const VARIANT = 'DCT';
 /** `make/model[/variant]` — the file-based stand-in for the future blog_posts FK (KTD 6). */
 const DATASET_MODELS = [`${MAKE}/${MODEL}/${VARIANT}`];
 
-const OUTPUT_PATH = join(process.cwd(), 'content', 'blog', 'en', `${SLUG}.mdx`);
 const REVALIDATE_PATH = `/blog/${SLUG}`;
+
+// Post-level constants written to CMS columns (were MDX frontmatter).
+const TITLE = 'Honda CRF1100 Africa Twin (DCT) Maintenance Schedule & Service Intervals';
+const KEYWORDS = [
+  'Honda Africa Twin maintenance schedule',
+  'CRF1100 DCT service intervals',
+  'Africa Twin valve clearance',
+  'CRF1100L maintenance',
+];
 
 // JSX-style comments, NOT HTML `<!-- -->`: MDX (next-mdx-remote) rejects `<!--`
 // ("Unexpected character `!`") and would fail to compile the article body. `{/* */}`
@@ -265,43 +275,22 @@ function buildSpecTable(rows: SpecRow[]): { md: string; outOfTolerance: string[]
 
 // --- Frontmatter + MDX assembly ----------------------------------------------
 
-const today = () => new Date().toISOString().slice(0, 10);
+const FAQ_QUESTIONS = [
+  'What does the Africa Twin DCT maintenance schedule cover?',
+  'Should I service my Africa Twin DCT myself or at a dealer?',
+  'What are the key things to know about owning an Africa Twin DCT?',
+  'How often does the Africa Twin DCT need servicing?',
+  'What should I check before a long Africa Twin ride?',
+];
 
-function buildFrontmatter(narrative: MaintenanceNarrative): string {
-  // FAQ pairs are derived from the digit-free key takeaways. Answers reference
-  // the tables generically; the numbers live only in the table region.
-  const faqQuestions = [
-    'What does the Africa Twin DCT maintenance schedule cover?',
-    'Should I service my Africa Twin DCT myself or at a dealer?',
-    'What are the key things to know about owning an Africa Twin DCT?',
-    'How often does the Africa Twin DCT need servicing?',
-    'What should I check before a long Africa Twin ride?',
-  ];
-  const faq = narrative.keyTakeaways
-    .map((takeaway, i) => {
-      const q = faqQuestions[i] ?? faqQuestions[faqQuestions.length - 1];
-      return `  - question: ${JSON.stringify(q)}\n    answer: ${JSON.stringify(takeaway)}`;
-    })
-    .join('\n');
-
-  return [
-    '---',
-    `slug: ${SLUG}`,
-    `title: ${JSON.stringify('Honda CRF1100 Africa Twin (DCT) Maintenance Schedule & Service Intervals')}`,
-    `excerpt: ${JSON.stringify(narrative.intro.slice(0, 155))}`,
-    `keywords: ${JSON.stringify(['Honda Africa Twin maintenance schedule', 'CRF1100 DCT service intervals', 'Africa Twin valve clearance', 'CRF1100L maintenance'])}`,
-    'author: "Andrej Kanuch"',
-    `date: ${JSON.stringify(today())}`,
-    `dateModified: ${JSON.stringify(today())}`,
-    'readingTime: "8"',
-    'locale: "en"',
-    "category: 'brand-guide'",
-    'specData: true',
-    `dataset_models: ${JSON.stringify(DATASET_MODELS)}`,
-    'faq:',
-    faq,
-    '---',
-  ].join('\n');
+/** FAQ pairs from the digit-free key takeaways — stored in the faq jsonb column. */
+export function buildFaq(
+  narrative: MaintenanceNarrative,
+): Array<{ question: string; answer: string }> {
+  return narrative.keyTakeaways.map((answer, i) => ({
+    question: FAQ_QUESTIONS[i] ?? FAQ_QUESTIONS[FAQ_QUESTIONS.length - 1],
+    answer,
+  }));
 }
 
 /** The static narrative body (outside the table region). Regeneration preserves this. */
@@ -320,29 +309,24 @@ function buildNarrativeBody(narrative: MaintenanceNarrative): string {
 }
 
 /**
- * Assemble the MDX. The table region between TABLES_START/END is the ONLY part
- * a re-run replaces; everything else (frontmatter, narrative) is preserved from
- * the existing file when present.
+ * Build the MDX BODY (no frontmatter — that lives in CMS columns now). The table
+ * region between TABLES_START/END is the ONLY part a re-run replaces; the stored
+ * narrative is preserved from the existing body_raw when present (surgical re-gen).
  */
-function assembleMdx(
+export function buildBody(
   narrative: MaintenanceNarrative,
   tablesMd: string,
   existing: string | null,
 ): string {
   const tableBlock = `${TABLES_START}\n\n${tablesMd}\n\n${TABLES_END}`;
 
-  // If the file already exists, surgically replace ONLY the table region and
-  // keep the committed frontmatter + narrative untouched (KTD 6).
   if (existing?.includes(TABLES_START) && existing.includes(TABLES_END)) {
     const start = existing.indexOf(TABLES_START);
     const end = existing.indexOf(TABLES_END) + TABLES_END.length;
     return `${existing.slice(0, start)}${tableBlock}${existing.slice(end)}`;
   }
 
-  // First generation (or a file missing markers): build the whole document.
   return [
-    buildFrontmatter(narrative),
-    '',
     buildNarrativeBody(narrative),
     '',
     '## Maintenance Schedule & Specifications',
@@ -350,6 +334,72 @@ function assembleMdx(
     tableBlock,
     '',
   ].join('\n');
+}
+
+/**
+ * Upsert the maintenance post into the CMS. An existing post keeps its status (so
+ * a published article stays published on re-gen); a brand-new post lands as draft
+ * for the admin-review gate. body_text is recomputed via the shared stripMdxToText
+ * helper; there is no rendered_html cache (KTD11).
+ */
+async function upsertMaintenancePost(
+  db: SupabaseClient,
+  narrative: MaintenanceNarrative,
+  body: string,
+  existingStatus: string | null,
+): Promise<void> {
+  const status = existingStatus ?? BlogPostStatus.DRAFT;
+  const excerpt = narrative.intro.slice(0, 155);
+
+  const { data: post, error: postErr } = await db
+    .from('blog_posts')
+    .upsert(
+      {
+        slug: SLUG,
+        type: BlogPostType.MAINTENANCE,
+        status,
+        spec_data: true,
+        is_safety_critical: true,
+        author: 'Andrej Kanuch',
+      },
+      { onConflict: 'slug' },
+    )
+    .select('id')
+    .single();
+  if (postErr) throw new Error(`blog_posts upsert failed: ${postErr.message}`);
+  const postId = (post as { id: string }).id;
+
+  const { error: mErr } = await db.from('blog_post_maintenance').upsert(
+    {
+      post_id: postId,
+      make: MAKE,
+      model: MODEL,
+      variant: VARIANT,
+      dataset_models: DATASET_MODELS,
+    },
+    { onConflict: 'post_id' },
+  );
+  if (mErr) throw new Error(`blog_post_maintenance upsert failed: ${mErr.message}`);
+
+  const { error: tErr } = await db.from('blog_post_translations').upsert(
+    {
+      post_id: postId,
+      locale: 'en',
+      title: TITLE,
+      excerpt,
+      seo_title: TITLE,
+      seo_description: excerpt,
+      body_raw: body,
+      body_text: stripMdxToText(body),
+      keyword_text: KEYWORDS.join(' '),
+      faq: buildFaq(narrative),
+      reading_time: '8',
+    },
+    { onConflict: 'post_id,locale' },
+  );
+  if (tErr) throw new Error(`blog_post_translations upsert failed: ${tErr.message}`);
+
+  console.log(`[blog] upserted maintenance post ${SLUG} (status=${status})`);
 }
 
 // --- On-demand revalidation (KTD 6) ------------------------------------------
@@ -453,19 +503,40 @@ async function main(): Promise<void> {
 
   const tablesMd = [intervalTable, specTable].filter(Boolean).join('\n\n');
 
-  const existing = existsSync(OUTPUT_PATH) ? readFileSync(OUTPUT_PATH, 'utf-8') : null;
-  const mdx = assembleMdx(narrative, tablesMd, existing);
+  // Surgical table replacement operates on the EXISTING stored en body_raw.
+  const { data: existingPost } = await db
+    .from('blog_posts')
+    .select('id, status')
+    .eq('slug', SLUG)
+    .maybeSingle();
 
-  mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
-  writeFileSync(OUTPUT_PATH, mdx, 'utf-8');
-  console.log(`[mdx] wrote ${OUTPUT_PATH} (${schedules.length} intervals, ${specs.length} specs)`);
+  let existingBody: string | null = null;
+  const existingStatus = (existingPost as { status?: string } | null)?.status ?? null;
+  if (existingPost) {
+    const { data: t } = await db
+      .from('blog_post_translations')
+      .select('body_raw')
+      .eq('post_id', (existingPost as { id: string }).id)
+      .eq('locale', 'en')
+      .maybeSingle();
+    existingBody = (t as { body_raw?: string } | null)?.body_raw ?? null;
+  }
 
-  // Atomic-ish step: write THEN revalidate so the article never lags mobile by
-  // the full ISR window.
+  const body = buildBody(narrative, tablesMd, existingBody);
+  await upsertMaintenancePost(db, narrative, body, existingStatus);
+  console.log(`[blog] ${schedules.length} intervals, ${specs.length} specs`);
+
+  // Upsert THEN revalidate so the article never lags mobile by the full ISR window.
   await triggerRevalidation();
 }
 
-main().catch((err: unknown) => {
-  console.error('[generate-maintenance-article] failed:', err instanceof Error ? err.message : err);
-  process.exitCode = 1;
-});
+// Only run when invoked directly (not when imported by tests).
+if (process.argv[1]?.endsWith('generate-maintenance-article.ts')) {
+  main().catch((err: unknown) => {
+    console.error(
+      '[generate-maintenance-article] failed:',
+      err instanceof Error ? err.message : err,
+    );
+    process.exitCode = 1;
+  });
+}

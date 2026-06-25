@@ -1,0 +1,5 @@
+mutation ScheduleBlogPost($input: ScheduleBlogPostInput!) {
+  scheduleBlogPost(input: $input) {
+    ...BlogPostFields
+  }
+}

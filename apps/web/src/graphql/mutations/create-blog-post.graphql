@@ -1,0 +1,5 @@
+mutation CreateBlogPost($input: CreateBlogPostInput!) {
+  createBlogPost(input: $input) {
+    ...BlogPostFields
+  }
+}

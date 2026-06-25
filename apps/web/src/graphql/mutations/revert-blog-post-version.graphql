@@ -1,0 +1,5 @@
+mutation RevertBlogPostVersion($id: String!, $versionNum: Int!) {
+  revertBlogPostVersion(id: $id, versionNum: $versionNum) {
+    ...BlogPostFields
+  }
+}

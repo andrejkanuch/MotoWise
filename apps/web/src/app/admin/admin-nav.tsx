@@ -7,6 +7,7 @@ import { SignOutButton } from './sign-out-button';
 const navLinks = [
   { href: '/admin', label: 'Overview' },
   { href: '/admin/articles', label: 'Articles' },
+  { href: '/admin/blog', label: 'Blog' },
   { href: '/admin/users', label: 'Users' },
   { href: '/admin/diagnostics', label: 'Diagnostics' },
   { href: '/admin/flags', label: 'Content Flags' },

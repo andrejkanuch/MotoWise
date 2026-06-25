@@ -21,7 +21,8 @@
         "EXPO_PUBLIC_*",
         "APPLE_TEAM_ID",
         "ANDROID_CERT_SHA256"
-      ]
+      ],
+      "passThroughEnv": ["SENTRY_AUTH_TOKEN", "SENTRY_ORG", "SENTRY_PROJECT"]
     },
     "dev": {
       "dependsOn": ["^build"],

@@ -1,0 +1,5 @@
+query AdminBlogPost($id: String!) {
+  adminBlogPost(id: $id) {
+    ...BlogPostFields
+  }
+}

@@ -1,0 +1,8 @@
+mutation CreateBlogCategory($input: CreateBlogCategoryInput!) {
+  createBlogCategory(input: $input) {
+    id
+    slug
+    name
+    parentId
+  }
+}

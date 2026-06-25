@@ -1,0 +1,3 @@
+mutation DeleteBlogPost($id: String!) {
+  deleteBlogPost(id: $id)
+}

@@ -1,4 +1,6 @@
 export * from './article';
+export * from './blog-content-types';
+export * from './blog-post';
 export * from './browse';
 export * from './comment';
 export * from './content-flag';
