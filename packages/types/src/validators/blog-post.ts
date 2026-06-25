@@ -16,6 +16,7 @@ export const BlogSlugSchema = z
   .min(1)
   .max(120)
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'must be kebab-case');
+export type BlogSlug = z.infer<typeof BlogSlugSchema>;
 
 /**
  * cover_image is either an absolute http(s) URL or a root-relative asset path
@@ -28,6 +29,7 @@ export const BlogCoverImageSchema = z
     (v) => /^https?:\/\//.test(v) || v.startsWith('/'),
     'must be an https URL or a root-relative /images path',
   );
+export type BlogCoverImage = z.infer<typeof BlogCoverImageSchema>;
 
 export const BlogFaqItemSchema = z.object({
   question: z.string().min(1),
@@ -48,7 +50,9 @@ export const BlogTranslationInputSchema = z.object({
 });
 export type BlogTranslationInput = z.infer<typeof BlogTranslationInputSchema>;
 
-export const CreateBlogPostInputSchema = z.object({
+// Base object (unrefined) so UpdateBlogPostInputSchema can still `.partial()` it —
+// `.refine()` returns a ZodEffects that has no `.partial()`.
+const BlogPostInputObject = z.object({
   type: z.enum(types),
   slug: BlogSlugSchema,
   status: z.enum(statuses).default(BlogPostStatus.DRAFT),
@@ -64,9 +68,17 @@ export const CreateBlogPostInputSchema = z.object({
   categoryIds: z.array(z.string().uuid()).default([]),
   keywordIds: z.array(z.string().uuid()).default([]),
 });
+
+export const CreateBlogPostInputSchema = BlogPostInputObject
+  // Surface the scheduled-without-date contract as a 400 (clear message) instead
+  // of letting it hit the DB CHECK and re-throw as an opaque 500.
+  .refine((d) => d.status !== BlogPostStatus.SCHEDULED || Boolean(d.scheduledFor), {
+    message: 'scheduledFor is required when status is scheduled',
+    path: ['scheduledFor'],
+  });
 export type CreateBlogPostInput = z.infer<typeof CreateBlogPostInputSchema>;
 
-export const UpdateBlogPostInputSchema = CreateBlogPostInputSchema.partial().extend({
+export const UpdateBlogPostInputSchema = BlogPostInputObject.partial().extend({
   id: z.string().uuid(),
 });
 export type UpdateBlogPostInput = z.infer<typeof UpdateBlogPostInputSchema>;

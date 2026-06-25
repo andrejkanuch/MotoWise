@@ -1,5 +1,5 @@
 import type { CreateBlogCategoryInput, CreateBlogKeywordInput } from '@motovault/types';
-import { BlogTypeDataSchema, CACHE_TAGS } from '@motovault/types';
+import { BlogPostStatus, BlogTypeDataSchema, CACHE_TAGS } from '@motovault/types';
 import {
   BadRequestException,
   ForbiddenException,
@@ -74,11 +74,17 @@ export class BlogService {
 
   /** Admin gate — DB role check (the JWT role claim is informational only). */
   private async assertAdmin(userId: string): Promise<void> {
-    const { data: caller } = await this.supabase
+    const { data: caller, error } = await this.supabase
       .from('users')
       .select('role')
       .eq('id', userId)
       .single();
+    // A DB/RLS failure must not masquerade as an authorization denial — otherwise a
+    // transient Supabase outage 403s every admin instead of surfacing a 500.
+    if (error) {
+      this.logger.error(`assertAdmin role lookup failed: ${error.message}`);
+      throw new InternalServerErrorException('Failed to verify admin role');
+    }
     if (caller?.role !== 'admin') throw new ForbiddenException('Admin only');
   }
 
@@ -220,7 +226,15 @@ export class BlogService {
 
   async create(userId: string, input: CreateBlogPostInput): Promise<BlogPost> {
     await this.assertAdmin(userId);
-    const status = input.status ?? 'draft';
+    // The per-type table is chosen from typeData.type (writeTypeRow); if it disagrees
+    // with the post's base type the read mapper and the write router diverge, leaving an
+    // orphaned per-type row. Reject the mismatch up front.
+    if (input.typeData.type !== input.type) {
+      throw new BadRequestException(
+        `typeData.type (${input.typeData.type}) must match post type (${input.type})`,
+      );
+    }
+    const status = input.status ?? BlogPostStatus.DRAFT;
 
     const { data: post, error } = await this.supabase
       .from('blog_posts')
@@ -234,7 +248,7 @@ export class BlogService {
         spec_data: input.specData ?? false,
         is_safety_critical: input.isSafetyCritical ?? false,
         scheduled_for: input.scheduledFor ?? null,
-        published_at: status === 'published' ? new Date().toISOString() : null,
+        published_at: status === BlogPostStatus.PUBLISHED ? new Date().toISOString() : null,
       })
       .select('id')
       .single();
@@ -249,7 +263,7 @@ export class BlogService {
     await this.writeTranslations(postId, input.translations, keywordText);
     await this.writeTaxonomy(postId, input.categoryIds ?? [], input.keywordIds ?? []);
 
-    if (status === 'published') {
+    if (status === BlogPostStatus.PUBLISHED) {
       await this.writeVersionSnapshot(postId, userId);
       this.revalidatePost(input.slug);
     }
@@ -270,7 +284,24 @@ export class BlogService {
       if (error) throw new InternalServerErrorException(`Failed to update post: ${error.message}`);
     }
 
-    if (input.typeData) await this.writeTypeRow(input.id, input.typeData);
+    if (input.typeData) {
+      // type is immutable after creation; reject typeData whose discriminant disagrees
+      // with the stored base type so we never write an orphaned per-type row.
+      const { data: typeRow, error: typeErr } = await this.supabase
+        .from('blog_posts')
+        .select('type')
+        .eq('id', input.id)
+        .single();
+      if (typeErr)
+        throw new InternalServerErrorException(`Failed to load post: ${typeErr.message}`);
+      const baseType = (typeRow as { type: string } | null)?.type;
+      if (input.typeData.type !== baseType) {
+        throw new BadRequestException(
+          `typeData.type (${input.typeData.type}) must match post type (${baseType})`,
+        );
+      }
+      await this.writeTypeRow(input.id, input.typeData);
+    }
 
     if (input.translations) {
       const keywordText =
@@ -289,7 +320,7 @@ export class BlogService {
     }
 
     const basic = await this.fetchBasic(input.id);
-    if (basic.status === 'published') this.revalidatePost(basic.slug);
+    if (basic.status === BlogPostStatus.PUBLISHED) this.revalidatePost(basic.slug);
     return this.requireGet(userId, input.id);
   }
 
@@ -299,7 +330,10 @@ export class BlogService {
     await this.writeVersionSnapshot(id, userId);
     const { error } = await this.supabase
       .from('blog_posts')
-      .update({ status: 'published', published_at: basic.publishedAt ?? new Date().toISOString() })
+      .update({
+        status: BlogPostStatus.PUBLISHED,
+        published_at: basic.publishedAt ?? new Date().toISOString(),
+      })
       .eq('id', id);
     if (error) throw new InternalServerErrorException(`Failed to publish: ${error.message}`);
     this.revalidatePost(basic.slug);
@@ -310,7 +344,7 @@ export class BlogService {
     await this.assertAdmin(userId);
     const { error } = await this.supabase
       .from('blog_posts')
-      .update({ status: 'scheduled', scheduled_for: input.scheduledFor })
+      .update({ status: BlogPostStatus.SCHEDULED, scheduled_for: input.scheduledFor })
       .eq('id', input.id);
     if (error) throw new InternalServerErrorException(`Failed to schedule: ${error.message}`);
     return this.requireGet(userId, input.id);
@@ -321,7 +355,7 @@ export class BlogService {
     const basic = await this.fetchBasic(id);
     const { error } = await this.supabase
       .from('blog_posts')
-      .update({ status: 'draft' })
+      .update({ status: BlogPostStatus.DRAFT })
       .eq('id', id);
     if (error) throw new InternalServerErrorException(`Failed to unpublish: ${error.message}`);
     this.revalidatePost(basic.slug); // drop it from the public listing
@@ -367,7 +401,12 @@ export class BlogService {
       ...restorable
     } = snapshot.post ?? {};
     if (Object.keys(restorable).length > 0) {
-      await this.supabase.from('blog_posts').update(restorable).eq('id', id);
+      const { error: updErr } = await this.supabase
+        .from('blog_posts')
+        .update(restorable)
+        .eq('id', id);
+      if (updErr)
+        throw new InternalServerErrorException(`Failed to restore post: ${updErr.message}`);
     }
     if (Array.isArray(snapshot.translations) && snapshot.translations.length > 0) {
       // search_vector is trigger-maintained; created_at/updated_at are managed — drop them.
@@ -375,13 +414,15 @@ export class BlogService {
         const { search_vector: _sv, created_at: _tc, updated_at: _tu, ...rest } = t;
         return rest;
       });
-      await this.supabase
+      const { error: upErr } = await this.supabase
         .from('blog_post_translations')
         .upsert(rows, { onConflict: 'post_id,locale' });
+      if (upErr)
+        throw new InternalServerErrorException(`Failed to restore translations: ${upErr.message}`);
     }
 
     const basic = await this.fetchBasic(id);
-    if (basic.status === 'published') this.revalidatePost(basic.slug);
+    if (basic.status === BlogPostStatus.PUBLISHED) this.revalidatePost(basic.slug);
     return this.requireGet(userId, id);
   }
 
@@ -503,7 +544,12 @@ export class BlogService {
     categoryIds: string[],
     keywordIds: string[],
   ): Promise<void> {
-    await this.supabase.from('blog_post_categories').delete().eq('post_id', postId);
+    const { error: delCatErr } = await this.supabase
+      .from('blog_post_categories')
+      .delete()
+      .eq('post_id', postId);
+    if (delCatErr)
+      throw new InternalServerErrorException(`Failed to clear categories: ${delCatErr.message}`);
     if (categoryIds.length > 0) {
       const rows = categoryIds.map((categoryId, i) => ({
         post_id: postId,
@@ -515,7 +561,12 @@ export class BlogService {
         throw new InternalServerErrorException(`Failed to link categories: ${error.message}`);
     }
 
-    await this.supabase.from('blog_post_keywords').delete().eq('post_id', postId);
+    const { error: delKwErr } = await this.supabase
+      .from('blog_post_keywords')
+      .delete()
+      .eq('post_id', postId);
+    if (delKwErr)
+      throw new InternalServerErrorException(`Failed to clear keywords: ${delKwErr.message}`);
     if (keywordIds.length > 0) {
       const rows = keywordIds.map((keywordId) => ({ post_id: postId, keyword_id: keywordId }));
       const { error } = await this.supabase.from('blog_post_keywords').insert(rows);
@@ -525,15 +576,25 @@ export class BlogService {
   }
 
   private async writeVersionSnapshot(postId: string, userId: string): Promise<void> {
-    const { data: base } = await this.supabase
+    const { data: base, error: baseErr } = await this.supabase
       .from('blog_posts')
       .select('*')
       .eq('id', postId)
       .single();
-    const { data: translations } = await this.supabase
+    // Guard the reads: a swallowed error here writes a {post: null} snapshot that a
+    // later revert would apply, wiping the post's content.
+    if (baseErr || !base) {
+      throw new InternalServerErrorException(
+        `Failed to snapshot post: ${baseErr?.message ?? 'post not found'}`,
+      );
+    }
+    const { data: translations, error: trErr } = await this.supabase
       .from('blog_post_translations')
       .select('*')
       .eq('post_id', postId);
+    if (trErr) {
+      throw new InternalServerErrorException(`Failed to snapshot translations: ${trErr.message}`);
+    }
     const { data: maxRow } = await this.supabase
       .from('blog_post_versions')
       .select('version_num')
@@ -559,11 +620,15 @@ export class BlogService {
   private async fetchBasic(
     id: string,
   ): Promise<{ slug: string; status: string; publishedAt: string | null }> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('blog_posts')
       .select('slug, status, published_at')
       .eq('id', id)
       .single();
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 = no rows (genuine 404); anything else is a real failure, not "not found".
+      throw new InternalServerErrorException(`Failed to load post: ${error.message}`);
+    }
     const row = data as { slug: string; status: string; published_at: string | null } | null;
     if (!row) throw new BadRequestException('Post not found');
     return { slug: row.slug, status: row.status, publishedAt: row.published_at };

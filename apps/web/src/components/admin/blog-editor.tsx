@@ -342,9 +342,9 @@ export function BlogEditor({ post }: { post?: Post | null }) {
   };
 
   // ── Save (edit) ──
-  const handleSave = async () => {
-    if (!post) return;
-    await run('save', async () => {
+  const handleSave = async (): Promise<boolean> => {
+    if (!post) return false;
+    return run('save', async () => {
       await gqlFetcher(UpdateBlogPostDocument, {
         input: {
           id: post.id,
@@ -364,7 +364,9 @@ export function BlogEditor({ post }: { post?: Post | null }) {
 
   const handlePublish = async () => {
     if (!post) return;
-    await handleSave();
+    // Don't publish stale content: if the save failed (validation/network), abort
+    // instead of flipping status on top of the last-persisted version.
+    if (!(await handleSave())) return;
     await run('publish', () => gqlFetcher(PublishBlogPostDocument, { id: post.id }));
     router.refresh();
   };
@@ -376,7 +378,7 @@ export function BlogEditor({ post }: { post?: Post | null }) {
       setError('Pick a valid date & time to schedule.');
       return;
     }
-    await handleSave();
+    if (!(await handleSave())) return;
     await run('schedule', () =>
       gqlFetcher(ScheduleBlogPostDocument, { input: { id: post.id, scheduledFor: iso } }),
     );
