@@ -1,15 +1,23 @@
+import { MyMotorcyclesDocument } from '@motovault/graphql';
+import { useQuery } from '@tanstack/react-query';
 import * as Application from 'expo-application';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { ArrowRight } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOut, FadeOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getLatestRelease } from '../../data/whats-new-releases';
+import {
+  getLatestRelease,
+  type WhatsNewAction,
+  type WhatsNewSlide,
+} from '../../data/whats-new-releases';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { gqlFetcher } from '../../lib/graphql-client';
+import { queryKeys } from '../../lib/query-keys';
 import { useWhatsNewStore } from '../../stores/whats-new.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 
@@ -25,8 +33,14 @@ export default function WhatsNewModal() {
   const displayVersion = release.version;
   const slides = release.slides;
 
+  // Cached from the home screen — used to resolve the fast-action target bike.
+  const { data: bikesData } = useQuery({
+    queryKey: queryKeys.motorcycles.all,
+    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+  });
+
   const [currentIndex, setCurrentIndex] = useState(0);
-  const slide = slides[currentIndex];
+  const slide: WhatsNewSlide = slides[currentIndex];
   const Icon = slide.icon;
   const isLast = currentIndex === slides.length - 1;
   const featureTint = slide.iconColor;
@@ -41,12 +55,40 @@ export default function WhatsNewModal() {
     router.back();
   }, [currentVersion, setLastSeenVersion, router]);
 
+  // Fast-action CTA: mark the release seen, close the modal, and deep-link to the
+  // feature. For the document vault that means the rider's primary bike (or the
+  // first one) where the Documents section lives; with no bikes, the garage.
+  const runAction = useCallback(
+    (action: WhatsNewAction) => {
+      setLastSeenVersion(currentVersion);
+      const bikes = bikesData?.myMotorcycles ?? [];
+      const target = bikes.find((b) => b.isPrimary) ?? bikes[0];
+      trackEvent(AnalyticsEvent.WHATS_NEW_CTA_TAPPED, {
+        version: currentVersion,
+        action,
+        had_bike: !!target,
+      });
+      router.back();
+      if (action === 'open-document-vault') {
+        const href: Href = target
+          ? { pathname: '/(tabs)/(garage)/bike/[id]', params: { id: target.id } }
+          : '/(tabs)/(garage)';
+        setTimeout(() => router.push(href), 60);
+      }
+    },
+    [bikesData, currentVersion, setLastSeenVersion, router],
+  );
+
   const handleNext = useCallback(() => {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     if (isLast) {
-      dismiss();
+      if (slide.ctaAction) {
+        runAction(slide.ctaAction);
+      } else {
+        dismiss();
+      }
     } else {
       const nextIndex = currentIndex + 1;
       trackEvent(AnalyticsEvent.WHATS_NEW_SLIDE_VIEWED, {
@@ -57,7 +99,7 @@ export default function WhatsNewModal() {
       });
       setCurrentIndex(nextIndex);
     }
-  }, [isLast, dismiss, currentIndex, currentVersion, slides]);
+  }, [isLast, dismiss, runAction, slide.ctaAction, currentIndex, currentVersion, slides]);
 
   const handleSkip = useCallback(() => {
     if (process.env.EXPO_OS === 'ios') {
@@ -106,7 +148,7 @@ export default function WhatsNewModal() {
             textTransform: 'uppercase',
           }}
         >
-          {t('whatsNew.badge')} · v{displayVersion}
+          {`${t('whatsNew.badge')} · v${displayVersion}`}
         </Text>
         {!isLast && (
           <Pressable onPress={handleSkip} hitSlop={16}>
@@ -316,7 +358,11 @@ export default function WhatsNewModal() {
           })}
         >
           <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff' }}>
-            {isLast ? t('whatsNew.getStarted') : t('whatsNew.next')}
+            {isLast
+              ? slide.ctaAction
+                ? t((slide.ctaLabelKey ?? 'whatsNew.getStarted') as never)
+                : t('whatsNew.getStarted')
+              : t('whatsNew.next')}
           </Text>
           <ArrowRight size={16} color="#fff" />
         </Pressable>

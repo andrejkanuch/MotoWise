@@ -1,0 +1,3 @@
+mutation DeleteDocument($id: String!) {
+  deleteDocument(id: $id)
+}

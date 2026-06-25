@@ -1,0 +1,20 @@
+mutation CreateDocument($input: CreateDocumentInput!) {
+  createDocument(input: $input) {
+    id
+    motorcycleId
+    categoryId
+    title
+    expiryDate
+    note
+    isPinned
+    createdAt
+    updatedAt
+    files {
+      id
+      documentId
+      mimeType
+      fileSizeBytes
+      createdAt
+    }
+  }
+}

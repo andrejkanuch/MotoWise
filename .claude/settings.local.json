@@ -46,5 +46,6 @@
       "Bash(grep:*)",
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\(''''extraKnownMarketplaces'''',{}\\), indent=2\\)\\)\")"
     ]
-  }
+  },
+  "enabledMcpjsonServers": ["sentry"]
 }

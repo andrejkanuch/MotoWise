@@ -1,4 +1,5 @@
 import { resolve } from 'node:path';
+import type { ExpenseCategory } from '@motovault/types';
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 
@@ -12,18 +13,7 @@ const USER_EMAIL = 'kanuchandrej@gmail.com';
 
 interface Expense {
   amount: number;
-  category:
-    | 'fuel'
-    | 'maintenance'
-    | 'parts'
-    | 'gear'
-    | 'tires'
-    | 'insurance'
-    | 'registration'
-    | 'tolls'
-    | 'parking'
-    | 'modifications'
-    | 'training';
+  category: ExpenseCategory;
   description: string;
   monthsAgo: number;
   currency: string;

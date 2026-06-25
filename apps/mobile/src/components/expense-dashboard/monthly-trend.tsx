@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import { EXPENSE_CATEGORIES } from '@motovault/types/validators';
+import { EXPENSE_CATEGORIES } from '@motovault/types';
 import { memo, useMemo } from 'react';
 import { Text, View } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
@@ -9,17 +9,7 @@ import { useEditorialTheme } from '../../theme/editorial';
 interface MonthlyBucket {
   month: number;
   year: number;
-  fuel: number;
-  maintenance: number;
-  parts: number;
-  gear: number;
-  tires: number;
-  insurance: number;
-  registration: number;
-  tolls: number;
-  parking: number;
-  modifications: number;
-  training: number;
+  categories: { category: string; total: number }[];
   total: number;
 }
 
@@ -56,10 +46,12 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets }: MonthlyTrend
     const data = buckets.map((bucket) => {
       if (bucket.total > max) max = bucket.total;
 
-      const stacks = EXPENSE_CATEGORIES.filter((cat) => bucket[cat] > 0).map((cat) => {
-        catSet.add(cat);
-        return { value: bucket[cat], color: CATEGORY_COLORS[cat] };
-      });
+      const stacks = bucket.categories
+        .filter((c) => c.total > 0)
+        .map((c) => {
+          catSet.add(c.category);
+          return { value: c.total, color: CATEGORY_COLORS[c.category] };
+        });
 
       return {
         stacks: stacks.length > 0 ? stacks : [{ value: 0, color: 'transparent' }],

@@ -1,5 +1,4 @@
 import { ExpenseDashboardDocument } from '@motovault/graphql';
-import { EXPENSE_CATEGORIES } from '@motovault/types/validators';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { gqlFetcher } from '../lib/graphql-client';
@@ -72,8 +71,8 @@ export function useDashboardData(
 
     const totals: Record<string, number> = {};
     for (const bucket of filteredBuckets) {
-      for (const cat of EXPENSE_CATEGORIES) {
-        totals[cat] = (totals[cat] ?? 0) + (bucket[cat] ?? 0);
+      for (const { category, total } of bucket.categories) {
+        totals[category] = (totals[category] ?? 0) + total;
       }
     }
 

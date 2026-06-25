@@ -10,7 +10,13 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useCurrency } from '../../hooks/use-currency';
-import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../lib/expense-constants';
+import {
+  CATEGORY_COLORS,
+  CATEGORY_LABELS,
+  formatCurrencyInput,
+  PRIMARY_CATEGORIES,
+  ZERO_DECIMAL_CURRENCIES,
+} from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { maybeRequestReview } from '../../lib/store-review';
@@ -18,15 +24,10 @@ import { useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 import { toISODateInput } from '../../utils/trip-form-dates';
 
-const CATEGORIES = ['fuel', 'maintenance', 'parts', 'gear'] as const;
+// Aligned with the primary chip set from the single source of truth
+// (packages/types EXPENSE_CATEGORY_META) so this quick logger matches add-expense.
+const CATEGORIES = PRIMARY_CATEGORIES;
 type Category = (typeof CATEGORIES)[number];
-
-const CATEGORY_META: Record<Category, { color: string; label: string }> = {
-  fuel: { color: palette.warning500, label: 'Fuel' },
-  maintenance: { color: palette.primary500, label: 'Maintenance' },
-  parts: { color: palette.success500, label: 'Parts' },
-  gear: { color: palette.danger500, label: 'Gear' },
-};
 
 export default function AddExpenseScreen() {
   const { t } = useTranslation();
@@ -155,7 +156,7 @@ export default function AddExpenseScreen() {
         <View style={{ flexDirection: 'row', gap: 8 }}>
           {CATEGORIES.map((c) => {
             const selected = category === c;
-            const meta = CATEGORY_META[c];
+            const meta = { color: CATEGORY_COLORS[c], label: CATEGORY_LABELS[c] };
             return (
               <Pressable
                 key={c}

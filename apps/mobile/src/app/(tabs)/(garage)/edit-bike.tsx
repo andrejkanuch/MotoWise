@@ -45,6 +45,7 @@ import { useCurrency } from '../../../hooks/use-currency';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../lib/image-upload';
+import { cancelDocumentNotificationsForBike } from '../../../lib/notifications';
 import { queryKeys } from '../../../lib/query-keys';
 import { maybeRequestReview } from '../../../lib/store-review';
 import { useAuthStore } from '../../../stores/auth.store';
@@ -307,6 +308,8 @@ export default function EditBikeScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.all });
+      // Soft-deleting a bike hides its documents — stop their expiry reminders.
+      void cancelDocumentNotificationsForBike(id);
       isDirtyRef.current = false;
       triggerNotification(Haptics.NotificationFeedbackType.Warning);
       router.dismiss(2);

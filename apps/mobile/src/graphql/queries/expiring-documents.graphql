@@ -1,0 +1,10 @@
+query ExpiringDocuments($withinDays: Int) {
+  expiringDocuments(withinDays: $withinDays) {
+    id
+    motorcycleId
+    categoryId
+    title
+    expiryDate
+    isPinned
+  }
+}

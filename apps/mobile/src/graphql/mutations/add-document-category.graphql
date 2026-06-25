@@ -1,0 +1,11 @@
+mutation AddDocumentCategory($input: AddDocumentCategoryInput!) {
+  addDocumentCategory(input: $input) {
+    id
+    name
+    kind
+    isHidden
+    promptsExpiry
+    createdAt
+    updatedAt
+  }
+}

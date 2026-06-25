@@ -1,0 +1,3 @@
+mutation DeleteDocumentCategory($id: String!) {
+  deleteDocumentCategory(id: $id)
+}

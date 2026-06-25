@@ -7,17 +7,10 @@ query ExpenseDashboard($motorcycleId: String!) {
     monthlyBuckets {
       month
       year
-      fuel
-      maintenance
-      parts
-      gear
-      tires
-      insurance
-      registration
-      tolls
-      parking
-      modifications
-      training
+      categories {
+        category
+        total
+      }
       total
     }
     categoryTotals {

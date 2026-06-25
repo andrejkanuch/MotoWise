@@ -79,6 +79,7 @@ describe('MotorcyclesResolver', () => {
         mockMakeStatsService,
         mockNhtsaService,
         mockOemSchedulesService,
+        { load: vi.fn().mockResolvedValue([]) } as never,
         mockSupabase,
       );
     });

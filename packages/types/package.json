@@ -24,7 +24,8 @@
   },
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch"
+    "dev": "tsup --watch",
+    "generate:types": "supabase gen types typescript --linked --workdir ../.. --schema public,graphql_public > src/database.types.ts"
   },
   "dependencies": {
     "zod": "^3.23.0"

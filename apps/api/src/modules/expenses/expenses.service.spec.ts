@@ -188,12 +188,50 @@ describe('ExpensesService', () => {
         category: 'fuel',
         date: '2025-06-01',
         description: 'Gas station',
+        item_name: null,
       });
       expect(result.id).toBe('new-1');
       expect(result.motorcycleId).toBe('m1');
       expect(result.amount).toBe(45.5);
       expect(result.category).toBe('fuel');
       expect(result.description).toBe('Gas station');
+    });
+
+    it('persists the optional itemName as item_name and maps it back', async () => {
+      const input = {
+        motorcycleId: 'm1',
+        amount: 336.16,
+        category: 'accessories',
+        date: '2025-06-01',
+        itemName: 'GPR-Tech Alpi-Tech 55L top case',
+      };
+
+      mock.chain.single.mockResolvedValueOnce({
+        data: {
+          id: 'new-2',
+          user_id: 'u1',
+          motorcycle_id: 'm1',
+          amount: '336.16',
+          category: 'accessories',
+          date: '2025-06-01',
+          description: null,
+          item_name: 'GPR-Tech Alpi-Tech 55L top case',
+          maintenance_task_id: null,
+          created_at: '2025-06-01T12:00:00Z',
+        },
+        error: null,
+      });
+
+      const result = await service.create('u1', input);
+
+      expect(mock.chain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'accessories',
+          item_name: 'GPR-Tech Alpi-Tech 55L top case',
+        }),
+      );
+      expect(result.itemName).toBe('GPR-Tech Alpi-Tech 55L top case');
+      expect(result.category).toBe('accessories');
     });
   });
 
@@ -344,11 +382,13 @@ describe('ExpensesService', () => {
         (b) => b.year === currentYear && b.month === 3,
       );
       expect(marchBucket).toBeDefined();
-      expect(marchBucket?.fuel).toBe(100);
-      expect(marchBucket?.maintenance).toBe(200.5);
       expect(marchBucket?.total).toBe(300.5);
-      // Categories not present in the bucket default to 0.
-      expect(marchBucket?.parts).toBe(0);
+      // Only categories with spend are present (no zero padding); order follows
+      // the RPC's category→amount map.
+      expect(marchBucket?.categories).toEqual([
+        { category: 'fuel', total: 100 },
+        { category: 'maintenance', total: 200.5 },
+      ]);
 
       const fuelCat = result.categoryTotals.find((c) => c.category === 'fuel');
       expect(fuelCat?.total).toBe(150);

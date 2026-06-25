@@ -341,6 +341,16 @@ function autoEndRide(idleSince: number): void {
       ? encodePolyline(allWaypoints.map((wp) => [wp.latitude, wp.longitude] as [number, number]))
       : null;
 
+  // distanceM is required server-side (BAD_USER_INPUT otherwise); compute it
+  // from the waypoints we already have rather than dropping the field.
+  let totalDistance = 0;
+  for (let i = 1; i < allWaypoints.length; i++) {
+    totalDistance += distanceMeters(
+      { lat: allWaypoints[i - 1].latitude, lng: allWaypoints[i - 1].longitude },
+      { lat: allWaypoints[i].latitude, lng: allWaypoints[i].longitude },
+    );
+  }
+
   // Upload any remaining waypoints that didn't fill a full chunk, then drop the
   // persisted buffer key — the durable copy now lives in the sync queue, so a
   // kill after this point must not let crash-recovery re-enqueue the same points.
@@ -360,6 +370,7 @@ function autoEndRide(idleSince: number): void {
       input: {
         rideId,
         endedAt,
+        distanceM: Math.round(totalDistance),
         routePolyline: polyline,
         autoPausedDurationS: Math.round(totalAutoPaused / 1000),
       },

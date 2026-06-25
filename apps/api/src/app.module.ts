@@ -22,6 +22,7 @@ import { BlogModule } from './modules/blog/blog.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { ContentFlagsModule } from './modules/content-flags/content-flags.module';
 import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
+import { DocumentsModule } from './modules/documents/documents.module';
 import { EmailModule } from './modules/email/email.module';
 import { EntitlementsModule } from './modules/entitlements/entitlements.module';
 import { ExpensesModule } from './modules/expenses/expenses.module';
@@ -103,6 +104,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     BlogModule,
     QuizzesModule,
     DiagnosticsModule,
+    DocumentsModule,
     ExpensesModule,
     FuelLogsModule,
     FeedModule,

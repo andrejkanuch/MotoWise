@@ -1,21 +1,20 @@
 import { z } from 'zod';
 import { Currency } from '../constants/enums';
+// Categories live in the single source of truth (constants/expense-categories.ts),
+// surfaced on the main barrel. Imported here only to build the Zod enum.
+import { EXPENSE_CATEGORIES } from '../constants/expense-categories';
 
 const currencyValues = Object.values(Currency) as [string, ...string[]];
 
-export const EXPENSE_CATEGORIES = [
-  'fuel',
-  'maintenance',
-  'parts',
-  'gear',
-  'tires',
-  'insurance',
-  'registration',
-  'tolls',
-  'parking',
-  'modifications',
-  'training',
-] as const;
+/** Optional structured product name — the *noun* (what was bought), distinct
+ *  from `description` (context/notes). Trimmed; empty input becomes undefined. */
+const itemNameSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(120)
+  .optional()
+  .transform((v) => v || undefined);
 
 export const LogExpenseSchema = z.object({
   motorcycleId: z.string().uuid(),
@@ -23,6 +22,7 @@ export const LogExpenseSchema = z.object({
   category: z.enum(EXPENSE_CATEGORIES),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format'),
   description: z.string().max(200).optional(),
+  itemName: itemNameSchema,
   currency: z.enum(currencyValues).optional(),
 });
 export type LogExpense = z.infer<typeof LogExpenseSchema>;
@@ -35,6 +35,7 @@ export const UpdateExpenseSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format')
     .optional(),
   description: z.string().max(200).nullable().optional(),
+  itemName: z.string().trim().max(120).nullable().optional(),
 });
 export type UpdateExpense = z.infer<typeof UpdateExpenseSchema>;
 

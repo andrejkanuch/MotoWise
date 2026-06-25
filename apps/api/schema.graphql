@@ -1,6 +1,6 @@
-# ------------------------------------------------------
-# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
-# ------------------------------------------------------
+input AddDocumentCategoryInput {
+  name: String!
+}
 
 input AddExpensePhotoInput {
   expenseId: String!
@@ -353,6 +353,16 @@ input CreateDiagnosticInput {
   wizardAnswers: JSON
 }
 
+input CreateDocumentInput {
+  categoryId: String!
+  documentId: String!
+  expiryDate: String
+  files: [DocumentFileInput!]!
+  motorcycleId: String!
+  note: String
+  title: String!
+}
+
 input CreateFlagInput {
   articleId: String!
   comment: String!
@@ -507,10 +517,47 @@ enum DiagnosticSeverity {
   medium
 }
 
+type Document {
+  categoryId: String!
+  createdAt: String!
+  expiryDate: String
+  files: [DocumentFile!]!
+  id: ID!
+  isPinned: Boolean!
+  motorcycleId: String!
+  note: String
+  title: String!
+  updatedAt: String!
+}
+
+type DocumentCategory {
+  createdAt: String!
+  id: ID!
+  isHidden: Boolean!
+  kind: String!
+  name: String!
+  promptsExpiry: Boolean!
+  updatedAt: String!
+}
+
+type DocumentFile {
+  createdAt: String!
+  documentId: String!
+  fileSizeBytes: Int
+  id: ID!
+  mimeType: String!
+}
+
+input DocumentFileInput {
+  fileSizeBytes: Int!
+  mimeType: String!
+  storagePath: String!
+}
+
 input EndRideInput {
   autoPausedDurationS: Int! = 0
   avgSpeedMps: Float
-  distanceM: Float!
+  distanceM: Float! = 0
   elevationGain: Float
   elevationLoss: Float
   endedAt: String!
@@ -535,6 +582,7 @@ type Expense {
   date: String!
   description: String
   id: ID!
+  itemName: String
   maintenanceTaskId: String
   motorcycleId: String!
   photos: [ExpensePhoto!]
@@ -861,6 +909,7 @@ input LogExpenseInput {
   currency: String
   date: String!
   description: String
+  itemName: String
   motorcycleId: String!
 }
 
@@ -946,25 +995,16 @@ input ManualBikeInfoInput {
 }
 
 type MonthlyBucket {
-  fuel: Float!
-  gear: Float!
-  insurance: Float!
-  maintenance: Float!
-  modifications: Float!
+  categories: [CategoryTotal!]!
   month: Int!
-  parking: Float!
-  parts: Float!
-  registration: Float!
-  tires: Float!
-  tolls: Float!
   total: Float!
-  training: Float!
   year: Int!
 }
 
 type Motorcycle {
   createdAt: String!
   currentMileage: Int
+  documents: [Document!]!
   engineCc: Int
   id: ID!
   isPrimary: Boolean!
@@ -1011,6 +1051,7 @@ enum MotorcycleType {
 }
 
 type Mutation {
+  addDocumentCategory(input: AddDocumentCategoryInput!): DocumentCategory!
   addExpensePhoto(input: AddExpensePhotoInput!): ExpensePhoto!
   addTaskPhoto(input: AddTaskPhotoInput!): TaskPhoto!
   addWaypoint(input: CreateWaypointInput!): TripWaypoint!
@@ -1027,6 +1068,7 @@ type Mutation {
   createBlogPost(input: CreateBlogPostInput!): BlogPost!
   createComment(input: CreateCommentInput!): Comment!
   createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
+  createDocument(input: CreateDocumentInput!): Document!
   createFlag(input: CreateFlagInput!): ContentFlag!
   createFuelLog(input: CreateFuelLogInput!): FuelLog!
   createGroupRide(input: CreateGroupRideInput!): GroupRide!
@@ -1040,6 +1082,8 @@ type Mutation {
   deleteAccount: Boolean!
   deleteBlogPost(id: String!): Boolean!
   deleteComment(commentId: ID!): Boolean!
+  deleteDocument(id: String!): Boolean!
+  deleteDocumentCategory(id: String!): Boolean!
   deleteExpense(id: String!): Boolean!
   deleteExpensePhoto(photoId: String!): Boolean!
   deleteFuelLog(id: String!): Boolean!
@@ -1108,6 +1152,8 @@ type Mutation {
   unsaveTrip(tripId: ID!): Boolean!
   unshareRide(rideId: String!, sharedWithUserId: String!): Boolean!
   updateBlogPost(input: UpdateBlogPostInput!): BlogPost!
+  updateDocument(id: String!, input: UpdateDocumentInput!): Document!
+  updateDocumentCategory(id: String!, input: UpdateDocumentCategoryInput!): DocumentCategory!
   updateGroupRide(input: UpdateGroupRideInput!): GroupRide!
   updateHandle(input: UpdateHandleInput!): User!
   updateMaintenanceTask(id: String!, input: UpdateMaintenanceTaskInput!): MaintenanceTask!
@@ -1259,13 +1305,17 @@ type Query {
   browseRegionsByCountrySlug(countrySlug: String!): [BrowsePlace!]!
   diagnosticById(id: String!): Diagnostic
   discoverRiderTrips(after: String, first: Int = 5): TripConnection!
+  documentCategories(includeHidden: Boolean): [DocumentCategory!]!
+  documents(motorcycleId: String!): [Document!]!
   expenseDashboard(motorcycleId: String!): ExpenseDashboardSummary!
   expensePhotos(expenseId: String!): [ExpensePhoto!]!
   expenses(motorcycleId: String!, year: Int): ExpenseSummary!
+  expiringDocuments(withinDays: Int): [Document!]!
   fuelLogs(motorcycleId: String!): [FuelLog!]!
   fuelStops(radiusKm: Float = 5, routeId: ID!): [FuelStop!]!
   fuelStopsNearRoute(bikeId: ID, radiusKm: Float = 5, routeId: ID!): FuelRangeResult!
   getComments(after: String, first: Int = 20, groupRideId: ID, rideId: ID, routeId: ID, tripId: ID): CommentConnection!
+  getDocumentSignedUrl(download: Boolean, fileId: String!): String!
   getFollowers(after: String, first: Int = 20, userId: String!): FollowConnection!
   getFollowing(after: String, first: Int = 20, userId: String!): FollowConnection!
 
@@ -1947,6 +1997,19 @@ input UpdateBlogPostInput {
   specData: Boolean
   translations: [BlogTranslationInput!]
   typeData: JSON
+}
+
+input UpdateDocumentCategoryInput {
+  isHidden: Boolean
+  name: String
+}
+
+input UpdateDocumentInput {
+  categoryId: String
+  expiryDate: String
+  isPinned: Boolean
+  note: String
+  title: String
 }
 
 input UpdateGroupRideInput {

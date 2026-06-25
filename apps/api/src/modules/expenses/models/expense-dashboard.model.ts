@@ -1,6 +1,15 @@
 import { Field, Float, Int, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
+export class CategoryTotal {
+  @Field()
+  category: string;
+
+  @Field(() => Float)
+  total: number;
+}
+
+@ObjectType()
 export class MonthlyBucket {
   @Field(() => Int)
   month: number;
@@ -8,47 +17,11 @@ export class MonthlyBucket {
   @Field(() => Int)
   year: number;
 
-  @Field(() => Float)
-  fuel: number;
-
-  @Field(() => Float)
-  maintenance: number;
-
-  @Field(() => Float)
-  parts: number;
-
-  @Field(() => Float)
-  gear: number;
-
-  @Field(() => Float)
-  tires: number;
-
-  @Field(() => Float)
-  insurance: number;
-
-  @Field(() => Float)
-  registration: number;
-
-  @Field(() => Float)
-  tolls: number;
-
-  @Field(() => Float)
-  parking: number;
-
-  @Field(() => Float)
-  modifications: number;
-
-  @Field(() => Float)
-  training: number;
-
-  @Field(() => Float)
-  total: number;
-}
-
-@ObjectType()
-export class CategoryTotal {
-  @Field()
-  category: string;
+  // Generic per-category breakdown for the month. Only categories with spend are
+  // present (no zero padding). Replaced the previous 11 hardcoded Float columns,
+  // so new categories flow through without a schema change.
+  @Field(() => [CategoryTotal])
+  categories: CategoryTotal[];
 
   @Field(() => Float)
   total: number;

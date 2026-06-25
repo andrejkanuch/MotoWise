@@ -97,7 +97,7 @@ export default function StartRideScreen() {
     const rideId = rideMMKV.getCurrentId();
     if (rideId) {
       enqueueOrExecute('endRide', {
-        variables: { input: { rideId, endedAt: new Date().toISOString() } },
+        variables: { input: { rideId, endedAt: new Date().toISOString(), distanceM: 0 } },
       });
       trackEvent(AnalyticsEvent.RIDE_ABANDONED, {
         ride_id: rideId,

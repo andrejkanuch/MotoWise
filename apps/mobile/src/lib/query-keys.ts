@@ -58,6 +58,14 @@ export const queryKeys = {
   expensePhotos: {
     byExpense: (expenseId: string) => ['expense-photos', expenseId] as const,
   },
+  documents: {
+    byMotorcycle: (motorcycleId: string) => ['documents', 'byMotorcycle', motorcycleId] as const,
+    /** Prefix key — invalidate this to refresh BOTH includeHidden variants. */
+    categoriesAll: ['documents', 'categories'] as const,
+    categories: (includeHidden: boolean) =>
+      [...queryKeys.documents.categoriesAll, includeHidden] as const,
+    expiring: ['documents', 'expiring'] as const,
+  },
   makeStats: {
     all: ['makeStats'] as const,
   },

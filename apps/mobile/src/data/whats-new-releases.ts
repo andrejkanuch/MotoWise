@@ -1,7 +1,9 @@
 import { palette } from '@motovault/design-system';
 import type { LucideIcon } from 'lucide-react-native';
 import {
+  BellRing,
   Bike,
+  FileText,
   Gauge,
   LayoutGrid,
   Map as MapIcon,
@@ -17,11 +19,21 @@ import {
   Wrench,
 } from 'lucide-react-native';
 
+/**
+ * Optional fast-action a slide's primary CTA can perform instead of just
+ * dismissing — deep-links the rider straight into the new feature.
+ */
+export type WhatsNewAction = 'open-document-vault';
+
 export interface WhatsNewSlide {
   icon: LucideIcon;
   iconColor: string;
   titleKey: string;
   descriptionKey: string;
+  /** When set, this slide's primary button performs the action + marks the release seen. */
+  ctaAction?: WhatsNewAction;
+  /** i18n key for the action button label (falls back to the standard CTA copy). */
+  ctaLabelKey?: string;
 }
 
 export interface WhatsNewRelease {
@@ -35,6 +47,25 @@ export interface WhatsNewRelease {
  * the current app version is shown.
  */
 export const WHATS_NEW_RELEASES = [
+  {
+    version: '3.11.0',
+    slides: [
+      {
+        icon: FileText,
+        iconColor: palette.signature400,
+        titleKey: 'whatsNew.v3110.vaultTitle' as const,
+        descriptionKey: 'whatsNew.v3110.vaultDesc' as const,
+      },
+      {
+        icon: BellRing,
+        iconColor: palette.warning500,
+        titleKey: 'whatsNew.v3110.remindersTitle' as const,
+        descriptionKey: 'whatsNew.v3110.remindersDesc' as const,
+        ctaAction: 'open-document-vault' as const,
+        ctaLabelKey: 'whatsNew.v3110.cta' as const,
+      },
+    ],
+  },
   {
     version: '3.8.0',
     slides: [

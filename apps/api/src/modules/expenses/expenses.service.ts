@@ -55,9 +55,14 @@ interface ExpenseRow {
   currency: string;
   date: string;
   description: string | null;
+  item_name: string | null;
   maintenance_task_id: string | null;
   created_at: string;
 }
+
+/** Columns selected for an expense row. Keep in sync with the ExpenseRow interface. */
+const EXPENSE_COLUMNS =
+  'id, user_id, motorcycle_id, amount, category, currency, date, description, item_name, maintenance_task_id, created_at';
 
 @Injectable()
 export class ExpensesService {
@@ -88,9 +93,7 @@ export class ExpensesService {
 
     let query = this.supabase
       .from('expenses')
-      .select(
-        'id, user_id, motorcycle_id, amount, category, currency, date, description, maintenance_task_id, created_at',
-      )
+      .select(EXPENSE_COLUMNS)
       .eq('user_id', userId)
       .eq('motorcycle_id', motorcycleId)
       .is('deleted_at', null)
@@ -140,6 +143,7 @@ export class ExpensesService {
       category: string;
       date: string;
       description?: string;
+      itemName?: string;
       currency?: string;
     },
   ): Promise<Expense> {
@@ -156,11 +160,10 @@ export class ExpensesService {
         category: input.category,
         date: input.date,
         description: input.description,
+        item_name: input.itemName ?? null,
         ...(input.currency && { currency: input.currency }),
       })
-      .select(
-        'id, user_id, motorcycle_id, amount, category, currency, date, description, maintenance_task_id, created_at',
-      )
+      .select(EXPENSE_COLUMNS)
       .single();
 
     if (error || !data) {
@@ -220,9 +223,7 @@ export class ExpensesService {
         maintenance_task_id: taskId,
         ...(userRow?.currency && { currency: userRow.currency }),
       })
-      .select(
-        'id, user_id, motorcycle_id, amount, category, currency, date, description, maintenance_task_id, created_at',
-      )
+      .select(EXPENSE_COLUMNS)
       .single();
 
     if (error) {
@@ -275,23 +276,18 @@ export class ExpensesService {
     };
   }
 
-  /** Maps one SQL month bucket (category→amount map) into the GraphQL shape. */
+  /** Maps one SQL month bucket (category→amount map) into the GraphQL shape.
+   *  The category breakdown is generic — every category the RPC reports flows
+   *  through, so new categories need no change here. */
   private mapMonthlyBucket(bucket: DashboardAggregateBucket): MonthlyBucket {
     const categories = bucket.categories ?? {};
     return {
       year: bucket.year,
       month: bucket.month,
-      fuel: roundCurrency(categories.fuel ?? 0),
-      maintenance: roundCurrency(categories.maintenance ?? 0),
-      parts: roundCurrency(categories.parts ?? 0),
-      gear: roundCurrency(categories.gear ?? 0),
-      tires: roundCurrency(categories.tires ?? 0),
-      insurance: roundCurrency(categories.insurance ?? 0),
-      registration: roundCurrency(categories.registration ?? 0),
-      tolls: roundCurrency(categories.tolls ?? 0),
-      parking: roundCurrency(categories.parking ?? 0),
-      modifications: roundCurrency(categories.modifications ?? 0),
-      training: roundCurrency(categories.training ?? 0),
+      categories: Object.entries(categories).map(([category, total]) => ({
+        category,
+        total: roundCurrency(total),
+      })),
       total: roundCurrency(bucket.total),
     };
   }
@@ -488,6 +484,7 @@ export class ExpensesService {
       currency: row.currency ?? 'USD',
       date: row.date,
       description: row.description ?? undefined,
+      itemName: row.item_name ?? undefined,
       maintenanceTaskId: row.maintenance_task_id ?? undefined,
       createdAt: row.created_at,
     };

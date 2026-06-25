@@ -11,6 +11,8 @@ export const PG_ERROR = {
   NOT_FOUND: 'PGRST116',
   /** Postgres unique-violation. */
   UNIQUE_VIOLATION: '23505',
+  /** Postgres foreign-key violation (e.g. ON DELETE RESTRICT blocks a delete). */
+  FOREIGN_KEY_VIOLATION: '23503',
 } as const;
 
 /** Minimal shape of a Supabase `{ data, error }` result. */

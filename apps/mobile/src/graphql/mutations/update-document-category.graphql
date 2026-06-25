@@ -1,0 +1,10 @@
+mutation UpdateDocumentCategory($id: String!, $input: UpdateDocumentCategoryInput!) {
+  updateDocumentCategory(id: $id, input: $input) {
+    id
+    name
+    kind
+    isHidden
+    promptsExpiry
+    updatedAt
+  }
+}

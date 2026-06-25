@@ -10,10 +10,11 @@ import { onlineManager, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { AlertTriangle, CheckCircle2, Wrench } from 'lucide-react-native';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { computeHealthScore, getRelativeDueDate } from '../../lib/health-score';
+import { reconcileMaintenanceReminders } from '../../lib/notifications';
 import { queryKeys } from '../../lib/query-keys';
 import { meOptions } from '../../lib/query-options';
 import { getContextualSubtitleKey, getGreeting } from './home-helpers';
@@ -90,6 +91,17 @@ export function useHomeData() {
     }
     return names;
   }, [motorcycles]);
+
+  // Ensure every upcoming maintenance task actually has a local reminder
+  // scheduled. Most tasks are auto-populated server-side (OEM schedules) or
+  // created on another device, so they never pass through the add-task screen
+  // that schedules reminders. This reconciles them once the task list + bike
+  // names are loaded; it no-ops without notification permission and skips tasks
+  // already scheduled, so it is cheap to run on each home load.
+  useEffect(() => {
+    if (allTasks.length === 0) return;
+    void reconcileMaintenanceReminders(allTasks, bikeNames);
+  }, [allTasks, bikeNames]);
 
   // Map rides — only fields consumed by FocusStats and FocusHistory
   const recentRides = useMemo(() => {

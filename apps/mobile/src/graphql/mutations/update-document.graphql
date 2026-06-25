@@ -1,0 +1,12 @@
+mutation UpdateDocument($id: String!, $input: UpdateDocumentInput!) {
+  updateDocument(id: $id, input: $input) {
+    id
+    motorcycleId
+    categoryId
+    title
+    expiryDate
+    note
+    isPinned
+    updatedAt
+  }
+}

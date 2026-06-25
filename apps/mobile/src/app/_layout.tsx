@@ -12,7 +12,6 @@ import * as Application from 'expo-application';
 import { useFonts } from 'expo-font';
 import * as Network from 'expo-network';
 import * as Notifications from 'expo-notifications';
-import * as SecureStore from 'expo-secure-store';
 import {
   getTrackingPermissionsAsync,
   requestTrackingPermissionsAsync,
@@ -31,7 +30,15 @@ try {
 }
 
 import * as Linking from 'expo-linking';
-import { Stack, useNavigationContainerRef, usePathname, useRouter, useSegments } from 'expo-router';
+import {
+  router as expoRouter,
+  type Href,
+  Stack,
+  useNavigationContainerRef,
+  usePathname,
+  useRouter,
+  useSegments,
+} from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui';
 import { PostHogProvider, PostHogSurveyProvider } from 'posthog-react-native';
@@ -72,12 +79,19 @@ import { captureMetaAttribution } from '../lib/meta-attribution';
 import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
 import {
   cancelAllNotifications,
+  cancelTaskNotification,
+  NOTIFICATION_ACTION,
+  NOTIFICATION_KIND,
   setupNotificationCategories,
   setupNotificationChannels,
   snoozeTaskNotification,
 } from '../lib/notifications';
 import { resolveOnboardingVariant } from '../lib/onboarding-experiment';
-import { LAST_USER_KEY, PersistedQueryClientBoundary } from '../lib/persisted-query-provider';
+import {
+  clearLastUserId,
+  getLastUserId,
+  PersistedQueryClientBoundary,
+} from '../lib/persisted-query-provider';
 import { queryClient } from '../lib/query-client';
 import { queryKeys } from '../lib/query-keys';
 import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
@@ -418,7 +432,7 @@ function RootLayout() {
         // cold starts (the per-mount ref is null on every launch). Lets a
         // server-revoked session surfacing as a null INITIAL_SESSION still run
         // local cleanup. (todo 188)
-        hasPersistedUser: SecureStore.getItem(LAST_USER_KEY) !== null,
+        hasPersistedUser: getLastUserId() !== null,
       });
 
       if (sessionUserId) {
@@ -446,7 +460,7 @@ function RootLayout() {
           // still clears this device's user data.
           queryClient.clear();
           clearPersistedQueryCache();
-          SecureStore.deleteItemAsync(LAST_USER_KEY);
+          clearLastUserId();
           // Preserve unsynced rides across a forced sign-out / token revocation:
           // keep the sync queue AND the active ride's local data while a ride is
           // in progress or ops are still pending, so they drain once auth is
@@ -685,15 +699,29 @@ function RootLayout() {
       async (response) => {
         const actionId = response.actionIdentifier;
         const data = response.notification.request.content.data as {
+          kind?: string;
           taskId?: string;
+          documentId?: string;
           motorcycleId?: string;
         };
 
+        // Document expiry reminders: tap or "View" deep-links to the document.
+        if (data?.kind === NOTIFICATION_KIND.DOCUMENT && data.documentId) {
+          if (actionId !== NOTIFICATION_ACTION.SNOOZE_1D) {
+            expoRouter.push(
+              `/(tabs)/(garage)/document/${data.documentId}?motorcycleId=${data.motorcycleId ?? ''}` as Href,
+            );
+          }
+          return;
+        }
+
         if (!data?.taskId) return;
 
-        if (actionId === 'MARK_DONE') {
+        if (actionId === NOTIFICATION_ACTION.MARK_DONE) {
           try {
             await gqlFetcher(CompleteMaintenanceTaskDocument, { id: data.taskId });
+            // Cancel any remaining reminder stages for the now-completed task.
+            await cancelTaskNotification(data.taskId);
             queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
             if (data.motorcycleId) {
               queryClient.invalidateQueries({
@@ -703,7 +731,7 @@ function RootLayout() {
           } catch {
             // Silently fail — user can mark done manually in app
           }
-        } else if (actionId === 'SNOOZE_1D') {
+        } else if (actionId === NOTIFICATION_ACTION.SNOOZE_1D) {
           const title = response.notification.request.content.title ?? 'Maintenance task';
           await snoozeTaskNotification(
             {

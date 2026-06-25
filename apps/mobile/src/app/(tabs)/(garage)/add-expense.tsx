@@ -1,6 +1,7 @@
 import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { palette } from '@motovault/design-system';
 import { ExpensePhotosDocument, LogExpenseDocument } from '@motovault/graphql';
+import { EXPENSE_CATEGORIES } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -27,26 +28,22 @@ import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 import { toISODateInput } from '../../../utils/trip-form-dates';
 
-const CATEGORIES = [
-  'fuel',
-  'maintenance',
-  'parts',
-  'tires',
-  'gear',
-  'insurance',
-  'registration',
-  'tolls',
-  'parking',
-  'modifications',
-  'training',
-] as const;
+const CATEGORIES = EXPENSE_CATEGORIES;
 type Category = (typeof CATEGORIES)[number];
 
 const CATEGORY_META: Record<Category, { color: string; label: string }> = Object.fromEntries(
   CATEGORIES.map((c) => [c, { color: CATEGORY_COLORS[c], label: CATEGORY_LABELS[c] }]),
 ) as Record<Category, { color: string; label: string }>;
 
-const MAIN_CATEGORIES: Category[] = ['fuel', 'maintenance', 'parts', 'tires', 'gear', 'insurance'];
+// Category-aware hints for the optional item-name field. Falls back to a generic
+// placeholder for categories where a product name rarely applies (fuel, tolls…).
+const ITEM_NAME_HINTS: Partial<Record<Category, string>> = {
+  accessories: 'e.g. GPR-Tech Alpi-Tech 55L top case',
+  parts: 'e.g. EBC front brake pads',
+  gear: 'e.g. Shoei NXR2 helmet',
+  tires: 'e.g. Michelin Road 6',
+  modifications: 'e.g. Akrapovič exhaust',
+};
 
 export default function AddExpenseScreen() {
   const { t } = useTranslation();
@@ -60,6 +57,7 @@ export default function AddExpenseScreen() {
   const [category, setCategory] = useState<Category>('fuel');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [itemName, setItemName] = useState('');
   const [description, setDescription] = useState('');
   // showCategoryPicker removed — chips are always visible
   const [saved, setSaved] = useState(false);
@@ -85,6 +83,7 @@ export default function AddExpenseScreen() {
           amount: parsedAmount,
           category,
           date: toISODateInput(date),
+          itemName: itemName.trim() || undefined,
           description: description.trim() || undefined,
           currency,
         },
@@ -253,7 +252,7 @@ export default function AddExpenseScreen() {
           CATEGORY
         </Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {MAIN_CATEGORIES.map((c) => {
+          {CATEGORIES.map((c) => {
             const selected = category === c;
             const meta = CATEGORY_META[c];
             return (
@@ -395,6 +394,54 @@ export default function AddExpenseScreen() {
               </View>
             </View>
           )}
+        </View>
+      </Animated.View>
+
+      {/* Item name — optional structured product name (distinct from notes) */}
+      <Animated.View entering={FadeInDown.delay(140).duration(250)}>
+        <Text
+          style={{
+            fontSize: 10,
+            fontWeight: '700',
+            letterSpacing: 1.5,
+            textTransform: 'uppercase',
+            color: theme.ink3,
+            marginBottom: 8,
+            marginLeft: 4,
+          }}
+        >
+          {t('expenses.itemName', { defaultValue: 'Item name' })}
+          <Text style={{ fontWeight: '500', letterSpacing: 0 }}>
+            {'  '}
+            {t('common.optional', { defaultValue: 'optional' })}
+          </Text>
+        </Text>
+        <View
+          style={{
+            backgroundColor: cardBg,
+            borderRadius: 14,
+            borderCurve: 'continuous',
+            overflow: 'hidden',
+            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+          }}
+        >
+          <TextInput
+            value={itemName}
+            onChangeText={(val) => setItemName(val.slice(0, 120))}
+            placeholder={t(`expenses.itemNamePlaceholder_${category}`, {
+              defaultValue:
+                ITEM_NAME_HINTS[category] ??
+                t('expenses.itemNamePlaceholder', { defaultValue: 'What did you buy?' }),
+            })}
+            placeholderTextColor={theme.ink4}
+            returnKeyType="next"
+            style={{
+              fontSize: 15,
+              color: theme.ink,
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+            }}
+          />
         </View>
       </Animated.View>
 
