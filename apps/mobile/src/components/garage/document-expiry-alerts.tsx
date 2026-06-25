@@ -2,13 +2,13 @@ import { palette } from '@motovault/design-system';
 import { ExpiringDocumentsDocument } from '@motovault/graphql';
 import { EXPIRING_DOCUMENTS_WINDOW_DAYS } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
-import { differenceInCalendarDays, parseISO } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { type Href, router } from 'expo-router';
 import { ChevronRight, TriangleAlert } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { daysUntilExpiry } from '../../lib/document-expiry';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { ECard, ESectionMasthead } from '../ui/editorial';
@@ -38,9 +38,7 @@ export function DocumentExpiryAlerts({ isDark }: DocumentExpiryAlertsProps) {
       <ESectionMasthead label={t('documents.expiringSoon', { defaultValue: 'Expiring Soon' })} />
       <ECard pad={0}>
         {docs.map((doc, i) => {
-          const days = doc.expiryDate
-            ? differenceInCalendarDays(parseISO(doc.expiryDate), new Date())
-            : null;
+          const days = daysUntilExpiry(doc.expiryDate);
           const overdue = days !== null && days < 0;
           return (
             <Pressable

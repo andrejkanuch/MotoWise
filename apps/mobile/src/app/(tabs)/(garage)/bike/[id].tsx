@@ -23,6 +23,7 @@ import {
   ChevronRight,
   DollarSign,
   Edit3,
+  FileText,
   Gauge,
   HeartPulse,
   MoreHorizontal,
@@ -47,6 +48,7 @@ import { MaintenanceSection } from '../../../../components/bike-hub/maintenance-
 import { MileageDisplay } from '../../../../components/bike-hub/mileage-display';
 import { OemDisclaimerCard } from '../../../../components/maintenance/oem-disclaimer-card';
 import { useMileageUnit } from '../../../../hooks/use-mileage-unit';
+import { useMotorcycleDocuments } from '../../../../hooks/use-motorcycle-documents';
 
 import { AnalyticsEvent, trackEvent } from '../../../../lib/analytics';
 import { formatCurrency } from '../../../../lib/expense-constants';
@@ -103,6 +105,12 @@ export default function BikeDetailScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isRefreshingRef = useRef(false);
 
+  // Scroll-to support for the Documents entry card / overflow action. We capture
+  // the Documents section's y-offset within the scroll content on layout (refires
+  // after the variable-height sections above settle) so the jump stays accurate.
+  const scrollRef = useRef<ScrollView>(null);
+  const documentsYRef = useRef(0);
+
   // --- Queries ---
 
   const { data, isLoading } = useQuery({
@@ -125,6 +133,15 @@ export default function BikeDetailScreen() {
     queryKey: queryKeys.rides.byMotorcycle(id),
     queryFn: () => gqlFetcher(MyRidesDocument, { first: 1, motorcycleId: id }),
   });
+
+  // Shared hook reads the same cache entry as DocumentsSection (no extra network)
+  // and powers the above-fold Documents entry card's count/expiry signal.
+  const { count: documentCount, expiringCount: expiringDocCount } = useMotorcycleDocuments(id);
+
+  const scrollToDocuments = useCallback(() => {
+    triggerImpact();
+    scrollRef.current?.scrollTo({ y: Math.max(documentsYRef.current - 12, 0), animated: true });
+  }, []);
 
   const hasHighlighted = useRef(false);
   useEffect(() => {
@@ -391,11 +408,13 @@ export default function BikeDetailScreen() {
     triggerImpact();
     const labels = {
       cancel: t('common.cancel', { defaultValue: 'Cancel' }),
+      documents: t('documents.title', { defaultValue: 'Documents' }),
       recalls: t('recalls.checkButton', { defaultValue: 'Check Safety Recalls' }),
       importOem: t('oem.importButton', { defaultValue: 'Import OEM Schedule' }),
       delete: t('garage.deleteBike', { defaultValue: 'Delete Motorcycle' }),
     };
     showActionSheet(t('common.actions', { defaultValue: 'Actions' }), [
+      { label: labels.documents, onPress: scrollToDocuments },
       { label: labels.recalls, onPress: handleCheckRecalls },
       { label: labels.importOem, onPress: handleImportOem },
       { label: labels.delete, onPress: handleDeleteBike, style: 'destructive' },
@@ -455,6 +474,7 @@ export default function BikeDetailScreen() {
       <Sentry.TimeToInitialDisplay record />
       <Sentry.TimeToFullDisplay record />
       <ScrollView
+        ref={scrollRef}
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
         showsVerticalScrollIndicator={false}
@@ -969,6 +989,72 @@ export default function BikeDetailScreen() {
           </Pressable>
         </Animated.View>
 
+        {/* Documents entry — surfaces the buried vault above the fold with a live
+            count/expiry signal; jumps to the full section below. */}
+        <Animated.View
+          entering={FadeInUp.delay(165).duration(400)}
+          style={{ paddingHorizontal: 20, marginTop: 12 }}
+        >
+          <Pressable
+            onPress={scrollToDocuments}
+            style={({ pressed }) => ({
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+              padding: 14,
+              backgroundColor: theme.surface,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              borderWidth: 1,
+              borderColor: theme.line,
+              transform: [{ scale: pressed ? 0.98 : 1 }],
+            })}
+          >
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                borderCurve: 'continuous',
+                backgroundColor: `${theme.warm}20`,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <FileText size={20} color={theme.warm} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: theme.ink }}>
+                {t('documents.title', { defaultValue: 'Documents' })}
+              </Text>
+              <Text style={{ fontSize: 12, color: theme.ink3, marginTop: 1 }}>
+                {documentCount === 0 ? (
+                  t('documents.cardEmptySubtitle', {
+                    defaultValue: 'Insurance, registration, title & service records',
+                  })
+                ) : (
+                  <>
+                    {t('documents.cardStored', {
+                      defaultValue: '{{count}} stored',
+                      count: documentCount,
+                    })}
+                    {expiringDocCount > 0 && (
+                      <Text style={{ color: palette.warning500, fontWeight: '700' }}>
+                        {' · '}
+                        {t('documents.cardExpiring', {
+                          defaultValue: '{{count}} expiring',
+                          count: expiringDocCount,
+                        })}
+                      </Text>
+                    )}
+                  </>
+                )}
+              </Text>
+            </View>
+            <ChevronRight size={16} color={theme.ink3} />
+          </Pressable>
+        </Animated.View>
+
         {/* 4. Maintenance Section — tabbed (Active | History) */}
         <Animated.View entering={FadeInUp.delay(180).duration(400)} style={{ marginTop: 20 }}>
           <MaintenanceSection
@@ -999,7 +1085,13 @@ export default function BikeDetailScreen() {
         </Animated.View>
 
         {/* 5b. Documents Section */}
-        <Animated.View entering={FadeInUp.delay(270).duration(400)} style={{ marginTop: 24 }}>
+        <Animated.View
+          entering={FadeInUp.delay(270).duration(400)}
+          style={{ marginTop: 24 }}
+          onLayout={(e) => {
+            documentsYRef.current = e.nativeEvent.layout.y;
+          }}
+        >
           <DocumentsSection
             motorcycleId={id}
             isDark={isDark}

@@ -2,12 +2,9 @@ import { palette } from '@motovault/design-system';
 import {
   DeleteDocumentDocument,
   DocumentCategoriesDocument,
-  DocumentsByMotorcycleDocument,
   type DocumentsByMotorcycleQuery,
 } from '@motovault/graphql';
-import { NEAR_EXPIRY_BADGE_DAYS } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { differenceInCalendarDays, parseISO } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { type Href, router } from 'expo-router';
 import { ChevronRight, FileText, Pin, Plus, Settings2 } from 'lucide-react-native';
@@ -15,29 +12,31 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { useMotorcycleDocuments } from '../../hooks/use-motorcycle-documents';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { documentExpiryStatus } from '../../lib/document-expiry';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { cancelDocumentNotifications } from '../../lib/notifications';
 import { queryKeys } from '../../lib/query-keys';
+import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 
 type DocumentItem = DocumentsByMotorcycleQuery['documents'][number];
 
 interface DocumentsSectionProps {
   motorcycleId: string;
-  isDark: boolean;
+  // Retained for caller compatibility; theming now comes from useEditorialTheme.
+  isDark?: boolean;
   bikeName?: string;
 }
 
-export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSectionProps) {
+export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionProps) {
   const { t } = useTranslation();
+  const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
   const [showHidden, setShowHidden] = useState(false);
 
-  const { data, isLoading } = useQuery({
-    queryKey: queryKeys.documents.byMotorcycle(motorcycleId),
-    queryFn: () => gqlFetcher(DocumentsByMotorcycleDocument, { motorcycleId }),
-  });
+  const { documents, isLoading } = useMotorcycleDocuments(motorcycleId);
 
   const { data: categoryData } = useQuery({
     queryKey: queryKeys.documents.categories(true),
@@ -66,7 +65,6 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
     },
   });
 
-  const documents = data?.documents ?? [];
   const categories = categoryData?.documentCategories ?? [];
   const categoryById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
 
@@ -106,8 +104,6 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
     () => documents.some((d) => categoryById.get(d.categoryId)?.isHidden),
     [documents, categoryById],
   );
-
-  const cardBg = isDark ? palette.neutral800 : palette.white;
 
   const confirmDelete = (doc: DocumentItem) => {
     const fileCount = doc.files.length;
@@ -155,7 +151,7 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
           style={{
             fontSize: 18,
             fontWeight: '700',
-            color: isDark ? palette.neutral50 : palette.neutral950,
+            color: theme.ink,
           }}
         >
           {t('documents.title', { defaultValue: 'Documents' })}
@@ -172,12 +168,12 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
               height: 28,
               borderRadius: 8,
               borderCurve: 'continuous',
-              backgroundColor: isDark ? palette.neutral700 : palette.neutral200,
+              backgroundColor: theme.surface2,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Settings2 size={14} color={palette.primary400} strokeWidth={2.5} />
+            <Settings2 size={14} color={theme.warm} strokeWidth={2.5} />
           </Pressable>
           <Pressable
             onPress={() => {
@@ -194,7 +190,7 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
               height: 28,
               borderRadius: 8,
               borderCurve: 'continuous',
-              backgroundColor: palette.primary500,
+              backgroundColor: theme.warm,
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -207,14 +203,16 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
       {isLoading && (
         <View
           style={{
-            backgroundColor: cardBg,
+            backgroundColor: theme.surface,
             borderRadius: 14,
             borderCurve: 'continuous',
+            borderWidth: 1,
+            borderColor: theme.line,
             padding: 32,
             alignItems: 'center',
           }}
         >
-          <ActivityIndicator color={palette.primary500} />
+          <ActivityIndicator color={theme.warm} />
         </View>
       )}
 
@@ -229,9 +227,11 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
               )
             }
             style={{
-              backgroundColor: cardBg,
+              backgroundColor: theme.surface,
               borderRadius: 14,
               borderCurve: 'continuous',
+              borderWidth: 1,
+              borderColor: theme.line,
               padding: 24,
               alignItems: 'center',
             }}
@@ -242,26 +242,24 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
                 height: 48,
                 borderRadius: 14,
                 borderCurve: 'continuous',
-                backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
+                backgroundColor: tint(theme.warm, 0.12),
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <FileText size={22} color={palette.neutral400} strokeWidth={1.5} />
+              <FileText size={22} color={theme.warm} strokeWidth={1.5} />
             </View>
             <Text
               style={{
                 fontSize: 15,
                 fontWeight: '700',
-                color: isDark ? palette.neutral200 : palette.neutral800,
+                color: theme.ink,
                 marginTop: 12,
               }}
             >
               {t('documents.empty', { defaultValue: 'No documents yet' })}
             </Text>
-            <Text
-              style={{ fontSize: 13, color: palette.neutral500, marginTop: 4, textAlign: 'center' }}
-            >
+            <Text style={{ fontSize: 13, color: theme.ink3, marginTop: 4, textAlign: 'center' }}>
               {t('documents.emptyHint', {
                 defaultValue: 'Store insurance, registration, title, and service records.',
               })}
@@ -277,8 +275,6 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
             <DocumentGroup
               label={t('documents.pinned', { defaultValue: 'Pinned' })}
               docs={pinned}
-              isDark={isDark}
-              cardBg={cardBg}
               category={undefined}
               categoryById={categoryById}
               onOpen={openDocument}
@@ -291,8 +287,6 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
               key={g.categoryId}
               label={g.category?.name ?? t('documents.uncategorized', { defaultValue: 'Other' })}
               docs={g.docs}
-              isDark={isDark}
-              cardBg={cardBg}
               category={g.category}
               categoryById={categoryById}
               onOpen={openDocument}
@@ -305,7 +299,7 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
               onPress={() => setShowHidden((p) => !p)}
               style={{ paddingVertical: 8, alignItems: 'center' }}
             >
-              <Text style={{ fontSize: 13, fontWeight: '600', color: palette.primary500 }}>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: theme.warm }}>
                 {showHidden
                   ? t('documents.hideHidden', { defaultValue: 'Hide hidden categories' })
                   : t('documents.showHidden', { defaultValue: 'Show hidden categories' })}
@@ -321,24 +315,15 @@ export function DocumentsSection({ motorcycleId, isDark, bikeName }: DocumentsSe
 interface DocumentGroupProps {
   label: string;
   docs: DocumentItem[];
-  isDark: boolean;
-  cardBg: string;
   category: { promptsExpiry: boolean; isHidden: boolean } | undefined;
   categoryById: Map<string, { name: string }>;
   onOpen: (doc: DocumentItem) => void;
   onDelete: (doc: DocumentItem) => void;
 }
 
-function DocumentGroup({
-  label,
-  docs,
-  isDark,
-  cardBg,
-  category,
-  onOpen,
-  onDelete,
-}: DocumentGroupProps) {
+function DocumentGroup({ label, docs, category, onOpen, onDelete }: DocumentGroupProps) {
   const { t } = useTranslation();
+  const { t: theme } = useEditorialTheme();
   return (
     <View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
@@ -346,16 +331,16 @@ function DocumentGroup({
           style={{
             fontSize: 13,
             fontWeight: '700',
-            color: isDark ? palette.neutral400 : palette.neutral500,
+            color: theme.ink3,
             textTransform: 'uppercase',
             letterSpacing: 0.5,
           }}
         >
           {label}
         </Text>
-        <Text style={{ fontSize: 12, color: palette.neutral400 }}>{docs.length}</Text>
+        <Text style={{ fontSize: 12, color: theme.ink4 }}>{docs.length}</Text>
         {category?.isHidden && (
-          <Text style={{ fontSize: 11, color: palette.neutral400, fontStyle: 'italic' }}>
+          <Text style={{ fontSize: 11, color: theme.ink4, fontStyle: 'italic' }}>
             {t('documents.hiddenTag', { defaultValue: 'hidden' })}
           </Text>
         )}
@@ -365,8 +350,6 @@ function DocumentGroup({
           <DocumentRow
             key={doc.id}
             doc={doc}
-            isDark={isDark}
-            cardBg={cardBg}
             promptsExpiry={category?.promptsExpiry ?? false}
             index={index}
             onOpen={onOpen}
@@ -380,24 +363,15 @@ function DocumentGroup({
 
 interface DocumentRowProps {
   doc: DocumentItem;
-  isDark: boolean;
-  cardBg: string;
   promptsExpiry: boolean;
   index: number;
   onOpen: (doc: DocumentItem) => void;
   onDelete: (doc: DocumentItem) => void;
 }
 
-function DocumentRow({
-  doc,
-  isDark,
-  cardBg,
-  promptsExpiry,
-  index,
-  onOpen,
-  onDelete,
-}: DocumentRowProps) {
+function DocumentRow({ doc, promptsExpiry, index, onOpen, onDelete }: DocumentRowProps) {
   const { t } = useTranslation();
+  const { t: theme } = useEditorialTheme();
   const status = expiryStatus(doc.expiryDate ?? null);
   const showNoReminder = promptsExpiry && !doc.expiryDate;
 
@@ -410,9 +384,11 @@ function DocumentRow({
           flexDirection: 'row',
           alignItems: 'center',
           gap: 12,
-          backgroundColor: cardBg,
+          backgroundColor: theme.surface,
           borderRadius: 12,
           borderCurve: 'continuous',
+          borderWidth: 1,
+          borderColor: theme.line,
           padding: 12,
         }}
       >
@@ -422,12 +398,12 @@ function DocumentRow({
             height: 36,
             borderRadius: 9,
             borderCurve: 'continuous',
-            backgroundColor: isDark ? palette.neutral700 : palette.neutral100,
+            backgroundColor: tint(theme.warm, 0.12),
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <FileText size={18} color={palette.primary400} strokeWidth={2} />
+          <FileText size={18} color={theme.warm} strokeWidth={2} />
         </View>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -436,16 +412,16 @@ function DocumentRow({
               style={{
                 fontSize: 15,
                 fontWeight: '600',
-                color: isDark ? palette.neutral100 : palette.neutral900,
+                color: theme.ink,
                 flexShrink: 1,
               }}
             >
               {doc.title}
             </Text>
-            {doc.isPinned && <Pin size={12} color={palette.primary400} strokeWidth={2.5} />}
+            {doc.isPinned && <Pin size={12} color={theme.warm} strokeWidth={2.5} />}
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
-            <Text style={{ fontSize: 12, color: palette.neutral500 }}>
+            <Text style={{ fontSize: 12, color: theme.ink3 }}>
               {t('documents.fileCount', {
                 defaultValue: '{{count}} file(s)',
                 count: doc.files.length,
@@ -457,42 +433,42 @@ function DocumentRow({
               </Text>
             )}
             {showNoReminder && (
-              <Text style={{ fontSize: 12, fontWeight: '600', color: palette.neutral400 }}>
+              <Text style={{ fontSize: 12, fontWeight: '600', color: theme.ink4 }}>
                 · {t('documents.noReminder', { defaultValue: 'No reminder set' })}
               </Text>
             )}
           </View>
         </View>
-        <ChevronRight size={18} color={palette.neutral400} strokeWidth={2} />
+        <ChevronRight size={18} color={theme.ink3} strokeWidth={2} />
       </Pressable>
     </Animated.View>
   );
 }
 
-/** Expiry badge: red if past, amber within 30 days, neutral otherwise. Returns
- * the i18n key + interpolation options so the row renders t() directly. */
+/** Maps the shared expiry classification to a badge color + i18n key/opts so the
+ * row renders t() directly. Classification thresholds live in lib/document-expiry. */
 function expiryStatus(
   expiryDate: string | null,
 ): { color: string; key: string; opts: { defaultValue: string } & Record<string, unknown> } | null {
-  if (!expiryDate) return null;
-  const days = differenceInCalendarDays(parseISO(expiryDate), new Date());
-  if (days < 0) {
+  const status = documentExpiryStatus(expiryDate);
+  if (!status) return null;
+  if (status.level === 'expired') {
     return {
       color: palette.danger500,
       key: 'documents.expired',
       opts: { defaultValue: 'Expired' },
     };
   }
-  if (days <= NEAR_EXPIRY_BADGE_DAYS) {
+  if (status.level === 'soon') {
     return {
       color: palette.warning500,
       key: 'documents.expiresInDays',
-      opts: { defaultValue: 'Expires in {{days}}d', days },
+      opts: { defaultValue: 'Expires in {{days}}d', days: status.days },
     };
   }
   return {
     color: palette.neutral500,
     key: 'documents.expiresOn',
-    opts: { defaultValue: 'Expires {{date}}', date: expiryDate },
+    opts: { defaultValue: 'Expires {{date}}', date: expiryDate as string },
   };
 }
