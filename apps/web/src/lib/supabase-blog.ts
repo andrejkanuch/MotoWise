@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { unstable_cache } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/seo/cache-tags';
 import type { Article } from './blog';
@@ -16,12 +16,32 @@ import type { FaqItem } from './seo/schema';
  *
  * Never use the service-role key in this file — it would bypass RLS on a path
  * that bundles into the public build.
+ *
+ * Built lazily (not at module scope): `createClient('')` throws "supabaseUrl is
+ * required", so an eager client crashes `next build` page-data collection in any
+ * environment without `NEXT_PUBLIC_SUPABASE_*` set (CI, env-less builds). Lazy +
+ * null-on-missing-env lets the module import safely and the reads degrade to
+ * empty instead of taking down the whole build.
  */
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-  { auth: { persistSession: false } },
-);
+let _client: SupabaseClient | null = null;
+let _warnedMissingEnv = false;
+
+function blogClient(): SupabaseClient | null {
+  if (_client) return _client;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    if (!_warnedMissingEnv) {
+      _warnedMissingEnv = true;
+      console.error(
+        '[supabase-blog] NEXT_PUBLIC_SUPABASE_URL/ANON_KEY missing — blog reads disabled',
+      );
+    }
+    return null;
+  }
+  _client = createClient(url, key, { auth: { persistSession: false } });
+  return _client;
+}
 
 // ── Raw PostgREST row shapes ──
 type RawTaxonomy = { name: string; slug: string };
@@ -121,6 +141,8 @@ const LIST_SELECT = `
  */
 export const listPublishedArticles = unstable_cache(
   async (locale: string): Promise<Article[]> => {
+    const supabase = blogClient();
+    if (!supabase) return [];
     const { data, error } = await supabase
       .from('blog_posts')
       .select(LIST_SELECT)
@@ -148,6 +170,8 @@ export const listPublishedArticles = unstable_cache(
 /** Body MDX (`body_raw`) for one post in one locale. Cached + tagged `blog`. */
 export const fetchArticleBody = unstable_cache(
   async (slug: string, locale: string): Promise<string | null> => {
+    const supabase = blogClient();
+    if (!supabase) return null;
     const { data, error } = await supabase
       .from('blog_posts')
       .select('blog_post_translations!inner(body_raw)')
@@ -178,6 +202,8 @@ export const fetchArticleBody = unstable_cache(
  * error so the caller can surface the "search unavailable" state.
  */
 export async function searchArticleSlugs(query: string, locale: string): Promise<string[]> {
+  const supabase = blogClient();
+  if (!supabase) return [];
   const { data, error } = await supabase.rpc('search_blog_posts', { query, loc: locale });
   if (error) throw new Error(`search_blog_posts failed: ${error.message}`);
   const rows = (data ?? []) as { post_id: string; slug?: string | null }[];
@@ -205,6 +231,8 @@ export async function searchArticleSlugs(query: string, locale: string): Promise
 /** Categories used as reader-facing filter facets ({slug,name}). Cached + tagged `blog`. */
 export const listBlogCategories = unstable_cache(
   async (): Promise<{ slug: string; name: string }[]> => {
+    const supabase = blogClient();
+    if (!supabase) return [];
     const { data, error } = await supabase
       .from('categories')
       .select('slug, name')
@@ -223,6 +251,8 @@ export const listBlogCategories = unstable_cache(
 /** Locales with a real published translation for `slug` (drives hreflang + canonical). */
 export const listTranslatedLocales = unstable_cache(
   async (slug: string): Promise<string[]> => {
+    const supabase = blogClient();
+    if (!supabase) return [];
     const { data, error } = await supabase
       .from('blog_posts')
       .select('blog_post_translations(locale)')
