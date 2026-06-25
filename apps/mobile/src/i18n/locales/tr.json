@@ -2141,6 +2141,13 @@
     "categoryAddFailed": "Failed to add category.",
     "categoryUpdateFailed": "Failed to update category.",
     "viewerCounter": "{{current}} of {{total}}",
-    "viewerRetry": "Tap to retry"
+    "viewerRetry": "Tap to retry",
+    "categoryHasDocuments": "Bu kategoriyi silmeden önce belgelerini taşıyın veya silin.",
+    "categoryDeleteFailed": "Kategori silinemedi.",
+    "deleteCategoryTitle": "Kategori silinsin mi?",
+    "deleteCategoryMessage": "“{{name}}” kalıcı olarak kaldırılacak.",
+    "deleteCategory": "Kategoriyi sil",
+    "showCategory": "Kategoriyi göster",
+    "hideCategory": "Kategoriyi gizle"
   }
 }

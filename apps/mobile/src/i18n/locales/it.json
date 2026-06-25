@@ -2144,6 +2144,13 @@
     "categoryAddFailed": "Impossibile aggiungere la categoria.",
     "categoryUpdateFailed": "Impossibile aggiornare la categoria.",
     "viewerCounter": "{{current}} di {{total}}",
-    "viewerRetry": "Tocca per riprovare"
+    "viewerRetry": "Tocca per riprovare",
+    "categoryHasDocuments": "Sposta o elimina i suoi documenti prima di eliminare questa categoria.",
+    "categoryDeleteFailed": "Impossibile eliminare la categoria.",
+    "deleteCategoryTitle": "Eliminare la categoria?",
+    "deleteCategoryMessage": "«{{name}}» verrà eliminata definitivamente.",
+    "deleteCategory": "Elimina categoria",
+    "showCategory": "Mostra categoria",
+    "hideCategory": "Nascondi categoria"
   }
 }

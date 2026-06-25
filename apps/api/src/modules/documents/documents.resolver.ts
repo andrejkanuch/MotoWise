@@ -81,6 +81,14 @@ export class DocumentsResolver {
     return this.categoriesService.update(user.id, id, input);
   }
 
+  @Mutation(() => Boolean)
+  async deleteDocumentCategory(
+    @CurrentUser() user: AuthUser,
+    @Args('id', ParseUUIDPipe) id: string,
+  ): Promise<boolean> {
+    return this.categoriesService.delete(user.id, id);
+  }
+
   /**
    * Explicit, throttled signing query — NOT a passive field resolver (a field
    * resolver would mint a URL per file on every list render and is awkward to

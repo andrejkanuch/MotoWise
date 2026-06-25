@@ -2141,6 +2141,13 @@
     "categoryAddFailed": "Failed to add category.",
     "categoryUpdateFailed": "Failed to update category.",
     "viewerCounter": "{{current}} of {{total}}",
-    "viewerRetry": "Tap to retry"
+    "viewerRetry": "Tap to retry",
+    "categoryHasDocuments": "ย้ายหรือลบเอกสารก่อนลบหมวดหมู่นี้",
+    "categoryDeleteFailed": "ลบหมวดหมู่ไม่สำเร็จ",
+    "deleteCategoryTitle": "ลบหมวดหมู่?",
+    "deleteCategoryMessage": "“{{name}}” จะถูกลบอย่างถาวร",
+    "deleteCategory": "ลบหมวดหมู่",
+    "showCategory": "แสดงหมวดหมู่",
+    "hideCategory": "ซ่อนหมวดหมู่"
   }
 }

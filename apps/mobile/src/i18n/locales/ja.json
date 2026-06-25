@@ -2141,6 +2141,13 @@
     "categoryAddFailed": "カテゴリを追加できませんでした。",
     "categoryUpdateFailed": "カテゴリを更新できませんでした。",
     "viewerCounter": "{{total}} 件中 {{current}} 件目",
-    "viewerRetry": "タップして再試行"
+    "viewerRetry": "タップして再試行",
+    "categoryHasDocuments": "このカテゴリーを削除する前に、書類を移動または削除してください。",
+    "categoryDeleteFailed": "カテゴリーを削除できませんでした。",
+    "deleteCategoryTitle": "カテゴリーを削除しますか？",
+    "deleteCategoryMessage": "「{{name}}」は完全に削除されます。",
+    "deleteCategory": "カテゴリーを削除",
+    "showCategory": "カテゴリーを表示",
+    "hideCategory": "カテゴリーを非表示"
   }
 }

@@ -2136,6 +2136,13 @@
     "categoryAddFailed": "Failed to add category.",
     "categoryUpdateFailed": "Failed to update category.",
     "viewerCounter": "{{current}} of {{total}}",
-    "viewerRetry": "Tap to retry"
+    "viewerRetry": "Tap to retry",
+    "categoryHasDocuments": "Move or remove its documents before deleting this category.",
+    "categoryDeleteFailed": "Failed to delete category.",
+    "deleteCategoryTitle": "Delete category?",
+    "deleteCategoryMessage": "\"{{name}}\" will be permanently removed.",
+    "deleteCategory": "Delete category",
+    "showCategory": "Show category",
+    "hideCategory": "Hide category"
   }
 }

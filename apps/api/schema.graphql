@@ -971,6 +971,7 @@ type Mutation {
   deleteAccount: Boolean!
   deleteComment(commentId: ID!): Boolean!
   deleteDocument(id: String!): Boolean!
+  deleteDocumentCategory(id: String!): Boolean!
   deleteExpense(id: String!): Boolean!
   deleteExpensePhoto(photoId: String!): Boolean!
   deleteFuelLog(id: String!): Boolean!

@@ -311,6 +311,7 @@ export const AnalyticsEvent = {
   DOCUMENT_VIEWED: 'document_viewed',
   DOCUMENT_DELETED: 'document_deleted',
   DOCUMENT_CATEGORY_ADDED: 'document_category_added',
+  DOCUMENT_CATEGORY_DELETED: 'document_category_deleted',
   DOCUMENTS_SECTION_VIEWED: 'documents_section_viewed',
   DOCUMENT_EXPIRY_ALERT_TAPPED: 'document_expiry_alert_tapped',
 

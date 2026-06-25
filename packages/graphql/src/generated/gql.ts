@@ -38,6 +38,7 @@ type Documents = {
     "mutation CreateTrip($input: CreateTripInput!) {\n  createTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    createdAt\n    organiser {\n      id\n      displayName\n    }\n  }\n}": typeof types.CreateTripDocument,
     "mutation DeleteAccount {\n  deleteAccount\n}": typeof types.DeleteAccountDocument,
     "mutation DeleteComment($commentId: ID!) {\n  deleteComment(commentId: $commentId)\n}": typeof types.DeleteCommentDocument,
+    "mutation DeleteDocumentCategory($id: String!) {\n  deleteDocumentCategory(id: $id)\n}": typeof types.DeleteDocumentCategoryDocument,
     "mutation DeleteDocument($id: String!) {\n  deleteDocument(id: $id)\n}": typeof types.DeleteDocumentDocument,
     "mutation DeleteExpensePhoto($photoId: String!) {\n  deleteExpensePhoto(photoId: $photoId)\n}": typeof types.DeleteExpensePhotoDocument,
     "mutation DeleteExpense($id: String!) {\n  deleteExpense(id: $id)\n}": typeof types.DeleteExpenseDocument,
@@ -187,6 +188,7 @@ const documents: Documents = {
     "mutation CreateTrip($input: CreateTripInput!) {\n  createTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    createdAt\n    organiser {\n      id\n      displayName\n    }\n  }\n}": types.CreateTripDocument,
     "mutation DeleteAccount {\n  deleteAccount\n}": types.DeleteAccountDocument,
     "mutation DeleteComment($commentId: ID!) {\n  deleteComment(commentId: $commentId)\n}": types.DeleteCommentDocument,
+    "mutation DeleteDocumentCategory($id: String!) {\n  deleteDocumentCategory(id: $id)\n}": types.DeleteDocumentCategoryDocument,
     "mutation DeleteDocument($id: String!) {\n  deleteDocument(id: $id)\n}": types.DeleteDocumentDocument,
     "mutation DeleteExpensePhoto($photoId: String!) {\n  deleteExpensePhoto(photoId: $photoId)\n}": types.DeleteExpensePhotoDocument,
     "mutation DeleteExpense($id: String!) {\n  deleteExpense(id: $id)\n}": types.DeleteExpenseDocument,
@@ -422,6 +424,10 @@ export function graphql(source: "mutation DeleteAccount {\n  deleteAccount\n}"):
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation DeleteComment($commentId: ID!) {\n  deleteComment(commentId: $commentId)\n}"): (typeof documents)["mutation DeleteComment($commentId: ID!) {\n  deleteComment(commentId: $commentId)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation DeleteDocumentCategory($id: String!) {\n  deleteDocumentCategory(id: $id)\n}"): (typeof documents)["mutation DeleteDocumentCategory($id: String!) {\n  deleteDocumentCategory(id: $id)\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

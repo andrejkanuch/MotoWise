@@ -1,5 +1,5 @@
 import { SEEDED_CATEGORIES } from '@motovault/types';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PG_ERROR } from '../../common/supabase/unwrap';
 import { DocumentCategoriesService } from './categories.service';
@@ -17,7 +17,7 @@ function createSupabaseMock() {
     then?: unknown;
   } = { awaitResults: [] } as never;
 
-  for (const m of ['select', 'insert', 'update', 'upsert', 'eq', 'order']) {
+  for (const m of ['select', 'insert', 'update', 'upsert', 'delete', 'eq', 'order']) {
     chain[m] = vi.fn().mockReturnValue(chain);
   }
   chain.single = vi.fn();
@@ -139,5 +139,42 @@ describe('DocumentCategoriesService.update', () => {
     const result = await service.update(USER, 'c1', { isHidden: true });
     expect(supabase.chain.update).toHaveBeenCalledWith({ is_hidden: true });
     expect(result.isHidden).toBe(true);
+  });
+});
+
+describe('DocumentCategoriesService.delete', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('refuses to delete a category that still has documents (ON DELETE RESTRICT)', async () => {
+    const { service, supabase } = makeService();
+    supabase.chain.awaitResults.push({ count: 3, error: null }); // documents count
+    await expect(service.delete(USER, 'c1')).rejects.toThrow('CATEGORY_HAS_DOCUMENTS');
+    // Never reaches the actual row delete.
+    expect(supabase.chain.delete).not.toHaveBeenCalled();
+  });
+
+  it('deletes an empty category', async () => {
+    const { service, supabase } = makeService();
+    supabase.chain.awaitResults.push({ count: 0, error: null }); // no documents
+    supabase.chain.single.mockResolvedValueOnce({ data: { id: 'c1' }, error: null });
+    await expect(service.delete(USER, 'c1')).resolves.toBe(true);
+    expect(supabase.chain.delete).toHaveBeenCalledTimes(1);
+  });
+
+  it('maps a racing FK violation to the friendly has-documents error', async () => {
+    const { service, supabase } = makeService();
+    supabase.chain.awaitResults.push({ count: 0, error: null }); // count clear
+    supabase.chain.single.mockResolvedValueOnce({
+      data: null,
+      error: { code: PG_ERROR.FOREIGN_KEY_VIOLATION },
+    });
+    await expect(service.delete(USER, 'c1')).rejects.toThrow('CATEGORY_HAS_DOCUMENTS');
+  });
+
+  it('does not delete when the document count query errors', async () => {
+    const { service, supabase } = makeService();
+    supabase.chain.awaitResults.push({ count: null, error: { message: 'db down' } });
+    await expect(service.delete(USER, 'c1')).rejects.toThrow(InternalServerErrorException);
+    expect(supabase.chain.delete).not.toHaveBeenCalled();
   });
 });

@@ -1,13 +1,14 @@
 import { palette } from '@motovault/design-system';
 import {
   AddDocumentCategoryDocument,
+  DeleteDocumentCategoryDocument,
   DocumentCategoriesDocument,
   type DocumentCategoriesQuery,
   UpdateDocumentCategoryDocument,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack } from 'expo-router';
-import { Check, Eye, EyeOff, Pencil, Plus } from 'lucide-react-native';
+import { Eye, EyeOff, Plus, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -27,17 +28,23 @@ import { triggerImpact } from '../../../utils/haptics';
 
 type CategoryItem = DocumentCategoriesQuery['documentCategories'][number];
 
+// Sentinel the API raises (BadRequestException) when a category still has
+// documents filed under it — documents.category_id is ON DELETE RESTRICT, so
+// it cannot be removed until those documents are moved or deleted.
+const CATEGORY_HAS_DOCUMENTS = 'CATEGORY_HAS_DOCUMENTS';
+
+// The Manage Categories screen always renders the full set (including hidden).
+const CATEGORIES_KEY = queryKeys.documents.categories(true);
+
 export default function ManageDocumentCategoriesScreen() {
   const { t } = useTranslation();
   const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
 
   const [newName, setNewName] = useState('');
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.documents.categories(true),
+    queryKey: CATEGORIES_KEY,
     queryFn: () => gqlFetcher(DocumentCategoriesDocument, { includeHidden: true }),
   });
   const categories = data?.documentCategories ?? [];
@@ -46,6 +53,23 @@ export default function ManageDocumentCategoriesScreen() {
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.documents.categoriesAll });
+  };
+
+  // Optimistic cache helpers (TanStack Query "via the cache" pattern): cancel
+  // in-flight refetches so they can't clobber the optimistic state, snapshot for
+  // rollback, then mutate the cached list immediately so the row reacts on tap
+  // instead of after a mutation + refetch round-trip.
+  const optimistic = async (apply: (list: CategoryItem[]) => CategoryItem[]) => {
+    await queryClient.cancelQueries({ queryKey: queryKeys.documents.categoriesAll });
+    const previous = queryClient.getQueryData<DocumentCategoriesQuery>(CATEGORIES_KEY);
+    queryClient.setQueryData<DocumentCategoriesQuery>(CATEGORIES_KEY, (old) =>
+      old ? { ...old, documentCategories: apply(old.documentCategories) } : old,
+    );
+    return previous;
+  };
+
+  const rollback = (previous?: DocumentCategoriesQuery) => {
+    if (previous) queryClient.setQueryData(CATEGORIES_KEY, previous);
   };
 
   const addMutation = useMutation({
@@ -62,88 +86,112 @@ export default function ManageDocumentCategoriesScreen() {
       ),
   });
 
-  const updateMutation = useMutation({
-    mutationFn: (vars: { id: string; name?: string; isHidden?: boolean }) =>
+  const toggleMutation = useMutation({
+    mutationFn: (vars: { id: string; isHidden: boolean }) =>
       gqlFetcher(UpdateDocumentCategoryDocument, {
         id: vars.id,
-        input: { name: vars.name, isHidden: vars.isHidden },
+        input: { isHidden: vars.isHidden },
       }),
-    onSuccess: () => {
-      setEditingId(null);
-      invalidate();
-    },
-    onError: () =>
+    onMutate: (vars) =>
+      optimistic((list) =>
+        list.map((c) => (c.id === vars.id ? { ...c, isHidden: vars.isHidden } : c)),
+      ).then((previous) => ({ previous })),
+    onError: (_err, _vars, ctx) => {
+      rollback(ctx?.previous);
       Alert.alert(
         t('common.error', { defaultValue: 'Error' }),
         t('documents.categoryUpdateFailed', { defaultValue: 'Failed to update category.' }),
-      ),
+      );
+    },
+    onSettled: invalidate,
   });
 
-  const renderRow = (c: CategoryItem) => {
-    const isEditing = editingId === c.id;
-    return (
-      <View
-        key={c.id}
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 10,
-          backgroundColor: theme.surface,
-          borderRadius: 12,
-          borderCurve: 'continuous',
-          paddingHorizontal: 14,
-          paddingVertical: 12,
-          opacity: c.isHidden ? 0.6 : 1,
-        }}
-      >
-        {isEditing ? (
-          <TextInput
-            value={editName}
-            onChangeText={(v) => setEditName(v.slice(0, 60))}
-            autoFocus
-            style={{ flex: 1, fontSize: 15, color: theme.ink }}
-            onSubmitEditing={() => updateMutation.mutate({ id: c.id, name: editName.trim() })}
-          />
-        ) : (
-          <Text style={{ flex: 1, fontSize: 15, color: theme.ink }}>{c.name}</Text>
-        )}
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => gqlFetcher(DeleteDocumentCategoryDocument, { id }),
+    onMutate: (id) =>
+      optimistic((list) => list.filter((c) => c.id !== id)).then((previous) => ({ previous })),
+    onSuccess: () => trackEvent(AnalyticsEvent.DOCUMENT_CATEGORY_DELETED, {}),
+    onError: (err, _id, ctx) => {
+      rollback(ctx?.previous);
+      const hasDocuments = err instanceof Error && err.message.includes(CATEGORY_HAS_DOCUMENTS);
+      Alert.alert(
+        t('common.error', { defaultValue: 'Error' }),
+        hasDocuments
+          ? t('documents.categoryHasDocuments', {
+              defaultValue: 'Move or remove its documents before deleting this category.',
+            })
+          : t('documents.categoryDeleteFailed', { defaultValue: 'Failed to delete category.' }),
+      );
+    },
+    onSettled: invalidate,
+  });
 
-        {isEditing ? (
-          <Pressable
-            onPress={() => updateMutation.mutate({ id: c.id, name: editName.trim() })}
-            hitSlop={8}
-          >
-            <Check size={18} color={palette.success500} strokeWidth={2.5} />
-          </Pressable>
-        ) : (
-          <Pressable
-            onPress={() => {
-              triggerImpact();
-              setEditingId(c.id);
-              setEditName(c.name);
-            }}
-            hitSlop={8}
-          >
-            <Pencil size={18} color={theme.ink3} strokeWidth={2} />
-          </Pressable>
-        )}
-
-        <Pressable
-          onPress={() => {
-            triggerImpact();
-            updateMutation.mutate({ id: c.id, isHidden: !c.isHidden });
-          }}
-          hitSlop={8}
-        >
-          {c.isHidden ? (
-            <EyeOff size={18} color={theme.ink3} strokeWidth={2} />
-          ) : (
-            <Eye size={18} color={palette.primary400} strokeWidth={2} />
-          )}
-        </Pressable>
-      </View>
+  const confirmDelete = (c: CategoryItem) => {
+    triggerImpact();
+    Alert.alert(
+      t('documents.deleteCategoryTitle', { defaultValue: 'Delete category?' }),
+      t('documents.deleteCategoryMessage', {
+        name: c.name,
+        defaultValue: `"${c.name}" will be permanently removed.`,
+      }),
+      [
+        { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
+        {
+          text: t('common.delete', { defaultValue: 'Delete' }),
+          style: 'destructive',
+          onPress: () => deleteMutation.mutate(c.id),
+        },
+      ],
     );
   };
+
+  const renderRow = (c: CategoryItem) => (
+    <View
+      key={c.id}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 14,
+        backgroundColor: theme.surface,
+        borderRadius: 12,
+        borderCurve: 'continuous',
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        opacity: c.isHidden ? 0.6 : 1,
+      }}
+    >
+      <Text style={{ flex: 1, fontSize: 15, color: theme.ink }}>{c.name}</Text>
+
+      <Pressable
+        onPress={() => {
+          triggerImpact();
+          toggleMutation.mutate({ id: c.id, isHidden: !c.isHidden });
+        }}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={
+          c.isHidden
+            ? t('documents.showCategory', { defaultValue: 'Show category' })
+            : t('documents.hideCategory', { defaultValue: 'Hide category' })
+        }
+      >
+        {c.isHidden ? (
+          <EyeOff size={18} color={theme.ink3} strokeWidth={2} />
+        ) : (
+          <Eye size={18} color={palette.primary400} strokeWidth={2} />
+        )}
+      </Pressable>
+
+      <Pressable
+        onPress={() => confirmDelete(c)}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={t('documents.deleteCategory', { defaultValue: 'Delete category' })}
+      >
+        <Trash2 size={18} color={palette.danger500} strokeWidth={2} />
+      </Pressable>
+    </View>
+  );
 
   return (
     <>

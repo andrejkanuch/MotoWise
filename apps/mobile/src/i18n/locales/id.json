@@ -2141,6 +2141,13 @@
     "categoryAddFailed": "Failed to add category.",
     "categoryUpdateFailed": "Failed to update category.",
     "viewerCounter": "{{current}} of {{total}}",
-    "viewerRetry": "Tap to retry"
+    "viewerRetry": "Tap to retry",
+    "categoryHasDocuments": "Pindahkan atau hapus dokumennya sebelum menghapus kategori ini.",
+    "categoryDeleteFailed": "Gagal menghapus kategori.",
+    "deleteCategoryTitle": "Hapus kategori?",
+    "deleteCategoryMessage": "“{{name}}” akan dihapus secara permanen.",
+    "deleteCategory": "Hapus kategori",
+    "showCategory": "Tampilkan kategori",
+    "hideCategory": "Sembunyikan kategori"
   }
 }

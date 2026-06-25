@@ -2147,6 +2147,13 @@
     "categoryAddFailed": "Nie udało się dodać kategorii.",
     "categoryUpdateFailed": "Nie udało się zaktualizować kategorii.",
     "viewerCounter": "{{current}} z {{total}}",
-    "viewerRetry": "Dotknij, aby ponowić"
+    "viewerRetry": "Dotknij, aby ponowić",
+    "categoryHasDocuments": "Przenieś lub usuń dokumenty przed usunięciem tej kategorii.",
+    "categoryDeleteFailed": "Nie udało się usunąć kategorii.",
+    "deleteCategoryTitle": "Usunąć kategorię?",
+    "deleteCategoryMessage": "„{{name}}” zostanie trwale usunięta.",
+    "deleteCategory": "Usuń kategorię",
+    "showCategory": "Pokaż kategorię",
+    "hideCategory": "Ukryj kategorię"
   }
 }

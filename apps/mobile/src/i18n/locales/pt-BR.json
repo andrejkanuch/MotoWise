@@ -2144,6 +2144,13 @@
     "categoryAddFailed": "Falha ao adicionar a categoria.",
     "categoryUpdateFailed": "Falha ao atualizar a categoria.",
     "viewerCounter": "{{current}} de {{total}}",
-    "viewerRetry": "Toque para tentar novamente"
+    "viewerRetry": "Toque para tentar novamente",
+    "categoryHasDocuments": "Mova ou remova seus documentos antes de excluir esta categoria.",
+    "categoryDeleteFailed": "Falha ao excluir a categoria.",
+    "deleteCategoryTitle": "Excluir categoria?",
+    "deleteCategoryMessage": "“{{name}}” será removida permanentemente.",
+    "deleteCategory": "Excluir categoria",
+    "showCategory": "Mostrar categoria",
+    "hideCategory": "Ocultar categoria"
   }
 }

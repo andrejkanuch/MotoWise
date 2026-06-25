@@ -2147,6 +2147,13 @@
     "categoryAddFailed": "Failed to add category.",
     "categoryUpdateFailed": "Failed to update category.",
     "viewerCounter": "{{current}} of {{total}}",
-    "viewerRetry": "Tap to retry"
+    "viewerRetry": "Tap to retry",
+    "categoryHasDocuments": "Pred odstránením tejto kategórie presuňte alebo odstráňte jej dokumenty.",
+    "categoryDeleteFailed": "Kategóriu sa nepodarilo odstrániť.",
+    "deleteCategoryTitle": "Odstrániť kategóriu?",
+    "deleteCategoryMessage": "„{{name}}“ sa natrvalo odstráni.",
+    "deleteCategory": "Odstrániť kategóriu",
+    "showCategory": "Zobraziť kategóriu",
+    "hideCategory": "Skryť kategóriu"
   }
 }

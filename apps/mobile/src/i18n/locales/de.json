@@ -2141,6 +2141,13 @@
     "categoryAddFailed": "Kategorie konnte nicht hinzugefügt werden.",
     "categoryUpdateFailed": "Kategorie konnte nicht aktualisiert werden.",
     "viewerCounter": "{{current}} von {{total}}",
-    "viewerRetry": "Zum Wiederholen tippen"
+    "viewerRetry": "Zum Wiederholen tippen",
+    "categoryHasDocuments": "Verschiebe oder entferne die Dokumente, bevor du diese Kategorie löschst.",
+    "categoryDeleteFailed": "Kategorie konnte nicht gelöscht werden.",
+    "deleteCategoryTitle": "Kategorie löschen?",
+    "deleteCategoryMessage": "„{{name}}“ wird dauerhaft entfernt.",
+    "deleteCategory": "Kategorie löschen",
+    "showCategory": "Kategorie einblenden",
+    "hideCategory": "Kategorie ausblenden"
   }
 }

@@ -162,6 +162,41 @@ export class DocumentCategoriesService {
     return this.mapRow(data as CategoryRow);
   }
 
+  /**
+   * Permanently deletes a category. documents.category_id is ON DELETE RESTRICT,
+   * so a category still referenced by any document cannot be removed — surface a
+   * friendly "move its documents first" error instead of a raw FK violation.
+   * Hiding stays the right tool for categories that hold documents; deleting is
+   * for emptying out unused/custom ones.
+   */
+  async delete(userId: string, id: string): Promise<boolean> {
+    const { count, error: countError } = await this.supabase
+      .from('documents')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('category_id', id);
+    if (countError) throw new InternalServerErrorException('Failed to delete category');
+    if ((count ?? 0) > 0) throw new BadRequestException('CATEGORY_HAS_DOCUMENTS');
+
+    const { data, error } = await this.supabase
+      .from('document_categories')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select('id')
+      .single();
+    if (error || !data) {
+      // Race: a document was filed between the count and the delete.
+      if (error?.code === PG_ERROR.FOREIGN_KEY_VIOLATION) {
+        throw new BadRequestException('CATEGORY_HAS_DOCUMENTS');
+      }
+      if (error?.code === PG_ERROR.NOT_FOUND) throw new NotFoundException('Category not found');
+      this.logger.error(`delete category failed: ${error?.message}`);
+      throw new InternalServerErrorException('Failed to delete category');
+    }
+    return true;
+  }
+
   private mapRow(row: CategoryRow): DocumentCategory {
     return {
       id: row.id,

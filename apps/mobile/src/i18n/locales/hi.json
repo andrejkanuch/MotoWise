@@ -2141,6 +2141,13 @@
     "categoryAddFailed": "Failed to add category.",
     "categoryUpdateFailed": "Failed to update category.",
     "viewerCounter": "{{current}} of {{total}}",
-    "viewerRetry": "Tap to retry"
+    "viewerRetry": "Tap to retry",
+    "categoryHasDocuments": "इस श्रेणी को हटाने से पहले इसके दस्तावेज़ ले जाएँ या हटाएँ।",
+    "categoryDeleteFailed": "श्रेणी हटाने में विफल।",
+    "deleteCategoryTitle": "श्रेणी हटाएँ?",
+    "deleteCategoryMessage": "“{{name}}” स्थायी रूप से हटा दी जाएगी।",
+    "deleteCategory": "श्रेणी हटाएँ",
+    "showCategory": "श्रेणी दिखाएँ",
+    "hideCategory": "श्रेणी छिपाएँ"
   }
 }
