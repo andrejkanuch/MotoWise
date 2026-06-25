@@ -6,6 +6,7 @@ import {
   UpdateDocumentCategoryDocument,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { router, Stack } from 'expo-router';
 import { Check, Eye, EyeOff, Pencil, Plus } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -145,72 +146,87 @@ export default function ManageDocumentCategoriesScreen() {
   };
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ padding: 16, gap: 20, paddingBottom: 40 }}
-      keyboardShouldPersistTaps="handled"
-    >
-      {/* Add new */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-        <TextInput
-          value={newName}
-          onChangeText={(v) => setNewName(v.slice(0, 60))}
-          placeholder={t('documents.newCategoryPlaceholder', { defaultValue: 'New category name' })}
-          placeholderTextColor={theme.ink4}
-          style={{
-            flex: 1,
-            backgroundColor: theme.surface,
-            borderRadius: 12,
-            borderCurve: 'continuous',
-            paddingHorizontal: 14,
-            paddingVertical: 12,
-            fontSize: 15,
-            color: theme.ink,
-          }}
-          onSubmitEditing={() => newName.trim() && addMutation.mutate(newName.trim())}
-        />
-        <Pressable
-          onPress={() => newName.trim() && addMutation.mutate(newName.trim())}
-          disabled={!newName.trim() || addMutation.isPending}
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 12,
-            borderCurve: 'continuous',
-            backgroundColor: newName.trim() ? palette.primary500 : palette.neutral400,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Plus size={20} color={palette.white} strokeWidth={2.5} />
-        </Pressable>
-      </View>
-
-      {isLoading ? (
-        <ActivityIndicator color={palette.primary500} />
-      ) : (
-        <>
-          <View style={{ gap: 8 }}>{visible.map(renderRow)}</View>
-
-          {hidden.length > 0 && (
-            <View style={{ gap: 8 }}>
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: '700',
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  color: theme.ink3,
-                  marginLeft: 4,
-                }}
-              >
-                {t('documents.hiddenCategories', { defaultValue: 'Hidden' })}
+    <>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <Pressable onPress={() => router.back()} hitSlop={8}>
+              <Text style={{ fontSize: 16, fontWeight: '600', color: theme.warm }}>
+                {t('common.done', { defaultValue: 'Done' })}
               </Text>
-              {hidden.map(renderRow)}
-            </View>
-          )}
-        </>
-      )}
-    </ScrollView>
+            </Pressable>
+          ),
+        }}
+      />
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={{ padding: 16, gap: 20, paddingBottom: 40 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Add new */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <TextInput
+            value={newName}
+            onChangeText={(v) => setNewName(v.slice(0, 60))}
+            placeholder={t('documents.newCategoryPlaceholder', {
+              defaultValue: 'New category name',
+            })}
+            placeholderTextColor={theme.ink4}
+            style={{
+              flex: 1,
+              backgroundColor: theme.surface,
+              borderRadius: 12,
+              borderCurve: 'continuous',
+              paddingHorizontal: 14,
+              paddingVertical: 12,
+              fontSize: 15,
+              color: theme.ink,
+            }}
+            onSubmitEditing={() => newName.trim() && addMutation.mutate(newName.trim())}
+          />
+          <Pressable
+            onPress={() => newName.trim() && addMutation.mutate(newName.trim())}
+            disabled={!newName.trim() || addMutation.isPending}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 12,
+              borderCurve: 'continuous',
+              backgroundColor: newName.trim() ? palette.primary500 : palette.neutral400,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Plus size={20} color={palette.white} strokeWidth={2.5} />
+          </Pressable>
+        </View>
+
+        {isLoading ? (
+          <ActivityIndicator color={palette.primary500} />
+        ) : (
+          <>
+            <View style={{ gap: 8 }}>{visible.map(renderRow)}</View>
+
+            {hidden.length > 0 && (
+              <View style={{ gap: 8 }}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                    color: theme.ink3,
+                    marginLeft: 4,
+                  }}
+                >
+                  {t('documents.hiddenCategories', { defaultValue: 'Hidden' })}
+                </Text>
+                {hidden.map(renderRow)}
+              </View>
+            )}
+          </>
+        )}
+      </ScrollView>
+    </>
   );
 }
