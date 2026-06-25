@@ -352,7 +352,20 @@ export class BlogService {
     // Snapshot the current state first so a revert is itself versioned (non-destructive).
     await this.writeVersionSnapshot(id, userId);
 
-    const { id: _id, created_at: _c, updated_at: _u, ...restorable } = snapshot.post ?? {};
+    // Revert restores CONTENT, not workflow state. `publish()` snapshots the row
+    // *before* flipping status, so a publish-time snapshot carries status='draft';
+    // restoring it would silently unpublish a live post. Strip status/published_at/
+    // scheduled_for (and the managed id/timestamps) so a revert never changes
+    // whether the post is live.
+    const {
+      id: _id,
+      created_at: _c,
+      updated_at: _u,
+      status: _status,
+      published_at: _publishedAt,
+      scheduled_for: _scheduledFor,
+      ...restorable
+    } = snapshot.post ?? {};
     if (Object.keys(restorable).length > 0) {
       await this.supabase.from('blog_posts').update(restorable).eq('id', id);
     }
