@@ -179,6 +179,17 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
         ios: {
           deploymentTarget: '16.4',
+          // AppCheckCore (a Swift pod pulled in by @react-native-google-signin)
+          // depends on GoogleUtilities + RecaptchaInterop, which don't define
+          // modules — so they can't be imported from Swift when built as static
+          // libraries and `pod install` fails. Opt those two into modular header
+          // generation (the per-dependency fix CocoaPods suggests) instead of
+          // flipping the whole project to use_modular_headers!/static frameworks,
+          // which would conflict with rnmapbox's dynamic-framework setup.
+          extraPods: [
+            { name: 'GoogleUtilities', modular_headers: true },
+            { name: 'RecaptchaInterop', modular_headers: true },
+          ],
         },
       },
     ],
