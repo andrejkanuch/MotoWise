@@ -16,12 +16,12 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { BLOG_LOCALES, BlogPostType, stripMdxToText } from '@motovault/types';
+import { BLOG_LOCALES, BlogPostType, slugify, stripMdxToText } from '@motovault/types';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import matter from 'gray-matter';
 
-// Re-exported so the generator (U10) and tests keep importing it from here.
-export { stripMdxToText };
+// Re-exported so the generator (U10) and tests keep importing them from here.
+export { slugify, stripMdxToText };
 
 // --- Frontmatter shape (mirrors apps/web/src/lib/blog.ts Article fields) ------
 interface BlogFrontmatter {
@@ -52,15 +52,6 @@ export interface ParsedDoc {
 const CONTENT_DIR = join(process.cwd(), 'content', 'blog');
 
 // --- Pure helpers (unit-tested) ----------------------------------------------
-
-/** kebab-case a free-text label into a taxonomy slug. */
-export function slugify(label: string): string {
-  return label
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
 
 /** Dataset-driven maintenance posts carry `dataset_models`; everything else is a guide. */
 export function detectType(fm: BlogFrontmatter): string {

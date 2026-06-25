@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { unstable_cache } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/seo/cache-tags';
@@ -127,13 +128,21 @@ export const listPublishedArticles = unstable_cache(
       .eq('blog_post_translations.locale', locale)
       .order('published_at', { ascending: false });
     if (error) {
+      // Surface a monitoring signal — an empty array would otherwise render a blank
+      // blog that's indistinguishable from "no posts yet" / a DB outage.
+      Sentry.captureException(error, {
+        tags: { area: 'blog', op: 'listPublishedArticles', locale },
+      });
       console.error(`[supabase-blog] listPublishedArticles(${locale}) failed: ${error.message}`);
       return [];
     }
     return ((data ?? []) as unknown as RawListRow[]).map((row) => toArticle(row, locale));
   },
   ['blog-list'],
-  { revalidate: 604800, tags: [CACHE_TAGS.blog] },
+  // Shorter window than the rarely-changing detail/taxonomy reads: pg_cron flips
+  // scheduled -> published in SQL with no on-demand revalidation, so bound how long
+  // a freshly-published scheduled post can be missing from the listing.
+  { revalidate: 3600, tags: [CACHE_TAGS.blog] },
 );
 
 /** Body MDX (`body_raw`) for one post in one locale. Cached + tagged `blog`. */
@@ -147,6 +156,7 @@ export const fetchArticleBody = unstable_cache(
       .eq('blog_post_translations.locale', locale)
       .maybeSingle();
     if (error) {
+      Sentry.captureException(error, { tags: { area: 'blog', op: 'fetchArticleBody', slug } });
       console.error(`[supabase-blog] fetchArticleBody(${slug}/${locale}) failed: ${error.message}`);
       return null;
     }
@@ -170,18 +180,25 @@ export const fetchArticleBody = unstable_cache(
 export async function searchArticleSlugs(query: string, locale: string): Promise<string[]> {
   const { data, error } = await supabase.rpc('search_blog_posts', { query, loc: locale });
   if (error) throw new Error(`search_blog_posts failed: ${error.message}`);
-  const ids = ((data ?? []) as { post_id: string }[]).map((r) => r.post_id);
-  if (ids.length === 0) return [];
-  const { data: rows, error: rowsErr } = await supabase
+  const rows = (data ?? []) as { post_id: string; slug?: string | null }[];
+  if (rows.length === 0) return [];
+  // Migration 00158: the RPC returns slug directly (rank order preserved), so no
+  // hydration round-trip is needed.
+  if (rows.every((r) => typeof r.slug === 'string')) {
+    return rows.map((r) => r.slug as string);
+  }
+  // Fallback for environments where 00158 isn't applied yet (RPC returns post_id only):
+  // hydrate ids -> slugs, preserving the RPC's rank order.
+  const ids = rows.map((r) => r.post_id);
+  const { data: hydrated, error: rowsErr } = await supabase
     .from('blog_posts')
     .select('id, slug')
     .eq('status', 'published')
     .in('id', ids);
   if (rowsErr) throw new Error(`search hydrate failed: ${rowsErr.message}`);
   const slugById = new Map(
-    ((rows ?? []) as { id: string; slug: string }[]).map((r) => [r.id, r.slug]),
+    ((hydrated ?? []) as { id: string; slug: string }[]).map((r) => [r.id, r.slug]),
   );
-  // Preserve the RPC's rank order.
   return ids.map((id) => slugById.get(id)).filter((s): s is string => Boolean(s));
 }
 
@@ -193,6 +210,7 @@ export const listBlogCategories = unstable_cache(
       .select('slug, name')
       .order('name', { ascending: true });
     if (error) {
+      Sentry.captureException(error, { tags: { area: 'blog', op: 'listBlogCategories' } });
       console.error(`[supabase-blog] listBlogCategories failed: ${error.message}`);
       return [];
     }
@@ -212,6 +230,7 @@ export const listTranslatedLocales = unstable_cache(
       .eq('slug', slug)
       .maybeSingle();
     if (error) {
+      Sentry.captureException(error, { tags: { area: 'blog', op: 'listTranslatedLocales', slug } });
       console.error(`[supabase-blog] listTranslatedLocales(${slug}) failed: ${error.message}`);
       return [];
     }

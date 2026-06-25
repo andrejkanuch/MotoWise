@@ -28,3 +28,18 @@ export function stripMdxToText(body: string): string {
 export function wordCount(plainText: string): number {
   return plainText ? plainText.split(/\s+/).length : 0;
 }
+
+/**
+ * kebab-case a free-text taxonomy label into a slug. Strips combining diacritics
+ * so accented names ("Données") and their ASCII form ("donnees") collapse to the
+ * same slug — used by the import script (U3), the generator (U10), and the admin
+ * API (U5) so all three produce identical `categories`/`keywords` slugs.
+ */
+export function slugify(label: string): string {
+  return label
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '') // strip combining diacritics
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}

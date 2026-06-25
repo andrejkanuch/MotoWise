@@ -1,5 +1,5 @@
 import type { CreateBlogCategoryInput, CreateBlogKeywordInput } from '@motovault/types';
-import { BlogPostStatus, BlogTypeDataSchema, CACHE_TAGS } from '@motovault/types';
+import { BlogPostStatus, BlogTypeDataSchema, CACHE_TAGS, slugify } from '@motovault/types';
 import {
   BadRequestException,
   ForbiddenException,
@@ -30,16 +30,6 @@ import type {
   BlogTranslation,
 } from './models/blog-post.model';
 import { BlogPostConnection } from './models/blog-post-connection.model';
-
-/** kebab-case a free-text taxonomy label into a slug (mirrors the import script's slugify). */
-function slugify(label: string): string {
-  return label
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '') // strip combining diacritics
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
 
 /** Joined select used for both list and detail — base + translations + taxonomy + per-type rows. */
 const POST_SELECT = `
@@ -127,6 +117,12 @@ export class BlogService {
   /** Fetch one post (any status) for the admin editor. */
   async adminGet(userId: string, id: string): Promise<BlogPost | null> {
     await this.assertAdmin(userId);
+    return this.fetchPostById(id);
+  }
+
+  /** Joined post read WITHOUT the admin gate — for callers that already asserted
+   * admin (e.g. the post-write read-back), so a mutation doesn't re-query users.role. */
+  private async fetchPostById(id: string): Promise<BlogPost | null> {
     const { data, error } = await this.supabase
       .from('blog_posts')
       .select(POST_SELECT)
@@ -134,7 +130,7 @@ export class BlogService {
       .maybeSingle();
 
     if (error) {
-      this.logger.error(`adminGet failed: ${error.message}`);
+      this.logger.error(`fetchPostById failed: ${error.message}`);
       throw new InternalServerErrorException('Failed to fetch blog post');
     }
     if (!data) return null;
@@ -160,7 +156,11 @@ export class BlogService {
       updatedAt: row.updated_at,
       typeData: this.mapTypeData(row),
       translations: (row.blog_post_translations ?? []).map(mapTranslation),
-      categories: (row.blog_post_categories ?? []).map(mapCategory),
+      // Drop links whose category row didn't resolve (orphaned FK) rather than
+      // emitting an empty-string id/name that violates the BlogCategory contract.
+      categories: (row.blog_post_categories ?? [])
+        .filter((link) => firstOf(link.categories) != null)
+        .map(mapCategory),
       keywords: (row.blog_post_keywords ?? [])
         .map((k) => firstOf(k.keywords))
         .filter((k): k is RawKeyword => k != null)
@@ -414,6 +414,18 @@ export class BlogService {
         const { search_vector: _sv, created_at: _tc, updated_at: _tu, ...rest } = t;
         return rest;
       });
+      // Delete locales the snapshot didn't have (added after the snapshot) so a
+      // revert fully restores the snapshotted locale set instead of leaving orphans.
+      const snapshotLocales = rows
+        .map((r) => (r as { locale?: string }).locale)
+        .filter((l): l is string => typeof l === 'string');
+      const { error: delErr } = await this.supabase
+        .from('blog_post_translations')
+        .delete()
+        .eq('post_id', id)
+        .not('locale', 'in', `(${snapshotLocales.join(',')})`);
+      if (delErr)
+        throw new InternalServerErrorException(`Failed to prune translations: ${delErr.message}`);
       const { error: upErr } = await this.supabase
         .from('blog_post_translations')
         .upsert(rows, { onConflict: 'post_id,locale' });
@@ -511,8 +523,9 @@ export class BlogService {
 
   // --- Mutation helpers ------------------------------------------------------
 
-  private async requireGet(userId: string, id: string): Promise<BlogPost> {
-    const post = await this.adminGet(userId, id);
+  private async requireGet(_userId: string, id: string): Promise<BlogPost> {
+    // The calling mutation already ran assertAdmin; skip the redundant role re-check.
+    const post = await this.fetchPostById(id);
     if (!post) throw new InternalServerErrorException('Post not found after write');
     return post;
   }
@@ -595,22 +608,33 @@ export class BlogService {
     if (trErr) {
       throw new InternalServerErrorException(`Failed to snapshot translations: ${trErr.message}`);
     }
-    const { data: maxRow } = await this.supabase
-      .from('blog_post_versions')
-      .select('version_num')
-      .eq('post_id', postId)
-      .order('version_num', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const nextVersion = ((maxRow as { version_num?: number } | null)?.version_num ?? 0) + 1;
+    const snapshot = { post: base, translations: translations ?? [] };
+    // version_num is allocated as max()+1; a concurrent publish (admin vs the pg_cron
+    // publisher, or two admins) can compute the same number and hit UNIQUE(post_id,
+    // version_num). Retry on that specific conflict instead of surfacing a 500.
+    const UNIQUE_VIOLATION = '23505';
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const { data: maxRow } = await this.supabase
+        .from('blog_post_versions')
+        .select('version_num')
+        .eq('post_id', postId)
+        .order('version_num', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const nextVersion = ((maxRow as { version_num?: number } | null)?.version_num ?? 0) + 1;
 
-    const { error } = await this.supabase.from('blog_post_versions').insert({
-      post_id: postId,
-      version_num: nextVersion,
-      snapshot: { post: base, translations: translations ?? [] },
-      created_by: userId,
-    });
-    if (error) throw new InternalServerErrorException(`Failed to write version: ${error.message}`);
+      const { error } = await this.supabase.from('blog_post_versions').insert({
+        post_id: postId,
+        version_num: nextVersion,
+        snapshot,
+        created_by: userId,
+      });
+      if (!error) return;
+      if (error.code !== UNIQUE_VIOLATION || attempt === 3) {
+        throw new InternalServerErrorException(`Failed to write version: ${error.message}`);
+      }
+      // else: another writer took this version_num — re-read max and retry.
+    }
   }
 
   private revalidatePost(slug: string): void {
