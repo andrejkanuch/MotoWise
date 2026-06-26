@@ -76,13 +76,16 @@ describe('deriveSnapshot', () => {
 });
 
 describe('buildPanelItems', () => {
-  it('fuses state + distance into the title and lists three rows', () => {
+  it('titles with the state word and leads the rows with distance (the hero)', () => {
     const model = buildPanelItems(deriveSnapshot(base, 'metric'));
-    expect(model.title.startsWith('RECORDING · ')).toBe(true);
-    expect(model.items.map((i) => i.title)).toEqual(['Moving', 'Climb', 'Mode']);
+    // Title is the state word only — distance stays in a row so numeric churn can
+    // refresh in place (the CarPlay template title is fixed at construction).
+    expect(model.title).toBe('RECORDING');
+    expect(model.items.map((i) => i.title)).toEqual(['Distance', 'Moving', 'Climb', 'Mode']);
+    expect(model.items[0].detail).toMatch(/km/);
   });
 
-  it('idle title is the bare READY word (no distance)', () => {
+  it('idle title is the bare READY word', () => {
     const model = buildPanelItems(deriveSnapshot({ ...base, status: 'idle' }, 'metric'));
     expect(model.title).toBe('READY');
   });

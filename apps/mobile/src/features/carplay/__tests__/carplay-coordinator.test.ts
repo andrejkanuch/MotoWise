@@ -1,15 +1,14 @@
 import * as carplay from '../../../../modules/carplay/src';
 
-// --- native module mock (capture the registered listeners) ---
+// --- adapter mock (capture the registered listeners + action dispatcher) ---
 jest.mock('../../../../modules/carplay/src', () => ({
   isCarPlayAvailable: true,
   addConnectListener: jest.fn(() => ({ remove: jest.fn() })),
   addDisconnectListener: jest.fn(() => ({ remove: jest.fn() })),
-  addActionListener: jest.fn(() => ({ remove: jest.fn() })),
-  checkForConnection: jest.fn(),
-  setRootInformationTemplate: jest.fn(),
-  updateInformationItems: jest.fn(),
-  updateInformationActions: jest.fn(),
+  setActionDispatcher: jest.fn(),
+  isHeadUnitConnected: jest.fn(() => false),
+  renderInformation: jest.fn(),
+  clearInformation: jest.fn(),
 }));
 
 // --- store mocks (avoid the MMKV / expo dependency chain) ---
@@ -48,8 +47,7 @@ jest.mock('../../../stores/auth.store', () => ({
 import { __resetCarPlayCoordinator, startCarPlayCoordinator } from '../carplay-coordinator';
 
 const fireConnect = () => (carplay.addConnectListener as jest.Mock).mock.calls[0][0]();
-const fireAction = (id: string) =>
-  (carplay.addActionListener as jest.Mock).mock.calls[0][0]({ actionId: id });
+const fireAction = (id: string) => (carplay.setActionDispatcher as jest.Mock).mock.calls[0][0](id);
 const fireStore = () => {
   for (const l of [...mockStoreListeners]) l();
 };
@@ -71,28 +69,34 @@ describe('carplay-coordinator', () => {
   it('keeps exactly one ride subscription across repeated connects (no leak)', () => {
     startCarPlayCoordinator();
     fireConnect();
-    fireConnect(); // cold-start dual path: scene attach + checkForConnection
+    fireConnect(); // cold-start dual path: scene attach + already-connected check
     expect(mockStoreListeners.length).toBe(1);
   });
 
-  it('renders the root template on connect (projection, not start)', () => {
+  it('projects an already-connected head unit on startup', () => {
+    (carplay.isHeadUnitConnected as jest.Mock).mockReturnValueOnce(true);
+    startCarPlayCoordinator();
+    // No didConnect event fired — startup sees the live connection and renders.
+    expect(carplay.renderInformation).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the panel on connect (projection, not start)', () => {
     startCarPlayCoordinator();
     fireConnect();
-    expect(carplay.setRootInformationTemplate).toHaveBeenCalledTimes(1);
+    expect(carplay.renderInformation).toHaveBeenCalledTimes(1);
     expect(mockRide.startRide).not.toHaveBeenCalled();
   });
 
-  it('pushes immediately on a state transition (exempt from throttle)', () => {
+  it('renders immediately on a state transition (exempt from throttle)', () => {
     startCarPlayCoordinator();
     fireConnect();
-    (carplay.updateInformationItems as jest.Mock).mockClear();
+    (carplay.renderInformation as jest.Mock).mockClear();
 
-    // recording -> auto-paused: a state change must update items AND actions now
+    // recording -> auto-paused: title + actions change, so the adapter re-pushes.
     mockRide.recordingSubState = 'stopped';
     fireStore();
 
-    expect(carplay.updateInformationItems).toHaveBeenCalledTimes(1);
-    expect(carplay.updateInformationActions).toHaveBeenCalledTimes(1);
+    expect(carplay.renderInformation).toHaveBeenCalledTimes(1);
   });
 
   it('coalesces numeric-only updates to >=10s', () => {
@@ -100,18 +104,18 @@ describe('carplay-coordinator', () => {
     const spy = jest.spyOn(Date, 'now').mockReturnValue(now);
     startCarPlayCoordinator();
     fireConnect();
-    (carplay.updateInformationItems as jest.Mock).mockClear();
+    (carplay.renderInformation as jest.Mock).mockClear();
 
-    // same state, only distance ticked, <10s later -> no push
+    // same state, only distance ticked, <10s later -> no render
     mockRide.distance = 42_500;
     fireStore();
-    expect(carplay.updateInformationItems).not.toHaveBeenCalled();
+    expect(carplay.renderInformation).not.toHaveBeenCalled();
 
-    // >=10s later -> one push
+    // >=10s later -> one render
     spy.mockReturnValue(now + 10_000);
     mockRide.distance = 42_800;
     fireStore();
-    expect(carplay.updateInformationItems).toHaveBeenCalledTimes(1);
+    expect(carplay.renderInformation).toHaveBeenCalledTimes(1);
     spy.mockRestore();
   });
 

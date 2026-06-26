@@ -138,8 +138,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     './plugins/remove-activity-recognition',
-    // CarPlay: injects the UIApplicationSceneManifest (CPTemplateApplicationScene)
-    // and ships the Swift CarPlay scene delegate wired to the new-arch host.
+    // CarPlay: injects the UIApplicationSceneManifest pointing the window + CarPlay
+    // scenes at @iternio/react-native-auto-play's autolinked scene delegates.
     './plugins/with-carplay',
     [
       'expo-widgets',

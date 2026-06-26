@@ -81,13 +81,19 @@ export function deriveSnapshot(input: RideInput, system: MeasurementSystem): Pan
 }
 
 export function buildPanelItems(s: PanelSnapshot): CPInformationTemplateModel {
-  const title = s.state === 'idle' ? STATE_WORD.idle : `${STATE_WORD[s.state]} · ${s.distance}`;
+  // Title carries the state word only. Distance is the hero row, not the title:
+  // the CarPlay InformationTemplate fixes its title at construction, so fusing the
+  // (constantly-ticking) distance into it would force a full re-push on every GPS
+  // tick. Keeping numerics in rows lets them refresh in place (updateItems) while
+  // the title/actions re-push only on a real state transition. Distance leads the
+  // rows, so it stays the most prominent glanceable value.
   const items = [
+    { title: 'Distance', detail: s.distance },
     { title: 'Moving', detail: s.movingTime },
     { title: 'Climb', detail: s.climb },
     { title: 'Mode', detail: MODE_LABEL[s.startMode] },
   ];
-  return { title, items, actions: buildActions(s.state, s.startMode) };
+  return { title: STATE_WORD[s.state], items, actions: buildActions(s.state, s.startMode) };
 }
 
 export function buildActions(

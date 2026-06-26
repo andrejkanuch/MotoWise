@@ -10,8 +10,8 @@ import { useEffect, useState } from 'react';
 import {
   addConnectListener,
   addDisconnectListener,
-  checkForConnection,
   isCarPlayAvailable,
+  isHeadUnitConnected,
 } from '../../../modules/carplay/src';
 import type { BannerState } from '../../components/carplay/active-ride-banner';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
@@ -32,7 +32,7 @@ export function useCarPlayConnection(): { connected: boolean } {
     if (!isCarPlayAvailable) return;
     const onC = addConnectListener(() => setConnected(true));
     const onD = addDisconnectListener(() => setConnected(false));
-    checkForConnection(); // resolve an already-connected head unit
+    setConnected(isHeadUnitConnected()); // resolve an already-connected head unit
     return () => {
       onC?.remove();
       onD?.remove();

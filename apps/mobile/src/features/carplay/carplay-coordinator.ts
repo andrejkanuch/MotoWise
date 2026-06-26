@@ -7,16 +7,15 @@
 // Started once on app init (src/app/_layout.tsx). No-ops when the native module
 // is absent (Android / pre-CarPlay build).
 
-import type { EventSubscription } from 'expo-modules-core';
 import {
-  addActionListener,
   addConnectListener,
   addDisconnectListener,
-  checkForConnection,
+  type CarPlaySubscription,
+  clearInformation,
   isCarPlayAvailable,
-  setRootInformationTemplate,
-  updateInformationActions,
-  updateInformationItems,
+  isHeadUnitConnected,
+  renderInformation,
+  setActionDispatcher,
 } from '../../../modules/carplay/src';
 import { useAuthStore } from '../../stores/auth.store';
 import { useCarPlayStore } from '../../stores/carplay.store';
@@ -31,7 +30,7 @@ import {
 const THROTTLE_MS = 10_000;
 
 let started = false;
-const eventSubs: EventSubscription[] = [];
+const eventSubs: CarPlaySubscription[] = [];
 let unsubStore: (() => void) | null = null;
 let lastState: CarPlayPanelState | null = null;
 let lastPushAt = 0;
@@ -65,18 +64,19 @@ function render(now: number = Date.now()): void {
   const model = buildPanelItems(snap);
 
   if (snap.state !== lastState) {
-    // State transition — push immediately (title + available actions change),
-    // exempt from the throttle so the panel never lags the rider's cue.
+    // State transition — render immediately (title + available actions change, so
+    // the adapter rebuilds + re-pushes), exempt from the throttle so the panel
+    // never lags the rider's cue.
     clearFlush();
-    updateInformationItems(model.items);
-    updateInformationActions(model.actions);
+    renderInformation(model);
     lastState = snap.state;
     lastPushAt = now;
     return;
   }
   if (now - lastPushAt >= THROTTLE_MS) {
+    // Same state, numeric churn — the adapter updates the rows in place.
     clearFlush();
-    updateInformationItems(model.items);
+    renderInformation(model);
     lastPushAt = now;
     return;
   }
@@ -96,12 +96,13 @@ function render(now: number = Date.now()): void {
 function onConnect(): void {
   const system = useAuthStore.getState().measurementSystem ?? 'metric';
   const snap = deriveSnapshot(currentRideInput(), system);
-  setRootInformationTemplate(buildPanelItems(snap)); // projection, not start
+  clearInformation(); // ensure the next render builds a fresh root template
+  renderInformation(buildPanelItems(snap)); // projection, not start
   lastState = snap.state;
   lastPushAt = Date.now();
   // Idempotent: onConnect can fire more than once without an intervening
-  // disconnect (scene attach + checkForConnection on cold start). Drop any prior
-  // subscription so exactly one stays live.
+  // disconnect (scene attach + an already-connected unit on cold start). Drop any
+  // prior subscription so exactly one stays live.
   unsubStore?.();
   unsubStore = useRideStore.subscribe(() => render());
 }
@@ -110,6 +111,7 @@ function onDisconnect(): void {
   clearFlush();
   unsubStore?.();
   unsubStore = null;
+  clearInformation();
   lastState = null;
 }
 
@@ -137,11 +139,11 @@ function onAction(actionId: string): void {
 export function startCarPlayCoordinator(): void {
   if (started || !isCarPlayAvailable) return;
   started = true;
+  setActionDispatcher(onAction);
   const c = addConnectListener(onConnect);
   const d = addDisconnectListener(onDisconnect);
-  const a = addActionListener((e) => onAction(e.actionId));
-  for (const s of [c, d, a]) if (s) eventSubs.push(s);
-  checkForConnection(); // catch an already-connected head unit
+  for (const s of [c, d]) if (s) eventSubs.push(s);
+  if (isHeadUnitConnected()) onConnect(); // catch an already-connected head unit
 }
 
 // Test-only reset.
@@ -150,6 +152,7 @@ export function __resetCarPlayCoordinator(): void {
   clearFlush();
   unsubStore?.();
   unsubStore = null;
+  clearInformation();
   for (const s of eventSubs) s.remove();
   eventSubs.length = 0;
   lastState = null;

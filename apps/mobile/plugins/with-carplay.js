@@ -1,17 +1,30 @@
-// CarPlay config plugin — injects the UIApplicationSceneManifest so iOS launches
-// a CPTemplateApplicationScene alongside the normal window scene. The Swift scene
-// delegate (CarPlaySceneDelegate) and the bridge module ship in the autolinked
-// Expo module at apps/mobile/modules/carplay/ios, so no source copy is needed
-// here — the manifest just points UIKit at the delegate class by name.
+// CarPlay config plugin — injects the UIApplicationSceneManifest that adopts the
+// scene-based lifecycle @iternio/react-native-auto-play requires. It declares two
+// scenes, both backed by Swift delegates that ship inside the library's autolinked
+// pod (ReactNativeAutoPlay) — no source is copied here, the manifest just points
+// UIKit at the delegate classes by name:
 //
-// Precedent: plugins/fbsdk-core-only.js (config-plugin shape) and the expo-widgets
-// target (custom Swift in the build). Idempotent; re-applied every prebuild.
+//   • UIWindowSceneSessionRoleApplication        → WindowApplicationSceneDelegate
+//       The phone app's window. The library's delegate re-hosts the AppDelegate's
+//       existing rootViewController in a scene-owned window, so Expo's default
+//       window/rootViewController bootstrap stays as-is (no AppDelegate patch).
+//   • CPTemplateApplicationSceneSessionRoleApplication → HeadUnitSceneDelegate
+//       The CarPlay head-unit surface that renders our InformationTemplate.
+//
+// We render a native InformationTemplate (not a MapTemplate), so the library never
+// calls `getRootViewForAutoplay` — that AppDelegate hook is unnecessary here.
+//
+// Dashboard / Cluster scenes are intentionally omitted (out of scope). The Driving
+// Task entitlement (com.apple.developer.carplay-driving-task, granted — Apple
+// Case-ID 20710293) is set via `ios.entitlements` in app.config.ts.
+//
+// Precedent: plugins/fbsdk-core-only.js. Idempotent; re-applied every prebuild.
 //
 // ⚠️ ON-MACHINE VERIFICATION REQUIRED: Expo SDK 56's prebuild UIScene lifecycle is
-// in flux (expo/expo #46663/#46664). After `expo prebuild`, confirm the generated
-// AppDelegate keeps the phone window scene working with this manifest present; if
-// the window scene regresses, the AppDelegate window/scene bootstrap must be
-// reconciled by hand. Neither CI nor the agent can run prebuild/build to check this.
+// in flux (expo/expo #46663/#46664). After `expo prebuild`, confirm the phone
+// window still renders with this manifest present (the library's window delegate
+// borrows UIApplication.shared.delegate.window.rootViewController). Neither CI nor
+// the agent can run prebuild/build to check this.
 
 const { withInfoPlist } = require('expo/config-plugins');
 
@@ -28,24 +41,24 @@ const withCarPlay = (config) =>
 
     const configs = manifest.UISceneConfigurations ?? {};
 
-    // Preserve the default phone window scene if the prebuild template already
-    // declared one; otherwise declare the standard UIKit window scene so adding
-    // the CarPlay scene doesn't strip the phone UI.
-    if (!configs[WINDOW_SCENE_ROLE]) {
-      configs[WINDOW_SCENE_ROLE] = [
-        {
-          UISceneConfigurationName: 'Phone',
-          UISceneClassName: 'UIWindowScene',
-        },
-      ];
-    }
+    // Phone window scene → the library's WindowApplicationSceneDelegate. This
+    // REPLACES the default (delegate-less) window scene: switching to a scene
+    // lifecycle is required for the CarPlay scene to coexist, and the library's
+    // delegate is what re-hosts the RN root view in the scene's window.
+    configs[WINDOW_SCENE_ROLE] = [
+      {
+        UISceneConfigurationName: 'WindowApplication',
+        UISceneClassName: 'UIWindowScene',
+        UISceneDelegateClassName: 'WindowApplicationSceneDelegate',
+      },
+    ];
 
-    // CarPlay template scene → our Swift delegate (autolinked from the module).
+    // CarPlay head-unit scene → the library's HeadUnitSceneDelegate.
     configs[CARPLAY_SCENE_ROLE] = [
       {
-        UISceneConfigurationName: 'CarPlay',
+        UISceneConfigurationName: 'CarPlayHeadUnit',
         UISceneClassName: 'CPTemplateApplicationScene',
-        UISceneDelegateClassName: 'CarPlaySceneDelegate',
+        UISceneDelegateClassName: 'HeadUnitSceneDelegate',
       },
     ];
 
