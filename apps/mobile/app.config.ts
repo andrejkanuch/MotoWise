@@ -129,7 +129,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         photosPermission: 'Allow MotoVault to save ride share cards to your photo library.',
         savePhotosPermission: 'Allow MotoVault to save ride share cards to your photo library.',
-        isAccessMediaLocationEnabled: true,
+        isAccessMediaLocationEnabled: false,
+        // We only SAVE share cards (write-only) — never read the library through
+        // this module. Empty granular permissions stops expo-media-library from
+        // injecting READ_MEDIA_IMAGES/READ_MEDIA_VIDEO/READ_MEDIA_AUDIO, which
+        // violate Google Play's Photo and Video Permissions policy.
+        granularPermissions: [],
       },
     ],
     './plugins/remove-activity-recognition',
@@ -242,7 +247,19 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       monochromeImage: './src/assets/images/MotoVaultDark.png',
       backgroundColor: '#0F1B2D',
     },
-    permissions: ['READ_MEDIA_IMAGES', 'NOTIFICATIONS', 'SCHEDULE_EXACT_ALARM'],
+    permissions: ['NOTIFICATIONS', 'SCHEDULE_EXACT_ALARM'],
+    // Force-remove every media-read permission from the FINAL merged manifest
+    // (tools:node="remove"), regardless of what expo-media-library or any
+    // transitive library declares. We only save share cards (write-only) and
+    // pick images via the system photo picker, so the app needs no persistent
+    // media access — these would violate Google Play's Photo and Video
+    // Permissions policy. Belt-and-suspenders with granularPermissions: [].
+    blockedPermissions: [
+      'android.permission.READ_MEDIA_IMAGES',
+      'android.permission.READ_MEDIA_VIDEO',
+      'android.permission.READ_MEDIA_AUDIO',
+      'android.permission.READ_MEDIA_VISUAL_USER_SELECTED',
+    ],
     intentFilters: [
       {
         action: 'VIEW',

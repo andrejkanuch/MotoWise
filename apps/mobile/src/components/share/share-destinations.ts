@@ -102,11 +102,16 @@ async function shareToInstagramMessages(imageUri: string, _deepLink: string): Pr
 // ── Save Image ──────────────────────────────────────────────────────────────
 
 async function saveImage(imageUri: string, _deepLink: string): Promise<ShareResult> {
-  let { status, canAskAgain } = await MediaLibrary.getPermissionsAsync();
+  // Write-only: we only save share cards, never read the library. This avoids
+  // requesting READ_MEDIA_IMAGES/READ_MEDIA_VIDEO (stripped from the Android
+  // manifest to comply with Google Play's Photo and Video Permissions policy)
+  // and maps to add-only access on iOS (NSPhotoLibraryAddUsageDescription).
+  const WRITE_ONLY = true;
+  let { status, canAskAgain } = await MediaLibrary.getPermissionsAsync(WRITE_ONLY);
 
   if (status !== 'granted') {
     if (canAskAgain) {
-      const result = await MediaLibrary.requestPermissionsAsync();
+      const result = await MediaLibrary.requestPermissionsAsync(WRITE_ONLY);
       status = result.status;
     }
     if (status !== 'granted') {
