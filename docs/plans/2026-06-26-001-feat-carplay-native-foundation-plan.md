@@ -24,7 +24,7 @@ The load-bearing risk (verified in research): Expo SDK 56 ships RN 0.85, which r
 
 ## Key Technical Decisions
 
-- **KTD1 — Custom Expo Modules API (Swift) module, pending U0 falsification.** RN 0.85 removes the interop layer the only maintained CarPlay library depends on. A Swift Expo module is New-Architecture-clean by design and matches SDK 56's Swift AppDelegate. U0 spikes the library on 0.85 first (cheap disconfirmation); if it unexpectedly works, revisit. Use react-native-carplay's open-source Swift template mappers as reference only.
+- **KTD1 — Spike `@iternio/react-native-auto-play` first; custom Swift module is the fallback.** REVISED. `@iternio/react-native-auto-play` (v0.5.3, updated 2026-06-25) is the Nitro / New-Architecture rewrite of `react-native-carplay` — same maintainer lineage (g4rb4g3), now under Iternio (ABRP, a production CarPlay + Android Auto app). It is RN-0.85-clean (Nitro/JSI), supports both architectures, ships the scene delegates + headless operation + Android Auto, and exposes `InformationTemplate`/`ListTemplate`/`GridTemplate` — exactly the Driving-Task surfaces we need. This supersedes the original "build custom" call (which was right only against the dead legacy `@g4rb4g3` fork that breaks on 0.85). U0 spikes the Iternio library on our stack; the hand-rolled Swift module already in `apps/mobile/modules/carplay/ios/*` is retained as a documented fallback used only if the spike fails. Spike caveats to weigh: pre-1.0 API churn, the `react-native-nitro-modules` dependency, and no official Expo config plugin (we still author config-plugin glue for its scene-delegate class names + `getRootViewForAutoplay`).
 
 - **KTD2 — Config plugin owns all native wiring; never hand-edit prebuilt `ios/`.** A plugin in `apps/mobile/plugins/` adds the entitlement (`ios.entitlements` in `app.config.ts`), injects `UIApplicationSceneManifest` (`CPTemplateApplicationSceneSessionRoleApplication` + the existing window scene), ships the Swift `CarPlaySceneDelegate`, and patches the AppDelegate for the New-Arch host. Precedent: `apps/mobile/plugins/fbsdk-core-only.js` (`withDangerousMod` iOS patching) and the `expo-widgets` target (custom Swift + app group) in `app.config.ts`. Idempotent, re-applied each prebuild.
 
@@ -72,15 +72,15 @@ flowchart TB
 
 ## Implementation Units
 
-### U0. Spike: falsify the library, prove the custom-module round-trip
+### U0. Spike: validate `@iternio/react-native-auto-play` on our stack (on-machine)
 
-- **Goal:** De-risk KTD1 before native investment.
+- **Goal:** Decide library-vs-custom before committing native investment (KTD1).
 - **Requirements:** KTD1
 - **Dependencies:** none
-- **Files:** throwaway branch / scratch under `apps/mobile/modules/carplay/` (no production wiring)
-- **Approach:** (a) Add `@g4rb4g3/react-native-carplay` to a scratch dev build on RN 0.85 and confirm it fails to register / crashes (cheap falsification). (b) Stand up a minimal `MotoVaultCarPlay` Expo module exposing one `Function setRootTemplate` + one `onConnect` event, and prove a `CPInformationTemplate` renders + an action fires `onActionPress` in the CarPlay Simulator. Gate U2's full surface on (b) succeeding.
-- **Test scenarios:** Test expectation: none — spike; record binary yes/no for both legs.
-- **Verification (on-machine):** Documented result of (a); a minimal template visibly rendered in the CarPlay Simulator via (b) before U2 proceeds.
+- **Files:** throwaway branch; add `@iternio/react-native-auto-play` + `react-native-nitro-modules`; a minimal config-plugin tweak + a scratch screen/coordinator using the library's `InformationTemplate`.
+- **Approach:** On a real dev build (Expo SDK 56 / RN 0.85): (a) install the library + `react-native-nitro-modules`, run `expo prebuild` + `pod install`, and confirm it builds (Nitro autolinks; the library's `HeadUnitSceneDelegate` registers). (b) Wire the Driving-Task entitlement (`com.apple.developer.carplay-driving-task`, not the README's `carplay-maps`) + the `CPTemplateApplicationSceneSessionRoleApplication` pointing at the library's `HeadUnitSceneDelegate`, plus `getRootViewForAutoplay` in the AppDelegate per the library README. (c) Render an `InformationTemplate` (title + a few rows + a Start/Stop action) and confirm it shows in the CarPlay Simulator and fires its action callback. **Decision gate:** if (a)–(c) pass, adopt the library — drop `apps/mobile/modules/carplay/ios/*` (the custom Swift) and rewire the coordinator to the library's `InformationTemplate` API (U2/U4N collapse to glue). If it fails (Driving-Task category unsupported, build breaks, or pre-1.0 blockers), fall back to the retained custom module.
+- **Test scenarios:** Test expectation: none — spike; record the (a)/(b)/(c) yes/no + the adopt/fallback decision.
+- **Verification (on-machine):** An `InformationTemplate` from `@iternio/react-native-auto-play` rendered in the CarPlay Simulator with a working action; documented adopt-vs-fallback decision before U1/U2 finalize.
 
 ### U1. Config plugin: entitlement + scene manifest + scene delegate
 
@@ -151,4 +151,4 @@ flowchart TB
 - Parent plan + design + requirements: `docs/plans/2026-06-25-001-feat-carplay-ride-companion-plan.md`, `docs/design/2026-06-25-carplay-ride-companion-ux-design.md`, `docs/brainstorms/2026-06-22-carplay-ride-companion-requirements.md`.
 - Native precedent: `apps/mobile/plugins/fbsdk-core-only.js`, `expo-widgets` target in `apps/mobile/app.config.ts`.
 - JS seam + screens already built: `apps/mobile/src/features/carplay/use-carplay.ts`, `apps/mobile/src/components/carplay/*`, `apps/mobile/src/app/(modals)/carplay/*`.
-- External: `@g4rb4g3/react-native-carplay` (legacy bridge, RN ≤0.79 — not viable on 0.85); RN 0.85 interop removal; Expo SDK 56 prebuild UIScene issues #46663/#46664; Apple CarPlay Developer Guide (Driving Task templates, ~10s refresh); Expo Modules API + config-plugin docs; `KMalkowski/expo-config-carplay-plugin` (Obj-C reference — rewrite for Swift).
+- External: **`@iternio/react-native-auto-play`** (v0.5.3, 2026-06-25 — Nitro/new-arch rewrite of react-native-carplay by Iternio/ABRP; CarPlay + Android Auto; `InformationTemplate`/`ListTemplate`/`GridTemplate`; headless; the U0 spike candidate — github.com/Iternio-Planning-AB/react-native-auto-play); `@g4rb4g3/react-native-carplay` (legacy bridge, RN ≤0.79 — not viable on 0.85, superseded by the Iternio rewrite); RN 0.85 interop removal; Expo SDK 56 prebuild UIScene issues #46663/#46664; Apple CarPlay Developer Guide (Driving Task templates, ~10s refresh); Expo Modules API + config-plugin docs; `KMalkowski/expo-config-carplay-plugin` (Obj-C reference — rewrite for Swift).
