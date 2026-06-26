@@ -227,6 +227,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         'MotoVault needs photo library access to upload diagnostic images.',
       NSPhotoLibraryAddUsageDescription:
         'Allow MotoVault to save ride share cards to your photo library.',
+      // Required because the bundled CarPlay library (@iternio/react-native-auto-play)
+      // references the Speech + microphone voice-input APIs. Apple mandates these
+      // purpose strings whenever the binary references the APIs, even though we do
+      // not yet surface voice input (ITMS-90683). Voice input is a CarPlay
+      // hands-free capability.
+      NSSpeechRecognitionUsageDescription:
+        'MotoVault uses speech recognition for hands-free voice commands while connected to CarPlay.',
+      NSMicrophoneUsageDescription:
+        'MotoVault uses the microphone for hands-free voice commands while connected to CarPlay.',
       LSApplicationQueriesSchemes: [
         'maps',
         'comgooglemaps',
