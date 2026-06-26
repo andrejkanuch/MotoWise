@@ -207,7 +207,7 @@ Editorial register (Instrument Serif headlines, generous air, one idea per card)
 ### Screen 4 — Connected / active-ride on the phone
 The phone is a **confirmation surface, not a control mirror** (honors A2 single-write-authority; avoids pocket-taps and racing commands).
 - **Persistent banner** above the tab bar: leading state glyph + GeistMono state word + distance · moving-time (tabular-nums), subline "controls on your head unit." Three-state variants (recording = copper pulse; auto-paused = amber, no pulse; acquiring = info-blue, dashes).
-- **Tap-through status sheet** (`fullScreenModal`): Instrument Serif hero state, two metric tiles (distance + moving time = R6 primary pair), secondary climb + GPS row. The **only** control is a guarded **hold-to-confirm Stop** (copper/danger outline, ~900ms fill sweep, progressive Light haptic ticks at 33/66/100%, Success on complete). No pause on the phone (riding-moment action belongs on the toggle).
+- **Tap-through status sheet** (`fullScreenModal`): Instrument Serif hero state, two metric tiles (distance + moving time = R6 primary pair), secondary climb + GPS row. The **only** control is a guarded **two-tap-confirm End** (tap End → inline "Keep riding / End ride" → End; **no press-and-hold on mobile**, per product decision). No pause on the phone (riding-moment action belongs on the toggle).
 - Edge states: armed-auto ("Ready · auto-start armed"), manual ("start from the head unit"), phone-first handoff (gains "via CarPlay"), GPS-lost (freeze + last-known, not zero), disconnect (degrades to the normal phone-HUD banner).
 
 ### Type/motion conventions (phone)
@@ -249,7 +249,7 @@ Design the CarPlay panel at the **largest** supported text size first (worst cas
 5. **(High) Glance hierarchy capped** — state + distance prominent; ≤2 secondary; controls in actions, not uniform rows; truncation order defined. (R6)
 6. **(High) Units follow app preference, symbol always shown; size rows against German + largest Dynamic Type.**
 7. **(Medium) Placeholders not zeros pre-lock; idle shows dashes + start affordance (manual).** (R7/R8/AE6)
-8. **(Medium) Destructive stop guarded + announced** (two-step on CarPlay, hold-to-confirm on phone; VoiceOver states the guard). (R17/AE4)
+8. **(Medium) Destructive stop guarded + announced** (two-step `CPAlertTemplate` on CarPlay, two-tap confirm on phone — no press-and-hold; VoiceOver states the guard). (R17/AE4)
 9. **(Medium) No looping/ambient motion** on live surfaces; one sub-300ms state-change transition allowed (doubles as R9 visual backstop).
 10. **(Medium) Bike status never silently stale** — visible "stop to refresh" or speed-gate. (R20)
 
@@ -260,7 +260,7 @@ Design the CarPlay panel at the **largest** supported text size first (worst cas
 1. **R9 audio routing on the real Africa Twin + helmet intercom** — does the ducked earcon reach the intercom or the phone speaker? Falsify on the bike; passive on-tile state is the net.
 2. **Effective `CPInformationTemplate` row count + `CPListTemplate.maximumItemCount` on the Africa Twin TFT** — query at runtime; caps the panel.
 3. **R6 primary-metric confirmation** — recommended state + distance (refine after bike testing).
-4. **Two-step confirm vs hold-to-confirm for Stop on the actual head-unit toggle** (CarPlay); phone uses hold-to-confirm.
+4. **Stop guard: phone uses two-tap confirm (resolved — no press-and-hold).** On CarPlay, confirm the two-step `CPAlertTemplate` works cleanly on the actual head-unit toggle.
 5. **Apple Watch fallback prevalence** — how many target riders pair a Watch (weights the haptic fallback).
 6. **Keep-guard (R13) values** — the 500 m / 2 min in the mock is a placeholder; confirm and tie to AE7.
 

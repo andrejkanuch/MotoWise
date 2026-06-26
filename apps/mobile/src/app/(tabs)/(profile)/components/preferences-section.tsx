@@ -16,6 +16,7 @@ import {
   Palette,
   Ruler,
   Settings,
+  Smartphone,
   Sun,
 } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
@@ -130,6 +131,11 @@ export function PreferencesSection({
             icon={Megaphone}
             label={t('whatsNew.badge')}
             onPress={() => router.push('/(modals)/whats-new')}
+          />
+          <ESettingsRow
+            icon={Smartphone}
+            label={t('carplay.entryLabel', { defaultValue: 'CarPlay Companion' })}
+            onPress={() => router.push('/(modals)/carplay')}
           />
           <ESettingsRow
             icon={HelpCircle}

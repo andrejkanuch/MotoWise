@@ -47,6 +47,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { OB_VARIANT } from '../config/onboarding';
 import { getWhatsNewRelease } from '../data/whats-new-releases';
+import { startCarPlayCoordinator } from '../features/carplay/carplay-coordinator';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import i18n from '../i18n';
 import {
@@ -385,6 +386,11 @@ function RootLayout() {
       sentryNavigationIntegration.registerNavigationContainer(navigationRef);
     }
   }, [navigationRef]);
+
+  // Start the CarPlay coordinator once. No-ops when the native module is absent.
+  useEffect(() => {
+    startCarPlayCoordinator();
+  }, []);
 
   // Safety timeout: if auth takes too long, unblock the splash anyway
   useEffect(() => {

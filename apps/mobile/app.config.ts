@@ -138,6 +138,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     './plugins/remove-activity-recognition',
+    // CarPlay: injects the UIApplicationSceneManifest (CPTemplateApplicationScene)
+    // and ships the Swift CarPlay scene delegate wired to the new-arch host.
+    './plugins/with-carplay',
     [
       'expo-widgets',
       {
@@ -205,6 +208,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     usesAppleSignIn: true,
     entitlements: {
       'com.apple.security.application-groups': ['group.com.motovault.app'],
+      // CarPlay Driving Task — granted by Apple (Case-ID 20710293). Required in
+      // the build for the CarPlay scene to launch on a head unit / simulator.
+      'com.apple.developer.carplay-driving-task': true,
     },
     associatedDomains: ['applinks:motovault.app', 'applinks:www.motovault.app'],
     icon: {
@@ -234,6 +240,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         { SKAdNetworkIdentifier: 'v9wttpbfk9.skadnetwork' },
         { SKAdNetworkIdentifier: 'n38lu8286q.skadnetwork' },
       ],
+      // Audio background mode for the CarPlay recording-confirmation earcon
+      // (ducks nav voice). The `location` background mode is intentionally NOT
+      // added here — it belongs to the background-recording work (parent U3).
+      UIBackgroundModes: ['audio'],
     },
     config: {
       usesNonExemptEncryption: false,
