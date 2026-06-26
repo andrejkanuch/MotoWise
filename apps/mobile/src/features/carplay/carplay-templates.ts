@@ -51,9 +51,13 @@ const MODE_LABEL: Record<StartMode, string> = {
 export function deriveState(
   input: Pick<RideInput, 'status' | 'recordingSubState' | 'gpsLocked'>,
 ): CarPlayPanelState {
-  if (input.status === 'recording' || input.status === 'paused') {
+  // Manual pause always reads as paused — never regress to "acquiring" (which
+  // would strip the Resume control and strand the rider). Only an actively
+  // recording ride that hasn't locked GPS yet shows "acquiring".
+  if (input.status === 'paused') return 'autoPaused';
+  if (input.status === 'recording') {
     if (!input.gpsLocked) return 'acquiring';
-    if (input.status === 'paused' || input.recordingSubState === 'stopped') return 'autoPaused';
+    if (input.recordingSubState === 'stopped') return 'autoPaused';
     return 'recording';
   }
   return 'idle';

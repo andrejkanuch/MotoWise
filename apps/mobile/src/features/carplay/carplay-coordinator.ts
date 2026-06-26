@@ -35,6 +35,14 @@ const eventSubs: EventSubscription[] = [];
 let unsubStore: (() => void) | null = null;
 let lastState: CarPlayPanelState | null = null;
 let lastPushAt = 0;
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+function clearFlush(): void {
+  if (flushTimer) {
+    clearTimeout(flushTimer);
+    flushTimer = null;
+  }
+}
 
 function currentRideInput(): RideInput {
   const r = useRideStore.getState();
@@ -59,6 +67,7 @@ function render(now: number = Date.now()): void {
   if (snap.state !== lastState) {
     // State transition — push immediately (title + available actions change),
     // exempt from the throttle so the panel never lags the rider's cue.
+    clearFlush();
     updateInformationItems(model.items);
     updateInformationActions(model.actions);
     lastState = snap.state;
@@ -66,8 +75,21 @@ function render(now: number = Date.now()): void {
     return;
   }
   if (now - lastPushAt >= THROTTLE_MS) {
+    clearFlush();
     updateInformationItems(model.items);
     lastPushAt = now;
+    return;
+  }
+  // Inside the throttle window: schedule a trailing flush so the latest value
+  // still lands at the window boundary even if the store stops ticking.
+  if (!flushTimer) {
+    flushTimer = setTimeout(
+      () => {
+        flushTimer = null;
+        render();
+      },
+      THROTTLE_MS - (now - lastPushAt),
+    );
   }
 }
 
@@ -77,10 +99,15 @@ function onConnect(): void {
   setRootInformationTemplate(buildPanelItems(snap)); // projection, not start
   lastState = snap.state;
   lastPushAt = Date.now();
+  // Idempotent: onConnect can fire more than once without an intervening
+  // disconnect (scene attach + checkForConnection on cold start). Drop any prior
+  // subscription so exactly one stays live.
+  unsubStore?.();
   unsubStore = useRideStore.subscribe(() => render());
 }
 
 function onDisconnect(): void {
+  clearFlush();
   unsubStore?.();
   unsubStore = null;
   lastState = null;
@@ -120,6 +147,7 @@ export function startCarPlayCoordinator(): void {
 // Test-only reset.
 export function __resetCarPlayCoordinator(): void {
   started = false;
+  clearFlush();
   unsubStore?.();
   unsubStore = null;
   for (const s of eventSubs) s.remove();

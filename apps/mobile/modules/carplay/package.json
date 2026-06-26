@@ -1,0 +1,7 @@
+{
+  "name": "motovault-carplay",
+  "version": "0.0.1",
+  "description": "MotoVault CarPlay Driving Task bridge (local Expo module)",
+  "main": "src/index.ts",
+  "private": true
+}

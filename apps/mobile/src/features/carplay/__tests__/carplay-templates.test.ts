@@ -35,6 +35,12 @@ describe('deriveState', () => {
       'autoPaused',
     );
   });
+  it('keeps a paused ride as autoPaused even before GPS lock (Resume stays available)', () => {
+    expect(deriveState({ status: 'paused', recordingSubState: 'moving', gpsLocked: false })).toBe(
+      'autoPaused',
+    );
+    expect(buildActions('autoPaused', 'automatic').map((a) => a.id)).toEqual(['resume', 'stop']);
+  });
   it('is idle when not recording', () => {
     expect(deriveState({ status: 'idle', recordingSubState: 'moving', gpsLocked: false })).toBe(
       'idle',
