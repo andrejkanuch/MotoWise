@@ -281,6 +281,34 @@ describe('configureRcAttribution', () => {
     expect(mockPurchases.setAttributes).toHaveBeenCalledWith({ $mediaSource: 'instagram' });
   });
 
+  it('downgrades transient network errors to warn + breadcrumb (no Sentry capture)', async () => {
+    mockConsent.mockReturnValue(true);
+    mockGetStoredUtm.mockResolvedValue(null);
+    mockPurchases.collectDeviceIdentifiers.mockRejectedValueOnce(
+      new Error('Error performing request'),
+    );
+
+    await configureRcAttribution();
+
+    expect(mockCaptureException).not.toHaveBeenCalled();
+    expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+      'Error performing request',
+      'revenuecat.configureRcAttribution',
+    );
+  });
+
+  it('captures unexpected (non-network) attribution errors to Sentry', async () => {
+    mockConsent.mockReturnValue(true);
+    mockGetStoredUtm.mockResolvedValue(null);
+    mockPurchases.collectDeviceIdentifiers.mockRejectedValueOnce(new Error('boom'));
+
+    await configureRcAttribution();
+
+    expect(mockCaptureException).toHaveBeenCalledWith(expect.any(Error), {
+      source: 'revenuecat.configureRcAttribution',
+    });
+  });
+
   // NOTE: the Android path (enableAdServicesAttributionTokenCollection skipped) is
   // not unit-tested because babel-preset-expo inlines `process.env.EXPO_OS` at
   // transform time, so it cannot be flipped to 'android' at runtime in jest.

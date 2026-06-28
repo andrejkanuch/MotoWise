@@ -325,9 +325,22 @@ async function applyRcAttribution(
  * so it must NOT be called from inside `doInit` itself (that would re-await the
  * in-flight init promise) — `doInit` calls {@link applyRcAttribution} directly.
  */
+let rcAttributionPromise: Promise<void> | null = null;
+
 export async function configureRcAttribution(): Promise<void> {
   if (!getStoredAnalyticsConsent()) return;
-  await withRevenueCat('configureRcAttribution', applyRcAttribution);
+  // Dedup overlapping calls — rapid consent toggles and the paywall fallback can
+  // invoke this concurrently, and we must not issue concurrent native RC attribute
+  // writes (collectDeviceIdentifiers / setAttributes). Share one in-flight run, then
+  // release so a genuinely later call can run again.
+  if (!rcAttributionPromise) {
+    rcAttributionPromise = withRevenueCat('configureRcAttribution', applyRcAttribution).finally(
+      () => {
+        rcAttributionPromise = null;
+      },
+    );
+  }
+  await rcAttributionPromise;
 }
 
 /**

@@ -161,4 +161,57 @@ describe('getStoredUtmProperties', () => {
     const { getStoredUtmProperties } = loadModule();
     await expect(getStoredUtmProperties()).resolves.toBeNull();
   });
+
+  it('returns campaign-only and content-only objects (independent of utm_source)', async () => {
+    mockStore.set('meta_utm_campaign', 'spring');
+    await expect(loadModule().getStoredUtmProperties()).resolves.toEqual({
+      utm_campaign: 'spring',
+    });
+
+    mockStore.clear();
+    mockStore.set('meta_utm_content', 'reel_1');
+    await expect(loadModule().getStoredUtmProperties()).resolves.toEqual({ utm_content: 'reel_1' });
+
+    mockStore.clear();
+    mockStore.set('meta_utm_source', 'tiktok');
+    mockStore.set('meta_utm_campaign', 'spring');
+    await expect(loadModule().getStoredUtmProperties()).resolves.toEqual({
+      utm_source: 'tiktok',
+      utm_campaign: 'spring',
+    });
+  });
+});
+
+describe('captureMetaAttribution dedup + sanitization', () => {
+  it('dedups concurrent callers into a single run (getInitialURL read once)', async () => {
+    mockGetInitialURL.mockResolvedValue(null);
+    const { captureMetaAttribution } = loadModule();
+
+    await Promise.all([captureMetaAttribution(), captureMetaAttribution()]);
+
+    expect(mockGetInitialURL).toHaveBeenCalledTimes(1);
+  });
+
+  it('releases the memo after a non-emit run so a later consented call retries', async () => {
+    mockConsent = false;
+    mockGetInitialURL.mockResolvedValue(null);
+    const { captureMetaAttribution } = loadModule();
+
+    await captureMetaAttribution();
+    expect(mockCapture).not.toHaveBeenCalled();
+
+    // Consent flips ON within the SAME module instance — the released memo allows a retry.
+    mockConsent = true;
+    await captureMetaAttribution();
+    expect(mockCapture).toHaveBeenCalledTimes(1);
+  });
+
+  it('sanitizes unsafe characters out of utm_source before use', async () => {
+    mockGetInitialURL.mockResolvedValue('motovault://open?utm_source=tik!tok');
+    const { captureMetaAttribution } = loadModule();
+
+    await captureMetaAttribution();
+
+    expect(mockCapture.mock.calls[0][1].$set_once.install_source).toBe('tiktok');
+  });
 });
