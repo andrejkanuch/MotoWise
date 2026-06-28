@@ -73,6 +73,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         locationAlwaysAndWhenInUsePermission:
           'MotoVault uses your location to record ride routes, show nearby routes, and display local weather for trip planning.',
+        // Background recording: keep tracking distance/speed/route while the app is
+        // backgrounded or the screen is locked (e.g. riding with CarPlay up). Adds
+        // the iOS `location` background mode + Android ACCESS_BACKGROUND_LOCATION +
+        // foreground service. Required for Location.startLocationUpdatesAsync.
+        isIosBackgroundLocationEnabled: true,
+        isAndroidBackgroundLocationEnabled: true,
+        isAndroidForegroundServiceEnabled: true,
       },
     ],
     '@rnmapbox/maps',
@@ -249,10 +256,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         { SKAdNetworkIdentifier: 'v9wttpbfk9.skadnetwork' },
         { SKAdNetworkIdentifier: 'n38lu8286q.skadnetwork' },
       ],
-      // Audio background mode for the CarPlay recording-confirmation earcon
-      // (ducks nav voice). The `location` background mode is intentionally NOT
-      // added here — it belongs to the background-recording work (parent U3).
-      UIBackgroundModes: ['audio'],
+      // `audio` ducks the nav voice for the CarPlay recording-confirmation earcon;
+      // `location` keeps GPS recording alive while backgrounded / screen-locked
+      // (background ride recording — pairs with Location.startLocationUpdatesAsync
+      // and the expo-location background flags above).
+      UIBackgroundModes: ['audio', 'location'],
     },
     config: {
       usesNonExemptEncryption: false,

@@ -20,6 +20,7 @@ import {
 import { useAuthStore } from '../../stores/auth.store';
 import { useCarPlayStore } from '../../stores/carplay.store';
 import { useRideStore } from '../../stores/ride.store';
+import { elapsedRideSeconds, endRideSession, startRideSession } from '../ride/ride-controller';
 import {
   buildPanelItems,
   type CarPlayPanelState,
@@ -45,15 +46,21 @@ function clearFlush(): void {
 
 function currentRideInput(): RideInput {
   const r = useRideStore.getState();
+  // Derive elapsed from the persisted start timestamp rather than the store's
+  // elapsedTime, which is only advanced by the HUD's interval timer (absent when
+  // the app is backgrounded / the HUD unmounted while riding with CarPlay). This
+  // keeps the panel's clock correct off GPS-driven renders without a JS timer.
+  const elapsed = elapsedRideSeconds();
   return {
     status: r.status,
     recordingSubState: r.recordingSubState,
     distance: r.distance,
-    elapsedTime: r.elapsedTime,
+    elapsedTime: elapsed,
     elevationGain: r.elevationGain,
+    speed: r.currentSpeed,
     // TODO(carplay): replace with a real GPS-lock signal (parent open question).
     // Proxy: treat the ride as locked once any distance/time has accrued.
-    gpsLocked: r.distance > 0 || r.elapsedTime > 3,
+    gpsLocked: r.distance > 0 || elapsed > 3,
     startMode: useCarPlayStore.getState().startMode,
   };
 }
@@ -125,12 +132,15 @@ function onAction(actionId: string): void {
       ride.resumeRide();
       break;
     case 'start':
-      // TODO(carplay): route through the shared ride-controller (parent U3) for
-      // full orchestration (id/MMKV/GPS listener/sync). Store action is a stopgap.
-      ride.startRide();
+      // CarPlay-initiated rides are Quick Rides — there's no bike picker on the
+      // head unit. Routes through the shared controller so the GPS/background
+      // listener, MMKV, and server sync all start exactly as a phone-started ride.
+      void startRideSession({ motorcycleId: null, source: 'carplay' });
       break;
     case 'stop':
-      ride.endRide();
+      // Ends through the shared controller (no navigation — the HUD may not be
+      // mounted). Aggregates waypoints, stops GPS, and enqueues the server end.
+      endRideSession('carplay');
       break;
   }
   render(Date.now()); // reflect the new state immediately

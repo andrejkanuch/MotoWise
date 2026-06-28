@@ -2,7 +2,6 @@
 // Opened from the active-ride banner. A confirmation surface: the ONLY control is
 // a guarded End (pause/resume live on the head unit). Ending always saves.
 // Guard is a two-tap confirm (no press-and-hold on mobile, per product preference).
-// TODO(carplay): route end through the shared ride-controller command path (KTD2).
 
 import { router } from 'expo-router';
 import { ArrowUp, ChevronDown, MapPin } from 'lucide-react-native';
@@ -19,6 +18,7 @@ import {
 } from '../../../components/carplay/primitives';
 import { StateGlyph } from '../../../components/carplay/state-indicator';
 import { useLiveRideSnapshot } from '../../../features/carplay/use-carplay';
+import { endRideSession } from '../../../features/ride/ride-controller';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
 
@@ -31,7 +31,8 @@ export default function CarPlayStatusSheet() {
 
   const endRide = () => {
     triggerImpact();
-    router.back(); // TODO(carplay): controller.endRide('carplay')
+    endRideSession('carplay');
+    router.back();
   };
 
   return (

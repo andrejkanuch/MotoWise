@@ -11,6 +11,14 @@ jest.mock('../../../../modules/carplay/src', () => ({
   clearInformation: jest.fn(),
 }));
 
+// --- ride-controller mock (start/end go through the shared controller now) ---
+jest.mock('../../ride/ride-controller', () => ({
+  startRideSession: jest.fn(() => Promise.resolve({ ok: true, rideId: 'r1' })),
+  endRideSession: jest.fn(() => null),
+  // Elapsed is derived from persisted timestamps; mirror the store value in tests.
+  elapsedRideSeconds: jest.fn(() => 4360),
+}));
+
 // --- store mocks (avoid the MMKV / expo dependency chain) ---
 const mockRide = {
   status: 'recording' as 'idle' | 'recording' | 'paused' | 'ended',
@@ -18,6 +26,7 @@ const mockRide = {
   distance: 42_300,
   elapsedTime: 4360,
   elevationGain: 640,
+  currentSpeed: 18,
   pauseRide: jest.fn(),
   resumeRide: jest.fn(),
   startRide: jest.fn(),
@@ -44,6 +53,7 @@ jest.mock('../../../stores/auth.store', () => ({
   useAuthStore: { getState: () => ({ measurementSystem: 'metric' }) },
 }));
 
+import * as rideController from '../../ride/ride-controller';
 import { __resetCarPlayCoordinator, startCarPlayCoordinator } from '../carplay-coordinator';
 
 const fireConnect = () => (carplay.addConnectListener as jest.Mock).mock.calls[0][0]();
@@ -119,12 +129,22 @@ describe('carplay-coordinator', () => {
     spy.mockRestore();
   });
 
-  it('routes head-unit actions into the ride engine', () => {
+  it('routes head-unit actions through the store + shared controller', () => {
     startCarPlayCoordinator();
     fireConnect();
+
     fireAction('pause');
     expect(mockRide.pauseRide).toHaveBeenCalledTimes(1);
+    fireAction('resume');
+    expect(mockRide.resumeRide).toHaveBeenCalledTimes(1);
+
+    // Start/Stop go through the controller (full GPS/sync orchestration), not the
+    // bare store actions — a CarPlay start is a Quick Ride (no bike picker).
+    fireAction('start');
+    expect(rideController.startRideSession).toHaveBeenCalledWith(
+      expect.objectContaining({ source: 'carplay', motorcycleId: null }),
+    );
     fireAction('stop');
-    expect(mockRide.endRide).toHaveBeenCalledTimes(1);
+    expect(rideController.endRideSession).toHaveBeenCalledWith('carplay');
   });
 });

@@ -47,12 +47,38 @@ export function distanceMeters(
 }
 
 // --- GPS Listener ---
+//
+// Recording runs through `Location.startLocationUpdatesAsync` + the
+// BACKGROUND_LOCATION_TASK (defined below), NOT a foreground `watchPositionAsync`
+// subscription. This is what keeps a ride recording while the app is backgrounded
+// or the screen is locked — e.g. riding with CarPlay up — and lets iOS relaunch
+// the app headless to keep tracking after a kill. The task delivers samples in all
+// app states; the foreground HUD reads the resulting stats from the store, so no
+// separate foreground watcher is needed.
 
-let locationSubscription: Location.LocationSubscription | null = null;
 let onLocationCallback: ((location: Location.LocationObject) => void) | null = null;
 
+/** Location-update options; the battery-saver variant trades accuracy for power. */
+function locationUpdateOptions(batterySaver: boolean): Location.LocationTaskOptions {
+  return {
+    accuracy: batterySaver ? Location.Accuracy.Balanced : Location.Accuracy.BestForNavigation,
+    distanceInterval: batterySaver ? 15 : 5,
+    timeInterval: batterySaver ? 5000 : 1000,
+    // Keep recording when the app is backgrounded / screen locked.
+    pausesUpdatesAutomatically: false,
+    showsBackgroundLocationIndicator: true,
+    activityType: Location.ActivityType.AutomotiveNavigation,
+    // Android requires a foreground service to keep location updates alive.
+    foregroundService: {
+      notificationTitle: 'MotoVault is recording your ride',
+      notificationBody: 'Tap to return to your ride.',
+      notificationColor: '#D4622E',
+    },
+  };
+}
+
 export async function startGPSListener(
-  onLocation: (location: Location.LocationObject) => void,
+  onLocation: (location: Location.LocationObject) => void = () => {},
 ): Promise<void> {
   onLocationCallback = onLocation;
   // Restore any in-memory buffer from MMKV (crash recovery)
@@ -62,44 +88,32 @@ export async function startGPSListener(
   // Reset GPS filter for fresh ride
   gpsFilter.reset();
 
-  locationSubscription = await Location.watchPositionAsync(
-    {
-      accuracy: Location.Accuracy.BestForNavigation,
-      distanceInterval: 5,
-      timeInterval: 1000,
-      mayShowUserSettingsDialog: false,
-    },
-    (location) => {
-      processLocation(location);
-      onLocation(location);
-    },
-  );
+  // Idempotent: drop a still-running session before starting a fresh one.
+  if (await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK)) {
+    await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
+  }
+
+  await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK, locationUpdateOptions(false));
 }
 
-export function stopGPSListener(): void {
+export async function stopGPSListener(): Promise<void> {
   // Flush in-memory buffer to MMKV before stopping
   const rideId = rideMMKV.getCurrentId();
   if (rideId) flushBufferToMMKV(rideId);
 
-  locationSubscription?.remove();
-  locationSubscription = null;
+  if (await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK)) {
+    await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
+  }
+  onLocationCallback = null;
   resetAutoPauseState();
 }
 
 export async function toggleBatterySaver(enabled: boolean): Promise<void> {
-  if (locationSubscription) {
-    locationSubscription.remove();
-    locationSubscription = await Location.watchPositionAsync(
-      {
-        accuracy: enabled ? Location.Accuracy.Balanced : Location.Accuracy.BestForNavigation,
-        distanceInterval: enabled ? 15 : 5,
-        timeInterval: enabled ? 5000 : 1000,
-        mayShowUserSettingsDialog: false,
-      },
-      (location) => {
-        processLocation(location);
-        onLocationCallback?.(location);
-      },
+  if (await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK)) {
+    await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
+    await Location.startLocationUpdatesAsync(
+      BACKGROUND_LOCATION_TASK,
+      locationUpdateOptions(enabled),
     );
   }
 }
@@ -318,6 +332,7 @@ TaskManager.defineTask<{ locations: Location.LocationObject[] }>(
 
     for (const location of data.locations) {
       processLocation(location);
+      onLocationCallback?.(location);
     }
   },
 );
@@ -362,7 +377,7 @@ function autoEndRide(idleSince: number): void {
   removeWaypointBuffer(rideId);
 
   useRideStore.getState().endRide();
-  stopGPSListener();
+  void stopGPSListener();
   clearPointBuffer();
 
   enqueueOrExecute('endRide', {

@@ -1,6 +1,5 @@
 import BottomSheet from '@gorhom/bottom-sheet';
 import { palette } from '@motovault/design-system';
-import { EndRideDocument } from '@motovault/graphql';
 import type { Waypoint } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
@@ -11,19 +10,12 @@ import { Pressable, Text, View } from 'react-native';
 import { HudLayoutA } from '../../components/ride/hud-layout-a';
 import { HudLayoutB } from '../../components/ride/hud-layout-b';
 import { type HudLayout, HudLayoutSwitcher } from '../../components/ride/hud-layout-switcher';
+import { endRideSession } from '../../features/ride/ride-controller';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useRideStore } from '../../stores/ride.store';
-import { encodePolyline } from '../../utils/ride-heatmap';
-import { distanceMeters, stopGPSListener, toggleBatterySaver } from '../../utils/ride-location';
-import {
-  flushBufferToMMKV,
-  getPointBuffer,
-  getWaypointChunks,
-  removeWaypointBuffer,
-  rideMMKV,
-  rideStorage,
-} from '../../utils/ride-storage';
-import { enqueueOrExecute, getQueueLength } from '../../utils/ride-sync-queue';
+import { toggleBatterySaver } from '../../utils/ride-location';
+import { getPointBuffer, getWaypointChunks, rideMMKV, rideStorage } from '../../utils/ride-storage';
+import { getQueueLength } from '../../utils/ride-sync-queue';
 
 type SparklineMode = 'altitude' | 'speed';
 
@@ -47,7 +39,6 @@ export default function RideHudScreen() {
   const distance = useRideStore((s) => s.distance);
   const currentSpeed = useRideStore((s) => s.currentSpeed);
   const maxSpeed = useRideStore((s) => s.maxSpeed);
-  const maxLeanAngle = useRideStore((s) => s.maxLeanAngle);
   const elevationGain = useRideStore((s) => s.elevationGain);
   const currentAltitude = useRideStore((s) => s.currentAltitude);
   const isNightMode = useRideStore((s) => s.isNightMode);
@@ -56,7 +47,6 @@ export default function RideHudScreen() {
   const toggleBattery = useRideStore((s) => s.toggleBatterySaver);
   const pauseRide = useRideStore((s) => s.pauseRide);
   const resumeRide = useRideStore((s) => s.resumeRide);
-  const endRide = useRideStore((s) => s.endRide);
   const updateElapsedTime = useRideStore((s) => s.updateElapsedTime);
 
   const [hudLayout, setHudLayout] = useState<HudLayout>(() => getPersistedLayout());
@@ -190,102 +180,10 @@ export default function RideHudScreen() {
     });
   }, [resumeRide]);
 
-  /** Core end-ride logic — extracted so it can be called from guard sheet or directly */
+  /** End the ride via the shared controller, then route to the summary. */
   const executeEndRide = useCallback(() => {
-    const rideId = rideMMKV.getCurrentId();
-    if (!rideId) return;
-
-    flushBufferToMMKV(rideId);
-
-    const chunks = getWaypointChunks(rideId);
-    const allWaypoints = chunks.flat();
-    const bufferPoints = [...getPointBuffer()];
-    const combined = [...allWaypoints, ...bufferPoints];
-
-    if (bufferPoints.length > 0) {
-      enqueueOrExecute('uploadWaypoints', {
-        variables: { input: { rideId, waypoints: bufferPoints } },
-      });
-    }
-    // Drop the persisted buffer key now that the points are durably enqueued —
-    // prevents crash-recovery from re-enqueuing them as duplicates after end.
-    removeWaypointBuffer(rideId);
-
-    let totalDistance = 0;
-    let maxSpd = 0;
-    let speedSum = 0;
-    let speedCount = 0;
-    let elevGain = 0;
-    let elevLoss = 0;
-
-    for (let i = 0; i < combined.length; i++) {
-      const wp = combined[i];
-      if (i > 0) {
-        totalDistance += distanceMeters(
-          { lat: combined[i - 1].latitude, lng: combined[i - 1].longitude },
-          { lat: wp.latitude, lng: wp.longitude },
-        );
-        const prevAlt = combined[i - 1].altitude;
-        const curAlt = wp.altitude;
-        if (prevAlt != null && curAlt != null) {
-          const diff = curAlt - prevAlt;
-          if (diff > 0) elevGain += diff;
-          else elevLoss += Math.abs(diff);
-        }
-      }
-      const speed = wp.speedMps ?? 0;
-      if (speed > maxSpd) maxSpd = speed;
-      if (speed > 0) {
-        speedSum += speed;
-        speedCount++;
-      }
-    }
-
-    const avgSpeed = speedCount > 0 ? speedSum / speedCount : 0;
-    const endedAt = new Date().toISOString();
-
-    endRide();
-    stopGPSListener();
-
-    trackEvent(AnalyticsEvent.RIDE_ENDED, {
-      ride_id: rideId,
-      motorcycle_id: rideMMKV.getMotorcycleId() ?? null,
-      duration_s: elapsedRef.current,
-      distance_m: Math.round(totalDistance),
-      pause_count: totalPausedRef.current > 0 ? 1 : 0,
-      total_pause_duration_s: Math.round(totalPausedRef.current / 1000),
-      night_mode_used: isNightMode,
-      battery_saver_used: isBatterySaver,
-      hud_layout_final: hudLayout,
-      max_speed_kmh: Math.round(maxSpd * 3.6),
-      avg_speed_kmh: Math.round(avgSpeed * 3.6),
-      waypoint_count: combined.length,
-    });
-
-    const polyline =
-      combined.length >= 2
-        ? encodePolyline(combined.map((wp) => [wp.latitude, wp.longitude] as [number, number]))
-        : null;
-
-    enqueueOrExecute('endRide', {
-      mutationDocument: EndRideDocument,
-      variables: {
-        input: {
-          rideId,
-          endedAt,
-          distanceM: Math.round(totalDistance),
-          maxSpeedMps: maxSpd > 0 ? maxSpd : null,
-          avgSpeedMps: avgSpeed > 0 ? avgSpeed : null,
-          elevationGain: elevGain > 0 ? Math.round(elevGain) : null,
-          elevationLoss: elevLoss > 0 ? Math.round(elevLoss) : null,
-          routePolyline: polyline,
-          pausedDurationS: Math.round(totalPausedRef.current / 1000),
-          autoPausedDurationS: Math.round(rideMMKV.getTotalAutoPausedMs() / 1000),
-          gpsQuality: combined.length > 0 ? 1 : 0,
-          maxLeanAngle: maxLeanAngle > 0 ? maxLeanAngle : null,
-        },
-      },
-    });
+    const summary = endRideSession('phone');
+    if (!summary) return;
 
     const pending = getQueueLength();
     if (pending > 0) setSyncPending(true);
@@ -293,19 +191,19 @@ export default function RideHudScreen() {
     const summaryRoute: Href = {
       pathname: '/(modals)/ride-summary',
       params: {
-        rideId,
-        distanceM: String(Math.round(totalDistance)),
-        durationS: String(elapsedRef.current),
-        maxSpeedMps: String(maxSpd),
-        avgSpeedMps: String(avgSpeed),
-        elevationGain: String(Math.round(elevGain)),
-        elevationLoss: String(Math.round(elevLoss)),
-        startedAt: rideMMKV.getStartedAt()?.toString() ?? '',
-        motorcycleId: rideMMKV.getMotorcycleId() ?? '',
+        rideId: summary.rideId,
+        distanceM: String(summary.distanceM),
+        durationS: String(summary.durationS),
+        maxSpeedMps: String(summary.maxSpeedMps),
+        avgSpeedMps: String(summary.avgSpeedMps),
+        elevationGain: String(summary.elevationGain),
+        elevationLoss: String(summary.elevationLoss),
+        startedAt: summary.startedAt?.toString() ?? '',
+        motorcycleId: summary.motorcycleId ?? '',
       },
     };
     router.replace(summaryRoute);
-  }, [endRide, router, isNightMode, isBatterySaver, hudLayout, maxLeanAngle]);
+  }, [router]);
 
   const handleEndRide = useCallback(() => {
     const elapsed = elapsedRef.current;

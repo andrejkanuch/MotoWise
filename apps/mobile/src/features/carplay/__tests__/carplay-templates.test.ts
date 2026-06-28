@@ -12,6 +12,7 @@ const base: RideInput = {
   distance: 42_300,
   elapsedTime: 4360,
   elevationGain: 640,
+  speed: 18, // m/s ≈ 65 km/h
   gpsLocked: true,
   startMode: 'automatic',
 };
@@ -66,6 +67,13 @@ describe('deriveSnapshot', () => {
     expect(snap.state).toBe('recording');
     expect(snap.distance).toMatch(/km/);
     expect(snap.climb).toMatch(/m/);
+    expect(snap.speed).toMatch(/km\/h/);
+  });
+
+  it('dashes the speed before GPS lock', () => {
+    const snap = deriveSnapshot({ ...base, gpsLocked: false, speed: 0 }, 'metric');
+    expect(snap.speed).toContain('—');
+    expect(snap.speed).not.toContain('0');
   });
 
   it('honors the measurement system for placeholders', () => {
@@ -76,18 +84,21 @@ describe('deriveSnapshot', () => {
 });
 
 describe('buildPanelItems', () => {
-  it('titles with the state word and leads the rows with distance (the hero)', () => {
+  it('titles with the state word and leads live rows with speed + distance (≤4 rows)', () => {
     const model = buildPanelItems(deriveSnapshot(base, 'metric'));
-    // Title is the state word only — distance stays in a row so numeric churn can
-    // refresh in place (the CarPlay template title is fixed at construction).
+    // Title is the state word only — numerics stay in rows so churn can refresh in
+    // place (the CarPlay template title is fixed at construction). While riding,
+    // speed + distance are the hero values; the row budget is 4.
     expect(model.title).toBe('RECORDING');
-    expect(model.items.map((i) => i.title)).toEqual(['Distance', 'Moving', 'Climb', 'Mode']);
-    expect(model.items[0].detail).toMatch(/km/);
+    expect(model.items.map((i) => i.title)).toEqual(['Speed', 'Distance', 'Moving', 'Climb']);
+    expect(model.items.length).toBeLessThanOrEqual(4);
+    expect(model.items[0].detail).toMatch(/km\/h/);
   });
 
-  it('idle title is the bare READY word', () => {
+  it('shows Mode instead of Speed before a ride (idle)', () => {
     const model = buildPanelItems(deriveSnapshot({ ...base, status: 'idle' }, 'metric'));
     expect(model.title).toBe('READY');
+    expect(model.items.map((i) => i.title)).toEqual(['Distance', 'Moving', 'Climb', 'Mode']);
   });
 });
 

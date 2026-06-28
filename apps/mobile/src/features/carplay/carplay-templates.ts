@@ -5,12 +5,19 @@
 import type { MeasurementSystem } from '@motovault/types';
 import type { CPInformationTemplateModel } from '../../../modules/carplay/src';
 import type { StartMode } from '../../stores/carplay.store';
-import { formatDistance, formatElapsed, formatElevation } from '../../utils/ride-formatters';
+import {
+  formatDistance,
+  formatElapsed,
+  formatElevation,
+  formatSpeed,
+  speedUnitLabel,
+} from '../../utils/ride-formatters';
 
 export type CarPlayPanelState = 'recording' | 'autoPaused' | 'acquiring' | 'idle';
 
 export interface PanelSnapshot {
   state: CarPlayPanelState;
+  speed: string;
   distance: string;
   movingTime: string;
   climb: string;
@@ -26,6 +33,8 @@ export interface RideInput {
   elapsedTime: number;
   /** meters */
   elevationGain: number;
+  /** meters per second */
+  speed: number;
   /** TODO(carplay): real GPS-lock signal (parent open question). */
   gpsLocked: boolean;
   startMode: StartMode;
@@ -69,6 +78,7 @@ export function deriveSnapshot(input: RideInput, system: MeasurementSystem): Pan
   const live = state !== 'acquiring' && state !== 'idle';
   return {
     state,
+    speed: live ? formatSpeed(input.speed, system) : `${DASH} ${speedUnitLabel(system)}`,
     distance: live
       ? formatDistance(input.distance, system)
       : `${DASH} ${system === 'imperial' ? 'mi' : 'km'}`,
@@ -81,18 +91,27 @@ export function deriveSnapshot(input: RideInput, system: MeasurementSystem): Pan
 }
 
 export function buildPanelItems(s: PanelSnapshot): CPInformationTemplateModel {
-  // Title carries the state word only. Distance is the hero row, not the title:
-  // the CarPlay InformationTemplate fixes its title at construction, so fusing the
-  // (constantly-ticking) distance into it would force a full re-push on every GPS
-  // tick. Keeping numerics in rows lets them refresh in place (updateItems) while
-  // the title/actions re-push only on a real state transition. Distance leads the
-  // rows, so it stays the most prominent glanceable value.
-  const items = [
-    { title: 'Distance', detail: s.distance },
-    { title: 'Moving', detail: s.movingTime },
-    { title: 'Climb', detail: s.climb },
-    { title: 'Mode', detail: MODE_LABEL[s.startMode] },
-  ];
+  // Title carries the state word only. Numerics live in rows, not the title: the
+  // CarPlay InformationTemplate fixes its title at construction, so fusing a
+  // constantly-ticking value into it would force a full re-push on every GPS tick.
+  // Rows refresh in place (updateItems); the title/actions re-push only on a real
+  // state transition. The template caps at 4 rows: while riding, speed + distance
+  // lead (the live hero values); before a ride, the Mode row replaces speed (which
+  // would only be a dash) so the rider can see the arming mode.
+  const live = s.state === 'recording' || s.state === 'autoPaused';
+  const items = live
+    ? [
+        { title: 'Speed', detail: s.speed },
+        { title: 'Distance', detail: s.distance },
+        { title: 'Moving', detail: s.movingTime },
+        { title: 'Climb', detail: s.climb },
+      ]
+    : [
+        { title: 'Distance', detail: s.distance },
+        { title: 'Moving', detail: s.movingTime },
+        { title: 'Climb', detail: s.climb },
+        { title: 'Mode', detail: MODE_LABEL[s.startMode] },
+      ];
   return { title: STATE_WORD[s.state], items, actions: buildActions(s.state, s.startMode) };
 }
 
