@@ -36,6 +36,8 @@ export const OB_SCREEN = {
   REVEAL: 'reveal',
   COMMITMENT: 'commitment',
   ACCOUNT: 'account',
+  // Attribution — "How did you hear about us?" (post-paywall, all variants)
+  HEARD_ABOUT: 'heard-about',
   // A/B 2026 — invested-only profiling + loader
   FREQUENCY: 'frequency',
   STAY_ON_TOP: 'stay-on-top',
@@ -65,6 +67,7 @@ const V4_FLOW = [
   OB_SCREEN.BIKE_SETUP,
   OB_SCREEN.MAINTENANCE,
   OB_SCREEN.PAYWALL,
+  OB_SCREEN.HEARD_ABOUT,
   OB_SCREEN.NOTIFICATIONS,
   OB_SCREEN.PERSONALIZING,
 ] as const satisfies ReadonlyArray<OnboardingRoute>;
@@ -79,6 +82,7 @@ const LEAN_FLOW = [
   OB_SCREEN.COMMITMENT,
   OB_SCREEN.PAYWALL,
   OB_SCREEN.ACCOUNT,
+  OB_SCREEN.HEARD_ABOUT,
   OB_SCREEN.NOTIFICATIONS,
   OB_SCREEN.PERSONALIZING,
 ] as const satisfies ReadonlyArray<OnboardingRoute>;
@@ -97,6 +101,7 @@ const INVESTED_FLOW = [
   OB_SCREEN.COMMITMENT,
   OB_SCREEN.PAYWALL,
   OB_SCREEN.ACCOUNT,
+  OB_SCREEN.HEARD_ABOUT,
   OB_SCREEN.NOTIFICATIONS,
   OB_SCREEN.PERSONALIZING,
 ] as const satisfies ReadonlyArray<OnboardingRoute>;
@@ -140,6 +145,7 @@ export const OB_STEP_NAME: Record<OnboardingRoute, string> = {
   [OB_SCREEN.REVEAL]: 'reveal',
   [OB_SCREEN.COMMITMENT]: 'commitment',
   [OB_SCREEN.ACCOUNT]: 'account',
+  [OB_SCREEN.HEARD_ABOUT]: 'heard_about',
   [OB_SCREEN.FREQUENCY]: 'frequency',
   [OB_SCREEN.STAY_ON_TOP]: 'stay_on_top',
   [OB_SCREEN.LAST_SERVICE]: 'last_service',
@@ -168,6 +174,7 @@ export const OB_ROUTE = {
   REVEAL: '/(onboarding)/reveal',
   COMMITMENT: '/(onboarding)/commitment',
   ACCOUNT: '/(onboarding)/account',
+  HEARD_ABOUT: '/(onboarding)/heard-about',
   FREQUENCY: '/(onboarding)/frequency',
   STAY_ON_TOP: '/(onboarding)/stay-on-top',
   LAST_SERVICE: '/(onboarding)/last-service',

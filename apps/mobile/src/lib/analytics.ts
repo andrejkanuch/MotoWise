@@ -23,6 +23,11 @@ const POSTHOG_HOST = Constants.expoConfig?.extra?.posthogHost ?? 'https://eu.i.p
 // The client is disabled when no API key is configured, so events are no-ops.
 export const posthogClient: PostHog = new PostHog(POSTHOG_API_KEY || 'placeholder', {
   host: POSTHOG_HOST,
+  // `captureAppLifecycleEvents` is intentionally left at its SDK default (`true`):
+  // `Application Installed`/`Opened`/`Backgrounded` already flow to PostHog and are
+  // relied on as the install-count denominator. Do NOT set it to false. (Note: the
+  // install *source* is stamped separately as a $set_once person property in
+  // meta-attribution.ts — the lifecycle event itself carries no channel.)
   // No PostHog data is sent in development — only release builds report to
   // PostHog. `__DEV__` is true under Metro/dev-client and false in EAS
   // preview/production builds, mirroring the Sentry `enabled: !__DEV__` gate
@@ -178,6 +183,12 @@ export function setAnalyticsEnabled(enabled: boolean) {
   // cold start, before the server `me` query resolves (closes the pre-consent
   // recording window — todo 184).
   setStoredAnalyticsConsent(enabled);
+  if (enabled) {
+    // Consent just granted — wire RevenueCat attribution that was suppressed
+    // pre-consent (KTD-9). Lazy import avoids a static analytics↔subscription
+    // cycle; consent is already persisted above so the gate inside passes.
+    void import('./subscription').then((m) => m.configureRcAttribution());
+  }
   if (posthogClient) {
     if (enabled) {
       posthogClient.optIn();
@@ -239,6 +250,17 @@ export function setUserProperties(properties: Record<string, JsonType>) {
 }
 
 /**
+ * Set first-touch person properties that must NOT be overwritten on later launches
+ * (acquisition source, install source). Uses PostHog `$set_once` semantics — the
+ * value is written only if the property is not already set on the person. Consent-
+ * gated like all other capture paths.
+ */
+export function setUserPropertiesOnce(properties: Record<string, JsonType>) {
+  if (!analyticsEnabled || !posthogClient) return;
+  posthogClient.capture('$set', { $set_once: properties });
+}
+
+/**
  * The current PostHog distinct_id (anonymous before sign-in). Used to stamp
  * RevenueCat's `$posthogUserId` pre-auth so anonymous purchases join the same
  * PostHog person once the account is created. Undefined when analytics is off.
@@ -277,6 +299,8 @@ export const AnalyticsEvent = {
   REVEAL_VIEWED: 'reveal_viewed',
   COMMITMENT_COMPLETED: 'commitment_completed',
   ACCOUNT_CREATED: 'account_created',
+  // Attribution — self-reported acquisition channel ("How did you hear about us?")
+  REFERRAL_SOURCE_SELECTED: 'referral_source_selected',
 
   // Feature usage — Diagnostics
   DIAGNOSTIC_STARTED: 'diagnostic_started',

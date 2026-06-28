@@ -1,0 +1,140 @@
+// In-memory SecureStore + controllable mocks shared across module resets.
+const mockStore = new Map<string, string>();
+const mockCapture = jest.fn();
+const mockGetInitialURL = jest.fn<Promise<string | null>, []>();
+let mockAnalyticsEnabled = true;
+let mockConsent = true;
+
+jest.mock('../analytics', () => ({
+  posthogClient: { capture: (...args: unknown[]) => mockCapture(...args) },
+  isAnalyticsEnabled: () => mockAnalyticsEnabled,
+}));
+
+jest.mock('../analytics-consent', () => ({
+  getStoredAnalyticsConsent: () => mockConsent,
+}));
+
+jest.mock('expo-linking', () => ({
+  getInitialURL: () => mockGetInitialURL(),
+}));
+
+jest.mock('expo-constants', () => ({
+  __esModule: true,
+  default: { expoConfig: { version: '9.9.9' } },
+}));
+
+jest.mock('expo-secure-store', () => ({
+  getItemAsync: (k: string) => Promise.resolve(mockStore.has(k) ? mockStore.get(k) : null),
+  setItemAsync: (k: string, v: string) => {
+    mockStore.set(k, v);
+    return Promise.resolve();
+  },
+  deleteItemAsync: (k: string) => {
+    mockStore.delete(k);
+    return Promise.resolve();
+  },
+}));
+
+type MetaAttribution = typeof import('../meta-attribution');
+function loadModule(): MetaAttribution {
+  let mod: MetaAttribution;
+  jest.isolateModules(() => {
+    mod = require('../meta-attribution');
+  });
+  // biome-ignore lint/style/noNonNullAssertion: assigned synchronously above
+  return mod!;
+}
+
+beforeAll(() => {
+  process.env.EXPO_OS = 'ios';
+});
+
+beforeEach(() => {
+  mockStore.clear();
+  mockCapture.mockClear();
+  mockGetInitialURL.mockReset();
+  mockAnalyticsEnabled = true;
+  mockConsent = true;
+});
+
+describe('captureMetaAttribution', () => {
+  it('emits organic install attribution on a first launch with no deep link', async () => {
+    mockGetInitialURL.mockResolvedValue(null);
+    const { captureMetaAttribution } = loadModule();
+
+    await captureMetaAttribution();
+
+    expect(mockCapture).toHaveBeenCalledTimes(1);
+    const [event, payload] = mockCapture.mock.calls[0];
+    expect(event).toBe('$set');
+    expect(payload.$set_once).toMatchObject({
+      install_source: 'organic_unknown',
+      install_platform: 'ios',
+      install_version: '9.9.9',
+    });
+    expect(payload.$set_once.first_seen_at).toEqual(expect.any(String));
+    // CAPTURED flag set so it never re-fires.
+    expect(mockStore.get('meta_captured')).toBe('1');
+  });
+
+  it('uses utm_source as install_source even without utm_content, and persists it', async () => {
+    mockGetInitialURL.mockResolvedValue('motovault://open?utm_source=tiktok&utm_campaign=spring');
+    const { captureMetaAttribution } = loadModule();
+
+    await captureMetaAttribution();
+
+    const payload = mockCapture.mock.calls[0][1];
+    expect(payload.$set_once.install_source).toBe('tiktok');
+    expect(payload.$set_once.utm_source).toBe('tiktok');
+    // Persisted independently of utm_content (KTD-4) so U5 can read it later.
+    expect(mockStore.get('meta_utm_source')).toBe('tiktok');
+    expect(mockStore.get('meta_utm_campaign')).toBe('spring');
+  });
+
+  it('does NOT emit and does NOT set CAPTURED when consent is not granted', async () => {
+    mockConsent = false;
+    mockGetInitialURL.mockResolvedValue('motovault://open?utm_source=instagram');
+    const { captureMetaAttribution } = loadModule();
+
+    await captureMetaAttribution();
+
+    expect(mockCapture).not.toHaveBeenCalled();
+    expect(mockStore.get('meta_captured')).toBeUndefined();
+    // UTM is still persisted on-device for a later consented emit.
+    expect(mockStore.get('meta_utm_source')).toBe('instagram');
+  });
+
+  it('is idempotent — a second call after CAPTURED does nothing', async () => {
+    mockStore.set('meta_captured', '1');
+    mockGetInitialURL.mockResolvedValue(null);
+    const { captureMetaAttribution } = loadModule();
+
+    await captureMetaAttribution();
+
+    expect(mockCapture).not.toHaveBeenCalled();
+  });
+
+  it('does not emit when analytics is disabled', async () => {
+    mockAnalyticsEnabled = false;
+    mockGetInitialURL.mockResolvedValue(null);
+    const { captureMetaAttribution } = loadModule();
+
+    await captureMetaAttribution();
+
+    expect(mockCapture).not.toHaveBeenCalled();
+  });
+});
+
+describe('getStoredUtmProperties', () => {
+  it('returns a source-only object (not null) when only utm_source is stored', async () => {
+    mockStore.set('meta_utm_source', 'tiktok');
+    const { getStoredUtmProperties } = loadModule();
+
+    await expect(getStoredUtmProperties()).resolves.toEqual({ utm_source: 'tiktok' });
+  });
+
+  it('returns null when no UTM keys are stored', async () => {
+    const { getStoredUtmProperties } = loadModule();
+    await expect(getStoredUtmProperties()).resolves.toBeNull();
+  });
+});

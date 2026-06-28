@@ -4,7 +4,9 @@ import Constants from 'expo-constants';
 import type { CustomVariables } from 'react-native-purchases-ui';
 import { useSubscriptionStore } from '../stores/subscription.store';
 import { AnalyticsEvent, addBreadcrumb, captureException, trackEvent } from './analytics';
+import { getStoredAnalyticsConsent } from './analytics-consent';
 import { logger } from './logger';
+import { getStoredUtmProperties } from './meta-attribution';
 import { isNetworkError } from './network-error';
 
 // Module-level cached import — resolve once, reuse everywhere
@@ -158,6 +160,16 @@ async function doInit(): Promise<(() => void) | null> {
     await Purchases.configure({ apiKey });
     useSubscriptionStore.getState().setAvailable(true);
 
+    // Best-effort attribution wiring (consent-gated, KTD-9), run before any
+    // paywall/purchase so the write-once $mediaSource stamps the transaction
+    // (KTD-6). Uses the local Purchases directly — calling configureRcAttribution()
+    // here would re-await this in-flight init promise and deadlock. Never breaks init.
+    if (getStoredAnalyticsConsent()) {
+      await applyRcAttribution(Purchases).catch((e) =>
+        captureException(e, { source: 'revenuecat.doInit.attribution' }),
+      );
+    }
+
     // Set up listener — store the reference for cleanup
     const listener = (info: {
       entitlements: {
@@ -222,6 +234,100 @@ export async function loginRevenueCat(userId: string) {
   } catch (e) {
     captureException(e, { source: 'revenuecat.loginRevenueCat' });
   }
+}
+
+/**
+ * Run a RevenueCat operation behind the shared readiness guard + error policy.
+ * Replaces the repeated `isExpoGo / await init / getPurchases / try-catch /
+ * isNetworkError-downgrade` ladder that every attribute writer otherwise copies.
+ * No-op (resolves) in Expo Go or before init completes; transient network errors
+ * are downgraded to a warn+breadcrumb, anything else is captured to Sentry. Never
+ * throws — RC attribute writes are best-effort.
+ */
+async function withRevenueCat(
+  label: string,
+  run: (Purchases: NonNullable<Awaited<ReturnType<typeof getPurchases>>>) => Promise<void>,
+): Promise<void> {
+  if (isExpoGo()) return;
+  const cleanup = await initRevenueCat();
+  if (!cleanup) return;
+  try {
+    const Purchases = await getPurchases();
+    await run(Purchases);
+  } catch (e) {
+    if (isNetworkError(e)) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn(`[RevenueCat] ${label} network error (retried):`, msg);
+      addBreadcrumb(msg, `revenuecat.${label}`);
+      return;
+    }
+    captureException(e, { source: `revenuecat.${label}` });
+  }
+}
+
+/**
+ * Custom (non-reserved) RevenueCat customer attribute holding the user's
+ * self-reported acquisition channel ("How did you hear about us?"). It is a
+ * plain custom key — NOT a reserved `$`-prefixed attribution key — because the
+ * reserved keys (`$mediaSource`, `$campaign`, …) are WRITE-ONCE and reserved
+ * for real ad/deep-link attribution (see {@link configureRcAttribution}).
+ * A self-reported value must stay mutable, so it lives in its own custom key.
+ */
+export const SELF_REPORTED_SOURCE_ATTRIBUTE = 'self_reported_source';
+
+/**
+ * Push the self-reported acquisition channel to RevenueCat as a custom customer
+ * attribute. Best-effort and safe to skip: the durable HDYHAU→paid join is the
+ * PostHog person (stitched via `$posthogUserId`); this attribute is a convenience
+ * for RC-dashboard segmentation. No-op for empty values or in Expo Go.
+ */
+export async function setSelfReportedSource(source: string | null | undefined): Promise<void> {
+  const value = source?.trim();
+  if (!value) return;
+  await withRevenueCat('setSelfReportedSource', (Purchases) =>
+    Purchases.setAttributes({ [SELF_REPORTED_SOURCE_ATTRIBUTE]: value }),
+  );
+}
+
+/**
+ * Apply attribution collection on an already-resolved Purchases instance:
+ * device identifiers + the Apple AdServices (ASA) token, plus the reserved
+ * write-once `$mediaSource`/`$campaign` from a REAL deep-link UTM only.
+ *
+ * Never set `$mediaSource` for organic (`organic_unknown` or absent): the key is
+ * write-once and a manual organic value would permanently block the ASA token
+ * from attributing a real Apple Search Ads install (KTD-5).
+ */
+async function applyRcAttribution(
+  Purchases: NonNullable<Awaited<ReturnType<typeof getPurchases>>>,
+): Promise<void> {
+  await Purchases.collectDeviceIdentifiers();
+  // iOS-only; documented no-op elsewhere, but guard to keep intent explicit.
+  if (process.env.EXPO_OS === 'ios') {
+    await Purchases.enableAdServicesAttributionTokenCollection();
+  }
+  const utm = await getStoredUtmProperties();
+  const mediaSource = utm?.utm_source;
+  if (mediaSource && mediaSource !== 'organic_unknown') {
+    await Purchases.setAttributes({
+      $mediaSource: mediaSource,
+      ...(utm?.utm_campaign ? { $campaign: utm.utm_campaign } : {}),
+    });
+  }
+}
+
+/**
+ * Wire RevenueCat attribution, gated on the persisted analytics consent (device
+ * identifiers `$idfv`/`$ip` are personal data — KTD-9). Idempotent: RC ignores
+ * write-once overwrites, so this is safe to call from `doInit`, from
+ * {@link setAnalyticsEnabled} on opt-in, and again at the paywall as a fallback
+ * for tagged second-launch installs (KTD-6). Routes through {@link withRevenueCat},
+ * so it must NOT be called from inside `doInit` itself (that would re-await the
+ * in-flight init promise) — `doInit` calls {@link applyRcAttribution} directly.
+ */
+export async function configureRcAttribution(): Promise<void> {
+  if (!getStoredAnalyticsConsent()) return;
+  await withRevenueCat('configureRcAttribution', applyRcAttribution);
 }
 
 /**
@@ -293,27 +399,15 @@ function toAttributeValue(value: string | number | null | undefined): string | n
  * Call before presenting the onboarding paywall. Idempotent and safe to repeat.
  */
 export async function setOnboardingAttributes(attrs: OnboardingAttributes): Promise<void> {
-  if (isExpoGo()) return;
-  const cleanup = await initRevenueCat();
-  if (!cleanup) return;
-  try {
-    const Purchases = await getPurchases();
+  // Transient connectivity failures are non-critical and SDK-retried — withRevenueCat
+  // downgrades them to a warn + breadcrumb so they don't flood Sentry. (MOTO-VAULT-REACT-NATIVE-M)
+  await withRevenueCat('setOnboardingAttributes', async (Purchases) => {
     const payload = Object.fromEntries(
       ONBOARDING_ATTRIBUTE_SPEC.map(({ key, select }) => [key, toAttributeValue(select(attrs))]),
     );
     await Purchases.setAttributes(payload);
     await Purchases.syncAttributesAndOfferingsIfNeeded?.();
-  } catch (e) {
-    // Transient connectivity failures are non-critical and SDK-retried — downgrade
-    // them to a warn + breadcrumb so they don't flood Sentry. (MOTO-VAULT-REACT-NATIVE-M)
-    if (isNetworkError(e)) {
-      const msg = e instanceof Error ? e.message : String(e);
-      logger.warn('[RevenueCat] setOnboardingAttributes network error (retried):', msg);
-      addBreadcrumb(msg, 'revenuecat.setOnboardingAttributes');
-      return;
-    }
-    captureException(e, { source: 'revenuecat.setOnboardingAttributes' });
-  }
+  });
 }
 
 /**
@@ -366,6 +460,11 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
   // Ensure RevenueCat is configured before calling getOfferings() — fixes
   // race condition where presentPaywall is called before init completes.
   await initRevenueCat();
+
+  // Fallback attribution wiring (KTD-6): covers the case where a tagged deep link
+  // only landed on a later launch (after doInit already ran with an empty store).
+  // Consent-gated + idempotent (write-once keys ignore re-sets); fire-and-forget.
+  void configureRcAttribution();
 
   try {
     const Purchases = await getPurchases();

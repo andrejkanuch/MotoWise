@@ -61,6 +61,8 @@ export default function OnboardingLayout() {
       {/* A/B 2026 — post-paywall account step + returning-user sign-in */}
       <Stack.Screen name="account" options={{ gestureEnabled: false }} />
       <Stack.Screen name="sign-in" options={{ gestureEnabled: true, presentation: 'card' }} />
+      {/* Attribution — post-paywall, non-reversible (no back to account/paywall) */}
+      <Stack.Screen name="heard-about" options={{ gestureEnabled: false }} />
       <Stack.Screen name="notifications" options={{ gestureEnabled: false }} />
       <Stack.Screen name="personalizing" options={{ gestureEnabled: false }} />
 
