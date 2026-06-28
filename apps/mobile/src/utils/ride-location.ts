@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import type { Waypoint } from '@motovault/types';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
@@ -72,7 +73,7 @@ function locationUpdateOptions(batterySaver: boolean): Location.LocationTaskOpti
     foregroundService: {
       notificationTitle: 'MotoVault is recording your ride',
       notificationBody: 'Tap to return to your ride.',
-      notificationColor: '#D4622E',
+      notificationColor: palette.signature500,
     },
   };
 }
@@ -88,11 +89,17 @@ export async function startGPSListener(
   // Reset GPS filter for fresh ride
   gpsFilter.reset();
 
-  // Idempotent: drop a still-running session before starting a fresh one.
-  if (await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK)) {
-    await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
+  // Idempotent: best-effort drop a still-running session before starting fresh.
+  // A throw here must not block the fresh start, so swallow + log.
+  try {
+    if (await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK)) {
+      await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
+    }
+  } catch (err) {
+    captureException(err, { source: 'ride-location.startGPSListener.cleanup' });
   }
 
+  // Throws propagate to the caller (startRideSession rolls the ride back).
   await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK, locationUpdateOptions(false));
 }
 
@@ -248,6 +255,10 @@ function applyAutoPauseEffects(effects: AutoPauseEffect[]): void {
 function processLocation(location: Location.LocationObject): void {
   const rideId = rideMMKV.getCurrentId();
   if (!rideId) return;
+  // A sample can still arrive between endRide() and stopLocationUpdatesAsync()
+  // resolving (the stop is fire-and-forget). Drop it so an ended ride never
+  // mutates the store or re-appends to a flushed buffer.
+  if (useRideStore.getState().status === 'ended') return;
 
   const rawSpeed = location.coords.speed ?? 0;
   const currentPos = { lat: location.coords.latitude, lng: location.coords.longitude };

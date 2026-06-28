@@ -9,12 +9,13 @@
 import { EndRideDocument, StartRideDocument } from '@motovault/graphql';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { useRideStore } from '../../stores/ride.store';
 import { encodePolyline } from '../../utils/ride-heatmap';
 import { distanceMeters, startGPSListener, stopGPSListener } from '../../utils/ride-location';
 import { checkAndRequestPermissions } from '../../utils/ride-permissions';
 import {
+  clearRideData,
   flushBufferToMMKV,
   getPointBuffer,
   getWaypointChunks,
@@ -25,7 +26,9 @@ import { enqueueOrExecute } from '../../utils/ride-sync-queue';
 
 export type RideSource = 'phone' | 'carplay';
 
-export type RideStartResult = { ok: true; rideId: string } | { ok: false; reason: 'denied' };
+export type RideStartResult =
+  | { ok: true; rideId: string }
+  | { ok: false; reason: 'denied' | 'gps_failed' };
 
 export interface StartRideOptions {
   motorcycleId: string | null;
@@ -48,10 +51,6 @@ export async function startRideSession({
   const level = await checkAndRequestPermissions();
   if (level === 'denied') return { ok: false, reason: 'denied' };
 
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-  }
-
   const rideId = Crypto.randomUUID();
   const startedAt = new Date().toISOString();
 
@@ -63,12 +62,27 @@ export async function startRideSession({
   store.setPermissionLevel(level);
   store.startRide();
 
+  try {
+    await startGPSListener();
+  } catch (err) {
+    // GPS failed to start — roll back so we never strand a half-started ride
+    // (persisted id + recording store) that the next launch reads as unfinished.
+    captureException(err, { source: 'ride-controller.startRideSession' });
+    rideMMKV.setCurrentId('');
+    store.endRide();
+    return { ok: false, reason: 'gps_failed' };
+  }
+
+  // Haptic confirms the start on the phone; on CarPlay the phone may be pocketed.
+  if (source === 'phone' && process.env.EXPO_OS === 'ios') {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+  }
+
+  // Tell the server only after GPS is confirmed running (rollback above otherwise).
   enqueueOrExecute('startRide', {
     mutationDocument: StartRideDocument,
     variables: { input: { rideId, motorcycleId, startedAt } },
   });
-
-  await startGPSListener();
 
   trackEvent(AnalyticsEvent.RIDE_STARTED, {
     ride_id: rideId,
@@ -160,6 +174,11 @@ export function endRideSession(source: RideSource = 'phone'): RideEndSummary | n
   const avgSpeed = speedCount > 0 ? speedSum / speedCount : 0;
   const durationS = elapsedRideSeconds();
   const totalPausedMs = rideMMKV.getTotalPausedMs();
+  const totalAutoPausedMs = rideMMKV.getTotalAutoPausedMs();
+  // Capture identity BEFORE teardown — the non-phone cleanup below clears MMKV,
+  // and the returned summary must still carry these.
+  const startedAt = rideMMKV.getStartedAt();
+  const motorcycleId = rideMMKV.getMotorcycleId() ?? null;
   const store = useRideStore.getState();
   const maxLeanAngle = store.maxLeanAngle;
   const isNightMode = store.isNightMode;
@@ -171,7 +190,7 @@ export function endRideSession(source: RideSource = 'phone'): RideEndSummary | n
 
   trackEvent(AnalyticsEvent.RIDE_ENDED, {
     ride_id: rideId,
-    motorcycle_id: rideMMKV.getMotorcycleId() ?? null,
+    motorcycle_id: motorcycleId,
     duration_s: durationS,
     distance_m: Math.round(totalDistance),
     pause_count: totalPausedMs > 0 ? 1 : 0,
@@ -203,12 +222,18 @@ export function endRideSession(source: RideSource = 'phone'): RideEndSummary | n
         elevationLoss: elevLoss > 0 ? Math.round(elevLoss) : null,
         routePolyline: polyline,
         pausedDurationS: Math.round(totalPausedMs / 1000),
-        autoPausedDurationS: Math.round(rideMMKV.getTotalAutoPausedMs() / 1000),
+        autoPausedDurationS: Math.round(totalAutoPausedMs / 1000),
         gpsQuality: combined.length > 0 ? 1 : 0,
         maxLeanAngle: maxLeanAngle > 0 ? maxLeanAngle : null,
       },
     },
   });
+
+  // The phone flow clears ride data on the summary screen (save/discard). CarPlay-
+  // and auto-ended rides never reach a summary, so clear here — otherwise the next
+  // launch reads a stale CURRENT_ID as a phantom "unfinished ride", a second Stop
+  // re-enqueues an end, and elapsedRideSeconds keeps counting against a dead start.
+  if (source !== 'phone') clearRideData(rideId);
 
   return {
     rideId,
@@ -218,7 +243,7 @@ export function endRideSession(source: RideSource = 'phone'): RideEndSummary | n
     avgSpeedMps: avgSpeed,
     elevationGain: Math.round(elevGain),
     elevationLoss: Math.round(elevLoss),
-    startedAt: rideMMKV.getStartedAt(),
-    motorcycleId: rideMMKV.getMotorcycleId() ?? null,
+    startedAt,
+    motorcycleId,
   };
 }

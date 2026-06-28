@@ -117,10 +117,15 @@ export default function StartRideScreen() {
       });
 
       if (!result.ok) {
-        Alert.alert(t('startRide.locationRequired'), t('startRide.locationMessage'), [
-          { text: t('common.cancel'), style: 'cancel' },
-          { text: t('startRide.openSettings'), onPress: () => Linking.openSettings() },
-        ]);
+        if (result.reason === 'denied') {
+          Alert.alert(t('startRide.locationRequired'), t('startRide.locationMessage'), [
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('startRide.openSettings'), onPress: () => Linking.openSettings() },
+          ]);
+        } else {
+          // gps_failed — the listener threw; the controller already rolled back.
+          Alert.alert(t('common.error'), t('startRide.startError'));
+        }
         return;
       }
 
