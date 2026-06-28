@@ -28,7 +28,7 @@
     "@uiw/react-codemirror": "^4.25.10",
     "chart.js": "^4.5.1",
     "expo": "~56.0.4",
-    "geist": "^1.7.0",
+    "geist": "^1.7.2",
     "graphql": "^16.10.0",
     "graphql-request": "^7.4.0",
     "gray-matter": "^4.0.3",
