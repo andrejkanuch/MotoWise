@@ -453,11 +453,13 @@ input CreateTripSuggestionInput {
 }
 
 input CreateTripWithWaypointsInput {
+  dayCount: Int
   description: String!
   difficulty: String!
-  endDate: String!
+  endDate: String
+  isShowcase: Boolean
   maxRiders: Int!
-  startDate: String!
+  startDate: String
   title: String!
   visibility: String
   waypoints: [InlineWaypointInput!]!
@@ -1794,6 +1796,7 @@ type Trip {
   coverImageUrl: String
   createdAt: String!
   curvatureIndex: Float
+  datesPending: Boolean
   dayCount: Int
   description: String!
   difficulty: String!
