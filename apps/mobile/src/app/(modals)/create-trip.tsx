@@ -10,7 +10,11 @@ import {
   ArrowLeft,
   Calendar,
   ChevronDown,
+  EyeOff,
+  Globe,
   Info,
+  Lock,
+  type LucideIcon,
   Map as MapIcon,
   Plus,
   Save,
@@ -94,22 +98,27 @@ type Visibility = 'private' | 'unlisted' | 'public';
 
 function getVisibilityOptions(
   i18n: TI18n,
-): { key: Visibility; label: string; description: string }[] {
+): { key: Visibility; label: string; description: string; icon: LucideIcon }[] {
+  // Icons mirror the viewer badge in trip-detail.tsx (Lock / EyeOff / Globe) so
+  // the picker and the badge teach one visual vocabulary for the same states.
   return [
     {
       key: 'private',
       label: i18n('trips.visibilityPrivate'),
       description: i18n('trips.visibilityPrivateDesc'),
+      icon: Lock,
     },
     {
       key: 'unlisted',
       label: i18n('trips.visibilityUnlisted'),
       description: i18n('trips.visibilityUnlistedDesc'),
+      icon: EyeOff,
     },
     {
       key: 'public',
       label: i18n('trips.visibilityPublic'),
       description: i18n('trips.visibilityPublicDesc'),
+      icon: Globe,
     },
   ];
 }
@@ -1293,6 +1302,7 @@ export default function CreateTripScreen() {
                     <View style={{ gap: 8 }}>
                       {getVisibilityOptions(i18n as TI18n).map((opt) => {
                         const isSelected = visibility === opt.key;
+                        const OptIcon = opt.icon;
                         return (
                           <Pressable
                             key={opt.key}
@@ -1313,15 +1323,23 @@ export default function CreateTripScreen() {
                                 justifyContent: 'space-between',
                               }}
                             >
-                              <Text
-                                style={{
-                                  fontSize: 14,
-                                  fontWeight: '700',
-                                  color: isSelected ? t.warm : inputTextColor,
-                                }}
+                              <View
+                                style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
                               >
-                                {opt.label}
-                              </Text>
+                                <OptIcon
+                                  size={15}
+                                  color={isSelected ? t.warm : subtitleColor}
+                                />
+                                <Text
+                                  style={{
+                                    fontSize: 14,
+                                    fontWeight: '700',
+                                    color: isSelected ? t.warm : inputTextColor,
+                                  }}
+                                >
+                                  {opt.label}
+                                </Text>
+                              </View>
                               {isSelected && (
                                 <View
                                   style={{
