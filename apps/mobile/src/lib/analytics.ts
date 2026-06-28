@@ -263,6 +263,10 @@ export function setUserProperties(properties: Record<string, JsonType>) {
  * (acquisition source, install source). Uses PostHog `$set_once` semantics — the
  * value is written only if the property is not already set on the person. Consent-
  * gated like all other capture paths.
+ *
+ * Per the posthog-react-native docs, `$set`/`$set_once` are honored when capturing
+ * ANY event; `$set` here is the SDK's property-only event name (mirrors the sibling
+ * `setUserProperties`), and the `$set_once` payload is applied set-once server-side.
  */
 export function setUserPropertiesOnce(properties: Record<string, JsonType>) {
   if (!analyticsEnabled || !posthogClient) return;

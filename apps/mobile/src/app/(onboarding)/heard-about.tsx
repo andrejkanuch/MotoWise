@@ -55,6 +55,10 @@ export default function HeardAboutScreen() {
 
   const [pending, setPending] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Synchronous one-shot guard: `pending` is React state read from the render
+  // closure, so two taps in the same frame (option+option, or option+skip) would
+  // both see it null and double-fire. A ref settles immediately.
+  const advancedRef = useRef(false);
 
   useEffect(() => {
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.HEARD_ABOUT);
@@ -64,7 +68,8 @@ export default function HeardAboutScreen() {
   }, []);
 
   const handleSelect = (id: string) => {
-    if (pending) return;
+    if (advancedRef.current) return;
+    advancedRef.current = true;
     triggerNotification(NotificationFeedbackType.Success);
     setPending(id);
     setHeardFrom(id);
@@ -81,7 +86,8 @@ export default function HeardAboutScreen() {
   // Skip advances without recording a source — `heard_from` stays unset and no
   // referral_source_selected event fires (KTD-10).
   const handleSkip = () => {
-    if (pending) return;
+    if (advancedRef.current) return;
+    advancedRef.current = true;
     setLastCompletedScreen(OB_SCREEN.HEARD_ABOUT);
     goNext();
   };
