@@ -284,17 +284,26 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
               </>
             )}
 
-            <View style={{ width: 1, height: 10, backgroundColor: t.line }} />
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Clock size={12} color={t.ink3} />
-              <Text style={{ fontSize: 11.5, color: t.ink2 }}>
-                <Text style={{ fontWeight: '600' }}>
-                  {(trip.dayCount ?? 0) > 1
-                    ? `${trip.dayCount} days`
-                    : `${Math.round((trip.estimatedDurationMinutes ?? 60) / 60)}h`}
-                </Text>
-              </Text>
-            </View>
+            {/* Duration/days: only render when we have a real value — never
+                fabricate "1h" for dateless showcases. Divider rides with the
+                chip so no orphan separator is left behind (cf. elevation). */}
+            {(trip.dayCount != null || trip.estimatedDurationMinutes != null) && (
+              <>
+                <View style={{ width: 1, height: 10, backgroundColor: t.line }} />
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Clock size={12} color={t.ink3} />
+                  <Text style={{ fontSize: 11.5, color: t.ink2 }}>
+                    <Text style={{ fontWeight: '600' }}>
+                      {trip.dayCount != null && trip.dayCount > 1
+                        ? `${trip.dayCount} days`
+                        : trip.estimatedDurationMinutes != null
+                          ? `${Math.round(trip.estimatedDurationMinutes / 60)}h`
+                          : `${trip.dayCount} day`}
+                    </Text>
+                  </Text>
+                </View>
+              </>
+            )}
           </View>
 
           {/* Footer: rating + difficulty + surface */}

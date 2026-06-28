@@ -2093,7 +2093,7 @@
     "pick": "Pick",
     "editorsPick": "Editor's Pick",
     "metersUnit": "m",
-    "ridersCount": "· {{riders}} riders",
+    "ridersCount": "· {{riders}} cloned",
     "openingDiscover": "Opening Discover…"
   },
   "saved": {
