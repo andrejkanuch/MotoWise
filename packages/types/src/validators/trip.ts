@@ -407,7 +407,11 @@ export const CreateTripInputSchema = z
     startDate: z.string().date(),
     endDate: z.string().date(),
     difficulty: TripDifficultySchema,
-    maxRiders: z.number().int().min(2).max(50),
+    // min(1) supports solo trips — the mobile app lets riders plan a 1-rider
+    // trip and treats maxRiders <= 1 as a valid/complete trip
+    // (trip-completeness.ts). A min(2) floor here rejected every solo-trip
+    // creation with a generic BAD_REQUEST. (Sentry MOTO-VAULT-REACT-NATIVE-1J)
+    maxRiders: z.number().int().min(1).max(50),
     visibility: nullishToUndefined(TripVisibilitySchema),
   })
   .superRefine((data, ctx) => {
@@ -438,7 +442,9 @@ export const CreateTripWithWaypointsInputSchema = z
     startDate: z.string().date(),
     endDate: z.string().date(),
     difficulty: TripDifficultySchema,
-    maxRiders: z.number().int().min(2).max(50),
+    // min(1) supports solo trips — see CreateTripInputSchema above.
+    // (Sentry MOTO-VAULT-REACT-NATIVE-1J)
+    maxRiders: z.number().int().min(1).max(50),
     visibility: nullishToUndefined(TripVisibilitySchema),
     waypoints: z.array(InlineWaypointSchema).min(0).max(25),
   })
@@ -462,7 +468,9 @@ export const UpdateTripInputSchema = z
     startDate: nullishToUndefined(z.string().date()),
     endDate: nullishToUndefined(z.string().date()),
     difficulty: nullishToUndefined(TripDifficultySchema),
-    maxRiders: nullishToUndefined(z.number().int().min(2).max(50)),
+    // min(1) supports solo trips — see CreateTripInputSchema.
+    // (Sentry MOTO-VAULT-REACT-NATIVE-1J)
+    maxRiders: nullishToUndefined(z.number().int().min(1).max(50)),
     visibility: nullishToUndefined(TripVisibilitySchema),
     waypoints: nullishToUndefined(z.array(InlineWaypointSchema).min(0).max(25)),
   })

@@ -17,6 +17,8 @@ const mockPurchases = {
   logIn: jest.fn(),
   syncAttributesAndOfferingsIfNeeded: jest.fn(),
   setAttributes: jest.fn(),
+  collectDeviceIdentifiers: jest.fn().mockResolvedValue(undefined),
+  enableAdServicesAttributionTokenCollection: jest.fn().mockResolvedValue(undefined),
 };
 
 jest.mock('react-native-purchases', () => ({
@@ -28,12 +30,30 @@ jest.mock('expo-constants', () => ({
   appOwnership: null,
 }));
 
+const mockConsent = jest.fn<boolean, []>();
+jest.mock('../analytics-consent', () => ({
+  getStoredAnalyticsConsent: () => mockConsent(),
+}));
+
+const mockGetStoredUtm = jest.fn<Promise<Record<string, string> | null>, []>();
+jest.mock('../meta-attribution', () => ({
+  getStoredUtmProperties: () => mockGetStoredUtm(),
+  getStoredFbclid: jest.fn().mockResolvedValue(null),
+}));
+
 const mockCaptureException = jest.fn();
+const mockAddBreadcrumb = jest.fn();
 const mockTrackEvent = jest.fn();
 jest.mock('../analytics', () => ({
   captureException: (...args: unknown[]) => mockCaptureException(...args),
+  addBreadcrumb: (...args: unknown[]) => mockAddBreadcrumb(...args),
   trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
   AnalyticsEvent: new Proxy({}, { get: (_t, prop) => String(prop) }),
+}));
+
+const mockLoggerWarn = jest.fn();
+jest.mock('../logger', () => ({
+  logger: { warn: (...args: unknown[]) => mockLoggerWarn(...args) },
 }));
 
 jest.mock('../../stores/subscription.store', () => ({
@@ -47,7 +67,12 @@ jest.mock('../../stores/subscription.store', () => ({
   },
 }));
 
-import { logoutRevenueCat, setOnboardingAttributes } from '../subscription';
+import {
+  configureRcAttribution,
+  logoutRevenueCat,
+  setOnboardingAttributes,
+  setSelfReportedSource,
+} from '../subscription';
 
 beforeAll(() => {
   process.env.EXPO_PUBLIC_RC_IOS_KEY = 'test_key';
@@ -56,6 +81,10 @@ beforeAll(() => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  // Default: no consent, no stored UTM — keeps doInit's attribution branch off
+  // for the existing tests. Individual attribution tests opt in explicitly.
+  mockConsent.mockReturnValue(false);
+  mockGetStoredUtm.mockResolvedValue(null);
 });
 
 describe('logoutRevenueCat', () => {
@@ -150,4 +179,137 @@ describe('setOnboardingAttributes', () => {
 
     Constants.appOwnership = null;
   });
+
+  it('downgrades transient network errors to warn + breadcrumb (no Sentry capture)', async () => {
+    const error = new Error('Error performing request');
+    mockPurchases.setAttributes.mockRejectedValueOnce(error);
+
+    await setOnboardingAttributes({ primaryGoal: 'track_rides' });
+
+    expect(mockCaptureException).not.toHaveBeenCalled();
+    expect(mockLoggerWarn).toHaveBeenCalled();
+    expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+      'Error performing request',
+      'revenuecat.setOnboardingAttributes',
+    );
+  });
+
+  it('captures genuinely unexpected (non-network) errors to Sentry', async () => {
+    const error = new Error('Something unexpected exploded');
+    mockPurchases.setAttributes.mockRejectedValueOnce(error);
+
+    await setOnboardingAttributes({ primaryGoal: 'track_rides' });
+
+    expect(mockCaptureException).toHaveBeenCalledWith(error, {
+      source: 'revenuecat.setOnboardingAttributes',
+    });
+    expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+  });
+
+  it('never throws even when the SDK rejects', async () => {
+    mockPurchases.setAttributes.mockRejectedValueOnce(new Error('Error performing request'));
+
+    await expect(setOnboardingAttributes({ primaryGoal: 'track_rides' })).resolves.toBeUndefined();
+  });
+});
+
+describe('setSelfReportedSource', () => {
+  it('writes the self-reported channel as a custom (mutable) attribute', async () => {
+    await setSelfReportedSource('tiktok');
+    expect(mockPurchases.setAttributes).toHaveBeenCalledWith({ self_reported_source: 'tiktok' });
+  });
+
+  it('is a no-op for empty / null values (no write)', async () => {
+    await setSelfReportedSource('   ');
+    await setSelfReportedSource(null);
+    await setSelfReportedSource(undefined);
+    expect(mockPurchases.setAttributes).not.toHaveBeenCalled();
+  });
+});
+
+describe('configureRcAttribution', () => {
+  it('does nothing when analytics consent is not granted (GDPR gate)', async () => {
+    mockConsent.mockReturnValue(false);
+
+    await configureRcAttribution();
+
+    expect(mockPurchases.collectDeviceIdentifiers).not.toHaveBeenCalled();
+    expect(mockPurchases.enableAdServicesAttributionTokenCollection).not.toHaveBeenCalled();
+    expect(mockPurchases.setAttributes).not.toHaveBeenCalled();
+  });
+
+  it('collects device identifiers + ASA token when consented, even with no UTM', async () => {
+    mockConsent.mockReturnValue(true);
+    mockGetStoredUtm.mockResolvedValue(null);
+
+    await configureRcAttribution();
+
+    expect(mockPurchases.collectDeviceIdentifiers).toHaveBeenCalledTimes(1);
+    // iOS — ASA token collection enabled.
+    expect(mockPurchases.enableAdServicesAttributionTokenCollection).toHaveBeenCalledTimes(1);
+    // No real UTM → $mediaSource must NOT be set (write-once guard, KTD-5).
+    expect(mockPurchases.setAttributes).not.toHaveBeenCalled();
+  });
+
+  it('stamps $mediaSource/$campaign from a real deep-link UTM', async () => {
+    mockConsent.mockReturnValue(true);
+    mockGetStoredUtm.mockResolvedValue({ utm_source: 'tiktok', utm_campaign: 'spring' });
+
+    await configureRcAttribution();
+
+    expect(mockPurchases.setAttributes).toHaveBeenCalledWith({
+      $mediaSource: 'tiktok',
+      $campaign: 'spring',
+    });
+  });
+
+  it('never sets $mediaSource for organic_unknown (write-once guard)', async () => {
+    mockConsent.mockReturnValue(true);
+    mockGetStoredUtm.mockResolvedValue({ utm_source: 'organic_unknown' });
+
+    await configureRcAttribution();
+
+    expect(mockPurchases.setAttributes).not.toHaveBeenCalled();
+  });
+
+  it('omits $campaign when only utm_source is present', async () => {
+    mockConsent.mockReturnValue(true);
+    mockGetStoredUtm.mockResolvedValue({ utm_source: 'instagram' });
+
+    await configureRcAttribution();
+
+    expect(mockPurchases.setAttributes).toHaveBeenCalledWith({ $mediaSource: 'instagram' });
+  });
+
+  it('downgrades transient network errors to warn + breadcrumb (no Sentry capture)', async () => {
+    mockConsent.mockReturnValue(true);
+    mockGetStoredUtm.mockResolvedValue(null);
+    mockPurchases.collectDeviceIdentifiers.mockRejectedValueOnce(
+      new Error('Error performing request'),
+    );
+
+    await configureRcAttribution();
+
+    expect(mockCaptureException).not.toHaveBeenCalled();
+    expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+      'Error performing request',
+      'revenuecat.configureRcAttribution',
+    );
+  });
+
+  it('captures unexpected (non-network) attribution errors to Sentry', async () => {
+    mockConsent.mockReturnValue(true);
+    mockGetStoredUtm.mockResolvedValue(null);
+    mockPurchases.collectDeviceIdentifiers.mockRejectedValueOnce(new Error('boom'));
+
+    await configureRcAttribution();
+
+    expect(mockCaptureException).toHaveBeenCalledWith(expect.any(Error), {
+      source: 'revenuecat.configureRcAttribution',
+    });
+  });
+
+  // NOTE: the Android path (enableAdServicesAttributionTokenCollection skipped) is
+  // not unit-tested because babel-preset-expo inlines `process.env.EXPO_OS` at
+  // transform time, so it cannot be flipped to 'android' at runtime in jest.
 });

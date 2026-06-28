@@ -63,6 +63,12 @@ interface OnboardingState {
   acceptedOemScheduleIds: string[];
   /** V2: tracks last completed screen for resume-after-kill */
   lastCompletedScreen: OnboardingRoute | null;
+  /**
+   * Self-reported acquisition channel from the post-paywall "How did you hear
+   * about us?" step (attribution). Persisted so it survives a resume-after-kill;
+   * mirrored to PostHog ($set_once) + RevenueCat (custom attr) at selection time.
+   */
+  heardFrom: string | null;
   setAcceptedOemScheduleIds: (ids: string[]) => void;
   setExperienceLevel: (level: ExperienceLevel) => void;
   setBikeData: (data: BikeData | null) => void;
@@ -80,6 +86,7 @@ interface OnboardingState {
   setLastServiceDate: (date: LastServiceDate) => void;
   setCurrency: (currency: Currency) => void;
   setLastCompletedScreen: (screen: OnboardingRoute) => void;
+  setHeardFrom: (source: string) => void;
   reset: () => void;
 }
 
@@ -102,6 +109,7 @@ const initialState = {
   currency: null as Currency | null,
   acceptedOemScheduleIds: [] as string[],
   lastCompletedScreen: null as OnboardingRoute | null,
+  heardFrom: null as string | null,
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -126,11 +134,12 @@ export const useOnboardingStore = create<OnboardingState>()(
       setLastServiceDate: (date) => set({ lastServiceDate: date }),
       setCurrency: (currency) => set({ currency }),
       setLastCompletedScreen: (screen) => set({ lastCompletedScreen: screen }),
+      setHeardFrom: (heardFrom) => set({ heardFrom }),
       reset: () => set(store.getInitialState(), true),
     }),
     {
       name: 'onboarding-state',
-      version: 6,
+      version: 7,
       storage: createJSONStorage(() => createZustandMMKVStorage('onboarding-store')),
       partialize: ({
         setExperienceLevel,
@@ -150,6 +159,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         setLastServiceDate,
         setCurrency,
         setLastCompletedScreen,
+        setHeardFrom,
         reset,
         ...data
       }) => data,
@@ -177,6 +187,11 @@ export const useOnboardingStore = create<OnboardingState>()(
           state.stayOnTopOf = state.stayOnTopOf ?? [];
           state.preBikeMileage = state.preBikeMileage ?? null;
           state.preBikeMileageUnit = state.preBikeMileageUnit ?? null;
+        }
+
+        // V7: attribution — self-reported acquisition channel.
+        if (version < 7) {
+          state.heardFrom = state.heardFrom ?? null;
         }
 
         if (version < 3) {

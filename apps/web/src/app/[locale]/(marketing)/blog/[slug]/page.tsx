@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -127,16 +128,28 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
   const headings: TocHeading[] = [];
 
-  const { content } = await compileMDX({
-    source: article.content,
-    options: {
-      mdxOptions: {
-        remarkPlugins: [remarkGfm],
-        rehypePlugins: [rehypeSlug, rehypeExtractHeadings(headings)],
+  // A single article with malformed MDX must not 500 the route. Compile defensively:
+  // report the failure with enough context to fix the source, then render a clean
+  // 404 rather than the generic error boundary. (Sentry MOTOVAULT-WEB-S)
+  let content: Awaited<ReturnType<typeof compileMDX>>['content'];
+  try {
+    ({ content } = await compileMDX({
+      source: article.content,
+      options: {
+        mdxOptions: {
+          remarkPlugins: [remarkGfm],
+          rehypePlugins: [rehypeSlug, rehypeExtractHeadings(headings)],
+        },
       },
-    },
-    components: mdxComponents,
-  });
+      components: mdxComponents,
+    }));
+  } catch (error) {
+    Sentry.captureException(error, {
+      tags: { area: 'blog', op: 'compileMDX' },
+      extra: { slug, locale, contentPreview: article.content.slice(0, 500) },
+    });
+    notFound();
+  }
 
   const related = await getRelatedArticles(slug, article.category, locale);
   const author = getAuthor(article.author) ?? getDefaultAuthor();

@@ -1,0 +1,59 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    ":configMigration",
+    ":maintainLockFilesWeekly"
+  ],
+  "timezone": "Europe/Bratislava",
+  "schedule": ["before 6am on monday"],
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "rangeStrategy": "bump",
+  "minimumReleaseAge": "3 days",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on monday"]
+  },
+  "packageRules": [
+    {
+      "description": "Group all non-major devDependencies and auto-merge",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "devDependencies (non-major)",
+      "automerge": true
+    },
+    {
+      "description": "Group non-major Expo / React Native ecosystem updates",
+      "matchPackageNames": ["expo", "/^expo-/", "/^@expo//", "react-native", "/^react-native-/"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "expo / react-native (non-major)"
+    },
+    {
+      "description": "Group non-major NestJS ecosystem updates",
+      "matchPackageNames": ["/^@nestjs//"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "nestjs (non-major)"
+    },
+    {
+      "description": "Group non-major GraphQL tooling updates",
+      "matchPackageNames": ["/graphql/", "/^@graphql-codegen//", "graphql-request"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "graphql tooling (non-major)"
+    },
+    {
+      "description": "Group GitHub Actions and auto-merge non-major",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "github-actions",
+      "automerge": true
+    },
+    {
+      "description": "Pin pnpm and Node engines but never auto-merge — surface major toolchain bumps for manual review",
+      "matchDepTypes": ["packageManager", "engines"],
+      "automerge": false
+    }
+  ]
+}
