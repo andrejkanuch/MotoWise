@@ -3,8 +3,9 @@ import type { JsonType } from '@posthog/core';
 import Constants from 'expo-constants';
 import type { CustomVariables } from 'react-native-purchases-ui';
 import { useSubscriptionStore } from '../stores/subscription.store';
-import { AnalyticsEvent, captureException, trackEvent } from './analytics';
+import { AnalyticsEvent, addBreadcrumb, captureException, trackEvent } from './analytics';
 import { logger } from './logger';
+import { isNetworkError } from './network-error';
 
 // Module-level cached import — resolve once, reuse everywhere
 let PurchasesModule: typeof import('react-native-purchases') | null = null;
@@ -303,6 +304,14 @@ export async function setOnboardingAttributes(attrs: OnboardingAttributes): Prom
     await Purchases.setAttributes(payload);
     await Purchases.syncAttributesAndOfferingsIfNeeded?.();
   } catch (e) {
+    // Transient connectivity failures are non-critical and SDK-retried — downgrade
+    // them to a warn + breadcrumb so they don't flood Sentry. (MOTO-VAULT-REACT-NATIVE-M)
+    if (isNetworkError(e)) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn('[RevenueCat] setOnboardingAttributes network error (retried):', msg);
+      addBreadcrumb(msg, 'revenuecat.setOnboardingAttributes');
+      return;
+    }
     captureException(e, { source: 'revenuecat.setOnboardingAttributes' });
   }
 }

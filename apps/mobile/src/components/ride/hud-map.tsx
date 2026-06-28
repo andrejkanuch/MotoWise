@@ -59,14 +59,20 @@ export function HudMap({ waypoints, gpsAccuracy }: HudMapProps) {
         scaleBarEnabled={false}
         compassEnabled={false}
       >
+        {/*
+         * GPS course-based tracking (no compass): the compass->bearing
+         * transition crashes with "Cannot round NaN value" on low-end
+         * sensors. Use Follow + puckBearing="course" to avoid the compass.
+         * (Sentry MOTO-VAULT-REACT-NATIVE-16)
+         */}
         <MapboxGL.Camera
           followUserLocation
-          followUserMode={UserTrackingMode.FollowWithCourse}
+          followUserMode={UserTrackingMode.Follow}
           followZoomLevel={15}
           animationMode="moveTo"
         />
 
-        <MapboxGL.LocationPuck puckBearing="heading" puckBearingEnabled />
+        <MapboxGL.LocationPuck puckBearing="course" puckBearingEnabled />
 
         {routeGeoJSON.features.length > 0 && (
           <MapboxGL.ShapeSource id="route-source" shape={routeGeoJSON} lineMetrics>

@@ -29,11 +29,18 @@ jest.mock('expo-constants', () => ({
 }));
 
 const mockCaptureException = jest.fn();
+const mockAddBreadcrumb = jest.fn();
 const mockTrackEvent = jest.fn();
 jest.mock('../analytics', () => ({
   captureException: (...args: unknown[]) => mockCaptureException(...args),
+  addBreadcrumb: (...args: unknown[]) => mockAddBreadcrumb(...args),
   trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
   AnalyticsEvent: new Proxy({}, { get: (_t, prop) => String(prop) }),
+}));
+
+const mockLoggerWarn = jest.fn();
+jest.mock('../logger', () => ({
+  logger: { warn: (...args: unknown[]) => mockLoggerWarn(...args) },
 }));
 
 jest.mock('../../stores/subscription.store', () => ({
@@ -149,5 +156,37 @@ describe('setOnboardingAttributes', () => {
     expect(mockPurchases.setAttributes).not.toHaveBeenCalled();
 
     Constants.appOwnership = null;
+  });
+
+  it('downgrades transient network errors to warn + breadcrumb (no Sentry capture)', async () => {
+    const error = new Error('Error performing request');
+    mockPurchases.setAttributes.mockRejectedValueOnce(error);
+
+    await setOnboardingAttributes({ primaryGoal: 'track_rides' });
+
+    expect(mockCaptureException).not.toHaveBeenCalled();
+    expect(mockLoggerWarn).toHaveBeenCalled();
+    expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+      'Error performing request',
+      'revenuecat.setOnboardingAttributes',
+    );
+  });
+
+  it('captures genuinely unexpected (non-network) errors to Sentry', async () => {
+    const error = new Error('Something unexpected exploded');
+    mockPurchases.setAttributes.mockRejectedValueOnce(error);
+
+    await setOnboardingAttributes({ primaryGoal: 'track_rides' });
+
+    expect(mockCaptureException).toHaveBeenCalledWith(error, {
+      source: 'revenuecat.setOnboardingAttributes',
+    });
+    expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+  });
+
+  it('never throws even when the SDK rejects', async () => {
+    mockPurchases.setAttributes.mockRejectedValueOnce(new Error('Error performing request'));
+
+    await expect(setOnboardingAttributes({ primaryGoal: 'track_rides' })).resolves.toBeUndefined();
   });
 });

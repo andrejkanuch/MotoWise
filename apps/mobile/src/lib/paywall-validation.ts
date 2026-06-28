@@ -86,3 +86,76 @@ export function findNegativePaywallSpacing(node: unknown, path = 'root'): Negati
   walk(node, path, undefined);
   return out;
 }
+
+// -------------------------------------------------------------------
+// Unbounded scroll stacks (the second Android paywall crash class)
+// -------------------------------------------------------------------
+// RevenueCat's Android (Jetpack Compose) renderer wraps a stack with
+// `overflow: scroll` in a `verticalScroll`, which measures its children with an
+// INFINITY maximum height. When that same stack ALSO has `size.height.type:
+// fill` (or is otherwise handed unbounded height by an ancestor), Compose throws
+// a FATAL, uncaught `IllegalStateException: Vertically scrollable component was
+// measured with an infinity maximum height constraints`. iOS tolerates it.
+// (Sentry MOTO-VAULT-REACT-NATIVE-1V — the root "Content" stack of the live
+// paywall was `overflow: scroll` + `height: fill`.) Fixed in the renderer in
+// purchases-android 10.3.1 ("root vertical overflow"); until that SDK ships we
+// guard the config so the crashing combination is caught before publish.
+
+/** Overflow value that makes a stack scrollable (→ infinity max-height measure). */
+export const SCROLL_OVERFLOW = 'scroll';
+/** Height dimension type that yields unbounded height under a scroll container. */
+export const FILL_DIMENSION = 'fill';
+
+export interface UnboundedScrollStack {
+  /** Dot/bracket path to the offending component. */
+  path: string;
+  /** The `overflow` value found (always 'scroll'). */
+  overflow: string;
+  /** The `size.height.type` that combined with scroll to crash (e.g. 'fill'). */
+  heightType: string;
+  /** The `id` of the offending component, if present — aids dashboard lookup. */
+  componentId?: string;
+}
+
+/**
+ * Recursively walk a RevenueCat paywall component tree and collect every stack
+ * that is BOTH scrollable (`overflow: 'scroll'`) AND fills its parent's height
+ * (`size.height.type: 'fill'`) — the combination that crashes the Android
+ * Compose renderer with an infinity max-height measurement. An empty array
+ * means the tree is safe to render on Android.
+ */
+export function findUnboundedScrollStacks(node: unknown, path = 'root'): UnboundedScrollStack[] {
+  const out: UnboundedScrollStack[] = [];
+
+  const walk = (current: unknown, currentPath: string, inheritedId: string | undefined): void => {
+    if (Array.isArray(current)) {
+      current.forEach((child, i) => {
+        walk(child, `${currentPath}[${i}]`, inheritedId);
+      });
+      return;
+    }
+    if (!isRecord(current)) return;
+
+    const componentId = typeof current.id === 'string' ? current.id : inheritedId;
+
+    if (current.overflow === SCROLL_OVERFLOW) {
+      const size = current.size;
+      const height = isRecord(size) && isRecord(size.height) ? size.height : undefined;
+      if (height?.type === FILL_DIMENSION) {
+        out.push({
+          path: currentPath,
+          overflow: SCROLL_OVERFLOW,
+          heightType: FILL_DIMENSION,
+          componentId,
+        });
+      }
+    }
+
+    for (const [key, value] of Object.entries(current)) {
+      walk(value, `${currentPath}.${key}`, componentId);
+    }
+  };
+
+  walk(node, path, undefined);
+  return out;
+}

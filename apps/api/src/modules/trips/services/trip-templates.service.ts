@@ -99,7 +99,13 @@ export class TripTemplatesService {
       }
     }
 
-    const { data, error } = await query;
+    let { data, error } = await query;
+    // A transient DB/API slowdown can fail the first attempt — retry once after a
+    // short delay before surfacing a 500 (see /pt-BR/explore/us incident).
+    if (error) {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      ({ data, error } = await query);
+    }
     if (error) {
       this.logger.error(`listTemplates failed: ${error.message} (${error.code})`);
       throw new InternalServerErrorException('Failed to fetch templates');
