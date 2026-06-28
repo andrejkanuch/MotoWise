@@ -184,10 +184,19 @@ export function setAnalyticsEnabled(enabled: boolean) {
   // recording window — todo 184).
   setStoredAnalyticsConsent(enabled);
   if (enabled) {
-    // Consent just granted — wire RevenueCat attribution that was suppressed
-    // pre-consent (KTD-9). Lazy import avoids a static analytics↔subscription
-    // cycle; consent is already persisted above so the gate inside passes.
-    void import('./subscription').then((m) => m.configureRcAttribution());
+    // Consent just granted — wire attribution that was suppressed pre-consent
+    // (KTD-9). Lazy imports avoid a static analytics↔subscription cycle; consent
+    // is already persisted above so the gates inside pass. configureRcAttribution
+    // wires RevenueCat; captureMetaAttribution re-fires the PostHog install emit
+    // same-session (its memo was released because the pre-consent run did not emit).
+    void import('./subscription')
+      .then((m) => m.configureRcAttribution())
+      .catch((e) => captureException(e, { source: 'analytics.setAnalyticsEnabled.rcAttribution' }));
+    void import('./meta-attribution')
+      .then((m) => m.captureMetaAttribution())
+      .catch((e) =>
+        captureException(e, { source: 'analytics.setAnalyticsEnabled.metaAttribution' }),
+      );
   }
   if (posthogClient) {
     if (enabled) {

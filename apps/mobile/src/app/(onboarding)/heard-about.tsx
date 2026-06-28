@@ -135,7 +135,7 @@ export default function HeardAboutScreen() {
             return (
               <Animated.View
                 key={option.id}
-                entering={FadeInUp.delay(150 + index * 45).duration(300)}
+                entering={FadeInUp.delay(index * 50).duration(300)}
                 style={{ opacity: dimmed ? 0.4 : 1 }}
               >
                 <Pressable

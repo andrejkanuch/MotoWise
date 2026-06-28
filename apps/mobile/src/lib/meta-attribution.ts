@@ -10,7 +10,12 @@ const STORE_KEYS = {
   UTM_SOURCE: 'meta_utm_source',
   UTM_CAMPAIGN: 'meta_utm_campaign',
   CAPTURED: 'meta_captured',
+  FIRST_SEEN_AT: 'meta_first_seen_at',
+  INSTALL_VERSION: 'meta_install_version',
 } as const;
+
+/** Real PostHog event the first-touch install $set_once attaches to. */
+const INSTALL_EVENT = 'install_attribution_captured';
 
 const MAX_PARAM_LENGTH = 256;
 
@@ -44,14 +49,26 @@ function sanitize(value: string | null): string | null {
 let capturePromise: Promise<void> | null = null;
 
 export function captureMetaAttribution(): Promise<void> {
-  if (!capturePromise) capturePromise = doCaptureMetaAttribution();
+  if (!capturePromise) {
+    capturePromise = doCaptureMetaAttribution()
+      .then((emitted) => {
+        // If nothing was emitted (consent was off), release the memo so a later
+        // call — after opt-in or on the next launch within this runtime — retries.
+        if (!emitted) capturePromise = null;
+      })
+      .catch(() => {
+        // Never poison future callers on an unexpected failure.
+        capturePromise = null;
+      });
+  }
   return capturePromise;
 }
 
-async function doCaptureMetaAttribution(): Promise<void> {
+/** Returns true iff the install-attribution event was emitted (and CAPTURED set). */
+async function doCaptureMetaAttribution(): Promise<boolean> {
   try {
     const alreadyCaptured = await SecureStore.getItemAsync(STORE_KEYS.CAPTURED);
-    if (alreadyCaptured) return;
+    if (alreadyCaptured) return true;
 
     // Parse the initial deep link if there is one. Organic installs have none —
     // that is expected and must NOT short-circuit the install-source emit.
@@ -87,25 +104,43 @@ async function doCaptureMetaAttribution(): Promise<void> {
     const campaignForInstall =
       utmCampaign ?? (await SecureStore.getItemAsync(STORE_KEYS.UTM_CAMPAIGN));
 
-    // Emit first-touch install attribution — consent-gated. Only mark CAPTURED if
-    // the emit actually fired, so an opted-out→opted-in user still gets attributed
-    // on a later launch (KTD-9).
+    // Persist first-seen timestamp + app version on the very FIRST launch (any
+    // consent state) and emit those persisted values — so for an opted-out→opted-in
+    // user the emit reflects the true install, not the first consented launch.
+    let firstSeenAt = await SecureStore.getItemAsync(STORE_KEYS.FIRST_SEEN_AT);
+    if (!firstSeenAt) {
+      firstSeenAt = new Date().toISOString();
+      await SecureStore.setItemAsync(STORE_KEYS.FIRST_SEEN_AT, firstSeenAt);
+    }
+    let installVersion = await SecureStore.getItemAsync(STORE_KEYS.INSTALL_VERSION);
+    if (!installVersion) {
+      installVersion = Constants.expoConfig?.version ?? 'unknown';
+      await SecureStore.setItemAsync(STORE_KEYS.INSTALL_VERSION, installVersion);
+    }
+
+    // Emit first-touch install attribution — consent-gated. Only mark CAPTURED (and
+    // return true) if the emit actually fired, so an opted-out→opted-in user still
+    // gets attributed on a later launch (KTD-9). Uses a real event name (not the
+    // synthetic `$set`) so $set_once attaches to a visible event on the anon person.
     if (isAnalyticsEnabled() && getStoredAnalyticsConsent() && posthogClient) {
-      posthogClient.capture('$set', {
+      posthogClient.capture(INSTALL_EVENT, {
         $set_once: {
           install_source: sourceForInstall ?? 'organic_unknown',
           install_platform: process.env.EXPO_OS ?? 'unknown',
-          install_version: Constants.expoConfig?.version ?? 'unknown',
-          first_seen_at: new Date().toISOString(),
+          install_version: installVersion,
+          first_seen_at: firstSeenAt,
           ...(sourceForInstall && { utm_source: sourceForInstall }),
           ...(contentForInstall && { utm_content: contentForInstall }),
           ...(campaignForInstall && { utm_campaign: campaignForInstall }),
         },
       });
       await SecureStore.setItemAsync(STORE_KEYS.CAPTURED, '1');
+      return true;
     }
+    return false;
   } catch {
     // Silently ignore — attribution is best-effort, don't crash the app.
+    return false;
   }
 }
 

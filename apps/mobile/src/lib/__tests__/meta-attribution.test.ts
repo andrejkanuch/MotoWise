@@ -66,7 +66,7 @@ describe('captureMetaAttribution', () => {
 
     expect(mockCapture).toHaveBeenCalledTimes(1);
     const [event, payload] = mockCapture.mock.calls[0];
-    expect(event).toBe('$set');
+    expect(event).toBe('install_attribution_captured');
     expect(payload.$set_once).toMatchObject({
       install_source: 'organic_unknown',
       install_platform: 'ios',
@@ -74,6 +74,30 @@ describe('captureMetaAttribution', () => {
     });
     expect(payload.$set_once.first_seen_at).toEqual(expect.any(String));
     // CAPTURED flag set so it never re-fires.
+    expect(mockStore.get('meta_captured')).toBe('1');
+  });
+
+  it('on opt-in retry, emits the ORIGINAL pre-consent utm_source and persisted first_seen_at (not organic/now)', async () => {
+    // First launch: consent OFF, a tagged link — UTM + first_seen_at persisted, no emit.
+    mockConsent = false;
+    mockGetInitialURL.mockResolvedValue('motovault://open?utm_source=tiktok');
+    const first = loadModule();
+    await first.captureMetaAttribution();
+    expect(mockCapture).not.toHaveBeenCalled();
+    const persistedFirstSeen = mockStore.get('meta_first_seen_at');
+    expect(persistedFirstSeen).toEqual(expect.any(String));
+
+    // Later launch: consent now ON, no deep link (cold organic open) — must still
+    // attribute to tiktok via the persisted UTM, and reuse the original timestamp.
+    mockConsent = true;
+    mockGetInitialURL.mockResolvedValue(null);
+    const second = loadModule();
+    await second.captureMetaAttribution();
+
+    expect(mockCapture).toHaveBeenCalledTimes(1);
+    const payload = mockCapture.mock.calls[0][1];
+    expect(payload.$set_once.install_source).toBe('tiktok');
+    expect(payload.$set_once.first_seen_at).toBe(persistedFirstSeen);
     expect(mockStore.get('meta_captured')).toBe('1');
   });
 

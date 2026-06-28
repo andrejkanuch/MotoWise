@@ -271,4 +271,17 @@ describe('configureRcAttribution', () => {
 
     expect(mockPurchases.setAttributes).not.toHaveBeenCalled();
   });
+
+  it('omits $campaign when only utm_source is present', async () => {
+    mockConsent.mockReturnValue(true);
+    mockGetStoredUtm.mockResolvedValue({ utm_source: 'instagram' });
+
+    await configureRcAttribution();
+
+    expect(mockPurchases.setAttributes).toHaveBeenCalledWith({ $mediaSource: 'instagram' });
+  });
+
+  // NOTE: the Android path (enableAdServicesAttributionTokenCollection skipped) is
+  // not unit-tested because babel-preset-expo inlines `process.env.EXPO_OS` at
+  // transform time, so it cannot be flipped to 'android' at runtime in jest.
 });

@@ -280,9 +280,9 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
       // Capture attribution (persists UTM to SecureStore) BEFORE RevenueCat init
       // reads it for the write-once $mediaSource (KTD-6). captureMetaAttribution
       // is deduped, so this shares the cold-start run rather than racing it.
-      void captureMetaAttribution().then(() =>
-        configureRevenueCatAnonymously(getAnalyticsDistinctId()),
-      );
+      void captureMetaAttribution()
+        .then(() => configureRevenueCatAnonymously(getAnalyticsDistinctId()))
+        .catch((e) => captureException(e, { source: 'layout.captureAndConfigureRcAnonymously' }));
     }
   }, [isAnonOnboarding]);
 
