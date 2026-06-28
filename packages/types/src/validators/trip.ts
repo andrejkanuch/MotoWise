@@ -439,20 +439,46 @@ export const CreateTripWithWaypointsInputSchema = z
       .max(2000)
       .transform((s) => stripHtml(s).trim())
       .pipe(z.string().min(1).max(2000)),
-    startDate: z.string().date(),
-    endDate: z.string().date(),
+    // Optional because a showcase ("Already rode it") is a dateless trip — the
+    // service stores sentinel dates + dates_pending=true. For a planned trip
+    // (isShowcase=false) both are required, enforced in superRefine below.
+    startDate: nullishToUndefined(z.string().date()),
+    endDate: nullishToUndefined(z.string().date()),
     difficulty: TripDifficultySchema,
     // min(1) supports solo trips — see CreateTripInputSchema above.
     // (Sentry MOTO-VAULT-REACT-NATIVE-1J)
     maxRiders: z.number().int().min(1).max(50),
     visibility: nullishToUndefined(TripVisibilitySchema),
     waypoints: z.array(InlineWaypointSchema).min(0).max(25),
+    // Showcase ("Already rode it"): a dateless trip parameterised by dayCount
+    // instead of a start/end range. The service maps this to sentinel dates +
+    // dates_pending=true and skips organiser auto-enrolment.
+    isShowcase: z.boolean().optional().default(false),
+    dayCount: z.number().int().min(1).max(30).optional(),
   })
   .superRefine((data, ctx) => {
-    validateTripDateRange(ctx, data.startDate, data.endDate, {
-      enforceStartNotTooFarInPast: true,
-      enforceStartNotTooFarInFuture: true,
-    });
+    if (data.isShowcase) {
+      // Dateless: no date-range validation. dayCount carries the day structure.
+      if (data.startDate || data.endDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'A showcase trip must not carry start/end dates',
+          path: ['startDate'],
+        });
+      }
+    } else {
+      if (!data.startDate || !data.endDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'startDate and endDate are required for a planned trip',
+          path: [data.startDate ? 'endDate' : 'startDate'],
+        });
+      }
+      validateTripDateRange(ctx, data.startDate, data.endDate, {
+        enforceStartNotTooFarInPast: true,
+        enforceStartNotTooFarInFuture: true,
+      });
+    }
     validateCreateTripWaypoints(ctx, data.waypoints);
   });
 
