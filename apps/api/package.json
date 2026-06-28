@@ -14,7 +14,7 @@
     "generate:schema": "ts-node --transpile-only scripts/generate-schema.ts"
   },
   "dependencies": {
-    "@ai-sdk/google": "^3.0.80",
+    "@ai-sdk/google": "^3.0.84",
     "@ai-sdk/openai": "^3.0.69",
     "@apollo/server": "^4.11.0",
     "@as-integrations/express5": "^1.1.2",
