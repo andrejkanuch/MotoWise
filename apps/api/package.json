@@ -16,7 +16,7 @@
   "dependencies": {
     "@ai-sdk/google": "^3.0.84",
     "@ai-sdk/openai": "^3.0.69",
-    "@apollo/server": "^4.11.0",
+    "@apollo/server": "^4.13.0",
     "@as-integrations/express5": "^1.1.2",
     "@motovault/types": "workspace:*",
     "@nestjs/apollo": "^13.0.0",
