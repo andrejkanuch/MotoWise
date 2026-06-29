@@ -11,6 +11,13 @@ export const TAB_ROUTE = {
   PROFILE: '/(tabs)/(profile)',
 } as const;
 
+/** Garage sub-routes */
+export const GARAGE_ROUTE = {
+  EXPENSE_DASHBOARD: '/(tabs)/(garage)/expense-dashboard',
+  ADD_EXPENSE: '/(tabs)/(garage)/add-expense',
+  ADD_BIKE: '/(tabs)/(garage)/add-bike',
+} as const;
+
 /** Profile sub-routes */
 export const PROFILE_ROUTE = {
   RIDES: '/(tabs)/(profile)/rides',

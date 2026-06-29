@@ -1,8 +1,17 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { PROFILE_ROUTE, TAB_ROUTE } from '../config/routes';
+import { GARAGE_ROUTE, PROFILE_ROUTE, TAB_ROUTE } from '../config/routes';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import { createZustandMMKVStorage } from '../lib/mmkv-storage';
+
+/** Stable checklist item ids — referenced by the home checklist consumer for routing. */
+export const CHECKLIST_ITEM_ID = {
+  FIRST_RIDE: 'first_ride',
+  BROWSE_ROUTES: 'browse_routes',
+  FIRST_EXPENSE: 'first_expense',
+  COMPLETE_BIKE: 'complete_bike',
+  EXPLORE_DASHBOARD: 'explore_dashboard',
+} as const;
 
 export interface ChecklistItem {
   id: string;
@@ -40,10 +49,12 @@ export const ALL_CHECKLIST_ITEMS: ChecklistItem[] = [
     goalRelation: 'discover_routes',
   },
   {
-    id: 'first_expense',
+    // Routing is resolved dynamically in the consumer (needs a motorcycleId) —
+    // this is the no-bike fallback / documentation of the intended destination.
+    id: CHECKLIST_ITEM_ID.FIRST_EXPENSE,
     labelKey: 'checklist.trackFirstExpense',
     icon: 'Wallet',
-    deepLink: TAB_ROUTE.GARAGE,
+    deepLink: GARAGE_ROUTE.EXPENSE_DASHBOARD,
     goalRelation: 'manage_expenses',
   },
   {
@@ -116,12 +127,13 @@ export const useChecklistStore = create<ChecklistState>()(
     }),
     {
       name: 'checklist-state',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => createZustandMMKVStorage('checklist-store')),
       partialize: ({ initialize, completeItem, dismiss, reset, ...data }) => data,
       migrate: (persisted, version) => {
-        if (version < 2) {
-          // v2: deep links changed — force re-initialization so items rebuild from source
+        if (version < 3) {
+          // v3 (and the earlier v2): deep links changed — force re-initialization
+          // so items rebuild from source and pick up the corrected first_expense link.
           return { ...(persisted as object), initialized: false, items: [] };
         }
         return persisted as ChecklistState;

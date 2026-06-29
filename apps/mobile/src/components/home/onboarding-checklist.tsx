@@ -1,4 +1,6 @@
 import { palette } from '@motovault/design-system';
+import { MyMotorcyclesDocument } from '@motovault/graphql';
+import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { type Href, useRouter } from 'expo-router';
 import {
@@ -14,7 +16,14 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, FadeOutDown, ZoomIn } from 'react-native-reanimated';
 import { useShallow } from 'zustand/react/shallow';
-import { ALL_CHECKLIST_ITEMS, useChecklistStore } from '../../stores/checklist.store';
+import { GARAGE_ROUTE } from '../../config/routes';
+import { gqlFetcher } from '../../lib/graphql-client';
+import { queryKeys } from '../../lib/query-keys';
+import {
+  ALL_CHECKLIST_ITEMS,
+  CHECKLIST_ITEM_ID,
+  useChecklistStore,
+} from '../../stores/checklist.store';
 import { useEditorialTheme } from '../../theme/editorial';
 
 const ICON_MAP: Record<string, typeof MapPin> = {
@@ -40,6 +49,15 @@ export function OnboardingChecklist() {
         dismiss: s.dismiss,
       })),
     );
+
+  // Resolve the user's bike so the "log first expense" item can route into the
+  // expense flow (which requires a motorcycleId) instead of the bare garage tab.
+  const { data: bikesData } = useQuery({
+    queryKey: queryKeys.motorcycles.all,
+    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    staleTime: 5 * 60 * 1000,
+  });
+  const firstBikeId = bikesData?.myMotorcycles?.[0]?.id;
 
   if (!initialized || dismissed || items.length === 0) return null;
 
@@ -122,6 +140,20 @@ export function OnboardingChecklist() {
                     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                   }
                   completeItem(item.id);
+                }
+                if (item.id === CHECKLIST_ITEM_ID.FIRST_EXPENSE) {
+                  // Expense screens require a motorcycleId — route to the dashboard
+                  // for the user's bike (its empty state + quick-add lead to the
+                  // form). No bike yet → send them to add one first.
+                  router.push(
+                    firstBikeId
+                      ? {
+                          pathname: GARAGE_ROUTE.EXPENSE_DASHBOARD,
+                          params: { motorcycleId: firstBikeId },
+                        }
+                      : (GARAGE_ROUTE.ADD_BIKE as Href),
+                  );
+                  return;
                 }
                 const knownItem = ALL_CHECKLIST_ITEMS.find((ci) => ci.id === item.id);
                 if (knownItem) router.push(knownItem.deepLink as Href);
