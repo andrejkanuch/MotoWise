@@ -59,6 +59,11 @@
       "description": "Never update lightningcss — NativeWind v5 / react-native-css require it pinned to exactly 1.30.1 via pnpm.overrides. Newer versions change the lightningcss serde schema and break the Metro CSS transformer with 'failed to deserialize ... Specifier' errors. See https://www.nativewind.dev/v5/getting-started/installation",
       "matchPackageNames": ["lightningcss"],
       "enabled": false
+    },
+    {
+      "description": "Never update react/react-dom independently — react must byte-match the react-native-renderer bundled with react-native (0.85.3 -> 19.2.3). Bumping ahead (e.g. 19.2.7 via #112) throws 'Incompatible React versions' at runtime on native. Bump only as part of a react-native/Expo SDK upgrade.",
+      "matchPackageNames": ["react", "react-dom"],
+      "enabled": false
     }
   ]
 }

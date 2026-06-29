@@ -72,7 +72,7 @@
     "lucide-react-native": "^0.577.0",
     "nativewind": "5.0.0-preview.4",
     "posthog-react-native": "^4.47.2",
-    "react": "19.2.7",
+    "react": "19.2.3",
     "react-i18next": "^16.5.6",
     "react-native": "0.85.3",
     "react-native-blob-util": "^0.24.10",
@@ -101,8 +101,7 @@
     "install": {
       "exclude": [
         "react-native-view-shot",
-        "@sentry/react-native",
-        "react"
+        "@sentry/react-native"
       ]
     }
   },
