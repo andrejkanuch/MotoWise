@@ -24,6 +24,7 @@ import Animated, {
 import { CategoryDonut } from '../../../components/expense-dashboard/category-donut';
 import { MonthlyTrend } from '../../../components/expense-dashboard/monthly-trend';
 import { SummaryCards } from '../../../components/expense-dashboard/summary-cards';
+import { GARAGE_ROUTE } from '../../../config/routes';
 import { useCurrency } from '../../../hooks/use-currency';
 import {
   PERIOD_OPTIONS,
@@ -118,7 +119,7 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
               }
               trackEvent(AnalyticsEvent.EXPENSE_QUICK_ADD_TAPPED, { category: cat });
               router.push({
-                pathname: '/(tabs)/(garage)/add-expense',
+                pathname: GARAGE_ROUTE.ADD_EXPENSE,
                 params: { motorcycleId, category: cat },
               });
             }}
@@ -165,7 +166,7 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             }
             router.push({
-              pathname: '/(tabs)/(garage)/add-expense',
+              pathname: GARAGE_ROUTE.ADD_EXPENSE,
               params: { motorcycleId },
             });
           }}

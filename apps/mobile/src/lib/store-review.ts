@@ -39,7 +39,6 @@ export const REVIEW_MILESTONE = {
   HEALTH_REPORT_VIEWED: 'health_report_viewed',
   DIAGNOSIS_COMPLETED: 'diagnosis_completed',
   RIDE_COMPLETED: 'ride_completed',
-  TRIP_SHARED: 'trip_shared',
   RIDE_SHARED: 'ride_shared',
   TRIP_CREATED: 'trip_created',
 } as const;

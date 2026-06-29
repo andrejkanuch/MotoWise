@@ -35,14 +35,14 @@ interface ChecklistState {
 /** All possible checklist items — ordered by goal relevance */
 export const ALL_CHECKLIST_ITEMS: ChecklistItem[] = [
   {
-    id: 'first_ride',
+    id: CHECKLIST_ITEM_ID.FIRST_RIDE,
     labelKey: 'checklist.seeFirstRideStats',
     icon: 'MapPin',
     deepLink: PROFILE_ROUTE.RIDES,
     goalRelation: 'track_rides',
   },
   {
-    id: 'browse_routes',
+    id: CHECKLIST_ITEM_ID.BROWSE_ROUTES,
     labelKey: 'checklist.findRouteNearYou',
     icon: 'Compass',
     deepLink: TAB_ROUTE.DISCOVER,
@@ -58,14 +58,14 @@ export const ALL_CHECKLIST_ITEMS: ChecklistItem[] = [
     goalRelation: 'manage_expenses',
   },
   {
-    id: 'complete_bike',
+    id: CHECKLIST_ITEM_ID.COMPLETE_BIKE,
     labelKey: 'checklist.completeBikeProfile',
     icon: 'Bike',
     deepLink: TAB_ROUTE.GARAGE,
     goalRelation: 'maintain_bike',
   },
   {
-    id: 'explore_dashboard',
+    id: CHECKLIST_ITEM_ID.EXPLORE_DASHBOARD,
     labelKey: 'checklist.exploreDashboard',
     icon: 'LayoutDashboard',
     deepLink: TAB_ROUTE.HOME,
@@ -132,9 +132,18 @@ export const useChecklistStore = create<ChecklistState>()(
       partialize: ({ initialize, completeItem, dismiss, reset, ...data }) => data,
       migrate: (persisted, version) => {
         if (version < 3) {
-          // v3 (and the earlier v2): deep links changed — force re-initialization
-          // so items rebuild from source and pick up the corrected first_expense link.
-          return { ...(persisted as object), initialized: false, items: [] };
+          // v3: the first_expense deep link changed. Refresh each persisted item's
+          // deepLink from source IN PLACE — preserving the user's progress
+          // (completedItems/dismissed) and keeping the card visible. (The old
+          // approach reset items:[] + initialized:false, but `initialize` only runs
+          // at onboarding completion, so already-onboarded users would lose the card
+          // permanently and never receive the corrected link.)
+          const prev = persisted as ChecklistState;
+          const items = (prev.items ?? []).map((item) => {
+            const source = ALL_CHECKLIST_ITEMS.find((ci) => ci.id === item.id);
+            return source ? { ...item, deepLink: source.deepLink } : item;
+          });
+          return { ...prev, items };
         }
         return persisted as ChecklistState;
       },

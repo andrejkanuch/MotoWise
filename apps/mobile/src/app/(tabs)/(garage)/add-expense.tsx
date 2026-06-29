@@ -81,7 +81,8 @@ export default function AddExpenseScreen() {
   const photos = photosQuery.data?.expensePhotos ?? [];
 
   const parsedAmount = Number.parseFloat(amount) || 0;
-  const isValid = parsedAmount > 0 && parsedAmount <= 99999.99 && date <= new Date();
+  const isValid =
+    parsedAmount > 0 && parsedAmount <= 99999.99 && date <= new Date() && !!motorcycleId;
 
   const logMutation = useMutation({
     mutationFn: () =>

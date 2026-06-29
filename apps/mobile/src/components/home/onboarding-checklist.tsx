@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, FadeOutDown, ZoomIn } from 'react-native-reanimated';
 import { useShallow } from 'zustand/react/shallow';
-import { GARAGE_ROUTE } from '../../config/routes';
+import { GARAGE_ROUTE, TAB_ROUTE } from '../../config/routes';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import {
@@ -52,10 +52,13 @@ export function OnboardingChecklist() {
 
   // Resolve the user's bike so the "log first expense" item can route into the
   // expense flow (which requires a motorcycleId) instead of the bare garage tab.
+  // Only fetch when that item is actually on this user's checklist.
+  const hasExpenseItem = items.some((i) => i.id === CHECKLIST_ITEM_ID.FIRST_EXPENSE);
   const { data: bikesData } = useQuery({
     queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
     staleTime: 5 * 60 * 1000,
+    enabled: hasExpenseItem,
   });
   const firstBikeId = bikesData?.myMotorcycles?.[0]?.id;
 
@@ -144,15 +147,19 @@ export function OnboardingChecklist() {
                 if (item.id === CHECKLIST_ITEM_ID.FIRST_EXPENSE) {
                   // Expense screens require a motorcycleId — route to the dashboard
                   // for the user's bike (its empty state + quick-add lead to the
-                  // form). No bike yet → send them to add one first.
-                  router.push(
-                    firstBikeId
-                      ? {
-                          pathname: GARAGE_ROUTE.EXPENSE_DASHBOARD,
-                          params: { motorcycleId: firstBikeId },
-                        }
-                      : (GARAGE_ROUTE.ADD_BIKE as Href),
-                  );
+                  // form). If bikes are confirmed-empty, send them to add one; if the
+                  // bikes query hasn't resolved yet, fall back to the garage tab
+                  // (never wrongly imply "no bikes" mid-load).
+                  if (firstBikeId) {
+                    router.push({
+                      pathname: GARAGE_ROUTE.EXPENSE_DASHBOARD,
+                      params: { motorcycleId: firstBikeId },
+                    });
+                  } else if (bikesData) {
+                    router.push(GARAGE_ROUTE.ADD_BIKE as Href);
+                  } else {
+                    router.push(TAB_ROUTE.GARAGE as Href);
+                  }
                   return;
                 }
                 const knownItem = ALL_CHECKLIST_ITEMS.find((ci) => ci.id === item.id);
