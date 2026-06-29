@@ -62,6 +62,7 @@ export function useCreateTripData({
       trackEvent(AnalyticsEvent.TRIP_CREATED, {
         difficulty,
         waypoint_count: waypointCount,
+        published: false,
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
@@ -87,6 +88,14 @@ export function useCreateTripData({
     onSuccess: () => {
       if (process.env.EXPO_OS === 'ios')
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      // MOT-285: the publish path also CREATES a trip — fire TRIP_CREATED here too
+      // so the trip_created -> trip_published funnel is computable (published trips
+      // were previously invisible to the create step).
+      trackEvent(AnalyticsEvent.TRIP_CREATED, {
+        difficulty,
+        waypoint_count: waypointCount,
+        published: true,
+      });
       trackEvent(AnalyticsEvent.TRIP_PUBLISHED, {
         difficulty,
         waypoint_count: waypointCount,
