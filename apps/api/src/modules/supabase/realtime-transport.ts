@@ -1,3 +1,4 @@
+import type { SupabaseClientOptions } from '@supabase/supabase-js';
 import ws from 'ws';
 
 /**
@@ -11,8 +12,11 @@ import ws from 'ws';
  *
  * See: @supabase/realtime-js websocket-factory.ts.
  */
-export const supabaseRealtimeOptions = {
-  // ws's default export is a WebSocket-compatible constructor; the realtime-js
-  // `WebSocketLikeConstructor` type is structurally looser than @types/ws.
-  transport: ws as unknown as typeof WebSocket,
+type RealtimeOptions = NonNullable<SupabaseClientOptions<'public'>['realtime']>;
+
+export const supabaseRealtimeOptions: RealtimeOptions = {
+  // Cast to realtime-js's own `WebSocketLikeConstructor` rather than the global
+  // `WebSocket` type — the latter resolves to different shapes across
+  // environments (DOM lib vs @types/node), which broke the Docker build.
+  transport: ws as unknown as RealtimeOptions['transport'],
 };
