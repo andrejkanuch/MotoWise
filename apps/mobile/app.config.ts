@@ -171,6 +171,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         ],
       },
     ],
+    // Must run after expo-widgets: forces the widget extension's MARKETING_VERSION
+    // to match the app version so device/store builds don't fail the
+    // CFBundleShortVersionString parent/extension match check.
+    './plugins/widget-marketing-version',
     [
       'expo-build-properties',
       {
