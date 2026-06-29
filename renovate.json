@@ -26,10 +26,16 @@
       "automerge": true
     },
     {
-      "description": "Group non-major Expo / React Native ecosystem updates",
-      "matchPackageNames": ["expo", "/^expo-/", "/^@expo//", "react-native", "/^react-native-/"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "expo / react-native (non-major)"
+      "description": "Do NOT bump Expo SDK or React Native packages independently — `expo`, `expo-*`, `@expo/*`, `react-native`, every `react-native-*` native module, and `nativewind` are version-locked to the installed Expo SDK and must be upgraded together via `expo install` / `expo install --fix` during a deliberate SDK upgrade. Piecemeal bot bumps (a lone `expo` patch, or an `expo-*`/`react-native-*` ahead of the SDK) cause duplicate native modules, lightningcss deserialize failures, and React renderer mismatches. To pull a specific community-library fix, re-enable this rule temporarily or bump that one package by hand.",
+      "matchPackageNames": [
+        "expo",
+        "/^expo-/",
+        "/^@expo//",
+        "react-native",
+        "/^react-native-/",
+        "nativewind"
+      ],
+      "enabled": false
     },
     {
       "description": "Group non-major NestJS ecosystem updates",
