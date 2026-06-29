@@ -51,14 +51,14 @@ let reviewInFlight = false;
 /**
  * Requests an App Store / Play Store review at a genuine value-moment.
  *
- * Caller MUST pass the {@link ReviewMilestone} that triggered it. Never call
- * this during onboarding or first bike setup — gate it on a real moment of
- * value (expense logged, maintenance completed, ride finished, etc.). The prompt
- * is suppressed until the user has hit at least {@link MIN_ACTIONS_BEFORE_REVIEW}
- * value-moments, is shown at most once per app version, and is a no-op where the
- * native API is unavailable (e.g. Expo Go).
+ * Pass the {@link ReviewMilestone} that triggered it when known (recorded on the
+ * analytics event). Never call this during onboarding or first bike setup — gate
+ * it on a real moment of value (expense logged, maintenance completed, ride
+ * finished, etc.). The prompt is suppressed until the user has hit at least
+ * {@link MIN_ACTIONS_BEFORE_REVIEW} value-moments, is shown at most once per app
+ * version, and is a no-op where the native API is unavailable (e.g. Expo Go).
  */
-export async function maybeRequestReview(milestone: ReviewMilestone): Promise<void> {
+export async function maybeRequestReview(milestone?: ReviewMilestone): Promise<void> {
   const storage = getStorage();
   const count = (storage.getNumber(ACTION_COUNT_KEY) ?? 0) + 1;
   storage.set(ACTION_COUNT_KEY, count);
@@ -76,7 +76,7 @@ export async function maybeRequestReview(milestone: ReviewMilestone): Promise<vo
     trackEvent(AnalyticsEvent.REVIEW_PROMPTED, {
       action_count: count,
       app_version: currentVersion,
-      milestone,
+      ...(milestone ? { milestone } : {}),
     });
 
     await StoreReview.requestReview();
