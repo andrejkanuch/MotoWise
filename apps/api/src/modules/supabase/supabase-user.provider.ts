@@ -2,6 +2,7 @@ import { Provider, Scope } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { REQUEST } from '@nestjs/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { supabaseRealtimeOptions } from './realtime-transport';
 
 export const SUPABASE_USER = 'SUPABASE_USER';
 
@@ -35,6 +36,7 @@ export const supabaseUserProvider: Provider = {
           autoRefreshToken: false,
           detectSessionInUrl: false,
         },
+        realtime: supabaseRealtimeOptions,
       },
     );
   },

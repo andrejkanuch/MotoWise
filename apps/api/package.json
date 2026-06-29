@@ -47,10 +47,12 @@
     "resend": "^4.8.0",
     "rxjs": "^7.8.2",
     "slugify": "^1.6.9",
+    "ws": "^8.18.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
     "@motovault/tsconfig": "workspace:*",
+    "@types/ws": "^8.5.12",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.0",

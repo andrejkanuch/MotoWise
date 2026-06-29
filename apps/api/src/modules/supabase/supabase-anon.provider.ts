@@ -1,6 +1,7 @@
 import { Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { supabaseRealtimeOptions } from './realtime-transport';
 
 export const SUPABASE_ANON = 'SUPABASE_ANON';
 
@@ -17,6 +18,7 @@ export const supabaseAnonProvider: Provider = {
           autoRefreshToken: false,
           detectSessionInUrl: false,
         },
+        realtime: supabaseRealtimeOptions,
       },
     );
   },
