@@ -1799,7 +1799,10 @@
     "typeLabel": "種類",
     "periodOfDayLabel": "時間帯",
     "periodOfDayHint": "このストップを日程リストの適切なブロックにまとめます。任意です。",
-    "notesLabel": "メモ"
+    "notesLabel": "メモ",
+    "modeShowcase": "Already rode it",
+    "modePlanning": "Planning",
+    "dayHeaderShort": "Day {{day}}"
   },
   "groupRide": {
     "titleLabel": "タイトル",

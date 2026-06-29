@@ -1800,7 +1800,10 @@
     "typeLabel": "Type",
     "periodOfDayLabel": "Moment de la journée",
     "periodOfDayHint": "Regroupe cet arrêt sous le bon bloc dans la liste du jour. Optionnel.",
-    "notesLabel": "Notes"
+    "notesLabel": "Notes",
+    "modeShowcase": "Already rode it",
+    "modePlanning": "Planning",
+    "dayHeaderShort": "Day {{day}}"
   },
   "groupRide": {
     "titleLabel": "Titre",

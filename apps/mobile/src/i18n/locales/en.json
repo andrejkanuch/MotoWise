@@ -1804,7 +1804,10 @@
     "typeLabel": "Type",
     "periodOfDayLabel": "Period of day",
     "periodOfDayHint": "Groups this stop under the right block on the day list. Optional.",
-    "notesLabel": "Notes"
+    "notesLabel": "Notes",
+    "modeShowcase": "Already rode it",
+    "modePlanning": "Planning",
+    "dayHeaderShort": "Day {{day}}"
   },
   "groupRide": {
     "titleLabel": "Title",

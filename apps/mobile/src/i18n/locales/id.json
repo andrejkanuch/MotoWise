@@ -1799,7 +1799,10 @@
     "typeLabel": "Tipe",
     "periodOfDayLabel": "Waktu dalam sehari",
     "periodOfDayHint": "Mengelompokkan perhentian ini di blok yang tepat pada daftar hari. Opsional.",
-    "notesLabel": "Catatan"
+    "notesLabel": "Catatan",
+    "modeShowcase": "Already rode it",
+    "modePlanning": "Planning",
+    "dayHeaderShort": "Day {{day}}"
   },
   "groupRide": {
     "titleLabel": "Judul",

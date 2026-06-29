@@ -1799,7 +1799,10 @@
     "typeLabel": "Typ",
     "periodOfDayLabel": "Tageszeit",
     "periodOfDayHint": "Ordnet diesen Stopp dem passenden Block in der Tagesliste zu. Optional.",
-    "notesLabel": "Notizen"
+    "notesLabel": "Notizen",
+    "modeShowcase": "Already rode it",
+    "modePlanning": "Planning",
+    "dayHeaderShort": "Day {{day}}"
   },
   "groupRide": {
     "titleLabel": "Titel",

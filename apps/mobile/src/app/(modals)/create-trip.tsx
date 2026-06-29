@@ -263,6 +263,16 @@ export default function CreateTripScreen() {
   const [visibility, setVisibility] = useState<Visibility>('private');
   const [maxRiders, setMaxRiders] = useState('10');
 
+  // Planner mode: "planning" is the dated future-ride flow; "showcase"
+  // ("Already rode it") is a dateless past trip parameterised by a day count.
+  const [mode, setMode] = useState<'planning' | 'showcase'>(
+    params.mode === 'showcase' ? 'showcase' : 'planning',
+  );
+  const isShowcase = mode === 'showcase';
+  // Standalone day count for showcase mode (planning mode derives days from the
+  // date span instead). Min 1, capped at 14 like the planning "add a day".
+  const [showcaseDayCount, setShowcaseDayCount] = useState(1);
+
   // Android: DateTimePicker renders as a dialog, so show only on press
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
@@ -277,8 +287,14 @@ export default function CreateTripScreen() {
     return {
       title: title.trim(),
       description: description.trim(),
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0],
+      // Showcase ("Already rode it") is dateless: send isShowcase + dayCount and
+      // omit the date range (the API stores sentinel dates + dates_pending).
+      ...(isShowcase
+        ? { isShowcase: true, dayCount: showcaseDayCount }
+        : {
+            startDate: startDate.toISOString().split('T')[0],
+            endDate: endDate.toISOString().split('T')[0],
+          }),
       difficulty,
       maxRiders: Number.parseInt(maxRiders, 10) || 10,
       visibility,
@@ -296,7 +312,18 @@ export default function CreateTripScreen() {
         periodOfDay: (wp.periodOfDay ?? null) as PeriodOfDay | null,
       })),
     };
-  }, [title, description, startDate, endDate, difficulty, maxRiders, visibility, waypoints]);
+  }, [
+    title,
+    description,
+    isShowcase,
+    showcaseDayCount,
+    startDate,
+    endDate,
+    difficulty,
+    maxRiders,
+    visibility,
+    waypoints,
+  ]);
 
   // Data layer (queries + mutations) extracted to a colocated hook.
   const {
@@ -329,6 +356,13 @@ export default function CreateTripScreen() {
     setDescription(trip.description);
     setDifficulty(trip.difficulty as Difficulty);
     setMaxRiders(String(trip.maxRiders));
+    // Editing an existing dateless trip re-enters showcase mode. (Clone mode
+    // always opens in planning mode with synthesized dates, even from a dateless
+    // template — the cloner is planning their own ride.)
+    if (isEditMode && trip.datesPending) {
+      setMode('showcase');
+      if (trip.dayCount && trip.dayCount > 0) setShowcaseDayCount(trip.dayCount);
+    }
     if (isEditMode) {
       const fromApi = safeTripDatesFromApi(trip.startDate, trip.endDate);
       if (fromApi.ok) {
@@ -426,9 +460,9 @@ export default function CreateTripScreen() {
   const isValid =
     title.trim().length > 0 &&
     description.trim().length > 0 &&
-    !dateRangeError &&
-    startDate <= endDate &&
-    waypoints.length >= 2;
+    waypoints.length >= 2 &&
+    // Showcase mode has no dates to validate.
+    (isShowcase || (!dateRangeError && startDate <= endDate));
 
   // Route line GeoJSON — use actual road geometry when available, fallback to straight lines
   const routeGeoJSON = useMemo(() => {
@@ -572,13 +606,43 @@ export default function CreateTripScreen() {
   }, [mapStyle]);
 
   const handleAddDay = useCallback(() => {
-    setEndDate((prev) => {
-      const d = new Date(prev);
-      d.setDate(d.getDate() + 1);
-      return d;
-    });
+    if (isShowcase) {
+      setShowcaseDayCount((prev) => Math.min(14, prev + 1));
+    } else {
+      setEndDate((prev) => {
+        const d = new Date(prev);
+        d.setDate(d.getDate() + 1);
+        return d;
+      });
+    }
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }, []);
+  }, [isShowcase]);
+
+  const selectMode = useCallback(
+    (next: 'planning' | 'showcase') => {
+      setMode((prev) => {
+        if (prev === next) return prev;
+        if (next === 'showcase') {
+          // Seed the day count from the current date-derived span so a multi-day
+          // plan keeps its days when the dates disappear.
+          const msPerDay = 86400000;
+          const span = Math.max(
+            1,
+            Math.round((endDate.getTime() - startDate.getTime()) / msPerDay) + 1,
+          );
+          setShowcaseDayCount(span);
+        } else {
+          // Returning to planning needs a valid default range to save against.
+          const { start, end } = getDefaultNewTripDateRange();
+          setStartDate(start);
+          setEndDate(end);
+        }
+        return next;
+      });
+      if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    },
+    [startDate, endDate],
+  );
 
   const handleDeleteTrip = useCallback(() => {
     Alert.alert(
@@ -607,9 +671,10 @@ export default function CreateTripScreen() {
 
   // Day-based organization
   const numDays = useMemo(() => {
+    if (isShowcase) return Math.max(1, showcaseDayCount);
     const msPerDay = 86400000;
     return Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / msPerDay) + 1);
-  }, [startDate, endDate]);
+  }, [isShowcase, showcaseDayCount, startDate, endDate]);
 
   const waypointsByDay = useMemo(() => {
     const groups: Record<number, LocalWaypoint[]> = {};
@@ -625,9 +690,8 @@ export default function CreateTripScreen() {
   // Move waypoint to a different day
   const handleMoveDay = useCallback(
     (waypointId: string) => {
-      const dayOptions = Array.from(
-        { length: numDays },
-        (_, i) => `Day ${i + 1} — ${formatDayDate(startDate, i)}`,
+      const dayOptions = Array.from({ length: numDays }, (_, i) =>
+        isShowcase ? `Day ${i + 1}` : `Day ${i + 1} — ${formatDayDate(startDate, i)}`,
       );
 
       showActionSheet(
@@ -646,7 +710,7 @@ export default function CreateTripScreen() {
         'Select a day for this stop',
       );
     },
-    [numDays, startDate],
+    [numDays, startDate, isShowcase],
   );
 
   // Proximity for geocoding — center of existing waypoints or undefined
@@ -797,6 +861,56 @@ export default function CreateTripScreen() {
             </Animated.View>
 
             {/* Trip title — metadata-first, above the stop list */}
+            {/* Mode toggle: planning a future ride vs showcasing one already ridden */}
+            <Animated.View
+              entering={reducedMotion ? undefined : FadeInUp.duration(250)}
+              style={{ paddingHorizontal: 20, marginTop: 4, marginBottom: 16 }}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  backgroundColor: inputBg,
+                  borderWidth: 1,
+                  borderColor: inputBorder,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  padding: 4,
+                  gap: 4,
+                }}
+              >
+                {[
+                  { key: 'planning' as const, label: i18n('trips.modePlanning') },
+                  { key: 'showcase' as const, label: i18n('trips.modeShowcase') },
+                ].map((opt) => {
+                  const selected = mode === opt.key;
+                  return (
+                    <Pressable
+                      key={opt.key}
+                      onPress={() => selectMode(opt.key)}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 10,
+                        borderRadius: 9,
+                        borderCurve: 'continuous',
+                        alignItems: 'center',
+                        backgroundColor: selected ? t.warm : 'transparent',
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          fontWeight: '700',
+                          color: selected ? '#fff' : inputTextColor,
+                        }}
+                      >
+                        {opt.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </Animated.View>
+
             <Animated.View
               entering={reducedMotion ? undefined : FadeInUp.delay(0).duration(250)}
               style={{ paddingHorizontal: 20, marginBottom: 16 }}
@@ -889,10 +1003,12 @@ export default function CreateTripScreen() {
                               color: titleColor,
                             }}
                           >
-                            {i18n('trips.dayHeader', {
-                              day: dayIndex + 1,
-                              date: formatDayDate(startDate, dayIndex),
-                            })}
+                            {isShowcase
+                              ? i18n('trips.dayHeaderShort', { day: dayIndex + 1 })
+                              : i18n('trips.dayHeader', {
+                                  day: dayIndex + 1,
+                                  date: formatDayDate(startDate, dayIndex),
+                                })}
                           </Text>
                         </View>
                         {dayWaypoints.length > 0 && dayDurationS > 0 && (
@@ -1080,7 +1196,8 @@ export default function CreateTripScreen() {
                     />
                   </Animated.View>
 
-                  {/* Dates */}
+                  {/* Dates — planning mode only (a showcase is dateless) */}
+                  {!isShowcase && (
                   <Animated.View
                     entering={reducedMotion ? undefined : FadeInUp.delay(100).duration(250)}
                   >
@@ -1226,6 +1343,7 @@ export default function CreateTripScreen() {
                       </Text>
                     ) : null}
                   </Animated.View>
+                  )}
 
                   {/* Difficulty */}
                   <Animated.View
@@ -1360,7 +1478,8 @@ export default function CreateTripScreen() {
                     </View>
                   </Animated.View>
 
-                  {/* Max riders */}
+                  {/* Max riders — planning mode only (a showcase has no roster) */}
+                  {!isShowcase && (
                   <Animated.View
                     entering={reducedMotion ? undefined : FadeInUp.delay(250).duration(250)}
                   >
@@ -1395,6 +1514,7 @@ export default function CreateTripScreen() {
                       }}
                     />
                   </Animated.View>
+                  )}
                 </>
               )}
 
