@@ -47,14 +47,22 @@ const ITEM_NAME_HINTS: Partial<Record<Category, string>> = {
 
 export default function AddExpenseScreen() {
   const { t } = useTranslation();
-  const { motorcycleId } = useLocalSearchParams<{ motorcycleId: string }>();
+  // `category` may be prefilled by the expense-dashboard quick-add chips (MOT-273).
+  const { motorcycleId, category: categoryParam } = useLocalSearchParams<{
+    motorcycleId: string;
+    category?: string;
+  }>();
   const { t: theme, isDark } = useEditorialTheme();
   const { currency, symbol } = useCurrency();
   const queryClient = useQueryClient();
 
   const userId = useAuthStore((s) => s.session?.user?.id);
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState<Category>('fuel');
+  const [category, setCategory] = useState<Category>(
+    categoryParam && (CATEGORIES as readonly string[]).includes(categoryParam)
+      ? (categoryParam as Category)
+      : 'fuel',
+  );
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [itemName, setItemName] = useState('');

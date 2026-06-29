@@ -335,6 +335,7 @@ export const AnalyticsEvent = {
   MAINTENANCE_TASK_COMPLETED: 'maintenance_task_completed',
   MAINTENANCE_TASK_DELETED: 'maintenance_task_deleted',
   EXPENSE_ADDED: 'expense_added',
+  EXPENSE_QUICK_ADD_TAPPED: 'expense_quick_add_tapped',
   EXPENSE_DASHBOARD_VIEWED: 'expense_dashboard_viewed',
   FUEL_LOG_ADDED: 'fuel_log_added',
   HEALTH_REPORT_VIEWED: 'health_report_viewed',

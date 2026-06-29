@@ -4,11 +4,12 @@ import {
   type ExpensesByMotorcycleQuery,
   MyMotorcyclesDocument,
 } from '@motovault/graphql';
+import type { ExpenseCategory } from '@motovault/types';
 import * as Sentry from '@sentry/react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { BarChart3, Info, X } from 'lucide-react-native';
+import { BarChart3, Info, Plus, X } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -42,6 +43,13 @@ const PERIOD_LABELS: Record<Period, string> = {
   lastYear: 'Last Year',
   allTime: 'All Time',
 };
+
+/**
+ * MOT-273: one-tap quick-add categories on the empty state. Prefilling the
+ * category + landing on the form (amount-only) cuts the friction between
+ * "I see the value" and "I logged my first expense".
+ */
+const QUICK_ADD_CATEGORIES: ExpenseCategory[] = ['fuel', 'maintenance', 'insurance'];
 
 function EmptyState({ motorcycleId }: { motorcycleId: string }) {
   const { t } = useTranslation();
@@ -90,7 +98,61 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
           {t('expenses.emptyStateSubtitle')}
         </Text>
       </Animated.View>
-      <Animated.View entering={FadeInUp.delay(360).duration(300)} style={ctaAnimatedStyle}>
+      {/* MOT-273: prefilled quick-add chips — one tap to an amount-only form. */}
+      <Animated.View
+        entering={FadeInUp.delay(320).duration(300)}
+        style={{
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          gap: 8,
+          marginTop: 20,
+        }}
+      >
+        {QUICK_ADD_CATEGORIES.map((cat) => (
+          <Pressable
+            key={cat}
+            onPress={() => {
+              if (process.env.EXPO_OS === 'ios') {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }
+              trackEvent(AnalyticsEvent.EXPENSE_QUICK_ADD_TAPPED, { category: cat });
+              router.push({
+                pathname: '/(tabs)/(garage)/add-expense',
+                params: { motorcycleId, category: cat },
+              });
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t(`expenses.category_${cat}`)}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              paddingHorizontal: 14,
+              height: 38,
+              borderRadius: 19,
+              borderCurve: 'continuous',
+              backgroundColor: theme.surface,
+              borderWidth: 1,
+              borderColor: theme.line,
+            }}
+          >
+            <View
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: CATEGORY_COLORS[cat] ?? theme.warm,
+              }}
+            />
+            <Plus size={13} color={theme.ink3} strokeWidth={2} />
+            <Text style={{ fontSize: 14, fontWeight: '600', color: theme.ink }}>
+              {t(`expenses.category_${cat}`)}
+            </Text>
+          </Pressable>
+        ))}
+      </Animated.View>
+      <Animated.View entering={FadeInUp.delay(420).duration(300)} style={ctaAnimatedStyle}>
         <Pressable
           onPressIn={() => {
             ctaScale.value = withSpring(0.95, { damping: 15, stiffness: 150 });
