@@ -145,7 +145,7 @@ importers:
         specifier: ^1.6.9
         version: 1.6.9
       zod:
-        specifier: ^3.23.0
+        specifier: ^3.25.76
         version: 3.25.76
     devDependencies:
       '@motovault/tsconfig':
@@ -601,7 +601,7 @@ importers:
         specifier: ^1.386.8
         version: 1.386.8
       zod:
-        specifier: ^3.23.0
+        specifier: ^3.25.76
         version: 3.25.76
     devDependencies:
       '@motovault/tsconfig':
@@ -640,7 +640,7 @@ importers:
   packages/types:
     dependencies:
       zod:
-        specifier: ^3.23.0
+        specifier: ^3.25.76
         version: 3.25.76
     devDependencies:
       '@motovault/tsconfig':

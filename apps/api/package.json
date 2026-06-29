@@ -47,7 +47,7 @@
     "resend": "^4.8.0",
     "rxjs": "^7.8.0",
     "slugify": "^1.6.9",
-    "zod": "^3.23.0"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@motovault/tsconfig": "workspace:*",
