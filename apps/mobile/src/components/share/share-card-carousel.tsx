@@ -116,4 +116,4 @@ export const ShareCardCarousel = memo(function ShareCardCarousel({
   );
 });
 
-export { CARD_WIDTH, CARD_GAP };
+export { CARD_GAP, CARD_WIDTH };
