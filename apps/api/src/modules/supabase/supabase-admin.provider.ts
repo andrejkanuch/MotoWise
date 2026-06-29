@@ -1,6 +1,7 @@
 import { Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { supabaseRealtimeOptions } from './realtime-transport';
 
 export const SUPABASE_ADMIN = 'SUPABASE_ADMIN';
 
@@ -11,6 +12,9 @@ export const supabaseAdminProvider: Provider = {
     return createClient(
       configService.getOrThrow('SUPABASE_URL'),
       configService.getOrThrow('SUPABASE_SERVICE_ROLE_KEY'),
+      {
+        realtime: supabaseRealtimeOptions,
+      },
     );
   },
 };
