@@ -474,8 +474,8 @@ importers:
         specifier: ^16.1.6
         version: 16.1.6(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.59.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
       '@revenuecat/purchases-js':
-        specifier: ^1.32.0
-        version: 1.32.0
+        specifier: ^1.46.0
+        version: 1.46.0
       '@sentry/nextjs':
         specifier: ^10.50.0
         version: 10.50.0(@opentelemetry/core@2.7.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.7.0(@opentelemetry/api@1.9.1))(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.59.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.104.1)
@@ -4109,8 +4109,8 @@ packages:
   '@revenuecat/purchases-js@1.30.0':
     resolution: {integrity: sha512-aNlk6lPWrJ1DncPnw0WZh8nZKbd5S++EcsQxlLnv3HX/jOnMO54zr0SKsz3GJyFa6zh04N6b3qHAgWWm51EWpg==}
 
-  '@revenuecat/purchases-js@1.32.0':
-    resolution: {integrity: sha512-NyXXlD7Ejl/aacnfY6KO3D3OX35rsUpRF6QZE+vglL+9Of1KYKHNatmhHE5R9V0ZaPcAsc36/naBoQe7soWeTw==}
+  '@revenuecat/purchases-js@1.46.0':
+    resolution: {integrity: sha512-uhCUTrtQTcJ8LE2UD8k0HDB8SX9PMjkbD9923v9QoHYEZUAK+S2EpImCM0qiYHbowDzJZrlowitnrn8xpWn6JQ==}
 
   '@revenuecat/purchases-typescript-internal@17.55.1':
     resolution: {integrity: sha512-t49IP5hdlLEi+csqH8J8fo+DvCucWBwDnv+bVQca1Ogdry6VnY0HVdH1z743h9F4vKwFGTJ3XK5TUcahlK+U3Q==}
@@ -15405,7 +15405,7 @@ snapshots:
 
   '@revenuecat/purchases-js@1.30.0': {}
 
-  '@revenuecat/purchases-js@1.32.0': {}
+  '@revenuecat/purchases-js@1.46.0': {}
 
   '@revenuecat/purchases-typescript-internal@17.55.1': {}
 
