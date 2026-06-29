@@ -7,8 +7,8 @@ import { queryKeys } from '../lib/query-keys';
 const PERIOD_OPTIONS = ['thisYear', 'lastYear', 'allTime'] as const;
 type Period = (typeof PERIOD_OPTIONS)[number];
 
-export { PERIOD_OPTIONS };
 export type { Period };
+export { PERIOD_OPTIONS };
 
 export function useExpenseDashboard(motorcycleId: string | undefined) {
   const { data, isPending, isError, refetch } = useQuery({

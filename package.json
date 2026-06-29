@@ -30,10 +30,10 @@
     "ios": "expo run:ios"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.0.0",
-    "tsx": "^4.21.0",
-    "turbo": "^2.8.0",
-    "typescript": "~5.7.0"
+    "@biomejs/biome": "^2.5.1",
+    "tsx": "^4.22.4",
+    "turbo": "^2.10.0",
+    "typescript": "~5.9.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

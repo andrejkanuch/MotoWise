@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 
 /**
  * `.optional()` that also tolerates an explicit `null`, normalizing it to
