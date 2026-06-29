@@ -68,7 +68,7 @@
     "expo-widgets": "^56.0.14",
     "graphql": "^16.14.2",
     "graphql-request": "^7.4.0",
-    "i18next": "^25.8.14",
+    "i18next": "^25.10.10",
     "lucide-react-native": "^0.577.0",
     "nativewind": "5.0.0-preview.4",
     "posthog-react-native": "^4.47.2",
