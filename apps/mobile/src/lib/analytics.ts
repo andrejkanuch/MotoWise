@@ -314,6 +314,7 @@ export const AnalyticsEvent = {
   ACCOUNT_CREATED: 'account_created',
   // Attribution — self-reported acquisition channel ("How did you hear about us?")
   REFERRAL_SOURCE_SELECTED: 'referral_source_selected',
+  REFERRAL_SOURCE_SKIPPED: 'referral_source_skipped',
 
   // Feature usage — Diagnostics
   DIAGNOSTIC_STARTED: 'diagnostic_started',
@@ -440,6 +441,12 @@ export const AnalyticsEvent = {
   PURCHASE_COMPLETED: 'purchase_completed',
   PURCHASE_CANCELLED: 'purchase_cancelled',
   SUBSCRIPTION_RESTORED: 'subscription_restored',
+
+  // Notifications & reminders (lifecycle) — grant rate gates the retention bets
+  NOTIFICATION_PERMISSION_REQUESTED: 'notification_permission_requested',
+  NOTIFICATION_PERMISSION_RESULT: 'notification_permission_result',
+  REMINDER_SCHEDULED: 'reminder_scheduled',
+  REMINDER_OPENED: 'reminder_opened',
 
   // Privacy
   DATA_EXPORT_REQUESTED: 'data_export_requested',

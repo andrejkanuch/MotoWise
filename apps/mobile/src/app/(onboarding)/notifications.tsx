@@ -197,10 +197,16 @@ export default function NotificationsScreen() {
 
     // Always call requestPermissionsAsync — shows the system prompt when
     // status is 'undetermined', and is a no-op when already granted.
+    // MOT-272: emit requested/result so the grant rate is measurable — it gates
+    // the deferred notification/push retention bets.
+    trackOnboardingEvent(AnalyticsEvent.NOTIFICATION_PERMISSION_REQUESTED, OB_SCREEN.NOTIFICATIONS);
     const { status } = await Notifications.requestPermissionsAsync({
       ios: { allowAlert: true, allowBadge: true, allowSound: true },
     });
     const granted = status === 'granted';
+    trackOnboardingEvent(AnalyticsEvent.NOTIFICATION_PERMISSION_RESULT, OB_SCREEN.NOTIFICATIONS, {
+      permission_granted: granted,
+    });
 
     if (granted && process.env.EXPO_OS === 'android') {
       await setupNotificationChannels();

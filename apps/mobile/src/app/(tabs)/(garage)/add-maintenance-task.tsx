@@ -90,6 +90,12 @@ export default function AddMaintenanceTaskScreen() {
             },
             bikeName ?? 'Your bike',
           );
+          // MOT-272: measure the reminder loop — paired with REMINDER_OPENED.
+          trackEvent(AnalyticsEvent.REMINDER_SCHEDULED, {
+            remind30d: createdTask.remind30d ?? false,
+            remind7d: createdTask.remind7d ?? false,
+            remind1d: createdTask.remind1d ?? true,
+          });
         }
       }
 
