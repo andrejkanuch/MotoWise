@@ -15,7 +15,7 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { scheduleMaintenanceReminder } from '../../../lib/notifications';
 import { queryKeys } from '../../../lib/query-keys';
-import { maybeRequestReview } from '../../../lib/store-review';
+import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
 import { toISODateInput } from '../../../utils/trip-form-dates';
@@ -100,7 +100,7 @@ export default function AddMaintenanceTaskScreen() {
       });
       MetaAnalytics.trackLogMaintenance(title.trim());
       setSaved(true);
-      maybeRequestReview();
+      maybeRequestReview(REVIEW_MILESTONE.MAINTENANCE_TASK_ADDED);
       triggerImpact();
       setTimeout(() => router.back(), 600);
     },

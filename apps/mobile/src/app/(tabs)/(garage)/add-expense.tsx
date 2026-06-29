@@ -22,7 +22,7 @@ import {
 } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { maybeRequestReview } from '../../../lib/store-review';
+import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
@@ -102,7 +102,7 @@ export default function AddExpenseScreen() {
       // The expense id is now available from the mutation result.
       setSavedExpenseId(result.logExpense.id);
       triggerNotification(Haptics.NotificationFeedbackType.Success);
-      maybeRequestReview();
+      maybeRequestReview(REVIEW_MILESTONE.EXPENSE_LOGGED);
     },
     onError: () => {
       Alert.alert(

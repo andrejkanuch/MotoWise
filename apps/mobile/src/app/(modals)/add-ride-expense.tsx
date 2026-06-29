@@ -19,7 +19,7 @@ import {
 } from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
-import { maybeRequestReview } from '../../lib/store-review';
+import { maybeRequestReview, REVIEW_MILESTONE } from '../../lib/store-review';
 import { useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 import { toISODateInput } from '../../utils/trip-form-dates';
@@ -64,7 +64,7 @@ export default function AddExpenseScreen() {
       });
       setSaved(true);
       triggerNotification(Haptics.NotificationFeedbackType.Success);
-      maybeRequestReview();
+      maybeRequestReview(REVIEW_MILESTONE.EXPENSE_LOGGED);
       setTimeout(() => router.back(), 600);
     },
     onError: () => {

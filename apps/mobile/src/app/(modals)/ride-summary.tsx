@@ -35,7 +35,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { queryKeys } from '../../lib/query-keys';
-import { maybeRequestReview } from '../../lib/store-review';
+import { maybeRequestReview, REVIEW_MILESTONE } from '../../lib/store-review';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 import {
@@ -273,7 +273,7 @@ export default function RideSummaryScreen() {
         shared_to_discover: shareToDiscover,
       });
       MetaAnalytics.trackLogRide();
-      maybeRequestReview();
+      maybeRequestReview(REVIEW_MILESTONE.RIDE_COMPLETED);
 
       // Share to Discover (fire-and-forget, non-blocking)
       if (shareToDiscover) {
