@@ -2,6 +2,7 @@ import {
   CreateTripWithWaypointsDocument,
   type CreateTripWithWaypointsInput,
   DeleteTripDocument,
+  PublishAsTemplateDocument,
   PublishTripDocument,
   TripDetailDocument,
   UpdateTripDocument,
@@ -77,11 +78,17 @@ export function useCreateTripData({
   // Publish mutation
   const publishMutation = useMutation({
     mutationFn: async () => {
-      const result = await gqlFetcher(CreateTripWithWaypointsDocument, {
-        input: buildTripInput(),
-      });
+      const input = buildTripInput();
+      const result = await gqlFetcher(CreateTripWithWaypointsDocument, { input });
       const newTripId = result.createTripWithWaypoints.id;
-      await gqlFetcher(PublishTripDocument, { tripId: newTripId });
+      // A public showcase becomes a discoverable template (publishAsTemplate sets
+      // is_template + visibility=public + status=published). Everything else uses
+      // the standard publish (status draft -> published).
+      if (input.isShowcase && input.visibility === 'public') {
+        await gqlFetcher(PublishAsTemplateDocument, { tripId: newTripId });
+      } else {
+        await gqlFetcher(PublishTripDocument, { tripId: newTripId });
+      }
       return newTripId;
     },
     onSuccess: () => {
@@ -106,11 +113,13 @@ export function useCreateTripData({
   // Update mutation (edit mode) — includes waypoints
   const updateMutation = useMutation({
     mutationFn: async () => {
-      const tripInput = buildTripInput();
+      // isShowcase/dayCount are create-only inputs — UpdateTripInput does not
+      // define them, so strip them or the GraphQL request is rejected.
+      const { isShowcase: _isShowcase, dayCount: _dayCount, ...updateInput } = buildTripInput();
       await gqlFetcher(UpdateTripDocument, {
         input: {
           tripId: tripId ?? '',
-          ...tripInput,
+          ...updateInput,
         },
       });
     },
@@ -135,10 +144,17 @@ export function useCreateTripData({
     mutationFn: async () => {
       const tripInput = buildTripInput();
       const editTripId = tripId ?? '';
+      const { isShowcase: _isShowcase, dayCount: _dayCount, ...updateInput } = tripInput;
       await gqlFetcher(UpdateTripDocument, {
-        input: { tripId: editTripId, ...tripInput },
+        input: { tripId: editTripId, ...updateInput },
       });
-      await gqlFetcher(PublishTripDocument, { tripId: editTripId });
+      // Public showcase drafts promote to a discoverable template; other trips
+      // use the standard publish.
+      if (tripInput.isShowcase && tripInput.visibility === 'public') {
+        await gqlFetcher(PublishAsTemplateDocument, { tripId: editTripId });
+      } else {
+        await gqlFetcher(PublishTripDocument, { tripId: editTripId });
+      }
     },
     onSuccess: async () => {
       if (process.env.EXPO_OS === 'ios')

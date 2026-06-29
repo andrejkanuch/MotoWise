@@ -1198,151 +1198,151 @@ export default function CreateTripScreen() {
 
                   {/* Dates — planning mode only (a showcase is dateless) */}
                   {!isShowcase && (
-                  <Animated.View
-                    entering={reducedMotion ? undefined : FadeInUp.delay(100).duration(250)}
-                  >
-                    <View style={{ flexDirection: 'row', gap: 12 }}>
-                      <View style={{ flex: 1 }}>
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            fontWeight: '600',
-                            color: labelColor,
-                            marginBottom: 6,
-                          }}
-                        >
-                          {i18n('trips.startDateLabel')}
-                        </Text>
-                        {process.env.EXPO_OS === 'android' ? (
-                          <>
-                            <Pressable
-                              onPress={() => setShowStartPicker(true)}
-                              style={{
-                                backgroundColor: inputBg,
-                                borderWidth: 1,
-                                borderColor: inputBorder,
-                                borderRadius: 10,
-                                borderCurve: 'continuous',
-                                paddingHorizontal: 12,
-                                paddingVertical: 10,
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                gap: 8,
-                              }}
-                            >
-                              <Calendar size={16} color={t.warm} />
-                              <Text style={{ fontSize: 14, color: inputTextColor }}>
-                                {startDate.toLocaleDateString(undefined, {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric',
-                                })}
-                              </Text>
-                            </Pressable>
-                            {showStartPicker && (
-                              <DateTimePicker
-                                value={startDate}
-                                mode="date"
-                                minimumDate={new Date()}
-                                onChange={(_e, d) => {
-                                  setShowStartPicker(false);
-                                  if (d) {
-                                    setStartDate(d);
-                                    if (d > endDate) setEndDate(d);
-                                  }
-                                }}
-                              />
-                            )}
-                          </>
-                        ) : (
-                          <DateTimePicker
-                            value={startDate}
-                            mode="date"
-                            minimumDate={new Date()}
-                            onChange={(_e, d) => {
-                              if (d) {
-                                setStartDate(d);
-                                if (d > endDate) setEndDate(d);
-                              }
+                    <Animated.View
+                      entering={reducedMotion ? undefined : FadeInUp.delay(100).duration(250)}
+                    >
+                      <View style={{ flexDirection: 'row', gap: 12 }}>
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{
+                              fontSize: 13,
+                              fontWeight: '600',
+                              color: labelColor,
+                              marginBottom: 6,
                             }}
-                            themeVariant={isDark ? 'dark' : 'light'}
-                            accentColor={t.warm}
-                          />
-                        )}
+                          >
+                            {i18n('trips.startDateLabel')}
+                          </Text>
+                          {process.env.EXPO_OS === 'android' ? (
+                            <>
+                              <Pressable
+                                onPress={() => setShowStartPicker(true)}
+                                style={{
+                                  backgroundColor: inputBg,
+                                  borderWidth: 1,
+                                  borderColor: inputBorder,
+                                  borderRadius: 10,
+                                  borderCurve: 'continuous',
+                                  paddingHorizontal: 12,
+                                  paddingVertical: 10,
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  gap: 8,
+                                }}
+                              >
+                                <Calendar size={16} color={t.warm} />
+                                <Text style={{ fontSize: 14, color: inputTextColor }}>
+                                  {startDate.toLocaleDateString(undefined, {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                  })}
+                                </Text>
+                              </Pressable>
+                              {showStartPicker && (
+                                <DateTimePicker
+                                  value={startDate}
+                                  mode="date"
+                                  minimumDate={new Date()}
+                                  onChange={(_e, d) => {
+                                    setShowStartPicker(false);
+                                    if (d) {
+                                      setStartDate(d);
+                                      if (d > endDate) setEndDate(d);
+                                    }
+                                  }}
+                                />
+                              )}
+                            </>
+                          ) : (
+                            <DateTimePicker
+                              value={startDate}
+                              mode="date"
+                              minimumDate={new Date()}
+                              onChange={(_e, d) => {
+                                if (d) {
+                                  setStartDate(d);
+                                  if (d > endDate) setEndDate(d);
+                                }
+                              }}
+                              themeVariant={isDark ? 'dark' : 'light'}
+                              accentColor={t.warm}
+                            />
+                          )}
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{
+                              fontSize: 13,
+                              fontWeight: '600',
+                              color: labelColor,
+                              marginBottom: 6,
+                            }}
+                          >
+                            {i18n('trips.endDateLabel')}
+                          </Text>
+                          {process.env.EXPO_OS === 'android' ? (
+                            <>
+                              <Pressable
+                                onPress={() => setShowEndPicker(true)}
+                                style={{
+                                  backgroundColor: inputBg,
+                                  borderWidth: 1,
+                                  borderColor: inputBorder,
+                                  borderRadius: 10,
+                                  borderCurve: 'continuous',
+                                  paddingHorizontal: 12,
+                                  paddingVertical: 10,
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  gap: 8,
+                                }}
+                              >
+                                <Calendar size={16} color={t.warm} />
+                                <Text style={{ fontSize: 14, color: inputTextColor }}>
+                                  {endDate.toLocaleDateString(undefined, {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                  })}
+                                </Text>
+                              </Pressable>
+                              {showEndPicker && (
+                                <DateTimePicker
+                                  value={endDate}
+                                  mode="date"
+                                  minimumDate={startDate}
+                                  onChange={(_e, d) => {
+                                    setShowEndPicker(false);
+                                    if (d) setEndDate(d);
+                                  }}
+                                />
+                              )}
+                            </>
+                          ) : (
+                            <DateTimePicker
+                              value={endDate}
+                              mode="date"
+                              minimumDate={startDate}
+                              onChange={(_e, d) => d && setEndDate(d)}
+                              themeVariant={isDark ? 'dark' : 'light'}
+                              accentColor={t.warm}
+                            />
+                          )}
+                        </View>
                       </View>
-                      <View style={{ flex: 1 }}>
+                      {dateRangeError ? (
                         <Text
                           style={{
                             fontSize: 13,
-                            fontWeight: '600',
-                            color: labelColor,
-                            marginBottom: 6,
+                            color: t.danger,
+                            marginTop: 8,
                           }}
                         >
-                          {i18n('trips.endDateLabel')}
+                          {dateRangeError}
                         </Text>
-                        {process.env.EXPO_OS === 'android' ? (
-                          <>
-                            <Pressable
-                              onPress={() => setShowEndPicker(true)}
-                              style={{
-                                backgroundColor: inputBg,
-                                borderWidth: 1,
-                                borderColor: inputBorder,
-                                borderRadius: 10,
-                                borderCurve: 'continuous',
-                                paddingHorizontal: 12,
-                                paddingVertical: 10,
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                gap: 8,
-                              }}
-                            >
-                              <Calendar size={16} color={t.warm} />
-                              <Text style={{ fontSize: 14, color: inputTextColor }}>
-                                {endDate.toLocaleDateString(undefined, {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric',
-                                })}
-                              </Text>
-                            </Pressable>
-                            {showEndPicker && (
-                              <DateTimePicker
-                                value={endDate}
-                                mode="date"
-                                minimumDate={startDate}
-                                onChange={(_e, d) => {
-                                  setShowEndPicker(false);
-                                  if (d) setEndDate(d);
-                                }}
-                              />
-                            )}
-                          </>
-                        ) : (
-                          <DateTimePicker
-                            value={endDate}
-                            mode="date"
-                            minimumDate={startDate}
-                            onChange={(_e, d) => d && setEndDate(d)}
-                            themeVariant={isDark ? 'dark' : 'light'}
-                            accentColor={t.warm}
-                          />
-                        )}
-                      </View>
-                    </View>
-                    {dateRangeError ? (
-                      <Text
-                        style={{
-                          fontSize: 13,
-                          color: t.danger,
-                          marginTop: 8,
-                        }}
-                      >
-                        {dateRangeError}
-                      </Text>
-                    ) : null}
-                  </Animated.View>
+                      ) : null}
+                    </Animated.View>
                   )}
 
                   {/* Difficulty */}
@@ -1441,13 +1441,8 @@ export default function CreateTripScreen() {
                                 justifyContent: 'space-between',
                               }}
                             >
-                              <View
-                                style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
-                              >
-                                <OptIcon
-                                  size={15}
-                                  color={isSelected ? t.warm : subtitleColor}
-                                />
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                <OptIcon size={15} color={isSelected ? t.warm : subtitleColor} />
                                 <Text
                                   style={{
                                     fontSize: 14,
@@ -1480,40 +1475,40 @@ export default function CreateTripScreen() {
 
                   {/* Max riders — planning mode only (a showcase has no roster) */}
                   {!isShowcase && (
-                  <Animated.View
-                    entering={reducedMotion ? undefined : FadeInUp.delay(250).duration(250)}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        fontWeight: '600',
-                        color: labelColor,
-                        marginBottom: 6,
-                      }}
+                    <Animated.View
+                      entering={reducedMotion ? undefined : FadeInUp.delay(250).duration(250)}
                     >
-                      {i18n('trips.maxRidersLabel')}
-                    </Text>
-                    <TextInput
-                      value={maxRiders}
-                      onChangeText={(text) => setMaxRiders(text.replace(/[^0-9]/g, ''))}
-                      placeholder={i18n('trips.maxRidersPlaceholder')}
-                      placeholderTextColor={placeholderColor}
-                      keyboardType="number-pad"
-                      maxLength={3}
-                      style={{
-                        backgroundColor: inputBg,
-                        borderWidth: 1,
-                        borderColor: inputBorder,
-                        borderRadius: 12,
-                        borderCurve: 'continuous',
-                        paddingHorizontal: 14,
-                        paddingVertical: 12,
-                        fontSize: 15,
-                        color: inputTextColor,
-                        width: 100,
-                      }}
-                    />
-                  </Animated.View>
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          fontWeight: '600',
+                          color: labelColor,
+                          marginBottom: 6,
+                        }}
+                      >
+                        {i18n('trips.maxRidersLabel')}
+                      </Text>
+                      <TextInput
+                        value={maxRiders}
+                        onChangeText={(text) => setMaxRiders(text.replace(/[^0-9]/g, ''))}
+                        placeholder={i18n('trips.maxRidersPlaceholder')}
+                        placeholderTextColor={placeholderColor}
+                        keyboardType="number-pad"
+                        maxLength={3}
+                        style={{
+                          backgroundColor: inputBg,
+                          borderWidth: 1,
+                          borderColor: inputBorder,
+                          borderRadius: 12,
+                          borderCurve: 'continuous',
+                          paddingHorizontal: 14,
+                          paddingVertical: 12,
+                          fontSize: 15,
+                          color: inputTextColor,
+                          width: 100,
+                        }}
+                      />
+                    </Animated.View>
                   )}
                 </>
               )}
