@@ -287,7 +287,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
             {/* Duration/days: only render when we have a real value — never
                 fabricate "1h" for dateless showcases. Divider rides with the
                 chip so no orphan separator is left behind (cf. elevation). */}
-            {(trip.dayCount != null || trip.estimatedDurationMinutes != null) && (
+            {((trip.dayCount ?? 0) > 0 || trip.estimatedDurationMinutes != null) && (
               <>
                 <View style={{ width: 1, height: 10, backgroundColor: t.line }} />
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>

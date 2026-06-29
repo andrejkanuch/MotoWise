@@ -1,3 +1,4 @@
+import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import {
   CreateTripWithWaypointsDocument,
   type CreateTripWithWaypointsInput,
@@ -19,6 +20,22 @@ import { maybeRequestReview } from '../lib/store-review';
 interface RouterLike {
   back: () => void;
   dismissAll: () => void;
+}
+
+/**
+ * A public showcase becomes a discoverable template (publishAsTemplate sets
+ * is_template + visibility=public + status=published); everything else uses the
+ * standard publish (status draft -> published). The result payload is unused, so
+ * the two documents are normalized to a single `{ tripId }` document type.
+ */
+function publishDocFor(
+  input: CreateTripWithWaypointsInput,
+): TypedDocumentNode<unknown, { tripId: string }> {
+  const doc =
+    input.isShowcase && input.visibility === 'public'
+      ? PublishAsTemplateDocument
+      : PublishTripDocument;
+  return doc as TypedDocumentNode<unknown, { tripId: string }>;
 }
 
 interface UseCreateTripDataParams {
@@ -81,14 +98,7 @@ export function useCreateTripData({
       const input = buildTripInput();
       const result = await gqlFetcher(CreateTripWithWaypointsDocument, { input });
       const newTripId = result.createTripWithWaypoints.id;
-      // A public showcase becomes a discoverable template (publishAsTemplate sets
-      // is_template + visibility=public + status=published). Everything else uses
-      // the standard publish (status draft -> published).
-      if (input.isShowcase && input.visibility === 'public') {
-        await gqlFetcher(PublishAsTemplateDocument, { tripId: newTripId });
-      } else {
-        await gqlFetcher(PublishTripDocument, { tripId: newTripId });
-      }
+      await gqlFetcher(publishDocFor(input), { tripId: newTripId });
       return newTripId;
     },
     onSuccess: () => {
@@ -148,13 +158,7 @@ export function useCreateTripData({
       await gqlFetcher(UpdateTripDocument, {
         input: { tripId: editTripId, ...updateInput },
       });
-      // Public showcase drafts promote to a discoverable template; other trips
-      // use the standard publish.
-      if (tripInput.isShowcase && tripInput.visibility === 'public') {
-        await gqlFetcher(PublishAsTemplateDocument, { tripId: editTripId });
-      } else {
-        await gqlFetcher(PublishTripDocument, { tripId: editTripId });
-      }
+      await gqlFetcher(publishDocFor(tripInput), { tripId: editTripId });
     },
     onSuccess: async () => {
       if (process.env.EXPO_OS === 'ios')

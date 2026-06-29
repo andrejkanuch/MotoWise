@@ -93,6 +93,12 @@ export interface ParticipantRow {
   } | null;
 }
 
+/**
+ * Sentinel date for dateless trips (showcases, clone drafts). Paired with
+ * dates_pending=true to satisfy chk_trips_date_range (see 00111).
+ */
+export const TRIP_DATE_SENTINEL = '1970-01-01';
+
 export const TRIP_SELECT =
   'id, title, description, start_date, end_date, dates_pending, difficulty, max_riders, participant_count, status, visibility, cover_image_url, created_at, updated_at, organiser_user_id, users:organiser_user_id(id, display_name, public_username, avatar_url, is_public)';
 
@@ -542,7 +548,11 @@ export class TripLifecycleService {
     // rather than nullable columns, and skip organiser auto-enrolment because a
     // past trip has no roster.
     const isShowcase = input.isShowcase === true;
-    const SENTINEL_DATE = '1970-01-01';
+    // A planned trip must carry dates (enforced by the Zod superRefine); narrow
+    // explicitly rather than casting so the validator dependency is visible.
+    if (!isShowcase && (!input.startDate || !input.endDate)) {
+      throw new BadRequestException('A planned trip requires start and end dates');
+    }
 
     // Create trip
     const { data: tripData, error: tripError } = await this.supabase
@@ -551,8 +561,8 @@ export class TripLifecycleService {
         organiser_user_id: userId,
         title: input.title,
         description: input.description,
-        start_date: isShowcase ? SENTINEL_DATE : (input.startDate as string),
-        end_date: isShowcase ? SENTINEL_DATE : (input.endDate as string),
+        start_date: isShowcase ? TRIP_DATE_SENTINEL : input.startDate,
+        end_date: isShowcase ? TRIP_DATE_SENTINEL : input.endDate,
         difficulty: input.difficulty,
         max_riders: input.maxRiders,
         ...(isShowcase && { dates_pending: true, day_count: input.dayCount ?? 1 }),
@@ -691,8 +701,7 @@ export class TripLifecycleService {
       }
       const mergedStart = input.startDate ?? (curDates?.start_date as string);
       const mergedEnd = input.endDate ?? (curDates?.end_date as string);
-      const SENTINEL = '1970-01-01';
-      if (mergedStart === SENTINEL && mergedEnd === SENTINEL) {
+      if (mergedStart === TRIP_DATE_SENTINEL && mergedEnd === TRIP_DATE_SENTINEL) {
         update.dates_pending = true;
       } else {
         update.dates_pending = false;

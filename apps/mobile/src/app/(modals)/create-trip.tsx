@@ -1,6 +1,7 @@
 import DateTimePicker from '@expo/ui/community/datetime-picker';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import type { PeriodOfDay } from '@motovault/graphql';
+import { SHOWCASE_MAX_DAY_COUNT } from '@motovault/types';
 import MapboxGL, { type ScreenPointPayload } from '@rnmapbox/maps';
 import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
@@ -607,7 +608,7 @@ export default function CreateTripScreen() {
 
   const handleAddDay = useCallback(() => {
     if (isShowcase) {
-      setShowcaseDayCount((prev) => Math.min(14, prev + 1));
+      setShowcaseDayCount((prev) => Math.min(SHOWCASE_MAX_DAY_COUNT, prev + 1));
     } else {
       setEndDate((prev) => {
         const d = new Date(prev);
@@ -630,7 +631,9 @@ export default function CreateTripScreen() {
             1,
             Math.round((endDate.getTime() - startDate.getTime()) / msPerDay) + 1,
           );
-          setShowcaseDayCount(span);
+          // Clamp to the validator's ceiling so a long plan toggled to showcase
+          // can't seed a dayCount the API would reject.
+          setShowcaseDayCount(Math.min(SHOWCASE_MAX_DAY_COUNT, span));
         } else {
           // Returning to planning needs a valid default range to save against.
           const { start, end } = getDefaultNewTripDateRange();

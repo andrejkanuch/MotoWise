@@ -199,6 +199,8 @@ export type ConditionTag = z.infer<typeof ConditionTagSchema>;
 // --- Date range constants (trip planning window) ---
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+/** Max day count for a dateless showcase trip — matches the planner's day ceiling. */
+export const SHOWCASE_MAX_DAY_COUNT = 14;
 const MAX_PAST_DAYS = 365; // startDate cannot be more than 1 year in the past
 const MAX_FUTURE_DAYS = 5 * 365; // endDate cannot be more than 5 years in the future
 const MAX_TRIP_SPAN_DAYS = 365; // maximum trip duration
@@ -454,7 +456,7 @@ export const CreateTripWithWaypointsInputSchema = z
     // instead of a start/end range. The service maps this to sentinel dates +
     // dates_pending=true and skips organiser auto-enrolment.
     isShowcase: z.boolean().optional().default(false),
-    dayCount: z.number().int().min(1).max(30).optional(),
+    dayCount: z.number().int().min(1).max(SHOWCASE_MAX_DAY_COUNT).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.isShowcase) {
