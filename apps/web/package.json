@@ -20,7 +20,7 @@
     "@next/third-parties": "^16.1.6",
     "@revenuecat/purchases-js": "^1.46.0",
     "@sentry/nextjs": "^10.50.0",
-    "@supabase/ssr": "^0.6.0",
+    "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.98.0",
     "@tailwindcss/postcss": "^4.2.1",
     "@tanstack/react-query": "^5.90.21",
