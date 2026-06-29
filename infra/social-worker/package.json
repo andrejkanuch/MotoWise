@@ -20,9 +20,9 @@
     "wrangler": "^4.105.0"
   },
   "dependencies": {
-    "@ai-sdk/google": "^3.0.67",
-    "@ai-sdk/openai": "^3.0.57",
-    "ai": "^6.0.173",
+    "@ai-sdk/google": "^3.0.84",
+    "@ai-sdk/openai": "^3.0.75",
+    "ai": "^6.0.210",
     "zod": "^3.25.76"
   }
 }

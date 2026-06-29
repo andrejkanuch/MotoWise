@@ -180,8 +180,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
             {t('diagnoseV2.review')}
           </Text>
           <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>
-            {/* biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key from diagnose v2 */}
-            {t('diagnoseV2.reviewHint' as any)}
+            {t('diagnoseV2.reviewHint')}
           </Text>
         </View>
 

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ── Stage 1: Base ─────────────────────────────
-FROM node:20-slim AS base
+FROM node:20.20.2-slim AS base
 
 RUN apt-get update && apt-get install -y --no-install-recommends dumb-init && \
     rm -rf /var/lib/apt/lists/*
@@ -39,7 +39,7 @@ RUN npm pkg delete scripts.prepare && \
     pnpm --filter @motovault/api deploy --prod /app/deployed
 
 # ── Stage 4: Production ───────────────────────
-FROM node:20-slim AS runner
+FROM node:20.20.2-slim AS runner
 
 RUN apt-get update && apt-get install -y --no-install-recommends dumb-init && \
     rm -rf /var/lib/apt/lists/*
