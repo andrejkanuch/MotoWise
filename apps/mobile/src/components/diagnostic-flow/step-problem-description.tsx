@@ -307,8 +307,7 @@ export function StepProblemDescription() {
           onChangeText={(text) => setCustomInput(sanitizeInput(text.slice(0, 50)))}
           placeholder={canAddCustom ? 'Type your own...' : 'Maximum reached'}
           placeholderTextColor={colors.textMuted}
-          // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
-          accessibilityLabel={t('diagnoseV2.customOption' as any)}
+          accessibilityLabel={t('diagnoseV2.customOption')}
           style={{
             flex: 1,
             color: colors.textPrimary,
@@ -360,8 +359,7 @@ export function StepProblemDescription() {
                     borderRadius: 3,
                     backgroundColor: i === wizardSubStep ? colors.accent : colors.dontKnowBorder,
                   }}
-                  // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
-                  accessibilityLabel={t('diagnoseV2.wizardSubStep' as any, {
+                  accessibilityLabel={t('diagnoseV2.wizardSubStep', {
                     current: i + 1,
                     total: WIZARD_STEPS.length,
                   })}
@@ -399,8 +397,7 @@ export function StepProblemDescription() {
                 {t('diagnoseV2.describeProblem')}
               </Text>
               <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>
-                {/* biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key */}
-                {t('diagnoseV2.describeProblemHint' as any)}
+                {t('diagnoseV2.describeProblemHint')}
               </Text>
             </>
           )}
