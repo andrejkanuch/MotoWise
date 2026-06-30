@@ -1124,6 +1124,7 @@ type Mutation {
   publishBlogPost(id: String!): BlogPost!
   publishTrip(tripId: ID!): Trip!
   regenerateRideSummary(rideId: String!): RideSummary!
+  registerPushToken(input: RegisterPushTokenInput!): RegisterPushTokenResult!
   removeWaypoint(waypointId: ID!): Boolean!
   reorderWaypoints(input: ReorderWaypointsInput!): Boolean!
   reportSurface(input: ReportSurfaceInput!): SurfaceReport!
@@ -1453,6 +1454,19 @@ type RecallResult {
   count: Int!
   recalls: [Recall!]!
   vinUsed: String
+}
+
+input RegisterPushTokenInput {
+  """The device platform: 'ios' or 'android'."""
+  platform: String!
+
+  """The Expo push token for this device."""
+  token: String!
+}
+
+type RegisterPushTokenResult {
+  """True when the token was registered/refreshed."""
+  success: Boolean!
 }
 
 input ReorderWaypointsInput {

@@ -34,6 +34,7 @@ export * from './validators/onboarding-input';
 export * from './validators/paywall';
 export * from './validators/place';
 export * from './validators/profile';
+export * from './validators/push-token';
 export * from './validators/quiz';
 export * from './validators/ride';
 export * from './validators/ride-summary';

@@ -17,6 +17,7 @@ export * from './maintenance-sourcing';
 export * from './maintenance-task';
 export * from './model-insights';
 export * from './motorcycle';
+export * from './push-token';
 export * from './quiz';
 export * from './ride';
 export * from './route';

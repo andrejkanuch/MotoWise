@@ -88,6 +88,7 @@ import {
   snoozeTaskNotification,
 } from '../lib/notifications';
 import { resolveOnboardingVariant } from '../lib/onboarding-experiment';
+import { registerForPushNotifications } from '../lib/push-token';
 import {
   clearLastUserId,
   getLastUserId,
@@ -700,6 +701,9 @@ function RootLayout() {
       // MOT-275: the app launched, so the user "returned" — cancel any pending
       // day-2 re-engagement notification (it targets users who DON'T come back).
       await cancelReEngageNotification();
+      // MOT-278: refresh the server-side push token on launch when granted
+      // (token rotation + users who granted before this shipped). No-op otherwise.
+      void registerForPushNotifications();
     }
     initNotifications();
   }, []);
