@@ -2166,5 +2166,31 @@
     "deleteCategory": "Elimina categoria",
     "showCategory": "Mostra categoria",
     "hideCategory": "Nascondi categoria"
+  },
+  "reengage": {
+    "default": {
+      "title": "Il tuo garage ti aspetta",
+      "body": "Torna e configura la tua moto in meno di un minuto."
+    },
+    "track_rides": {
+      "title": "Pronto per il prossimo giro?",
+      "body": "Registra i tuoi giri e guarda crescere le statistiche."
+    },
+    "manage_expenses": {
+      "title": "Scopri quanto costa davvero la tua moto",
+      "body": "Registra la prima spesa e tieni d’occhio il budget."
+    },
+    "discover_routes": {
+      "title": "Trova il tuo prossimo bel giro",
+      "body": "Scopri percorsi e uscite di gruppo vicino a te."
+    },
+    "maintain_bike": {
+      "title": "Tieni la moto in forma",
+      "body": "Imposta i promemoria e non perdere un tagliando."
+    },
+    "just_exploring": {
+      "title": "Il tuo garage ti aspetta",
+      "body": "Dai un’occhiata: c’è molto da esplorare."
+    }
   }
 }

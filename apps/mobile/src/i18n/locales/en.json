@@ -2158,5 +2158,31 @@
     "deleteCategory": "Delete category",
     "showCategory": "Show category",
     "hideCategory": "Hide category"
+  },
+  "reengage": {
+    "default": {
+      "title": "Your garage is waiting",
+      "body": "Jump back in and set up your bike in under a minute."
+    },
+    "track_rides": {
+      "title": "Ready for your next ride?",
+      "body": "Log your rides and watch your stats build over time."
+    },
+    "manage_expenses": {
+      "title": "Know what your bike really costs",
+      "body": "Log your first expense and see where the money goes."
+    },
+    "discover_routes": {
+      "title": "Find your next great ride",
+      "body": "Discover routes and group rides near you."
+    },
+    "maintain_bike": {
+      "title": "Keep your bike in top shape",
+      "body": "Set up reminders so you never miss a service."
+    },
+    "just_exploring": {
+      "title": "Your garage is waiting",
+      "body": "Take a look around — there's a lot to explore."
+    }
   }
 }

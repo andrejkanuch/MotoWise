@@ -2163,5 +2163,31 @@
     "deleteCategory": "Hapus kategori",
     "showCategory": "Tampilkan kategori",
     "hideCategory": "Sembunyikan kategori"
+  },
+  "reengage": {
+    "default": {
+      "title": "Garasimu menunggu",
+      "body": "Kembali dan atur motormu dalam waktu kurang dari satu menit."
+    },
+    "track_rides": {
+      "title": "Siap untuk perjalanan berikutnya?",
+      "body": "Catat perjalananmu dan lihat statistikmu bertambah."
+    },
+    "manage_expenses": {
+      "title": "Ketahui biaya motormu sebenarnya",
+      "body": "Catat pengeluaran pertamamu dan pantau anggaran."
+    },
+    "discover_routes": {
+      "title": "Temukan rute hebat berikutnya",
+      "body": "Temukan rute dan perjalanan grup di dekatmu."
+    },
+    "maintain_bike": {
+      "title": "Jaga motormu tetap prima",
+      "body": "Atur pengingat agar tak pernah lewat servis."
+    },
+    "just_exploring": {
+      "title": "Garasimu menunggu",
+      "body": "Lihat-lihat — banyak yang bisa dijelajahi."
+    }
   }
 }

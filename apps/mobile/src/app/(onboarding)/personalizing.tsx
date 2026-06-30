@@ -13,7 +13,7 @@ import {
   Wallet,
   Wrench,
 } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
@@ -30,15 +30,22 @@ import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { getPrimaryGoal, OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
-import { AnalyticsEvent, captureException, setUserPropertiesOnce } from '../../lib/analytics';
+import {
+  AnalyticsEvent,
+  captureException,
+  setUserPropertiesOnce,
+  trackEvent,
+} from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { uploadBikePhoto } from '../../lib/image-upload';
 import { detectCurrency } from '../../lib/locale-detection';
 import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { clearStoredFbclid, getStoredFbclid } from '../../lib/meta-attribution';
+import { NOTIFICATION_KIND, scheduleReEngageNotification } from '../../lib/notifications';
 import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { queryKeys } from '../../lib/query-keys';
+import { resolveReEngageCopyKeys } from '../../lib/reengage-copy';
 import { setSelfReportedSource } from '../../lib/subscription';
 import { useAuthStore } from '../../stores/auth.store';
 import { useChecklistStore } from '../../stores/checklist.store';
@@ -129,6 +136,23 @@ export default function PersonalizingScreen() {
   const primaryGoal = useMemo(() => getPrimaryGoal(ridingGoals), [ridingGoals]);
   const goalConfig = GOAL_STEP_CONFIG[primaryGoal];
   const bikeLabel = useMemo(() => buildBikeLabel(bikeData), [bikeData]);
+
+  // MOT-275: at onboarding completion, schedule a day-2 re-engagement notification
+  // (goal-personalized, permission-gated, cancelled when the user returns). Copy is
+  // localized here; the lib stays copy-agnostic. Fire-and-forget — never block nav.
+  const scheduleReEngageReminder = useCallback(async () => {
+    const { titleKey, bodyKey } = resolveReEngageCopyKeys(primaryGoal);
+    const scheduled = await scheduleReEngageNotification({
+      title: t(titleKey as never),
+      body: t(bodyKey as never),
+    });
+    if (scheduled) {
+      trackEvent(AnalyticsEvent.REMINDER_SCHEDULED, {
+        kind: NOTIFICATION_KIND.RE_ENGAGE,
+        goal: primaryGoal ?? null,
+      });
+    }
+  }, [primaryGoal, t]);
 
   const steps = useMemo(() => [...FIXED_STEPS, goalConfig.i18nKey] as const, [goalConfig.i18nKey]);
   const stepIcons = useMemo(
@@ -301,10 +325,18 @@ export default function PersonalizingScreen() {
     if (isResumed) {
       reset();
       setOnboardingCompleted(true);
+      void scheduleReEngageReminder();
     } else {
       setShowDone(true);
     }
-  }, [mutationDone, animationDone, isResumed, reset, setOnboardingCompleted]);
+  }, [
+    mutationDone,
+    animationDone,
+    isResumed,
+    reset,
+    setOnboardingCompleted,
+    scheduleReEngageReminder,
+  ]);
 
   // Pop the check badge in when the payoff phase appears.
   useEffect(() => {
@@ -332,6 +364,7 @@ export default function PersonalizingScreen() {
   const handleContinue = () => {
     reset();
     setOnboardingCompleted(true);
+    void scheduleReEngageReminder();
   };
 
   // Cold-start resume: the staged setup UI must not appear on app load. Hold a
