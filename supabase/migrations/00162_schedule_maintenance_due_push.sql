@@ -43,9 +43,12 @@ BEGIN
 END;
 $$;
 
--- Not user-callable: only the cron job (running as postgres) may trigger a run.
+-- Not user-callable: only the cron job (running as postgres, which owns this
+-- SECURITY DEFINER function) may trigger a run. Revoke from every app role —
+-- including service_role — so neither the anon/user clients nor the API's
+-- service-role client can invoke it directly (the HTTP endpoint is the entrypoint).
 REVOKE ALL ON FUNCTION public.cron_trigger_maintenance_due_push() FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.cron_trigger_maintenance_due_push() FROM anon, authenticated;
+REVOKE ALL ON FUNCTION public.cron_trigger_maintenance_due_push() FROM anon, authenticated, service_role;
 
 -- Daily at 17:00 UTC (≈ noon ET / 09:00 PT / 18:00 CET). Idempotent: re-running
 -- this migration updates the existing schedule rather than duplicating it.

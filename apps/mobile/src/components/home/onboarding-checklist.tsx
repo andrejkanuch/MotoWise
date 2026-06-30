@@ -24,7 +24,7 @@ import {
   useChecklistStore,
 } from '../../stores/checklist.store';
 import { useEditorialTheme } from '../../theme/editorial';
-import { firstExpenseHref } from './first-expense-route';
+import { resolveFirstExpenseRoute } from './first-expense-route';
 
 const ICON_MAP: Record<string, typeof MapPin> = {
   MapPin,
@@ -145,7 +145,9 @@ export function OnboardingChecklist() {
                   completeItem(item.id);
                 }
                 if (item.id === CHECKLIST_ITEM_ID.FIRST_EXPENSE) {
-                  router.push(firstExpenseHref({ firstBikeId, bikesResolved: !!bikesData }));
+                  router.push(
+                    resolveFirstExpenseRoute({ firstBikeId, bikesResolved: !!bikesData }) as Href,
+                  );
                   return;
                 }
                 const knownItem = ALL_CHECKLIST_ITEMS.find((ci) => ci.id === item.id);

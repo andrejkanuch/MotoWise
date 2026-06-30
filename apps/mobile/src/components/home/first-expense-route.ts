@@ -1,4 +1,3 @@
-import type { Href } from 'expo-router';
 import { GARAGE_ROUTE, TAB_ROUTE } from '../../config/routes';
 
 /** Where the `first_expense` checklist item routes (see resolveFirstExpenseRoute). */
@@ -26,12 +25,4 @@ export function resolveFirstExpenseRoute(args: {
   }
   if (args.bikesResolved) return GARAGE_ROUTE.ADD_BIKE;
   return TAB_ROUTE.GARAGE;
-}
-
-/** The href form router.push consumes. */
-export function firstExpenseHref(args: {
-  firstBikeId: string | undefined;
-  bikesResolved: boolean;
-}): Href {
-  return resolveFirstExpenseRoute(args) as Href;
 }

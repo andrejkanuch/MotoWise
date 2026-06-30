@@ -1,3 +1,4 @@
+import { NOTIFICATION_KIND } from '@motovault/types';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { addDays, format } from 'date-fns';
@@ -7,10 +8,19 @@ import { resolveMaintenancePushCopy } from './maintenance-push-copy';
 
 /** Postgres unique-violation code — a dedup-log conflict means "already sent". */
 const PG_UNIQUE_VIOLATION = '23505' as const;
-/** Mobile tap-handler discriminator (mirrors NOTIFICATION_KIND.MAINTENANCE). */
-const PUSH_KIND_MAINTENANCE = 'maintenance' as const;
 /** Expo ticket error reported for a token the device store no longer recognizes. */
 const EXPO_DEVICE_NOT_REGISTERED = 'DeviceNotRegistered' as const;
+/** Cap each Expo push HTTP call so a hung exp.host never blocks the run/request. */
+const EXPO_SEND_TIMEOUT_MS = 15_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms).unref?.(),
+    ),
+  ]);
+}
 const ACTIVE_TASK_STATUSES = ['pending', 'in_progress'] as const;
 
 export interface MaintenancePushSummary {
@@ -120,7 +130,11 @@ export class MaintenancePushService {
           sound: 'default',
           title: copy.title,
           body: copy.body(task.title),
-          data: { kind: PUSH_KIND_MAINTENANCE, taskId: task.id, motorcycleId: task.motorcycle_id },
+          data: {
+            kind: NOTIFICATION_KIND.MAINTENANCE,
+            taskId: task.id,
+            motorcycleId: task.motorcycle_id,
+          },
         });
       }
       attempted++;
@@ -160,7 +174,11 @@ export class MaintenancePushService {
 
     for (const chunk of this.expo.chunkPushNotifications(messages)) {
       try {
-        const tickets = await this.expo.sendPushNotificationsAsync(chunk);
+        const tickets = await withTimeout(
+          this.expo.sendPushNotificationsAsync(chunk),
+          EXPO_SEND_TIMEOUT_MS,
+          'Expo push send',
+        );
         for (let i = 0; i < tickets.length; i++) {
           const ticket = tickets[i];
           if (ticket.status !== 'error') continue;

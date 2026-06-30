@@ -5,7 +5,7 @@ import { MaintenancePushService } from './maintenance-push.service';
 
 // Captures messages handed to Expo + lets each test choose the send outcome.
 const mockSentMessages: Array<{ title?: string; body?: string }> = [];
-const mockExpo = { sendResult: 'ok' as 'ok' | 'throw' | 'errorTicket' };
+const mockExpo = { sendResult: 'ok' as 'ok' | 'throw' | 'errorTicket' | 'deviceNotRegistered' };
 // Records which tables had .delete() called — proves dedup-claim release on failure.
 const mockDeletes: string[] = [];
 
@@ -20,6 +20,9 @@ vi.mock('expo-server-sdk', () => ({
       if (mockExpo.sendResult === 'throw') throw new Error('expo unreachable');
       if (mockExpo.sendResult === 'errorTicket') {
         return chunk.map(() => ({ status: 'error', details: { error: 'MessageRateExceeded' } }));
+      }
+      if (mockExpo.sendResult === 'deviceNotRegistered') {
+        return chunk.map(() => ({ status: 'error', details: { error: 'DeviceNotRegistered' } }));
       }
       return chunk.map(() => ({ status: 'ok', id: 'ticket-x' }));
     };
@@ -148,6 +151,41 @@ describe('MaintenancePushService.sendDuePush', () => {
     expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 0, failed: 1 });
     // the claim row was deleted so the task is not permanently masked as sent
     expect(mockDeletes).toContain('maintenance_push_log');
+  });
+
+  it('prunes a DeviceNotRegistered token and releases that task claim', async () => {
+    mockExpo.sendResult = 'deviceNotRegistered';
+    const summary = await new MaintenancePushService(clientForLocalizedSend('en')).sendDuePush(1);
+    expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 0, failed: 1 });
+    // dead token pruned + dedup claim released
+    expect(mockDeletes).toContain('device_push_tokens');
+    expect(mockDeletes).toContain('maintenance_push_log');
+  });
+
+  it('skips (without claiming) on a non-unique dedup-log error', async () => {
+    const admin = makeAdminClient({
+      maintenance_tasks: {
+        data: [
+          {
+            id: 't1',
+            user_id: 'u1',
+            title: 'Oil change',
+            due_date: '2026-07-01',
+            motorcycle_id: 'm1',
+          },
+        ],
+        error: null,
+      },
+      device_push_tokens: {
+        data: [{ user_id: 'u1', token: 'ExponentPushToken[abc]' }],
+        error: null,
+      },
+      users: { data: [{ id: 'u1', preferences: {} }], error: null },
+      maintenance_push_log: { error: { code: '23502', message: 'not-null violation' } },
+    });
+    const summary = await new MaintenancePushService(admin).sendDuePush(1);
+    expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 0, failed: 0 });
+    expect(mockSentMessages).toHaveLength(0);
   });
 
   it('throws (claiming nothing) when the device-token query errors', async () => {

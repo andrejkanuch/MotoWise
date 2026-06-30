@@ -41,6 +41,7 @@ export class MaintenanceDuePushController {
     const daysBefore = (parsed.success ? parsed.data.daysBefore : undefined) ?? DEFAULT_DAYS_BEFORE;
 
     const summary = await this.service.sendDuePush(daysBefore);
-    return { status: 'ok', ...summary };
+    // Spread first so a future summary field can never shadow the status literal.
+    return { ...summary, status: 'ok' };
   }
 }

@@ -13,7 +13,7 @@ import {
   Wallet,
   Wrench,
 } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
@@ -153,6 +153,18 @@ export default function PersonalizingScreen() {
       });
     }
   }, [primaryGoal, t]);
+
+  // The single onboarding-completion sink: flip the auth flag (root guard redirects
+  // to the garage) and schedule the day-2 reminder. Guarded so the two completion
+  // paths (cold-start resume + the "Open my garage" CTA) can't double-fire it.
+  const completedRef = useRef(false);
+  const finishOnboarding = useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    reset();
+    setOnboardingCompleted(true);
+    void scheduleReEngageReminder();
+  }, [reset, setOnboardingCompleted, scheduleReEngageReminder]);
 
   const steps = useMemo(() => [...FIXED_STEPS, goalConfig.i18nKey] as const, [goalConfig.i18nKey]);
   const stepIcons = useMemo(
@@ -323,20 +335,11 @@ export default function PersonalizingScreen() {
   useEffect(() => {
     if (!mutationDone || !animationDone) return;
     if (isResumed) {
-      reset();
-      setOnboardingCompleted(true);
-      void scheduleReEngageReminder();
+      finishOnboarding();
     } else {
       setShowDone(true);
     }
-  }, [
-    mutationDone,
-    animationDone,
-    isResumed,
-    reset,
-    setOnboardingCompleted,
-    scheduleReEngageReminder,
-  ]);
+  }, [mutationDone, animationDone, isResumed, finishOnboarding]);
 
   // Pop the check badge in when the payoff phase appears.
   useEffect(() => {
@@ -362,9 +365,7 @@ export default function PersonalizingScreen() {
   // makes the root guard redirect to OB_ROUTE.HOME. Used by the payoff CTA and the
   // retry/safety-net skip link (both before any navigation).
   const handleContinue = () => {
-    reset();
-    setOnboardingCompleted(true);
-    void scheduleReEngageReminder();
+    finishOnboarding();
   };
 
   // Cold-start resume: the staged setup UI must not appear on app load. Hold a

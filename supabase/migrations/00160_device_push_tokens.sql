@@ -34,6 +34,10 @@ CREATE POLICY "Users delete own push tokens" ON public.device_push_tokens
   FOR DELETE TO authenticated
   USING (auth.uid() = user_id);
 
+-- Defense-in-depth: anon never touches this table (all policies require authenticated).
+-- Keep authenticated's table-level grants — the owner policies depend on them.
+REVOKE ALL ON public.device_push_tokens FROM anon;
+
 CREATE INDEX idx_device_push_tokens_user_id ON public.device_push_tokens (user_id);
 
 CREATE TRIGGER set_device_push_tokens_updated_at

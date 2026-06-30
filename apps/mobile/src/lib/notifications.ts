@@ -1,16 +1,14 @@
 import { palette } from '@motovault/design-system';
+import { NOTIFICATION_KIND } from '@motovault/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addDays, differenceInCalendarDays } from 'date-fns';
 import * as Notifications from 'expo-notifications';
 import { logger } from './logger';
 
-/** Notification `data.kind` discriminator — shared with the tap handler in _layout. */
-export const NOTIFICATION_KIND = {
-  DOCUMENT: 'document',
-  MAINTENANCE: 'maintenance',
-  // MOT-275: day-2 dormant-user re-engagement (local, goal-personalized).
-  RE_ENGAGE: 're_engage',
-} as const;
+// Notification `data.kind` discriminator — single source of truth in @motovault/types
+// (re-exported for existing consumers) so the mobile scheduler/tap-handler and the API
+// push sender can't diverge on the string values.
+export { NOTIFICATION_KIND };
 
 /** iOS UNNotificationCategory identifiers (also the Android channel-less category key). */
 export const NOTIFICATION_CATEGORY = {
