@@ -16,7 +16,6 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, FadeOutDown, ZoomIn } from 'react-native-reanimated';
 import { useShallow } from 'zustand/react/shallow';
-import { GARAGE_ROUTE, TAB_ROUTE } from '../../config/routes';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import {
@@ -25,6 +24,7 @@ import {
   useChecklistStore,
 } from '../../stores/checklist.store';
 import { useEditorialTheme } from '../../theme/editorial';
+import { firstExpenseHref } from './first-expense-route';
 
 const ICON_MAP: Record<string, typeof MapPin> = {
   MapPin,
@@ -145,21 +145,7 @@ export function OnboardingChecklist() {
                   completeItem(item.id);
                 }
                 if (item.id === CHECKLIST_ITEM_ID.FIRST_EXPENSE) {
-                  // Expense screens require a motorcycleId — route to the dashboard
-                  // for the user's bike (its empty state + quick-add lead to the
-                  // form). If bikes are confirmed-empty, send them to add one; if the
-                  // bikes query hasn't resolved yet, fall back to the garage tab
-                  // (never wrongly imply "no bikes" mid-load).
-                  if (firstBikeId) {
-                    router.push({
-                      pathname: GARAGE_ROUTE.EXPENSE_DASHBOARD,
-                      params: { motorcycleId: firstBikeId },
-                    });
-                  } else if (bikesData) {
-                    router.push(GARAGE_ROUTE.ADD_BIKE as Href);
-                  } else {
-                    router.push(TAB_ROUTE.GARAGE as Href);
-                  }
+                  router.push(firstExpenseHref({ firstBikeId, bikesResolved: !!bikesData }));
                   return;
                 }
                 const knownItem = ALL_CHECKLIST_ITEMS.find((ci) => ci.id === item.id);
