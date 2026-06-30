@@ -1,8 +1,17 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { PROFILE_ROUTE, TAB_ROUTE } from '../config/routes';
+import { GARAGE_ROUTE, PROFILE_ROUTE, TAB_ROUTE } from '../config/routes';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import { createZustandMMKVStorage } from '../lib/mmkv-storage';
+
+/** Stable checklist item ids — referenced by the home checklist consumer for routing. */
+export const CHECKLIST_ITEM_ID = {
+  FIRST_RIDE: 'first_ride',
+  BROWSE_ROUTES: 'browse_routes',
+  FIRST_EXPENSE: 'first_expense',
+  COMPLETE_BIKE: 'complete_bike',
+  EXPLORE_DASHBOARD: 'explore_dashboard',
+} as const;
 
 export interface ChecklistItem {
   id: string;
@@ -12,7 +21,7 @@ export interface ChecklistItem {
   goalRelation: string;
 }
 
-interface ChecklistState {
+export interface ChecklistState {
   items: ChecklistItem[];
   completedItems: string[];
   dismissed: boolean;
@@ -26,41 +35,64 @@ interface ChecklistState {
 /** All possible checklist items — ordered by goal relevance */
 export const ALL_CHECKLIST_ITEMS: ChecklistItem[] = [
   {
-    id: 'first_ride',
+    id: CHECKLIST_ITEM_ID.FIRST_RIDE,
     labelKey: 'checklist.seeFirstRideStats',
     icon: 'MapPin',
     deepLink: PROFILE_ROUTE.RIDES,
     goalRelation: 'track_rides',
   },
   {
-    id: 'browse_routes',
+    id: CHECKLIST_ITEM_ID.BROWSE_ROUTES,
     labelKey: 'checklist.findRouteNearYou',
     icon: 'Compass',
     deepLink: TAB_ROUTE.DISCOVER,
     goalRelation: 'discover_routes',
   },
   {
-    id: 'first_expense',
+    // Routing is resolved dynamically in the consumer (needs a motorcycleId) —
+    // this is the no-bike fallback / documentation of the intended destination.
+    id: CHECKLIST_ITEM_ID.FIRST_EXPENSE,
     labelKey: 'checklist.trackFirstExpense',
     icon: 'Wallet',
-    deepLink: TAB_ROUTE.GARAGE,
+    deepLink: GARAGE_ROUTE.EXPENSE_DASHBOARD,
     goalRelation: 'manage_expenses',
   },
   {
-    id: 'complete_bike',
+    id: CHECKLIST_ITEM_ID.COMPLETE_BIKE,
     labelKey: 'checklist.completeBikeProfile',
     icon: 'Bike',
     deepLink: TAB_ROUTE.GARAGE,
     goalRelation: 'maintain_bike',
   },
   {
-    id: 'explore_dashboard',
+    id: CHECKLIST_ITEM_ID.EXPLORE_DASHBOARD,
     labelKey: 'checklist.exploreDashboard',
     icon: 'LayoutDashboard',
     deepLink: TAB_ROUTE.HOME,
     goalRelation: 'just_exploring',
   },
 ];
+
+/**
+ * Persist migration. v3 refreshes each persisted item's `deepLink` from source
+ * IN PLACE — preserving the user's progress (completedItems/dismissed) and
+ * keeping the card visible. (The pre-v3 approach reset items:[] +
+ * initialized:false, but `initialize` only runs at onboarding completion, so
+ * already-onboarded users would lose the card permanently and never receive the
+ * corrected first_expense link.) Items with no matching source pass through
+ * unchanged. Exported for unit testing.
+ */
+export function migrateChecklistState(persisted: unknown, version: number): ChecklistState {
+  const prev = persisted as ChecklistState;
+  if (version < 3) {
+    const items = (prev.items ?? []).map((item) => {
+      const source = ALL_CHECKLIST_ITEMS.find((ci) => ci.id === item.id);
+      return source ? { ...item, deepLink: source.deepLink } : item;
+    });
+    return { ...prev, items };
+  }
+  return prev;
+}
 
 /** Build a personalized checklist ordered by the user's goals */
 function buildChecklist(goals: string[]): ChecklistItem[] {
@@ -116,16 +148,10 @@ export const useChecklistStore = create<ChecklistState>()(
     }),
     {
       name: 'checklist-state',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => createZustandMMKVStorage('checklist-store')),
       partialize: ({ initialize, completeItem, dismiss, reset, ...data }) => data,
-      migrate: (persisted, version) => {
-        if (version < 2) {
-          // v2: deep links changed — force re-initialization so items rebuild from source
-          return { ...(persisted as object), initialized: false, items: [] };
-        }
-        return persisted as ChecklistState;
-      },
+      migrate: migrateChecklistState,
     },
   ),
 );

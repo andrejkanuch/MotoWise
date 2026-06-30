@@ -3,6 +3,7 @@ import { format, isSaturday, isSunday, parseISO } from 'date-fns';
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { queryKeys } from '../lib/query-keys';
+import { requestForegroundLocationPermission } from '../utils/location-permission';
 
 // --- Open-Meteo API types ---
 
@@ -60,7 +61,7 @@ export interface ResolvedWeatherLocation {
  */
 export async function resolveWeatherLocation(): Promise<ResolvedWeatherLocation> {
   try {
-    const { status } = await Location.requestForegroundPermissionsAsync();
+    const { status } = await requestForegroundLocationPermission();
     if (status !== 'granted') return { status: 'denied', coords: null };
 
     const point =

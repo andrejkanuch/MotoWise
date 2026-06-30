@@ -36,7 +36,8 @@ export const NearYouSection = memo(function NearYouSection({
   const { t: theme } = useEditorialTheme();
   const { t: i18n } = useTranslation();
   const reducedMotion = useReducedMotion();
-  const { data: userCountry } = useUserCountry();
+  const { data: detected } = useUserCountry();
+  const userCountry = detected?.countryCode ?? null;
 
   const { data: tripsData } = useQuery({
     queryKey: queryKeys.tripTemplates.list(`near-you-${userCountry}`),

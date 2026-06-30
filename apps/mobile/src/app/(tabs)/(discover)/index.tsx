@@ -53,6 +53,7 @@ import { NearYouSection } from '../../../components/discover/near-you-section';
 import { DraftTripStrip } from '../../../components/discover/planner/draft-trip-strip';
 import { TypeaheadSearch } from '../../../components/discover/typeahead-search';
 import { WeatherStrip } from '../../../components/discover/weather-strip';
+import { useUserCountry } from '../../../hooks/use-user-country';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
@@ -523,6 +524,11 @@ export default function DiscoverScreen() {
   const reducedMotion = useReducedMotion();
   const [mapStyle] = useState(() => getDefaultMapStyle(isDark));
 
+  // Device location (also drives "near you" rides) — used to center the map on
+  // the rider instead of the hardcoded fallback.
+  const { data: detectedLocation } = useUserCountry();
+  const userCoords = detectedLocation?.coords ?? null;
+
   // Map collapse state
   const [mapExpanded, setMapExpanded] = useState(true);
 
@@ -848,11 +854,20 @@ export default function DiscoverScreen() {
             >
               <MapboxGL.Camera
                 ref={cameraRef}
-                defaultSettings={{
-                  centerCoordinate: [12.4964, 41.9028],
-                  zoomLevel: 4,
-                }}
+                {...(userCoords
+                  ? {
+                      centerCoordinate: [userCoords.longitude, userCoords.latitude],
+                      zoomLevel: 9,
+                      animationMode: 'flyTo' as const,
+                      animationDuration: 600,
+                    }
+                  : {
+                      centerCoordinate: [12.4964, 41.9028],
+                      zoomLevel: 4,
+                    })}
               />
+
+              {userCoords && <MapboxGL.LocationPuck />}
 
               {routeGeoJSON.features.length > 0 && (
                 <MapboxGL.ShapeSource
@@ -940,7 +955,7 @@ export default function DiscoverScreen() {
               lineHeight: 30,
             }}
           >
-            Discover
+            {i18n('tabs.discover')}
           </Text>
 
           <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>

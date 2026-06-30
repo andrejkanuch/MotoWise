@@ -5,7 +5,7 @@ import * as Notifications from 'expo-notifications';
 import { logger } from './logger';
 
 /** Notification `data.kind` discriminator — shared with the tap handler in _layout. */
-export const NOTIFICATION_KIND = { DOCUMENT: 'document' } as const;
+export const NOTIFICATION_KIND = { DOCUMENT: 'document', MAINTENANCE: 'maintenance' } as const;
 
 /** iOS UNNotificationCategory identifiers (also the Android channel-less category key). */
 export const NOTIFICATION_CATEGORY = {

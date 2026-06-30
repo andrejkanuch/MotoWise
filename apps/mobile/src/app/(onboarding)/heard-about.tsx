@@ -83,12 +83,14 @@ export default function HeardAboutScreen() {
     timerRef.current = setTimeout(goNext, ADVANCE_DELAY_MS);
   };
 
-  // Skip advances without recording a source — `heard_from` stays unset and no
-  // referral_source_selected event fires (KTD-10).
+  // Skip advances without recording a source — `heard_from` stays unset (KTD-10),
+  // but we DO emit a skip event so the skip rate is measurable (MOT-272). A high
+  // skip rate signals the screen's placement may need to move earlier.
   const handleSkip = () => {
     if (advancedRef.current) return;
     advancedRef.current = true;
     setLastCompletedScreen(OB_SCREEN.HEARD_ABOUT);
+    trackOnboardingEvent(AnalyticsEvent.REFERRAL_SOURCE_SKIPPED, OB_SCREEN.HEARD_ABOUT);
     goNext();
   };
 

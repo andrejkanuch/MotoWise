@@ -710,6 +710,13 @@ function RootLayout() {
           motorcycleId?: string;
         };
 
+        // MOT-272: measure reminder opens (paired with REMINDER_SCHEDULED) so the
+        // local-reminder loop is no longer a blind spot.
+        trackEvent(AnalyticsEvent.REMINDER_OPENED, {
+          kind: data?.kind ?? NOTIFICATION_KIND.MAINTENANCE,
+          action: actionId,
+        });
+
         // Document expiry reminders: tap or "View" deep-links to the document.
         if (data?.kind === NOTIFICATION_KIND.DOCUMENT && data.documentId) {
           if (actionId !== NOTIFICATION_ACTION.SNOOZE_1D) {

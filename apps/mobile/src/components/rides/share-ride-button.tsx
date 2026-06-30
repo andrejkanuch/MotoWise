@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Share, Text, useColorScheme } from 'react-native';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
-import { maybeRequestReview } from '../../lib/store-review';
+import { maybeRequestReview, REVIEW_MILESTONE } from '../../lib/store-review';
 import { triggerImpact } from '../../utils/haptics';
 
 const BASE_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://motovault.app';
@@ -66,7 +66,7 @@ export function ShareRideButton({ rideId, rideName, isPublic, compact }: ShareRi
           : shareUrl,
         url: shareUrl,
       });
-      maybeRequestReview();
+      maybeRequestReview(REVIEW_MILESTONE.RIDE_SHARED);
     } catch {
       // Step 3: On error — Alert, do NOT open share sheet
       Alert.alert(t('common.error'), t('community.shareFailed'));
