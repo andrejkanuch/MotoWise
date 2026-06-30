@@ -57,6 +57,7 @@ export function ActiveRideBanner({
         gap: 12,
         backgroundColor: c.surface,
         borderRadius: 16,
+        borderCurve: 'continuous',
         borderWidth: 1,
         borderColor: tint(tintColor, 0.3),
         paddingVertical: 12,

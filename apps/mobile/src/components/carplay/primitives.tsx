@@ -85,12 +85,21 @@ export function PulseDot({ color, size = 9 }: { color: string; size?: number }) 
             width: size,
             height: size,
             borderRadius: size / 2,
+            borderCurve: 'continuous',
             backgroundColor: color,
           },
           ring,
         ]}
       />
-      <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: color }} />
+      <View
+        style={{
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          borderCurve: 'continuous',
+          backgroundColor: color,
+        }}
+      />
     </View>
   );
 }
@@ -98,7 +107,15 @@ export function PulseDot({ color, size = 9 }: { color: string; size?: number }) 
 // Static dot (paused / acquiring — no pulse; stillness reads as not-live).
 export function StaticDot({ color, size = 9 }: { color: string; size?: number }) {
   return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: color }} />
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        borderCurve: 'continuous',
+        backgroundColor: color,
+      }}
+    />
   );
 }
 
@@ -110,6 +127,7 @@ export function CardGroup({ children, style }: { children: ReactNode; style?: Vi
       style={{
         backgroundColor: c.surface,
         borderRadius: 16,
+        borderCurve: 'continuous',
         borderWidth: 1,
         borderColor: c.line,
         overflow: 'hidden',
@@ -131,6 +149,7 @@ export function CautionRow({ children }: { children: ReactNode }) {
         borderColor: tint(c.warm, 0.3),
         borderWidth: 1,
         borderRadius: 14,
+        borderCurve: 'continuous',
         padding: 14,
         marginTop: 10,
       }}

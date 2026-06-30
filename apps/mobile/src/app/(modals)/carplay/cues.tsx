@@ -88,6 +88,7 @@ export default function CarPlayCuesScreen() {
             width: 34,
             height: 34,
             borderRadius: 17,
+            borderCurve: 'continuous',
             backgroundColor: c.surface,
             borderWidth: 1,
             borderColor: c.line,
@@ -172,6 +173,7 @@ export default function CarPlayCuesScreen() {
                   paddingVertical: 13,
                   paddingHorizontal: 6,
                   borderRadius: 13,
+                  borderCurve: 'continuous',
                   backgroundColor: sel ? tint(c.warm, 0.14) : c.surface,
                   borderWidth: 1.5,
                   borderColor: sel ? c.warm : c.line,
@@ -201,6 +203,7 @@ export default function CarPlayCuesScreen() {
             gap: 9,
             height: 52,
             borderRadius: 14,
+            borderCurve: 'continuous',
             backgroundColor: c.warm,
           }}
         >
@@ -273,6 +276,7 @@ function ToggleRow({
           width: 34,
           height: 34,
           borderRadius: 10,
+          borderCurve: 'continuous',
           backgroundColor: c.surface2,
           alignItems: 'center',
           justifyContent: 'center',

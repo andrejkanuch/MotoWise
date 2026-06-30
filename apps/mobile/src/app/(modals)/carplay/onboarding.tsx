@@ -158,6 +158,7 @@ export default function CarPlayOnboardingScreen() {
                 width: i === page ? 20 : 7,
                 height: 7,
                 borderRadius: 4,
+                borderCurve: 'continuous',
                 backgroundColor: i === page ? c.warm : c.surface3,
               }}
             />
@@ -168,6 +169,7 @@ export default function CarPlayOnboardingScreen() {
           style={{
             height: 54,
             borderRadius: 16,
+            borderCurve: 'continuous',
             backgroundColor: c.warm,
             alignItems: 'center',
             justifyContent: 'center',
@@ -237,6 +239,7 @@ function MiniMode({ title, sub, selected }: { title: string; sub: string; select
       style={{
         backgroundColor: c.surface,
         borderRadius: 16,
+        borderCurve: 'continuous',
         borderWidth: 1.5,
         borderColor: selected ? c.warm : c.line,
         paddingVertical: 15,
@@ -251,6 +254,7 @@ function MiniMode({ title, sub, selected }: { title: string; sub: string; select
           width: 20,
           height: 20,
           borderRadius: 10,
+          borderCurve: 'continuous',
           borderWidth: 2,
           borderColor: selected ? c.warm : c.ink4,
           alignItems: 'center',
@@ -258,7 +262,15 @@ function MiniMode({ title, sub, selected }: { title: string; sub: string; select
         }}
       >
         {selected && (
-          <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: c.warm }} />
+          <View
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: 5,
+              borderCurve: 'continuous',
+              backgroundColor: c.warm,
+            }}
+          />
         )}
       </View>
       <View style={{ flex: 1 }}>
@@ -275,8 +287,23 @@ function MiniMode({ title, sub, selected }: { title: string; sub: string; select
 function MiniTile() {
   const { t: c } = useEditorialTheme();
   return (
-    <View style={{ width: 300, backgroundColor: c.bg2, borderRadius: 14, padding: 8 }}>
-      <View style={{ backgroundColor: c.surface, borderRadius: 7, overflow: 'hidden' }}>
+    <View
+      style={{
+        width: 300,
+        backgroundColor: c.bg2,
+        borderRadius: 14,
+        borderCurve: 'continuous',
+        padding: 8,
+      }}
+    >
+      <View
+        style={{
+          backgroundColor: c.surface,
+          borderRadius: 7,
+          borderCurve: 'continuous',
+          overflow: 'hidden',
+        }}
+      >
         <View
           style={{
             paddingTop: 10,

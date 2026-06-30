@@ -64,6 +64,7 @@ export default function CarPlayHubScreen() {
             width: 34,
             height: 34,
             borderRadius: 17,
+            borderCurve: 'continuous',
             backgroundColor: c.surface,
             borderWidth: 1,
             borderColor: c.line,
@@ -114,6 +115,7 @@ export default function CarPlayHubScreen() {
                   marginTop: 12,
                   backgroundColor: c.surface2,
                   borderRadius: 12,
+                  borderCurve: 'continuous',
                   borderWidth: 1,
                   borderColor: c.line,
                   paddingVertical: 10,
@@ -168,6 +170,7 @@ export default function CarPlayHubScreen() {
           style={{
             backgroundColor: c.surface,
             borderRadius: 18,
+            borderCurve: 'continuous',
             borderWidth: 1,
             borderColor: c.line,
             padding: 12,
@@ -177,13 +180,21 @@ export default function CarPlayHubScreen() {
           }}
         >
           <View
-            style={{ width: 56, height: 56, borderRadius: 14, padding: 2, backgroundColor: c.warm }}
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              padding: 2,
+              backgroundColor: c.warm,
+            }}
           >
             {/* TODO(carplay): bike primaryPhotoUrl */}
             <View
               style={{
                 flex: 1,
                 borderRadius: 12,
+                borderCurve: 'continuous',
                 backgroundColor: c.surface3,
                 borderWidth: 2,
                 borderColor: c.bg,
@@ -214,6 +225,7 @@ export default function CarPlayHubScreen() {
               marginTop: 12,
               backgroundColor: tint(c.warm, 0.12),
               borderRadius: 14,
+              borderCurve: 'continuous',
               borderWidth: 1,
               borderColor: tint(c.warm, 0.3),
               paddingVertical: 12,
@@ -277,6 +289,7 @@ function RadioCard({
       style={{
         backgroundColor: c.surface,
         borderRadius: 18,
+        borderCurve: 'continuous',
         borderWidth: 1.5,
         borderColor: selected ? c.warm : c.line,
         padding: 16,
@@ -288,6 +301,7 @@ function RadioCard({
             width: 22,
             height: 22,
             borderRadius: 11,
+            borderCurve: 'continuous',
             marginTop: 1,
             borderWidth: 2,
             borderColor: selected ? c.warm : c.ink4,
@@ -296,7 +310,15 @@ function RadioCard({
           }}
         >
           {selected && (
-            <View style={{ width: 11, height: 11, borderRadius: 6, backgroundColor: c.warm }} />
+            <View
+              style={{
+                width: 11,
+                height: 11,
+                borderRadius: 6,
+                borderCurve: 'continuous',
+                backgroundColor: c.warm,
+              }}
+            />
           )}
         </View>
         <View style={{ flex: 1 }}>
@@ -314,6 +336,7 @@ function RadioCard({
                   color: INK_ON_COPPER,
                   backgroundColor: c.warm,
                   borderRadius: 5,
+                  borderCurve: 'continuous',
                   paddingHorizontal: 6,
                   paddingVertical: 2,
                   overflow: 'hidden',
