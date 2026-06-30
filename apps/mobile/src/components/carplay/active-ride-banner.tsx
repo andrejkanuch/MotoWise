@@ -47,10 +47,15 @@ export function ActiveRideBanner({
   const tintColor =
     state === 'armedAuto' || state === 'manualIdle' ? c.ink3 : stateTint(cfg.state, c);
   const isAcquiring = state === 'acquiring';
+  const metricsLabel = cfg.metrics ? (isAcquiring ? '— km · —:—' : `${distance} · ${time}`) : '';
+  const a11yLabel = [word, metricsLabel, cfg.sub].filter(Boolean).join(' · ');
 
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={a11yLabel}
+      accessibilityHint={cfg.sub}
       style={{
         flexDirection: 'row',
         alignItems: 'center',

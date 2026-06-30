@@ -60,6 +60,8 @@ export default function CarPlayHubScreen() {
         <Pressable
           onPress={() => router.back()}
           hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={t('carplay.a11y.back', { defaultValue: 'Back' })}
           style={{
             width: 34,
             height: 34,
@@ -286,6 +288,9 @@ function RadioCard({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="radio"
+      accessibilityState={{ checked: selected }}
+      accessibilityLabel={title}
       style={{
         backgroundColor: c.surface,
         borderRadius: 18,
@@ -370,6 +375,7 @@ function NavRow({
       style={{
         flexDirection: 'row',
         alignItems: 'center',
+        minHeight: 44,
         paddingVertical: 14,
         paddingHorizontal: 16,
         borderTopWidth: first ? 0 : 1,

@@ -5,6 +5,7 @@
 
 import { CircleDot, LocateFixed, Pause, Square } from 'lucide-react-native';
 import type { ComponentType } from 'react';
+import { View } from 'react-native';
 import { useEditorialTheme } from '../../theme/editorial';
 
 export type RideStateKey = 'recording' | 'autoPaused' | 'paused' | 'acquiring' | 'saved' | 'stop';
@@ -47,5 +48,9 @@ export function StateGlyph({
   const { t: c } = useEditorialTheme();
   const cfg = STATE_CONFIG[state];
   const tintColor = color ?? c[cfg.tintKey];
-  return <cfg.Glyph size={size} color={tintColor} strokeWidth={2} />;
+  return (
+    <View accessibilityElementsHidden={true} importantForAccessibility="no-hide-descendants">
+      <cfg.Glyph size={size} color={tintColor} strokeWidth={2} />
+    </View>
+  );
 }

@@ -84,6 +84,8 @@ export default function CarPlayCuesScreen() {
         <Pressable
           onPress={() => router.back()}
           hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={t('carplay.a11y.back', { defaultValue: 'Back' })}
           style={{
             width: 34,
             height: 34,
@@ -163,6 +165,7 @@ export default function CarPlayCuesScreen() {
               <Pressable
                 key={tn.key}
                 disabled={!audioOn}
+                accessibilityState={{ disabled: !audioOn }}
                 onPress={() => {
                   triggerImpact();
                   setTone(tn.key);
@@ -272,6 +275,8 @@ function ToggleRow({
       }}
     >
       <View
+        accessibilityElementsHidden={true}
+        importantForAccessibility="no-hide-descendants"
         style={{
           width: 34,
           height: 34,

@@ -4,7 +4,7 @@
 // and commit the chosen mode to the start-mode pref.
 
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   type NativeScrollEvent,
@@ -34,6 +34,7 @@ export default function CarPlayOnboardingScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const [page, setPage] = useState(0);
+  const scrollRef = useRef<ScrollView>(null);
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const p = Math.round(e.nativeEvent.contentOffset.x / width);
@@ -43,6 +44,11 @@ export default function CarPlayOnboardingScreen() {
     }
   };
 
+  // Advance the pager from the CTA — "Continue" must actually move forward, not
+  // just buzz (the swipe is otherwise the only way ahead, unreachable for some
+  // riders). onMomentumScrollEnd then updates the page + fires the haptic.
+  const goToNextPage = () => scrollRef.current?.scrollTo({ x: (page + 1) * width, animated: true });
+
   const finish = () => {
     triggerImpact();
     router.back(); // TODO(carplay): mark onboarding seen + commit selected mode
@@ -51,7 +57,13 @@ export default function CarPlayOnboardingScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <View style={{ position: 'absolute', top: insets.top + 8, right: 18, zIndex: 2 }}>
-        <Pressable onPress={() => router.back()} hitSlop={10}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={t('carplay.onboarding.skip', { defaultValue: 'Skip' })}
+          style={{ paddingVertical: 12 }}
+        >
           <Text style={{ fontSize: 14, fontWeight: '600', color: c.ink3 }}>
             {t('carplay.onboarding.skip', { defaultValue: 'Skip' })}
           </Text>
@@ -59,6 +71,7 @@ export default function CarPlayOnboardingScreen() {
       </View>
 
       <ScrollView
+        ref={scrollRef}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
@@ -165,7 +178,8 @@ export default function CarPlayOnboardingScreen() {
           ))}
         </View>
         <Pressable
-          onPress={page < 2 ? () => triggerImpact() : finish}
+          onPress={page < 2 ? goToNextPage : finish}
+          accessibilityRole="button"
           style={{
             height: 54,
             borderRadius: 16,
@@ -288,6 +302,8 @@ function MiniTile() {
   const { t: c } = useEditorialTheme();
   return (
     <View
+      accessibilityElementsHidden={true}
+      importantForAccessibility="no-hide-descendants"
       style={{
         width: 300,
         backgroundColor: c.bg2,
