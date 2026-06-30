@@ -1800,7 +1800,10 @@
     "typeLabel": "Tipo",
     "periodOfDayLabel": "Periodo del día",
     "periodOfDayHint": "Agrupa esta parada bajo el bloque correcto en la lista del día. Opcional.",
-    "notesLabel": "Notas"
+    "notesLabel": "Notas",
+    "modeShowcase": "Already rode it",
+    "modePlanning": "Planning",
+    "dayHeaderShort": "Day {{day}}"
   },
   "groupRide": {
     "titleLabel": "Titulo",

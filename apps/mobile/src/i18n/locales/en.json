@@ -1711,12 +1711,12 @@
     "draft": "DRAFT",
     "draftCount_one": "{{count}} draft — tap to finish",
     "draftCount_other": "{{count}} drafts — tap to finish",
-    "visibilityPrivate": "Private",
-    "visibilityUnlisted": "Link only",
-    "visibilityPublic": "Public",
-    "visibilityPrivateDesc": "Not on Discover. You and people you invite only.",
-    "visibilityUnlistedDesc": "Not on Discover. Anyone with the link can open it.",
-    "visibilityPublicDesc": "On Discover. Anyone can find and view the listing.",
+    "visibilityPrivate": "Only you",
+    "visibilityUnlisted": "Anyone with the link",
+    "visibilityPublic": "Shown in Discover & Explore",
+    "visibilityPrivateDesc": "Only visible to you. Not on Discover.",
+    "visibilityUnlistedDesc": "Anyone with your share link can view it. Not on Discover.",
+    "visibilityPublicDesc": "Anyone can find, view, and clone it on Discover & Explore.",
     "difficultyEasy": "Chill",
     "difficultyModerate": "Spirited",
     "difficultyChallenging": "Technical",
@@ -1804,7 +1804,10 @@
     "typeLabel": "Type",
     "periodOfDayLabel": "Period of day",
     "periodOfDayHint": "Groups this stop under the right block on the day list. Optional.",
-    "notesLabel": "Notes"
+    "notesLabel": "Notes",
+    "modeShowcase": "Already rode it",
+    "modePlanning": "Planning",
+    "dayHeaderShort": "Day {{day}}"
   },
   "groupRide": {
     "titleLabel": "Title",
@@ -2093,7 +2096,7 @@
     "pick": "Pick",
     "editorsPick": "Editor's Pick",
     "metersUnit": "m",
-    "ridersCount": "· {{riders}} riders",
+    "ridersCount": "· {{riders}} cloned",
     "openingDiscover": "Opening Discover…"
   },
   "saved": {

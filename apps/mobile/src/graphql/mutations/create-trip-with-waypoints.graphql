@@ -5,6 +5,7 @@ mutation CreateTripWithWaypoints($input: CreateTripWithWaypointsInput!) {
     description
     startDate
     endDate
+    datesPending
     difficulty
     maxRiders
     status

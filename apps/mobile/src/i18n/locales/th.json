@@ -1799,7 +1799,10 @@
     "coPlanner": "ผู้ร่วมวางแผน",
     "cloneThisTrip": "โคลนทริปนี้",
     "imIn": "ฉันเข้าร่วม",
-    "exportGpx": "Export GPX"
+    "exportGpx": "Export GPX",
+    "modeShowcase": "Already rode it",
+    "modePlanning": "Planning",
+    "dayHeaderShort": "Day {{day}}"
   },
   "groupRide": {
     "titleLabel": "ชื่อ",

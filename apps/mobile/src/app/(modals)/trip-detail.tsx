@@ -407,14 +407,17 @@ export default function TripDetailScreen() {
   }, [trip, waypoints, readiness, tripId]);
 
   const tripDays = useMemo(() => {
-    if (trip?.isTemplate) {
+    // Templates and dateless showcases carry their day structure in dayCount,
+    // not a date span — using the date math would yield 1 (sentinel diff) and
+    // mask the real value.
+    if (trip?.isTemplate || trip?.datesPending) {
       const dc = trip.dayCount;
       if (dc != null && dc > 0) return dc;
     }
     if (!trip?.startDate || !trip?.endDate) return 1;
     const ms = new Date(trip.endDate).getTime() - new Date(trip.startDate).getTime();
     return Math.max(1, Math.round(ms / 86_400_000) + 1);
-  }, [trip?.isTemplate, trip?.dayCount, trip?.startDate, trip?.endDate]);
+  }, [trip?.isTemplate, trip?.datesPending, trip?.dayCount, trip?.startDate, trip?.endDate]);
 
   const [collapsedDays, setCollapsedDays] = useState<Record<number, boolean>>({});
 
@@ -439,14 +442,15 @@ export default function TripDetailScreen() {
 
   const formatDayDate = useCallback(
     (dayIndex: number): string => {
-      if (trip?.isTemplate) return `Day ${dayIndex + 1}`;
+      // No calendar date for templates or dateless showcases — just "Day N".
+      if (trip?.isTemplate || trip?.datesPending) return `Day ${dayIndex + 1}`;
       if (!trip?.startDate) return `Day ${dayIndex + 1}`;
       const date = new Date(trip.startDate);
       date.setDate(date.getDate() + dayIndex);
       const formatted = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
       return `Day ${dayIndex + 1} — ${formatted}`;
     },
-    [trip?.isTemplate, trip?.startDate],
+    [trip?.isTemplate, trip?.datesPending, trip?.startDate],
   );
 
   const waypointCoords = useMemo<[number, number][]>(
@@ -520,6 +524,11 @@ export default function TripDetailScreen() {
   const difficultyLabel = DIFFICULTY_LABELS[difficultyKey] ?? 'Chill';
 
   const isTemplate = trip?.isTemplate === true;
+  // A dateless trip (showcase / "Already rode it") carries sentinel dates +
+  // dates_pending=true. Date UI must be suppressed for it just as it is for
+  // templates — gate date/roster rendering on showDates, not isTemplate alone.
+  const isDateless = trip?.datesPending === true;
+  const showDates = !isTemplate && !isDateless;
 
   // Polyline-based route line for template map preview
   const polylineRoute = useMemo(() => {
@@ -934,7 +943,7 @@ export default function TripDetailScreen() {
                   {waypoints.length === 1 ? 'stop' : 'stops'}
                 </Text>
               </View>
-              {!isTemplate && (
+              {showDates && (
                 <View
                   style={{
                     width: 1,
@@ -943,7 +952,7 @@ export default function TripDetailScreen() {
                   }}
                 />
               )}
-              {!isTemplate && (
+              {showDates && (
                 <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
                   <Text
                     style={{
@@ -970,8 +979,8 @@ export default function TripDetailScreen() {
               )}
             </Animated.View>
 
-            {/* Date + organiser compact row — hidden for templates */}
-            {!isTemplate && (
+            {/* Date + organiser compact row — hidden for templates and dateless showcases */}
+            {showDates && (
               <Animated.View
                 entering={FadeInUp.delay(120).duration(220)}
                 style={{

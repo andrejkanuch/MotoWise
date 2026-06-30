@@ -59,6 +59,10 @@ export class TripTemplatesService {
       .select(TRIP_DETAIL_SELECT)
       .eq('is_template', true)
       .eq('is_flagged', false)
+      // Defense-in-depth: this runs on the admin client (RLS bypassed), so a
+      // non-public row promoted to is_template would otherwise leak. (per-table
+      // adminClient rule — supabase-admin-client-on-public-queries learning)
+      .eq('visibility', 'public')
       .order('published_at', { ascending: false })
       .order('id', { ascending: false })
       .limit(limit + 1);
@@ -164,7 +168,9 @@ export class TripTemplatesService {
         `${TRIP_DETAIL_SELECT}, trip_waypoints(id, trip_id, sort_order, day_index, type, name, lat, lng, notes, period_of_day)`,
       )
       .eq('is_template', true)
-      .eq('is_flagged', false);
+      .eq('is_flagged', false)
+      // Defense-in-depth on the admin client (see listTemplates).
+      .eq('visibility', 'public');
     const { data, error } = await applySlugFilters(query, country, region, slug).single();
 
     if (error || !data) throw new NotFoundException('Template not found');
@@ -259,9 +265,15 @@ export class TripTemplatesService {
     // Compute start coords
     const startWp = waypoints?.find((w) => w.type === 'start') ?? (waypoints ? waypoints[0] : null);
 
-    // Publish: SET is_template=true + published_at=now()
+    // Publish: SET is_template=true + published_at=now(). A discoverable
+    // template must also be visibility='public' and a non-draft status —
+    // otherwise the (admin-client) template feeds would surface a row that is
+    // conceptually a private draft (privacy leak). Mirror shareRideAsTrip's
+    // { status: 'published', visibility: 'public' } promoted shape.
     const update: Record<string, unknown> = {
       is_template: true,
+      visibility: 'public',
+      status: 'published',
       published_at: new Date().toISOString(),
       slug,
       day_count: dayCount,
@@ -379,6 +391,7 @@ export class TripTemplatesService {
       .select('country_code, region_code, slug, updated_at')
       .eq('is_template', true)
       .eq('is_flagged', false)
+      .eq('visibility', 'public')
       .not('country_code', 'is', null)
       .not('region_code', 'is', null)
       .not('slug', 'is', null)
@@ -434,6 +447,7 @@ export class TripTemplatesService {
       .select(TRIP_DETAIL_SELECT)
       .eq('is_template', true)
       .eq('is_flagged', false)
+      .eq('visibility', 'public')
       .eq('country_code', country.toUpperCase())
       .neq('id', source.id)
       .gte('day_count', minDays)

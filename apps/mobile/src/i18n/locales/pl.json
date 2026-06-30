@@ -1801,7 +1801,10 @@
     "typeLabel": "Typ",
     "periodOfDayLabel": "Pora dnia",
     "periodOfDayHint": "Grupuje ten przystanek pod właściwym blokiem na liście dnia. Opcjonalne.",
-    "notesLabel": "Notatki"
+    "notesLabel": "Notatki",
+    "modeShowcase": "Already rode it",
+    "modePlanning": "Planning",
+    "dayHeaderShort": "Day {{day}}"
   },
   "groupRide": {
     "titleLabel": "Tytul",

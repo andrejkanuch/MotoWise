@@ -1801,7 +1801,10 @@
     "typeLabel": "Typ",
     "periodOfDayLabel": "Časť dňa",
     "periodOfDayHint": "Zaradí túto zastávku pod správny blok v zozname dňa. Voliteľné.",
-    "notesLabel": "Poznámky"
+    "notesLabel": "Poznámky",
+    "modeShowcase": "Already rode it",
+    "modePlanning": "Planning",
+    "dayHeaderShort": "Day {{day}}"
   },
   "groupRide": {
     "titleLabel": "Názov",

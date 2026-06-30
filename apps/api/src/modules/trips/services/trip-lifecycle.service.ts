@@ -21,6 +21,7 @@ export interface TripRow {
   description: string;
   start_date: string;
   end_date: string;
+  dates_pending: boolean;
   difficulty: string;
   max_riders: number;
   participant_count: number;
@@ -92,8 +93,14 @@ export interface ParticipantRow {
   } | null;
 }
 
+/**
+ * Sentinel date for dateless trips (showcases, clone drafts). Paired with
+ * dates_pending=true to satisfy chk_trips_date_range (see 00111).
+ */
+export const TRIP_DATE_SENTINEL = '1970-01-01';
+
 export const TRIP_SELECT =
-  'id, title, description, start_date, end_date, difficulty, max_riders, participant_count, status, visibility, cover_image_url, created_at, updated_at, organiser_user_id, users:organiser_user_id(id, display_name, public_username, avatar_url, is_public)';
+  'id, title, description, start_date, end_date, dates_pending, difficulty, max_riders, participant_count, status, visibility, cover_image_url, created_at, updated_at, organiser_user_id, users:organiser_user_id(id, display_name, public_username, avatar_url, is_public)';
 
 /** Base TRIP_SELECT plus template & editorial columns (used by trip detail + template feeds). */
 export const TRIP_DETAIL_SELECT = `${TRIP_SELECT},
@@ -138,6 +145,7 @@ export function mapRowToTrip(row: TripRow, callerUserId?: string, isParticipant 
     description: row.description,
     startDate: row.start_date,
     endDate: row.end_date,
+    datesPending: row.dates_pending ?? false,
     difficulty: row.difficulty,
     maxRiders: row.max_riders,
     participantCount: row.participant_count,
@@ -516,11 +524,13 @@ export class TripLifecycleService {
     input: {
       title: string;
       description: string;
-      startDate: string;
-      endDate: string;
+      startDate?: string;
+      endDate?: string;
       difficulty: string;
       maxRiders: number;
       visibility?: string;
+      isShowcase?: boolean;
+      dayCount?: number;
       waypoints: Array<{
         type: string;
         name: string;
@@ -533,6 +543,17 @@ export class TripLifecycleService {
       }>;
     },
   ): Promise<Trip> {
+    // Showcase ("Already rode it"): a dateless trip. We reuse the established
+    // dates_pending + sentinel-date convention (see 00111_trips_clone_support)
+    // rather than nullable columns, and skip organiser auto-enrolment because a
+    // past trip has no roster.
+    const isShowcase = input.isShowcase === true;
+    // A planned trip must carry dates (enforced by the Zod superRefine); narrow
+    // explicitly rather than casting so the validator dependency is visible.
+    if (!isShowcase && (!input.startDate || !input.endDate)) {
+      throw new BadRequestException('A planned trip requires start and end dates');
+    }
+
     // Create trip
     const { data: tripData, error: tripError } = await this.supabase
       .from('trips')
@@ -540,10 +561,11 @@ export class TripLifecycleService {
         organiser_user_id: userId,
         title: input.title,
         description: input.description,
-        start_date: input.startDate,
-        end_date: input.endDate,
+        start_date: isShowcase ? TRIP_DATE_SENTINEL : input.startDate,
+        end_date: isShowcase ? TRIP_DATE_SENTINEL : input.endDate,
         difficulty: input.difficulty,
         max_riders: input.maxRiders,
+        ...(isShowcase && { dates_pending: true, day_count: input.dayCount ?? 1 }),
         // Privacy feature: default 'private' when not specified. The organizer
         // must explicitly opt in to unlisted/public visibility.
         ...(input.visibility && { visibility: input.visibility }),
@@ -560,29 +582,32 @@ export class TripLifecycleService {
 
     const trip = mapRowToTrip(tripData as unknown as TripRow);
 
-    // Auto-enrol the organiser as the first rider (going). The
-    // trg_update_trip_participant_count trigger bumps participant_count to 1
-    // so the UI can always say "1/N riders" on a fresh trip instead of "0/N".
-    const { error: organiserParticipantError } = await this.supabase
-      .from('trip_participants')
-      .insert({
-        trip_id: trip.id,
-        user_id: userId,
-        role: 'organizer',
-        status: 'going',
-      });
+    // A showcase has no roster — skip organiser auto-enrolment and leave
+    // participantCount at 0. Planned trips auto-enrol the organiser so the UI
+    // can always say "1/N riders" on a fresh trip instead of "0/N".
+    if (!isShowcase) {
+      // The trg_update_trip_participant_count trigger bumps participant_count to 1.
+      const { error: organiserParticipantError } = await this.supabase
+        .from('trip_participants')
+        .insert({
+          trip_id: trip.id,
+          user_id: userId,
+          role: 'organizer',
+          status: 'going',
+        });
 
-    if (organiserParticipantError) {
-      this.logger.error(
-        `createTripWithWaypoints organiser participant failed: ${organiserParticipantError.message} (${organiserParticipantError.code})`,
-      );
-      // Roll back the trip so we don't leak an orphaned row.
-      await this.supabase.from('trips').delete().eq('id', trip.id);
-      throw new InternalServerErrorException('Failed to create trip');
+      if (organiserParticipantError) {
+        this.logger.error(
+          `createTripWithWaypoints organiser participant failed: ${organiserParticipantError.message} (${organiserParticipantError.code})`,
+        );
+        // Roll back the trip so we don't leak an orphaned row.
+        await this.supabase.from('trips').delete().eq('id', trip.id);
+        throw new InternalServerErrorException('Failed to create trip');
+      }
+      // Reflect the trigger's bump in the returned object so callers don't
+      // refetch just to see a count of 1.
+      trip.participantCount = (trip.participantCount ?? 0) + 1;
     }
-    // Reflect the trigger's bump in the returned object so callers don't
-    // refetch just to see a count of 1.
-    trip.participantCount = (trip.participantCount ?? 0) + 1;
 
     // Insert all waypoints in one batch
     if (input.waypoints.length > 0) {
@@ -676,8 +701,7 @@ export class TripLifecycleService {
       }
       const mergedStart = input.startDate ?? (curDates?.start_date as string);
       const mergedEnd = input.endDate ?? (curDates?.end_date as string);
-      const SENTINEL = '1970-01-01';
-      if (mergedStart === SENTINEL && mergedEnd === SENTINEL) {
+      if (mergedStart === TRIP_DATE_SENTINEL && mergedEnd === TRIP_DATE_SENTINEL) {
         update.dates_pending = true;
       } else {
         update.dates_pending = false;

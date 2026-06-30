@@ -1799,7 +1799,10 @@
     "typeLabel": "प्रकार",
     "periodOfDayLabel": "दिन का समय",
     "periodOfDayHint": "इस स्टॉप को दिन की सूची में सही ब्लॉक के अंतर्गत समूहित करता है। वैकल्पिक।",
-    "notesLabel": "नोट्स"
+    "notesLabel": "नोट्स",
+    "modeShowcase": "Already rode it",
+    "modePlanning": "Planning",
+    "dayHeaderShort": "Day {{day}}"
   },
   "groupRide": {
     "titleLabel": "शीर्षक",
