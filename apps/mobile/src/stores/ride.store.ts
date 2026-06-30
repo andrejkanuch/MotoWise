@@ -68,9 +68,19 @@ export const useRideStore = create<RideState>()((set) => ({
     }),
   pauseRide: () => {
     rideMMKV.setStatus('paused');
+    // Stamp the pause start so elapsed time freezes and the duration is banked on
+    // resume — engine-owned, so a pause from CarPlay (no mounted HUD) is counted
+    // identically to one from the phone. Guard against a double-pause overwriting it.
+    if (rideMMKV.getPausedAt() === 0) rideMMKV.setPausedAt(Date.now());
     set({ status: 'paused' });
   },
   resumeRide: () => {
+    // Bank the manual pause that just ended into the persisted total, then clear it.
+    const pausedAt = rideMMKV.getPausedAt();
+    if (pausedAt > 0) {
+      rideMMKV.setTotalPausedMs(rideMMKV.getTotalPausedMs() + (Date.now() - pausedAt));
+      rideMMKV.setPausedAt(0);
+    }
     rideMMKV.setStatus('recording');
     set({ status: 'recording' });
   },

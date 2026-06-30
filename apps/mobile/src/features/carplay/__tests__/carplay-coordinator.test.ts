@@ -196,6 +196,9 @@ describe('carplay-coordinator', () => {
     expect(rideController.startRideSession).toHaveBeenCalledWith(
       expect.objectContaining({ source: 'carplay', motorcycleId: null }),
     );
+    // Stop is guarded: the first press arms a confirm, the second ends.
+    fireAction('stop');
+    expect(rideController.endRideSession).not.toHaveBeenCalled();
     fireAction('stop');
     expect(rideController.endRideSession).toHaveBeenCalledWith('carplay');
   });
@@ -208,9 +211,44 @@ describe('carplay-coordinator', () => {
 
     startCarPlayCoordinator();
     fireConnect();
-    fireAction('stop');
+    fireAction('stop'); // arm
+    fireAction('stop'); // confirm
 
     expect(rideController.buildRideSummaryHref).toHaveBeenCalledWith(summary);
     expect(router.replace).toHaveBeenCalledWith(href);
+  });
+
+  it('guards Stop: first press arms a confirm (no end), second press ends', () => {
+    startCarPlayCoordinator();
+    fireConnect();
+
+    fireAction('stop');
+    expect(rideController.endRideSession).not.toHaveBeenCalled();
+
+    fireAction('stop');
+    expect(rideController.endRideSession).toHaveBeenCalledTimes(1);
+  });
+
+  it('cancels an armed Stop on Keep Riding — the next Stop re-arms instead of ending', () => {
+    startCarPlayCoordinator();
+    fireConnect();
+
+    fireAction('stop'); // arm
+    fireAction('cancelStop'); // keep riding -> disarm
+    fireAction('stop'); // arms again (not a confirm)
+    expect(rideController.endRideSession).not.toHaveBeenCalled();
+  });
+
+  it('auto-disarms an armed Stop after the confirm window', () => {
+    jest.useFakeTimers();
+    startCarPlayCoordinator();
+    fireConnect();
+
+    fireAction('stop'); // arm
+    jest.advanceTimersByTime(5_000); // window elapses -> auto-disarm
+    fireAction('stop'); // a fresh arm, not a confirm
+    expect(rideController.endRideSession).not.toHaveBeenCalled();
+
+    jest.useRealTimers();
   });
 });

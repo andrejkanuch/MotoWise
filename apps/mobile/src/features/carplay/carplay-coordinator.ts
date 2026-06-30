@@ -37,6 +37,10 @@ import {
 } from './carplay-templates';
 
 const THROTTLE_MS = 10_000;
+// How long an armed Stop waits for the confirming second press before it
+// auto-disarms — so a distracted rider never leaves the panel stuck on the
+// confirm. Matches the design's ~5s auto-collapse for the stop guard (R17).
+const STOP_CONFIRM_MS = 5_000;
 
 let started = false;
 const eventSubs: CarPlaySubscription[] = [];
@@ -44,12 +48,41 @@ let unsubStore: (() => void) | null = null;
 let lastState: CarPlayPanelState | null = null;
 let lastPushAt = 0;
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
+// Stop guard: the first Stop press arms a confirm; only a second press ends.
+let stopArmed = false;
+let stopArmTimer: ReturnType<typeof setTimeout> | null = null;
 
 function clearFlush(): void {
   if (flushTimer) {
     clearTimeout(flushTimer);
     flushTimer = null;
   }
+}
+
+function clearStopArmTimer(): void {
+  if (stopArmTimer) {
+    clearTimeout(stopArmTimer);
+    stopArmTimer = null;
+  }
+}
+
+function disarmStop(): void {
+  stopArmed = false;
+  clearStopArmTimer();
+}
+
+/**
+ * Push the current panel immediately, bypassing the throttle. Used for arm/disarm
+ * of the stop guard, where the underlying ride *state* is unchanged (so render()'s
+ * state-transition fast path wouldn't fire) but the title + actions must flip now.
+ */
+function forceRender(now: number = Date.now()): void {
+  clearFlush();
+  const system = useAuthStore.getState().measurementSystem ?? 'metric';
+  const snap = deriveSnapshot(currentRideInput(), system);
+  renderInformation(buildPanelItems(snap, stopArmed));
+  lastState = snap.state;
+  lastPushAt = now;
 }
 
 function currentRideInput(): RideInput {
@@ -77,7 +110,7 @@ function currentRideInput(): RideInput {
 function render(now: number = Date.now()): void {
   const system = useAuthStore.getState().measurementSystem ?? 'metric';
   const snap = deriveSnapshot(currentRideInput(), system);
-  const model = buildPanelItems(snap);
+  const model = buildPanelItems(snap, stopArmed);
 
   if (snap.state !== lastState) {
     // State transition — render immediately (title + available actions change, so
@@ -114,10 +147,11 @@ function render(now: number = Date.now()): void {
 }
 
 function onConnect(): void {
+  disarmStop(); // a fresh connection never inherits a stale armed-stop
   const system = useAuthStore.getState().measurementSystem ?? 'metric';
   const snap = deriveSnapshot(currentRideInput(), system);
   clearInformation(); // ensure the next render builds a fresh root template
-  renderInformation(buildPanelItems(snap)); // projection, not start
+  renderInformation(buildPanelItems(snap, stopArmed)); // projection, not start
   lastState = snap.state;
   lastPushAt = Date.now();
   // Idempotent: onConnect can fire more than once without an intervening
@@ -129,6 +163,7 @@ function onConnect(): void {
 
 function onDisconnect(): void {
   clearFlush();
+  disarmStop();
   unsubStore?.();
   unsubStore = null;
   clearInformation();
@@ -162,12 +197,30 @@ function onAction(actionId: string): void {
         })
         .catch((err) => captureException(err, { source: 'carplay-coordinator.start' }));
       return; // async path owns its own render; skip the synchronous one below
+    case CARPLAY_ACTION.cancelStop:
+      // "Keep Riding" — back out of the armed confirm with no state change.
+      disarmStop();
+      forceRender();
+      return;
     case CARPLAY_ACTION.stop: {
-      // End through the shared controller, then route the phone to the same
-      // ride-summary the phone HUD uses — so a CarPlay Stop and a phone End land on
-      // the identical summary (which owns ride-data cleanup). Guarded: the phone may
-      // be backgrounded with no live navigator. endRideSession returns null on a
-      // double-Stop (already ended), so a second press is a no-op (no duplicate end).
+      // R17 stop guard: the first Stop press arms a confirm (Keep Riding / End Ride)
+      // instead of ending the ride; only the second press ends it. Auto-disarms
+      // after STOP_CONFIRM_MS so the panel never stays stuck on the confirm.
+      if (!stopArmed) {
+        stopArmed = true;
+        clearStopArmTimer();
+        stopArmTimer = setTimeout(() => {
+          disarmStop();
+          forceRender();
+        }, STOP_CONFIRM_MS);
+        forceRender(); // show the confirm immediately (bypass the throttle)
+        return;
+      }
+      // Confirmed. End through the shared controller, then route the phone to the
+      // same ride-summary the phone HUD uses (which owns ride-data cleanup). Guarded:
+      // the phone may be backgrounded with no live navigator. endRideSession returns
+      // null on a double-end (already ended), so this stays a no-op in that race.
+      disarmStop();
       const summary = endRideSession('carplay');
       if (summary) {
         try {
@@ -196,6 +249,7 @@ export function startCarPlayCoordinator(): void {
 export function __resetCarPlayCoordinator(): void {
   started = false;
   clearFlush();
+  disarmStop();
   unsubStore?.();
   unsubStore = null;
   clearInformation();

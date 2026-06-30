@@ -56,6 +56,10 @@ export async function startRideSession({
 
   rideMMKV.setCurrentId(rideId);
   rideMMKV.setStartedAt(Date.now());
+  // Start the pause clock clean — a prior ride's banked/in-progress pause must not
+  // leak into this one's elapsed/duration math.
+  rideMMKV.setTotalPausedMs(0);
+  rideMMKV.setPausedAt(0);
   if (motorcycleId) rideMMKV.setMotorcycleId(motorcycleId);
 
   const store = useRideStore.getState();
@@ -113,7 +117,12 @@ export interface RideEndSummary {
 export function elapsedRideSeconds(now: number = Date.now()): number {
   const startedAt = rideMMKV.getStartedAt();
   if (!startedAt) return 0;
-  return Math.max(0, Math.round((now - startedAt - rideMMKV.getTotalPausedMs()) / 1000));
+  // Subtract banked pauses plus any pause currently in progress, so the clock
+  // freezes while paused — from either surface — without a live UI timer running.
+  const pausedAt = rideMMKV.getPausedAt();
+  const inProgressPauseMs = pausedAt > 0 ? now - pausedAt : 0;
+  const totalPausedMs = rideMMKV.getTotalPausedMs() + inProgressPauseMs;
+  return Math.max(0, Math.round((now - startedAt - totalPausedMs) / 1000));
 }
 
 /**
@@ -179,6 +188,13 @@ export function endRideSession(source: RideSource = 'phone'): RideEndSummary | n
   }
 
   const avgSpeed = speedCount > 0 ? speedSum / speedCount : 0;
+  // If the ride is ended while still paused, bank the in-progress pause first so
+  // both the derived duration and pausedDurationS account for it.
+  const pausedAtEnd = rideMMKV.getPausedAt();
+  if (pausedAtEnd > 0) {
+    rideMMKV.setTotalPausedMs(rideMMKV.getTotalPausedMs() + (Date.now() - pausedAtEnd));
+    rideMMKV.setPausedAt(0);
+  }
   const durationS = elapsedRideSeconds();
   const totalPausedMs = rideMMKV.getTotalPausedMs();
   const totalAutoPausedMs = rideMMKV.getTotalAutoPausedMs();

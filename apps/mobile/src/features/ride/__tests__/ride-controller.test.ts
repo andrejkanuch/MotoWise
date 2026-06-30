@@ -14,13 +14,19 @@ jest.mock('../../../utils/ride-location', () => ({
   distanceMeters: jest.fn(() => 0),
 }));
 jest.mock('../../../utils/ride-storage', () => {
-  const state = { startedAt: 0 as number | undefined, totalPausedMs: 0, currentId: '' };
+  const state = {
+    startedAt: 0 as number | undefined,
+    totalPausedMs: 0,
+    pausedAt: 0,
+    currentId: '',
+  };
   return {
     __state: state,
     rideMMKV: {
       getCurrentId: () => state.currentId,
       getStartedAt: () => state.startedAt,
       getTotalPausedMs: () => state.totalPausedMs,
+      getPausedAt: () => state.pausedAt,
       getTotalAutoPausedMs: () => 0,
       getMotorcycleId: () => 'bike-9',
       getHudLayout: () => 'A',
@@ -29,6 +35,12 @@ jest.mock('../../../utils/ride-storage', () => {
       }),
       setStartedAt: jest.fn(),
       setMotorcycleId: jest.fn(),
+      setTotalPausedMs: jest.fn((ms: number) => {
+        state.totalPausedMs = ms;
+      }),
+      setPausedAt: jest.fn((ms: number) => {
+        state.pausedAt = ms;
+      }),
     },
     flushBufferToMMKV: jest.fn(),
     getPointBuffer: jest.fn(() => []),
@@ -73,6 +85,7 @@ import { elapsedRideSeconds, endRideSession, startRideSession } from '../ride-co
 const mmkvState = (storage as any).__state as {
   startedAt: number | undefined;
   totalPausedMs: number;
+  pausedAt: number;
   currentId: string;
 };
 const checkPerms = perms.checkAndRequestPermissions as jest.Mock;
@@ -88,6 +101,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mmkvState.startedAt = 0;
   mmkvState.totalPausedMs = 0;
+  mmkvState.pausedAt = 0;
   mmkvState.currentId = '';
   store.status = 'recording';
   checkPerms.mockResolvedValue('full');
@@ -104,6 +118,14 @@ describe('elapsedRideSeconds', () => {
     mmkvState.totalPausedMs = 30_000; // 30s paused
     expect(elapsedRideSeconds(1_000_000 + 90_000)).toBe(60); // 90s - 30s
     expect(elapsedRideSeconds(1_000_000 - 5_000)).toBe(0); // clamp
+  });
+
+  it('freezes while paused — subtracts the in-progress pause too', () => {
+    mmkvState.startedAt = 1_000_000;
+    mmkvState.totalPausedMs = 0;
+    mmkvState.pausedAt = 1_000_000 + 60_000; // paused at +60s, still paused
+    // 90s of wall clock, but paused since +60s -> elapsed frozen at 60s
+    expect(elapsedRideSeconds(1_000_000 + 90_000)).toBe(60);
   });
 });
 

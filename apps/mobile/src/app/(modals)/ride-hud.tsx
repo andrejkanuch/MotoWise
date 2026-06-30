@@ -10,7 +10,11 @@ import { Pressable, Text, View } from 'react-native';
 import { HudLayoutA } from '../../components/ride/hud-layout-a';
 import { HudLayoutB } from '../../components/ride/hud-layout-b';
 import { type HudLayout, HudLayoutSwitcher } from '../../components/ride/hud-layout-switcher';
-import { buildRideSummaryHref, endRideSession } from '../../features/ride/ride-controller';
+import {
+  buildRideSummaryHref,
+  elapsedRideSeconds,
+  endRideSession,
+} from '../../features/ride/ride-controller';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useRideStore } from '../../stores/ride.store';
 import { toggleBatterySaver } from '../../utils/ride-location';
@@ -58,8 +62,6 @@ export default function RideHudScreen() {
   const [liveWaypoints, setLiveWaypoints] = useState<Waypoint[]>([]);
   const [gpsAccuracy, setGpsAccuracy] = useState(0);
   const [_syncPending, setSyncPending] = useState(false);
-  const pausedAtRef = useRef<number | null>(null);
-  const totalPausedRef = useRef(0);
 
   // Bottom sheet for minimum ride guard
   const guardSheetRef = useRef<BottomSheet>(null);
@@ -129,38 +131,23 @@ export default function RideHudScreen() {
     };
   }, []);
 
-  // Elapsed timer
+  // Elapsed timer — engine-owned. elapsedRideSeconds() derives from persisted
+  // timestamps and freezes during a pause (it subtracts banked + in-progress pause),
+  // so the HUD no longer tracks pause time itself (that lived here and in CarPlay
+  // divergently; the store's pauseRide/resumeRide now own the single pause clock).
   useEffect(() => {
-    const startedAt = rideMMKV.getStartedAt();
-    if (!startedAt) return;
-
     const interval = setInterval(() => {
-      if (isPaused) return;
-      const now = Date.now();
-      const raw = Math.floor((now - startedAt) / 1000);
-      const paused = Math.floor(totalPausedRef.current / 1000);
-      const elapsed = Math.max(0, raw - paused);
+      const elapsed = elapsedRideSeconds();
       elapsedRef.current = elapsed;
       setElapsedSeconds(elapsed);
       updateElapsedTime(elapsed);
     }, 1000);
     return () => clearInterval(interval);
-  }, [isPaused, updateElapsedTime]);
-
-  // Track pause duration
-  useEffect(() => {
-    if (isPaused) {
-      pausedAtRef.current = Date.now();
-    } else if (pausedAtRef.current) {
-      totalPausedRef.current += Date.now() - pausedAtRef.current;
-      pausedAtRef.current = null;
-    }
-  }, [isPaused]);
+  }, [updateElapsedTime]);
 
   const handlePause = useCallback(() => {
     haptic(Haptics.ImpactFeedbackStyle.Heavy);
-    pauseRide();
-    rideMMKV.setTotalPausedMs(totalPausedRef.current);
+    pauseRide(); // store banks the pause clock (engine-owned, shared with CarPlay)
     trackEvent(AnalyticsEvent.RIDE_PAUSED, {
       ride_id: rideMMKV.getCurrentId() ?? null,
       duration_at_pause_s: elapsedRef.current,
@@ -170,9 +157,9 @@ export default function RideHudScreen() {
 
   const handleResume = useCallback(() => {
     haptic(Haptics.ImpactFeedbackStyle.Heavy);
-    const pauseDuration = pausedAtRef.current
-      ? Math.round((Date.now() - pausedAtRef.current) / 1000)
-      : 0;
+    // Read the pause start before resumeRide() banks + clears it.
+    const pausedAt = rideMMKV.getPausedAt();
+    const pauseDuration = pausedAt > 0 ? Math.round((Date.now() - pausedAt) / 1000) : 0;
     resumeRide();
     trackEvent(AnalyticsEvent.RIDE_RESUMED, {
       ride_id: rideMMKV.getCurrentId() ?? null,

@@ -106,6 +106,14 @@ describe('buildPanelItems', () => {
     expect(model.title).toBe('READY');
     expect(model.items.map((i) => i.title)).toEqual(['Distance', 'Moving', 'Climb', 'Mode']);
   });
+
+  it('shows a stop confirm overlay when armed (Keep Riding leads, then End Ride)', () => {
+    const model = buildPanelItems(deriveSnapshot(base, 'metric'), true);
+    expect(model.title).toBe('STOP RIDE?');
+    // metric rows are unchanged — only the title + actions flip to the confirm
+    expect(model.items.map((i) => i.title)).toEqual(['Speed', 'Distance', 'Moving', 'Climb']);
+    expect(model.actions.map((a) => a.id)).toEqual(['cancelStop', 'stop']);
+  });
 });
 
 describe('buildActions', () => {

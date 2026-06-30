@@ -24,6 +24,7 @@ export const CARPLAY_ACTION = {
   pause: 'pause',
   resume: 'resume',
   stop: 'stop',
+  cancelStop: 'cancelStop',
 } as const;
 
 export type CarPlayActionId = (typeof CARPLAY_ACTION)[keyof typeof CARPLAY_ACTION];
@@ -75,6 +76,9 @@ const STATE_WORD: Record<CarPlayPanelState, string> = {
   idle: 'READY',
 };
 
+// Title shown while a Stop is armed and awaiting confirmation (R17 stop guard).
+const STOP_CONFIRM_TITLE = 'STOP RIDE?';
+
 const MODE_LABEL: Record<StartMode, string> = {
   automatic: 'Automatic',
   manual: 'Manual',
@@ -114,7 +118,7 @@ export function deriveSnapshot(input: RideInput, system: MeasurementSystem): Pan
   };
 }
 
-export function buildPanelItems(s: PanelSnapshot): CPInformationTemplateModel {
+export function buildPanelItems(s: PanelSnapshot, stopArmed = false): CPInformationTemplateModel {
   // Title carries the state word only. Numerics live in rows, not the title: the
   // CarPlay InformationTemplate fixes its title at construction, so fusing a
   // constantly-ticking value into it would force a full re-push on every GPS tick.
@@ -136,6 +140,19 @@ export function buildPanelItems(s: PanelSnapshot): CPInformationTemplateModel {
         { title: 'Climb', detail: s.climb },
         { title: 'Mode', detail: MODE_LABEL[s.startMode] },
       ];
+  if (stopArmed) {
+    // R17 stop guard: a single Stop press arms this confirm rather than ending the
+    // ride outright. "Keep Riding" leads (the safe default) so an accidental tap on
+    // a glance surface never loses a ride; "End Ride" is the deliberate second tap.
+    return {
+      title: STOP_CONFIRM_TITLE,
+      items,
+      actions: [
+        { id: CARPLAY_ACTION.cancelStop, title: 'Keep Riding' },
+        { id: CARPLAY_ACTION.stop, title: 'End Ride' },
+      ],
+    };
+  }
   return { title: STATE_WORD[s.state], items, actions: buildActions(s.state, s.startMode) };
 }
 
