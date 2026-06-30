@@ -21,7 +21,7 @@ export interface ChecklistItem {
   goalRelation: string;
 }
 
-interface ChecklistState {
+export interface ChecklistState {
   items: ChecklistItem[];
   completedItems: string[];
   dismissed: boolean;
@@ -72,6 +72,27 @@ export const ALL_CHECKLIST_ITEMS: ChecklistItem[] = [
     goalRelation: 'just_exploring',
   },
 ];
+
+/**
+ * Persist migration. v3 refreshes each persisted item's `deepLink` from source
+ * IN PLACE — preserving the user's progress (completedItems/dismissed) and
+ * keeping the card visible. (The pre-v3 approach reset items:[] +
+ * initialized:false, but `initialize` only runs at onboarding completion, so
+ * already-onboarded users would lose the card permanently and never receive the
+ * corrected first_expense link.) Items with no matching source pass through
+ * unchanged. Exported for unit testing.
+ */
+export function migrateChecklistState(persisted: unknown, version: number): ChecklistState {
+  const prev = persisted as ChecklistState;
+  if (version < 3) {
+    const items = (prev.items ?? []).map((item) => {
+      const source = ALL_CHECKLIST_ITEMS.find((ci) => ci.id === item.id);
+      return source ? { ...item, deepLink: source.deepLink } : item;
+    });
+    return { ...prev, items };
+  }
+  return prev;
+}
 
 /** Build a personalized checklist ordered by the user's goals */
 function buildChecklist(goals: string[]): ChecklistItem[] {
@@ -130,23 +151,7 @@ export const useChecklistStore = create<ChecklistState>()(
       version: 3,
       storage: createJSONStorage(() => createZustandMMKVStorage('checklist-store')),
       partialize: ({ initialize, completeItem, dismiss, reset, ...data }) => data,
-      migrate: (persisted, version) => {
-        if (version < 3) {
-          // v3: the first_expense deep link changed. Refresh each persisted item's
-          // deepLink from source IN PLACE — preserving the user's progress
-          // (completedItems/dismissed) and keeping the card visible. (The old
-          // approach reset items:[] + initialized:false, but `initialize` only runs
-          // at onboarding completion, so already-onboarded users would lose the card
-          // permanently and never receive the corrected link.)
-          const prev = persisted as ChecklistState;
-          const items = (prev.items ?? []).map((item) => {
-            const source = ALL_CHECKLIST_ITEMS.find((ci) => ci.id === item.id);
-            return source ? { ...item, deepLink: source.deepLink } : item;
-          });
-          return { ...prev, items };
-        }
-        return persisted as ChecklistState;
-      },
+      migrate: migrateChecklistState,
     },
   ),
 );

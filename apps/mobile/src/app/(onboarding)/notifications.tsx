@@ -21,6 +21,16 @@ import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
 /**
+ * The two permission statuses this screen branches on. expo-notifications does
+ * not re-export the `PermissionStatus` enum (unlike expo-location), so mirror
+ * the values as typed constants rather than scattering magic strings.
+ */
+const NOTIFICATION_PERMISSION = {
+  GRANTED: 'granted',
+  DENIED: 'denied',
+} as const;
+
+/**
  * Three benefit rows, each with a two-tier title + subtitle and an icon in a
  * per-row colored rounded tile (copper / blue / teal). No gamification copy.
  */
@@ -174,10 +184,20 @@ export default function NotificationsScreen() {
   const handleEnable = async () => {
     triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
 
-    const { status: existing, canAskAgain } = await Notifications.getPermissionsAsync();
+    // The native permission APIs can reject on some device/simulator states.
+    // Never strand the user on this onboarding step: if we can't even read the
+    // current status, move on rather than leaving the Enable button dead.
+    let current: Awaited<ReturnType<typeof Notifications.getPermissionsAsync>>;
+    try {
+      current = await Notifications.getPermissionsAsync();
+    } catch {
+      navigateForward();
+      return;
+    }
+    const { status: existing, canAskAgain } = current;
 
     // Already denied and can't re-prompt — direct to Settings
-    if (existing === 'denied' && !canAskAgain) {
+    if (existing === NOTIFICATION_PERMISSION.DENIED && !canAskAgain) {
       Alert.alert(
         t('onboarding.v2NotificationsAlreadyDenied'),
         t('onboarding.v2NotificationsOpenSettings'),
@@ -200,17 +220,23 @@ export default function NotificationsScreen() {
     // MOT-272: emit requested/result so the grant rate is measurable — it gates
     // the deferred notification/push retention bets.
     trackOnboardingEvent(AnalyticsEvent.NOTIFICATION_PERMISSION_REQUESTED, OB_SCREEN.NOTIFICATIONS);
-    const { status } = await Notifications.requestPermissionsAsync({
-      ios: { allowAlert: true, allowBadge: true, allowSound: true },
-    });
-    const granted = status === 'granted';
+    let granted = false;
+    try {
+      const { status } = await Notifications.requestPermissionsAsync({
+        ios: { allowAlert: true, allowBadge: true, allowSound: true },
+      });
+      granted = status === NOTIFICATION_PERMISSION.GRANTED;
+      if (granted && process.env.EXPO_OS === 'android') {
+        await setupNotificationChannels();
+      }
+    } catch {
+      // Request (or Android channel setup) rejected — treat as not granted and
+      // continue. RESULT still fires below so it always pairs with REQUESTED.
+      granted = false;
+    }
     trackOnboardingEvent(AnalyticsEvent.NOTIFICATION_PERMISSION_RESULT, OB_SCREEN.NOTIFICATIONS, {
       permission_granted: granted,
     });
-
-    if (granted && process.env.EXPO_OS === 'android') {
-      await setupNotificationChannels();
-    }
 
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.NOTIFICATIONS, {
       permission_granted: granted,
