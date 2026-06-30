@@ -7,6 +7,7 @@
 // Started once on app init (src/app/_layout.tsx). No-ops when the native module
 // is absent (Android / pre-CarPlay build).
 
+import { router } from 'expo-router';
 import {
   addConnectListener,
   addDisconnectListener,
@@ -17,10 +18,16 @@ import {
   renderInformation,
   setActionDispatcher,
 } from '../../../modules/carplay/src';
+import { captureException } from '../../lib/analytics';
 import { useAuthStore } from '../../stores/auth.store';
 import { useCarPlayStore } from '../../stores/carplay.store';
 import { useRideStore } from '../../stores/ride.store';
-import { elapsedRideSeconds, endRideSession, startRideSession } from '../ride/ride-controller';
+import {
+  buildRideSummaryHref,
+  elapsedRideSeconds,
+  endRideSession,
+  startRideSession,
+} from '../ride/ride-controller';
 import {
   buildPanelItems,
   type CarPlayPanelState,
@@ -137,11 +144,21 @@ function onAction(actionId: string): void {
       // listener, MMKV, and server sync all start exactly as a phone-started ride.
       void startRideSession({ motorcycleId: null, source: 'carplay' });
       break;
-    case 'stop':
-      // Ends through the shared controller (no navigation — the HUD may not be
-      // mounted). Aggregates waypoints, stops GPS, and enqueues the server end.
-      endRideSession('carplay');
+    case 'stop': {
+      // End through the shared controller, then route the phone to the same
+      // ride-summary the phone HUD uses — so a CarPlay Stop and a phone End land on
+      // the identical summary (which owns ride-data cleanup). Guarded: the phone may
+      // be backgrounded with no live navigator.
+      const summary = endRideSession('carplay');
+      if (summary) {
+        try {
+          router.replace(buildRideSummaryHref(summary));
+        } catch (err) {
+          captureException(err, { source: 'carplay-coordinator.stop.navigate' });
+        }
+      }
       break;
+    }
   }
   render(Date.now()); // reflect the new state immediately
 }

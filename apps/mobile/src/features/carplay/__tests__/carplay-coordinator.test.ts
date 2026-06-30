@@ -15,9 +15,15 @@ jest.mock('../../../../modules/carplay/src', () => ({
 jest.mock('../../ride/ride-controller', () => ({
   startRideSession: jest.fn(() => Promise.resolve({ ok: true, rideId: 'r1' })),
   endRideSession: jest.fn(() => null),
+  buildRideSummaryHref: jest.fn(() => ({ pathname: '/(modals)/ride-summary', params: {} })),
   // Elapsed is derived from persisted timestamps; mirror the store value in tests.
   elapsedRideSeconds: jest.fn(() => 4360),
 }));
+
+// Coordinator now routes the phone to the ride-summary on Stop, and logs nav
+// failures — mock the imperative router + analytics to avoid the native chains.
+jest.mock('expo-router', () => ({ router: { replace: jest.fn() } }));
+jest.mock('../../../lib/analytics', () => ({ captureException: jest.fn() }));
 
 // --- store mocks (avoid the MMKV / expo dependency chain) ---
 const mockRide = {
@@ -53,6 +59,7 @@ jest.mock('../../../stores/auth.store', () => ({
   useAuthStore: { getState: () => ({ measurementSystem: 'metric' }) },
 }));
 
+import { router } from 'expo-router';
 import * as rideController from '../../ride/ride-controller';
 import { __resetCarPlayCoordinator, startCarPlayCoordinator } from '../carplay-coordinator';
 
@@ -146,5 +153,19 @@ describe('carplay-coordinator', () => {
     );
     fireAction('stop');
     expect(rideController.endRideSession).toHaveBeenCalledWith('carplay');
+  });
+
+  it('routes the phone to the ride-summary when a CarPlay Stop ends a real ride', () => {
+    const summary = { rideId: 'ride-cp', distanceM: 8200, durationS: 540 };
+    (rideController.endRideSession as jest.Mock).mockReturnValueOnce(summary);
+    const href = { pathname: '/(modals)/ride-summary', params: { rideId: 'ride-cp' } };
+    (rideController.buildRideSummaryHref as jest.Mock).mockReturnValueOnce(href);
+
+    startCarPlayCoordinator();
+    fireConnect();
+    fireAction('stop');
+
+    expect(rideController.buildRideSummaryHref).toHaveBeenCalledWith(summary);
+    expect(router.replace).toHaveBeenCalledWith(href);
   });
 });

@@ -32,7 +32,10 @@ export function partializeCarPlayState(state: CarPlayState) {
 export const useCarPlayStore = create<CarPlayState>()(
   persist(
     (set) => ({
-      startMode: 'automatic',
+      // Default to manual: the automatic auto-start gate (U7) is not shipped yet,
+      // so 'automatic' surfaces no Start control and a ride can never begin from
+      // the head unit. Manual gives the rider the explicit Start Ride button.
+      startMode: 'manual',
       audioCue: true,
       hapticCue: true,
       tone: 'mechanical',
@@ -43,6 +46,17 @@ export const useCarPlayStore = create<CarPlayState>()(
     }),
     {
       name: 'carplay-companion',
+      version: 1,
+      // v0 installs defaulted to 'automatic' (auto-start unshipped → dead end on
+      // CarPlay). Coerce the dead default to 'manual' once; rides set explicitly to
+      // automatic are left as-is so we don't override a deliberate choice.
+      migrate: (persisted, version) => {
+        const state = persisted as Partial<CarPlayState> | undefined;
+        if (version < 1 && state?.startMode === 'automatic') {
+          return { ...state, startMode: 'manual' };
+        }
+        return state;
+      },
       storage: createJSONStorage(() => createZustandMMKVStorage('carplay-companion')),
       partialize: partializeCarPlayState,
     },

@@ -165,12 +165,15 @@ describe('endRideSession', () => {
     expect(summary).toMatchObject({ rideId: 'ride-7', maxSpeedMps: 30, motorcycleId: 'bike-9' });
   });
 
-  it('clears ride data on a CarPlay end (no summary screen follows) but not on phone', () => {
+  it('does not clear ride data on end — the ride-summary screen owns cleanup', () => {
+    // Both a phone End and a CarPlay Stop now route to the ride-summary screen,
+    // which reads the waypoint chunks to draw the route and clears the data on
+    // save/discard. endRideSession must NOT clear, for either source, or the
+    // summary would have nothing to render.
     mmkvState.currentId = 'ride-cp';
     endRideSession('carplay');
-    expect(clearRideData).toHaveBeenCalledWith('ride-cp');
+    expect(clearRideData).not.toHaveBeenCalled();
 
-    clearRideData.mockClear();
     mmkvState.currentId = 'ride-ph';
     endRideSession('phone');
     expect(clearRideData).not.toHaveBeenCalled();

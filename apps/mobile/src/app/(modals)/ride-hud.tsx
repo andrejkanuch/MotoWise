@@ -3,14 +3,14 @@ import { palette } from '@motovault/design-system';
 import type { Waypoint } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
-import { type Href, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { HudLayoutA } from '../../components/ride/hud-layout-a';
 import { HudLayoutB } from '../../components/ride/hud-layout-b';
 import { type HudLayout, HudLayoutSwitcher } from '../../components/ride/hud-layout-switcher';
-import { endRideSession } from '../../features/ride/ride-controller';
+import { buildRideSummaryHref, endRideSession } from '../../features/ride/ride-controller';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useRideStore } from '../../stores/ride.store';
 import { toggleBatterySaver } from '../../utils/ride-location';
@@ -188,21 +188,7 @@ export default function RideHudScreen() {
     const pending = getQueueLength();
     if (pending > 0) setSyncPending(true);
 
-    const summaryRoute: Href = {
-      pathname: '/(modals)/ride-summary',
-      params: {
-        rideId: summary.rideId,
-        distanceM: String(summary.distanceM),
-        durationS: String(summary.durationS),
-        maxSpeedMps: String(summary.maxSpeedMps),
-        avgSpeedMps: String(summary.avgSpeedMps),
-        elevationGain: String(summary.elevationGain),
-        elevationLoss: String(summary.elevationLoss),
-        startedAt: summary.startedAt?.toString() ?? '',
-        motorcycleId: summary.motorcycleId ?? '',
-      },
-    };
-    router.replace(summaryRoute);
+    router.replace(buildRideSummaryHref(summary));
   }, [router]);
 
   const handleEndRide = useCallback(() => {

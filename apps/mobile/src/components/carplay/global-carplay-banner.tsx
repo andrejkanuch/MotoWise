@@ -31,7 +31,7 @@ export function GlobalCarPlayBanner() {
         state={ride.bannerState}
         distance={ride.distance}
         time={ride.elapsed}
-        onPress={() => router.push('/(modals)/carplay/status-sheet')}
+        onPress={() => router.push('/(modals)/ride-hud')}
       />
     </View>
   );

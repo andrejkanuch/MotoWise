@@ -9,13 +9,13 @@
 import { EndRideDocument, StartRideDocument } from '@motovault/graphql';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
+import type { Href } from 'expo-router';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { useRideStore } from '../../stores/ride.store';
 import { encodePolyline } from '../../utils/ride-heatmap';
 import { distanceMeters, startGPSListener, stopGPSListener } from '../../utils/ride-location';
 import { checkAndRequestPermissions } from '../../utils/ride-permissions';
 import {
-  clearRideData,
   flushBufferToMMKV,
   getPointBuffer,
   getWaypointChunks,
@@ -229,12 +229,11 @@ export function endRideSession(source: RideSource = 'phone'): RideEndSummary | n
     },
   });
 
-  // The phone flow clears ride data on the summary screen (save/discard). CarPlay-
-  // and auto-ended rides never reach a summary, so clear here — otherwise the next
-  // launch reads a stale CURRENT_ID as a phantom "unfinished ride", a second Stop
-  // re-enqueues an end, and elapsedRideSeconds keeps counting against a dead start.
-  if (source !== 'phone') clearRideData(rideId);
-
+  // Both the phone HUD and a CarPlay Stop now route to the ride-summary screen,
+  // which is the single owner of ride-data cleanup (it clears on save/discard).
+  // We deliberately do NOT clear here — clearing would wipe the waypoint chunks the
+  // summary reads to draw the route. (autoEndRide is the only truly headless end and
+  // owns its own cleanup.)
   return {
     rideId,
     distanceM: Math.round(totalDistance),
@@ -245,5 +244,27 @@ export function endRideSession(source: RideSource = 'phone'): RideEndSummary | n
     elevationLoss: Math.round(elevLoss),
     startedAt,
     motorcycleId,
+  };
+}
+
+/**
+ * The ride-summary route for a finished ride. Shared by the phone HUD's End and the
+ * CarPlay Stop so both surfaces land on the same summary (which reads these params
+ * and owns clearing the ride data). Pure — builds the Href, never navigates.
+ */
+export function buildRideSummaryHref(summary: RideEndSummary): Href {
+  return {
+    pathname: '/(modals)/ride-summary',
+    params: {
+      rideId: summary.rideId,
+      distanceM: String(summary.distanceM),
+      durationS: String(summary.durationS),
+      maxSpeedMps: String(summary.maxSpeedMps),
+      avgSpeedMps: String(summary.avgSpeedMps),
+      elevationGain: String(summary.elevationGain),
+      elevationLoss: String(summary.elevationLoss),
+      startedAt: summary.startedAt?.toString() ?? '',
+      motorcycleId: summary.motorcycleId ?? '',
+    },
   };
 }
