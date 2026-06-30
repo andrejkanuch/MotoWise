@@ -88,12 +88,12 @@ import {
   snoozeTaskNotification,
 } from '../lib/notifications';
 import { resolveOnboardingVariant } from '../lib/onboarding-experiment';
-import { registerForPushNotifications } from '../lib/push-token';
 import {
   clearLastUserId,
   getLastUserId,
   PersistedQueryClientBoundary,
 } from '../lib/persisted-query-provider';
+import { registerForPushNotifications } from '../lib/push-token';
 import { queryClient } from '../lib/query-client';
 import { queryKeys } from '../lib/query-keys';
 import { setupFocusManager, setupOnlineManager } from '../lib/query-native';

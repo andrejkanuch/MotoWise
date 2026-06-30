@@ -16,8 +16,8 @@ import { useOnboardingBack } from '../../hooks/use-onboarding-back';
 import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { setupNotificationChannels } from '../../lib/notifications';
-import { registerForPushNotifications } from '../../lib/push-token';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
+import { registerForPushNotifications } from '../../lib/push-token';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 

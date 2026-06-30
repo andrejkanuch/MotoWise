@@ -1855,6 +1855,52 @@ export type Database = {
         }
         Relationships: []
       }
+      maintenance_push_log: {
+        Row: {
+          due_date: string
+          id: string
+          sent_at: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          due_date: string
+          id?: string
+          sent_at?: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          due_date?: string
+          id?: string
+          sent_at?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_push_log_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_push_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_push_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_task_photos: {
         Row: {
           created_at: string
