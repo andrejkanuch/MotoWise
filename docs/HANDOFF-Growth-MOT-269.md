@@ -20,7 +20,7 @@ Single common branch; 20 commits (8 pre-existing `feat/next-work` + 12 growth/re
 - **MOT-272** — Instrumented silent events: `referral_source_skipped`, `notification_permission_requested/result`, `reminder_scheduled/opened`. (Identity-stitching guard untouched.)
 - **MOT-273** — Fixed checklist `first_expense` deep link (resolves the user's bike → expense dashboard; falls back to garage tab while bikes load, add-bike only when confirmed empty) + one-tap prefilled quick-add chips (Fuel/Service/Insurance) on the empty state. Checklist store bumped to v3 with an **in-place migrate** that refreshes deep links while preserving progress.
 - **MOT-285** — `trip_created` now also fires on the publish path, so the trip_created→trip_published funnel is computable.
-- **MOT-283** — Migration `00159_oem_maintenance_schedules_rls.sql`: enables RLS (public-read, service-role-only writes). **File committed; NOT applied to prod.**
+- **MOT-283** — Migration `00159_oem_maintenance_schedules_rls.sql`: enables RLS (public-read, service-role-only writes). **APPLIED to prod 2026-06-30** (via Supabase MCP `apply_migration`, consistent with how 00158 was recorded with a timestamp version; `db push` is blocked by pre-existing history drift — see below). Security advisor `rls_disabled_in_public` for `oem_maintenance_schedules` is **cleared**.
 
 **Also produced:** redundant `paywall-modal.tsx` deleted (mobile + web); `docs/ASO-Metadata-2026-06-29.md` (ready-to-paste localized App Store copy); RevenueCat verification checklist (in the baseline doc); a one-time **cloud routine** (`trig_01LYqoU7AMat6Y2t9RMZuT28`) firing **2026-07-29** to drive the re-check.
 
@@ -29,7 +29,7 @@ Single common branch; 20 commits (8 pre-existing `feat/next-work` + 12 growth/re
 ---
 
 ## ⚠️ What's MISSING / pending (do these — mostly manual)
-1. **DB migration NOT pushed.** `supabase/migrations/00159_...sql` is committed but **not applied to prod**. Run `npx supabase db push` (ideally low-traffic window — `ENABLE RLS` takes a brief lock). Then `pnpm generate:types` is **not** needed (no column change). Verify with Supabase advisors that the `rls_disabled_in_public` warning for `oem_maintenance_schedules` clears.
+1. ~~**DB migration NOT pushed.**~~ ✅ **DONE 2026-06-30.** `00159` applied to prod via Supabase MCP `apply_migration`; advisor cleared. **NOTE — migration-history drift:** `npx supabase db push` currently fails (`Remote migration versions not found in local migrations directory` — remote recorded 00158 as version `20260625120202` while the local file is `00158_blog_search_return_slug.sql`). This is **pre-existing** debt, not from this work. To re-enable clean `db push`, a human should reconcile the history (`supabase migration repair` / `db pull`) in a deliberate session — out of scope here.
 2. **PR #136 not merged.** Review/merge it (the failing `check:api-bans` is pre-existing debt in `apps/api/.../blog.service.ts`, identical on `main` — not from this work; CI's lint job passes).
 3. **MOT-270 (RevenueCat dashboard, manual):** verify paywall trial copy uses intro-offer-aware variables; archive the 7 safe stale offerings. **Experiment `prexpe16813d4b3` and its 3 arms (`new_offering_4_29_24_4_v2`, `Paywall v3`=current, `Paywall v4`) stay running / off-limits.** Checklist in baseline doc.
 4. **MOT-274 (App Store Connect, manual):** paste the localized metadata from `docs/ASO-Metadata-2026-06-29.md`.
