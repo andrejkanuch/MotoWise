@@ -32,6 +32,7 @@ const mockRide = {
   distance: 42_300,
   elapsedTime: 4360,
   elevationGain: 640,
+  elevationLoss: 320,
   currentSpeed: 18,
   pauseRide: jest.fn(),
   resumeRide: jest.fn(),

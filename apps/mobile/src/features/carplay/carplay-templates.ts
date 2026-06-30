@@ -6,9 +6,10 @@ import type { MeasurementSystem } from '@motovault/types';
 import type { CPInformationTemplateModel } from '../../../modules/carplay/src';
 import type { StartMode } from '../../stores/carplay.store';
 import {
+  elevationUnitLabel,
   formatDistance,
   formatElapsed,
-  formatElevation,
+  formatElevationValue,
   formatSpeed,
   speedUnitLabel,
 } from '../../utils/ride-formatters';
@@ -43,8 +44,10 @@ export interface RideInput {
   distance: number;
   /** seconds */
   elapsedTime: number;
-  /** meters */
+  /** meters climbed (ascent) */
   elevationGain: number;
+  /** meters descended */
+  elevationLoss: number;
   /** meters per second */
   speed: number;
   /** TODO(carplay): real GPS-lock signal (parent open question). */
@@ -53,6 +56,15 @@ export interface RideInput {
 }
 
 const DASH = '—';
+
+/**
+ * One glanceable elevation row carrying both ascent and descent: "↑640 ↓320 m".
+ * Descent (elevationLoss) is computed during the ride but was otherwise surfaced
+ * nowhere live; folding it into the Climb row keeps the panel at Apple's 4-row cap.
+ */
+function formatClimb(gain: number, loss: number, system: MeasurementSystem): string {
+  return `↑${formatElevationValue(gain, system)} ↓${formatElevationValue(loss, system)} ${elevationUnitLabel(system)}`;
+}
 
 // State word shown in the title. Glyph/color live on the phone side; the CarPlay
 // title is text (system-rendered), so the word carries the state.
@@ -96,8 +108,8 @@ export function deriveSnapshot(input: RideInput, system: MeasurementSystem): Pan
       : `${DASH} ${system === 'imperial' ? 'mi' : 'km'}`,
     movingTime: live ? formatElapsed(input.elapsedTime) : `${DASH}:${DASH}`,
     climb: live
-      ? formatElevation(input.elevationGain, system)
-      : `${DASH} ${system === 'imperial' ? 'ft' : 'm'}`,
+      ? formatClimb(input.elevationGain, input.elevationLoss, system)
+      : `${DASH} ${elevationUnitLabel(system)}`,
     startMode: input.startMode,
   };
 }

@@ -12,6 +12,7 @@ const base: RideInput = {
   distance: 42_300,
   elapsedTime: 4360,
   elevationGain: 640,
+  elevationLoss: 320,
   speed: 18, // m/s ≈ 65 km/h
   gpsLocked: true,
   startMode: 'automatic',
@@ -68,6 +69,11 @@ describe('deriveSnapshot', () => {
     expect(snap.distance).toMatch(/km/);
     expect(snap.climb).toMatch(/m/);
     expect(snap.speed).toMatch(/km\/h/);
+  });
+
+  it('shows both elevation gain and descent in the climb row', () => {
+    const snap = deriveSnapshot({ ...base, elevationGain: 640, elevationLoss: 320 }, 'metric');
+    expect(snap.climb).toBe('↑640 ↓320 m');
   });
 
   it('dashes the speed before GPS lock', () => {

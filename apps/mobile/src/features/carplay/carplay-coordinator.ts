@@ -65,6 +65,7 @@ function currentRideInput(): RideInput {
     distance: r.distance,
     elapsedTime: elapsed,
     elevationGain: r.elevationGain,
+    elevationLoss: r.elevationLoss,
     speed: r.currentSpeed,
     // TODO(carplay): replace with a real GPS-lock signal (parent open question).
     // Proxy: treat the ride as locked once any distance/time has accrued.
