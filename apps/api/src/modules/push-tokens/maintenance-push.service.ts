@@ -3,6 +3,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { addDays, format } from 'date-fns';
 import { Expo, type ExpoPushMessage } from 'expo-server-sdk';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
+import { resolveMaintenancePushCopy } from './maintenance-push-copy';
 
 /** Postgres unique-violation code — a dedup-log conflict means "already sent". */
 const PG_UNIQUE_VIOLATION = '23505';
@@ -88,17 +89,31 @@ export class MaintenancePushService {
       tokensByUser.set(row.user_id, list);
     }
 
+    // Resolve each owner's locale so the push copy is localized. preferences is a
+    // service-role-only read (00141); preferences.locale holds the app language.
+    const { data: userRows } = await this.adminClient
+      .from('users')
+      .select('id, preferences')
+      .in('id', userIds);
+
+    const localeByUser = new Map<string, string | null>();
+    for (const row of (userRows ?? []) as Array<{ id: string; preferences: unknown }>) {
+      const prefs = (row.preferences ?? {}) as { locale?: string | null };
+      localeByUser.set(row.id, prefs.locale ?? null);
+    }
+
     const messages: ExpoPushMessage[] = [];
     let pushed = 0;
     for (const task of fresh) {
       const tokens = (tokensByUser.get(task.user_id) ?? []).filter((t) => Expo.isExpoPushToken(t));
       if (tokens.length === 0) continue;
+      const copy = resolveMaintenancePushCopy(localeByUser.get(task.user_id));
       for (const to of tokens) {
         messages.push({
           to,
           sound: 'default',
-          title: 'Maintenance due soon',
-          body: `${task.title} is due soon. Tap to review.`,
+          title: copy.title,
+          body: copy.body(task.title),
           data: { kind: PUSH_KIND_MAINTENANCE, taskId: task.id, motorcycleId: task.motorcycle_id },
         });
       }
