@@ -43,6 +43,7 @@ import { ModelInsightsModule } from './modules/model-insights/model-insights.mod
 import { MotorcyclesModule } from './modules/motorcycles/motorcycles.module';
 import { OemSchedulesModule } from './modules/oem-schedules/oem-schedules.module';
 import { PlacesModule } from './modules/places/places.module';
+import { PushTokensModule } from './modules/push-tokens/push-tokens.module';
 import { QuizzesModule } from './modules/quizzes/quizzes.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { RedisThrottlerStorage } from './modules/redis/redis-throttler.storage';
@@ -103,6 +104,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     ArticlesModule,
     BlogModule,
     QuizzesModule,
+    PushTokensModule,
     DiagnosticsModule,
     DocumentsModule,
     ExpensesModule,

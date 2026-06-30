@@ -17,6 +17,7 @@ import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding
 import { AnalyticsEvent } from '../../lib/analytics';
 import { setupNotificationChannels } from '../../lib/notifications';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
+import { registerForPushNotifications } from '../../lib/push-token';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
@@ -229,6 +230,8 @@ export default function NotificationsScreen() {
       if (granted && process.env.EXPO_OS === 'android') {
         await setupNotificationChannels();
       }
+      // MOT-278: register the device's Expo push token for server-sent reminders.
+      if (granted) void registerForPushNotifications();
     } catch {
       // Request (or Android channel setup) rejected — treat as not granted and
       // continue. RESULT still fires below so it always pairs with REQUESTED.

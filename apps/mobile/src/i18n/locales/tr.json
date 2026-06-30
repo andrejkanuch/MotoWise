@@ -2163,5 +2163,31 @@
     "deleteCategory": "Kategoriyi sil",
     "showCategory": "Kategoriyi göster",
     "hideCategory": "Kategoriyi gizle"
+  },
+  "reengage": {
+    "default": {
+      "title": "Garajın seni bekliyor",
+      "body": "Geri dön ve motorunu bir dakikadan kısa sürede ayarla."
+    },
+    "track_rides": {
+      "title": "Bir sonraki sürüşe hazır mısın?",
+      "body": "Sürüşlerini kaydet ve istatistiklerinin büyümesini izle."
+    },
+    "manage_expenses": {
+      "title": "Motorunun gerçek maliyetini öğren",
+      "body": "İlk harcamanı kaydet ve bütçeni takip et."
+    },
+    "discover_routes": {
+      "title": "Bir sonraki harika rotanı bul",
+      "body": "Yakınındaki rotaları ve grup sürüşlerini keşfet."
+    },
+    "maintain_bike": {
+      "title": "Motorunu zinde tut",
+      "body": "Hatırlatıcılar kur ve hiçbir bakımı kaçırma."
+    },
+    "just_exploring": {
+      "title": "Garajın seni bekliyor",
+      "body": "Etrafa göz at — keşfedilecek çok şey var."
+    }
   }
 }

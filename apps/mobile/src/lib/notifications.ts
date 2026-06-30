@@ -1,11 +1,14 @@
 import { palette } from '@motovault/design-system';
+import { NOTIFICATION_KIND } from '@motovault/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { differenceInCalendarDays } from 'date-fns';
+import { addDays, differenceInCalendarDays } from 'date-fns';
 import * as Notifications from 'expo-notifications';
 import { logger } from './logger';
 
-/** Notification `data.kind` discriminator — shared with the tap handler in _layout. */
-export const NOTIFICATION_KIND = { DOCUMENT: 'document', MAINTENANCE: 'maintenance' } as const;
+// Notification `data.kind` discriminator — single source of truth in @motovault/types
+// (re-exported for existing consumers) so the mobile scheduler/tap-handler and the API
+// push sender can't diverge on the string values.
+export { NOTIFICATION_KIND };
 
 /** iOS UNNotificationCategory identifiers (also the Android channel-less category key). */
 export const NOTIFICATION_CATEGORY = {
@@ -74,6 +77,68 @@ async function getScheduledCount(): Promise<number> {
 export async function hasNotificationPermission(): Promise<boolean> {
   const { status } = await Notifications.getPermissionsAsync();
   return status === 'granted';
+}
+
+// MOT-275: day-2 dormant re-engagement. A single local notification scheduled
+// ~48h after onboarding completion, cancelled the moment the user returns. Copy
+// is goal-personalized and resolved by the caller (where `t()` lives) — this lib
+// stays copy-agnostic. Persisted under its own key, separate from the task map.
+const REENGAGE_NOTIFICATION_KEY = '@motovault/reengage-notification-id';
+const REENGAGE_DELAY_DAYS = 2;
+const REENGAGE_HOUR = 10;
+
+/**
+ * Schedule the day-2 re-engagement notification with already-localized copy.
+ * No-ops (returns false) when permission is not granted or the iOS budget is
+ * exhausted, so the caller can fire `reminder_scheduled` only on a real schedule.
+ * Cancels any previously-scheduled re-engagement notification first (idempotent).
+ */
+export async function scheduleReEngageNotification(copy: {
+  title: string;
+  body: string;
+}): Promise<boolean> {
+  if (!(await hasNotificationPermission())) return false;
+  await cancelReEngageNotification();
+
+  if (IOS_NOTIFICATION_BUDGET - (await getScheduledCount()) <= 0) {
+    logger.warn(`notifications: iOS budget reached; skipping re-engagement notification`);
+    return false;
+  }
+
+  const fireDate = addDays(new Date(), REENGAGE_DELAY_DAYS);
+  fireDate.setHours(REENGAGE_HOUR, 0, 0, 0);
+
+  try {
+    const id = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: copy.title,
+        body: copy.body,
+        data: { kind: NOTIFICATION_KIND.RE_ENGAGE },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: fireDate,
+        channelId: 'maintenance',
+      },
+    });
+    await AsyncStorage.setItem(REENGAGE_NOTIFICATION_KEY, id);
+    return true;
+  } catch (err) {
+    logger.warn('notifications: failed to schedule re-engagement notification:', err);
+    return false;
+  }
+}
+
+/** Cancel the pending re-engagement notification, if any. Safe to call anytime. */
+export async function cancelReEngageNotification(): Promise<void> {
+  const id = await AsyncStorage.getItem(REENGAGE_NOTIFICATION_KEY);
+  if (!id) return;
+  try {
+    await Notifications.cancelScheduledNotificationAsync(id);
+  } catch (err) {
+    logger.warn('notifications: failed to cancel re-engagement notification:', err);
+  }
+  await AsyncStorage.removeItem(REENGAGE_NOTIFICATION_KEY);
 }
 
 interface StagePlan {

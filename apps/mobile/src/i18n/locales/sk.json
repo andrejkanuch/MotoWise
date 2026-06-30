@@ -2169,5 +2169,31 @@
     "deleteCategory": "Odstrániť kategóriu",
     "showCategory": "Zobraziť kategóriu",
     "hideCategory": "Skryť kategóriu"
+  },
+  "reengage": {
+    "default": {
+      "title": "Tvoja garáž čaká",
+      "body": "Vráť sa a nastav svoj motocykel za necelú minútu."
+    },
+    "track_rides": {
+      "title": "Pripravený na ďalšiu jazdu?",
+      "body": "Zaznamenávaj jazdy a sleduj, ako rastú tvoje štatistiky."
+    },
+    "manage_expenses": {
+      "title": "Zisti, koľko ťa motorka naozaj stojí",
+      "body": "Zaznamenaj prvý výdavok a maj prehľad o rozpočte."
+    },
+    "discover_routes": {
+      "title": "Nájdi svoju ďalšiu trasu",
+      "body": "Objavuj trasy a spoločné jazdy vo svojom okolí."
+    },
+    "maintain_bike": {
+      "title": "Udrž motorku v kondícii",
+      "body": "Nastav pripomienky a nezmeškaj žiadny servis."
+    },
+    "just_exploring": {
+      "title": "Tvoja garáž čaká",
+      "body": "Poobzeraj sa — je toho veľa na objavovanie."
+    }
   }
 }

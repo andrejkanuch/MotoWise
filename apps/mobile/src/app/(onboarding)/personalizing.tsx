@@ -13,7 +13,7 @@ import {
   Wallet,
   Wrench,
 } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
@@ -30,15 +30,22 @@ import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { getPrimaryGoal, OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
-import { AnalyticsEvent, captureException, setUserPropertiesOnce } from '../../lib/analytics';
+import {
+  AnalyticsEvent,
+  captureException,
+  setUserPropertiesOnce,
+  trackEvent,
+} from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { uploadBikePhoto } from '../../lib/image-upload';
 import { detectCurrency } from '../../lib/locale-detection';
 import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { clearStoredFbclid, getStoredFbclid } from '../../lib/meta-attribution';
+import { NOTIFICATION_KIND, scheduleReEngageNotification } from '../../lib/notifications';
 import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { queryKeys } from '../../lib/query-keys';
+import { resolveReEngageCopyKeys } from '../../lib/reengage-copy';
 import { setSelfReportedSource } from '../../lib/subscription';
 import { useAuthStore } from '../../stores/auth.store';
 import { useChecklistStore } from '../../stores/checklist.store';
@@ -129,6 +136,35 @@ export default function PersonalizingScreen() {
   const primaryGoal = useMemo(() => getPrimaryGoal(ridingGoals), [ridingGoals]);
   const goalConfig = GOAL_STEP_CONFIG[primaryGoal];
   const bikeLabel = useMemo(() => buildBikeLabel(bikeData), [bikeData]);
+
+  // MOT-275: at onboarding completion, schedule a day-2 re-engagement notification
+  // (goal-personalized, permission-gated, cancelled when the user returns). Copy is
+  // localized here; the lib stays copy-agnostic. Fire-and-forget — never block nav.
+  const scheduleReEngageReminder = useCallback(async () => {
+    const { titleKey, bodyKey } = resolveReEngageCopyKeys(primaryGoal);
+    const scheduled = await scheduleReEngageNotification({
+      title: t(titleKey as never),
+      body: t(bodyKey as never),
+    });
+    if (scheduled) {
+      trackEvent(AnalyticsEvent.REMINDER_SCHEDULED, {
+        kind: NOTIFICATION_KIND.RE_ENGAGE,
+        goal: primaryGoal ?? null,
+      });
+    }
+  }, [primaryGoal, t]);
+
+  // The single onboarding-completion sink: flip the auth flag (root guard redirects
+  // to the garage) and schedule the day-2 reminder. Guarded so the two completion
+  // paths (cold-start resume + the "Open my garage" CTA) can't double-fire it.
+  const completedRef = useRef(false);
+  const finishOnboarding = useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    reset();
+    setOnboardingCompleted(true);
+    void scheduleReEngageReminder();
+  }, [reset, setOnboardingCompleted, scheduleReEngageReminder]);
 
   const steps = useMemo(() => [...FIXED_STEPS, goalConfig.i18nKey] as const, [goalConfig.i18nKey]);
   const stepIcons = useMemo(
@@ -299,12 +335,11 @@ export default function PersonalizingScreen() {
   useEffect(() => {
     if (!mutationDone || !animationDone) return;
     if (isResumed) {
-      reset();
-      setOnboardingCompleted(true);
+      finishOnboarding();
     } else {
       setShowDone(true);
     }
-  }, [mutationDone, animationDone, isResumed, reset, setOnboardingCompleted]);
+  }, [mutationDone, animationDone, isResumed, finishOnboarding]);
 
   // Pop the check badge in when the payoff phase appears.
   useEffect(() => {
@@ -330,8 +365,7 @@ export default function PersonalizingScreen() {
   // makes the root guard redirect to OB_ROUTE.HOME. Used by the payoff CTA and the
   // retry/safety-net skip link (both before any navigation).
   const handleContinue = () => {
-    reset();
-    setOnboardingCompleted(true);
+    finishOnboarding();
   };
 
   // Cold-start resume: the staged setup UI must not appear on app load. Hold a

@@ -79,6 +79,7 @@ import { captureMetaAttribution } from '../lib/meta-attribution';
 import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
 import {
   cancelAllNotifications,
+  cancelReEngageNotification,
   cancelTaskNotification,
   NOTIFICATION_ACTION,
   NOTIFICATION_KIND,
@@ -92,6 +93,7 @@ import {
   getLastUserId,
   PersistedQueryClientBoundary,
 } from '../lib/persisted-query-provider';
+import { registerForPushNotifications } from '../lib/push-token';
 import { queryClient } from '../lib/query-client';
 import { queryKeys } from '../lib/query-keys';
 import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
@@ -616,6 +618,8 @@ function RootLayout() {
     const appSub = AppState.addEventListener('change', (state: string) => {
       if (state === 'active') {
         drainQueue();
+        // MOT-275: foregrounding counts as "returned" — cancel the day-2 reminder.
+        cancelReEngageNotification();
         // Delay widget sync to let TanStack Query refetches settle, then read from cache
         setTimeout(() => syncWidgets(), 3000);
       }
@@ -694,6 +698,12 @@ function RootLayout() {
     async function initNotifications() {
       await setupNotificationChannels();
       await setupNotificationCategories();
+      // MOT-275: the app launched, so the user "returned" — cancel any pending
+      // day-2 re-engagement notification (it targets users who DON'T come back).
+      await cancelReEngageNotification();
+      // MOT-278: refresh the server-side push token on launch when granted
+      // (token rotation + users who granted before this shipped). No-op otherwise.
+      void registerForPushNotifications();
     }
     initNotifications();
   }, []);
@@ -716,6 +726,13 @@ function RootLayout() {
           kind: data?.kind ?? NOTIFICATION_KIND.MAINTENANCE,
           action: actionId,
         });
+
+        // MOT-275: re-engagement tap → land the returning user in the garage
+        // (REMINDER_OPENED already fired above with kind: 're_engage').
+        if (data?.kind === NOTIFICATION_KIND.RE_ENGAGE) {
+          expoRouter.push('/(tabs)/(garage)' as Href);
+          return;
+        }
 
         // Document expiry reminders: tap or "View" deep-links to the document.
         if (data?.kind === NOTIFICATION_KIND.DOCUMENT && data.documentId) {

@@ -2169,5 +2169,31 @@
     "deleteCategory": "Usuń kategorię",
     "showCategory": "Pokaż kategorię",
     "hideCategory": "Ukryj kategorię"
+  },
+  "reengage": {
+    "default": {
+      "title": "Twój garaż czeka",
+      "body": "Wróć i skonfiguruj motocykl w niecałą minutę."
+    },
+    "track_rides": {
+      "title": "Gotowy na kolejną trasę?",
+      "body": "Zapisuj przejazdy i obserwuj rosnące statystyki."
+    },
+    "manage_expenses": {
+      "title": "Sprawdź, ile naprawdę kosztuje motocykl",
+      "body": "Zapisz pierwszy wydatek i miej budżet pod kontrolą."
+    },
+    "discover_routes": {
+      "title": "Znajdź swoją kolejną trasę",
+      "body": "Odkrywaj trasy i wspólne przejazdy w pobliżu."
+    },
+    "maintain_bike": {
+      "title": "Utrzymaj motocykl w formie",
+      "body": "Ustaw przypomnienia, by nie przegapić serwisu."
+    },
+    "just_exploring": {
+      "title": "Twój garaż czeka",
+      "body": "Rozejrzyj się — jest sporo do odkrycia."
+    }
   }
 }
