@@ -260,11 +260,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         { SKAdNetworkIdentifier: 'v9wttpbfk9.skadnetwork' },
         { SKAdNetworkIdentifier: 'n38lu8286q.skadnetwork' },
       ],
-      // `audio` ducks the nav voice for the CarPlay recording-confirmation earcon;
       // `location` keeps GPS recording alive while backgrounded / screen-locked
       // (background ride recording — pairs with Location.startLocationUpdatesAsync
       // and the expo-location background flags above).
-      UIBackgroundModes: ['audio', 'location'],
+      // NOTE: `audio` is intentionally NOT declared yet. App Review guideline 2.5.4
+      // rejects a background mode the app doesn't actively exercise, and the CarPlay
+      // confirmation earcon (plan U5 / carplay-earcon) has not shipped. Re-add
+      // `'audio'` in the same PR that lands the earcon's background playback.
+      UIBackgroundModes: ['location'],
     },
     config: {
       usesNonExemptEncryption: false,

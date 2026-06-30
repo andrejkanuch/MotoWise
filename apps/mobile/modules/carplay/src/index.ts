@@ -21,6 +21,7 @@ import type {
   TextButton,
 } from '@iternio/react-native-auto-play';
 import { Platform } from 'react-native';
+import { captureException } from '../../../src/lib/analytics';
 
 export interface CPInfoItem {
   title: string;
@@ -37,10 +38,6 @@ export interface CPInformationTemplateModel {
   title: string;
   items: CPInfoItem[];
   actions: CPInfoAction[];
-}
-
-export interface CarPlayActionEvent {
-  actionId: string;
 }
 
 export interface CarPlaySubscription {
@@ -63,6 +60,10 @@ if (Platform.OS === 'ios') {
 
 export const isCarPlayAvailable = lib != null;
 
+// Placeholder row title used when a render is requested with no items — keeps the
+// native template valid (min-1 tuple) instead of pushing an empty `[]`.
+const DASH_ROW = '—';
+
 let dispatch: ((actionId: string) => void) | null = null;
 let current: InformationTemplate | null = null;
 let lastTitle: string | null = null;
@@ -71,13 +72,18 @@ let lastActionsKey: string | null = null;
 const actionsKey = (actions: CPInfoAction[]): string => actions.map((a) => a.id).join('|');
 
 function toRows(items: CPInfoItem[]): InformationItems {
-  // CPInformationTemplate shows at most 4 rows; extra rows would be dropped.
-  // Row title/detail are AutoText ({ text }), not bare strings.
-  return items.slice(0, 4).map((i) => ({
+  // CPInformationTemplate shows 1–4 rows; extra rows would be dropped. Row
+  // title/detail are AutoText ({ text }), not bare strings. `InformationItems` is a
+  // min-1 tuple, so an empty list is an invalid native template — fall back to a
+  // single dash row rather than push `[]` (the "always hand the native layer a
+  // valid, non-empty state" learning, see docs/solutions ios-widget-data-sync).
+  const source = items.length > 0 ? items.slice(0, 4) : [{ title: DASH_ROW, detail: '' }];
+  const rows: InformationItems[number][] = source.map((i) => ({
     type: 'text' as const,
     title: { text: i.title },
     detailedText: { text: i.detail },
-  })) as unknown as InformationItems;
+  }));
+  return rows as InformationItems;
 }
 
 function toIosActions(actions: CPInfoAction[]): InformationTemplateConfig['actions'] {
@@ -117,12 +123,18 @@ export function renderInformation(model: CPInformationTemplateModel): void {
   const key = actionsKey(model.actions);
   if (!current || model.title !== lastTitle || key !== lastActionsKey) {
     current = buildTemplate(model);
-    current.setRootTemplate();
+    // setRootTemplate()/updateItems() return Promise<void>; a native rejection is
+    // otherwise silent (panel stalls on stale data with no signal). Route to Sentry.
+    current
+      .setRootTemplate()
+      .catch((e) => captureException(e, { source: 'carplay.setRootTemplate' }));
     lastTitle = model.title;
     lastActionsKey = key;
     return;
   }
-  current.updateItems(toRows(model.items));
+  current
+    .updateItems(toRows(model.items))
+    .catch((e) => captureException(e, { source: 'carplay.updateItems' }));
 }
 
 /** Drop the template reference so the next render rebuilds (call on disconnect). */

@@ -6,9 +6,15 @@
 // Spies are defined INSIDE the factory (and exposed on the mock module) because
 // the preset resolves @iternio before module-scope consts initialize, so captured
 // refs would be undefined. The test reads them back off the imported mock.
+// The adapter now routes native-call rejections to captureException; mock it so
+// the (real) analytics chain isn't pulled into the unit test.
+jest.mock('../../../../src/lib/analytics', () => ({ captureException: jest.fn() }));
+
 jest.mock('@iternio/react-native-auto-play', () => {
-  const setRootTemplate = jest.fn();
-  const updateItems = jest.fn();
+  // Return resolved promises: setRootTemplate/updateItems are Promise<void> and the
+  // adapter attaches a .catch, so a non-thenable mock would throw at the call site.
+  const setRootTemplate = jest.fn(() => Promise.resolve());
+  const updateItems = jest.fn(() => Promise.resolve());
   // biome-ignore lint/suspicious/noExplicitAny: captured template configs for assertions
   const ctorCalls: any[] = [];
   return {
@@ -47,6 +53,7 @@ const setRoot = lib.__setRootTemplate as jest.Mock;
 const updateItems = lib.__updateItems as jest.Mock;
 const addListener = lib.HybridAutoPlay.addListener as jest.Mock;
 const isConnected = lib.HybridAutoPlay.isConnected as jest.Mock;
+const captureException = require('../../../../src/lib/analytics').captureException as jest.Mock;
 
 const model = (over: Partial<CPInformationTemplateModel> = {}): CPInformationTemplateModel => ({
   title: 'RECORDING',
@@ -66,6 +73,7 @@ beforeEach(() => {
   updateItems.mockClear();
   addListener.mockClear();
   isConnected.mockReset().mockReturnValue(false);
+  captureException.mockClear();
   ctorCalls.length = 0;
   clearInformation(); // reset the adapter's push-vs-update state between tests
 });
@@ -143,5 +151,27 @@ describe('carplay adapter', () => {
     const sub = addConnectListener(jest.fn());
     expect(addListener).toHaveBeenCalledWith('didConnect', expect.any(Function));
     sub?.remove();
+  });
+
+  it('falls back to a single placeholder row when given no items (never an empty tuple)', () => {
+    // InformationItems is a min-1 tuple; pushing [] would be an invalid native
+    // template. The adapter must substitute one dash row instead.
+    renderInformation(model({ items: [] }));
+    expect(ctorCalls).toHaveLength(1);
+    // biome-ignore lint/suspicious/noExplicitAny: mock config shape
+    const config = ctorCalls.at(-1) as any;
+    expect(config.items).toHaveLength(1);
+    expect(setRoot).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports a native setRootTemplate rejection to Sentry instead of swallowing it', async () => {
+    setRoot.mockRejectedValueOnce(new Error('native push failed'));
+    renderInformation(model());
+    await Promise.resolve(); // flush the fire-and-forget .catch microtask
+    await Promise.resolve();
+    expect(captureException).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ source: 'carplay.setRootTemplate' }),
+    );
   });
 });

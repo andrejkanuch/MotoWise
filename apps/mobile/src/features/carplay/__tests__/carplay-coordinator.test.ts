@@ -63,7 +63,9 @@ import { router } from 'expo-router';
 import * as rideController from '../../ride/ride-controller';
 import { __resetCarPlayCoordinator, startCarPlayCoordinator } from '../carplay-coordinator';
 
+const THROTTLE_MS = 10_000; // mirror of the coordinator's internal throttle window
 const fireConnect = () => (carplay.addConnectListener as jest.Mock).mock.calls[0][0]();
+const fireDisconnect = () => (carplay.addDisconnectListener as jest.Mock).mock.calls[0][0]();
 const fireAction = (id: string) => (carplay.setActionDispatcher as jest.Mock).mock.calls[0][0](id);
 const fireStore = () => {
   for (const l of [...mockStoreListeners]) l();
@@ -134,6 +136,48 @@ describe('carplay-coordinator', () => {
     fireStore();
     expect(carplay.renderInformation).toHaveBeenCalledTimes(1);
     spy.mockRestore();
+  });
+
+  it('flushes the latest numeric value at the window boundary when the store goes quiet', () => {
+    jest.useFakeTimers();
+    const now = 2_000_000;
+    const spy = jest.spyOn(Date, 'now').mockReturnValue(now);
+    startCarPlayCoordinator();
+    fireConnect();
+    (carplay.renderInformation as jest.Mock).mockClear();
+
+    // numeric churn inside the throttle window -> no immediate render, schedules a flush
+    mockRide.distance = 42_500;
+    fireStore();
+    expect(carplay.renderInformation).not.toHaveBeenCalled();
+
+    // advance both the wall clock and the timers past the window -> trailing flush renders once
+    spy.mockReturnValue(now + THROTTLE_MS);
+    jest.advanceTimersByTime(THROTTLE_MS);
+    expect(carplay.renderInformation).toHaveBeenCalledTimes(1);
+
+    spy.mockRestore();
+    jest.useRealTimers();
+  });
+
+  it('cancels a pending trailing flush on disconnect (no render against a cleared template)', () => {
+    jest.useFakeTimers();
+    const now = 3_000_000;
+    const spy = jest.spyOn(Date, 'now').mockReturnValue(now);
+    startCarPlayCoordinator();
+    fireConnect();
+    (carplay.renderInformation as jest.Mock).mockClear();
+
+    mockRide.distance = 42_500;
+    fireStore(); // schedules a trailing flush inside the window
+    fireDisconnect(); // onDisconnect clears the timer + drops the store subscription
+
+    spy.mockReturnValue(now + THROTTLE_MS);
+    jest.advanceTimersByTime(THROTTLE_MS);
+    expect(carplay.renderInformation).not.toHaveBeenCalled();
+
+    spy.mockRestore();
+    jest.useRealTimers();
   });
 
   it('routes head-unit actions through the store + shared controller', () => {

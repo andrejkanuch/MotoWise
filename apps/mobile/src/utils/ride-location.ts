@@ -257,8 +257,12 @@ function processLocation(location: Location.LocationObject): void {
   if (!rideId) return;
   // A sample can still arrive between endRide() and stopLocationUpdatesAsync()
   // resolving (the stop is fire-and-forget). Drop it so an ended ride never
-  // mutates the store or re-appends to a flushed buffer.
-  if (useRideStore.getState().status === 'ended') return;
+  // mutates the store or re-appends to a flushed buffer. Likewise drop samples
+  // while MANUALLY paused — a manual pause must freeze distance/speed/waypoints.
+  // (Auto-pause keeps status 'recording' with sub-state 'stopped', so it is
+  // unaffected and still runs the auto-pause / forgot-to-stop machine below.)
+  const rideStatus = useRideStore.getState().status;
+  if (rideStatus === 'ended' || rideStatus === 'paused') return;
 
   const rawSpeed = location.coords.speed ?? 0;
   const currentPos = { lat: location.coords.latitude, lng: location.coords.longitude };

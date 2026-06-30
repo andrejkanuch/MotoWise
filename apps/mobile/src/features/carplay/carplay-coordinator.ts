@@ -30,6 +30,7 @@ import {
 } from '../ride/ride-controller';
 import {
   buildPanelItems,
+  CARPLAY_ACTION,
   type CarPlayPanelState,
   deriveSnapshot,
   type RideInput,
@@ -100,6 +101,10 @@ function render(now: number = Date.now()): void {
     flushTimer = setTimeout(
       () => {
         flushTimer = null;
+        // The head unit may have disconnected while this flush was pending
+        // (onDisconnect drops unsubStore). Skip the trailing render so we never
+        // touch a cleared template after disconnect.
+        if (!unsubStore) return;
         render();
       },
       THROTTLE_MS - (now - lastPushAt),
@@ -132,23 +137,36 @@ function onDisconnect(): void {
 function onAction(actionId: string): void {
   const ride = useRideStore.getState();
   switch (actionId) {
-    case 'pause':
+    case CARPLAY_ACTION.pause:
       ride.pauseRide();
       break;
-    case 'resume':
+    case CARPLAY_ACTION.resume:
       ride.resumeRide();
       break;
-    case 'start':
+    case CARPLAY_ACTION.start:
       // CarPlay-initiated rides are Quick Rides — there's no bike picker on the
       // head unit. Routes through the shared controller so the GPS/background
       // listener, MMKV, and server sync all start exactly as a phone-started ride.
-      void startRideSession({ motorcycleId: null, source: 'carplay' });
-      break;
-    case 'stop': {
+      // The result is async: surface a denied/gps_failed outcome (otherwise the
+      // rider presses Start and nothing happens, with no Sentry signal) and render
+      // off the resolved state — the store subscription also re-renders on success.
+      startRideSession({ motorcycleId: null, source: 'carplay' })
+        .then((result) => {
+          if (!result.ok) {
+            captureException(new Error(`CarPlay start failed: ${result.reason}`), {
+              source: 'carplay-coordinator.start',
+            });
+          }
+          render(Date.now());
+        })
+        .catch((err) => captureException(err, { source: 'carplay-coordinator.start' }));
+      return; // async path owns its own render; skip the synchronous one below
+    case CARPLAY_ACTION.stop: {
       // End through the shared controller, then route the phone to the same
       // ride-summary the phone HUD uses — so a CarPlay Stop and a phone End land on
       // the identical summary (which owns ride-data cleanup). Guarded: the phone may
-      // be backgrounded with no live navigator.
+      // be backgrounded with no live navigator. endRideSession returns null on a
+      // double-Stop (already ended), so a second press is a no-op (no duplicate end).
       const summary = endRideSession('carplay');
       if (summary) {
         try {

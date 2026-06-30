@@ -46,11 +46,11 @@ export default function ModalsLayout() {
       />
       <Stack.Screen
         name="carplay/index"
-        options={{ presentation: 'formSheet', gestureEnabled: true }}
+        options={{ presentation: 'fullScreenModal', gestureEnabled: true }}
       />
       <Stack.Screen
         name="carplay/cues"
-        options={{ presentation: 'formSheet', gestureEnabled: true }}
+        options={{ presentation: 'fullScreenModal', gestureEnabled: true }}
       />
       <Stack.Screen
         name="carplay/onboarding"

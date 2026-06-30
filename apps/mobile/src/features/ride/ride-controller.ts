@@ -126,6 +126,13 @@ export function endRideSession(source: RideSource = 'phone'): RideEndSummary | n
   const rideId = rideMMKV.getCurrentId();
   if (!rideId) return null;
 
+  // Idempotent against a double-Stop (or a Stop racing the auto-end timer): this
+  // function deliberately does NOT clear the persisted ride id (the summary owns
+  // cleanup), so without this guard a second invocation would re-run the full end
+  // path and enqueue a duplicate EndRide mutation + a second summary navigation.
+  // Once the store is 'ended', bail.
+  if (useRideStore.getState().status === 'ended') return null;
+
   flushBufferToMMKV(rideId);
 
   const chunks = getWaypointChunks(rideId);
@@ -175,8 +182,8 @@ export function endRideSession(source: RideSource = 'phone'): RideEndSummary | n
   const durationS = elapsedRideSeconds();
   const totalPausedMs = rideMMKV.getTotalPausedMs();
   const totalAutoPausedMs = rideMMKV.getTotalAutoPausedMs();
-  // Capture identity BEFORE teardown — the non-phone cleanup below clears MMKV,
-  // and the returned summary must still carry these.
+  // Capture identity before store.endRide() — the ride-summary screen owns MMKV
+  // cleanup (on save/discard), and the returned summary must still carry these.
   const startedAt = rideMMKV.getStartedAt();
   const motorcycleId = rideMMKV.getMotorcycleId() ?? null;
   const store = useRideStore.getState();
@@ -232,8 +239,9 @@ export function endRideSession(source: RideSource = 'phone'): RideEndSummary | n
   // Both the phone HUD and a CarPlay Stop now route to the ride-summary screen,
   // which is the single owner of ride-data cleanup (it clears on save/discard).
   // We deliberately do NOT clear here — clearing would wipe the waypoint chunks the
-  // summary reads to draw the route. (autoEndRide is the only truly headless end and
-  // owns its own cleanup.)
+  // summary reads to draw the route. (autoEndRide is the only truly headless end; it
+  // stops GPS and drops the in-memory buffer but, like this path, leaves the
+  // persisted ride id for the summary / crash-recovery to reconcile.)
   return {
     rideId,
     distanceM: Math.round(totalDistance),

@@ -15,6 +15,18 @@ import {
 
 export type CarPlayPanelState = 'recording' | 'autoPaused' | 'acquiring' | 'idle';
 
+// Head-unit action ids. Shared by buildActions (which stamps them onto the
+// CPInformationTemplate buttons) and the coordinator's onAction dispatcher, so the
+// command vocabulary is defined once and checked exhaustively (no magic strings).
+export const CARPLAY_ACTION = {
+  start: 'start',
+  pause: 'pause',
+  resume: 'resume',
+  stop: 'stop',
+} as const;
+
+export type CarPlayActionId = (typeof CARPLAY_ACTION)[keyof typeof CARPLAY_ACTION];
+
 export interface PanelSnapshot {
   state: CarPlayPanelState;
   speed: string;
@@ -122,18 +134,18 @@ export function buildActions(
   switch (state) {
     case 'recording':
       return [
-        { id: 'pause', title: 'Pause' },
-        { id: 'stop', title: 'Stop' },
+        { id: CARPLAY_ACTION.pause, title: 'Pause' },
+        { id: CARPLAY_ACTION.stop, title: 'Stop' },
       ];
     case 'autoPaused':
       return [
-        { id: 'resume', title: 'Resume' },
-        { id: 'stop', title: 'Stop' },
+        { id: CARPLAY_ACTION.resume, title: 'Resume' },
+        { id: CARPLAY_ACTION.stop, title: 'Stop' },
       ];
     case 'acquiring':
-      return [{ id: 'stop', title: 'Stop' }];
+      return [{ id: CARPLAY_ACTION.stop, title: 'Stop' }];
     default:
       // idle: manual offers Start; automatic shows no control (no duplicate start)
-      return startMode === 'manual' ? [{ id: 'start', title: 'Start Ride' }] : [];
+      return startMode === 'manual' ? [{ id: CARPLAY_ACTION.start, title: 'Start Ride' }] : [];
   }
 }

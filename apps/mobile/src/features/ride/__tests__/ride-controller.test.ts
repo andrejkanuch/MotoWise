@@ -46,6 +46,7 @@ jest.mock('../../../lib/analytics', () => ({
 }));
 jest.mock('../../../stores/ride.store', () => {
   const store = {
+    status: 'recording' as 'idle' | 'recording' | 'paused' | 'ended',
     startRide: jest.fn(),
     endRide: jest.fn(),
     setPermissionLevel: jest.fn(),
@@ -88,6 +89,7 @@ beforeEach(() => {
   mmkvState.startedAt = 0;
   mmkvState.totalPausedMs = 0;
   mmkvState.currentId = '';
+  store.status = 'recording';
   checkPerms.mockResolvedValue('full');
 });
 
@@ -177,5 +179,17 @@ describe('endRideSession', () => {
     mmkvState.currentId = 'ride-ph';
     endRideSession('phone');
     expect(clearRideData).not.toHaveBeenCalled();
+  });
+
+  it('is idempotent on a double-Stop — returns null and does not re-end when already ended', () => {
+    // endRideSession deliberately leaves the persisted ride id set (the summary owns
+    // cleanup), so a second Stop (or a Stop racing the auto-end timer) must not re-run
+    // the end path or enqueue a duplicate EndRide. Once the store is 'ended', it bails.
+    mmkvState.currentId = 'ride-dup';
+    store.status = 'ended';
+    const result = endRideSession('carplay');
+    expect(result).toBeNull();
+    expect(store.endRide).not.toHaveBeenCalled();
+    expect(enqueue).not.toHaveBeenCalledWith('endRide', expect.anything());
   });
 });
