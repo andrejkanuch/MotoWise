@@ -28,7 +28,7 @@ import { AnalyticsEvent, captureException, trackEvent } from '../../../lib/analy
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { queryKeys } from '../../../lib/query-keys';
-import { maybeRequestReview } from '../../../lib/store-review';
+import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { useDiagnosticFlowStore } from '../../../stores/diagnostic-flow.store';
 
 const TOTAL_STEPS = 4;
@@ -187,7 +187,7 @@ export default function NewDiagnosticScreen() {
         has_photo: !!state.photoUri,
         has_wizard_answers: !!hasWizardAnswers,
       });
-      maybeRequestReview();
+      maybeRequestReview(REVIEW_MILESTONE.DIAGNOSIS_COMPLETED);
       queryClient.invalidateQueries({ queryKey: queryKeys.diagnostics.all });
       router.replace(`/(diagnose)/${result.submitDiagnostic.id}` as `/${string}`);
     } catch (error: unknown) {
@@ -236,8 +236,7 @@ export default function NewDiagnosticScreen() {
           onPress={handleClose}
           hitSlop={8}
           accessibilityRole="button"
-          // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
-          accessibilityLabel={t('diagnoseV2.close' as any)}
+          accessibilityLabel={t('diagnoseV2.close')}
         >
           <X size={22} color={colors.textSecondary} strokeWidth={2} />
         </Pressable>

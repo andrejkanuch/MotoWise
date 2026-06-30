@@ -45,5 +45,5 @@ interface PerformanceLog {
 // a build-time-only concern — revisit if the shape diverges.
 const PERFORMANCE_LOG = PERFORMANCE_LOG_RAW as unknown as PerformanceLog;
 
-export { APP_FEATURES_MD, DESIGN_SYSTEM_MD, PERFORMANCE_LOG };
 export type { PerformanceLogPost };
+export { APP_FEATURES_MD, DESIGN_SYSTEM_MD, PERFORMANCE_LOG };

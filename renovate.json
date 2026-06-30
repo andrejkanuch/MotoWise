@@ -1,0 +1,75 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    ":configMigration",
+    ":maintainLockFilesWeekly"
+  ],
+  "timezone": "Europe/Bratislava",
+  "schedule": ["before 6am on monday"],
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "rangeStrategy": "bump",
+  "minimumReleaseAge": "3 days",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on monday"]
+  },
+  "packageRules": [
+    {
+      "description": "Group all non-major devDependencies and auto-merge",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "devDependencies (non-major)",
+      "automerge": true
+    },
+    {
+      "description": "Do NOT bump Expo SDK or React Native packages independently — `expo`, `expo-*`, `@expo/*`, `react-native`, every `react-native-*` native module, and `nativewind` are version-locked to the installed Expo SDK and must be upgraded together via `expo install` / `expo install --fix` during a deliberate SDK upgrade. Piecemeal bot bumps (a lone `expo` patch, or an `expo-*`/`react-native-*` ahead of the SDK) cause duplicate native modules, lightningcss deserialize failures, and React renderer mismatches. To pull a specific community-library fix, re-enable this rule temporarily or bump that one package by hand.",
+      "matchPackageNames": [
+        "expo",
+        "/^expo-/",
+        "/^@expo//",
+        "react-native",
+        "/^react-native-/",
+        "nativewind"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Group non-major NestJS ecosystem updates",
+      "matchPackageNames": ["/^@nestjs//"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "nestjs (non-major)"
+    },
+    {
+      "description": "Group non-major GraphQL tooling updates",
+      "matchPackageNames": ["/graphql/", "/^@graphql-codegen//", "graphql-request"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "graphql tooling (non-major)"
+    },
+    {
+      "description": "Group GitHub Actions and auto-merge non-major",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "github-actions",
+      "automerge": true
+    },
+    {
+      "description": "Pin pnpm and Node engines but never auto-merge — surface major toolchain bumps for manual review",
+      "matchDepTypes": ["packageManager", "engines"],
+      "automerge": false
+    },
+    {
+      "description": "Never update lightningcss — NativeWind v5 / react-native-css require it pinned to exactly 1.30.1 via pnpm.overrides. Newer versions change the lightningcss serde schema and break the Metro CSS transformer with 'failed to deserialize ... Specifier' errors. See https://www.nativewind.dev/v5/getting-started/installation",
+      "matchPackageNames": ["lightningcss"],
+      "enabled": false
+    },
+    {
+      "description": "Never update react/react-dom independently — react must byte-match the react-native-renderer bundled with react-native (0.85.3 -> 19.2.3). Bumping ahead (e.g. 19.2.7 via #112) throws 'Incompatible React versions' at runtime on native. Bump only as part of a react-native/Expo SDK upgrade.",
+      "matchPackageNames": ["react", "react-dom"],
+      "enabled": false
+    }
+  ]
+}

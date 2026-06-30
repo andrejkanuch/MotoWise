@@ -1,4 +1,4 @@
-import { findNegativePaywallSpacing } from '../paywall-validation';
+import { findNegativePaywallSpacing, findUnboundedScrollStacks } from '../paywall-validation';
 
 // Mirrors the exact component that crashed Android in production: a pill-shaped
 // badge with a negative top margin. (Sentry MOTO-VAULT-REACT-NATIVE-1N)
@@ -80,5 +80,48 @@ describe('findNegativePaywallSpacing', () => {
     expect(findNegativePaywallSpacing(null)).toEqual([]);
     expect(findNegativePaywallSpacing(42)).toEqual([]);
     expect(findNegativePaywallSpacing('nope')).toEqual([]);
+  });
+});
+
+// Mirrors the exact stack that crashed Android in production: the root "Content"
+// stack with `overflow: scroll` + `size.height.type: fill`.
+// (Sentry MOTO-VAULT-REACT-NATIVE-1V)
+const SCROLL_FILL_CONTENT_STACK = {
+  id: 'uCaBPyA71Q',
+  name: 'Content',
+  type: 'stack',
+  overflow: 'scroll',
+  size: { height: { type: 'fill', value: null }, width: { type: 'fill', value: null } },
+};
+
+const SAFE_SCROLL_STACK = {
+  ...SCROLL_FILL_CONTENT_STACK,
+  size: { height: { type: 'fit', value: null }, width: { type: 'fill', value: null } },
+};
+
+describe('findUnboundedScrollStacks', () => {
+  it('flags the scroll+fill stack that crashes Android (MOTO-VAULT-REACT-NATIVE-1V)', () => {
+    const found = findUnboundedScrollStacks(wrapInPaywall(SCROLL_FILL_CONTENT_STACK));
+    expect(found).toHaveLength(1);
+    expect(found[0]).toMatchObject({
+      overflow: 'scroll',
+      heightType: 'fill',
+      componentId: 'uCaBPyA71Q',
+    });
+  });
+
+  it('does not flag a scrollable stack with bounded (fit) height', () => {
+    expect(findUnboundedScrollStacks(wrapInPaywall(SAFE_SCROLL_STACK))).toEqual([]);
+  });
+
+  it('does not flag a fill-height stack that is not scrollable', () => {
+    const tree = { id: 'x', size: { height: { type: 'fill' } } };
+    expect(findUnboundedScrollStacks(tree)).toEqual([]);
+  });
+
+  it('handles null/primitive nodes without throwing', () => {
+    expect(findUnboundedScrollStacks(null)).toEqual([]);
+    expect(findUnboundedScrollStacks(42)).toEqual([]);
+    expect(findUnboundedScrollStacks('nope')).toEqual([]);
   });
 });

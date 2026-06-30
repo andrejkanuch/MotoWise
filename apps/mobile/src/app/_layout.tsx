@@ -278,7 +278,12 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
   // the anonymous distinct_id so the purchase joins this person post-signup.
   useEffect(() => {
     if (isAnonOnboarding) {
-      void configureRevenueCatAnonymously(getAnalyticsDistinctId());
+      // Capture attribution (persists UTM to SecureStore) BEFORE RevenueCat init
+      // reads it for the write-once $mediaSource (KTD-6). captureMetaAttribution
+      // is deduped, so this shares the cold-start run rather than racing it.
+      void captureMetaAttribution()
+        .then(() => configureRevenueCatAnonymously(getAnalyticsDistinctId()))
+        .catch((e) => captureException(e, { source: 'layout.captureAndConfigureRcAnonymously' }));
     }
   }, [isAnonOnboarding]);
 
@@ -710,6 +715,13 @@ function RootLayout() {
           documentId?: string;
           motorcycleId?: string;
         };
+
+        // MOT-272: measure reminder opens (paired with REMINDER_SCHEDULED) so the
+        // local-reminder loop is no longer a blind spot.
+        trackEvent(AnalyticsEvent.REMINDER_OPENED, {
+          kind: data?.kind ?? NOTIFICATION_KIND.MAINTENANCE,
+          action: actionId,
+        });
 
         // Document expiry reminders: tap or "View" deep-links to the document.
         if (data?.kind === NOTIFICATION_KIND.DOCUMENT && data.documentId) {

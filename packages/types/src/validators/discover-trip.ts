@@ -90,18 +90,18 @@ export type ModerateDiscoverTripInput = z.infer<typeof ModerateDiscoverTripInput
 // Consumers can import the new unified types from here during the transition.
 
 export {
-  // Schemas
-  TripTemplateWaypointSchema,
-  PublishAsTemplateInputSchema,
-  CreateTripReviewInputSchema,
-  TripTemplateFiltersSchema,
-  ModerateTripTemplateInputSchema,
+  type ConditionTag,
   ConditionTagSchema,
+  type CreateTripReviewInput,
+  CreateTripReviewInputSchema,
+  type ModerateTripTemplateInput,
+  ModerateTripTemplateInputSchema,
+  type PublishAsTemplateInput,
+  PublishAsTemplateInputSchema,
+  type TripTemplateFilters,
+  TripTemplateFiltersSchema,
   // Types
   type TripTemplateWaypoint,
-  type PublishAsTemplateInput,
-  type CreateTripReviewInput,
-  type TripTemplateFilters,
-  type ModerateTripTemplateInput,
-  type ConditionTag,
+  // Schemas
+  TripTemplateWaypointSchema,
 };

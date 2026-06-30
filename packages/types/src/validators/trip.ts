@@ -199,6 +199,8 @@ export type ConditionTag = z.infer<typeof ConditionTagSchema>;
 // --- Date range constants (trip planning window) ---
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+/** Max day count for a dateless showcase trip — matches the planner's day ceiling. */
+export const SHOWCASE_MAX_DAY_COUNT = 14;
 const MAX_PAST_DAYS = 365; // startDate cannot be more than 1 year in the past
 const MAX_FUTURE_DAYS = 5 * 365; // endDate cannot be more than 5 years in the future
 const MAX_TRIP_SPAN_DAYS = 365; // maximum trip duration
@@ -407,7 +409,11 @@ export const CreateTripInputSchema = z
     startDate: z.string().date(),
     endDate: z.string().date(),
     difficulty: TripDifficultySchema,
-    maxRiders: z.number().int().min(2).max(50),
+    // min(1) supports solo trips — the mobile app lets riders plan a 1-rider
+    // trip and treats maxRiders <= 1 as a valid/complete trip
+    // (trip-completeness.ts). A min(2) floor here rejected every solo-trip
+    // creation with a generic BAD_REQUEST. (Sentry MOTO-VAULT-REACT-NATIVE-1J)
+    maxRiders: z.number().int().min(1).max(50),
     visibility: nullishToUndefined(TripVisibilitySchema),
   })
   .superRefine((data, ctx) => {
@@ -435,18 +441,46 @@ export const CreateTripWithWaypointsInputSchema = z
       .max(2000)
       .transform((s) => stripHtml(s).trim())
       .pipe(z.string().min(1).max(2000)),
-    startDate: z.string().date(),
-    endDate: z.string().date(),
+    // Optional because a showcase ("Already rode it") is a dateless trip — the
+    // service stores sentinel dates + dates_pending=true. For a planned trip
+    // (isShowcase=false) both are required, enforced in superRefine below.
+    startDate: nullishToUndefined(z.string().date()),
+    endDate: nullishToUndefined(z.string().date()),
     difficulty: TripDifficultySchema,
-    maxRiders: z.number().int().min(2).max(50),
+    // min(1) supports solo trips — see CreateTripInputSchema above.
+    // (Sentry MOTO-VAULT-REACT-NATIVE-1J)
+    maxRiders: z.number().int().min(1).max(50),
     visibility: nullishToUndefined(TripVisibilitySchema),
     waypoints: z.array(InlineWaypointSchema).min(0).max(25),
+    // Showcase ("Already rode it"): a dateless trip parameterised by dayCount
+    // instead of a start/end range. The service maps this to sentinel dates +
+    // dates_pending=true and skips organiser auto-enrolment.
+    isShowcase: z.boolean().optional().default(false),
+    dayCount: z.number().int().min(1).max(SHOWCASE_MAX_DAY_COUNT).optional(),
   })
   .superRefine((data, ctx) => {
-    validateTripDateRange(ctx, data.startDate, data.endDate, {
-      enforceStartNotTooFarInPast: true,
-      enforceStartNotTooFarInFuture: true,
-    });
+    if (data.isShowcase) {
+      // Dateless: no date-range validation. dayCount carries the day structure.
+      if (data.startDate || data.endDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'A showcase trip must not carry start/end dates',
+          path: ['startDate'],
+        });
+      }
+    } else {
+      if (!data.startDate || !data.endDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'startDate and endDate are required for a planned trip',
+          path: [data.startDate ? 'endDate' : 'startDate'],
+        });
+      }
+      validateTripDateRange(ctx, data.startDate, data.endDate, {
+        enforceStartNotTooFarInPast: true,
+        enforceStartNotTooFarInFuture: true,
+      });
+    }
     validateCreateTripWaypoints(ctx, data.waypoints);
   });
 
@@ -462,7 +496,9 @@ export const UpdateTripInputSchema = z
     startDate: nullishToUndefined(z.string().date()),
     endDate: nullishToUndefined(z.string().date()),
     difficulty: nullishToUndefined(TripDifficultySchema),
-    maxRiders: nullishToUndefined(z.number().int().min(2).max(50)),
+    // min(1) supports solo trips — see CreateTripInputSchema.
+    // (Sentry MOTO-VAULT-REACT-NATIVE-1J)
+    maxRiders: nullishToUndefined(z.number().int().min(1).max(50)),
     visibility: nullishToUndefined(TripVisibilitySchema),
     waypoints: nullishToUndefined(z.array(InlineWaypointSchema).min(0).max(25)),
   })

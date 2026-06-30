@@ -38,11 +38,13 @@ export class CreateTripWithWaypointsInput {
   @Field()
   description: string;
 
-  @Field()
-  startDate: string;
+  // Optional: a showcase ("Already rode it") is dateless. Required for a
+  // planned trip — enforced by CreateTripWithWaypointsInputSchema.
+  @Field({ nullable: true })
+  startDate?: string;
 
-  @Field()
-  endDate: string;
+  @Field({ nullable: true })
+  endDate?: string;
 
   @Field()
   difficulty: string;
@@ -56,4 +58,11 @@ export class CreateTripWithWaypointsInput {
   // Privacy feature: 'private' | 'unlisted' | 'public'. Defaults to 'private'.
   @Field({ nullable: true })
   visibility?: string;
+
+  // Showcase ("Already rode it"): dateless trip parameterised by dayCount.
+  @Field({ nullable: true })
+  isShowcase?: boolean;
+
+  @Field(() => Int, { nullable: true })
+  dayCount?: number;
 }

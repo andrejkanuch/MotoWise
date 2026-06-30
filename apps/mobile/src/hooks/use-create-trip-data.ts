@@ -1,7 +1,9 @@
+import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import {
   CreateTripWithWaypointsDocument,
   type CreateTripWithWaypointsInput,
   DeleteTripDocument,
+  PublishAsTemplateDocument,
   PublishTripDocument,
   TripDetailDocument,
   UpdateTripDocument,
@@ -13,11 +15,27 @@ import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
 import { userFriendlyError } from '../lib/graphql-errors';
 import { queryKeys } from '../lib/query-keys';
-import { maybeRequestReview } from '../lib/store-review';
+import { maybeRequestReview, REVIEW_MILESTONE } from '../lib/store-review';
 
 interface RouterLike {
   back: () => void;
   dismissAll: () => void;
+}
+
+/**
+ * A public showcase becomes a discoverable template (publishAsTemplate sets
+ * is_template + visibility=public + status=published); everything else uses the
+ * standard publish (status draft -> published). The result payload is unused, so
+ * the two documents are normalized to a single `{ tripId }` document type.
+ */
+function publishDocFor(
+  input: CreateTripWithWaypointsInput,
+): TypedDocumentNode<unknown, { tripId: string }> {
+  const doc =
+    input.isShowcase && input.visibility === 'public'
+      ? PublishAsTemplateDocument
+      : PublishTripDocument;
+  return doc as TypedDocumentNode<unknown, { tripId: string }>;
 }
 
 interface UseCreateTripDataParams {
@@ -62,11 +80,12 @@ export function useCreateTripData({
       trackEvent(AnalyticsEvent.TRIP_CREATED, {
         difficulty,
         waypoint_count: waypointCount,
+        published: false,
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
-      maybeRequestReview();
+      maybeRequestReview(REVIEW_MILESTONE.TRIP_CREATED);
       router.back();
     },
     onError: (error) => {
@@ -77,16 +96,23 @@ export function useCreateTripData({
   // Publish mutation
   const publishMutation = useMutation({
     mutationFn: async () => {
-      const result = await gqlFetcher(CreateTripWithWaypointsDocument, {
-        input: buildTripInput(),
-      });
+      const input = buildTripInput();
+      const result = await gqlFetcher(CreateTripWithWaypointsDocument, { input });
       const newTripId = result.createTripWithWaypoints.id;
-      await gqlFetcher(PublishTripDocument, { tripId: newTripId });
+      await gqlFetcher(publishDocFor(input), { tripId: newTripId });
       return newTripId;
     },
     onSuccess: () => {
       if (process.env.EXPO_OS === 'ios')
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      // MOT-285: the publish path also CREATES a trip — fire TRIP_CREATED here too
+      // so the trip_created -> trip_published funnel is computable (published trips
+      // were previously invisible to the create step).
+      trackEvent(AnalyticsEvent.TRIP_CREATED, {
+        difficulty,
+        waypoint_count: waypointCount,
+        published: true,
+      });
       trackEvent(AnalyticsEvent.TRIP_PUBLISHED, {
         difficulty,
         waypoint_count: waypointCount,
@@ -95,7 +121,7 @@ export function useCreateTripData({
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
-      maybeRequestReview();
+      maybeRequestReview(REVIEW_MILESTONE.TRIP_CREATED);
       router.back();
     },
     onError: (error) => {
@@ -106,11 +132,13 @@ export function useCreateTripData({
   // Update mutation (edit mode) — includes waypoints
   const updateMutation = useMutation({
     mutationFn: async () => {
-      const tripInput = buildTripInput();
+      // isShowcase/dayCount are create-only inputs — UpdateTripInput does not
+      // define them, so strip them or the GraphQL request is rejected.
+      const { isShowcase: _isShowcase, dayCount: _dayCount, ...updateInput } = buildTripInput();
       await gqlFetcher(UpdateTripDocument, {
         input: {
           tripId: tripId ?? '',
-          ...tripInput,
+          ...updateInput,
         },
       });
     },
@@ -135,10 +163,11 @@ export function useCreateTripData({
     mutationFn: async () => {
       const tripInput = buildTripInput();
       const editTripId = tripId ?? '';
+      const { isShowcase: _isShowcase, dayCount: _dayCount, ...updateInput } = tripInput;
       await gqlFetcher(UpdateTripDocument, {
-        input: { tripId: editTripId, ...tripInput },
+        input: { tripId: editTripId, ...updateInput },
       });
-      await gqlFetcher(PublishTripDocument, { tripId: editTripId });
+      await gqlFetcher(publishDocFor(tripInput), { tripId: editTripId });
     },
     onSuccess: async () => {
       if (process.env.EXPO_OS === 'ios')

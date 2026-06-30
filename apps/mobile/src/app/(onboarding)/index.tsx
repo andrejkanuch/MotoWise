@@ -10,6 +10,8 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { getResumeRoute, OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
 import { AnalyticsEvent } from '../../lib/analytics';
+import { getStoredAnalyticsConsent } from '../../lib/analytics-consent';
+import { getStoredFbclid, getStoredUtmProperties } from '../../lib/meta-attribution';
 import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { getOnboardingVariant } from '../../lib/onboarding-experiment';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -42,6 +44,29 @@ export default function WelcomeScreen() {
     return target ? { lastCompleted, target } : null;
   });
 
+  // Preload stored attribution (fbclid + UTM) so `onboarding_started` can carry it
+  // for funnel traceability of tagged/paid installs, without blocking navigation
+  // on the async SecureStore reads (U4). identify() also merges UTM onto the person
+  // separately — this only enriches the event.
+  //
+  // Consent-gated: fbclid is a Meta click identifier (personal data under GDPR), so
+  // it is only attached once analytics consent is stored — never transmitted to
+  // PostHog pre-consent, even though the (existing) onboarding_started event itself
+  // fires regardless.
+  const [attribution, setAttribution] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (!getStoredAnalyticsConsent()) return;
+    let active = true;
+    void (async () => {
+      const [utm, fbclid] = await Promise.all([getStoredUtmProperties(), getStoredFbclid()]);
+      if (!active) return;
+      setAttribution({ ...(utm ?? {}), ...(fbclid ? { fbclid } : {}) });
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   useEffect(() => {
     resumeHandledThisLaunch = true;
     if (resume) {
@@ -60,7 +85,7 @@ export default function WelcomeScreen() {
 
   const handleGetStarted = () => {
     triggerImpact(ImpactFeedbackStyle.Medium);
-    trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_STARTED);
+    trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_STARTED, attribution);
     router.push(OB_ROUTE.EXPERIENCE);
   };
 

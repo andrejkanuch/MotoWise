@@ -30,7 +30,7 @@ import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { getPrimaryGoal, OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
-import { AnalyticsEvent, captureException } from '../../lib/analytics';
+import { AnalyticsEvent, captureException, setUserPropertiesOnce } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { uploadBikePhoto } from '../../lib/image-upload';
 import { detectCurrency } from '../../lib/locale-detection';
@@ -39,7 +39,7 @@ import { MetaAnalytics } from '../../lib/meta-analytics';
 import { clearStoredFbclid, getStoredFbclid } from '../../lib/meta-attribution';
 import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { queryKeys } from '../../lib/query-keys';
-import { maybeRequestReview } from '../../lib/store-review';
+import { setSelfReportedSource } from '../../lib/subscription';
 import { useAuthStore } from '../../stores/auth.store';
 import { useChecklistStore } from '../../stores/checklist.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -104,6 +104,7 @@ export default function PersonalizingScreen() {
     weeklySummary,
     lastServiceDate,
     currency,
+    heardFrom,
     reset,
   } = useOnboardingStore();
   const queryClient = useQueryClient();
@@ -227,6 +228,15 @@ export default function PersonalizingScreen() {
       const eventId = Crypto.randomUUID();
       input.eventId = eventId;
 
+      // Backstop the self-reported acquisition channel: the HDYHAU screen writes
+      // these fire-and-forget, so an app kill mid-advance could lose them while the
+      // persisted `heardFrom` survives. Both are idempotent ($set_once person prop /
+      // mutable RC attribute), so re-asserting here at the terminal step is safe.
+      if (heardFrom) {
+        setUserPropertiesOnce({ heard_from: heardFrom });
+        void setSelfReportedSource(heardFrom);
+      }
+
       await completeOnboarding(input);
 
       trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {
@@ -245,7 +255,6 @@ export default function PersonalizingScreen() {
         accepted_maintenance_count: acceptedOemScheduleIds.length,
       });
       MetaAnalytics.trackCompleteRegistration(eventId);
-      maybeRequestReview();
 
       // Initialize checklist store based on user goals
       useChecklistStore.getState().initialize(ridingGoals);

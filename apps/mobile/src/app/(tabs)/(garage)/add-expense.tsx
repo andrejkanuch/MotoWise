@@ -22,7 +22,7 @@ import {
 } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { maybeRequestReview } from '../../../lib/store-review';
+import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
@@ -47,14 +47,22 @@ const ITEM_NAME_HINTS: Partial<Record<Category, string>> = {
 
 export default function AddExpenseScreen() {
   const { t } = useTranslation();
-  const { motorcycleId } = useLocalSearchParams<{ motorcycleId: string }>();
+  // `category` may be prefilled by the expense-dashboard quick-add chips (MOT-273).
+  const { motorcycleId, category: categoryParam } = useLocalSearchParams<{
+    motorcycleId: string;
+    category?: string;
+  }>();
   const { t: theme, isDark } = useEditorialTheme();
   const { currency, symbol } = useCurrency();
   const queryClient = useQueryClient();
 
   const userId = useAuthStore((s) => s.session?.user?.id);
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState<Category>('fuel');
+  const [category, setCategory] = useState<Category>(
+    categoryParam && (CATEGORIES as readonly string[]).includes(categoryParam)
+      ? (categoryParam as Category)
+      : 'fuel',
+  );
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [itemName, setItemName] = useState('');
@@ -73,7 +81,8 @@ export default function AddExpenseScreen() {
   const photos = photosQuery.data?.expensePhotos ?? [];
 
   const parsedAmount = Number.parseFloat(amount) || 0;
-  const isValid = parsedAmount > 0 && parsedAmount <= 99999.99 && date <= new Date();
+  const isValid =
+    parsedAmount > 0 && parsedAmount <= 99999.99 && date <= new Date() && !!motorcycleId;
 
   const logMutation = useMutation({
     mutationFn: () =>
@@ -102,7 +111,7 @@ export default function AddExpenseScreen() {
       // The expense id is now available from the mutation result.
       setSavedExpenseId(result.logExpense.id);
       triggerNotification(Haptics.NotificationFeedbackType.Success);
-      maybeRequestReview();
+      maybeRequestReview(REVIEW_MILESTONE.EXPENSE_LOGGED);
     },
     onError: () => {
       Alert.alert(

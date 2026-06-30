@@ -30,7 +30,7 @@ import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../../lib/expen
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { cancelTaskNotification } from '../../../lib/notifications';
 import { queryKeys } from '../../../lib/query-keys';
-import { maybeRequestReview } from '../../../lib/store-review';
+import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
@@ -113,7 +113,7 @@ export default function CompleteTaskScreen() {
         withSpring(1, { damping: 12, stiffness: 150 }),
       );
 
-      maybeRequestReview();
+      maybeRequestReview(REVIEW_MILESTONE.MAINTENANCE_COMPLETED);
 
       setTimeout(() => router.back(), 800);
     },

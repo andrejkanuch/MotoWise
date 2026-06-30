@@ -161,6 +161,12 @@ export class Trip {
   @Field()
   endDate: string;
 
+  // True for a dateless trip (showcase / "Already rode it"): start_date and
+  // end_date hold the sentinel 1970-01-01 and should not be displayed. Clients
+  // gate date UI on this rather than on isTemplate.
+  @Field({ nullable: true })
+  datesPending?: boolean;
+
   @Field()
   difficulty: string;
 

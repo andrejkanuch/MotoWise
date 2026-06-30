@@ -8,6 +8,7 @@ import { DiagnosticAiService } from './diagnostic-ai.service';
 // Mock OpenAI SDK — use a `function` expression so the mock is constructable
 // (vitest 4 rejects arrow functions used with `new`).
 vi.mock('openai', () => ({
+  // biome-ignore lint/complexity/useArrowFunction: must stay a function so `new OpenAI()` is constructable
   default: vi.fn().mockImplementation(function () {
     return {
       chat: {

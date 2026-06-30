@@ -83,6 +83,7 @@ describe('variant flow config', () => {
       OB_SCREEN.BIKE_SETUP,
       OB_SCREEN.MAINTENANCE,
       OB_SCREEN.PAYWALL,
+      OB_SCREEN.HEARD_ABOUT,
       OB_SCREEN.NOTIFICATIONS,
       OB_SCREEN.PERSONALIZING,
     ]);

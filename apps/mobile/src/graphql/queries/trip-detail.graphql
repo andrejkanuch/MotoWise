@@ -5,6 +5,7 @@ query TripDetail($tripId: ID!) {
     description
     startDate
     endDate
+    datesPending
     difficulty
     maxRiders
     participantCount

@@ -38,14 +38,21 @@ function writeConsent(decision: Decision) {
   document.cookie = `${CONSENT_COOKIE}=${value}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
 }
 
-function applyPostHogConsent(granted: boolean) {
+export function applyPostHogConsent(granted: boolean) {
   if (typeof window === 'undefined') return;
-  if (granted) {
-    posthog.set_config({ persistence: 'localStorage+cookie' });
-    posthog.opt_in_capturing();
-    posthog.capture('$consent_granted');
-  } else {
-    posthog.opt_out_capturing();
+  try {
+    if (granted) {
+      posthog.set_config({ persistence: 'localStorage+cookie' });
+      posthog.opt_in_capturing();
+      posthog.capture('$consent_granted');
+    } else {
+      posthog.opt_out_capturing();
+    }
+  } catch {
+    // In private mode / blocked-storage, set_config + opt_in/out_capturing touch
+    // localStorage/cookies and throw a SecurityError (DOMException 18) as an
+    // unhandled rejection (Sentry MOTOVAULT-WEB-T). PostHog falls back to memory
+    // persistence internally, so swallowing the storage error is safe.
   }
 }
 

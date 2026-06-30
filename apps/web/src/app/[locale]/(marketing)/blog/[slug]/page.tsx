@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -127,16 +128,28 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
   const headings: TocHeading[] = [];
 
-  const { content } = await compileMDX({
-    source: article.content,
-    options: {
-      mdxOptions: {
-        remarkPlugins: [remarkGfm],
-        rehypePlugins: [rehypeSlug, rehypeExtractHeadings(headings)],
+  // A single article with malformed MDX must not 500 the route. Compile defensively:
+  // report the failure with enough context to fix the source, then render a clean
+  // 404 rather than the generic error boundary. (Sentry MOTOVAULT-WEB-S)
+  let content: Awaited<ReturnType<typeof compileMDX>>['content'];
+  try {
+    ({ content } = await compileMDX({
+      source: article.content,
+      options: {
+        mdxOptions: {
+          remarkPlugins: [remarkGfm],
+          rehypePlugins: [rehypeSlug, rehypeExtractHeadings(headings)],
+        },
       },
-    },
-    components: mdxComponents,
-  });
+      components: mdxComponents,
+    }));
+  } catch (error) {
+    Sentry.captureException(error, {
+      tags: { area: 'blog', op: 'compileMDX' },
+      extra: { slug, locale, contentPreview: article.content.slice(0, 500) },
+    });
+    notFound();
+  }
 
   const related = await getRelatedArticles(slug, article.category, locale);
   const author = getAuthor(article.author) ?? getDefaultAuthor();
@@ -245,31 +258,30 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
         <div className="prose prose-invert max-w-none">{content}</div>
 
-        {article.specData === true && (
-          <section
-            aria-label="Data disclaimer"
-            className="mt-12 flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-neutral-900/50 p-5"
+        <section
+          aria-label="Data disclaimer"
+          className="mt-12 flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-neutral-900/50 p-5"
+        >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mt-0.5 h-5 w-5 shrink-0 text-amber-400"
           >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mt-0.5 h-5 w-5 shrink-0 text-amber-400"
-            >
-              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-              <path d="M12 9v4" />
-              <path d="M12 17h.01" />
-            </svg>
-            <p className="text-sm leading-relaxed text-amber-200/90">
-              This information is informative only. Always verify against your owner&apos;s and
-              service manual before performing any maintenance.
-            </p>
-          </section>
-        )}
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+          </svg>
+          <p className="text-sm leading-relaxed text-amber-200/90">
+            {article.specData === true
+              ? "The figures in this article are informative only and can vary by model year and market. Always verify every specification against your official owner's and service manual before performing any maintenance."
+              : "This article is for general information only. Always confirm details against official manufacturer documentation and your owner's manual before acting on them."}
+          </p>
+        </section>
 
         {article.faq && article.faq.length > 0 && (
           <section className="mt-16" aria-labelledby="faq-heading">
@@ -299,15 +311,17 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           <AuthorBio author={author} />
         </div>
 
-        <div className="mt-16 rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 text-center">
+        <div className="mt-16 rounded-2xl border border-amber-500/20 bg-neutral-900/50 p-8 text-center">
           <h2 className="mb-3 text-xl font-semibold text-neutral-100">
-            Ready to take control of your motorcycle maintenance?
+            Keep your bike healthy — never miss a service again
           </h2>
           <p className="mb-6 text-neutral-400">
-            MotoVault combines AI diagnostics, structured learning, and garage management in one
-            app.
+            Riders who track maintenance in MotoVault catch problems early, protect their resale
+            value, and ride with confidence. Log every service, get reminded before the next one is
+            due, and diagnose issues with AI — all in one app.
           </p>
           <DownloadAppButton source="blog_cta" />
+          <p className="mt-4 text-xs text-neutral-500">Free to download · iOS &amp; Android</p>
         </div>
 
         {related.length > 0 && (
