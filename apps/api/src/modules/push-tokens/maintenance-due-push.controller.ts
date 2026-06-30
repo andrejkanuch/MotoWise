@@ -6,8 +6,8 @@ import { Public } from '../../common/decorators/public.decorator';
 import { MaintenancePushService } from './maintenance-push.service';
 
 const TIMING_SAFE_KEY = 'maintenance-push-timing-safe-compare' as const;
-const SECRET_HEADER = 'x-maintenance-push-secret';
-const DEFAULT_DAYS_BEFORE = 1;
+const SECRET_HEADER = 'x-maintenance-push-secret' as const;
+const DEFAULT_DAYS_BEFORE = 1 as const;
 
 function safeCompare(a: string, b: string): boolean {
   const hmac = (v: string) => createHmac('sha256', TIMING_SAFE_KEY).update(v).digest();

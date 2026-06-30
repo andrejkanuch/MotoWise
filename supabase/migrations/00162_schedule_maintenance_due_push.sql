@@ -29,13 +29,16 @@ BEGIN
     RETURN;
   END IF;
 
+  -- 30s timeout: the endpoint does several DB round-trips + an Expo API call and
+  -- can cold-start on Render; pg_net's 1s default would expire mid-run.
   PERFORM net.http_post(
     url := 'https://motowise.onrender.com/webhooks/maintenance-due-push',
     body := jsonb_build_object('daysBefore', 1),
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'x-maintenance-push-secret', v_secret
-    )
+    ),
+    timeout_milliseconds := 30000
   );
 END;
 $$;
