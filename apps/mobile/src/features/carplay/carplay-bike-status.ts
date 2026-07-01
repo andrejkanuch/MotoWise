@@ -9,14 +9,12 @@
 import { KM_PER_MILE, type MeasurementSystem } from '@motovault/types';
 import type { CPListModel, CPListRow } from '../../../modules/carplay/src';
 import { getRelativeDueDate } from '../../lib/health-score';
-import { formatDate } from '../../utils/ride-formatters';
 
 export const BIKE_LABEL = {
   title: 'Bike',
   nextService: 'Next service',
   mileage: 'Mileage',
   recalls: 'Recalls',
-  fuel: 'Fuel',
   stopToRefresh: 'Stop to refresh',
   noBike: 'No bike set',
   noRecalls: 'None',
@@ -36,11 +34,6 @@ export interface BikeStatusTask {
   status: string;
 }
 
-export interface BikeStatusFuel {
-  filledAt: string;
-  fuelLitres: number;
-}
-
 export interface BikeStatusBike {
   nickname?: string | null;
   make: string;
@@ -54,7 +47,6 @@ export interface BikeStatusInput {
   moving: boolean;
   bike: BikeStatusBike | null;
   tasks: BikeStatusTask[];
-  latestFuel: BikeStatusFuel | null;
 }
 
 /** English relative-due string (head-unit copy is hardcoded — see file header). */
@@ -101,11 +93,6 @@ function recallsDetail(bike: BikeStatusBike): string {
   return bike.recallCount > 0 ? `${bike.recallCount}` : BIKE_LABEL.noRecalls;
 }
 
-function fuelDetail(fuel: BikeStatusFuel | null): string {
-  if (!fuel) return DASH;
-  return `${fuel.fuelLitres.toFixed(1)} L · ${formatDate(fuel.filledAt)}`;
-}
-
 /** (bike status + motion + units) → the pushed Bike-list model. */
 export function buildBikeStatus(input: BikeStatusInput, system: MeasurementSystem): CPListModel {
   // R20: while moving, never show stale/network values — a single call to action.
@@ -119,7 +106,6 @@ export function buildBikeStatus(input: BikeStatusInput, system: MeasurementSyste
     { title: BIKE_LABEL.nextService, detail: nextServiceDetail(input.tasks) },
     { title: BIKE_LABEL.mileage, detail: mileageDetail(input.bike, system) },
     { title: BIKE_LABEL.recalls, detail: recallsDetail(input.bike) },
-    { title: BIKE_LABEL.fuel, detail: fuelDetail(input.latestFuel) },
   ];
   return { title: BIKE_LABEL.title, rows };
 }

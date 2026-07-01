@@ -8,7 +8,6 @@
 // is absent (Android / pre-CarPlay build).
 
 import {
-  FuelLogsDocument,
   MaintenanceTasksByMotorcycleDocument,
   MyMotorcyclesDocument,
   type MyMotorcyclesQuery,
@@ -25,6 +24,7 @@ import {
   pushBikeList,
   renderInformation,
   setActionDispatcher,
+  setInformationLifecycle,
   updateBikeList,
 } from '../../../modules/carplay/src';
 import { captureException } from '../../lib/analytics';
@@ -46,6 +46,7 @@ import {
   CARPLAY_ACTION,
   type CarPlayPanelState,
   deriveSnapshot,
+  type HeadsUpTask,
   type RideInput,
 } from './carplay-templates';
 
@@ -71,6 +72,20 @@ let bikeVisible = false;
 // Bumped on every open/dismiss so an in-flight loadBikeStatus that resolves after the
 // list was popped (or re-opened) is dropped instead of overwriting the current list.
 let bikeLoadToken = 0;
+
+// Cached bike/maintenance snapshot for the heads-up row (row 4 while riding). Loaded
+// off the render hot path (loadHeadsUpData) and read synchronously by currentRideInput;
+// defaults are the "no signal" state so the picker falls back to the climb row.
+interface HeadsUpSnapshot {
+  recallCount: number;
+  currentMileage: number | null;
+  tasks: HeadsUpTask[];
+}
+const EMPTY_HEADS_UP: HeadsUpSnapshot = { recallCount: 0, currentMileage: null, tasks: [] };
+let headsUpSnapshot: HeadsUpSnapshot = EMPTY_HEADS_UP;
+// Bumped on each load/disconnect so a heads-up fetch resolving after disconnect (or a
+// newer load) is dropped instead of overwriting the current snapshot.
+let headsUpToken = 0;
 
 function clearFlush(): void {
   if (flushTimer) {
@@ -121,12 +136,16 @@ function currentRideInput(): RideInput {
     distance: r.distance,
     elapsedTime: elapsed,
     elevationGain: r.elevationGain,
-    elevationLoss: r.elevationLoss,
     speed: r.currentSpeed,
     // TODO(carplay): replace with a real GPS-lock signal (parent open question).
     // Proxy: treat the ride as locked once any distance/time has accrued.
     gpsLocked: r.distance > 0 || elapsed > 3,
     startMode: useCarPlayStore.getState().startMode,
+    // Heads-up row inputs — populated from the cached bike/task snapshot (U3). Defaults
+    // are the safe "no signal" state so the picker falls back to the climb row.
+    recallCount: headsUpSnapshot.recallCount,
+    currentMileage: headsUpSnapshot.currentMileage,
+    tasks: headsUpSnapshot.tasks,
   };
 }
 
@@ -206,7 +225,6 @@ function syncBikeInput(): BikeStatusInput {
     moving: rideIsMoving(),
     bike: active ? toStatusBike(active) : null,
     tasks: [],
-    latestFuel: null,
   };
 }
 
@@ -223,7 +241,7 @@ function openBikeList(): void {
   });
 }
 
-/** Load-on-entry: cache-first active bike, then fetch tasks + fuel; honors R20. */
+/** Load-on-entry: cache-first active bike, then fetch tasks; honors R20. */
 async function loadBikeStatus(): Promise<void> {
   const token = bikeLoadToken;
   // Drop a resolved load whose list was popped or re-opened while we were fetching.
@@ -232,9 +250,7 @@ async function loadBikeStatus(): Promise<void> {
     const system = useAuthStore.getState().measurementSystem ?? 'metric';
     if (rideIsMoving()) {
       if (!stale()) {
-        updateBikeList(
-          buildBikeStatus({ moving: true, bike: null, tasks: [], latestFuel: null }, system),
-        );
+        updateBikeList(buildBikeStatus({ moving: true, bike: null, tasks: [] }, system));
       }
       return;
     }
@@ -243,21 +259,14 @@ async function loadBikeStatus(): Promise<void> {
     const active = activeBikeFrom(cache);
     if (!active) {
       if (!stale()) {
-        updateBikeList(
-          buildBikeStatus({ moving: false, bike: null, tasks: [], latestFuel: null }, system),
-        );
+        updateBikeList(buildBikeStatus({ moving: false, bike: null, tasks: [] }, system));
       }
       return;
     }
-    const [tasksRes, fuelRes] = await Promise.all([
-      gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId: active.id }),
-      gqlFetcher(FuelLogsDocument, { motorcycleId: active.id }),
-    ]);
+    const tasksRes = await gqlFetcher(MaintenanceTasksByMotorcycleDocument, {
+      motorcycleId: active.id,
+    });
     if (stale()) return;
-    const fuels = [...(fuelRes.fuelLogs ?? [])].sort((a, b) =>
-      b.filledAt.localeCompare(a.filledAt),
-    );
-    const latest = fuels[0] ?? null;
     updateBikeList(
       buildBikeStatus(
         {
@@ -269,7 +278,6 @@ async function loadBikeStatus(): Promise<void> {
             priority: t.priority,
             status: t.status,
           })),
-          latestFuel: latest ? { filledAt: latest.filledAt, fuelLitres: latest.fuelLitres } : null,
         },
         system,
       ),
@@ -282,12 +290,74 @@ async function loadBikeStatus(): Promise<void> {
   }
 }
 
-function onBikeListDismissed(): void {
+/**
+ * Load the active bike's open-recall count + maintenance tasks for the heads-up row
+ * (row 4 while riding), cache-first. Runs off the render hot path (onConnect), writes
+ * the result to headsUpSnapshot, then re-renders so the row reflects it. Token-guarded
+ * against a disconnect / newer load resolving late. Never throws into render — a failure
+ * leaves the last-good snapshot and the picker degrades to the climb row.
+ */
+async function loadHeadsUpData(): Promise<void> {
+  const token = ++headsUpToken;
+  const stale = () => token !== headsUpToken;
+  try {
+    let cache = queryClient.getQueryData<MyMotorcyclesQuery>(queryKeys.motorcycles.all);
+    if (!cache) cache = await gqlFetcher(MyMotorcyclesDocument);
+    const active = activeBikeFrom(cache);
+    if (stale()) return;
+    if (!active) {
+      headsUpSnapshot = EMPTY_HEADS_UP;
+      return;
+    }
+    const tasksRes = await gqlFetcher(MaintenanceTasksByMotorcycleDocument, {
+      motorcycleId: active.id,
+    });
+    if (stale()) return;
+    headsUpSnapshot = {
+      recallCount: active.recallCount ?? 0,
+      currentMileage: active.currentMileage ?? null,
+      tasks: (tasksRes.maintenanceTasks ?? []).map((t) => ({
+        title: t.title,
+        status: t.status,
+        dueDate: t.dueDate,
+        targetMileage: t.targetMileage,
+      })),
+    };
+    // One-shot load, not per-tick churn — push now (bypass the throttle) so the row
+    // reflects promptly. Same state → renderInformation updates rows in place, no rebuild.
+    forceRender();
+  } catch (err) {
+    // Leave the last-good snapshot; the picker falls back to the climb row.
+    captureException(err, { source: 'carplay-coordinator.loadHeadsUpData' });
+  }
+}
+
+/**
+ * The Bike list is gone — stop suppressing the Ride panel. Idempotent: both dismissal
+ * signals (programmatic onPopped and the root-panel reappear that catches the native
+ * back button) route here, and both can fire for a single programmatic pop.
+ */
+function clearBikeCovering(): void {
+  if (!bikeVisible) return;
   bikeVisible = false;
   bikeLoadToken++; // invalidate any in-flight load
   // Rebuild if a ride state transition was missed while covered (lastState is
   // stale), otherwise refresh the rows with current values.
   render();
+}
+
+// Fired via the list's onPopped — a programmatic pop (onDisconnect's popBikeList) or
+// a push rejected before it ever appeared (adapter onGone recovery).
+function onBikeListDismissed(): void {
+  clearBikeCovering();
+}
+
+// Fired via the root panel's onDidAppear — the list left the stack and the Ride panel
+// is topmost again. This is what catches the native CarPlay BACK button, which never
+// fires the list's onPopped; without it a back-button dismiss strands bikeVisible=true
+// and freezes the panel + kills every ride-control action (pause/resume/stop/start).
+function onRidePanelReappeared(): void {
+  clearBikeCovering();
 }
 
 function onConnect(): void {
@@ -304,6 +374,9 @@ function onConnect(): void {
   // prior subscription so exactly one stays live.
   unsubStore?.();
   unsubStore = useRideStore.subscribe(() => render());
+  // Warm the heads-up snapshot off the render path (cache-first). Fire-and-forget:
+  // currentRideInput reads whatever is cached; the load re-renders when it lands.
+  void loadHeadsUpData();
 }
 
 function onDisconnect(): void {
@@ -315,6 +388,9 @@ function onDisconnect(): void {
   unsubStore = null;
   clearInformation();
   lastState = null;
+  // Drop the cached heads-up data + invalidate any in-flight load for the next session.
+  headsUpSnapshot = EMPTY_HEADS_UP;
+  headsUpToken++;
 }
 
 function onAction(actionId: string): void {
@@ -394,6 +470,9 @@ export function startCarPlayCoordinator(): void {
   if (started || !isCarPlayAvailable) return;
   started = true;
   setActionDispatcher(onAction);
+  // Root-panel reappear is the reliable "Bike list dismissed" signal (covers the
+  // native back button, which the list's onPopped does not) — see onRidePanelReappeared.
+  setInformationLifecycle({ onDidAppear: onRidePanelReappeared });
   const c = addConnectListener(onConnect);
   const d = addDisconnectListener(onDisconnect);
   for (const s of [c, d]) if (s) eventSubs.push(s);
@@ -406,6 +485,7 @@ export function __resetCarPlayCoordinator(): void {
   clearFlush();
   disarmStop();
   popBikeList();
+  setInformationLifecycle({});
   bikeVisible = false;
   unsubStore?.();
   unsubStore = null;
@@ -414,4 +494,6 @@ export function __resetCarPlayCoordinator(): void {
   eventSubs.length = 0;
   lastState = null;
   lastPushAt = 0;
+  headsUpSnapshot = EMPTY_HEADS_UP;
+  headsUpToken = 0;
 }

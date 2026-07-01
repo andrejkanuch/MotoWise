@@ -6,6 +6,7 @@ jest.mock('../../../../modules/carplay/src', () => ({
   addConnectListener: jest.fn(() => ({ remove: jest.fn() })),
   addDisconnectListener: jest.fn(() => ({ remove: jest.fn() })),
   setActionDispatcher: jest.fn(),
+  setInformationLifecycle: jest.fn(),
   isHeadUnitConnected: jest.fn(() => false),
   renderInformation: jest.fn(),
   clearInformation: jest.fn(),
@@ -14,11 +15,10 @@ jest.mock('../../../../modules/carplay/src', () => ({
   popBikeList: jest.fn(),
 }));
 
-// Bike-status data seam (coordinator loads the active bike + tasks + fuel outside React).
+// Bike-status data seam (coordinator loads the active bike + tasks outside React).
 jest.mock('../../../lib/graphql-client', () => ({ gqlFetcher: jest.fn() }));
 jest.mock('../../../lib/query-client', () => ({ queryClient: { getQueryData: jest.fn() } }));
 jest.mock('@motovault/graphql', () => ({
-  FuelLogsDocument: 'FuelLogsDocument',
   MaintenanceTasksByMotorcycleDocument: 'MaintenanceTasksByMotorcycleDocument',
   MyMotorcyclesDocument: 'MyMotorcyclesDocument',
 }));
@@ -73,6 +73,7 @@ jest.mock('../../../stores/auth.store', () => ({
 }));
 
 import { router } from 'expo-router';
+import { captureException } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryClient } from '../../../lib/query-client';
 import * as rideController from '../../ride/ride-controller';
@@ -87,6 +88,29 @@ const fireStore = () => {
 };
 // The lifecycle ({ onWillAppear, onDidDisappear }) passed to the most recent pushBikeList.
 const lastBikeLifecycle = () => (carplay.pushBikeList as jest.Mock).mock.calls.at(-1)?.[1];
+// Fire the root ride-panel reappear — the adapter's onDidAppear signal that the pushed
+// Bike list left the stack (covers the native CarPlay back button, which never fires
+// the list's onPopped).
+const fireRidePanelReappear = () =>
+  (carplay.setInformationLifecycle as jest.Mock).mock.calls.at(-1)?.[0]?.onDidAppear?.();
+// Row {title, detail}[] of the most recent panel render pushed to the head unit.
+const lastRenderedItems = (): { title: string; detail: string }[] | undefined =>
+  (carplay.renderInformation as jest.Mock).mock.calls.at(-1)?.[0]?.items;
+// A cached MyMotorcycles result with one primary bike (overridable per test).
+const bikeCache = (over: Record<string, unknown> = {}) => ({
+  myMotorcycles: [
+    {
+      id: 'b1',
+      isPrimary: true,
+      make: 'Honda',
+      model: 'CRF1100L',
+      nickname: null,
+      currentMileage: 10_000,
+      recallCount: 0,
+      ...over,
+    },
+  ],
+});
 const flush = () => new Promise((r) => setImmediate(r));
 
 describe('carplay-coordinator', () => {
@@ -300,11 +324,35 @@ describe('carplay-coordinator', () => {
     expect(carplay.renderInformation).toHaveBeenCalled(); // rebuilt/refreshed on dismiss
   });
 
+  it('clears the covered flag when the bike list is dismissed via the CarPlay back button', () => {
+    // The native back button pops the list WITHOUT firing the list's onPopped (iOS only
+    // removes + onPopped a CPAlertTemplate on disappear). The root ride panel reappearing
+    // is the signal that recovers the coordinator — without it bikeVisible stays true and
+    // every ride-control action is dead.
+    startCarPlayCoordinator();
+    fireConnect();
+    fireAction('bike'); // bikeVisible = true (onPopped will NOT fire on a back-button pop)
+
+    // Back button: only the root panel reappears.
+    fireRidePanelReappear();
+
+    // Ride-control actions work again (coordinator no longer suppressing them)...
+    fireAction('pause');
+    expect(mockRide.pauseRide).toHaveBeenCalledTimes(1);
+    // ...and a subsequent Bike tap re-pushes a fresh list (not swallowed by the covered flag).
+    (carplay.pushBikeList as jest.Mock).mockClear();
+    fireAction('bike');
+    expect(carplay.pushBikeList).toHaveBeenCalledTimes(1);
+  });
+
   it('shows "Stop to refresh" and skips fetching while moving (R20)', async () => {
     mockRide.status = 'recording';
     mockRide.recordingSubState = 'moving';
     startCarPlayCoordinator();
     fireConnect();
+    // onConnect warms the heads-up snapshot (its own cache-first load) — clear that so
+    // this asserts only the bike-LIST load path, which must not fetch while moving (R20).
+    (gqlFetcher as jest.Mock).mockClear();
     fireAction('bike');
 
     lastBikeLifecycle()?.onWillAppear();
@@ -313,23 +361,11 @@ describe('carplay-coordinator', () => {
     expect(carplay.updateBikeList).toHaveBeenCalled();
   });
 
-  it('loads the active (isPrimary) bike from cache + fetches tasks/fuel on entry when stopped', async () => {
+  it('loads the active (isPrimary) bike from cache + fetches tasks on entry when stopped', async () => {
     mockRide.status = 'recording';
     mockRide.recordingSubState = 'stopped';
-    (queryClient.getQueryData as jest.Mock).mockReturnValue({
-      myMotorcycles: [
-        {
-          id: 'b1',
-          isPrimary: true,
-          make: 'Honda',
-          model: 'CRF1100L',
-          nickname: null,
-          currentMileage: 16_000,
-          recallCount: 0,
-        },
-      ],
-    });
-    (gqlFetcher as jest.Mock).mockResolvedValue({ maintenanceTasks: [], fuelLogs: [] });
+    (queryClient.getQueryData as jest.Mock).mockReturnValue(bikeCache({ currentMileage: 16_000 }));
+    (gqlFetcher as jest.Mock).mockResolvedValue({ maintenanceTasks: [] });
 
     startCarPlayCoordinator();
     fireConnect();
@@ -337,11 +373,11 @@ describe('carplay-coordinator', () => {
     lastBikeLifecycle()?.onWillAppear();
     await flush();
 
-    // fetched tasks + fuel for the active bike, then updated the list
+    // fetched tasks for the active bike, then updated the list (fuel row was removed)
     expect(gqlFetcher).toHaveBeenCalledWith('MaintenanceTasksByMotorcycleDocument', {
       motorcycleId: 'b1',
     });
-    expect(gqlFetcher).toHaveBeenCalledWith('FuelLogsDocument', { motorcycleId: 'b1' });
+    expect(gqlFetcher).not.toHaveBeenCalledWith('FuelLogsDocument', expect.anything());
     expect(carplay.updateBikeList).toHaveBeenCalled();
   });
 
@@ -362,5 +398,60 @@ describe('carplay-coordinator', () => {
     fireAction('stop');
     fireAction('stop');
     expect(rideController.endRideSession).not.toHaveBeenCalled();
+  });
+
+  // --- Heads-up row data (U3): cache-first load off the render hot path ---
+
+  it('surfaces an open recall in the heads-up row after the load resolves', async () => {
+    (queryClient.getQueryData as jest.Mock).mockReturnValue(bikeCache({ recallCount: 2 }));
+    (gqlFetcher as jest.Mock).mockResolvedValue({ maintenanceTasks: [] });
+    startCarPlayCoordinator();
+    fireConnect();
+    await flush();
+    // Row 4 is the heads-up row; the recall rung wins.
+    expect(lastRenderedItems()?.[3]).toEqual({ title: 'Recall', detail: '2 open recalls' });
+  });
+
+  it('is cache-first for the active bike (no MyMotorcycles fetch when cached), still loads tasks', async () => {
+    (queryClient.getQueryData as jest.Mock).mockReturnValue(bikeCache());
+    (gqlFetcher as jest.Mock).mockResolvedValue({ maintenanceTasks: [] });
+    startCarPlayCoordinator();
+    fireConnect();
+    await flush();
+    expect(gqlFetcher).not.toHaveBeenCalledWith('MyMotorcyclesDocument');
+    expect(gqlFetcher).toHaveBeenCalledWith('MaintenanceTasksByMotorcycleDocument', {
+      motorcycleId: 'b1',
+    });
+  });
+
+  it('does not fetch heads-up data on every render (loads once on connect)', async () => {
+    (queryClient.getQueryData as jest.Mock).mockReturnValue(bikeCache());
+    (gqlFetcher as jest.Mock).mockResolvedValue({ maintenanceTasks: [] });
+    startCarPlayCoordinator();
+    fireConnect();
+    await flush();
+    const afterConnect = (gqlFetcher as jest.Mock).mock.calls.length;
+
+    // GPS-tick renders must read the cached snapshot, never re-fetch.
+    mockRide.distance = 43_000;
+    fireStore();
+    mockRide.distance = 44_000;
+    fireStore();
+    fireStore();
+    expect((gqlFetcher as jest.Mock).mock.calls.length).toBe(afterConnect);
+  });
+
+  it('degrades to the climb fallback (and reports) when the heads-up load fails', async () => {
+    (queryClient.getQueryData as jest.Mock).mockReturnValue(undefined);
+    (gqlFetcher as jest.Mock).mockRejectedValue(new Error('network'));
+    startCarPlayCoordinator();
+    fireConnect();
+    await flush();
+    expect(captureException).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ source: 'carplay-coordinator.loadHeadsUpData' }),
+    );
+    // Panel still rendered on connect; row 4 falls back to Climb (no recall/overdue signal).
+    expect(lastRenderedItems()?.[3]?.title).toBe('Climb');
   });
 });

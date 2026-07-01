@@ -14,7 +14,6 @@ const base: BikeStatusInput = {
   moving: false,
   bike,
   tasks: [{ title: 'Oil change', dueDate: daysFromNow(12), priority: 'high', status: 'pending' }],
-  latestFuel: { filledAt: '2026-06-28T10:00:00.000Z', fuelLitres: 18.4 },
 };
 
 describe('buildBikeStatus', () => {
@@ -30,10 +29,10 @@ describe('buildBikeStatus', () => {
     expect(model.rows[0].title).toBe('No bike set');
   });
 
-  it('builds the four status rows for an active bike', () => {
+  it('builds the status rows for an active bike', () => {
     const model = buildBikeStatus(base, 'metric');
     expect(model.title).toBe('Bike');
-    expect(model.rows.map((r) => r.title)).toEqual(['Next service', 'Mileage', 'Recalls', 'Fuel']);
+    expect(model.rows.map((r) => r.title)).toEqual(['Next service', 'Mileage', 'Recalls']);
   });
 
   it('picks the most-urgent (overdue) task for next service', () => {
@@ -83,12 +82,8 @@ describe('buildBikeStatus', () => {
     ).toMatch(/mi$/);
   });
 
-  it('dashes missing mileage and fuel rather than showing 0 / NaN', () => {
-    const model = buildBikeStatus(
-      { ...base, bike: { ...bike, currentMileage: null }, latestFuel: null },
-      'metric',
-    );
+  it('dashes missing mileage rather than showing 0 / NaN', () => {
+    const model = buildBikeStatus({ ...base, bike: { ...bike, currentMileage: null } }, 'metric');
     expect(model.rows.find((r) => r.title === 'Mileage')?.detail).toBe('—');
-    expect(model.rows.find((r) => r.title === 'Fuel')?.detail).toBe('—');
   });
 });
