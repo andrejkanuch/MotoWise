@@ -157,6 +157,11 @@ export const palette = {
   editorialDarkWarm: '#d4884a',
   editorialDarkWarm2: '#e8a86a',
 
+  // Experience-level accents (rider skill badges — see profile settings)
+  experienceBeginner: '#a3b18a',
+  experienceIntermediate: '#d4884a',
+  experienceAdvanced: '#c4634a',
+
   // Light mode
   editorialLightBg: '#f8f6f2',
   editorialLightBg2: '#f0ede8',

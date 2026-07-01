@@ -29,6 +29,12 @@ export function readCache(): ProStatus | null {
     const raw = sessionStorage.getItem(CACHE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
+    // Reject anything that isn't the expected shape — a bare/legacy value would
+    // make `Date.now() - checkedAt` NaN, which is never > TTL, returning a bogus
+    // never-expiring status.
+    if (typeof parsed !== 'object' || parsed === null || typeof parsed.checkedAt !== 'number') {
+      return null;
+    }
     if (Date.now() - parsed.checkedAt > CACHE_TTL_MS) return null;
     return {
       isPro: parsed.isPro,

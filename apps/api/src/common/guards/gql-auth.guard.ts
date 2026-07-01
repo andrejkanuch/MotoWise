@@ -190,10 +190,17 @@ export class GqlAuthGuard implements CanActivate {
         return 'free'; // fail open
       }
 
+      // A null expiry means no expiration (lifetime / comped grants) — treat it
+      // as valid rather than letting `new Date(null)` coerce to 1970 and ALWAYS
+      // read as expired, which silently downgraded active/trialing Pro users to
+      // free.
+      const notExpired =
+        data.subscription_expires_at == null || new Date(data.subscription_expires_at) > new Date();
+
       const isPro =
         data.subscription_tier === 'pro' &&
         ['active', 'trialing'].includes(data.subscription_status) &&
-        new Date(data.subscription_expires_at) > new Date();
+        notExpired;
 
       const tier: Tier = isPro ? 'pro' : 'free';
       this.cacheTier(userId, tier);
