@@ -1,14 +1,14 @@
 # syntax=docker/dockerfile:1
 
 # ── Stage 1: Base ─────────────────────────────
-FROM node:20.20.2-slim AS base
+FROM node:22.20.0-slim AS base
 
 RUN apt-get update && apt-get install -y --no-install-recommends dumb-init && \
     rm -rf /var/lib/apt/lists/*
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable && corepack prepare pnpm@10.32.1 --activate
+RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
 
 WORKDIR /app
 
@@ -39,7 +39,7 @@ RUN npm pkg delete scripts.prepare && \
     pnpm --filter @motovault/api deploy --prod /app/deployed
 
 # ── Stage 4: Production ───────────────────────
-FROM node:20.20.2-slim AS runner
+FROM node:22.20.0-slim AS runner
 
 RUN apt-get update && apt-get install -y --no-install-recommends dumb-init && \
     rm -rf /var/lib/apt/lists/*
