@@ -48,7 +48,19 @@ async function materializeSession(): Promise<CachedAccess | null> {
     data: { session },
   } = await supabase.auth.getSession();
 
-  if (session?.expires_at) {
+  if (!session?.access_token) {
+    // supabase.auth.getSession() returned nothing, but our app store believes a
+    // session exists (e.g. right after sign-up on the onboarding "personalizing"
+    // screen, or when resuming from background before Supabase has rehydrated
+    // from SecureStore). Fire one de-duped refresh BEFORE the request so we don't
+    // send an authenticated mutation with a missing Authorization header — the
+    // top production error (MOTO-VAULT-REACT-NATIVE-1J). Gated on the store
+    // session so anonymous/public browsing never pays for a doomed refresh.
+    if (useAuthStore.getState().session) {
+      const refreshed = await dedupedRefresh();
+      if (refreshed) session = refreshed;
+    }
+  } else if (session.expires_at) {
     const expiresAt = session.expires_at * 1000;
     if (expiresAt - Date.now() < 60_000) {
       // Offline/transient failures resolve to null and keep the current session;
