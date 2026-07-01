@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends dumb-init && \
     rm -rf /var/lib/apt/lists/*
 
 ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
+# pnpm 11 refuses `pnpm add -g` unless its global bin dir (/pnpm/bin) is on PATH.
+ENV PATH="$PNPM_HOME/bin:$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
 
 WORKDIR /app
