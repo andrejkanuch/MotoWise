@@ -7,6 +7,12 @@
 // Started once on app init (src/app/_layout.tsx). No-ops when the native module
 // is absent (Android / pre-CarPlay build).
 
+import {
+  FuelLogsDocument,
+  MaintenanceTasksByMotorcycleDocument,
+  MyMotorcyclesDocument,
+  type MyMotorcyclesQuery,
+} from '@motovault/graphql';
 import { router } from 'expo-router';
 import {
   addConnectListener,
@@ -15,10 +21,16 @@ import {
   clearInformation,
   isCarPlayAvailable,
   isHeadUnitConnected,
+  popBikeList,
+  pushBikeList,
   renderInformation,
   setActionDispatcher,
+  updateBikeList,
 } from '../../../modules/carplay/src';
 import { captureException } from '../../lib/analytics';
+import { gqlFetcher } from '../../lib/graphql-client';
+import { queryClient } from '../../lib/query-client';
+import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { useCarPlayStore } from '../../stores/carplay.store';
 import { useRideStore } from '../../stores/ride.store';
@@ -28,6 +40,7 @@ import {
   endRideSession,
   startRideSession,
 } from '../ride/ride-controller';
+import { type BikeStatusInput, buildBikeStatus } from './carplay-bike-status';
 import {
   buildPanelItems,
   CARPLAY_ACTION,
@@ -51,6 +64,10 @@ let flushTimer: ReturnType<typeof setTimeout> | null = null;
 // Stop guard: the first Stop press arms a confirm; only a second press ends.
 let stopArmed = false;
 let stopArmTimer: ReturnType<typeof setTimeout> | null = null;
+// True while the Bike-status list is pushed on top of the Ride panel. While set,
+// the coordinator must never rebuild the root (setRootTemplate would pop the list —
+// KTD5); ride-panel renders are suppressed and naturally refresh/rebuild on pop.
+let bikeVisible = false;
 
 function clearFlush(): void {
   if (flushTimer) {
@@ -77,6 +94,9 @@ function disarmStop(): void {
  * state-transition fast path wouldn't fire) but the title + actions must flip now.
  */
 function forceRender(now: number = Date.now()): void {
+  // Never touch the root while the Bike list covers it (KTD5) — a state change is
+  // picked up when the list pops (render() then sees the stale lastState).
+  if (bikeVisible) return;
   clearFlush();
   const system = useAuthStore.getState().measurementSystem ?? 'metric';
   const snap = deriveSnapshot(currentRideInput(), system);
@@ -108,6 +128,10 @@ function currentRideInput(): RideInput {
 }
 
 function render(now: number = Date.now()): void {
+  // Ride panel is covered by the Bike list — suppress all root touches (KTD5).
+  // lastState is deliberately left stale so the render() fired on list-dismiss
+  // detects the missed transition and rebuilds; otherwise it refreshes rows.
+  if (bikeVisible) return;
   const system = useAuthStore.getState().measurementSystem ?? 'metric';
   const snap = deriveSnapshot(currentRideInput(), system);
   const model = buildPanelItems(snap, stopArmed);
@@ -146,8 +170,112 @@ function render(now: number = Date.now()): void {
   }
 }
 
+// --- Bike-status list (pushed secondary template, depth 2) ---
+
+function activeBikeFrom(cache: MyMotorcyclesQuery | undefined) {
+  const bikes = cache?.myMotorcycles ?? [];
+  return bikes.find((b) => b.isPrimary) ?? bikes[0] ?? null;
+}
+
+function rideIsMoving(): boolean {
+  const r = useRideStore.getState();
+  return r.status === 'recording' && r.recordingSubState === 'moving';
+}
+
+type ActiveBike = NonNullable<ReturnType<typeof activeBikeFrom>>;
+
+function toStatusBike(b: ActiveBike): NonNullable<BikeStatusInput['bike']> {
+  return {
+    nickname: b.nickname,
+    make: b.make,
+    model: b.model,
+    currentMileage: b.currentMileage,
+    recallCount: b.recallCount ?? 0,
+  };
+}
+
+/** Synchronous cache-only status for the initial push (enriched by loadBikeStatus). */
+function syncBikeInput(): BikeStatusInput {
+  const active = activeBikeFrom(
+    queryClient.getQueryData<MyMotorcyclesQuery>(queryKeys.motorcycles.all),
+  );
+  return {
+    moving: rideIsMoving(),
+    bike: active ? toStatusBike(active) : null,
+    tasks: [],
+    latestFuel: null,
+  };
+}
+
+function openBikeList(): void {
+  bikeVisible = true; // suppress ride-panel root touches until the list pops (KTD5)
+  const system = useAuthStore.getState().measurementSystem ?? 'metric';
+  pushBikeList(buildBikeStatus(syncBikeInput(), system), {
+    onWillAppear: () => {
+      void loadBikeStatus();
+    },
+    onDidDisappear: onBikeListDismissed,
+  });
+}
+
+/** Load-on-entry: cache-first active bike, then fetch tasks + fuel; honors R20. */
+async function loadBikeStatus(): Promise<void> {
+  try {
+    const system = useAuthStore.getState().measurementSystem ?? 'metric';
+    if (rideIsMoving()) {
+      updateBikeList(
+        buildBikeStatus({ moving: true, bike: null, tasks: [], latestFuel: null }, system),
+      );
+      return;
+    }
+    let cache = queryClient.getQueryData<MyMotorcyclesQuery>(queryKeys.motorcycles.all);
+    if (!cache) cache = await gqlFetcher(MyMotorcyclesDocument);
+    const active = activeBikeFrom(cache);
+    if (!active) {
+      updateBikeList(
+        buildBikeStatus({ moving: false, bike: null, tasks: [], latestFuel: null }, system),
+      );
+      return;
+    }
+    const [tasksRes, fuelRes] = await Promise.all([
+      gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId: active.id }),
+      gqlFetcher(FuelLogsDocument, { motorcycleId: active.id }),
+    ]);
+    const fuels = [...(fuelRes.fuelLogs ?? [])].sort((a, b) =>
+      b.filledAt.localeCompare(a.filledAt),
+    );
+    const latest = fuels[0] ?? null;
+    updateBikeList(
+      buildBikeStatus(
+        {
+          moving: false,
+          bike: toStatusBike(active),
+          tasks: (tasksRes.maintenanceTasks ?? []).map((t) => ({
+            title: t.title,
+            dueDate: t.dueDate,
+            priority: t.priority,
+            status: t.status,
+          })),
+          latestFuel: latest ? { filledAt: latest.filledAt, fuelLitres: latest.fuelLitres } : null,
+        },
+        system,
+      ),
+    );
+  } catch (err) {
+    captureException(err, { source: 'carplay-coordinator.loadBikeStatus' });
+  }
+}
+
+function onBikeListDismissed(): void {
+  bikeVisible = false;
+  // Rebuild if a ride state transition was missed while covered (lastState is
+  // stale), otherwise refresh the rows with current values.
+  render();
+}
+
 function onConnect(): void {
   disarmStop(); // a fresh connection never inherits a stale armed-stop
+  bikeVisible = false;
   const system = useAuthStore.getState().measurementSystem ?? 'metric';
   const snap = deriveSnapshot(currentRideInput(), system);
   clearInformation(); // ensure the next render builds a fresh root template
@@ -164,6 +292,8 @@ function onConnect(): void {
 function onDisconnect(): void {
   clearFlush();
   disarmStop();
+  popBikeList();
+  bikeVisible = false;
   unsubStore?.();
   unsubStore = null;
   clearInformation();
@@ -197,6 +327,10 @@ function onAction(actionId: string): void {
         })
         .catch((err) => captureException(err, { source: 'carplay-coordinator.start' }));
       return; // async path owns its own render; skip the synchronous one below
+    case CARPLAY_ACTION.bike:
+      // Nav-bar button: push the bike-status list on top of the Ride panel.
+      openBikeList();
+      return;
     case CARPLAY_ACTION.cancelStop:
       // "Keep Riding" — back out of the armed confirm with no state change.
       disarmStop();
@@ -250,6 +384,8 @@ export function __resetCarPlayCoordinator(): void {
   started = false;
   clearFlush();
   disarmStop();
+  popBikeList();
+  bikeVisible = false;
   unsubStore?.();
   unsubStore = null;
   clearInformation();

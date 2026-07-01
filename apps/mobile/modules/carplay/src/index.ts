@@ -18,6 +18,8 @@ import type {
   InformationItems,
   InformationTemplate,
   InformationTemplateConfig,
+  ListTemplate,
+  Section,
   TextButton,
 } from '@iternio/react-native-auto-play';
 import { Platform } from 'react-native';
@@ -38,6 +40,25 @@ export interface CPInformationTemplateModel {
   title: string;
   items: CPInfoItem[];
   actions: CPInfoAction[];
+  /** iOS nav-bar buttons (e.g. "Bike") — routed through the same dispatcher. */
+  headerActions?: CPInfoAction[];
+}
+
+/** A row on the pushed Bike-status list (informational — no press target). */
+export interface CPListRow {
+  title: string;
+  detail: string;
+}
+
+export interface CPListModel {
+  title: string;
+  rows: CPListRow[];
+}
+
+/** Lifecycle hooks for the pushed list — load-on-entry + pop detection (KTD2/KTD5). */
+export interface CPListLifecycle {
+  onWillAppear?: () => void;
+  onDidDisappear?: () => void;
 }
 
 export interface CarPlaySubscription {
@@ -63,13 +84,20 @@ export const isCarPlayAvailable = lib != null;
 // Placeholder row title used when a render is requested with no items — keeps the
 // native template valid (min-1 tuple) instead of pushing an empty `[]`.
 const DASH_ROW = '—';
+// Defensive cap on Bike-list rows. The library exposes no head-unit maximumItemCount
+// (v0.5.4), and the Bike list is small (~4-6 rows) — well under any unit's limit.
+const MAX_LIST_ROWS = 12;
 
 let dispatch: ((actionId: string) => void) | null = null;
 let current: InformationTemplate | null = null;
 let lastTitle: string | null = null;
 let lastActionsKey: string | null = null;
+let currentList: ListTemplate | null = null;
 
-const actionsKey = (actions: CPInfoAction[]): string => actions.map((a) => a.id).join('|');
+// Identity of the action + header-action sets: a change here forces a rebuild (the
+// library fixes actions/header buttons at construction — they can't mutate in place).
+const actionsKey = (model: CPInformationTemplateModel): string =>
+  `${model.actions.map((a) => a.id).join('|')}#${(model.headerActions ?? []).map((a) => a.id).join('|')}`;
 
 function toRows(items: CPInfoItem[]): InformationItems {
   // CPInformationTemplate shows 1–4 rows; extra rows would be dropped. Row
@@ -99,13 +127,41 @@ function toIosActions(actions: CPInfoAction[]): InformationTemplateConfig['actio
   return { ios: buttons as NonNullable<InformationTemplateConfig['actions']>['ios'] };
 }
 
+function toIosHeaderActions(
+  actions: CPInfoAction[] | undefined,
+): InformationTemplateConfig['headerActions'] {
+  if (!actions?.length) return undefined;
+  // iOS shows up to 2 trailing nav-bar buttons; route each through the dispatcher.
+  const buttons = actions.slice(0, 2).map((a) => ({
+    type: 'text' as const,
+    title: a.title,
+    onPress: () => dispatch?.(a.id),
+  }));
+  return {
+    ios: { trailingNavigationBarButtons: buttons },
+  } as unknown as InformationTemplateConfig['headerActions'];
+}
+
 function buildTemplate(model: CPInformationTemplateModel): InformationTemplate {
   if (!lib) throw new Error('CarPlay library unavailable');
   return new lib.InformationTemplate({
     title: { text: model.title },
     items: toRows(model.items),
     actions: toIosActions(model.actions),
+    headerActions: toIosHeaderActions(model.headerActions),
   });
+}
+
+function toListSections(rows: CPListRow[]): Section<ListTemplate> {
+  // Single default section of informational text rows. Fall back to one dash row
+  // rather than an empty section (same always-valid-native-state rule as toRows).
+  const source = rows.length > 0 ? rows.slice(0, MAX_LIST_ROWS) : [{ title: DASH_ROW, detail: '' }];
+  const items = source.map((r) => ({
+    type: 'text' as const,
+    title: { text: r.title },
+    detailedText: { text: r.detail },
+  }));
+  return { type: 'default', items } as unknown as Section<ListTemplate>;
 }
 
 /** Injects the dispatcher that head-unit action presses are routed to. */
@@ -120,7 +176,7 @@ export function setActionDispatcher(fn: (actionId: string) => void): void {
  */
 export function renderInformation(model: CPInformationTemplateModel): void {
   if (!lib) return;
-  const key = actionsKey(model.actions);
+  const key = actionsKey(model);
   if (!current || model.title !== lastTitle || key !== lastActionsKey) {
     current = buildTemplate(model);
     // setRootTemplate()/updateItems() return Promise<void>; a native rejection is
@@ -142,6 +198,49 @@ export function clearInformation(): void {
   current = null;
   lastTitle = null;
   lastActionsKey = null;
+}
+
+/**
+ * Push the Bike-status list on top of the Ride root (depth 2). If a list is already
+ * pushed, update its rows in place instead of re-pushing. `lifecycle.onWillAppear`
+ * is the load-on-entry hook; `onDidDisappear` fires on pop so the coordinator can
+ * clear its `bikeVisible` flag. All Promise-returning calls route rejections to Sentry.
+ */
+export function pushBikeList(model: CPListModel, lifecycle?: CPListLifecycle): void {
+  if (!lib) return;
+  if (currentList) {
+    currentList
+      .updateSections(toListSections(model.rows))
+      .catch((e) => captureException(e, { source: 'carplay.updateSections' }));
+    return;
+  }
+  currentList = new lib.ListTemplate({
+    title: { text: model.title },
+    sections: toListSections(model.rows),
+    onWillAppear: lifecycle?.onWillAppear,
+    onDidDisappear: () => {
+      currentList = null;
+      lifecycle?.onDidDisappear?.();
+    },
+  });
+  currentList.push().catch((e) => captureException(e, { source: 'carplay.pushList' }));
+}
+
+/** Update the pushed Bike list's rows in place (no-op if nothing is pushed). */
+export function updateBikeList(model: CPListModel): void {
+  if (!lib || !currentList) return;
+  currentList
+    .updateSections(toListSections(model.rows))
+    .catch((e) => captureException(e, { source: 'carplay.updateSections' }));
+}
+
+/** Pop the Bike list back to the Ride root (safe no-op if nothing is pushed). */
+export function popBikeList(): void {
+  if (!lib || !currentList) return;
+  currentList = null;
+  lib.HybridAutoPlay.popTemplate().catch((e) =>
+    captureException(e, { source: 'carplay.popTemplate' }),
+  );
 }
 
 /** True if a head unit is currently connected (catches an already-attached unit). */

@@ -9,6 +9,18 @@ jest.mock('../../../../modules/carplay/src', () => ({
   isHeadUnitConnected: jest.fn(() => false),
   renderInformation: jest.fn(),
   clearInformation: jest.fn(),
+  pushBikeList: jest.fn(),
+  updateBikeList: jest.fn(),
+  popBikeList: jest.fn(),
+}));
+
+// Bike-status data seam (coordinator loads the active bike + tasks + fuel outside React).
+jest.mock('../../../lib/graphql-client', () => ({ gqlFetcher: jest.fn() }));
+jest.mock('../../../lib/query-client', () => ({ queryClient: { getQueryData: jest.fn() } }));
+jest.mock('@motovault/graphql', () => ({
+  FuelLogsDocument: 'FuelLogsDocument',
+  MaintenanceTasksByMotorcycleDocument: 'MaintenanceTasksByMotorcycleDocument',
+  MyMotorcyclesDocument: 'MyMotorcyclesDocument',
 }));
 
 // --- ride-controller mock (start/end go through the shared controller now) ---
@@ -61,6 +73,8 @@ jest.mock('../../../stores/auth.store', () => ({
 }));
 
 import { router } from 'expo-router';
+import { gqlFetcher } from '../../../lib/graphql-client';
+import { queryClient } from '../../../lib/query-client';
 import * as rideController from '../../ride/ride-controller';
 import { __resetCarPlayCoordinator, startCarPlayCoordinator } from '../carplay-coordinator';
 
@@ -71,6 +85,9 @@ const fireAction = (id: string) => (carplay.setActionDispatcher as jest.Mock).mo
 const fireStore = () => {
   for (const l of [...mockStoreListeners]) l();
 };
+// The lifecycle ({ onWillAppear, onDidDisappear }) passed to the most recent pushBikeList.
+const lastBikeLifecycle = () => (carplay.pushBikeList as jest.Mock).mock.calls.at(-1)?.[1];
+const flush = () => new Promise((r) => setImmediate(r));
 
 describe('carplay-coordinator', () => {
   beforeEach(() => {
@@ -250,5 +267,89 @@ describe('carplay-coordinator', () => {
     expect(rideController.endRideSession).not.toHaveBeenCalled();
 
     jest.useRealTimers();
+  });
+
+  it('opens the bike-status list on the Bike action', () => {
+    startCarPlayCoordinator();
+    fireConnect();
+    fireAction('bike');
+    expect(carplay.pushBikeList).toHaveBeenCalledTimes(1);
+  });
+
+  it('does NOT rebuild the ride root while the bike list is open (KTD5)', () => {
+    startCarPlayCoordinator();
+    fireConnect();
+    fireAction('bike'); // bikeVisible = true
+    (carplay.renderInformation as jest.Mock).mockClear();
+
+    // a ride state transition arrives while the panel is covered
+    mockRide.recordingSubState = 'stopped';
+    fireStore();
+    expect(carplay.renderInformation).not.toHaveBeenCalled();
+  });
+
+  it('refreshes the ride panel when the bike list is dismissed', () => {
+    startCarPlayCoordinator();
+    fireConnect();
+    fireAction('bike');
+    mockRide.recordingSubState = 'stopped'; // transition missed while covered
+    fireStore();
+    (carplay.renderInformation as jest.Mock).mockClear();
+
+    lastBikeLifecycle()?.onDidDisappear(); // list popped
+    expect(carplay.renderInformation).toHaveBeenCalled(); // rebuilt/refreshed on dismiss
+  });
+
+  it('shows "Stop to refresh" and skips fetching while moving (R20)', async () => {
+    mockRide.status = 'recording';
+    mockRide.recordingSubState = 'moving';
+    startCarPlayCoordinator();
+    fireConnect();
+    fireAction('bike');
+
+    lastBikeLifecycle()?.onWillAppear();
+    await flush();
+    expect(gqlFetcher).not.toHaveBeenCalled();
+    expect(carplay.updateBikeList).toHaveBeenCalled();
+  });
+
+  it('loads the active (isPrimary) bike from cache + fetches tasks/fuel on entry when stopped', async () => {
+    mockRide.status = 'recording';
+    mockRide.recordingSubState = 'stopped';
+    (queryClient.getQueryData as jest.Mock).mockReturnValue({
+      myMotorcycles: [
+        {
+          id: 'b1',
+          isPrimary: true,
+          make: 'Honda',
+          model: 'CRF1100L',
+          nickname: null,
+          currentMileage: 16_000,
+          recallCount: 0,
+        },
+      ],
+    });
+    (gqlFetcher as jest.Mock).mockResolvedValue({ maintenanceTasks: [], fuelLogs: [] });
+
+    startCarPlayCoordinator();
+    fireConnect();
+    fireAction('bike');
+    lastBikeLifecycle()?.onWillAppear();
+    await flush();
+
+    // fetched tasks + fuel for the active bike, then updated the list
+    expect(gqlFetcher).toHaveBeenCalledWith('MaintenanceTasksByMotorcycleDocument', {
+      motorcycleId: 'b1',
+    });
+    expect(gqlFetcher).toHaveBeenCalledWith('FuelLogsDocument', { motorcycleId: 'b1' });
+    expect(carplay.updateBikeList).toHaveBeenCalled();
+  });
+
+  it('pops the bike list on disconnect', () => {
+    startCarPlayCoordinator();
+    fireConnect();
+    fireAction('bike');
+    fireDisconnect();
+    expect(carplay.popBikeList).toHaveBeenCalled();
   });
 });

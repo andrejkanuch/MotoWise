@@ -15,12 +15,21 @@ jest.mock('@iternio/react-native-auto-play', () => {
   // adapter attaches a .catch, so a non-thenable mock would throw at the call site.
   const setRootTemplate = jest.fn(() => Promise.resolve());
   const updateItems = jest.fn(() => Promise.resolve());
+  const push = jest.fn(() => Promise.resolve());
+  const updateSections = jest.fn(() => Promise.resolve());
+  const popTemplate = jest.fn(() => Promise.resolve());
   // biome-ignore lint/suspicious/noExplicitAny: captured template configs for assertions
   const ctorCalls: any[] = [];
+  // biome-ignore lint/suspicious/noExplicitAny: captured list configs for assertions
+  const listCtorCalls: any[] = [];
   return {
     __ctorCalls: ctorCalls,
+    __listCtorCalls: listCtorCalls,
     __setRootTemplate: setRootTemplate,
     __updateItems: updateItems,
+    __push: push,
+    __updateSections: updateSections,
+    __popTemplate: popTemplate,
     InformationTemplate: class {
       // biome-ignore lint/suspicious/noExplicitAny: test double mirrors the lib config
       constructor(config: any) {
@@ -29,9 +38,18 @@ jest.mock('@iternio/react-native-auto-play', () => {
       setRootTemplate = setRootTemplate;
       updateItems = updateItems;
     },
+    ListTemplate: class {
+      // biome-ignore lint/suspicious/noExplicitAny: test double mirrors the lib config
+      constructor(config: any) {
+        listCtorCalls.push(config);
+      }
+      push = push;
+      updateSections = updateSections;
+    },
     HybridAutoPlay: {
       addListener: jest.fn(() => jest.fn()),
       isConnected: jest.fn(() => false),
+      popTemplate,
     },
   };
 });
@@ -42,6 +60,8 @@ import {
   clearInformation,
   isCarPlayAvailable,
   isHeadUnitConnected,
+  popBikeList,
+  pushBikeList,
   renderInformation,
   setActionDispatcher,
 } from '../index';
@@ -53,6 +73,10 @@ const setRoot = lib.__setRootTemplate as jest.Mock;
 const updateItems = lib.__updateItems as jest.Mock;
 const addListener = lib.HybridAutoPlay.addListener as jest.Mock;
 const isConnected = lib.HybridAutoPlay.isConnected as jest.Mock;
+const listCtorCalls: unknown[] = lib.__listCtorCalls;
+const push = lib.__push as jest.Mock;
+const updateSections = lib.__updateSections as jest.Mock;
+const popTemplate = lib.__popTemplate as jest.Mock;
 const captureException = require('../../../../src/lib/analytics').captureException as jest.Mock;
 
 const model = (over: Partial<CPInformationTemplateModel> = {}): CPInformationTemplateModel => ({
@@ -74,7 +98,13 @@ beforeEach(() => {
   addListener.mockClear();
   isConnected.mockReset().mockReturnValue(false);
   captureException.mockClear();
+  push.mockClear();
+  updateSections.mockClear();
+  popTemplate.mockClear();
   ctorCalls.length = 0;
+  listCtorCalls.length = 0;
+  popBikeList(); // drop any pushed list reference between tests
+  popTemplate.mockClear(); // ignore the pop the reset above may have triggered
   clearInformation(); // reset the adapter's push-vs-update state between tests
 });
 
@@ -173,5 +203,51 @@ describe('carplay adapter', () => {
       expect.any(Error),
       expect.objectContaining({ source: 'carplay.setRootTemplate' }),
     );
+  });
+
+  // --- Bike-status list (pushed secondary template) ---
+
+  it('builds + pushes a ListTemplate on first pushBikeList, updates in place on the next', () => {
+    const rows = [{ title: 'Mileage', detail: '16,000 km' }];
+    pushBikeList({ title: 'Bike', rows });
+    expect(listCtorCalls).toHaveLength(1);
+    expect(push).toHaveBeenCalledTimes(1);
+    expect(updateSections).not.toHaveBeenCalled();
+
+    pushBikeList({ title: 'Bike', rows: [{ title: 'Recalls', detail: '0' }] });
+    expect(listCtorCalls).toHaveLength(1); // no second construct
+    expect(push).toHaveBeenCalledTimes(1);
+    expect(updateSections).toHaveBeenCalledTimes(1); // updated in place
+  });
+
+  it('forwards onWillAppear and fires onDidDisappear on pop', () => {
+    const onWillAppear = jest.fn();
+    const onDidDisappear = jest.fn();
+    pushBikeList(
+      { title: 'Bike', rows: [{ title: 'Mileage', detail: '—' }] },
+      { onWillAppear, onDidDisappear },
+    );
+    // biome-ignore lint/suspicious/noExplicitAny: mock config shape
+    const config = listCtorCalls.at(-1) as any;
+    config.onWillAppear();
+    expect(onWillAppear).toHaveBeenCalledTimes(1);
+    config.onDidDisappear();
+    expect(onDidDisappear).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to a single placeholder row when the list has no rows', () => {
+    pushBikeList({ title: 'Bike', rows: [] });
+    // biome-ignore lint/suspicious/noExplicitAny: mock config shape
+    const config = listCtorCalls.at(-1) as any;
+    expect(config.sections.items).toHaveLength(1);
+  });
+
+  it('popBikeList pops the template and no-ops when nothing is pushed', () => {
+    popBikeList(); // nothing pushed
+    expect(popTemplate).not.toHaveBeenCalled();
+
+    pushBikeList({ title: 'Bike', rows: [{ title: 'Mileage', detail: '—' }] });
+    popBikeList();
+    expect(popTemplate).toHaveBeenCalledTimes(1);
   });
 });

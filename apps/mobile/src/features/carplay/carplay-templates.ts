@@ -25,7 +25,12 @@ export const CARPLAY_ACTION = {
   resume: 'resume',
   stop: 'stop',
   cancelStop: 'cancelStop',
+  bike: 'bike',
 } as const;
+
+// The persistent "Bike" nav-bar button on the Ride panel (pushes the bike-status
+// list). Kept constant across every state so it never churns the rebuild key.
+const RIDE_HEADER_ACTIONS = [{ id: CARPLAY_ACTION.bike, title: 'Bike' }];
 
 export type CarPlayActionId = (typeof CARPLAY_ACTION)[keyof typeof CARPLAY_ACTION];
 
@@ -151,9 +156,15 @@ export function buildPanelItems(s: PanelSnapshot, stopArmed = false): CPInformat
         { id: CARPLAY_ACTION.cancelStop, title: 'Keep Riding' },
         { id: CARPLAY_ACTION.stop, title: 'End Ride' },
       ],
+      headerActions: RIDE_HEADER_ACTIONS,
     };
   }
-  return { title: STATE_WORD[s.state], items, actions: buildActions(s.state, s.startMode) };
+  return {
+    title: STATE_WORD[s.state],
+    items,
+    actions: buildActions(s.state, s.startMode),
+    headerActions: RIDE_HEADER_ACTIONS,
+  };
 }
 
 export function buildActions(
