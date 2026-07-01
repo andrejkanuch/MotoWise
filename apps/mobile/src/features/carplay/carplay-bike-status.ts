@@ -6,7 +6,7 @@
 // (carplay-templates.ts is the same). Localizing all CarPlay head-unit copy is one
 // deferred cleanup, not split across features (see the U8 plan, U4).
 
-import type { MeasurementSystem } from '@motovault/types';
+import { KM_PER_MILE, type MeasurementSystem } from '@motovault/types';
 import type { CPListModel, CPListRow } from '../../../modules/carplay/src';
 import { getRelativeDueDate } from '../../lib/health-score';
 import { formatDate } from '../../utils/ride-formatters';
@@ -20,10 +20,11 @@ export const BIKE_LABEL = {
   stopToRefresh: 'Stop to refresh',
   noBike: 'No bike set',
   noRecalls: 'None',
+  loadError: "Couldn't load",
+  loadErrorDetail: 'Reopen to retry',
 } as const;
 
 const DASH = '—';
-const KM_PER_MILE = 1.609_344;
 // Only pending / in-progress tasks are candidates for "next service".
 const ACTIVE_STATUSES = new Set(['pending', 'in_progress']);
 const PRIORITY_WEIGHT: Record<string, number> = { critical: 4, high: 3, medium: 2, low: 1 };
@@ -77,7 +78,8 @@ function pickNextService(tasks: BikeStatusTask[]): BikeStatusTask | null {
     const da = getRelativeDueDate(a.dueDate as string).daysAway;
     const db = getRelativeDueDate(b.dueDate as string).daysAway;
     if (da !== db) return da - db; // most overdue / soonest first
-    return (PRIORITY_WEIGHT[b.priority] ?? 2) - (PRIORITY_WEIGHT[a.priority] ?? 2);
+    // Unknown priorities sort lowest (0) so a recognized priority always wins a tie.
+    return (PRIORITY_WEIGHT[b.priority] ?? 0) - (PRIORITY_WEIGHT[a.priority] ?? 0);
   })[0];
 }
 
@@ -120,4 +122,12 @@ export function buildBikeStatus(input: BikeStatusInput, system: MeasurementSyste
     { title: BIKE_LABEL.fuel, detail: fuelDetail(input.latestFuel) },
   ];
   return { title: BIKE_LABEL.title, rows };
+}
+
+/** Recoverable error state — a load failure shows this instead of a stale placeholder. */
+export function buildBikeError(): CPListModel {
+  return {
+    title: BIKE_LABEL.title,
+    rows: [{ title: BIKE_LABEL.loadError, detail: BIKE_LABEL.loadErrorDetail }],
+  };
 }

@@ -40,7 +40,7 @@ import {
   endRideSession,
   startRideSession,
 } from '../ride/ride-controller';
-import { type BikeStatusInput, buildBikeStatus } from './carplay-bike-status';
+import { type BikeStatusInput, buildBikeError, buildBikeStatus } from './carplay-bike-status';
 import {
   buildPanelItems,
   CARPLAY_ACTION,
@@ -68,6 +68,9 @@ let stopArmTimer: ReturnType<typeof setTimeout> | null = null;
 // the coordinator must never rebuild the root (setRootTemplate would pop the list —
 // KTD5); ride-panel renders are suppressed and naturally refresh/rebuild on pop.
 let bikeVisible = false;
+// Bumped on every open/dismiss so an in-flight loadBikeStatus that resolves after the
+// list was popped (or re-opened) is dropped instead of overwriting the current list.
+let bikeLoadToken = 0;
 
 function clearFlush(): void {
   if (flushTimer) {
@@ -208,39 +211,49 @@ function syncBikeInput(): BikeStatusInput {
 }
 
 function openBikeList(): void {
+  disarmStop(); // never carry an armed-stop under the list (its confirm can't render)
   bikeVisible = true; // suppress ride-panel root touches until the list pops (KTD5)
+  bikeLoadToken++;
   const system = useAuthStore.getState().measurementSystem ?? 'metric';
   pushBikeList(buildBikeStatus(syncBikeInput(), system), {
     onWillAppear: () => {
       void loadBikeStatus();
     },
-    onDidDisappear: onBikeListDismissed,
+    onPopped: onBikeListDismissed,
   });
 }
 
 /** Load-on-entry: cache-first active bike, then fetch tasks + fuel; honors R20. */
 async function loadBikeStatus(): Promise<void> {
+  const token = bikeLoadToken;
+  // Drop a resolved load whose list was popped or re-opened while we were fetching.
+  const stale = () => token !== bikeLoadToken || !bikeVisible;
   try {
     const system = useAuthStore.getState().measurementSystem ?? 'metric';
     if (rideIsMoving()) {
-      updateBikeList(
-        buildBikeStatus({ moving: true, bike: null, tasks: [], latestFuel: null }, system),
-      );
+      if (!stale()) {
+        updateBikeList(
+          buildBikeStatus({ moving: true, bike: null, tasks: [], latestFuel: null }, system),
+        );
+      }
       return;
     }
     let cache = queryClient.getQueryData<MyMotorcyclesQuery>(queryKeys.motorcycles.all);
     if (!cache) cache = await gqlFetcher(MyMotorcyclesDocument);
     const active = activeBikeFrom(cache);
     if (!active) {
-      updateBikeList(
-        buildBikeStatus({ moving: false, bike: null, tasks: [], latestFuel: null }, system),
-      );
+      if (!stale()) {
+        updateBikeList(
+          buildBikeStatus({ moving: false, bike: null, tasks: [], latestFuel: null }, system),
+        );
+      }
       return;
     }
     const [tasksRes, fuelRes] = await Promise.all([
       gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId: active.id }),
       gqlFetcher(FuelLogsDocument, { motorcycleId: active.id }),
     ]);
+    if (stale()) return;
     const fuels = [...(fuelRes.fuelLogs ?? [])].sort((a, b) =>
       b.filledAt.localeCompare(a.filledAt),
     );
@@ -263,11 +276,15 @@ async function loadBikeStatus(): Promise<void> {
     );
   } catch (err) {
     captureException(err, { source: 'carplay-coordinator.loadBikeStatus' });
+    // Show a recoverable error row rather than leaving the sync placeholder — a
+    // transient auth/network failure on a cold headless launch is otherwise silent.
+    if (!stale()) updateBikeList(buildBikeError());
   }
 }
 
 function onBikeListDismissed(): void {
   bikeVisible = false;
+  bikeLoadToken++; // invalidate any in-flight load
   // Rebuild if a ride state transition was missed while covered (lastState is
   // stale), otherwise refresh the rows with current values.
   render();
@@ -301,6 +318,10 @@ function onDisconnect(): void {
 }
 
 function onAction(actionId: string): void {
+  // While the Bike list covers the Ride panel, none of the ride-control buttons are
+  // on screen — ignore any late/queued press so a ride can't be mutated (or ended)
+  // from behind the list. The list's own back button is native, not an action.
+  if (bikeVisible) return;
   const ride = useRideStore.getState();
   switch (actionId) {
     case CARPLAY_ACTION.pause:

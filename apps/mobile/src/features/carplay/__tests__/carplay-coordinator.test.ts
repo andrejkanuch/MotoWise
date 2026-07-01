@@ -296,7 +296,7 @@ describe('carplay-coordinator', () => {
     fireStore();
     (carplay.renderInformation as jest.Mock).mockClear();
 
-    lastBikeLifecycle()?.onDidDisappear(); // list popped
+    lastBikeLifecycle()?.onPopped(); // list popped
     expect(carplay.renderInformation).toHaveBeenCalled(); // rebuilt/refreshed on dismiss
   });
 
@@ -351,5 +351,16 @@ describe('carplay-coordinator', () => {
     fireAction('bike');
     fireDisconnect();
     expect(carplay.popBikeList).toHaveBeenCalled();
+  });
+
+  it('ignores ride-control actions while the bike list covers the panel', () => {
+    startCarPlayCoordinator();
+    fireConnect();
+    fireAction('bike'); // bikeVisible = true
+
+    // a late/queued Stop press from the now-covered ride panel must not end the ride
+    fireAction('stop');
+    fireAction('stop');
+    expect(rideController.endRideSession).not.toHaveBeenCalled();
   });
 });

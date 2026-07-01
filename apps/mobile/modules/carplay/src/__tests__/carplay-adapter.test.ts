@@ -220,19 +220,38 @@ describe('carplay adapter', () => {
     expect(updateSections).toHaveBeenCalledTimes(1); // updated in place
   });
 
-  it('forwards onWillAppear and fires onDidDisappear on pop', () => {
+  it('forwards onWillAppear and fires onPopped (not onDidDisappear) on pop', () => {
     const onWillAppear = jest.fn();
-    const onDidDisappear = jest.fn();
+    const onPopped = jest.fn();
     pushBikeList(
       { title: 'Bike', rows: [{ title: 'Mileage', detail: '—' }] },
-      { onWillAppear, onDidDisappear },
+      { onWillAppear, onPopped },
     );
     // biome-ignore lint/suspicious/noExplicitAny: mock config shape
     const config = listCtorCalls.at(-1) as any;
+    // uses onPopped ("gone forever"), NOT onDidDisappear (which also fires on cover)
+    expect(config.onDidDisappear).toBeUndefined();
     config.onWillAppear();
     expect(onWillAppear).toHaveBeenCalledTimes(1);
-    config.onDidDisappear();
-    expect(onDidDisappear).toHaveBeenCalledTimes(1);
+    config.onPopped();
+    expect(onPopped).toHaveBeenCalledTimes(1);
+  });
+
+  it('recovers when the native push rejects — clears state and fires onPopped', async () => {
+    const onPopped = jest.fn();
+    push.mockRejectedValueOnce(new Error('stack full'));
+    pushBikeList({ title: 'Bike', rows: [{ title: 'Mileage', detail: '—' }] }, { onPopped });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(captureException).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ source: 'carplay.pushList' }),
+    );
+    expect(onPopped).toHaveBeenCalledTimes(1); // lets the coordinator clear bikeVisible
+    // state reset: a later push builds a fresh list rather than updating a phantom one
+    push.mockClear();
+    pushBikeList({ title: 'Bike', rows: [{ title: 'Recalls', detail: '0' }] }, { onPopped });
+    expect(push).toHaveBeenCalledTimes(1);
   });
 
   it('falls back to a single placeholder row when the list has no rows', () => {

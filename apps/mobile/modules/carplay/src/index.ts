@@ -58,7 +58,13 @@ export interface CPListModel {
 /** Lifecycle hooks for the pushed list — load-on-entry + pop detection (KTD2/KTD5). */
 export interface CPListLifecycle {
   onWillAppear?: () => void;
-  onDidDisappear?: () => void;
+  /**
+   * Fires when the list leaves the stack for good (back button) — the "gone forever"
+   * signal. Uses the library's `onPopped`, NOT `onDidDisappear`, which also fires when
+   * the list is merely covered (a system alert / dashboard) and would falsely clear
+   * the coordinator's bikeVisible while the list is still on-stack.
+   */
+  onPopped?: () => void;
 }
 
 export interface CarPlaySubscription {
@@ -214,16 +220,23 @@ export function pushBikeList(model: CPListModel, lifecycle?: CPListLifecycle): v
       .catch((e) => captureException(e, { source: 'carplay.updateSections' }));
     return;
   }
+  // "Gone forever" cleanup — run on a real pop, or if the push itself fails (in which
+  // case nothing will ever pop). Either way the coordinator's bikeVisible must clear,
+  // or the ride panel stays frozen behind a list that isn't there.
+  const onGone = () => {
+    currentList = null;
+    lifecycle?.onPopped?.();
+  };
   currentList = new lib.ListTemplate({
     title: { text: model.title },
     sections: toListSections(model.rows),
     onWillAppear: lifecycle?.onWillAppear,
-    onDidDisappear: () => {
-      currentList = null;
-      lifecycle?.onDidDisappear?.();
-    },
+    onPopped: onGone,
   });
-  currentList.push().catch((e) => captureException(e, { source: 'carplay.pushList' }));
+  currentList.push().catch((e) => {
+    captureException(e, { source: 'carplay.pushList' });
+    onGone(); // push rejected — recover so the ride panel isn't stuck covered
+  });
 }
 
 /** Update the pushed Bike list's rows in place (no-op if nothing is pushed). */
