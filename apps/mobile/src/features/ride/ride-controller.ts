@@ -6,11 +6,19 @@
 // phone. Navigation and other UI concerns stay with the callers — these return
 // data, they don't route.
 
-import { EndRideDocument, StartRideDocument } from '@motovault/graphql';
+import {
+  EndRideDocument,
+  MyMotorcyclesDocument,
+  type MyMotorcyclesQuery,
+  StartRideDocument,
+} from '@motovault/graphql';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
 import type { Href } from 'expo-router';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
+import { gqlFetcher } from '../../lib/graphql-client';
+import { queryClient } from '../../lib/query-client';
+import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
 import { encodePolyline } from '../../utils/ride-heatmap';
 import { distanceMeters, startGPSListener, stopGPSListener } from '../../utils/ride-location';
@@ -38,6 +46,27 @@ export interface StartRideOptions {
 }
 
 /**
+ * The bike a ride with no explicitly chosen motorcycle should attribute to: the
+ * primary (or first) bike. CarPlay has no head-unit picker and the phone "Quick Ride"
+ * skips selection, but the rider still expects the odometer to track — and the API
+ * only applies ride mileage when the ride carries a motorcycle_id. Cache-first; fetches
+ * once if the list isn't cached yet (cold CarPlay launch). Returns null when the rider
+ * genuinely has no bikes / is offline, leaving the ride bike-less (no odometer update).
+ */
+async function resolvePrimaryMotorcycleId(): Promise<string | null> {
+  let cache = queryClient.getQueryData<MyMotorcyclesQuery>(queryKeys.motorcycles.all);
+  if (!cache) {
+    try {
+      cache = await gqlFetcher(MyMotorcyclesDocument);
+    } catch {
+      return null;
+    }
+  }
+  const bikes = cache?.myMotorcycles ?? [];
+  return (bikes.find((b) => b.isPrimary) ?? bikes[0])?.id ?? null;
+}
+
+/**
  * Start a fresh ride: request permissions, mint the ride id, persist it, flip the
  * store to recording, enqueue the server start, and begin the background-capable
  * GPS listener. Returns the new ride id, or `{ ok: false, reason: 'denied' }` when
@@ -51,6 +80,11 @@ export async function startRideSession({
   const level = await checkAndRequestPermissions();
   if (level === 'denied') return { ok: false, reason: 'denied' };
 
+  // No bike explicitly chosen (CarPlay has no picker; phone "Quick Ride") → attribute
+  // to the primary bike so the odometer still tracks on ride-end (the API applies
+  // mileage only when the ride carries a motorcycle_id).
+  const effectiveMotorcycleId = motorcycleId ?? (await resolvePrimaryMotorcycleId());
+
   const rideId = Crypto.randomUUID();
   const startedAt = new Date().toISOString();
 
@@ -60,7 +94,7 @@ export async function startRideSession({
   // leak into this one's elapsed/duration math.
   rideMMKV.setTotalPausedMs(0);
   rideMMKV.setPausedAt(0);
-  if (motorcycleId) rideMMKV.setMotorcycleId(motorcycleId);
+  if (effectiveMotorcycleId) rideMMKV.setMotorcycleId(effectiveMotorcycleId);
 
   const store = useRideStore.getState();
   store.setPermissionLevel(level);
@@ -85,13 +119,13 @@ export async function startRideSession({
   // Tell the server only after GPS is confirmed running (rollback above otherwise).
   enqueueOrExecute('startRide', {
     mutationDocument: StartRideDocument,
-    variables: { input: { rideId, motorcycleId, startedAt } },
+    variables: { input: { rideId, motorcycleId: effectiveMotorcycleId, startedAt } },
   });
 
   trackEvent(AnalyticsEvent.RIDE_STARTED, {
     ride_id: rideId,
-    has_motorcycle: !!motorcycleId,
-    motorcycle_id: motorcycleId ?? null,
+    has_motorcycle: !!effectiveMotorcycleId,
+    motorcycle_id: effectiveMotorcycleId ?? null,
     motorcycle_make: motorcycleMake,
     hud_layout: rideMMKV.getHudLayout() ?? 'A',
     is_resumed: false,

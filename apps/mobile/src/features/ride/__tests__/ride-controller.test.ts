@@ -50,6 +50,17 @@ jest.mock('../../../utils/ride-storage', () => {
   };
 });
 jest.mock('../../../utils/ride-sync-queue', () => ({ enqueueOrExecute: jest.fn() }));
+// Bike-less rides resolve the primary bike (cache-first, then fetch) so the odometer
+// still tracks — mock the data seam; default to "no bikes cached / fetch empty".
+jest.mock('../../../lib/graphql-client', () => ({
+  gqlFetcher: jest.fn(() => Promise.resolve(undefined)),
+}));
+jest.mock('../../../lib/query-client', () => ({
+  queryClient: { getQueryData: jest.fn(() => undefined) },
+}));
+jest.mock('../../../lib/query-keys', () => ({
+  queryKeys: { motorcycles: { all: ['motorcycles'] } },
+}));
 jest.mock('../../../utils/ride-heatmap', () => ({ encodePolyline: jest.fn(() => 'poly') }));
 jest.mock('../../../lib/analytics', () => ({
   trackEvent: jest.fn(),
@@ -74,6 +85,8 @@ jest.mock('expo-haptics', () => ({
   ImpactFeedbackStyle: { Heavy: 'heavy' },
 }));
 
+import { gqlFetcher } from '../../../lib/graphql-client';
+import { queryClient } from '../../../lib/query-client';
 import { useRideStore } from '../../../stores/ride.store';
 import * as gps from '../../../utils/ride-location';
 import * as perms from '../../../utils/ride-permissions';
@@ -155,6 +168,41 @@ describe('startRideSession', () => {
     expect(rideMMKV.setCurrentId).toHaveBeenLastCalledWith(''); // rolled back
     expect(store.endRide).toHaveBeenCalledTimes(1);
     expect(enqueue).not.toHaveBeenCalledWith('startRide', expect.anything());
+  });
+
+  it('attributes a bike-less ride (CarPlay / Quick Ride) to the cached primary bike', async () => {
+    (queryClient.getQueryData as jest.Mock).mockReturnValueOnce({
+      myMotorcycles: [
+        { id: 'secondary', isPrimary: false },
+        { id: 'primary-1', isPrimary: true },
+      ],
+    });
+    const result = await startRideSession({ motorcycleId: null, source: 'carplay' });
+    expect(result).toEqual({ ok: true, rideId: 'ride-uuid-1' });
+    // The ride carries the primary bike so the API applies mileage on end (odometer).
+    expect(rideMMKV.setMotorcycleId).toHaveBeenCalledWith('primary-1');
+    expect(enqueue).toHaveBeenCalledWith(
+      'startRide',
+      expect.objectContaining({
+        variables: { input: expect.objectContaining({ motorcycleId: 'primary-1' }) },
+      }),
+    );
+  });
+
+  it('fetches the primary bike when the list is not cached (cold CarPlay launch)', async () => {
+    (queryClient.getQueryData as jest.Mock).mockReturnValueOnce(undefined);
+    (gqlFetcher as jest.Mock).mockResolvedValueOnce({
+      myMotorcycles: [{ id: 'primary-2', isPrimary: true }],
+    });
+    await startRideSession({ motorcycleId: null, source: 'carplay' });
+    expect(rideMMKV.setMotorcycleId).toHaveBeenCalledWith('primary-2');
+  });
+
+  it('leaves the ride bike-less when the rider has no bikes (no odometer target)', async () => {
+    (queryClient.getQueryData as jest.Mock).mockReturnValueOnce({ myMotorcycles: [] });
+    const result = await startRideSession({ motorcycleId: null, source: 'phone' });
+    expect(result).toEqual({ ok: true, rideId: 'ride-uuid-1' });
+    expect(rideMMKV.setMotorcycleId).not.toHaveBeenCalled();
   });
 });
 
