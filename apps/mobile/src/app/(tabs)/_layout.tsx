@@ -19,6 +19,7 @@ import Animated, {
   ZoomIn,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GlobalCarPlayBanner } from '../../components/carplay/global-carplay-banner';
 import { ErrorFallback } from '../../components/error-fallback';
 import { maintenanceBadgeOptions } from '../../lib/query-options';
 import { useRideStore } from '../../stores/ride.store';
@@ -297,6 +298,7 @@ export default function TabsLayout() {
         <Tabs.Screen name="(garage)" options={{ title: t('tabs.garage') }} />
         <Tabs.Screen name="(profile)" options={{ title: t('tabs.profile') }} />
       </Tabs>
+      <GlobalCarPlayBanner />
     </Sentry.ErrorBoundary>
   );
 }

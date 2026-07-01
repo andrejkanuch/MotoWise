@@ -16,6 +16,7 @@ import {
   Palette,
   Ruler,
   Settings,
+  Smartphone,
   Sun,
 } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
@@ -23,11 +24,11 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { ESettingsRow, ESettingsSectionLabel } from '../../../../components/ui/editorial';
-import { presentPaywall } from '../../../../lib/subscription';
-import { useAuthStore } from '../../../../stores/auth.store';
-import { tint, useEditorialTheme } from '../../../../theme/editorial';
-import { triggerImpact } from '../../../../utils/haptics';
+import { presentPaywall } from '../../lib/subscription';
+import { useAuthStore } from '../../stores/auth.store';
+import { tint, useEditorialTheme } from '../../theme/editorial';
+import { triggerImpact } from '../../utils/haptics';
+import { ESettingsRow, ESettingsSectionLabel } from '../ui/editorial';
 
 const LOCALE_DISPLAY_NAMES: Record<SupportedLocale, string> = {
   en: 'English',
@@ -130,6 +131,11 @@ export function PreferencesSection({
             icon={Megaphone}
             label={t('whatsNew.badge')}
             onPress={() => router.push('/(modals)/whats-new')}
+          />
+          <ESettingsRow
+            icon={Smartphone}
+            label={t('carplay.entryLabel', { defaultValue: 'CarPlay Companion' })}
+            onPress={() => router.push('/(modals)/carplay')}
           />
           <ESettingsRow
             icon={HelpCircle}

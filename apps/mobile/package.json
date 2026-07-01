@@ -19,6 +19,7 @@
     "@expo/metro-runtime": "~56.0.15",
     "@expo/ui": "^56.0.18",
     "@gorhom/bottom-sheet": "^5.2.14",
+    "@iternio/react-native-auto-play": "^0.5.3",
     "@motovault/design-system": "workspace:*",
     "@motovault/graphql": "workspace:*",
     "@motovault/types": "workspace:*",
@@ -82,6 +83,7 @@
     "react-native-gifted-charts": "^1.4.76",
     "react-native-keyboard-controller": "^1.21.6",
     "react-native-mmkv": "^4.3.0",
+    "react-native-nitro-modules": "^0.35.10",
     "react-native-pdf": "^7.0.4",
     "react-native-purchases": "9.15.2",
     "react-native-purchases-ui": "9.15.2",
@@ -108,6 +110,7 @@
   "devDependencies": {
     "@motovault/tsconfig": "workspace:*",
     "@tailwindcss/postcss": "^4.3.1",
+    "@types/geojson": "7946.0.16",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.2.17",
     "@typescript-eslint/parser": "^8.62.0",

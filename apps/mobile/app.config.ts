@@ -14,7 +14,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: getAppName(),
   slug: 'motowise',
   description: 'AI-powered motorcycle maintenance, diagnostics & expense tracking',
-  version: '3.13.0',
+  version: '3.14.0',
   orientation: 'portrait',
   icon: './src/assets/images/MotoVault.png',
   // Root view color (behind all React views) — matches the splash background
@@ -73,6 +73,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         locationAlwaysAndWhenInUsePermission:
           'MotoVault uses your location to record ride routes, show nearby routes, and display local weather for trip planning.',
+        // Background recording: keep tracking distance/speed/route while the app is
+        // backgrounded or the screen is locked (e.g. riding with CarPlay up). Adds
+        // the iOS `location` background mode + Android ACCESS_BACKGROUND_LOCATION +
+        // foreground service. Required for Location.startLocationUpdatesAsync.
+        isIosBackgroundLocationEnabled: true,
+        isAndroidBackgroundLocationEnabled: true,
+        isAndroidForegroundServiceEnabled: true,
       },
     ],
     '@rnmapbox/maps',
@@ -138,6 +145,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     './plugins/remove-activity-recognition',
+    // CarPlay: injects the UIApplicationSceneManifest pointing the window + CarPlay
+    // scenes at @iternio/react-native-auto-play's autolinked scene delegates.
+    './plugins/with-carplay',
     [
       'expo-widgets',
       {
@@ -188,6 +198,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
         ios: {
           deploymentTarget: '16.4',
+          // Build React Native from source (disables the prebuilt React.xcframework
+          // and its `-ivfsoverlay React-VFS.yaml` clang overlay). That overlay hides
+          // Pods/Headers/Public while clang builds the GTMSessionFetcher module for
+          // GTMAppAuth's `import GTMSessionFetcher` (via @react-native-google-signin),
+          // so its framework-style self-import fails to build. Trade-off: slower iOS
+          // builds. Precompiled Expo modules require prebuilt React, so they're off too.
+          buildReactNativeFromSource: true,
           // AppCheckCore (a Swift pod pulled in by @react-native-google-signin)
           // depends on GoogleUtilities + RecaptchaInterop, which don't define
           // modules — so they can't be imported from Swift when built as static
@@ -209,6 +226,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     usesAppleSignIn: true,
     entitlements: {
       'com.apple.security.application-groups': ['group.com.motovault.app'],
+      // CarPlay Driving Task — granted by Apple (Case-ID 20710293). Required in
+      // the build for the CarPlay scene to launch on a head unit / simulator.
+      'com.apple.developer.carplay-driving-task': true,
     },
     associatedDomains: ['applinks:motovault.app', 'applinks:www.motovault.app'],
     icon: {
@@ -225,6 +245,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         'MotoVault needs photo library access to upload diagnostic images.',
       NSPhotoLibraryAddUsageDescription:
         'Allow MotoVault to save ride share cards to your photo library.',
+      // Required because the bundled CarPlay library (@iternio/react-native-auto-play)
+      // references the Speech + microphone voice-input APIs. Apple mandates these
+      // purpose strings whenever the binary references the APIs, even though we do
+      // not yet surface voice input (ITMS-90683). Voice input is a CarPlay
+      // hands-free capability.
+      NSSpeechRecognitionUsageDescription:
+        'MotoVault uses speech recognition for hands-free voice commands while connected to CarPlay.',
+      NSMicrophoneUsageDescription:
+        'MotoVault uses the microphone for hands-free voice commands while connected to CarPlay.',
       LSApplicationQueriesSchemes: [
         'maps',
         'comgooglemaps',
@@ -238,6 +267,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         { SKAdNetworkIdentifier: 'v9wttpbfk9.skadnetwork' },
         { SKAdNetworkIdentifier: 'n38lu8286q.skadnetwork' },
       ],
+      // `location` keeps GPS recording alive while backgrounded / screen-locked
+      // (background ride recording — pairs with Location.startLocationUpdatesAsync
+      // and the expo-location background flags above).
+      // NOTE: `audio` is intentionally NOT declared yet. App Review guideline 2.5.4
+      // rejects a background mode the app doesn't actively exercise, and the CarPlay
+      // confirmation earcon (plan U5 / carplay-earcon) has not shipped. Re-add
+      // `'audio'` in the same PR that lands the earcon's background playback.
+      UIBackgroundModes: ['location'],
     },
     config: {
       usesNonExemptEncryption: false,

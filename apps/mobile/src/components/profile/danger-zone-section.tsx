@@ -2,8 +2,8 @@ import { LogOut, Trash2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { ESettingsRow } from '../../../../components/ui/editorial';
-import { tint, useEditorialTheme } from '../../../../theme/editorial';
+import { tint, useEditorialTheme } from '../../theme/editorial';
+import { ESettingsRow } from '../ui/editorial';
 
 export function DangerZoneSection({
   isDark,

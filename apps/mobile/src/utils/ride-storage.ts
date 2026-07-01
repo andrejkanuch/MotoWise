@@ -11,6 +11,7 @@ export const RIDE_KEYS = {
   STARTED_AT: 'ride.started_at',
   MOTORCYCLE_ID: 'ride.motorcycle_id',
   TOTAL_PAUSED_MS: 'ride.total_paused_ms',
+  PAUSED_AT: 'ride.paused_at',
   TOTAL_AUTO_PAUSED_MS: 'ride.total_auto_paused_ms',
   RECORDING_SUB_STATE: 'ride.recording_sub_state',
   PERMISSION_LEVEL: 'ride.permission_level',
@@ -44,6 +45,13 @@ export const rideMMKV = {
   // Paused duration
   getTotalPausedMs: () => rideStorage.getNumber(RIDE_KEYS.TOTAL_PAUSED_MS) ?? 0,
   setTotalPausedMs: (ms: number) => rideStorage.set(RIDE_KEYS.TOTAL_PAUSED_MS, ms),
+
+  // Epoch ms when the current MANUAL pause began; 0 = not paused. The engine-owned
+  // pause clock: pauseRide stamps it, resumeRide banks (now - pausedAt) into
+  // TOTAL_PAUSED_MS and resets it. Lets elapsed time freeze during a pause from any
+  // surface (phone HUD or CarPlay) without a mounted UI timer.
+  getPausedAt: () => rideStorage.getNumber(RIDE_KEYS.PAUSED_AT) ?? 0,
+  setPausedAt: (ms: number) => rideStorage.set(RIDE_KEYS.PAUSED_AT, ms),
 
   // Auto-paused duration
   getTotalAutoPausedMs: () => rideStorage.getNumber(RIDE_KEYS.TOTAL_AUTO_PAUSED_MS) ?? 0,

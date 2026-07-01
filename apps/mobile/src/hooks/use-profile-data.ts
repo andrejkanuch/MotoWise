@@ -8,13 +8,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { Alert } from 'react-native';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { isAccountAlreadyDeleted, userFriendlyError } from '../../../lib/graphql-errors';
-import { queryKeys } from '../../../lib/query-keys';
-import { meOptions } from '../../../lib/query-options';
-import { presentPaywall } from '../../../lib/subscription';
-import { safeSignOut } from '../../../lib/supabase';
-import { triggerImpact } from '../../../utils/haptics';
+import { gqlFetcher } from '../lib/graphql-client';
+import { isAccountAlreadyDeleted, userFriendlyError } from '../lib/graphql-errors';
+import { queryKeys } from '../lib/query-keys';
+import { meOptions } from '../lib/query-options';
+import { presentPaywall } from '../lib/subscription';
+import { safeSignOut } from '../lib/supabase';
+import { triggerImpact } from '../utils/haptics';
 
 interface UseProfileDataParams {
   t: TFunction;

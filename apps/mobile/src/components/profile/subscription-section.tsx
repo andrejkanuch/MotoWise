@@ -3,9 +3,9 @@ import { ChevronRight, Crown } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { presentPaywall } from '../../../../lib/subscription';
-import { tint, useEditorialTheme } from '../../../../theme/editorial';
-import { triggerImpact } from '../../../../utils/haptics';
+import { presentPaywall } from '../../lib/subscription';
+import { tint, useEditorialTheme } from '../../theme/editorial';
+import { triggerImpact } from '../../utils/haptics';
 
 export function SubscriptionSection({ isPro, isDark }: { isPro: boolean; isDark: boolean }) {
   const { t } = useTranslation();

@@ -1,6 +1,5 @@
-import { MyMotorcyclesDocument, MyRidesDocument, StartRideDocument } from '@motovault/graphql';
+import { MyMotorcyclesDocument, MyRidesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
-import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { AlertTriangle, Bike, ChevronDown, ChevronRight, X, Zap } from 'lucide-react-native';
@@ -18,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PreFlightChecklist } from '../../components/ride/pre-flight-checklist';
+import { startRideSession } from '../../features/ride/ride-controller';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -26,7 +26,6 @@ import { useRideStore } from '../../stores/ride.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { distanceUnitLabel, formatDistance, formatRelativeDate } from '../../utils/ride-formatters';
 import { startGPSListener } from '../../utils/ride-location';
-import { checkAndRequestPermissions } from '../../utils/ride-permissions';
 import { rideMMKV } from '../../utils/ride-storage';
 import { enqueueOrExecute } from '../../utils/ride-sync-queue';
 
@@ -111,44 +110,24 @@ export default function StartRideScreen() {
   const handleStartRide = useCallback(async () => {
     setIsStarting(true);
     try {
-      const level = await checkAndRequestPermissions();
-      if (level === 'denied') {
-        Alert.alert(t('startRide.locationRequired'), t('startRide.locationMessage'), [
-          { text: t('common.cancel'), style: 'cancel' },
-          { text: t('startRide.openSettings'), onPress: () => Linking.openSettings() },
-        ]);
+      const result = await startRideSession({
+        motorcycleId: selectedBikeId,
+        source: 'phone',
+        motorcycleMake: selectedBike?.make ?? null,
+      });
+
+      if (!result.ok) {
+        if (result.reason === 'denied') {
+          Alert.alert(t('startRide.locationRequired'), t('startRide.locationMessage'), [
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('startRide.openSettings'), onPress: () => Linking.openSettings() },
+          ]);
+        } else {
+          // gps_failed — the listener threw; the controller already rolled back.
+          Alert.alert(t('common.error'), t('startRide.startError'));
+        }
         return;
       }
-
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-      }
-
-      const rideId = Crypto.randomUUID();
-      const startedAt = new Date().toISOString();
-
-      rideMMKV.setCurrentId(rideId);
-      rideMMKV.setStartedAt(Date.now());
-      if (selectedBikeId) rideMMKV.setMotorcycleId(selectedBikeId);
-      startRide();
-
-      enqueueOrExecute('startRide', {
-        mutationDocument: StartRideDocument,
-        variables: {
-          input: { rideId, motorcycleId: selectedBikeId, startedAt },
-        },
-      });
-
-      await startGPSListener(() => {});
-
-      trackEvent(AnalyticsEvent.RIDE_STARTED, {
-        ride_id: rideId,
-        has_motorcycle: !!selectedBikeId,
-        motorcycle_id: selectedBikeId ?? null,
-        motorcycle_make: selectedBike?.make ?? null,
-        hud_layout: rideMMKV.getHudLayout() ?? 'A',
-        is_resumed: false,
-      });
 
       router.replace('/(modals)/ride-hud');
     } catch (error) {
@@ -157,7 +136,7 @@ export default function StartRideScreen() {
     } finally {
       setIsStarting(false);
     }
-  }, [selectedBikeId, selectedBike?.make, startRide, router, t]);
+  }, [selectedBikeId, selectedBike?.make, router, t]);
 
   // Pulsing green dot animation for CTA
   const pulseScale = useSharedValue(1);

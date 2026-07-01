@@ -1,13 +1,13 @@
 import { useColorScheme } from 'nativewind';
 import { useTranslation } from 'react-i18next';
 import { ScrollView } from 'react-native';
+import { AccountSection } from '../../../components/profile/account-section';
+import { DangerZoneSection } from '../../../components/profile/danger-zone-section';
+import { PreferencesSection } from '../../../components/profile/preferences-section';
+import { SubscriptionSection } from '../../../components/profile/subscription-section';
 import { useProGate } from '../../../hooks/use-pro-gate';
+import { useProfileData } from '../../../hooks/use-profile-data';
 import { useEditorialTheme } from '../../../theme/editorial';
-import { AccountSection } from './components/account-section';
-import { DangerZoneSection } from './components/danger-zone-section';
-import { PreferencesSection } from './components/preferences-section';
-import { SubscriptionSection } from './components/subscription-section';
-import { useProfileData } from './use-profile-data';
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
