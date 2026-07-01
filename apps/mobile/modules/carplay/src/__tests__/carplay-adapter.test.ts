@@ -64,6 +64,7 @@ import {
   pushBikeList,
   renderInformation,
   setActionDispatcher,
+  setInformationLifecycle,
 } from '../index';
 
 // biome-ignore lint/suspicious/noExplicitAny: reaching into the mock's test hooks
@@ -259,6 +260,36 @@ describe('carplay adapter', () => {
     // biome-ignore lint/suspicious/noExplicitAny: mock config shape
     const config = listCtorCalls.at(-1) as any;
     expect(config.sections.items).toHaveLength(1);
+  });
+
+  it('notifies via the root onDidAppear and drops the list ref (covers the native back button)', () => {
+    // The native CarPlay back button pops the pushed list WITHOUT firing its onPopped
+    // (iOS only removes + onPopped a CPAlertTemplate on disappear). The root panel
+    // reappearing is the recovery signal: it must notify the coordinator AND reset the
+    // adapter's list ref so a later push re-pushes instead of updating a popped template.
+    const onDidAppear = jest.fn();
+    setInformationLifecycle({ onDidAppear });
+    renderInformation(model());
+
+    // The root template config carries an onDidAppear hook.
+    // biome-ignore lint/suspicious/noExplicitAny: mock config shape
+    const rootConfig = ctorCalls.at(-1) as any;
+    expect(typeof rootConfig.onDidAppear).toBe('function');
+
+    // Simulate a back-button pop while a list is up: list pushed, then root reappears.
+    pushBikeList({ title: 'Bike', rows: [{ title: 'Mileage', detail: '—' }] });
+    expect(push).toHaveBeenCalledTimes(1);
+    rootConfig.onDidAppear(); // root topmost again — list is gone
+
+    expect(onDidAppear).toHaveBeenCalledTimes(1);
+    // list ref was dropped → the next push builds + pushes a fresh list (no updateSections)
+    push.mockClear();
+    updateSections.mockClear();
+    pushBikeList({ title: 'Bike', rows: [{ title: 'Recalls', detail: '0' }] });
+    expect(push).toHaveBeenCalledTimes(1);
+    expect(updateSections).not.toHaveBeenCalled();
+
+    setInformationLifecycle({}); // reset shared lifecycle for other tests
   });
 
   it('popBikeList pops the template and no-ops when nothing is pushed', () => {

@@ -99,6 +99,8 @@ let current: InformationTemplate | null = null;
 let lastTitle: string | null = null;
 let lastActionsKey: string | null = null;
 let currentList: ListTemplate | null = null;
+// Fired when the root ride panel becomes topmost again (a pushed list left the stack).
+let rootDidAppear: (() => void) | null = null;
 
 // Identity of the action + header-action sets: a change here forces a rebuild (the
 // library fixes actions/header buttons at construction — they can't mutate in place).
@@ -155,6 +157,17 @@ function buildTemplate(model: CPInformationTemplateModel): InformationTemplate {
     items: toRows(model.items),
     actions: toIosActions(model.actions),
     headerActions: toIosHeaderActions(model.headerActions),
+    // Root panel is topmost again → any pushed Bike list is gone. This fires on the
+    // native CarPlay back button too — unlike the list's own onPopped, which iOS only
+    // delivers on a *programmatic* pop (see AutoPlayInterfaceController: back-button
+    // dismiss runs templateDidDisappear, which removes + fires onPopped for a
+    // CPAlertTemplate only). Drop the stale list ref so the next pushBikeList
+    // re-pushes instead of updateSections-ing a popped template, and notify the
+    // coordinator so it clears its covered flag and resumes rendering.
+    onDidAppear: () => {
+      currentList = null;
+      rootDidAppear?.();
+    },
   });
 }
 
@@ -173,6 +186,17 @@ function toListSections(rows: CPListRow[]): Section<ListTemplate> {
 /** Injects the dispatcher that head-unit action presses are routed to. */
 export function setActionDispatcher(fn: (actionId: string) => void): void {
   dispatch = fn;
+}
+
+/**
+ * Register a callback fired when the root ride panel becomes topmost again — i.e. a
+ * pushed secondary template (the Bike list) was dismissed. This is the only reliable
+ * "list gone" signal on iOS: the list's own `onPopped` fires solely on a programmatic
+ * pop, never on the native CarPlay back button. `onDidAppear` on the root covers both,
+ * and — unlike `onDidDisappear` — does not fire when the panel is merely covered.
+ */
+export function setInformationLifecycle(lifecycle: { onDidAppear?: () => void }): void {
+  rootDidAppear = lifecycle.onDidAppear ?? null;
 }
 
 /**
