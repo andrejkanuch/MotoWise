@@ -198,6 +198,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
         ios: {
           deploymentTarget: '16.4',
+          // Build React Native from source (disables the prebuilt React.xcframework
+          // and its `-ivfsoverlay React-VFS.yaml` clang overlay). That overlay hides
+          // Pods/Headers/Public while clang builds the GTMSessionFetcher module for
+          // GTMAppAuth's `import GTMSessionFetcher` (via @react-native-google-signin),
+          // so its framework-style self-import fails to build. Trade-off: slower iOS
+          // builds. Precompiled Expo modules require prebuilt React, so they're off too.
+          buildReactNativeFromSource: true,
           // AppCheckCore (a Swift pod pulled in by @react-native-google-signin)
           // depends on GoogleUtilities + RecaptchaInterop, which don't define
           // modules — so they can't be imported from Swift when built as static
