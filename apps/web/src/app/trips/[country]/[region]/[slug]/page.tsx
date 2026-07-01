@@ -6,6 +6,7 @@ import {
 } from '@motovault/graphql';
 import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
+import { cache } from 'react';
 import { GpxDownloadButton } from '@/components/gpx-download-button';
 import { SiblingRoutesSection } from '@/components/trip-detail/sibling-routes-section';
 import { TripDetailMap } from '@/components/trip-detail/trip-detail-map';
@@ -31,14 +32,17 @@ interface PageParams {
 
 type TripReview = WebTripReviewsQuery['tripReviews'][number];
 
-async function fetchTrip(country: string, region: string, slug: string): Promise<TripData | null> {
-  try {
-    const data = await gqlServerFetcher(WebTripBySlugDocument, { country, region, slug });
-    return data.tripBySlug ?? null;
-  } catch {
-    return null;
-  }
-}
+// cache() dedupes the generateMetadata + page-body calls into one GraphQL request.
+const fetchTrip = cache(
+  async (country: string, region: string, slug: string): Promise<TripData | null> => {
+    try {
+      const data = await gqlServerFetcher(WebTripBySlugDocument, { country, region, slug });
+      return data.tripBySlug ?? null;
+    } catch {
+      return null;
+    }
+  },
+);
 
 async function fetchReviews(country: string, region: string, slug: string): Promise<TripReview[]> {
   try {

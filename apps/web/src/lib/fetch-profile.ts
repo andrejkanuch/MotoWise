@@ -1,3 +1,5 @@
+import { cache } from 'react';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
 
 const PUBLIC_PROFILE_QUERY = `
@@ -54,7 +56,10 @@ export interface PublicProfile {
   rideStats: ProfileRideStats;
 }
 
-export async function fetchProfile(username: string): Promise<PublicProfile | null> {
+// Wrapped in React cache() so generateMetadata + the page body (+ opengraph-image)
+// share ONE GraphQL POST per request — POST fetches are never memoized by Next's
+// request dedup, so each render otherwise re-hit the API 2–3×.
+export const fetchProfile = cache(async (username: string): Promise<PublicProfile | null> => {
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
@@ -71,4 +76,4 @@ export async function fetchProfile(username: string): Promise<PublicProfile | nu
   } catch {
     return null;
   }
-}
+});

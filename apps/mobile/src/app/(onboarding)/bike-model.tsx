@@ -71,6 +71,8 @@ export default function BikeModelScreen() {
         year,
       }),
     enabled: makeId > 0 && year > 0,
+    // NHTSA models for a (makeId, year) never change — cached 7 days server-side.
+    staleTime: Number.POSITIVE_INFINITY,
   });
 
   const models = modelsResult.data?.motorcycleModels ?? [];

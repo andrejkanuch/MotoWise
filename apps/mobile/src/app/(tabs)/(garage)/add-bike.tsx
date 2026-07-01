@@ -79,6 +79,9 @@ export default function AddBikeScreen() {
         year: yearNum,
       }),
     enabled: !!selectedMake && validYear && !customMake,
+    // NHTSA models for a (makeId, year) never change — cached 7 days server-side.
+    // Match the makes query so re-entering the flow doesn't re-hit the API.
+    staleTime: Number.POSITIVE_INFINITY,
   });
 
   const makes = makesResult.data?.motorcycleMakes ?? [];
