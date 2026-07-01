@@ -21,10 +21,10 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { ProBadge } from '../../../../components/pro-badge';
-import { ESettingsSectionLabel } from '../../../../components/ui/editorial';
-import { tint, useEditorialTheme } from '../../../../theme/editorial';
-import { triggerImpact } from '../../../../utils/haptics';
+import { tint, useEditorialTheme } from '../../theme/editorial';
+import { triggerImpact } from '../../utils/haptics';
+import { ProBadge } from '../pro-badge';
+import { ESettingsSectionLabel } from '../ui/editorial';
 
 type User = MeQuery['me'];
 type Motorcycle = MyMotorcyclesQuery['myMotorcycles'][number];
