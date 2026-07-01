@@ -15,7 +15,10 @@ const MAX_PAGES = 20;
 const DOWNSAMPLE_STEP = 5;
 const MAX_POINTS = 5_000;
 
-export function useRideHeatmapData({ enabled }: { enabled: boolean }) {
+export function useRideHeatmapData({ enabled }: { enabled: boolean }): {
+  heatmapGeoJSON: GeoJSON.FeatureCollection | null;
+  isLoading: boolean;
+} {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
     queryKey: queryKeys.rides.heatmap,
     queryFn: ({ pageParam }: { pageParam: string | null }) => {
