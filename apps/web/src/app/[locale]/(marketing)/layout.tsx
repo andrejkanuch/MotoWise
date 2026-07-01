@@ -110,7 +110,7 @@ export default async function MarketingLayout({ children }: { children: React.Re
 
       {/* Console easter egg for curious riders. No nonce: marketing routes are
           statically prerendered and served with a nonce-free CSP that permits
-          inline scripts (see buildMarketingCsp in proxy.ts). */}
+          inline scripts (see buildNonceFreeCsp in proxy.ts). */}
       <script
         suppressHydrationWarning
         // biome-ignore lint/security/noDangerouslySetInnerHtml: static console message

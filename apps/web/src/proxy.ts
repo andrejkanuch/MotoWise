@@ -84,9 +84,10 @@ function sanitizeCspHost(url: string): string {
 }
 
 // Shared CSP builder. `scriptInlineToken` is how inline scripts are permitted:
-// a per-request `'nonce-…'` on dynamically rendered routes, or `'unsafe-inline'`
-// on statically prerendered marketing routes (which cannot carry a nonce — see
-// buildMarketingCsp). All other directives are identical across both modes.
+// a per-request `'nonce-…'` on dynamically rendered authed routes, or
+// `'unsafe-inline'` for the nonce-free default (which any route — static or
+// dynamic — can safely use; see buildNonceFreeCsp). All other directives are
+// identical across both modes.
 function buildCsp(scriptInlineToken: string): string {
   const connectSources = [
     "'self'",
@@ -124,14 +125,17 @@ function buildCspHeader(nonce: string): string {
   return buildCsp(`'nonce-${nonce}'`);
 }
 
-// Nonce-free CSP for public marketing routes (no auth, no user input). A
-// per-request nonce would force dynamic rendering — Next.js applies nonces only
-// during SSR, so static/ISR pages cannot carry one (and serving a cached body
-// with a fresh per-request nonce header would mismatch and break every inline
-// script). Using 'unsafe-inline' here lets marketing pages be statically
-// prerendered and edge-cached, collapsing TTFB. The strict per-request nonce
-// CSP (buildCspHeader) still guards authed/community/admin/share routes.
-function buildMarketingCsp(): string {
+// Nonce-free CSP (the DEFAULT). A nonce-based CSP only works on dynamically
+// rendered responses: Next.js injects the nonce into inline scripts at SSR time
+// from the request's CSP header, so a statically prerendered / ISR page — built
+// with no request — carries no matching nonce, and a nonce CSP would block
+// every one of its inline scripts (the hydration bootstrap + RSC payload),
+// leaving a blank, dead page. Next.js documents this explicitly: "when CSP
+// nonces are used, all pages must be dynamically rendered." 'unsafe-inline', by
+// contrast, is valid on BOTH static and dynamic pages. So this is the safe
+// default for every route; only the small, verified-dynamic strict set
+// (usesStrictNonceCsp) opts into the nonce CSP.
+function buildNonceFreeCsp(): string {
   return buildCsp("'unsafe-inline'");
 }
 
@@ -141,16 +145,20 @@ function applySecurityHeaders(response: NextResponse, nonce: string | null) {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
-  // nonce === null → nonce-free marketing CSP (statically cacheable routes).
+  // nonce === null → nonce-free CSP (the safe default; works on static + dynamic).
+  // nonce set → strict per-request nonce CSP (dynamic, authed routes only).
   response.headers.set(
     'Content-Security-Policy',
-    nonce === null ? buildMarketingCsp() : buildCspHeader(nonce),
+    nonce === null ? buildNonceFreeCsp() : buildCspHeader(nonce),
   );
 }
 
 // Public marketing paths that are safe to cache at the edge. Excludes admin,
 // community (feed/garage/profile), auth, and share-link routes which are
-// user-specific or token-scoped.
+// user-specific or token-scoped. This governs the shared-edge Cache-Control
+// header ONLY — CSP mode is decided separately by usesStrictNonceCsp (nonce
+// vs nonce-free), because "cacheable" and "needs a strict nonce CSP" are
+// independent concerns.
 const MARKETING_CACHEABLE_RE =
   /^\/($|explore|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|(?:en|de|fr|es|it|ja|pl|pt-BR)(?:\/|$))/;
 
@@ -276,6 +284,36 @@ function isProtectedRoute(pathname: string): boolean {
 
 function isPublicRoute(pathname: string): boolean {
   return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+// Routes that get the STRICT per-request nonce CSP. Everything else defaults to
+// the nonce-free CSP (buildNonceFreeCsp) — see applySecurityHeaders.
+//
+// Membership rule — a prefix belongs here ONLY if BOTH hold:
+//   1. It is always DYNAMICALLY rendered. A nonce CSP blocks every inline
+//      script on a statically prerendered page (no request-time nonce to
+//      inject), which blanks the page. These routes render per-request behind
+//      an auth gate (/admin via adminAuth, community via communityAuth), so
+//      Next.js can inject the nonce.
+//   2. It handles authenticated, per-user state where a strict CSP earns its
+//      keep (session, user data, admin surface).
+//
+// This is deliberately an allowlist for the STRICT policy, not for the safe
+// one: the failure mode of forgetting to list a route is "a public page gets a
+// slightly weaker (nonce-free) CSP" — never a blank-page outage. The inverse
+// (allowlisting the safe routes) is what silently broke /trips, /bikes and
+// /guides when they were added as force-static without being listed.
+//
+// NOTE: static content routes (explore/trips/bikes/blog/guides) and public
+// dynamic routes (route/ride/rider, login/signup) intentionally stay on the
+// nonce-free CSP — they render no authenticated user state, and React escapes
+// output by default, so 'unsafe-inline' is an acceptable posture there.
+const STRICT_CSP_PREFIXES = ['/admin', ...PROTECTED_PREFIXES];
+
+function usesStrictNonceCsp(pathname: string): boolean {
+  return STRICT_CSP_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
 }
 
 async function communityAuth(request: NextRequest) {
@@ -441,16 +479,19 @@ export async function proxy(request: NextRequest) {
     response = intlMiddleware(request) as NextResponse;
   }
 
-  // Apply CSP and security headers to all responses. Marketing routes are
-  // statically prerendered, so they get the nonce-free CSP (a static page can't
-  // carry a per-request nonce); everything else keeps the strict nonce CSP.
-  // CSP selection is path-based (not session-based) so the static HTML's inline
-  // scripts are permitted for logged-in visitors too — only the shared edge
-  // cache header is withheld when a session cookie is present.
+  // Apply CSP + security headers to all responses. Two independent decisions:
+  //  • CSP mode: strict per-request nonce ONLY for verified-dynamic authed
+  //    routes (usesStrictNonceCsp); everything else gets the nonce-free CSP.
+  //    This defaults to the policy that is safe on static AND dynamic pages, so
+  //    a new force-static route can't silently ship a blank-page outage the way
+  //    /trips did (a nonce CSP blocks every inline script on a static page).
+  //  • Edge cache: independent — public marketing paths get a shared-edge
+  //    Cache-Control unless a session cookie is present.
+  // CSP selection is path-based (not session-based) so cached static HTML is
+  // served consistently to anonymous and logged-in visitors alike.
   if (!response.headers.has('Location')) {
-    const marketingPath = isMarketingCacheable(pathname);
-    applySecurityHeaders(response, marketingPath ? null : nonce);
-    if (marketingPath && !hasSupabaseSession(request)) {
+    applySecurityHeaders(response, usesStrictNonceCsp(pathname) ? nonce : null);
+    if (isMarketingCacheable(pathname) && !hasSupabaseSession(request)) {
       applyMarketingCacheHeader(response);
     }
     // Prevent search engines from indexing auth and user-generated pages.
