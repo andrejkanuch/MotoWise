@@ -157,9 +157,10 @@ export const palette = {
   editorialDarkWarm: '#d4884a',
   editorialDarkWarm2: '#e8a86a',
 
-  // Experience-level accents (rider skill badges — see profile settings)
+  // Experience-level accents (rider skill badges — see profile settings).
+  // Intermediate reuses editorialDarkWarm (same warm amber) — see settings.tsx —
+  // so we don't maintain two literals for one color.
   experienceBeginner: '#a3b18a',
-  experienceIntermediate: '#d4884a',
   experienceAdvanced: '#c4634a',
 
   // Light mode

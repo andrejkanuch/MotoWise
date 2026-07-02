@@ -36,10 +36,12 @@ export function readCache(): ProStatus | null {
       return null;
     }
     if (Date.now() - parsed.checkedAt > CACHE_TTL_MS) return null;
+    // Narrow each field rather than trusting a legacy/tampered cache entry to
+    // carry the exact shape.
     return {
-      isPro: parsed.isPro,
-      isTrialing: parsed.isTrialing,
-      trialDaysLeft: parsed.trialDaysLeft,
+      isPro: parsed.isPro === true,
+      isTrialing: parsed.isTrialing === true,
+      trialDaysLeft: typeof parsed.trialDaysLeft === 'number' ? parsed.trialDaysLeft : null,
       isLoading: false,
     };
   } catch {

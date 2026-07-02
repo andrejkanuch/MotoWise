@@ -4,7 +4,11 @@ import { createMMKV } from 'react-native-mmkv';
 // Lazy-loaded on the (rare) corruption path only, so this low-level storage
 // primitive doesn't pull the analytics/Sentry bundle into its import graph.
 function reportCorruption(err: unknown, context: Record<string, unknown>): void {
-  void import('../lib/analytics').then(({ captureException }) => captureException(err, context));
+  // .catch keeps a failed analytics import from becoming an unhandled rejection
+  // (matches the lazy-import guards in lib/analytics).
+  void import('../lib/analytics')
+    .then(({ captureException }) => captureException(err, context))
+    .catch(() => {});
 }
 
 export const rideStorage = createMMKV({ id: 'ride-storage' });

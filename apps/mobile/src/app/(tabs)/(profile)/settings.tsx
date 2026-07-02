@@ -45,7 +45,8 @@ const EXPERIENCE_CONFIG: Record<
   intermediate: {
     labelKey: 'settings.experienceIntermediate',
     icon: Gauge,
-    color: palette.experienceIntermediate,
+    // Same warm amber as editorialDarkWarm (cf. onboarding-colors accentIntermediate).
+    color: palette.editorialDarkWarm,
   },
   advanced: {
     labelKey: 'settings.experienceAdvanced',

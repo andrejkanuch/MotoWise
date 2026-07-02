@@ -64,4 +64,30 @@ describe('useProStatus cache (readCache)', () => {
     sessionStorage.setItem(CACHE_KEY, 'not json{');
     expect(readCache()).toBeNull();
   });
+
+  // Structurally valid JSON that isn't the expected shape must be rejected, not
+  // read as a bogus never-expiring status (Date.now() - undefined === NaN).
+  it.each([
+    ['a JSON primitive', 'true'],
+    ['the null literal', 'null'],
+    ['an array', '[]'],
+    ['an object with a string checkedAt', JSON.stringify({ isPro: true, checkedAt: 'yesterday' })],
+    ['an object with no checkedAt', JSON.stringify({ isPro: true })],
+  ])('returns null for %s', (_label, raw) => {
+    sessionStorage.setItem(CACHE_KEY, raw);
+    expect(readCache()).toBeNull();
+  });
+
+  it('narrows non-boolean isPro / non-numeric trialDaysLeft to safe defaults', () => {
+    sessionStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify({ isPro: 'yes', isTrialing: 1, trialDaysLeft: 'x', checkedAt: Date.now() }),
+    );
+    expect(readCache()).toEqual({
+      isPro: false,
+      isTrialing: false,
+      trialDaysLeft: null,
+      isLoading: false,
+    });
+  });
 });

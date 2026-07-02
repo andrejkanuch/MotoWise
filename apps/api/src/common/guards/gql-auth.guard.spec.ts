@@ -350,5 +350,42 @@ describe('GqlAuthGuard', () => {
       ).resolveEffectiveTier('user-active');
       expect(tier).toBe('pro');
     });
+
+    it("treats a trialing Pro row with a null expiry as 'pro'", async () => {
+      const g = guardWithUserRow({
+        subscription_tier: 'pro',
+        subscription_status: 'trialing',
+        subscription_expires_at: null,
+      });
+      const tier = await (
+        g as unknown as { resolveEffectiveTier: (id: string) => Promise<string> }
+      ).resolveEffectiveTier('user-trial');
+      expect(tier).toBe('pro');
+    });
+
+    // The null-expiry relaxation must NOT promote a non-pro or inactive row.
+    it("keeps a non-pro tier with a null expiry as 'free'", async () => {
+      const g = guardWithUserRow({
+        subscription_tier: 'free',
+        subscription_status: 'active',
+        subscription_expires_at: null,
+      });
+      const tier = await (
+        g as unknown as { resolveEffectiveTier: (id: string) => Promise<string> }
+      ).resolveEffectiveTier('user-free');
+      expect(tier).toBe('free');
+    });
+
+    it("keeps a cancelled Pro row with a null expiry as 'free'", async () => {
+      const g = guardWithUserRow({
+        subscription_tier: 'pro',
+        subscription_status: 'canceled',
+        subscription_expires_at: null,
+      });
+      const tier = await (
+        g as unknown as { resolveEffectiveTier: (id: string) => Promise<string> }
+      ).resolveEffectiveTier('user-cancelled');
+      expect(tier).toBe('free');
+    });
   });
 });

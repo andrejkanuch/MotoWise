@@ -192,9 +192,10 @@ function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () 
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [description, setDescription] = useState('');
 
-  // Guard against non-numeric input ('abc', '.', '1..2'): parseFloat yields NaN,
-  // which serializes to null over GraphQL and fails the non-null Float with an
-  // opaque error. Only a finite, positive amount is submittable.
+  // Guard against non-numeric input ('abc', '.'): parseFloat yields NaN, which
+  // serializes to null over GraphQL and fails the non-null Float with an opaque
+  // error. Number.isFinite also rejects Infinity ('1e999'). Only a finite,
+  // positive amount is submittable.
   const parsedAmount = Number.parseFloat(amount);
   const isAmountValid = Number.isFinite(parsedAmount) && parsedAmount > 0;
 
