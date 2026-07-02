@@ -1,3 +1,5 @@
+import { cache } from 'react';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
 
 const PUBLIC_RIDE_QUERY = `
@@ -32,7 +34,9 @@ export interface PublicRide {
   isPublic: boolean;
 }
 
-export async function fetchRide(id: string): Promise<PublicRide | null> {
+// Wrapped in React cache() so generateMetadata + the page body (+ opengraph-image)
+// share ONE GraphQL POST per request (POST fetches aren't deduped by Next).
+export const fetchRide = cache(async (id: string): Promise<PublicRide | null> => {
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
@@ -51,4 +55,4 @@ export async function fetchRide(id: string): Promise<PublicRide | null> {
   } catch {
     return null;
   }
-}
+});

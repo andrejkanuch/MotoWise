@@ -11,6 +11,10 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
           queries: {
             staleTime: 5 * 60 * 1000,
             retry: 1,
+            // Dashboard queries are server-prefetched (HydrationBoundary), 5-min
+            // fresh, and invalidated on mutation — so refetching every one on tab
+            // focus is pure load for no freshness gain.
+            refetchOnWindowFocus: false,
           },
         },
       }),
