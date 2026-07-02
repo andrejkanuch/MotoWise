@@ -129,31 +129,40 @@ export class NhtsaService implements OnModuleInit {
     messages: { notOkLog: string; notOkThrow: string; timeout: string; unreachable: string },
     on404?: () => T,
   ): Promise<T> {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10_000);
-    try {
-      const response = await fetch(url, { signal: controller.signal });
-      if (!response.ok) {
-        // NHTSA's recalls endpoint returns 400 (not 404) with a valid
-        // "Results returned successfully" body (Count: 0) when a make/model/year
-        // has no matching recalls — extremely common for motorcycles. Vehicles
-        // that DO have recalls return 200, so treating 400/404 as "none found"
-        // (for callers that opt in via on404) never drops real recalls.
-        if ((response.status === 404 || response.status === 400) && on404) {
-          return on404();
+    // NHTSA's public API has occasional transient blips (timeouts, 5xx) that a
+    // second attempt clears. Retry once before surfacing a 503 to the client, so
+    // a single upstream hiccup doesn't fail the recall check / makes+models
+    // lookup (MOTO-VAULT-NODE-NESTJS-3).
+    const maxAttempts = 2;
+    for (let attempt = 1; ; attempt++) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10_000);
+      try {
+        const response = await fetch(url, { signal: controller.signal });
+        if (!response.ok) {
+          // NHTSA's recalls endpoint returns 400 (not 404) with a valid
+          // "Results returned successfully" body (Count: 0) when a make/model/year
+          // has no matching recalls — extremely common for motorcycles. Vehicles
+          // that DO have recalls return 200, so treating 400/404 as "none found"
+          // (for callers that opt in via on404) never drops real recalls.
+          if ((response.status === 404 || response.status === 400) && on404) {
+            return on404();
+          }
+          this.logger.error(`${messages.notOkLog}: ${response.status}`);
+          throw new ServiceUnavailableException(messages.notOkThrow);
         }
-        this.logger.error(`${messages.notOkLog}: ${response.status}`);
-        throw new ServiceUnavailableException(messages.notOkThrow);
+        return (await response.json()) as T;
+      } catch (error) {
+        const mapped =
+          error instanceof ServiceUnavailableException
+            ? error
+            : error instanceof DOMException && error.name === 'AbortError'
+              ? new ServiceUnavailableException(messages.timeout)
+              : new ServiceUnavailableException(messages.unreachable);
+        if (attempt >= maxAttempts) throw mapped;
+      } finally {
+        clearTimeout(timeout);
       }
-      return (await response.json()) as T;
-    } catch (error) {
-      if (error instanceof ServiceUnavailableException) throw error;
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        throw new ServiceUnavailableException(messages.timeout);
-      }
-      throw new ServiceUnavailableException(messages.unreachable);
-    } finally {
-      clearTimeout(timeout);
     }
   }
 

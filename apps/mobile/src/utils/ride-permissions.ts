@@ -1,4 +1,5 @@
 import * as Location from 'expo-location';
+import { captureException } from '../lib/analytics';
 import { rideStorage } from './ride-storage';
 
 type PermissionLevel = 'full' | 'foreground_only' | 'denied';
@@ -21,12 +22,22 @@ export async function checkAndRequestPermissions(): Promise<PermissionLevel> {
     if (!result.granted) return 'denied';
   }
 
-  const background = await Location.getBackgroundPermissionsAsync();
-  if (!background.granted) {
-    const bgResult = await Location.requestBackgroundPermissionsAsync();
-    if (!bgResult.granted) {
-      return 'foreground_only';
+  // Background-location APIs can THROW (not just resolve un-granted) on some
+  // Android builds/OS versions — e.g. "You need to add ACCESS_BACKGROUND_LOCATION
+  // to the AndroidManifest" (MOTO-VAULT-REACT-NATIVE-19). A ride is perfectly
+  // usable with foreground-only tracking, so degrade gracefully instead of
+  // crashing the start-ride flow.
+  try {
+    const background = await Location.getBackgroundPermissionsAsync();
+    if (!background.granted) {
+      const bgResult = await Location.requestBackgroundPermissionsAsync();
+      if (!bgResult.granted) {
+        return 'foreground_only';
+      }
     }
+  } catch (err) {
+    captureException(err, { source: 'ride-permissions.backgroundLocation' });
+    return 'foreground_only';
   }
 
   return 'full';
