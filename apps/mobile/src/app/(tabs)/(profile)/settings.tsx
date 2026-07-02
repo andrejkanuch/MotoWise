@@ -37,9 +37,22 @@ const EXPERIENCE_CONFIG: Record<
   ExperienceLevel,
   { labelKey: string; icon: typeof Bike; color: string }
 > = {
-  beginner: { labelKey: 'settings.experienceBeginner', icon: Bike, color: '#A3B18A' },
-  intermediate: { labelKey: 'settings.experienceIntermediate', icon: Gauge, color: '#D4884A' },
-  advanced: { labelKey: 'settings.experienceAdvanced', icon: Flame, color: '#C4634A' },
+  beginner: {
+    labelKey: 'settings.experienceBeginner',
+    icon: Bike,
+    color: palette.experienceBeginner,
+  },
+  intermediate: {
+    labelKey: 'settings.experienceIntermediate',
+    icon: Gauge,
+    // Same warm amber as editorialDarkWarm (cf. onboarding-colors accentIntermediate).
+    color: palette.editorialDarkWarm,
+  },
+  advanced: {
+    labelKey: 'settings.experienceAdvanced',
+    icon: Flame,
+    color: palette.experienceAdvanced,
+  },
 };
 
 /* ─── V2 Riding goals ─── */

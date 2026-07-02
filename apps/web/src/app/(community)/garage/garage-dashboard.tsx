@@ -192,12 +192,19 @@ function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () 
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [description, setDescription] = useState('');
 
+  // Guard against non-numeric input ('abc', '.'): parseFloat yields NaN, which
+  // serializes to null over GraphQL and fails the non-null Float with an opaque
+  // error. Number.isFinite also rejects Infinity ('1e999'). Only a finite,
+  // positive amount is submittable.
+  const parsedAmount = Number.parseFloat(amount);
+  const isAmountValid = Number.isFinite(parsedAmount) && parsedAmount > 0;
+
   const mutation = useMutation({
     mutationFn: () =>
       gqlFetcher(LogExpenseDocument, {
         input: {
           motorcycleId,
-          amount: Number.parseFloat(amount),
+          amount: parsedAmount,
           category,
           date,
           description: description || undefined,
@@ -327,7 +334,7 @@ function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () 
           <button
             type="button"
             className="mv-btn primary"
-            disabled={!amount || !motorcycleId || mutation.isPending}
+            disabled={!isAmountValid || !motorcycleId || mutation.isPending}
             onClick={() => mutation.mutate()}
           >
             {mutation.isPending ? t('modalSaving') : t('modalSave')}

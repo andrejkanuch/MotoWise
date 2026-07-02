@@ -1,6 +1,16 @@
 import type { Waypoint } from '@motovault/types';
 import { createMMKV } from 'react-native-mmkv';
 
+// Lazy-loaded on the (rare) corruption path only, so this low-level storage
+// primitive doesn't pull the analytics/Sentry bundle into its import graph.
+function reportCorruption(err: unknown, context: Record<string, unknown>): void {
+  // .catch keeps a failed analytics import from becoming an unhandled rejection
+  // (matches the lazy-import guards in lib/analytics).
+  void import('../lib/analytics')
+    .then(({ captureException }) => captureException(err, context))
+    .catch(() => {});
+}
+
 export const rideStorage = createMMKV({ id: 'ride-storage' });
 
 // --- Key constants ---
@@ -106,8 +116,15 @@ export function flushBufferToMMKV(rideId: string): void {
 
 export function restoreBufferFromMMKV(rideId: string): void {
   const raw = rideStorage.getString(waypointBufferKey(rideId));
-  if (raw) {
+  if (!raw) return;
+  // Crash-recovery path: the blob may be partially written (app killed
+  // mid-flush) — a throwing JSON.parse here would defeat the very recovery it
+  // exists for. Drop the corrupt key and keep the in-memory buffer intact.
+  try {
     pointBuffer = JSON.parse(raw) as Waypoint[];
+  } catch (err) {
+    reportCorruption(err, { source: 'ride-storage.restoreBufferFromMMKV', rideId });
+  } finally {
     rideStorage.remove(waypointBufferKey(rideId));
   }
 }
@@ -138,7 +155,13 @@ export function getWaypointChunks(rideId: string): Waypoint[][] {
   while (true) {
     const raw = rideStorage.getString(waypointChunkKey(rideId, i));
     if (!raw) break;
-    chunks.push(JSON.parse(raw) as Waypoint[]);
+    // Skip a corrupt chunk rather than throwing, so surviving chunks still
+    // upload instead of losing the whole recorded ride.
+    try {
+      chunks.push(JSON.parse(raw) as Waypoint[]);
+    } catch (err) {
+      reportCorruption(err, { source: 'ride-storage.getWaypointChunks', rideId, chunkIndex: i });
+    }
     i++;
   }
   return chunks;

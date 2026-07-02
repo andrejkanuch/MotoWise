@@ -53,6 +53,9 @@ jest.mock('../utils/ride-sync-queue', () => ({
   enqueueOrExecute: jest.fn().mockResolvedValue(undefined),
   getQueueLength: jest.fn().mockReturnValue(0),
 }));
+// ride-storage lazily import()s analytics on the corruption path; stub it so the
+// test never pulls the real Sentry (ESM) module into the jest transform.
+jest.mock('../lib/analytics', () => ({ captureException: jest.fn() }));
 
 import type { Waypoint } from '@motovault/types';
 import {
@@ -61,6 +64,9 @@ import {
   clearPointBuffer,
   flushBufferToMMKV,
   getPointBuffer,
+  getWaypointChunks,
+  restoreBufferFromMMKV,
+  rideStorage,
 } from '../utils/ride-storage';
 import { enqueueOrExecute } from '../utils/ride-sync-queue';
 
@@ -203,6 +209,46 @@ describe('waypoint buffer flush on ride end', () => {
       variables: { input: { waypoints: Waypoint[] } };
     };
     expect(uploadedWaypoints.variables.input.waypoints).toHaveLength(20);
+  });
+
+  // --- Crash-recovery corruption paths ---
+
+  it('restoreBufferFromMMKV drops a corrupt buffer without mutating in-memory points or throwing', () => {
+    clearPointBuffer();
+    const bufferKey = `ride:${rideId}:wp:buffer`;
+    rideStorage.set(bufferKey, '{corrupt json');
+
+    expect(() => restoreBufferFromMMKV(rideId)).not.toThrow();
+    // In-memory buffer untouched, and the corrupt key is removed so it can't
+    // re-trigger the same failure on the next launch.
+    expect(getPointBuffer()).toHaveLength(0);
+    expect(rideStorage.getString(bufferKey)).toBeUndefined();
+  });
+
+  it('getWaypointChunks skips a corrupt middle chunk and returns the surviving ones', () => {
+    const wp0 = makeWaypoint(0);
+    const wp2 = makeWaypoint(2);
+    rideStorage.set(`ride:${rideId}:wp:0`, JSON.stringify([wp0]));
+    rideStorage.set(`ride:${rideId}:wp:1`, 'not-json{');
+    rideStorage.set(`ride:${rideId}:wp:2`, JSON.stringify([wp2]));
+
+    let chunks: Waypoint[][] = [];
+    expect(() => {
+      chunks = getWaypointChunks(rideId);
+    }).not.toThrow();
+    expect(chunks).toHaveLength(2);
+    expect(chunks[0]).toEqual([wp0]);
+    expect(chunks[1]).toEqual([wp2]);
+
+    rideStorage.remove(`ride:${rideId}:wp:0`);
+    rideStorage.remove(`ride:${rideId}:wp:1`);
+    rideStorage.remove(`ride:${rideId}:wp:2`);
+  });
+
+  it('getWaypointChunks returns an empty array when the first chunk is corrupt', () => {
+    rideStorage.set(`ride:${rideId}:wp:0`, 'garbage');
+    expect(getWaypointChunks(rideId)).toEqual([]);
+    rideStorage.remove(`ride:${rideId}:wp:0`);
   });
 
   it('short ride with fewer waypoints than CHUNK_SIZE still gets uploaded', () => {

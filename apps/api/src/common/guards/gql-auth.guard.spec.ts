@@ -279,4 +279,113 @@ describe('GqlAuthGuard', () => {
     await guard.canActivate(mockExecutionContext as never);
     expect(mockRequest.accessToken).toBe('my-raw-token');
   });
+
+  describe('resolveEffectiveTier (entitlements enforced)', () => {
+    // Builds a guard with ENTITLEMENTS_ENFORCED=true and a users row stub.
+    function guardWithUserRow(row: {
+      subscription_tier: string;
+      subscription_status: string;
+      subscription_expires_at: string | null;
+    }): GqlAuthGuard {
+      const config = {
+        getOrThrow: vi.fn((key: string) => {
+          if (key === 'SUPABASE_URL') return 'https://test.supabase.co';
+          if (key === 'SUPABASE_JWT_SECRET') return 'test-secret';
+          throw new Error(`Unknown key: ${key}`);
+        }),
+        get: vi.fn((key: string, defaultValue?: string) =>
+          key === 'ENTITLEMENTS_ENFORCED' ? 'true' : (defaultValue ?? undefined),
+        ),
+      };
+      const supabaseAdmin = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({ data: row, error: null }),
+            }),
+          }),
+        }),
+      };
+      return new GqlAuthGuard(
+        config as unknown as ConfigService,
+        mockReflector as unknown as Reflector,
+        supabaseAdmin as never,
+      );
+    }
+
+    // Regression: new Date(null) coerces to 1970 → always "expired", which
+    // silently downgraded active/trialing Pro users with a null (lifetime) expiry.
+    it("treats a null expiry on an active Pro row as 'pro', not 'free'", async () => {
+      const g = guardWithUserRow({
+        subscription_tier: 'pro',
+        subscription_status: 'active',
+        subscription_expires_at: null,
+      });
+      const tier = await (
+        g as unknown as { resolveEffectiveTier: (id: string) => Promise<string> }
+      ).resolveEffectiveTier('user-lifetime');
+      expect(tier).toBe('pro');
+    });
+
+    it("downgrades an active Pro row with a past expiry to 'free'", async () => {
+      const g = guardWithUserRow({
+        subscription_tier: 'pro',
+        subscription_status: 'active',
+        subscription_expires_at: '2000-01-01T00:00:00.000Z',
+      });
+      const tier = await (
+        g as unknown as { resolveEffectiveTier: (id: string) => Promise<string> }
+      ).resolveEffectiveTier('user-expired');
+      expect(tier).toBe('free');
+    });
+
+    it("keeps a future-dated active Pro row as 'pro'", async () => {
+      const g = guardWithUserRow({
+        subscription_tier: 'pro',
+        subscription_status: 'active',
+        subscription_expires_at: '2999-01-01T00:00:00.000Z',
+      });
+      const tier = await (
+        g as unknown as { resolveEffectiveTier: (id: string) => Promise<string> }
+      ).resolveEffectiveTier('user-active');
+      expect(tier).toBe('pro');
+    });
+
+    it("treats a trialing Pro row with a null expiry as 'pro'", async () => {
+      const g = guardWithUserRow({
+        subscription_tier: 'pro',
+        subscription_status: 'trialing',
+        subscription_expires_at: null,
+      });
+      const tier = await (
+        g as unknown as { resolveEffectiveTier: (id: string) => Promise<string> }
+      ).resolveEffectiveTier('user-trial');
+      expect(tier).toBe('pro');
+    });
+
+    // The null-expiry relaxation must NOT promote a non-pro or inactive row.
+    it("keeps a non-pro tier with a null expiry as 'free'", async () => {
+      const g = guardWithUserRow({
+        subscription_tier: 'free',
+        subscription_status: 'active',
+        subscription_expires_at: null,
+      });
+      const tier = await (
+        g as unknown as { resolveEffectiveTier: (id: string) => Promise<string> }
+      ).resolveEffectiveTier('user-free');
+      expect(tier).toBe('free');
+    });
+
+    it("keeps a cancelled Pro row with a null expiry as 'free'", async () => {
+      const g = guardWithUserRow({
+        subscription_tier: 'pro',
+        subscription_status: 'canceled',
+        subscription_expires_at: null,
+      });
+      const tier = await (
+        g as unknown as { resolveEffectiveTier: (id: string) => Promise<string> }
+      ).resolveEffectiveTier('user-cancelled');
+      expect(tier).toBe('free');
+    });
+  });
 });
