@@ -11,18 +11,34 @@
  * (repo rule: no duplicated magic strings).
  */
 const NETWORK_ERROR_MESSAGES = [
-  'Network request failed',
-  'Failed to fetch',
+  'network request failed',
+  'failed to fetch',
+  // expo/fetch (the global fetch in Expo SDK 52+) wraps EVERY transport-level
+  // failure as `FetchError: fetch failed: <native reason>` — offline, DNS,
+  // cancelled-in-background, TLS handshake. Server responses (4xx/5xx) resolve
+  // normally and never carry this prefix, so the prefix exactly identifies the
+  // non-actionable transport class. The native reason is OS-localized (e.g.
+  // French "La connexion réseau a été perdue"), so matching the reason text is
+  // unreliable — match the stable prefix instead.
+  // (Sentry MOTO-VAULT-REACT-NATIVE-22 / -23 / -26 / -1Y)
+  'fetch failed',
   'internet connection appears to be offline',
-  'The request timed out',
-  'The network connection was lost',
+  'the request timed out',
+  'the network connection was lost',
+  // Android DNS resolution failure (java.net.UnknownHostException).
+  'unable to resolve host',
   // RevenueCat surfaces transient connectivity failures with this generic
   // message; the SDK retries them. (Sentry MOTO-VAULT-REACT-NATIVE-M)
-  'Error performing request',
+  'error performing request',
 ] as const;
 
+/**
+ * Accepts an Error or a raw message string. Matching is case-insensitive —
+ * iOS capitalizes "The Internet connection appears to be offline" while the
+ * needle list is lowercase, which previously let those events through.
+ */
 export function isNetworkError(error: unknown): boolean {
   if (error instanceof TypeError && error.message === 'Network request failed') return true;
-  const msg = error instanceof Error ? error.message : String(error);
+  const msg = (error instanceof Error ? error.message : String(error)).toLowerCase();
   return NETWORK_ERROR_MESSAGES.some((needle) => msg.includes(needle));
 }

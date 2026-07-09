@@ -1,15 +1,8 @@
 import { MutationCache, onlineManager, QueryCache, QueryClient } from '@tanstack/react-query';
 import { Alert } from 'react-native';
-import { captureException } from './analytics';
+import { addBreadcrumb, captureException } from './analytics';
 import { hasGraphQLCode, userFriendlyError } from './graphql-errors';
-
-const NETWORK_ERROR_RE =
-  /network.*(fail|error)|failed to fetch|internet.*offline|econnrefused|timeout/i;
-
-function isNetworkError(error: unknown): boolean {
-  const msg = error instanceof Error ? error.message : String(error);
-  return NETWORK_ERROR_RE.test(msg);
-}
+import { isNetworkError } from './network-error';
 
 declare module '@tanstack/react-query' {
   interface Register {
@@ -61,13 +54,34 @@ export const queryClient = new QueryClient({
         // Here we only suppress the global error alert + Sentry noise.
         return;
       }
-      // Don't alert or report to Sentry for expected offline failures
-      if (!onlineManager.isOnline() && isNetworkError(error)) return;
-
-      captureException(error, {
-        queryKey: JSON.stringify(query?.queryKey),
-        source: 'queryCache.onError',
-      });
+      // Transport-level failures are non-actionable client-side regardless of
+      // what onlineManager reports (flaky cellular, DNS failure, backgrounded
+      // fetch) — TanStack Query already retries them. Breadcrumb instead of a
+      // Sentry error, but still fall through to the user-facing alert below.
+      // (Sentry MOTO-VAULT-REACT-NATIVE-22 / -23 / -26 / -1Y)
+      const isTransportError = isNetworkError(error);
+      // Known-offline failures stay fully silent (no alert): the UI's offline
+      // affordances already communicate the state.
+      if (isTransportError && !onlineManager.isOnline()) return;
+      // SERVICE_UNAVAILABLE = an upstream dependency of the API is down (e.g.
+      // NHTSA vPIC behind motorcycleMakes). The API's own Sentry captures the
+      // server-side failure with full context; a client event adds only noise.
+      // (Sentry MOTO-VAULT-REACT-NATIVE-1M)
+      const isUpstreamOutage = hasGraphQLCode(error, 'SERVICE_UNAVAILABLE');
+      if (isTransportError || isUpstreamOutage) {
+        addBreadcrumb(
+          error instanceof Error ? error.message : String(error),
+          'queryCache.onError',
+          {
+            queryKey: JSON.stringify(query?.queryKey),
+          },
+        );
+      } else {
+        captureException(error, {
+          queryKey: JSON.stringify(query?.queryKey),
+          source: 'queryCache.onError',
+        });
+      }
       if (query?.meta?.showErrorAlert === false) return;
       if (query?.state.data !== undefined) return;
       Alert.alert('Error', userFriendlyError(error));

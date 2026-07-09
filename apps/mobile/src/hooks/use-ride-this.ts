@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Linking, Platform } from 'react-native';
-import { AnalyticsEvent, trackEvent } from '../lib/analytics';
+import { AnalyticsEvent, addBreadcrumb, trackEvent } from '../lib/analytics';
 import {
   buildAppleMapsUrl,
   buildGoogleMapsUrls,
@@ -57,6 +57,12 @@ interface UseRideThisResult {
 
 const iosMajor = process.env.EXPO_OS === 'ios' ? Number.parseInt(String(Platform.Version), 10) : 0;
 const isAndroid = process.env.EXPO_OS === 'android';
+
+/** Store listing per platform — the recovery path when the waze:// intent has no handler. */
+const WAZE_STORE_URL =
+  process.env.EXPO_OS === 'ios'
+    ? 'https://apps.apple.com/app/waze-navigation-live-traffic/id323229106'
+    : 'https://play.google.com/store/apps/details?id=com.waze';
 
 /**
  * Owns all state for the "Ride this" sheet: availability probes, provider URL
@@ -151,9 +157,12 @@ export function useRideThis({
       },
       waze: {
         provider: 'waze',
-        // Android: no canOpenURL gating — the intent resolves if Waze is installed
-        // and gracefully fails otherwise. iOS: gate on the real probe so a missing
-        // Waze falls into the App-Store recovery path in triggerProvider.
+        // Android: no canOpenURL gating — without a <queries> manifest entry the
+        // probe is a false negative on Android 11+, which would hide Waze for
+        // users who have it. A missing handler instead rejects openURL, and
+        // openUrlWithHaptic recovers to the Play Store listing. iOS: gate on the
+        // real probe so a missing Waze falls into the App-Store recovery path in
+        // triggerProvider.
         available: wazeChain.length > 0 && (isAndroid || wazeInstalled === true),
         totalSegments: wazeChain.length,
         chunked: wazeChain.length > 1,
@@ -201,11 +210,23 @@ export function useRideThis({
     [surface, entityId, filteredWaypoints.length, selectedDay],
   );
 
-  const openUrlWithHaptic = useCallback(async (url: string) => {
+  const openUrlWithHaptic = useCallback(async (url: string, fallbackUrl?: string) => {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    await Linking.openURL(url);
+    try {
+      await Linking.openURL(url);
+    } catch {
+      // Android rejects openURL with "No Activity found to handle Intent" when
+      // the target app is missing — canOpenURL cannot detect that reliably on
+      // Android 11+ without a <queries> manifest entry, so availability is
+      // assumed and recovery happens here. (Sentry MOTO-VAULT-REACT-NATIVE-28)
+      addBreadcrumb(`nav handoff failed for ${url}`, 'nav-handoff');
+      if (fallbackUrl) {
+        // https:// store links always resolve (browser fallback at worst).
+        await Linking.openURL(fallbackUrl).catch(() => {});
+      }
+    }
   }, []);
 
   const open = useCallback(() => {
@@ -227,9 +248,7 @@ export function useRideThis({
       if (!state.available) {
         // Waze on iOS without install → App Store fallback.
         if (provider === 'waze' && process.env.EXPO_OS === 'ios') {
-          await Linking.openURL(
-            'https://apps.apple.com/app/waze-navigation-live-traffic/id323229106',
-          );
+          await Linking.openURL(WAZE_STORE_URL);
         }
         return;
       }
@@ -242,7 +261,7 @@ export function useRideThis({
       }
 
       emit(provider, 0, state.totalSegments);
-      await openUrlWithHaptic(state.urls[0]);
+      await openUrlWithHaptic(state.urls[0], provider === 'waze' ? WAZE_STORE_URL : undefined);
 
       if (state.totalSegments > 1) {
         setActiveSegment({ provider, index: 0, total: state.totalSegments });
@@ -265,7 +284,10 @@ export function useRideThis({
       return;
     }
     emit(activeSegment.provider, nextIndex, state.totalSegments);
-    await openUrlWithHaptic(state.urls[nextIndex]);
+    await openUrlWithHaptic(
+      state.urls[nextIndex],
+      activeSegment.provider === 'waze' ? WAZE_STORE_URL : undefined,
+    );
     setActiveSegment({ ...activeSegment, index: nextIndex });
   }, [activeSegment, providers, emit, openUrlWithHaptic, close]);
 
