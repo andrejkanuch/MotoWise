@@ -23,6 +23,25 @@ export interface TripSlugRef {
 const DEDUP_HASH_RE = /^[0-9a-f]{8}$/;
 
 /**
+ * Legacy `/route/`-era slugs whose trip was later renamed (not just hash-suffixed),
+ * so the dedup-hash rule can't recover them. Old indexed URLs still 301 through
+ * `/route/... → /trips/...` and would 404 here (Sentry MOTOVAULT-WEB-Q).
+ * Key: `{country}/{region}/{slug}` (lowercase) → canonical trips slug.
+ */
+const LEGACY_TRIP_SLUG_ALIASES: Record<string, string> = {
+  'us/ca/pacific-coast-highway': 'pacific-coast-highway-big-sur',
+};
+
+/** Canonical slug for a known legacy alias, or null. */
+export function findLegacySlugAlias(country: string, region: string, slug: string): string | null {
+  return (
+    LEGACY_TRIP_SLUG_ALIASES[
+      `${country.toLowerCase()}/${region.toLowerCase()}/${slug.toLowerCase()}`
+    ] ?? null
+  );
+}
+
+/**
  * Resolve a requested (bare) slug to its canonical slug within a country+region.
  *
  * Returns the canonical slug to redirect to, or `null` when there is no

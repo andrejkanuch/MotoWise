@@ -33,6 +33,21 @@ Sentry.init({
     ) {
       return null;
     }
+    // Drop "Connection closed." unhandled rejections from the React RSC/Flight
+    // stream (MOTOVAULT-WEB-V/H). The server stream is severed mid-render when
+    // the user navigates away, backgrounds the tab, or drops the network — the
+    // framework recovers by refetching, so nothing is user-visible or actionable.
+    // Scoped to the global unhandledrejection mechanism so a future subsystem
+    // that throws (and reports) the same generic message still surfaces.
+    if (
+      event.exception?.values?.some(
+        (e) =>
+          e.value === 'Connection closed.' &&
+          e.mechanism?.type?.endsWith('onunhandledrejection') === true,
+      )
+    ) {
+      return null;
+    }
     return event;
   },
 });

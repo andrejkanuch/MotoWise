@@ -6,6 +6,9 @@ export class TripTemplateFilterInput {
   country?: string;
 
   @Field({ nullable: true })
+  region?: string;
+
+  @Field({ nullable: true })
   difficulty?: string;
 
   @Field(() => Int, { nullable: true })

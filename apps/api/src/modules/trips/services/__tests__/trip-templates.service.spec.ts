@@ -13,7 +13,17 @@ function makeQueryStub(results: Array<{ data: unknown; error: unknown }>) {
   let call = 0;
   const stub: Record<string, unknown> = {};
   const chain = () => stub;
-  for (const method of ['select', 'eq', 'order', 'limit', 'gte', 'lte', 'textSearch', 'or']) {
+  for (const method of [
+    'select',
+    'eq',
+    'ilike',
+    'order',
+    'limit',
+    'gte',
+    'lte',
+    'textSearch',
+    'or',
+  ]) {
     stub[method] = vi.fn(chain);
   }
   // PostgrestBuilder is thenable; re-awaiting runs the query again. The stub must
@@ -97,5 +107,32 @@ describe('TripTemplatesService.listTemplates', () => {
 
     expect(queryStub.executions()).toBe(1);
     expect(connection.edges).toHaveLength(1);
+  });
+
+  it('applies the region filter as case-insensitive equality on region_code', async () => {
+    buildService([{ data: [aRow], error: null }]);
+
+    await service.listTemplates({ country: 'jp', region: 'JP-03' }, 10);
+
+    expect(queryStub.stub.eq).toHaveBeenCalledWith('country_code', 'JP');
+    expect(queryStub.stub.ilike).toHaveBeenCalledWith('region_code', 'jp-03');
+  });
+
+  it('escapes LIKE metacharacters in the region filter (no wildcard matching)', async () => {
+    buildService([{ data: [], error: null }]);
+
+    await service.listTemplates({ country: 'jp', region: 'jp_0%' }, 10);
+
+    // "_" and "%" must be escaped so /explore/jp/jp_03 cannot pattern-match
+    // 'JP-03' and mint duplicate-content pages.
+    expect(queryStub.stub.ilike).toHaveBeenCalledWith('region_code', 'jp\\_0\\%');
+  });
+
+  it('does not apply a region_code filter when the filter has no region', async () => {
+    buildService([{ data: [aRow], error: null }]);
+
+    await service.listTemplates({ country: 'jp' }, 10);
+
+    expect(queryStub.stub.ilike).not.toHaveBeenCalled();
   });
 });

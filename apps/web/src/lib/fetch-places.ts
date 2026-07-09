@@ -137,28 +137,41 @@ export async function fetchRoutesByCountry(
 
 export type TripTemplateNode = TripTemplatesQuery['tripTemplates']['edges'][number]['node'];
 
+type TripTemplateFilter = { country: string; region?: string };
+
+async function fetchTripTemplates(
+  filter: TripTemplateFilter,
+  limit: number,
+): Promise<TripTemplateNode[]> {
+  const data = await gqlServerFetcher(TripTemplatesDocument, { filter, first: limit });
+  return data.tripTemplates.edges.map((e) => e.node);
+}
+
 /** Fetch trip templates for a given country. */
 export async function fetchTripTemplatesByCountry(
   countryCode: string,
   limit = 50,
 ): Promise<TripTemplateNode[]> {
-  const data = await gqlServerFetcher(TripTemplatesDocument, {
-    filter: { country: countryCode.toLowerCase() },
-    first: limit,
-  });
-  return data.tripTemplates.edges.map((e) => e.node);
+  return fetchTripTemplates({ country: countryCode.toLowerCase() }, limit);
 }
 
-/** Fetch trip templates for a given country+region (via country filter — region filtering handled client-side). */
+/**
+ * Fetch trip templates for a given country+region (server-side filter).
+ *
+ * Must NOT fetch-by-country-then-filter: the API caps page size at 50, so for
+ * countries with more trips than that (e.g. JP at 100+) a region whose trips
+ * fall outside the newest 50 would come back empty and soft-404 the region
+ * page the sitemap advertises (Sentry MOTOVAULT-WEB-P).
+ */
 export async function fetchTripTemplatesByRegion(
   countryCode: string,
   regionSlug: string,
   limit = 50,
 ): Promise<TripTemplateNode[]> {
-  // TripTemplateFilterInput does not have a region field currently,
-  // so we fetch by country and filter client-side.
-  const all = await fetchTripTemplatesByCountry(countryCode, limit);
-  return all.filter((t) => t.regionCode?.toLowerCase() === regionSlug.toLowerCase());
+  return fetchTripTemplates(
+    { country: countryCode.toLowerCase(), region: regionSlug.toLowerCase() },
+    limit,
+  );
 }
 
 /**

@@ -3,6 +3,8 @@
  * Codes are stored lowercase in URLs (e.g. /route/us/ca/…) and uppercase in DB.
  */
 
+import { countryNameFromCode } from '@motovault/types';
+
 export const COUNTRY_NAMES: Record<string, string> = {
   US: 'United States',
   DE: 'Germany',
@@ -197,7 +199,11 @@ function titleCase(slug: string): string {
 
 /** Resolve a country URL slug (e.g. "us") to a display name (e.g. "United States") */
 export function countryDisplayName(slug: string): string {
-  return COUNTRY_NAMES[slug.toUpperCase()] ?? titleCase(slug);
+  const code = slug.toUpperCase();
+  if (COUNTRY_NAMES[code]) return COUNTRY_NAMES[code];
+  // Trips exist in countries outside the curated map (EC, NL, PE, SG, …) — fall
+  // back to the shared ICU resolver before the last-resort title-cased slug.
+  return countryNameFromCode(code) ?? titleCase(slug);
 }
 
 /**

@@ -78,6 +78,53 @@ describe('NhtsaService', () => {
 
       expect(result).toEqual([]);
     });
+
+    it('serves stale cache when the refresh fetch fails after expiry (MOTO-VAULT-NODE-NESTJS-4)', async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: test access to private logger
+      vi.spyOn((service as any).logger, 'error').mockImplementation(() => undefined);
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(apiResponse),
+      });
+      await service.getMakes();
+
+      // Expire the 24h cache, then fail the refresh (both retry attempts).
+      vi.advanceTimersByTime(25 * 60 * 60 * 1000);
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('NHTSA down'));
+
+      const result = await service.getMakes();
+
+      expect(result.map((m) => m.makeName)).toEqual(['APRILIA', 'HONDA', 'ZUNDAPP']);
+    });
+
+    it('re-arms a stale-served cache so the upstream is not retried within the cooldown', async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: test access to private logger
+      vi.spyOn((service as any).logger, 'error').mockImplementation(() => undefined);
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(apiResponse),
+      });
+      await service.getMakes();
+      vi.advanceTimersByTime(25 * 60 * 60 * 1000);
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('NHTSA down'));
+      await service.getMakes();
+
+      // Within the cooldown: served from cache, no upstream call.
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockClear();
+      await service.getMakes();
+      expect(globalThis.fetch).not.toHaveBeenCalled();
+
+      // After the cooldown: the upstream is retried again.
+      vi.advanceTimersByTime(61_000);
+      await service.getMakes();
+      expect(globalThis.fetch).toHaveBeenCalled();
+    });
+
+    it('still throws when the fetch fails and no cache was ever populated', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('NHTSA down'));
+
+      await expect(service.getMakes()).rejects.toThrow(ServiceUnavailableException);
+    });
   });
 
   describe('getModels', () => {
@@ -126,6 +173,24 @@ describe('NhtsaService', () => {
       const result = await service.getModels(999, 2023);
 
       expect(result).toEqual([]);
+    });
+
+    it('serves stale cache when the refresh fetch fails after expiry', async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: test access to private logger
+      vi.spyOn((service as any).logger, 'error').mockImplementation(() => undefined);
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(modelsResponse),
+      });
+      await service.getModels(2, 2023);
+
+      // Expire the 7d cache, then fail the refresh.
+      vi.advanceTimersByTime(8 * 24 * 60 * 60 * 1000);
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('NHTSA down'));
+
+      const result = await service.getModels(2, 2023);
+
+      expect(result.map((m) => m.modelName)).toEqual(['Africa Twin', 'CB500F']);
     });
 
     it('should evict oldest entry when cache reaches 500 entries (LRU eviction)', async () => {

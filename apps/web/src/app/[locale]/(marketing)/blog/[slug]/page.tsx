@@ -20,6 +20,7 @@ import {
   getCanonicalArticleUrl,
   getRelatedArticles,
 } from '@/lib/blog';
+import { stripHtmlComments } from '@/lib/blog-mdx';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import type { TocHeading } from '@/lib/rehype-extract-headings';
 import { rehypeExtractHeadings } from '@/lib/rehype-extract-headings';
@@ -128,13 +129,17 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
   const headings: TocHeading[] = [];
 
+  // Generated article bodies occasionally carry raw HTML comments, which are
+  // invalid MDX and would kill the whole page (Sentry MOTOVAULT-WEB-S).
+  const mdxSource = stripHtmlComments(article.content);
+
   // A single article with malformed MDX must not 500 the route. Compile defensively:
   // report the failure with enough context to fix the source, then render a clean
   // 404 rather than the generic error boundary. (Sentry MOTOVAULT-WEB-S)
   let content: Awaited<ReturnType<typeof compileMDX>>['content'];
   try {
     ({ content } = await compileMDX({
-      source: article.content,
+      source: mdxSource,
       options: {
         mdxOptions: {
           remarkPlugins: [remarkGfm],

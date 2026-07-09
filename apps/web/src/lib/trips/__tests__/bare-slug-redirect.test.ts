@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findBareSlugRedirect, type TripSlugRef } from '../bare-slug-redirect';
+import { findBareSlugRedirect, findLegacySlugAlias, type TripSlugRef } from '../bare-slug-redirect';
 
 const ref = (slug: string | null, regionCode: string | null, countryCode = 'US'): TripSlugRef => ({
   slug,
@@ -72,5 +72,37 @@ describe('findBareSlugRedirect', () => {
     // Requesting the full canonical slug: "slug-" prefix would need a *further*
     // hash segment, which doesn't exist → null (caller already served it).
     expect(findBareSlugRedirect(TRIPS, 'us', 'ut', 'zionmount-carmel-highway-a90b4890')).toBeNull();
+  });
+});
+
+describe('findLegacySlugAlias', () => {
+  it('resolves a known legacy /route/-era slug to its renamed canonical slug', () => {
+    expect(findLegacySlugAlias('us', 'ca', 'pacific-coast-highway')).toBe(
+      'pacific-coast-highway-big-sur',
+    );
+  });
+
+  it('is case-insensitive on all three URL segments', () => {
+    expect(findLegacySlugAlias('US', 'CA', 'Pacific-Coast-Highway')).toBe(
+      'pacific-coast-highway-big-sur',
+    );
+  });
+
+  it('returns null for slugs without a legacy alias', () => {
+    expect(findLegacySlugAlias('us', 'ca', 'some-other-route')).toBeNull();
+  });
+
+  it('requires country and region to match, not just the slug', () => {
+    expect(findLegacySlugAlias('us', 'or', 'pacific-coast-highway')).toBeNull();
+    expect(findLegacySlugAlias('ca', 'ca', 'pacific-coast-highway')).toBeNull();
+  });
+
+  it('never maps a slug to itself (redirect-loop insurance for future map entries)', () => {
+    // Probe every known alias through the public API: the resolved target must
+    // differ from the requested slug, or the page would 308 into itself.
+    const knownAliases = [['us', 'ca', 'pacific-coast-highway']] as const;
+    for (const [country, region, slug] of knownAliases) {
+      expect(findLegacySlugAlias(country, region, slug)).not.toBe(slug);
+    }
   });
 });
