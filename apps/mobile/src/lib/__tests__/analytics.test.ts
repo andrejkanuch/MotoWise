@@ -61,7 +61,12 @@ jest.mock('../subscription', () => ({
   configureRcAttribution: () => mockConfigureRcAttribution(),
 }));
 
-import { setAnalyticsEnabled, setUserProperties, setUserPropertiesOnce } from '../analytics';
+import {
+  sentryBeforeSend,
+  setAnalyticsEnabled,
+  setUserProperties,
+  setUserPropertiesOnce,
+} from '../analytics';
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -85,6 +90,29 @@ describe('setUserPropertiesOnce', () => {
     setUserPropertiesOnce({ heard_from: 'instagram' });
 
     expect(mockCapture).not.toHaveBeenCalled();
+  });
+});
+
+describe('sentryBeforeSend', () => {
+  // Minimal shape of Sentry.ErrorEvent that beforeSend reads.
+  const eventWithMessage = (value: string) =>
+    ({ exception: { values: [{ type: 'Error', value }] } }) as Parameters<
+      typeof sentryBeforeSend
+    >[0];
+
+  it.each([
+    'fetch failed: The Internet connection appears to be offline.',
+    'fetch failed: cancelled',
+    'fetch failed: La connexion réseau a été perdue.',
+    'The Internet connection appears to be offline.',
+    'Error performing request.',
+  ])('drops transport-failure event %j (MOTO-VAULT-REACT-NATIVE-22/-23/-26/-1Y)', (msg) => {
+    expect(sentryBeforeSend(eventWithMessage(msg))).toBeNull();
+  });
+
+  it('passes genuine application errors through', () => {
+    const event = eventWithMessage('Cannot read property of undefined');
+    expect(sentryBeforeSend(event)).toBe(event);
   });
 });
 
