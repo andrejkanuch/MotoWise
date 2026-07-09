@@ -1,7 +1,9 @@
+import { countryNameFromCode } from '@motovault/types';
 import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Redis } from '@upstash/redis';
 import { REDIS } from '../redis/redis.constants';
+import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { BrowsePlace } from './models/browse-place.model';
 
@@ -9,6 +11,7 @@ import type { BrowsePlace } from './models/browse-place.model';
 const TAXONOMY_CACHE_TTL_S = 60 * 60;
 const COUNTRIES_CACHE_KEY = 'places:countries';
 const regionsCacheKey = (countryCode: string) => `places:regions:${countryCode}`;
+const countryFallbackCacheKey = (countryCode: string) => `places:country-fallback:${countryCode}`;
 
 /** When `places` has no country row yet (matches web explore fallback). */
 const COUNTRY_FALLBACK: Record<string, string> = {
@@ -48,6 +51,7 @@ export class PlacesService {
 
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
     @Inject(REDIS) private readonly redis: Redis | null,
   ) {}
 
@@ -115,16 +119,66 @@ export class PlacesService {
       return this.mapPlace(data as PlaceRow);
     }
 
-    const name = COUNTRY_FALLBACK[code];
+    // The `places` taxonomy lags behind published trips (the sitemap advertises
+    // /explore/{country} for every country that has one, e.g. BR/ZA/PE), so a
+    // missing row must NOT 404 the page. Resolve from the trips source of truth:
+    // any country with a published template — or a known fallback name — gets a
+    // synthetic place. (Sentry MOTOVAULT-WEB-R)
+    const name = COUNTRY_FALLBACK[code] ?? countryNameFromCode(code);
     if (!name) return null;
-    return {
+
+    // The count query runs on a public, unthrottled resolver — cache the
+    // synthetic place like the rest of the taxonomy so repeated lookups for
+    // the same not-yet-onboarded country don't each hit the trips table.
+    const cacheKey = countryFallbackCacheKey(code);
+    if (this.redis) {
+      const cached = await this.redis.get<BrowsePlace>(cacheKey);
+      if (cached) return cached;
+    }
+
+    const routeCount = await this.countPublishedTemplates(code);
+    if (routeCount === 0 && !COUNTRY_FALLBACK[code]) return null;
+    const place: BrowsePlace = {
       id: code,
       kind: 'country',
       name,
       countryCode: code,
       slug: slug.trim().toLowerCase(),
-      routeCount: 0,
+      routeCount,
     };
+    if (this.redis) {
+      await this.redis.set(cacheKey, place, { ex: TAXONOMY_CACHE_TTL_S });
+    }
+    return place;
+  }
+
+  /**
+   * Published-template count for a country. Admin client with explicit
+   * public-visibility filters — templates are public content, but the anon
+   * user client may lack RLS access to the trips table (same rationale as
+   * TripTemplatesService.getTemplateBySlug).
+   *
+   * Throws on query failure rather than returning 0: callers treat 0 as
+   * "country doesn't exist" and 404, and the explore pages are force-static
+   * ISR — a transient DB blip must fail the render (Next.js keeps serving the
+   * stale page) instead of baking a 404 into the CDN for a real country.
+   */
+  private async countPublishedTemplates(countryCode: string): Promise<number> {
+    const { count, error } = await this.supabaseAdmin
+      .from('trips')
+      .select('id', { count: 'exact', head: true })
+      .eq('is_template', true)
+      .eq('is_flagged', false)
+      .eq('visibility', 'public')
+      // country_code is stored UPPER (see slug-lookup.ts) and the caller
+      // normalizes — eq keeps idx_trips_template_country_feed usable.
+      .eq('country_code', countryCode);
+
+    if (error) {
+      this.logger.error(`countPublishedTemplates(${countryCode}): ${error.message}`);
+      throw new InternalServerErrorException(`countPublishedTemplates: ${error.message}`);
+    }
+    return count ?? 0;
   }
 
   async browseRegionsByCountrySlug(countrySlug: string): Promise<BrowsePlace[]> {

@@ -1966,6 +1966,7 @@ input TripTemplateFilterInput {
   dayCountMax: Int
   dayCountMin: Int
   difficulty: String
+  region: String
   searchText: String
   surfaceType: String
 }

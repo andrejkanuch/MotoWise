@@ -703,6 +703,13 @@ export type TripSave = z.infer<typeof TripSaveSchema>;
 
 export const TripTemplateFiltersSchema = z.object({
   country: z.string().min(2).max(2).optional(),
+  // ISO 3166-2 subdivision shape ('ca', 'JP-03', 'au-vic') — the strict shape
+  // also keeps LIKE metacharacters out of the region_code lookup.
+  region: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z0-9-]{1,10}$/)
+    .optional(),
   regionCode: z.string().min(1).max(10).optional(),
   difficulty: TripDifficultySchema.optional(),
   dayCountMin: z.number().int().min(1).optional(),

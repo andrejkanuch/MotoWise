@@ -2919,6 +2919,7 @@ export type TripTemplateFilterInput = {
   dayCountMax?: InputMaybe<Scalars['Int']['input']>;
   dayCountMin?: InputMaybe<Scalars['Int']['input']>;
   difficulty?: InputMaybe<Scalars['String']['input']>;
+  region?: InputMaybe<Scalars['String']['input']>;
   searchText?: InputMaybe<Scalars['String']['input']>;
   surfaceType?: InputMaybe<Scalars['String']['input']>;
 };

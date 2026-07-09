@@ -20,7 +20,7 @@ import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { gqlServerFetcher } from '@/lib/graphql-server';
 import { relativeTrip } from '@/lib/seo/canonical';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
-import { findBareSlugRedirect } from '@/lib/trips/bare-slug-redirect';
+import { findBareSlugRedirect, findLegacySlugAlias } from '@/lib/trips/bare-slug-redirect';
 import { selectSiblingRoutes, siblingsAreRegionScoped } from '@/lib/trips/sibling-routes';
 import '@/components/trip-detail/trip-detail.css';
 
@@ -256,6 +256,13 @@ export default async function TripPage({ params }: PageParams) {
     fetchSiblingRoutes(country, region, slug),
   ]);
   if (!trip) {
+    // Known legacy alias (trip renamed since the /route/ era) → 308 immediately.
+    // The identity check is loop insurance: a bad map entry whose value equals
+    // its key would otherwise redirect into this same 404 path forever.
+    const aliasSlug = findLegacySlugAlias(country, region, slug);
+    if (aliasSlug && aliasSlug !== slug.toLowerCase()) {
+      permanentRedirect(relativeTrip(country, region, aliasSlug));
+    }
     // Bare slug (missing the dedup hash) → 301 to the canonical hashed slug when
     // there's an unambiguous match. Recovers old/typed links without serving
     // duplicate content. Only runs on the 404 path, so no happy-path cost.

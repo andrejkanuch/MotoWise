@@ -11,7 +11,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { mapboxCountryShortCodeFromJson } from '../../../common/mapbox-geocode';
 import { buildConnection, decodeCursor, encodeCursor } from '../../../common/pagination/connection';
 import { RevalidationService } from '../../../common/revalidation/revalidation.service';
-import { applySlugFilters } from '../../../common/slug-lookup';
+import { applySlugFilters, ilikeEquals } from '../../../common/slug-lookup';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { Trip, TripConnection } from '../models/trip.model';
@@ -26,6 +26,7 @@ import {
 
 export interface TemplatesFilter {
   country?: string;
+  region?: string;
   difficulty?: string;
   dayCountMin?: number;
   dayCountMax?: number;
@@ -70,6 +71,11 @@ export class TripTemplatesService {
     // Apply filters
     if (filter?.country) {
       query = query.eq('country_code', filter.country.toUpperCase());
+    }
+    if (filter?.region) {
+      // region_code is stored mixed-case ('ca', 'JP-03') — case-insensitive
+      // equality with LIKE-metacharacter escaping (user-controlled input).
+      query = ilikeEquals(query, 'region_code', filter.region);
     }
     if (filter?.difficulty) {
       query = query.eq('difficulty', filter.difficulty);

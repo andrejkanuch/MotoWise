@@ -109,11 +109,41 @@ export class NhtsaService implements OnModuleInit {
 
   private static readonly MAX_RECALL_MODELS_CACHE = 500;
 
+  /**
+   * After serving stale data, re-arm the entry's expiry by this cooldown so at
+   * most ~one request per window pays the upstream retry/timeout cost (up to
+   * ~20s) during a sustained NHTSA outage.
+   */
+  private static readonly STALE_RETRY_COOLDOWN_MS = 60_000;
+
   private readonly logger = new Logger(NhtsaService.name);
   private makesCache: CacheEntry<MotorcycleMakeDto[]> | null = null;
   private readonly modelsCache = new Map<string, CacheEntry<MotorcycleModelDto[]>>();
   private readonly recallsCache = new Map<string, CacheEntry<RecallDto[]>>();
   private readonly recallModelsCache = new Map<string, CacheEntry<string[]>>();
+
+  /**
+   * Run an NHTSA fetch; on failure fall back to an expired cache entry when
+   * one exists (re-arming its expiry by {@link STALE_RETRY_COOLDOWN_MS}),
+   * otherwise rethrow. Makes/models barely change, so stale data beats
+   * failing the add-bike flow with a 503 (MOTO-VAULT-NODE-NESTJS-4).
+   */
+  private async fetchWithStaleFallback<T, D>(
+    fetchFresh: () => Promise<T>,
+    stale: CacheEntry<D> | null | undefined,
+    label: string,
+  ): Promise<{ fresh: T } | { stale: D }> {
+    try {
+      return { fresh: await fetchFresh() };
+    } catch (error) {
+      if (stale) {
+        stale.expiresAt = Date.now() + NhtsaService.STALE_RETRY_COOLDOWN_MS;
+        this.logger.error(`NHTSA ${label} fetch failed — serving stale cache`);
+        return { stale: stale.data };
+      }
+      throw error;
+    }
+  }
 
   /**
    * Shared NHTSA fetch: 10s abort-timeout, non-ok → log + ServiceUnavailable,
@@ -183,12 +213,19 @@ export class NhtsaService implements OnModuleInit {
     const url =
       'https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/motorcycle?format=json';
 
-    const json = await this.fetchJson<NhtsaMakeResponse>(url, {
-      notOkLog: 'NHTSA makes request failed',
-      notOkThrow: 'Failed to fetch motorcycle makes from NHTSA',
-      timeout: 'NHTSA API request timed out',
-      unreachable: 'Failed to reach NHTSA API',
-    });
+    const result = await this.fetchWithStaleFallback(
+      () =>
+        this.fetchJson<NhtsaMakeResponse>(url, {
+          notOkLog: 'NHTSA makes request failed',
+          notOkThrow: 'Failed to fetch motorcycle makes from NHTSA',
+          timeout: 'NHTSA API request timed out',
+          unreachable: 'Failed to reach NHTSA API',
+        }),
+      this.makesCache,
+      'makes',
+    );
+    if ('stale' in result) return result.stale;
+    const json = result.fresh;
 
     const makes: MotorcycleMakeDto[] = json.Results.map((r) => ({
       makeId: r.MakeId,
@@ -218,12 +255,19 @@ export class NhtsaService implements OnModuleInit {
 
     const url = `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeIdYear/makeId/${makeId}/modelyear/${year}/vehicletype/motorcycle?format=json`;
 
-    const json = await this.fetchJson<NhtsaModelResponse>(url, {
-      notOkLog: 'NHTSA models request failed',
-      notOkThrow: 'Failed to fetch motorcycle models from NHTSA',
-      timeout: 'NHTSA API request timed out',
-      unreachable: 'Failed to reach NHTSA API',
-    });
+    const result = await this.fetchWithStaleFallback(
+      () =>
+        this.fetchJson<NhtsaModelResponse>(url, {
+          notOkLog: 'NHTSA models request failed',
+          notOkThrow: 'Failed to fetch motorcycle models from NHTSA',
+          timeout: 'NHTSA API request timed out',
+          unreachable: 'Failed to reach NHTSA API',
+        }),
+      cached,
+      `models ${cacheKey}`,
+    );
+    if ('stale' in result) return result.stale;
+    const json = result.fresh;
 
     const models: MotorcycleModelDto[] = json.Results.map((r) => ({
       modelId: r.Model_ID,

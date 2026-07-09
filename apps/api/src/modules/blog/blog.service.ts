@@ -16,6 +16,7 @@ import {
   encodeCursor,
 } from '../../common/pagination/connection';
 import { RevalidationService } from '../../common/revalidation/revalidation.service';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { translationToRow, typeDataToRow } from './blog-write';
 import type { CreateBlogPostInput } from './dto/create-blog-post.input';
@@ -612,7 +613,6 @@ export class BlogService {
     // version_num is allocated as max()+1; a concurrent publish (admin vs the pg_cron
     // publisher, or two admins) can compute the same number and hit UNIQUE(post_id,
     // version_num). Retry on that specific conflict instead of surfacing a 500.
-    const UNIQUE_VIOLATION = '23505';
     for (let attempt = 0; attempt < 4; attempt += 1) {
       const { data: maxRow } = await this.supabase
         .from('blog_post_versions')
@@ -630,7 +630,7 @@ export class BlogService {
         created_by: userId,
       });
       if (!error) return;
-      if (error.code !== UNIQUE_VIOLATION || attempt === 3) {
+      if (error.code !== PG_ERROR.UNIQUE_VIOLATION || attempt === 3) {
         throw new InternalServerErrorException(`Failed to write version: ${error.message}`);
       }
       // else: another writer took this version_num — re-read max and retry.
@@ -649,7 +649,7 @@ export class BlogService {
       .select('slug, status, published_at')
       .eq('id', id)
       .single();
-    if (error && error.code !== 'PGRST116') {
+    if (error && error.code !== PG_ERROR.NOT_FOUND) {
       // PGRST116 = no rows (genuine 404); anything else is a real failure, not "not found".
       throw new InternalServerErrorException(`Failed to load post: ${error.message}`);
     }
