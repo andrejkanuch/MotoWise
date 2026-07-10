@@ -1,0 +1,120 @@
+# Full onboarding E2E (INVESTED variant — the superset that visits every screen).
+#
+# Prereqs (handled by scripts/run-onboarding-e2e.sh):
+#   - A confirmed Supabase user exists; its creds are passed in as TEST_EMAIL / TEST_PASSWORD.
+#   - The app is built/served with EXPO_PUBLIC_OB_VARIANT=invested so the flow is deterministic.
+#   - APP_ID defaults to com.motovault.app.
+#
+# The flow signs IN a pre-created user at the account step (prod requires email
+# confirmation, so UI sign-up can't complete in a test — we create+confirm the
+# user out-of-band and delete it on teardown).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+---
+# Fresh state so Welcome renders (clears MMKV lastCompletedScreen + any session).
+- clearState
+- launchApp
+
+# --- Dev-client only: reconnect to Metro after clearState wiped the saved server.
+#     On a standalone/preview build this block is skipped (the launcher never shows).
+- runFlow:
+    when:
+      visible: ".*development servers.*"
+    commands:
+      - openLink: "exp+motovault://expo-development-client/?url=http://localhost:8081"
+      - tapOn:
+          text: "Open"
+          optional: true
+
+# 1. Welcome (first launch also builds the JS bundle — allow time)
+- extendedWaitUntil:
+    visible: "Let's get started"
+    timeout: 120000
+- tapOn: "Let's get started"
+
+# 2. Experience (auto-advances after selecting)
+- assertVisible: ".*How long have you.*"
+- tapOn: "Just getting started"
+
+# 3. Frequency (auto-advances)
+- tapOn: "Almost daily"
+
+# 4. Stay-on-top (multi-select → Continue)
+- tapOn: "Never miss a service"
+- tapOn: "Continue"
+
+# 5. Last service (pick a chip → Continue)
+- tapOn: "Just did it"
+- tapOn: "Continue"
+
+# 6. Bike setup — MUST add a bike to keep bike-dependent screens reachable
+- assertVisible: "Popular makes"
+- tapOn: "Honda"
+- tapOn: "Add to my garage"
+
+# 7. Building plan (auto) → 8. Reveal
+- extendedWaitUntil:
+    visible: "Continue"
+    timeout: 30000
+- tapOn: "Continue"
+
+# 9. Goals (multi-select → Continue)
+- assertVisible: "Track my rides"
+- tapOn: "Track my rides"
+- tapOn: "Continue"
+
+# 10. Maintenance (skip the OEM deck)
+- tapOn:
+    text: "Skip — I'll set this up later"
+    optional: true
+- tapOn:
+    text: "Continue"
+    optional: true
+
+# 11. Commitment (skip the signature pledge)
+- tapOn:
+    text: "Not now"
+    optional: true
+
+# 12. Paywall (native RevenueCat overlay) → wait for the account screen to appear.
+#     If the RC template needs manual dismissal, close it first (optional).
+- tapOn:
+    text: "Close"
+    optional: true
+- extendedWaitUntil:
+    visible: "Continue with email"
+    timeout: 90000
+
+# 13. Account → sign in the pre-created user
+- tapOn: "Already have an account? Sign in"
+- tapOn:
+    text: "Continue with email"
+    optional: true
+- tapOn: "Email"
+- inputText: ${TEST_EMAIL}
+- tapOn: "Password"
+- inputText: ${TEST_PASSWORD}
+- hideKeyboard
+- tapOn: "Sign In"
+
+# 14. Heard-about
+- extendedWaitUntil:
+    visible: "Skip"
+    timeout: 45000
+- tapOn: "Skip"
+
+# 15. Notifications (skip to avoid the native OS permission dialog)
+- tapOn: "Maybe later"
+
+# 16. Personalizing → finish
+- extendedWaitUntil:
+    visible: "Open my garage"
+    timeout: 90000
+- tapOn: "Open my garage"
+
+# Assert onboarding is complete: the main tab bar is shown.
+- extendedWaitUntil:
+    visible: "Garage"
+    timeout: 45000
+- takeScreenshot: onboarding-complete
