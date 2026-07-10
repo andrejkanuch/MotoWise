@@ -13,11 +13,8 @@ export async function checkAndRequestPermissions(): Promise<PermissionLevel> {
   const foreground = await Location.getForegroundPermissionsAsync();
 
   if (!foreground.granted) {
-    if (shouldShowPrePrompt()) {
-      // Caller should show a custom pre-prompt UI before calling this.
-      // If they proceed, we request the system prompt.
-    }
-
+    // The caller (Start Ride flow) shows the prominent-disclosure modal before
+    // reaching here — see LocationDisclosureModal + hasAllLocationPermissions.
     const result = await Location.requestForegroundPermissionsAsync();
     if (!result.granted) return 'denied';
   }
@@ -41,6 +38,28 @@ export async function checkAndRequestPermissions(): Promise<PermissionLevel> {
   }
 
   return 'full';
+}
+
+/**
+ * True only when BOTH foreground and background location are already granted, so
+ * the prominent disclosure can be skipped and the ride started directly.
+ *
+ * Used to gate the Google Play prominent-disclosure modal (Play policy requires
+ * explaining background collection BEFORE any location access; Expo's own docs
+ * say to explain before `requestBackgroundPermissionsAsync`, which on Android 11+
+ * silently sends the user to system Settings). A background read that THROWS
+ * (see the note in `checkAndRequestPermissions`) counts as not-granted so the
+ * disclosure is shown rather than the Settings redirect firing unexplained.
+ */
+export async function hasAllLocationPermissions(): Promise<boolean> {
+  const foreground = await Location.getForegroundPermissionsAsync();
+  if (!foreground.granted) return false;
+  try {
+    const background = await Location.getBackgroundPermissionsAsync();
+    return background.granted;
+  } catch {
+    return false;
+  }
 }
 
 export function shouldShowPrePrompt(): boolean {

@@ -16,6 +16,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LocationDisclosureModal } from '../../components/ride/location-disclosure-modal';
 import { PreFlightChecklist } from '../../components/ride/pre-flight-checklist';
 import { startRideSession } from '../../features/ride/ride-controller';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
@@ -26,6 +27,7 @@ import { useRideStore } from '../../stores/ride.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { distanceUnitLabel, formatDistance, formatRelativeDate } from '../../utils/ride-formatters';
 import { startGPSListener } from '../../utils/ride-location';
+import { hasAllLocationPermissions, markPrePromptDismissed } from '../../utils/ride-permissions';
 import { rideMMKV } from '../../utils/ride-storage';
 import { enqueueOrExecute } from '../../utils/ride-sync-queue';
 
@@ -40,6 +42,7 @@ export default function StartRideScreen() {
   const [isStarting, setIsStarting] = useState(false);
   const [hasUnfinished, setHasUnfinished] = useState(false);
   const [showBikePicker, setShowBikePicker] = useState(false);
+  const [showDisclosure, setShowDisclosure] = useState(false);
 
   const { data } = useQuery({
     queryKey: queryKeys.motorcycles.lists(),
@@ -107,7 +110,7 @@ export default function StartRideScreen() {
     setHasUnfinished(false);
   }, []);
 
-  const handleStartRide = useCallback(async () => {
+  const runStartRide = useCallback(async () => {
     setIsStarting(true);
     try {
       const result = await startRideSession({
@@ -137,6 +140,28 @@ export default function StartRideScreen() {
       setIsStarting(false);
     }
   }, [selectedBikeId, selectedBike?.make, router, t]);
+
+  const handleStartRide = useCallback(async () => {
+    // Prominent disclosure (Google Play policy + Expo guidance): explain background
+    // location collection BEFORE the OS prompt / Android 11+ Settings redirect.
+    // Skip only when both permissions are already granted — nothing to disclose.
+    if (await hasAllLocationPermissions()) {
+      await runStartRide();
+      return;
+    }
+    setShowDisclosure(true);
+  }, [runStartRide]);
+
+  const handleDisclosureContinue = useCallback(() => {
+    setShowDisclosure(false);
+    void runStartRide();
+  }, [runStartRide]);
+
+  const handleDisclosureDismiss = useCallback(() => {
+    // Record the decline so the existing 7-day cooldown can suppress re-nagging.
+    markPrePromptDismissed();
+    setShowDisclosure(false);
+  }, []);
 
   // Pulsing green dot animation for CTA
   const pulseScale = useSharedValue(1);
@@ -657,6 +682,12 @@ export default function StartRideScreen() {
           )}
         </Animated.View>
       </View>
+
+      <LocationDisclosureModal
+        visible={showDisclosure}
+        onContinue={handleDisclosureContinue}
+        onDismiss={handleDisclosureDismiss}
+      />
     </View>
   );
 }

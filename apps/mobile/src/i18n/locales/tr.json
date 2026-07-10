@@ -2023,7 +2023,12 @@
     "locationMessage": "MotoVault sürüşünü kaydetmek için konum erişimine ihtiyaç duyar. Lütfen Ayarlar'dan etkinleştir.",
     "openSettings": "Ayarları aç",
     "startError": "Sürüş başlatılamadı. Lütfen tekrar dene.",
-    "lastRideSummary": "Son: {{distance}} · {{date}}"
+    "lastRideSummary": "Son: {{distance}} · {{date}}",
+    "disclosureTitle": "Location access for ride recording",
+    "disclosureBody": "MotoVault records your route, distance, and speed while you ride — including in the background when the app is closed or your screen is off, so your whole ride is captured. Location is only used while a ride is active.",
+    "disclosureSettingsNote": "You may be taken to Settings — choose “Allow all the time” to keep recording in the background.",
+    "disclosureContinue": "Continue",
+    "disclosureNotNow": "Not now"
   },
   "preFlight": {
     "title": "Ön kontrol",

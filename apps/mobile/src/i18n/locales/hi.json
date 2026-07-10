@@ -2023,7 +2023,12 @@
     "locationMessage": "MotoVault को आपकी राइड रिकॉर्ड करने के लिए लोकेशन एक्सेस चाहिए। कृपया सेटिंग्स में इसे सक्रिय करें।",
     "openSettings": "सेटिंग्स खोलें",
     "startError": "राइड शुरू नहीं हो सकी। कृपया पुनः प्रयास करें।",
-    "lastRideSummary": "पिछली: {{distance}} · {{date}}"
+    "lastRideSummary": "पिछली: {{distance}} · {{date}}",
+    "disclosureTitle": "Location access for ride recording",
+    "disclosureBody": "MotoVault records your route, distance, and speed while you ride — including in the background when the app is closed or your screen is off, so your whole ride is captured. Location is only used while a ride is active.",
+    "disclosureSettingsNote": "You may be taken to Settings — choose “Allow all the time” to keep recording in the background.",
+    "disclosureContinue": "Continue",
+    "disclosureNotNow": "Not now"
   },
   "preFlight": {
     "title": "प्री-फ्लाइट",

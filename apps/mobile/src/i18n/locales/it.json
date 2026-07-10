@@ -2025,7 +2025,12 @@
     "locationRequired": "Posizione richiesta",
     "locationMessage": "MotoVault ha bisogno dell'accesso alla posizione per registrare la tua uscita. Attivalo nelle Impostazioni.",
     "openSettings": "Apri Impostazioni",
-    "startError": "Impossibile avviare l'uscita. Riprova."
+    "startError": "Impossibile avviare l'uscita. Riprova.",
+    "disclosureTitle": "Accesso alla posizione per la registrazione",
+    "disclosureBody": "MotoVault registra il tuo percorso, la distanza e la velocità mentre guidi, anche in background quando l’app è chiusa o lo schermo è spento, per acquisire l’intero viaggio. La posizione viene usata solo durante un viaggio attivo.",
+    "disclosureSettingsNote": "Potresti essere reindirizzato alle Impostazioni: scegli «Consenti sempre» per continuare a registrare in background.",
+    "disclosureContinue": "Continua",
+    "disclosureNotNow": "Non ora"
   },
   "preFlight": {
     "title": "Pre-partenza",
