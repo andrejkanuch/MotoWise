@@ -92,17 +92,45 @@ Postgres roles, which a mock can't reproduce.
 
 ```ts
 import { createClient } from '@supabase/supabase-js';
-import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 const LOCAL_URL = 'http://127.0.0.1:54321';
 // service-role + anon keys are printed by `supabase start` / `supabase status`.
 const SERVICE_ROLE = process.env.SUPABASE_LOCAL_SERVICE_ROLE_KEY;
+const ANON = process.env.SUPABASE_LOCAL_ANON_KEY;
 
-// Only run when a local stack is configured; otherwise skip (keeps CI/unit runs fast).
-const describeDb = SERVICE_ROLE ? describe : describe.skip;
+// Run only when BOTH local keys are set (the RLS check needs the anon client too);
+// otherwise skip so the default `pnpm test` (unit) stays fast and hermetic.
+const describeDb = SERVICE_ROLE && ANON ? describe : describe.skip;
 
 describeDb('RidesService (real DB, RLS)', () => {
   const admin = createClient(LOCAL_URL, SERVICE_ROLE!, { auth: { persistSession: false } });
+
+  // Seed real auth users so JWTs are valid and the rides FK to user_id resolves.
+  const USER_A = { email: 'a@e2e.test', password: 'Passw0rd!a', id: '' };
+  const USER_B = { email: 'b@e2e.test', password: 'Passw0rd!b', id: '' };
+
+  // Sign in as a seeded user and return their access token (a real Supabase JWT).
+  async function signInAs(user: { email: string; password: string }): Promise<string> {
+    const client = createClient(LOCAL_URL, ANON!, { auth: { persistSession: false } });
+    const { data, error } = await client.auth.signInWithPassword({
+      email: user.email,
+      password: user.password,
+    });
+    if (error || !data.session) throw error ?? new Error('no session');
+    return data.session.access_token;
+  }
+
+  beforeAll(async () => {
+    for (const u of [USER_A, USER_B]) {
+      const { data } = await admin.auth.admin.createUser({
+        email: u.email,
+        password: u.password,
+        email_confirm: true,
+      });
+      u.id = data.user!.id;
+    }
+  });
 
   beforeEach(async () => {
     // Reset only the tables this suite touches — fast and isolated.
@@ -111,15 +139,18 @@ describeDb('RidesService (real DB, RLS)', () => {
 
   afterAll(async () => {
     await admin.from('rides').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await admin.auth.admin.deleteUser(USER_A.id);
+    await admin.auth.admin.deleteUser(USER_B.id);
   });
 
   it('a user cannot read another user\'s ride (RLS enforced)', async () => {
     // Arrange — insert a ride owned by user A via the admin (service-role bypasses RLS)
-    await admin.from('rides').insert({ id: 'ride-a', user_id: 'user-a', title: 'A ride' });
+    await admin.from('rides').insert({ id: 'ride-a', user_id: USER_A.id, title: 'A ride' });
 
     // Act — read as user B through a user-scoped (RLS-enforced) client
-    const asUserB = createClient(LOCAL_URL, process.env.SUPABASE_LOCAL_ANON_KEY!, {
-      global: { headers: { Authorization: `Bearer ${jwtFor('user-b')}` } },
+    const tokenB = await signInAs(USER_B);
+    const asUserB = createClient(LOCAL_URL, ANON!, {
+      global: { headers: { Authorization: `Bearer ${tokenB}` } },
       auth: { persistSession: false },
     });
     const { data } = await asUserB.from('rides').select('*').eq('id', 'ride-a');
@@ -135,8 +166,9 @@ Notes:
   hermetic. Run them locally / in a dedicated CI job that first does `pnpm db:start`.
 - Reset per-test by deleting only the touched tables (fast, isolated) — don't `db:reset`
   between every test.
-- `jwtFor(userId)` = mint a Supabase JWT for a seeded auth user (or seed real users via the
-  admin auth API in `beforeAll`). Match however the auth guard validates tokens.
+- Tokens are minted by signing in as a **seeded** auth user (`admin.auth.admin.createUser` in
+  `beforeAll`, then `signInWithPassword`) — no hand-rolled JWTs. Match however the auth guard validates
+  tokens; adjust the seeding if your project auto-creates a `public.users` row via trigger.
 
 ---
 

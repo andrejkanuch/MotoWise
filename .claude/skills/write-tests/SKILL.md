@@ -21,7 +21,7 @@ Full gate: `pnpm precheck` (api-bans → router → arch → lint → typecheck 
 
 ## Decision: what layer, what approach
 
-```
+```text
 Pure logic (cursors, filters, mappers, formatters, Zod schemas, date math)
     → unit test, NO mocks. This is the bulk of MotoVault's suite and where it's strongest.
 

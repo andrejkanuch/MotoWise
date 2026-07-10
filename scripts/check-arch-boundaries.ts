@@ -21,6 +21,9 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 
 const APP_PACKAGE_NAMES = ['@motovault/api', '@motovault/web', '@motovault/mobile'] as const;
 
+/** Normalize to forward slashes so the `packages/` / `apps/` matches work on Windows too. */
+const toPosix = (p: string): string => p.split(path.sep).join('/');
+
 type Violation = { file: string; line: number; specifier: string; rule: string };
 
 /** All module specifiers in a file: static imports, re-exports, and dynamic import(). */
@@ -70,7 +73,7 @@ function check(): Violation[] {
   for (const sf of project.getSourceFiles()) {
     const filePath = sf.getFilePath();
     // Resolve which package this file lives in: packages/<pkg>/
-    const rel = path.relative(ROOT, filePath);
+    const rel = toPosix(path.relative(ROOT, filePath));
     const match = rel.match(/^packages\/([^/]+)\//);
     if (!match) continue;
     const ownPkgDir = path.join(ROOT, 'packages', match[1]);
@@ -87,7 +90,7 @@ function check(): Violation[] {
       if (!value.startsWith('.')) continue;
 
       const resolved = path.resolve(path.dirname(filePath), value);
-      const resolvedRel = path.relative(ROOT, resolved);
+      const resolvedRel = toPosix(path.relative(ROOT, resolved));
 
       // Rule 1b: relative import escaping into apps/
       if (resolvedRel.startsWith('apps/') || resolvedRel === 'apps') {

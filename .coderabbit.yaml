@@ -23,8 +23,12 @@ reviews:
     - "!pnpm-lock.yaml"
     - "!**/dist/**"
     - "!**/.next/**"
-    - "!supabase/migrations/**"
   path_instructions:
+    - path: "supabase/migrations/**"
+      instructions: >-
+        Every new table MUST have RLS enabled and explicit policies in the same
+        migration. Flag any CREATE TABLE without a matching ENABLE ROW LEVEL
+        SECURITY + policy. Prefer column-level GRANTs for user-writable columns.
     - path: "apps/mobile/**"
       instructions: >-
         React Native / Expo. Enforce: reanimated v4 (never RN Animated API),

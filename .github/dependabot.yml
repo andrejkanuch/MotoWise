@@ -13,12 +13,9 @@ updates:
       prefix: "chore(deps)"
       prefix-development: "chore(deps-dev)"
     groups:
-      # Non-major updates batched into a single PR per group.
-      minor-and-patch:
-        applies-to: version-updates
-        update-types:
-          - "minor"
-          - "patch"
+      # Order matters: a dependency joins the FIRST group it matches. Keep the
+      # specific pattern groups above the catch-all minor-and-patch, or the
+      # catch-all would swallow their minor/patch updates first.
       expo-and-react-native:
         applies-to: version-updates
         patterns:
@@ -31,6 +28,12 @@ updates:
         applies-to: version-updates
         patterns:
           - "@nestjs/*"
+      # Catch-all for everything else non-major.
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
     ignore:
       # Expo SDK / RN majors are coordinated upgrades — handle manually.
       - dependency-name: "expo"
