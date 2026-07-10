@@ -195,6 +195,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           minSdkVersion: 24,
           kotlinVersion: '2.1.20',
           usePrecompiledHeaders: true,
+          // R8 minification + resource shrinking for smaller release APKs and a
+          // deobfuscation mapping file (EAS auto-uploads it to Play, fixing the
+          // "no deobfuscation file" warning + deobfuscating Android Vitals crashes).
+          // NOTE: SDK 54 renamed enableProguardInReleaseBuilds → enableMinifyInReleaseBuilds.
+          // R8 can strip reflection-accessed classes — smoke-test a production build
+          // (Mapbox, fbsdk, RevenueCat, Google Sign-In, Sentry) before shipping.
+          enableMinifyInReleaseBuilds: true,
+          enableShrinkResourcesInReleaseBuilds: true,
         },
         ios: {
           deploymentTarget: '16.4',
@@ -300,6 +308,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'android.permission.READ_MEDIA_VIDEO',
       'android.permission.READ_MEDIA_AUDIO',
       'android.permission.READ_MEDIA_VISUAL_USER_SELECTED',
+      // react-native-fbsdk-next auto-injects AD_ID whenever the Meta SDK is
+      // configured (EXPO_PUBLIC_META_APP_ID set). We never collect the Android
+      // advertising ID — advertiserIDCollectionEnabled/autoInit are all false and
+      // PostHog is not configured for ad-id — so strip it from the final manifest.
+      // This keeps the build honest with the Play Console "Advertising ID: No"
+      // declaration regardless of whether Meta is present in a given build.
+      'com.google.android.gms.permission.AD_ID',
     ],
     intentFilters: [
       {
