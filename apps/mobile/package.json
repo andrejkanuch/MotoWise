@@ -9,6 +9,7 @@
     "ios": "expo run:ios",
     "android": "expo run:android",
     "test": "jest",
+    "test:e2e": "sh scripts/run-maestro.sh",
     "typecheck": "tsc --noEmit",
     "i18n:status": "npx i18next-cli status --config ./i18next-toolkit.config.mjs",
     "i18n:hardcoded": "eslint \"src/**/*.{ts,tsx}\"",

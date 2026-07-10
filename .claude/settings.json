@@ -1,0 +1,17 @@
+{
+  "$comment": "Team-shared Claude Code settings (committed). Personal permissions live in settings.local.json (git-ignored).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "Checking for protected files...",
+            "command": "bash -c 'PROTECTED_LIST=\"$(git rev-parse --show-toplevel)/.claude/hooks/protected-files.txt\"; [ -f \"$PROTECTED_LIST\" ] || exit 0; FILE=$(jq -r \".tool_input.file_path // .tool_input.filePath // empty\"); [ -z \"$FILE\" ] && exit 0; while IFS= read -r line; do [ -z \"$line\" ] && continue; case \"$line\" in \\#*) continue;; esac; pattern=\"${line%%|*}\"; msg=\"${line#*|}\"; [ \"$msg\" = \"$line\" ] && msg=\"$FILE is a protected/generated file and must not be edited by AI agents.\"; case \"$FILE\" in *\"$pattern\") printf \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"PreToolUse\\\",\\\"permissionDecision\\\":\\\"deny\\\",\\\"permissionDecisionReason\\\":\\\"%s\\\"}}\" \"$msg\"; exit 0;; esac; done < \"$PROTECTED_LIST\"'"
+          }
+        ]
+      }
+    ]
+  }
+}

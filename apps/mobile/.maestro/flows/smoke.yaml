@@ -1,0 +1,20 @@
+# Smoke test — proves the app cold-starts and renders under Maestro.
+# This is the seed flow; add real journeys (log-a-ride.yaml, add-bike.yaml, …) beside it.
+#
+# APP_ID is injected by scripts/run-maestro.sh (defaults to com.motovault.app; override
+# with APP_ID=… for a dev-client build with a different bundle id).
+appId: ${APP_ID}
+---
+# Cold start so the flow passes from any prior state (open modal, wrong tab, etc.).
+- stopApp
+- launchApp
+# First launch also builds the JS bundle — give it room.
+- extendedWaitUntil:
+    visible: ".*"
+    timeout: 60000
+- takeScreenshot: smoke-launch
+
+# --- Turn this into a real smoke assertion once you've inspected the running app ---
+# Get real selectors first via the Maestro MCP: list_devices → inspect_screen → run.
+# Then assert on stable visible text, e.g. a tab label:
+# - assertVisible: "Garage.*"
