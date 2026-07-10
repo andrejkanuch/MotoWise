@@ -19,9 +19,11 @@ const NETWORK_ERROR_MESSAGES = [
   // normally and never carry this prefix, so the prefix exactly identifies the
   // non-actionable transport class. The native reason is OS-localized (e.g.
   // French "La connexion réseau a été perdue"), so matching the reason text is
-  // unreliable — match the stable prefix instead.
+  // unreliable — match the stable prefix instead. The trailing colon anchors to
+  // the `fetch failed: <reason>` format so an unrelated error that merely
+  // contains the words "fetch failed" is not silently dropped from Sentry.
   // (Sentry MOTO-VAULT-REACT-NATIVE-22 / -23 / -26 / -1Y)
-  'fetch failed',
+  'fetch failed:',
   'internet connection appears to be offline',
   'the request timed out',
   'the network connection was lost',

@@ -28,4 +28,11 @@ describe('isNetworkError', () => {
     expect(isNetworkError(new Error('Cannot read property of undefined'))).toBe(false);
     expect(isNetworkError(new Error('GraphQL validation failed'))).toBe(false);
   });
+
+  it('anchors the expo/fetch needle to the "fetch failed:" prefix (no bare-substring drop)', () => {
+    // A genuine app error that merely contains the words "fetch failed" must NOT
+    // be swallowed — only the `fetch failed: <reason>` transport format matches.
+    expect(isNetworkError(new Error('Image prefetch failed to decode asset'))).toBe(false);
+    expect(isNetworkError(new Error('data fetch failed validation'))).toBe(false);
+  });
 });

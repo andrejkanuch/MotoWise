@@ -10,6 +10,7 @@ import { createMMKV } from 'react-native-mmkv';
 import { captureException } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
 import { hasGraphQLCode } from '../lib/graphql-errors';
+import { isNetworkError } from '../lib/network-error';
 
 // --- Types ---
 
@@ -279,18 +280,6 @@ export function clearAll(): void {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function isNetworkError(error: unknown): boolean {
-  if (error instanceof TypeError && error.message === 'Network request failed') return true;
-  const msg = error instanceof Error ? error.message : String(error);
-  return (
-    msg.includes('Network request failed') ||
-    msg.includes('Failed to fetch') ||
-    msg.includes('internet connection appears to be offline') ||
-    msg.includes('The request timed out') ||
-    msg.includes('The network connection was lost')
-  );
 }
 
 function isNotFoundError(error: unknown): boolean {
