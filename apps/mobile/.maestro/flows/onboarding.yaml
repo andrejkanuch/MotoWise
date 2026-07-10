@@ -13,21 +13,14 @@ env:
   APP_ID: com.motovault.app
 ---
 # Fresh state so Welcome renders (clears MMKV lastCompletedScreen + any session).
+# NOTE: run this against a STANDALONE / PREVIEW build (bundled JS, no Metro) — see
+# .maestro/README.md. clearState wipes an Expo dev client's Metro connection, and
+# there's no reliable non-interactive way to re-point it, so dev-client runs are not
+# supported by this flow.
 - clearState
 - launchApp
 
-# --- Dev-client only: reconnect to Metro after clearState wiped the saved server.
-#     On a standalone/preview build this block is skipped (the launcher never shows).
-- runFlow:
-    when:
-      visible: ".*development servers.*"
-    commands:
-      - openLink: "exp+motovault://expo-development-client/?url=http://localhost:8081"
-      - tapOn:
-          text: "Open"
-          optional: true
-
-# 1. Welcome (first launch also builds the JS bundle — allow time)
+# 1. Welcome
 - extendedWaitUntil:
     visible: "Let's get started"
     timeout: 120000
