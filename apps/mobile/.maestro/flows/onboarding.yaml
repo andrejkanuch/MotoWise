@@ -28,22 +28,22 @@ env:
 
 # 2. Experience (auto-advances after selecting)
 - assertVisible: ".*How long have you.*"
-- tapOn: "Just getting started"
+- tapOn: ".*Just getting started.*"
 
 # 3. Frequency (auto-advances)
-- tapOn: "Almost daily"
+- tapOn: ".*Almost daily.*"
 
 # 4. Stay-on-top (multi-select → Continue)
-- tapOn: "Never miss a service"
+- tapOn: ".*Never miss a service.*"
 - tapOn: "Continue"
 
 # 5. Last service (pick a chip → Continue)
-- tapOn: "Just did it"
+- tapOn: ".*Just did it.*"
 - tapOn: "Continue"
 
 # 6. Bike setup — MUST add a bike to keep bike-dependent screens reachable
 - assertVisible: "Popular makes"
-- tapOn: "Honda"
+- tapOn: ".*Honda.*"
 - tapOn: "Add to my garage"
 
 # 7. Building plan (auto) → 8. Reveal
@@ -53,8 +53,8 @@ env:
 - tapOn: "Continue"
 
 # 9. Goals (multi-select → Continue)
-- assertVisible: "Track my rides"
-- tapOn: "Track my rides"
+- assertVisible: ".*Track my rides.*"
+- tapOn: ".*Track my rides.*"
 - tapOn: "Continue"
 
 # 10. Maintenance (skip the OEM deck)
@@ -72,12 +72,17 @@ env:
 
 # 12. Paywall (native RevenueCat overlay) → wait for the account screen to appear.
 #     If the RC template needs manual dismissal, close it first (optional).
+# Wait for the native RC paywall (close "×") OR the account screen, then dismiss
+# the paywall if it's up. Handles RC's async present + builds where it auto-skips.
+- extendedWaitUntil:
+    visible: "[×✕]|Continue with email"
+    timeout: 90000
 - tapOn:
-    text: "Close"
+    text: "[×✕]"
     optional: true
 - extendedWaitUntil:
     visible: "Continue with email"
-    timeout: 90000
+    timeout: 60000
 
 # 13. Account → sign in the pre-created user
 - tapOn: "Already have an account? Sign in"
@@ -88,26 +93,39 @@ env:
 - inputText: ${TEST_EMAIL}
 - tapOn: "Password"
 - inputText: ${TEST_PASSWORD}
-- hideKeyboard
+# Dismiss the keyboard by tapping the (non-interactive) subtitle — the app's
+# custom keyboard controller doesn't support Maestro's hideKeyboard, and the
+# keyboard otherwise covers the Sign In button.
+- tapOn:
+    text: ".*Sign in to access your garage.*"
+    optional: true
 - tapOn: "Sign In"
+# iOS "Save Password?" system dialog appears after a successful login — decline it.
+- tapOn:
+    text: "Not Now"
+    optional: true
 
-# 14. Heard-about
+# 14-16. After auth the app either walks heard-about -> notifications ->
+# personalizing, or fast-forwards straight to Home (timing/server dependent).
+# Handle the optional tail only if it appears; the single hard success check is
+# reaching the Home dashboard.
 - extendedWaitUntil:
-    visible: "Skip"
-    timeout: 45000
-- tapOn: "Skip"
-
-# 15. Notifications (skip to avoid the native OS permission dialog)
-- tapOn: "Maybe later"
-
-# 16. Personalizing → finish
-- extendedWaitUntil:
-    visible: "Open my garage"
+    visible: ".*hear about us.*|.*Today in your garage.*"
     timeout: 90000
-- tapOn: "Open my garage"
+- runFlow:
+    when:
+      visible: ".*hear about us.*"
+    commands:
+      - tapOn: "Instagram"
+      - extendedWaitUntil:
+          visible: "Enable Notifications"
+          timeout: 30000
+      - tapOn: "Maybe later"
+      - tapOn:
+          text: "Open my garage"
+          optional: true
 
-# Assert onboarding is complete: the main tab bar is shown.
+# Success: onboarding complete -> Home dashboard.
 - extendedWaitUntil:
-    visible: "Garage"
-    timeout: 45000
-- takeScreenshot: onboarding-complete
+    visible: ".*Today in your garage.*"
+    timeout: 120000
