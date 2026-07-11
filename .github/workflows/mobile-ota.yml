@@ -42,6 +42,8 @@ jobs:
         working-directory: apps/mobile
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
@@ -53,13 +55,17 @@ jobs:
       - name: Publish OTA update
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          # Pass workflow inputs through env (not inline ${{ }} in run) so a
+          # crafted message can't inject shell code into the runner.
+          INPUT_BRANCH: ${{ github.event.inputs.branch }}
+          INPUT_MESSAGE: ${{ github.event.inputs.message }}
         run: |
           if [ -z "$EXPO_TOKEN" ]; then
             echo "::error::EXPO_TOKEN secret is not set. Add it in repo Settings → Secrets and variables → Actions."
             exit 1
           fi
           pnpm dlx eas-cli@latest update \
-            --branch "${{ github.event.inputs.branch }}" \
-            --message "${{ github.event.inputs.message }}" \
+            --branch "$INPUT_BRANCH" \
+            --message "$INPUT_MESSAGE" \
             --environment production \
             --non-interactive
