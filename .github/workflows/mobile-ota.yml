@@ -1,0 +1,71 @@
+name: Mobile OTA Update
+
+# Manually-triggered EAS Update (over-the-air) for the mobile app.
+# Run it from the GitHub mobile app or web: Actions → "Mobile OTA Update" →
+# "Run workflow", pick the branch to publish from and edit the message.
+#
+# Requirements (one-time setup, doable from a phone browser at
+# github.com → repo Settings → Secrets and variables → Actions):
+#   - Secret EXPO_TOKEN: an Expo access token (Expo dashboard → Account →
+#     Access Tokens) with permission to publish updates for project
+#     359ae282-329d-455d-b9f3-64919afad0b4 (owner: andykeny).
+#
+# Production EXPO_PUBLIC_* config is pulled from EAS-hosted environment
+# variables via `--environment production` (Expo dashboard → project →
+# Environment variables). This replaces the local .env.production step from
+# the manual workflow, so CI never needs a committed env file. If any
+# EXPO_PUBLIC_* var is NOT stored on EAS, add it there before running, or the
+# bundle will ship with missing config.
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: EAS Update branch to publish to
+        required: true
+        default: production
+      message:
+        description: Update message shown in the EAS dashboard
+        required: true
+        default: "fix: onboarding paywall Android crash (custom variables)"
+
+concurrency:
+  group: mobile-ota-${{ github.event.inputs.branch }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish EAS Update
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: 22.20.0
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: ${{ github.workspace }}
+      - name: Publish OTA update
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          # Pass workflow inputs through env (not inline ${{ }} in run) so a
+          # crafted message can't inject shell code into the runner.
+          INPUT_BRANCH: ${{ github.event.inputs.branch }}
+          INPUT_MESSAGE: ${{ github.event.inputs.message }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::EXPO_TOKEN secret is not set. Add it in repo Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          pnpm dlx eas-cli@latest update \
+            --branch "$INPUT_BRANCH" \
+            --message "$INPUT_MESSAGE" \
+            --environment production \
+            --non-interactive
