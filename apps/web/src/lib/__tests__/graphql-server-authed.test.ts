@@ -120,6 +120,16 @@ describe('isDefinitiveGraphQLError', () => {
     expect(isDefinitiveGraphQLError(httpError(500))).toBe(false);
   });
 
+  it('is false for a non-200 status even with a non-empty errors array', () => {
+    // A gateway/5xx that happens to carry an errors-shaped body is still an infra
+    // failure — it must NOT short-circuit to notFound(). The HTTP-200 guard is
+    // what keeps this out of the "definitive" bucket.
+    const gatewayWithErrors = Object.assign(new Error('Bad Gateway'), {
+      response: { status: 502, errors: [{ message: 'upstream error' }] },
+    });
+    expect(isDefinitiveGraphQLError(gatewayWithErrors)).toBe(false);
+  });
+
   it('is false for timeouts and network failures', () => {
     expect(isDefinitiveGraphQLError(timeoutError())).toBe(false);
     expect(isDefinitiveGraphQLError(new Error('fetch failed'))).toBe(false);

@@ -46,19 +46,25 @@ function isRetryableApiError(err: unknown): boolean {
 
 /**
  * True when a thrown fetch error is a *definitive* GraphQL application error —
- * the API processed the query and returned a non-empty `errors` array (HTTP 200),
+ * the API executed the query and returned a non-empty `errors` array at HTTP 200,
  * e.g. a resolver throwing `NotFoundException`. This distinguishes "the API told
  * us this resource is absent" from "we never reached a definitive answer"
- * (timeouts, 5xx, network failures — see {@link isRetryableApiError}), which
- * leave no `errors` array on the thrown error.
+ * (timeouts, network failures, and 4xx/5xx — including a gateway/5xx that happens
+ * to carry an errors-shaped body — see {@link isRetryableApiError}).
+ *
+ * The HTTP-200 guard matters: Apollo returns execution errors (a thrown resolver
+ * exception) at 200, whereas request/transport failures use 4xx/5xx. Treating a
+ * non-200 errors payload as "definitive" would let an infra blip short-circuit to
+ * a 404. So we require status 200 explicitly.
  *
  * Callers that translate a null/absent result into `notFound()` MUST re-throw
  * when this returns `false`, so a transient API blip is never served (or, under
  * ISR, cached) as a real 404 and never emits a misleading soft-404.
  */
 export function isDefinitiveGraphQLError(err: unknown): boolean {
-  const errors = (err as { response?: { errors?: unknown } })?.response?.errors;
-  return Array.isArray(errors) && errors.length > 0;
+  const response = (err as { response?: { status?: number; errors?: unknown } })?.response;
+  if (response?.status !== 200) return false;
+  return Array.isArray(response.errors) && response.errors.length > 0;
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
