@@ -21,7 +21,9 @@ vi.mock('../supabase-server', () => ({
   })),
 }));
 
-const { gqlServerFetcher, gqlServerFetcherAuthed } = await import('../graphql-server');
+const { gqlServerFetcher, gqlServerFetcherAuthed, isDefinitiveGraphQLError } = await import(
+  '../graphql-server'
+);
 
 const FAKE_DOC = {} as TypedDocumentNode<{ ok: boolean }, Record<string, unknown>>;
 
@@ -99,5 +101,33 @@ describe('gqlServerFetcher (public, retry-on-transient)', () => {
 
     await expect(gqlServerFetcher(FAKE_DOC)).rejects.toThrow('aborted due to timeout');
     expect(mockRequest).toHaveBeenCalledTimes(3);
+  });
+});
+
+// A graphql-request ClientError for a resolver-thrown error: HTTP 200 + errors[].
+const graphqlError = (message: string) =>
+  Object.assign(new Error(message), {
+    response: { status: 200, errors: [{ message }] },
+  });
+
+describe('isDefinitiveGraphQLError', () => {
+  it('is true for a GraphQL application error (resolver NotFoundException → errors[])', () => {
+    expect(isDefinitiveGraphQLError(graphqlError('Template not found'))).toBe(true);
+  });
+
+  it('is false for gateway statuses (502/503/504) with no errors array', () => {
+    expect(isDefinitiveGraphQLError(httpError(503))).toBe(false);
+    expect(isDefinitiveGraphQLError(httpError(500))).toBe(false);
+  });
+
+  it('is false for timeouts and network failures', () => {
+    expect(isDefinitiveGraphQLError(timeoutError())).toBe(false);
+    expect(isDefinitiveGraphQLError(new Error('fetch failed'))).toBe(false);
+  });
+
+  it('is false for an empty errors array and non-error inputs', () => {
+    expect(isDefinitiveGraphQLError({ response: { status: 200, errors: [] } })).toBe(false);
+    expect(isDefinitiveGraphQLError(null)).toBe(false);
+    expect(isDefinitiveGraphQLError(undefined)).toBe(false);
   });
 });

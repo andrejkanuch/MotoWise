@@ -17,7 +17,7 @@ import {
   type TripTemplateNode,
 } from '@/lib/fetch-places';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
-import { gqlServerFetcher } from '@/lib/graphql-server';
+import { gqlServerFetcher, isDefinitiveGraphQLError } from '@/lib/graphql-server';
 import { relativeTrip } from '@/lib/seo/canonical';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
 import { findBareSlugRedirect, findLegacySlugAlias } from '@/lib/trips/bare-slug-redirect';
@@ -38,7 +38,15 @@ const fetchTrip = cache(
     try {
       const data = await gqlServerFetcher(WebTripBySlugDocument, { country, region, slug });
       return data.tripBySlug ?? null;
-    } catch {
+    } catch (err) {
+      // Only a definitive GraphQL "not found" (the resolver's NotFoundException,
+      // surfaced as an errors array at HTTP 200) means the trip is truly absent →
+      // null → notFound(). A transient/infra failure (timeout, 5xx, network) that
+      // survived gqlServerFetcher's retries is NOT a 404: turning it into
+      // notFound() emits a bogus soft-404 (Sentry MOTOVAULT-WEB-Q) and, under the
+      // force-static ISR below, risks caching a 404 for a real trip. Re-throw so
+      // Next renders an (uncached, retried) error instead of a false 404.
+      if (!isDefinitiveGraphQLError(err)) throw err;
       return null;
     }
   },
