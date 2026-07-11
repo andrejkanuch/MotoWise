@@ -34,6 +34,16 @@ let initPromise: Promise<(() => void) | null> | null = null;
 
 type PaywallResult = 'purchased' | 'restored' | 'cancelled' | 'not_presented' | 'error';
 
+/**
+ * Whether the bundled react-native-purchases-ui can safely receive `customVariables`.
+ *
+ * Currently `false`: passing them crashes the app natively on present (RN
+ * purchases-ui #1622 — an uncatchable crash fixed only in native code, so it
+ * cannot be delivered via OTA). Flip to `true` once the SDK is upgraded in a new
+ * store build. See the gate in {@link presentPaywall}.
+ */
+const CUSTOM_VARIABLES_SUPPORTED = false;
+
 type PaywallAnalyticsOptions = {
   source?: string;
   feature?: string;
@@ -512,9 +522,22 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
 
     // Personalize V2 paywall copy via custom variables ({{ custom.* }}).
     // Omitted keys fall back to the editor's default value for that variable.
-    const customVariables = options.personalization
-      ? buildPaywallCustomVariables(options.personalization, RevenueCatUI.CustomVariableValue)
-      : undefined;
+    //
+    // ⚠️ Passing customVariables to the native paywall hard-crashes the app on the
+    // currently bundled react-native-purchases-ui — an uncatchable native crash
+    // (not a JS error we can try/catch), triggered on every present that supplies
+    // them. Only the onboarding paywall passes `personalization`, so it was the
+    // only surface that crashed (RN purchases-ui #1622). The upstream fix lives in
+    // native code (PaywallViewWrapper), so it can only ship with a new store build,
+    // never via OTA — hence this gate. Keep it off until the SDK is bumped in a
+    // native build, then flip CUSTOM_VARIABLES_SUPPORTED to re-enable copy
+    // substitution. Targeting personalization via setOnboardingAttributes (customer
+    // attributes) is unaffected; only {{ custom.* }} copy falls back to editor
+    // defaults, which every variable already has.
+    const customVariables =
+      CUSTOM_VARIABLES_SUPPORTED && options.personalization
+        ? buildPaywallCustomVariables(options.personalization, RevenueCatUI.CustomVariableValue)
+        : undefined;
 
     const result = options.requiredEntitlementIdentifier
       ? await RevenueCatUI.default.presentPaywallIfNeeded({
