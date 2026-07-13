@@ -14,12 +14,13 @@ const EXPO_DEVICE_NOT_REGISTERED = 'DeviceNotRegistered' as const;
 const EXPO_SEND_TIMEOUT_MS = 15_000;
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms).unref?.(),
-    ),
-  ]);
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<T>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+    timer.unref?.();
+  });
+  // Clear the timer on settle so the happy path doesn't leave a dangling 15s timeout.
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 const ACTIVE_TASK_STATUSES = ['pending', 'in_progress'] as const;
 
@@ -145,18 +146,26 @@ export class MaintenancePushService {
     // Release the dedup claim for tasks whose send errored, so a same-day re-run
     // retries them instead of the claim permanently masking a lost push.
     if (failedTaskIds.size > 0) {
-      await this.adminClient
+      const { error: releaseError } = await this.adminClient
         .from('maintenance_push_log')
         .delete()
         .eq('due_date', dueDate)
         .in('task_id', [...failedTaskIds]);
+      // supabase-js returns errors rather than throwing; an unchecked failure here
+      // would leave the dedup rows in place, permanently masking these tasks as sent.
+      if (releaseError) {
+        this.logger.error(
+          `sendDuePush failed to release ${failedTaskIds.size} dedup claim(s) for retry: ${releaseError.message}`,
+        );
+      }
     }
 
     const failed = failedTaskIds.size;
     const pushed = attempted - failed;
-    this.logger.log(
-      `sendDuePush(${daysBefore}d): due=${dueTasks.length} pushed=${pushed} skipped=${skipped} failed=${failed}`,
-    );
+    const summary = `sendDuePush(${daysBefore}d): due=${dueTasks.length} pushed=${pushed} skipped=${skipped} failed=${failed}`;
+    // Escalate to warn when any send failed so partial failures aren't lost in info logs.
+    if (failed > 0) this.logger.warn(summary);
+    else this.logger.log(summary);
     return { tasksDue: dueTasks.length, pushed, skipped, failed };
   }
 
@@ -184,10 +193,28 @@ export class MaintenancePushService {
           if (ticket.status !== 'error') continue;
           const tid = taskIdOf(chunk[i]);
           if (tid) failedTaskIds.add(tid);
+          // Log every error reason (rate-limit, message-too-big, etc.), not just the
+          // DeviceNotRegistered branch, so transient failures are diagnosable.
+          this.logger.warn(
+            `Expo push ticket error (task ${tid ?? 'unknown'}): ${ticket.details?.error ?? 'unknown'}`,
+          );
           if (ticket.details?.error === EXPO_DEVICE_NOT_REGISTERED) {
             const deadToken = chunk[i].to;
             const token = Array.isArray(deadToken) ? deadToken[0] : deadToken;
-            await this.adminClient.from('device_push_tokens').delete().eq('token', token);
+            // Isolate the prune: a failed cleanup delete must NOT bubble into the
+            // chunk-wide catch, which would falsely mark already-succeeded tickets in
+            // this chunk as failed and re-send to them on the next run.
+            try {
+              const { error: pruneError } = await this.adminClient
+                .from('device_push_tokens')
+                .delete()
+                .eq('token', token);
+              if (pruneError) {
+                this.logger.warn(`Failed to prune dead token: ${pruneError.message}`);
+              }
+            } catch (pruneErr) {
+              this.logger.warn(`Failed to prune dead token: ${(pruneErr as Error).message}`);
+            }
           }
         }
       } catch (err) {

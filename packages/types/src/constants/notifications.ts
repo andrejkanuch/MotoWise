@@ -1,8 +1,8 @@
 /**
- * Notification `data.kind` discriminator — the single source of truth shared by the
- * mobile notification scheduler/tap-handler and the API push sender (which embeds it
- * in the Expo push payload). Keeping one definition prevents the two sides from
- * silently diverging on the string values.
+ * Notification `data.kind` discriminator embedded in the Expo push payload by the API
+ * push sender. Intended as the shared source of truth for both the API and the mobile
+ * scheduler/tap-handler; mobile still carries its own local copy (apps/mobile/src/lib/
+ * notifications.ts) and should be migrated to import from here so the two can't diverge.
  */
 export const NOTIFICATION_KIND = {
   DOCUMENT: 'document',
