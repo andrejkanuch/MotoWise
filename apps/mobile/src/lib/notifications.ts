@@ -147,14 +147,17 @@ export async function setupNotificationChannels(): Promise<void> {
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
     lightColor: palette.signature500,
-    sound: 'default',
+    // Omit `sound` to use the OS default channel sound. Passing a string here
+    // (e.g. 'default') makes expo-notifications look for a bundled custom sound
+    // file of that name — none exists, so it errors. A HIGH-importance channel
+    // plays the default sound without this field.
   });
   await Notifications.setNotificationChannelAsync('documents', {
     name: 'Document Renewal Reminders',
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
     lightColor: palette.signature500,
-    sound: 'default',
+    // See note above — omit `sound` for the OS default channel sound.
   });
 }
 
