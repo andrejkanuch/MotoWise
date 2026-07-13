@@ -40,7 +40,9 @@
     "continueWithGoogle": "Googleで続ける",
     "orContinueWithEmail": "またはメールで続ける",
     "checkEmail": "メールを確認してください",
-    "confirmationSent": "確認リンクをメールに送信しました。続行するには確認してください。"
+    "confirmationSent": "確認リンクをメールに送信しました。続行するには確認してください。",
+    "accountExistsTitle": "アカウントは既に存在します",
+    "accountExistsMessage": "このメールアドレスは既に登録されています。代わりにサインインしてください。"
   },
   "tabs": {
     "home": "ホーム",

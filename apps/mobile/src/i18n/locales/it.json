@@ -40,7 +40,9 @@
     "continueWithGoogle": "Continua con Google",
     "orContinueWithEmail": "oppure continua con email",
     "checkEmail": "Controlla la tua email",
-    "confirmationSent": "Ti abbiamo inviato un link di conferma via email. Verifica la tua casella per continuare."
+    "confirmationSent": "Ti abbiamo inviato un link di conferma via email. Verifica la tua casella per continuare.",
+    "accountExistsTitle": "L'account esiste già",
+    "accountExistsMessage": "Questa email è già registrata. Accedi invece."
   },
   "tabs": {
     "home": "Home",

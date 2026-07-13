@@ -19,13 +19,13 @@ import { AppleGlyph, GoogleGlyph } from '../../components/onboarding/oauth-glyph
 import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
+import { OB_ROUTE } from '../../config/onboarding';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
+import { trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { restorePurchases } from '../../lib/subscription';
 import { supabase } from '../../lib/supabase';
-
-const WELCOME_ROUTE = '/(onboarding)';
 
 /**
  * Returning-user sign-in, reachable from Welcome's "Log in" and the account
@@ -44,7 +44,15 @@ export default function OnboardingSignInScreen() {
   const [busy, setBusy] = useState(false);
   const [notFound, setNotFound] = useState(false);
 
-  const goToWelcome = () => router.replace(WELCOME_ROUTE);
+  // New/unrecognized users start the onboarding flow (account creation is its
+  // final step). Replace so the back stack matches the welcome-initiated path
+  // (welcome → experience), and fire ONBOARDING_STARTED to keep the funnel
+  // intact for riders who begin from sign-in rather than the welcome CTA.
+  const goToGetStarted = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_STARTED, {});
+    router.replace(OB_ROUTE.EXPERIENCE);
+  };
 
   const handleRestore = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -255,7 +263,7 @@ export default function OnboardingSignInScreen() {
                 <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.error }}>
                   {t('onboarding.obSignInNotFound' as never)}
                 </Text>
-                <Pressable onPress={goToWelcome} hitSlop={8}>
+                <Pressable onPress={goToGetStarted} hitSlop={8}>
                   <Text style={{ fontSize: 13, fontWeight: '600', color: ONBOARDING_COLORS.warm2 }}>
                     {t('onboarding.obSignInCreateOne' as never)}
                   </Text>
@@ -270,7 +278,7 @@ export default function OnboardingSignInScreen() {
             />
 
             <Pressable
-              onPress={goToWelcome}
+              onPress={goToGetStarted}
               hitSlop={8}
               style={{ alignSelf: 'center', marginTop: 10 }}
             >

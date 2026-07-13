@@ -40,7 +40,9 @@
     "continueWithGoogle": "Google ile Devam Et",
     "orContinueWithEmail": "veya e-posta ile devam et",
     "checkEmail": "E-postani Kontrol Et",
-    "confirmationSent": "E-postana bir dogrulama baglantisi gonderdik. Devam etmek icin lutfen dogrula."
+    "confirmationSent": "E-postana bir dogrulama baglantisi gonderdik. Devam etmek icin lutfen dogrula.",
+    "accountExistsTitle": "Hesap zaten mevcut",
+    "accountExistsMessage": "Bu e-posta zaten kayıtlı. Lütfen giriş yapın."
   },
   "tabs": {
     "home": "Ana Sayfa",

@@ -40,7 +40,9 @@
     "continueWithGoogle": "Weiter mit Google",
     "orContinueWithEmail": "oder weiter mit E-Mail",
     "checkEmail": "E-Mail pruefen",
-    "confirmationSent": "Wir haben einen Bestaetigungslink an deine E-Mail gesendet. Bitte bestaetige, um fortzufahren."
+    "confirmationSent": "Wir haben einen Bestaetigungslink an deine E-Mail gesendet. Bitte bestaetige, um fortzufahren.",
+    "accountExistsTitle": "Konto existiert bereits",
+    "accountExistsMessage": "Diese E-Mail ist bereits registriert. Bitte melde dich stattdessen an."
   },
   "tabs": {
     "home": "Start",

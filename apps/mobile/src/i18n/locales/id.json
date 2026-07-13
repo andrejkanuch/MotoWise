@@ -40,7 +40,9 @@
     "continueWithGoogle": "Lanjutkan dengan Google",
     "orContinueWithEmail": "atau lanjutkan dengan email",
     "checkEmail": "Cek Email Kamu",
-    "confirmationSent": "Kami telah mengirimkan link konfirmasi ke email kamu. Silakan verifikasi untuk melanjutkan."
+    "confirmationSent": "Kami telah mengirimkan link konfirmasi ke email kamu. Silakan verifikasi untuk melanjutkan.",
+    "accountExistsTitle": "Akun sudah ada",
+    "accountExistsMessage": "Email ini sudah terdaftar. Silakan masuk saja."
   },
   "tabs": {
     "home": "Beranda",

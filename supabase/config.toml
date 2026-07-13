@@ -37,6 +37,20 @@ max_frequency = "1m0s"
 otp_length = 8
 otp_expiry = 3600
 
+# Production sends confirmation / password-reset email via Resend (custom SMTP),
+# applied to the linked project through the Management API — see
+# scripts/setup-supabase-smtp.sh. Left commented so local `supabase start` keeps
+# routing mail to Inbucket. To exercise Resend locally, export SUPABASE_SMTP_PASS
+# (your Resend API key) and uncomment:
+# [auth.email.smtp]
+# enabled = true
+# host = "smtp.resend.com"
+# port = 465
+# user = "resend"
+# pass = "env(SUPABASE_SMTP_PASS)"
+# admin_email = "noreply@motovault.app"
+# sender_name = "MotoVault"
+
 [auth.mfa]
 max_enrolled_factors = 10
 [auth.mfa.totp]

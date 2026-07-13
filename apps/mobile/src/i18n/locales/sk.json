@@ -40,7 +40,9 @@
     "continueWithGoogle": "Pokračovať cez Google",
     "orContinueWithEmail": "alebo pokračovať cez email",
     "checkEmail": "Skontroluj email",
-    "confirmationSent": "Poslali sme ti potvrdzovací odkaz na email. Prosím, over ho pre pokračovanie."
+    "confirmationSent": "Poslali sme ti potvrdzovací odkaz na email. Prosím, over ho pre pokračovanie.",
+    "accountExistsTitle": "Účet už existuje",
+    "accountExistsMessage": "Tento e-mail je už zaregistrovaný. Radšej sa prihlás."
   },
   "tabs": {
     "home": "Domov",

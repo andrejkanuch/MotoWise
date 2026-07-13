@@ -136,8 +136,19 @@ export default function AccountScreen() {
       if (error) {
         Alert.alert(t('common.error'), userFriendlyError(error));
       } else if (data.user && !data.session) {
-        // Email confirmation required — can't proceed into the app yet.
-        Alert.alert(t('auth.checkEmail'), t('auth.confirmationSent'));
+        // An empty `identities` array is Supabase's signal that this email is
+        // ALREADY registered: with confirmations on, it suppresses the email
+        // (enumeration protection) and returns an obfuscated user. Telling the
+        // user to "check your email" here is a dead end — route them to sign in.
+        if (data.user.identities?.length === 0) {
+          Alert.alert(t('auth.accountExistsTitle'), t('auth.accountExistsMessage'), [
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('auth.signIn'), onPress: () => router.push(OB_ROUTE.SIGN_IN) },
+          ]);
+        } else {
+          // Genuinely new account — email confirmation required before proceeding.
+          Alert.alert(t('auth.checkEmail'), t('auth.confirmationSent'));
+        }
       } else if (data.session) {
         // New account with an active session (no email confirmation needed).
         // OAuth paths fire USER_SIGNED_UP in oauth.ts; the email-in-onboarding
