@@ -1,11 +1,11 @@
--- Migration: Validate the currency CHECK constraints added NOT VALID in 00160.
+-- Migration: Validate the currency CHECK constraints added NOT VALID in 00163.
 --
 -- Runs in its own transaction (separate migration file) so the validation scan
 -- takes only a SHARE UPDATE EXCLUSIVE lock — which does NOT block reads or
 -- writes — instead of piggybacking on the ACCESS EXCLUSIVE lock held until
--- commit by the NOT VALID add in 00160.
+-- commit by the NOT VALID add in 00163.
 --
--- Because 00160's allowlist is a strict superset of the previous one, every
+-- Because 00163's allowlist is a strict superset of the previous one, every
 -- existing row already satisfies these constraints; VALIDATE is effectively a
 -- formality that flips the catalog flag so the planner can rely on them.
 

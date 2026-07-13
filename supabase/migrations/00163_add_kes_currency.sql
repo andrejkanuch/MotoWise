@@ -5,7 +5,7 @@
 -- Constraints are re-added with NOT VALID so this migration does not run the
 -- validating table scan (which holds a write-blocking lock for its duration).
 -- The new allowlist is a strict superset of the old one, so every existing row
--- is already valid. The formal VALIDATE runs in a separate migration (00161),
+-- is already valid. The formal VALIDATE runs in a separate migration (00164),
 -- in its own transaction, under a non-blocking SHARE UPDATE EXCLUSIVE lock.
 
 -- 1. Expand users.currency CHECK constraint
