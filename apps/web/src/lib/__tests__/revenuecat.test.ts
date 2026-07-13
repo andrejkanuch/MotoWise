@@ -69,4 +69,23 @@ describe('getRevenueCatCustomerInfo', () => {
     expect(configure).not.toHaveBeenCalled();
     expect(instance.getCustomerInfo).not.toHaveBeenCalled();
   });
+
+  it('serializes concurrent callers so the SDK is configured only once', async () => {
+    vi.stubEnv(ENV_KEY, 'rcb_test');
+    // Model the real singleton: unconfigured until configure() flips it.
+    let configured = false;
+    isConfigured.mockImplementation(() => configured);
+    configure.mockImplementation(() => {
+      configured = true;
+      return instance;
+    });
+    instance.getAppUserId.mockReturnValue('user-a');
+    instance.getCustomerInfo.mockResolvedValue({ managementURL: null });
+
+    // Both hooks mount together and call concurrently; without the queue both
+    // would see isConfigured() === false and configure twice.
+    await Promise.all([getRevenueCatCustomerInfo('user-a'), getRevenueCatCustomerInfo('user-a')]);
+
+    expect(configure).toHaveBeenCalledTimes(1);
+  });
 });

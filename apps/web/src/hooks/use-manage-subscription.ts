@@ -38,7 +38,12 @@ export function useManageSubscription(): string | null {
           const supabase = getSupabaseBrowserClient();
           const { data } = await supabase.auth.getSession();
           const user = data.session?.user;
-          if (!user) return;
+          if (!user) {
+            // Clear on logout — an in-tab sign-out (SPA nav, no reload) must not
+            // leave the previous user's portal link in state.
+            if (mounted && token === latest) setManagementURL(null);
+            return;
+          }
 
           const customerInfo = await getRevenueCatCustomerInfo(user.id);
           if (mounted && token === latest) {

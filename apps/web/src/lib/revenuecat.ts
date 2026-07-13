@@ -1,6 +1,18 @@
 import type { CustomerInfo } from '@revenuecat/purchases-js';
 
 /**
+ * Serializes all SDK access. The web `Purchases` singleton must be configured
+ * exactly once, and `changeUser` must not overlap another config/re-key — but
+ * this helper is shared by multiple hooks/pages that can mount together (e.g.
+ * useProStatus + useManageSubscription on /profile) and enter concurrently.
+ * Without a queue, two callers can both observe `isConfigured() === false` and
+ * double-configure, or race a `changeUser`, handing the wrong user's info back.
+ * Chaining every call through this promise runs config/re-key/read strictly in
+ * order. A rejected call is caught here so it can't break the chain for the next.
+ */
+let queue: Promise<unknown> = Promise.resolve();
+
+/**
  * Configure (or re-key) the shared RevenueCat Web SDK for `appUserId` and return
  * the current customer info.
  *
@@ -24,6 +36,14 @@ export async function getRevenueCatCustomerInfo(appUserId: string): Promise<Cust
   const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_WEB_API_KEY;
   if (!apiKey) return null;
 
+  const run = queue.then(() => resolveCustomerInfo(apiKey, appUserId));
+  // Keep the chain alive regardless of this call's outcome.
+  queue = run.catch(() => undefined);
+  return run;
+}
+
+/** Perform one config/re-key/read cycle. Callers must funnel through the queue. */
+async function resolveCustomerInfo(apiKey: string, appUserId: string): Promise<CustomerInfo> {
   const { Purchases } = await import('@revenuecat/purchases-js');
 
   if (!Purchases.isConfigured()) {
