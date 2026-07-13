@@ -19,6 +19,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { clearProStatusCache } from '@/hooks/use-pro-status';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { getRevenueCatCustomerInfo } from '@/lib/revenuecat';
+import { safeRedirectPath } from '@/lib/safe-redirect';
 
 // ---------------------------------------------------------------------------
 // Polling configuration — progressive back-off via setTimeout chaining
@@ -76,7 +77,7 @@ export default function CheckoutSuccessPage() {
 function CheckoutSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') ?? '/garage';
+  const redirectTo = safeRedirectPath(searchParams.get('redirect'));
   const [status, setStatus] = useState<Status>('polling');
   const [pollIndex, setPollIndex] = useState(0);
   const cancelledRef = useRef(false);

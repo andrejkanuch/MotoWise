@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
+import { safeRedirectPath } from '@/lib/safe-redirect';
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login`);
   }
 
-  // Redirect within the web app
-  const destination = redirect?.startsWith('/') ? redirect : '/garage';
+  // Redirect within the web app (same-origin internal path only)
+  const destination = safeRedirectPath(redirect);
   return NextResponse.redirect(`${origin}${destination}`);
 }
