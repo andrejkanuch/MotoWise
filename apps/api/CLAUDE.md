@@ -18,7 +18,7 @@
 ## Patterns
 - Resolvers are thin — business logic in services
 - Input validation with Zod schemas from @motovault/types via ZodValidationPipe
-- Use @UseGuards(GqlAuthGuard) on all protected resolvers
+- `GqlAuthGuard` is global (`APP_GUARD`), so resolvers are protected by default — do NOT add per-resolver `@UseGuards(GqlAuthGuard)`; use `@Public()` to opt a resolver/route out (see Common Mistakes below)
 - Use @CurrentUser() decorator to get authenticated user
 - AI services (article-generator, diagnostic-ai) call Anthropic Claude API
 - Use SUPABASE_ADMIN only for system operations (article creation, admin)
