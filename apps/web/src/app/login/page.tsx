@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { identifyUser, trackEvent, WebEvent } from '@/lib/analytics';
+import { safeRedirectPath } from '@/lib/safe-redirect';
 
 /* ------------------------------------------------------------------ */
 /*  CSS variable tokens (from marketing design-system.css / login.html) */
@@ -55,7 +56,7 @@ export default function LoginPage() {
         identifyUser(data.user.id);
       }
       const params = new URLSearchParams(window.location.search);
-      const redirectTo = params.get('redirect') || '/garage';
+      const redirectTo = safeRedirectPath(params.get('redirect'));
       window.location.href = redirectTo;
     }
   };

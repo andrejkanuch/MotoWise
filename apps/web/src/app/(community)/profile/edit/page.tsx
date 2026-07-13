@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { ProBanner } from '../pro-banner';
 
 const USERNAME_REGEX = /^[a-z0-9_]{3,30}$/;
 
@@ -104,6 +105,8 @@ export default function EditProfilePage() {
 
   return (
     <div className="mx-auto max-w-lg">
+      {/* Pro users routed here without a public username can still manage/cancel */}
+      <ProBanner className="mb-6" />
       <h1 className="text-xl font-bold text-neutral-50">
         {isNewProfile ? t('setupTitle') : t('editTitle')}
       </h1>

@@ -34,6 +34,7 @@ export const WebEvent = {
   CHECKOUT_INITIATED: 'checkout_initiated',
   CHECKOUT_COMPLETED: 'checkout_completed',
   CHECKOUT_CANCELLED: 'checkout_cancelled',
+  MANAGE_SUBSCRIPTION_CLICKED: 'manage_subscription_clicked',
 
   // Blog
   BLOG_ARTICLE_READ: 'blog_article_read',

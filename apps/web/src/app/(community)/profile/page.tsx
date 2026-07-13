@@ -3,13 +3,13 @@
 import type { GetRiderProfileQuery, MeQuery } from '@motovault/graphql';
 import { GetRiderProfileDocument, MeDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
-import { Crown, MapPin } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect } from 'react';
-import { useProStatus } from '@/hooks/use-pro-status';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { ProBanner } from './pro-banner';
 import '@/app/(community)/garage/garage.css';
 
 type User = MeQuery['me'];
@@ -18,7 +18,6 @@ type RideStats = GetRiderProfileQuery['getRiderProfile']['rideStats'];
 export default function ProfilePage() {
   const t = useTranslations('Profile');
   const router = useRouter();
-  const { isPro, isTrialing, trialDaysLeft } = useProStatus();
 
   const {
     data: meData,
@@ -125,39 +124,8 @@ export default function ProfilePage() {
   return (
     <div className="garage-page" style={{ paddingTop: '40px', paddingBottom: '60px' }}>
       <div className="garage-inner" style={{ maxWidth: '780px' }}>
-        {/* Pro Banner — Pro users only */}
-        {isPro && (
-          <div className="prof-banner">
-            <div className="prof-banner-left">
-              <div className="prof-banner-icon">
-                <Crown className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="prof-banner-title">{t('proBannerTitle')}</div>
-                <div className="prof-banner-meta">
-                  {isTrialing ? (
-                    <>
-                      <span>{t('trial')}</span>
-                      {trialDaysLeft != null && (
-                        <>
-                          <span className="dot" />
-                          <span>{t('daysRemaining', { days: trialDaysLeft })}</span>
-                        </>
-                      )}
-                    </>
-                  ) : (
-                    <span>{t('active')}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="prof-banner-right">
-              <div className="prof-banner-price">
-                {isTrialing ? t('daysLeft', { days: trialDaysLeft ?? '?' }) : t('active')}
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Pro Banner — Pro users only (self-serve subscription management) */}
+        <ProBanner />
 
         {/* Profile Card */}
         <div className="prof-card">
