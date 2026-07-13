@@ -2971,7 +2971,8 @@
     "trial": "Prova",
     "daysRemaining": "{days} giorni rimanenti",
     "daysLeft": "{days} giorni rimasti",
-    "manageSubscription": "Gestisci abbonamento"
+    "manageSubscription": "Gestisci abbonamento",
+    "manageInStore": "Gestisci nel tuo app store"
   },
   "ProfileEdit": {
     "setupTitle": "Configura il tuo profilo pubblico",

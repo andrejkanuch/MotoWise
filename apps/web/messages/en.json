@@ -2919,7 +2919,8 @@
     "daysRemaining": "{days} days remaining",
     "active": "Active",
     "daysLeft": "{days} days left",
-    "manageSubscription": "Manage subscription"
+    "manageSubscription": "Manage subscription",
+    "manageInStore": "Manage in your app store"
   },
   "ProfileEdit": {
     "setupTitle": "Set Up Your Public Profile",

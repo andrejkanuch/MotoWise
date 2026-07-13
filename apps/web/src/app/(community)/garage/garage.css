@@ -1482,6 +1482,16 @@
   color: var(--mv-warm-300);
 }
 
+.prof-banner-manage-note {
+  display: inline-block;
+  margin-top: 8px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mv-ink-4);
+}
+
 /* Profile card */
 .prof-card {
   padding: 28px;

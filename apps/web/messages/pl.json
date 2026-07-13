@@ -3114,7 +3114,8 @@
     "daysRemaining": "Pozostało {days} dni",
     "active": "Aktywny",
     "daysLeft": "Pozostało {days} dni",
-    "manageSubscription": "Zarządzaj subskrypcją"
+    "manageSubscription": "Zarządzaj subskrypcją",
+    "manageInStore": "Zarządzaj w sklepie z aplikacjami"
   },
   "DiagnosticsDemo": {
     "aiTag": "Napędzane przez AI",
