@@ -5,6 +5,7 @@ import PostHog from 'posthog-react-native';
 import { Settings } from 'react-native-fbsdk-next';
 import { getStoredAnalyticsConsent, setStoredAnalyticsConsent } from './analytics-consent';
 import { getStoredUtmProperties } from './meta-attribution';
+import { isNetworkError } from './network-error';
 
 // -------------------------------------------------------------------
 // Analytics & Crash Reporting Wrapper
@@ -96,14 +97,9 @@ export function sentryBeforeSend(event: Sentry.ErrorEvent): Sentry.ErrorEvent | 
   // Transient connectivity failures — the device was offline/backgrounded
   // when a request fired. Expected on spotty cellular; the offline sync queue
   // (ride-sync-queue.ts) already retries these. Not actionable as crashes.
-  // (Sentry MOTO-VAULT-REACT-NATIVE-5)
-  if (
-    message.includes('internet connection appears to be offline') ||
-    message.includes('Network request failed') ||
-    message.includes('Failed to fetch') ||
-    message.includes('The request timed out') ||
-    message.includes('The network connection was lost')
-  ) {
+  // Delegates to the shared detector so the needle list lives in one place.
+  // (Sentry MOTO-VAULT-REACT-NATIVE-5 / -22 / -23 / -26 / -1Y)
+  if (isNetworkError(message)) {
     return null;
   }
   // RevenueCat logOut() invoked for an already-anonymous user. logoutRevenueCat()

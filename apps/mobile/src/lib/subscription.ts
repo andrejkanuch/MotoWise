@@ -8,6 +8,7 @@ import { getStoredAnalyticsConsent } from './analytics-consent';
 import { logger } from './logger';
 import { getStoredUtmProperties } from './meta-attribution';
 import { isNetworkError } from './network-error';
+import { isExpectedRevenueCatError } from './revenuecat-errors';
 
 // Module-level cached import — resolve once, reuse everywhere
 let PurchasesModule: typeof import('react-native-purchases') | null = null;
@@ -31,6 +32,23 @@ function isExpoGo(): boolean {
 
 // Shared init promise — loginRevenueCat awaits this before calling logIn
 let initPromise: Promise<(() => void) | null> | null = null;
+
+/**
+ * Single error policy for every RevenueCat catch block in this module.
+ * Expected user/device/store-environment errors (see revenuecat-errors.ts) and
+ * transient connectivity failures are downgraded to a warn + breadcrumb;
+ * anything else — a genuine integration bug — is captured to Sentry.
+ * (Sentry MOTO-VAULT-REACT-NATIVE-7 / -M / -24 / -1A)
+ */
+function reportRevenueCatError(e: unknown, source: string): void {
+  if (isNetworkError(e) || isExpectedRevenueCatError(e)) {
+    const msg = e instanceof Error ? e.message : String(e);
+    logger.warn(`[RevenueCat] ${source} expected error:`, msg);
+    addBreadcrumb(msg, source);
+    return;
+  }
+  captureException(e, { source });
+}
 
 type PaywallResult = 'purchased' | 'restored' | 'cancelled' | 'not_presented' | 'error';
 
@@ -148,7 +166,7 @@ export async function restorePurchases(): Promise<boolean> {
     trackEvent(AnalyticsEvent.SUBSCRIPTION_RESTORED, { is_pro: isPro });
     return isPro;
   } catch (e) {
-    captureException(e, { context: 'restorePurchases' });
+    reportRevenueCatError(e, 'revenuecat.restorePurchases');
     return false;
   }
 }
@@ -176,7 +194,7 @@ async function doInit(): Promise<(() => void) | null> {
     // here would re-await this in-flight init promise and deadlock. Never breaks init.
     if (getStoredAnalyticsConsent()) {
       await applyRcAttribution(Purchases).catch((e) =>
-        captureException(e, { source: 'revenuecat.doInit.attribution' }),
+        reportRevenueCatError(e, 'revenuecat.doInit.attribution'),
       );
     }
 
@@ -200,7 +218,7 @@ async function doInit(): Promise<(() => void) | null> {
       Purchases.removeCustomerInfoUpdateListener(listener);
     };
   } catch (e) {
-    captureException(e, { source: 'revenuecat.doInit' });
+    reportRevenueCatError(e, 'revenuecat.doInit');
     return null;
   }
 }
@@ -225,7 +243,7 @@ export async function configureRevenueCatAnonymously(posthogDistinctId?: string)
       await Purchases.setAttributes({ $posthogUserId: posthogDistinctId });
     }
   } catch (e) {
-    captureException(e, { source: 'revenuecat.configureRevenueCatAnonymously' });
+    reportRevenueCatError(e, 'revenuecat.configureRevenueCatAnonymously');
   }
 }
 
@@ -242,17 +260,17 @@ export async function loginRevenueCat(userId: string) {
     await Purchases.setAttributes({ $posthogUserId: userId });
     await Purchases.syncAttributesAndOfferingsIfNeeded?.();
   } catch (e) {
-    captureException(e, { source: 'revenuecat.loginRevenueCat' });
+    reportRevenueCatError(e, 'revenuecat.loginRevenueCat');
   }
 }
 
 /**
  * Run a RevenueCat operation behind the shared readiness guard + error policy.
  * Replaces the repeated `isExpoGo / await init / getPurchases / try-catch /
- * isNetworkError-downgrade` ladder that every attribute writer otherwise copies.
- * No-op (resolves) in Expo Go or before init completes; transient network errors
- * are downgraded to a warn+breadcrumb, anything else is captured to Sentry. Never
- * throws — RC attribute writes are best-effort.
+ * error-downgrade` ladder that every attribute writer otherwise copies.
+ * No-op (resolves) in Expo Go or before init completes; errors follow the
+ * shared {@link reportRevenueCatError} policy. Never throws — RC attribute
+ * writes are best-effort.
  */
 async function withRevenueCat(
   label: string,
@@ -265,13 +283,7 @@ async function withRevenueCat(
     const Purchases = await getPurchases();
     await run(Purchases);
   } catch (e) {
-    if (isNetworkError(e)) {
-      const msg = e instanceof Error ? e.message : String(e);
-      logger.warn(`[RevenueCat] ${label} network error (retried):`, msg);
-      addBreadcrumb(msg, `revenuecat.${label}`);
-      return;
-    }
-    captureException(e, { source: `revenuecat.${label}` });
+    reportRevenueCatError(e, `revenuecat.${label}`);
   }
 }
 
@@ -565,7 +577,7 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
         return 'cancelled';
     }
   } catch (e) {
-    captureException(e, { source: 'revenuecat.presentPaywall' });
+    reportRevenueCatError(e, 'revenuecat.presentPaywall');
     trackPaywallResult(options, 'error');
     return 'error';
   }
@@ -586,7 +598,7 @@ export async function logoutRevenueCat() {
     const isAnonymousError = msg.toLowerCase().includes('anonymous');
     logger.warn('[RevenueCat] logOut skipped:', msg);
     if (!isAnonymousError) {
-      captureException(e, { source: 'revenuecat.logoutRevenueCat' });
+      reportRevenueCatError(e, 'revenuecat.logoutRevenueCat');
     }
   }
 }
