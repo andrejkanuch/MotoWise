@@ -5,7 +5,9 @@ import { MaintenancePushService } from './maintenance-push.service';
 
 // Captures messages handed to Expo + lets each test choose the send outcome.
 const mockSentMessages: Array<{ title?: string; body?: string }> = [];
-const mockExpo = { sendResult: 'ok' as 'ok' | 'throw' | 'errorTicket' | 'deviceNotRegistered' };
+const mockExpo = {
+  sendResult: 'ok' as 'ok' | 'throw' | 'errorTicket' | 'deviceNotRegistered' | 'firstOkRestError',
+};
 // Records which tables had .delete() called — proves dedup-claim release on failure.
 const mockDeletes: string[] = [];
 
@@ -24,6 +26,14 @@ vi.mock('expo-server-sdk', () => ({
       if (mockExpo.sendResult === 'deviceNotRegistered') {
         return chunk.map(() => ({ status: 'error', details: { error: 'DeviceNotRegistered' } }));
       }
+      if (mockExpo.sendResult === 'firstOkRestError') {
+        // Multi-device: first device accepted, the rest errored.
+        return chunk.map((_, i) =>
+          i === 0
+            ? { status: 'ok', id: 'ticket-x' }
+            : { status: 'error', details: { error: 'MessageRateExceeded' } },
+        );
+      }
       return chunk.map(() => ({ status: 'ok', id: 'ticket-x' }));
     };
   },
@@ -37,7 +47,7 @@ function makeAdminClient(resultsByTable: Record<string, { data?: unknown; error?
   const from = vi.fn((table: string) => {
     const result = resultsByTable[table] ?? { data: [], error: null };
     const builder: Record<string, unknown> = {};
-    for (const m of ['select', 'insert', 'delete', 'in', 'is', 'eq']) {
+    for (const m of ['select', 'insert', 'delete', 'in', 'is', 'eq', 'limit']) {
       builder[m] = vi.fn(() => {
         if (m === 'delete') mockDeletes.push(table);
         return builder;
@@ -160,6 +170,38 @@ describe('MaintenancePushService.sendDuePush', () => {
     // dead token pruned + dedup claim released
     expect(mockDeletes).toContain('device_push_tokens');
     expect(mockDeletes).toContain('maintenance_push_log');
+  });
+
+  it('keeps the claim when at least one of a task’s devices is accepted (no duplicate re-send)', async () => {
+    mockExpo.sendResult = 'firstOkRestError';
+    const admin = makeAdminClient({
+      maintenance_tasks: {
+        data: [
+          {
+            id: 't1',
+            user_id: 'u1',
+            title: 'Oil change',
+            due_date: '2026-07-01',
+            motorcycle_id: 'm1',
+          },
+        ],
+        error: null,
+      },
+      device_push_tokens: {
+        data: [
+          { user_id: 'u1', token: 'ExponentPushToken[dev1]' },
+          { user_id: 'u1', token: 'ExponentPushToken[dev2]' },
+        ],
+        error: null,
+      },
+      users: { data: [{ id: 'u1', preferences: {} }], error: null },
+      maintenance_push_log: { error: null },
+    });
+    const summary = await new MaintenancePushService(admin).sendDuePush(1);
+    // One device accepted → task counts as pushed and the claim is NOT released, so a
+    // same-day re-run won't re-push to the device that already got it.
+    expect(summary).toEqual({ tasksDue: 1, pushed: 1, skipped: 0, failed: 0, noToken: 0 });
+    expect(mockDeletes).not.toContain('maintenance_push_log');
   });
 
   it('skips (without claiming) on a non-unique dedup-log error', async () => {

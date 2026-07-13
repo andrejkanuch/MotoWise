@@ -12,6 +12,9 @@ const PG_UNIQUE_VIOLATION = '23505' as const;
 const EXPO_DEVICE_NOT_REGISTERED = 'DeviceNotRegistered' as const;
 /** Cap each Expo push HTTP call so a hung exp.host never blocks the run/request. */
 const EXPO_SEND_TIMEOUT_MS = 15_000;
+/** Safety valve: bound a single run's work. If ever hit, the overflow is logged (not
+ *  silently dropped) so the cap can be raised or the send paginated. */
+const MAX_DUE_TASKS_PER_RUN = 5_000;
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;
@@ -64,13 +67,20 @@ export class MaintenancePushService {
       .select('id, user_id, title, due_date, motorcycle_id')
       .in('status', ACTIVE_TASK_STATUSES as unknown as string[])
       .is('deleted_at', null)
-      .eq('due_date', dueDate);
+      .eq('due_date', dueDate)
+      .limit(MAX_DUE_TASKS_PER_RUN);
 
     if (error) {
       this.logger.error(`sendDuePush task query failed: ${error.message} (${error.code})`);
       throw error;
     }
     const dueTasks = (tasks ?? []) as DueTaskRow[];
+    if (dueTasks.length === MAX_DUE_TASKS_PER_RUN) {
+      // Hit the per-run cap — some due tasks may be unprocessed this run. Surface it.
+      this.logger.warn(
+        `sendDuePush hit the ${MAX_DUE_TASKS_PER_RUN}-task cap; overflow deferred — raise the cap or paginate.`,
+      );
+    }
     if (dueTasks.length === 0) return { tasksDue: 0, pushed: 0, skipped: 0, failed: 0, noToken: 0 };
 
     // Fetch tokens + locales for ALL due-task owners FIRST (before claiming), so a DB
@@ -177,16 +187,20 @@ export class MaintenancePushService {
   }
 
   /**
-   * Send messages in Expo-sized chunks. Returns the set of taskIds whose send errored
-   * (whole-chunk throw or per-message error ticket) so the caller can release their
-   * dedup claim for retry. Prunes tokens Expo reports as DeviceNotRegistered.
+   * Send messages in Expo-sized chunks. Returns the set of taskIds whose send fully
+   * failed — i.e. NO device for that task was accepted — so the caller can release
+   * only those dedup claims for retry. A task with ≥1 accepted device keeps its claim
+   * so a same-day re-run never re-pushes to the device that already got it (dedup is
+   * per-task, sends fan out per device). Prunes tokens Expo reports as DeviceNotRegistered.
    */
   private async dispatch(messages: ExpoPushMessage[]): Promise<Set<string>> {
-    const failedTaskIds = new Set<string>();
-    if (messages.length === 0) return failedTaskIds;
+    if (messages.length === 0) return new Set<string>();
 
     const taskIdOf = (m: ExpoPushMessage): string | undefined =>
       (m.data as { taskId?: string } | undefined)?.taskId;
+
+    const failedTaskIds = new Set<string>();
+    const succeededTaskIds = new Set<string>();
 
     for (const chunk of this.expo.chunkPushNotifications(messages)) {
       try {
@@ -197,8 +211,11 @@ export class MaintenancePushService {
         );
         for (let i = 0; i < tickets.length; i++) {
           const ticket = tickets[i];
-          if (ticket.status !== 'error') continue;
           const tid = taskIdOf(chunk[i]);
+          if (ticket.status !== 'error') {
+            if (tid) succeededTaskIds.add(tid);
+            continue;
+          }
           if (tid) failedTaskIds.add(tid);
           // Log every error reason (rate-limit, message-too-big, etc.), not just the
           // DeviceNotRegistered branch, so transient failures are diagnosable.
@@ -233,6 +250,10 @@ export class MaintenancePushService {
         }
       }
     }
+
+    // Release only tasks where EVERY device failed; a task with any accepted device
+    // keeps its claim so the accepted device isn't re-pushed on a same-day re-run.
+    for (const tid of succeededTaskIds) failedTaskIds.delete(tid);
     return failedTaskIds;
   }
 }
