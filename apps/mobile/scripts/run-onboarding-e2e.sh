@@ -11,9 +11,11 @@
 # Override any of them by exporting SUPABASE_URL / SUPABASE_ANON_KEY /
 # SUPABASE_SERVICE_ROLE_KEY before running (e.g. to point at local Supabase).
 #
-# Prereq: the app must be running on a booted simulator/emulator, served with
-# EXPO_PUBLIC_OB_VARIANT=invested so the flow is deterministic:
-#   EXPO_PUBLIC_OB_VARIANT=invested pnpm --filter @motovault/mobile start
+# Prereq: install a STANDALONE / PREVIEW build (bundled JS, no Metro) with
+# EXPO_PUBLIC_OB_VARIANT=invested baked into its bundle, running on a booted
+# simulator/emulator. Metro-backed Expo dev-client builds are unsupported —
+# `clearState` wipes the dev client's Metro connection (see .maestro/README.md
+# and onboarding.yaml).
 set -eu
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
@@ -45,12 +47,18 @@ USER_ID=""
 
 admin() { # admin METHOD PATH [DATA]
   method=$1; path=$2; data=${3:-}
+  # DELETE (teardown) must surface HTTP 4xx/5xx: plain `curl -sS` exits 0 on
+  # error responses, which would hide a rejected delete and leak test users.
+  # --fail-with-body makes curl exit non-zero on error while still printing the
+  # body. The POST path keeps its plain body capture (RESP=$(...) parses .id).
+  fail_opt=""
+  [ "$method" = "DELETE" ] && fail_opt="--fail-with-body"
   if [ -n "$data" ]; then
-    curl -sS -X "$method" "$SUPABASE_URL/auth/v1/admin/$path" \
+    curl -sS $fail_opt -X "$method" "$SUPABASE_URL/auth/v1/admin/$path" \
       -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
       -H "Content-Type: application/json" -d "$data"
   else
-    curl -sS -X "$method" "$SUPABASE_URL/auth/v1/admin/$path" \
+    curl -sS $fail_opt -X "$method" "$SUPABASE_URL/auth/v1/admin/$path" \
       -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"
   fi
 }

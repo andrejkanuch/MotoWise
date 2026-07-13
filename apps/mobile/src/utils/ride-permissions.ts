@@ -52,9 +52,13 @@ export async function checkAndRequestPermissions(): Promise<PermissionLevel> {
  * disclosure is shown rather than the Settings redirect firing unexplained.
  */
 export async function hasAllLocationPermissions(): Promise<boolean> {
-  const foreground = await Location.getForegroundPermissionsAsync();
-  if (!foreground.granted) return false;
+  // Both status reads sit inside the try: a rejected foreground read (like the
+  // background one) must count as not-granted so it never bubbles out of
+  // handleStartRide — the disclosure is shown rather than the flow crashing.
   try {
+    const foreground = await Location.getForegroundPermissionsAsync();
+    if (!foreground.granted) return false;
+
     const background = await Location.getBackgroundPermissionsAsync();
     return background.granted;
   } catch {

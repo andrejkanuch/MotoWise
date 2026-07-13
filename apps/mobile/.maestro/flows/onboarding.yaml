@@ -17,7 +17,11 @@ env:
 # .maestro/README.md. clearState wipes an Expo dev client's Metro connection, and
 # there's no reliable non-interactive way to re-point it, so dev-client runs are not
 # supported by this flow.
+# clearState resets the sandbox but NOT the iOS Keychain, where expo-secure-store
+# persists the Supabase session — a prior session would skip onboarding and make
+# this flow flaky. clearKeychain wipes it so Welcome always renders.
 - clearState
+- clearKeychain
 - launchApp
 
 # 1. Welcome

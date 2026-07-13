@@ -2024,11 +2024,11 @@
     "openSettings": "เปิดการตั้งค่า",
     "startError": "ไม่สามารถเริ่มการขับขี่ได้ กรุณาลองอีกครั้ง",
     "lastRideSummary": "ครั้งล่าสุด: {{distance}} · {{date}}",
-    "disclosureTitle": "Location access for ride recording",
-    "disclosureBody": "MotoVault records your route, distance, and speed while you ride — including in the background when the app is closed or your screen is off, so your whole ride is captured. Location is only used while a ride is active.",
-    "disclosureSettingsNote": "You may be taken to Settings — choose “Allow all the time” to keep recording in the background.",
-    "disclosureContinue": "Continue",
-    "disclosureNotNow": "Not now"
+    "disclosureTitle": "การเข้าถึงตำแหน่งสำหรับการบันทึกการขับขี่",
+    "disclosureBody": "MotoVault จะบันทึกเส้นทาง ระยะทาง และความเร็วขณะคุณขับขี่ รวมถึงขณะทำงานเบื้องหลังเมื่อปิดแอปหรือหน้าจอดับ เพื่อให้บันทึกการขับขี่ได้ครบถ้วน ตำแหน่งจะถูกใช้เฉพาะเมื่อมีการขับขี่อยู่เท่านั้น",
+    "disclosureSettingsNote": "คุณอาจถูกนำไปยังการตั้งค่า — เลือก “อนุญาตตลอดเวลา” เพื่อให้บันทึกต่อไปในเบื้องหลัง",
+    "disclosureContinue": "ดำเนินการต่อ",
+    "disclosureNotNow": "ไว้ก่อน"
   },
   "preFlight": {
     "title": "ตรวจสอบก่อนออกเดินทาง",

@@ -43,4 +43,10 @@ describe('hasAllLocationPermissions', () => {
     mockGetBackground.mockRejectedValue(new Error('ACCESS_BACKGROUND_LOCATION not in manifest'));
     expect(await hasAllLocationPermissions()).toBe(false);
   });
+
+  it('treats a thrown foreground read as not-granted (and never reads background)', async () => {
+    mockGetForeground.mockRejectedValue(new Error('foreground permission read failed'));
+    expect(await hasAllLocationPermissions()).toBe(false);
+    expect(mockGetBackground).not.toHaveBeenCalled();
+  });
 });

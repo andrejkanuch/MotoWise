@@ -27,7 +27,11 @@ import { useRideStore } from '../../stores/ride.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { distanceUnitLabel, formatDistance, formatRelativeDate } from '../../utils/ride-formatters';
 import { startGPSListener } from '../../utils/ride-location';
-import { hasAllLocationPermissions, markPrePromptDismissed } from '../../utils/ride-permissions';
+import {
+  hasAllLocationPermissions,
+  markPrePromptDismissed,
+  shouldShowPrePrompt,
+} from '../../utils/ride-permissions';
 import { rideMMKV } from '../../utils/ride-storage';
 import { enqueueOrExecute } from '../../utils/ride-sync-queue';
 
@@ -146,6 +150,12 @@ export default function StartRideScreen() {
     // location collection BEFORE the OS prompt / Android 11+ Settings redirect.
     // Skip only when both permissions are already granted — nothing to disclose.
     if (await hasAllLocationPermissions()) {
+      await runStartRide();
+      return;
+    }
+    // Honor the 7-day cooldown after a "Not now" decline — don't re-nag with the
+    // disclosure; start the ride directly (runStartRide degrades to foreground-only).
+    if (!shouldShowPrePrompt()) {
       await runStartRide();
       return;
     }

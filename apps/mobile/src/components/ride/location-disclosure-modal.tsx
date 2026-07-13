@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import { MapPin } from 'lucide-react-native';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -33,7 +34,9 @@ export const LocationDisclosureModal = memo(function LocationDisclosureModal({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onDismiss}>
-      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' }}>
+      <View
+        style={{ flex: 1, backgroundColor: palette.surfaceOverlay, justifyContent: 'flex-end' }}
+      >
         <Animated.View
           entering={FadeInUp.duration(260)}
           style={{
