@@ -3,6 +3,7 @@
 import { type ProStatus, REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import { useEffect, useState } from 'react';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { getRevenueCatCustomerInfo } from '@/lib/revenuecat';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 export const INITIAL: ProStatus = {
@@ -81,18 +82,9 @@ interface TierData {
 
 /** Check Pro via RevenueCat JS SDK */
 async function checkViaRevenueCat(userId: string): Promise<ProStatus | null> {
-  const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_WEB_API_KEY;
-  if (!apiKey) return null;
-
   try {
-    const { Purchases } = await import('@revenuecat/purchases-js');
-
-    if (!Purchases.isConfigured()) {
-      Purchases.configure({ apiKey, appUserId: userId });
-    }
-
-    const purchases = Purchases.getSharedInstance();
-    const customerInfo = await purchases.getCustomerInfo();
+    const customerInfo = await getRevenueCatCustomerInfo(userId);
+    if (!customerInfo) return null;
 
     const entitlement = customerInfo.entitlements.active[REVENUECAT_ENTITLEMENT_PRO];
     const isPro = entitlement !== undefined;

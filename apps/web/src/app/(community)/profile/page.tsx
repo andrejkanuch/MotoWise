@@ -7,6 +7,7 @@ import { Crown, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect } from 'react';
+import { useManageSubscription } from '@/hooks/use-manage-subscription';
 import { useProStatus } from '@/hooks/use-pro-status';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
@@ -19,6 +20,7 @@ export default function ProfilePage() {
   const t = useTranslations('Profile');
   const router = useRouter();
   const { isPro, isTrialing, trialDaysLeft } = useProStatus();
+  const managementURL = useManageSubscription();
 
   const {
     data: meData,
@@ -155,6 +157,17 @@ export default function ProfilePage() {
               <div className="prof-banner-price">
                 {isTrialing ? t('daysLeft', { days: trialDaysLeft ?? '?' }) : t('active')}
               </div>
+              {managementURL && (
+                <a
+                  href={managementURL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="prof-banner-manage"
+                  onClick={() => trackEvent(WebEvent.MANAGE_SUBSCRIPTION_CLICKED)}
+                >
+                  {t('manageSubscription')}
+                </a>
+              )}
             </div>
           </div>
         )}

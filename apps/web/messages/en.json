@@ -2918,7 +2918,8 @@
     "trial": "Trial",
     "daysRemaining": "{days} days remaining",
     "active": "Active",
-    "daysLeft": "{days} days left"
+    "daysLeft": "{days} days left",
+    "manageSubscription": "Manage subscription"
   },
   "ProfileEdit": {
     "setupTitle": "Set Up Your Public Profile",

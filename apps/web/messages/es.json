@@ -2918,7 +2918,8 @@
     "trial": "Prueba",
     "daysRemaining": "{days} días restantes",
     "active": "Activo",
-    "daysLeft": "{days} días restantes"
+    "daysLeft": "{days} días restantes",
+    "manageSubscription": "Gestionar suscripción"
   },
   "ProfileEdit": {
     "setupTitle": "Configura tu perfil público",

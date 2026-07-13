@@ -1465,6 +1465,23 @@
   font-size: 13px;
 }
 
+.prof-banner-manage {
+  display: inline-block;
+  margin-top: 8px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mv-ink-3);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+
+.prof-banner-manage:hover {
+  color: var(--mv-warm-300);
+}
+
 /* Profile card */
 .prof-card {
   padding: 28px;

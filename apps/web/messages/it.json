@@ -2970,7 +2970,8 @@
     "proBannerTitle": "MotoVault Pro",
     "trial": "Prova",
     "daysRemaining": "{days} giorni rimanenti",
-    "daysLeft": "{days} giorni rimasti"
+    "daysLeft": "{days} giorni rimasti",
+    "manageSubscription": "Gestisci abbonamento"
   },
   "ProfileEdit": {
     "setupTitle": "Configura il tuo profilo pubblico",

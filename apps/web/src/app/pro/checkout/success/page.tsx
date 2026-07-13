@@ -18,6 +18,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { clearProStatusCache } from '@/hooks/use-pro-status';
 import { trackEvent, WebEvent } from '@/lib/analytics';
+import { getRevenueCatCustomerInfo } from '@/lib/revenuecat';
 
 // ---------------------------------------------------------------------------
 // Polling configuration — progressive back-off via setTimeout chaining
@@ -56,19 +57,9 @@ type Status = 'polling' | 'activated' | 'timeout' | 'already_pro';
 /** Check RevenueCat entitlements for 'pro' */
 async function checkProEntitlement(userId: string): Promise<boolean> {
   try {
-    const { Purchases } = await import('@revenuecat/purchases-js');
-
-    const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_WEB_API_KEY;
-    if (!apiKey) return false;
-
-    if (!Purchases.isConfigured()) {
-      Purchases.configure({ apiKey, appUserId: userId });
-    }
-
-    const purchases = Purchases.getSharedInstance();
-    const customerInfo = await purchases.getCustomerInfo();
-    const proEntitlement = customerInfo.entitlements.active[REVENUECAT_ENTITLEMENT_PRO];
-    return proEntitlement !== undefined;
+    const customerInfo = await getRevenueCatCustomerInfo(userId);
+    if (!customerInfo) return false;
+    return customerInfo.entitlements.active[REVENUECAT_ENTITLEMENT_PRO] !== undefined;
   } catch {
     return false;
   }
@@ -266,7 +257,14 @@ function CheckoutSuccessContent() {
               </Link>
 
               <p className="mt-4 text-xs text-neutral-500">
-                Manage your subscription anytime in Settings.
+                Manage or cancel your subscription anytime from your{' '}
+                <Link
+                  href="/profile"
+                  className="underline transition-colors hover:text-neutral-300"
+                >
+                  profile
+                </Link>
+                .
               </p>
             </>
           )}

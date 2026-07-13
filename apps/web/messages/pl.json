@@ -3113,7 +3113,8 @@
     "trial": "Okres próbny",
     "daysRemaining": "Pozostało {days} dni",
     "active": "Aktywny",
-    "daysLeft": "Pozostało {days} dni"
+    "daysLeft": "Pozostało {days} dni",
+    "manageSubscription": "Zarządzaj subskrypcją"
   },
   "DiagnosticsDemo": {
     "aiTag": "Napędzane przez AI",

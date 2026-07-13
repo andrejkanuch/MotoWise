@@ -3113,7 +3113,8 @@
     "trial": "トライアル",
     "daysRemaining": "残り{days}日",
     "active": "有効",
-    "daysLeft": "残り{days}日"
+    "daysLeft": "残り{days}日",
+    "manageSubscription": "サブスクリプションを管理"
   },
   "DiagnosticsDemo": {
     "aiTag": "AI搭載",

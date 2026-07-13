@@ -68,11 +68,15 @@ const COMPARISON = [
 const FAQ = [
   {
     q: 'How does the 7-day free trial work?',
-    a: 'You get full Pro access immediately. We don\u2019t charge until day 7 \u2014 and we send you an email reminder 48\u00a0hours before that. Cancel anytime in your account settings; no questions, no friction.',
+    a: 'You get full Pro access immediately. We don\u2019t charge until day 7 \u2014 and we send you an email reminder 48\u00a0hours before that. Cancel anytime before the trial ends and you won\u2019t be charged; no questions, no friction.',
+  },
+  {
+    q: 'How do I cancel my subscription?',
+    a: 'If you subscribed on the web, open your Profile and click \u201cManage subscription\u201d on the Pro banner \u2014 that opens the billing portal where you can cancel in one click. If you subscribed through the iOS app, cancel in App Store \u203a your name \u203a Subscriptions; on Android, in Google Play \u203a Payments & subscriptions. Your Pro features stay active until the end of the current billing period.',
   },
   {
     q: 'Can I cancel anytime?',
-    a: 'Yes. Cancel from your account settings or the App Store / Google Play subscription panel. Your Pro features stay active until the end of the current billing period.',
+    a: 'Yes \u2014 there\u2019s no lock-in. Cancel whenever you like from the same place you subscribed (see \u201cHow do I cancel my subscription?\u201d above), and you keep Pro until the end of the period you\u2019ve already paid for.',
   },
   {
     q: 'Why subscribe vs. pay once?',

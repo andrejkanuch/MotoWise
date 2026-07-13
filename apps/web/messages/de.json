@@ -2918,7 +2918,8 @@
     "trial": "Testphase",
     "daysRemaining": "{days} Tage verbleibend",
     "active": "Aktiv",
-    "daysLeft": "{days} Tage übrig"
+    "daysLeft": "{days} Tage übrig",
+    "manageSubscription": "Abo verwalten"
   },
   "ProfileEdit": {
     "setupTitle": "Öffentliches Profil einrichten",
