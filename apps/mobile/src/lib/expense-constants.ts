@@ -26,7 +26,7 @@ export const PRIMARY_CATEGORIES: ExpenseCategory[] = EXPENSE_CATEGORY_META.filte
 ).map((m) => m.key);
 
 // Intl.NumberFormat construction is expensive (~0.5-1ms). Cache instances per currency.
-// With max 24 currencies, memory is ~24KB — negligible.
+// With max 25 currencies, memory is ~25KB — negligible.
 const formatterCache = new Map<string, Intl.NumberFormat>();
 
 /** Format a numeric amount with the correct currency symbol and decimal places.

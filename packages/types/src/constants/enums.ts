@@ -186,6 +186,7 @@ export const Currency = {
   ARS: 'ARS',
   CLP: 'CLP',
   PEN: 'PEN',
+  KES: 'KES',
 } as const;
 export type Currency = (typeof Currency)[keyof typeof Currency];
 
@@ -215,6 +216,7 @@ export const CURRENCY_SYMBOLS: Record<Currency, string> = {
   ARS: '$',
   CLP: '$',
   PEN: 'S/.',
+  KES: 'KSh',
 };
 
 /**

@@ -81,6 +81,11 @@ describe('CompleteOnboardingInputSchema', () => {
     }
   });
 
+  it('accepts the KES (Kenyan Shilling) currency code', () => {
+    const result = CompleteOnboardingInputSchema.parse({ ...validBase, currency: 'KES' });
+    expect(result.currency).toBe('KES');
+  });
+
   it('rejects unsupported currency codes', () => {
     expect(() => CompleteOnboardingInputSchema.parse({ ...validBase, currency: 'KWD' })).toThrow();
   });
