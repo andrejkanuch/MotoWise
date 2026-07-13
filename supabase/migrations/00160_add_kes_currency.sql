@@ -1,6 +1,12 @@
 -- Migration: Add KES (Kenyan Shilling) to supported currencies (24 -> 25)
 -- Requested by a user in the Kenya region. Purely additive to the allowlists,
 -- so it cannot break the existing 24 currencies or older app builds.
+--
+-- Constraints are re-added with NOT VALID so this migration does not run the
+-- validating table scan (which holds a write-blocking lock for its duration).
+-- The new allowlist is a strict superset of the old one, so every existing row
+-- is already valid. The formal VALIDATE runs in a separate migration (00161),
+-- in its own transaction, under a non-blocking SHARE UPDATE EXCLUSIVE lock.
 
 -- 1. Expand users.currency CHECK constraint
 ALTER TABLE public.users DROP CONSTRAINT IF EXISTS chk_users_currency;
@@ -9,7 +15,7 @@ ALTER TABLE public.users ADD CONSTRAINT chk_users_currency
     'USD','EUR','GBP','JPY','CAD','AUD','CHF','INR','BRL','MXN',
     'SEK','NOK','DKK','PLN','TRY',
     'RSD','CZK','HUF','RON','BGN','COP','ARS','CLP','PEN','KES'
-  ));
+  )) NOT VALID;
 
 -- 2. Expand expenses.currency CHECK constraint
 ALTER TABLE public.expenses DROP CONSTRAINT IF EXISTS chk_expenses_currency;
@@ -18,7 +24,7 @@ ALTER TABLE public.expenses ADD CONSTRAINT chk_expenses_currency
     'USD','EUR','GBP','JPY','CAD','AUD','CHF','INR','BRL','MXN',
     'SEK','NOK','DKK','PLN','TRY',
     'RSD','CZK','HUF','RON','BGN','COP','ARS','CLP','PEN','KES'
-  ));
+  )) NOT VALID;
 
 -- 3. Expand maintenance_tasks.currency CHECK constraint
 ALTER TABLE public.maintenance_tasks DROP CONSTRAINT IF EXISTS chk_maintenance_tasks_currency;
@@ -27,7 +33,7 @@ ALTER TABLE public.maintenance_tasks ADD CONSTRAINT chk_maintenance_tasks_curren
     'USD','EUR','GBP','JPY','CAD','AUD','CHF','INR','BRL','MXN',
     'SEK','NOK','DKK','PLN','TRY',
     'RSD','CZK','HUF','RON','BGN','COP','ARS','CLP','PEN','KES'
-  ));
+  )) NOT VALID;
 
 -- 4. Expand fuel_logs.currency CHECK constraint
 ALTER TABLE public.fuel_logs DROP CONSTRAINT IF EXISTS chk_fuel_logs_currency;
@@ -36,7 +42,7 @@ ALTER TABLE public.fuel_logs ADD CONSTRAINT chk_fuel_logs_currency
     'USD','EUR','GBP','JPY','CAD','AUD','CHF','INR','BRL','MXN',
     'SEK','NOK','DKK','PLN','TRY',
     'RSD','CZK','HUF','RON','BGN','COP','ARS','CLP','PEN','KES'
-  ));
+  )) NOT VALID;
 
 -- 5. Update complete_onboarding function — only the internal allowlist changes.
 --    Signature is unchanged (18 params, same types) so CREATE OR REPLACE is safe.
