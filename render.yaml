@@ -57,6 +57,11 @@ envVarGroups:
         sync: false
       - key: REVENUECAT_WEBHOOK_SECRET
         sync: false
+      # MOT-278: shared secret for the maintenance-due push trigger endpoint; must
+      # match the Supabase Vault secret `maintenance_push_secret`. The endpoint fails
+      # closed when unset. Value is set in the Render dashboard (sync: false).
+      - key: MAINTENANCE_PUSH_SECRET
+        sync: false
       - key: RESEND_API_KEY
         sync: false
       - key: CORS_ORIGINS

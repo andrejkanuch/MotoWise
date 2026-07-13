@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { GUARDS_METADATA } from '@nestjs/common/constants';
 import { describe, expect, it } from 'vitest';
 import { HealthController } from '../../modules/health/health.controller';
+import { MaintenanceDuePushController } from '../../modules/push-tokens/maintenance-due-push.controller';
 import { RevenueCatWebhookController } from '../../modules/webhooks/revenuecat.controller';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
@@ -28,7 +29,11 @@ describe('REST controller auth inventory', () => {
   // Nest container is brittle in a unit test, so we enumerate explicitly — the
   // source-tree assertion below fails the build if a new @Controller appears and
   // is not added here.
-  const KNOWN_CONTROLLERS = [HealthController, RevenueCatWebhookController] as const;
+  const KNOWN_CONTROLLERS = [
+    HealthController,
+    RevenueCatWebhookController,
+    MaintenanceDuePushController,
+  ] as const;
 
   const isClassPublic = (cls: object) => Reflect.getMetadata(IS_PUBLIC_KEY, cls) === true;
 
@@ -52,6 +57,25 @@ describe('REST controller auth inventory', () => {
 
   it('RevenueCatWebhookController is explicitly @Public()', () => {
     expect(isClassPublic(RevenueCatWebhookController)).toBe(true);
+  });
+
+  it('MaintenanceDuePushController is explicitly @Public()', () => {
+    expect(isClassPublic(MaintenanceDuePushController)).toBe(true);
+  });
+
+  it('maintenance-due-push performs its own secret-header authentication (the real auth behind @Public)', () => {
+    // @Public() removes the JWT guard, so the timing-safe secret comparison IS the auth.
+    // Pin that the handler still compares the header against the configured secret and
+    // rejects when either is missing (fails closed).
+    const src = readFileSync(
+      join(__dirname, '../../modules/push-tokens/maintenance-due-push.controller.ts'),
+      'utf8',
+    );
+    expect(src).toContain('timingSafeEqual');
+    expect(src).toContain('MAINTENANCE_PUSH_SECRET');
+    expect(src).toContain('UnauthorizedException');
+    // Fails closed: rejects when the secret env or the secret header is absent.
+    expect(src).toMatch(/!secret\s*\|\|\s*!secretHeader/);
   });
 
   it('RevenueCat webhook performs its own HMAC authentication (the real auth behind @Public)', () => {

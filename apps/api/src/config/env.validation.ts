@@ -29,6 +29,10 @@ export const envSchema = z.object({
   CORS_ORIGINS: z.string().default('http://localhost:8081,http://localhost:3000'),
   REVENUECAT_WEBHOOK_SECRET: optionalString,
   REVENUECAT_SECRET_API_KEY: optionalString,
+  // MOT-278: shared secret for the maintenance-due push trigger endpoint; must
+  // match the Supabase Vault secret `maintenance_push_secret`. Endpoint fails
+  // closed when unset.
+  MAINTENANCE_PUSH_SECRET: optionalString,
   RESEND_API_KEY: optionalString,
   UPSTASH_REDIS_REST_URL: optionalUrl,
   UPSTASH_REDIS_REST_TOKEN: optionalString,

@@ -1190,6 +1190,7 @@ export type Mutation = {
   publishBlogPost: BlogPost;
   publishTrip: Trip;
   regenerateRideSummary: RideSummary;
+  registerPushToken: RegisterPushTokenResult;
   removeWaypoint: Scalars['Boolean']['output'];
   reorderWaypoints: Scalars['Boolean']['output'];
   reportSurface: SurfaceReport;
@@ -1538,6 +1539,11 @@ export type MutationPublishTripArgs = {
 
 export type MutationRegenerateRideSummaryArgs = {
   rideId: Scalars['String']['input'];
+};
+
+
+export type MutationRegisterPushTokenArgs = {
+  input: RegisterPushTokenInput;
 };
 
 
@@ -2371,6 +2377,19 @@ export type RecallResult = {
   count: Scalars['Int']['output'];
   recalls: Array<Recall>;
   vinUsed?: Maybe<Scalars['String']['output']>;
+};
+
+export type RegisterPushTokenInput = {
+  /** The device platform: 'ios' or 'android'. */
+  platform: Scalars['String']['input'];
+  /** The Expo push token for this device. */
+  token: Scalars['String']['input'];
+};
+
+export type RegisterPushTokenResult = {
+  __typename?: 'RegisterPushTokenResult';
+  /** True when the token was registered/refreshed. */
+  success: Scalars['Boolean']['output'];
 };
 
 export type ReorderWaypointsInput = {
