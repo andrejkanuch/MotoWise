@@ -2025,7 +2025,12 @@
     "locationRequired": "Localização necessária",
     "locationMessage": "O MotoVault precisa de acesso à localização para gravar seu passeio. Ative nas Configurações.",
     "openSettings": "Abrir Configurações",
-    "startError": "Não foi possível iniciar o passeio. Tente novamente."
+    "startError": "Não foi possível iniciar o passeio. Tente novamente.",
+    "disclosureTitle": "Acesso à localização para gravar o trajeto",
+    "disclosureBody": "O MotoVault registra seu trajeto, distância e velocidade enquanto você pilota, inclusive em segundo plano quando o app está fechado ou a tela desligada, para capturar todo o percurso. A localização só é usada durante um trajeto ativo.",
+    "disclosureSettingsNote": "Você pode ser levado às Configurações: escolha “Permitir o tempo todo” para continuar gravando em segundo plano.",
+    "disclosureContinue": "Continuar",
+    "disclosureNotNow": "Agora não"
   },
   "preFlight": {
     "title": "Pré-viagem",

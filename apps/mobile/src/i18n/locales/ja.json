@@ -2023,7 +2023,12 @@
     "locationRequired": "位置情報が必要です",
     "locationMessage": "MotoVaultはライドを記録するために位置情報へのアクセスが必要です。設定で有効にしてください。",
     "openSettings": "設定を開く",
-    "startError": "ライドを開始できませんでした。もう一度お試しください。"
+    "startError": "ライドを開始できませんでした。もう一度お試しください。",
+    "disclosureTitle": "ライド記録のための位置情報アクセス",
+    "disclosureBody": "MotoVault は走行中にルート、距離、速度を記録します。アプリを閉じているときや画面がオフのときでもバックグラウンドで記録し、ライド全体を記録します。位置情報はライド中のみ使用されます。",
+    "disclosureSettingsNote": "設定画面に移動する場合があります。バックグラウンドで記録を続けるには「常に許可」を選択してください。",
+    "disclosureContinue": "続ける",
+    "disclosureNotNow": "今はしない"
   },
   "preFlight": {
     "title": "プリフライト",

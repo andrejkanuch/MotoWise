@@ -1,0 +1,48 @@
+{
+  "$comment": "How an AI agent proves its own work on MotoVault. Consumed by the verify-task / phase-checkpoint skills and by humans. Keep commands in sync with root package.json.",
+  "commands": {
+    "lint": "pnpm lint",
+    "typecheck": "pnpm typecheck",
+    "test": "pnpm test",
+    "build": "pnpm build",
+    "precheck": "pnpm precheck",
+    "generate": "pnpm generate",
+    "check_api_bans": "pnpm check:api-bans",
+    "check_router": "pnpm check:router",
+    "check_i18n": "pnpm check:i18n",
+    "knip": "pnpm knip",
+    "test_e2e_web": "pnpm --filter @motovault/web exec playwright test"
+  },
+  "quality_gate": {
+    "$comment": "Run after every task. This is the single gate CI also enforces.",
+    "command": "pnpm precheck"
+  },
+  "web": {
+    "$comment": "How to bring the web stack up for BROWSER:* acceptance criteria.",
+    "devServer": {
+      "command": "pnpm --filter @motovault/web dev",
+      "url": "http://localhost:3000",
+      "startupSeconds": 20
+    },
+    "e2e": {
+      "command": "pnpm --filter @motovault/web exec playwright test",
+      "configPath": "apps/web/playwright.config.ts"
+    },
+    "browser": { "tool": "auto" }
+  },
+  "mobile": {
+    "$comment": "DEVICE:* acceptance criteria. MotoVault drives the iOS simulator via XcodeBuildMCP (+ axe for taps/typing). Requires Metro + API running. See memory: project_xcode_ui_automation.",
+    "platforms": ["ios"],
+    "devClient": "MotoVaultDev",
+    "driver": "XcodeBuildMCP",
+    "e2e": {
+      "$comment": "Authored regression flows (Tier 2). Requires the Maestro CLI + a booted device.",
+      "command": "pnpm --filter @motovault/mobile test:e2e",
+      "flowsDir": "apps/mobile/.maestro/flows"
+    }
+  },
+  "api": {
+    "test": "pnpm --filter @motovault/api test",
+    "test_e2e": "pnpm --filter @motovault/api test:e2e"
+  }
+}

@@ -2027,7 +2027,12 @@
     "locationMessage": "MotoVault potrebuje prístup k polohe na zaznamenanie jazdy. Prosím, povol ho v Nastaveniach.",
     "openSettings": "Otvoriť Nastavenia",
     "startError": "Nepodarilo sa spustiť jazdu. Skúste to znova.",
-    "lastRideSummary": "Posledná: {{distance}} · {{date}}"
+    "lastRideSummary": "Posledná: {{distance}} · {{date}}",
+    "disclosureTitle": "Prístup k polohe na zaznamenávanie jazdy",
+    "disclosureBody": "MotoVault počas jazdy zaznamenáva tvoju trasu, vzdialenosť a rýchlosť — aj na pozadí, keď je aplikácia zatvorená alebo obrazovka vypnutá, aby zachytila celú jazdu. Poloha sa používa iba počas aktívnej jazdy.",
+    "disclosureSettingsNote": "Môžeš byť presmerovaný do Nastavení — vyber „Povoliť vždy“, aby zaznamenávanie pokračovalo na pozadí.",
+    "disclosureContinue": "Pokračovať",
+    "disclosureNotNow": "Teraz nie"
   },
   "preFlight": {
     "title": "Predjazdná kontrola",

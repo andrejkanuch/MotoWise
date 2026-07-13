@@ -23,7 +23,9 @@
     "i18n:status": "pnpm --filter mobile i18n:status",
     "check:api-bans": "sh scripts/check-api-bans.sh",
     "check:router": "sh scripts/check-no-router-any.sh",
-    "precheck": "pnpm check:api-bans && pnpm check:router && pnpm lint && pnpm typecheck && pnpm test",
+    "check:arch": "tsx scripts/check-arch-boundaries.ts",
+    "knip": "knip",
+    "precheck": "pnpm check:api-bans && pnpm check:router && pnpm check:arch && pnpm lint && pnpm typecheck && pnpm test",
     "precheck:push": "sh scripts/precheck-changed.sh",
     "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
     "android": "expo run:android",
@@ -31,6 +33,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.1",
+    "knip": "^5.64.4",
+    "ts-morph": "^27.0.0",
     "tsx": "^4.22.4",
     "turbo": "^2.10.0",
     "typescript": "~5.9.3"

@@ -1908,7 +1908,12 @@
     "locationMessage": "MotoVault needs location access to record your ride. Please enable it in Settings.",
     "openSettings": "Open Settings",
     "startError": "Failed to start ride. Please try again.",
-    "lastRideSummary": "Last: {{distance}} · {{date}}"
+    "lastRideSummary": "Last: {{distance}} · {{date}}",
+    "disclosureTitle": "Location access for ride recording",
+    "disclosureBody": "MotoVault records your route, distance, and speed while you ride — including in the background when the app is closed or your screen is off, so your whole ride is captured. Location is only used while a ride is active.",
+    "disclosureSettingsNote": "You may be taken to Settings — choose “Allow all the time” to keep recording in the background.",
+    "disclosureContinue": "Continue",
+    "disclosureNotNow": "Not now"
   },
   "preFlight": {
     "title": "Pre-flight",

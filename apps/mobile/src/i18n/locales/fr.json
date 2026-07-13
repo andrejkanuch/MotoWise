@@ -2025,7 +2025,12 @@
     "locationRequired": "Localisation requise",
     "locationMessage": "MotoVault a besoin de la localisation pour enregistrer ta balade. Active-la dans les réglages.",
     "openSettings": "Ouvrir les réglages",
-    "startError": "Impossible de démarrer la balade. Réessaie."
+    "startError": "Impossible de démarrer la balade. Réessaie.",
+    "disclosureTitle": "Accès à la position pour l’enregistrement",
+    "disclosureBody": "MotoVault enregistre votre itinéraire, votre distance et votre vitesse pendant que vous roulez, y compris en arrière-plan lorsque l’app est fermée ou l’écran éteint, afin de capturer tout le trajet. La position n’est utilisée que pendant un trajet actif.",
+    "disclosureSettingsNote": "Vous serez peut-être redirigé vers les Réglages : choisissez « Toujours autoriser » pour continuer l’enregistrement en arrière-plan.",
+    "disclosureContinue": "Continuer",
+    "disclosureNotNow": "Pas maintenant"
   },
   "preFlight": {
     "title": "Pré-vol",

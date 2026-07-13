@@ -2023,7 +2023,12 @@
     "locationRequired": "Standort erforderlich",
     "locationMessage": "MotoVault benötigt Standortzugriff, um deine Fahrt aufzuzeichnen. Bitte aktiviere ihn in den Einstellungen.",
     "openSettings": "Einstellungen öffnen",
-    "startError": "Fahrt konnte nicht gestartet werden. Bitte versuche es erneut."
+    "startError": "Fahrt konnte nicht gestartet werden. Bitte versuche es erneut.",
+    "disclosureTitle": "Standortzugriff für die Fahrtaufzeichnung",
+    "disclosureBody": "MotoVault zeichnet während der Fahrt deine Route, Distanz und Geschwindigkeit auf – auch im Hintergrund, wenn die App geschlossen oder der Bildschirm aus ist, damit die gesamte Fahrt erfasst wird. Der Standort wird nur während einer aktiven Fahrt verwendet.",
+    "disclosureSettingsNote": "Du wirst möglicherweise zu den Einstellungen weitergeleitet – wähle „Immer zulassen“, um die Aufzeichnung im Hintergrund fortzusetzen.",
+    "disclosureContinue": "Weiter",
+    "disclosureNotNow": "Jetzt nicht"
   },
   "preFlight": {
     "title": "Vorab-Check",

@@ -2027,7 +2027,12 @@
     "locationMessage": "MotoVault potrzebuje dostępu do lokalizacji, aby rejestrować jazdę. Włącz go w Ustawieniach.",
     "openSettings": "Otwórz Ustawienia",
     "startError": "Nie udało się rozpocząć jazdy. Spróbuj ponownie.",
-    "lastRideSummary": "Ostatnia: {{distance}} · {{date}}"
+    "lastRideSummary": "Ostatnia: {{distance}} · {{date}}",
+    "disclosureTitle": "Dostęp do lokalizacji do rejestrowania trasy",
+    "disclosureBody": "MotoVault rejestruje trasę, dystans i prędkość podczas jazdy — także w tle, gdy aplikacja jest zamknięta lub ekran wyłączony, aby zapisać całą trasę. Lokalizacja jest używana tylko podczas aktywnej jazdy.",
+    "disclosureSettingsNote": "Możesz zostać przekierowany do Ustawień — wybierz „Zezwalaj zawsze”, aby kontynuować rejestrowanie w tle.",
+    "disclosureContinue": "Kontynuuj",
+    "disclosureNotNow": "Nie teraz"
   },
   "preFlight": {
     "title": "Kontrola przedjazdowa",

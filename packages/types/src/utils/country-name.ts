@@ -10,18 +10,36 @@
  * All three mean "not a real country" and resolve to `null`.
  */
 
-const COUNTRY_DISPLAY_NAMES = new Intl.DisplayNames(['en'], { type: 'region' });
-
 /** CLDR sentinel returned for placeholder codes like ZZ. */
 const ICU_UNKNOWN_REGION = 'Unknown Region';
 
 const ALPHA2_RE = /^[A-Z]{2}$/;
 
+// Lazily constructed on first use — NOT at module load. Some runtimes (e.g.
+// certain Hermes builds on mobile) ship without `Intl.DisplayNames`, and
+// constructing it at import time would crash the whole app on startup since
+// this module is re-exported from the shared `@motovault/types` barrel. Build
+// it on demand and degrade to `null` where the API is unavailable.
+// `undefined` = not yet resolved; `null` = resolved-but-unsupported.
+let displayNames: Intl.DisplayNames | null | undefined;
+
+function getCountryDisplayNames(): Intl.DisplayNames | null {
+  if (displayNames === undefined) {
+    displayNames =
+      typeof Intl !== 'undefined' && typeof Intl.DisplayNames === 'function'
+        ? new Intl.DisplayNames(['en'], { type: 'region' })
+        : null;
+  }
+  return displayNames;
+}
+
 /** Resolve a country code (any case) to an English name, or null when it is not a real country. */
 export function countryNameFromCode(code: string): string | null {
   const upper = code.trim().toUpperCase();
   if (!ALPHA2_RE.test(upper)) return null;
-  const name = COUNTRY_DISPLAY_NAMES.of(upper);
+  const dn = getCountryDisplayNames();
+  if (!dn) return null;
+  const name = dn.of(upper);
   if (!name || name === upper || name === ICU_UNKNOWN_REGION) return null;
   return name;
 }
