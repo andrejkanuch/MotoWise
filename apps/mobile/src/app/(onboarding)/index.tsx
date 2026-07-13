@@ -89,6 +89,12 @@ export default function WelcomeScreen() {
     router.push(OB_ROUTE.EXPERIENCE);
   };
 
+  // Returning riders can skip straight to sign-in instead of walking the flow.
+  const handleLogIn = () => {
+    triggerImpact(ImpactFeedbackStyle.Light);
+    router.push(OB_ROUTE.SIGN_IN);
+  };
+
   // Block welcome UI while resume is pending — prevents flash of hero/animations
   if (resume) {
     return <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }} />;
@@ -260,6 +266,30 @@ export default function WelcomeScreen() {
                 {t('onboarding.v2WelcomeCta')}
               </Text>
               <ArrowRight size={18} color={ONBOARDING_COLORS.textOnAccent} />
+            </Pressable>
+          </Animated.View>
+
+          {/* Secondary CTA — returning riders sign in directly */}
+          <Animated.View entering={FadeIn.delay(650).duration(300)}>
+            <Pressable
+              onPress={handleLogIn}
+              hitSlop={8}
+              style={({ pressed }) => ({
+                alignSelf: 'center',
+                marginTop: 18,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: ONBOARDING_COLORS.warm2,
+                  letterSpacing: -0.1,
+                }}
+              >
+                {t('onboarding.obAccountHaveAccount')}
+              </Text>
             </Pressable>
           </Animated.View>
         </View>
