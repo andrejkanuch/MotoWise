@@ -30,6 +30,8 @@ export interface MaintenancePushSummary {
   skipped: number;
   /** Tasks whose Expo send errored; their dedup claim is released for a same-day retry. */
   failed: number;
+  /** Due tasks whose owner has no registered device token — nothing to send. */
+  noToken: number;
 }
 
 interface DueTaskRow {
@@ -69,7 +71,7 @@ export class MaintenancePushService {
       throw error;
     }
     const dueTasks = (tasks ?? []) as DueTaskRow[];
-    if (dueTasks.length === 0) return { tasksDue: 0, pushed: 0, skipped: 0, failed: 0 };
+    if (dueTasks.length === 0) return { tasksDue: 0, pushed: 0, skipped: 0, failed: 0, noToken: 0 };
 
     // Fetch tokens + locales for ALL due-task owners FIRST (before claiming), so a DB
     // error throws here and wastes no dedup claim, and we only claim sendable tasks.
@@ -111,9 +113,13 @@ export class MaintenancePushService {
     const messages: ExpoPushMessage[] = [];
     let skipped = 0;
     let attempted = 0;
+    let noToken = 0;
     for (const task of dueTasks) {
       const tokens = (tokensByUser.get(task.user_id) ?? []).filter((t) => Expo.isExpoPushToken(t));
-      if (tokens.length === 0) continue; // nothing to send → don't waste a claim
+      if (tokens.length === 0) {
+        noToken++; // owner has no registered device → nothing to send, no claim wasted
+        continue;
+      }
 
       const { error: logError } = await this.adminClient
         .from('maintenance_push_log')
@@ -162,11 +168,12 @@ export class MaintenancePushService {
 
     const failed = failedTaskIds.size;
     const pushed = attempted - failed;
-    const summary = `sendDuePush(${daysBefore}d): due=${dueTasks.length} pushed=${pushed} skipped=${skipped} failed=${failed}`;
+    // due = pushed + skipped + failed + noToken, so the counts reconcile with tasksDue.
+    const summary = `sendDuePush(${daysBefore}d): due=${dueTasks.length} pushed=${pushed} skipped=${skipped} failed=${failed} noToken=${noToken}`;
     // Escalate to warn when any send failed so partial failures aren't lost in info logs.
     if (failed > 0) this.logger.warn(summary);
     else this.logger.log(summary);
-    return { tasksDue: dueTasks.length, pushed, skipped, failed };
+    return { tasksDue: dueTasks.length, pushed, skipped, failed, noToken };
   }
 
   /**

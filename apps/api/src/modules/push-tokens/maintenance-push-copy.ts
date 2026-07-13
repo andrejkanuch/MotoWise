@@ -32,7 +32,7 @@ const COPY = {
     title: 'Zbliża się przegląd',
     body: (t: string) => `Zbliża się termin: ${t}. Dotknij, aby sprawdzić.`,
   },
-  'pt-BR': {
+  'pt-br': {
     title: 'Manutenção em breve',
     body: (t: string) => `${t} está próxima do prazo. Toque para revisar.`,
   },
@@ -66,7 +66,8 @@ type SupportedLocale = keyof typeof COPY;
 export function resolveMaintenancePushCopy(locale: string | null | undefined): MaintenancePushCopy {
   if (!locale) return COPY[DEFAULT_PUSH_LOCALE];
 
-  const normalized = locale.replace('_', '-');
+  // Lowercase so device-style locales resolve regardless of case (pt-BR, pt-br, pt_BR).
+  const normalized = locale.replace('_', '-').toLowerCase();
   if (normalized in COPY) return COPY[normalized as SupportedLocale];
 
   const base = normalized.split('-')[0]?.toLowerCase();

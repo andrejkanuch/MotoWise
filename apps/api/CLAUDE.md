@@ -33,6 +33,6 @@
 - Not running `pnpm generate` after adding/changing resolvers
 - Production logs: resolvers slower than `SLOW_RESOLVER_MS` (default 2000, `0` disables) log at **warn** with prefix `SLOW` (see `CorrelationIdInterceptor`)
 - Using SUPABASE_ADMIN for user-scoped queries (bypasses RLS!)
-- Missing @UseGuards on new resolvers (defaults to public)
+- `GqlAuthGuard` is registered GLOBALLY via `APP_GUARD` (app.module.ts), so GraphQL resolvers are AUTHENTICATED by default — do NOT add per-resolver `@UseGuards(GqlAuthGuard)` (redundant; not the codebase convention). Use `@Public()` to expose a resolver/route, and pair any `@Public()` REST controller with its own auth (see RevenueCatWebhookController / MaintenanceDuePushController + controller-auth-inventory.spec.ts)
 - Forgetting dto/ directory for input types
 - Not adding models/ to content-flags and learning-progress modules

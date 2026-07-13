@@ -82,7 +82,7 @@ describe('MaintenancePushService.sendDuePush', () => {
   it('returns a zero summary and sends nothing when no tasks are due', async () => {
     const admin = makeAdminClient({ maintenance_tasks: { data: [], error: null } });
     const summary = await new MaintenancePushService(admin).sendDuePush(1);
-    expect(summary).toEqual({ tasksDue: 0, pushed: 0, skipped: 0, failed: 0 });
+    expect(summary).toEqual({ tasksDue: 0, pushed: 0, skipped: 0, failed: 0, noToken: 0 });
   });
 
   it('skips a task whose dedup-log row already exists (unique violation) — idempotent re-run', async () => {
@@ -107,7 +107,7 @@ describe('MaintenancePushService.sendDuePush', () => {
       maintenance_push_log: { error: { code: '23505', message: 'duplicate key' } },
     });
     const summary = await new MaintenancePushService(admin).sendDuePush(1);
-    expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 1, failed: 0 });
+    expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 1, failed: 0, noToken: 0 });
   });
 
   it('does not claim a task whose owner has no registered token (no wasted claim)', async () => {
@@ -128,13 +128,13 @@ describe('MaintenancePushService.sendDuePush', () => {
       users: { data: [{ id: 'u1', preferences: {} }], error: null },
     });
     const summary = await new MaintenancePushService(admin).sendDuePush(1);
-    expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 0, failed: 0 });
+    expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 0, failed: 0, noToken: 1 });
     expect(mockSentMessages).toHaveLength(0);
   });
 
   it('localizes the push copy to the owner locale (de)', async () => {
     const summary = await new MaintenancePushService(clientForLocalizedSend('de')).sendDuePush(1);
-    expect(summary).toEqual({ tasksDue: 1, pushed: 1, skipped: 0, failed: 0 });
+    expect(summary).toEqual({ tasksDue: 1, pushed: 1, skipped: 0, failed: 0, noToken: 0 });
     expect(mockSentMessages[0].title).toBe('Wartung steht an');
     expect(mockSentMessages[0].body).toBe('Oil change ist bald fällig. Zum Ansehen tippen.');
   });
@@ -148,7 +148,7 @@ describe('MaintenancePushService.sendDuePush', () => {
   it('releases the dedup claim when the Expo send fails, so a same-day re-run retries', async () => {
     mockExpo.sendResult = 'throw';
     const summary = await new MaintenancePushService(clientForLocalizedSend('en')).sendDuePush(1);
-    expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 0, failed: 1 });
+    expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 0, failed: 1, noToken: 0 });
     // the claim row was deleted so the task is not permanently masked as sent
     expect(mockDeletes).toContain('maintenance_push_log');
   });
@@ -156,7 +156,7 @@ describe('MaintenancePushService.sendDuePush', () => {
   it('prunes a DeviceNotRegistered token and releases that task claim', async () => {
     mockExpo.sendResult = 'deviceNotRegistered';
     const summary = await new MaintenancePushService(clientForLocalizedSend('en')).sendDuePush(1);
-    expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 0, failed: 1 });
+    expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 0, failed: 1, noToken: 0 });
     // dead token pruned + dedup claim released
     expect(mockDeletes).toContain('device_push_tokens');
     expect(mockDeletes).toContain('maintenance_push_log');
@@ -184,7 +184,7 @@ describe('MaintenancePushService.sendDuePush', () => {
       maintenance_push_log: { error: { code: '23502', message: 'not-null violation' } },
     });
     const summary = await new MaintenancePushService(admin).sendDuePush(1);
-    expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 0, failed: 0 });
+    expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 0, failed: 0, noToken: 0 });
     expect(mockSentMessages).toHaveLength(0);
   });
 
