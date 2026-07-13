@@ -10,7 +10,10 @@
  * Kept as a single source of truth so the substring list is never duplicated
  * (repo rule: no duplicated magic strings).
  */
-const NETWORK_ERROR_MESSAGES = [
+// Entries are matched against the lowercased message. Strings match as
+// substrings; RegExp entries let a needle assert word boundaries so a bare
+// substring can't misclassify an unrelated error.
+const NETWORK_ERROR_MESSAGES: readonly (string | RegExp)[] = [
   'network request failed',
   'failed to fetch',
   // expo/fetch (the global fetch in Expo SDK 52+) wraps EVERY transport-level
@@ -19,11 +22,13 @@ const NETWORK_ERROR_MESSAGES = [
   // normally and never carry this prefix, so the prefix exactly identifies the
   // non-actionable transport class. The native reason is OS-localized (e.g.
   // French "La connexion réseau a été perdue"), so matching the reason text is
-  // unreliable — match the stable prefix instead. The trailing colon anchors to
-  // the `fetch failed: <reason>` format so an unrelated error that merely
-  // contains the words "fetch failed" is not silently dropped from Sentry.
+  // unreliable — match the stable prefix instead. The leading \b word boundary
+  // plus the trailing colon anchors to the `fetch failed: <reason>` format so an
+  // embedded-word error like "prefetch failed: …" (or one that merely contains
+  // the words "fetch failed") is not silently dropped from Sentry. No `i` flag
+  // is needed because the message is lowercased before matching.
   // (Sentry MOTO-VAULT-REACT-NATIVE-22 / -23 / -26 / -1Y)
-  'fetch failed:',
+  /\bfetch failed:/,
   'internet connection appears to be offline',
   'the request timed out',
   'the network connection was lost',
@@ -32,7 +37,7 @@ const NETWORK_ERROR_MESSAGES = [
   // RevenueCat surfaces transient connectivity failures with this generic
   // message; the SDK retries them. (Sentry MOTO-VAULT-REACT-NATIVE-M)
   'error performing request',
-] as const;
+];
 
 /**
  * Accepts an Error or a raw message string. Matching is case-insensitive —
@@ -42,5 +47,7 @@ const NETWORK_ERROR_MESSAGES = [
 export function isNetworkError(error: unknown): boolean {
   if (error instanceof TypeError && error.message === 'Network request failed') return true;
   const msg = (error instanceof Error ? error.message : String(error)).toLowerCase();
-  return NETWORK_ERROR_MESSAGES.some((needle) => msg.includes(needle));
+  return NETWORK_ERROR_MESSAGES.some((needle) =>
+    typeof needle === 'string' ? msg.includes(needle) : needle.test(msg),
+  );
 }

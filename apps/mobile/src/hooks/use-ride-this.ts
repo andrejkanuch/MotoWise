@@ -221,7 +221,11 @@ export function useRideThis({
       // the target app is missing — canOpenURL cannot detect that reliably on
       // Android 11+ without a <queries> manifest entry, so availability is
       // assumed and recovery happens here. (Sentry MOTO-VAULT-REACT-NATIVE-28)
-      addBreadcrumb(`nav handoff failed for ${url}`, 'nav-handoff');
+      // Strip the query string before logging — waypoint coordinates live in
+      // the query (waze ?ll=, google ?origin/destination, apple ?saddr/daddr)
+      // and must not be forwarded to Sentry.
+      const redactedUrl = url.split('?')[0];
+      addBreadcrumb(`nav handoff failed for ${redactedUrl}`, 'nav-handoff');
       if (fallbackUrl) {
         // https:// store links always resolve (browser fallback at worst).
         await Linking.openURL(fallbackUrl).catch(() => {});

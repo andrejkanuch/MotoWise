@@ -34,5 +34,11 @@ describe('isNetworkError', () => {
     // be swallowed — only the `fetch failed: <reason>` transport format matches.
     expect(isNetworkError(new Error('Image prefetch failed to decode asset'))).toBe(false);
     expect(isNetworkError(new Error('data fetch failed validation'))).toBe(false);
+    // Embedded-word form that DOES carry the `: <reason>` colon: a bare
+    // `includes('fetch failed:')` check would match the "fetch failed:" inside
+    // "prefetch failed:" and drop this real app error. The \b boundary rejects it.
+    expect(isNetworkError(new Error('Image prefetch failed: unable to decode asset'))).toBe(false);
+    // The genuine expo/fetch transport format at the start of the message still matches.
+    expect(isNetworkError(new Error('fetch failed: connection reset'))).toBe(true);
   });
 });
