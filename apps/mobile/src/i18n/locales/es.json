@@ -2025,7 +2025,12 @@
     "locationMessage": "MotoVault necesita acceso a tu ubicación para registrar tu ruta. Actívalo en Ajustes.",
     "openSettings": "Abrir Ajustes",
     "startError": "No se pudo iniciar la ruta. Inténtalo de nuevo.",
-    "lastRideSummary": "Última: {{distance}} · {{date}}"
+    "lastRideSummary": "Última: {{distance}} · {{date}}",
+    "disclosureTitle": "Acceso a la ubicación para registrar la ruta",
+    "disclosureBody": "MotoVault registra tu ruta, distancia y velocidad mientras conduces, incluso en segundo plano cuando la app está cerrada o la pantalla apagada, para capturar toda la ruta. La ubicación solo se usa mientras hay una ruta activa.",
+    "disclosureSettingsNote": "Puede que se abran los Ajustes: elige «Permitir siempre» para seguir grabando en segundo plano.",
+    "disclosureContinue": "Continuar",
+    "disclosureNotNow": "Ahora no"
   },
   "preFlight": {
     "title": "Pre-vuelo",

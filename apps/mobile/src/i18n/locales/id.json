@@ -2023,7 +2023,12 @@
     "locationMessage": "MotoVault membutuhkan akses lokasi untuk merekam perjalanan Anda. Aktifkan di Pengaturan.",
     "openSettings": "Buka Pengaturan",
     "startError": "Gagal memulai perjalanan. Silakan coba lagi.",
-    "lastRideSummary": "Terakhir: {{distance}} · {{date}}"
+    "lastRideSummary": "Terakhir: {{distance}} · {{date}}",
+    "disclosureTitle": "Akses lokasi untuk perekaman perjalanan",
+    "disclosureBody": "MotoVault merekam rute, jarak, dan kecepatan Anda saat berkendara — termasuk di latar belakang ketika aplikasi ditutup atau layar Anda mati, agar seluruh perjalanan Anda terekam. Lokasi hanya digunakan selama perjalanan sedang berlangsung.",
+    "disclosureSettingsNote": "Anda mungkin akan diarahkan ke Pengaturan — pilih “Izinkan sepanjang waktu” agar perekaman tetap berjalan di latar belakang.",
+    "disclosureContinue": "Lanjutkan",
+    "disclosureNotNow": "Nanti saja"
   },
   "preFlight": {
     "title": "Pra-perjalanan",

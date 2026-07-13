@@ -2023,7 +2023,12 @@
     "locationMessage": "MotoVault sürüşünü kaydetmek için konum erişimine ihtiyaç duyar. Lütfen Ayarlar'dan etkinleştir.",
     "openSettings": "Ayarları aç",
     "startError": "Sürüş başlatılamadı. Lütfen tekrar dene.",
-    "lastRideSummary": "Son: {{distance}} · {{date}}"
+    "lastRideSummary": "Son: {{distance}} · {{date}}",
+    "disclosureTitle": "Sürüş kaydı için konum erişimi",
+    "disclosureBody": "MotoVault, sürüş sırasında rotanızı, mesafenizi ve hızınızı kaydeder. Sürüşün tamamını kaydetmek için uygulama kapalıyken veya ekranınız kapalıyken arka planda da çalışır. Konum yalnızca etkin bir sürüş sırasında kullanılır.",
+    "disclosureSettingsNote": "Ayarlara yönlendirilebilirsiniz — arka planda kayda devam etmek için “Her zaman izin ver” seçeneğini belirleyin.",
+    "disclosureContinue": "Devam et",
+    "disclosureNotNow": "Şimdi değil"
   },
   "preFlight": {
     "title": "Ön kontrol",

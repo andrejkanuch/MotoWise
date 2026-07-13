@@ -1,0 +1,4 @@
+# Maestro workspace config — auto-discovers every flow under flows/.
+# Docs: https://docs.maestro.dev/
+flows:
+  - "flows/*.yaml"

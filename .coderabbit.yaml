@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# AI code review on PRs. Docs: https://docs.coderabbit.ai/
+language: "en-US"
+early_access: false
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: true
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - "main"
+  path_filters:
+    # Skip generated + vendored artifacts — never review these
+    - "!**/generated/**"
+    - "!packages/types/src/database.types.ts"
+    - "!apps/api/schema.graphql"
+    - "!**/*.gen.ts"
+    - "!pnpm-lock.yaml"
+    - "!**/dist/**"
+    - "!**/.next/**"
+  path_instructions:
+    - path: "supabase/migrations/**"
+      instructions: >-
+        Every new table MUST have RLS enabled and explicit policies in the same
+        migration. Flag any CREATE TABLE without a matching ENABLE ROW LEVEL
+        SECURITY + policy. Prefer column-level GRANTs for user-writable columns.
+    - path: "apps/mobile/**"
+      instructions: >-
+        React Native / Expo. Enforce: reanimated v4 (never RN Animated API),
+        borderCurve:'continuous' on rounded elements, palette tokens from
+        @motovault/design-system (no hardcoded hex/rgba), generated GraphQL
+        types from @motovault/graphql (no `any` for GraphQL data),
+        expo-secure-store for tokens (never AsyncStorage).
+    - path: "apps/api/**"
+      instructions: >-
+        NestJS + GraphQL. Enforce Supabase client rules: SUPABASE_USER for
+        user-scoped CRUD (RLS), never service-role for user-scoped writes.
+        Map snake_case DB columns to camelCase at the service layer; never
+        expose snake_case to clients. All new tables require RLS policies.
+    - path: "packages/**"
+      instructions: >-
+        Shared packages must never import from apps/. Use @motovault/* imports,
+        not relative paths across package boundaries. Export both Zod schema
+        and inferred type from validators. Use `as const` objects, not enums.
+chat:
+  auto_reply: true

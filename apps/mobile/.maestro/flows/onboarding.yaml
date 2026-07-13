@@ -1,0 +1,135 @@
+# Full onboarding E2E (INVESTED variant — the superset that visits every screen).
+#
+# Prereqs (handled by scripts/run-onboarding-e2e.sh):
+#   - A confirmed Supabase user exists; its creds are passed in as TEST_EMAIL / TEST_PASSWORD.
+#   - The app is built/served with EXPO_PUBLIC_OB_VARIANT=invested so the flow is deterministic.
+#   - APP_ID defaults to com.motovault.app.
+#
+# The flow signs IN a pre-created user at the account step (prod requires email
+# confirmation, so UI sign-up can't complete in a test — we create+confirm the
+# user out-of-band and delete it on teardown).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+---
+# Fresh state so Welcome renders (clears MMKV lastCompletedScreen + any session).
+# NOTE: run this against a STANDALONE / PREVIEW build (bundled JS, no Metro) — see
+# .maestro/README.md. clearState wipes an Expo dev client's Metro connection, and
+# there's no reliable non-interactive way to re-point it, so dev-client runs are not
+# supported by this flow.
+# clearState resets the sandbox but NOT the iOS Keychain, where expo-secure-store
+# persists the Supabase session — a prior session would skip onboarding and make
+# this flow flaky. clearKeychain wipes it so Welcome always renders.
+- clearState
+- clearKeychain
+- launchApp
+
+# 1. Welcome
+- extendedWaitUntil:
+    visible: "Let's get started"
+    timeout: 120000
+- tapOn: "Let's get started"
+
+# 2. Experience (auto-advances after selecting)
+- assertVisible: ".*How long have you.*"
+- tapOn: ".*Just getting started.*"
+
+# 3. Frequency (auto-advances)
+- tapOn: ".*Almost daily.*"
+
+# 4. Stay-on-top (multi-select → Continue)
+- tapOn: ".*Never miss a service.*"
+- tapOn: "Continue"
+
+# 5. Last service (pick a chip → Continue)
+- tapOn: ".*Just did it.*"
+- tapOn: "Continue"
+
+# 6. Bike setup — MUST add a bike to keep bike-dependent screens reachable
+- assertVisible: "Popular makes"
+- tapOn: ".*Honda.*"
+- tapOn: "Add to my garage"
+
+# 7. Building plan (auto) → 8. Reveal
+- extendedWaitUntil:
+    visible: "Continue"
+    timeout: 30000
+- tapOn: "Continue"
+
+# 9. Goals (multi-select → Continue)
+- assertVisible: ".*Track my rides.*"
+- tapOn: ".*Track my rides.*"
+- tapOn: "Continue"
+
+# 10. Maintenance (skip the OEM deck)
+- tapOn:
+    text: "Skip — I'll set this up later"
+    optional: true
+- tapOn:
+    text: "Continue"
+    optional: true
+
+# 11. Commitment (skip the signature pledge)
+- tapOn:
+    text: "Not now"
+    optional: true
+
+# 12. Paywall (native RevenueCat overlay) → wait for the account screen to appear.
+#     If the RC template needs manual dismissal, close it first (optional).
+# Wait for the native RC paywall (close "×") OR the account screen, then dismiss
+# the paywall if it's up. Handles RC's async present + builds where it auto-skips.
+- extendedWaitUntil:
+    visible: "[×✕]|Continue with email"
+    timeout: 90000
+- tapOn:
+    text: "[×✕]"
+    optional: true
+- extendedWaitUntil:
+    visible: "Continue with email"
+    timeout: 60000
+
+# 13. Account → sign in the pre-created user
+- tapOn: "Already have an account? Sign in"
+- tapOn:
+    text: "Continue with email"
+    optional: true
+- tapOn: "Email"
+- inputText: ${TEST_EMAIL}
+- tapOn: "Password"
+- inputText: ${TEST_PASSWORD}
+# Dismiss the keyboard by tapping the (non-interactive) subtitle — the app's
+# custom keyboard controller doesn't support Maestro's hideKeyboard, and the
+# keyboard otherwise covers the Sign In button.
+- tapOn:
+    text: ".*Sign in to access your garage.*"
+    optional: true
+- tapOn: "Sign In"
+# iOS "Save Password?" system dialog appears after a successful login — decline it.
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# 14-16. After auth the app either walks heard-about -> notifications ->
+# personalizing, or fast-forwards straight to Home (timing/server dependent).
+# Handle the optional tail only if it appears; the single hard success check is
+# reaching the Home dashboard.
+- extendedWaitUntil:
+    visible: ".*hear about us.*|.*Today in your garage.*"
+    timeout: 90000
+- runFlow:
+    when:
+      visible: ".*hear about us.*"
+    commands:
+      - tapOn: "Instagram"
+      - extendedWaitUntil:
+          visible: "Enable Notifications"
+          timeout: 30000
+      - tapOn: "Maybe later"
+      - tapOn:
+          text: "Open my garage"
+          optional: true
+
+# Success: onboarding complete -> Home dashboard.
+- extendedWaitUntil:
+    visible: ".*Today in your garage.*"
+    timeout: 120000
