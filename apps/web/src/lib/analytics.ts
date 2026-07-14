@@ -108,7 +108,13 @@ export const StoreLocation = { Cta: 'cta', Hero: 'hero', FeatureCta: 'feature_ct
 export type StoreLocation = (typeof StoreLocation)[keyof typeof StoreLocation];
 
 type WebEventProperties = {
-  [WebEvent.APP_STORE_CLICK]: { platform: StorePlatform; location?: StoreLocation };
+  [WebEvent.APP_STORE_CLICK]: {
+    platform: StorePlatform;
+    location?: StoreLocation;
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+  };
   [WebEvent.FILTER_APPLIED]: { dimension: string; value: string; resultCount: number };
   [WebEvent.SORT_CHANGED]: { sortBy: string; direction: 'asc' | 'desc' };
   [WebEvent.MAP_VIEW_TOGGLED]: { enabled: boolean };
@@ -151,8 +157,18 @@ export function resetUser() {
 }
 
 // Legacy gtag-compatible helpers (now routed through PostHog)
-export function trackAppStoreClick(platform: StorePlatform, location?: StoreLocation) {
-  trackEvent(WebEvent.APP_STORE_CLICK, location ? { platform, location } : { platform });
+export function trackAppStoreClick(
+  platform: StorePlatform,
+  location?: StoreLocation,
+  campaign?: { utm_source?: string; utm_medium?: string; utm_campaign?: string },
+) {
+  trackEvent(WebEvent.APP_STORE_CLICK, {
+    platform,
+    ...(location ? { location } : {}),
+    ...(campaign?.utm_source ? { utm_source: campaign.utm_source } : {}),
+    ...(campaign?.utm_medium ? { utm_medium: campaign.utm_medium } : {}),
+    ...(campaign?.utm_campaign ? { utm_campaign: campaign.utm_campaign } : {}),
+  });
 }
 
 export function trackWaitlistSignup() {

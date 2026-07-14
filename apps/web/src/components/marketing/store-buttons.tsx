@@ -1,6 +1,7 @@
 'use client';
 
 import { type StoreLocation, type StorePlatform, trackAppStoreClick } from '@/lib/analytics';
+import { buildPlayReferrer, getCampaignParams } from '@/lib/campaign';
 
 const STORE_LINKS = {
   appStore: 'https://apps.apple.com/us/app/motovault/id6760291360',
@@ -27,8 +28,43 @@ export function storeAnchorProps(platform: StorePlatform, location: StoreLocatio
     href: platform === 'ios' ? STORE_LINKS.appStore : STORE_LINKS.googlePlay,
     target: '_blank',
     rel: 'noopener noreferrer',
-    onClick: () => trackAppStoreClick(platform, location),
+    onClick: (e: React.MouseEvent<HTMLAnchorElement>) => {
+      const campaign = getCampaignParams();
+      // Android install-referrer carries the channel deterministically into the
+      // Play install. Set it at click time (campaign params are client-only, so
+      // the SSR href stays clean and hydration-stable). iOS has no equivalent.
+      if (platform === 'android' && campaign) {
+        e.currentTarget.href = buildPlayReferrer(STORE_LINKS.googlePlay, campaign);
+      }
+      trackAppStoreClick(platform, location, campaign ?? undefined);
+    },
   } as const;
+}
+
+/**
+ * A single store-link anchor with click tracking + Google Play referrer wired
+ * in. Use from Server Components (footer, cta-section) that can't attach the
+ * `onClick` from {@link storeAnchorProps} — this client component owns the
+ * handler while accepting the caller's `className`/`style`/`children`.
+ */
+export function StoreLink({
+  platform,
+  location = 'cta',
+  className,
+  style,
+  children,
+}: {
+  platform: StorePlatform;
+  location?: StoreLocation;
+  className?: string;
+  style?: React.CSSProperties;
+  children: React.ReactNode;
+}) {
+  return (
+    <a {...storeAnchorProps(platform, location)} className={className} style={style}>
+      {children}
+    </a>
+  );
 }
 
 export function StoreButtons({

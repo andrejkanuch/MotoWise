@@ -22,4 +22,28 @@ describe('trackAppStoreClick', () => {
       location: 'hero',
     });
   });
+
+  it('stamps campaign params onto the event for channel attribution', () => {
+    trackAppStoreClick('android', 'cta', {
+      utm_source: 'instagram',
+      utm_medium: 'social',
+      utm_campaign: 'bio',
+    });
+    expect(posthog.capture).toHaveBeenCalledWith('app_store_click', {
+      platform: 'android',
+      location: 'cta',
+      utm_source: 'instagram',
+      utm_medium: 'social',
+      utm_campaign: 'bio',
+    });
+  });
+
+  it('omits campaign keys that are absent', () => {
+    trackAppStoreClick('ios', 'cta', { utm_source: 'tiktok' });
+    expect(posthog.capture).toHaveBeenCalledWith('app_store_click', {
+      platform: 'ios',
+      location: 'cta',
+      utm_source: 'tiktok',
+    });
+  });
 });

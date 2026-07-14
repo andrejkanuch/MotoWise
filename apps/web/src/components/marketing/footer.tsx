@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import { ExternalLink } from '@/components/marketing/external-link';
 import { Link } from '@/i18n/navigation';
-import { STORE_LINKS } from './store-buttons';
+import { StoreLink } from './store-buttons';
 
 function FooterColumn({
   title,
@@ -65,7 +65,7 @@ export async function Footer() {
           </Link>
           <p className="mv-footer-brand-text">{t('brandText')}</p>
           <div className="mv-footer-stores">
-            <ExternalLink href={STORE_LINKS.appStore} className="mv-footer-store">
+            <StoreLink platform="ios" location="cta" className="mv-footer-store">
               <svg
                 width="14"
                 height="14"
@@ -76,8 +76,8 @@ export async function Footer() {
                 <path d="M17.5 12.5c0-2.4 2-3.6 2-3.6-1.1-1.6-2.8-1.8-3.4-1.9-1.4-.1-2.8.8-3.5.8-.7 0-1.9-.8-3.1-.8-1.6 0-3.1.9-3.9 2.4-1.7 2.9-.4 7.2 1.2 9.5.8 1.1 1.7 2.4 2.9 2.4 1.2 0 1.6-.8 3-.8s1.8.8 3.1.8c1.3 0 2.1-1.2 2.9-2.3.9-1.3 1.3-2.6 1.3-2.7-.1 0-2.5-1-2.5-3.8zM15.3 5.5c.6-.8 1.1-1.9.9-3-1 0-2.2.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1.1.1 2.3-.6 2.9-1.4z" />
               </svg>
               {t('appStore')}
-            </ExternalLink>
-            <ExternalLink href={STORE_LINKS.googlePlay} className="mv-footer-store">
+            </StoreLink>
+            <StoreLink platform="android" location="cta" className="mv-footer-store">
               <svg
                 width="14"
                 height="14"
@@ -88,7 +88,7 @@ export async function Footer() {
                 <path d="M3.6 2.8c-.3.3-.5.7-.5 1.3v15.8c0 .6.2 1 .5 1.3l9-9-9-9.4zM14.6 13.6l2.8 1.6-11.2 6.4c-.5.3-1 .2-1.3 0l9.7-8zM18.3 11.4l-3 1.7-2.6-2.5 2.6-2.6 3 1.8c.9.5.9 1.2 0 1.6zM4.9 2.4c.3-.2.8-.2 1.3 0l11.2 6.4-2.8 1.7-9.7-8.1z" />
               </svg>
               {t('googlePlay')}
-            </ExternalLink>
+            </StoreLink>
           </div>
         </div>
 
