@@ -18,7 +18,7 @@
 ## Patterns
 - Resolvers are thin — business logic in services
 - Input validation with Zod schemas from @motovault/types via ZodValidationPipe
-- Use @UseGuards(GqlAuthGuard) on all protected resolvers
+- `GqlAuthGuard` is global (`APP_GUARD`), so resolvers are protected by default — do NOT add per-resolver `@UseGuards(GqlAuthGuard)`; use `@Public()` to opt a resolver/route out (see Common Mistakes below)
 - Use @CurrentUser() decorator to get authenticated user
 - AI services (article-generator, diagnostic-ai) call Anthropic Claude API
 - Use SUPABASE_ADMIN only for system operations (article creation, admin)
@@ -33,6 +33,6 @@
 - Not running `pnpm generate` after adding/changing resolvers
 - Production logs: resolvers slower than `SLOW_RESOLVER_MS` (default 2000, `0` disables) log at **warn** with prefix `SLOW` (see `CorrelationIdInterceptor`)
 - Using SUPABASE_ADMIN for user-scoped queries (bypasses RLS!)
-- Missing @UseGuards on new resolvers (defaults to public)
+- `GqlAuthGuard` is registered GLOBALLY via `APP_GUARD` (app.module.ts), so GraphQL resolvers are AUTHENTICATED by default — do NOT add per-resolver `@UseGuards(GqlAuthGuard)` (redundant; not the codebase convention). Use `@Public()` to expose a resolver/route, and pair any `@Public()` REST controller with its own auth (see RevenueCatWebhookController / MaintenanceDuePushController + controller-auth-inventory.spec.ts)
 - Forgetting dto/ directory for input types
 - Not adding models/ to content-flags and learning-progress modules

@@ -891,6 +891,51 @@ export type Database = {
           },
         ]
       }
+      device_push_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          last_seen_at: string
+          platform: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_seen_at?: string
+          platform: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_seen_at?: string
+          platform?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_push_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "device_push_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diagnostic_photos: {
         Row: {
           diagnostic_id: string
@@ -1809,6 +1854,52 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      maintenance_push_log: {
+        Row: {
+          due_date: string
+          id: string
+          sent_at: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          due_date: string
+          id?: string
+          sent_at?: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          due_date?: string
+          id?: string
+          sent_at?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_push_log_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_push_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_push_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       maintenance_task_photos: {
         Row: {
@@ -4528,6 +4619,7 @@ export type Database = {
         }
         Returns: Json
       }
+      cron_trigger_maintenance_due_push: { Args: never; Returns: undefined }
       disablelongtransactions: { Args: never; Returns: string }
       document_vault_bytes_used: { Args: never; Returns: number }
       dropgeometrycolumn:
@@ -4830,6 +4922,7 @@ export type Database = {
         Returns: {
           post_id: string
           rank: number
+          slug: string
         }[]
       }
       show_limit: { Args: never; Returns: number }
