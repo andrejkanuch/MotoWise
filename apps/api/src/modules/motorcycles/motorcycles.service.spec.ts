@@ -54,19 +54,22 @@ describe('MotorcyclesService', () => {
   });
 
   describe('findByUser', () => {
-    it('should return mapped motorcycles with camelCase fields', async () => {
+    it('should return mapped motorcycles with camelCase fields (excluding soft-deleted)', async () => {
+      const isMock = vi.fn().mockReturnValue({
+        order: vi.fn().mockReturnValue({
+          limit: vi.fn().mockResolvedValue({ data: [sampleRow], error: null }),
+        }),
+      });
       (mockUserClient.from as ReturnType<typeof vi.fn>).mockReturnValue({
         select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            order: vi.fn().mockReturnValue({
-              limit: vi.fn().mockResolvedValue({ data: [sampleRow], error: null }),
-            }),
-          }),
+          eq: vi.fn().mockReturnValue({ is: isMock }),
         }),
       });
 
       const result = await service.findByUser('user-1');
 
+      // Garage list must filter out soft-deleted bikes (deleted_at IS NULL)
+      expect(isMock).toHaveBeenCalledWith('deleted_at', null);
       expect(result).toEqual([expectedMapped]);
     });
 
@@ -74,10 +77,12 @@ describe('MotorcyclesService', () => {
       (mockUserClient.from as ReturnType<typeof vi.fn>).mockReturnValue({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
-            order: vi.fn().mockReturnValue({
-              limit: vi.fn().mockResolvedValue({
-                data: null,
-                error: { message: 'DB error', code: '42P01' },
+            is: vi.fn().mockReturnValue({
+              order: vi.fn().mockReturnValue({
+                limit: vi.fn().mockResolvedValue({
+                  data: null,
+                  error: { message: 'DB error', code: '42P01' },
+                }),
               }),
             }),
           }),
@@ -94,7 +99,9 @@ describe('MotorcyclesService', () => {
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              maybeSingle: vi.fn().mockResolvedValue({ data: sampleRow, error: null }),
+              is: vi.fn().mockReturnValue({
+                maybeSingle: vi.fn().mockResolvedValue({ data: sampleRow, error: null }),
+              }),
             }),
           }),
         }),
@@ -105,12 +112,14 @@ describe('MotorcyclesService', () => {
       expect(result).toEqual(expectedMapped);
     });
 
-    it('returns null when no row matches (not found / not owned)', async () => {
+    it('returns null when no row matches (not found / not owned / deleted)', async () => {
       (mockUserClient.from as ReturnType<typeof vi.fn>).mockReturnValue({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+              is: vi.fn().mockReturnValue({
+                maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+              }),
             }),
           }),
         }),
@@ -126,9 +135,11 @@ describe('MotorcyclesService', () => {
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              maybeSingle: vi
-                .fn()
-                .mockResolvedValue({ data: null, error: { message: 'DB error', code: '42P01' } }),
+              is: vi.fn().mockReturnValue({
+                maybeSingle: vi
+                  .fn()
+                  .mockResolvedValue({ data: null, error: { message: 'DB error', code: '42P01' } }),
+              }),
             }),
           }),
         }),
@@ -186,7 +197,9 @@ describe('MotorcyclesService', () => {
       // First call: enforceFreeTierBikeLimit count query
       userFromSpy.mockReturnValueOnce({
         select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockResolvedValue({ count: 0, error: null }),
+          eq: vi.fn().mockReturnValue({
+            is: vi.fn().mockResolvedValue({ count: 0, error: null }),
+          }),
         }),
       });
       // Second call: insert
@@ -274,7 +287,9 @@ describe('MotorcyclesService', () => {
       // Count query returns the limit
       userFromSpy.mockReturnValueOnce({
         select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockResolvedValue({ count: FREE_TIER_LIMITS.MAX_BIKES, error: null }),
+          eq: vi.fn().mockReturnValue({
+            is: vi.fn().mockResolvedValue({ count: FREE_TIER_LIMITS.MAX_BIKES, error: null }),
+          }),
         }),
       });
       (mockUserClient.from as ReturnType<typeof vi.fn>).mockImplementation(userFromSpy);
@@ -299,7 +314,9 @@ describe('MotorcyclesService', () => {
 
       (mockUserClient.from as ReturnType<typeof vi.fn>).mockReturnValue({
         select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockResolvedValue({ count: null, error: { message: 'DB down' } }),
+          eq: vi.fn().mockReturnValue({
+            is: vi.fn().mockResolvedValue({ count: null, error: { message: 'DB down' } }),
+          }),
         }),
       });
 
