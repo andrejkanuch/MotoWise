@@ -111,6 +111,7 @@
   },
   "devDependencies": {
     "@motovault/tsconfig": "workspace:*",
+    "@react-native/jest-preset": "0.86.0",
     "@tailwindcss/postcss": "^4.3.1",
     "@types/geojson": "7946.0.16",
     "@types/jest": "^29.5.14",
