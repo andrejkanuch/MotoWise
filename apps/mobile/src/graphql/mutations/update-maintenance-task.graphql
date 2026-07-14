@@ -1,0 +1,19 @@
+mutation UpdateMaintenanceTask($id: String!, $input: UpdateMaintenanceTaskInput!) {
+  updateMaintenanceTask(id: $id, input: $input) {
+    id
+    title
+    description
+    priority
+    status
+    dueDate
+    targetMileage
+    notes
+    isRecurring
+    intervalKm
+    intervalDays
+    remind30d
+    remind7d
+    remind1d
+    updatedAt
+  }
+}

@@ -328,6 +328,7 @@ export const AnalyticsEvent = {
   GARAGE_BIKE_ADDED: 'garage_bike_added',
   GARAGE_BIKE_REMOVED: 'garage_bike_removed',
   MAINTENANCE_TASK_CREATED: 'maintenance_task_created',
+  MAINTENANCE_TASK_UPDATED: 'maintenance_task_updated',
   MAINTENANCE_TASK_COMPLETED: 'maintenance_task_completed',
   MAINTENANCE_TASK_DELETED: 'maintenance_task_deleted',
   EXPENSE_ADDED: 'expense_added',

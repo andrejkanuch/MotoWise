@@ -7,6 +7,7 @@ import {
   ChevronDown,
   ChevronRight,
   Gauge,
+  Pencil,
   Trash2,
   Wrench,
 } from 'lucide-react-native';
@@ -37,6 +38,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
   onToggleExpand,
   onComplete,
   onDelete,
+  onEdit,
   mileageUnit,
 }: {
   task: MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
@@ -47,6 +49,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
   onToggleExpand: (id: string) => void;
   onComplete: (id: string) => void;
   onDelete: (id: string, title: string) => void;
+  onEdit?: (id: string) => void;
   mileageUnit: string;
 }) {
   const { t: et } = useEditorialTheme();
@@ -215,6 +218,29 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
               <Check size={14} color={palette.success500} strokeWidth={2.5} />
               <Text style={{ fontSize: 13, fontWeight: '600', color: palette.success500 }}>
                 {t('maintenance.markDone', { defaultValue: 'Done' })}
+              </Text>
+            </Pressable>
+          )}
+          {!isCompleted && onEdit && (
+            <Pressable
+              onPress={() => {
+                triggerImpact();
+                onEdit(task.id);
+              }}
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                paddingVertical: 10,
+                borderRightWidth: 0.5,
+                borderRightColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+              }}
+            >
+              <Pencil size={14} color={palette.primary500} strokeWidth={2} />
+              <Text style={{ fontSize: 13, fontWeight: '600', color: palette.primary500 }}>
+                {t('common.edit', { defaultValue: 'Edit' })}
               </Text>
             </Pressable>
           )}
