@@ -21,6 +21,19 @@ const eventWith = (
     },
   }) as ErrorEvent;
 
+type ExceptionSpec = { type?: string; value?: string; frames?: Frame[] };
+
+const eventWithExceptions = (specs: ExceptionSpec[]): ErrorEvent =>
+  ({
+    exception: {
+      values: specs.map((s) => ({
+        type: s.type ?? 'Error',
+        value: s.value,
+        ...(s.frames ? { stacktrace: { frames: s.frames } } : {}),
+      })),
+    },
+  }) as ErrorEvent;
+
 describe('shouldDropClientEvent', () => {
   it('keeps events with no exception values', () => {
     expect(shouldDropClientEvent({} as ErrorEvent)).toBe(false);
@@ -122,6 +135,38 @@ describe('shouldDropClientEvent', () => {
               { filename: 'https://motovault.app/_next/static/chunks/page.js', in_app: true },
             ],
           }),
+        ),
+      ).toBe(false);
+    });
+
+    it('KEEPS a non-TypeError exception carrying the same substring', () => {
+      // The rule is scoped to TypeError; a differently-typed throw with the
+      // same message must still report even without a first-party frame.
+      expect(
+        shouldDropClientEvent(
+          eventWith('something about window.webkit.messageHandlers', { type: 'Error' }),
+        ),
+      ).toBe(false);
+    });
+
+    it('KEEPS a mixed event where another exception carries a first-party frame', () => {
+      // The frameless bridge TypeError alone would match, but the chained
+      // first-party exception means the event is genuinely actionable.
+      expect(
+        shouldDropClientEvent(
+          eventWithExceptions([
+            {
+              type: 'TypeError',
+              value: "undefined is not an object (evaluating 'window.webkit.messageHandlers')",
+            },
+            {
+              type: 'Error',
+              value: 'Cannot read properties of undefined (reading "id")',
+              frames: [
+                { filename: 'https://motovault.app/_next/static/chunks/page.js', in_app: true },
+              ],
+            },
+          ]),
         ),
       ).toBe(false);
     });

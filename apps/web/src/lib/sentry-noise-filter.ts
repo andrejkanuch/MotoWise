@@ -16,6 +16,14 @@ export function shouldDropClientEvent(event: ErrorEvent): boolean {
   const exceptions = event.exception?.values;
   if (!exceptions?.length) return false;
 
+  // Presence of a first-party `/_next/static` frame anywhere in the event's
+  // exception chain. Computed across ALL exceptions (not per-exception) so a
+  // frameless third-party throw never drops an event that also carries a
+  // genuine first-party frame on a different exception in `exception.values`.
+  const hasFirstPartyFrame = exceptions.some((e) =>
+    e.stacktrace?.frames?.some((f) => f.filename?.includes('/_next/static')),
+  );
+
   // ResizeObserver loop notifications — benign browser churn, never actionable.
   if (exceptions.some((e) => e.value?.includes('ResizeObserver loop'))) {
     return true;
@@ -63,10 +71,9 @@ export function shouldDropClientEvent(event: ErrorEvent): boolean {
   // first-party `/_next/static` frame — a genuine first-party throw would carry
   // one and still report.
   if (
+    !hasFirstPartyFrame &&
     exceptions.some(
-      (e) =>
-        e.value?.includes('window.webkit.messageHandlers') &&
-        !e.stacktrace?.frames?.some((f) => f.filename?.includes('/_next/static')),
+      (e) => e.type === 'TypeError' && e.value?.includes('window.webkit.messageHandlers'),
     )
   ) {
     return true;
