@@ -8,7 +8,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Calendar, Check, Gauge } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -62,6 +62,16 @@ export default function EditMaintenanceTaskScreen() {
   const [notes, setNotes] = useState('');
   const [hydrated, setHydrated] = useState(false);
   const [saved, setSaved] = useState(false);
+  const backTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clear the post-save auto-dismiss timer if the rider leaves first, so it
+  // can't pop an already-unmounted screen.
+  useEffect(
+    () => () => {
+      if (backTimerRef.current) clearTimeout(backTimerRef.current);
+    },
+    [],
+  );
 
   // Hydrate form state once, the moment the task is available in cache.
   useEffect(() => {
@@ -104,7 +114,7 @@ export default function EditMaintenanceTaskScreen() {
         // 'schedule' — dueDate is guaranteed present here; the check also
         // narrows the type for toISODateInput. scheduleMaintenanceReminder
         // cancels any prior stages before rescheduling, so this is idempotent.
-        scheduleMaintenanceReminder(
+        void scheduleMaintenanceReminder(
           {
             id: taskId,
             title: title.trim(),
@@ -124,7 +134,7 @@ export default function EditMaintenanceTaskScreen() {
       });
       setSaved(true);
       triggerImpact();
-      setTimeout(() => router.back(), 600);
+      backTimerRef.current = setTimeout(() => router.back(), 600);
     },
     onError: () => {
       Alert.alert(
