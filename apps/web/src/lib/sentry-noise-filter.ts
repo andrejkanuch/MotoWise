@@ -54,6 +54,24 @@ export function shouldDropClientEvent(event: ErrorEvent): boolean {
     return true;
   }
 
+  // "window.webkit.messageHandlers" TypeErrors (MOTOVAULT-WEB-Y). Injected by
+  // the Meta in-app browser (Instagram/Facebook webview) — its native bridge
+  // shims (`sendDataToNative`/`sendPageHideMessage`) probe `window.webkit`,
+  // which is absent/undefined in that webview, and the throw bubbles to our
+  // global onerror. Our marketing pages never touch the webkit bridge, so any
+  // report carrying this message is third-party. Scoped to events with no
+  // first-party `/_next/static` frame — a genuine first-party throw would carry
+  // one and still report.
+  if (
+    exceptions.some(
+      (e) =>
+        e.value?.includes('window.webkit.messageHandlers') &&
+        !e.stacktrace?.frames?.some((f) => f.filename?.includes('/_next/static')),
+    )
+  ) {
+    return true;
+  }
+
   // "Maximum call stack size exceeded" with no first-party frames
   // (MOTOVAULT-WEB-X). Injected by iOS in-app-browser webviews (e.g. the Google
   // app) and surfaced via the global onerror handler as a single opaque

@@ -3,7 +3,14 @@
 
 import * as Sentry from '@sentry/nextjs';
 import posthog from 'posthog-js';
+import { captureCampaignParams } from '@/lib/campaign';
 import { shouldDropClientEvent } from '@/lib/sentry-noise-filter';
+
+// Capture first-touch UTM params on the initial hard load (before the visitor
+// navigates deeper and the query string is lost). Independent of analytics
+// consent — this only writes to sessionStorage; PostHog stays opted-out until
+// the cookie banner is accepted.
+captureCampaignParams();
 
 // ── Sentry ──────────────────────────────────────────────────────────────────
 Sentry.init({

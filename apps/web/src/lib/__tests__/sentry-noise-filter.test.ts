@@ -91,6 +91,42 @@ describe('shouldDropClientEvent', () => {
     });
   });
 
+  describe('window.webkit.messageHandlers (MOTOVAULT-WEB-Y)', () => {
+    it('drops the Meta in-app-browser bridge error (no first-party frames)', () => {
+      expect(
+        shouldDropClientEvent(
+          eventWith("undefined is not an object (evaluating 'window.webkit.messageHandlers')", {
+            type: 'TypeError',
+            frames: [{ filename: 'app:///' }, { filename: 'app:///' }],
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('drops it when it arrives frameless', () => {
+      expect(
+        shouldDropClientEvent(
+          eventWith("undefined is not an object (evaluating 'window.webkit.messageHandlers')", {
+            type: 'TypeError',
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('KEEPS a first-party error that references the same message', () => {
+      expect(
+        shouldDropClientEvent(
+          eventWith("undefined is not an object (evaluating 'window.webkit.messageHandlers')", {
+            type: 'TypeError',
+            frames: [
+              { filename: 'https://motovault.app/_next/static/chunks/page.js', in_app: true },
+            ],
+          }),
+        ),
+      ).toBe(false);
+    });
+  });
+
   it('keeps unrelated first-party errors', () => {
     expect(
       shouldDropClientEvent(
