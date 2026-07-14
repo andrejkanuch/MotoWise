@@ -36,6 +36,7 @@ export class MotorcyclesService {
       .from('motorcycles')
       .select(MOTORCYCLE_SELECT)
       .eq('user_id', userId)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(20);
 
@@ -55,6 +56,7 @@ export class MotorcyclesService {
       .select(MOTORCYCLE_SELECT)
       .eq('user_id', userId)
       .eq('id', motorcycleId)
+      .is('deleted_at', null)
       .maybeSingle();
 
     if (error) {
@@ -192,7 +194,8 @@ export class MotorcyclesService {
     const { count, error } = await this.supabase
       .from('motorcycles')
       .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .is('deleted_at', null);
 
     if (error) {
       this.logger.error('Failed to count user motorcycles for tier check', error);
@@ -220,6 +223,7 @@ export class MotorcyclesService {
       .select(MOTORCYCLE_SELECT)
       .eq('id', motorcycleId)
       .eq('user_id', userId)
+      .is('deleted_at', null)
       .single();
 
     if (bikeError || !bike) {
@@ -236,14 +240,19 @@ export class MotorcyclesService {
     const checkedAt = new Date().toISOString();
 
     // Persist the latest count so the garage card can show a badge without
-    // hitting the NHTSA API on every list render.
+    // hitting the NHTSA API on every list render. Admin client is required
+    // (recall_* columns are outside the user UPDATE grants), so scope the write
+    // to the owned, non-deleted row as defense-in-depth — the bike could be
+    // soft-deleted between the read above and this write (TOCTOU).
     await this.adminClient
       .from('motorcycles')
       .update({
         recall_count: recalls.length,
         recall_last_checked_at: checkedAt,
       })
-      .eq('id', motorcycleId);
+      .eq('id', motorcycleId)
+      .eq('user_id', userId)
+      .is('deleted_at', null);
 
     return {
       count: recalls.length,

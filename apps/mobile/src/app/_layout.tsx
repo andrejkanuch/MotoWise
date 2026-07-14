@@ -93,6 +93,7 @@ import {
   getLastUserId,
   PersistedQueryClientBoundary,
 } from '../lib/persisted-query-provider';
+import { registerForPushNotifications } from '../lib/push-token';
 import { queryClient } from '../lib/query-client';
 import { queryKeys } from '../lib/query-keys';
 import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
@@ -700,6 +701,9 @@ function RootLayout() {
     async function initNotifications() {
       await setupNotificationChannels();
       await setupNotificationCategories();
+      // MOT-278: refresh the server-side push token on launch when granted
+      // (token rotation + users who granted before this shipped). No-op otherwise.
+      void registerForPushNotifications();
     }
     initNotifications();
   }, []);

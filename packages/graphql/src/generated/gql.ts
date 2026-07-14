@@ -68,6 +68,7 @@ type Documents = {
     "mutation PublishAsTemplate($tripId: ID!) {\n  publishAsTemplate(tripId: $tripId) {\n    id\n    slug\n    isTemplate\n    publishedAt\n    status\n  }\n}": typeof types.PublishAsTemplateDocument,
     "mutation PublishTrip($tripId: ID!) {\n  publishTrip(tripId: $tripId) {\n    id\n    status\n  }\n}": typeof types.PublishTripDocument,
     "mutation RegenerateRideSummary($rideId: String!) {\n  regenerateRideSummary(rideId: $rideId) {\n    id\n    rideId\n    summaryText\n    generationStatus\n    locale\n    createdAt\n    updatedAt\n  }\n}": typeof types.RegenerateRideSummaryDocument,
+    "mutation RegisterPushToken($input: RegisterPushTokenInput!) {\n  registerPushToken(input: $input) {\n    success\n  }\n}": typeof types.RegisterPushTokenDocument,
     "mutation RemoveWaypoint($waypointId: ID!) {\n  removeWaypoint(waypointId: $waypointId)\n}": typeof types.RemoveWaypointDocument,
     "mutation ReorderWaypoints($input: ReorderWaypointsInput!) {\n  reorderWaypoints(input: $input)\n}": typeof types.ReorderWaypointsDocument,
     "mutation RequestDataExport {\n  requestDataExport {\n    id\n    status\n    requestedAt\n  }\n}": typeof types.RequestDataExportDocument,
@@ -232,6 +233,7 @@ const documents: Documents = {
     "mutation PublishAsTemplate($tripId: ID!) {\n  publishAsTemplate(tripId: $tripId) {\n    id\n    slug\n    isTemplate\n    publishedAt\n    status\n  }\n}": types.PublishAsTemplateDocument,
     "mutation PublishTrip($tripId: ID!) {\n  publishTrip(tripId: $tripId) {\n    id\n    status\n  }\n}": types.PublishTripDocument,
     "mutation RegenerateRideSummary($rideId: String!) {\n  regenerateRideSummary(rideId: $rideId) {\n    id\n    rideId\n    summaryText\n    generationStatus\n    locale\n    createdAt\n    updatedAt\n  }\n}": types.RegenerateRideSummaryDocument,
+    "mutation RegisterPushToken($input: RegisterPushTokenInput!) {\n  registerPushToken(input: $input) {\n    success\n  }\n}": types.RegisterPushTokenDocument,
     "mutation RemoveWaypoint($waypointId: ID!) {\n  removeWaypoint(waypointId: $waypointId)\n}": types.RemoveWaypointDocument,
     "mutation ReorderWaypoints($input: ReorderWaypointsInput!) {\n  reorderWaypoints(input: $input)\n}": types.ReorderWaypointsDocument,
     "mutation RequestDataExport {\n  requestDataExport {\n    id\n    status\n    requestedAt\n  }\n}": types.RequestDataExportDocument,
@@ -572,6 +574,10 @@ export function graphql(source: "mutation PublishTrip($tripId: ID!) {\n  publish
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation RegenerateRideSummary($rideId: String!) {\n  regenerateRideSummary(rideId: $rideId) {\n    id\n    rideId\n    summaryText\n    generationStatus\n    locale\n    createdAt\n    updatedAt\n  }\n}"): (typeof documents)["mutation RegenerateRideSummary($rideId: String!) {\n  regenerateRideSummary(rideId: $rideId) {\n    id\n    rideId\n    summaryText\n    generationStatus\n    locale\n    createdAt\n    updatedAt\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation RegisterPushToken($input: RegisterPushTokenInput!) {\n  registerPushToken(input: $input) {\n    success\n  }\n}"): (typeof documents)["mutation RegisterPushToken($input: RegisterPushTokenInput!) {\n  registerPushToken(input: $input) {\n    success\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
