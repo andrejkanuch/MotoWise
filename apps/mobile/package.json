@@ -11,6 +11,7 @@
     "test": "jest",
     "test:e2e": "sh scripts/run-maestro.sh",
     "test:e2e:onboarding": "sh scripts/run-onboarding-e2e.sh",
+    "test:e2e:edit-task": "sh scripts/run-edit-maintenance-task-e2e.sh",
     "typecheck": "tsc --noEmit",
     "i18n:status": "npx i18next-cli status --config ./i18next-toolkit.config.mjs",
     "i18n:hardcoded": "eslint \"src/**/*.{ts,tsx}\"",

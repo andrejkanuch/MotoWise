@@ -32,6 +32,15 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   service-role key from `apps/api/.env`; override with `SUPABASE_URL` / `SUPABASE_ANON_KEY` /
   `SUPABASE_SERVICE_ROLE_KEY` to target local Supabase instead of prod. Because prod requires email
   confirmation, the flow signs IN the pre-created user rather than signing up through the UI.
+- **`flows/edit-maintenance-task.yaml`** — edit/reschedule a maintenance task E2E. Composes
+  `onboarding.yaml` as setup (signed-in user + a bike), then creates a task with a known title,
+  opens it, edits the title + priority, and asserts the edit round-trips in place. Same build +
+  user-provisioning prereqs as onboarding (its runner is a thin wrapper). Run it via:
+  ```bash
+  pnpm --filter @motovault/mobile test:e2e:edit-task
+  ```
+  Authored but not yet device-verified — confirm the navigation selectors (Garage tab, bike card)
+  once on a booted build via the Maestro MCP, per the note at the top of the flow.
 
 ## One-time setup
 

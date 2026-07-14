@@ -1,0 +1,67 @@
+# Edit / reschedule a maintenance task — E2E regression for the edit feature (PR #160).
+#
+# Proves the edit path round-trips in place: create a task with a known title,
+# open it, change the title + priority, save, and assert the edited title shows
+# in the list against the SAME task — the behaviour that replaced the old
+# delete + recreate workaround (which lost history/photos).
+#
+# Setup: composes onboarding.yaml, which signs in a pre-created user and leaves a
+# Honda in the garage (ending at Home). So this flow needs the same env the
+# onboarding runner provides — run it via:
+#   pnpm --filter @motovault/mobile test:e2e:edit-task
+# which provisions/deletes a confirmed Supabase user (TEST_EMAIL/TEST_PASSWORD)
+# and expects a STANDALONE/PREVIEW build with EXPO_PUBLIC_OB_VARIANT=invested
+# baked in (see .maestro/README.md — dev-client/Metro builds are unsupported
+# because onboarding.yaml uses clearState).
+#
+# AUTHORED, NOT YET DEVICE-VERIFIED. The action labels (Add task / Save task /
+# Edit / Save changes / priority pills) are the screens' real t() defaults. The
+# navigation selectors (Garage tab label, the bike card) are derived from source,
+# not confirmed on a running screen — confirm them once via the Maestro MCP
+# (list_devices -> inspect_screen) on a booted build, then delete this note.
+# Blocked from running today by the RN 0.86/Reanimated pod-install mismatch on
+# main (react-native must be pinned back to 0.85.3 for Expo SDK 56).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+  TASK_TITLE: "E2E Oil Change"
+  TASK_TITLE_EDITED: "E2E Oil Change EDITED"
+---
+# 1. Setup — reach a signed-in Home with a bike in the garage.
+- runFlow: onboarding.yaml
+
+# 2. Open the bike hub from the Garage tab.
+- tapOn:
+    text: "Garage" # NativeTabs label (t('tabs.garage')) — confirm on device
+- tapOn:
+    text: ".*Honda.*" # the bike added during onboarding setup
+
+# 3. Create a task with a known title (deterministic precondition for the edit).
+- tapOn: "Add task"
+- assertVisible: "Save task" # single-element button confirms the add-task screen rendered
+- inputText: ${TASK_TITLE} # title input is autoFocused on open
+- tapOn: "high" # priority pill (raw text is lowercase; capitalized via CSS)
+- tapOn: "Save task"
+- extendedWaitUntil:
+    visible: ${TASK_TITLE}
+    timeout: 30000
+
+# 4. Open the task's action row and enter Edit.
+- tapOn: ${TASK_TITLE} # tapping the card toggles expand -> reveals Done/Edit/Delete
+- tapOn: "Edit"
+
+# 5. Verify prefill, then change the title and priority.
+- assertVisible: "Save changes" # single-element button confirms the edit screen rendered
+- assertVisible: ${TASK_TITLE} # title prefilled from the cached task
+- tapOn: ${TASK_TITLE} # focus the title field
+- eraseText
+- inputText: ${TASK_TITLE_EDITED}
+- tapOn: "critical" # change priority too, to prove non-title edits persist
+- tapOn: "Save changes"
+
+# 6. Success: the edited title shows in the list — same task, edited in place.
+- extendedWaitUntil:
+    visible: ${TASK_TITLE_EDITED}
+    timeout: 30000
+- assertVisible: ${TASK_TITLE_EDITED}
+- takeScreenshot: edit-maintenance-task-done
