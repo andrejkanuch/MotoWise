@@ -227,6 +227,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
       },
     ],
+    // Must run after expo-build-properties: raises the Gradle daemon's JVM
+    // heap/metaspace so local release builds don't die with "GC thrashing /
+    // ran out of JVM Metaspace". expo-build-properties has no jvmargs field.
+    './plugins/with-gradle-memory',
   ],
   ios: {
     bundleIdentifier: 'com.motovault.app',
