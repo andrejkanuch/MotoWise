@@ -3,6 +3,7 @@
 
 import * as Sentry from '@sentry/nextjs';
 import posthog from 'posthog-js';
+import { shouldDropClientEvent } from '@/lib/sentry-noise-filter';
 
 // ── Sentry ──────────────────────────────────────────────────────────────────
 Sentry.init({
@@ -13,42 +14,11 @@ Sentry.init({
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
   sendDefaultPii: true,
+  // Drop un-actionable third-party / in-app-browser noise. See
+  // shouldDropClientEvent for the per-rule rationale (each is scoped so genuine
+  // first-party errors still report).
   beforeSend(event) {
-    if (event.exception?.values?.some((e) => e.value?.includes('ResizeObserver loop'))) {
-      return null;
-    }
-    // Drop un-actionable third-party "SecurityError: The request was denied."
-    // (DOMException 18) unhandled rejections. These come from third-party
-    // scripts (Meta Pixel/PostHog) or in-app-browser webviews accessing
-    // storage/Web APIs the device denies — never from first-party code, so they
-    // arrive stackless. We only suppress the frameless ones; a genuine
-    // first-party SecurityError carries a stacktrace and still reports.
-    if (
-      event.exception?.values?.some(
-        (e) =>
-          e.type === 'SecurityError' &&
-          e.value?.includes('The request was denied') &&
-          !e.stacktrace?.frames?.length,
-      )
-    ) {
-      return null;
-    }
-    // Drop "Connection closed." unhandled rejections from the React RSC/Flight
-    // stream (MOTOVAULT-WEB-V/H). The server stream is severed mid-render when
-    // the user navigates away, backgrounds the tab, or drops the network — the
-    // framework recovers by refetching, so nothing is user-visible or actionable.
-    // Scoped to the global unhandledrejection mechanism so a future subsystem
-    // that throws (and reports) the same generic message still surfaces.
-    if (
-      event.exception?.values?.some(
-        (e) =>
-          e.value === 'Connection closed.' &&
-          e.mechanism?.type?.endsWith('onunhandledrejection') === true,
-      )
-    ) {
-      return null;
-    }
-    return event;
+    return shouldDropClientEvent(event) ? null : event;
   },
 });
 
