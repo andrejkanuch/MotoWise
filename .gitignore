@@ -81,3 +81,5 @@ Personal_Finance_Overview.xlsx
 Ride-*.jsx
 .claude/worktrees/
 .worktrees
+
+.compound-engineering/*.local.yaml
