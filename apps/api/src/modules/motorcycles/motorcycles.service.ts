@@ -240,14 +240,19 @@ export class MotorcyclesService {
     const checkedAt = new Date().toISOString();
 
     // Persist the latest count so the garage card can show a badge without
-    // hitting the NHTSA API on every list render.
+    // hitting the NHTSA API on every list render. Admin client is required
+    // (recall_* columns are outside the user UPDATE grants), so scope the write
+    // to the owned, non-deleted row as defense-in-depth — the bike could be
+    // soft-deleted between the read above and this write (TOCTOU).
     await this.adminClient
       .from('motorcycles')
       .update({
         recall_count: recalls.length,
         recall_last_checked_at: checkedAt,
       })
-      .eq('id', motorcycleId);
+      .eq('id', motorcycleId)
+      .eq('user_id', userId)
+      .is('deleted_at', null);
 
     return {
       count: recalls.length,
