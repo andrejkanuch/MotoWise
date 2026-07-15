@@ -1,0 +1,124 @@
+# Add an expense to a bike — E2E happy path for the expense-logging feature.
+#
+# Proves the core "log an expense" journey end to end: from a signed-in garage,
+# open the Honda, tap Add Expense, enter an amount, pick a category, add a
+# distinctive note, save, and assert the expense shows up in the bike hub's
+# Expenses section. Cleans up the expense it created so reruns stay deterministic.
+#
+# Setup: composes onboarding.yaml, which signs in a pre-created user and leaves a
+# Honda in the garage (ending at Home). So this flow needs the same env the
+# onboarding runner provides — run it via:
+#   pnpm --filter @motovault/mobile test:e2e:add-expense
+# (runner wired separately; a thin wrapper over the onboarding runner that
+# provisions/deletes a confirmed Supabase user via TEST_EMAIL/TEST_PASSWORD and
+# expects a STANDALONE/PREVIEW build with EXPO_PUBLIC_OB_VARIANT=invested baked
+# in — see .maestro/README.md; dev-client/Metro builds are unsupported because
+# onboarding.yaml uses clearState).
+#
+# AUTHORED FROM SOURCE (add-expense.tsx, bike/[id].tsx, expenses-section.tsx,
+# swipeable-expense.tsx, en.json), PENDING ON-DEVICE VALIDATION. Real selectors +
+# rendered en.json strings were extracted from the code, not a screenshot, but the
+# steps below have NOT yet been driven live on a simulator. Device quirks handled
+# inline per .maestro/README.md "App-specific gotchas":
+#   - the Garage tab a11y text carries the badge count, so match it as a partial
+#     regex (".*Garage.*"), not the bare word;
+#   - the amount input autofocuses the app's custom keyboard, which does NOT
+#     support `hideKeyboard` — dismiss it by tapping a non-interactive section
+#     label ("CATEGORY" / "DETAILS"), which works because the ScrollView sets
+#     keyboardShouldPersistTaps="handled";
+#   - the "Save Expense" button sits at the bottom of the form, below the
+#     keyboard/fold, so dismiss the keyboard and scroll to it before tapping;
+#   - after a successful save the screen stays OPEN (button flips to "Done" so
+#     receipts can be attached) — tap "Done" to pop back to the bike hub where the
+#     Expenses section lives;
+#   - a native "Enjoying MotoVault?" review prompt can fire after saving an
+#     expense (maybeRequestReview) — dismiss it optionally.
+# The onboarding *setup* portion still assumes a preview build (clearState).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+  # Distinctive so the assertion + cleanup can target this exact expense. The
+  # note renders as the expense row's title (`description || category label`),
+  # so it is a unique single element to assert on and to long-press for cleanup.
+  EXPENSE_AMOUNT: "741.83"
+  EXPENSE_NOTE: "E2E Expense Marker"
+---
+# 1. Setup — reach a signed-in Home with a Honda in the garage.
+- runFlow: onboarding.yaml
+
+# 2. Open the bike hub from the Garage tab. The tab label carries a badge count
+#    (e.g. "Garage, 1 due"), so match it as a partial regex.
+- tapOn:
+    text: ".*Garage.*"
+- tapOn:
+    text: ".*Honda.*" # the bike added during onboarding setup
+# The quick-actions grid (Add task / Add Expense) sits just below the hero.
+- extendedWaitUntil:
+    visible: "Add Expense"
+    timeout: 20000
+
+# 3. Open the Add Expense screen (garage.addExpense → "Add Expense").
+- tapOn: "Add Expense"
+- assertVisible: "AMOUNT" # single-element section label confirms the add-expense screen
+
+# 4. Enter a distinctive amount. The amount TextInput is autoFocused on open, so
+#    inputText lands here directly (decimal-pad; formatCurrencyInput keeps "741.83").
+- inputText: ${EXPENSE_AMOUNT}
+
+# 5. Pick a category chip (expenses.category_parts → "Parts"). Chips sit directly
+#    under the amount, above the keyboard.
+- tapOn: "Parts"
+
+# 6. Add the distinctive note so the saved row is uniquely identifiable. Dismiss
+#    the custom keyboard first (tap the non-interactive "CATEGORY" label), then
+#    scroll the DETAILS field into view and focus it before typing — tapping a new
+#    TextInput moves focus, avoiding the "inputText concatenates across fields" trap.
+- tapOn:
+    text: "CATEGORY" # non-interactive label — dismisses the custom keyboard
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "DETAILS" # section label directly above the notes field
+    direction: DOWN
+- tapOn:
+    text: ".*What was this expense for.*" # DETAILS placeholder; wildcarded — the literal "?" is a regex metachar
+- inputText: ${EXPENSE_NOTE}
+
+# 7. Dismiss the keyboard again, then reach the Save button at the bottom of the form.
+- tapOn:
+    text: "DETAILS" # non-interactive label — dismisses the keyboard
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Save Expense" # expenses.save → "Save Expense"; below the keyboard/fold
+    direction: DOWN
+- tapOn: "Save Expense"
+
+# A native store-review prompt can fire after saving an expense — dismiss it.
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# 8. On success the screen stays open with the button flipped to "Done"
+#    (common.done). Tap it to pop back to the bike hub (router.back()).
+- extendedWaitUntil:
+    visible: "Done"
+    timeout: 30000
+- tapOn: "Done"
+
+# 9. Success: the new expense appears in the bike hub's Expenses section. The row
+#    title is the note (unique), so assert on it — the amount ("741.83") also
+#    renders in the row + category legend but the note is the cleanest single element.
+- scrollUntilVisible:
+    element:
+      text: ${EXPENSE_NOTE}
+    direction: DOWN
+- assertVisible: ${EXPENSE_NOTE}
+- takeScreenshot: add-expense-done
+
+# No in-flow cleanup needed: the onboarding runner provisions a throwaway Supabase
+# user and DELETES it on teardown (pass or fail), so this expense disappears with
+# the account. (Deliberately NOT deleting via the gesture here — on-device
+# validation on 2026-07-15 showed the swipe/long-press expense delete is not
+# reliably triggerable; see delete-expense.yaml. Reliable cleanup would need the
+# visible-delete-affordance fix.)

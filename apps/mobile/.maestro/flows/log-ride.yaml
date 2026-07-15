@@ -1,0 +1,66 @@
+# Log a ride (start → record → end → summary) — E2E for the ride-recording feature.
+#
+# ⚠️ EXPECTED-FLAKY / GPS-DEPENDENT — the hardest journey to automate, and the
+# only one NOT reliably green in this suite. On-device exploration 2026-07-15
+# established the start-screen selectors below, but also confirmed the hazards:
+#   - the ride is started from the center green FAB in the tab bar, which has NO
+#     text/a11y label — it must be tapped by point (~50%, 92%).
+#   - an "Unfinished ride detected" banner (Resume / End Ride) blocks a new ride;
+#     "Start ride" is DISABLED while it shows ("Resolve the unfinished ride above
+#     to start a new one"). Ending a zero-GPS ride can loop straight back to the
+#     same banner, so this flow may not converge without a guaranteed-clean ride
+#     state on the account.
+#   - with no simulated movement the sim records ~0 distance; set a simulated
+#     location on the simulator (Features ▸ Location ▸ Freeway Drive) for a
+#     meaningful route, otherwise the "it recorded & saved" assertion is all you get.
+# The record→end→summary selectors below are BEST-EFFORT and marked CONFIRM-ON-DEVICE:
+# the unfinished-ride loop prevented observing the live recording/end/summary UI
+# during authoring. Treat a failure here as expected until the runner (a) sets a
+# simulated location and (b) guarantees a clean ride state before Start ride.
+#
+# Setup: composes onboarding.yaml (signed-in user + Honda). Run via:
+#   pnpm --filter @motovault/mobile test:e2e:log-ride
+# (needs a preview build + provisioned user, same as the other authed flows).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+---
+# 1. Setup — reach a signed-in Home.
+- runFlow: onboarding.yaml
+
+# 2. Open the ride start screen via the center green FAB (no label → tap by point).
+- tapOn:
+    point: "50%,92%"
+- extendedWaitUntil:
+    visible: ".*Pick a bike.*|Start ride" # "Pick a bike and roll out..." subtitle
+    timeout: 20000
+
+# 3. Resolve any leftover unfinished ride so a new one can start (Start ride is
+#    disabled while the banner shows). May need to fire more than once if it loops.
+- tapOn:
+    text: "End Ride"
+    optional: true
+- tapOn:
+    text: "End Ride"
+    optional: true
+
+# 4. Start the ride.
+- tapOn: "Start ride"
+# Recording controls — CONFIRM ON DEVICE (labels unobserved during authoring).
+- extendedWaitUntil:
+    visible: ".*End Ride.*|.*Pause.*|.*km/h.*|.*Recording.*"
+    timeout: 30000
+- takeScreenshot: log-ride-recording
+
+# 5. Record briefly, then end the ride. CONFIRM the end control + summary selectors ON DEVICE.
+- tapOn:
+    text: ".*End Ride.*|.*End.*|.*Finish.*"
+- tapOn:
+    text: ".*End.*|.*Finish.*|.*Save.*|.*Discard.*"
+    optional: true
+
+# 6. Assert the ride saved (summary or rides list). CONFIRM the success marker ON DEVICE.
+- extendedWaitUntil:
+    visible: ".*Ride.*|.*Summary.*|.*Distance.*|.*Duration.*"
+    timeout: 30000
+- takeScreenshot: log-ride-done

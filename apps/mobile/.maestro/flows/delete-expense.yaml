@@ -1,0 +1,145 @@
+# ⚠️ KNOWN-BLOCKED / EXPECTED-FLAKY — validated on-device 2026-07-15 and the
+# gesture-only delete could NOT be reliably triggered via automation:
+#   - long-press landed on the floating ride FAB (the expense rows sit in the
+#     bottom tab-bar overlap zone), navigating away instead of deleting;
+#   - a directional swipe-left did not reach the -80px translateX threshold, so
+#     no confirm Alert opened.
+# This is the client's original "deleting an expense is quite a challenge"
+# complaint reproduced at the automation layer — a real user hits the same wall.
+# This flow is kept as executable documentation of that gap. It will become
+# reliable only once the expense row gets a VISIBLE delete affordance (mirror the
+# maintenance task card's Done/Edit/Delete row) — the investigation's #1 fix.
+# Until then, treat a failure here as EXPECTED and a signal to ship that fix.
+#
+# Delete an expense (happy path) — E2E regression for the app's KNOWN-FRAGILE
+# delete UX (the original client complaint).
+#
+# Proves an expense can be created and then deleted from the bike hub. Deletion
+# is NOT a visible button: swipeable-expense.tsx exposes only a gesture —
+# Gesture.Race(swipe-left past a -80px threshold, long-press 500ms) — which then
+# opens a native "Delete Expense" confirm Alert (Cancel / destructive Delete).
+# This flow drives the swipe, confirms the Alert, and asserts the row is gone.
+#
+# NOTE — THE DELETE GESTURE IS INHERENTLY FRAGILE. This is exactly the UX the
+# client flagged: there is no delete button, only a swipe/long-press. The swipe
+# must move the row past a fixed -80px translateX threshold (pan is capped at
+# -100px in swipeable-expense.tsx, onEnd fires confirmDelete only when
+# translateX < -80). Maestro's directional `swipe` does not let us guarantee the
+# exact pixel distance, so if this step flakes it is documenting the real risk,
+# not a test bug. See the commented long-press alternative below the swipe —
+# swap to it if the swipe under-shoots the threshold on your device.
+#
+# Setup: composes onboarding.yaml, which signs in a pre-created user and leaves a
+# Honda in the garage (ending at Home). Same env the onboarding runner provides —
+# run it via:
+#   pnpm --filter @motovault/mobile test:e2e:delete-expense
+# which provisions/deletes a confirmed Supabase user (TEST_EMAIL/TEST_PASSWORD)
+# and expects a STANDALONE/PREVIEW build with EXPO_PUBLIC_OB_VARIANT=invested
+# baked in (see .maestro/README.md — dev-client/Metro builds are unsupported
+# because onboarding.yaml uses clearState). A FRESH user has no expenses, so the
+# empty-state card renders and is a reliable tap target into Add Expense (the
+# header + Add button is an icon-only Pressable with no accessible label).
+#
+# AUTHORED FROM SOURCE, PENDING ON-DEVICE VALIDATION. Selectors + copy were read
+# from swipeable-expense.tsx / expenses-section.tsx / add-expense.tsx and
+# src/i18n/locales/en.json (keys noted inline). The swipe distance/threshold and
+# the empty-state scroll depth still need live tuning on a simulator via the
+# Maestro MCP — search for "UNCERTAIN" below.
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+  # Distinctive label so the row is unambiguous. Written into the DETAILS field,
+  # which maps to expense.description — the text SwipeableExpense renders in the
+  # row (falls back to the category label only when description is empty).
+  EXPENSE_LABEL: "E2E Delete Me Expense"
+---
+# 1. Setup — reach a signed-in Home with a Honda in the garage.
+- runFlow: onboarding.yaml
+
+# 2. Open the bike hub. The Garage tab a11y label carries a badge count
+#    (e.g. "1, Garage"), so match it as a partial regex, never the bare word.
+- tapOn:
+    text: ".*Garage.*"
+- tapOn:
+    text: ".*Honda.*" # the bike added during onboarding setup
+- extendedWaitUntil:
+    visible: "Expenses" # expenses.title — the section header is always rendered
+    timeout: 20000
+
+# 3. CREATE the expense to delete (deterministic precondition). The Expenses
+#    section sits far down the single-ScrollView hub (section 5 of 6), so scroll
+#    to the empty-state card and tap it — it routes to Add Expense with the
+#    motorcycleId. UNCERTAIN: scroll depth depends on how many maintenance cards
+#    render above it; scrollUntilVisible handles variable height.
+- scrollUntilVisible:
+    element:
+      text: "No expenses yet" # expenses.empty — fresh user => empty state shows
+    direction: DOWN
+- tapOn: "No expenses yet"
+
+# 3a. Add Expense screen. The editorial title "Log an expense." is split across
+#     Text nodes (expenses.logAn + expenses.expenseWord), so a phrase regex won't
+#     match — anchor on the single-element "AMOUNT" label instead.
+- assertVisible: "AMOUNT"
+- inputText: "42.50" # amount field is autoFocused (native decimal-pad)
+# Give the row a distinctive label via the DETAILS field (expense.description).
+- tapOn:
+    text: ".*What was this expense for.*" # expenses.descriptionPlaceholder (en.json overrides the code defaultValue; wildcarded to avoid the literal "?" regex metachar)
+- inputText: ${EXPENSE_LABEL}
+# The custom keyboard (react-native-keyboard-controller) ignores hideKeyboard —
+# dismiss it by tapping a non-interactive section label.
+- tapOn:
+    text: "DETAILS"
+    optional: true
+# The Save button sits at the bottom of the scroll, below the keyboard fold.
+- scrollUntilVisible:
+    element:
+      text: "Save Expense" # expenses.save
+    direction: DOWN
+- tapOn: "Save Expense"
+# A native store-review prompt (maybeRequestReview) can fire after logging an
+# expense — dismiss it if it appears (gated, usually only on seasoned accounts).
+- tapOn:
+    text: "Not Now"
+    optional: true
+# After a successful save the primary button becomes "Done" (router.back()).
+- tapOn:
+    text: "Done" # common.done
+    optional: true
+
+# 4. Back on the hub, the query invalidates and the new row appears. Scroll to it.
+- scrollUntilVisible:
+    element:
+      text: ${EXPENSE_LABEL}
+    direction: DOWN
+- assertVisible: ${EXPENSE_LABEL}
+
+# 5. DELETE via the fragile swipe-left gesture (the client-flagged UX). The row
+#    must travel past -80px for onEnd to call confirmDelete.
+#    UNCERTAIN: Maestro's directional swipe can't guarantee the pixel distance —
+#    tune here if the confirm Alert doesn't open.
+- swipe:
+    from:
+      text: ${EXPENSE_LABEL}
+    direction: LEFT
+# --- Alternative gesture (also implemented — long-press >=500ms). Swap the swipe
+#     above for this if the swipe under-shoots the -80px threshold on-device:
+# - longPressOn:
+#     text: ${EXPENSE_LABEL}
+# -----------------------------------------------------------------------------
+
+# 6. Confirm the native Alert. Its "Delete" reuses the same word as elsewhere, so
+#    disambiguate the destructive button by anchoring it to the right of Cancel.
+- assertVisible: "Delete Expense" # expenses.deleteTitle — the Alert opened
+- tapOn:
+    text: "Delete" # common.delete (destructive)
+    rightOf:
+      text: "Cancel" # common.cancel
+- takeScreenshot: delete-expense-confirmed
+
+# 7. Success: the deleted row is gone from the list.
+- extendedWaitUntil:
+    notVisible: ${EXPENSE_LABEL}
+    timeout: 30000
+- assertNotVisible:
+    text: ${EXPENSE_LABEL}

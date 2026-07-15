@@ -43,6 +43,23 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   (2026-07-15); device-specific quirks (badge in the Garage tab label, custom keyboard,
   below-fold save buttons, post-save review prompt) are handled inline. The onboarding *setup*
   portion still assumes a preview build (`clearState`).
+- **`flows/add-expense.yaml`** — log an expense on a bike. **Validated on-device 2026-07-15.**
+  `test:e2e:add-expense`.
+- **`flows/complete-maintenance-task.yaml`** — create a task then mark it Done (odometer + cost).
+  **Validated on-device 2026-07-15.** `test:e2e:complete-task`.
+- **`flows/add-bike.yaml`** — add a second motorcycle. **Requires a PRO account** (free tier caps at
+  1 bike and onboarding already adds a Honda → paywall). Authored from source; validate on a Pro
+  account. `test:e2e:add-bike`.
+- **`flows/delete-expense.yaml`** — ⚠️ **KNOWN-BLOCKED.** The expense delete is gesture-only
+  (swipe/long-press) and on-device validation confirmed it is **not reliably triggerable** (the
+  original client complaint, reproduced). Kept as executable documentation; becomes reliable only
+  after the expense row gets a visible delete affordance. `test:e2e:delete-expense`.
+- **`flows/log-ride.yaml`** — ⚠️ **EXPECTED-FLAKY / GPS-DEPENDENT.** Start-screen selectors were
+  observed live; the record→end→summary steps are best-effort and need a clean ride state + a
+  simulated simulator location to run reliably. `test:e2e:log-ride`.
+
+  All authed journey flows share the parameterized onboarding runner via `E2E_FLOW` /
+  `E2E_EMAIL_PREFIX` (set inline in the `test:e2e:*` package scripts) — no per-flow wrapper needed.
 
 ## One-time setup
 

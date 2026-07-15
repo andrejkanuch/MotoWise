@@ -1,0 +1,150 @@
+# Complete a maintenance task (mark Done + odometer + cost) — E2E happy path.
+#
+# Proves the completion path end-to-end: create a task with a known title, tap
+# the card's "Done" action to open the completion screen, record an odometer
+# reading + a cost, mark it complete, and assert the task moved to Completed
+# (present under History/Completed, and its card no longer offers the pending
+# "Done" action). Cleans up the task it created at the end.
+#
+# Setup: composes onboarding.yaml, which signs in a pre-created user and leaves a
+# Honda in the garage (ending at Home). So this flow needs the same env the
+# onboarding runner provides — run it via:
+#   pnpm --filter @motovault/mobile test:e2e:complete-task
+# which (like the edit-task runner) provisions/deletes a confirmed Supabase user
+# (TEST_EMAIL/TEST_PASSWORD) and expects a STANDALONE/PREVIEW build with
+# EXPO_PUBLIC_OB_VARIANT=invested baked in (see .maestro/README.md — dev-client/
+# Metro builds are unsupported because onboarding.yaml uses clearState).
+#
+# AUTHORED FROM SOURCE 2026-07-15, PENDING ON-DEVICE VALIDATION. Selectors were
+# extracted from the screen code (complete-task.tsx, swipeable-task-card.tsx,
+# add-maintenance-task.tsx) and en.json, not yet driven live on a simulator.
+# The create-task + keyboard-dismiss + scroll-to-Save pattern is copied verbatim
+# from edit-maintenance-task.yaml (validated 2026-07-15). Device-specific quirks
+# handled inline (and worth remembering):
+#   - the Garage tab a11y text carries the badge count, so match it as a partial
+#     regex, not the bare word "Garage";
+#   - the app's custom keyboard does NOT support `hideKeyboard` — dismiss it by
+#     tapping a non-interactive section label ("Priority", "Completion Details");
+#   - primary buttons ("Save task", "Mark Complete") can sit below the keyboard/
+#     fold, so scroll to them before tapping;
+#   - a StoreKit "Enjoying MotoVault?" review prompt is LIKELY after completing a
+#     task (completion is a value-moment) — dismiss "Not Now" (optional);
+#   - the completed task leaves the Active view: on the bike hub it moves to the
+#     "History" tab, on the All Tasks list it stays under the default "All" filter.
+# TO VERIFY ON DEVICE: the two odometer/cost inputs have no testID — they're
+# targeted by placeholder text ("e.g. 15000" and "0.00"). The "0.00" placeholder
+# assumes a 2-decimal currency (USD/EUR); a zero-decimal currency (e.g. JPY)
+# renders "0" instead.
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+  TASK_TITLE: "E2E Complete Me"
+  ODOMETER: "12500"
+  COST: "45"
+---
+# 1. Setup — reach a signed-in Home with a bike in the garage.
+- runFlow: onboarding.yaml
+
+# 2. Open the bike hub from the Garage tab. The tab label carries a badge count
+#    (e.g. "1, Garage"), so match it as a partial regex.
+- tapOn:
+    text: ".*Garage.*"
+- tapOn:
+    text: ".*Honda.*" # the bike added during onboarding setup
+- extendedWaitUntil:
+    visible: "Add task"
+    timeout: 20000
+
+# 3. Create a non-recurring task with a known title (deterministic precondition).
+#    Verbatim from edit-maintenance-task.yaml — leave the Repeat toggle default
+#    (off) so the completion screen shows no "Schedule next" toggle.
+- tapOn: "Add task"
+- assertVisible: "Priority" # single-element label confirms the add-task screen
+- inputText: ${TASK_TITLE} # title input is autoFocused on open
+- tapOn: "High" # priority pill
+- tapOn:
+    text: "Priority" # non-interactive label — dismisses the custom keyboard
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Save task" # button sits below the keyboard/fold
+    direction: DOWN
+- tapOn: "Save task"
+# A native store-review prompt can fire after saving a task — dismiss it.
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# 4. Find the task and tap its "Done" action. "See all" opens the full All Tasks
+#    list when the hub truncates to the top few; harmless no-op (optional)
+#    otherwise. The card's Done/Edit/Delete row is always visible (no expand
+#    needed), so anchor "Done" to the title.
+- tapOn:
+    text: ".*See all.*"
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: ${TASK_TITLE}
+    direction: DOWN
+- tapOn:
+    text: "Done" # maintenance.markDone — opens the completion screen
+    below:
+      text: ${TASK_TITLE}
+
+# 5. Completion screen — record odometer + cost, then mark complete.
+- extendedWaitUntil:
+    visible: "Completion Details"
+    timeout: 20000
+- assertVisible: ${TASK_TITLE} # completion screen echoes the task title
+- tapOn: "e.g. 15000" # odometer input (targeted by placeholder text)
+- inputText: ${ODOMETER}
+- tapOn:
+    text: "Completion Details" # non-interactive label dismisses the custom keyboard
+    optional: true
+- tapOn: "0.00" # cost input (placeholder; assumes a 2-decimal currency)
+- inputText: ${COST}
+- tapOn:
+    text: "Completion Details" # dismiss the keyboard again before the button
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Mark Complete" # maintenance.markComplete — below the fold when keyboard is up
+    direction: DOWN
+- tapOn: "Mark Complete"
+# Completing a task is a value-moment — the StoreKit rating prompt is likely here.
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# 6. Success — the task moved to Completed. On the bike hub the completed task
+#    lives under the "History" tab (the Active tab hides it); on the All Tasks
+#    list it stays under the default "All" filter (sorted to the bottom). Reveal
+#    History if we're on the hub (no-op on the All Tasks list), then confirm the
+#    task is present AND its card no longer offers the pending "Done" action.
+- tapOn:
+    text: ".*History.*"
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: ${TASK_TITLE}
+    direction: DOWN
+- assertVisible: ${TASK_TITLE}
+- assertNotVisible:
+    text: "Done" # a completed card shows no "Done" action — it's done
+    below:
+      text: ${TASK_TITLE}
+- takeScreenshot: complete-maintenance-task-done
+
+# 7. Cleanup — delete the completed task so reruns stay deterministic. The Delete
+#    action stays on the card after completion (only Done/Edit are hidden). The
+#    confirm Alert reuses the word "Delete", so target it rightOf "Cancel".
+- tapOn:
+    text: "Delete"
+    below:
+      text: ${TASK_TITLE}
+- tapOn:
+    text: "Delete"
+    rightOf:
+      text: "Cancel"
+- assertNotVisible:
+    text: ${TASK_TITLE}
