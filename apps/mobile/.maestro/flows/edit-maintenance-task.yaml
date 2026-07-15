@@ -96,11 +96,14 @@ env:
     direction: DOWN
 - tapOn: "Save changes"
 
-# 6. Success: the edited title shows in the list — same task, edited in place.
+# 6. Success: the edited title shows in the list — same task, edited in place —
+#    AND the priority change persisted (the card shows a CRITICAL badge). This
+#    proves a non-title edit round-trips, not just the title.
 - extendedWaitUntil:
     visible: ${TASK_TITLE_EDITED}
     timeout: 30000
 - assertVisible: ${TASK_TITLE_EDITED}
+- assertVisible: ".*Critical.*" # priority badge on the edited card (was High -> Critical)
 - takeScreenshot: edit-maintenance-task-done
 
 # 7. Cleanup — delete the task this flow created so reruns stay deterministic.
