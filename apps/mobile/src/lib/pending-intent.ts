@@ -33,8 +33,16 @@ export const INTENT_PARAM = {
   TS: 'ts',
 } as const;
 
-/** iOS clipboard token scheme — verified before a clipboard read is trusted. */
-export const INTENT_TOKEN_SCHEME = 'mvintent://';
+/**
+ * iOS clipboard token prefix — an https URL (NOT a custom scheme) on purpose: the
+ * reader gates its (permission-prompting) clipboard read behind
+ * `Clipboard.hasUrlAsync()`, which only detects real URLs. An https URL is
+ * reliably detected, so organic users with no URL on their clipboard are never
+ * prompted; a custom scheme like `mvintent://` would not be detected and the
+ * feature would silently never seed. The `/i` path marks it as an intent token.
+ * Kept in sync with the web writer (`apps/web` campaign.ts, `buildIntentToken`).
+ */
+export const INTENT_TOKEN_URL_PREFIX = 'https://motovault.app/i';
 
 /**
  * Max age of an iOS clipboard token. A token older than this (or improbably far
@@ -101,8 +109,9 @@ function clean(value: string | null | undefined): string | null {
  *
  * - Android: the Play install referrer, a plain query string
  *   (`utm_source=blog&mv_make=Yamaha&mv_model=MT-07`). No TTL.
- * - iOS: the clipboard token (`mvintent://?mv_make=Yamaha&...&ts=<epoch_ms>`).
- *   The `mvintent://` prefix is required and a stale/garbage `ts` rejects it.
+ * - iOS: the clipboard token
+ *   (`https://motovault.app/i?mv_make=Yamaha&...&ts=<epoch_ms>`). The URL prefix
+ *   is required and a stale/garbage `ts` rejects it.
  *
  * A missing/blank make yields null — there is nothing to seed without a make.
  * `nowMs` is injectable for deterministic tests.
@@ -116,12 +125,16 @@ export function parseIntentToken(
     const trimmed = raw.trim();
     if (!trimmed) return null;
 
-    const isToken = trimmed.startsWith(INTENT_TOKEN_SCHEME);
-    // Strip the scheme (tokens) and any leading `?`/`/` before the query.
-    const query = (isToken ? trimmed.slice(INTENT_TOKEN_SCHEME.length) : trimmed).replace(
-      /^[/?]+/,
-      '',
-    );
+    const isToken = trimmed.startsWith(INTENT_TOKEN_URL_PREFIX);
+    // iOS token: take the query after the URL's first `?`. Referrer: it IS the
+    // query string, so just strip any leading `?`/`/`.
+    let query: string;
+    if (isToken) {
+      const qIdx = trimmed.indexOf('?');
+      query = qIdx >= 0 ? trimmed.slice(qIdx + 1) : '';
+    } else {
+      query = trimmed.replace(/^[/?]+/, '');
+    }
     if (!query) return null;
 
     const params = new URLSearchParams(query);

@@ -1,8 +1,8 @@
 # Web→app intent — valid token (P2 case 2).
 #
 # The runner (scripts/run-intent-e2e.sh) seeds the iOS clipboard with a fresh
-# `mvintent://?mv_make=Yamaha&mv_model=MT-07&...` token BEFORE this flow launches
-# the app. On first launch the reader parses it, matches the make, and seeds the
+# `https://motovault.app/i?mv_make=Yamaha&mv_model=MT-07&...` token BEFORE this
+# flow launches. On first launch the reader parses it, matches the make, seeds the
 # onboarding store — so bike-setup opens on the one-tap "Is this your ride?"
 # confirmation for the Yamaha MT-07 instead of the make grid.
 #
@@ -20,10 +20,23 @@ env:
 - clearKeychain
 - launchApp
 
+# The reader reads the seeded clipboard URL on launch → iOS shows a one-time
+# "…would like to paste" dialog. Allow it so the token reaches the app.
+- runFlow:
+    when:
+      visible: "Allow Paste"
+    commands:
+      - tapOn: "Allow Paste"
+
 # 1. Welcome
 - extendedWaitUntil:
     visible: "Let's get started"
     timeout: 120000
+- runFlow:
+    when:
+      visible: "Allow Paste"
+    commands:
+      - tapOn: "Allow Paste"
 - tapOn: "Let's get started"
 
 # 2. Experience (auto-advances)

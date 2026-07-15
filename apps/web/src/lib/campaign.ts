@@ -68,18 +68,21 @@ export function getCampaignParams(): CampaignParams | null {
 }
 
 /**
- * iOS clipboard-token scheme. The App Store strips install referrers, so the one
- * deterministic way to carry make/model intent across the iOS store boundary is a
- * clipboard token the app reads on first launch (plan P2.4). Kept in sync with the
- * mobile parser (`apps/mobile/src/lib/pending-intent.ts`, `INTENT_TOKEN_SCHEME`).
+ * iOS clipboard-token URL prefix. The App Store strips install referrers, so the
+ * one deterministic way to carry make/model intent across the iOS store boundary
+ * is a clipboard token the app reads on first launch (plan P2.4). It is an https
+ * URL (not a custom scheme) so the app can gate its permission-prompting read
+ * behind iOS `hasUrlAsync()` — a custom scheme is not detected as a URL and the
+ * prompt would fire for every user. Kept in sync with the mobile parser
+ * (`apps/mobile/src/lib/pending-intent.ts`, `INTENT_TOKEN_URL_PREFIX`).
  */
-export const INTENT_CLIPBOARD_SCHEME = 'mvintent://';
+export const INTENT_TOKEN_URL_PREFIX = 'https://motovault.app/i';
 
 /**
  * Build the iOS clipboard intent token from make/model + campaign params, or null
  * when there is no bike intent to carry (no `mv_make`). Stamped with `ts` (epoch
  * ms) so the app can ignore a stale pasteboard. Written best-effort on the click
- * gesture just before the App Store redirect; the app verifies the scheme + TTL,
+ * gesture just before the App Store redirect; the app verifies the prefix + TTL,
  * seeds onboarding, then clears the clipboard. Values are encoded so a make/model
  * containing `&`/`=` round-trips through the app's URLSearchParams parse.
  */
@@ -89,7 +92,7 @@ export function buildIntentToken(params: Record<string, string | undefined> | nu
     .filter((entry): entry is [string, string] => Boolean(entry[1]))
     .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
     .join('&');
-  return `${INTENT_CLIPBOARD_SCHEME}?${query}&ts=${Date.now()}`;
+  return `${INTENT_TOKEN_URL_PREFIX}?${query}&ts=${Date.now()}`;
 }
 
 /**

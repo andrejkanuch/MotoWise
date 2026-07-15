@@ -11,6 +11,12 @@
 # `xcrun simctl pbcopy`). The Android install-referrer path can't be seeded
 # without a real Play Store install and is verified manually on an emulator.
 #
+# The token is an https URL so the app can gate its (permission-prompting)
+# clipboard read behind `hasUrlAsync()`. During the flow iOS shows a one-time
+# "… would like to paste" dialog when the app reads it — the flows tap
+# "Allow Paste". Run against a bundled preview/Release build (NOT the Metro dev
+# client — clearState wipes its Metro link; see .maestro/README.md).
+#
 # Prereq: a STANDALONE / PREVIEW build (bundled JS, no Metro) built with
 # EXPO_PUBLIC_OB_VARIANT=invested installed on a booted iOS simulator — same as
 # onboarding.yaml (see .maestro/README.md). The flow uses clearState +
@@ -31,7 +37,7 @@ command -v xcrun >/dev/null 2>&1 || { echo "error: xcrun not found — this runn
 TS="$(date +%s)000"
 # The token the web writes just before the store redirect (see apps/web
 # storeAnchorProps, T5). Overridable for the fallback case.
-INTENT_TOKEN=${INTENT_TOKEN:-"mvintent://?mv_make=Yamaha&mv_model=MT-07&utm_source=blog&utm_campaign=blog_maintenance&ts=${TS}"}
+INTENT_TOKEN=${INTENT_TOKEN:-"https://motovault.app/i?mv_make=Yamaha&mv_model=MT-07&utm_source=blog&utm_campaign=blog_maintenance&ts=${TS}"}
 
 echo "→ seeding simulator clipboard with intent token"
 printf '%s' "$INTENT_TOKEN" | xcrun simctl pbcopy booted

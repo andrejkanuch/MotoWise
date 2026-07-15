@@ -18,7 +18,7 @@
     "test:e2e:complete-task": "E2E_FLOW=complete-maintenance-task.yaml E2E_EMAIL_PREFIX=e2e-complete-task sh scripts/run-onboarding-e2e.sh",
     "test:e2e:log-ride": "E2E_FLOW=log-ride.yaml E2E_EMAIL_PREFIX=e2e-log-ride sh scripts/run-onboarding-e2e.sh",
     "test:e2e:intent": "sh scripts/run-intent-e2e.sh",
-    "test:e2e:intent-fallback": "INTENT_TOKEN=\"mvintent://?mv_make=Peugeot&mv_model=Metropolis&utm_source=blog&ts=$(date +%s)000\" E2E_FLOW=intent-onboarding-fallback.yaml sh scripts/run-intent-e2e.sh",
+    "test:e2e:intent-fallback": "INTENT_TOKEN=\"https://motovault.app/i?mv_make=Peugeot&mv_model=Metropolis&utm_source=blog&ts=$(date +%s)000\" E2E_FLOW=intent-onboarding-fallback.yaml sh scripts/run-intent-e2e.sh",
     "typecheck": "tsc --noEmit",
     "i18n:status": "npx i18next-cli status --config ./i18next-toolkit.config.mjs",
     "i18n:hardcoded": "eslint \"src/**/*.{ts,tsx}\"",

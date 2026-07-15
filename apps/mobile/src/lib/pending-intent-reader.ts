@@ -13,7 +13,7 @@ import {
   getIntentCohort,
   INTENT_METHOD,
   INTENT_PREFILL_ENABLED,
-  INTENT_TOKEN_SCHEME,
+  INTENT_TOKEN_URL_PREFIX,
   type IntentMethod,
   type MakeOption,
   parseIntentToken,
@@ -67,10 +67,15 @@ async function readAndroidReferrer(): Promise<string | null> {
 
 async function readIosClipboardToken(): Promise<string | null> {
   try {
+    // Gate the read behind hasUrlAsync() — a metadata check that does NOT trigger
+    // the iOS paste-permission prompt. Organic users (no URL on the clipboard)
+    // return here silently, so the prompt is never shown outside the web→app
+    // flow. Only a URL-bearing clipboard proceeds to the prompting read.
+    if (!(await Clipboard.hasUrlAsync())) return null;
     const clip = await Clipboard.getStringAsync();
     // Only trust — and only ever clear — a string that is our token. Never touch
     // unrelated clipboard content the user happens to be carrying.
-    if (!clip?.startsWith(INTENT_TOKEN_SCHEME)) return null;
+    if (!clip?.startsWith(INTENT_TOKEN_URL_PREFIX)) return null;
     await Clipboard.setStringAsync('');
     return clip;
   } catch {

@@ -18,6 +18,7 @@ jest.mock('react-native-mmkv', () => ({
 }));
 
 jest.mock('expo-clipboard', () => ({
+  hasUrlAsync: jest.fn(),
   getStringAsync: jest.fn(),
   setStringAsync: jest.fn().mockResolvedValue(undefined),
 }));
@@ -53,14 +54,14 @@ const { resolvePendingIntent } = require('../pending-intent-reader');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { useOnboardingStore } = require('../../stores/onboarding.store');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { INTENT_TOKEN_SCHEME } = require('../pending-intent');
+const { INTENT_TOKEN_URL_PREFIX } = require('../pending-intent');
 
 const MAKES = [
   { makeId: 483, makeName: 'Yamaha' },
   { makeId: 474, makeName: 'Honda' },
 ];
 
-const token = (params: string) => `${INTENT_TOKEN_SCHEME}?${params}`;
+const token = (params: string) => `${INTENT_TOKEN_URL_PREFIX}?${params}`;
 const freshToken = (extra = '') =>
   token(
     `mv_make=Yamaha&mv_model=MT-07&utm_source=blog&utm_campaign=blog_maintenance&ts=${Date.now()}${extra}`,
@@ -73,6 +74,9 @@ beforeEach(() => {
   SecureStore.setItemAsync.mockResolvedValue(undefined);
   gqlFetcher.mockResolvedValue({ motorcycleMakes: MAKES });
   Clipboard.setStringAsync.mockResolvedValue(undefined);
+  // Default: the clipboard holds a URL, so the reader proceeds to the (prompting)
+  // read. The "no URL" case overrides this to false.
+  Clipboard.hasUrlAsync.mockResolvedValue(true);
 });
 
 // NOTE: jest-expo inlines `process.env.EXPO_OS` (defaults to 'ios') at transform
@@ -106,8 +110,9 @@ describe('resolvePendingIntent — iOS (clipboard)', () => {
     });
   });
 
-  it('does NOT touch a clipboard that is not our token (no clear, no seed)', async () => {
-    Clipboard.getStringAsync.mockResolvedValue('just some copied text');
+  it('does NOT touch a clipboard URL that is not our token (no clear, no seed)', async () => {
+    // A URL is present (hasUrlAsync true) but it is not our intent token.
+    Clipboard.getStringAsync.mockResolvedValue('https://example.com/some-other-link');
 
     await resolvePendingIntent();
 
@@ -115,6 +120,18 @@ describe('resolvePendingIntent — iOS (clipboard)', () => {
     expect(useOnboardingStore.getState().bikeData).toBeNull();
     expect(analytics.trackEvent).not.toHaveBeenCalled();
     // Still flags checked — the transport was read; nothing to retry.
+    expect(SecureStore.setItemAsync).toHaveBeenCalledWith('pending_intent_checked', '1');
+  });
+
+  it('never triggers the paste read when the clipboard has no URL (no prompt)', async () => {
+    Clipboard.hasUrlAsync.mockResolvedValue(false);
+
+    await resolvePendingIntent();
+
+    // The prompting read is never reached → organic users are not prompted.
+    expect(Clipboard.getStringAsync).not.toHaveBeenCalled();
+    expect(useOnboardingStore.getState().bikeData).toBeNull();
+    expect(analytics.trackEvent).not.toHaveBeenCalled();
     expect(SecureStore.setItemAsync).toHaveBeenCalledWith('pending_intent_checked', '1');
   });
 

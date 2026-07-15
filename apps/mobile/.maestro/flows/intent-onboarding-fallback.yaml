@@ -1,8 +1,8 @@
 # Web→app intent — graceful fallback (P2 case 3).
 #
 # The runner seeds a well-formed but UNKNOWN-make token
-# (`mvintent://?mv_make=Peugeot&...`) BEFORE launch. The reader parses it but
-# can't match the make against the app's make list, so it seeds NOTHING — and
+# (`https://motovault.app/i?mv_make=Peugeot&...`) BEFORE launch. The reader parses
+# it but can't match the make against the app's make list, so it seeds NOTHING —
 # bike-setup must render the normal make grid, exactly like an install with no
 # intent. This is the fail-open guarantee for a wrong/unknown intent.
 #
@@ -19,10 +19,23 @@ env:
 - clearKeychain
 - launchApp
 
+# Unknown-make token is still a URL → the reader reads it (iOS paste dialog).
+# Allow it; the make simply won't match, so nothing is seeded.
+- runFlow:
+    when:
+      visible: "Allow Paste"
+    commands:
+      - tapOn: "Allow Paste"
+
 # 1. Welcome
 - extendedWaitUntil:
     visible: "Let's get started"
     timeout: 120000
+- runFlow:
+    when:
+      visible: "Allow Paste"
+    commands:
+      - tapOn: "Allow Paste"
 - tapOn: "Let's get started"
 
 # 2. Experience (auto-advances)

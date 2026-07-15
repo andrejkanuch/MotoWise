@@ -83,8 +83,8 @@ describe('parseIntentToken', () => {
   });
 
   describe('clipboard tokens (iOS)', () => {
-    it('parses a fresh mvintent:// token', () => {
-      const raw = `mvintent://?mv_make=Yamaha&mv_model=MT-07&utm_source=blog&ts=${NOW}`;
+    it('parses a fresh https token', () => {
+      const raw = `https://motovault.app/i?mv_make=Yamaha&mv_model=MT-07&utm_source=blog&ts=${NOW}`;
       expect(parseIntentToken(raw, NOW + 1000)).toEqual({
         make: 'Yamaha',
         model: 'MT-07',
@@ -94,18 +94,20 @@ describe('parseIntentToken', () => {
     });
 
     it('rejects an expired token (older than TTL)', () => {
-      const raw = `mvintent://?mv_make=Yamaha&mv_model=MT-07&ts=${NOW}`;
+      const raw = `https://motovault.app/i?mv_make=Yamaha&mv_model=MT-07&ts=${NOW}`;
       expect(parseIntentToken(raw, NOW + INTENT_TOKEN_TTL_MS + 1)).toBeNull();
     });
 
     it('rejects an improbable future timestamp', () => {
-      const raw = `mvintent://?mv_make=Yamaha&ts=${NOW + INTENT_TOKEN_TTL_MS + 1}`;
+      const raw = `https://motovault.app/i?mv_make=Yamaha&ts=${NOW + INTENT_TOKEN_TTL_MS + 1}`;
       expect(parseIntentToken(raw, NOW)).toBeNull();
     });
 
     it('rejects a token with a missing/garbage ts', () => {
-      expect(parseIntentToken('mvintent://?mv_make=Yamaha', NOW)).toBeNull();
-      expect(parseIntentToken('mvintent://?mv_make=Yamaha&ts=notanumber', NOW)).toBeNull();
+      expect(parseIntentToken('https://motovault.app/i?mv_make=Yamaha', NOW)).toBeNull();
+      expect(
+        parseIntentToken('https://motovault.app/i?mv_make=Yamaha&ts=notanumber', NOW),
+      ).toBeNull();
     });
   });
 
@@ -119,7 +121,7 @@ describe('parseIntentToken', () => {
       ['random text', 'hello world'],
       ['no make key', 'utm_source=blog&mv_model=MT-07'],
       ['blank make', 'mv_make=&mv_model=MT-07'],
-      ['scheme only', 'mvintent://'],
+      ['prefix only', 'https://motovault.app/i'],
     ])('%s', (_label, input) => {
       expect(parseIntentToken(input as never, NOW)).toBeNull();
     });
