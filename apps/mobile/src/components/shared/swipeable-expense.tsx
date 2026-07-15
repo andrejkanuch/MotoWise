@@ -1,10 +1,11 @@
 import { palette } from '@motovault/design-system';
 import { Trash2 } from 'lucide-react-native';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
+  FadeIn,
   FadeInUp,
   runOnJS,
   useAnimatedStyle,
@@ -33,6 +34,11 @@ export function SwipeableExpense({ expense, isDark, onDelete, index }: Swipeable
   const { format: formatCurrency } = useCurrency();
   const translateX = useSharedValue(0);
   const deleteThreshold = -80;
+  // Tapping the row reveals a visible Delete action — the swipe/long-press below
+  // still works, but a discoverable button is the primary path (the gesture-only
+  // delete was hard to find and hard to trigger).
+  const [expanded, setExpanded] = useState(false);
+  const toggleExpanded = useCallback(() => setExpanded((v) => !v), []);
 
   const confirmDelete = useCallback(() => {
     Alert.alert(
@@ -53,6 +59,7 @@ export function SwipeableExpense({ expense, isDark, onDelete, index }: Swipeable
           style: 'destructive',
           onPress: () => {
             translateX.value = withTiming(0);
+            setExpanded(false);
             onDelete(expense.id);
           },
         },
@@ -84,7 +91,11 @@ export function SwipeableExpense({ expense, isDark, onDelete, index }: Swipeable
       }
     });
 
-  const composedGesture = Gesture.Race(panGesture, longPressGesture);
+  const tapGesture = Gesture.Tap().onEnd(() => {
+    runOnJS(toggleExpanded)();
+  });
+
+  const composedGesture = Gesture.Race(panGesture, longPressGesture, tapGesture);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
@@ -173,6 +184,36 @@ export function SwipeableExpense({ expense, isDark, onDelete, index }: Swipeable
           </Animated.View>
         </GestureDetector>
       </View>
+
+      {/* Visible Delete action, revealed on tap. Primary, discoverable path to
+          delete (the swipe/long-press above still works). */}
+      {expanded && (
+        <Animated.View
+          entering={FadeIn.duration(150)}
+          style={{ alignItems: 'flex-end', marginTop: 6 }}
+        >
+          <Pressable
+            onPress={confirmDelete}
+            accessibilityRole="button"
+            accessibilityLabel={t('expenses.deleteExpense', { defaultValue: 'Delete expense' })}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              paddingVertical: 8,
+              paddingHorizontal: 14,
+              borderRadius: 8,
+              borderCurve: 'continuous',
+              backgroundColor: isDark ? 'rgba(239,68,68,0.14)' : 'rgba(239,68,68,0.08)',
+            }}
+          >
+            <Trash2 size={14} color={palette.danger500} strokeWidth={2} />
+            <Text style={{ fontSize: 13, fontWeight: '600', color: palette.danger500 }}>
+              {t('common.delete', { defaultValue: 'Delete' })}
+            </Text>
+          </Pressable>
+        </Animated.View>
+      )}
     </Animated.View>
   );
 }

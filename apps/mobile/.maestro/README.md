@@ -50,10 +50,10 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
 - **`flows/add-bike.yaml`** — add a second motorcycle. **Requires a PRO account** (free tier caps at
   1 bike and onboarding already adds a Honda → paywall). Authored from source; validate on a Pro
   account. `test:e2e:add-bike`.
-- **`flows/delete-expense.yaml`** — ⚠️ **KNOWN-BLOCKED.** The expense delete is gesture-only
-  (swipe/long-press) and on-device validation confirmed it is **not reliably triggerable** (the
-  original client complaint, reproduced). Kept as executable documentation; becomes reliable only
-  after the expense row gets a visible delete affordance. `test:e2e:delete-expense`.
+- **`flows/delete-expense.yaml`** — delete an expense. The gesture-only delete (the original client
+  complaint) was **fixed**: tapping an expense row now reveals a visible "Delete" button
+  (`swipeable-expense.tsx`); the reveal was validated on-device 2026-07-15. Flow drives the button
+  path (tap row → Delete → confirm). `test:e2e:delete-expense`.
 - **`flows/log-ride.yaml`** — start a ride, record, hold-to-end, save. **Validated end-to-end
   on-device 2026-07-15.** Uses `setLocation` for a GPS fix; ends via a long-press ("Hold to end
   ride") + a point-tap on the "End Anyway" bottom-sheet confirm (buttons not in the a11y tree).
