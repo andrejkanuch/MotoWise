@@ -36,7 +36,11 @@ import {
 /** SecureStore flag: the intent transport has already been consumed this install. */
 const INTENT_CHECKED_KEY = 'pending_intent_checked';
 
-/** The Android Play install referrer module is added in T2; guarded until then. */
+/**
+ * Shape of react-native-play-install-referrer (Android-only). Dynamically
+ * required so iOS never loads it and Expo Go (no native module) degrades to a
+ * no-op instead of crashing.
+ */
 interface PlayInstallReferrerModule {
   PlayInstallReferrer: {
     getInstallReferrerInfo(
