@@ -120,7 +120,7 @@ describe('resolvePendingIntent — iOS (clipboard)', () => {
 
   it('ignores an expired token (clears it, but no seed / no event)', async () => {
     Clipboard.getStringAsync.mockResolvedValue(
-      token(`mv_make=Yamaha&mv_model=MT-07&ts=${Date.now() - 10 * 60 * 1000}`),
+      token(`mv_make=Yamaha&mv_model=MT-07&ts=${Date.now() - 2 * 60 * 60 * 1000}`),
     );
 
     await resolvePendingIntent();

@@ -987,7 +987,8 @@
     "v2IntentConfirmTitle": "これはあなたのバイクですか？",
     "v2IntentConfirmSubtitle": "読んでいた記事から取得しました。年式を確認すればガレージの準備は完了です。",
     "v2IntentConfirmCta": "はい、これが私のバイクです",
-    "v2IntentConfirmChange": "私のバイクではありません"
+    "v2IntentConfirmChange": "私のバイクではありません",
+    "heardAboutWebsite": "MotoVaultのウェブサイトまたはブログ"
   },
   "bikeHub": {
     "upcoming": "予定",

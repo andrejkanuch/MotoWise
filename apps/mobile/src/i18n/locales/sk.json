@@ -989,7 +989,8 @@
     "v2IntentConfirmTitle": "Je toto tvoj motocykel?",
     "v2IntentConfirmSubtitle": "Zachytili sme to z toho, čo si čítal. Potvrď rok a tvoja garáž je pripravená.",
     "v2IntentConfirmCta": "Áno, to je môj motocykel",
-    "v2IntentConfirmChange": "Nie je to môj motocykel"
+    "v2IntentConfirmChange": "Nie je to môj motocykel",
+    "heardAboutWebsite": "Web alebo blog MotoVault"
   },
   "bikeHub": {
     "upcoming": "Nadchádzajúce",

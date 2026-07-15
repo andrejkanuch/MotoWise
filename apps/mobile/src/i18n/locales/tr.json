@@ -987,7 +987,8 @@
     "v2IntentConfirmTitle": "Bu sizin motorunuz mu?",
     "v2IntentConfirmSubtitle": "Bunu okuduğunuz içerikten aldık. Yılı onaylayın, garajınız hazır.",
     "v2IntentConfirmCta": "Evet, bu benim motorum",
-    "v2IntentConfirmChange": "Benim motorum değil"
+    "v2IntentConfirmChange": "Benim motorum değil",
+    "heardAboutWebsite": "MotoVault web sitesi veya blogu"
   },
   "bikeHub": {
     "upcoming": "Yaklasan",

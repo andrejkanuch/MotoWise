@@ -68,6 +68,31 @@ export function getCampaignParams(): CampaignParams | null {
 }
 
 /**
+ * iOS clipboard-token scheme. The App Store strips install referrers, so the one
+ * deterministic way to carry make/model intent across the iOS store boundary is a
+ * clipboard token the app reads on first launch (plan P2.4). Kept in sync with the
+ * mobile parser (`apps/mobile/src/lib/pending-intent.ts`, `INTENT_TOKEN_SCHEME`).
+ */
+export const INTENT_CLIPBOARD_SCHEME = 'mvintent://';
+
+/**
+ * Build the iOS clipboard intent token from make/model + campaign params, or null
+ * when there is no bike intent to carry (no `mv_make`). Stamped with `ts` (epoch
+ * ms) so the app can ignore a stale pasteboard. Written best-effort on the click
+ * gesture just before the App Store redirect; the app verifies the scheme + TTL,
+ * seeds onboarding, then clears the clipboard. Values are encoded so a make/model
+ * containing `&`/`=` round-trips through the app's URLSearchParams parse.
+ */
+export function buildIntentToken(params: Record<string, string | undefined> | null): string | null {
+  if (!params?.mv_make) return null; // nothing to seed without a make
+  const query = Object.entries(params)
+    .filter((entry): entry is [string, string] => Boolean(entry[1]))
+    .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+    .join('&');
+  return `${INTENT_CLIPBOARD_SCHEME}?${query}&ts=${Date.now()}`;
+}
+
+/**
  * Append a Google Play `referrer` param built from arbitrary key/values. Play
  * surfaces this verbatim in the Install Referrer API + Play Console acquisition
  * reports, giving deterministic Android channel attribution — and it is how blog

@@ -987,7 +987,8 @@
     "v2IntentConfirmTitle": "Apakah ini motor Anda?",
     "v2IntentConfirmSubtitle": "Kami mengambilnya dari yang Anda baca. Konfirmasi tahunnya dan garasi Anda siap.",
     "v2IntentConfirmCta": "Ya, ini motor saya",
-    "v2IntentConfirmChange": "Bukan motor saya"
+    "v2IntentConfirmChange": "Bukan motor saya",
+    "heardAboutWebsite": "Situs web atau blog MotoVault"
   },
   "bikeHub": {
     "upcoming": "Akan Datang",

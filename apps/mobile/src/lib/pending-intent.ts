@@ -41,8 +41,14 @@ export const INTENT_TOKEN_SCHEME = 'mvintent://';
  * in the future) is treated as a stale/unrelated paste and ignored. Referrer
  * strings carry no `ts` and are not TTL-checked — the OS only hands them over on
  * a genuine first install.
+ *
+ * Sized to survive a real App Store install: the token is written at store-click
+ * and only read on first launch, so the window must cover download + install +
+ * first-open, which routinely exceeds a couple of minutes on cellular. 60 min is
+ * generous for that while still discarding genuinely stale pasteboard contents
+ * (our scheme tokens are not something a user keeps around for an hour).
  */
-export const INTENT_TOKEN_TTL_MS = 2 * 60 * 1000;
+export const INTENT_TOKEN_TTL_MS = 60 * 60 * 1000;
 
 /** How the intent arrived — used for analytics (`method`) and cohorting. */
 export const INTENT_METHOD = {

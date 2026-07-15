@@ -987,7 +987,8 @@
     "v2IntentConfirmTitle": "Ist das dein Motorrad?",
     "v2IntentConfirmSubtitle": "Das haben wir aus deiner Lektüre übernommen. Bestätige das Baujahr und deine Garage ist bereit.",
     "v2IntentConfirmCta": "Ja, das ist mein Motorrad",
-    "v2IntentConfirmChange": "Nicht mein Motorrad"
+    "v2IntentConfirmChange": "Nicht mein Motorrad",
+    "heardAboutWebsite": "MotoVault-Website oder Blog"
   },
   "bikeHub": {
     "upcoming": "Anstehend",

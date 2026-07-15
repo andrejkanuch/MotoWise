@@ -987,7 +987,8 @@
     "v2IntentConfirmTitle": "นี่ใช่รถของคุณไหม?",
     "v2IntentConfirmSubtitle": "เราดึงข้อมูลนี้จากสิ่งที่คุณกำลังอ่าน ยืนยันปีแล้วโรงจอดของคุณก็พร้อม",
     "v2IntentConfirmCta": "ใช่ นี่คือรถของฉัน",
-    "v2IntentConfirmChange": "ไม่ใช่รถของฉัน"
+    "v2IntentConfirmChange": "ไม่ใช่รถของฉัน",
+    "heardAboutWebsite": "เว็บไซต์หรือบล็อก MotoVault"
   },
   "bikeHub": {
     "upcoming": "กำลังจะถึง",

@@ -1,7 +1,7 @@
 'use client';
 
 import { trackStoreCtaClick } from '@/lib/analytics';
-import { buildPlayReferrer, getCampaignParams } from '@/lib/campaign';
+import { buildIntentToken, buildPlayReferrer, getCampaignParams } from '@/lib/campaign';
 import { CtaPlacement, type StoreCtaContext, StorePlatform } from '@/lib/cta-taxonomy';
 
 const STORE_LINKS = {
@@ -40,6 +40,19 @@ export function storeAnchorProps(platform: StorePlatform, ctx: StoreCtaContext) 
       if (platform === StorePlatform.Android && (campaign || ctx.referrerParams)) {
         const referrer = { ...ctx.referrerParams, ...campaign };
         e.currentTarget.href = buildPlayReferrer(STORE_LINKS.googlePlay, referrer);
+      }
+      // iOS: the App Store strips referrers, so carry the same make/model intent
+      // via a clipboard token the app reads on first launch (P2.4). Best-effort on
+      // the click gesture; only writes when there is a bike intent (mv_make).
+      if (platform === StorePlatform.Ios) {
+        const token = buildIntentToken({ ...ctx.referrerParams, ...campaign });
+        if (token) {
+          try {
+            void navigator.clipboard?.writeText(token).catch(() => {});
+          } catch {
+            // clipboard unavailable / denied — attribution is best-effort.
+          }
+        }
       }
       trackStoreCtaClick(platform, ctx, campaign ?? undefined);
     },

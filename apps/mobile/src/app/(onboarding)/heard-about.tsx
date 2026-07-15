@@ -5,6 +5,7 @@ import {
   Instagram,
   MoreHorizontal,
   Music2,
+  Newspaper,
   Search,
   Sparkles,
   Users,
@@ -38,6 +39,9 @@ const HEARD_ABOUT_OPTIONS = [
   { id: 'friend', labelKey: 'heardAboutFriend', icon: Users },
   { id: 'app_store_search', labelKey: 'heardAboutAppStore', icon: Search },
   { id: 'google_search', labelKey: 'heardAboutGoogle', icon: Globe },
+  // Web→app cohort self-report (P2/T5) — the MotoVault site/blog is now a
+  // meaningful acquisition source distinct from a generic Google search.
+  { id: 'website', labelKey: 'heardAboutWebsite', icon: Newspaper },
   { id: 'ai_chat', labelKey: 'heardAboutAi', icon: Sparkles },
   { id: 'dont_remember', labelKey: 'heardAboutDontRemember', icon: HelpCircle },
   { id: 'other', labelKey: 'heardAboutOther', icon: MoreHorizontal },
