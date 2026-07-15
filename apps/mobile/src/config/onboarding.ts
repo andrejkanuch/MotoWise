@@ -227,6 +227,16 @@ export const GOAL_TO_PLACEMENT: Record<string, string> = {
   just_exploring: 'onboarding_default',
 } as const;
 
+/**
+ * RevenueCat placement for the maintenance-intent cohort (P3.2) — riders who
+ * arrived from an article about a specific bike's service schedule. Overrides the
+ * goal-derived placement so the paywall can lead with reminder value ("Never miss
+ * your {{ custom.primaryBikeModel }}'s next service"). Configure this placement +
+ * its Paywalls-v2 copy in the RC dashboard; falls back to the current offering if
+ * the placement is missing, so the paywall still presents.
+ */
+export const MAINTENANCE_INTENT_PLACEMENT = 'onboarding_maintenance';
+
 type OnboardingRoutePath =
   | `/(onboarding)/${Exclude<OnboardingRoute, typeof OB_SCREEN.WELCOME>}`
   | '/(onboarding)';
