@@ -1,8 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from '@/i18n/navigation';
+import { storeAnchorProps } from '@/components/marketing/store-buttons';
 import { trackEvent, WebEvent } from '@/lib/analytics';
+import { CtaPageType, CtaPlacement } from '@/lib/cta-taxonomy';
+import { detectPlatform, type Platform } from '@/lib/store-links';
 
 interface Category {
   id: string;
@@ -57,6 +59,10 @@ export function TclocsChecklist({
   categories: Category[];
   labels: Labels;
 }) {
+  const [platform, setPlatform] = useState<Platform>('unknown');
+  useEffect(() => {
+    setPlatform(detectPlatform());
+  }, []);
   const [checked, setChecked] = useState<CheckedState>(() => {
     const state: CheckedState = {};
     for (const cat of categories) {
@@ -482,12 +488,17 @@ export function TclocsChecklist({
         <div className="mt-8 rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 text-center">
           <h2 className="text-xl font-bold text-neutral-50">{labels.ctaTitle}</h2>
           <p className="mt-3 text-neutral-400">{labels.ctaDesc}</p>
-          <Link
-            href="/"
+          <a
+            {...storeAnchorProps(platform, {
+              pageType: CtaPageType.Tool,
+              placement: CtaPlacement.Inline,
+              slug: 'tclocs-checklist',
+              referrerParams: { utm_source: 'tool', utm_campaign: 'tclocs_checklist' },
+            })}
             className="mt-6 inline-block rounded-full bg-warm-500 px-8 py-3 text-sm font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
           >
             {labels.getEarlyAccess}
-          </Link>
+          </a>
         </div>
       </div>
     </section>
