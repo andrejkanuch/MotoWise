@@ -6,6 +6,7 @@ import { scoreBikePage } from '@/lib/bikes/quality-gate';
 import { getArticles } from '@/lib/blog';
 import { BASE_URL } from '@/lib/constants';
 import { gqlServerFetcher } from '@/lib/graphql-server';
+import { isTargetMarket } from '@/lib/seo/market-indexing';
 import { exploreDiscoveryEntries, tripDetailEntries } from '@/lib/seo/sitemap-trips';
 
 const host = BASE_URL;
@@ -185,7 +186,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // ---- Trip detail pages + explore discovery (one fetch, both derived) ----
-  const publishedTrips = await getPublishedTripsForSitemap();
+  // Keep the sitemap to on-target markets (Europe + Americas) so off-market
+  // geos aren't advertised for indexing — mirrors the noindex on those pages
+  // (P4.1). Both trip + explore entries derive from the filtered list.
+  const publishedTrips = (await getPublishedTripsForSitemap()).filter((t) =>
+    isTargetMarket(t.countryCode),
+  );
   const now = new Date();
   const tripTemplateEntries = tripDetailEntries(publishedTrips, now);
   const exploreEntries = exploreDiscoveryEntries(publishedTrips, now);
