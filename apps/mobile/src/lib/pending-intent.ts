@@ -1,6 +1,3 @@
-import { MileageUnit, MotorcycleType } from '@motovault/types';
-import { useOnboardingStore } from '../stores/onboarding.store';
-
 /**
  * Web→app "which bike" intent — carried across the store boundary so a rider who
  * read an article about a specific bike (e.g. "Yamaha MT-07 maintenance schedule")
@@ -213,46 +210,15 @@ export function resolveMakeId(
   return findMakeMatch(makeName, makes)?.makeId ?? null;
 }
 
-/** Fallback default when no profile mileage unit is available (EU-dominant). */
-const DEFAULT_MILEAGE_UNIT: MileageUnit = MileageUnit.KM;
-/** Match bike-setup's default year (`currentYear - 3`) for a make-only seed. */
-const DEFAULT_YEAR_OFFSET = 3;
-
 /**
- * Seed the onboarding store from a resolved intent. Only seeds when the make is
- * confidently matched against `makes`; otherwise returns false and leaves the
- * store untouched (→ normal flow). Mirrors bike-setup's make-only partial
- * capture (year defaulted, model optional, type STANDARD) so a valid bike is
- * already staged even if the rider drops off before the confirmation step, and
- * records `pendingIntent` as the signal the confirmation UI / paywall read.
- *
- * The model string is stored as-is: an unknown/wrong model degrades gracefully
- * because the OEM-schedule query returns nothing and the maintenance step
- * auto-skips — no new failure mode is introduced. Never throws.
+ * Resolve an intent's make against the app's make list, returning the canonical
+ * `{ makeId, makeName }` (proper casing from the list) or null on no match.
+ * Used by bike-setup to turn a stored `pendingIntent` into a pre-filled selection
+ * once its make list has loaded. Never throws.
  */
-export function seedBikeDataFromIntent(
-  intent: PendingIntent,
+export function resolveMakeFromIntent(
+  intent: PendingIntent | null | undefined,
   makes: readonly MakeOption[],
-  opts?: { defaultYear?: number; mileageUnit?: MileageUnit },
-): boolean {
-  try {
-    if (!INTENT_PREFILL_ENABLED) return false;
-    const match = findMakeMatch(intent.make, makes);
-    if (!match) return false;
-
-    const store = useOnboardingStore.getState();
-    store.setBikeData({
-      year: opts?.defaultYear ?? new Date().getFullYear() - DEFAULT_YEAR_OFFSET,
-      make: match.makeName,
-      makeId: match.makeId,
-      model: intent.model ?? '',
-      type: MotorcycleType.STANDARD,
-      currentMileage: 0,
-      mileageUnit: opts?.mileageUnit ?? DEFAULT_MILEAGE_UNIT,
-    });
-    store.setPendingIntent(intent);
-    return true;
-  } catch {
-    return false;
-  }
+): MakeOption | null {
+  return intent ? findMakeMatch(intent.make, makes) : null;
 }

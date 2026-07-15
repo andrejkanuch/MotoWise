@@ -1,6 +1,6 @@
-import { MotorcycleMakesDocument } from '@motovault/graphql';
 import * as Clipboard from 'expo-clipboard';
 import * as SecureStore from 'expo-secure-store';
+import { useOnboardingStore } from '../stores/onboarding.store';
 import {
   AnalyticsEvent,
   captureException,
@@ -8,23 +8,21 @@ import {
   setUserPropertiesOnce,
   trackEvent,
 } from './analytics';
-import { gqlFetcher } from './graphql-client';
 import {
   getIntentCohort,
   INTENT_METHOD,
   INTENT_PREFILL_ENABLED,
   INTENT_TOKEN_URL_PREFIX,
   type IntentMethod,
-  type MakeOption,
   parseIntentToken,
-  seedBikeDataFromIntent,
 } from './pending-intent';
 
 /**
  * First-launch resolver for the web→app "which bike" intent (P2). Reads the
  * platform transport (Android Play install referrer / iOS clipboard token),
- * parses it, and — only on a confident make match — seeds the onboarding store
- * so the rider lands in a pre-filled garage. Fires the attribution analytics.
+ * parses it, and stores the raw pendingIntent. The make is resolved (and the
+ * bike seeded) later in bike-setup, which already loads the make list — so this
+ * runs at cold start without depending on a network fetch here. Fires attribution.
  *
  * RULE #0 — this is a non-blocking, best-effort side effect. It NEVER throws,
  * NEVER blocks render/navigation, and any failure leaves onboarding untouched.
@@ -98,15 +96,6 @@ async function readTransport(): Promise<{ raw: string; method: IntentMethod } | 
   return null;
 }
 
-async function fetchMakes(): Promise<MakeOption[]> {
-  try {
-    const data = await gqlFetcher(MotorcycleMakesDocument);
-    return data.motorcycleMakes ?? [];
-  } catch {
-    return [];
-  }
-}
-
 export async function resolvePendingIntent(): Promise<void> {
   if (!INTENT_PREFILL_ENABLED) return;
   try {
@@ -121,17 +110,18 @@ export async function resolvePendingIntent(): Promise<void> {
     const intent = parseIntentToken(transport.raw);
     if (!intent) return; // garbage / expired token → normal flow
 
-    const makes = await fetchMakes();
-    const matched = seedBikeDataFromIntent(intent, makes);
+    // Store the raw intent. The make is resolved + the bike seeded in bike-setup
+    // (where the make list is already loaded), so no network fetch is needed here
+    // at cold start. An unknown make degrades gracefully there (normal grid).
+    useOnboardingStore.getState().setPendingIntent(intent);
 
-    // Attribution — fire only after we know the outcome. Consent-gated inside
-    // the analytics helpers, so this is safe to call unconditionally.
+    // Attribution — consent-gated inside the analytics helpers, safe to call
+    // unconditionally.
     trackEvent(AnalyticsEvent.PENDING_INTENT_RESOLVED, {
       source: intent.source,
       make: intent.make,
       model: intent.model,
       method: transport.method,
-      matched,
     });
     // Extend the first-touch install attribution with the intent (set-once so a
     // later launch/link can never overwrite the original).

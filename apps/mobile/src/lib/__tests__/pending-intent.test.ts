@@ -1,41 +1,13 @@
-import { MileageUnit, MotorcycleType } from '@motovault/types';
-
-// The module under test imports the onboarding store, which transitively pulls
-// in MMKV + analytics native SDKs. Stub them exactly as onboarding-store.test.ts.
-jest.mock('@react-native-async-storage/async-storage', () => ({
-  __esModule: true,
-  default: {
-    getItem: jest.fn().mockResolvedValue(null),
-    setItem: jest.fn().mockResolvedValue(undefined),
-    removeItem: jest.fn().mockResolvedValue(undefined),
-    clear: jest.fn().mockResolvedValue(undefined),
-  },
-}));
-
-jest.mock('react-native-mmkv', () => ({
-  createMMKV: () => ({
-    getString: jest.fn().mockReturnValue(undefined),
-    set: jest.fn(),
-    delete: jest.fn(),
-  }),
-}));
-
-jest.mock('../analytics', () => ({
-  captureException: jest.fn(),
-}));
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const {
-  parseIntentToken,
-  resolveMakeId,
-  seedBikeDataFromIntent,
+// pending-intent.ts is pure (no store / native imports), so no mocks needed.
+import {
   getIntentCohort,
-  isMaintenanceIntent,
   INTENT_COHORT,
   INTENT_TOKEN_TTL_MS,
-} = require('../pending-intent');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { useOnboardingStore } = require('../../stores/onboarding.store');
+  isMaintenanceIntent,
+  parseIntentToken,
+  resolveMakeFromIntent,
+  resolveMakeId,
+} from '../pending-intent';
 
 const MAKES = [
   { makeId: 474, makeName: 'Honda' },
@@ -176,54 +148,29 @@ describe('getIntentCohort / isMaintenanceIntent', () => {
   });
 });
 
-describe('seedBikeDataFromIntent', () => {
-  beforeEach(() => {
-    useOnboardingStore.getState().reset();
+describe('resolveMakeFromIntent', () => {
+  it('returns the canonical make (id + proper-cased name) on a match', () => {
+    expect(
+      resolveMakeFromIntent(
+        { make: 'yamaha', model: 'MT-07', source: 'blog', campaign: null },
+        MAKES,
+      ),
+    ).toEqual({ makeId: 483, makeName: 'Yamaha' });
   });
 
-  it('seeds bikeData + pendingIntent when the make matches', () => {
-    const intent = { make: 'yamaha', model: 'MT-07', source: 'blog', campaign: 'blog_maintenance' };
-    const ok = seedBikeDataFromIntent(intent, MAKES, { defaultYear: 2022 });
-    expect(ok).toBe(true);
-
-    const { bikeData, pendingIntent } = useOnboardingStore.getState();
-    expect(bikeData).toMatchObject({
-      year: 2022,
-      make: 'Yamaha', // canonical casing from the make list, not the referrer
-      makeId: 483,
-      model: 'MT-07',
-      type: MotorcycleType.STANDARD,
-      currentMileage: 0,
-      mileageUnit: MileageUnit.KM,
-    });
-    expect(pendingIntent).toEqual(intent);
+  it('returns null for an unknown make (→ normal grid, fail-open)', () => {
+    expect(
+      resolveMakeFromIntent(
+        { make: 'Peugeot', model: null, source: 'blog', campaign: null },
+        MAKES,
+      ),
+    ).toBeNull();
   });
 
-  it('seeds an empty model for a make-only intent', () => {
-    const ok = seedBikeDataFromIntent(
-      { make: 'Honda', model: null, source: 'tool', campaign: null },
-      MAKES,
-      { defaultYear: 2020 },
-    );
-    expect(ok).toBe(true);
-    expect(useOnboardingStore.getState().bikeData?.model).toBe('');
-  });
-
-  it('does NOT seed and returns false when the make is unknown', () => {
-    const ok = seedBikeDataFromIntent(
-      { make: 'Peugeot', model: 'Metropolis', source: 'blog', campaign: null },
-      MAKES,
-    );
-    expect(ok).toBe(false);
-    expect(useOnboardingStore.getState().bikeData).toBeNull();
-    expect(useOnboardingStore.getState().pendingIntent).toBeNull();
-  });
-
-  it('honours the profile mileage unit when provided', () => {
-    seedBikeDataFromIntent({ make: 'BMW', model: null, source: null, campaign: null }, MAKES, {
-      defaultYear: 2021,
-      mileageUnit: MileageUnit.MI,
-    });
-    expect(useOnboardingStore.getState().bikeData?.mileageUnit).toBe(MileageUnit.MI);
+  it('returns null for null intent or empty make list', () => {
+    expect(resolveMakeFromIntent(null, MAKES)).toBeNull();
+    expect(
+      resolveMakeFromIntent({ make: 'Yamaha', model: null, source: null, campaign: null }, []),
+    ).toBeNull();
   });
 });

@@ -1,4 +1,5 @@
-// Store deps (transitive via ../pending-intent) — mirror onboarding-store.test.ts.
+// Store deps (the reader now imports the store to set pendingIntent) — mirror
+// onboarding-store.test.ts.
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
   default: {
@@ -28,10 +29,6 @@ jest.mock('expo-secure-store', () => ({
   setItemAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock('../graphql-client', () => ({
-  gqlFetcher: jest.fn(),
-}));
-
 // One analytics mock serves both the reader and the store's captureException.
 jest.mock('../analytics', () => ({
   AnalyticsEvent: { PENDING_INTENT_RESOLVED: 'pending_intent_resolved' },
@@ -46,8 +43,6 @@ const Clipboard = require('expo-clipboard');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const SecureStore = require('expo-secure-store');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { gqlFetcher } = require('../graphql-client');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const analytics = require('../analytics');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { resolvePendingIntent } = require('../pending-intent-reader');
@@ -56,15 +51,10 @@ const { useOnboardingStore } = require('../../stores/onboarding.store');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { INTENT_TOKEN_URL_PREFIX } = require('../pending-intent');
 
-const MAKES = [
-  { makeId: 483, makeName: 'Yamaha' },
-  { makeId: 474, makeName: 'Honda' },
-];
-
 const token = (params: string) => `${INTENT_TOKEN_URL_PREFIX}?${params}`;
-const freshToken = (extra = '') =>
+const freshToken = () =>
   token(
-    `mv_make=Yamaha&mv_model=MT-07&utm_source=blog&utm_campaign=blog_maintenance&ts=${Date.now()}${extra}`,
+    `mv_make=Yamaha&mv_model=MT-07&utm_source=blog&utm_campaign=blog_maintenance&ts=${Date.now()}`,
   );
 
 beforeEach(() => {
@@ -72,35 +62,39 @@ beforeEach(() => {
   useOnboardingStore.getState().reset();
   SecureStore.getItemAsync.mockResolvedValue(null);
   SecureStore.setItemAsync.mockResolvedValue(undefined);
-  gqlFetcher.mockResolvedValue({ motorcycleMakes: MAKES });
   Clipboard.setStringAsync.mockResolvedValue(undefined);
   // Default: the clipboard holds a string, so the reader proceeds to the
   // (prompting) read. The "empty clipboard" case overrides this to false.
   Clipboard.hasStringAsync.mockResolvedValue(true);
 });
 
+// The reader stores the RAW pendingIntent only; the make is resolved + the bike
+// seeded later in bike-setup (which already loads the make list). So these assert
+// pendingIntent, NOT bikeData.
+//
 // NOTE: jest-expo inlines `process.env.EXPO_OS` (defaults to 'ios') at transform
 // time, so the platform branch cannot be flipped at runtime here — these cover
-// the iOS clipboard path. The Android install-referrer path (and its guarded
-// no-op when the native module is absent) is verified on-device in T2.
+// the iOS clipboard path. The Android install-referrer path is verified on-device.
 describe('resolvePendingIntent — iOS (clipboard)', () => {
-  it('seeds the store, clears the clipboard, flags checked, and fires analytics', async () => {
+  it('stores pendingIntent, clears the clipboard, flags checked, and fires analytics', async () => {
     Clipboard.getStringAsync.mockResolvedValue(freshToken());
 
     await resolvePendingIntent();
 
-    const { bikeData, pendingIntent } = useOnboardingStore.getState();
-    expect(bikeData).toMatchObject({ make: 'Yamaha', makeId: 483, model: 'MT-07' });
-    expect(pendingIntent).toMatchObject({ make: 'Yamaha', source: 'blog' });
+    // Raw intent stored; bikeData is NOT seeded here (that happens in bike-setup).
+    expect(useOnboardingStore.getState().pendingIntent).toMatchObject({
+      make: 'Yamaha',
+      model: 'MT-07',
+      source: 'blog',
+      campaign: 'blog_maintenance',
+    });
+    expect(useOnboardingStore.getState().bikeData).toBeNull();
 
-    // Our own token is cleared.
-    expect(Clipboard.setStringAsync).toHaveBeenCalledWith('');
-    // One-shot flag written.
+    expect(Clipboard.setStringAsync).toHaveBeenCalledWith(''); // our token cleared
     expect(SecureStore.setItemAsync).toHaveBeenCalledWith('pending_intent_checked', '1');
-    // Analytics: event + person props + cohort super-property.
     expect(analytics.trackEvent).toHaveBeenCalledWith(
       'pending_intent_resolved',
-      expect.objectContaining({ make: 'Yamaha', method: 'clipboard', matched: true }),
+      expect.objectContaining({ make: 'Yamaha', method: 'clipboard' }),
     );
     expect(analytics.setUserPropertiesOnce).toHaveBeenCalledWith(
       expect.objectContaining({ intent_make: 'Yamaha' }),
@@ -110,16 +104,28 @@ describe('resolvePendingIntent — iOS (clipboard)', () => {
     });
   });
 
-  it('does NOT touch clipboard content that is not our token (no clear, no seed)', async () => {
-    // A string is present (hasStringAsync true) but it is not our intent token.
+  it('stores the raw intent even for an unknown make (bike-setup falls back to grid)', async () => {
+    Clipboard.getStringAsync.mockResolvedValue(token(`mv_make=Peugeot&ts=${Date.now()}`));
+
+    await resolvePendingIntent();
+
+    // The reader does not judge the make — it just carries the intent. bike-setup
+    // resolves against the make list; an unknown make → normal grid (fail-open).
+    expect(useOnboardingStore.getState().pendingIntent).toMatchObject({ make: 'Peugeot' });
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      'pending_intent_resolved',
+      expect.objectContaining({ make: 'Peugeot' }),
+    );
+  });
+
+  it('does NOT touch clipboard content that is not our token (no clear, no intent)', async () => {
     Clipboard.getStringAsync.mockResolvedValue('https://example.com/some-other-link');
 
     await resolvePendingIntent();
 
     expect(Clipboard.setStringAsync).not.toHaveBeenCalled();
-    expect(useOnboardingStore.getState().bikeData).toBeNull();
+    expect(useOnboardingStore.getState().pendingIntent).toBeNull();
     expect(analytics.trackEvent).not.toHaveBeenCalled();
-    // Still flags checked — the transport was read; nothing to retry.
     expect(SecureStore.setItemAsync).toHaveBeenCalledWith('pending_intent_checked', '1');
   });
 
@@ -128,14 +134,13 @@ describe('resolvePendingIntent — iOS (clipboard)', () => {
 
     await resolvePendingIntent();
 
-    // The prompting read is never reached → empty-clipboard users are not prompted.
     expect(Clipboard.getStringAsync).not.toHaveBeenCalled();
-    expect(useOnboardingStore.getState().bikeData).toBeNull();
+    expect(useOnboardingStore.getState().pendingIntent).toBeNull();
     expect(analytics.trackEvent).not.toHaveBeenCalled();
     expect(SecureStore.setItemAsync).toHaveBeenCalledWith('pending_intent_checked', '1');
   });
 
-  it('ignores an expired token (clears it, but no seed / no event)', async () => {
+  it('ignores an expired token (clears it, but no intent / no event)', async () => {
     Clipboard.getStringAsync.mockResolvedValue(
       token(`mv_make=Yamaha&mv_model=MT-07&ts=${Date.now() - 2 * 60 * 60 * 1000}`),
     );
@@ -143,20 +148,8 @@ describe('resolvePendingIntent — iOS (clipboard)', () => {
     await resolvePendingIntent();
 
     expect(Clipboard.setStringAsync).toHaveBeenCalledWith(''); // was our token → cleared
-    expect(useOnboardingStore.getState().bikeData).toBeNull();
+    expect(useOnboardingStore.getState().pendingIntent).toBeNull();
     expect(analytics.trackEvent).not.toHaveBeenCalled();
-  });
-
-  it('fires matched:false and does not seed when the make is unknown', async () => {
-    Clipboard.getStringAsync.mockResolvedValue(token(`mv_make=Peugeot&ts=${Date.now()}`));
-
-    await resolvePendingIntent();
-
-    expect(useOnboardingStore.getState().bikeData).toBeNull();
-    expect(analytics.trackEvent).toHaveBeenCalledWith(
-      'pending_intent_resolved',
-      expect.objectContaining({ make: 'Peugeot', matched: false }),
-    );
   });
 
   it('is a one-shot: does nothing when already checked', async () => {
@@ -165,21 +158,7 @@ describe('resolvePendingIntent — iOS (clipboard)', () => {
     await resolvePendingIntent();
 
     expect(Clipboard.getStringAsync).not.toHaveBeenCalled();
-    expect(useOnboardingStore.getState().bikeData).toBeNull();
+    expect(useOnboardingStore.getState().pendingIntent).toBeNull();
     expect(SecureStore.setItemAsync).not.toHaveBeenCalled();
-  });
-
-  it('does not seed if the make list fails to load (fail-open)', async () => {
-    Clipboard.getStringAsync.mockResolvedValue(freshToken());
-    gqlFetcher.mockRejectedValue(new Error('network down'));
-
-    await resolvePendingIntent();
-
-    expect(useOnboardingStore.getState().bikeData).toBeNull();
-    // Intent was still resolved — event fires with matched:false.
-    expect(analytics.trackEvent).toHaveBeenCalledWith(
-      'pending_intent_resolved',
-      expect.objectContaining({ matched: false }),
-    );
   });
 });

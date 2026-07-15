@@ -45,6 +45,7 @@ import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding
 import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
+import { resolveMakeFromIntent } from '../../lib/pending-intent';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
@@ -140,23 +141,9 @@ export default function BikeSetupScreen() {
   const activeMakeName = isCustomMake ? customMakeName : selectedMake?.makeName;
   const hasMake = !!(selectedMake || (isCustomMake && customMakeName.trim()));
   const canContinue = isValidYear && hasMake;
-  // Intent confirmation gate (P2 T3) — driven by the STORE (pendingIntent +
-  // seeded bike), NOT local `selectedMake` state: the reader seeds asynchronously
-  // and may land AFTER this screen mounts, so keying off useState would miss a
-  // late seed and never show the confirmation.
-  const showIntentConfirm = !!pendingIntent && !dismissedIntent && !!existingBikeData?.makeId;
-
-  // Mirror the seeded bike into local state so handleContinue (which reads
-  // selectedMake/model/year) works and the card renders — including when the
-  // seed arrives after mount. Skipped once the rider has diverged (dismissed or
-  // picked their own make).
-  useEffect(() => {
-    if (!showIntentConfirm || selectedMake || !existingBikeData) return;
-    setSelectedMake({ makeId: existingBikeData.makeId, makeName: existingBikeData.make });
-    if (existingBikeData.model) {
-      setSelectedModel({ modelId: 0, modelName: existingBikeData.model });
-    }
-  }, [showIntentConfirm, selectedMake, existingBikeData]);
+  // Intent confirmation gate (P2 T3) — shown once the stored pendingIntent's make
+  // has been resolved against the loaded make list (below) into `selectedMake`.
+  const showIntentConfirm = !!pendingIntent && !dismissedIntent && !!selectedMake;
 
   useEffect(() => {
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.BIKE_SETUP);
@@ -204,6 +191,22 @@ export default function BikeSetupScreen() {
     staleTime: Number.POSITIVE_INFINITY,
   });
   const makes = makesResult.data?.motorcycleMakes ?? [];
+
+  // Resolve the web→app intent (P2 T3): once the make list has loaded, match the
+  // stored pendingIntent's make and pre-fill the selection so the one-tap
+  // confirmation shows. Resolving HERE (not in the reader) avoids a cold-start
+  // fetch and reuses the list this screen already loads. An unknown make never
+  // matches → the normal grid renders (fail-open). Skipped once the rider
+  // diverges (dismissed the intent or picked their own make / custom).
+  useEffect(() => {
+    if (!pendingIntent || dismissedIntent || selectedMake || isCustomMake) return;
+    const match = resolveMakeFromIntent(pendingIntent, makes);
+    if (!match) return;
+    setSelectedMake({ makeId: match.makeId, makeName: match.makeName });
+    if (pendingIntent.model) {
+      setSelectedModel({ modelId: 0, modelName: pendingIntent.model });
+    }
+  }, [pendingIntent, dismissedIntent, selectedMake, isCustomMake, makes]);
 
   // First 4 popular makes (matched to real NHTSA make ids) for the partial-capture chips.
   const quickMakes = useMemo(() => {
@@ -427,15 +430,15 @@ export default function BikeSetupScreen() {
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
         >
-          {showIntentConfirm && existingBikeData ? (
+          {showIntentConfirm && selectedMake ? (
             /* ═══ Intent confirmation: one-tap "Is this your ride?" (P2 T3) ═══ */
             <IntentConfirmCard
-              makeName={existingBikeData.make}
-              modelName={existingBikeData.model || null}
+              makeName={selectedMake.makeName}
+              modelName={selectedModel?.modelName ?? null}
               year={year}
               onYearChange={setYear}
               onStep={triggerImpact}
-              accent={getBrandColor(existingBikeData.make)}
+              accent={getBrandColor(selectedMake.makeName)}
             />
           ) : !showMakeDetails ? (
             /* ═══ Stage A: Make grid (year is set after a make is picked) ═══ */
