@@ -1,0 +1,76 @@
+# Log a ride (start → record → end → save) — E2E for the ride-recording feature.
+#
+# VALIDATED END-TO-END on-device 2026-07-15 (drove start → record → hold-to-end →
+# "End ride?" confirm → "RIDE SAVED" summary → Save ride). The non-obvious bits
+# this flow depends on, all confirmed live:
+#   - the ride is started from the center green FAB in the tab bar, which has NO
+#     text/a11y label → tap by point (~50%, 92%).
+#   - `setLocation` gives the sim a GPS fix so the pre-flight GPS check passes and
+#     the ride records (a stationary sim logs ~0 distance/speed — fine for a
+#     "records & saves" happy path; use Features ▸ Location ▸ Freeway Drive for a
+#     real route).
+#   - the "unfinished ride" banner's End button reads "End Ride" but its a11y
+#     label is "End unfinished ride" — match that, not the visible text. "Start
+#     ride" is DISABLED until any unfinished ride is resolved.
+#   - ENDING IS A LONG-PRESS: the control is "Hold to end ride" (longPressOn), not
+#     a tap. It opens an "End ride?" confirm in a @gorhom bottom sheet whose
+#     buttons are NOT exposed to the a11y tree, so "End Anyway" must be tapped by
+#     point (~73%, 80%). The confirm only appears for very short rides (ours is),
+#     so it's expected here.
+#   - the summary shows "RIDE SAVED …" and a "Save ride" button.
+#
+# Setup: composes onboarding.yaml (signed-in user + Honda). Run via:
+#   pnpm --filter @motovault/mobile test:e2e:log-ride
+# (preview build + provisioned user, same as the other authed flows).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+---
+# 1. Setup — reach a signed-in Home, and give the sim a GPS fix.
+- runFlow: onboarding.yaml
+- setLocation:
+    latitude: 37.33182
+    longitude: -122.03118
+
+# 2. Open the ride start screen via the center green FAB (no label → tap by point).
+- tapOn:
+    point: "50%,92%"
+- extendedWaitUntil:
+    visible: ".*Pick a bike.*|Start ride"
+    timeout: 20000
+
+# 3. Resolve any leftover unfinished ride (its a11y label is "End unfinished ride",
+#    not the visible "End Ride"). Start ride is disabled until it's cleared.
+- tapOn:
+    text: ".*End unfinished ride.*"
+    optional: true
+- tapOn:
+    text: ".*End unfinished ride.*"
+    optional: true
+
+# 4. Start the ride and confirm recording.
+- tapOn: "Start ride"
+- extendedWaitUntil:
+    visible: "RECORDING"
+    timeout: 30000
+- takeScreenshot: log-ride-recording
+
+# 5. End the ride: it's a HOLD, not a tap ("Hold to end ride").
+- longPressOn:
+    text: ".*Hold to end ride.*"
+
+# 6. Confirm the "End ride?" short-ride prompt. Its bottom-sheet buttons aren't in
+#    the a11y tree, so tap "End Anyway" (red, bottom-right) by point.
+- tapOn:
+    point: "73%,80%"
+
+# 7. Success: the ride summary shows "RIDE SAVED …"; finalize with Save ride.
+- extendedWaitUntil:
+    visible: ".*RIDE SAVED.*"
+    timeout: 30000
+- assertVisible: ".*RIDE SAVED.*"
+- takeScreenshot: log-ride-summary
+- tapOn: ".*Save ride.*"
+- tapOn:
+    text: "Not Now"
+    optional: true

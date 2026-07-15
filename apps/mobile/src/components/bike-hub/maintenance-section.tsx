@@ -19,6 +19,7 @@ interface MaintenanceSectionProps {
   onToggleExpand: (id: string) => void;
   onComplete: (id: string) => void;
   onDelete: (id: string, title: string) => void;
+  onEdit?: (id: string) => void;
   mileageUnit: string;
 }
 
@@ -30,6 +31,7 @@ export function MaintenanceSection({
   onToggleExpand,
   onComplete,
   onDelete,
+  onEdit,
   mileageUnit,
 }: MaintenanceSectionProps) {
   const { t } = useTranslation();
@@ -258,6 +260,7 @@ export function MaintenanceSection({
             onToggleExpand={onToggleExpand}
             onComplete={onComplete}
             onDelete={onDelete}
+            onEdit={onEdit}
             mileageUnit={mileageUnit}
           />
         ))

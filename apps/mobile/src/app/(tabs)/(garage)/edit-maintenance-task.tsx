@@ -1,23 +1,25 @@
 import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { palette } from '@motovault/design-system';
-import { CreateMaintenanceTaskDocument, type MaintenancePriority } from '@motovault/graphql';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  type MaintenancePriority,
+  MaintenanceTasksByMotorcycleDocument,
+  UpdateMaintenanceTaskDocument,
+} from '@motovault/graphql';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Calendar, Check, Gauge, Plus, Repeat } from 'lucide-react-native';
-import { useState } from 'react';
+import { Calendar, Check, Gauge } from 'lucide-react-native';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-import { NativeToggle } from '../../../components/ui/native-toggle';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
-import { MetaAnalytics } from '../../../lib/meta-analytics';
-import { scheduleMaintenanceReminder } from '../../../lib/notifications';
+import { cancelTaskNotification, scheduleMaintenanceReminder } from '../../../lib/notifications';
 import { queryKeys } from '../../../lib/query-keys';
-import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
+import { buildTaskUpdateInput, resolveReminderAction } from '../../../utils/maintenance-task-form';
 import { toISODateInput } from '../../../utils/trip-form-dates';
 
 const PRIORITIES = ['low', 'medium', 'high', 'critical'] as const;
@@ -28,14 +30,28 @@ const PRIORITY_META: Record<string, { color: string }> = {
   critical: { color: palette.danger500 },
 };
 
-export default function AddMaintenanceTaskScreen() {
+export default function EditMaintenanceTaskScreen() {
   const { t } = useTranslation();
-  const { motorcycleId, bikeName } = useLocalSearchParams<{
+  const { taskId, motorcycleId, bikeName } = useLocalSearchParams<{
+    taskId: string;
     motorcycleId: string;
     bikeName?: string;
   }>();
   const { t: theme, isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
+
+  // Prefill from the already-fetched task list (warm cache): the rider always
+  // reaches Edit from a list that has loaded this task. Mirrors complete-task.
+  const tasksQuery = useQuery({
+    queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
+    queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId }),
+    initialData: () =>
+      queryClient.getQueryData(queryKeys.maintenanceTasks.byMotorcycle(motorcycleId)),
+    initialDataUpdatedAt: () =>
+      queryClient.getQueryState(queryKeys.maintenanceTasks.byMotorcycle(motorcycleId))
+        ?.dataUpdatedAt,
+  });
+  const task = tasksQuery.data?.maintenanceTasks?.find((item) => item.id === taskId);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -44,26 +60,45 @@ export default function AddMaintenanceTaskScreen() {
   const [targetMileage, setTargetMileage] = useState('');
   const [priority, setPriority] = useState<MaintenancePriority>('medium' as MaintenancePriority);
   const [notes, setNotes] = useState('');
-  const [isRecurring, setIsRecurring] = useState(false);
-  const [intervalKm, setIntervalKm] = useState('');
-  const [intervalDays, setIntervalDays] = useState('');
+  const [hydrated, setHydrated] = useState(false);
   const [saved, setSaved] = useState(false);
+  const backTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const createMutation = useMutation({
+  // Clear the post-save auto-dismiss timer if the rider leaves first, so it
+  // can't pop an already-unmounted screen.
+  useEffect(
+    () => () => {
+      if (backTimerRef.current) clearTimeout(backTimerRef.current);
+    },
+    [],
+  );
+
+  // Hydrate form state once, the moment the task is available in cache.
+  useEffect(() => {
+    if (!task || hydrated) return;
+    setTitle(task.title ?? '');
+    setDescription(task.description ?? '');
+    // Parse the stored YYYY-MM-DD as local midnight so it round-trips through
+    // toISODateInput (date-fns `format`, local tz) without drifting a day.
+    setDueDate(task.dueDate ? new Date(`${task.dueDate}T00:00:00`) : null);
+    setTargetMileage(task.targetMileage ? String(task.targetMileage) : '');
+    setPriority((task.priority ?? 'medium') as MaintenancePriority);
+    setNotes(task.notes ?? '');
+    setHydrated(true);
+  }, [task, hydrated]);
+
+  const updateMutation = useMutation({
     mutationFn: () =>
-      gqlFetcher(CreateMaintenanceTaskDocument, {
-        input: {
-          motorcycleId,
-          title: title.trim(),
-          description: description.trim() || undefined,
-          dueDate: dueDate ? toISODateInput(dueDate) : undefined,
-          targetMileage: targetMileage ? Number.parseInt(targetMileage, 10) : undefined,
+      gqlFetcher(UpdateMaintenanceTaskDocument, {
+        id: taskId,
+        input: buildTaskUpdateInput({
+          title,
+          description,
+          notes,
+          targetMileage,
           priority,
-          notes: notes.trim() || undefined,
-          isRecurring,
-          intervalKm: intervalKm ? parseInt(intervalKm, 10) : undefined,
-          intervalDays: intervalDays ? parseInt(intervalDays, 10) : undefined,
-        },
+          dueDateISO: dueDate ? toISODateInput(dueDate) : null,
+        }),
       }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({
@@ -71,54 +106,46 @@ export default function AddMaintenanceTaskScreen() {
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
 
-      // Schedule notification reminders if the task has a due date.
-      // MOT-139: pass the multi-stage flags from the server response so the
-      // scheduler fires 30d/7d/1d stages based on whatever defaults the API
-      // applied (or explicit per-task overrides in a future iteration).
-      if (dueDate) {
-        const createdTask = data?.createMaintenanceTask;
-        if (createdTask?.id) {
-          scheduleMaintenanceReminder(
-            {
-              id: createdTask.id,
-              title: title.trim(),
-              dueDate: toISODateInput(dueDate),
-              motorcycleId,
-              remind30d: createdTask.remind30d ?? false,
-              remind7d: createdTask.remind7d ?? false,
-              remind1d: createdTask.remind1d ?? true,
-            },
-            bikeName ?? 'Your bike',
-          );
-          // MOT-272: measure the reminder loop — paired with REMINDER_OPENED.
-          trackEvent(AnalyticsEvent.REMINDER_SCHEDULED, {
-            remind30d: createdTask.remind30d ?? false,
-            remind7d: createdTask.remind7d ?? false,
-            remind1d: createdTask.remind1d ?? true,
-          });
-        }
+      // Keep the local reminder consistent with the edited due date.
+      const updated = data?.updateMaintenanceTask;
+      if (resolveReminderAction(dueDate) === 'cancel') {
+        void cancelTaskNotification(taskId);
+      } else if (dueDate) {
+        // 'schedule' — dueDate is guaranteed present here; the check also
+        // narrows the type for toISODateInput. scheduleMaintenanceReminder
+        // cancels any prior stages before rescheduling, so this is idempotent.
+        void scheduleMaintenanceReminder(
+          {
+            id: taskId,
+            title: title.trim(),
+            dueDate: toISODateInput(dueDate),
+            motorcycleId,
+            remind30d: updated?.remind30d ?? false,
+            remind7d: updated?.remind7d ?? false,
+            remind1d: updated?.remind1d ?? true,
+          },
+          bikeName ?? 'Your bike',
+        );
       }
 
-      trackEvent(AnalyticsEvent.MAINTENANCE_TASK_CREATED, {
+      trackEvent(AnalyticsEvent.MAINTENANCE_TASK_UPDATED, {
         priority,
-        is_recurring: isRecurring,
         has_due_date: !!dueDate,
       });
-      MetaAnalytics.trackLogMaintenance(title.trim());
       setSaved(true);
-      maybeRequestReview(REVIEW_MILESTONE.MAINTENANCE_TASK_ADDED);
       triggerImpact();
-      setTimeout(() => router.back(), 600);
+      backTimerRef.current = setTimeout(() => router.back(), 600);
     },
     onError: () => {
       Alert.alert(
         t('common.error', { defaultValue: 'Error' }),
-        t('maintenance.createFailed', { defaultValue: 'Failed to create task. Please try again.' }),
+        t('maintenance.updateFailed', {
+          defaultValue: 'Failed to update task. Please try again.',
+        }),
       );
     },
   });
 
-  // Grouped card background
   const cardBg = theme.surface;
   const sectionGap = 24;
 
@@ -156,7 +183,7 @@ export default function AddMaintenanceTaskScreen() {
                 letterSpacing: -0.6,
               }}
             >
-              {t('maintenance.newPrefix', { defaultValue: 'New' })}{' '}
+              {t('maintenance.editPrefix', { defaultValue: 'Edit' })}{' '}
             </Text>
             <Text
               style={{
@@ -171,9 +198,8 @@ export default function AddMaintenanceTaskScreen() {
           </View>
         </View>
 
-        {/* Task Title — prominent input */}
+        {/* Task Title */}
         <Animated.View entering={FadeIn.duration(250)}>
-          {/* TASK section label */}
           <Text
             style={{
               fontSize: 10,
@@ -209,12 +235,11 @@ export default function AddMaintenanceTaskScreen() {
                 color: isDark ? palette.neutral50 : palette.neutral950,
                 paddingVertical: 2,
               }}
-              autoFocus
             />
           </View>
         </Animated.View>
 
-        {/* Priority — pill selector */}
+        {/* Priority */}
         <Animated.View entering={FadeInDown.delay(50).duration(250)}>
           <Text
             style={{
@@ -289,7 +314,7 @@ export default function AddMaintenanceTaskScreen() {
           </View>
         </Animated.View>
 
-        {/* Due Date + Mileage — grouped card */}
+        {/* Due Date + Mileage */}
         <Animated.View entering={FadeInDown.delay(100).duration(250)}>
           <Text
             style={{
@@ -369,7 +394,6 @@ export default function AddMaintenanceTaskScreen() {
               </Text>
             </Pressable>
 
-            {/* Inline date picker */}
             {showDatePicker && dueDate && (
               <View
                 style={{
@@ -379,13 +403,10 @@ export default function AddMaintenanceTaskScreen() {
                 }}
               >
                 <DateTimePicker
-                  value={dueDate && dueDate >= new Date() ? dueDate : new Date()}
+                  value={dueDate}
                   mode="date"
                   display={process.env.EXPO_OS === 'ios' ? 'inline' : 'default'}
-                  minimumDate={new Date()}
                   onChange={(event, selectedDate) => {
-                    // On Android, the native dialog fires onChange on both "OK" and "Cancel"
-                    // and must be dismissed by hiding the picker immediately
                     if (process.env.EXPO_OS === 'android') {
                       setShowDatePicker(false);
                     }
@@ -429,7 +450,6 @@ export default function AddMaintenanceTaskScreen() {
               </View>
             )}
 
-            {/* Separator */}
             <View
               style={{
                 height: 0.5,
@@ -473,7 +493,7 @@ export default function AddMaintenanceTaskScreen() {
               </Text>
               <TextInput
                 value={targetMileage}
-                onChangeText={setTargetMileage}
+                onChangeText={(val) => setTargetMileage(val.replace(/[^0-9]/g, ''))}
                 keyboardType="number-pad"
                 placeholder={t('garage.distanceIntervalPlaceholder')}
                 placeholderTextColor={palette.neutral400}
@@ -495,206 +515,8 @@ export default function AddMaintenanceTaskScreen() {
           </View>
         </Animated.View>
 
-        {/* Recurring toggle */}
-        <Animated.View entering={FadeInDown.delay(125).duration(250)}>
-          <Text
-            style={{
-              fontSize: 10,
-              fontWeight: '700',
-              letterSpacing: 1.5,
-              textTransform: 'uppercase',
-              color: theme.ink3,
-              marginBottom: 8,
-              marginLeft: 4,
-            }}
-          >
-            {t('maintenance.options', { defaultValue: 'Options' })}
-          </Text>
-          <View
-            style={{
-              backgroundColor: cardBg,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              overflow: 'hidden',
-              boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
-            }}
-          >
-            {/* Toggle row */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-                justifyContent: 'space-between',
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 8,
-                    borderCurve: 'continuous',
-                    backgroundColor: isDark ? palette.indigoBg : palette.primary50,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Repeat size={16} color={palette.indigo500} strokeWidth={2} />
-                </View>
-                <Text
-                  style={{
-                    fontSize: 15,
-                    fontWeight: '500',
-                    color: isDark ? palette.neutral50 : palette.neutral950,
-                  }}
-                >
-                  {t('maintenance.repeatTask', { defaultValue: 'Repeat this task' })}
-                </Text>
-              </View>
-              <NativeToggle value={isRecurring} onValueChange={setIsRecurring} />
-            </View>
-
-            {/* Interval inputs (shown when recurring) */}
-            {isRecurring && (
-              <>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: palette.neutral500,
-                    paddingHorizontal: 16,
-                    paddingBottom: 8,
-                  }}
-                >
-                  {t('maintenance.recurringHint', {
-                    defaultValue: 'Set a distance or time interval, whichever comes first',
-                  })}
-                </Text>
-                <View
-                  style={{
-                    height: 0.5,
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-                    marginLeft: 60,
-                  }}
-                />
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingHorizontal: 16,
-                    paddingVertical: 10,
-                    gap: 12,
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 8,
-                      borderCurve: 'continuous',
-                      backgroundColor: isDark ? palette.successBgDark : palette.successBgLight,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Gauge size={16} color={palette.success500} strokeWidth={2} />
-                  </View>
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      fontWeight: '500',
-                      color: isDark ? palette.neutral50 : palette.neutral950,
-                      flex: 1,
-                    }}
-                  >
-                    {t('maintenance.everyKm', { defaultValue: 'Distance interval' })}
-                  </Text>
-                  <TextInput
-                    value={intervalKm}
-                    onChangeText={(val) => setIntervalKm(val.replace(/[^0-9]/g, ''))}
-                    keyboardType="number-pad"
-                    placeholder={t('garage.mileageIntervalPlaceholder')}
-                    placeholderTextColor={palette.neutral400}
-                    textAlign="right"
-                    style={{
-                      fontSize: 15,
-                      fontWeight: '500',
-                      color: isDark ? palette.neutral50 : palette.neutral950,
-                      minWidth: 80,
-                      paddingVertical: 4,
-                    }}
-                  />
-                  <Text style={{ fontSize: 13, color: palette.neutral400 }}>
-                    {t('maintenance.km', { defaultValue: 'km' })}
-                  </Text>
-                </View>
-
-                <View
-                  style={{
-                    height: 0.5,
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-                    marginLeft: 60,
-                  }}
-                />
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingHorizontal: 16,
-                    paddingVertical: 10,
-                    gap: 12,
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 8,
-                      borderCurve: 'continuous',
-                      backgroundColor: isDark ? palette.primary900 : palette.primary50,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Calendar size={16} color={palette.primary500} strokeWidth={2} />
-                  </View>
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      fontWeight: '500',
-                      color: isDark ? palette.neutral50 : palette.neutral950,
-                      flex: 1,
-                    }}
-                  >
-                    {t('maintenance.everyDays', { defaultValue: 'Time interval' })}
-                  </Text>
-                  <TextInput
-                    value={intervalDays}
-                    onChangeText={(val) => setIntervalDays(val.replace(/[^0-9]/g, ''))}
-                    keyboardType="number-pad"
-                    placeholder={t('garage.timeIntervalPlaceholder')}
-                    placeholderTextColor={palette.neutral400}
-                    textAlign="right"
-                    style={{
-                      fontSize: 15,
-                      fontWeight: '500',
-                      color: isDark ? palette.neutral50 : palette.neutral950,
-                      minWidth: 80,
-                      paddingVertical: 4,
-                    }}
-                  />
-                  <Text style={{ fontSize: 13, color: palette.neutral400 }}>
-                    {t('maintenance.days', { defaultValue: 'days' })}
-                  </Text>
-                </View>
-              </>
-            )}
-          </View>
-        </Animated.View>
-
-        {/* Description + Notes — grouped card */}
-        <Animated.View entering={FadeInDown.delay(175).duration(250)}>
+        {/* Description + Notes */}
+        <Animated.View entering={FadeInDown.delay(150).duration(250)}>
           <Text
             style={{
               fontSize: 10,
@@ -793,9 +615,9 @@ export default function AddMaintenanceTaskScreen() {
           <Pressable
             onPress={() => {
               triggerImpact();
-              createMutation.mutate();
+              updateMutation.mutate();
             }}
-            disabled={createMutation.isPending || !title.trim() || saved}
+            disabled={updateMutation.isPending || !title.trim() || saved}
             style={{
               flex: 1,
               backgroundColor: saved
@@ -814,17 +636,13 @@ export default function AddMaintenanceTaskScreen() {
               gap: 8,
             }}
           >
-            {saved ? (
-              <Check size={18} color={palette.white} strokeWidth={2.5} />
-            ) : (
-              <Plus size={18} color={palette.white} strokeWidth={2.5} />
-            )}
+            {saved ? <Check size={18} color={palette.white} strokeWidth={2.5} /> : null}
             <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
               {saved
-                ? t('maintenance.taskAdded', { defaultValue: 'Task Added!' })
-                : createMutation.isPending
+                ? t('maintenance.taskUpdated', { defaultValue: 'Saved!' })
+                : updateMutation.isPending
                   ? t('common.saving', { defaultValue: 'Saving...' })
-                  : t('maintenance.saveTask', { defaultValue: 'Save task' })}
+                  : t('maintenance.saveChanges', { defaultValue: 'Save changes' })}
             </Text>
           </Pressable>
         </View>

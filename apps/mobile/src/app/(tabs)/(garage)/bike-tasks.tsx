@@ -136,6 +136,13 @@ export default function BikeTasksScreen() {
     });
   };
 
+  const handleEdit = (taskId: string) => {
+    router.push({
+      pathname: '/(tabs)/(garage)/edit-maintenance-task',
+      params: { taskId, motorcycleId, bikeName: bikeName ?? '' },
+    });
+  };
+
   const handleDelete = (taskId: string, taskTitle: string) => {
     Alert.alert(
       t('maintenance.deleteTask', { defaultValue: 'Delete Task' }),
@@ -308,6 +315,7 @@ export default function BikeTasksScreen() {
               onToggleExpand={handleToggleExpand}
               onComplete={handleComplete}
               onDelete={handleDelete}
+              onEdit={handleEdit}
             />
           ))
         )}

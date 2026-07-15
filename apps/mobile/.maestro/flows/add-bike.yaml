@@ -1,0 +1,127 @@
+# Add a bike to the garage — E2E regression for the add-bike happy path.
+#
+# Proves a rider can add a SECOND, distinct bike from the garage: open the
+# add-bike form-sheet, enter a year, pick a make from the NHTSA picker
+# (Yamaha — deliberately different from the Honda onboarding leaves behind),
+# set a model, save, and assert the new bike surfaces in the garage. Exercises
+# the real make dropdown + model entry + CreateMotorcycle mutation + list
+# invalidation round-trip.
+#
+# Setup: composes onboarding.yaml, which signs in a pre-created user and leaves a
+# Honda in the garage (ending at Home). So this flow needs the same env the
+# onboarding runner provides — run it via:
+#   pnpm --filter @motovault/mobile test:e2e:add-bike
+# (runner wired separately; it provisions/deletes a confirmed Supabase user
+# TEST_EMAIL/TEST_PASSWORD and expects a STANDALONE/PREVIEW build with
+# EXPO_PUBLIC_OB_VARIANT=invested baked in — see .maestro/README.md; the
+# onboarding *setup* portion uses clearState, so dev-client/Metro is unsupported).
+#
+# ⚠️ PREREQUISITE — the test account MUST have a Pro entitlement.
+#   FREE_TIER_LIMITS.MAX_BIKES = 1. Onboarding already added a Honda, so for a
+#   FREE user the garage add affordance runs requireAccess('MAX_BIKES', 1),
+#   returns false, and opens the RevenueCat paywall instead of the add-bike
+#   sheet — and even via a direct route the CreateMotorcycle mutation returns
+#   FORBIDDEN. A Pro account (isPro = unlimited) is required for a 2nd bike.
+#
+# ⚠️ NOT YET DEVICE-VALIDATED. Unlike edit-maintenance-task.yaml, the selectors
+#   below were authored FROM SOURCE (add-bike.tsx, (garage)/index.tsx,
+#   (garage)/_layout.tsx, en.json) and are PENDING on-device confirmation via the
+#   Maestro MCP. Known ambiguities flagged inline (marked "UNSURE") — verify on a
+#   simulator before trusting this in CI.
+#
+# App-specific gotchas applied (see .maestro/README.md):
+#   - the Garage tab a11y text can carry a badge count, so match it as a partial
+#     regex (".*Garage.*"), never the bare word;
+#   - the app's custom keyboard does NOT support hideKeyboard — dismiss it by
+#     tapping a non-interactive section label (e.g. "Model");
+#   - the "Add a Bike" submit button sits at the bottom of the scroll, below the
+#     keyboard, so scrollUntilVisible it (and anchor below "Nickname" — the header
+#     title and this button share the identical "Add a Bike" string) before tapping;
+#   - a native StoreKit "Enjoying MotoVault?" review prompt can fire after a value
+#     moment (bike added) — dismiss "Not Now" (optional).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+  BIKE_YEAR: "2022"
+  BIKE_MAKE: "Yamaha" # a real NHTSA make, deliberately != the onboarding Honda
+  BIKE_MODEL: "E2E Model" # distinctive custom model so it's deterministic + assertable
+---
+# 1. Setup — reach a signed-in Home with a Honda already in the garage.
+- runFlow: onboarding.yaml
+
+# 2. Open the Garage tab. The tab label can carry a badge count, so match it as a
+#    partial regex. Wait for the onboarding Honda to confirm the list rendered.
+- tapOn:
+    text: ".*Garage.*"
+- extendedWaitUntil:
+    visible: ".*Honda.*"
+    timeout: 30000
+
+# 3. Open the add-bike sheet via the shelf "Add a Bike" card. (Requires Pro — a
+#    free account with the Honda already present hits the paywall here instead.)
+- tapOn: "Add a Bike"
+- assertVisible: "Nickname (optional)" # confirms the add-bike sheet is up
+
+# 4. Year — the label and the input share the text "Year", so target the input
+#    (2nd match). UNSURE: index disambiguation; verify on-device.
+- tapOn:
+    text: "Year"
+    index: 1
+- inputText: ${BIKE_YEAR}
+
+# 5. Make — type into the make search, then pick the make from the NHTSA dropdown.
+#    The search field's value and the dropdown row both read the make, so tap the
+#    dropdown row (2nd match). UNSURE: index disambiguation of row vs input.
+- tapOn: "Search make..."
+- inputText: ${BIKE_MAKE}
+- tapOn:
+    text: ".*${BIKE_MAKE}.*"
+    index: 1
+- assertVisible: "Tap to change" # a make is selected → collapsed picker shows this
+
+# 6. Model — the field unlocks once make + valid year are set. Type a distinctive
+#    value that matches no NHTSA model so the "Use '<model>' as model" custom-entry
+#    button appears; tap it for a deterministic, assertable model.
+- extendedWaitUntil:
+    visible: "Search model..."
+    timeout: 20000
+- tapOn: "Search model..."
+- inputText: ${BIKE_MODEL}
+- tapOn:
+    text: ".*Use.*${BIKE_MODEL}.*as model.*"
+
+# 7. Dismiss the custom keyboard (tap a non-interactive label — hideKeyboard is
+#    unsupported by the keyboard controller), then scroll the submit button into
+#    view (it sits below the keyboard/fold) and save. Anchor below "Nickname" so
+#    we hit the button, not the identically-worded sheet header title.
+- tapOn:
+    text: "Model"
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Add a Bike"
+      below:
+        text: "Nickname (optional)"
+    direction: DOWN
+- tapOn:
+    text: "Add a Bike"
+    below:
+      text: "Nickname (optional)"
+
+# A native store-review prompt can fire after adding a bike — dismiss it.
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# 8. Success: the sheet closes (router.back) and the new bike shows in the garage.
+#    Assert on the make — it came from the picker and is distinct from the Honda.
+- extendedWaitUntil:
+    visible: ".*${BIKE_MAKE}.*"
+    timeout: 30000
+- assertVisible: ".*${BIKE_MAKE}.*"
+- takeScreenshot: add-bike-done
+
+# NOTE: no automatic cleanup. This leaves the added Yamaha in the shared Pro test
+# account (a Pro account has no bike-count limit, so reruns still pass). If a
+# deterministic bike count matters, delete it from the bike hub between runs, or
+# wire teardown into the runner.

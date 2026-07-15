@@ -1,0 +1,99 @@
+# Delete an expense (happy path) — E2E for the expense delete UX.
+#
+# HISTORY: expense delete used to be gesture-only (swipe past -80px / long-press),
+# which on-device validation (2026-07-15) confirmed was NOT reliably operable —
+# the client's original "deleting an expense is quite a challenge" complaint. That
+# was FIXED: swipeable-expense.tsx now reveals a VISIBLE, labeled "Delete" button
+# when the row is tapped (the swipe/long-press still work as a bonus). The reveal
+# was validated live on the simulator. This flow drives the new button path.
+#
+# Setup: composes onboarding.yaml (signed-in user + Honda). Run via:
+#   pnpm --filter @motovault/mobile test:e2e:delete-expense
+# (preview build + provisioned user; a fresh user has no expenses, so the
+# empty-state card is a reliable entry into Add Expense — the header "+" is an
+# icon-only Pressable with no label).
+#
+# Device notes baked in below (see .maestro/README.md gotchas): expense rows sit
+# at the bottom of the single-ScrollView hub, in the floating tab-bar overlap
+# zone — a tap on the bottom-most row can hit the ride FAB instead, so scroll the
+# row CLEAR of the tab bar (bring a below-Expenses section like Documents into
+# view) before tapping it.
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+  # Distinctive label, written into the DETAILS field (expense.description) — the
+  # text SwipeableExpense renders as the row title.
+  EXPENSE_LABEL: "E2E Delete Me Expense"
+---
+# 1. Setup — reach a signed-in Home with a Honda in the garage.
+- runFlow: onboarding.yaml
+
+# 2. Open the bike hub (Garage tab a11y carries a badge → partial regex).
+- tapOn:
+    text: ".*Garage.*"
+- tapOn:
+    text: ".*Honda.*"
+- extendedWaitUntil:
+    visible: "Expenses"
+    timeout: 20000
+
+# 3. CREATE the expense to delete (deterministic precondition). A fresh user's
+#    Expenses section shows an empty-state card that routes to Add Expense.
+- scrollUntilVisible:
+    element:
+      text: "No expenses yet" # expenses.empty
+    direction: DOWN
+- tapOn: "No expenses yet"
+- assertVisible: "AMOUNT" # single-element label confirms the Add Expense screen
+- inputText: "42.50" # amount field autoFocused
+- tapOn:
+    text: ".*What was this expense for.*" # DETAILS placeholder (wildcarded — literal "?" is a regex metachar)
+- inputText: ${EXPENSE_LABEL}
+- tapOn:
+    text: "DETAILS" # non-interactive label — dismisses the custom keyboard (hideKeyboard is unsupported)
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Save Expense"
+    direction: DOWN
+- tapOn: "Save Expense"
+- tapOn:
+    text: "Not Now" # optional store-review prompt
+    optional: true
+# After save the screen stays open with the button flipped to "Done" — tap it to
+# return to the hub (router.back()).
+- extendedWaitUntil:
+    visible: "Done"
+    timeout: 20000
+- tapOn: "Done"
+
+# 4. Bring the new row CLEAR of the floating tab bar before interacting: scroll
+#    until the section below Expenses (Documents) is visible, which lifts the
+#    single expense row into the tappable mid-screen area.
+- scrollUntilVisible:
+    element:
+      text: ".*Documents.*"
+    direction: DOWN
+- assertVisible: ${EXPENSE_LABEL}
+
+# 5. DELETE via the new visible affordance: tap the row to reveal its "Delete"
+#    button (the fix), then tap it. (The swipe-left / long-press gestures still
+#    work too, but the button is the reliable, discoverable path.)
+- tapOn:
+    text: ${EXPENSE_LABEL}
+- tapOn: "Delete" # revealed action button (common.delete); maintenance Delete rows are scrolled above, so this is unambiguous
+
+# 6. Confirm the native "Delete Expense" Alert — anchor the destructive button
+#    to the right of Cancel to disambiguate the repeated "Delete" word.
+- tapOn:
+    text: "Delete"
+    rightOf:
+      text: "Cancel"
+- takeScreenshot: delete-expense-confirmed
+
+# 7. Success: the row is gone.
+- extendedWaitUntil:
+    notVisible: ${EXPENSE_LABEL}
+    timeout: 30000
+- assertNotVisible:
+    text: ${EXPENSE_LABEL}

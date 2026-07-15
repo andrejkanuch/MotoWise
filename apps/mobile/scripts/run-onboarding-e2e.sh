@@ -39,9 +39,14 @@ done
 command -v maestro >/dev/null 2>&1 || { echo "error: maestro CLI not found. Install: curl -fsSL https://get.maestro.mobile.dev | bash"; exit 1; }
 command -v jq >/dev/null 2>&1 || { echo "error: jq not found (brew install jq)"; exit 1; }
 
+# Which flow to drive, and the email prefix — overridable so sibling runners
+# (e.g. run-edit-maintenance-task-e2e.sh) can reuse this provisioning harness.
+E2E_FLOW=${E2E_FLOW:-onboarding.yaml}
+E2E_EMAIL_PREFIX=${E2E_EMAIL_PREFIX:-e2e-onboarding}
+
 # Unique, disposable test identity. `.test`-style local part keeps it obvious in the dashboard.
 STAMP=$(date +%Y%m%d%H%M%S)
-TEST_EMAIL="e2e-onboarding+${STAMP}@motovault.app"
+TEST_EMAIL="${E2E_EMAIL_PREFIX}+${STAMP}@motovault.app"
 TEST_PASSWORD="E2e!$(date +%s)Aa"
 USER_ID=""
 
@@ -82,8 +87,8 @@ if [ -z "$USER_ID" ]; then
 fi
 echo "  created user id=$USER_ID"
 
-echo "→ running Maestro onboarding flow (APP_ID=$APP_ID)"
-maestro test "$MOBILE_DIR/.maestro/flows/onboarding.yaml" \
+echo "→ running Maestro flow $E2E_FLOW (APP_ID=$APP_ID)"
+maestro test "$MOBILE_DIR/.maestro/flows/$E2E_FLOW" \
   --env APP_ID="$APP_ID" \
   --env TEST_EMAIL="$TEST_EMAIL" \
   --env TEST_PASSWORD="$TEST_PASSWORD"
