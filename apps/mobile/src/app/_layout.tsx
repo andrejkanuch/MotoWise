@@ -77,7 +77,6 @@ import { decideAuthStateChange } from '../lib/auth-state-change';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
 import { captureMetaAttribution } from '../lib/meta-attribution';
-import { resolvePendingIntent } from '../lib/pending-intent-reader';
 import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
 import {
   cancelAllNotifications,
@@ -89,6 +88,7 @@ import {
   snoozeTaskNotification,
 } from '../lib/notifications';
 import { resolveOnboardingVariant } from '../lib/onboarding-experiment';
+import { resolvePendingIntent } from '../lib/pending-intent-reader';
 import {
   clearLastUserId,
   getLastUserId,
