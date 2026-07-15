@@ -204,10 +204,20 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
         const showBadge = config.name === '(garage)' && garageBadgeCount > 0 && !isFocused;
         const badgeDisplay = garageBadgeCount >= 10 ? '9+' : String(garageBadgeCount);
 
+        // Without an explicit label, VoiceOver concatenates the child Text
+        // nodes and reads the badge count then the tab name ("1, Garage").
+        // Provide a natural, grouped label + tab semantics instead.
+        const accessibilityLabel = showBadge
+          ? `${label}, ${t('tabs.dueCount', { count: garageBadgeCount, defaultValue: '{{count}} due' })}`
+          : label;
+
         const tabButton = (
           <Pressable
             key={route.key}
             onPress={onPress}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isFocused }}
+            accessibilityLabel={accessibilityLabel}
             style={{
               alignItems: 'center',
               justifyContent: 'center',
