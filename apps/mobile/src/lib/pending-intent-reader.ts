@@ -51,9 +51,8 @@ interface PlayInstallReferrerModule {
 
 async function readAndroidReferrer(): Promise<string | null> {
   try {
-    // Dynamically required so the JS bundle builds (and iOS runs) before the
-    // native module is installed. Missing module → caught → no-op.
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // Dynamically required (Android-only module) so iOS never loads it and Expo
+    // Go — where the native module is absent — degrades to a no-op via the catch.
     const mod = require('react-native-play-install-referrer') as PlayInstallReferrerModule;
     const referrer = await new Promise<string | null>((resolve) => {
       mod.PlayInstallReferrer.getInstallReferrerInfo((info, error) => {
