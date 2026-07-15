@@ -982,7 +982,12 @@
     "v2BikeSetupVariantHelper": "Some models offer a dual-clutch (DCT) gearbox with its own service schedule.",
     "v2BikeSetupVariantDct": "DCT",
     "v2BikeSetupVariantMt": "Manual",
-    "v2BikeSetupVariantNone": "Not applicable"
+    "v2BikeSetupVariantNone": "Not applicable",
+    "v2IntentConfirmEyebrow": "Dari artikel Anda",
+    "v2IntentConfirmTitle": "Apakah ini motor Anda?",
+    "v2IntentConfirmSubtitle": "Kami mengambilnya dari yang Anda baca. Konfirmasi tahunnya dan garasi Anda siap.",
+    "v2IntentConfirmCta": "Ya, ini motor saya",
+    "v2IntentConfirmChange": "Bukan motor saya"
   },
   "bikeHub": {
     "upcoming": "Akan Datang",

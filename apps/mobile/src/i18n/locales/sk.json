@@ -984,7 +984,12 @@
     "v2BikeSetupVariantHelper": "Niektoré modely ponúkajú dvojspojkovú prevodovku (DCT) s vlastným servisným plánom.",
     "v2BikeSetupVariantDct": "DCT",
     "v2BikeSetupVariantMt": "Manuálna",
-    "v2BikeSetupVariantNone": "Neuplatňuje sa"
+    "v2BikeSetupVariantNone": "Neuplatňuje sa",
+    "v2IntentConfirmEyebrow": "Z tvojho článku",
+    "v2IntentConfirmTitle": "Je toto tvoj motocykel?",
+    "v2IntentConfirmSubtitle": "Zachytili sme to z toho, čo si čítal. Potvrď rok a tvoja garáž je pripravená.",
+    "v2IntentConfirmCta": "Áno, to je môj motocykel",
+    "v2IntentConfirmChange": "Nie je to môj motocykel"
   },
   "bikeHub": {
     "upcoming": "Nadchádzajúce",

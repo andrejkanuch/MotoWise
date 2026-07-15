@@ -982,7 +982,12 @@
     "v2BikeSetupVariantHelper": "Some models offer a dual-clutch (DCT) gearbox with its own service schedule.",
     "v2BikeSetupVariantDct": "DCT",
     "v2BikeSetupVariantMt": "Manual",
-    "v2BikeSetupVariantNone": "Not applicable"
+    "v2BikeSetupVariantNone": "Not applicable",
+    "v2IntentConfirmEyebrow": "From your article",
+    "v2IntentConfirmTitle": "Is this your ride?",
+    "v2IntentConfirmSubtitle": "We pulled this from what you were reading. Confirm the year and your garage is ready.",
+    "v2IntentConfirmCta": "Yes, that’s my ride",
+    "v2IntentConfirmChange": "Not my bike"
   },
   "checklist": {
     "getStarted": "Get Started",

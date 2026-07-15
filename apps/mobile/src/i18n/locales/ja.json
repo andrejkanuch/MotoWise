@@ -982,7 +982,12 @@
     "v2BikeSetupVariantHelper": "一部のモデルには独自のメンテナンス計画を持つデュアルクラッチ（DCT）が搭載されています。",
     "v2BikeSetupVariantDct": "DCT",
     "v2BikeSetupVariantMt": "マニュアル",
-    "v2BikeSetupVariantNone": "該当なし"
+    "v2BikeSetupVariantNone": "該当なし",
+    "v2IntentConfirmEyebrow": "記事から",
+    "v2IntentConfirmTitle": "これはあなたのバイクですか？",
+    "v2IntentConfirmSubtitle": "読んでいた記事から取得しました。年式を確認すればガレージの準備は完了です。",
+    "v2IntentConfirmCta": "はい、これが私のバイクです",
+    "v2IntentConfirmChange": "私のバイクではありません"
   },
   "bikeHub": {
     "upcoming": "予定",

@@ -983,7 +983,12 @@
     "v2BikeSetupVariantHelper": "Alguns modelos oferecem câmbio de dupla embreagem (DCT) com seu próprio plano de manutenção.",
     "v2BikeSetupVariantDct": "DCT",
     "v2BikeSetupVariantMt": "Manual",
-    "v2BikeSetupVariantNone": "Não aplicável"
+    "v2BikeSetupVariantNone": "Não aplicável",
+    "v2IntentConfirmEyebrow": "Do seu artigo",
+    "v2IntentConfirmTitle": "Esta é a sua moto?",
+    "v2IntentConfirmSubtitle": "Tiramos isso do que você estava lendo. Confirme o ano e sua garagem estará pronta.",
+    "v2IntentConfirmCta": "Sim, é a minha moto",
+    "v2IntentConfirmChange": "Não é a minha moto"
   },
   "bikeHub": {
     "upcoming": "Próximas",

@@ -983,7 +983,12 @@
     "v2BikeSetupVariantHelper": "Alcuni modelli offrono un cambio a doppia frizione (DCT) con un proprio programma di manutenzione.",
     "v2BikeSetupVariantDct": "DCT",
     "v2BikeSetupVariantMt": "Manuale",
-    "v2BikeSetupVariantNone": "Non applicabile"
+    "v2BikeSetupVariantNone": "Non applicabile",
+    "v2IntentConfirmEyebrow": "Dal tuo articolo",
+    "v2IntentConfirmTitle": "È questa la tua moto?",
+    "v2IntentConfirmSubtitle": "L’abbiamo ricavata da ciò che stavi leggendo. Conferma l’anno e il tuo garage è pronto.",
+    "v2IntentConfirmCta": "Sì, è la mia moto",
+    "v2IntentConfirmChange": "Non è la mia moto"
   },
   "bikeHub": {
     "upcoming": "In arrivo",

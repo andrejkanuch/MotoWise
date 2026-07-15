@@ -982,7 +982,12 @@
     "v2BikeSetupVariantHelper": "Manche Modelle bieten ein Doppelkupplungsgetriebe (DCT) mit eigenem Wartungsplan.",
     "v2BikeSetupVariantDct": "DCT",
     "v2BikeSetupVariantMt": "Manuell",
-    "v2BikeSetupVariantNone": "Nicht zutreffend"
+    "v2BikeSetupVariantNone": "Nicht zutreffend",
+    "v2IntentConfirmEyebrow": "Aus deinem Artikel",
+    "v2IntentConfirmTitle": "Ist das dein Motorrad?",
+    "v2IntentConfirmSubtitle": "Das haben wir aus deiner Lektüre übernommen. Bestätige das Baujahr und deine Garage ist bereit.",
+    "v2IntentConfirmCta": "Ja, das ist mein Motorrad",
+    "v2IntentConfirmChange": "Nicht mein Motorrad"
   },
   "bikeHub": {
     "upcoming": "Anstehend",
