@@ -33,6 +33,32 @@ export const CtaPlacement = {
 } as const;
 export type CtaPlacement = (typeof CtaPlacement)[keyof typeof CtaPlacement];
 
+/** First path segment → page type, for global chrome that infers its context. */
+const SEGMENT_PAGE_TYPE: Record<string, CtaPageType> = {
+  blog: CtaPageType.Blog,
+  guides: CtaPageType.Guide,
+  route: CtaPageType.Route,
+  compare: CtaPageType.Compare,
+  features: CtaPageType.Feature,
+  tools: CtaPageType.Tool,
+};
+
+/**
+ * Derive `{ pageType, slug }` from a locale-less pathname (as returned by
+ * next-intl's usePathname). Lets global components — the sticky app bar, footer
+ * — attribute a click to the page the visitor is on without threading props
+ * through the tree. Unknown/home routes resolve to `home`.
+ */
+export function pageContextFromPathname(pathname: string): {
+  pageType: CtaPageType;
+  slug?: string;
+} {
+  const segments = pathname.split('/').filter(Boolean);
+  const pageType = SEGMENT_PAGE_TYPE[segments[0] ?? ''] ?? CtaPageType.Home;
+  const slug = segments.length > 1 ? segments[segments.length - 1] : undefined;
+  return { pageType, slug };
+}
+
 /** Everything needed to attribute a store CTA click to its on-page context. */
 export type StoreCtaContext = {
   pageType: CtaPageType;

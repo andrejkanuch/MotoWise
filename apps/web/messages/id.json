@@ -418,7 +418,11 @@
     "backToBlog": "Kembali ke semua artikel",
     "by": "Oleh",
     "relatedArticles": "Artikel Terkait",
-    "ctaDownloadFree": "Unduh Gratis"
+    "ctaDownloadFree": "Unduh Gratis",
+    "ctaMaintenanceHeadline": "Tak perlu cari-cari lagi — MotoVault otomatis melacak jadwal servis {model} dan mengingatkanmu sebelum setiap servis.",
+    "ctaCostHeadline": "Catat setiap pengeluaran {model} dan lihat biaya tahunan sebenarnya.",
+    "ctaGuideHeadline": "Simpan riwayat servis {model} agar lampu peringatan berikutnya jelas maksudnya.",
+    "ctaModelFallback": "motor"
   },
   "JsonLd": {
     "organizationName": "MotoVault",
@@ -1007,5 +1011,10 @@
       "saved": "Preferences saved. Ride on.",
       "undo": "Change mind"
     }
+  },
+  "StickyBar": {
+    "message": "Seluruh hidup bermotormu dalam satu aplikasi.",
+    "cta": "Dapatkan MotoVault",
+    "dismiss": "Tutup"
   }
 }

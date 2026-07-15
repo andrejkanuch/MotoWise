@@ -418,7 +418,11 @@
     "backToBlog": "Tum makalelere don",
     "by": "Yazan",
     "relatedArticles": "Ilgili Makaleler",
-    "ctaDownloadFree": "Ücretsiz İndir"
+    "ctaDownloadFree": "Ücretsiz İndir",
+    "ctaMaintenanceHeadline": "Artık aramana gerek yok — MotoVault, {model} bakım aralıklarını otomatik takip eder ve her birinden önce seni uyarır.",
+    "ctaCostHeadline": "Her {model} masrafını kaydet ve yıllık gerçek maliyetini gör.",
+    "ctaGuideHeadline": "{model} için servis geçmişi tut ki bir sonraki uyarı ışığı anlam kazansın.",
+    "ctaModelFallback": "motosiklet"
   },
   "JsonLd": {
     "organizationName": "MotoVault",
@@ -1007,5 +1011,10 @@
       "saved": "Preferences saved. Ride on.",
       "undo": "Change mind"
     }
+  },
+  "StickyBar": {
+    "message": "Tüm motosiklet hayatın tek uygulamada.",
+    "cta": "MotoVault’u edin",
+    "dismiss": "Kapat"
   }
 }

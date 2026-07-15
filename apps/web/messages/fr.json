@@ -572,7 +572,11 @@
     "backToBlog": "Retour a tous les articles",
     "by": "Par",
     "relatedArticles": "Articles Associes",
-    "ctaDownloadFree": "Télécharger gratuitement"
+    "ctaDownloadFree": "Télécharger gratuitement",
+    "ctaMaintenanceHeadline": "Fini les recherches — MotoVault suit automatiquement les intervalles d’entretien de ta {model} et te prévient avant chacun.",
+    "ctaCostHeadline": "Note chaque dépense de ta {model} et découvre ton vrai coût annuel.",
+    "ctaGuideHeadline": "Tiens un carnet d’entretien de ta {model} pour que le prochain voyant ait du sens.",
+    "ctaModelFallback": "moto"
   },
   "JsonLd": {
     "organizationName": "MotoVault",
@@ -3123,5 +3127,10 @@
     "scanComplete": "Analyse terminée",
     "resultTitle": "Tension de chaîne faible",
     "resultDesc": "Réglez à 25-35 mm de jeu selon le manuel du propriétaire."
+  },
+  "StickyBar": {
+    "message": "Toute ta vie à moto dans une app.",
+    "cta": "Obtenir MotoVault",
+    "dismiss": "Fermer"
   }
 }

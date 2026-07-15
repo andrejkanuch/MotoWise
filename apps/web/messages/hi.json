@@ -418,7 +418,11 @@
     "backToBlog": "सभी आर्टिकल पर वापस",
     "by": "द्वारा",
     "relatedArticles": "संबंधित आर्टिकल",
-    "ctaDownloadFree": "मुफ़्त डाउनलोड करें"
+    "ctaDownloadFree": "मुफ़्त डाउनलोड करें",
+    "ctaMaintenanceHeadline": "अब बार-बार देखने की ज़रूरत नहीं — MotoVault {model} के सर्विस इंटरवल अपने आप ट्रैक करता है और हर बार पहले याद दिलाता है।",
+    "ctaCostHeadline": "{model} का हर खर्च दर्ज करें और सालाना असली लागत देखें।",
+    "ctaGuideHeadline": "{model} का सर्विस इतिहास रखें ताकि अगली वॉर्निंग लाइट समझ आए।",
+    "ctaModelFallback": "मोटरसाइकिल"
   },
   "JsonLd": {
     "organizationName": "MotoVault",
@@ -1007,5 +1011,10 @@
       "saved": "Preferences saved. Ride on.",
       "undo": "Change mind"
     }
+  },
+  "StickyBar": {
+    "message": "आपकी पूरी मोटो लाइफ़ एक ऐप में।",
+    "cta": "MotoVault पाएं",
+    "dismiss": "बंद करें"
   }
 }

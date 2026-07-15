@@ -572,7 +572,11 @@
     "backToBlog": "Wroc do wszystkich artykulow",
     "by": "Autor",
     "relatedArticles": "Powiazane artykuly",
-    "ctaDownloadFree": "Pobierz za darmo"
+    "ctaDownloadFree": "Pobierz za darmo",
+    "ctaMaintenanceHeadline": "Koniec ze sprawdzaniem — MotoVault automatycznie śledzi terminy przeglądów {model} i przypomni Ci przed każdym.",
+    "ctaCostHeadline": "Zapisuj wszystkie wydatki {model} i poznaj realny roczny koszt.",
+    "ctaGuideHeadline": "Prowadź historię serwisową {model}, aby następna kontrolka miała sens.",
+    "ctaModelFallback": "Twojego motocykla"
   },
   "JsonLd": {
     "organizationName": "MotoVault",
@@ -3163,5 +3167,10 @@
     "eyebrow": "Nasza obietnica",
     "lead": "Każdy motocyklista zasługuje na towarzysza, który zna jego maszynę lepiej niż warsztat —",
     "emphasis": "i drogę, która jest przed nim."
+  },
+  "StickyBar": {
+    "message": "Całe motocyklowe życie w jednej aplikacji.",
+    "cta": "Pobierz MotoVault",
+    "dismiss": "Zamknij"
   }
 }

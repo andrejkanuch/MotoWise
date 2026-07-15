@@ -572,7 +572,11 @@
     "backToBlog": "Torna a tutti gli articoli",
     "by": "Di",
     "relatedArticles": "Articoli Correlati",
-    "ctaDownloadFree": "Scarica gratis"
+    "ctaDownloadFree": "Scarica gratis",
+    "ctaMaintenanceHeadline": "Basta cercarlo — MotoVault registra automaticamente gli intervalli di manutenzione della tua {model} e ti avvisa prima di ciascuno.",
+    "ctaCostHeadline": "Registra ogni spesa della tua {model} e scopri il tuo costo reale all’anno.",
+    "ctaGuideHeadline": "Tieni uno storico dei tagliandi della tua {model} così la prossima spia avrà senso.",
+    "ctaModelFallback": "moto"
   },
   "JsonLd": {
     "organizationName": "MotoVault",
@@ -3178,5 +3182,10 @@
     "scanComplete": "Scansione completata",
     "resultTitle": "Tensione della catena bassa",
     "resultDesc": "Regola a 25-35 mm di gioco secondo il manuale d'uso."
+  },
+  "StickyBar": {
+    "message": "Tutta la tua vita in moto in un’app.",
+    "cta": "Scarica MotoVault",
+    "dismiss": "Chiudi"
   }
 }

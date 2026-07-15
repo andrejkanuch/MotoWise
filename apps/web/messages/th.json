@@ -418,7 +418,11 @@
     "backToBlog": "กลับไปบทความทั้งหมด",
     "by": "โดย",
     "relatedArticles": "บทความที่เกี่ยวข้อง",
-    "ctaDownloadFree": "ดาวน์โหลดฟรี"
+    "ctaDownloadFree": "ดาวน์โหลดฟรี",
+    "ctaMaintenanceHeadline": "ไม่ต้องคอยเปิดหาอีกต่อไป — MotoVault ติดตามรอบการเข้าศูนย์ของ {model} ให้อัตโนมัติ และเตือนคุณก่อนถึงกำหนดทุกครั้ง",
+    "ctaCostHeadline": "บันทึกค่าใช้จ่ายทุกอย่างของ {model} แล้วดูต้นทุนต่อปีที่แท้จริง",
+    "ctaGuideHeadline": "เก็บประวัติการซ่อมบำรุงของ {model} ไว้ เพื่อให้ไฟเตือนครั้งต่อไปเข้าใจง่ายขึ้น",
+    "ctaModelFallback": "มอเตอร์ไซค์"
   },
   "JsonLd": {
     "organizationName": "MotoVault",
@@ -1007,5 +1011,10 @@
       "saved": "Preferences saved. Ride on.",
       "undo": "Change mind"
     }
+  },
+  "StickyBar": {
+    "message": "ทุกเรื่องมอเตอร์ไซค์ของคุณในแอปเดียว",
+    "cta": "รับ MotoVault",
+    "dismiss": "ปิด"
   }
 }

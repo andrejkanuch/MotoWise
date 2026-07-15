@@ -572,7 +572,11 @@
     "backToBlog": "Voltar para todos os artigos",
     "by": "Por",
     "relatedArticles": "Artigos Relacionados",
-    "ctaDownloadFree": "Baixar grátis"
+    "ctaDownloadFree": "Baixar grátis",
+    "ctaMaintenanceHeadline": "Pare de procurar — o MotoVault acompanha automaticamente os intervalos de revisão da sua {model} e avisa você antes de cada um.",
+    "ctaCostHeadline": "Registre cada gasto da sua {model} e veja o custo real por ano.",
+    "ctaGuideHeadline": "Mantenha um histórico de manutenção da sua {model} para o próximo alerta fazer sentido.",
+    "ctaModelFallback": "moto"
   },
   "JsonLd": {
     "organizationName": "MotoVault",
@@ -3163,5 +3167,10 @@
     "eyebrow": "Nossa promessa",
     "lead": "Todo motociclista merece um companheiro que conhece a sua moto melhor que a oficina —",
     "emphasis": "e a estrada que vem pela frente."
+  },
+  "StickyBar": {
+    "message": "Toda a sua vida sobre duas rodas em um app.",
+    "cta": "Baixar MotoVault",
+    "dismiss": "Fechar"
   }
 }

@@ -572,7 +572,11 @@
     "backToBlog": "Back to all articles",
     "by": "By",
     "relatedArticles": "Related Articles",
-    "ctaDownloadFree": "Download Free"
+    "ctaDownloadFree": "Download Free",
+    "ctaMaintenanceHeadline": "Stop looking this up — MotoVault tracks your {model} service intervals automatically and reminds you before each one.",
+    "ctaCostHeadline": "Log every {model} expense and see your true cost per year.",
+    "ctaGuideHeadline": "Keep a service history for your {model} so the next warning light makes sense.",
+    "ctaModelFallback": "motorcycle"
   },
   "JsonLd": {
     "organizationName": "MotoVault",
@@ -3123,5 +3127,10 @@
     "scanComplete": "Scan complete",
     "resultTitle": "Chain tension low",
     "resultDesc": "Adjust to 25-35mm slack per owner's manual."
+  },
+  "StickyBar": {
+    "message": "Your whole moto life in one app.",
+    "cta": "Get MotoVault",
+    "dismiss": "Dismiss"
   }
 }

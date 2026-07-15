@@ -572,7 +572,11 @@
     "backToBlog": "Zuruck zu allen Artikeln",
     "by": "Von",
     "relatedArticles": "Verwandte Artikel",
-    "ctaDownloadFree": "Kostenlos herunterladen"
+    "ctaDownloadFree": "Kostenlos herunterladen",
+    "ctaMaintenanceHeadline": "Kein Nachschlagen mehr — MotoVault verfolgt die Wartungsintervalle für {model} automatisch und erinnert dich rechtzeitig vor jedem Termin.",
+    "ctaCostHeadline": "Erfasse jede Ausgabe für {model} und sieh deine echten Jahreskosten.",
+    "ctaGuideHeadline": "Führe ein Serviceheft für {model}, damit die nächste Warnleuchte Sinn ergibt.",
+    "ctaModelFallback": "dein Motorrad"
   },
   "JsonLd": {
     "organizationName": "MotoVault",
@@ -3123,5 +3127,10 @@
     "scanComplete": "Scan abgeschlossen",
     "resultTitle": "Kettenspannung zu niedrig",
     "resultDesc": "Auf 25–35 mm Durchhang gemäß Bedienungsanleitung einstellen."
+  },
+  "StickyBar": {
+    "message": "Dein ganzes Bike-Leben in einer App.",
+    "cta": "MotoVault holen",
+    "dismiss": "Schließen"
   }
 }
