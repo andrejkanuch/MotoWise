@@ -1,0 +1,55 @@
+# Web→app intent — valid token (P2 case 2).
+#
+# The runner (scripts/run-intent-e2e.sh) seeds the iOS clipboard with a fresh
+# `mvintent://?mv_make=Yamaha&mv_model=MT-07&...` token BEFORE this flow launches
+# the app. On first launch the reader parses it, matches the make, and seeds the
+# onboarding store — so bike-setup opens on the one-tap "Is this your ride?"
+# confirmation for the Yamaha MT-07 instead of the make grid.
+#
+# Prereqs: preview build with EXPO_PUBLIC_OB_VARIANT=invested on a booted iOS
+# simulator (see .maestro/README.md + onboarding.yaml).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+---
+# clearState + clearKeychain reset the one-shot intent flag + any session so the
+# reader runs again. The clipboard is system-level and survives clearState.
+- clearState
+- clearKeychain
+- launchApp
+
+# 1. Welcome
+- extendedWaitUntil:
+    visible: "Let's get started"
+    timeout: 120000
+- tapOn: "Let's get started"
+
+# 2. Experience (auto-advances)
+- assertVisible: ".*How long have you.*"
+- tapOn: ".*Just getting started.*"
+
+# 3. Frequency (auto-advances)
+- tapOn: ".*Almost daily.*"
+
+# 4. Stay-on-top (multi-select → Continue)
+- tapOn: ".*Never miss a service.*"
+- tapOn: "Continue"
+
+# 5. Last service (chip → Continue)
+- tapOn: ".*Just did it.*"
+- tapOn: "Continue"
+
+# 6. Bike setup — the seeded intent must surface the one-tap confirmation for the
+#    carried-over Yamaha MT-07, NOT the make grid.
+- extendedWaitUntil:
+    visible: "Is this your ride?"
+    timeout: 30000
+- assertVisible: ".*Yamaha.*"
+- assertNotVisible: "Popular makes"
+# Confirm ("Yes, that’s my ride" — match loosely to dodge the curly apostrophe).
+- tapOn: ".*my ride.*"
+
+# 7. Confirmed → left bike-setup into building-plan/reveal (proves confirm worked).
+- extendedWaitUntil:
+    visible: "Continue"
+    timeout: 30000

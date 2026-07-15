@@ -45,8 +45,11 @@ env:
 - tapOn: ".*Just did it.*"
 - tapOn: "Continue"
 
-# 6. Bike setup — MUST add a bike to keep bike-dependent screens reachable
+# 6. Bike setup — MUST add a bike to keep bike-dependent screens reachable.
+# Fail-open regression (P2): with no web intent seeded, bike-setup MUST render
+# the normal make grid, never the "Is this your ride?" intent confirmation.
 - assertVisible: "Popular makes"
+- assertNotVisible: "Is this your ride?"
 - tapOn: ".*Honda.*"
 - tapOn: "Add to my garage"
 

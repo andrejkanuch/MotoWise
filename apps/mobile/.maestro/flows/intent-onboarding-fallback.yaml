@@ -1,0 +1,52 @@
+# Web→app intent — graceful fallback (P2 case 3).
+#
+# The runner seeds a well-formed but UNKNOWN-make token
+# (`mvintent://?mv_make=Peugeot&...`) BEFORE launch. The reader parses it but
+# can't match the make against the app's make list, so it seeds NOTHING — and
+# bike-setup must render the normal make grid, exactly like an install with no
+# intent. This is the fail-open guarantee for a wrong/unknown intent.
+#
+# Run via: INTENT_TOKEN="mvintent://?mv_make=Peugeot&ts=<ms>" E2E_FLOW=intent-onboarding-fallback.yaml
+# (the test:e2e:intent-fallback script wires this).
+#
+# Prereqs: preview build with EXPO_PUBLIC_OB_VARIANT=invested on a booted iOS
+# simulator (see .maestro/README.md + onboarding.yaml).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+---
+- clearState
+- clearKeychain
+- launchApp
+
+# 1. Welcome
+- extendedWaitUntil:
+    visible: "Let's get started"
+    timeout: 120000
+- tapOn: "Let's get started"
+
+# 2. Experience (auto-advances)
+- assertVisible: ".*How long have you.*"
+- tapOn: ".*Just getting started.*"
+
+# 3. Frequency (auto-advances)
+- tapOn: ".*Almost daily.*"
+
+# 4. Stay-on-top (multi-select → Continue)
+- tapOn: ".*Never miss a service.*"
+- tapOn: "Continue"
+
+# 5. Last service (chip → Continue)
+- tapOn: ".*Just did it.*"
+- tapOn: "Continue"
+
+# 6. Bike setup — unknown make → NO seed → the normal grid, NEVER the intent
+#    confirmation. Identical to a no-intent install.
+- assertVisible: "Popular makes"
+- assertNotVisible: "Is this your ride?"
+# Prove the normal flow still works end-to-end from here.
+- tapOn: ".*Honda.*"
+- tapOn: "Add to my garage"
+- extendedWaitUntil:
+    visible: "Continue"
+    timeout: 30000
