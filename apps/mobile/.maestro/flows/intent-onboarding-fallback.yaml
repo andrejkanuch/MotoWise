@@ -9,8 +9,8 @@
 # Run via: INTENT_TOKEN="mvintent://?mv_make=Peugeot&ts=<ms>" E2E_FLOW=intent-onboarding-fallback.yaml
 # (the test:e2e:intent-fallback script wires this).
 #
-# Prereqs: preview build with EXPO_PUBLIC_OB_VARIANT=invested on a booted iOS
-# simulator (see .maestro/README.md + onboarding.yaml).
+# Prereq: a bundled build with MY JS on a booted iOS simulator. Variant-agnostic
+# (handles the invested-only middle screens conditionally).
 appId: ${APP_ID}
 env:
   APP_ID: com.motovault.app
@@ -29,22 +29,30 @@ env:
 - assertVisible: ".*How long have you.*"
 - tapOn: ".*Just getting started.*"
 
-# 3. Frequency (auto-advances)
-- tapOn: ".*Almost daily.*"
+# 3. Invested-only middle screens — tap each ONLY if it appears (skipped on lean).
+- runFlow:
+    when:
+      visible: ".*Almost daily.*"
+    commands:
+      - tapOn: ".*Almost daily.*"
+- runFlow:
+    when:
+      visible: ".*Never miss a service.*"
+    commands:
+      - tapOn: ".*Never miss a service.*"
+      - tapOn: "Continue"
+- runFlow:
+    when:
+      visible: ".*Just did it.*"
+    commands:
+      - tapOn: ".*Just did it.*"
+      - tapOn: "Continue"
 
-# 4. Stay-on-top (multi-select → Continue)
-- tapOn: ".*Never miss a service.*"
-- tapOn: "Continue"
-
-# 5. Last service (chip → Continue)
-- tapOn: ".*Just did it.*"
-- tapOn: "Continue"
-
-# 6. Bike setup — unknown make → NO seed → the normal grid, NEVER the intent
+# 4. Bike setup — unknown make → NO seed → the normal grid, NEVER the intent
 #    confirmation. Identical to a no-intent install.
 - assertVisible: "Popular makes"
 - assertNotVisible: "Is this your ride?"
-# Prove the normal flow still works end-to-end from here.
+# Prove the normal flow still works from here.
 - tapOn: ".*Honda.*"
 - tapOn: "Add to my garage"
 - extendedWaitUntil:
