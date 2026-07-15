@@ -29,6 +29,9 @@ const {
   parseIntentToken,
   resolveMakeId,
   seedBikeDataFromIntent,
+  getIntentCohort,
+  isMaintenanceIntent,
+  INTENT_COHORT,
   INTENT_TOKEN_TTL_MS,
 } = require('../pending-intent');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -140,6 +143,34 @@ describe('resolveMakeId', () => {
     ['empty list', 'Yamaha', []],
   ])('%s → null', (_label, name, list = MAKES) => {
     expect(resolveMakeId(name as never, list as never)).toBeNull();
+  });
+});
+
+describe('getIntentCohort / isMaintenanceIntent', () => {
+  const intent = (over: Partial<Record<string, string | null>> = {}) => ({
+    make: 'Yamaha',
+    model: 'MT-07',
+    source: 'blog',
+    campaign: null,
+    ...over,
+  });
+
+  it('classifies a maintenance campaign as the money cohort', () => {
+    const i = intent({ source: 'blog', campaign: 'blog_maintenance' });
+    expect(getIntentCohort(i)).toBe(INTENT_COHORT.MAINTENANCE);
+    expect(isMaintenanceIntent(i)).toBe(true);
+  });
+
+  it('maps source to cohort when no maintenance campaign', () => {
+    expect(getIntentCohort(intent({ source: 'blog' }))).toBe(INTENT_COHORT.BLOG);
+    expect(getIntentCohort(intent({ source: 'tool' }))).toBe(INTENT_COHORT.TOOL);
+    expect(getIntentCohort(intent({ source: 'newsletter' }))).toBe(INTENT_COHORT.OTHER);
+    expect(getIntentCohort(intent({ source: null }))).toBe(INTENT_COHORT.OTHER);
+  });
+
+  it('isMaintenanceIntent is false for null / non-maintenance intents', () => {
+    expect(isMaintenanceIntent(null)).toBe(false);
+    expect(isMaintenanceIntent(intent({ source: 'tool' }))).toBe(false);
   });
 });
 

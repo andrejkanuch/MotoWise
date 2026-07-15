@@ -51,6 +51,19 @@ export const INTENT_METHOD = {
 } as const;
 export type IntentMethod = (typeof INTENT_METHOD)[keyof typeof INTENT_METHOD];
 
+/**
+ * Durable cohort tag for a resolved intent — registered as a PostHog super
+ * property so the whole funnel (not just one event) is segmentable, and read by
+ * paywall personalization to pick the maintenance-led placement (P3.2).
+ */
+export const INTENT_COHORT = {
+  MAINTENANCE: 'maintenance',
+  BLOG: 'blog',
+  TOOL: 'tool',
+  OTHER: 'intent',
+} as const;
+export type IntentCohort = (typeof INTENT_COHORT)[keyof typeof INTENT_COHORT];
+
 export interface PendingIntent {
   /** Make name as tagged by the web (raw casing; match via resolveMakeId). */
   make: string;
@@ -128,6 +141,32 @@ export function parseIntentToken(
   } catch {
     return null;
   }
+}
+
+/** utm_source → cohort dispatch table (data-driven, no branch chain). */
+const SOURCE_TO_COHORT: Record<string, IntentCohort> = {
+  blog: INTENT_COHORT.BLOG,
+  tool: INTENT_COHORT.TOOL,
+};
+
+/**
+ * Classify a resolved intent into a cohort. A maintenance campaign
+ * (`utm_campaign` contains "maintenance") is the money cohort — it drives the
+ * reminder-led paywall (P3.2); otherwise map the source, then a generic
+ * `intent` tag. Never throws.
+ */
+export function getIntentCohort(intent: PendingIntent): IntentCohort {
+  try {
+    if (intent.campaign?.toLowerCase().includes('maintenance')) return INTENT_COHORT.MAINTENANCE;
+    return SOURCE_TO_COHORT[intent.source ?? ''] ?? INTENT_COHORT.OTHER;
+  } catch {
+    return INTENT_COHORT.OTHER;
+  }
+}
+
+/** True when the intent should lead the paywall with maintenance-reminder copy. */
+export function isMaintenanceIntent(intent: PendingIntent | null | undefined): boolean {
+  return !!intent && getIntentCohort(intent) === INTENT_COHORT.MAINTENANCE;
 }
 
 /** Case-insensitively find a make in the app's list. Never throws. */

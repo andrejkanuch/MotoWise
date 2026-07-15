@@ -77,6 +77,7 @@ import { decideAuthStateChange } from '../lib/auth-state-change';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
 import { captureMetaAttribution } from '../lib/meta-attribution';
+import { resolvePendingIntent } from '../lib/pending-intent-reader';
 import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
 import {
   cancelAllNotifications,
@@ -546,6 +547,13 @@ function RootLayout() {
   // Capture Meta ad attribution params (fbclid + UTM) from initial deep link
   useEffect(() => {
     captureMetaAttribution();
+  }, []);
+
+  // Resolve the web→app "which bike" intent (install referrer / iOS clipboard)
+  // and pre-seed onboarding. Non-blocking, fail-open, once per install — never
+  // affects the normal onboarding flow. (P2)
+  useEffect(() => {
+    void resolvePendingIntent();
   }, []);
 
   // Initialize Meta/Facebook SDK + ATT prompt
