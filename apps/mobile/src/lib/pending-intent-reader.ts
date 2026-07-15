@@ -67,11 +67,14 @@ async function readAndroidReferrer(): Promise<string | null> {
 
 async function readIosClipboardToken(): Promise<string | null> {
   try {
-    // Gate the read behind hasUrlAsync() — a metadata check that does NOT trigger
-    // the iOS paste-permission prompt. Organic users (no URL on the clipboard)
-    // return here silently, so the prompt is never shown outside the web→app
-    // flow. Only a URL-bearing clipboard proceeds to the prompting read.
-    if (!(await Clipboard.hasUrlAsync())) return null;
+    // Gate the read behind hasStringAsync() — a metadata check that does NOT
+    // trigger the iOS paste-permission prompt and skips a genuinely empty
+    // clipboard. (hasUrlAsync() is NOT usable here: the web writes the token via
+    // navigator.clipboard.writeText, a plain-text item, which iOS does not report
+    // as a URL — verified on-device — so the read would never fire.) Reading the
+    // string below is the only way to inspect content on iOS 16+ and does prompt;
+    // that prompt is unavoidable for clipboard-based deferred attribution.
+    if (!(await Clipboard.hasStringAsync())) return null;
     const clip = await Clipboard.getStringAsync();
     // Only trust — and only ever clear — a string that is our token. Never touch
     // unrelated clipboard content the user happens to be carrying.

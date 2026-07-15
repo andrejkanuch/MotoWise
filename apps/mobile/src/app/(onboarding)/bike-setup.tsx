@@ -140,8 +140,23 @@ export default function BikeSetupScreen() {
   const activeMakeName = isCustomMake ? customMakeName : selectedMake?.makeName;
   const hasMake = !!(selectedMake || (isCustomMake && customMakeName.trim()));
   const canContinue = isValidYear && hasMake;
-  // Intent confirmation gate — only when a make was confidently seeded (P2 T3).
-  const showIntentConfirm = !!pendingIntent && !dismissedIntent && !!selectedMake;
+  // Intent confirmation gate (P2 T3) — driven by the STORE (pendingIntent +
+  // seeded bike), NOT local `selectedMake` state: the reader seeds asynchronously
+  // and may land AFTER this screen mounts, so keying off useState would miss a
+  // late seed and never show the confirmation.
+  const showIntentConfirm = !!pendingIntent && !dismissedIntent && !!existingBikeData?.makeId;
+
+  // Mirror the seeded bike into local state so handleContinue (which reads
+  // selectedMake/model/year) works and the card renders — including when the
+  // seed arrives after mount. Skipped once the rider has diverged (dismissed or
+  // picked their own make).
+  useEffect(() => {
+    if (!showIntentConfirm || selectedMake || !existingBikeData) return;
+    setSelectedMake({ makeId: existingBikeData.makeId, makeName: existingBikeData.make });
+    if (existingBikeData.model) {
+      setSelectedModel({ modelId: 0, modelName: existingBikeData.model });
+    }
+  }, [showIntentConfirm, selectedMake, existingBikeData]);
 
   useEffect(() => {
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.BIKE_SETUP);
@@ -412,15 +427,15 @@ export default function BikeSetupScreen() {
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
         >
-          {showIntentConfirm && selectedMake ? (
+          {showIntentConfirm && existingBikeData ? (
             /* ═══ Intent confirmation: one-tap "Is this your ride?" (P2 T3) ═══ */
             <IntentConfirmCard
-              makeName={selectedMake.makeName}
-              modelName={selectedModel?.modelName ?? null}
+              makeName={existingBikeData.make}
+              modelName={existingBikeData.model || null}
               year={year}
               onYearChange={setYear}
               onStep={triggerImpact}
-              accent={getBrandColor(selectedMake.makeName)}
+              accent={getBrandColor(existingBikeData.make)}
             />
           ) : !showMakeDetails ? (
             /* ═══ Stage A: Make grid (year is set after a make is picked) ═══ */

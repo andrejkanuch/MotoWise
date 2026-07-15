@@ -18,7 +18,7 @@ jest.mock('react-native-mmkv', () => ({
 }));
 
 jest.mock('expo-clipboard', () => ({
-  hasUrlAsync: jest.fn(),
+  hasStringAsync: jest.fn(),
   getStringAsync: jest.fn(),
   setStringAsync: jest.fn().mockResolvedValue(undefined),
 }));
@@ -74,9 +74,9 @@ beforeEach(() => {
   SecureStore.setItemAsync.mockResolvedValue(undefined);
   gqlFetcher.mockResolvedValue({ motorcycleMakes: MAKES });
   Clipboard.setStringAsync.mockResolvedValue(undefined);
-  // Default: the clipboard holds a URL, so the reader proceeds to the (prompting)
-  // read. The "no URL" case overrides this to false.
-  Clipboard.hasUrlAsync.mockResolvedValue(true);
+  // Default: the clipboard holds a string, so the reader proceeds to the
+  // (prompting) read. The "empty clipboard" case overrides this to false.
+  Clipboard.hasStringAsync.mockResolvedValue(true);
 });
 
 // NOTE: jest-expo inlines `process.env.EXPO_OS` (defaults to 'ios') at transform
@@ -110,8 +110,8 @@ describe('resolvePendingIntent — iOS (clipboard)', () => {
     });
   });
 
-  it('does NOT touch a clipboard URL that is not our token (no clear, no seed)', async () => {
-    // A URL is present (hasUrlAsync true) but it is not our intent token.
+  it('does NOT touch clipboard content that is not our token (no clear, no seed)', async () => {
+    // A string is present (hasStringAsync true) but it is not our intent token.
     Clipboard.getStringAsync.mockResolvedValue('https://example.com/some-other-link');
 
     await resolvePendingIntent();
@@ -123,12 +123,12 @@ describe('resolvePendingIntent — iOS (clipboard)', () => {
     expect(SecureStore.setItemAsync).toHaveBeenCalledWith('pending_intent_checked', '1');
   });
 
-  it('never triggers the paste read when the clipboard has no URL (no prompt)', async () => {
-    Clipboard.hasUrlAsync.mockResolvedValue(false);
+  it('never triggers the paste read when the clipboard is empty (no prompt)', async () => {
+    Clipboard.hasStringAsync.mockResolvedValue(false);
 
     await resolvePendingIntent();
 
-    // The prompting read is never reached → organic users are not prompted.
+    // The prompting read is never reached → empty-clipboard users are not prompted.
     expect(Clipboard.getStringAsync).not.toHaveBeenCalled();
     expect(useOnboardingStore.getState().bikeData).toBeNull();
     expect(analytics.trackEvent).not.toHaveBeenCalled();
