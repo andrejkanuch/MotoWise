@@ -2,7 +2,7 @@ import { OemSchedulesPreviewDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { Check, X } from 'lucide-react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -49,6 +49,7 @@ export default function MaintenanceScreen() {
   const goNext = useOnboardingNext(OB_SCREEN.MAINTENANCE);
   const insets = useSafeAreaInsets();
   const bikeData = useOnboardingStore((s) => s.bikeData);
+  const pendingIntent = useOnboardingStore((s) => s.pendingIntent);
   const setAcceptedOemScheduleIds = useOnboardingStore((s) => s.setAcceptedOemScheduleIds);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
 
@@ -82,6 +83,23 @@ export default function MaintenanceScreen() {
 
   const done = currentIdx >= tasks.length;
   const currentTask = tasks[currentIdx];
+
+  // Intent cohort (P2 T4): the rider came from an article about THIS bike, so
+  // pre-accept the whole OEM schedule and drop them straight into the summary —
+  // their garage lands populated instead of empty. They can still Continue (or
+  // reconsider individual tasks). Fires oem_schedule_imported once (T3). Non-
+  // intent onboarders keep the normal swipe deck untouched.
+  const importedIntentSchedule = useRef(false);
+  useEffect(() => {
+    if (importedIntentSchedule.current || !pendingIntent || isLoading || tasks.length === 0) return;
+    importedIntentSchedule.current = true;
+    setAccepted(tasks.map((task) => task.id));
+    setCurrentIdx(tasks.length);
+    trackOnboardingEvent(AnalyticsEvent.OEM_SCHEDULE_IMPORTED, OB_SCREEN.MAINTENANCE, {
+      context: 'onboarding',
+      task_count: tasks.length,
+    });
+  }, [pendingIntent, isLoading, tasks]);
 
   // Swipe animation
   const translateX = useSharedValue(0);
