@@ -54,9 +54,10 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   (swipe/long-press) and on-device validation confirmed it is **not reliably triggerable** (the
   original client complaint, reproduced). Kept as executable documentation; becomes reliable only
   after the expense row gets a visible delete affordance. `test:e2e:delete-expense`.
-- **`flows/log-ride.yaml`** — ⚠️ **EXPECTED-FLAKY / GPS-DEPENDENT.** Start-screen selectors were
-  observed live; the record→end→summary steps are best-effort and need a clean ride state + a
-  simulated simulator location to run reliably. `test:e2e:log-ride`.
+- **`flows/log-ride.yaml`** — start a ride, record, hold-to-end, save. **Validated end-to-end
+  on-device 2026-07-15.** Uses `setLocation` for a GPS fix; ends via a long-press ("Hold to end
+  ride") + a point-tap on the "End Anyway" bottom-sheet confirm (buttons not in the a11y tree).
+  `test:e2e:log-ride`.
 
   All authed journey flows share the parameterized onboarding runner via `E2E_FLOW` /
   `E2E_EMAIL_PREFIX` (set inline in the `test:e2e:*` package scripts) — no per-flow wrapper needed.
@@ -145,3 +146,14 @@ Hard-won specifics for THIS app — check these first when a flow "should work" 
   confirmed.
 - **Own your test data.** Create preconditions with distinctive titles (`E2E …`) and delete them at the
   end — flows run against a shared account, so leftover state makes reruns flaky.
+- **Visible text ≠ a11y label — always `inspect_screen`.** Several controls render one string but expose
+  another to Maestro: the ride "End Ride" button's a11y label is **"End unfinished ride"**; a tab label
+  carries its badge (**"Garage, 1 due"**). Match the a11y label (partial regex), not the on-screen word.
+- **Some controls are gestures, not taps.** Ending a ride is a **long-press** ("Hold to end ride" →
+  `longPressOn`), and deleting an expense is swipe/long-press (see delete-expense's blocked note).
+- **Unlabeled + portal'd controls need point-taps.** The center ride **FAB** has no label (tap ~50%,92%),
+  and the ride's **"End ride?"** confirm is a `@gorhom/bottom-sheet` whose buttons are absent from the
+  a11y tree — tap "End Anyway" by point (~73%,80%). Point-taps are percentage-based (portable) but
+  resolution-sensitive; prefer a real selector whenever `inspect_screen` exposes one.
+- **GPS-dependent flows need `setLocation`.** The ride pre-flight GPS check and recording need a fix;
+  set one at the top of the flow (a stationary sim logs ~0 distance, which still saves).
