@@ -16,6 +16,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import type { OnboardingRoute } from '../config/onboarding';
 import { captureException } from '../lib/analytics';
 import { createZustandMMKVStorage } from '../lib/mmkv-storage';
+import type { PendingIntent } from '../lib/pending-intent';
 
 interface BikeData {
   year: number;
@@ -69,6 +70,16 @@ interface OnboardingState {
    * mirrored to PostHog ($set_once) + RevenueCat (custom attr) at selection time.
    */
   heardFrom: string | null;
+  /**
+   * Web→app "which bike" intent resolved on first launch from the Play install
+   * referrer (Android) or the `mvintent://` clipboard token (iOS). Non-null ONLY
+   * when a make was confidently matched; it is the signal bike-setup uses to
+   * render the one-tap "Is this your ride?" confirmation and that paywall
+   * personalization reads for the maintenance-intent cohort. Cleared on reset()
+   * so it never leaks into a later onboarding run. Fail-open: absence means the
+   * normal, untouched onboarding flow.
+   */
+  pendingIntent: PendingIntent | null;
   setAcceptedOemScheduleIds: (ids: string[]) => void;
   setExperienceLevel: (level: ExperienceLevel) => void;
   setBikeData: (data: BikeData | null) => void;
@@ -87,6 +98,7 @@ interface OnboardingState {
   setCurrency: (currency: Currency) => void;
   setLastCompletedScreen: (screen: OnboardingRoute) => void;
   setHeardFrom: (source: string) => void;
+  setPendingIntent: (intent: PendingIntent | null) => void;
   reset: () => void;
 }
 
@@ -110,6 +122,7 @@ const initialState = {
   acceptedOemScheduleIds: [] as string[],
   lastCompletedScreen: null as OnboardingRoute | null,
   heardFrom: null as string | null,
+  pendingIntent: null as PendingIntent | null,
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -135,11 +148,12 @@ export const useOnboardingStore = create<OnboardingState>()(
       setCurrency: (currency) => set({ currency }),
       setLastCompletedScreen: (screen) => set({ lastCompletedScreen: screen }),
       setHeardFrom: (heardFrom) => set({ heardFrom }),
+      setPendingIntent: (pendingIntent) => set({ pendingIntent }),
       reset: () => set(store.getInitialState(), true),
     }),
     {
       name: 'onboarding-state',
-      version: 7,
+      version: 8,
       storage: createJSONStorage(() => createZustandMMKVStorage('onboarding-store')),
       partialize: ({
         setExperienceLevel,
@@ -160,6 +174,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         setCurrency,
         setLastCompletedScreen,
         setHeardFrom,
+        setPendingIntent,
         reset,
         ...data
       }) => data,
@@ -192,6 +207,11 @@ export const useOnboardingStore = create<OnboardingState>()(
         // V7: attribution — self-reported acquisition channel.
         if (version < 7) {
           state.heardFrom = state.heardFrom ?? null;
+        }
+
+        // V8: web→app intent — resolved "which bike" from install referrer/clipboard.
+        if (version < 8) {
+          state.pendingIntent = state.pendingIntent ?? null;
         }
 
         if (version < 3) {

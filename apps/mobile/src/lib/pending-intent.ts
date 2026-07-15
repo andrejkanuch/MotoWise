@@ -1,0 +1,200 @@
+import { MileageUnit, MotorcycleType } from '@motovault/types';
+import { useOnboardingStore } from '../stores/onboarding.store';
+
+/**
+ * Web→app "which bike" intent — carried across the store boundary so a rider who
+ * read an article about a specific bike (e.g. "Yamaha MT-07 maintenance schedule")
+ * lands in a pre-filled onboarding instead of an empty garage. See
+ * docs/SEO-Conversion-IMPLEMENTATION-2026-07-15.md §5 (P2/P3.2).
+ *
+ * RULE #0 — this whole path is a bonus layer on top of the existing onboarding.
+ * Every function here fails open: any bad input, parse failure, or unmatched make
+ * returns null / false and leaves the normal onboarding flow completely untouched.
+ * Nothing in this module may throw.
+ */
+
+/**
+ * Master kill switch. Flip to false to disable the entire intent path instantly
+ * (readers short-circuit before any I/O, seed refuses) without touching the rest
+ * of onboarding. Readers (Android referrer / iOS clipboard) MUST check this
+ * before doing native work.
+ */
+export const INTENT_PREFILL_ENABLED = true;
+
+/**
+ * Query-string keys the web tags onto the Google Play install referrer and the
+ * iOS `mvintent://` clipboard token (PR #163, apps/web `storeAnchorProps`).
+ */
+export const INTENT_PARAM = {
+  MAKE: 'mv_make',
+  MODEL: 'mv_model',
+  SOURCE: 'utm_source',
+  CAMPAIGN: 'utm_campaign',
+  TS: 'ts',
+} as const;
+
+/** iOS clipboard token scheme — verified before a clipboard read is trusted. */
+export const INTENT_TOKEN_SCHEME = 'mvintent://';
+
+/**
+ * Max age of an iOS clipboard token. A token older than this (or improbably far
+ * in the future) is treated as a stale/unrelated paste and ignored. Referrer
+ * strings carry no `ts` and are not TTL-checked — the OS only hands them over on
+ * a genuine first install.
+ */
+export const INTENT_TOKEN_TTL_MS = 2 * 60 * 1000;
+
+/** How the intent arrived — used for analytics (`method`) and cohorting. */
+export const INTENT_METHOD = {
+  REFERRER: 'referrer',
+  CLIPBOARD: 'clipboard',
+} as const;
+export type IntentMethod = (typeof INTENT_METHOD)[keyof typeof INTENT_METHOD];
+
+export interface PendingIntent {
+  /** Make name as tagged by the web (raw casing; match via resolveMakeId). */
+  make: string;
+  /** Model name, or null when the article was make-level only. */
+  model: string | null;
+  /** utm_source that carried the intent (e.g. 'blog', 'tool'). */
+  source: string | null;
+  /** utm_campaign (e.g. 'blog_maintenance'), when present. */
+  campaign: string | null;
+}
+
+/** A make option from the app's make list (MotorcycleMakesQuery item shape). */
+export interface MakeOption {
+  makeId: number;
+  makeName: string;
+}
+
+const MAX_VALUE_LENGTH = 64;
+
+/** Trim, length-cap, and null out empties. Never throws. */
+function clean(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim().slice(0, MAX_VALUE_LENGTH);
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+/**
+ * Parse an intent token from either transport into a `PendingIntent`, or null.
+ *
+ * - Android: the Play install referrer, a plain query string
+ *   (`utm_source=blog&mv_make=Yamaha&mv_model=MT-07`). No TTL.
+ * - iOS: the clipboard token (`mvintent://?mv_make=Yamaha&...&ts=<epoch_ms>`).
+ *   The `mvintent://` prefix is required and a stale/garbage `ts` rejects it.
+ *
+ * A missing/blank make yields null — there is nothing to seed without a make.
+ * `nowMs` is injectable for deterministic tests.
+ */
+export function parseIntentToken(
+  raw: string | null | undefined,
+  nowMs: number = Date.now(),
+): PendingIntent | null {
+  try {
+    if (typeof raw !== 'string') return null;
+    const trimmed = raw.trim();
+    if (!trimmed) return null;
+
+    const isToken = trimmed.startsWith(INTENT_TOKEN_SCHEME);
+    // Strip the scheme (tokens) and any leading `?`/`/` before the query.
+    const query = (isToken ? trimmed.slice(INTENT_TOKEN_SCHEME.length) : trimmed).replace(
+      /^[/?]+/,
+      '',
+    );
+    if (!query) return null;
+
+    const params = new URLSearchParams(query);
+
+    const make = clean(params.get(INTENT_PARAM.MAKE));
+    if (!make) return null;
+
+    // Clipboard tokens must carry a fresh timestamp; referrer strings do not.
+    if (isToken) {
+      const tsRaw = params.get(INTENT_PARAM.TS);
+      const ts = tsRaw ? Number.parseInt(tsRaw, 10) : Number.NaN;
+      if (!Number.isFinite(ts)) return null;
+      // Reject stale tokens and improbable future timestamps (clock skew/garbage).
+      if (ts < nowMs - INTENT_TOKEN_TTL_MS || ts > nowMs + INTENT_TOKEN_TTL_MS) return null;
+    }
+
+    return {
+      make,
+      model: clean(params.get(INTENT_PARAM.MODEL)),
+      source: clean(params.get(INTENT_PARAM.SOURCE)),
+      campaign: clean(params.get(INTENT_PARAM.CAMPAIGN)),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Case-insensitively find a make in the app's list. Never throws. */
+function findMakeMatch(
+  makeName: string | null | undefined,
+  makes: readonly MakeOption[],
+): MakeOption | null {
+  try {
+    const target = clean(makeName)?.toLowerCase();
+    if (!target || !Array.isArray(makes)) return null;
+    return makes.find((m) => m?.makeName?.toLowerCase() === target) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Map a make NAME to its NHTSA makeId via the app's make list
+ * (case-insensitive), or null when there is no confident match.
+ */
+export function resolveMakeId(
+  makeName: string | null | undefined,
+  makes: readonly MakeOption[],
+): number | null {
+  return findMakeMatch(makeName, makes)?.makeId ?? null;
+}
+
+/** Fallback default when no profile mileage unit is available (EU-dominant). */
+const DEFAULT_MILEAGE_UNIT: MileageUnit = MileageUnit.KM;
+/** Match bike-setup's default year (`currentYear - 3`) for a make-only seed. */
+const DEFAULT_YEAR_OFFSET = 3;
+
+/**
+ * Seed the onboarding store from a resolved intent. Only seeds when the make is
+ * confidently matched against `makes`; otherwise returns false and leaves the
+ * store untouched (→ normal flow). Mirrors bike-setup's make-only partial
+ * capture (year defaulted, model optional, type STANDARD) so a valid bike is
+ * already staged even if the rider drops off before the confirmation step, and
+ * records `pendingIntent` as the signal the confirmation UI / paywall read.
+ *
+ * The model string is stored as-is: an unknown/wrong model degrades gracefully
+ * because the OEM-schedule query returns nothing and the maintenance step
+ * auto-skips — no new failure mode is introduced. Never throws.
+ */
+export function seedBikeDataFromIntent(
+  intent: PendingIntent,
+  makes: readonly MakeOption[],
+  opts?: { defaultYear?: number; mileageUnit?: MileageUnit },
+): boolean {
+  try {
+    if (!INTENT_PREFILL_ENABLED) return false;
+    const match = findMakeMatch(intent.make, makes);
+    if (!match) return false;
+
+    const store = useOnboardingStore.getState();
+    store.setBikeData({
+      year: opts?.defaultYear ?? new Date().getFullYear() - DEFAULT_YEAR_OFFSET,
+      make: match.makeName,
+      makeId: match.makeId,
+      model: intent.model ?? '',
+      type: MotorcycleType.STANDARD,
+      currentMileage: 0,
+      mileageUnit: opts?.mileageUnit ?? DEFAULT_MILEAGE_UNIT,
+    });
+    store.setPendingIntent(intent);
+    return true;
+  } catch {
+    return false;
+  }
+}
