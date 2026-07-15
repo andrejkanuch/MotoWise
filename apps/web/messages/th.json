@@ -417,7 +417,8 @@
     "publishedOn": "เผยแพร่เมื่อ",
     "backToBlog": "กลับไปบทความทั้งหมด",
     "by": "โดย",
-    "relatedArticles": "บทความที่เกี่ยวข้อง"
+    "relatedArticles": "บทความที่เกี่ยวข้อง",
+    "ctaDownloadFree": "ดาวน์โหลดฟรี"
   },
   "JsonLd": {
     "organizationName": "MotoVault",

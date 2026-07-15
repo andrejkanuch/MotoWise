@@ -417,7 +417,8 @@
     "publishedOn": "Diterbitkan pada",
     "backToBlog": "Kembali ke semua artikel",
     "by": "Oleh",
-    "relatedArticles": "Artikel Terkait"
+    "relatedArticles": "Artikel Terkait",
+    "ctaDownloadFree": "Unduh Gratis"
   },
   "JsonLd": {
     "organizationName": "MotoVault",

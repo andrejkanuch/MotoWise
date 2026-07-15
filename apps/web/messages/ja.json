@@ -571,7 +571,8 @@
     "publishedOn": "公開日",
     "backToBlog": "すべての記事に戻る",
     "by": "著者",
-    "relatedArticles": "関連記事"
+    "relatedArticles": "関連記事",
+    "ctaDownloadFree": "無料でダウンロード"
   },
   "JsonLd": {
     "organizationName": "MotoVault",

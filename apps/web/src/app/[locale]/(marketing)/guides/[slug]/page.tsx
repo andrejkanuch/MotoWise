@@ -7,6 +7,7 @@ import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { TableOfContents } from '@/components/marketing/table-of-contents';
 import { Link } from '@/i18n/navigation';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { CtaPageType } from '@/lib/cta-taxonomy';
 import { compileGuide, getGuideBySlug, getGuideSlugs } from '@/lib/guides';
 import { buildArticle, buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
 
@@ -164,7 +165,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
             Discover curated routes, track your rides, and plan multi-day trips with waypoints, GPX
             export, and community reviews.
           </p>
-          <DownloadAppButton source="guide_cta" />
+          <DownloadAppButton pageType={CtaPageType.Guide} slug={slug} />
         </div>
       </article>
     </>

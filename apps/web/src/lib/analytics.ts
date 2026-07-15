@@ -1,4 +1,10 @@
 import posthog from 'posthog-js';
+import type { CampaignParams } from '@/lib/campaign';
+import { CtaPageType, CtaPlacement, type StoreCtaContext, StorePlatform } from '@/lib/cta-taxonomy';
+
+export type { StoreCtaContext };
+// Re-export the taxonomy so existing `@/lib/analytics` imports keep working.
+export { CtaPageType, CtaPlacement, StorePlatform };
 
 // -------------------------------------------------------------------
 // Web Analytics Wrapper (PostHog)
@@ -27,7 +33,10 @@ export const WebEvent = {
   PASSWORD_RESET_REQUESTED: 'password_reset_requested',
 
   // Marketing / Conversion
-  APP_STORE_CLICK: 'app_store_click',
+  // Unified download-intent event (replaces the retired app_store_click +
+  // open_in_app_clicked). In PostHog, app_store_click is aliased to this so
+  // historical clicks still roll up. See docs/SEO-Conversion-Plan-2026-07-15.md.
+  STORE_CTA_CLICK: 'store_cta_click',
   WAITLIST_SIGNUP: 'waitlist_signup',
 
   // Pricing / Checkout
@@ -40,7 +49,6 @@ export const WebEvent = {
   BLOG_ARTICLE_READ: 'blog_article_read',
 
   // Content Interaction
-  OPEN_IN_APP_CLICKED: 'open_in_app_clicked',
   GPX_DOWNLOAD_CLICKED: 'gpx_download_clicked',
   ROUTE_SAVED_WEB: 'route_saved_web',
   SHARE_BUTTON_CLICKED: 'share_button_clicked',
@@ -99,21 +107,16 @@ export const WebEvent = {
 
 export type WebEventName = (typeof WebEvent)[keyof typeof WebEvent];
 
-/** App-store platforms (no magic strings). */
-export const StorePlatform = { Ios: 'ios', Android: 'android' } as const;
-export type StorePlatform = (typeof StorePlatform)[keyof typeof StorePlatform];
-
-/** Where a store CTA was clicked — the acquisition-funnel dimension. */
-export const StoreLocation = { Cta: 'cta', Hero: 'hero', FeatureCta: 'feature_cta' } as const;
-export type StoreLocation = (typeof StoreLocation)[keyof typeof StoreLocation];
-
 type WebEventProperties = {
-  [WebEvent.APP_STORE_CLICK]: {
+  [WebEvent.STORE_CTA_CLICK]: {
     platform: StorePlatform;
-    location?: StoreLocation;
+    page_type: CtaPageType;
+    placement: CtaPlacement;
+    slug?: string;
     utm_source?: string;
     utm_medium?: string;
     utm_campaign?: string;
+    utm_content?: string;
   };
   [WebEvent.FILTER_APPLIED]: { dimension: string; value: string; resultCount: number };
   [WebEvent.SORT_CHANGED]: { sortBy: string; direction: 'asc' | 'desc' };
@@ -156,19 +159,57 @@ export function resetUser() {
   posthog.reset();
 }
 
-// Legacy gtag-compatible helpers (now routed through PostHog)
-export function trackAppStoreClick(
+/**
+ * The single download-intent event. Every store CTA on the site funnels through
+ * here so the acquisition funnel is measured with one consistent schema
+ * (page_type × placement × slug). Also fires the consent-independent counter so
+ * the number survives the ~2–3× undercount from PostHog being opt-out-by-default.
+ */
+export function trackStoreCtaClick(
   platform: StorePlatform,
-  location?: StoreLocation,
-  campaign?: { utm_source?: string; utm_medium?: string; utm_campaign?: string },
+  ctx: StoreCtaContext,
+  campaign?: CampaignParams,
 ) {
-  trackEvent(WebEvent.APP_STORE_CLICK, {
+  const props = {
     platform,
-    ...(location ? { location } : {}),
+    page_type: ctx.pageType,
+    placement: ctx.placement,
+    ...(ctx.slug ? { slug: ctx.slug } : {}),
     ...(campaign?.utm_source ? { utm_source: campaign.utm_source } : {}),
     ...(campaign?.utm_medium ? { utm_medium: campaign.utm_medium } : {}),
     ...(campaign?.utm_campaign ? { utm_campaign: campaign.utm_campaign } : {}),
-  });
+    ...(campaign?.utm_content ? { utm_content: campaign.utm_content } : {}),
+  };
+  // send_instantly beats the page unload when the CTA navigates in the same tab.
+  if (ctx.sameTab) {
+    posthog.capture(WebEvent.STORE_CTA_CLICK, props, { send_instantly: true });
+  } else {
+    posthog.capture(WebEvent.STORE_CTA_CLICK, props);
+  }
+  pingCtaCounter({ page_type: ctx.pageType, platform, slug: ctx.slug });
+}
+
+/**
+ * Consent-independent download-intent counter. PostHog stays opted-out until the
+ * visitor accepts the cookie banner, so `store_cta_click` undercounts real intent
+ * ~2–3×. This fires a cookieless, identifier-less beacon to our own aggregate
+ * endpoint (see app/api/metrics/cta) so raw intent is measurable regardless of
+ * consent. No cookies, no stored IP, no user id — just a counter tick.
+ */
+function pingCtaCounter(payload: {
+  page_type: CtaPageType;
+  platform: StorePlatform;
+  slug?: string;
+}) {
+  if (typeof navigator === 'undefined' || typeof navigator.sendBeacon !== 'function') return;
+  try {
+    navigator.sendBeacon(
+      '/api/metrics/cta',
+      new Blob([JSON.stringify(payload)], { type: 'application/json' }),
+    );
+  } catch {
+    // best-effort; attribution is never worth surfacing an error to the visitor
+  }
 }
 
 export function trackWaitlistSignup() {

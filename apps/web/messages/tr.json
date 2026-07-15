@@ -417,7 +417,8 @@
     "publishedOn": "Yayin tarihi",
     "backToBlog": "Tum makalelere don",
     "by": "Yazan",
-    "relatedArticles": "Ilgili Makaleler"
+    "relatedArticles": "Ilgili Makaleler",
+    "ctaDownloadFree": "Ücretsiz İndir"
   },
   "JsonLd": {
     "organizationName": "MotoVault",

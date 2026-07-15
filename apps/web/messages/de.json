@@ -571,7 +571,8 @@
     "publishedOn": "Veroffentlicht am",
     "backToBlog": "Zuruck zu allen Artikeln",
     "by": "Von",
-    "relatedArticles": "Verwandte Artikel"
+    "relatedArticles": "Verwandte Artikel",
+    "ctaDownloadFree": "Kostenlos herunterladen"
   },
   "JsonLd": {
     "organizationName": "MotoVault",

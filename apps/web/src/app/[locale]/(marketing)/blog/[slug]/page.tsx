@@ -22,6 +22,7 @@ import {
 } from '@/lib/blog';
 import { stripHtmlComments } from '@/lib/blog-mdx';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { CtaPageType } from '@/lib/cta-taxonomy';
 import type { TocHeading } from '@/lib/rehype-extract-headings';
 import { rehypeExtractHeadings } from '@/lib/rehype-extract-headings';
 import {
@@ -325,7 +326,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
             value, and ride with confidence. Log every service, get reminded before the next one is
             due, and diagnose issues with AI — all in one app.
           </p>
-          <DownloadAppButton source="blog_cta" />
+          <DownloadAppButton pageType={CtaPageType.Blog} slug={slug} />
           <p className="mt-4 text-xs text-neutral-500">Free to download · iOS &amp; Android</p>
         </div>
 

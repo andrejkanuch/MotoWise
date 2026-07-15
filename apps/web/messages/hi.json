@@ -417,7 +417,8 @@
     "publishedOn": "प्रकाशित",
     "backToBlog": "सभी आर्टिकल पर वापस",
     "by": "द्वारा",
-    "relatedArticles": "संबंधित आर्टिकल"
+    "relatedArticles": "संबंधित आर्टिकल",
+    "ctaDownloadFree": "मुफ़्त डाउनलोड करें"
   },
   "JsonLd": {
     "organizationName": "MotoVault",

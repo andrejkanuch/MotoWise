@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import { ExternalLink } from '@/components/marketing/external-link';
 import { Link } from '@/i18n/navigation';
+import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 import { StoreLink } from './store-buttons';
 
 function FooterColumn({
@@ -65,7 +66,12 @@ export async function Footer() {
           </Link>
           <p className="mv-footer-brand-text">{t('brandText')}</p>
           <div className="mv-footer-stores">
-            <StoreLink platform="ios" location="cta" className="mv-footer-store">
+            <StoreLink
+              platform={StorePlatform.Ios}
+              pageType={CtaPageType.Home}
+              placement={CtaPlacement.Footer}
+              className="mv-footer-store"
+            >
               <svg
                 width="14"
                 height="14"
@@ -77,7 +83,12 @@ export async function Footer() {
               </svg>
               {t('appStore')}
             </StoreLink>
-            <StoreLink platform="android" location="cta" className="mv-footer-store">
+            <StoreLink
+              platform={StorePlatform.Android}
+              pageType={CtaPageType.Home}
+              placement={CtaPlacement.Footer}
+              className="mv-footer-store"
+            >
               <svg
                 width="14"
                 height="14"
