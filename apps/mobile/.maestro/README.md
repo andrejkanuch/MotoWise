@@ -86,4 +86,45 @@ visible text verbatim.
   `- openLink: motovault://route/…`
 
 See `.claude/skills/write-tests/E2E.md` for the full convention set. Screenshots from
-`takeScreenshot:` land in `~/.maestro/tests/<run>/`.
+`takeScreenshot:` land in `~/.maestro/tests/<run>/` under `maestro test`, but when driving
+via the Maestro **MCP** `run` tool they're written to the **cwd** (`apps/mobile/*.png`) — clean
+those up, they're not meant to be committed.
+
+## App-specific gotchas (learned from live runs)
+
+Hard-won specifics for THIS app — check these first when a flow "should work" but doesn't:
+
+- **The custom keyboard ignores `hideKeyboard`.** `react-native-keyboard-controller` powers the
+  inputs, so Maestro's `hideKeyboard` errors ("couldn't hide the keyboard"). Dismiss it by tapping
+  a **non-interactive label** (a section header like `Priority`) — `keyboardShouldPersistTaps:
+  "handled"` dismisses on taps that hit no responder.
+- **Primary/submit buttons can sit below the keyboard.** The add/edit *maintenance task* screens now
+  pin Cancel+Save above the keyboard (`KeyboardStickyView`), but other long forms still put the
+  submit button at the bottom of the scroll where the keyboard covers it. `scrollUntilVisible` the
+  button (or dismiss the keyboard) before tapping it — don't assume it's on screen.
+- **Native interstitials fire mid-flow — guard them with `optional: true`.** After sign-in iOS shows
+  **"Save Password?"** (dismiss `Not Now`). After value-moments (adding a task, completing one, etc.)
+  a StoreKit **"Enjoying MotoVault?"** rating prompt can appear (dismiss `Not Now`) — it's gated to
+  ≥2 value-moments + once per app version, so it shows up on seasoned accounts, not fresh ones.
+- **Tab-bar labels include the badge in their a11y text.** The Garage tab reads `"Garage, 1 due"`
+  (was `"1, Garage"` before the a11y fix) when a badge is present. Always match tabs with a partial
+  regex (`.*Garage.*`), never the bare word.
+- **Editorial headers split a phrase across `Text` nodes.** "New task." / "Edit task." render as two
+  elements, so a single-element regex like `.*New.*task.*` will NOT match. Assert on a single-element
+  label or button instead (e.g. `Priority`, `Save task`).
+- **Lists truncate; card actions don't need expanding.** The bike hub shows the top ~5 tasks + a
+  **"See all"**; to act on a specific task reliably, open the All Tasks screen and `scrollUntilVisible`
+  it. The Done/Edit/Delete row is always rendered on each card — no tap-to-expand needed.
+- **Disambiguate repeated per-row controls.** Every task card has its own `Edit`/`Delete`; anchor the
+  tap with `below:`/`rightOf:` (e.g. `tapOn: { text: "Edit", below: { text: "<task title>" } }`).
+- **Confirm dialogs reuse the same word as the row button.** A destructive action opens an Alert whose
+  `Delete` must be targeted distinctly from the card's `Delete` — use `rightOf: { text: "Cancel" }`.
+- **`inputText` can concatenate across fields.** With the custom keyboard, a `tapOn` that doesn't
+  actually move focus makes the next `inputText` append to the previous field (seen on sign-in:
+  email+password merged). Verify focus / `eraseText` before typing into a second field.
+- **Dev client vs preview build.** `clearState`/`clearKeychain` flows (onboarding) need a
+  standalone/preview build. To validate *selectors* quickly you can drive the Metro dev client with an
+  already-signed-in account (skip the clearState setup) — that's how the edit flow's selectors were
+  confirmed.
+- **Own your test data.** Create preconditions with distinctive titles (`E2E …`) and delete them at the
+  end — flows run against a shared account, so leftover state makes reruns flaky.
