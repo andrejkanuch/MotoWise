@@ -32,11 +32,14 @@ export function storeAnchorProps(platform: StorePlatform, ctx: StoreCtaContext) 
     ...(ctx.sameTab ? {} : { target: '_blank', rel: 'noopener noreferrer' }),
     onClick: (e: React.MouseEvent<HTMLAnchorElement>) => {
       const campaign = getCampaignParams();
-      // Android install-referrer carries the channel deterministically into the
-      // Play install. Set it at click time (campaign params are client-only, so
-      // the SSR href stays clean and hydration-stable). iOS has no equivalent.
-      if (platform === StorePlatform.Android && campaign) {
-        e.currentTarget.href = buildPlayReferrer(STORE_LINKS.googlePlay, campaign);
+      // Android install-referrer carries the channel + intent deterministically
+      // into the Play install. Set it at click time (params are client-only, so
+      // the SSR href stays clean and hydration-stable). First-touch campaign
+      // UTMs win over the CTA's default referrerParams on conflict. iOS has no
+      // equivalent (App Store strips referrers — see P2.4 clipboard/ASA path).
+      if (platform === StorePlatform.Android && (campaign || ctx.referrerParams)) {
+        const referrer = { ...ctx.referrerParams, ...campaign };
+        e.currentTarget.href = buildPlayReferrer(STORE_LINKS.googlePlay, referrer);
       }
       trackStoreCtaClick(platform, ctx, campaign ?? undefined);
     },

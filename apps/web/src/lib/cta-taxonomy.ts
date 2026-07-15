@@ -70,4 +70,10 @@ export type StoreCtaContext = {
    * `send_instantly` so the page unload doesn't drop it.
    */
   sameTab?: boolean;
+  /**
+   * Extra key/values folded into the Google Play install referrer (Android
+   * only) — e.g. `mv_make`/`mv_model` so the app can pre-seed the bike on first
+   * launch (plan P2.1). First-touch campaign UTMs take precedence on conflict.
+   */
+  referrerParams?: Record<string, string>;
 };

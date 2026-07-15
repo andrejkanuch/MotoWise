@@ -30,12 +30,15 @@ const ANGLE_HEADLINE_KEY: Record<CtaAngle, string> = {
 export function ContextualAppCta({
   angle,
   model,
+  makeModel,
   slug,
   placement = CtaPlacement.MidArticle,
 }: {
   angle: CtaAngle;
   /** Resolved bike model, or null → localized "your motorcycle" fallback. */
   model: string | null;
+  /** Structured make/model tagged into the Android Play referrer (plan P2.1). */
+  makeModel?: { make: string; model: string } | null;
   slug: string;
   placement?: CtaPlacement;
 }) {
@@ -46,6 +49,16 @@ export function ContextualAppCta({
   }, []);
 
   const bike = model ?? t('ctaModelFallback');
+
+  // Carry the article's channel + bike intent into the Android install referrer;
+  // first-touch campaign UTMs still win over these defaults (see storeAnchorProps).
+  const referrerParams: Record<string, string> = {
+    utm_source: 'blog',
+    utm_medium: 'content',
+    utm_campaign: `blog_${angle}`,
+    ...(makeModel?.make ? { mv_make: makeModel.make } : {}),
+    ...(makeModel?.model ? { mv_model: makeModel.model } : {}),
+  };
 
   return (
     <aside
@@ -72,7 +85,12 @@ export function ContextualAppCta({
           {t(ANGLE_HEADLINE_KEY[angle], { model: bike })}
         </p>
         <a
-          {...storeAnchorProps(platform, { pageType: CtaPageType.Blog, placement, slug })}
+          {...storeAnchorProps(platform, {
+            pageType: CtaPageType.Blog,
+            placement,
+            slug,
+            referrerParams,
+          })}
           className="inline-block rounded-full px-6 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
           style={{ backgroundColor: palette.signature500, color: palette.white }}
         >

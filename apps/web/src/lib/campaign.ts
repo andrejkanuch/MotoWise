@@ -68,19 +68,25 @@ export function getCampaignParams(): CampaignParams | null {
 }
 
 /**
- * Append a Google Play `referrer` param built from the campaign params. Play
+ * Append a Google Play `referrer` param built from arbitrary key/values. Play
  * surfaces this verbatim in the Install Referrer API + Play Console acquisition
- * reports, giving deterministic Android channel attribution. Returns the URL
- * unchanged when there is nothing to attribute.
+ * reports, giving deterministic Android channel attribution — and it is how blog
+ * CTAs carry make/model intent across the store boundary (`mv_make`/`mv_model`,
+ * plan P2.1). Undefined/empty values are dropped; returns the URL unchanged when
+ * there is nothing to attribute.
  */
-export function buildPlayReferrer(playUrl: string, params: CampaignParams | null): string {
-  if (!params || Object.keys(params).length === 0) return playUrl;
+export function buildPlayReferrer(
+  playUrl: string,
+  params: Record<string, string | undefined> | null,
+): string {
+  const entries = params
+    ? Object.entries(params).filter((entry): entry is [string, string] => Boolean(entry[1]))
+    : [];
+  if (entries.length === 0) return playUrl;
   // Encode each value: URLSearchParams already decoded them, so a value that
   // itself contains `&`/`=` would otherwise split into extra pairs once Play
   // hands the (once-decoded) referrer string back to the app for parsing.
-  const referrer = Object.entries(params)
-    .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-    .join('&');
+  const referrer = entries.map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&');
   const separator = playUrl.includes('?') ? '&' : '?';
   return `${playUrl}${separator}referrer=${encodeURIComponent(referrer)}`;
 }

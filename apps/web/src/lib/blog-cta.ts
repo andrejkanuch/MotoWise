@@ -100,12 +100,13 @@ const STOP_WORDS = new Set([
 ]);
 
 /**
- * Best-effort bike model from an article title, e.g.
- * "Yamaha MT-07 Maintenance Schedule (2021)" → "Yamaha MT-07". Returns null when
- * no brand leads the title (generic articles like "How much does a motorcycle
- * cost?"), so the caller can fall back to a generic "your motorcycle".
+ * Best-effort {make, model} from an article title, e.g.
+ * "Yamaha MT-07 Maintenance Schedule (2021)" → { make: 'Yamaha', model: 'MT-07' }.
+ * `model` is '' when a brand leads but no model tokens follow. Returns null when
+ * no known brand leads the title (generic articles). Powers both the CTA copy
+ * and the make/model tags carried into the Play install referrer (plan P2.1).
  */
-export function extractModel(title: string): string | null {
+export function extractMakeModel(title: string): { make: string; model: string } | null {
   const cleaned = title.replace(/\([^)]*\)/g, ' ').trim();
   const brand = BRANDS.find((b) => cleaned.toLowerCase().startsWith(b.toLowerCase()));
   if (!brand) return null;
@@ -117,7 +118,17 @@ export function extractModel(title: string): string | null {
     if (!bare || STOP_WORDS.has(bare.toLowerCase())) break;
     modelTokens.push(bare);
   }
-  const model = [brand, ...modelTokens].join(' ').trim();
-  // Guard against a runaway match (e.g. a long prose title with no stop word).
-  return model.length > 40 ? brand : model;
+  return { make: brand, model: modelTokens.join(' ') };
+}
+
+/**
+ * Human-readable bike model for CTA copy, e.g. "Yamaha MT-07". Returns null when
+ * no brand leads the title, so the caller falls back to a generic "motorcycle".
+ */
+export function extractModel(title: string): string | null {
+  const mm = extractMakeModel(title);
+  if (!mm) return null;
+  const full = [mm.make, mm.model].filter(Boolean).join(' ').trim();
+  // Guard against a runaway match (a long prose title with no stop word).
+  return full.length > 40 ? mm.make : full;
 }

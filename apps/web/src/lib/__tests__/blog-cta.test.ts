@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CtaAngle, extractModel, resolveCtaAngle } from '../blog-cta';
+import { CtaAngle, extractMakeModel, extractModel, resolveCtaAngle } from '../blog-cta';
 
 describe('resolveCtaAngle', () => {
   it('routes cost-intent articles to the expense angle regardless of type', () => {
@@ -47,5 +47,26 @@ describe('extractModel', () => {
   it('returns null when no brand leads the title', () => {
     expect(extractModel('How Much Does It Cost to Own a Motorcycle?')).toBeNull();
     expect(extractModel('Motorcycle Check Engine Light Guide')).toBeNull();
+  });
+});
+
+describe('extractMakeModel', () => {
+  it('splits make from model for the Play install referrer', () => {
+    expect(extractMakeModel('Yamaha MT-07 Maintenance Schedule')).toEqual({
+      make: 'Yamaha',
+      model: 'MT-07',
+    });
+    expect(extractMakeModel('Harley-Davidson Sportster Service Intervals')).toEqual({
+      make: 'Harley-Davidson',
+      model: 'Sportster',
+    });
+  });
+
+  it('returns an empty model when only the brand leads the title', () => {
+    expect(extractMakeModel('Honda Maintenance Guide')).toEqual({ make: 'Honda', model: '' });
+  });
+
+  it('returns null when no brand leads the title', () => {
+    expect(extractMakeModel('How Much Does a Motorcycle Cost?')).toBeNull();
   });
 });

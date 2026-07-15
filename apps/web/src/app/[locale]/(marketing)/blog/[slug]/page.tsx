@@ -20,7 +20,7 @@ import {
   getCanonicalArticleUrl,
   getRelatedArticles,
 } from '@/lib/blog';
-import { extractModel, resolveCtaAngle } from '@/lib/blog-cta';
+import { extractMakeModel, extractModel, resolveCtaAngle } from '@/lib/blog-cta';
 import { stripHtmlComments } from '@/lib/blog-mdx';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import { CtaPlacement } from '@/lib/cta-taxonomy';
@@ -175,6 +175,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
   // too few H2s fall back to a single render (the end-of-article CTA still runs).
   const ctaAngle = resolveCtaAngle(article);
   const ctaModel = extractModel(article.title);
+  const ctaMakeModel = extractMakeModel(article.title);
   const split = splitAfterNthH2(mdxSource, MID_CTA_AFTER_H2);
 
   // A single article with malformed MDX must not 500 the route. Compile defensively:
@@ -316,7 +317,12 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           {head}
           {tail && (
             <div className="not-prose">
-              <ContextualAppCta angle={ctaAngle} model={ctaModel} slug={slug} />
+              <ContextualAppCta
+                angle={ctaAngle}
+                model={ctaModel}
+                makeModel={ctaMakeModel}
+                slug={slug}
+              />
             </div>
           )}
           {tail}
@@ -379,6 +385,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           <ContextualAppCta
             angle={ctaAngle}
             model={ctaModel}
+            makeModel={ctaMakeModel}
             slug={slug}
             placement={CtaPlacement.EndArticle}
           />
