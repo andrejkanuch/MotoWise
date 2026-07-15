@@ -422,7 +422,13 @@
     "ctaMaintenanceHeadline": "Tak perlu cari-cari lagi — MotoVault otomatis melacak jadwal servis {model} dan mengingatkanmu sebelum setiap servis.",
     "ctaCostHeadline": "Catat setiap pengeluaran {model} dan lihat biaya tahunan sebenarnya.",
     "ctaGuideHeadline": "Simpan riwayat servis {model} agar lampu peringatan berikutnya jelas maksudnya.",
-    "ctaModelFallback": "motor"
+    "ctaModelFallback": "motor",
+    "relatedResourcesTitle": "Lanjutkan",
+    "relatedFeatureMaintenance": "Servis & pengingat",
+    "relatedFeatureExpenses": "Pelacak pengeluaran motor",
+    "relatedToolChecklist": "Checklist TCLOCS gratis",
+    "relatedToolCost": "Kalkulator biaya motor",
+    "relatedCompare": "Bandingkan aplikasi motor"
   },
   "JsonLd": {
     "organizationName": "MotoVault",

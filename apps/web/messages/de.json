@@ -576,7 +576,13 @@
     "ctaMaintenanceHeadline": "Kein Nachschlagen mehr — MotoVault verfolgt die Wartungsintervalle für {model} automatisch und erinnert dich rechtzeitig vor jedem Termin.",
     "ctaCostHeadline": "Erfasse jede Ausgabe für {model} und sieh deine echten Jahreskosten.",
     "ctaGuideHeadline": "Führe ein Serviceheft für {model}, damit die nächste Warnleuchte Sinn ergibt.",
-    "ctaModelFallback": "dein Motorrad"
+    "ctaModelFallback": "dein Motorrad",
+    "relatedResourcesTitle": "Weiterlesen",
+    "relatedFeatureMaintenance": "Wartung & Erinnerungen",
+    "relatedFeatureExpenses": "Motorrad-Ausgaben-Tracker",
+    "relatedToolChecklist": "Kostenlose TCLOCS-Checkliste",
+    "relatedToolCost": "Motorrad-Kostenrechner",
+    "relatedCompare": "Motorrad-Apps vergleichen"
   },
   "JsonLd": {
     "organizationName": "MotoVault",

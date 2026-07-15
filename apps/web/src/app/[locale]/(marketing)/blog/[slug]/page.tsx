@@ -10,6 +10,7 @@ import { AuthorBio } from '@/components/marketing/author-bio';
 import { AuthorByline } from '@/components/marketing/author-byline';
 import { ContextualAppCta } from '@/components/marketing/contextual-app-cta';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
+import { RelatedResources } from '@/components/marketing/related-resources';
 import { TableOfContents } from '@/components/marketing/table-of-contents';
 import { Link } from '@/i18n/navigation';
 import { getAuthor, getDefaultAuthor } from '@/lib/authors';
@@ -380,6 +381,8 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
         <div className="mt-16">
           <AuthorBio author={author} />
         </div>
+
+        <RelatedResources angle={ctaAngle} />
 
         <div className="mt-16">
           <ContextualAppCta

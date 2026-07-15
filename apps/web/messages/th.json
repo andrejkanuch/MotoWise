@@ -422,7 +422,13 @@
     "ctaMaintenanceHeadline": "ไม่ต้องคอยเปิดหาอีกต่อไป — MotoVault ติดตามรอบการเข้าศูนย์ของ {model} ให้อัตโนมัติ และเตือนคุณก่อนถึงกำหนดทุกครั้ง",
     "ctaCostHeadline": "บันทึกค่าใช้จ่ายทุกอย่างของ {model} แล้วดูต้นทุนต่อปีที่แท้จริง",
     "ctaGuideHeadline": "เก็บประวัติการซ่อมบำรุงของ {model} ไว้ เพื่อให้ไฟเตือนครั้งต่อไปเข้าใจง่ายขึ้น",
-    "ctaModelFallback": "มอเตอร์ไซค์"
+    "ctaModelFallback": "มอเตอร์ไซค์",
+    "relatedResourcesTitle": "อ่านต่อ",
+    "relatedFeatureMaintenance": "การดูแลรักษาและการแจ้งเตือน",
+    "relatedFeatureExpenses": "ตัวติดตามค่าใช้จ่ายมอเตอร์ไซค์",
+    "relatedToolChecklist": "เช็กลิสต์ TCLOCS ก่อนขี่ ฟรี",
+    "relatedToolCost": "เครื่องคำนวณค่าใช้จ่ายมอเตอร์ไซค์",
+    "relatedCompare": "เปรียบเทียบแอปมอเตอร์ไซค์"
   },
   "JsonLd": {
     "organizationName": "MotoVault",

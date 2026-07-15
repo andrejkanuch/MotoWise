@@ -576,7 +576,13 @@
     "ctaMaintenanceHeadline": "Koniec ze sprawdzaniem — MotoVault automatycznie śledzi terminy przeglądów {model} i przypomni Ci przed każdym.",
     "ctaCostHeadline": "Zapisuj wszystkie wydatki {model} i poznaj realny roczny koszt.",
     "ctaGuideHeadline": "Prowadź historię serwisową {model}, aby następna kontrolka miała sens.",
-    "ctaModelFallback": "Twojego motocykla"
+    "ctaModelFallback": "Twojego motocykla",
+    "relatedResourcesTitle": "Czytaj dalej",
+    "relatedFeatureMaintenance": "Serwis i przypomnienia",
+    "relatedFeatureExpenses": "Śledzenie wydatków na motocykl",
+    "relatedToolChecklist": "Darmowa checklista TCLOCS",
+    "relatedToolCost": "Kalkulator kosztów motocykla",
+    "relatedCompare": "Porównaj aplikacje motocyklowe"
   },
   "JsonLd": {
     "organizationName": "MotoVault",

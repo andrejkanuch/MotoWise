@@ -422,7 +422,13 @@
     "ctaMaintenanceHeadline": "अब बार-बार देखने की ज़रूरत नहीं — MotoVault {model} के सर्विस इंटरवल अपने आप ट्रैक करता है और हर बार पहले याद दिलाता है।",
     "ctaCostHeadline": "{model} का हर खर्च दर्ज करें और सालाना असली लागत देखें।",
     "ctaGuideHeadline": "{model} का सर्विस इतिहास रखें ताकि अगली वॉर्निंग लाइट समझ आए।",
-    "ctaModelFallback": "मोटरसाइकिल"
+    "ctaModelFallback": "मोटरसाइकिल",
+    "relatedResourcesTitle": "आगे पढ़ें",
+    "relatedFeatureMaintenance": "रखरखाव और रिमाइंडर",
+    "relatedFeatureExpenses": "मोटरसाइकिल खर्च ट्रैकर",
+    "relatedToolChecklist": "मुफ़्त प्री-राइड TCLOCS चेकलिस्ट",
+    "relatedToolCost": "मोटरसाइकिल लागत कैलकुलेटर",
+    "relatedCompare": "मोटरसाइकिल ऐप्स की तुलना करें"
   },
   "JsonLd": {
     "organizationName": "MotoVault",

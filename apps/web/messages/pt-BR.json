@@ -576,7 +576,13 @@
     "ctaMaintenanceHeadline": "Pare de procurar — o MotoVault acompanha automaticamente os intervalos de revisão da sua {model} e avisa você antes de cada um.",
     "ctaCostHeadline": "Registre cada gasto da sua {model} e veja o custo real por ano.",
     "ctaGuideHeadline": "Mantenha um histórico de manutenção da sua {model} para o próximo alerta fazer sentido.",
-    "ctaModelFallback": "moto"
+    "ctaModelFallback": "moto",
+    "relatedResourcesTitle": "Continue",
+    "relatedFeatureMaintenance": "Manutenção e lembretes",
+    "relatedFeatureExpenses": "Controle de gastos da moto",
+    "relatedToolChecklist": "Checklist TCLOCS grátis",
+    "relatedToolCost": "Calculadora de custos da moto",
+    "relatedCompare": "Comparar apps de moto"
   },
   "JsonLd": {
     "organizationName": "MotoVault",

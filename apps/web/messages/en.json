@@ -576,7 +576,13 @@
     "ctaMaintenanceHeadline": "Stop looking this up — MotoVault tracks your {model} service intervals automatically and reminds you before each one.",
     "ctaCostHeadline": "Log every {model} expense and see your true cost per year.",
     "ctaGuideHeadline": "Keep a service history for your {model} so the next warning light makes sense.",
-    "ctaModelFallback": "motorcycle"
+    "ctaModelFallback": "motorcycle",
+    "relatedResourcesTitle": "Keep going",
+    "relatedFeatureMaintenance": "Maintenance tracking & reminders",
+    "relatedFeatureExpenses": "Motorcycle expense tracker",
+    "relatedToolChecklist": "Free pre-ride TCLOCS checklist",
+    "relatedToolCost": "Motorcycle cost calculator",
+    "relatedCompare": "Compare motorcycle apps"
   },
   "JsonLd": {
     "organizationName": "MotoVault",

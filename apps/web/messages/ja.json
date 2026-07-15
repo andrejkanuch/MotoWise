@@ -576,7 +576,13 @@
     "ctaMaintenanceHeadline": "もう調べなくてOK — MotoVault が{model}のメンテナンス時期を自動で記録し、その都度事前にお知らせします。",
     "ctaCostHeadline": "{model}の出費をすべて記録して、1年あたりの本当のコストを把握しましょう。",
     "ctaGuideHeadline": "{model}の整備履歴を残しておけば、次の警告灯の意味もすぐ分かります。",
-    "ctaModelFallback": "バイク"
+    "ctaModelFallback": "バイク",
+    "relatedResourcesTitle": "もっと見る",
+    "relatedFeatureMaintenance": "メンテ管理とリマインダー",
+    "relatedFeatureExpenses": "バイク支出トラッカー",
+    "relatedToolChecklist": "無料の乗車前TCLOCSチェックリスト",
+    "relatedToolCost": "バイク維持費計算ツール",
+    "relatedCompare": "バイクアプリを比較"
   },
   "JsonLd": {
     "organizationName": "MotoVault",

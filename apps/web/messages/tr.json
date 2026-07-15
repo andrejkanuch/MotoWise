@@ -422,7 +422,13 @@
     "ctaMaintenanceHeadline": "Artık aramana gerek yok — MotoVault, {model} bakım aralıklarını otomatik takip eder ve her birinden önce seni uyarır.",
     "ctaCostHeadline": "Her {model} masrafını kaydet ve yıllık gerçek maliyetini gör.",
     "ctaGuideHeadline": "{model} için servis geçmişi tut ki bir sonraki uyarı ışığı anlam kazansın.",
-    "ctaModelFallback": "motosiklet"
+    "ctaModelFallback": "motosiklet",
+    "relatedResourcesTitle": "Devam et",
+    "relatedFeatureMaintenance": "Bakım ve hatırlatıcılar",
+    "relatedFeatureExpenses": "Motosiklet gider takibi",
+    "relatedToolChecklist": "Ücretsiz TCLOCS kontrol listesi",
+    "relatedToolCost": "Motosiklet maliyet hesaplayıcı",
+    "relatedCompare": "Motosiklet uygulamalarını karşılaştır"
   },
   "JsonLd": {
     "organizationName": "MotoVault",
