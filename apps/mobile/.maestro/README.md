@@ -39,8 +39,10 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   ```bash
   pnpm --filter @motovault/mobile test:e2e:edit-task
   ```
-  Authored but not yet device-verified — confirm the navigation selectors (Garage tab, bike card)
-  once on a booted build via the Maestro MCP, per the note at the top of the flow.
+  Create/edit steps + selectors were validated live on a simulator via the Maestro MCP
+  (2026-07-15); device-specific quirks (badge in the Garage tab label, custom keyboard,
+  below-fold save buttons, post-save review prompt) are handled inline. The onboarding *setup*
+  portion still assumes a preview build (`clearState`).
 
 ## One-time setup
 

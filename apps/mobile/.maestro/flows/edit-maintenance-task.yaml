@@ -3,7 +3,8 @@
 # Proves the edit path round-trips in place: create a task with a known title,
 # open it, change the title + priority, save, and assert the edited title shows
 # in the list against the SAME task — the behaviour that replaced the old
-# delete + recreate workaround (which lost history/photos).
+# delete + recreate workaround (which lost history/photos). Cleans up the task
+# it created at the end.
 #
 # Setup: composes onboarding.yaml, which signs in a pre-created user and leaves a
 # Honda in the garage (ending at Home). So this flow needs the same env the
@@ -14,13 +15,18 @@
 # baked in (see .maestro/README.md — dev-client/Metro builds are unsupported
 # because onboarding.yaml uses clearState).
 #
-# AUTHORED, NOT YET DEVICE-VERIFIED. The action labels (Add task / Save task /
-# Edit / Save changes / priority pills) are the screens' real t() defaults. The
-# navigation selectors (Garage tab label, the bike card) are derived from source,
-# not confirmed on a running screen — confirm them once via the Maestro MCP
-# (list_devices -> inspect_screen) on a booted build, then delete this note.
-# Blocked from running today by the RN 0.86/Reanimated pod-install mismatch on
-# main (react-native must be pinned back to 0.85.3 for Expo SDK 56).
+# VALIDATED 2026-07-15: the create/edit steps + selectors below were driven live
+# on a simulator via the Maestro MCP against a signed-in account and confirmed
+# working. Device-specific quirks handled inline (and worth remembering):
+#   - the Garage tab a11y text carries the badge count ("1, Garage"), so it must
+#     be matched as a partial regex, not the bare word "Garage";
+#   - the app's custom keyboard does NOT support `hideKeyboard` — dismiss it by
+#     tapping a non-interactive section label (e.g. "Priority");
+#   - the "Save task"/"Save changes" buttons sit below the keyboard/sheet fold,
+#     so scroll to them before tapping;
+#   - a native "Enjoying MotoVault?" review prompt fires after saving a task and
+#     must be dismissed.
+# The onboarding *setup* portion still assumes a preview build (clearState).
 appId: ${APP_ID}
 env:
   APP_ID: com.motovault.app
@@ -30,33 +36,64 @@ env:
 # 1. Setup — reach a signed-in Home with a bike in the garage.
 - runFlow: onboarding.yaml
 
-# 2. Open the bike hub from the Garage tab.
+# 2. Open the bike hub from the Garage tab. The tab label carries a badge count
+#    (e.g. "1, Garage"), so match it as a partial regex.
 - tapOn:
-    text: "Garage" # NativeTabs label (t('tabs.garage')) — confirm on device
+    text: ".*Garage.*"
 - tapOn:
     text: ".*Honda.*" # the bike added during onboarding setup
+- extendedWaitUntil:
+    visible: "Add task"
+    timeout: 20000
 
 # 3. Create a task with a known title (deterministic precondition for the edit).
 - tapOn: "Add task"
-- assertVisible: "Save task" # single-element button confirms the add-task screen rendered
+- assertVisible: "Priority" # single-element label confirms the add-task screen
 - inputText: ${TASK_TITLE} # title input is autoFocused on open
-- tapOn: "high" # priority pill (raw text is lowercase; capitalized via CSS)
+- tapOn: "High" # priority pill
+- tapOn:
+    text: "Priority" # non-interactive label — dismisses the custom keyboard
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Save task" # button sits below the keyboard/fold
+    direction: DOWN
 - tapOn: "Save task"
-- extendedWaitUntil:
-    visible: ${TASK_TITLE}
-    timeout: 30000
+# A native store-review prompt fires after saving a task — dismiss it.
+- tapOn:
+    text: "Not Now"
+    optional: true
 
-# 4. Open the task's action row and enter Edit.
-- tapOn: ${TASK_TITLE} # tapping the card toggles expand -> reveals Done/Edit/Delete
-- tapOn: "Edit"
+# 4. Find the task and open Edit. "See all" opens the full All Tasks list when
+#    the hub truncates to the top few; harmless no-op (optional) otherwise. The
+#    card's Done/Edit/Delete row is always visible, so anchor Edit to the title.
+- tapOn:
+    text: ".*See all.*"
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: ${TASK_TITLE}
+    direction: DOWN
+- tapOn:
+    text: "Edit"
+    below:
+      text: ${TASK_TITLE}
 
 # 5. Verify prefill, then change the title and priority.
-- assertVisible: "Save changes" # single-element button confirms the edit screen rendered
 - assertVisible: ${TASK_TITLE} # title prefilled from the cached task
-- tapOn: ${TASK_TITLE} # focus the title field
-- eraseText
+- tapOn:
+    text: ${TASK_TITLE} # focus the title field
+- eraseText:
+    charactersToErase: 40
 - inputText: ${TASK_TITLE_EDITED}
-- tapOn: "critical" # change priority too, to prove non-title edits persist
+- tapOn: "Critical" # change priority too, to prove non-title edits persist
+- tapOn:
+    text: "Priority" # dismiss the keyboard
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Save changes"
+    direction: DOWN
 - tapOn: "Save changes"
 
 # 6. Success: the edited title shows in the list — same task, edited in place.
@@ -65,3 +102,15 @@ env:
     timeout: 30000
 - assertVisible: ${TASK_TITLE_EDITED}
 - takeScreenshot: edit-maintenance-task-done
+
+# 7. Cleanup — delete the task this flow created so reruns stay deterministic.
+- tapOn:
+    text: "Delete"
+    below:
+      text: ${TASK_TITLE_EDITED}
+- tapOn:
+    text: "Delete"
+    rightOf:
+      text: "Cancel"
+- assertNotVisible:
+    text: ${TASK_TITLE_EDITED}
