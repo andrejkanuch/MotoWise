@@ -65,9 +65,12 @@ export async function POST(req: NextRequest) {
           $process_person_profile: false,
         },
       }),
+      // Best-effort counter — never let a stalled capture endpoint hold the
+      // route handler open. Abort after 2s; the beacon still returns 204.
+      signal: AbortSignal.timeout(2000),
     });
   } catch {
-    // best-effort counter — swallow network errors, never fail the beacon
+    // best-effort counter — swallow network errors + the abort, never fail the beacon
   }
 
   return noContent();
