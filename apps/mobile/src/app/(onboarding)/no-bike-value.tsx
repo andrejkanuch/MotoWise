@@ -173,7 +173,7 @@ export default function NoBikeValueScreen() {
             return (
               <Animated.View
                 key={pillar.titleKey}
-                entering={FadeInUp.delay(150 + index * 50).duration(280)}
+                entering={FadeInUp.delay(index * 50).duration(280)}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'flex-start',

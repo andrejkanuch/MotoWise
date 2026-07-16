@@ -200,7 +200,10 @@ export default function BikeSetupScreen() {
   // diverges (dismissed the intent or picked their own make / custom).
   useEffect(() => {
     if (!pendingIntent || dismissedIntent || selectedMake || isCustomMake) return;
-    if (makes.length === 0) return; // wait for the list before deciding a match
+    // Only wait while the list is genuinely loading — once the query settles
+    // (including error / empty result) we must decide, or an errored makes query
+    // would leave the intent active forever.
+    if (makesResult.isPending) return;
     const match = resolveMakeFromIntent(pendingIntent, makes);
     if (!match) {
       // Make couldn't be matched against the loaded list → the rider never gets
@@ -215,7 +218,15 @@ export default function BikeSetupScreen() {
     if (pendingIntent.model) {
       setSelectedModel({ modelId: 0, modelName: pendingIntent.model });
     }
-  }, [pendingIntent, dismissedIntent, selectedMake, isCustomMake, makes, setPendingIntent]);
+  }, [
+    pendingIntent,
+    dismissedIntent,
+    selectedMake,
+    isCustomMake,
+    makes,
+    makesResult.isPending,
+    setPendingIntent,
+  ]);
 
   // First 4 popular makes (matched to real NHTSA make ids) for the partial-capture chips.
   const quickMakes = useMemo(() => {
