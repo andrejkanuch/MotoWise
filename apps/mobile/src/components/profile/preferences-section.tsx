@@ -132,11 +132,15 @@ export function PreferencesSection({
             label={t('whatsNew.badge')}
             onPress={() => router.push('/(modals)/whats-new')}
           />
-          <ESettingsRow
-            icon={Smartphone}
-            label={t('carplay.entryLabel', { defaultValue: 'CarPlay Companion' })}
-            onPress={() => router.push('/(modals)/carplay')}
-          />
+          {/* CarPlay is an Apple-only feature — never surface the entry on Android
+              (the native module isn't linked there and the screen is a dead end). */}
+          {process.env.EXPO_OS === 'ios' ? (
+            <ESettingsRow
+              icon={Smartphone}
+              label={t('carplay.entryLabel', { defaultValue: 'CarPlay Companion' })}
+              onPress={() => router.push('/(modals)/carplay')}
+            />
+          ) : null}
           <ESettingsRow
             icon={HelpCircle}
             label={t('profile.support')}
