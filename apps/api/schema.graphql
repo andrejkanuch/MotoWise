@@ -399,6 +399,8 @@ input CreateGroupRideInput {
 }
 
 input CreateMaintenanceTaskInput {
+  completedAt: String
+  completedMileage: Int
   description: String
   dueDate: String
   intervalDays: Int
@@ -411,6 +413,7 @@ input CreateMaintenanceTaskInput {
   remind1d: Boolean
   remind7d: Boolean
   remind30d: Boolean
+  status: MaintenanceTaskStatus
   targetMileage: Int
   title: String!
 }

@@ -164,6 +164,55 @@ describe('MaintenanceTasksService', () => {
         expect.objectContaining({ priority: 'medium' }),
       );
     });
+
+    it('logs already-done work: stamps completed_at from input when status is completed', async () => {
+      mockUserClient._pushResult({ data: fakeRow });
+
+      await service.create(userId, {
+        motorcycleId,
+        title: 'Adjusted rear brake light switch',
+        status: 'completed',
+        completedAt: '2026-07-13T12:00:00.000Z',
+        completedMileage: 30861,
+      });
+
+      expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'completed',
+          completed_at: '2026-07-13T12:00:00.000Z',
+          completed_mileage: 30861,
+        }),
+      );
+    });
+
+    it('falls back to now() for completed_at when logging without an explicit date', async () => {
+      mockUserClient._pushResult({ data: fakeRow });
+
+      await service.create(userId, {
+        motorcycleId,
+        title: 'Chain lube',
+        status: 'completed',
+      });
+
+      const insertArg = mockUserClient._chain.insert.mock.calls[0][0];
+      expect(insertArg.status).toBe('completed');
+      expect(typeof insertArg.completed_at).toBe('string');
+      expect(Number.isNaN(Date.parse(insertArg.completed_at))).toBe(false);
+    });
+
+    it('does not stamp completion columns for a normal pending task', async () => {
+      mockUserClient._pushResult({ data: fakeRow });
+
+      await service.create(userId, {
+        motorcycleId,
+        title: 'Future oil change',
+        dueDate: '2026-08-01',
+      });
+
+      const insertArg = mockUserClient._chain.insert.mock.calls[0][0];
+      expect(insertArg.completed_at).toBeUndefined();
+      expect(insertArg.status).toBeUndefined();
+    });
   });
 
   describe('complete', () => {

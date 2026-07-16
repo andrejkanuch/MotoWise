@@ -437,6 +437,8 @@ export type CreateGroupRideInput = {
 };
 
 export type CreateMaintenanceTaskInput = {
+  completedAt?: InputMaybe<Scalars['String']['input']>;
+  completedMileage?: InputMaybe<Scalars['Int']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   dueDate?: InputMaybe<Scalars['String']['input']>;
   intervalDays?: InputMaybe<Scalars['Int']['input']>;
@@ -449,6 +451,7 @@ export type CreateMaintenanceTaskInput = {
   remind1d?: InputMaybe<Scalars['Boolean']['input']>;
   remind7d?: InputMaybe<Scalars['Boolean']['input']>;
   remind30d?: InputMaybe<Scalars['Boolean']['input']>;
+  status?: InputMaybe<MaintenanceTaskStatus>;
   targetMileage?: InputMaybe<Scalars['Int']['input']>;
   title: Scalars['String']['input'];
 };

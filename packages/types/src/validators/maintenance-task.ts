@@ -21,6 +21,13 @@ export const CreateMaintenanceTaskSchema = z.object({
   remind30d: z.boolean().optional(),
   remind7d: z.boolean().optional(),
   remind1d: z.boolean().optional(),
+  // Create-as-completed: lets the client log work already done (a historical
+  // record) in one call. When status is 'completed', completedAt anchors the
+  // record to the day the work happened and completedMileage is the odometer
+  // reading at that time (stored raw, in the user's display unit).
+  status: z.enum(['pending', 'in_progress', 'completed', 'skipped']).optional(),
+  completedAt: z.string().datetime().optional(),
+  completedMileage: z.number().int().positive().optional(),
 });
 export type CreateMaintenanceTask = z.infer<typeof CreateMaintenanceTaskSchema>;
 
