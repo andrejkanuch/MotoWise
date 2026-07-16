@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { CtaPageType, StorePlatform } from '@/lib/cta-taxonomy';
+import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -28,6 +28,7 @@ const MAX_SLUG_LENGTH = 200;
 
 const PAGE_TYPES = new Set<string>(Object.values(CtaPageType));
 const PLATFORMS = new Set<string>(Object.values(StorePlatform));
+const PLACEMENTS = new Set<string>(Object.values(CtaPlacement));
 
 // Lightweight per-IP fixed-window throttle so a single client can't flood the
 // PostHog relay. In-memory + per-instance (serverless), so it's a best-effort
@@ -36,15 +37,24 @@ const PLATFORMS = new Set<string>(Object.values(StorePlatform));
 // silently dropped (204, never forwarded).
 const RATE_LIMIT_MAX = 30;
 const RATE_LIMIT_WINDOW_MS = 60_000;
+// Hard entry cap so a burst of distinct IPs (all unexpired) can't grow the map
+// without bound or turn every request into a full-map scan — the pruning below
+// only reclaims EXPIRED entries, which does nothing when they're all live.
+const RATE_LIMIT_MAX_ENTRIES = 5000;
 const rateHits = new Map<string, { count: number; reset: number }>();
 
 function isRateLimited(ip: string, now: number): boolean {
   const entry = rateHits.get(ip);
   if (!entry || now >= entry.reset) {
     rateHits.set(ip, { count: 1, reset: now + RATE_LIMIT_WINDOW_MS });
-    // Opportunistic prune so the map can't grow unbounded on a long-lived instance.
-    if (rateHits.size > 5000) {
+    if (rateHits.size > RATE_LIMIT_MAX_ENTRIES) {
+      // First reclaim expired entries; if still over cap (all live), evict oldest
+      // insertion-order entries until under the cap so memory stays bounded.
       for (const [key, value] of rateHits) if (now >= value.reset) rateHits.delete(key);
+      for (const key of rateHits.keys()) {
+        if (rateHits.size <= RATE_LIMIT_MAX_ENTRIES) break;
+        rateHits.delete(key);
+      }
     }
     return false;
   }
@@ -62,7 +72,7 @@ export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
   if (isRateLimited(ip, Date.now())) return noContent();
 
-  let body: { page_type?: unknown; platform?: unknown; slug?: unknown };
+  let body: { page_type?: unknown; placement?: unknown; platform?: unknown; slug?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -74,6 +84,10 @@ export async function POST(req: NextRequest) {
   const platform =
     typeof body.platform === 'string' && PLATFORMS.has(body.platform) ? body.platform : null;
   if (!pageType || !platform) return noContent();
+  const placement =
+    typeof body.placement === 'string' && PLACEMENTS.has(body.placement)
+      ? body.placement
+      : undefined;
   const slug = typeof body.slug === 'string' ? body.slug.slice(0, MAX_SLUG_LENGTH) : undefined;
 
   try {
@@ -87,6 +101,7 @@ export async function POST(req: NextRequest) {
         properties: {
           page_type: pageType,
           platform,
+          ...(placement ? { placement } : {}),
           ...(slug ? { slug } : {}),
           $process_person_profile: false,
         },

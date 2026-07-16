@@ -83,10 +83,12 @@ export function buildPlayReferrer(
     ? Object.entries(params).filter((entry): entry is [string, string] => Boolean(entry[1]))
     : [];
   if (entries.length === 0) return playUrl;
-  // Encode each value: URLSearchParams already decoded them, so a value that
-  // itself contains `&`/`=` would otherwise split into extra pairs once Play
-  // hands the (once-decoded) referrer string back to the app for parsing.
-  const referrer = entries.map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&');
+  // Encode each key AND value: URLSearchParams already decoded them, so a key or
+  // value that itself contains `&`/`=` would otherwise split into extra pairs once
+  // Play hands the (once-decoded) referrer string back to the app for parsing.
+  const referrer = entries
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join('&');
   const separator = playUrl.includes('?') ? '&' : '?';
   return `${playUrl}${separator}referrer=${encodeURIComponent(referrer)}`;
 }

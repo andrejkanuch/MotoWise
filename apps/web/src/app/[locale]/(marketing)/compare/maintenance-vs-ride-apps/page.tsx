@@ -5,6 +5,7 @@ import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
 import { getCanonicalUrl } from '@/lib/constants';
+import { CtaPageType } from '@/lib/cta-taxonomy';
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -435,7 +436,7 @@ export default async function MaintVsRidePage({ params }: PageProps) {
       </section>
 
       {/* CTA */}
-      <FeatureCta />
+      <FeatureCta pageType={CtaPageType.Compare} />
     </>
   );
 }

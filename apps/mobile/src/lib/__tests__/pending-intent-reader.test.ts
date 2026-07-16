@@ -1,4 +1,11 @@
-// The reader imports the store (to set pendingIntent) — mirror onboarding-store.test.ts.
+import * as SecureStore from 'expo-secure-store';
+import { useOnboardingStore } from '../../stores/onboarding.store';
+import * as analytics from '../analytics';
+import { resolvePendingIntent } from '../pending-intent-reader';
+
+// jest.mock is hoisted above these imports by babel-jest, so the imports above
+// receive the mocked modules. The reader imports the store (to set pendingIntent)
+// — mirror onboarding-store.test.ts.
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
   default: {
@@ -30,20 +37,14 @@ jest.mock('../analytics', () => ({
   captureException: jest.fn(),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const SecureStore = require('expo-secure-store');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const analytics = require('../analytics');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { resolvePendingIntent } = require('../pending-intent-reader');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { useOnboardingStore } = require('../../stores/onboarding.store');
+const mockSecureStore = jest.mocked(SecureStore);
+const mockAnalytics = jest.mocked(analytics);
 
 beforeEach(() => {
   jest.clearAllMocks();
   useOnboardingStore.getState().reset();
-  SecureStore.getItemAsync.mockResolvedValue(null);
-  SecureStore.setItemAsync.mockResolvedValue(undefined);
+  mockSecureStore.getItemAsync.mockResolvedValue(null);
+  mockSecureStore.setItemAsync.mockResolvedValue(undefined);
 });
 
 // The only intent transport is the Android Play install referrer (via a native
@@ -56,22 +57,22 @@ describe('resolvePendingIntent', () => {
     await resolvePendingIntent();
 
     expect(useOnboardingStore.getState().pendingIntent).toBeNull();
-    expect(analytics.trackEvent).not.toHaveBeenCalled();
+    expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
     // One-shot flag still written so it never re-runs.
-    expect(SecureStore.setItemAsync).toHaveBeenCalledWith('pending_intent_checked', '1');
+    expect(mockSecureStore.setItemAsync).toHaveBeenCalledWith('pending_intent_checked', '1');
   });
 
   it('is a one-shot: does nothing when already checked', async () => {
-    SecureStore.getItemAsync.mockResolvedValue('1');
+    mockSecureStore.getItemAsync.mockResolvedValue('1');
 
     await resolvePendingIntent();
 
     expect(useOnboardingStore.getState().pendingIntent).toBeNull();
-    expect(SecureStore.setItemAsync).not.toHaveBeenCalled();
+    expect(mockSecureStore.setItemAsync).not.toHaveBeenCalled();
   });
 
   it('never throws', async () => {
-    SecureStore.getItemAsync.mockRejectedValue(new Error('secure store unavailable'));
+    mockSecureStore.getItemAsync.mockRejectedValue(new Error('secure store unavailable'));
     await expect(resolvePendingIntent()).resolves.toBeUndefined();
   });
 });

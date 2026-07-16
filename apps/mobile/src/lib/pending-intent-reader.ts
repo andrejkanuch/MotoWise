@@ -36,6 +36,21 @@ import {
 const INTENT_CHECKED_KEY = 'pending_intent_checked';
 
 /**
+ * Hard ceiling on the whole resolution flow. The Play Referrer native callback
+ * (and, in theory, a SecureStore call) can stall indefinitely; the paywall waits
+ * on `intentResolved`, so an unbounded read would trap the rider on a loading
+ * state. On expiry we abandon the read and fall through to the no-intent path.
+ */
+const RESOLVE_TIMEOUT_MS = 4000;
+
+/** Reject after `ms` so a stalled await can't hang the resolution flow. */
+function rejectAfter(ms: number): Promise<never> {
+  return new Promise((_resolve, reject) => {
+    setTimeout(() => reject(new Error('pending-intent resolution timed out')), ms);
+  });
+}
+
+/**
  * Shape of react-native-play-install-referrer (Android-only). Dynamically
  * required so iOS never loads it and Expo Go (no native module) degrades to a
  * no-op instead of crashing.
@@ -74,47 +89,54 @@ async function readTransport(): Promise<{ raw: string; method: IntentMethod } | 
   return null;
 }
 
+async function readAndStoreIntent(): Promise<void> {
+  if (await SecureStore.getItemAsync(INTENT_CHECKED_KEY)) return;
+
+  const transport = await readTransport();
+  // One-shot: mark checked as soon as we've read (or determined there is
+  // nothing to read). The transports cannot be re-read, so never retry.
+  await SecureStore.setItemAsync(INTENT_CHECKED_KEY, '1');
+  if (!transport) return; // organic install / no intent → normal flow
+
+  const intent = parseIntentToken(transport.raw);
+  if (!intent) return; // garbage / expired token → normal flow
+
+  // Store the raw intent. The make is resolved + the bike seeded in bike-setup
+  // (where the make list is already loaded), so no network fetch is needed here
+  // at cold start. An unknown make degrades gracefully there (normal grid).
+  useOnboardingStore.getState().setPendingIntent(intent);
+
+  // Attribution — consent-gated inside the analytics helpers, safe to call
+  // unconditionally.
+  trackEvent(AnalyticsEvent.PENDING_INTENT_RESOLVED, {
+    source: intent.source,
+    make: intent.make,
+    model: intent.model,
+    method: transport.method,
+  });
+  // Extend the first-touch install attribution with the intent (set-once so a
+  // later launch/link can never overwrite the original).
+  setUserPropertiesOnce({
+    intent_make: intent.make,
+    intent_model: intent.model,
+    intent_source: intent.source,
+  });
+  // Durable cohort tag for whole-funnel segmentation + paywall personalization.
+  registerSuperProperties({ intent_cohort: getIntentCohort(intent) });
+}
+
 export async function resolvePendingIntent(): Promise<void> {
   try {
     if (!INTENT_PREFILL_ENABLED) return;
-    if (await SecureStore.getItemAsync(INTENT_CHECKED_KEY)) return;
-
-    const transport = await readTransport();
-    // One-shot: mark checked as soon as we've read (or determined there is
-    // nothing to read). The transports cannot be re-read, so never retry.
-    await SecureStore.setItemAsync(INTENT_CHECKED_KEY, '1');
-    if (!transport) return; // organic install / no intent → normal flow
-
-    const intent = parseIntentToken(transport.raw);
-    if (!intent) return; // garbage / expired token → normal flow
-
-    // Store the raw intent. The make is resolved + the bike seeded in bike-setup
-    // (where the make list is already loaded), so no network fetch is needed here
-    // at cold start. An unknown make degrades gracefully there (normal grid).
-    useOnboardingStore.getState().setPendingIntent(intent);
-
-    // Attribution — consent-gated inside the analytics helpers, safe to call
-    // unconditionally.
-    trackEvent(AnalyticsEvent.PENDING_INTENT_RESOLVED, {
-      source: intent.source,
-      make: intent.make,
-      model: intent.model,
-      method: transport.method,
-    });
-    // Extend the first-touch install attribution with the intent (set-once so a
-    // later launch/link can never overwrite the original).
-    setUserPropertiesOnce({
-      intent_make: intent.make,
-      intent_model: intent.model,
-      intent_source: intent.source,
-    });
-    // Durable cohort tag for whole-funnel segmentation + paywall personalization.
-    registerSuperProperties({ intent_cohort: getIntentCohort(intent) });
+    // Bound the whole read: a stalled Play Referrer callback (or SecureStore
+    // call) must never hang the paywall, which waits on `intentResolved`. On
+    // timeout we abandon the read and fall through to the no-intent path.
+    await Promise.race([readAndStoreIntent(), rejectAfter(RESOLVE_TIMEOUT_MS)]);
   } catch (e) {
     captureException(e, { source: 'pending-intent-reader.resolvePendingIntent' });
   } finally {
     // Signal that resolution has settled (any path — kill-switch off, already
-    // checked, intent found, or error). The paywall waits on this so a
+    // checked, intent found, timed out, or error). The paywall waits on this so a
     // late-arriving intent can still select the maintenance placement.
     useOnboardingStore.getState().setIntentResolved(true);
   }

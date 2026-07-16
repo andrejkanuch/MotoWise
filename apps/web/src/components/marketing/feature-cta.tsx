@@ -2,7 +2,14 @@ import { getTranslations } from 'next-intl/server';
 import { CtaPageType } from '@/lib/cta-taxonomy';
 import { StoreButtons } from './store-buttons';
 
-export async function FeatureCta() {
+// `pageType` defaults to Feature (this CTA's home) but is overridable so pages
+// that reuse it — e.g. /compare — attribute their store clicks to the hosting
+// page rather than mislabeling them as `feature`.
+export async function FeatureCta({
+  pageType = CtaPageType.Feature,
+}: {
+  pageType?: CtaPageType;
+} = {}) {
   const t = await getTranslations('Cta');
   return (
     <section className="relative overflow-hidden px-6 py-24">
@@ -25,7 +32,7 @@ export async function FeatureCta() {
         </h2>
         <p className="mt-4 text-lg text-neutral-300">{t('subtitle')}</p>
         <div className="mt-8 flex justify-center">
-          <StoreButtons pageType={CtaPageType.Feature} />
+          <StoreButtons pageType={pageType} />
         </div>
       </div>
     </section>

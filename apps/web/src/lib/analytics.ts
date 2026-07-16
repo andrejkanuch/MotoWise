@@ -186,7 +186,12 @@ export function trackStoreCtaClick(
   } else {
     posthog.capture(WebEvent.STORE_CTA_CLICK, props);
   }
-  pingCtaCounter({ page_type: ctx.pageType, platform, slug: ctx.slug });
+  pingCtaCounter({
+    page_type: ctx.pageType,
+    placement: ctx.placement,
+    platform,
+    slug: ctx.slug,
+  });
 }
 
 /**
@@ -198,6 +203,7 @@ export function trackStoreCtaClick(
  */
 function pingCtaCounter(payload: {
   page_type: CtaPageType;
+  placement: CtaPlacement;
   platform: StorePlatform;
   slug?: string;
 }) {

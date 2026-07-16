@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { Bike, type LucideIcon, MapIcon, Receipt, Route, Wrench } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +9,7 @@ import { OnboardingBackButton } from '../../components/onboarding/onboarding-bac
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { OB_SCREEN } from '../../config/onboarding';
+import { OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
 import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
@@ -64,6 +65,7 @@ const VALUE_PILLARS: readonly ValuePillar[] = [
 export default function NoBikeValueScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const onBack = useOnboardingBack(OB_SCREEN.NO_BIKE_VALUE);
   const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.NO_BIKE_VALUE);
   const goNext = useOnboardingNext(OB_SCREEN.NO_BIKE_VALUE);
@@ -78,14 +80,16 @@ export default function NoBikeValueScreen() {
     goNext();
   };
 
-  // Recovery path: pop back to bike-setup so a skipper can still add a bike and
-  // unlock the full personalized flow. Forward nav always leaves bike-setup in
-  // history, so Back lands there.
+  // Recovery path: navigate straight to bike-setup so a skipper can still add a
+  // bike and unlock the full personalized flow. Using the typed route (not
+  // onBack) is deterministic — in the invested flow the loader (building-plan)
+  // sits between bike-setup and here, so a history pop could land on the loader
+  // and bounce forward again.
   const handleAddBike = () => {
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, OB_SCREEN.NO_BIKE_VALUE, {
       action: 'add_bike',
     });
-    onBack();
+    router.navigate(OB_ROUTE.BIKE_SETUP);
   };
 
   return (
@@ -104,7 +108,7 @@ export default function NoBikeValueScreen() {
       >
         {/* eyebrow */}
         <Animated.View
-          entering={FadeInUp.duration(320)}
+          entering={FadeInUp.duration(280)}
           style={{
             alignSelf: 'flex-start',
             flexDirection: 'row',
@@ -135,7 +139,7 @@ export default function NoBikeValueScreen() {
         </Animated.View>
 
         <Animated.Text
-          entering={FadeInUp.delay(70).duration(320)}
+          entering={FadeInUp.delay(70).duration(280)}
           style={{
             fontFamily: 'InstrumentSerif-Regular',
             fontSize: 34,
@@ -152,7 +156,7 @@ export default function NoBikeValueScreen() {
         </Animated.Text>
 
         <Animated.Text
-          entering={FadeInUp.delay(130).duration(320)}
+          entering={FadeInUp.delay(130).duration(280)}
           style={{
             fontSize: 14.5,
             color: ONBOARDING_COLORS.textSecondary,
@@ -169,7 +173,7 @@ export default function NoBikeValueScreen() {
             return (
               <Animated.View
                 key={pillar.titleKey}
-                entering={FadeInUp.delay(200 + index * 70).duration(360)}
+                entering={FadeInUp.delay(150 + index * 50).duration(280)}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'flex-start',
@@ -239,6 +243,8 @@ export default function NoBikeValueScreen() {
         <Pressable
           onPress={handleAddBike}
           hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('onboarding.obNoBikeAddBike')}
           style={{ marginTop: 12, alignSelf: 'center' }}
         >
           <Text style={{ fontSize: 13.5, color: ONBOARDING_COLORS.textMuted }}>

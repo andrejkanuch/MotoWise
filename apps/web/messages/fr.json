@@ -1374,7 +1374,7 @@
     "description": "Compare the best motorcycle maintenance, ride tracking, and diagnostic apps in 2026. Feature matrix, pricing, and honest reviews to help you choose the right app.",
     "heroLabel": "Comparison Guide",
     "heroTitle": "Best Motorcycle Apps in 2026",
-    "heroSubtitle": "We compared 10 popular motorcycle apps across expense tracking, maintenance, reminders, ride logging, and route planning — so you don't have to.",
+    "heroSubtitle": "Nous avons comparé 10 applications moto populaires sur le suivi des dépenses, l'entretien, les rappels, l'enregistrement des trajets et la planification d'itinéraires — pour que vous n'ayez pas à le faire.",
     "updatedAt": "Last updated: March 2026",
     "methodology": "Methodology: Features verified from official app stores, websites, and documentation. Pricing accurate as of March 2026.",
     "matrixTitle": "Feature Comparison Matrix",
@@ -1495,7 +1495,7 @@
     "verdictTitle": "The Verdict",
     "verdictSubtitle": "Which app should you choose?",
     "verdict1Title": "Want one app for everything?",
-    "verdict1": "MotoVault is the only app that combines expense tracking, maintenance, reminders, ride logging, and trip planning in one place. If you're tired of juggling a costs spreadsheet, a service log, and a separate route planner, this is it.",
+    "verdict1": "MotoVault est la seule application qui réunit le suivi des dépenses, l'entretien, les rappels, l'enregistrement des trajets et la planification de voyages au même endroit. Si vous en avez assez de jongler entre un tableur de coûts, un carnet d'entretien et un planificateur d'itinéraires distinct, c'est l'application qu'il vous faut.",
     "verdict2Title": "Focused on curvy-road turn-by-turn?",
     "verdict2": "MotoVault handles multi-day trip planning with typed waypoints and rider RSVPs, so for most tours it's all you need. If bend-weighted curvy-road navigation and live turn-by-turn are your headline feature, pair MotoVault with REVER or Calimoto.",
     "verdict3Title": "Just need a service log?",
@@ -1524,8 +1524,8 @@
         "answer": "MotoVault and RideLog both offer comprehensive expense tracking with category breakdowns and spending analytics. MotoVault adds an expense dashboard with cost-per-mile calculations and yearly trends."
       }
     },
-    "verdictCtaTitle": "Get the all-in-one motorcycle app — free.",
-    "compareInboundLink": "See how MotoVault compares to 10 other motorcycle apps"
+    "verdictCtaTitle": "Obtenez l'application moto tout-en-un — gratuitement.",
+    "compareInboundLink": "Découvrez comment MotoVault se compare à 10 autres applications moto"
   },
   "CookieBanner": {
     "stamp": "Bandeau cookie obligatoire",

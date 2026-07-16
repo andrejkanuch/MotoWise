@@ -2,7 +2,7 @@
 
 **For:** the next Claude session (fresh context) executing the SEO→paying-user conversion work.
 **Created:** 2026-07-15. **Author:** prior session (5-agent investigation + live data pull).
-**Status:** planning complete, nothing implemented yet. This doc is the single entry point.
+**Status:** ⚠️ Historical pre-implementation handoff (2026-07-15). Much of this has since shipped — the web CTA plumbing (`store_cta_click`, `/api/metrics/cta`, `trackStoreCtaClick`), the mobile web→app intent carry (P2/P3), and off-market noindex all landed in the `feat/web-cta-plumbing` PR. Treat the phase descriptions below as the original plan, not the current state; grep the code before assuming anything is unbuilt.
 
 ---
 
@@ -52,7 +52,7 @@ All four sources are wired and were used on 2026-07-15. Re-pull to establish bef
 
 **App Store Connect** (`asc` CLI, v2.8.2, `/opt/homebrew/bin/asc`): app `6760291360`.
 - API-key profile "MotoVault" works for the Reports API. An `ONGOING` analytics request (`f25db9b3-06e1-4442-a33b-98cf84224602`) was created 2026-07-15 — by now its instances should exist: `ASC_TIMEOUT=90s asc analytics requests --app 6760291360 --pretty`, then `view`/`download` for the **App Store Discovery & Engagement** report (has the Source Type / Web Referrer dimension). 
-- `asc web analytics {overview,sources,cohorts,metrics}` needs an interactive web session: `asc web auth login --apple-id "kanuchandrej@gmail.com"` (password + 2FA; USER must run it). Team `127745909`. Session caches after login.
+- `asc web analytics {overview,sources,cohorts,metrics}` needs an interactive web session: `asc web auth login --apple-id "$ASC_APPLE_ID"` (password + 2FA; USER must run it, substituting the account Apple ID). Team `127745909`. Session caches after login.
 
 **Meta Ads:** NOT connected in-session. Campaign "MotoVault iOS — US Launch — June 2026" (`6995481325544`) ran May18–Jun4 and caused the prior-month iOS download bump. To pull spend/CPI, ask the user to connect a Meta Ads MCP or provide Ads Manager numbers.
 
@@ -108,7 +108,7 @@ Blog body = MDX-as-string from Supabase (`blog_posts`/`blog_post_translations`, 
   - Injection: in `page.tsx`, split `mdxSource` on `\n## ` boundaries, `compileMDX` head+tail, render `{head}<ContextualAppCta/>{tail}`; fallback to single render if < N headings. Also register `<AppCta>` in the `mdxComponents` map for future authored articles.
 - AC: renders as real SSR DOM (not JS-only), after ~2nd H2, on maintenance/diagnostic cluster; excluded from JSON-LD; copy localized; screenshot loads.
 - V: `store_cta_click` with `page_type=blog`, `placement=mid_article`, `slug` present, appears from `/blog/*-maintenance-schedule` pages within days of ISR rebuild.
-- Zero-deploy head start: add authored CTA links directly in `body_raw` for the top 5 slugs (yamaha-mt-r-series, honda-cbr-cb, bmw-gs-r, harley-davidson, kawasaki-ninja-z, + motorcycle-check-engine-light-guide) while the component ships.
+- Zero-deploy head start: add authored CTA links directly in `body_raw` for the top 5 model slugs (yamaha-mt-r-series, honda-cbr-cb, bmw-gs-r, harley-davidson, kawasaki-ninja-z) plus the motorcycle-check-engine-light-guide — 6 pages total — while the component ships.
 
 **P1.2 [HIGH] — Sticky bottom app bar** (Android + desktop only; skip iOS — native Smart App Banner already ships via `apple-itunes-app` meta in web `layout.tsx`). New `components/marketing/sticky-app-bar.tsx`, thin/dismissible (`sessionStorage`), palette + `t()`, shared anchor. AC: non-obscuring, dismissible, only renders when `detectPlatform()!=='ios'`. (SEO safe-harbor.)
 

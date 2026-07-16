@@ -698,7 +698,7 @@ export default async function ComparePage({ params }: PageProps) {
       </section>
 
       {/* CTA */}
-      <FeatureCta />
+      <FeatureCta pageType={CtaPageType.Compare} />
     </>
   );
 }

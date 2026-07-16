@@ -200,13 +200,22 @@ export default function BikeSetupScreen() {
   // diverges (dismissed the intent or picked their own make / custom).
   useEffect(() => {
     if (!pendingIntent || dismissedIntent || selectedMake || isCustomMake) return;
+    if (makes.length === 0) return; // wait for the list before deciding a match
     const match = resolveMakeFromIntent(pendingIntent, makes);
-    if (!match) return;
+    if (!match) {
+      // Make couldn't be matched against the loaded list → the rider never gets
+      // the "Is this your ride?" confirmation and picks their own bike. Invalidate
+      // the intent so downstream cohort logic (maintenance auto-import, paywall
+      // placement) never fires for a bike they didn't actually confirm.
+      setPendingIntent(null);
+      setDismissedIntent(true);
+      return;
+    }
     setSelectedMake({ makeId: match.makeId, makeName: match.makeName });
     if (pendingIntent.model) {
       setSelectedModel({ modelId: 0, modelName: pendingIntent.model });
     }
-  }, [pendingIntent, dismissedIntent, selectedMake, isCustomMake, makes]);
+  }, [pendingIntent, dismissedIntent, selectedMake, isCustomMake, makes, setPendingIntent]);
 
   // First 4 popular makes (matched to real NHTSA make ids) for the partial-capture chips.
   const quickMakes = useMemo(() => {
@@ -642,7 +651,7 @@ export default function BikeSetupScreen() {
                   <Pressable
                     onPress={handleSkip}
                     accessibilityRole="button"
-                    accessibilityLabel="Skip bike setup"
+                    accessibilityLabel={t('onboarding.v2BikeSetupSkip')}
                     style={{ alignSelf: 'flex-start', marginTop: 12, paddingVertical: 4 }}
                   >
                     <Text
@@ -677,7 +686,11 @@ export default function BikeSetupScreen() {
                   }
                 }}
                 accessibilityRole="button"
-                accessibilityLabel={showMakeDetails ? 'Skip bike setup' : 'Not sure of the details'}
+                accessibilityLabel={
+                  showMakeDetails
+                    ? t('onboarding.v2BikeSetupSkip')
+                    : t('onboarding.v2BikeSetupNotSure' as never)
+                }
                 style={{ alignSelf: 'center', marginTop: 14, padding: 8 }}
               >
                 <Text
@@ -735,7 +748,7 @@ function IntentConfirmCard({
 }) {
   const bikeLabel = modelName ? `${makeName} ${modelName}` : makeName;
   return (
-    <Animated.View entering={FadeInDown.duration(300)} style={{ gap: 20 }}>
+    <Animated.View entering={FadeInDown.duration(280)} style={{ gap: 20 }}>
       <View
         style={{
           flexDirection: 'row',
