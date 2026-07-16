@@ -1136,7 +1136,15 @@
     "taskSuffix": "งาน",
     "km": "km",
     "recordPrefix": "บันทึก",
-    "maintenanceSuffix": "การบำรุงรักษา"
+    "maintenanceSuffix": "การบำรุงรักษา",
+    "modePlan": "วางแผน",
+    "modeLog": "บันทึกงานที่ทำ",
+    "logPrefix": "บันทึก",
+    "logSuffix": "งาน",
+    "dateDone": "วันที่ทำเสร็จ",
+    "logWork": "บันทึก",
+    "workLogged": "บันทึกแล้ว!",
+    "logSection": "บันทึก"
   },
   "paywall": {
     "title": "ประสบการณ์ MotoVault ของคุณพร้อมแล้ว",

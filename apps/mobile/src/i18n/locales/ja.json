@@ -1136,7 +1136,15 @@
     "descriptionPlaceholder": "何をする必要がありますか？",
     "notesPlaceholder": "メモを追加...",
     "taskAdded": "タスクを追加しました！",
-    "saveTask": "タスクを保存"
+    "saveTask": "タスクを保存",
+    "modePlan": "予定",
+    "modeLog": "作業を記録",
+    "logPrefix": "完了した",
+    "logSuffix": "作業。",
+    "dateDone": "完了日",
+    "logWork": "記録する",
+    "workLogged": "記録しました！",
+    "logSection": "記録"
   },
   "paywall": {
     "title": "MotoVault体験の準備ができました",

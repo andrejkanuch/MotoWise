@@ -1,19 +1,28 @@
 import { palette } from '@motovault/design-system';
+import type { MeasurementSystem } from '@motovault/types';
 import { memo, useMemo } from 'react';
 import { Pressable, Text, useWindowDimensions, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
+import {
+  elevationUnitLabel,
+  formatElevationValue,
+  formatSpeedValue,
+  speedUnitLabel,
+} from '../../utils/ride-formatters';
 
 interface HudSparklineProps {
   data: number[];
   mode: 'altitude' | 'speed';
   isNightMode: boolean;
+  /** Drives the mph/km-h and ft/m labels from the user's preference. */
+  system: MeasurementSystem;
   onToggleMode?: () => void;
 }
 
 const CONTAINER_HEIGHT = 48;
 const BORDER_RADIUS = 12;
 
-function HudSparklineInner({ data, mode, isNightMode, onToggleMode }: HudSparklineProps) {
+function HudSparklineInner({ data, mode, isNightMode, system, onToggleMode }: HudSparklineProps) {
   const { width: screenWidth } = useWindowDimensions();
   const containerWidth = screenWidth - 40;
 
@@ -26,8 +35,13 @@ function HudSparklineInner({ data, mode, isNightMode, onToggleMode }: HudSparkli
   const label = mode === 'altitude' ? 'ALT' : 'SPD';
 
   const lastValue = data.length > 0 ? data[data.length - 1] : 0;
+  // `data` is m/s (speed) or metres (altitude); convert the label to the
+  // user's unit. The plotted path uses relative scaling, so only the label
+  // needs unit awareness.
   const formattedValue =
-    mode === 'altitude' ? `${Math.round(lastValue)} m` : `${Math.round(lastValue * 3.6)} km/h`;
+    mode === 'altitude'
+      ? `${formatElevationValue(lastValue, system)} ${elevationUnitLabel(system)}`
+      : `${formatSpeedValue(lastValue, system)} ${speedUnitLabel(system)}`;
 
   const { linePath, areaPath } = useMemo(() => {
     if (data.length < 2) return { linePath: '', areaPath: '' };

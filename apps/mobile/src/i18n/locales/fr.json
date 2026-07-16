@@ -1137,7 +1137,15 @@
     "descriptionPlaceholder": "Que faut-il faire ?",
     "notesPlaceholder": "Ajouter des notes...",
     "taskAdded": "Tâche ajoutée !",
-    "saveTask": "Enregistrer la tâche"
+    "saveTask": "Enregistrer la tâche",
+    "modePlan": "Planifier",
+    "modeLog": "Enregistrer un travail",
+    "logPrefix": "Travail",
+    "logSuffix": "effectué.",
+    "dateDone": "Réalisé le",
+    "logWork": "Enregistrer",
+    "workLogged": "Enregistré !",
+    "logSection": "Enregistrement"
   },
   "paywall": {
     "title": "Ton expérience MotoVault est prête",
