@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { CtaPageType } from '@/lib/cta-taxonomy';
 import { StoreButtons } from './store-buttons';
 
 export async function FeatureCta() {
@@ -24,7 +25,7 @@ export async function FeatureCta() {
         </h2>
         <p className="mt-4 text-lg text-neutral-300">{t('subtitle')}</p>
         <div className="mt-8 flex justify-center">
-          <StoreButtons location="feature_cta" />
+          <StoreButtons pageType={CtaPageType.Feature} />
         </div>
       </div>
     </section>

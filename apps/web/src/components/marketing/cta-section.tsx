@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 import { StoreLink } from './store-buttons';
 
 export async function CtaSection() {
@@ -96,8 +97,9 @@ export async function CtaSection() {
           }}
         >
           <StoreLink
-            platform="ios"
-            location="cta"
+            platform={StorePlatform.Ios}
+            pageType={CtaPageType.Home}
+            placement={CtaPlacement.Inline}
             className="mv-btn mv-btn-primary"
             style={{
               position: 'relative',
@@ -129,8 +131,9 @@ export async function CtaSection() {
             <span style={{ position: 'relative', zIndex: 1 }}>{t('appStore')}</span>
           </StoreLink>
           <StoreLink
-            platform="android"
-            location="cta"
+            platform={StorePlatform.Android}
+            pageType={CtaPageType.Home}
+            placement={CtaPlacement.Inline}
             className="mv-btn mv-btn-ghost"
             style={{
               display: 'inline-flex',

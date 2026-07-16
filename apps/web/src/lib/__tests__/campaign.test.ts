@@ -37,4 +37,15 @@ describe('buildPlayReferrer', () => {
     const result = buildPlayReferrer(playUrl, { utm_source: 'tiktok' });
     expect(result).toBe(`${playUrl}&referrer=utm_source%3Dtiktok`);
   });
+
+  it('carries arbitrary keys (make/model intent) and drops undefined values', () => {
+    const result = buildPlayReferrer(playUrl, {
+      utm_source: 'blog',
+      mv_make: 'Yamaha',
+      mv_model: 'MT-07',
+      utm_content: undefined,
+    });
+    const referrer = new URL(result).searchParams.get('referrer');
+    expect(referrer).toBe('utm_source=blog&mv_make=Yamaha&mv_model=MT-07');
+  });
 });

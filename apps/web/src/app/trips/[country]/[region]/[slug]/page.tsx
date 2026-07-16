@@ -19,6 +19,7 @@ import {
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { gqlServerFetcher, isDefinitiveGraphQLError } from '@/lib/graphql-server';
 import { relativeTrip } from '@/lib/seo/canonical';
+import { isTargetMarket } from '@/lib/seo/market-indexing';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
 import { findBareSlugRedirect, findLegacySlugAlias } from '@/lib/trips/bare-slug-redirect';
 import { selectSiblingRoutes, siblingsAreRegionScoped } from '@/lib/trips/sibling-routes';
@@ -102,6 +103,9 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   return {
     title,
     description,
+    // Off-market geos (India etc.) are noindexed but still followed, so link
+    // equity flows to on-market pages without polluting the index (P4.1).
+    ...(isTargetMarket(countryCode) ? {} : { robots: { index: false, follow: true } }),
     openGraph: {
       title,
       description,

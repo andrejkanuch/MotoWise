@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
+import { cache } from 'react';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
+import { isTargetMarket } from '@/lib/seo/market-indexing';
 import '@/components/trip-detail/trip-detail.css';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
@@ -64,7 +67,8 @@ interface PageParams {
   params: Promise<{ country: string }>;
 }
 
-async function lookupTrip(id: string): Promise<TripData | null> {
+// cache() dedupes the generateMetadata + page-body lookups into one request.
+const lookupTrip = cache(async (id: string): Promise<TripData | null> => {
   // Try discover trips — if it has a slug, we redirect
   try {
     const res = await fetch(API_URL, {
@@ -98,6 +102,20 @@ async function lookupTrip(id: string): Promise<TripData | null> {
   }
 
   return null;
+});
+
+export async function generateMetadata({ params }: PageParams): Promise<Metadata> {
+  const { country: id } = await params;
+  if (!UUID_RE.test(id)) return {};
+  const trip = await lookupTrip(id);
+  // Slugged trips redirect to the canonical /trips/{country}/{region}/{slug}
+  // page, which owns indexing. Only sluglass by-id trips render here — noindex
+  // off-market geos (India etc.) so they never enter the index (mirrors the
+  // canonical page); follow links so equity still flows.
+  if (trip && !isTargetMarket(trip.countryCode)) {
+    return { robots: { index: false, follow: true } };
+  }
+  return {};
 }
 
 // --- Helpers ---
