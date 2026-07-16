@@ -1155,7 +1155,15 @@
     "taskSuffix": "टास्क।",
     "km": "km",
     "recordPrefix": "रिकॉर्ड करें",
-    "maintenanceSuffix": "मेंटेनेंस।"
+    "maintenanceSuffix": "मेंटेनेंस।",
+    "modePlan": "प्लान करें",
+    "modeLog": "किया गया काम लॉग करें",
+    "logPrefix": "पूरा",
+    "logSuffix": "काम।",
+    "dateDone": "पूरा होने की तारीख",
+    "logWork": "लॉग करें",
+    "workLogged": "लॉग किया गया!",
+    "logSection": "रिकॉर्ड"
   },
   "paywall": {
     "title": "आपका MotoVault अनुभव तैयार है",

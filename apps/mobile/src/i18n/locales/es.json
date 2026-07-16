@@ -1156,7 +1156,15 @@
     "taskSuffix": "tarea.",
     "km": "km",
     "recordPrefix": "Registrar",
-    "maintenanceSuffix": "mantenimiento."
+    "maintenanceSuffix": "mantenimiento.",
+    "modePlan": "Planificar",
+    "modeLog": "Registrar trabajo",
+    "logPrefix": "Trabajo",
+    "logSuffix": "realizado.",
+    "dateDone": "Completado el",
+    "logWork": "Registrar",
+    "workLogged": "¡Registrado!",
+    "logSection": "Registro"
   },
   "paywall": {
     "title": "Tu experiencia MotoVault esta lista",

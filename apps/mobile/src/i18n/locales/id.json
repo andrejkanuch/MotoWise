@@ -1155,7 +1155,15 @@
     "taskSuffix": "baru.",
     "km": "km",
     "recordPrefix": "Catat",
-    "maintenanceSuffix": "perawatan."
+    "maintenanceSuffix": "perawatan.",
+    "modePlan": "Rencanakan",
+    "modeLog": "Catat pekerjaan",
+    "logPrefix": "Pekerjaan",
+    "logSuffix": "selesai.",
+    "dateDone": "Tanggal selesai",
+    "logWork": "Catat",
+    "workLogged": "Tercatat!",
+    "logSection": "Catatan"
   },
   "paywall": {
     "title": "Pengalaman MotoVault-mu sudah siap",

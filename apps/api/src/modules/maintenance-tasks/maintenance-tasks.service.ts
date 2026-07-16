@@ -107,11 +107,27 @@ export class MaintenanceTasksService {
       remind30d?: boolean;
       remind7d?: boolean;
       remind1d?: boolean;
+      // Create-as-completed: log work already done in one call.
+      status?: string;
+      completedAt?: string;
+      completedMileage?: number;
     },
   ): Promise<MaintenanceTask> {
     this.logger.log(
       `create: userId=${userId}, title=${input.title}, motorcycleId=${input.motorcycleId}`,
     );
+    // When the client logs already-completed work, stamp the completion columns
+    // so the record lands in history (not as a pending/overdue task). completedAt
+    // falls back to now() when the caller omits it.
+    const isCompleted = input.status === 'completed';
+    // Defense-in-depth beyond the Zod refinement: never persist a future
+    // completion timestamp even if validation is bypassed — clamp to now.
+    const now = new Date();
+    const providedCompletedAt = input.completedAt ? new Date(input.completedAt) : null;
+    const completedAtIso =
+      providedCompletedAt && providedCompletedAt <= now
+        ? providedCompletedAt.toISOString()
+        : now.toISOString();
     const { data, error } = await this.supabase
       .from('maintenance_tasks')
       .insert({
@@ -131,6 +147,11 @@ export class MaintenanceTasksService {
         ...(input.remind30d !== undefined && { remind_30d: input.remind30d }),
         ...(input.remind7d !== undefined && { remind_7d: input.remind7d }),
         ...(input.remind1d !== undefined && { remind_1d: input.remind1d }),
+        ...(input.status !== undefined && { status: input.status }),
+        ...(isCompleted && {
+          completed_at: completedAtIso,
+          completed_mileage: input.completedMileage ?? null,
+        }),
       })
       .select()
       .single();

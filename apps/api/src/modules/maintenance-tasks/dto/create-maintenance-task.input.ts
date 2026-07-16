@@ -1,5 +1,8 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
-import { GqlMaintenancePriority } from '../../../common/enums/graphql-enums';
+import {
+  GqlMaintenancePriority,
+  GqlMaintenanceTaskStatus,
+} from '../../../common/enums/graphql-enums';
 
 @InputType()
 export class CreateMaintenanceTaskInput {
@@ -45,4 +48,15 @@ export class CreateMaintenanceTaskInput {
 
   @Field({ nullable: true })
   remind1d?: boolean;
+
+  // Create-as-completed: log work already done in a single call. When status
+  // is 'completed', completedAt/completedMileage record when/at-what-odometer.
+  @Field(() => GqlMaintenanceTaskStatus, { nullable: true })
+  status?: string;
+
+  @Field({ nullable: true })
+  completedAt?: string;
+
+  @Field(() => Int, { nullable: true })
+  completedMileage?: number;
 }

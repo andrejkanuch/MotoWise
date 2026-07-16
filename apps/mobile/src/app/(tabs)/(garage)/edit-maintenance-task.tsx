@@ -1,5 +1,5 @@
 import DateTimePicker from '@expo/ui/community/datetime-picker';
-import { palette } from '@motovault/design-system';
+import { palette, withAlpha } from '@motovault/design-system';
 import {
   type MaintenancePriority,
   MaintenanceTasksByMotorcycleDocument,
@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { cancelTaskNotification, scheduleMaintenanceReminder } from '../../../lib/notifications';
@@ -39,6 +40,7 @@ export default function EditMaintenanceTaskScreen() {
   }>();
   const { t: theme, isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
+  const mileageUnit = useMileageUnit();
 
   // Prefill from the already-fetched task list (warm cache): the rider always
   // reaches Edit from a list that has loaded this task. Mirrors complete-task.
@@ -219,7 +221,7 @@ export default function EditMaintenanceTaskScreen() {
               borderRadius: 14,
               borderCurve: 'continuous',
               padding: 16,
-              boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+              boxShadow: isDark ? 'none' : `0 1px 3px ${withAlpha(palette.black, 0.06)}`,
             }}
           >
             <TextInput
@@ -272,7 +274,7 @@ export default function EditMaintenanceTaskScreen() {
                     borderCurve: 'continuous',
                     alignItems: 'center',
                     backgroundColor: selected
-                      ? `${meta.color}18`
+                      ? withAlpha(meta.color, 0.094)
                       : isDark
                         ? palette.neutral800
                         : palette.white,
@@ -282,7 +284,11 @@ export default function EditMaintenanceTaskScreen() {
                       : isDark
                         ? palette.neutral700
                         : palette.neutral200,
-                    boxShadow: selected ? 'none' : isDark ? 'none' : '0 1px 2px rgba(0,0,0,0.04)',
+                    boxShadow: selected
+                      ? 'none'
+                      : isDark
+                        ? 'none'
+                        : `0 1px 2px ${withAlpha(palette.black, 0.04)}`,
                   }}
                 >
                   <View
@@ -335,7 +341,7 @@ export default function EditMaintenanceTaskScreen() {
               borderRadius: 14,
               borderCurve: 'continuous',
               overflow: 'hidden',
-              boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+              boxShadow: isDark ? 'none' : `0 1px 3px ${withAlpha(palette.black, 0.06)}`,
             }}
           >
             {/* Due Date row */}
@@ -398,7 +404,7 @@ export default function EditMaintenanceTaskScreen() {
               <View
                 style={{
                   borderTopWidth: 0.5,
-                  borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                  borderTopColor: isDark ? palette.dividerDark : palette.dividerLight,
                   paddingHorizontal: 8,
                 }}
               >
@@ -453,7 +459,7 @@ export default function EditMaintenanceTaskScreen() {
             <View
               style={{
                 height: 0.5,
-                backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                backgroundColor: isDark ? palette.dividerDark : palette.dividerLight,
                 marginLeft: 60,
               }}
             />
@@ -507,9 +513,7 @@ export default function EditMaintenanceTaskScreen() {
                 }}
               />
               {targetMileage ? (
-                <Text style={{ fontSize: 13, color: palette.neutral400 }}>
-                  {t('maintenance.km', { defaultValue: 'km' })}
-                </Text>
+                <Text style={{ fontSize: 13, color: palette.neutral400 }}>{mileageUnit}</Text>
               ) : null}
             </View>
           </View>
@@ -536,7 +540,7 @@ export default function EditMaintenanceTaskScreen() {
               borderRadius: 14,
               borderCurve: 'continuous',
               overflow: 'hidden',
-              boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+              boxShadow: isDark ? 'none' : `0 1px 3px ${withAlpha(palette.black, 0.06)}`,
             }}
           >
             <TextInput
@@ -561,7 +565,7 @@ export default function EditMaintenanceTaskScreen() {
             <View
               style={{
                 height: 0.5,
-                backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                backgroundColor: isDark ? palette.dividerDark : palette.dividerLight,
                 marginLeft: 16,
               }}
             />
@@ -601,7 +605,7 @@ export default function EditMaintenanceTaskScreen() {
             paddingBottom: 16,
             backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
             borderTopWidth: 0.5,
-            borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+            borderTopColor: isDark ? palette.dividerDark : palette.dividerLight,
           }}
         >
           <Pressable

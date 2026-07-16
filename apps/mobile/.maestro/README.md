@@ -47,6 +47,12 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   `test:e2e:add-expense`.
 - **`flows/complete-maintenance-task.yaml`** — create a task then mark it Done (odometer + cost).
   **Validated on-device 2026-07-15.** `test:e2e:complete-task`.
+- **`flows/log-past-work.yaml`** — the "log done work" journey (PR #164). Sets Imperial in Profile,
+  asserts the maintenance odometer suffix reads **"mi"** (unit-preference carry-over), uses the
+  **More (⋯) → "Log past work"** entry point to open the Add-task modal in log mode, asserts the
+  log-mode shape (Odometer / Date completed / "Log it", Priority hidden), logs a completed record,
+  confirms it lands under History, and cleans up. **Authored from source 2026-07-16, pending
+  on-device validation.** `test:e2e:log-past-work`.
 - **`flows/add-bike.yaml`** — add a second motorcycle. **Requires a PRO account** (free tier caps at
   1 bike and onboarding already adds a Honda → paywall). Authored from source; validate on a Pro
   account. `test:e2e:add-bike`.

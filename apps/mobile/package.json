@@ -16,6 +16,7 @@
     "test:e2e:add-expense": "E2E_FLOW=add-expense.yaml E2E_EMAIL_PREFIX=e2e-add-expense sh scripts/run-onboarding-e2e.sh",
     "test:e2e:delete-expense": "E2E_FLOW=delete-expense.yaml E2E_EMAIL_PREFIX=e2e-delete-expense sh scripts/run-onboarding-e2e.sh",
     "test:e2e:complete-task": "E2E_FLOW=complete-maintenance-task.yaml E2E_EMAIL_PREFIX=e2e-complete-task sh scripts/run-onboarding-e2e.sh",
+    "test:e2e:log-past-work": "E2E_FLOW=log-past-work.yaml E2E_EMAIL_PREFIX=e2e-log-past-work sh scripts/run-onboarding-e2e.sh",
     "test:e2e:log-ride": "E2E_FLOW=log-ride.yaml E2E_EMAIL_PREFIX=e2e-log-ride sh scripts/run-onboarding-e2e.sh",
     "typecheck": "tsc --noEmit",
     "i18n:status": "npx i18next-cli status --config ./i18next-toolkit.config.mjs",

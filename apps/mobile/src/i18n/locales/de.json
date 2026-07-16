@@ -1155,7 +1155,15 @@
     "descriptionPlaceholder": "Was muss erledigt werden?",
     "notesPlaceholder": "Notizen hinzufügen...",
     "taskAdded": "Aufgabe hinzugefügt!",
-    "saveTask": "Aufgabe speichern"
+    "saveTask": "Aufgabe speichern",
+    "modePlan": "Planen",
+    "modeLog": "Erledigtes erfassen",
+    "logPrefix": "Erledigte",
+    "logSuffix": "Arbeit.",
+    "dateDone": "Erledigt am",
+    "logWork": "Erfassen",
+    "workLogged": "Erfasst!",
+    "logSection": "Protokoll"
   },
   "paywall": {
     "title": "Dein MotoVault-Erlebnis ist bereit",
