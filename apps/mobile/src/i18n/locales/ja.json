@@ -988,7 +988,20 @@
     "v2IntentConfirmSubtitle": "読んでいた記事から取得しました。年式を確認すればガレージの準備は完了です。",
     "v2IntentConfirmCta": "はい、これが私のバイクです",
     "v2IntentConfirmChange": "私のバイクではありません",
-    "heardAboutWebsite": "MotoVaultのウェブサイトまたはブログ"
+    "heardAboutWebsite": "MotoVaultのウェブサイトまたはブログ",
+    "obNoBikeEyebrow": "バイクはまだ？問題ありません",
+    "obNoBikeTitle": "あなたのガレージは",
+    "obNoBikeTitleAccent": "いつでも準備完了。",
+    "obNoBikeSubtitle": "バイクはいつでも追加できます。MotoVault で管理できることをご紹介します。",
+    "obNoBikeRidesTitle": "すべてのライドを記録",
+    "obNoBikeRidesBody": "走行距離、ルート、乗車時間を自動で整理します。",
+    "obNoBikeExpensesTitle": "すべての費用を管理",
+    "obNoBikeExpensesBody": "燃料・パーツ・整備費で、ライディングの本当のコストがわかります。",
+    "obNoBikeServiceTitle": "整備を見逃さない",
+    "obNoBikeServiceBody": "作業を記録し、次回の前にリマインドします。",
+    "obNoBikeRoutesTitle": "ルートを発見",
+    "obNoBikeRoutesBody": "近くの素晴らしい道を見つけ、グループライドを計画しましょう。",
+    "obNoBikeAddBike": "バイクを今すぐ追加"
   },
   "bikeHub": {
     "upcoming": "予定",

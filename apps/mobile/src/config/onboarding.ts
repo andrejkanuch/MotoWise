@@ -34,6 +34,10 @@ export const OB_SCREEN = {
   PERSONALIZING: 'personalizing',
   // A/B 2026 — shared new steps (lean + invested)
   REVEAL: 'reveal',
+  // Value-payoff slot for riders who skipped bike-setup — the inverse of the
+  // Reveal (which needs a bike). Shown only when there's no bike so skippers see
+  // universal value before the paywall instead of a cold empty garage (P2.3/T4b).
+  NO_BIKE_VALUE: 'no-bike-value',
   COMMITMENT: 'commitment',
   ACCOUNT: 'account',
   // Attribution — "How did you hear about us?" (post-paywall, all variants)
@@ -77,6 +81,7 @@ const LEAN_FLOW = [
   OB_SCREEN.EXPERIENCE,
   OB_SCREEN.BIKE_SETUP,
   OB_SCREEN.REVEAL,
+  OB_SCREEN.NO_BIKE_VALUE,
   OB_SCREEN.GOALS,
   OB_SCREEN.MAINTENANCE,
   OB_SCREEN.COMMITMENT,
@@ -96,6 +101,7 @@ const INVESTED_FLOW = [
   OB_SCREEN.BIKE_SETUP,
   OB_SCREEN.BUILDING_PLAN,
   OB_SCREEN.REVEAL,
+  OB_SCREEN.NO_BIKE_VALUE,
   OB_SCREEN.GOALS,
   OB_SCREEN.MAINTENANCE,
   OB_SCREEN.COMMITMENT,
@@ -143,6 +149,7 @@ export const OB_STEP_NAME: Record<OnboardingRoute, string> = {
   [OB_SCREEN.NOTIFICATIONS]: 'notifications',
   [OB_SCREEN.PERSONALIZING]: 'personalizing',
   [OB_SCREEN.REVEAL]: 'reveal',
+  [OB_SCREEN.NO_BIKE_VALUE]: 'no_bike_value',
   [OB_SCREEN.COMMITMENT]: 'commitment',
   [OB_SCREEN.ACCOUNT]: 'account',
   [OB_SCREEN.HEARD_ABOUT]: 'heard_about',
@@ -172,6 +179,7 @@ export const OB_ROUTE = {
   NOTIFICATIONS: '/(onboarding)/notifications',
   PERSONALIZING: '/(onboarding)/personalizing',
   REVEAL: '/(onboarding)/reveal',
+  NO_BIKE_VALUE: '/(onboarding)/no-bike-value',
   COMMITMENT: '/(onboarding)/commitment',
   ACCOUNT: '/(onboarding)/account',
   HEARD_ABOUT: '/(onboarding)/heard-about',
@@ -265,6 +273,20 @@ const BIKE_DEPENDENT_SCREENS: ReadonlySet<OnboardingRoute> = new Set([
   OB_SCREEN.COMMITMENT,
 ]);
 
+/**
+ * The inverse: screens that only pay off when the rider skipped their bike. When
+ * a bike IS present the flow routes *around* them (a bike rider gets the Reveal,
+ * not the generic no-bike value screen). Mirrors `BIKE_DEPENDENT_SCREENS` so the
+ * value-payoff slot is filled for both cohorts (lean/invested only).
+ */
+const NO_BIKE_SCREENS: ReadonlySet<OnboardingRoute> = new Set([OB_SCREEN.NO_BIKE_VALUE]);
+
+/** Screens the current bike-state routes past — bike-dependent when there's no
+ * bike, no-bike-only when there is one. */
+function isSkippedForBikeState(screen: OnboardingRoute, hasBike: boolean): boolean {
+  return hasBike ? NO_BIKE_SCREENS.has(screen) : BIKE_DEPENDENT_SCREENS.has(screen);
+}
+
 /** Context for branch-aware navigation — derived from store state, not hardcoded. */
 export interface OnboardingNavContext {
   /** Whether the rider captured a bike (full make+model OR make-level partial). */
@@ -272,9 +294,10 @@ export interface OnboardingNavContext {
 }
 
 /**
- * Full route path for the screen after `current` in the variant's flow. When
- * `ctx.hasBike` is false, bike-dependent screens are skipped (lean/invested
- * only — `control` is the untouched V4 flow and ignores the branch).
+ * Full route path for the screen after `current` in the variant's flow. Bike
+ * state routes around the wrong-cohort screens: when `ctx.hasBike` is false the
+ * bike-dependent screens are skipped, when it's true the no-bike value screen is
+ * skipped (lean/invested only — `control` is the untouched V4 flow).
  */
 export function getNextRoute(
   variant: ObVariant,
@@ -284,8 +307,11 @@ export function getNextRoute(
   const flow = ONBOARDING_FLOWS[variant];
   let idx = flow.indexOf(current);
   if (idx === -1 || idx >= flow.length - 1) return null;
-  if (ctx && !ctx.hasBike && variant !== OB_VARIANT.CONTROL) {
-    while (idx < flow.length - 1 && BIKE_DEPENDENT_SCREENS.has(flow[idx + 1])) {
+  // Route past the screens the rider's bike-state pays off the other way:
+  // bike-dependent screens when there's no bike, the no-bike value screen when
+  // there is one (lean/invested only — control is the untouched V4 flow).
+  if (ctx && variant !== OB_VARIANT.CONTROL) {
+    while (idx < flow.length - 1 && isSkippedForBikeState(flow[idx + 1], ctx.hasBike)) {
       idx++;
     }
     if (idx >= flow.length - 1) return null;

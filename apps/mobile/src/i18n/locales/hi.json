@@ -988,7 +988,20 @@
     "v2IntentConfirmSubtitle": "यह हमने आपकी पढ़ी सामग्री से लिया। साल की पुष्टि करें और आपका गैराज तैयार है।",
     "v2IntentConfirmCta": "हाँ, यह मेरी बाइक है",
     "v2IntentConfirmChange": "यह मेरी बाइक नहीं है",
-    "heardAboutWebsite": "MotoVault वेबसाइट या ब्लॉग"
+    "heardAboutWebsite": "MotoVault वेबसाइट या ब्लॉग",
+    "obNoBikeEyebrow": "बाइक नहीं है? कोई बात नहीं",
+    "obNoBikeTitle": "आपका गैराज",
+    "obNoBikeTitleAccent": "जब आप तैयार हों, तब तैयार है।",
+    "obNoBikeSubtitle": "अपनी बाइक कभी भी जोड़ें। MotoVault आपको इन सब पर नज़र रखने में मदद करता है।",
+    "obNoBikeRidesTitle": "हर सवारी दर्ज करें",
+    "obNoBikeRidesBody": "माइलेज, रूट और सवारी का समय — अपने आप व्यवस्थित।",
+    "obNoBikeExpensesTitle": "हर खर्च ट्रैक करें",
+    "obNoBikeExpensesBody": "ईंधन, पुर्ज़े और सर्विस — जानें कि सवारी की असली लागत क्या है।",
+    "obNoBikeServiceTitle": "कोई सर्विस न चूकें",
+    "obNoBikeServiceBody": "काम दर्ज करें और अगली सर्विस से पहले रिमाइंडर पाएं।",
+    "obNoBikeRoutesTitle": "रूट खोजें",
+    "obNoBikeRoutesBody": "बेहतरीन सड़कें खोजें और अपने पास ग्रुप राइड की योजना बनाएं।",
+    "obNoBikeAddBike": "अभी मेरी बाइक जोड़ें"
   },
   "bikeHub": {
     "upcoming": "आगामी",

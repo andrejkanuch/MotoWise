@@ -988,7 +988,20 @@
     "v2IntentConfirmSubtitle": "Kami mengambilnya dari yang Anda baca. Konfirmasi tahunnya dan garasi Anda siap.",
     "v2IntentConfirmCta": "Ya, ini motor saya",
     "v2IntentConfirmChange": "Bukan motor saya",
-    "heardAboutWebsite": "Situs web atau blog MotoVault"
+    "heardAboutWebsite": "Situs web atau blog MotoVault",
+    "obNoBikeEyebrow": "BELUM PUNYA MOTOR? TENANG SAJA",
+    "obNoBikeTitle": "Garasimu",
+    "obNoBikeTitleAccent": "siap kapan pun kamu siap.",
+    "obNoBikeSubtitle": "Tambahkan motormu kapan saja. Ini semua yang bisa kamu pantau dengan MotoVault.",
+    "obNoBikeRidesTitle": "Catat setiap perjalanan",
+    "obNoBikeRidesBody": "Jarak tempuh, rute, dan waktu berkendara — tertata otomatis.",
+    "obNoBikeExpensesTitle": "Lacak setiap pengeluaran",
+    "obNoBikeExpensesBody": "Bahan bakar, suku cadang, dan servis — lihat biaya berkendara sebenarnya.",
+    "obNoBikeServiceTitle": "Jangan lewatkan servis",
+    "obNoBikeServiceBody": "Catat pekerjaannya dan dapatkan pengingat sebelum servis berikutnya.",
+    "obNoBikeRoutesTitle": "Temukan rute",
+    "obNoBikeRoutesBody": "Temukan jalan menarik dan rencanakan riding bareng di dekatmu.",
+    "obNoBikeAddBike": "Tambahkan motor saya sekarang"
   },
   "bikeHub": {
     "upcoming": "Akan Datang",

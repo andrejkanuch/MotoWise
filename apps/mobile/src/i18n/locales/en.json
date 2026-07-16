@@ -988,7 +988,20 @@
     "v2IntentConfirmSubtitle": "We pulled this from what you were reading. Confirm the year and your garage is ready.",
     "v2IntentConfirmCta": "Yes, that’s my ride",
     "v2IntentConfirmChange": "Not my bike",
-    "heardAboutWebsite": "MotoVault website or blog"
+    "heardAboutWebsite": "MotoVault website or blog",
+    "obNoBikeEyebrow": "NO BIKE? NO PROBLEM",
+    "obNoBikeTitle": "Your garage is",
+    "obNoBikeTitleAccent": "ready when you are.",
+    "obNoBikeSubtitle": "Add your bike anytime. Here's everything MotoVault helps you stay on top of.",
+    "obNoBikeRidesTitle": "Log every ride",
+    "obNoBikeRidesBody": "Mileage, routes, and time in the saddle — organized automatically.",
+    "obNoBikeExpensesTitle": "Track every expense",
+    "obNoBikeExpensesBody": "Fuel, parts, and service — see what your riding really costs.",
+    "obNoBikeServiceTitle": "Never miss a service",
+    "obNoBikeServiceBody": "Log the work and get a reminder before the next one's due.",
+    "obNoBikeRoutesTitle": "Discover routes",
+    "obNoBikeRoutesBody": "Find great roads and plan group rides near you.",
+    "obNoBikeAddBike": "Add my bike now"
   },
   "checklist": {
     "getStarted": "Get Started",

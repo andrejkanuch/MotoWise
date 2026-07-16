@@ -988,7 +988,20 @@
     "v2IntentConfirmSubtitle": "Bunu okuduğunuz içerikten aldık. Yılı onaylayın, garajınız hazır.",
     "v2IntentConfirmCta": "Evet, bu benim motorum",
     "v2IntentConfirmChange": "Benim motorum değil",
-    "heardAboutWebsite": "MotoVault web sitesi veya blogu"
+    "heardAboutWebsite": "MotoVault web sitesi veya blogu",
+    "obNoBikeEyebrow": "MOTOSİKLET YOK MU? SORUN DEĞİL",
+    "obNoBikeTitle": "Garajın",
+    "obNoBikeTitleAccent": "sen hazır olduğunda hazır.",
+    "obNoBikeSubtitle": "Motosikletini istediğin zaman ekle. MotoVault'un takip etmene yardımcı olduğu her şey burada.",
+    "obNoBikeRidesTitle": "Her sürüşü kaydet",
+    "obNoBikeRidesBody": "Kilometre, rotalar ve sürüş süresi — otomatik olarak düzenlenir.",
+    "obNoBikeExpensesTitle": "Her masrafı takip et",
+    "obNoBikeExpensesBody": "Yakıt, parça ve bakım — sürmenin gerçek maliyetini gör.",
+    "obNoBikeServiceTitle": "Bakımı asla kaçırma",
+    "obNoBikeServiceBody": "Yapılan işleri kaydet ve bir sonrakinden önce hatırlatma al.",
+    "obNoBikeRoutesTitle": "Rotaları keşfet",
+    "obNoBikeRoutesBody": "Harika yollar bul ve yakınında grup sürüşleri planla.",
+    "obNoBikeAddBike": "Motosikletimi şimdi ekle"
   },
   "bikeHub": {
     "upcoming": "Yaklasan",

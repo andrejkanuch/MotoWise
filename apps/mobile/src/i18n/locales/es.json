@@ -989,7 +989,20 @@
     "v2IntentConfirmSubtitle": "La sacamos de lo que estabas leyendo. Confirma el año y tu garaje estará listo.",
     "v2IntentConfirmCta": "Sí, es mi moto",
     "v2IntentConfirmChange": "No es mi moto",
-    "heardAboutWebsite": "Sitio web o blog de MotoVault"
+    "heardAboutWebsite": "Sitio web o blog de MotoVault",
+    "obNoBikeEyebrow": "¿SIN MOTO? NO PASA NADA",
+    "obNoBikeTitle": "Tu garaje está",
+    "obNoBikeTitleAccent": "listo cuando tú lo estés.",
+    "obNoBikeSubtitle": "Añade tu moto cuando quieras. Esto es todo lo que MotoVault te ayuda a controlar.",
+    "obNoBikeRidesTitle": "Registra cada ruta",
+    "obNoBikeRidesBody": "Kilómetros, rutas y tiempo sobre la moto, organizados automáticamente.",
+    "obNoBikeExpensesTitle": "Controla cada gasto",
+    "obNoBikeExpensesBody": "Combustible, piezas y mantenimiento: descubre cuánto te cuesta rodar.",
+    "obNoBikeServiceTitle": "No te pierdas ningún mantenimiento",
+    "obNoBikeServiceBody": "Registra el trabajo y recibe un aviso antes del próximo.",
+    "obNoBikeRoutesTitle": "Descubre rutas",
+    "obNoBikeRoutesBody": "Encuentra buenas carreteras y organiza salidas en grupo cerca de ti.",
+    "obNoBikeAddBike": "Añadir mi moto ahora"
   },
   "bikeHub": {
     "upcoming": "Proximos",

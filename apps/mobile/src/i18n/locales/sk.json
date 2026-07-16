@@ -990,7 +990,20 @@
     "v2IntentConfirmSubtitle": "Zachytili sme to z toho, čo si čítal. Potvrď rok a tvoja garáž je pripravená.",
     "v2IntentConfirmCta": "Áno, to je môj motocykel",
     "v2IntentConfirmChange": "Nie je to môj motocykel",
-    "heardAboutWebsite": "Web alebo blog MotoVault"
+    "heardAboutWebsite": "Web alebo blog MotoVault",
+    "obNoBikeEyebrow": "NEMÁŠ MOTORKU? ŽIADEN PROBLÉM",
+    "obNoBikeTitle": "Tvoja garáž je",
+    "obNoBikeTitleAccent": "pripravená, keď budeš ty.",
+    "obNoBikeSubtitle": "Motorku pridáš kedykoľvek. Toto všetko ti MotoVault pomôže mať pod kontrolou.",
+    "obNoBikeRidesTitle": "Zaznamenaj každú jazdu",
+    "obNoBikeRidesBody": "Kilometre, trasy a čas v sedle — automaticky usporiadané.",
+    "obNoBikeExpensesTitle": "Sleduj každý výdavok",
+    "obNoBikeExpensesBody": "Palivo, diely a servis — zisti, koľko ťa jazdenie naozaj stojí.",
+    "obNoBikeServiceTitle": "Nezmeškaj servis",
+    "obNoBikeServiceBody": "Zaznamenaj práce a dostaneš pripomienku pred ďalším.",
+    "obNoBikeRoutesTitle": "Objavuj trasy",
+    "obNoBikeRoutesBody": "Nájdi skvelé cesty a naplánuj skupinové jazdy vo svojom okolí.",
+    "obNoBikeAddBike": "Pridať moju motorku teraz"
   },
   "bikeHub": {
     "upcoming": "Nadchádzajúce",
