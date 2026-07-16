@@ -114,6 +114,13 @@
         "react-native-view-shot",
         "@sentry/react-native"
       ]
+    },
+    "autolinking": {
+      "android": {
+        "exclude": [
+          "@iternio/react-native-auto-play"
+        ]
+      }
     }
   },
   "devDependencies": {
