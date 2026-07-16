@@ -88,6 +88,7 @@ import {
   snoozeTaskNotification,
 } from '../lib/notifications';
 import { resolveOnboardingVariant } from '../lib/onboarding-experiment';
+import { resolvePendingIntent } from '../lib/pending-intent-reader';
 import {
   clearLastUserId,
   getLastUserId,
@@ -546,6 +547,13 @@ function RootLayout() {
   // Capture Meta ad attribution params (fbclid + UTM) from initial deep link
   useEffect(() => {
     captureMetaAttribution();
+  }, []);
+
+  // Resolve the web→app "which bike" intent (install referrer / iOS clipboard)
+  // and pre-seed onboarding. Non-blocking, fail-open, once per install — never
+  // affects the normal onboarding flow. (P2)
+  useEffect(() => {
+    void resolvePendingIntent();
   }, []);
 
   // Initialize Meta/Facebook SDK + ATT prompt

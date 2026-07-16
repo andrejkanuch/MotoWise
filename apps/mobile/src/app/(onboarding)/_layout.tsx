@@ -53,6 +53,8 @@ export default function OnboardingLayout() {
       <Stack.Screen name="building-plan" options={{ gestureEnabled: false }} />
       {/* A/B 2026 — shared new steps (lean + invested) */}
       <Stack.Screen name="reveal" options={{ gestureEnabled: false }} />
+      {/* Value-payoff slot for bike-skippers (shown instead of reveal when no bike) */}
+      <Stack.Screen name="no-bike-value" options={{ gestureEnabled: true }} />
       <Stack.Screen name="maintenance" options={{ gestureEnabled: true }} />
       <Stack.Screen name="commitment" options={{ gestureEnabled: false }} />
 

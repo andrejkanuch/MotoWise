@@ -68,6 +68,13 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   All authed journey flows share the parameterized onboarding runner via `E2E_FLOW` /
   `E2E_EMAIL_PREFIX` (set inline in the `test:e2e:*` package scripts) — no per-flow wrapper needed.
 
+- **`flows/onboarding.yaml`** also carries the **P2 fail-open regression**: at bike-setup it asserts
+  the "Is this your ride?" intent confirmation is NOT shown when no web intent is present (case 1).
+  The web→app intent's only transport is the **Android Play install referrer** (iOS clipboard was
+  dropped — it triggered a paste prompt at onboarding), which can't be seeded on a simulator without
+  a real Play Store install; the positive case (confirmation shown) is verified manually on an
+  Android device. The parse + make-resolution logic is unit-tested (`pending-intent.test.ts`).
+
 ## One-time setup
 
 1. **Maestro CLI** (requires a JDK — the JDK 17 from the Android setup works):

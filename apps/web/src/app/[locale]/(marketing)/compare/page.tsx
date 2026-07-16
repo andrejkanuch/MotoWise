@@ -2,8 +2,10 @@ import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLd } from '@/components/marketing/json-ld';
+import { StoreButtons } from '@/components/marketing/store-buttons';
 import { Link } from '@/i18n/navigation';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { CtaPageType, CtaPlacement } from '@/lib/cta-taxonomy';
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -151,27 +153,33 @@ const APPS = [
   },
 ] as const;
 
+// Row order = differentiation priority. Lead with the jobs riders actually pay
+// for (expense tracking is the #1 paid feature; maintenance + reminders next),
+// then the ride/route/garage basics. AI diagnostics + learning sit near the
+// bottom — they're supporting features, not the headline (a lead-with-AI matrix
+// over-indexed on a low-intent differentiator). FEATURES (i18n keys) and
+// FEATURE_KEYS (APPS booleans) are zipped by index, so they MUST stay in sync.
 const FEATURES = [
-  'featureMaintenance',
   'featureExpenses',
-  'featureRides',
-  'featureDiagnostics',
-  'featureLearning',
-  'featureMultiBike',
+  'featureMaintenance',
   'featureReminders',
+  'featureRides',
   'featureRoutes',
+  'featureMultiBike',
+  'featureLearning',
+  'featureDiagnostics',
   'featureFree',
 ] as const;
 
 const FEATURE_KEYS = [
-  'maintenance',
   'expenses',
-  'rides',
-  'diagnostics',
-  'learning',
-  'multiBike',
+  'maintenance',
   'reminders',
+  'rides',
   'routes',
+  'multiBike',
+  'learning',
+  'diagnostics',
   'free',
 ] as const;
 
@@ -339,6 +347,11 @@ export default async function ComparePage({ params }: PageProps) {
           <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-400 md:text-xl">
             {t('heroSubtitle')}
           </p>
+          {/* Above-the-fold store CTA — this is a money page (comparison intent);
+              capture the decision before the reader scrolls the matrix. */}
+          <div className="mt-8 flex justify-center">
+            <StoreButtons pageType={CtaPageType.Compare} placement={CtaPlacement.Hero} />
+          </div>
           <p className="mt-4 text-sm text-neutral-500">{t('updatedAt')}</p>
         </div>
       </section>
@@ -590,6 +603,15 @@ export default async function ComparePage({ params }: PageProps) {
                 <p className="mt-2 text-sm text-neutral-400 leading-relaxed">{t(`verdict${n}`)}</p>
               </div>
             ))}
+          </div>
+
+          {/* Decision-moment CTA — the reader has just read the verdict; capture
+              the download here rather than only at the page-end FeatureCta. */}
+          <div className="reveal-on-scroll mt-10 flex flex-col items-center gap-3">
+            <p className="text-center text-lg font-semibold text-neutral-100">
+              {t('verdictCtaTitle')}
+            </p>
+            <StoreButtons pageType={CtaPageType.Compare} placement={CtaPlacement.MidArticle} />
           </div>
         </div>
       </section>

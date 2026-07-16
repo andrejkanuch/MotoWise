@@ -417,7 +417,18 @@
     "publishedOn": "प्रकाशित",
     "backToBlog": "सभी आर्टिकल पर वापस",
     "by": "द्वारा",
-    "relatedArticles": "संबंधित आर्टिकल"
+    "relatedArticles": "संबंधित आर्टिकल",
+    "ctaDownloadFree": "मुफ़्त डाउनलोड करें",
+    "ctaMaintenanceHeadline": "अब बार-बार देखने की ज़रूरत नहीं — MotoVault {model} के सर्विस इंटरवल अपने आप ट्रैक करता है और हर बार पहले याद दिलाता है।",
+    "ctaCostHeadline": "{model} का हर खर्च दर्ज करें और सालाना असली लागत देखें।",
+    "ctaGuideHeadline": "{model} का सर्विस इतिहास रखें ताकि अगली वॉर्निंग लाइट समझ आए।",
+    "ctaModelFallback": "मोटरसाइकिल",
+    "relatedResourcesTitle": "आगे पढ़ें",
+    "relatedFeatureMaintenance": "रखरखाव और रिमाइंडर",
+    "relatedFeatureExpenses": "मोटरसाइकिल खर्च ट्रैकर",
+    "relatedToolChecklist": "मुफ़्त प्री-राइड TCLOCS चेकलिस्ट",
+    "relatedToolCost": "मोटरसाइकिल लागत कैलकुलेटर",
+    "relatedCompare": "मोटरसाइकिल ऐप्स की तुलना करें"
   },
   "JsonLd": {
     "organizationName": "MotoVault",
@@ -816,7 +827,7 @@
     "description": "Compare the best motorcycle maintenance, ride tracking, and diagnostic apps in 2026. Feature matrix, pricing, and honest reviews to help you choose the right app.",
     "heroLabel": "Comparison Guide",
     "heroTitle": "Best Motorcycle Apps in 2026",
-    "heroSubtitle": "We compared 10 popular motorcycle apps across maintenance tracking, ride logging, expense management, diagnostics, and learning — so you don't have to.",
+    "heroSubtitle": "We compared 10 popular motorcycle apps across expense tracking, maintenance, reminders, ride logging, and route planning — so you don't have to.",
     "updatedAt": "Last updated: March 2026",
     "methodology": "Methodology: Features verified from official app stores, websites, and documentation. Pricing accurate as of March 2026.",
     "matrixTitle": "Feature Comparison Matrix",
@@ -937,7 +948,7 @@
     "verdictTitle": "The Verdict",
     "verdictSubtitle": "Which app should you choose?",
     "verdict1Title": "Want one app for everything?",
-    "verdict1": "MotoVault is the only app that combines maintenance, expenses, rides, AI diagnostics, and learning in one place. If you're tired of juggling multiple apps, this is it.",
+    "verdict1": "MotoVault is the only app that combines expense tracking, maintenance, reminders, ride logging, and trip planning in one place. If you're tired of juggling a costs spreadsheet, a service log, and a separate route planner, this is it.",
     "verdict2Title": "Focused on curvy-road turn-by-turn?",
     "verdict2": "MotoVault handles multi-day trip planning with typed waypoints and rider RSVPs, so for most tours it's all you need. If bend-weighted curvy-road navigation and live turn-by-turn are your headline feature, pair MotoVault with REVER or Calimoto.",
     "verdict3Title": "Just need a service log?",
@@ -965,7 +976,9 @@
         "question": "Which app is best for tracking motorcycle expenses?",
         "answer": "MotoVault and RideLog both offer comprehensive expense tracking with category breakdowns and spending analytics. MotoVault adds an expense dashboard with cost-per-mile calculations and yearly trends."
       }
-    }
+    },
+    "verdictCtaTitle": "Get the all-in-one motorcycle app — free.",
+    "compareInboundLink": "See how MotoVault compares to 10 other motorcycle apps"
   },
   "CookieBanner": {
     "stamp": "Legally-required cookie banner",
@@ -1006,5 +1019,10 @@
       "saved": "Preferences saved. Ride on.",
       "undo": "Change mind"
     }
+  },
+  "StickyBar": {
+    "message": "आपकी पूरी मोटो लाइफ़ एक ऐप में।",
+    "cta": "MotoVault पाएं",
+    "dismiss": "बंद करें"
   }
 }

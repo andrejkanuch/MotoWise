@@ -19,6 +19,7 @@ import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
@@ -118,6 +119,7 @@ export default function RecordMaintenanceScreen() {
 
       setSaved(true);
       triggerNotification(NotificationFeedbackType.Success);
+      maybeRequestReview(REVIEW_MILESTONE.MAINTENANCE_COMPLETED);
       setTimeout(() => router.back(), 600);
     },
     onError: () => {

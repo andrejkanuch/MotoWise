@@ -274,6 +274,17 @@ export function setUserPropertiesOnce(properties: Record<string, JsonType>) {
  * RevenueCat's `$posthogUserId` pre-auth so anonymous purchases join the same
  * PostHog person once the account is created. Undefined when analytics is off.
  */
+/**
+ * Register PostHog super properties — attached to every subsequent event on this
+ * device (persisted across launches) until unregistered/reset. Consent-gated.
+ * Used for durable cohort tags (e.g. `intent_cohort`) that should segment the
+ * whole funnel, not just a single event.
+ */
+export function registerSuperProperties(properties: Record<string, JsonType>) {
+  if (!analyticsEnabled || !posthogClient) return;
+  posthogClient.register(properties);
+}
+
 export function getAnalyticsDistinctId(): string | undefined {
   if (!analyticsEnabled || !posthogClient) return undefined;
   return posthogClient.getDistinctId();
@@ -311,6 +322,8 @@ export const AnalyticsEvent = {
   // Attribution — self-reported acquisition channel ("How did you hear about us?")
   REFERRAL_SOURCE_SELECTED: 'referral_source_selected',
   REFERRAL_SOURCE_SKIPPED: 'referral_source_skipped',
+  // Web→app intent — "which bike" resolved from install referrer / iOS clipboard
+  PENDING_INTENT_RESOLVED: 'pending_intent_resolved',
 
   // Feature usage — Diagnostics
   DIAGNOSTIC_STARTED: 'diagnostic_started',

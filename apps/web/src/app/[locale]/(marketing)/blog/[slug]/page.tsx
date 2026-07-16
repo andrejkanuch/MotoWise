@@ -6,10 +6,11 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { compileMDX } from 'next-mdx-remote/rsc';
 import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
-import { DownloadAppButton } from '@/components/download-app-button';
 import { AuthorBio } from '@/components/marketing/author-bio';
 import { AuthorByline } from '@/components/marketing/author-byline';
+import { ContextualAppCta } from '@/components/marketing/contextual-app-cta';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
+import { RelatedResources } from '@/components/marketing/related-resources';
 import { TableOfContents } from '@/components/marketing/table-of-contents';
 import { Link } from '@/i18n/navigation';
 import { getAuthor, getDefaultAuthor } from '@/lib/authors';
@@ -20,8 +21,10 @@ import {
   getCanonicalArticleUrl,
   getRelatedArticles,
 } from '@/lib/blog';
+import { extractMakeModel, extractModel, resolveCtaAngle } from '@/lib/blog-cta';
 import { stripHtmlComments } from '@/lib/blog-mdx';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { CtaPlacement } from '@/lib/cta-taxonomy';
 import type { TocHeading } from '@/lib/rehype-extract-headings';
 import { rehypeExtractHeadings } from '@/lib/rehype-extract-headings';
 import {
@@ -117,6 +120,28 @@ const mdxComponents = {
   ),
 };
 
+/** Inject the mid-article CTA after this many top-level H2 sections. */
+const MID_CTA_AFTER_H2 = 2;
+const H2_DELIMITER = '\n## ';
+
+/**
+ * Split an MDX body just before the (n+1)-th H2 so a CTA can be rendered between
+ * the two halves. Returns null when there aren't enough H2s to place the CTA
+ * comfortably mid-article (it must leave at least one section after it), so the
+ * caller renders the body in one piece. Only top-level `## ` headings count —
+ * the delimiter includes the leading newline, so `### ` and inline `##` are
+ * unaffected.
+ */
+function splitAfterNthH2(source: string, n: number): { head: string; tail: string } | null {
+  const parts = source.split(H2_DELIMITER);
+  // parts[0] is the pre-heading intro; each later part is one H2 section.
+  if (parts.length < n + 2) return null;
+  return {
+    head: parts.slice(0, n + 1).join(H2_DELIMITER),
+    tail: H2_DELIMITER + parts.slice(n + 1).join(H2_DELIMITER),
+  };
+}
+
 export default async function BlogArticlePage({ params }: BlogArticlePageProps) {
   const { slug, locale } = await params;
   setRequestLocale(locale);
@@ -133,13 +158,9 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
   // invalid MDX and would kill the whole page (Sentry MOTOVAULT-WEB-S).
   const mdxSource = stripHtmlComments(article.content);
 
-  // A single article with malformed MDX must not 500 the route. Compile defensively:
-  // report the failure with enough context to fix the source, then render a clean
-  // 404 rather than the generic error boundary. (Sentry MOTOVAULT-WEB-S)
-  let content: Awaited<ReturnType<typeof compileMDX>>['content'];
-  try {
-    ({ content } = await compileMDX({
-      source: mdxSource,
+  const compile = (source: string) =>
+    compileMDX({
+      source,
       options: {
         mdxOptions: {
           remarkPlugins: [remarkGfm],
@@ -147,13 +168,45 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
         },
       },
       components: mdxComponents,
-    }));
-  } catch (error) {
-    Sentry.captureException(error, {
-      tags: { area: 'blog', op: 'compileMDX' },
-      extra: { slug, locale, contentPreview: article.content.slice(0, 500) },
     });
-    notFound();
+
+  // Intent-matched CTA injected mid-article (after the 2nd H2, once the reader
+  // has some context) — the conversion driver. We split the source and compile
+  // head/tail so the CTA lands as real SSR DOM between them; short articles with
+  // too few H2s fall back to a single render (the end-of-article CTA still runs).
+  const ctaAngle = resolveCtaAngle(article);
+  const ctaModel = extractModel(article.title);
+  const ctaMakeModel = extractMakeModel(article.title);
+  const split = splitAfterNthH2(mdxSource, MID_CTA_AFTER_H2);
+
+  // A single article with malformed MDX must not 500 the route. Compile defensively:
+  // report the failure with enough context to fix the source, then render a clean
+  // 404 rather than the generic error boundary. (Sentry MOTOVAULT-WEB-S)
+  let head: Awaited<ReturnType<typeof compileMDX>>['content'];
+  let tail: Awaited<ReturnType<typeof compileMDX>>['content'] | null = null;
+  try {
+    if (split) {
+      head = (await compile(split.head)).content;
+      tail = (await compile(split.tail)).content;
+    } else {
+      head = (await compile(mdxSource)).content;
+    }
+  } catch {
+    // The split may have landed inside a code fence / MDX expression, making one
+    // half invalid on its own. Fall back to rendering the whole body in one
+    // piece before giving up — a mid-article CTA is never worth 404-ing a good
+    // article. Reset headings so the retry doesn't duplicate the TOC.
+    tail = null;
+    headings.length = 0;
+    try {
+      head = (await compile(mdxSource)).content;
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: { area: 'blog', op: 'compileMDX' },
+        extra: { slug, locale, contentPreview: article.content.slice(0, 500) },
+      });
+      notFound();
+    }
   }
 
   const related = await getRelatedArticles(slug, article.category, locale);
@@ -261,7 +314,20 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
         <TableOfContents headings={headings} />
 
-        <div className="prose prose-invert max-w-none">{content}</div>
+        <div className="prose prose-invert max-w-none">
+          {head}
+          {tail && (
+            <div className="not-prose">
+              <ContextualAppCta
+                angle={ctaAngle}
+                model={ctaModel}
+                makeModel={ctaMakeModel}
+                slug={slug}
+              />
+            </div>
+          )}
+          {tail}
+        </div>
 
         <section
           aria-label="Data disclaimer"
@@ -316,17 +382,16 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           <AuthorBio author={author} />
         </div>
 
-        <div className="mt-16 rounded-2xl border border-amber-500/20 bg-neutral-900/50 p-8 text-center">
-          <h2 className="mb-3 text-xl font-semibold text-neutral-100">
-            Keep your bike healthy — never miss a service again
-          </h2>
-          <p className="mb-6 text-neutral-400">
-            Riders who track maintenance in MotoVault catch problems early, protect their resale
-            value, and ride with confidence. Log every service, get reminded before the next one is
-            due, and diagnose issues with AI — all in one app.
-          </p>
-          <DownloadAppButton source="blog_cta" />
-          <p className="mt-4 text-xs text-neutral-500">Free to download · iOS &amp; Android</p>
+        <RelatedResources angle={ctaAngle} />
+
+        <div className="mt-16">
+          <ContextualAppCta
+            angle={ctaAngle}
+            model={ctaModel}
+            makeModel={ctaMakeModel}
+            slug={slug}
+            placement={CtaPlacement.EndArticle}
+          />
         </div>
 
         {related.length > 0 && (

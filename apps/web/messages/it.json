@@ -571,7 +571,18 @@
     "publishedOn": "Pubblicato il",
     "backToBlog": "Torna a tutti gli articoli",
     "by": "Di",
-    "relatedArticles": "Articoli Correlati"
+    "relatedArticles": "Articoli Correlati",
+    "ctaDownloadFree": "Scarica gratis",
+    "ctaMaintenanceHeadline": "Basta cercarlo — MotoVault registra automaticamente gli intervalli di manutenzione della tua {model} e ti avvisa prima di ciascuno.",
+    "ctaCostHeadline": "Registra ogni spesa della tua {model} e scopri il tuo costo reale all’anno.",
+    "ctaGuideHeadline": "Tieni uno storico dei tagliandi della tua {model} così la prossima spia avrà senso.",
+    "ctaModelFallback": "moto",
+    "relatedResourcesTitle": "Continua",
+    "relatedFeatureMaintenance": "Manutenzione e promemoria",
+    "relatedFeatureExpenses": "Tracker spese moto",
+    "relatedToolChecklist": "Checklist TCLOCS gratuita",
+    "relatedToolCost": "Calcolatore costi moto",
+    "relatedCompare": "Confronta le app per moto"
   },
   "JsonLd": {
     "organizationName": "MotoVault",
@@ -1363,7 +1374,7 @@
     "description": "Compare the best motorcycle maintenance, ride tracking, and diagnostic apps in 2026. Feature matrix, pricing, and honest reviews to help you choose the right app.",
     "heroLabel": "Comparison Guide",
     "heroTitle": "Best Motorcycle Apps in 2026",
-    "heroSubtitle": "We compared 10 popular motorcycle apps across maintenance tracking, ride logging, expense management, diagnostics, and learning — so you don't have to.",
+    "heroSubtitle": "We compared 10 popular motorcycle apps across expense tracking, maintenance, reminders, ride logging, and route planning — so you don't have to.",
     "updatedAt": "Last updated: March 2026",
     "methodology": "Methodology: Features verified from official app stores, websites, and documentation. Pricing accurate as of March 2026.",
     "matrixTitle": "Feature Comparison Matrix",
@@ -1484,7 +1495,7 @@
     "verdictTitle": "The Verdict",
     "verdictSubtitle": "Which app should you choose?",
     "verdict1Title": "Want one app for everything?",
-    "verdict1": "MotoVault is the only app that combines maintenance, expenses, rides, AI diagnostics, and learning in one place. If you're tired of juggling multiple apps, this is it.",
+    "verdict1": "MotoVault is the only app that combines expense tracking, maintenance, reminders, ride logging, and trip planning in one place. If you're tired of juggling a costs spreadsheet, a service log, and a separate route planner, this is it.",
     "verdict2Title": "Focused on curvy-road turn-by-turn?",
     "verdict2": "MotoVault handles multi-day trip planning with typed waypoints and rider RSVPs, so for most tours it's all you need. If bend-weighted curvy-road navigation and live turn-by-turn are your headline feature, pair MotoVault with REVER or Calimoto.",
     "verdict3Title": "Just need a service log?",
@@ -1512,7 +1523,9 @@
         "question": "Which app is best for tracking motorcycle expenses?",
         "answer": "MotoVault and RideLog both offer comprehensive expense tracking with category breakdowns and spending analytics. MotoVault adds an expense dashboard with cost-per-mile calculations and yearly trends."
       }
-    }
+    },
+    "verdictCtaTitle": "Get the all-in-one motorcycle app — free.",
+    "compareInboundLink": "See how MotoVault compares to 10 other motorcycle apps"
   },
   "CookieBanner": {
     "stamp": "Banner cookie obbligatorio per legge",
@@ -3177,5 +3190,10 @@
     "scanComplete": "Scansione completata",
     "resultTitle": "Tensione della catena bassa",
     "resultDesc": "Regola a 25-35 mm di gioco secondo il manuale d'uso."
+  },
+  "StickyBar": {
+    "message": "Tutta la tua vita in moto in un’app.",
+    "cta": "Scarica MotoVault",
+    "dismiss": "Chiudi"
   }
 }

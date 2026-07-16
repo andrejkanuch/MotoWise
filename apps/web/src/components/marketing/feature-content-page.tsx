@@ -22,6 +22,10 @@ export async function FeatureContentPage({
   featureIcons,
 }: FeatureContentPageProps) {
   const t = await getTranslations(namespace);
+  // Second translator for the shared /compare inbound link — keeps the copy in
+  // the single `Compare` namespace instead of duplicating a key into every
+  // feature namespace.
+  const tCompare = await getTranslations('Compare');
   const canonical = getCanonicalUrl(locale, route);
 
   const faqItems = [0, 1, 2, 3].map((i) => ({
@@ -271,6 +275,30 @@ export async function FeatureContentPage({
               className="text-warm-400 underline underline-offset-4 transition-colors hover:text-warm-300"
             >
               {t('faqSupportLink')}
+            </Link>
+          </p>
+          {/* Hub-and-spoke inbound link: every feature page feeds the /compare
+              money page for internal-link equity + discovery. */}
+          <p className="mt-4 text-center text-neutral-500">
+            <Link
+              href="/compare"
+              className="inline-flex items-center gap-1.5 font-medium text-warm-400 underline underline-offset-4 transition-colors hover:text-warm-300"
+            >
+              {tCompare('compareInboundLink')}
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
             </Link>
           </p>
         </div>

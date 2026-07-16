@@ -4,10 +4,16 @@ import { useEffect, useRef } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { GOAL_TO_PLACEMENT, getPrimaryGoal, OB_SCREEN } from '../../config/onboarding';
+import {
+  GOAL_TO_PLACEMENT,
+  getPrimaryGoal,
+  MAINTENANCE_INTENT_PLACEMENT,
+  OB_SCREEN,
+} from '../../config/onboarding';
 import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
+import { isMaintenanceIntent } from '../../lib/pending-intent';
 import { presentPaywall, setOnboardingAttributes } from '../../lib/subscription';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
@@ -20,14 +26,26 @@ export default function PaywallScreen() {
   const ridingGoals = useOnboardingStore((s) => s.ridingGoals);
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const experienceLevel = useOnboardingStore((s) => s.experienceLevel);
+  const pendingIntent = useOnboardingStore((s) => s.pendingIntent);
+  const intentResolved = useOnboardingStore((s) => s.intentResolved);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
 
   useEffect(() => {
-    if (presented.current) return;
+    // Wait until first-launch intent resolution has settled before latching —
+    // otherwise a late-arriving pendingIntent would miss the maintenance
+    // placement behind the one-shot present guard. Resolution completes at cold
+    // start (many screens earlier), so in practice this never actually blocks.
+    if (presented.current || !intentResolved) return;
     presented.current = true;
 
     const primaryGoal = getPrimaryGoal(ridingGoals);
-    const placement = GOAL_TO_PLACEMENT[primaryGoal];
+    // Maintenance-intent riders (arrived from a bike's service-schedule article)
+    // get the reminder-led paywall placement instead of the goal-derived one
+    // (P3.2). The paywall still runs AFTER first value — placement only, no
+    // reordering. Falls back to the current offering if the placement is absent.
+    const placement = isMaintenanceIntent(pendingIntent)
+      ? MAINTENANCE_INTENT_PLACEMENT
+      : GOAL_TO_PLACEMENT[primaryGoal];
     const goalsJoined = ridingGoals.join(',');
 
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.PAYWALL);
@@ -81,7 +99,15 @@ export default function PaywallScreen() {
       // The RevenueCat listener in subscription.ts will update the store if purchased
       goNext();
     })();
-  }, [goNext, ridingGoals, bikeData, experienceLevel, setLastCompletedScreen]);
+  }, [
+    goNext,
+    ridingGoals,
+    bikeData,
+    experienceLevel,
+    pendingIntent,
+    intentResolved,
+    setLastCompletedScreen,
+  ]);
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>

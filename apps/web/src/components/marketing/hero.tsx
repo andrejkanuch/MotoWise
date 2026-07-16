@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
+import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 import { gsap, makeMagnetic, ScrollTrigger } from './motion';
 import { storeAnchorProps } from './store-buttons';
 
@@ -51,8 +52,9 @@ function StaggeredChars({ text, baseDelay }: { text: string; baseDelay: number }
 
 export function Hero() {
   const t = useTranslations('Hero');
-  const iosLink = storeAnchorProps('ios', 'hero');
-  const androidLink = storeAnchorProps('android', 'hero');
+  const heroCtx = { pageType: CtaPageType.Home, placement: CtaPlacement.Hero };
+  const iosLink = storeAnchorProps(StorePlatform.Ios, heroCtx);
+  const androidLink = storeAnchorProps(StorePlatform.Android, heroCtx);
 
   const sectionRef = useRef<HTMLElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);

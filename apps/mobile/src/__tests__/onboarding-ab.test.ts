@@ -109,25 +109,36 @@ describe('variant flow config', () => {
   });
 
   it('step index is variant-relative (same screen, different position)', () => {
-    // goals is index 2 in control but later in lean (after bike + reveal)
+    // goals is index 2 in control but later in lean (after bike + reveal + no-bike-value)
     expect(getStepIndex(OB_VARIANT.CONTROL, OB_SCREEN.GOALS)).toBe(2);
-    expect(getStepIndex(OB_VARIANT.LEAN, OB_SCREEN.GOALS)).toBe(4);
+    expect(getStepIndex(OB_VARIANT.LEAN, OB_SCREEN.GOALS)).toBe(5);
   });
 
-  it('no-bike branch (§4): lean skips reveal/maintenance/commitment', () => {
+  it('no-bike branch (§4 / T4b): skippers get the no-bike value screen, owners get the reveal', () => {
     const noBike = { hasBike: false };
-    // bike-setup skip routes around reveal → goals
-    expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.BIKE_SETUP, noBike)).toBe('/(onboarding)/goals');
-    // goals with no bike jumps past maintenance + commitment → paywall
+    const withBike = { hasBike: true };
+    // A skipper routes around the (bike-dependent) reveal to the no-bike value screen…
+    expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.BIKE_SETUP, noBike)).toBe(
+      '/(onboarding)/no-bike-value',
+    );
+    // …then no-bike-value → goals → (skip maintenance + commitment) → paywall
+    expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.NO_BIKE_VALUE, noBike)).toBe(
+      '/(onboarding)/goals',
+    );
     expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.GOALS, noBike)).toBe('/(onboarding)/paywall');
-    // with a bike, the normal flow is preserved
-    expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.BIKE_SETUP, { hasBike: true })).toBe(
+    // A bike owner gets the reveal and never sees the no-bike screen (it is skipped)
+    expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.BIKE_SETUP, withBike)).toBe(
       '/(onboarding)/reveal',
     );
-    expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.GOALS, { hasBike: true })).toBe(
+    expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.REVEAL, withBike)).toBe('/(onboarding)/goals');
+    expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.GOALS, withBike)).toBe(
       '/(onboarding)/maintenance',
     );
-    // control is the untouched V4 flow — the branch never applies
+    // invested reaches the no-bike screen too (after the building-plan loader)
+    expect(getNextRoute(OB_VARIANT.INVESTED, OB_SCREEN.BUILDING_PLAN, noBike)).toBe(
+      '/(onboarding)/no-bike-value',
+    );
+    // control is the untouched V4 flow — the branch never applies (no no-bike screen)
     expect(getNextRoute(OB_VARIANT.CONTROL, OB_SCREEN.GOALS, noBike)).toBe(
       getNextRoute(OB_VARIANT.CONTROL, OB_SCREEN.GOALS),
     );
@@ -135,7 +146,10 @@ describe('variant flow config', () => {
 
   it('next / resume / previous walk the active variant flow', () => {
     expect(getNextRoute(OB_VARIANT.LEAN, OB_SCREEN.BIKE_SETUP)).toBe('/(onboarding)/reveal');
-    expect(getResumeRoute(OB_VARIANT.LEAN, OB_SCREEN.REVEAL)).toBe('/(onboarding)/goals');
+    // Resume is bike-aware: a bike owner past the reveal skips the no-bike screen → goals.
+    expect(getResumeRoute(OB_VARIANT.LEAN, OB_SCREEN.REVEAL, { hasBike: true })).toBe(
+      '/(onboarding)/goals',
+    );
     expect(getPreviousRoute(OB_VARIANT.INVESTED, OB_SCREEN.STAY_ON_TOP)).toBe(
       '/(onboarding)/frequency',
     );

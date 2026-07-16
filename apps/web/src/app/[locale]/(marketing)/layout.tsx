@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { CursorDot } from '@/components/marketing/cursor-dot';
 import { Footer } from '@/components/marketing/footer';
 import { Navbar } from '@/components/marketing/navbar';
+import { StickyAppBar } from '@/components/marketing/sticky-app-bar';
 import { routing } from '@/i18n/routing';
 import { BASE_URL } from '@/lib/constants';
 import '@/components/marketing/design-system.css';
@@ -107,6 +108,7 @@ export default async function MarketingLayout({ children }: { children: React.Re
       <Navbar />
       <main id="main-content">{children}</main>
       <Footer />
+      <StickyAppBar />
 
       {/* Console easter egg for curious riders. No nonce: marketing routes are
           statically prerendered and served with a nonce-free CSP that permits

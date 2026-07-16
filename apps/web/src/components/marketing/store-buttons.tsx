@@ -1,7 +1,9 @@
 'use client';
 
-import { type StoreLocation, type StorePlatform, trackAppStoreClick } from '@/lib/analytics';
+import { trackStoreCtaClick } from '@/lib/analytics';
 import { buildPlayReferrer, getCampaignParams } from '@/lib/campaign';
+import { CtaPlacement, type StoreCtaContext, StorePlatform } from '@/lib/cta-taxonomy';
+import { detectPlatform } from '@/lib/store-links';
 
 const STORE_LINKS = {
   appStore: 'https://apps.apple.com/us/app/motovault/id6760291360',
@@ -11,7 +13,8 @@ const STORE_LINKS = {
 export { STORE_LINKS };
 
 /**
- * Anchor props for a "download the app" CTA.
+ * Anchor props for a "download the app" CTA — the single wiring every store CTA
+ * on the site delegates to (hero, footer, blog, guide, route, sticky bar…).
  *
  * Session replays showed users double-clicking the App Store link (no feedback
  * that the click worked) and abandoning after the tab navigated away from the
@@ -19,24 +22,38 @@ export { STORE_LINKS };
  * stays put, and the new tab appearing IS the feedback that the click landed —
  * no lingering spinner needed (a spinner still showing after the store opened
  * reads as "stuck" and re-invites the double-click). Tactile press feedback is
- * handled with a CSS `:active` transform on the button.
+ * handled with a CSS `:active` transform on the button. `ctx.sameTab` opts a
+ * rare same-tab CTA out of the new tab (event still survives via send_instantly).
  *
- * Spread onto an `<a>`: `<a {...storeAnchorProps('ios')} className="…">`.
+ * Spread onto an `<a>`: `<a {...storeAnchorProps('ios', ctx)} className="…">`.
  */
-export function storeAnchorProps(platform: StorePlatform, location: StoreLocation = 'cta') {
+export function storeAnchorProps(platform: StorePlatform, ctx: StoreCtaContext) {
   return {
-    href: platform === 'ios' ? STORE_LINKS.appStore : STORE_LINKS.googlePlay,
-    target: '_blank',
-    rel: 'noopener noreferrer',
+    href: platform === StorePlatform.Android ? STORE_LINKS.googlePlay : STORE_LINKS.appStore,
+    ...(ctx.sameTab ? {} : { target: '_blank', rel: 'noopener noreferrer' }),
     onClick: (e: React.MouseEvent<HTMLAnchorElement>) => {
       const campaign = getCampaignParams();
-      // Android install-referrer carries the channel deterministically into the
-      // Play install. Set it at click time (campaign params are client-only, so
-      // the SSR href stays clean and hydration-stable). iOS has no equivalent.
-      if (platform === 'android' && campaign) {
-        e.currentTarget.href = buildPlayReferrer(STORE_LINKS.googlePlay, campaign);
+      // Resolve the platform at click time when it wasn't known at render — the
+      // SSR/pre-detection default is 'unknown' (→ App Store href), so without
+      // this an Android tap before the caller's useEffect settled would open the
+      // App Store. The click handler always runs post-hydration, so detection is
+      // reliable here.
+      const resolved = platform === StorePlatform.Unknown ? detectPlatform() : platform;
+      // Android install-referrer carries the channel + intent deterministically
+      // into the Play install. Set the href at click time (params are client-only,
+      // so the SSR href stays clean and hydration-stable). First-touch campaign
+      // UTMs win over the CTA's default referrerParams on conflict. Always correct
+      // the href to Play for Android — even with no referrer params — so an
+      // SSR-defaulted App Store href never sends an Android user to the wrong store.
+      // iOS/desktop keep the App Store href (the App Store strips referrers; the
+      // clipboard-token path was dropped because it prompted a paste at onboarding).
+      if (resolved === StorePlatform.Android) {
+        const referrer = { ...ctx.referrerParams, ...campaign };
+        e.currentTarget.href = Object.keys(referrer).length
+          ? buildPlayReferrer(STORE_LINKS.googlePlay, referrer)
+          : STORE_LINKS.googlePlay;
       }
-      trackAppStoreClick(platform, location, campaign ?? undefined);
+      trackStoreCtaClick(resolved, ctx, campaign ?? undefined);
     },
   } as const;
 }
@@ -49,19 +66,26 @@ export function storeAnchorProps(platform: StorePlatform, location: StoreLocatio
  */
 export function StoreLink({
   platform,
-  location = 'cta',
+  pageType,
+  placement,
+  slug,
+  sameTab,
+  referrerParams,
   className,
   style,
   children,
-}: {
+}: StoreCtaContext & {
   platform: StorePlatform;
-  location?: StoreLocation;
   className?: string;
   style?: React.CSSProperties;
   children: React.ReactNode;
 }) {
   return (
-    <a {...storeAnchorProps(platform, location)} className={className} style={style}>
+    <a
+      {...storeAnchorProps(platform, { pageType, placement, slug, sameTab, referrerParams })}
+      className={className}
+      style={style}
+    >
       {children}
     </a>
   );
@@ -69,11 +93,15 @@ export function StoreLink({
 
 export function StoreButtons({
   size = 'md',
-  location = 'cta',
-}: {
+  pageType,
+  placement = CtaPlacement.Inline,
+  slug,
+  referrerParams,
+}: Omit<StoreCtaContext, 'placement' | 'sameTab'> & {
   size?: 'sm' | 'md' | 'lg';
-  location?: StoreLocation;
+  placement?: CtaPlacement;
 }) {
+  const ctx: StoreCtaContext = { pageType, placement, slug, referrerParams };
   const styles = {
     sm: 'px-5 py-2.5 text-sm gap-3',
     md: 'px-6 sm:px-8 py-3.5 text-base gap-4',
@@ -83,7 +111,7 @@ export function StoreButtons({
   return (
     <div className={`flex flex-wrap items-center ${styles[size]}`}>
       <a
-        {...storeAnchorProps('ios', location)}
+        {...storeAnchorProps(StorePlatform.Ios, ctx)}
         className="cta-primary cta-glow group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-6 sm:px-10 py-4 text-base sm:text-lg font-semibold text-neutral-950 shadow-lg shadow-warm-500/25 transition hover:bg-warm-400 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
       >
         <span className="absolute inset-0 -translate-x-full bg-warm-300 transition-transform duration-300 ease-out group-hover:translate-x-0" />
@@ -93,7 +121,7 @@ export function StoreButtons({
         </span>
       </a>
       <a
-        {...storeAnchorProps('android', location)}
+        {...storeAnchorProps(StorePlatform.Android, ctx)}
         className="cta-secondary inline-flex items-center justify-center rounded-full border-2 border-neutral-600 px-6 sm:px-8 py-3.5 text-neutral-300 transition hover:border-neutral-500 hover:text-neutral-100 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
       >
         <span className="flex items-center gap-2">

@@ -94,6 +94,7 @@
     "react-native-mmkv": "^4.3.0",
     "react-native-nitro-modules": "^0.35.10",
     "react-native-pdf": "^7.0.4",
+    "react-native-play-install-referrer": "1.1.9",
     "react-native-purchases": "10.4.2",
     "react-native-purchases-ui": "10.4.2",
     "react-native-reanimated": "4.3.1",
@@ -114,6 +115,13 @@
         "react-native-view-shot",
         "@sentry/react-native"
       ]
+    },
+    "autolinking": {
+      "android": {
+        "exclude": [
+          "@iternio/react-native-auto-play"
+        ]
+      }
     }
   },
   "devDependencies": {

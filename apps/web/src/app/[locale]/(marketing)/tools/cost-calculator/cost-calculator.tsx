@@ -1,9 +1,11 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useCallback, useMemo, useState } from 'react';
-import { Link } from '@/i18n/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { storeAnchorProps } from '@/components/marketing/store-buttons';
 import { trackEvent, WebEvent } from '@/lib/analytics';
+import { CtaPageType, CtaPlacement } from '@/lib/cta-taxonomy';
+import { detectPlatform, type Platform } from '@/lib/store-links';
 
 const BIKE_TYPES = {
   sport: { mpg: 40 },
@@ -75,6 +77,10 @@ interface Labels {
 
 export function CostCalculator({ labels }: { labels: Labels }) {
   const searchParams = useSearchParams();
+  const [platform, setPlatform] = useState<Platform>('unknown');
+  useEffect(() => {
+    setPlatform(detectPlatform());
+  }, []);
 
   // Seed once from the URL (shareable links), then own the values in local
   // state. Previously every keystroke called router.replace(), which triggers a
@@ -352,12 +358,17 @@ export function CostCalculator({ labels }: { labels: Labels }) {
                   // biome-ignore lint/security/noDangerouslySetInnerHtml: translated HTML with <strong>
                   dangerouslySetInnerHTML={{ __html: labels.trackActualCosts }}
                 />
-                <Link
-                  href="/"
+                <a
+                  {...storeAnchorProps(platform, {
+                    pageType: CtaPageType.Tool,
+                    placement: CtaPlacement.Inline,
+                    slug: 'cost-calculator',
+                    referrerParams: { utm_source: 'tool', utm_campaign: 'cost_calculator' },
+                  })}
                   className="inline-block rounded-full bg-warm-500 px-8 py-3 text-sm font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
                 >
                   {labels.getEarlyAccess}
-                </Link>
+                </a>
               </div>
             </div>
           </div>
