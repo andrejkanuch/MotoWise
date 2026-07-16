@@ -17,10 +17,21 @@ describe('resolveCtaAngle', () => {
     ).toBe(CtaAngle.Cost);
   });
 
+  it('routes the whole expense cluster (expense / fuel-log) to the expense angle', () => {
+    expect(resolveCtaAngle({ type: 'guide', slug: 'motorcycle-expense-tracker-app' })).toBe(
+      CtaAngle.Cost,
+    );
+    expect(resolveCtaAngle({ type: 'guide', slug: 'motorcycle-fuel-log-app' })).toBe(CtaAngle.Cost);
+  });
+
   it('maps maintenance articles to the maintenance angle', () => {
     expect(
       resolveCtaAngle({ type: 'maintenance', slug: 'yamaha-mt-07-maintenance-schedule' }),
     ).toBe(CtaAngle.Maintenance);
+    // Precise: a fuel-SYSTEM how-to is a guide, not an expense prospect.
+    expect(resolveCtaAngle({ type: 'guide', slug: 'motorcycle-fuel-system-cleaning' })).toBe(
+      CtaAngle.Guide,
+    );
   });
 
   it('maps guides and everything else to the service-history angle', () => {

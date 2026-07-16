@@ -43,16 +43,23 @@ type AngleInput = {
   keywordSlugs?: string[];
 };
 
+// Cost/expense-intent terms that route an article to the expense-tracker CTA (#1
+// paid feature) regardless of type. "cost"/"expense"/"budget" and the fuel-LOG
+// intent are money-tracking prospects; kept precise (fuel-"log", not bare
+// "fuel") so a fuel-system how-to guide stays on the Guide angle.
+const COST_INTENT_TERMS = ['cost', 'expense', 'budget', 'fuel log', 'fuel-log'] as const;
+
 /**
- * Resolve the CTA angle. Cost intent (a "*cost*" slug/keyword) wins over type —
- * a "maintenance cost per year" article is really an expense-tracker prospect —
- * otherwise the article's type decides, defaulting to the service-history angle.
+ * Resolve the CTA angle. Cost/expense intent wins over type — a "maintenance
+ * cost per year", "expense tracker", or "fuel log" article is really an
+ * expense-tracker prospect — otherwise the article's type decides, defaulting to
+ * the service-history angle.
  */
 export function resolveCtaAngle(article: AngleInput): CtaAngle {
   const haystack = [article.slug, ...(article.keywords ?? []), ...(article.keywordSlugs ?? [])]
     .join(' ')
     .toLowerCase();
-  if (haystack.includes('cost')) return CtaAngle.Cost;
+  if (COST_INTENT_TERMS.some((term) => haystack.includes(term))) return CtaAngle.Cost;
   return ANGLE_BY_TYPE[article.type] ?? CtaAngle.Guide;
 }
 
