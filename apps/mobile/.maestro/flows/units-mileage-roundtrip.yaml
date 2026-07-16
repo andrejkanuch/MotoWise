@@ -1,0 +1,144 @@
+# Odometer unit round-trip — E2E for PR #165 (canonical-km normalization).
+#
+# The regression this guards: odometer values are now stored in canonical
+# KILOMETRES and the display unit comes from the global measurement_system
+# (packages/types/src/units.ts). A rider types in their unit; the app converts
+# input -> km on write and km -> their unit on read. Before this PR the number
+# was stored raw in the display unit and labels were half-hardcoded "km".
+#
+# The flow proves the WHOLE contract on one bike, end to end:
+#   1. As an Imperial user, set the odometer to a known 10000.
+#   2. The bike hub shows "10,000 mi"  (input accepted as miles).
+#   3. Switch the global unit to Metric.
+#   4. The SAME bike now shows "16,093 km"  (10000 mi -> 16093 km): the stored
+#      value is canonical km and only the display converts — not a relabel.
+# 10000 mi == 16093 km is the fixture the unit test uses too
+# (apps/mobile/src/__tests__/odometer-unit-contract.test.ts), so the E2E and the
+# unit test assert the same round-trip at different layers.
+#
+# Setup: composes onboarding.yaml (signs in a pre-created user, leaves a Honda in
+# the garage, ends at Home). Run via:
+#   pnpm --filter @motovault/mobile test:e2e:units
+# which provisions/deletes a confirmed Supabase user and expects a STANDALONE/
+# PREVIEW build with EXPO_PUBLIC_OB_VARIANT=invested baked in (see README —
+# onboarding.yaml uses clearState, so a dev-client/Metro build is unsupported).
+# No cleanup: the runner deletes the throwaway user on teardown.
+#
+# iOS-first: Alert.prompt-style mileage entry doesn't exist on Android, but this
+# flow edits via the edit-bike FORM (a normal TextInput), so it is cross-platform
+# — only the native review-prompt guard is iOS-specific.
+#
+# AUTHORED FROM SOURCE 2026-07-16, PENDING ON-DEVICE VALIDATION. Selectors were
+# read from bike/[id].tsx (Edit3 pencil, accessibilityLabel "Edit"; the Gauge
+# odometer chip), edit-bike.tsx (Odometer section -> "Mileage" row -> number
+# input + read-only unit suffix; header "Save"), and preferences-section.tsx
+# (Units -> "Imperial (mi, °F)" / "Metric (km, °C)"). Device quirks handled inline
+# per .maestro/README.md (badge in tab a11y text; custom keyboard ignores
+# hideKeyboard — dismiss by tapping a non-interactive section label; save button
+# may sit below the fold; StoreKit review prompt after value-moments).
+# TO VERIFY ON DEVICE: that the edit-bike odometer TextInput is reachable via
+# `rightOf: { text: "Mileage" }` (the read-only unit suffix sits in the same row —
+# if the tap lands on it, switch to a point-tap or an accessibilityLabel on the
+# input); and that the hub odometer value + unit render as matchable text nodes.
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+  ODOMETER_MI: "10000"
+  DISPLAY_MI: "10,000" # toLocaleString of 10000
+  DISPLAY_KM: "16,093" # round(10000 * 1.609344) = 16093, toLocaleString
+---
+# 1. Setup — signed-in Home with a Honda in the garage.
+- runFlow: onboarding.yaml
+
+# 2. Force Imperial so the entry unit is deterministic. "(mi, °F)" contains regex
+#    metachars, so match a partial ".*Imperial.*".
+- tapOn:
+    text: ".*Profile.*"
+- scrollUntilVisible:
+    element:
+      text: "Units"
+    direction: DOWN
+- tapOn:
+    text: ".*Imperial.*" # Imperial (mi, °F) -> measurementSystem=imperial
+
+# 3. Open the bike and its edit screen (pencil, accessibilityLabel "Edit").
+- tapOn:
+    text: ".*Garage.*" # tab a11y text carries a due-count badge
+- tapOn:
+    text: ".*Honda.*"
+- extendedWaitUntil:
+    visible: "Add task"
+    timeout: 20000
+- tapOn:
+    text: "Edit" # Edit3 pencil accessibilityLabel (common.edit)
+
+# 4. Set a known odometer. Reach the Odometer section, focus the number field
+#    (rightOf the "Mileage" row label), clear the onboarding prefill, type 10000.
+- scrollUntilVisible:
+    element:
+      text: "Odometer"
+    direction: DOWN
+- tapOn:
+    rightOf:
+      text: "Mileage"
+- eraseText
+- inputText: ${ODOMETER_MI}
+
+# 5. In the edit form the unit suffix must already read "mi" (global preference).
+- assertVisible:
+    text: "mi"
+
+# 6. Dismiss the custom keyboard by tapping the non-interactive section label,
+#    then Save (header button; scroll to it if it's below the fold).
+- tapOn:
+    text: "Odometer"
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Save"
+    direction: DOWN
+- tapOn: "Save"
+# Editing a bike can trip the StoreKit review prompt on seasoned accounts.
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# 7. Back on the hub: Imperial shows the value AS ENTERED with a "mi" label.
+#    (Value and unit render as sibling Text nodes — assert each; a combined
+#    regex would not match, per the split-Text-node gotcha.)
+- extendedWaitUntil:
+    visible: "Add task"
+    timeout: 20000
+- assertVisible:
+    text: ${DISPLAY_MI} # "10,000"
+- assertVisible:
+    text: "mi"
+- takeScreenshot: units-imperial-10000mi
+
+# 8. Switch the GLOBAL unit to Metric.
+- tapOn:
+    text: ".*Profile.*"
+- scrollUntilVisible:
+    element:
+      text: "Units"
+    direction: DOWN
+- tapOn:
+    text: ".*Metric.*" # Metric (km, °C) -> measurementSystem=metric
+
+# 9. Same bike, no re-entry: the stored canonical km now renders as "16,093 km".
+#    This is the proof it's a real conversion of one stored value, not two
+#    separately-stored numbers or a relabel.
+- tapOn:
+    text: ".*Garage.*"
+- tapOn:
+    text: ".*Honda.*"
+- extendedWaitUntil:
+    visible: "Add task"
+    timeout: 20000
+- assertVisible:
+    text: ${DISPLAY_KM} # "16,093"
+- assertVisible:
+    text: "km"
+- assertNotVisible:
+    text: ${DISPLAY_MI} # the imperial "10,000" must be gone — value truly converted
+- takeScreenshot: units-metric-16093km

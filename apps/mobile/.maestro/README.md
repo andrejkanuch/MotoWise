@@ -64,6 +64,17 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   on-device 2026-07-15.** Uses `setLocation` for a GPS fix; ends via a long-press ("Hold to end
   ride") + a point-tap on the "End Anyway" bottom-sheet confirm (buttons not in the a11y tree).
   `test:e2e:log-ride`.
+- **`flows/units-mileage-roundtrip.yaml`** — odometer unit round-trip (PR #165, canonical-km). Sets
+  Imperial, edits a bike's odometer to **10000**, asserts the hub shows **"10,000 mi"**, switches the
+  global Units preference to Metric, and asserts the SAME bike now shows **"16,093 km"** (10000 mi ->
+  16093 km) — proving values are stored in km and only the display converts. Mirrors the
+  `odometer-unit-contract.test.ts` fixture at the E2E layer. **Authored from source 2026-07-16,
+  pending on-device validation** (verify the edit-bike odometer input selector + the hub value/unit
+  text nodes — see the flow header). `test:e2e:units`.
+- **`flows/units-display-toggle.yaml`** — the robust, no-data-entry companion: toggles the global
+  Units preference and asserts the bike-hub odometer **label** flips **mi <-> km** on the same bike
+  (guards the hardcoded-"km" regression class). No numeric-input selector, so lower fragility.
+  **Authored from source 2026-07-16, pending on-device validation.** `test:e2e:units-display`.
 
   All authed journey flows share the parameterized onboarding runner via `E2E_FLOW` /
   `E2E_EMAIL_PREFIX` (set inline in the `test:e2e:*` package scripts) — no per-flow wrapper needed.
