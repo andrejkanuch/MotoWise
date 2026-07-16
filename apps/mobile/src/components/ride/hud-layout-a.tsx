@@ -336,6 +336,7 @@ export function HudLayoutA({
               data={sparklineMode === 'speed' ? speedHistory : altitudeHistory}
               mode={sparklineMode}
               isNightMode={isNightMode}
+              system={system}
               onToggleMode={onToggleSparkline}
             />
           </View>

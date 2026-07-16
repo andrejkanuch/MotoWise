@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { cancelTaskNotification, scheduleMaintenanceReminder } from '../../../lib/notifications';
@@ -39,6 +40,7 @@ export default function EditMaintenanceTaskScreen() {
   }>();
   const { t: theme, isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
+  const mileageUnit = useMileageUnit();
 
   // Prefill from the already-fetched task list (warm cache): the rider always
   // reaches Edit from a list that has loaded this task. Mirrors complete-task.
@@ -507,9 +509,7 @@ export default function EditMaintenanceTaskScreen() {
                 }}
               />
               {targetMileage ? (
-                <Text style={{ fontSize: 13, color: palette.neutral400 }}>
-                  {t('maintenance.km', { defaultValue: 'km' })}
-                </Text>
+                <Text style={{ fontSize: 13, color: palette.neutral400 }}>{mileageUnit}</Text>
               ) : null}
             </View>
           </View>
