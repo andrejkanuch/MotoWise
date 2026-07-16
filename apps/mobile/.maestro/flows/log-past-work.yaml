@@ -1,0 +1,145 @@
+# Log past work + unit-preference carry-over — E2E for PR #164.
+#
+# Covers the three things that PR shipped:
+#   1. Units unify by the global preference. Set Imperial in Profile, then assert
+#      the maintenance screen's odometer suffix reads "mi" (the exact regression:
+#      it used to hardcode "km" regardless of the user's setting).
+#   2. The "Log past work" entry point in the bike screen's More (⋯) menu, which
+#      deep-links the Add-task modal into log mode (?mode=log).
+#   3. Log-done-work mode itself: it relabels the form (Odometer / Date completed
+#      / "Log it"), HIDES the Priority block, and creates the record as a
+#      completed history entry (status=completed) rather than a pending task.
+# Cleans up the record it created.
+#
+# Backdating: the picker allows past dates (minimumDate lowered to a 30y floor)
+# and stamps the chosen day as completedAt — that server path is covered by
+# maintenance-tasks.service.spec.ts (honors input completedAt, clamps future).
+# Driving the native inline calendar to a specific past day is flaky in Maestro,
+# so this flow proves the completed-record creation and leaves date-math to the
+# unit tests.
+#
+# Setup: composes onboarding.yaml (signs in a pre-created user, leaves a Honda in
+# the garage, ends at Home). Run via:
+#   pnpm --filter @motovault/mobile test:e2e:log-past-work
+# which provisions/deletes a confirmed Supabase user and expects a STANDALONE/
+# PREVIEW build with EXPO_PUBLIC_OB_VARIANT=invested baked in (see README —
+# dev-client/Metro builds are unsupported because onboarding.yaml uses clearState).
+#
+# AUTHORED FROM SOURCE 2026-07-16, PENDING ON-DEVICE VALIDATION. Selectors were
+# extracted from the screen code (bike/[id].tsx handleMoreActions,
+# add-maintenance-task.tsx, preferences-section.tsx) and en.json, not yet driven
+# live. Device-specific quirks handled inline (see .maestro/README.md):
+#   - the Garage/Profile tab a11y text carries a badge/label, so match tabs as a
+#     partial regex, not the bare word;
+#   - the custom keyboard ignores `hideKeyboard` — dismiss by tapping a
+#     non-interactive section label ("Record");
+#   - the "Log it" button can sit below the fold — scroll to it before tapping;
+#   - a StoreKit "Enjoying MotoVault?" review prompt is likely after logging
+#     (a value-moment) — dismiss "Not Now" (optional);
+#   - a logged (completed) record leaves the Active view — on the bike hub it
+#     moves to the "History" tab.
+# TO VERIFY ON DEVICE: the Profile tab label; that the native More action sheet
+# exposes "Log past work" as tappable text; and that the odometer input (no
+# testID) is reachable by its placeholder "e.g. 15000".
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+  TASK_TITLE: "E2E Logged Work"
+  ODOMETER: "30861"
+---
+# 1. Setup — reach a signed-in Home with a bike in the garage.
+- runFlow: onboarding.yaml
+
+# 2. Force a KNOWN unit preference so the assertion is deterministic. Open the
+#    Profile tab, reveal the Units picker, and pick Imperial (mi). Parentheses/°
+#    in the label are regex metachars, so match on a partial ".*Imperial.*".
+- tapOn:
+    text: ".*Profile.*"
+- scrollUntilVisible:
+    element:
+      text: "Units"
+    direction: DOWN
+- tapOn:
+    text: ".*Imperial.*" # "Imperial (mi, °F)" — sets measurementSystem=imperial
+
+# 3. Open the bike hub. The Garage tab a11y text carries a badge count, so match
+#    it as a partial regex.
+- tapOn:
+    text: ".*Garage.*"
+- tapOn:
+    text: ".*Honda.*" # the bike added during onboarding setup
+- extendedWaitUntil:
+    visible: "Add task"
+    timeout: 20000
+
+# 4. Use the NEW entry point: More (⋯) → "Log past work" deep-links into the
+#    Add-task modal already in log mode.
+- tapOn:
+    text: "More" # accessibilityLabel on the ⋯ quick-action
+- tapOn: "Log past work" # maintenance.modeLog, the featured action-sheet item
+
+# 5. Assert LOG-MODE shape: the save button reads "Log it", the mileage row is
+#    "Odometer", and the Priority block is HIDDEN (it only shows in Plan mode).
+#    This proves the mode switch reconfigures the form.
+- extendedWaitUntil:
+    visible: "Log it"
+    timeout: 20000
+- assertVisible: "Odometer"
+- assertVisible: "Date completed"
+- assertNotVisible: "Priority" # hidden when logging done work
+
+# 6. Fill the record. Title is autofocused on open; then focus the odometer input
+#    by its placeholder before typing (the custom keyboard concatenates into the
+#    previous field if focus didn't actually move).
+- inputText: ${TASK_TITLE}
+- tapOn: "e.g. 15000" # odometer input (garage.distanceIntervalPlaceholder)
+- inputText: ${ODOMETER}
+
+# 7. UNITS CARRY-OVER: because we set Imperial, the odometer suffix must read
+#    "mi" — not the old hardcoded "km". Exact whole-string match on the suffix.
+- assertVisible:
+    text: "mi"
+
+# 8. Dismiss the keyboard by tapping the non-interactive section label, then log
+#    it. The footer is pinned above the keyboard, but scroll to be safe.
+- tapOn:
+    text: "Record" # log-mode section label (maintenance.logSection) — non-interactive
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Log it"
+    direction: DOWN
+- tapOn: "Log it"
+# Logging is a value-moment — the StoreKit rating prompt may fire.
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# 9. Success — the record was created as COMPLETED, so it lives under History on
+#    the hub (the Active view hides it), and its card offers no pending "Done".
+- tapOn:
+    text: ".*History.*"
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: ${TASK_TITLE}
+    direction: DOWN
+- assertVisible: ${TASK_TITLE}
+- assertNotVisible:
+    text: "Done" # a completed card shows no "Done" action
+    below:
+      text: ${TASK_TITLE}
+- takeScreenshot: log-past-work-done
+
+# 10. Cleanup — delete the logged record so reruns stay deterministic. The
+#     confirm Alert reuses "Delete", so target it rightOf "Cancel".
+- tapOn:
+    text: "Delete"
+    below:
+      text: ${TASK_TITLE}
+- tapOn:
+    text: "Delete"
+    rightOf:
+      text: "Cancel"
+- assertNotVisible:
+    text: ${TASK_TITLE}
