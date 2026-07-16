@@ -1,4 +1,4 @@
-import { MeasurementSystem, mileageToDisplayUnit, mileageUnitLabel } from '@motovault/types';
+import { MeasurementSystem, mileageUnitLabel } from '@motovault/types';
 import {
   BadRequestException,
   ConflictException,
@@ -132,9 +132,10 @@ export class HealthReportsService {
       const expenses = (expensesResult.data ?? []) as unknown as ExpenseRow[];
       const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount ?? 0), 0);
 
-      // Odometer is stored in canonical km — display it in the owner's global
-      // measurement system, never the deprecated per-bike mileage_unit. The
-      // measurement_system column is a service-role-only read (00141 grants).
+      // Odometer is stored RAW in the owner's measurement system — only the
+      // unit label follows the global measurement_system, never the
+      // deprecated per-bike mileage_unit. The measurement_system column is a
+      // service-role-only read (00141 grants).
       const { data: userRow, error: userErr } = await this.supabaseAdmin
         .from('users')
         .select('measurement_system')
@@ -153,10 +154,7 @@ export class HealthReportsService {
           model: typedBike.model,
           year: typedBike.year,
           nickname: typedBike.nickname ?? undefined,
-          currentMileage:
-            typedBike.current_mileage != null
-              ? Math.round(mileageToDisplayUnit(typedBike.current_mileage, system))
-              : undefined,
+          currentMileage: typedBike.current_mileage ?? undefined,
           mileageUnit: mileageUnitLabel(system),
         },
         tasks,

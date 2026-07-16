@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   KM_PER_MILE,
-  METERS_PER_KM,
-  metersToKm,
   mileageFromDisplayUnit,
   mileageToDisplayUnit,
   mileageUnitLabel,
@@ -40,14 +38,6 @@ describe('odometer km <-> display-unit helpers', () => {
   it('mileageUnitLabel maps system → short label', () => {
     expect(mileageUnitLabel('metric')).toBe('km');
     expect(mileageUnitLabel('imperial')).toBe('mi');
-  });
-
-  describe('metersToKm', () => {
-    it('divides meters by 1000', () => {
-      expect(metersToKm(1000)).toBe(1);
-      expect(metersToKm(15234)).toBeCloseTo(15.234, 6);
-      expect(metersToKm(METERS_PER_KM)).toBe(1);
-    });
   });
 
   it('KM_PER_MILE constant is the statute-mile factor', () => {

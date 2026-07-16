@@ -86,7 +86,7 @@ describe('generateMaintenanceHistoryHTML — date range filter', () => {
     expect(html).toContain('NoDates');
   });
 
-  it('renders km values in the user display unit (imperial converts km → mi)', () => {
+  it('renders raw mileage values with the user unit label (no conversion)', () => {
     const metric = generateMaintenanceHistoryHTML(
       { ...BIKE, currentMileage: 16093 },
       [task({ title: 'Service', completedAt: '2026-01-10', completedMileage: 16093 })],
@@ -99,8 +99,8 @@ describe('generateMaintenanceHistoryHTML — date range filter', () => {
       [task({ title: 'Service', completedAt: '2026-01-10', completedMileage: 16093 })],
       'imperial',
     );
-    // 16093 km ≈ 10000 mi
-    expect(imperial).toContain('10,000 mi');
+    // Value is stored raw in the user's unit; only the label changes.
+    expect(imperial).toContain('16,093 mi');
     expect(imperial).not.toContain('16,093 km');
   });
 });

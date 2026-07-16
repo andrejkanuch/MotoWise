@@ -13,7 +13,7 @@ import {
   RideOverviewDocument,
   type RideOverviewQuery,
 } from '@motovault/graphql';
-import { CURRENCY_SYMBOLS, mileageToDisplayUnit, mileageUnitLabel } from '@motovault/types';
+import { CURRENCY_SYMBOLS, mileageUnitLabel } from '@motovault/types';
 import { Platform } from 'react-native';
 import { useAuthStore } from '../stores/auth.store';
 import {
@@ -110,11 +110,9 @@ export async function syncWidgets(
         : null;
       const isOverdue = daysUntil !== null && daysUntil < 0;
 
-      // target_mileage is canonical km; render in the user's global unit.
+      // target_mileage is stored raw in the user's unit; render with the global label.
       const unitLabel = mileageUnitLabel(measurementSystem);
-      const targetDisplay = next.targetMileage
-        ? Math.round(mileageToDisplayUnit(next.targetMileage, measurementSystem)).toLocaleString()
-        : null;
+      const targetDisplay = next.targetMileage ? next.targetMileage.toLocaleString() : null;
 
       let dueLabel = '';
       if (daysUntil !== null) {

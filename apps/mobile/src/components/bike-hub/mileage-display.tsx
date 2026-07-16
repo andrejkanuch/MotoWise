@@ -1,11 +1,9 @@
 import { palette } from '@motovault/design-system';
-import { mileageFromDisplayUnit, mileageToDisplayUnit } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { Gauge } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 
 interface MileageDisplayProps {
   currentMileage?: number;
@@ -23,10 +21,6 @@ export function MileageDisplay({
   onUpdate,
 }: MileageDisplayProps) {
   const { t } = useTranslation();
-  const system = useMeasurementSystem();
-  // `currentMileage` is stored in canonical km; convert to the user's unit for display/prefill.
-  const displayMileage =
-    currentMileage != null ? mileageToDisplayUnit(currentMileage, system) : null;
 
   const getLastUpdatedText = () => {
     if (!mileageUpdatedAt) return t('bikeHub.neverUpdated', { defaultValue: 'Never updated' });
@@ -53,12 +47,9 @@ export function MileageDisplay({
         {
           text: t('common.save', { defaultValue: 'Save' }),
           onPress: (value: string | undefined) => {
-            // The user types in their display unit; persist canonical km via onUpdate.
             const num = Number.parseInt(value ?? '', 10);
             if (Number.isNaN(num) || num < 0) return;
-            const km = Math.round(mileageFromDisplayUnit(num, system));
-            // Compare in display space so the warning matches what the user sees.
-            if (displayMileage != null && num < displayMileage) {
+            if (currentMileage != null && num < currentMileage) {
               Alert.alert(
                 t('bikeHub.mileageWarning', { defaultValue: 'Lower mileage?' }),
                 t('bikeHub.mileageWarningMessage', {
@@ -68,18 +59,18 @@ export function MileageDisplay({
                   { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
                   {
                     text: t('common.confirm', { defaultValue: 'Confirm' }),
-                    onPress: () => onUpdate(km),
+                    onPress: () => onUpdate(num),
                   },
                 ],
               );
               return;
             }
-            onUpdate(km);
+            onUpdate(num);
           },
         },
       ],
       'plain-text',
-      displayMileage != null ? Math.round(displayMileage).toString() : '',
+      currentMileage?.toString() ?? '',
       'number-pad',
     );
   };
@@ -110,8 +101,8 @@ export function MileageDisplay({
               color: isDark ? palette.neutral50 : palette.neutral950,
             }}
           >
-            {displayMileage != null
-              ? `${Math.round(displayMileage).toLocaleString()} ${mileageUnit}`
+            {currentMileage != null
+              ? `${currentMileage.toLocaleString()} ${mileageUnit}`
               : t('bikeHub.noMileage', { defaultValue: 'No mileage' })}
           </Text>
           <Text style={{ fontSize: 11, color: palette.neutral500 }}>{getLastUpdatedText()}</Text>

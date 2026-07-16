@@ -4,7 +4,7 @@ import {
   type ExpensesByMotorcycleQuery,
   MyMotorcyclesDocument,
 } from '@motovault/graphql';
-import { type ExpenseCategory, mileageToDisplayUnit } from '@motovault/types';
+import type { ExpenseCategory } from '@motovault/types';
 import * as Sentry from '@sentry/react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -32,7 +32,6 @@ import {
   useDashboardData,
   useExpenseDashboard,
 } from '../../../hooks/use-expense-dashboard';
-import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../../lib/expense-constants';
@@ -218,9 +217,6 @@ export default function ExpenseDashboardScreen() {
   }>();
   // Unit follows the user's profile preference, not the deprecated per-bike field.
   const mileageUnit = useMileageUnit();
-  // The currentMileage param is canonical km; convert to the user's unit so the
-  // cost-per-distance ratio matches the COST/KM vs COST/MI label.
-  const system = useMeasurementSystem();
   const { t } = useTranslation();
 
   const [period, setPeriod] = useState<Period>('thisYear');
@@ -364,7 +360,7 @@ export default function ExpenseDashboardScreen() {
     return <EmptyState motorcycleId={motorcycleId} />;
   }
 
-  const mileageNum = currentMileage ? mileageToDisplayUnit(Number(currentMileage), system) : null;
+  const mileageNum = currentMileage ? Number(currentMileage) : null;
 
   const monthsInPeriod = (() => {
     if (filteredBuckets.length === 0) return 1;

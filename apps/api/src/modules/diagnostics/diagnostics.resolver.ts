@@ -1,7 +1,6 @@
 import {
   CreateDiagnosticSchema,
   MeasurementSystem,
-  mileageToDisplayUnit,
   mileageUnitLabel,
   SubmitDiagnosticSchema,
 } from '@motovault/types';
@@ -93,8 +92,9 @@ export class DiagnosticsResolver {
     });
 
     // 2. Build AI context from motorcycle or manual bike info.
-    // Odometer values are stored in canonical km — present them in the owner's
-    // global measurement system, never the deprecated per-bike mileageUnit.
+    // Odometer values are stored RAW in the owner's measurement system — only
+    // the unit label follows the global measurement system, never the
+    // deprecated per-bike mileageUnit.
     const measurementSystem =
       (userRecord.measurementSystem as MeasurementSystem) ?? MeasurementSystem.METRIC;
     const mileageUnit = mileageUnitLabel(measurementSystem);
@@ -116,10 +116,7 @@ export class DiagnosticsResolver {
       model = motorcycle.model;
       year = motorcycle.year;
       motorcycleType = motorcycle.type;
-      mileage =
-        motorcycle.currentMileage != null
-          ? Math.round(mileageToDisplayUnit(motorcycle.currentMileage, measurementSystem))
-          : undefined;
+      mileage = motorcycle.currentMileage ?? undefined;
       engineCc = motorcycle.engineCc;
     } else if (input.manualBikeInfo) {
       make = input.manualBikeInfo.make;
@@ -149,10 +146,7 @@ export class DiagnosticsResolver {
             } else {
               parts.push(`status: ${task.status}`);
             }
-            if (task.completedMileage != null)
-              parts.push(
-                `at ${Math.round(mileageToDisplayUnit(task.completedMileage, measurementSystem))} ${unit}`,
-              );
+            if (task.completedMileage != null) parts.push(`at ${task.completedMileage} ${unit}`);
             return `- ${parts.join(' | ')}`;
           })
           .join('\n');

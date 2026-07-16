@@ -1,4 +1,8 @@
-import type { ApproveMaintenanceDraftInput } from '@motovault/types';
+import {
+  type ApproveMaintenanceDraftInput,
+  type MeasurementSystem,
+  mileageToDisplayUnit,
+} from '@motovault/types';
 import {
   BadRequestException,
   ForbiddenException,
@@ -203,6 +207,18 @@ export class OemSchedulesService {
 
     if (schedules.length === 0) return 0;
 
+    // OEM interval_km is KILOMETRES; current_mileage is stored RAW in the owner's
+    // measurement-system unit. Convert the interval to that unit before adding so
+    // an imperial bike's first target_mileage isn't inflated ~1.61x
+    // (docs/plans/odometer-unit-normalization.md). measurement_system is a
+    // service-role read (00141), hence the admin client.
+    const { data: userRow } = await this.supabase
+      .from('users')
+      .select('measurement_system')
+      .eq('id', userId)
+      .single();
+    const system = (userRow?.measurement_system as MeasurementSystem | null) ?? 'metric';
+
     // Check which oem_schedule_ids already exist for this motorcycle (dedup)
     const scheduleIds = schedules.map((s) => s.id);
     const { data: existing } = await this.supabase
@@ -220,9 +236,10 @@ export class OemSchedulesService {
         const dueDate = schedule.intervalDays
           ? new Date(now.getTime() + schedule.intervalDays * 24 * 60 * 60 * 1000).toISOString()
           : null;
-        // currentMileage and schedule.intervalKm are both canonical KILOMETRES
-        // (docs/plans/odometer-unit-normalization.md) — unit-safe addition.
-        const targetMileage = schedule.intervalKm ? currentMileage + schedule.intervalKm : null;
+        // currentMileage is raw user-unit; schedule.intervalKm is km → convert.
+        const targetMileage = schedule.intervalKm
+          ? currentMileage + Math.round(mileageToDisplayUnit(schedule.intervalKm, system))
+          : null;
 
         return {
           user_id: userId,

@@ -1,9 +1,4 @@
-import {
-  type Currency,
-  type MeasurementSystem,
-  mileageToDisplayUnit,
-  mileageUnitLabel,
-} from '@motovault/types';
+import { type Currency, type MeasurementSystem, mileageUnitLabel } from '@motovault/types';
 import { formatCurrency } from './expense-constants';
 
 export interface PdfBike {
@@ -142,12 +137,12 @@ function renderTaskRow(task: PdfTask, system: MeasurementSystem): string {
       ? formatDate(task.dueDate)
       : '—';
 
-  // completedMileage / targetMileage are canonical km; render in the user's unit.
+  // completedMileage / targetMileage are stored raw in the user's unit.
   const safeUnit = escapeHtml(mileageUnitLabel(system));
-  const mileageKm = task.completedMileage ?? task.targetMileage ?? null;
-  const mileage =
-    mileageKm != null
-      ? `${Math.round(mileageToDisplayUnit(mileageKm, system)).toLocaleString()} ${safeUnit}`
+  const mileage = task.completedMileage
+    ? `${task.completedMileage.toLocaleString()} ${safeUnit}`
+    : task.targetMileage
+      ? `${task.targetMileage.toLocaleString()} ${safeUnit}`
       : '—';
 
   const pColor = priorityColor(task.priority);
@@ -230,7 +225,7 @@ export function generateMaintenanceHistoryHTML(
   const bikeInfoRows = [
     bike.vin ? `<span class="info-item"><strong>VIN:</strong> ${escapeHtml(bike.vin)}</span>` : '',
     bike.currentMileage != null
-      ? `<span class="info-item"><strong>Mileage:</strong> ${Math.round(mileageToDisplayUnit(bike.currentMileage, system)).toLocaleString()} ${unit}</span>`
+      ? `<span class="info-item"><strong>Mileage:</strong> ${bike.currentMileage.toLocaleString()} ${unit}</span>`
       : '',
   ]
     .filter(Boolean)

@@ -10,7 +10,6 @@ import {
   MyRidesDocument,
   UpdateMotorcycleDocument,
 } from '@motovault/graphql';
-import { mileageToDisplayUnit } from '@motovault/types';
 import * as Sentry from '@sentry/react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -48,7 +47,6 @@ import { ExpensesSection } from '../../../../components/bike-hub/expenses-sectio
 import { MaintenanceSection } from '../../../../components/bike-hub/maintenance-section';
 import { MileageDisplay } from '../../../../components/bike-hub/mileage-display';
 import { OemDisclaimerCard } from '../../../../components/maintenance/oem-disclaimer-card';
-import { useMeasurementSystem } from '../../../../hooks/use-measurement-system';
 import { useMileageUnit } from '../../../../hooks/use-mileage-unit';
 import { useMotorcycleDocuments } from '../../../../hooks/use-motorcycle-documents';
 
@@ -100,8 +98,6 @@ export default function BikeDetailScreen() {
   // Source of truth for the unit label — the user's profile preference, not the
   // deprecated per-bike `bike.mileageUnit`.
   const mileageUnit = useMileageUnit();
-  // Persisted mileage is canonical km; convert to the user's unit at the edges.
-  const system = useMeasurementSystem();
 
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -665,10 +661,7 @@ export default function BikeDetailScreen() {
             >
               <Gauge size={13} color={theme.ink2} />
               <Text style={{ fontSize: 12, color: theme.ink2, fontWeight: '600' }}>
-                {Math.round(
-                  mileageToDisplayUnit(bike.currentMileage ?? 0, system),
-                ).toLocaleString()}{' '}
-                {mileageUnit}
+                {(bike.currentMileage ?? 0).toLocaleString()} {mileageUnit}
               </Text>
             </View>
             {tasks.length > 0 && healthScore.hasData && (
@@ -870,10 +863,7 @@ export default function BikeDetailScreen() {
               }}
             >
               {bike.currentMileage && (statsExpenseData?.expenses?.ytdTotal ?? 0) > 0
-                ? formatCurrency(
-                    (statsExpenseData?.expenses?.ytdTotal ?? 0) /
-                      mileageToDisplayUnit(bike.currentMileage, system),
-                  )
+                ? formatCurrency((statsExpenseData?.expenses?.ytdTotal ?? 0) / bike.currentMileage)
                 : '—'}
             </Text>
           </View>

@@ -1,5 +1,5 @@
 import { MyMotorcyclesDocument } from '@motovault/graphql';
-import { mileageToDisplayUnit, mileageUnitLabel } from '@motovault/types';
+import { mileageUnitLabel } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, Route } from 'lucide-react-native';
 import { memo, useMemo } from 'react';
@@ -74,8 +74,7 @@ export const BikeBanner = memo(function BikeBanner() {
           <Text style={{ color: t.ink3, fontWeight: '400' }}>
             ·{' '}
             {bike.type ?? translate('discover.motorcycleFallback', { defaultValue: 'motorcycle' })}{' '}
-            · {Math.round(mileageToDisplayUnit(bike.currentMileage ?? 0, system)).toLocaleString()}{' '}
-            {mileageUnitLabel(system)}
+            · {(bike.currentMileage ?? 0).toLocaleString()} {mileageUnitLabel(system)}
           </Text>
         </Text>
       </View>

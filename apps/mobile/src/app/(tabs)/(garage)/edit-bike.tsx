@@ -6,7 +6,7 @@ import {
   MyMotorcyclesDocument,
   UpdateMotorcycleDocument,
 } from '@motovault/graphql';
-import { MotorcycleVariant, mileageFromDisplayUnit, mileageToDisplayUnit } from '@motovault/types';
+import { MotorcycleVariant } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
@@ -42,7 +42,6 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeToggle } from '../../../components/ui/native-toggle';
 import { useCurrency } from '../../../hooks/use-currency';
-import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../lib/image-upload';
@@ -58,8 +57,6 @@ export default function EditBikeScreen() {
   const { symbol: currencySymbol } = useCurrency();
   // Mileage unit is a profile-level preference (not per-bike) — read-only here.
   const mileageUnit = useMileageUnit();
-  // Stored mileage is canonical km; the input shows/accepts the user's unit.
-  const system = useMeasurementSystem();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { t: theme, isDark } = useEditorialTheme();
@@ -151,10 +148,7 @@ export default function EditBikeScreen() {
         year: String(bike.year),
         make: bike.make,
         model: bike.model,
-        mileage:
-          bike.currentMileage != null
-            ? String(Math.round(mileageToDisplayUnit(bike.currentMileage, system)))
-            : '',
+        mileage: bike.currentMileage != null ? String(bike.currentMileage) : '',
         isPrimary: bike.isPrimary,
         photoUrl: bike.primaryPhotoUrl ?? null,
         purchasePrice: bike.purchasePrice != null ? String(bike.purchasePrice) : '',
@@ -172,7 +166,7 @@ export default function EditBikeScreen() {
       setVariant(vals.variant);
       setInitialized(true);
     }
-  }, [bike, initialized, system]);
+  }, [bike, initialized]);
 
   // Match make/model from the NHTSA list ONCE on initial load. These must not
   // depend on selectedMake/selectedModel: re-running when the selection clears
@@ -284,7 +278,7 @@ export default function EditBikeScreen() {
           model: modelName,
           isPrimary,
           ...(mileageNum != null && !Number.isNaN(mileageNum)
-            ? { currentMileage: Math.round(mileageFromDisplayUnit(mileageNum, system)) }
+            ? { currentMileage: mileageNum }
             : {}),
           ...(photoUrl !== initialValues.current.photoUrl && photoUrl
             ? { primaryPhotoUrl: photoUrl }

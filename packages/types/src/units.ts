@@ -1,14 +1,16 @@
 // MOT-140 / P2-109: Shared unit conversion helpers.
 //
-// Canonical storage contract (see docs/plans/odometer-unit-normalization.md):
-// every persisted odometer/mileage integer is stored in KILOMETRES —
-// `motorcycles.current_mileage`, `maintenance_tasks.target_mileage`,
-// `completed_mileage`, and `interval_km`. Ride distances come from GPS in
-// meters (`rides.distance_m`); fuel odometer is stored km (`fuel_logs.odometer_km`).
-// The display unit is derived from the user's global `measurement_system`
-// ('metric' | 'imperial'); the per-bike `motorcycles.mileage_unit` is
-// deprecated and MUST NOT be used to decide a value's unit. Convert user input
-// → km on write and km → display unit on read, at the edges only.
+// Storage contract (see docs/plans/odometer-unit-normalization.md): odometer
+// integers — `motorcycles.current_mileage`, `maintenance_tasks.target_mileage`,
+// `completed_mileage` — are stored RAW in the user's global `measurement_system`
+// unit (mi for imperial, km for metric), NOT normalized. `interval_km` is km for
+// OEM-seeded tasks and raw user-unit for user-entered tasks. Ride distances come
+// from GPS in meters (`rides.distance_m`); fuel odometer is stored km
+// (`fuel_logs.odometer_km`). The display LABEL derives from `measurement_system`;
+// the per-bike `motorcycles.mileage_unit` is deprecated and MUST NOT be read to
+// decide a value's unit (it defaults 'mi' and is unreliable). Convert only at the
+// arithmetic EDGES where a km value (OEM interval, ride meters) meets a raw
+// odometer — never store a converted odometer.
 //
 // Keep all magic numbers in exactly one place so the MOT-140 meters-to-km bug
 // can't recur on the next sync path.
@@ -33,21 +35,17 @@ export function unitToMeters(value: number, unit: MileageUnit): number {
   return unit === 'km' ? value * METERS_PER_KM : value * METERS_PER_MILE;
 }
 
-/** Convert meters to kilometres (canonical odometer/ride-sync unit). */
-export function metersToKm(meters: number): number {
-  return meters / METERS_PER_KM;
-}
+// --- Odometer/mileage: km <-> user display unit ------------------------------
+// Keyed off the user's GLOBAL measurement system (never the per-bike unit). Used
+// at the arithmetic edges only — e.g. converting an OEM `interval_km` (km) to the
+// user's unit before adding it to a raw odometer value.
 
-// --- Odometer/mileage: canonical km <-> user display unit --------------------
-// These pair with the "store km, convert at the edges" contract above and are
-// keyed off the user's GLOBAL measurement system (never the per-bike unit).
-
-/** Canonical km → the value shown to the user in their measurement system. */
+/** A km value (e.g. an OEM interval) → the user's measurement-system unit. */
 export function mileageToDisplayUnit(km: number, system: MeasurementSystem): number {
   return system === 'imperial' ? kmToMiles(km) : km;
 }
 
-/** A value the user typed in their measurement system → canonical km for storage. */
+/** A value in the user's measurement-system unit → km. */
 export function mileageFromDisplayUnit(value: number, system: MeasurementSystem): number {
   return system === 'imperial' ? milesToKm(value) : value;
 }

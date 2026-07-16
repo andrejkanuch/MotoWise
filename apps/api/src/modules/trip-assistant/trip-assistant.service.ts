@@ -1,4 +1,4 @@
-import { MeasurementSystem, mileageToDisplayUnit, mileageUnitLabel } from '@motovault/types';
+import { MeasurementSystem, mileageUnitLabel } from '@motovault/types';
 import type { Tables } from '@motovault/types/database';
 import {
   BadRequestException,
@@ -229,7 +229,7 @@ export class TripAssistantService {
     const bikeLine = bike
       ? `${bike.year ?? ''} ${bike.make ?? ''} ${bike.model ?? ''}${bike.engine_cc ? ` ${bike.engine_cc}cc` : ''}${bike.type ? ` (${bike.type})` : ''}${
           bike.current_mileage != null
-            ? `, odometer ${Math.round(mileageToDisplayUnit(bike.current_mileage, system))} ${mileageUnitLabel(system)}`
+            ? `, odometer ${bike.current_mileage} ${mileageUnitLabel(system)}`
             : ''
         }`.trim()
       : 'No primary bike on file';

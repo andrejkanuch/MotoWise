@@ -1,3 +1,4 @@
+import { type MeasurementSystem, mileageToDisplayUnit } from '@motovault/types';
 import {
   BadRequestException,
   Inject,
@@ -320,15 +321,25 @@ export class MaintenanceTasksService {
       ? new Date(now.getTime() + completedTask.intervalDays * 24 * 60 * 60 * 1000).toISOString()
       : null;
 
-    // completedMileage and intervalKm are both canonical KILOMETRES
-    // (docs/plans/odometer-unit-normalization.md), so this addition is unit-safe
-    // for metric and imperial users alike. (Before km normalization, completed_
-    // mileage was raw user-unit while interval_km was km — inflating imperial
-    // next-due by ~1.61x.)
-    const targetMileage =
-      completedTask.intervalKm && completedTask.completedMileage
-        ? completedTask.completedMileage + completedTask.intervalKm
-        : null;
+    // completedMileage is stored RAW in the owner's measurement-system unit, but
+    // interval_km is KILOMETRES for OEM-seeded tasks (raw user-unit for
+    // user-entered ones). Convert an OEM interval to the user's unit before
+    // adding, so an imperial user's next-due isn't inflated ~1.61x
+    // (docs/plans/odometer-unit-normalization.md).
+    let targetMileage: number | null = null;
+    if (completedTask.intervalKm && completedTask.completedMileage) {
+      const { data: userRow } = await this.adminClient
+        .from('users')
+        .select('measurement_system')
+        .eq('id', completedTask.userId)
+        .single();
+      const system = (userRow?.measurement_system as MeasurementSystem | null) ?? 'metric';
+      const intervalInUserUnit =
+        completedTask.source === 'oem'
+          ? Math.round(mileageToDisplayUnit(completedTask.intervalKm, system))
+          : completedTask.intervalKm;
+      targetMileage = completedTask.completedMileage + intervalInUserUnit;
+    }
 
     // Use the RLS-enforcing user client for this user-scoped write (the admin
     // client bypasses RLS author checks) and log failures — the old path

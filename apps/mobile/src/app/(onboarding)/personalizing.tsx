@@ -3,7 +3,7 @@ import {
   type CompleteOnboardingInput,
   UpdateUserDocument,
 } from '@motovault/graphql';
-import { type MeasurementSystem, type MileageUnit, mileageFromDisplayUnit } from '@motovault/types';
+import { type MeasurementSystem, type MileageUnit, mileageUnitLabel } from '@motovault/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
 import { useLocalSearchParams } from 'expo-router';
@@ -50,10 +50,10 @@ import { useChecklistStore } from '../../stores/checklist.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
 // Onboarding still captures mileage with a per-bike mi/km toggle, but the app now
-// derives the display unit from the global users.measurement_system (canonical km
-// storage — docs/plans/odometer-unit-normalization.md). Map the toggle choice to
-// the global system so we (a) convert the entered odometer to km and (b) persist
-// the matching measurement_system.
+// derives the display unit from the global users.measurement_system
+// (docs/plans/odometer-unit-normalization.md). Map the toggle choice to the global
+// system so we persist the matching measurement_system (the odometer itself is
+// stored raw in that unit — no conversion).
 const UNIT_TO_SYSTEM: Record<MileageUnit, MeasurementSystem> = {
   mi: 'imperial',
   km: 'metric',
@@ -210,8 +210,8 @@ export default function PersonalizingScreen() {
       }
 
       // Resolve the user's global measurement system from the onboarding unit
-      // toggle (falling back to the device-derived store default), then store the
-      // odometer in canonical km.
+      // toggle (falling back to the device-derived store default). The odometer is
+      // stored raw in that unit; we persist measurement_system to match.
       const chosenUnit = bikeData?.mileageUnit ?? preBikeMileageUnit ?? null;
       const onboardingSystem: MeasurementSystem = chosenUnit
         ? UNIT_TO_SYSTEM[chosenUnit]
@@ -237,12 +237,10 @@ export default function PersonalizingScreen() {
           ...(bikeData.model?.trim() && { bikeModel: bikeData.model.trim() }),
           ...(bikeData.type && { bikeType: bikeData.type }),
           bikeYear: bikeData.year,
-          // Convert the typed odometer to canonical km; the deprecated per-bike
-          // unit column is stored 'km' to stay truthful with the new contract.
-          bikeMileage: Math.round(
-            mileageFromDisplayUnit(bikeData.currentMileage, onboardingSystem),
-          ),
-          bikeMileageUnit: 'km' satisfies MileageUnit,
+          // Odometer is stored raw in the user's unit; the per-bike unit column
+          // records the matching label from the global measurement system.
+          bikeMileage: bikeData.currentMileage,
+          bikeMileageUnit: mileageUnitLabel(onboardingSystem),
           ...(bikeData.nickname && { bikeNickname: bikeData.nickname }),
           ...(bikePhotoUrl && { bikePhotoUrl }),
         }),

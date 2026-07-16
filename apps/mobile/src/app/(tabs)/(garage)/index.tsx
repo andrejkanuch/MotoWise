@@ -1,5 +1,4 @@
 import { MyMotorcyclesDocument } from '@motovault/graphql';
-import { mileageToDisplayUnit } from '@motovault/types';
 import * as Sentry from '@sentry/react-native';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -17,7 +16,6 @@ import { LottieMotorcycle } from '../../../components/lottie-motorcycle';
 import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
 import { ECard, ESectionMasthead } from '../../../components/ui/editorial';
-import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { useProGate } from '../../../hooks/use-pro-gate';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -37,8 +35,6 @@ export default function GarageScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { requireAccess, isPro } = useProGate();
-  // Persisted mileage is canonical km; convert to the user's unit for display.
-  const system = useMeasurementSystem();
   const mileageUnit = useMileageUnit();
   const [view, setView] = useState<'shelf' | 'grid'>('shelf');
 
@@ -53,7 +49,7 @@ export default function GarageScreen() {
 
   const motorcycles = data?.myMotorcycles ?? [];
   const totalKm = motorcycles.reduce((sum, b) => sum + (b.currentMileage ?? 0), 0);
-  const totalDistanceDisplay = Math.round(mileageToDisplayUnit(totalKm, system)).toLocaleString();
+  const totalDistanceDisplay = totalKm.toLocaleString();
 
   const handleAddBike = () => {
     if (!requireAccess('MAX_BIKES', motorcycles.length)) return;
@@ -515,9 +511,7 @@ export default function GarageScreen() {
                               letterSpacing: -0.4,
                             }}
                           >
-                            {Math.round(
-                              mileageToDisplayUnit(bike.currentMileage ?? 0, system),
-                            ).toLocaleString()}{' '}
+                            {(bike.currentMileage ?? 0).toLocaleString()}{' '}
                             <Text style={{ fontSize: 11, opacity: 0.7 }}>{mileageUnit}</Text>
                           </Text>
                         </View>
@@ -761,9 +755,7 @@ export default function GarageScreen() {
                         >
                           {t('garage.mileageDistance', {
                             defaultValue: '{{distance}} {{unit}}',
-                            distance: Math.round(
-                              mileageToDisplayUnit(bike.currentMileage ?? 0, system),
-                            ).toLocaleString(),
+                            distance: (bike.currentMileage ?? 0).toLocaleString(),
                             unit: mileageUnit,
                           })}
                         </Text>

@@ -4,7 +4,7 @@
 // (start-mode pref via auth.store partialize; active bike via my-motorcycles;
 // live strip via the carplay-coordinator snapshot).
 
-import { mileageToDisplayUnit, mileageUnitLabel } from '@motovault/types';
+import { mileageUnitLabel } from '@motovault/types';
 import { router } from 'expo-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -40,7 +40,7 @@ export default function CarPlayHubScreen() {
     : t('carplay.hub.noBike', { defaultValue: 'No bike selected' });
   const bikeStat =
     bike?.currentMileage != null
-      ? `${Math.round(mileageToDisplayUnit(bike.currentMileage, system)).toLocaleString()} ${mileageUnitLabel(system).toUpperCase()}`
+      ? `${bike.currentMileage.toLocaleString()} ${mileageUnitLabel(system).toUpperCase()}`
       : '—';
 
   const pick = (m: StartMode) => {

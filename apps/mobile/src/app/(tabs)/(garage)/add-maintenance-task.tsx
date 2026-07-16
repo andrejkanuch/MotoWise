@@ -5,7 +5,6 @@ import {
   type MaintenancePriority,
   MaintenanceTaskStatus,
 } from '@motovault/graphql';
-import { mileageFromDisplayUnit } from '@motovault/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { endOfDay, set, startOfDay, subYears } from 'date-fns';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -101,20 +100,12 @@ export default function AddMaintenanceTaskScreen() {
   const createMutation = useMutation({
     mutationFn: () => {
       const mileageNum = mileage ? Number.parseInt(mileage, 10) : undefined;
-      // All persisted odometer/mileage integers are canonical KILOMETRES
-      // (target/completed/current mileage + intervalKm). The rider types in
-      // their measurement system's unit, so convert to km on write here and
-      // back to the display unit on read. The recurrence engine computes
-      // completedMileage + intervalKm, both km, so they stay in sync.
-      const mileageKm =
-        mileageNum != null && !Number.isNaN(mileageNum)
-          ? Math.round(mileageFromDisplayUnit(mileageNum, system))
-          : undefined;
+      // Stored raw in the user's unit — the same convention odometer values
+      // (target/completed/current mileage) follow everywhere in the app. The
+      // recurrence engine computes completedMileage + intervalKm, so both must
+      // share one unit; the label reflects the unit, we do NOT normalise to km
+      // (that would desync from the raw odometers and inflate every next-due).
       const intervalValue = intervalInput ? Number.parseInt(intervalInput, 10) : undefined;
-      const intervalKmValue =
-        intervalValue != null && !Number.isNaN(intervalValue)
-          ? Math.round(mileageFromDisplayUnit(intervalValue, system))
-          : undefined;
 
       const base = {
         motorcycleId,
@@ -135,15 +126,15 @@ export default function AddMaintenanceTaskScreen() {
               ? set(dueDate, { hours: 12, minutes: 0, seconds: 0, milliseconds: 0 })
               : new Date()
             ).toISOString(),
-            completedMileage: mileageKm,
+            completedMileage: mileageNum,
             isRecurring: false,
           }
         : {
             ...base,
             dueDate: dueDate ? toISODateInput(dueDate) : undefined,
-            targetMileage: mileageKm,
+            targetMileage: mileageNum,
             isRecurring,
-            intervalKm: intervalKmValue,
+            intervalKm: intervalValue,
             intervalDays: intervalDays ? Number.parseInt(intervalDays, 10) : undefined,
           };
 

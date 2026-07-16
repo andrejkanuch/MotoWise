@@ -1,4 +1,4 @@
-import { metersToKm } from '@motovault/types';
+import { type MeasurementSystem, metersToUnit, mileageUnitLabel } from '@motovault/types';
 import {
   BadRequestException,
   Inject,
@@ -170,13 +170,20 @@ export class RidesService {
           .eq('user_id', userId)
           .single();
 
-        // MOT-140 bug fix: current_mileage is stored canonically in KILOMETRES
-        // (docs/plans/odometer-unit-normalization.md). Ride distance comes from
-        // GPS in meters, so convert meters → km before accumulating. Previously
-        // distanceM (meters) was added directly, producing wildly inflated
-        // readings; and before km normalization this converted to the per-bike
-        // unit, which mixed with km-based target_mileage on the due check below.
-        const roundedDelta = Math.round(metersToKm(distanceM));
+        // MOT-140: current_mileage is stored RAW in the user's measurement-system
+        // unit (docs/plans/odometer-unit-normalization.md). Ride distance comes
+        // from GPS in meters, so convert meters → that unit before accumulating.
+        // Use the GLOBAL measurement_system (service-role read), not the
+        // deprecated per-bike mileage_unit. target_mileage below is in the same
+        // raw unit, so the due comparison stays valid.
+        const { data: userRow } = await this.supabaseAdmin
+          .from('users')
+          .select('measurement_system')
+          .eq('id', userId)
+          .single();
+        const system = (userRow?.measurement_system as MeasurementSystem | null) ?? 'metric';
+        const unit = mileageUnitLabel(system);
+        const roundedDelta = Math.round(metersToUnit(distanceM, unit));
         const newMileage = (bike?.current_mileage ?? 0) + roundedDelta;
 
         const nowIso = new Date().toISOString();
@@ -197,11 +204,11 @@ export class RidesService {
         // odometer update is rare and user-correctable via manual edit; this is
         // the deliberate trade for race-free exactly-once application.
         this.logger.log(
-          `Odometer sync: +${roundedDelta}km to motorcycle ${motorcycleId} (total: ${newMileage}km, ride=${input.rideId})`,
+          `Odometer sync: +${roundedDelta}${unit} to motorcycle ${motorcycleId} (total: ${newMileage}${unit}, ride=${input.rideId})`,
         );
 
         // Check for maintenance tasks that are now due. target_mileage and
-        // current_mileage are both canonical km, so this comparison is valid.
+        // current_mileage are both in the same raw user unit, so this is valid.
         const { data: dueTasks } = await this.supabase
           .from('maintenance_tasks')
           .select('id, title, priority')

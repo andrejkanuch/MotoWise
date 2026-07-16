@@ -3,7 +3,6 @@ import {
   CompleteMaintenanceTaskDocument,
   MaintenanceTasksByMotorcycleDocument,
 } from '@motovault/graphql';
-import { mileageFromDisplayUnit, mileageToDisplayUnit } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -64,7 +63,8 @@ export default function CompleteTaskScreen() {
   }>();
   // Unit follows the user's profile preference, not the deprecated per-bike field.
   const mileageUnit = useMileageUnit();
-  // Odometer values are persisted as canonical km; convert at the edges.
+  // Odometer values are stored raw in the user's unit; system drives the
+  // OEM interval display conversion + labels.
   const system = useMeasurementSystem();
 
   const [scheduleNext, setScheduleNext] = useState(true);
@@ -96,9 +96,7 @@ export default function CompleteTaskScreen() {
       gqlFetcher(CompleteMaintenanceTaskDocument, {
         id: taskId,
         input: {
-          completedMileage: completedMileage
-            ? Math.round(mileageFromDisplayUnit(parseInt(completedMileage, 10), system))
-            : undefined,
+          completedMileage: completedMileage ? parseInt(completedMileage, 10) : undefined,
           cost: cost ? parseFloat(cost) : undefined,
           currency: cost ? currency : undefined,
         },
@@ -270,10 +268,8 @@ export default function CompleteTaskScreen() {
                 {currentMileage ? (
                   <Text style={{ fontSize: 12, color: secondaryTextColor, marginTop: 2 }}>
                     {t('maintenance.currentReading', {
-                      defaultValue: `Current: ${Math.round(mileageToDisplayUnit(Number(currentMileage), system)).toLocaleString()} ${mileageUnit}`,
-                      value: Math.round(
-                        mileageToDisplayUnit(Number(currentMileage), system),
-                      ).toLocaleString(),
+                      defaultValue: `Current: ${Number(currentMileage).toLocaleString()} ${mileageUnit}`,
+                      value: Number(currentMileage).toLocaleString(),
                       unit: mileageUnit,
                     })}
                   </Text>

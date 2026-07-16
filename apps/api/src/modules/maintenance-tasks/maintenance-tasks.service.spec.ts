@@ -363,12 +363,11 @@ describe('MaintenanceTasksService', () => {
       );
     });
 
-    // Regression for the odometer unit-mixing bug: completedMileage and intervalKm
-    // are BOTH canonical km, so the next target is a plain km sum. Before km
-    // normalization an imperial user's completedMileage was miles while intervalKm
-    // was km, inflating the next-due target ~1.61x. With km storage there is no
-    // unit-dependent branch — the same math is correct for metric and imperial.
-    it('sums completedMileage + intervalKm in km (no imperial inflation)', async () => {
+    // Regression for the odometer unit-mixing bug (Path 2 / raw storage):
+    // completedMileage is raw in the owner's unit, but an OEM task's interval_km
+    // is KILOMETRES. For an imperial owner the interval must be converted km→mi
+    // before adding, else the next-due is inflated ~1.61x. Owner is imperial here.
+    it('converts an OEM interval_km to the owner unit before adding (imperial)', async () => {
       const completedTask = {
         id: taskId,
         userId,
@@ -378,8 +377,8 @@ describe('MaintenanceTasksService', () => {
         status: 'completed',
         source: 'oem',
         isRecurring: true,
-        intervalKm: 10000, // km
-        completedMileage: 48280, // km (≈30000 mi for an imperial rider, stored as km)
+        intervalKm: 10000, // km (OEM)
+        completedMileage: 30000, // raw miles (imperial owner)
         completedAt: '2026-01-01T00:00:00Z',
         intervalDays: undefined,
         description: undefined,
@@ -389,14 +388,52 @@ describe('MaintenanceTasksService', () => {
         updatedAt: '2026-01-01T00:00:00Z',
       };
 
+      // measurement_system read (admin client) → imperial
+      mockAdminClient._pushResult({ data: { measurement_system: 'imperial' } });
       mockUserClient._pushResult({
-        data: { ...fakeRow, is_recurring: true, target_mileage: 58280 },
+        data: { ...fakeRow, is_recurring: true, target_mileage: 36214 },
       });
 
       await service.createNextRecurrence(completedTask as never);
 
+      // 30000 mi + round(10000 km → mi = 6214) = 36214 mi, NOT 30000 + 10000.
       expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
-        expect.objectContaining({ target_mileage: 58280 }), // 48280 + 10000, not + ~16093
+        expect.objectContaining({ target_mileage: 36214 }),
+      );
+    });
+
+    // A user-entered interval is already in the owner's unit → added as-is.
+    it('adds a user-entered interval directly (no conversion)', async () => {
+      const completedTask = {
+        id: taskId,
+        userId,
+        motorcycleId,
+        title: 'Custom service',
+        priority: 'medium',
+        status: 'completed',
+        source: 'user',
+        isRecurring: true,
+        intervalKm: 5000, // raw user-unit for source='user'
+        completedMileage: 20000,
+        completedAt: '2026-01-01T00:00:00Z',
+        intervalDays: undefined,
+        description: undefined,
+        oemScheduleId: undefined,
+        photos: [],
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      };
+
+      mockAdminClient._pushResult({ data: { measurement_system: 'imperial' } });
+      mockUserClient._pushResult({
+        data: { ...fakeRow, is_recurring: true, target_mileage: 25000 },
+      });
+
+      await service.createNextRecurrence(completedTask as never);
+
+      // source='user' → interval added verbatim regardless of measurement system.
+      expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ target_mileage: 25000 }),
       );
     });
 
