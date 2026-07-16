@@ -24,6 +24,12 @@
 -- bike to 'km', so a re-run converts nothing. The migration runner also records
 -- the version and will not re-run it.
 --
+-- ORDERING (CRITICAL): apply this BEFORE promoting the km-aware OTA/build. If the
+-- new client wrote canonical km while mileage_unit was still 'mi', this migration
+-- would multiply those already-km values by KM_PER_MILE again. Running first means
+-- no km writes exist until the data is converted. See the release runbook in
+-- docs/plans/odometer-unit-normalization.md.
+--
 -- REVERSIBLE (rollback — run manually if needed, BEFORE any new writes):
 --   BEGIN;
 --   UPDATE public.maintenance_tasks mt SET

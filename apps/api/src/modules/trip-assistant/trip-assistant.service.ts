@@ -207,11 +207,16 @@ export class TripAssistantService {
    * service-role-only read (00141 column grants), so use the admin client.
    */
   private async loadMeasurementSystem(userId: string): Promise<MeasurementSystem> {
-    const { data } = await this.adminClient
+    const { data, error } = await this.adminClient
       .from('users')
       .select('measurement_system')
       .eq('id', userId)
       .single();
+    // Don't fail the assistant over a unit-label lookup; log so a real error
+    // (vs. a confirmed-absent value) isn't silently downgraded to metric.
+    if (error) {
+      this.logger.warn(`measurement_system read failed for user ${userId}: ${error.message}`);
+    }
     return (data?.measurement_system as MeasurementSystem) ?? MeasurementSystem.METRIC;
   }
 
@@ -223,7 +228,7 @@ export class TripAssistantService {
   ): string {
     const bikeLine = bike
       ? `${bike.year ?? ''} ${bike.make ?? ''} ${bike.model ?? ''}${bike.engine_cc ? ` ${bike.engine_cc}cc` : ''}${bike.type ? ` (${bike.type})` : ''}${
-          bike.current_mileage
+          bike.current_mileage != null
             ? `, odometer ${Math.round(mileageToDisplayUnit(bike.current_mileage, system))} ${mileageUnitLabel(system)}`
             : ''
         }`.trim()

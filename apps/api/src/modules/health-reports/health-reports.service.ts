@@ -135,11 +135,16 @@ export class HealthReportsService {
       // Odometer is stored in canonical km — display it in the owner's global
       // measurement system, never the deprecated per-bike mileage_unit. The
       // measurement_system column is a service-role-only read (00141 grants).
-      const { data: userRow } = await this.supabaseAdmin
+      const { data: userRow, error: userErr } = await this.supabaseAdmin
         .from('users')
         .select('measurement_system')
         .eq('id', userId)
         .single();
+      // A unit-label lookup shouldn't fail report generation; log so a real
+      // error isn't silently downgraded to the metric default.
+      if (userErr) {
+        this.logger.warn(`measurement_system read failed for user ${userId}: ${userErr.message}`);
+      }
       const system = (userRow?.measurement_system as MeasurementSystem) ?? MeasurementSystem.METRIC;
 
       const reportData: ReportData = {

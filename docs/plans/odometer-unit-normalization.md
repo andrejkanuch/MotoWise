@@ -67,10 +67,26 @@ second run converts nothing. **Reversibility:** deterministic — rollback divid
 (`measurement_system='imperial'`) by `KM_PER_MILE` and resets `mileage_unit='mi'`. Rollback SQL + a
 pre-image snapshot query are recorded in the migration header. `KM_PER_MILE = 1.609344`.
 
-**Release runbook (NOT executed now):** (a) merge PR; (b) publish OTA/build with km-aware display to the
-`production` channel; (c) snapshot the 113 affected rows; (d) apply `00165` via Supabase MCP
-`apply_migration`; (e) if it lands under a timestamp version, repair to `00165` per
-`project_supabase_migration_divergence`; (f) verify imperial displayed values unchanged.
+**Release runbook (NOT executed now) — MIGRATION FIRST, then OTA:**
+1. Merge PR.
+2. Snapshot the 113 affected rows (pre-image query in the migration header).
+3. Apply `00165` via Supabase MCP `apply_migration`; if it lands under a timestamp version, repair to
+   `00165` per `project_supabase_migration_divergence`.
+4. **Only then** promote the km-aware OTA/build to the `production` channel.
+5. Verify imperial displayed values are unchanged.
+
+**Why migration-first (ordering hazard — CodeRabbit #6):** the migration's idempotency guard treats
+`mileage_unit <> 'km'` as "still legacy miles." If the km-aware app reached imperial users *before* the
+migration ran, it would write canonical km (and `endRide` would add a km delta onto a still-miles
+odometer) while `mileage_unit` stayed `'mi'` — then the migration would multiply those already-km values
+by `KM_PER_MILE` again, corrupting them. Running the migration first means no km writes exist until the
+data is converted and `mileage_unit` is flipped to `'km'`, so every subsequent new-app write is already
+km-on-km. The only cost is a brief, read-only cosmetic window where pre-OTA old-app imperial users see
+km-valued numbers under a `mi` label — self-healing the moment they take the OTA. (Old apps keep writing
+raw miles in that window; those rows still carry `mileage_unit='mi'`, but the migration already ran, so
+they are NOT re-converted — a late old-app write lands as miles-labeled-km. Given the imperial cohort is
+~10 users and the OTA propagates to matching builds within minutes, this residual is acceptable; a
+hard cutover / brief maintenance pause on writes eliminates it entirely if desired.)
 
 ## 5. Shared helpers — `packages/types/src/units.ts`
 

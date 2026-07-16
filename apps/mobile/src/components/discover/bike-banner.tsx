@@ -72,8 +72,9 @@ export const BikeBanner = memo(function BikeBanner() {
         <Text style={{ fontSize: 13, color: t.ink, fontWeight: '500' }} numberOfLines={1}>
           {bike.make} {bike.model}{' '}
           <Text style={{ color: t.ink3, fontWeight: '400' }}>
-            · {bike.type ?? 'motorcycle'} ·{' '}
-            {Math.round(mileageToDisplayUnit(bike.currentMileage ?? 0, system)).toLocaleString()}{' '}
+            ·{' '}
+            {bike.type ?? translate('discover.motorcycleFallback', { defaultValue: 'motorcycle' })}{' '}
+            · {Math.round(mileageToDisplayUnit(bike.currentMileage ?? 0, system)).toLocaleString()}{' '}
             {mileageUnitLabel(system)}
           </Text>
         </Text>
