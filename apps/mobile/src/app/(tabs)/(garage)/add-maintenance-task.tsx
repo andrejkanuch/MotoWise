@@ -559,17 +559,22 @@ export default function AddMaintenanceTaskScreen() {
                     gap: 16,
                   }}
                 >
-                  <Pressable
-                    onPress={() => {
-                      triggerImpact();
-                      setDueDate(null);
-                      setShowDatePicker(false);
-                    }}
-                  >
-                    <Text style={{ fontSize: 14, fontWeight: '600', color: palette.danger500 }}>
-                      {t('maintenance.clearDate', { defaultValue: 'Clear' })}
-                    </Text>
-                  </Pressable>
+                  {/* A logged (completed) record must carry a date, so no Clear
+                      in Log mode — otherwise completedAt would silently fall back
+                      to now() while the row reads "None". */}
+                  {!isLog && (
+                    <Pressable
+                      onPress={() => {
+                        triggerImpact();
+                        setDueDate(null);
+                        setShowDatePicker(false);
+                      }}
+                    >
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: palette.danger500 }}>
+                        {t('maintenance.clearDate', { defaultValue: 'Clear' })}
+                      </Text>
+                    </Pressable>
+                  )}
                   <Pressable
                     onPress={() => {
                       triggerImpact();
@@ -958,7 +963,7 @@ export default function AddMaintenanceTaskScreen() {
               triggerImpact();
               createMutation.mutate();
             }}
-            disabled={createMutation.isPending || !title.trim() || saved}
+            disabled={createMutation.isPending || !title.trim() || (isLog && !dueDate) || saved}
             style={{
               flex: 1,
               backgroundColor: saved

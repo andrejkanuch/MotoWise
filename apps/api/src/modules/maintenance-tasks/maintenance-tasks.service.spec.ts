@@ -200,6 +200,22 @@ describe('MaintenanceTasksService', () => {
       expect(Number.isNaN(Date.parse(insertArg.completed_at))).toBe(false);
     });
 
+    it('clamps a future completedAt to now (defensive, never persists the future)', async () => {
+      mockUserClient._pushResult({ data: fakeRow });
+      const future = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+      await service.create(userId, {
+        motorcycleId,
+        title: 'Time-traveller service',
+        status: 'completed',
+        completedAt: future,
+      });
+
+      const insertArg = mockUserClient._chain.insert.mock.calls[0][0];
+      expect(Date.parse(insertArg.completed_at)).toBeLessThanOrEqual(Date.now());
+      expect(insertArg.completed_at).not.toBe(future);
+    });
+
     it('does not stamp completion columns for a normal pending task', async () => {
       mockUserClient._pushResult({ data: fakeRow });
 

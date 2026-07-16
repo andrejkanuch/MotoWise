@@ -26,7 +26,14 @@ export const CreateMaintenanceTaskSchema = z.object({
   // record to the day the work happened and completedMileage is the odometer
   // reading at that time (stored raw, in the user's display unit).
   status: z.enum(['pending', 'in_progress', 'completed', 'skipped']).optional(),
-  completedAt: z.string().datetime().optional(),
+  // You cannot complete work in the future; reject future completion dates.
+  completedAt: z
+    .string()
+    .datetime()
+    .refine((v) => new Date(v).getTime() <= Date.now(), {
+      message: 'completedAt cannot be in the future',
+    })
+    .optional(),
   completedMileage: z.number().int().positive().optional(),
 });
 export type CreateMaintenanceTask = z.infer<typeof CreateMaintenanceTaskSchema>;
