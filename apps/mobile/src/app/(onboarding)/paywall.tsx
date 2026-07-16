@@ -27,10 +27,15 @@ export default function PaywallScreen() {
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const experienceLevel = useOnboardingStore((s) => s.experienceLevel);
   const pendingIntent = useOnboardingStore((s) => s.pendingIntent);
+  const intentResolved = useOnboardingStore((s) => s.intentResolved);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
 
   useEffect(() => {
-    if (presented.current) return;
+    // Wait until first-launch intent resolution has settled before latching —
+    // otherwise a late-arriving pendingIntent would miss the maintenance
+    // placement behind the one-shot present guard. Resolution completes at cold
+    // start (many screens earlier), so in practice this never actually blocks.
+    if (presented.current || !intentResolved) return;
     presented.current = true;
 
     const primaryGoal = getPrimaryGoal(ridingGoals);
@@ -94,7 +99,15 @@ export default function PaywallScreen() {
       // The RevenueCat listener in subscription.ts will update the store if purchased
       goNext();
     })();
-  }, [goNext, ridingGoals, bikeData, experienceLevel, pendingIntent, setLastCompletedScreen]);
+  }, [
+    goNext,
+    ridingGoals,
+    bikeData,
+    experienceLevel,
+    pendingIntent,
+    intentResolved,
+    setLastCompletedScreen,
+  ]);
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>

@@ -37,7 +37,20 @@ export function StickyAppBar() {
   }, []);
 
   // iOS handled by the Smart App Banner; never show there.
-  if (platform === 'ios' || dismissed) return null;
+  const visible = platform !== 'ios' && !dismissed;
+
+  // Reserve space for the fixed bar so it never covers the last controls/links
+  // on a page. Only while visible; restored on dismiss, unmount, or iOS.
+  useEffect(() => {
+    if (!visible) return;
+    const prev = document.body.style.paddingBottom;
+    document.body.style.paddingBottom = 'calc(env(safe-area-inset-bottom) + 64px)';
+    return () => {
+      document.body.style.paddingBottom = prev;
+    };
+  }, [visible]);
+
+  if (!visible) return null;
 
   const { pageType, slug } = pageContextFromPathname(pathname);
 

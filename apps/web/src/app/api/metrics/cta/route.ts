@@ -29,12 +29,38 @@ const MAX_SLUG_LENGTH = 200;
 const PAGE_TYPES = new Set<string>(Object.values(CtaPageType));
 const PLATFORMS = new Set<string>(Object.values(StorePlatform));
 
+// Lightweight per-IP fixed-window throttle so a single client can't flood the
+// PostHog relay. In-memory + per-instance (serverless), so it's a best-effort
+// cap that matches the endpoint's best-effort nature — it blunts abuse from a
+// warm instance without adding a KV/Redis dependency. Over-limit beacons are
+// silently dropped (204, never forwarded).
+const RATE_LIMIT_MAX = 30;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const rateHits = new Map<string, { count: number; reset: number }>();
+
+function isRateLimited(ip: string, now: number): boolean {
+  const entry = rateHits.get(ip);
+  if (!entry || now >= entry.reset) {
+    rateHits.set(ip, { count: 1, reset: now + RATE_LIMIT_WINDOW_MS });
+    // Opportunistic prune so the map can't grow unbounded on a long-lived instance.
+    if (rateHits.size > 5000) {
+      for (const [key, value] of rateHits) if (now >= value.reset) rateHits.delete(key);
+    }
+    return false;
+  }
+  entry.count += 1;
+  return entry.count > RATE_LIMIT_MAX;
+}
+
 /** Beacons never read the response — always resolve 204, validate defensively. */
 const noContent = () => new NextResponse(null, { status: 204 });
 
 export async function POST(req: NextRequest) {
   const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
   if (!token) return noContent();
+
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  if (isRateLimited(ip, Date.now())) return noContent();
 
   let body: { page_type?: unknown; platform?: unknown; slug?: unknown };
   try {

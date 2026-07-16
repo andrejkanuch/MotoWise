@@ -3,6 +3,7 @@
 import { trackStoreCtaClick } from '@/lib/analytics';
 import { buildPlayReferrer, getCampaignParams } from '@/lib/campaign';
 import { CtaPlacement, type StoreCtaContext, StorePlatform } from '@/lib/cta-taxonomy';
+import { detectPlatform } from '@/lib/store-links';
 
 const STORE_LINKS = {
   appStore: 'https://apps.apple.com/us/app/motovault/id6760291360',
@@ -32,17 +33,27 @@ export function storeAnchorProps(platform: StorePlatform, ctx: StoreCtaContext) 
     ...(ctx.sameTab ? {} : { target: '_blank', rel: 'noopener noreferrer' }),
     onClick: (e: React.MouseEvent<HTMLAnchorElement>) => {
       const campaign = getCampaignParams();
+      // Resolve the platform at click time when it wasn't known at render — the
+      // SSR/pre-detection default is 'unknown' (→ App Store href), so without
+      // this an Android tap before the caller's useEffect settled would open the
+      // App Store. The click handler always runs post-hydration, so detection is
+      // reliable here.
+      const resolved = platform === StorePlatform.Unknown ? detectPlatform() : platform;
       // Android install-referrer carries the channel + intent deterministically
-      // into the Play install. Set it at click time (params are client-only, so
-      // the SSR href stays clean and hydration-stable). First-touch campaign
-      // UTMs win over the CTA's default referrerParams on conflict. iOS has no
-      // equivalent — the App Store strips referrers (the clipboard-token path was
-      // dropped because it triggered a paste prompt at onboarding).
-      if (platform === StorePlatform.Android && (campaign || ctx.referrerParams)) {
+      // into the Play install. Set the href at click time (params are client-only,
+      // so the SSR href stays clean and hydration-stable). First-touch campaign
+      // UTMs win over the CTA's default referrerParams on conflict. Always correct
+      // the href to Play for Android — even with no referrer params — so an
+      // SSR-defaulted App Store href never sends an Android user to the wrong store.
+      // iOS/desktop keep the App Store href (the App Store strips referrers; the
+      // clipboard-token path was dropped because it prompted a paste at onboarding).
+      if (resolved === StorePlatform.Android) {
         const referrer = { ...ctx.referrerParams, ...campaign };
-        e.currentTarget.href = buildPlayReferrer(STORE_LINKS.googlePlay, referrer);
+        e.currentTarget.href = Object.keys(referrer).length
+          ? buildPlayReferrer(STORE_LINKS.googlePlay, referrer)
+          : STORE_LINKS.googlePlay;
       }
-      trackStoreCtaClick(platform, ctx, campaign ?? undefined);
+      trackStoreCtaClick(resolved, ctx, campaign ?? undefined);
     },
   } as const;
 }

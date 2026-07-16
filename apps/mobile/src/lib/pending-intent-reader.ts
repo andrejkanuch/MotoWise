@@ -75,8 +75,8 @@ async function readTransport(): Promise<{ raw: string; method: IntentMethod } | 
 }
 
 export async function resolvePendingIntent(): Promise<void> {
-  if (!INTENT_PREFILL_ENABLED) return;
   try {
+    if (!INTENT_PREFILL_ENABLED) return;
     if (await SecureStore.getItemAsync(INTENT_CHECKED_KEY)) return;
 
     const transport = await readTransport();
@@ -112,5 +112,10 @@ export async function resolvePendingIntent(): Promise<void> {
     registerSuperProperties({ intent_cohort: getIntentCohort(intent) });
   } catch (e) {
     captureException(e, { source: 'pending-intent-reader.resolvePendingIntent' });
+  } finally {
+    // Signal that resolution has settled (any path — kill-switch off, already
+    // checked, intent found, or error). The paywall waits on this so a
+    // late-arriving intent can still select the maintenance placement.
+    useOnboardingStore.getState().setIntentResolved(true);
   }
 }

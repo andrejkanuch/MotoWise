@@ -80,6 +80,14 @@ interface OnboardingState {
    * means the normal, untouched onboarding flow.
    */
   pendingIntent: PendingIntent | null;
+  /**
+   * True once first-launch intent resolution has settled (referrer read done, or
+   * the kill-switch is off). NON-persisted — re-derived each process at cold
+   * start by the reader. The paywall waits on this so a late-arriving intent
+   * can't miss the maintenance placement behind the one-shot present latch.
+   */
+  intentResolved: boolean;
+  setIntentResolved: (resolved: boolean) => void;
   setAcceptedOemScheduleIds: (ids: string[]) => void;
   setExperienceLevel: (level: ExperienceLevel) => void;
   setBikeData: (data: BikeData | null) => void;
@@ -123,6 +131,7 @@ const initialState = {
   lastCompletedScreen: null as OnboardingRoute | null,
   heardFrom: null as string | null,
   pendingIntent: null as PendingIntent | null,
+  intentResolved: false,
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -149,6 +158,7 @@ export const useOnboardingStore = create<OnboardingState>()(
       setLastCompletedScreen: (screen) => set({ lastCompletedScreen: screen }),
       setHeardFrom: (heardFrom) => set({ heardFrom }),
       setPendingIntent: (pendingIntent) => set({ pendingIntent }),
+      setIntentResolved: (intentResolved) => set({ intentResolved }),
       reset: () => set(store.getInitialState(), true),
     }),
     {
@@ -175,6 +185,10 @@ export const useOnboardingStore = create<OnboardingState>()(
         setLastCompletedScreen,
         setHeardFrom,
         setPendingIntent,
+        setIntentResolved,
+        // intentResolved is a per-process resolution flag — never persist it, or a
+        // stale `true` would let a later launch skip waiting for the fresh read.
+        intentResolved,
         reset,
         ...data
       }) => data,
