@@ -32,7 +32,7 @@
 
 ---
 
-# PART 1 — BASELINE CHECKPOINT (freeze this)
+## PART 1 — BASELINE CHECKPOINT (freeze this)
 
 ### 1.1 Performance KPIs
 
@@ -95,9 +95,14 @@
 
 ---
 
-# PART 2 — PROPOSED CHANGES (ranked)
+## PART 2 — PROPOSED CHANGES (ranked)
 
 Ordered by impact ÷ effort. P0 = do now, high leverage, low risk.
+
+> **Status:** items marked ✅ in the *Change log* above (P0-1 ratings prompt, P0-3
+> description re-lead, P1-1 keyword rebalance incl. all 7 locales) have since been
+> applied — they're retained below for rationale. P0-2 (promotional text) and the
+> P2 items remain open.
 
 ### 🔴 P0-1 — Fix the ratings problem (biggest single lever)
 **Problem:** ~0 ratings. Apple weights rating **count + recency** heavily in search ranking, and a near-empty rating block (or a lone 2★) crushes conversion on the product page. This caps the ROI of every other change below.
