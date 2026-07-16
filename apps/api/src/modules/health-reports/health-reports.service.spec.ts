@@ -144,7 +144,10 @@ describe('HealthReportsService', () => {
         data: [{ amount: 45.5 }, { amount: 120.0 }],
       });
 
-      // Admin client result 3: update report as completed (.single())
+      // Admin client result 3: users.measurement_system read (.single())
+      mockAdminClient._pushResult({ data: { measurement_system: 'metric' } });
+
+      // Admin client result 4: update report as completed (.single())
       mockAdminClient._pushResult({ data: fakeCompletedReport });
 
       const result = await service.generateReport(userId, bikeId);

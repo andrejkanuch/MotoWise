@@ -320,6 +320,11 @@ export class MaintenanceTasksService {
       ? new Date(now.getTime() + completedTask.intervalDays * 24 * 60 * 60 * 1000).toISOString()
       : null;
 
+    // completedMileage and intervalKm are both canonical KILOMETRES
+    // (docs/plans/odometer-unit-normalization.md), so this addition is unit-safe
+    // for metric and imperial users alike. (Before km normalization, completed_
+    // mileage was raw user-unit while interval_km was km — inflating imperial
+    // next-due by ~1.61x.)
     const targetMileage =
       completedTask.intervalKm && completedTask.completedMileage
         ? completedTask.completedMileage + completedTask.intervalKm

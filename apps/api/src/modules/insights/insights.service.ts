@@ -181,7 +181,8 @@ Return ONLY a JSON array of 3 objects. No markdown, no code fences, just the JSO
     if (input.bikeModel) profileParts.push(`Bike model: ${input.bikeModel}`);
     if (input.bikeYear) profileParts.push(`Bike year: ${input.bikeYear}`);
     if (input.bikeType) profileParts.push(`Bike type: ${input.bikeType}`);
-    if (input.currentMileage != null) profileParts.push(`Current mileage: ${input.currentMileage}`);
+    if (input.currentMileage != null)
+      profileParts.push(`Current mileage: ${input.currentMileage} km`);
     if (input.ridingFrequency) profileParts.push(`Riding frequency: ${input.ridingFrequency}`);
     if (input.maintenanceStyle) profileParts.push(`Maintenance style: ${input.maintenanceStyle}`);
 

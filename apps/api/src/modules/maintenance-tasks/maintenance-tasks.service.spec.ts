@@ -363,6 +363,43 @@ describe('MaintenanceTasksService', () => {
       );
     });
 
+    // Regression for the odometer unit-mixing bug: completedMileage and intervalKm
+    // are BOTH canonical km, so the next target is a plain km sum. Before km
+    // normalization an imperial user's completedMileage was miles while intervalKm
+    // was km, inflating the next-due target ~1.61x. With km storage there is no
+    // unit-dependent branch — the same math is correct for metric and imperial.
+    it('sums completedMileage + intervalKm in km (no imperial inflation)', async () => {
+      const completedTask = {
+        id: taskId,
+        userId,
+        motorcycleId,
+        title: 'Chain service',
+        priority: 'medium',
+        status: 'completed',
+        source: 'oem',
+        isRecurring: true,
+        intervalKm: 10000, // km
+        completedMileage: 48280, // km (≈30000 mi for an imperial rider, stored as km)
+        completedAt: '2026-01-01T00:00:00Z',
+        intervalDays: undefined,
+        description: undefined,
+        oemScheduleId: 'oem-1',
+        photos: [],
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      };
+
+      mockUserClient._pushResult({
+        data: { ...fakeRow, is_recurring: true, target_mileage: 58280 },
+      });
+
+      await service.createNextRecurrence(completedTask as never);
+
+      expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ target_mileage: 58280 }), // 48280 + 10000, not + ~16093
+      );
+    });
+
     it('should return null if task is not recurring', async () => {
       const nonRecurringTask = {
         id: taskId,

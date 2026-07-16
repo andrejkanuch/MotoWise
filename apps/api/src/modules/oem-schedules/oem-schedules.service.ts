@@ -220,6 +220,8 @@ export class OemSchedulesService {
         const dueDate = schedule.intervalDays
           ? new Date(now.getTime() + schedule.intervalDays * 24 * 60 * 60 * 1000).toISOString()
           : null;
+        // currentMileage and schedule.intervalKm are both canonical KILOMETRES
+        // (docs/plans/odometer-unit-normalization.md) — unit-safe addition.
         const targetMileage = schedule.intervalKm ? currentMileage + schedule.intervalKm : null;
 
         return {
