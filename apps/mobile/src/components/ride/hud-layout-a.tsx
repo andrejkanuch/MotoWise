@@ -1,4 +1,4 @@
-import { palette } from '@motovault/design-system';
+import { palette, withAlpha } from '@motovault/design-system';
 import type { Waypoint } from '@motovault/types';
 import { BatteryLow, Moon, Sun } from 'lucide-react-native';
 import { useEffect } from 'react';
@@ -366,7 +366,7 @@ export function HudLayoutA({
             position: 'absolute',
             top: 12,
             left: 12,
-            backgroundColor: 'rgba(0,0,0,0.7)',
+            backgroundColor: withAlpha(palette.black, 0.7),
             paddingHorizontal: 12,
             paddingVertical: 6,
             borderRadius: 10,

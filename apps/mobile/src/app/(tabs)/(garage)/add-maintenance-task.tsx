@@ -1,5 +1,5 @@
 import DateTimePicker from '@expo/ui/community/datetime-picker';
-import { palette } from '@motovault/design-system';
+import { palette, withAlpha } from '@motovault/design-system';
 import {
   CreateMaintenanceTaskDocument,
   type MaintenancePriority,
@@ -331,7 +331,7 @@ export default function AddMaintenanceTaskScreen() {
               borderRadius: 14,
               borderCurve: 'continuous',
               padding: 16,
-              boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+              boxShadow: isDark ? 'none' : `0 1px 3px ${withAlpha(palette.black, 0.06)}`,
             }}
           >
             <TextInput
@@ -391,7 +391,7 @@ export default function AddMaintenanceTaskScreen() {
                       borderCurve: 'continuous',
                       alignItems: 'center',
                       backgroundColor: selected
-                        ? `${meta.color}18`
+                        ? withAlpha(meta.color, 0.094)
                         : isDark
                           ? palette.neutral800
                           : palette.white,
@@ -401,7 +401,11 @@ export default function AddMaintenanceTaskScreen() {
                         : isDark
                           ? palette.neutral700
                           : palette.neutral200,
-                      boxShadow: selected ? 'none' : isDark ? 'none' : '0 1px 2px rgba(0,0,0,0.04)',
+                      boxShadow: selected
+                        ? 'none'
+                        : isDark
+                          ? 'none'
+                          : `0 1px 2px ${withAlpha(palette.black, 0.04)}`,
                     }}
                   >
                     <View
@@ -460,7 +464,7 @@ export default function AddMaintenanceTaskScreen() {
               borderRadius: 14,
               borderCurve: 'continuous',
               overflow: 'hidden',
-              boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+              boxShadow: isDark ? 'none' : `0 1px 3px ${withAlpha(palette.black, 0.06)}`,
             }}
           >
             {/* Due Date row */}
@@ -526,7 +530,7 @@ export default function AddMaintenanceTaskScreen() {
               <View
                 style={{
                   borderTopWidth: 0.5,
-                  borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                  borderTopColor: isDark ? palette.dividerDark : palette.dividerLight,
                   paddingHorizontal: 8,
                 }}
               >
@@ -593,7 +597,7 @@ export default function AddMaintenanceTaskScreen() {
             <View
               style={{
                 height: 0.5,
-                backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                backgroundColor: isDark ? palette.dividerDark : palette.dividerLight,
                 marginLeft: 60,
               }}
             />
@@ -682,7 +686,7 @@ export default function AddMaintenanceTaskScreen() {
                 borderRadius: 14,
                 borderCurve: 'continuous',
                 overflow: 'hidden',
-                boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+                boxShadow: isDark ? 'none' : `0 1px 3px ${withAlpha(palette.black, 0.06)}`,
               }}
             >
               {/* Toggle row */}
@@ -740,7 +744,7 @@ export default function AddMaintenanceTaskScreen() {
                   <View
                     style={{
                       height: 0.5,
-                      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                      backgroundColor: isDark ? palette.dividerDark : palette.dividerLight,
                       marginLeft: 60,
                     }}
                   />
@@ -797,7 +801,7 @@ export default function AddMaintenanceTaskScreen() {
                   <View
                     style={{
                       height: 0.5,
-                      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                      backgroundColor: isDark ? palette.dividerDark : palette.dividerLight,
                       marginLeft: 60,
                     }}
                   />
@@ -882,7 +886,7 @@ export default function AddMaintenanceTaskScreen() {
               borderRadius: 14,
               borderCurve: 'continuous',
               overflow: 'hidden',
-              boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+              boxShadow: isDark ? 'none' : `0 1px 3px ${withAlpha(palette.black, 0.06)}`,
             }}
           >
             <TextInput
@@ -907,7 +911,7 @@ export default function AddMaintenanceTaskScreen() {
             <View
               style={{
                 height: 0.5,
-                backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                backgroundColor: isDark ? palette.dividerDark : palette.dividerLight,
                 marginLeft: 16,
               }}
             />
@@ -947,7 +951,7 @@ export default function AddMaintenanceTaskScreen() {
             paddingBottom: 16,
             backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
             borderTopWidth: 0.5,
-            borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+            borderTopColor: isDark ? palette.dividerDark : palette.dividerLight,
           }}
         >
           <Pressable
