@@ -79,19 +79,6 @@ export default function GarageLayout() {
         }}
       />
       <Stack.Screen
-        name="record-maintenance"
-        options={{
-          title: t('garage.recordMaintenance', { defaultValue: 'Record Maintenance' }),
-          presentation: 'formSheet',
-          headerLargeTitle: false,
-          headerTransparent: false,
-          headerStyle: sheetHeaderStyle,
-          sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.85, 1.0],
-          contentStyle: sheetContentStyle,
-        }}
-      />
-      <Stack.Screen
         name="edit-bike"
         options={{
           title: t('garage.editBike', { defaultValue: 'Edit Motorcycle' }),

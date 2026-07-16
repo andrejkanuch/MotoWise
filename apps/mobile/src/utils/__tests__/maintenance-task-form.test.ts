@@ -43,6 +43,11 @@ describe('buildTaskUpdateInput', () => {
     expect(input.dueDate).toBe('2026-08-01');
   });
 
+  it('stores the typed value raw in the user unit (no km conversion)', () => {
+    const input = buildTaskUpdateInput({ ...baseValues, targetMileage: '1000' });
+    expect(input.targetMileage).toBe(1000);
+  });
+
   it('parses mileage as a base-10 integer', () => {
     const input = buildTaskUpdateInput({ ...baseValues, targetMileage: '08000' });
     expect(input.targetMileage).toBe(8000);

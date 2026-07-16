@@ -24,7 +24,9 @@ export const CreateMaintenanceTaskSchema = z.object({
   // Create-as-completed: lets the client log work already done (a historical
   // record) in one call. When status is 'completed', completedAt anchors the
   // record to the day the work happened and completedMileage is the odometer
-  // reading at that time (stored raw, in the user's display unit).
+  // reading at that time. Mileage fields (targetMileage/completedMileage) are
+  // stored RAW in the user's measurement-system unit, not normalized to km
+  // (docs/plans/odometer-unit-normalization.md).
   status: z.enum(['pending', 'in_progress', 'completed', 'skipped']).optional(),
   // You cannot complete work in the future; reject future completion dates.
   completedAt: z

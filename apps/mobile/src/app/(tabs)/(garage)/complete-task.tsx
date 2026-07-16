@@ -24,6 +24,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeToggle } from '../../../components/ui/native-toggle';
 import { useCurrency } from '../../../hooks/use-currency';
+import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../../lib/expense-constants';
@@ -33,6 +34,7 @@ import { queryKeys } from '../../../lib/query-keys';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
+import { convertIntervalDistance } from '../../../utils/maintenance-interval';
 
 function humanizeInterval(days: number): string {
   if (days >= 365) {
@@ -61,6 +63,9 @@ export default function CompleteTaskScreen() {
   }>();
   // Unit follows the user's profile preference, not the deprecated per-bike field.
   const mileageUnit = useMileageUnit();
+  // Odometer values are stored raw in the user's unit; system drives the
+  // OEM interval display conversion + labels.
+  const system = useMeasurementSystem();
 
   const [scheduleNext, setScheduleNext] = useState(true);
   const [completed, setCompleted] = useState(false);
@@ -378,9 +383,10 @@ export default function CompleteTaskScreen() {
                         count: task.intervalDays,
                       })
                     : task.intervalKm
-                      ? t('maintenance.scheduleNextKm', {
-                          defaultValue: 'In {{count}} km',
-                          count: task.intervalKm,
+                      ? t('maintenance.scheduleNextDistance', {
+                          defaultValue: 'In {{count}} {{unit}}',
+                          count: convertIntervalDistance(task.intervalKm, system),
+                          unit: mileageUnit,
                         })
                       : t('maintenance.scheduleNextAuto', {
                           defaultValue: 'Auto-calculated',

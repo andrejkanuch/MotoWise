@@ -848,7 +848,10 @@ export default function BikeDetailScreen() {
                 marginBottom: 4,
               }}
             >
-              {t('bikeHub.costPerKm', { defaultValue: 'COST / KM' })}
+              {t('bikeHub.costPerUnit', {
+                defaultValue: 'COST / {{unit}}',
+                unit: mileageUnit.toUpperCase(),
+              })}
             </Text>
             <Text
               style={{

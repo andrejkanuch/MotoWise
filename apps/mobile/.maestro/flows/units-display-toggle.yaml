@@ -1,0 +1,73 @@
+# Odometer unit LABEL toggle — E2E for PR #165 (canonical-km normalization).
+#
+# The robust, no-data-entry companion to units-mileage-roundtrip.yaml. It guards
+# the single most common regression: an odometer/mileage label hardcoded to "km"
+# instead of following the user's global measurement_system. Toggling the global
+# Units preference must flip the bike-hub odometer label between "mi" and "km" on
+# the SAME bike, with no per-bike unit involved.
+#
+# It deliberately does NOT type an odometer (that's the round-trip flow's job), so
+# it has no fragile numeric-input selector — just the Units picker and the hub's
+# Gauge odometer chip. Whatever mileage the onboarding bike carries, only its unit
+# suffix is asserted.
+#
+# Setup: composes onboarding.yaml (signed-in user + a Honda, ends at Home). Run:
+#   pnpm --filter @motovault/mobile test:e2e:units-display
+# Same standalone/preview-build + provisioned-user prereqs as the other authed
+# flows (see README). No cleanup — the runner deletes the throwaway user.
+#
+# AUTHORED FROM SOURCE 2026-07-16, PENDING ON-DEVICE VALIDATION. Selectors from
+# preferences-section.tsx (Units -> "Imperial (mi, °F)" / "Metric (km, °C)") and
+# bike/[id].tsx (the Gauge odometer chip renders "<value> <unit>"). Device quirks
+# per .maestro/README.md: tab a11y labels carry a badge (match tabs as partial
+# regex); the odometer value + unit are sibling Text nodes, so assert the unit
+# node ("mi"/"km") on its own rather than a combined regex.
+# TO VERIFY ON DEVICE: that exactly one standalone "mi"/"km" node is the odometer
+# chip (if the OEM maintenance-interval rows also surface a bare unit node, anchor
+# the assertion with `below:`/`rightOf:` a stable nearby label).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+---
+# 1. Setup — signed-in Home with a Honda in the garage.
+- runFlow: onboarding.yaml
+
+# 2. Set Imperial, then confirm the bike hub odometer chip reads "mi".
+- tapOn:
+    text: ".*Profile.*"
+- scrollUntilVisible:
+    element:
+      text: "Units"
+    direction: DOWN
+- tapOn:
+    text: ".*Imperial.*" # Imperial (mi, °F)
+- tapOn:
+    text: ".*Garage.*"
+- tapOn:
+    text: ".*Honda.*"
+- extendedWaitUntil:
+    visible: "Add task"
+    timeout: 20000
+- assertVisible:
+    text: "mi"
+- takeScreenshot: units-label-imperial
+
+# 3. Switch to Metric; the SAME bike's odometer chip must now read "km".
+- tapOn:
+    text: ".*Profile.*"
+- scrollUntilVisible:
+    element:
+      text: "Units"
+    direction: DOWN
+- tapOn:
+    text: ".*Metric.*" # Metric (km, °C)
+- tapOn:
+    text: ".*Garage.*"
+- tapOn:
+    text: ".*Honda.*"
+- extendedWaitUntil:
+    visible: "Add task"
+    timeout: 20000
+- assertVisible:
+    text: "km"
+- takeScreenshot: units-label-metric

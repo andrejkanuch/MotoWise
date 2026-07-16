@@ -23,6 +23,8 @@ export interface TaskEditFormValues {
  * to clear the stored value — the server's `update` treats `null` (defined)
  * as an explicit clear and `undefined` as "leave unchanged". Title is never
  * cleared (the save button stays disabled while it is blank).
+ *
+ * `targetMileage` is stored raw in the user's unit (no km normalisation).
  */
 export function buildTaskUpdateInput(values: TaskEditFormValues) {
   const trimmedDescription = values.description.trim();

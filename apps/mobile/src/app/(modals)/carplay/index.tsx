@@ -4,6 +4,7 @@
 // (start-mode pref via auth.store partialize; active bike via my-motorcycles;
 // live strip via the carplay-coordinator snapshot).
 
+import { mileageUnitLabel } from '@motovault/types';
 import { router } from 'expo-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +20,7 @@ import {
   SectionLabel,
 } from '../../../components/carplay/primitives';
 import { useActiveBike, useCarPlayConnection } from '../../../features/carplay/use-carplay';
+import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { type StartMode, useCarPlayStore } from '../../../stores/carplay.store';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
@@ -30,6 +32,7 @@ export default function CarPlayHubScreen() {
   const mode = useCarPlayStore((s) => s.startMode);
   const setStartMode = useCarPlayStore((s) => s.setStartMode);
   const bike = useActiveBike();
+  const system = useMeasurementSystem();
   const { connected } = useCarPlayConnection();
 
   const bikeName = bike
@@ -37,7 +40,7 @@ export default function CarPlayHubScreen() {
     : t('carplay.hub.noBike', { defaultValue: 'No bike selected' });
   const bikeStat =
     bike?.currentMileage != null
-      ? `${bike.currentMileage.toLocaleString()} ${(bike.mileageUnit ?? 'km').toUpperCase()}`
+      ? `${bike.currentMileage.toLocaleString()} ${mileageUnitLabel(system).toUpperCase()}`
       : '—';
 
   const pick = (m: StartMode) => {
