@@ -1138,7 +1138,14 @@
     "taskSuffix": "zadanie.",
     "km": "km",
     "recordPrefix": "Zapisz",
-    "maintenanceSuffix": "serwis."
+    "maintenanceSuffix": "serwis.",
+    "modePlan": "Plan ahead",
+    "modeLog": "Log done work",
+    "logPrefix": "Log",
+    "logSuffix": "work.",
+    "dateDone": "Date done",
+    "logWork": "Log it",
+    "workLogged": "Logged!"
   },
   "paywall": {
     "title": "Twoje doswiadczenie MotoVault jest gotowe",

@@ -1138,7 +1138,14 @@
     "taskSuffix": "úloha.",
     "km": "km",
     "recordPrefix": "Zaznamenať",
-    "maintenanceSuffix": "údržbu."
+    "maintenanceSuffix": "údržbu.",
+    "modePlan": "Plan ahead",
+    "modeLog": "Log done work",
+    "logPrefix": "Log",
+    "logSuffix": "work.",
+    "dateDone": "Date done",
+    "logWork": "Log it",
+    "workLogged": "Logged!"
   },
   "paywall": {
     "title": "Tvoj MotoVault zážitok je pripravený",

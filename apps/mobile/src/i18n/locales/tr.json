@@ -1136,7 +1136,14 @@
     "taskSuffix": "görev.",
     "km": "km",
     "recordPrefix": "Kaydet",
-    "maintenanceSuffix": "bakım."
+    "maintenanceSuffix": "bakım.",
+    "modePlan": "Plan ahead",
+    "modeLog": "Log done work",
+    "logPrefix": "Log",
+    "logSuffix": "work.",
+    "dateDone": "Date done",
+    "logWork": "Log it",
+    "workLogged": "Logged!"
   },
   "paywall": {
     "title": "MotoVault deneyimin hazir",

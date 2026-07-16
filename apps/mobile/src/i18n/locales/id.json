@@ -1136,7 +1136,14 @@
     "taskSuffix": "baru.",
     "km": "km",
     "recordPrefix": "Catat",
-    "maintenanceSuffix": "perawatan."
+    "maintenanceSuffix": "perawatan.",
+    "modePlan": "Plan ahead",
+    "modeLog": "Log done work",
+    "logPrefix": "Log",
+    "logSuffix": "work.",
+    "dateDone": "Date done",
+    "logWork": "Log it",
+    "workLogged": "Logged!"
   },
   "paywall": {
     "title": "Pengalaman MotoVault-mu sudah siap",

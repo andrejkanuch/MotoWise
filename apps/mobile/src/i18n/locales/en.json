@@ -1129,7 +1129,7 @@
     "dueDate": "Due Date",
     "noneSet": "None",
     "clearDate": "Clear",
-    "targetMileage": "Mileage",
+    "targetMileage": "Target mileage",
     "options": "Options",
     "details": "Details",
     "descriptionPlaceholder": "What needs to be done?",
@@ -1141,7 +1141,14 @@
     "taskSuffix": "task.",
     "km": "km",
     "recordPrefix": "Record",
-    "maintenanceSuffix": "maintenance."
+    "maintenanceSuffix": "maintenance.",
+    "modePlan": "Plan ahead",
+    "modeLog": "Log done work",
+    "logPrefix": "Log",
+    "logSuffix": "work.",
+    "dateDone": "Date done",
+    "logWork": "Log it",
+    "workLogged": "Logged!"
   },
   "paywall": {
     "title": "Your MotoVault experience is ready",
