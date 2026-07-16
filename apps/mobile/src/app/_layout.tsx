@@ -549,9 +549,9 @@ function RootLayout() {
     captureMetaAttribution();
   }, []);
 
-  // Resolve the web→app "which bike" intent (install referrer / iOS clipboard)
-  // and pre-seed onboarding. Non-blocking, fail-open, once per install — never
-  // affects the normal onboarding flow. (P2)
+  // Resolve the web→app "which bike" intent (Android Play install referrer; iOS
+  // has no silent transport) and pre-seed onboarding. Non-blocking, fail-open,
+  // once per install — never affects the normal onboarding flow. (P2)
   useEffect(() => {
     void resolvePendingIntent();
   }, []);

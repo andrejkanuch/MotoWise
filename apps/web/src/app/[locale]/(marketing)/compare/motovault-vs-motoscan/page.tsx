@@ -4,6 +4,7 @@ import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
 import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
+import { CtaPageType } from '@/lib/cta-taxonomy';
 import { buildBreadcrumbList, buildFAQPage, buildGraph, buildWebPage } from '@/lib/seo/schema';
 
 export const revalidate = 604800; // 7 days — repo-sourced, rebuilds on deploy
@@ -552,7 +553,7 @@ export default async function VsMotoScanPage({ params }: PageProps) {
         </div>
       </section>
 
-      <FeatureCta />
+      <FeatureCta pageType={CtaPageType.Compare} />
     </>
   );
 }

@@ -101,12 +101,15 @@ for it in items:
 PY
 done
 
-# Mark complete ONLY when this run verified at least one non-empty download.
-if [ -s "$RUN_OK" ]; then
+# Mark complete ONLY when this run verified BOTH report families — a non-empty
+# engagement_*.tsv AND a non-empty downloads_*.tsv. Requiring only "any file"
+# would set the marker (and skip all future runs) even if downloads failed while
+# engagement succeeded, permanently losing half the funnel.
+if grep -q '/engagement_' "$RUN_OK" 2>/dev/null && grep -q '/downloads_' "$RUN_OK" 2>/dev/null; then
   touch "$DONE_MARKER"
   log "SUCCESS: $(wc -l < "$RUN_OK" | tr -d ' ') verified funnel file(s) captured into $OUT (engagement_*.tsv / downloads_*.tsv). Marker set."
   rm -f "$RUN_OK"
 else
-  log "no verified funnel data this run — will retry on next scheduled run."
+  log "incomplete funnel data this run (need both engagement + downloads) — will retry on next scheduled run."
 fi
 log "=== pull run end ==="

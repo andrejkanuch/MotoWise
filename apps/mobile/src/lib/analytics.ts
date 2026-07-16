@@ -193,6 +193,17 @@ export function setAnalyticsEnabled(enabled: boolean) {
       .catch((e) =>
         captureException(e, { source: 'analytics.setAnalyticsEnabled.metaAttribution' }),
       );
+    // Replay the intent-cohort super property. resolvePendingIntent may have run
+    // pre-consent — registerSuperProperties no-ops while analytics is off, and the
+    // referrer is one-shot (marked checked), so without this the cohort tag is lost
+    // for the whole funnel. Re-derive from the persisted pending intent. Lazy
+    // imports avoid a static analytics↔store cycle.
+    void Promise.all([import('./pending-intent'), import('../stores/onboarding.store')])
+      .then(([intentMod, storeMod]) => {
+        const intent = storeMod.useOnboardingStore.getState().pendingIntent;
+        if (intent) registerSuperProperties({ intent_cohort: intentMod.getIntentCohort(intent) });
+      })
+      .catch((e) => captureException(e, { source: 'analytics.setAnalyticsEnabled.intentCohort' }));
   }
   if (posthogClient) {
     if (enabled) {
@@ -322,7 +333,7 @@ export const AnalyticsEvent = {
   // Attribution — self-reported acquisition channel ("How did you hear about us?")
   REFERRAL_SOURCE_SELECTED: 'referral_source_selected',
   REFERRAL_SOURCE_SKIPPED: 'referral_source_skipped',
-  // Web→app intent — "which bike" resolved from install referrer / iOS clipboard
+  // Web→app intent — "which bike" resolved from the Android Play install referrer
   PENDING_INTENT_RESOLVED: 'pending_intent_resolved',
 
   // Feature usage — Diagnostics
