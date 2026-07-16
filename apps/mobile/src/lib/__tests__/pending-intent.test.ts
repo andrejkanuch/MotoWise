@@ -2,7 +2,6 @@
 import {
   getIntentCohort,
   INTENT_COHORT,
-  INTENT_TOKEN_TTL_MS,
   isMaintenanceIntent,
   parseIntentToken,
   resolveMakeFromIntent,
@@ -17,70 +16,37 @@ const MAKES = [
   { makeId: 448, makeName: 'Harley-Davidson' },
 ];
 
-const NOW = 1_700_000_000_000;
-
-describe('parseIntentToken', () => {
-  describe('referrer strings (Android)', () => {
-    it('parses a full referrer query string', () => {
-      const intent = parseIntentToken(
-        'utm_source=blog&utm_campaign=blog_maintenance&mv_make=Yamaha&mv_model=MT-07',
-      );
-      expect(intent).toEqual({
-        make: 'Yamaha',
-        model: 'MT-07',
-        source: 'blog',
-        campaign: 'blog_maintenance',
-      });
-    });
-
-    it('parses a make-only referrer (no model)', () => {
-      expect(parseIntentToken('utm_source=tool&mv_make=Honda')).toEqual({
-        make: 'Honda',
-        model: null,
-        source: 'tool',
-        campaign: null,
-      });
-    });
-
-    it('URL-decodes multi-word makes and models', () => {
-      expect(parseIntentToken('mv_make=Royal%20Enfield&mv_model=Continental%20GT')).toMatchObject({
-        make: 'Royal Enfield',
-        model: 'Continental GT',
-      });
-    });
-
-    it('does not TTL-check referrer strings (no ts required)', () => {
-      expect(parseIntentToken('mv_make=Honda&ts=1', NOW)).toMatchObject({ make: 'Honda' });
+describe('parseIntentToken (Android install referrer)', () => {
+  it('parses a full referrer query string', () => {
+    const intent = parseIntentToken(
+      'utm_source=blog&utm_campaign=blog_maintenance&mv_make=Yamaha&mv_model=MT-07',
+    );
+    expect(intent).toEqual({
+      make: 'Yamaha',
+      model: 'MT-07',
+      source: 'blog',
+      campaign: 'blog_maintenance',
     });
   });
 
-  describe('clipboard tokens (iOS)', () => {
-    it('parses a fresh https token', () => {
-      const raw = `https://motovault.app/i?mv_make=Yamaha&mv_model=MT-07&utm_source=blog&ts=${NOW}`;
-      expect(parseIntentToken(raw, NOW + 1000)).toEqual({
-        make: 'Yamaha',
-        model: 'MT-07',
-        source: 'blog',
-        campaign: null,
-      });
+  it('parses a make-only referrer (no model)', () => {
+    expect(parseIntentToken('utm_source=tool&mv_make=Honda')).toEqual({
+      make: 'Honda',
+      model: null,
+      source: 'tool',
+      campaign: null,
     });
+  });
 
-    it('rejects an expired token (older than TTL)', () => {
-      const raw = `https://motovault.app/i?mv_make=Yamaha&mv_model=MT-07&ts=${NOW}`;
-      expect(parseIntentToken(raw, NOW + INTENT_TOKEN_TTL_MS + 1)).toBeNull();
+  it('URL-decodes multi-word makes and models', () => {
+    expect(parseIntentToken('mv_make=Royal%20Enfield&mv_model=Continental%20GT')).toMatchObject({
+      make: 'Royal Enfield',
+      model: 'Continental GT',
     });
+  });
 
-    it('rejects an improbable future timestamp', () => {
-      const raw = `https://motovault.app/i?mv_make=Yamaha&ts=${NOW + INTENT_TOKEN_TTL_MS + 1}`;
-      expect(parseIntentToken(raw, NOW)).toBeNull();
-    });
-
-    it('rejects a token with a missing/garbage ts', () => {
-      expect(parseIntentToken('https://motovault.app/i?mv_make=Yamaha', NOW)).toBeNull();
-      expect(
-        parseIntentToken('https://motovault.app/i?mv_make=Yamaha&ts=notanumber', NOW),
-      ).toBeNull();
-    });
+  it('tolerates a leading ? and ignores unrelated params', () => {
+    expect(parseIntentToken('?mv_make=Honda&ts=1&foo=bar')).toMatchObject({ make: 'Honda' });
   });
 
   describe('garbage / edge inputs → null', () => {
@@ -93,9 +59,8 @@ describe('parseIntentToken', () => {
       ['random text', 'hello world'],
       ['no make key', 'utm_source=blog&mv_model=MT-07'],
       ['blank make', 'mv_make=&mv_model=MT-07'],
-      ['prefix only', 'https://motovault.app/i'],
     ])('%s', (_label, input) => {
-      expect(parseIntentToken(input as never, NOW)).toBeNull();
+      expect(parseIntentToken(input as never)).toBeNull();
     });
   });
 });

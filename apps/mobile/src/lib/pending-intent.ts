@@ -12,53 +12,29 @@
 
 /**
  * Master kill switch. Flip to false to disable the entire intent path instantly
- * (readers short-circuit before any I/O, seed refuses) without touching the rest
- * of onboarding. Readers (Android referrer / iOS clipboard) MUST check this
- * before doing native work.
+ * (the reader short-circuits before any I/O) without touching the rest of
+ * onboarding. The Android referrer reader MUST check this before doing work.
  */
 export const INTENT_PREFILL_ENABLED = true;
 
 /**
- * Query-string keys the web tags onto the Google Play install referrer and the
- * iOS `mvintent://` clipboard token (PR #163, apps/web `storeAnchorProps`).
+ * Query-string keys the web tags onto the Google Play install referrer
+ * (PR #163, apps/web `storeAnchorProps` → `buildPlayReferrer`).
  */
 export const INTENT_PARAM = {
   MAKE: 'mv_make',
   MODEL: 'mv_model',
   SOURCE: 'utm_source',
   CAMPAIGN: 'utm_campaign',
-  TS: 'ts',
 } as const;
 
 /**
- * iOS clipboard token prefix — an https URL (NOT a custom scheme) on purpose: the
- * reader gates its (permission-prompting) clipboard read behind
- * `Clipboard.hasUrlAsync()`, which only detects real URLs. An https URL is
- * reliably detected, so organic users with no URL on their clipboard are never
- * prompted; a custom scheme like `mvintent://` would not be detected and the
- * feature would silently never seed. The `/i` path marks it as an intent token.
- * Kept in sync with the web writer (`apps/web` campaign.ts, `buildIntentToken`).
+ * How the intent arrived. Android install referrer is the only transport — iOS
+ * has none (App Store strips referrers; the clipboard path was removed to avoid
+ * a paste prompt at onboarding). Kept as an object for analytics `method`.
  */
-export const INTENT_TOKEN_URL_PREFIX = 'https://motovault.app/i';
-
-/**
- * Max age of an iOS clipboard token. A token older than this (or improbably far
- * in the future) is treated as a stale/unrelated paste and ignored. Referrer
- * strings carry no `ts` and are not TTL-checked — the OS only hands them over on
- * a genuine first install.
- *
- * Sized to survive a real App Store install: the token is written at store-click
- * and only read on first launch, so the window must cover download + install +
- * first-open, which routinely exceeds a couple of minutes on cellular. 60 min is
- * generous for that while still discarding genuinely stale pasteboard contents
- * (our scheme tokens are not something a user keeps around for an hour).
- */
-export const INTENT_TOKEN_TTL_MS = 60 * 60 * 1000;
-
-/** How the intent arrived — used for analytics (`method`) and cohorting. */
 export const INTENT_METHOD = {
   REFERRER: 'referrer',
-  CLIPBOARD: 'clipboard',
 } as const;
 export type IntentMethod = (typeof INTENT_METHOD)[keyof typeof INTENT_METHOD];
 
@@ -102,51 +78,19 @@ function clean(value: string | null | undefined): string | null {
 }
 
 /**
- * Parse an intent token from either transport into a `PendingIntent`, or null.
- *
- * - Android: the Play install referrer, a plain query string
- *   (`utm_source=blog&mv_make=Yamaha&mv_model=MT-07`). No TTL.
- * - iOS: the clipboard token
- *   (`https://motovault.app/i?mv_make=Yamaha&...&ts=<epoch_ms>`). The URL prefix
- *   is required and a stale/garbage `ts` rejects it.
- *
- * A missing/blank make yields null — there is nothing to seed without a make.
- * `nowMs` is injectable for deterministic tests.
+ * Parse the Android Play install-referrer string — a plain query string
+ * (`utm_source=blog&mv_make=Yamaha&mv_model=MT-07`) — into a `PendingIntent`, or
+ * null. A missing/blank make yields null (nothing to seed without a make).
  */
-export function parseIntentToken(
-  raw: string | null | undefined,
-  nowMs: number = Date.now(),
-): PendingIntent | null {
+export function parseIntentToken(raw: string | null | undefined): PendingIntent | null {
   try {
     if (typeof raw !== 'string') return null;
-    const trimmed = raw.trim();
-    if (!trimmed) return null;
-
-    const isToken = trimmed.startsWith(INTENT_TOKEN_URL_PREFIX);
-    // iOS token: take the query after the URL's first `?`. Referrer: it IS the
-    // query string, so just strip any leading `?`/`/`.
-    let query: string;
-    if (isToken) {
-      const qIdx = trimmed.indexOf('?');
-      query = qIdx >= 0 ? trimmed.slice(qIdx + 1) : '';
-    } else {
-      query = trimmed.replace(/^[/?]+/, '');
-    }
+    const query = raw.trim().replace(/^[/?]+/, '');
     if (!query) return null;
 
     const params = new URLSearchParams(query);
-
     const make = clean(params.get(INTENT_PARAM.MAKE));
     if (!make) return null;
-
-    // Clipboard tokens must carry a fresh timestamp; referrer strings do not.
-    if (isToken) {
-      const tsRaw = params.get(INTENT_PARAM.TS);
-      const ts = tsRaw ? Number.parseInt(tsRaw, 10) : Number.NaN;
-      if (!Number.isFinite(ts)) return null;
-      // Reject stale tokens and improbable future timestamps (clock skew/garbage).
-      if (ts < nowMs - INTENT_TOKEN_TTL_MS || ts > nowMs + INTENT_TOKEN_TTL_MS) return null;
-    }
 
     return {
       make,

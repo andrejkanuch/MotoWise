@@ -63,18 +63,11 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   `E2E_EMAIL_PREFIX` (set inline in the `test:e2e:*` package scripts) — no per-flow wrapper needed.
 
 - **`flows/onboarding.yaml`** also carries the **P2 fail-open regression**: at bike-setup it asserts
-  the "Is this your ride?" intent confirmation is NOT shown when no web intent was seeded (case 1).
-- **`flows/intent-onboarding.yaml`** — web→app intent, **valid token** (P2 case 2). The runner
-  (`scripts/run-intent-e2e.sh`) seeds the iOS simulator clipboard with a fresh
-  `mvintent://?mv_make=Yamaha&mv_model=MT-07&…` token before launch; the flow asserts bike-setup
-  opens on the one-tap confirmation for that bike and that confirming advances. `test:e2e:intent`.
-- **`flows/intent-onboarding-fallback.yaml`** — web→app intent, **unknown make** (P2 case 3). Seeds a
-  well-formed token with a make not in the app's list; the flow asserts bike-setup falls back to the
-  normal grid (no seed, no confirmation) and the normal add-bike path still works.
-  `test:e2e:intent-fallback`. **iOS-simulator only** (clipboard seeded via `xcrun simctl pbcopy`);
-  the Android install-referrer transport can't be seeded without a real Play Store install and is
-  verified manually on an emulator. Both intent flows are **authored from source — validate on a
-  preview build before trusting them** (same build prereqs as `onboarding.yaml`).
+  the "Is this your ride?" intent confirmation is NOT shown when no web intent is present (case 1).
+  The web→app intent's only transport is the **Android Play install referrer** (iOS clipboard was
+  dropped — it triggered a paste prompt at onboarding), which can't be seeded on a simulator without
+  a real Play Store install; the positive case (confirmation shown) is verified manually on an
+  Android device. The parse + make-resolution logic is unit-tested (`pending-intent.test.ts`).
 
 ## One-time setup
 

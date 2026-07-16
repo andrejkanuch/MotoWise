@@ -68,34 +68,6 @@ export function getCampaignParams(): CampaignParams | null {
 }
 
 /**
- * iOS clipboard-token URL prefix. The App Store strips install referrers, so the
- * one deterministic way to carry make/model intent across the iOS store boundary
- * is a clipboard token the app reads on first launch (plan P2.4). It is an https
- * URL (not a custom scheme) so the app can gate its permission-prompting read
- * behind iOS `hasUrlAsync()` — a custom scheme is not detected as a URL and the
- * prompt would fire for every user. Kept in sync with the mobile parser
- * (`apps/mobile/src/lib/pending-intent.ts`, `INTENT_TOKEN_URL_PREFIX`).
- */
-export const INTENT_TOKEN_URL_PREFIX = 'https://motovault.app/i';
-
-/**
- * Build the iOS clipboard intent token from make/model + campaign params, or null
- * when there is no bike intent to carry (no `mv_make`). Stamped with `ts` (epoch
- * ms) so the app can ignore a stale pasteboard. Written best-effort on the click
- * gesture just before the App Store redirect; the app verifies the prefix + TTL,
- * seeds onboarding, then clears the clipboard. Values are encoded so a make/model
- * containing `&`/`=` round-trips through the app's URLSearchParams parse.
- */
-export function buildIntentToken(params: Record<string, string | undefined> | null): string | null {
-  if (!params?.mv_make) return null; // nothing to seed without a make
-  const query = Object.entries(params)
-    .filter((entry): entry is [string, string] => Boolean(entry[1]))
-    .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-    .join('&');
-  return `${INTENT_TOKEN_URL_PREFIX}?${query}&ts=${Date.now()}`;
-}
-
-/**
  * Append a Google Play `referrer` param built from arbitrary key/values. Play
  * surfaces this verbatim in the Install Referrer API + Play Console acquisition
  * reports, giving deterministic Android channel attribution — and it is how blog

@@ -1,4 +1,3 @@
-import * as Clipboard from 'expo-clipboard';
 import * as SecureStore from 'expo-secure-store';
 import { useOnboardingStore } from '../stores/onboarding.store';
 import {
@@ -12,23 +11,25 @@ import {
   getIntentCohort,
   INTENT_METHOD,
   INTENT_PREFILL_ENABLED,
-  INTENT_TOKEN_URL_PREFIX,
   type IntentMethod,
   parseIntentToken,
 } from './pending-intent';
 
 /**
  * First-launch resolver for the web→app "which bike" intent (P2). Reads the
- * platform transport (Android Play install referrer / iOS clipboard token),
- * parses it, and stores the raw pendingIntent. The make is resolved (and the
- * bike seeded) later in bike-setup, which already loads the make list — so this
- * runs at cold start without depending on a network fetch here. Fires attribution.
+ * Android Play install referrer, parses it, and stores the raw pendingIntent. The
+ * make is resolved (and the bike seeded) later in bike-setup, which already loads
+ * the make list. Fires attribution.
+ *
+ * iOS has NO intent transport: the App Store strips install referrers, and the
+ * only alternative — reading the clipboard on launch — triggers an iOS paste
+ * prompt on every first launch, so that path was intentionally removed. On iOS
+ * this is a no-op and onboarding runs normally.
  *
  * RULE #0 — this is a non-blocking, best-effort side effect. It NEVER throws,
  * NEVER blocks render/navigation, and any failure leaves onboarding untouched.
- * Runs at most once per install (SecureStore flag); the transports are one-shot
- * (the clipboard token is cleared on read; the referrer reflects a single
- * install), so there is nothing to retry.
+ * Runs at most once per install (SecureStore flag); the referrer reflects a
+ * single install, so there is nothing to retry.
  */
 
 /** SecureStore flag: the intent transport has already been consumed this install. */
@@ -63,35 +64,12 @@ async function readAndroidReferrer(): Promise<string | null> {
   }
 }
 
-async function readIosClipboardToken(): Promise<string | null> {
-  try {
-    // Gate the read behind hasStringAsync() — a metadata check that does NOT
-    // trigger the iOS paste-permission prompt and skips a genuinely empty
-    // clipboard. (hasUrlAsync() is NOT usable here: the web writes the token via
-    // navigator.clipboard.writeText, a plain-text item, which iOS does not report
-    // as a URL — verified on-device — so the read would never fire.) Reading the
-    // string below is the only way to inspect content on iOS 16+ and does prompt;
-    // that prompt is unavoidable for clipboard-based deferred attribution.
-    if (!(await Clipboard.hasStringAsync())) return null;
-    const clip = await Clipboard.getStringAsync();
-    // Only trust — and only ever clear — a string that is our token. Never touch
-    // unrelated clipboard content the user happens to be carrying.
-    if (!clip?.startsWith(INTENT_TOKEN_URL_PREFIX)) return null;
-    await Clipboard.setStringAsync('');
-    return clip;
-  } catch {
-    return null;
-  }
-}
-
 async function readTransport(): Promise<{ raw: string; method: IntentMethod } | null> {
+  // Android only — the Play install referrer. iOS has no silent transport (see
+  // the module doc), so it is intentionally a no-op there.
   if (process.env.EXPO_OS === 'android') {
     const raw = await readAndroidReferrer();
     return raw ? { raw, method: INTENT_METHOD.REFERRER } : null;
-  }
-  if (process.env.EXPO_OS === 'ios') {
-    const raw = await readIosClipboardToken();
-    return raw ? { raw, method: INTENT_METHOD.CLIPBOARD } : null;
   }
   return null;
 }

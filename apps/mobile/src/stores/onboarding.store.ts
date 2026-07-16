@@ -71,13 +71,13 @@ interface OnboardingState {
    */
   heardFrom: string | null;
   /**
-   * Web→app "which bike" intent resolved on first launch from the Play install
-   * referrer (Android) or the `mvintent://` clipboard token (iOS). Non-null ONLY
-   * when a make was confidently matched; it is the signal bike-setup uses to
-   * render the one-tap "Is this your ride?" confirmation and that paywall
-   * personalization reads for the maintenance-intent cohort. Cleared on reset()
-   * so it never leaks into a later onboarding run. Fail-open: absence means the
-   * normal, untouched onboarding flow.
+   * Web→app "which bike" intent resolved on first launch from the Android Play
+   * install referrer (iOS has no transport — see pending-intent-reader). Holds
+   * the raw make/model; bike-setup resolves the make against its loaded list to
+   * render the one-tap "Is this your ride?" confirmation, and paywall
+   * personalization reads it for the maintenance-intent cohort. Cleared on
+   * reset() so it never leaks into a later onboarding run. Fail-open: absence
+   * means the normal, untouched onboarding flow.
    */
   pendingIntent: PendingIntent | null;
   setAcceptedOemScheduleIds: (ids: string[]) => void;
