@@ -28,56 +28,85 @@ if [ -f "$DONE_MARKER" ]; then
 fi
 
 log "=== pull run start ==="
-captured=0
+# Verified downloads from THIS run only — the completion marker is set off this,
+# never off pre-existing files (a stale/empty file must not look like success).
+RUN_OK="$OUT/.run_ok"
+rm -f "$RUN_OK"
 
-# Try the last 6 processing dates (Apple lags 1-2 days; give a window).
+# Try the last 6 processing dates (Apple lags 1-2 days; give a window). Each date
+# is independent — we don't stop at the first hit, so a full window is preserved.
 for d in 1 2 3 4 5 6; do
   DATE=$(date -v-${d}d '+%Y-%m-%d')
   RAW="$OUT/view_${DATE}.json"
-  asc analytics view --request-id "$REQ" --date "$DATE" --include-segments --paginate --output json > "$RAW" 2>>"$LOG"
+  # Distinguish a CLI/auth failure (non-zero exit) from a legitimately-empty
+  # result — a failed command must NOT fall through to the "no instances" path.
+  if ! asc analytics view --request-id "$REQ" --date "$DATE" --include-segments --paginate --output json > "$RAW" 2>>"$LOG"; then
+    log "date $DATE: 'asc analytics view' failed (see log above) — not treating as empty"
+    rm -f "$RAW"
+    continue
+  fi
   if ! grep -q '"data"' "$RAW" 2>/dev/null; then
     log "date $DATE: no instances yet ($(head -c 120 "$RAW" | tr '\n' ' '))"
     rm -f "$RAW"
     continue
   fi
   log "date $DATE: instances found -> $RAW"
-  # Defensive parse: pull instance-id + segment-id + download URL for the two funnel reports.
-  python3 - "$RAW" "$REQ" "$OUT" "$DATE" <<'PY' >> "$LOG" 2>&1
+  # Defensive parse: pull instance-id + segment-id + download URL for the two funnel
+  # reports. Each SEGMENT gets its own file (segment id in the name) so segments never
+  # overwrite each other; Apple's exports are tab-delimited, so the extension is .tsv.
+  # Only verified, non-empty downloads are appended to RUN_OK.
+  python3 - "$RAW" "$REQ" "$OUT" "$DATE" "$RUN_OK" <<'PY' >> "$LOG" 2>&1
 import sys, json, subprocess, os
-raw, req, outdir, date = sys.argv[1:5]
+raw, req, outdir, date, run_ok = sys.argv[1:6]
 d = json.load(open(raw))
 items = d.get("data", [])
 want = {"discovery and engagement": "engagement", "app downloads": "downloads"}
+
+def record_if_valid(path, label):
+    # A download only counts if the file exists and is non-empty.
+    if os.path.exists(path) and os.path.getsize(path) > 0:
+        with open(run_ok, "a") as f:
+            f.write(path + "\n")
+        print(f"  OK {label} -> {path} ({os.path.getsize(path)} bytes)")
+        return
+    print(f"  FAILED {label}: missing or empty -> {path}")
+
 for it in items:
     name = (it.get("name") or it.get("attributes", {}).get("name") or "").lower()
     key = next((v for k, v in want.items() if k in name), None)
     if not key:
         continue
-    # segments can live in several shapes; search recursively for a downloadUrl + ids.
+    # segments can live in several shapes; search for a downloadUrl + ids.
     segs = it.get("segments") or it.get("attributes", {}).get("segments") or []
     inst = it.get("instanceId") or it.get("id")
-    for s in segs:
-        seg_id = s.get("id") or s.get("segmentId")
+    for i, s in enumerate(segs):
+        seg_id = s.get("id") or s.get("segmentId") or f"seg{i}"
         url = s.get("url") or s.get("downloadUrl") or (s.get("attributes", {}) or {}).get("url")
-        dest = os.path.join(outdir, f"{key}_{date}.csv")
+        dest = os.path.join(outdir, f"{key}_{date}_{seg_id}.tsv")
+        label = f"{key}/{seg_id}"
         if url:
-            subprocess.run(["curl", "-s", "-L", "-o", dest + ".gz", url])
-            subprocess.run(["gunzip", "-f", dest + ".gz"])
-            print(f"  downloaded {key} via url -> {dest}")
+            gz = dest + ".gz"
+            if subprocess.run(["curl", "-fsSL", "-o", gz, url]).returncode != 0:
+                print(f"  FAILED {label}: curl error"); continue
+            if subprocess.run(["gunzip", "-f", gz]).returncode != 0:
+                print(f"  FAILED {label}: gunzip error"); continue
+            record_if_valid(dest, f"{label} (url)")
         elif inst and seg_id:
-            subprocess.run(["asc", "analytics", "download", "--request-id", req,
-                            "--instance-id", inst, "--segment-id", seg_id,
-                            "--decompress", "--output", dest], check=False)
-            print(f"  downloaded {key} via asc download -> {dest}")
+            rc = subprocess.run(["asc", "analytics", "download", "--request-id", req,
+                                 "--instance-id", inst, "--segment-id", seg_id,
+                                 "--decompress", "--output", dest]).returncode
+            if rc != 0:
+                print(f"  FAILED {label}: asc download rc={rc}"); continue
+            record_if_valid(dest, f"{label} (asc)")
 PY
-  # Consider captured if we now have an engagement CSV for this date.
-  if ls "$OUT"/engagement_*.csv >/dev/null 2>&1; then captured=1; fi
 done
 
-if [ "$captured" -eq 1 ]; then
+# Mark complete ONLY when this run verified at least one non-empty download.
+if [ -s "$RUN_OK" ]; then
   touch "$DONE_MARKER"
-  log "SUCCESS: funnel data captured into $OUT (engagement_*.csv / downloads_*.csv). Marker set."
+  log "SUCCESS: $(wc -l < "$RUN_OK" | tr -d ' ') verified funnel file(s) captured into $OUT (engagement_*.tsv / downloads_*.tsv). Marker set."
+  rm -f "$RUN_OK"
 else
-  log "no funnel data yet — will retry on next scheduled run."
+  log "no verified funnel data this run — will retry on next scheduled run."
 fi
 log "=== pull run end ==="
