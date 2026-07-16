@@ -36,13 +36,12 @@ export function storeAnchorProps(platform: StorePlatform, ctx: StoreCtaContext) 
       // into the Play install. Set it at click time (params are client-only, so
       // the SSR href stays clean and hydration-stable). First-touch campaign
       // UTMs win over the CTA's default referrerParams on conflict. iOS has no
-      // equivalent (App Store strips referrers — see P2.4 clipboard/ASA path).
+      // equivalent — the App Store strips referrers (the clipboard-token path was
+      // dropped because it triggered a paste prompt at onboarding).
       if (platform === StorePlatform.Android && (campaign || ctx.referrerParams)) {
         const referrer = { ...ctx.referrerParams, ...campaign };
         e.currentTarget.href = buildPlayReferrer(STORE_LINKS.googlePlay, referrer);
       }
-      // iOS has no equivalent — the App Store strips referrers, and the clipboard
-      // path was dropped (it triggered a paste prompt at onboarding).
       trackStoreCtaClick(platform, ctx, campaign ?? undefined);
     },
   } as const;
@@ -60,6 +59,7 @@ export function StoreLink({
   placement,
   slug,
   sameTab,
+  referrerParams,
   className,
   style,
   children,
@@ -71,7 +71,7 @@ export function StoreLink({
 }) {
   return (
     <a
-      {...storeAnchorProps(platform, { pageType, placement, slug, sameTab })}
+      {...storeAnchorProps(platform, { pageType, placement, slug, sameTab, referrerParams })}
       className={className}
       style={style}
     >
@@ -85,11 +85,12 @@ export function StoreButtons({
   pageType,
   placement = CtaPlacement.Inline,
   slug,
+  referrerParams,
 }: Omit<StoreCtaContext, 'placement' | 'sameTab'> & {
   size?: 'sm' | 'md' | 'lg';
   placement?: CtaPlacement;
 }) {
-  const ctx: StoreCtaContext = { pageType, placement, slug };
+  const ctx: StoreCtaContext = { pageType, placement, slug, referrerParams };
   const styles = {
     sm: 'px-5 py-2.5 text-sm gap-3',
     md: 'px-6 sm:px-8 py-3.5 text-base gap-4',

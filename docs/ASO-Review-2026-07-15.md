@@ -104,7 +104,7 @@ Ordered by impact ÷ effort. P0 = do now, high leverage, low risk.
 **Proposal:**
 - Add an in-app `SKStoreReviewController` prompt triggered **after a validated positive moment** — e.g. after the user logs their 3rd expense or completes a service record (expenses/maintenance are the sticky features). Never on launch, never mid-task.
 - Gate it with the standard "only if session count ≥ N and no prompt in last 120 days" logic (Apple caps at 3 prompts/year anyway).
-- Optionally seed reviews from known-happy users (in-app "enjoying MotoVault?" → route 5★ intent to the store, route complaints to support).
+- Do **not** gate the prompt on sentiment (no "enjoying MotoVault?" → happy-to-store / unhappy-to-support fork). Sentiment-filtered review solicitation violates App Store Review Guideline 1.1.7 and Google Play policy and risks removal. Present `SKStoreReviewController` unconditionally at the positive moment, and offer an always-available in-app feedback/support entry point separately (not branched off the review ask).
 **Measure:** rating count + average per storefront at next checkpoint (target: US 4.5★+ with 20+ ratings within 60 days).
 
 ### 🔴 P0-2 — Write promotional text in all 7 localized listings (free, no review)

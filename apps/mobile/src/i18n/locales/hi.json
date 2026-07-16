@@ -983,7 +983,7 @@
     "v2BikeSetupVariantDct": "DCT",
     "v2BikeSetupVariantMt": "Manual",
     "v2BikeSetupVariantNone": "Not applicable",
-    "v2IntentConfirmEyebrow": "आपके लेख से",
+    "v2IntentConfirmEyebrow": "लेख से",
     "v2IntentConfirmTitle": "क्या यह आपकी बाइक है?",
     "v2IntentConfirmSubtitle": "यह हमने आपकी पढ़ी सामग्री से लिया। साल की पुष्टि करें और आपका गैराज तैयार है।",
     "v2IntentConfirmCta": "हाँ, यह मेरी बाइक है",

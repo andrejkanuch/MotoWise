@@ -30,6 +30,7 @@ import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding
 import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
+import { isMaintenanceIntent } from '../../lib/pending-intent';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -84,14 +85,22 @@ export default function MaintenanceScreen() {
   const done = currentIdx >= tasks.length;
   const currentTask = tasks[currentIdx];
 
-  // Intent cohort (P2 T4): the rider came from an article about THIS bike, so
-  // pre-accept the whole OEM schedule and drop them straight into the summary —
-  // their garage lands populated instead of empty. They can still Continue (or
-  // reconsider individual tasks). Fires oem_schedule_imported once (T3). Non-
-  // intent onboarders keep the normal swipe deck untouched.
+  // Maintenance-intent cohort (P2 T4): the rider came from an article about THIS
+  // bike's *service schedule*, so pre-accept the whole OEM schedule and drop them
+  // straight into the summary — their garage lands populated instead of empty.
+  // They can still Continue (or reconsider individual tasks). Fires
+  // oem_schedule_imported once (T3). Gated to the MAINTENANCE cohort: cost/guide
+  // intents (and non-intent onboarders) keep the normal swipe deck untouched, so
+  // the auto-import + oem_schedule_imported never fire for them.
   const importedIntentSchedule = useRef(false);
   useEffect(() => {
-    if (importedIntentSchedule.current || !pendingIntent || isLoading || tasks.length === 0) return;
+    if (
+      importedIntentSchedule.current ||
+      !isMaintenanceIntent(pendingIntent) ||
+      isLoading ||
+      tasks.length === 0
+    )
+      return;
     importedIntentSchedule.current = true;
     setAccepted(tasks.map((task) => task.id));
     setCurrentIdx(tasks.length);

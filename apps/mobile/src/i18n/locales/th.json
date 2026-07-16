@@ -983,7 +983,7 @@
     "v2BikeSetupVariantDct": "DCT",
     "v2BikeSetupVariantMt": "Manual",
     "v2BikeSetupVariantNone": "Not applicable",
-    "v2IntentConfirmEyebrow": "จากบทความของคุณ",
+    "v2IntentConfirmEyebrow": "จากบทความ",
     "v2IntentConfirmTitle": "นี่ใช่รถของคุณไหม?",
     "v2IntentConfirmSubtitle": "เราดึงข้อมูลนี้จากสิ่งที่คุณกำลังอ่าน ยืนยันปีแล้วโรงจอดของคุณก็พร้อม",
     "v2IntentConfirmCta": "ใช่ นี่คือรถของฉัน",
