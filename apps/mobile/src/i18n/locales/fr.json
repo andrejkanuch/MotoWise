@@ -1138,14 +1138,14 @@
     "notesPlaceholder": "Ajouter des notes...",
     "taskAdded": "Tâche ajoutée !",
     "saveTask": "Enregistrer la tâche",
-    "modePlan": "Plan ahead",
-    "modeLog": "Log past work",
-    "logPrefix": "Log",
-    "logSuffix": "work.",
-    "dateDone": "Date completed",
-    "logWork": "Log it",
-    "workLogged": "Logged!",
-    "logSection": "Record"
+    "modePlan": "Planifier",
+    "modeLog": "Enregistrer un travail",
+    "logPrefix": "Travail",
+    "logSuffix": "effectué.",
+    "dateDone": "Réalisé le",
+    "logWork": "Enregistrer",
+    "workLogged": "Enregistré !",
+    "logSection": "Enregistrement"
   },
   "paywall": {
     "title": "Ton expérience MotoVault est prête",

@@ -416,12 +416,22 @@ export default function BikeDetailScreen() {
     triggerImpact();
     const labels = {
       cancel: t('common.cancel', { defaultValue: 'Cancel' }),
+      logWork: t('maintenance.modeLog', { defaultValue: 'Log past work' }),
       documents: t('documents.title', { defaultValue: 'Documents' }),
       recalls: t('recalls.checkButton', { defaultValue: 'Check Safety Recalls' }),
       importOem: t('oem.importButton', { defaultValue: 'Import OEM Schedule' }),
       delete: t('garage.deleteBike', { defaultValue: 'Delete Motorcycle' }),
     };
     showActionSheet(t('common.actions', { defaultValue: 'Actions' }), [
+      {
+        label: labels.logWork,
+        // Deep-link straight into the Add-task modal's "log done work" mode.
+        onPress: () =>
+          router.push({
+            pathname: '/(tabs)/(garage)/add-maintenance-task',
+            params: { motorcycleId: id, bikeName, mode: 'log' },
+          }),
+      },
       { label: labels.documents, onPress: scrollToDocuments },
       { label: labels.recalls, onPress: handleCheckRecalls },
       { label: labels.importOem, onPress: handleImportOem },

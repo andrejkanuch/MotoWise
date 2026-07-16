@@ -1137,14 +1137,14 @@
     "km": "km",
     "recordPrefix": "Kaydet",
     "maintenanceSuffix": "bakım.",
-    "modePlan": "Plan ahead",
-    "modeLog": "Log past work",
-    "logPrefix": "Log",
-    "logSuffix": "work.",
-    "dateDone": "Date completed",
-    "logWork": "Log it",
-    "workLogged": "Logged!",
-    "logSection": "Record"
+    "modePlan": "Planla",
+    "modeLog": "Yapılanı kaydet",
+    "logPrefix": "Yapılan",
+    "logSuffix": "iş.",
+    "dateDone": "Tamamlanma tarihi",
+    "logWork": "Kaydet",
+    "workLogged": "Kaydedildi!",
+    "logSection": "Kayıt"
   },
   "paywall": {
     "title": "MotoVault deneyimin hazir",

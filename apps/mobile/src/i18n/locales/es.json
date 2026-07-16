@@ -1138,14 +1138,14 @@
     "km": "km",
     "recordPrefix": "Registrar",
     "maintenanceSuffix": "mantenimiento.",
-    "modePlan": "Plan ahead",
-    "modeLog": "Log past work",
-    "logPrefix": "Log",
-    "logSuffix": "work.",
-    "dateDone": "Date completed",
-    "logWork": "Log it",
-    "workLogged": "Logged!",
-    "logSection": "Record"
+    "modePlan": "Planificar",
+    "modeLog": "Registrar trabajo",
+    "logPrefix": "Trabajo",
+    "logSuffix": "realizado.",
+    "dateDone": "Completado el",
+    "logWork": "Registrar",
+    "workLogged": "¡Registrado!",
+    "logSection": "Registro"
   },
   "paywall": {
     "title": "Tu experiencia MotoVault esta lista",

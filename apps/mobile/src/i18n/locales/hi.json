@@ -1137,14 +1137,14 @@
     "km": "km",
     "recordPrefix": "रिकॉर्ड करें",
     "maintenanceSuffix": "मेंटेनेंस।",
-    "modePlan": "Plan ahead",
-    "modeLog": "Log past work",
-    "logPrefix": "Log",
-    "logSuffix": "work.",
-    "dateDone": "Date completed",
-    "logWork": "Log it",
-    "workLogged": "Logged!",
-    "logSection": "Record"
+    "modePlan": "प्लान करें",
+    "modeLog": "किया गया काम लॉग करें",
+    "logPrefix": "पूरा",
+    "logSuffix": "काम।",
+    "dateDone": "पूरा होने की तारीख",
+    "logWork": "लॉग करें",
+    "workLogged": "लॉग किया गया!",
+    "logSection": "रिकॉर्ड"
   },
   "paywall": {
     "title": "आपका MotoVault अनुभव तैयार है",

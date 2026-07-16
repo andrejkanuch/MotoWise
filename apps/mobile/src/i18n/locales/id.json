@@ -1137,14 +1137,14 @@
     "km": "km",
     "recordPrefix": "Catat",
     "maintenanceSuffix": "perawatan.",
-    "modePlan": "Plan ahead",
-    "modeLog": "Log past work",
-    "logPrefix": "Log",
-    "logSuffix": "work.",
-    "dateDone": "Date completed",
-    "logWork": "Log it",
-    "workLogged": "Logged!",
-    "logSection": "Record"
+    "modePlan": "Rencanakan",
+    "modeLog": "Catat pekerjaan",
+    "logPrefix": "Pekerjaan",
+    "logSuffix": "selesai.",
+    "dateDone": "Tanggal selesai",
+    "logWork": "Catat",
+    "workLogged": "Tercatat!",
+    "logSection": "Catatan"
   },
   "paywall": {
     "title": "Pengalaman MotoVault-mu sudah siap",

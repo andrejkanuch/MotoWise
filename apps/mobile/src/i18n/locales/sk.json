@@ -1139,14 +1139,14 @@
     "km": "km",
     "recordPrefix": "Zaznamenať",
     "maintenanceSuffix": "údržbu.",
-    "modePlan": "Plan ahead",
-    "modeLog": "Log past work",
-    "logPrefix": "Log",
-    "logSuffix": "work.",
-    "dateDone": "Date completed",
-    "logWork": "Log it",
-    "workLogged": "Logged!",
-    "logSection": "Record"
+    "modePlan": "Naplánovať",
+    "modeLog": "Zaznamenať prácu",
+    "logPrefix": "Vykonaná",
+    "logSuffix": "práca.",
+    "dateDone": "Dátum vykonania",
+    "logWork": "Zaznamenať",
+    "workLogged": "Zaznamenané!",
+    "logSection": "Záznam"
   },
   "paywall": {
     "title": "Tvoj MotoVault zážitok je pripravený",
