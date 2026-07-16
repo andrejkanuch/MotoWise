@@ -69,11 +69,16 @@ pre-image snapshot query are recorded in the migration header. `KM_PER_MILE = 1.
 
 **Release runbook (NOT executed now) — MIGRATION FIRST, then OTA:**
 1. Merge PR.
-2. Snapshot the 113 affected rows (pre-image query in the migration header).
-3. Apply `00165` via Supabase MCP `apply_migration`; if it lands under a timestamp version, repair to
+2. **Pre-apply check** (migration header): confirm `measurement_system='imperial' AND mileage_unit='km'`
+   returns 0 rows — else the guard would skip those bikes; drop the guard and gate on
+   `measurement_system` alone.
+3. Snapshot the affected rows (pre-image query in the migration header).
+4. Apply `00165` via Supabase MCP `apply_migration`; if it lands under a timestamp version, repair to
    `00165` per `project_supabase_migration_divergence`.
-4. **Only then** promote the km-aware OTA/build to the `production` channel.
-5. Verify imperial displayed values are unchanged.
+5. **Post-deploy verification** (migration header): both count queries return 0, and converted row
+   counts match the snapshot (6 bikes / 101 target / 6 completed).
+6. **Only then** promote the km-aware OTA/build to the `production` channel.
+7. Verify imperial displayed values are unchanged.
 
 **Why migration-first (ordering hazard — CodeRabbit #6):** the migration's idempotency guard treats
 `mileage_unit <> 'km'` as "still legacy miles." If the km-aware app reached imperial users *before* the

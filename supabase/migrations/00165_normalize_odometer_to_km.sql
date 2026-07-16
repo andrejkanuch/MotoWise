@@ -20,9 +20,19 @@
 -- 6 completed_mileage. interval_km needs NO change (all populated rows are OEM/km;
 -- user-entered intervals are all NULL).
 --
--- IDEMPOTENT: steps 1-2 are guarded by mileage_unit <> 'km'; step 3 flips every
--- bike to 'km', so a re-run converts nothing. The migration runner also records
--- the version and will not re-run it.
+-- IDEMPOTENT: steps 1-2 are guarded by `mileage_unit IS DISTINCT FROM 'km'`
+-- (NULL-safe); step 3 flips every bike to 'km', so a re-run converts nothing. The
+-- migration runner also records the version and will not re-run it.
+--
+-- GUARD CAVEAT + PRE-APPLY CHECK (must run first): the guard trusts `mileage_unit`
+-- as the "still legacy miles" signal, but that column is the deprecated/unreliable
+-- one (default 'mi', drifts from measurement_system). An imperial-owned bike whose
+-- mileage_unit is ALREADY 'km' would be skipped by steps 1-2 and then stamped 'km'
+-- by step 3 — leaving its odometer ~1.609x too small. Verified 0 such rows on prod
+-- (2026-07-16), and migration-first ordering prevents new ones, but VERIFY before
+-- applying; if it returns > 0, drop the guard and gate on measurement_system alone:
+--   SELECT count(*) FROM public.motorcycles m JOIN public.users u ON u.id=m.user_id
+--    WHERE u.measurement_system='imperial' AND m.mileage_unit='km';  -- expect 0
 --
 -- ORDERING (CRITICAL): apply this BEFORE promoting the km-aware OTA/build. If the
 -- new client wrote canonical km while mileage_unit was still 'mi', this migration
@@ -38,8 +48,9 @@
 --     completed_mileage = CASE WHEN mt.completed_mileage IS NOT NULL
 --                              THEN round(mt.completed_mileage / 1.609344) END
 --   FROM public.motorcycles m JOIN public.users u ON u.id = m.user_id
---   WHERE mt.motorcycle_id = m.id AND u.measurement_system = 'imperial'
---     AND mt.deleted_at IS NULL;
+--   WHERE mt.motorcycle_id = m.id AND u.measurement_system = 'imperial';
+--   -- (no deleted_at filter — mirrors the forward step, which converts every
+--   --  imperial-owned task row incl. soft-deleted, so rollback must too.)
 --   UPDATE public.motorcycles m SET
 --     current_mileage = round(m.current_mileage / 1.609344),
 --     mileage_unit    = 'mi'
@@ -57,12 +68,23 @@
 --     FROM public.maintenance_tasks mt
 --     JOIN public.motorcycles m ON m.id = mt.motorcycle_id
 --     JOIN public.users u ON u.id = m.user_id
---    WHERE u.measurement_system = 'imperial' AND mt.deleted_at IS NULL;
+--    WHERE u.measurement_system = 'imperial';
+--
+-- POST-DEPLOY VERIFICATION (run after applying; both expect 0):
+--   -- no imperial-owned bike left unflagged as km:
+--   SELECT count(*) FROM public.motorcycles m JOIN public.users u ON u.id=m.user_id
+--    WHERE u.measurement_system='imperial' AND m.mileage_unit IS DISTINCT FROM 'km';
+--   -- no bike left with a stale non-km unit at all (step 3 covers everyone):
+--   SELECT count(*) FROM public.motorcycles WHERE mileage_unit IS DISTINCT FROM 'km';
+-- Also confirm the converted row counts match the pre-image snapshot (prod
+-- 2026-07-16 scope: 6 bikes, 101 target_mileage, 6 completed_mileage).
 
 BEGIN;
 
 -- 1) maintenance_tasks target/completed for imperial owners (guard on the bike's
---    pre-state mileage_unit <> 'km'; runs before step 3 flips it).
+--    pre-state mileage_unit, NULL-safe; runs before step 3 flips it). No deleted_at
+--    filter — soft-deleted rows are converted too so the km contract holds if a
+--    task is ever restored; the rollback mirrors this.
 UPDATE public.maintenance_tasks mt
 SET
   target_mileage    = CASE WHEN mt.target_mileage    IS NOT NULL
@@ -73,20 +95,20 @@ FROM public.motorcycles m
 JOIN public.users u ON u.id = m.user_id
 WHERE mt.motorcycle_id = m.id
   AND u.measurement_system = 'imperial'
-  AND m.mileage_unit <> 'km'
+  AND m.mileage_unit IS DISTINCT FROM 'km'
   AND (mt.target_mileage IS NOT NULL OR mt.completed_mileage IS NOT NULL);
 
--- 2) motorcycles.current_mileage for imperial owners (same guard).
+-- 2) motorcycles.current_mileage for imperial owners (same NULL-safe guard).
 UPDATE public.motorcycles m
 SET current_mileage = round(m.current_mileage * 1.609344)::int
 FROM public.users u
 WHERE u.id = m.user_id
   AND u.measurement_system = 'imperial'
-  AND m.mileage_unit <> 'km'
+  AND m.mileage_unit IS DISTINCT FROM 'km'
   AND m.current_mileage > 0;
 
 -- 3) Deprecate the per-bike unit: every stored number is now km. Making the
 --    column uniformly 'km' also serves as the idempotency guard for steps 1-2.
-UPDATE public.motorcycles SET mileage_unit = 'km' WHERE mileage_unit <> 'km';
+UPDATE public.motorcycles SET mileage_unit = 'km' WHERE mileage_unit IS DISTINCT FROM 'km';
 
 COMMIT;
