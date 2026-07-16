@@ -1139,12 +1139,13 @@
     "taskAdded": "Tâche ajoutée !",
     "saveTask": "Enregistrer la tâche",
     "modePlan": "Plan ahead",
-    "modeLog": "Log done work",
+    "modeLog": "Log past work",
     "logPrefix": "Log",
     "logSuffix": "work.",
-    "dateDone": "Date done",
+    "dateDone": "Date completed",
     "logWork": "Log it",
-    "workLogged": "Logged!"
+    "workLogged": "Logged!",
+    "logSection": "Record"
   },
   "paywall": {
     "title": "Ton expérience MotoVault est prête",

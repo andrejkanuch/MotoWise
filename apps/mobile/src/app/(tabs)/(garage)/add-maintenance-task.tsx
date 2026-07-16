@@ -6,14 +6,14 @@ import {
   MaintenanceTaskStatus,
 } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { set, subYears } from 'date-fns';
+import { endOfDay, set, startOfDay, subYears } from 'date-fns';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Calendar, CalendarCheck, Check, Gauge, Plus, Repeat } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { NativeToggle } from '../../../components/ui/native-toggle';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
@@ -25,7 +25,7 @@ import { queryKeys } from '../../../lib/query-keys';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
-import { intervalDistanceUnit, intervalInputToKm } from '../../../utils/maintenance-interval';
+import { intervalDistanceUnit } from '../../../utils/maintenance-interval';
 import { toISODateInput } from '../../../utils/trip-form-dates';
 
 const PRIORITIES = ['low', 'medium', 'high', 'critical'] as const;
@@ -47,20 +47,28 @@ const MAX_BACKDATE_YEARS = 30;
 
 export default function AddMaintenanceTaskScreen() {
   const { t } = useTranslation();
-  const { motorcycleId, bikeName } = useLocalSearchParams<{
+  const {
+    motorcycleId,
+    bikeName,
+    mode: initialMode,
+  } = useLocalSearchParams<{
     motorcycleId: string;
     bikeName?: string;
+    // Entry points can deep-link straight into "log done work" (e.g. a Log CTA).
+    mode?: string;
   }>();
+  const startsInLog = initialMode === TASK_MODES.log;
   const { t: theme, isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
   const system = useMeasurementSystem();
   const mileageUnit = useMileageUnit();
   const intervalUnit = intervalDistanceUnit(system);
 
-  const [mode, setMode] = useState<TaskMode>(TASK_MODES.plan);
+  const [mode, setMode] = useState<TaskMode>(startsInLog ? TASK_MODES.log : TASK_MODES.plan);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [dueDate, setDueDate] = useState<Date | null>(null);
+  // Log mode records history, so seed the completion date to today up front.
+  const [dueDate, setDueDate] = useState<Date | null>(startsInLog ? new Date() : null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [mileage, setMileage] = useState('');
   const [priority, setPriority] = useState<MaintenancePriority>('medium' as MaintenancePriority);
@@ -72,25 +80,32 @@ export default function AddMaintenanceTaskScreen() {
 
   const isLog = mode === TASK_MODES.log;
 
-  // Switch intent. Logging done work seeds today's date and clears the
-  // scheduling-only fields so a stale recurring flag can't leak onto history.
+  // Switch intent, keeping the date coherent with the target mode so a value
+  // entered in one mode can't produce an invalid record in the other:
+  //  - into Log: a completed record can't be in the future → clamp to today
+  //    (and seed today if unset); also drop the scheduling-only recurring flag.
+  //  - back to Plan: a past date would render as instantly overdue → clear it.
   const switchMode = (next: TaskMode) => {
     triggerImpact();
     setMode(next);
+    const now = new Date();
     if (next === TASK_MODES.log) {
-      if (!dueDate) setDueDate(new Date());
+      if (!dueDate || dueDate > endOfDay(now)) setDueDate(now);
       setIsRecurring(false);
+    } else if (dueDate && dueDate < startOfDay(now)) {
+      setDueDate(null);
     }
   };
 
   const createMutation = useMutation({
     mutationFn: () => {
       const mileageNum = mileage ? Number.parseInt(mileage, 10) : undefined;
-      // interval_km is stored canonically in kilometres; convert from the
-      // user's display unit on the way in (mirrors add-fuel-log convert-on-write).
-      const intervalKmValue = intervalInput
-        ? intervalInputToKm(Number.parseInt(intervalInput, 10), system)
-        : undefined;
+      // Stored raw in the user's unit — the same convention odometer values
+      // (target/completed/current mileage) follow everywhere in the app. The
+      // recurrence engine computes completedMileage + intervalKm, so both must
+      // share one unit; the label reflects the unit, we do NOT normalise to km
+      // (that would desync from the raw odometers and inflate every next-due).
+      const intervalValue = intervalInput ? Number.parseInt(intervalInput, 10) : undefined;
 
       const base = {
         motorcycleId,
@@ -119,7 +134,7 @@ export default function AddMaintenanceTaskScreen() {
             dueDate: dueDate ? toISODateInput(dueDate) : undefined,
             targetMileage: mileageNum,
             isRecurring,
-            intervalKm: intervalKmValue,
+            intervalKm: intervalValue,
             intervalDays: intervalDays ? Number.parseInt(intervalDays, 10) : undefined,
           };
 
@@ -257,7 +272,7 @@ export default function AddMaintenanceTaskScreen() {
               },
               {
                 key: TASK_MODES.log,
-                label: t('maintenance.modeLog', { defaultValue: 'Log done work' }),
+                label: t('maintenance.modeLog', { defaultValue: 'Log past work' }),
                 Icon: CalendarCheck,
               },
             ] as const
@@ -340,7 +355,11 @@ export default function AddMaintenanceTaskScreen() {
         {/* Priority — pill selector. Hidden when logging done work: priority is
             the urgency of a pending item, meaningless for finished work. */}
         {!isLog && (
-          <Animated.View entering={FadeInDown.delay(50).duration(250)}>
+          <Animated.View
+            entering={FadeInDown.delay(50).duration(250)}
+            exiting={FadeOut.duration(150)}
+            layout={LinearTransition.duration(220)}
+          >
             <Text
               style={{
                 fontSize: 10,
@@ -416,7 +435,10 @@ export default function AddMaintenanceTaskScreen() {
         )}
 
         {/* Due Date + Mileage — grouped card */}
-        <Animated.View entering={FadeInDown.delay(100).duration(250)}>
+        <Animated.View
+          entering={FadeInDown.delay(100).duration(250)}
+          layout={LinearTransition.duration(220)}
+        >
           <Text
             style={{
               fontSize: 10,
@@ -428,7 +450,9 @@ export default function AddMaintenanceTaskScreen() {
               marginLeft: 4,
             }}
           >
-            {t('maintenance.schedule', { defaultValue: 'Schedule' })}
+            {isLog
+              ? t('maintenance.logSection', { defaultValue: 'Record' })
+              : t('maintenance.schedule', { defaultValue: 'Schedule' })}
           </Text>
           <View
             style={{
@@ -476,7 +500,7 @@ export default function AddMaintenanceTaskScreen() {
                   }}
                 >
                   {isLog
-                    ? t('maintenance.dateDone', { defaultValue: 'Date done' })
+                    ? t('maintenance.dateDone', { defaultValue: 'Date completed' })
                     : t('maintenance.dueDate', { defaultValue: 'Due Date' })}
                 </Text>
               </View>
@@ -629,7 +653,11 @@ export default function AddMaintenanceTaskScreen() {
         {/* Recurring toggle. Hidden when logging done work — you don't repeat
             something you already finished. */}
         {!isLog && (
-          <Animated.View entering={FadeInDown.delay(125).duration(250)}>
+          <Animated.View
+            entering={FadeInDown.delay(125).duration(250)}
+            exiting={FadeOut.duration(150)}
+            layout={LinearTransition.duration(220)}
+          >
             <Text
               style={{
                 fontSize: 10,
@@ -826,7 +854,10 @@ export default function AddMaintenanceTaskScreen() {
         )}
 
         {/* Description + Notes — grouped card */}
-        <Animated.View entering={FadeInDown.delay(175).duration(250)}>
+        <Animated.View
+          entering={FadeInDown.delay(175).duration(250)}
+          layout={LinearTransition.duration(220)}
+        >
           <Text
             style={{
               fontSize: 10,

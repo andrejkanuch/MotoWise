@@ -1143,12 +1143,13 @@
     "recordPrefix": "Record",
     "maintenanceSuffix": "maintenance.",
     "modePlan": "Plan ahead",
-    "modeLog": "Log done work",
+    "modeLog": "Log past work",
     "logPrefix": "Log",
     "logSuffix": "work.",
-    "dateDone": "Date done",
+    "dateDone": "Date completed",
     "logWork": "Log it",
-    "workLogged": "Logged!"
+    "workLogged": "Logged!",
+    "logSection": "Record"
   },
   "paywall": {
     "title": "Your MotoVault experience is ready",

@@ -32,16 +32,3 @@ export function convertIntervalDistance(intervalKm: number, system: MeasurementS
 export function intervalDistanceUnit(system: MeasurementSystem): 'mi' | 'km' {
   return system === 'imperial' ? 'mi' : 'km';
 }
-
-/**
- * Convert an interval the user typed (in their display unit) into the canonical
- * kilometer value stored in `interval_km`. This is the write-side inverse of
- * `convertIntervalDistance`: an imperial user types miles, so multiply by the
- * same KM_PER_MILE divisor to store km. Metric is stored verbatim.
- */
-export function intervalInputToKm(value: number, system: MeasurementSystem): number {
-  if (system === 'imperial') {
-    return Math.round(value * KM_PER_MILE);
-  }
-  return Math.round(value);
-}
