@@ -5,6 +5,7 @@ import {
   MaintenanceTasksByMotorcycleDocument,
   UpdateMaintenanceTaskDocument,
 } from '@motovault/graphql';
+import { mileageToDisplayUnit } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Calendar, Check, Gauge } from 'lucide-react-native';
@@ -13,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -41,6 +43,8 @@ export default function EditMaintenanceTaskScreen() {
   const { t: theme, isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
   const mileageUnit = useMileageUnit();
+  // targetMileage is persisted as canonical km; convert at the edges.
+  const system = useMeasurementSystem();
 
   // Prefill from the already-fetched task list (warm cache): the rider always
   // reaches Edit from a list that has loaded this task. Mirrors complete-task.
@@ -83,24 +87,31 @@ export default function EditMaintenanceTaskScreen() {
     // Parse the stored YYYY-MM-DD as local midnight so it round-trips through
     // toISODateInput (date-fns `format`, local tz) without drifting a day.
     setDueDate(task.dueDate ? new Date(`${task.dueDate}T00:00:00`) : null);
-    setTargetMileage(task.targetMileage ? String(task.targetMileage) : '');
+    setTargetMileage(
+      task.targetMileage
+        ? String(Math.round(mileageToDisplayUnit(task.targetMileage, system)))
+        : '',
+    );
     setPriority((task.priority ?? 'medium') as MaintenancePriority);
     setNotes(task.notes ?? '');
     setHydrated(true);
-  }, [task, hydrated]);
+  }, [task, hydrated, system]);
 
   const updateMutation = useMutation({
     mutationFn: () =>
       gqlFetcher(UpdateMaintenanceTaskDocument, {
         id: taskId,
-        input: buildTaskUpdateInput({
-          title,
-          description,
-          notes,
-          targetMileage,
-          priority,
-          dueDateISO: dueDate ? toISODateInput(dueDate) : null,
-        }),
+        input: buildTaskUpdateInput(
+          {
+            title,
+            description,
+            notes,
+            targetMileage,
+            priority,
+            dueDateISO: dueDate ? toISODateInput(dueDate) : null,
+          },
+          system,
+        ),
       }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({

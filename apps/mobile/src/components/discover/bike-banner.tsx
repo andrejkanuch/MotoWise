@@ -1,14 +1,19 @@
 import { MyMotorcyclesDocument } from '@motovault/graphql';
+import { mileageToDisplayUnit, mileageUnitLabel } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, Route } from 'lucide-react-native';
 import { memo, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
+import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useEditorialTheme } from '../../theme/editorial';
 
 export const BikeBanner = memo(function BikeBanner() {
   const { t } = useEditorialTheme();
+  const { t: translate } = useTranslation();
+  const system = useMeasurementSystem();
 
   const { data } = useQuery({
     queryKey: queryKeys.motorcycles.all,
@@ -62,12 +67,14 @@ export const BikeBanner = memo(function BikeBanner() {
             marginBottom: 1,
           }}
         >
-          For your bike
+          {translate('discover.forYourBike', { defaultValue: 'For your bike' })}
         </Text>
         <Text style={{ fontSize: 13, color: t.ink, fontWeight: '500' }} numberOfLines={1}>
           {bike.make} {bike.model}{' '}
           <Text style={{ color: t.ink3, fontWeight: '400' }}>
-            · {bike.type ?? 'motorcycle'} · {(bike.currentMileage ?? 0).toLocaleString()} km
+            · {bike.type ?? 'motorcycle'} ·{' '}
+            {Math.round(mileageToDisplayUnit(bike.currentMileage ?? 0, system)).toLocaleString()}{' '}
+            {mileageUnitLabel(system)}
           </Text>
         </Text>
       </View>

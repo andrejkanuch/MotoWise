@@ -1,4 +1,5 @@
 import { MyMotorcyclesDocument, MyRidesDocument } from '@motovault/graphql';
+import { mileageToDisplayUnit } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -201,8 +202,9 @@ export default function StartRideScreen() {
     if (!selectedBike) return '';
     const mileage = selectedBike.currentMileage;
     if (mileage != null && mileage > 0) {
+      // currentMileage is stored in canonical km; convert to the user's unit.
       // Unit follows the user's profile preference, not the deprecated per-bike field.
-      return `${mileage.toLocaleString()} ${distanceUnitLabel(system)}`;
+      return `${Math.round(mileageToDisplayUnit(mileage, system)).toLocaleString()} ${distanceUnitLabel(system)}`;
     }
     return 'NA';
   }, [selectedBike, system]);

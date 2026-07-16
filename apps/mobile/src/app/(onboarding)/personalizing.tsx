@@ -1,4 +1,9 @@
-import { CompleteOnboardingDocument, type CompleteOnboardingInput } from '@motovault/graphql';
+import {
+  CompleteOnboardingDocument,
+  type CompleteOnboardingInput,
+  UpdateUserDocument,
+} from '@motovault/graphql';
+import { type MeasurementSystem, type MileageUnit, mileageFromDisplayUnit } from '@motovault/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
 import { useLocalSearchParams } from 'expo-router';
@@ -43,6 +48,16 @@ import { setSelfReportedSource } from '../../lib/subscription';
 import { useAuthStore } from '../../stores/auth.store';
 import { useChecklistStore } from '../../stores/checklist.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+
+// Onboarding still captures mileage with a per-bike mi/km toggle, but the app now
+// derives the display unit from the global users.measurement_system (canonical km
+// storage — docs/plans/odometer-unit-normalization.md). Map the toggle choice to
+// the global system so we (a) convert the entered odometer to km and (b) persist
+// the matching measurement_system.
+const UNIT_TO_SYSTEM: Record<MileageUnit, MeasurementSystem> = {
+  mi: 'imperial',
+  km: 'metric',
+} as const;
 
 const FIXED_STEP_ICONS = [Search, Bike, Settings] as const;
 const FIXED_STEPS = [
@@ -92,6 +107,7 @@ export default function PersonalizingScreen() {
   const {
     experienceLevel,
     bikeData,
+    preBikeMileageUnit,
     ridingGoals,
     acceptedOemScheduleIds,
     ridingFrequency,
@@ -193,6 +209,14 @@ export default function PersonalizingScreen() {
         }
       }
 
+      // Resolve the user's global measurement system from the onboarding unit
+      // toggle (falling back to the device-derived store default), then store the
+      // odometer in canonical km.
+      const chosenUnit = bikeData?.mileageUnit ?? preBikeMileageUnit ?? null;
+      const onboardingSystem: MeasurementSystem = chosenUnit
+        ? UNIT_TO_SYSTEM[chosenUnit]
+        : useAuthStore.getState().measurementSystem;
+
       const input: CompleteOnboardingInput = {
         experienceLevel: experienceLevel ?? 'beginner',
         ridingGoals: ridingGoals.length > 0 ? ridingGoals : [],
@@ -213,8 +237,12 @@ export default function PersonalizingScreen() {
           ...(bikeData.model?.trim() && { bikeModel: bikeData.model.trim() }),
           ...(bikeData.type && { bikeType: bikeData.type }),
           bikeYear: bikeData.year,
-          bikeMileage: bikeData.currentMileage,
-          bikeMileageUnit: bikeData.mileageUnit,
+          // Convert the typed odometer to canonical km; the deprecated per-bike
+          // unit column is stored 'km' to stay truthful with the new contract.
+          bikeMileage: Math.round(
+            mileageFromDisplayUnit(bikeData.currentMileage, onboardingSystem),
+          ),
+          bikeMileageUnit: 'km' satisfies MileageUnit,
           ...(bikeData.nickname && { bikeNickname: bikeData.nickname }),
           ...(bikePhotoUrl && { bikePhotoUrl }),
         }),
@@ -238,6 +266,21 @@ export default function PersonalizingScreen() {
       }
 
       await completeOnboarding(input);
+
+      // Persist the global measurement system so display units match what the user
+      // picked (complete_onboarding does not touch users.measurement_system, which
+      // otherwise stays the 'metric' default and mislabels imperial riders).
+      // Best-effort: never block onboarding on it; also set the store so the app
+      // renders correctly before the next `me` refetch.
+      try {
+        useAuthStore.getState().setMeasurementSystem(onboardingSystem);
+        await gqlFetcher(UpdateUserDocument, {
+          input: { measurementSystem: onboardingSystem },
+        });
+        queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
+      } catch (err) {
+        logger.warn('[Personalizing] measurement_system update skipped:', err);
+      }
 
       trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {
         experience_level: experienceLevel ?? 'beginner',

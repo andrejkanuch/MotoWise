@@ -1,5 +1,6 @@
 import { palette } from '@motovault/design-system';
 import type { MaintenanceTasksByMotorcycleQuery } from '@motovault/graphql';
+import { mileageToDisplayUnit } from '@motovault/types';
 import {
   Calendar,
   Check,
@@ -15,6 +16,7 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOutLeft, LinearTransition } from 'react-native-reanimated';
+import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { getRelativeDueDate } from '../../lib/health-score';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
@@ -54,6 +56,8 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
 }) {
   const { t: et } = useEditorialTheme();
   const { t } = useTranslation();
+  // target/completed mileage are stored in canonical km; convert to the user's unit for display.
+  const system = useMeasurementSystem();
   const isCompleted = task.status === 'completed';
   const relative = task.dueDate && !isCompleted ? getRelativeDueDate(task.dueDate) : null;
   const isOverdue = relative?.isOverdue ?? false;
@@ -150,7 +154,8 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
                   <Gauge size={12} color={palette.neutral400} />
                   <Text style={{ fontSize: 12, color: palette.neutral400 }}>
-                    {task.targetMileage.toLocaleString()} {mileageUnit}
+                    {Math.round(mileageToDisplayUnit(task.targetMileage, system)).toLocaleString()}{' '}
+                    {mileageUnit}
                   </Text>
                 </View>
               )}
@@ -280,7 +285,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
             <Text style={{ fontSize: 12, color: palette.success500 }}>
               {new Date(task.completedAt).toLocaleDateString()}
               {task.completedMileage
-                ? ` @ ${task.completedMileage.toLocaleString()} ${mileageUnit}`
+                ? ` @ ${Math.round(mileageToDisplayUnit(task.completedMileage, system)).toLocaleString()} ${mileageUnit}`
                 : ''}
             </Text>
           </View>

@@ -1,5 +1,6 @@
 import { palette } from '@motovault/design-system';
 import { GenerateOnboardingInsightsDocument } from '@motovault/graphql';
+import { mileageFromDisplayUnit } from '@motovault/types';
 import { useMutation } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
@@ -133,7 +134,16 @@ export default function InsightsScreen() {
       bikeModel: bikeData?.model ?? undefined,
       bikeYear: bikeData?.year ?? undefined,
       bikeType: bikeData?.type ?? undefined,
-      currentMileage: bikeData?.currentMileage ?? undefined,
+      // Send canonical km (odometer stored in the per-bike toggle unit → km).
+      currentMileage:
+        bikeData?.currentMileage != null
+          ? Math.round(
+              mileageFromDisplayUnit(
+                bikeData.currentMileage,
+                bikeData.mileageUnit === 'mi' ? 'imperial' : 'metric',
+              ),
+            )
+          : undefined,
       ridingFrequency: ridingFrequency ?? undefined,
       maintenanceStyle: maintenanceStyle ?? undefined,
     });

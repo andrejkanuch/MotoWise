@@ -39,9 +39,11 @@ describe('escapeHtml', () => {
 
 describe('generateMaintenanceHistoryHTML — date range filter', () => {
   it('escapes user-entered task titles into the output', () => {
-    const html = generateMaintenanceHistoryHTML(BIKE, [
-      task({ title: '<b>Chain</b>', completedAt: '2026-01-10' }),
-    ]);
+    const html = generateMaintenanceHistoryHTML(
+      BIKE,
+      [task({ title: '<b>Chain</b>', completedAt: '2026-01-10' })],
+      'metric',
+    );
     expect(html).toContain('&lt;b&gt;Chain&lt;/b&gt;');
     expect(html).not.toContain('<b>Chain</b>');
   });
@@ -52,7 +54,7 @@ describe('generateMaintenanceHistoryHTML — date range filter', () => {
       task({ title: 'InRange', completedAt: '2026-01-15' }),
       task({ title: 'TooLate', completedAt: '2026-03-01' }),
     ];
-    const html = generateMaintenanceHistoryHTML(BIKE, tasks, {
+    const html = generateMaintenanceHistoryHTML(BIKE, tasks, 'metric', {
       dateFrom: '2026-01-01',
       dateTo: '2026-02-01',
     });
@@ -65,6 +67,7 @@ describe('generateMaintenanceHistoryHTML — date range filter', () => {
     const html = generateMaintenanceHistoryHTML(
       BIKE,
       [task({ title: 'DueDated', status: 'pending', dueDate: '2026-01-20' })],
+      'metric',
       { dateFrom: '2026-01-01', dateTo: '2026-02-01' },
     );
     expect(html).toContain('DueDated');
@@ -74,11 +77,30 @@ describe('generateMaintenanceHistoryHTML — date range filter', () => {
     const html = generateMaintenanceHistoryHTML(
       BIKE,
       [task({ title: 'NoDates', status: 'pending' })],
+      'metric',
       {
         dateFrom: '2026-01-01',
         dateTo: '2026-02-01',
       },
     );
     expect(html).toContain('NoDates');
+  });
+
+  it('renders km values in the user display unit (imperial converts km → mi)', () => {
+    const metric = generateMaintenanceHistoryHTML(
+      { ...BIKE, currentMileage: 16093 },
+      [task({ title: 'Service', completedAt: '2026-01-10', completedMileage: 16093 })],
+      'metric',
+    );
+    expect(metric).toContain('16,093 km');
+
+    const imperial = generateMaintenanceHistoryHTML(
+      { ...BIKE, currentMileage: 16093 },
+      [task({ title: 'Service', completedAt: '2026-01-10', completedMileage: 16093 })],
+      'imperial',
+    );
+    // 16093 km ≈ 10000 mi
+    expect(imperial).toContain('10,000 mi');
+    expect(imperial).not.toContain('16,093 km');
   });
 });

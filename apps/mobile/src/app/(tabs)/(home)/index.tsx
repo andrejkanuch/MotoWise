@@ -1,5 +1,6 @@
 import SegmentedControl from '@expo/ui/community/segmented-control';
 import { palette } from '@motovault/design-system';
+import { mileageToDisplayUnit } from '@motovault/types';
 import * as Sentry from '@sentry/react-native';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
@@ -19,6 +20,7 @@ import { useHomeData } from '../../../components/home/use-home-data';
 import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
 import { ECard, ESectionMasthead } from '../../../components/ui/editorial';
+import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
 
@@ -31,6 +33,7 @@ export default function HomeScreen() {
   const { t: theme, isDark } = useEditorialTheme();
   // Unit label follows the user's profile preference (deprecated per-bike field).
   const mileageUnit = useMileageUnit();
+  const system = useMeasurementSystem();
 
   const {
     isLoading,
@@ -517,7 +520,7 @@ export default function HomeScreen() {
                           }}
                         >
                           {activeBike.currentMileage != null
-                            ? `${(activeBike.currentMileage / 1000).toFixed(1)}k`
+                            ? `${(mileageToDisplayUnit(activeBike.currentMileage, system) / 1000).toFixed(1)}k`
                             : '—'}
                         </Text>
                         <Text

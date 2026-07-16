@@ -1,4 +1,5 @@
 import { palette } from '@motovault/design-system';
+import { mileageToDisplayUnit } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import type { TFunction } from 'i18next';
 import { Gauge } from 'lucide-react-native';
@@ -13,6 +14,7 @@ import Animated, {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
+import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useMileageUnit } from '../../hooks/use-mileage-unit';
 import { CardWrapper } from './card-wrapper';
 import { SectionHeader } from './section-header';
@@ -94,6 +96,7 @@ export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOve
   const { t } = useTranslation();
   // Unit comes from the user's profile preference, not the deprecated per-bike field.
   const mileageUnit = useMileageUnit();
+  const system = useMeasurementSystem();
   const hasMileage = motorcycles.some((m) => m.currentMileage != null);
   const isMultiBike = motorcycles.length > 1;
   const scale = useSharedValue(1);
@@ -186,7 +189,7 @@ export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOve
                         fontVariant: ['tabular-nums'],
                       }}
                     >
-                      {formatMileage(bike.currentMileage)}
+                      {formatMileage(mileageToDisplayUnit(bike.currentMileage, system))}
                     </Text>
                     <Text
                       style={{
@@ -238,7 +241,7 @@ export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOve
                   fontVariant: ['tabular-nums'],
                 }}
               >
-                {formatMileage(motorcycles[0].currentMileage ?? 0)}
+                {formatMileage(mileageToDisplayUnit(motorcycles[0].currentMileage ?? 0, system))}
               </Text>
               <Text
                 style={{

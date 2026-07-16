@@ -1,4 +1,5 @@
 import type { MaintenancePriority } from '@motovault/graphql';
+import { type MeasurementSystem, mileageFromDisplayUnit } from '@motovault/types';
 
 /**
  * Pure helpers for the edit-maintenance-task screen, extracted so the
@@ -23,15 +24,20 @@ export interface TaskEditFormValues {
  * to clear the stored value — the server's `update` treats `null` (defined)
  * as an explicit clear and `undefined` as "leave unchanged". Title is never
  * cleared (the save button stays disabled while it is blank).
+ *
+ * `targetMileage` is persisted as canonical kilometres; the rider types it in
+ * their measurement system's unit, so it is converted to km here on write.
  */
-export function buildTaskUpdateInput(values: TaskEditFormValues) {
+export function buildTaskUpdateInput(values: TaskEditFormValues, system: MeasurementSystem) {
   const trimmedDescription = values.description.trim();
   const trimmedNotes = values.notes.trim();
   return {
     title: values.title.trim(),
     description: trimmedDescription.length > 0 ? trimmedDescription : null,
     notes: trimmedNotes.length > 0 ? trimmedNotes : null,
-    targetMileage: values.targetMileage ? Number.parseInt(values.targetMileage, 10) : null,
+    targetMileage: values.targetMileage
+      ? Math.round(mileageFromDisplayUnit(Number.parseInt(values.targetMileage, 10), system))
+      : null,
     priority: values.priority,
     dueDate: values.dueDateISO,
   };
