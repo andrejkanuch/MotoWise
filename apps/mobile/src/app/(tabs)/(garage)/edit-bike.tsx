@@ -1000,6 +1000,9 @@ export default function EditBikeScreen() {
                   placeholder={t('garage.odometerPlaceholder')}
                   placeholderTextColor={palette.neutral400}
                   style={inputInRow}
+                  accessibilityLabel={t('garage.odometerInputA11y', {
+                    defaultValue: 'Odometer reading',
+                  })}
                 />
                 {/* Unit is a profile-level preference (Settings), shown read-only. */}
                 <Text style={{ fontSize: 13, color: theme.ink3 }}>{mileageUnit}</Text>

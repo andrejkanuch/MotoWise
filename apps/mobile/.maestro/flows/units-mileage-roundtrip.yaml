@@ -28,18 +28,22 @@
 # flow edits via the edit-bike FORM (a normal TextInput), so it is cross-platform
 # — only the native review-prompt guard is iOS-specific.
 #
-# AUTHORED FROM SOURCE 2026-07-16, PENDING ON-DEVICE VALIDATION. Selectors were
-# read from bike/[id].tsx (Edit3 pencil, accessibilityLabel "Edit"; the Gauge
-# odometer chip), edit-bike.tsx (Odometer section -> "Mileage" row -> number
-# input + read-only unit suffix; header "Save"), and preferences-section.tsx
-# (Units -> "Imperial (mi, °F)" / "Metric (km, °C)"). Device quirks handled inline
-# per .maestro/README.md (badge in tab a11y text; custom keyboard ignores
-# hideKeyboard — dismiss by tapping a non-interactive section label; save button
-# may sit below the fold; StoreKit review prompt after value-moments).
-# TO VERIFY ON DEVICE: that the edit-bike odometer TextInput is reachable via
-# `rightOf: { text: "Mileage" }` (the read-only unit suffix sits in the same row —
-# if the tap lands on it, switch to a point-tap or an accessibilityLabel on the
-# input); and that the hub odometer value + unit render as matchable text nodes.
+# PARTIALLY VALIDATED ON-DEVICE 2026-07-16 (iPhone 17 Pro sim, branch served via
+# Metro). CONFIRMED live: the branch converts correctly — a 1503 km bike renders
+# "934 mi" on the hub and prefills "934" in edit-bike under Imperial; the Profile
+# Units picker ("Imperial (mi, °F)" / "Metric (km, °C)"), the Garage tab, the bike
+# card, "Add task", the "Edit" pencil, the "Odometer" section, and the new
+# "Odometer reading" accessibilityLabel on the input all resolve. NOTE: the
+# `rightOf: { text: "Mileage" }` selector this flow first used did NOT focus the
+# input (the read-only unit suffix shares the row) — fixed by adding an
+# accessibilityLabel to the edit-bike odometer TextInput and targeting that.
+# STILL TO TUNE ON A CLEAN PREVIEW BUILD: the eraseText+inputText numeric entry
+# was flaky on the Expo dev client (custom keyboard + the dev-menu overlay that
+# hijacks corner taps + HMR churn); re-confirm on a bundled build, where
+# onboarding.yaml's clearState is also supported. Device quirks handled inline per
+# .maestro/README.md (badge in tab a11y text; custom keyboard ignores hideKeyboard
+# — dismiss by tapping a non-interactive section label; save below the fold;
+# StoreKit review prompt after value-moments).
 appId: ${APP_ID}
 env:
   APP_ID: com.motovault.app
@@ -72,15 +76,14 @@ env:
 - tapOn:
     text: "Edit" # Edit3 pencil accessibilityLabel (common.edit)
 
-# 4. Set a known odometer. Reach the Odometer section, focus the number field
-#    (rightOf the "Mileage" row label), clear the onboarding prefill, type 10000.
+# 4. Set a known odometer. Reach the Odometer section, focus the number field by
+#    its accessibilityLabel ("Odometer reading"), clear the prefill, type 10000.
 - scrollUntilVisible:
     element:
       text: "Odometer"
     direction: DOWN
 - tapOn:
-    rightOf:
-      text: "Mileage"
+    text: "Odometer reading"
 - eraseText
 - inputText: ${ODOMETER_MI}
 
