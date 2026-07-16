@@ -6,7 +6,7 @@
 // (carplay-templates.ts is the same). Localizing all CarPlay head-unit copy is one
 // deferred cleanup, not split across features (see the U8 plan, U4).
 
-import { KM_PER_MILE, type MeasurementSystem } from '@motovault/types';
+import { type MeasurementSystem, mileageUnitLabel } from '@motovault/types';
 import type { CPListModel, CPListRow } from '../../../modules/carplay/src';
 import { getRelativeDueDate } from '../../lib/health-score';
 
@@ -76,11 +76,10 @@ function pickNextService(tasks: BikeStatusTask[]): BikeStatusTask | null {
 }
 
 function mileageDetail(bike: BikeStatusBike, system: MeasurementSystem): string {
-  const km = bike.currentMileage;
-  if (km == null) return DASH;
-  const imperial = system === 'imperial';
-  const value = imperial ? Math.round(km / KM_PER_MILE) : Math.round(km);
-  return `${value.toLocaleString()} ${imperial ? 'mi' : 'km'}`;
+  const mileage = bike.currentMileage;
+  if (mileage == null) return DASH;
+  // current_mileage is stored raw in the user's unit; only the label follows system.
+  return `${mileage.toLocaleString()} ${mileageUnitLabel(system)}`;
 }
 
 function nextServiceDetail(tasks: BikeStatusTask[]): string {

@@ -1,4 +1,4 @@
-import type { Currency } from '@motovault/types';
+import { type Currency, type MeasurementSystem, mileageUnitLabel } from '@motovault/types';
 import { formatCurrency } from './expense-constants';
 
 export interface PdfBike {
@@ -130,14 +130,15 @@ function formatCost(amount: number, currency = 'USD'): string {
   return formatCurrency(amount, currency as Currency);
 }
 
-function renderTaskRow(task: PdfTask, mileageUnit: string): string {
+function renderTaskRow(task: PdfTask, system: MeasurementSystem): string {
   const date = task.completedAt
     ? formatDate(task.completedAt)
     : task.dueDate
       ? formatDate(task.dueDate)
       : '—';
 
-  const safeUnit = escapeHtml(mileageUnit);
+  // completedMileage / targetMileage are stored raw in the user's unit.
+  const safeUnit = escapeHtml(mileageUnitLabel(system));
   const mileage = task.completedMileage
     ? `${task.completedMileage.toLocaleString()} ${safeUnit}`
     : task.targetMileage
@@ -170,6 +171,7 @@ function renderTaskRow(task: PdfTask, mileageUnit: string): string {
 export function generateMaintenanceHistoryHTML(
   bike: PdfBike,
   tasks: PdfTask[],
+  system: MeasurementSystem,
   options: PdfExportOptions = {},
 ): string {
   const bikeName = `${bike.year} ${bike.make} ${bike.model}`;
@@ -179,7 +181,7 @@ export function generateMaintenanceHistoryHTML(
     month: 'long',
     day: 'numeric',
   });
-  const unit = bike.mileageUnit || 'mi';
+  const unit = mileageUnitLabel(system);
 
   // Apply optional date range filter (matches on completedAt || dueDate)
   const filtered = tasks.filter((t) => {
@@ -215,7 +217,7 @@ export function generateMaintenanceHistoryHTML(
           </tr>
         </thead>
         <tbody>
-          ${sectionTasks.map((t) => renderTaskRow(t, unit)).join('')}
+          ${sectionTasks.map((t) => renderTaskRow(t, system)).join('')}
         </tbody>
       </table>`;
   };

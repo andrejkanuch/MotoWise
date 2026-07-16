@@ -204,11 +204,13 @@ describe('RidesService', () => {
       mockUserClient._pushResult({ data: completedRow });
       // 1: claim UPDATE (mileage_applied false→true) .select(...).single() — this caller wins
       mockUserClient._pushResult({ data: { distance_m: 32186, motorcycle_id: 'moto-456' } });
-      // 2: bike read .single() — mileage stored in miles
-      mockUserClient._pushResult({ data: { current_mileage: 1000, mileage_unit: 'mi' } });
-      // 3: motorcycle odometer UPDATE (thenable)
+      // 2: bike read .single() — current_mileage is raw in the user's unit
+      mockUserClient._pushResult({ data: { current_mileage: 1000 } });
+      // 3: users read .single() — measurement_system drives meters→unit conversion
+      mockUserClient._pushResult({ data: { measurement_system: 'imperial' } });
+      // 4: motorcycle odometer UPDATE (thenable)
       mockUserClient._pushResult({ data: null, error: null });
-      // 4: due maintenance_tasks query (thenable) — none due
+      // 5: due maintenance_tasks query (thenable) — none due
       mockUserClient._pushResult({ data: [] });
 
       const result = await service.endRide(userId, {
@@ -223,10 +225,11 @@ describe('RidesService', () => {
       // claim-first: exactly one mileage_applied=true UPDATE gated on mileage_applied=false
       expect(mockUserClient._chain.update).toHaveBeenCalledWith({ mileage_applied: true });
       expect(mockUserClient._chain.eq).toHaveBeenCalledWith('mileage_applied', false);
-      // odometer advanced by the ride distance converted to the bike's unit (miles)
+      // odometer advanced by the ride distance converted meters → the user's unit
+      // (imperial): 32186 m ≈ 20 mi, added to the raw 1000 mi odometer.
       expect(mockUserClient._chain.update).toHaveBeenCalledWith(
         expect.objectContaining({
-          current_mileage: 1020, // 1000 + round(metersToUnit(32186, 'mi')) === 1020
+          current_mileage: 1020, // 1000 + round(metersToUnit(32186, 'mi')) === 1000 + 20
           odometer_sync_source: 'gps_ride',
           odometer_last_ride_id: 'ride-123',
         }),

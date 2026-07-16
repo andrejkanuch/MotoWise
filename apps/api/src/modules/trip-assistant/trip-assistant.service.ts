@@ -1,3 +1,4 @@
+import { MeasurementSystem, mileageUnitLabel } from '@motovault/types';
 import type { Tables } from '@motovault/types/database';
 import {
   BadRequestException,
@@ -111,19 +112,20 @@ export class TripAssistantService {
       }
     }
 
-    const [waypointResult, bikeResult] = await Promise.all([
+    const [waypointResult, bikeResult, measurementSystem] = await Promise.all([
       this.supabase
         .from('trip_waypoints')
         .select('sort_order, day_index, period_of_day, type, name, notes, lat, lng')
         .eq('trip_id', input.tripId)
         .order('sort_order', { ascending: true }),
       this.loadPrimaryBike(userId),
+      this.loadMeasurementSystem(userId),
     ]);
 
     const waypoints = (waypointResult.data ?? []) as WaypointRow[];
     const bike = bikeResult;
 
-    const system = this.buildSystemPrompt(trip, waypoints, bike);
+    const system = this.buildSystemPrompt(trip, waypoints, bike, measurementSystem);
 
     // Cap history aggressively: last 10 messages (~5 round-trips) AFTER filtering
     // to valid roles. Zod already enforces `<= 20` but we still trim here so
@@ -192,18 +194,42 @@ export class TripAssistantService {
   private async loadPrimaryBike(userId: string): Promise<BikeRow | null> {
     const { data } = await this.supabase
       .from('motorcycles')
-      .select('make, model, year, type, engine_cc, current_mileage, mileage_unit, nickname')
+      .select('make, model, year, type, engine_cc, current_mileage, nickname')
       .eq('user_id', userId)
       .eq('is_primary', true)
       .maybeSingle();
     return (data ?? null) as BikeRow | null;
   }
 
-  private buildSystemPrompt(trip: TripRow, waypoints: WaypointRow[], bike: BikeRow | null): string {
+  /**
+   * The rider's global measurement system decides odometer display units — the
+   * per-bike `mileage_unit` is deprecated. `measurement_system` is a
+   * service-role-only read (00141 column grants), so use the admin client.
+   */
+  private async loadMeasurementSystem(userId: string): Promise<MeasurementSystem> {
+    const { data, error } = await this.adminClient
+      .from('users')
+      .select('measurement_system')
+      .eq('id', userId)
+      .single();
+    // Don't fail the assistant over a unit-label lookup; log so a real error
+    // (vs. a confirmed-absent value) isn't silently downgraded to metric.
+    if (error) {
+      this.logger.warn(`measurement_system read failed for user ${userId}: ${error.message}`);
+    }
+    return (data?.measurement_system as MeasurementSystem) ?? MeasurementSystem.METRIC;
+  }
+
+  private buildSystemPrompt(
+    trip: TripRow,
+    waypoints: WaypointRow[],
+    bike: BikeRow | null,
+    system: MeasurementSystem,
+  ): string {
     const bikeLine = bike
       ? `${bike.year ?? ''} ${bike.make ?? ''} ${bike.model ?? ''}${bike.engine_cc ? ` ${bike.engine_cc}cc` : ''}${bike.type ? ` (${bike.type})` : ''}${
-          bike.current_mileage
-            ? `, odometer ${bike.current_mileage} ${bike.mileage_unit ?? 'km'}`
+          bike.current_mileage != null
+            ? `, odometer ${bike.current_mileage} ${mileageUnitLabel(system)}`
             : ''
         }`.trim()
       : 'No primary bike on file';

@@ -1,4 +1,9 @@
-import { CreateDiagnosticSchema, SubmitDiagnosticSchema } from '@motovault/types';
+import {
+  CreateDiagnosticSchema,
+  MeasurementSystem,
+  mileageUnitLabel,
+  SubmitDiagnosticSchema,
+} from '@motovault/types';
 import { BadRequestException, Logger, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';
@@ -86,13 +91,19 @@ export class DiagnosticsResolver {
       manualBikeInfo: input.manualBikeInfo,
     });
 
-    // 2. Build AI context from motorcycle or manual bike info
+    // 2. Build AI context from motorcycle or manual bike info.
+    // Odometer values are stored RAW in the owner's measurement system — only
+    // the unit label follows the global measurement system, never the
+    // deprecated per-bike mileageUnit.
+    const measurementSystem =
+      (userRecord.measurementSystem as MeasurementSystem) ?? MeasurementSystem.METRIC;
+    const mileageUnit = mileageUnitLabel(measurementSystem);
+
     let make: string | undefined;
     let model: string | undefined;
     let year: number | undefined;
     let motorcycleType: string | undefined;
     let mileage: number | undefined;
-    let mileageUnit: string | undefined;
     let engineCc: number | undefined;
 
     if (input.motorcycleId) {
@@ -105,8 +116,7 @@ export class DiagnosticsResolver {
       model = motorcycle.model;
       year = motorcycle.year;
       motorcycleType = motorcycle.type;
-      mileage = motorcycle.currentMileage;
-      mileageUnit = motorcycle.mileageUnit;
+      mileage = motorcycle.currentMileage ?? undefined;
       engineCc = motorcycle.engineCc;
     } else if (input.manualBikeInfo) {
       make = input.manualBikeInfo.make;
@@ -125,7 +135,7 @@ export class DiagnosticsResolver {
         MAX_MAINTENANCE_HISTORY_TASKS,
       );
       if (tasks.length > 0) {
-        const unit = mileageUnit ?? 'km';
+        const unit = mileageUnit;
         const sanitize = (text: string) =>
           text.replace(/[<>]/g, '').replace(/\n/g, ' ').trim().slice(0, 200);
         maintenanceHistory = tasks

@@ -90,7 +90,7 @@ Monorepo for MotoVault — AI-powered motorcycle learning & diagnostics platform
 - **CRITICAL**: `eas update` does NOT read env vars from `eas.json` build profiles. It bundles whatever `EXPO_PUBLIC_*` vars are set in the shell at publish time.
 - **Always** use `apps/mobile/.env.production` when publishing OTA updates to avoid bundling local dev URLs (e.g. `http://192.168.x.x:4000`).
 - Command: `cd apps/mobile && env $(grep -v '^#' .env.production | grep -v '^$' | xargs) eas update --branch production --message "description"`
-- Runtime version policy is `appVersion` (currently `3.15.0`), so OTA updates only reach builds with matching app version.
+- Runtime version policy is `appVersion` (currently `3.17.0`), so OTA updates only reach builds with matching app version.
 - EAS project ID: `359ae282-329d-455d-b9f3-64919afad0b4`, owner: `andykeny`
 
 ## Repo maintenance (local + CI)

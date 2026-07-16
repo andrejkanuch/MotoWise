@@ -16,6 +16,7 @@ import { LottieMotorcycle } from '../../../components/lottie-motorcycle';
 import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
 import { ECard, ESectionMasthead } from '../../../components/ui/editorial';
+import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { useProGate } from '../../../hooks/use-pro-gate';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
@@ -34,6 +35,7 @@ export default function GarageScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { requireAccess, isPro } = useProGate();
+  const mileageUnit = useMileageUnit();
   const [view, setView] = useState<'shelf' | 'grid'>('shelf');
 
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
@@ -47,6 +49,7 @@ export default function GarageScreen() {
 
   const motorcycles = data?.myMotorcycles ?? [];
   const totalKm = motorcycles.reduce((sum, b) => sum + (b.currentMileage ?? 0), 0);
+  const totalDistanceDisplay = totalKm.toLocaleString();
 
   const handleAddBike = () => {
     if (!requireAccess('MAX_BIKES', motorcycles.length)) return;
@@ -224,7 +227,11 @@ export default function GarageScreen() {
                   {motorcycles.length === 1
                     ? t('garage.bike', { defaultValue: 'bike' })
                     : t('garage.bikes', { defaultValue: 'bikes' })}{' '}
-                  {t('garage.dotKm', { km: totalKm.toLocaleString() })}
+                  {t('garage.dotDistance', {
+                    defaultValue: '· {{distance}} {{unit}}',
+                    distance: totalDistanceDisplay,
+                    unit: mileageUnit,
+                  })}
                 </Text>
               </View>
               <Text
@@ -505,7 +512,7 @@ export default function GarageScreen() {
                             }}
                           >
                             {(bike.currentMileage ?? 0).toLocaleString()}{' '}
-                            <Text style={{ fontSize: 11, opacity: 0.7 }}>{t('garage.kmUnit')}</Text>
+                            <Text style={{ fontSize: 11, opacity: 0.7 }}>{mileageUnit}</Text>
                           </Text>
                         </View>
                         <View style={{ flex: 1 }}>
@@ -590,8 +597,8 @@ export default function GarageScreen() {
               <ECard pad={0}>
                 {[
                   {
-                    label: t('garage.totalKilometres'),
-                    value: `${totalKm.toLocaleString()} km`,
+                    label: t('garage.totalDistance', { defaultValue: 'Total distance' }),
+                    value: `${totalDistanceDisplay} ${mileageUnit}`,
                   },
                   {
                     label: t('garage.oldestBike'),
@@ -746,8 +753,10 @@ export default function GarageScreen() {
                             color: theme.ink3,
                           }}
                         >
-                          {t('garage.mileageKm', {
-                            km: (bike.currentMileage ?? 0).toLocaleString(),
+                          {t('garage.mileageDistance', {
+                            defaultValue: '{{distance}} {{unit}}',
+                            distance: (bike.currentMileage ?? 0).toLocaleString(),
+                            unit: mileageUnit,
                           })}
                         </Text>
                       </View>

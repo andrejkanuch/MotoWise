@@ -1,3 +1,4 @@
+import { MeasurementSystem, mileageUnitLabel } from '@motovault/types';
 import {
   BadRequestException,
   ConflictException,
@@ -37,7 +38,6 @@ interface BikeRow {
   year: number;
   nickname: string | null;
   current_mileage: number | null;
-  mileage_unit: string | null;
 }
 
 /** Shape returned by the maintenance_tasks select */
@@ -75,7 +75,7 @@ export class HealthReportsService {
     // 1. Verify bike ownership with RLS-scoped client
     const { data: bike, error: bikeError } = await this.supabase
       .from('motorcycles')
-      .select('id, make, model, year, nickname, current_mileage, mileage_unit')
+      .select('id, make, model, year, nickname, current_mileage')
       .eq('id', bikeId)
       .eq('user_id', userId)
       .single();
@@ -132,6 +132,22 @@ export class HealthReportsService {
       const expenses = (expensesResult.data ?? []) as unknown as ExpenseRow[];
       const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount ?? 0), 0);
 
+      // Odometer is stored RAW in the owner's measurement system — only the
+      // unit label follows the global measurement_system, never the
+      // deprecated per-bike mileage_unit. The measurement_system column is a
+      // service-role-only read (00141 grants).
+      const { data: userRow, error: userErr } = await this.supabaseAdmin
+        .from('users')
+        .select('measurement_system')
+        .eq('id', userId)
+        .single();
+      // A unit-label lookup shouldn't fail report generation; log so a real
+      // error isn't silently downgraded to the metric default.
+      if (userErr) {
+        this.logger.warn(`measurement_system read failed for user ${userId}: ${userErr.message}`);
+      }
+      const system = (userRow?.measurement_system as MeasurementSystem) ?? MeasurementSystem.METRIC;
+
       const reportData: ReportData = {
         bike: {
           make: typedBike.make,
@@ -139,7 +155,7 @@ export class HealthReportsService {
           year: typedBike.year,
           nickname: typedBike.nickname ?? undefined,
           currentMileage: typedBike.current_mileage ?? undefined,
-          mileageUnit: typedBike.mileage_unit ?? undefined,
+          mileageUnit: mileageUnitLabel(system),
         },
         tasks,
         generatedAt: new Date().toISOString(),

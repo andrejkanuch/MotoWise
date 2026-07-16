@@ -64,6 +64,12 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   on-device 2026-07-15.** Uses `setLocation` for a GPS fix; ends via a long-press ("Hold to end
   ride") + a point-tap on the "End Anyway" bottom-sheet confirm (buttons not in the a11y tree).
   `test:e2e:log-ride`.
+- **`flows/units-display-toggle.yaml`** — odometer unit label (PR #165). Odometer values are stored
+  RAW in the user's global unit (no km normalization), so toggling the global Units preference flips
+  the bike-hub odometer **label** between **mi** and **km** on the same bike (guards the hardcoded-"km"
+  regression class); the raw number itself is unchanged by the toggle. No numeric-input selector, so
+  low fragility. **Authored from source 2026-07-16; navigation selectors validated on-device** (Profile
+  Units picker, Garage tab, bike card). `test:e2e:units-display`.
 
   All authed journey flows share the parameterized onboarding runner via `E2E_FLOW` /
   `E2E_EMAIL_PREFIX` (set inline in the `test:e2e:*` package scripts) — no per-flow wrapper needed.

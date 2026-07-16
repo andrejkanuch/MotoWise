@@ -18,6 +18,7 @@
     "test:e2e:complete-task": "E2E_FLOW=complete-maintenance-task.yaml E2E_EMAIL_PREFIX=e2e-complete-task sh scripts/run-onboarding-e2e.sh",
     "test:e2e:log-past-work": "E2E_FLOW=log-past-work.yaml E2E_EMAIL_PREFIX=e2e-log-past-work sh scripts/run-onboarding-e2e.sh",
     "test:e2e:log-ride": "E2E_FLOW=log-ride.yaml E2E_EMAIL_PREFIX=e2e-log-ride sh scripts/run-onboarding-e2e.sh",
+    "test:e2e:units-display": "E2E_FLOW=units-display-toggle.yaml E2E_EMAIL_PREFIX=e2e-units-display sh scripts/run-onboarding-e2e.sh",
     "typecheck": "tsc --noEmit",
     "i18n:status": "npx i18next-cli status --config ./i18next-toolkit.config.mjs",
     "i18n:hardcoded": "eslint \"src/**/*.{ts,tsx}\"",
