@@ -36,11 +36,14 @@ export const UpdateMotorcycleSchema = z.object({
   nickname: z.string().max(50).nullable().optional(),
   isPrimary: nullishToUndefined(z.boolean()),
   primaryPhotoUrl: z.string().url().max(500).nullable().optional(),
+  /** Odometer in canonical KILOMETRES (docs/plans/odometer-unit-normalization.md).
+   * Convert user input → km on write and km → display unit on read. */
   currentMileage: nullishToUndefined(z.number().int().min(0)),
   /**
    * @deprecated The mileage unit is now derived from the user's global
-   * `measurementSystem` preference, not stored per bike. Label-only — no value
-   * conversion. Kept for backward compatibility with existing rows/clients.
+   * `measurementSystem` preference, not stored per bike, and `currentMileage`
+   * is stored in km regardless. Retained only for backward compatibility with
+   * existing rows/clients; never read it to decide a value's unit.
    */
   mileageUnit: nullishToUndefined(z.enum(['mi', 'km'])),
   purchasePrice: z.number().min(0).max(999999.99).nullable().optional(),
