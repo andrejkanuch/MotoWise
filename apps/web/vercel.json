@@ -3,5 +3,6 @@
   "framework": "nextjs",
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "buildCommand": "cd ../.. && pnpm build --filter=@motovault/web",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "ignoreCommand": "cd ../.. && npx --yes turbo-ignore @motovault/web"
 }
