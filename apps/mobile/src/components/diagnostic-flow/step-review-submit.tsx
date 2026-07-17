@@ -1,10 +1,11 @@
 import { palette } from '@motovault/design-system';
 import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Bike, Pencil, Sparkles } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
@@ -269,7 +270,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
             <Image
               source={{ uri: store.photoUri }}
               style={{ width: '100%', height: 120, borderRadius: 12 }}
-              resizeMode="cover"
+              contentFit="cover"
             />
           ) : (
             <Text style={{ fontSize: 14, color: colors.textMuted }}>
