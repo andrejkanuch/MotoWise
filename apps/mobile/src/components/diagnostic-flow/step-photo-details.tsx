@@ -1,11 +1,12 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { AlertTriangle, Camera, Clock, Image as ImageIcon, Shield, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
@@ -152,7 +153,7 @@ export function StepPhotoDetails() {
               <Image
                 source={{ uri: photoUri }}
                 style={{ width: '100%', height: 240, borderRadius: 16 }}
-                resizeMode="cover"
+                contentFit="cover"
               />
               <Pressable
                 style={{

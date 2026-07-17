@@ -15,7 +15,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: 'motowise',
   description: 'AI-powered motorcycle maintenance, diagnostics & expense tracking',
   version: '3.17.0',
-  orientation: 'portrait',
+  // 'default' (not 'portrait') so Android emits NO android:screenOrientation
+  // restriction. Android 16 ignores orientation/resizability locks on large-screen
+  // devices (foldables, tablets) and Play Console flags the restriction as a
+  // large-screen UX advisory. Removing it clears the advisory and lets Android
+  // adapt; core flows are verified in landscape / split-screen (safe-area-context
+  // handles insets). iOS is pinned back to portrait via
+  // ios.infoPlist.UISupportedInterfaceOrientations below so this is an
+  // Android-only change and iPhone UX is unchanged.
+  orientation: 'default',
   icon: './src/assets/images/MotoVault.png',
   // Root view color (behind all React views) — matches the splash background
   // so the native-splash → first-frame handoff never flashes white. Requires
@@ -231,6 +239,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // heap/metaspace so local release builds don't die with "GC thrashing /
     // ran out of JVM Metaspace". expo-build-properties has no jvmargs field.
     './plugins/with-gradle-memory',
+    // Must run after expo-build-properties: enables R8 full-mode + optimized
+    // resource shrinking (gradle.properties flags with no expo-build-properties
+    // field) to clear the Play Console R8 advisory. Smoke-test reflection-heavy
+    // libs on a release build — see the plugin header.
+    './plugins/with-r8-optimization',
   ],
   ios: {
     bundleIdentifier: 'com.motovault.app',
@@ -250,6 +263,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     infoPlist: {
       CFBundleDisplayName: 'MotoVault',
+      // Keep iPhone portrait-only. The top-level `orientation: 'default'` exists
+      // solely to drop Android's screenOrientation lock for the Android 16
+      // large-screen advisory; it would otherwise also unlock iPhone rotation.
+      // iOS reads this base key for iPhone, so pin it to portrait to preserve the
+      // existing iPhone UX. (iPad reads UISupportedInterfaceOrientations~ipad,
+      // which Expo's orientation plugin sets to all orientations for
+      // supportsTablet:true — acceptable and Apple-encouraged; not overridden here
+      // because Expo's mod runs last and wins.)
+      UISupportedInterfaceOrientations: ['UIInterfaceOrientationPortrait'],
       NSLocationWhenInUseUsageDescription:
         'MotoVault uses your location to record ride routes, show nearby routes, and display local weather for trip planning.',
       NSCameraUsageDescription: 'MotoVault needs camera access for diagnostic photo capture.',
