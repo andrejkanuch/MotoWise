@@ -1,7 +1,6 @@
-import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { HealthReportsService } from '../health-reports/health-reports.service';
 import { MetaEventsService } from '../meta/meta-events.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import type { RevenueCatEvent } from './dto/revenuecat-event.dto';
@@ -13,7 +12,6 @@ export class RevenueCatService {
   constructor(
     private readonly configService: ConfigService,
     @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
-    private readonly healthReportsService: HealthReportsService,
     private readonly metaEventsService: MetaEventsService,
   ) {}
 
@@ -26,34 +24,9 @@ export class RevenueCatService {
       return;
     }
 
-    // Handle non-renewing purchases (Health Reports) — create pending record
-    if (event.type === 'NON_RENEWING_PURCHASE') {
-      const transactionId = event.id;
-      try {
-        await this.healthReportsService.createFromPurchase(
-          event.app_user_id,
-          null, // motorcycle_id assigned when user generates the report
-          transactionId,
-        );
-        this.logger.log(
-          `Created pending health report for user ${event.app_user_id} via IAP ${transactionId}`,
-        );
-      } catch (err) {
-        // Duplicate delivery must return 200 — anything else makes RevenueCat retry
-        // a permanently-failing event forever.
-        if (err instanceof ConflictException) {
-          this.logger.log(`Duplicate NON_RENEWING_PURCHASE ${transactionId}, skipping`);
-          return;
-        }
-        const message = err instanceof Error ? err.message : 'Unknown error';
-        this.logger.error(
-          `Failed to create health report from purchase for user ${event.app_user_id}: ${message}`,
-        );
-        throw err;
-      }
-      return;
-    }
-
+    // NON_RENEWING_PURCHASE (lifetime Pro) is handled by process_revenuecat_event
+    // like every other purchase event — it grants Pro with no expiry. (Health
+    // reports are a free feature; the old paid-IAP path was removed.)
     const { error } = await this.adminClient.rpc('process_revenuecat_event', {
       p_event_id: event.id,
       p_event_type: event.type,
@@ -112,11 +85,13 @@ export class RevenueCatService {
     // StartTrial: INITIAL_PURCHASE with trial period
     const isTrialStart = event.type === 'INITIAL_PURCHASE' && event.period_type === 'TRIAL';
 
-    // Subscribe: first paid conversion ONLY — direct purchase, or the single RENEWAL
-    // that converts a trial. Plain monthly renewals must NOT re-fire Subscribe, or ad
-    // attribution counts every billing cycle as a new conversion.
+    // Subscribe: first paid conversion ONLY — direct purchase, a lifetime
+    // (non-renewing) purchase, or the single RENEWAL that converts a trial.
+    // Plain monthly renewals must NOT re-fire Subscribe, or ad attribution
+    // counts every billing cycle as a new conversion.
     const isPaidConversion =
       (event.type === 'INITIAL_PURCHASE' && event.period_type !== 'TRIAL') ||
+      event.type === 'NON_RENEWING_PURCHASE' ||
       (event.type === 'RENEWAL' && event.is_trial_conversion === true);
 
     if (!isTrialStart && !isPaidConversion) return;

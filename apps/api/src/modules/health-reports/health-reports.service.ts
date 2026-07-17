@@ -1,7 +1,5 @@
 import { MeasurementSystem, mileageUnitLabel } from '@motovault/types';
 import {
-  BadRequestException,
-  ConflictException,
   ForbiddenException,
   Inject,
   Injectable,
@@ -9,7 +7,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { HealthReport } from './models/health-report.model';
@@ -249,65 +246,6 @@ export class HealthReportsService {
     );
 
     return reports;
-  }
-
-  /**
-   * Validate that an IAP transaction ID exists and hasn't been used for another report.
-   * Called by RevenueCat webhook handler before creating a report record.
-   */
-  async validatePurchase(iapTransactionId: string): Promise<boolean> {
-    if (!iapTransactionId) {
-      throw new BadRequestException('Missing IAP transaction ID');
-    }
-
-    const { data: existing, error } = await this.supabaseAdmin
-      .from('bike_health_reports')
-      .select('id')
-      .eq('iap_transaction_id', iapTransactionId)
-      .maybeSingle();
-
-    if (error) {
-      this.logger.error(`Failed to validate purchase: ${error.message}`);
-      throw new InternalServerErrorException('Failed to validate purchase');
-    }
-
-    if (existing) {
-      throw new ConflictException('Transaction already used for a health report');
-    }
-
-    return true;
-  }
-
-  /**
-   * Create a pending report record from a validated IAP purchase.
-   * Called by RevenueCat webhook handler for NON_RENEWING_PURCHASE events.
-   */
-  async createFromPurchase(
-    userId: string,
-    motorcycleId: string | null,
-    iapTransactionId: string,
-  ): Promise<void> {
-    await this.validatePurchase(iapTransactionId);
-
-    const { error } = await this.supabaseAdmin.from('bike_health_reports').insert({
-      user_id: userId,
-      bike_id: motorcycleId,
-      iap_transaction_id: iapTransactionId,
-      status: 'pending',
-      purchased_at: new Date().toISOString(),
-    });
-
-    if (error) {
-      // Unique-index race on iap_transaction_id: a concurrent duplicate delivery slipped
-      // past validatePurchase — surface as Conflict so the webhook treats it as already done.
-      if (error.code === PG_ERROR.UNIQUE_VIOLATION) {
-        throw new ConflictException('Transaction already used for a health report');
-      }
-      this.logger.error(`Failed to create report from purchase: ${error.message}`);
-      throw new InternalServerErrorException('Failed to create health report from purchase');
-    }
-
-    this.logger.log(`Created pending health report for user ${userId} via IAP ${iapTransactionId}`);
   }
 
   private async renderPdf(data: ReportData): Promise<Buffer> {

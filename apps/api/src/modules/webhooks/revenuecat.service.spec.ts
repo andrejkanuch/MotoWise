@@ -1,4 +1,3 @@
-import { ConflictException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RevenueCatEvent } from './dto/revenuecat-event.dto';
 import { RevenueCatService } from './revenuecat.service';
@@ -8,7 +7,7 @@ import { RevenueCatService } from './revenuecat.service';
  *
  * Covers the event-handling invariants that, if regressed, double-count ad spend or
  * make RevenueCat retry a permanently-failing delivery forever:
- *  - duplicate NON_RENEWING_PURCHASE → swallowed (returns, no throw → 200)
+ *  - NON_RENEWING_PURCHASE (lifetime Pro) → routed through the entitlement RPC
  *  - plain RENEWAL → NO Meta 'Subscribe' (only trial-converting renewals fire it)
  *  - first INITIAL_PURCHASE (non-trial) → fires 'Subscribe' exactly once
  */
@@ -26,7 +25,6 @@ function baseEvent(overrides: Partial<RevenueCatEvent> = {}): RevenueCatEvent {
 
 describe('RevenueCatService.processEvent', () => {
   let service: RevenueCatService;
-  let healthReports: { createFromPurchase: ReturnType<typeof vi.fn> };
   let meta: { sendAppEvent: ReturnType<typeof vi.fn> };
   let adminClient: {
     rpc: ReturnType<typeof vi.fn>;
@@ -35,7 +33,6 @@ describe('RevenueCatService.processEvent', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    healthReports = { createFromPurchase: vi.fn().mockResolvedValue(undefined) };
     meta = { sendAppEvent: vi.fn().mockResolvedValue(undefined) };
 
     // from('users').select().eq().single() → resolves user email for Meta lookups.
@@ -49,38 +46,46 @@ describe('RevenueCatService.processEvent', () => {
       from: vi.fn().mockReturnValue(usersChain),
     };
 
-    service = new RevenueCatService(
-      { get: vi.fn() } as never,
-      adminClient as never,
-      healthReports as never,
-      meta as never,
-    );
+    service = new RevenueCatService({ get: vi.fn() } as never, adminClient as never, meta as never);
   });
 
   it('skips events whose app_user_id is not a UUID (anonymous RC ids)', async () => {
     await service.processEvent(baseEvent({ app_user_id: '$RCAnonymousID:abc' }));
     expect(adminClient.rpc).not.toHaveBeenCalled();
-    expect(healthReports.createFromPurchase).not.toHaveBeenCalled();
   });
 
-  describe('NON_RENEWING_PURCHASE (health report IAP)', () => {
-    it('creates a pending health report from the purchase', async () => {
+  describe('NON_RENEWING_PURCHASE (lifetime Pro)', () => {
+    it('routes the lifetime purchase through the entitlement RPC (grants Pro, no health report)', async () => {
       await service.processEvent(baseEvent({ type: 'NON_RENEWING_PURCHASE', id: 'txn-1' }));
-      expect(healthReports.createFromPurchase).toHaveBeenCalledWith(VALID_UUID, null, 'txn-1');
+      expect(adminClient.rpc).toHaveBeenCalledWith(
+        'process_revenuecat_event',
+        expect.objectContaining({
+          p_event_id: 'txn-1',
+          p_event_type: 'NON_RENEWING_PURCHASE',
+          p_app_user_id: VALID_UUID,
+        }),
+      );
     });
 
-    it('swallows a duplicate delivery (ConflictException) and returns without throwing → HTTP 200', async () => {
-      healthReports.createFromPurchase.mockRejectedValueOnce(new ConflictException('duplicate'));
+    it('swallows an already_processed duplicate delivery and returns → HTTP 200', async () => {
+      adminClient.rpc.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'event already_processed' },
+      });
       await expect(
         service.processEvent(baseEvent({ type: 'NON_RENEWING_PURCHASE', id: 'txn-1' })),
       ).resolves.toBeUndefined();
     });
 
-    it('re-throws non-conflict errors so RevenueCat retries a transient failure', async () => {
-      healthReports.createFromPurchase.mockRejectedValueOnce(new Error('db down'));
-      await expect(
-        service.processEvent(baseEvent({ type: 'NON_RENEWING_PURCHASE', id: 'txn-1' })),
-      ).rejects.toThrow('db down');
+    it('fires Meta Subscribe for a lifetime purchase (paid conversion)', async () => {
+      await service.processEvent(
+        baseEvent({ type: 'NON_RENEWING_PURCHASE', id: 'txn-1', price: 99.99, currency: 'USD' }),
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(meta.sendAppEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ eventName: 'Subscribe', userEmail: 'rider@example.com' }),
+      );
     });
   });
 
