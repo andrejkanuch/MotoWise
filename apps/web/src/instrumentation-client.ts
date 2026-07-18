@@ -4,7 +4,7 @@
 import * as Sentry from '@sentry/nextjs';
 import posthog from 'posthog-js';
 import { captureCampaignParams } from '@/lib/campaign';
-import { shouldDropClientEvent } from '@/lib/sentry-noise-filter';
+import { shouldDropClientEvent, shouldDropPostHogEvent } from '@/lib/sentry-noise-filter';
 
 // Capture first-touch UTM params on the initial hard load (before the visitor
 // navigates deeper and the query string is lost). Independent of analytics
@@ -55,5 +55,11 @@ if (process.env.NODE_ENV === 'production') {
     // localStorage. Without this, the SDK defaults to checking a cookie
     // that never gets written, and stays opted-out on every page load.
     opt_out_capturing_persistence_type: 'localStorage',
+    // Drop the same un-actionable third-party / in-app-browser noise Sentry's
+    // beforeSend already filters — capture_exceptions autocaptures the global
+    // onerror/onunhandledrejection here too, so without this PostHog keeps
+    // minting fresh issues (e.g. the benign RSC "Connection closed.") that
+    // Sentry never sees. See shouldDropPostHogEvent for the per-rule rationale.
+    before_send: (event) => (shouldDropPostHogEvent(event) ? null : event),
   });
 }
