@@ -654,7 +654,9 @@ export default async function TripPage({ params }: PageParams) {
               {trip.cloneCount > 0 && (
                 <div className="factbox-row">
                   <span className="factbox-key">Clones</span>
-                  <span className="factbox-val warm">{trip.cloneCount.toLocaleString('en-US')}</span>
+                  <span className="factbox-val warm">
+                    {trip.cloneCount.toLocaleString('en-US')}
+                  </span>
                 </div>
               )}
             </div>
