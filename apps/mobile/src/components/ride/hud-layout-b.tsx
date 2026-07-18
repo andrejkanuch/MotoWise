@@ -81,9 +81,9 @@ export function HudLayoutB({
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.neutral950 }}>
-      {/* Full-bleed map background */}
+      {/* Full-bleed map background — offset the recenter button above the bottom sheet */}
       <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-        <HudMap waypoints={liveWaypoints} gpsAccuracy={gpsAccuracy} />
+        <HudMap waypoints={liveWaypoints} gpsAccuracy={gpsAccuracy} recenterBottomOffset={300} />
       </View>
 
       {/* Floating status pill (top center) */}

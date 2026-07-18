@@ -7,6 +7,7 @@ jest.mock('../../i18n', () => ({ __esModule: true, default: { changeLanguage: je
 jest.mock('expo-localization', () => ({ getLocales: () => [{ measurementSystem: 'metric' }] }));
 
 import type { Session } from '@supabase/supabase-js';
+import { MAP_ORIENTATIONS } from '../../utils/map-orientation';
 import { partializeAuthState, useAuthStore } from '../auth.store';
 
 const fakeSession = { access_token: 't', user: { id: 'u1' } } as unknown as Session;
@@ -16,6 +17,7 @@ beforeEach(() => {
     session: null,
     onboardingCompleted: false,
     hasAuthenticatedBefore: false,
+    mapOrientation: MAP_ORIENTATIONS.NORTH,
   });
 });
 
@@ -50,10 +52,31 @@ describe('partializeAuthState', () => {
       'currency',
       'hasAuthenticatedBefore',
       'locale',
+      'mapOrientation',
       'measurementSystem',
     ]);
     expect('session' in persisted).toBe(false);
     expect('isLoading' in persisted).toBe(false);
     expect('onboardingCompleted' in persisted).toBe(false);
+  });
+
+  it('includes the mapOrientation value so it persists', () => {
+    useAuthStore.setState({ mapOrientation: 'heading' });
+    expect(partializeAuthState(useAuthStore.getState()).mapOrientation).toBe('heading');
+  });
+});
+
+describe('auth.store mapOrientation', () => {
+  it('defaults to north-up', () => {
+    // Assert the store initializer's default directly (immune to the beforeEach
+    // reset and any prior mutation), so the test fails if the shipped default
+    // ever changes to heading.
+    expect(useAuthStore.getInitialState().mapOrientation).toBe(MAP_ORIENTATIONS.NORTH);
+    expect(MAP_ORIENTATIONS.NORTH).toBe('north');
+  });
+
+  it('setMapOrientation updates state', () => {
+    useAuthStore.getState().setMapOrientation('heading');
+    expect(useAuthStore.getState().mapOrientation).toBe('heading');
   });
 });
