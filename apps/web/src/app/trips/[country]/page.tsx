@@ -205,11 +205,11 @@ function formatDuration(minutes: number): string {
 }
 
 function formatDistance(meters: number): string {
-  return Math.round(meters / 1000).toLocaleString();
+  return Math.round(meters / 1000).toLocaleString('en-US');
 }
 
 function formatElevation(meters: number): string {
-  return Math.round(meters).toLocaleString();
+  return Math.round(meters).toLocaleString('en-US');
 }
 
 function capitalize(s: string): string {
@@ -512,7 +512,9 @@ export default async function TripByIdPage({ params }: PageParams) {
               {trip.cloneCount > 0 && (
                 <div className="factbox-row">
                   <span className="factbox-key">Clones</span>
-                  <span className="factbox-val warm">{trip.cloneCount.toLocaleString()}</span>
+                  <span className="factbox-val warm">
+                    {trip.cloneCount.toLocaleString('en-US')}
+                  </span>
                 </div>
               )}
             </div>
