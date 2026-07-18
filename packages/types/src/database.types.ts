@@ -1392,6 +1392,7 @@ export type Database = {
       }
       expense_photos: {
         Row: {
+          bucket: string
           created_at: string
           expense_id: string
           file_size_bytes: number | null
@@ -1401,6 +1402,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          bucket?: string
           created_at?: string
           expense_id: string
           file_size_bytes?: number | null
@@ -1410,6 +1412,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          bucket?: string
           created_at?: string
           expense_id?: string
           file_size_bytes?: number | null
@@ -1903,6 +1906,7 @@ export type Database = {
       }
       maintenance_task_photos: {
         Row: {
+          bucket: string
           created_at: string
           file_size_bytes: number | null
           id: string
@@ -1912,6 +1916,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          bucket?: string
           created_at?: string
           file_size_bytes?: number | null
           id?: string
@@ -1921,6 +1926,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          bucket?: string
           created_at?: string
           file_size_bytes?: number | null
           id?: string
@@ -2555,6 +2561,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      receipt_scans: {
+        Row: {
+          consumed_month: string
+          created_at: string
+          extraction_payload: Json | null
+          id: string
+          is_onboarding: boolean
+          saved_at: string | null
+          saved_record_refs: Json | null
+          status: string
+          storage_path: string | null
+          user_id: string
+        }
+        Insert: {
+          consumed_month?: string
+          created_at?: string
+          extraction_payload?: Json | null
+          id?: string
+          is_onboarding?: boolean
+          saved_at?: string | null
+          saved_record_refs?: Json | null
+          status?: string
+          storage_path?: string | null
+          user_id: string
+        }
+        Update: {
+          consumed_month?: string
+          created_at?: string
+          extraction_payload?: Json | null
+          id?: string
+          is_onboarding?: boolean
+          saved_at?: string | null
+          saved_record_refs?: Json | null
+          status?: string
+          storage_path?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       revenuecat_webhook_events: {
         Row: {
@@ -4885,6 +4930,7 @@ export type Database = {
       publish_due_blog_posts: { Args: never; Returns: undefined }
       purge_soft_deleted_rides: { Args: never; Returns: undefined }
       reconcile_orphaned_document_objects: { Args: never; Returns: number }
+      reconcile_orphaned_receipt_objects: { Args: never; Returns: number }
       record_ride_analytics: {
         Args: {
           p_motorcycle_id: string
@@ -4914,6 +4960,17 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      reserve_receipt_scan: {
+        Args: {
+          p_is_onboarding?: boolean
+          p_monthly_limit?: number
+          p_user_id: string
+        }
+        Returns: {
+          over_quota: boolean
+          reservation_id: string
+        }[]
       }
       resolve_trip_by_token: { Args: { p_token: string }; Returns: Json }
       rotate_trip_share_token: { Args: { p_trip_id: string }; Returns: string }
