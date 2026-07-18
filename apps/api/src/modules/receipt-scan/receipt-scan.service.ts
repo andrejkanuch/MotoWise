@@ -59,8 +59,12 @@ const MOTORCYCLES_TABLE = 'motorcycles';
 const USERS_TABLE = 'users';
 const PRO_TIER = 'pro';
 
-/** A compensating-saga cleanup thunk, run in reverse order on a mid-save throw. */
-type Compensation = () => Promise<void>;
+/**
+ * A compensating-saga cleanup thunk, run in reverse order on a mid-save throw.
+ * Return value is ignored (some reversal helpers report a success boolean used
+ * by the undo path); the compensation stack only cares that each step ran.
+ */
+type Compensation = () => Promise<unknown>;
 
 type ScanErrorArm = { code: string; reason: string };
 
@@ -80,6 +84,7 @@ const ERROR_REASONS = {
     'This scan is no longer available to save. Please rescan the receipt.',
   [RECEIPT_SCAN_ERROR_CODES.SAVE_FAILED]:
     'We could not save this receipt. Nothing was changed — please try again.',
+  [RECEIPT_SCAN_ERROR_CODES.UNDO_FAILED]: 'We could not fully undo this receipt. Please try again.',
 } as const satisfies Record<string, string>;
 
 @Injectable()
@@ -158,14 +163,31 @@ export class ReceiptScanService {
       return this.err(RECEIPT_SCAN_ERROR_CODES.EXTRACTION_FAILED);
     }
 
+    // 9b. The model responded, but if it read NONE of the money-bearing fields
+    // (amount / currency / date all null) there is nothing usable to review — do
+    // not count an empty extraction as a success. Log the (real) spend as failed.
+    const ext = outcome.extraction;
+    if (ext.amount == null && ext.currency == null && ext.date == null) {
+      await this.finalize(reservationId, RECEIPT_SCAN_STATUS.FAILED);
+      await this.logGeneration(
+        user.id,
+        reservationId,
+        GENERATION_LOG_STATUS.FAILED,
+        outcome.inputTokens,
+        outcome.outputTokens,
+      );
+      return this.err(RECEIPT_SCAN_ERROR_CODES.EXTRACTION_FAILED);
+    }
+
     // 10. Build the persisted payload (VIN stripped KTD-9, category coerced,
     //     odometer kept KTD-7).
     const { result, payload } = this.buildResult(outcome.extraction);
 
-    // 11. Finalize idempotently — success only from pending (KTD-5).
-    await this.finalize(reservationId, RECEIPT_SCAN_STATUS.SUCCESS, payload);
+    // 11. Finalize idempotently — success only from pending (KTD-5). The CAS
+    // matches 0 rows when the reservation was cancelled/reaped mid-extraction.
+    const finalized = await this.finalize(reservationId, RECEIPT_SCAN_STATUS.SUCCESS, payload);
 
-    // 12. Record spend for content_generation_log accounting.
+    // 12. Record spend for content_generation_log accounting (the model ran).
     await this.logGeneration(
       user.id,
       reservationId,
@@ -173,6 +195,16 @@ export class ReceiptScanService {
       outcome.inputTokens,
       outcome.outputTokens,
     );
+
+    // 12b. If the success transition matched no row the durable reservation is
+    // gone (cancelled/reaped) — there is no success row to review, so do not
+    // report a fabricated success.
+    if (finalized === 0) {
+      this.logger.warn(
+        `finalize(success) matched 0 rows for scan=${reservationId} — reservation lost (cancelled/reaped)`,
+      );
+      return this.err(RECEIPT_SCAN_ERROR_CODES.EXTRACTION_FAILED);
+    }
 
     // 13.
     return { scanId: reservationId, result };
@@ -291,12 +323,29 @@ export class ReceiptScanService {
     const scan = await this.loadScanForSave(user.id, scanId);
     if (!scan) return this.err(RECEIPT_SCAN_ERROR_CODES.SCAN_NOT_REVIEWABLE);
 
-    // Idempotency: already saved → return the existing refs (no double-write).
+    // Idempotency fast-path: already saved → return the existing refs (no re-write).
     if (scan.saved_at) {
       return { scanId, refs: this.refsForDto(scan.saved_record_refs) };
     }
 
-    const compensations: Compensation[] = [];
+    // Atomically CLAIM the scan BEFORE creating any records — a CAS stamp of
+    // saved_at guarded by `saved_at IS NULL` so two concurrent saves cannot both
+    // pass the check-then-write and double-book an expense/task (KTD-11).
+    const claimed = await this.claimScan(scanId, user.id);
+    if (!claimed) {
+      // Lost the race: another save already claimed this scan. Return the
+      // winner's refs if it has finished (idempotent), else do NOT create a
+      // duplicate — report not-reviewable.
+      const latest = await this.loadScanForSave(user.id, scanId);
+      if (latest?.saved_at) {
+        return { scanId, refs: this.refsForDto(latest.saved_record_refs) };
+      }
+      return this.err(RECEIPT_SCAN_ERROR_CODES.SCAN_NOT_REVIEWABLE);
+    }
+
+    // The claim is released LAST (runs last in the reversed stack) so a mid-save
+    // throw returns the row to success-unsaved and a retry can re-claim it.
+    const compensations: Compensation[] = [() => this.clearSaved(scanId, user.id)];
     try {
       // 1. Record write — dispatch on type.
       const refs =
@@ -304,11 +353,14 @@ export class ReceiptScanService {
           ? await this.writeExpenseRecord(user.id, input, compensations)
           : await this.writeMaintenanceRecord(user.id, input, compensations);
 
-      // 2. Photo link — reuse the uploaded receipts object, NO re-upload.
+      // 2. Photo link — reuse the uploaded receipts object, NO re-upload. On
+      // rollback we remove only the LINK row, NEVER the source receipt object —
+      // it is the user's uploaded receipt and must survive for a retry (the
+      // object is only deleted post-successful-save, in undoReceiptScanSave).
       if (scan.storage_path) {
         refs.photoId = await this.linkReceiptPhoto(user.id, refs, scan.storage_path);
-        const objectPath = scan.storage_path;
-        compensations.push(() => this.deleteReceiptObject(user.id, objectPath));
+        const linkedRefs = refs;
+        compensations.push(() => this.unlinkPhoto(linkedRefs));
       }
 
       // 3. Odometer (optional, KTD-7).
@@ -318,8 +370,8 @@ export class ReceiptScanService {
         compensations.push(() => this.revertOdometer(user.id, odometer));
       }
 
-      // 4. Full success — stamp the row (throws → compensate).
-      await this.stampSaved(scanId, user.id, refs);
+      // 4. Full success — persist the refs onto the already-claimed row.
+      await this.persistRefs(scanId, user.id, refs);
       return { scanId, refs: this.refsForDto(refs) };
     } catch (err) {
       this.logger.error(`saveReceiptScan failed for scan=${scanId}: ${err}`);
@@ -356,28 +408,54 @@ export class ReceiptScanService {
     }
 
     let remaining: SavedRecordRefs = { ...refs };
+    // Each ref is cleared ONLY after its reversal is confirmed — a failed step
+    // leaves its ref (and saved_at) intact so a re-run resumes the leftover
+    // (KTD-11 resumable undo). We never report REVERTED with work outstanding.
+    let allReversed = true;
 
     // Record (expense OR task). A task delete must ALSO remove its auto-expense —
     // the soft_delete_maintenance_task RPC does not cascade to it (U3 link row).
     if (remaining.expenseId) {
-      await this.reverseExpense(user.id, remaining.expenseId);
-      remaining = await this.clearRef(scanId, user.id, remaining, 'expenseId');
+      if (await this.reverseExpense(user.id, remaining.expenseId)) {
+        remaining = await this.clearRef(scanId, user.id, remaining, 'expenseId');
+      } else {
+        allReversed = false;
+      }
     }
     if (remaining.taskId) {
-      await this.reverseTask(user.id, remaining.taskId);
-      remaining = await this.clearRef(scanId, user.id, remaining, 'taskId');
+      if (await this.reverseTask(user.id, remaining.taskId)) {
+        remaining = await this.clearRef(scanId, user.id, remaining, 'taskId');
+      } else {
+        allReversed = false;
+      }
     }
 
     // Receipts storage OBJECT (U7a helper) — delete the object, not just the link.
+    // A null storage_path means there is nothing to delete (treat as reversed).
     if (remaining.photoId) {
-      if (scan.storage_path) await this.deleteReceiptObject(user.id, scan.storage_path);
-      remaining = await this.clearRef(scanId, user.id, remaining, 'photoId');
+      const objectRemoved = scan.storage_path
+        ? await this.deleteReceiptObject(user.id, scan.storage_path)
+        : true;
+      if (objectRemoved) {
+        remaining = await this.clearRef(scanId, user.id, remaining, 'photoId');
+      } else {
+        allReversed = false;
+      }
     }
 
     // Guarded odometer revert — only if current still equals the applied value.
     if (remaining.odometer) {
-      await this.revertOdometer(user.id, remaining.odometer);
-      remaining = await this.clearRef(scanId, user.id, remaining, 'odometer');
+      if (await this.revertOdometer(user.id, remaining.odometer)) {
+        remaining = await this.clearRef(scanId, user.id, remaining, 'odometer');
+      } else {
+        allReversed = false;
+      }
+    }
+
+    if (!allReversed) {
+      // Uncleared refs + saved_at remain, so a subsequent undo retries just the
+      // leftovers. Do not clear saved_at or claim a full reversal.
+      return this.err(RECEIPT_SCAN_ERROR_CODES.UNDO_FAILED);
     }
 
     await this.clearSaved(scanId, user.id);
@@ -458,7 +536,17 @@ export class ReceiptScanService {
     const amount = input.amount ?? 0;
     const partsCost = input.partsCost ?? undefined;
     const laborCost = input.laborCost ?? undefined;
-    const cost = Math.max(amount - (partsCost ?? 0) - (laborCost ?? 0), 0);
+    // Cross-field invariant: the itemized breakdown cannot exceed the receipt
+    // total. If it did, clamping misc `cost` to 0 would make the auto-expense
+    // (cost + parts + labor) exceed the receipt amount — misreporting spend.
+    // Reject rather than silently misreport (small epsilon absorbs FP noise).
+    const breakdown = (partsCost ?? 0) + (laborCost ?? 0);
+    if (breakdown > amount + 0.001) {
+      throw new Error(
+        `cost breakdown (parts ${partsCost ?? 0} + labor ${laborCost ?? 0}) exceeds receipt total ${amount}`,
+      );
+    }
+    const cost = Math.max(amount - breakdown, 0);
 
     const task = await this.maintenanceTasksService.create(userId, {
       motorcycleId: input.motorcycleId,
@@ -511,7 +599,15 @@ export class ReceiptScanService {
     userId: string,
     input: SaveReceiptScanInput,
   ): Promise<SavedOdometerRef | null> {
-    if (!input.applyOdometer || input.odometerValue == null) return null;
+    if (!input.applyOdometer || input.odometerValue == null || input.odometerUnit == null) {
+      return null;
+    }
+    // KTD-7: the unit is NEVER assumed. Without a known printed unit we cannot
+    // convert safely (a miles reading stored as km is a ~1.61x error), so skip.
+    if (input.odometerUnit !== ODOMETER_UNITS.KM && input.odometerUnit !== ODOMETER_UNITS.MI) {
+      this.logger.warn(`odometer skip: unrecognized/absent unit '${input.odometerUnit}'`);
+      return null;
+    }
 
     const bike = await this.motorcyclesService.findById(userId, input.motorcycleId);
     if (!bike) {
@@ -550,22 +646,30 @@ export class ReceiptScanService {
     return (data?.measurement_system as MeasurementSystem | null) ?? DEFAULT_MEASUREMENT_SYSTEM;
   }
 
-  /** Soft-delete an expense (also purges its linked receipts object). Tolerant. */
-  private async reverseExpense(userId: string, expenseId: string): Promise<void> {
+  /**
+   * Soft-delete an expense (also purges its linked receipts object). Returns
+   * true on success (or idempotent already-deleted), false on a genuine failure
+   * so an undo caller retains the ref for a resumable retry.
+   */
+  private async reverseExpense(userId: string, expenseId: string): Promise<boolean> {
     try {
       await this.expensesService.softDelete(userId, expenseId);
+      return true;
     } catch (err) {
       // Already soft-deleted (idempotent re-run) or a best-effort failure.
       this.logger.warn(`reverseExpense no-op/failed for ${expenseId}: ${err}`);
+      return false;
     }
   }
 
   /**
    * Reverse a completed task: soft-delete its auto-expense (U3 link — the
    * soft_delete_maintenance_task RPC does NOT cascade to it) THEN the task
-   * (which purges its receipts photo object). Tolerant of already-reverted state.
+   * (which purges its receipts photo object). Returns false if any sub-step
+   * failed so the undo caller retains the ref for a resumable retry.
    */
-  private async reverseTask(userId: string, taskId: string): Promise<void> {
+  private async reverseTask(userId: string, taskId: string): Promise<boolean> {
+    let ok = true;
     const { data } = await this.adminClient
       .from(EXPENSES_TABLE)
       .select('id')
@@ -573,23 +677,43 @@ export class ReceiptScanService {
       .eq('user_id', userId)
       .is('deleted_at', null);
     for (const row of data ?? []) {
-      await this.reverseExpense(userId, row.id as string);
+      if (!(await this.reverseExpense(userId, row.id as string))) ok = false;
     }
     try {
       await this.maintenanceTasksService.softDelete(userId, taskId);
     } catch (err) {
       this.logger.warn(`reverseTask no-op/failed for ${taskId}: ${err}`);
+      ok = false;
     }
+    return ok;
   }
 
-  /** Delete the receipts storage OBJECT (U7a helper). Best-effort, idempotent. */
-  private async deleteReceiptObject(userId: string, storagePath: string): Promise<void> {
-    await deleteReceiptsPhotoObjects({
+  /**
+   * Delete the receipts storage OBJECT (U7a helper). Returns true when the object
+   * was removed (or confirmed absent), false on a storage failure so an undo
+   * caller retains the photo ref for a resumable retry.
+   */
+  private async deleteReceiptObject(userId: string, storagePath: string): Promise<boolean> {
+    const { removedPaths } = await deleteReceiptsPhotoObjects({
       rows: [{ storage_path: storagePath, bucket: PHOTO_BUCKETS.RECEIPTS, user_id: userId }],
       ownerUserId: userId,
       adminClient: this.adminClient,
       logger: this.logger,
     });
+    return removedPaths.includes(storagePath);
+  }
+
+  /**
+   * Remove ONLY the photo LINK row (not the storage object) — the save-rollback
+   * compensation for a linked receipt. The source object is the user's uploaded
+   * receipt and must survive for a retry (finding: never delete it on rollback).
+   */
+  private async unlinkPhoto(refs: SavedRecordRefs): Promise<void> {
+    if (!refs.photoId) return;
+    const table =
+      refs.recordType === RECORD_TYPES.EXPENSE ? 'expense_photos' : 'maintenance_task_photos';
+    const { error } = await this.adminClient.from(table).delete().eq('id', refs.photoId);
+    if (error) this.logger.warn(`unlinkPhoto failed for ${refs.photoId}: ${error.message}`);
   }
 
   /**
@@ -597,7 +721,7 @@ export class ReceiptScanService {
    * `previous` ONLY if it still equals the scan-applied value — a CAS that never
    * clobbers a newer reading. previous=null (first-set) reverts back to null.
    */
-  private async revertOdometer(userId: string, ref: SavedOdometerRef): Promise<void> {
+  private async revertOdometer(userId: string, ref: SavedOdometerRef): Promise<boolean> {
     const { error } = await this.adminClient
       .from(MOTORCYCLES_TABLE)
       .update({
@@ -609,7 +733,13 @@ export class ReceiptScanService {
       .eq('id', ref.motorcycleId)
       .eq('user_id', userId)
       .eq('current_mileage', ref.applied);
-    if (error) this.logger.warn(`revertOdometer failed for ${ref.motorcycleId}: ${error.message}`);
+    // A 0-row match (a newer reading superseded ours) is NOT a failure — the CAS
+    // guard intentionally declines to clobber it. Only a DB error is a failure.
+    if (error) {
+      this.logger.warn(`revertOdometer failed for ${ref.motorcycleId}: ${error.message}`);
+      return false;
+    }
+    return true;
   }
 
   /** Runs the compensation stack in reverse; each step is isolated (logs, never throws). */
@@ -623,15 +753,35 @@ export class ReceiptScanService {
     }
   }
 
-  /** Stamp the successful save (idempotency-guarded: only from an unsaved row). */
-  private async stampSaved(scanId: string, userId: string, refs: SavedRecordRefs): Promise<void> {
-    const { error } = await this.adminClient
+  /**
+   * Atomically CLAIM the scan for save: CAS-stamp saved_at guarded by
+   * `saved_at IS NULL` (+ owner + success status). Returns true iff THIS call
+   * won the claim — concurrent saves see 0 rows and must not proceed (KTD-11).
+   */
+  private async claimScan(scanId: string, userId: string): Promise<boolean> {
+    const { data, error } = await this.adminClient
       .from(RECEIPT_SCANS_TABLE)
-      .update({ saved_at: new Date().toISOString(), saved_record_refs: refs })
+      .update({ saved_at: new Date().toISOString() })
       .eq('id', scanId)
       .eq('user_id', userId)
-      .is('saved_at', null);
-    if (error) throw new Error(`stampSaved failed: ${error.message}`);
+      .eq('status', RECEIPT_SCAN_STATUS.SUCCESS)
+      .is('saved_at', null)
+      .select('id');
+    if (error) {
+      this.logger.error(`claimScan failed for scan=${scanId}: ${error.message}`);
+      return false;
+    }
+    return (data?.length ?? 0) > 0;
+  }
+
+  /** Persist the saved_record_refs onto the already-claimed row (throws → compensate). */
+  private async persistRefs(scanId: string, userId: string, refs: SavedRecordRefs): Promise<void> {
+    const { error } = await this.adminClient
+      .from(RECEIPT_SCANS_TABLE)
+      .update({ saved_record_refs: refs })
+      .eq('id', scanId)
+      .eq('user_id', userId);
+    if (error) throw new Error(`persistRefs failed: ${error.message}`);
   }
 
   /** Persist the shrinking refs mid-undo so a re-run only finishes leftovers. */
@@ -737,17 +887,24 @@ export class ReceiptScanService {
     reservationId: string,
     status: typeof RECEIPT_SCAN_STATUS.SUCCESS | typeof RECEIPT_SCAN_STATUS.FAILED,
     payload?: Record<string, unknown>,
-  ): Promise<void> {
+  ): Promise<number> {
     const patch: Record<string, unknown> = { status };
     if (payload) patch.extraction_payload = payload;
 
-    const { error } = await this.adminClient
+    // `.select('id')` exposes the affected-row count so the caller can detect a
+    // lost reservation (cancelled/reaped won the pending→success CAS first).
+    const { data, error } = await this.adminClient
       .from(RECEIPT_SCANS_TABLE)
       .update(patch)
       .eq('id', reservationId)
-      .eq('status', RECEIPT_SCAN_STATUS.PENDING);
+      .eq('status', RECEIPT_SCAN_STATUS.PENDING)
+      .select('id');
 
-    if (error) this.logger.error(`Failed to finalize scan ${reservationId} → ${status}`, error);
+    if (error) {
+      this.logger.error(`Failed to finalize scan ${reservationId} → ${status}`, error);
+      return 0;
+    }
+    return data?.length ?? 0;
   }
 
   private async download(path: string): Promise<Buffer | null> {

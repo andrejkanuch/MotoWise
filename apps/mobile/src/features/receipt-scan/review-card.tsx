@@ -41,7 +41,7 @@ import { CATEGORY_LABELS, formatCurrencyInput } from '../../lib/expense-constant
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { triggerSelection } from '../../utils/haptics';
-import { toISODateInput } from '../../utils/trip-form-dates';
+import { localDateFromISODate, toISODateInput } from '../../utils/trip-form-dates';
 import {
   RECEIPT_REVIEW_TYPE,
   type ReceiptExtraction,
@@ -210,7 +210,9 @@ export function ReviewCard({
   );
   const [amount, setAmount] = useState(result.amount != null ? String(result.amount) : '');
   const [currency, setCurrency] = useState(result.currency ?? userCurrency);
-  const [date, setDate] = useState<Date | null>(result.date ? new Date(result.date) : null);
+  // Parse the extracted `YYYY-MM-DD` as a LOCAL calendar date — `new Date(str)`
+  // would treat it as UTC midnight and shift a day earlier west of UTC.
+  const [date, setDate] = useState<Date | null>(() => localDateFromISODate(result.date));
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [vendor, setVendor] = useState(result.vendor ?? '');
   const [itemName, setItemName] = useState(result.itemName ?? '');
@@ -247,7 +249,12 @@ export function ReviewCard({
     () => extractedOdometerInOwnerUnit(result, system),
     [result, system],
   );
-  const odometerState = resolveOdometerState(odoOwnerUnit, selectedBike?.currentMileage ?? null);
+  // Only offer the odometer action once the bike/current-mileage query has resolved.
+  // While it is loading or errored, `selectedBike` is null — treating that as "no
+  // current odometer" would wrongly show a first-set row and allow a decrease.
+  const odometerState = motorcyclesQuery.isSuccess
+    ? resolveOdometerState(odoOwnerUnit, selectedBike?.currentMileage ?? null)
+    : ODOMETER_STATE.HIDDEN;
   const odometerVisible = odometerState !== ODOMETER_STATE.HIDDEN;
   const applyOdometer = odometerVisible && applyOdometerPref;
 

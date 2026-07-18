@@ -2313,7 +2313,7 @@
       "uploadFailedTitle": "Upload didn’t go through",
       "uploadFailedBody": "We couldn’t upload your receipt. Check your connection and try again.",
       "analyzeFailedTitle": "Something went wrong",
-      "analyzeFailedBody": "We couldn’t finish reading your receipt. Try again — you won’t be charged a scan unless it succeeds."
+      "analyzeFailedBody": "We couldn’t finish reading your receipt. Try again — if it already went through, you’ll find it waiting in your receipts to review."
     },
     "parked": {
       "title": "Saved for later",

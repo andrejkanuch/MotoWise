@@ -17,3 +17,12 @@ export function hasAcceptedScanConsent(): boolean {
 export function setScanConsentAccepted(): void {
   prefs.set(CONSENT_ACCEPTED_KEY, true);
 }
+
+/**
+ * Clear the AI-consent flag. Called from the auth logout / account-switch cleanup
+ * so a second rider on a shared device is shown the first-scan disclosure again
+ * rather than inheriting the previous account's consent (EU informed consent).
+ */
+export function clearScanConsent(): void {
+  prefs.clearAll();
+}

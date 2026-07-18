@@ -15,6 +15,8 @@ export const RECEIPT_SCAN_ERROR_CODES = {
   SCAN_NOT_REVIEWABLE: 'SCAN_NOT_REVIEWABLE',
   /** A compound save step threw; the compensating saga rolled everything back. */
   SAVE_FAILED: 'SAVE_FAILED',
+  /** An undo step failed; uncleared refs are retained for a resumable retry. */
+  UNDO_FAILED: 'UNDO_FAILED',
 } as const;
 
 export type ReceiptScanErrorCode =

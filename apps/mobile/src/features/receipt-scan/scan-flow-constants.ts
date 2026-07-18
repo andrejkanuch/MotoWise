@@ -139,16 +139,19 @@ export const LOCAL_ERROR_OUTCOME: ErrorOutcome = {
 
 /**
  * scanReceipt transport failure (the request threw before we saw a union result).
- * Retrying is safe: the server finalizer is idempotent, so a retry consumes at
- * most one credit and never before extraction succeeds — so "No credit used"
- * holds at the error moment.
+ * The credit state is UNKNOWN here: the server may have finished extraction and
+ * consumed quota before the response was lost, so we must NOT promise "No credit
+ * used" (that's reserved for paths where the server definitively didn't consume —
+ * upload-before-scan failures and typed free errors). Retrying is still safe (the
+ * finalizer is idempotent) and any charged-but-stranded scan reconciles via the
+ * unreviewed-scans query; the body copy is non-committal instead.
  */
 export const ANALYZE_ERROR_OUTCOME: ErrorOutcome = {
   code: SCAN_ERROR_CODE.EXTRACTION_FAILED,
   recovery: 'retry',
   titleKey: 'receiptScan.error.analyzeFailedTitle',
   bodyKey: 'receiptScan.error.analyzeFailedBody',
-  noCreditUsed: true,
+  noCreditUsed: false,
   retainPhoto: true,
 };
 

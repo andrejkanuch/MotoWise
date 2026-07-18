@@ -245,6 +245,7 @@ describe('MaintenanceTasksService', () => {
           cost: 50,
           parts_cost: 30,
           labor_cost: 20,
+          currency: 'EUR',
         },
       });
 
@@ -262,12 +263,14 @@ describe('MaintenanceTasksService', () => {
         expect.objectContaining({ cost: 50, parts_cost: 30, labor_cost: 20, currency: 'EUR' }),
       );
       expect(mockExpensesService.createFromTask).toHaveBeenCalledTimes(1);
+      // The task's currency propagates to the linked auto-expense (not defaulted).
       expect(mockExpensesService.createFromTask).toHaveBeenCalledWith(
         userId,
         motorcycleId,
         taskId,
         100,
         'Oil Change',
+        'EUR',
       );
     });
 
@@ -347,6 +350,7 @@ describe('MaintenanceTasksService', () => {
         taskId,
         100, // 50 + 30 + 20
         'Oil Change',
+        undefined, // no task currency → expense falls back to profile currency
       );
     });
 
@@ -584,13 +588,16 @@ describe('MaintenanceTasksService', () => {
   });
 
   describe('addPhoto', () => {
+    // Real legacy maintenance-photo path shape (uploadMaintenancePhoto): {uid}/{taskId}/…
+    const legacyPath = `${userId}/${taskId}/test.webp`;
+
     it('should enforce 5-photo limit', async () => {
       // Result 0: task ownership check (.single()) — passes
       mockAdminClient._pushResult({ data: { id: taskId } });
       // Result 1: count query (thenable, no .single()) — returns count=5
       mockAdminClient._pushResult({ count: 5 });
 
-      await expect(service.addPhoto(userId, taskId, 'photos/test.webp')).rejects.toThrow(
+      await expect(service.addPhoto(userId, taskId, legacyPath)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -602,15 +609,31 @@ describe('MaintenanceTasksService', () => {
         error: { message: 'Row not found', code: 'PGRST116' },
       });
 
-      await expect(service.addPhoto(userId, taskId, 'photos/test.webp')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.addPhoto(userId, taskId, legacyPath)).rejects.toThrow(NotFoundException);
+    });
+
+    it('KTD-2: rejects a legacy path outside the caller-owned {uid}/{taskId}/ prefix', async () => {
+      // A foreign object path must be refused BEFORE any ownership/count/insert
+      // so a caller cannot link (then admin-delete) another user's object.
+      await expect(
+        service.addPhoto(userId, taskId, `other-uid/${taskId}/steal.webp`),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        service.addPhoto(userId, taskId, `${userId}/other-task/steal.webp`),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('KTD-2: rejects a receipts path outside the caller-owned {uid}/ prefix', async () => {
+      await expect(
+        service.addPhoto(userId, taskId, 'other-uid/scan.webp', undefined, 'receipts'),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
   describe('photos resolution (U7a)', () => {
     it('resolves BOTH a legacy public URL and a receipts signed URL', async () => {
-      mockAdminClient._pushResult({
+      // The batched row read is now via the RLS-enforcing user client.
+      mockUserClient._pushResult({
         data: [
           {
             id: 'p-legacy',
@@ -648,7 +671,7 @@ describe('MaintenanceTasksService', () => {
     });
 
     it('C1: drops a receipts photo whose path belongs to another uid', async () => {
-      mockAdminClient._pushResult({
+      mockUserClient._pushResult({
         data: [
           {
             id: 'p-foreign',

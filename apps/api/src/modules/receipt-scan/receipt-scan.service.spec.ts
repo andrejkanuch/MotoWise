@@ -63,7 +63,7 @@ function dealerInvoiceExtraction(overrides: Partial<ReceiptExtraction> = {}): Re
 
 interface RecordedCall {
   table: string;
-  op: 'select' | 'update';
+  op: 'select' | 'update' | 'delete';
   patch?: Record<string, unknown>;
   filters: Record<string, unknown>;
   count: boolean;
@@ -85,7 +85,13 @@ function createMockDb() {
     resolver: (ctx: RecordedCall) => { data?: unknown; count?: number; error?: unknown };
     insertError: unknown;
   } = {
-    resolver: () => ({ data: [], count: 0, error: null }),
+    // Default: a pending→success finalize CAS matches one row (the reservation is
+    // still alive). Everything else resolves empty. Tests override as needed.
+    resolver: (ctx) =>
+      ctx.op === 'update' &&
+      (ctx.patch as { status?: string })?.status === RECEIPT_SCAN_STATUS.SUCCESS
+        ? { data: [{ id: RESERVATION_ID }], count: 0, error: null }
+        : { data: [], count: 0, error: null },
     insertError: null,
   };
 
@@ -114,6 +120,10 @@ function createMockDb() {
       insert(row: Record<string, unknown>) {
         inserts.push({ table, row });
         return Promise.resolve({ error: state.insertError });
+      },
+      delete() {
+        ctx.op = 'delete';
+        return builder;
       },
       eq(col: string, val: unknown) {
         ctx.filters[col] = val;
@@ -357,6 +367,39 @@ describe('ReceiptScanService', () => {
       expect('code' in res && res.code).toBe(RECEIPT_SCAN_ERROR_CODES.EXTRACTION_FAILED);
     });
 
+    it('extraction with all money-bearing fields null → EXTRACTION_FAILED (not success)', async () => {
+      reserve(false);
+      db.download.mockResolvedValue({ data: validBytes(), error: null });
+      aiService.extract.mockResolvedValue({
+        ok: true,
+        extraction: dealerInvoiceExtraction({ amount: null, currency: null, date: null }),
+        inputTokens: 10,
+        outputTokens: 5,
+      });
+      const res = await service.scanReceipt(USER, CLIENT_SCAN_ID);
+      expect('code' in res && res.code).toBe(RECEIPT_SCAN_ERROR_CODES.EXTRACTION_FAILED);
+      expect(findUpdate(RECEIPT_SCAN_STATUS.FAILED)).toBeDefined();
+    });
+
+    it('finalize CAS matches 0 rows (reservation cancelled/reaped mid-extraction) → EXTRACTION_FAILED', async () => {
+      reserve(false);
+      db.download.mockResolvedValue({ data: validBytes(), error: null });
+      aiService.extract.mockResolvedValue({
+        ok: true,
+        extraction: dealerInvoiceExtraction(),
+        inputTokens: 10,
+        outputTokens: 5,
+      });
+      // The pending→success CAS matches nothing (the row is no longer pending).
+      db.state.resolver = (ctx) =>
+        ctx.op === 'update' &&
+        (ctx.patch as { status?: string })?.status === RECEIPT_SCAN_STATUS.SUCCESS
+          ? { data: [] }
+          : { data: [], count: 0 };
+      const res = await service.scanReceipt(USER, CLIENT_SCAN_ID);
+      expect('code' in res && res.code).toBe(RECEIPT_SCAN_ERROR_CODES.EXTRACTION_FAILED);
+    });
+
     it('out-of-enum category → coerced to other + needs-check (no 500)', async () => {
       reserve(false);
       db.download.mockResolvedValue({ data: validBytes(), error: null });
@@ -522,6 +565,14 @@ describe('ReceiptScanService', () => {
   const routeDb = (scan: ScanRow | null, system = 'metric') => {
     db.state.resolver = (ctx) => {
       if (ctx.table === 'receipt_scans' && ctx.op === 'select') return { data: scan };
+      // Atomic claim CAS (saved_at stamp guarded by saved_at IS NULL) succeeds.
+      if (
+        ctx.table === 'receipt_scans' &&
+        ctx.op === 'update' &&
+        (ctx.patch as { saved_at?: unknown })?.saved_at != null
+      ) {
+        return { data: [{ id: RESERVATION_ID }] };
+      }
       if (ctx.table === 'users' && ctx.op === 'select') {
         return { data: { measurement_system: system } };
       }
@@ -546,12 +597,30 @@ describe('ReceiptScanService', () => {
     ...overrides,
   });
 
-  const stampCall = () =>
+  /** The atomic-claim CAS update (stamps saved_at, guarded by saved_at IS NULL). */
+  const claimCall = () =>
     db.calls.find(
       (c) =>
         c.table === 'receipt_scans' &&
         c.op === 'update' &&
         (c.patch as { saved_at?: unknown })?.saved_at != null,
+    );
+  /** The refs-persist update (sets saved_record_refs only, no saved_at). */
+  const refsCall = () =>
+    db.calls.find(
+      (c) =>
+        c.table === 'receipt_scans' &&
+        c.op === 'update' &&
+        (c.patch as { saved_record_refs?: unknown })?.saved_record_refs != null &&
+        (c.patch as { saved_at?: unknown })?.saved_at === undefined,
+    );
+  /** A clearSaved update (releases the claim: saved_at back to null). */
+  const clearSavedCall = () =>
+    db.calls.find(
+      (c) =>
+        c.table === 'receipt_scans' &&
+        c.op === 'update' &&
+        (c.patch as { saved_at?: unknown })?.saved_at === null,
     );
 
   describe('saveReceiptScan — compensating saga (KTD-11)', () => {
@@ -602,12 +671,12 @@ describe('ReceiptScanService', () => {
         applied: 37505,
       });
 
-      const stamped = stampCall();
-      expect(stamped?.filters.is_saved_at).toBeNull(); // idempotency CAS
-      expect((stamped?.patch as { saved_record_refs?: unknown })?.saved_record_refs).toMatchObject({
-        expenseId: EXPENSE_ID,
-        photoId: PHOTO_ID,
-      });
+      // Atomic claim: CAS on saved_at IS NULL before any record write.
+      expect(claimCall()?.filters.is_saved_at).toBeNull();
+      // Refs persisted onto the already-claimed row after all steps succeed.
+      expect(
+        (refsCall()?.patch as { saved_record_refs?: unknown })?.saved_record_refs,
+      ).toMatchObject({ expenseId: EXPENSE_ID, photoId: PHOTO_ID });
     });
 
     it('maintenance path creates completed task w/ source + backs cost out of breakdown', async () => {
@@ -637,14 +706,61 @@ describe('ReceiptScanService', () => {
       );
     });
 
-    it('mid-save failure compensates (record soft-deleted, saved_at NOT set)', async () => {
+    it('mid-save failure compensates (record soft-deleted, claim released, refs NOT persisted)', async () => {
       routeDb(scanRow());
       expensesService.addPhoto.mockRejectedValueOnce(new Error('storage link failed'));
 
       const res = await service.saveReceiptScan(USER, CLIENT_SCAN_ID, saveInput());
       expect('code' in res && res.code).toBe(RECEIPT_SCAN_ERROR_CODES.SAVE_FAILED);
       expect(expensesService.softDelete).toHaveBeenCalledWith(USER.id, EXPENSE_ID);
-      expect(stampCall()).toBeUndefined();
+      // Never persisted refs; the claim is rolled back to unsaved for a retry.
+      expect(refsCall()).toBeUndefined();
+      expect(clearSavedCall()).toBeDefined();
+    });
+
+    it('mid-save failure does NOT delete the source receipt object (needed for retry)', async () => {
+      routeDb(scanRow());
+      // Fail AFTER the photo link succeeds (odometer step throws).
+      motorcyclesService.findById.mockRejectedValueOnce(new Error('odometer lookup boom'));
+      const res = await service.saveReceiptScan(
+        USER,
+        CLIENT_SCAN_ID,
+        saveInput({ applyOdometer: true, odometerValue: 37505, odometerUnit: 'km' }),
+      );
+      expect('code' in res && res.code).toBe(RECEIPT_SCAN_ERROR_CODES.SAVE_FAILED);
+      // The source receipt object must survive the rollback — only the LINK row
+      // is removed via the compensation, never the storage object.
+      expect(db.remove).not.toHaveBeenCalled();
+    });
+
+    it('cost breakdown exceeding the receipt total → SAVE_FAILED (no task created)', async () => {
+      routeDb(scanRow());
+      const res = await service.saveReceiptScan(
+        USER,
+        CLIENT_SCAN_ID,
+        saveInput({ type: RECORD_TYPES.MAINTENANCE, amount: 100, partsCost: 80, laborCost: 50 }),
+      );
+      expect('code' in res && res.code).toBe(RECEIPT_SCAN_ERROR_CODES.SAVE_FAILED);
+      expect(maintenanceTasksService.create).not.toHaveBeenCalled();
+    });
+
+    it('concurrent save that loses the atomic claim does not double-write', async () => {
+      // Scan is loadable + unsaved, but the claim CAS matches 0 rows (another
+      // save already won it) and a re-load still shows unsaved → not-reviewable.
+      db.state.resolver = (ctx) => {
+        if (ctx.table === 'receipt_scans' && ctx.op === 'select') return { data: scanRow() };
+        if (
+          ctx.table === 'receipt_scans' &&
+          ctx.op === 'update' &&
+          (ctx.patch as { saved_at?: unknown })?.saved_at != null
+        ) {
+          return { data: [] }; // claim lost
+        }
+        return { data: [], error: null };
+      };
+      const res = await service.saveReceiptScan(USER, CLIENT_SCAN_ID, saveInput());
+      expect('code' in res && res.code).toBe(RECEIPT_SCAN_ERROR_CODES.SCAN_NOT_REVIEWABLE);
+      expect(expensesService.create).not.toHaveBeenCalled();
     });
 
     it('idempotent when already saved — returns existing refs, no re-write', async () => {
@@ -657,7 +773,8 @@ describe('ReceiptScanService', () => {
       const res = await service.saveReceiptScan(USER, CLIENT_SCAN_ID, saveInput());
       expect('refs' in res && res.refs.expenseId).toBe(EXPENSE_ID);
       expect(expensesService.create).not.toHaveBeenCalled();
-      expect(stampCall()).toBeUndefined();
+      expect(claimCall()).toBeUndefined();
+      expect(refsCall()).toBeUndefined();
     });
   });
 
@@ -743,6 +860,19 @@ describe('ReceiptScanService', () => {
       expect('refs' in res).toBe(true); // save still succeeds
       expect(motorcyclesService.update).not.toHaveBeenCalled();
     });
+
+    it('applyOdometer without a printed unit is skipped — never assumed (KTD-7)', async () => {
+      motorcyclesService.findById.mockResolvedValue({ id: MOTO_ID, currentMileage: null });
+      routeDb(scanRow(), 'metric');
+      const res = await service.saveReceiptScan(
+        USER,
+        CLIENT_SCAN_ID,
+        odoInput({ odometerValue: 37505, odometerUnit: null }),
+      );
+      expect('refs' in res).toBe(true); // save still succeeds
+      expect(motorcyclesService.update).not.toHaveBeenCalled();
+      expect('refs' in res && res.refs.odometer).toBeUndefined();
+    });
   });
 
   describe('undoReceiptScanSave — reverse + guarded revert (KTD-11)', () => {
@@ -794,6 +924,25 @@ describe('ReceiptScanService', () => {
       expect('status' in res && res.status).toBe(UNDO_STATUS.REVERTED);
       expect(expensesService.softDelete).toHaveBeenCalledWith(USER.id, EXPENSE_ID);
       expect(maintenanceTasksService.softDelete).toHaveBeenCalledWith(USER.id, TASK_ID);
+    });
+
+    it('a failed reversal leaves the ref uncleared (resumable) → UNDO_FAILED, saved_at kept', async () => {
+      routeDb(scanRow({ saved_at: '2024-05-12T10:00:00Z', saved_record_refs: savedExpenseRefs }));
+      // The expense soft-delete fails → its ref must NOT be cleared and the scan
+      // must NOT be marked fully undone, so a re-run can retry the leftover.
+      expensesService.softDelete.mockRejectedValueOnce(new Error('transient'));
+
+      const res = await service.undoReceiptScanSave(USER, CLIENT_SCAN_ID);
+      expect('code' in res && res.code).toBe(RECEIPT_SCAN_ERROR_CODES.UNDO_FAILED);
+      // saved_at is not cleared (no clearSaved with saved_at === null).
+      const clearedSaved = db.calls.find(
+        (c) =>
+          c.table === 'receipt_scans' &&
+          c.op === 'update' &&
+          (c.patch as { saved_at?: unknown; saved_record_refs?: unknown })?.saved_at === null &&
+          (c.patch as { saved_record_refs?: unknown })?.saved_record_refs === null,
+      );
+      expect(clearedSaved).toBeUndefined();
     });
 
     it('nothing to undo → NOTHING_TO_UNDO (idempotent, double-undo safe)', async () => {

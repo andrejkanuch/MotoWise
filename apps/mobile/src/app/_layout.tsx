@@ -48,9 +48,12 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { OB_VARIANT } from '../config/onboarding';
 import { getWhatsNewRelease } from '../data/whats-new-releases';
 import { startCarPlayCoordinator } from '../features/carplay/carplay-coordinator';
+import { clearParkedScans } from '../features/receipt-scan/parked-scan-store';
 import { initReceiptScanQueue } from '../features/receipt-scan/receipt-scan-queue';
 import { ReceiptScanSaveSnackbar } from '../features/receipt-scan/receipt-scan-save-snackbar';
+import { clearAllReceiptSaveUndo } from '../features/receipt-scan/receipt-scan-undo-store';
 import { SCAN_RESUME_SOURCE } from '../features/receipt-scan/scan-flow-constants';
+import { clearScanConsent } from '../features/receipt-scan/scan-preferences';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import i18n from '../i18n';
 import {
@@ -498,6 +501,15 @@ function RootLayout() {
           }
           cancelAllNotifications();
           clearAllWidgets();
+          // Receipt-scan local surfaces are per-user and device-global: wipe the
+          // parked-scan store, the post-save undo store, and the first-scan AI
+          // consent flag so a second rider on a shared device never inherits the
+          // previous account's scans/undo or skips the consent disclosure. The
+          // offline queue is intentionally preserved (its drain is owner-scoped)
+          // so a signed-out user's pending captures still upload on their return.
+          clearParkedScans();
+          clearAllReceiptSaveUndo();
+          clearScanConsent();
         }
       }
 

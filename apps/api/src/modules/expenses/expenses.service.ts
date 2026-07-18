@@ -221,20 +221,26 @@ export class ExpensesService {
 
     if (error || !data || data.length === 0) return;
 
-    await deleteReceiptsPhotoObjects({
+    const { removedPaths } = await deleteReceiptsPhotoObjects({
       rows: data as PhotoStorageRow[],
       ownerUserId: userId,
       adminClient: this.adminClient,
       logger: this.logger,
     });
 
+    // Only drop link rows whose storage object was actually removed — a link for
+    // an object that failed to delete is retained so the pair stays consistent
+    // (avoids orphaning a private receipt object with no DB link to it).
+    const removed = new Set(removedPaths);
+    const idsToUnlink = data
+      .filter((row) => removed.has(row.storage_path as string))
+      .map((row) => row.id);
+    if (idsToUnlink.length === 0) return;
+
     const { error: linkError } = await this.supabase
       .from('expense_photos')
       .delete()
-      .in(
-        'id',
-        data.map((row) => row.id),
-      );
+      .in('id', idsToUnlink);
     if (linkError) {
       this.logger.warn(`purgeReceiptsPhotos: link-row delete failed: ${linkError.message}`);
     }
@@ -246,16 +252,24 @@ export class ExpensesService {
     taskId: string,
     amount: number,
     taskTitle: string,
+    currency?: string,
   ): Promise<Expense | null> {
     this.logger.log(`createFromTask: userId=${userId}, taskId=${taskId}, amount=${amount}`);
 
-    // Look up user's currency preference so task-generated expenses match manual ones.
-    // Admin client: `currency` is not in the authenticated column grants (00141).
-    const { data: userRow } = await this.adminClient
-      .from('users')
-      .select('currency')
-      .eq('id', userId)
-      .single();
+    // Prefer the task's own currency (e.g. a scanned receipt's currency) so the
+    // linked expense faithfully reflects what was paid. Only when the task has no
+    // currency do we fall back to the user's profile preference so task-generated
+    // expenses match manual ones. Admin client: `currency` is not in the
+    // authenticated column grants (00141).
+    let resolvedCurrency = currency;
+    if (!resolvedCurrency) {
+      const { data: userRow } = await this.adminClient
+        .from('users')
+        .select('currency')
+        .eq('id', userId)
+        .single();
+      resolvedCurrency = userRow?.currency ?? undefined;
+    }
 
     const { data, error } = await this.supabase
       .from('expenses')
@@ -267,7 +281,7 @@ export class ExpensesService {
         date: new Date().toISOString().split('T')[0],
         description: taskTitle,
         maintenance_task_id: taskId,
-        ...(userRow?.currency && { currency: userRow.currency }),
+        ...(resolvedCurrency && { currency: resolvedCurrency }),
       })
       .select(EXPENSE_COLUMNS)
       .single();

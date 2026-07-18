@@ -102,13 +102,17 @@ export async function resolvePhotoUrl(params: {
  * purge. Each path is re-checked against `ownerUserId` (defense-in-depth: the
  * admin client bypasses storage RLS). Best-effort: logs, never throws — a link
  * row already removed must not fail the record delete.
+ *
+ * Returns the paths whose object deletion SUCCEEDED (`removedPaths`) so callers
+ * can drop only the corresponding DB link rows and retain links for objects that
+ * failed to delete (avoids orphaning a private receipt object with no link).
  */
 export async function deleteReceiptsPhotoObjects(params: {
   rows: PhotoStorageRow[];
   ownerUserId: string;
   adminClient: SupabaseClient;
   logger?: Logger;
-}): Promise<void> {
+}): Promise<{ removedPaths: string[] }> {
   const { rows, ownerUserId, adminClient, logger } = params;
 
   const paths = rows
@@ -116,10 +120,12 @@ export async function deleteReceiptsPhotoObjects(params: {
     .map((row) => row.storage_path)
     .filter((path) => pathBelongsToUser(path, ownerUserId));
 
-  if (paths.length === 0) return;
+  if (paths.length === 0) return { removedPaths: [] };
 
   const { error } = await adminClient.storage.from(PHOTO_BUCKETS.RECEIPTS).remove(paths);
   if (error) {
     logger?.warn(`deleteReceiptsPhotoObjects: storage remove failed: ${error.message}`);
+    return { removedPaths: [] };
   }
+  return { removedPaths: paths };
 }

@@ -206,6 +206,9 @@ export class MaintenanceTasksService {
         task.id,
         totalCost,
         task.title,
+        // Preserve the task's currency (e.g. a scanned receipt's currency) so the
+        // linked auto-expense is not silently coerced to the profile default.
+        task.currency,
       );
     } catch (err) {
       this.logger.warn(`Auto-expense creation failed for task ${task.id}: ${err}`);
@@ -337,20 +340,26 @@ export class MaintenanceTasksService {
 
     if (error || !data || data.length === 0) return;
 
-    await deleteReceiptsPhotoObjects({
+    const { removedPaths } = await deleteReceiptsPhotoObjects({
       rows: data as PhotoStorageRow[],
       ownerUserId: userId,
       adminClient: this.adminClient,
       logger: this.logger,
     });
 
+    // Only drop link rows whose storage object was actually removed — a link for
+    // an object that failed to delete is retained so the pair stays consistent
+    // (avoids orphaning a private receipt object with no DB link to it).
+    const removed = new Set(removedPaths);
+    const idsToUnlink = data
+      .filter((row) => removed.has(row.storage_path as string))
+      .map((row) => row.id);
+    if (idsToUnlink.length === 0) return;
+
     const { error: linkError } = await this.adminClient
       .from('maintenance_task_photos')
       .delete()
-      .in(
-        'id',
-        data.map((row) => row.id),
-      );
+      .in('id', idsToUnlink);
     if (linkError) {
       this.logger.warn(`purgeReceiptsPhotos: link-row delete failed: ${linkError.message}`);
     }
@@ -501,10 +510,17 @@ export class MaintenanceTasksService {
       `addPhoto: userId=${userId}, taskId=${taskId}, storagePath=${storagePath}, bucket=${bucket}`,
     );
 
-    // KTD-2: a receipts link must live under the caller's own {uid}/ folder
-    // (server-derived path). Reject foreign-uid paths before we record them.
-    if (bucket === PHOTO_BUCKETS.RECEIPTS && !storagePath.startsWith(`${userId}/`)) {
-      this.logger.warn(`addPhoto: rejected receipts path outside user prefix. userId=${userId}`);
+    // KTD-2: enforce the caller-owned storage prefix server-side before we record
+    // the link — prevents a caller from attaching another user's object to their
+    // own task and then deleting it via the admin-backed delete flow. Receipts
+    // (U7b link) live at the flat server-derived `{uid}/{scanId}.webp`; legacy
+    // gallery photos live under `{uid}/{taskId}/` (uploadMaintenancePhoto).
+    const expectedPrefix =
+      bucket === PHOTO_BUCKETS.RECEIPTS ? `${userId}/` : `${userId}/${taskId}/`;
+    if (!storagePath.startsWith(expectedPrefix)) {
+      this.logger.warn(
+        `addPhoto: rejected storage path outside expected prefix. userId=${userId}, taskId=${taskId}, bucket=${bucket}`,
+      );
       throw new BadRequestException('Invalid storage path');
     }
 
@@ -622,7 +638,10 @@ export class MaintenanceTasksService {
     this.logger.debug(`findPhotosByTaskIds: ${taskIds.length} task(s)`);
     if (taskIds.length === 0) return new Map();
 
-    const { data, error } = await this.adminClient
+    // User-scoped read: go through the RLS-enforcing user client (maintenance_task_photos
+    // policy restricts rows to auth.uid() = user_id). The admin client would bypass
+    // RLS; the ownerUserId path check in mapPhotoRow remains as defense in depth.
+    const { data, error } = await this.supabase
       .from('maintenance_task_photos')
       .select('*')
       .in('task_id', taskIds)

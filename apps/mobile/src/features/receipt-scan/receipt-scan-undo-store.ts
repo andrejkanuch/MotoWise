@@ -37,10 +37,28 @@ function isFresh(entry: ReceiptSaveUndoEntry): boolean {
   return Date.now() - new Date(entry.savedAt).getTime() < SAVE_UNDO_TTL_MS;
 }
 
+function isValidUndoEntry(value: unknown): value is ReceiptSaveUndoEntry {
+  if (typeof value !== 'object' || value === null) return false;
+  const entry = value as Record<string, unknown>;
+  return typeof entry.scanId === 'string' && typeof entry.savedAt === 'string';
+}
+
 function readEntries(): ReceiptSaveUndoEntry[] {
   const raw = undoStorage.getString(RECEIPT_SAVE_UNDO_KEY);
   if (!raw) return [];
-  return (JSON.parse(raw) as ReceiptSaveUndoEntry[]).filter(isFresh);
+  // Tolerate malformed / obsolete JSON: a corrupt value must not crash the
+  // snackbar host or home card. Treat unreadable data as empty and reset it.
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      undoStorage.remove(RECEIPT_SAVE_UNDO_KEY);
+      return [];
+    }
+    return parsed.filter(isValidUndoEntry).filter(isFresh);
+  } catch {
+    undoStorage.remove(RECEIPT_SAVE_UNDO_KEY);
+    return [];
+  }
 }
 
 function writeEntries(entries: ReceiptSaveUndoEntry[]): void {
@@ -57,6 +75,15 @@ export function pushReceiptSaveUndo(entry: ReceiptSaveUndoEntry): void {
 /** Drop an entry once its save has been undone (or the offer dismissed). */
 export function clearReceiptSaveUndo(scanId: string): void {
   writeEntries(readEntries().filter((e) => e.scanId !== scanId));
+}
+
+/**
+ * Wipe all undo entries. Called from the auth logout / account-switch cleanup so
+ * one account never sees another's post-save undo on a shared device. Safe to
+ * clear: entries are ephemeral (TTL-pruned) and the server owns the real rollback.
+ */
+export function clearAllReceiptSaveUndo(): void {
+  undoStorage.remove(RECEIPT_SAVE_UNDO_KEY);
 }
 
 /** Most recent still-fresh undo entry, or null. */

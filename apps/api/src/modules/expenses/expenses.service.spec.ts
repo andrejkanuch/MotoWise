@@ -336,6 +336,39 @@ describe('ExpensesService', () => {
 
       expect(result).toBeNull();
     });
+
+    it('uses the task-provided currency and skips the profile lookup', async () => {
+      // User-client single(): expense insert (no admin currency lookup expected).
+      mock.chain.single.mockResolvedValueOnce({
+        data: {
+          id: 'exp-task-3',
+          user_id: 'u1',
+          motorcycle_id: 'm1',
+          amount: '25.00',
+          category: 'maintenance',
+          currency: 'GBP',
+          date: '2025-06-15',
+          description: 'Scanned service',
+          maintenance_task_id: 'task-1',
+          created_at: '2025-06-15T00:00:00Z',
+        },
+        error: null,
+      });
+
+      const result = await service.createFromTask(
+        'u1',
+        'm1',
+        'task-1',
+        25,
+        'Scanned service',
+        'GBP',
+      );
+
+      expect(result?.currency).toBe('GBP');
+      // The provided currency short-circuits the service-role profile read.
+      expect(adminMock.chain.single).not.toHaveBeenCalled();
+      expect(mock.chain.insert).toHaveBeenCalledWith(expect.objectContaining({ currency: 'GBP' }));
+    });
   });
 
   // ---------------------------------------------------------------------------

@@ -28,10 +28,28 @@ export interface ParkedScan {
   parkedAt: string;
 }
 
+function isValidParkedScan(value: unknown): value is ParkedScan {
+  if (typeof value !== 'object' || value === null) return false;
+  const scan = value as Record<string, unknown>;
+  return typeof scan.scanId === 'string' && typeof scan.storagePath === 'string';
+}
+
 function readParked(): ParkedScan[] {
   const raw = parkedStorage.getString(PARKED_SCANS_KEY);
   if (!raw) return [];
-  return JSON.parse(raw) as ParkedScan[];
+  // Tolerate malformed / migration-incompatible JSON: a corrupt value must not
+  // crash the home recovery UI. Treat unreadable data as empty and reset it.
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      parkedStorage.remove(PARKED_SCANS_KEY);
+      return [];
+    }
+    return parsed.filter(isValidParkedScan);
+  } catch {
+    parkedStorage.remove(PARKED_SCANS_KEY);
+    return [];
+  }
 }
 
 function writeParked(scans: ParkedScan[]): void {
@@ -59,6 +77,16 @@ export function unparkScan(scanId: string): void {
 
 export function getParkedScans(): ParkedScan[] {
   return readParked();
+}
+
+/**
+ * Wipe all parked scans. Called from the auth logout / account-switch cleanup so
+ * one account never surfaces another's parked scans on a shared device. Safe to
+ * clear: the server `unreviewedReceiptScans` query is the cross-device source of
+ * truth and repopulates the home card for the next signed-in account.
+ */
+export function clearParkedScans(): void {
+  parkedStorage.remove(PARKED_SCANS_KEY);
 }
 
 /**

@@ -99,7 +99,7 @@ describe('photo-storage', () => {
   describe('deleteReceiptsPhotoObjects', () => {
     it('removes only receipts-bucket objects owned by the user', async () => {
       const { adminClient, storageFrom, remove } = createAdminMock();
-      await deleteReceiptsPhotoObjects({
+      const { removedPaths } = await deleteReceiptsPhotoObjects({
         rows: [
           { storage_path: `${UID}/a.webp`, bucket: 'receipts' },
           { storage_path: `${UID}/expenses/e1/legacy.webp`, bucket: 'maintenance-photos' },
@@ -111,16 +111,30 @@ describe('photo-storage', () => {
       expect(storageFrom).toHaveBeenCalledWith('receipts');
       // Only the owned receipts object — legacy + foreign-uid filtered out.
       expect(remove).toHaveBeenCalledWith([`${UID}/a.webp`]);
+      // The caller learns which objects were actually removed (drives link unlink).
+      expect(removedPaths).toEqual([`${UID}/a.webp`]);
     });
 
     it('does nothing when there are no receipts objects', async () => {
       const { adminClient, remove } = createAdminMock();
-      await deleteReceiptsPhotoObjects({
+      const { removedPaths } = await deleteReceiptsPhotoObjects({
         rows: [{ storage_path: `${UID}/expenses/e1/legacy.webp`, bucket: 'maintenance-photos' }],
         ownerUserId: UID,
         adminClient,
       });
       expect(remove).not.toHaveBeenCalled();
+      expect(removedPaths).toEqual([]);
+    });
+
+    it('returns no removed paths when the storage remove fails (link retained)', async () => {
+      const { adminClient, remove } = createAdminMock();
+      remove.mockResolvedValueOnce({ error: { message: 'storage down' } });
+      const { removedPaths } = await deleteReceiptsPhotoObjects({
+        rows: [{ storage_path: `${UID}/a.webp`, bucket: 'receipts' }],
+        ownerUserId: UID,
+        adminClient,
+      });
+      expect(removedPaths).toEqual([]);
     });
   });
 });

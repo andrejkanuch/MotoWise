@@ -48,7 +48,20 @@ export const envSchema = z.object({
 
   // Receipt scan (KTD-12) — kill switch. Default enabled; set 'false' to
   // return a graceful SCAN_DISABLED union error without touching the model.
-  RECEIPT_SCAN_ENABLED: z.string().default('true'),
+  // Only 'true'/'false' are recognized; a malformed value (typo, empty) stays
+  // ENABLED (fail-open by default) but is warned about at boot so a botched
+  // disable doesn't silently keep AI scanning on.
+  RECEIPT_SCAN_ENABLED: z
+    .string()
+    .default('true')
+    .transform((v) => {
+      if (v !== 'true' && v !== 'false') {
+        console.warn(
+          `[env] Unrecognized RECEIPT_SCAN_ENABLED="${v}" — treating as enabled. Set exactly 'false' to disable receipt scanning.`,
+        );
+      }
+      return v;
+    }),
 
   // Meta Conversions API
   META_DATASET_ID: optionalString,

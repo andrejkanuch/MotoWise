@@ -14,6 +14,7 @@ import { isNetworkError } from '../../lib/network-error';
 import { scheduleParkedScanReminder } from '../../lib/notifications';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
+import { presentPaywall } from '../../lib/subscription';
 import { deleteDurablePhoto, persistDurablePhoto } from './durable-receipt-photo';
 import { parkScan } from './parked-scan-store';
 import { enqueuePendingScan } from './receipt-scan-queue';
@@ -50,6 +51,8 @@ interface ScanFlowState {
   skipVisible: boolean;
   /** Analyzing/skip: cancel request in flight (disables the skip button). */
   cancelling: boolean;
+  /** Gate refused entry (paywall shown) — the host watches this to close the modal. */
+  gateRefused: boolean;
 }
 
 type Action =
@@ -61,6 +64,7 @@ type Action =
   | { type: 'ANALYZE_STARTED' }
   | { type: 'SKIP_SHOWN' }
   | { type: 'CANCELLING' }
+  | { type: 'GATE_REFUSED' }
   | { type: 'QUEUED_OFFLINE' }
   | { type: 'SUCCEEDED'; handoff: ReceiptReviewHandoff }
   | { type: 'ALREADY_PROCESSED'; handoff: ReceiptReviewHandoff | null }
@@ -76,6 +80,7 @@ const INITIAL: ScanFlowState = {
   uploadAttempt: 0,
   skipVisible: false,
   cancelling: false,
+  gateRefused: false,
 };
 
 function reducer(state: ScanFlowState, action: Action): ScanFlowState {
@@ -101,6 +106,8 @@ function reducer(state: ScanFlowState, action: Action): ScanFlowState {
       return { ...state, skipVisible: true };
     case 'CANCELLING':
       return { ...state, cancelling: true };
+    case 'GATE_REFUSED':
+      return { ...state, gateRefused: true };
     case 'QUEUED_OFFLINE':
       return { ...state, phase: SCAN_PHASE.OFFLINE_QUEUED };
     case 'SUCCEEDED':
@@ -199,7 +206,6 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
   // Records the scanReceipt outcome so the cancel handler can route on it.
   const scanResolvedRef = useRef<ScanResolved | null>(null);
   const cancelRequestedRef = useRef(false);
-  const gateRefusedRef = useRef(false);
   // Flow-start stamp (Goal 1 <20s). Set once when the gate passes / scan_started fires.
   const startedAtRef = useRef<number | null>(null);
   // Latest bikeId/userId reachable from long-lived async closures.
@@ -255,8 +261,18 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
       }
       const outcome = resolveErrorOutcome(union.code);
       if (outcome.recovery === 'paywall') {
-        // Post-upload quota rejection (stale cache / second device). Photo retained.
-        requireAccess('MAX_RECEIPT_SCANS_PER_MONTH', quota.used);
+        // Authoritative post-upload quota rejection (stale cache / second device).
+        // Present the paywall DIRECTLY rather than via requireAccess — that would
+        // re-check the same stale local `quota.used` and could no-op without opening
+        // anything. Refetch quota so any later client gate uses the truth. Photo retained.
+        queryClient.invalidateQueries({ queryKey: queryKeys.receiptScans.quota });
+        presentPaywall({
+          source: 'feature_gate',
+          feature: 'unlimited_scans',
+          placement: 'feature_gate',
+          surface: 'receipt_scan_quota_rejected',
+          metadata: { limit_key: 'MAX_RECEIPT_SCANS_PER_MONTH' },
+        });
       }
       dispatch({ type: 'FAILED', error: outcome });
       trackEvent(AnalyticsEvent.RECEIPT_SCAN_COMPLETED, { outcome: union.code });
@@ -265,7 +281,7 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
       // quota/disabled/image-invalid rejections in the scan_started→…→save funnel.
       trackEvent(AnalyticsEvent.RECEIPT_SCAN_EXTRACTION_FAILED, { code: union.code });
     },
-    [requireAccess, quota.used, isOnboarding],
+    [isOnboarding],
   );
 
   const beginAnalyze = useCallback(async () => {
@@ -460,13 +476,13 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
   useEffect(() => {
     // A resumed scan starts at REVIEW — there is nothing to gate or capture.
     if (initialResume) return;
-    if (gateRefusedRef.current || quotaLoading || state.phase !== SCAN_PHASE.GATING) return;
+    if (state.gateRefused || quotaLoading || state.phase !== SCAN_PHASE.GATING) return;
 
     // Onboarding first scan is quota-exempt (KTD-10) — skip the paywall gate.
     // Otherwise requireAccess presents the paywall as a side effect and returns
     // false when the free monthly scan count is exhausted — we STOP before the camera.
     if (!isOnboarding && !requireAccess('MAX_RECEIPT_SCANS_PER_MONTH', quota.used)) {
-      gateRefusedRef.current = true;
+      dispatch({ type: 'GATE_REFUSED' });
       trackEvent(AnalyticsEvent.PAYWALL_PRESENT_REQUESTED, {
         surface: entrySurface ?? 'receipt_scan_gate',
       });
@@ -519,7 +535,7 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
     requestSkip,
     parkForLater,
     reviewNow,
-    gateRefused: gateRefusedRef.current,
+    gateRefused: state.gateRefused,
     scanStartedAt: startedAtRef.current,
   };
 }

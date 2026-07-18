@@ -81,3 +81,36 @@ export const ReceiptExtractionSchema = z.object({
 });
 
 export type ReceiptExtraction = z.infer<typeof ReceiptExtractionSchema>;
+
+/**
+ * Runtime contract for the `saveReceiptScan` mutation input (U7b / KTD-11).
+ *
+ * GraphQL `@InputType()` decorators and TS types do NOT validate runtime values,
+ * so this schema is applied at the resolver boundary (via ZodValidationPipe) to
+ * keep malformed amounts, dates, categories, odometer data, and record types out
+ * of the expense/maintenance write path. Mirrors `SaveReceiptScanInput` in the
+ * API DTO; kept permissive where the review card legitimately allows free text.
+ */
+export const SaveReceiptScanInputSchema = z.object({
+  motorcycleId: z.string().uuid(),
+  /** 'maintenance' | 'expense' — dispatches the write path. */
+  type: z.enum(RECEIPT_SCAN_TYPES),
+  amount: z.number().nonnegative().nullable().optional(),
+  currency: z.string().min(1).max(8).nullable().optional(),
+  /** Any parseable calendar/ISO date; the service falls back to today when null. */
+  date: z
+    .string()
+    .refine((v) => !Number.isNaN(Date.parse(v)), 'Must be a valid date')
+    .nullable()
+    .optional(),
+  vendor: z.string().max(300).nullable().optional(),
+  itemName: z.string().max(300).nullable().optional(),
+  category: z.string().max(64).nullable().optional(),
+  partsCost: z.number().nonnegative().nullable().optional(),
+  laborCost: z.number().nonnegative().nullable().optional(),
+  applyOdometer: z.boolean().optional(),
+  odometerValue: z.number().nonnegative().nullable().optional(),
+  /** 'km' | 'mi' as PRINTED on the receipt — never assumed (KTD-7). */
+  odometerUnit: OdometerUnitSchema.nullable().optional(),
+});
+export type SaveReceiptScanInput = z.infer<typeof SaveReceiptScanInputSchema>;

@@ -1,9 +1,11 @@
+import { SaveReceiptScanInputSchema } from '@motovault/types';
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GqlThrottlerGuard } from '../../common/guards/gql-throttler.guard';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { THROTTLE_PRESETS } from '../../config/constants';
 import { CancelReceiptScanResult } from './dto/receipt-scan-cancel.dto';
 import { ReceiptScanQuota } from './dto/receipt-scan-quota.dto';
@@ -46,7 +48,10 @@ export class ReceiptScanResolver {
   async saveReceiptScan(
     @CurrentUser() user: AuthUser,
     @Args('scanId') scanId: string,
-    @Args('input') input: SaveReceiptScanInput,
+    // Validate the runtime input against the shared Zod contract before it reaches
+    // the expense/maintenance write path (decorators/TS types don't validate values).
+    @Args('input', new ZodValidationPipe(SaveReceiptScanInputSchema))
+    input: SaveReceiptScanInput,
   ): Promise<typeof SaveReceiptScanResult> {
     return this.receiptScanService.saveReceiptScan(user, scanId, input);
   }

@@ -2,7 +2,7 @@
  * Date rules for create/edit trip form — keep in sync with
  * `packages/types/src/validators/trip.ts` (validateTripDateRange).
  */
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_PAST_DAYS = 365;
@@ -98,6 +98,18 @@ export function validateTripFormDateRangeForSave(start: Date, end: Date): string
 /** Format a Date as a local `YYYY-MM-DD` string for date-input fields. */
 export function toISODateInput(d: Date): string {
   return format(d, 'yyyy-MM-dd');
+}
+
+/**
+ * Parse a `YYYY-MM-DD` (date-only) string as a LOCAL calendar date, or null if
+ * unusable. The inverse of {@link toISODateInput}. `new Date('YYYY-MM-DD')` parses
+ * as UTC midnight, which shifts a day earlier in west-of-UTC zones; `parseISO`
+ * treats a date-only string as local midnight, preserving the calendar day.
+ */
+export function localDateFromISODate(value: string | null | undefined): Date | null {
+  if (!value) return null;
+  const d = parseISO(value);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
 function calendarDaysBetweenInclusive(startIso: string, endIso: string): number {

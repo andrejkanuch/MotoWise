@@ -9,6 +9,7 @@ import { isNetworkError } from '../../lib/network-error';
 import { scheduleParkedScanReminder } from '../../lib/notifications';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
+import { useAuthStore } from '../../stores/auth.store';
 import { deleteDurablePhoto, getDurablePhotoUri } from './durable-receipt-photo';
 import { parkScan } from './parked-scan-store';
 import { SCAN_ERROR_CODE, SCAN_RESUME_SOURCE } from './scan-flow-constants';
@@ -38,10 +39,28 @@ const scanStorage = createMMKV({ id: 'receipt-scan-queue' });
 const QUEUE_KEY = 'receipt-scan.queue';
 const MAX_RETRIES = 5;
 
+function isValidPendingScan(value: unknown): value is PendingScan {
+  if (typeof value !== 'object' || value === null) return false;
+  const scan = value as Record<string, unknown>;
+  return typeof scan.scanId === 'string' && typeof scan.userId === 'string';
+}
+
 function getQueue(): PendingScan[] {
   const raw = scanStorage.getString(QUEUE_KEY);
   if (!raw) return [];
-  return JSON.parse(raw) as PendingScan[];
+  // Tolerate malformed / migration-incompatible JSON rather than throwing on the
+  // launch/reconnect drain path — treat unreadable data as empty and reset it.
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      scanStorage.remove(QUEUE_KEY);
+      return [];
+    }
+    return parsed.filter(isValidPendingScan);
+  } catch {
+    scanStorage.remove(QUEUE_KEY);
+    return [];
+  }
 }
 
 function setQueue(queue: PendingScan[]): void {
@@ -95,7 +114,17 @@ export async function drainPendingScans(): Promise<void> {
     }
     if (!networkState.isConnected || !networkState.isInternetReachable) return;
 
+    // Scope draining to the authenticated owner. The queue can hold records from a
+    // previous account on a shared device; only the current session may upload +
+    // extract its own scans (the server rejects cross-owner ops anyway, but that
+    // would burn retries and eventually delete another user's record). Records for
+    // other users are left untouched until that user signs back in. Before auth
+    // hydration there is no active user, so we skip the drain entirely.
+    const activeUserId = useAuthStore.getState().session?.user?.id ?? null;
+    if (!activeUserId) return;
+
     for (const pending of getQueue()) {
+      if (pending.userId !== activeUserId) continue;
       await processPending(pending);
     }
   } finally {

@@ -124,7 +124,10 @@ export default function AddExpenseScreen() {
           queryKey: queryKeys.expensePhotos.byExpense(savedExpenseId),
         });
       } catch {
-        // Non-fatal: the receipt gallery below lets the user attach manually.
+        // Non-fatal: the expense itself already stands (it was created before this
+        // effect). Un-latch the one-shot guard so the auto-attach can be retried,
+        // and the receipt gallery below still lets the user attach manually.
+        salvagePhotoAttached.current = false;
       }
     })();
   }, [savedExpenseId, photoUriParam, userId, queryClient]);

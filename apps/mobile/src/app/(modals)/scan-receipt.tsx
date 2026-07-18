@@ -3,7 +3,8 @@ import { MyMotorcyclesDocument, UnreviewedReceiptScansDocument } from '@motovaul
 import { useQuery } from '@tanstack/react-query';
 import { type Href, router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { ReceiptScanFlow } from '../../features/receipt-scan/receipt-scan-flow';
 import {
   type ReceiptReviewHandoff,
@@ -45,7 +46,12 @@ export default function ScanReceiptScreen() {
 
   // Resume: load the completed-but-unreviewed scan and hand it straight to the
   // review card. Only fetched when resuming; the server list is the source of truth.
-  const { data: unreviewedData, isLoading: resumeLoading } = useQuery({
+  const {
+    data: unreviewedData,
+    isLoading: resumeLoading,
+    isError: resumeError,
+    refetch: refetchResume,
+  } = useQuery({
     queryKey: queryKeys.receiptScans.unreviewed,
     queryFn: () => gqlFetcher(UnreviewedReceiptScansDocument),
     enabled: !!resumeScanId,
@@ -65,11 +71,18 @@ export default function ScanReceiptScreen() {
     };
   }, [resumeScanId, unreviewedData, params.motorcycleId]);
 
-  // Nothing left to resume (reviewed elsewhere / expired) — close quietly.
-  const resumeMissing = !!resumeScanId && !resumeLoading && !resumeHandoff;
+  // Genuinely nothing left to resume (reviewed elsewhere / expired) — close quietly.
+  // A query FAILURE is NOT "missing": don't fabricate a close/handoff from it —
+  // surface a retry instead so a transient network error doesn't silently swallow
+  // the recovery tap.
+  const resumeMissing = !!resumeScanId && !resumeLoading && !resumeError && !resumeHandoff;
   useEffect(() => {
     if (resumeMissing) router.back();
   }, [resumeMissing]);
+
+  if (resumeScanId && resumeError && !resumeHandoff) {
+    return <ResumeErrorView onRetry={() => void refetchResume()} onClose={() => router.back()} />;
+  }
 
   if (resumeScanId && !resumeHandoff) {
     return (
@@ -180,6 +193,49 @@ function ScanFlowHost({ initialBikeId, isOnboarding, initialResume, surface }: S
       onClose={() => router.back()}
       onSave={onSave}
     />
+  );
+}
+
+/**
+ * Resume-load failed (transient network / server error). Offer a retry rather than
+ * silently closing — the recovery tap must not be swallowed by a query failure.
+ */
+function ResumeErrorView({ onRetry, onClose }: { onRetry: () => void; onClose: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 }}>
+      <Text style={{ fontSize: 16, color: palette.neutral400, textAlign: 'center' }}>
+        {t('common.genericError')}
+      </Text>
+      <Pressable
+        onPress={onRetry}
+        accessibilityRole="button"
+        accessibilityLabel={t('common.retry')}
+        style={{
+          minHeight: 48,
+          paddingHorizontal: 28,
+          borderRadius: 14,
+          borderCurve: 'continuous',
+          backgroundColor: palette.signature500,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Text style={{ color: palette.white, fontSize: 16, fontWeight: '700' }}>
+          {t('common.retry')}
+        </Text>
+      </Pressable>
+      <Pressable
+        onPress={onClose}
+        accessibilityRole="button"
+        accessibilityLabel={t('common.done')}
+        style={{ minHeight: 40, alignItems: 'center', justifyContent: 'center' }}
+      >
+        <Text style={{ fontSize: 15, color: palette.neutral400, fontWeight: '600' }}>
+          {t('common.done')}
+        </Text>
+      </Pressable>
+    </View>
   );
 }
 
