@@ -363,6 +363,9 @@ export const AnalyticsEvent = {
   RECEIPT_SCAN_COMPLETED: 'receipt_scan_completed',
   RECEIPT_SCAN_PARKED: 'receipt_scan_parked',
   RECEIPT_SCAN_MANUAL_FALLBACK: 'receipt_scan_manual_fallback',
+  // Receipt scan review card (U7c) — measure Goal 5 (≤2 corrections)
+  RECEIPT_SCAN_FIELD_EDITED: 'receipt_scan_field_edited',
+  RECEIPT_SCAN_TYPE_SWITCHED: 'receipt_scan_type_switched',
   HEALTH_REPORT_VIEWED: 'health_report_viewed',
   HEALTH_REPORT_GENERATED: 'health_report_generated',
   HEALTH_REPORT_DOWNLOADED: 'health_report_downloaded',

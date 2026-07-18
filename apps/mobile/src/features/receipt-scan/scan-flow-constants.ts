@@ -174,6 +174,48 @@ export interface ReceiptReviewHandoff {
   bikeId: string;
   storagePath: string;
   result: ReceiptExtraction;
+  /**
+   * The locally-captured photo URI (pre-save). The private `receipts` bucket
+   * isn't signed until after save, so the review card shows THIS uri for the
+   * tappable/zoomable receipt thumbnail. Null on a resumed/parked scan whose
+   * durable cache copy is gone — the card degrades to no thumbnail.
+   */
+  imageUri: string | null;
+}
+
+// --- Review card confirmation contract (U7c → U7d) ---
+
+/**
+ * The two record interpretations the review card can save as. AI pre-selects
+ * from `result.type`; the user can toggle live without a new extraction.
+ */
+export const RECEIPT_REVIEW_TYPE = {
+  MAINTENANCE: 'maintenance',
+  EXPENSE: 'expense',
+} as const;
+
+export type ReceiptReviewType = (typeof RECEIPT_REVIEW_TYPE)[keyof typeof RECEIPT_REVIEW_TYPE];
+
+/**
+ * The human-confirmed payload the review card hands to `onSave`. Shape mirrors
+ * U7b's `SaveReceiptScanInput` (the server converts the printed `odometerUnit`
+ * to the owner's stored unit — KTD-7 — so the ORIGINAL extracted odometer is
+ * sent, never the display-converted value).
+ */
+export interface ReceiptReviewPayload {
+  motorcycleId: string;
+  type: ReceiptReviewType;
+  amount: number | null;
+  currency: string | null;
+  date: string | null;
+  vendor: string | null;
+  itemName: string | null;
+  category: string | null;
+  partsCost: number | null;
+  laborCost: number | null;
+  applyOdometer: boolean;
+  odometerValue: number | null;
+  odometerUnit: string | null;
 }
 
 // --- Timing ---

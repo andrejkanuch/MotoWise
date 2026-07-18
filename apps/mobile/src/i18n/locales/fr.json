@@ -2331,7 +2331,29 @@
       "amount": "Amount",
       "date": "Date",
       "needsCheck": "Needs check",
-      "reviewLater": "Review later"
+      "reviewLater": "Review later",
+      "typeMaintenance": "Maintenance",
+      "typeExpense": "Expense",
+      "currency": "Currency",
+      "category": "Category",
+      "itemName": "Item",
+      "partsCost": "Parts",
+      "laborCost": "Labor",
+      "odometer": "Odometer",
+      "odometerFirstSet": "Set odometer",
+      "pickDate": "Select a date",
+      "selectBikePrompt": "Choose a bike to save this to",
+      "noBikePrompt": "Add a bike first to save this receipt.",
+      "addBike": "Add a bike",
+      "viewReceipt": "View receipt photo",
+      "closeReceipt": "Close",
+      "save": "Save",
+      "checkAmount": "Check amount",
+      "checkCurrency": "Check currency",
+      "checkDate": "Check date",
+      "checkVendor": "Check vendor",
+      "checkCategory": "Check category",
+      "checkOdometer": "Check odometer"
     }
   }
 }

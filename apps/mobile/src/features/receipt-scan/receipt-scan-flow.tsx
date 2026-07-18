@@ -17,11 +17,12 @@ import { ActivityIndicator, Linking, Pressable, Text, View } from 'react-native'
 import Animated, { FadeIn, FadeInUp, SlideInUp } from 'react-native-reanimated';
 import { useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
-import { ReviewHandoffPlaceholder } from './review-handoff-placeholder';
+import { ReviewCard } from './review-card';
 import {
   ANALYZING_STAGE_INTERVAL_MS,
   ANALYZING_STAGE_KEYS,
   type ReceiptReviewHandoff,
+  type ReceiptReviewPayload,
   SCAN_ERROR_CODE,
   SCAN_PHASE,
   type ScanPhase,
@@ -39,10 +40,16 @@ export function ReceiptScanFlow({
   flow,
   onManualEntry,
   onClose,
+  onSave = defaultReviewSave,
 }: {
   flow: ScanFlow;
   onManualEntry: () => void;
   onClose: () => void;
+  /**
+   * Persist handler for the review card. U7d wires the real save/undo; until then
+   * the default logs the confirmed payload so the flow is exercisable end-to-end.
+   */
+  onSave?: (payload: ReceiptReviewPayload) => void;
 }) {
   const { isDark } = useEditorialTheme();
   const { phase } = flow.state;
@@ -62,10 +69,17 @@ export function ReceiptScanFlow({
 
   return (
     <View style={{ flex: 1, backgroundColor: bg, paddingHorizontal: 20, paddingTop: 12 }}>
-      {renderPhase(phase, flow, isDark, onManualEntry, onClose)}
+      {renderPhase(phase, flow, isDark, onManualEntry, onClose, onSave)}
     </View>
   );
 }
+
+/**
+ * Default review persist — a deliberate no-op until U7d wires the real
+ * `saveReceiptScan`/undo. The card still runs its full confirm flow (validation,
+ * telemetry, haptics); only persistence is deferred.
+ */
+function defaultReviewSave(_payload: ReceiptReviewPayload) {}
 
 /** Phase → surface dispatch (no if/else ladder). */
 function renderPhase(
@@ -74,6 +88,7 @@ function renderPhase(
   isDark: boolean,
   onManualEntry: () => void,
   onClose: () => void,
+  onSave: (payload: ReceiptReviewPayload) => void,
 ) {
   switch (phase) {
     case SCAN_PHASE.GATING:
@@ -92,12 +107,14 @@ function renderPhase(
       return <AnalyzingView flow={flow} isDark={isDark} />;
     case SCAN_PHASE.REVIEW:
       return (
-        <ReviewHandoffPlaceholder
+        <ReviewCard
           handoff={flow.state.handoff as ReceiptReviewHandoff}
           bikeName={flow.bikeName}
+          bikes={flow.bikes}
           isDark={isDark}
           onPark={flow.parkForLater}
           onClose={onClose}
+          onSave={onSave}
         />
       );
     case SCAN_PHASE.ERROR:

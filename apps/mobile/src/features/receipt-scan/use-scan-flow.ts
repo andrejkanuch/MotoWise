@@ -170,6 +170,12 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
   // Latest bikeId/userId reachable from long-lived async closures.
   const bikeIdRef = useRef(state.bikeId);
   const userIdRef = useRef(userId);
+  // The captured photo uri, reachable from the long-lived scan closures so the
+  // review-card handoff can show the local image before the bucket is signed.
+  const photoUriRef = useRef(state.photoUri);
+  useEffect(() => {
+    photoUriRef.current = state.photoUri;
+  }, [state.photoUri]);
   useEffect(() => {
     bikeIdRef.current = state.bikeId;
   }, [state.bikeId]);
@@ -202,6 +208,7 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
             bikeId: bikeId ?? '',
             storagePath: storagePathFor(userIdRef.current, union.scanId),
             result: union.result,
+            imageUri: photoUriRef.current,
           },
         });
         trackEvent(AnalyticsEvent.RECEIPT_SCAN_COMPLETED, { outcome: 'success' });
@@ -361,6 +368,7 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
                 bikeId: bikeId ?? '',
                 storagePath: storagePathFor(userIdRef.current, resolved.data.scanReceipt.scanId),
                 result: resolved.data.scanReceipt.result,
+                imageUri: photoUriRef.current,
               }
             : null;
         trackEvent(AnalyticsEvent.RECEIPT_SCAN_COMPLETED, { outcome: 'already_completed' });

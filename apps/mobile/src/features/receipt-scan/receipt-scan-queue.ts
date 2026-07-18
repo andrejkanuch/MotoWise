@@ -122,6 +122,8 @@ async function processPending(pending: PendingScan): Promise<void> {
         bikeId: pending.bikeId,
         storagePath: `${pending.userId}/${scanId}.webp`,
         result,
+        // The durable local copy backs the review-card receipt thumbnail pre-save.
+        imageUri: durableUri,
       });
       await scheduleParkedScanReminder(scanId, pending.bikeName, result.vendor);
       queryClient.invalidateQueries({ queryKey: queryKeys.receiptScans.unreviewed });
