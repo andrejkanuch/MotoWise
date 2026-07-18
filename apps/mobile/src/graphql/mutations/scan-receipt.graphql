@@ -1,5 +1,5 @@
-mutation ScanReceipt($scanId: String!) {
-  scanReceipt(scanId: $scanId) {
+mutation ScanReceipt($scanId: String!, $isOnboarding: Boolean) {
+  scanReceipt(scanId: $scanId, isOnboarding: $isOnboarding) {
     __typename
     ... on ReceiptScanSuccess {
       scanId

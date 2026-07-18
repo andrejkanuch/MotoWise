@@ -271,7 +271,10 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
 
     const skipTimer = setTimeout(() => dispatch({ type: 'SKIP_SHOWN' }), SKIP_AFFORDANCE_DELAY_MS);
     try {
-      const data = await gqlFetcher(ScanReceiptDocument, { scanId: scanIdRef.current });
+      const data = await gqlFetcher(ScanReceiptDocument, {
+        scanId: scanIdRef.current,
+        isOnboarding, // KTD-10: server exempts the first onboarding scan from quota
+      });
       scanResolvedRef.current = { kind: 'result', data };
       if (cancelRequestedRef.current) return; // cancel handler is authoritative
       routeResolved(scanResolvedRef.current, bikeIdRef.current);

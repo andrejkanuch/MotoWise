@@ -25,8 +25,11 @@ export class ReceiptScanResolver {
   async scanReceipt(
     @CurrentUser() user: AuthUser,
     @Args('scanId') scanId: string,
+    // KTD-10: the first onboarding scan is quota-exempt. Client-supplied; the RPC
+    // caps it to one per user, so a modified client cannot farm free scans.
+    @Args('isOnboarding', { nullable: true }) isOnboarding?: boolean,
   ): Promise<typeof ReceiptScanResult> {
-    return this.receiptScanService.scanReceipt(user, scanId);
+    return this.receiptScanService.scanReceipt(user, scanId, isOnboarding ?? false);
   }
 
   @Mutation(() => CancelReceiptScanResult)

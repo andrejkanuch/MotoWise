@@ -1,6 +1,7 @@
 /**
  * Receipt-scan module constants — no magic strings anywhere in the service.
  */
+import { FREE_TIER_LIMITS } from '@motovault/types';
 
 /** Union-result error codes (KTD-6). Client dispatches on these. */
 export const RECEIPT_SCAN_ERROR_CODES = {
@@ -45,11 +46,11 @@ export const RECEIPTS_BUCKET = 'receipts' as const;
 export const RECEIPT_OBJECT_EXT = 'webp' as const;
 
 /**
- * Free-tier monthly scan cap. Passed literally to reserve_receipt_scan for now.
- * TODO(U5): source from FREE_TIER_LIMITS.MAX_RECEIPT_SCANS_PER_MONTH (added in U5)
- * so the number has a single owner in @motovault/types.
+ * Free-tier monthly scan cap fed to reserve_receipt_scan. Single owner is
+ * FREE_TIER_LIMITS in @motovault/types (mirrors the RPC's p_monthly_limit
+ * default in 00166).
  */
-export const MAX_RECEIPT_SCANS_PER_MONTH = 3 as const;
+export const MAX_RECEIPT_SCANS_PER_MONTH = FREE_TIER_LIMITS.MAX_RECEIPT_SCANS_PER_MONTH;
 
 /** Structured-log token for the dormant shadow-mode paywall signal (U10 wires telemetry). */
 export const PAYWALL_WOULD_HAVE_SHOWN = 'paywall_would_have_shown' as const;

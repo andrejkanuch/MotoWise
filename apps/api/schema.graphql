@@ -1125,7 +1125,7 @@ type Mutation {
   rotateTripShareToken(tripId: ID!): String!
   saveReceiptScan(input: SaveReceiptScanInput!, scanId: String!): SaveReceiptScanResult!
   saveTrip(tripId: ID!): Boolean!
-  scanReceipt(scanId: String!): ReceiptScanResult!
+  scanReceipt(isOnboarding: Boolean, scanId: String!): ReceiptScanResult!
   scheduleBlogPost(input: ScheduleBlogPostInput!): BlogPost!
   setTripParticipantRole(input: SetParticipantRoleInput!): Boolean!
   shareRide(rideId: String!, sharedWithUserId: String!): Boolean!

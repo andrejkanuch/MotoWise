@@ -102,6 +102,7 @@ export class ReceiptScanService {
   async scanReceipt(
     user: AuthUser,
     scanId: string,
+    isOnboarding = false,
   ): Promise<ReceiptScanSuccess | ReceiptScanError> {
     // 1. Kill switch (KTD-12).
     if (!this.isEnabled()) {
@@ -121,7 +122,7 @@ export class ReceiptScanService {
     await this.aiBudgetService.checkBudgetForUser(user.id);
 
     // 5. Reserve — always inserts a pending row, returns over_quota (KTD-5).
-    const { reservationId, overQuota } = await this.reserve(user.id);
+    const { reservationId, overQuota } = await this.reserve(user.id, isOnboarding);
 
     // 6. Enforce vs shadow (KTD-3): only reject when the flag is on AND the user
     // is genuinely free-tier; otherwise proceed (shadow mode).
@@ -701,11 +702,13 @@ export class ReceiptScanService {
     return { code, reason: ERROR_REASONS[code] };
   }
 
-  private async reserve(userId: string): Promise<{ reservationId: string; overQuota: boolean }> {
+  private async reserve(
+    userId: string,
+    isOnboarding: boolean,
+  ): Promise<{ reservationId: string; overQuota: boolean }> {
     const { data, error } = await this.adminClient.rpc('reserve_receipt_scan', {
       p_user_id: userId,
-      p_is_onboarding: false,
-      // TODO(U5): FREE_TIER_LIMITS.MAX_RECEIPT_SCANS_PER_MONTH (added in U5).
+      p_is_onboarding: isOnboarding,
       p_monthly_limit: MAX_RECEIPT_SCANS_PER_MONTH,
     });
 
