@@ -1,3 +1,0 @@
-mutation DeleteFuelLog($id: String!) {
-  deleteFuelLog(id: $id)
-}

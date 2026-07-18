@@ -8,6 +8,13 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SupabaseClient } from '@supabase/supabase-js';
+import {
+  deleteReceiptsPhotoObjects,
+  PHOTO_BUCKETS,
+  type PhotoStorageRow,
+  photoBucketOf,
+  resolvePhotoUrl,
+} from '../../common/storage/photo-storage';
 import { PG_ERROR, unwrap } from '../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -191,7 +198,46 @@ export class ExpensesService {
       );
       throw new BadRequestException('Failed to delete expense');
     }
+
+    // R5/R10: a soft-deleted expense's private receipt objects must be purged
+    // from storage (not just left behind an orphaned link row). Legacy public
+    // photos are unaffected — the public bucket has its own lifecycle.
+    await this.purgeReceiptsPhotos(userId, id);
     return true;
+  }
+
+  /**
+   * Removes the storage OBJECTS + link rows for any receipts-bucket photos
+   * attached to an expense. Best-effort (logs, never throws): a failed object
+   * delete must not resurrect the already soft-deleted expense.
+   */
+  private async purgeReceiptsPhotos(userId: string, expenseId: string): Promise<void> {
+    const { data, error } = await this.supabase
+      .from('expense_photos')
+      .select('id, storage_path, bucket, user_id')
+      .eq('expense_id', expenseId)
+      .eq('user_id', userId)
+      .eq('bucket', PHOTO_BUCKETS.RECEIPTS);
+
+    if (error || !data || data.length === 0) return;
+
+    await deleteReceiptsPhotoObjects({
+      rows: data as PhotoStorageRow[],
+      ownerUserId: userId,
+      adminClient: this.adminClient,
+      logger: this.logger,
+    });
+
+    const { error: linkError } = await this.supabase
+      .from('expense_photos')
+      .delete()
+      .in(
+        'id',
+        data.map((row) => row.id),
+      );
+    if (linkError) {
+      this.logger.warn(`purgeReceiptsPhotos: link-row delete failed: ${linkError.message}`);
+    }
   }
 
   async createFromTask(
@@ -301,15 +347,20 @@ export class ExpensesService {
     expenseId: string,
     storagePath: string,
     fileSizeBytes?: number,
+    bucketArg?: string | null,
   ): Promise<ExpensePhoto> {
-    this.logger.log(`addPhoto: userId=${userId}, expenseId=${expenseId}`);
+    const bucket = photoBucketOf(bucketArg);
+    this.logger.log(`addPhoto: userId=${userId}, expenseId=${expenseId}, bucket=${bucket}`);
 
-    // P1-103: Enforce storage path prefix server-side. Prevents a caller from
-    // registering someone else's storage file as their own expense photo.
-    const expectedPrefix = `${userId}/expenses/${expenseId}/`;
+    // P1-103 / KTD-2: Enforce storage path prefix server-side. Prevents a caller
+    // from registering someone else's storage file as their own expense photo.
+    // Receipts (U7b link) live at the flat `{uid}/{scanId}.webp` derived by the
+    // server; legacy gallery photos live under `{uid}/expenses/{expenseId}/`.
+    const expectedPrefix =
+      bucket === PHOTO_BUCKETS.RECEIPTS ? `${userId}/` : `${userId}/expenses/${expenseId}/`;
     if (!storagePath.startsWith(expectedPrefix)) {
       this.logger.warn(
-        `addPhoto: rejected storage path outside expected prefix. userId=${userId}, expenseId=${expenseId}`,
+        `addPhoto: rejected storage path outside expected prefix. userId=${userId}, expenseId=${expenseId}, bucket=${bucket}`,
       );
       throw new BadRequestException('Invalid storage path');
     }
@@ -359,6 +410,7 @@ export class ExpensesService {
         storage_path: storagePath,
         file_size_bytes: fileSizeBytes ?? null,
         mime_type: mimeType,
+        bucket,
       })
       .select()
       .single();
@@ -367,7 +419,13 @@ export class ExpensesService {
       this.logger.error(`addPhoto failed: ${error?.message} (${error?.code})`);
       throw new BadRequestException('Failed to add photo');
     }
-    return this.mapPhotoRow(data);
+    const photo = await this.mapPhotoRow(data, userId);
+    if (!photo) {
+      // Unreachable for a legit insert (path was validated to the caller's uid),
+      // but the resolver contract is nullable — surface a clear failure.
+      throw new InternalServerErrorException('Failed to resolve photo URL');
+    }
+    return photo;
   }
 
   async deletePhoto(userId: string, photoId: string): Promise<boolean> {
@@ -377,7 +435,7 @@ export class ExpensesService {
     // on expense_photos. No need for a JS equality check.
     const { data: photo, error: photoError } = await this.supabase
       .from('expense_photos')
-      .select('id, expense_id, user_id, storage_path')
+      .select('id, expense_id, user_id, storage_path, bucket')
       .eq('id', photoId)
       .single();
 
@@ -395,9 +453,10 @@ export class ExpensesService {
 
     // Delete from storage using admin client — Storage RLS is separate from
     // table RLS and the admin client is legitimate here (service-level op,
-    // path has already been validated against the authenticated user).
+    // path has already been validated against the authenticated user). Dispatch
+    // on the row's bucket so a receipts-linked photo hits the private bucket.
     const { error: storageError } = await this.adminClient.storage
-      .from('maintenance-photos')
+      .from(photoBucketOf(photo.bucket))
       .remove([photo.storage_path]);
 
     if (storageError) {
@@ -419,7 +478,10 @@ export class ExpensesService {
    * P1-102 + 107: Batched lookup used by the DataLoader in the resolver.
    * Relies on RLS on expense_photos to filter to the authenticated user's rows.
    */
-  async findPhotosByExpenseIds(expenseIds: string[]): Promise<Map<string, ExpensePhoto[]>> {
+  async findPhotosByExpenseIds(
+    expenseIds: string[],
+    ownerUserId: string,
+  ): Promise<Map<string, ExpensePhoto[]>> {
     if (expenseIds.length === 0) return new Map();
 
     const { data, error } = await this.supabase
@@ -434,10 +496,17 @@ export class ExpensesService {
     for (const expenseId of expenseIds) {
       map.set(expenseId, []);
     }
-    for (const row of data ?? []) {
-      const expenseId = row.expense_id as string;
+    // Resolve URLs concurrently — receipts rows mint a signed URL per photo.
+    const resolved = await Promise.all(
+      (data ?? []).map(async (row) => ({
+        expenseId: row.expense_id as string,
+        photo: await this.mapPhotoRow(row, ownerUserId),
+      })),
+    );
+    for (const { expenseId, photo } of resolved) {
+      if (!photo) continue; // C1: foreign-uid receipts path — never surface it.
       const photos = map.get(expenseId) ?? [];
-      photos.push(this.mapPhotoRow(row));
+      photos.push(photo);
       map.set(expenseId, photos);
     }
     return map;
@@ -459,16 +528,39 @@ export class ExpensesService {
       .order('created_at', { ascending: true });
 
     if (error) throw new InternalServerErrorException('Failed to fetch photos');
-    return (data ?? []).map((row) => this.mapPhotoRow(row));
+    const resolved = await Promise.all((data ?? []).map((row) => this.mapPhotoRow(row, userId)));
+    return resolved.filter((photo): photo is ExpensePhoto => photo !== null);
   }
 
-  private mapPhotoRow(row: Record<string, unknown>): ExpensePhoto {
+  /**
+   * Maps one photo row into the GraphQL shape, resolving its access URL by
+   * bucket (U7a): legacy → public URL; receipts → short-TTL signed URL after the
+   * C1 ownership assertion. Returns null when a receipts URL can't be authorized
+   * (foreign-uid path / signing failure) so callers can drop it.
+   */
+  private async mapPhotoRow(
+    row: Record<string, unknown>,
+    ownerUserId: string,
+  ): Promise<ExpensePhoto | null> {
     const storagePath = row.storage_path as string;
+    const photoRow: PhotoStorageRow = {
+      storage_path: storagePath,
+      bucket: row.bucket as string | null | undefined,
+      user_id: row.user_id as string | null | undefined,
+    };
+    const publicUrl = await resolvePhotoUrl({
+      row: photoRow,
+      ownerUserId,
+      adminClient: this.adminClient,
+      supabaseUrl: this.supabaseUrl,
+      logger: this.logger,
+    });
+    if (publicUrl === null) return null;
     return {
       id: row.id as string,
       expenseId: row.expense_id as string,
       storagePath,
-      publicUrl: `${this.supabaseUrl}/storage/v1/object/public/maintenance-photos/${storagePath}`,
+      publicUrl,
       fileSizeBytes: (row.file_size_bytes as number) ?? undefined,
       mimeType: (row.mime_type as string) ?? 'image/webp',
       createdAt: row.created_at as string,

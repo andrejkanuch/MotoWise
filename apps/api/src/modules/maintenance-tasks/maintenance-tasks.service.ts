@@ -9,6 +9,13 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SupabaseClient } from '@supabase/supabase-js';
+import {
+  deleteReceiptsPhotoObjects,
+  PHOTO_BUCKETS,
+  type PhotoStorageRow,
+  photoBucketOf,
+  resolvePhotoUrl,
+} from '../../common/storage/photo-storage';
 import { ExpensesService } from '../expenses/expenses.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -309,7 +316,44 @@ export class MaintenanceTasksService {
     if (data === false) {
       throw new NotFoundException('Maintenance task not found');
     }
+
+    // R5/R10: purge private receipt objects attached to the deleted task from
+    // storage (not just the DB link rows). Legacy public photos are unaffected.
+    await this.purgeReceiptsPhotos(userId, id);
     return true;
+  }
+
+  /**
+   * Removes the storage OBJECTS + link rows for any receipts-bucket photos
+   * attached to a task. Best-effort (logs, never throws).
+   */
+  private async purgeReceiptsPhotos(userId: string, taskId: string): Promise<void> {
+    const { data, error } = await this.adminClient
+      .from('maintenance_task_photos')
+      .select('id, storage_path, bucket, user_id')
+      .eq('task_id', taskId)
+      .eq('user_id', userId)
+      .eq('bucket', PHOTO_BUCKETS.RECEIPTS);
+
+    if (error || !data || data.length === 0) return;
+
+    await deleteReceiptsPhotoObjects({
+      rows: data as PhotoStorageRow[],
+      ownerUserId: userId,
+      adminClient: this.adminClient,
+      logger: this.logger,
+    });
+
+    const { error: linkError } = await this.adminClient
+      .from('maintenance_task_photos')
+      .delete()
+      .in(
+        'id',
+        data.map((row) => row.id),
+      );
+    if (linkError) {
+      this.logger.warn(`purgeReceiptsPhotos: link-row delete failed: ${linkError.message}`);
+    }
   }
 
   async findAllHistory(
@@ -450,10 +494,20 @@ export class MaintenanceTasksService {
     taskId: string,
     storagePath: string,
     fileSizeBytes?: number,
+    bucketArg?: string | null,
   ): Promise<TaskPhoto> {
+    const bucket = photoBucketOf(bucketArg);
     this.logger.log(
-      `addPhoto: userId=${userId}, taskId=${taskId}, storagePath=${storagePath}, fileSizeBytes=${fileSizeBytes}`,
+      `addPhoto: userId=${userId}, taskId=${taskId}, storagePath=${storagePath}, bucket=${bucket}`,
     );
+
+    // KTD-2: a receipts link must live under the caller's own {uid}/ folder
+    // (server-derived path). Reject foreign-uid paths before we record them.
+    if (bucket === PHOTO_BUCKETS.RECEIPTS && !storagePath.startsWith(`${userId}/`)) {
+      this.logger.warn(`addPhoto: rejected receipts path outside user prefix. userId=${userId}`);
+      throw new BadRequestException('Invalid storage path');
+    }
+
     // Validate task ownership
     const { data: task, error: taskError } = await this.adminClient
       .from('maintenance_tasks')
@@ -500,6 +554,7 @@ export class MaintenanceTasksService {
         storage_path: storagePath,
         file_size_bytes: fileSizeBytes ?? null,
         mime_type: mimeType,
+        bucket,
       })
       .select()
       .single();
@@ -509,7 +564,11 @@ export class MaintenanceTasksService {
       throw new BadRequestException('Failed to add photo');
     }
     this.logger.log(`addPhoto success: photoId=${data.id}`);
-    return this.mapPhotoRow(data);
+    const photo = await this.mapPhotoRow(data, userId);
+    if (!photo) {
+      throw new InternalServerErrorException('Failed to resolve photo URL');
+    }
+    return photo;
   }
 
   async deletePhoto(userId: string, photoId: string): Promise<boolean> {
@@ -517,7 +576,7 @@ export class MaintenanceTasksService {
     // Fetch photo and validate ownership via task
     const { data: photo, error: photoError } = await this.adminClient
       .from('maintenance_task_photos')
-      .select('id, task_id, storage_path')
+      .select('id, task_id, storage_path, bucket, user_id')
       .eq('id', photoId)
       .single();
 
@@ -533,9 +592,10 @@ export class MaintenanceTasksService {
 
     if (taskError || !task) throw new NotFoundException('Photo not found');
 
-    // Delete from storage using admin client
+    // Delete from storage using admin client — dispatch on the row's bucket so a
+    // receipts-linked photo hits the private bucket rather than maintenance-photos.
     const { error: storageError } = await this.adminClient.storage
-      .from('maintenance-photos')
+      .from(photoBucketOf(photo.bucket))
       .remove([photo.storage_path]);
 
     if (storageError) {
@@ -555,7 +615,10 @@ export class MaintenanceTasksService {
     return true;
   }
 
-  async findPhotosByTaskIds(taskIds: string[]): Promise<Map<string, TaskPhoto[]>> {
+  async findPhotosByTaskIds(
+    taskIds: string[],
+    ownerUserId: string,
+  ): Promise<Map<string, TaskPhoto[]>> {
     this.logger.debug(`findPhotosByTaskIds: ${taskIds.length} task(s)`);
     if (taskIds.length === 0) return new Map();
 
@@ -571,22 +634,50 @@ export class MaintenanceTasksService {
     for (const taskId of taskIds) {
       map.set(taskId, []);
     }
-    for (const row of data ?? []) {
-      const taskId = row.task_id as string;
+    // Resolve URLs concurrently — receipts rows mint a signed URL per photo.
+    const resolved = await Promise.all(
+      (data ?? []).map(async (row) => ({
+        taskId: row.task_id as string,
+        photo: await this.mapPhotoRow(row, ownerUserId),
+      })),
+    );
+    for (const { taskId, photo } of resolved) {
+      if (!photo) continue; // C1: foreign-uid receipts path — never surface it.
       const photos = map.get(taskId) ?? [];
-      photos.push(this.mapPhotoRow(row));
+      photos.push(photo);
       map.set(taskId, photos);
     }
     return map;
   }
 
-  private mapPhotoRow(row: Record<string, unknown>): TaskPhoto {
+  /**
+   * Maps one photo row into the GraphQL shape, resolving its access URL by
+   * bucket (U7a): legacy → public URL; receipts → short-TTL signed URL after the
+   * C1 ownership assertion. Returns null when a receipts URL can't be authorized.
+   */
+  private async mapPhotoRow(
+    row: Record<string, unknown>,
+    ownerUserId: string,
+  ): Promise<TaskPhoto | null> {
     const storagePath = row.storage_path as string;
+    const photoRow: PhotoStorageRow = {
+      storage_path: storagePath,
+      bucket: row.bucket as string | null | undefined,
+      user_id: row.user_id as string | null | undefined,
+    };
+    const publicUrl = await resolvePhotoUrl({
+      row: photoRow,
+      ownerUserId,
+      adminClient: this.adminClient,
+      supabaseUrl: this.supabaseUrl,
+      logger: this.logger,
+    });
+    if (publicUrl === null) return null;
     return {
       id: row.id as string,
       taskId: row.task_id as string,
       storagePath,
-      publicUrl: `${this.supabaseUrl}/storage/v1/object/public/maintenance-photos/${storagePath}`,
+      publicUrl,
       fileSizeBytes: (row.file_size_bytes as number) ?? undefined,
       mimeType: (row.mime_type as string) ?? 'image/webp',
       createdAt: row.created_at as string,

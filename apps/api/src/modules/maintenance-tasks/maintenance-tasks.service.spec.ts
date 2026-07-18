@@ -86,14 +86,18 @@ describe('MaintenanceTasksService', () => {
   function createMockClient() {
     const { chain, pushResult, resetIndex } = createChain();
 
+    const createSignedUrl = vi
+      .fn()
+      .mockResolvedValue({ data: { signedUrl: 'https://signed/url?token=abc' }, error: null });
+    const remove = vi.fn().mockResolvedValue({ error: null });
     return {
       from: vi.fn().mockReturnValue(chain),
       rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
       storage: {
-        from: vi.fn().mockReturnValue({
-          remove: vi.fn().mockResolvedValue({ error: null }),
-        }),
+        from: vi.fn().mockReturnValue({ createSignedUrl, remove }),
       },
+      _createSignedUrl: createSignedUrl,
+      _remove: remove,
       _chain: chain,
       _pushResult: pushResult,
       _resetIndex: resetIndex,
@@ -601,6 +605,85 @@ describe('MaintenanceTasksService', () => {
       await expect(service.addPhoto(userId, taskId, 'photos/test.webp')).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('photos resolution (U7a)', () => {
+    it('resolves BOTH a legacy public URL and a receipts signed URL', async () => {
+      mockAdminClient._pushResult({
+        data: [
+          {
+            id: 'p-legacy',
+            task_id: taskId,
+            user_id: userId,
+            storage_path: `${userId}/tasks/${taskId}/legacy.webp`,
+            bucket: 'maintenance-photos',
+            mime_type: 'image/webp',
+            created_at: '2026-01-01T00:00:00Z',
+          },
+          {
+            id: 'p-receipt',
+            task_id: taskId,
+            user_id: userId,
+            storage_path: `${userId}/scan.webp`,
+            bucket: 'receipts',
+            mime_type: 'image/webp',
+            created_at: '2026-01-02T00:00:00Z',
+          },
+        ],
+      });
+
+      const map = await service.findPhotosByTaskIds([taskId], userId);
+      const photos = map.get(taskId) ?? [];
+
+      expect(photos).toHaveLength(2);
+      expect(photos.find((p) => p.id === 'p-legacy')?.publicUrl).toBe(
+        `https://test.supabase.co/storage/v1/object/public/maintenance-photos/${userId}/tasks/${taskId}/legacy.webp`,
+      );
+      expect(photos.find((p) => p.id === 'p-receipt')?.publicUrl).toBe(
+        'https://signed/url?token=abc',
+      );
+      expect(mockAdminClient.storage.from).toHaveBeenCalledWith('receipts');
+      expect(mockAdminClient._createSignedUrl).toHaveBeenCalledWith(`${userId}/scan.webp`, 120);
+    });
+
+    it('C1: drops a receipts photo whose path belongs to another uid', async () => {
+      mockAdminClient._pushResult({
+        data: [
+          {
+            id: 'p-foreign',
+            task_id: taskId,
+            user_id: userId,
+            storage_path: 'other-uid/scan.webp',
+            bucket: 'receipts',
+            mime_type: 'image/webp',
+            created_at: '2026-01-02T00:00:00Z',
+          },
+        ],
+      });
+
+      const map = await service.findPhotosByTaskIds([taskId], userId);
+
+      expect(map.get(taskId) ?? []).toHaveLength(0);
+      expect(mockAdminClient._createSignedUrl).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('softDelete receipts purge (U7a / R10)', () => {
+    it('removes the receipts storage object attached to the deleted task', async () => {
+      mockUserClient.rpc.mockResolvedValueOnce({ data: true, error: null });
+      // purgeReceiptsPhotos SELECT (admin client) resolves to one receipts photo.
+      mockAdminClient._pushResult({
+        data: [
+          { id: 'p1', storage_path: `${userId}/scan.webp`, bucket: 'receipts', user_id: userId },
+        ],
+      });
+
+      const ok = await service.softDelete(userId, taskId);
+
+      expect(ok).toBe(true);
+      expect(mockAdminClient.storage.from).toHaveBeenCalledWith('receipts');
+      expect(mockAdminClient._remove).toHaveBeenCalledWith([`${userId}/scan.webp`]);
     });
   });
 
