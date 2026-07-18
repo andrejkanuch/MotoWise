@@ -2351,6 +2351,18 @@
       "checkVendor": "Check vendor",
       "checkCategory": "Check category",
       "checkOdometer": "Check odometer"
+    },
+    "saved": {
+      "toast": "Saved to {{bike}}",
+      "undo": "Undo",
+      "undoFailed": "Couldn’t undo — please try again",
+      "freeScansLeft": "{{count}} free scans left this month",
+      "saveFailed": "Couldn’t save",
+      "saveFailedBody": "Something went wrong. Please try again.",
+      "duplicateTitle": "Looks like you already logged this",
+      "duplicateBody": "A similar entry already exists for this bike. Save it anyway?",
+      "duplicateConfirm": "Save anyway",
+      "duplicateCancel": "Review"
     }
   }
 }

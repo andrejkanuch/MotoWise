@@ -9,7 +9,6 @@ import {
   mileageUnitLabel,
 } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { type Href, router } from 'expo-router';
 import {
@@ -41,7 +40,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { CATEGORY_LABELS, formatCurrencyInput } from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
-import { triggerNotification, triggerSelection } from '../../utils/haptics';
+import { triggerSelection } from '../../utils/haptics';
 import { toISODateInput } from '../../utils/trip-form-dates';
 import {
   RECEIPT_REVIEW_TYPE,
@@ -281,7 +280,9 @@ export function ReviewCard({
 
   const handleSave = useCallback(() => {
     if (!canSave) return;
-    triggerNotification(Haptics.NotificationFeedbackType.Success);
+    // Success haptic fires on the AUTHORITATIVE save outcome in the U7d save hook
+    // (after the duplicate soft-warn + the saveReceiptScan transaction), not here —
+    // an optimistic tap haptic would misfire on a duplicate-cancel or a server error.
     onSave({
       motorcycleId: selectedBikeId,
       type,

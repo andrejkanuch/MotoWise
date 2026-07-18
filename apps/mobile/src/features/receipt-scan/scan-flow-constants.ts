@@ -226,6 +226,25 @@ export const UPLOAD_TIMEOUT_MS = 30_000;
 /** The "Skip — enter manually" affordance appears this long into analyzing (KTD-4). */
 export const SKIP_AFFORDANCE_DELAY_MS = 3_000;
 
+/** Post-save "Saved to {bike} — Undo" snackbar auto-dismiss (U7d). */
+export const SAVE_SNACKBAR_TIMEOUT_MS = 6_000;
+
+/**
+ * A durable undo entry stays undoable this long past the toast (U7d). The toast
+ * disappears after `SAVE_SNACKBAR_TIMEOUT_MS`, but the entry lives on so the home
+ * card (U8) can still offer undo — the server rollback is guarded/idempotent.
+ */
+export const SAVE_UNDO_TTL_MS = 6 * 60 * 60 * 1_000;
+
+/**
+ * Only auto-pop the snackbar for entries written within this window — so a stale
+ * (but still-undoable) entry doesn't re-pop the toast on the next cold launch.
+ */
+export const SAVE_SNACKBAR_FRESH_MS = 12_000;
+
+/** Amount equality tolerance for the pre-save duplicate soft-warn (U7d). */
+export const DUPLICATE_AMOUNT_EPSILON = 0.01;
+
 /** Cosmetic analyzing labels cycled over the single scanReceipt response (per U4). */
 export const ANALYZING_STAGE_KEYS = [
   'receiptScan.analyzing.stageReading',

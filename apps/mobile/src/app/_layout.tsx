@@ -49,6 +49,7 @@ import { OB_VARIANT } from '../config/onboarding';
 import { getWhatsNewRelease } from '../data/whats-new-releases';
 import { startCarPlayCoordinator } from '../features/carplay/carplay-coordinator';
 import { initReceiptScanQueue } from '../features/receipt-scan/receipt-scan-queue';
+import { ReceiptScanSaveSnackbar } from '../features/receipt-scan/receipt-scan-save-snackbar';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import i18n from '../i18n';
 import {
@@ -812,6 +813,9 @@ function RootLayout() {
           <KeyboardProvider>
             <PersistedQueryClientBoundary>
               <NavigationGate onSettled={hideSplash} />
+              {/* Root-mounted so the post-save "Saved — Undo" toast (U7d) survives
+                  the scan modal's dismissal and lands on the returning screen. */}
+              <ReceiptScanSaveSnackbar />
             </PersistedQueryClientBoundary>
           </KeyboardProvider>
         </PostHogSurveyProvider>

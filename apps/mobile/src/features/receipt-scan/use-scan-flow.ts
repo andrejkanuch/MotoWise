@@ -144,6 +144,12 @@ export interface ScanFlow {
   reviewNow: () => void;
   /** True when the gate refused entry (paywall shown) — the screen should close. */
   gateRefused: boolean;
+  /**
+   * Wall-clock ms when the flow entered (scan_started fired). Feeds U7d's
+   * `save_completed { ms }` for the <20s time-to-log (Goal 1). Null until the gate
+   * passes.
+   */
+  scanStartedAt: number | null;
 }
 
 /**
@@ -167,6 +173,8 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
   const scanResolvedRef = useRef<ScanResolved | null>(null);
   const cancelRequestedRef = useRef(false);
   const gateRefusedRef = useRef(false);
+  // Flow-start stamp (Goal 1 <20s). Set once when the gate passes / scan_started fires.
+  const startedAtRef = useRef<number | null>(null);
   // Latest bikeId/userId reachable from long-lived async closures.
   const bikeIdRef = useRef(state.bikeId);
   const userIdRef = useRef(userId);
@@ -413,6 +421,7 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
       return;
     }
 
+    startedAtRef.current = Date.now();
     trackEvent(AnalyticsEvent.RECEIPT_SCAN_STARTED, { bike_count: bikes.length });
 
     const afterPick = hasAcceptedScanConsent() ? SCAN_PHASE.CAPTURE : SCAN_PHASE.CONSENT;
@@ -455,6 +464,7 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
     parkForLater,
     reviewNow,
     gateRefused: gateRefusedRef.current,
+    scanStartedAt: startedAtRef.current,
   };
 }
 

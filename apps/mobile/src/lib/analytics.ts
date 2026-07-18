@@ -366,6 +366,10 @@ export const AnalyticsEvent = {
   // Receipt scan review card (U7c) — measure Goal 5 (≤2 corrections)
   RECEIPT_SCAN_FIELD_EDITED: 'receipt_scan_field_edited',
   RECEIPT_SCAN_TYPE_SWITCHED: 'receipt_scan_type_switched',
+  // Receipt scan save/undo (U7d) — Goal 1 (<20s flow) + feature evaluation (R8)
+  RECEIPT_SCAN_SAVE_COMPLETED: 'receipt_scan_save_completed',
+  RECEIPT_SCAN_ODOMETER_ACCEPTED: 'receipt_scan_odometer_accepted',
+  RECEIPT_SCAN_SAVE_UNDONE: 'receipt_scan_save_undone',
   HEALTH_REPORT_VIEWED: 'health_report_viewed',
   HEALTH_REPORT_GENERATED: 'health_report_generated',
   HEALTH_REPORT_DOWNLOADED: 'health_report_downloaded',
