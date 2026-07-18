@@ -26,8 +26,8 @@ import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { MODEL_COSTS } from '../../apps/api/src/config/constants';
 import { compressReceiptImage } from './compress';
-import { RECEIPT_SCAN_SCHEMA_VERSION, ReceiptExtractionSchema, SCORED_FIELDS } from './schema';
 import type { ReceiptExtraction, ScoredField } from './schema';
+import { RECEIPT_SCAN_SCHEMA_VERSION, ReceiptExtractionSchema, SCORED_FIELDS } from './schema';
 
 const SAMPLES_DIR = join(__dirname, 'samples');
 const RESULTS_PATH = join(__dirname, 'RESULTS.md');
@@ -132,7 +132,9 @@ function scoreRun(extraction: ReceiptExtraction, truth: TruthFile | null) {
   }
   // "usable" = the money-bearing core is right (or unscored-but-present): amount, currency, date, type.
   const core: ScoredField[] = ['amount', 'currency', 'date'];
-  const usable = core.every((f) => (scores[f] === 'na' ? extraction[f] != null : scores[f] === 'hit'));
+  const usable = core.every((f) =>
+    scores[f] === 'na' ? extraction[f] != null : scores[f] === 'hit',
+  );
   return { scores, usable };
 }
 
@@ -170,22 +172,40 @@ async function runModel(
 
     if (!parsed) {
       return {
-        model, ok: false, refusal, latencyMs, inputTokens, outputTokens,
+        model,
+        ok: false,
+        refusal,
+        latencyMs,
+        inputTokens,
+        outputTokens,
         costUsd: costUsd(model, inputTokens, outputTokens),
-        scores: {}, usable: false,
+        scores: {},
+        usable: false,
       };
     }
     const { scores, usable } = scoreRun(parsed, truth);
     return {
-      model, ok: true, latencyMs, inputTokens, outputTokens,
+      model,
+      ok: true,
+      latencyMs,
+      inputTokens,
+      outputTokens,
       costUsd: costUsd(model, inputTokens, outputTokens),
-      extraction: parsed, scores, usable,
+      extraction: parsed,
+      scores,
+      usable,
     };
   } catch (err) {
     return {
-      model, ok: false, error: err instanceof Error ? err.message : String(err),
-      latencyMs: Date.now() - start, inputTokens: 0, outputTokens: 0, costUsd: 0,
-      scores: {}, usable: false,
+      model,
+      ok: false,
+      error: err instanceof Error ? err.message : String(err),
+      latencyMs: Date.now() - start,
+      inputTokens: 0,
+      outputTokens: 0,
+      costUsd: 0,
+      scores: {},
+      usable: false,
     };
   }
 }
@@ -198,8 +218,11 @@ function renderResults(results: SampleResult[]): string {
   const lines: string[] = [];
   lines.push('# U1 — Receipt Extraction Spike Results');
   lines.push('');
-  lines.push('> Throwaway spike (do not ship). Schema v' + RECEIPT_SCAN_SCHEMA_VERSION +
-    '. Compression: ≥1920px mild WebP (compressReceiptImage / KTD-8).');
+  lines.push(
+    '> Throwaway spike (do not ship). Schema v' +
+      RECEIPT_SCAN_SCHEMA_VERSION +
+      '. Compression: ≥1920px mild WebP (compressReceiptImage / KTD-8).',
+  );
   lines.push('');
   lines.push(`Samples: **${results.length}**. Models: ${MODELS.join(', ')}.`);
   lines.push('');
@@ -207,17 +230,23 @@ function renderResults(results: SampleResult[]): string {
   // Aggregate per model.
   lines.push('## Aggregate');
   lines.push('');
-  lines.push('| Model | Runs OK | Usable (core fields) | Avg tokens (in/out) | Avg cost | Avg latency |');
+  lines.push(
+    '| Model | Runs OK | Usable (core fields) | Avg tokens (in/out) | Avg cost | Avg latency |',
+  );
   lines.push('|---|---|---|---|---|---|');
   for (const model of MODELS) {
-    const runs = results.map((r) => r.runs.find((x) => x.model === model)).filter(Boolean) as ModelRun[];
+    const runs = results
+      .map((r) => r.runs.find((x) => x.model === model))
+      .filter(Boolean) as ModelRun[];
     const ok = runs.filter((r) => r.ok).length;
     const usable = runs.filter((r) => r.usable).length;
     const avgIn = Math.round(runs.reduce((s, r) => s + r.inputTokens, 0) / (runs.length || 1));
     const avgOut = Math.round(runs.reduce((s, r) => s + r.outputTokens, 0) / (runs.length || 1));
     const avgCost = runs.reduce((s, r) => s + r.costUsd, 0) / (runs.length || 1);
     const avgLat = Math.round(runs.reduce((s, r) => s + r.latencyMs, 0) / (runs.length || 1));
-    lines.push(`| ${model} | ${ok}/${runs.length} | ${usable}/${runs.length} | ${avgIn}/${avgOut} | ${fmtUsd(avgCost)} | ${avgLat}ms |`);
+    lines.push(
+      `| ${model} | ${ok}/${runs.length} | ${usable}/${runs.length} | ${avgIn}/${avgOut} | ${fmtUsd(avgCost)} | ${avgLat}ms |`,
+    );
   }
   lines.push('');
 
@@ -228,16 +257,22 @@ function renderResults(results: SampleResult[]): string {
   if (printed.length === 0) {
     lines.push('_No samples tagged `printed_invoice` — cannot evaluate the gate._');
   } else {
-    lines.push(`Printed-invoice samples: **${printed.length}**` +
-      (printed.length < 10 ? ' ⚠️ (N<10 — smoke test, not a statistically meaningful gate)' : ''));
+    lines.push(
+      `Printed-invoice samples: **${printed.length}**` +
+        (printed.length < 10 ? ' ⚠️ (N<10 — smoke test, not a statistically meaningful gate)' : ''),
+    );
     lines.push('');
     lines.push('| Model | Usable printed | Rate | Gate (≥80%) |');
     lines.push('|---|---|---|---|');
     for (const model of MODELS) {
-      const runs = printed.map((r) => r.runs.find((x) => x.model === model)).filter(Boolean) as ModelRun[];
+      const runs = printed
+        .map((r) => r.runs.find((x) => x.model === model))
+        .filter(Boolean) as ModelRun[];
       const usable = runs.filter((r) => r.usable).length;
       const rate = usable / (runs.length || 1);
-      lines.push(`| ${model} | ${usable}/${runs.length} | ${(rate * 100).toFixed(0)}% | ${rate >= 0.8 ? '✅ PASS' : '❌ FAIL'} |`);
+      lines.push(
+        `| ${model} | ${usable}/${runs.length} | ${(rate * 100).toFixed(0)}% | ${rate >= 0.8 ? '✅ PASS' : '❌ FAIL'} |`,
+      );
     }
   }
   lines.push('');
@@ -247,19 +282,32 @@ function renderResults(results: SampleResult[]): string {
   lines.push('');
   for (const r of results) {
     lines.push(`### ${r.file}  \`${r.docType}\``);
-    lines.push(`Compressed: ${(r.compressedBytes / 1024).toFixed(0)} KB, ${r.dimensions}. Truth file: ${r.hasTruth ? 'yes (auto-scored)' : 'no (manual review)'}.`);
+    lines.push(
+      `Compressed: ${(r.compressedBytes / 1024).toFixed(0)} KB, ${r.dimensions}. Truth file: ${r.hasTruth ? 'yes (auto-scored)' : 'no (manual review)'}.`,
+    );
     lines.push('');
     for (const run of r.runs) {
       if (!run.ok) {
-        lines.push(`- **${run.model}** — ❌ ${run.error ?? run.refusal ?? 'no structured output'} (${run.latencyMs}ms)`);
+        lines.push(
+          `- **${run.model}** — ❌ ${run.error ?? run.refusal ?? 'no structured output'} (${run.latencyMs}ms)`,
+        );
         continue;
       }
       const e = run.extraction as ReceiptExtraction;
-      const mark = (f: ScoredField) => (run.scores[f] === 'hit' ? '✓' : run.scores[f] === 'miss' ? '✗' : '·');
-      lines.push(`- **${run.model}** — usable: ${run.usable ? '✅' : '❌'} · ${run.latencyMs}ms · ${run.inputTokens}/${run.outputTokens} tok · ${fmtUsd(run.costUsd)}`);
-      lines.push(`  - type ${mark('type')} \`${e.type}\` · amount ${mark('amount')} \`${e.amount}\` · currency ${mark('currency')} \`${e.currency}\` · date ${mark('date')} \`${e.date}\``);
-      lines.push(`  - vendor ${mark('vendor')} \`${e.vendor}\` · category ${mark('category')} \`${e.category}\` · item ${mark('itemName')} \`${e.itemName}\``);
-      lines.push(`  - odometer ${mark('odometerValue')} \`${e.odometerValue} ${e.odometerUnit ?? ''}\` · parts \`${e.partsCost}\` · labor \`${e.laborCost}\` · fuelL ${mark('fuelLitres')} \`${e.fuelLitres}\``);
+      const mark = (f: ScoredField) =>
+        run.scores[f] === 'hit' ? '✓' : run.scores[f] === 'miss' ? '✗' : '·';
+      lines.push(
+        `- **${run.model}** — usable: ${run.usable ? '✅' : '❌'} · ${run.latencyMs}ms · ${run.inputTokens}/${run.outputTokens} tok · ${fmtUsd(run.costUsd)}`,
+      );
+      lines.push(
+        `  - type ${mark('type')} \`${e.type}\` · amount ${mark('amount')} \`${e.amount}\` · currency ${mark('currency')} \`${e.currency}\` · date ${mark('date')} \`${e.date}\``,
+      );
+      lines.push(
+        `  - vendor ${mark('vendor')} \`${e.vendor}\` · category ${mark('category')} \`${e.category}\` · item ${mark('itemName')} \`${e.itemName}\``,
+      );
+      lines.push(
+        `  - odometer ${mark('odometerValue')} \`${e.odometerValue} ${e.odometerUnit ?? ''}\` · parts \`${e.partsCost}\` · labor \`${e.laborCost}\` · fuelL ${mark('fuelLitres')} \`${e.fuelLitres}\``,
+      );
       if (e.legibilityNote) lines.push(`  - note: _${e.legibilityNote}_`);
     }
     lines.push('');
@@ -269,7 +317,9 @@ function renderResults(results: SampleResult[]): string {
   lines.push('');
   lines.push('## Go / No-Go decision');
   lines.push('');
-  lines.push('_Record the decision here and in `docs/prd-receipt-scan.md` (Q4 / Phase 0 gate): proceed to U2 / rescope (printed-only, prompt-tighten + re-spike, model switch or defer) + model choice (4.1 vs 4.1-mini)._');
+  lines.push(
+    '_Record the decision here and in `docs/prd-receipt-scan.md` (Q4 / Phase 0 gate): proceed to U2 / rescope (printed-only, prompt-tighten + re-spike, model switch or defer) + model choice (4.1 vs 4.1-mini)._',
+  );
   lines.push('');
   return lines.join('\n') + '\n';
 }
@@ -291,8 +341,8 @@ async function main(): Promise<void> {
   if (files.length === 0) {
     console.error(
       'No sample images in samples/. Drop receipt photos there first — ideally the full corpus\n' +
-      '(printed dealer invoice, thermal fuel, faded/glare/crumpled, both decimal formats, ≥1 non-EUR,\n' +
-      '≥1 miles-printed odometer). Then re-run. See README.md.',
+        '(printed dealer invoice, thermal fuel, faded/glare/crumpled, both decimal formats, ≥1 non-EUR,\n' +
+        '≥1 miles-printed odometer). Then re-run. See README.md.',
     );
     process.exit(1);
   }
@@ -316,7 +366,9 @@ async function main(): Promise<void> {
       console.error(`  ✗ compression failed: ${err instanceof Error ? err.message : err}`);
       continue;
     }
-    console.log(`  compressed → ${(compressed.bytes / 1024).toFixed(0)} KB, ${compressed.width}×${compressed.height}`);
+    console.log(
+      `  compressed → ${(compressed.bytes / 1024).toFixed(0)} KB, ${compressed.width}×${compressed.height}`,
+    );
 
     const runs: ModelRun[] = [];
     for (const model of MODELS) {
