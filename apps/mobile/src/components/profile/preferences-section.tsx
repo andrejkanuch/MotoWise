@@ -7,12 +7,14 @@ import {
   Bell,
   Check,
   ChevronDown,
+  Compass,
   CreditCard,
   Globe,
   HelpCircle,
   Lock,
   Megaphone,
   Moon,
+  Navigation,
   Palette,
   Ruler,
   Settings,
@@ -28,6 +30,7 @@ import { presentPaywall } from '../../lib/subscription';
 import { useAuthStore } from '../../stores/auth.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
+import { MAP_ORIENTATIONS } from '../../utils/map-orientation';
 import { ESettingsRow, ESettingsSectionLabel } from '../ui/editorial';
 
 const LOCALE_DISPLAY_NAMES: Record<SupportedLocale, string> = {
@@ -54,6 +57,21 @@ const THEME_LABEL_KEYS = {
   dark: 'profile.themeDark',
 } as const;
 
+const MAP_ORIENTATION_OPTIONS = [
+  {
+    value: MAP_ORIENTATIONS.NORTH,
+    icon: Compass,
+    labelKey: 'profile.mapNorthUp',
+    fallback: 'North up',
+  },
+  {
+    value: MAP_ORIENTATIONS.HEADING,
+    icon: Navigation,
+    labelKey: 'profile.mapHeadingUp',
+    fallback: 'Heading up',
+  },
+] as const;
+
 export function PreferencesSection({
   isDark,
   updatePreferenceMutation,
@@ -76,6 +94,8 @@ export function PreferencesSection({
     setMeasurementSystem,
     currency,
     setCurrency,
+    mapOrientation,
+    setMapOrientation,
   } = useAuthStore();
   const { setColorScheme } = useColorScheme();
   const [showLangPicker, setShowLangPicker] = useState(false);
@@ -377,8 +397,63 @@ export function PreferencesSection({
         </View>
       </Animated.View>
 
-      {/* Currency */}
+      {/* Ride map orientation */}
       <Animated.View entering={FadeInUp.delay(540).duration(400)}>
+        <ESettingsSectionLabel label={t('profile.rideMap', { defaultValue: 'Ride map' })} />
+        <View
+          style={{
+            backgroundColor: theme.surface,
+            borderRadius: 16,
+            borderCurve: 'continuous',
+            flexDirection: 'row',
+            padding: 4,
+            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
+          }}
+        >
+          {MAP_ORIENTATION_OPTIONS.map((option) => {
+            const selected = mapOrientation === option.value;
+            const OrientationIcon = option.icon;
+            return (
+              <Pressable
+                key={option.value}
+                onPress={() => {
+                  triggerImpact();
+                  setMapOrientation(option.value);
+                }}
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  paddingVertical: 10,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  backgroundColor: selected ? theme.warm : 'transparent',
+                }}
+              >
+                <OrientationIcon
+                  size={15}
+                  color={selected ? palette.white : theme.ink3}
+                  strokeWidth={2}
+                />
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '600',
+                    color: selected ? palette.white : theme.ink3,
+                  }}
+                >
+                  {t(option.labelKey, { defaultValue: option.fallback })}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </Animated.View>
+
+      {/* Currency */}
+      <Animated.View entering={FadeInUp.delay(560).duration(400)}>
         <ESettingsSectionLabel label={t('profile.currency', { defaultValue: 'Currency' })} />
         <Pressable
           onPress={() => setShowCurrencyPicker(true)}

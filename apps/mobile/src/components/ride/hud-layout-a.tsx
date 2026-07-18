@@ -358,7 +358,7 @@ export function HudLayoutA({
           overflow: 'hidden',
         }}
       >
-        <HudMap waypoints={liveWaypoints} gpsAccuracy={gpsAccuracy} />
+        <HudMap waypoints={liveWaypoints} gpsAccuracy={gpsAccuracy} recenterBottomOffset={16} />
 
         {/* Distance pill overlay */}
         <View
