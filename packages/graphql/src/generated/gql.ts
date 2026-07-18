@@ -75,6 +75,7 @@ type Documents = {
     "mutation RespondToTripSuggestion($input: RespondToTripSuggestionInput!) {\n  respondToTripSuggestion(input: $input) {\n    id\n    status\n    decidedBy\n    decidedAt\n    decidedNote\n    waypointId\n  }\n}": typeof types.RespondToTripSuggestionDocument,
     "mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}": typeof types.RevokeShareLinkDocument,
     "mutation RotateTripShareToken($tripId: ID!) {\n  rotateTripShareToken(tripId: $tripId)\n}": typeof types.RotateTripShareTokenDocument,
+    "mutation SaveReceiptScan($scanId: String!, $input: SaveReceiptScanInput!) {\n  saveReceiptScan(scanId: $scanId, input: $input) {\n    __typename\n    ... on SaveReceiptScanSuccess {\n      scanId\n      refs {\n        recordType\n        expenseId\n        taskId\n        photoId\n        odometer {\n          motorcycleId\n          previous\n          applied\n        }\n      }\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}": typeof types.SaveReceiptScanDocument,
     "mutation SaveTrip($tripId: ID!) {\n  saveTrip(tripId: $tripId)\n}": typeof types.SaveTripDocument,
     "mutation ScanReceipt($scanId: String!) {\n  scanReceipt(scanId: $scanId) {\n    __typename\n    ... on ReceiptScanSuccess {\n      scanId\n      result {\n        type\n        amount\n        currency\n        date\n        vendor\n        itemName\n        category\n        partsCost\n        laborCost\n        odometerValue\n        odometerUnit\n        fuelLitres\n        partsNeeded\n        legibilityNote\n        needsCheck\n        fieldConfidence {\n          amount\n          currency\n          date\n          vendor\n          category\n          odometer\n        }\n      }\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}": typeof types.ScanReceiptDocument,
     "mutation SetTripParticipantRole($input: SetParticipantRoleInput!) {\n  setTripParticipantRole(input: $input)\n}": typeof types.SetTripParticipantRoleDocument,
@@ -83,6 +84,7 @@ type Documents = {
     "mutation StartRide($input: StartRideInput!) {\n  startRide(input: $input) {\n    id\n    status\n    startedAt\n    motorcycleId\n  }\n}": typeof types.StartRideDocument,
     "mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {\n  submitDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    createdAt\n  }\n}": typeof types.SubmitDiagnosticDocument,
     "mutation TrackAffiliateClick($input: TrackClickInput!) {\n  trackAffiliateClick(input: $input) {\n    partner\n    affiliateUrl\n    productUrl\n    tracked\n  }\n}": typeof types.TrackAffiliateClickDocument,
+    "mutation UndoReceiptScanSave($scanId: String!) {\n  undoReceiptScanSave(scanId: $scanId) {\n    __typename\n    ... on UndoReceiptScanSuccess {\n      scanId\n      status\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}": typeof types.UndoReceiptScanSaveDocument,
     "mutation UnfollowRider($input: UnfollowRiderInput!) {\n  unfollowRider(input: $input)\n}": typeof types.UnfollowRiderDocument,
     "mutation UnpublishTemplate($tripId: ID!) {\n  unpublishTemplate(tripId: $tripId)\n}": typeof types.UnpublishTemplateDocument,
     "mutation UnsaveTrip($tripId: ID!) {\n  unsaveTrip(tripId: $tripId)\n}": typeof types.UnsaveTripDocument,
@@ -242,6 +244,7 @@ const documents: Documents = {
     "mutation RespondToTripSuggestion($input: RespondToTripSuggestionInput!) {\n  respondToTripSuggestion(input: $input) {\n    id\n    status\n    decidedBy\n    decidedAt\n    decidedNote\n    waypointId\n  }\n}": types.RespondToTripSuggestionDocument,
     "mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}": types.RevokeShareLinkDocument,
     "mutation RotateTripShareToken($tripId: ID!) {\n  rotateTripShareToken(tripId: $tripId)\n}": types.RotateTripShareTokenDocument,
+    "mutation SaveReceiptScan($scanId: String!, $input: SaveReceiptScanInput!) {\n  saveReceiptScan(scanId: $scanId, input: $input) {\n    __typename\n    ... on SaveReceiptScanSuccess {\n      scanId\n      refs {\n        recordType\n        expenseId\n        taskId\n        photoId\n        odometer {\n          motorcycleId\n          previous\n          applied\n        }\n      }\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}": types.SaveReceiptScanDocument,
     "mutation SaveTrip($tripId: ID!) {\n  saveTrip(tripId: $tripId)\n}": types.SaveTripDocument,
     "mutation ScanReceipt($scanId: String!) {\n  scanReceipt(scanId: $scanId) {\n    __typename\n    ... on ReceiptScanSuccess {\n      scanId\n      result {\n        type\n        amount\n        currency\n        date\n        vendor\n        itemName\n        category\n        partsCost\n        laborCost\n        odometerValue\n        odometerUnit\n        fuelLitres\n        partsNeeded\n        legibilityNote\n        needsCheck\n        fieldConfidence {\n          amount\n          currency\n          date\n          vendor\n          category\n          odometer\n        }\n      }\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}": types.ScanReceiptDocument,
     "mutation SetTripParticipantRole($input: SetParticipantRoleInput!) {\n  setTripParticipantRole(input: $input)\n}": types.SetTripParticipantRoleDocument,
@@ -250,6 +253,7 @@ const documents: Documents = {
     "mutation StartRide($input: StartRideInput!) {\n  startRide(input: $input) {\n    id\n    status\n    startedAt\n    motorcycleId\n  }\n}": types.StartRideDocument,
     "mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {\n  submitDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    createdAt\n  }\n}": types.SubmitDiagnosticDocument,
     "mutation TrackAffiliateClick($input: TrackClickInput!) {\n  trackAffiliateClick(input: $input) {\n    partner\n    affiliateUrl\n    productUrl\n    tracked\n  }\n}": types.TrackAffiliateClickDocument,
+    "mutation UndoReceiptScanSave($scanId: String!) {\n  undoReceiptScanSave(scanId: $scanId) {\n    __typename\n    ... on UndoReceiptScanSuccess {\n      scanId\n      status\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}": types.UndoReceiptScanSaveDocument,
     "mutation UnfollowRider($input: UnfollowRiderInput!) {\n  unfollowRider(input: $input)\n}": types.UnfollowRiderDocument,
     "mutation UnpublishTemplate($tripId: ID!) {\n  unpublishTemplate(tripId: $tripId)\n}": types.UnpublishTemplateDocument,
     "mutation UnsaveTrip($tripId: ID!) {\n  unsaveTrip(tripId: $tripId)\n}": types.UnsaveTripDocument,
@@ -609,6 +613,10 @@ export function graphql(source: "mutation RotateTripShareToken($tripId: ID!) {\n
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "mutation SaveReceiptScan($scanId: String!, $input: SaveReceiptScanInput!) {\n  saveReceiptScan(scanId: $scanId, input: $input) {\n    __typename\n    ... on SaveReceiptScanSuccess {\n      scanId\n      refs {\n        recordType\n        expenseId\n        taskId\n        photoId\n        odometer {\n          motorcycleId\n          previous\n          applied\n        }\n      }\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}"): (typeof documents)["mutation SaveReceiptScan($scanId: String!, $input: SaveReceiptScanInput!) {\n  saveReceiptScan(scanId: $scanId, input: $input) {\n    __typename\n    ... on SaveReceiptScanSuccess {\n      scanId\n      refs {\n        recordType\n        expenseId\n        taskId\n        photoId\n        odometer {\n          motorcycleId\n          previous\n          applied\n        }\n      }\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "mutation SaveTrip($tripId: ID!) {\n  saveTrip(tripId: $tripId)\n}"): (typeof documents)["mutation SaveTrip($tripId: ID!) {\n  saveTrip(tripId: $tripId)\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -638,6 +646,10 @@ export function graphql(source: "mutation SubmitDiagnostic($input: SubmitDiagnos
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation TrackAffiliateClick($input: TrackClickInput!) {\n  trackAffiliateClick(input: $input) {\n    partner\n    affiliateUrl\n    productUrl\n    tracked\n  }\n}"): (typeof documents)["mutation TrackAffiliateClick($input: TrackClickInput!) {\n  trackAffiliateClick(input: $input) {\n    partner\n    affiliateUrl\n    productUrl\n    tracked\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation UndoReceiptScanSave($scanId: String!) {\n  undoReceiptScanSave(scanId: $scanId) {\n    __typename\n    ... on UndoReceiptScanSuccess {\n      scanId\n      status\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}"): (typeof documents)["mutation UndoReceiptScanSave($scanId: String!) {\n  undoReceiptScanSave(scanId: $scanId) {\n    __typename\n    ... on UndoReceiptScanSuccess {\n      scanId\n      status\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

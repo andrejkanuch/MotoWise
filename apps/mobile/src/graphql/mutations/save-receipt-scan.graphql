@@ -1,0 +1,23 @@
+mutation SaveReceiptScan($scanId: String!, $input: SaveReceiptScanInput!) {
+  saveReceiptScan(scanId: $scanId, input: $input) {
+    __typename
+    ... on SaveReceiptScanSuccess {
+      scanId
+      refs {
+        recordType
+        expenseId
+        taskId
+        photoId
+        odometer {
+          motorcycleId
+          previous
+          applied
+        }
+      }
+    }
+    ... on ReceiptScanError {
+      code
+      reason
+    }
+  }
+}

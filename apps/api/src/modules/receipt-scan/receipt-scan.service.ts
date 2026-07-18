@@ -1,5 +1,9 @@
 import {
   EXPENSE_CATEGORIES,
+  MaintenanceTaskStatus,
+  type MeasurementSystem,
+  mileageToDisplayUnit,
+  milesToKm,
   RECEIPT_SCAN_SCHEMA_VERSION,
   type ReceiptExtraction,
 } from '@motovault/types';
@@ -7,8 +11,12 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
+import { deleteReceiptsPhotoObjects, PHOTO_BUCKETS } from '../../common/storage/photo-storage';
 import { costCentsFor } from '../../config/constants';
 import { AiBudgetService } from '../ai-budget/ai-budget.service';
+import { ExpensesService } from '../expenses/expenses.service';
+import { MaintenanceTasksService } from '../maintenance-tasks/maintenance-tasks.service';
+import { MotorcyclesService } from '../motorcycles/motorcycles.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import type { CancelReceiptScanSuccess } from './dto/receipt-scan-cancel.dto';
 import type { ReceiptScanQuota } from './dto/receipt-scan-quota.dto';
@@ -17,24 +25,42 @@ import type {
   ReceiptScanError,
   ReceiptScanSuccess,
 } from './dto/receipt-scan-result.dto';
+import type { SaveReceiptScanInput, SaveReceiptScanSuccess } from './dto/save-receipt-scan.dto';
+import type { UndoReceiptScanSuccess } from './dto/undo-receipt-scan.dto';
 import type { UnreviewedScan } from './dto/unreviewed-scan.dto';
 import {
+  DEFAULT_EXPENSE_CATEGORY,
+  DEFAULT_MAINTENANCE_TITLE,
+  DEFAULT_MEASUREMENT_SYSTEM,
   GENERATION_LOG_STATUS,
+  MAINTENANCE_SOURCE_RECEIPT_SCAN,
+  MAX_PLAUSIBLE_ODOMETER_JUMP,
   MAX_RECEIPT_SCANS_PER_MONTH,
+  ODOMETER_SYNC_SOURCE_MANUAL,
+  ODOMETER_UNITS,
   PAYWALL_WOULD_HAVE_SHOWN,
   RECEIPT_OBJECT_EXT,
   RECEIPT_SCAN_CONTENT_TYPE,
   RECEIPT_SCAN_ERROR_CODES,
   RECEIPT_SCAN_STATUS,
   RECEIPTS_BUCKET,
+  RECORD_TYPES,
+  type SavedOdometerRef,
+  type SavedRecordRefs,
   SCAN_ID_UUID_REGEX,
+  UNDO_STATUS,
 } from './receipt-scan.constants';
 import { ReceiptScanAiService } from './receipt-scan-ai.service';
 
 const RECEIPT_SCANS_TABLE = 'receipt_scans';
 const CONTENT_GENERATION_LOG_TABLE = 'content_generation_log';
-const DEFAULT_CATEGORY = 'other';
+const EXPENSES_TABLE = 'expenses';
+const MOTORCYCLES_TABLE = 'motorcycles';
+const USERS_TABLE = 'users';
 const PRO_TIER = 'pro';
+
+/** A compensating-saga cleanup thunk, run in reverse order on a mid-save throw. */
+type Compensation = () => Promise<void>;
 
 type ScanErrorArm = { code: string; reason: string };
 
@@ -50,6 +76,10 @@ const ERROR_REASONS = {
     'We could not read this receipt. You can enter the details manually.',
   [RECEIPT_SCAN_ERROR_CODES.ALREADY_COMPLETED]:
     'This scan already completed — the credit was used and it is now waiting for review.',
+  [RECEIPT_SCAN_ERROR_CODES.SCAN_NOT_REVIEWABLE]:
+    'This scan is no longer available to save. Please rescan the receipt.',
+  [RECEIPT_SCAN_ERROR_CODES.SAVE_FAILED]:
+    'We could not save this receipt. Nothing was changed — please try again.',
 } as const satisfies Record<string, string>;
 
 @Injectable()
@@ -61,6 +91,9 @@ export class ReceiptScanService {
     @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
     private readonly aiBudgetService: AiBudgetService,
     private readonly aiService: ReceiptScanAiService,
+    private readonly expensesService: ExpensesService,
+    private readonly maintenanceTasksService: MaintenanceTasksService,
+    private readonly motorcyclesService: MotorcyclesService,
   ) {}
 
   // ===========================================================================
@@ -233,6 +266,420 @@ export class ReceiptScanService {
   }
 
   // ===========================================================================
+  // saveReceiptScan — compound write as a COMPENSATING SAGA (KTD-11)
+  //
+  // Supabase JS has no cross-call DB transaction, so we run the writes in order,
+  // pushing a cleanup thunk after each success onto a stack. If any step throws
+  // we run the stack in reverse (compensating rollback) and return SAVE_FAILED —
+  // no partial state, saved_at never stamped. Only on full success do we stamp
+  // saved_at + saved_record_refs.
+  // ===========================================================================
+  async saveReceiptScan(
+    user: AuthUser,
+    scanId: string,
+    input: SaveReceiptScanInput,
+  ): Promise<SaveReceiptScanSuccess | ScanErrorArm> {
+    if (!SCAN_ID_UUID_REGEX.test(scanId)) {
+      return this.err(RECEIPT_SCAN_ERROR_CODES.SCAN_NOT_REVIEWABLE);
+    }
+    if (input.type !== RECORD_TYPES.EXPENSE && input.type !== RECORD_TYPES.MAINTENANCE) {
+      return this.err(RECEIPT_SCAN_ERROR_CODES.SCAN_NOT_REVIEWABLE);
+    }
+
+    // Guard: must be the caller's own success-status scan.
+    const scan = await this.loadScanForSave(user.id, scanId);
+    if (!scan) return this.err(RECEIPT_SCAN_ERROR_CODES.SCAN_NOT_REVIEWABLE);
+
+    // Idempotency: already saved → return the existing refs (no double-write).
+    if (scan.saved_at) {
+      return { scanId, refs: this.refsForDto(scan.saved_record_refs) };
+    }
+
+    const compensations: Compensation[] = [];
+    try {
+      // 1. Record write — dispatch on type.
+      const refs =
+        input.type === RECORD_TYPES.EXPENSE
+          ? await this.writeExpenseRecord(user.id, input, compensations)
+          : await this.writeMaintenanceRecord(user.id, input, compensations);
+
+      // 2. Photo link — reuse the uploaded receipts object, NO re-upload.
+      if (scan.storage_path) {
+        refs.photoId = await this.linkReceiptPhoto(user.id, refs, scan.storage_path);
+        const objectPath = scan.storage_path;
+        compensations.push(() => this.deleteReceiptObject(user.id, objectPath));
+      }
+
+      // 3. Odometer (optional, KTD-7).
+      const odometer = await this.maybeApplyOdometer(user.id, input);
+      if (odometer) {
+        refs.odometer = odometer;
+        compensations.push(() => this.revertOdometer(user.id, odometer));
+      }
+
+      // 4. Full success — stamp the row (throws → compensate).
+      await this.stampSaved(scanId, user.id, refs);
+      return { scanId, refs: this.refsForDto(refs) };
+    } catch (err) {
+      this.logger.error(`saveReceiptScan failed for scan=${scanId}: ${err}`);
+      await this.runCompensations(compensations);
+      return this.err(RECEIPT_SCAN_ERROR_CODES.SAVE_FAILED);
+    }
+  }
+
+  // ===========================================================================
+  // undoReceiptScanSave — reverse from saved_record_refs (KTD-11)
+  //
+  // Idempotent + resumable: each ref is reversed then cleared from the persisted
+  // refs, so a mid-undo kill leaves a consistent partial state and a re-run only
+  // finishes the leftovers. Per-step reversals are individually tolerant of
+  // already-reverted state (best-effort, logged — mirrors the storage-purge
+  // philosophy). Only after every ref is reversed do we clear saved_at (back to
+  // success-unreviewed).
+  // ===========================================================================
+  async undoReceiptScanSave(
+    user: AuthUser,
+    scanId: string,
+  ): Promise<UndoReceiptScanSuccess | ScanErrorArm> {
+    if (!SCAN_ID_UUID_REGEX.test(scanId)) {
+      return this.err(RECEIPT_SCAN_ERROR_CODES.SCAN_NOT_REVIEWABLE);
+    }
+
+    const scan = await this.loadScanForUndo(user.id, scanId);
+    if (!scan) return this.err(RECEIPT_SCAN_ERROR_CODES.SCAN_NOT_REVIEWABLE);
+
+    const refs = this.parseRefs(scan.saved_record_refs);
+    if (!scan.saved_at || !refs) {
+      // Never saved, or already fully undone — idempotent no-op.
+      return { scanId, status: UNDO_STATUS.NOTHING_TO_UNDO };
+    }
+
+    let remaining: SavedRecordRefs = { ...refs };
+
+    // Record (expense OR task). A task delete must ALSO remove its auto-expense —
+    // the soft_delete_maintenance_task RPC does not cascade to it (U3 link row).
+    if (remaining.expenseId) {
+      await this.reverseExpense(user.id, remaining.expenseId);
+      remaining = await this.clearRef(scanId, user.id, remaining, 'expenseId');
+    }
+    if (remaining.taskId) {
+      await this.reverseTask(user.id, remaining.taskId);
+      remaining = await this.clearRef(scanId, user.id, remaining, 'taskId');
+    }
+
+    // Receipts storage OBJECT (U7a helper) — delete the object, not just the link.
+    if (remaining.photoId) {
+      if (scan.storage_path) await this.deleteReceiptObject(user.id, scan.storage_path);
+      remaining = await this.clearRef(scanId, user.id, remaining, 'photoId');
+    }
+
+    // Guarded odometer revert — only if current still equals the applied value.
+    if (remaining.odometer) {
+      await this.revertOdometer(user.id, remaining.odometer);
+      remaining = await this.clearRef(scanId, user.id, remaining, 'odometer');
+    }
+
+    await this.clearSaved(scanId, user.id);
+    return { scanId, status: UNDO_STATUS.REVERTED };
+  }
+
+  // ===========================================================================
+  // U7b helpers — saga steps, compensations, odometer (KTD-7), persistence
+  // ===========================================================================
+
+  /** Loads a caller-owned success scan for save (idempotency fields included). */
+  private async loadScanForSave(
+    userId: string,
+    scanId: string,
+  ): Promise<{
+    storage_path: string | null;
+    saved_at: string | null;
+    saved_record_refs: unknown;
+  } | null> {
+    const { data } = await this.adminClient
+      .from(RECEIPT_SCANS_TABLE)
+      .select('id, storage_path, saved_at, saved_record_refs')
+      .eq('id', scanId)
+      .eq('user_id', userId)
+      .eq('status', RECEIPT_SCAN_STATUS.SUCCESS)
+      .maybeSingle();
+    return data ?? null;
+  }
+
+  /** Loads a caller-owned scan for undo (no status filter — a saved scan stays success). */
+  private async loadScanForUndo(
+    userId: string,
+    scanId: string,
+  ): Promise<{
+    storage_path: string | null;
+    saved_at: string | null;
+    saved_record_refs: unknown;
+  } | null> {
+    const { data } = await this.adminClient
+      .from(RECEIPT_SCANS_TABLE)
+      .select('id, storage_path, saved_at, saved_record_refs')
+      .eq('id', scanId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    return data ?? null;
+  }
+
+  /** Expense path: logExpense write; pushes its soft-delete compensation. */
+  private async writeExpenseRecord(
+    userId: string,
+    input: SaveReceiptScanInput,
+    compensations: Compensation[],
+  ): Promise<SavedRecordRefs> {
+    const expense = await this.expensesService.create(userId, {
+      motorcycleId: input.motorcycleId,
+      amount: input.amount ?? 0,
+      category: input.category ?? DEFAULT_EXPENSE_CATEGORY,
+      date: this.saveDate(input.date),
+      description: input.vendor ?? undefined,
+      itemName: input.itemName ?? undefined,
+      currency: input.currency ?? undefined,
+    });
+    compensations.push(() => this.reverseExpense(userId, expense.id));
+    return { recordType: RECORD_TYPES.EXPENSE, expenseId: expense.id };
+  }
+
+  /**
+   * Maintenance path: create a COMPLETED task with costs — this fires the linked
+   * auto-expense (U3). The cost components are additive in the auto-expense total,
+   * so we back the misc `cost` out of the receipt total minus the parts/labor
+   * breakdown, keeping the auto-expense equal to the receipt amount.
+   */
+  private async writeMaintenanceRecord(
+    userId: string,
+    input: SaveReceiptScanInput,
+    compensations: Compensation[],
+  ): Promise<SavedRecordRefs> {
+    const amount = input.amount ?? 0;
+    const partsCost = input.partsCost ?? undefined;
+    const laborCost = input.laborCost ?? undefined;
+    const cost = Math.max(amount - (partsCost ?? 0) - (laborCost ?? 0), 0);
+
+    const task = await this.maintenanceTasksService.create(userId, {
+      motorcycleId: input.motorcycleId,
+      title: input.itemName || input.vendor || DEFAULT_MAINTENANCE_TITLE,
+      status: MaintenanceTaskStatus.COMPLETED,
+      completedAt: input.date ?? undefined,
+      cost,
+      partsCost,
+      laborCost,
+      currency: input.currency ?? undefined,
+      source: MAINTENANCE_SOURCE_RECEIPT_SCAN,
+    });
+    compensations.push(() => this.reverseTask(userId, task.id));
+    return { recordType: RECORD_TYPES.MAINTENANCE, taskId: task.id };
+  }
+
+  /** Links the already-uploaded receipts object to the created record (no re-upload). */
+  private async linkReceiptPhoto(
+    userId: string,
+    refs: SavedRecordRefs,
+    storagePath: string,
+  ): Promise<string> {
+    if (refs.recordType === RECORD_TYPES.EXPENSE && refs.expenseId) {
+      const photo = await this.expensesService.addPhoto(
+        userId,
+        refs.expenseId,
+        storagePath,
+        undefined,
+        PHOTO_BUCKETS.RECEIPTS,
+      );
+      return photo.id;
+    }
+    const photo = await this.maintenanceTasksService.addPhoto(
+      userId,
+      refs.taskId ?? '',
+      storagePath,
+      undefined,
+      PHOTO_BUCKETS.RECEIPTS,
+    );
+    return photo.id;
+  }
+
+  /**
+   * KTD-7 odometer write. Convert the PRINTED reading to the owner's stored unit:
+   * a miles-printed value → km → owner unit; a km-printed value → owner unit.
+   * Guards (all SKIP, never fail): never write a decrease (unless current is null
+   * → first-set is OK); skip an implausibly large jump.
+   */
+  private async maybeApplyOdometer(
+    userId: string,
+    input: SaveReceiptScanInput,
+  ): Promise<SavedOdometerRef | null> {
+    if (!input.applyOdometer || input.odometerValue == null) return null;
+
+    const bike = await this.motorcyclesService.findById(userId, input.motorcycleId);
+    if (!bike) {
+      this.logger.warn(`odometer skip: motorcycle ${input.motorcycleId} not owned by ${userId}`);
+      return null;
+    }
+
+    const system = await this.loadMeasurementSystem(userId);
+    const km =
+      input.odometerUnit === ODOMETER_UNITS.MI
+        ? milesToKm(input.odometerValue)
+        : input.odometerValue;
+    const applied = Math.round(mileageToDisplayUnit(km, system));
+    const current = bike.currentMileage ?? null;
+
+    if (current != null && applied <= current) {
+      this.logger.log(`odometer skip: ${applied} not greater than current ${current}`);
+      return null;
+    }
+    if (current != null && applied - current > MAX_PLAUSIBLE_ODOMETER_JUMP) {
+      this.logger.warn(`odometer skip: implausible jump ${current} → ${applied} (flagged)`);
+      return null;
+    }
+
+    await this.motorcyclesService.update(userId, input.motorcycleId, { currentMileage: applied });
+    return { motorcycleId: input.motorcycleId, previous: current, applied };
+  }
+
+  /** Owner's global measurement system (users read is service-role only, 00141). */
+  private async loadMeasurementSystem(userId: string): Promise<MeasurementSystem> {
+    const { data } = await this.adminClient
+      .from(USERS_TABLE)
+      .select('measurement_system')
+      .eq('id', userId)
+      .single();
+    return (data?.measurement_system as MeasurementSystem | null) ?? DEFAULT_MEASUREMENT_SYSTEM;
+  }
+
+  /** Soft-delete an expense (also purges its linked receipts object). Tolerant. */
+  private async reverseExpense(userId: string, expenseId: string): Promise<void> {
+    try {
+      await this.expensesService.softDelete(userId, expenseId);
+    } catch (err) {
+      // Already soft-deleted (idempotent re-run) or a best-effort failure.
+      this.logger.warn(`reverseExpense no-op/failed for ${expenseId}: ${err}`);
+    }
+  }
+
+  /**
+   * Reverse a completed task: soft-delete its auto-expense (U3 link — the
+   * soft_delete_maintenance_task RPC does NOT cascade to it) THEN the task
+   * (which purges its receipts photo object). Tolerant of already-reverted state.
+   */
+  private async reverseTask(userId: string, taskId: string): Promise<void> {
+    const { data } = await this.adminClient
+      .from(EXPENSES_TABLE)
+      .select('id')
+      .eq('maintenance_task_id', taskId)
+      .eq('user_id', userId)
+      .is('deleted_at', null);
+    for (const row of data ?? []) {
+      await this.reverseExpense(userId, row.id as string);
+    }
+    try {
+      await this.maintenanceTasksService.softDelete(userId, taskId);
+    } catch (err) {
+      this.logger.warn(`reverseTask no-op/failed for ${taskId}: ${err}`);
+    }
+  }
+
+  /** Delete the receipts storage OBJECT (U7a helper). Best-effort, idempotent. */
+  private async deleteReceiptObject(userId: string, storagePath: string): Promise<void> {
+    await deleteReceiptsPhotoObjects({
+      rows: [{ storage_path: storagePath, bucket: PHOTO_BUCKETS.RECEIPTS, user_id: userId }],
+      ownerUserId: userId,
+      adminClient: this.adminClient,
+      logger: this.logger,
+    });
+  }
+
+  /**
+   * Guarded compensating revert (KTD-11): atomically restore current_mileage to
+   * `previous` ONLY if it still equals the scan-applied value — a CAS that never
+   * clobbers a newer reading. previous=null (first-set) reverts back to null.
+   */
+  private async revertOdometer(userId: string, ref: SavedOdometerRef): Promise<void> {
+    const { error } = await this.adminClient
+      .from(MOTORCYCLES_TABLE)
+      .update({
+        current_mileage: ref.previous,
+        odometer_sync_source: ODOMETER_SYNC_SOURCE_MANUAL,
+        odometer_last_ride_id: null,
+        mileage_updated_at: new Date().toISOString(),
+      })
+      .eq('id', ref.motorcycleId)
+      .eq('user_id', userId)
+      .eq('current_mileage', ref.applied);
+    if (error) this.logger.warn(`revertOdometer failed for ${ref.motorcycleId}: ${error.message}`);
+  }
+
+  /** Runs the compensation stack in reverse; each step is isolated (logs, never throws). */
+  private async runCompensations(compensations: Compensation[]): Promise<void> {
+    for (const compensate of compensations.reverse()) {
+      try {
+        await compensate();
+      } catch (err) {
+        this.logger.error(`compensation step failed: ${err}`);
+      }
+    }
+  }
+
+  /** Stamp the successful save (idempotency-guarded: only from an unsaved row). */
+  private async stampSaved(scanId: string, userId: string, refs: SavedRecordRefs): Promise<void> {
+    const { error } = await this.adminClient
+      .from(RECEIPT_SCANS_TABLE)
+      .update({ saved_at: new Date().toISOString(), saved_record_refs: refs })
+      .eq('id', scanId)
+      .eq('user_id', userId)
+      .is('saved_at', null);
+    if (error) throw new Error(`stampSaved failed: ${error.message}`);
+  }
+
+  /** Persist the shrinking refs mid-undo so a re-run only finishes leftovers. */
+  private async clearRef(
+    scanId: string,
+    userId: string,
+    refs: SavedRecordRefs,
+    key: 'expenseId' | 'taskId' | 'photoId' | 'odometer',
+  ): Promise<SavedRecordRefs> {
+    const next: SavedRecordRefs = { ...refs };
+    delete next[key];
+    await this.adminClient
+      .from(RECEIPT_SCANS_TABLE)
+      .update({ saved_record_refs: next })
+      .eq('id', scanId)
+      .eq('user_id', userId);
+    return next;
+  }
+
+  /** Return the row to success-unreviewed after a full undo. */
+  private async clearSaved(scanId: string, userId: string): Promise<void> {
+    await this.adminClient
+      .from(RECEIPT_SCANS_TABLE)
+      .update({ saved_at: null, saved_record_refs: null })
+      .eq('id', scanId)
+      .eq('user_id', userId);
+  }
+
+  private saveDate(date?: string | null): string {
+    return date ?? new Date().toISOString().split('T')[0];
+  }
+
+  /** Narrow a persisted saved_record_refs JSONB into the typed ref shape. */
+  private parseRefs(value: unknown): SavedRecordRefs | null {
+    if (!value || typeof value !== 'object') return null;
+    const r = value as Record<string, unknown>;
+    if (r.recordType !== RECORD_TYPES.EXPENSE && r.recordType !== RECORD_TYPES.MAINTENANCE) {
+      return null;
+    }
+    return r as unknown as SavedRecordRefs;
+  }
+
+  /** Refs → GraphQL SaveReceiptScanSuccess.refs (identical shape). */
+  private refsForDto(value: unknown): SaveReceiptScanSuccess['refs'] {
+    const refs = this.parseRefs(value) ?? { recordType: RECORD_TYPES.EXPENSE };
+    return refs as unknown as SaveReceiptScanSuccess['refs'];
+  }
+
+  // ===========================================================================
   // Helpers
   // ===========================================================================
 
@@ -324,7 +771,7 @@ export class ReceiptScanService {
     const category =
       rawCategory && (EXPENSE_CATEGORIES as readonly string[]).includes(rawCategory)
         ? rawCategory
-        : DEFAULT_CATEGORY;
+        : DEFAULT_EXPENSE_CATEGORY;
     if (category !== rawCategory) needsCheck.push('category');
 
     const result: ReceiptExtractionResult = {

@@ -1123,6 +1123,7 @@ type Mutation {
   revertBlogPostVersion(id: String!, versionNum: Int!): BlogPost!
   revokeShareLink(linkId: ID!): Boolean!
   rotateTripShareToken(tripId: ID!): String!
+  saveReceiptScan(input: SaveReceiptScanInput!, scanId: String!): SaveReceiptScanResult!
   saveTrip(tripId: ID!): Boolean!
   scanReceipt(scanId: String!): ReceiptScanResult!
   scheduleBlogPost(input: ScheduleBlogPostInput!): BlogPost!
@@ -1140,6 +1141,7 @@ type Mutation {
   trackAffiliateClick(input: TrackClickInput!): AffiliateProduct!
   trackSponsorshipClick(input: TrackSponsorshipClickInput!): Boolean!
   trackSponsorshipImpression(input: TrackSponsorshipImpressionInput!): Boolean!
+  undoReceiptScanSave(scanId: String!): UndoReceiptScanResult!
   unfollowRider(input: UnfollowRiderInput!): Boolean!
   unpublishBlogPost(id: String!): BlogPost!
   unpublishTemplate(tripId: ID!): Boolean!
@@ -1636,6 +1638,43 @@ type RouteSuggestion {
   slug: String!
 }
 
+input SaveReceiptScanInput {
+  amount: Float
+  applyOdometer: Boolean
+  category: String
+  currency: String
+  date: String
+  itemName: String
+  laborCost: Float
+  motorcycleId: String!
+  odometerUnit: String
+  odometerValue: Float
+  partsCost: Float
+  type: String!
+  vendor: String
+}
+
+union SaveReceiptScanResult = ReceiptScanError | SaveReceiptScanSuccess
+
+type SaveReceiptScanSuccess {
+  refs: SavedRecordRefs!
+  scanId: String!
+}
+
+type SavedOdometerRef {
+  applied: Float!
+  motorcycleId: String!
+  previous: Float
+}
+
+type SavedRecordRefs {
+  expenseId: String
+  odometer: SavedOdometerRef
+  photoId: String
+  recordType: String!
+  taskId: String
+}
+
 input ScheduleBlogPostInput {
   id: ID!
   scheduledFor: String!
@@ -2036,6 +2075,13 @@ type TripWaypoint {
 type TypeaheadResult {
   places: [PlaceSuggestion!]!
   routes: [RouteSuggestion!]!
+}
+
+union UndoReceiptScanResult = ReceiptScanError | UndoReceiptScanSuccess
+
+type UndoReceiptScanSuccess {
+  scanId: String!
+  status: String!
 }
 
 input UnfollowRiderInput {

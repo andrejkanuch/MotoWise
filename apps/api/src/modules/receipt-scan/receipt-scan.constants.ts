@@ -9,6 +9,11 @@ export const RECEIPT_SCAN_ERROR_CODES = {
   SCAN_QUOTA_EXCEEDED: 'SCAN_QUOTA_EXCEEDED',
   SCAN_DISABLED: 'SCAN_DISABLED',
   ALREADY_COMPLETED: 'ALREADY_COMPLETED',
+  // U7b / KTD-11 — transactional save/undo.
+  /** Scan is not a success-status row owned by the caller (or a bad id). */
+  SCAN_NOT_REVIEWABLE: 'SCAN_NOT_REVIEWABLE',
+  /** A compound save step threw; the compensating saga rolled everything back. */
+  SAVE_FAILED: 'SAVE_FAILED',
 } as const;
 
 export type ReceiptScanErrorCode =
@@ -57,3 +62,71 @@ export const PAYWALL_WOULD_HAVE_SHOWN = 'paywall_would_have_shown' as const;
  */
 export const SCAN_ID_UUID_REGEX =
   /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+// =============================================================================
+// U7b — transactional save + undo (KTD-11 / KTD-7)
+// =============================================================================
+
+/** SaveReceiptScanInput.type / saved_record_refs.recordType. Dispatch key. */
+export const RECORD_TYPES = {
+  EXPENSE: 'expense',
+  MAINTENANCE: 'maintenance',
+} as const;
+
+export type RecordType = (typeof RECORD_TYPES)[keyof typeof RECORD_TYPES];
+
+/** Printed odometer unit (KTD-7). Drives the from-printed-unit conversion. */
+export const ODOMETER_UNITS = {
+  KM: 'km',
+  MI: 'mi',
+} as const;
+
+/** UndoReceiptScanSuccess.status. */
+export const UNDO_STATUS = {
+  REVERTED: 'reverted',
+  NOTHING_TO_UNDO: 'nothing_to_undo',
+} as const;
+
+/**
+ * KTD-7 guard: skip (don't fail) an odometer write whose jump above the current
+ * reading is implausibly large — a mis-read/typo, not a real reading. Expressed
+ * in the owner's stored unit (mi or km); a >100k jump from the current odometer
+ * is not a genuine service-invoice reading.
+ */
+export const MAX_PLAUSIBLE_ODOMETER_JUMP = 100_000 as const;
+
+/** Fallback maintenance-task title when the receipt has no item/vendor. */
+export const DEFAULT_MAINTENANCE_TITLE = 'Service' as const;
+
+/** maintenance_tasks.source for a scan-created task (00166 CHECK extension). */
+export const MAINTENANCE_SOURCE_RECEIPT_SCAN = 'receipt_scan' as const;
+
+/** Fallback expense category when the receipt has no category. */
+export const DEFAULT_EXPENSE_CATEGORY = 'other' as const;
+
+/** Odometer provenance stamped on a scan-driven / reverted current_mileage write. */
+export const ODOMETER_SYNC_SOURCE_MANUAL = 'manual' as const;
+
+/** Default measurement system when the owner's users row has none. */
+export const DEFAULT_MEASUREMENT_SYSTEM = 'metric' as const;
+
+/**
+ * What a successful save wrote, stamped onto receipt_scans.saved_record_refs
+ * (KTD-11). Undo reverses exactly these. Keys are optional so undo can clear
+ * each as it reverses (resumable — a re-run only finishes leftovers).
+ */
+export interface SavedOdometerRef {
+  motorcycleId: string;
+  /** Reading before the scan write; null when the scan was the first-ever set. */
+  previous: number | null;
+  /** Value the scan wrote (owner's unit). Undo reverts ONLY if still equal. */
+  applied: number;
+}
+
+export interface SavedRecordRefs {
+  recordType: RecordType;
+  expenseId?: string;
+  taskId?: string;
+  photoId?: string;
+  odometer?: SavedOdometerRef;
+}

@@ -8,6 +8,8 @@ import { THROTTLE_PRESETS } from '../../config/constants';
 import { CancelReceiptScanResult } from './dto/receipt-scan-cancel.dto';
 import { ReceiptScanQuota } from './dto/receipt-scan-quota.dto';
 import { ReceiptScanResult } from './dto/receipt-scan-result.dto';
+import { SaveReceiptScanInput, SaveReceiptScanResult } from './dto/save-receipt-scan.dto';
+import { UndoReceiptScanResult } from './dto/undo-receipt-scan.dto';
 import { UnreviewedScan } from './dto/unreviewed-scan.dto';
 import { ReceiptScanService } from './receipt-scan.service';
 
@@ -33,6 +35,25 @@ export class ReceiptScanResolver {
     @Args('scanId') scanId: string,
   ): Promise<typeof CancelReceiptScanResult> {
     return this.receiptScanService.cancelReceiptScan(user, scanId);
+  }
+
+  // scanId validated as a strict UUID INSIDE the service (returns the union
+  // SCAN_NOT_REVIEWABLE error, not a thrown 400).
+  @Mutation(() => SaveReceiptScanResult)
+  async saveReceiptScan(
+    @CurrentUser() user: AuthUser,
+    @Args('scanId') scanId: string,
+    @Args('input') input: SaveReceiptScanInput,
+  ): Promise<typeof SaveReceiptScanResult> {
+    return this.receiptScanService.saveReceiptScan(user, scanId, input);
+  }
+
+  @Mutation(() => UndoReceiptScanResult)
+  async undoReceiptScanSave(
+    @CurrentUser() user: AuthUser,
+    @Args('scanId') scanId: string,
+  ): Promise<typeof UndoReceiptScanResult> {
+    return this.receiptScanService.undoReceiptScanSave(user, scanId);
   }
 
   @Query(() => ReceiptScanQuota)
