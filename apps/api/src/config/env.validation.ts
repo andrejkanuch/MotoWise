@@ -46,6 +46,10 @@ export const envSchema = z.object({
   // Entitlements
   ENTITLEMENTS_ENFORCED: z.string().default('false'),
 
+  // Receipt scan (KTD-12) — kill switch. Default enabled; set 'false' to
+  // return a graceful SCAN_DISABLED union error without touching the model.
+  RECEIPT_SCAN_ENABLED: z.string().default('true'),
+
   // Meta Conversions API
   META_DATASET_ID: optionalString,
   META_ACCESS_TOKEN: optionalString,

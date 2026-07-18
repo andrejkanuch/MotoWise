@@ -259,6 +259,14 @@ export type BrowsePlace = {
   slug: Scalars['String']['output'];
 };
 
+export type CancelReceiptScanResult = CancelReceiptScanSuccess | ReceiptScanError;
+
+export type CancelReceiptScanSuccess = {
+  __typename?: 'CancelReceiptScanSuccess';
+  scanId: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+};
+
 export type CategoryTotal = {
   __typename?: 'CategoryTotal';
   category: Scalars['String']['output'];
@@ -1140,6 +1148,7 @@ export type Mutation = {
   approveMaintenanceDraft: Scalars['Boolean']['output'];
   askTripAssistant: TripAssistantMessage;
   cancelGroupRide: Scalars['Boolean']['output'];
+  cancelReceiptScan: CancelReceiptScanResult;
   /** Returns the new trip ID */
   cloneTrip: Scalars['ID']['output'];
   completeMaintenanceTask: CompleteTaskResult;
@@ -1209,6 +1218,7 @@ export type Mutation = {
   revokeShareLink: Scalars['Boolean']['output'];
   rotateTripShareToken: Scalars['String']['output'];
   saveTrip: Scalars['Boolean']['output'];
+  scanReceipt: ReceiptScanResult;
   scheduleBlogPost: BlogPost;
   setTripParticipantRole: Scalars['Boolean']['output'];
   shareRide: Scalars['Boolean']['output'];
@@ -1276,6 +1286,11 @@ export type MutationAskTripAssistantArgs = {
 
 export type MutationCancelGroupRideArgs = {
   groupRideId: Scalars['ID']['input'];
+};
+
+
+export type MutationCancelReceiptScanArgs = {
+  scanId: Scalars['String']['input'];
 };
 
 
@@ -1598,6 +1613,11 @@ export type MutationRotateTripShareTokenArgs = {
 
 export type MutationSaveTripArgs = {
   tripId: Scalars['ID']['input'];
+};
+
+
+export type MutationScanReceiptArgs = {
+  scanId: Scalars['String']['input'];
 };
 
 
@@ -1939,6 +1959,7 @@ export type Query = {
   /** Public saved trips for a user by handle (public_username) */
   publicSavedTrips: TripConnection;
   quizByArticle?: Maybe<Quiz>;
+  receiptScanQuota: ReceiptScanQuota;
   ride: Ride;
   rideFeed: FeedRideConnection;
   rideOverview: RideOverview;
@@ -1963,6 +1984,7 @@ export type Query = {
   tripReviews: Array<TripReview>;
   tripSuggestions: Array<TripSuggestion>;
   tripTemplates: TripConnection;
+  unreviewedReceiptScans: Array<UnreviewedScan>;
   user: User;
 };
 
@@ -2384,6 +2406,57 @@ export type RecallResult = {
   count: Scalars['Int']['output'];
   recalls: Array<Recall>;
   vinUsed?: Maybe<Scalars['String']['output']>;
+};
+
+export type ReceiptExtractionResult = {
+  __typename?: 'ReceiptExtractionResult';
+  amount?: Maybe<Scalars['Float']['output']>;
+  category?: Maybe<Scalars['String']['output']>;
+  currency?: Maybe<Scalars['String']['output']>;
+  date?: Maybe<Scalars['String']['output']>;
+  fieldConfidence: ReceiptFieldConfidenceResult;
+  fuelLitres?: Maybe<Scalars['Float']['output']>;
+  itemName?: Maybe<Scalars['String']['output']>;
+  laborCost?: Maybe<Scalars['Float']['output']>;
+  legibilityNote?: Maybe<Scalars['String']['output']>;
+  needsCheck: Array<Scalars['String']['output']>;
+  odometerUnit?: Maybe<Scalars['String']['output']>;
+  odometerValue?: Maybe<Scalars['Float']['output']>;
+  partsCost?: Maybe<Scalars['Float']['output']>;
+  partsNeeded: Array<Scalars['String']['output']>;
+  type: Scalars['String']['output'];
+  vendor?: Maybe<Scalars['String']['output']>;
+};
+
+export type ReceiptFieldConfidenceResult = {
+  __typename?: 'ReceiptFieldConfidenceResult';
+  amount: Scalars['Float']['output'];
+  category: Scalars['Float']['output'];
+  currency: Scalars['Float']['output'];
+  date: Scalars['Float']['output'];
+  odometer: Scalars['Float']['output'];
+  vendor: Scalars['Float']['output'];
+};
+
+export type ReceiptScanError = {
+  __typename?: 'ReceiptScanError';
+  code: Scalars['String']['output'];
+  reason: Scalars['String']['output'];
+};
+
+export type ReceiptScanQuota = {
+  __typename?: 'ReceiptScanQuota';
+  limit: Scalars['Int']['output'];
+  resetDate: Scalars['String']['output'];
+  used: Scalars['Int']['output'];
+};
+
+export type ReceiptScanResult = ReceiptScanError | ReceiptScanSuccess;
+
+export type ReceiptScanSuccess = {
+  __typename?: 'ReceiptScanSuccess';
+  result: ReceiptExtractionResult;
+  scanId: Scalars['String']['output'];
 };
 
 export type RegisterPushTokenInput = {
@@ -2973,6 +3046,14 @@ export type TypeaheadResult = {
 
 export type UnfollowRiderInput = {
   targetUserId: Scalars['String']['input'];
+};
+
+export type UnreviewedScan = {
+  __typename?: 'UnreviewedScan';
+  createdAt: Scalars['String']['output'];
+  result?: Maybe<ReceiptExtractionResult>;
+  scanId: Scalars['String']['output'];
+  storagePath?: Maybe<Scalars['String']['output']>;
 };
 
 export type UpdateBlogPostInput = {

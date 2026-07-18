@@ -38,6 +38,7 @@ export * from './validators/place';
 export * from './validators/profile';
 export * from './validators/push-token';
 export * from './validators/quiz';
+export * from './validators/receipt-scan';
 export * from './validators/ride';
 export * from './validators/ride-summary';
 export * from './validators/route';

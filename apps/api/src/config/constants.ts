@@ -5,6 +5,7 @@ export const AI_MODELS = {
   DIAGNOSTIC: 'gpt-4.1',
   INSIGHTS: 'gpt-4.1-mini',
   RIDE_SUMMARY: 'gpt-4.1-nano',
+  RECEIPT_SCAN: 'gpt-4.1',
 } as const;
 
 export type AiModel = (typeof AI_MODELS)[keyof typeof AI_MODELS];
@@ -54,6 +55,7 @@ export const THROTTLE_PRESETS = {
   AI_GENERATION: { limit: 5, ttl: 60_000 },
   AI_DIAGNOSTIC: { limit: 3, ttl: 60_000 },
   AI_INSIGHTS: { limit: 3, ttl: 60_000 },
+  RECEIPT_SCAN: { limit: 5, ttl: 60_000 },
   ARTICLE_LIST: { limit: 30, ttl: 60_000 },
   SHARE_LINK: { limit: 10, ttl: 60_000 },
   WAYPOINT_UPLOAD: { limit: 10, ttl: 60_000 },

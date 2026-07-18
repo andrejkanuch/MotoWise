@@ -45,6 +45,7 @@ import { OemSchedulesModule } from './modules/oem-schedules/oem-schedules.module
 import { PlacesModule } from './modules/places/places.module';
 import { PushTokensModule } from './modules/push-tokens/push-tokens.module';
 import { QuizzesModule } from './modules/quizzes/quizzes.module';
+import { ReceiptScanModule } from './modules/receipt-scan/receipt-scan.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { RedisThrottlerStorage } from './modules/redis/redis-throttler.storage';
 import { RideAnalyticsModule } from './modules/ride-analytics/ride-analytics.module';
@@ -105,6 +106,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     ArticlesModule,
     BlogModule,
     QuizzesModule,
+    ReceiptScanModule,
     DiagnosticsModule,
     DocumentsModule,
     ExpensesModule,
