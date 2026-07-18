@@ -169,6 +169,23 @@ export interface GPSStats {
   stopCount: number;
 }
 
+/**
+ * Outcome of processing one raw GPS sample.
+ *
+ * - `accepted`   — a good fix; carries the filtered location for distance,
+ *   waypoints, speed, and stats.
+ * - `stationary` — the rider is stopped (low speed + near-zero displacement).
+ *   Rejected for distance/waypoints (drift prevention) but a *known* zero, so
+ *   the caller can drop the live speed readout to 0 promptly instead of freezing
+ *   on the last value until auto-pause. The distance anchor is NOT advanced.
+ * - `rejected`   — the fix is untrustworthy (poor accuracy, teleport,
+ *   unrealistic speed). The rider may be moving, so the display is left alone.
+ */
+export type ProcessResult =
+  | { status: 'accepted'; location: FilteredLocation }
+  | { status: 'stationary' }
+  | { status: 'rejected' };
+
 class GPSFilter {
   private latFilter: KalmanAxis | null = null;
   private lngFilter: KalmanAxis | null = null;
@@ -182,7 +199,13 @@ class GPSFilter {
   private _stopCount = 0;
   private _wasStopped = false;
 
-  /** Process a raw GPS location. Returns null if the point should be rejected. */
+  /**
+   * Process a raw GPS location.
+   *
+   * Returns a discriminated `ProcessResult`: `accepted` (with the filtered
+   * location), `stationary` (rider stopped — display 0 but do not accumulate),
+   * or `rejected` (untrustworthy fix — leave the display untouched).
+   */
   process(
     latitude: number,
     longitude: number,
@@ -191,12 +214,13 @@ class GPSFilter {
     heading: number | null | undefined,
     accuracy: number | null | undefined,
     timestamp: number,
-  ): FilteredLocation | null {
+  ): ProcessResult {
     const acc = accuracy ?? 15;
     const rawSpeed = Math.max(0, speed ?? 0);
 
-    // Reject points with very poor accuracy
-    if (acc > 50) return null;
+    // Reject points with very poor accuracy — GPS is untrustworthy, so we cannot
+    // claim the rider is stopped (they may be moving). Leave the display alone.
+    if (acc > 50) return { status: 'rejected' };
 
     // Initialize Kalman filters on first point
     if (!this.latFilter || !this.lngFilter) {
@@ -215,7 +239,7 @@ class GPSFilter {
     const smoothedSpeed = this.speedSmoother.add(rawSpeed);
 
     // Reject unrealistic speed (>300 km/h = 83.3 m/s for motorcycles)
-    if (smoothedSpeed > 83.3) return null;
+    if (smoothedSpeed > 83.3) return { status: 'rejected' };
 
     // Compute segment distance
     let segmentDistance = 0;
@@ -227,14 +251,16 @@ class GPSFilter {
         filteredLng,
       );
 
-      // Drift prevention: reject if distance < accuracy and speed is near-zero
+      // Drift prevention: reject if distance < accuracy and speed is near-zero.
+      // The rider is stopped — do NOT advance the anchor (lastAccepted) or count
+      // distance, but signal `stationary` so the caller can show 0 immediately.
       if (segmentDistance < acc * 1.2 && smoothedSpeed < 1.0) {
-        return null;
+        return { status: 'stationary' };
       }
 
       // Reject teleportation: impossible distance for time elapsed
       if (dt > 0 && segmentDistance / dt > 90) {
-        return null; // >324 km/h
+        return { status: 'rejected' }; // >324 km/h
       }
     }
 
@@ -275,7 +301,7 @@ class GPSFilter {
     };
 
     this.lastAccepted = filtered;
-    return filtered;
+    return { status: 'accepted', location: filtered };
   }
 
   get stats(): GPSStats {

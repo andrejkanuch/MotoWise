@@ -280,7 +280,7 @@ function processLocation(location: Location.LocationObject): void {
   if (decision.abort) return;
 
   // --- Apply GPS filter (Kalman + smoothing + drift prevention) ---
-  const filtered = gpsFilter.process(
+  const result = gpsFilter.process(
     location.coords.latitude,
     location.coords.longitude,
     location.coords.altitude,
@@ -290,11 +290,23 @@ function processLocation(location: Location.LocationObject): void {
     location.timestamp,
   );
 
-  // If the filter rejects the point (poor accuracy, drift, teleport), skip it
-  if (!filtered) return;
+  const store = useRideStore.getState();
+
+  // Untrustworthy fix (poor accuracy / teleport / unrealistic speed): the rider
+  // may be moving, so leave the readout on its last value.
+  if (result.status === 'rejected') return;
+
+  // Stopped rider: drift prevention rejected this sample for distance, but it is
+  // a known zero — drop the live speed to 0 now instead of freezing until the
+  // 60s auto-pause. Do not accumulate distance/waypoints or advance the anchor.
+  if (result.status === 'stationary') {
+    store.updateSpeed(0);
+    return;
+  }
+
+  const filtered = result.location;
 
   // --- Update live stats in Zustand store ---
-  const store = useRideStore.getState();
   store.updateSpeed(filtered.speed);
   store.updateMaxSpeed(filtered.speed);
 
