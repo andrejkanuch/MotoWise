@@ -305,7 +305,7 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
     } finally {
       clearTimeout(skipTimer);
     }
-  }, [routeResolved]);
+  }, [routeResolved, isOnboarding]);
 
   const beginUpload = useCallback(
     async (photoUri: string) => {
