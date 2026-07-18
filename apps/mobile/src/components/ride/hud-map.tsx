@@ -3,7 +3,7 @@ import type { Waypoint } from '@motovault/types';
 import MapboxGL, { type MapState } from '@rnmapbox/maps';
 import { LocateFixed } from 'lucide-react-native';
 import { PostHogMaskView } from 'posthog-react-native';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, useColorScheme, View } from 'react-native';
 import { useAuthStore } from '../../stores/auth.store';
@@ -65,8 +65,18 @@ export function HudMap({ waypoints, gpsAccuracy, recenterBottomOffset = 16 }: Hu
   const routeGeoJSON = useMemo(() => buildRouteGeoJSON(waypoints), [waypoints]);
   const gpsColor = getGpsColor(gpsAccuracy);
 
-  // Course-up only once a finite course has been observed (NaN guard, R4).
-  const hasValidCourse = useMemo(() => hasFiniteCourse(waypoints), [waypoints]);
+  // Cold-start NaN guard (R4): hold north-up until the device has produced at
+  // least one finite GPS course fix, then LATCH course-up on. The latch matters
+  // because this check only gates the *initial* engagement — once engaged,
+  // FollowWithCourse rotates by the native live GPS course, which is decoupled
+  // from our stored waypoint headings. Without the latch, a single accepted
+  // sample with a momentarily-null heading (common at low speed) would flip the
+  // map north-up and back — a visible orientation snap in the exact heading-up
+  // scenario this feature targets. The crash path (compass / FollowWithHeading,
+  // Sentry MOTO-VAULT-REACT-NATIVE-16) is never used, so latching is safe.
+  const courseSeenRef = useRef(false);
+  const hasValidCourse = courseSeenRef.current || hasFiniteCourse(waypoints);
+  if (hasValidCourse) courseSeenRef.current = true;
   const followUserMode = resolveFollowUserMode(mapOrientation, hasValidCourse);
 
   // Follow re-arm: a user pan breaks native follow; the recenter button re-arms it.

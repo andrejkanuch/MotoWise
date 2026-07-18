@@ -9,8 +9,11 @@ import { MAP_ORIENTATIONS, type MapOrientation } from '../../utils/map-orientati
  * "Cannot round NaN value" on low-end sensors (Sentry MOTO-VAULT-REACT-NATIVE-16).
  *
  * Course-up is engaged only once a finite course has been observed
- * (`hasValidCourse`), so the native follow controller never receives a NaN
- * bearing. Until then — and for the `north` preference — the map stays north-up.
+ * (`hasValidCourse`) — a cold-start gate so we never request course rotation
+ * before the device has produced any GPS course. Until then — and for the
+ * `north` preference — the map stays north-up. (The caller latches
+ * `hasValidCourse` on first observation; ongoing rotation is driven by the
+ * native live GPS course, not this flag.)
  */
 export function resolveFollowUserMode(
   orientation: MapOrientation,
