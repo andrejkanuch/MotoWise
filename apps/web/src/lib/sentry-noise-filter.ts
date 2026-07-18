@@ -1,7 +1,8 @@
 import type { ErrorEvent } from '@sentry/nextjs';
+import type { CaptureResult } from 'posthog-js';
 
 /**
- * Client-side Sentry noise filter.
+ * Client-side error-tracking noise filter, shared by Sentry and PostHog.
  *
  * Marketing pages are viewed heavily inside in-app browser webviews (the iOS
  * Google/Facebook apps) and behind third-party scripts (Meta Pixel, PostHog).
@@ -9,17 +10,34 @@ import type { ErrorEvent } from '@sentry/nextjs';
  * `onunhandledrejection` handlers that never originate in first-party code —
  * they arrive stackless or with a single opaque `undefined`-filename frame.
  *
- * Each rule below is scoped so a genuine first-party error carrying real
+ * Both Sentry (`capture_exceptions` off; wired via `beforeSend`) and PostHog
+ * (`capture_exceptions: true`; wired via `before_send`) autocapture these
+ * globals, so the drop rules live here once and are applied to both. Sentry's
+ * `ErrorEvent` and PostHog's `$exception` event carry the same exception shape
+ * (`type` / `value` / `mechanism.type` / `stacktrace.frames[].filename`), so
+ * each adapter just projects its event onto the minimal shape below.
+ *
+ * Each rule is scoped so a genuine first-party error carrying real
  * `/_next/static` frames still reports. Returning `true` drops the event.
  */
-export function shouldDropClientEvent(event: ErrorEvent): boolean {
-  const exceptions = event.exception?.values;
+interface NoiseException {
+  type?: string;
+  value?: string;
+  mechanism?: { type?: string };
+  stacktrace?: { frames?: { filename?: string }[] };
+}
+
+/**
+ * The shared drop decision. Operates on the exception list common to both
+ * Sentry and PostHog; the per-provider adapters below extract it.
+ */
+function shouldDropExceptions(exceptions: NoiseException[] | undefined): boolean {
   if (!exceptions?.length) return false;
 
   // Presence of a first-party `/_next/static` frame anywhere in the event's
   // exception chain. Computed across ALL exceptions (not per-exception) so a
   // frameless third-party throw never drops an event that also carries a
-  // genuine first-party frame on a different exception in `exception.values`.
+  // genuine first-party frame on a different exception in the list.
   const hasFirstPartyFrame = exceptions.some((e) =>
     e.stacktrace?.frames?.some((f) => f.filename?.includes('/_next/static')),
   );
@@ -97,4 +115,23 @@ export function shouldDropClientEvent(event: ErrorEvent): boolean {
   }
 
   return false;
+}
+
+/**
+ * Sentry adapter — `beforeSend` in instrumentation-client.ts.
+ */
+export function shouldDropClientEvent(event: ErrorEvent): boolean {
+  return shouldDropExceptions(event.exception?.values);
+}
+
+/**
+ * PostHog adapter — `before_send` in instrumentation-client.ts.
+ *
+ * PostHog's `$exception` autocapture stores the exception chain on
+ * `properties.$exception_list`. Non-`$exception` events carry no such list, so
+ * `shouldDropExceptions` returns `false` and they pass through untouched.
+ */
+export function shouldDropPostHogEvent(event: CaptureResult | null): boolean {
+  if (!event) return false;
+  return shouldDropExceptions(event.properties?.$exception_list as NoiseException[] | undefined);
 }

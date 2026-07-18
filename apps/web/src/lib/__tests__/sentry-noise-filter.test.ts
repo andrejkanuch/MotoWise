@@ -1,6 +1,7 @@
 import type { ErrorEvent } from '@sentry/nextjs';
+import type { CaptureResult } from 'posthog-js';
 import { describe, expect, it } from 'vitest';
-import { shouldDropClientEvent } from '../sentry-noise-filter';
+import { shouldDropClientEvent, shouldDropPostHogEvent } from '../sentry-noise-filter';
 
 type Frame = { filename?: string; in_app?: boolean };
 
@@ -176,6 +177,69 @@ describe('shouldDropClientEvent', () => {
     expect(
       shouldDropClientEvent(
         eventWith('Cannot read properties of undefined (reading "id")', {
+          frames: [{ filename: '/_next/static/chunks/app.js', in_app: true }],
+        }),
+      ),
+    ).toBe(false);
+  });
+});
+
+describe('shouldDropPostHogEvent', () => {
+  // Mirrors PostHog's `$exception` autocapture shape: the exception chain lives
+  // on `properties.$exception_list`, entries carrying the same
+  // type/value/mechanism/stacktrace fields as Sentry's exception values.
+  const exceptionEvent = (
+    value: string,
+    opts: { type?: string; frames?: Frame[]; mechanismType?: string } = {},
+  ): CaptureResult =>
+    ({
+      event: '$exception',
+      properties: {
+        $exception_list: [
+          {
+            type: opts.type ?? 'Error',
+            value,
+            ...(opts.frames ? { stacktrace: { type: 'raw', frames: opts.frames } } : {}),
+            ...(opts.mechanismType ? { mechanism: { type: opts.mechanismType } } : {}),
+          },
+        ],
+      },
+    }) as unknown as CaptureResult;
+
+  it('keeps a null event (before_send passes it through)', () => {
+    expect(shouldDropPostHogEvent(null)).toBe(false);
+  });
+
+  it('keeps non-exception events with no $exception_list', () => {
+    expect(
+      shouldDropPostHogEvent({ event: '$pageview', properties: {} } as unknown as CaptureResult),
+    ).toBe(false);
+  });
+
+  it('drops the benign RSC "Connection closed." unhandledrejection', () => {
+    expect(
+      shouldDropPostHogEvent(
+        exceptionEvent('Connection closed.', { mechanismType: 'onunhandledrejection' }),
+      ),
+    ).toBe(true);
+    // Same message via a different mechanism (a real thrown error) still reports.
+    expect(
+      shouldDropPostHogEvent(exceptionEvent('Connection closed.', { mechanismType: 'generic' })),
+    ).toBe(false);
+  });
+
+  it('drops ResizeObserver loop notifications', () => {
+    expect(
+      shouldDropPostHogEvent(
+        exceptionEvent('ResizeObserver loop completed with undelivered notifications'),
+      ),
+    ).toBe(true);
+  });
+
+  it('keeps unrelated first-party errors', () => {
+    expect(
+      shouldDropPostHogEvent(
+        exceptionEvent('Cannot read properties of undefined (reading "id")', {
           frames: [{ filename: '/_next/static/chunks/app.js', in_app: true }],
         }),
       ),
