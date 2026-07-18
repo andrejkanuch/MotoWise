@@ -7,12 +7,14 @@ input AddDocumentCategoryInput {
 }
 
 input AddExpensePhotoInput {
+  bucket: String
   expenseId: String!
   fileSizeBytes: Int
   storagePath: String!
 }
 
 input AddTaskPhotoInput {
+  bucket: String
   fileSizeBytes: Int
   storagePath: String!
   taskId: String!
@@ -380,18 +382,6 @@ input CreateFlagInput {
   sectionReference: String
 }
 
-input CreateFuelLogInput {
-  currency: String
-  filledAt: String
-  fuelLitres: Float!
-  fuelType: String
-  isPartial: Boolean
-  motorcycleId: String!
-  notes: String
-  odometerKm: Float!
-  totalCost: Float
-}
-
 input CreateGroupRideInput {
   dateTime: String!
   description: String!
@@ -707,23 +697,6 @@ type FollowEdge {
 
 input FollowRiderInput {
   targetUserId: String!
-}
-
-type FuelLog {
-  createdAt: String!
-  currency: String!
-  filledAt: String!
-  fuelLitres: Float!
-  fuelType: String!
-  id: ID!
-  isPartial: Boolean!
-  kmSincePrevious: Float
-  litresPer100Km: Float
-  motorcycleId: String!
-  mpgUs: Float
-  notes: String
-  odometerKm: Float!
-  totalCost: Float
 }
 
 type FuelRangeResult {
@@ -1091,7 +1064,6 @@ type Mutation {
   createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
   createDocument(input: CreateDocumentInput!): Document!
   createFlag(input: CreateFlagInput!): ContentFlag!
-  createFuelLog(input: CreateFuelLogInput!): FuelLog!
   createGroupRide(input: CreateGroupRideInput!): GroupRide!
   createMaintenanceTask(input: CreateMaintenanceTaskInput!): MaintenanceTask!
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
@@ -1107,7 +1079,6 @@ type Mutation {
   deleteDocumentCategory(id: String!): Boolean!
   deleteExpense(id: String!): Boolean!
   deleteExpensePhoto(photoId: String!): Boolean!
-  deleteFuelLog(id: String!): Boolean!
   deleteMaintenanceTask(id: String!): Boolean!
   deleteMotorcycle(id: String!): Boolean!
   deleteRide(id: String!): Boolean!
@@ -1334,7 +1305,6 @@ type Query {
   expensePhotos(expenseId: String!): [ExpensePhoto!]!
   expenses(motorcycleId: String!, year: Int): ExpenseSummary!
   expiringDocuments(withinDays: Int): [Document!]!
-  fuelLogs(motorcycleId: String!): [FuelLog!]!
   fuelStops(radiusKm: Float = 5, routeId: ID!): [FuelStop!]!
   fuelStopsNearRoute(bikeId: ID, radiusKm: Float = 5, routeId: ID!): FuelRangeResult!
   getComments(after: String, first: Int = 20, groupRideId: ID, rideId: ID, routeId: ID, tripId: ID): CommentConnection!

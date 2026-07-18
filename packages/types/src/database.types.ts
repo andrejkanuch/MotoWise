@@ -1440,7 +1440,6 @@ export type Database = {
           date: string
           deleted_at: string | null
           description: string | null
-          fuel_log_id: string | null
           id: string
           item_name: string | null
           maintenance_task_id: string | null
@@ -1456,7 +1455,6 @@ export type Database = {
           date: string
           deleted_at?: string | null
           description?: string | null
-          fuel_log_id?: string | null
           id?: string
           item_name?: string | null
           maintenance_task_id?: string | null
@@ -1472,7 +1470,6 @@ export type Database = {
           date?: string
           deleted_at?: string | null
           description?: string | null
-          fuel_log_id?: string | null
           id?: string
           item_name?: string | null
           maintenance_task_id?: string | null
@@ -1481,13 +1478,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "expenses_fuel_log_id_fkey"
-            columns: ["fuel_log_id"]
-            isOneToOne: false
-            referencedRelation: "fuel_logs"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "expenses_maintenance_task_id_fkey"
             columns: ["maintenance_task_id"]
@@ -1561,62 +1551,6 @@ export type Database = {
             columns: ["following_id"]
             isOneToOne: false
             referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      fuel_logs: {
-        Row: {
-          created_at: string
-          currency: string | null
-          deleted_at: string | null
-          filled_at: string
-          fuel_litres: number
-          fuel_type: string | null
-          id: string
-          is_partial: boolean
-          motorcycle_id: string
-          notes: string | null
-          odometer_km: number
-          total_cost: number | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          currency?: string | null
-          deleted_at?: string | null
-          filled_at?: string
-          fuel_litres: number
-          fuel_type?: string | null
-          id?: string
-          is_partial?: boolean
-          motorcycle_id: string
-          notes?: string | null
-          odometer_km: number
-          total_cost?: number | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          currency?: string | null
-          deleted_at?: string | null
-          filled_at?: string
-          fuel_litres?: number
-          fuel_type?: string | null
-          id?: string
-          is_partial?: boolean
-          motorcycle_id?: string
-          notes?: string | null
-          odometer_km?: number
-          total_cost?: number | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fuel_logs_motorcycle_id_fkey"
-            columns: ["motorcycle_id"]
-            isOneToOne: false
-            referencedRelation: "motorcycles"
             referencedColumns: ["id"]
           },
         ]

@@ -1,0 +1,7 @@
+query ReceiptScanQuota {
+  receiptScanQuota {
+    used
+    limit
+    resetDate
+  }
+}
