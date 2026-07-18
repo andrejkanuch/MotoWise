@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { GARAGE_ROUTE, PROFILE_ROUTE, TAB_ROUTE } from '../config/routes';
+import { GARAGE_ROUTE, MODAL_ROUTE, PROFILE_ROUTE, TAB_ROUTE } from '../config/routes';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 
@@ -11,6 +11,7 @@ export const CHECKLIST_ITEM_ID = {
   FIRST_EXPENSE: 'first_expense',
   COMPLETE_BIKE: 'complete_bike',
   EXPLORE_DASHBOARD: 'explore_dashboard',
+  SCAN_RECEIPT: 'scan_receipt',
 } as const;
 
 export interface ChecklistItem {
@@ -71,27 +72,45 @@ export const ALL_CHECKLIST_ITEMS: ChecklistItem[] = [
     deepLink: TAB_ROUTE.HOME,
     goalRelation: 'just_exploring',
   },
+  {
+    // Opens the scan modal (multi-bike picker / single-bike auto-select). Tied to
+    // the expenses goal — receipt scanning is the fast path to a logged expense.
+    id: CHECKLIST_ITEM_ID.SCAN_RECEIPT,
+    labelKey: 'checklist.scanReceipt',
+    icon: 'ScanLine',
+    deepLink: MODAL_ROUTE.SCAN_RECEIPT,
+    goalRelation: 'manage_expenses',
+  },
 ];
 
 /**
- * Persist migration. v3 refreshes each persisted item's `deepLink` from source
- * IN PLACE — preserving the user's progress (completedItems/dismissed) and
- * keeping the card visible. (The pre-v3 approach reset items:[] +
- * initialized:false, but `initialize` only runs at onboarding completion, so
- * already-onboarded users would lose the card permanently and never receive the
- * corrected first_expense link.) Items with no matching source pass through
- * unchanged. Exported for unit testing.
+ * Persist migration (applied cumulatively, oldest-first — never early-returns so
+ * a v2 blob gets both the v3 and v4 passes). Progress (completedItems/dismissed)
+ * is always preserved and the card stays visible.
+ *  - v3: refresh each persisted item's `deepLink` from source IN PLACE. (The
+ *    pre-v3 reset of items:[]+initialized:false lost the card for already-
+ *    onboarded users, since `initialize` only runs at onboarding completion.)
+ *  - v4: append the "scan a receipt" item for already-onboarded users so the new
+ *    activation task shows up without re-running `initialize`.
+ * Items with no matching source pass through unchanged. Exported for unit testing.
  */
 export function migrateChecklistState(persisted: unknown, version: number): ChecklistState {
   const prev = persisted as ChecklistState;
+  let items = prev.items ?? [];
   if (version < 3) {
-    const items = (prev.items ?? []).map((item) => {
+    items = items.map((item) => {
       const source = ALL_CHECKLIST_ITEMS.find((ci) => ci.id === item.id);
       return source ? { ...item, deepLink: source.deepLink } : item;
     });
-    return { ...prev, items };
   }
-  return prev;
+  if (version < 4) {
+    // Only for an already-initialized checklist (non-empty). Idempotent on id.
+    const scanItem = ALL_CHECKLIST_ITEMS.find((ci) => ci.id === CHECKLIST_ITEM_ID.SCAN_RECEIPT);
+    if (scanItem && items.length > 0 && !items.some((i) => i.id === scanItem.id)) {
+      items = [...items, scanItem];
+    }
+  }
+  return { ...prev, items };
 }
 
 /** Build a personalized checklist ordered by the user's goals */
@@ -148,7 +167,7 @@ export const useChecklistStore = create<ChecklistState>()(
     }),
     {
       name: 'checklist-state',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => createZustandMMKVStorage('checklist-store')),
       partialize: ({ initialize, completeItem, dismiss, reset, ...data }) => data,
       migrate: migrateChecklistState,

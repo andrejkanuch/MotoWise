@@ -998,7 +998,15 @@
     "obNoBikeServiceBody": "作業を記録し、次回の前にリマインドします。",
     "obNoBikeRoutesTitle": "ルートを発見",
     "obNoBikeRoutesBody": "近くの素晴らしい道を見つけ、グループライドを計画しましょう。",
-    "obNoBikeAddBike": "バイクを今すぐ追加"
+    "obNoBikeAddBike": "バイクを今すぐ追加",
+    "scanEyebrow": "Try it now",
+    "scanTitle": "Snap your first",
+    "scanTitleAccent": "receipt",
+    "scanSubtitle": "Point your camera at a fuel, parts, or service receipt — MotoVault reads the amount, date, and vendor and logs it for you.",
+    "scanCta": "Scan a receipt",
+    "scanSkip": "Maybe later",
+    "scanBulletExtract": "AI pulls out the amount, date, and vendor",
+    "scanBulletFast": "Logged in seconds — no typing"
   },
   "bikeHub": {
     "upcoming": "予定",
@@ -1947,7 +1955,8 @@
     "trackFirstExpense": "Track your first expense",
     "completeBikeProfile": "Complete your bike profile",
     "exploreDashboard": "Explore your dashboard",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "scanReceipt": "Scan a receipt"
   },
   "myRides": {
     "title": "マイライド",
@@ -2363,6 +2372,16 @@
       "duplicateBody": "A similar entry already exists for this bike. Save it anyway?",
       "duplicateConfirm": "Save anyway",
       "duplicateCancel": "Review"
+    },
+    "entry": {
+      "title": "Scan a receipt",
+      "subtitle": "Snap it — we log it for you",
+      "freeBadge": "{{count}} free",
+      "upsellBadge": "Unlimited"
+    },
+    "recovery": {
+      "reviewTitle": "{{count}} receipt to review",
+      "reviewSubtitle": "Finish logging what you scanned"
     }
   }
 }

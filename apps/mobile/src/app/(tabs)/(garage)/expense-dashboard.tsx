@@ -25,6 +25,8 @@ import { CategoryDonut } from '../../../components/expense-dashboard/category-do
 import { MonthlyTrend } from '../../../components/expense-dashboard/monthly-trend';
 import { SummaryCards } from '../../../components/expense-dashboard/summary-cards';
 import { GARAGE_ROUTE } from '../../../config/routes';
+import { ReceiptScanEntry } from '../../../features/receipt-scan/receipt-scan-entry';
+import { SCAN_ENTRY_SURFACE } from '../../../features/receipt-scan/scan-flow-constants';
 import { useCurrency } from '../../../hooks/use-currency';
 import {
   PERIOD_OPTIONS,
@@ -194,7 +196,15 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
           </Text>
         </Pressable>
       </Animated.View>
-      <Animated.View entering={FadeIn.delay(500).duration(300)}>
+      {/* Scan-a-receipt alternative to manual entry — carries bike context (U8) */}
+      <View style={{ alignSelf: 'stretch', marginTop: 20 }}>
+        <ReceiptScanEntry
+          motorcycleId={motorcycleId}
+          surface={SCAN_ENTRY_SURFACE.EXPENSE_EMPTY}
+          delay={480}
+        />
+      </View>
+      <Animated.View entering={FadeIn.delay(560).duration(300)}>
         <Text
           style={{
             fontFamily: 'InstrumentSerif-Italic',

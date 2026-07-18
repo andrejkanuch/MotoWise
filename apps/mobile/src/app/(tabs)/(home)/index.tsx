@@ -19,6 +19,9 @@ import { useHomeData } from '../../../components/home/use-home-data';
 import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
 import { ECard, ESectionMasthead } from '../../../components/ui/editorial';
+import { ReceiptScanEntry } from '../../../features/receipt-scan/receipt-scan-entry';
+import { ReceiptScanRecoveryCard } from '../../../features/receipt-scan/receipt-scan-recovery-card';
+import { SCAN_ENTRY_SURFACE } from '../../../features/receipt-scan/scan-flow-constants';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
 
@@ -251,6 +254,10 @@ export default function HomeScreen() {
 
         {/* Onboarding checklist — appears after onboarding completion, above all other content */}
         <OnboardingChecklist />
+
+        {/* Receipt-scan recovery — parked/unreviewed scans + durable post-save undo.
+            The guaranteed surface the review-later notification deep-links to (U8). */}
+        <ReceiptScanRecoveryCard />
 
         {/* 1. Top bar */}
         <View
@@ -799,6 +806,11 @@ export default function HomeScreen() {
                   </Text>
                 </Pressable>
               ))}
+            </View>
+
+            {/* Scan-a-receipt entry — quick path to a logged expense (U8) */}
+            <View style={{ marginTop: 10 }}>
+              <ReceiptScanEntry motorcycleId={activeBike?.id} surface={SCAN_ENTRY_SURFACE.HOME} />
             </View>
           </View>
         )}

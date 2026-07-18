@@ -10,6 +10,7 @@ import {
   Compass,
   LayoutDashboard,
   MapPin,
+  ScanLine,
   Wallet,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -32,6 +33,7 @@ const ICON_MAP: Record<string, typeof MapPin> = {
   Wallet,
   Bike,
   LayoutDashboard,
+  ScanLine,
 };
 
 export function OnboardingChecklist() {

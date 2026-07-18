@@ -323,6 +323,8 @@ export const AnalyticsEvent = {
   ONBOARDING_STEP_COMPLETED: 'onboarding_step_completed',
   ONBOARDING_STEP_SKIPPED: 'onboarding_step_skipped',
   ONBOARDING_COMPLETED: 'onboarding_completed',
+  // Activation Goal 7 — a receipt scan completed during onboarding (KTD-10 quota-exempt).
+  ONBOARDING_SCAN_COMPLETED: 'receipt_scan_onboarding_completed',
   ONBOARDING_DROPPED_OFF: 'onboarding_dropped_off',
   ONBOARDING_RESUMED: 'onboarding_resumed',
   // Onboarding A/B (2026) funnel — see docs/onboarding-ab-event-schema.md

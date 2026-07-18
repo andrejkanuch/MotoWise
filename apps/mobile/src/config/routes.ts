@@ -18,6 +18,11 @@ export const GARAGE_ROUTE = {
   ADD_BIKE: '/(tabs)/(garage)/add-bike',
 } as const;
 
+/** Root modal routes (presented over any tab / onboarding stack) */
+export const MODAL_ROUTE = {
+  SCAN_RECEIPT: '/(modals)/scan-receipt',
+} as const;
+
 /** Profile sub-routes */
 export const PROFILE_ROUTE = {
   RIDES: '/(tabs)/(profile)/rides',

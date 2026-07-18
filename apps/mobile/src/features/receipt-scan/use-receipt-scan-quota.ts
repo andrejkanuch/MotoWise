@@ -5,8 +5,15 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useSubscriptionStore } from '../../stores/subscription.store';
 
+/**
+ * The `FREE_TIER_LIMITS` key for receipt scans — the single string fed to
+ * `requireAccess`/`checkAccess` so the paywall opens with the `unlimited_scans`
+ * feature (featureMap in use-pro-gate). Exported so entry points don't inline it.
+ */
+export const RECEIPT_SCAN_LIMIT_KEY = 'MAX_RECEIPT_SCANS_PER_MONTH' as const;
+
 /** Client fallback limit; the server's `receiptScanQuota.limit` is authoritative. */
-const SCAN_LIMIT = FREE_TIER_LIMITS.MAX_RECEIPT_SCANS_PER_MONTH;
+const SCAN_LIMIT = FREE_TIER_LIMITS[RECEIPT_SCAN_LIMIT_KEY];
 
 export interface ReceiptScanQuotaState {
   used: number;

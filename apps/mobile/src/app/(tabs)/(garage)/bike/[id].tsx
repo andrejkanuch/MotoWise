@@ -47,6 +47,8 @@ import { ExpensesSection } from '../../../../components/bike-hub/expenses-sectio
 import { MaintenanceSection } from '../../../../components/bike-hub/maintenance-section';
 import { MileageDisplay } from '../../../../components/bike-hub/mileage-display';
 import { OemDisclaimerCard } from '../../../../components/maintenance/oem-disclaimer-card';
+import { ReceiptScanEntry } from '../../../../features/receipt-scan/receipt-scan-entry';
+import { SCAN_ENTRY_SURFACE } from '../../../../features/receipt-scan/scan-flow-constants';
 import { useMileageUnit } from '../../../../hooks/use-mileage-unit';
 import { useMotorcycleDocuments } from '../../../../hooks/use-motorcycle-documents';
 
@@ -816,6 +818,11 @@ export default function BikeDetailScreen() {
             <MoreHorizontal size={16} color={theme.ink2} strokeWidth={2} />
           </Pressable>
         </Animated.View>
+
+        {/* Scan-a-receipt entry — pre-picks this bike (U8) */}
+        <View style={{ paddingHorizontal: 20, marginTop: 8 }}>
+          <ReceiptScanEntry motorcycleId={id} surface={SCAN_ENTRY_SURFACE.BIKE_HUB} delay={80} />
+        </View>
 
         {/* Stats Cards Row */}
         <Animated.View

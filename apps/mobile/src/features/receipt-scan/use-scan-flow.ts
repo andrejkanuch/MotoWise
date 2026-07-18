@@ -25,6 +25,7 @@ import {
   resolveErrorOutcome,
   SCAN_ERROR_CODE,
   SCAN_PHASE,
+  type ScanEntrySurface,
   type ScanPhase,
   SKIP_AFFORDANCE_DELAY_MS,
   UPLOAD_TIMEOUT_MS,
@@ -126,6 +127,20 @@ interface UseScanFlowParams {
   initialBikeId?: string | null;
   /** Whether the quota query is still loading (gate waits for it). */
   quotaLoading: boolean;
+  /**
+   * Onboarding first scan (KTD-10): quota-exempt, so the client paywall gate is
+   * skipped and `ONBOARDING_SCAN_COMPLETED` fires on a completed extraction
+   * (activation Goal 7). The server enforces the one-per-user cap.
+   */
+  isOnboarding?: boolean;
+  /**
+   * Resume a completed-but-unreviewed scan straight into the review card (U8 home
+   * recovery card / U6 parked-scan notification). When set, the flow starts at
+   * REVIEW with this handoff and the gate/capture pipeline is skipped entirely.
+   */
+  initialResume?: ReceiptReviewHandoff | null;
+  /** Where the scan was launched from — stamped on the started/paywall events. */
+  entrySurface?: ScanEntrySurface;
 }
 
 export interface ScanFlow {
@@ -159,16 +174,28 @@ export interface ScanFlow {
  * once the rider taps skip, the CANCEL response is authoritative for routing.
  */
 export function useScanFlow(params: UseScanFlowParams): ScanFlow {
-  const { userId, bikes, initialBikeId, quotaLoading } = params;
+  const { userId, bikes, initialBikeId, quotaLoading, isOnboarding, initialResume, entrySurface } =
+    params;
   const { requireAccess } = useProGate();
   const quota = useReceiptScanQuota();
-  const [state, dispatch] = useReducer(reducer, {
-    ...INITIAL,
-    bikeId: initialBikeId ?? (bikes.length === 1 ? bikes[0].id : null),
-  });
+  const [state, dispatch] = useReducer(
+    reducer,
+    initialResume
+      ? {
+          ...INITIAL,
+          phase: SCAN_PHASE.REVIEW,
+          handoff: initialResume,
+          bikeId: initialResume.bikeId || initialBikeId || null,
+        }
+      : {
+          ...INITIAL,
+          bikeId: initialBikeId ?? (bikes.length === 1 ? bikes[0].id : null),
+        },
+  );
 
-  // The client-generated UUID identifying this scan across upload + extraction.
-  const scanIdRef = useRef<string>(Crypto.randomUUID());
+  // The UUID identifying this scan across upload + extraction. A resumed scan
+  // keeps its server-issued id so Save targets the right reservation.
+  const scanIdRef = useRef<string>(initialResume?.scanId ?? Crypto.randomUUID());
   // Records the scanReceipt outcome so the cancel handler can route on it.
   const scanResolvedRef = useRef<ScanResolved | null>(null);
   const cancelRequestedRef = useRef(false);
@@ -220,6 +247,10 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
           },
         });
         trackEvent(AnalyticsEvent.RECEIPT_SCAN_COMPLETED, { outcome: 'success' });
+        // Activation Goal 7: the onboarding first scan reached a completed
+        // extraction. Fired here (not at Save) because onboarding riders may be
+        // bike-less until onboarding finishes, so a Save can't be guaranteed.
+        if (isOnboarding) trackEvent(AnalyticsEvent.ONBOARDING_SCAN_COMPLETED, {});
         return;
       }
       const outcome = resolveErrorOutcome(union.code);
@@ -230,7 +261,7 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
       dispatch({ type: 'FAILED', error: outcome });
       trackEvent(AnalyticsEvent.RECEIPT_SCAN_COMPLETED, { outcome: union.code });
     },
-    [requireAccess, quota.used],
+    [requireAccess, quota.used, isOnboarding],
   );
 
   const beginAnalyze = useCallback(async () => {
@@ -411,18 +442,27 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
   // --- Gate-before-camera (KTD-3). Runs once quota is known. ---
   // biome-ignore lint/correctness/useExhaustiveDependencies: one-shot gate keyed on quota load, not a reactive effect
   useEffect(() => {
+    // A resumed scan starts at REVIEW — there is nothing to gate or capture.
+    if (initialResume) return;
     if (gateRefusedRef.current || quotaLoading || state.phase !== SCAN_PHASE.GATING) return;
 
-    // requireAccess presents the paywall as a side effect and returns false when
-    // the free monthly scan count is exhausted — we STOP before the camera.
-    if (!requireAccess('MAX_RECEIPT_SCANS_PER_MONTH', quota.used)) {
+    // Onboarding first scan is quota-exempt (KTD-10) — skip the paywall gate.
+    // Otherwise requireAccess presents the paywall as a side effect and returns
+    // false when the free monthly scan count is exhausted — we STOP before the camera.
+    if (!isOnboarding && !requireAccess('MAX_RECEIPT_SCANS_PER_MONTH', quota.used)) {
       gateRefusedRef.current = true;
-      trackEvent(AnalyticsEvent.PAYWALL_PRESENT_REQUESTED, { surface: 'receipt_scan_gate' });
+      trackEvent(AnalyticsEvent.PAYWALL_PRESENT_REQUESTED, {
+        surface: entrySurface ?? 'receipt_scan_gate',
+      });
       return;
     }
 
     startedAtRef.current = Date.now();
-    trackEvent(AnalyticsEvent.RECEIPT_SCAN_STARTED, { bike_count: bikes.length });
+    trackEvent(AnalyticsEvent.RECEIPT_SCAN_STARTED, {
+      bike_count: bikes.length,
+      surface: entrySurface ?? null,
+      is_onboarding: !!isOnboarding,
+    });
 
     const afterPick = hasAcceptedScanConsent() ? SCAN_PHASE.CAPTURE : SCAN_PHASE.CONSENT;
     // Auto-select the only bike so capture/upload always carries bike context;
