@@ -439,13 +439,17 @@ export type CreateGroupRideInput = {
 export type CreateMaintenanceTaskInput = {
   completedAt?: InputMaybe<Scalars['String']['input']>;
   completedMileage?: InputMaybe<Scalars['Int']['input']>;
+  cost?: InputMaybe<Scalars['Float']['input']>;
+  currency?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   dueDate?: InputMaybe<Scalars['String']['input']>;
   intervalDays?: InputMaybe<Scalars['Int']['input']>;
   intervalKm?: InputMaybe<Scalars['Int']['input']>;
   isRecurring?: InputMaybe<Scalars['Boolean']['input']>;
+  laborCost?: InputMaybe<Scalars['Float']['input']>;
   motorcycleId: Scalars['String']['input'];
   notes?: InputMaybe<Scalars['String']['input']>;
+  partsCost?: InputMaybe<Scalars['Float']['input']>;
   partsNeeded?: InputMaybe<Array<Scalars['String']['input']>>;
   priority?: InputMaybe<MaintenancePriority>;
   remind1d?: InputMaybe<Scalars['Boolean']['input']>;

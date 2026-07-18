@@ -37,6 +37,13 @@ export const CreateMaintenanceTaskSchema = z.object({
     })
     .optional(),
   completedMileage: z.number().int().positive().optional(),
+  // Cost of already-done work (create-as-completed). When status is 'completed'
+  // and the total is > 0, the API auto-creates the linked maintenance expense
+  // (R4 gap closed in U3) — the same behaviour as completing an existing task.
+  cost: z.number().min(0).optional(),
+  partsCost: z.number().min(0).optional(),
+  laborCost: z.number().min(0).optional(),
+  currency: z.enum(currencyValues).optional(),
 });
 export type CreateMaintenanceTask = z.infer<typeof CreateMaintenanceTaskSchema>;
 

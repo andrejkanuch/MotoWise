@@ -229,6 +229,78 @@ describe('MaintenanceTasksService', () => {
       expect(insertArg.completed_at).toBeUndefined();
       expect(insertArg.status).toBeUndefined();
     });
+
+    // R4 gap: a task created ALREADY completed with a cost must fire the
+    // auto-expense (createFromTask fired only from complete() before U3).
+    it('create-as-completed with costs fires a single auto-expense with the summed total', async () => {
+      mockUserClient._pushResult({
+        data: {
+          ...fakeRow,
+          status: 'completed',
+          completed_at: '2026-07-13T12:00:00.000Z',
+          cost: 50,
+          parts_cost: 30,
+          labor_cost: 20,
+        },
+      });
+
+      await service.create(userId, {
+        motorcycleId,
+        title: 'Revision mantenimiento',
+        status: 'completed',
+        cost: 50,
+        partsCost: 30,
+        laborCost: 20,
+        currency: 'EUR',
+      });
+
+      expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ cost: 50, parts_cost: 30, labor_cost: 20, currency: 'EUR' }),
+      );
+      expect(mockExpensesService.createFromTask).toHaveBeenCalledTimes(1);
+      expect(mockExpensesService.createFromTask).toHaveBeenCalledWith(
+        userId,
+        motorcycleId,
+        taskId,
+        100,
+        'Oil Change',
+      );
+    });
+
+    it('create-as-completed with zero cost does not fire an auto-expense', async () => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', completed_at: '2026-07-13T12:00:00.000Z' },
+      });
+
+      await service.create(userId, { motorcycleId, title: 'Free inspection', status: 'completed' });
+
+      expect(mockExpensesService.createFromTask).not.toHaveBeenCalled();
+    });
+
+    it('a pending task with a cost stores the cost but does not fire an auto-expense', async () => {
+      mockUserClient._pushResult({ data: { ...fakeRow, cost: 40 } });
+
+      await service.create(userId, { motorcycleId, title: 'Quote only', cost: 40 });
+
+      expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ cost: 40 }),
+      );
+      expect(mockExpensesService.createFromTask).not.toHaveBeenCalled();
+    });
+
+    it('persists source when provided (receipt_scan attribution)', async () => {
+      mockUserClient._pushResult({ data: { ...fakeRow, source: 'receipt_scan' } });
+
+      await service.create(userId, {
+        motorcycleId,
+        title: 'Scanned service',
+        source: 'receipt_scan',
+      });
+
+      expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ source: 'receipt_scan' }),
+      );
+    });
   });
 
   describe('complete', () => {

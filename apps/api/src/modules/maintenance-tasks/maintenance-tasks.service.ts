@@ -112,6 +112,13 @@ export class MaintenanceTasksService {
       status?: string;
       completedAt?: string;
       completedMileage?: number;
+      cost?: number;
+      partsCost?: number;
+      laborCost?: number;
+      currency?: string;
+      // Attribution: 'user' (default) | 'oem' | 'imported' | 'receipt_scan'.
+      // Not a GraphQL field — set server-side (e.g. U7b's saveReceiptScan).
+      source?: string;
     },
   ): Promise<MaintenanceTask> {
     this.logger.log(
@@ -149,6 +156,11 @@ export class MaintenanceTasksService {
         ...(input.remind7d !== undefined && { remind_7d: input.remind7d }),
         ...(input.remind1d !== undefined && { remind_1d: input.remind1d }),
         ...(input.status !== undefined && { status: input.status }),
+        ...(input.source !== undefined && { source: input.source }),
+        ...(input.cost !== undefined && { cost: input.cost }),
+        ...(input.partsCost !== undefined && { parts_cost: input.partsCost }),
+        ...(input.laborCost !== undefined && { labor_cost: input.laborCost }),
+        ...(input.currency !== undefined && { currency: input.currency }),
         ...(isCompleted && {
           completed_at: completedAtIso,
           completed_mileage: input.completedMileage ?? null,
@@ -161,7 +173,36 @@ export class MaintenanceTasksService {
       this.logger.error(`create failed: ${error?.message} (${error?.code})`);
       throw new BadRequestException('Failed to create maintenance task');
     }
-    return this.mapRow(data);
+
+    const created = this.mapRow(data);
+    // R4 gap: a task created ALREADY completed with a cost fires the auto-expense
+    // too — createFromTask previously fired only from complete().
+    await this.createAutoExpenseIfNeeded(userId, created);
+    return created;
+  }
+
+  /**
+   * Fire the linked maintenance expense for a completed task. Guard-claused and
+   * non-blocking: a no-op unless the task is completed with a positive total,
+   * and auto-expense failure never fails the originating task write. Shared by
+   * create() (create-as-completed) and complete().
+   */
+  private async createAutoExpenseIfNeeded(userId: string, task: MaintenanceTask): Promise<void> {
+    if (task.status !== 'completed') return;
+    const totalCost = (task.cost ?? 0) + (task.partsCost ?? 0) + (task.laborCost ?? 0);
+    if (totalCost <= 0) return;
+
+    try {
+      await this.expensesService.createFromTask(
+        userId,
+        task.motorcycleId,
+        task.id,
+        totalCost,
+        task.title,
+      );
+    } catch (err) {
+      this.logger.warn(`Auto-expense creation failed for task ${task.id}: ${err}`);
+    }
   }
 
   async update(
@@ -251,24 +292,7 @@ export class MaintenanceTasksService {
     }
 
     const completed = this.mapRow(data);
-
-    // Auto-create expense if task has costs (don't block task completion on failure)
-    const totalCost =
-      (completed.cost ?? 0) + (completed.partsCost ?? 0) + (completed.laborCost ?? 0);
-    if (totalCost > 0) {
-      try {
-        await this.expensesService.createFromTask(
-          userId,
-          completed.motorcycleId,
-          completed.id,
-          totalCost,
-          completed.title,
-        );
-      } catch (err) {
-        this.logger.warn(`Auto-expense creation failed for task ${completed.id}: ${err}`);
-      }
-    }
-
+    await this.createAutoExpenseIfNeeded(userId, completed);
     return completed;
   }
 

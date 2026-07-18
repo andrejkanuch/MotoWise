@@ -401,13 +401,17 @@ input CreateGroupRideInput {
 input CreateMaintenanceTaskInput {
   completedAt: String
   completedMileage: Int
+  cost: Float
+  currency: String
   description: String
   dueDate: String
   intervalDays: Int
   intervalKm: Int
   isRecurring: Boolean = false
+  laborCost: Float
   motorcycleId: String!
   notes: String
+  partsCost: Float
   partsNeeded: [String!]
   priority: MaintenancePriority = medium
   remind1d: Boolean

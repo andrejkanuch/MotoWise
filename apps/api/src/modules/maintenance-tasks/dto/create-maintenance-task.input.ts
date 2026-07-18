@@ -1,4 +1,4 @@
-import { Field, InputType, Int } from '@nestjs/graphql';
+import { Field, Float, InputType, Int } from '@nestjs/graphql';
 import {
   GqlMaintenancePriority,
   GqlMaintenanceTaskStatus,
@@ -59,4 +59,18 @@ export class CreateMaintenanceTaskInput {
 
   @Field(() => Int, { nullable: true })
   completedMileage?: number;
+
+  // Cost of already-done work. When status is 'completed' and the total is > 0,
+  // create() fires the auto-expense (R4 gap, U3) — mirroring complete().
+  @Field(() => Float, { nullable: true })
+  cost?: number;
+
+  @Field(() => Float, { nullable: true })
+  partsCost?: number;
+
+  @Field(() => Float, { nullable: true })
+  laborCost?: number;
+
+  @Field({ nullable: true })
+  currency?: string;
 }
