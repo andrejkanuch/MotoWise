@@ -1,5 +1,5 @@
 ---
-title: "fix: Ride HUD overhaul — map orientation, recenter, speed-to-zero (Heath Long beta feedback)"
+title: "fix: Ride HUD overhaul — map orientation, recenter, speed-to-zero (beta feedback)"
 date: 2026-07-18
 type: fix
 status: implementation-ready
@@ -16,11 +16,11 @@ deepened: 2026-07-18
 
 ## Summary
 
-Three ride-recording HUD defects reported by beta user **Heath Long** (email 2026-07-15) fixed in one pass, scoped strictly to the active ride-recording surface (`src/app/(modals)/ride-hud.tsx` and its `src/components/ride/*` children):
+Three ride-recording HUD defects from **beta feedback** (2026-07-15) fixed in one pass, scoped strictly to the active ride-recording surface (`src/app/(modals)/ride-hud.tsx` and its `src/components/ride/*` children):
 
 - **A — Map orientation choice** (his top request, asked 3×): add a **North up / Heading up** toggle in settings. Heading-up rotates the map so the direction of travel always points up. Re-enables the previously-disabled course-up camera **safely** (course-based, never the compass that crashed `MOTO-VAULT-REACT-NATIVE-16`).
-- **B — Recenter button** (his #6): panning the map breaks follow with no way to re-arm it; the track drifts off-screen. Add a recenter control that re-arms follow.
-- **C — Speed reads 0 on stop** (his #5, real bug): the big speed readout freezes on its last value when stopped because the GPS filter rejects stationary samples and never pushes a fresh speed. Make a stopped rider read **0** promptly without weakening the Kalman/drift-rejection that distance depends on.
+- **B — Recenter button**: panning the map breaks follow with no way to re-arm it; the track drifts off-screen. Add a recenter control that re-arms follow.
+- **C — Speed reads 0 on stop** (real bug): the big speed readout freezes on its last value when stopped because the GPS filter rejects stationary samples and never pushes a fresh speed. Make a stopped rider read **0** promptly without weakening the Kalman/drift-rejection that distance depends on.
 
 **Out of scope** (already merged): backdate/log-past-work (#164), unit-label fixes (#164/#165).
 
@@ -74,7 +74,7 @@ Change `GPSFilter.process` to return a discriminated union instead of `FilteredL
 `processLocation` switches on `status`: `accepted` runs the existing update path; `stationary` calls `store.updateSpeed(0)` then returns; `rejected` returns. This is the minimal change that unfreezes the readout while leaving distance, drift rejection, teleport rejection, max-speed, and waypoint capture byte-for-byte on the `accepted` path.
 
 ### KTD6 — Preference default is `north` (opt-in heading-up)
-Course-up is a newly re-enabled path with crash history. Defaulting the entire install base into it before field validation is risky; defaulting to `north` preserves current behavior and lets riders (like Heath) opt in. Reversible product call — flip the default constant later if field data is clean.
+Course-up is a newly re-enabled path with crash history. Defaulting the entire install base into it before field validation is risky; defaulting to `north` preserves current behavior and lets riders opt in. Reversible product call — flip the default constant later if field data is clean.
 
 ### KTD7 — i18n: inline `defaultValue`, no new `en.json` keys
 The i18n ratchet (`scripts/check-i18n-new-keys.ts`) blocks new `en.json` keys missing from any of the 13 locales. The existing Units segmented control uses the inline `t('key', { defaultValue: '...' })` pattern (`preferences-section.tsx:329,371`) which the hardcoded-string ESLint guard accepts and the new-key ratchet ignores (no `en.json` entry added). Follow that pattern for the new orientation labels — zero locale-file churn.

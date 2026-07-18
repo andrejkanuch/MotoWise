@@ -104,7 +104,14 @@ describe('GPSFilter process status classification (U5: speed → 0 on stop)', ()
   it('does not change max speed on a stationary sample', () => {
     gpsFilter.process(lat, lng, 100, 10, 90, 5, 1000);
     const maxBefore = gpsFilter.stats.maxSpeed;
-    gpsFilter.process(lat + 0.000001, lng, 100, 0, null, 5, 2000);
+    // Feed the same zero-speed run the stationary test uses so the smoother
+    // actually enters the stationary branch (a single zero sample stays
+    // 'accepted' because the smoother lags), then assert max speed is untouched.
+    let result = gpsFilter.process(lat, lng, 100, 0, null, 5, 2000);
+    for (let t = 3000; t <= 6000; t += 1000) {
+      result = gpsFilter.process(lat, lng, 100, 0, null, 5, t);
+    }
+    expect(result.status).toBe('stationary');
     expect(gpsFilter.stats.maxSpeed).toBe(maxBefore);
   });
 });

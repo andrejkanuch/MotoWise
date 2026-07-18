@@ -68,9 +68,11 @@ describe('partializeAuthState', () => {
 
 describe('auth.store mapOrientation', () => {
   it('defaults to north-up', () => {
-    // reset() is not exposed; assert the shipped default constant instead
+    // Assert the store initializer's default directly (immune to the beforeEach
+    // reset and any prior mutation), so the test fails if the shipped default
+    // ever changes to heading.
+    expect(useAuthStore.getInitialState().mapOrientation).toBe(MAP_ORIENTATIONS.NORTH);
     expect(MAP_ORIENTATIONS.NORTH).toBe('north');
-    expect(useAuthStore.getState().mapOrientation).toBe('north');
   });
 
   it('setMapOrientation updates state', () => {
