@@ -21,7 +21,11 @@ describe('GPSFilter heading sanitization', () => {
     ts: Date.now(),
   };
 
-  const headingCases: Array<{ name: string; input: number | null | undefined; expected: number | null }> = [
+  const headingCases: Array<{
+    name: string;
+    input: number | null | undefined;
+    expected: number | null;
+  }> = [
     { name: 'passes valid heading through (0–360)', input: 180, expected: 180 },
     { name: 'passes heading 0 through', input: 0, expected: 0 },
     { name: 'passes heading 360 through', input: 360, expected: 360 },

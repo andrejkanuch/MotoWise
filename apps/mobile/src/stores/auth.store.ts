@@ -5,7 +5,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import i18n from '../i18n';
 import { createZustandMMKVStorage } from '../lib/mmkv-storage';
-import { type MapOrientation, MAP_ORIENTATIONS } from '../utils/map-orientation';
+import { MAP_ORIENTATIONS, type MapOrientation } from '../utils/map-orientation';
 
 type ColorScheme = 'system' | 'light' | 'dark';
 
