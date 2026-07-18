@@ -213,6 +213,10 @@ export function useReceiptScanSave(params: UseReceiptScanSaveParams) {
           ms: scanStartedAt != null ? Date.now() - scanStartedAt : null,
         });
         if (payload.applyOdometer) {
+          // G3 odometer-freshness signal: the rider accepted the scanned reading,
+          // advancing the bike's known mileage. NOTE: this is captured for the R8
+          // funnel but is NOT yet surfaced as a mileage-freshness status anywhere —
+          // that consumer lands with the §11 mileage-aware-status epic.
           trackEvent(AnalyticsEvent.RECEIPT_SCAN_ODOMETER_ACCEPTED, { unit: payload.odometerUnit });
         }
 

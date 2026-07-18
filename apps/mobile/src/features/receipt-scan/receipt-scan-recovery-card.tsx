@@ -5,11 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { MODAL_ROUTE } from '../../config/routes';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
 import { getParkedScans, useParkedScanCount } from './parked-scan-store';
 import { useLatestReceiptSaveUndo } from './receipt-scan-undo-store';
-import { SCAN_ENTRY_SURFACE } from './scan-flow-constants';
+import { SCAN_ENTRY_SURFACE, SCAN_RESUME_SOURCE } from './scan-flow-constants';
 import { useUndoReceiptSave } from './use-receipt-scan-save';
 
 /**
@@ -37,6 +38,9 @@ export function ReceiptScanRecoveryCard() {
       const parked = getParkedScans();
       const scan = parked[parked.length - 1];
       if (!scan) return;
+      // R8: the home recovery card is the user-initiated resume surface — tag the
+      // source so it's separable from launch drain + notification recoveries.
+      trackEvent(AnalyticsEvent.RECEIPT_SCAN_RESUMED, { source: SCAN_RESUME_SOURCE.CARD });
       router.push({
         pathname: MODAL_ROUTE.SCAN_RECEIPT,
         params: {

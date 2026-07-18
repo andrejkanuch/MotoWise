@@ -1,7 +1,7 @@
 import { ScanReceiptDocument } from '@motovault/graphql';
 import * as Network from 'expo-network';
 import { createMMKV } from 'react-native-mmkv';
-import { captureException } from '../../lib/analytics';
+import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { uploadReceiptPhoto } from '../../lib/image-upload';
 import { logger } from '../../lib/logger';
@@ -11,7 +11,7 @@ import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
 import { deleteDurablePhoto, getDurablePhotoUri } from './durable-receipt-photo';
 import { parkScan } from './parked-scan-store';
-import { SCAN_ERROR_CODE } from './scan-flow-constants';
+import { SCAN_ERROR_CODE, SCAN_RESUME_SOURCE } from './scan-flow-constants';
 
 /**
  * Durable offline queue for receipt scans captured without connectivity (R3).
@@ -128,6 +128,10 @@ async function processPending(pending: PendingScan): Promise<void> {
       await scheduleParkedScanReminder(scanId, pending.bikeName, result.vendor);
       queryClient.invalidateQueries({ queryKey: queryKeys.receiptScans.unreviewed });
       queryClient.invalidateQueries({ queryKey: queryKeys.receiptScans.quota });
+      // R8: a stranded offline scan was recovered by the queue drain (launch /
+      // reconnect) and is now a reviewable parked scan — the cold-launch graveyard
+      // recovery arm of the resume funnel, distinct from the card/notification taps.
+      trackEvent(AnalyticsEvent.RECEIPT_SCAN_RESUMED, { source: SCAN_RESUME_SOURCE.LAUNCH });
       finalize(pending.scanId);
       return;
     }

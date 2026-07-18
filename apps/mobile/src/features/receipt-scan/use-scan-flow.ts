@@ -260,6 +260,10 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
       }
       dispatch({ type: 'FAILED', error: outcome });
       trackEvent(AnalyticsEvent.RECEIPT_SCAN_COMPLETED, { outcome: union.code });
+      // R8: the extraction_failed counterpart to extraction_succeeded (COMPLETED
+      // on REVIEW). Slice by `code` to separate real extraction failures from
+      // quota/disabled/image-invalid rejections in the scan_started→…→save funnel.
+      trackEvent(AnalyticsEvent.RECEIPT_SCAN_EXTRACTION_FAILED, { code: union.code });
     },
     [requireAccess, quota.used, isOnboarding],
   );
@@ -303,6 +307,10 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
           userId: uid,
           bikeName: bikeNameRef.current,
         });
+        // R8: the upload didn't complete because the device was offline — deferred
+        // to the durable queue. `offline: true` distinguishes this expected defer
+        // from a genuine online upload failure below.
+        trackEvent(AnalyticsEvent.RECEIPT_SCAN_UPLOAD_FAILED, { offline: true });
         dispatch({ type: 'QUEUED_OFFLINE' });
       };
 
@@ -326,6 +334,8 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
           return;
         }
         // Timeout or other upload error — no scanReceipt yet, so no reservation.
+        // R8: a genuine online upload failure (the device had connectivity).
+        trackEvent(AnalyticsEvent.RECEIPT_SCAN_UPLOAD_FAILED, { offline: false });
         dispatch({ type: 'FAILED', error: LOCAL_ERROR_OUTCOME });
       }
     },
@@ -347,8 +357,11 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
 
   const retryUpload = useCallback(async () => {
     if (!state.photoUri) return;
+    // R8: `attempt` is the upcoming attempt number (uploadAttempt increments on the
+    // UPLOAD_STARTED dispatch inside beginUpload) — lets funnels see retry depth.
+    trackEvent(AnalyticsEvent.RECEIPT_SCAN_UPLOAD_RETRIED, { attempt: state.uploadAttempt + 1 });
     await beginUpload(state.photoUri);
-  }, [state.photoUri, beginUpload]);
+  }, [state.photoUri, state.uploadAttempt, beginUpload]);
 
   const retryAnalyze = useCallback(async () => {
     await beginAnalyze();

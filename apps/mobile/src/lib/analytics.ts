@@ -365,6 +365,14 @@ export const AnalyticsEvent = {
   RECEIPT_SCAN_COMPLETED: 'receipt_scan_completed',
   RECEIPT_SCAN_PARKED: 'receipt_scan_parked',
   RECEIPT_SCAN_MANUAL_FALLBACK: 'receipt_scan_manual_fallback',
+  // Receipt scan telemetry (R8) — completes the funnel so the feature is
+  // evaluable in PostHog: upload failures/retries, extraction failures, and the
+  // resume/graveyard-recovery paths that measure re-engagement.
+  RECEIPT_SCAN_UPLOAD_FAILED: 'receipt_scan_upload_failed',
+  RECEIPT_SCAN_UPLOAD_RETRIED: 'receipt_scan_upload_retried',
+  RECEIPT_SCAN_EXTRACTION_FAILED: 'receipt_scan_extraction_failed',
+  RECEIPT_SCAN_RESUMED: 'receipt_scan_resumed',
+  RECEIPT_SCAN_NUDGE_CONVERTED: 'receipt_scan_nudge_converted',
   // Receipt scan review card (U7c) — measure Goal 5 (≤2 corrections)
   RECEIPT_SCAN_FIELD_EDITED: 'receipt_scan_field_edited',
   RECEIPT_SCAN_TYPE_SWITCHED: 'receipt_scan_type_switched',

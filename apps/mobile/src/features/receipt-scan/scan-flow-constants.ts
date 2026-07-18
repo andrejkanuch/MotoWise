@@ -270,3 +270,18 @@ export const SCAN_ENTRY_SURFACE = {
 } as const;
 
 export type ScanEntrySurface = (typeof SCAN_ENTRY_SURFACE)[keyof typeof SCAN_ENTRY_SURFACE];
+
+/**
+ * Where a resume into REVIEW originated — stamped on `RECEIPT_SCAN_RESUMED` (R8)
+ * so PostHog can separate cold-launch graveyard recovery (`launch`, the offline
+ * queue draining a stranded scan) from the two user-initiated recovery surfaces:
+ * the home recovery card (`card`) and the parked-scan notification (`notification`).
+ * No magic strings at the three fire sites.
+ */
+export const SCAN_RESUME_SOURCE = {
+  LAUNCH: 'launch',
+  CARD: 'card',
+  NOTIFICATION: 'notification',
+} as const;
+
+export type ScanResumeSource = (typeof SCAN_RESUME_SOURCE)[keyof typeof SCAN_RESUME_SOURCE];

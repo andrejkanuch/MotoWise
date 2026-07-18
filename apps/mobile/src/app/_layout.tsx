@@ -50,6 +50,7 @@ import { getWhatsNewRelease } from '../data/whats-new-releases';
 import { startCarPlayCoordinator } from '../features/carplay/carplay-coordinator';
 import { initReceiptScanQueue } from '../features/receipt-scan/receipt-scan-queue';
 import { ReceiptScanSaveSnackbar } from '../features/receipt-scan/receipt-scan-save-snackbar';
+import { SCAN_RESUME_SOURCE } from '../features/receipt-scan/scan-flow-constants';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import i18n from '../i18n';
 import {
@@ -758,6 +759,14 @@ function RootLayout() {
         // priority card lets the rider finish reviewing the scan (U8 card is the
         // guaranteed recovery surface; this notification is the nudge).
         if (data?.kind === NOTIFICATION_KIND.RECEIPT_SCAN) {
+          // R8: NUDGE_CONVERTED measures graveyard recovery specifically — a parked
+          // scan pulled back by its reminder (distinct from cold-launch resume). The
+          // RESUMED{notification} fire keeps this in the shared resume funnel, sliced
+          // by source so the notification path is separable from card/launch.
+          trackEvent(AnalyticsEvent.RECEIPT_SCAN_NUDGE_CONVERTED, {});
+          trackEvent(AnalyticsEvent.RECEIPT_SCAN_RESUMED, {
+            source: SCAN_RESUME_SOURCE.NOTIFICATION,
+          });
           expoRouter.push('/(tabs)/(home)' as Href);
           return;
         }
