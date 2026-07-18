@@ -5,7 +5,12 @@ import * as Notifications from 'expo-notifications';
 import { logger } from './logger';
 
 /** Notification `data.kind` discriminator — shared with the tap handler in _layout. */
-export const NOTIFICATION_KIND = { DOCUMENT: 'document', MAINTENANCE: 'maintenance' } as const;
+export const NOTIFICATION_KIND = {
+  DOCUMENT: 'document',
+  MAINTENANCE: 'maintenance',
+  /** A receipt scan parked for later review (U6 review-later). */
+  RECEIPT_SCAN: 'receiptScan',
+} as const;
 
 /** iOS UNNotificationCategory identifiers (also the Android channel-less category key). */
 export const NOTIFICATION_CATEGORY = {
@@ -156,6 +161,13 @@ export async function setupNotificationChannels(): Promise<void> {
     name: 'Document Renewal Reminders',
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
+    lightColor: palette.signature500,
+    // See note above — omit `sound` for the OS default channel sound.
+  });
+  await Notifications.setNotificationChannelAsync('receipt-scans', {
+    name: 'Receipt Scans',
+    importance: Notifications.AndroidImportance.DEFAULT,
+    vibrationPattern: [0, 200, 200, 200],
     lightColor: palette.signature500,
     // See note above — omit `sound` for the OS default channel sound.
   });
@@ -454,6 +466,70 @@ export async function snoozeTaskNotification(
 }
 
 // ============================================================================
+// Parked receipt-scan reminders (U6 review-later)
+//
+// When a rider parks a successfully-extracted scan for later, we fire a single
+// next-day 09:00 local reminder — the same primitive as snoozeTaskNotification.
+// The home priority card is the guaranteed recovery surface (works even when
+// notifications are denied); this reminder is the nudge on top of it.
+// ============================================================================
+
+/** Map key namespace so scan ids never collide with task/document ids. */
+const scanKey = (scanId: string) => `scan:${scanId}`;
+
+/**
+ * Schedule a next-day 09:00 reminder to review a parked scan. No-op without
+ * notification permission (the home card still surfaces it — the card is the
+ * fallback, the notification is the nudge).
+ */
+export async function scheduleParkedScanReminder(
+  scanId: string,
+  bikeName: string,
+  vendor?: string | null,
+): Promise<void> {
+  if (!(await hasNotificationPermission())) return;
+
+  await cancelScanNotification(scanId);
+
+  const reminderDate = new Date();
+  reminderDate.setDate(reminderDate.getDate() + 1);
+  reminderDate.setHours(9, 0, 0, 0);
+
+  try {
+    const id = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Finish your receipt',
+        body: vendor
+          ? `${vendor} — tap to review and save to ${bikeName}`
+          : `Tap to review and save to ${bikeName}`,
+        data: { kind: NOTIFICATION_KIND.RECEIPT_SCAN, scanId },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: reminderDate,
+        channelId: 'receipt-scans',
+      },
+    });
+    await setNotificationIds(scanKey(scanId), [id]);
+  } catch (err) {
+    logger.warn('notifications: failed to schedule parked-scan reminder', err);
+  }
+}
+
+/** Cancel a parked-scan reminder once the scan is reviewed/saved or dismissed. */
+export async function cancelScanNotification(scanId: string): Promise<void> {
+  const map = await getNotificationMap();
+  const key = scanKey(scanId);
+  const ids = map[key] ?? [];
+  for (const id of ids) {
+    await Notifications.cancelScheduledNotificationAsync(id);
+  }
+  if (ids.length > 0) {
+    await removeNotificationIds(key);
+  }
+}
+
+// ============================================================================
 // Launch-time reconciliation
 //
 // Reminders are scheduled at task/document mutation time, but the dominant
@@ -518,7 +594,9 @@ export async function reconcileMaintenanceReminders(
   // Clear reminders for maintenance tasks no longer active (completed, deleted,
   // or now past-due). Skip the document keyspace, which reconciles separately.
   for (const key of Object.keys(map)) {
-    if (key.startsWith('doc:')) continue;
+    // Skip other feature keyspaces — documents and parked scans reconcile
+    // separately and must not be swept by the maintenance reconciler.
+    if (key.startsWith('doc:') || key.startsWith('scan:')) continue;
     if (!activeIds.has(key)) {
       await cancelTaskNotification(key);
     }

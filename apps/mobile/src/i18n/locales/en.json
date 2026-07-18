@@ -2249,5 +2249,81 @@
       "endRideButton": "End ride",
       "savesNote": "Ending always saves — {{distance}} will be kept"
     }
+  },
+  "receiptScan": {
+    "common": {
+      "enterManually": "Enter manually instead",
+      "done": "Done",
+      "noCreditUsed": "No credit used"
+    },
+    "gating": {
+      "label": "Getting ready…"
+    },
+    "bikePick": {
+      "title": "Which bike is this for?",
+      "subtitle": "Pick the bike this receipt belongs to."
+    },
+    "consent": {
+      "title": "Scan a receipt with AI",
+      "body": "We send a photo of your receipt to our AI to read the amount, date and details — so you don’t have to type them. The photo is stored privately on your account and never shared. You can always enter details by hand instead.",
+      "accept": "Scan a receipt"
+    },
+    "capture": {
+      "title": "Photograph the receipt",
+      "subtitle": "Lay it flat, fill the frame, and keep the total in view.",
+      "takePhoto": "Take photo",
+      "chooseFromLibrary": "Choose from library",
+      "openSettings": "Open Settings"
+    },
+    "uploading": {
+      "label": "Uploading receipt…",
+      "retrying": "Retrying…"
+    },
+    "offline": {
+      "title": "You’re offline",
+      "body": "We saved your receipt and we’ll finish reading it automatically as soon as you’re back online. No credit is used until it’s processed."
+    },
+    "analyzing": {
+      "stageReading": "Reading your receipt…",
+      "stageExtracting": "Pulling out the details…",
+      "stageChecking": "Double-checking the numbers…",
+      "skip": "Skip — enter manually"
+    },
+    "error": {
+      "retry": "Try again",
+      "extractionFailedTitle": "We couldn’t read this receipt",
+      "extractionFailedBody": "The photo was too blurry or the text was unclear. You can enter the details by hand instead.",
+      "imageInvalidTitle": "That photo didn’t work",
+      "imageInvalidBody": "We couldn’t use that image. Try taking the photo again, or enter the details by hand.",
+      "quotaExceededTitle": "You’ve used all your free scans",
+      "quotaExceededBody": "Upgrade for unlimited receipt scans, or enter this one by hand. Your photo is saved.",
+      "disabledTitle": "Scanning is temporarily unavailable",
+      "disabledBody": "Receipt scanning is paused right now. You can still enter this receipt by hand.",
+      "alreadyCompletedTitle": "This scan already finished",
+      "alreadyCompletedBody": "It finished processing just before you skipped. You’ll find it waiting in your receipts to review.",
+      "uploadFailedTitle": "Upload didn’t go through",
+      "uploadFailedBody": "We couldn’t upload your receipt. Check your connection and try again.",
+      "analyzeFailedTitle": "Something went wrong",
+      "analyzeFailedBody": "We couldn’t finish reading your receipt. Try again — you won’t be charged a scan unless it succeeds."
+    },
+    "parked": {
+      "title": "Saved for later",
+      "body": "Your receipt is ready to review. We’ll remind you tomorrow, and it’s waiting on your home screen."
+    },
+    "alreadyProcessed": {
+      "title": "Already processed",
+      "body": "This scan finished before it could be cancelled. You can review it now or find it later in your receipts.",
+      "reviewNow": "Review now"
+    },
+    "review": {
+      "title": "Review your receipt",
+      "forBike": "For {{bike}}",
+      "type": "Type",
+      "vendor": "Vendor",
+      "amount": "Amount",
+      "date": "Date",
+      "needsCheck": "Needs check",
+      "reviewLater": "Review later"
+    }
   }
 }

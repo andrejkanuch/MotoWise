@@ -358,6 +358,11 @@ export const AnalyticsEvent = {
   EXPENSE_ADDED: 'expense_added',
   EXPENSE_QUICK_ADD_TAPPED: 'expense_quick_add_tapped',
   EXPENSE_DASHBOARD_VIEWED: 'expense_dashboard_viewed',
+  // Receipt scan (U6)
+  RECEIPT_SCAN_STARTED: 'receipt_scan_started',
+  RECEIPT_SCAN_COMPLETED: 'receipt_scan_completed',
+  RECEIPT_SCAN_PARKED: 'receipt_scan_parked',
+  RECEIPT_SCAN_MANUAL_FALLBACK: 'receipt_scan_manual_fallback',
   HEALTH_REPORT_VIEWED: 'health_report_viewed',
   HEALTH_REPORT_GENERATED: 'health_report_generated',
   HEALTH_REPORT_DOWNLOADED: 'health_report_downloaded',

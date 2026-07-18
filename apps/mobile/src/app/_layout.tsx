@@ -48,6 +48,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { OB_VARIANT } from '../config/onboarding';
 import { getWhatsNewRelease } from '../data/whats-new-releases';
 import { startCarPlayCoordinator } from '../features/carplay/carplay-coordinator';
+import { initReceiptScanQueue } from '../features/receipt-scan/receipt-scan-queue';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import i18n from '../i18n';
 import {
@@ -716,6 +717,12 @@ function RootLayout() {
     initNotifications();
   }, []);
 
+  // Drain any receipt scans captured offline in a previous session, and re-drain
+  // whenever connectivity returns (R3 offline hero story). Idempotent.
+  useEffect(() => {
+    initReceiptScanQueue();
+  }, []);
+
   // Handle notification action responses (Mark Done / Snooze)
   useEffect(() => {
     notificationResponseListener.current = Notifications.addNotificationResponseReceivedListener(
@@ -726,6 +733,7 @@ function RootLayout() {
           taskId?: string;
           documentId?: string;
           motorcycleId?: string;
+          scanId?: string;
         };
 
         // MOT-272: measure reminder opens (paired with REMINDER_SCHEDULED) so the
@@ -742,6 +750,14 @@ function RootLayout() {
               `/(tabs)/(garage)/document/${data.documentId}?motorcycleId=${data.motorcycleId ?? ''}` as Href,
             );
           }
+          return;
+        }
+
+        // Parked receipt-scan reminder: deep-link to the home surface where the
+        // priority card lets the rider finish reviewing the scan (U8 card is the
+        // guaranteed recovery surface; this notification is the nudge).
+        if (data?.kind === NOTIFICATION_KIND.RECEIPT_SCAN) {
+          expoRouter.push('/(tabs)/(home)' as Href);
           return;
         }
 
