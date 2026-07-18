@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import i18n from '../i18n';
 import { createZustandMMKVStorage } from '../lib/mmkv-storage';
+import { type MapOrientation, MAP_ORIENTATIONS } from '../utils/map-orientation';
 
 type ColorScheme = 'system' | 'light' | 'dark';
 
@@ -33,6 +34,8 @@ interface AuthState {
   hasAuthenticatedBefore: boolean;
   measurementSystem: MeasurementSystem;
   currency: Currency;
+  /** Ride-map orientation: `north` (fixed) or `heading` (course-up). */
+  mapOrientation: MapOrientation;
   setSession: (session: Session | null) => void;
   setLoading: (loading: boolean) => void;
   setLocale: (locale: SupportedLocale) => void;
@@ -40,6 +43,7 @@ interface AuthState {
   setOnboardingCompleted: (completed: boolean) => void;
   setMeasurementSystem: (system: MeasurementSystem) => void;
   setCurrency: (currency: Currency) => void;
+  setMapOrientation: (orientation: MapOrientation) => void;
 }
 
 /** Exactly the keys persisted to MMKV — excludes `session`/`isLoading`/`onboardingCompleted`. */
@@ -49,6 +53,7 @@ export function partializeAuthState(state: AuthState) {
     colorScheme: state.colorScheme,
     measurementSystem: state.measurementSystem,
     currency: state.currency,
+    mapOrientation: state.mapOrientation,
     hasAuthenticatedBefore: state.hasAuthenticatedBefore,
   };
 }
@@ -64,6 +69,7 @@ export const useAuthStore = create<AuthState>()(
       hasAuthenticatedBefore: false,
       measurementSystem: detectMeasurementSystem(),
       currency: 'USD',
+      mapOrientation: MAP_ORIENTATIONS.NORTH,
       setSession: (session) =>
         set({
           session,
@@ -78,6 +84,7 @@ export const useAuthStore = create<AuthState>()(
       setColorScheme: (colorScheme) => set({ colorScheme }),
       setMeasurementSystem: (measurementSystem) => set({ measurementSystem }),
       setCurrency: (currency) => set({ currency }),
+      setMapOrientation: (mapOrientation) => set({ mapOrientation }),
     }),
     {
       name: 'auth-preferences',
