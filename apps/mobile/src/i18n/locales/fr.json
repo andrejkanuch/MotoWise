@@ -416,9 +416,6 @@
     "distanceIntervalPlaceholder": "p.ex. 15000",
     "timeIntervalPlaceholder": "p.ex. 90",
     "mileageIntervalPlaceholder": "p.ex. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0,0",
-    "fuelCostPlaceholder": "0,00",
     "taskMileagePlaceholder": "p.ex. 15000",
     "discardChangesTitle": "Abandonner les modifications ?",
     "discardChangesMessage": "Tes modifications seront perdues.",
@@ -1934,22 +1931,6 @@
   },
   "survey": {
     "feedbackPlaceholder": "Partage tes reflexions (pas d'informations personnelles s'il te plait)"
-  },
-  "fuel": {
-    "createFailed": "Impossible d'enregistrer le plein. Réessaie.",
-    "newFillUp": "Nouveau plein",
-    "odometer": "Compteur",
-    "volume": "Carburant",
-    "totalCost": "Coût total",
-    "partialFill": "Plein partiel",
-    "partialHelp": "Coche si tu n'as pas fait le plein complet",
-    "saved": "Enregistré !",
-    "save": "Enregistrer le plein",
-    "rollingAverage": "Moyenne glissante",
-    "lastN": "{{n}} derniers pleins",
-    "history": "Historique",
-    "partial": "Partiel",
-    "emptyState": "Aucun plein enregistré"
   },
   "nearYou": {
     "sectionMeta": "Itinéraires en {{country}}",

@@ -10,7 +10,6 @@ import { EntitlementsResolver } from '../../modules/entitlements/entitlements.re
 import { ExpensesResolver } from '../../modules/expenses/expenses.resolver';
 import { FeedResolver } from '../../modules/feed/feed.resolver';
 import { FollowsResolver } from '../../modules/follows/follows.resolver';
-import { FuelLogsResolver } from '../../modules/fuel-logs/fuel-logs.resolver';
 import { FuelStopsResolver } from '../../modules/fuel-stops/fuel-stops.resolver';
 import { GroupRidesResolver } from '../../modules/group-rides/group-rides.resolver';
 import { HealthReportsResolver } from '../../modules/health-reports/health-reports.resolver';
@@ -62,7 +61,6 @@ const ALL_RESOLVERS = [
   ExpensesResolver,
   FeedResolver,
   FollowsResolver,
-  FuelLogsResolver,
   FuelStopsResolver,
   GroupRidesResolver,
   HealthReportsResolver,

@@ -22,7 +22,6 @@ export * from './validators/diagnostic-ai-response';
 export * from './validators/document';
 export * from './validators/expense';
 export * from './validators/follow';
-export * from './validators/fuel-log';
 export * from './validators/fuel-stops';
 export * from './validators/handle';
 export * from './validators/health-report';

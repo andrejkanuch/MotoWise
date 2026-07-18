@@ -1,5 +1,5 @@
 // Pure builder for the CarPlay Bike-status list. No React, no native, no store —
-// just (active bike + tasks + latest fuel + ride motion + units) → a CPListModel.
+// just (active bike + tasks + ride motion + units) → a CPListModel.
 // Keeps the row hierarchy and copy testable in isolation.
 //
 // Head-unit strings are hardcoded English to match the rest of the CarPlay surface

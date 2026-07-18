@@ -412,9 +412,6 @@
     "distanceIntervalPlaceholder": "उदा. 15000",
     "timeIntervalPlaceholder": "उदा. 90",
     "mileageIntervalPlaceholder": "उदा. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "उदा. 15000",
     "discardChangesTitle": "बदलाव हटाएं?",
     "discardChangesMessage": "आपके बदलाव खो जाएंगे।",
@@ -1932,22 +1929,6 @@
   },
   "survey": {
     "feedbackPlaceholder": "अपने विचार साझा करें (कृपया व्यक्तिगत जानकारी न दें)"
-  },
-  "fuel": {
-    "createFailed": "फिल-अप सेव विफल। कृपया पुनः प्रयास करें।",
-    "newFillUp": "नया फिल-अप",
-    "odometer": "ओडोमीटर",
-    "volume": "ईंधन",
-    "totalCost": "कुल लागत",
-    "partialFill": "आंशिक फिल",
-    "partialHelp": "यदि आपने टैंक पूरा नहीं भरा तो इसे चेक करें",
-    "saved": "सेव हो गया!",
-    "save": "फिल-अप लॉग करें",
-    "rollingAverage": "रोलिंग औसत",
-    "lastN": "अंतिम {{n}} फिल",
-    "history": "इतिहास",
-    "partial": "आंशिक",
-    "emptyState": "अभी कोई फिल-अप लॉग नहीं"
   },
   "nearYou": {
     "sectionMeta": "{{country}} में रूट",

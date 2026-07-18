@@ -28,7 +28,6 @@ import { EntitlementsModule } from './modules/entitlements/entitlements.module';
 import { ExpensesModule } from './modules/expenses/expenses.module';
 import { FeedModule } from './modules/feed/feed.module';
 import { FollowsModule } from './modules/follows/follows.module';
-import { FuelLogsModule } from './modules/fuel-logs/fuel-logs.module';
 import { FuelStopsModule } from './modules/fuel-stops/fuel-stops.module';
 import { GroupRidesModule } from './modules/group-rides/group-rides.module';
 import { HealthModule } from './modules/health/health.module';
@@ -110,7 +109,6 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     DiagnosticsModule,
     DocumentsModule,
     ExpensesModule,
-    FuelLogsModule,
     FeedModule,
     FollowsModule,
     GroupRidesModule,

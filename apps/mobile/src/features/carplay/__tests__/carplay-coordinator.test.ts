@@ -373,11 +373,10 @@ describe('carplay-coordinator', () => {
     lastBikeLifecycle()?.onWillAppear();
     await flush();
 
-    // fetched tasks for the active bike, then updated the list (fuel row was removed)
+    // fetched tasks for the active bike, then updated the list
     expect(gqlFetcher).toHaveBeenCalledWith('MaintenanceTasksByMotorcycleDocument', {
       motorcycleId: 'b1',
     });
-    expect(gqlFetcher).not.toHaveBeenCalledWith('FuelLogsDocument', expect.anything());
     expect(carplay.updateBikeList).toHaveBeenCalled();
   });
 

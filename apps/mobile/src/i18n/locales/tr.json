@@ -412,9 +412,6 @@
     "distanceIntervalPlaceholder": "orn. 15000",
     "timeIntervalPlaceholder": "orn. 90",
     "mileageIntervalPlaceholder": "orn. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "orn. 15000",
     "discardChangesTitle": "Değişiklikleri iptal et?",
     "discardChangesMessage": "Değişiklikleriniz kaybolacak.",
@@ -1932,22 +1929,6 @@
   },
   "survey": {
     "feedbackPlaceholder": "Dusuncelerini paylas (kisisel bilgi olmasin lutfen)"
-  },
-  "fuel": {
-    "createFailed": "Yakıt kaydedilemedi. Lütfen tekrar deneyin.",
-    "newFillUp": "Yeni yakıt",
-    "odometer": "Kilometre Sayacı",
-    "volume": "Yakıt",
-    "totalCost": "Toplam tutar",
-    "partialFill": "Kısmi dolum",
-    "partialHelp": "Depoyu tamamen doldurmadıysanız işaretleyin",
-    "saved": "Kaydedildi!",
-    "save": "Yakıt kaydet",
-    "rollingAverage": "Hareketli ortalama",
-    "lastN": "Son {{n}} dolum",
-    "history": "Geçmiş",
-    "partial": "Kısmi",
-    "emptyState": "Henüz yakıt kaydı yok"
   },
   "nearYou": {
     "sectionMeta": "{{country}} rotaları",

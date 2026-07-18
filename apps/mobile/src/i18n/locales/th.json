@@ -412,9 +412,6 @@
     "distanceIntervalPlaceholder": "เช่น 15000",
     "timeIntervalPlaceholder": "เช่น 90",
     "mileageIntervalPlaceholder": "เช่น 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "เช่น 15000",
     "discardChangesTitle": "ยกเลิกการเปลี่ยนแปลง?",
     "discardChangesMessage": "การเปลี่ยนแปลงของคุณจะหายไป",
@@ -1932,22 +1929,6 @@
   },
   "survey": {
     "feedbackPlaceholder": "แบ่งปันความคิดเห็นของคุณ (กรุณาอย่าใส่ข้อมูลส่วนตัว)"
-  },
-  "fuel": {
-    "createFailed": "บันทึกการเติมน้ำมันไม่สำเร็จ กรุณาลองอีกครั้ง",
-    "newFillUp": "เติมน้ำมันใหม่",
-    "odometer": "เลขไมล์",
-    "volume": "น้ำมัน",
-    "totalCost": "ค่าใช้จ่ายทั้งหมด",
-    "partialFill": "เติมไม่เต็มถัง",
-    "partialHelp": "เลือกหากคุณไม่ได้เติมน้ำมันเต็มถัง",
-    "saved": "บันทึกแล้ว!",
-    "save": "บันทึกการเติม",
-    "rollingAverage": "ค่าเฉลี่ย",
-    "lastN": "{{n}} ครั้งล่าสุด",
-    "history": "ประวัติ",
-    "partial": "ไม่เต็มถัง",
-    "emptyState": "ยังไม่มีการเติมน้ำมัน"
   },
   "nearYou": {
     "sectionMeta": "เส้นทางใน{{country}}",

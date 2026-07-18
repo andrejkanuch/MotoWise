@@ -413,9 +413,6 @@
     "distanceIntervalPlaceholder": "p.ej. 15000",
     "timeIntervalPlaceholder": "p.ej. 90",
     "mileageIntervalPlaceholder": "p.ej. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "p.ej. 15000",
     "discardChangesTitle": "¿Descartar cambios?",
     "discardChangesMessage": "Tus cambios se perderán.",
@@ -1934,22 +1931,6 @@
   },
   "survey": {
     "feedbackPlaceholder": "Comparte tus opiniones (sin datos personales, por favor)"
-  },
-  "fuel": {
-    "createFailed": "Error al guardar la carga. Inténtalo de nuevo.",
-    "newFillUp": "Nueva carga",
-    "odometer": "Odómetro",
-    "volume": "Combustible",
-    "totalCost": "Costo total",
-    "partialFill": "Carga parcial",
-    "partialHelp": "Marca esto si no llenaste el tanque completamente",
-    "saved": "¡Guardado!",
-    "save": "Registrar carga",
-    "rollingAverage": "Promedio móvil",
-    "lastN": "Últimas {{n}} cargas",
-    "history": "Historial",
-    "partial": "Parcial",
-    "emptyState": "Aún no hay cargas registradas"
   },
   "nearYou": {
     "sectionMeta": "Rutas en {{country}}",

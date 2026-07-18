@@ -415,9 +415,6 @@
     "distanceIntervalPlaceholder": "例: 15000",
     "timeIntervalPlaceholder": "例: 90",
     "mileageIntervalPlaceholder": "例: 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "例: 15000",
     "discardChangesTitle": "変更を破棄しますか？",
     "discardChangesMessage": "変更内容は失われます。",
@@ -1932,22 +1929,6 @@
   },
   "survey": {
     "feedbackPlaceholder": "ご意見をお聞かせください（個人情報はご記入しないでください）"
-  },
-  "fuel": {
-    "createFailed": "給油の保存に失敗しました。再試行してください。",
-    "newFillUp": "新しい給油",
-    "odometer": "走行距離計",
-    "volume": "燃料",
-    "totalCost": "合計費用",
-    "partialFill": "部分給油",
-    "partialHelp": "満タンにしなかった場合はチェックしてください",
-    "saved": "保存しました！",
-    "save": "給油を記録",
-    "rollingAverage": "移動平均",
-    "lastN": "直近{{n}}回の給油",
-    "history": "履歴",
-    "partial": "部分",
-    "emptyState": "給油記録はありません"
   },
   "nearYou": {
     "sectionMeta": "{{country}}のルート",

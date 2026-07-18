@@ -358,7 +358,6 @@ export const AnalyticsEvent = {
   EXPENSE_ADDED: 'expense_added',
   EXPENSE_QUICK_ADD_TAPPED: 'expense_quick_add_tapped',
   EXPENSE_DASHBOARD_VIEWED: 'expense_dashboard_viewed',
-  FUEL_LOG_ADDED: 'fuel_log_added',
   HEALTH_REPORT_VIEWED: 'health_report_viewed',
   HEALTH_REPORT_GENERATED: 'health_report_generated',
   HEALTH_REPORT_DOWNLOADED: 'health_report_downloaded',

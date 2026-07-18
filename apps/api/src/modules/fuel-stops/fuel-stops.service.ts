@@ -128,38 +128,14 @@ export class FuelStopsService {
   }
 
   /**
-   * Estimate the bike's fuel efficiency from fuel logs, or fall back to defaults.
+   * Resolve the bike's fuel efficiency + tank capacity for range estimates.
+   * km/L uses a fixed default (fuel-consumption stats are a Non-Goal — the
+   * fuel_logs feature was deprecated in R9). Tank capacity comes from bike
+   * metadata when present.
    * Returns { tankLiters, kmPerLiter }.
    */
   async getBikeFuelData(bikeId: string): Promise<{ tankLiters: number; kmPerLiter: number }> {
-    // Try to compute average km/L from the user's fuel logs
-    const { data: logs } = await this.supabase
-      .from('fuel_logs')
-      .select('odometer_km, fuel_litres, is_partial')
-      .eq('motorcycle_id', bikeId)
-      .eq('is_partial', false)
-      .order('odometer_km', { ascending: true })
-      .limit(20);
-
-    let kmPerLiter = DEFAULT_KM_PER_LITER;
-
-    if (logs && logs.length >= 2) {
-      // Compute average consumption from consecutive full fill-ups
-      let totalKm = 0;
-      let totalLitres = 0;
-
-      for (let i = 1; i < logs.length; i++) {
-        const distKm = logs[i].odometer_km - logs[i - 1].odometer_km;
-        if (distKm > 0) {
-          totalKm += distKm;
-          totalLitres += logs[i].fuel_litres;
-        }
-      }
-
-      if (totalLitres > 0) {
-        kmPerLiter = totalKm / totalLitres;
-      }
-    }
+    const kmPerLiter = DEFAULT_KM_PER_LITER;
 
     // Tank capacity isn't in the DB schema — use metadata or default
     const { data: bike } = await this.supabase

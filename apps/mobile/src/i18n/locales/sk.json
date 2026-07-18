@@ -414,9 +414,6 @@
     "distanceIntervalPlaceholder": "napr. 15000",
     "timeIntervalPlaceholder": "napr. 90",
     "mileageIntervalPlaceholder": "napr. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "napr. 15000",
     "discardChangesTitle": "Zahodiť zmeny?",
     "discardChangesMessage": "Tvoje zmeny budú stratené.",
@@ -1936,22 +1933,6 @@
   },
   "survey": {
     "feedbackPlaceholder": "Podeľ sa o svoje myšlienky (bez osobných údajov prosím)"
-  },
-  "fuel": {
-    "createFailed": "Nepodarilo sa uložiť tankovanie. Skúste to znova.",
-    "newFillUp": "Nové tankovanie",
-    "odometer": "Odometer",
-    "volume": "Palivo",
-    "totalCost": "Celkové náklady",
-    "partialFill": "Čiastočné tankovanie",
-    "partialHelp": "Označ, ak si nenaplnil nádrž úplne",
-    "saved": "Uložené!",
-    "save": "Uložiť tankovanie",
-    "rollingAverage": "Kĺzavý priemer",
-    "lastN": "Posledných {{n}} tankovaní",
-    "history": "História",
-    "partial": "Čiastočné",
-    "emptyState": "Zatiaľ žiadne tankovania"
   },
   "nearYou": {
     "sectionMeta": "Trasy v {{country}}",

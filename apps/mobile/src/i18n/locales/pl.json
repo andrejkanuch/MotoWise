@@ -414,9 +414,6 @@
     "distanceIntervalPlaceholder": "np. 15000",
     "timeIntervalPlaceholder": "np. 90",
     "mileageIntervalPlaceholder": "np. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "np. 15000",
     "discardChangesTitle": "Odrzucić zmiany?",
     "discardChangesMessage": "Twoje zmiany zostaną utracone.",
@@ -1936,22 +1933,6 @@
   },
   "survey": {
     "feedbackPlaceholder": "Podziel sie swoimi przemysleniami (bez danych osobowych)"
-  },
-  "fuel": {
-    "createFailed": "Nie udało się zapisać tankowania. Spróbuj ponownie.",
-    "newFillUp": "Nowe tankowanie",
-    "odometer": "Licznik",
-    "volume": "Paliwo",
-    "totalCost": "Łączny koszt",
-    "partialFill": "Częściowe tankowanie",
-    "partialHelp": "Zaznacz, jeśli nie zatankowałeś do pełna",
-    "saved": "Zapisano!",
-    "save": "Zapisz tankowanie",
-    "rollingAverage": "Średnia krocząca",
-    "lastN": "Ostatnie {{n}} tankowań",
-    "history": "Historia",
-    "partial": "Częściowe",
-    "emptyState": "Brak zapisanych tankowań"
   },
   "nearYou": {
     "sectionMeta": "Trasy w {{country}}",

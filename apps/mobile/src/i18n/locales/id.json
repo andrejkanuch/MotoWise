@@ -412,9 +412,6 @@
     "distanceIntervalPlaceholder": "mis. 15000",
     "timeIntervalPlaceholder": "mis. 90",
     "mileageIntervalPlaceholder": "mis. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "mis. 15000",
     "discardChangesTitle": "Buang perubahan?",
     "discardChangesMessage": "Perubahan Anda akan hilang.",
@@ -1932,22 +1929,6 @@
   },
   "survey": {
     "feedbackPlaceholder": "Bagikan pemikiranmu (jangan sertakan info pribadi)"
-  },
-  "fuel": {
-    "createFailed": "Gagal menyimpan pengisian. Silakan coba lagi.",
-    "newFillUp": "Pengisian baru",
-    "odometer": "Odometer",
-    "volume": "BBM",
-    "totalCost": "Total biaya",
-    "partialFill": "Isi sebagian",
-    "partialHelp": "Centang jika Anda tidak mengisi tangki penuh",
-    "saved": "Tersimpan!",
-    "save": "Catat pengisian",
-    "rollingAverage": "Rata-rata",
-    "lastN": "{{n}} pengisian terakhir",
-    "history": "Riwayat",
-    "partial": "Sebagian",
-    "emptyState": "Belum ada pengisian tercatat"
   },
   "nearYou": {
     "sectionMeta": "Rute di {{country}}",

@@ -413,9 +413,6 @@
     "distanceIntervalPlaceholder": "ex. 15000",
     "timeIntervalPlaceholder": "ex. 90",
     "mileageIntervalPlaceholder": "ex. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "ex. 15000",
     "discardChangesTitle": "Descartar alterações?",
     "discardChangesMessage": "Suas alterações serão perdidas.",
@@ -1934,22 +1931,6 @@
   },
   "survey": {
     "feedbackPlaceholder": "Compartilhe suas opiniões (sem informações pessoais)"
-  },
-  "fuel": {
-    "createFailed": "Falha ao salvar abastecimento. Tente novamente.",
-    "newFillUp": "Novo abastecimento",
-    "odometer": "Hodômetro",
-    "volume": "Combustível",
-    "totalCost": "Custo total",
-    "partialFill": "Abastecimento parcial",
-    "partialHelp": "Marque se não encheu o tanque completamente",
-    "saved": "Salvo!",
-    "save": "Registrar abastecimento",
-    "rollingAverage": "Média móvel",
-    "lastN": "Últimos {{n}} abastecimentos",
-    "history": "Histórico",
-    "partial": "Parcial",
-    "emptyState": "Nenhum abastecimento registrado"
   },
   "nearYou": {
     "sectionMeta": "Rotas em {{country}}",

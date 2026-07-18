@@ -412,9 +412,6 @@
     "distanceIntervalPlaceholder": "e.g. 15000",
     "timeIntervalPlaceholder": "e.g. 90",
     "mileageIntervalPlaceholder": "e.g. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "e.g. 15000",
     "discardChangesTitle": "Discard changes?",
     "discardChangesMessage": "Your changes will be lost.",
@@ -2045,22 +2042,6 @@
   },
   "survey": {
     "feedbackPlaceholder": "Share your thoughts (no personal info please)"
-  },
-  "fuel": {
-    "createFailed": "Failed to save fill-up. Please try again.",
-    "newFillUp": "New fill-up",
-    "odometer": "Odometer",
-    "volume": "Fuel",
-    "totalCost": "Total cost",
-    "partialFill": "Partial fill",
-    "partialHelp": "Check this if you didn't fill the tank completely",
-    "saved": "Saved!",
-    "save": "Log fill-up",
-    "rollingAverage": "Rolling average",
-    "lastN": "Last {{n}} fills",
-    "history": "History",
-    "partial": "Partial",
-    "emptyState": "No fill-ups logged yet"
   },
   "nearYou": {
     "sectionMeta": "Routes in {{country}}",

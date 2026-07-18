@@ -415,9 +415,6 @@
     "distanceIntervalPlaceholder": "z.B. 15000",
     "timeIntervalPlaceholder": "z.B. 90",
     "mileageIntervalPlaceholder": "z.B. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0,0",
-    "fuelCostPlaceholder": "0,00",
     "taskMileagePlaceholder": "z.B. 15000",
     "discardChangesTitle": "Änderungen verwerfen?",
     "discardChangesMessage": "Deine Änderungen gehen verloren.",
@@ -1932,22 +1929,6 @@
   },
   "survey": {
     "feedbackPlaceholder": "Teile deine Gedanken (bitte keine persoenlichen Daten)"
-  },
-  "fuel": {
-    "createFailed": "Tankfüllung konnte nicht gespeichert werden. Bitte versuche es erneut.",
-    "newFillUp": "Neue Tankfüllung",
-    "odometer": "Kilometerstand",
-    "volume": "Kraftstoff",
-    "totalCost": "Gesamtkosten",
-    "partialFill": "Teiltankung",
-    "partialHelp": "Aktiviere dies, wenn du den Tank nicht vollständig gefüllt hast",
-    "saved": "Gespeichert!",
-    "save": "Tankfüllung speichern",
-    "rollingAverage": "Gleitender Durchschnitt",
-    "lastN": "Letzte {{n}} Tankfüllungen",
-    "history": "Verlauf",
-    "partial": "Teiltankung",
-    "emptyState": "Noch keine Tankfüllungen erfasst"
   },
   "nearYou": {
     "sectionMeta": "Routen in {{country}}",

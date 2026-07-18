@@ -413,9 +413,6 @@
     "distanceIntervalPlaceholder": "es. 15000",
     "timeIntervalPlaceholder": "es. 90",
     "mileageIntervalPlaceholder": "es. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0,0",
-    "fuelCostPlaceholder": "0,00",
     "taskMileagePlaceholder": "es. 15000",
     "discardChangesTitle": "Annullare le modifiche?",
     "discardChangesMessage": "Le modifiche andranno perse.",
@@ -1934,22 +1931,6 @@
   },
   "survey": {
     "feedbackPlaceholder": "Condividi i tuoi pensieri (nessun dato personale, per favore)"
-  },
-  "fuel": {
-    "createFailed": "Salvataggio rifornimento non riuscito. Riprova.",
-    "newFillUp": "Nuovo rifornimento",
-    "odometer": "Contachilometri",
-    "volume": "Carburante",
-    "totalCost": "Costo totale",
-    "partialFill": "Rifornimento parziale",
-    "partialHelp": "Seleziona se non hai fatto il pieno completo",
-    "saved": "Salvato!",
-    "save": "Registra rifornimento",
-    "rollingAverage": "Media mobile",
-    "lastN": "Ultimi {{n}} rifornimenti",
-    "history": "Cronologia",
-    "partial": "Parziale",
-    "emptyState": "Nessun rifornimento registrato"
   },
   "nearYou": {
     "sectionMeta": "Percorsi in {{country}}",
