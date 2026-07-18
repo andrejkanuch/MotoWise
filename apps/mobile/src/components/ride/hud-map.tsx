@@ -1,14 +1,24 @@
 import { palette } from '@motovault/design-system';
 import type { Waypoint } from '@motovault/types';
-import MapboxGL, { UserTrackingMode } from '@rnmapbox/maps';
+import MapboxGL, { type MapState } from '@rnmapbox/maps';
+import { LocateFixed } from 'lucide-react-native';
 import { PostHogMaskView } from 'posthog-react-native';
-import { useMemo } from 'react';
-import { useColorScheme, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Pressable, useColorScheme, View } from 'react-native';
+import { useAuthStore } from '../../stores/auth.store';
+import { triggerImpact } from '../../utils/haptics';
 import { MAP_STYLES } from '../../utils/map-styles';
+import { resolveFollowUserMode } from './hud-map-follow';
 
 interface HudMapProps {
   waypoints: Waypoint[];
   gpsAccuracy: number;
+  /**
+   * Distance from the bottom of the map to the recenter button, in points.
+   * Layout B passes a larger value so the button clears its bottom sheet.
+   */
+  recenterBottomOffset?: number;
 }
 
 function getGpsColor(accuracy: number): string {
@@ -41,10 +51,39 @@ function buildRouteGeoJSON(waypoints: Waypoint[]): GeoJSON.FeatureCollection {
   };
 }
 
-export function HudMap({ waypoints, gpsAccuracy }: HudMapProps) {
+/** A finite, non-negative heading on the latest waypoint means we have a course fix. */
+function hasFiniteCourse(waypoints: Waypoint[]): boolean {
+  const last = waypoints.at(-1);
+  const heading = last?.heading;
+  return typeof heading === 'number' && Number.isFinite(heading) && heading >= 0;
+}
+
+export function HudMap({ waypoints, gpsAccuracy, recenterBottomOffset = 16 }: HudMapProps) {
+  const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';
+  const mapOrientation = useAuthStore((s) => s.mapOrientation);
   const routeGeoJSON = useMemo(() => buildRouteGeoJSON(waypoints), [waypoints]);
   const gpsColor = getGpsColor(gpsAccuracy);
+
+  // Course-up only once a finite course has been observed (NaN guard, R4).
+  const hasValidCourse = useMemo(() => hasFiniteCourse(waypoints), [waypoints]);
+  const followUserMode = resolveFollowUserMode(mapOrientation, hasValidCourse);
+
+  // Follow re-arm: a user pan breaks native follow; the recenter button re-arms it.
+  const [isFollowing, setIsFollowing] = useState(true);
+
+  const handleCameraChanged = useCallback((state: MapState) => {
+    // A gesture-driven camera change means the user panned/zoomed — stop following
+    // so the recenter affordance appears. Programmatic follow updates are ignored.
+    if (state.gestures?.isGestureActive) setIsFollowing(false);
+  }, []);
+
+  const handleRecenter = useCallback(() => {
+    triggerImpact();
+    // Flipping followUserLocation false → true re-arms native following and
+    // recenters the camera on the rider.
+    setIsFollowing(true);
+  }, []);
 
   return (
     // Mask the live GPS track from session replay — `maskAllImages` does not
@@ -58,16 +97,19 @@ export function HudMap({ waypoints, gpsAccuracy }: HudMapProps) {
         attributionEnabled={false}
         scaleBarEnabled={false}
         compassEnabled={false}
+        onCameraChanged={handleCameraChanged}
       >
         {/*
-         * GPS course-based tracking (no compass): the compass->bearing
-         * transition crashes with "Cannot round NaN value" on low-end
-         * sensors. Use Follow + puckBearing="course" to avoid the compass.
-         * (Sentry MOTO-VAULT-REACT-NATIVE-16)
+         * GPS course-based tracking (no compass). North-up uses Follow; heading-up
+         * uses FollowWithCourse (rotate by movement course). We never use
+         * FollowWithHeading — the compass->bearing transition crashes with
+         * "Cannot round NaN value" on low-end sensors (Sentry
+         * MOTO-VAULT-REACT-NATIVE-16). resolveFollowUserMode also holds north-up
+         * until a finite course exists, so the follow controller never gets NaN.
          */}
         <MapboxGL.Camera
-          followUserLocation
-          followUserMode={UserTrackingMode.Follow}
+          followUserLocation={isFollowing}
+          followUserMode={followUserMode}
           followZoomLevel={15}
           animationMode="moveTo"
         />
@@ -103,6 +145,31 @@ export function HudMap({ waypoints, gpsAccuracy }: HudMapProps) {
           borderColor: palette.surfaceOverlay,
         }}
       />
+
+      {/* Recenter button — only while the map is not following (nothing to re-arm otherwise) */}
+      {!isFollowing && (
+        <Pressable
+          onPress={handleRecenter}
+          accessibilityRole="button"
+          accessibilityLabel={t('rideHud.recenter', { defaultValue: 'Recenter map' })}
+          style={{
+            position: 'absolute',
+            right: 16,
+            bottom: recenterBottomOffset,
+            width: 48,
+            height: 48,
+            borderRadius: 24,
+            borderCurve: 'continuous',
+            backgroundColor: palette.controlBg,
+            borderWidth: 1,
+            borderColor: palette.surfaceElevated,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <LocateFixed size={22} color={palette.signature500} />
+        </Pressable>
+      )}
     </PostHogMaskView>
   );
 }
