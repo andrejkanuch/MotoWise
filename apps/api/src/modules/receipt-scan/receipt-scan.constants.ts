@@ -54,6 +54,14 @@ export const RECEIPT_OBJECT_EXT = 'webp' as const;
  */
 export const MAX_RECEIPT_SCANS_PER_MONTH = FREE_TIER_LIMITS.MAX_RECEIPT_SCANS_PER_MONTH;
 
+/**
+ * A `pending` reservation older than this is considered abandoned (server died
+ * between reserve and finalize). Mirrors the reserve_receipt_scan reaper window
+ * (00166) so the quota read can sweep stale pendings before counting — otherwise
+ * they inflate `used` and lock a free user out of the pre-scan paywall gate.
+ */
+export const STALE_PENDING_MS = 15 * 60 * 1000;
+
 /** Structured-log token for the dormant shadow-mode paywall signal (U10 wires telemetry). */
 export const PAYWALL_WOULD_HAVE_SHOWN = 'paywall_would_have_shown' as const;
 

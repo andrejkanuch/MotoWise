@@ -141,6 +141,10 @@ function createMockDb() {
         ctx.filters[`gte_${col}`] = val;
         return builder;
       },
+      lt(col: string, val: unknown) {
+        ctx.filters[`lt_${col}`] = val;
+        return builder;
+      },
       order() {
         return builder;
       },
@@ -316,6 +320,49 @@ describe('ReceiptScanService', () => {
     });
   });
 
+  describe('scanReceipt — idempotency (at-least-once retry dedup)', () => {
+    it('returns the prior success for the same object WITHOUT reserving or re-charging', async () => {
+      // A completed SUCCESS row already exists at this uid/scanId path (the first
+      // call succeeded; the client retried after a lost response).
+      db.state.resolver = (ctx) =>
+        ctx.op === 'select' &&
+        ctx.filters.storage_path === STORAGE_PATH &&
+        ctx.filters.status === RECEIPT_SCAN_STATUS.SUCCESS
+          ? {
+              data: {
+                id: RESERVATION_ID,
+                extraction_payload: {
+                  type: 'maintenance',
+                  amount: 241.46,
+                  currency: 'EUR',
+                  date: '2024-05-12',
+                  fieldConfidence: {
+                    amount: 0.98,
+                    currency: 0.99,
+                    date: 0.9,
+                    vendor: 0.85,
+                    category: 0.8,
+                    odometer: 0.7,
+                  },
+                },
+              },
+            }
+          : { data: [], count: 0 };
+
+      const res = await service.scanReceipt(USER, CLIENT_SCAN_ID);
+
+      expect('result' in res).toBe(true);
+      if (!('result' in res)) return;
+      expect(res.scanId).toBe(RESERVATION_ID);
+      expect(res.result.amount).toBe(241.46);
+      // No second reservation, no second model call, no second spend row.
+      expect(db.rpc).not.toHaveBeenCalled();
+      expect(aiService.extract).not.toHaveBeenCalled();
+      expect(db.download).not.toHaveBeenCalled();
+      expect(db.inserts.find((i) => i.table === 'content_generation_log')).toBeUndefined();
+    });
+  });
+
   describe('scanReceipt — failure & guard paths', () => {
     it('kill switch → SCAN_DISABLED, no reservation', async () => {
       env.RECEIPT_SCAN_ENABLED = 'false';
@@ -471,6 +518,22 @@ describe('ReceiptScanService', () => {
       expect(q?.filters.is_onboarding).toBe(false);
       expect(q?.filters.not_status).toContain(RECEIPT_SCAN_STATUS.FAILED);
     });
+
+    it('reaps this user own stale pendings before counting (no month-long lockout)', async () => {
+      db.state.resolver = () => ({ count: 0 });
+      await service.receiptScanQuota(USER);
+      // A user-scoped pending->failed sweep with a created_at cutoff runs first, so
+      // abandoned in-flight scans never inflate `used` and gate the paywall.
+      const sweep = db.calls.find(
+        (c) =>
+          c.op === 'update' &&
+          (c.patch as { status?: string })?.status === RECEIPT_SCAN_STATUS.FAILED &&
+          c.filters.status === RECEIPT_SCAN_STATUS.PENDING,
+      );
+      expect(sweep).toBeDefined();
+      expect(sweep?.filters.user_id).toBe(USER.id);
+      expect(sweep?.filters.lt_created_at).toBeDefined();
+    });
   });
 
   describe('cancelReceiptScan — CAS vs finalizer (KTD-4)', () => {
@@ -524,7 +587,20 @@ describe('ReceiptScanService', () => {
             id: RESERVATION_ID,
             storage_path: `${USER.id}/${CLIENT_SCAN_ID}.webp`,
             created_at: '2024-05-12T00:00:00Z',
-            extraction_payload: { type: 'expense', fieldConfidence: {}, amount: 12.5 },
+            extraction_payload: {
+              type: 'expense',
+              amount: 12.5,
+              // A real persisted payload always carries a complete fieldConfidence
+              // (six numeric subfields) — payloadToResult rejects a partial one.
+              fieldConfidence: {
+                amount: 0.9,
+                currency: 0.9,
+                date: 0.9,
+                vendor: 0.9,
+                category: 0.9,
+                odometer: 0.9,
+              },
+            },
           },
         ],
       });
@@ -637,6 +713,15 @@ describe('ReceiptScanService', () => {
       expect('code' in res && res.code).toBe(RECEIPT_SCAN_ERROR_CODES.SCAN_NOT_REVIEWABLE);
     });
 
+    it('motorcycle not owned by caller → SAVE_FAILED, no record written', async () => {
+      routeDb(scanRow());
+      motorcyclesService.findById.mockResolvedValue(null);
+      const res = await service.saveReceiptScan(USER, CLIENT_SCAN_ID, saveInput());
+      expect('code' in res && res.code).toBe(RECEIPT_SCAN_ERROR_CODES.SAVE_FAILED);
+      expect(expensesService.create).not.toHaveBeenCalled();
+      expect(maintenanceTasksService.create).not.toHaveBeenCalled();
+    });
+
     it('expense path writes record + photo + odometer, stamps refs', async () => {
       routeDb(scanRow(), 'metric');
       const res = await service.saveReceiptScan(
@@ -720,8 +805,9 @@ describe('ReceiptScanService', () => {
 
     it('mid-save failure does NOT delete the source receipt object (needed for retry)', async () => {
       routeDb(scanRow());
-      // Fail AFTER the photo link succeeds (odometer step throws).
-      motorcyclesService.findById.mockRejectedValueOnce(new Error('odometer lookup boom'));
+      // Fail AFTER the photo link succeeds: the odometer WRITE throws mid-saga
+      // (findById succeeds for both the ownership assert and the odometer read).
+      motorcyclesService.update.mockRejectedValueOnce(new Error('odometer write boom'));
       const res = await service.saveReceiptScan(
         USER,
         CLIENT_SCAN_ID,

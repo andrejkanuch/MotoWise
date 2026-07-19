@@ -149,7 +149,9 @@ async function processPending(pending: PendingScan): Promise<void> {
       parkScan({
         scanId,
         bikeId: pending.bikeId,
-        storagePath: `${pending.userId}/${scanId}.webp`,
+        // The object was uploaded under pending.scanId (the client id); `scanId`
+        // here is the server reservationId and would 404. Derive from pending.
+        storagePath: `${pending.userId}/${pending.scanId}.webp`,
         result,
         // The durable local copy backs the review-card receipt thumbnail pre-save.
         imageUri: durableUri,

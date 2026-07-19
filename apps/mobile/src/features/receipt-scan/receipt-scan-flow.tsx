@@ -154,6 +154,9 @@ function PrimaryButton({
     <Pressable
       onPress={onPress}
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled }}
       style={{
         minHeight: TARGET_HEIGHT,
         borderRadius: 14,
@@ -186,6 +189,8 @@ function SecondaryButton({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
       style={{
         minHeight: TARGET_HEIGHT,
         borderRadius: 14,

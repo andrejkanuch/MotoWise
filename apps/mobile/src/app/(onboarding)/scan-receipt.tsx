@@ -11,7 +11,10 @@ import { OnboardingContinueButton } from '../../components/onboarding/onboarding
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { OB_SCREEN } from '../../config/onboarding';
 import { MODAL_ROUTE } from '../../config/routes';
-import { SCAN_ENTRY_SURFACE } from '../../features/receipt-scan/scan-flow-constants';
+import {
+  SCAN_ENTRY_SURFACE,
+  type TranslationKey,
+} from '../../features/receipt-scan/scan-flow-constants';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
 import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
@@ -189,7 +192,7 @@ export default function OnboardingScanReceiptScreen() {
                     lineHeight: 20,
                   }}
                 >
-                  {t(bullet.labelKey as never)}
+                  {t(bullet.labelKey as TranslationKey)}
                 </Text>
               </Animated.View>
             );

@@ -48,6 +48,7 @@ import {
   type SavedOdometerRef,
   type SavedRecordRefs,
   SCAN_ID_UUID_REGEX,
+  STALE_PENDING_MS,
   UNDO_STATUS,
 } from './receipt-scan.constants';
 import { ReceiptScanAiService } from './receipt-scan-ai.service';
@@ -123,6 +124,15 @@ export class ReceiptScanService {
     // 3. Derive the storage path server-side from the authenticated uid (C1).
     const path = this.buildPath(user.id, scanId);
 
+    // 3b. Idempotency guard (at-least-once retries). scanId is client-supplied and
+    // stable across a retry/queue-redrain of the SAME physical receipt, so it maps
+    // deterministically to `path`. If a prior call for this exact object already
+    // SUCCEEDED, return it instead of minting a second reservation — closes the
+    // lost-response double-charge (a second OpenAI bill, a second consumed credit,
+    // and a duplicate unreviewed scan). A genuinely new scan uses a fresh scanId.
+    const duplicate = await this.findSucceededByPath(user.id, path);
+    if (duplicate) return duplicate;
+
     // 4. Global budget / circuit-breaker gate (throws on a genuine spend stop).
     await this.aiBudgetService.checkBudgetForUser(user.id);
 
@@ -187,7 +197,25 @@ export class ReceiptScanService {
     // matches 0 rows when the reservation was cancelled/reaped mid-extraction.
     const finalized = await this.finalize(reservationId, RECEIPT_SCAN_STATUS.SUCCESS, payload);
 
-    // 12. Record spend for content_generation_log accounting (the model ran).
+    // 12. If the success transition matched no row the durable reservation is
+    // gone (cancelled/reaped) — there is no success row to review. The model DID
+    // run and incur spend, so log the ACTUAL outcome (FAILED) rather than a
+    // SUCCESS row pointing at a now-cancelled content_id, then bail.
+    if (finalized === 0) {
+      this.logger.warn(
+        `finalize(success) matched 0 rows for scan=${reservationId} — reservation lost (cancelled/reaped)`,
+      );
+      await this.logGeneration(
+        user.id,
+        reservationId,
+        GENERATION_LOG_STATUS.FAILED,
+        outcome.inputTokens,
+        outcome.outputTokens,
+      );
+      return this.err(RECEIPT_SCAN_ERROR_CODES.EXTRACTION_FAILED);
+    }
+
+    // 13. Record spend for content_generation_log accounting (a real success).
     await this.logGeneration(
       user.id,
       reservationId,
@@ -196,17 +224,7 @@ export class ReceiptScanService {
       outcome.outputTokens,
     );
 
-    // 12b. If the success transition matched no row the durable reservation is
-    // gone (cancelled/reaped) — there is no success row to review, so do not
-    // report a fabricated success.
-    if (finalized === 0) {
-      this.logger.warn(
-        `finalize(success) matched 0 rows for scan=${reservationId} — reservation lost (cancelled/reaped)`,
-      );
-      return this.err(RECEIPT_SCAN_ERROR_CODES.EXTRACTION_FAILED);
-    }
-
-    // 13.
+    // 14.
     return { scanId: reservationId, result };
   }
 
@@ -262,6 +280,13 @@ export class ReceiptScanService {
     const now = new Date();
     const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
     const resetDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+
+    // Reap this user's abandoned pendings BEFORE counting (mirrors the reserve RPC).
+    // The paywall gate reads this count and runs BEFORE scanReceipt, so the RPC's
+    // own reaper never fires to clear a stale pending — without this sweep, three
+    // app-killed/interrupted in-flight scans would count toward the cap and lock a
+    // free user out of scanning for the rest of the month.
+    await this.reapStalePendings(user.id);
 
     const { count } = await this.adminClient
       .from(RECEIPT_SCANS_TABLE)
@@ -327,6 +352,17 @@ export class ReceiptScanService {
     if (scan.saved_at) {
       return { scanId, refs: this.refsForDto(scan.saved_record_refs) };
     }
+
+    // Ownership: the target motorcycle must belong to the caller. The record-write
+    // services enforce user_id on the row they create but NOT on the referenced
+    // motorcycleId (only the odometer sub-step did), so a crafted save with a
+    // foreign motorcycleId would otherwise create a record pointing at another
+    // user's bike. Assert up front, before claiming or writing anything. A lookup
+    // error fails closed (SAVE_FAILED) rather than throwing a 500.
+    const owned = await this.motorcyclesService
+      .findById(user.id, input.motorcycleId)
+      .catch(() => null);
+    if (!owned) return this.err(RECEIPT_SCAN_ERROR_CODES.SAVE_FAILED);
 
     // Atomically CLAIM the scan BEFORE creating any records — a CAS stamp of
     // saved_at guarded by `saved_at IS NULL` so two concurrent saves cannot both
@@ -720,6 +756,14 @@ export class ReceiptScanService {
    * Guarded compensating revert (KTD-11): atomically restore current_mileage to
    * `previous` ONLY if it still equals the scan-applied value — a CAS that never
    * clobbers a newer reading. previous=null (first-set) reverts back to null.
+   *
+   * DELIBERATE service-role footgun-exception (CLAUDE.md): this is an RLS-bypassing
+   * write to the RLS-protected motorcycles table. It is safe ONLY because of the
+   * mandatory `.eq('user_id', userId)` filter below (userId is always the
+   * authenticated caller) plus the current_mileage CAS. Do NOT remove either
+   * filter — dropping the user_id predicate turns this into a cross-tenant write.
+   * The apply path routes through motorcyclesService.update (user client); this
+   * compensation keeps the admin client for the CAS.
    */
   private async revertOdometer(userId: string, ref: SavedOdometerRef): Promise<boolean> {
     const { error } = await this.adminClient
@@ -871,6 +915,41 @@ export class ReceiptScanService {
     return { reservationId: row.reservation_id, overQuota: row.over_quota };
   }
 
+  /**
+   * Idempotency probe: the most recent SUCCESS reservation for this exact uploaded
+   * object (storage_path), if any. Returns the reviewable success payload so a
+   * retried scanReceipt for the same object short-circuits instead of re-charging.
+   * Returns null when there is no prior success or the payload is unrehydratable.
+   */
+  private async findSucceededByPath(
+    userId: string,
+    path: string,
+  ): Promise<ReceiptScanSuccess | null> {
+    const { data } = await this.adminClient
+      .from(RECEIPT_SCANS_TABLE)
+      .select('id, extraction_payload')
+      .eq('user_id', userId)
+      .eq('storage_path', path)
+      .eq('status', RECEIPT_SCAN_STATUS.SUCCESS)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!data || Array.isArray(data)) return null;
+    const result = this.payloadToResult(data.extraction_payload);
+    return result ? { scanId: data.id, result } : null;
+  }
+
+  /** Sweeps this user's abandoned (>15 min) pendings to failed (reserve-RPC parity). */
+  private async reapStalePendings(userId: string): Promise<void> {
+    const staleBefore = new Date(Date.now() - STALE_PENDING_MS).toISOString();
+    await this.adminClient
+      .from(RECEIPT_SCANS_TABLE)
+      .update({ status: RECEIPT_SCAN_STATUS.FAILED })
+      .eq('user_id', userId)
+      .eq('status', RECEIPT_SCAN_STATUS.PENDING)
+      .lt('created_at', staleBefore);
+  }
+
   private async writeStoragePath(reservationId: string, path: string): Promise<void> {
     await this.adminClient
       .from(RECEIPT_SCANS_TABLE)
@@ -966,7 +1045,13 @@ export class ReceiptScanService {
   private payloadToResult(payload: unknown): ReceiptExtractionResult | null {
     if (!payload || typeof payload !== 'object') return null;
     const p = payload as Record<string, unknown>;
-    if (typeof p.type !== 'string' || !p.fieldConfidence) return null;
+    // fieldConfidence is a NON-NULL GraphQL object with six required Float subfields.
+    // Validate the shape before casting — a partial payload (e.g. a future schema
+    // version) would otherwise pass the truthy check and then null a subfield at
+    // GraphQL resolution, silently dropping the whole scan from the home card.
+    if (typeof p.type !== 'string' || !this.isValidFieldConfidence(p.fieldConfidence)) {
+      return null;
+    }
     return {
       type: p.type,
       amount: (p.amount as number | null) ?? null,
@@ -985,6 +1070,15 @@ export class ReceiptScanService {
       legibilityNote: (p.legibilityNote as string | null) ?? null,
       needsCheck: (p.needsCheck as string[]) ?? [],
     };
+  }
+
+  /** Type guard: a complete fieldConfidence object (six numeric Float subfields). */
+  private isValidFieldConfidence(value: unknown): boolean {
+    if (!value || typeof value !== 'object') return false;
+    const fc = value as Record<string, unknown>;
+    return (['amount', 'currency', 'date', 'vendor', 'category', 'odometer'] as const).every(
+      (k) => typeof fc[k] === 'number',
+    );
   }
 
   private async logGeneration(

@@ -32,3 +32,7 @@ DROP TABLE IF EXISTS public.fuel_logs;
 
 -- 4. Drop the standalone trigger function (a DROP TABLE CASCADE would not).
 DROP FUNCTION IF EXISTS public.create_expense_for_fuel_log();
+
+-- Drop the fuel_logs table/column/function from the API-exposed schema — force
+-- PostgREST to reload so it stops advertising the removed relation (matches 00166).
+NOTIFY pgrst, 'reload schema';

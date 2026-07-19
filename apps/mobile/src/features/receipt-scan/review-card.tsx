@@ -40,6 +40,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { CATEGORY_LABELS, formatCurrencyInput } from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { tint } from '../../theme/editorial';
 import { triggerSelection } from '../../utils/haptics';
 import { localDateFromISODate, toISODateInput } from '../../utils/trip-form-dates';
 import {
@@ -283,7 +284,15 @@ export function ReviewCard({
   );
 
   const parsedAmount = parseNumeric(amount);
-  const canSave = hasBike && (parsedAmount ?? 0) > 0;
+  // Mirror the server's cross-field invariant (parts + labor <= total, service
+  // throws otherwise → opaque SAVE_FAILED). Disabling save here keeps the invalid
+  // breakdown from ever reaching the mutation, consistent with the other
+  // disable-on-invalid states above (no bike / non-positive amount).
+  const breakdownExceedsAmount =
+    isMaintenance(type) &&
+    (parsedAmount ?? 0) > 0 &&
+    (parseNumeric(partsCost) ?? 0) + (parseNumeric(laborCost) ?? 0) > (parsedAmount ?? 0) + 0.001;
+  const canSave = hasBike && (parsedAmount ?? 0) > 0 && !breakdownExceedsAmount;
 
   const handleSave = useCallback(() => {
     if (!canSave) return;
@@ -693,7 +702,7 @@ function TypeChips({
               justifyContent: 'center',
               gap: 8,
               backgroundColor: selected
-                ? `${palette.signature500}1F`
+                ? tint(palette.signature500, 0.12)
                 : isDark
                   ? palette.neutral800
                   : palette.white,
@@ -1134,7 +1143,7 @@ function CategoryField({
                 borderRadius: 11,
                 borderCurve: 'continuous',
                 backgroundColor: selected
-                  ? `${palette.signature500}1F`
+                  ? tint(palette.signature500, 0.12)
                   : isDark
                     ? palette.neutral800
                     : palette.white,

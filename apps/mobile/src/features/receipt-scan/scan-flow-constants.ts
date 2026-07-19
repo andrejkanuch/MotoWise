@@ -226,6 +226,15 @@ export interface ReceiptReviewPayload {
 /** Upload is wrapped in a race with this timeout before it is treated as failed. */
 export const UPLOAD_TIMEOUT_MS = 30_000;
 
+/**
+ * Client deadline for the scanReceipt (analyze) request. The server retries the
+ * vision call up to ~180s worst-case; without a client deadline a hung model call
+ * strands the UI in ANALYZING indefinitely. 90s sits above the typical <30s scan
+ * so it only fires on a genuine hang — and a retry after it is deduped server-side
+ * (the reservation is idempotent on the uploaded object).
+ */
+export const ANALYZE_TIMEOUT_MS = 90_000;
+
 /** The "Skip — enter manually" affordance appears this long into analyzing (KTD-4). */
 export const SKIP_AFFORDANCE_DELAY_MS = 3_000;
 

@@ -10,6 +10,7 @@ import { useProGate } from '../../hooks/use-pro-gate';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { pickImage, takePhoto, uploadReceiptPhoto } from '../../lib/image-upload';
+import { logger } from '../../lib/logger';
 import { isNetworkError } from '../../lib/network-error';
 import { scheduleParkedScanReminder } from '../../lib/notifications';
 import { queryClient } from '../../lib/query-client';
@@ -20,6 +21,7 @@ import { parkScan } from './parked-scan-store';
 import { enqueuePendingScan } from './receipt-scan-queue';
 import {
   ANALYZE_ERROR_OUTCOME,
+  ANALYZE_TIMEOUT_MS,
   type ErrorOutcome,
   LOCAL_ERROR_OUTCOME,
   type ReceiptReviewHandoff,
@@ -247,7 +249,11 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
           handoff: {
             scanId: union.scanId,
             bikeId: bikeId ?? '',
-            storagePath: storagePathFor(userIdRef.current, union.scanId),
+            // The uploaded object lives at {uid}/{clientScanId}.webp — the server
+            // stores that same path. `union.scanId` is the server reservationId
+            // (a DIFFERENT uuid), so the storagePath MUST derive from the client
+            // scanId, not the returned id, or it 404s on any signed-URL mint.
+            storagePath: storagePathFor(userIdRef.current, scanIdRef.current),
             result: union.result,
             imageUri: photoUriRef.current,
           },
@@ -291,10 +297,13 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
 
     const skipTimer = setTimeout(() => dispatch({ type: 'SKIP_SHOWN' }), SKIP_AFFORDANCE_DELAY_MS);
     try {
-      const data = await gqlFetcher(ScanReceiptDocument, {
-        scanId: scanIdRef.current,
-        isOnboarding, // KTD-10: server exempts the first onboarding scan from quota
-      });
+      const data = await withTimeout(
+        gqlFetcher(ScanReceiptDocument, {
+          scanId: scanIdRef.current,
+          isOnboarding, // KTD-10: server exempts the first onboarding scan from quota
+        }),
+        ANALYZE_TIMEOUT_MS,
+      );
       scanResolvedRef.current = { kind: 'result', data };
       if (cancelRequestedRef.current) return; // cancel handler is authoritative
       routeResolved(scanResolvedRef.current, bikeIdRef.current);
@@ -316,7 +325,14 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
       const enqueueOffline = () => {
         // Copy the cache photo somewhere durable BEFORE persisting the record, then
         // defer the whole pipeline. No credit until extraction succeeds on reconnect.
-        persistDurablePhoto(photoUri, scanIdRef.current);
+        // The copy is best-effort: a purged cache file must not throw out of this
+        // handler (that would strand the UI in UPLOADING with no QUEUED_OFFLINE
+        // dispatch). The queue drain drops any record whose durable photo is gone.
+        try {
+          persistDurablePhoto(photoUri, scanIdRef.current);
+        } catch (err) {
+          logger.warn('receipt-scan: failed to persist durable photo for offline queue', err);
+        }
         enqueuePendingScan({
           scanId: scanIdRef.current,
           bikeId: bikeIdRef.current ?? '',
@@ -547,7 +563,12 @@ function nextPhaseAfterGate(bikes: ScanBike[], selectedBikeId: string | null): S
   return hasAcceptedScanConsent() ? SCAN_PHASE.CAPTURE : SCAN_PHASE.CONSENT;
 }
 
-/** The server derives the same `{uid}/{scanId}.webp` path; storagePath mirrors it. */
+/**
+ * Builds the storage object path for the uploaded receipt. `scanId` here MUST be
+ * the CLIENT scan id the object was uploaded under ({uid}/{clientScanId}.webp) —
+ * NOT the server reservationId returned by scanReceipt, which never matches an
+ * uploaded object.
+ */
 function storagePathFor(userId: string | null, scanId: string): string {
   return `${userId ?? ''}/${scanId}.webp`;
 }
