@@ -524,15 +524,21 @@ describe('ReceiptScanService', () => {
       await service.receiptScanQuota(USER);
       // A user-scoped pending->failed sweep with a created_at cutoff runs first, so
       // abandoned in-flight scans never inflate `used` and gate the paywall.
-      const sweep = db.calls.find(
+      const sweepIndex = db.calls.findIndex(
         (c) =>
           c.op === 'update' &&
           (c.patch as { status?: string })?.status === RECEIPT_SCAN_STATUS.FAILED &&
           c.filters.status === RECEIPT_SCAN_STATUS.PENDING,
       );
+      const countIndex = db.calls.findIndex((c) => c.table === 'receipt_scans' && c.head);
+      const sweep = db.calls[sweepIndex];
       expect(sweep).toBeDefined();
       expect(sweep?.filters.user_id).toBe(USER.id);
       expect(sweep?.filters.lt_created_at).toBeDefined();
+      // Ordering is the point: the sweep must run BEFORE the count, else stale
+      // pendings are still counted and the lockout persists.
+      expect(countIndex).toBeGreaterThan(-1);
+      expect(sweepIndex).toBeLessThan(countIndex);
     });
   });
 
