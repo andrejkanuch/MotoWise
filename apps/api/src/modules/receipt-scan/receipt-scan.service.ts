@@ -35,6 +35,7 @@ import {
   GENERATION_LOG_STATUS,
   MAINTENANCE_SOURCE_RECEIPT_SCAN,
   MAX_PLAUSIBLE_ODOMETER_JUMP,
+  MAX_RECEIPT_SCAN_ATTEMPTS_PER_DAY,
   MAX_RECEIPT_SCANS_PER_MONTH,
   ODOMETER_SYNC_SOURCE_MANUAL,
   ODOMETER_UNITS,
@@ -77,6 +78,8 @@ const ERROR_REASONS = {
     'That image could not be read as a receipt. Please retake the photo.',
   [RECEIPT_SCAN_ERROR_CODES.SCAN_QUOTA_EXCEEDED]:
     'You have used all of your free receipt scans this month. Upgrade to Pro for more.',
+  [RECEIPT_SCAN_ERROR_CODES.SCAN_RATE_LIMITED]:
+    'You have scanned a lot today. Please try again tomorrow, or enter this receipt by hand.',
   [RECEIPT_SCAN_ERROR_CODES.EXTRACTION_FAILED]:
     'We could not read this receipt. You can enter the details manually.',
   [RECEIPT_SCAN_ERROR_CODES.ALREADY_COMPLETED]:
@@ -132,6 +135,15 @@ export class ReceiptScanService {
     // and a duplicate unreviewed scan). A genuinely new scan uses a fresh scanId.
     const duplicate = await this.findSucceededByPath(user.id, path);
     if (duplicate) return duplicate;
+
+    // 3c. Per-user daily attempt cap (abuse backstop, tier-independent). Distinct
+    // from the dormant monthly quota: it bounds runaway paid vision calls — FAILED
+    // extractions included — so one account can't exhaust the global spend cap.
+    // Checked here (a duplicate short-circuits above and does NOT count).
+    if ((await this.countTodaysAttempts(user.id)) >= MAX_RECEIPT_SCAN_ATTEMPTS_PER_DAY) {
+      this.logger.warn(`receipt-scan daily attempt cap reached user=${user.id}`);
+      return this.err(RECEIPT_SCAN_ERROR_CODES.SCAN_RATE_LIMITED);
+    }
 
     // 4. Global budget / circuit-breaker gate (throws on a genuine spend stop).
     await this.aiBudgetService.checkBudgetForUser(user.id);
@@ -937,6 +949,19 @@ export class ReceiptScanService {
     if (!data || Array.isArray(data)) return null;
     const result = this.payloadToResult(data.extraction_payload);
     return result ? { scanId: data.id, result } : null;
+  }
+
+  /** Count of this user's non-cancelled receipt scans since UTC midnight (daily cap). */
+  private async countTodaysAttempts(userId: string): Promise<number> {
+    const dayStart = new Date();
+    dayStart.setUTCHours(0, 0, 0, 0);
+    const { count } = await this.adminClient
+      .from(RECEIPT_SCANS_TABLE)
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .not('status', 'in', `(${RECEIPT_SCAN_STATUS.CANCELLED})`)
+      .gte('created_at', dayStart.toISOString());
+    return count ?? 0;
   }
 
   /** Sweeps this user's abandoned (>15 min) pendings to failed (reserve-RPC parity). */

@@ -2266,122 +2266,124 @@
   },
   "receiptScan": {
     "common": {
-      "enterManually": "Enter manually instead",
-      "done": "Done",
-      "noCreditUsed": "No credit used"
+      "enterManually": "กรอกเองแทน",
+      "done": "เสร็จสิ้น",
+      "noCreditUsed": "ไม่ได้ใช้การสแกน"
     },
     "gating": {
-      "label": "Getting ready…"
+      "label": "กำลังเตรียม…"
     },
     "bikePick": {
-      "title": "Which bike is this for?",
-      "subtitle": "Pick the bike this receipt belongs to."
+      "title": "ใบเสร็จนี้สำหรับรถคันไหน?",
+      "subtitle": "เลือกรถที่ใบเสร็จนี้เป็นของ"
     },
     "consent": {
-      "title": "Scan a receipt with AI",
-      "body": "We send a photo of your receipt to our AI to read the amount, date and details — so you don’t have to type them. The photo is stored privately on your account and never shared. You can always enter details by hand instead.",
-      "accept": "Scan a receipt"
+      "title": "สแกนใบเสร็จด้วย AI",
+      "body": "เราจะส่งรูปใบเสร็จของคุณไปให้ AI อ่านยอดเงิน วันที่ และรายละเอียด เพื่อที่คุณจะได้ไม่ต้องพิมพ์เอง รูปจะถูกเก็บเป็นส่วนตัวในบัญชีของคุณและจะไม่ถูกแชร์ คุณสามารถกรอกรายละเอียดเองได้เสมอ",
+      "accept": "สแกนใบเสร็จ"
     },
     "capture": {
-      "title": "Photograph the receipt",
-      "subtitle": "Lay it flat, fill the frame, and keep the total in view.",
-      "takePhoto": "Take photo",
-      "chooseFromLibrary": "Choose from library",
-      "openSettings": "Open Settings"
+      "title": "ถ่ายรูปใบเสร็จ",
+      "subtitle": "วางให้เรียบ ให้เต็มกรอบ และให้เห็นยอดรวม",
+      "takePhoto": "ถ่ายรูป",
+      "chooseFromLibrary": "เลือกจากคลังรูป",
+      "openSettings": "เปิดการตั้งค่า"
     },
     "uploading": {
-      "label": "Uploading receipt…",
-      "retrying": "Retrying…"
+      "label": "กำลังอัปโหลดใบเสร็จ…",
+      "retrying": "กำลังลองใหม่…"
     },
     "offline": {
-      "title": "You’re offline",
-      "body": "We saved your receipt and we’ll finish reading it automatically as soon as you’re back online. No credit is used until it’s processed."
+      "title": "คุณออฟไลน์อยู่",
+      "body": "เราบันทึกใบเสร็จของคุณไว้แล้ว และจะอ่านให้เสร็จโดยอัตโนมัติทันทีที่คุณกลับมาออนไลน์ จะยังไม่ใช้การสแกนจนกว่าจะประมวลผลเสร็จ"
     },
     "analyzing": {
-      "stageReading": "Reading your receipt…",
-      "stageExtracting": "Pulling out the details…",
-      "stageChecking": "Double-checking the numbers…",
-      "skip": "Skip — enter manually"
+      "stageReading": "กำลังอ่านใบเสร็จของคุณ…",
+      "stageExtracting": "กำลังดึงรายละเอียด…",
+      "stageChecking": "กำลังตรวจทานตัวเลข…",
+      "skip": "ข้าม — กรอกเอง"
     },
     "error": {
-      "retry": "Try again",
-      "extractionFailedTitle": "We couldn’t read this receipt",
-      "extractionFailedBody": "The photo was too blurry or the text was unclear. You can enter the details by hand instead.",
-      "imageInvalidTitle": "That photo didn’t work",
-      "imageInvalidBody": "We couldn’t use that image. Try taking the photo again, or enter the details by hand.",
-      "quotaExceededTitle": "You’ve used all your free scans",
-      "quotaExceededBody": "Upgrade for unlimited receipt scans, or enter this one by hand. Your photo is saved.",
-      "disabledTitle": "Scanning is temporarily unavailable",
-      "disabledBody": "Receipt scanning is paused right now. You can still enter this receipt by hand.",
-      "alreadyCompletedTitle": "This scan already finished",
-      "alreadyCompletedBody": "It finished processing just before you skipped. You’ll find it waiting in your receipts to review.",
-      "uploadFailedTitle": "Upload didn’t go through",
-      "uploadFailedBody": "We couldn’t upload your receipt. Check your connection and try again.",
-      "analyzeFailedTitle": "Something went wrong",
-      "analyzeFailedBody": "We couldn’t finish reading your receipt. Try again — you won’t be charged a scan unless it succeeds."
+      "retry": "ลองอีกครั้ง",
+      "extractionFailedTitle": "เราอ่านใบเสร็จนี้ไม่ได้",
+      "extractionFailedBody": "รูปเบลอเกินไปหรือข้อความไม่ชัด คุณสามารถกรอกรายละเอียดเองได้",
+      "imageInvalidTitle": "รูปนั้นใช้ไม่ได้",
+      "imageInvalidBody": "เราใช้รูปนั้นไม่ได้ ลองถ่ายใหม่ หรือกรอกรายละเอียดเอง",
+      "quotaExceededTitle": "คุณใช้การสแกนฟรีหมดแล้ว",
+      "quotaExceededBody": "อัปเกรดเพื่อสแกนใบเสร็จได้ไม่จำกัด หรือกรอกใบนี้เอง รูปของคุณถูกบันทึกไว้แล้ว",
+      "disabledTitle": "การสแกนไม่พร้อมใช้งานชั่วคราว",
+      "disabledBody": "การสแกนใบเสร็จถูกหยุดไว้ชั่วคราว คุณยังกรอกใบเสร็จนี้เองได้",
+      "alreadyCompletedTitle": "การสแกนนี้เสร็จแล้ว",
+      "alreadyCompletedBody": "ประมวลผลเสร็จก่อนที่คุณจะข้ามพอดี คุณจะพบมันรออยู่ในใบเสร็จเพื่อตรวจทาน",
+      "uploadFailedTitle": "อัปโหลดไม่สำเร็จ",
+      "uploadFailedBody": "เราอัปโหลดใบเสร็จของคุณไม่ได้ ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง",
+      "analyzeFailedTitle": "เกิดข้อผิดพลาด",
+      "analyzeFailedBody": "เราอ่านใบเสร็จของคุณไม่เสร็จ ลองอีกครั้ง — ถ้าดำเนินการไปแล้ว คุณจะพบมันรออยู่ในใบเสร็จเพื่อตรวจทาน",
+      "rateLimitedTitle": "คุณถึงขีดจำกัดการสแกนของวันนี้แล้ว",
+      "rateLimitedBody": "วันนี้คุณสแกนไปเยอะแล้ว โปรดลองใหม่พรุ่งนี้ หรือกรอกใบเสร็จนี้เอง"
     },
     "parked": {
-      "title": "Saved for later",
-      "body": "Your receipt is ready to review. We’ll remind you tomorrow, and it’s waiting on your home screen."
+      "title": "บันทึกไว้ดูภายหลัง",
+      "body": "ใบเสร็จของคุณพร้อมให้ตรวจทานแล้ว เราจะเตือนคุณพรุ่งนี้ และมันรออยู่บนหน้าจอหลักของคุณ"
     },
     "alreadyProcessed": {
-      "title": "Already processed",
-      "body": "This scan finished before it could be cancelled. You can review it now or find it later in your receipts.",
-      "reviewNow": "Review now"
+      "title": "ประมวลผลแล้ว",
+      "body": "การสแกนนี้เสร็จก่อนที่จะยกเลิกได้ คุณสามารถตรวจทานตอนนี้ หรือค้นหาภายหลังในใบเสร็จของคุณ",
+      "reviewNow": "ตรวจทานเลย"
     },
     "review": {
-      "title": "Review your receipt",
-      "forBike": "For {{bike}}",
-      "type": "Type",
-      "vendor": "Vendor",
-      "amount": "Amount",
-      "date": "Date",
-      "needsCheck": "Needs check",
-      "reviewLater": "Review later",
-      "typeMaintenance": "Maintenance",
-      "typeExpense": "Expense",
-      "currency": "Currency",
-      "category": "Category",
-      "itemName": "Item",
-      "partsCost": "Parts",
-      "laborCost": "Labor",
-      "odometer": "Odometer",
-      "odometerFirstSet": "Set odometer",
-      "pickDate": "Select a date",
-      "selectBikePrompt": "Choose a bike to save this to",
-      "noBikePrompt": "Add a bike first to save this receipt.",
-      "addBike": "Add a bike",
-      "viewReceipt": "View receipt photo",
-      "closeReceipt": "Close",
-      "save": "Save",
-      "checkAmount": "Check amount",
-      "checkCurrency": "Check currency",
-      "checkDate": "Check date",
-      "checkVendor": "Check vendor",
-      "checkCategory": "Check category",
-      "checkOdometer": "Check odometer"
+      "title": "ตรวจทานใบเสร็จของคุณ",
+      "forBike": "สำหรับ {{bike}}",
+      "type": "ประเภท",
+      "vendor": "ร้านค้า",
+      "amount": "จำนวนเงิน",
+      "date": "วันที่",
+      "needsCheck": "ต้องตรวจสอบ",
+      "reviewLater": "ตรวจทานภายหลัง",
+      "typeMaintenance": "การบำรุงรักษา",
+      "typeExpense": "ค่าใช้จ่าย",
+      "currency": "สกุลเงิน",
+      "category": "หมวดหมู่",
+      "itemName": "รายการ",
+      "partsCost": "ค่าอะไหล่",
+      "laborCost": "ค่าแรง",
+      "odometer": "เลขไมล์",
+      "odometerFirstSet": "ตั้งค่าเลขไมล์",
+      "pickDate": "เลือกวันที่",
+      "selectBikePrompt": "เลือกรถเพื่อบันทึก",
+      "noBikePrompt": "เพิ่มรถก่อนเพื่อบันทึกใบเสร็จนี้",
+      "addBike": "เพิ่มรถ",
+      "viewReceipt": "ดูรูปใบเสร็จ",
+      "closeReceipt": "ปิด",
+      "save": "บันทึก",
+      "checkAmount": "ตรวจสอบจำนวนเงิน",
+      "checkCurrency": "ตรวจสอบสกุลเงิน",
+      "checkDate": "ตรวจสอบวันที่",
+      "checkVendor": "ตรวจสอบร้านค้า",
+      "checkCategory": "ตรวจสอบหมวดหมู่",
+      "checkOdometer": "ตรวจสอบเลขไมล์"
     },
     "saved": {
-      "toast": "Saved to {{bike}}",
-      "undo": "Undo",
-      "undoFailed": "Couldn’t undo — please try again",
-      "freeScansLeft": "{{count}} free scans left this month",
-      "saveFailed": "Couldn’t save",
-      "saveFailedBody": "Something went wrong. Please try again.",
-      "duplicateTitle": "Looks like you already logged this",
-      "duplicateBody": "A similar entry already exists for this bike. Save it anyway?",
-      "duplicateConfirm": "Save anyway",
-      "duplicateCancel": "Review"
+      "toast": "บันทึกไปยัง {{bike}} แล้ว",
+      "undo": "เลิกทำ",
+      "undoFailed": "เลิกทำไม่สำเร็จ — โปรดลองอีกครั้ง",
+      "freeScansLeft": "เหลือการสแกนฟรี {{count}} ครั้งในเดือนนี้",
+      "saveFailed": "บันทึกไม่สำเร็จ",
+      "saveFailedBody": "เกิดข้อผิดพลาด โปรดลองอีกครั้ง",
+      "duplicateTitle": "ดูเหมือนคุณบันทึกรายการนี้ไปแล้ว",
+      "duplicateBody": "มีรายการที่คล้ายกันสำหรับรถคันนี้อยู่แล้ว บันทึกต่อไปหรือไม่?",
+      "duplicateConfirm": "บันทึกต่อไป",
+      "duplicateCancel": "ตรวจทาน"
     },
     "entry": {
-      "title": "Scan a receipt",
-      "subtitle": "Snap it — we log it for you",
-      "freeBadge": "{{count}} free",
-      "upsellBadge": "Unlimited"
+      "title": "สแกนใบเสร็จ",
+      "subtitle": "แค่ถ่ายรูป — เราบันทึกให้คุณเอง",
+      "freeBadge": "ฟรี {{count}} ครั้ง",
+      "upsellBadge": "ไม่จำกัด"
     },
     "recovery": {
-      "reviewTitle": "{{count}} receipt to review",
-      "reviewSubtitle": "Finish logging what you scanned"
+      "reviewTitle": "ใบเสร็จ {{count}} ใบรอตรวจทาน",
+      "reviewSubtitle": "บันทึกสิ่งที่คุณสแกนให้เสร็จ"
     }
   }
 }

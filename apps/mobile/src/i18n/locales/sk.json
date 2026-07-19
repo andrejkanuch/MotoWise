@@ -2272,122 +2272,124 @@
   },
   "receiptScan": {
     "common": {
-      "enterManually": "Enter manually instead",
-      "done": "Done",
-      "noCreditUsed": "No credit used"
+      "enterManually": "Zadať ručne",
+      "done": "Hotovo",
+      "noCreditUsed": "Nespotrebovaný sken"
     },
     "gating": {
-      "label": "Getting ready…"
+      "label": "Pripravuje sa…"
     },
     "bikePick": {
-      "title": "Which bike is this for?",
-      "subtitle": "Pick the bike this receipt belongs to."
+      "title": "Pre ktorú motorku to je?",
+      "subtitle": "Vyber motorku, ku ktorej tento účet patrí."
     },
     "consent": {
-      "title": "Scan a receipt with AI",
-      "body": "We send a photo of your receipt to our AI to read the amount, date and details — so you don’t have to type them. The photo is stored privately on your account and never shared. You can always enter details by hand instead.",
-      "accept": "Scan a receipt"
+      "title": "Naskenuj účtenku pomocou AI",
+      "body": "Fotku tvojej účtenky pošleme našej AI, aby prečítala sumu, dátum a údaje — aby si ich nemusel prepisovať. Fotka sa ukladá súkromne na tvojom účte a nikdy sa nezdieľa. Údaje môžeš kedykoľvek zadať aj ručne.",
+      "accept": "Naskenovať účtenku"
     },
     "capture": {
-      "title": "Photograph the receipt",
-      "subtitle": "Lay it flat, fill the frame, and keep the total in view.",
-      "takePhoto": "Take photo",
-      "chooseFromLibrary": "Choose from library",
-      "openSettings": "Open Settings"
+      "title": "Odfoť účtenku",
+      "subtitle": "Polož ju naplocho, vyplň záber a nechaj sumu v zábere.",
+      "takePhoto": "Odfotiť",
+      "chooseFromLibrary": "Vybrať z galérie",
+      "openSettings": "Otvoriť Nastavenia"
     },
     "uploading": {
-      "label": "Uploading receipt…",
-      "retrying": "Retrying…"
+      "label": "Nahráva sa účtenka…",
+      "retrying": "Opakovanie…"
     },
     "offline": {
-      "title": "You’re offline",
-      "body": "We saved your receipt and we’ll finish reading it automatically as soon as you’re back online. No credit is used until it’s processed."
+      "title": "Si offline",
+      "body": "Tvoju účtenku sme uložili a dočítame ju automaticky, hneď ako budeš znova online. Sken sa nespotrebuje, kým sa nespracuje."
     },
     "analyzing": {
-      "stageReading": "Reading your receipt…",
-      "stageExtracting": "Pulling out the details…",
-      "stageChecking": "Double-checking the numbers…",
-      "skip": "Skip — enter manually"
+      "stageReading": "Čítanie účtenky…",
+      "stageExtracting": "Získavanie údajov…",
+      "stageChecking": "Kontrola súm…",
+      "skip": "Preskočiť — zadať ručne"
     },
     "error": {
-      "retry": "Try again",
-      "extractionFailedTitle": "We couldn’t read this receipt",
-      "extractionFailedBody": "The photo was too blurry or the text was unclear. You can enter the details by hand instead.",
-      "imageInvalidTitle": "That photo didn’t work",
-      "imageInvalidBody": "We couldn’t use that image. Try taking the photo again, or enter the details by hand.",
-      "quotaExceededTitle": "You’ve used all your free scans",
-      "quotaExceededBody": "Upgrade for unlimited receipt scans, or enter this one by hand. Your photo is saved.",
-      "disabledTitle": "Scanning is temporarily unavailable",
-      "disabledBody": "Receipt scanning is paused right now. You can still enter this receipt by hand.",
-      "alreadyCompletedTitle": "This scan already finished",
-      "alreadyCompletedBody": "It finished processing just before you skipped. You’ll find it waiting in your receipts to review.",
-      "uploadFailedTitle": "Upload didn’t go through",
-      "uploadFailedBody": "We couldn’t upload your receipt. Check your connection and try again.",
-      "analyzeFailedTitle": "Something went wrong",
-      "analyzeFailedBody": "We couldn’t finish reading your receipt. Try again — you won’t be charged a scan unless it succeeds."
+      "retry": "Skúsiť znova",
+      "extractionFailedTitle": "Túto účtenku sa nám nepodarilo prečítať",
+      "extractionFailedBody": "Fotka bola príliš rozmazaná alebo text nejasný. Údaje môžeš zadať ručne.",
+      "imageInvalidTitle": "Táto fotka nefungovala",
+      "imageInvalidBody": "Tento obrázok sa nám nepodarilo použiť. Odfoť to znova alebo zadaj údaje ručne.",
+      "quotaExceededTitle": "Minul si všetky bezplatné skeny",
+      "quotaExceededBody": "Prejdi na Pro pre neobmedzené skenovanie účteniek, alebo zadaj túto ručne. Tvoja fotka je uložená.",
+      "disabledTitle": "Skenovanie je dočasne nedostupné",
+      "disabledBody": "Skenovanie účteniek je momentálne pozastavené. Túto účtenku môžeš stále zadať ručne.",
+      "alreadyCompletedTitle": "Tento sken sa už dokončil",
+      "alreadyCompletedBody": "Spracovanie sa dokončilo tesne predtým, než si to preskočil. Nájdeš ho medzi svojimi účtenkami na kontrolu.",
+      "uploadFailedTitle": "Nahrávanie neprebehlo",
+      "uploadFailedBody": "Tvoju účtenku sa nepodarilo nahrať. Skontroluj pripojenie a skús znova.",
+      "analyzeFailedTitle": "Niečo sa pokazilo",
+      "analyzeFailedBody": "Nepodarilo sa nám dočítať tvoju účtenku. Skús znova — ak už prešla, nájdeš ju medzi svojimi účtenkami na kontrolu.",
+      "rateLimitedTitle": "Dosiahol si dnešný limit skenov",
+      "rateLimitedBody": "Dnes si veľa skenoval. Skús to znova zajtra alebo zadaj túto účtenku ručne."
     },
     "parked": {
-      "title": "Saved for later",
-      "body": "Your receipt is ready to review. We’ll remind you tomorrow, and it’s waiting on your home screen."
+      "title": "Uložené na neskôr",
+      "body": "Tvoja účtenka je pripravená na kontrolu. Zajtra ti pripomenieme a čaká na tvojej domovskej obrazovke."
     },
     "alreadyProcessed": {
-      "title": "Already processed",
-      "body": "This scan finished before it could be cancelled. You can review it now or find it later in your receipts.",
-      "reviewNow": "Review now"
+      "title": "Už spracované",
+      "body": "Tento sken sa dokončil skôr, než ho bolo možné zrušiť. Môžeš ho skontrolovať teraz alebo nájsť neskôr medzi účtenkami.",
+      "reviewNow": "Skontrolovať teraz"
     },
     "review": {
-      "title": "Review your receipt",
-      "forBike": "For {{bike}}",
-      "type": "Type",
-      "vendor": "Vendor",
-      "amount": "Amount",
-      "date": "Date",
-      "needsCheck": "Needs check",
-      "reviewLater": "Review later",
-      "typeMaintenance": "Maintenance",
-      "typeExpense": "Expense",
-      "currency": "Currency",
-      "category": "Category",
-      "itemName": "Item",
-      "partsCost": "Parts",
-      "laborCost": "Labor",
-      "odometer": "Odometer",
-      "odometerFirstSet": "Set odometer",
-      "pickDate": "Select a date",
-      "selectBikePrompt": "Choose a bike to save this to",
-      "noBikePrompt": "Add a bike first to save this receipt.",
-      "addBike": "Add a bike",
-      "viewReceipt": "View receipt photo",
-      "closeReceipt": "Close",
-      "save": "Save",
-      "checkAmount": "Check amount",
-      "checkCurrency": "Check currency",
-      "checkDate": "Check date",
-      "checkVendor": "Check vendor",
-      "checkCategory": "Check category",
-      "checkOdometer": "Check odometer"
+      "title": "Skontroluj účtenku",
+      "forBike": "Pre {{bike}}",
+      "type": "Typ",
+      "vendor": "Predajca",
+      "amount": "Suma",
+      "date": "Dátum",
+      "needsCheck": "Skontrolovať",
+      "reviewLater": "Skontrolovať neskôr",
+      "typeMaintenance": "Údržba",
+      "typeExpense": "Výdavok",
+      "currency": "Mena",
+      "category": "Kategória",
+      "itemName": "Položka",
+      "partsCost": "Diely",
+      "laborCost": "Práca",
+      "odometer": "Tachometer",
+      "odometerFirstSet": "Nastaviť tachometer",
+      "pickDate": "Vyber dátum",
+      "selectBikePrompt": "Vyber motorku na uloženie",
+      "noBikePrompt": "Najprv pridaj motorku, aby si túto účtenku uložil.",
+      "addBike": "Pridať motorku",
+      "viewReceipt": "Zobraziť fotku účtenky",
+      "closeReceipt": "Zavrieť",
+      "save": "Uložiť",
+      "checkAmount": "Skontroluj sumu",
+      "checkCurrency": "Skontroluj menu",
+      "checkDate": "Skontroluj dátum",
+      "checkVendor": "Skontroluj predajcu",
+      "checkCategory": "Skontroluj kategóriu",
+      "checkOdometer": "Skontroluj tachometer"
     },
     "saved": {
-      "toast": "Saved to {{bike}}",
-      "undo": "Undo",
-      "undoFailed": "Couldn’t undo — please try again",
-      "freeScansLeft": "{{count}} free scans left this month",
-      "saveFailed": "Couldn’t save",
-      "saveFailedBody": "Something went wrong. Please try again.",
-      "duplicateTitle": "Looks like you already logged this",
-      "duplicateBody": "A similar entry already exists for this bike. Save it anyway?",
-      "duplicateConfirm": "Save anyway",
-      "duplicateCancel": "Review"
+      "toast": "Uložené k {{bike}}",
+      "undo": "Späť",
+      "undoFailed": "Nepodarilo sa vrátiť — skús znova",
+      "freeScansLeft": "Tento mesiac ti zostáva {{count}} bezplatných skenov",
+      "saveFailed": "Nepodarilo sa uložiť",
+      "saveFailedBody": "Niečo sa pokazilo. Skús to znova.",
+      "duplicateTitle": "Zdá sa, že si to už zaznamenal",
+      "duplicateBody": "Pre túto motorku už existuje podobný záznam. Uložiť aj tak?",
+      "duplicateConfirm": "Uložiť aj tak",
+      "duplicateCancel": "Skontrolovať"
     },
     "entry": {
-      "title": "Scan a receipt",
-      "subtitle": "Snap it — we log it for you",
-      "freeBadge": "{{count}} free",
-      "upsellBadge": "Unlimited"
+      "title": "Naskenovať účtenku",
+      "subtitle": "Odfoť to — zaznamenáme to za teba",
+      "freeBadge": "{{count}} zdarma",
+      "upsellBadge": "Bez limitu"
     },
     "recovery": {
-      "reviewTitle": "{{count}} receipt to review",
-      "reviewSubtitle": "Finish logging what you scanned"
+      "reviewTitle": "{{count}} účtenka na kontrolu",
+      "reviewSubtitle": "Dokonči zaznamenanie toho, čo si naskenoval"
     }
   }
 }

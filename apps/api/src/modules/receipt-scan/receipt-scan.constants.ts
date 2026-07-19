@@ -9,6 +9,8 @@ export const RECEIPT_SCAN_ERROR_CODES = {
   IMAGE_INVALID: 'IMAGE_INVALID',
   SCAN_QUOTA_EXCEEDED: 'SCAN_QUOTA_EXCEEDED',
   SCAN_DISABLED: 'SCAN_DISABLED',
+  /** Per-user daily attempt cap hit — abuse backstop, distinct from the monthly quota. */
+  SCAN_RATE_LIMITED: 'SCAN_RATE_LIMITED',
   ALREADY_COMPLETED: 'ALREADY_COMPLETED',
   // U7b / KTD-11 — transactional save/undo.
   /** Scan is not a success-status row owned by the caller (or a bad id). */
@@ -61,6 +63,16 @@ export const MAX_RECEIPT_SCANS_PER_MONTH = FREE_TIER_LIMITS.MAX_RECEIPT_SCANS_PE
  * they inflate `used` and lock a free user out of the pre-scan paywall gate.
  */
 export const STALE_PENDING_MS = 15 * 60 * 1000;
+
+/**
+ * Per-user daily receipt-scan attempt cap. Anti-abuse backstop, applied to every
+ * tier and independent of the (dormant, shadow-mode) monthly quota: it bounds
+ * runaway paid vision calls — including FAILED extractions, which the shared AI
+ * budget's success-only per-user counter misses — so a single account cannot burn
+ * the global daily spend cap and pause AI for everyone. Set well above any
+ * legitimate day's usage; only scripted abuse reaches it.
+ */
+export const MAX_RECEIPT_SCAN_ATTEMPTS_PER_DAY = 25;
 
 /** Structured-log token for the dormant shadow-mode paywall signal (U10 wires telemetry). */
 export const PAYWALL_WOULD_HAVE_SHOWN = 'paywall_would_have_shown' as const;

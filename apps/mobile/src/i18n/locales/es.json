@@ -2269,122 +2269,124 @@
   },
   "receiptScan": {
     "common": {
-      "enterManually": "Enter manually instead",
-      "done": "Done",
-      "noCreditUsed": "No credit used"
+      "enterManually": "Introducir manualmente",
+      "done": "Listo",
+      "noCreditUsed": "No se usó ningún escaneo"
     },
     "gating": {
-      "label": "Getting ready…"
+      "label": "Preparando…"
     },
     "bikePick": {
-      "title": "Which bike is this for?",
-      "subtitle": "Pick the bike this receipt belongs to."
+      "title": "¿Para qué moto es?",
+      "subtitle": "Elige la moto a la que pertenece este recibo."
     },
     "consent": {
-      "title": "Scan a receipt with AI",
-      "body": "We send a photo of your receipt to our AI to read the amount, date and details — so you don’t have to type them. The photo is stored privately on your account and never shared. You can always enter details by hand instead.",
-      "accept": "Scan a receipt"
+      "title": "Escanear un recibo con IA",
+      "body": "Enviamos una foto de tu recibo a nuestra IA para leer el importe, la fecha y los detalles, así no tienes que escribirlos. La foto se guarda de forma privada en tu cuenta y nunca se comparte. También puedes introducir los datos a mano cuando quieras.",
+      "accept": "Escanear un recibo"
     },
     "capture": {
-      "title": "Photograph the receipt",
-      "subtitle": "Lay it flat, fill the frame, and keep the total in view.",
-      "takePhoto": "Take photo",
-      "chooseFromLibrary": "Choose from library",
-      "openSettings": "Open Settings"
+      "title": "Fotografía el recibo",
+      "subtitle": "Colócalo plano, llena el encuadre y mantén el total a la vista.",
+      "takePhoto": "Hacer foto",
+      "chooseFromLibrary": "Elegir de la galería",
+      "openSettings": "Abrir Ajustes"
     },
     "uploading": {
-      "label": "Uploading receipt…",
-      "retrying": "Retrying…"
+      "label": "Subiendo el recibo…",
+      "retrying": "Reintentando…"
     },
     "offline": {
-      "title": "You’re offline",
-      "body": "We saved your receipt and we’ll finish reading it automatically as soon as you’re back online. No credit is used until it’s processed."
+      "title": "Estás sin conexión",
+      "body": "Guardamos tu recibo y terminaremos de leerlo automáticamente en cuanto vuelvas a tener conexión. No se usa ningún escaneo hasta que se procese."
     },
     "analyzing": {
-      "stageReading": "Reading your receipt…",
-      "stageExtracting": "Pulling out the details…",
-      "stageChecking": "Double-checking the numbers…",
-      "skip": "Skip — enter manually"
+      "stageReading": "Leyendo tu recibo…",
+      "stageExtracting": "Extrayendo los detalles…",
+      "stageChecking": "Comprobando los números…",
+      "skip": "Omitir: introducir manualmente"
     },
     "error": {
-      "retry": "Try again",
-      "extractionFailedTitle": "We couldn’t read this receipt",
-      "extractionFailedBody": "The photo was too blurry or the text was unclear. You can enter the details by hand instead.",
-      "imageInvalidTitle": "That photo didn’t work",
-      "imageInvalidBody": "We couldn’t use that image. Try taking the photo again, or enter the details by hand.",
-      "quotaExceededTitle": "You’ve used all your free scans",
-      "quotaExceededBody": "Upgrade for unlimited receipt scans, or enter this one by hand. Your photo is saved.",
-      "disabledTitle": "Scanning is temporarily unavailable",
-      "disabledBody": "Receipt scanning is paused right now. You can still enter this receipt by hand.",
-      "alreadyCompletedTitle": "This scan already finished",
-      "alreadyCompletedBody": "It finished processing just before you skipped. You’ll find it waiting in your receipts to review.",
-      "uploadFailedTitle": "Upload didn’t go through",
-      "uploadFailedBody": "We couldn’t upload your receipt. Check your connection and try again.",
-      "analyzeFailedTitle": "Something went wrong",
-      "analyzeFailedBody": "We couldn’t finish reading your receipt. Try again — you won’t be charged a scan unless it succeeds."
+      "retry": "Reintentar",
+      "extractionFailedTitle": "No pudimos leer este recibo",
+      "extractionFailedBody": "La foto estaba borrosa o el texto poco claro. Puedes introducir los datos a mano.",
+      "imageInvalidTitle": "Esa foto no funcionó",
+      "imageInvalidBody": "No pudimos usar esa imagen. Vuelve a hacer la foto o introduce los datos a mano.",
+      "quotaExceededTitle": "Has usado todos tus escaneos gratis",
+      "quotaExceededBody": "Mejora tu plan para escaneos de recibos ilimitados, o introduce este a mano. Tu foto está guardada.",
+      "disabledTitle": "El escaneo no está disponible temporalmente",
+      "disabledBody": "El escaneo de recibos está en pausa ahora mismo. Aun así puedes introducir este recibo a mano.",
+      "alreadyCompletedTitle": "Este escaneo ya terminó",
+      "alreadyCompletedBody": "Terminó de procesarse justo antes de que lo omitieras. Lo encontrarás esperando en tus recibos para revisar.",
+      "uploadFailedTitle": "La subida no se completó",
+      "uploadFailedBody": "No pudimos subir tu recibo. Comprueba tu conexión e inténtalo de nuevo.",
+      "analyzeFailedTitle": "Algo salió mal",
+      "analyzeFailedBody": "No pudimos terminar de leer tu recibo. Inténtalo de nuevo: si ya se procesó, lo encontrarás esperando en tus recibos para revisar.",
+      "rateLimitedTitle": "Has alcanzado el límite de escaneos de hoy",
+      "rateLimitedBody": "Has escaneado mucho hoy. Inténtalo de nuevo mañana o introduce este recibo a mano."
     },
     "parked": {
-      "title": "Saved for later",
-      "body": "Your receipt is ready to review. We’ll remind you tomorrow, and it’s waiting on your home screen."
+      "title": "Guardado para más tarde",
+      "body": "Tu recibo está listo para revisar. Te lo recordaremos mañana y te espera en tu pantalla de inicio."
     },
     "alreadyProcessed": {
-      "title": "Already processed",
-      "body": "This scan finished before it could be cancelled. You can review it now or find it later in your receipts.",
-      "reviewNow": "Review now"
+      "title": "Ya procesado",
+      "body": "Este escaneo terminó antes de poder cancelarse. Puedes revisarlo ahora o encontrarlo más tarde en tus recibos.",
+      "reviewNow": "Revisar ahora"
     },
     "review": {
-      "title": "Review your receipt",
-      "forBike": "For {{bike}}",
-      "type": "Type",
-      "vendor": "Vendor",
-      "amount": "Amount",
-      "date": "Date",
-      "needsCheck": "Needs check",
-      "reviewLater": "Review later",
-      "typeMaintenance": "Maintenance",
-      "typeExpense": "Expense",
-      "currency": "Currency",
-      "category": "Category",
-      "itemName": "Item",
-      "partsCost": "Parts",
-      "laborCost": "Labor",
-      "odometer": "Odometer",
-      "odometerFirstSet": "Set odometer",
-      "pickDate": "Select a date",
-      "selectBikePrompt": "Choose a bike to save this to",
-      "noBikePrompt": "Add a bike first to save this receipt.",
-      "addBike": "Add a bike",
-      "viewReceipt": "View receipt photo",
-      "closeReceipt": "Close",
-      "save": "Save",
-      "checkAmount": "Check amount",
-      "checkCurrency": "Check currency",
-      "checkDate": "Check date",
-      "checkVendor": "Check vendor",
-      "checkCategory": "Check category",
-      "checkOdometer": "Check odometer"
+      "title": "Revisa tu recibo",
+      "forBike": "Para {{bike}}",
+      "type": "Tipo",
+      "vendor": "Comercio",
+      "amount": "Importe",
+      "date": "Fecha",
+      "needsCheck": "Revisar",
+      "reviewLater": "Revisar luego",
+      "typeMaintenance": "Mantenimiento",
+      "typeExpense": "Gasto",
+      "currency": "Moneda",
+      "category": "Categoría",
+      "itemName": "Artículo",
+      "partsCost": "Piezas",
+      "laborCost": "Mano de obra",
+      "odometer": "Cuentakilómetros",
+      "odometerFirstSet": "Fijar cuentakilómetros",
+      "pickDate": "Selecciona una fecha",
+      "selectBikePrompt": "Elige una moto para guardarlo",
+      "noBikePrompt": "Añade una moto primero para guardar este recibo.",
+      "addBike": "Añadir una moto",
+      "viewReceipt": "Ver foto del recibo",
+      "closeReceipt": "Cerrar",
+      "save": "Guardar",
+      "checkAmount": "Revisar importe",
+      "checkCurrency": "Revisar moneda",
+      "checkDate": "Revisar fecha",
+      "checkVendor": "Revisar comercio",
+      "checkCategory": "Revisar categoría",
+      "checkOdometer": "Revisar cuentakilómetros"
     },
     "saved": {
-      "toast": "Saved to {{bike}}",
-      "undo": "Undo",
-      "undoFailed": "Couldn’t undo — please try again",
-      "freeScansLeft": "{{count}} free scans left this month",
-      "saveFailed": "Couldn’t save",
-      "saveFailedBody": "Something went wrong. Please try again.",
-      "duplicateTitle": "Looks like you already logged this",
-      "duplicateBody": "A similar entry already exists for this bike. Save it anyway?",
-      "duplicateConfirm": "Save anyway",
-      "duplicateCancel": "Review"
+      "toast": "Guardado en {{bike}}",
+      "undo": "Deshacer",
+      "undoFailed": "No se pudo deshacer; inténtalo de nuevo",
+      "freeScansLeft": "Te quedan {{count}} escaneos gratis este mes",
+      "saveFailed": "No se pudo guardar",
+      "saveFailedBody": "Algo salió mal. Inténtalo de nuevo.",
+      "duplicateTitle": "Parece que ya registraste esto",
+      "duplicateBody": "Ya existe una entrada similar para esta moto. ¿Guardar de todas formas?",
+      "duplicateConfirm": "Guardar igual",
+      "duplicateCancel": "Revisar"
     },
     "entry": {
-      "title": "Scan a receipt",
-      "subtitle": "Snap it — we log it for you",
-      "freeBadge": "{{count}} free",
-      "upsellBadge": "Unlimited"
+      "title": "Escanear un recibo",
+      "subtitle": "Hazle una foto: lo registramos por ti",
+      "freeBadge": "{{count}} gratis",
+      "upsellBadge": "Ilimitado"
     },
     "recovery": {
-      "reviewTitle": "{{count}} receipt to review",
-      "reviewSubtitle": "Finish logging what you scanned"
+      "reviewTitle": "{{count}} recibo por revisar",
+      "reviewSubtitle": "Termina de registrar lo que escaneaste"
     }
   }
 }

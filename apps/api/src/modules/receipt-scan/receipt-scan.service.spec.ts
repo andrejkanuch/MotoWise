@@ -363,6 +363,38 @@ describe('ReceiptScanService', () => {
     });
   });
 
+  describe('scanReceipt — daily attempt cap (abuse backstop)', () => {
+    it('at/over the daily cap → SCAN_RATE_LIMITED, no reservation or model call', async () => {
+      // The only head-count query in scanReceipt is countTodaysAttempts; report it
+      // at the cap. The idempotency probe (maybeSingle, no count) still resolves empty.
+      db.state.resolver = (ctx) => (ctx.head && ctx.count ? { count: 25 } : { data: [], count: 0 });
+      const res = await service.scanReceipt(USER, CLIENT_SCAN_ID);
+      expect('code' in res && res.code).toBe(RECEIPT_SCAN_ERROR_CODES.SCAN_RATE_LIMITED);
+      expect(db.rpc).not.toHaveBeenCalled();
+      expect(aiService.extract).not.toHaveBeenCalled();
+    });
+
+    it('under the daily cap → proceeds normally', async () => {
+      reserve(false);
+      db.download.mockResolvedValue({ data: validBytes(), error: null });
+      aiService.extract.mockResolvedValue({
+        ok: true,
+        extraction: dealerInvoiceExtraction(),
+        inputTokens: 10,
+        outputTokens: 5,
+      });
+      db.state.resolver = (ctx) => {
+        if (ctx.head && ctx.count) return { count: 24 };
+        if (ctx.op === 'update' && (ctx.patch as { status?: string })?.status === 'success')
+          return { data: [{ id: RESERVATION_ID }] };
+        return { data: [], count: 0 };
+      };
+      const res = await service.scanReceipt(USER, CLIENT_SCAN_ID);
+      expect('result' in res).toBe(true);
+      expect(aiService.extract).toHaveBeenCalled();
+    });
+  });
+
   describe('scanReceipt — failure & guard paths', () => {
     it('kill switch → SCAN_DISABLED, no reservation', async () => {
       env.RECEIPT_SCAN_ENABLED = 'false';

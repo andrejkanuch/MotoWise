@@ -50,6 +50,8 @@ export const SCAN_ERROR_CODE = {
   IMAGE_INVALID: 'IMAGE_INVALID',
   SCAN_QUOTA_EXCEEDED: 'SCAN_QUOTA_EXCEEDED',
   SCAN_DISABLED: 'SCAN_DISABLED',
+  /** Per-user daily attempt cap hit (abuse backstop) — falls back to manual entry. */
+  SCAN_RATE_LIMITED: 'SCAN_RATE_LIMITED',
   /** From cancelReceiptScan — the finalizer won the CAS race (KTD-4). */
   ALREADY_COMPLETED: 'ALREADY_COMPLETED',
 } as const;
@@ -113,6 +115,14 @@ export const ERROR_OUTCOMES: Record<ScanErrorCode, ErrorOutcome> = {
     recovery: 'manual',
     titleKey: 'receiptScan.error.disabledTitle',
     bodyKey: 'receiptScan.error.disabledBody',
+    noCreditUsed: true,
+    retainPhoto: true,
+  },
+  [SCAN_ERROR_CODE.SCAN_RATE_LIMITED]: {
+    code: SCAN_ERROR_CODE.SCAN_RATE_LIMITED,
+    recovery: 'manual',
+    titleKey: 'receiptScan.error.rateLimitedTitle',
+    bodyKey: 'receiptScan.error.rateLimitedBody',
     noCreditUsed: true,
     retainPhoto: true,
   },

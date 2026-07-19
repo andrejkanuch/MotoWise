@@ -2313,7 +2313,9 @@
       "uploadFailedTitle": "Upload didn’t go through",
       "uploadFailedBody": "We couldn’t upload your receipt. Check your connection and try again.",
       "analyzeFailedTitle": "Something went wrong",
-      "analyzeFailedBody": "We couldn’t finish reading your receipt. Try again — if it already went through, you’ll find it waiting in your receipts to review."
+      "analyzeFailedBody": "We couldn’t finish reading your receipt. Try again — if it already went through, you’ll find it waiting in your receipts to review.",
+      "rateLimitedTitle": "You've reached today's scan limit",
+      "rateLimitedBody": "You've scanned a lot today. Please try again tomorrow, or enter this receipt by hand."
     },
     "parked": {
       "title": "Saved for later",

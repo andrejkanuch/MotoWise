@@ -2272,122 +2272,124 @@
   },
   "receiptScan": {
     "common": {
-      "enterManually": "Enter manually instead",
-      "done": "Done",
-      "noCreditUsed": "No credit used"
+      "enterManually": "Wprowadź ręcznie",
+      "done": "Gotowe",
+      "noCreditUsed": "Nie zużyto skanu"
     },
     "gating": {
-      "label": "Getting ready…"
+      "label": "Przygotowywanie…"
     },
     "bikePick": {
-      "title": "Which bike is this for?",
-      "subtitle": "Pick the bike this receipt belongs to."
+      "title": "Do którego motocykla to należy?",
+      "subtitle": "Wybierz motocykl, do którego należy ten paragon."
     },
     "consent": {
-      "title": "Scan a receipt with AI",
-      "body": "We send a photo of your receipt to our AI to read the amount, date and details — so you don’t have to type them. The photo is stored privately on your account and never shared. You can always enter details by hand instead.",
-      "accept": "Scan a receipt"
+      "title": "Zeskanuj paragon z pomocą AI",
+      "body": "Wysyłamy zdjęcie Twojego paragonu do naszej AI, aby odczytać kwotę, datę i szczegóły — abyś nie musiał ich wpisywać. Zdjęcie jest przechowywane prywatnie na Twoim koncie i nigdy nie jest udostępniane. Szczegóły zawsze możesz też wpisać ręcznie.",
+      "accept": "Zeskanuj paragon"
     },
     "capture": {
-      "title": "Photograph the receipt",
-      "subtitle": "Lay it flat, fill the frame, and keep the total in view.",
-      "takePhoto": "Take photo",
-      "chooseFromLibrary": "Choose from library",
-      "openSettings": "Open Settings"
+      "title": "Sfotografuj paragon",
+      "subtitle": "Połóż go płasko, wypełnij kadr i pozostaw sumę w widoku.",
+      "takePhoto": "Zrób zdjęcie",
+      "chooseFromLibrary": "Wybierz z galerii",
+      "openSettings": "Otwórz Ustawienia"
     },
     "uploading": {
-      "label": "Uploading receipt…",
-      "retrying": "Retrying…"
+      "label": "Przesyłanie paragonu…",
+      "retrying": "Ponawianie…"
     },
     "offline": {
-      "title": "You’re offline",
-      "body": "We saved your receipt and we’ll finish reading it automatically as soon as you’re back online. No credit is used until it’s processed."
+      "title": "Jesteś offline",
+      "body": "Zapisaliśmy Twój paragon i dokończymy jego odczyt automatycznie, gdy tylko wrócisz do sieci. Skan nie zostanie zużyty, dopóki nie zostanie przetworzony."
     },
     "analyzing": {
-      "stageReading": "Reading your receipt…",
-      "stageExtracting": "Pulling out the details…",
-      "stageChecking": "Double-checking the numbers…",
-      "skip": "Skip — enter manually"
+      "stageReading": "Odczytywanie paragonu…",
+      "stageExtracting": "Wyodrębnianie szczegółów…",
+      "stageChecking": "Sprawdzanie kwot…",
+      "skip": "Pomiń — wprowadź ręcznie"
     },
     "error": {
-      "retry": "Try again",
-      "extractionFailedTitle": "We couldn’t read this receipt",
-      "extractionFailedBody": "The photo was too blurry or the text was unclear. You can enter the details by hand instead.",
-      "imageInvalidTitle": "That photo didn’t work",
-      "imageInvalidBody": "We couldn’t use that image. Try taking the photo again, or enter the details by hand.",
-      "quotaExceededTitle": "You’ve used all your free scans",
-      "quotaExceededBody": "Upgrade for unlimited receipt scans, or enter this one by hand. Your photo is saved.",
-      "disabledTitle": "Scanning is temporarily unavailable",
-      "disabledBody": "Receipt scanning is paused right now. You can still enter this receipt by hand.",
-      "alreadyCompletedTitle": "This scan already finished",
-      "alreadyCompletedBody": "It finished processing just before you skipped. You’ll find it waiting in your receipts to review.",
-      "uploadFailedTitle": "Upload didn’t go through",
-      "uploadFailedBody": "We couldn’t upload your receipt. Check your connection and try again.",
-      "analyzeFailedTitle": "Something went wrong",
-      "analyzeFailedBody": "We couldn’t finish reading your receipt. Try again — you won’t be charged a scan unless it succeeds."
+      "retry": "Spróbuj ponownie",
+      "extractionFailedTitle": "Nie udało się odczytać tego paragonu",
+      "extractionFailedBody": "Zdjęcie było zbyt rozmyte lub tekst niewyraźny. Możesz wpisać szczegóły ręcznie.",
+      "imageInvalidTitle": "To zdjęcie nie zadziałało",
+      "imageInvalidBody": "Nie mogliśmy użyć tego obrazu. Zrób zdjęcie ponownie lub wpisz szczegóły ręcznie.",
+      "quotaExceededTitle": "Wykorzystałeś wszystkie darmowe skany",
+      "quotaExceededBody": "Przejdź na Pro, aby uzyskać nieograniczone skany paragonów, albo wpisz ten ręcznie. Twoje zdjęcie jest zapisane.",
+      "disabledTitle": "Skanowanie jest chwilowo niedostępne",
+      "disabledBody": "Skanowanie paragonów jest teraz wstrzymane. Nadal możesz wpisać ten paragon ręcznie.",
+      "alreadyCompletedTitle": "Ten skan już się zakończył",
+      "alreadyCompletedBody": "Zakończył przetwarzanie tuż przed pominięciem. Znajdziesz go wśród paragonów do przejrzenia.",
+      "uploadFailedTitle": "Przesyłanie się nie powiodło",
+      "uploadFailedBody": "Nie udało się przesłać Twojego paragonu. Sprawdź połączenie i spróbuj ponownie.",
+      "analyzeFailedTitle": "Coś poszło nie tak",
+      "analyzeFailedBody": "Nie udało się dokończyć odczytu Twojego paragonu. Spróbuj ponownie — jeśli już przeszedł, znajdziesz go wśród paragonów do przejrzenia.",
+      "rateLimitedTitle": "Osiągnąłeś dzisiejszy limit skanów",
+      "rateLimitedBody": "Dużo dziś skanowałeś. Spróbuj ponownie jutro albo wpisz ten paragon ręcznie."
     },
     "parked": {
-      "title": "Saved for later",
-      "body": "Your receipt is ready to review. We’ll remind you tomorrow, and it’s waiting on your home screen."
+      "title": "Zapisano na później",
+      "body": "Twój paragon jest gotowy do przejrzenia. Przypomnimy Ci jutro, a czeka na Twoim ekranie głównym."
     },
     "alreadyProcessed": {
-      "title": "Already processed",
-      "body": "This scan finished before it could be cancelled. You can review it now or find it later in your receipts.",
-      "reviewNow": "Review now"
+      "title": "Już przetworzono",
+      "body": "Ten skan zakończył się, zanim można było go anulować. Możesz przejrzeć go teraz lub znaleźć później wśród paragonów.",
+      "reviewNow": "Przejrzyj teraz"
     },
     "review": {
-      "title": "Review your receipt",
-      "forBike": "For {{bike}}",
-      "type": "Type",
-      "vendor": "Vendor",
-      "amount": "Amount",
-      "date": "Date",
-      "needsCheck": "Needs check",
-      "reviewLater": "Review later",
-      "typeMaintenance": "Maintenance",
-      "typeExpense": "Expense",
-      "currency": "Currency",
-      "category": "Category",
-      "itemName": "Item",
-      "partsCost": "Parts",
-      "laborCost": "Labor",
-      "odometer": "Odometer",
-      "odometerFirstSet": "Set odometer",
-      "pickDate": "Select a date",
-      "selectBikePrompt": "Choose a bike to save this to",
-      "noBikePrompt": "Add a bike first to save this receipt.",
-      "addBike": "Add a bike",
-      "viewReceipt": "View receipt photo",
-      "closeReceipt": "Close",
-      "save": "Save",
-      "checkAmount": "Check amount",
-      "checkCurrency": "Check currency",
-      "checkDate": "Check date",
-      "checkVendor": "Check vendor",
-      "checkCategory": "Check category",
-      "checkOdometer": "Check odometer"
+      "title": "Przejrzyj paragon",
+      "forBike": "Dla {{bike}}",
+      "type": "Typ",
+      "vendor": "Sprzedawca",
+      "amount": "Kwota",
+      "date": "Data",
+      "needsCheck": "Do sprawdzenia",
+      "reviewLater": "Przejrzyj później",
+      "typeMaintenance": "Serwis",
+      "typeExpense": "Wydatek",
+      "currency": "Waluta",
+      "category": "Kategoria",
+      "itemName": "Pozycja",
+      "partsCost": "Części",
+      "laborCost": "Robocizna",
+      "odometer": "Licznik",
+      "odometerFirstSet": "Ustaw licznik",
+      "pickDate": "Wybierz datę",
+      "selectBikePrompt": "Wybierz motocykl, aby to zapisać",
+      "noBikePrompt": "Najpierw dodaj motocykl, aby zapisać ten paragon.",
+      "addBike": "Dodaj motocykl",
+      "viewReceipt": "Zobacz zdjęcie paragonu",
+      "closeReceipt": "Zamknij",
+      "save": "Zapisz",
+      "checkAmount": "Sprawdź kwotę",
+      "checkCurrency": "Sprawdź walutę",
+      "checkDate": "Sprawdź datę",
+      "checkVendor": "Sprawdź sprzedawcę",
+      "checkCategory": "Sprawdź kategorię",
+      "checkOdometer": "Sprawdź licznik"
     },
     "saved": {
-      "toast": "Saved to {{bike}}",
-      "undo": "Undo",
-      "undoFailed": "Couldn’t undo — please try again",
-      "freeScansLeft": "{{count}} free scans left this month",
-      "saveFailed": "Couldn’t save",
-      "saveFailedBody": "Something went wrong. Please try again.",
-      "duplicateTitle": "Looks like you already logged this",
-      "duplicateBody": "A similar entry already exists for this bike. Save it anyway?",
-      "duplicateConfirm": "Save anyway",
-      "duplicateCancel": "Review"
+      "toast": "Zapisano w {{bike}}",
+      "undo": "Cofnij",
+      "undoFailed": "Nie udało się cofnąć — spróbuj ponownie",
+      "freeScansLeft": "Pozostało {{count}} darmowych skanów w tym miesiącu",
+      "saveFailed": "Nie udało się zapisać",
+      "saveFailedBody": "Coś poszło nie tak. Spróbuj ponownie.",
+      "duplicateTitle": "Wygląda na to, że już to zapisałeś",
+      "duplicateBody": "Dla tego motocykla istnieje już podobny wpis. Zapisać mimo to?",
+      "duplicateConfirm": "Zapisz mimo to",
+      "duplicateCancel": "Przejrzyj"
     },
     "entry": {
-      "title": "Scan a receipt",
-      "subtitle": "Snap it — we log it for you",
-      "freeBadge": "{{count}} free",
-      "upsellBadge": "Unlimited"
+      "title": "Zeskanuj paragon",
+      "subtitle": "Zrób zdjęcie — zapiszemy to za Ciebie",
+      "freeBadge": "{{count}} za darmo",
+      "upsellBadge": "Bez limitu"
     },
     "recovery": {
-      "reviewTitle": "{{count}} receipt to review",
-      "reviewSubtitle": "Finish logging what you scanned"
+      "reviewTitle": "{{count}} paragon do przejrzenia",
+      "reviewSubtitle": "Dokończ zapisywanie tego, co zeskanowałeś"
     }
   }
 }
