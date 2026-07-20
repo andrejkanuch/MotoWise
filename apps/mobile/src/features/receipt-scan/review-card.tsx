@@ -2,7 +2,9 @@ import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { palette } from '@motovault/design-system';
 import { MyMotorcyclesDocument } from '@motovault/graphql';
 import {
+  type Currency,
   EXPENSE_CATEGORIES,
+  MaintenanceServiceType,
   type MeasurementSystem,
   mileageFromDisplayUnit,
   mileageToDisplayUnit,
@@ -25,7 +27,7 @@ import {
 } from 'lucide-react-native';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Pressable, Switch, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, {
@@ -47,6 +49,7 @@ import {
   RECEIPT_REVIEW_TYPE,
   type ReceiptExtraction,
   type ReceiptReviewHandoff,
+  type ReceiptReviewLineItem,
   type ReceiptReviewPayload,
   type ReceiptReviewType,
   type TranslationKey,
@@ -71,6 +74,8 @@ const EDIT_FIELD = {
   ITEM_NAME: 'itemName',
   PARTS_COST: 'partsCost',
   LABOR_COST: 'laborCost',
+  TAX_AMOUNT: 'taxAmount',
+  LINE_ITEMS: 'lineItems',
 } as const;
 
 /** Printed odometer unit as it appears on the receipt (KTD-7). */
@@ -162,6 +167,33 @@ function isMaintenance(type: ReceiptReviewType): boolean {
   return type === RECEIPT_REVIEW_TYPE.MAINTENANCE;
 }
 
+/** The canonical service-type keys, ordered for the picker (OTHER last). */
+const SERVICE_TYPE_OPTIONS: readonly string[] = Object.values(MaintenanceServiceType);
+
+/**
+ * Humanize a canonical MaintenanceServiceType key for display ("oil_change" →
+ * "Oil change"). Display-only — the canonical key is what is stored/sent, and
+ * the server re-classifies from the label, so a per-locale label table isn't
+ * warranted yet (English names are acceptable across locales for now).
+ */
+function humanizeServiceType(key: string | null): string {
+  if (!key) return '';
+  const spaced = key.replace(/_/g, ' ');
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+/** Seed editable review line items from the extraction result. */
+function seedLineItems(result: ReceiptExtraction): ReceiptReviewLineItem[] {
+  return (result.lineItems ?? []).map((li) => ({
+    label: li.label,
+    serviceType: li.serviceType ?? null,
+    partRef: li.partRef ?? null,
+    quantity: li.quantity ?? null,
+    unitPrice: li.unitPrice ?? null,
+    lineTotal: li.lineTotal ?? null,
+  }));
+}
+
 // --- Component ---------------------------------------------------------------
 
 export interface ReviewCardProps {
@@ -224,6 +256,16 @@ export function ReviewCard({
   const [laborCost, setLaborCost] = useState(
     result.laborCost != null ? String(result.laborCost) : '',
   );
+  // Maintenance structure (receipt-scan redesign): explicit tax + editable line
+  // items, retained across type round-trips. taxRate is printed metadata carried
+  // straight through from the extraction.
+  const [taxAmount, setTaxAmount] = useState(
+    result.taxAmount != null ? String(result.taxAmount) : '',
+  );
+  const [lineItems, setLineItems] = useState<ReceiptReviewLineItem[]>(() => seedLineItems(result));
+  const [serviceTypePickerIndex, setServiceTypePickerIndex] = useState<number | null>(null);
+  // P7: canonical types the rider opted into a next-service reminder for.
+  const [reminderTypes, setReminderTypes] = useState<Set<string>>(() => new Set());
   const [selectedBikeId, setSelectedBikeId] = useState(handoff.bikeId || '');
   const [applyOdometerPref, setApplyOdometerPref] = useState(true);
   const [zoomOpen, setZoomOpen] = useState(false);
@@ -283,15 +325,69 @@ export function ReviewCard({
     [type],
   );
 
+  const updateLineItem = useCallback(
+    (index: number, patch: Partial<ReceiptReviewLineItem>) => {
+      setLineItems((items) => items.map((li, i) => (i === index ? { ...li, ...patch } : li)));
+      markEdited(EDIT_FIELD.LINE_ITEMS);
+    },
+    [markEdited],
+  );
+  const removeLineItem = useCallback(
+    (index: number) => {
+      triggerSelection();
+      setLineItems((items) => items.filter((_, i) => i !== index));
+      markEdited(EDIT_FIELD.LINE_ITEMS);
+    },
+    [markEdited],
+  );
+  const addLineItem = useCallback(() => {
+    triggerSelection();
+    setLineItems((items) => [
+      ...items,
+      {
+        label: '',
+        serviceType: null,
+        partRef: null,
+        quantity: null,
+        unitPrice: null,
+        lineTotal: null,
+      },
+    ]);
+    markEdited(EDIT_FIELD.LINE_ITEMS);
+  }, [markEdited]);
+
+  // Distinct, meaningful service types among the reviewed lines (drives the
+  // opt-in reminder chips). 'other'/blank are not remindable types.
+  const reminderCandidates = useMemo(() => {
+    const seen = new Set<string>();
+    for (const li of lineItems) {
+      if (li.serviceType && li.serviceType !== MaintenanceServiceType.OTHER)
+        seen.add(li.serviceType);
+    }
+    return [...seen];
+  }, [lineItems]);
+
+  const toggleReminderType = useCallback((serviceType: string) => {
+    triggerSelection();
+    setReminderTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(serviceType)) next.delete(serviceType);
+      else next.add(serviceType);
+      return next;
+    });
+  }, []);
+
   const parsedAmount = parseNumeric(amount);
-  // Mirror the server's cross-field invariant (parts + labor <= total, service
-  // throws otherwise → opaque SAVE_FAILED). Disabling save here keeps the invalid
-  // breakdown from ever reaching the mutation, consistent with the other
-  // disable-on-invalid states above (no bike / non-positive amount).
+  // Mirror the server's reconcile gate (parts + labor + tax <= total). When the
+  // sum exceeds total the API falls back to total-only and silently drops the
+  // breakdown — block save here so that path is never reached from review.
   const breakdownExceedsAmount =
     isMaintenance(type) &&
     (parsedAmount ?? 0) > 0 &&
-    (parseNumeric(partsCost) ?? 0) + (parseNumeric(laborCost) ?? 0) > (parsedAmount ?? 0) + 0.001;
+    (parseNumeric(partsCost) ?? 0) +
+      (parseNumeric(laborCost) ?? 0) +
+      (parseNumeric(taxAmount) ?? 0) >
+      (parsedAmount ?? 0) + 0.001;
   const canSave = hasBike && (parsedAmount ?? 0) > 0 && !breakdownExceedsAmount;
 
   const handleSave = useCallback(() => {
@@ -310,6 +406,15 @@ export function ReviewCard({
       category: category || null,
       partsCost: isMaintenance(type) ? parseNumeric(partsCost) : null,
       laborCost: isMaintenance(type) ? parseNumeric(laborCost) : null,
+      taxAmount: isMaintenance(type) ? parseNumeric(taxAmount) : null,
+      // taxRate is printed metadata — carried straight through from extraction.
+      taxRate: isMaintenance(type) ? (result.taxRate ?? null) : null,
+      // Only send non-empty lines; drop blank rows the rider added but left empty.
+      lineItems: isMaintenance(type) ? lineItems.filter((li) => li.label.trim().length > 0) : [],
+      // Opt-in reminders, filtered to types still present among the reviewed lines.
+      reminderServiceTypes: isMaintenance(type)
+        ? reminderCandidates.filter((st) => reminderTypes.has(st))
+        : [],
       applyOdometer,
       // Server converts from the printed unit (KTD-7) — send the ORIGINAL.
       odometerValue: result.odometerValue ?? null,
@@ -328,6 +433,11 @@ export function ReviewCard({
     category,
     partsCost,
     laborCost,
+    taxAmount,
+    lineItems,
+    reminderCandidates,
+    reminderTypes,
+    result.taxRate,
     applyOdometer,
     result.odometerValue,
     result.odometerUnit,
@@ -369,6 +479,11 @@ export function ReviewCard({
         )}
 
         <TypeChips type={type} isDark={isDark} onSwitch={switchType} />
+        <Text style={{ fontSize: 13, color: muted, marginTop: -8, marginLeft: 2 }}>
+          {isMaintenance(type)
+            ? t('receiptScan.review.typeMaintenanceHint')
+            : t('receiptScan.review.typeExpenseHint')}
+        </Text>
 
         {/* Amount hero + tappable receipt thumbnail (always-verify) */}
         <AmountField
@@ -473,6 +588,54 @@ export function ReviewCard({
           </Animated.View>
         )}
 
+        {/* Maintenance-only tax (kept out of parts/labor — total stays authoritative) */}
+        {isMaintenance(type) && (
+          <NumberField
+            label={
+              result.taxRate != null
+                ? t('receiptScan.review.taxWithRate', { rate: result.taxRate })
+                : t('receiptScan.review.tax')
+            }
+            value={taxAmount}
+            isDark={isDark}
+            currency={currency}
+            onChangeText={(v) => setTaxAmount(formatCurrencyInput(v, userCurrency))}
+            onBlur={() => markEdited(EDIT_FIELD.TAX_AMOUNT)}
+          />
+        )}
+
+        {/* Maintenance-only editable line items (the itemized service history) */}
+        {isMaintenance(type) && (
+          <LineItemsField
+            items={lineItems}
+            isDark={isDark}
+            currency={currency}
+            userCurrency={userCurrency}
+            title={t('receiptScan.review.lineItemsTitle')}
+            addLabel={t('receiptScan.review.addLineItem')}
+            labelPlaceholder={t('receiptScan.review.lineItemPlaceholder')}
+            serviceTypeLabel={t('receiptScan.review.serviceType')}
+            removeLabel={t('receiptScan.review.removeLineItem')}
+            onChangeLabel={(i, v) => updateLineItem(i, { label: v })}
+            onChangeAmount={(i, v) => updateLineItem(i, { lineTotal: parseNumeric(v) })}
+            onOpenServiceType={setServiceTypePickerIndex}
+            onRemove={removeLineItem}
+            onAdd={addLineItem}
+          />
+        )}
+
+        {/* P7: opt-in "remind me for the next <type>" — user-confirmed, per type */}
+        {isMaintenance(type) && reminderCandidates.length > 0 && (
+          <ReminderOptIn
+            candidates={reminderCandidates}
+            selected={reminderTypes}
+            isDark={isDark}
+            title={t('receiptScan.review.remindTitle')}
+            hint={t('receiptScan.review.remindHint')}
+            onToggle={toggleReminderType}
+          />
+        )}
+
         {/* Odometer promoted row (only when > current, or first-set when null) */}
         {odometerVisible && odoOwnerUnit != null && (
           <OdometerRow
@@ -553,6 +716,24 @@ export function ReviewCard({
         visible={zoomOpen}
         closeLabel={t('receiptScan.review.closeReceipt')}
         onClose={() => setZoomOpen(false)}
+      />
+
+      <ServiceTypePicker
+        visible={serviceTypePickerIndex !== null}
+        isDark={isDark}
+        title={t('receiptScan.review.serviceType')}
+        selected={
+          serviceTypePickerIndex !== null
+            ? (lineItems[serviceTypePickerIndex]?.serviceType ?? null)
+            : null
+        }
+        onSelect={(key) => {
+          if (serviceTypePickerIndex !== null) {
+            updateLineItem(serviceTypePickerIndex, { serviceType: key });
+          }
+          setServiceTypePickerIndex(null);
+        }}
+        onClose={() => setServiceTypePickerIndex(null)}
       />
     </Animated.View>
   );
@@ -1006,6 +1187,320 @@ function NumberField({
         />
       </View>
     </View>
+  );
+}
+
+function LineItemsField({
+  items,
+  isDark,
+  currency,
+  userCurrency,
+  title,
+  addLabel,
+  labelPlaceholder,
+  serviceTypeLabel,
+  removeLabel,
+  onChangeLabel,
+  onChangeAmount,
+  onOpenServiceType,
+  onRemove,
+  onAdd,
+}: {
+  items: ReceiptReviewLineItem[];
+  isDark: boolean;
+  currency: string;
+  userCurrency: Currency;
+  title: string;
+  addLabel: string;
+  labelPlaceholder: string;
+  serviceTypeLabel: string;
+  removeLabel: string;
+  onChangeLabel: (index: number, value: string) => void;
+  onChangeAmount: (index: number, value: string) => void;
+  onOpenServiceType: (index: number) => void;
+  onRemove: (index: number) => void;
+  onAdd: () => void;
+}) {
+  const ink = isDark ? palette.neutral50 : palette.neutral900;
+  const cardBg = isDark ? palette.neutral800 : palette.white;
+  const border = isDark ? palette.neutral700 : palette.neutral200;
+  return (
+    <View>
+      <FieldLabel text={title} isDark={isDark} />
+      <View style={{ gap: 10 }}>
+        {items.map((item, index) => (
+          <View
+            // biome-ignore lint/suspicious/noArrayIndexKey: line items have no stable id pre-save
+            key={index}
+            style={{
+              backgroundColor: cardBg,
+              borderRadius: 12,
+              borderCurve: 'continuous',
+              borderWidth: 1,
+              borderColor: border,
+              padding: 12,
+              gap: 10,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <TextInput
+                value={item.label}
+                onChangeText={(v) => onChangeLabel(index, v)}
+                placeholder={labelPlaceholder}
+                placeholderTextColor={palette.neutral500}
+                accessibilityLabel={labelPlaceholder}
+                style={{ flex: 1, fontSize: 15, fontWeight: '600', color: ink }}
+              />
+              <Pressable
+                onPress={() => onRemove(index)}
+                accessibilityRole="button"
+                accessibilityLabel={removeLabel}
+                hitSlop={8}
+                style={{ padding: 4 }}
+              >
+                <X size={16} color={palette.neutral400} />
+              </Pressable>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Pressable
+                onPress={() => onOpenServiceType(index)}
+                accessibilityRole="button"
+                accessibilityLabel={serviceTypeLabel}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                  paddingVertical: 6,
+                  paddingHorizontal: 10,
+                  borderRadius: 9,
+                  borderCurve: 'continuous',
+                  backgroundColor: tint(palette.signature500, 0.1),
+                }}
+              >
+                <Text style={{ fontSize: 13, fontWeight: '600', color: palette.signature500 }}>
+                  {item.serviceType ? humanizeServiceType(item.serviceType) : serviceTypeLabel}
+                </Text>
+                <ChevronRight size={13} color={palette.signature500} />
+              </Pressable>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                  marginLeft: 'auto',
+                  backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+                  borderRadius: 9,
+                  borderCurve: 'continuous',
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '700', color: palette.neutral400 }}>
+                  {currency}
+                </Text>
+                <TextInput
+                  value={item.lineTotal != null ? String(item.lineTotal) : ''}
+                  onChangeText={(v) => onChangeAmount(index, formatCurrencyInput(v, userCurrency))}
+                  keyboardType="decimal-pad"
+                  placeholder="0.00"
+                  placeholderTextColor={palette.neutral500}
+                  style={{ minWidth: 64, fontSize: 15, fontWeight: '600', color: ink }}
+                />
+              </View>
+            </View>
+          </View>
+        ))}
+        <Pressable
+          onPress={onAdd}
+          accessibilityRole="button"
+          accessibilityLabel={addLabel}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+            minHeight: 44,
+            borderRadius: 12,
+            borderCurve: 'continuous',
+            borderWidth: 1,
+            borderColor: border,
+            borderStyle: 'dashed',
+          }}
+        >
+          <Plus size={16} color={palette.signature500} />
+          <Text style={{ fontSize: 14, fontWeight: '600', color: palette.signature500 }}>
+            {addLabel}
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function ReminderOptIn({
+  candidates,
+  selected,
+  isDark,
+  title,
+  hint,
+  onToggle,
+}: {
+  candidates: string[];
+  selected: Set<string>;
+  isDark: boolean;
+  title: string;
+  hint: string;
+  onToggle: (serviceType: string) => void;
+}) {
+  const muted = palette.neutral400;
+  return (
+    <View>
+      <FieldLabel text={title} isDark={isDark} />
+      <Text style={{ fontSize: 13, color: muted, marginBottom: 8, marginLeft: 2 }}>{hint}</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        {candidates.map((serviceType) => {
+          const isSelected = selected.has(serviceType);
+          return (
+            <Pressable
+              key={serviceType}
+              onPress={() => onToggle(serviceType)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
+              accessibilityLabel={humanizeServiceType(serviceType)}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+                paddingVertical: 9,
+                paddingHorizontal: 12,
+                borderRadius: 11,
+                borderCurve: 'continuous',
+                backgroundColor: isSelected
+                  ? tint(palette.signature500, 0.12)
+                  : isDark
+                    ? palette.neutral800
+                    : palette.white,
+                borderWidth: isSelected ? 1.5 : 1,
+                borderColor: isSelected
+                  ? palette.signature500
+                  : isDark
+                    ? palette.neutral700
+                    : palette.neutral200,
+              }}
+            >
+              {isSelected ? (
+                <Check size={14} color={palette.signature500} strokeWidth={2.5} />
+              ) : (
+                <Plus size={14} color={palette.neutral400} strokeWidth={2} />
+              )}
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: isSelected ? '700' : '500',
+                  color: isSelected
+                    ? palette.signature500
+                    : isDark
+                      ? palette.neutral300
+                      : palette.neutral600,
+                }}
+              >
+                {humanizeServiceType(serviceType)}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function ServiceTypePicker({
+  visible,
+  isDark,
+  title,
+  selected,
+  onSelect,
+  onClose,
+}: {
+  visible: boolean;
+  isDark: boolean;
+  title: string;
+  selected: string | null;
+  onSelect: (key: string) => void;
+  onClose: () => void;
+}) {
+  const ink = isDark ? palette.neutral50 : palette.neutral900;
+  const sheetBg = isDark ? palette.neutral900 : palette.white;
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <Pressable
+        onPress={onClose}
+        style={{ flex: 1, backgroundColor: palette.surfaceOverlay, justifyContent: 'flex-end' }}
+      >
+        <Pressable
+          onPress={(e) => e.stopPropagation()}
+          style={{
+            backgroundColor: sheetBg,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            borderCurve: 'continuous',
+            paddingHorizontal: 20,
+            paddingTop: 16,
+            paddingBottom: 32,
+            maxHeight: '70%',
+          }}
+        >
+          <View
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+          >
+            <Text style={{ fontSize: 17, fontWeight: '800', color: ink }}>{title}</Text>
+            <Pressable onPress={onClose} accessibilityRole="button" hitSlop={8}>
+              <X size={22} color={palette.neutral400} />
+            </Pressable>
+          </View>
+          <ScrollView style={{ marginTop: 12 }} contentContainerStyle={{ gap: 8 }}>
+            {SERVICE_TYPE_OPTIONS.map((key) => {
+              const isSelected = selected === key;
+              return (
+                <Pressable
+                  key={key}
+                  onPress={() => onSelect(key)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingVertical: 12,
+                    paddingHorizontal: 14,
+                    borderRadius: 12,
+                    borderCurve: 'continuous',
+                    backgroundColor: isSelected
+                      ? tint(palette.signature500, 0.12)
+                      : isDark
+                        ? palette.neutral800
+                        : palette.neutral50,
+                    borderWidth: isSelected ? 1.5 : 1,
+                    borderColor: isSelected ? palette.signature500 : 'transparent',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: isSelected ? '700' : '500',
+                      color: isSelected ? palette.signature500 : ink,
+                    }}
+                  >
+                    {humanizeServiceType(key)}
+                  </Text>
+                  {isSelected && <Check size={18} color={palette.signature500} />}
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 

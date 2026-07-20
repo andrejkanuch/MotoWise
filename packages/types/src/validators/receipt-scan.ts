@@ -20,12 +20,25 @@
 import { z } from 'zod';
 import { EXPENSE_CATEGORIES } from '../constants/expense-categories';
 
-/** Bumped when the extraction contract changes. Persisted alongside payloads. */
-export const RECEIPT_SCAN_SCHEMA_VERSION = 1 as const;
+/**
+ * Bumped when the extraction contract changes. Persisted alongside payloads.
+ * v2: added structured `lineItems[]` + explicit `taxAmount`/`taxRate` (the
+ * receipt-scan structure redesign — itemized, per-service-type maintenance
+ * history and an honest tax-wrapper money model).
+ */
+export const RECEIPT_SCAN_SCHEMA_VERSION = 2 as const;
 
 /** Routing signal returned by the model. */
 export const RECEIPT_SCAN_TYPES = ['maintenance', 'expense'] as const;
 export type ReceiptScanType = (typeof RECEIPT_SCAN_TYPES)[number];
+
+/**
+ * Save-contract limits for reviewed line items. Shared by the runtime save
+ * schema AND the API's `buildResult` clamp, so an extraction can never parse
+ * upstream and then fail the save path on a too-long label / too-many lines.
+ */
+export const RECEIPT_LINE_ITEM_LABEL_MAX = 300 as const;
+export const RECEIPT_LINE_ITEMS_MAX = 50 as const;
 
 /** Odometer unit as *printed* on the receipt (KTD-7). Never assumed. */
 export const ODOMETER_UNITS = ['km', 'mi'] as const;
@@ -46,6 +59,35 @@ export const ReceiptFieldConfidenceSchema = z.object({
   odometer: z.number(),
 });
 export type ReceiptFieldConfidence = z.infer<typeof ReceiptFieldConfidenceSchema>;
+
+/**
+ * A single itemized line as read off a service invoice (extraction contract,
+ * v2). `serviceType` is the model's best-effort canonical MaintenanceServiceType
+ * key — the server re-derives/validates it via `classifyServiceType`, so an
+ * unknown or absent value is fine. STRICT mode: every field present, "optional"
+ * modelled as `.nullable()`.
+ */
+export const ReceiptLineItemSchema = z.object({
+  /**
+   * Human label as printed on the line (e.g. "Aceite motor 10W-30", "Oil filter").
+   * NOT length-capped here: this schema is fed to OpenAI `zodResponseFormat`, and
+   * the save contract's 300-char / 50-item limits are enforced downstream by
+   * `buildResult` (clamp), so a long label never fails the save path. See
+   * `RECEIPT_LINE_ITEM_LABEL_MAX` / `RECEIPT_LINE_ITEMS_MAX`.
+   */
+  label: z.string(),
+  /** Best-effort canonical service type; null when the model is unsure. */
+  serviceType: z.string().nullable(),
+  /** Manufacturer/part reference if printed on the line. */
+  partRef: z.string().nullable(),
+  /** Quantity if itemised (litres, units). */
+  quantity: z.number().nullable(),
+  /** Per-unit price if itemised. */
+  unitPrice: z.number().nullable(),
+  /** Line subtotal (NET, as printed) if itemised. */
+  lineTotal: z.number().nullable(),
+});
+export type ReceiptLineItem = z.infer<typeof ReceiptLineItemSchema>;
 
 export const ReceiptExtractionSchema = z.object({
   /** Routing signal: service/repair invoice → maintenance; everything else → expense. */
@@ -75,6 +117,17 @@ export const ReceiptExtractionSchema = z.object({
   vinOrPlate: z.string().nullable(),
   /** Maintenance only: parts named on the invoice. */
   partsNeeded: z.array(z.string()),
+  /**
+   * Maintenance only: itemized service/part lines (v2). Empty array when the
+   * invoice is not itemised or the type is 'expense'. NOT count-capped here (fed
+   * to OpenAI `zodResponseFormat`); the save contract's 50-item cap is enforced
+   * downstream by `buildResult` (`RECEIPT_LINE_ITEMS_MAX`).
+   */
+  lineItems: z.array(ReceiptLineItemSchema),
+  /** Explicit tax/VAT/IVA amount printed on the invoice. Null when not shown. */
+  taxAmount: z.number().nullable(),
+  /** Printed tax rate as a percentage (e.g. 21 for 21% IVA). Null when not shown. */
+  taxRate: z.number().nullable(),
   fieldConfidence: ReceiptFieldConfidenceSchema,
   /** Free-text note on legibility / anything the model was unsure about. */
   legibilityNote: z.string().nullable(),
@@ -91,6 +144,22 @@ export type ReceiptExtraction = z.infer<typeof ReceiptExtractionSchema>;
  * of the expense/maintenance write path. Mirrors `SaveReceiptScanInput` in the
  * API DTO; kept permissive where the review card legitimately allows free text.
  */
+/**
+ * A single reviewed service line item (maintenance save path). `serviceType` is
+ * the canonical MaintenanceServiceType key; the server re-derives it from
+ * `label` when absent/unknown, so the client may omit it. Cost fields are
+ * optional itemization detail — the task's total remains authoritative.
+ */
+export const SaveReceiptScanLineItemSchema = z.object({
+  serviceType: z.string().max(64).nullable().optional(),
+  label: z.string().min(1).max(RECEIPT_LINE_ITEM_LABEL_MAX),
+  partRef: z.string().max(120).nullable().optional(),
+  quantity: z.number().nonnegative().nullable().optional(),
+  unitPrice: z.number().nonnegative().nullable().optional(),
+  lineTotal: z.number().nonnegative().nullable().optional(),
+});
+export type SaveReceiptScanLineItem = z.infer<typeof SaveReceiptScanLineItemSchema>;
+
 export const SaveReceiptScanInputSchema = z.object({
   motorcycleId: z.string().uuid(),
   /** 'maintenance' | 'expense' — dispatches the write path. */
@@ -108,6 +177,16 @@ export const SaveReceiptScanInputSchema = z.object({
   category: z.string().max(64).nullable().optional(),
   partsCost: z.number().nonnegative().nullable().optional(),
   laborCost: z.number().nonnegative().nullable().optional(),
+  /** Explicit tax/VAT on the visit (maintenance). Kept separate from parts/labor (NET). */
+  taxAmount: z.number().nonnegative().nullable().optional(),
+  /** Printed tax rate as a percentage (e.g. 21 for 21% IVA). */
+  taxRate: z.number().nonnegative().nullable().optional(),
+  /** Reviewed service line items (maintenance). Persisted as maintenance_task_line_items. */
+  lineItems: z
+    .array(SaveReceiptScanLineItemSchema)
+    .max(RECEIPT_LINE_ITEMS_MAX)
+    .nullable()
+    .optional(),
   applyOdometer: z.boolean().optional(),
   odometerValue: z.number().nonnegative().nullable().optional(),
   /** 'km' | 'mi' as PRINTED on the receipt — never assumed (KTD-7). */

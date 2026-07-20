@@ -13,11 +13,24 @@ query MaintenanceTaskHistory($motorcycleId: String!, $limit: Int) {
     partsNeeded
     completedAt
     completedMileage
+    cost
+    partsCost
+    laborCost
+    totalAmount
+    taxAmount
+    taxRate
+    currency
     source
     oemScheduleId
     intervalKm
     intervalDays
     isRecurring
+    lineItems {
+      id
+      serviceType
+      label
+      lineTotal
+    }
     createdAt
     updatedAt
   }

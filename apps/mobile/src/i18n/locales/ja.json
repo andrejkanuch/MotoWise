@@ -2361,7 +2361,18 @@
       "checkDate": "日付を確認",
       "checkVendor": "店舗を確認",
       "checkCategory": "カテゴリを確認",
-      "checkOdometer": "走行距離を確認"
+      "checkOdometer": "走行距離を確認",
+      "typeMaintenanceHint": "整備履歴と費用に追加されます",
+      "typeExpenseHint": "費用のみを記録します",
+      "lineItemsTitle": "整備項目",
+      "addLineItem": "項目を追加",
+      "lineItemPlaceholder": "整備または部品",
+      "serviceType": "整備の種類",
+      "removeLineItem": "項目を削除",
+      "tax": "税",
+      "taxWithRate": "税（{{rate}}%）",
+      "remindTitle": "次回整備のリマインダー",
+      "remindHint": "それぞれ次回の時期が来たら通知します"
     },
     "saved": {
       "toast": "{{bike}} に保存しました",

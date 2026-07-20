@@ -1,6 +1,29 @@
 import { createUnionType, Field, Float, InputType, ObjectType } from '@nestjs/graphql';
 import { ReceiptScanError } from './receipt-scan-result.dto';
 
+/** A reviewed service line item (maintenance save). Mirrors SaveReceiptScanLineItemSchema. */
+@InputType()
+export class SaveReceiptScanLineItemInput {
+  /** Canonical MaintenanceServiceType key; server re-derives from label when absent. */
+  @Field(() => String, { nullable: true })
+  serviceType?: string | null;
+
+  @Field()
+  label: string;
+
+  @Field(() => String, { nullable: true })
+  partRef?: string | null;
+
+  @Field(() => Float, { nullable: true })
+  quantity?: number | null;
+
+  @Field(() => Float, { nullable: true })
+  unitPrice?: number | null;
+
+  @Field(() => Float, { nullable: true })
+  lineTotal?: number | null;
+}
+
 /**
  * Payload for the reviewed-scan save (U7b / KTD-11). Mirrors the review card:
  * the user may have edited any field before committing. `type` dispatches the
@@ -39,6 +62,18 @@ export class SaveReceiptScanInput {
 
   @Field(() => Float, { nullable: true })
   laborCost?: number | null;
+
+  /** Explicit tax/VAT on the visit (kept separate from NET parts/labor). */
+  @Field(() => Float, { nullable: true })
+  taxAmount?: number | null;
+
+  /** Printed tax rate as a percentage (e.g. 21 for 21% IVA). */
+  @Field(() => Float, { nullable: true })
+  taxRate?: number | null;
+
+  /** Reviewed service line items (maintenance). */
+  @Field(() => [SaveReceiptScanLineItemInput], { nullable: true })
+  lineItems?: SaveReceiptScanLineItemInput[] | null;
 
   /** KTD-7: opt-in odometer write. */
   @Field({ nullable: true })

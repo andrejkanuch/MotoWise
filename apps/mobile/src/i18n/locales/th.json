@@ -2361,7 +2361,18 @@
       "checkDate": "ตรวจสอบวันที่",
       "checkVendor": "ตรวจสอบร้านค้า",
       "checkCategory": "ตรวจสอบหมวดหมู่",
-      "checkOdometer": "ตรวจสอบเลขไมล์"
+      "checkOdometer": "ตรวจสอบเลขไมล์",
+      "typeMaintenanceHint": "เพิ่มลงในประวัติการซ่อมบำรุงและค่าใช้จ่าย",
+      "typeExpenseHint": "บันทึกเฉพาะค่าใช้จ่าย",
+      "lineItemsTitle": "รายการซ่อมบำรุง",
+      "addLineItem": "เพิ่มรายการ",
+      "lineItemPlaceholder": "บริการหรืออะไหล่",
+      "serviceType": "ประเภทการซ่อมบำรุง",
+      "removeLineItem": "ลบรายการ",
+      "tax": "ภาษี",
+      "taxWithRate": "ภาษี ({{rate}}%)",
+      "remindTitle": "การแจ้งเตือนการซ่อมบำรุงครั้งถัดไป",
+      "remindHint": "รับการแจ้งเตือนเมื่อถึงกำหนดของแต่ละรายการอีกครั้ง"
     },
     "saved": {
       "toast": "บันทึกไปยัง {{bike}} แล้ว",

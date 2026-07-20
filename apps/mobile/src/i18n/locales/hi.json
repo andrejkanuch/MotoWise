@@ -2361,7 +2361,18 @@
       "checkDate": "तारीख जाँचें",
       "checkVendor": "विक्रेता जाँचें",
       "checkCategory": "श्रेणी जाँचें",
-      "checkOdometer": "ओडोमीटर जाँचें"
+      "checkOdometer": "ओडोमीटर जाँचें",
+      "typeMaintenanceHint": "सर्विस इतिहास और खर्चों में जुड़ता है",
+      "typeExpenseHint": "केवल एक खर्च दर्ज करता है",
+      "lineItemsTitle": "सर्विस आइटम",
+      "addLineItem": "आइटम जोड़ें",
+      "lineItemPlaceholder": "सर्विस या पुर्ज़ा",
+      "serviceType": "सर्विस प्रकार",
+      "removeLineItem": "आइटम हटाएँ",
+      "tax": "कर",
+      "taxWithRate": "कर ({{rate}}%)",
+      "remindTitle": "अगली सर्विस के रिमाइंडर",
+      "remindHint": "जब हर एक फिर से देय हो तो याद दिलाया जाए"
     },
     "saved": {
       "toast": "{{bike}} में सहेजा गया",

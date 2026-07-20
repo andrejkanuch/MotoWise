@@ -2364,7 +2364,18 @@
       "checkDate": "Controlla data",
       "checkVendor": "Controlla esercente",
       "checkCategory": "Controlla categoria",
-      "checkOdometer": "Controlla contachilometri"
+      "checkOdometer": "Controlla contachilometri",
+      "typeMaintenanceHint": "Aggiunge allo storico interventi e alle spese",
+      "typeExpenseHint": "Registra solo una spesa",
+      "lineItemsTitle": "Voci dell'intervento",
+      "addLineItem": "Aggiungi voce",
+      "lineItemPlaceholder": "Servizio o ricambio",
+      "serviceType": "Tipo di intervento",
+      "removeLineItem": "Rimuovi voce",
+      "tax": "Imposta",
+      "taxWithRate": "Imposta ({{rate}}%)",
+      "remindTitle": "Promemoria prossimo intervento",
+      "remindHint": "Ricevi un promemoria alla prossima scadenza"
     },
     "saved": {
       "toast": "Salvato su {{bike}}",

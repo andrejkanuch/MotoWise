@@ -2364,7 +2364,18 @@
       "checkDate": "Revisar fecha",
       "checkVendor": "Revisar comercio",
       "checkCategory": "Revisar categoría",
-      "checkOdometer": "Revisar cuentakilómetros"
+      "checkOdometer": "Revisar cuentakilómetros",
+      "typeMaintenanceHint": "Se añade al historial de servicio y a los gastos",
+      "typeExpenseHint": "Solo registra un gasto",
+      "lineItemsTitle": "Elementos del servicio",
+      "addLineItem": "Añadir elemento",
+      "lineItemPlaceholder": "Servicio o pieza",
+      "serviceType": "Tipo de servicio",
+      "removeLineItem": "Eliminar elemento",
+      "tax": "Impuesto",
+      "taxWithRate": "Impuesto ({{rate}}%)",
+      "remindTitle": "Recordatorios del próximo servicio",
+      "remindHint": "Recibe un aviso cuando toque de nuevo"
     },
     "saved": {
       "toast": "Guardado en {{bike}}",

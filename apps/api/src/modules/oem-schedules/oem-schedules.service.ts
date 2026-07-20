@@ -376,6 +376,7 @@ export class OemSchedulesService {
     return {
       id: row.id as string,
       make: row.make as string,
+      serviceType: (row.service_type as string) ?? 'other',
       model: (row.model as string) ?? undefined,
       yearFrom: (row.year_from as number) ?? undefined,
       yearTo: (row.year_to as number) ?? undefined,

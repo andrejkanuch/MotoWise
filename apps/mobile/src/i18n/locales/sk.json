@@ -2367,7 +2367,18 @@
       "checkDate": "Skontroluj dátum",
       "checkVendor": "Skontroluj predajcu",
       "checkCategory": "Skontroluj kategóriu",
-      "checkOdometer": "Skontroluj tachometer"
+      "checkOdometer": "Skontroluj tachometer",
+      "typeMaintenanceHint": "Pridá do servisnej histórie a výdavkov",
+      "typeExpenseHint": "Zaznamená iba náklad",
+      "lineItemsTitle": "Servisné položky",
+      "addLineItem": "Pridať položku",
+      "lineItemPlaceholder": "Servis alebo diel",
+      "serviceType": "Typ servisu",
+      "removeLineItem": "Odstrániť položku",
+      "tax": "Daň",
+      "taxWithRate": "Daň ({{rate}}%)",
+      "remindTitle": "Pripomienky ďalšieho servisu",
+      "remindHint": "Nechajte si pripomenúť, keď bude každý znova na rade"
     },
     "saved": {
       "toast": "Uložené k {{bike}}",

@@ -48,6 +48,9 @@ function dealerInvoiceExtraction(overrides: Partial<ReceiptExtraction> = {}): Re
     fuelLitres: null,
     vinOrPlate: 'VF1ABCDEF12345678',
     partsNeeded: ['oil filter', 'brake pads'],
+    lineItems: [],
+    taxAmount: null,
+    taxRate: null,
     fieldConfidence: {
       amount: 0.98,
       currency: 0.99,
@@ -202,6 +205,8 @@ describe('ReceiptScanService', () => {
     create: ReturnType<typeof vi.fn>;
     softDelete: ReturnType<typeof vi.fn>;
     addPhoto: ReturnType<typeof vi.fn>;
+    addLineItems: ReturnType<typeof vi.fn>;
+    deleteLineItems: ReturnType<typeof vi.fn>;
   };
   let motorcyclesService: {
     findById: ReturnType<typeof vi.fn>;
@@ -252,6 +257,8 @@ describe('ReceiptScanService', () => {
       create: vi.fn().mockResolvedValue({ id: TASK_ID }),
       softDelete: vi.fn().mockResolvedValue(true),
       addPhoto: vi.fn().mockResolvedValue({ id: PHOTO_ID }),
+      addLineItems: vi.fn().mockResolvedValue(0),
+      deleteLineItems: vi.fn().mockResolvedValue(undefined),
     };
     motorcyclesService = {
       findById: vi.fn().mockResolvedValue({ id: MOTO_ID, currentMileage: 10_000 }),
@@ -285,7 +292,8 @@ describe('ReceiptScanService', () => {
       expect(res.result.category).toBe('maintenance');
       expect(res.result.odometerValue).toBe(37505);
       expect(res.result.odometerUnit).toBe('km');
-      expect(res.result.needsCheck).toEqual([]);
+      // Date hardening (P4): a maintenance date is always confirmed by the rider.
+      expect(res.result.needsCheck).toContain('date');
     });
 
     it('checks the AI budget and fetches bytes via the derived {uid}/{scanId}.webp path', async () => {
@@ -494,6 +502,108 @@ describe('ReceiptScanService', () => {
       if (!('result' in res)) return;
       expect(res.result.category).toBe('other');
       expect(res.result.needsCheck).toContain('category');
+    });
+
+    it('carries line items + explicit tax through to the result and persisted payload (P4)', async () => {
+      reserve(false);
+      db.download.mockResolvedValue({ data: validBytes(), error: null });
+      aiService.extract.mockResolvedValue({
+        ok: true,
+        extraction: dealerInvoiceExtraction({
+          taxAmount: 41.91,
+          taxRate: 21,
+          lineItems: [
+            {
+              label: 'Aceite motor 10W-30',
+              serviceType: 'oil_change',
+              partRef: 'HON-10W30',
+              quantity: 3.7,
+              unitPrice: 12,
+              lineTotal: 44.4,
+            },
+            {
+              label: 'Ultra DOT 4 brake fluid',
+              serviceType: null,
+              partRef: null,
+              quantity: null,
+              unitPrice: null,
+              lineTotal: 9.5,
+            },
+          ],
+        }),
+        inputTokens: 10,
+        outputTokens: 5,
+      });
+
+      const res = await service.scanReceipt(USER, CLIENT_SCAN_ID);
+      expect('result' in res).toBe(true);
+      if (!('result' in res)) return;
+      expect(res.result.taxAmount).toBe(41.91);
+      expect(res.result.taxRate).toBe(21);
+      expect(res.result.lineItems).toHaveLength(2);
+      expect(res.result.lineItems[0]?.label).toBe('Aceite motor 10W-30');
+
+      const success = findUpdate(RECEIPT_SCAN_STATUS.SUCCESS);
+      const payload = success?.patch?.extraction_payload as Record<string, unknown>;
+      expect(payload.taxAmount).toBe(41.91);
+      expect((payload.lineItems as unknown[]).length).toBe(2);
+    });
+
+    it('always flags date for review on a maintenance extraction (P4 date hardening)', async () => {
+      reserve(false);
+      db.download.mockResolvedValue({ data: validBytes(), error: null });
+      // A high-confidence maintenance date must still be confirmed by the rider.
+      aiService.extract.mockResolvedValue({
+        ok: true,
+        extraction: dealerInvoiceExtraction({
+          type: 'maintenance',
+          fieldConfidence: {
+            amount: 1,
+            currency: 1,
+            date: 1,
+            vendor: 1,
+            category: 1,
+            odometer: 1,
+          },
+        }),
+        inputTokens: 10,
+        outputTokens: 5,
+      });
+
+      const res = await service.scanReceipt(USER, CLIENT_SCAN_ID);
+      expect('result' in res).toBe(true);
+      if (!('result' in res)) return;
+      expect(res.result.needsCheck).toContain('date');
+    });
+
+    it('flags a far-off year even for an expense at confidence 1.0 (the 2022-vs-2026 case)', async () => {
+      reserve(false);
+      db.download.mockResolvedValue({ data: validBytes(), error: null });
+      aiService.extract.mockResolvedValue({
+        ok: true,
+        extraction: dealerInvoiceExtraction({
+          type: 'expense',
+          category: 'fuel',
+          date: '2015-06-01',
+          fieldConfidence: {
+            amount: 1,
+            currency: 1,
+            date: 1,
+            vendor: 1,
+            category: 1,
+            odometer: 1,
+          },
+        }),
+        inputTokens: 10,
+        outputTokens: 5,
+      });
+
+      const res = await service.scanReceipt(USER, CLIENT_SCAN_ID);
+      expect('result' in res).toBe(true);
+      if (!('result' in res)) return;
+      // Not a maintenance type, so the "always confirm" rule does not apply — the
+      // far-off-year guard is what flags it.
+      expect(res.result.needsCheck).toContain('date');
     });
   });
 
@@ -802,22 +912,31 @@ describe('ReceiptScanService', () => {
       ).toMatchObject({ expenseId: EXPENSE_ID, photoId: PHOTO_ID });
     });
 
-    it('maintenance path creates completed task w/ source + backs cost out of breakdown', async () => {
+    it('maintenance path creates completed task w/ source + authoritative total (wrapper)', async () => {
       routeDb(scanRow());
       const res = await service.saveReceiptScan(
         USER,
         CLIENT_SCAN_ID,
-        saveInput({ type: RECORD_TYPES.MAINTENANCE, amount: 200, partsCost: 120, laborCost: 50 }),
+        saveInput({
+          type: RECORD_TYPES.MAINTENANCE,
+          amount: 200,
+          partsCost: 120,
+          laborCost: 50,
+          taxAmount: 30,
+        }),
       );
       expect('refs' in res).toBe(true);
+      // Breakdown (120+50+30=200) reconciles to the gross total → total_amount is
+      // authoritative, tax is explicit, and the misc `cost` bucket is NOT used.
       expect(maintenanceTasksService.create).toHaveBeenCalledWith(
         USER.id,
         expect.objectContaining({
           status: 'completed',
           source: 'receipt_scan',
-          cost: 30, // 200 - 120 - 50 → auto-expense total stays 200
+          totalAmount: 200,
           partsCost: 120,
           laborCost: 50,
+          taxAmount: 30,
         }),
       );
       expect(maintenanceTasksService.addPhoto).toHaveBeenCalledWith(
@@ -826,6 +945,41 @@ describe('ReceiptScanService', () => {
         STORAGE_PATH,
         undefined,
         'receipts',
+      );
+    });
+
+    it('persists classified line items + service mileage on the maintenance task', async () => {
+      routeDb(scanRow());
+      const res = await service.saveReceiptScan(
+        USER,
+        CLIENT_SCAN_ID,
+        saveInput({
+          type: RECORD_TYPES.MAINTENANCE,
+          amount: 241.46,
+          odometerValue: 37505,
+          odometerUnit: 'km',
+          lineItems: [
+            { label: 'ULTRA DOT 4 BRAKE FLUID' }, // → brake_fluid (server-classified)
+            { label: 'FILTRO DE ACEITE MOTOR Y CAMBIO DCT' }, // → transmission_oil
+            { label: 'unreadable smudge', serviceType: 'spark_plug' }, // client type trusted
+          ],
+        }),
+      );
+      expect('refs' in res).toBe(true);
+      // Service mileage stamped on the completed task (KTD-7 conversion).
+      expect(maintenanceTasksService.create).toHaveBeenCalledWith(
+        USER.id,
+        expect.objectContaining({ completedMileage: expect.any(Number) }),
+      );
+      // Line items persisted with server-derived canonical service types.
+      expect(maintenanceTasksService.addLineItems).toHaveBeenCalledWith(
+        USER.id,
+        TASK_ID,
+        expect.arrayContaining([
+          expect.objectContaining({ serviceType: 'brake_fluid', label: 'ULTRA DOT 4 BRAKE FLUID' }),
+          expect.objectContaining({ serviceType: 'transmission_oil' }),
+          expect.objectContaining({ serviceType: 'spark_plug' }),
+        ]),
       );
     });
 
@@ -857,15 +1011,27 @@ describe('ReceiptScanService', () => {
       expect(db.remove).not.toHaveBeenCalled();
     });
 
-    it('cost breakdown exceeding the receipt total → SAVE_FAILED (no task created)', async () => {
+    it('breakdown exceeding the receipt total → total-only fallback (no throw)', async () => {
       routeDb(scanRow());
+      // parts+labor (80+50=130) exceed the gross total (100): it cannot be a
+      // faithful decomposition, so the save keeps the total alone rather than
+      // blocking (the pre-redesign behavior threw SAVE_FAILED).
       const res = await service.saveReceiptScan(
         USER,
         CLIENT_SCAN_ID,
         saveInput({ type: RECORD_TYPES.MAINTENANCE, amount: 100, partsCost: 80, laborCost: 50 }),
       );
-      expect('code' in res && res.code).toBe(RECEIPT_SCAN_ERROR_CODES.SAVE_FAILED);
-      expect(maintenanceTasksService.create).not.toHaveBeenCalled();
+      expect('refs' in res).toBe(true);
+      expect(maintenanceTasksService.create).toHaveBeenCalledWith(
+        USER.id,
+        expect.objectContaining({
+          status: 'completed',
+          source: 'receipt_scan',
+          totalAmount: 100,
+          partsCost: undefined,
+          laborCost: undefined,
+        }),
+      );
     });
 
     it('concurrent save that loses the atomic claim does not double-write', async () => {

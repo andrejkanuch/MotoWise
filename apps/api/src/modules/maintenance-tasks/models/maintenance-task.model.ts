@@ -4,6 +4,7 @@ import {
   GqlMaintenanceTaskSource,
   GqlMaintenanceTaskStatus,
 } from '../../../common/enums/graphql-enums';
+import { MaintenanceTaskLineItem } from './task-line-item.model';
 import { TaskPhoto } from './task-photo.model';
 
 @ObjectType()
@@ -62,8 +63,13 @@ export class MaintenanceTask {
   @Field()
   isRecurring: boolean;
 
+  /** Resolved on demand in MaintenanceTasksResolver.photos (request-scoped loader). */
   @Field(() => [TaskPhoto])
-  photos: TaskPhoto[];
+  photos?: TaskPhoto[];
+
+  /** Structured service line items — resolved on demand via the loader. */
+  @Field(() => [MaintenanceTaskLineItem])
+  lineItems?: MaintenanceTaskLineItem[];
 
   @Field(() => Float, { nullable: true })
   cost?: number;
@@ -73,6 +79,18 @@ export class MaintenanceTask {
 
   @Field(() => Float, { nullable: true })
   laborCost?: number;
+
+  /** Authoritative gross paid for the visit. Falls back to cost+parts+labor when null. */
+  @Field(() => Float, { nullable: true })
+  totalAmount?: number;
+
+  /** Explicit tax/VAT on the visit; NULL when the receipt printed none. */
+  @Field(() => Float, { nullable: true })
+  taxAmount?: number;
+
+  /** Printed tax rate as a percentage (e.g. 21). */
+  @Field(() => Float, { nullable: true })
+  taxRate?: number;
 
   @Field({ nullable: true })
   currency?: string;

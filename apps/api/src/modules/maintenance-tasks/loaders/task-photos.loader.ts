@@ -1,7 +1,7 @@
 import { Injectable, Scope } from '@nestjs/common';
 import DataLoader from 'dataloader';
-import { MaintenanceTasksService } from './maintenance-tasks.service';
-import type { TaskPhoto } from './models/task-photo.model';
+import type { TaskPhoto } from '../models/task-photo.model';
+import { MaintenanceTaskPhotosService } from '../services/maintenance-task-photos.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class TaskPhotosLoader {
@@ -10,9 +10,9 @@ export class TaskPhotosLoader {
   // load() and used as the C1 ownership anchor for receipts signed URLs (U7a).
   private ownerUserId: string | null = null;
 
-  constructor(private readonly maintenanceTasksService: MaintenanceTasksService) {
+  constructor(private readonly photosService: MaintenanceTaskPhotosService) {
     this.loader = new DataLoader<string, TaskPhoto[]>(async (taskIds) => {
-      const map = await this.maintenanceTasksService.findPhotosByTaskIds(
+      const map = await this.photosService.findPhotosByTaskIds(
         [...taskIds],
         this.ownerUserId ?? '',
       );

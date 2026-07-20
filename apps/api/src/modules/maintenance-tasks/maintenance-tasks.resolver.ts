@@ -2,6 +2,7 @@ import {
   AddTaskPhotoSchema,
   CompleteMaintenanceTaskSchema,
   CreateMaintenanceTaskSchema,
+  CreateServiceReminderSchema,
   UpdateMaintenanceTaskSchema,
 } from '@motovault/types';
 import { Injectable, Scope } from '@nestjs/common';
@@ -13,13 +14,16 @@ import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { AddTaskPhotoInput } from './dto/add-task-photo.input';
 import { CompleteMaintenanceTaskInput } from './dto/complete-task.input';
 import { CreateMaintenanceTaskInput } from './dto/create-maintenance-task.input';
+import { CreateServiceReminderInput } from './dto/create-service-reminder.input';
 import { UpdateMaintenanceTaskInput } from './dto/update-maintenance-task.input';
+import { TaskLineItemsLoader } from './loaders/task-line-items.loader';
+import { TaskPhotosLoader } from './loaders/task-photos.loader';
 import { MaintenanceTasksService } from './maintenance-tasks.service';
 import { CompleteTaskResult } from './models/complete-task-result.model';
 import { MaintenanceTask } from './models/maintenance-task.model';
 import { SpendingSummary } from './models/spending-summary.model';
+import { MaintenanceTaskLineItem } from './models/task-line-item.model';
 import { TaskPhoto } from './models/task-photo.model';
-import { TaskPhotosLoader } from './task-photos.loader';
 
 @Resolver(() => MaintenanceTask)
 @Injectable({ scope: Scope.REQUEST })
@@ -27,6 +31,7 @@ export class MaintenanceTasksResolver {
   constructor(
     private readonly maintenanceTasksService: MaintenanceTasksService,
     private readonly taskPhotosLoader: TaskPhotosLoader,
+    private readonly taskLineItemsLoader: TaskLineItemsLoader,
   ) {}
 
   @Query(() => [MaintenanceTask])
@@ -83,15 +88,21 @@ export class MaintenanceTasksResolver {
     @Args('createNextOccurrence', { type: () => Boolean, nullable: true })
     createNextOccurrence: boolean | null,
   ): Promise<CompleteTaskResult> {
-    const completed = await this.maintenanceTasksService.complete(user.id, id, input ?? undefined);
+    return this.maintenanceTasksService.completeWithNextOccurrence(
+      user.id,
+      id,
+      input ?? undefined,
+      createNextOccurrence,
+    );
+  }
 
-    const shouldCreateNext = createNextOccurrence ?? completed.isRecurring;
-    let nextOccurrence: MaintenanceTask | undefined;
-    if (shouldCreateNext) {
-      nextOccurrence =
-        (await this.maintenanceTasksService.createNextRecurrence(completed)) ?? undefined;
-    }
-    return { completed, nextOccurrence };
+  @Mutation(() => MaintenanceTask)
+  async createServiceReminder(
+    @CurrentUser() user: AuthUser,
+    @Args('input', new ZodValidationPipe(CreateServiceReminderSchema))
+    input: CreateServiceReminderInput,
+  ): Promise<MaintenanceTask> {
+    return this.maintenanceTasksService.createServiceReminder(user.id, input);
   }
 
   @Mutation(() => Boolean)
@@ -105,7 +116,7 @@ export class MaintenanceTasksResolver {
   @Query(() => SpendingSummary)
   async spendingSummary(
     @CurrentUser() user: AuthUser,
-    @Args('motorcycleId') motorcycleId: string,
+    @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,
   ): Promise<SpendingSummary> {
     return this.maintenanceTasksService.getSpendingSummary(user.id, motorcycleId);
   }
@@ -129,7 +140,7 @@ export class MaintenanceTasksResolver {
   @Mutation(() => Boolean)
   async deleteTaskPhoto(
     @CurrentUser() user: AuthUser,
-    @Args('photoId', { type: () => ID }) photoId: string,
+    @Args('photoId', { type: () => ID }, ParseUUIDPipe) photoId: string,
   ): Promise<boolean> {
     return this.maintenanceTasksService.deletePhoto(user.id, photoId);
   }
@@ -141,7 +152,16 @@ export class MaintenanceTasksResolver {
     @CurrentUser() user: AuthUser,
     @Parent() task: MaintenanceTask,
   ): Promise<TaskPhoto[]> {
-    if (task.photos && task.photos.length > 0) return task.photos;
     return this.taskPhotosLoader.load(task.id, user.id);
+  }
+
+  // ── Field resolver for line items ───────────────────────────────
+
+  @ResolveField(() => [MaintenanceTaskLineItem])
+  async lineItems(
+    @CurrentUser() user: AuthUser,
+    @Parent() task: MaintenanceTask,
+  ): Promise<MaintenanceTaskLineItem[]> {
+    return this.taskLineItemsLoader.load(task.id, user.id);
   }
 }

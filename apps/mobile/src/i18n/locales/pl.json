@@ -2367,7 +2367,18 @@
       "checkDate": "Sprawdź datę",
       "checkVendor": "Sprawdź sprzedawcę",
       "checkCategory": "Sprawdź kategorię",
-      "checkOdometer": "Sprawdź licznik"
+      "checkOdometer": "Sprawdź licznik",
+      "typeMaintenanceHint": "Dodaje do historii serwisowej i wydatków",
+      "typeExpenseHint": "Rejestruje tylko koszt",
+      "lineItemsTitle": "Pozycje serwisowe",
+      "addLineItem": "Dodaj pozycję",
+      "lineItemPlaceholder": "Usługa lub część",
+      "serviceType": "Rodzaj serwisu",
+      "removeLineItem": "Usuń pozycję",
+      "tax": "Podatek",
+      "taxWithRate": "Podatek ({{rate}}%)",
+      "remindTitle": "Przypomnienia o kolejnym serwisie",
+      "remindHint": "Otrzymuj przypomnienie, gdy każdy będzie znów wymagany"
     },
     "saved": {
       "toast": "Zapisano w {{bike}}",

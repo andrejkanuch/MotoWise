@@ -4,5 +4,10 @@
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "buildCommand": "cd ../.. && pnpm build --filter=@motovault/web",
   "outputDirectory": ".next",
-  "ignoreCommand": "cd ../.. && npx --yes turbo-ignore @motovault/web"
+  "ignoreCommand": "cd ../.. && npx --yes turbo-ignore @motovault/web",
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  }
 }

@@ -2361,7 +2361,18 @@
       "checkDate": "Tarihi kontrol et",
       "checkVendor": "Satıcıyı kontrol et",
       "checkCategory": "Kategoriyi kontrol et",
-      "checkOdometer": "Kilometreyi kontrol et"
+      "checkOdometer": "Kilometreyi kontrol et",
+      "typeMaintenanceHint": "Servis geçmişine ve giderlere eklenir",
+      "typeExpenseHint": "Yalnızca bir gider kaydeder",
+      "lineItemsTitle": "Servis kalemleri",
+      "addLineItem": "Kalem ekle",
+      "lineItemPlaceholder": "Servis veya parça",
+      "serviceType": "Servis türü",
+      "removeLineItem": "Kalemi kaldır",
+      "tax": "Vergi",
+      "taxWithRate": "Vergi ({{rate}}%)",
+      "remindTitle": "Sonraki servis hatırlatıcıları",
+      "remindHint": "Her biri yeniden zamanı geldiğinde hatırlatılsın"
     },
     "saved": {
       "toast": "{{bike}} motosikletine kaydedildi",

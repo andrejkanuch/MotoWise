@@ -11,6 +11,7 @@ export * from './readiness';
 export * from './units';
 export * from './utils/blog-text';
 export * from './utils/country-name';
+export * from './utils/service-type-classify';
 export * from './validators/affiliate';
 export * from './validators/article';
 export * from './validators/blog-content-types';

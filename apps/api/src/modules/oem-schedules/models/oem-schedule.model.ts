@@ -1,5 +1,8 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
-import { GqlMaintenancePriority } from '../../../common/enums/graphql-enums';
+import {
+  GqlMaintenancePriority,
+  GqlMaintenanceServiceType,
+} from '../../../common/enums/graphql-enums';
 
 @ObjectType()
 export class OemSchedule {
@@ -8,6 +11,10 @@ export class OemSchedule {
 
   @Field()
   make: string;
+
+  /** Canonical service taxonomy key (00171 normalization). */
+  @Field(() => GqlMaintenanceServiceType)
+  serviceType: string;
 
   @Field({ nullable: true })
   model?: string;

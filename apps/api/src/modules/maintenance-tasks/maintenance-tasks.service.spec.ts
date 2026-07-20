@@ -3,6 +3,9 @@ import type { ConfigService } from '@nestjs/config';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ExpensesService } from '../expenses/expenses.service';
 import { MaintenanceTasksService } from './maintenance-tasks.service';
+import { MaintenanceLineItemsService } from './services/maintenance-line-items.service';
+import { MaintenanceSpendingService } from './services/maintenance-spending.service';
+import { MaintenanceTaskPhotosService } from './services/maintenance-task-photos.service';
 
 describe('MaintenanceTasksService', () => {
   let service: MaintenanceTasksService;
@@ -68,6 +71,7 @@ describe('MaintenanceTasksService', () => {
       chain[m] = vi.fn().mockReturnValue(chain);
     }
     chain.single = vi.fn().mockImplementation(() => Promise.resolve(getResult()));
+    chain.maybeSingle = vi.fn().mockImplementation(() => Promise.resolve(getResult()));
     // Make the chain thenable so queries without .single() also resolve
     // biome-ignore lint/suspicious/noThenProperty: Supabase query builders are thenable
     chain.then = vi
@@ -115,11 +119,22 @@ describe('MaintenanceTasksService', () => {
       getOrThrow: vi.fn().mockReturnValue('https://test.supabase.co'),
     } as unknown as ConfigService;
 
-    service = new MaintenanceTasksService(
+    // Sub-services share the same mock clients so the sequential-result mock
+    // and every existing assertion on mockUserClient/mockAdminClient keep working.
+    const photosService = new MaintenanceTaskPhotosService(
       mockUserClient as never,
       mockAdminClient as never,
       mockConfigService,
+    );
+    const lineItemsService = new MaintenanceLineItemsService(mockUserClient as never);
+    const spendingService = new MaintenanceSpendingService(mockUserClient as never);
+    service = new MaintenanceTasksService(
+      mockUserClient as never,
+      mockAdminClient as never,
       mockExpensesService as unknown as ExpensesService,
+      photosService,
+      lineItemsService,
+      spendingService,
     );
   });
 
@@ -151,6 +166,57 @@ describe('MaintenanceTasksService', () => {
       expect(result).toHaveLength(1);
       expect(result[0].motorcycleId).toBe(motorcycleId);
       expect(mockUserClient._chain.eq).toHaveBeenCalledWith('motorcycle_id', motorcycleId);
+    });
+  });
+
+  describe('createServiceReminder (P7 — user-confirmed)', () => {
+    it('inserts a NEW recurring pending task of the type (title humanized, default yearly cadence)', async () => {
+      // Ownership check (.maybeSingle), then create insert (.single).
+      mockUserClient._pushResult({ data: { id: motorcycleId } });
+      mockUserClient._pushResult({ data: fakeRow });
+
+      await service.createServiceReminder(userId, {
+        motorcycleId,
+        serviceType: 'oil_change',
+      });
+
+      // A single insert (never an update/delete of an existing task).
+      expect(mockUserClient._chain.update).not.toHaveBeenCalled();
+      expect(mockUserClient._chain.delete).not.toHaveBeenCalled();
+      const insertArg = mockUserClient._chain.insert.mock.calls[0][0];
+      expect(insertArg.title).toBe('Oil change');
+      expect(insertArg.is_recurring).toBe(true);
+      expect(insertArg.interval_days).toBe(365);
+      expect(insertArg.status).toBeUndefined(); // pending (DB default)
+      // Due date anchors the first occurrence one interval out.
+      expect(Number.isNaN(Date.parse(insertArg.due_date))).toBe(false);
+    });
+
+    it('honors an explicit mileage interval without forcing a time cadence', async () => {
+      mockUserClient._pushResult({ data: { id: motorcycleId } });
+      mockUserClient._pushResult({ data: fakeRow });
+
+      await service.createServiceReminder(userId, {
+        motorcycleId,
+        serviceType: 'chain',
+        intervalKm: 8000,
+      });
+
+      const insertArg = mockUserClient._chain.insert.mock.calls[0][0];
+      expect(insertArg.interval_km).toBe(8000);
+      expect(insertArg.interval_days).toBeNull();
+    });
+
+    it('fails closed when motorcycleId is not owned', async () => {
+      mockUserClient._pushResult({ data: null });
+
+      await expect(
+        service.createServiceReminder(userId, {
+          motorcycleId: 'foreign-bike',
+          serviceType: 'oil_change',
+        }),
+      ).rejects.toThrow(NotFoundException);
+      expect(mockUserClient._chain.insert).not.toHaveBeenCalled();
     });
   });
 
@@ -271,6 +337,8 @@ describe('MaintenanceTasksService', () => {
         100,
         'Oil Change',
         'EUR',
+        // Auto-expense is dated on the service day (task completedAt), not today.
+        '2026-07-13T12:00:00.000Z',
       );
     });
 
@@ -351,6 +419,7 @@ describe('MaintenanceTasksService', () => {
         100, // 50 + 30 + 20
         'Oil Change',
         undefined, // no task currency → expense falls back to profile currency
+        '2026-03-20T00:00:00Z', // dated on the service day (task completedAt)
       );
     });
 
@@ -726,6 +795,28 @@ describe('MaintenanceTasksService', () => {
 
       // Verify it looked up the task with user_id
       expect(mockAdminClient._chain.eq).toHaveBeenCalledWith('user_id', userId);
+    });
+  });
+
+  describe('getSpendingSummary (financial wrapper)', () => {
+    it('counts total_amount tasks (money not in cost) so scanned services are not dropped', async () => {
+      // Result 0: all-time query — a scanned task (money in total_amount, cost NULL)
+      // plus a manual task using the additive cost/parts/labor breakdown.
+      mockUserClient._pushResult({
+        data: [
+          { cost: null, parts_cost: null, labor_cost: null, total_amount: 241.46 },
+          { cost: 50, parts_cost: 30, labor_cost: 20, total_amount: null },
+        ],
+      });
+      // Result 1: this-year query — just the scanned task.
+      mockUserClient._pushResult({
+        data: [{ cost: null, parts_cost: null, labor_cost: null, total_amount: 241.46 }],
+      });
+
+      const res = await service.getSpendingSummary(userId, motorcycleId);
+      // 241.46 (total_amount) + 100 (50+30+20) — the scanned task is NOT dropped.
+      expect(res.allTime).toBeCloseTo(341.46, 2);
+      expect(res.thisYear).toBeCloseTo(241.46, 2);
     });
   });
 });

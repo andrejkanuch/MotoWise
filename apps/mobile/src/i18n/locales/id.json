@@ -2361,7 +2361,18 @@
       "checkDate": "Cek tanggal",
       "checkVendor": "Cek penjual",
       "checkCategory": "Cek kategori",
-      "checkOdometer": "Cek odometer"
+      "checkOdometer": "Cek odometer",
+      "typeMaintenanceHint": "Menambah ke riwayat servis dan pengeluaran",
+      "typeExpenseHint": "Hanya mencatat biaya",
+      "lineItemsTitle": "Item servis",
+      "addLineItem": "Tambah item",
+      "lineItemPlaceholder": "Servis atau suku cadang",
+      "serviceType": "Jenis servis",
+      "removeLineItem": "Hapus item",
+      "tax": "Pajak",
+      "taxWithRate": "Pajak ({{rate}}%)",
+      "remindTitle": "Pengingat servis berikutnya",
+      "remindHint": "Dapatkan pengingat saat masing-masing jatuh tempo lagi"
     },
     "saved": {
       "toast": "Disimpan ke {{bike}}",

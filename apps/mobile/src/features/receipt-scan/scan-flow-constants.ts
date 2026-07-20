@@ -210,6 +210,20 @@ export const RECEIPT_REVIEW_TYPE = {
 export type ReceiptReviewType = (typeof RECEIPT_REVIEW_TYPE)[keyof typeof RECEIPT_REVIEW_TYPE];
 
 /**
+ * A reviewed maintenance line item the card hands to `onSave`. Mirrors U7b's
+ * `SaveReceiptScanLineItem`; `serviceType` is the canonical MaintenanceServiceType
+ * key (the server re-classifies from `label` when null/unknown).
+ */
+export interface ReceiptReviewLineItem {
+  label: string;
+  serviceType: string | null;
+  partRef: string | null;
+  quantity: number | null;
+  unitPrice: number | null;
+  lineTotal: number | null;
+}
+
+/**
  * The human-confirmed payload the review card hands to `onSave`. Shape mirrors
  * U7b's `SaveReceiptScanInput` (the server converts the printed `odometerUnit`
  * to the owner's stored unit — KTD-7 — so the ORIGINAL extracted odometer is
@@ -226,6 +240,18 @@ export interface ReceiptReviewPayload {
   category: string | null;
   partsCost: number | null;
   laborCost: number | null;
+  /** Explicit tax/VAT on the visit (maintenance) — kept out of parts/labor. */
+  taxAmount: number | null;
+  /** Printed tax rate as a percentage (e.g. 21). */
+  taxRate: number | null;
+  /** Reviewed maintenance line items (maintenance type only). */
+  lineItems: ReceiptReviewLineItem[];
+  /**
+   * Canonical service types the rider opted into a "remind me for the next <type>"
+   * reminder for (P7). Each creates a fresh recurring pending task — never mutates
+   * an existing one. Empty unless the rider explicitly opted in.
+   */
+  reminderServiceTypes: string[];
   applyOdometer: boolean;
   odometerValue: number | null;
   odometerUnit: string | null;

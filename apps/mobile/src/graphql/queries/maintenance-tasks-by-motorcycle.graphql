@@ -16,6 +16,9 @@ query MaintenanceTasksByMotorcycle($motorcycleId: String!) {
     cost
     partsCost
     laborCost
+    totalAmount
+    taxAmount
+    taxRate
     currency
     source
     isRecurring
@@ -28,6 +31,12 @@ query MaintenanceTasksByMotorcycle($motorcycleId: String!) {
       id
       storagePath
       publicUrl
+    }
+    lineItems {
+      id
+      serviceType
+      label
+      lineTotal
     }
     createdAt
     updatedAt
