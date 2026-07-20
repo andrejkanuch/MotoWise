@@ -2361,7 +2361,18 @@
       "checkDate": "Datum prüfen",
       "checkVendor": "Händler prüfen",
       "checkCategory": "Kategorie prüfen",
-      "checkOdometer": "Kilometerstand prüfen"
+      "checkOdometer": "Kilometerstand prüfen",
+      "typeMaintenanceHint": "Wird zur Servicehistorie und zu den Ausgaben hinzugefügt",
+      "typeExpenseHint": "Erfasst nur eine Ausgabe",
+      "lineItemsTitle": "Serviceposten",
+      "addLineItem": "Posten hinzufügen",
+      "lineItemPlaceholder": "Service oder Teil",
+      "serviceType": "Serviceart",
+      "removeLineItem": "Posten entfernen",
+      "tax": "Steuer",
+      "taxWithRate": "Steuer ({{rate}}%)",
+      "remindTitle": "Erinnerungen für den nächsten Service",
+      "remindHint": "Werde erinnert, wenn es wieder fällig ist"
     },
     "saved": {
       "toast": "Bei {{bike}} gespeichert",

@@ -1,5 +1,6 @@
 import { palette } from '@motovault/design-system';
 import type { MaintenanceTasksByMotorcycleQuery } from '@motovault/graphql';
+import { CURRENCY_SYMBOLS, type Currency } from '@motovault/types';
 import {
   Calendar,
   Check,
@@ -27,6 +28,34 @@ export const PRIORITY_ORDER: Record<string, number> = {
   medium: 2,
   low: 3,
 };
+
+type TaskRow = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
+
+/**
+ * Effective money paid for a completed task: the authoritative gross
+ * `totalAmount` (receipt-scan financial wrapper) when present, else the additive
+ * cost + parts + labor breakdown — mirrors the API's effectiveTaskTotal.
+ */
+function effectiveTaskTotal(task: TaskRow): number {
+  if (task.totalAmount != null) return task.totalAmount;
+  return (task.cost ?? 0) + (task.partsCost ?? 0) + (task.laborCost ?? 0);
+}
+
+/** Format an amount with the task's currency symbol (falls back to the code). */
+function formatTaskMoney(amount: number, currency?: string | null): string {
+  const symbol = currency ? (CURRENCY_SYMBOLS[currency as Currency] ?? `${currency} `) : '';
+  return `${symbol}${amount.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+/** Humanize a canonical service-type key for display ("oil_change" → "Oil change"). */
+function humanizeServiceType(key: string | null | undefined): string {
+  if (!key) return '';
+  const spaced = key.replace(/_/g, ' ');
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
 
 /** Swipeable task card with left/right actions */
 export const SwipeableTaskCard = memo(function SwipeableTaskCard({
@@ -57,6 +86,8 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
   const isCompleted = task.status === 'completed';
   const relative = task.dueDate && !isCompleted ? getRelativeDueDate(task.dueDate) : null;
   const isOverdue = relative?.isOverdue ?? false;
+  const total = isCompleted ? effectiveTaskTotal(task) : 0;
+  const lineItems = task.lineItems ?? [];
 
   return (
     <Animated.View
@@ -283,6 +314,18 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                 ? ` @ ${task.completedMileage.toLocaleString()} ${mileageUnit}`
                 : ''}
             </Text>
+            {total > 0 && (
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '700',
+                  color: isDark ? palette.neutral200 : palette.neutral700,
+                  marginLeft: 'auto',
+                }}
+              >
+                {formatTaskMoney(total, task.currency)}
+              </Text>
+            )}
           </View>
         )}
 
@@ -361,6 +404,70 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                     >
                       {'\u2022'} {part}
                     </Text>
+                  ))}
+                </View>
+              )}
+              {lineItems.length > 0 && (
+                <View style={{ marginBottom: 8 }}>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '600',
+                      color: palette.neutral500,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                      marginBottom: 6,
+                    }}
+                  >
+                    {t('maintenance.serviceItems', { defaultValue: 'Service items' })}
+                  </Text>
+                  {lineItems.map((item) => (
+                    <View
+                      key={item.id}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 8,
+                        paddingVertical: 4,
+                      }}
+                    >
+                      {item.serviceType && item.serviceType !== 'other' && (
+                        <View
+                          style={{
+                            paddingVertical: 2,
+                            paddingHorizontal: 7,
+                            borderRadius: 7,
+                            borderCurve: 'continuous',
+                            backgroundColor: tint(et.warm, 0.15),
+                          }}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '600', color: et.warm }}>
+                            {humanizeServiceType(item.serviceType)}
+                          </Text>
+                        </View>
+                      )}
+                      <Text
+                        style={{
+                          flex: 1,
+                          fontSize: 13,
+                          color: isDark ? palette.neutral300 : palette.neutral600,
+                        }}
+                        numberOfLines={1}
+                      >
+                        {item.label}
+                      </Text>
+                      {item.lineTotal != null && (
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: '600',
+                            color: isDark ? palette.neutral200 : palette.neutral700,
+                          }}
+                        >
+                          {formatTaskMoney(item.lineTotal, task.currency)}
+                        </Text>
+                      )}
+                    </View>
                   ))}
                 </View>
               )}

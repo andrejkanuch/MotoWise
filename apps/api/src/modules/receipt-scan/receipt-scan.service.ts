@@ -40,6 +40,7 @@ import {
   GENERATION_LOG_STATUS,
   MAINTENANCE_SOURCE_RECEIPT_SCAN,
   MAX_PLAUSIBLE_ODOMETER_JUMP,
+  MAX_PLAUSIBLE_RECEIPT_YEAR_DRIFT,
   MAX_RECEIPT_SCAN_ATTEMPTS_PER_DAY,
   MAX_RECEIPT_SCANS_PER_MONTH,
   ODOMETER_SYNC_SOURCE_MANUAL,
@@ -1095,14 +1096,22 @@ export class ReceiptScanService {
     result: ReceiptExtractionResult;
     payload: Record<string, unknown>;
   } {
-    const needsCheck: string[] = [];
+    const needsCheck = new Set<string>();
 
     const rawCategory = extraction.category;
     const category =
       rawCategory && (EXPENSE_CATEGORIES as readonly string[]).includes(rawCategory)
         ? rawCategory
         : DEFAULT_EXPENSE_CATEGORY;
-    if (category !== rawCategory) needsCheck.push('category');
+    if (category !== rawCategory) needsCheck.add('category');
+
+    // Date hardening: a service invoice carries several dates (issue vs sale vs
+    // registration), so ALWAYS ask the rider to confirm a maintenance date. And
+    // for ANY receipt, flag a date whose year is implausibly far from now — the
+    // model reported 2022 at confidence 1.0 on a 2026 invoice, so confidence
+    // alone cannot be trusted here.
+    if (extraction.type === RECORD_TYPES.MAINTENANCE) needsCheck.add('date');
+    if (this.hasFarOffYear(extraction.date)) needsCheck.add('date');
 
     const result: ReceiptExtractionResult = {
       type: extraction.type,
@@ -1114,13 +1123,16 @@ export class ReceiptScanService {
       category,
       partsCost: extraction.partsCost,
       laborCost: extraction.laborCost,
+      taxAmount: extraction.taxAmount,
+      taxRate: extraction.taxRate,
+      lineItems: extraction.lineItems,
       odometerValue: extraction.odometerValue,
       odometerUnit: extraction.odometerUnit,
       fuelLitres: extraction.fuelLitres,
       partsNeeded: extraction.partsNeeded,
       fieldConfidence: extraction.fieldConfidence,
       legibilityNote: extraction.legibilityNote,
-      needsCheck,
+      needsCheck: [...needsCheck],
     };
 
     // Persist payload = result + schema version. VIN never enters this object.
@@ -1130,6 +1142,20 @@ export class ReceiptScanService {
     };
 
     return { result, payload };
+  }
+
+  /**
+   * True when an ISO date's YEAR is implausibly far from the current year (either
+   * direction), beyond MAX_PLAUSIBLE_RECEIPT_YEAR_DRIFT. Powers the date-hardening
+   * needs-check hint. A null/unparseable date is not "far off" (the missing-date
+   * amber is driven elsewhere).
+   */
+  private hasFarOffYear(date: string | null): boolean {
+    if (!date) return false;
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return false;
+    const currentYear = new Date().getUTCFullYear();
+    return Math.abs(parsed.getUTCFullYear() - currentYear) > MAX_PLAUSIBLE_RECEIPT_YEAR_DRIFT;
   }
 
   /** Rehydrate a persisted extraction_payload into the GraphQL result shape. */
@@ -1153,6 +1179,10 @@ export class ReceiptScanService {
       category: (p.category as string | null) ?? null,
       partsCost: (p.partsCost as number | null) ?? null,
       laborCost: (p.laborCost as number | null) ?? null,
+      // v2 fields — default for legacy (v1) payloads that predate them.
+      taxAmount: (p.taxAmount as number | null) ?? null,
+      taxRate: (p.taxRate as number | null) ?? null,
+      lineItems: (p.lineItems as ReceiptExtractionResult['lineItems']) ?? [],
       odometerValue: (p.odometerValue as number | null) ?? null,
       odometerUnit: (p.odometerUnit as string | null) ?? null,
       fuelLitres: (p.fuelLitres as number | null) ?? null,

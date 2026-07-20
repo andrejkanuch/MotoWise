@@ -121,6 +121,15 @@ export const MAX_PLAUSIBLE_ODOMETER_JUMP = 100_000 as const;
 /** Fallback maintenance-task title when the receipt has no item/vendor. */
 export const DEFAULT_MAINTENANCE_TITLE = 'Service' as const;
 
+/**
+ * Date hardening: flag the extracted date for review when its YEAR drifts from
+ * the current year by more than this many years (in either direction). A receipt
+ * printed this year or last year is plausible; a 4-years-off read (the observed
+ * 2022-vs-2026 mis-read at confidence 1.0) is surfaced amber for the rider to
+ * confirm. This is a needs-check hint only — it never blocks the save.
+ */
+export const MAX_PLAUSIBLE_RECEIPT_YEAR_DRIFT = 1 as const;
+
 /** maintenance_tasks.source for a scan-created task (00166 CHECK extension). */
 export const MAINTENANCE_SOURCE_RECEIPT_SCAN = MaintenanceTaskSource.RECEIPT_SCAN;
 

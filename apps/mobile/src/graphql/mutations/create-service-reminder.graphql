@@ -1,0 +1,8 @@
+mutation CreateServiceReminder($input: CreateServiceReminderInput!) {
+  createServiceReminder(input: $input) {
+    id
+    title
+    dueDate
+    isRecurring
+  }
+}

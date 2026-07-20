@@ -63,12 +63,13 @@ export class MaintenanceTask {
   @Field()
   isRecurring: boolean;
 
+  /** Resolved on demand in MaintenanceTasksResolver.photos (request-scoped loader). */
   @Field(() => [TaskPhoto])
-  photos: TaskPhoto[];
+  photos?: TaskPhoto[];
 
-  /** Structured service line items (resolved via loader). Empty for non-scan tasks. */
+  /** Structured service line items — resolved on demand via the loader. */
   @Field(() => [MaintenanceTaskLineItem])
-  lineItems: MaintenanceTaskLineItem[];
+  lineItems?: MaintenanceTaskLineItem[];
 
   @Field(() => Float, { nullable: true })
   cost?: number;

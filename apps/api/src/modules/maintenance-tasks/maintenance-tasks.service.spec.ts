@@ -3,6 +3,9 @@ import type { ConfigService } from '@nestjs/config';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ExpensesService } from '../expenses/expenses.service';
 import { MaintenanceTasksService } from './maintenance-tasks.service';
+import { MaintenanceLineItemsService } from './services/maintenance-line-items.service';
+import { MaintenanceSpendingService } from './services/maintenance-spending.service';
+import { MaintenanceTaskPhotosService } from './services/maintenance-task-photos.service';
 
 describe('MaintenanceTasksService', () => {
   let service: MaintenanceTasksService;
@@ -115,11 +118,22 @@ describe('MaintenanceTasksService', () => {
       getOrThrow: vi.fn().mockReturnValue('https://test.supabase.co'),
     } as unknown as ConfigService;
 
-    service = new MaintenanceTasksService(
+    // Sub-services share the same mock clients so the sequential-result mock
+    // and every existing assertion on mockUserClient/mockAdminClient keep working.
+    const photosService = new MaintenanceTaskPhotosService(
       mockUserClient as never,
       mockAdminClient as never,
       mockConfigService,
+    );
+    const lineItemsService = new MaintenanceLineItemsService(mockUserClient as never);
+    const spendingService = new MaintenanceSpendingService(mockUserClient as never);
+    service = new MaintenanceTasksService(
+      mockUserClient as never,
+      mockAdminClient as never,
       mockExpensesService as unknown as ExpensesService,
+      photosService,
+      lineItemsService,
+      spendingService,
     );
   });
 
@@ -151,6 +165,42 @@ describe('MaintenanceTasksService', () => {
       expect(result).toHaveLength(1);
       expect(result[0].motorcycleId).toBe(motorcycleId);
       expect(mockUserClient._chain.eq).toHaveBeenCalledWith('motorcycle_id', motorcycleId);
+    });
+  });
+
+  describe('createServiceReminder (P7 — user-confirmed)', () => {
+    it('inserts a NEW recurring pending task of the type (title humanized, default yearly cadence)', async () => {
+      mockUserClient._pushResult({ data: fakeRow });
+
+      await service.createServiceReminder(userId, {
+        motorcycleId,
+        serviceType: 'oil_change',
+      });
+
+      // A single insert (never an update/delete of an existing task).
+      expect(mockUserClient._chain.update).not.toHaveBeenCalled();
+      expect(mockUserClient._chain.delete).not.toHaveBeenCalled();
+      const insertArg = mockUserClient._chain.insert.mock.calls[0][0];
+      expect(insertArg.title).toBe('Oil change');
+      expect(insertArg.is_recurring).toBe(true);
+      expect(insertArg.interval_days).toBe(365);
+      expect(insertArg.status).toBeUndefined(); // pending (DB default)
+      // Due date anchors the first occurrence one interval out.
+      expect(Number.isNaN(Date.parse(insertArg.due_date))).toBe(false);
+    });
+
+    it('honors an explicit mileage interval without forcing a time cadence', async () => {
+      mockUserClient._pushResult({ data: fakeRow });
+
+      await service.createServiceReminder(userId, {
+        motorcycleId,
+        serviceType: 'chain',
+        intervalKm: 8000,
+      });
+
+      const insertArg = mockUserClient._chain.insert.mock.calls[0][0];
+      expect(insertArg.interval_km).toBe(8000);
+      expect(insertArg.interval_days).toBeNull();
     });
   });
 

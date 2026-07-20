@@ -20,6 +20,7 @@ describe('MaintenanceTasksResolver auth guard audit', () => {
     'createMaintenanceTask',
     'updateMaintenanceTask',
     'completeMaintenanceTask',
+    'createServiceReminder',
     'deleteMaintenanceTask',
     'spendingSummary',
     'addTaskPhoto',

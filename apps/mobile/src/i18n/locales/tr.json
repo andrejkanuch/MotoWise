@@ -2361,7 +2361,18 @@
       "checkDate": "Tarihi kontrol et",
       "checkVendor": "Satıcıyı kontrol et",
       "checkCategory": "Kategoriyi kontrol et",
-      "checkOdometer": "Kilometreyi kontrol et"
+      "checkOdometer": "Kilometreyi kontrol et",
+      "typeMaintenanceHint": "Adds to service history and expenses",
+      "typeExpenseHint": "Logs a cost only",
+      "lineItemsTitle": "Service items",
+      "addLineItem": "Add item",
+      "lineItemPlaceholder": "Service or part",
+      "serviceType": "Service type",
+      "removeLineItem": "Remove item",
+      "tax": "Tax",
+      "taxWithRate": "Tax ({{rate}}%)",
+      "remindTitle": "Next-service reminders",
+      "remindHint": "Get reminded when each is due again"
     },
     "saved": {
       "toast": "{{bike}} motosikletine kaydedildi",

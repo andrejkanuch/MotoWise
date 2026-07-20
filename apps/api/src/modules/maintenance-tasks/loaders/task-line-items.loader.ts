@@ -1,7 +1,7 @@
 import { Injectable, Scope } from '@nestjs/common';
 import DataLoader from 'dataloader';
-import { MaintenanceTasksService } from './maintenance-tasks.service';
-import type { MaintenanceTaskLineItem } from './models/task-line-item.model';
+import type { MaintenanceTaskLineItem } from '../models/task-line-item.model';
+import { MaintenanceLineItemsService } from '../services/maintenance-line-items.service';
 
 /**
  * Request-scoped batching loader for a task's structured line items, so a task
@@ -12,9 +12,9 @@ export class TaskLineItemsLoader {
   private readonly loader: DataLoader<string, MaintenanceTaskLineItem[]>;
   private ownerUserId: string | null = null;
 
-  constructor(private readonly maintenanceTasksService: MaintenanceTasksService) {
+  constructor(private readonly lineItemsService: MaintenanceLineItemsService) {
     this.loader = new DataLoader<string, MaintenanceTaskLineItem[]>(async (taskIds) => {
-      const map = await this.maintenanceTasksService.findLineItemsByTaskIds(
+      const map = await this.lineItemsService.findLineItemsByTaskIds(
         [...taskIds],
         this.ownerUserId ?? '',
       );

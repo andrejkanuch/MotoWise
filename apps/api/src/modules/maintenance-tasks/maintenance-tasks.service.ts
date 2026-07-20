@@ -7,77 +7,138 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { SupabaseClient } from '@supabase/supabase-js';
-import {
-  deleteReceiptsPhotoObjects,
-  PHOTO_BUCKETS,
-  type PhotoStorageRow,
-  photoBucketOf,
-  resolvePhotoUrl,
-} from '../../common/storage/photo-storage';
+import { unwrap } from '../../common/supabase/unwrap';
 import { ExpensesService } from '../expenses/expenses.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
+import type { CreateMaintenanceTaskInput } from './dto/create-maintenance-task.input';
 import { MaintenanceTask } from './models/maintenance-task.model';
 import type { MaintenanceTaskLineItem } from './models/task-line-item.model';
 import type { TaskPhoto } from './models/task-photo.model';
+import {
+  type MaintenanceLineItemInput,
+  MaintenanceLineItemsService,
+} from './services/maintenance-line-items.service';
+import { MaintenanceSpendingService } from './services/maintenance-spending.service';
+import { MaintenanceTaskPhotosService } from './services/maintenance-task-photos.service';
 
-const LINE_ITEMS_TABLE = 'maintenance_task_line_items';
+const MAINTENANCE_TASKS_TABLE = 'maintenance_tasks';
+const MOTORCYCLES_TABLE = 'motorcycles';
+const USERS_TABLE = 'users';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+/** Default recurrence for a "remind me for the next <type>" with no interval given. */
+const DEFAULT_REMINDER_INTERVAL_DAYS = 365;
+
+/** Humanize a canonical service-type key for a task title ("oil_change" → "Oil change"). */
+function humanizeServiceType(key: string): string {
+  const spaced = key.replace(/_/g, ' ');
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
 
 /**
- * Effective money for a completed task: the authoritative gross `total_amount`
- * (receipt-scan financial wrapper) when present, else the additive
- * cost+parts+labor breakdown. Single source of truth for spend aggregation so a
- * scanned task (money in total_amount, cost NULL) is never dropped. Operates on a
- * raw snake_case row.
+ * Explicit column list for a maintenance task row (typed select instead of
+ * `select('*')`). MUST stay in sync with the columns `mapRow` reads.
  */
-function effectiveTaskTotal(row: Record<string, unknown>): number {
-  const total = row.total_amount;
-  if (total != null) return Number(total) || 0;
-  return (Number(row.cost) || 0) + (Number(row.parts_cost) || 0) + (Number(row.labor_cost) || 0);
+const MAINTENANCE_TASK_SELECT = [
+  'id',
+  'user_id',
+  'motorcycle_id',
+  'title',
+  'description',
+  'due_date',
+  'target_mileage',
+  'priority',
+  'status',
+  'notes',
+  'parts_needed',
+  'completed_at',
+  'completed_mileage',
+  'cost',
+  'parts_cost',
+  'labor_cost',
+  'total_amount',
+  'tax_amount',
+  'tax_rate',
+  'currency',
+  'source',
+  'oem_schedule_id',
+  'interval_km',
+  'interval_days',
+  'is_recurring',
+  'remind_30d',
+  'remind_7d',
+  'remind_1d',
+  'created_at',
+  'updated_at',
+].join(', ');
+
+// Re-export so existing consumers (receipt-scan saga) keep their import site.
+export type { MaintenanceLineItemInput } from './services/maintenance-line-items.service';
+
+/**
+ * Internal create input: the public GraphQL create input widened with the
+ * server-only fields (receipt-scan financial wrapper + attribution) that must
+ * NOT be part of the client-facing `CreateMaintenanceTaskInput` contract.
+ */
+export type CreateMaintenanceTaskInternal = CreateMaintenanceTaskInput & {
+  /** Authoritative gross paid for the visit (receipt-scan financial wrapper). */
+  totalAmount?: number;
+  /** Explicit tax/VAT on the visit; kept out of parts/labor (NET). */
+  taxAmount?: number;
+  /** Printed tax rate as a percentage (e.g. 21). */
+  taxRate?: number;
+  /**
+   * Attribution: 'user' (default) | 'oem' | 'imported' | 'receipt_scan'.
+   * Set server-side only (e.g. U7b's saveReceiptScan) — never a GraphQL field.
+   */
+  source?: string;
+};
+
+/** The next-occurrence outcome of completing a (recurring) task. */
+export interface CompleteWithNextResult {
+  completed: MaintenanceTask;
+  nextOccurrence?: MaintenanceTask;
 }
 
-/** A resolved line item to persist (serviceType already classified by the caller). */
-export interface MaintenanceLineItemInput {
-  serviceType: string;
-  label: string;
-  partRef?: string | null;
-  quantity?: number | null;
-  unitPrice?: number | null;
-  lineTotal?: number | null;
-}
-
-const MAX_PHOTOS_PER_TASK = 5;
-
+/**
+ * Maintenance task CRUD + lifecycle. Photo, line-item, and spend concerns are
+ * delegated to focused sub-services under `services/` (mirrors trips/ and
+ * expenses/); this service composes them and remains the module's public
+ * entry point so external consumers (receipt-scan saga, diagnostics) keep a
+ * single injection point.
+ *
+ * Pagination note: `findByMotorcycle` / `findAllHistory` return plain arrays
+ * (not Relay connections) because the mobile task/history queries consume
+ * arrays directly. Cursor pagination is deferred to avoid breaking those
+ * contracts; `findAllHistory` already bounds its result with a `limit`.
+ */
 @Injectable()
 export class MaintenanceTasksService {
   private readonly logger = new Logger(MaintenanceTasksService.name);
-  private readonly supabaseUrl: string;
 
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
     @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
-    private readonly configService: ConfigService,
     private readonly expensesService: ExpensesService,
-  ) {
-    this.supabaseUrl = this.configService.getOrThrow('SUPABASE_URL');
-  }
+    private readonly photosService: MaintenanceTaskPhotosService,
+    private readonly lineItemsService: MaintenanceLineItemsService,
+    private readonly spendingService: MaintenanceSpendingService,
+  ) {}
 
   async findAllForUser(userId: string): Promise<MaintenanceTask[]> {
     this.logger.debug(`findAllForUser: userId=${userId}`);
 
     // Get IDs of active (non-deleted) motorcycles
-    const { data: activeBikes, error: bikesError } = await this.supabase
-      .from('motorcycles')
-      .select('id')
-      .eq('user_id', userId)
-      .is('deleted_at', null);
-
-    if (bikesError) {
-      this.logger.error(`findAllForUser bikes lookup failed: ${bikesError.message}`);
-      throw new InternalServerErrorException('Failed to fetch maintenance tasks');
-    }
+    const activeBikes = unwrap(
+      await this.supabase
+        .from(MOTORCYCLES_TABLE)
+        .select('id')
+        .eq('user_id', userId)
+        .is('deleted_at', null),
+      { logger: this.logger, op: 'findAllForUser', message: 'Failed to fetch maintenance tasks' },
+    );
 
     const activeBikeIds = (activeBikes ?? []).map((b) => b.id as string);
     if (activeBikeIds.length === 0) {
@@ -85,79 +146,41 @@ export class MaintenanceTasksService {
       return [];
     }
 
-    const { data, error } = await this.supabase
-      .from('maintenance_tasks')
-      .select('*')
-      .eq('user_id', userId)
-      .is('deleted_at', null)
-      .in('motorcycle_id', activeBikeIds)
-      .in('status', ['pending', 'in_progress'])
-      .order('due_date', { ascending: true, nullsFirst: false })
-      .order('priority', { ascending: true });
-
-    if (error) {
-      this.logger.error(`findAllForUser failed: ${error.message} (${error.code})`);
-      throw new InternalServerErrorException('Failed to fetch maintenance tasks');
-    }
+    const data = unwrap(
+      await this.supabase
+        .from(MAINTENANCE_TASKS_TABLE)
+        .select(MAINTENANCE_TASK_SELECT)
+        .eq('user_id', userId)
+        .is('deleted_at', null)
+        .in('motorcycle_id', activeBikeIds)
+        .in('status', ['pending', 'in_progress'])
+        .order('due_date', { ascending: true, nullsFirst: false })
+        .order('priority', { ascending: true }),
+      { logger: this.logger, op: 'findAllForUser', message: 'Failed to fetch maintenance tasks' },
+    );
     this.logger.debug(`findAllForUser: found ${data?.length ?? 0} tasks`);
-    return (data ?? []).map((row) => this.mapRow(row));
+    return (data ?? []).map((row) => this.mapRow(row as unknown as Record<string, unknown>));
   }
 
   async findByMotorcycle(userId: string, motorcycleId: string): Promise<MaintenanceTask[]> {
     this.logger.debug(`findByMotorcycle: userId=${userId}, motorcycleId=${motorcycleId}`);
-    const { data, error } = await this.supabase
-      .from('maintenance_tasks')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('motorcycle_id', motorcycleId)
-      .is('deleted_at', null)
-      .order('status', { ascending: true })
-      .order('priority', { ascending: true })
-      .order('due_date', { ascending: true, nullsFirst: false });
-
-    if (error) {
-      this.logger.error(`findByMotorcycle failed: ${error.message} (${error.code})`);
-      throw new InternalServerErrorException('Failed to fetch maintenance tasks');
-    }
+    const data = unwrap(
+      await this.supabase
+        .from(MAINTENANCE_TASKS_TABLE)
+        .select(MAINTENANCE_TASK_SELECT)
+        .eq('user_id', userId)
+        .eq('motorcycle_id', motorcycleId)
+        .is('deleted_at', null)
+        .order('status', { ascending: true })
+        .order('priority', { ascending: true })
+        .order('due_date', { ascending: true, nullsFirst: false }),
+      { logger: this.logger, op: 'findByMotorcycle', message: 'Failed to fetch maintenance tasks' },
+    );
     this.logger.debug(`findByMotorcycle: found ${data?.length ?? 0} tasks`);
-    return (data ?? []).map((row) => this.mapRow(row));
+    return (data ?? []).map((row) => this.mapRow(row as unknown as Record<string, unknown>));
   }
 
-  async create(
-    userId: string,
-    input: {
-      motorcycleId: string;
-      title: string;
-      description?: string;
-      dueDate?: string;
-      targetMileage?: number;
-      priority?: string;
-      notes?: string;
-      partsNeeded?: string[];
-      isRecurring?: boolean;
-      intervalKm?: number;
-      intervalDays?: number;
-      // MOT-139 multi-stage reminder flags
-      remind30d?: boolean;
-      remind7d?: boolean;
-      remind1d?: boolean;
-      // Create-as-completed: log work already done in one call.
-      status?: string;
-      completedAt?: string;
-      completedMileage?: number;
-      cost?: number;
-      partsCost?: number;
-      laborCost?: number;
-      // Authoritative gross total + explicit tax (receipt-scan financial wrapper).
-      totalAmount?: number;
-      taxAmount?: number;
-      taxRate?: number;
-      currency?: string;
-      // Attribution: 'user' (default) | 'oem' | 'imported' | 'receipt_scan'.
-      // Not a GraphQL field — set server-side (e.g. U7b's saveReceiptScan).
-      source?: string;
-    },
-  ): Promise<MaintenanceTask> {
+  async create(userId: string, input: CreateMaintenanceTaskInternal): Promise<MaintenanceTask> {
     this.logger.log(
       `create: userId=${userId}, title=${input.title}, motorcycleId=${input.motorcycleId}`,
     );
@@ -173,48 +196,51 @@ export class MaintenanceTasksService {
       providedCompletedAt && providedCompletedAt <= now
         ? providedCompletedAt.toISOString()
         : now.toISOString();
-    const { data, error } = await this.supabase
-      .from('maintenance_tasks')
-      .insert({
-        user_id: userId,
-        motorcycle_id: input.motorcycleId,
-        title: input.title,
-        description: input.description,
-        due_date: input.dueDate,
-        target_mileage: input.targetMileage,
-        priority: input.priority ?? 'medium',
-        notes: input.notes,
-        parts_needed: input.partsNeeded,
-        is_recurring: input.isRecurring ?? false,
-        interval_km: input.intervalKm ?? null,
-        interval_days: input.intervalDays ?? null,
-        // MOT-139 — only set when provided, let DB defaults apply otherwise
-        ...(input.remind30d !== undefined && { remind_30d: input.remind30d }),
-        ...(input.remind7d !== undefined && { remind_7d: input.remind7d }),
-        ...(input.remind1d !== undefined && { remind_1d: input.remind1d }),
-        ...(input.status !== undefined && { status: input.status }),
-        ...(input.source !== undefined && { source: input.source }),
-        ...(input.cost !== undefined && { cost: input.cost }),
-        ...(input.partsCost !== undefined && { parts_cost: input.partsCost }),
-        ...(input.laborCost !== undefined && { labor_cost: input.laborCost }),
-        ...(input.totalAmount !== undefined && { total_amount: input.totalAmount }),
-        ...(input.taxAmount !== undefined && { tax_amount: input.taxAmount }),
-        ...(input.taxRate !== undefined && { tax_rate: input.taxRate }),
-        ...(input.currency !== undefined && { currency: input.currency }),
-        ...(isCompleted && {
-          completed_at: completedAtIso,
-          completed_mileage: input.completedMileage ?? null,
-        }),
-      })
-      .select()
-      .single();
+    const data = unwrap(
+      await this.supabase
+        .from(MAINTENANCE_TASKS_TABLE)
+        .insert({
+          user_id: userId,
+          motorcycle_id: input.motorcycleId,
+          title: input.title,
+          description: input.description,
+          due_date: input.dueDate,
+          target_mileage: input.targetMileage,
+          priority: input.priority ?? 'medium',
+          notes: input.notes,
+          parts_needed: input.partsNeeded,
+          is_recurring: input.isRecurring ?? false,
+          interval_km: input.intervalKm ?? null,
+          interval_days: input.intervalDays ?? null,
+          // MOT-139 — only set when provided, let DB defaults apply otherwise
+          ...(input.remind30d !== undefined && { remind_30d: input.remind30d }),
+          ...(input.remind7d !== undefined && { remind_7d: input.remind7d }),
+          ...(input.remind1d !== undefined && { remind_1d: input.remind1d }),
+          ...(input.status !== undefined && { status: input.status }),
+          ...(input.source !== undefined && { source: input.source }),
+          ...(input.cost !== undefined && { cost: input.cost }),
+          ...(input.partsCost !== undefined && { parts_cost: input.partsCost }),
+          ...(input.laborCost !== undefined && { labor_cost: input.laborCost }),
+          ...(input.totalAmount !== undefined && { total_amount: input.totalAmount }),
+          ...(input.taxAmount !== undefined && { tax_amount: input.taxAmount }),
+          ...(input.taxRate !== undefined && { tax_rate: input.taxRate }),
+          ...(input.currency !== undefined && { currency: input.currency }),
+          ...(isCompleted && {
+            completed_at: completedAtIso,
+            completed_mileage: input.completedMileage ?? null,
+          }),
+        })
+        .select(MAINTENANCE_TASK_SELECT)
+        .single(),
+      {
+        logger: this.logger,
+        op: 'create',
+        message: 'Failed to create maintenance task',
+        error: BadRequestException,
+      },
+    );
 
-    if (error || !data) {
-      this.logger.error(`create failed: ${error?.message} (${error?.code})`);
-      throw new BadRequestException('Failed to create maintenance task');
-    }
-
-    const created = this.mapRow(data);
+    const created = this.mapRow(data as unknown as Record<string, unknown>);
     // R4 gap: a task created ALREADY completed with a cost fires the auto-expense
     // too — createFromTask previously fired only from complete().
     await this.createAutoExpenseIfNeeded(userId, created);
@@ -287,20 +313,23 @@ export class MaintenanceTasksService {
     if (input.remind7d !== undefined) updates.remind_7d = input.remind7d;
     if (input.remind1d !== undefined) updates.remind_1d = input.remind1d;
 
-    const { data, error } = await this.supabase
-      .from('maintenance_tasks')
-      .update(updates)
-      .eq('id', id)
-      .eq('user_id', userId)
-      .is('deleted_at', null)
-      .select()
-      .single();
-
-    if (error || !data) {
-      this.logger.error(`update failed: ${error?.message} (${error?.code})`);
-      throw new BadRequestException('Failed to update maintenance task');
-    }
-    return this.mapRow(data);
+    const data = unwrap(
+      await this.supabase
+        .from(MAINTENANCE_TASKS_TABLE)
+        .update(updates)
+        .eq('id', id)
+        .eq('user_id', userId)
+        .is('deleted_at', null)
+        .select(MAINTENANCE_TASK_SELECT)
+        .single(),
+      {
+        logger: this.logger,
+        op: 'update',
+        message: 'Failed to update maintenance task',
+        error: BadRequestException,
+      },
+    );
+    return this.mapRow(data as unknown as Record<string, unknown>);
   }
 
   async complete(
@@ -325,24 +354,53 @@ export class MaintenanceTasksService {
     if (input?.laborCost !== undefined) updates.labor_cost = input.laborCost;
     if (input?.currency !== undefined) updates.currency = input.currency;
 
-    const { data, error } = await this.supabase
-      .from('maintenance_tasks')
-      .update(updates)
-      .eq('id', id)
-      .eq('user_id', userId)
-      .in('status', ['pending', 'in_progress'])
-      .is('deleted_at', null)
-      .select()
-      .single();
+    const data = unwrap(
+      await this.supabase
+        .from(MAINTENANCE_TASKS_TABLE)
+        .update(updates)
+        .eq('id', id)
+        .eq('user_id', userId)
+        .in('status', ['pending', 'in_progress'])
+        .is('deleted_at', null)
+        .select(MAINTENANCE_TASK_SELECT)
+        .single(),
+      {
+        logger: this.logger,
+        op: 'complete',
+        message: 'Failed to complete maintenance task',
+        error: BadRequestException,
+      },
+    );
 
-    if (error || !data) {
-      this.logger.error(`complete failed: ${error?.message} (${error?.code})`);
-      throw new BadRequestException('Failed to complete maintenance task');
-    }
-
-    const completed = this.mapRow(data);
+    const completed = this.mapRow(data as unknown as Record<string, unknown>);
     await this.createAutoExpenseIfNeeded(userId, completed);
     return completed;
+  }
+
+  /**
+   * Complete a task and, when it recurs (or the caller forces it), create the
+   * next occurrence — the orchestration previously inlined in the resolver.
+   */
+  async completeWithNextOccurrence(
+    userId: string,
+    id: string,
+    input:
+      | {
+          completedMileage?: number;
+          cost?: number;
+          partsCost?: number;
+          laborCost?: number;
+          currency?: string;
+        }
+      | undefined,
+    createNextOccurrence: boolean | null,
+  ): Promise<CompleteWithNextResult> {
+    const completed = await this.complete(userId, id, input);
+    const shouldCreateNext = createNextOccurrence ?? completed.isRecurring;
+    const nextOccurrence = shouldCreateNext
+      ? ((await this.createNextRecurrence(completed)) ?? undefined)
+      : undefined;
+    return { completed, nextOccurrence };
   }
 
   async softDelete(userId: string, id: string): Promise<boolean> {
@@ -361,51 +419,12 @@ export class MaintenanceTasksService {
 
     // R5/R10: purge private receipt objects attached to the deleted task from
     // storage (not just the DB link rows). Legacy public photos are unaffected.
-    await this.purgeReceiptsPhotos(userId, id);
+    await this.photosService.purgeReceiptsPhotos(userId, id);
     // Soft-delete sets deleted_at, so the task_id ON DELETE CASCADE never fires —
     // purge structured line items here too (parity with the receipt-scan rollback),
     // otherwise a user-deleted scanned task leaves orphan line-item rows.
-    await this.deleteLineItems(userId, id);
+    await this.lineItemsService.deleteLineItems(userId, id);
     return true;
-  }
-
-  /**
-   * Removes the storage OBJECTS + link rows for any receipts-bucket photos
-   * attached to a task. Best-effort (logs, never throws).
-   */
-  private async purgeReceiptsPhotos(userId: string, taskId: string): Promise<void> {
-    const { data, error } = await this.adminClient
-      .from('maintenance_task_photos')
-      .select('id, storage_path, bucket, user_id')
-      .eq('task_id', taskId)
-      .eq('user_id', userId)
-      .eq('bucket', PHOTO_BUCKETS.RECEIPTS);
-
-    if (error || !data || data.length === 0) return;
-
-    const { removedPaths } = await deleteReceiptsPhotoObjects({
-      rows: data as PhotoStorageRow[],
-      ownerUserId: userId,
-      adminClient: this.adminClient,
-      logger: this.logger,
-    });
-
-    // Only drop link rows whose storage object was actually removed — a link for
-    // an object that failed to delete is retained so the pair stays consistent
-    // (avoids orphaning a private receipt object with no DB link to it).
-    const removed = new Set(removedPaths);
-    const idsToUnlink = data
-      .filter((row) => removed.has(row.storage_path as string))
-      .map((row) => row.id);
-    if (idsToUnlink.length === 0) return;
-
-    const { error: linkError } = await this.adminClient
-      .from('maintenance_task_photos')
-      .delete()
-      .in('id', idsToUnlink);
-    if (linkError) {
-      this.logger.warn(`purgeReceiptsPhotos: link-row delete failed: ${linkError.message}`);
-    }
   }
 
   async findAllHistory(
@@ -416,17 +435,22 @@ export class MaintenanceTasksService {
     this.logger.debug(
       `findAllHistory: userId=${userId}, motorcycleId=${motorcycleId}, limit=${limit}`,
     );
-    const { data, error } = await this.supabase
-      .from('maintenance_tasks')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('motorcycle_id', motorcycleId)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false })
-      .limit(limit);
-
-    if (error) throw new InternalServerErrorException('Failed to fetch maintenance task history');
-    return (data ?? []).map((row) => this.mapRow(row));
+    const data = unwrap(
+      await this.supabase
+        .from(MAINTENANCE_TASKS_TABLE)
+        .select(MAINTENANCE_TASK_SELECT)
+        .eq('user_id', userId)
+        .eq('motorcycle_id', motorcycleId)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
+        .limit(limit),
+      {
+        logger: this.logger,
+        op: 'findAllHistory',
+        message: 'Failed to fetch maintenance task history',
+      },
+    );
+    return (data ?? []).map((row) => this.mapRow(row as unknown as Record<string, unknown>));
   }
 
   async createNextRecurrence(completedTask: MaintenanceTask): Promise<MaintenanceTask | null> {
@@ -449,7 +473,7 @@ export class MaintenanceTasksService {
     let targetMileage: number | null = null;
     if (completedTask.intervalKm && completedTask.completedMileage) {
       const { data: userRow } = await this.adminClient
-        .from('users')
+        .from(USERS_TABLE)
         .select('measurement_system')
         .eq('id', completedTask.userId)
         .single();
@@ -466,7 +490,7 @@ export class MaintenanceTasksService {
     // swallowed insert errors with no log, so a broken recurring chain died
     // silently.
     const { data, error } = await this.supabase
-      .from('maintenance_tasks')
+      .from(MAINTENANCE_TASKS_TABLE)
       .insert({
         user_id: completedTask.userId,
         motorcycle_id: completedTask.motorcycleId,
@@ -482,7 +506,7 @@ export class MaintenanceTasksService {
         interval_days: completedTask.intervalDays ?? null,
         is_recurring: true,
       })
-      .select()
+      .select(MAINTENANCE_TASK_SELECT)
       .single();
 
     if (error || !data) {
@@ -491,347 +515,95 @@ export class MaintenanceTasksService {
       );
       return null;
     }
-    return this.mapRow(data);
+    return this.mapRow(data as unknown as Record<string, unknown>);
   }
 
-  async getSpendingSummary(
+  /**
+   * User-confirmed "remind me for the next <type>" (receipt-scan P7). Creates a
+   * NEW recurring pending task of the given canonical service type. It NEVER
+   * fuzzy-matches, mutates, or closes an existing pending task — a pure insert,
+   * so opting into a reminder can only ever add a task. Defaults to a yearly time
+   * cadence when no interval is supplied; the due date anchors the first occurrence.
+   */
+  async createServiceReminder(
+    userId: string,
+    input: {
+      motorcycleId: string;
+      serviceType: string;
+      intervalKm?: number;
+      intervalDays?: number;
+    },
+  ): Promise<MaintenanceTask> {
+    const intervalDays =
+      input.intervalKm != null
+        ? input.intervalDays
+        : (input.intervalDays ?? DEFAULT_REMINDER_INTERVAL_DAYS);
+    const dueDate = intervalDays
+      ? new Date(Date.now() + intervalDays * DAY_MS).toISOString().split('T')[0]
+      : undefined;
+    return this.create(userId, {
+      motorcycleId: input.motorcycleId,
+      title: humanizeServiceType(input.serviceType),
+      priority: 'medium',
+      isRecurring: true,
+      intervalKm: input.intervalKm,
+      intervalDays,
+      dueDate,
+    });
+  }
+
+  // ── Spend rollups (delegated) ──────────────────────────────────────
+
+  getSpendingSummary(
     userId: string,
     motorcycleId: string,
   ): Promise<{ thisYear: number; allTime: number }> {
-    const currentYear = new Date().getFullYear();
-    const yearStart = `${currentYear}-01-01`;
-
-    // Money columns: sum the effective total per task — total_amount (authoritative,
-    // receipt-scan wrapper) when set, else the additive cost+parts+labor breakdown.
-    // A scanned task stores its money in total_amount with cost NULL, so filtering
-    // on / summing `cost` alone would silently drop it from the spend summary.
-    const MONEY_COLS = 'cost, parts_cost, labor_cost, total_amount';
-
-    // All-time spending
-    const { data: allTimeData, error: allTimeError } = await this.supabase
-      .from('maintenance_tasks')
-      .select(MONEY_COLS)
-      .eq('user_id', userId)
-      .eq('motorcycle_id', motorcycleId)
-      .eq('status', 'completed')
-      .is('deleted_at', null);
-
-    if (allTimeError) {
-      this.logger.error(`getSpendingSummary failed: ${allTimeError.message}`);
-      throw new InternalServerErrorException('Failed to fetch spending summary');
-    }
-
-    const allTime = (allTimeData ?? []).reduce((sum, row) => sum + effectiveTaskTotal(row), 0);
-
-    // This year spending
-    const { data: yearData, error: yearError } = await this.supabase
-      .from('maintenance_tasks')
-      .select(MONEY_COLS)
-      .eq('user_id', userId)
-      .eq('motorcycle_id', motorcycleId)
-      .eq('status', 'completed')
-      .is('deleted_at', null)
-      .gte('completed_at', yearStart);
-
-    if (yearError) {
-      this.logger.error(`getSpendingSummary year failed: ${yearError.message}`);
-      throw new InternalServerErrorException('Failed to fetch spending summary');
-    }
-
-    const thisYear = (yearData ?? []).reduce((sum, row) => sum + effectiveTaskTotal(row), 0);
-
-    return { thisYear, allTime };
+    return this.spendingService.getSpendingSummary(userId, motorcycleId);
   }
 
-  // ── Photo methods ──────────────────────────────────────────────────
+  // ── Photos (delegated) ─────────────────────────────────────────────
 
-  async addPhoto(
+  addPhoto(
     userId: string,
     taskId: string,
     storagePath: string,
     fileSizeBytes?: number,
     bucketArg?: string | null,
   ): Promise<TaskPhoto> {
-    const bucket = photoBucketOf(bucketArg);
-    this.logger.log(
-      `addPhoto: userId=${userId}, taskId=${taskId}, storagePath=${storagePath}, bucket=${bucket}`,
-    );
-
-    // KTD-2: enforce the caller-owned storage prefix server-side before we record
-    // the link — prevents a caller from attaching another user's object to their
-    // own task and then deleting it via the admin-backed delete flow. Receipts
-    // (U7b link) live at the flat server-derived `{uid}/{scanId}.webp`; legacy
-    // gallery photos live under `{uid}/{taskId}/` (uploadMaintenancePhoto).
-    const expectedPrefix =
-      bucket === PHOTO_BUCKETS.RECEIPTS ? `${userId}/` : `${userId}/${taskId}/`;
-    if (!storagePath.startsWith(expectedPrefix)) {
-      this.logger.warn(
-        `addPhoto: rejected storage path outside expected prefix. userId=${userId}, taskId=${taskId}, bucket=${bucket}`,
-      );
-      throw new BadRequestException('Invalid storage path');
-    }
-
-    // Validate task ownership
-    const { data: task, error: taskError } = await this.adminClient
-      .from('maintenance_tasks')
-      .select('id')
-      .eq('id', taskId)
-      .eq('user_id', userId)
-      .is('deleted_at', null)
-      .single();
-
-    if (taskError || !task) {
-      this.logger.warn(
-        `addPhoto: task not found or not owned, taskId=${taskId}, error=${taskError?.message}`,
-      );
-      throw new NotFoundException('Maintenance task not found');
-    }
-
-    // Check photo count limit
-    const { count, error: countError } = await this.adminClient
-      .from('maintenance_task_photos')
-      .select('id', { count: 'exact', head: true })
-      .eq('task_id', taskId);
-
-    if (countError) throw new InternalServerErrorException('Failed to check photo count');
-    if ((count ?? 0) >= MAX_PHOTOS_PER_TASK) {
-      throw new BadRequestException(`Maximum of ${MAX_PHOTOS_PER_TASK} photos per task`);
-    }
-
-    // Determine mime type from storage path
-    const ext = storagePath.split('.').pop()?.toLowerCase() ?? 'webp';
-    const mimeMap: Record<string, string> = {
-      webp: 'image/webp',
-      jpg: 'image/jpeg',
-      jpeg: 'image/jpeg',
-      png: 'image/png',
-      heic: 'image/heic',
-    };
-    const mimeType = mimeMap[ext] ?? 'image/webp';
-
-    const { data, error } = await this.adminClient
-      .from('maintenance_task_photos')
-      .insert({
-        task_id: taskId,
-        user_id: userId,
-        storage_path: storagePath,
-        file_size_bytes: fileSizeBytes ?? null,
-        mime_type: mimeType,
-        bucket,
-      })
-      .select()
-      .single();
-
-    if (error || !data) {
-      this.logger.error(`addPhoto failed: ${error?.message} (${error?.code})`);
-      throw new BadRequestException('Failed to add photo');
-    }
-    this.logger.log(`addPhoto success: photoId=${data.id}`);
-    const photo = await this.mapPhotoRow(data, userId);
-    if (!photo) {
-      throw new InternalServerErrorException('Failed to resolve photo URL');
-    }
-    return photo;
+    return this.photosService.addPhoto(userId, taskId, storagePath, fileSizeBytes, bucketArg);
   }
 
-  async deletePhoto(userId: string, photoId: string): Promise<boolean> {
-    this.logger.log(`deletePhoto: userId=${userId}, photoId=${photoId}`);
-    // Fetch photo and validate ownership via task
-    const { data: photo, error: photoError } = await this.adminClient
-      .from('maintenance_task_photos')
-      .select('id, task_id, storage_path, bucket, user_id')
-      .eq('id', photoId)
-      .single();
-
-    if (photoError || !photo) throw new NotFoundException('Photo not found');
-
-    // Validate task ownership
-    const { data: task, error: taskError } = await this.adminClient
-      .from('maintenance_tasks')
-      .select('id')
-      .eq('id', photo.task_id)
-      .eq('user_id', userId)
-      .single();
-
-    if (taskError || !task) throw new NotFoundException('Photo not found');
-
-    // Delete from storage using admin client — dispatch on the row's bucket so a
-    // receipts-linked photo hits the private bucket rather than maintenance-photos.
-    const { error: storageError } = await this.adminClient.storage
-      .from(photoBucketOf(photo.bucket))
-      .remove([photo.storage_path]);
-
-    if (storageError) {
-      // Log but don't fail — DB record deletion is more important
-      this.logger.warn(
-        `deletePhoto: storage deletion failed for ${photo.storage_path}: ${storageError.message}`,
-      );
-    }
-
-    // Delete from DB
-    const { error: deleteError } = await this.adminClient
-      .from('maintenance_task_photos')
-      .delete()
-      .eq('id', photoId);
-
-    if (deleteError) throw new InternalServerErrorException('Failed to delete photo');
-    return true;
+  deletePhoto(userId: string, photoId: string): Promise<boolean> {
+    return this.photosService.deletePhoto(userId, photoId);
   }
 
-  async findPhotosByTaskIds(
+  findPhotosByTaskIds(taskIds: string[], ownerUserId: string): Promise<Map<string, TaskPhoto[]>> {
+    return this.photosService.findPhotosByTaskIds(taskIds, ownerUserId);
+  }
+
+  // ── Line items (delegated) ─────────────────────────────────────────
+
+  addLineItems(userId: string, taskId: string, items: MaintenanceLineItemInput[]): Promise<number> {
+    return this.lineItemsService.addLineItems(userId, taskId, items);
+  }
+
+  deleteLineItems(userId: string, taskId: string): Promise<void> {
+    return this.lineItemsService.deleteLineItems(userId, taskId);
+  }
+
+  findLineItemsByTaskIds(
     taskIds: string[],
     ownerUserId: string,
-  ): Promise<Map<string, TaskPhoto[]>> {
-    this.logger.debug(`findPhotosByTaskIds: ${taskIds.length} task(s)`);
-    if (taskIds.length === 0) return new Map();
-
-    // User-scoped read: go through the RLS-enforcing user client (maintenance_task_photos
-    // policy restricts rows to auth.uid() = user_id). The admin client would bypass
-    // RLS; the ownerUserId path check in mapPhotoRow remains as defense in depth.
-    const { data, error } = await this.supabase
-      .from('maintenance_task_photos')
-      .select('*')
-      .in('task_id', taskIds)
-      .order('created_at', { ascending: true });
-
-    if (error) throw new InternalServerErrorException('Failed to fetch photos');
-
-    const map = new Map<string, TaskPhoto[]>();
-    for (const taskId of taskIds) {
-      map.set(taskId, []);
-    }
-    // Resolve URLs concurrently — receipts rows mint a signed URL per photo.
-    const resolved = await Promise.all(
-      (data ?? []).map(async (row) => ({
-        taskId: row.task_id as string,
-        photo: await this.mapPhotoRow(row, ownerUserId),
-      })),
-    );
-    for (const { taskId, photo } of resolved) {
-      if (!photo) continue; // C1: foreign-uid receipts path — never surface it.
-      const photos = map.get(taskId) ?? [];
-      photos.push(photo);
-      map.set(taskId, photos);
-    }
-    return map;
-  }
-
-  /**
-   * Maps one photo row into the GraphQL shape, resolving its access URL by
-   * bucket (U7a): legacy → public URL; receipts → short-TTL signed URL after the
-   * C1 ownership assertion. Returns null when a receipts URL can't be authorized.
-   */
-  private async mapPhotoRow(
-    row: Record<string, unknown>,
-    ownerUserId: string,
-  ): Promise<TaskPhoto | null> {
-    const storagePath = row.storage_path as string;
-    const photoRow: PhotoStorageRow = {
-      storage_path: storagePath,
-      bucket: row.bucket as string | null | undefined,
-      user_id: row.user_id as string | null | undefined,
-    };
-    const publicUrl = await resolvePhotoUrl({
-      row: photoRow,
-      ownerUserId,
-      adminClient: this.adminClient,
-      supabaseUrl: this.supabaseUrl,
-      logger: this.logger,
-    });
-    if (publicUrl === null) return null;
-    return {
-      id: row.id as string,
-      taskId: row.task_id as string,
-      storagePath,
-      publicUrl,
-      fileSizeBytes: (row.file_size_bytes as number) ?? undefined,
-      mimeType: (row.mime_type as string) ?? 'image/webp',
-      createdAt: row.created_at as string,
-    };
-  }
-
-  // ── Line items (receipt-scan structured history) ───────────────────
-
-  /**
-   * Persist structured service line items for a task (own-user, RLS-enforced via
-   * the user client). `serviceType` is pre-classified by the caller. Best-effort
-   * per the receipt-scan saga: throws so the compensating rollback can fire.
-   */
-  async addLineItems(
-    userId: string,
-    taskId: string,
-    items: MaintenanceLineItemInput[],
-  ): Promise<number> {
-    if (items.length === 0) return 0;
-    const rows = items.map((item, index) => ({
-      task_id: taskId,
-      user_id: userId,
-      service_type: item.serviceType,
-      label: item.label,
-      part_ref: item.partRef ?? null,
-      quantity: item.quantity ?? null,
-      unit_price: item.unitPrice ?? null,
-      line_total: item.lineTotal ?? null,
-      sort_order: index,
-    }));
-    const { data, error } = await this.supabase.from(LINE_ITEMS_TABLE).insert(rows).select('id');
-    if (error) {
-      this.logger.error(`addLineItems failed for task ${taskId}: ${error.message}`);
-      throw new BadRequestException('Failed to add maintenance line items');
-    }
-    return data?.length ?? 0;
-  }
-
-  /** Remove all line items for a task (receipt-scan save rollback / undo cleanup). */
-  async deleteLineItems(userId: string, taskId: string): Promise<void> {
-    const { error } = await this.supabase
-      .from(LINE_ITEMS_TABLE)
-      .delete()
-      .eq('task_id', taskId)
-      .eq('user_id', userId);
-    if (error) this.logger.warn(`deleteLineItems failed for task ${taskId}: ${error.message}`);
-  }
-
-  /** Batched line-item fetch for the request-scoped DataLoader (own-user via RLS). */
-  async findLineItemsByTaskIds(
-    taskIds: string[],
-    _ownerUserId: string,
   ): Promise<Map<string, MaintenanceTaskLineItem[]>> {
-    const map = new Map<string, MaintenanceTaskLineItem[]>();
-    for (const id of taskIds) map.set(id, []);
-    if (taskIds.length === 0) return map;
-
-    const { data, error } = await this.supabase
-      .from(LINE_ITEMS_TABLE)
-      .select('*')
-      .in('task_id', taskIds)
-      .order('sort_order', { ascending: true });
-    if (error) throw new InternalServerErrorException('Failed to fetch line items');
-
-    for (const row of data ?? []) {
-      const item = this.mapLineItemRow(row);
-      const list = map.get(item.taskId) ?? [];
-      list.push(item);
-      map.set(item.taskId, list);
-    }
-    return map;
+    return this.lineItemsService.findLineItemsByTaskIds(taskIds, ownerUserId);
   }
 
-  private mapLineItemRow(row: Record<string, unknown>): MaintenanceTaskLineItem {
-    return {
-      id: row.id as string,
-      taskId: row.task_id as string,
-      serviceType: row.service_type as string,
-      label: row.label as string,
-      partRef: (row.part_ref as string) ?? null,
-      quantity: (row.quantity as number) ?? null,
-      unitPrice: (row.unit_price as number) ?? null,
-      lineTotal: (row.line_total as number) ?? null,
-      createdAt: row.created_at as string,
-    };
-  }
+  // ── Row mapping ────────────────────────────────────────────────────
 
   private mapRow(row: Record<string, unknown>): MaintenanceTask {
+    // photos / lineItems are intentionally NOT seeded here — they are resolved
+    // on demand by the request-scoped DataLoaders in the resolver (matches
+    // expenses/). Seeding empty arrays would defeat the loader short-circuit.
     return {
       id: row.id as string,
       userId: row.user_id as string,
@@ -858,8 +630,6 @@ export class MaintenanceTasksService {
       intervalKm: (row.interval_km as number) ?? undefined,
       intervalDays: (row.interval_days as number) ?? undefined,
       isRecurring: (row.is_recurring as boolean) ?? false,
-      photos: [],
-      lineItems: [],
       // MOT-139: multi-stage reminder flags with legacy defaults
       remind30d: (row.remind_30d as boolean) ?? false,
       remind7d: (row.remind_7d as boolean) ?? false,

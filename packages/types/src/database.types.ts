@@ -2314,6 +2314,7 @@ export type Database = {
           make: string
           model: string | null
           priority: string
+          service_type: string
           sort_order: number | null
           source_context: string | null
           source_id: string | null
@@ -2339,6 +2340,7 @@ export type Database = {
           make: string
           model?: string | null
           priority?: string
+          service_type: string
           sort_order?: number | null
           source_context?: string | null
           source_id?: string | null
@@ -2364,6 +2366,7 @@ export type Database = {
           make?: string
           model?: string | null
           priority?: string
+          service_type?: string
           sort_order?: number | null
           source_context?: string | null
           source_id?: string | null

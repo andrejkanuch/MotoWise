@@ -26,6 +26,32 @@ export class ReceiptFieldConfidenceResult {
 }
 
 /**
+ * A single extracted service/part line surfaced to the review card (v2). Mirrors
+ * ReceiptLineItemSchema. `serviceType` is the model's best-effort canonical key;
+ * the client may edit it and the server re-classifies on save.
+ */
+@ObjectType()
+export class ReceiptLineItemResult {
+  @Field()
+  label: string;
+
+  @Field(() => String, { nullable: true })
+  serviceType?: string | null;
+
+  @Field(() => String, { nullable: true })
+  partRef?: string | null;
+
+  @Field(() => Float, { nullable: true })
+  quantity?: number | null;
+
+  @Field(() => Float, { nullable: true })
+  unitPrice?: number | null;
+
+  @Field(() => Float, { nullable: true })
+  lineTotal?: number | null;
+}
+
+/**
  * Extraction result surfaced to the client. Mirrors the ReceiptExtractionSchema
  * Zod contract MINUS `vinOrPlate` (KTD-9 — stripped server-side, never leaves
  * the API). `category` is always one of the EXPENSE_CATEGORIES enum values (the
@@ -60,6 +86,18 @@ export class ReceiptExtractionResult {
 
   @Field(() => Float, { nullable: true })
   laborCost?: number | null;
+
+  /** Explicit tax/VAT amount printed on the invoice (kept out of parts/labor). */
+  @Field(() => Float, { nullable: true })
+  taxAmount?: number | null;
+
+  /** Printed tax rate as a percentage (e.g. 21 for 21% IVA). */
+  @Field(() => Float, { nullable: true })
+  taxRate?: number | null;
+
+  /** Itemized service/part lines (maintenance). Empty for non-itemised receipts. */
+  @Field(() => [ReceiptLineItemResult])
+  lineItems: ReceiptLineItemResult[];
 
   /** KTD-7: printed odometer reading. */
   @Field(() => Float, { nullable: true })

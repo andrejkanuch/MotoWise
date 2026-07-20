@@ -427,6 +427,13 @@ input CreateMotorcycleInput {
   year: Int!
 }
 
+input CreateServiceReminderInput {
+  intervalDays: Int
+  intervalKm: Int
+  motorcycleId: String!
+  serviceType: MaintenanceServiceType!
+}
+
 input CreateShareLinkInput {
   expiresInDays: Int = 30
   motorcycleId: String!
@@ -1104,6 +1111,7 @@ type Mutation {
   createGroupRide(input: CreateGroupRideInput!): GroupRide!
   createMaintenanceTask(input: CreateMaintenanceTaskInput!): MaintenanceTask!
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
+  createServiceReminder(input: CreateServiceReminderInput!): MaintenanceTask!
   createShareLink(input: CreateShareLinkInput!): ShareLink!
   createTrip(input: CreateTripInput!): Trip!
   createTripReview(input: CreateTripReviewInput!): TripReview!
@@ -1213,6 +1221,7 @@ type OemSchedule {
   make: String!
   model: String
   priority: MaintenancePriority!
+  serviceType: MaintenanceServiceType!
   sortOrder: Int!
   taskName: String!
   yearFrom: Int
@@ -1495,11 +1504,14 @@ type ReceiptExtractionResult {
   itemName: String
   laborCost: Float
   legibilityNote: String
+  lineItems: [ReceiptLineItemResult!]!
   needsCheck: [String!]!
   odometerUnit: String
   odometerValue: Float
   partsCost: Float
   partsNeeded: [String!]!
+  taxAmount: Float
+  taxRate: Float
   type: String!
   vendor: String
 }
@@ -1511,6 +1523,15 @@ type ReceiptFieldConfidenceResult {
   date: Float!
   odometer: Float!
   vendor: Float!
+}
+
+type ReceiptLineItemResult {
+  label: String!
+  lineTotal: Float
+  partRef: String
+  quantity: Float
+  serviceType: String
+  unitPrice: Float
 }
 
 type ReceiptScanError {

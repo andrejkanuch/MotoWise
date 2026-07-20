@@ -1,8 +1,9 @@
 import { z } from 'zod';
-import { Currency } from '../constants/enums';
+import { Currency, MaintenanceServiceType } from '../constants/enums';
 import { nullishToUndefined } from './nullish';
 
 const currencyValues = Object.values(Currency) as [string, ...string[]];
+const serviceTypeValues = Object.values(MaintenanceServiceType) as [string, ...string[]];
 
 export const CreateMaintenanceTaskSchema = z.object({
   motorcycleId: z.string().uuid(),
@@ -82,6 +83,20 @@ export const CompleteMaintenanceTaskSchema = z.object({
   currency: z.enum(currencyValues).optional(),
 });
 export type CompleteMaintenanceTask = z.infer<typeof CompleteMaintenanceTaskSchema>;
+
+/**
+ * User-CONFIRMED "remind me for the next <service type>" (receipt-scan P7). Creates
+ * a NEW recurring pending task of the given canonical type — it never fuzzy-matches
+ * or mutates/closes an existing pending task. The interval is the recurrence cadence;
+ * when neither is given the server defaults to a yearly time reminder.
+ */
+export const CreateServiceReminderSchema = z.object({
+  motorcycleId: z.string().uuid(),
+  serviceType: z.enum(serviceTypeValues),
+  intervalKm: z.number().int().positive().optional(),
+  intervalDays: z.number().int().positive().optional(),
+});
+export type CreateServiceReminder = z.infer<typeof CreateServiceReminderSchema>;
 
 export const AddTaskPhotoSchema = z.object({
   taskId: z.string().uuid(),

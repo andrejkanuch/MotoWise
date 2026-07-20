@@ -13,6 +13,16 @@ mutation ScanReceipt($scanId: String!, $isOnboarding: Boolean) {
         category
         partsCost
         laborCost
+        taxAmount
+        taxRate
+        lineItems {
+          label
+          serviceType
+          partRef
+          quantity
+          unitPrice
+          lineTotal
+        }
         odometerValue
         odometerUnit
         fuelLitres

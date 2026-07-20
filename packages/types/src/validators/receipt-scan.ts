@@ -20,8 +20,13 @@
 import { z } from 'zod';
 import { EXPENSE_CATEGORIES } from '../constants/expense-categories';
 
-/** Bumped when the extraction contract changes. Persisted alongside payloads. */
-export const RECEIPT_SCAN_SCHEMA_VERSION = 1 as const;
+/**
+ * Bumped when the extraction contract changes. Persisted alongside payloads.
+ * v2: added structured `lineItems[]` + explicit `taxAmount`/`taxRate` (the
+ * receipt-scan structure redesign — itemized, per-service-type maintenance
+ * history and an honest tax-wrapper money model).
+ */
+export const RECEIPT_SCAN_SCHEMA_VERSION = 2 as const;
 
 /** Routing signal returned by the model. */
 export const RECEIPT_SCAN_TYPES = ['maintenance', 'expense'] as const;
@@ -46,6 +51,29 @@ export const ReceiptFieldConfidenceSchema = z.object({
   odometer: z.number(),
 });
 export type ReceiptFieldConfidence = z.infer<typeof ReceiptFieldConfidenceSchema>;
+
+/**
+ * A single itemized line as read off a service invoice (extraction contract,
+ * v2). `serviceType` is the model's best-effort canonical MaintenanceServiceType
+ * key — the server re-derives/validates it via `classifyServiceType`, so an
+ * unknown or absent value is fine. STRICT mode: every field present, "optional"
+ * modelled as `.nullable()`.
+ */
+export const ReceiptLineItemSchema = z.object({
+  /** Human label as printed on the line (e.g. "Aceite motor 10W-30", "Oil filter"). */
+  label: z.string(),
+  /** Best-effort canonical service type; null when the model is unsure. */
+  serviceType: z.string().nullable(),
+  /** Manufacturer/part reference if printed on the line. */
+  partRef: z.string().nullable(),
+  /** Quantity if itemised (litres, units). */
+  quantity: z.number().nullable(),
+  /** Per-unit price if itemised. */
+  unitPrice: z.number().nullable(),
+  /** Line subtotal (NET, as printed) if itemised. */
+  lineTotal: z.number().nullable(),
+});
+export type ReceiptLineItem = z.infer<typeof ReceiptLineItemSchema>;
 
 export const ReceiptExtractionSchema = z.object({
   /** Routing signal: service/repair invoice → maintenance; everything else → expense. */
@@ -75,6 +103,15 @@ export const ReceiptExtractionSchema = z.object({
   vinOrPlate: z.string().nullable(),
   /** Maintenance only: parts named on the invoice. */
   partsNeeded: z.array(z.string()),
+  /**
+   * Maintenance only: itemized service/part lines (v2). Empty array when the
+   * invoice is not itemised or the type is 'expense'.
+   */
+  lineItems: z.array(ReceiptLineItemSchema),
+  /** Explicit tax/VAT/IVA amount printed on the invoice. Null when not shown. */
+  taxAmount: z.number().nullable(),
+  /** Printed tax rate as a percentage (e.g. 21 for 21% IVA). Null when not shown. */
+  taxRate: z.number().nullable(),
   fieldConfidence: ReceiptFieldConfidenceSchema,
   /** Free-text note on legibility / anything the model was unsure about. */
   legibilityNote: z.string().nullable(),

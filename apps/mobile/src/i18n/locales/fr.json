@@ -2364,7 +2364,18 @@
       "checkDate": "Vérifier la date",
       "checkVendor": "Vérifier le commerçant",
       "checkCategory": "Vérifier la catégorie",
-      "checkOdometer": "Vérifier le compteur"
+      "checkOdometer": "Vérifier le compteur",
+      "typeMaintenanceHint": "S'ajoute à l'historique d'entretien et aux dépenses",
+      "typeExpenseHint": "Enregistre seulement une dépense",
+      "lineItemsTitle": "Éléments d'entretien",
+      "addLineItem": "Ajouter un élément",
+      "lineItemPlaceholder": "Service ou pièce",
+      "serviceType": "Type d'entretien",
+      "removeLineItem": "Supprimer l'élément",
+      "tax": "Taxe",
+      "taxWithRate": "Taxe ({{rate}} %)",
+      "remindTitle": "Rappels du prochain entretien",
+      "remindHint": "Soyez averti à la prochaine échéance"
     },
     "saved": {
       "toast": "Enregistré sur {{bike}}",

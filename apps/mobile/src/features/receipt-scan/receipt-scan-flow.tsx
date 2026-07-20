@@ -15,6 +15,7 @@ import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Linking, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, SlideInUp } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 import { ReviewCard } from './review-card';
@@ -52,6 +53,7 @@ export function ReceiptScanFlow({
   onSave?: (payload: ReceiptReviewPayload) => void;
 }) {
   const { isDark } = useEditorialTheme();
+  const insets = useSafeAreaInsets();
   const { phase } = flow.state;
 
   // Distinct haptics on the two key transitions (captured / extraction-done).
@@ -68,7 +70,16 @@ export function ReceiptScanFlow({
   const bg = isDark ? palette.neutral900 : palette.neutral50;
 
   return (
-    <View style={{ flex: 1, backgroundColor: bg, paddingHorizontal: 20, paddingTop: 12 }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: bg,
+        paddingHorizontal: 20,
+        // Clear the status bar / notch — a fixed 12 collided the "Review your
+        // receipt" title with the status bar on notched devices.
+        paddingTop: insets.top + 12,
+      }}
+    >
       {renderPhase(phase, flow, isDark, onManualEntry, onClose, onSave)}
     </View>
   );
