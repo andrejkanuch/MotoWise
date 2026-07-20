@@ -534,6 +534,27 @@ export class MaintenanceTasksService {
       intervalDays?: number;
     },
   ): Promise<MaintenanceTask> {
+    // Fail closed on foreign motorcycleId (same posture as saveReceiptScan).
+    // maintenance_tasks INSERT RLS is user_id-only and does not assert bike ownership.
+    const ownedBike = unwrap(
+      await this.supabase
+        .from(MOTORCYCLES_TABLE)
+        .select('id')
+        .eq('id', input.motorcycleId)
+        .eq('user_id', userId)
+        .is('deleted_at', null)
+        .maybeSingle(),
+      {
+        logger: this.logger,
+        op: 'createServiceReminder',
+        message: 'Failed to verify motorcycle ownership',
+        error: BadRequestException,
+      },
+    );
+    if (!ownedBike) {
+      throw new NotFoundException('Motorcycle not found');
+    }
+
     const intervalDays =
       input.intervalKm != null
         ? input.intervalDays

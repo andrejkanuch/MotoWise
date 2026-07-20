@@ -7,8 +7,8 @@ existing PR (no follow-up split).
 - Branch: `feat/receipt-scan-structure` (check it out; base `main`). PR **#173**.
 - Plan: `features/Receipt-scan/EXECUTION_PLAN.md` (phases + acceptance criteria).
 - Findings/design: `docs/plans/receipt-scan-structure-redesign-2026-07-20.md`.
-- Prod Supabase project id: `tpsoneenbrmdwvzcbifw` (user kanuchandrej@gmail.com,
-  Africa Twin bike `29a0e837-f452-4724-a07c-2d6f7efd0410`).
+- Prod Supabase project id: `<PROD_SUPABASE_PROJECT_ID>` (test rider account,
+  Africa Twin bike `<BIKE_ID>`). Keep the real ids in a private runbook, not here.
 
 ## Done (committed + pushed on the branch)
 - **P0** GraphQL `MaintenanceTaskSource` enum fix — live on prod.
@@ -63,8 +63,8 @@ existing PR (no follow-up split).
 
 ### P7 — OEM normalization + user-confirmed reminders (optional/last)
 - Migration: add `oem_maintenance_schedules.service_type` + one-time classify
-  backfill via `classifyServiceType` (1,028 rows / 45 free-text names, ~90%
-  should map non-OTHER).
+  backfill via `classifyServiceType` (1,028 rows / 42 free-text names; 40 names /
+  1,026 rows ≈99.8% map non-OTHER).
 - Per-type "last done" from history (incl. scans); offer a **user-confirmed**
   "remind me for the next <type>?" that creates a recurring task. NEVER fuzzy
   auto-match or auto-close existing pending OEM tasks.

@@ -71,6 +71,7 @@ describe('MaintenanceTasksService', () => {
       chain[m] = vi.fn().mockReturnValue(chain);
     }
     chain.single = vi.fn().mockImplementation(() => Promise.resolve(getResult()));
+    chain.maybeSingle = vi.fn().mockImplementation(() => Promise.resolve(getResult()));
     // Make the chain thenable so queries without .single() also resolve
     // biome-ignore lint/suspicious/noThenProperty: Supabase query builders are thenable
     chain.then = vi
@@ -170,6 +171,8 @@ describe('MaintenanceTasksService', () => {
 
   describe('createServiceReminder (P7 — user-confirmed)', () => {
     it('inserts a NEW recurring pending task of the type (title humanized, default yearly cadence)', async () => {
+      // Ownership check (.maybeSingle), then create insert (.single).
+      mockUserClient._pushResult({ data: { id: motorcycleId } });
       mockUserClient._pushResult({ data: fakeRow });
 
       await service.createServiceReminder(userId, {
@@ -190,6 +193,7 @@ describe('MaintenanceTasksService', () => {
     });
 
     it('honors an explicit mileage interval without forcing a time cadence', async () => {
+      mockUserClient._pushResult({ data: { id: motorcycleId } });
       mockUserClient._pushResult({ data: fakeRow });
 
       await service.createServiceReminder(userId, {
@@ -201,6 +205,18 @@ describe('MaintenanceTasksService', () => {
       const insertArg = mockUserClient._chain.insert.mock.calls[0][0];
       expect(insertArg.interval_km).toBe(8000);
       expect(insertArg.interval_days).toBeNull();
+    });
+
+    it('fails closed when motorcycleId is not owned', async () => {
+      mockUserClient._pushResult({ data: null });
+
+      await expect(
+        service.createServiceReminder(userId, {
+          motorcycleId: 'foreign-bike',
+          serviceType: 'oil_change',
+        }),
+      ).rejects.toThrow(NotFoundException);
+      expect(mockUserClient._chain.insert).not.toHaveBeenCalled();
     });
   });
 

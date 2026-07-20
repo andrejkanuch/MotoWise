@@ -6,6 +6,8 @@ import {
   type MeasurementSystem,
   mileageToDisplayUnit,
   milesToKm,
+  RECEIPT_LINE_ITEM_LABEL_MAX,
+  RECEIPT_LINE_ITEMS_MAX,
   RECEIPT_SCAN_SCHEMA_VERSION,
   type ReceiptExtraction,
 } from '@motovault/types';
@@ -1113,6 +1115,14 @@ export class ReceiptScanService {
     if (extraction.type === RECORD_TYPES.MAINTENANCE) needsCheck.add('date');
     if (this.hasFarOffYear(extraction.date)) needsCheck.add('date');
 
+    // Clamp line items to the save-contract limits so a parsed extraction can
+    // never fail the downstream save-schema validation: drop overflow beyond
+    // RECEIPT_LINE_ITEMS_MAX and truncate any label past RECEIPT_LINE_ITEM_LABEL_MAX.
+    const lineItems = extraction.lineItems.slice(0, RECEIPT_LINE_ITEMS_MAX).map((li) => ({
+      ...li,
+      label: li.label.slice(0, RECEIPT_LINE_ITEM_LABEL_MAX),
+    }));
+
     const result: ReceiptExtractionResult = {
       type: extraction.type,
       amount: extraction.amount,
@@ -1125,7 +1135,7 @@ export class ReceiptScanService {
       laborCost: extraction.laborCost,
       taxAmount: extraction.taxAmount,
       taxRate: extraction.taxRate,
-      lineItems: extraction.lineItems,
+      lineItems,
       odometerValue: extraction.odometerValue,
       odometerUnit: extraction.odometerUnit,
       fuelLitres: extraction.fuelLitres,

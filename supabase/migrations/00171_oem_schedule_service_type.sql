@@ -3,12 +3,12 @@
 --
 -- Adds `oem_maintenance_schedules.service_type` so per-type history and
 -- reminders can join on a stable type instead of the free-text `task_name`
--- (45 distinct names, heavy synonymy). The backfill below is the DETERMINISTIC
--- OUTPUT of `classifyServiceType` (packages/types) applied to the 45 distinct
+-- (42 distinct names, heavy synonymy). The backfill below is the DETERMINISTIC
+-- OUTPUT of `classifyServiceType` (packages/types) applied to those 42 distinct
 -- names — the classifier is the single source of truth; these UPDATEs are its
 -- generated projection (regenerate them if the classifier changes). Names that
 -- classify to OTHER (and any future/unmapped names) fall through to the
--- catch-all → 'other'. Verified 40/42 distinct names (≈99.8% of the 1,028 rows)
+-- catch-all → 'other'. Verified 40/42 distinct names (1,026/1,028 rows, ≈99.8%)
 -- map to a non-OTHER type.
 
 alter table oem_maintenance_schedules add column if not exists service_type text;
@@ -47,3 +47,5 @@ alter table oem_maintenance_schedules
 
 create index if not exists idx_oem_maintenance_schedules_service_type
   on oem_maintenance_schedules (service_type);
+
+NOTIFY pgrst, 'reload schema';

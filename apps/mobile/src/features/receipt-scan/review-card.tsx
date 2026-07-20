@@ -378,14 +378,16 @@ export function ReviewCard({
   }, []);
 
   const parsedAmount = parseNumeric(amount);
-  // Mirror the server's cross-field invariant (parts + labor <= total, service
-  // throws otherwise → opaque SAVE_FAILED). Disabling save here keeps the invalid
-  // breakdown from ever reaching the mutation, consistent with the other
-  // disable-on-invalid states above (no bike / non-positive amount).
+  // Mirror the server's reconcile gate (parts + labor + tax <= total). When the
+  // sum exceeds total the API falls back to total-only and silently drops the
+  // breakdown — block save here so that path is never reached from review.
   const breakdownExceedsAmount =
     isMaintenance(type) &&
     (parsedAmount ?? 0) > 0 &&
-    (parseNumeric(partsCost) ?? 0) + (parseNumeric(laborCost) ?? 0) > (parsedAmount ?? 0) + 0.001;
+    (parseNumeric(partsCost) ?? 0) +
+      (parseNumeric(laborCost) ?? 0) +
+      (parseNumeric(taxAmount) ?? 0) >
+      (parsedAmount ?? 0) + 0.001;
   const canSave = hasBike && (parsedAmount ?? 0) > 0 && !breakdownExceedsAmount;
 
   const handleSave = useCallback(() => {
@@ -1433,7 +1435,7 @@ function ServiceTypePicker({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable
         onPress={onClose}
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
+        style={{ flex: 1, backgroundColor: palette.surfaceOverlay, justifyContent: 'flex-end' }}
       >
         <Pressable
           onPress={(e) => e.stopPropagation()}

@@ -212,26 +212,6 @@ export function useReceiptScanSave(params: UseReceiptScanSaveParams) {
         const odometerTouched = result.refs.odometer != null;
         invalidateForRecord(recordType, payload.motorcycleId, odometerTouched);
 
-        // P7: user-confirmed next-service reminders. Best-effort and non-blocking —
-        // the record is already saved, so a reminder failure must never surface as a
-        // save failure. Each creates a fresh recurring pending task server-side.
-        if (payload.reminderServiceTypes.length > 0) {
-          await Promise.allSettled(
-            payload.reminderServiceTypes.map((serviceType) =>
-              gqlFetcher(CreateServiceReminderDocument, {
-                // Reminder types originate from the canonical taxonomy (review card),
-                // so they are valid MaintenanceServiceType members.
-                input: {
-                  motorcycleId: payload.motorcycleId,
-                  serviceType: serviceType as MaintenanceServiceType,
-                },
-              }),
-            ),
-          );
-          // The new reminders are pending maintenance tasks — refresh the same keys.
-          invalidateForRecord(RECEIPT_REVIEW_TYPE.MAINTENANCE, payload.motorcycleId, false);
-        }
-
         // Local artifacts are now redundant — the record lives server-side.
         unparkScan(handoff.scanId);
         deleteDurablePhoto(handoff.scanId);
@@ -260,6 +240,34 @@ export function useReceiptScanSave(params: UseReceiptScanSaveParams) {
         }
 
         onSaved();
+
+        // P7: user-confirmed next-service reminders. Fire-and-forget AFTER the save
+        // flow has completed — the record is already persisted, so reminder creation
+        // must never delay cleanup, feedback, undo, or `onSaved()`, and a reminder
+        // failure must never surface as a save failure. Gated on the actually-saved
+        // record type: the review card retains reminder selections across type
+        // round-trips, so a stale selection left over from a MAINTENANCE→EXPENSE
+        // switch must not spawn a maintenance reminder against an expense save.
+        if (
+          recordType === RECEIPT_REVIEW_TYPE.MAINTENANCE &&
+          payload.reminderServiceTypes.length > 0
+        ) {
+          void Promise.allSettled(
+            payload.reminderServiceTypes.map((serviceType) =>
+              gqlFetcher(CreateServiceReminderDocument, {
+                // Reminder types originate from the canonical taxonomy (review card),
+                // so they are valid MaintenanceServiceType members.
+                input: {
+                  motorcycleId: payload.motorcycleId,
+                  serviceType: serviceType as MaintenanceServiceType,
+                },
+              }),
+            ),
+          ).then(() => {
+            // The new reminders are pending maintenance tasks — refresh the same keys.
+            invalidateForRecord(RECEIPT_REVIEW_TYPE.MAINTENANCE, payload.motorcycleId, false);
+          });
+        }
       } finally {
         inFlightRef.current = false;
       }

@@ -16,6 +16,7 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOutLeft, LinearTransition } from 'react-native-reanimated';
+import { ZERO_DECIMAL_CURRENCIES } from '../../lib/expense-constants';
 import { getRelativeDueDate } from '../../lib/health-score';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
@@ -44,9 +45,12 @@ function effectiveTaskTotal(task: TaskRow): number {
 /** Format an amount with the task's currency symbol (falls back to the code). */
 function formatTaskMoney(amount: number, currency?: string | null): string {
   const symbol = currency ? (CURRENCY_SYMBOLS[currency as Currency] ?? `${currency} `) : '';
+  // Zero-decimal currencies (JPY/CLP/HUF) have no minor unit — render whole
+  // numbers so totals match the app's input rules (see ZERO_DECIMAL_CURRENCIES).
+  const fractionDigits = currency && ZERO_DECIMAL_CURRENCIES.has(currency as Currency) ? 0 : 2;
   return `${symbol}${amount.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
   })}`;
 }
 

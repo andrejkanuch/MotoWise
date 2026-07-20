@@ -40,6 +40,7 @@
  */
 
 import {
+  classifyServiceType,
   type ExtractedScheduleDraft,
   type ExtractedSpecDraft,
   isSafetyCriticalName,
@@ -239,6 +240,8 @@ export class MaintenanceSourcingService {
       year_from: keys.yearFrom,
       year_to: keys.yearTo,
       task_name: draft.taskName,
+      // Required after 00171 SET NOT NULL — same classifier as the migration backfill.
+      service_type: classifyServiceType(draft.taskName),
       interval_km: draft.intervalKm ?? null,
       interval_days: draft.intervalDays ?? null,
       priority: draft.priority,

@@ -32,6 +32,14 @@ export const RECEIPT_SCAN_SCHEMA_VERSION = 2 as const;
 export const RECEIPT_SCAN_TYPES = ['maintenance', 'expense'] as const;
 export type ReceiptScanType = (typeof RECEIPT_SCAN_TYPES)[number];
 
+/**
+ * Save-contract limits for reviewed line items. Shared by the runtime save
+ * schema AND the API's `buildResult` clamp, so an extraction can never parse
+ * upstream and then fail the save path on a too-long label / too-many lines.
+ */
+export const RECEIPT_LINE_ITEM_LABEL_MAX = 300 as const;
+export const RECEIPT_LINE_ITEMS_MAX = 50 as const;
+
 /** Odometer unit as *printed* on the receipt (KTD-7). Never assumed. */
 export const ODOMETER_UNITS = ['km', 'mi'] as const;
 export type OdometerUnit = (typeof ODOMETER_UNITS)[number];
@@ -60,7 +68,13 @@ export type ReceiptFieldConfidence = z.infer<typeof ReceiptFieldConfidenceSchema
  * modelled as `.nullable()`.
  */
 export const ReceiptLineItemSchema = z.object({
-  /** Human label as printed on the line (e.g. "Aceite motor 10W-30", "Oil filter"). */
+  /**
+   * Human label as printed on the line (e.g. "Aceite motor 10W-30", "Oil filter").
+   * NOT length-capped here: this schema is fed to OpenAI `zodResponseFormat`, and
+   * the save contract's 300-char / 50-item limits are enforced downstream by
+   * `buildResult` (clamp), so a long label never fails the save path. See
+   * `RECEIPT_LINE_ITEM_LABEL_MAX` / `RECEIPT_LINE_ITEMS_MAX`.
+   */
   label: z.string(),
   /** Best-effort canonical service type; null when the model is unsure. */
   serviceType: z.string().nullable(),
@@ -105,7 +119,9 @@ export const ReceiptExtractionSchema = z.object({
   partsNeeded: z.array(z.string()),
   /**
    * Maintenance only: itemized service/part lines (v2). Empty array when the
-   * invoice is not itemised or the type is 'expense'.
+   * invoice is not itemised or the type is 'expense'. NOT count-capped here (fed
+   * to OpenAI `zodResponseFormat`); the save contract's 50-item cap is enforced
+   * downstream by `buildResult` (`RECEIPT_LINE_ITEMS_MAX`).
    */
   lineItems: z.array(ReceiptLineItemSchema),
   /** Explicit tax/VAT/IVA amount printed on the invoice. Null when not shown. */
@@ -136,7 +152,7 @@ export type ReceiptExtraction = z.infer<typeof ReceiptExtractionSchema>;
  */
 export const SaveReceiptScanLineItemSchema = z.object({
   serviceType: z.string().max(64).nullable().optional(),
-  label: z.string().min(1).max(300),
+  label: z.string().min(1).max(RECEIPT_LINE_ITEM_LABEL_MAX),
   partRef: z.string().max(120).nullable().optional(),
   quantity: z.number().nonnegative().nullable().optional(),
   unitPrice: z.number().nonnegative().nullable().optional(),
@@ -166,7 +182,11 @@ export const SaveReceiptScanInputSchema = z.object({
   /** Printed tax rate as a percentage (e.g. 21 for 21% IVA). */
   taxRate: z.number().nonnegative().nullable().optional(),
   /** Reviewed service line items (maintenance). Persisted as maintenance_task_line_items. */
-  lineItems: z.array(SaveReceiptScanLineItemSchema).max(50).nullable().optional(),
+  lineItems: z
+    .array(SaveReceiptScanLineItemSchema)
+    .max(RECEIPT_LINE_ITEMS_MAX)
+    .nullable()
+    .optional(),
   applyOdometer: z.boolean().optional(),
   odometerValue: z.number().nonnegative().nullable().optional(),
   /** 'km' | 'mi' as PRINTED on the receipt — never assumed (KTD-7). */
