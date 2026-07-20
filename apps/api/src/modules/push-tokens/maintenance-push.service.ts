@@ -3,11 +3,10 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { addDays, format } from 'date-fns';
 import { Expo, type ExpoPushMessage } from 'expo-server-sdk';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { resolveMaintenancePushCopy } from './maintenance-push-copy';
 
-/** Postgres unique-violation code — a dedup-log conflict means "already sent". */
-const PG_UNIQUE_VIOLATION = '23505' as const;
 /** Expo ticket error reported for a token the device store no longer recognizes. */
 const EXPO_DEVICE_NOT_REGISTERED = 'DeviceNotRegistered' as const;
 /** Cap each Expo push HTTP call so a hung exp.host never blocks the run/request. */
@@ -135,7 +134,7 @@ export class MaintenancePushService {
         .from('maintenance_push_log')
         .insert({ user_id: task.user_id, task_id: task.id, due_date: task.due_date });
       if (logError) {
-        if (logError.code === PG_UNIQUE_VIOLATION) skipped++;
+        if (logError.code === PG_ERROR.UNIQUE_VIOLATION) skipped++;
         else this.logger.error(`dedup-log insert failed for task ${task.id}: ${logError.message}`);
         continue;
       }
