@@ -22,7 +22,8 @@
     "tryAgain": "Riprova",
     "confirm": "Conferma",
     "all": "Tutti",
-    "ride": "Ride"
+    "ride": "Ride",
+    "deleting": "Deleting..."
   },
   "auth": {
     "signIn": "Accedi",
@@ -1487,7 +1488,15 @@
     "category_taxes_fees": "Tasse e spese",
     "category_other": "Altro",
     "itemName": "Nome articolo",
-    "itemNamePlaceholder": "Cosa hai comprato?"
+    "itemNamePlaceholder": "Cosa hai comprato?",
+    "serviceRecord": "Registro di servizio",
+    "viewServiceRecord": "Vedi registro completo",
+    "deleteExpense": "Elimina spesa",
+    "notFound": "Expense not found",
+    "serviceRecordLoadFailed": "Could not load the linked service record.",
+    "serviceRecordUnavailable": "Linked service record is no longer available.",
+    "receiptsLoadFailed": "Could not load receipt photos.",
+    "hasServiceRecord": "Has service record"
   },
   "privacy": {
     "title": "Privacy",
@@ -1532,11 +1541,11 @@
     "experienceBeginner": "Principiante",
     "experienceIntermediate": "Intermedio",
     "experienceAdvanced": "Avanzato",
-    "goalTrackRides": "Track my rides",
-    "goalManageExpenses": "Manage expenses",
-    "goalDiscoverRoutes": "Discover routes",
-    "goalMaintainBike": "Maintain my bike",
-    "goalJustExploring": "Just exploring"
+    "goalTrackRides": "Registrare i miei viaggi",
+    "goalManageExpenses": "Gestire le spese",
+    "goalDiscoverRoutes": "Scoprire percorsi",
+    "goalMaintainBike": "Mantenere la mia moto",
+    "goalJustExploring": "Sto solo esplorando"
   },
   "support": {
     "title": "Assistenza",
@@ -1653,7 +1662,7 @@
     "findRiders": "Scopri motociclisti"
   },
   "whatsNew": {
-    "badge": "What's New",
+    "badge": "Novità",
     "next": "Next",
     "getStarted": "Let's Go",
     "v300": {
@@ -2195,7 +2204,7 @@
     "hideCategory": "Nascondi categoria"
   },
   "carplay": {
-    "entryLabel": "CarPlay Companion",
+    "entryLabel": "Compagno CarPlay",
     "hub": {
       "title": "CarPlay Companion",
       "intro": "Log rides from your bike’s screen. Controls live on the head unit — the phone just confirms.",

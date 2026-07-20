@@ -22,7 +22,8 @@
     "tryAgain": "再試行",
     "confirm": "確認",
     "all": "すべて",
-    "ride": "Ride"
+    "ride": "Ride",
+    "deleting": "Deleting..."
   },
   "auth": {
     "signIn": "サインイン",
@@ -1486,7 +1487,15 @@
     "category_taxes_fees": "税金・手数料",
     "category_other": "その他",
     "itemName": "商品名",
-    "itemNamePlaceholder": "何を購入しましたか？"
+    "itemNamePlaceholder": "何を購入しましたか？",
+    "serviceRecord": "整備記録",
+    "viewServiceRecord": "整備記録をすべて見る",
+    "deleteExpense": "費用を削除",
+    "notFound": "Expense not found",
+    "serviceRecordLoadFailed": "Could not load the linked service record.",
+    "serviceRecordUnavailable": "Linked service record is no longer available.",
+    "receiptsLoadFailed": "Could not load receipt photos.",
+    "hasServiceRecord": "Has service record"
   },
   "privacy": {
     "title": "プライバシー",
@@ -1531,11 +1540,11 @@
     "experienceBeginner": "初心者",
     "experienceIntermediate": "中級者",
     "experienceAdvanced": "上級者",
-    "goalTrackRides": "Track my rides",
-    "goalManageExpenses": "Manage expenses",
-    "goalDiscoverRoutes": "Discover routes",
-    "goalMaintainBike": "Maintain my bike",
-    "goalJustExploring": "Just exploring"
+    "goalTrackRides": "ライドを記録",
+    "goalManageExpenses": "費用を管理",
+    "goalDiscoverRoutes": "ルートを発見",
+    "goalMaintainBike": "バイクを整備",
+    "goalJustExploring": "見て回るだけ"
   },
   "support": {
     "title": "ヘルプとサポート",
@@ -1652,7 +1661,7 @@
     "findRiders": "ライダーを探す"
   },
   "whatsNew": {
-    "badge": "What's New",
+    "badge": "新着情報",
     "next": "Next",
     "getStarted": "Let's Go",
     "v300": {
@@ -2192,7 +2201,7 @@
     "hideCategory": "カテゴリーを非表示"
   },
   "carplay": {
-    "entryLabel": "CarPlay Companion",
+    "entryLabel": "CarPlay コンパニオン",
     "hub": {
       "title": "CarPlay Companion",
       "intro": "Log rides from your bike’s screen. Controls live on the head unit — the phone just confirms.",

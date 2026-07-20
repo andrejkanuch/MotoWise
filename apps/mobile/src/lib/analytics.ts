@@ -360,6 +360,7 @@ export const AnalyticsEvent = {
   EXPENSE_ADDED: 'expense_added',
   EXPENSE_QUICK_ADD_TAPPED: 'expense_quick_add_tapped',
   EXPENSE_DASHBOARD_VIEWED: 'expense_dashboard_viewed',
+  EXPENSE_SERVICE_RECORD_OPENED: 'expense_service_record_opened',
   // Receipt scan (U6)
   RECEIPT_SCAN_STARTED: 'receipt_scan_started',
   RECEIPT_SCAN_COMPLETED: 'receipt_scan_completed',

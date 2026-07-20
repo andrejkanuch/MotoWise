@@ -1,0 +1,111 @@
+# Open an expense's detail screen — E2E for the expense-detail UX.
+#
+# WHY: tapping an expense row used to do nothing useful (it only revealed a
+# Delete button). It now navigates to a full detail screen (expense-detail.tsx)
+# showing the amount, category, date, item name / notes, receipt gallery, a
+# Delete action, and — for expenses linked to a completed/scanned maintenance
+# task — the linked "Service record" with its line items. This flow proves the
+# row-tap → detail navigation and the core fields render, then backs out.
+#
+# Setup: composes onboarding.yaml (signed-in user + Honda, ends at Home). Run via:
+#   pnpm --filter @motovault/mobile test:e2e:expense-detail
+# (preview/standalone build + provisioned user — dev-client/Metro is unsupported
+# because onboarding.yaml uses clearState; see .maestro/README.md).
+#
+# Device notes (see README gotchas): the single-ScrollView hub places expense
+# rows in the floating tab-bar overlap zone, so scroll a below-Expenses section
+# (Documents) into view to lift the row clear before tapping it. The custom
+# keyboard ignores hideKeyboard — dismiss it by tapping a non-interactive label.
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+  # Distinctive label, written into the DETAILS field (expense.description) — the
+  # text SwipeableExpense renders as the row title and the detail screen echoes.
+  EXPENSE_LABEL: "E2E Detail Me Expense"
+  EXPENSE_ITEM: "E2E Brake Pads"
+  EXPENSE_AMOUNT: "73.50"
+---
+# 1. Setup — reach a signed-in Home with a Honda in the garage.
+- runFlow: onboarding.yaml
+
+# 2. Open the bike hub (Garage tab a11y carries a badge → partial regex).
+- tapOn:
+    text: ".*Garage.*"
+- tapOn:
+    text: ".*Honda.*"
+- extendedWaitUntil:
+    visible: "Expenses"
+    timeout: 20000
+
+# 3. CREATE the expense to open (deterministic precondition) via the empty-state
+#    card that routes to Add Expense.
+- scrollUntilVisible:
+    element:
+      text: "No expenses yet" # expenses.empty
+    direction: DOWN
+- tapOn: "No expenses yet"
+- assertVisible: "AMOUNT" # confirms the Add Expense screen
+- inputText: ${EXPENSE_AMOUNT} # amount field is autoFocused
+- scrollUntilVisible:
+    element:
+      text: "Item name"
+    direction: DOWN
+- tapOn:
+    text: ".*What did you buy.*" # itemName placeholder (default category)
+    optional: true
+- inputText: ${EXPENSE_ITEM}
+- tapOn:
+    text: ".*What was this expense for.*" # DETAILS placeholder (wildcarded — "?" is a regex metachar)
+- inputText: ${EXPENSE_LABEL}
+- tapOn:
+    text: "DETAILS" # non-interactive label — dismisses the custom keyboard
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Save Expense"
+    direction: DOWN
+- tapOn: "Save Expense"
+- tapOn:
+    text: "Not Now" # optional store-review prompt
+    optional: true
+- extendedWaitUntil:
+    visible: "Done"
+    timeout: 20000
+- tapOn: "Done" # returns to the hub (router.back)
+
+# 4. Lift the row clear of the floating tab bar (bring Documents into view), then
+#    OPEN the detail screen by tapping the row.
+- scrollUntilVisible:
+    element:
+      text: ".*Documents.*"
+    direction: DOWN
+# Row title prefers itemName over description (getExpenseTitle).
+- assertVisible: ${EXPENSE_ITEM}
+- tapOn:
+    text: ${EXPENSE_ITEM}
+
+# 5. Assert the detail screen rendered its core fields. The header title is
+#    "Expense"; itemName is the hero subtitle; DetailRows include Item name +
+#    Details (description); Delete is available.
+- extendedWaitUntil:
+    visible: "Expense"
+    timeout: 20000
+- assertVisible: ${EXPENSE_ITEM}
+- assertVisible: ${EXPENSE_LABEL}
+# Amount hero — catch param/hydration bugs that still pass Date/Category asserts.
+- assertVisible: ".*73\\.50.*"
+- assertVisible: "Date"
+- assertVisible: "Category"
+- assertVisible: "Item name"
+- assertVisible: "Delete"
+- takeScreenshot: expense-detail-open
+
+# 6. Back out to the hub — the row is still there (detail is read/act, not a
+#    destructive step here). The iOS back button renders the previous screen's
+#    title ("Bike Details") as its label under headerBackButtonDisplayMode:
+#    'default' — VALIDATED live on the simulator 2026-07-20 (the header shows
+#    "< Bike Details    Expense"). If this ever regresses (or on Android), anchor
+#    on the native back affordance instead.
+- tapOn:
+    text: ".*Bike Details.*" # detail screen back-button label (garage stack)
+- assertVisible: ${EXPENSE_ITEM}

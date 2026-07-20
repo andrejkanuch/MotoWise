@@ -2,10 +2,11 @@
 #
 # HISTORY: expense delete used to be gesture-only (swipe past -80px / long-press),
 # which on-device validation (2026-07-15) confirmed was NOT reliably operable —
-# the client's original "deleting an expense is quite a challenge" complaint. That
-# was FIXED: swipeable-expense.tsx now reveals a VISIBLE, labeled "Delete" button
-# when the row is tapped (the swipe/long-press still work as a bonus). The reveal
-# was validated live on the simulator. This flow drives the new button path.
+# the client's original "deleting an expense is quite a challenge" complaint. It
+# was then given a tap-to-reveal inline Delete button. As of the expense-detail
+# work, tapping a row OPENS the full Expense detail screen (expense-detail.tsx),
+# where Delete lives; the swipe-left / long-press gestures still delete inline.
+# This flow drives the row-tap → detail → Delete path (validated on simulator).
 #
 # Setup: composes onboarding.yaml (signed-in user + Honda). Run via:
 #   pnpm --filter @motovault/mobile test:e2e:delete-expense
@@ -76,12 +77,14 @@ env:
     direction: DOWN
 - assertVisible: ${EXPENSE_LABEL}
 
-# 5. DELETE via the new visible affordance: tap the row to reveal its "Delete"
-#    button (the fix), then tap it. (The swipe-left / long-press gestures still
-#    work too, but the button is the reliable, discoverable path.)
+# 5. Tapping the row now OPENS the Expense detail screen (expense-detail.tsx —
+#    the row used to only reveal an inline Delete; it now navigates to a full
+#    detail with amount, category, receipts and a Delete action). The swipe-left
+#    / long-press gestures on the row still delete directly as a bonus.
 - tapOn:
     text: ${EXPENSE_LABEL}
-- tapOn: "Delete" # revealed action button (common.delete); maintenance Delete rows are scrolled above, so this is unambiguous
+- assertVisible: ${EXPENSE_LABEL} # the detail screen echoes the label as its title
+- tapOn: "Delete" # the detail screen's Delete action (common.delete)
 
 # 6. Confirm the native "Delete Expense" Alert — anchor the destructive button
 #    to the right of Cancel to disambiguate the repeated "Delete" word.
@@ -91,7 +94,7 @@ env:
       text: "Cancel"
 - takeScreenshot: delete-expense-confirmed
 
-# 7. Success: the row is gone.
+# 7. Success: the detail screen pops back to the hub and the row is gone.
 - extendedWaitUntil:
     notVisible: ${EXPENSE_LABEL}
     timeout: 30000

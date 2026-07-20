@@ -1,0 +1,118 @@
+# Expense detail → linked Service record (complete task with cost, open expense).
+#
+# WHY: expense-detail shows a Service record card when maintenanceTaskId resolves.
+# complete-maintenance-task.yaml proves completion but never opens the expense.
+# This flow chains: create task → complete with cost → open linked expense →
+# assert Service record → View full service record → bike-tasks Completed.
+#
+# Run via:
+#   pnpm --filter @motovault/mobile test:e2e:expense-service-record
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+  TASK_TITLE: "E2E Service Record Link"
+  ODOMETER: "12600"
+  COST: "88.00"
+---
+- runFlow: onboarding.yaml
+
+- tapOn:
+    text: ".*Garage.*"
+- tapOn:
+    text: ".*Honda.*"
+- extendedWaitUntil:
+    visible: "Add task"
+    timeout: 20000
+
+# Create task
+- tapOn: "Add task"
+- assertVisible: "Priority"
+- inputText: ${TASK_TITLE}
+- tapOn: "High"
+- tapOn:
+    text: "Priority"
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Save task"
+    direction: DOWN
+- tapOn: "Save task"
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Expand + Done
+- tapOn:
+    text: ".*See all.*"
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: ${TASK_TITLE}
+    direction: DOWN
+- tapOn: ${TASK_TITLE}
+- tapOn:
+    text: "Done"
+    below:
+      text: ${TASK_TITLE}
+
+# Complete with cost (creates linked expense)
+- extendedWaitUntil:
+    visible: "Completion Details"
+    timeout: 20000
+- tapOn: "e.g. 15000"
+- inputText: ${ODOMETER}
+- tapOn:
+    text: "Completion Details"
+    optional: true
+- tapOn: "0.00"
+- inputText: ${COST}
+- tapOn:
+    text: "Completion Details"
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Mark Complete"
+    direction: DOWN
+- tapOn: "Mark Complete"
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Back on hub — open the expense created from completion (title often matches task)
+- scrollUntilVisible:
+    element:
+      text: ".*Documents.*"
+    direction: DOWN
+- scrollUntilVisible:
+    element:
+      text: ${TASK_TITLE}
+    direction: UP
+    optional: true
+- extendedWaitUntil:
+    visible: ${TASK_TITLE}
+    timeout: 20000
+# Prefer the expense row under Expenses (same title as task after completion).
+# If History still shows the task above, scroll to Expenses and tap the amount/row.
+- scrollUntilVisible:
+    element:
+      text: "Expenses"
+    direction: UP
+    optional: true
+- tapOn: ${TASK_TITLE}
+
+# Detail: Service record section
+- extendedWaitUntil:
+    visible: "Expense"
+    timeout: 20000
+- assertVisible: ".*88.*"
+- assertVisible: "Service record"
+- assertVisible: "View full service record"
+- takeScreenshot: expense-service-record-open
+
+- tapOn: "View full service record"
+- extendedWaitUntil:
+    visible: ${TASK_TITLE}
+    timeout: 20000
+# Completed filter should surface the task
+- assertVisible: ${TASK_TITLE}
+- takeScreenshot: expense-service-record-tasks

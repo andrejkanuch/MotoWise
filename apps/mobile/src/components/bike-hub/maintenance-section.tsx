@@ -2,7 +2,7 @@ import { palette } from '@motovault/design-system';
 import type { MaintenanceTasksByMotorcycleQuery } from '@motovault/graphql';
 import { useRouter } from 'expo-router';
 import { Wrench } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -15,8 +15,8 @@ interface MaintenanceSectionProps {
   tasks: Task[];
   isDark: boolean;
   motorcycleId: string;
-  expandedId: string | null;
-  onToggleExpand: (id: string) => void;
+  /** Deep-link: expand this task once when tasks are available. */
+  initialExpandedId?: string | null;
   onComplete: (id: string) => void;
   onDelete: (id: string, title: string) => void;
   onEdit?: (id: string) => void;
@@ -27,8 +27,7 @@ export function MaintenanceSection({
   tasks,
   isDark,
   motorcycleId,
-  expandedId,
-  onToggleExpand,
+  initialExpandedId = null,
   onComplete,
   onDelete,
   onEdit,
@@ -37,6 +36,19 @@ export function MaintenanceSection({
   const { t } = useTranslation();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const hasHighlighted = useRef(false);
+
+  useEffect(() => {
+    if (initialExpandedId && tasks.length > 0 && !hasHighlighted.current) {
+      hasHighlighted.current = true;
+      setExpandedId(initialExpandedId);
+    }
+  }, [initialExpandedId, tasks.length]);
+
+  const onToggleExpand = useCallback((taskId: string) => {
+    setExpandedId((prev) => (prev === taskId ? null : taskId));
+  }, []);
 
   const { activeTasks, overdueCount } = useMemo(() => {
     const now = Date.now();

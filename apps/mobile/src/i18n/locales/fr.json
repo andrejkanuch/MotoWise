@@ -22,7 +22,8 @@
     "tryAgain": "Réessayer",
     "confirm": "Confirmer",
     "all": "Tout",
-    "ride": "Ride"
+    "ride": "Ride",
+    "deleting": "Deleting..."
   },
   "auth": {
     "signIn": "Se connecter",
@@ -1487,7 +1488,15 @@
     "category_taxes_fees": "Taxes et frais",
     "category_other": "Autre",
     "itemName": "Nom de l'article",
-    "itemNamePlaceholder": "Qu’avez-vous acheté ?"
+    "itemNamePlaceholder": "Qu’avez-vous acheté ?",
+    "serviceRecord": "Carnet d'entretien",
+    "viewServiceRecord": "Voir le carnet complet",
+    "deleteExpense": "Supprimer la dépense",
+    "notFound": "Expense not found",
+    "serviceRecordLoadFailed": "Could not load the linked service record.",
+    "serviceRecordUnavailable": "Linked service record is no longer available.",
+    "receiptsLoadFailed": "Could not load receipt photos.",
+    "hasServiceRecord": "Has service record"
   },
   "privacy": {
     "title": "Confidentialité",
@@ -1532,11 +1541,11 @@
     "experienceBeginner": "Débutant",
     "experienceIntermediate": "Intermédiaire",
     "experienceAdvanced": "Avancé",
-    "goalTrackRides": "Track my rides",
-    "goalManageExpenses": "Manage expenses",
-    "goalDiscoverRoutes": "Discover routes",
-    "goalMaintainBike": "Maintain my bike",
-    "goalJustExploring": "Just exploring"
+    "goalTrackRides": "Suivre mes trajets",
+    "goalManageExpenses": "Gérer les dépenses",
+    "goalDiscoverRoutes": "Découvrir des itinéraires",
+    "goalMaintainBike": "Entretenir ma moto",
+    "goalJustExploring": "Juste explorer"
   },
   "support": {
     "title": "Aide",
@@ -1653,7 +1662,7 @@
     "findRiders": "Découvrir des motards"
   },
   "whatsNew": {
-    "badge": "What's New",
+    "badge": "Nouveautés",
     "next": "Next",
     "getStarted": "Let's Go",
     "v300": {
@@ -2195,7 +2204,7 @@
     "hideCategory": "Masquer la catégorie"
   },
   "carplay": {
-    "entryLabel": "CarPlay Companion",
+    "entryLabel": "Compagnon CarPlay",
     "hub": {
       "title": "CarPlay Companion",
       "intro": "Log rides from your bike’s screen. Controls live on the head unit — the phone just confirms.",

@@ -1,4 +1,4 @@
-import { palette } from '@motovault/design-system';
+import { palette, withAlpha } from '@motovault/design-system';
 import type { MaintenanceTasksByMotorcycleQuery } from '@motovault/graphql';
 import { CURRENCY_SYMBOLS, type Currency } from '@motovault/types';
 import {
@@ -16,7 +16,7 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOutLeft, LinearTransition } from 'react-native-reanimated';
-import { ZERO_DECIMAL_CURRENCIES } from '../../lib/expense-constants';
+import { humanizeServiceType, ZERO_DECIMAL_CURRENCIES } from '../../lib/expense-constants';
 import { getRelativeDueDate } from '../../lib/health-score';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
@@ -52,13 +52,6 @@ function formatTaskMoney(amount: number, currency?: string | null): string {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   })}`;
-}
-
-/** Humanize a canonical service-type key for display ("oil_change" → "Oil change"). */
-function humanizeServiceType(key: string | null | undefined): string {
-  if (!key) return '';
-  const spaced = key.replace(/_/g, ' ');
-  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
 /** Swipeable task card with left/right actions */
@@ -103,9 +96,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
       <View
         style={{
           backgroundColor: relative?.isOverdue
-            ? isDark
-              ? 'rgba(239,68,68,0.08)'
-              : 'rgba(239,68,68,0.05)'
+            ? withAlpha(palette.danger500, isDark ? 0.08 : 0.05)
             : isDark
               ? palette.neutral800
               : palette.white,
@@ -225,81 +216,6 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
           </View>
         </Pressable>
 
-        {/* Action buttons row */}
-        <View
-          style={{
-            flexDirection: 'row',
-            borderTopWidth: 0.5,
-            borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-          }}
-        >
-          {!isCompleted && (
-            <Pressable
-              onPress={() => {
-                triggerImpact();
-                onComplete(task.id);
-              }}
-              style={{
-                flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                paddingVertical: 10,
-                borderRightWidth: 0.5,
-                borderRightColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-              }}
-            >
-              <Check size={14} color={palette.success500} strokeWidth={2.5} />
-              <Text style={{ fontSize: 13, fontWeight: '600', color: palette.success500 }}>
-                {t('maintenance.markDone', { defaultValue: 'Done' })}
-              </Text>
-            </Pressable>
-          )}
-          {!isCompleted && onEdit && (
-            <Pressable
-              onPress={() => {
-                triggerImpact();
-                onEdit(task.id);
-              }}
-              style={{
-                flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                paddingVertical: 10,
-                borderRightWidth: 0.5,
-                borderRightColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-              }}
-            >
-              <Pencil size={14} color={palette.primary500} strokeWidth={2} />
-              <Text style={{ fontSize: 13, fontWeight: '600', color: palette.primary500 }}>
-                {t('common.edit', { defaultValue: 'Edit' })}
-              </Text>
-            </Pressable>
-          )}
-          <Pressable
-            onPress={() => {
-              triggerImpact();
-              onDelete(task.id, task.title);
-            }}
-            style={{
-              flex: 1,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              paddingVertical: 10,
-            }}
-          >
-            <Trash2 size={14} color={palette.danger500} strokeWidth={2} />
-            <Text style={{ fontSize: 13, fontWeight: '600', color: palette.danger500 }}>
-              {t('common.delete', { defaultValue: 'Delete' })}
-            </Text>
-          </Pressable>
-        </View>
-
         {/* Completed info row */}
         {isCompleted && task.completedAt && (
           <View
@@ -342,7 +258,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                 paddingBottom: 14,
                 paddingTop: 4,
                 borderTopWidth: isCompleted ? 0.5 : 0,
-                borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+                borderTopColor: withAlpha(isDark ? palette.white : palette.black, 0.06),
               }}
             >
               {task.description && (
@@ -482,6 +398,84 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                 photos={task.photos ?? []}
                 isDark={isDark}
               />
+
+              {/* Actions — revealed on expand (was an always-visible row). Keeps
+                  the collapsed list clean and mirrors the tap-to-detail model
+                  used by expenses. */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  marginTop: 12,
+                  borderTopWidth: 0.5,
+                  borderTopColor: withAlpha(isDark ? palette.white : palette.black, 0.06),
+                }}
+              >
+                {!isCompleted && (
+                  <Pressable
+                    onPress={() => {
+                      triggerImpact();
+                      onComplete(task.id);
+                    }}
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                      paddingVertical: 10,
+                      borderRightWidth: 0.5,
+                      borderRightColor: withAlpha(isDark ? palette.white : palette.black, 0.06),
+                    }}
+                  >
+                    <Check size={14} color={palette.success500} strokeWidth={2.5} />
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: palette.success500 }}>
+                      {t('maintenance.markDone', { defaultValue: 'Done' })}
+                    </Text>
+                  </Pressable>
+                )}
+                {!isCompleted && onEdit && (
+                  <Pressable
+                    onPress={() => {
+                      triggerImpact();
+                      onEdit(task.id);
+                    }}
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                      paddingVertical: 10,
+                      borderRightWidth: 0.5,
+                      borderRightColor: withAlpha(isDark ? palette.white : palette.black, 0.06),
+                    }}
+                  >
+                    <Pencil size={14} color={palette.primary500} strokeWidth={2} />
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: palette.primary500 }}>
+                      {t('common.edit', { defaultValue: 'Edit' })}
+                    </Text>
+                  </Pressable>
+                )}
+                <Pressable
+                  onPress={() => {
+                    triggerImpact();
+                    onDelete(task.id, task.title);
+                  }}
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    paddingVertical: 10,
+                  }}
+                >
+                  <Trash2 size={14} color={palette.danger500} strokeWidth={2} />
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: palette.danger500 }}>
+                    {t('common.delete', { defaultValue: 'Delete' })}
+                  </Text>
+                </Pressable>
+              </View>
             </View>
           </Animated.View>
         )}

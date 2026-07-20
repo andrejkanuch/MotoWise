@@ -39,7 +39,11 @@ import Animated, {
 import { useCurrency } from '../../hooks/use-currency';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
-import { CATEGORY_LABELS, formatCurrencyInput } from '../../lib/expense-constants';
+import {
+  CATEGORY_LABELS,
+  formatCurrencyInput,
+  humanizeServiceType,
+} from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { tint } from '../../theme/editorial';
@@ -169,18 +173,6 @@ function isMaintenance(type: ReceiptReviewType): boolean {
 
 /** The canonical service-type keys, ordered for the picker (OTHER last). */
 const SERVICE_TYPE_OPTIONS: readonly string[] = Object.values(MaintenanceServiceType);
-
-/**
- * Humanize a canonical MaintenanceServiceType key for display ("oil_change" →
- * "Oil change"). Display-only — the canonical key is what is stored/sent, and
- * the server re-classifies from the label, so a per-locale label table isn't
- * warranted yet (English names are acceptable across locales for now).
- */
-function humanizeServiceType(key: string | null): string {
-  if (!key) return '';
-  const spaced = key.replace(/_/g, ' ');
-  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
-}
 
 /** Seed editable review line items from the extraction result. */
 function seedLineItems(result: ReceiptExtraction): ReceiptReviewLineItem[] {

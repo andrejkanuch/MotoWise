@@ -1,6 +1,6 @@
 import { palette } from '@motovault/design-system';
 import { type Href, useRouter } from 'expo-router';
-import { CheckCircle2, ChevronRight, ReceiptText, Undo2 } from 'lucide-react-native';
+import { CheckCircle2, ChevronRight, ReceiptText, Undo2, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -9,7 +9,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
 import { getParkedScans, useParkedScanCount } from './parked-scan-store';
-import { useLatestReceiptSaveUndo } from './receipt-scan-undo-store';
+import { clearReceiptSaveUndo, useLatestReceiptSaveUndo } from './receipt-scan-undo-store';
 import { SCAN_ENTRY_SURFACE, SCAN_RESUME_SOURCE } from './scan-flow-constants';
 import { useUndoReceiptSave } from './use-receipt-scan-save';
 
@@ -154,6 +154,29 @@ export function ReceiptScanRecoveryCard() {
             <Text style={{ fontSize: 14, fontWeight: '700', color: palette.signature500 }}>
               {t('receiptScan.saved.undo')}
             </Text>
+          </Pressable>
+          {/* Non-destructive dismiss: the save is durable and the undo entry lives
+              for SAVE_UNDO_TTL_MS (6h), so without this the card lingers on home
+              with Undo (which rolls back the save) as the only way to clear it. */}
+          <Pressable
+            onPress={() => {
+              triggerImpact();
+              clearReceiptSaveUndo(undoEntry.scanId);
+            }}
+            disabled={undoing}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.dismiss', { defaultValue: 'Dismiss' })}
+            hitSlop={8}
+            style={{
+              width: 32,
+              height: 32,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 10,
+              borderCurve: 'continuous',
+            }}
+          >
+            <X size={16} color={theme.ink3} strokeWidth={2.5} />
           </Pressable>
         </View>
       </Animated.View>

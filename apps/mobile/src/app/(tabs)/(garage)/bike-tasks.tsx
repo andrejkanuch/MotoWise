@@ -28,9 +28,13 @@ type FilterTab = 'all' | 'overdue' | 'upcoming' | 'completed';
 
 export default function BikeTasksScreen() {
   const { t } = useTranslation();
-  const { motorcycleId, bikeName } = useLocalSearchParams<{
+  const { motorcycleId, bikeName, initialFilter, expandTaskId } = useLocalSearchParams<{
     motorcycleId: string;
     bikeName?: string;
+    // Deep-link params (e.g. from an expense's linked service record): open on a
+    // given filter tab with a specific task already expanded.
+    initialFilter?: FilterTab;
+    expandTaskId?: string;
   }>();
   // Unit follows the user's profile preference, not the deprecated per-bike field.
   const mileageUnit = useMileageUnit();
@@ -39,8 +43,12 @@ export default function BikeTasksScreen() {
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
 
-  const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<FilterTab>(
+    initialFilter && ['all', 'overdue', 'upcoming', 'completed'].includes(initialFilter)
+      ? initialFilter
+      : 'all',
+  );
+  const [expandedId, setExpandedId] = useState<string | null>(expandTaskId ?? null);
 
   const {
     data: tasksData,

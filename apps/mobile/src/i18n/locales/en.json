@@ -22,7 +22,8 @@
     "tryAgain": "Try Again",
     "confirm": "Confirm",
     "all": "All",
-    "ride": "Ride"
+    "ride": "Ride",
+    "deleting": "Deleting..."
   },
   "auth": {
     "signIn": "Sign In",
@@ -1492,7 +1493,15 @@
     "category_taxes_fees": "Taxes & Fees",
     "category_other": "Other",
     "itemName": "Item name",
-    "itemNamePlaceholder": "What did you buy?"
+    "itemNamePlaceholder": "What did you buy?",
+    "serviceRecord": "Service record",
+    "viewServiceRecord": "View full service record",
+    "deleteExpense": "Delete expense",
+    "notFound": "Expense not found",
+    "serviceRecordLoadFailed": "Could not load the linked service record.",
+    "serviceRecordUnavailable": "Linked service record is no longer available.",
+    "receiptsLoadFailed": "Could not load receipt photos.",
+    "hasServiceRecord": "Has service record"
   },
   "privacy": {
     "title": "Privacy",

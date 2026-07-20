@@ -22,7 +22,8 @@
     "tryAgain": "Coba Lagi",
     "confirm": "Konfirmasi",
     "all": "Semua",
-    "ride": "Ride"
+    "ride": "Ride",
+    "deleting": "Deleting..."
   },
   "auth": {
     "signIn": "Masuk",
@@ -1486,7 +1487,15 @@
     "category_taxes_fees": "Pajak & biaya",
     "category_other": "Lainnya",
     "itemName": "Nama barang",
-    "itemNamePlaceholder": "Apa yang Anda beli?"
+    "itemNamePlaceholder": "Apa yang Anda beli?",
+    "serviceRecord": "Service record",
+    "viewServiceRecord": "View full service record",
+    "deleteExpense": "Delete expense",
+    "notFound": "Expense not found",
+    "serviceRecordLoadFailed": "Could not load the linked service record.",
+    "serviceRecordUnavailable": "Linked service record is no longer available.",
+    "receiptsLoadFailed": "Could not load receipt photos.",
+    "hasServiceRecord": "Has service record"
   },
   "privacy": {
     "title": "Privasi",
