@@ -1838,6 +1838,56 @@ export type Database = {
           },
         ]
       }
+      maintenance_task_line_items: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          line_total: number | null
+          part_ref: string | null
+          quantity: number | null
+          service_type: string
+          sort_order: number
+          task_id: string
+          unit_price: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          line_total?: number | null
+          part_ref?: string | null
+          quantity?: number | null
+          service_type: string
+          sort_order?: number
+          task_id: string
+          unit_price?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          line_total?: number | null
+          part_ref?: string | null
+          quantity?: number | null
+          service_type?: string
+          sort_order?: number
+          task_id?: string
+          unit_price?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_task_line_items_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_task_photos: {
         Row: {
           bucket: string
@@ -1906,7 +1956,10 @@ export type Database = {
           source: string
           status: string
           target_mileage: number | null
+          tax_amount: number | null
+          tax_rate: number | null
           title: string
+          total_amount: number | null
           updated_at: string
           user_id: string
         }
@@ -1936,7 +1989,10 @@ export type Database = {
           source?: string
           status?: string
           target_mileage?: number | null
+          tax_amount?: number | null
+          tax_rate?: number | null
           title: string
+          total_amount?: number | null
           updated_at?: string
           user_id: string
         }
@@ -1966,7 +2022,10 @@ export type Database = {
           source?: string
           status?: string
           target_mileage?: number | null
+          tax_amount?: number | null
+          tax_rate?: number | null
           title?: string
+          total_amount?: number | null
           updated_at?: string
           user_id?: string
         }
