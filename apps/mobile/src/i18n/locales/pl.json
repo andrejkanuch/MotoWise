@@ -22,8 +22,8 @@
     "tryAgain": "Spróbuj ponownie",
     "confirm": "Potwierdź",
     "all": "Wszystko",
-    "ride": "Ride",
-    "deleting": "Deleting..."
+    "ride": "Przejazd",
+    "deleting": "Usuwanie..."
   },
   "auth": {
     "signIn": "Zaloguj sie",
@@ -1493,11 +1493,11 @@
     "serviceRecord": "Zapis serwisowy",
     "viewServiceRecord": "Zobacz pełny zapis serwisowy",
     "deleteExpense": "Usuń wydatek",
-    "notFound": "Expense not found",
-    "serviceRecordLoadFailed": "Could not load the linked service record.",
-    "serviceRecordUnavailable": "Linked service record is no longer available.",
-    "receiptsLoadFailed": "Could not load receipt photos.",
-    "hasServiceRecord": "Has service record"
+    "notFound": "Nie znaleziono wydatku",
+    "serviceRecordLoadFailed": "Nie udało się wczytać powiązanego zapisu serwisowego.",
+    "serviceRecordUnavailable": "Powiązany zapis serwisowy nie jest już dostępny.",
+    "receiptsLoadFailed": "Nie udało się wczytać zdjęć paragonów.",
+    "hasServiceRecord": "Ma zapis serwisowy"
   },
   "privacy": {
     "title": "Prywatnosc",

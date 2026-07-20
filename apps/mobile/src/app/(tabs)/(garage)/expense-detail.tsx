@@ -2,7 +2,6 @@ import { palette, withAlpha } from '@motovault/design-system';
 import {
   ExpensePhotosDocument,
   ExpensesByMotorcycleDocument,
-  type ExpensesByMotorcycleQuery,
   MaintenanceTasksByMotorcycleDocument,
   type MaintenanceTasksByMotorcycleQuery,
 } from '@motovault/graphql';
@@ -72,18 +71,11 @@ export default function ExpenseDetailScreen() {
     queryKey: [...queryKeys.expenses.byMotorcycle(motorcycleId), 0],
     queryFn: () => gqlFetcher(ExpensesByMotorcycleDocument, { motorcycleId, year: 0 }),
     enabled: !!motorcycleId && !!expenseId,
-    initialData: () => cachedHit?.data,
-    initialDataUpdatedAt: () => {
-      if (!cachedHit) return undefined;
-      const entries = queryClient.getQueriesData<ExpensesByMotorcycleQuery>({
-        queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),
-      });
-      for (const [key] of entries) {
-        const state = queryClient.getQueryState(key);
-        if (state?.dataUpdatedAt) return state.dataUpdatedAt;
-      }
-      return undefined;
-    },
+    // Render-only seed from any cached year entry (placeholderData is NOT written
+    // to this all-time [..., 0] cache slot), so a year-specific hit can't
+    // masquerade as authoritative all-time data — the query still fetches and
+    // owns year=0 itself. (CodeRabbit #175.)
+    placeholderData: cachedHit?.data,
   });
   const expense =
     flattenExpenses(expensesQuery.data).find((item) => item.id === expenseId) ?? cachedHit?.expense;

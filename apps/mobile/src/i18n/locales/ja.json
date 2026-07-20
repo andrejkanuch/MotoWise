@@ -22,8 +22,8 @@
     "tryAgain": "再試行",
     "confirm": "確認",
     "all": "すべて",
-    "ride": "Ride",
-    "deleting": "Deleting..."
+    "ride": "ライド",
+    "deleting": "削除中..."
   },
   "auth": {
     "signIn": "サインイン",
@@ -1491,11 +1491,11 @@
     "serviceRecord": "整備記録",
     "viewServiceRecord": "整備記録をすべて見る",
     "deleteExpense": "費用を削除",
-    "notFound": "Expense not found",
-    "serviceRecordLoadFailed": "Could not load the linked service record.",
-    "serviceRecordUnavailable": "Linked service record is no longer available.",
-    "receiptsLoadFailed": "Could not load receipt photos.",
-    "hasServiceRecord": "Has service record"
+    "notFound": "費用が見つかりません",
+    "serviceRecordLoadFailed": "関連付けられた整備記録を読み込めませんでした。",
+    "serviceRecordUnavailable": "関連付けられた整備記録は利用できなくなりました。",
+    "receiptsLoadFailed": "レシートの写真を読み込めませんでした。",
+    "hasServiceRecord": "整備記録あり"
   },
   "privacy": {
     "title": "プライバシー",

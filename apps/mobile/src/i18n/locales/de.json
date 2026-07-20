@@ -22,8 +22,8 @@
     "tryAgain": "Erneut versuchen",
     "confirm": "Bestätigen",
     "all": "Alle",
-    "ride": "Ride",
-    "deleting": "Deleting..."
+    "ride": "Fahrt",
+    "deleting": "Wird gelöscht..."
   },
   "auth": {
     "signIn": "Anmelden",
@@ -1491,11 +1491,11 @@
     "serviceRecord": "Servicenachweis",
     "viewServiceRecord": "Vollständigen Nachweis ansehen",
     "deleteExpense": "Ausgabe löschen",
-    "notFound": "Expense not found",
-    "serviceRecordLoadFailed": "Could not load the linked service record.",
-    "serviceRecordUnavailable": "Linked service record is no longer available.",
-    "receiptsLoadFailed": "Could not load receipt photos.",
-    "hasServiceRecord": "Has service record"
+    "notFound": "Ausgabe nicht gefunden",
+    "serviceRecordLoadFailed": "Der verknüpfte Servicenachweis konnte nicht geladen werden.",
+    "serviceRecordUnavailable": "Der verknüpfte Servicenachweis ist nicht mehr verfügbar.",
+    "receiptsLoadFailed": "Belegfotos konnten nicht geladen werden.",
+    "hasServiceRecord": "Hat einen Servicenachweis"
   },
   "privacy": {
     "title": "Datenschutz",

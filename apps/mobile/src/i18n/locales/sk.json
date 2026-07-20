@@ -22,8 +22,8 @@
     "tryAgain": "Skúsiť znova",
     "confirm": "Potvrdiť",
     "all": "Všetko",
-    "ride": "Ride",
-    "deleting": "Deleting..."
+    "ride": "Jazda",
+    "deleting": "Odstraňuje sa..."
   },
   "auth": {
     "signIn": "Prihlásiť sa",
@@ -1493,11 +1493,11 @@
     "serviceRecord": "Servisný záznam",
     "viewServiceRecord": "Zobraziť celý záznam",
     "deleteExpense": "Odstrániť výdavok",
-    "notFound": "Expense not found",
-    "serviceRecordLoadFailed": "Could not load the linked service record.",
-    "serviceRecordUnavailable": "Linked service record is no longer available.",
-    "receiptsLoadFailed": "Could not load receipt photos.",
-    "hasServiceRecord": "Has service record"
+    "notFound": "Výdavok sa nenašiel",
+    "serviceRecordLoadFailed": "Prepojený servisný záznam sa nepodarilo načítať.",
+    "serviceRecordUnavailable": "Prepojený servisný záznam už nie je k dispozícii.",
+    "receiptsLoadFailed": "Fotografie účteniek sa nepodarilo načítať.",
+    "hasServiceRecord": "Má servisný záznam"
   },
   "privacy": {
     "title": "Súkromie",

@@ -22,8 +22,8 @@
     "tryAgain": "Reintentar",
     "confirm": "Confirmar",
     "all": "Todo",
-    "ride": "Ride",
-    "deleting": "Deleting..."
+    "ride": "Ruta",
+    "deleting": "Eliminando..."
   },
   "auth": {
     "signIn": "Iniciar Sesión",
@@ -1492,11 +1492,11 @@
     "serviceRecord": "Registro de servicio",
     "viewServiceRecord": "Ver registro completo",
     "deleteExpense": "Eliminar gasto",
-    "notFound": "Expense not found",
-    "serviceRecordLoadFailed": "Could not load the linked service record.",
-    "serviceRecordUnavailable": "Linked service record is no longer available.",
-    "receiptsLoadFailed": "Could not load receipt photos.",
-    "hasServiceRecord": "Has service record"
+    "notFound": "Gasto no encontrado",
+    "serviceRecordLoadFailed": "No se pudo cargar el registro de servicio vinculado.",
+    "serviceRecordUnavailable": "El registro de servicio vinculado ya no está disponible.",
+    "receiptsLoadFailed": "No se pudieron cargar las fotos de los recibos.",
+    "hasServiceRecord": "Tiene registro de servicio"
   },
   "privacy": {
     "title": "Privacidad",

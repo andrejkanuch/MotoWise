@@ -22,8 +22,8 @@
     "tryAgain": "Réessayer",
     "confirm": "Confirmer",
     "all": "Tout",
-    "ride": "Ride",
-    "deleting": "Deleting..."
+    "ride": "Trajet",
+    "deleting": "Suppression..."
   },
   "auth": {
     "signIn": "Se connecter",
@@ -1492,11 +1492,11 @@
     "serviceRecord": "Carnet d'entretien",
     "viewServiceRecord": "Voir le carnet complet",
     "deleteExpense": "Supprimer la dépense",
-    "notFound": "Expense not found",
-    "serviceRecordLoadFailed": "Could not load the linked service record.",
-    "serviceRecordUnavailable": "Linked service record is no longer available.",
-    "receiptsLoadFailed": "Could not load receipt photos.",
-    "hasServiceRecord": "Has service record"
+    "notFound": "Dépense introuvable",
+    "serviceRecordLoadFailed": "Impossible de charger le carnet d'entretien lié.",
+    "serviceRecordUnavailable": "Le carnet d'entretien lié n'est plus disponible.",
+    "receiptsLoadFailed": "Impossible de charger les photos des reçus.",
+    "hasServiceRecord": "Comporte un carnet d'entretien"
   },
   "privacy": {
     "title": "Confidentialité",
