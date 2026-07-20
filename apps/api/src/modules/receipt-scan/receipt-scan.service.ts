@@ -1,5 +1,7 @@
 import {
+  classifyServiceType,
   EXPENSE_CATEGORIES,
+  MaintenanceServiceType,
   MaintenanceTaskStatus,
   type MeasurementSystem,
   mileageToDisplayUnit,
@@ -15,7 +17,10 @@ import { deleteReceiptsPhotoObjects, PHOTO_BUCKETS } from '../../common/storage/
 import { costCentsFor } from '../../config/constants';
 import { AiBudgetService } from '../ai-budget/ai-budget.service';
 import { ExpensesService } from '../expenses/expenses.service';
-import { MaintenanceTasksService } from '../maintenance-tasks/maintenance-tasks.service';
+import {
+  type MaintenanceLineItemInput,
+  MaintenanceTasksService,
+} from '../maintenance-tasks/maintenance-tasks.service';
 import { MotorcyclesService } from '../motorcycles/motorcycles.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import type { CancelReceiptScanSuccess } from './dto/receipt-scan-cancel.dto';
@@ -571,44 +576,100 @@ export class ReceiptScanService {
   }
 
   /**
-   * Maintenance path: create a COMPLETED task with costs — this fires the linked
-   * auto-expense (U3). The cost components are additive in the auto-expense total,
-   * so we back the misc `cost` out of the receipt total minus the parts/labor
-   * breakdown, keeping the auto-expense equal to the receipt amount.
+   * Maintenance path: create a COMPLETED task as the authoritative financial
+   * wrapper for the service visit (structure redesign). `total_amount` is the
+   * gross paid — the single source of truth for the linked auto-expense (U3) —
+   * and tax is stored explicitly (`tax_amount`) rather than hidden in the misc
+   * `cost` bucket. parts/labor stay NET as printed.
+   *
+   * Reconcile-or-total-only (never throws): if the NET breakdown (parts + labor
+   * + tax) exceeds the gross total it cannot be a faithful decomposition, so we
+   * drop the breakdown and keep the total alone rather than misreport or block
+   * the save. The service mileage and structured line items are recorded too.
    */
   private async writeMaintenanceRecord(
     userId: string,
     input: SaveReceiptScanInput,
     compensations: Compensation[],
   ): Promise<SavedRecordRefs> {
-    const amount = input.amount ?? 0;
-    const partsCost = input.partsCost ?? undefined;
-    const laborCost = input.laborCost ?? undefined;
-    // Cross-field invariant: the itemized breakdown cannot exceed the receipt
-    // total. If it did, clamping misc `cost` to 0 would make the auto-expense
-    // (cost + parts + labor) exceed the receipt amount — misreporting spend.
-    // Reject rather than silently misreport (small epsilon absorbs FP noise).
-    const breakdown = (partsCost ?? 0) + (laborCost ?? 0);
-    if (breakdown > amount + 0.001) {
-      throw new Error(
-        `cost breakdown (parts ${partsCost ?? 0} + labor ${laborCost ?? 0}) exceeds receipt total ${amount}`,
-      );
-    }
-    const cost = Math.max(amount - breakdown, 0);
+    const total = input.amount ?? 0;
+    const parts = input.partsCost ?? undefined;
+    const labor = input.laborCost ?? undefined;
+    const tax = input.taxAmount ?? undefined;
+    // Total-only fallback: keep the breakdown only when it plausibly reconciles
+    // to the gross total (epsilon absorbs FP noise); otherwise show the total
+    // alone. Either way total_amount is authoritative for the auto-expense.
+    const breakdown = (parts ?? 0) + (labor ?? 0) + (tax ?? 0);
+    const reconciles = breakdown <= total + 0.001;
+
+    const completedMileage = await this.serviceMileage(userId, input);
 
     const task = await this.maintenanceTasksService.create(userId, {
       motorcycleId: input.motorcycleId,
       title: input.itemName || input.vendor || DEFAULT_MAINTENANCE_TITLE,
       status: MaintenanceTaskStatus.COMPLETED,
       completedAt: input.date ?? undefined,
-      cost,
-      partsCost,
-      laborCost,
+      completedMileage,
+      totalAmount: total,
+      partsCost: reconciles ? parts : undefined,
+      laborCost: reconciles ? labor : undefined,
+      taxAmount: reconciles ? tax : undefined,
+      taxRate: reconciles ? (input.taxRate ?? undefined) : undefined,
       currency: input.currency ?? undefined,
       source: MAINTENANCE_SOURCE_RECEIPT_SCAN,
     });
+    // reverseTask also purges line items, so a single compensation covers both.
     compensations.push(() => this.reverseTask(userId, task.id));
+
+    const lineItems = this.buildLineItems(input.lineItems);
+    if (lineItems.length > 0) {
+      await this.maintenanceTasksService.addLineItems(userId, task.id, lineItems);
+    }
+
     return { recordType: RECORD_TYPES.MAINTENANCE, taskId: task.id };
+  }
+
+  /**
+   * Convert the receipt's printed odometer to the owner's stored unit for the
+   * task's completed_mileage (the mileage AT the service). Independent of the
+   * apply-to-bike toggle — a past service's reading is valid history even when
+   * it is lower than the bike's current odometer. Skips when absent or the
+   * printed unit is unknown (KTD-7 — never assume km).
+   */
+  private async serviceMileage(
+    userId: string,
+    input: SaveReceiptScanInput,
+  ): Promise<number | undefined> {
+    if (input.odometerValue == null) return undefined;
+    if (input.odometerUnit !== ODOMETER_UNITS.KM && input.odometerUnit !== ODOMETER_UNITS.MI) {
+      return undefined;
+    }
+    const system = await this.loadMeasurementSystem(userId);
+    const km =
+      input.odometerUnit === ODOMETER_UNITS.MI
+        ? milesToKm(input.odometerValue)
+        : input.odometerValue;
+    return Math.round(mileageToDisplayUnit(km, system));
+  }
+
+  /** Resolve reviewed line items into persistable rows, classifying service_type server-side. */
+  private buildLineItems(items: SaveReceiptScanInput['lineItems']): MaintenanceLineItemInput[] {
+    if (!items || items.length === 0) return [];
+    const valid = new Set<string>(Object.values(MaintenanceServiceType));
+    return items
+      .filter((item) => item.label?.trim())
+      .map((item) => ({
+        // Trust a client-supplied canonical type; otherwise derive it from the label.
+        serviceType:
+          item.serviceType && valid.has(item.serviceType)
+            ? item.serviceType
+            : classifyServiceType(item.label),
+        label: item.label,
+        partRef: item.partRef ?? null,
+        quantity: item.quantity ?? null,
+        unitPrice: item.unitPrice ?? null,
+        lineTotal: item.lineTotal ?? null,
+      }));
   }
 
   /** Links the already-uploaded receipts object to the created record (no re-upload). */
@@ -727,6 +788,9 @@ export class ReceiptScanService {
     for (const row of data ?? []) {
       if (!(await this.reverseExpense(userId, row.id as string))) ok = false;
     }
+    // Purge structured line items (soft-deleting the task does not cascade to
+    // them). Best-effort — mirrors the storage-purge philosophy.
+    await this.maintenanceTasksService.deleteLineItems(userId, taskId);
     try {
       await this.maintenanceTasksService.softDelete(userId, taskId);
     } catch (err) {

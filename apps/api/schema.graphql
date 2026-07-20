@@ -918,6 +918,26 @@ enum MaintenancePriority {
   medium
 }
 
+enum MaintenanceServiceType {
+  air_filter
+  battery
+  belt
+  brake_fluid
+  brake_pads
+  chain
+  coolant
+  final_drive
+  fork_oil
+  general_service
+  oil_change
+  oil_filter
+  other
+  spark_plug
+  tire
+  transmission_oil
+  valve_clearance
+}
+
 type MaintenanceTask {
   completedAt: String
   completedMileage: Int
@@ -931,6 +951,7 @@ type MaintenanceTask {
   intervalKm: Int
   isRecurring: Boolean!
   laborCost: Float
+  lineItems: [MaintenanceTaskLineItem!]!
   motorcycleId: String!
   notes: String
   oemScheduleId: String
@@ -944,9 +965,24 @@ type MaintenanceTask {
   source: MaintenanceTaskSource!
   status: MaintenanceTaskStatus!
   targetMileage: Int
+  taxAmount: Float
+  taxRate: Float
   title: String!
+  totalAmount: Float
   updatedAt: String!
   userId: String!
+}
+
+type MaintenanceTaskLineItem {
+  createdAt: String!
+  id: ID!
+  label: String!
+  lineTotal: Float
+  partRef: String
+  quantity: Float
+  serviceType: MaintenanceServiceType!
+  taskId: String!
+  unitPrice: Float
 }
 
 enum MaintenanceTaskSource {
@@ -1647,12 +1683,24 @@ input SaveReceiptScanInput {
   date: String
   itemName: String
   laborCost: Float
+  lineItems: [SaveReceiptScanLineItemInput!]
   motorcycleId: String!
   odometerUnit: String
   odometerValue: Float
   partsCost: Float
+  taxAmount: Float
+  taxRate: Float
   type: String!
   vendor: String
+}
+
+input SaveReceiptScanLineItemInput {
+  label: String!
+  lineTotal: Float
+  partRef: String
+  quantity: Float
+  serviceType: String
+  unitPrice: Float
 }
 
 union SaveReceiptScanResult = ReceiptScanError | SaveReceiptScanSuccess

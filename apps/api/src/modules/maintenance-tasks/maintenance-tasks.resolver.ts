@@ -18,7 +18,9 @@ import { MaintenanceTasksService } from './maintenance-tasks.service';
 import { CompleteTaskResult } from './models/complete-task-result.model';
 import { MaintenanceTask } from './models/maintenance-task.model';
 import { SpendingSummary } from './models/spending-summary.model';
+import { MaintenanceTaskLineItem } from './models/task-line-item.model';
 import { TaskPhoto } from './models/task-photo.model';
+import { TaskLineItemsLoader } from './task-line-items.loader';
 import { TaskPhotosLoader } from './task-photos.loader';
 
 @Resolver(() => MaintenanceTask)
@@ -27,6 +29,7 @@ export class MaintenanceTasksResolver {
   constructor(
     private readonly maintenanceTasksService: MaintenanceTasksService,
     private readonly taskPhotosLoader: TaskPhotosLoader,
+    private readonly taskLineItemsLoader: TaskLineItemsLoader,
   ) {}
 
   @Query(() => [MaintenanceTask])
@@ -143,5 +146,16 @@ export class MaintenanceTasksResolver {
   ): Promise<TaskPhoto[]> {
     if (task.photos && task.photos.length > 0) return task.photos;
     return this.taskPhotosLoader.load(task.id, user.id);
+  }
+
+  // ── Field resolver for line items ───────────────────────────────
+
+  @ResolveField(() => [MaintenanceTaskLineItem])
+  async lineItems(
+    @CurrentUser() user: AuthUser,
+    @Parent() task: MaintenanceTask,
+  ): Promise<MaintenanceTaskLineItem[]> {
+    if (task.lineItems && task.lineItems.length > 0) return task.lineItems;
+    return this.taskLineItemsLoader.load(task.id, user.id);
   }
 }

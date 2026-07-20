@@ -202,6 +202,8 @@ describe('ReceiptScanService', () => {
     create: ReturnType<typeof vi.fn>;
     softDelete: ReturnType<typeof vi.fn>;
     addPhoto: ReturnType<typeof vi.fn>;
+    addLineItems: ReturnType<typeof vi.fn>;
+    deleteLineItems: ReturnType<typeof vi.fn>;
   };
   let motorcyclesService: {
     findById: ReturnType<typeof vi.fn>;
@@ -252,6 +254,8 @@ describe('ReceiptScanService', () => {
       create: vi.fn().mockResolvedValue({ id: TASK_ID }),
       softDelete: vi.fn().mockResolvedValue(true),
       addPhoto: vi.fn().mockResolvedValue({ id: PHOTO_ID }),
+      addLineItems: vi.fn().mockResolvedValue(0),
+      deleteLineItems: vi.fn().mockResolvedValue(undefined),
     };
     motorcyclesService = {
       findById: vi.fn().mockResolvedValue({ id: MOTO_ID, currentMileage: 10_000 }),
@@ -802,22 +806,31 @@ describe('ReceiptScanService', () => {
       ).toMatchObject({ expenseId: EXPENSE_ID, photoId: PHOTO_ID });
     });
 
-    it('maintenance path creates completed task w/ source + backs cost out of breakdown', async () => {
+    it('maintenance path creates completed task w/ source + authoritative total (wrapper)', async () => {
       routeDb(scanRow());
       const res = await service.saveReceiptScan(
         USER,
         CLIENT_SCAN_ID,
-        saveInput({ type: RECORD_TYPES.MAINTENANCE, amount: 200, partsCost: 120, laborCost: 50 }),
+        saveInput({
+          type: RECORD_TYPES.MAINTENANCE,
+          amount: 200,
+          partsCost: 120,
+          laborCost: 50,
+          taxAmount: 30,
+        }),
       );
       expect('refs' in res).toBe(true);
+      // Breakdown (120+50+30=200) reconciles to the gross total → total_amount is
+      // authoritative, tax is explicit, and the misc `cost` bucket is NOT used.
       expect(maintenanceTasksService.create).toHaveBeenCalledWith(
         USER.id,
         expect.objectContaining({
           status: 'completed',
           source: 'receipt_scan',
-          cost: 30, // 200 - 120 - 50 → auto-expense total stays 200
+          totalAmount: 200,
           partsCost: 120,
           laborCost: 50,
+          taxAmount: 30,
         }),
       );
       expect(maintenanceTasksService.addPhoto).toHaveBeenCalledWith(
@@ -826,6 +839,41 @@ describe('ReceiptScanService', () => {
         STORAGE_PATH,
         undefined,
         'receipts',
+      );
+    });
+
+    it('persists classified line items + service mileage on the maintenance task', async () => {
+      routeDb(scanRow());
+      const res = await service.saveReceiptScan(
+        USER,
+        CLIENT_SCAN_ID,
+        saveInput({
+          type: RECORD_TYPES.MAINTENANCE,
+          amount: 241.46,
+          odometerValue: 37505,
+          odometerUnit: 'km',
+          lineItems: [
+            { label: 'ULTRA DOT 4 BRAKE FLUID' }, // → brake_fluid (server-classified)
+            { label: 'FILTRO DE ACEITE MOTOR Y CAMBIO DCT' }, // → transmission_oil
+            { label: 'unreadable smudge', serviceType: 'spark_plug' }, // client type trusted
+          ],
+        }),
+      );
+      expect('refs' in res).toBe(true);
+      // Service mileage stamped on the completed task (KTD-7 conversion).
+      expect(maintenanceTasksService.create).toHaveBeenCalledWith(
+        USER.id,
+        expect.objectContaining({ completedMileage: expect.any(Number) }),
+      );
+      // Line items persisted with server-derived canonical service types.
+      expect(maintenanceTasksService.addLineItems).toHaveBeenCalledWith(
+        USER.id,
+        TASK_ID,
+        expect.arrayContaining([
+          expect.objectContaining({ serviceType: 'brake_fluid', label: 'ULTRA DOT 4 BRAKE FLUID' }),
+          expect.objectContaining({ serviceType: 'transmission_oil' }),
+          expect.objectContaining({ serviceType: 'spark_plug' }),
+        ]),
       );
     });
 
@@ -857,15 +905,27 @@ describe('ReceiptScanService', () => {
       expect(db.remove).not.toHaveBeenCalled();
     });
 
-    it('cost breakdown exceeding the receipt total → SAVE_FAILED (no task created)', async () => {
+    it('breakdown exceeding the receipt total → total-only fallback (no throw)', async () => {
       routeDb(scanRow());
+      // parts+labor (80+50=130) exceed the gross total (100): it cannot be a
+      // faithful decomposition, so the save keeps the total alone rather than
+      // blocking (the pre-redesign behavior threw SAVE_FAILED).
       const res = await service.saveReceiptScan(
         USER,
         CLIENT_SCAN_ID,
         saveInput({ type: RECORD_TYPES.MAINTENANCE, amount: 100, partsCost: 80, laborCost: 50 }),
       );
-      expect('code' in res && res.code).toBe(RECEIPT_SCAN_ERROR_CODES.SAVE_FAILED);
-      expect(maintenanceTasksService.create).not.toHaveBeenCalled();
+      expect('refs' in res).toBe(true);
+      expect(maintenanceTasksService.create).toHaveBeenCalledWith(
+        USER.id,
+        expect.objectContaining({
+          status: 'completed',
+          source: 'receipt_scan',
+          totalAmount: 100,
+          partsCost: undefined,
+          laborCost: undefined,
+        }),
+      );
     });
 
     it('concurrent save that loses the atomic claim does not double-write', async () => {

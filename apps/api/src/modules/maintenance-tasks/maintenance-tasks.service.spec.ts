@@ -271,6 +271,8 @@ describe('MaintenanceTasksService', () => {
         100,
         'Oil Change',
         'EUR',
+        // Auto-expense is dated on the service day (task completedAt), not today.
+        '2026-07-13T12:00:00.000Z',
       );
     });
 
@@ -351,6 +353,7 @@ describe('MaintenanceTasksService', () => {
         100, // 50 + 30 + 20
         'Oil Change',
         undefined, // no task currency → expense falls back to profile currency
+        '2026-03-20T00:00:00Z', // dated on the service day (task completedAt)
       );
     });
 

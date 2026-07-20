@@ -34,6 +34,18 @@ function roundCurrency(value: number): number {
   return Math.round(Number(value) * 100) / 100;
 }
 
+/**
+ * Coerce a task's completedAt (a timestamptz string) to the DATE column's
+ * `YYYY-MM-DD`, using the UTC calendar date so it matches how completedAt is
+ * stored. Falls back to today for a null/unparseable value.
+ */
+function toExpenseDate(date?: string | null): string {
+  const today = new Date().toISOString().slice(0, 10);
+  if (!date) return today;
+  const parsed = new Date(date);
+  return Number.isNaN(parsed.getTime()) ? today : parsed.toISOString().slice(0, 10);
+}
+
 /** One month bucket as returned by the expense_dashboard_aggregates RPC. */
 interface DashboardAggregateBucket {
   year: number;
@@ -253,6 +265,8 @@ export class ExpensesService {
     amount: number,
     taskTitle: string,
     currency?: string,
+    /** Service date (task completedAt). Defaults to today when absent. */
+    date?: string | null,
   ): Promise<Expense | null> {
     this.logger.log(`createFromTask: userId=${userId}, taskId=${taskId}, amount=${amount}`);
 
@@ -278,7 +292,10 @@ export class ExpensesService {
         motorcycle_id: motorcycleId,
         amount,
         category: 'maintenance',
-        date: new Date().toISOString().split('T')[0],
+        // Date on the service day (task completedAt), not "today". Slice the UTC
+        // calendar date so a backdated/scanned invoice lands on its real date;
+        // fall back to today when absent or unparseable.
+        date: toExpenseDate(date),
         description: taskTitle,
         maintenance_task_id: taskId,
         ...(resolvedCurrency && { currency: resolvedCurrency }),

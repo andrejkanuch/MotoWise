@@ -20,7 +20,20 @@ import { ExpensesService } from '../expenses/expenses.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { MaintenanceTask } from './models/maintenance-task.model';
+import type { MaintenanceTaskLineItem } from './models/task-line-item.model';
 import type { TaskPhoto } from './models/task-photo.model';
+
+const LINE_ITEMS_TABLE = 'maintenance_task_line_items';
+
+/** A resolved line item to persist (serviceType already classified by the caller). */
+export interface MaintenanceLineItemInput {
+  serviceType: string;
+  label: string;
+  partRef?: string | null;
+  quantity?: number | null;
+  unitPrice?: number | null;
+  lineTotal?: number | null;
+}
 
 const MAX_PHOTOS_PER_TASK = 5;
 
@@ -122,6 +135,10 @@ export class MaintenanceTasksService {
       cost?: number;
       partsCost?: number;
       laborCost?: number;
+      // Authoritative gross total + explicit tax (receipt-scan financial wrapper).
+      totalAmount?: number;
+      taxAmount?: number;
+      taxRate?: number;
       currency?: string;
       // Attribution: 'user' (default) | 'oem' | 'imported' | 'receipt_scan'.
       // Not a GraphQL field — set server-side (e.g. U7b's saveReceiptScan).
@@ -167,6 +184,9 @@ export class MaintenanceTasksService {
         ...(input.cost !== undefined && { cost: input.cost }),
         ...(input.partsCost !== undefined && { parts_cost: input.partsCost }),
         ...(input.laborCost !== undefined && { labor_cost: input.laborCost }),
+        ...(input.totalAmount !== undefined && { total_amount: input.totalAmount }),
+        ...(input.taxAmount !== undefined && { tax_amount: input.taxAmount }),
+        ...(input.taxRate !== undefined && { tax_rate: input.taxRate }),
         ...(input.currency !== undefined && { currency: input.currency }),
         ...(isCompleted && {
           completed_at: completedAtIso,
@@ -196,7 +216,10 @@ export class MaintenanceTasksService {
    */
   private async createAutoExpenseIfNeeded(userId: string, task: MaintenanceTask): Promise<void> {
     if (task.status !== 'completed') return;
-    const totalCost = (task.cost ?? 0) + (task.partsCost ?? 0) + (task.laborCost ?? 0);
+    // Prefer the authoritative gross total (receipt-scan wrapper); fall back to the
+    // additive breakdown for tasks that carry no explicit total.
+    const totalCost =
+      task.totalAmount ?? (task.cost ?? 0) + (task.partsCost ?? 0) + (task.laborCost ?? 0);
     if (totalCost <= 0) return;
 
     try {
@@ -209,6 +232,9 @@ export class MaintenanceTasksService {
         // Preserve the task's currency (e.g. a scanned receipt's currency) so the
         // linked auto-expense is not silently coerced to the profile default.
         task.currency,
+        // Date the expense on the day the service happened (task completion),
+        // not "today" — a backdated/scanned invoice must land on its real date.
+        task.completedAt,
       );
     } catch (err) {
       this.logger.warn(`Auto-expense creation failed for task ${task.id}: ${err}`);
@@ -703,6 +729,87 @@ export class MaintenanceTasksService {
     };
   }
 
+  // ── Line items (receipt-scan structured history) ───────────────────
+
+  /**
+   * Persist structured service line items for a task (own-user, RLS-enforced via
+   * the user client). `serviceType` is pre-classified by the caller. Best-effort
+   * per the receipt-scan saga: throws so the compensating rollback can fire.
+   */
+  async addLineItems(
+    userId: string,
+    taskId: string,
+    items: MaintenanceLineItemInput[],
+  ): Promise<number> {
+    if (items.length === 0) return 0;
+    const rows = items.map((item, index) => ({
+      task_id: taskId,
+      user_id: userId,
+      service_type: item.serviceType,
+      label: item.label,
+      part_ref: item.partRef ?? null,
+      quantity: item.quantity ?? null,
+      unit_price: item.unitPrice ?? null,
+      line_total: item.lineTotal ?? null,
+      sort_order: index,
+    }));
+    const { data, error } = await this.supabase.from(LINE_ITEMS_TABLE).insert(rows).select('id');
+    if (error) {
+      this.logger.error(`addLineItems failed for task ${taskId}: ${error.message}`);
+      throw new BadRequestException('Failed to add maintenance line items');
+    }
+    return data?.length ?? 0;
+  }
+
+  /** Remove all line items for a task (receipt-scan save rollback / undo cleanup). */
+  async deleteLineItems(userId: string, taskId: string): Promise<void> {
+    const { error } = await this.supabase
+      .from(LINE_ITEMS_TABLE)
+      .delete()
+      .eq('task_id', taskId)
+      .eq('user_id', userId);
+    if (error) this.logger.warn(`deleteLineItems failed for task ${taskId}: ${error.message}`);
+  }
+
+  /** Batched line-item fetch for the request-scoped DataLoader (own-user via RLS). */
+  async findLineItemsByTaskIds(
+    taskIds: string[],
+    _ownerUserId: string,
+  ): Promise<Map<string, MaintenanceTaskLineItem[]>> {
+    const map = new Map<string, MaintenanceTaskLineItem[]>();
+    for (const id of taskIds) map.set(id, []);
+    if (taskIds.length === 0) return map;
+
+    const { data, error } = await this.supabase
+      .from(LINE_ITEMS_TABLE)
+      .select('*')
+      .in('task_id', taskIds)
+      .order('sort_order', { ascending: true });
+    if (error) throw new InternalServerErrorException('Failed to fetch line items');
+
+    for (const row of data ?? []) {
+      const item = this.mapLineItemRow(row);
+      const list = map.get(item.taskId) ?? [];
+      list.push(item);
+      map.set(item.taskId, list);
+    }
+    return map;
+  }
+
+  private mapLineItemRow(row: Record<string, unknown>): MaintenanceTaskLineItem {
+    return {
+      id: row.id as string,
+      taskId: row.task_id as string,
+      serviceType: row.service_type as string,
+      label: row.label as string,
+      partRef: (row.part_ref as string) ?? null,
+      quantity: (row.quantity as number) ?? null,
+      unitPrice: (row.unit_price as number) ?? null,
+      lineTotal: (row.line_total as number) ?? null,
+      createdAt: row.created_at as string,
+    };
+  }
+
   private mapRow(row: Record<string, unknown>): MaintenanceTask {
     return {
       id: row.id as string,
@@ -721,6 +828,9 @@ export class MaintenanceTasksService {
       cost: (row.cost as number) ?? undefined,
       partsCost: (row.parts_cost as number) ?? undefined,
       laborCost: (row.labor_cost as number) ?? undefined,
+      totalAmount: (row.total_amount as number) ?? undefined,
+      taxAmount: (row.tax_amount as number) ?? undefined,
+      taxRate: (row.tax_rate as number) ?? undefined,
       currency: (row.currency as string) ?? undefined,
       source: (row.source as string) ?? 'user',
       oemScheduleId: (row.oem_schedule_id as string) ?? undefined,
@@ -728,6 +838,7 @@ export class MaintenanceTasksService {
       intervalDays: (row.interval_days as number) ?? undefined,
       isRecurring: (row.is_recurring as boolean) ?? false,
       photos: [],
+      lineItems: [],
       // MOT-139: multi-stage reminder flags with legacy defaults
       remind30d: (row.remind_30d as boolean) ?? false,
       remind7d: (row.remind_7d as boolean) ?? false,

@@ -91,6 +91,22 @@ export type ReceiptExtraction = z.infer<typeof ReceiptExtractionSchema>;
  * of the expense/maintenance write path. Mirrors `SaveReceiptScanInput` in the
  * API DTO; kept permissive where the review card legitimately allows free text.
  */
+/**
+ * A single reviewed service line item (maintenance save path). `serviceType` is
+ * the canonical MaintenanceServiceType key; the server re-derives it from
+ * `label` when absent/unknown, so the client may omit it. Cost fields are
+ * optional itemization detail — the task's total remains authoritative.
+ */
+export const SaveReceiptScanLineItemSchema = z.object({
+  serviceType: z.string().max(64).nullable().optional(),
+  label: z.string().min(1).max(300),
+  partRef: z.string().max(120).nullable().optional(),
+  quantity: z.number().nonnegative().nullable().optional(),
+  unitPrice: z.number().nonnegative().nullable().optional(),
+  lineTotal: z.number().nonnegative().nullable().optional(),
+});
+export type SaveReceiptScanLineItem = z.infer<typeof SaveReceiptScanLineItemSchema>;
+
 export const SaveReceiptScanInputSchema = z.object({
   motorcycleId: z.string().uuid(),
   /** 'maintenance' | 'expense' — dispatches the write path. */
@@ -108,6 +124,12 @@ export const SaveReceiptScanInputSchema = z.object({
   category: z.string().max(64).nullable().optional(),
   partsCost: z.number().nonnegative().nullable().optional(),
   laborCost: z.number().nonnegative().nullable().optional(),
+  /** Explicit tax/VAT on the visit (maintenance). Kept separate from parts/labor (NET). */
+  taxAmount: z.number().nonnegative().nullable().optional(),
+  /** Printed tax rate as a percentage (e.g. 21 for 21% IVA). */
+  taxRate: z.number().nonnegative().nullable().optional(),
+  /** Reviewed service line items (maintenance). Persisted as maintenance_task_line_items. */
+  lineItems: z.array(SaveReceiptScanLineItemSchema).max(50).optional(),
   applyOdometer: z.boolean().optional(),
   odometerValue: z.number().nonnegative().nullable().optional(),
   /** 'km' | 'mi' as PRINTED on the receipt — never assumed (KTD-7). */

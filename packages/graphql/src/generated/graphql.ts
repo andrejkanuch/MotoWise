@@ -984,6 +984,26 @@ export enum MaintenancePriority {
   Medium = 'medium'
 }
 
+export enum MaintenanceServiceType {
+  AirFilter = 'air_filter',
+  Battery = 'battery',
+  Belt = 'belt',
+  BrakeFluid = 'brake_fluid',
+  BrakePads = 'brake_pads',
+  Chain = 'chain',
+  Coolant = 'coolant',
+  FinalDrive = 'final_drive',
+  ForkOil = 'fork_oil',
+  GeneralService = 'general_service',
+  OilChange = 'oil_change',
+  OilFilter = 'oil_filter',
+  Other = 'other',
+  SparkPlug = 'spark_plug',
+  Tire = 'tire',
+  TransmissionOil = 'transmission_oil',
+  ValveClearance = 'valve_clearance'
+}
+
 export type MaintenanceTask = {
   __typename?: 'MaintenanceTask';
   completedAt?: Maybe<Scalars['String']['output']>;
@@ -998,6 +1018,7 @@ export type MaintenanceTask = {
   intervalKm?: Maybe<Scalars['Int']['output']>;
   isRecurring: Scalars['Boolean']['output'];
   laborCost?: Maybe<Scalars['Float']['output']>;
+  lineItems: Array<MaintenanceTaskLineItem>;
   motorcycleId: Scalars['String']['output'];
   notes?: Maybe<Scalars['String']['output']>;
   oemScheduleId?: Maybe<Scalars['String']['output']>;
@@ -1011,9 +1032,25 @@ export type MaintenanceTask = {
   source: MaintenanceTaskSource;
   status: MaintenanceTaskStatus;
   targetMileage?: Maybe<Scalars['Int']['output']>;
+  taxAmount?: Maybe<Scalars['Float']['output']>;
+  taxRate?: Maybe<Scalars['Float']['output']>;
   title: Scalars['String']['output'];
+  totalAmount?: Maybe<Scalars['Float']['output']>;
   updatedAt: Scalars['String']['output'];
   userId: Scalars['String']['output'];
+};
+
+export type MaintenanceTaskLineItem = {
+  __typename?: 'MaintenanceTaskLineItem';
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  label: Scalars['String']['output'];
+  lineTotal?: Maybe<Scalars['Float']['output']>;
+  partRef?: Maybe<Scalars['String']['output']>;
+  quantity?: Maybe<Scalars['Float']['output']>;
+  serviceType: MaintenanceServiceType;
+  taskId: Scalars['String']['output'];
+  unitPrice?: Maybe<Scalars['Float']['output']>;
 };
 
 export enum MaintenanceTaskSource {
@@ -2591,12 +2628,24 @@ export type SaveReceiptScanInput = {
   date?: InputMaybe<Scalars['String']['input']>;
   itemName?: InputMaybe<Scalars['String']['input']>;
   laborCost?: InputMaybe<Scalars['Float']['input']>;
+  lineItems?: InputMaybe<Array<SaveReceiptScanLineItemInput>>;
   motorcycleId: Scalars['String']['input'];
   odometerUnit?: InputMaybe<Scalars['String']['input']>;
   odometerValue?: InputMaybe<Scalars['Float']['input']>;
   partsCost?: InputMaybe<Scalars['Float']['input']>;
+  taxAmount?: InputMaybe<Scalars['Float']['input']>;
+  taxRate?: InputMaybe<Scalars['Float']['input']>;
   type: Scalars['String']['input'];
   vendor?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SaveReceiptScanLineItemInput = {
+  label: Scalars['String']['input'];
+  lineTotal?: InputMaybe<Scalars['Float']['input']>;
+  partRef?: InputMaybe<Scalars['String']['input']>;
+  quantity?: InputMaybe<Scalars['Float']['input']>;
+  serviceType?: InputMaybe<Scalars['String']['input']>;
+  unitPrice?: InputMaybe<Scalars['Float']['input']>;
 };
 
 export type SaveReceiptScanResult = ReceiptScanError | SaveReceiptScanSuccess;
