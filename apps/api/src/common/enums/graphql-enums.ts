@@ -8,6 +8,7 @@ import type {
   InsightType,
   LearningFormat,
   MaintenancePriority,
+  MaintenanceServiceType,
   MaintenanceStyle,
   MaintenanceTaskSource,
   MaintenanceTaskStatus,
@@ -339,6 +340,51 @@ const _taskSourceSync: Record<MaintenanceTaskSource, GqlMaintenanceTaskSource> =
   oem: GqlMaintenanceTaskSource.oem,
   imported: GqlMaintenanceTaskSource.imported,
   receipt_scan: GqlMaintenanceTaskSource.receipt_scan,
+};
+
+export enum GqlMaintenanceServiceType {
+  oil_change = 'oil_change',
+  oil_filter = 'oil_filter',
+  brake_fluid = 'brake_fluid',
+  transmission_oil = 'transmission_oil',
+  final_drive = 'final_drive',
+  coolant = 'coolant',
+  valve_clearance = 'valve_clearance',
+  air_filter = 'air_filter',
+  spark_plug = 'spark_plug',
+  fork_oil = 'fork_oil',
+  chain = 'chain',
+  tire = 'tire',
+  brake_pads = 'brake_pads',
+  belt = 'belt',
+  battery = 'battery',
+  general_service = 'general_service',
+  other = 'other',
+}
+
+registerEnumType(GqlMaintenanceServiceType, { name: 'MaintenanceServiceType' });
+
+// Compile-time sync guard: fails typecheck if enums.ts gains a MaintenanceServiceType
+// member not mirrored here (the drift that took down the maintenanceTasks query for
+// MaintenanceTaskSource).
+const _serviceTypeSync: Record<MaintenanceServiceType, GqlMaintenanceServiceType> = {
+  oil_change: GqlMaintenanceServiceType.oil_change,
+  oil_filter: GqlMaintenanceServiceType.oil_filter,
+  brake_fluid: GqlMaintenanceServiceType.brake_fluid,
+  transmission_oil: GqlMaintenanceServiceType.transmission_oil,
+  final_drive: GqlMaintenanceServiceType.final_drive,
+  coolant: GqlMaintenanceServiceType.coolant,
+  valve_clearance: GqlMaintenanceServiceType.valve_clearance,
+  air_filter: GqlMaintenanceServiceType.air_filter,
+  spark_plug: GqlMaintenanceServiceType.spark_plug,
+  fork_oil: GqlMaintenanceServiceType.fork_oil,
+  chain: GqlMaintenanceServiceType.chain,
+  tire: GqlMaintenanceServiceType.tire,
+  brake_pads: GqlMaintenanceServiceType.brake_pads,
+  belt: GqlMaintenanceServiceType.belt,
+  battery: GqlMaintenanceServiceType.battery,
+  general_service: GqlMaintenanceServiceType.general_service,
+  other: GqlMaintenanceServiceType.other,
 };
 
 export enum GqlRideStatus {

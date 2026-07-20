@@ -242,6 +242,37 @@ export const MaintenanceTaskSource = {
 export type MaintenanceTaskSource =
   (typeof MaintenanceTaskSource)[keyof typeof MaintenanceTaskSource];
 
+/**
+ * Canonical maintenance service taxonomy — the single source of truth for
+ * classifying a service operation (an OEM schedule item, a user task, or a
+ * scanned receipt line) into a stable type. Introduced for receipt-scan
+ * structured history (docs/plans/receipt-scan-structure-redesign-2026-07-20.md);
+ * both scanned line items and the free-text `oem_maintenance_schedules.task_name`
+ * catalog normalize onto it via `classifyServiceType`, so per-type history and
+ * reminders join on type equality rather than fuzzy string matching.
+ */
+export const MaintenanceServiceType = {
+  OIL_CHANGE: 'oil_change',
+  OIL_FILTER: 'oil_filter',
+  BRAKE_FLUID: 'brake_fluid',
+  TRANSMISSION_OIL: 'transmission_oil',
+  FINAL_DRIVE: 'final_drive',
+  COOLANT: 'coolant',
+  VALVE_CLEARANCE: 'valve_clearance',
+  AIR_FILTER: 'air_filter',
+  SPARK_PLUG: 'spark_plug',
+  FORK_OIL: 'fork_oil',
+  CHAIN: 'chain',
+  TIRE: 'tire',
+  BRAKE_PADS: 'brake_pads',
+  BELT: 'belt',
+  BATTERY: 'battery',
+  GENERAL_SERVICE: 'general_service',
+  OTHER: 'other',
+} as const;
+export type MaintenanceServiceType =
+  (typeof MaintenanceServiceType)[keyof typeof MaintenanceServiceType];
+
 export const URGENCY_VALUES = ['stranded', 'soon', 'preventive'] as const;
 export type Urgency = (typeof URGENCY_VALUES)[number];
 
