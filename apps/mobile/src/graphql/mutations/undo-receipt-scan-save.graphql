@@ -1,0 +1,13 @@
+mutation UndoReceiptScanSave($scanId: String!) {
+  undoReceiptScanSave(scanId: $scanId) {
+    __typename
+    ... on UndoReceiptScanSuccess {
+      scanId
+      status
+    }
+    ... on ReceiptScanError {
+      code
+      reason
+    }
+  }
+}

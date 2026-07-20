@@ -7,12 +7,14 @@ input AddDocumentCategoryInput {
 }
 
 input AddExpensePhotoInput {
+  bucket: String
   expenseId: String!
   fileSizeBytes: Int
   storagePath: String!
 }
 
 input AddTaskPhotoInput {
+  bucket: String
   fileSizeBytes: Int
   storagePath: String!
   taskId: String!
@@ -225,6 +227,13 @@ type BrowsePlace {
   slug: String!
 }
 
+union CancelReceiptScanResult = CancelReceiptScanSuccess | ReceiptScanError
+
+type CancelReceiptScanSuccess {
+  scanId: String!
+  status: String!
+}
+
 type CategoryTotal {
   category: String!
   total: Float!
@@ -373,18 +382,6 @@ input CreateFlagInput {
   sectionReference: String
 }
 
-input CreateFuelLogInput {
-  currency: String
-  filledAt: String
-  fuelLitres: Float!
-  fuelType: String
-  isPartial: Boolean
-  motorcycleId: String!
-  notes: String
-  odometerKm: Float!
-  totalCost: Float
-}
-
 input CreateGroupRideInput {
   dateTime: String!
   description: String!
@@ -401,13 +398,17 @@ input CreateGroupRideInput {
 input CreateMaintenanceTaskInput {
   completedAt: String
   completedMileage: Int
+  cost: Float
+  currency: String
   description: String
   dueDate: String
   intervalDays: Int
   intervalKm: Int
   isRecurring: Boolean = false
+  laborCost: Float
   motorcycleId: String!
   notes: String
+  partsCost: Float
   partsNeeded: [String!]
   priority: MaintenancePriority = medium
   remind1d: Boolean
@@ -696,23 +697,6 @@ type FollowEdge {
 
 input FollowRiderInput {
   targetUserId: String!
-}
-
-type FuelLog {
-  createdAt: String!
-  currency: String!
-  filledAt: String!
-  fuelLitres: Float!
-  fuelType: String!
-  id: ID!
-  isPartial: Boolean!
-  kmSincePrevious: Float
-  litresPer100Km: Float
-  motorcycleId: String!
-  mpgUs: Float
-  notes: String
-  odometerKm: Float!
-  totalCost: Float
 }
 
 type FuelRangeResult {
@@ -1067,6 +1051,7 @@ type Mutation {
   approveMaintenanceDraft(input: ApproveMaintenanceDraftInput!): Boolean!
   askTripAssistant(input: AskTripAssistantInput!): TripAssistantMessage!
   cancelGroupRide(groupRideId: ID!): Boolean!
+  cancelReceiptScan(scanId: String!): CancelReceiptScanResult!
 
   """Returns the new trip ID"""
   cloneTrip(tripId: ID!): ID!
@@ -1079,7 +1064,6 @@ type Mutation {
   createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
   createDocument(input: CreateDocumentInput!): Document!
   createFlag(input: CreateFlagInput!): ContentFlag!
-  createFuelLog(input: CreateFuelLogInput!): FuelLog!
   createGroupRide(input: CreateGroupRideInput!): GroupRide!
   createMaintenanceTask(input: CreateMaintenanceTaskInput!): MaintenanceTask!
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
@@ -1095,7 +1079,6 @@ type Mutation {
   deleteDocumentCategory(id: String!): Boolean!
   deleteExpense(id: String!): Boolean!
   deleteExpensePhoto(photoId: String!): Boolean!
-  deleteFuelLog(id: String!): Boolean!
   deleteMaintenanceTask(id: String!): Boolean!
   deleteMotorcycle(id: String!): Boolean!
   deleteRide(id: String!): Boolean!
@@ -1140,7 +1123,9 @@ type Mutation {
   revertBlogPostVersion(id: String!, versionNum: Int!): BlogPost!
   revokeShareLink(linkId: ID!): Boolean!
   rotateTripShareToken(tripId: ID!): String!
+  saveReceiptScan(input: SaveReceiptScanInput!, scanId: String!): SaveReceiptScanResult!
   saveTrip(tripId: ID!): Boolean!
+  scanReceipt(isOnboarding: Boolean, scanId: String!): ReceiptScanResult!
   scheduleBlogPost(input: ScheduleBlogPostInput!): BlogPost!
   setTripParticipantRole(input: SetParticipantRoleInput!): Boolean!
   shareRide(rideId: String!, sharedWithUserId: String!): Boolean!
@@ -1156,6 +1141,7 @@ type Mutation {
   trackAffiliateClick(input: TrackClickInput!): AffiliateProduct!
   trackSponsorshipClick(input: TrackSponsorshipClickInput!): Boolean!
   trackSponsorshipImpression(input: TrackSponsorshipImpressionInput!): Boolean!
+  undoReceiptScanSave(scanId: String!): UndoReceiptScanResult!
   unfollowRider(input: UnfollowRiderInput!): Boolean!
   unpublishBlogPost(id: String!): BlogPost!
   unpublishTemplate(tripId: ID!): Boolean!
@@ -1321,7 +1307,6 @@ type Query {
   expensePhotos(expenseId: String!): [ExpensePhoto!]!
   expenses(motorcycleId: String!, year: Int): ExpenseSummary!
   expiringDocuments(withinDays: Int): [Document!]!
-  fuelLogs(motorcycleId: String!): [FuelLog!]!
   fuelStops(radiusKm: Float = 5, routeId: ID!): [FuelStop!]!
   fuelStopsNearRoute(bikeId: ID, radiusKm: Float = 5, routeId: ID!): FuelRangeResult!
   getComments(after: String, first: Int = 20, groupRideId: ID, rideId: ID, routeId: ID, tripId: ID): CommentConnection!
@@ -1371,6 +1356,7 @@ type Query {
   """Public saved trips for a user by handle (public_username)"""
   publicSavedTrips(after: String, first: Int = 20, handle: String!): TripConnection!
   quizByArticle(articleId: String!): Quiz
+  receiptScanQuota: ReceiptScanQuota!
   ride(id: String!): Ride!
   rideFeed(after: String, first: Int = 20): FeedRideConnection!
   rideOverview: RideOverview!
@@ -1400,6 +1386,7 @@ type Query {
   tripReviews(after: String, country: String, first: Int = 20, region: String, slug: String, tripId: ID): [TripReview!]!
   tripSuggestions(tripId: ID!): [TripSuggestion!]!
   tripTemplates(after: String, filter: TripTemplateFilterInput, first: Int = 20): TripConnection!
+  unreviewedReceiptScans: [UnreviewedScan!]!
   user: User!
 }
 
@@ -1459,6 +1446,52 @@ type RecallResult {
   count: Int!
   recalls: [Recall!]!
   vinUsed: String
+}
+
+type ReceiptExtractionResult {
+  amount: Float
+  category: String
+  currency: String
+  date: String
+  fieldConfidence: ReceiptFieldConfidenceResult!
+  fuelLitres: Float
+  itemName: String
+  laborCost: Float
+  legibilityNote: String
+  needsCheck: [String!]!
+  odometerUnit: String
+  odometerValue: Float
+  partsCost: Float
+  partsNeeded: [String!]!
+  type: String!
+  vendor: String
+}
+
+type ReceiptFieldConfidenceResult {
+  amount: Float!
+  category: Float!
+  currency: Float!
+  date: Float!
+  odometer: Float!
+  vendor: Float!
+}
+
+type ReceiptScanError {
+  code: String!
+  reason: String!
+}
+
+type ReceiptScanQuota {
+  limit: Int!
+  resetDate: String!
+  used: Int!
+}
+
+union ReceiptScanResult = ReceiptScanError | ReceiptScanSuccess
+
+type ReceiptScanSuccess {
+  result: ReceiptExtractionResult!
+  scanId: String!
 }
 
 input RegisterPushTokenInput {
@@ -1603,6 +1636,43 @@ type RouteSuggestion {
   name: String!
   regionCode: String
   slug: String!
+}
+
+input SaveReceiptScanInput {
+  amount: Float
+  applyOdometer: Boolean
+  category: String
+  currency: String
+  date: String
+  itemName: String
+  laborCost: Float
+  motorcycleId: String!
+  odometerUnit: String
+  odometerValue: Float
+  partsCost: Float
+  type: String!
+  vendor: String
+}
+
+union SaveReceiptScanResult = ReceiptScanError | SaveReceiptScanSuccess
+
+type SaveReceiptScanSuccess {
+  refs: SavedRecordRefs!
+  scanId: String!
+}
+
+type SavedOdometerRef {
+  applied: Float!
+  motorcycleId: String!
+  previous: Float
+}
+
+type SavedRecordRefs {
+  expenseId: String
+  odometer: SavedOdometerRef
+  photoId: String
+  recordType: String!
+  taskId: String
 }
 
 input ScheduleBlogPostInput {
@@ -2007,8 +2077,22 @@ type TypeaheadResult {
   routes: [RouteSuggestion!]!
 }
 
+union UndoReceiptScanResult = ReceiptScanError | UndoReceiptScanSuccess
+
+type UndoReceiptScanSuccess {
+  scanId: String!
+  status: String!
+}
+
 input UnfollowRiderInput {
   targetUserId: String!
+}
+
+type UnreviewedScan {
+  createdAt: String!
+  result: ReceiptExtractionResult
+  scanId: String!
+  storagePath: String
 }
 
 input UpdateBlogPostInput {

@@ -412,9 +412,6 @@
     "distanceIntervalPlaceholder": "orn. 15000",
     "timeIntervalPlaceholder": "orn. 90",
     "mileageIntervalPlaceholder": "orn. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "orn. 15000",
     "discardChangesTitle": "Değişiklikleri iptal et?",
     "discardChangesMessage": "Değişiklikleriniz kaybolacak.",
@@ -1001,7 +998,15 @@
     "obNoBikeServiceBody": "Yapılan işleri kaydet ve bir sonrakinden önce hatırlatma al.",
     "obNoBikeRoutesTitle": "Rotaları keşfet",
     "obNoBikeRoutesBody": "Harika yollar bul ve yakınında grup sürüşleri planla.",
-    "obNoBikeAddBike": "Motosikletimi şimdi ekle"
+    "obNoBikeAddBike": "Motosikletimi şimdi ekle",
+    "scanEyebrow": "Try it now",
+    "scanTitle": "Snap your first",
+    "scanTitleAccent": "receipt",
+    "scanSubtitle": "Point your camera at a fuel, parts, or service receipt — MotoVault reads the amount, date, and vendor and logs it for you.",
+    "scanCta": "Scan a receipt",
+    "scanSkip": "Maybe later",
+    "scanBulletExtract": "AI pulls out the amount, date, and vendor",
+    "scanBulletFast": "Logged in seconds — no typing"
   },
   "bikeHub": {
     "upcoming": "Yaklasan",
@@ -1933,22 +1938,6 @@
   "survey": {
     "feedbackPlaceholder": "Dusuncelerini paylas (kisisel bilgi olmasin lutfen)"
   },
-  "fuel": {
-    "createFailed": "Yakıt kaydedilemedi. Lütfen tekrar deneyin.",
-    "newFillUp": "Yeni yakıt",
-    "odometer": "Kilometre Sayacı",
-    "volume": "Yakıt",
-    "totalCost": "Toplam tutar",
-    "partialFill": "Kısmi dolum",
-    "partialHelp": "Depoyu tamamen doldurmadıysanız işaretleyin",
-    "saved": "Kaydedildi!",
-    "save": "Yakıt kaydet",
-    "rollingAverage": "Hareketli ortalama",
-    "lastN": "Son {{n}} dolum",
-    "history": "Geçmiş",
-    "partial": "Kısmi",
-    "emptyState": "Henüz yakıt kaydı yok"
-  },
   "nearYou": {
     "sectionMeta": "{{country}} rotaları",
     "heading": "Yakınındaki rotalar",
@@ -1966,7 +1955,8 @@
     "trackFirstExpense": "Track your first expense",
     "completeBikeProfile": "Complete your bike profile",
     "exploreDashboard": "Explore your dashboard",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "scanReceipt": "Scan a receipt"
   },
   "myRides": {
     "title": "Sürüşlerim",
@@ -2272,6 +2262,128 @@
       "endRide": "End ride",
       "endRideButton": "End ride",
       "savesNote": "Ending always saves — {{distance}} will be kept"
+    }
+  },
+  "receiptScan": {
+    "common": {
+      "enterManually": "Bunun yerine elle gir",
+      "done": "Tamam",
+      "noCreditUsed": "Tarama kullanılmadı"
+    },
+    "gating": {
+      "label": "Hazırlanıyor…"
+    },
+    "bikePick": {
+      "title": "Bu hangi motosiklet için?",
+      "subtitle": "Bu fişin ait olduğu motosikleti seç."
+    },
+    "consent": {
+      "title": "Fişi yapay zekâ ile tara",
+      "body": "Tutarı, tarihi ve ayrıntıları okuması için fişinin bir fotoğrafını yapay zekâmıza gönderiyoruz — böylece elle yazman gerekmez. Fotoğraf hesabında gizli olarak saklanır ve asla paylaşılmaz. Dilersen ayrıntıları her zaman elle de girebilirsin.",
+      "accept": "Fiş tara"
+    },
+    "capture": {
+      "title": "Fişi fotoğrafla",
+      "subtitle": "Düz koy, çerçeveyi doldur ve toplamı görünür tut.",
+      "takePhoto": "Fotoğraf çek",
+      "chooseFromLibrary": "Galeriden seç",
+      "openSettings": "Ayarları aç"
+    },
+    "uploading": {
+      "label": "Fiş yükleniyor…",
+      "retrying": "Yeniden deneniyor…"
+    },
+    "offline": {
+      "title": "Çevrimdışısın",
+      "body": "Fişini kaydettik ve tekrar çevrimiçi olur olmaz okumayı otomatik olarak tamamlayacağız. İşlenene kadar tarama kullanılmaz."
+    },
+    "analyzing": {
+      "stageReading": "Fişin okunuyor…",
+      "stageExtracting": "Ayrıntılar çıkarılıyor…",
+      "stageChecking": "Rakamlar tekrar kontrol ediliyor…",
+      "skip": "Atla — elle gir"
+    },
+    "error": {
+      "retry": "Tekrar dene",
+      "extractionFailedTitle": "Bu fişi okuyamadık",
+      "extractionFailedBody": "Fotoğraf çok bulanıktı veya metin belirsizdi. Ayrıntıları elle girebilirsin.",
+      "imageInvalidTitle": "O fotoğraf işe yaramadı",
+      "imageInvalidBody": "O görüntüyü kullanamadık. Fotoğrafı tekrar çek veya ayrıntıları elle gir.",
+      "quotaExceededTitle": "Tüm ücretsiz taramalarını kullandın",
+      "quotaExceededBody": "Sınırsız fiş taraması için yükselt ya da bunu elle gir. Fotoğrafın kayıtlı.",
+      "disabledTitle": "Tarama geçici olarak kullanılamıyor",
+      "disabledBody": "Fiş tarama şu anda duraklatıldı. Bu fişi yine de elle girebilirsin.",
+      "alreadyCompletedTitle": "Bu tarama zaten tamamlandı",
+      "alreadyCompletedBody": "Sen atlamadan hemen önce işlenmesi bitti. Onu incelemek üzere fişlerinde bekler halde bulacaksın.",
+      "uploadFailedTitle": "Yükleme tamamlanmadı",
+      "uploadFailedBody": "Fişini yükleyemedik. Bağlantını kontrol edip tekrar dene.",
+      "analyzeFailedTitle": "Bir şeyler ters gitti",
+      "analyzeFailedBody": "Fişini okumayı tamamlayamadık. Tekrar dene — zaten işlendiyse, onu incelemek üzere fişlerinde bekler halde bulacaksın.",
+      "rateLimitedTitle": "Bugünkü tarama sınırına ulaştın",
+      "rateLimitedBody": "Bugün çok tarama yaptın. Yarın tekrar dene ya da bu fişi elle gir."
+    },
+    "parked": {
+      "title": "Sonrası için kaydedildi",
+      "body": "Fişin incelemeye hazır. Yarın sana hatırlatacağız ve ana ekranında seni bekliyor."
+    },
+    "alreadyProcessed": {
+      "title": "Zaten işlendi",
+      "body": "Bu tarama iptal edilemeden önce tamamlandı. Şimdi inceleyebilir ya da sonra fişlerinde bulabilirsin.",
+      "reviewNow": "Şimdi incele"
+    },
+    "review": {
+      "title": "Fişini incele",
+      "forBike": "{{bike}} için",
+      "type": "Tür",
+      "vendor": "Satıcı",
+      "amount": "Tutar",
+      "date": "Tarih",
+      "needsCheck": "Kontrol gerek",
+      "reviewLater": "Sonra incele",
+      "typeMaintenance": "Bakım",
+      "typeExpense": "Harcama",
+      "currency": "Para birimi",
+      "category": "Kategori",
+      "itemName": "Kalem",
+      "partsCost": "Parça",
+      "laborCost": "İşçilik",
+      "odometer": "Kilometre sayacı",
+      "odometerFirstSet": "Kilometreyi ayarla",
+      "pickDate": "Bir tarih seç",
+      "selectBikePrompt": "Kaydetmek için bir motosiklet seç",
+      "noBikePrompt": "Bu fişi kaydetmek için önce bir motosiklet ekle.",
+      "addBike": "Motosiklet ekle",
+      "viewReceipt": "Fiş fotoğrafını gör",
+      "closeReceipt": "Kapat",
+      "save": "Kaydet",
+      "checkAmount": "Tutarı kontrol et",
+      "checkCurrency": "Para birimini kontrol et",
+      "checkDate": "Tarihi kontrol et",
+      "checkVendor": "Satıcıyı kontrol et",
+      "checkCategory": "Kategoriyi kontrol et",
+      "checkOdometer": "Kilometreyi kontrol et"
+    },
+    "saved": {
+      "toast": "{{bike}} motosikletine kaydedildi",
+      "undo": "Geri al",
+      "undoFailed": "Geri alınamadı — lütfen tekrar dene",
+      "freeScansLeft": "Bu ay {{count}} ücretsiz tarama kaldı",
+      "saveFailed": "Kaydedilemedi",
+      "saveFailedBody": "Bir şeyler ters gitti. Lütfen tekrar dene.",
+      "duplicateTitle": "Bunu zaten kaydetmiş gibisin",
+      "duplicateBody": "Bu motosiklet için benzer bir kayıt zaten var. Yine de kaydedilsin mi?",
+      "duplicateConfirm": "Yine de kaydet",
+      "duplicateCancel": "İncele"
+    },
+    "entry": {
+      "title": "Fiş tara",
+      "subtitle": "Fotoğrafla — senin için kaydedelim",
+      "freeBadge": "{{count}} ücretsiz",
+      "upsellBadge": "Sınırsız"
+    },
+    "recovery": {
+      "reviewTitle": "İncelenecek {{count}} fiş",
+      "reviewSubtitle": "Taradıklarını kaydetmeyi tamamla"
     }
   }
 }

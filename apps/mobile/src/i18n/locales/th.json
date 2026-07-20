@@ -412,9 +412,6 @@
     "distanceIntervalPlaceholder": "เช่น 15000",
     "timeIntervalPlaceholder": "เช่น 90",
     "mileageIntervalPlaceholder": "เช่น 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "เช่น 15000",
     "discardChangesTitle": "ยกเลิกการเปลี่ยนแปลง?",
     "discardChangesMessage": "การเปลี่ยนแปลงของคุณจะหายไป",
@@ -1001,7 +998,15 @@
     "obNoBikeServiceBody": "บันทึกงานที่ทำ และรับการแจ้งเตือนก่อนถึงรอบถัดไป",
     "obNoBikeRoutesTitle": "ค้นพบเส้นทาง",
     "obNoBikeRoutesBody": "ค้นหาถนนเส้นสวยและวางแผนขี่เป็นกลุ่มใกล้คุณ",
-    "obNoBikeAddBike": "เพิ่มมอเตอร์ไซค์ของฉันตอนนี้"
+    "obNoBikeAddBike": "เพิ่มมอเตอร์ไซค์ของฉันตอนนี้",
+    "scanEyebrow": "Try it now",
+    "scanTitle": "Snap your first",
+    "scanTitleAccent": "receipt",
+    "scanSubtitle": "Point your camera at a fuel, parts, or service receipt — MotoVault reads the amount, date, and vendor and logs it for you.",
+    "scanCta": "Scan a receipt",
+    "scanSkip": "Maybe later",
+    "scanBulletExtract": "AI pulls out the amount, date, and vendor",
+    "scanBulletFast": "Logged in seconds — no typing"
   },
   "bikeHub": {
     "upcoming": "กำลังจะถึง",
@@ -1933,22 +1938,6 @@
   "survey": {
     "feedbackPlaceholder": "แบ่งปันความคิดเห็นของคุณ (กรุณาอย่าใส่ข้อมูลส่วนตัว)"
   },
-  "fuel": {
-    "createFailed": "บันทึกการเติมน้ำมันไม่สำเร็จ กรุณาลองอีกครั้ง",
-    "newFillUp": "เติมน้ำมันใหม่",
-    "odometer": "เลขไมล์",
-    "volume": "น้ำมัน",
-    "totalCost": "ค่าใช้จ่ายทั้งหมด",
-    "partialFill": "เติมไม่เต็มถัง",
-    "partialHelp": "เลือกหากคุณไม่ได้เติมน้ำมันเต็มถัง",
-    "saved": "บันทึกแล้ว!",
-    "save": "บันทึกการเติม",
-    "rollingAverage": "ค่าเฉลี่ย",
-    "lastN": "{{n}} ครั้งล่าสุด",
-    "history": "ประวัติ",
-    "partial": "ไม่เต็มถัง",
-    "emptyState": "ยังไม่มีการเติมน้ำมัน"
-  },
   "nearYou": {
     "sectionMeta": "เส้นทางใน{{country}}",
     "heading": "เส้นทางใกล้",
@@ -1966,7 +1955,8 @@
     "trackFirstExpense": "Track your first expense",
     "completeBikeProfile": "Complete your bike profile",
     "exploreDashboard": "Explore your dashboard",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "scanReceipt": "Scan a receipt"
   },
   "myRides": {
     "title": "การขับขี่ของฉัน",
@@ -2272,6 +2262,128 @@
       "endRide": "End ride",
       "endRideButton": "End ride",
       "savesNote": "Ending always saves — {{distance}} will be kept"
+    }
+  },
+  "receiptScan": {
+    "common": {
+      "enterManually": "กรอกเองแทน",
+      "done": "เสร็จสิ้น",
+      "noCreditUsed": "ไม่ได้ใช้การสแกน"
+    },
+    "gating": {
+      "label": "กำลังเตรียม…"
+    },
+    "bikePick": {
+      "title": "ใบเสร็จนี้สำหรับรถคันไหน?",
+      "subtitle": "เลือกรถที่ใบเสร็จนี้เป็นของ"
+    },
+    "consent": {
+      "title": "สแกนใบเสร็จด้วย AI",
+      "body": "เราจะส่งรูปใบเสร็จของคุณไปให้ AI อ่านยอดเงิน วันที่ และรายละเอียด เพื่อที่คุณจะได้ไม่ต้องพิมพ์เอง รูปจะถูกเก็บเป็นส่วนตัวในบัญชีของคุณและจะไม่ถูกแชร์ คุณสามารถกรอกรายละเอียดเองได้เสมอ",
+      "accept": "สแกนใบเสร็จ"
+    },
+    "capture": {
+      "title": "ถ่ายรูปใบเสร็จ",
+      "subtitle": "วางให้เรียบ ให้เต็มกรอบ และให้เห็นยอดรวม",
+      "takePhoto": "ถ่ายรูป",
+      "chooseFromLibrary": "เลือกจากคลังรูป",
+      "openSettings": "เปิดการตั้งค่า"
+    },
+    "uploading": {
+      "label": "กำลังอัปโหลดใบเสร็จ…",
+      "retrying": "กำลังลองใหม่…"
+    },
+    "offline": {
+      "title": "คุณออฟไลน์อยู่",
+      "body": "เราบันทึกใบเสร็จของคุณไว้แล้ว และจะอ่านให้เสร็จโดยอัตโนมัติทันทีที่คุณกลับมาออนไลน์ จะยังไม่ใช้การสแกนจนกว่าจะประมวลผลเสร็จ"
+    },
+    "analyzing": {
+      "stageReading": "กำลังอ่านใบเสร็จของคุณ…",
+      "stageExtracting": "กำลังดึงรายละเอียด…",
+      "stageChecking": "กำลังตรวจทานตัวเลข…",
+      "skip": "ข้าม — กรอกเอง"
+    },
+    "error": {
+      "retry": "ลองอีกครั้ง",
+      "extractionFailedTitle": "เราอ่านใบเสร็จนี้ไม่ได้",
+      "extractionFailedBody": "รูปเบลอเกินไปหรือข้อความไม่ชัด คุณสามารถกรอกรายละเอียดเองได้",
+      "imageInvalidTitle": "รูปนั้นใช้ไม่ได้",
+      "imageInvalidBody": "เราใช้รูปนั้นไม่ได้ ลองถ่ายใหม่ หรือกรอกรายละเอียดเอง",
+      "quotaExceededTitle": "คุณใช้การสแกนฟรีหมดแล้ว",
+      "quotaExceededBody": "อัปเกรดเพื่อสแกนใบเสร็จได้ไม่จำกัด หรือกรอกใบนี้เอง รูปของคุณถูกบันทึกไว้แล้ว",
+      "disabledTitle": "การสแกนไม่พร้อมใช้งานชั่วคราว",
+      "disabledBody": "การสแกนใบเสร็จถูกหยุดไว้ชั่วคราว คุณยังกรอกใบเสร็จนี้เองได้",
+      "alreadyCompletedTitle": "การสแกนนี้เสร็จแล้ว",
+      "alreadyCompletedBody": "ประมวลผลเสร็จก่อนที่คุณจะข้ามพอดี คุณจะพบมันรออยู่ในใบเสร็จเพื่อตรวจทาน",
+      "uploadFailedTitle": "อัปโหลดไม่สำเร็จ",
+      "uploadFailedBody": "เราอัปโหลดใบเสร็จของคุณไม่ได้ ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง",
+      "analyzeFailedTitle": "เกิดข้อผิดพลาด",
+      "analyzeFailedBody": "เราอ่านใบเสร็จของคุณไม่เสร็จ ลองอีกครั้ง — ถ้าดำเนินการไปแล้ว คุณจะพบมันรออยู่ในใบเสร็จเพื่อตรวจทาน",
+      "rateLimitedTitle": "คุณถึงขีดจำกัดการสแกนของวันนี้แล้ว",
+      "rateLimitedBody": "วันนี้คุณสแกนไปเยอะแล้ว โปรดลองใหม่พรุ่งนี้ หรือกรอกใบเสร็จนี้เอง"
+    },
+    "parked": {
+      "title": "บันทึกไว้ดูภายหลัง",
+      "body": "ใบเสร็จของคุณพร้อมให้ตรวจทานแล้ว เราจะเตือนคุณพรุ่งนี้ และมันรออยู่บนหน้าจอหลักของคุณ"
+    },
+    "alreadyProcessed": {
+      "title": "ประมวลผลแล้ว",
+      "body": "การสแกนนี้เสร็จก่อนที่จะยกเลิกได้ คุณสามารถตรวจทานตอนนี้ หรือค้นหาภายหลังในใบเสร็จของคุณ",
+      "reviewNow": "ตรวจทานเลย"
+    },
+    "review": {
+      "title": "ตรวจทานใบเสร็จของคุณ",
+      "forBike": "สำหรับ {{bike}}",
+      "type": "ประเภท",
+      "vendor": "ร้านค้า",
+      "amount": "จำนวนเงิน",
+      "date": "วันที่",
+      "needsCheck": "ต้องตรวจสอบ",
+      "reviewLater": "ตรวจทานภายหลัง",
+      "typeMaintenance": "การบำรุงรักษา",
+      "typeExpense": "ค่าใช้จ่าย",
+      "currency": "สกุลเงิน",
+      "category": "หมวดหมู่",
+      "itemName": "รายการ",
+      "partsCost": "ค่าอะไหล่",
+      "laborCost": "ค่าแรง",
+      "odometer": "เลขไมล์",
+      "odometerFirstSet": "ตั้งค่าเลขไมล์",
+      "pickDate": "เลือกวันที่",
+      "selectBikePrompt": "เลือกรถเพื่อบันทึก",
+      "noBikePrompt": "เพิ่มรถก่อนเพื่อบันทึกใบเสร็จนี้",
+      "addBike": "เพิ่มรถ",
+      "viewReceipt": "ดูรูปใบเสร็จ",
+      "closeReceipt": "ปิด",
+      "save": "บันทึก",
+      "checkAmount": "ตรวจสอบจำนวนเงิน",
+      "checkCurrency": "ตรวจสอบสกุลเงิน",
+      "checkDate": "ตรวจสอบวันที่",
+      "checkVendor": "ตรวจสอบร้านค้า",
+      "checkCategory": "ตรวจสอบหมวดหมู่",
+      "checkOdometer": "ตรวจสอบเลขไมล์"
+    },
+    "saved": {
+      "toast": "บันทึกไปยัง {{bike}} แล้ว",
+      "undo": "เลิกทำ",
+      "undoFailed": "เลิกทำไม่สำเร็จ — โปรดลองอีกครั้ง",
+      "freeScansLeft": "เหลือการสแกนฟรี {{count}} ครั้งในเดือนนี้",
+      "saveFailed": "บันทึกไม่สำเร็จ",
+      "saveFailedBody": "เกิดข้อผิดพลาด โปรดลองอีกครั้ง",
+      "duplicateTitle": "ดูเหมือนคุณบันทึกรายการนี้ไปแล้ว",
+      "duplicateBody": "มีรายการที่คล้ายกันสำหรับรถคันนี้อยู่แล้ว บันทึกต่อไปหรือไม่?",
+      "duplicateConfirm": "บันทึกต่อไป",
+      "duplicateCancel": "ตรวจทาน"
+    },
+    "entry": {
+      "title": "สแกนใบเสร็จ",
+      "subtitle": "แค่ถ่ายรูป — เราบันทึกให้คุณเอง",
+      "freeBadge": "ฟรี {{count}} ครั้ง",
+      "upsellBadge": "ไม่จำกัด"
+    },
+    "recovery": {
+      "reviewTitle": "ใบเสร็จ {{count}} ใบรอตรวจทาน",
+      "reviewSubtitle": "บันทึกสิ่งที่คุณสแกนให้เสร็จ"
     }
   }
 }

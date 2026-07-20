@@ -110,21 +110,14 @@ export class DataExportService {
         byUserId('quiz_attempts'),
       ]);
 
-      const [
-        expensesResult,
-        ridesResult,
-        fuelLogsResult,
-        commentsResult,
-        rideKudosResult,
-        surfaceReportsResult,
-      ] = await Promise.all([
-        byUserId('expenses'),
-        byUserId('rides'),
-        byUserId('fuel_logs'),
-        byUserId('comments'),
-        byUserId('ride_kudos'),
-        byUserId('surface_reports'),
-      ]);
+      const [expensesResult, ridesResult, commentsResult, rideKudosResult, surfaceReportsResult] =
+        await Promise.all([
+          byUserId('expenses'),
+          byUserId('rides'),
+          byUserId('comments'),
+          byUserId('ride_kudos'),
+          byUserId('surface_reports'),
+        ]);
 
       const [tripsResult, followsResult] = await Promise.all([
         this.supabaseAdmin.from('trips').select('*').eq('organiser_user_id', userId).limit(maxRows),
@@ -156,7 +149,6 @@ export class DataExportService {
         expenses: expensesResult.data ?? [],
         rides: ridesResult.data ?? [],
         trips: tripsResult.data ?? [],
-        fuelLogs: fuelLogsResult.data ?? [],
         comments: commentsResult.data ?? [],
         follows: followsResult.data ?? [],
         rideKudos: rideKudosResult.data ?? [],

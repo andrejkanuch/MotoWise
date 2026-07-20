@@ -414,9 +414,6 @@
     "distanceIntervalPlaceholder": "napr. 15000",
     "timeIntervalPlaceholder": "napr. 90",
     "mileageIntervalPlaceholder": "napr. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "napr. 15000",
     "discardChangesTitle": "Zahodiť zmeny?",
     "discardChangesMessage": "Tvoje zmeny budú stratené.",
@@ -1003,7 +1000,15 @@
     "obNoBikeServiceBody": "Zaznamenaj práce a dostaneš pripomienku pred ďalším servisom.",
     "obNoBikeRoutesTitle": "Objavuj trasy",
     "obNoBikeRoutesBody": "Nájdi skvelé cesty a naplánuj skupinové jazdy vo svojom okolí.",
-    "obNoBikeAddBike": "Pridať moju motorku teraz"
+    "obNoBikeAddBike": "Pridať moju motorku teraz",
+    "scanEyebrow": "Try it now",
+    "scanTitle": "Snap your first",
+    "scanTitleAccent": "receipt",
+    "scanSubtitle": "Point your camera at a fuel, parts, or service receipt — MotoVault reads the amount, date, and vendor and logs it for you.",
+    "scanCta": "Scan a receipt",
+    "scanSkip": "Maybe later",
+    "scanBulletExtract": "AI pulls out the amount, date, and vendor",
+    "scanBulletFast": "Logged in seconds — no typing"
   },
   "bikeHub": {
     "upcoming": "Nadchádzajúce",
@@ -1937,22 +1942,6 @@
   "survey": {
     "feedbackPlaceholder": "Podeľ sa o svoje myšlienky (bez osobných údajov prosím)"
   },
-  "fuel": {
-    "createFailed": "Nepodarilo sa uložiť tankovanie. Skúste to znova.",
-    "newFillUp": "Nové tankovanie",
-    "odometer": "Odometer",
-    "volume": "Palivo",
-    "totalCost": "Celkové náklady",
-    "partialFill": "Čiastočné tankovanie",
-    "partialHelp": "Označ, ak si nenaplnil nádrž úplne",
-    "saved": "Uložené!",
-    "save": "Uložiť tankovanie",
-    "rollingAverage": "Kĺzavý priemer",
-    "lastN": "Posledných {{n}} tankovaní",
-    "history": "História",
-    "partial": "Čiastočné",
-    "emptyState": "Zatiaľ žiadne tankovania"
-  },
   "nearYou": {
     "sectionMeta": "Trasy v {{country}}",
     "heading": "Trasy v blízkosti",
@@ -1970,7 +1959,8 @@
     "trackFirstExpense": "Track your first expense",
     "completeBikeProfile": "Complete your bike profile",
     "exploreDashboard": "Explore your dashboard",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "scanReceipt": "Scan a receipt"
   },
   "myRides": {
     "title": "Moje jazdy",
@@ -2278,6 +2268,128 @@
       "endRide": "End ride",
       "endRideButton": "End ride",
       "savesNote": "Ending always saves — {{distance}} will be kept"
+    }
+  },
+  "receiptScan": {
+    "common": {
+      "enterManually": "Zadať ručne",
+      "done": "Hotovo",
+      "noCreditUsed": "Nespotrebovaný sken"
+    },
+    "gating": {
+      "label": "Pripravuje sa…"
+    },
+    "bikePick": {
+      "title": "Pre ktorú motorku to je?",
+      "subtitle": "Vyber motorku, ku ktorej tento účet patrí."
+    },
+    "consent": {
+      "title": "Naskenuj účtenku pomocou AI",
+      "body": "Fotku tvojej účtenky pošleme našej AI, aby prečítala sumu, dátum a údaje — aby si ich nemusel prepisovať. Fotka sa ukladá súkromne na tvojom účte a nikdy sa nezdieľa. Údaje môžeš kedykoľvek zadať aj ručne.",
+      "accept": "Naskenovať účtenku"
+    },
+    "capture": {
+      "title": "Odfoť účtenku",
+      "subtitle": "Polož ju naplocho, vyplň záber a nechaj sumu v zábere.",
+      "takePhoto": "Odfotiť",
+      "chooseFromLibrary": "Vybrať z galérie",
+      "openSettings": "Otvoriť Nastavenia"
+    },
+    "uploading": {
+      "label": "Nahráva sa účtenka…",
+      "retrying": "Opakovanie…"
+    },
+    "offline": {
+      "title": "Si offline",
+      "body": "Tvoju účtenku sme uložili a dočítame ju automaticky, hneď ako budeš znova online. Sken sa nespotrebuje, kým sa nespracuje."
+    },
+    "analyzing": {
+      "stageReading": "Čítanie účtenky…",
+      "stageExtracting": "Získavanie údajov…",
+      "stageChecking": "Kontrola súm…",
+      "skip": "Preskočiť — zadať ručne"
+    },
+    "error": {
+      "retry": "Skúsiť znova",
+      "extractionFailedTitle": "Túto účtenku sa nám nepodarilo prečítať",
+      "extractionFailedBody": "Fotka bola príliš rozmazaná alebo text nejasný. Údaje môžeš zadať ručne.",
+      "imageInvalidTitle": "Táto fotka nefungovala",
+      "imageInvalidBody": "Tento obrázok sa nám nepodarilo použiť. Odfoť to znova alebo zadaj údaje ručne.",
+      "quotaExceededTitle": "Minul si všetky bezplatné skeny",
+      "quotaExceededBody": "Prejdi na Pro pre neobmedzené skenovanie účteniek, alebo zadaj túto ručne. Tvoja fotka je uložená.",
+      "disabledTitle": "Skenovanie je dočasne nedostupné",
+      "disabledBody": "Skenovanie účteniek je momentálne pozastavené. Túto účtenku môžeš stále zadať ručne.",
+      "alreadyCompletedTitle": "Tento sken sa už dokončil",
+      "alreadyCompletedBody": "Spracovanie sa dokončilo tesne predtým, než si to preskočil. Nájdeš ho medzi svojimi účtenkami na kontrolu.",
+      "uploadFailedTitle": "Nahrávanie neprebehlo",
+      "uploadFailedBody": "Tvoju účtenku sa nepodarilo nahrať. Skontroluj pripojenie a skús znova.",
+      "analyzeFailedTitle": "Niečo sa pokazilo",
+      "analyzeFailedBody": "Nepodarilo sa nám dočítať tvoju účtenku. Skús znova — ak už prešla, nájdeš ju medzi svojimi účtenkami na kontrolu.",
+      "rateLimitedTitle": "Dosiahol si dnešný limit skenov",
+      "rateLimitedBody": "Dnes si veľa skenoval. Skús to znova zajtra alebo zadaj túto účtenku ručne."
+    },
+    "parked": {
+      "title": "Uložené na neskôr",
+      "body": "Tvoja účtenka je pripravená na kontrolu. Zajtra ti pripomenieme a čaká na tvojej domovskej obrazovke."
+    },
+    "alreadyProcessed": {
+      "title": "Už spracované",
+      "body": "Tento sken sa dokončil skôr, než ho bolo možné zrušiť. Môžeš ho skontrolovať teraz alebo nájsť neskôr medzi účtenkami.",
+      "reviewNow": "Skontrolovať teraz"
+    },
+    "review": {
+      "title": "Skontroluj účtenku",
+      "forBike": "Pre {{bike}}",
+      "type": "Typ",
+      "vendor": "Predajca",
+      "amount": "Suma",
+      "date": "Dátum",
+      "needsCheck": "Skontrolovať",
+      "reviewLater": "Skontrolovať neskôr",
+      "typeMaintenance": "Údržba",
+      "typeExpense": "Výdavok",
+      "currency": "Mena",
+      "category": "Kategória",
+      "itemName": "Položka",
+      "partsCost": "Diely",
+      "laborCost": "Práca",
+      "odometer": "Tachometer",
+      "odometerFirstSet": "Nastaviť tachometer",
+      "pickDate": "Vyber dátum",
+      "selectBikePrompt": "Vyber motorku na uloženie",
+      "noBikePrompt": "Najprv pridaj motorku, aby si túto účtenku uložil.",
+      "addBike": "Pridať motorku",
+      "viewReceipt": "Zobraziť fotku účtenky",
+      "closeReceipt": "Zavrieť",
+      "save": "Uložiť",
+      "checkAmount": "Skontroluj sumu",
+      "checkCurrency": "Skontroluj menu",
+      "checkDate": "Skontroluj dátum",
+      "checkVendor": "Skontroluj predajcu",
+      "checkCategory": "Skontroluj kategóriu",
+      "checkOdometer": "Skontroluj tachometer"
+    },
+    "saved": {
+      "toast": "Uložené k {{bike}}",
+      "undo": "Späť",
+      "undoFailed": "Nepodarilo sa vrátiť — skús znova",
+      "freeScansLeft": "Tento mesiac ti zostáva {{count}} bezplatných skenov",
+      "saveFailed": "Nepodarilo sa uložiť",
+      "saveFailedBody": "Niečo sa pokazilo. Skús to znova.",
+      "duplicateTitle": "Zdá sa, že si to už zaznamenal",
+      "duplicateBody": "Pre túto motorku už existuje podobný záznam. Uložiť aj tak?",
+      "duplicateConfirm": "Uložiť aj tak",
+      "duplicateCancel": "Skontrolovať"
+    },
+    "entry": {
+      "title": "Naskenovať účtenku",
+      "subtitle": "Odfoť to — zaznamenáme to za teba",
+      "freeBadge": "{{count}} zdarma",
+      "upsellBadge": "Bez limitu"
+    },
+    "recovery": {
+      "reviewTitle": "{{count}} účtenka na kontrolu",
+      "reviewSubtitle": "Dokonči zaznamenanie toho, čo si naskenoval"
     }
   }
 }

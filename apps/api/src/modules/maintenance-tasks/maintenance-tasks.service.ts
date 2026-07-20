@@ -9,6 +9,13 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SupabaseClient } from '@supabase/supabase-js';
+import {
+  deleteReceiptsPhotoObjects,
+  PHOTO_BUCKETS,
+  type PhotoStorageRow,
+  photoBucketOf,
+  resolvePhotoUrl,
+} from '../../common/storage/photo-storage';
 import { ExpensesService } from '../expenses/expenses.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -112,6 +119,13 @@ export class MaintenanceTasksService {
       status?: string;
       completedAt?: string;
       completedMileage?: number;
+      cost?: number;
+      partsCost?: number;
+      laborCost?: number;
+      currency?: string;
+      // Attribution: 'user' (default) | 'oem' | 'imported' | 'receipt_scan'.
+      // Not a GraphQL field — set server-side (e.g. U7b's saveReceiptScan).
+      source?: string;
     },
   ): Promise<MaintenanceTask> {
     this.logger.log(
@@ -149,6 +163,11 @@ export class MaintenanceTasksService {
         ...(input.remind7d !== undefined && { remind_7d: input.remind7d }),
         ...(input.remind1d !== undefined && { remind_1d: input.remind1d }),
         ...(input.status !== undefined && { status: input.status }),
+        ...(input.source !== undefined && { source: input.source }),
+        ...(input.cost !== undefined && { cost: input.cost }),
+        ...(input.partsCost !== undefined && { parts_cost: input.partsCost }),
+        ...(input.laborCost !== undefined && { labor_cost: input.laborCost }),
+        ...(input.currency !== undefined && { currency: input.currency }),
         ...(isCompleted && {
           completed_at: completedAtIso,
           completed_mileage: input.completedMileage ?? null,
@@ -161,7 +180,39 @@ export class MaintenanceTasksService {
       this.logger.error(`create failed: ${error?.message} (${error?.code})`);
       throw new BadRequestException('Failed to create maintenance task');
     }
-    return this.mapRow(data);
+
+    const created = this.mapRow(data);
+    // R4 gap: a task created ALREADY completed with a cost fires the auto-expense
+    // too — createFromTask previously fired only from complete().
+    await this.createAutoExpenseIfNeeded(userId, created);
+    return created;
+  }
+
+  /**
+   * Fire the linked maintenance expense for a completed task. Guard-claused and
+   * non-blocking: a no-op unless the task is completed with a positive total,
+   * and auto-expense failure never fails the originating task write. Shared by
+   * create() (create-as-completed) and complete().
+   */
+  private async createAutoExpenseIfNeeded(userId: string, task: MaintenanceTask): Promise<void> {
+    if (task.status !== 'completed') return;
+    const totalCost = (task.cost ?? 0) + (task.partsCost ?? 0) + (task.laborCost ?? 0);
+    if (totalCost <= 0) return;
+
+    try {
+      await this.expensesService.createFromTask(
+        userId,
+        task.motorcycleId,
+        task.id,
+        totalCost,
+        task.title,
+        // Preserve the task's currency (e.g. a scanned receipt's currency) so the
+        // linked auto-expense is not silently coerced to the profile default.
+        task.currency,
+      );
+    } catch (err) {
+      this.logger.warn(`Auto-expense creation failed for task ${task.id}: ${err}`);
+    }
   }
 
   async update(
@@ -251,24 +302,7 @@ export class MaintenanceTasksService {
     }
 
     const completed = this.mapRow(data);
-
-    // Auto-create expense if task has costs (don't block task completion on failure)
-    const totalCost =
-      (completed.cost ?? 0) + (completed.partsCost ?? 0) + (completed.laborCost ?? 0);
-    if (totalCost > 0) {
-      try {
-        await this.expensesService.createFromTask(
-          userId,
-          completed.motorcycleId,
-          completed.id,
-          totalCost,
-          completed.title,
-        );
-      } catch (err) {
-        this.logger.warn(`Auto-expense creation failed for task ${completed.id}: ${err}`);
-      }
-    }
-
+    await this.createAutoExpenseIfNeeded(userId, completed);
     return completed;
   }
 
@@ -285,7 +319,50 @@ export class MaintenanceTasksService {
     if (data === false) {
       throw new NotFoundException('Maintenance task not found');
     }
+
+    // R5/R10: purge private receipt objects attached to the deleted task from
+    // storage (not just the DB link rows). Legacy public photos are unaffected.
+    await this.purgeReceiptsPhotos(userId, id);
     return true;
+  }
+
+  /**
+   * Removes the storage OBJECTS + link rows for any receipts-bucket photos
+   * attached to a task. Best-effort (logs, never throws).
+   */
+  private async purgeReceiptsPhotos(userId: string, taskId: string): Promise<void> {
+    const { data, error } = await this.adminClient
+      .from('maintenance_task_photos')
+      .select('id, storage_path, bucket, user_id')
+      .eq('task_id', taskId)
+      .eq('user_id', userId)
+      .eq('bucket', PHOTO_BUCKETS.RECEIPTS);
+
+    if (error || !data || data.length === 0) return;
+
+    const { removedPaths } = await deleteReceiptsPhotoObjects({
+      rows: data as PhotoStorageRow[],
+      ownerUserId: userId,
+      adminClient: this.adminClient,
+      logger: this.logger,
+    });
+
+    // Only drop link rows whose storage object was actually removed — a link for
+    // an object that failed to delete is retained so the pair stays consistent
+    // (avoids orphaning a private receipt object with no DB link to it).
+    const removed = new Set(removedPaths);
+    const idsToUnlink = data
+      .filter((row) => removed.has(row.storage_path as string))
+      .map((row) => row.id);
+    if (idsToUnlink.length === 0) return;
+
+    const { error: linkError } = await this.adminClient
+      .from('maintenance_task_photos')
+      .delete()
+      .in('id', idsToUnlink);
+    if (linkError) {
+      this.logger.warn(`purgeReceiptsPhotos: link-row delete failed: ${linkError.message}`);
+    }
   }
 
   async findAllHistory(
@@ -426,10 +503,27 @@ export class MaintenanceTasksService {
     taskId: string,
     storagePath: string,
     fileSizeBytes?: number,
+    bucketArg?: string | null,
   ): Promise<TaskPhoto> {
+    const bucket = photoBucketOf(bucketArg);
     this.logger.log(
-      `addPhoto: userId=${userId}, taskId=${taskId}, storagePath=${storagePath}, fileSizeBytes=${fileSizeBytes}`,
+      `addPhoto: userId=${userId}, taskId=${taskId}, storagePath=${storagePath}, bucket=${bucket}`,
     );
+
+    // KTD-2: enforce the caller-owned storage prefix server-side before we record
+    // the link — prevents a caller from attaching another user's object to their
+    // own task and then deleting it via the admin-backed delete flow. Receipts
+    // (U7b link) live at the flat server-derived `{uid}/{scanId}.webp`; legacy
+    // gallery photos live under `{uid}/{taskId}/` (uploadMaintenancePhoto).
+    const expectedPrefix =
+      bucket === PHOTO_BUCKETS.RECEIPTS ? `${userId}/` : `${userId}/${taskId}/`;
+    if (!storagePath.startsWith(expectedPrefix)) {
+      this.logger.warn(
+        `addPhoto: rejected storage path outside expected prefix. userId=${userId}, taskId=${taskId}, bucket=${bucket}`,
+      );
+      throw new BadRequestException('Invalid storage path');
+    }
+
     // Validate task ownership
     const { data: task, error: taskError } = await this.adminClient
       .from('maintenance_tasks')
@@ -476,6 +570,7 @@ export class MaintenanceTasksService {
         storage_path: storagePath,
         file_size_bytes: fileSizeBytes ?? null,
         mime_type: mimeType,
+        bucket,
       })
       .select()
       .single();
@@ -485,7 +580,11 @@ export class MaintenanceTasksService {
       throw new BadRequestException('Failed to add photo');
     }
     this.logger.log(`addPhoto success: photoId=${data.id}`);
-    return this.mapPhotoRow(data);
+    const photo = await this.mapPhotoRow(data, userId);
+    if (!photo) {
+      throw new InternalServerErrorException('Failed to resolve photo URL');
+    }
+    return photo;
   }
 
   async deletePhoto(userId: string, photoId: string): Promise<boolean> {
@@ -493,7 +592,7 @@ export class MaintenanceTasksService {
     // Fetch photo and validate ownership via task
     const { data: photo, error: photoError } = await this.adminClient
       .from('maintenance_task_photos')
-      .select('id, task_id, storage_path')
+      .select('id, task_id, storage_path, bucket, user_id')
       .eq('id', photoId)
       .single();
 
@@ -509,9 +608,10 @@ export class MaintenanceTasksService {
 
     if (taskError || !task) throw new NotFoundException('Photo not found');
 
-    // Delete from storage using admin client
+    // Delete from storage using admin client — dispatch on the row's bucket so a
+    // receipts-linked photo hits the private bucket rather than maintenance-photos.
     const { error: storageError } = await this.adminClient.storage
-      .from('maintenance-photos')
+      .from(photoBucketOf(photo.bucket))
       .remove([photo.storage_path]);
 
     if (storageError) {
@@ -531,11 +631,17 @@ export class MaintenanceTasksService {
     return true;
   }
 
-  async findPhotosByTaskIds(taskIds: string[]): Promise<Map<string, TaskPhoto[]>> {
+  async findPhotosByTaskIds(
+    taskIds: string[],
+    ownerUserId: string,
+  ): Promise<Map<string, TaskPhoto[]>> {
     this.logger.debug(`findPhotosByTaskIds: ${taskIds.length} task(s)`);
     if (taskIds.length === 0) return new Map();
 
-    const { data, error } = await this.adminClient
+    // User-scoped read: go through the RLS-enforcing user client (maintenance_task_photos
+    // policy restricts rows to auth.uid() = user_id). The admin client would bypass
+    // RLS; the ownerUserId path check in mapPhotoRow remains as defense in depth.
+    const { data, error } = await this.supabase
       .from('maintenance_task_photos')
       .select('*')
       .in('task_id', taskIds)
@@ -547,22 +653,50 @@ export class MaintenanceTasksService {
     for (const taskId of taskIds) {
       map.set(taskId, []);
     }
-    for (const row of data ?? []) {
-      const taskId = row.task_id as string;
+    // Resolve URLs concurrently — receipts rows mint a signed URL per photo.
+    const resolved = await Promise.all(
+      (data ?? []).map(async (row) => ({
+        taskId: row.task_id as string,
+        photo: await this.mapPhotoRow(row, ownerUserId),
+      })),
+    );
+    for (const { taskId, photo } of resolved) {
+      if (!photo) continue; // C1: foreign-uid receipts path — never surface it.
       const photos = map.get(taskId) ?? [];
-      photos.push(this.mapPhotoRow(row));
+      photos.push(photo);
       map.set(taskId, photos);
     }
     return map;
   }
 
-  private mapPhotoRow(row: Record<string, unknown>): TaskPhoto {
+  /**
+   * Maps one photo row into the GraphQL shape, resolving its access URL by
+   * bucket (U7a): legacy → public URL; receipts → short-TTL signed URL after the
+   * C1 ownership assertion. Returns null when a receipts URL can't be authorized.
+   */
+  private async mapPhotoRow(
+    row: Record<string, unknown>,
+    ownerUserId: string,
+  ): Promise<TaskPhoto | null> {
     const storagePath = row.storage_path as string;
+    const photoRow: PhotoStorageRow = {
+      storage_path: storagePath,
+      bucket: row.bucket as string | null | undefined,
+      user_id: row.user_id as string | null | undefined,
+    };
+    const publicUrl = await resolvePhotoUrl({
+      row: photoRow,
+      ownerUserId,
+      adminClient: this.adminClient,
+      supabaseUrl: this.supabaseUrl,
+      logger: this.logger,
+    });
+    if (publicUrl === null) return null;
     return {
       id: row.id as string,
       taskId: row.task_id as string,
       storagePath,
-      publicUrl: `${this.supabaseUrl}/storage/v1/object/public/maintenance-photos/${storagePath}`,
+      publicUrl,
       fileSizeBytes: (row.file_size_bytes as number) ?? undefined,
       mimeType: (row.mime_type as string) ?? 'image/webp',
       createdAt: row.created_at as string,

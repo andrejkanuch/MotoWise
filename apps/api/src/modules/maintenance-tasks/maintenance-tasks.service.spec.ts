@@ -86,14 +86,18 @@ describe('MaintenanceTasksService', () => {
   function createMockClient() {
     const { chain, pushResult, resetIndex } = createChain();
 
+    const createSignedUrl = vi
+      .fn()
+      .mockResolvedValue({ data: { signedUrl: 'https://signed/url?token=abc' }, error: null });
+    const remove = vi.fn().mockResolvedValue({ error: null });
     return {
       from: vi.fn().mockReturnValue(chain),
       rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
       storage: {
-        from: vi.fn().mockReturnValue({
-          remove: vi.fn().mockResolvedValue({ error: null }),
-        }),
+        from: vi.fn().mockReturnValue({ createSignedUrl, remove }),
       },
+      _createSignedUrl: createSignedUrl,
+      _remove: remove,
       _chain: chain,
       _pushResult: pushResult,
       _resetIndex: resetIndex,
@@ -229,6 +233,81 @@ describe('MaintenanceTasksService', () => {
       expect(insertArg.completed_at).toBeUndefined();
       expect(insertArg.status).toBeUndefined();
     });
+
+    // R4 gap: a task created ALREADY completed with a cost must fire the
+    // auto-expense (createFromTask fired only from complete() before U3).
+    it('create-as-completed with costs fires a single auto-expense with the summed total', async () => {
+      mockUserClient._pushResult({
+        data: {
+          ...fakeRow,
+          status: 'completed',
+          completed_at: '2026-07-13T12:00:00.000Z',
+          cost: 50,
+          parts_cost: 30,
+          labor_cost: 20,
+          currency: 'EUR',
+        },
+      });
+
+      await service.create(userId, {
+        motorcycleId,
+        title: 'Revision mantenimiento',
+        status: 'completed',
+        cost: 50,
+        partsCost: 30,
+        laborCost: 20,
+        currency: 'EUR',
+      });
+
+      expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ cost: 50, parts_cost: 30, labor_cost: 20, currency: 'EUR' }),
+      );
+      expect(mockExpensesService.createFromTask).toHaveBeenCalledTimes(1);
+      // The task's currency propagates to the linked auto-expense (not defaulted).
+      expect(mockExpensesService.createFromTask).toHaveBeenCalledWith(
+        userId,
+        motorcycleId,
+        taskId,
+        100,
+        'Oil Change',
+        'EUR',
+      );
+    });
+
+    it('create-as-completed with zero cost does not fire an auto-expense', async () => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', completed_at: '2026-07-13T12:00:00.000Z' },
+      });
+
+      await service.create(userId, { motorcycleId, title: 'Free inspection', status: 'completed' });
+
+      expect(mockExpensesService.createFromTask).not.toHaveBeenCalled();
+    });
+
+    it('a pending task with a cost stores the cost but does not fire an auto-expense', async () => {
+      mockUserClient._pushResult({ data: { ...fakeRow, cost: 40 } });
+
+      await service.create(userId, { motorcycleId, title: 'Quote only', cost: 40 });
+
+      expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ cost: 40 }),
+      );
+      expect(mockExpensesService.createFromTask).not.toHaveBeenCalled();
+    });
+
+    it('persists source when provided (receipt_scan attribution)', async () => {
+      mockUserClient._pushResult({ data: { ...fakeRow, source: 'receipt_scan' } });
+
+      await service.create(userId, {
+        motorcycleId,
+        title: 'Scanned service',
+        source: 'receipt_scan',
+      });
+
+      expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ source: 'receipt_scan' }),
+      );
+    });
   });
 
   describe('complete', () => {
@@ -271,6 +350,7 @@ describe('MaintenanceTasksService', () => {
         taskId,
         100, // 50 + 30 + 20
         'Oil Change',
+        undefined, // no task currency → expense falls back to profile currency
       );
     });
 
@@ -508,13 +588,16 @@ describe('MaintenanceTasksService', () => {
   });
 
   describe('addPhoto', () => {
+    // Real legacy maintenance-photo path shape (uploadMaintenancePhoto): {uid}/{taskId}/…
+    const legacyPath = `${userId}/${taskId}/test.webp`;
+
     it('should enforce 5-photo limit', async () => {
       // Result 0: task ownership check (.single()) — passes
       mockAdminClient._pushResult({ data: { id: taskId } });
       // Result 1: count query (thenable, no .single()) — returns count=5
       mockAdminClient._pushResult({ count: 5 });
 
-      await expect(service.addPhoto(userId, taskId, 'photos/test.webp')).rejects.toThrow(
+      await expect(service.addPhoto(userId, taskId, legacyPath)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -526,9 +609,104 @@ describe('MaintenanceTasksService', () => {
         error: { message: 'Row not found', code: 'PGRST116' },
       });
 
-      await expect(service.addPhoto(userId, taskId, 'photos/test.webp')).rejects.toThrow(
-        NotFoundException,
+      await expect(service.addPhoto(userId, taskId, legacyPath)).rejects.toThrow(NotFoundException);
+    });
+
+    it('KTD-2: rejects a legacy path outside the caller-owned {uid}/{taskId}/ prefix', async () => {
+      // A foreign object path must be refused BEFORE any ownership/count/insert
+      // so a caller cannot link (then admin-delete) another user's object.
+      await expect(
+        service.addPhoto(userId, taskId, `other-uid/${taskId}/steal.webp`),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        service.addPhoto(userId, taskId, `${userId}/other-task/steal.webp`),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('KTD-2: rejects a receipts path outside the caller-owned {uid}/ prefix', async () => {
+      await expect(
+        service.addPhoto(userId, taskId, 'other-uid/scan.webp', undefined, 'receipts'),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('photos resolution (U7a)', () => {
+    it('resolves BOTH a legacy public URL and a receipts signed URL', async () => {
+      // The batched row read is now via the RLS-enforcing user client.
+      mockUserClient._pushResult({
+        data: [
+          {
+            id: 'p-legacy',
+            task_id: taskId,
+            user_id: userId,
+            storage_path: `${userId}/tasks/${taskId}/legacy.webp`,
+            bucket: 'maintenance-photos',
+            mime_type: 'image/webp',
+            created_at: '2026-01-01T00:00:00Z',
+          },
+          {
+            id: 'p-receipt',
+            task_id: taskId,
+            user_id: userId,
+            storage_path: `${userId}/scan.webp`,
+            bucket: 'receipts',
+            mime_type: 'image/webp',
+            created_at: '2026-01-02T00:00:00Z',
+          },
+        ],
+      });
+
+      const map = await service.findPhotosByTaskIds([taskId], userId);
+      const photos = map.get(taskId) ?? [];
+
+      expect(photos).toHaveLength(2);
+      expect(photos.find((p) => p.id === 'p-legacy')?.publicUrl).toBe(
+        `https://test.supabase.co/storage/v1/object/public/maintenance-photos/${userId}/tasks/${taskId}/legacy.webp`,
       );
+      expect(photos.find((p) => p.id === 'p-receipt')?.publicUrl).toBe(
+        'https://signed/url?token=abc',
+      );
+      expect(mockAdminClient.storage.from).toHaveBeenCalledWith('receipts');
+      expect(mockAdminClient._createSignedUrl).toHaveBeenCalledWith(`${userId}/scan.webp`, 120);
+    });
+
+    it('C1: drops a receipts photo whose path belongs to another uid', async () => {
+      mockUserClient._pushResult({
+        data: [
+          {
+            id: 'p-foreign',
+            task_id: taskId,
+            user_id: userId,
+            storage_path: 'other-uid/scan.webp',
+            bucket: 'receipts',
+            mime_type: 'image/webp',
+            created_at: '2026-01-02T00:00:00Z',
+          },
+        ],
+      });
+
+      const map = await service.findPhotosByTaskIds([taskId], userId);
+
+      expect(map.get(taskId) ?? []).toHaveLength(0);
+      expect(mockAdminClient._createSignedUrl).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('softDelete receipts purge (U7a / R10)', () => {
+    it('removes the receipts storage object attached to the deleted task', async () => {
+      mockUserClient.rpc.mockResolvedValueOnce({ data: true, error: null });
+      // purgeReceiptsPhotos SELECT (admin client) resolves to one receipts photo.
+      mockAdminClient._pushResult({
+        data: [
+          { id: 'p1', storage_path: `${userId}/scan.webp`, bucket: 'receipts', user_id: userId },
+        ],
+      });
+
+      const ok = await service.softDelete(userId, taskId);
+
+      expect(ok).toBe(true);
+      expect(mockAdminClient.storage.from).toHaveBeenCalledWith('receipts');
+      expect(mockAdminClient._remove).toHaveBeenCalledWith([`${userId}/scan.webp`]);
     });
   });
 

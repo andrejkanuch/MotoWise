@@ -6,6 +6,10 @@ export const FREE_TIER_LIMITS = {
   MAX_AI_DIAGNOSTICS_PER_MONTH: 1,
   MAX_ARTICLES_PER_MONTH: 2,
   MAX_MILEAGE: 999999,
+  // Receipt scan (U5): 3 free scans per calendar month. Server-side counting
+  // is authoritative (receiptScanQuota); this is the client gate limit. Mirror
+  // of reserve_receipt_scan's p_monthly_limit default (00166).
+  MAX_RECEIPT_SCANS_PER_MONTH: 3,
 } as const;
 
 export const GPX_EXPORT_LIMITS = {
@@ -31,6 +35,7 @@ export const PRO_FEATURES = {
   TRIP_ASSISTANT: 'trip_assistant',
   RIDE_SUMMARIES: 'ride_summaries',
   OFFLINE_TRIPS: 'offline_trips',
+  UNLIMITED_SCANS: 'unlimited_scans',
 } as const;
 
 export type ProFeature = (typeof PRO_FEATURES)[keyof typeof PRO_FEATURES];

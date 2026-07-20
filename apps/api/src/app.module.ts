@@ -28,7 +28,6 @@ import { EntitlementsModule } from './modules/entitlements/entitlements.module';
 import { ExpensesModule } from './modules/expenses/expenses.module';
 import { FeedModule } from './modules/feed/feed.module';
 import { FollowsModule } from './modules/follows/follows.module';
-import { FuelLogsModule } from './modules/fuel-logs/fuel-logs.module';
 import { FuelStopsModule } from './modules/fuel-stops/fuel-stops.module';
 import { GroupRidesModule } from './modules/group-rides/group-rides.module';
 import { HealthModule } from './modules/health/health.module';
@@ -45,6 +44,7 @@ import { OemSchedulesModule } from './modules/oem-schedules/oem-schedules.module
 import { PlacesModule } from './modules/places/places.module';
 import { PushTokensModule } from './modules/push-tokens/push-tokens.module';
 import { QuizzesModule } from './modules/quizzes/quizzes.module';
+import { ReceiptScanModule } from './modules/receipt-scan/receipt-scan.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { RedisThrottlerStorage } from './modules/redis/redis-throttler.storage';
 import { RideAnalyticsModule } from './modules/ride-analytics/ride-analytics.module';
@@ -105,10 +105,10 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     ArticlesModule,
     BlogModule,
     QuizzesModule,
+    ReceiptScanModule,
     DiagnosticsModule,
     DocumentsModule,
     ExpensesModule,
-    FuelLogsModule,
     FeedModule,
     FollowsModule,
     GroupRidesModule,

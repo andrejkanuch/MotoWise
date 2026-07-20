@@ -1,0 +1,49 @@
+# Receipt-scan entry + consent + manual-escape — E2E regression for the receipt-scan
+# epic (PR #171).
+#
+# Scope: proves the DETERMINISTIC path — the "Scan a receipt" entry affordance opens
+# the scan modal, the one-time AI-processing consent disclosure appears on first scan,
+# and the co-equal "Enter manually instead" escape routes to add-expense (a PRD hard
+# requirement: logging is never gated on the scan). It deliberately does NOT drive the
+# camera → upload → live-AI extraction happy path — that needs a real camera, network,
+# and the OpenAI vision call, none of which are deterministic in a simulator E2E.
+#
+# Setup: composes onboarding.yaml (signs in a pre-created user, leaves a Honda in the
+# garage, ends at Home). Same build + user-provisioning prereqs as the other composed
+# flows — a STANDALONE/PREVIEW build with EXPO_PUBLIC_OB_VARIANT=invested (see
+# .maestro/README.md; dev-client/Metro is unsupported because onboarding.yaml uses
+# clearState).
+#
+# NOT YET device-validated (authored alongside the feature). Validate live via the
+# Maestro MCP against a preview build before relying on it in CI, and adjust selectors
+# for any device quirks (see edit-maintenance-task.yaml's notes — badge counts in tab
+# a11y text, custom-keyboard dismissal, review prompts).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+---
+# 1. Setup — reach a signed-in Home with a bike in the garage.
+- runFlow: onboarding.yaml
+
+# 2. The "Scan a receipt" entry affordance is on the Home dashboard. Free users with
+#    scans remaining open the modal directly (no paywall).
+- extendedWaitUntil:
+    visible: "Scan a receipt"
+    timeout: 20000
+- tapOn: "Scan a receipt"
+
+# 3. First scan → the one-time AI-processing consent disclosure (EU informed consent).
+- extendedWaitUntil:
+    visible: "Scan a receipt with AI"
+    timeout: 20000
+- assertVisible: ".*processed by.*|.*AI to read.*" # consent body mentions third-party AI processing
+
+# 4. Co-equal manual escape — "Enter manually instead" must always be present and must
+#    route to manual expense entry (logging is never gated on the scan).
+- assertVisible: "Enter manually instead"
+- tapOn: "Enter manually instead"
+
+# 5. Success: landed on the add-expense form (manual entry), bike context carried.
+- extendedWaitUntil:
+    visible: ".*Amount.*|.*Add expense.*|.*Category.*"
+    timeout: 20000

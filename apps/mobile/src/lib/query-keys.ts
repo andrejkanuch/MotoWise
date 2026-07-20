@@ -52,11 +52,14 @@ export const queryKeys = {
   expenses: {
     byMotorcycle: (motorcycleId: string) => ['expenses', 'byMotorcycle', motorcycleId] as const,
   },
-  fuelLogs: {
-    byMotorcycle: (motorcycleId: string) => ['fuel-logs', motorcycleId] as const,
-  },
   expensePhotos: {
     byExpense: (expenseId: string) => ['expense-photos', expenseId] as const,
+  },
+  receiptScans: {
+    /** Server-authoritative monthly used-count (drives the client paywall gate). */
+    quota: ['receipt-scans', 'quota'] as const,
+    /** Completed-but-unreviewed scans — resume + home priority card. */
+    unreviewed: ['receipt-scans', 'unreviewed'] as const,
   },
   documents: {
     byMotorcycle: (motorcycleId: string) => ['documents', 'byMotorcycle', motorcycleId] as const,

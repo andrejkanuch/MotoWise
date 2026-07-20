@@ -1,0 +1,21 @@
+{
+  "_note": "Ground truth for the one verification receipt (Honda dealer FACTURA DE REPARACIÓN, Logroño ES). Printed dealer invoice, EU decimal format (199,55 / 37.505), EUR, km odometer. Save the photo next to this file as invoice-honda-africatwin.jpg (or .png/.heic — matching basename).",
+  "docType": "printed_invoice",
+  "type": "maintenance",
+  "amount": 241.46,
+  "currency": "EUR",
+  "date": "2026-07-16",
+  "vendor": "honda",
+  "category": "maintenance",
+  "odometerValue": 37505,
+  "odometerUnit": "km",
+  "fuelLitres": null,
+  "_reference_not_scored": {
+    "partsCost": 110.45,
+    "laborCost": 89.1,
+    "baseImponible": 199.55,
+    "iva": 41.91,
+    "vinOrPlate": "<redacted VIN/plate — not committed>",
+    "invoiceNumber": "<redacted>"
+  }
+}

@@ -413,9 +413,6 @@
     "distanceIntervalPlaceholder": "p.ej. 15000",
     "timeIntervalPlaceholder": "p.ej. 90",
     "mileageIntervalPlaceholder": "p.ej. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "p.ej. 15000",
     "discardChangesTitle": "¿Descartar cambios?",
     "discardChangesMessage": "Tus cambios se perderán.",
@@ -1002,7 +999,15 @@
     "obNoBikeServiceBody": "Registra el trabajo y recibe un aviso antes del próximo.",
     "obNoBikeRoutesTitle": "Descubre rutas",
     "obNoBikeRoutesBody": "Encuentra buenas carreteras y organiza salidas en grupo cerca de ti.",
-    "obNoBikeAddBike": "Añadir mi moto ahora"
+    "obNoBikeAddBike": "Añadir mi moto ahora",
+    "scanEyebrow": "Try it now",
+    "scanTitle": "Snap your first",
+    "scanTitleAccent": "receipt",
+    "scanSubtitle": "Point your camera at a fuel, parts, or service receipt — MotoVault reads the amount, date, and vendor and logs it for you.",
+    "scanCta": "Scan a receipt",
+    "scanSkip": "Maybe later",
+    "scanBulletExtract": "AI pulls out the amount, date, and vendor",
+    "scanBulletFast": "Logged in seconds — no typing"
   },
   "bikeHub": {
     "upcoming": "Proximos",
@@ -1935,22 +1940,6 @@
   "survey": {
     "feedbackPlaceholder": "Comparte tus opiniones (sin datos personales, por favor)"
   },
-  "fuel": {
-    "createFailed": "Error al guardar la carga. Inténtalo de nuevo.",
-    "newFillUp": "Nueva carga",
-    "odometer": "Odómetro",
-    "volume": "Combustible",
-    "totalCost": "Costo total",
-    "partialFill": "Carga parcial",
-    "partialHelp": "Marca esto si no llenaste el tanque completamente",
-    "saved": "¡Guardado!",
-    "save": "Registrar carga",
-    "rollingAverage": "Promedio móvil",
-    "lastN": "Últimas {{n}} cargas",
-    "history": "Historial",
-    "partial": "Parcial",
-    "emptyState": "Aún no hay cargas registradas"
-  },
   "nearYou": {
     "sectionMeta": "Rutas en {{country}}",
     "heading": "Rutas cerca de",
@@ -1968,7 +1957,8 @@
     "trackFirstExpense": "Track your first expense",
     "completeBikeProfile": "Complete your bike profile",
     "exploreDashboard": "Explore your dashboard",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "scanReceipt": "Scan a receipt"
   },
   "myRides": {
     "title": "Mis rutas",
@@ -2275,6 +2265,128 @@
       "endRide": "End ride",
       "endRideButton": "End ride",
       "savesNote": "Ending always saves — {{distance}} will be kept"
+    }
+  },
+  "receiptScan": {
+    "common": {
+      "enterManually": "Introducir manualmente",
+      "done": "Listo",
+      "noCreditUsed": "No se usó ningún escaneo"
+    },
+    "gating": {
+      "label": "Preparando…"
+    },
+    "bikePick": {
+      "title": "¿Para qué moto es?",
+      "subtitle": "Elige la moto a la que pertenece este recibo."
+    },
+    "consent": {
+      "title": "Escanear un recibo con IA",
+      "body": "Enviamos una foto de tu recibo a nuestra IA para leer el importe, la fecha y los detalles, así no tienes que escribirlos. La foto se guarda de forma privada en tu cuenta y nunca se comparte. También puedes introducir los datos a mano cuando quieras.",
+      "accept": "Escanear un recibo"
+    },
+    "capture": {
+      "title": "Fotografía el recibo",
+      "subtitle": "Colócalo plano, llena el encuadre y mantén el total a la vista.",
+      "takePhoto": "Hacer foto",
+      "chooseFromLibrary": "Elegir de la galería",
+      "openSettings": "Abrir Ajustes"
+    },
+    "uploading": {
+      "label": "Subiendo el recibo…",
+      "retrying": "Reintentando…"
+    },
+    "offline": {
+      "title": "Estás sin conexión",
+      "body": "Guardamos tu recibo y terminaremos de leerlo automáticamente en cuanto vuelvas a tener conexión. No se usa ningún escaneo hasta que se procese."
+    },
+    "analyzing": {
+      "stageReading": "Leyendo tu recibo…",
+      "stageExtracting": "Extrayendo los detalles…",
+      "stageChecking": "Comprobando los números…",
+      "skip": "Omitir: introducir manualmente"
+    },
+    "error": {
+      "retry": "Reintentar",
+      "extractionFailedTitle": "No pudimos leer este recibo",
+      "extractionFailedBody": "La foto estaba borrosa o el texto poco claro. Puedes introducir los datos a mano.",
+      "imageInvalidTitle": "Esa foto no funcionó",
+      "imageInvalidBody": "No pudimos usar esa imagen. Vuelve a hacer la foto o introduce los datos a mano.",
+      "quotaExceededTitle": "Has usado todos tus escaneos gratis",
+      "quotaExceededBody": "Mejora tu plan para escaneos de recibos ilimitados, o introduce este a mano. Tu foto está guardada.",
+      "disabledTitle": "El escaneo no está disponible temporalmente",
+      "disabledBody": "El escaneo de recibos está en pausa ahora mismo. Aun así puedes introducir este recibo a mano.",
+      "alreadyCompletedTitle": "Este escaneo ya terminó",
+      "alreadyCompletedBody": "Terminó de procesarse justo antes de que lo omitieras. Lo encontrarás esperando en tus recibos para revisar.",
+      "uploadFailedTitle": "La subida no se completó",
+      "uploadFailedBody": "No pudimos subir tu recibo. Comprueba tu conexión e inténtalo de nuevo.",
+      "analyzeFailedTitle": "Algo salió mal",
+      "analyzeFailedBody": "No pudimos terminar de leer tu recibo. Inténtalo de nuevo: si ya se procesó, lo encontrarás esperando en tus recibos para revisar.",
+      "rateLimitedTitle": "Has alcanzado el límite de escaneos de hoy",
+      "rateLimitedBody": "Has escaneado mucho hoy. Inténtalo de nuevo mañana o introduce este recibo a mano."
+    },
+    "parked": {
+      "title": "Guardado para más tarde",
+      "body": "Tu recibo está listo para revisar. Te lo recordaremos mañana y te espera en tu pantalla de inicio."
+    },
+    "alreadyProcessed": {
+      "title": "Ya procesado",
+      "body": "Este escaneo terminó antes de poder cancelarse. Puedes revisarlo ahora o encontrarlo más tarde en tus recibos.",
+      "reviewNow": "Revisar ahora"
+    },
+    "review": {
+      "title": "Revisa tu recibo",
+      "forBike": "Para {{bike}}",
+      "type": "Tipo",
+      "vendor": "Comercio",
+      "amount": "Importe",
+      "date": "Fecha",
+      "needsCheck": "Revisar",
+      "reviewLater": "Revisar luego",
+      "typeMaintenance": "Mantenimiento",
+      "typeExpense": "Gasto",
+      "currency": "Moneda",
+      "category": "Categoría",
+      "itemName": "Artículo",
+      "partsCost": "Piezas",
+      "laborCost": "Mano de obra",
+      "odometer": "Cuentakilómetros",
+      "odometerFirstSet": "Fijar cuentakilómetros",
+      "pickDate": "Selecciona una fecha",
+      "selectBikePrompt": "Elige una moto para guardarlo",
+      "noBikePrompt": "Añade una moto primero para guardar este recibo.",
+      "addBike": "Añadir una moto",
+      "viewReceipt": "Ver foto del recibo",
+      "closeReceipt": "Cerrar",
+      "save": "Guardar",
+      "checkAmount": "Revisar importe",
+      "checkCurrency": "Revisar moneda",
+      "checkDate": "Revisar fecha",
+      "checkVendor": "Revisar comercio",
+      "checkCategory": "Revisar categoría",
+      "checkOdometer": "Revisar cuentakilómetros"
+    },
+    "saved": {
+      "toast": "Guardado en {{bike}}",
+      "undo": "Deshacer",
+      "undoFailed": "No se pudo deshacer; inténtalo de nuevo",
+      "freeScansLeft": "Te quedan {{count}} escaneos gratis este mes",
+      "saveFailed": "No se pudo guardar",
+      "saveFailedBody": "Algo salió mal. Inténtalo de nuevo.",
+      "duplicateTitle": "Parece que ya registraste esto",
+      "duplicateBody": "Ya existe una entrada similar para esta moto. ¿Guardar de todas formas?",
+      "duplicateConfirm": "Guardar igual",
+      "duplicateCancel": "Revisar"
+    },
+    "entry": {
+      "title": "Escanear un recibo",
+      "subtitle": "Hazle una foto: lo registramos por ti",
+      "freeBadge": "{{count}} gratis",
+      "upsellBadge": "Ilimitado"
+    },
+    "recovery": {
+      "reviewTitle": "{{count}} recibo por revisar",
+      "reviewSubtitle": "Termina de registrar lo que escaneaste"
     }
   }
 }

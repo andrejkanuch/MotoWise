@@ -1,0 +1,7 @@
+# Real receipt photos are PII — never commit them. Truth sidecars (*.truth.json) ARE committed.
+samples/*.jpg
+samples/*.jpeg
+samples/*.png
+samples/*.webp
+samples/*.heic
+RESULTS.md

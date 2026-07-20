@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { ArticlesResolver } from '../../modules/articles/articles.resolver';
 import { DiagnosticsResolver } from '../../modules/diagnostics/diagnostics.resolver';
 import { InsightsResolver } from '../../modules/insights/insights.resolver';
+import { ReceiptScanResolver } from '../../modules/receipt-scan/receipt-scan.resolver';
 import { RideSummariesResolver } from '../../modules/ride-summaries/ride-summaries.resolver';
 import { TripAssistantResolver } from '../../modules/trip-assistant/trip-assistant.resolver';
 import { GqlThrottlerGuard } from './gql-throttler.guard';
@@ -33,6 +34,7 @@ const AI_METHODS: Array<[{ name: string; prototype: object }, string]> = [
   [TripAssistantResolver, 'askTripAssistant'],
   [InsightsResolver, 'generateOnboardingInsights'],
   [RideSummariesResolver, 'regenerateRideSummary'],
+  [ReceiptScanResolver, 'scanReceipt'],
 ];
 
 describe('AI resolver throttle inventory', () => {

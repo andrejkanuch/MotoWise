@@ -5,8 +5,7 @@
 // `completed_mileage` — are stored RAW in the user's global `measurement_system`
 // unit (mi for imperial, km for metric), NOT normalized. `interval_km` is km for
 // OEM-seeded tasks and raw user-unit for user-entered tasks. Ride distances come
-// from GPS in meters (`rides.distance_m`); fuel odometer is stored km
-// (`fuel_logs.odometer_km`). The display LABEL derives from `measurement_system`;
+// from GPS in meters (`rides.distance_m`). The display LABEL derives from `measurement_system`;
 // the per-bike `motorcycles.mileage_unit` is deprecated and MUST NOT be read to
 // decide a value's unit (it defaults 'mi' and is unreliable). Convert only at the
 // arithmetic EDGES where a km value (OEM interval, ride meters) meets a raw

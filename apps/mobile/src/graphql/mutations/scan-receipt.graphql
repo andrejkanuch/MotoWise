@@ -1,0 +1,37 @@
+mutation ScanReceipt($scanId: String!, $isOnboarding: Boolean) {
+  scanReceipt(scanId: $scanId, isOnboarding: $isOnboarding) {
+    __typename
+    ... on ReceiptScanSuccess {
+      scanId
+      result {
+        type
+        amount
+        currency
+        date
+        vendor
+        itemName
+        category
+        partsCost
+        laborCost
+        odometerValue
+        odometerUnit
+        fuelLitres
+        partsNeeded
+        legibilityNote
+        needsCheck
+        fieldConfidence {
+          amount
+          currency
+          date
+          vendor
+          category
+          odometer
+        }
+      }
+    }
+    ... on ReceiptScanError {
+      code
+      reason
+    }
+  }
+}

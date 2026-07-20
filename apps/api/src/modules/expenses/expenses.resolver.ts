@@ -78,6 +78,7 @@ export class ExpensesResolver {
       input.expenseId,
       input.storagePath,
       input.fileSizeBytes,
+      input.bucket,
     );
   }
 
@@ -90,7 +91,7 @@ export class ExpensesResolver {
   }
 
   @ResolveField(() => [ExpensePhoto])
-  async photos(@Parent() expense: Expense): Promise<ExpensePhoto[]> {
-    return this.expensePhotosLoader.load(expense.id);
+  async photos(@CurrentUser() user: AuthUser, @Parent() expense: Expense): Promise<ExpensePhoto[]> {
+    return this.expensePhotosLoader.load(expense.id, user.id);
   }
 }

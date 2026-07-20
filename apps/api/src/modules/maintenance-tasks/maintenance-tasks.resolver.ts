@@ -122,6 +122,7 @@ export class MaintenanceTasksResolver {
       input.taskId,
       input.storagePath,
       input.fileSizeBytes,
+      input.bucket,
     );
   }
 
@@ -136,8 +137,11 @@ export class MaintenanceTasksResolver {
   // ── Field resolver for photos ───────────────────────────────────
 
   @ResolveField(() => [TaskPhoto])
-  async photos(@Parent() task: MaintenanceTask): Promise<TaskPhoto[]> {
+  async photos(
+    @CurrentUser() user: AuthUser,
+    @Parent() task: MaintenanceTask,
+  ): Promise<TaskPhoto[]> {
     if (task.photos && task.photos.length > 0) return task.photos;
-    return this.taskPhotosLoader.load(task.id);
+    return this.taskPhotosLoader.load(task.id, user.id);
   }
 }

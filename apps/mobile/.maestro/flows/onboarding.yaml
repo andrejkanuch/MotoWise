@@ -128,6 +128,11 @@ env:
           visible: "Enable Notifications"
           timeout: 30000
       - tapOn: "Maybe later"
+      # Onboarding receipt-scan step (added by the receipt-scan epic) sits between
+      # notifications and personalizing. It's skippable — dismiss it if it shows.
+      - tapOn:
+          text: "Maybe later"
+          optional: true
       - tapOn:
           text: "Open my garage"
           optional: true

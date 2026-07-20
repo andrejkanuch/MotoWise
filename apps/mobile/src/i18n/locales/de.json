@@ -415,9 +415,6 @@
     "distanceIntervalPlaceholder": "z.B. 15000",
     "timeIntervalPlaceholder": "z.B. 90",
     "mileageIntervalPlaceholder": "z.B. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0,0",
-    "fuelCostPlaceholder": "0,00",
     "taskMileagePlaceholder": "z.B. 15000",
     "discardChangesTitle": "Änderungen verwerfen?",
     "discardChangesMessage": "Deine Änderungen gehen verloren.",
@@ -1001,7 +998,15 @@
     "obNoBikeServiceBody": "Halte Arbeiten fest und werde vor dem nächsten Termin erinnert.",
     "obNoBikeRoutesTitle": "Routen entdecken",
     "obNoBikeRoutesBody": "Finde tolle Straßen und plane Gruppenausfahrten in deiner Nähe.",
-    "obNoBikeAddBike": "Motorrad jetzt hinzufügen"
+    "obNoBikeAddBike": "Motorrad jetzt hinzufügen",
+    "scanEyebrow": "Try it now",
+    "scanTitle": "Snap your first",
+    "scanTitleAccent": "receipt",
+    "scanSubtitle": "Point your camera at a fuel, parts, or service receipt — MotoVault reads the amount, date, and vendor and logs it for you.",
+    "scanCta": "Scan a receipt",
+    "scanSkip": "Maybe later",
+    "scanBulletExtract": "AI pulls out the amount, date, and vendor",
+    "scanBulletFast": "Logged in seconds — no typing"
   },
   "bikeHub": {
     "upcoming": "Anstehend",
@@ -1933,22 +1938,6 @@
   "survey": {
     "feedbackPlaceholder": "Teile deine Gedanken (bitte keine persoenlichen Daten)"
   },
-  "fuel": {
-    "createFailed": "Tankfüllung konnte nicht gespeichert werden. Bitte versuche es erneut.",
-    "newFillUp": "Neue Tankfüllung",
-    "odometer": "Kilometerstand",
-    "volume": "Kraftstoff",
-    "totalCost": "Gesamtkosten",
-    "partialFill": "Teiltankung",
-    "partialHelp": "Aktiviere dies, wenn du den Tank nicht vollständig gefüllt hast",
-    "saved": "Gespeichert!",
-    "save": "Tankfüllung speichern",
-    "rollingAverage": "Gleitender Durchschnitt",
-    "lastN": "Letzte {{n}} Tankfüllungen",
-    "history": "Verlauf",
-    "partial": "Teiltankung",
-    "emptyState": "Noch keine Tankfüllungen erfasst"
-  },
   "nearYou": {
     "sectionMeta": "Routen in {{country}}",
     "heading": "Routen in der Nähe von",
@@ -1966,7 +1955,8 @@
     "trackFirstExpense": "Track your first expense",
     "completeBikeProfile": "Complete your bike profile",
     "exploreDashboard": "Explore your dashboard",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "scanReceipt": "Scan a receipt"
   },
   "myRides": {
     "title": "Meine Fahrten",
@@ -2272,6 +2262,128 @@
       "endRide": "End ride",
       "endRideButton": "End ride",
       "savesNote": "Ending always saves — {{distance}} will be kept"
+    }
+  },
+  "receiptScan": {
+    "common": {
+      "enterManually": "Stattdessen manuell eingeben",
+      "done": "Fertig",
+      "noCreditUsed": "Kein Scan verbraucht"
+    },
+    "gating": {
+      "label": "Wird vorbereitet…"
+    },
+    "bikePick": {
+      "title": "Für welches Motorrad ist das?",
+      "subtitle": "Wähle das Motorrad, zu dem dieser Beleg gehört."
+    },
+    "consent": {
+      "title": "Beleg mit KI scannen",
+      "body": "Wir senden ein Foto deines Belegs an unsere KI, um Betrag, Datum und Details auszulesen – damit du sie nicht eintippen musst. Das Foto wird privat in deinem Konto gespeichert und niemals geteilt. Du kannst die Details jederzeit auch von Hand eingeben.",
+      "accept": "Beleg scannen"
+    },
+    "capture": {
+      "title": "Beleg fotografieren",
+      "subtitle": "Flach hinlegen, Rahmen ausfüllen und den Gesamtbetrag im Bild behalten.",
+      "takePhoto": "Foto aufnehmen",
+      "chooseFromLibrary": "Aus Galerie wählen",
+      "openSettings": "Einstellungen öffnen"
+    },
+    "uploading": {
+      "label": "Beleg wird hochgeladen…",
+      "retrying": "Erneuter Versuch…"
+    },
+    "offline": {
+      "title": "Du bist offline",
+      "body": "Wir haben deinen Beleg gespeichert und lesen ihn automatisch aus, sobald du wieder online bist. Es wird kein Scan verbraucht, bis er verarbeitet ist."
+    },
+    "analyzing": {
+      "stageReading": "Beleg wird gelesen…",
+      "stageExtracting": "Details werden erfasst…",
+      "stageChecking": "Zahlen werden geprüft…",
+      "skip": "Überspringen – manuell eingeben"
+    },
+    "error": {
+      "retry": "Erneut versuchen",
+      "extractionFailedTitle": "Wir konnten diesen Beleg nicht lesen",
+      "extractionFailedBody": "Das Foto war zu unscharf oder der Text unklar. Du kannst die Details auch von Hand eingeben.",
+      "imageInvalidTitle": "Dieses Foto hat nicht funktioniert",
+      "imageInvalidBody": "Wir konnten dieses Bild nicht verwenden. Nimm das Foto erneut auf oder gib die Details von Hand ein.",
+      "quotaExceededTitle": "Du hast alle kostenlosen Scans verbraucht",
+      "quotaExceededBody": "Für unbegrenzte Beleg-Scans upgraden oder diesen von Hand eingeben. Dein Foto ist gespeichert.",
+      "disabledTitle": "Scannen ist vorübergehend nicht verfügbar",
+      "disabledBody": "Das Scannen von Belegen ist gerade pausiert. Du kannst diesen Beleg trotzdem von Hand eingeben.",
+      "alreadyCompletedTitle": "Dieser Scan ist bereits fertig",
+      "alreadyCompletedBody": "Er wurde direkt vor dem Überspringen fertig verarbeitet. Du findest ihn in deinen Belegen zur Überprüfung.",
+      "uploadFailedTitle": "Upload nicht erfolgreich",
+      "uploadFailedBody": "Wir konnten deinen Beleg nicht hochladen. Prüfe deine Verbindung und versuche es erneut.",
+      "analyzeFailedTitle": "Etwas ist schiefgelaufen",
+      "analyzeFailedBody": "Wir konnten deinen Beleg nicht fertig lesen. Versuche es erneut – falls er schon durchging, findest du ihn in deinen Belegen zur Überprüfung.",
+      "rateLimitedTitle": "Du hast das heutige Scan-Limit erreicht",
+      "rateLimitedBody": "Du hast heute viel gescannt. Bitte versuche es morgen erneut oder gib diesen Beleg von Hand ein."
+    },
+    "parked": {
+      "title": "Für später gespeichert",
+      "body": "Dein Beleg ist bereit zur Überprüfung. Wir erinnern dich morgen daran, und er wartet auf deinem Startbildschirm."
+    },
+    "alreadyProcessed": {
+      "title": "Bereits verarbeitet",
+      "body": "Dieser Scan wurde fertig, bevor er abgebrochen werden konnte. Du kannst ihn jetzt überprüfen oder später in deinen Belegen finden.",
+      "reviewNow": "Jetzt überprüfen"
+    },
+    "review": {
+      "title": "Beleg überprüfen",
+      "forBike": "Für {{bike}}",
+      "type": "Typ",
+      "vendor": "Händler",
+      "amount": "Betrag",
+      "date": "Datum",
+      "needsCheck": "Prüfen",
+      "reviewLater": "Später überprüfen",
+      "typeMaintenance": "Wartung",
+      "typeExpense": "Ausgabe",
+      "currency": "Währung",
+      "category": "Kategorie",
+      "itemName": "Artikel",
+      "partsCost": "Teile",
+      "laborCost": "Arbeit",
+      "odometer": "Kilometerstand",
+      "odometerFirstSet": "Kilometerstand festlegen",
+      "pickDate": "Datum auswählen",
+      "selectBikePrompt": "Wähle ein Motorrad zum Speichern",
+      "noBikePrompt": "Füge zuerst ein Motorrad hinzu, um diesen Beleg zu speichern.",
+      "addBike": "Motorrad hinzufügen",
+      "viewReceipt": "Belegfoto ansehen",
+      "closeReceipt": "Schließen",
+      "save": "Speichern",
+      "checkAmount": "Betrag prüfen",
+      "checkCurrency": "Währung prüfen",
+      "checkDate": "Datum prüfen",
+      "checkVendor": "Händler prüfen",
+      "checkCategory": "Kategorie prüfen",
+      "checkOdometer": "Kilometerstand prüfen"
+    },
+    "saved": {
+      "toast": "Bei {{bike}} gespeichert",
+      "undo": "Rückgängig",
+      "undoFailed": "Rückgängig fehlgeschlagen – bitte erneut versuchen",
+      "freeScansLeft": "Noch {{count}} kostenlose Scans diesen Monat",
+      "saveFailed": "Speichern fehlgeschlagen",
+      "saveFailedBody": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+      "duplicateTitle": "Sieht aus, als hättest du das schon erfasst",
+      "duplicateBody": "Für dieses Motorrad existiert bereits ein ähnlicher Eintrag. Trotzdem speichern?",
+      "duplicateConfirm": "Trotzdem speichern",
+      "duplicateCancel": "Überprüfen"
+    },
+    "entry": {
+      "title": "Beleg scannen",
+      "subtitle": "Abfotografieren – wir erfassen es für dich",
+      "freeBadge": "{{count}} gratis",
+      "upsellBadge": "Unbegrenzt"
+    },
+    "recovery": {
+      "reviewTitle": "{{count}} Beleg zu überprüfen",
+      "reviewSubtitle": "Erfasse fertig, was du gescannt hast"
     }
   }
 }

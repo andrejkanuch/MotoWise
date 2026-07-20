@@ -44,5 +44,8 @@ export const AddExpensePhotoSchema = z.object({
   expenseId: z.string().uuid(),
   storagePath: z.string().min(1).max(500),
   fileSizeBytes: z.number().int().positive().optional(),
+  // U7a: 'receipts' links a scanned image from the private bucket; omitted →
+  // legacy public 'maintenance-photos'.
+  bucket: z.enum(['maintenance-photos', 'receipts']).optional(),
 });
 export type AddExpensePhoto = z.infer<typeof AddExpensePhotoSchema>;

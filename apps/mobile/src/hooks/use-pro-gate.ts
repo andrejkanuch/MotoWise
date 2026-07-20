@@ -84,6 +84,7 @@ export function useProGate(): ProGateResult {
         MAX_BIKES: 'unlimited_bikes',
         MAX_AI_DIAGNOSTICS_PER_MONTH: 'full_ai_diagnostics',
         MAX_ARTICLES_PER_MONTH: 'unlimited_articles',
+        MAX_RECEIPT_SCANS_PER_MONTH: 'unlimited_scans',
       };
       const proFeature = featureMap[feature] ?? 'unlimited_bikes';
       presentPaywall({

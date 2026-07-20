@@ -416,9 +416,6 @@
     "distanceIntervalPlaceholder": "p.ex. 15000",
     "timeIntervalPlaceholder": "p.ex. 90",
     "mileageIntervalPlaceholder": "p.ex. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0,0",
-    "fuelCostPlaceholder": "0,00",
     "taskMileagePlaceholder": "p.ex. 15000",
     "discardChangesTitle": "Abandonner les modifications ?",
     "discardChangesMessage": "Tes modifications seront perdues.",
@@ -1002,7 +999,15 @@
     "obNoBikeServiceBody": "Note les travaux et reçois un rappel avant le prochain.",
     "obNoBikeRoutesTitle": "Découvre des itinéraires",
     "obNoBikeRoutesBody": "Trouve de belles routes et planifie des sorties en groupe près de chez toi.",
-    "obNoBikeAddBike": "Ajouter ma moto maintenant"
+    "obNoBikeAddBike": "Ajouter ma moto maintenant",
+    "scanEyebrow": "Try it now",
+    "scanTitle": "Snap your first",
+    "scanTitleAccent": "receipt",
+    "scanSubtitle": "Point your camera at a fuel, parts, or service receipt — MotoVault reads the amount, date, and vendor and logs it for you.",
+    "scanCta": "Scan a receipt",
+    "scanSkip": "Maybe later",
+    "scanBulletExtract": "AI pulls out the amount, date, and vendor",
+    "scanBulletFast": "Logged in seconds — no typing"
   },
   "bikeHub": {
     "upcoming": "À venir",
@@ -1935,22 +1940,6 @@
   "survey": {
     "feedbackPlaceholder": "Partage tes reflexions (pas d'informations personnelles s'il te plait)"
   },
-  "fuel": {
-    "createFailed": "Impossible d'enregistrer le plein. Réessaie.",
-    "newFillUp": "Nouveau plein",
-    "odometer": "Compteur",
-    "volume": "Carburant",
-    "totalCost": "Coût total",
-    "partialFill": "Plein partiel",
-    "partialHelp": "Coche si tu n'as pas fait le plein complet",
-    "saved": "Enregistré !",
-    "save": "Enregistrer le plein",
-    "rollingAverage": "Moyenne glissante",
-    "lastN": "{{n}} derniers pleins",
-    "history": "Historique",
-    "partial": "Partiel",
-    "emptyState": "Aucun plein enregistré"
-  },
   "nearYou": {
     "sectionMeta": "Itinéraires en {{country}}",
     "heading": "Itinéraires près de",
@@ -1968,7 +1957,8 @@
     "trackFirstExpense": "Track your first expense",
     "completeBikeProfile": "Complete your bike profile",
     "exploreDashboard": "Explore your dashboard",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "scanReceipt": "Scan a receipt"
   },
   "myRides": {
     "title": "Mes balades",
@@ -2275,6 +2265,128 @@
       "endRide": "End ride",
       "endRideButton": "End ride",
       "savesNote": "Ending always saves — {{distance}} will be kept"
+    }
+  },
+  "receiptScan": {
+    "common": {
+      "enterManually": "Saisir manuellement",
+      "done": "Terminé",
+      "noCreditUsed": "Aucun scan utilisé"
+    },
+    "gating": {
+      "label": "Préparation…"
+    },
+    "bikePick": {
+      "title": "Pour quelle moto ?",
+      "subtitle": "Choisis la moto à laquelle ce reçu correspond."
+    },
+    "consent": {
+      "title": "Scanner un reçu avec l’IA",
+      "body": "Nous envoyons une photo de ton reçu à notre IA pour lire le montant, la date et les détails, pour t’éviter de les saisir. La photo est stockée en privé sur ton compte et n’est jamais partagée. Tu peux aussi saisir les détails à la main quand tu veux.",
+      "accept": "Scanner un reçu"
+    },
+    "capture": {
+      "title": "Photographie le reçu",
+      "subtitle": "Pose-le à plat, remplis le cadre et garde le total visible.",
+      "takePhoto": "Prendre une photo",
+      "chooseFromLibrary": "Choisir dans la galerie",
+      "openSettings": "Ouvrir les réglages"
+    },
+    "uploading": {
+      "label": "Envoi du reçu…",
+      "retrying": "Nouvelle tentative…"
+    },
+    "offline": {
+      "title": "Tu es hors ligne",
+      "body": "Nous avons enregistré ton reçu et finirons de le lire automatiquement dès que tu seras de nouveau en ligne. Aucun scan n’est utilisé tant qu’il n’est pas traité."
+    },
+    "analyzing": {
+      "stageReading": "Lecture de ton reçu…",
+      "stageExtracting": "Extraction des détails…",
+      "stageChecking": "Vérification des montants…",
+      "skip": "Passer — saisir manuellement"
+    },
+    "error": {
+      "retry": "Réessayer",
+      "extractionFailedTitle": "Impossible de lire ce reçu",
+      "extractionFailedBody": "La photo était trop floue ou le texte peu lisible. Tu peux saisir les détails à la main.",
+      "imageInvalidTitle": "Cette photo n’a pas fonctionné",
+      "imageInvalidBody": "Nous n’avons pas pu utiliser cette image. Reprends la photo ou saisis les détails à la main.",
+      "quotaExceededTitle": "Tu as utilisé tous tes scans gratuits",
+      "quotaExceededBody": "Passe à l’offre supérieure pour des scans de reçus illimités, ou saisis celui-ci à la main. Ta photo est enregistrée.",
+      "disabledTitle": "Le scan est momentanément indisponible",
+      "disabledBody": "Le scan de reçus est en pause pour le moment. Tu peux quand même saisir ce reçu à la main.",
+      "alreadyCompletedTitle": "Ce scan est déjà terminé",
+      "alreadyCompletedBody": "Il a fini d’être traité juste avant que tu passes. Tu le retrouveras dans tes reçus à vérifier.",
+      "uploadFailedTitle": "L’envoi a échoué",
+      "uploadFailedBody": "Nous n’avons pas pu envoyer ton reçu. Vérifie ta connexion et réessaie.",
+      "analyzeFailedTitle": "Une erreur est survenue",
+      "analyzeFailedBody": "Nous n’avons pas pu terminer la lecture de ton reçu. Réessaie — s’il est déjà passé, tu le retrouveras dans tes reçus à vérifier.",
+      "rateLimitedTitle": "Tu as atteint la limite de scans du jour",
+      "rateLimitedBody": "Tu as beaucoup scanné aujourd'hui. Réessaie demain ou saisis ce reçu à la main."
+    },
+    "parked": {
+      "title": "Enregistré pour plus tard",
+      "body": "Ton reçu est prêt à être vérifié. Nous te le rappellerons demain, et il t’attend sur ton écran d’accueil."
+    },
+    "alreadyProcessed": {
+      "title": "Déjà traité",
+      "body": "Ce scan s’est terminé avant de pouvoir être annulé. Tu peux le vérifier maintenant ou le retrouver plus tard dans tes reçus.",
+      "reviewNow": "Vérifier maintenant"
+    },
+    "review": {
+      "title": "Vérifie ton reçu",
+      "forBike": "Pour {{bike}}",
+      "type": "Type",
+      "vendor": "Commerçant",
+      "amount": "Montant",
+      "date": "Date",
+      "needsCheck": "À vérifier",
+      "reviewLater": "Vérifier plus tard",
+      "typeMaintenance": "Entretien",
+      "typeExpense": "Dépense",
+      "currency": "Devise",
+      "category": "Catégorie",
+      "itemName": "Article",
+      "partsCost": "Pièces",
+      "laborCost": "Main-d’œuvre",
+      "odometer": "Compteur",
+      "odometerFirstSet": "Définir le compteur",
+      "pickDate": "Sélectionne une date",
+      "selectBikePrompt": "Choisis une moto pour l’enregistrer",
+      "noBikePrompt": "Ajoute d’abord une moto pour enregistrer ce reçu.",
+      "addBike": "Ajouter une moto",
+      "viewReceipt": "Voir la photo du reçu",
+      "closeReceipt": "Fermer",
+      "save": "Enregistrer",
+      "checkAmount": "Vérifier le montant",
+      "checkCurrency": "Vérifier la devise",
+      "checkDate": "Vérifier la date",
+      "checkVendor": "Vérifier le commerçant",
+      "checkCategory": "Vérifier la catégorie",
+      "checkOdometer": "Vérifier le compteur"
+    },
+    "saved": {
+      "toast": "Enregistré sur {{bike}}",
+      "undo": "Annuler",
+      "undoFailed": "Annulation impossible — réessaie",
+      "freeScansLeft": "{{count}} scans gratuits restants ce mois-ci",
+      "saveFailed": "Enregistrement impossible",
+      "saveFailedBody": "Une erreur est survenue. Réessaie.",
+      "duplicateTitle": "On dirait que tu l’as déjà enregistré",
+      "duplicateBody": "Une entrée similaire existe déjà pour cette moto. Enregistrer quand même ?",
+      "duplicateConfirm": "Enregistrer quand même",
+      "duplicateCancel": "Vérifier"
+    },
+    "entry": {
+      "title": "Scanner un reçu",
+      "subtitle": "Prends-le en photo — on l’enregistre pour toi",
+      "freeBadge": "{{count}} gratuits",
+      "upsellBadge": "Illimité"
+    },
+    "recovery": {
+      "reviewTitle": "{{count}} reçu à vérifier",
+      "reviewSubtitle": "Termine d’enregistrer ce que tu as scanné"
     }
   }
 }

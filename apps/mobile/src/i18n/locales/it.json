@@ -413,9 +413,6 @@
     "distanceIntervalPlaceholder": "es. 15000",
     "timeIntervalPlaceholder": "es. 90",
     "mileageIntervalPlaceholder": "es. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0,0",
-    "fuelCostPlaceholder": "0,00",
     "taskMileagePlaceholder": "es. 15000",
     "discardChangesTitle": "Annullare le modifiche?",
     "discardChangesMessage": "Le modifiche andranno perse.",
@@ -1002,7 +999,15 @@
     "obNoBikeServiceBody": "Registra gli interventi e ricevi un promemoria prima del prossimo.",
     "obNoBikeRoutesTitle": "Scopri percorsi",
     "obNoBikeRoutesBody": "Trova belle strade e organizza uscite di gruppo vicino a te.",
-    "obNoBikeAddBike": "Aggiungi la mia moto ora"
+    "obNoBikeAddBike": "Aggiungi la mia moto ora",
+    "scanEyebrow": "Try it now",
+    "scanTitle": "Snap your first",
+    "scanTitleAccent": "receipt",
+    "scanSubtitle": "Point your camera at a fuel, parts, or service receipt — MotoVault reads the amount, date, and vendor and logs it for you.",
+    "scanCta": "Scan a receipt",
+    "scanSkip": "Maybe later",
+    "scanBulletExtract": "AI pulls out the amount, date, and vendor",
+    "scanBulletFast": "Logged in seconds — no typing"
   },
   "bikeHub": {
     "upcoming": "In arrivo",
@@ -1935,22 +1940,6 @@
   "survey": {
     "feedbackPlaceholder": "Condividi i tuoi pensieri (nessun dato personale, per favore)"
   },
-  "fuel": {
-    "createFailed": "Salvataggio rifornimento non riuscito. Riprova.",
-    "newFillUp": "Nuovo rifornimento",
-    "odometer": "Contachilometri",
-    "volume": "Carburante",
-    "totalCost": "Costo totale",
-    "partialFill": "Rifornimento parziale",
-    "partialHelp": "Seleziona se non hai fatto il pieno completo",
-    "saved": "Salvato!",
-    "save": "Registra rifornimento",
-    "rollingAverage": "Media mobile",
-    "lastN": "Ultimi {{n}} rifornimenti",
-    "history": "Cronologia",
-    "partial": "Parziale",
-    "emptyState": "Nessun rifornimento registrato"
-  },
   "nearYou": {
     "sectionMeta": "Percorsi in {{country}}",
     "heading": "Percorsi vicino a",
@@ -1968,7 +1957,8 @@
     "trackFirstExpense": "Track your first expense",
     "completeBikeProfile": "Complete your bike profile",
     "exploreDashboard": "Explore your dashboard",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "scanReceipt": "Scan a receipt"
   },
   "myRides": {
     "title": "Le mie uscite",
@@ -2275,6 +2265,128 @@
       "endRide": "End ride",
       "endRideButton": "End ride",
       "savesNote": "Ending always saves — {{distance}} will be kept"
+    }
+  },
+  "receiptScan": {
+    "common": {
+      "enterManually": "Inserisci manualmente",
+      "done": "Fatto",
+      "noCreditUsed": "Nessuna scansione usata"
+    },
+    "gating": {
+      "label": "Preparazione…"
+    },
+    "bikePick": {
+      "title": "Per quale moto è?",
+      "subtitle": "Scegli la moto a cui appartiene questo scontrino."
+    },
+    "consent": {
+      "title": "Scansiona uno scontrino con l’IA",
+      "body": "Inviamo una foto del tuo scontrino alla nostra IA per leggere importo, data e dettagli, così non devi digitarli. La foto viene salvata in privato sul tuo account e non viene mai condivisa. Puoi sempre inserire i dettagli a mano.",
+      "accept": "Scansiona uno scontrino"
+    },
+    "capture": {
+      "title": "Fotografa lo scontrino",
+      "subtitle": "Appoggialo in piano, riempi l’inquadratura e tieni il totale in vista.",
+      "takePhoto": "Scatta foto",
+      "chooseFromLibrary": "Scegli dalla galleria",
+      "openSettings": "Apri Impostazioni"
+    },
+    "uploading": {
+      "label": "Caricamento dello scontrino…",
+      "retrying": "Nuovo tentativo…"
+    },
+    "offline": {
+      "title": "Sei offline",
+      "body": "Abbiamo salvato il tuo scontrino e finiremo di leggerlo automaticamente appena torni online. Nessuna scansione viene usata finché non è elaborato."
+    },
+    "analyzing": {
+      "stageReading": "Lettura dello scontrino…",
+      "stageExtracting": "Estrazione dei dettagli…",
+      "stageChecking": "Controllo dei numeri…",
+      "skip": "Salta — inserisci manualmente"
+    },
+    "error": {
+      "retry": "Riprova",
+      "extractionFailedTitle": "Non siamo riusciti a leggere questo scontrino",
+      "extractionFailedBody": "La foto era troppo sfocata o il testo poco chiaro. Puoi inserire i dettagli a mano.",
+      "imageInvalidTitle": "Quella foto non ha funzionato",
+      "imageInvalidBody": "Non siamo riusciti a usare quell’immagine. Riscatta la foto o inserisci i dettagli a mano.",
+      "quotaExceededTitle": "Hai usato tutte le scansioni gratuite",
+      "quotaExceededBody": "Passa a Pro per scansioni illimitate degli scontrini, oppure inserisci questo a mano. La tua foto è salvata.",
+      "disabledTitle": "La scansione è temporaneamente non disponibile",
+      "disabledBody": "La scansione degli scontrini è in pausa in questo momento. Puoi comunque inserire questo scontrino a mano.",
+      "alreadyCompletedTitle": "Questa scansione è già finita",
+      "alreadyCompletedBody": "Ha finito l’elaborazione proprio prima che la saltassi. La troverai tra i tuoi scontrini da rivedere.",
+      "uploadFailedTitle": "Il caricamento non è andato a buon fine",
+      "uploadFailedBody": "Non siamo riusciti a caricare il tuo scontrino. Controlla la connessione e riprova.",
+      "analyzeFailedTitle": "Qualcosa è andato storto",
+      "analyzeFailedBody": "Non siamo riusciti a finire di leggere il tuo scontrino. Riprova — se è già passato, lo troverai tra i tuoi scontrini da rivedere.",
+      "rateLimitedTitle": "Hai raggiunto il limite di scansioni di oggi",
+      "rateLimitedBody": "Hai scansionato molto oggi. Riprova domani o inserisci questo scontrino a mano."
+    },
+    "parked": {
+      "title": "Salvato per dopo",
+      "body": "Il tuo scontrino è pronto da rivedere. Te lo ricorderemo domani e ti aspetta nella schermata Home."
+    },
+    "alreadyProcessed": {
+      "title": "Già elaborato",
+      "body": "Questa scansione è terminata prima di poter essere annullata. Puoi rivederla ora o ritrovarla più tardi tra i tuoi scontrini.",
+      "reviewNow": "Rivedi ora"
+    },
+    "review": {
+      "title": "Rivedi il tuo scontrino",
+      "forBike": "Per {{bike}}",
+      "type": "Tipo",
+      "vendor": "Esercente",
+      "amount": "Importo",
+      "date": "Data",
+      "needsCheck": "Da controllare",
+      "reviewLater": "Rivedi dopo",
+      "typeMaintenance": "Manutenzione",
+      "typeExpense": "Spesa",
+      "currency": "Valuta",
+      "category": "Categoria",
+      "itemName": "Articolo",
+      "partsCost": "Ricambi",
+      "laborCost": "Manodopera",
+      "odometer": "Contachilometri",
+      "odometerFirstSet": "Imposta contachilometri",
+      "pickDate": "Seleziona una data",
+      "selectBikePrompt": "Scegli una moto per salvarlo",
+      "noBikePrompt": "Aggiungi prima una moto per salvare questo scontrino.",
+      "addBike": "Aggiungi una moto",
+      "viewReceipt": "Vedi foto scontrino",
+      "closeReceipt": "Chiudi",
+      "save": "Salva",
+      "checkAmount": "Controlla importo",
+      "checkCurrency": "Controlla valuta",
+      "checkDate": "Controlla data",
+      "checkVendor": "Controlla esercente",
+      "checkCategory": "Controlla categoria",
+      "checkOdometer": "Controlla contachilometri"
+    },
+    "saved": {
+      "toast": "Salvato su {{bike}}",
+      "undo": "Annulla",
+      "undoFailed": "Impossibile annullare — riprova",
+      "freeScansLeft": "{{count}} scansioni gratuite rimaste questo mese",
+      "saveFailed": "Impossibile salvare",
+      "saveFailedBody": "Qualcosa è andato storto. Riprova.",
+      "duplicateTitle": "Sembra che tu l’abbia già registrato",
+      "duplicateBody": "Esiste già una voce simile per questa moto. Salvare comunque?",
+      "duplicateConfirm": "Salva comunque",
+      "duplicateCancel": "Rivedi"
+    },
+    "entry": {
+      "title": "Scansiona uno scontrino",
+      "subtitle": "Fotografalo — lo registriamo per te",
+      "freeBadge": "{{count}} gratis",
+      "upsellBadge": "Illimitato"
+    },
+    "recovery": {
+      "reviewTitle": "{{count}} scontrino da rivedere",
+      "reviewSubtitle": "Finisci di registrare ciò che hai scansionato"
     }
   }
 }

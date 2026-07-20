@@ -323,6 +323,8 @@ export const AnalyticsEvent = {
   ONBOARDING_STEP_COMPLETED: 'onboarding_step_completed',
   ONBOARDING_STEP_SKIPPED: 'onboarding_step_skipped',
   ONBOARDING_COMPLETED: 'onboarding_completed',
+  // Activation Goal 7 — a receipt scan completed during onboarding (KTD-10 quota-exempt).
+  ONBOARDING_SCAN_COMPLETED: 'receipt_scan_onboarding_completed',
   ONBOARDING_DROPPED_OFF: 'onboarding_dropped_off',
   ONBOARDING_RESUMED: 'onboarding_resumed',
   // Onboarding A/B (2026) funnel — see docs/onboarding-ab-event-schema.md
@@ -358,7 +360,26 @@ export const AnalyticsEvent = {
   EXPENSE_ADDED: 'expense_added',
   EXPENSE_QUICK_ADD_TAPPED: 'expense_quick_add_tapped',
   EXPENSE_DASHBOARD_VIEWED: 'expense_dashboard_viewed',
-  FUEL_LOG_ADDED: 'fuel_log_added',
+  // Receipt scan (U6)
+  RECEIPT_SCAN_STARTED: 'receipt_scan_started',
+  RECEIPT_SCAN_COMPLETED: 'receipt_scan_completed',
+  RECEIPT_SCAN_PARKED: 'receipt_scan_parked',
+  RECEIPT_SCAN_MANUAL_FALLBACK: 'receipt_scan_manual_fallback',
+  // Receipt scan telemetry (R8) — completes the funnel so the feature is
+  // evaluable in PostHog: upload failures/retries, extraction failures, and the
+  // resume/graveyard-recovery paths that measure re-engagement.
+  RECEIPT_SCAN_UPLOAD_FAILED: 'receipt_scan_upload_failed',
+  RECEIPT_SCAN_UPLOAD_RETRIED: 'receipt_scan_upload_retried',
+  RECEIPT_SCAN_EXTRACTION_FAILED: 'receipt_scan_extraction_failed',
+  RECEIPT_SCAN_RESUMED: 'receipt_scan_resumed',
+  RECEIPT_SCAN_NUDGE_CONVERTED: 'receipt_scan_nudge_converted',
+  // Receipt scan review card (U7c) — measure Goal 5 (≤2 corrections)
+  RECEIPT_SCAN_FIELD_EDITED: 'receipt_scan_field_edited',
+  RECEIPT_SCAN_TYPE_SWITCHED: 'receipt_scan_type_switched',
+  // Receipt scan save/undo (U7d) — Goal 1 (<20s flow) + feature evaluation (R8)
+  RECEIPT_SCAN_SAVE_COMPLETED: 'receipt_scan_save_completed',
+  RECEIPT_SCAN_ODOMETER_ACCEPTED: 'receipt_scan_odometer_accepted',
+  RECEIPT_SCAN_SAVE_UNDONE: 'receipt_scan_save_undone',
   HEALTH_REPORT_VIEWED: 'health_report_viewed',
   HEALTH_REPORT_GENERATED: 'health_report_generated',
   HEALTH_REPORT_DOWNLOADED: 'health_report_downloaded',

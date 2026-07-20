@@ -412,9 +412,6 @@
     "distanceIntervalPlaceholder": "उदा. 15000",
     "timeIntervalPlaceholder": "उदा. 90",
     "mileageIntervalPlaceholder": "उदा. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "उदा. 15000",
     "discardChangesTitle": "बदलाव हटाएं?",
     "discardChangesMessage": "आपके बदलाव खो जाएंगे।",
@@ -1001,7 +998,15 @@
     "obNoBikeServiceBody": "काम दर्ज करें और अगली सर्विस से पहले रिमाइंडर पाएं।",
     "obNoBikeRoutesTitle": "रूट खोजें",
     "obNoBikeRoutesBody": "बेहतरीन सड़कें खोजें और अपने पास ग्रुप राइड की योजना बनाएं।",
-    "obNoBikeAddBike": "अभी मेरी बाइक जोड़ें"
+    "obNoBikeAddBike": "अभी मेरी बाइक जोड़ें",
+    "scanEyebrow": "Try it now",
+    "scanTitle": "Snap your first",
+    "scanTitleAccent": "receipt",
+    "scanSubtitle": "Point your camera at a fuel, parts, or service receipt — MotoVault reads the amount, date, and vendor and logs it for you.",
+    "scanCta": "Scan a receipt",
+    "scanSkip": "Maybe later",
+    "scanBulletExtract": "AI pulls out the amount, date, and vendor",
+    "scanBulletFast": "Logged in seconds — no typing"
   },
   "bikeHub": {
     "upcoming": "आगामी",
@@ -1933,22 +1938,6 @@
   "survey": {
     "feedbackPlaceholder": "अपने विचार साझा करें (कृपया व्यक्तिगत जानकारी न दें)"
   },
-  "fuel": {
-    "createFailed": "फिल-अप सेव विफल। कृपया पुनः प्रयास करें।",
-    "newFillUp": "नया फिल-अप",
-    "odometer": "ओडोमीटर",
-    "volume": "ईंधन",
-    "totalCost": "कुल लागत",
-    "partialFill": "आंशिक फिल",
-    "partialHelp": "यदि आपने टैंक पूरा नहीं भरा तो इसे चेक करें",
-    "saved": "सेव हो गया!",
-    "save": "फिल-अप लॉग करें",
-    "rollingAverage": "रोलिंग औसत",
-    "lastN": "अंतिम {{n}} फिल",
-    "history": "इतिहास",
-    "partial": "आंशिक",
-    "emptyState": "अभी कोई फिल-अप लॉग नहीं"
-  },
   "nearYou": {
     "sectionMeta": "{{country}} में रूट",
     "heading": "आपके पास के रूट",
@@ -1966,7 +1955,8 @@
     "trackFirstExpense": "Track your first expense",
     "completeBikeProfile": "Complete your bike profile",
     "exploreDashboard": "Explore your dashboard",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "scanReceipt": "Scan a receipt"
   },
   "myRides": {
     "title": "मेरी राइड्स",
@@ -2272,6 +2262,128 @@
       "endRide": "End ride",
       "endRideButton": "End ride",
       "savesNote": "Ending always saves — {{distance}} will be kept"
+    }
+  },
+  "receiptScan": {
+    "common": {
+      "enterManually": "इसके बजाय मैन्युअल रूप से भरें",
+      "done": "हो गया",
+      "noCreditUsed": "कोई स्कैन इस्तेमाल नहीं हुआ"
+    },
+    "gating": {
+      "label": "तैयार हो रहा है…"
+    },
+    "bikePick": {
+      "title": "यह किस बाइक के लिए है?",
+      "subtitle": "वह बाइक चुनें जिससे यह रसीद संबंधित है।"
+    },
+    "consent": {
+      "title": "AI से रसीद स्कैन करें",
+      "body": "हम आपकी रसीद की एक फ़ोटो हमारे AI को भेजते हैं ताकि राशि, तारीख और विवरण पढ़े जा सकें — ताकि आपको टाइप न करना पड़े। फ़ोटो आपके खाते में निजी रूप से संग्रहीत रहती है और कभी साझा नहीं की जाती। आप चाहें तो विवरण हमेशा हाथ से भी भर सकते हैं।",
+      "accept": "रसीद स्कैन करें"
+    },
+    "capture": {
+      "title": "रसीद की फ़ोटो लें",
+      "subtitle": "इसे सपाट रखें, फ़्रेम भरें और कुल राशि को दृश्य में रखें।",
+      "takePhoto": "फ़ोटो लें",
+      "chooseFromLibrary": "गैलरी से चुनें",
+      "openSettings": "सेटिंग्स खोलें"
+    },
+    "uploading": {
+      "label": "रसीद अपलोड हो रही है…",
+      "retrying": "फिर से कोशिश हो रही है…"
+    },
+    "offline": {
+      "title": "आप ऑफ़लाइन हैं",
+      "body": "हमने आपकी रसीद सहेज ली है और जैसे ही आप फिर से ऑनलाइन होंगे, इसे पढ़ना अपने-आप पूरा कर देंगे। प्रोसेस होने तक कोई स्कैन इस्तेमाल नहीं होता।"
+    },
+    "analyzing": {
+      "stageReading": "आपकी रसीद पढ़ी जा रही है…",
+      "stageExtracting": "विवरण निकाले जा रहे हैं…",
+      "stageChecking": "राशि दोबारा जाँची जा रही है…",
+      "skip": "छोड़ें — मैन्युअल रूप से भरें"
+    },
+    "error": {
+      "retry": "फिर से कोशिश करें",
+      "extractionFailedTitle": "हम यह रसीद नहीं पढ़ सके",
+      "extractionFailedBody": "फ़ोटो बहुत धुंधली थी या टेक्स्ट साफ़ नहीं था। आप विवरण हाथ से भर सकते हैं।",
+      "imageInvalidTitle": "वह फ़ोटो काम नहीं आई",
+      "imageInvalidBody": "हम उस छवि का उपयोग नहीं कर सके। फिर से फ़ोटो लें या विवरण हाथ से भरें।",
+      "quotaExceededTitle": "आपने अपने सभी मुफ़्त स्कैन इस्तेमाल कर लिए",
+      "quotaExceededBody": "असीमित रसीद स्कैन के लिए अपग्रेड करें, या इसे हाथ से भरें। आपकी फ़ोटो सहेज ली गई है।",
+      "disabledTitle": "स्कैनिंग अस्थायी रूप से उपलब्ध नहीं है",
+      "disabledBody": "रसीद स्कैनिंग अभी रुकी हुई है। आप फिर भी यह रसीद हाथ से भर सकते हैं।",
+      "alreadyCompletedTitle": "यह स्कैन पहले ही पूरा हो गया",
+      "alreadyCompletedBody": "आपके छोड़ने से ठीक पहले इसकी प्रोसेसिंग पूरी हो गई। यह समीक्षा के लिए आपकी रसीदों में मिलेगी।",
+      "uploadFailedTitle": "अपलोड पूरा नहीं हुआ",
+      "uploadFailedBody": "हम आपकी रसीद अपलोड नहीं कर सके। अपना कनेक्शन जाँचें और फिर से कोशिश करें।",
+      "analyzeFailedTitle": "कुछ गड़बड़ हो गई",
+      "analyzeFailedBody": "हम आपकी रसीद पढ़ना पूरा नहीं कर सके। फिर से कोशिश करें — अगर यह पहले ही हो चुकी है, तो यह समीक्षा के लिए आपकी रसीदों में मिलेगी।",
+      "rateLimitedTitle": "आप आज की स्कैन सीमा तक पहुँच गए",
+      "rateLimitedBody": "आपने आज बहुत स्कैन किया। कृपया कल फिर से कोशिश करें, या यह रसीद हाथ से भरें।"
+    },
+    "parked": {
+      "title": "बाद के लिए सहेजा गया",
+      "body": "आपकी रसीद समीक्षा के लिए तैयार है। हम आपको कल याद दिलाएँगे, और यह आपकी होम स्क्रीन पर इंतज़ार कर रही है।"
+    },
+    "alreadyProcessed": {
+      "title": "पहले ही प्रोसेस हो गई",
+      "body": "यह स्कैन रद्द होने से पहले ही पूरा हो गया। आप इसे अभी समीक्षा कर सकते हैं या बाद में अपनी रसीदों में पा सकते हैं।",
+      "reviewNow": "अभी समीक्षा करें"
+    },
+    "review": {
+      "title": "अपनी रसीद की समीक्षा करें",
+      "forBike": "{{bike}} के लिए",
+      "type": "प्रकार",
+      "vendor": "विक्रेता",
+      "amount": "राशि",
+      "date": "तारीख",
+      "needsCheck": "जाँच ज़रूरी",
+      "reviewLater": "बाद में समीक्षा करें",
+      "typeMaintenance": "रखरखाव",
+      "typeExpense": "खर्च",
+      "currency": "मुद्रा",
+      "category": "श्रेणी",
+      "itemName": "वस्तु",
+      "partsCost": "पुर्ज़े",
+      "laborCost": "मज़दूरी",
+      "odometer": "ओडोमीटर",
+      "odometerFirstSet": "ओडोमीटर सेट करें",
+      "pickDate": "तारीख चुनें",
+      "selectBikePrompt": "इसे सहेजने के लिए एक बाइक चुनें",
+      "noBikePrompt": "यह रसीद सहेजने के लिए पहले एक बाइक जोड़ें।",
+      "addBike": "बाइक जोड़ें",
+      "viewReceipt": "रसीद फ़ोटो देखें",
+      "closeReceipt": "बंद करें",
+      "save": "सेव करें",
+      "checkAmount": "राशि जाँचें",
+      "checkCurrency": "मुद्रा जाँचें",
+      "checkDate": "तारीख जाँचें",
+      "checkVendor": "विक्रेता जाँचें",
+      "checkCategory": "श्रेणी जाँचें",
+      "checkOdometer": "ओडोमीटर जाँचें"
+    },
+    "saved": {
+      "toast": "{{bike}} में सहेजा गया",
+      "undo": "पूर्ववत करें",
+      "undoFailed": "पूर्ववत नहीं कर सके — कृपया फिर से कोशिश करें",
+      "freeScansLeft": "इस महीने {{count}} मुफ़्त स्कैन बचे हैं",
+      "saveFailed": "सहेज नहीं सके",
+      "saveFailedBody": "कुछ गड़बड़ हो गई। कृपया फिर से कोशिश करें।",
+      "duplicateTitle": "लगता है आप इसे पहले ही दर्ज कर चुके हैं",
+      "duplicateBody": "इस बाइक के लिए मिलती-जुलती प्रविष्टि पहले से मौजूद है। फिर भी सहेजें?",
+      "duplicateConfirm": "फिर भी सहेजें",
+      "duplicateCancel": "समीक्षा करें"
+    },
+    "entry": {
+      "title": "रसीद स्कैन करें",
+      "subtitle": "बस फ़ोटो लें — हम आपके लिए दर्ज कर देंगे",
+      "freeBadge": "{{count}} मुफ़्त",
+      "upsellBadge": "असीमित"
+    },
+    "recovery": {
+      "reviewTitle": "{{count}} रसीद समीक्षा के लिए",
+      "reviewSubtitle": "जो स्कैन किया उसे दर्ज करना पूरा करें"
     }
   }
 }

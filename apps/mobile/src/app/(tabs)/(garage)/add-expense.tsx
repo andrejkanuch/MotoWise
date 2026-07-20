@@ -1,12 +1,16 @@
 import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { palette } from '@motovault/design-system';
-import { ExpensePhotosDocument, LogExpenseDocument } from '@motovault/graphql';
+import {
+  AddExpensePhotoDocument,
+  ExpensePhotosDocument,
+  LogExpenseDocument,
+} from '@motovault/graphql';
 import { EXPENSE_CATEGORIES } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Calendar, Camera, Check, DollarSign, Plus } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -21,6 +25,7 @@ import {
   ZERO_DECIMAL_CURRENCIES,
 } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { uploadExpensePhoto } from '../../../lib/image-upload';
 import { queryKeys } from '../../../lib/query-keys';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { useAuthStore } from '../../../stores/auth.store';
@@ -48,25 +53,43 @@ const ITEM_NAME_HINTS: Partial<Record<Category, string>> = {
 export default function AddExpenseScreen() {
   const { t } = useTranslation();
   // `category` may be prefilled by the expense-dashboard quick-add chips (MOT-273).
-  const { motorcycleId, category: categoryParam } = useLocalSearchParams<{
+  // The remaining fields carry a receipt-scan partial-salvage (U7d): a failed/partial
+  // extraction routes here pre-filled with whatever was recovered + the captured photo.
+  const {
+    motorcycleId,
+    category: categoryParam,
+    amount: amountParam,
+    date: dateParam,
+    itemName: itemNameParam,
+    description: descriptionParam,
+    photoUri: photoUriParam,
+  } = useLocalSearchParams<{
     motorcycleId: string;
     category?: string;
+    amount?: string;
+    date?: string;
+    itemName?: string;
+    description?: string;
+    photoUri?: string;
   }>();
   const { t: theme, isDark } = useEditorialTheme();
   const { currency, symbol } = useCurrency();
   const queryClient = useQueryClient();
 
   const userId = useAuthStore((s) => s.session?.user?.id);
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(amountParam ?? '');
   const [category, setCategory] = useState<Category>(
     categoryParam && (CATEGORIES as readonly string[]).includes(categoryParam)
       ? (categoryParam as Category)
       : 'fuel',
   );
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(() => {
+    const parsed = dateParam ? new Date(dateParam) : null;
+    return parsed && !Number.isNaN(parsed.getTime()) && parsed <= new Date() ? parsed : new Date();
+  });
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [itemName, setItemName] = useState('');
-  const [description, setDescription] = useState('');
+  const [itemName, setItemName] = useState(itemNameParam ?? '');
+  const [description, setDescription] = useState(descriptionParam ?? '');
   // showCategoryPicker removed — chips are always visible
   const [saved, setSaved] = useState(false);
   // MOT-143: Receipt photos. Populated after the expense is saved so we have an ID.
@@ -79,6 +102,35 @@ export default function AddExpenseScreen() {
     enabled: !!savedExpenseId,
   });
   const photos = photosQuery.data?.expensePhotos ?? [];
+
+  // Partial-salvage (U7d): once the expense exists, auto-attach the receipt photo
+  // carried over from a failed/partial scan. One-shot + best-effort — a failure
+  // just leaves the manual gallery for the user to retry.
+  const salvagePhotoAttached = useRef(false);
+  useEffect(() => {
+    if (!savedExpenseId || !photoUriParam || !userId || salvagePhotoAttached.current) return;
+    salvagePhotoAttached.current = true;
+    void (async () => {
+      try {
+        const { storagePath, fileSizeBytes } = await uploadExpensePhoto(
+          photoUriParam,
+          userId,
+          savedExpenseId,
+        );
+        await gqlFetcher(AddExpensePhotoDocument, {
+          input: { expenseId: savedExpenseId, storagePath, fileSizeBytes },
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.expensePhotos.byExpense(savedExpenseId),
+        });
+      } catch {
+        // Non-fatal: the expense itself already stands (it was created before this
+        // effect). Un-latch the one-shot guard so the auto-attach can be retried,
+        // and the receipt gallery below still lets the user attach manually.
+        salvagePhotoAttached.current = false;
+      }
+    })();
+  }, [savedExpenseId, photoUriParam, userId, queryClient]);
 
   const parsedAmount = Number.parseFloat(amount) || 0;
   const isValid =

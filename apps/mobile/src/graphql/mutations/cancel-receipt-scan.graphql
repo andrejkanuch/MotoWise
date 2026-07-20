@@ -1,0 +1,13 @@
+mutation CancelReceiptScan($scanId: String!) {
+  cancelReceiptScan(scanId: $scanId) {
+    __typename
+    ... on CancelReceiptScanSuccess {
+      scanId
+      status
+    }
+    ... on ReceiptScanError {
+      code
+      reason
+    }
+  }
+}

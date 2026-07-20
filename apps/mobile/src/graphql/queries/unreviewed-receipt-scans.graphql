@@ -1,0 +1,32 @@
+query UnreviewedReceiptScans {
+  unreviewedReceiptScans {
+    scanId
+    storagePath
+    createdAt
+    result {
+      type
+      amount
+      currency
+      date
+      vendor
+      itemName
+      category
+      partsCost
+      laborCost
+      odometerValue
+      odometerUnit
+      fuelLitres
+      partsNeeded
+      legibilityNote
+      needsCheck
+      fieldConfidence {
+        amount
+        currency
+        date
+        vendor
+        category
+        odometer
+      }
+    }
+  }
+}

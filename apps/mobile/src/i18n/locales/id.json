@@ -412,9 +412,6 @@
     "distanceIntervalPlaceholder": "mis. 15000",
     "timeIntervalPlaceholder": "mis. 90",
     "mileageIntervalPlaceholder": "mis. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "mis. 15000",
     "discardChangesTitle": "Buang perubahan?",
     "discardChangesMessage": "Perubahan Anda akan hilang.",
@@ -1001,7 +998,15 @@
     "obNoBikeServiceBody": "Catat pekerjaannya dan dapatkan pengingat sebelum servis berikutnya.",
     "obNoBikeRoutesTitle": "Temukan rute",
     "obNoBikeRoutesBody": "Temukan jalan menarik dan rencanakan riding bareng di dekatmu.",
-    "obNoBikeAddBike": "Tambahkan motor saya sekarang"
+    "obNoBikeAddBike": "Tambahkan motor saya sekarang",
+    "scanEyebrow": "Try it now",
+    "scanTitle": "Snap your first",
+    "scanTitleAccent": "receipt",
+    "scanSubtitle": "Point your camera at a fuel, parts, or service receipt — MotoVault reads the amount, date, and vendor and logs it for you.",
+    "scanCta": "Scan a receipt",
+    "scanSkip": "Maybe later",
+    "scanBulletExtract": "AI pulls out the amount, date, and vendor",
+    "scanBulletFast": "Logged in seconds — no typing"
   },
   "bikeHub": {
     "upcoming": "Akan Datang",
@@ -1933,22 +1938,6 @@
   "survey": {
     "feedbackPlaceholder": "Bagikan pemikiranmu (jangan sertakan info pribadi)"
   },
-  "fuel": {
-    "createFailed": "Gagal menyimpan pengisian. Silakan coba lagi.",
-    "newFillUp": "Pengisian baru",
-    "odometer": "Odometer",
-    "volume": "BBM",
-    "totalCost": "Total biaya",
-    "partialFill": "Isi sebagian",
-    "partialHelp": "Centang jika Anda tidak mengisi tangki penuh",
-    "saved": "Tersimpan!",
-    "save": "Catat pengisian",
-    "rollingAverage": "Rata-rata",
-    "lastN": "{{n}} pengisian terakhir",
-    "history": "Riwayat",
-    "partial": "Sebagian",
-    "emptyState": "Belum ada pengisian tercatat"
-  },
   "nearYou": {
     "sectionMeta": "Rute di {{country}}",
     "heading": "Rute di dekat",
@@ -1966,7 +1955,8 @@
     "trackFirstExpense": "Track your first expense",
     "completeBikeProfile": "Complete your bike profile",
     "exploreDashboard": "Explore your dashboard",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "scanReceipt": "Scan a receipt"
   },
   "myRides": {
     "title": "Perjalanan saya",
@@ -2272,6 +2262,128 @@
       "endRide": "End ride",
       "endRideButton": "End ride",
       "savesNote": "Ending always saves — {{distance}} will be kept"
+    }
+  },
+  "receiptScan": {
+    "common": {
+      "enterManually": "Masukkan manual saja",
+      "done": "Selesai",
+      "noCreditUsed": "Tidak ada pemindaian terpakai"
+    },
+    "gating": {
+      "label": "Menyiapkan…"
+    },
+    "bikePick": {
+      "title": "Untuk motor yang mana?",
+      "subtitle": "Pilih motor yang sesuai dengan struk ini."
+    },
+    "consent": {
+      "title": "Pindai struk dengan AI",
+      "body": "Kami mengirim foto strukmu ke AI kami untuk membaca jumlah, tanggal, dan detailnya — jadi kamu tidak perlu mengetiknya. Foto disimpan secara pribadi di akunmu dan tidak pernah dibagikan. Kamu juga bisa memasukkan detailnya secara manual kapan saja.",
+      "accept": "Pindai struk"
+    },
+    "capture": {
+      "title": "Foto struknya",
+      "subtitle": "Letakkan datar, penuhi bingkai, dan pastikan totalnya terlihat.",
+      "takePhoto": "Ambil foto",
+      "chooseFromLibrary": "Pilih dari galeri",
+      "openSettings": "Buka Pengaturan"
+    },
+    "uploading": {
+      "label": "Mengunggah struk…",
+      "retrying": "Mencoba lagi…"
+    },
+    "offline": {
+      "title": "Kamu sedang offline",
+      "body": "Kami menyimpan strukmu dan akan menyelesaikan pembacaannya secara otomatis begitu kamu kembali online. Tidak ada pemindaian terpakai sampai diproses."
+    },
+    "analyzing": {
+      "stageReading": "Membaca strukmu…",
+      "stageExtracting": "Mengambil detailnya…",
+      "stageChecking": "Memeriksa angkanya…",
+      "skip": "Lewati — masukkan manual"
+    },
+    "error": {
+      "retry": "Coba lagi",
+      "extractionFailedTitle": "Kami tidak bisa membaca struk ini",
+      "extractionFailedBody": "Fotonya terlalu buram atau teksnya tidak jelas. Kamu bisa memasukkan detailnya secara manual.",
+      "imageInvalidTitle": "Foto itu tidak berfungsi",
+      "imageInvalidBody": "Kami tidak bisa menggunakan gambar itu. Ambil foto lagi, atau masukkan detailnya secara manual.",
+      "quotaExceededTitle": "Kamu sudah memakai semua pemindaian gratis",
+      "quotaExceededBody": "Tingkatkan ke Pro untuk pemindaian struk tanpa batas, atau masukkan yang ini secara manual. Fotomu tersimpan.",
+      "disabledTitle": "Pemindaian sementara tidak tersedia",
+      "disabledBody": "Pemindaian struk sedang dijeda saat ini. Kamu tetap bisa memasukkan struk ini secara manual.",
+      "alreadyCompletedTitle": "Pemindaian ini sudah selesai",
+      "alreadyCompletedBody": "Prosesnya selesai tepat sebelum kamu melewatinya. Kamu akan menemukannya menunggu di struk untuk ditinjau.",
+      "uploadFailedTitle": "Unggahan tidak berhasil",
+      "uploadFailedBody": "Kami tidak bisa mengunggah strukmu. Periksa koneksimu dan coba lagi.",
+      "analyzeFailedTitle": "Terjadi kesalahan",
+      "analyzeFailedBody": "Kami tidak bisa menyelesaikan pembacaan strukmu. Coba lagi — jika sudah terproses, kamu akan menemukannya menunggu di struk untuk ditinjau.",
+      "rateLimitedTitle": "Kamu sudah mencapai batas pemindaian hari ini",
+      "rateLimitedBody": "Kamu banyak memindai hari ini. Coba lagi besok, atau masukkan struk ini secara manual."
+    },
+    "parked": {
+      "title": "Disimpan untuk nanti",
+      "body": "Strukmu siap ditinjau. Kami akan mengingatkanmu besok, dan struk menunggu di layar utamamu."
+    },
+    "alreadyProcessed": {
+      "title": "Sudah diproses",
+      "body": "Pemindaian ini selesai sebelum bisa dibatalkan. Kamu bisa meninjaunya sekarang atau menemukannya nanti di struk.",
+      "reviewNow": "Tinjau sekarang"
+    },
+    "review": {
+      "title": "Tinjau strukmu",
+      "forBike": "Untuk {{bike}}",
+      "type": "Jenis",
+      "vendor": "Penjual",
+      "amount": "Jumlah",
+      "date": "Tanggal",
+      "needsCheck": "Perlu dicek",
+      "reviewLater": "Tinjau nanti",
+      "typeMaintenance": "Perawatan",
+      "typeExpense": "Pengeluaran",
+      "currency": "Mata uang",
+      "category": "Kategori",
+      "itemName": "Item",
+      "partsCost": "Suku cadang",
+      "laborCost": "Jasa",
+      "odometer": "Odometer",
+      "odometerFirstSet": "Setel odometer",
+      "pickDate": "Pilih tanggal",
+      "selectBikePrompt": "Pilih motor untuk menyimpannya",
+      "noBikePrompt": "Tambahkan motor dulu untuk menyimpan struk ini.",
+      "addBike": "Tambah motor",
+      "viewReceipt": "Lihat foto struk",
+      "closeReceipt": "Tutup",
+      "save": "Simpan",
+      "checkAmount": "Cek jumlah",
+      "checkCurrency": "Cek mata uang",
+      "checkDate": "Cek tanggal",
+      "checkVendor": "Cek penjual",
+      "checkCategory": "Cek kategori",
+      "checkOdometer": "Cek odometer"
+    },
+    "saved": {
+      "toast": "Disimpan ke {{bike}}",
+      "undo": "Urungkan",
+      "undoFailed": "Tidak bisa mengurungkan — coba lagi",
+      "freeScansLeft": "Sisa {{count}} pemindaian gratis bulan ini",
+      "saveFailed": "Tidak bisa menyimpan",
+      "saveFailedBody": "Terjadi kesalahan. Silakan coba lagi.",
+      "duplicateTitle": "Sepertinya kamu sudah mencatat ini",
+      "duplicateBody": "Entri serupa sudah ada untuk motor ini. Tetap simpan?",
+      "duplicateConfirm": "Tetap simpan",
+      "duplicateCancel": "Tinjau"
+    },
+    "entry": {
+      "title": "Pindai struk",
+      "subtitle": "Foto saja — kami catatkan untukmu",
+      "freeBadge": "{{count}} gratis",
+      "upsellBadge": "Tanpa batas"
+    },
+    "recovery": {
+      "reviewTitle": "{{count}} struk untuk ditinjau",
+      "reviewSubtitle": "Selesaikan pencatatan hasil pindaianmu"
     }
   }
 }

@@ -415,9 +415,6 @@
     "distanceIntervalPlaceholder": "例: 15000",
     "timeIntervalPlaceholder": "例: 90",
     "mileageIntervalPlaceholder": "例: 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "例: 15000",
     "discardChangesTitle": "変更を破棄しますか？",
     "discardChangesMessage": "変更内容は失われます。",
@@ -1001,7 +998,15 @@
     "obNoBikeServiceBody": "作業を記録し、次回の前にリマインドします。",
     "obNoBikeRoutesTitle": "ルートを発見",
     "obNoBikeRoutesBody": "近くの素晴らしい道を見つけ、グループライドを計画しましょう。",
-    "obNoBikeAddBike": "バイクを今すぐ追加"
+    "obNoBikeAddBike": "バイクを今すぐ追加",
+    "scanEyebrow": "Try it now",
+    "scanTitle": "Snap your first",
+    "scanTitleAccent": "receipt",
+    "scanSubtitle": "Point your camera at a fuel, parts, or service receipt — MotoVault reads the amount, date, and vendor and logs it for you.",
+    "scanCta": "Scan a receipt",
+    "scanSkip": "Maybe later",
+    "scanBulletExtract": "AI pulls out the amount, date, and vendor",
+    "scanBulletFast": "Logged in seconds — no typing"
   },
   "bikeHub": {
     "upcoming": "予定",
@@ -1933,22 +1938,6 @@
   "survey": {
     "feedbackPlaceholder": "ご意見をお聞かせください（個人情報はご記入しないでください）"
   },
-  "fuel": {
-    "createFailed": "給油の保存に失敗しました。再試行してください。",
-    "newFillUp": "新しい給油",
-    "odometer": "走行距離計",
-    "volume": "燃料",
-    "totalCost": "合計費用",
-    "partialFill": "部分給油",
-    "partialHelp": "満タンにしなかった場合はチェックしてください",
-    "saved": "保存しました！",
-    "save": "給油を記録",
-    "rollingAverage": "移動平均",
-    "lastN": "直近{{n}}回の給油",
-    "history": "履歴",
-    "partial": "部分",
-    "emptyState": "給油記録はありません"
-  },
   "nearYou": {
     "sectionMeta": "{{country}}のルート",
     "heading": "近くのルート",
@@ -1966,7 +1955,8 @@
     "trackFirstExpense": "Track your first expense",
     "completeBikeProfile": "Complete your bike profile",
     "exploreDashboard": "Explore your dashboard",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "scanReceipt": "Scan a receipt"
   },
   "myRides": {
     "title": "マイライド",
@@ -2272,6 +2262,128 @@
       "endRide": "End ride",
       "endRideButton": "End ride",
       "savesNote": "Ending always saves — {{distance}} will be kept"
+    }
+  },
+  "receiptScan": {
+    "common": {
+      "enterManually": "手動で入力する",
+      "done": "完了",
+      "noCreditUsed": "スキャンは消費されません"
+    },
+    "gating": {
+      "label": "準備しています…"
+    },
+    "bikePick": {
+      "title": "どのバイク用ですか？",
+      "subtitle": "このレシートに対応するバイクを選んでください。"
+    },
+    "consent": {
+      "title": "AIでレシートをスキャン",
+      "body": "レシートの写真をAIに送り、金額・日付・詳細を読み取ります。入力の手間が省けます。写真はあなたのアカウントに非公開で保存され、共有されることはありません。もちろん手動で入力することもできます。",
+      "accept": "レシートをスキャン"
+    },
+    "capture": {
+      "title": "レシートを撮影",
+      "subtitle": "平らに置き、枠いっぱいに写し、合計金額が見えるようにしてください。",
+      "takePhoto": "写真を撮る",
+      "chooseFromLibrary": "ライブラリから選ぶ",
+      "openSettings": "設定を開く"
+    },
+    "uploading": {
+      "label": "レシートをアップロード中…",
+      "retrying": "再試行中…"
+    },
+    "offline": {
+      "title": "オフラインです",
+      "body": "レシートを保存しました。オンラインに戻り次第、自動で読み取りを完了します。処理されるまでスキャンは消費されません。"
+    },
+    "analyzing": {
+      "stageReading": "レシートを読み取り中…",
+      "stageExtracting": "詳細を抽出中…",
+      "stageChecking": "金額を再確認中…",
+      "skip": "スキップして手動入力"
+    },
+    "error": {
+      "retry": "もう一度試す",
+      "extractionFailedTitle": "このレシートを読み取れませんでした",
+      "extractionFailedBody": "写真がぼやけているか、文字が不鮮明でした。手動で入力できます。",
+      "imageInvalidTitle": "この写真は使えませんでした",
+      "imageInvalidBody": "この画像を使用できませんでした。もう一度撮影するか、手動で入力してください。",
+      "quotaExceededTitle": "無料スキャンをすべて使い切りました",
+      "quotaExceededBody": "アップグレードするとレシートを無制限にスキャンできます。または手動で入力してください。写真は保存されています。",
+      "disabledTitle": "スキャンは一時的に利用できません",
+      "disabledBody": "レシートのスキャンは現在停止しています。手動でこのレシートを入力できます。",
+      "alreadyCompletedTitle": "このスキャンはすでに完了しました",
+      "alreadyCompletedBody": "スキップの直前に処理が完了しました。確認用のレシート一覧で見つかります。",
+      "uploadFailedTitle": "アップロードできませんでした",
+      "uploadFailedBody": "レシートをアップロードできませんでした。接続を確認してもう一度お試しください。",
+      "analyzeFailedTitle": "問題が発生しました",
+      "analyzeFailedBody": "レシートの読み取りを完了できませんでした。もう一度お試しください。すでに完了している場合は、確認用のレシート一覧で見つかります。",
+      "rateLimitedTitle": "本日のスキャン上限に達しました",
+      "rateLimitedBody": "今日はたくさんスキャンしました。明日もう一度お試しいただくか、このレシートを手動で入力してください。"
+    },
+    "parked": {
+      "title": "後で確認するために保存しました",
+      "body": "レシートは確認できる状態です。明日リマインドし、ホーム画面で待っています。"
+    },
+    "alreadyProcessed": {
+      "title": "処理済み",
+      "body": "このスキャンはキャンセルされる前に完了しました。今すぐ確認するか、後でレシート一覧で見つけられます。",
+      "reviewNow": "今すぐ確認"
+    },
+    "review": {
+      "title": "レシートを確認",
+      "forBike": "{{bike}} 用",
+      "type": "種類",
+      "vendor": "店舗",
+      "amount": "金額",
+      "date": "日付",
+      "needsCheck": "要確認",
+      "reviewLater": "後で確認",
+      "typeMaintenance": "メンテナンス",
+      "typeExpense": "費用",
+      "currency": "通貨",
+      "category": "カテゴリ",
+      "itemName": "品目",
+      "partsCost": "部品",
+      "laborCost": "工賃",
+      "odometer": "走行距離",
+      "odometerFirstSet": "走行距離を設定",
+      "pickDate": "日付を選択",
+      "selectBikePrompt": "保存先のバイクを選んでください",
+      "noBikePrompt": "このレシートを保存するには、まずバイクを追加してください。",
+      "addBike": "バイクを追加",
+      "viewReceipt": "レシート写真を表示",
+      "closeReceipt": "閉じる",
+      "save": "保存",
+      "checkAmount": "金額を確認",
+      "checkCurrency": "通貨を確認",
+      "checkDate": "日付を確認",
+      "checkVendor": "店舗を確認",
+      "checkCategory": "カテゴリを確認",
+      "checkOdometer": "走行距離を確認"
+    },
+    "saved": {
+      "toast": "{{bike}} に保存しました",
+      "undo": "元に戻す",
+      "undoFailed": "元に戻せませんでした。もう一度お試しください",
+      "freeScansLeft": "今月はあと {{count}} 回の無料スキャンが残っています",
+      "saveFailed": "保存できませんでした",
+      "saveFailedBody": "問題が発生しました。もう一度お試しください。",
+      "duplicateTitle": "すでに記録済みのようです",
+      "duplicateBody": "このバイクには似た記録がすでにあります。それでも保存しますか？",
+      "duplicateConfirm": "それでも保存",
+      "duplicateCancel": "確認する"
+    },
+    "entry": {
+      "title": "レシートをスキャン",
+      "subtitle": "撮るだけ、記録はおまかせ",
+      "freeBadge": "無料 {{count}} 回",
+      "upsellBadge": "無制限"
+    },
+    "recovery": {
+      "reviewTitle": "確認するレシート {{count}} 件",
+      "reviewSubtitle": "スキャンした内容の記録を仕上げましょう"
     }
   }
 }

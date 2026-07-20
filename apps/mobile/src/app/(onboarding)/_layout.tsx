@@ -65,6 +65,8 @@ export default function OnboardingLayout() {
       <Stack.Screen name="sign-in" options={{ gestureEnabled: true, presentation: 'card' }} />
       {/* Attribution — post-paywall, non-reversible (no back to account/paywall) */}
       <Stack.Screen name="heard-about" options={{ gestureEnabled: false }} />
+      {/* Activation (G7) — quota-exempt "snap a receipt" invitation; skippable */}
+      <Stack.Screen name="scan-receipt" options={{ gestureEnabled: false }} />
       <Stack.Screen name="notifications" options={{ gestureEnabled: false }} />
       <Stack.Screen name="personalizing" options={{ gestureEnabled: false }} />
 

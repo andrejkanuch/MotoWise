@@ -10,7 +10,6 @@ import { EntitlementsResolver } from '../../modules/entitlements/entitlements.re
 import { ExpensesResolver } from '../../modules/expenses/expenses.resolver';
 import { FeedResolver } from '../../modules/feed/feed.resolver';
 import { FollowsResolver } from '../../modules/follows/follows.resolver';
-import { FuelLogsResolver } from '../../modules/fuel-logs/fuel-logs.resolver';
 import { FuelStopsResolver } from '../../modules/fuel-stops/fuel-stops.resolver';
 import { GroupRidesResolver } from '../../modules/group-rides/group-rides.resolver';
 import { HealthReportsResolver } from '../../modules/health-reports/health-reports.resolver';
@@ -22,6 +21,7 @@ import { MotorcyclesResolver } from '../../modules/motorcycles/motorcycles.resol
 import { OemSchedulesResolver } from '../../modules/oem-schedules/oem-schedules.resolver';
 import { PlacesResolver } from '../../modules/places/places.resolver';
 import { QuizzesResolver } from '../../modules/quizzes/quizzes.resolver';
+import { ReceiptScanResolver } from '../../modules/receipt-scan/receipt-scan.resolver';
 import { RideAnalyticsResolver } from '../../modules/ride-analytics/ride-analytics.resolver';
 import { RideSummariesResolver } from '../../modules/ride-summaries/ride-summaries.resolver';
 import { RidesResolver } from '../../modules/rides/rides.resolver';
@@ -61,7 +61,6 @@ const ALL_RESOLVERS = [
   ExpensesResolver,
   FeedResolver,
   FollowsResolver,
-  FuelLogsResolver,
   FuelStopsResolver,
   GroupRidesResolver,
   HealthReportsResolver,
@@ -73,6 +72,7 @@ const ALL_RESOLVERS = [
   OemSchedulesResolver,
   PlacesResolver,
   QuizzesResolver,
+  ReceiptScanResolver,
   RideAnalyticsResolver,
   RideSummariesResolver,
   RidesResolver,

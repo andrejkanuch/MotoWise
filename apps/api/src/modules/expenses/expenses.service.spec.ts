@@ -11,7 +11,9 @@ function createSupabaseMock() {
   chain.select = vi.fn().mockReturnValue(chain);
   chain.insert = vi.fn().mockReturnValue(chain);
   chain.update = vi.fn().mockReturnValue(chain);
+  chain.delete = vi.fn().mockReturnValue(chain);
   chain.eq = vi.fn().mockReturnValue(chain);
+  chain.in = vi.fn().mockReturnValue(chain);
   chain.is = vi.fn().mockReturnValue(chain);
   chain.gte = vi.fn().mockReturnValue(chain);
   chain.lte = vi.fn().mockReturnValue(chain);
@@ -20,7 +22,15 @@ function createSupabaseMock() {
   const from = vi.fn().mockReturnValue(chain);
   const rpc = vi.fn();
 
-  return { from, chain, rpc };
+  // Storage: createSignedUrl (receipts resolve) + remove (record-delete purge).
+  const createSignedUrl = vi
+    .fn()
+    .mockResolvedValue({ data: { signedUrl: 'https://signed/url?token=abc' }, error: null });
+  const remove = vi.fn().mockResolvedValue({ error: null });
+  const storageBucket = { createSignedUrl, remove };
+  const storage = { from: vi.fn().mockReturnValue(storageBucket) };
+
+  return { from, chain, rpc, storage, createSignedUrl, remove };
 }
 
 describe('ExpensesService', () => {
@@ -325,6 +335,171 @@ describe('ExpensesService', () => {
       const result = await service.createFromTask('u1', 'm1', 'task-1', 25, 'Change oil filter');
 
       expect(result).toBeNull();
+    });
+
+    it('uses the task-provided currency and skips the profile lookup', async () => {
+      // User-client single(): expense insert (no admin currency lookup expected).
+      mock.chain.single.mockResolvedValueOnce({
+        data: {
+          id: 'exp-task-3',
+          user_id: 'u1',
+          motorcycle_id: 'm1',
+          amount: '25.00',
+          category: 'maintenance',
+          currency: 'GBP',
+          date: '2025-06-15',
+          description: 'Scanned service',
+          maintenance_task_id: 'task-1',
+          created_at: '2025-06-15T00:00:00Z',
+        },
+        error: null,
+      });
+
+      const result = await service.createFromTask(
+        'u1',
+        'm1',
+        'task-1',
+        25,
+        'Scanned service',
+        'GBP',
+      );
+
+      expect(result?.currency).toBe('GBP');
+      // The provided currency short-circuits the service-role profile read.
+      expect(adminMock.chain.single).not.toHaveBeenCalled();
+      expect(mock.chain.insert).toHaveBeenCalledWith(expect.objectContaining({ currency: 'GBP' }));
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Photos — mixed public/private resolution + C1 (U7a)
+  // ---------------------------------------------------------------------------
+  describe('photos (U7a)', () => {
+    const UID = 'u1';
+    const OTHER_UID = 'u2';
+
+    it('resolves BOTH a legacy public URL and a receipts signed URL', async () => {
+      mock.chain.order.mockResolvedValueOnce({
+        data: [
+          {
+            id: 'p-legacy',
+            expense_id: 'e1',
+            user_id: UID,
+            storage_path: `${UID}/expenses/e1/legacy.webp`,
+            bucket: 'maintenance-photos',
+            mime_type: 'image/webp',
+            created_at: '2026-01-01T00:00:00Z',
+          },
+          {
+            id: 'p-receipt',
+            expense_id: 'e1',
+            user_id: UID,
+            storage_path: `${UID}/scan.webp`,
+            bucket: 'receipts',
+            mime_type: 'image/webp',
+            created_at: '2026-01-02T00:00:00Z',
+          },
+        ],
+        error: null,
+      });
+
+      const photos = await service.findPhotosByExpenseId(UID, 'e1');
+
+      expect(photos).toHaveLength(2);
+      const legacy = photos.find((p) => p.id === 'p-legacy');
+      expect(legacy?.publicUrl).toBe(
+        `https://example.supabase.co/storage/v1/object/public/maintenance-photos/${UID}/expenses/e1/legacy.webp`,
+      );
+      const receipt = photos.find((p) => p.id === 'p-receipt');
+      expect(receipt?.publicUrl).toBe('https://signed/url?token=abc');
+      // Signed via the ADMIN client's receipts bucket.
+      expect(adminMock.storage.from).toHaveBeenCalledWith('receipts');
+      expect(adminMock.createSignedUrl).toHaveBeenCalledWith(`${UID}/scan.webp`, 120);
+    });
+
+    it('C1: drops a receipts photo whose path belongs to another uid', async () => {
+      mock.chain.order.mockResolvedValueOnce({
+        data: [
+          {
+            id: 'p-foreign',
+            expense_id: 'e1',
+            user_id: UID,
+            storage_path: `${OTHER_UID}/scan.webp`,
+            bucket: 'receipts',
+            mime_type: 'image/webp',
+            created_at: '2026-01-02T00:00:00Z',
+          },
+        ],
+        error: null,
+      });
+
+      const photos = await service.findPhotosByExpenseId(UID, 'e1');
+
+      expect(photos).toHaveLength(0);
+      expect(adminMock.createSignedUrl).not.toHaveBeenCalled();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // addPhoto — receipts-bucket linking (U7a)
+  // ---------------------------------------------------------------------------
+  describe('addPhoto (receipts link)', () => {
+    it('sets bucket=receipts on insert and returns a signed URL', async () => {
+      // Expense ownership lookup + insert both use .single().
+      mock.chain.single
+        .mockResolvedValueOnce({ data: { id: 'e1' }, error: null }) // ownership
+        .mockResolvedValueOnce({
+          data: {
+            id: 'p-new',
+            expense_id: 'e1',
+            user_id: 'u1',
+            storage_path: 'u1/scan.webp',
+            bucket: 'receipts',
+            mime_type: 'image/webp',
+            created_at: '2026-01-02T00:00:00Z',
+          },
+          error: null,
+        }); // insert
+
+      const photo = await service.addPhoto('u1', 'e1', 'u1/scan.webp', undefined, 'receipts');
+
+      expect(mock.chain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ storage_path: 'u1/scan.webp', bucket: 'receipts' }),
+      );
+      expect(photo.publicUrl).toBe('https://signed/url?token=abc');
+    });
+
+    it('rejects a receipts path outside the caller uid folder', async () => {
+      await expect(
+        service.addPhoto('u1', 'e1', 'u2/scan.webp', undefined, 'receipts'),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // softDelete — record delete purges receipts objects (U7a / R10)
+  // ---------------------------------------------------------------------------
+  describe('softDelete receipts purge', () => {
+    it('removes the receipts storage object when the expense had one', async () => {
+      // The soft-delete update resolves via .single().
+      mock.chain.single.mockResolvedValueOnce({ data: { id: 'e1' }, error: null });
+      // The purge SELECT terminates on .eq('bucket', 'receipts') — resolve it.
+      mock.chain.eq.mockImplementation((col: string) =>
+        col === 'bucket'
+          ? Promise.resolve({
+              data: [{ id: 'p1', storage_path: 'u1/scan.webp', bucket: 'receipts', user_id: 'u1' }],
+              error: null,
+            })
+          : mock.chain,
+      );
+
+      const ok = await service.softDelete('u1', 'e1');
+
+      expect(ok).toBe(true);
+      expect(adminMock.storage.from).toHaveBeenCalledWith('receipts');
+      expect(adminMock.remove).toHaveBeenCalledWith(['u1/scan.webp']);
+      // Link rows also removed.
+      expect(mock.chain.delete).toHaveBeenCalled();
     });
   });
 

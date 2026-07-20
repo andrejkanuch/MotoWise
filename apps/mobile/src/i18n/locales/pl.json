@@ -414,9 +414,6 @@
     "distanceIntervalPlaceholder": "np. 15000",
     "timeIntervalPlaceholder": "np. 90",
     "mileageIntervalPlaceholder": "np. 5000",
-    "fuelOdometerPlaceholder": "0",
-    "fuelLitersPlaceholder": "0.0",
-    "fuelCostPlaceholder": "0.00",
     "taskMileagePlaceholder": "np. 15000",
     "discardChangesTitle": "Odrzucić zmiany?",
     "discardChangesMessage": "Twoje zmiany zostaną utracone.",
@@ -1003,7 +1000,15 @@
     "obNoBikeServiceBody": "Zapisuj wykonane prace i otrzymuj przypomnienie przed kolejnym.",
     "obNoBikeRoutesTitle": "Odkrywaj trasy",
     "obNoBikeRoutesBody": "Znajdź świetne drogi i planuj wspólne przejażdżki w okolicy.",
-    "obNoBikeAddBike": "Dodaj mój motocykl teraz"
+    "obNoBikeAddBike": "Dodaj mój motocykl teraz",
+    "scanEyebrow": "Try it now",
+    "scanTitle": "Snap your first",
+    "scanTitleAccent": "receipt",
+    "scanSubtitle": "Point your camera at a fuel, parts, or service receipt — MotoVault reads the amount, date, and vendor and logs it for you.",
+    "scanCta": "Scan a receipt",
+    "scanSkip": "Maybe later",
+    "scanBulletExtract": "AI pulls out the amount, date, and vendor",
+    "scanBulletFast": "Logged in seconds — no typing"
   },
   "bikeHub": {
     "upcoming": "Nadchodzace",
@@ -1937,22 +1942,6 @@
   "survey": {
     "feedbackPlaceholder": "Podziel sie swoimi przemysleniami (bez danych osobowych)"
   },
-  "fuel": {
-    "createFailed": "Nie udało się zapisać tankowania. Spróbuj ponownie.",
-    "newFillUp": "Nowe tankowanie",
-    "odometer": "Licznik",
-    "volume": "Paliwo",
-    "totalCost": "Łączny koszt",
-    "partialFill": "Częściowe tankowanie",
-    "partialHelp": "Zaznacz, jeśli nie zatankowałeś do pełna",
-    "saved": "Zapisano!",
-    "save": "Zapisz tankowanie",
-    "rollingAverage": "Średnia krocząca",
-    "lastN": "Ostatnie {{n}} tankowań",
-    "history": "Historia",
-    "partial": "Częściowe",
-    "emptyState": "Brak zapisanych tankowań"
-  },
   "nearYou": {
     "sectionMeta": "Trasy w {{country}}",
     "heading": "Trasy w pobliżu",
@@ -1970,7 +1959,8 @@
     "trackFirstExpense": "Track your first expense",
     "completeBikeProfile": "Complete your bike profile",
     "exploreDashboard": "Explore your dashboard",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "scanReceipt": "Scan a receipt"
   },
   "myRides": {
     "title": "Moje jazdy",
@@ -2278,6 +2268,128 @@
       "endRide": "End ride",
       "endRideButton": "End ride",
       "savesNote": "Ending always saves — {{distance}} will be kept"
+    }
+  },
+  "receiptScan": {
+    "common": {
+      "enterManually": "Wprowadź ręcznie",
+      "done": "Gotowe",
+      "noCreditUsed": "Nie zużyto skanu"
+    },
+    "gating": {
+      "label": "Przygotowywanie…"
+    },
+    "bikePick": {
+      "title": "Do którego motocykla to należy?",
+      "subtitle": "Wybierz motocykl, do którego należy ten paragon."
+    },
+    "consent": {
+      "title": "Zeskanuj paragon z pomocą AI",
+      "body": "Wysyłamy zdjęcie Twojego paragonu do naszej AI, aby odczytać kwotę, datę i szczegóły — abyś nie musiał ich wpisywać. Zdjęcie jest przechowywane prywatnie na Twoim koncie i nigdy nie jest udostępniane. Szczegóły zawsze możesz też wpisać ręcznie.",
+      "accept": "Zeskanuj paragon"
+    },
+    "capture": {
+      "title": "Sfotografuj paragon",
+      "subtitle": "Połóż go płasko, wypełnij kadr i pozostaw sumę w widoku.",
+      "takePhoto": "Zrób zdjęcie",
+      "chooseFromLibrary": "Wybierz z galerii",
+      "openSettings": "Otwórz Ustawienia"
+    },
+    "uploading": {
+      "label": "Przesyłanie paragonu…",
+      "retrying": "Ponawianie…"
+    },
+    "offline": {
+      "title": "Jesteś offline",
+      "body": "Zapisaliśmy Twój paragon i dokończymy jego odczyt automatycznie, gdy tylko wrócisz do sieci. Skan nie zostanie zużyty, dopóki nie zostanie przetworzony."
+    },
+    "analyzing": {
+      "stageReading": "Odczytywanie paragonu…",
+      "stageExtracting": "Wyodrębnianie szczegółów…",
+      "stageChecking": "Sprawdzanie kwot…",
+      "skip": "Pomiń — wprowadź ręcznie"
+    },
+    "error": {
+      "retry": "Spróbuj ponownie",
+      "extractionFailedTitle": "Nie udało się odczytać tego paragonu",
+      "extractionFailedBody": "Zdjęcie było zbyt rozmyte lub tekst niewyraźny. Możesz wpisać szczegóły ręcznie.",
+      "imageInvalidTitle": "To zdjęcie nie zadziałało",
+      "imageInvalidBody": "Nie mogliśmy użyć tego obrazu. Zrób zdjęcie ponownie lub wpisz szczegóły ręcznie.",
+      "quotaExceededTitle": "Wykorzystałeś wszystkie darmowe skany",
+      "quotaExceededBody": "Przejdź na Pro, aby uzyskać nieograniczone skany paragonów, albo wpisz ten ręcznie. Twoje zdjęcie jest zapisane.",
+      "disabledTitle": "Skanowanie jest chwilowo niedostępne",
+      "disabledBody": "Skanowanie paragonów jest teraz wstrzymane. Nadal możesz wpisać ten paragon ręcznie.",
+      "alreadyCompletedTitle": "Ten skan już się zakończył",
+      "alreadyCompletedBody": "Zakończył przetwarzanie tuż przed pominięciem. Znajdziesz go wśród paragonów do przejrzenia.",
+      "uploadFailedTitle": "Przesyłanie się nie powiodło",
+      "uploadFailedBody": "Nie udało się przesłać Twojego paragonu. Sprawdź połączenie i spróbuj ponownie.",
+      "analyzeFailedTitle": "Coś poszło nie tak",
+      "analyzeFailedBody": "Nie udało się dokończyć odczytu Twojego paragonu. Spróbuj ponownie — jeśli już przeszedł, znajdziesz go wśród paragonów do przejrzenia.",
+      "rateLimitedTitle": "Osiągnąłeś dzisiejszy limit skanów",
+      "rateLimitedBody": "Dużo dziś skanowałeś. Spróbuj ponownie jutro albo wpisz ten paragon ręcznie."
+    },
+    "parked": {
+      "title": "Zapisano na później",
+      "body": "Twój paragon jest gotowy do przejrzenia. Przypomnimy Ci jutro, a czeka na Twoim ekranie głównym."
+    },
+    "alreadyProcessed": {
+      "title": "Już przetworzono",
+      "body": "Ten skan zakończył się, zanim można było go anulować. Możesz przejrzeć go teraz lub znaleźć później wśród paragonów.",
+      "reviewNow": "Przejrzyj teraz"
+    },
+    "review": {
+      "title": "Przejrzyj paragon",
+      "forBike": "Dla {{bike}}",
+      "type": "Typ",
+      "vendor": "Sprzedawca",
+      "amount": "Kwota",
+      "date": "Data",
+      "needsCheck": "Do sprawdzenia",
+      "reviewLater": "Przejrzyj później",
+      "typeMaintenance": "Serwis",
+      "typeExpense": "Wydatek",
+      "currency": "Waluta",
+      "category": "Kategoria",
+      "itemName": "Pozycja",
+      "partsCost": "Części",
+      "laborCost": "Robocizna",
+      "odometer": "Licznik",
+      "odometerFirstSet": "Ustaw licznik",
+      "pickDate": "Wybierz datę",
+      "selectBikePrompt": "Wybierz motocykl, aby to zapisać",
+      "noBikePrompt": "Najpierw dodaj motocykl, aby zapisać ten paragon.",
+      "addBike": "Dodaj motocykl",
+      "viewReceipt": "Zobacz zdjęcie paragonu",
+      "closeReceipt": "Zamknij",
+      "save": "Zapisz",
+      "checkAmount": "Sprawdź kwotę",
+      "checkCurrency": "Sprawdź walutę",
+      "checkDate": "Sprawdź datę",
+      "checkVendor": "Sprawdź sprzedawcę",
+      "checkCategory": "Sprawdź kategorię",
+      "checkOdometer": "Sprawdź licznik"
+    },
+    "saved": {
+      "toast": "Zapisano w {{bike}}",
+      "undo": "Cofnij",
+      "undoFailed": "Nie udało się cofnąć — spróbuj ponownie",
+      "freeScansLeft": "Pozostało {{count}} darmowych skanów w tym miesiącu",
+      "saveFailed": "Nie udało się zapisać",
+      "saveFailedBody": "Coś poszło nie tak. Spróbuj ponownie.",
+      "duplicateTitle": "Wygląda na to, że już to zapisałeś",
+      "duplicateBody": "Dla tego motocykla istnieje już podobny wpis. Zapisać mimo to?",
+      "duplicateConfirm": "Zapisz mimo to",
+      "duplicateCancel": "Przejrzyj"
+    },
+    "entry": {
+      "title": "Zeskanuj paragon",
+      "subtitle": "Zrób zdjęcie — zapiszemy to za Ciebie",
+      "freeBadge": "{{count}} za darmo",
+      "upsellBadge": "Bez limitu"
+    },
+    "recovery": {
+      "reviewTitle": "{{count}} paragon do przejrzenia",
+      "reviewSubtitle": "Dokończ zapisywanie tego, co zeskanowałeś"
     }
   }
 }
