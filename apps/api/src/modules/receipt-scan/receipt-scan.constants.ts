@@ -1,7 +1,7 @@
 /**
  * Receipt-scan module constants — no magic strings anywhere in the service.
  */
-import { FREE_TIER_LIMITS } from '@motovault/types';
+import { FREE_TIER_LIMITS, MaintenanceTaskSource } from '@motovault/types';
 
 /** Union-result error codes (KTD-6). Client dispatches on these. */
 export const RECEIPT_SCAN_ERROR_CODES = {
@@ -122,7 +122,7 @@ export const MAX_PLAUSIBLE_ODOMETER_JUMP = 100_000 as const;
 export const DEFAULT_MAINTENANCE_TITLE = 'Service' as const;
 
 /** maintenance_tasks.source for a scan-created task (00166 CHECK extension). */
-export const MAINTENANCE_SOURCE_RECEIPT_SCAN = 'receipt_scan' as const;
+export const MAINTENANCE_SOURCE_RECEIPT_SCAN = MaintenanceTaskSource.RECEIPT_SCAN;
 
 /** Fallback expense category when the receipt has no category. */
 export const DEFAULT_EXPENSE_CATEGORY = 'other' as const;

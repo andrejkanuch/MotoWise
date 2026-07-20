@@ -952,6 +952,7 @@ type MaintenanceTask {
 enum MaintenanceTaskSource {
   imported
   oem
+  receipt_scan
   user
 }
 

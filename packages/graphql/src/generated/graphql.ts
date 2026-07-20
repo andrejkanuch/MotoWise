@@ -1019,6 +1019,7 @@ export type MaintenanceTask = {
 export enum MaintenanceTaskSource {
   Imported = 'imported',
   Oem = 'oem',
+  ReceiptScan = 'receipt_scan',
   User = 'user'
 }
 

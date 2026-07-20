@@ -237,6 +237,7 @@ export const MaintenanceTaskSource = {
   USER: 'user',
   OEM: 'oem',
   IMPORTED: 'imported',
+  RECEIPT_SCAN: 'receipt_scan',
 } as const;
 export type MaintenanceTaskSource =
   (typeof MaintenanceTaskSource)[keyof typeof MaintenanceTaskSource];

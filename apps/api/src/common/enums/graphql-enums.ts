@@ -329,6 +329,7 @@ export enum GqlMaintenanceTaskSource {
   user = 'user',
   oem = 'oem',
   imported = 'imported',
+  receipt_scan = 'receipt_scan',
 }
 
 registerEnumType(GqlMaintenanceTaskSource, { name: 'MaintenanceTaskSource' });
@@ -337,6 +338,7 @@ const _taskSourceSync: Record<MaintenanceTaskSource, GqlMaintenanceTaskSource> =
   user: GqlMaintenanceTaskSource.user,
   oem: GqlMaintenanceTaskSource.oem,
   imported: GqlMaintenanceTaskSource.imported,
+  receipt_scan: GqlMaintenanceTaskSource.receipt_scan,
 };
 
 export enum GqlRideStatus {
