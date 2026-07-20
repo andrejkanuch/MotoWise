@@ -31,13 +31,23 @@ const CLASSIFIER_RULES: readonly ClassifierRule[] = [
   },
   {
     type: MaintenanceServiceType.BRAKE_PADS,
-    keywords: ['brake pad', 'pads inspection', 'pastilla', 'brake lock'],
+    keywords: ['brake pad', 'pads inspection', 'pastilla'],
   },
   { type: MaintenanceServiceType.FORK_OIL, keywords: ['fork oil', 'fork', 'horquilla'] },
   { type: MaintenanceServiceType.FINAL_DRIVE, keywords: ['final drive', 'cardan', 'shaft drive'] },
   {
     type: MaintenanceServiceType.TRANSMISSION_OIL,
-    keywords: ['dct', 'transmission', 'gearbox', 'primary', 'chaincase', 'caja de cambios'],
+    // "primary" is scoped to the drivetrain terms (primary oil/drive/chaincase) so
+    // it does not swallow unrelated labels like "primary inspection".
+    keywords: [
+      'dct',
+      'transmission',
+      'gearbox',
+      'primary oil',
+      'primary drive',
+      'chaincase',
+      'caja de cambios',
+    ],
   },
   {
     type: MaintenanceServiceType.COOLANT,

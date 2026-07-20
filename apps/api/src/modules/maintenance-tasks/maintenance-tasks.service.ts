@@ -25,6 +25,19 @@ import type { TaskPhoto } from './models/task-photo.model';
 
 const LINE_ITEMS_TABLE = 'maintenance_task_line_items';
 
+/**
+ * Effective money for a completed task: the authoritative gross `total_amount`
+ * (receipt-scan financial wrapper) when present, else the additive
+ * cost+parts+labor breakdown. Single source of truth for spend aggregation so a
+ * scanned task (money in total_amount, cost NULL) is never dropped. Operates on a
+ * raw snake_case row.
+ */
+function effectiveTaskTotal(row: Record<string, unknown>): number {
+  const total = row.total_amount;
+  if (total != null) return Number(total) || 0;
+  return (Number(row.cost) || 0) + (Number(row.parts_cost) || 0) + (Number(row.labor_cost) || 0);
+}
+
 /** A resolved line item to persist (serviceType already classified by the caller). */
 export interface MaintenanceLineItemInput {
   serviceType: string;
@@ -349,6 +362,10 @@ export class MaintenanceTasksService {
     // R5/R10: purge private receipt objects attached to the deleted task from
     // storage (not just the DB link rows). Legacy public photos are unaffected.
     await this.purgeReceiptsPhotos(userId, id);
+    // Soft-delete sets deleted_at, so the task_id ON DELETE CASCADE never fires —
+    // purge structured line items here too (parity with the receipt-scan rollback),
+    // otherwise a user-deleted scanned task leaves orphan line-item rows.
+    await this.deleteLineItems(userId, id);
     return true;
   }
 
@@ -484,32 +501,36 @@ export class MaintenanceTasksService {
     const currentYear = new Date().getFullYear();
     const yearStart = `${currentYear}-01-01`;
 
+    // Money columns: sum the effective total per task — total_amount (authoritative,
+    // receipt-scan wrapper) when set, else the additive cost+parts+labor breakdown.
+    // A scanned task stores its money in total_amount with cost NULL, so filtering
+    // on / summing `cost` alone would silently drop it from the spend summary.
+    const MONEY_COLS = 'cost, parts_cost, labor_cost, total_amount';
+
     // All-time spending
     const { data: allTimeData, error: allTimeError } = await this.supabase
       .from('maintenance_tasks')
-      .select('cost')
+      .select(MONEY_COLS)
       .eq('user_id', userId)
       .eq('motorcycle_id', motorcycleId)
       .eq('status', 'completed')
-      .is('deleted_at', null)
-      .not('cost', 'is', null);
+      .is('deleted_at', null);
 
     if (allTimeError) {
       this.logger.error(`getSpendingSummary failed: ${allTimeError.message}`);
       throw new InternalServerErrorException('Failed to fetch spending summary');
     }
 
-    const allTime = (allTimeData ?? []).reduce((sum, row) => sum + (Number(row.cost) || 0), 0);
+    const allTime = (allTimeData ?? []).reduce((sum, row) => sum + effectiveTaskTotal(row), 0);
 
     // This year spending
     const { data: yearData, error: yearError } = await this.supabase
       .from('maintenance_tasks')
-      .select('cost')
+      .select(MONEY_COLS)
       .eq('user_id', userId)
       .eq('motorcycle_id', motorcycleId)
       .eq('status', 'completed')
       .is('deleted_at', null)
-      .not('cost', 'is', null)
       .gte('completed_at', yearStart);
 
     if (yearError) {
@@ -517,7 +538,7 @@ export class MaintenanceTasksService {
       throw new InternalServerErrorException('Failed to fetch spending summary');
     }
 
-    const thisYear = (yearData ?? []).reduce((sum, row) => sum + (Number(row.cost) || 0), 0);
+    const thisYear = (yearData ?? []).reduce((sum, row) => sum + effectiveTaskTotal(row), 0);
 
     return { thisYear, allTime };
   }

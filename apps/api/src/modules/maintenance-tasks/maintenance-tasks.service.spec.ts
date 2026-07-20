@@ -731,4 +731,26 @@ describe('MaintenanceTasksService', () => {
       expect(mockAdminClient._chain.eq).toHaveBeenCalledWith('user_id', userId);
     });
   });
+
+  describe('getSpendingSummary (financial wrapper)', () => {
+    it('counts total_amount tasks (money not in cost) so scanned services are not dropped', async () => {
+      // Result 0: all-time query — a scanned task (money in total_amount, cost NULL)
+      // plus a manual task using the additive cost/parts/labor breakdown.
+      mockUserClient._pushResult({
+        data: [
+          { cost: null, parts_cost: null, labor_cost: null, total_amount: 241.46 },
+          { cost: 50, parts_cost: 30, labor_cost: 20, total_amount: null },
+        ],
+      });
+      // Result 1: this-year query — just the scanned task.
+      mockUserClient._pushResult({
+        data: [{ cost: null, parts_cost: null, labor_cost: null, total_amount: 241.46 }],
+      });
+
+      const res = await service.getSpendingSummary(userId, motorcycleId);
+      // 241.46 (total_amount) + 100 (50+30+20) — the scanned task is NOT dropped.
+      expect(res.allTime).toBeCloseTo(341.46, 2);
+      expect(res.thisYear).toBeCloseTo(241.46, 2);
+    });
+  });
 });

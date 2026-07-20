@@ -108,7 +108,7 @@ export class MaintenanceTasksResolver {
   @Query(() => SpendingSummary)
   async spendingSummary(
     @CurrentUser() user: AuthUser,
-    @Args('motorcycleId') motorcycleId: string,
+    @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,
   ): Promise<SpendingSummary> {
     return this.maintenanceTasksService.getSpendingSummary(user.id, motorcycleId);
   }
@@ -132,7 +132,7 @@ export class MaintenanceTasksResolver {
   @Mutation(() => Boolean)
   async deleteTaskPhoto(
     @CurrentUser() user: AuthUser,
-    @Args('photoId', { type: () => ID }) photoId: string,
+    @Args('photoId', { type: () => ID }, ParseUUIDPipe) photoId: string,
   ): Promise<boolean> {
     return this.maintenanceTasksService.deletePhoto(user.id, photoId);
   }

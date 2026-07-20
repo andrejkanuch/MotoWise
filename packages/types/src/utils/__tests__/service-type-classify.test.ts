@@ -44,6 +44,10 @@ describe('classifyServiceType', () => {
     expect(classifyServiceType('Final Drive Oil')).toBe(MaintenanceServiceType.FINAL_DRIVE);
     expect(classifyServiceType('Timing Belt')).toBe(MaintenanceServiceType.BELT);
     expect(classifyServiceType('Battery Health Check')).toBe(MaintenanceServiceType.BATTERY);
+    // "primary" is drivetrain-scoped: real Harley primary lubricant classifies,
+    // but a bare "primary" token must NOT be swallowed into transmission.
+    expect(classifyServiceType('Primary Oil')).toBe(MaintenanceServiceType.TRANSMISSION_OIL);
+    expect(classifyServiceType('Primary widget')).toBe(MaintenanceServiceType.OTHER);
   });
 
   it('falls through to OTHER for unrecognized, blank, or nullish input (never throws)', () => {

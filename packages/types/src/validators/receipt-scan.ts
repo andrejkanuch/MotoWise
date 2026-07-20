@@ -129,7 +129,7 @@ export const SaveReceiptScanInputSchema = z.object({
   /** Printed tax rate as a percentage (e.g. 21 for 21% IVA). */
   taxRate: z.number().nonnegative().nullable().optional(),
   /** Reviewed service line items (maintenance). Persisted as maintenance_task_line_items. */
-  lineItems: z.array(SaveReceiptScanLineItemSchema).max(50).optional(),
+  lineItems: z.array(SaveReceiptScanLineItemSchema).max(50).nullable().optional(),
   applyOdometer: z.boolean().optional(),
   odometerValue: z.number().nonnegative().nullable().optional(),
   /** 'km' | 'mi' as PRINTED on the receipt — never assumed (KTD-7). */

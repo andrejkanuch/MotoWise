@@ -614,7 +614,9 @@ export class ReceiptScanService {
       partsCost: reconciles ? parts : undefined,
       laborCost: reconciles ? labor : undefined,
       taxAmount: reconciles ? tax : undefined,
-      taxRate: reconciles ? (input.taxRate ?? undefined) : undefined,
+      // taxRate is a printed percentage (metadata), independent of whether the
+      // money breakdown reconciles — keep it even in the total-only fallback.
+      taxRate: input.taxRate ?? undefined,
       currency: input.currency ?? undefined,
       source: MAINTENANCE_SOURCE_RECEIPT_SCAN,
     });
