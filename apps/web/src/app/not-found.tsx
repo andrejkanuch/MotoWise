@@ -24,7 +24,7 @@ const ARROW_ICON = (
 
 const WHERE_TO_LINKS = [
   { href: '/explore', title: 'Explore routes', desc: 'Find rides by country or vibe' },
-  { href: '/trip-planning', title: 'Trip planning', desc: 'Turn a map into a day' },
+  { href: '/features/trip-planning', title: 'Trip planning', desc: 'Turn a map into a day' },
   { href: '/#features', title: 'Garage', desc: 'Every bike, every record' },
   { href: '/#features', title: 'AI diagnostics', desc: 'Describe a sound, get a clue' },
 ] as const;

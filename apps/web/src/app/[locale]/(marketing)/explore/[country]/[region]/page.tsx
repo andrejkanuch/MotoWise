@@ -4,9 +4,10 @@ import { setRequestLocale } from 'next-intl/server';
 import { Breadcrumb } from '@/components/marketing/breadcrumb';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { RouteCard } from '@/components/marketing/route-card';
-import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { BASE_URL } from '@/lib/constants';
 import { fetchRegionBySlug, fetchRoutesByRegion } from '@/lib/fetch-places';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
+import { relativeTrip } from '@/lib/seo/canonical';
 import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/lib/seo/schema';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
 
@@ -102,7 +103,10 @@ export default async function RegionPage({ params }: PageProps) {
 
   const title = `Motorcycle Routes in ${regionName}, ${countryName}`;
   const description = `Explore ${routeCount} motorcycle routes in ${regionName}, ${countryName}.`;
-  const canonical = getCanonicalUrl(locale, `/explore/${countrySlug}/${regionSlug}`);
+  // Explore content is not translated — the page canonicalizes to the unprefixed
+  // English URL (see generateMetadata), so JSON-LD/breadcrumb URLs use the same
+  // EN URL to avoid mixed canonical signals in Search Console.
+  const canonical = `${BASE_URL}/explore/${countrySlug}/${regionSlug}`;
 
   // Enumerate the routes for an ItemList (complements the CollectionPage below).
   const routeItems = routes
@@ -110,10 +114,10 @@ export default async function RegionPage({ params }: PageProps) {
       route.slug && route.regionSlug && route.countryCode
         ? {
             name: route.displayName ?? route.name ?? 'Motorcycle route',
-            url: getCanonicalUrl(
-              locale,
-              `/explore/${route.countryCode.toLowerCase()}/${route.regionSlug}/${route.slug}`,
-            ),
+            // Trip detail canonical lives at the non-localized /trips/... route.
+            // There is no /explore/{country}/{region}/{slug} page. relativeTrip()
+            // lowercases all segments to match the trip page's self-canonical.
+            url: `${BASE_URL}${relativeTrip(route.countryCode, route.regionSlug, route.slug)}`,
           }
         : null,
     )
@@ -129,9 +133,9 @@ export default async function RegionPage({ params }: PageProps) {
     }),
     buildBreadcrumbList(
       [
-        { name: 'Home', url: getCanonicalUrl(locale) },
-        { name: 'Explore', url: getCanonicalUrl(locale, '/explore') },
-        { name: countryName, url: getCanonicalUrl(locale, `/explore/${countrySlug}`) },
+        { name: 'Home', url: BASE_URL },
+        { name: 'Explore', url: `${BASE_URL}/explore` },
+        { name: countryName, url: `${BASE_URL}/explore/${countrySlug}` },
         { name: regionName, url: canonical },
       ],
       locale,
