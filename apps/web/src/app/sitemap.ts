@@ -6,6 +6,7 @@ import { scoreBikePage } from '@/lib/bikes/quality-gate';
 import { getArticles } from '@/lib/blog';
 import { BASE_URL } from '@/lib/constants';
 import { gqlServerFetcher } from '@/lib/graphql-server';
+import { getGuides } from '@/lib/guides';
 import { isTargetMarket } from '@/lib/seo/market-indexing';
 import { exploreDiscoveryEntries, tripDetailEntries } from '@/lib/seo/sitemap-trips';
 
@@ -185,6 +186,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date('2026-04-11'),
   }));
 
+  // Guides: English-only long-form MDX. The guide pages canonicalize to the
+  // unprefixed EN URL with x-default only, so — like bikes — no hreflang
+  // alternates are emitted here. Previously the whole /guides section was absent
+  // from the sitemap AND unlinked from nav, so Google never discovered it
+  // (GSC: "URL is unknown to Google"). The index date tracks the newest guide.
+  const guides = getGuides();
+  const guideIndexEntry = {
+    url: `${host}/guides`,
+    lastModified: new Date(guides[0]?.frontmatter.date || '2026-04-11'),
+  };
+  const guideLeafEntries = guides.map((guide) => ({
+    url: `${host}/guides/${guide.slug}`,
+    lastModified: new Date(guide.frontmatter.date),
+    images: guide.frontmatter.heroImage ? [`${host}${guide.frontmatter.heroImage}`] : [],
+  }));
+
   // ---- Trip detail pages + explore discovery (one fetch, both derived) ----
   // Keep the sitemap to on-target markets (Europe + Americas) so off-market
   // geos aren't advertised for indexing — mirrors the noindex on those pages
@@ -201,6 +218,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...blogEntries,
     bikeIndexEntry,
     ...bikeLeafEntries,
+    guideIndexEntry,
+    ...guideLeafEntries,
     ...tripTemplateEntries,
     ...exploreEntries,
   ];

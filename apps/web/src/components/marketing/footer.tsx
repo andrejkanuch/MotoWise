@@ -42,6 +42,7 @@ export async function Footer() {
   ] as const;
 
   const resourceLinks = [
+    { label: t('linkGuides'), href: '/guides' },
     { label: t('faq'), href: '/#faq' },
     { label: t('riders'), href: '/#proof' },
     { label: t('contact'), href: 'mailto:support@motovault.app', external: true },
