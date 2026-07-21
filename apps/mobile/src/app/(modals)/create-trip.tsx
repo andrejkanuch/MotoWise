@@ -2,7 +2,7 @@ import DateTimePicker from '@expo/ui/community/datetime-picker';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import type { PeriodOfDay } from '@motovault/graphql';
 import { SHOWCASE_MAX_DAY_COUNT } from '@motovault/types';
-import MapboxGL, { type ScreenPointPayload } from '@rnmapbox/maps';
+import MapboxGL from '@rnmapbox/maps';
 import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -17,7 +17,6 @@ import {
   Lock,
   type LucideIcon,
   Map as MapIcon,
-  Plus,
   Save,
   Send,
   Trash2,
@@ -28,9 +27,7 @@ import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
-  Modal,
   Pressable,
-  ScrollView as RNScrollView,
   Text,
   TextInput,
   View,
@@ -46,23 +43,24 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GeocodingSearchBar } from '../../components/geocoding-search-bar';
-import { StopListItem } from '../../components/trip/stop-list-item';
 import { WaypointMarker } from '../../components/trip/waypoint-marker';
-import { WaypointTypePicker } from '../../components/trip/waypoint-type-picker';
 import { FloatingIconButton } from '../../components/ui/floating-icon-button';
+import {
+  DayStopList,
+  EditStopModal,
+  type LocalWaypoint,
+  tempId,
+  useTripWaypoints,
+} from '../../features/create-trip';
 import { useCreateTripData } from '../../hooks/use-create-trip-data';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { showActionSheet } from '../../utils/action-sheet';
 import {
   cycleMapStyle as cycleMapStyleFn,
   getDefaultMapStyle,
   MAP_STYLES,
 } from '../../utils/map-styles';
-import { getRouteSegments, type RouteLeg } from '../../utils/mapbox-directions';
-import type { GeocodingResult } from '../../utils/mapbox-geocoding';
-import { groupByPeriod, PERIOD_HINT, PERIOD_LABEL } from '../../utils/period-of-day';
 import {
   datesForClonedTemplate,
   getDefaultNewTripDateRange,
@@ -71,18 +69,6 @@ import {
 } from '../../utils/trip-form-dates';
 
 type Difficulty = 'easy' | 'moderate' | 'challenging' | 'expert';
-
-interface LocalWaypoint {
-  id: string;
-  type: string;
-  name: string;
-  lat: number;
-  lng: number;
-  notes?: string;
-  sortOrder: number;
-  dayIndex: number;
-  periodOfDay?: 'morning' | 'afternoon' | 'evening' | null;
-}
 
 type TI18n = (key: string, opts?: Record<string, unknown>) => string;
 
@@ -124,32 +110,6 @@ function getVisibilityOptions(
   ];
 }
 
-// Difficulty colors are computed inside the component using editorial tokens (t.success, t.warm, t.danger)
-
-function formatSegmentDistance(meters: number): string {
-  if (meters < 1000) return `${Math.round(meters)} m`;
-  return `${(meters / 1000).toFixed(1)} km`;
-}
-
-function formatSegmentDuration(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.round((seconds % 3600) / 60);
-  if (h === 0) return `${m} min`;
-  return `${h}h ${m}m`;
-}
-
-function formatDayDate(startDate: Date, dayIndex: number): string {
-  const d = new Date(startDate);
-  d.setDate(d.getDate() + dayIndex);
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
-
-let tempIdCounter = 0;
-function tempId(): string {
-  tempIdCounter += 1;
-  return `tmp_${Date.now()}_${tempIdCounter}`;
-}
-
 export default function CreateTripScreen() {
   const { t, isDark } = useEditorialTheme();
   const { t: i18n } = useTranslation();
@@ -164,7 +124,7 @@ export default function CreateTripScreen() {
   const isCloneMode = !!params.cloneFromTripId && !params.tripId;
   const sourceTripId = params.tripId ?? params.cloneFromTripId;
   const sheetRef = useRef<BottomSheet>(null);
-  const cameraRef = useRef<MapboxGL.Camera>(null);
+  const cameraRef = useRef<MapboxGL.Camera | null>(null);
 
   const reducedMotion = useReducedMotion();
   const [showDetails, setShowDetails] = useState(isEditMode || isCloneMode);
@@ -215,36 +175,6 @@ export default function CreateTripScreen() {
     };
   }, [isEditMode, isCloneMode]);
 
-  // Waypoints
-  const [waypoints, setWaypoints] = useState<LocalWaypoint[]>([]);
-  const [routeLegs, setRouteLegs] = useState<RouteLeg[]>([]);
-  const [routeGeometry, setRouteGeometry] = useState<GeoJSON.LineString | null>(null);
-
-  // Recalculate route segments when waypoints change (with cancellation)
-  useEffect(() => {
-    if (waypoints.length < 2) {
-      setRouteLegs([]);
-      setRouteGeometry(null);
-      return;
-    }
-
-    const controller = new AbortController();
-    const timer = setTimeout(async () => {
-      const sorted = [...waypoints].sort((a, b) => a.sortOrder - b.sortOrder);
-      const coords = sorted.map((wp) => ({ lat: wp.lat, lng: wp.lng }));
-      const result = await getRouteSegments(coords, controller.signal);
-      if (!controller.signal.aborted && result) {
-        setRouteLegs(result.legs);
-        setRouteGeometry(result.geometry);
-      }
-    }, 800);
-
-    return () => {
-      clearTimeout(timer);
-      controller.abort();
-    };
-  }, [waypoints]);
-
   // Form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -277,6 +207,92 @@ export default function CreateTripScreen() {
   // Android: DateTimePicker renders as a dialog, so show only on press
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+
+
+  // Day count derived from mode/dates — waypoints hook groups stops by day.
+  const numDays = useMemo(() => {
+    if (isShowcase) return Math.max(1, showcaseDayCount);
+    const msPerDay = 86400000;
+    return Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / msPerDay) + 1);
+  }, [isShowcase, showcaseDayCount, startDate, endDate]);
+
+  const {
+    waypoints,
+    setWaypoints,
+    routeLegs,
+    routeGeometry,
+    routeGeoJSON,
+    bounds,
+    sortedWaypoints,
+    waypointsByDay,
+    searchProximity,
+    handleGeocodingSelect,
+    handleLongPress,
+    handleMoveUp,
+    handleMoveDown,
+    handleDeleteWaypoint,
+    handleMoveDay,
+    openEditModal,
+    editingWaypoint,
+    editName,
+    setEditName,
+    editType,
+    setEditType,
+    editNotes,
+    setEditNotes,
+    editPeriod,
+    setEditPeriod,
+    closeEditModal,
+    applyEdit,
+  } = useTripWaypoints({
+    cameraRef,
+    numDays,
+    startDate,
+    isShowcase,
+  });
+
+
+  // Day count derived from mode/dates — waypoints hook groups stops by day.
+  const numDays = useMemo(() => {
+    if (isShowcase) return Math.max(1, showcaseDayCount);
+    const msPerDay = 86400000;
+    return Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / msPerDay) + 1);
+  }, [isShowcase, showcaseDayCount, startDate, endDate]);
+
+  const {
+    waypoints,
+    setWaypoints,
+    routeLegs,
+    routeGeometry,
+    routeGeoJSON,
+    bounds,
+    sortedWaypoints,
+    waypointsByDay,
+    searchProximity,
+    handleGeocodingSelect,
+    handleLongPress,
+    handleMoveUp,
+    handleMoveDown,
+    handleDeleteWaypoint,
+    handleMoveDay,
+    openEditModal,
+    editingWaypoint,
+    editName,
+    setEditName,
+    editType,
+    setEditType,
+    editNotes,
+    setEditNotes,
+    editPeriod,
+    setEditPeriod,
+    closeEditModal,
+    applyEdit,
+  } = useTripWaypoints({
+    cameraRef,
+    numDays,
+    startDate,
+    isShowcase,
+  });
 
   // Build the batch input shared by save and publish
   const buildTripInput = useCallback(() => {
@@ -415,44 +431,6 @@ export default function CreateTripScreen() {
     setEditDataLoaded(true);
   }, [isEditMode, isCloneMode, editDataLoaded, tripQuery.data]);
 
-  // Edit stop modal state
-  const [editingWaypoint, setEditingWaypoint] = useState<LocalWaypoint | null>(null);
-  const [editName, setEditName] = useState('');
-  const [editType, setEditType] = useState('');
-  const [editNotes, setEditNotes] = useState('');
-  const [editPeriod, setEditPeriod] = useState<'morning' | 'afternoon' | 'evening' | null>(null);
-
-  const openEditModal = useCallback((wp: LocalWaypoint) => {
-    setEditName(wp.name);
-    setEditType(wp.type);
-    setEditNotes(wp.notes ?? '');
-    setEditPeriod(wp.periodOfDay ?? null);
-    setEditingWaypoint(wp);
-  }, []);
-
-  const closeEditModal = useCallback(() => {
-    setEditingWaypoint(null);
-  }, []);
-
-  const applyEdit = useCallback(() => {
-    if (!editingWaypoint) return;
-    setWaypoints((prev) =>
-      prev.map((wp) =>
-        wp.id === editingWaypoint.id
-          ? {
-              ...wp,
-              name: editName.trim() || wp.name,
-              type: editType,
-              notes: editNotes.trim() || undefined,
-              periodOfDay: editPeriod,
-            }
-          : wp,
-      ),
-    );
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setEditingWaypoint(null);
-  }, [editingWaypoint, editName, editType, editNotes, editPeriod]);
-
   const dateRangeError = useMemo(
     () => validateTripFormDateRangeForSave(startDate, endDate),
     [startDate, endDate],
@@ -464,135 +442,6 @@ export default function CreateTripScreen() {
     waypoints.length >= 2 &&
     // Showcase mode has no dates to validate.
     (isShowcase || (!dateRangeError && startDate <= endDate));
-
-  // Route line GeoJSON — use actual road geometry when available, fallback to straight lines
-  const routeGeoJSON = useMemo(() => {
-    if (waypoints.length < 2) return null;
-    if (routeGeometry) {
-      return {
-        type: 'Feature' as const,
-        geometry: routeGeometry,
-        properties: {},
-      };
-    }
-    // Straight-line fallback while Directions API is loading
-    const sorted = [...waypoints].sort((a, b) => a.sortOrder - b.sortOrder);
-    return {
-      type: 'Feature' as const,
-      geometry: {
-        type: 'LineString' as const,
-        coordinates: sorted.map((wp) => [wp.lng, wp.lat]),
-      },
-      properties: {},
-    };
-  }, [waypoints, routeGeometry]);
-
-  // Camera bounds
-  const bounds = useMemo(() => {
-    if (waypoints.length === 0) return undefined;
-    let minLng = Infinity;
-    let maxLng = -Infinity;
-    let minLat = Infinity;
-    let maxLat = -Infinity;
-    for (const wp of waypoints) {
-      minLng = Math.min(minLng, wp.lng);
-      maxLng = Math.max(maxLng, wp.lng);
-      minLat = Math.min(minLat, wp.lat);
-      maxLat = Math.max(maxLat, wp.lat);
-    }
-    return {
-      ne: [maxLng, maxLat] as [number, number],
-      sw: [minLng, minLat] as [number, number],
-    };
-  }, [waypoints]);
-
-  // Add a waypoint and fly the camera to it
-  const addWaypoint = useCallback((wp: Omit<LocalWaypoint, 'id'>) => {
-    const newWp: LocalWaypoint = { ...wp, id: tempId() };
-    setWaypoints((prev) => [...prev, newWp]);
-    trackEvent(AnalyticsEvent.TRIP_WAYPOINT_ADDED, {
-      waypoint_type: wp.type,
-      waypoint_index: wp.sortOrder,
-    });
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // Fly camera to new waypoint
-    cameraRef.current?.flyTo([wp.lng, wp.lat], 500);
-  }, []);
-
-  // Geocoding search result handler
-  // Default day for new waypoints: last day that has waypoints, or last day overall
-  const defaultDayIndex = useMemo(() => {
-    if (waypoints.length === 0) return 0;
-    return Math.max(...waypoints.map((w) => w.dayIndex));
-  }, [waypoints]);
-
-  const handleGeocodingSelect = useCallback(
-    (result: GeocodingResult) => {
-      const type = waypoints.length === 0 ? 'start' : waypoints.length === 1 ? 'end' : 'scenic';
-      addWaypoint({
-        type,
-        name: result.name,
-        lat: result.lat,
-        lng: result.lng,
-        notes: '',
-        sortOrder: waypoints.length,
-        dayIndex: defaultDayIndex,
-      });
-    },
-    [addWaypoint, waypoints.length, defaultDayIndex],
-  );
-
-  // Map long-press handler — adds a scenic waypoint directly
-  const handleLongPress = useCallback(
-    (event: GeoJSON.Feature<GeoJSON.Point, ScreenPointPayload>) => {
-      const [lng, lat] = event.geometry.coordinates;
-      if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      const type = waypoints.length === 0 ? 'start' : waypoints.length === 1 ? 'end' : 'scenic';
-      addWaypoint({
-        type,
-        name: `Stop ${waypoints.length + 1}`,
-        lat,
-        lng,
-        notes: '',
-        sortOrder: waypoints.length,
-        dayIndex: defaultDayIndex,
-      });
-    },
-    [addWaypoint, waypoints.length, defaultDayIndex],
-  );
-
-  // Reorder waypoints
-  const handleMoveUp = useCallback((index: number) => {
-    setWaypoints((prev) => {
-      const next = [...prev];
-      const sorted = next.sort((a, b) => a.sortOrder - b.sortOrder);
-      if (index <= 0) return prev;
-      const tempOrder = sorted[index].sortOrder;
-      sorted[index].sortOrder = sorted[index - 1].sortOrder;
-      sorted[index - 1].sortOrder = tempOrder;
-      return [...sorted];
-    });
-  }, []);
-
-  const handleMoveDown = useCallback((index: number) => {
-    setWaypoints((prev) => {
-      const next = [...prev];
-      const sorted = next.sort((a, b) => a.sortOrder - b.sortOrder);
-      if (index >= sorted.length - 1) return prev;
-      const tempOrder = sorted[index].sortOrder;
-      sorted[index].sortOrder = sorted[index + 1].sortOrder;
-      sorted[index + 1].sortOrder = tempOrder;
-      return [...sorted];
-    });
-  }, []);
-
-  // Delete waypoint
-  const handleDeleteWaypoint = useCallback((id: string) => {
-    setWaypoints((prev) => {
-      const filtered = prev.filter((wp) => wp.id !== id);
-      return filtered.map((wp, i) => ({ ...wp, sortOrder: i }));
-    });
-  }, []);
 
   // Cycle map style
   const cycleMapStyle = useCallback(() => {
@@ -667,63 +516,6 @@ export default function CreateTripScreen() {
 
   const tripStatus = tripQuery.data?.tripDetail.status;
   const isEditingDraft = isEditMode && tripStatus === 'draft';
-  const sortedWaypoints = useMemo(
-    () => [...waypoints].sort((a, b) => a.sortOrder - b.sortOrder),
-    [waypoints],
-  );
-
-  // Day-based organization
-  const numDays = useMemo(() => {
-    if (isShowcase) return Math.max(1, showcaseDayCount);
-    const msPerDay = 86400000;
-    return Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / msPerDay) + 1);
-  }, [isShowcase, showcaseDayCount, startDate, endDate]);
-
-  const waypointsByDay = useMemo(() => {
-    const groups: Record<number, LocalWaypoint[]> = {};
-    for (let d = 0; d < numDays; d++) groups[d] = [];
-    for (const wp of sortedWaypoints) {
-      const d = Math.min(wp.dayIndex, numDays - 1);
-      if (!groups[d]) groups[d] = [];
-      groups[d].push(wp);
-    }
-    return groups;
-  }, [sortedWaypoints, numDays]);
-
-  // Move waypoint to a different day
-  const handleMoveDay = useCallback(
-    (waypointId: string) => {
-      const dayOptions = Array.from({ length: numDays }, (_, i) =>
-        isShowcase ? `Day ${i + 1}` : `Day ${i + 1} — ${formatDayDate(startDate, i)}`,
-      );
-
-      showActionSheet(
-        'Move to Day',
-        [
-          ...dayOptions.map((label, i) => ({
-            label,
-            onPress: () => {
-              setWaypoints((prev) =>
-                prev.map((wp) => (wp.id === waypointId ? { ...wp, dayIndex: i } : wp)),
-              );
-            },
-          })),
-          { label: 'Cancel', onPress: () => {}, style: 'cancel' as const },
-        ],
-        'Select a day for this stop',
-      );
-    },
-    [numDays, startDate, isShowcase],
-  );
-
-  // Proximity for geocoding — center of existing waypoints or undefined
-  const searchProximity = useMemo(() => {
-    if (waypoints.length === 0) return undefined;
-    const avgLat = waypoints.reduce((sum, wp) => sum + wp.lat, 0) / waypoints.length;
-    const avgLng = waypoints.reduce((sum, wp) => sum + wp.lng, 0) / waypoints.length;
-    return { lat: avgLat, lng: avgLng };
-  }, [waypoints]);
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: bg }}>
@@ -958,180 +750,20 @@ export default function CreateTripScreen() {
               />
             </View>
 
-            {/* Day-by-day stop list */}
-            {sortedWaypoints.length > 0 && (
-              <View style={{ marginBottom: 16 }}>
-                {Array.from({ length: numDays }, (_, dayIndex) => dayIndex).map((dayIndex) => {
-                  const dayWaypoints = waypointsByDay[dayIndex] ?? [];
-
-                  // Compute day stats from route legs for stops in this day
-                  let dayDistanceM = 0;
-                  let dayDurationS = 0;
-                  for (const wp of dayWaypoints) {
-                    const globalIdx = sortedWaypoints.indexOf(wp);
-                    if (globalIdx > 0 && routeLegs[globalIdx - 1]) {
-                      dayDistanceM += routeLegs[globalIdx - 1].distanceM;
-                      dayDurationS += routeLegs[globalIdx - 1].durationS;
-                    }
-                  }
-                  const dayHours = dayDurationS / 3600;
-                  const rideTimeColor = dayHours > 6 ? t.danger : dayHours > 4 ? t.warm : t.success;
-
-                  return (
-                    <View key={`day-${formatDayDate(startDate, dayIndex)}`}>
-                      {/* Day header */}
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          backgroundColor: t.surface,
-                          borderWidth: 1,
-                          borderColor: t.line,
-                          borderRadius: 12,
-                          borderCurve: 'continuous',
-                          paddingHorizontal: 16,
-                          paddingVertical: 12,
-                          marginTop: dayIndex > 0 ? 16 : 0,
-                          marginBottom: 8,
-                          marginHorizontal: 20,
-                        }}
-                      >
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                          <Calendar size={16} color={titleColor} />
-                          <Text
-                            style={{
-                              fontFamily: 'InstrumentSerif-Regular',
-                              fontSize: 17,
-                              color: titleColor,
-                            }}
-                          >
-                            {isShowcase
-                              ? i18n('trips.dayHeaderShort', { day: dayIndex + 1 })
-                              : i18n('trips.dayHeader', {
-                                  day: dayIndex + 1,
-                                  date: formatDayDate(startDate, dayIndex),
-                                })}
-                          </Text>
-                        </View>
-                        {dayWaypoints.length > 0 && dayDurationS > 0 && (
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            <Text style={{ fontSize: 12, fontWeight: '600', color: t.ink3 }}>
-                              {formatSegmentDistance(dayDistanceM)}
-                            </Text>
-                            <Text style={{ fontSize: 12, fontWeight: '700', color: rideTimeColor }}>
-                              {formatSegmentDuration(dayDurationS)}
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-
-                      {/* Day's stops — grouped by period-of-day when labelled. */}
-                      {dayWaypoints.length > 0 ? (
-                        groupByPeriod(dayWaypoints).map((group) => (
-                          <View key={`${dayIndex}-${group.period ?? 'unset'}`}>
-                            {group.period && (
-                              <View
-                                style={{
-                                  flexDirection: 'row',
-                                  alignItems: 'baseline',
-                                  gap: 8,
-                                  marginHorizontal: 20,
-                                  marginTop: 4,
-                                  marginBottom: 4,
-                                }}
-                              >
-                                <Text
-                                  style={{
-                                    fontSize: 11,
-                                    fontWeight: '700',
-                                    color: subtitleColor,
-                                    letterSpacing: 0.6,
-                                    textTransform: 'uppercase',
-                                  }}
-                                >
-                                  {group.label}
-                                </Text>
-                                <Text style={{ fontSize: 11, color: subtitleColor, opacity: 0.7 }}>
-                                  {PERIOD_HINT[group.period]}
-                                </Text>
-                              </View>
-                            )}
-                            {group.items.map((wp) => {
-                              const globalIdx = sortedWaypoints.indexOf(wp);
-                              return (
-                                <StopListItem
-                                  key={wp.id}
-                                  waypoint={wp}
-                                  index={globalIdx}
-                                  isFirst={globalIdx === 0}
-                                  isLast={globalIdx === sortedWaypoints.length - 1}
-                                  onMoveUp={() => handleMoveUp(globalIdx)}
-                                  onMoveDown={() => handleMoveDown(globalIdx)}
-                                  onDelete={() => handleDeleteWaypoint(wp.id)}
-                                  onPress={() => openEditModal(wp)}
-                                  onMoveDay={() => handleMoveDay(wp.id)}
-                                  distance={
-                                    globalIdx > 0 && routeLegs[globalIdx - 1]
-                                      ? formatSegmentDistance(routeLegs[globalIdx - 1].distanceM)
-                                      : undefined
-                                  }
-                                  duration={
-                                    globalIdx > 0 && routeLegs[globalIdx - 1]
-                                      ? formatSegmentDuration(routeLegs[globalIdx - 1].durationS)
-                                      : undefined
-                                  }
-                                />
-                              );
-                            })}
-                          </View>
-                        ))
-                      ) : (
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            color: subtitleColor,
-                            textAlign: 'center',
-                            paddingVertical: 12,
-                            paddingHorizontal: 20,
-                          }}
-                        >
-                          {i18n('trips.addStopHint')}
-                        </Text>
-                      )}
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-
-            {/* Add Day button */}
-            {numDays < 14 && (
-              <Pressable
-                onPress={handleAddDay}
-                accessibilityLabel="Add another day to trip"
-                accessibilityRole="button"
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  marginHorizontal: 20,
-                  marginTop: 12,
-                  marginBottom: 16,
-                  paddingVertical: 14,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  borderWidth: 1.5,
-                  borderColor: t.warm,
-                }}
-              >
-                <Plus size={18} color={t.warm} />
-                <Text style={{ fontSize: 14, fontWeight: '600', color: t.warm }}>
-                  {i18n('trips.addDay')}
-                </Text>
-              </Pressable>
-            )}
+            <DayStopList
+              numDays={numDays}
+              startDate={startDate}
+              isShowcase={isShowcase}
+              sortedWaypoints={sortedWaypoints}
+              waypointsByDay={waypointsByDay}
+              routeLegs={routeLegs}
+              onMoveUp={handleMoveUp}
+              onMoveDown={handleMoveDown}
+              onDelete={handleDeleteWaypoint}
+              onPressStop={openEditModal}
+              onMoveDay={handleMoveDay}
+              onAddDay={handleAddDay}
+            />
 
             {/* Metadata form */}
             <View style={{ paddingHorizontal: 20, gap: 16 }}>
@@ -1860,259 +1492,19 @@ export default function CreateTripScreen() {
           </BottomSheetScrollView>
         </BottomSheet>
 
-        {/* Edit Stop Modal */}
-        <Modal
-          visible={editingWaypoint !== null}
-          animationType="slide"
-          presentationStyle="formSheet"
-          onRequestClose={closeEditModal}
-        >
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: t.bg,
-            }}
-          >
-            {/* Header */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                paddingHorizontal: 20,
-                paddingTop: 20,
-                paddingBottom: 12,
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: 'InstrumentSerif-Regular',
-                  fontSize: 22,
-                  color: titleColor,
-                }}
-              >
-                {i18n('trips.editStop')}
-              </Text>
-              <Pressable
-                onPress={closeEditModal}
-                hitSlop={12}
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  borderCurve: 'continuous',
-                  backgroundColor: t.surface2,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <X size={16} color={t.ink3} />
-              </Pressable>
-            </View>
-
-            <View
-              style={{
-                height: 1,
-                backgroundColor: t.line,
-                marginHorizontal: 20,
-              }}
-            />
-
-            <RNScrollView
-              contentContainerStyle={{
-                paddingHorizontal: 20,
-                paddingTop: 20,
-                paddingBottom: 40,
-                gap: 20,
-              }}
-              keyboardShouldPersistTaps="handled"
-            >
-              {/* Name */}
-              <View>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: labelColor,
-                    marginBottom: 6,
-                  }}
-                >
-                  {i18n('trips.nameLabel')}
-                </Text>
-                <TextInput
-                  value={editName}
-                  onChangeText={setEditName}
-                  placeholder={i18n('trips.stopNamePlaceholder')}
-                  placeholderTextColor={placeholderColor}
-                  maxLength={100}
-                  style={{
-                    backgroundColor: inputBg,
-                    borderWidth: 1,
-                    borderColor: inputBorder,
-                    borderRadius: 12,
-                    borderCurve: 'continuous',
-                    paddingHorizontal: 14,
-                    paddingVertical: 12,
-                    fontSize: 15,
-                    color: inputTextColor,
-                  }}
-                />
-              </View>
-
-              <View
-                style={{
-                  height: 1,
-                  backgroundColor: t.line,
-                }}
-              />
-
-              {/* Type */}
-              <View>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: labelColor,
-                    marginBottom: 6,
-                  }}
-                >
-                  {i18n('trips.typeLabel')}
-                </Text>
-                <WaypointTypePicker selected={editType} onSelect={setEditType} />
-              </View>
-
-              <View
-                style={{
-                  height: 1,
-                  backgroundColor: t.line,
-                }}
-              />
-
-              {/* Period of day */}
-              <View>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: labelColor,
-                    marginBottom: 6,
-                  }}
-                >
-                  {i18n('trips.periodOfDayLabel')}
-                </Text>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  {(['morning', 'afternoon', 'evening'] as const).map((p) => {
-                    const selected = editPeriod === p;
-                    return (
-                      <Pressable
-                        key={p}
-                        onPress={() => setEditPeriod(selected ? null : p)}
-                        accessibilityRole="button"
-                        accessibilityState={{ selected }}
-                        style={{
-                          flex: 1,
-                          paddingVertical: 10,
-                          borderRadius: 10,
-                          borderCurve: 'continuous',
-                          borderWidth: 1,
-                          borderColor: selected ? t.warm : inputBorder,
-                          backgroundColor: selected ? tint(t.warm, 0.1) : t.surface2,
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            fontWeight: '600',
-                            color: selected ? t.warm : labelColor,
-                          }}
-                        >
-                          {PERIOD_LABEL[p]}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-                <Text style={{ fontSize: 11, color: placeholderColor, marginTop: 6 }}>
-                  {i18n('trips.periodOfDayHint')}
-                </Text>
-              </View>
-
-              <View
-                style={{
-                  height: 1,
-                  backgroundColor: t.line,
-                }}
-              />
-
-              {/* Notes */}
-              <View>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: labelColor,
-                    marginBottom: 6,
-                  }}
-                >
-                  {i18n('trips.notesLabel')}
-                </Text>
-                <TextInput
-                  value={editNotes}
-                  onChangeText={setEditNotes}
-                  placeholder={i18n('trips.stopNotesPlaceholder')}
-                  placeholderTextColor={placeholderColor}
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                  maxLength={500}
-                  style={{
-                    backgroundColor: inputBg,
-                    borderWidth: 1,
-                    borderColor: inputBorder,
-                    borderRadius: 12,
-                    borderCurve: 'continuous',
-                    paddingHorizontal: 14,
-                    paddingVertical: 12,
-                    fontSize: 15,
-                    color: inputTextColor,
-                    minHeight: 100,
-                  }}
-                />
-              </View>
-
-              <View
-                style={{
-                  height: 1,
-                  backgroundColor: t.line,
-                }}
-              />
-
-              {/* Done button */}
-              <Pressable
-                onPress={applyEdit}
-                style={{
-                  paddingVertical: 14,
-                  borderRadius: 14,
-                  borderCurve: 'continuous',
-                  backgroundColor: t.warm,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '700',
-                    color: '#fff',
-                  }}
-                >
-                  {i18n('common.done')}
-                </Text>
-              </Pressable>
-            </RNScrollView>
-          </View>
-        </Modal>
+        <EditStopModal
+          editingWaypoint={editingWaypoint}
+          editName={editName}
+          setEditName={setEditName}
+          editType={editType}
+          setEditType={setEditType}
+          editNotes={editNotes}
+          setEditNotes={setEditNotes}
+          editPeriod={editPeriod}
+          setEditPeriod={setEditPeriod}
+          onClose={closeEditModal}
+          onApply={applyEdit}
+        />
       </View>
     </GestureHandlerRootView>
   );
