@@ -31,7 +31,12 @@ export async function generateMetadata({ params }: GuidePageProps): Promise<Meta
   }
 
   const { frontmatter } = guide;
-  const guideUrl = getCanonicalUrl(locale, `/guides/${slug}`);
+  // Guides are authored in English only and served identically under every
+  // locale prefix. Canonical must point to the unprefixed English URL so the
+  // locale variants don't register as "Duplicate without user-selected
+  // canonical" in Search Console. `x-default` only (no per-locale hreflang)
+  // overrides the marketing layout's inherited all-locale languages map.
+  const guideUrl = getCanonicalUrl('en', `/guides/${slug}`);
   const ogImage = frontmatter.heroImage || '/og-image.png';
 
   return {
@@ -41,6 +46,7 @@ export async function generateMetadata({ params }: GuidePageProps): Promise<Meta
     authors: [{ name: frontmatter.author }],
     alternates: {
       canonical: guideUrl,
+      languages: { 'x-default': guideUrl },
     },
     openGraph: {
       title: frontmatter.title,
@@ -64,7 +70,9 @@ export default async function GuidePage({ params }: GuidePageProps) {
   }
 
   const { frontmatter, content, headings } = compiled;
-  const guideUrl = getCanonicalUrl(locale, `/guides/${slug}`);
+  // Match the canonical set in generateMetadata: guides are English-only, so
+  // JSON-LD/schema URLs point to the unprefixed English URL under every locale.
+  const guideUrl = getCanonicalUrl('en', `/guides/${slug}`);
   const heroImageUrl = frontmatter.heroImage
     ? `${BASE_URL}${frontmatter.heroImage}`
     : `${BASE_URL}/og-image.png`;

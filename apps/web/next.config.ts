@@ -8,6 +8,22 @@ const withNextIntl = createNextIntlPlugin();
 // re-enabled 2026-06-01 after full translation; hi/th/id/tr remain out of scope.)
 const DROPPED_LOCALES = ['hi', 'th', 'id', 'tr'] as const;
 
+// Active non-default locales (default 'en' is unprefixed). Kept in sync with
+// src/i18n/routing.ts. Used to strip stray locale prefixes off routes that only
+// exist in the non-localized root tree (see NON_LOCALIZED_ROUTE_SECTIONS).
+const ACTIVE_NON_DEFAULT_LOCALES = ['de', 'fr', 'es', 'it', 'ja', 'pl', 'pt-BR'] as const;
+
+// Top-level sections that live ONLY in the non-localized root app tree — they do
+// NOT exist under [locale]/(marketing). A locale-prefixed request (e.g.
+// /de/trips/...) therefore 404s. These 404s were a large share of Google Search
+// Console's "Not found (404)" bucket. Redirect them to the canonical, unprefixed
+// URL so crawl signals consolidate instead of dead-ending. `explore` is
+// deliberately excluded — it exists in BOTH trees and localizes correctly.
+const NON_LOCALIZED_ROUTE_SECTIONS = ['trips', 'route', 'routes', 'ride', 'rider'] as const;
+
+const ACTIVE_LOCALE_REGEX_GROUP = ACTIVE_NON_DEFAULT_LOCALES.join('|');
+const NON_LOCALIZED_SECTION_REGEX_GROUP = NON_LOCALIZED_ROUTE_SECTIONS.join('|');
+
 const nextConfig: NextConfig = {
   cacheComponents: false,
   reactCompiler: true,
@@ -58,6 +74,20 @@ const nextConfig: NextConfig = {
         { source: `/${locale}`, destination: '/', permanent: true },
         { source: `/${locale}/:path*`, destination: '/:path*', permanent: true },
       ]),
+      // Strip active-locale prefixes off root-only sections (trips/route/…) that
+      // have no [locale] route and would otherwise 404. Consolidates to the
+      // canonical unprefixed URL. Config redirects run before the next-intl
+      // middleware, so these win over locale handling.
+      {
+        source: `/:locale(${ACTIVE_LOCALE_REGEX_GROUP})/:section(${NON_LOCALIZED_SECTION_REGEX_GROUP})`,
+        destination: '/:section',
+        permanent: true,
+      },
+      {
+        source: `/:locale(${ACTIVE_LOCALE_REGEX_GROUP})/:section(${NON_LOCALIZED_SECTION_REGEX_GROUP})/:path*`,
+        destination: '/:section/:path*',
+        permanent: true,
+      },
       // Blog post consolidation redirects (2026-05-27 SEO cluster architecture).
       // Warning lights merged into check engine light guide.
       {

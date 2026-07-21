@@ -16,6 +16,11 @@ export async function generateMetadata({ params }: GuidesPageProps): Promise<Met
   const { locale } = await params;
   setRequestLocale(locale);
 
+  // Guides are English-only; every locale prefix serves identical content, so
+  // canonical points to the unprefixed English URL (with x-default only) to
+  // avoid duplicate-without-canonical in Search Console. See [slug]/page.tsx.
+  const canonical = getCanonicalUrl('en', '/guides');
+
   return {
     title: 'Motorcycle Guides — Routes, Tips & Riding Advice',
     description:
@@ -28,14 +33,15 @@ export async function generateMetadata({ params }: GuidesPageProps): Promise<Met
       'motorcycle touring',
     ],
     alternates: {
-      canonical: getCanonicalUrl(locale, '/guides'),
+      canonical,
+      languages: { 'x-default': canonical },
     },
     openGraph: {
       title: 'Motorcycle Guides — Routes, Tips & Riding Advice',
       description:
         'In-depth motorcycle guides covering the best routes in Europe, South America, and the Alps.',
       type: 'website',
-      url: getCanonicalUrl(locale, '/guides'),
+      url: canonical,
     },
   };
 }

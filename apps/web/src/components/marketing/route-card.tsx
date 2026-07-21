@@ -1,6 +1,6 @@
 import type { RouteListItem } from '@motovault/types';
 import Image from 'next/image';
-import { Link } from '@/i18n/navigation';
+import Link from 'next/link';
 
 function formatDistance(meters: number): string {
   const km = meters / 1000;
@@ -67,9 +67,13 @@ function estimateTime(distanceM: number, surfaceType?: string | null): string {
  */
 export function RouteCard({ route }: { route: RouteListItem }) {
   const name = route.displayName ?? route.name ?? 'Unnamed Route';
+  // Trip detail lives at the non-localized /trips/{country}/{region}/{slug} route.
+  // There is no /explore/{country}/{region}/{slug} route — linking there 404s.
+  // Use a plain next/link (not the locale-aware Link) so /trips is never prefixed
+  // with a locale segment (locale-prefixed /trips paths also 404).
   const href =
     route.countryCode && route.regionSlug && route.slug
-      ? `/explore/${route.countryCode.toLowerCase()}/${route.regionSlug}/${route.slug}`
+      ? `/trips/${route.countryCode.toLowerCase()}/${route.regionSlug}/${route.slug}`
       : `/explore`;
   const diff = getDifficulty(route.curvatureIndex, route.elevationGainM);
 

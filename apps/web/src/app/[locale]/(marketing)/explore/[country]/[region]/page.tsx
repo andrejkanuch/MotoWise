@@ -110,10 +110,9 @@ export default async function RegionPage({ params }: PageProps) {
       route.slug && route.regionSlug && route.countryCode
         ? {
             name: route.displayName ?? route.name ?? 'Motorcycle route',
-            url: getCanonicalUrl(
-              locale,
-              `/explore/${route.countryCode.toLowerCase()}/${route.regionSlug}/${route.slug}`,
-            ),
+            // Trip detail canonical lives at the non-localized /trips/... route.
+            // There is no /explore/{country}/{region}/{slug} page.
+            url: `${BASE_URL}/trips/${route.countryCode.toLowerCase()}/${route.regionSlug}/${route.slug}`,
           }
         : null,
     )
