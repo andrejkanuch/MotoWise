@@ -27,7 +27,7 @@ import {
   CATEGORY_COLORS,
   CATEGORY_LABELS,
   getExpenseTitle,
-  humanizeServiceType,
+  serviceTypeLabel,
 } from '../../../lib/expense-constants';
 import { confirmDeleteExpenseAlert } from '../../../lib/expense-delete';
 import { findExpenseInCache, flattenExpenses } from '../../../lib/find-expense-in-cache';
@@ -451,7 +451,7 @@ export default function ExpenseDetailScreen() {
                           }}
                         >
                           <Text style={{ fontSize: 11, fontWeight: '600', color: theme.warm }}>
-                            {humanizeServiceType(item.serviceType)}
+                            {serviceTypeLabel(item.serviceType, t)}
                           </Text>
                         </View>
                       )}

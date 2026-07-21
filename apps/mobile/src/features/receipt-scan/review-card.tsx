@@ -42,7 +42,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import {
   CATEGORY_LABELS,
   formatCurrencyInput,
-  humanizeServiceType,
+  serviceTypeLabel,
 } from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -606,7 +606,7 @@ export function ReviewCard({
             title={t('receiptScan.review.lineItemsTitle')}
             addLabel={t('receiptScan.review.addLineItem')}
             labelPlaceholder={t('receiptScan.review.lineItemPlaceholder')}
-            serviceTypeLabel={t('receiptScan.review.serviceType')}
+            serviceTypeFieldLabel={t('receiptScan.review.serviceType')}
             removeLabel={t('receiptScan.review.removeLineItem')}
             onChangeLabel={(i, v) => updateLineItem(i, { label: v })}
             onChangeAmount={(i, v) => updateLineItem(i, { lineTotal: parseNumeric(v) })}
@@ -1190,7 +1190,7 @@ function LineItemsField({
   title,
   addLabel,
   labelPlaceholder,
-  serviceTypeLabel,
+  serviceTypeFieldLabel,
   removeLabel,
   onChangeLabel,
   onChangeAmount,
@@ -1205,7 +1205,8 @@ function LineItemsField({
   title: string;
   addLabel: string;
   labelPlaceholder: string;
-  serviceTypeLabel: string;
+  /** Localized "Service type" field heading (distinct from the per-item value). */
+  serviceTypeFieldLabel: string;
   removeLabel: string;
   onChangeLabel: (index: number, value: string) => void;
   onChangeAmount: (index: number, value: string) => void;
@@ -1213,6 +1214,7 @@ function LineItemsField({
   onRemove: (index: number) => void;
   onAdd: () => void;
 }) {
+  const { t } = useTranslation();
   const ink = isDark ? palette.neutral50 : palette.neutral900;
   const cardBg = isDark ? palette.neutral800 : palette.white;
   const border = isDark ? palette.neutral700 : palette.neutral200;
@@ -1257,7 +1259,7 @@ function LineItemsField({
               <Pressable
                 onPress={() => onOpenServiceType(index)}
                 accessibilityRole="button"
-                accessibilityLabel={serviceTypeLabel}
+                accessibilityLabel={serviceTypeFieldLabel}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -1270,7 +1272,7 @@ function LineItemsField({
                 }}
               >
                 <Text style={{ fontSize: 13, fontWeight: '600', color: palette.signature500 }}>
-                  {item.serviceType ? humanizeServiceType(item.serviceType) : serviceTypeLabel}
+                  {item.serviceType ? serviceTypeLabel(item.serviceType, t) : serviceTypeFieldLabel}
                 </Text>
                 <ChevronRight size={13} color={palette.signature500} />
               </Pressable>
@@ -1344,6 +1346,7 @@ function ReminderOptIn({
   hint: string;
   onToggle: (serviceType: string) => void;
 }) {
+  const { t } = useTranslation();
   const muted = palette.neutral400;
   return (
     <View>
@@ -1358,7 +1361,7 @@ function ReminderOptIn({
               onPress={() => onToggle(serviceType)}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}
-              accessibilityLabel={humanizeServiceType(serviceType)}
+              accessibilityLabel={serviceTypeLabel(serviceType, t)}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -1396,7 +1399,7 @@ function ReminderOptIn({
                       : palette.neutral600,
                 }}
               >
-                {humanizeServiceType(serviceType)}
+                {serviceTypeLabel(serviceType, t)}
               </Text>
             </Pressable>
           );
@@ -1421,6 +1424,7 @@ function ServiceTypePicker({
   onSelect: (key: string) => void;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const ink = isDark ? palette.neutral50 : palette.neutral900;
   const sheetBg = isDark ? palette.neutral900 : palette.white;
   return (
@@ -1483,7 +1487,7 @@ function ServiceTypePicker({
                       color: isSelected ? palette.signature500 : ink,
                     }}
                   >
-                    {humanizeServiceType(key)}
+                    {serviceTypeLabel(key, t)}
                   </Text>
                   {isSelected && <Check size={18} color={palette.signature500} />}
                 </Pressable>

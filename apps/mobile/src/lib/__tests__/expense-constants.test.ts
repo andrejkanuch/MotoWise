@@ -1,8 +1,10 @@
+import type { TFunction } from 'i18next';
 import {
   formatCurrency,
   formatCurrencyInput,
   getExpenseTitle,
   humanizeServiceType,
+  serviceTypeLabel,
 } from '../expense-constants';
 
 // Expenses are the #1 PostHog-validated feature; formatCurrency/Input render in
@@ -68,6 +70,38 @@ describe('humanizeServiceType', () => {
     expect(humanizeServiceType(null)).toBe('');
     expect(humanizeServiceType(undefined)).toBe('');
     expect(humanizeServiceType('')).toBe('');
+  });
+});
+
+// serviceTypeLabel is display-only (the canonical KEY is what's persisted/sent),
+// so translating it is safe. It delegates to a passed-in `t` and falls back to the
+// English humanizer when a locale is missing the key.
+describe('serviceTypeLabel', () => {
+  // Minimal react-i18next `t` stub: resolves a few keys, otherwise honors defaultValue.
+  const resources: Record<string, string> = {
+    'serviceType.oil_change': 'Vidange',
+    'serviceType.chain': 'Chaîne',
+  };
+  const t = ((key: string, opts?: { defaultValue?: string }) =>
+    resources[key] ?? opts?.defaultValue ?? key) as unknown as TFunction;
+
+  it('returns the localized label when the key resolves', () => {
+    expect(serviceTypeLabel('oil_change', t)).toBe('Vidange');
+    expect(serviceTypeLabel('chain', t)).toBe('Chaîne');
+  });
+
+  it('falls back to the English humanizer when the locale is missing the key', () => {
+    expect(serviceTypeLabel('brake_pads', t)).toBe('Brake pads');
+    expect(serviceTypeLabel('general_service', t)).toBe('General service');
+  });
+
+  it('returns empty string for null/undefined/empty (never calls t)', () => {
+    const throwT = (() => {
+      throw new Error('t must not be called for a blank key');
+    }) as unknown as TFunction;
+    expect(serviceTypeLabel(null, throwT)).toBe('');
+    expect(serviceTypeLabel(undefined, throwT)).toBe('');
+    expect(serviceTypeLabel('', throwT)).toBe('');
   });
 });
 

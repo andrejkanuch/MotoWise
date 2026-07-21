@@ -16,7 +16,7 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOutLeft, LinearTransition } from 'react-native-reanimated';
-import { humanizeServiceType, ZERO_DECIMAL_CURRENCIES } from '../../lib/expense-constants';
+import { serviceTypeLabel, ZERO_DECIMAL_CURRENCIES } from '../../lib/expense-constants';
 import { getRelativeDueDate } from '../../lib/health-score';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
@@ -362,7 +362,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                           }}
                         >
                           <Text style={{ fontSize: 11, fontWeight: '600', color: et.warm }}>
-                            {humanizeServiceType(item.serviceType)}
+                            {serviceTypeLabel(item.serviceType, t)}
                           </Text>
                         </View>
                       )}

@@ -2411,5 +2411,24 @@
       "reviewTitle": "{{count}} účtenka na kontrolu",
       "reviewSubtitle": "Dokonči zaznamenanie toho, čo si naskenoval"
     }
+  },
+  "serviceType": {
+    "oil_change": "Výmena oleja",
+    "oil_filter": "Olejový filter",
+    "brake_fluid": "Brzdová kvapalina",
+    "transmission_oil": "Prevodový olej",
+    "final_drive": "Koncový prevod",
+    "coolant": "Chladiaca kvapalina",
+    "valve_clearance": "Vôľa ventilov",
+    "air_filter": "Vzduchový filter",
+    "spark_plug": "Zapaľovacia sviečka",
+    "fork_oil": "Olej do vidlice",
+    "chain": "Reťaz",
+    "tire": "Pneumatika",
+    "brake_pads": "Brzdové platničky",
+    "belt": "Remeň",
+    "battery": "Batéria",
+    "general_service": "Všeobecný servis",
+    "other": "Iné"
   }
 }

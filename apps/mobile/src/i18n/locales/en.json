@@ -2400,5 +2400,24 @@
       "reviewTitle": "{{count}} receipt to review",
       "reviewSubtitle": "Finish logging what you scanned"
     }
+  },
+  "serviceType": {
+    "oil_change": "Oil change",
+    "oil_filter": "Oil filter",
+    "brake_fluid": "Brake fluid",
+    "transmission_oil": "Transmission oil",
+    "final_drive": "Final drive",
+    "coolant": "Coolant",
+    "valve_clearance": "Valve clearance",
+    "air_filter": "Air filter",
+    "spark_plug": "Spark plug",
+    "fork_oil": "Fork oil",
+    "chain": "Chain",
+    "tire": "Tire",
+    "brake_pads": "Brake pads",
+    "belt": "Belt",
+    "battery": "Battery",
+    "general_service": "General service",
+    "other": "Other"
   }
 }

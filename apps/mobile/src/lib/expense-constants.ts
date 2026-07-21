@@ -5,6 +5,7 @@ import {
   EXPENSE_CATEGORY_META,
   type ExpenseCategory,
 } from '@motovault/types';
+import type { TFunction } from 'i18next';
 
 // Colours, labels and the primary chip set all derive from the single source of
 // truth (packages/types EXPENSE_CATEGORY_META). `colorToken` is a palette key,
@@ -76,6 +77,16 @@ export function humanizeServiceType(key: string | null | undefined): string {
   if (!key) return '';
   const spaced = key.replace(/_/g, ' ');
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+/** Localized display label for a canonical maintenance service-type key
+ *  ("oil_change" -> "Oil change" / "Vidange" / …). Display-only: the canonical
+ *  KEY is what is persisted and sent to the server, so translating the label is
+ *  safe. Falls back to the English `humanizeServiceType` when a locale is missing
+ *  the key. `t` is passed in so this module stays free of an i18n-instance import. */
+export function serviceTypeLabel(key: string | null | undefined, t: TFunction): string {
+  if (!key) return '';
+  return t(`serviceType.${key}`, { defaultValue: humanizeServiceType(key) });
 }
 
 /** Resolve the display title for an expense: prefer the structured item name,
