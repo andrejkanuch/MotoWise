@@ -252,48 +252,6 @@ export default function CreateTripScreen() {
   });
 
 
-  // Day count derived from mode/dates — waypoints hook groups stops by day.
-  const numDays = useMemo(() => {
-    if (isShowcase) return Math.max(1, showcaseDayCount);
-    const msPerDay = 86400000;
-    return Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / msPerDay) + 1);
-  }, [isShowcase, showcaseDayCount, startDate, endDate]);
-
-  const {
-    waypoints,
-    setWaypoints,
-    routeLegs,
-    routeGeometry,
-    routeGeoJSON,
-    bounds,
-    sortedWaypoints,
-    waypointsByDay,
-    searchProximity,
-    handleGeocodingSelect,
-    handleLongPress,
-    handleMoveUp,
-    handleMoveDown,
-    handleDeleteWaypoint,
-    handleMoveDay,
-    openEditModal,
-    editingWaypoint,
-    editName,
-    setEditName,
-    editType,
-    setEditType,
-    editNotes,
-    setEditNotes,
-    editPeriod,
-    setEditPeriod,
-    closeEditModal,
-    applyEdit,
-  } = useTripWaypoints({
-    cameraRef,
-    numDays,
-    startDate,
-    isShowcase,
-  });
-
   // Build the batch input shared by save and publish
   const buildTripInput = useCallback(() => {
     const sorted = [...waypoints].sort((a, b) => a.sortOrder - b.sortOrder);
