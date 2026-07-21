@@ -1,6 +1,5 @@
 import { palette, withAlpha } from '@motovault/design-system';
 import type { MaintenanceTasksByMotorcycleQuery } from '@motovault/graphql';
-import { CURRENCY_SYMBOLS, type Currency } from '@motovault/types';
 import {
   Calendar,
   Check,
@@ -16,7 +15,8 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOutLeft, LinearTransition } from 'react-native-reanimated';
-import { serviceTypeLabel, ZERO_DECIMAL_CURRENCIES } from '../../lib/expense-constants';
+import { useCurrency } from '../../hooks/use-currency';
+import { formatMoney, serviceTypeLabel } from '../../lib/expense-constants';
 import { getRelativeDueDate } from '../../lib/health-score';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
@@ -40,18 +40,6 @@ type TaskRow = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
 function effectiveTaskTotal(task: TaskRow): number {
   if (task.totalAmount != null) return task.totalAmount;
   return (task.cost ?? 0) + (task.partsCost ?? 0) + (task.laborCost ?? 0);
-}
-
-/** Format an amount with the task's currency symbol (falls back to the code). */
-function formatTaskMoney(amount: number, currency?: string | null): string {
-  const symbol = currency ? (CURRENCY_SYMBOLS[currency as Currency] ?? `${currency} `) : '';
-  // Zero-decimal currencies (JPY/CLP/HUF) have no minor unit — render whole
-  // numbers so totals match the app's input rules (see ZERO_DECIMAL_CURRENCIES).
-  const fractionDigits = currency && ZERO_DECIMAL_CURRENCIES.has(currency as Currency) ? 0 : 2;
-  return `${symbol}${amount.toLocaleString(undefined, {
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: fractionDigits,
-  })}`;
 }
 
 /** Swipeable task card with left/right actions */
@@ -80,6 +68,9 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
 }) {
   const { t: et } = useEditorialTheme();
   const { t } = useTranslation();
+  // Task money renders in the task's own stored currency; legacy null-currency
+  // tasks fall back to the user's display currency.
+  const { currency: displayCurrency } = useCurrency();
   const isCompleted = task.status === 'completed';
   const relative = task.dueDate && !isCompleted ? getRelativeDueDate(task.dueDate) : null;
   const isOverdue = relative?.isOverdue ?? false;
@@ -243,7 +234,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                   marginLeft: 'auto',
                 }}
               >
-                {formatTaskMoney(total, task.currency)}
+                {formatMoney(total, task.currency, displayCurrency)}
               </Text>
             )}
           </View>
@@ -384,7 +375,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                             color: isDark ? palette.neutral200 : palette.neutral700,
                           }}
                         >
-                          {formatTaskMoney(item.lineTotal, task.currency)}
+                          {formatMoney(item.lineTotal, task.currency, displayCurrency)}
                         </Text>
                       )}
                     </View>

@@ -1,8 +1,12 @@
 import type { TFunction } from 'i18next';
 import {
+  dominantCurrency,
   formatCurrency,
   formatCurrencyInput,
+  formatCurrencyTotals,
+  formatMoney,
   getExpenseTitle,
+  groupTotalsByCurrency,
   humanizeServiceType,
   serviceTypeLabel,
 } from '../expense-constants';
@@ -31,6 +35,96 @@ describe('formatCurrency', () => {
   it('formats zero-decimal currencies (JPY) without fraction digits and rounds', () => {
     expect(formatCurrency(1235, 'JPY')).toBe('¥1,235');
     expect(formatCurrency(1234.56, 'JPY')).toBe('¥1,235');
+  });
+});
+
+// Currency is stored per-record; render each amount in its OWN currency (no FX)
+// so a stored $120 never shows as €120. These back the currency-aware totals in
+// the expense list, detail, task cards, and dashboard.
+describe('formatMoney', () => {
+  it('formats in the given stored currency, ignoring any display preference', () => {
+    expect(formatMoney(120, 'USD')).toBe('$120.00');
+    expect(formatMoney(120, 'EUR')).toBe('€120.00');
+  });
+
+  it('falls back to the display currency for a blank/null currency (legacy rows)', () => {
+    expect(formatMoney(120, null, 'EUR')).toBe('€120.00');
+    expect(formatMoney(120, '', 'GBP')).toBe('£120.00');
+    expect(formatMoney(120, undefined, 'USD')).toBe('$120.00');
+  });
+
+  it('falls back to the display currency for an unsupported code (never throws)', () => {
+    expect(formatMoney(120, 'XYZ', 'EUR')).toBe('€120.00');
+  });
+});
+
+describe('groupTotalsByCurrency', () => {
+  it('collapses a single-currency set into one group equal to the plain sum', () => {
+    const groups = groupTotalsByCurrency(
+      [
+        { amount: 100, currency: 'USD' },
+        { amount: 20.5, currency: 'USD' },
+      ],
+      'EUR',
+    );
+    expect(groups).toEqual([{ currency: 'USD', total: 120.5 }]);
+  });
+
+  it('splits mixed currencies and sorts by total desc', () => {
+    const groups = groupTotalsByCurrency([
+      { amount: 40, currency: 'EUR' },
+      { amount: 100, currency: 'USD' },
+      { amount: 10, currency: 'EUR' },
+    ]);
+    expect(groups).toEqual([
+      { currency: 'USD', total: 100 },
+      { currency: 'EUR', total: 50 },
+    ]);
+  });
+
+  it('buckets blank/unsupported currencies under the fallback', () => {
+    const groups = groupTotalsByCurrency(
+      [
+        { amount: 30, currency: null },
+        { amount: 70, currency: 'ZZZ' },
+      ],
+      'GBP',
+    );
+    expect(groups).toEqual([{ currency: 'GBP', total: 100 }]);
+  });
+});
+
+describe('dominantCurrency', () => {
+  it('returns the currency with the largest summed amount', () => {
+    expect(
+      dominantCurrency([
+        { amount: 100, currency: 'USD' },
+        { amount: 250, currency: 'EUR' },
+      ]),
+    ).toBe('EUR');
+  });
+
+  it('returns the fallback for an empty list', () => {
+    expect(dominantCurrency([], 'GBP')).toBe('GBP');
+  });
+});
+
+describe('formatCurrencyTotals', () => {
+  it('renders a single-currency total as one plain formatted value', () => {
+    expect(formatCurrencyTotals([{ currency: 'USD', total: 120 }])).toBe('$120.00');
+  });
+
+  it('joins mixed-currency subtotals with a middot (no meaningless cross-currency sum)', () => {
+    expect(
+      formatCurrencyTotals([
+        { currency: 'USD', total: 100 },
+        { currency: 'EUR', total: 50 },
+      ]),
+    ).toBe('$100.00 · €50.00');
+  });
+
+  it('renders a zero fallback total for an empty group set', () => {
+    expect(formatCurrencyTotals([], 'EUR')).toBe('€0.00');
   });
 });
 

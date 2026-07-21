@@ -14,7 +14,12 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useCurrency } from '../../hooks/use-currency';
 import { useDeleteExpense } from '../../hooks/use-delete-expense';
-import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../lib/expense-constants';
+import {
+  CATEGORY_COLORS,
+  CATEGORY_LABELS,
+  formatCurrencyTotals,
+  groupTotalsByCurrency,
+} from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { SwipeableExpense } from '../shared/swipeable-expense';
@@ -33,7 +38,7 @@ export function ExpensesSection({
   mileageUnit,
 }: ExpensesSectionProps) {
   const { t } = useTranslation();
-  const { format: formatCurrency } = useCurrency();
+  const { currency: displayCurrency } = useCurrency();
   const currentYear = new Date().getFullYear();
 
   const [year, setYear] = useState(currentYear);
@@ -68,6 +73,15 @@ export function ExpensesSection({
         .flatMap((cat) => cat.expenses)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     [categories],
+  );
+
+  // Currency-aware totals: recomputed client-side from each expense's own stored
+  // `currency` (the server `ytdTotal`/`cat.total` are currency-blind sums). Single
+  // currency (the norm) -> one group whose total matches the server sum; mixed ->
+  // per-currency subtotals so a $ amount is never shown with a € symbol.
+  const totalGroups = useMemo(
+    () => groupTotalsByCurrency(allExpenses, displayCurrency),
+    [allExpenses, displayCurrency],
   );
 
   const displayedExpenses = showAll ? allExpenses : allExpenses.slice(0, 5);
@@ -118,7 +132,7 @@ export function ExpensesSection({
                 color: isDark ? palette.neutral50 : palette.neutral950,
               }}
             >
-              {formatCurrency(ytdTotal)}
+              {formatCurrencyTotals(totalGroups, displayCurrency)}
             </Text>
           )}
         </View>
@@ -348,7 +362,10 @@ export function ExpensesSection({
                         color: isDark ? palette.neutral300 : palette.neutral700,
                       }}
                     >
-                      {formatCurrency(cat.total)}
+                      {formatCurrencyTotals(
+                        groupTotalsByCurrency(cat.expenses, displayCurrency),
+                        displayCurrency,
+                      )}
                     </Text>
                   </View>
                 );
