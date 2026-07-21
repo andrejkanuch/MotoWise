@@ -1,7 +1,7 @@
 import { palette } from '@motovault/design-system';
 import { SavedTripsDocument, type SavedTripsQuery, UnsaveTripDocument } from '@motovault/graphql';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { ArrowLeft, Bookmark, Compass, Mountain, Route, Star } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -192,10 +192,9 @@ export default function SavedScreen() {
   const handleTripPress = useCallback(
     (tripId: string) => {
       router.push({
-        pathname: '/(modals)/trip-detail' as const,
+        pathname: '/(modals)/trip-detail',
         params: { tripId },
-        // biome-ignore lint/suspicious/noExplicitAny: expo-router does not export typed route params for dynamic modals
-      } as any);
+      } as Href);
     },
     [router],
   );
