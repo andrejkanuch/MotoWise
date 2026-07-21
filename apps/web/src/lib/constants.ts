@@ -29,3 +29,19 @@ export function getHreflangMap(href: string): Record<string, string> {
     'x-default': BASE_URL + getPathname({ locale: routing.defaultLocale, href }),
   };
 }
+
+/**
+ * `alternates` block for pages whose content is authored only in the default
+ * locale (English) but served identically under every locale prefix — e.g.
+ * guides. Canonical points to the unprefixed English URL and `languages` carries
+ * `x-default` only, so the locale variants consolidate into one indexed page
+ * instead of registering as "Duplicate without user-selected canonical" in
+ * Search Console. Pass a leading-slash path (e.g. `/guides/foo`) or '' for root.
+ */
+export function getEnglishOnlyAlternates(path = ''): {
+  canonical: string;
+  languages: Record<string, string>;
+} {
+  const canonical = getCanonicalUrl(routing.defaultLocale, path);
+  return { canonical, languages: { 'x-default': canonical } };
+}

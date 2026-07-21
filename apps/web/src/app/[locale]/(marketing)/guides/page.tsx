@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
-import { getCanonicalUrl } from '@/lib/constants';
+import { getCanonicalUrl, getEnglishOnlyAlternates } from '@/lib/constants';
 import { getGuides } from '@/lib/guides';
 import { buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
 
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: GuidesPageProps): Promise<Met
   // Guides are English-only; every locale prefix serves identical content, so
   // canonical points to the unprefixed English URL (with x-default only) to
   // avoid duplicate-without-canonical in Search Console. See [slug]/page.tsx.
-  const canonical = getCanonicalUrl('en', '/guides');
+  const alternates = getEnglishOnlyAlternates('/guides');
 
   return {
     title: 'Motorcycle Guides — Routes, Tips & Riding Advice',
@@ -32,16 +32,13 @@ export async function generateMetadata({ params }: GuidesPageProps): Promise<Met
       'riding guides',
       'motorcycle touring',
     ],
-    alternates: {
-      canonical,
-      languages: { 'x-default': canonical },
-    },
+    alternates,
     openGraph: {
       title: 'Motorcycle Guides — Routes, Tips & Riding Advice',
       description:
         'In-depth motorcycle guides covering the best routes in Europe, South America, and the Alps.',
       type: 'website',
-      url: canonical,
+      url: alternates.canonical,
     },
   };
 }

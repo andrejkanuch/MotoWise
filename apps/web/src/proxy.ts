@@ -472,7 +472,11 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/pro') ||
     pathname.startsWith('/ingest')
   ) {
-    // Auth + public community routes + explore + route/trip detail + pro + PostHog proxy (/ingest → next.config rewrites): skip locale processing
+    // Auth + public community routes + explore + route/trip detail + pro + PostHog proxy (/ingest → next.config rewrites): skip locale processing.
+    // NOTE: the indexable root-only sections here (trips/route/routes/ride/rider/pro)
+    // are mirrored by NON_LOCALIZED_ROUTE_SECTIONS in next.config.ts, which strips
+    // stray locale prefixes off them. Keep the two lists aligned so /{locale}/… of a
+    // root-only section 308-consolidates instead of 404ing.
     response = NextResponse.next({ request });
   } else {
     // All other routes: run next-intl locale detection + routing

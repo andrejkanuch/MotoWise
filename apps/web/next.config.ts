@@ -15,11 +15,16 @@ const ACTIVE_NON_DEFAULT_LOCALES = ['de', 'fr', 'es', 'it', 'ja', 'pl', 'pt-BR']
 
 // Top-level sections that live ONLY in the non-localized root app tree — they do
 // NOT exist under [locale]/(marketing). A locale-prefixed request (e.g.
-// /de/trips/...) therefore 404s. These 404s were a large share of Google Search
-// Console's "Not found (404)" bucket. Redirect them to the canonical, unprefixed
-// URL so crawl signals consolidate instead of dead-ending. `explore` is
-// deliberately excluded — it exists in BOTH trees and localizes correctly.
-const NON_LOCALIZED_ROUTE_SECTIONS = ['trips', 'route', 'routes', 'ride', 'rider'] as const;
+// /de/trips/... or /de/pro) therefore 404s. These 404s were a large share of
+// Google Search Console's "Not found (404)" bucket. Redirect them to the
+// canonical, unprefixed URL so crawl signals consolidate instead of dead-ending.
+// `pro` is included because the marketing navbar links it via the locale-aware
+// <Link> (components/marketing/navbar.tsx), so every localized page emits
+// /{locale}/pro. `explore` is deliberately excluded — it exists in BOTH trees
+// and localizes correctly.
+// NOTE: keep this aligned with the skip-locale branch in src/proxy.ts — both
+// encode "this section is root-only, not under [locale]".
+const NON_LOCALIZED_ROUTE_SECTIONS = ['trips', 'route', 'routes', 'ride', 'rider', 'pro'] as const;
 
 const ACTIVE_LOCALE_REGEX_GROUP = ACTIVE_NON_DEFAULT_LOCALES.join('|');
 const NON_LOCALIZED_SECTION_REGEX_GROUP = NON_LOCALIZED_ROUTE_SECTIONS.join('|');

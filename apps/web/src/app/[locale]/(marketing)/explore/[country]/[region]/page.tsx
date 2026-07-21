@@ -7,6 +7,7 @@ import { RouteCard } from '@/components/marketing/route-card';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import { fetchRegionBySlug, fetchRoutesByRegion } from '@/lib/fetch-places';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
+import { relativeTrip } from '@/lib/seo/canonical';
 import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/lib/seo/schema';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
 
@@ -111,8 +112,9 @@ export default async function RegionPage({ params }: PageProps) {
         ? {
             name: route.displayName ?? route.name ?? 'Motorcycle route',
             // Trip detail canonical lives at the non-localized /trips/... route.
-            // There is no /explore/{country}/{region}/{slug} page.
-            url: `${BASE_URL}/trips/${route.countryCode.toLowerCase()}/${route.regionSlug}/${route.slug}`,
+            // There is no /explore/{country}/{region}/{slug} page. relativeTrip()
+            // lowercases all segments to match the trip page's self-canonical.
+            url: `${BASE_URL}${relativeTrip(route.countryCode, route.regionSlug, route.slug)}`,
           }
         : null,
     )

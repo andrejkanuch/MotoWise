@@ -6,7 +6,7 @@ import { DownloadAppButton } from '@/components/download-app-button';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { TableOfContents } from '@/components/marketing/table-of-contents';
 import { Link } from '@/i18n/navigation';
-import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { BASE_URL, getCanonicalUrl, getEnglishOnlyAlternates } from '@/lib/constants';
 import { CtaPageType } from '@/lib/cta-taxonomy';
 import { compileGuide, getGuideBySlug, getGuideSlugs } from '@/lib/guides';
 import { buildArticle, buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
@@ -32,11 +32,11 @@ export async function generateMetadata({ params }: GuidePageProps): Promise<Meta
 
   const { frontmatter } = guide;
   // Guides are authored in English only and served identically under every
-  // locale prefix. Canonical must point to the unprefixed English URL so the
-  // locale variants don't register as "Duplicate without user-selected
-  // canonical" in Search Console. `x-default` only (no per-locale hreflang)
-  // overrides the marketing layout's inherited all-locale languages map.
-  const guideUrl = getCanonicalUrl('en', `/guides/${slug}`);
+  // locale prefix, so they canonicalize to the unprefixed English URL with
+  // x-default only (this override discards the marketing layout's inherited
+  // all-locale languages map). See getEnglishOnlyAlternates.
+  const alternates = getEnglishOnlyAlternates(`/guides/${slug}`);
+  const guideUrl = alternates.canonical;
   const ogImage = frontmatter.heroImage || '/og-image.png';
 
   return {
@@ -44,10 +44,7 @@ export async function generateMetadata({ params }: GuidePageProps): Promise<Meta
     description: frontmatter.description,
     keywords: frontmatter.keywords,
     authors: [{ name: frontmatter.author }],
-    alternates: {
-      canonical: guideUrl,
-      languages: { 'x-default': guideUrl },
-    },
+    alternates,
     openGraph: {
       title: frontmatter.title,
       description: frontmatter.description,
@@ -72,7 +69,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
   const { frontmatter, content, headings } = compiled;
   // Match the canonical set in generateMetadata: guides are English-only, so
   // JSON-LD/schema URLs point to the unprefixed English URL under every locale.
-  const guideUrl = getCanonicalUrl('en', `/guides/${slug}`);
+  const guideUrl = getEnglishOnlyAlternates(`/guides/${slug}`).canonical;
   const heroImageUrl = frontmatter.heroImage
     ? `${BASE_URL}${frontmatter.heroImage}`
     : `${BASE_URL}/og-image.png`;
