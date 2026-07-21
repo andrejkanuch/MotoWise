@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { NativeToggle } from '../../../components/ui/native-toggle';
+import { useHydratedFormState } from '../../../hooks/use-hydrated-form-state';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { userFriendlyError } from '../../../lib/graphql-errors';
@@ -73,24 +74,22 @@ export default function EditProfileScreen() {
     isPublic: boolean;
   } | null>(null);
 
-  // Populate form when user data loads
-  useEffect(() => {
-    if (user && !initialValuesRef.current) {
-      const values = {
-        publicUsername: ((user as Record<string, unknown>).publicUsername as string) ?? '',
-        displayName: ((user as Record<string, unknown>).displayName as string) ?? '',
-        bio: ((user as Record<string, unknown>).bio as string) ?? '',
-        city: ((user as Record<string, unknown>).city as string) ?? '',
-        isPublic: ((user as Record<string, unknown>).isPublic as boolean) ?? false,
-      };
-      initialValuesRef.current = values;
-      setPublicUsername(values.publicUsername);
-      setDisplayName(values.displayName);
-      setBio(values.bio);
-      setCity(values.city);
-      setIsPublic(values.isPublic);
-    }
-  }, [user]);
+  // Populate form when user data loads (once)
+  useHydratedFormState(user, (u) => {
+    const values = {
+      publicUsername: ((u as Record<string, unknown>).publicUsername as string) ?? '',
+      displayName: ((u as Record<string, unknown>).displayName as string) ?? '',
+      bio: ((u as Record<string, unknown>).bio as string) ?? '',
+      city: ((u as Record<string, unknown>).city as string) ?? '',
+      isPublic: ((u as Record<string, unknown>).isPublic as boolean) ?? false,
+    };
+    initialValuesRef.current = values;
+    setPublicUsername(values.publicUsername);
+    setDisplayName(values.displayName);
+    setBio(values.bio);
+    setCity(values.city);
+    setIsPublic(values.isPublic);
+  });
 
   // Track dirty state
   useEffect(() => {

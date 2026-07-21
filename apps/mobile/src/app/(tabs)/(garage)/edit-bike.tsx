@@ -42,6 +42,7 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeToggle } from '../../../components/ui/native-toggle';
 import { useCurrency } from '../../../hooks/use-currency';
+import { useHydratedFormState } from '../../../hooks/use-hydrated-form-state';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../lib/image-upload';
@@ -92,7 +93,6 @@ export default function EditBikeScreen() {
   // Seeded from bike.variant and persisted via the update mutation (the Motorcycle
   // type + Update/CreateMotorcycleInput now carry `variant`).
   const [variant, setVariant] = useState<MotorcycleVariant | null>(null);
-  const [initialized, setInitialized] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   // Keep initial values for dirty detection
@@ -140,33 +140,30 @@ export default function EditBikeScreen() {
     m.modelName.toLowerCase().includes(modelSearch.toLowerCase()),
   );
 
-  // --- Initialize form from bike data ---
-  useEffect(() => {
-    if (bike && !initialized) {
-      const vals = {
-        nickname: bike.nickname ?? '',
-        year: String(bike.year),
-        make: bike.make,
-        model: bike.model,
-        mileage: bike.currentMileage != null ? String(bike.currentMileage) : '',
-        isPrimary: bike.isPrimary,
-        photoUrl: bike.primaryPhotoUrl ?? null,
-        purchasePrice: bike.purchasePrice != null ? String(bike.purchasePrice) : '',
-        vin: bike.vin ?? '',
-        variant: (bike.variant as MotorcycleVariant | null) ?? null,
-      };
-      initialValues.current = vals;
-      setNickname(vals.nickname);
-      setYear(vals.year);
-      setMileage(vals.mileage);
-      setIsPrimary(vals.isPrimary);
-      setPhotoUrl(vals.photoUrl);
-      setPurchasePrice(vals.purchasePrice);
-      setVin(vals.vin);
-      setVariant(vals.variant);
-      setInitialized(true);
-    }
-  }, [bike, initialized]);
+  // --- Initialize form from bike data (once) ---
+  const { isHydrated } = useHydratedFormState(bike, (b) => {
+    const vals = {
+      nickname: b.nickname ?? '',
+      year: String(b.year),
+      make: b.make,
+      model: b.model,
+      mileage: b.currentMileage != null ? String(b.currentMileage) : '',
+      isPrimary: b.isPrimary,
+      photoUrl: b.primaryPhotoUrl ?? null,
+      purchasePrice: b.purchasePrice != null ? String(b.purchasePrice) : '',
+      vin: b.vin ?? '',
+      variant: (b.variant as MotorcycleVariant | null) ?? null,
+    };
+    initialValues.current = vals;
+    setNickname(vals.nickname);
+    setYear(vals.year);
+    setMileage(vals.mileage);
+    setIsPrimary(vals.isPrimary);
+    setPhotoUrl(vals.photoUrl);
+    setPurchasePrice(vals.purchasePrice);
+    setVin(vals.vin);
+    setVariant(vals.variant);
+  });
 
   // Match make/model from the NHTSA list ONCE on initial load. These must not
   // depend on selectedMake/selectedModel: re-running when the selection clears
@@ -177,7 +174,7 @@ export default function EditBikeScreen() {
   const didAutoMatchModel = useRef(false);
 
   useEffect(() => {
-    if (!bike || !initialized || makes.length === 0 || didAutoMatchMake.current) return;
+    if (!bike || !isHydrated || makes.length === 0 || didAutoMatchMake.current) return;
     didAutoMatchMake.current = true;
     const found = makes.find(
       (m: { makeName: string }) => m.makeName.toLowerCase() === bike.make.toLowerCase(),
@@ -185,10 +182,10 @@ export default function EditBikeScreen() {
     if (found) {
       setSelectedMake({ makeId: found.makeId, makeName: found.makeName });
     }
-  }, [bike, initialized, makes]);
+  }, [bike, isHydrated, makes]);
 
   useEffect(() => {
-    if (!bike || !initialized || models.length === 0 || didAutoMatchModel.current) return;
+    if (!bike || !isHydrated || models.length === 0 || didAutoMatchModel.current) return;
     didAutoMatchModel.current = true;
     const found = models.find(
       (m: { modelName: string }) => m.modelName.toLowerCase() === bike.model.toLowerCase(),
@@ -196,14 +193,14 @@ export default function EditBikeScreen() {
     if (found) {
       setSelectedModel({ modelId: found.modelId, modelName: found.modelName });
     }
-  }, [bike, initialized, models]);
+  }, [bike, isHydrated, models]);
 
   const makeName = selectedMake?.makeName ?? bike?.make ?? '';
   const modelName = selectedModel?.modelName ?? bike?.model ?? '';
 
   // --- Dirty detection ---
   const isDirty = useMemo(() => {
-    if (!initialized) return false;
+    if (!isHydrated) return false;
     const init = initialValues.current;
     return (
       nickname !== init.nickname ||
@@ -228,7 +225,7 @@ export default function EditBikeScreen() {
     purchasePrice,
     vin,
     variant,
-    initialized,
+    isHydrated,
   ]);
 
   // MOT-142: VIN is 17 chars from {A-H,J-N,P-R,0-9} (no I, O, Q)
