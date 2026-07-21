@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import { X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, ScrollView as RNScrollView, Text, TextInput, View } from 'react-native';
@@ -286,7 +287,7 @@ export function EditStopModal({
               style={{
                 fontSize: 16,
                 fontWeight: '700',
-                color: '#fff',
+                color: palette.whitePure,
               }}
             >
               {i18n('common.done')}
