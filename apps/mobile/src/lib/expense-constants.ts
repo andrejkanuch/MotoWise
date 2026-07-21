@@ -68,3 +68,24 @@ export function formatExpenseDate(dateStr: string) {
   const d = new Date(dateStr);
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
+
+/** Humanize a canonical maintenance service-type key for display
+ *  ("oil_change" -> "Oil change"). Shared by the maintenance task card, the
+ *  receipt review card and the expense detail's linked service record. */
+export function humanizeServiceType(key: string | null | undefined): string {
+  if (!key) return '';
+  const spaced = key.replace(/_/g, ' ');
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+/** Resolve the display title for an expense: prefer the structured item name,
+ *  then the free-text note, then the (already-translated) category label. Single
+ *  source of truth for the fallback ORDER so the list row and the detail screen
+ *  never diverge. The caller passes the resolved `categoryLabel` (via `t()`) so
+ *  this module stays free of an i18n dependency and both surfaces translate. */
+export function getExpenseTitle(
+  expense: { itemName?: string | null; description?: string | null },
+  categoryLabel: string,
+): string {
+  return expense.itemName?.trim() || expense.description?.trim() || categoryLabel;
+}

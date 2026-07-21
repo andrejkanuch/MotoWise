@@ -105,6 +105,21 @@ export default function GarageLayout() {
         }}
       />
       <Stack.Screen
+        name="expense-detail"
+        options={{
+          // Reuses the existing, fully-translated "Expense" string (receipt-scan
+          // review) — no expense-scoped singular-title key exists yet.
+          title: t('receiptScan.review.typeExpense', { defaultValue: 'Expense' }),
+          presentation: 'card',
+          headerLargeTitle: false,
+          headerTransparent: false,
+          headerStyle: {
+            backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+          },
+          headerBackButtonDisplayMode: 'default',
+        }}
+      />
+      <Stack.Screen
         name="expense-dashboard"
         options={{
           title: t('expenses.dashboard', { defaultValue: 'Expense Insights' }),

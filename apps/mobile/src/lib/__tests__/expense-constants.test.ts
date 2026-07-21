@@ -1,4 +1,9 @@
-import { formatCurrency, formatCurrencyInput } from '../expense-constants';
+import {
+  formatCurrency,
+  formatCurrencyInput,
+  getExpenseTitle,
+  humanizeServiceType,
+} from '../expense-constants';
 
 // Expenses are the #1 PostHog-validated feature; formatCurrency/Input render in
 // 10+ screens. Behavioral coverage (MOT-265). Locale is hardcoded en-US.
@@ -48,5 +53,42 @@ describe('formatCurrencyInput', () => {
   it('returns an empty string for empty/garbage-only input', () => {
     expect(formatCurrencyInput('', 'USD')).toBe('');
     expect(formatCurrencyInput('abc', 'USD')).toBe('');
+  });
+});
+
+// Shared display helpers extracted so the expense list row, the expense detail
+// screen and the maintenance/receipt cards never diverge (dedup of 3 copies).
+describe('humanizeServiceType', () => {
+  it('title-cases and de-underscores a canonical key', () => {
+    expect(humanizeServiceType('oil_change')).toBe('Oil change');
+    expect(humanizeServiceType('brake_pads')).toBe('Brake pads');
+  });
+
+  it('returns empty string for null/undefined/empty (guard branch)', () => {
+    expect(humanizeServiceType(null)).toBe('');
+    expect(humanizeServiceType(undefined)).toBe('');
+    expect(humanizeServiceType('')).toBe('');
+  });
+});
+
+describe('getExpenseTitle', () => {
+  it('prefers itemName over description and the category label', () => {
+    expect(getExpenseTitle({ itemName: 'EBC pads', description: 'note' }, 'Parts')).toBe(
+      'EBC pads',
+    );
+  });
+
+  it('falls back to description when itemName is blank/whitespace', () => {
+    expect(getExpenseTitle({ itemName: '  ', description: 'Chain lube' }, 'Parts')).toBe(
+      'Chain lube',
+    );
+  });
+
+  it('falls back to the (already-translated) category label when both are empty', () => {
+    expect(getExpenseTitle({ itemName: null, description: null }, 'Service')).toBe('Service');
+  });
+
+  it('falls back to the category label when both fields are whitespace-only', () => {
+    expect(getExpenseTitle({ itemName: '  ', description: '  ' }, 'Service')).toBe('Service');
   });
 });

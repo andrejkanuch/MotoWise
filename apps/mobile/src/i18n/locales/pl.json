@@ -22,7 +22,8 @@
     "tryAgain": "Spróbuj ponownie",
     "confirm": "Potwierdź",
     "all": "Wszystko",
-    "ride": "Ride"
+    "ride": "Przejazd",
+    "deleting": "Usuwanie..."
   },
   "auth": {
     "signIn": "Zaloguj sie",
@@ -1488,7 +1489,15 @@
     "category_taxes_fees": "Podatki i opłaty",
     "category_other": "Inne",
     "itemName": "Nazwa produktu",
-    "itemNamePlaceholder": "Co kupiłeś?"
+    "itemNamePlaceholder": "Co kupiłeś?",
+    "serviceRecord": "Zapis serwisowy",
+    "viewServiceRecord": "Zobacz pełny zapis serwisowy",
+    "deleteExpense": "Usuń wydatek",
+    "notFound": "Nie znaleziono wydatku",
+    "serviceRecordLoadFailed": "Nie udało się wczytać powiązanego zapisu serwisowego.",
+    "serviceRecordUnavailable": "Powiązany zapis serwisowy nie jest już dostępny.",
+    "receiptsLoadFailed": "Nie udało się wczytać zdjęć paragonów.",
+    "hasServiceRecord": "Ma zapis serwisowy"
   },
   "privacy": {
     "title": "Prywatnosc",
@@ -1533,11 +1542,11 @@
     "experienceBeginner": "Początkujący",
     "experienceIntermediate": "Średniozaawansowany",
     "experienceAdvanced": "Zaawansowany",
-    "goalTrackRides": "Track my rides",
-    "goalManageExpenses": "Manage expenses",
-    "goalDiscoverRoutes": "Discover routes",
-    "goalMaintainBike": "Maintain my bike",
-    "goalJustExploring": "Just exploring"
+    "goalTrackRides": "Śledzić przejazdy",
+    "goalManageExpenses": "Zarządzać wydatkami",
+    "goalDiscoverRoutes": "Odkrywać trasy",
+    "goalMaintainBike": "Utrzymywać motocykl",
+    "goalJustExploring": "Tylko przeglądam"
   },
   "support": {
     "title": "Pomoc i wsparcie",
@@ -1654,7 +1663,7 @@
     "findRiders": "Odkryj motocyklistów"
   },
   "whatsNew": {
-    "badge": "What's New",
+    "badge": "Nowości",
     "next": "Next",
     "getStarted": "Let's Go",
     "v300": {
@@ -2198,7 +2207,7 @@
     "hideCategory": "Ukryj kategorię"
   },
   "carplay": {
-    "entryLabel": "CarPlay Companion",
+    "entryLabel": "Towarzysz CarPlay",
     "hub": {
       "title": "CarPlay Companion",
       "intro": "Log rides from your bike’s screen. Controls live on the head unit — the phone just confirms.",

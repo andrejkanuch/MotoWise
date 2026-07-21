@@ -22,7 +22,8 @@
     "tryAgain": "Tekrar Dene",
     "confirm": "Onayla",
     "all": "Tümü",
-    "ride": "Ride"
+    "ride": "Ride",
+    "deleting": "Deleting..."
   },
   "auth": {
     "signIn": "Giris Yap",
@@ -1486,7 +1487,15 @@
     "category_taxes_fees": "Vergi ve harçlar",
     "category_other": "Diğer",
     "itemName": "Ürün adı",
-    "itemNamePlaceholder": "Ne satın aldınız?"
+    "itemNamePlaceholder": "Ne satın aldınız?",
+    "serviceRecord": "Service record",
+    "viewServiceRecord": "View full service record",
+    "deleteExpense": "Delete expense",
+    "notFound": "Expense not found",
+    "serviceRecordLoadFailed": "Could not load the linked service record.",
+    "serviceRecordUnavailable": "Linked service record is no longer available.",
+    "receiptsLoadFailed": "Could not load receipt photos.",
+    "hasServiceRecord": "Has service record"
   },
   "privacy": {
     "title": "Gizlilik",

@@ -22,7 +22,8 @@
     "tryAgain": "फिर से प्रयास करें",
     "confirm": "पुष्टि करें",
     "all": "सभी",
-    "ride": "Ride"
+    "ride": "Ride",
+    "deleting": "Deleting..."
   },
   "auth": {
     "signIn": "साइन इन करें",
@@ -1486,7 +1487,15 @@
     "category_taxes_fees": "कर और शुल्क",
     "category_other": "अन्य",
     "itemName": "वस्तु का नाम",
-    "itemNamePlaceholder": "आपने क्या खरीदा?"
+    "itemNamePlaceholder": "आपने क्या खरीदा?",
+    "serviceRecord": "Service record",
+    "viewServiceRecord": "View full service record",
+    "deleteExpense": "Delete expense",
+    "notFound": "Expense not found",
+    "serviceRecordLoadFailed": "Could not load the linked service record.",
+    "serviceRecordUnavailable": "Linked service record is no longer available.",
+    "receiptsLoadFailed": "Could not load receipt photos.",
+    "hasServiceRecord": "Has service record"
   },
   "privacy": {
     "title": "प्राइवेसी",

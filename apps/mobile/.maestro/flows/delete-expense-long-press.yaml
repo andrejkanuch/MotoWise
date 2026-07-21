@@ -1,0 +1,70 @@
+# Delete an expense via long-press on the list row (gesture path).
+#
+# WHY: delete-expense.yaml covers row-tap → detail → Delete. Swipe-past-threshold
+# is not reliably scriptable in Maestro (on-device 2026-07-15); long-press (500ms)
+# is the supported alternate gesture on SwipeableExpense and is Maestro-operable
+# via longPressOn (same as log-ride.yaml Hold-to-end).
+#
+# Setup: composes onboarding.yaml. Run via:
+#   pnpm --filter @motovault/mobile test:e2e:delete-expense-long-press
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+  EXPENSE_LABEL: "E2E Long Press Delete Me"
+---
+- runFlow: onboarding.yaml
+
+- tapOn:
+    text: ".*Garage.*"
+- tapOn:
+    text: ".*Honda.*"
+- extendedWaitUntil:
+    visible: "Expenses"
+    timeout: 20000
+
+- scrollUntilVisible:
+    element:
+      text: "No expenses yet"
+    direction: DOWN
+- tapOn: "No expenses yet"
+- assertVisible: "AMOUNT"
+- inputText: "18.25"
+- tapOn:
+    text: ".*What was this expense for.*"
+- inputText: ${EXPENSE_LABEL}
+- tapOn:
+    text: "DETAILS"
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Save Expense"
+    direction: DOWN
+- tapOn: "Save Expense"
+- tapOn:
+    text: "Not Now"
+    optional: true
+- extendedWaitUntil:
+    visible: "Done"
+    timeout: 20000
+- tapOn: "Done"
+
+- scrollUntilVisible:
+    element:
+      text: ".*Documents.*"
+    direction: DOWN
+- assertVisible: ${EXPENSE_LABEL}
+
+# Long-press the row → native Delete Expense alert (does not open detail).
+- longPressOn:
+    text: ${EXPENSE_LABEL}
+- tapOn:
+    text: "Delete"
+    rightOf:
+      text: "Cancel"
+- takeScreenshot: delete-expense-long-press-confirmed
+
+- extendedWaitUntil:
+    notVisible: ${EXPENSE_LABEL}
+    timeout: 30000
+- assertNotVisible:
+    text: ${EXPENSE_LABEL}

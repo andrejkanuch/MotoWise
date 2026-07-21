@@ -18,18 +18,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   Camera,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  DollarSign,
-  Edit3,
   FileText,
   Gauge,
   HeartPulse,
-  MoreHorizontal,
-  Wrench,
 } from 'lucide-react-native';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -40,8 +35,11 @@ import {
   Text,
   View,
 } from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BikeDetailsCard } from '../../../../components/bike-hub/bike-details-card';
+import { BikeQuickActions } from '../../../../components/bike-hub/bike-quick-actions';
+import { BikeStatsRow } from '../../../../components/bike-hub/bike-stats-row';
 import { DocumentsSection } from '../../../../components/bike-hub/documents-section';
 import { ExpensesSection } from '../../../../components/bike-hub/expenses-section';
 import { MaintenanceSection } from '../../../../components/bike-hub/maintenance-section';
@@ -53,7 +51,6 @@ import { useMileageUnit } from '../../../../hooks/use-mileage-unit';
 import { useMotorcycleDocuments } from '../../../../hooks/use-motorcycle-documents';
 
 import { AnalyticsEvent, trackEvent } from '../../../../lib/analytics';
-import { formatCurrency } from '../../../../lib/expense-constants';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import { computeHealthScore } from '../../../../lib/health-score';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../../lib/image-upload';
@@ -63,27 +60,6 @@ import { useAuthStore } from '../../../../stores/auth.store';
 import { useEditorialTheme } from '../../../../theme/editorial';
 import { showActionSheet } from '../../../../utils/action-sheet';
 import { triggerImpact, triggerNotification } from '../../../../utils/haptics';
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-  const { t: theme } = useEditorialTheme();
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 12,
-        borderBottomWidth: 0.5,
-        borderBottomColor: theme.line,
-      }}
-    >
-      <Text style={{ fontSize: 14, color: theme.ink3 }}>{label}</Text>
-      <Text selectable style={{ fontSize: 15, fontWeight: '600', color: theme.ink }}>
-        {value}
-      </Text>
-    </View>
-  );
-}
 
 export default function BikeDetailScreen() {
   const { t } = useTranslation();
@@ -102,8 +78,6 @@ export default function BikeDetailScreen() {
   const mileageUnit = useMileageUnit();
 
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isRefreshingRef = useRef(false);
 
@@ -144,14 +118,6 @@ export default function BikeDetailScreen() {
     triggerImpact();
     scrollRef.current?.scrollTo({ y: Math.max(documentsYRef.current - 12, 0), animated: true });
   }, []);
-
-  const hasHighlighted = useRef(false);
-  useEffect(() => {
-    if (highlightTask && tasksData && !hasHighlighted.current) {
-      hasHighlighted.current = true;
-      setExpandedId(highlightTask);
-    }
-  }, [highlightTask, tasksData]);
 
   const onRefresh = useCallback(async () => {
     if (isRefreshingRef.current) return;
@@ -236,8 +202,15 @@ export default function BikeDetailScreen() {
   type Task = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
   const tasks: Task[] = tasksData?.maintenanceTasks ?? [];
 
+  // Readiness must match the Home hero for the same bike. Home derives its score
+  // from `allMaintenanceTasks`, which is server-filtered to active statuses only
+  // (pending/in_progress). This screen loads ALL tasks (incl. completed history),
+  // so we filter to the same active set before scoring — otherwise the 25%
+  // completion-rate component in computeHealthScore skews this screen's number
+  // (e.g. 72% here vs 97% on Home for the same bike).
+  const activeTasks = tasks.filter((t) => t.status === 'pending' || t.status === 'in_progress');
   const healthScore = computeHealthScore(
-    tasks.map((t) => ({
+    activeTasks.map((t) => ({
       dueDate: t.dueDate,
       priority: t.priority,
       status: t.status,
@@ -314,45 +287,54 @@ export default function BikeDetailScreen() {
     ]);
   };
 
-  const handleCompleteTask = (taskId: string) => {
-    const bikeName = bike ? `${bike.year} ${bike.make} ${bike.model}` : '';
-    router.push({
-      pathname: '/(tabs)/(garage)/complete-task',
-      params: {
-        taskId,
-        motorcycleId: id,
-        bikeName,
-        currentMileage: bike?.currentMileage ? String(bike.currentMileage) : '',
-        mileageUnit,
-      },
-    });
-  };
-
-  const handleEditTask = (taskId: string) => {
-    const bikeName = bike ? `${bike.year} ${bike.make} ${bike.model}` : '';
-    router.push({
-      pathname: '/(tabs)/(garage)/edit-maintenance-task',
-      params: { taskId, motorcycleId: id, bikeName },
-    });
-  };
-
-  const handleDeleteTask = (taskId: string, taskTitle: string) => {
-    Alert.alert(
-      t('maintenance.deleteTask', { defaultValue: 'Delete Task' }),
-      t('maintenance.confirmDeleteTask', {
-        defaultValue: `Delete "${taskTitle}"?`,
-        title: taskTitle,
-      }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: () => deleteMutation.mutate(taskId),
+  const handleCompleteTask = useCallback(
+    (taskId: string) => {
+      const bikeName = bike ? `${bike.year} ${bike.make} ${bike.model}` : '';
+      router.push({
+        pathname: '/(tabs)/(garage)/complete-task',
+        params: {
+          taskId,
+          motorcycleId: id,
+          bikeName,
+          currentMileage: bike?.currentMileage ? String(bike.currentMileage) : '',
+          mileageUnit,
         },
-      ],
-    );
-  };
+      });
+    },
+    [bike, id, mileageUnit, router],
+  );
+
+  const handleEditTask = useCallback(
+    (taskId: string) => {
+      const bikeName = bike ? `${bike.year} ${bike.make} ${bike.model}` : '';
+      router.push({
+        pathname: '/(tabs)/(garage)/edit-maintenance-task',
+        params: { taskId, motorcycleId: id, bikeName },
+      });
+    },
+    [bike, id, router],
+  );
+
+  const handleDeleteTask = useCallback(
+    (taskId: string, taskTitle: string) => {
+      Alert.alert(
+        t('maintenance.deleteTask', { defaultValue: 'Delete Task' }),
+        t('maintenance.confirmDeleteTask', {
+          defaultValue: `Delete "${taskTitle}"?`,
+          title: taskTitle,
+        }),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('common.delete'),
+            style: 'destructive',
+            onPress: () => deleteMutation.mutate(taskId),
+          },
+        ],
+      );
+    },
+    [deleteMutation, t],
+  );
 
   // MOT-142: Navigate to safety recalls modal
   const handleCheckRecalls = () => {
@@ -441,11 +423,6 @@ export default function BikeDetailScreen() {
       { label: labels.cancel, onPress: () => {}, style: 'cancel' },
     ]);
   };
-
-  const handleToggleExpand = useCallback(
-    (taskId: string) => setExpandedId((prev) => (prev === taskId ? null : taskId)),
-    [],
-  );
 
   const handleMileageUpdate = (newMileage: number) => {
     updateBikeMutation.mutate({ currentMileage: newMileage });
@@ -717,107 +694,12 @@ export default function BikeDetailScreen() {
         </Animated.View>
 
         {/* 3. Quick Actions — editorial 4-button grid */}
-        <Animated.View
-          entering={FadeInUp.delay(100).duration(400)}
-          style={{
-            flexDirection: 'row',
-            gap: 8,
-            paddingHorizontal: 20,
-            marginTop: 16,
-            marginBottom: 8,
-          }}
-        >
-          <Pressable
-            onPress={() => {
-              triggerImpact();
-              router.push({
-                pathname: '/(tabs)/(garage)/add-maintenance-task',
-                params: { motorcycleId: id, bikeName },
-              });
-            }}
-            style={({ pressed }) => ({
-              flex: 2,
-              alignItems: 'center',
-              gap: 5,
-              paddingVertical: 12,
-              backgroundColor: theme.warm,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              transform: [{ scale: pressed ? 0.95 : 1 }],
-            })}
-          >
-            <Wrench size={18} color="#1a1208" />
-            <Text style={{ fontSize: 11, fontWeight: '600', color: palette.neutral950 }}>
-              {t('maintenance.addTask', { defaultValue: 'Add task' })}
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => {
-              triggerImpact();
-              router.push({
-                pathname: '/(tabs)/(garage)/add-expense',
-                params: { motorcycleId: id },
-              });
-            }}
-            style={({ pressed }) => ({
-              flex: 1.5,
-              alignItems: 'center',
-              gap: 5,
-              paddingVertical: 12,
-              backgroundColor: theme.surface,
-              borderWidth: 1,
-              borderColor: theme.line,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              transform: [{ scale: pressed ? 0.95 : 1 }],
-            })}
-          >
-            <DollarSign size={18} color={theme.ink2} />
-            <Text style={{ fontSize: 11, fontWeight: '600', color: theme.ink2 }}>
-              {t('garage.addExpense', { defaultValue: 'Expense' })}
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => {
-              triggerImpact();
-              router.push({ pathname: '/(tabs)/(garage)/edit-bike', params: { id } });
-            }}
-            accessibilityLabel={t('common.edit', { defaultValue: 'Edit' })}
-            style={({ pressed }) => ({
-              width: 48,
-              height: 48,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: theme.surface,
-              borderWidth: 1,
-              borderColor: theme.line,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              transform: [{ scale: pressed ? 0.95 : 1 }],
-            })}
-          >
-            <Edit3 size={18} color={theme.ink2} strokeWidth={2} />
-          </Pressable>
-
-          <Pressable
-            onPress={handleMoreActions}
-            accessibilityLabel={t('common.more', { defaultValue: 'More' })}
-            style={({ pressed }) => ({
-              width: 48,
-              height: 48,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: theme.surface,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              transform: [{ scale: pressed ? 0.95 : 1 }],
-            })}
-          >
-            <MoreHorizontal size={16} color={theme.ink2} strokeWidth={2} />
-          </Pressable>
-        </Animated.View>
+        <BikeQuickActions
+          motorcycleId={id}
+          bikeName={bikeName}
+          onMore={handleMoreActions}
+          delay={100}
+        />
 
         {/* Scan-a-receipt entry — pre-picks this bike (U8) */}
         <View style={{ paddingHorizontal: 20, marginTop: 8 }}>
@@ -825,138 +707,14 @@ export default function BikeDetailScreen() {
         </View>
 
         {/* Stats Cards Row */}
-        <Animated.View
-          entering={FadeInUp.delay(120).duration(400)}
-          style={{
-            flexDirection: 'row',
-            gap: 8,
-            paddingHorizontal: 20,
-            marginTop: 16,
-          }}
-        >
-          <View
-            style={{
-              flex: 1,
-              padding: 12,
-              backgroundColor: theme.surface,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              borderWidth: 1,
-              borderColor: theme.line,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 10,
-                fontWeight: '600',
-                letterSpacing: 1,
-                textTransform: 'uppercase',
-                color: theme.ink3,
-                marginBottom: 4,
-              }}
-            >
-              {t('bikeHub.costPerUnit', {
-                defaultValue: 'COST / {{unit}}',
-                unit: mileageUnit.toUpperCase(),
-              })}
-            </Text>
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: '600',
-                color: theme.ink,
-                letterSpacing: -0.4,
-                fontVariant: ['tabular-nums'],
-              }}
-            >
-              {bike.currentMileage && (statsExpenseData?.expenses?.ytdTotal ?? 0) > 0
-                ? formatCurrency((statsExpenseData?.expenses?.ytdTotal ?? 0) / bike.currentMileage)
-                : '—'}
-            </Text>
-          </View>
-
-          <View
-            style={{
-              flex: 1,
-              padding: 12,
-              backgroundColor: theme.surface,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              borderWidth: 1,
-              borderColor: theme.line,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 10,
-                fontWeight: '600',
-                letterSpacing: 1,
-                textTransform: 'uppercase',
-                color: theme.ink3,
-                marginBottom: 4,
-              }}
-            >
-              {t('bikeHub.rides', { defaultValue: 'RIDES' })}
-            </Text>
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: '600',
-                color: theme.ink,
-                letterSpacing: -0.4,
-                fontVariant: ['tabular-nums'],
-              }}
-            >
-              {ridesData?.myRides?.totalCount ?? 0}
-            </Text>
-          </View>
-
-          <Pressable
-            onPress={() => {
-              triggerImpact();
-              router.push({
-                pathname: '/(tabs)/(garage)/expense-dashboard',
-                params: {
-                  motorcycleId: id,
-                  currentMileage: bike?.currentMileage ? String(bike.currentMileage) : '',
-                  mileageUnit,
-                },
-              });
-            }}
-            style={{
-              flex: 1,
-              padding: 12,
-              backgroundColor: theme.surface,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              borderWidth: 1,
-              borderColor: theme.line,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 10,
-                fontWeight: '600',
-                letterSpacing: 1,
-                textTransform: 'uppercase',
-                color: theme.ink3,
-                marginBottom: 4,
-              }}
-            >
-              {t('bikeHub.analytics', { defaultValue: 'ANALYTICS' })}
-            </Text>
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: '600',
-                color: theme.warm,
-                letterSpacing: -0.4,
-              }}
-            >
-              {t('bikeHub.viewAnalytics')}
-            </Text>
-          </Pressable>
-        </Animated.View>
+        <BikeStatsRow
+          motorcycleId={id}
+          currentMileage={bike.currentMileage ?? undefined}
+          mileageUnit={mileageUnit}
+          ytdTotal={statsExpenseData?.expenses?.ytdTotal ?? 0}
+          ridesCount={ridesData?.myRides?.totalCount ?? 0}
+          delay={120}
+        />
 
         {/* AI Health Report — contextual paywall trigger */}
         <Animated.View
@@ -1089,8 +847,7 @@ export default function BikeDetailScreen() {
             tasks={tasks}
             isDark={isDark}
             motorcycleId={id}
-            expandedId={expandedId}
-            onToggleExpand={handleToggleExpand}
+            initialExpandedId={highlightTask}
             onComplete={handleCompleteTask}
             onDelete={handleDeleteTask}
             onEdit={handleEditTask}
@@ -1128,98 +885,8 @@ export default function BikeDetailScreen() {
           />
         </Animated.View>
 
-        {/* 6. Details section (collapsible) */}
-        <Animated.View
-          entering={FadeInUp.delay(300).duration(400)}
-          style={{ paddingHorizontal: 20, marginTop: 20 }}
-        >
-          <Pressable
-            onPress={() => {
-              triggerImpact();
-              setShowDetails((prev) => !prev);
-            }}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingVertical: 14,
-              paddingHorizontal: 16,
-              backgroundColor: theme.surface,
-              borderRadius: showDetails ? 0 : 16,
-              borderTopLeftRadius: 16,
-              borderTopRightRadius: 16,
-              borderCurve: 'continuous',
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 15,
-                fontWeight: '700',
-                color: theme.ink,
-              }}
-            >
-              {t('garage.tab_details', { defaultValue: 'Details' })}
-            </Text>
-            <Animated.View
-              style={{
-                transform: [{ rotate: showDetails ? '0deg' : '-90deg' }],
-              }}
-            >
-              <ChevronDown size={18} color={palette.neutral400} />
-            </Animated.View>
-          </Pressable>
-          {showDetails && (
-            <Animated.View entering={FadeIn.duration(200)}>
-              <View
-                style={{
-                  backgroundColor: theme.surface,
-                  borderBottomLeftRadius: 16,
-                  borderBottomRightRadius: 16,
-                  borderCurve: 'continuous',
-                  paddingHorizontal: 16,
-                  paddingBottom: 16,
-                }}
-              >
-                <InfoRow label={t('garage.make', { defaultValue: 'Make' })} value={bike.make} />
-                <InfoRow label={t('garage.model', { defaultValue: 'Model' })} value={bike.model} />
-                <InfoRow
-                  label={t('garage.year', { defaultValue: 'Year' })}
-                  value={String(bike.year)}
-                />
-                {bike.nickname && (
-                  <InfoRow
-                    label={t('garage.nickname', { defaultValue: 'Nickname' })}
-                    value={bike.nickname}
-                  />
-                )}
-                <InfoRow
-                  label={t('garage.primary', { defaultValue: 'Primary' })}
-                  value={
-                    bike.isPrimary
-                      ? t('common.yes', { defaultValue: 'Yes' })
-                      : t('common.no', { defaultValue: 'No' })
-                  }
-                />
-                {bike.purchasePrice != null && (
-                  <InfoRow
-                    label={t('garage.purchasePrice', { defaultValue: 'Purchase Price' })}
-                    value={formatCurrency(bike.purchasePrice)}
-                  />
-                )}
-                {bike.purchaseDate && (
-                  <InfoRow
-                    label={t('garage.purchaseDate', { defaultValue: 'Purchase Date' })}
-                    value={new Date(bike.purchaseDate).toLocaleDateString(undefined, {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  />
-                )}
-              </View>
-            </Animated.View>
-          )}
-        </Animated.View>
+        {/* 6. Details card (collapsible) */}
+        <BikeDetailsCard bike={bike} delay={300} />
       </ScrollView>
     </View>
   );

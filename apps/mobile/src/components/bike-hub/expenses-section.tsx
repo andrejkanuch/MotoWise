@@ -1,15 +1,19 @@
 import { palette } from '@motovault/design-system';
-import { DeleteExpenseDocument, ExpensesByMotorcycleDocument } from '@motovault/graphql';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  ExpensesByMotorcycleDocument,
+  MaintenanceTasksByMotorcycleDocument,
+} from '@motovault/graphql';
+import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 
 import { BarChart3, ChevronDown, Plus, Receipt } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useCurrency } from '../../hooks/use-currency';
+import { useDeleteExpense } from '../../hooks/use-delete-expense';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -30,7 +34,6 @@ export function ExpensesSection({
 }: ExpensesSectionProps) {
   const { t } = useTranslation();
   const { format: formatCurrency } = useCurrency();
-  const queryClient = useQueryClient();
   const currentYear = new Date().getFullYear();
 
   const [year, setYear] = useState(currentYear);
@@ -41,23 +44,18 @@ export function ExpensesSection({
     queryFn: () => gqlFetcher(ExpensesByMotorcycleDocument, { motorcycleId, year }),
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => gqlFetcher(DeleteExpenseDocument, { id }),
-    onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),
-      });
-    },
-    onError: () => {
-      Alert.alert(
-        t('common.error', { defaultValue: 'Error' }),
-        t('expenses.deleteFailed', { defaultValue: 'Failed to delete expense.' }),
-      );
-    },
+  // Same cache entry as the bike hub — used to gate the wrench badge so list and
+  // detail agree when maintenanceTaskId is orphaned.
+  const { data: tasksData } = useQuery({
+    queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
+    queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId }),
   });
+  const liveTaskIds = useMemo(
+    () => new Set(tasksData?.maintenanceTasks.map((task) => task.id) ?? []),
+    [tasksData],
+  );
+
+  const deleteMutation = useDeleteExpense({ motorcycleId });
 
   const expenses = data?.expenses;
   const ytdTotal = expenses?.ytdTotal ?? 0;
@@ -367,9 +365,13 @@ export function ExpensesSection({
             <SwipeableExpense
               key={expense.id}
               expense={expense}
+              motorcycleId={motorcycleId}
               isDark={isDark}
               onDelete={handleDelete}
               index={index}
+              hasServiceRecord={
+                !!expense.maintenanceTaskId && liveTaskIds.has(expense.maintenanceTaskId)
+              }
             />
           ))}
 

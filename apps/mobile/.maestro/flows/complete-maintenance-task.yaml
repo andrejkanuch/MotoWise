@@ -75,10 +75,11 @@ env:
     text: "Not Now"
     optional: true
 
-# 4. Find the task and tap its "Done" action. "See all" opens the full All Tasks
-#    list when the hub truncates to the top few; harmless no-op (optional)
-#    otherwise. The card's Done/Edit/Delete row is always visible (no expand
-#    needed), so anchor "Done" to the title.
+# 4. Find the task, EXPAND it, then tap its "Done" action. "See all" opens the
+#    full All Tasks list when the hub truncates to the top few; harmless no-op
+#    (optional) otherwise. The card's actions are now revealed on tap (the
+#    always-visible Done/Edit/Delete row was moved into the expanded state — see
+#    swipeable-task-card.tsx), so tap the title to expand before anchoring "Done".
 - tapOn:
     text: ".*See all.*"
     optional: true
@@ -86,6 +87,7 @@ env:
     element:
       text: ${TASK_TITLE}
     direction: DOWN
+- tapOn: ${TASK_TITLE} # expand the card to reveal its action row
 - tapOn:
     text: "Done" # maintenance.markDone — opens the completion screen
     below:
@@ -120,7 +122,8 @@ env:
 #    lives under the "History" tab (the Active tab hides it); on the All Tasks
 #    list it stays under the default "All" filter (sorted to the bottom). Reveal
 #    History if we're on the hub (no-op on the All Tasks list), then confirm the
-#    task is present AND its card no longer offers the pending "Done" action.
+#    task is present. Its card is collapsed (actions are now expand-gated), so it
+#    shows no inline "Done" either way.
 - tapOn:
     text: ".*History.*"
     optional: true
@@ -129,15 +132,25 @@ env:
       text: ${TASK_TITLE}
     direction: DOWN
 - assertVisible: ${TASK_TITLE}
+# EXPAND the completed card and assert its status discriminator: a completed card
+# offers ONLY Delete (Done/Edit are gated behind !isCompleted). This proves the
+# task actually completed, not merely that its title still renders — without it
+# the flow would pass on the All-Tasks-list path even if completion silently
+# failed (the title is present either way). Card stays expanded for step 7.
+- tapOn: ${TASK_TITLE}
+- assertVisible:
+    text: "Delete"
+    below:
+      text: ${TASK_TITLE}
 - assertNotVisible:
-    text: "Done" # a completed card shows no "Done" action — it's done
+    text: "Done"
     below:
       text: ${TASK_TITLE}
 - takeScreenshot: complete-maintenance-task-done
 
-# 7. Cleanup — delete the completed task so reruns stay deterministic. The Delete
-#    action stays on the card after completion (only Done/Edit are hidden). The
-#    confirm Alert reuses the word "Delete", so target it rightOf "Cancel".
+# 7. Cleanup — delete the completed task so reruns stay deterministic. The card is
+#    already expanded from step 6, so Delete is visible. The confirm Alert reuses
+#    the word "Delete", so target it rightOf "Cancel".
 - tapOn:
     text: "Delete"
     below:
