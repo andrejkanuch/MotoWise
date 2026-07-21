@@ -36,7 +36,12 @@ import {
 } from '../../../hooks/use-expense-dashboard';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../../lib/expense-constants';
+import {
+  CATEGORY_COLORS,
+  CATEGORY_LABELS,
+  dominantCurrency,
+  formatMoney,
+} from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
@@ -234,7 +239,7 @@ export default function ExpenseDashboardScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isRefreshingRef = useRef(false);
   const { t: theme, isDark } = useEditorialTheme();
-  const { format: formatCurrency } = useCurrency();
+  const { currency: displayCurrency, formatFor } = useCurrency();
   const queryClient = useQueryClient();
 
   const { dashboard, isPending, isError, refetch } = useExpenseDashboard(motorcycleId);
@@ -268,6 +273,26 @@ export default function ExpenseDashboardScreen() {
     const cat = data.expenses?.categories?.find((c) => c.category === selectedCategory);
     return cat?.expenses ?? [];
   }, [selectedCategory, expensesData]);
+
+  // Dashboard totals are server-summed with no currency dimension. Derive the
+  // currency that dominates this bike's actual expenses (from the drill-down
+  // query we already fetch) so aggregate amounts carry the right symbol in the
+  // common single-currency case — not the user's display currency. No FX: if a
+  // bike genuinely mixes currencies the summed total is approximate (a true
+  // per-currency dashboard needs backend aggregation — out of scope here). The
+  // drill-down list below still renders each row in its own stored currency.
+  const dashboardCurrency = useMemo(() => {
+    const records =
+      (expensesData as ExpensesByMotorcycleQuery | undefined)?.expenses?.categories?.flatMap(
+        (c) => c.expenses,
+      ) ?? [];
+    return dominantCurrency(records, displayCurrency);
+  }, [expensesData, displayCurrency]);
+
+  const formatAgg = useCallback(
+    (amount: number) => formatMoney(amount, dashboardCurrency, displayCurrency),
+    [dashboardCurrency, displayCurrency],
+  );
 
   const handleCategoryPress = useCallback((category: string) => {
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -505,7 +530,7 @@ export default function ExpenseDashboardScreen() {
         <Text
           adjustsFontSizeToFit
           numberOfLines={1}
-          accessibilityLabel={`Total: ${formatCurrency(periodTotal)}`}
+          accessibilityLabel={`Total: ${formatAgg(periodTotal)}`}
           style={{
             fontFamily: 'InstrumentSerif-Regular',
             fontSize: 48,
@@ -514,7 +539,7 @@ export default function ExpenseDashboardScreen() {
             marginTop: 2,
           }}
         >
-          {formatCurrency(periodTotal)}
+          {formatAgg(periodTotal)}
         </Text>
 
         {period === 'thisYear' && yoyChange !== null && previousYearTotal > 0 && (
@@ -537,7 +562,7 @@ export default function ExpenseDashboardScreen() {
         {/* Top category pill */}
         {topCategory && topCategory.total > 0 && (
           <View
-            accessibilityLabel={`Top category: ${CATEGORY_LABELS[topCategory.category] ?? topCategory.category}, ${formatCurrency(topCategory.total)}${topCategoryPct ? `, ${topCategoryPct} percent` : ''}`}
+            accessibilityLabel={`Top category: ${CATEGORY_LABELS[topCategory.category] ?? topCategory.category}, ${formatAgg(topCategory.total)}${topCategoryPct ? `, ${topCategoryPct} percent` : ''}`}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -578,7 +603,7 @@ export default function ExpenseDashboardScreen() {
                 marginLeft: 6,
               }}
             >
-              {formatCurrency(topCategory.total)}
+              {formatAgg(topCategory.total)}
             </Text>
             {topCategoryPct && (
               <Text
@@ -629,7 +654,7 @@ export default function ExpenseDashboardScreen() {
                 letterSpacing: -0.5,
               }}
             >
-              {formatCurrency(purchasePrice + dashboard.allTimeTotal)}
+              {formatAgg(purchasePrice + dashboard.allTimeTotal)}
             </Text>
             <View
               style={{
@@ -660,7 +685,7 @@ export default function ExpenseDashboardScreen() {
                     marginTop: 4,
                   }}
                 >
-                  {formatCurrency(purchasePrice)}
+                  {formatAgg(purchasePrice)}
                 </Text>
               </View>
               <View style={{ flex: 1 }}>
@@ -684,7 +709,7 @@ export default function ExpenseDashboardScreen() {
                     marginTop: 4,
                   }}
                 >
-                  {formatCurrency(dashboard.allTimeTotal)}
+                  {formatAgg(dashboard.allTimeTotal)}
                 </Text>
               </View>
             </View>
@@ -736,6 +761,7 @@ export default function ExpenseDashboardScreen() {
           expenseCount={dashboard.expenseCount}
           costPerUnit={costPerUnit}
           unitLabel={unitLabel}
+          currency={dashboardCurrency}
           isDark={isDark}
         />
       </Animated.View>
@@ -766,6 +792,7 @@ export default function ExpenseDashboardScreen() {
           <CategoryDonut
             categoryTotals={categoryTotals}
             totalAmount={periodTotal}
+            currency={dashboardCurrency}
             isDark={isDark}
             selectedCategory={selectedCategory}
             onCategoryPress={handleCategoryPress}
@@ -868,7 +895,7 @@ export default function ExpenseDashboardScreen() {
                       marginLeft: 12,
                     }}
                   >
-                    {formatCurrency(expense.amount)}
+                    {formatFor(expense.amount, expense.currency)}
                   </Text>
                 </View>
               </View>

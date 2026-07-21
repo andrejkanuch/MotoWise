@@ -2405,5 +2405,24 @@
       "reviewTitle": "{{count}} Beleg zu überprüfen",
       "reviewSubtitle": "Erfasse fertig, was du gescannt hast"
     }
+  },
+  "serviceType": {
+    "oil_change": "Ölwechsel",
+    "oil_filter": "Ölfilter",
+    "brake_fluid": "Bremsflüssigkeit",
+    "transmission_oil": "Getriebeöl",
+    "final_drive": "Endantrieb",
+    "coolant": "Kühlmittel",
+    "valve_clearance": "Ventilspiel",
+    "air_filter": "Luftfilter",
+    "spark_plug": "Zündkerze",
+    "fork_oil": "Gabelöl",
+    "chain": "Kette",
+    "tire": "Reifen",
+    "brake_pads": "Bremsbeläge",
+    "belt": "Riemen",
+    "battery": "Batterie",
+    "general_service": "Allgemeine Wartung",
+    "other": "Sonstiges"
   }
 }

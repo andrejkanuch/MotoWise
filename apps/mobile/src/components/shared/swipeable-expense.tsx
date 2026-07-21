@@ -52,7 +52,7 @@ export function SwipeableExpense({
   hasServiceRecord = false,
 }: SwipeableExpenseProps) {
   const { t } = useTranslation();
-  const { format: formatCurrency } = useCurrency();
+  const { formatFor } = useCurrency();
   const translateX = useSharedValue(0);
   const deleteThreshold = -80;
 
@@ -220,7 +220,7 @@ export function SwipeableExpense({
                 color: isDark ? palette.neutral50 : palette.neutral950,
               }}
             >
-              {formatCurrency(expense.amount)}
+              {formatFor(expense.amount, expense.currency)}
             </Text>
             <ChevronRight size={16} color={palette.neutral400} strokeWidth={2} />
           </Animated.View>

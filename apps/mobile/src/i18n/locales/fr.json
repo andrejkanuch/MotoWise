@@ -2408,5 +2408,24 @@
       "reviewTitle": "{{count}} reçu à vérifier",
       "reviewSubtitle": "Termine d’enregistrer ce que tu as scanné"
     }
+  },
+  "serviceType": {
+    "oil_change": "Vidange d'huile",
+    "oil_filter": "Filtre à huile",
+    "brake_fluid": "Liquide de frein",
+    "transmission_oil": "Huile de transmission",
+    "final_drive": "Transmission finale",
+    "coolant": "Liquide de refroidissement",
+    "valve_clearance": "Jeu aux soupapes",
+    "air_filter": "Filtre à air",
+    "spark_plug": "Bougie d'allumage",
+    "fork_oil": "Huile de fourche",
+    "chain": "Chaîne",
+    "tire": "Pneu",
+    "brake_pads": "Plaquettes de frein",
+    "belt": "Courroie",
+    "battery": "Batterie",
+    "general_service": "Entretien général",
+    "other": "Autre"
   }
 }

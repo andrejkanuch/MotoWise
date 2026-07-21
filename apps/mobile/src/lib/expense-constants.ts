@@ -5,6 +5,7 @@ import {
   EXPENSE_CATEGORY_META,
   type ExpenseCategory,
 } from '@motovault/types';
+import type { TFunction } from 'i18next';
 
 // Colours, labels and the primary chip set all derive from the single source of
 // truth (packages/types EXPENSE_CATEGORY_META). `colorToken` is a palette key,
@@ -64,6 +65,66 @@ export function formatCurrencyInput(value: string, currency: Currency = 'USD'): 
   return digits;
 }
 
+/** Format a money amount in a SPECIFIC currency (currency-aware display).
+ *  Every expense/task stores its own `currency` at creation; render it in that
+ *  currency rather than the user's current display currency (no FX conversion —
+ *  a stored $120 must never show as €120). Unknown/blank currency (legacy rows
+ *  predating the column) falls back to `fallback`, which callers set to the
+ *  user's display currency so those rows keep today's behavior.
+ *  `formatCurrency` (Intl) already handles ZERO_DECIMAL_CURRENCIES correctly. */
+export function formatMoney(
+  amount: number,
+  currency: string | null | undefined,
+  fallback: Currency = 'USD',
+): string {
+  const resolved: Currency =
+    currency && currency in CURRENCY_SYMBOLS ? (currency as Currency) : fallback;
+  return formatCurrency(amount, resolved);
+}
+
+export interface CurrencyTotal {
+  currency: Currency;
+  total: number;
+}
+
+/** Sum amounts grouped by their stored currency (blank -> `fallback`), sorted by
+ *  total desc so the dominant currency comes first. The single-currency case
+ *  (the norm) yields exactly one group whose total equals the plain sum. */
+export function groupTotalsByCurrency(
+  items: ReadonlyArray<{ amount: number; currency?: string | null }>,
+  fallback: Currency = 'USD',
+): CurrencyTotal[] {
+  const totals = new Map<Currency, number>();
+  for (const { amount, currency } of items) {
+    const key: Currency =
+      currency && currency in CURRENCY_SYMBOLS ? (currency as Currency) : fallback;
+    totals.set(key, (totals.get(key) ?? 0) + amount);
+  }
+  return [...totals.entries()]
+    .map(([currency, total]) => ({ currency, total }))
+    .sort((a, b) => b.total - a.total);
+}
+
+/** The currency accounting for the largest summed amount (blank -> `fallback`).
+ *  Used to label server-summed aggregates that carry no per-currency dimension
+ *  (dashboard totals) — best-effort so the symbol matches the underlying data in
+ *  the common single-currency case instead of the user's display currency. */
+export function dominantCurrency(
+  items: ReadonlyArray<{ amount: number; currency?: string | null }>,
+  fallback: Currency = 'USD',
+): Currency {
+  return groupTotalsByCurrency(items, fallback)[0]?.currency ?? fallback;
+}
+
+/** Render one or more per-currency subtotals. Single currency -> the plain
+ *  formatted total (unchanged from before). Mixed currencies -> each subtotal
+ *  joined by " · " (e.g. "$1,200.00 · €340.00"), since summing across currencies
+ *  without FX would be meaningless. */
+export function formatCurrencyTotals(groups: CurrencyTotal[], fallback: Currency = 'USD'): string {
+  if (groups.length === 0) return formatMoney(0, fallback, fallback);
+  return groups.map((g) => formatMoney(g.total, g.currency, fallback)).join(' · ');
+}
+
 export function formatExpenseDate(dateStr: string) {
   const d = new Date(dateStr);
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -76,6 +137,16 @@ export function humanizeServiceType(key: string | null | undefined): string {
   if (!key) return '';
   const spaced = key.replace(/_/g, ' ');
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+/** Localized display label for a canonical maintenance service-type key
+ *  ("oil_change" -> "Oil change" / "Vidange" / …). Display-only: the canonical
+ *  KEY is what is persisted and sent to the server, so translating the label is
+ *  safe. Falls back to the English `humanizeServiceType` when a locale is missing
+ *  the key. `t` is passed in so this module stays free of an i18n-instance import. */
+export function serviceTypeLabel(key: string | null | undefined, t: TFunction): string {
+  if (!key) return '';
+  return t(`serviceType.${key}`, { defaultValue: humanizeServiceType(key) });
 }
 
 /** Resolve the display title for an expense: prefer the structured item name,

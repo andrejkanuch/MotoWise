@@ -1,8 +1,8 @@
+import type { Currency } from '@motovault/types';
 import { ChevronRight } from 'lucide-react-native';
 import { memo, useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { useCurrency } from '../../hooks/use-currency';
-import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../lib/expense-constants';
+import { CATEGORY_COLORS, CATEGORY_LABELS, formatMoney } from '../../lib/expense-constants';
 import { useEditorialTheme } from '../../theme/editorial';
 
 const MIN_SEGMENT_FLEX = 2;
@@ -10,6 +10,9 @@ const MIN_SEGMENT_FLEX = 2;
 interface CategoryDonutProps {
   categoryTotals: Array<{ category: string; total: number }>;
   totalAmount: number;
+  /** Currency for these server-summed category totals (dominant currency of the
+   *  bike's expenses — see expense-dashboard). No FX, so one currency is assumed. */
+  currency: Currency;
   isDark: boolean;
   selectedCategory?: string | null;
   onCategoryPress?: (category: string) => void;
@@ -18,10 +21,10 @@ interface CategoryDonutProps {
 export const CategoryDonut = memo(function CategoryDonut({
   categoryTotals,
   totalAmount,
+  currency,
   selectedCategory,
   onCategoryPress,
 }: CategoryDonutProps) {
-  const { format: formatCurrency } = useCurrency();
   const { t: theme } = useEditorialTheme();
 
   const sorted = useMemo(
@@ -87,7 +90,7 @@ export const CategoryDonut = memo(function CategoryDonut({
             <View key={cat.category}>
               <Pressable
                 onPress={() => onCategoryPress?.(cat.category)}
-                accessibilityLabel={`${label}: ${formatCurrency(cat.total)}, ${pct} percent. Tap to view expenses.`}
+                accessibilityLabel={`${label}: ${formatMoney(cat.total, currency)}, ${pct} percent. Tap to view expenses.`}
                 accessibilityRole="button"
                 style={({ pressed }) => ({
                   flexDirection: 'row',
@@ -139,7 +142,7 @@ export const CategoryDonut = memo(function CategoryDonut({
                     marginLeft: 8,
                   }}
                 >
-                  {formatCurrency(cat.total)}
+                  {formatMoney(cat.total, currency)}
                 </Text>
                 <Text
                   style={{

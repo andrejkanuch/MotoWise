@@ -1,6 +1,7 @@
+import type { Currency } from '@motovault/types';
 import { memo } from 'react';
 import { Text, View } from 'react-native';
-import { useCurrency } from '../../hooks/use-currency';
+import { formatMoney } from '../../lib/expense-constants';
 import { useEditorialTheme } from '../../theme/editorial';
 
 interface SummaryCardsProps {
@@ -8,6 +9,9 @@ interface SummaryCardsProps {
   expenseCount: number;
   costPerUnit: number | null;
   unitLabel: string;
+  /** Currency for these server-summed aggregates (dominant currency of the bike's
+   *  expenses \u2014 see expense-dashboard). No FX, so a single currency is assumed. */
+  currency: Currency;
   isDark: boolean;
 }
 
@@ -16,14 +20,14 @@ export const SummaryCards = memo(function SummaryCards({
   expenseCount,
   costPerUnit,
   unitLabel,
+  currency,
 }: SummaryCardsProps) {
-  const { format: formatCurrency } = useCurrency();
   const { t: theme } = useEditorialTheme();
 
   const pills = [
     {
       label: 'AVG/MO',
-      value: Number.isFinite(avgPerMonth) ? formatCurrency(avgPerMonth) : '\u2014',
+      value: Number.isFinite(avgPerMonth) ? formatMoney(avgPerMonth, currency) : '\u2014',
     },
     {
       label: 'ENTRIES',
@@ -33,7 +37,7 @@ export const SummaryCards = memo(function SummaryCards({
       label: unitLabel,
       value:
         costPerUnit !== null && Number.isFinite(costPerUnit)
-          ? formatCurrency(costPerUnit)
+          ? formatMoney(costPerUnit, currency)
           : '\u2014',
     },
   ];

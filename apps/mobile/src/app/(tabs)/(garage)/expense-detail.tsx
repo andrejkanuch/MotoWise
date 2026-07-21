@@ -27,7 +27,7 @@ import {
   CATEGORY_COLORS,
   CATEGORY_LABELS,
   getExpenseTitle,
-  humanizeServiceType,
+  serviceTypeLabel,
 } from '../../../lib/expense-constants';
 import { confirmDeleteExpenseAlert } from '../../../lib/expense-delete';
 import { findExpenseInCache, flattenExpenses } from '../../../lib/find-expense-in-cache';
@@ -53,9 +53,10 @@ export default function ExpenseDetailScreen() {
   const navigation = useNavigation();
   const queryClient = useQueryClient();
   const userId = useAuthStore((s) => s.session?.user?.id);
-  // Format money in the user's display currency — matches the expense list the
-  // user arrived from (which uses useCurrency), avoiding a €→$ symbol mismatch.
-  const { format: formatMoney } = useCurrency();
+  // Render every amount in the record's OWN stored currency (no FX): the expense
+  // in its `currency`, the linked service record's line items in the task's
+  // currency. Legacy null-currency rows fall back to the display currency.
+  const { formatFor } = useCurrency();
 
   const params = useLocalSearchParams<{
     expenseId: string;
@@ -81,6 +82,7 @@ export default function ExpenseDetailScreen() {
     flattenExpenses(expensesQuery.data).find((item) => item.id === expenseId) ?? cachedHit?.expense;
 
   const amount = expense?.amount ?? 0;
+  const currency = expense?.currency;
   const category = expense?.category ?? 'other';
   const description = expense?.description ?? '';
   const itemName = expense?.itemName ?? '';
@@ -265,7 +267,7 @@ export default function ExpenseDetailScreen() {
               letterSpacing: -1,
             }}
           >
-            {formatMoney(amount)}
+            {formatFor(amount, currency)}
           </Text>
           <Text style={{ fontSize: 16, fontWeight: '600', color: theme.ink2, marginTop: 6 }}>
             {title}
@@ -451,7 +453,7 @@ export default function ExpenseDetailScreen() {
                           }}
                         >
                           <Text style={{ fontSize: 11, fontWeight: '600', color: theme.warm }}>
-                            {humanizeServiceType(item.serviceType)}
+                            {serviceTypeLabel(item.serviceType, t)}
                           </Text>
                         </View>
                       )}
@@ -460,7 +462,7 @@ export default function ExpenseDetailScreen() {
                       </Text>
                       {item.lineTotal != null && (
                         <Text style={{ fontSize: 13, fontWeight: '600', color: theme.ink }}>
-                          {formatMoney(item.lineTotal)}
+                          {formatFor(item.lineTotal, linkedTask.currency)}
                         </Text>
                       )}
                     </View>

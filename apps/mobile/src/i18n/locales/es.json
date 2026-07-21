@@ -2408,5 +2408,24 @@
       "reviewTitle": "{{count}} recibo por revisar",
       "reviewSubtitle": "Termina de registrar lo que escaneaste"
     }
+  },
+  "serviceType": {
+    "oil_change": "Cambio de aceite",
+    "oil_filter": "Filtro de aceite",
+    "brake_fluid": "Líquido de frenos",
+    "transmission_oil": "Aceite de transmisión",
+    "final_drive": "Transmisión final",
+    "coolant": "Refrigerante",
+    "valve_clearance": "Reglaje de válvulas",
+    "air_filter": "Filtro de aire",
+    "spark_plug": "Bujía",
+    "fork_oil": "Aceite de horquilla",
+    "chain": "Cadena",
+    "tire": "Neumático",
+    "brake_pads": "Pastillas de freno",
+    "belt": "Correa",
+    "battery": "Batería",
+    "general_service": "Servicio general",
+    "other": "Otro"
   }
 }

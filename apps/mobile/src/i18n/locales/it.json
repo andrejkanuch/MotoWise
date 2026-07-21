@@ -2408,5 +2408,24 @@
       "reviewTitle": "{{count}} scontrino da rivedere",
       "reviewSubtitle": "Finisci di registrare ciò che hai scansionato"
     }
+  },
+  "serviceType": {
+    "oil_change": "Cambio olio",
+    "oil_filter": "Filtro olio",
+    "brake_fluid": "Liquido freni",
+    "transmission_oil": "Olio trasmissione",
+    "final_drive": "Trasmissione finale",
+    "coolant": "Liquido refrigerante",
+    "valve_clearance": "Gioco valvole",
+    "air_filter": "Filtro aria",
+    "spark_plug": "Candela",
+    "fork_oil": "Olio forcella",
+    "chain": "Catena",
+    "tire": "Pneumatico",
+    "brake_pads": "Pastiglie freni",
+    "belt": "Cinghia",
+    "battery": "Batteria",
+    "general_service": "Tagliando generale",
+    "other": "Altro"
   }
 }

@@ -2405,5 +2405,24 @@
       "reviewTitle": "確認するレシート {{count}} 件",
       "reviewSubtitle": "スキャンした内容の記録を仕上げましょう"
     }
+  },
+  "serviceType": {
+    "oil_change": "オイル交換",
+    "oil_filter": "オイルフィルター",
+    "brake_fluid": "ブレーキフルード",
+    "transmission_oil": "ミッションオイル",
+    "final_drive": "ファイナルドライブ",
+    "coolant": "冷却水",
+    "valve_clearance": "バルブクリアランス",
+    "air_filter": "エアフィルター",
+    "spark_plug": "スパークプラグ",
+    "fork_oil": "フォークオイル",
+    "chain": "チェーン",
+    "tire": "タイヤ",
+    "brake_pads": "ブレーキパッド",
+    "belt": "ベルト",
+    "battery": "バッテリー",
+    "general_service": "一般整備",
+    "other": "その他"
   }
 }

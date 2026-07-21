@@ -2411,5 +2411,24 @@
       "reviewTitle": "{{count}} paragon do przejrzenia",
       "reviewSubtitle": "Dokończ zapisywanie tego, co zeskanowałeś"
     }
+  },
+  "serviceType": {
+    "oil_change": "Wymiana oleju",
+    "oil_filter": "Filtr oleju",
+    "brake_fluid": "Płyn hamulcowy",
+    "transmission_oil": "Olej przekładniowy",
+    "final_drive": "Przekładnia główna",
+    "coolant": "Płyn chłodzący",
+    "valve_clearance": "Luz zaworowy",
+    "air_filter": "Filtr powietrza",
+    "spark_plug": "Świeca zapłonowa",
+    "fork_oil": "Olej w widelcu",
+    "chain": "Łańcuch",
+    "tire": "Opona",
+    "brake_pads": "Klocki hamulcowe",
+    "belt": "Pasek",
+    "battery": "Akumulator",
+    "general_service": "Przegląd ogólny",
+    "other": "Inne"
   }
 }
