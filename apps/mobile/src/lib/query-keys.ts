@@ -150,6 +150,11 @@ export const queryKeys = {
     discoverRiderStrip: ['trips', 'discoverRiderStrip'] as const,
     gpxQuota: ['trips', 'gpx-quota'] as const,
     suggestions: (tripId: string) => ['trip-suggestions', tripId] as const,
+    /** Public share-token trampoline (`tripByShareToken`). */
+    byShareToken: (token: string) => ['trip-by-share-token', token] as const,
+    /** Universal-link slug resolve (`/route/:country/:region/:slug`). */
+    bySlugDeeplink: (country: string, region: string, slug: string) =>
+      ['trip-by-slug-deeplink', country, region, slug] as const,
   },
   tripTemplates: {
     all: ['tripTemplates'] as const,
