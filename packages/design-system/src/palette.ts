@@ -27,6 +27,8 @@ export const palette = {
   // Neutral — warm-tinted toward signature copper for subconscious cohesion.
   // Every gray carries ~2-4% warmth so surfaces feel lived-in, not clinical.
   white: '#fffbf8',
+  /** Pure white for text-on-dark / gradients where the warm white tint is wrong */
+  whitePure: '#FFFFFF',
   black: '#0c0a08',
   neutral50: '#faf8f6',
   neutral100: '#f5f2ef',
@@ -134,6 +136,41 @@ export const palette = {
   // Surfaces — warm slate, not cold blue-gray
   surfaceDark: '#141210',
   cardDark: '#1E1C19',
+  /** Dismiss / secondary action surface on warm dark UIs */
+  surfaceDismiss: '#211d18',
+
+  // ── Text-on-dark / overlay opacity steps ──
+  // Prefer these (or withAlpha) over hand-rolled rgba() in app code.
+  whiteAlpha06: 'rgba(255,255,255,0.06)',
+  whiteAlpha08: 'rgba(255,255,255,0.08)',
+  whiteAlpha10: 'rgba(255,255,255,0.1)',
+  whiteAlpha12: 'rgba(255,255,255,0.12)',
+  whiteAlpha14: 'rgba(255,255,255,0.14)',
+  whiteAlpha15: 'rgba(255,255,255,0.15)',
+  whiteAlpha20: 'rgba(255,255,255,0.2)',
+  whiteAlpha25: 'rgba(255,255,255,0.25)',
+  whiteAlpha30: 'rgba(255,255,255,0.3)',
+  whiteAlpha32: 'rgba(255,255,255,0.32)',
+  whiteAlpha35: 'rgba(255,255,255,0.35)',
+  whiteAlpha40: 'rgba(255,255,255,0.4)',
+  whiteAlpha42: 'rgba(255,255,255,0.42)',
+  whiteAlpha50: 'rgba(255,255,255,0.5)',
+  whiteAlpha55: 'rgba(255,255,255,0.55)',
+  whiteAlpha60: 'rgba(255,255,255,0.6)',
+  whiteAlpha70: 'rgba(255,255,255,0.7)',
+  whiteAlpha78: 'rgba(255,255,255,0.78)',
+  whiteAlpha82: 'rgba(255,255,255,0.82)',
+  whiteAlpha85: 'rgba(255,255,255,0.85)',
+  blackAlpha03: 'rgba(0,0,0,0.03)',
+  blackAlpha05: 'rgba(0,0,0,0.05)',
+  blackAlpha06: 'rgba(0,0,0,0.06)',
+  blackAlpha08: 'rgba(0,0,0,0.08)',
+  blackAlpha10: 'rgba(0,0,0,0.1)',
+  blackAlpha12: 'rgba(0,0,0,0.12)',
+  blackAlpha20: 'rgba(0,0,0,0.2)',
+  blackAlpha28: 'rgba(0,0,0,0.28)',
+  blackAlpha35: 'rgba(0,0,0,0.35)',
+  blackAlpha40: 'rgba(0,0,0,0.4)',
 
   // Tab bar
   tabActive: '#D4622E',
@@ -162,6 +199,18 @@ export const palette = {
   // so we don't maintain two literals for one color.
   experienceBeginner: '#a3b18a',
   experienceAdvanced: '#c4634a',
+
+  // Onboarding / editorial accent hues (design-spec — warm-only skill accents)
+  /** Encouragement amber — beginner badges, weekly-stats rows */
+  encourageAmber: '#E0A03F',
+  /** Trust blue — info rows / low-priority signals */
+  trustBlue: '#5B8DEF',
+  /** Growth teal — routes / secondary positive rows */
+  growthTeal: '#3FB8A0',
+  /** Confirm green — "ready" / positive confirmations */
+  confirmGreen: '#5BBF7A',
+  /** Muted info blue — low-priority accents */
+  infoBlue: '#6B8BB2',
 
   // Light mode
   editorialLightBg: '#f8f6f2',
