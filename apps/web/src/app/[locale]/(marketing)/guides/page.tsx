@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
-import { getCanonicalUrl, getEnglishOnlyAlternates } from '@/lib/constants';
+import { BASE_URL, getEnglishOnlyAlternates } from '@/lib/constants';
 import { getGuides } from '@/lib/guides';
 import { buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
 
@@ -48,9 +48,15 @@ export default async function GuidesPage({ params }: GuidesPageProps) {
   setRequestLocale(locale);
   const guides = getGuides();
 
+  // Guides are English-only, so JSON-LD/breadcrumb URLs use the unprefixed
+  // English canonical to stay aligned with the page's <link rel=canonical>
+  // (mixed locale-prefixed schema URLs feed the "Google chose different
+  // canonical" bucket in Search Console).
+  const canonical = getEnglishOnlyAlternates('/guides').canonical;
+
   const graph = buildGraph(
     buildWebPage({
-      url: getCanonicalUrl(locale, '/guides'),
+      url: canonical,
       name: 'Motorcycle Guides',
       description:
         'In-depth motorcycle guides covering the best routes in Europe, South America, and the Alps.',
@@ -59,8 +65,8 @@ export default async function GuidesPage({ params }: GuidesPageProps) {
     }),
     buildBreadcrumbList(
       [
-        { name: 'Home', url: getCanonicalUrl(locale) },
-        { name: 'Guides', url: getCanonicalUrl(locale, '/guides') },
+        { name: 'Home', url: BASE_URL },
+        { name: 'Guides', url: canonical },
       ],
       locale,
       '/guides',
