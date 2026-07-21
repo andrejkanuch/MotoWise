@@ -93,6 +93,28 @@ const nextConfig: NextConfig = {
         destination: '/:section/:path*',
         permanent: true,
       },
+      // Recover the ~1k "Not found (404)" trip-detail URLs Google already
+      // indexed. The localized explore RouteCard used to link trip detail as
+      // /explore/{country}/{region}/{slug} — a 3-level path that has NO route
+      // (trip detail lives at /trips/{country}/{region}/{slug}). PR #177 fixed
+      // the links, but the already-crawled dead URLs keep 404ing; 301 them to
+      // the real trip page so their crawl signal consolidates instead of
+      // dropping. Only the 3-segment form matches — the 2-level region hub
+      // (/explore/{country}/{region}) and /explore/search are untouched. The
+      // trips route accepts mixed-case region codes (e.g. JP-14) and
+      // self-canonicalizes to lowercase, so no case transform is needed here.
+      {
+        source: '/explore/:country/:region/:slug',
+        destination: '/trips/:country/:region/:slug',
+        permanent: true,
+      },
+      // Same dead pattern under an active-locale prefix (via hreflang/history);
+      // strip the locale and map to the canonical unprefixed trip URL.
+      {
+        source: `/:locale(${ACTIVE_LOCALE_REGEX_GROUP})/explore/:country/:region/:slug`,
+        destination: '/trips/:country/:region/:slug',
+        permanent: true,
+      },
       // Blog post consolidation redirects (2026-05-27 SEO cluster architecture).
       // Warning lights merged into check engine light guide.
       {
