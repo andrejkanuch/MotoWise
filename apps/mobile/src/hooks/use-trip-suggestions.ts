@@ -134,9 +134,8 @@ export function useTripSuggestions(tripId: string | undefined) {
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: queryKeys.trips.suggestions(vars.tripId) });
       // If an accept materialised a waypoint, trip-detail should refetch.
-      // one-off legacy key — distinct from queryKeys.trips.detail; left inline.
       if (vars.decision === 'accepted') {
-        qc.invalidateQueries({ queryKey: ['trip', vars.tripId] });
+        qc.invalidateQueries({ queryKey: queryKeys.trips.detail(vars.tripId) });
       }
     },
   });

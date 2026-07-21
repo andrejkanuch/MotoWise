@@ -3,6 +3,7 @@ import { TripShareTokenSchema } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { gqlFetcher } from '../lib/graphql-client';
+import { queryKeys } from '../lib/query-keys';
 
 export type TrampolineState =
   | { status: 'validating' }
@@ -28,7 +29,7 @@ export function useTripShareTokenResolver(rawToken: string | undefined): Trampol
 
   const query = useQuery<TripByShareTokenQuery>({
     enabled: parsed !== null,
-    queryKey: ['trip-by-share-token', parsed],
+    queryKey: queryKeys.trips.byShareToken(parsed ?? ''),
     queryFn: () => gqlFetcher(TripByShareTokenDocument, { shareToken: parsed as string }),
     retry: false,
     staleTime: 0,
