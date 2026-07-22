@@ -5,6 +5,7 @@ import { Difficulty, Icon, Stars } from './primitives';
 import {
   difficultyKind,
   formatDistance,
+  formatNumber,
   formatDuration as formatTime,
   surfaceLabel,
   tripHref,
@@ -179,7 +180,7 @@ export function TripListCard({
               }}
             >
               <Icon name="elev" size={11} color="var(--mv-ink-3)" />↑{' '}
-              {trip.elevationGainM.toLocaleString()} m
+              {formatNumber(trip.elevationGainM)} m
             </span>
           )}
           {trip.estimatedDurationMinutes != null && (
