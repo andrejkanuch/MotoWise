@@ -2424,5 +2424,16 @@
     "battery": "Battery",
     "general_service": "General service",
     "other": "Other"
+  },
+  "review": {
+    "softAskTitle": "Suka dengan MotoVault?",
+    "softAskBody": "Penilaian singkat membantu pengendara lain menemukan aplikasi ini.",
+    "softAskYes": "Suka banget",
+    "softAskNo": "Kurang",
+    "feedbackTitle": "Bantu kami berkembang",
+    "feedbackBody": "Beri tahu apa yang kurang — kami membaca setiap pesan.",
+    "feedbackYes": "Kirim masukan",
+    "feedbackNo": "Nanti saja",
+    "feedbackSubject": "Masukan MotoVault"
   }
 }
