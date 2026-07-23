@@ -24,14 +24,7 @@ import {
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   FadeIn,
@@ -208,7 +201,6 @@ export default function CreateTripScreen() {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
-
   // Day count derived from mode/dates — waypoints hook groups stops by day.
   const numDays = useMemo(() => {
     if (isShowcase) return Math.max(1, showcaseDayCount);
@@ -250,7 +242,6 @@ export default function CreateTripScreen() {
     startDate,
     isShowcase,
   });
-
 
   // Build the batch input shared by save and publish
   const buildTripInput = useCallback(() => {
@@ -387,7 +378,7 @@ export default function CreateTripScreen() {
       setWaypoints(mapped);
     }
     setEditDataLoaded(true);
-  }, [isEditMode, isCloneMode, editDataLoaded, tripQuery.data]);
+  }, [isEditMode, isCloneMode, editDataLoaded, tripQuery.data, setWaypoints]);
 
   const dateRangeError = useMemo(
     () => validateTripFormDateRangeForSave(startDate, endDate),

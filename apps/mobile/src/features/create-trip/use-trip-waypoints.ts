@@ -1,4 +1,5 @@
-import MapboxGL, { type ScreenPointPayload } from '@rnmapbox/maps';
+import type MapboxGL from '@rnmapbox/maps';
+import type { ScreenPointPayload } from '@rnmapbox/maps';
 import * as Haptics from 'expo-haptics';
 import { type RefObject, useCallback, useEffect, useMemo, useState } from 'react';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
