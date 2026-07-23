@@ -23,7 +23,10 @@ const I18N_ROUTE_PREFIXES = [
   '/contact',
 ];
 
-function isI18nRoute(path: string): boolean {
+function isI18nRoute(path: string | null): boolean {
+  // `usePathname()` from next/navigation is typed `string | null`; treat a null
+  // pathname as the homepage, which is i18n-aware.
+  if (!path) return true;
   // Strip locale prefix if present (e.g. /es/features → /features)
   const stripped = path.replace(/^\/(en|de|fr|es|it|ja|pl|pt-BR)(?=\/|$)/, '') || '/';
   // The homepage (/) is i18n-aware
