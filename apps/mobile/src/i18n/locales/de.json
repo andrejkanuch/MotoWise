@@ -1845,7 +1845,11 @@
     "notesLabel": "Notizen",
     "modeShowcase": "Already rode it",
     "modePlanning": "Planning",
-    "dayHeaderShort": "Day {{day}}"
+    "dayHeaderShort": "Day {{day}}",
+    "defaultStopName": "Stopp {{number}}",
+    "moveToDayTitle": "Zu Tag verschieben",
+    "selectDayForStop": "Wähle einen Tag für diesen Stopp",
+    "addDayA11y": "Einen weiteren Tag zur Tour hinzufügen"
   },
   "groupRide": {
     "titleLabel": "Titel",

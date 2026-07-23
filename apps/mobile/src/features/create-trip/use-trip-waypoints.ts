@@ -2,6 +2,7 @@ import type MapboxGL from '@rnmapbox/maps';
 import type { ScreenPointPayload } from '@rnmapbox/maps';
 import * as Haptics from 'expo-haptics';
 import { type RefObject, useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { showActionSheet } from '../../utils/action-sheet';
 import { getRouteSegments, type RouteLeg } from '../../utils/mapbox-directions';
@@ -22,6 +23,7 @@ export function useTripWaypoints({
   startDate,
   isShowcase,
 }: UseTripWaypointsParams) {
+  const { t } = useTranslation();
   const [waypoints, setWaypoints] = useState<LocalWaypoint[]>([]);
   const [routeLegs, setRouteLegs] = useState<RouteLeg[]>([]);
   const [routeGeometry, setRouteGeometry] = useState<GeoJSON.LineString | null>(null);
@@ -176,7 +178,7 @@ export function useTripWaypoints({
       const type = waypoints.length === 0 ? 'start' : waypoints.length === 1 ? 'end' : 'scenic';
       addWaypoint({
         type,
-        name: `Stop ${waypoints.length + 1}`,
+        name: t('trips.defaultStopName', { number: waypoints.length + 1 }),
         lat,
         lng,
         notes: '',
@@ -184,7 +186,7 @@ export function useTripWaypoints({
         dayIndex: defaultDayIndex,
       });
     },
-    [addWaypoint, waypoints.length, defaultDayIndex],
+    [addWaypoint, waypoints.length, defaultDayIndex, t],
   );
 
   // Reorder waypoints. Swap sortOrder by producing fresh objects for the two
@@ -250,11 +252,13 @@ export function useTripWaypoints({
   const handleMoveDay = useCallback(
     (waypointId: string) => {
       const dayOptions = Array.from({ length: numDays }, (_, i) =>
-        isShowcase ? `Day ${i + 1}` : `Day ${i + 1} — ${formatDayDate(startDate, i)}`,
+        isShowcase
+          ? t('trips.dayHeaderShort', { day: i + 1 })
+          : t('trips.dayHeader', { day: i + 1, date: formatDayDate(startDate, i) }),
       );
 
       showActionSheet(
-        'Move to Day',
+        t('trips.moveToDayTitle'),
         [
           ...dayOptions.map((label, i) => ({
             label,
@@ -264,12 +268,12 @@ export function useTripWaypoints({
               );
             },
           })),
-          { label: 'Cancel', onPress: () => {}, style: 'cancel' as const },
+          { label: t('common.cancel'), onPress: () => {}, style: 'cancel' as const },
         ],
-        'Select a day for this stop',
+        t('trips.selectDayForStop'),
       );
     },
-    [numDays, startDate, isShowcase],
+    [numDays, startDate, isShowcase, t],
   );
 
   // Proximity for geocoding — center of existing waypoints or undefined

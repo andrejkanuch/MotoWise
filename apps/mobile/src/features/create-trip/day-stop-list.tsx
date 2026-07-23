@@ -198,7 +198,7 @@ export function DayStopList({
       {numDays < 14 && (
         <Pressable
           onPress={onAddDay}
-          accessibilityLabel="Add another day to trip"
+          accessibilityLabel={i18n('trips.addDayA11y')}
           accessibilityRole="button"
           style={{
             flexDirection: 'row',

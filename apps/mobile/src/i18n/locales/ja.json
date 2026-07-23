@@ -1845,7 +1845,11 @@
     "notesLabel": "メモ",
     "modeShowcase": "Already rode it",
     "modePlanning": "Planning",
-    "dayHeaderShort": "Day {{day}}"
+    "dayHeaderShort": "Day {{day}}",
+    "defaultStopName": "スポット {{number}}",
+    "moveToDayTitle": "日を移動",
+    "selectDayForStop": "このスポットの日を選択",
+    "addDayA11y": "ツアーに別の日を追加"
   },
   "groupRide": {
     "titleLabel": "タイトル",

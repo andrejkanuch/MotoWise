@@ -1851,7 +1851,11 @@
     "notesLabel": "Notes",
     "modeShowcase": "Already rode it",
     "modePlanning": "Planning",
-    "dayHeaderShort": "Day {{day}}"
+    "dayHeaderShort": "Day {{day}}",
+    "defaultStopName": "Stop {{number}}",
+    "moveToDayTitle": "Move to Day",
+    "selectDayForStop": "Select a day for this stop",
+    "addDayA11y": "Add another day to trip"
   },
   "groupRide": {
     "titleLabel": "Title",

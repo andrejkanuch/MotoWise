@@ -1847,7 +1847,11 @@
     "notesLabel": "Poznámky",
     "modeShowcase": "Already rode it",
     "modePlanning": "Planning",
-    "dayHeaderShort": "Day {{day}}"
+    "dayHeaderShort": "Day {{day}}",
+    "defaultStopName": "Zastávka {{number}}",
+    "moveToDayTitle": "Presunúť na deň",
+    "selectDayForStop": "Vyberte deň pre túto zastávku",
+    "addDayA11y": "Pridať ďalší deň do trasy"
   },
   "groupRide": {
     "titleLabel": "Názov",

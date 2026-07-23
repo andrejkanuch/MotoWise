@@ -1845,7 +1845,11 @@
     "notesLabel": "नोट्स",
     "modeShowcase": "Already rode it",
     "modePlanning": "Planning",
-    "dayHeaderShort": "Day {{day}}"
+    "dayHeaderShort": "Day {{day}}",
+    "defaultStopName": "पड़ाव {{number}}",
+    "moveToDayTitle": "दिन पर ले जाएँ",
+    "selectDayForStop": "इस पड़ाव के लिए एक दिन चुनें",
+    "addDayA11y": "यात्रा में एक और दिन जोड़ें"
   },
   "groupRide": {
     "titleLabel": "शीर्षक",
