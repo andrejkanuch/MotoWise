@@ -22,7 +22,7 @@
     "check:i18n": "sh scripts/check-i18n.sh",
     "i18n:status": "pnpm --filter mobile i18n:status",
     "check:api-bans": "sh scripts/check-api-bans.sh",
-    "check:router": "sh scripts/check-no-router-any.sh",
+    "check:router": "bash scripts/check-no-router-any.sh",
     "check:mobile-colors": "sh scripts/check-no-hardcoded-mobile-colors.sh",
     "check:arch": "tsx scripts/check-arch-boundaries.ts",
     "knip": "knip",

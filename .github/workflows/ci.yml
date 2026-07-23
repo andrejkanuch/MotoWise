@@ -71,6 +71,24 @@ jobs:
       - run: git fetch origin main --depth=0 || true
       - run: pnpm check:i18n
 
+  guards:
+    name: Mobile Guards (router casts, colors)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0 # color ratchet needs merge-base with origin/main
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          node-version: 22.20.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Ensure origin/main exists as a ref for the color ratchet's merge-base diff.
+      - run: git fetch origin main --depth=0 || true
+      - run: pnpm check:router
+      - run: pnpm check:mobile-colors
+
   audit:
     name: Security Audit
     runs-on: ubuntu-latest

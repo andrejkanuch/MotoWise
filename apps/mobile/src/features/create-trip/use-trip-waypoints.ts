@@ -187,28 +187,38 @@ export function useTripWaypoints({
     [addWaypoint, waypoints.length, defaultDayIndex],
   );
 
-  // Reorder waypoints
+  // Reorder waypoints. Swap sortOrder by producing fresh objects for the two
+  // affected waypoints — never mutate the objects held in state (that would
+  // break React immutability and defeat reference-based memoization).
   const handleMoveUp = useCallback((index: number) => {
     setWaypoints((prev) => {
-      const next = [...prev];
-      const sorted = next.sort((a, b) => a.sortOrder - b.sortOrder);
-      if (index <= 0) return prev;
-      const tempOrder = sorted[index].sortOrder;
-      sorted[index].sortOrder = sorted[index - 1].sortOrder;
-      sorted[index - 1].sortOrder = tempOrder;
-      return [...sorted];
+      const sorted = [...prev].sort((a, b) => a.sortOrder - b.sortOrder);
+      if (index <= 0 || index >= sorted.length) return prev;
+      const current = sorted[index];
+      const upper = sorted[index - 1];
+      return sorted.map((wp) =>
+        wp === current
+          ? { ...wp, sortOrder: upper.sortOrder }
+          : wp === upper
+            ? { ...wp, sortOrder: current.sortOrder }
+            : wp,
+      );
     });
   }, []);
 
   const handleMoveDown = useCallback((index: number) => {
     setWaypoints((prev) => {
-      const next = [...prev];
-      const sorted = next.sort((a, b) => a.sortOrder - b.sortOrder);
-      if (index >= sorted.length - 1) return prev;
-      const tempOrder = sorted[index].sortOrder;
-      sorted[index].sortOrder = sorted[index + 1].sortOrder;
-      sorted[index + 1].sortOrder = tempOrder;
-      return [...sorted];
+      const sorted = [...prev].sort((a, b) => a.sortOrder - b.sortOrder);
+      if (index < 0 || index >= sorted.length - 1) return prev;
+      const current = sorted[index];
+      const lower = sorted[index + 1];
+      return sorted.map((wp) =>
+        wp === current
+          ? { ...wp, sortOrder: lower.sortOrder }
+          : wp === lower
+            ? { ...wp, sortOrder: current.sortOrder }
+            : wp,
+      );
     });
   }, []);
 

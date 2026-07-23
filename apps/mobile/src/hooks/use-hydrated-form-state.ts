@@ -26,6 +26,9 @@ export function useHydratedFormState<T>(
   const hydratedRef = useRef(false);
   const applyRef = useRef(apply);
   applyRef.current = apply;
+  // Latest source, readable from reset() without adding it to the effect deps.
+  const sourceRef = useRef(source);
+  sourceRef.current = source;
 
   useEffect(() => {
     if (source == null || hydratedRef.current) return;
@@ -37,6 +40,14 @@ export function useHydratedFormState<T>(
   const reset = useCallback(() => {
     hydratedRef.current = false;
     setIsHydrated(false);
+    // Re-seed now if a source is already loaded — a caller that resets while
+    // the same source object is still present must re-hydrate immediately
+    // rather than wait for a `source` identity change that may never arrive.
+    if (sourceRef.current != null) {
+      hydratedRef.current = true;
+      applyRef.current(sourceRef.current as NonNullable<T>);
+      setIsHydrated(true);
+    }
   }, []);
 
   return { isHydrated, reset };

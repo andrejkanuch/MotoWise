@@ -16,7 +16,7 @@ set -eu
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
 
-COLOR_RE='#[0-9a-fA-F]{3,8}|rgba\('
+COLOR_RE='#[0-9a-fA-F]{3,8}|rgba?\(|hsla?\('
 FOUNDATION_FILES="
 apps/mobile/src/components/diagnostic-flow/diagnostic-colors.ts
 apps/mobile/src/components/onboarding/onboarding-colors.ts
@@ -59,8 +59,8 @@ fi
 # Paths relative to repo root; exclude allowlisted + foundation (already checked).
 CHANGED=$(
   git diff --name-only --diff-filter=AMRC "$BASE...HEAD" -- apps/mobile/src \
-    | grep -E '\.(ts|tsx)$' \
-    | grep -vE '\.(test|d)\.(ts|tsx)$|/__tests__/|/__mocks__/|/mocks/' \
+    | grep -E '\.(ts|tsx|js|jsx)$' \
+    | grep -vE '\.(test|d)\.(ts|tsx|js|jsx)$|/__tests__/|/__mocks__/|/mocks/' \
     | grep -vE '^apps/mobile/src/config/brand-dna\.ts$' \
     | grep -vE '^apps/mobile/src/components/diagnostic-flow/diagnostic-colors\.ts$' \
     | grep -vE '^apps/mobile/src/components/onboarding/onboarding-colors\.ts$' \

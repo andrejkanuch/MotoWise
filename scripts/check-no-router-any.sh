@@ -99,7 +99,10 @@ for file in "${files[@]+"${files[@]}"}"; do
         }
         if (in_redirect) {
           if (has_cast(line)) report()
-          if (index(line, "/>") > 0 || index(line, ">") > 0) in_redirect = 0
+          # Redirect is always self-closing; only "/>" ends the tag. A bare ">"
+          # (e.g. from an arrow fn `i => i.default` in a prop) must NOT end
+          # tracking, or a cast on a later line of the same tag is missed.
+          if (index(line, "/>") > 0) in_redirect = 0
         }
 
         # --- push / replace / navigate (paren-depth tracked) ---
