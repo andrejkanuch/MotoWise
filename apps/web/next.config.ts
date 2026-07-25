@@ -24,7 +24,15 @@ const ACTIVE_NON_DEFAULT_LOCALES = ['de', 'fr', 'es', 'it', 'ja', 'pl', 'pt-BR']
 // and localizes correctly.
 // NOTE: keep this aligned with the skip-locale branch in src/proxy.ts — both
 // encode "this section is root-only, not under [locale]".
-const NON_LOCALIZED_ROUTE_SECTIONS = ['trips', 'route', 'routes', 'ride', 'rider', 'pro'] as const;
+const NON_LOCALIZED_ROUTE_SECTIONS = [
+  'trips',
+  'route',
+  'routes',
+  'ride',
+  'rider',
+  'pro',
+  'piel',
+] as const;
 
 const ACTIVE_LOCALE_REGEX_GROUP = ACTIVE_NON_DEFAULT_LOCALES.join('|');
 const NON_LOCALIZED_SECTION_REGEX_GROUP = NON_LOCALIZED_ROUTE_SECTIONS.join('|');

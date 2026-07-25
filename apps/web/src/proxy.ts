@@ -160,7 +160,7 @@ function applySecurityHeaders(response: NextResponse, nonce: string | null) {
 // vs nonce-free), because "cacheable" and "needs a strict nonce CSP" are
 // independent concerns.
 const MARKETING_CACHEABLE_RE =
-  /^\/($|explore|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|(?:en|de|fr|es|it|ja|pl|pt-BR)(?:\/|$))/;
+  /^\/($|explore|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|piel|(?:en|de|fr|es|it|ja|pl|pt-BR)(?:\/|$))/;
 
 const NOINDEX_PREFIXES = ['/login', '/signup', '/forgot-password', '/explore/search'];
 
@@ -470,6 +470,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/routes/') ||
     pathname.startsWith('/trips') ||
     pathname.startsWith('/pro') ||
+    pathname.startsWith('/piel') ||
     pathname.startsWith('/ingest')
   ) {
     // Auth + public community routes + explore + route/trip detail + pro + PostHog proxy (/ingest → next.config rewrites): skip locale processing.
