@@ -393,7 +393,7 @@
     "sortedByPrimary": "Birincile gore sirali",
     "odo": "Km",
     "since": "Beri",
-    "freePlanLimit": "Ucretsiz planda 5'e kadar",
+    "freePlanLimit": "Ucretsiz planda {{count}}'e kadar",
     "byTheNumbers": "Rakamlarla",
     "totalKilometres": "Toplam kilometre",
     "oldestBike": "En eski motor",

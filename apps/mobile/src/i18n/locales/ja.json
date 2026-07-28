@@ -396,7 +396,7 @@
     "sortedByPrimary": "メインで並び替え",
     "odo": "走行距離",
     "since": "以来",
-    "freePlanLimit": "無料プランは5台まで",
+    "freePlanLimit": "無料プランは{{count}}台まで",
     "byTheNumbers": "数字で見る",
     "totalKilometres": "総走行距離",
     "oldestBike": "最も古いバイク",

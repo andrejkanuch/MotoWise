@@ -395,7 +395,7 @@
     "sortedByPrimary": "Zoradene podla primarnej",
     "odo": "Km stav",
     "since": "Od",
-    "freePlanLimit": "Najviac 5 v bezplatnom plane",
+    "freePlanLimit": "Najviac {{count}} v bezplatnom plane",
     "byTheNumbers": "V cislach",
     "totalKilometres": "Celkove kilometre",
     "oldestBike": "Najstarsia motorka",

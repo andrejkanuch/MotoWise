@@ -393,7 +393,7 @@
     "sortedByPrimary": "Diurutkan berdasarkan utama",
     "odo": "Odo",
     "since": "Sejak",
-    "freePlanLimit": "Hingga 5 di paket gratis",
+    "freePlanLimit": "Hingga {{count}} di paket gratis",
     "byTheNumbers": "Dalam angka",
     "totalKilometres": "Total kilometer",
     "oldestBike": "Motor tertua",

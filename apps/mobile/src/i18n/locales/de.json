@@ -396,7 +396,7 @@
     "sortedByPrimary": "Sortiert nach Primaer",
     "odo": "Km-Stand",
     "since": "Seit",
-    "freePlanLimit": "Bis zu 5 im Free-Plan",
+    "freePlanLimit": "Bis zu {{count}} im Free-Plan",
     "byTheNumbers": "In Zahlen",
     "totalKilometres": "Gesamtkilometer",
     "oldestBike": "Aeltestes Motorrad",

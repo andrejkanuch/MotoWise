@@ -393,7 +393,7 @@
     "sortedByPrimary": "Sorted by primary",
     "odo": "Odo",
     "since": "Since",
-    "freePlanLimit": "Up to 5 on the free plan",
+    "freePlanLimit": "Up to {{count}} on the free plan",
     "byTheNumbers": "By the numbers",
     "totalKilometres": "Total kilometres",
     "oldestBike": "Oldest bike",

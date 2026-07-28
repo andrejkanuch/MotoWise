@@ -393,7 +393,7 @@
     "sortedByPrimary": "เรียงตามหลัก",
     "odo": "เลขไมล์",
     "since": "ตั้งแต่",
-    "freePlanLimit": "สูงสุด 5 คันในแผนฟรี",
+    "freePlanLimit": "สูงสุด {{count}} คันในแผนฟรี",
     "byTheNumbers": "ในตัวเลข",
     "totalKilometres": "กิโลเมตรรวม",
     "oldestBike": "มอเตอร์ไซค์เก่าสุด",

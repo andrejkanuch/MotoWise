@@ -394,7 +394,7 @@
     "sortedByPrimary": "Ordenado por principal",
     "odo": "Odo",
     "since": "Desde",
-    "freePlanLimit": "Hasta 5 en el plan gratuito",
+    "freePlanLimit": "Hasta {{count}} en el plan gratuito",
     "byTheNumbers": "En numeros",
     "totalKilometres": "Kilometros totales",
     "oldestBike": "Moto mas antigua",

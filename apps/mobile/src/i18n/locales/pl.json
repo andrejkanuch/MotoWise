@@ -395,7 +395,7 @@
     "sortedByPrimary": "Posortowane wg glownego",
     "odo": "Przebieg",
     "since": "Od",
-    "freePlanLimit": "Do 5 w planie darmowym",
+    "freePlanLimit": "Do {{count}} w planie darmowym",
     "byTheNumbers": "W liczbach",
     "totalKilometres": "Laczne kilometry",
     "oldestBike": "Najstarszy motocykl",

@@ -393,7 +393,7 @@
     "sortedByPrimary": "प्राइमरी से सॉर्ट",
     "odo": "ओडो",
     "since": "से",
-    "freePlanLimit": "फ्री प्लान में 5 तक",
+    "freePlanLimit": "फ्री प्लान में {{count}} तक",
     "byTheNumbers": "आंकड़ों में",
     "totalKilometres": "कुल किलोमीटर",
     "oldestBike": "सबसे पुरानी बाइक",

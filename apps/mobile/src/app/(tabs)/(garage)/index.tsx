@@ -1,4 +1,5 @@
 import { MyMotorcyclesDocument } from '@motovault/graphql';
+import { FREE_TIER_LIMITS } from '@motovault/types';
 import * as Sentry from '@sentry/react-native';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -583,7 +584,7 @@ export default function GarageScreen() {
                     paddingHorizontal: 30,
                   }}
                 >
-                  {t('garage.freePlanLimit')}
+                  {t('garage.freePlanLimit', { count: FREE_TIER_LIMITS.MAX_BIKES })}
                 </Text>
               </Pressable>
             </ScrollView>
