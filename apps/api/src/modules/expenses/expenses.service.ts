@@ -195,6 +195,12 @@ export class ExpensesService {
   async softDelete(userId: string, id: string): Promise<boolean> {
     this.logger.log(`softDelete: userId=${userId}, expenseId=${id}`);
 
+    // `.maybeSingle()` (not `.single()`): a 0-row result must NOT be an error.
+    // Deleting is idempotent — if the update matches no live row the expense is
+    // already gone (already soft-deleted, missing, or not owned), which is
+    // exactly the caller's intent. `.single()` here threw PGRST116 on every
+    // double-tap / stale-list / retry, surfacing a BAD_REQUEST to the client
+    // (MOTO-VAULT-REACT-NATIVE-1J: ~877 events, 10 users).
     const { data, error } = await this.supabase
       .from('expenses')
       .update({ deleted_at: new Date().toISOString() })
@@ -202,13 +208,20 @@ export class ExpensesService {
       .eq('user_id', userId)
       .is('deleted_at', null)
       .select('id')
-      .single();
+      .maybeSingle();
 
-    if (error || !data) {
+    if (error) {
       this.logger.error(
-        `softDelete failed: ${error?.message} (code=${error?.code}, details=${error?.details}, hint=${error?.hint})`,
+        `softDelete failed: ${error.message} (code=${error.code}, details=${error.details}, hint=${error.hint})`,
       );
       throw new BadRequestException('Failed to delete expense');
+    }
+
+    // No live row flipped this call — nothing to purge. Return success so the
+    // client treats an already-gone expense as deleted (idempotent).
+    if (!data) {
+      this.logger.log(`softDelete: no live expense matched id=${id} (already gone) — idempotent OK`);
+      return true;
     }
 
     // R5/R10: a soft-deleted expense's private receipt objects must be purged
