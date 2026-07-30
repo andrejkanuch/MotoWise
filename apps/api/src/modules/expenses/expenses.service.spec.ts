@@ -265,6 +265,10 @@ describe('ExpensesService', () => {
       });
       expect(mock.chain.eq).toHaveBeenCalledWith('id', 'exp-1');
       expect(mock.chain.eq).toHaveBeenCalledWith('user_id', 'u1');
+      // Locks in the `deleted_at IS NULL` guard: without it a re-delete would
+      // re-flip deleted_at to a fresh timestamp and re-run the receipts purge,
+      // silently degrading the "already gone" idempotent semantics.
+      expect(mock.chain.is).toHaveBeenCalledWith('deleted_at', null);
     });
 
     it('returns true idempotently when no live row matches (already gone)', async () => {
