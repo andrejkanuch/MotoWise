@@ -82,8 +82,8 @@ import {
 } from '../lib/auth-hydration';
 import {
   decideAuthStateChange,
-  FORCED_SIGNOUT_UNSYNCED_MESSAGE,
-  FORCED_SIGNOUT_UNSYNCED_SOURCE,
+  SIGNOUT_UNSYNCED_MESSAGE,
+  SIGNOUT_UNSYNCED_SOURCE,
 } from '../lib/auth-state-change';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
@@ -499,11 +499,12 @@ function RootLayout() {
             clearSyncQueue();
           } else {
             // Intentional data-preservation path (a ride was active or ops were
-            // still queued at a forced sign-out), not a crash — report as a
-            // warning so it's observable without sitting in the unresolved-error
-            // stream (MOTO-VAULT-REACT-NATIVE-27).
-            captureMessage(FORCED_SIGNOUT_UNSYNCED_MESSAGE, 'warning', {
-              source: FORCED_SIGNOUT_UNSYNCED_SOURCE,
+            // still queued when a null session was observed — server-forced OR
+            // user-initiated sign-out), not a crash — report as a warning so it's
+            // observable without sitting in the unresolved-error stream
+            // (MOTO-VAULT-REACT-NATIVE-27).
+            captureMessage(SIGNOUT_UNSYNCED_MESSAGE, 'warning', {
+              source: SIGNOUT_UNSYNCED_SOURCE,
               queueLength: String(getQueueLength()),
               hasActiveRide: String(activeRideId != null),
             });
