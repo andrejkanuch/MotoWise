@@ -31,6 +31,18 @@
 // mounting the root component.
 // -------------------------------------------------------------------
 
+/**
+ * Warning reported to Sentry when a forced sign-out (server revocation / token
+ * rotation failure) is observed while a ride is active or sync ops are still
+ * queued. Not a crash — the local cleanup deliberately PRESERVES the sync queue
+ * and ride data so they drain once auth is restored. (MOTO-VAULT-REACT-NATIVE-27)
+ */
+export const FORCED_SIGNOUT_UNSYNCED_MESSAGE =
+  'Forced sign-out with unsynced ride data — preserving sync queue';
+
+/** Sentry `source` tag identifying where the forced-sign-out warning fired. */
+export const FORCED_SIGNOUT_UNSYNCED_SOURCE = 'auth-state-change.localCleanup';
+
 export interface AuthStateChangeInputs {
   /** The user id from the new session, or null when there is no session. */
   sessionUserId: string | null;

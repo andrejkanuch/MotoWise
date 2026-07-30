@@ -6,7 +6,7 @@ import {
   MaintenanceTaskStatus,
 } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { endOfDay, set, startOfDay, subYears } from 'date-fns';
+import { endOfDay, min, set, startOfDay, subYears } from 'date-fns';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Calendar, CalendarCheck, Check, Gauge, Plus, Repeat } from 'lucide-react-native';
 import { useState } from 'react';
@@ -32,8 +32,7 @@ import { toISODateInput } from '../../../utils/trip-form-dates';
  *  API rejects a future completedAt. Returns `now` when `date` is in the future,
  *  otherwise `date` unchanged. */
 function clampToNow(date: Date): Date {
-  const now = new Date();
-  return date.getTime() > now.getTime() ? now : date;
+  return min([date, new Date()]);
 }
 
 const PRIORITIES = ['low', 'medium', 'high', 'critical'] as const;

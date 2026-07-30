@@ -80,7 +80,11 @@ import {
   AUTH_HYDRATION_TIMEOUT_SOURCE,
   shouldReportHydrationTimeout,
 } from '../lib/auth-hydration';
-import { decideAuthStateChange } from '../lib/auth-state-change';
+import {
+  decideAuthStateChange,
+  FORCED_SIGNOUT_UNSYNCED_MESSAGE,
+  FORCED_SIGNOUT_UNSYNCED_SOURCE,
+} from '../lib/auth-state-change';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
 import { captureMetaAttribution } from '../lib/meta-attribution';
@@ -498,15 +502,11 @@ function RootLayout() {
             // still queued at a forced sign-out), not a crash — report as a
             // warning so it's observable without sitting in the unresolved-error
             // stream (MOTO-VAULT-REACT-NATIVE-27).
-            captureMessage(
-              'Forced sign-out with unsynced ride data — preserving sync queue',
-              'warning',
-              {
-                source: 'auth-state-change.localCleanup',
-                queueLength: String(getQueueLength()),
-                hasActiveRide: String(activeRideId != null),
-              },
-            );
+            captureMessage(FORCED_SIGNOUT_UNSYNCED_MESSAGE, 'warning', {
+              source: FORCED_SIGNOUT_UNSYNCED_SOURCE,
+              queueLength: String(getQueueLength()),
+              hasActiveRide: String(activeRideId != null),
+            });
           }
           cancelAllNotifications();
           clearAllWidgets();
