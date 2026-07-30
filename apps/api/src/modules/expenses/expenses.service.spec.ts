@@ -7,6 +7,7 @@ function createSupabaseMock() {
   const chain: Record<string, ReturnType<typeof vi.fn>> = {};
 
   chain.single = vi.fn();
+  chain.maybeSingle = vi.fn();
   chain.limit = vi.fn().mockReturnValue(chain);
   chain.select = vi.fn().mockReturnValue(chain);
   chain.insert = vi.fn().mockReturnValue(chain);
@@ -250,7 +251,7 @@ describe('ExpensesService', () => {
   // ---------------------------------------------------------------------------
   describe('softDelete', () => {
     it('sets deleted_at and scopes by user_id, returns true', async () => {
-      mock.chain.single.mockResolvedValueOnce({
+      mock.chain.maybeSingle.mockResolvedValueOnce({
         data: { id: 'exp-1' },
         error: null,
       });
@@ -264,12 +265,27 @@ describe('ExpensesService', () => {
       });
       expect(mock.chain.eq).toHaveBeenCalledWith('id', 'exp-1');
       expect(mock.chain.eq).toHaveBeenCalledWith('user_id', 'u1');
+      // Locks in the `deleted_at IS NULL` guard: without it a re-delete would
+      // re-flip deleted_at to a fresh timestamp and re-run the receipts purge,
+      // silently degrading the "already gone" idempotent semantics.
+      expect(mock.chain.is).toHaveBeenCalledWith('deleted_at', null);
     });
 
-    it('throws BadRequestException on error', async () => {
-      mock.chain.single.mockResolvedValueOnce({
+    it('returns true idempotently when no live row matches (already gone)', async () => {
+      // A double-tap / stale-list / retry deleting an already-soft-deleted,
+      // missing, or non-owned expense matches 0 rows. `.maybeSingle()` returns
+      // { data: null, error: null } — the caller's intent ("this is gone") is
+      // already satisfied, so we return true instead of throwing BAD_REQUEST
+      // (regression guard for MOTO-VAULT-REACT-NATIVE-1J).
+      mock.chain.maybeSingle.mockResolvedValueOnce({ data: null, error: null });
+
+      await expect(service.softDelete('u1', 'exp-1')).resolves.toBe(true);
+    });
+
+    it('throws BadRequestException on a genuine DB error', async () => {
+      mock.chain.maybeSingle.mockResolvedValueOnce({
         data: null,
-        error: { message: 'not found', code: 'PGRST116' },
+        error: { message: 'connection reset', code: '08006' },
       });
 
       await expect(service.softDelete('u1', 'exp-1')).rejects.toThrow(BadRequestException);
@@ -481,8 +497,8 @@ describe('ExpensesService', () => {
   // ---------------------------------------------------------------------------
   describe('softDelete receipts purge', () => {
     it('removes the receipts storage object when the expense had one', async () => {
-      // The soft-delete update resolves via .single().
-      mock.chain.single.mockResolvedValueOnce({ data: { id: 'e1' }, error: null });
+      // The soft-delete update resolves via .maybeSingle().
+      mock.chain.maybeSingle.mockResolvedValueOnce({ data: { id: 'e1' }, error: null });
       // The purge SELECT terminates on .eq('bucket', 'receipts') — resolve it.
       mock.chain.eq.mockImplementation((col: string) =>
         col === 'bucket'
