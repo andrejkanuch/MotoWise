@@ -220,7 +220,9 @@ export class ExpensesService {
     // No live row flipped this call — nothing to purge. Return success so the
     // client treats an already-gone expense as deleted (idempotent).
     if (!data) {
-      this.logger.log(`softDelete: no live expense matched id=${id} (already gone) — idempotent OK`);
+      this.logger.log(
+        `softDelete: no live expense matched id=${id} (already gone) — idempotent OK`,
+      );
       return true;
     }
 
