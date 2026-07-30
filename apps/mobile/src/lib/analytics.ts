@@ -558,6 +558,24 @@ export function captureException(error: unknown, context?: Record<string, unknow
   }
 }
 
+/**
+ * Records an intentional, non-crash signal (an expected edge case worth
+ * observing) at a chosen severity — NOT the error stream. Use this instead of
+ * `captureException(new Error(...))` for telemetry that should not show up as an
+ * unresolved error/issue in Sentry.
+ */
+export function captureMessage(
+  message: string,
+  level: 'info' | 'warning' = 'warning',
+  context?: Record<string, unknown>,
+) {
+  if (!crashReportingEnabled) return;
+
+  if (SENTRY_DSN) {
+    Sentry.captureMessage(message, { level, extra: context });
+  }
+}
+
 export function addBreadcrumb(message: string, category?: string, data?: Record<string, unknown>) {
   if (!crashReportingEnabled) return;
 

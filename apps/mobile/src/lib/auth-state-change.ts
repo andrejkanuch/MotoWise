@@ -31,6 +31,21 @@
 // mounting the root component.
 // -------------------------------------------------------------------
 
+/**
+ * Warning reported to Sentry when a null-session cleanup runs while a ride is
+ * active or sync ops are still queued. This path fires for BOTH a server-forced
+ * sign-out (revocation / token-rotation failure) AND a normal user-initiated
+ * sign-out — the decision (`decideAuthStateChange`) keys only on whether a user
+ * previously existed, not on the auth event — so the wording stays neutral about
+ * the cause. Not a crash: the local cleanup deliberately PRESERVES the sync
+ * queue and ride data so they drain once auth is restored.
+ * (MOTO-VAULT-REACT-NATIVE-27)
+ */
+export const SIGNOUT_UNSYNCED_MESSAGE = 'Sign-out with unsynced ride data — preserving sync queue';
+
+/** Sentry `source` tag identifying where the unsynced-sign-out warning fired. */
+export const SIGNOUT_UNSYNCED_SOURCE = 'auth-state-change.localCleanup';
+
 export interface AuthStateChangeInputs {
   /** The user id from the new session, or null when there is no session. */
   sessionUserId: string | null;

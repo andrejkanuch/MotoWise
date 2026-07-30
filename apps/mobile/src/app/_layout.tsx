@@ -59,6 +59,7 @@ import i18n from '../i18n';
 import {
   AnalyticsEvent,
   captureException,
+  captureMessage,
   getAnalyticsDistinctId,
   identifyUser,
   initPostHog,
@@ -79,7 +80,11 @@ import {
   AUTH_HYDRATION_TIMEOUT_SOURCE,
   shouldReportHydrationTimeout,
 } from '../lib/auth-hydration';
-import { decideAuthStateChange } from '../lib/auth-state-change';
+import {
+  decideAuthStateChange,
+  SIGNOUT_UNSYNCED_MESSAGE,
+  SIGNOUT_UNSYNCED_SOURCE,
+} from '../lib/auth-state-change';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
 import { captureMetaAttribution } from '../lib/meta-attribution';
@@ -414,7 +419,10 @@ function RootLayout() {
       // wall-clock time and this timer fires harmlessly. Reporting that is
       // pure noise. (Sentry MOTO-VAULT-REACT-NATIVE-W)
       if (shouldReportHydrationTimeout(useAuthStore.getState().isLoading, AppState.currentState)) {
-        captureException(new Error(AUTH_HYDRATION_TIMEOUT_MESSAGE), {
+        // Expected-but-worth-watching edge case, not a crash: report as a warning
+        // so it stays observable without polluting the unresolved-error stream
+        // (MOTO-VAULT-REACT-NATIVE-W / 2F / 2G).
+        captureMessage(AUTH_HYDRATION_TIMEOUT_MESSAGE, 'warning', {
           source: AUTH_HYDRATION_TIMEOUT_SOURCE,
         });
       }
@@ -490,14 +498,16 @@ function RootLayout() {
           if (getQueueLength() === 0 && activeRideId == null) {
             clearSyncQueue();
           } else {
-            captureException(
-              new Error('Forced sign-out with unsynced ride data — preserving sync queue'),
-              {
-                source: 'auth-state-change.localCleanup',
-                queueLength: String(getQueueLength()),
-                hasActiveRide: String(activeRideId != null),
-              },
-            );
+            // Intentional data-preservation path (a ride was active or ops were
+            // still queued when a null session was observed — server-forced OR
+            // user-initiated sign-out), not a crash — report as a warning so it's
+            // observable without sitting in the unresolved-error stream
+            // (MOTO-VAULT-REACT-NATIVE-27).
+            captureMessage(SIGNOUT_UNSYNCED_MESSAGE, 'warning', {
+              source: SIGNOUT_UNSYNCED_SOURCE,
+              queueLength: String(getQueueLength()),
+              hasActiveRide: String(activeRideId != null),
+            });
           }
           cancelAllNotifications();
           clearAllWidgets();
