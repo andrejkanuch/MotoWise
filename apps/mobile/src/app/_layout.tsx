@@ -59,6 +59,7 @@ import i18n from '../i18n';
 import {
   AnalyticsEvent,
   captureException,
+  captureMessage,
   getAnalyticsDistinctId,
   identifyUser,
   initPostHog,
@@ -414,7 +415,10 @@ function RootLayout() {
       // wall-clock time and this timer fires harmlessly. Reporting that is
       // pure noise. (Sentry MOTO-VAULT-REACT-NATIVE-W)
       if (shouldReportHydrationTimeout(useAuthStore.getState().isLoading, AppState.currentState)) {
-        captureException(new Error(AUTH_HYDRATION_TIMEOUT_MESSAGE), {
+        // Expected-but-worth-watching edge case, not a crash: report as a warning
+        // so it stays observable without polluting the unresolved-error stream
+        // (MOTO-VAULT-REACT-NATIVE-W / 2F / 2G).
+        captureMessage(AUTH_HYDRATION_TIMEOUT_MESSAGE, 'warning', {
           source: AUTH_HYDRATION_TIMEOUT_SOURCE,
         });
       }
@@ -490,8 +494,13 @@ function RootLayout() {
           if (getQueueLength() === 0 && activeRideId == null) {
             clearSyncQueue();
           } else {
-            captureException(
-              new Error('Forced sign-out with unsynced ride data — preserving sync queue'),
+            // Intentional data-preservation path (a ride was active or ops were
+            // still queued at a forced sign-out), not a crash — report as a
+            // warning so it's observable without sitting in the unresolved-error
+            // stream (MOTO-VAULT-REACT-NATIVE-27).
+            captureMessage(
+              'Forced sign-out with unsynced ride data — preserving sync queue',
+              'warning',
               {
                 source: 'auth-state-change.localCleanup',
                 queueLength: String(getQueueLength()),

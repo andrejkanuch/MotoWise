@@ -28,6 +28,14 @@ import { triggerImpact } from '../../../utils/haptics';
 import { intervalDistanceUnit } from '../../../utils/maintenance-interval';
 import { toISODateInput } from '../../../utils/trip-form-dates';
 
+/** Never let a "completed" timestamp run ahead of the current instant — the
+ *  API rejects a future completedAt. Returns `now` when `date` is in the future,
+ *  otherwise `date` unchanged. */
+function clampToNow(date: Date): Date {
+  const now = new Date();
+  return date.getTime() > now.getTime() ? now : date;
+}
+
 const PRIORITIES = ['low', 'medium', 'high', 'critical'] as const;
 const PRIORITY_META: Record<string, { color: string }> = {
   low: { color: palette.success500 },
@@ -122,9 +130,15 @@ export default function AddMaintenanceTaskScreen() {
             // Anchor the timestamp at local noon so the calendar day survives
             // the UTC conversion regardless of timezone.
             status: MaintenanceTaskStatus.Completed,
-            completedAt: (dueDate
-              ? set(dueDate, { hours: 12, minutes: 0, seconds: 0, milliseconds: 0 })
-              : new Date()
+            // Anchor the timestamp at local noon so the calendar day survives the
+            // UTC conversion, then clamp to "now": logging work for *today* before
+            // local noon would otherwise send a completedAt ahead of the current
+            // UTC instant, which the server rejects as a future completion
+            // (MOTO-VAULT-REACT-NATIVE-1M). A past date keeps its noon anchor.
+            completedAt: clampToNow(
+              dueDate
+                ? set(dueDate, { hours: 12, minutes: 0, seconds: 0, milliseconds: 0 })
+                : new Date(),
             ).toISOString(),
             completedMileage: mileageNum,
             isRecurring: false,
