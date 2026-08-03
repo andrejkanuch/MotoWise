@@ -206,7 +206,26 @@ export function decideAutoPause(
   if (distanceMeters(next.zeroSpeedAnchor, pos) > AUTO_PAUSE_DISTANCE_THRESHOLD) {
     next.zeroSpeedAnchor = pos;
     next.zeroSpeedTimer = now;
-    return { next, effects: [], abort: false };
+
+    // This path detects movement just as the speed-threshold branch above does, so it
+    // must end the stop episode too. Leaving it armed meant a rider crawling in traffic
+    // (>5m per sample, but under the speed threshold) kept a stale
+    // `continuousAutoPauseStart`: CarPlay went on asking "STILL RIDING?", a later real
+    // stop could not nudge again, and the pre-creep stationary time still counted
+    // toward the 30-minute auto-end — enough to end a ride that never stopped moving.
+    const effects: AutoPauseEffect[] = [];
+    if (next.forgotToStopNotified) {
+      effects.push({ kind: 'setForgotToStopPending', value: false });
+    }
+    // Back to 'moving' so a genuine later stop re-arms the episode from scratch — with
+    // the sub-state left at 'stopped', `continuousAutoPauseStart` would never be reset
+    // and the rider could never be nudged again for the rest of the ride. Auto-paused
+    // time accounting is untouched: this branch never banked it (`zeroSpeedTimer` is
+    // reset here), so nothing that was previously counted is lost.
+    if (subState === 'stopped') effects.push({ kind: 'setSubState', value: 'moving' });
+    next.continuousAutoPauseStart = null;
+    next.forgotToStopNotified = false;
+    return { next, effects, abort: false };
   }
 
   // Not stopped long enough to auto-pause yet.

@@ -4,6 +4,7 @@
 
 import { MaintenanceTaskStatus, type MeasurementSystem } from '@motovault/types';
 import type { CPInformationTemplateModel } from '../../../modules/carplay/src';
+import i18n from '../../i18n';
 import { getRelativeDueDate } from '../../lib/health-score';
 import type { StartMode } from '../../stores/carplay.store';
 import {
@@ -204,7 +205,15 @@ const STOP_CONFIRM_TITLE = 'STOP RIDE?';
 // Title shown when the ride looks forgotten. Ranks BELOW the stop-confirm title:
 // an armed Stop is an in-progress rider action and must never be overwritten by an
 // advisory prompt.
-const FORGOT_TO_STOP_TITLE = 'STILL RIDING?';
+//
+// Localized because the identical question already ships in all 13 locales for the
+// phone notification (`rideHud.forgotToStopTitle`) — a rider who reads the nudge in
+// their own language should not meet English on the head unit. Upper-cased to match
+// the panel's state-word vocabulary (a no-op in scripts without case).
+// The rest of this file's copy is still English: CarPlay localization as a whole is
+// pre-existing debt, not something this prompt should be blocked on.
+const forgotToStopTitle = (): string =>
+  i18n.t('rideHud.forgotToStopTitle', { defaultValue: 'Still riding?' }).toLocaleUpperCase();
 
 const MODE_LABEL: Record<StartMode, string> = {
   automatic: 'Automatic',
@@ -303,7 +312,7 @@ export function buildPanelItems(s: PanelSnapshot, stopArmed = false): CPInformat
     // Resume are already on the panel, so the title is the whole change needed, and
     // swapping the action set on an advisory would move controls under the rider's
     // thumb mid-glance.
-    title: s.forgotToStopPending ? FORGOT_TO_STOP_TITLE : STATE_WORD[s.state],
+    title: s.forgotToStopPending ? forgotToStopTitle() : STATE_WORD[s.state],
     items,
     actions: buildActions(s.state, s.startMode),
     headerActions: RIDE_HEADER_ACTIONS,

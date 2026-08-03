@@ -112,13 +112,23 @@ export class RidesService {
     for (const ride of staleRides) {
       // Last recorded fix = the real end of riding. Ordered query + limit 1 rather
       // than an aggregate so this works through the RLS-scoped user client.
-      const { data: lastWaypoint } = await this.supabase
+      const { data: lastWaypoint, error: waypointError } = await this.supabase
         .from('ride_waypoints')
         .select('recorded_at')
         .eq('ride_id', ride.id)
         .order('recorded_at', { ascending: false })
         .limit(1)
         .maybeSingle();
+
+      if (waypointError) {
+        // A transient failure here (statement timeout) is indistinguishable in `data`
+        // from "this ride has no waypoints", so the fallback below collapses a real
+        // multi-hour ride to zero duration and the true end time is unrecoverable.
+        // Log it so that collapse is visible rather than silent.
+        this.logger.error(
+          `closeStaleRides waypoint lookup failed for ride ${ride.id}: ${waypointError.message} (${waypointError.code}) — ended_at falls back to started_at`,
+        );
+      }
 
       const endedAt =
         (lastWaypoint as { recorded_at?: string } | null)?.recorded_at ?? ride.started_at;
@@ -130,7 +140,13 @@ export class RidesService {
           ended_at: endedAt,
           auto_ended_reason: 'stale_on_start',
         })
-        .eq('id', ride.id);
+        .eq('id', ride.id)
+        // Same race guard as RideIdleService.endIdleRide: a second device can complete
+        // this ride while this one starts a new one, and matching on `id` alone would
+        // overwrite that genuine rider-supplied end with a trimmed `ended_at` and a
+        // 'stale_on_start' marker that wrongly excludes it from records.
+        .in('status', ['recording', 'paused'])
+        .is('deleted_at', null);
 
       if (updateError) {
         this.logger.error(

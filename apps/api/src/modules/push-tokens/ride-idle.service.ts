@@ -112,6 +112,11 @@ export class RideIdleService {
       .select('id, user_id, started_at, status')
       .in('status', ACTIVE_RIDE_STATUSES as unknown as string[])
       .is('deleted_at', null)
+      // Oldest first, so the cap defers the NEWEST rides to the next run. Without an
+      // explicit order Postgres may return the same arbitrary subset every hour and
+      // the oldest idle rides — exactly the ones needing the sweep — starve forever.
+      // Matches the partial index idx_rides_active_for_idle_sweep (migration 00173).
+      .order('started_at', { ascending: true })
       .limit(MAX_RIDES_PER_RUN);
 
     if (error) {
@@ -141,14 +146,20 @@ export class RideIdleService {
     const nudgeTargets: Array<{ ride: ActiveRideRow; idleHours: number }> = [];
     const endTargets: Array<{ ride: ActiveRideRow; lastSignal: Date; track: WaypointRow[] }> = [];
 
+    // Classification needs ONE value — the newest `recorded_at`. Most active rides are
+    // perfectly healthy, so loading each full track here would move hundreds of
+    // thousands of waypoint rows every hour to read a single timestamp. The track is
+    // fetched below only for rides actually being ended, which need it to rebuild
+    // `distance_m`.
     for (const ride of active) {
-      const track = await this.loadTrack(ride.id);
-      const last = track.at(-1);
-      const lastSignal = last ? new Date(last.recorded_at) : new Date(ride.started_at);
+      const lastSignal = (await this.loadLastFix(ride.id)) ?? new Date(ride.started_at);
       const idleHours = differenceInHours(now, lastSignal);
 
-      if (idleHours >= IDLE_AUTO_END_HOURS) endTargets.push({ ride, lastSignal, track });
-      else if (idleHours >= IDLE_NUDGE_HOURS) nudgeTargets.push({ ride, idleHours });
+      if (idleHours >= IDLE_AUTO_END_HOURS) {
+        endTargets.push({ ride, lastSignal, track: await this.loadTrack(ride.id) });
+      } else if (idleHours >= IDLE_NUDGE_HOURS) {
+        nudgeTargets.push({ ride, idleHours });
+      }
     }
 
     if (nudgeTargets.length === 0 && endTargets.length === 0) {
@@ -257,6 +268,30 @@ export class RideIdleService {
     return { examined: active.length, nudged, autoEnded, skipped, failed, noToken };
   }
 
+  /**
+   * Timestamp of a ride's newest GPS fix, or null when it never produced one.
+   *
+   * This is the whole input to idle classification, so it must stay a single-row read:
+   * it runs once per active ride, every hour, for rides that are overwhelmingly fine.
+   * A read failure returns null (same as "no fixes"), which classifies on `started_at`
+   * rather than skipping the ride forever behind a transient error.
+   */
+  private async loadLastFix(rideId: string): Promise<Date | null> {
+    const { data, error } = await this.adminClient
+      .from('ride_waypoints')
+      .select('recorded_at')
+      .eq('ride_id', rideId)
+      .order('recorded_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) {
+      this.logger.warn(`loadLastFix failed for ride ${rideId}: ${error.message}`);
+      return null;
+    }
+    const recordedAt = (data as { recorded_at?: string } | null)?.recorded_at;
+    return recordedAt ? new Date(recordedAt) : null;
+  }
+
   /** Waypoints for a ride, oldest first. Empty for rides that never uploaded any. */
   private async loadTrack(rideId: string): Promise<WaypointRow[]> {
     const { data, error } = await this.adminClient
@@ -298,16 +333,25 @@ export class RideIdleService {
       patch.distance_m = Math.round(metres);
     }
 
-    const { error } = await this.adminClient
+    const { data, error } = await this.adminClient
       .from('rides')
       .update(patch)
       .eq('id', ride.id)
       // Guard against a race with a rider who ended it themselves between our read
       // and this write — never overwrite a genuine rider-supplied end.
-      .in('status', ACTIVE_RIDE_STATUSES as unknown as string[]);
+      .in('status', ACTIVE_RIDE_STATUSES as unknown as string[])
+      // Returning the row is how the guard above is *observed*. A filter that matches
+      // nothing is not an error in Postgres, so without this the caller would count an
+      // auto-end that never happened, write an `auto_end` claim, and push "Ride saved —
+      // we stopped your ride where the GPS did" to a rider who had just stopped it.
+      .select('id');
 
     if (error) {
       this.logger.error(`endIdleRide failed for ride ${ride.id}: ${error.message}`);
+      return false;
+    }
+    if (!data || (data as unknown[]).length === 0) {
+      this.logger.log(`endIdleRide skipped ride ${ride.id}: no longer active (rider ended it).`);
       return false;
     }
     return true;

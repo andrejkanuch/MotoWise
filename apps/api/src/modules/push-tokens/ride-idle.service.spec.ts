@@ -9,6 +9,10 @@ const mockExpo = { sendResult: 'ok' as 'ok' | 'throw' };
 const mockUpdates: Array<{ table: string; patch: Record<string, unknown> }> = [];
 /** Tables that had .delete() called — proves dedup-claim release. */
 const mockDeletes: string[] = [];
+/** Every .order() call, per table — proves the sweep's queries are deterministic. */
+const mockOrders: Array<{ table: string; column: unknown; ascending: unknown }> = [];
+/** Every .select() call, per table — proves how much of a track we actually read. */
+const mockSelects: Array<{ table: string; columns: unknown }> = [];
 
 vi.mock('expo-server-sdk', () => ({
   Expo: class {
@@ -24,23 +28,59 @@ vi.mock('expo-server-sdk', () => ({
   },
 }));
 
-function makeAdminClient(resultsByTable: Record<string, { data?: unknown; error?: unknown }>) {
+interface TableResult {
+  data?: unknown;
+  error?: unknown;
+  /**
+   * Rows an `.update(...).select()` resolves to, when it must differ from the read
+   * result. `[]` models the race the status filter exists for: the rider ended the
+   * ride between our read and our write, so the guarded update matches nothing.
+   */
+  updateData?: unknown;
+}
+
+function makeAdminClient(resultsByTable: Record<string, TableResult>) {
   const from = vi.fn((table: string) => {
-    const result = resultsByTable[table] ?? { data: [], error: null };
+    const result: TableResult = resultsByTable[table] ?? { data: [], error: null };
     const builder: Record<string, unknown> = {};
+    let isUpdate = false;
     for (const m of ['select', 'insert', 'delete', 'in', 'is', 'eq', 'limit', 'order']) {
-      builder[m] = vi.fn(() => {
+      builder[m] = vi.fn((...args: unknown[]) => {
         if (m === 'delete') mockDeletes.push(table);
+        if (m === 'select') mockSelects.push({ table, columns: args[0] });
+        if (m === 'order') {
+          mockOrders.push({
+            table,
+            column: args[0],
+            ascending: (args[1] as { ascending?: boolean } | undefined)?.ascending,
+          });
+        }
         return builder;
       });
     }
     builder.update = vi.fn((patch: Record<string, unknown>) => {
       mockUpdates.push({ table, patch });
+      isUpdate = true;
       return builder;
     });
-    builder.maybeSingle = vi.fn(() => builder);
+    // `.maybeSingle()` resolves ONE row, not the array — the newest, since every
+    // caller pairs it with `.order(..., { ascending: false }).limit(1)` and this
+    // harness stores tracks oldest-first.
+    builder.maybeSingle = vi.fn(() => ({
+      // biome-ignore lint/suspicious/noThenProperty: intentional thenable stub — Supabase query builders are awaited directly.
+      then: (resolve: (v: unknown) => unknown) =>
+        resolve({
+          data: Array.isArray(result.data) ? (result.data.at(-1) ?? null) : (result.data ?? null),
+          error: result.error ?? null,
+        }),
+    }));
     // biome-ignore lint/suspicious/noThenProperty: intentional thenable stub — Supabase query builders are awaited directly.
-    builder.then = (resolve: (v: unknown) => unknown) => resolve(result);
+    builder.then = (resolve: (v: unknown) => unknown) =>
+      resolve(
+        isUpdate && result.updateData !== undefined
+          ? { data: result.updateData, error: result.error ?? null }
+          : result,
+      );
     return builder;
   });
   return { from } as unknown as SupabaseClient;
@@ -88,6 +128,8 @@ describe('RideIdleService.sweepIdleRides', () => {
     mockSentMessages.length = 0;
     mockUpdates.length = 0;
     mockDeletes.length = 0;
+    mockOrders.length = 0;
+    mockSelects.length = 0;
     mockExpo.sendResult = 'ok';
   });
 
@@ -237,6 +279,86 @@ describe('RideIdleService.sweepIdleRides', () => {
     // Ended exactly once; re-running must not end it again, so no claim release.
     expect(summary.autoEnded).toBe(1);
     expect(mockDeletes).not.toContain('ride_idle_nudge_log');
+  });
+
+  it('does not count an auto-end (or push one) when the rider ended the ride first', async () => {
+    // The `.in('status', ACTIVE)` filter is the race guard, and a filter matching zero
+    // rows is not a Postgres error. Without observing the returned rows, the sweep
+    // counted an end that never happened and pushed "Ride saved — we stopped your ride
+    // where the GPS did" to a rider who had just stopped it themselves.
+    const client = makeAdminClient({
+      rides: {
+        data: [{ id: 'r1', user_id: 'u1', started_at: hoursAgo(40), status: 'recording' }],
+        updateData: [], // guarded update matched nothing
+        error: null,
+      },
+      ride_waypoints: {
+        data: [{ recorded_at: hoursAgo(30), latitude: 34.9, longitude: -82.9 }],
+        error: null,
+      },
+      device_push_tokens: {
+        data: [{ user_id: 'u1', token: 'ExponentPushToken[abc]' }],
+        error: null,
+      },
+      users: { data: [{ id: 'u1', preferences: { locale: 'en' } }], error: null },
+      ride_idle_nudge_log: { error: null },
+    });
+
+    const summary = await new RideIdleService(client).sweepIdleRides();
+
+    expect(summary).toMatchObject({ examined: 1, autoEnded: 0, nudged: 0 });
+    expect(mockSentMessages).toHaveLength(0);
+    // No auto_end claim written either — a claim would block a legitimate future end.
+    expect(mockDeletes).not.toContain('ride_idle_nudge_log');
+  });
+
+  it('classifies a healthy ride from one row, never its whole track', async () => {
+    // Classification runs per active ride every hour and needs exactly one value —
+    // the newest recorded_at. Reading each full track here would move hundreds of
+    // thousands of waypoint rows hourly for rides that are perfectly fine. Only rides
+    // being ended pull the full track (to rebuild distance_m).
+    const service = new RideIdleService(
+      clientFor({
+        startedHoursAgo: 14,
+        track: [{ recorded_at: hoursAgo(0.01), latitude: 34.9, longitude: -82.9 }],
+      }),
+    );
+
+    const summary = await service.sweepIdleRides();
+
+    expect(summary).toMatchObject({ examined: 1, nudged: 0, autoEnded: 0 });
+    const waypointSelects = mockSelects.filter((s) => s.table === 'ride_waypoints');
+    expect(waypointSelects).toEqual([{ table: 'ride_waypoints', columns: 'recorded_at' }]);
+  });
+
+  it('reads the full track only for a ride it is actually ending', async () => {
+    const service = new RideIdleService(
+      clientFor({
+        startedHoursAgo: 40,
+        track: [{ recorded_at: hoursAgo(30), latitude: 34.9, longitude: -82.9 }],
+      }),
+    );
+
+    await service.sweepIdleRides();
+
+    expect(mockSelects.filter((s) => s.table === 'ride_waypoints').map((s) => s.columns)).toEqual([
+      'recorded_at', // classification probe
+      'recorded_at, latitude, longitude', // distance reconstruction
+    ]);
+  });
+
+  it('orders the capped ride query oldest-first so old idle rides cannot starve', async () => {
+    // With no ORDER BY, Postgres may return the same arbitrary subset every run, so
+    // past the MAX_RIDES_PER_RUN cap the oldest idle rides never get picked up.
+    await new RideIdleService(
+      makeAdminClient({ rides: { data: [], error: null } }),
+    ).sweepIdleRides();
+
+    expect(mockOrders).toContainEqual({
+      table: 'rides',
+      column: 'started_at',
+      ascending: true,
+    });
   });
 
   it('returns an empty summary when there are no active rides', async () => {
