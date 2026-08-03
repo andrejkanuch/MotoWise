@@ -60,12 +60,7 @@ export class RidesService {
     // (rides_one_active_per_user) doesn't block the new insert.
     // This handles cases where a previous ride wasn't properly ended
     // (app crash, reinstall, cleared local data).
-    await this.supabase
-      .from('rides')
-      .update({ status: 'completed', ended_at: new Date().toISOString() })
-      .eq('user_id', userId)
-      .in('status', ['recording', 'paused'])
-      .is('deleted_at', null);
+    await this.closeStaleRides(userId);
 
     const { data, error } = await this.supabase
       .from('rides')
@@ -84,6 +79,65 @@ export class RidesService {
       throw new BadRequestException('Failed to start ride');
     }
     return this.mapRow(data);
+  }
+
+  /**
+   * Complete any still-active rides for this user so the new one can be inserted.
+   *
+   * `ended_at` is TRIMMED BACK to each stale ride's last GPS fix rather than set to
+   * `now()`. Using `now()` (the previous behaviour) meant a ride abandoned weeks ago
+   * was completed *as a weeks-long ride*: production held "completed" rides of up to
+   * 605 hours (25 days), which then polluted history, rollups and personal records.
+   * Rides that never produced a waypoint collapse to zero duration (ended_at =
+   * started_at), which is the honest representation of an accidental start.
+   *
+   * `auto_ended_reason: 'stale_on_start'` marks these so stats can exclude them —
+   * a forgotten ride must never set a "longest ride" record. (Migration 00173.)
+   */
+  private async closeStaleRides(userId: string): Promise<void> {
+    const { data: stale, error } = await this.supabase
+      .from('rides')
+      .select('id, started_at')
+      .eq('user_id', userId)
+      .in('status', ['recording', 'paused'])
+      .is('deleted_at', null);
+
+    if (error) {
+      this.logger.error(`closeStaleRides lookup failed: ${error.message} (${error.code})`);
+      return;
+    }
+    const staleRides = (stale ?? []) as Array<{ id: string; started_at: string }>;
+    if (staleRides.length === 0) return;
+
+    for (const ride of staleRides) {
+      // Last recorded fix = the real end of riding. Ordered query + limit 1 rather
+      // than an aggregate so this works through the RLS-scoped user client.
+      const { data: lastWaypoint } = await this.supabase
+        .from('ride_waypoints')
+        .select('recorded_at')
+        .eq('ride_id', ride.id)
+        .order('recorded_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const endedAt =
+        (lastWaypoint as { recorded_at?: string } | null)?.recorded_at ?? ride.started_at;
+
+      const { error: updateError } = await this.supabase
+        .from('rides')
+        .update({
+          status: 'completed',
+          ended_at: endedAt,
+          auto_ended_reason: 'stale_on_start',
+        })
+        .eq('id', ride.id);
+
+      if (updateError) {
+        this.logger.error(
+          `closeStaleRides failed to close ride ${ride.id}: ${updateError.message} (${updateError.code})`,
+        );
+      }
+    }
   }
 
   async endRide(
