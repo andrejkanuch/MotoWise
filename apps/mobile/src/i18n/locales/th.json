@@ -2428,5 +2428,16 @@
     "battery": "Battery",
     "general_service": "General service",
     "other": "Other"
+  },
+  "review": {
+    "softAskTitle": "ชอบ MotoVault ไหม?",
+    "softAskBody": "การให้คะแนนสั้น ๆ ช่วยให้ผู้ขับขี่คนอื่นค้นพบแอปนี้",
+    "softAskYes": "ชอบมาก",
+    "softAskNo": "ไม่ค่อย",
+    "feedbackTitle": "ช่วยเราปรับปรุง",
+    "feedbackBody": "บอกเราว่าอะไรยังไม่ดี — เราอ่านทุกข้อความ",
+    "feedbackYes": "ส่งความคิดเห็น",
+    "feedbackNo": "ไว้ทีหลัง",
+    "feedbackSubject": "ความคิดเห็น MotoVault"
   }
 }

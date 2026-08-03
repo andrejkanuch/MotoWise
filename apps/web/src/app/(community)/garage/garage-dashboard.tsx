@@ -123,6 +123,15 @@ function formatCurrencyShort(amount: number): string {
   return `$${amount.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 }
 
+/**
+ * Format an integer with grouping separators, pinned to 'en-US' so the server
+ * HTML and the client hydration always agree regardless of the browser locale
+ * (avoids React #418 hydration mismatches on public static/ISR pages).
+ */
+function formatNumber(value: number): string {
+  return value.toLocaleString('en-US');
+}
+
 function countryFlag(code: string | null | undefined): string {
   if (!code || code.length !== 2) return '';
   return String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1f1a5 + c.charCodeAt(0)));
@@ -792,7 +801,7 @@ function BikeCard({
         <div className="bike-stats-grid">
           <div className="bike-cell">
             <div className="bike-cell-num">
-              {bike.currentMileage != null ? bike.currentMileage.toLocaleString() : '--'}
+              {bike.currentMileage != null ? formatNumber(bike.currentMileage) : '--'}
               <span className="unit">{bike.mileageUnit ?? 'km'}</span>
             </div>
             <div className="bike-cell-lbl">{t('mileage')}</div>
@@ -923,7 +932,7 @@ function ExpenseDashboardPanel({
             <span>{t('monthly')}</span>
             {peakValue > 0 && (
               <span>
-                {t('peak')} &middot; ${peakValue.toLocaleString()} ({MONTH_LABELS[peakMonth]})
+                {t('peak')} &middot; ${formatNumber(peakValue)} ({MONTH_LABELS[peakMonth]})
               </span>
             )}
           </div>
@@ -955,7 +964,7 @@ function ExpenseDashboardPanel({
         <div className="cats-header">
           <h4>{t('byCategory')}</h4>
           <span className="total">
-            ${currentYearTotal.toLocaleString()} &middot; {t('cats', { count: sortedCats.length })}
+            ${formatNumber(currentYearTotal)} &middot; {t('cats', { count: sortedCats.length })}
           </span>
         </div>
 
@@ -980,7 +989,7 @@ function ExpenseDashboardPanel({
                     <span className="cat-bar-fill" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
-                <div className="cat-amt">${cat.total.toLocaleString()}</div>
+                <div className="cat-amt">${formatNumber(cat.total)}</div>
               </div>
             );
           })}
@@ -1137,7 +1146,7 @@ function TaskGroup({
                     <>
                       <span className="dot" />
                       <span>
-                        {t('target')} {task.targetMileage.toLocaleString()} km
+                        {t('target')} {formatNumber(task.targetMileage)} km
                       </span>
                     </>
                   )}
@@ -1252,7 +1261,7 @@ function SavedTripsSection({ trips }: { trips: TripEdge[] }) {
                 <div className="trip-body">
                   <h4 className="trip-title">{trip.title}</h4>
                   <div className="trip-stats">
-                    {distanceKm && <span>{distanceKm.toLocaleString()} km</span>}
+                    {distanceKm && <span>{formatNumber(distanceKm)} km</span>}
                     {trip.dayCount && (
                       <>
                         <span className="dot" />

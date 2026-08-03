@@ -1,6 +1,6 @@
 import type { TripTemplateNode } from '@/lib/fetch-places';
 import { Flag, MonoLabel } from './primitives';
-import { formatDistance, formatDuration, tripHref } from './utils';
+import { formatDistance, formatDuration, formatNumber, tripHref } from './utils';
 
 interface EditorsLedgerProps {
   picks: TripTemplateNode[];
@@ -181,7 +181,7 @@ export function EditorsLedger({ picks }: EditorsLedgerProps) {
                 <div>
                   <MonoLabel size={9}>Elevation</MonoLabel>
                   <div style={{ fontSize: 13.5, fontWeight: 500, marginTop: 4 }}>
-                    {hero.elevationGainM.toLocaleString()} m
+                    {formatNumber(hero.elevationGainM)} m
                   </div>
                 </div>
               )}
@@ -309,7 +309,7 @@ export function EditorsLedger({ picks }: EditorsLedgerProps) {
                         textTransform: 'uppercase',
                       }}
                     >
-                      ↑ {f.elevationGainM.toLocaleString()} m
+                      ↑ {formatNumber(f.elevationGainM)} m
                     </span>
                   )}
                   <span
@@ -433,7 +433,7 @@ export function EditorsLedger({ picks }: EditorsLedgerProps) {
                         textTransform: 'uppercase',
                       }}
                     >
-                      ↑ {f.elevationGainM.toLocaleString()} m
+                      ↑ {formatNumber(f.elevationGainM)} m
                     </span>
                   )}
                   <span

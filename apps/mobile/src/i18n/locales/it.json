@@ -2431,5 +2431,16 @@
     "battery": "Batteria",
     "general_service": "Tagliando generale",
     "other": "Altro"
+  },
+  "review": {
+    "softAskTitle": "Ti piace MotoVault?",
+    "softAskBody": "Una valutazione veloce aiuta altri motociclisti a trovare l'app.",
+    "softAskYes": "La adoro",
+    "softAskNo": "Non molto",
+    "feedbackTitle": "Aiutaci a migliorare",
+    "feedbackBody": "Dicci cosa non va — leggiamo ogni messaggio.",
+    "feedbackYes": "Invia un feedback",
+    "feedbackNo": "Non ora",
+    "feedbackSubject": "Feedback MotoVault"
   }
 }

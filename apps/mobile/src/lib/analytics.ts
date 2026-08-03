@@ -345,6 +345,10 @@ export const AnalyticsEvent = {
 
   // Store review
   REVIEW_PROMPTED: 'review_prompted',
+  REVIEW_SOFT_ASK_SHOWN: 'review_soft_ask_shown',
+  REVIEW_SOFT_ASK_POSITIVE: 'review_soft_ask_positive',
+  REVIEW_SOFT_ASK_NEGATIVE: 'review_soft_ask_negative',
+  REVIEW_FEEDBACK_OPENED: 'review_feedback_opened',
 
   // Feature usage — Learn
   ARTICLE_VIEWED: 'article_viewed',
@@ -555,6 +559,24 @@ export function captureException(error: unknown, context?: Record<string, unknow
 
   if (SENTRY_DSN) {
     Sentry.captureException(error, { extra: context });
+  }
+}
+
+/**
+ * Records an intentional, non-crash signal (an expected edge case worth
+ * observing) at a chosen severity — NOT the error stream. Use this instead of
+ * `captureException(new Error(...))` for telemetry that should not show up as an
+ * unresolved error/issue in Sentry.
+ */
+export function captureMessage(
+  message: string,
+  level: 'info' | 'warning' = 'warning',
+  context?: Record<string, unknown>,
+) {
+  if (!crashReportingEnabled) return;
+
+  if (SENTRY_DSN) {
+    Sentry.captureMessage(message, { level, extra: context });
   }
 }
 

@@ -2428,5 +2428,16 @@
     "battery": "Battery",
     "general_service": "General service",
     "other": "Other"
+  },
+  "review": {
+    "softAskTitle": "MotoVault'u beğendin mi?",
+    "softAskBody": "Kısa bir puan, diğer sürücülerin uygulamayı bulmasına yardımcı olur.",
+    "softAskYes": "Bayıldım",
+    "softAskNo": "Pek değil",
+    "feedbackTitle": "Gelişmemize yardım et",
+    "feedbackBody": "Neyin iyi olmadığını söyle — her mesajı okuyoruz.",
+    "feedbackYes": "Geri bildirim gönder",
+    "feedbackNo": "Şimdi değil",
+    "feedbackSubject": "MotoVault geri bildirim"
   }
 }

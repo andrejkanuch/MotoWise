@@ -2428,5 +2428,16 @@
     "battery": "Battery",
     "general_service": "General service",
     "other": "Other"
+  },
+  "review": {
+    "softAskTitle": "MotoVault पसंद आ रहा है?",
+    "softAskBody": "एक त्वरित रेटिंग अन्य राइडर्स को ऐप ढूँढने में मदद करती है।",
+    "softAskYes": "बहुत पसंद है",
+    "softAskNo": "ज़्यादा नहीं",
+    "feedbackTitle": "हमें बेहतर बनाने में मदद करें",
+    "feedbackBody": "बताएँ क्या ठीक नहीं है — हम हर संदेश पढ़ते हैं।",
+    "feedbackYes": "फ़ीडबैक भेजें",
+    "feedbackNo": "अभी नहीं",
+    "feedbackSubject": "MotoVault फ़ीडबैक"
   }
 }

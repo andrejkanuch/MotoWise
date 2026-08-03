@@ -2434,5 +2434,16 @@
     "battery": "Batéria",
     "general_service": "Všeobecný servis",
     "other": "Iné"
+  },
+  "review": {
+    "softAskTitle": "Páči sa ti MotoVault?",
+    "softAskBody": "Krátke hodnotenie pomôže ďalším motorkárom nájsť aplikáciu.",
+    "softAskYes": "Milujem to",
+    "softAskNo": "Nie celkom",
+    "feedbackTitle": "Pomôž nám zlepšiť sa",
+    "feedbackBody": "Napíš, čo nefunguje — čítame každú správu.",
+    "feedbackYes": "Poslať spätnú väzbu",
+    "feedbackNo": "Teraz nie",
+    "feedbackSubject": "Spätná väzba MotoVault"
   }
 }
