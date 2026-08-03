@@ -277,7 +277,7 @@ describe('ordering hardening (MOT-262)', () => {
 });
 
 describe('redriveDeadLetterQueue (MOT-262)', () => {
-  it('moves dead-lettered ops back to the queue (retries reset) sorted by seq', () => {
+  it('moves dead-lettered ops back to the queue (retries reset) sorted by seq', async () => {
     mockSyncStore.set(
       'sync.dead_letter',
       JSON.stringify([
@@ -288,7 +288,7 @@ describe('redriveDeadLetterQueue (MOT-262)', () => {
     // Offline so the trailing drain is a no-op and the redriven queue is observable.
     mockGetNetworkStateAsync.mockResolvedValue(OFFLINE);
 
-    redriveDeadLetterQueue();
+    await redriveDeadLetterQueue();
 
     expect(getDeadLetterCount()).toBe(0);
     expect(queue().map((o) => o.type)).toEqual(['startRide', 'endRide']);
@@ -402,8 +402,10 @@ describe('pending work counts BOTH stores', () => {
 
     clearDeliveredQueue(); // the sign-out path
     mockGqlFetcher.mockReset().mockResolvedValue({});
-    redriveDeadLetterQueue();
-    await drainQueue();
+    // Await the redrive's own drain. A second `drainQueue()` would return
+    // immediately (`isDraining` is already held), so delivery would be asserted
+    // on microtask ordering rather than on the drain actually finishing.
+    await redriveDeadLetterQueue();
 
     expect(getDeadLetterCount()).toBe(0);
     expect(mockGqlFetcher).toHaveBeenCalled();

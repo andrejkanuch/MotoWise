@@ -300,16 +300,20 @@ export function hasPendingSyncWork(): boolean {
  * Move every dead-lettered op back into the main queue (retries reset) and drain.
  * Used by the "rides failed to sync — retry" affordance. Ops are re-sorted by seq
  * so a redrive preserves the original ordering.
+ *
+ * Returns the drain promise so a caller can await actual delivery. Awaiting a
+ * *second* `drainQueue()` instead would resolve immediately — this drain already
+ * holds `isDraining` — so the returned promise is the only reliable signal.
  */
-export function redriveDeadLetterQueue(): void {
+export function redriveDeadLetterQueue(): Promise<void> {
   const dlq = getDeadLetterQueue();
-  if (dlq.length === 0) return;
+  if (dlq.length === 0) return Promise.resolve();
   const merged = [...getQueue(), ...dlq.map((op) => ({ ...op, retries: 0 }))].sort(
     (a, b) => a.seq - b.seq,
   );
   setQueue(merged);
   syncStorage.remove(DEAD_LETTER_KEY);
-  void drainQueue();
+  return drainQueue();
 }
 
 export function clearDeadLetterQueue(): void {
