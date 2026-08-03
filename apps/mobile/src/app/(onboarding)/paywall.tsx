@@ -136,6 +136,14 @@ export default function PaywallScreen() {
       // substituted into paywall text.
       await setOnboardingAttributes(personalization);
 
+      // The escape hatch races this whole async path, so re-check before the one
+      // step with a *visible* side effect. An RC init/offering stall can outlast
+      // ESCAPE_HATCH_DELAY_MS — that stall is precisely why the hatch exists — so
+      // the rider may already be a screen further on. Presenting now would drop a
+      // native modal over the next onboarding step. A purchase is not lost by
+      // skipping it: the RevenueCat listener reconciles entitlements on launch.
+      if (advanced.current) return;
+
       // Paywall copy is personalized via custom variables ({{ custom.* }}) — the
       // same answers are passed through `personalization` here.
       const result = await presentPaywall({
@@ -146,6 +154,11 @@ export default function PaywallScreen() {
         feature: 'subscription',
         surface: 'onboarding_paywall',
       });
+
+      // Same race, other side: the rider escaped while the modal was up. The step
+      // is already recorded as SKIPPED, and a terminal event per step is what the
+      // funnel counts — emitting COMPLETED too would double-count the paywall.
+      if (advanced.current) return;
 
       trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.PAYWALL, {
         paywall_result: result,
@@ -162,7 +175,9 @@ export default function PaywallScreen() {
       // should be unreachable. It exists because the cost of being wrong is a
       // permanent lockout: an unhandled rejection here would skip `advanceOnce()`
       // and strand the rider on a bare spinner with no Back and no gesture.
+      // Reported unconditionally — an escaped rider does not make the crash less real.
       captureException(err, { screen: OB_SCREEN.PAYWALL });
+      if (advanced.current) return;
       trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.PAYWALL, {
         paywall_result: 'presentation_failed',
         goals: goalsJoined,
