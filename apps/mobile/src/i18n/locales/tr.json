@@ -1845,7 +1845,7 @@
     "notesLabel": "Notlar",
     "modeShowcase": "Already rode it",
     "modePlanning": "Planning",
-    "dayHeaderShort": "Day {{day}}",
+    "dayHeaderShort": "{{day}}. Gün",
     "defaultStopName": "Durak {{number}}",
     "moveToDayTitle": "Güne Taşı",
     "selectDayForStop": "Bu durak için bir gün seçin",

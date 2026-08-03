@@ -1847,7 +1847,7 @@
     "notesLabel": "Poznámky",
     "modeShowcase": "Already rode it",
     "modePlanning": "Planning",
-    "dayHeaderShort": "Day {{day}}",
+    "dayHeaderShort": "Deň {{day}}",
     "defaultStopName": "Zastávka {{number}}",
     "moveToDayTitle": "Presunúť na deň",
     "selectDayForStop": "Vyberte deň pre túto zastávku",

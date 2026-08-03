@@ -1846,7 +1846,7 @@
     "notesLabel": "Notas",
     "modeShowcase": "Already rode it",
     "modePlanning": "Planning",
-    "dayHeaderShort": "Day {{day}}",
+    "dayHeaderShort": "Día {{day}}",
     "defaultStopName": "Parada {{number}}",
     "moveToDayTitle": "Mover al día",
     "selectDayForStop": "Selecciona un día para esta parada",

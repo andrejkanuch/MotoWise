@@ -52,14 +52,16 @@ if [ -z "$BASE" ] && git rev-parse --verify main >/dev/null 2>&1; then
 fi
 
 if [ -z "$BASE" ]; then
-  echo "check-no-hardcoded-mobile-colors: no merge-base with origin/main or main — skipping ratchet."
-  exit 0
+  echo "ERROR: no merge-base with origin/main or main — cannot run the color ratchet."
+  echo "       Fetch the base branch first (e.g. \`git fetch origin main\`);"
+  echo "       CI must not silently skip this gate on a shallow checkout."
+  exit 1
 fi
 
 # Paths relative to repo root; exclude allowlisted + foundation (already checked).
 CHANGED=$(
   git diff --name-only --diff-filter=AMRC "$BASE...HEAD" -- apps/mobile/src \
-    | grep -E '\.(ts|tsx|js|jsx)$' \
+    | grep -E '\.(ts|tsx|js|jsx|json|css)$' \
     | grep -vE '\.(test|d)\.(ts|tsx|js|jsx)$|/__tests__/|/__mocks__/|/mocks/' \
     | grep -vE '^apps/mobile/src/config/brand-dna\.ts$' \
     | grep -vE '^apps/mobile/src/components/diagnostic-flow/diagnostic-colors\.ts$' \

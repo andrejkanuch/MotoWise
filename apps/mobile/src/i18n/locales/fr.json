@@ -1846,7 +1846,7 @@
     "notesLabel": "Notes",
     "modeShowcase": "Already rode it",
     "modePlanning": "Planning",
-    "dayHeaderShort": "Day {{day}}",
+    "dayHeaderShort": "Jour {{day}}",
     "defaultStopName": "Arrêt {{number}}",
     "moveToDayTitle": "Déplacer vers un jour",
     "selectDayForStop": "Sélectionnez un jour pour cet arrêt",

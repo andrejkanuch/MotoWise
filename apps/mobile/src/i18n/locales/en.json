@@ -1855,7 +1855,7 @@
     "defaultStopName": "Stop {{number}}",
     "moveToDayTitle": "Move to Day",
     "selectDayForStop": "Select a day for this stop",
-    "addDayA11y": "Add another day to trip"
+    "addDayA11y": "Add another day to the trip"
   },
   "groupRide": {
     "titleLabel": "Title",

@@ -1845,7 +1845,7 @@
     "notesLabel": "Notizen",
     "modeShowcase": "Already rode it",
     "modePlanning": "Planning",
-    "dayHeaderShort": "Day {{day}}",
+    "dayHeaderShort": "Tag {{day}}",
     "defaultStopName": "Stopp {{number}}",
     "moveToDayTitle": "Zu Tag verschieben",
     "selectDayForStop": "Wähle einen Tag für diesen Stopp",

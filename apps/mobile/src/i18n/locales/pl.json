@@ -1847,7 +1847,7 @@
     "notesLabel": "Notatki",
     "modeShowcase": "Already rode it",
     "modePlanning": "Planning",
-    "dayHeaderShort": "Day {{day}}",
+    "dayHeaderShort": "Dzień {{day}}",
     "defaultStopName": "Przystanek {{number}}",
     "moveToDayTitle": "Przenieś do dnia",
     "selectDayForStop": "Wybierz dzień dla tego przystanku",

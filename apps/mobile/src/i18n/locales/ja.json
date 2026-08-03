@@ -1845,7 +1845,7 @@
     "notesLabel": "メモ",
     "modeShowcase": "Already rode it",
     "modePlanning": "Planning",
-    "dayHeaderShort": "Day {{day}}",
+    "dayHeaderShort": "{{day}}日目",
     "defaultStopName": "スポット {{number}}",
     "moveToDayTitle": "日を移動",
     "selectDayForStop": "このスポットの日を選択",
