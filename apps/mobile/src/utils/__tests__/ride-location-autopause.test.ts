@@ -92,7 +92,12 @@ describe('decideAutoPause', () => {
       forgotToStopNotified: false,
     };
     const d = decideAutoPause(state, { rawSpeed: 0, pos: POS }, 'stopped', NOW);
-    expect(d.effects).toEqual([{ kind: 'notifyForgotToStop' }]);
+    // The persisted flag ships alongside the notification so the CarPlay panel can
+    // show the prompt too — the notification alone is easy to miss on a bike.
+    expect(d.effects).toEqual([
+      { kind: 'notifyForgotToStop' },
+      { kind: 'setForgotToStopPending', value: true },
+    ]);
     expect(d.next.forgotToStopNotified).toBe(true);
   });
 
@@ -128,9 +133,12 @@ describe('decideAutoPause', () => {
       forgotToStopNotified: true,
     };
     const d = decideAutoPause(state, { rawSpeed: 10, pos: POS }, 'stopped', NOW);
+    // Moving again answers "still riding?" — the flag must clear, or CarPlay keeps
+    // prompting a rider who is demonstrably still going.
     expect(d.effects).toEqual([
       { kind: 'addAutoPausedMs', ms: 90_000 },
       { kind: 'setSubState', value: 'moving' },
+      { kind: 'setForgotToStopPending', value: false },
     ]);
     expect(d.next).toEqual(FRESH); // all timers cleared
   });

@@ -15,6 +15,26 @@ jest.mock('../../../../modules/carplay/src', () => ({
   popBikeList: jest.fn(),
 }));
 
+// The coordinator reads the forgot-to-stop flag straight from MMKV (the background
+// location task writes it with no React tree mounted), which pulls the native
+// react-native-mmkv module into this test's import graph. Stub the store so the
+// flag is settable per test.
+const mockRideStorage = new Map<string, string | number | boolean>();
+jest.mock('react-native-mmkv', () => ({
+  createMMKV: () => ({
+    getString: (k: string) =>
+      typeof mockRideStorage.get(k) === 'string' ? mockRideStorage.get(k) : undefined,
+    getNumber: (k: string) =>
+      typeof mockRideStorage.get(k) === 'number' ? mockRideStorage.get(k) : undefined,
+    getBoolean: (k: string) =>
+      typeof mockRideStorage.get(k) === 'boolean' ? mockRideStorage.get(k) : undefined,
+    set: (k: string, v: string | number | boolean) => mockRideStorage.set(k, v),
+    remove: (k: string) => mockRideStorage.delete(k),
+    contains: (k: string) => mockRideStorage.has(k),
+    getAllKeys: () => [...mockRideStorage.keys()],
+  }),
+}));
+
 // Bike-status data seam (coordinator loads the active bike + tasks outside React).
 jest.mock('../../../lib/graphql-client', () => ({ gqlFetcher: jest.fn() }));
 jest.mock('../../../lib/query-client', () => ({ queryClient: { getQueryData: jest.fn() } }));

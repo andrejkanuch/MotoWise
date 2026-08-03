@@ -34,6 +34,7 @@ import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { useCarPlayStore } from '../../stores/carplay.store';
 import { useRideStore } from '../../stores/ride.store';
+import { rideMMKV } from '../../utils/ride-storage';
 import {
   buildRideSummaryHref,
   elapsedRideSeconds,
@@ -140,6 +141,9 @@ function currentRideInput(): RideInput {
     // TODO(carplay): replace with a real GPS-lock signal (parent open question).
     // Proxy: treat the ride as locked once any distance/time has accrued.
     gpsLocked: r.distance > 0 || elapsed > 3,
+    // Read from MMKV, not the store: the flag is written by the background location
+    // task, which can run with no React tree mounted (screen locked, CarPlay only).
+    forgotToStopPending: rideMMKV.getForgotToStopPending(),
     startMode: useCarPlayStore.getState().startMode,
     // Heads-up row inputs — populated from the cached bike/task snapshot (U3). Defaults
     // are the safe "no signal" state so the picker falls back to the climb row.

@@ -142,6 +142,8 @@ export type AutoPauseEffect =
   | { kind: 'updateSpeedZero' }
   | { kind: 'addAutoPausedMs'; ms: number }
   | { kind: 'notifyForgotToStop' }
+  /** Persist/clear the "probably forgot to stop" flag for other surfaces (CarPlay). */
+  | { kind: 'setForgotToStopPending'; value: boolean }
   | { kind: 'autoEnd'; idleSince: number };
 
 export interface AutoPauseDecision {
@@ -181,6 +183,11 @@ export function decideAutoPause(
             { kind: 'setSubState', value: 'moving' },
           ]
         : [];
+    // Moving again answers the "still riding?" question — clear the flag so the
+    // CarPlay panel drops the prompt without waiting for a notification tap.
+    if (state.forgotToStopNotified) {
+      effects.push({ kind: 'setForgotToStopPending', value: false });
+    }
     next.zeroSpeedTimer = null;
     next.zeroSpeedAnchor = null;
     next.continuousAutoPauseStart = null;
@@ -225,7 +232,7 @@ export function decideAutoPause(
   }
   if (stoppedFor > FORGOT_TO_STOP_NOTIFY_MS && !next.forgotToStopNotified) {
     next.forgotToStopNotified = true;
-    effects.push({ kind: 'notifyForgotToStop' });
+    effects.push({ kind: 'notifyForgotToStop' }, { kind: 'setForgotToStopPending', value: true });
   }
   return { next, effects, abort: false };
 }
@@ -243,6 +250,7 @@ const AUTO_PAUSE_EFFECT_HANDLERS: AutoPauseEffectHandlers = {
   notifyForgotToStop: () => {
     void showForgotToStopNotification();
   },
+  setForgotToStopPending: (e) => rideMMKV.setForgotToStopPending(e.value),
   autoEnd: (e) => autoEndRide(e.idleSince),
 };
 
@@ -463,4 +471,7 @@ function resetAutoPauseState(): void {
   zeroSpeedAnchor = null;
   continuousAutoPauseStart = null;
   forgotToStopNotified = false;
+  // Persisted flag must die with the session too, or the next ride's CarPlay panel
+  // opens already showing "STILL RIDING?" from a previous ride's stop.
+  rideMMKV.setForgotToStopPending(false);
 }

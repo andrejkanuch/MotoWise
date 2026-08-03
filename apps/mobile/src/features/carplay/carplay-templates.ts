@@ -44,6 +44,12 @@ export interface PanelSnapshot {
   /** The single self-prioritizing row-4 shown while riding (see pickHeadsUp). */
   headsUp: HeadsUpRow;
   startMode: StartMode;
+  /**
+   * The ride has been stationary long enough that the rider probably forgot to stop
+   * it. Surfaced in the title so a glance at the CarPlay screen is enough — the
+   * phone notification is easy to miss on a bike, and Stop is already on this panel.
+   */
+  forgotToStopPending: boolean;
 }
 
 export interface RideInput {
@@ -59,6 +65,8 @@ export interface RideInput {
   speed: number;
   /** TODO(carplay): real GPS-lock signal (parent open question). */
   gpsLocked: boolean;
+  /** Mirrors `rideMMKV.getForgotToStopPending()` — set by the auto-pause machine. */
+  forgotToStopPending?: boolean;
   startMode: StartMode;
   /** Open-recall count for the active bike (0 when none / unknown). Drives the heads-up row. */
   recallCount: number;
@@ -193,6 +201,11 @@ const STATE_WORD: Record<CarPlayPanelState, string> = {
 // Title shown while a Stop is armed and awaiting confirmation (R17 stop guard).
 const STOP_CONFIRM_TITLE = 'STOP RIDE?';
 
+// Title shown when the ride looks forgotten. Ranks BELOW the stop-confirm title:
+// an armed Stop is an in-progress rider action and must never be overwritten by an
+// advisory prompt.
+const FORGOT_TO_STOP_TITLE = 'STILL RIDING?';
+
 const MODE_LABEL: Record<StartMode, string> = {
   automatic: 'Automatic',
   manual: 'Manual',
@@ -242,6 +255,8 @@ export function deriveSnapshot(input: RideInput, system: MeasurementSystem): Pan
         )
       : { title: HEADS_UP_LABEL.climb, detail: climb },
     startMode: input.startMode,
+    // Only meaningful for a live ride — an idle panel must never prompt.
+    forgotToStopPending: live && input.forgotToStopPending === true,
   };
 }
 
@@ -283,7 +298,12 @@ export function buildPanelItems(s: PanelSnapshot, stopArmed = false): CPInformat
     };
   }
   return {
-    title: STATE_WORD[s.state],
+    // Forgotten-ride prompt replaces the state word (which would read "AUTO-PAUSED"
+    // — indistinguishable from a traffic light). Actions are left untouched: Stop and
+    // Resume are already on the panel, so the title is the whole change needed, and
+    // swapping the action set on an advisory would move controls under the rider's
+    // thumb mid-glance.
+    title: s.forgotToStopPending ? FORGOT_TO_STOP_TITLE : STATE_WORD[s.state],
     items,
     actions: buildActions(s.state, s.startMode),
     headerActions: RIDE_HEADER_ACTIONS,

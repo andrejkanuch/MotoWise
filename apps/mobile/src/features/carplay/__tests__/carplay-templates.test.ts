@@ -253,3 +253,39 @@ describe('buildActions', () => {
     expect(buildActions('idle', 'automatic')).toEqual([]);
   });
 });
+
+describe('forgot-to-stop prompt (CarPlay title)', () => {
+  const stopped: RideInput = { ...base, recordingSubState: 'stopped', speed: 0 };
+
+  it('replaces the state word so a glance is enough', () => {
+    // Without this the title reads AUTO-PAUSED — indistinguishable from a traffic
+    // light. The phone notification is easy to miss on a bike, so the panel the
+    // rider is already looking at has to carry the prompt.
+    const snap = deriveSnapshot({ ...stopped, forgotToStopPending: true }, 'metric');
+    expect(snap.forgotToStopPending).toBe(true);
+    expect(buildPanelItems(snap).title).toBe('STILL RIDING?');
+  });
+
+  it('leaves the normal state word alone when the ride looks healthy', () => {
+    expect(buildPanelItems(deriveSnapshot(stopped, 'metric')).title).toBe('AUTO-PAUSED');
+    expect(buildPanelItems(deriveSnapshot(base, 'metric')).title).toBe('RECORDING');
+  });
+
+  it('never prompts on an idle panel, even if the flag is stale', () => {
+    // A leftover flag from a previous ride must not greet the rider with
+    // "STILL RIDING?" before they have started one.
+    const snap = deriveSnapshot({ ...base, status: 'idle', forgotToStopPending: true }, 'metric');
+    expect(snap.forgotToStopPending).toBe(false);
+    expect(buildPanelItems(snap).title).toBe('READY');
+  });
+
+  it('yields to an armed Stop — a rider action outranks an advisory', () => {
+    const snap = deriveSnapshot({ ...stopped, forgotToStopPending: true }, 'metric');
+    expect(buildPanelItems(snap, true).title).toBe('STOP RIDE?');
+  });
+
+  it('keeps Resume + Stop available so the prompt is actionable', () => {
+    const snap = deriveSnapshot({ ...stopped, forgotToStopPending: true }, 'metric');
+    expect(buildPanelItems(snap).actions?.map((a) => a.id)).toEqual(['resume', 'stop']);
+  });
+});
