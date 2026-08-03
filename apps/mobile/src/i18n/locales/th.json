@@ -1845,7 +1845,11 @@
     "exportGpx": "Export GPX",
     "modeShowcase": "Already rode it",
     "modePlanning": "Planning",
-    "dayHeaderShort": "Day {{day}}"
+    "dayHeaderShort": "วันที่ {{day}}",
+    "defaultStopName": "จุดแวะ {{number}}",
+    "moveToDayTitle": "ย้ายไปยังวัน",
+    "selectDayForStop": "เลือกวันสำหรับจุดแวะนี้",
+    "addDayA11y": "เพิ่มอีกวันในทริป"
   },
   "groupRide": {
     "titleLabel": "ชื่อ",

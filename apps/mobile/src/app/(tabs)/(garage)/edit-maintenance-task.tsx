@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { useHydratedFormState } from '../../../hooks/use-hydrated-form-state';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -62,7 +63,6 @@ export default function EditMaintenanceTaskScreen() {
   const [targetMileage, setTargetMileage] = useState('');
   const [priority, setPriority] = useState<MaintenancePriority>('medium' as MaintenancePriority);
   const [notes, setNotes] = useState('');
-  const [hydrated, setHydrated] = useState(false);
   const [saved, setSaved] = useState(false);
   const backTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -76,18 +76,16 @@ export default function EditMaintenanceTaskScreen() {
   );
 
   // Hydrate form state once, the moment the task is available in cache.
-  useEffect(() => {
-    if (!task || hydrated) return;
-    setTitle(task.title ?? '');
-    setDescription(task.description ?? '');
+  useHydratedFormState(task, (item) => {
+    setTitle(item.title ?? '');
+    setDescription(item.description ?? '');
     // Parse the stored YYYY-MM-DD as local midnight so it round-trips through
     // toISODateInput (date-fns `format`, local tz) without drifting a day.
-    setDueDate(task.dueDate ? new Date(`${task.dueDate}T00:00:00`) : null);
-    setTargetMileage(task.targetMileage ? String(task.targetMileage) : '');
-    setPriority((task.priority ?? 'medium') as MaintenancePriority);
-    setNotes(task.notes ?? '');
-    setHydrated(true);
-  }, [task, hydrated]);
+    setDueDate(item.dueDate ? new Date(`${item.dueDate}T00:00:00`) : null);
+    setTargetMileage(item.targetMileage ? String(item.targetMileage) : '');
+    setPriority((item.priority ?? 'medium') as MaintenancePriority);
+    setNotes(item.notes ?? '');
+  });
 
   const updateMutation = useMutation({
     mutationFn: () =>

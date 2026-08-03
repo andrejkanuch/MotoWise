@@ -1,46 +1,46 @@
-import { palette } from '@motovault/design-system';
+import { palette, withAlpha } from '@motovault/design-system';
 import { useColorScheme } from 'react-native';
 
 const darkColors = {
-  background: palette.surfaceDark, // #0F172A
-  cardBg: 'rgba(255,255,255,0.06)',
-  cardBgSelected: 'rgba(255,255,255,0.12)',
-  cardBorder: 'rgba(255,255,255,0.10)',
-  cardBorderSelected: palette.indigo400, // #818CF8
+  background: palette.surfaceDark,
+  cardBg: palette.whiteAlpha06,
+  cardBgSelected: palette.whiteAlpha12,
+  cardBorder: palette.whiteAlpha10,
+  cardBorderSelected: palette.indigo400,
   accent: palette.indigo400,
-  accentBg: palette.indigoBg, // rgba(99,102,241,0.15)
-  textPrimary: '#FFFFFF',
-  textSecondary: 'rgba(255,255,255,0.7)',
-  textMuted: 'rgba(255,255,255,0.60)',
-  disabledBg: 'rgba(255,255,255,0.08)',
-  switchTrackFalse: 'rgba(255,255,255,0.1)',
-  dontKnowBorderSelected: 'rgba(255,255,255,0.3)',
-  dontKnowBorder: 'rgba(255,255,255,0.15)',
-  progressTrack: 'rgba(255,255,255,0.06)',
-  gradientStart: 'rgba(15,23,42,0)',
-  gradientEnd: 'rgba(15,23,42,1)',
-  submittingBg: 'rgba(129,140,248,0.7)',
+  accentBg: palette.indigoBg,
+  textPrimary: palette.whitePure,
+  textSecondary: palette.whiteAlpha70,
+  textMuted: palette.whiteAlpha60,
+  disabledBg: palette.whiteAlpha08,
+  switchTrackFalse: palette.whiteAlpha10,
+  dontKnowBorderSelected: palette.whiteAlpha30,
+  dontKnowBorder: palette.whiteAlpha15,
+  progressTrack: palette.whiteAlpha06,
+  gradientStart: withAlpha(palette.surfaceDark, 0),
+  gradientEnd: palette.surfaceDark,
+  submittingBg: withAlpha(palette.indigo400, 0.7),
 } as const;
 
 const lightColors = {
-  background: palette.white, // #ffffff
-  cardBg: 'rgba(0,0,0,0.03)',
-  cardBgSelected: 'rgba(99,102,241,0.08)',
-  cardBorder: 'rgba(0,0,0,0.08)',
-  cardBorderSelected: palette.indigo500, // #6366F1
+  background: palette.white,
+  cardBg: palette.blackAlpha03,
+  cardBgSelected: withAlpha(palette.indigo500, 0.08),
+  cardBorder: palette.blackAlpha08,
+  cardBorderSelected: palette.indigo500,
   accent: palette.indigo500,
-  accentBg: 'rgba(99,102,241,0.10)',
-  textPrimary: palette.neutral950, // #0a0a0a
-  textSecondary: palette.neutral600, // #525252
-  textMuted: palette.neutral400, // #a3a3a3
-  disabledBg: 'rgba(0,0,0,0.05)',
-  switchTrackFalse: 'rgba(0,0,0,0.1)',
-  dontKnowBorderSelected: 'rgba(0,0,0,0.2)',
-  dontKnowBorder: 'rgba(0,0,0,0.12)',
-  progressTrack: 'rgba(0,0,0,0.06)',
-  gradientStart: 'rgba(255,255,255,0)',
-  gradientEnd: 'rgba(255,255,255,1)',
-  submittingBg: 'rgba(99,102,241,0.5)',
+  accentBg: withAlpha(palette.indigo500, 0.1),
+  textPrimary: palette.neutral950,
+  textSecondary: palette.neutral600,
+  textMuted: palette.neutral400,
+  disabledBg: palette.blackAlpha05,
+  switchTrackFalse: palette.blackAlpha10,
+  dontKnowBorderSelected: palette.blackAlpha20,
+  dontKnowBorder: palette.blackAlpha12,
+  progressTrack: palette.blackAlpha06,
+  gradientStart: withAlpha(palette.whitePure, 0),
+  gradientEnd: palette.whitePure,
+  submittingBg: withAlpha(palette.indigo500, 0.5),
 } as const;
 
 export type DiagnosticColors = { [K in keyof typeof darkColors]: string };

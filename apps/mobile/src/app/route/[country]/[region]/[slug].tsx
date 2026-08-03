@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { gqlFetcher } from '../../../../lib/graphql-client';
+import { queryKeys } from '../../../../lib/query-keys';
 
 /**
  * Universal link: https://motovault.app/route/:country/:region/:slug
@@ -26,7 +27,7 @@ export default function RouteSlugDeepLinkScreen() {
   const s = typeof slug === 'string' ? slug : Array.isArray(slug) ? slug[0] : '';
 
   const { data, isError, isLoading } = useQuery({
-    queryKey: ['trip-by-slug-deeplink', c, r, s],
+    queryKey: queryKeys.trips.bySlugDeeplink(c, r, s),
     queryFn: () => gqlFetcher(TripBySlugDocument, { country: c, region: r, slug: s }),
     enabled: Boolean(c && r && s),
   });

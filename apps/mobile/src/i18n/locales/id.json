@@ -1845,7 +1845,11 @@
     "notesLabel": "Catatan",
     "modeShowcase": "Already rode it",
     "modePlanning": "Planning",
-    "dayHeaderShort": "Day {{day}}"
+    "dayHeaderShort": "Hari {{day}}",
+    "defaultStopName": "Perhentian {{number}}",
+    "moveToDayTitle": "Pindahkan ke Hari",
+    "selectDayForStop": "Pilih hari untuk perhentian ini",
+    "addDayA11y": "Tambahkan hari lain ke perjalanan"
   },
   "groupRide": {
     "titleLabel": "Judul",

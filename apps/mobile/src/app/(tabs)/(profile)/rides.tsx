@@ -7,7 +7,7 @@ import {
   type RideOverviewQuery,
 } from '@motovault/graphql';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { type Href, useFocusEffect, useRouter } from 'expo-router';
 import { ArrowLeft, Route } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -297,10 +297,9 @@ export default function RidesScreen() {
       // `source` attributes the ride_viewed back to this tab so we can build a
       // My-Rides → ride-detail tap-through funnel.
       router.push({
-        pathname: '/(modals)/ride-detail' as const,
+        pathname: '/(modals)/ride-detail',
         params: { rideId, source: 'my_rides_tab', listIndex: String(listIndex) },
-        // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-      } as any);
+      } as Href);
     },
     [router],
   );

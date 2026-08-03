@@ -1,3 +1,5 @@
+import { palette } from '@motovault/design-system';
+
 /**
  * Brand DNA — static metadata for popular motorcycle makes.
  * Service intervals are manufacturer-recommended defaults (public spec data).
@@ -146,8 +148,11 @@ export function getBrandDna(makeName: string): BrandInfo | null {
   return BRAND_DNA[makeName] ?? BRAND_DNA[normalized] ?? null;
 }
 
-/** Get brand color — falls back to warm accent */
-export function getBrandColor(makeName: string, fallback = '#D4884A'): string {
+/** Get brand color — falls back to editorial warm copper */
+export function getBrandColor(
+  makeName: string,
+  fallback: string = palette.editorialDarkWarm,
+): string {
   const normalized = normalizeMakeName(makeName);
   return MAKE_COLORS[makeName] ?? MAKE_COLORS[normalized] ?? fallback;
 }
