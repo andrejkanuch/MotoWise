@@ -35,11 +35,14 @@ jest.mock('../../lib/analytics', () => ({ captureException: jest.fn() }));
 import { captureException } from '../../lib/analytics';
 import {
   clearAll,
+  clearDeliveredQueue,
   drainQueue,
   enqueue,
   enqueueOrExecute,
   getDeadLetterCount,
+  getPendingCount,
   getQueueLength,
+  hasPendingSyncWork,
   redriveDeadLetterQueue,
   setDeadLetterListener,
 } from '../ride-sync-queue';
@@ -290,5 +293,119 @@ describe('redriveDeadLetterQueue (MOT-262)', () => {
     expect(getDeadLetterCount()).toBe(0);
     expect(queue().map((o) => o.type)).toEqual(['startRide', 'endRide']);
     expect(queue().every((o) => o.retries === 0)).toBe(true);
+  });
+});
+
+describe('auth errors never destroy a recorded ride (MOTO-VAULT-REACT-NATIVE-1J)', () => {
+  it('does not dead-letter on UNAUTHENTICATED, no matter how many drains', async () => {
+    // The production bug: UNAUTHENTICATED fell into the retryable-server-error branch,
+    // burned all 5 retries in ~31s of backoff, then dead-lettered a fully recorded
+    // ride. Auth outages last minutes-to-hours, so no retry budget can outlast one.
+    enqueue('uploadWaypoints', { variables: { rideId: 'r1', waypoints: [] } });
+    mockGqlFetcher.mockRejectedValue(gqlError('UNAUTHENTICATED'));
+
+    // More drains than MAX_RETRIES (5), to prove the budget is never consumed.
+    for (let i = 0; i < 8; i++) await drainQueue();
+
+    expect(getDeadLetterCount()).toBe(0);
+    expect(getQueueLength()).toBe(1);
+  });
+
+  it('leaves retries untouched so a later auth-restored drain still has full budget', async () => {
+    enqueue('uploadWaypoints', { variables: { rideId: 'r1', waypoints: [] } });
+    mockGqlFetcher.mockRejectedValue(gqlError('UNAUTHENTICATED'));
+    await drainQueue();
+    await drainQueue();
+
+    expect(queue()[0].retries).toBe(0);
+  });
+
+  it('delivers the op once auth is restored', async () => {
+    enqueue('uploadWaypoints', { variables: { rideId: 'r1', waypoints: [] } });
+    mockGqlFetcher.mockRejectedValueOnce(gqlError('UNAUTHENTICATED'));
+    await drainQueue();
+    expect(getQueueLength()).toBe(1);
+
+    mockGqlFetcher.mockResolvedValue({});
+    await drainQueue();
+
+    expect(getQueueLength()).toBe(0);
+    expect(getDeadLetterCount()).toBe(0);
+  });
+
+  it('head-of-line blocks rather than delivering a later op out of order', async () => {
+    // Ordering matters: endRide reaching the server before its waypoints corrupts
+    // ride reconstruction. Blocking preserves the ride; "making progress" loses it.
+    enqueue('uploadWaypoints', { variables: { rideId: 'r1', waypoints: [] } });
+    enqueue('endRide', { variables: { rideId: 'r1' } });
+    mockGqlFetcher.mockRejectedValue(gqlError('UNAUTHENTICATED'));
+
+    await drainQueue();
+
+    expect(getQueueLength()).toBe(2);
+    expect(mockGqlFetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('still dead-letters a genuinely permanent error', async () => {
+    // The auth carve-out must not weaken the permanent-failure path.
+    enqueue('uploadWaypoints', { variables: { rideId: 'r1', waypoints: [] } });
+    mockGqlFetcher.mockRejectedValue(gqlError('BAD_REQUEST'));
+
+    await drainQueue();
+
+    expect(getDeadLetterCount()).toBe(1);
+    expect(getQueueLength()).toBe(0);
+  });
+});
+
+describe('pending work counts BOTH stores', () => {
+  it('counts dead-lettered ops as pending', async () => {
+    enqueue('uploadWaypoints', { variables: { rideId: 'r1', waypoints: [] } });
+    mockGqlFetcher.mockRejectedValue(gqlError('BAD_REQUEST'));
+    await drainQueue();
+
+    // The old guard read getQueueLength() — 0 here — and concluded it was safe to wipe.
+    expect(getQueueLength()).toBe(0);
+    expect(getDeadLetterCount()).toBe(1);
+    expect(getPendingCount()).toBe(1);
+    expect(hasPendingSyncWork()).toBe(true);
+  });
+
+  it('clearDeliveredQueue refuses to run while anything is dead-lettered', async () => {
+    // This is the data-loss fix made structural: even a caller with a wrong condition
+    // cannot destroy parked rides through this function.
+    enqueue('uploadWaypoints', { variables: { rideId: 'r1', waypoints: [] } });
+    mockGqlFetcher.mockRejectedValue(gqlError('BAD_REQUEST'));
+    await drainQueue();
+
+    clearDeliveredQueue();
+
+    expect(getDeadLetterCount()).toBe(1);
+    expect(deadLetter()).toHaveLength(1);
+  });
+
+  it('clearDeliveredQueue clears the queue when nothing is pending', async () => {
+    enqueue('uploadWaypoints', { variables: { rideId: 'r1', waypoints: [] } });
+    mockGqlFetcher.mockResolvedValue({});
+    await drainQueue();
+
+    clearDeliveredQueue();
+
+    expect(getQueueLength()).toBe(0);
+    expect(hasPendingSyncWork()).toBe(false);
+  });
+
+  it('a dead-lettered ride survives and can still be redriven', async () => {
+    enqueue('uploadWaypoints', { variables: { rideId: 'r1', waypoints: [] } });
+    mockGqlFetcher.mockRejectedValue(gqlError('BAD_REQUEST'));
+    await drainQueue();
+
+    clearDeliveredQueue(); // the sign-out path
+    mockGqlFetcher.mockReset().mockResolvedValue({});
+    redriveDeadLetterQueue();
+    await drainQueue();
+
+    expect(getDeadLetterCount()).toBe(0);
+    expect(mockGqlFetcher).toHaveBeenCalled();
   });
 });

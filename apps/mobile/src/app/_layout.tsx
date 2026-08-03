@@ -125,9 +125,10 @@ import { useSubscriptionStore } from '../stores/subscription.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
 import { rideMMKV } from '../utils/ride-storage';
 import {
-  clearAll as clearSyncQueue,
+  clearDeliveredQueue,
   drainQueue,
-  getQueueLength,
+  getPendingCount,
+  hasPendingSyncWork,
   redriveDeadLetterQueue,
   setDeadLetterListener,
 } from '../utils/ride-sync-queue';
@@ -470,6 +471,13 @@ function RootLayout() {
           // Skipped on TOKEN_REFRESHED/USER_UPDATED for the same id. (todo 191)
           identifyUser(sessionUserId);
         }
+        // A session just became available — drain immediately. The sync queue now
+        // head-of-line blocks on UNAUTHENTICATED instead of dead-lettering, so
+        // "auth restored" is a real recovery signal, and it was the one trigger
+        // missing: the others (mount, app resume, connectivity restore) can all be
+        // hours away from the moment the token comes back. Fires on SIGNED_IN and
+        // TOKEN_REFRESHED alike, which is exactly when a blocked queue can proceed.
+        drainQueue();
       } else {
         if (decision.shouldResetUser) {
           // Reset only when we PREVIOUSLY had a user in this app session. On a
@@ -494,18 +502,25 @@ function RootLayout() {
           // restored instead of silently vanishing. (Edge case: a different user
           // signing in inherits these; the backend rejects cross-owner ops, which
           // the queue dead-letters + surfaces.)
+          // `hasPendingSyncWork()`, NOT `getQueueLength()`. The old guard counted
+          // only the main queue, which is empty precisely when every op has already
+          // been dead-lettered — so the branch meant to PRESERVE unsynced rides
+          // instead ran `clearAll`, removing DEAD_LETTER_KEY and destroying them.
+          // Its warning never fired either, being gated on the same wrong counter.
+          // And `clearDeliveredQueue` can no longer touch the dead-letter queue even
+          // if this condition is ever wrong again.
           const activeRideId = rideMMKV.getCurrentId();
-          if (getQueueLength() === 0 && activeRideId == null) {
-            clearSyncQueue();
+          if (!hasPendingSyncWork() && activeRideId == null) {
+            clearDeliveredQueue();
           } else {
             // Intentional data-preservation path (a ride was active or ops were
-            // still queued when a null session was observed — server-forced OR
-            // user-initiated sign-out), not a crash — report as a warning so it's
-            // observable without sitting in the unresolved-error stream
-            // (MOTO-VAULT-REACT-NATIVE-27).
+            // still queued/dead-lettered when a null session was observed —
+            // server-forced OR user-initiated sign-out), not a crash — report as a
+            // warning so it's observable without sitting in the unresolved-error
+            // stream (MOTO-VAULT-REACT-NATIVE-27).
             captureMessage(SIGNOUT_UNSYNCED_MESSAGE, 'warning', {
               source: SIGNOUT_UNSYNCED_SOURCE,
-              queueLength: String(getQueueLength()),
+              pendingCount: String(getPendingCount()),
               hasActiveRide: String(activeRideId != null),
             });
           }
