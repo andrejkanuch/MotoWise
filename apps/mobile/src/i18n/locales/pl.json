@@ -1869,6 +1869,8 @@
     "cancelRide": "Anuluj przejazd"
   },
   "rideHud": {
+    "forgotToStopTitle": "Nadal jedziesz?",
+    "forgotToStopBody": "Stoisz już {{minutes}} minut. Dotknij, aby zakończyć trasę, lub jedź dalej.",
     "dist": "DYST",
     "time": "CZAS",
     "avg": "SR",

@@ -33,7 +33,11 @@ jest.mock('../ride-sync-queue', () => ({
 }));
 jest.mock('../../lib/analytics', () => ({ captureException: jest.fn() }));
 
-import { type AutoPauseState, decideAutoPause } from '../ride-location';
+import {
+  type AutoPauseState,
+  decideAutoPause,
+  forgotToStopNotificationContent,
+} from '../ride-location';
 
 const NOW = 1_700_000_000_000;
 const POS = { lat: 50, lng: 14 };
@@ -136,5 +140,37 @@ describe('decideAutoPause', () => {
     const d = decideAutoPause(state, { rawSpeed: 10, pos: POS }, 'moving', NOW);
     expect(d.effects).toEqual([]);
     expect(d.next).toEqual(FRESH);
+  });
+});
+
+describe('forgotToStopNotificationContent', () => {
+  it('carries the RIDE_IDLE kind and rideId so the tap is routable', () => {
+    // The bug this pins: the nudge used to ship with no `data` at all, so the tap
+    // handler in _layout hit its `if (!data?.taskId) return` guard and tapping the
+    // notification did nothing. The kind is what makes it routable, and the shape
+    // must match the server sweep's push so one handler branch covers both.
+    const content = forgotToStopNotificationContent('ride-123');
+
+    expect(content.data).toEqual({
+      kind: 'ride_idle',
+      rideId: 'ride-123',
+      autoEnded: false,
+    });
+  });
+
+  it('is still routable when no ride id is available', () => {
+    // A missing rideId must not drop the kind — the handler falls back to the live
+    // HUD, which is the correct destination for a ride that is still recording.
+    expect(forgotToStopNotificationContent(undefined).data).toMatchObject({
+      kind: 'ride_idle',
+      autoEnded: false,
+    });
+  });
+
+  it('interpolates the stopped-for duration from the configured threshold', () => {
+    // i18n is not initialized under jest, so t() returns the defaultValue — which is
+    // exactly what we want to assert: the fallback copy is interpolated, not literal.
+    expect(forgotToStopNotificationContent('r1', 15 * 60_000).body).toContain('15');
+    expect(forgotToStopNotificationContent('r1', 15 * 60_000).body).not.toContain('{{minutes}}');
   });
 });

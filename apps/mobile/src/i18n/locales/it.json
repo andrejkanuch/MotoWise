@@ -1868,6 +1868,8 @@
     "cancelRide": "Annulla il viaggio"
   },
   "rideHud": {
+    "forgotToStopTitle": "Ancora in viaggio?",
+    "forgotToStopBody": "Sei fermo da {{minutes}} minuti. Tocca per terminare il giro o continua.",
     "dist": "DIST",
     "time": "TMPO",
     "avg": "MED",

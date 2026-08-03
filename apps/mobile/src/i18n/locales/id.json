@@ -1867,6 +1867,8 @@
     "cancelRide": "Cancel Ride"
   },
   "rideHud": {
+    "forgotToStopTitle": "Masih berkendara?",
+    "forgotToStopBody": "Kamu berhenti selama {{minutes}} menit. Ketuk untuk mengakhiri atau lanjutkan.",
     "dist": "JARAK",
     "time": "WAKTU",
     "avg": "RATA",

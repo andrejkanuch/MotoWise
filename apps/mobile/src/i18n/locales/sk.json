@@ -1869,6 +1869,8 @@
     "cancelRide": "Zrušiť jazdu"
   },
   "rideHud": {
+    "forgotToStopTitle": "Stále na cestách?",
+    "forgotToStopBody": "Stojíš už {{minutes}} minút. Ťuknutím ukončíš jazdu, alebo pokračuj.",
     "dist": "VZDI",
     "time": "ČAS",
     "avg": "PRIE",

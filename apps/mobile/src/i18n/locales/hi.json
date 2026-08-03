@@ -1867,6 +1867,8 @@
     "cancelRide": "Cancel Ride"
   },
   "rideHud": {
+    "forgotToStopTitle": "अभी भी राइड पर हैं?",
+    "forgotToStopBody": "आप {{minutes}} मिनट से रुके हैं। राइड समाप्त करने के लिए टैप करें या चलते रहें।",
     "dist": "दूरी",
     "time": "समय",
     "avg": "औसत",

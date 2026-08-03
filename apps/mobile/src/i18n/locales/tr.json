@@ -1867,6 +1867,8 @@
     "cancelRide": "Cancel Ride"
   },
   "rideHud": {
+    "forgotToStopTitle": "Hâlâ yolda mısın?",
+    "forgotToStopBody": "{{minutes}} dakikadır duruyorsun. Bitirmek için dokun ya da devam et.",
     "dist": "MSFE",
     "time": "SURE",
     "avg": "ORT",

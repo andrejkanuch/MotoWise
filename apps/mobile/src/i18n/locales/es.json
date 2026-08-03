@@ -1868,6 +1868,8 @@
     "cancelRide": "Cancelar el viaje"
   },
   "rideHud": {
+    "forgotToStopTitle": "¿Sigues rodando?",
+    "forgotToStopBody": "Llevas {{minutes}} minutos detenido. Toca para finalizar la ruta o sigue.",
     "dist": "DIST",
     "time": "TIEM",
     "avg": "PROM",

@@ -3,7 +3,9 @@ import type { Waypoint } from '@motovault/types';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
+import i18n from '../i18n';
 import { captureException } from '../lib/analytics';
+import { NOTIFICATION_KIND } from '../lib/notifications';
 import { useRideStore } from '../stores/ride.store';
 import { haversineMeters } from './geo-utils';
 import { gpsFilter } from './ride-gps-filter';
@@ -420,12 +422,38 @@ function autoEndRide(idleSince: number): void {
   });
 }
 
+/**
+ * Content for the local "still riding?" nudge. Pure + exported so the payload can
+ * be asserted in tests — the `kind` is what makes the notification routable.
+ *
+ * `data.kind` matters: without it the tap handler in _layout fell through to its
+ * `if (!data?.taskId) return` guard, so tapping this notification did nothing at
+ * all. The shape mirrors the server sweep's push (@motovault/types
+ * NOTIFICATION_KIND.RIDE_IDLE) so a single handler branch covers both sources.
+ *
+ * Copy goes through i18n rather than being inlined: this is rider-facing text and
+ * the app ships 13 locales. `defaultValue` keeps the English wording if the key is
+ * ever missing from a bundle, matching the quick-actions pattern in _layout.
+ */
+export function forgotToStopNotificationContent(
+  rideId: string | undefined,
+  notifyAfterMs: number = FORGOT_TO_STOP_NOTIFY_MS,
+) {
+  const minutes = Math.round(notifyAfterMs / 60_000);
+  return {
+    title: i18n.t('rideHud.forgotToStopTitle', { defaultValue: 'Still riding?' }),
+    body: i18n.t('rideHud.forgotToStopBody', {
+      minutes,
+      defaultValue: `You've been stopped for ${minutes} minutes. Tap to end your ride or keep going.`,
+    }),
+    data: { kind: NOTIFICATION_KIND.RIDE_IDLE, rideId, autoEnded: false },
+  };
+}
+
+/** Fired once per continuous stop by `decideAutoPause`'s `notifyForgotToStop` effect. */
 async function showForgotToStopNotification(): Promise<void> {
   await Notifications.scheduleNotificationAsync({
-    content: {
-      title: 'Still riding?',
-      body: "You've been stopped for 10 minutes. Tap to end your ride or keep going.",
-    },
+    content: forgotToStopNotificationContent(rideMMKV.getCurrentId()),
     trigger: null,
   });
 }

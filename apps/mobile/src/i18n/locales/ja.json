@@ -1867,6 +1867,8 @@
     "cancelRide": "ライドをキャンセル"
   },
   "rideHud": {
+    "forgotToStopTitle": "まだ走行中ですか？",
+    "forgotToStopBody": "{{minutes}}分間停止しています。タップして終了、または走行を続けてください。",
     "dist": "距離",
     "time": "時間",
     "avg": "平均",
