@@ -2430,5 +2430,16 @@
     "battery": "Akumulator",
     "general_service": "Przegląd ogólny",
     "other": "Inne"
+  },
+  "review": {
+    "softAskTitle": "Podoba Ci się MotoVault?",
+    "softAskBody": "Krótka ocena pomaga innym motocyklistom znaleźć aplikację.",
+    "softAskYes": "Uwielbiam",
+    "softAskNo": "Niezbyt",
+    "feedbackTitle": "Pomóż nam ulepszyć",
+    "feedbackBody": "Napisz, co nie działa — czytamy każdą wiadomość.",
+    "feedbackYes": "Wyślij opinię",
+    "feedbackNo": "Nie teraz",
+    "feedbackSubject": "Opinia o MotoVault"
   }
 }

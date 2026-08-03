@@ -2424,5 +2424,16 @@
     "battery": "バッテリー",
     "general_service": "一般整備",
     "other": "その他"
+  },
+  "review": {
+    "softAskTitle": "MotoVaultはいかがですか？",
+    "softAskBody": "評価いただくと、他のライダーがアプリを見つけやすくなります。",
+    "softAskYes": "気に入っています",
+    "softAskNo": "あまり",
+    "feedbackTitle": "改善にご協力ください",
+    "feedbackBody": "うまくいかない点を教えてください。すべてのメッセージを読んでいます。",
+    "feedbackYes": "フィードバックを送る",
+    "feedbackNo": "今はしない",
+    "feedbackSubject": "MotoVault フィードバック"
   }
 }

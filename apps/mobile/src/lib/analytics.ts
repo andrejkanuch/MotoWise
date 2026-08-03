@@ -345,6 +345,10 @@ export const AnalyticsEvent = {
 
   // Store review
   REVIEW_PROMPTED: 'review_prompted',
+  REVIEW_SOFT_ASK_SHOWN: 'review_soft_ask_shown',
+  REVIEW_SOFT_ASK_POSITIVE: 'review_soft_ask_positive',
+  REVIEW_SOFT_ASK_NEGATIVE: 'review_soft_ask_negative',
+  REVIEW_FEEDBACK_OPENED: 'review_feedback_opened',
 
   // Feature usage — Learn
   ARTICLE_VIEWED: 'article_viewed',
