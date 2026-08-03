@@ -898,6 +898,7 @@
     "obAccountReassuranceFree": "ข้อมูลของคุณได้รับการสำรองและซิงค์",
     "obAccountHaveAccount": "มีบัญชีอยู่แล้ว? ลงชื่อเข้าใช้",
     "obAccountCreating": "กำลังสร้างบัญชีของคุณ…",
+    "obPaywallEscape": "ดำเนินการต่อโดยไม่ใช้ Pro",
     "obSignInTitle": "ยินดีต้อนรับกลับมา",
     "obSignInSubtitle": "ลงชื่อเข้าใช้เพื่อเข้าถึงโรงรถของคุณบนอุปกรณ์นี้",
     "obCommitSignHint": "ลงชื่อที่นี่",

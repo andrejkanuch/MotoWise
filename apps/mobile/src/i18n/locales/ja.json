@@ -898,6 +898,7 @@
     "obAccountReassuranceFree": "データはバックアップされ、同期されます。",
     "obAccountHaveAccount": "すでにアカウントをお持ちですか？ サインイン",
     "obAccountCreating": "アカウントを作成中…",
+    "obPaywallEscape": "Proなしで続ける",
     "obSignInTitle": "おかえりなさい",
     "obSignInSubtitle": "このデバイスでガレージにアクセスするにはサインインしてください。",
     "obCommitSignHint": "ここに署名",

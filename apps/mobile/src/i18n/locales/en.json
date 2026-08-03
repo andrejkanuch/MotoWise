@@ -898,6 +898,7 @@
     "obAccountReassuranceFree": "Your data is backed up and synced.",
     "obAccountHaveAccount": "Already have an account? Sign in",
     "obAccountCreating": "Creating your account…",
+    "obPaywallEscape": "Continue without Pro",
     "obSignInTitle": "Welcome back",
     "obSignInSubtitle": "Sign in to access your garage on this device.",
     "obCommitSignHint": "Sign your name",

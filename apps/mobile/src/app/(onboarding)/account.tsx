@@ -17,11 +17,16 @@ import {
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppleGlyph, GoogleGlyph } from '../../components/onboarding/oauth-glyphs';
+import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
-import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
+import { getPreviousRoute, OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
+import {
+  useOnboardingNext,
+  useOnboardingStep,
+  useOnboardingVariant,
+} from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
@@ -45,8 +50,27 @@ export default function AccountScreen() {
   const router = useRouter();
   const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.ACCOUNT);
   const goNext = useOnboardingNext(OB_SCREEN.ACCOUNT);
+  const variant = useOnboardingVariant();
   const isPro = useSubscriptionStore((s) => s.isPro);
   const session = useAuthStore((s) => s.session);
+
+  /**
+   * Back out of the auth gate. This screen used to be the only step in the flow
+   * with neither a Back button nor a skip, and the sole exit was a real session
+   * appearing — so a rider who declined to create an account had no way forward
+   * OR backward, and relaunching landed them right back here (still anonymous,
+   * `lastCompletedScreen: paywall`). That was a permanent lockout.
+   *
+   * Deliberately `getPreviousRoute` + `replace` rather than `useOnboardingBack`:
+   * that hook prefers `router.back()`, which in the normal forward flow pops to
+   * the paywall and re-presents the native modal — an account↔paywall loop.
+   * `getPreviousRoute` skips the paywall (see AUTO_ADVANCE_SCREENS), landing on
+   * the last real question instead.
+   */
+  const handleBack = () => {
+    const previous = getPreviousRoute(variant, OB_SCREEN.ACCOUNT);
+    if (previous) router.replace(previous);
+  };
 
   const [emailMode, setEmailMode] = useState(false);
   const [email, setEmail] = useState('');
@@ -170,6 +194,11 @@ export default function AccountScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
+
+      <OnboardingBackButton
+        onPress={handleBack}
+        style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
+      />
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView

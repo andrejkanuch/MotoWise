@@ -898,6 +898,7 @@
     "obAccountReassuranceFree": "Verilerin yedeklenir ve senkronize edilir.",
     "obAccountHaveAccount": "Zaten hesabın var mı? Giriş yap",
     "obAccountCreating": "Hesabın oluşturuluyor…",
+    "obPaywallEscape": "Pro olmadan devam et",
     "obSignInTitle": "Tekrar hoş geldin",
     "obSignInSubtitle": "Bu cihazda garajına erişmek için giriş yap.",
     "obCommitSignHint": "Buraya imzala",

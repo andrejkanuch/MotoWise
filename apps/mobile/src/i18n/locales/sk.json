@@ -900,6 +900,7 @@
     "obAccountReassuranceFree": "Tvoje dáta sú zálohované a synchronizované.",
     "obAccountHaveAccount": "Už máš účet? Prihlás sa",
     "obAccountCreating": "Vytvárame tvoj účet…",
+    "obPaywallEscape": "Pokračovať bez Pro",
     "obSignInTitle": "Vitaj späť",
     "obSignInSubtitle": "Prihlás sa, aby si na tomto zariadení získal prístup k svojej garáži.",
     "obCommitSignHint": "Podpíš sa tu",

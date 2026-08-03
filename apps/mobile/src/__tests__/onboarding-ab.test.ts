@@ -165,6 +165,21 @@ describe('variant flow config', () => {
     );
   });
 
+  it('Back from the account gate skips the paywall (no account↔paywall loop)', () => {
+    // The paywall auto-presents the native RevenueCat modal on mount, so landing
+    // on it from Back re-asks for money and bounces the rider forward to account
+    // again — an inescapable loop at the one step that has no other exit. Back
+    // must reach the last real question instead (commitment when a bike is set up).
+    expect(getPreviousRoute(OB_VARIANT.LEAN, OB_SCREEN.ACCOUNT)).toBe('/(onboarding)/commitment');
+    expect(getPreviousRoute(OB_VARIANT.INVESTED, OB_SCREEN.ACCOUNT)).toBe(
+      '/(onboarding)/commitment',
+    );
+    // And never the paywall itself, in any variant that has an account step.
+    for (const variant of [OB_VARIANT.LEAN, OB_VARIANT.INVESTED]) {
+      expect(getPreviousRoute(variant, OB_SCREEN.ACCOUNT)).not.toBe('/(onboarding)/paywall');
+    }
+  });
+
   it('Back to the welcome step targets the group root, not /index (404 guard)', () => {
     // The welcome screen is the (onboarding) group's index file; its href is the
     // group root. `/(onboarding)/index` is not a real route and renders "Page
