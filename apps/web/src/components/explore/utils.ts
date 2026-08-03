@@ -15,6 +15,15 @@ export function formatDistance(meters: number): string {
   return km >= 100 ? `${Math.round(km)} km` : `${km.toFixed(1)} km`;
 }
 
+/**
+ * Format an integer with grouping separators, pinned to 'en-US' so the server
+ * HTML and the client hydration always agree regardless of the browser locale
+ * (avoids React #418 hydration mismatches on static/ISR explore pages).
+ */
+export function formatNumber(value: number): string {
+  return value.toLocaleString('en-US');
+}
+
 export function formatDuration(minutes: number | null | undefined): string {
   if (minutes == null) return '';
   if (minutes < 60) return `${minutes} min`;
