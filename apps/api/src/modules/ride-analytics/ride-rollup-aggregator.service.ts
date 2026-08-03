@@ -32,7 +32,7 @@ export class RideRollupAggregator {
     const { data: ride, error } = await this.supabaseAdmin
       .from('rides')
       .select(
-        'id, user_id, motorcycle_id, distance_m, max_speed_mps, avg_speed_mps, max_lean_angle, elevation_gain, elevation_loss, started_at, ended_at, paused_duration_s, auto_paused_duration_s, metadata',
+        'id, user_id, motorcycle_id, distance_m, max_speed_mps, avg_speed_mps, max_lean_angle, elevation_gain, elevation_loss, started_at, ended_at, paused_duration_s, auto_paused_duration_s, metadata, auto_ended_reason',
       )
       .eq('id', rideId)
       .eq('user_id', userId)
@@ -111,6 +111,19 @@ export class RideRollupAggregator {
     }
 
     this.logger.log(`Analytics recorded for ride ${rideId}`);
+
+    // A system-ended ride still counts toward ROLLUPS above — the rider really did
+    // cover that distance, and dropping it would understate their totals. But it must
+    // never set a PERSONAL BEST: its GPS track is partial by definition (the sweep
+    // only ends rides that stopped reporting), so "longest distance" or "top speed"
+    // derived from it is unverifiable, and a forgotten ride claiming a record is
+    // exactly the kind of thing a rider can never undo. (Migration 00173.)
+    if (ride.auto_ended_reason) {
+      this.logger.log(
+        `Ride ${rideId} was system-ended (${ride.auto_ended_reason}) — skipping record detection`,
+      );
+      return;
+    }
 
     // Detect records (after the transaction commits, idempotent via unique constraint)
     await this.recordDetector.detect(userId, {
