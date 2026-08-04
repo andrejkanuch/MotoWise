@@ -1,7 +1,24 @@
 import 'reflect-metadata';
+import type { EventEmitter2 } from '@nestjs/event-emitter';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { RIDE_EVENTS } from '../../common/constants/events';
 import { IDLE_AUTO_END_HOURS, IDLE_NUDGE_HOURS, RideIdleService } from './ride-idle.service';
+
+/** Events the sweep emitted — an auto-end must reach the rollup listener. */
+const mockEvents: Array<{ event: string; payload: Record<string, unknown> }> = [];
+const mockEmitter = {
+  emit: (event: string, payload: Record<string, unknown>) => {
+    mockEvents.push({ event, payload });
+    return true;
+  },
+} as unknown as EventEmitter2;
+
+function makeService(client: SupabaseClient): RideIdleService {
+  return new RideIdleService(client, mockEmitter);
+}
+
+const completedEvents = () => mockEvents.filter((e) => e.event === RIDE_EVENTS.COMPLETED);
 
 const mockSentMessages: Array<{ title?: string; body?: string; data?: unknown }> = [];
 const mockExpo = { sendResult: 'ok' as 'ok' | 'throw' };
@@ -130,13 +147,74 @@ describe('RideIdleService.sweepIdleRides', () => {
     mockDeletes.length = 0;
     mockOrders.length = 0;
     mockSelects.length = 0;
+    mockEvents.length = 0;
     mockExpo.sendResult = 'ok';
+  });
+
+  it('emits ride.completed for an auto-end so the distance reaches rollups', async () => {
+    // The sweep bypasses endRide, which is the only other emitter. Without this the
+    // ride's distance never lands in ride_rollups (understating the rider's totals)
+    // AND the records-exclusion guard in RideRollupAggregator is unreachable — the
+    // exact inverse of the intended "counts in rollups, excluded from records".
+    const service = makeService(
+      clientFor({
+        startedHoursAgo: 40,
+        track: [{ recorded_at: hoursAgo(30), latitude: 34.9, longitude: -82.9 }],
+      }),
+    );
+
+    await service.sweepIdleRides();
+
+    expect(completedEvents()).toHaveLength(1);
+    expect(completedEvents()[0].payload).toMatchObject({
+      rideId: 'r1',
+      userId: 'u1',
+      // What tells the listeners to take the rollup but skip personal records and
+      // skip paying for an AI summary of a partial track.
+      autoEndedReason: 'idle_timeout',
+    });
+  });
+
+  it('does not emit ride.completed for a nudge, or when the end matched no rows', async () => {
+    const nudge = makeService(
+      clientFor({
+        startedHoursAgo: 5,
+        track: [{ recorded_at: hoursAgo(3), latitude: 34.9, longitude: -82.9 }],
+      }),
+    );
+    await nudge.sweepIdleRides();
+    expect(completedEvents()).toHaveLength(0);
+
+    mockEvents.length = 0;
+    // Rider ended it first — the guarded update matches nothing, so no ride was
+    // actually completed by us and nothing may be emitted on its behalf.
+    const raced = makeService(
+      makeAdminClient({
+        rides: {
+          data: [{ id: 'r1', user_id: 'u1', started_at: hoursAgo(40), status: 'recording' }],
+          updateData: [],
+          error: null,
+        },
+        ride_waypoints: {
+          data: [{ recorded_at: hoursAgo(30), latitude: 34.9, longitude: -82.9 }],
+          error: null,
+        },
+        device_push_tokens: {
+          data: [{ user_id: 'u1', token: 'ExponentPushToken[abc]' }],
+          error: null,
+        },
+        users: { data: [{ id: 'u1', preferences: { locale: 'en' } }], error: null },
+        ride_idle_nudge_log: { error: null },
+      }),
+    );
+    await raced.sweepIdleRides();
+    expect(completedEvents()).toHaveLength(0);
   });
 
   it('leaves a ride that is still producing GPS completely alone', async () => {
     // A genuine long ride: 14 hours in, but a fix a minute ago. Total duration must
     // never be the trigger — only silence.
-    const service = new RideIdleService(
+    const service = makeService(
       clientFor({
         startedHoursAgo: 14,
         track: [{ recorded_at: hoursAgo(0.01), latitude: 34.9, longitude: -82.9 }],
@@ -151,7 +229,7 @@ describe('RideIdleService.sweepIdleRides', () => {
   });
 
   it(`nudges (and does not end) a ride idle between ${IDLE_NUDGE_HOURS}h and ${IDLE_AUTO_END_HOURS}h`, async () => {
-    const service = new RideIdleService(
+    const service = makeService(
       clientFor({
         startedHoursAgo: 5,
         track: [{ recorded_at: hoursAgo(3), latitude: 34.9, longitude: -82.9 }],
@@ -171,7 +249,7 @@ describe('RideIdleService.sweepIdleRides', () => {
     // The regression this guards: completing an abandoned ride with `now()` produced
     // 605-hour rides in production. ended_at must be the last fix, not the sweep time.
     const lastFix = hoursAgo(30);
-    const service = new RideIdleService(
+    const service = makeService(
       clientFor({
         startedHoursAgo: 31,
         track: [
@@ -210,7 +288,7 @@ describe('RideIdleService.sweepIdleRides', () => {
       ride_idle_nudge_log: { error: null },
     });
 
-    await new RideIdleService(client).sweepIdleRides();
+    await makeService(client).sweepIdleRides();
 
     const patch = ridesPatch();
     expect(patch?.ended_at).toBe(startedAt);
@@ -219,7 +297,7 @@ describe('RideIdleService.sweepIdleRides', () => {
   });
 
   it('skips a ride already nudged by an earlier run (dedup claim conflict)', async () => {
-    const service = new RideIdleService(
+    const service = makeService(
       clientFor({
         startedHoursAgo: 5,
         track: [{ recorded_at: hoursAgo(3), latitude: 34.9, longitude: -82.9 }],
@@ -235,7 +313,7 @@ describe('RideIdleService.sweepIdleRides', () => {
 
   it('still applies the auto-end when the rider has no registered device', async () => {
     // The data correction must not depend on being able to notify.
-    const service = new RideIdleService({
+    const service = makeService({
       ...clientFor({
         startedHoursAgo: 40,
         track: [{ recorded_at: hoursAgo(30), latitude: 34.9, longitude: -82.9 }],
@@ -252,7 +330,7 @@ describe('RideIdleService.sweepIdleRides', () => {
 
   it('releases the nudge claim when the push send fails, so it retries', async () => {
     mockExpo.sendResult = 'throw';
-    const service = new RideIdleService(
+    const service = makeService(
       clientFor({
         startedHoursAgo: 5,
         track: [{ recorded_at: hoursAgo(3), latitude: 34.9, longitude: -82.9 }],
@@ -267,7 +345,7 @@ describe('RideIdleService.sweepIdleRides', () => {
 
   it('keeps the auto-end claim even when its push fails (the ride is already ended)', async () => {
     mockExpo.sendResult = 'throw';
-    const service = new RideIdleService(
+    const service = makeService(
       clientFor({
         startedHoursAgo: 40,
         track: [{ recorded_at: hoursAgo(30), latitude: 34.9, longitude: -82.9 }],
@@ -304,7 +382,7 @@ describe('RideIdleService.sweepIdleRides', () => {
       ride_idle_nudge_log: { error: null },
     });
 
-    const summary = await new RideIdleService(client).sweepIdleRides();
+    const summary = await makeService(client).sweepIdleRides();
 
     expect(summary).toMatchObject({ examined: 1, autoEnded: 0, nudged: 0 });
     expect(mockSentMessages).toHaveLength(0);
@@ -317,7 +395,7 @@ describe('RideIdleService.sweepIdleRides', () => {
     // the newest recorded_at. Reading each full track here would move hundreds of
     // thousands of waypoint rows hourly for rides that are perfectly fine. Only rides
     // being ended pull the full track (to rebuild distance_m).
-    const service = new RideIdleService(
+    const service = makeService(
       clientFor({
         startedHoursAgo: 14,
         track: [{ recorded_at: hoursAgo(0.01), latitude: 34.9, longitude: -82.9 }],
@@ -332,7 +410,7 @@ describe('RideIdleService.sweepIdleRides', () => {
   });
 
   it('reads the full track only for a ride it is actually ending', async () => {
-    const service = new RideIdleService(
+    const service = makeService(
       clientFor({
         startedHoursAgo: 40,
         track: [{ recorded_at: hoursAgo(30), latitude: 34.9, longitude: -82.9 }],
@@ -367,7 +445,7 @@ describe('RideIdleService.sweepIdleRides', () => {
       ride_idle_nudge_log: { error: null },
     });
 
-    const summary = await new RideIdleService(client).sweepIdleRides();
+    const summary = await makeService(client).sweepIdleRides();
 
     expect(summary).toMatchObject({ examined: 1, autoEnded: 0, nudged: 0 });
     expect(ridesPatch()).toBeUndefined();
@@ -378,7 +456,7 @@ describe('RideIdleService.sweepIdleRides', () => {
     // endIdleRide loads the full track anyway, so it is the more complete source for
     // the value ended_at is trimmed to.
     const newest = hoursAgo(25);
-    const service = new RideIdleService(
+    const service = makeService(
       clientFor({
         startedHoursAgo: 50,
         track: [
@@ -396,9 +474,7 @@ describe('RideIdleService.sweepIdleRides', () => {
   it('orders the capped ride query oldest-first so old idle rides cannot starve', async () => {
     // With no ORDER BY, Postgres may return the same arbitrary subset every run, so
     // past the MAX_RIDES_PER_RUN cap the oldest idle rides never get picked up.
-    await new RideIdleService(
-      makeAdminClient({ rides: { data: [], error: null } }),
-    ).sweepIdleRides();
+    await makeService(makeAdminClient({ rides: { data: [], error: null } })).sweepIdleRides();
 
     expect(mockOrders).toContainEqual({
       table: 'rides',
@@ -408,7 +484,7 @@ describe('RideIdleService.sweepIdleRides', () => {
   });
 
   it('returns an empty summary when there are no active rides', async () => {
-    const service = new RideIdleService(makeAdminClient({ rides: { data: [], error: null } }));
+    const service = makeService(makeAdminClient({ rides: { data: [], error: null } }));
     await expect(service.sweepIdleRides()).resolves.toMatchObject({
       examined: 0,
       nudged: 0,

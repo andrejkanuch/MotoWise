@@ -1,8 +1,10 @@
 import { NOTIFICATION_KIND } from '@motovault/types';
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { differenceInHours } from 'date-fns';
 import { Expo, type ExpoPushMessage } from 'expo-server-sdk';
+import { RIDE_EVENTS } from '../../common/constants/events';
 import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { resolveRideIdlePushCopy } from './ride-idle-push-copy';
@@ -100,7 +102,10 @@ export class RideIdleService {
 
   // System sweep: reads rides/waypoints/tokens across all users, so the
   // service-role client with explicit filters, per the Supabase client rules.
-  constructor(@Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient) {}
+  constructor(
+    @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   /**
    * Find rides that are still recording but have stopped producing GPS, then nudge
@@ -213,6 +218,19 @@ export class RideIdleService {
       const ended = await this.endIdleRide(ride, lastSignal, track);
       if (!ended) continue;
       autoEnded++;
+
+      // A ride that skips `endRide` also skips everything endRide emits. Without this
+      // the distance never reaches ride_rollups (understating the rider's totals) and
+      // the records-exclusion guard in RideRollupAggregator is unreachable dead code —
+      // the exact inverse of the intended "counts in rollups, excluded from records".
+      // `autoEndedReason` is what tells the listeners to take the rollup and skip the
+      // personal-best check and the AI summary.
+      this.eventEmitter.emit(RIDE_EVENTS.COMPLETED, {
+        rideId: ride.id,
+        userId: ride.user_id,
+        locale: localeByUser.get(ride.user_id) ?? 'en',
+        autoEndedReason: AUTO_END_REASON_IDLE,
+      });
 
       const { error: logError } = await this.adminClient
         .from('ride_idle_nudge_log')

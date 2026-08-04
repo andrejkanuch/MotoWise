@@ -133,7 +133,7 @@ export class RidesService {
       const endedAt =
         (lastWaypoint as { recorded_at?: string } | null)?.recorded_at ?? ride.started_at;
 
-      const { error: updateError } = await this.supabase
+      const { data: closed, error: updateError } = await this.supabase
         .from('rides')
         .update({
           status: 'completed',
@@ -146,13 +146,32 @@ export class RidesService {
         // overwrite that genuine rider-supplied end with a trimmed `ended_at` and a
         // 'stale_on_start' marker that wrongly excludes it from records.
         .in('status', ['recording', 'paused'])
-        .is('deleted_at', null);
+        .is('deleted_at', null)
+        // Returning the row is how that guard is observed — a filter matching nothing
+        // is not an error, so without this we would emit ride.completed for a ride we
+        // did not actually close.
+        .select('id');
 
       if (updateError) {
         this.logger.error(
           `closeStaleRides failed to close ride ${ride.id}: ${updateError.message} (${updateError.code})`,
         );
+        continue;
       }
+      if (!closed || closed.length === 0) {
+        this.logger.log(`closeStaleRides skipped ride ${ride.id}: no longer active`);
+        continue;
+      }
+
+      // Same reason as the idle sweep: this path bypasses endRide, so without an
+      // explicit emit the ride's distance never reaches ride_rollups. `autoEndedReason`
+      // keeps it out of personal records and out of AI summary generation.
+      this.eventEmitter.emit(RIDE_EVENTS.COMPLETED, {
+        rideId: ride.id,
+        userId,
+        locale: 'en',
+        autoEndedReason: 'stale_on_start',
+      });
     }
   }
 
@@ -165,22 +184,28 @@ export class RidesService {
   }> {
     this.logger.log(`endRide: userId=${userId}, rideId=${input.rideId}`);
 
+    // The rider's own end always clears `auto_ended_reason`: if the system had marked
+    // this ride, the rider superseding it makes the ride genuinely rider-ended, and
+    // the marker would otherwise keep excluding it from personal records forever.
+    const endPatch = {
+      status: 'completed',
+      ended_at: input.endedAt,
+      distance_m: input.distanceM,
+      max_speed_mps: input.maxSpeedMps ?? null,
+      avg_speed_mps: input.avgSpeedMps ?? null,
+      elevation_gain: input.elevationGain ?? null,
+      elevation_loss: input.elevationLoss ?? null,
+      route_polyline: input.routePolyline ?? null,
+      gps_quality: input.gpsQuality ?? null,
+      paused_duration_s: input.pausedDurationS,
+      auto_paused_duration_s: input.autoPausedDurationS,
+      auto_ended_reason: null,
+      ...(input.maxLeanAngle != null && { max_lean_angle: input.maxLeanAngle }),
+    };
+
     const { data, error } = await this.supabase
       .from('rides')
-      .update({
-        status: 'completed',
-        ended_at: input.endedAt,
-        distance_m: input.distanceM,
-        max_speed_mps: input.maxSpeedMps ?? null,
-        avg_speed_mps: input.avgSpeedMps ?? null,
-        elevation_gain: input.elevationGain ?? null,
-        elevation_loss: input.elevationLoss ?? null,
-        route_polyline: input.routePolyline ?? null,
-        gps_quality: input.gpsQuality ?? null,
-        paused_duration_s: input.pausedDurationS,
-        auto_paused_duration_s: input.autoPausedDurationS,
-        ...(input.maxLeanAngle != null && { max_lean_angle: input.maxLeanAngle }),
-      })
+      .update(endPatch)
       .eq('id', input.rideId)
       .eq('user_id', userId)
       .in('status', ['recording', 'paused'])
@@ -188,11 +213,9 @@ export class RidesService {
       .select()
       .single();
 
-    if (error || !data) {
-      // Idempotent retry (MOT-140): a sync-queue retry or duplicate tap arrives
-      // after the ride is already completed; the status filter above matched 0
-      // rows. Return the completed ride as success — do NOT re-emit ride.completed
-      // or re-apply mileage.
+    let row = data;
+
+    if (error || !row) {
       if (error?.code === PG_ERROR.NOT_FOUND) {
         const { data: existing } = await this.supabase
           .from('rides')
@@ -202,16 +225,60 @@ export class RidesService {
           .eq('status', 'completed')
           .is('deleted_at', null)
           .single();
-        if (existing) {
+
+        const autoEndedReason = (existing as { auto_ended_reason?: string | null } | null)
+          ?.auto_ended_reason;
+
+        if (existing && autoEndedReason) {
+          // NOT an idempotent retry — the SYSTEM ended this ride under the rider, and
+          // they have now come back and stopped it themselves. Their payload is the
+          // authoritative one: the sweep's `ended_at` is only the last fix it happened
+          // to receive, and its `distance_m` was reconstructed from that partial track.
+          // Treating this as "already completed" discarded a real ride (waypoints do
+          // upload to completed rides, so the track was already stored) and returned
+          // success, leaving the rider a locally-computed summary that matched nothing
+          // saved, and no odometer application at all.
+          const { data: reclaimed, error: reclaimError } = await this.supabase
+            .from('rides')
+            .update(endPatch)
+            .eq('id', input.rideId)
+            .eq('user_id', userId)
+            .eq('status', 'completed')
+            // Only ever overwrite a SYSTEM-ended ride; a rider-ended one stays
+            // idempotent, which is what MOT-140 added this branch for.
+            .not('auto_ended_reason', 'is', null)
+            .is('deleted_at', null)
+            .select()
+            .single();
+
+          if (reclaimed) {
+            this.logger.log(
+              `endRide: ride ${input.rideId} was system-ended (${autoEndedReason}) — rider's end reclaims it`,
+            );
+            row = reclaimed;
+          } else {
+            this.logger.error(
+              `endRide: failed to reclaim system-ended ride ${input.rideId}: ${reclaimError?.message}`,
+            );
+            return { ride: this.mapRow(existing), triggeredMaintenanceTasks: [] };
+          }
+        } else if (existing) {
+          // Idempotent retry (MOT-140): a sync-queue retry or duplicate tap arrives
+          // after the ride is already completed by the rider; the status filter above
+          // matched 0 rows. Return it as success — do NOT re-emit ride.completed or
+          // re-apply mileage.
           this.logger.log(`endRide: ride ${input.rideId} already completed — idempotent success`);
           return { ride: this.mapRow(existing), triggeredMaintenanceTasks: [] };
         }
       }
-      this.logger.error(`endRide failed: ${error?.message} (${error?.code})`);
-      throw new BadRequestException('Failed to end ride');
+
+      if (!row) {
+        this.logger.error(`endRide failed: ${error?.message} (${error?.code})`);
+        throw new BadRequestException('Failed to end ride');
+      }
     }
 
-    const ride = this.mapRow(data);
+    const ride = this.mapRow(row);
     let triggeredMaintenanceTasks: { id: string; title: string; priority: string }[] = [];
 
     // MOT-140: claim-first odometer sync. A single conditional UPDATE flips

@@ -93,4 +93,40 @@ describe('RideRollupAggregator — system-ended rides', () => {
       expect(detect, `${reason} must not reach record detection`).not.toHaveBeenCalled();
     }
   });
+
+  it('does not re-accumulate rollups for a ride already aggregated', async () => {
+    // `_upsert_rollup` ADDS to the bucket, so a second run would double-count the
+    // distance. `analytics_processed_at` is the only latch preventing that.
+    const { client, rpc } = makeClient(
+      rideRow({ metadata: { analytics_processed_at: new Date().toISOString() } }),
+    );
+    await new RideRollupAggregator(client, detector).onRideCompleted({
+      rideId: 'r1',
+      userId: 'u1',
+    } as never);
+
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('still detects records when a rider reclaims a previously auto-ended ride', async () => {
+    // The sweep auto-ended this ride (so rollups are already written and latched),
+    // then the rider came back and ended it properly — endRide clears
+    // auto_ended_reason, and THIS second event is the only chance those records will
+    // ever be detected. Hiding record detection behind the rollup latch, as the
+    // original single early-return did, made a reclaimed ride permanently unable to
+    // set a personal best despite now having a complete track and a real rider end.
+    const { client, rpc } = makeClient(
+      rideRow({
+        auto_ended_reason: null,
+        metadata: { analytics_processed_at: new Date().toISOString() },
+      }),
+    );
+    await new RideRollupAggregator(client, detector).onRideCompleted({
+      rideId: 'r1',
+      userId: 'u1',
+    } as never);
+
+    expect(rpc).not.toHaveBeenCalled(); // no double-count
+    expect(detect).toHaveBeenCalledTimes(1); // but records still run
+  });
 });

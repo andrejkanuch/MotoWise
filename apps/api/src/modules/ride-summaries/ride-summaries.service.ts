@@ -351,6 +351,20 @@ export class RideSummariesService {
   @OnEvent(RIDE_EVENTS.COMPLETED, { async: true, suppressErrors: false })
   async onRideCompleted(payload: RideCompletedEvent): Promise<void> {
     this.logger.log(`ride.completed event received for ride ${payload.rideId}`);
+
+    // A system-ended ride is the one case we do NOT narrate. The sweep only ends
+    // rides that stopped reporting, so the track is partial by definition, and a
+    // summary would confidently describe a truncated ride as the whole outing —
+    // then bill a Claude generation for it. Rollups still count the distance; only
+    // the story is withheld. If the rider later returns and ends the ride properly,
+    // that endRide re-emits without this flag and the summary is generated then.
+    if (payload.autoEndedReason) {
+      this.logger.log(
+        `Ride ${payload.rideId} was system-ended (${payload.autoEndedReason}) — skipping summary generation`,
+      );
+      return;
+    }
+
     try {
       // Idempotency: a duplicate event must not pay for a second generation
       const { data: existing } = await this.adminClient

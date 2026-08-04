@@ -290,6 +290,63 @@ describe('RidesService', () => {
       // No ride.completed event re-emitted on an idempotent retry
       expect(mockEventEmitter.emit).not.toHaveBeenCalled();
     });
+
+    it("lets a returning rider's end reclaim a ride the system auto-ended", async () => {
+      // The scenario: force-killed or offline mid-ride, so the 24h sweep completed it
+      // from whatever partial track had reached the server. The rider reopens the app
+      // (MMKV still says `recording` — it even offers "Resume unfinished ride"), rides
+      // another 150 km and taps Stop. Waypoints DO upload to completed rides, so the
+      // full track is stored — but treating this as an idempotent retry returned
+      // success while keeping the sweep's reconstructed distance_m and ended_at, and
+      // skipped the odometer entirely. The rider saw a local summary matching nothing.
+      const autoEndedRow = {
+        ...fakeRow,
+        status: 'completed',
+        ended_at: '2026-03-22T14:20:00Z', // sweep's last known fix
+        distance_m: 3_000, // partial reconstruction
+        auto_ended_reason: 'idle_timeout',
+        mileage_applied: false, // the sweep never claims the odometer
+      };
+      const reclaimedRow = {
+        ...autoEndedRow,
+        ended_at: '2026-03-22T18:00:00Z',
+        distance_m: 153_000,
+        auto_ended_reason: null,
+      };
+
+      // The guarded completion UPDATE matches 0 rows — status is already 'completed'.
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'Row not found', code: 'PGRST116' },
+      });
+      // The lookup finds it completed, but marked as SYSTEM-ended.
+      mockUserClient._pushResult({ data: autoEndedRow });
+      // So the reclaim UPDATE applies the rider's payload.
+      mockUserClient._pushResult({ data: reclaimedRow });
+      // Odometer claim — null keeps this test focused on the reclaim itself.
+      mockUserClient._pushResult({ data: null });
+
+      const result = await service.endRide(userId, {
+        rideId: 'ride-123',
+        endedAt: '2026-03-22T18:00:00Z',
+        distanceM: 153_000,
+        pausedDurationS: 0,
+        autoPausedDurationS: 0,
+      });
+
+      // The rider's figures win, and the marker is cleared so the ride is no longer
+      // excluded from personal records.
+      expect(result.ride.distanceM).toBe(153_000);
+      expect(result.ride.endedAt).toBe('2026-03-22T18:00:00Z');
+      // Unlike a genuine idempotent retry, this DOES re-emit — without it the ride
+      // never reaches record detection.
+      expect(mockEventEmitter.emit).toHaveBeenCalledTimes(1);
+      // Re-emitted as a rider end, so records and the AI summary both run.
+      expect(mockEventEmitter.emit.mock.calls[0][1]).not.toHaveProperty(
+        'autoEndedReason',
+        'idle_timeout',
+      );
+    });
   });
 
   describe('uploadWaypoints', () => {
