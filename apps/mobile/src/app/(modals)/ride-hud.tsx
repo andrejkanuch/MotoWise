@@ -19,7 +19,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useRideStore } from '../../stores/ride.store';
 import { toggleBatterySaver } from '../../utils/ride-location';
 import { getPointBuffer, getWaypointChunks, rideMMKV, rideStorage } from '../../utils/ride-storage';
-import { getQueueLength } from '../../utils/ride-sync-queue';
+import { hasPendingSyncWork } from '../../utils/ride-sync-queue';
 
 type SparklineMode = 'altitude' | 'speed';
 
@@ -172,8 +172,10 @@ export default function RideHudScreen() {
     const summary = endRideSession('phone');
     if (!summary) return;
 
-    const pending = getQueueLength();
-    if (pending > 0) setSyncPending(true);
+    // Count dead-lettered ops too: a ride whose waypoints failed to deliver is the
+    // case the rider most needs the "still syncing" state for, and those ops sit in
+    // the dead-letter queue, not the main one.
+    if (hasPendingSyncWork()) setSyncPending(true);
 
     router.replace(buildRideSummaryHref(summary));
   }, [router]);
