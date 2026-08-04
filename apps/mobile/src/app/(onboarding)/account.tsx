@@ -195,10 +195,20 @@ export default function AccountScreen() {
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
-      <OnboardingBackButton
-        onPress={handleBack}
-        style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
-      />
+      {/*
+        Hidden while a signup is in flight. The blocking overlay below is a later
+        sibling with no zIndex, so this button's zIndex:10 keeps it painted AND
+        hit-testable through it: tapping Back mid-`signUp` unmounted this screen with
+        the request pending, the session then landed with the rider on `commitment`,
+        so the session effect never ran (no ACCOUNT_CREATED) and walking forward
+        re-presented the paywall to someone who had already declined it.
+      */}
+      {busy || session ? null : (
+        <OnboardingBackButton
+          onPress={handleBack}
+          style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
+        />
+      )}
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView

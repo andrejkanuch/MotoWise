@@ -80,6 +80,17 @@ type PresentPaywallOptions = PaywallAnalyticsOptions & {
    * paywall editor, so copy never renders a blank.
    */
   personalization?: OnboardingAttributes;
+  /**
+   * Checked immediately before the native present. Return true to abort instead of
+   * showing the modal.
+   *
+   * Exists because the caller cannot guard this itself: `getOfferings()` /
+   * `getCurrentOfferingForPlacement()` run *inside* this function, so a slow
+   * offerings fetch resolves long after any check the caller made before calling.
+   * Onboarding uses it so a rider who took the escape hatch during a stall does not
+   * get a native paywall dropped over the next onboarding screen.
+   */
+  shouldAbort?: () => boolean;
 };
 
 function paywallProperties(
@@ -550,6 +561,15 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
       CUSTOM_VARIABLES_SUPPORTED && options.personalization
         ? buildPaywallCustomVariables(options.personalization, RevenueCatUI.CustomVariableValue)
         : undefined;
+
+    // Last chance to abort: everything above (init, offerings, placement lookup) is
+    // awaited, so the caller's own pre-call guard may be many seconds stale by now.
+    // Once the native modal is up there is no dismiss handle, so this is the only
+    // point at which "the rider already moved on" can still be honoured.
+    if (options.shouldAbort?.() === true) {
+      trackPaywallResult(options, 'not_presented');
+      return 'not_presented';
+    }
 
     const result = options.requiredEntitlementIdentifier
       ? await RevenueCatUI.default.presentPaywallIfNeeded({

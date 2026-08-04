@@ -64,7 +64,14 @@ export default function PaywallScreen() {
   const advanceOnce = useCallback(() => {
     if (advanced.current) return;
     advanced.current = true;
-    goNext();
+    // REPLACE, not push — this screen is in AUTO_ADVANCE_SCREENS and must not stay
+    // in history (building-plan, the other member, replaces for the same reason).
+    // A pushed paywall lingers as a spent instance: `presented`/`advanced` are both
+    // latched, so Back onto it early-returns from the effect AND from the escape
+    // link — a bare spinner behind `gestureEnabled: false`, no Back, and a visible
+    // "Continue without Pro" that does nothing. On iOS only a force-kill escapes.
+    // Reachable via the new account Back button: account -> commitment -> back.
+    goNext({ replace: true });
   }, [goNext]);
 
   // Fallback for an `intentResolved` that never settles (see the constant above).
@@ -136,12 +143,11 @@ export default function PaywallScreen() {
       // substituted into paywall text.
       await setOnboardingAttributes(personalization);
 
-      // The escape hatch races this whole async path, so re-check before the one
-      // step with a *visible* side effect. An RC init/offering stall can outlast
-      // ESCAPE_HATCH_DELAY_MS — that stall is precisely why the hatch exists — so
-      // the rider may already be a screen further on. Presenting now would drop a
-      // native modal over the next onboarding step. A purchase is not lost by
-      // skipping it: the RevenueCat listener reconciles entitlements on launch.
+      // The escape hatch races this whole async path. An RC init stall can outlast
+      // ESCAPE_HATCH_DELAY_MS — that stall is precisely why the hatch exists — so by
+      // now the rider may already be a screen further on, and presenting would drop a
+      // native modal over the next onboarding step. A purchase is not lost by skipping
+      // it: the RevenueCat listener reconciles entitlements on launch.
       if (advanced.current) return;
 
       // Paywall copy is personalized via custom variables ({{ custom.* }}) — the
@@ -153,6 +159,11 @@ export default function PaywallScreen() {
         source: 'onboarding',
         feature: 'subscription',
         surface: 'onboarding_paywall',
+        // The check above only covers a stall in `setOnboardingAttributes`. The
+        // offerings fetch happens INSIDE presentPaywall, so it is the likelier stall
+        // point and lands past every guard we can place out here — hence the callback,
+        // re-read at the last moment before the native present.
+        shouldAbort: () => advanced.current,
       });
 
       // Same race, other side: the rider escaped while the modal was up. The step
@@ -198,6 +209,10 @@ export default function PaywallScreen() {
   ]);
 
   const handleEscape = () => {
+    // Guard BEFORE the event, not just inside advanceOnce. The link stays mounted and
+    // tappable through the ~350ms transition, so a double-tap on a stalled spinner
+    // (likely behaviour) would emit ONBOARDING_STEP_SKIPPED twice for one step.
+    if (advanced.current) return;
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, OB_SCREEN.PAYWALL, {
       reason: 'escape_hatch',
     });
