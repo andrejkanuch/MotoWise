@@ -33,7 +33,11 @@ jest.mock('../ride-sync-queue', () => ({
 }));
 jest.mock('../../lib/analytics', () => ({ captureException: jest.fn() }));
 
-import { type AutoPauseState, decideAutoPause } from '../ride-location';
+import {
+  type AutoPauseState,
+  decideAutoPause,
+  forgotToStopNotificationContent,
+} from '../ride-location';
 
 const NOW = 1_700_000_000_000;
 const POS = { lat: 50, lng: 14 };
@@ -80,6 +84,46 @@ describe('decideAutoPause', () => {
     expect(d.next.zeroSpeedTimer).toBe(NOW);
   });
 
+  it('ends the stop episode when the rider creeps forward after being nudged', () => {
+    // Traffic crawl: >5m per sample but under the speed threshold, so only the
+    // distance re-anchor path sees the movement. It used to leave the episode armed —
+    // CarPlay kept asking "STILL RIDING?", a later real stop could never nudge again,
+    // and the pre-creep stationary time still counted toward the 30-min auto-end.
+    const state: AutoPauseState = {
+      zeroSpeedTimer: NOW - 12 * MIN,
+      zeroSpeedAnchor: POS,
+      continuousAutoPauseStart: NOW - 11 * MIN,
+      forgotToStopNotified: true,
+    };
+    const movedPos = { lat: 50.001, lng: 14 }; // ~111m away
+    const d = decideAutoPause(state, { rawSpeed: 0, pos: movedPos }, 'stopped', NOW);
+
+    expect(d.effects).toEqual([
+      { kind: 'setForgotToStopPending', value: false },
+      { kind: 'setSubState', value: 'moving' },
+    ]);
+    expect(d.next.continuousAutoPauseStart).toBeNull();
+    expect(d.next.forgotToStopNotified).toBe(false);
+    // Re-anchored, not paused.
+    expect(d.next.zeroSpeedAnchor).toEqual(movedPos);
+    expect(d.next.zeroSpeedTimer).toBe(NOW);
+    expect(d.abort).toBe(false);
+  });
+
+  it('re-arms the forgot-to-stop episode after a creep, so a later stop still nudges', () => {
+    // The reason the creep emits setSubState 'moving': with the sub-state stuck at
+    // 'stopped', continuousAutoPauseStart would never be set again and the rider
+    // could not be nudged for the rest of the ride.
+    const afterCreep: AutoPauseState = {
+      zeroSpeedTimer: NOW - 61_000,
+      zeroSpeedAnchor: POS,
+      continuousAutoPauseStart: null,
+      forgotToStopNotified: false,
+    };
+    const d = decideAutoPause(afterCreep, { rawSpeed: 0, pos: POS }, 'moving', NOW);
+    expect(d.next.continuousAutoPauseStart).toBe(NOW);
+  });
+
   it('fires the forgot-to-stop notification once after 10 min stopped', () => {
     const state: AutoPauseState = {
       zeroSpeedTimer: NOW - 12 * MIN,
@@ -88,7 +132,12 @@ describe('decideAutoPause', () => {
       forgotToStopNotified: false,
     };
     const d = decideAutoPause(state, { rawSpeed: 0, pos: POS }, 'stopped', NOW);
-    expect(d.effects).toEqual([{ kind: 'notifyForgotToStop' }]);
+    // The persisted flag ships alongside the notification so the CarPlay panel can
+    // show the prompt too — the notification alone is easy to miss on a bike.
+    expect(d.effects).toEqual([
+      { kind: 'notifyForgotToStop' },
+      { kind: 'setForgotToStopPending', value: true },
+    ]);
     expect(d.next.forgotToStopNotified).toBe(true);
   });
 
@@ -124,9 +173,12 @@ describe('decideAutoPause', () => {
       forgotToStopNotified: true,
     };
     const d = decideAutoPause(state, { rawSpeed: 10, pos: POS }, 'stopped', NOW);
+    // Moving again answers "still riding?" — the flag must clear, or CarPlay keeps
+    // prompting a rider who is demonstrably still going.
     expect(d.effects).toEqual([
       { kind: 'addAutoPausedMs', ms: 90_000 },
       { kind: 'setSubState', value: 'moving' },
+      { kind: 'setForgotToStopPending', value: false },
     ]);
     expect(d.next).toEqual(FRESH); // all timers cleared
   });
@@ -136,5 +188,37 @@ describe('decideAutoPause', () => {
     const d = decideAutoPause(state, { rawSpeed: 10, pos: POS }, 'moving', NOW);
     expect(d.effects).toEqual([]);
     expect(d.next).toEqual(FRESH);
+  });
+});
+
+describe('forgotToStopNotificationContent', () => {
+  it('carries the RIDE_IDLE kind and rideId so the tap is routable', () => {
+    // The bug this pins: the nudge used to ship with no `data` at all, so the tap
+    // handler in _layout hit its `if (!data?.taskId) return` guard and tapping the
+    // notification did nothing. The kind is what makes it routable, and the shape
+    // must match the server sweep's push so one handler branch covers both.
+    const content = forgotToStopNotificationContent('ride-123');
+
+    expect(content.data).toEqual({
+      kind: 'ride_idle',
+      rideId: 'ride-123',
+      autoEnded: false,
+    });
+  });
+
+  it('is still routable when no ride id is available', () => {
+    // A missing rideId must not drop the kind — the handler falls back to the live
+    // HUD, which is the correct destination for a ride that is still recording.
+    expect(forgotToStopNotificationContent(undefined).data).toMatchObject({
+      kind: 'ride_idle',
+      autoEnded: false,
+    });
+  });
+
+  it('interpolates the stopped-for duration from the configured threshold', () => {
+    // i18n is not initialized under jest, so t() returns the defaultValue — which is
+    // exactly what we want to assert: the fallback copy is interpolated, not literal.
+    expect(forgotToStopNotificationContent('r1', 15 * 60_000).body).toContain('15');
+    expect(forgotToStopNotificationContent('r1', 15 * 60_000).body).not.toContain('{{minutes}}');
   });
 });

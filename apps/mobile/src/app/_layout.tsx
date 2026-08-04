@@ -773,6 +773,8 @@ function RootLayout() {
           documentId?: string;
           motorcycleId?: string;
           scanId?: string;
+          rideId?: string;
+          autoEnded?: boolean;
         };
 
         // MOT-272: measure reminder opens (paired with REMINDER_SCHEDULED) so the
@@ -781,6 +783,22 @@ function RootLayout() {
           kind: data?.kind ?? NOTIFICATION_KIND.MAINTENANCE,
           action: actionId,
         });
+
+        // Forgotten-ride nudge — from the local auto-pause machine OR the server
+        // sweep, which send an identical payload. Two destinations:
+        //   * still recording  -> the live HUD, where Stop is one tap away
+        //   * already ended    -> the saved ride, so the rider can see what we kept
+        // Deliberately no auto-stop on tap: ending someone's ride from a notification
+        // press, when they may have opened it to say "no, I'm still out", would be
+        // the wrong default.
+        if (data?.kind === NOTIFICATION_KIND.RIDE_IDLE) {
+          if (data.autoEnded && data.rideId) {
+            expoRouter.push(`/ride/${data.rideId}` as Href);
+          } else {
+            expoRouter.push('/(modals)/ride-hud' as Href);
+          }
+          return;
+        }
 
         // Document expiry reminders: tap or "View" deep-links to the document.
         if (data?.kind === NOTIFICATION_KIND.DOCUMENT && data.documentId) {

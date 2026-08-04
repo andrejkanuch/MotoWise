@@ -1982,6 +1982,8 @@
     "rain": "rain"
   },
   "rideHud": {
+    "forgotToStopTitle": "Still riding?",
+    "forgotToStopBody": "You've been stopped for {{minutes}} minutes. Tap to end your ride or keep going.",
     "dist": "DIST",
     "time": "TIME",
     "avg": "AVG",

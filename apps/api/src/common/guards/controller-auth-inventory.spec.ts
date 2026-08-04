@@ -6,6 +6,7 @@ import { GUARDS_METADATA } from '@nestjs/common/constants';
 import { describe, expect, it } from 'vitest';
 import { HealthController } from '../../modules/health/health.controller';
 import { MaintenanceDuePushController } from '../../modules/push-tokens/maintenance-due-push.controller';
+import { RideIdleCheckController } from '../../modules/push-tokens/ride-idle-check.controller';
 import { RevenueCatWebhookController } from '../../modules/webhooks/revenuecat.controller';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
@@ -33,6 +34,7 @@ describe('REST controller auth inventory', () => {
     HealthController,
     RevenueCatWebhookController,
     MaintenanceDuePushController,
+    RideIdleCheckController,
   ] as const;
 
   const isClassPublic = (cls: object) => Reflect.getMetadata(IS_PUBLIC_KEY, cls) === true;
@@ -76,6 +78,28 @@ describe('REST controller auth inventory', () => {
     expect(src).toContain('UnauthorizedException');
     // Fails closed: rejects when the secret env or the secret header is absent.
     expect(src).toMatch(/!secret\s*\|\|\s*!secretHeader/);
+  });
+
+  it('RideIdleCheckController is explicitly @Public()', () => {
+    expect(isClassPublic(RideIdleCheckController)).toBe(true);
+  });
+
+  it('ride-idle-check performs its own secret-header authentication (the real auth behind @Public)', () => {
+    // This endpoint MUTATES rider data (it can end a ride), so the secret comparison
+    // being the only auth makes it the highest-risk @Public() route after the
+    // RevenueCat webhook. Pin that it still fails closed.
+    const src = readFileSync(
+      join(__dirname, '../../modules/push-tokens/ride-idle-check.controller.ts'),
+      'utf8',
+    );
+    expect(src).toContain('timingSafeEqual');
+    expect(src).toContain('RIDE_IDLE_SECRET');
+    expect(src).toContain('UnauthorizedException');
+    // Fails closed: rejects when the secret env or the secret header is absent.
+    expect(src).toMatch(/!secret\s*\|\|\s*!secretHeader/);
+    // Takes no request body: thresholds are service constants, so a leaked secret
+    // cannot be used to end rides earlier than the configured 24h.
+    expect(src).not.toContain('@Body');
   });
 
   it('RevenueCat webhook performs its own HMAC authentication (the real auth behind @Public)', () => {

@@ -24,6 +24,7 @@ export const RIDE_KEYS = {
   PAUSED_AT: 'ride.paused_at',
   TOTAL_AUTO_PAUSED_MS: 'ride.total_auto_paused_ms',
   RECORDING_SUB_STATE: 'ride.recording_sub_state',
+  FORGOT_TO_STOP_PENDING: 'ride.forgot_to_stop_pending',
   PERMISSION_LEVEL: 'ride.permission_level',
   HUD_LAYOUT: 'ride.hud_layout',
 } as const;
@@ -72,6 +73,16 @@ export const rideMMKV = {
     rideStorage.getString(RIDE_KEYS.RECORDING_SUB_STATE) as 'moving' | 'stopped' | undefined,
   setRecordingSubState: (state: 'moving' | 'stopped') =>
     rideStorage.set(RIDE_KEYS.RECORDING_SUB_STATE, state),
+
+  // True once a ride has been continuously auto-paused past the forgot-to-stop
+  // threshold, until it moves again. `recordingSubState: 'stopped'` alone can't
+  // express this — that flips after 60s, which is just a traffic light. The
+  // duration lives in ride-location's module state, so this persists the crossing
+  // for surfaces that only see MMKV (the CarPlay panel, which re-derives on a
+  // timer and after the phone screen locks).
+  getForgotToStopPending: () => rideStorage.getBoolean(RIDE_KEYS.FORGOT_TO_STOP_PENDING) ?? false,
+  setForgotToStopPending: (pending: boolean) =>
+    rideStorage.set(RIDE_KEYS.FORGOT_TO_STOP_PENDING, pending),
 
   // Permission level
   getPermissionLevel: () =>

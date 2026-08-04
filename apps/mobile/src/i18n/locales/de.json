@@ -1868,6 +1868,8 @@
     "cancelRide": "Fahrt absagen"
   },
   "rideHud": {
+    "forgotToStopTitle": "Noch unterwegs?",
+    "forgotToStopBody": "Du stehst seit {{minutes}} Minuten. Zum Beenden tippen oder weiterfahren.",
     "dist": "DIST",
     "time": "ZEIT",
     "avg": "DSN",

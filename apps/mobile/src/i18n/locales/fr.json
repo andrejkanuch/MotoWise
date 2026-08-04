@@ -1869,6 +1869,8 @@
     "cancelRide": "Annuler le trajet"
   },
   "rideHud": {
+    "forgotToStopTitle": "Toujours en route ?",
+    "forgotToStopBody": "Tu es arrêté depuis {{minutes}} minutes. Touche pour terminer ou continue.",
     "dist": "DIST",
     "time": "TPMS",
     "avg": "MOY",

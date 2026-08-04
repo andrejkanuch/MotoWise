@@ -10,6 +10,17 @@ export const NOTIFICATION_KIND = {
   MAINTENANCE: 'maintenance',
   /** A receipt scan parked for later review (U6 review-later). */
   RECEIPT_SCAN: 'receiptScan',
+  /**
+   * A ride has been stationary (or silent) long enough that the rider probably
+   * forgot to stop it. Fired from two places, with the same payload so one tap
+   * handler covers both:
+   *   * locally by the auto-pause machine, when GPS proves the bike hasn't moved
+   *   * remotely by the server sweep, when the device stopped reporting entirely
+   * `autoEnded: true` means the ride is already closed — the tap goes to the saved
+   * ride rather than the live HUD. Must match `NOTIFICATION_KIND.RIDE_IDLE` in
+   * @motovault/types, which the API sends.
+   */
+  RIDE_IDLE: 'ride_idle',
 } as const;
 
 /** iOS UNNotificationCategory identifiers (also the Android channel-less category key). */

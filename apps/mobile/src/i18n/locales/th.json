@@ -1868,6 +1868,8 @@
     "cancelRide": "Cancel Ride"
   },
   "rideHud": {
+    "forgotToStopTitle": "ยังขี่อยู่ไหม?",
+    "forgotToStopBody": "คุณหยุดอยู่ {{minutes}} นาที แตะเพื่อจบการขี่ หรือขี่ต่อได้",
     "dist": "ระยะ",
     "time": "เวลา",
     "avg": "เฉลี่ย",

@@ -33,6 +33,10 @@ export const envSchema = z.object({
   // match the Supabase Vault secret `maintenance_push_secret`. Endpoint fails
   // closed when unset.
   MAINTENANCE_PUSH_SECRET: optionalString,
+  // Shared secret for the hourly idle-ride sweep endpoint (migration 00173); must
+  // match the Supabase Vault secret `ride_idle_secret`. Endpoint fails closed when
+  // unset, so an unconfigured deploy simply never sweeps.
+  RIDE_IDLE_SECRET: optionalString,
   RESEND_API_KEY: optionalString,
   UPSTASH_REDIS_REST_URL: optionalUrl,
   UPSTASH_REDIS_REST_TOKEN: optionalString,

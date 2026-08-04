@@ -3,7 +3,9 @@ import type { Waypoint } from '@motovault/types';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
+import i18n from '../i18n';
 import { captureException } from '../lib/analytics';
+import { NOTIFICATION_KIND } from '../lib/notifications';
 import { useRideStore } from '../stores/ride.store';
 import { haversineMeters } from './geo-utils';
 import { gpsFilter } from './ride-gps-filter';
@@ -140,6 +142,8 @@ export type AutoPauseEffect =
   | { kind: 'updateSpeedZero' }
   | { kind: 'addAutoPausedMs'; ms: number }
   | { kind: 'notifyForgotToStop' }
+  /** Persist/clear the "probably forgot to stop" flag for other surfaces (CarPlay). */
+  | { kind: 'setForgotToStopPending'; value: boolean }
   | { kind: 'autoEnd'; idleSince: number };
 
 export interface AutoPauseDecision {
@@ -179,6 +183,11 @@ export function decideAutoPause(
             { kind: 'setSubState', value: 'moving' },
           ]
         : [];
+    // Moving again answers the "still riding?" question — clear the flag so the
+    // CarPlay panel drops the prompt without waiting for a notification tap.
+    if (state.forgotToStopNotified) {
+      effects.push({ kind: 'setForgotToStopPending', value: false });
+    }
     next.zeroSpeedTimer = null;
     next.zeroSpeedAnchor = null;
     next.continuousAutoPauseStart = null;
@@ -197,7 +206,26 @@ export function decideAutoPause(
   if (distanceMeters(next.zeroSpeedAnchor, pos) > AUTO_PAUSE_DISTANCE_THRESHOLD) {
     next.zeroSpeedAnchor = pos;
     next.zeroSpeedTimer = now;
-    return { next, effects: [], abort: false };
+
+    // This path detects movement just as the speed-threshold branch above does, so it
+    // must end the stop episode too. Leaving it armed meant a rider crawling in traffic
+    // (>5m per sample, but under the speed threshold) kept a stale
+    // `continuousAutoPauseStart`: CarPlay went on asking "STILL RIDING?", a later real
+    // stop could not nudge again, and the pre-creep stationary time still counted
+    // toward the 30-minute auto-end — enough to end a ride that never stopped moving.
+    const effects: AutoPauseEffect[] = [];
+    if (next.forgotToStopNotified) {
+      effects.push({ kind: 'setForgotToStopPending', value: false });
+    }
+    // Back to 'moving' so a genuine later stop re-arms the episode from scratch — with
+    // the sub-state left at 'stopped', `continuousAutoPauseStart` would never be reset
+    // and the rider could never be nudged again for the rest of the ride. Auto-paused
+    // time accounting is untouched: this branch never banked it (`zeroSpeedTimer` is
+    // reset here), so nothing that was previously counted is lost.
+    if (subState === 'stopped') effects.push({ kind: 'setSubState', value: 'moving' });
+    next.continuousAutoPauseStart = null;
+    next.forgotToStopNotified = false;
+    return { next, effects, abort: false };
   }
 
   // Not stopped long enough to auto-pause yet.
@@ -223,7 +251,7 @@ export function decideAutoPause(
   }
   if (stoppedFor > FORGOT_TO_STOP_NOTIFY_MS && !next.forgotToStopNotified) {
     next.forgotToStopNotified = true;
-    effects.push({ kind: 'notifyForgotToStop' });
+    effects.push({ kind: 'notifyForgotToStop' }, { kind: 'setForgotToStopPending', value: true });
   }
   return { next, effects, abort: false };
 }
@@ -241,6 +269,7 @@ const AUTO_PAUSE_EFFECT_HANDLERS: AutoPauseEffectHandlers = {
   notifyForgotToStop: () => {
     void showForgotToStopNotification();
   },
+  setForgotToStopPending: (e) => rideMMKV.setForgotToStopPending(e.value),
   autoEnd: (e) => autoEndRide(e.idleSince),
 };
 
@@ -420,12 +449,38 @@ function autoEndRide(idleSince: number): void {
   });
 }
 
+/**
+ * Content for the local "still riding?" nudge. Pure + exported so the payload can
+ * be asserted in tests — the `kind` is what makes the notification routable.
+ *
+ * `data.kind` matters: without it the tap handler in _layout fell through to its
+ * `if (!data?.taskId) return` guard, so tapping this notification did nothing at
+ * all. The shape mirrors the server sweep's push (@motovault/types
+ * NOTIFICATION_KIND.RIDE_IDLE) so a single handler branch covers both sources.
+ *
+ * Copy goes through i18n rather than being inlined: this is rider-facing text and
+ * the app ships 13 locales. `defaultValue` keeps the English wording if the key is
+ * ever missing from a bundle, matching the quick-actions pattern in _layout.
+ */
+export function forgotToStopNotificationContent(
+  rideId: string | undefined,
+  notifyAfterMs: number = FORGOT_TO_STOP_NOTIFY_MS,
+) {
+  const minutes = Math.round(notifyAfterMs / 60_000);
+  return {
+    title: i18n.t('rideHud.forgotToStopTitle', { defaultValue: 'Still riding?' }),
+    body: i18n.t('rideHud.forgotToStopBody', {
+      minutes,
+      defaultValue: `You've been stopped for ${minutes} minutes. Tap to end your ride or keep going.`,
+    }),
+    data: { kind: NOTIFICATION_KIND.RIDE_IDLE, rideId, autoEnded: false },
+  };
+}
+
+/** Fired once per continuous stop by `decideAutoPause`'s `notifyForgotToStop` effect. */
 async function showForgotToStopNotification(): Promise<void> {
   await Notifications.scheduleNotificationAsync({
-    content: {
-      title: 'Still riding?',
-      body: "You've been stopped for 10 minutes. Tap to end your ride or keep going.",
-    },
+    content: forgotToStopNotificationContent(rideMMKV.getCurrentId()),
     trigger: null,
   });
 }
@@ -435,4 +490,7 @@ function resetAutoPauseState(): void {
   zeroSpeedAnchor = null;
   continuousAutoPauseStart = null;
   forgotToStopNotified = false;
+  // Persisted flag must die with the session too, or the next ride's CarPlay panel
+  // opens already showing "STILL RIDING?" from a previous ride's stop.
+  rideMMKV.setForgotToStopPending(false);
 }

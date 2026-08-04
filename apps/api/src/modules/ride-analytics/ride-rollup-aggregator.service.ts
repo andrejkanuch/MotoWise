@@ -32,7 +32,7 @@ export class RideRollupAggregator {
     const { data: ride, error } = await this.supabaseAdmin
       .from('rides')
       .select(
-        'id, user_id, motorcycle_id, distance_m, max_speed_mps, avg_speed_mps, max_lean_angle, elevation_gain, elevation_loss, started_at, ended_at, paused_duration_s, auto_paused_duration_s, metadata',
+        'id, user_id, motorcycle_id, distance_m, max_speed_mps, avg_speed_mps, max_lean_angle, elevation_gain, elevation_loss, started_at, ended_at, paused_duration_s, auto_paused_duration_s, metadata, auto_ended_reason',
       )
       .eq('id', rideId)
       .eq('user_id', userId)
@@ -55,11 +55,14 @@ export class RideRollupAggregator {
       return;
     }
 
+    // Rollups ACCUMULATE (`_upsert_rollup` adds to the bucket), so they may be
+    // written exactly once per ride — `analytics_processed_at` is that latch. Record
+    // detection is separately idempotent (unique constraint), so it must NOT hide
+    // behind the same latch: a ride the sweep auto-ended has records deliberately
+    // skipped below, and if the rider later returns and ends it properly, that second
+    // event is the only chance those records will ever be detected.
     const metadata = (ride.metadata as Record<string, unknown>) ?? {};
-    if (metadata.analytics_processed_at) {
-      this.logger.log(`Ride ${rideId} already processed — skipping`);
-      return;
-    }
+    const rollupsAlreadyWritten = !!metadata.analytics_processed_at;
 
     // Derive max_lean_angle from waypoints if not set
     if (ride.max_lean_angle == null) {
@@ -82,35 +85,56 @@ export class RideRollupAggregator {
       }
     }
 
-    // Call the single-transaction RPC (speed bands set to 0 — computed in Phase 1 when UI exists)
-    const rideMetrics = {
-      distance_m: ride.distance_m ?? 0,
-      moving_time_s: movingTimeS,
-      paused_time_s: (ride.paused_duration_s ?? 0) + (ride.auto_paused_duration_s ?? 0),
-      elevation_gain_m: ride.elevation_gain ?? 0,
-      elevation_loss_m: ride.elevation_loss ?? 0,
-      max_speed_mps: ride.max_speed_mps ?? null,
-      max_lean_angle: ride.max_lean_angle ?? null,
-      band_urban_s: 0,
-      band_cruise_s: 0,
-      band_spirited_s: 0,
-      band_silly_s: 0,
-    };
+    if (rollupsAlreadyWritten) {
+      // Known limitation: if the sweep aggregated a partial track and the rider later
+      // returned with the full ride, the rollup keeps the partial distance — undoing
+      // an accumulated bucket needs a reversal RPC. The ride row itself, its history
+      // entry, the odometer and records all carry the corrected figures.
+      this.logger.log(`Ride ${rideId} rollups already written — skipping accumulation`);
+    } else {
+      // Call the single-transaction RPC (speed bands set to 0 — computed in Phase 1 when UI exists)
+      const rideMetrics = {
+        distance_m: ride.distance_m ?? 0,
+        moving_time_s: movingTimeS,
+        paused_time_s: (ride.paused_duration_s ?? 0) + (ride.auto_paused_duration_s ?? 0),
+        elevation_gain_m: ride.elevation_gain ?? 0,
+        elevation_loss_m: ride.elevation_loss ?? 0,
+        max_speed_mps: ride.max_speed_mps ?? null,
+        max_lean_angle: ride.max_lean_angle ?? null,
+        band_urban_s: 0,
+        band_cruise_s: 0,
+        band_spirited_s: 0,
+        band_silly_s: 0,
+      };
 
-    const { error: rpcError } = await this.supabaseAdmin.rpc('record_ride_analytics', {
-      p_ride_id: rideId,
-      p_user_id: userId,
-      p_motorcycle_id: ride.motorcycle_id,
-      p_started_at: ride.started_at,
-      p_ride_metrics: rideMetrics,
-    });
+      const { error: rpcError } = await this.supabaseAdmin.rpc('record_ride_analytics', {
+        p_ride_id: rideId,
+        p_user_id: userId,
+        p_motorcycle_id: ride.motorcycle_id,
+        p_started_at: ride.started_at,
+        p_ride_metrics: rideMetrics,
+      });
 
-    if (rpcError) {
-      this.logger.error(`record_ride_analytics RPC failed: ${rpcError.message}`);
-      throw new Error(`RPC failed: ${rpcError.message}`);
+      if (rpcError) {
+        this.logger.error(`record_ride_analytics RPC failed: ${rpcError.message}`);
+        throw new Error(`RPC failed: ${rpcError.message}`);
+      }
+
+      this.logger.log(`Analytics recorded for ride ${rideId}`);
     }
 
-    this.logger.log(`Analytics recorded for ride ${rideId}`);
+    // A system-ended ride still counts toward ROLLUPS above — the rider really did
+    // cover that distance, and dropping it would understate their totals. But it must
+    // never set a PERSONAL BEST: its GPS track is partial by definition (the sweep
+    // only ends rides that stopped reporting), so "longest distance" or "top speed"
+    // derived from it is unverifiable, and a forgotten ride claiming a record is
+    // exactly the kind of thing a rider can never undo. (Migration 00173.)
+    if (ride.auto_ended_reason) {
+      this.logger.log(
+        `Ride ${rideId} was system-ended (${ride.auto_ended_reason}) — skipping record detection`,
+      );
+      return;
+    }
 
     // Detect records (after the transaction commits, idempotent via unique constraint)
     await this.recordDetector.detect(userId, {
