@@ -173,82 +173,113 @@ export async function enqueueOrExecute(
   await drainQueue();
 }
 
-let isDraining = false;
+/** The drain cycle currently running, or null. Also the re-entry lock. */
+let inFlight: Promise<void> | null = null;
+/** A drain was asked for while one was already running — run one more pass. */
+let drainRequested = false;
 
-export async function drainQueue(): Promise<void> {
-  if (isDraining) return;
-  isDraining = true;
-  try {
-    // A thrown network probe is treated as no-connectivity: leave the queue
-    // intact and return so it drains on the next trigger, rather than throwing
-    // an unhandled rejection out of a fire-and-forget drainQueue() call.
-    let networkState: Network.NetworkState;
-    try {
-      networkState = await Network.getNetworkStateAsync();
-    } catch {
-      return;
-    }
-    if (!networkState.isConnected || !networkState.isInternetReachable) return;
-
-    let deadLettered = 0;
-
-    // Deliver strictly in seq order, persisting after EVERY op so an app kill
-    // mid-drain can't re-deliver an op that already reached the server. The
-    // queue is re-read each pass, so an op enqueued while we were draining (the
-    // endRide that lands behind an in-flight uploadWaypoints) is picked up in
-    // order within the same drain.
-    while (true) {
-      const queue = getQueue();
-      if (queue.length === 0) break;
-      const op = queue[0];
-
-      // Exponential backoff with jitter — only sleep on retries, not first attempt
-      if (op.retries > 0) {
-        const baseDelay = BASE_DELAY_MS * 2 ** op.retries;
-        const jitteredDelay = baseDelay * (0.5 + Math.random() * 0.5);
-        await sleep(jitteredDelay);
-      }
-
-      try {
-        await executeSyncOperation(op);
-        // Delivered — drop just this op from the live queue and advance.
-        removeOpBySeq(op.seq);
-      } catch (error) {
-        if (isNetworkError(error) || isAuthError(error)) {
-          // Transient outage: stop draining and leave this op + everything after
-          // it at the head, in order, for the next cycle. Network AND auth errors
-          // must NEVER dead-letter (would drop a fully-recorded offline ride), so
-          // retries is left untouched — an auth outage that outlasts the retry
-          // budget must not be able to convert into data loss.
-          //
-          // Head-of-line blocking here is intentional and preferable: a queue that
-          // waits indefinitely for auth keeps the ride, whereas one that "makes
-          // progress" discards it. Recovery is driven by the drain triggers in
-          // _layout (app resume, connectivity restore, and auth restored).
-          break;
-        }
-
-        const nextRetries = op.retries + 1;
-        if (isNonRetryableError(error) || nextRetries >= MAX_RETRIES) {
-          // Permanent failure — this op will never deliver. Dead-letter it and
-          // advance; later independent ops still get a chance.
-          moveToDeadLetter({ ...op, retries: nextRetries }, error);
-          removeOpBySeq(op.seq);
-          deadLettered++;
-        } else {
-          // Retryable server error (e.g. 5xx): bump retries and head-of-line
-          // block so a dependent later op can't be delivered ahead of this one.
-          bumpRetryBySeq(op.seq);
-          captureException(error);
-          break;
-        }
-      }
-    }
-
-    if (deadLettered > 0) onDeadLetter?.(getDeadLetterCount());
-  } finally {
-    isDraining = false;
+/**
+ * Drain the queue, coalescing concurrent requests instead of dropping them.
+ *
+ * The naive `if (isDraining) return` lost wakeups, and it lost the one this fix
+ * depends on: sign-in makes the app `active` BEFORE the session lands, so the
+ * app-resume trigger can start a drain that sends with a stale token, and the
+ * `SIGNED_IN` trigger then arrives mid-flight and evaporates. The stale request
+ * fails UNAUTHENTICATED and head-of-line blocks — with a valid session now in hand,
+ * a blocked queue, and no trigger left. Next chance would be app resume, a
+ * connectivity change, or the ~1h token refresh.
+ *
+ * The returned promise resolves when the cycle that includes the caller's request
+ * has finished, so awaiting it is a genuine "delivery was attempted" signal even
+ * when a drain was already running.
+ */
+export function drainQueue(): Promise<void> {
+  if (inFlight) {
+    drainRequested = true;
+    return inFlight;
   }
+  inFlight = (async () => {
+    try {
+      do {
+        // Cleared before the pass, so a request arriving DURING it schedules another.
+        drainRequested = false;
+        await drainPass();
+      } while (drainRequested);
+    } finally {
+      inFlight = null;
+    }
+  })();
+  return inFlight;
+}
+
+async function drainPass(): Promise<void> {
+  // A thrown network probe is treated as no-connectivity: leave the queue
+  // intact and return so it drains on the next trigger, rather than throwing
+  // an unhandled rejection out of a fire-and-forget drainQueue() call.
+  let networkState: Network.NetworkState;
+  try {
+    networkState = await Network.getNetworkStateAsync();
+  } catch {
+    return;
+  }
+  if (!networkState.isConnected || !networkState.isInternetReachable) return;
+
+  let deadLettered = 0;
+
+  // Deliver strictly in seq order, persisting after EVERY op so an app kill
+  // mid-drain can't re-deliver an op that already reached the server. The
+  // queue is re-read each pass, so an op enqueued while we were draining (the
+  // endRide that lands behind an in-flight uploadWaypoints) is picked up in
+  // order within the same drain.
+  while (true) {
+    const queue = getQueue();
+    if (queue.length === 0) break;
+    const op = queue[0];
+
+    // Exponential backoff with jitter — only sleep on retries, not first attempt
+    if (op.retries > 0) {
+      const baseDelay = BASE_DELAY_MS * 2 ** op.retries;
+      const jitteredDelay = baseDelay * (0.5 + Math.random() * 0.5);
+      await sleep(jitteredDelay);
+    }
+
+    try {
+      await executeSyncOperation(op);
+      // Delivered — drop just this op from the live queue and advance.
+      removeOpBySeq(op.seq);
+    } catch (error) {
+      if (isNetworkError(error) || isAuthError(error)) {
+        // Transient outage: stop draining and leave this op + everything after
+        // it at the head, in order, for the next cycle. Network AND auth errors
+        // must NEVER dead-letter (would drop a fully-recorded offline ride), so
+        // retries is left untouched — an auth outage that outlasts the retry
+        // budget must not be able to convert into data loss.
+        //
+        // Head-of-line blocking here is intentional and preferable: a queue that
+        // waits indefinitely for auth keeps the ride, whereas one that "makes
+        // progress" discards it. Recovery is driven by the drain triggers in
+        // _layout (app resume, connectivity restore, and auth restored).
+        break;
+      }
+
+      const nextRetries = op.retries + 1;
+      if (isNonRetryableError(error) || nextRetries >= MAX_RETRIES) {
+        // Permanent failure — this op will never deliver. Dead-letter it and
+        // advance; later independent ops still get a chance.
+        moveToDeadLetter({ ...op, retries: nextRetries }, error);
+        removeOpBySeq(op.seq);
+        deadLettered++;
+      } else {
+        // Retryable server error (e.g. 5xx): bump retries and head-of-line
+        // block so a dependent later op can't be delivered ahead of this one.
+        bumpRetryBySeq(op.seq);
+        captureException(error);
+        break;
+      }
+    }
+  }
+
+  if (deadLettered > 0) onDeadLetter?.(getDeadLetterCount());
 }
 
 async function executeSyncOperation(op: SyncOperation): Promise<void> {
@@ -301,9 +332,11 @@ export function hasPendingSyncWork(): boolean {
  * Used by the "rides failed to sync — retry" affordance. Ops are re-sorted by seq
  * so a redrive preserves the original ordering.
  *
- * Returns the drain promise so a caller can await actual delivery. Awaiting a
- * *second* `drainQueue()` instead would resolve immediately — this drain already
- * holds `isDraining` — so the returned promise is the only reliable signal.
+ * Returns the drain promise so a caller can await actual delivery — the only
+ * reliable signal, since the drain is single-flight and a separate `drainQueue()`
+ * awaits the same cycle rather than starting its own. Correct even when a drain was
+ * already running: `drainQueue` coalesces the request into the live cycle, so the
+ * returned promise still resolves after the redriven ops have been attempted.
  */
 export function redriveDeadLetterQueue(): Promise<void> {
   const dlq = getDeadLetterQueue();
@@ -314,10 +347,6 @@ export function redriveDeadLetterQueue(): Promise<void> {
   setQueue(merged);
   syncStorage.remove(DEAD_LETTER_KEY);
   return drainQueue();
-}
-
-export function clearDeadLetterQueue(): void {
-  syncStorage.remove(DEAD_LETTER_KEY);
 }
 
 /**
@@ -344,15 +373,19 @@ export function clearDeliveredQueue(): void {
  * Genuinely destructive — deliberately named so, and deliberately not the thing a
  * sign-out path reaches for. Intended for tests and an explicit user-initiated
  * "discard failed rides" action. Use `clearDeliveredQueue` for cleanup.
+ *
+ * This is the ONLY exported function that can remove DEAD_LETTER_KEY. The
+ * `clearAll` alias and an unused `clearDeadLetterQueue` were both deleted rather
+ * than left deprecated: a JSDoc `@deprecated` stops nothing at runtime or in CI, and
+ * `clearAll as clearSyncQueue` is the exact import that destroyed rides in
+ * production. Making the destructive path unreachable-by-accident is the fix; a
+ * comment asking people not to use it is not.
  */
 export function destroyAllSyncData(): void {
   syncStorage.remove(QUEUE_KEY);
   syncStorage.remove(DEAD_LETTER_KEY);
   syncStorage.remove(SEQ_KEY);
 }
-
-/** @deprecated Use `destroyAllSyncData` (destructive) or `clearDeliveredQueue` (safe). */
-export const clearAll = destroyAllSyncData;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));

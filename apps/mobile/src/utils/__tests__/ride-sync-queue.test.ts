@@ -34,8 +34,8 @@ jest.mock('../../lib/analytics', () => ({ captureException: jest.fn() }));
 
 import { captureException } from '../../lib/analytics';
 import {
-  clearAll,
   clearDeliveredQueue,
+  destroyAllSyncData,
   drainQueue,
   enqueue,
   enqueueOrExecute,
@@ -67,7 +67,7 @@ function deadLetter(): unknown[] {
 }
 
 beforeEach(() => {
-  clearAll();
+  destroyAllSyncData();
   mockGqlFetcher.mockReset();
   mockCapture.mockReset();
   setDeadLetterListener(null);
@@ -84,9 +84,9 @@ describe('enqueue / sequence ordering', () => {
     expect(queue.map((o) => o.seq)).toEqual([1, 2]);
   });
 
-  it('clearAll empties the queue and seq counter', () => {
+  it('destroyAllSyncData empties the queue and seq counter', () => {
     enqueue('endRide', { variables: {} });
-    clearAll();
+    destroyAllSyncData();
     expect(getQueueLength()).toBe(0);
   });
 });
@@ -346,6 +346,30 @@ describe('auth errors never destroy a recorded ride (MOTO-VAULT-REACT-NATIVE-1J)
     expect(mockGqlFetcher).toHaveBeenCalledTimes(1);
   });
 
+  it('does not lose an auth-restored drain requested while a drain is in flight', async () => {
+    // The interleave that silently stranded the queue: sign-in makes the app
+    // `active` BEFORE the session lands, so the app-resume trigger starts a drain
+    // that sends with a stale token. `SIGNED_IN` then fires mid-flight — under the
+    // old `if (isDraining) return` it evaporated, leaving a valid session, a blocked
+    // queue, and no trigger left until the ~1h token refresh.
+    enqueue('uploadWaypoints', { variables: { rideId: 'r1', waypoints: [] } });
+
+    mockGqlFetcher
+      .mockImplementationOnce(async () => {
+        // The SIGNED_IN trigger fires while this stale-token request is in flight.
+        void drainQueue();
+        throw gqlError('UNAUTHENTICATED');
+      })
+      .mockResolvedValue({}); // auth is good by the time the second pass runs
+
+    await drainQueue();
+
+    // The coalesced request drove a second pass, which delivered.
+    expect(getQueueLength()).toBe(0);
+    expect(getDeadLetterCount()).toBe(0);
+    expect(mockGqlFetcher).toHaveBeenCalledTimes(2);
+  });
+
   it('still dead-letters a genuinely permanent error', async () => {
     // The auth carve-out must not weaken the permanent-failure path.
     enqueue('uploadWaypoints', { variables: { rideId: 'r1', waypoints: [] } });
@@ -368,6 +392,23 @@ describe('pending work counts BOTH stores', () => {
     expect(getQueueLength()).toBe(0);
     expect(getDeadLetterCount()).toBe(1);
     expect(getPendingCount()).toBe(1);
+    expect(hasPendingSyncWork()).toBe(true);
+  });
+
+  it('clearDeliveredQueue preserves a still-QUEUED op — the guard, actually observed', async () => {
+    // The other two clearDeliveredQueue tests below pass even if the
+    // `if (hasPendingSyncWork()) return;` guard is deleted: the function never
+    // touches DEAD_LETTER_KEY on any path, and in the "nothing pending" case the
+    // drain has already emptied the queue. A surviving QUEUED op is the only
+    // observable effect the guard has, so this is the one that pins it down.
+    enqueue('uploadWaypoints', { variables: { rideId: 'r1', waypoints: [] } });
+    mockGqlFetcher.mockRejectedValue(gqlError('UNAUTHENTICATED'));
+    await drainQueue();
+    expect(getQueueLength()).toBe(1); // auth-blocked, still queued, not dead-lettered
+
+    clearDeliveredQueue(); // the sign-out path
+
+    expect(getQueueLength()).toBe(1);
     expect(hasPendingSyncWork()).toBe(true);
   });
 
