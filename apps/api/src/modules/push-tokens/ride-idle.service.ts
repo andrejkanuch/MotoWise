@@ -38,6 +38,13 @@ const MAX_RIDES_PER_RUN = 500;
 /** Earth radius in metres, for the waypoint-track distance reconstruction. */
 const EARTH_RADIUS_M = 6_371_000;
 
+/**
+ * The last-fix probe failed, so this ride's idle time is UNKNOWN — distinct from a
+ * ride that genuinely has no fixes. Ending a ride requires positive evidence of
+ * silence; a failed read is not that, so such rides are skipped until the next run.
+ */
+const UNREADABLE = Symbol('waypoint-probe-unreadable');
+
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;
   const timeout = new Promise<T>((_, reject) => {
@@ -151,15 +158,37 @@ export class RideIdleService {
     // thousands of waypoint rows every hour to read a single timestamp. The track is
     // fetched below only for rides actually being ended, which need it to rebuild
     // `distance_m`.
+    let unreadable = 0;
     for (const ride of active) {
-      const lastSignal = (await this.loadLastFix(ride.id)) ?? new Date(ride.started_at);
+      const lastFix = await this.loadLastFix(ride.id);
+      // Unknown idle time is not evidence of silence — leave the ride alone and let
+      // the next hourly tick decide. Skipping costs at most an hour of latency on a
+      // 2h/24h threshold; guessing costs a live rider their ride.
+      if (lastFix === UNREADABLE) {
+        unreadable++;
+        continue;
+      }
+      const lastSignal = lastFix ?? new Date(ride.started_at);
       const idleHours = differenceInHours(now, lastSignal);
 
       if (idleHours >= IDLE_AUTO_END_HOURS) {
-        endTargets.push({ ride, lastSignal, track: await this.loadTrack(ride.id) });
+        const track = await this.loadTrack(ride.id);
+        // Prefer the track's own newest fix over the probe's: `endIdleRide` trims
+        // `ended_at` to this value, and the full track is the more complete source.
+        const trackLast = track.at(-1);
+        endTargets.push({
+          ride,
+          lastSignal: trackLast ? new Date(trackLast.recorded_at) : lastSignal,
+          track,
+        });
       } else if (idleHours >= IDLE_NUDGE_HOURS) {
         nudgeTargets.push({ ride, idleHours });
       }
+    }
+    if (unreadable > 0) {
+      this.logger.warn(
+        `sweepIdleRides skipped ${unreadable} ride(s) whose last-fix probe failed; deferred to the next run.`,
+      );
     }
 
     if (nudgeTargets.length === 0 && endTargets.length === 0) {
@@ -269,14 +298,18 @@ export class RideIdleService {
   }
 
   /**
-   * Timestamp of a ride's newest GPS fix, or null when it never produced one.
+   * Timestamp of a ride's newest GPS fix. `null` = the ride genuinely has no fixes
+   * (classify on `started_at`); `UNREADABLE` = the probe failed and we know nothing.
    *
    * This is the whole input to idle classification, so it must stay a single-row read:
    * it runs once per active ride, every hour, for rides that are overwhelmingly fine.
-   * A read failure returns null (same as "no fixes"), which classifies on `started_at`
-   * rather than skipping the ride forever behind a transient error.
+   *
+   * The two outcomes MUST stay distinct. Collapsing a read error into "no fixes" makes
+   * the sweep fail *open*: any ride older than IDLE_AUTO_END_HOURS gets auto-ended on a
+   * statement timeout, even one reporting GPS seconds ago — and `ended_at` is then
+   * trimmed to `started_at`, writing a live ride as a long-distance, zero-second one.
    */
-  private async loadLastFix(rideId: string): Promise<Date | null> {
+  private async loadLastFix(rideId: string): Promise<Date | null | typeof UNREADABLE> {
     const { data, error } = await this.adminClient
       .from('ride_waypoints')
       .select('recorded_at')
@@ -286,7 +319,7 @@ export class RideIdleService {
       .maybeSingle();
     if (error) {
       this.logger.warn(`loadLastFix failed for ride ${rideId}: ${error.message}`);
-      return null;
+      return UNREADABLE;
     }
     const recordedAt = (data as { recorded_at?: string } | null)?.recorded_at;
     return recordedAt ? new Date(recordedAt) : null;

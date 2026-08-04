@@ -347,6 +347,52 @@ describe('RideIdleService.sweepIdleRides', () => {
     ]);
   });
 
+  it('skips a ride whose last-fix probe fails instead of ending it', async () => {
+    // Fail-CLOSED is the whole point. Collapsing a read error into "no fixes ever"
+    // makes the sweep classify on started_at, so ANY ride older than 24h gets
+    // auto-ended on a statement timeout — including one reporting GPS seconds ago —
+    // and ended_at is then trimmed to started_at, writing a live 60km ride as a
+    // zero-second one. Unknown idle time is not evidence of silence.
+    const client = makeAdminClient({
+      rides: {
+        data: [{ id: 'r1', user_id: 'u1', started_at: hoursAgo(40), status: 'recording' }],
+        error: null,
+      },
+      ride_waypoints: { data: null, error: { message: 'canceling statement due to timeout' } },
+      device_push_tokens: {
+        data: [{ user_id: 'u1', token: 'ExponentPushToken[abc]' }],
+        error: null,
+      },
+      users: { data: [{ id: 'u1', preferences: { locale: 'en' } }], error: null },
+      ride_idle_nudge_log: { error: null },
+    });
+
+    const summary = await new RideIdleService(client).sweepIdleRides();
+
+    expect(summary).toMatchObject({ examined: 1, autoEnded: 0, nudged: 0 });
+    expect(ridesPatch()).toBeUndefined();
+    expect(mockSentMessages).toHaveLength(0);
+  });
+
+  it('trims ended_at to the track’s newest fix, not the probe value', async () => {
+    // endIdleRide loads the full track anyway, so it is the more complete source for
+    // the value ended_at is trimmed to.
+    const newest = hoursAgo(25);
+    const service = new RideIdleService(
+      clientFor({
+        startedHoursAgo: 50,
+        track: [
+          { recorded_at: hoursAgo(48), latitude: 34.9, longitude: -82.9 },
+          { recorded_at: newest, latitude: 34.95, longitude: -82.95 },
+        ],
+      }),
+    );
+
+    await service.sweepIdleRides();
+
+    expect(ridesPatch()?.ended_at).toBe(newest);
+  });
+
   it('orders the capped ride query oldest-first so old idle rides cannot starve', async () => {
     // With no ORDER BY, Postgres may return the same arbitrary subset every run, so
     // past the MAX_RIDES_PER_RUN cap the oldest idle rides never get picked up.
