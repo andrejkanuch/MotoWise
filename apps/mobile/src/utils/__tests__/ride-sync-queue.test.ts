@@ -443,9 +443,10 @@ describe('pending work counts BOTH stores', () => {
 
     clearDeliveredQueue(); // the sign-out path
     mockGqlFetcher.mockReset().mockResolvedValue({});
-    // Await the redrive's own drain. A second `drainQueue()` would return
-    // immediately (`isDraining` is already held), so delivery would be asserted
-    // on microtask ordering rather than on the drain actually finishing.
+    // Await the redrive's own drain — the promise that actually tracks delivery.
+    // The drain is single-flight (`inFlight` + `drainRequested`), so a separate
+    // `drainQueue()` here would just await the same cycle; asserting on that instead
+    // would depend on which cycle happened to be live rather than on this redrive.
     await redriveDeadLetterQueue();
 
     expect(getDeadLetterCount()).toBe(0);
