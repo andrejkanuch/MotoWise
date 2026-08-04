@@ -535,6 +535,17 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
       offering = offerings.current ?? undefined;
     }
 
+    // Last chance to abort. Placed here, ahead of PAYWALL_VIEWED, because it is
+    // still after every await (init, offerings, placement lookup) — so the caller's
+    // own pre-call guard may be many seconds stale by now — while a paywall that is
+    // about to be skipped must not be counted as viewed. Once the native modal is up
+    // there is no dismiss handle, so this is the only point at which "the rider
+    // already moved on" can still be honoured.
+    if (options.shouldAbort?.() === true) {
+      trackPaywallResult(options, 'not_presented');
+      return 'not_presented';
+    }
+
     trackEvent(
       AnalyticsEvent.PAYWALL_VIEWED,
       paywallProperties(options, {
@@ -561,15 +572,6 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
       CUSTOM_VARIABLES_SUPPORTED && options.personalization
         ? buildPaywallCustomVariables(options.personalization, RevenueCatUI.CustomVariableValue)
         : undefined;
-
-    // Last chance to abort: everything above (init, offerings, placement lookup) is
-    // awaited, so the caller's own pre-call guard may be many seconds stale by now.
-    // Once the native modal is up there is no dismiss handle, so this is the only
-    // point at which "the rider already moved on" can still be honoured.
-    if (options.shouldAbort?.() === true) {
-      trackPaywallResult(options, 'not_presented');
-      return 'not_presented';
-    }
 
     const result = options.requiredEntitlementIdentifier
       ? await RevenueCatUI.default.presentPaywallIfNeeded({
