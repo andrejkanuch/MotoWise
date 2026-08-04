@@ -899,6 +899,7 @@
     "obAccountReassuranceFree": "Tes données sont sauvegardées et synchronisées.",
     "obAccountHaveAccount": "Tu as déjà un compte ? Connecte-toi",
     "obAccountCreating": "Création de ton compte…",
+    "obPaywallEscape": "Continuer sans Pro",
     "obSignInTitle": "Bon retour",
     "obSignInSubtitle": "Connecte-toi pour accéder à ton garage sur cet appareil.",
     "obCommitSignHint": "Signez ici",

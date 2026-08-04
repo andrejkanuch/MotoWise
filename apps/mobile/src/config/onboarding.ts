@@ -340,12 +340,19 @@ export function getResumeRoute(
 }
 
 /**
- * Auto-advancing loader screens that must never be a Back target: re-entering
- * one re-runs its timer and bounces the user forward again (a building-plan↔
- * reveal loop). Back skips over them to the previous real step. (Forward nav
- * already replaces past them — see BuildingPlanScreen's `goNext({ replace })`.)
+ * Screens that must never be a Back target because they act on mount and bounce
+ * the rider forward again. Back skips over them to the previous real step.
+ *
+ * - `building_plan` re-runs its timer (a building-plan↔reveal loop). Forward nav
+ *   already replaces past it — see BuildingPlanScreen's `goNext({ replace })`.
+ * - `paywall` re-presents the native RevenueCat modal on mount, so landing on it
+ *   from Back produces a paywall↔account loop with no way out — the rider is
+ *   asked to pay again every time they try to step back from the account gate.
  */
-const AUTO_ADVANCE_SCREENS: ReadonlySet<OnboardingRoute> = new Set([OB_SCREEN.BUILDING_PLAN]);
+const AUTO_ADVANCE_SCREENS: ReadonlySet<OnboardingRoute> = new Set([
+  OB_SCREEN.BUILDING_PLAN,
+  OB_SCREEN.PAYWALL,
+]);
 
 /**
  * Full route path for the screen immediately before `current`, or null if it is
