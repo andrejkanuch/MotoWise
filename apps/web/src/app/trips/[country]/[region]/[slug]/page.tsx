@@ -137,8 +137,8 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
 // are generated on demand, `notFound()` produces a genuine 404, and a trip
 // published after the last deploy is reachable without a rebuild.
 //
-// Do NOT add a loading.tsx above this route. It silently converts every 404 on
-// the subtree back into an indexable 200 (Sentry MOTOVAULT-WEB-Q, 74 events),
+// Do NOT add a loading.tsx above this route. It silently converts every 404 and
+// every 308 on the subtree back into a 200 (Sentry MOTOVAULT-WEB-Q, 74 events),
 // and dev mode cannot reproduce it — only a production build can.
 export const dynamic = 'force-static';
 export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand on publish/edit

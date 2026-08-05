@@ -9,8 +9,13 @@ import { describe, expect, it } from 'vitest';
  * A `loading.tsx` creates a Suspense boundary for its whole subtree, so the shell
  * streams before the page resolves — and per Next's `not-found` reference a streamed
  * response can only carry HTTP 200. Every `notFound()` under such a boundary
- * therefore serves the not-found page at 200, which Google indexes as a real, thin
- * page. The same applies to a status-carrying redirect.
+ * therefore serves the not-found page at 200 — the wrong status, which burns crawl
+ * budget (a 200 is re-fetched indefinitely; a 404 lets Google drop the URL). The
+ * same applies to a status-carrying redirect, and there the loss is concrete: a
+ * renamed slug served a dead end instead of a 308, discarding that link's signal
+ * rather than consolidating it. GSC confirms the pages were NOT indexed — Next's
+ * notFound() emits `<meta name="robots" content="noindex">`, so they came back
+ * "Excluded by noindex", not indexed-as-thin. See the solutions doc.
  *
  * This is exactly the regression that hid for ~2 months across two PRs (Sentry
  * MOTOVAULT-WEB-Q/-P/-R, ~1k GSC "Not found (404)" entries) — see
@@ -79,7 +84,7 @@ describe('404 contract: no Suspense boundary above a status-carrying page', () =
 
     expect(
       violations,
-      'A loading.tsx above these pages turns their 404s/redirects into indexable 200s. ' +
+      'A loading.tsx above these pages turns their 404s and redirects into 200s. ' +
         'Render the loading UI inside the page below its existence check, or use a ' +
         'client-side navigation-event component (no Suspense boundary).',
     ).toEqual([]);

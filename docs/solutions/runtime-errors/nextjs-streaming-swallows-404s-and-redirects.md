@@ -9,9 +9,7 @@ affected_modules: [web/app/loading, web/trips, web/explore, web/blog, web/guides
 ## Problem
 
 Every unknown URL on the marketing routes returned **HTTP 200 with not-found content** —
-a soft-404. Google indexed them as real, thin pages: ~1k "Not found (404)" entries in
-GSC plus 284 duplicate-canonical, and Sentry `MOTOVAULT-WEB-Q` (74 events), `-P` (55),
-`-R` (25).
+a soft-404. Sentry `MOTOVAULT-WEB-Q` (74 events), `-P` (55), `-R` (25).
 
 ```
 $ curl -I https://motovault.app/trips/us/mt/beartooth-highway-2
@@ -26,6 +24,48 @@ and **never** a 308, for as long as those redirects existed.
 
 It hid for ~2 months across two PRs. Three separate investigation passes each asserted
 something the next disproved.
+
+### What the actual harm was — corrected against GSC data
+
+The original write-up (and PR #193) claimed Google was **indexing these as real, thin
+pages**. The GSC URL Inspection API says otherwise. Checked 2026-08-05, right after the fix
+deployed, on the exact URL from the bug report:
+
+```
+url:              /trips/us/mt/beartooth-highway-2
+coverage_state:   Excluded by ‘noindex’ tag
+indexing_state:   BLOCKED_BY_META_TAG
+page_fetch_state: SUCCESSFUL          <- Google did get a 200
+last_crawl_time:  2026-08-02
+referring_urls:   /route/us/mt/beartooth-highway-2
+```
+
+Next's `notFound()` automatically emits `<meta name="robots" content="noindex">`, still
+visible on the live 404 page. So Google fetched a 200 and then **excluded** the URL. The
+noindex tag prevented the index pollution the write-up asserted. **Do not repeat that
+claim.** The soft-404s were semantically wrong, not index-polluting.
+
+The real costs, in order of how much they mattered:
+
+1. **Lost redirect equity — the genuine damage.**
+   `/trips/us/ca/pacific-coast-highway` is linked from `/explore` and, instead of a 308 to
+   the renamed slug, served a dead-end noindex 200 (last crawled 2026-05-03). Google saw a
+   dead end where it should have seen a redirect, so that link's signal was discarded rather
+   than consolidated onto the canonical trip. Same for the ~28 bare dedup-hash slugs.
+2. **Wasted crawl budget.** A 200 keeps Google re-fetching indefinitely; a 404 lets it drop
+   the URL and stop.
+3. **GSC and Sentry noise** — `reportSoftNotFound` events, and a coverage report cluttered
+   with "Excluded by noindex" rows that should have been clean 404s.
+
+The fix is unchanged and still correct — 404 is the right status and the redirects are
+restored (verified: production now returns `308 → /trips/us/ca/pacific-coast-highway-big-sur`).
+Only the stated *rationale* was wrong.
+
+Note the ~1k "Not found (404)" and 284 duplicate-canonical figures quoted in the original
+write-up came from the GSC **UI**, which the API does not expose, so their composition was
+never verified against these URLs. They plausibly counted genuinely-404ing URLs such as the
+dead `/explore/{country}/{region}/{slug}` pattern PR #177 addressed — a different problem.
+Treat those numbers as unattributed.
 
 ## Root Cause
 
