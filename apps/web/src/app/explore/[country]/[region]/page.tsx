@@ -5,18 +5,20 @@ import { ResultsDesktop } from '@/components/explore/results-desktop';
 import { ResultsMobile } from '@/components/explore/results-mobile';
 import { BASE_URL, getCanonicalUrl, getHreflangMap } from '@/lib/constants';
 import {
-  fetchPublishedTripSlugRefs,
   fetchRegionBySlug,
   fetchRegionsByCountrySlug,
   fetchTripTemplatesByRegion,
 } from '@/lib/fetch-places';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
+import { definitiveOrThrow } from '@/lib/graphql-server';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
 
 // Statically prerendered (force-static) so the dynamic root layout
 // (getLocale/getMessages read headers) doesn't drag this route into dynamic
-// rendering — which is what served the not-found page with a 200 (soft 404).
-// Static rendering lets notFound() emit a real 404, and ISR keeps it fresh.
+// rendering. `notFound()` emits a real 404 under it, and ISR keeps it fresh —
+// what previously served not-found at 200 was the Suspense boundary created by
+// `app/loading.tsx` (Sentry MOTOVAULT-WEB-P), now deleted. See the trip-detail
+// route for the measured evidence, and do not add a loading.tsx above this route.
 export const dynamic = 'force-static';
 export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand via /api/revalidate
 
@@ -38,9 +40,20 @@ interface PageProps {
 async function resolveRegion(countrySlug: string, regionSlug: string) {
   const code = countrySlug.toUpperCase();
   const [places, allRegions, trips] = await Promise.all([
-    fetchRegionBySlug(countrySlug, regionSlug).catch(() => null),
+    // Existence inputs: swallow only a DEFINITIVE not-found, re-throw anything
+    // transient. A blanket `.catch(() => …)` here turned any API blip into
+    // notFound(), and under the force-static ISR above that bakes a *cached* 404
+    // over a region that really exists — the same trap fetchTrip avoids on the
+    // trip-detail route. The failed 2026-08-05 preview build logged
+    // `[soft-404] explore-region` for th/th-77, jp/jp-20 and sg/sg-02 while
+    // dying on a GraphQL 502; all three have published trips and the live API
+    // returns them, so those lines were swallowed 502s, not missing data.
+    // Re-throwing makes Next render an uncached error instead.
+    definitiveOrThrow(fetchRegionBySlug(countrySlug, regionSlug), null),
+    // Presentation-only (region count in the sidebar) — a failure here must not
+    // fail the page, and cannot affect the 404 decision below.
     fetchRegionsByCountrySlug(countrySlug).catch(() => []),
-    fetchTripTemplatesByRegion(code, regionSlug, 50).catch(() => []),
+    definitiveOrThrow(fetchTripTemplatesByRegion(code, regionSlug, 50), []),
   ]);
 
   // A region with neither a taxonomy row nor any trips is a genuine 404.
@@ -53,23 +66,6 @@ async function resolveRegion(countrySlug: string, regionSlug: string) {
     countryName: places?.country.name ?? countryDisplayName(countrySlug),
     regionName: places?.region.name ?? regionDisplayName(countrySlug, regionSlug),
   };
-}
-
-/** Prebuild every country/region that has a published trip — matches the sitemap. */
-export async function generateStaticParams(): Promise<{ country: string; region: string }[]> {
-  const refs = await fetchPublishedTripSlugRefs().catch(() => []);
-  const seen = new Set<string>();
-  const params: { country: string; region: string }[] = [];
-  for (const ref of refs) {
-    if (!ref.regionCode) continue;
-    const country = ref.countryCode.toLowerCase();
-    const region = ref.regionCode.toLowerCase();
-    const key = `${country}/${region}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    params.push({ country, region });
-  }
-  return params;
 }
 
 /* ── Metadata ────────────────────────────────────────────────── */

@@ -118,8 +118,11 @@ export default function ProfilePage() {
 
   const initial = user.displayName?.charAt(0)?.toUpperCase() ?? user.email.charAt(0).toUpperCase();
   const memberSince = new Date(user.createdAt);
-  const memberMonth = memberSince.toLocaleDateString('en-US', { month: 'short' });
-  const memberYear = `'${memberSince.getFullYear().toString().slice(-2)}`;
+  const memberMonth = memberSince.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short' });
+  // getUTCFullYear, not getFullYear: memberMonth above formats in UTC, so a local-time
+  // year would disagree with it across a New Year boundary (e.g. "Dec '25" rendered
+  // as "Dec '26" for a visitor already in the new year).
+  const memberYear = `'${memberSince.getUTCFullYear().toString().slice(-2)}`;
 
   return (
     <div className="garage-page" style={{ paddingTop: '40px', paddingBottom: '60px' }}>

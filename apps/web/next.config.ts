@@ -34,6 +34,21 @@ const NON_LOCALIZED_ROUTE_SECTIONS = [
   'piel',
 ] as const;
 
+/**
+ * Trip slugs that changed and still have inbound links / index entries. The
+ * dedup-hash rule in src/lib/trips/bare-slug-redirect.ts can't recover a genuine
+ * rename, so these are listed explicitly.
+ *
+ * Kept here rather than in the page because a config redirect runs before
+ * rendering: no GraphQL round-trip, and it applies even when the page would not
+ * render at all. (The page CAN emit a 308 now — that was blocked by the Suspense
+ * boundary `app/loading.tsx` created, not by `force-static` — but there is no
+ * reason to pay for a render when a static mapping suffices.)
+ */
+const LEGACY_TRIP_REDIRECTS = [
+  { from: '/trips/us/ca/pacific-coast-highway', to: '/trips/us/ca/pacific-coast-highway-big-sur' },
+] as const;
+
 const ACTIVE_LOCALE_REGEX_GROUP = ACTIVE_NON_DEFAULT_LOCALES.join('|');
 const NON_LOCALIZED_SECTION_REGEX_GROUP = NON_LOCALIZED_ROUTE_SECTIONS.join('|');
 
@@ -83,6 +98,14 @@ const nextConfig: NextConfig = {
     // Config-level redirects run before the next-intl middleware, so these
     // take precedence over any downstream locale handling.
     return [
+      // Trips renamed since the `/route/` era. These slugs have no row, so the
+      // page itself could only `notFound()` them. Handled here so the 308 costs no
+      // render and no GraphQL call.
+      ...LEGACY_TRIP_REDIRECTS.map(({ from, to }) => ({
+        source: from,
+        destination: to,
+        permanent: true,
+      })),
       ...DROPPED_LOCALES.flatMap((locale) => [
         { source: `/${locale}`, destination: '/', permanent: true },
         { source: `/${locale}/:path*`, destination: '/:path*', permanent: true },

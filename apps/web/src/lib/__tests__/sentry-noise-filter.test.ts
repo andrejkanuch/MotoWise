@@ -173,6 +173,60 @@ describe('shouldDropClientEvent', () => {
     });
   });
 
+  describe('browser-extension runtime.sendMessage (MOTOVAULT-WEB-11)', () => {
+    it('drops an extension throw with no first-party frames', () => {
+      expect(
+        shouldDropClientEvent(
+          eventWith('Invalid call to runtime.sendMessage(). Tab not found.', {
+            frames: [{ filename: 'chrome-extension://abc/content.js' }],
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('drops it when it arrives frameless', () => {
+      expect(
+        shouldDropClientEvent(eventWith('Invalid call to runtime.sendMessage(). Tab not found.')),
+      ).toBe(true);
+    });
+
+    it('KEEPS a first-party error mentioning runtime.sendMessage', () => {
+      expect(
+        shouldDropClientEvent(
+          eventWith('runtime.sendMessage bridge failed', {
+            frames: [{ filename: 'https://motovault.app/_next/static/chunk.js' }],
+          }),
+        ),
+      ).toBe(false);
+    });
+  });
+
+  describe('mapbox WebGL init failure (MOTOVAULT-WEB-12)', () => {
+    it('drops it — the client cannot provide a WebGL context', () => {
+      expect(shouldDropClientEvent(eventWith('Failed to initialize WebGL.'))).toBe(true);
+    });
+
+    it('drops it even with first-party frames, since mapbox runs inside our bundle', () => {
+      expect(
+        shouldDropClientEvent(
+          eventWith('Failed to initialize WebGL.', {
+            frames: [{ filename: 'https://motovault.app/_next/static/mapbox.js' }],
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('KEEPS other mapbox errors, which ARE actionable', () => {
+      expect(
+        shouldDropClientEvent(
+          eventWith('An API access token is required to use Mapbox GL.', {
+            frames: [{ filename: 'https://motovault.app/_next/static/mapbox.js' }],
+          }),
+        ),
+      ).toBe(false);
+    });
+  });
+
   it('keeps unrelated first-party errors', () => {
     expect(
       shouldDropClientEvent(

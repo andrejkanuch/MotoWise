@@ -1,9 +1,24 @@
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { type NextRequest, NextResponse } from 'next/server';
 import { routing } from '@/i18n/routing';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+const TIMING_SAFE_KEY = 'revalidate-timing-safe-compare' as const;
+
+/**
+ * Constant-time secret comparison, matching the pattern the API's own public
+ * webhook controllers use (`safeCompare` in ride-idle-check.controller.ts and
+ * maintenance-due-push.controller.ts). HMAC first so both sides are fixed-length,
+ * since timingSafeEqual throws on a length mismatch — and a raw `!==` leaks the
+ * secret's length and a prefix-match position through response timing.
+ */
+function safeCompare(a: string, b: string): boolean {
+  const hmac = (v: string) => createHmac('sha256', TIMING_SAFE_KEY).update(v).digest();
+  return timingSafeEqual(hmac(a), hmac(b));
+}
 
 /**
  * Expand a non-localized path to every locale variant it's served at. The
@@ -35,6 +50,13 @@ function localeVariants(path: string): string[] {
  * Body: `{ tags?: string[]; paths?: string[] }`. Tags map to {@link CACHE_TAGS};
  * paths are concrete URLs (e.g. `/explore/ca/bc`, `/trips/ca/bc/<slug>`).
  *
+ * A `staticParamsChanged` flag and a Vercel deploy-hook trigger used to live here,
+ * because `dynamicParams = false` meant a newly published trip could not be served
+ * without a rebuild. No route sets that flag any more — unknown URLs are generated
+ * on demand and 404 only when the content genuinely does not exist — so both are
+ * gone. An extra `staticParamsChanged` key in a request body is ignored, not an
+ * error, so an API caller still sending it keeps working.
+ *
  * Example (API → web on trip publish):
  *   curl -X POST "$WEB_URL/api/revalidate" \
  *     -H "x-revalidate-secret: $REVALIDATE_SECRET" \
@@ -43,7 +65,8 @@ function localeVariants(path: string): string[] {
  */
 export async function POST(req: NextRequest) {
   const secret = process.env.REVALIDATE_SECRET;
-  if (!secret || req.headers.get('x-revalidate-secret') !== secret) {
+  const provided = req.headers.get('x-revalidate-secret');
+  if (!secret || !provided || !safeCompare(provided, secret)) {
     return NextResponse.json({ revalidated: false, error: 'unauthorized' }, { status: 401 });
   }
 

@@ -25,6 +25,7 @@
     "check:router": "bash scripts/check-no-router-any.sh",
     "check:mobile-colors": "sh scripts/check-no-hardcoded-mobile-colors.sh",
     "check:arch": "tsx scripts/check-arch-boundaries.ts",
+    "check:404": "bash scripts/check-404-contract.sh",
     "knip": "knip",
     "precheck": "pnpm check:api-bans && pnpm check:router && pnpm check:mobile-colors && pnpm check:arch && pnpm lint && pnpm typecheck && pnpm test",
     "precheck:push": "sh scripts/precheck-changed.sh",

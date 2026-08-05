@@ -14,6 +14,13 @@ import {
 import { COUNTRY_INTROS } from '@/lib/seo/country-intros';
 import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/lib/seo/schema';
 
+// Prerendered (ISR) so `notFound()` returns a REAL 404. What made it a 200 was
+// `app/loading.tsx` streaming a shell before the page resolved — `notFound()`
+// after streaming starts can only return 200 (Next.js: not-found returns 404 for
+// non-streamed responses, 200 for streamed ones). That was the localized half of
+// Sentry MOTOVAULT-WEB-R. The boundary is deleted; do not reintroduce one above
+// this route. See the trip-detail route for the measured evidence.
+export const dynamic = 'force-static';
 export const revalidate = 86400; // 24 hours
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;

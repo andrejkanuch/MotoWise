@@ -6,25 +6,19 @@ import { ResultsMobile } from '@/components/explore/results-mobile';
 import { BASE_URL, getHreflangMap } from '@/lib/constants';
 import {
   fetchCountryBySlug,
-  fetchPublishedTripSlugRefs,
   fetchRegionsByCountrySlug,
   fetchTripTemplatesByCountry,
 } from '@/lib/fetch-places';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
 
-// Prerender statically so notFound() returns a real 404 (the dynamic root
-// layout would otherwise force this dynamic and serve the not-found page as a
-// 200 soft-404). See the region page for the full rationale.
+// Prerender statically (ISR) so the dynamic root layout (getLocale/getMessages
+// read headers) doesn't drag this route into dynamic rendering. `notFound()`
+// still returns a real 404 under it — what broke that was the Suspense boundary
+// created by `app/loading.tsx`, now deleted. See the trip-detail route for the
+// measured evidence (Sentry MOTOVAULT-WEB-R), and do not add a loading.tsx above
+// this route.
 export const dynamic = 'force-static';
 export const revalidate = 86400;
-
-/** Prebuild every country that has a published trip — matches the sitemap. */
-export async function generateStaticParams(): Promise<{ country: string }[]> {
-  const refs = await fetchPublishedTripSlugRefs().catch(() => []);
-  const seen = new Set<string>();
-  for (const ref of refs) seen.add(ref.countryCode.toLowerCase());
-  return [...seen].map((country) => ({ country }));
-}
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
 

@@ -71,6 +71,7 @@ function CheckoutContent() {
     const date = new Date();
     date.setDate(date.getDate() + 7);
     return date.toLocaleDateString('en-US', {
+      timeZone: 'UTC',
       month: 'long',
       day: 'numeric',
       year: 'numeric',

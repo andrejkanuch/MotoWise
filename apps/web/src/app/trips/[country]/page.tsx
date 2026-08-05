@@ -280,7 +280,11 @@ export default async function TripByIdPage({ params }: PageParams) {
   const surfaceLabel = trip.surfaceType ? capitalize(trip.surfaceType.replace(/_/g, ' ')) : null;
   const mapUrl = getMapboxStaticUrl(trip);
   const createdDate = new Date(trip.createdAt);
-  const createdLabel = createdDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  const createdLabel = createdDate.toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    month: 'short',
+    year: 'numeric',
+  });
 
   const titleWords = trip.title.split(' ');
   const lastWord = titleWords.pop() ?? '';

@@ -97,6 +97,26 @@ function shouldDropExceptions(exceptions: NoiseException[] | undefined): boolean
     return true;
   }
 
+  // Browser-extension `runtime.sendMessage` failures (MOTOVAULT-WEB-11). The
+  // `chrome.runtime`/`browser.runtime` API belongs to extensions, not pages — we
+  // never call it — so an extension's content script threw into our global
+  // onerror after its own background page went away ("Tab not found"). Nothing
+  // on our side can influence it. Matched on the API name rather than the
+  // message tail, which varies by browser and extension.
+  if (!hasFirstPartyFrame && exceptions.some((e) => e.value?.includes('runtime.sendMessage'))) {
+    return true;
+  }
+
+  // "Failed to initialize WebGL" (MOTOVAULT-WEB-12). Thrown by mapbox-gl on the
+  // trip-detail map when the device or browser cannot give it a WebGL context —
+  // blocklisted GPU driver, hardware acceleration disabled, or a headless/bot
+  // environment. It is a capability of the client, not a defect we can fix, and
+  // the rest of the page renders fine without the map. Scoped to the WebGL
+  // message so genuine mapbox errors (bad token, malformed style) still report.
+  if (exceptions.some((e) => e.value?.includes('Failed to initialize WebGL'))) {
+    return true;
+  }
+
   // "Maximum call stack size exceeded" with no first-party frames
   // (MOTOVAULT-WEB-X). Injected by iOS in-app-browser webviews (e.g. the Google
   // app) and surfaced via the global onerror handler as a single opaque

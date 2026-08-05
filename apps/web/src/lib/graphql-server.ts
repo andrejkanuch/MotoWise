@@ -67,6 +67,33 @@ export function isDefinitiveGraphQLError(err: unknown): boolean {
   return Array.isArray(response.errors) && response.errors.length > 0;
 }
 
+/**
+ * Resolve to `absent` on a definitive not-found, re-throw anything else.
+ *
+ * The safe replacement for `promise.catch(() => absent)` in any existence check
+ * that feeds `notFound()`. A blanket catch cannot tell "this resource does not
+ * exist" from "we never got an answer", so a single API blip becomes a 404 — and
+ * on a statically rendered route that 404 is *cached*, hiding real content for a
+ * full revalidate window and emitting a misleading soft-404 report. Re-throwing
+ * makes Next render an (uncached, retried) error instead, which is recoverable.
+ *
+ * Only use it for inputs that decide existence. Presentation-only fetches should
+ * degrade with a plain `.catch()` so they cannot fail the page.
+ *
+ * @see isDefinitiveGraphQLError
+ */
+export async function definitiveOrThrow<T, TAbsent>(
+  promise: Promise<T>,
+  absent: TAbsent,
+): Promise<T | TAbsent> {
+  try {
+    return await promise;
+  } catch (err) {
+    if (!isDefinitiveGraphQLError(err)) throw err;
+    return absent;
+  }
+}
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**

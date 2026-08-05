@@ -324,3 +324,47 @@ section:not(:first-child) {
   content-visibility: auto;
   contain-intrinsic-size: auto 600px;
 }
+
+/* ── Navigation progress bar ───────────────────────────────────────────────
+   Styles for <NavigationProgress>, which replaces the deleted app/loading.tsx.
+   A loading.tsx creates a Suspense boundary for its whole subtree: the shell
+   streams before the page resolves, and a streamed response can only carry
+   HTTP 200 — which silently turned every notFound() into an indexable
+   soft-404. A client component driven by navigation events creates no
+   boundary, so it cannot affect response status. Do not reintroduce
+   loading.tsx to get this UI back.
+   See docs/solutions/runtime-errors/nextjs-streaming-swallows-404s-and-redirects.md */
+.mv-navprogress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 100;
+  overflow: hidden;
+  /* Same values the deleted loading.tsx used: --mv-line / --mv-warm-400. */
+  background: oklch(0.15 0.01 55);
+  pointer-events: none;
+}
+.mv-navprogress-bar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, oklch(0.84 0.15 68), transparent);
+  animation: mv-navprogress-slide 1.2s ease-in-out infinite;
+}
+@keyframes mv-navprogress-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+/* Still signal activity without motion. */
+@media (prefers-reduced-motion: reduce) {
+  .mv-navprogress-bar {
+    animation: none;
+    background: oklch(0.84 0.15 68);
+    opacity: 0.7;
+  }
+}

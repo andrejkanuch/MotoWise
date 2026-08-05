@@ -21,7 +21,7 @@ import { gqlServerFetcher, isDefinitiveGraphQLError } from '@/lib/graphql-server
 import { relativeTrip } from '@/lib/seo/canonical';
 import { isTargetMarket } from '@/lib/seo/market-indexing';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
-import { findBareSlugRedirect, findLegacySlugAlias } from '@/lib/trips/bare-slug-redirect';
+import { findBareSlugRedirect } from '@/lib/trips/bare-slug-redirect';
 import { selectSiblingRoutes, siblingsAreRegionScoped } from '@/lib/trips/sibling-routes';
 import '@/components/trip-detail/trip-detail.css';
 
@@ -118,12 +118,28 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   };
 }
 
-// Render statically (ISR) instead of dynamically. The dynamic root layout
-// (getLocale/getMessages) would otherwise force this route dynamic, so every
-// request hit the origin AND notFound() served as a 200 soft-404. force-static
-// neutralizes that: pages render on first request and are cached (no build-time
-// API spike across ~400 trips), notFound() emits a real 404, and content stays
-// fresh via the long window below + on-demand revalidation (/api/revalidate).
+// Render statically (ISR) instead of dynamically — the dynamic root layout
+// (getLocale/getMessages) would otherwise force this route dynamic and hit the
+// origin on every request.
+//
+// `force-static` is NOT what caused the soft-404s, despite two earlier passes
+// assuming it was. Measured in a local production build (see
+// docs/plans/2026-08-05-001-fix-web-soft-404-rendering-strategy-plan.md, "U1
+// RESULT"): the culprit was `app/loading.tsx`, which placed a Suspense boundary
+// above every page, so the shell streamed before `notFound()` ran — and a
+// streamed response can only carry a 200. Two builds differing only in that file
+// flipped a bogus slug between 200 and 404. With the boundary gone this route
+// keeps `force-static` and still returns a real 404, with
+// `x-nextjs-prerender: 1` and `Cache-Control: s-maxage=86400` — the 404 is
+// itself cached, which is correct.
+//
+// So no `generateStaticParams` / `dynamicParams = false` is needed: unknown slugs
+// are generated on demand, `notFound()` produces a genuine 404, and a trip
+// published after the last deploy is reachable without a rebuild.
+//
+// Do NOT add a loading.tsx above this route. It silently converts every 404 on
+// the subtree back into an indexable 200 (Sentry MOTOVAULT-WEB-Q, 74 events),
+// and dev mode cannot reproduce it — only a production build can.
 export const dynamic = 'force-static';
 export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand on publish/edit
 
@@ -268,24 +284,36 @@ export default async function TripPage({ params }: PageParams) {
     fetchSiblingRoutes(country, region, slug),
   ]);
   if (!trip) {
-    // Known legacy alias (trip renamed since the /route/ era) → 308 immediately.
-    // The identity check is loop insurance: a bad map entry whose value equals
-    // its key would otherwise redirect into this same 404 path forever.
-    const aliasSlug = findLegacySlugAlias(country, region, slug);
-    if (aliasSlug && aliasSlug !== slug.toLowerCase()) {
-      permanentRedirect(relativeTrip(country, region, aliasSlug));
-    }
-    // Bare slug (missing the dedup hash) → 301 to the canonical hashed slug when
-    // there's an unambiguous match. Recovers old/typed links without serving
-    // duplicate content. Only runs on the 404 path, so no happy-path cost.
-    const canonicalSlug = await fetchPublishedTripSlugRefs()
-      .then((refs) => findBareSlugRedirect(refs, country, region, slug))
-      .catch(() => null);
-    if (canonicalSlug && canonicalSlug !== slug.toLowerCase()) {
-      // Permanent (308) — this consolidates a stale/bare URL onto its canonical,
-      // so crawlers should update the index rather than keep both.
-      permanentRedirect(relativeTrip(country, region, canonicalSlug));
-    }
+    // Bare-slug recovery, restored now that in-page redirects work again.
+    // ~28 trips carry an 8-hex dedup suffix (`furka-pass-6625deaf`); old links and
+    // hand-typed URLs hit the bare form, which has no row. 301 those to the
+    // canonical slug when the match is unambiguous, rather than serving the same
+    // trip at two URLs. Verified in a production build: `permanentRedirect()` here
+    // emits a real HTTP 308 (with `x-nextjs-prerender: 1`) under this route's
+    // `force-static`. It used to bake a 200 "Trip Not Found" — because of the
+    // streaming boundary above the page (`app/loading.tsx`, now deleted), NOT
+    // because of `force-static`, which is what PR #177's removal assumed.
+    //
+    // Swallow a failure of the ref fetch: the trip is already known to be
+    // definitively absent, so the only loss is a possible 308 on one of ~28 URLs
+    // and the cached 404 self-heals on the next revalidation. Re-throwing would
+    // turn an API blip into a 500 on the far more common genuinely-bogus slug.
+    const canonicalSlug = findBareSlugRedirect(
+      await fetchPublishedTripSlugRefs().catch(() => []),
+      country,
+      region,
+      slug,
+    );
+    if (canonicalSlug) permanentRedirect(relativeTrip(country, region, canonicalSlug));
+
+    // Otherwise a URL with no trip: unknown slug, or one unpublished since it was
+    // last rendered. `notFound()` emits a real 404 here — see the route config
+    // above for why. `fetchTrip` only returns null on a DEFINITIVE not-found; a
+    // transient API failure re-throws, so an infra blip can never bake a cached
+    // 404 over a real trip.
+    //
+    // Renamed slugs (not merely hash-suffixed) 308 from LEGACY_TRIP_REDIRECTS in
+    // next.config.ts, which runs before rendering and costs no GraphQL call.
     reportSoftNotFound('trip-detail', { country, region, slug });
     notFound();
   }
@@ -327,6 +355,7 @@ export default async function TripPage({ params }: PageParams) {
   const sections = buildSections(trip);
   const updatedDate = new Date(trip.updatedAt ?? trip.createdAt);
   const updatedLabel = updatedDate.toLocaleDateString('en-US', {
+    timeZone: 'UTC',
     month: 'short',
     year: 'numeric',
   });
@@ -807,6 +836,7 @@ export default async function TripPage({ params }: PageParams) {
               const authorName = review.author?.displayName ?? 'Anonymous';
               const initials = getInitials(authorName);
               const reviewDate = new Date(review.createdAt).toLocaleDateString('en-US', {
+                timeZone: 'UTC',
                 month: 'short',
                 year: 'numeric',
               });
