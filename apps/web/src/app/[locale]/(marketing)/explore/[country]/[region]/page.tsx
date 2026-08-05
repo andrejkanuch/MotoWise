@@ -5,13 +5,39 @@ import { Breadcrumb } from '@/components/marketing/breadcrumb';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { RouteCard } from '@/components/marketing/route-card';
 import { BASE_URL } from '@/lib/constants';
-import { fetchRegionBySlug, fetchRoutesByRegion } from '@/lib/fetch-places';
+import {
+  fetchPublishedTripSlugRefs,
+  fetchRegionBySlug,
+  fetchRoutesByRegion,
+} from '@/lib/fetch-places';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { relativeTrip } from '@/lib/seo/canonical';
 import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/lib/seo/schema';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
 
+// Prerender + `dynamicParams = false` so an unknown country/region is a REAL 404 from the
+// router. As a dynamic route it streamed its shell before the page resolved, and
+// `notFound()` after streaming starts can only return 200 (Next.js: not-found
+// returns 404 for non-streamed responses, 200 for streamed ones) — Sentry MOTOVAULT-WEB-P.
+// The `[locale]` layout already generates all 8 locale params, so returning just
+// the geo segment(s) here yields the full cartesian product.
+export const dynamic = 'force-static';
+export const dynamicParams = false;
 export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand via /api/revalidate
+
+/** Every country/region pair that has a published trip — matches the sitemap. */
+export async function generateStaticParams(): Promise<{ country: string; region: string }[]> {
+  // Not `.catch(() => [])` — see the country route above.
+  const refs = await fetchPublishedTripSlugRefs();
+  const seen = new Map<string, { country: string; region: string }>();
+  for (const r of refs) {
+    if (!r.regionCode) continue;
+    const country = r.countryCode.toLowerCase();
+    const region = r.regionCode.toLowerCase();
+    seen.set(`${country}/${region}`, { country, region });
+  }
+  return [...seen.values()];
+}
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
 

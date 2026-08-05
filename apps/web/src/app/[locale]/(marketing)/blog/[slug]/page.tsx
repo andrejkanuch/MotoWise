@@ -35,6 +35,12 @@ import {
   buildWebPage,
 } from '@/lib/seo/schema';
 
+// An unknown slug was rendering `not-found` at HTTP 200 (a soft-404 Google
+// indexes as a real page). This route was never instrumented with
+// reportSoftNotFound, so unlike the trip/explore routes it never showed up in
+// Sentry at all — found by probing /blog/<nonexistent> directly.
+// Slugs are repo-sourced, so the generated list is always complete.
+export const dynamicParams = false;
 export const revalidate = 604800; // 7 days — repo-sourced, rebuilds on deploy
 
 interface BlogArticlePageProps {

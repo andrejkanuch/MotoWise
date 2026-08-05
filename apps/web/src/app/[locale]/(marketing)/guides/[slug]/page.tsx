@@ -17,6 +17,10 @@ interface GuidePageProps {
   params: Promise<{ slug: string; locale: string }>;
 }
 
+// Repo-sourced slug list is always complete, so an unknown guide is a real 404
+// instead of a 200 soft-404 (same class as the blog route).
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
   return getGuideSlugs().map((slug) => ({ slug }));
 }

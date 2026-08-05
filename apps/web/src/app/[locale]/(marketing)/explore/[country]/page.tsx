@@ -8,13 +8,31 @@ import { Link } from '@/i18n/navigation';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import {
   fetchCountryBySlug,
+  fetchPublishedTripSlugRefs,
   fetchRegionsByCountrySlug,
   fetchRoutesByCountry,
 } from '@/lib/fetch-places';
 import { COUNTRY_INTROS } from '@/lib/seo/country-intros';
 import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/lib/seo/schema';
 
+// Prerender + `dynamicParams = false` so an unknown country is a REAL 404 from the
+// router. As a dynamic route it streamed its shell before the page resolved, and
+// `notFound()` after streaming starts can only return 200 (Next.js: not-found
+// returns 404 for non-streamed responses, 200 for streamed ones) — the localized half of Sentry MOTOVAULT-WEB-R.
+// The `[locale]` layout already generates all 8 locale params, so returning just
+// the geo segment(s) here yields the full cartesian product.
+export const dynamic = 'force-static';
+export const dynamicParams = false;
 export const revalidate = 86400; // 24 hours
+
+/** Every country with a published trip — matches the sitemap and the root route. */
+export async function generateStaticParams(): Promise<{ country: string }[]> {
+  // Not `.catch(() => [])`: under dynamicParams=false an empty list 404s every
+  // localized explore URL, so a build-time API failure must fail the build.
+  const refs = await fetchPublishedTripSlugRefs();
+  const seen = new Set(refs.map((r) => r.countryCode.toLowerCase()));
+  return [...seen].map((country) => ({ country }));
+}
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
 
