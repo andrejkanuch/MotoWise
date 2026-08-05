@@ -2633,6 +2633,52 @@ export type Database = {
           },
         ]
       }
+      ride_idle_nudge_log: {
+        Row: {
+          id: string
+          ride_id: string
+          sent_at: string
+          stage: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          ride_id: string
+          sent_at?: string
+          stage: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          ride_id?: string
+          sent_at?: string
+          stage?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_idle_nudge_log_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_idle_nudge_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_idle_nudge_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ride_kudos: {
         Row: {
           created_at: string
@@ -2935,6 +2981,7 @@ export type Database = {
       rides: {
         Row: {
           ai_summary: string | null
+          auto_ended_reason: string | null
           auto_paused_duration_s: number
           avg_speed_mps: number | null
           comment_count: number
@@ -2967,6 +3014,7 @@ export type Database = {
         }
         Insert: {
           ai_summary?: string | null
+          auto_ended_reason?: string | null
           auto_paused_duration_s?: number
           avg_speed_mps?: number | null
           comment_count?: number
@@ -2999,6 +3047,7 @@ export type Database = {
         }
         Update: {
           ai_summary?: string | null
+          auto_ended_reason?: string | null
           auto_paused_duration_s?: number
           avg_speed_mps?: number | null
           comment_count?: number
@@ -4661,6 +4710,7 @@ export type Database = {
         Returns: Json
       }
       cron_trigger_maintenance_due_push: { Args: never; Returns: undefined }
+      cron_trigger_ride_idle_check: { Args: never; Returns: undefined }
       disablelongtransactions: { Args: never; Returns: string }
       document_vault_bytes_used: { Args: never; Returns: number }
       dropgeometrycolumn:

@@ -26,7 +26,22 @@ else
     echo "precheck-changed: biome check on files changed since merge-base $BASE"
     # word-splitting is intentional: one path per word from git diff
     # shellcheck disable=SC2086
-    pnpm exec biome check $FILES || exit 1
+    BIOME_RC=0
+    BIOME_OUT=$(pnpm exec biome check $FILES 2>&1) || BIOME_RC=$?
+    printf '%s\n' "$BIOME_OUT"
+    if [ "$BIOME_RC" -ne 0 ]; then
+      # Biome exits NON-ZERO when every path it was handed is ignored by biome.json,
+      # reporting "No files were processed". The empty-FILES guard above does not
+      # cover that: FILES is non-empty, they are just all ignored. It happens on any
+      # commit touching only generated files (database.types.ts, packages/graphql
+      # generated output), which is exactly the commit the update sequence in
+      # CLAUDE.md tells you to make after a migration. Not a lint failure.
+      if printf '%s' "$BIOME_OUT" | grep -q 'No files were processed'; then
+        echo "precheck-changed: all changed files are Biome-ignored (generated) — treating as pass"
+      else
+        exit 1
+      fi
+    fi
   fi
 fi
 
