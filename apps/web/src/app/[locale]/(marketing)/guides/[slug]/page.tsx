@@ -151,6 +151,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
             <span aria-hidden="true">&middot;</span>
             <time dateTime={frontmatter.date}>
               {new Date(frontmatter.date).toLocaleDateString('en-US', {
+                timeZone: 'UTC',
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',

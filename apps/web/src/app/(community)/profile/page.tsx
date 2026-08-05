@@ -118,7 +118,7 @@ export default function ProfilePage() {
 
   const initial = user.displayName?.charAt(0)?.toUpperCase() ?? user.email.charAt(0).toUpperCase();
   const memberSince = new Date(user.createdAt);
-  const memberMonth = memberSince.toLocaleDateString('en-US', { month: 'short' });
+  const memberMonth = memberSince.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short' });
   const memberYear = `'${memberSince.getFullYear().toString().slice(-2)}`;
 
   return (

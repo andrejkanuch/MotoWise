@@ -97,6 +97,7 @@ export default async function GuidesPage({ params }: GuidesPageProps) {
               <div className="mb-3 flex items-center gap-3 text-sm text-neutral-500">
                 <time dateTime={guide.frontmatter.date}>
                   {new Date(guide.frontmatter.date).toLocaleDateString('en-US', {
+                    timeZone: 'UTC',
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',

@@ -16,11 +16,18 @@ import { reportSoftNotFound } from '@/lib/seo/soft-404';
 // layout would otherwise force this dynamic and serve the not-found page as a
 // 200 soft-404). See the region page for the full rationale.
 export const dynamic = 'force-static';
+// Unknown country => real 404 from the router. Without this, force-static
+// generated it on demand and cached the not-found page as a 200 prerender
+// (Sentry MOTOVAULT-WEB-R). A static prerender cannot carry a 404 status.
+export const dynamicParams = false;
 export const revalidate = 86400;
 
 /** Prebuild every country that has a published trip — matches the sitemap. */
 export async function generateStaticParams(): Promise<{ country: string }[]> {
-  const refs = await fetchPublishedTripSlugRefs().catch(() => []);
+  // NOT `.catch(() => [])`: with dynamicParams=false an empty list 404s every
+  // URL in this section, so a transient build-time API failure must fail the
+  // build rather than ship a site with the section missing.
+  const refs = await fetchPublishedTripSlugRefs();
   const seen = new Set<string>();
   for (const ref of refs) seen.add(ref.countryCode.toLowerCase());
   return [...seen].map((country) => ({ country }));

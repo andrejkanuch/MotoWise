@@ -37,6 +37,7 @@ export async function generateMetadata({
 
 function formatJoinDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', {
+    timeZone: 'UTC',
     year: 'numeric',
     month: 'long',
   });

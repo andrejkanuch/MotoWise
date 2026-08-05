@@ -143,7 +143,7 @@ function daysUntil(dateStr: string): number {
 
 function formatShortDate(dateStr: string): string {
   const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return d.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' });
 }
 
 // ═══════════════════════════════════════════════
@@ -754,7 +754,11 @@ function BikeCard({
 }) {
   const t = useTranslations('Garage');
   const ownedSince = bike.purchaseDate
-    ? new Date(bike.purchaseDate).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+    ? new Date(bike.purchaseDate).toLocaleDateString('en-US', {
+        timeZone: 'UTC',
+        month: 'short',
+        year: '2-digit',
+      })
     : null;
 
   return (

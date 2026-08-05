@@ -18,6 +18,9 @@ import { reportSoftNotFound } from '@/lib/seo/soft-404';
 // rendering — which is what served the not-found page with a 200 (soft 404).
 // Static rendering lets notFound() emit a real 404, and ISR keeps it fresh.
 export const dynamic = 'force-static';
+// Unknown country/region => real 404 from the router (Sentry MOTOVAULT-WEB-P).
+// See the trip-detail route for the full rationale.
+export const dynamicParams = false;
 export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand via /api/revalidate
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
@@ -57,7 +60,10 @@ async function resolveRegion(countrySlug: string, regionSlug: string) {
 
 /** Prebuild every country/region that has a published trip — matches the sitemap. */
 export async function generateStaticParams(): Promise<{ country: string; region: string }[]> {
-  const refs = await fetchPublishedTripSlugRefs().catch(() => []);
+  // NOT `.catch(() => [])`: with dynamicParams=false an empty list 404s every
+  // URL in this section, so a transient build-time API failure must fail the
+  // build rather than ship a site with the section missing.
+  const refs = await fetchPublishedTripSlugRefs();
   const seen = new Set<string>();
   const params: { country: string; region: string }[] = [];
   for (const ref of refs) {

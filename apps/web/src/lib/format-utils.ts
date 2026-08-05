@@ -21,6 +21,7 @@ export function formatSpeed(mps: number): string {
 /** Format an ISO date string as "Month Day, Year" */
 export function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', {
+    timeZone: 'UTC',
     year: 'numeric',
     month: 'long',
     day: 'numeric',

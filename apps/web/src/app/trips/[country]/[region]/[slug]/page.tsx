@@ -21,7 +21,12 @@ import { gqlServerFetcher, isDefinitiveGraphQLError } from '@/lib/graphql-server
 import { relativeTrip } from '@/lib/seo/canonical';
 import { isTargetMarket } from '@/lib/seo/market-indexing';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
-import { findBareSlugRedirect, findLegacySlugAlias } from '@/lib/trips/bare-slug-redirect';
+import {
+  bareSlugOf,
+  findBareSlugRedirect,
+  findLegacySlugAlias,
+  legacyAliasParams,
+} from '@/lib/trips/bare-slug-redirect';
 import { selectSiblingRoutes, siblingsAreRegionScoped } from '@/lib/trips/sibling-routes';
 import '@/components/trip-detail/trip-detail.css';
 
@@ -118,14 +123,62 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   };
 }
 
-// Render statically (ISR) instead of dynamically. The dynamic root layout
-// (getLocale/getMessages) would otherwise force this route dynamic, so every
-// request hit the origin AND notFound() served as a 200 soft-404. force-static
-// neutralizes that: pages render on first request and are cached (no build-time
-// API spike across ~400 trips), notFound() emits a real 404, and content stays
-// fresh via the long window below + on-demand revalidation (/api/revalidate).
+// Render statically (ISR) instead of dynamically — the dynamic root layout
+// (getLocale/getMessages) would otherwise force this route dynamic and hit the
+// origin on every request.
+//
+// `dynamicParams = false` is what makes an unknown slug a REAL 404. Without it,
+// force-static generated unknown slugs on demand and cached the resulting
+// not-found page as a successful prerender — served forever at HTTP 200
+// (`x-nextjs-prerender: 1`, `x-vercel-cache: HIT`), and re-baked identically on
+// every revalidation. That is Sentry MOTOVAULT-WEB-Q: 74 soft-404s that Google
+// indexes as real, thin pages. A static prerender cannot carry a 404 status, so
+// the only fix is to never render for a param we don't know: with the full param
+// list below, the router 404s unknown slugs before the page runs.
 export const dynamic = 'force-static';
+export const dynamicParams = false;
 export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand on publish/edit
+
+/**
+ * Every trip URL this route may render, canonical or redirecting.
+ *
+ * Three sources, and all three are required:
+ *  1. published trips — the canonical pages;
+ *  2. legacy `/route/`-era aliases — no row of their own, must still 301;
+ *  3. bare forms of dedup-hashed slugs — likewise, must still 301.
+ * Omitting (2) or (3) would convert PR #177's link-equity-preserving redirects
+ * back into hard 404s.
+ *
+ * Deliberately NOT `.catch(() => [])`. Under `dynamicParams = false` an empty list
+ * means *every* trip URL 404s, so swallowing a transient build-time API failure
+ * would ship a site whose entire trip section is gone. Throwing fails the build
+ * instead, which is the recoverable direction.
+ */
+export async function generateStaticParams(): Promise<
+  { country: string; region: string; slug: string }[]
+> {
+  const refs = await fetchPublishedTripSlugRefs();
+  const out = new Map<string, { country: string; region: string; slug: string }>();
+
+  const add = (country: string, region: string, slug: string) => {
+    const p = {
+      country: country.toLowerCase(),
+      region: region.toLowerCase(),
+      slug: slug.toLowerCase(),
+    };
+    out.set(`${p.country}/${p.region}/${p.slug}`, p);
+  };
+
+  for (const ref of refs) {
+    if (!ref.slug || !ref.regionCode) continue;
+    add(ref.countryCode, ref.regionCode, ref.slug);
+    const bare = bareSlugOf(ref.slug.toLowerCase());
+    if (bare) add(ref.countryCode, ref.regionCode, bare);
+  }
+  for (const p of legacyAliasParams()) add(p.country, p.region, p.slug);
+
+  return [...out.values()];
+}
 
 const WAYPOINT_LABELS: Record<string, string> = {
   start: 'Start',
@@ -327,6 +380,7 @@ export default async function TripPage({ params }: PageParams) {
   const sections = buildSections(trip);
   const updatedDate = new Date(trip.updatedAt ?? trip.createdAt);
   const updatedLabel = updatedDate.toLocaleDateString('en-US', {
+    timeZone: 'UTC',
     month: 'short',
     year: 'numeric',
   });
@@ -807,6 +861,7 @@ export default async function TripPage({ params }: PageParams) {
               const authorName = review.author?.displayName ?? 'Anonymous';
               const initials = getInitials(authorName);
               const reviewDate = new Date(review.createdAt).toLocaleDateString('en-US', {
+                timeZone: 'UTC',
                 month: 'short',
                 year: 'numeric',
               });

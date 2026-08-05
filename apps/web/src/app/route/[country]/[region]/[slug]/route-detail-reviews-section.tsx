@@ -200,6 +200,7 @@ function ReviewCard({ review }: { review: RouteReview }) {
 
       <p className="mt-3 text-xs" style={{ color: palette.neutral600 }}>
         {new Date(review.createdAt).toLocaleDateString('en-US', {
+          timeZone: 'UTC',
           year: 'numeric',
           month: 'short',
           day: 'numeric',
