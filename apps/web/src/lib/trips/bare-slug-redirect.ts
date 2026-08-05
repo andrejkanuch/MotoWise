@@ -1,6 +1,20 @@
 /**
  * Bare-slug → canonical-slug recovery for trip detail pages.
  *
+ * ⚠️ CURRENTLY UNWIRED. The trip route calls these from the page body, which
+ * cannot work: the route is statically prerendered, and a `permanentRedirect()`
+ * during prerender is baked as a 200 "Trip Not Found" instead of emitting a 308.
+ * Production confirmed it — `/trips/us/ca/pacific-coast-highway` has always
+ * returned 200 with not-found content, never a redirect. A redirect has to run
+ * BEFORE rendering, so the page's calls were removed and the renamed-slug case
+ * moved to `LEGACY_TRIP_REDIRECTS` in next.config.ts.
+ *
+ * The logic below is kept (with its tests) because restoring the bare-slug 308
+ * needs exactly this mapping, generated at build time into a config-level
+ * redirect list. Until then those URLs 404 — correct for a URL with no content,
+ * and strictly better than the 200 soft-404 they used to serve. `TripSlugRef` is
+ * still consumed by fetch-places.
+ *
  * Most trip slugs are clean (`dalton-highway-...`), but ~28 carry an 8-hex
  * dedup-hash suffix appended at seed time (`zionmount-carmel-highway-a90b4890`).
  * Old indexed links, hand-typed URLs, or pre-hash sitemaps may hit the *bare*

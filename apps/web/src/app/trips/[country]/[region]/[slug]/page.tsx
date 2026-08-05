@@ -5,7 +5,7 @@ import {
   type WebTripReviewsQuery,
 } from '@motovault/graphql';
 import type { Metadata } from 'next';
-import { notFound, permanentRedirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { cache } from 'react';
 import { GpxDownloadButton } from '@/components/gpx-download-button';
 import { SiblingRoutesSection } from '@/components/trip-detail/sibling-routes-section';
@@ -21,12 +21,6 @@ import { gqlServerFetcher, isDefinitiveGraphQLError } from '@/lib/graphql-server
 import { relativeTrip } from '@/lib/seo/canonical';
 import { isTargetMarket } from '@/lib/seo/market-indexing';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
-import {
-  bareSlugOf,
-  findBareSlugRedirect,
-  findLegacySlugAlias,
-  legacyAliasParams,
-} from '@/lib/trips/bare-slug-redirect';
 import { selectSiblingRoutes, siblingsAreRegionScoped } from '@/lib/trips/sibling-routes';
 import '@/components/trip-detail/trip-detail.css';
 
@@ -140,14 +134,22 @@ export const dynamicParams = false;
 export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand on publish/edit
 
 /**
- * Every trip URL this route may render, canonical or redirecting.
+ * Every published trip URL, and only those.
  *
- * Three sources, and all three are required:
- *  1. published trips — the canonical pages;
- *  2. legacy `/route/`-era aliases — no row of their own, must still 301;
- *  3. bare forms of dedup-hashed slugs — likewise, must still 301.
- * Omitting (2) or (3) would convert PR #177's link-equity-preserving redirects
- * back into hard 404s.
+ * Redirect sources (renamed slugs, bare forms of dedup-hashed slugs) are
+ * deliberately NOT included. Adding them lets the page render so it can call
+ * `permanentRedirect()` — but under this route's static prerendering that is
+ * baked as a 200 "Trip Not Found" rather than emitting a 308, so it produces
+ * exactly the soft-404 this PR removes. Verified against production, where those
+ * URLs have always returned 200 with not-found content: the in-page redirects
+ * added by PR #177 never actually worked once `force-static` was in play.
+ *
+ * A redirect must therefore run BEFORE rendering. The renamed slugs now live in
+ * `LEGACY_TRIP_REDIRECTS` in next.config.ts and get a real 308. The bare-slug
+ * recovery has no config equivalent yet (the mapping is data-derived), so those
+ * URLs now 404 — which is still strictly better than a 200 soft-404, since Google
+ * drops a 404 instead of indexing a thin page. Restoring their 308 needs a
+ * build-time-generated redirect list; see the PR description.
  *
  * Deliberately NOT `.catch(() => [])`. Under `dynamicParams = false` an empty list
  * means *every* trip URL 404s, so swallowing a transient build-time API failure
@@ -160,22 +162,15 @@ export async function generateStaticParams(): Promise<
   const refs = await fetchPublishedTripSlugRefs();
   const out = new Map<string, { country: string; region: string; slug: string }>();
 
-  const add = (country: string, region: string, slug: string) => {
-    const p = {
-      country: country.toLowerCase(),
-      region: region.toLowerCase(),
-      slug: slug.toLowerCase(),
-    };
-    out.set(`${p.country}/${p.region}/${p.slug}`, p);
-  };
-
   for (const ref of refs) {
     if (!ref.slug || !ref.regionCode) continue;
-    add(ref.countryCode, ref.regionCode, ref.slug);
-    const bare = bareSlugOf(ref.slug.toLowerCase());
-    if (bare) add(ref.countryCode, ref.regionCode, bare);
+    const p = {
+      country: ref.countryCode.toLowerCase(),
+      region: ref.regionCode.toLowerCase(),
+      slug: ref.slug.toLowerCase(),
+    };
+    out.set(`${p.country}/${p.region}/${p.slug}`, p);
   }
-  for (const p of legacyAliasParams()) add(p.country, p.region, p.slug);
 
   return [...out.values()];
 }
@@ -321,24 +316,11 @@ export default async function TripPage({ params }: PageParams) {
     fetchSiblingRoutes(country, region, slug),
   ]);
   if (!trip) {
-    // Known legacy alias (trip renamed since the /route/ era) → 308 immediately.
-    // The identity check is loop insurance: a bad map entry whose value equals
-    // its key would otherwise redirect into this same 404 path forever.
-    const aliasSlug = findLegacySlugAlias(country, region, slug);
-    if (aliasSlug && aliasSlug !== slug.toLowerCase()) {
-      permanentRedirect(relativeTrip(country, region, aliasSlug));
-    }
-    // Bare slug (missing the dedup hash) → 301 to the canonical hashed slug when
-    // there's an unambiguous match. Recovers old/typed links without serving
-    // duplicate content. Only runs on the 404 path, so no happy-path cost.
-    const canonicalSlug = await fetchPublishedTripSlugRefs()
-      .then((refs) => findBareSlugRedirect(refs, country, region, slug))
-      .catch(() => null);
-    if (canonicalSlug && canonicalSlug !== slug.toLowerCase()) {
-      // Permanent (308) — this consolidates a stale/bare URL onto its canonical,
-      // so crawlers should update the index rather than keep both.
-      permanentRedirect(relativeTrip(country, region, canonicalSlug));
-    }
+    // Reachable only as genuine drift: the slug was in the build's param list but
+    // the trip has since been unpublished or deleted. Unknown slugs never get
+    // here — `dynamicParams = false` 404s them at the router. In-page
+    // `permanentRedirect()` calls used to live here; they could not emit a 308
+    // under static prerendering, so the redirects moved to next.config.
     reportSoftNotFound('trip-detail', { country, region, slug });
     notFound();
   }
