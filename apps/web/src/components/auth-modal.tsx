@@ -1,9 +1,9 @@
 'use client';
 
 import { palette } from '@motovault/design-system';
-import { createBrowserClient } from '@supabase/ssr';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useModal } from '@/hooks/use-modal';
+import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 interface AuthModalProps {
   open: boolean;
@@ -13,15 +13,17 @@ interface AuthModalProps {
 }
 
 export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps) {
-  const supabase = useMemo(
-    () =>
-      createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-      ),
-    [],
-  );
-
+  // Constructed lazily inside the submit handlers, NOT in a useMemo. A client
+  // component's hooks still run during the server render pass, so a useMemo here
+  // called createBrowserClient at prerender time — and with the public Supabase
+  // env vars absent from that environment, @supabase/ssr throws "Your project's
+  // URL and API key are required", failing the whole export. It surfaced the
+  // moment trip pages started being prerendered (they render this via
+  // GpxDownloadButton); every other call site already constructs inside a handler
+  // or effect, which is why this was the only one affected.
+  //
+  // Nothing is lost: all three uses below are in async handlers, so the memo was
+  // never saving work on a path the user actually hits.
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,6 +43,7 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
       setError('');
 
       if (mode === 'signin') {
+        const supabase = getSupabaseBrowserClient();
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
           setError(error.message);
@@ -49,6 +52,7 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
           window.location.reload();
         }
       } else {
+        const supabase = getSupabaseBrowserClient();
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) {
           setError(error.message);
@@ -62,21 +66,19 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
         }
       }
     },
-    [mode, email, password, loading, supabase],
+    [mode, email, password, loading],
   );
 
-  const handleOAuth = useCallback(
-    async (provider: 'google' | 'apple') => {
-      setOauthLoading(provider);
-      await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(window.location.pathname)}`,
-        },
-      });
-    },
-    [supabase],
-  );
+  const handleOAuth = useCallback(async (provider: 'google' | 'apple') => {
+    setOauthLoading(provider);
+    const supabase = getSupabaseBrowserClient();
+    await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(window.location.pathname)}`,
+      },
+    });
+  }, []);
 
   if (!open) return null;
 
