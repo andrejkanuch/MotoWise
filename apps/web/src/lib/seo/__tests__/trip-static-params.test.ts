@@ -47,7 +47,7 @@ describe('fetchTripRefsForStaticParams — the build-failure floor', () => {
     // 60 refs that all lack a slug derive zero trip params, so a raw-length check
     // would pass while every trip URL 404s.
     mockFetchRefs.mockResolvedValue(
-      Array.from({ length: 60 }, (_, i) => ({
+      Array.from({ length: 60 }, () => ({
         countryCode: 'US',
         regionCode: 'CA',
         slug: null,
