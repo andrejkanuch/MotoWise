@@ -8,12 +8,12 @@ import { Link } from '@/i18n/navigation';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import {
   fetchCountryBySlug,
-  fetchPublishedTripSlugRefs,
   fetchRegionsByCountrySlug,
   fetchRoutesByCountry,
 } from '@/lib/fetch-places';
 import { COUNTRY_INTROS } from '@/lib/seo/country-intros';
 import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/lib/seo/schema';
+import { countryParams, fetchTripRefsForStaticParams } from '@/lib/seo/trip-static-params';
 
 // Prerender + `dynamicParams = false` so an unknown country is a REAL 404 from the
 // router. As a dynamic route it streamed its shell before the page resolved, and
@@ -27,11 +27,7 @@ export const revalidate = 86400; // 24 hours
 
 /** Every country with a published trip — matches the sitemap and the root route. */
 export async function generateStaticParams(): Promise<{ country: string }[]> {
-  // Not `.catch(() => [])`: under dynamicParams=false an empty list 404s every
-  // localized explore URL, so a build-time API failure must fail the build.
-  const refs = await fetchPublishedTripSlugRefs();
-  const seen = new Set(refs.map((r) => r.countryCode.toLowerCase()));
-  return [...seen].map((country) => ({ country }));
+  return countryParams(await fetchTripRefsForStaticParams());
 }
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;

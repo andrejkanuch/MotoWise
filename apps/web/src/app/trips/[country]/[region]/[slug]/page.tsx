@@ -11,16 +11,13 @@ import { GpxDownloadButton } from '@/components/gpx-download-button';
 import { SiblingRoutesSection } from '@/components/trip-detail/sibling-routes-section';
 import { TripDetailMap } from '@/components/trip-detail/trip-detail-map';
 import { BASE_URL } from '@/lib/constants';
-import {
-  fetchPublishedTripSlugRefs,
-  fetchTripTemplatesByCountry,
-  type TripTemplateNode,
-} from '@/lib/fetch-places';
+import { fetchTripTemplatesByCountry, type TripTemplateNode } from '@/lib/fetch-places';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { gqlServerFetcher, isDefinitiveGraphQLError } from '@/lib/graphql-server';
 import { relativeTrip } from '@/lib/seo/canonical';
 import { isTargetMarket } from '@/lib/seo/market-indexing';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
+import { fetchTripRefsForStaticParams, tripParams } from '@/lib/seo/trip-static-params';
 import { selectSiblingRoutes, siblingsAreRegionScoped } from '@/lib/trips/sibling-routes';
 import '@/components/trip-detail/trip-detail.css';
 
@@ -151,28 +148,16 @@ export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand o
  * drops a 404 instead of indexing a thin page. Restoring their 308 needs a
  * build-time-generated redirect list; see the PR description.
  *
- * Deliberately NOT `.catch(() => [])`. Under `dynamicParams = false` an empty list
- * means *every* trip URL 404s, so swallowing a transient build-time API failure
- * would ship a site whose entire trip section is gone. Throwing fails the build
- * instead, which is the recoverable direction.
+ * The list is fetched through `fetchTripRefsForStaticParams`, which enforces a
+ * minimum-count floor. That guard is load-bearing and NOT redundant with "don't
+ * catch": the API's `sitemapPublishedTrips` swallows its own database error and
+ * returns `[]` as a SUCCESSFUL response, so there is no rejection to propagate — an
+ * unguarded caller would build a green site with every trip URL 404ing.
  */
 export async function generateStaticParams(): Promise<
   { country: string; region: string; slug: string }[]
 > {
-  const refs = await fetchPublishedTripSlugRefs();
-  const out = new Map<string, { country: string; region: string; slug: string }>();
-
-  for (const ref of refs) {
-    if (!ref.slug || !ref.regionCode) continue;
-    const p = {
-      country: ref.countryCode.toLowerCase(),
-      region: ref.regionCode.toLowerCase(),
-      slug: ref.slug.toLowerCase(),
-    };
-    out.set(`${p.country}/${p.region}/${p.slug}`, p);
-  }
-
-  return [...out.values()];
+  return tripParams(await fetchTripRefsForStaticParams());
 }
 
 const WAYPOINT_LABELS: Record<string, string> = {

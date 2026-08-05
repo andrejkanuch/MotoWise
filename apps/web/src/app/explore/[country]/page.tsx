@@ -6,11 +6,11 @@ import { ResultsMobile } from '@/components/explore/results-mobile';
 import { BASE_URL, getHreflangMap } from '@/lib/constants';
 import {
   fetchCountryBySlug,
-  fetchPublishedTripSlugRefs,
   fetchRegionsByCountrySlug,
   fetchTripTemplatesByCountry,
 } from '@/lib/fetch-places';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
+import { countryParams, fetchTripRefsForStaticParams } from '@/lib/seo/trip-static-params';
 
 // Prerender statically so notFound() returns a real 404 (the dynamic root
 // layout would otherwise force this dynamic and serve the not-found page as a
@@ -24,13 +24,7 @@ export const revalidate = 86400;
 
 /** Prebuild every country that has a published trip — matches the sitemap. */
 export async function generateStaticParams(): Promise<{ country: string }[]> {
-  // NOT `.catch(() => [])`: with dynamicParams=false an empty list 404s every
-  // URL in this section, so a transient build-time API failure must fail the
-  // build rather than ship a site with the section missing.
-  const refs = await fetchPublishedTripSlugRefs();
-  const seen = new Set<string>();
-  for (const ref of refs) seen.add(ref.countryCode.toLowerCase());
-  return [...seen].map((country) => ({ country }));
+  return countryParams(await fetchTripRefsForStaticParams());
 }
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;

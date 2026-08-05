@@ -5,13 +5,13 @@ import { ResultsDesktop } from '@/components/explore/results-desktop';
 import { ResultsMobile } from '@/components/explore/results-mobile';
 import { BASE_URL, getCanonicalUrl, getHreflangMap } from '@/lib/constants';
 import {
-  fetchPublishedTripSlugRefs,
   fetchRegionBySlug,
   fetchRegionsByCountrySlug,
   fetchTripTemplatesByRegion,
 } from '@/lib/fetch-places';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
+import { countryRegionParams, fetchTripRefsForStaticParams } from '@/lib/seo/trip-static-params';
 
 // Statically prerendered (force-static) so the dynamic root layout
 // (getLocale/getMessages read headers) doesn't drag this route into dynamic
@@ -60,22 +60,7 @@ async function resolveRegion(countrySlug: string, regionSlug: string) {
 
 /** Prebuild every country/region that has a published trip — matches the sitemap. */
 export async function generateStaticParams(): Promise<{ country: string; region: string }[]> {
-  // NOT `.catch(() => [])`: with dynamicParams=false an empty list 404s every
-  // URL in this section, so a transient build-time API failure must fail the
-  // build rather than ship a site with the section missing.
-  const refs = await fetchPublishedTripSlugRefs();
-  const seen = new Set<string>();
-  const params: { country: string; region: string }[] = [];
-  for (const ref of refs) {
-    if (!ref.regionCode) continue;
-    const country = ref.countryCode.toLowerCase();
-    const region = ref.regionCode.toLowerCase();
-    const key = `${country}/${region}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    params.push({ country, region });
-  }
-  return params;
+  return countryRegionParams(await fetchTripRefsForStaticParams());
 }
 
 /* ── Metadata ────────────────────────────────────────────────── */
