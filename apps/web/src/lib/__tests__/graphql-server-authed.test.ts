@@ -21,9 +21,8 @@ vi.mock('../supabase-server', () => ({
   })),
 }));
 
-const { gqlServerFetcher, gqlServerFetcherAuthed, isDefinitiveGraphQLError } = await import(
-  '../graphql-server'
-);
+const { definitiveOrThrow, gqlServerFetcher, gqlServerFetcherAuthed, isDefinitiveGraphQLError } =
+  await import('../graphql-server');
 
 const FAKE_DOC = {} as TypedDocumentNode<{ ok: boolean }, Record<string, unknown>>;
 
@@ -139,5 +138,40 @@ describe('isDefinitiveGraphQLError', () => {
     expect(isDefinitiveGraphQLError({ response: { status: 200, errors: [] } })).toBe(false);
     expect(isDefinitiveGraphQLError(null)).toBe(false);
     expect(isDefinitiveGraphQLError(undefined)).toBe(false);
+  });
+});
+
+describe('definitiveOrThrow', () => {
+  it('passes a successful value straight through', async () => {
+    await expect(definitiveOrThrow(Promise.resolve({ id: 'r1' }), null)).resolves.toEqual({
+      id: 'r1',
+    });
+  });
+
+  it('returns the absent value on a definitive not-found', async () => {
+    const rejected = Promise.reject(graphqlError('Region not found'));
+    await expect(definitiveOrThrow(rejected, null)).resolves.toBeNull();
+  });
+
+  it('supports an empty-array absent value for list fetches', async () => {
+    const rejected = Promise.reject(graphqlError('Region not found'));
+    await expect(definitiveOrThrow(rejected, [])).resolves.toEqual([]);
+  });
+
+  it('re-throws a gateway failure instead of reporting absence', async () => {
+    // The whole point: a 502 during a prerender must NOT become notFound(), or
+    // ISR caches a 404 over content that exists.
+    await expect(definitiveOrThrow(Promise.reject(httpError(502)), null)).rejects.toThrow(
+      'HTTP 502',
+    );
+  });
+
+  it('re-throws timeouts and network failures', async () => {
+    await expect(definitiveOrThrow(Promise.reject(timeoutError()), [])).rejects.toThrow(
+      'aborted due to timeout',
+    );
+    await expect(definitiveOrThrow(Promise.reject(new Error('fetch failed')), [])).rejects.toThrow(
+      'fetch failed',
+    );
   });
 });

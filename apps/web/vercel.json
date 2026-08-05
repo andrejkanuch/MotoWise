@@ -4,6 +4,7 @@
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "buildCommand": "cd ../.. && pnpm build --filter=@motovault/web",
   "outputDirectory": ".next",
+  "//ignoreCommand": "AUTHORITATIVE. This overrides the dashboard's 'Ignored Build Step' — a custom command set there is silently dead config while this key exists. A project-level `[ \"$VERCEL_ENV\" != \"production\" ]` was set once to stop preview builds and never took effect for exactly this reason; it was removed on 2026-08-05. Previews are wanted: verifying the 404 contract needs a real deployment (scripts/check-404-contract.sh), and builds are cheap again now that no route enumerates 1,278 params. turbo-ignore already skips builds when apps/web is genuinely unaffected. Change the rule here, in review, not in the dashboard.",
   "ignoreCommand": "cd ../.. && npx --yes turbo-ignore @motovault/web",
   "git": {
     "deploymentEnabled": {

@@ -13,22 +13,15 @@ import {
 } from '@/lib/fetch-places';
 import { COUNTRY_INTROS } from '@/lib/seo/country-intros';
 import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/lib/seo/schema';
-import { countryParams, fetchTripRefsForStaticParams } from '@/lib/seo/trip-static-params';
 
-// Prerender + `dynamicParams = false` so an unknown country is a REAL 404 from the
-// router. As a dynamic route it streamed its shell before the page resolved, and
-// `notFound()` after streaming starts can only return 200 (Next.js: not-found
-// returns 404 for non-streamed responses, 200 for streamed ones) — the localized half of Sentry MOTOVAULT-WEB-R.
-// The `[locale]` layout already generates all 8 locale params, so returning just
-// the geo segment(s) here yields the full cartesian product.
+// Prerendered (ISR) so `notFound()` returns a REAL 404. What made it a 200 was
+// `app/loading.tsx` streaming a shell before the page resolved — `notFound()`
+// after streaming starts can only return 200 (Next.js: not-found returns 404 for
+// non-streamed responses, 200 for streamed ones). That was the localized half of
+// Sentry MOTOVAULT-WEB-R. The boundary is deleted; do not reintroduce one above
+// this route. See the trip-detail route for the measured evidence.
 export const dynamic = 'force-static';
-export const dynamicParams = false;
 export const revalidate = 86400; // 24 hours
-
-/** Every country with a published trip — matches the sitemap and the root route. */
-export async function generateStaticParams(): Promise<{ country: string }[]> {
-  return countryParams(await fetchTripRefsForStaticParams());
-}
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
 

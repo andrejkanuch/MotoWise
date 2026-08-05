@@ -1,31 +1,28 @@
 /**
  * Bare-slug → canonical-slug recovery for trip detail pages.
  *
- * ⚠️ CURRENTLY UNWIRED — nothing calls these. The trip route USED to call them from
- * the page body, which could never work: the route is statically prerendered, and a
- * `permanentRedirect()` during prerender is baked as a 200 "Trip Not Found" instead of
- * emitting a 308.
- * Production confirmed it — `/trips/us/ca/pacific-coast-highway` has always
- * returned 200 with not-found content, never a redirect. A redirect has to run
- * BEFORE rendering, so the page's calls were removed and the renamed-slug case
- * moved to `LEGACY_TRIP_REDIRECTS` in next.config.ts.
- *
- * The logic below is kept (with its tests) because restoring the bare-slug 308
- * needs exactly this mapping, generated at build time into a config-level
- * redirect list. Until then those URLs 404 — correct for a URL with no content,
- * and strictly better than the 200 soft-404 they used to serve. `TripSlugRef` is
- * still consumed by fetch-places.
- *
  * Most trip slugs are clean (`dalton-highway-...`), but ~28 carry an 8-hex
  * dedup-hash suffix appended at seed time (`zionmount-carmel-highway-a90b4890`).
  * Old indexed links, hand-typed URLs, or pre-hash sitemaps may hit the *bare*
- * slug (`/trips/us/ut/zionmount-carmel-highway`), which has no row and hard-404s.
+ * slug (`/trips/us/ut/zionmount-carmel-highway`), which has no row. Rather than
+ * 404, the trip page 301s it to the canonical hashed slug — but only when the
+ * match is unambiguous: if two trips share a base slug (the very reason the hash
+ * exists) the bare URL is genuinely ambiguous and must stay a 404.
  *
- * The intended behaviour — retained here for the follow-up, NOT currently active —
- * was to 301 a bare slug to its canonical hashed slug rather than serve the same trip
- * at two URLs, and only when the match is unambiguous: if two trips share a base slug
- * (the very reason the hash exists), the bare URL is genuinely ambiguous and must stay
- * a 404. Today those URLs simply 404, which is correct for a URL with no content.
+ * History worth keeping: this was briefly unwired because a `permanentRedirect()`
+ * in the page body was observed baking a 200 "Trip Not Found" instead of a 308
+ * (`/trips/us/ca/pacific-coast-highway` in production), and `force-static` was
+ * blamed. That diagnosis was wrong. The real cause was `app/loading.tsx` putting a
+ * Suspense boundary above the page: the shell streamed first, and a streamed
+ * response can carry neither a 404 nor a 3xx. With that file deleted, an in-page
+ * `permanentRedirect()` emits a real 308 under `force-static` — measured in a
+ * production build, `x-nextjs-prerender: 1` included. See
+ * docs/solutions/runtime-errors/nextjs-streaming-swallows-404s-and-redirects.md.
+ *
+ * Renamed slugs (a different name, not just a hash suffix) can't be recovered by
+ * the dedup-hash rule, so they live in `LEGACY_TRIP_REDIRECTS` in next.config.ts.
+ * That stays the right home for them: a config redirect runs before rendering and
+ * needs no GraphQL round-trip.
  */
 
 /** Minimal shape needed to resolve a redirect — decoupled from GraphQL types. */
@@ -37,30 +34,6 @@ export interface TripSlugRef {
 
 /** The dedup suffix is exactly 8 hex chars: `-a90b4890`. */
 const DEDUP_HASH_RE = /^[0-9a-f]{8}$/;
-
-/**
- * Legacy `/route/`-era slugs whose trip was later renamed (not just hash-suffixed),
- * so the dedup-hash rule can't recover them. Old indexed URLs still 301 through
- * `/route/... → /trips/...` and would 404 here (Sentry MOTOVAULT-WEB-Q).
- * Key: `{country}/{region}/{slug}` (lowercase) → canonical trips slug.
- */
-// KEEP IN SYNC with LEGACY_TRIP_REDIRECTS in apps/web/next.config.ts, which is the
-// LIVE copy — only a config-level redirect runs before rendering, so only that one
-// actually emits a 308. This map is inert until the bare-slug follow-up lands. Same
-// duplicate-with-a-sync-comment tradeoff PR #177 accepted for the active-locale list:
-// importing app modules into config evaluation is a build risk for low payoff.
-const LEGACY_TRIP_SLUG_ALIASES: Record<string, string> = {
-  'us/ca/pacific-coast-highway': 'pacific-coast-highway-big-sur',
-};
-
-/** Canonical slug for a known legacy alias, or null. */
-export function findLegacySlugAlias(country: string, region: string, slug: string): string | null {
-  return (
-    LEGACY_TRIP_SLUG_ALIASES[
-      `${country.toLowerCase()}/${region.toLowerCase()}/${slug.toLowerCase()}`
-    ] ?? null
-  );
-}
 
 /**
  * Resolve a requested (bare) slug to its canonical slug within a country+region.

@@ -7,25 +7,19 @@ import { RouteCard } from '@/components/marketing/route-card';
 import { BASE_URL } from '@/lib/constants';
 import { fetchRegionBySlug, fetchRoutesByRegion } from '@/lib/fetch-places';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
+import { definitiveOrThrow } from '@/lib/graphql-server';
 import { relativeTrip } from '@/lib/seo/canonical';
 import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/lib/seo/schema';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
-import { countryRegionParams, fetchTripRefsForStaticParams } from '@/lib/seo/trip-static-params';
 
-// Prerender + `dynamicParams = false` so an unknown country/region is a REAL 404 from the
-// router. As a dynamic route it streamed its shell before the page resolved, and
-// `notFound()` after streaming starts can only return 200 (Next.js: not-found
-// returns 404 for non-streamed responses, 200 for streamed ones) — Sentry MOTOVAULT-WEB-P.
-// The `[locale]` layout already generates all 8 locale params, so returning just
-// the geo segment(s) here yields the full cartesian product.
+// Prerendered (ISR) so `notFound()` returns a REAL 404. What made it a 200 was
+// `app/loading.tsx` streaming a shell before the page resolved — `notFound()`
+// after streaming starts can only return 200 (Next.js: not-found returns 404 for
+// non-streamed responses, 200 for streamed ones). That was the localized half of
+// Sentry MOTOVAULT-WEB-P. The boundary is deleted; do not reintroduce one above
+// this route. See the trip-detail route for the measured evidence.
 export const dynamic = 'force-static';
-export const dynamicParams = false;
 export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand via /api/revalidate
-
-/** Every country/region pair that has a published trip — matches the sitemap. */
-export async function generateStaticParams(): Promise<{ country: string; region: string }[]> {
-  return countryRegionParams(await fetchTripRefsForStaticParams());
-}
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
 
@@ -42,9 +36,12 @@ interface PageProps {
  */
 async function resolveRegion(countrySlug: string, regionSlug: string) {
   const code = countrySlug.toUpperCase();
+  // Both inputs decide existence, so a transient API failure must NOT collapse to
+  // notFound() — under the force-static ISR above that bakes a cached 404 over a
+  // region that really exists. See definitiveOrThrow and the non-localized twin.
   const [places, routes] = await Promise.all([
-    fetchRegionBySlug(countrySlug, regionSlug).catch(() => null),
-    fetchRoutesByRegion(code, regionSlug, 50).catch(() => []),
+    definitiveOrThrow(fetchRegionBySlug(countrySlug, regionSlug), null),
+    definitiveOrThrow(fetchRoutesByRegion(code, regionSlug, 50), []),
   ]);
   if (!places && routes.length === 0) return null;
   return {

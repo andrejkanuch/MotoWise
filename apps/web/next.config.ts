@@ -35,13 +35,15 @@ const NON_LOCALIZED_ROUTE_SECTIONS = [
 ] as const;
 
 /**
- * Trip slugs that changed and still have inbound links / index entries.
- * Kept here rather than in the page because only a config-level redirect runs
- * before rendering, which is what a genuine 308 requires — see redirects() below.
+ * Trip slugs that changed and still have inbound links / index entries. The
+ * dedup-hash rule in src/lib/trips/bare-slug-redirect.ts can't recover a genuine
+ * rename, so these are listed explicitly.
  *
- * This is the LIVE copy. `LEGACY_TRIP_SLUG_ALIASES` in
- * src/lib/trips/bare-slug-redirect.ts mirrors it but is currently inert; keep both
- * in sync until the bare-slug follow-up consolidates them.
+ * Kept here rather than in the page because a config redirect runs before
+ * rendering: no GraphQL round-trip, and it applies even when the page would not
+ * render at all. (The page CAN emit a 308 now — that was blocked by the Suspense
+ * boundary `app/loading.tsx` created, not by `force-static` — but there is no
+ * reason to pay for a render when a static mapping suffices.)
  */
 const LEGACY_TRIP_REDIRECTS = [
   { from: '/trips/us/ca/pacific-coast-highway', to: '/trips/us/ca/pacific-coast-highway-big-sur' },
@@ -97,12 +99,8 @@ const nextConfig: NextConfig = {
     // take precedence over any downstream locale handling.
     return [
       // Trips renamed since the `/route/` era. These slugs have no row, so the
-      // page can only `notFound()` — and under the route's static prerendering a
-      // `permanentRedirect()` inside the page is baked as a 200 "Trip Not Found"
-      // instead of emitting a 308 (verified in production: /trips/us/ca/
-      // pacific-coast-highway returned 200 with not-found content). A redirect
-      // has to run BEFORE rendering to produce a real 308, so it belongs here,
-      // not in the page.
+      // page itself could only `notFound()` them. Handled here so the 308 costs no
+      // render and no GraphQL call.
       ...LEGACY_TRIP_REDIRECTS.map(({ from, to }) => ({
         source: from,
         destination: to,

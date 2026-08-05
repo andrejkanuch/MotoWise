@@ -38,10 +38,17 @@ import {
 // An unknown slug was rendering `not-found` at HTTP 200 (a soft-404 Google
 // indexes as a real page). This route was never instrumented with
 // reportSoftNotFound, so unlike the trip/explore routes it never showed up in
-// Sentry at all — found by probing /blog/<nonexistent> directly.
-// Slugs are repo-sourced, so the generated list is always complete.
-export const dynamicParams = false;
-export const revalidate = 604800; // 7 days — repo-sourced, rebuilds on deploy
+// Sentry at all — found by probing /blog/<nonexistent> directly. The cause was
+// `app/loading.tsx` streaming a shell above the page; that file is gone, so
+// `notFound()` here is a real 404 and no `dynamicParams = false` is needed.
+//
+// Removing it also fixes a live freshness bug: articles are DB-sourced
+// (lib/supabase-blog.ts), not repo-sourced as an earlier comment here claimed, and
+// a daily job publishes new ones. With `dynamicParams = false` every article
+// published after a deploy 404'd until the next unrelated merge. generateStaticParams
+// stays — it prerenders the known set at build time and unknown slugs now render
+// on demand.
+export const revalidate = 604800; // 7 days; invalidated on demand via /api/revalidate
 
 interface BlogArticlePageProps {
   params: Promise<{ slug: string; locale: string }>;

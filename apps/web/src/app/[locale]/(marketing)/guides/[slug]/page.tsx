@@ -17,10 +17,12 @@ interface GuidePageProps {
   params: Promise<{ slug: string; locale: string }>;
 }
 
-// Repo-sourced slug list is always complete, so an unknown guide is a real 404
-// instead of a 200 soft-404 (same class as the blog route).
-export const dynamicParams = false;
-
+// No `dynamicParams = false`: an unknown guide is a real 404 because there is no
+// longer a Suspense boundary above the page (`app/loading.tsx` deleted — that was
+// the actual cause of the 200 soft-404s, same class as the blog route). Guides are
+// repo-sourced, so generateStaticParams below still enumerates every real one at
+// build time; dropping the flag just means unknown slugs 404 from the page rather
+// than from the router, uniformly with the trip and explore families.
 export async function generateStaticParams() {
   return getGuideSlugs().map((slug) => ({ slug }));
 }

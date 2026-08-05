@@ -5,19 +5,23 @@ import {
   type WebTripReviewsQuery,
 } from '@motovault/graphql';
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { cache } from 'react';
 import { GpxDownloadButton } from '@/components/gpx-download-button';
 import { SiblingRoutesSection } from '@/components/trip-detail/sibling-routes-section';
 import { TripDetailMap } from '@/components/trip-detail/trip-detail-map';
 import { BASE_URL } from '@/lib/constants';
-import { fetchTripTemplatesByCountry, type TripTemplateNode } from '@/lib/fetch-places';
+import {
+  fetchPublishedTripSlugRefs,
+  fetchTripTemplatesByCountry,
+  type TripTemplateNode,
+} from '@/lib/fetch-places';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { gqlServerFetcher, isDefinitiveGraphQLError } from '@/lib/graphql-server';
 import { relativeTrip } from '@/lib/seo/canonical';
 import { isTargetMarket } from '@/lib/seo/market-indexing';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
-import { fetchTripRefsForStaticParams, tripParams } from '@/lib/seo/trip-static-params';
+import { findBareSlugRedirect } from '@/lib/trips/bare-slug-redirect';
 import { selectSiblingRoutes, siblingsAreRegionScoped } from '@/lib/trips/sibling-routes';
 import '@/components/trip-detail/trip-detail.css';
 
@@ -118,47 +122,26 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
 // (getLocale/getMessages) would otherwise force this route dynamic and hit the
 // origin on every request.
 //
-// `dynamicParams = false` is what makes an unknown slug a REAL 404. Without it,
-// force-static generated unknown slugs on demand and cached the resulting
-// not-found page as a successful prerender — served forever at HTTP 200
-// (`x-nextjs-prerender: 1`, `x-vercel-cache: HIT`), and re-baked identically on
-// every revalidation. That is Sentry MOTOVAULT-WEB-Q: 74 soft-404s that Google
-// indexes as real, thin pages. A static prerender cannot carry a 404 status, so
-// the only fix is to never render for a param we don't know: with the full param
-// list below, the router 404s unknown slugs before the page runs.
+// `force-static` is NOT what caused the soft-404s, despite two earlier passes
+// assuming it was. Measured in a local production build (see
+// docs/plans/2026-08-05-001-fix-web-soft-404-rendering-strategy-plan.md, "U1
+// RESULT"): the culprit was `app/loading.tsx`, which placed a Suspense boundary
+// above every page, so the shell streamed before `notFound()` ran — and a
+// streamed response can only carry a 200. Two builds differing only in that file
+// flipped a bogus slug between 200 and 404. With the boundary gone this route
+// keeps `force-static` and still returns a real 404, with
+// `x-nextjs-prerender: 1` and `Cache-Control: s-maxage=86400` — the 404 is
+// itself cached, which is correct.
+//
+// So no `generateStaticParams` / `dynamicParams = false` is needed: unknown slugs
+// are generated on demand, `notFound()` produces a genuine 404, and a trip
+// published after the last deploy is reachable without a rebuild.
+//
+// Do NOT add a loading.tsx above this route. It silently converts every 404 on
+// the subtree back into an indexable 200 (Sentry MOTOVAULT-WEB-Q, 74 events),
+// and dev mode cannot reproduce it — only a production build can.
 export const dynamic = 'force-static';
-export const dynamicParams = false;
 export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand on publish/edit
-
-/**
- * Every published trip URL, and only those.
- *
- * Redirect sources (renamed slugs, bare forms of dedup-hashed slugs) are
- * deliberately NOT included. Adding them lets the page render so it can call
- * `permanentRedirect()` — but under this route's static prerendering that is
- * baked as a 200 "Trip Not Found" rather than emitting a 308, so it produces
- * exactly the soft-404 this PR removes. Verified against production, where those
- * URLs have always returned 200 with not-found content: the in-page redirects
- * added by PR #177 never actually worked once `force-static` was in play.
- *
- * A redirect must therefore run BEFORE rendering. The renamed slugs now live in
- * `LEGACY_TRIP_REDIRECTS` in next.config.ts and get a real 308. The bare-slug
- * recovery has no config equivalent yet (the mapping is data-derived), so those
- * URLs now 404 — which is still strictly better than a 200 soft-404, since Google
- * drops a 404 instead of indexing a thin page. Restoring their 308 needs a
- * build-time-generated redirect list; see the PR description.
- *
- * The list is fetched through `fetchTripRefsForStaticParams`, which enforces a
- * minimum-count floor. That guard is load-bearing and NOT redundant with "don't
- * catch": the API's `sitemapPublishedTrips` swallows its own database error and
- * returns `[]` as a SUCCESSFUL response, so there is no rejection to propagate — an
- * unguarded caller would build a green site with every trip URL 404ing.
- */
-export async function generateStaticParams(): Promise<
-  { country: string; region: string; slug: string }[]
-> {
-  return tripParams(await fetchTripRefsForStaticParams());
-}
 
 const WAYPOINT_LABELS: Record<string, string> = {
   start: 'Start',
@@ -301,11 +284,36 @@ export default async function TripPage({ params }: PageParams) {
     fetchSiblingRoutes(country, region, slug),
   ]);
   if (!trip) {
-    // Reachable only as genuine drift: the slug was in the build's param list but
-    // the trip has since been unpublished or deleted. Unknown slugs never get
-    // here — `dynamicParams = false` 404s them at the router. In-page
-    // `permanentRedirect()` calls used to live here; they could not emit a 308
-    // under static prerendering, so the redirects moved to next.config.
+    // Bare-slug recovery, restored now that in-page redirects work again.
+    // ~28 trips carry an 8-hex dedup suffix (`furka-pass-6625deaf`); old links and
+    // hand-typed URLs hit the bare form, which has no row. 301 those to the
+    // canonical slug when the match is unambiguous, rather than serving the same
+    // trip at two URLs. Verified in a production build: `permanentRedirect()` here
+    // emits a real HTTP 308 (with `x-nextjs-prerender: 1`) under this route's
+    // `force-static`. It used to bake a 200 "Trip Not Found" — because of the
+    // streaming boundary above the page (`app/loading.tsx`, now deleted), NOT
+    // because of `force-static`, which is what PR #177's removal assumed.
+    //
+    // Swallow a failure of the ref fetch: the trip is already known to be
+    // definitively absent, so the only loss is a possible 308 on one of ~28 URLs
+    // and the cached 404 self-heals on the next revalidation. Re-throwing would
+    // turn an API blip into a 500 on the far more common genuinely-bogus slug.
+    const canonicalSlug = findBareSlugRedirect(
+      await fetchPublishedTripSlugRefs().catch(() => []),
+      country,
+      region,
+      slug,
+    );
+    if (canonicalSlug) permanentRedirect(relativeTrip(country, region, canonicalSlug));
+
+    // Otherwise a URL with no trip: unknown slug, or one unpublished since it was
+    // last rendered. `notFound()` emits a real 404 here — see the route config
+    // above for why. `fetchTrip` only returns null on a DEFINITIVE not-found; a
+    // transient API failure re-throws, so an infra blip can never bake a cached
+    // 404 over a real trip.
+    //
+    // Renamed slugs (not merely hash-suffixed) 308 from LEGACY_TRIP_REDIRECTS in
+    // next.config.ts, which runs before rendering and costs no GraphQL call.
     reportSoftNotFound('trip-detail', { country, region, slug });
     notFound();
   }
