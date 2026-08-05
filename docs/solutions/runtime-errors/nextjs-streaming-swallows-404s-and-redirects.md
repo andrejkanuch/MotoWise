@@ -114,9 +114,15 @@ If you see those on a URL that should 404, the response was cached as a successf
   invisible. Two guards exist:
   - `apps/web/src/app/__tests__/not-found-contract.test.ts` — static tripwire, runs in CI on
     every PR: fails if any `loading.tsx` sits above a page calling `notFound()`/`redirect()`.
-  - `scripts/check-404-contract.sh <url>` — end-to-end, needs a real server. Encodes route
-    families (bogus → 404, real → 200, legacy → 308) and verifies the target's `<title>`
-    first, because port 3000 is often held by an unrelated local app.
+  - `scripts/check-404-contract.sh <url>` (`pnpm check:404`) — end-to-end, needs a real
+    server. Encodes route families (bogus → 404, real → 200, legacy → 308) and verifies the
+    target's `<title>` first, because port 3000 is often held by an unrelated local app.
+    Wired into CI via `.github/workflows/check-404-contract.yml`, which fires on
+    `deployment_status` — the only moment a real server exists. Production is probed at
+    `motovault.app`; previews need `VERCEL_AUTOMATION_BYPASS_SECRET` because Deployment
+    Protection is scoped `all_except_custom_domains`, and the job emits a notice and skips
+    rather than failing if that secret is absent. It exits non-zero when the target is
+    unreachable, so it can never silently pass.
 - **Do not use `localhost:3000` for measurement.** IPv6 resolution reached an unrelated vite
   app on `[::1]:3000` and produced a false conclusion twice. Use `127.0.0.1:3100`.
 - `vercel.json`'s `ignoreCommand` **overrides** the dashboard "Ignored Build Step". A custom
