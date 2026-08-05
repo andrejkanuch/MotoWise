@@ -12,6 +12,14 @@
 #   scripts/check-404-contract.sh                       # defaults to https://motovault.app
 #   scripts/check-404-contract.sh http://127.0.0.1:3100 # local `next start`
 #
+# Vercel PREVIEW deployments sit behind Deployment Protection, so an unauthenticated
+# request 302s to an auth wall and the identity check below fails. Export
+# VERCEL_AUTOMATION_BYPASS_SECRET to send Vercel's `x-vercel-protection-bypass` header
+# (the documented method for automation; the header form keeps the secret out of proxy
+# logs, unlike the query-parameter form). Production is reachable without it via the
+# custom domain — protection is scoped "all_except_custom_domains", so
+# https://motovault.app is exempt while its *.vercel.app deployment URL is not.
+#
 # Companion cheap tripwire that DOES run in CI on every PR:
 #   apps/web/src/app/__tests__/not-found-contract.test.ts
 # See docs/solutions/runtime-errors/nextjs-streaming-swallows-404s-and-redirects.md
@@ -25,6 +33,14 @@ set -uo pipefail
 
 BASE="${1:-${BASE_URL:-https://motovault.app}}"
 BASE="${BASE%/}"
+
+# Shared curl options. The bypass secret goes in an array so it is passed as a single
+# argv element and never interpolated into a logged string.
+CURL_OPTS=(-s --max-time 30)
+if [ -n "${VERCEL_AUTOMATION_BYPASS_SECRET:-}" ]; then
+  CURL_OPTS+=(-H "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}")
+  echo "Using Vercel protection-bypass header (secret is set)."
+fi
 
 # Route families, one line each: <expected-status> <path> <label>
 # Encode FAMILIES, not one-off URLs: every route that can call notFound() needs a
@@ -55,7 +71,7 @@ printf 'Checking the 404 contract against %s\n\n' "$BASE"
 
 # Fail loudly rather than skip when the target is unreachable — a guard that
 # silently passes against a dead host is worse than no guard.
-root_status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$BASE/" || echo 000)
+root_status=$(curl "${CURL_OPTS[@]}" -o /dev/null -w '%{http_code}' "$BASE/" || echo 000)
 if [ "$root_status" = "000" ]; then
   echo "ERROR: $BASE/ is unreachable — cannot verify the 404 contract." >&2
   echo "Start a PRODUCTION build (dev mode cannot reproduce this bug):" >&2
@@ -65,12 +81,13 @@ fi
 
 # Identity check: port 3000/3100 may be held by an unrelated local app, and two
 # measurement runs during the original investigation silently hit another product.
-title=$(curl -s --max-time 30 "$BASE/" | tr -d '\n' | sed -n 's/.*<title>\([^<]*\)<\/title>.*/\1/p')
+title=$(curl "${CURL_OPTS[@]}" "$BASE/" | tr -d '\n' | sed -n 's/.*<title>\([^<]*\)<\/title>.*/\1/p')
 case "$title" in
   *MotoVault*) printf 'Target confirmed: %s\n\n' "$title" ;;
   *)
     echo "ERROR: $BASE/ does not look like MotoVault (<title>: '${title:-none}')." >&2
-    echo "Another app is probably bound to that port. Use a different PORT." >&2
+    echo "Either another app is bound to that port, or this is a protected Vercel" >&2
+    echo "preview and VERCEL_AUTOMATION_BYPASS_SECRET is unset/wrong." >&2
     exit 2
     ;;
 esac
@@ -82,7 +99,7 @@ while read -r want path label; do
   [ -n "${want:-}" ] || continue
   # No -L: the redirect status itself is the assertion.
   read -r got prerender <<EOF
-$(curl -s -o /dev/null -D - --max-time 30 "$BASE$path" \
+$(curl "${CURL_OPTS[@]}" -o /dev/null -D - "$BASE$path" \
     | awk 'BEGIN{IGNORECASE=1} /^HTTP\//{s=$2} /^x-nextjs-prerender:/{p="prerender"} END{print (s?s:"000"), (p?p:"-")}')
 EOF
   checked=$((checked + 1))

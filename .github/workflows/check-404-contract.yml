@@ -1,0 +1,75 @@
+name: 404 Contract
+
+# Runs scripts/check-404-contract.sh against a real deployment.
+#
+# Why it cannot be a normal PR job: notFound() runs inside a render, and whether the
+# response carries 404 or 200 depends on how that render was produced (streamed or
+# not). No unit test can observe a prerender's HTTP status, which is exactly why ~1k
+# soft-404s survived two months and two PRs (Sentry MOTOVAULT-WEB-Q/-P/-R). The cheap
+# structural tripwire that DOES run on every PR is
+# apps/web/src/app/__tests__/not-found-contract.test.ts, in the Tests job.
+#
+# `deployment_status` fires when Vercel finishes a deployment and carries its URL,
+# which is the only point at which a real server exists to probe.
+on:
+  deployment_status:
+
+# A newer deployment for the same environment supersedes this run.
+concurrency:
+  group: check-404-${{ github.event.deployment.environment }}-${{ github.event.deployment.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    # Only successful deployments have a serving URL. Vercel also emits pending/error
+    # states, and probing those would fail for reasons unrelated to the 404 contract.
+    if: github.event.deployment_status.state == 'success'
+    name: 404 contract (${{ github.event.deployment.environment }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          # The script is the only thing needed; skip credentials it never uses.
+          persist-credentials: false
+
+      - name: Resolve the URL to probe
+        id: target
+        env:
+          # Via env, not inline in the script body — a deployment payload is
+          # attacker-influencable text and must never be interpolated into shell.
+          ENVIRONMENT: ${{ github.event.deployment.environment }}
+          TARGET_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
+          HAS_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET != '' }}
+        run: |
+          set -euo pipefail
+          case "$ENVIRONMENT" in
+            [Pp]roduction)
+              # Deployment Protection is scoped "all_except_custom_domains", so the
+              # *.vercel.app production URL is gated but the custom domain is not.
+              # Probing the canonical domain is also what real crawlers see.
+              echo "url=https://motovault.app" >> "$GITHUB_OUTPUT"
+              echo "run=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              if [ "$HAS_BYPASS" != "true" ]; then
+                echo "::notice title=404 contract::Skipped for $ENVIRONMENT — previews are behind Deployment Protection and VERCEL_AUTOMATION_BYPASS_SECRET is not set. Generate it (Vercel > Project > Settings > Deployment Protection > Protection Bypass for Automation), add it as a repo secret, and preview runs start working. Production runs are unaffected."
+                echo "run=false" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+              if [ -z "$TARGET_URL" ]; then
+                echo "::error title=404 contract::deployment_status carried no URL for $ENVIRONMENT."
+                exit 1
+              fi
+              echo "url=$TARGET_URL" >> "$GITHUB_OUTPUT"
+              echo "run=true" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Check the 404 contract
+        if: steps.target.outputs.run == 'true'
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: bash scripts/check-404-contract.sh "${{ steps.target.outputs.url }}"
