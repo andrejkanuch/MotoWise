@@ -68,5 +68,43 @@ export async function POST(req: NextRequest) {
   for (const tag of tags) revalidateTag(tag, 'max');
   for (const path of paths) revalidatePath(path);
 
-  return NextResponse.json({ revalidated: true, tags, paths });
+  const redeployed = await requestRedeployIfNewPath(paths);
+
+  return NextResponse.json({ revalidated: true, tags, paths, redeployed });
+}
+
+/**
+ * Ask Vercel to rebuild when a path we were told about does not exist yet.
+ *
+ * The trip/explore routes set `dynamicParams = false` so an unknown URL is a real
+ * 404 instead of a 200 soft-404 (MOTOVAULT-WEB-Q/P/R). The cost of that is a new
+ * gap: `generateStaticParams` only runs at build time, so a trip published after
+ * the last deploy is not in the param list and `revalidatePath` cannot add it —
+ * it would 404 until the next unrelated merge. Triggering a deploy hook closes
+ * the gap (~2 min) and is the piece that makes `dynamicParams = false` safe for
+ * regularly-published content.
+ *
+ * Best-effort by design: revalidation has already happened by this point, so a
+ * missing/failing hook must not turn a successful revalidate into a 500. The
+ * response reports what happened instead.
+ */
+async function requestRedeployIfNewPath(paths: string[]): Promise<boolean> {
+  const hook = process.env.VERCEL_DEPLOY_HOOK_URL;
+  if (!hook || paths.length === 0) return false;
+
+  // Only paths that can be affected by a stale param list are worth a rebuild —
+  // a trip/explore URL. Everything else is already covered by revalidatePath.
+  const needsParams = paths.some((p) =>
+    /^\/(?:[a-z]{2}(?:-[A-Z]{2})?\/)?(?:trips|explore)\//.test(p),
+  );
+  if (!needsParams) return false;
+
+  try {
+    const res = await fetch(hook, { method: 'POST' });
+    if (!res.ok) console.warn(`[revalidate] deploy hook returned ${res.status}`);
+    return res.ok;
+  } catch (err) {
+    console.warn(`[revalidate] deploy hook failed: ${(err as Error).message}`);
+    return false;
+  }
 }
