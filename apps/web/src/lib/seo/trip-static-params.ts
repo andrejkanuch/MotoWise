@@ -42,19 +42,31 @@ export const MIN_EXPECTED_PUBLISHED_TRIPS = 50;
 /**
  * Fetch the published-trip refs, refusing to proceed on an implausibly short list.
  *
- * @throws when the upstream returns fewer than {@link MIN_EXPECTED_PUBLISHED_TRIPS}
- *   entries, which fails the build instead of shipping missing content.
+ * The floor is measured on the **emitted trip params**, not on `refs.length`. Raw refs
+ * are not what gets built: `tripParams` drops any ref missing `regionCode` or `slug`
+ * and collapses case-duplicates onto one canonical URL. So a response of 50 refs that
+ * are all incomplete — or all the same trip in different casings — would sail past a
+ * raw-length check while emitting almost nothing, and every trip URL would still 404.
+ * Guarding the input rather than the output is the same mistake this guard exists to
+ * catch, one level down.
+ *
+ * @throws when fewer than {@link MIN_EXPECTED_PUBLISHED_TRIPS} usable trip params can
+ *   be derived, which fails the build instead of shipping missing content.
  */
 export async function fetchTripRefsForStaticParams(): Promise<TripSlugRef[]> {
   const refs = await fetchPublishedTripSlugRefs();
+  const usable = tripParams(refs).length;
 
-  if (refs.length < MIN_EXPECTED_PUBLISHED_TRIPS) {
+  if (usable < MIN_EXPECTED_PUBLISHED_TRIPS) {
     throw new Error(
-      `generateStaticParams: published-trip list came back with ${refs.length} entries, ` +
-        `below the ${MIN_EXPECTED_PUBLISHED_TRIPS} floor. These routes use ` +
-        `dynamicParams=false, so building from this list would 404 every trip and ` +
-        `explore URL. Note the API returns [] on its own database error, so this is ` +
-        `the only place that failure becomes visible. Failing the build instead.`,
+      `generateStaticParams: only ${usable} usable trip params from ${refs.length} ` +
+        `upstream refs, below the ${MIN_EXPECTED_PUBLISHED_TRIPS} floor. These routes ` +
+        `use dynamicParams=false, so building from this list would 404 trip and explore ` +
+        `URLs. Both counts are reported because they diverge for different reasons: a ` +
+        `low ref count means the upstream failed (the API returns [] on its own database ` +
+        `error, with no GraphQL error, so this is the only place that becomes visible), ` +
+        `while refs-high/usable-low means the rows are malformed — missing region_code ` +
+        `or slug. Failing the build instead.`,
     );
   }
 

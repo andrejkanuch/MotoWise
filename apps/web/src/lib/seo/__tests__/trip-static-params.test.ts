@@ -39,14 +39,41 @@ describe('fetchTripRefsForStaticParams — the build-failure floor', () => {
 
   it('throws on a short list (partially degraded upstream)', async () => {
     mockFetchRefs.mockResolvedValue(refs(MIN_EXPECTED_PUBLISHED_TRIPS - 1));
-    await expect(fetchTripRefsForStaticParams()).rejects.toThrow(
-      /published-trip list came back with/,
-    );
+    await expect(fetchTripRefsForStaticParams()).rejects.toThrow(/usable trip params/);
   });
 
-  it('names the actual count in the error so a failing build is diagnosable', async () => {
-    mockFetchRefs.mockResolvedValue(refs(3));
-    await expect(fetchTripRefsForStaticParams()).rejects.toThrow(/with 3 entries/);
+  it('throws when refs are plentiful but unusable (missing region/slug)', async () => {
+    // CodeRabbit caught this: the floor must measure EMITTED params, not raw refs.
+    // 60 refs that all lack a slug derive zero trip params, so a raw-length check
+    // would pass while every trip URL 404s.
+    mockFetchRefs.mockResolvedValue(
+      Array.from({ length: 60 }, (_, i) => ({
+        countryCode: 'US',
+        regionCode: 'CA',
+        slug: null,
+      })),
+    );
+    await expect(fetchTripRefsForStaticParams()).rejects.toThrow(/only 0 usable trip params/);
+  });
+
+  it('throws when refs are plentiful but all duplicates of one trip', async () => {
+    // Same hole, other shape: 60 case-variants of one slug collapse to a single
+    // canonical URL.
+    mockFetchRefs.mockResolvedValue(
+      Array.from({ length: 60 }, (_, i) => ({
+        countryCode: i % 2 ? 'US' : 'us',
+        regionCode: i % 2 ? 'CA' : 'ca',
+        slug: i % 2 ? 'BEARTOOTH' : 'beartooth',
+      })),
+    );
+    await expect(fetchTripRefsForStaticParams()).rejects.toThrow(/only 1 usable trip params/);
+  });
+
+  it('reports both counts so a failing build is diagnosable', async () => {
+    mockFetchRefs.mockResolvedValue(refs(10));
+    await expect(fetchTripRefsForStaticParams()).rejects.toThrow(
+      /only 10 usable trip params from 10 upstream refs/,
+    );
   });
 
   it('passes the list through at exactly the floor', async () => {

@@ -53,8 +53,11 @@ function localeVariants(path: string): string[] {
  * revalidation intervals.
  *
  * Auth: shared secret in the `x-revalidate-secret` header (REVALIDATE_SECRET).
- * Body: `{ tags?: string[]; paths?: string[] }`. Tags map to {@link CACHE_TAGS};
- * paths are concrete URLs (e.g. `/explore/ca/bc`, `/trips/ca/bc/<slug>`).
+ * Body: `{ tags?: string[]; paths?: string[]; staticParamsChanged?: boolean }`. Tags
+ * map to {@link CACHE_TAGS}; paths are concrete URLs (e.g. `/explore/ca/bc`,
+ * `/trips/ca/bc/<slug>`). `staticParamsChanged` is an optional hint — send `false` for
+ * a content-only edit to skip the rebuild; omit it (or send `true`) when a publish,
+ * unpublish, or slug/country/region change alters the set of valid URLs.
  *
  * Example (API → web on trip publish):
  *   curl -X POST "$WEB_URL/api/revalidate" \
@@ -69,7 +72,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ revalidated: false, error: 'unauthorized' }, { status: 401 });
   }
 
-  let body: { tags?: unknown; paths?: unknown };
+  let body: { tags?: unknown; paths?: unknown; staticParamsChanged?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -90,7 +93,14 @@ export async function POST(req: NextRequest) {
   for (const tag of tags) revalidateTag(tag, 'max');
   for (const path of paths) revalidatePath(path);
 
-  const redeployed = await requestRedeploy(paths);
+  // Optional caller hint. The API knows WHAT changed; this route only sees paths, so
+  // it cannot tell a publish (needs a rebuild) from a content-only edit (does not).
+  // Absent => assume a rebuild is needed, which keeps existing callers correct and
+  // errs toward the safe direction; an explicit `false` lets the API suppress the
+  // rebuild for edits once it starts sending the flag.
+  const staticParamsChanged =
+    typeof body.staticParamsChanged === 'boolean' ? body.staticParamsChanged : true;
+  const redeployed = staticParamsChanged ? await requestRedeploy(paths) : false;
 
   return NextResponse.json({ revalidated: true, tags, paths, redeployed });
 }
@@ -106,14 +116,14 @@ export async function POST(req: NextRequest) {
  * the gap (~2 min) and is the piece that makes `dynamicParams = false` safe for
  * regularly-published content.
  *
- * Deliberately NOT conditional on the path being new. This route is fire-and-forget
- * from the API's perspective and has no way to know the build's param list, so
- * "is this slug already prerendered?" is not answerable here — and guessing wrong
- * in the cheap direction (skipping a rebuild a new trip needed) reinstates the
- * 404 this exists to prevent. The cost of guessing wrong in the safe direction is
- * a redundant build on an edit; Vercel coalesces concurrent hook triggers, so the
- * worst case is one extra deploy, not a queue. An earlier version of this was
- * named `...IfNewPath`, which promised a check it never performed.
+ * Whether to call this at all is the CALLER's decision, via `staticParamsChanged`.
+ * This route only receives paths, so "is this slug already prerendered?" is not
+ * answerable here — an earlier version was named `...IfNewPath` and promised a check
+ * it never performed. The caller does know: a publish changes the valid-URL set, a
+ * content-only edit does not. Until the API sends the flag, the default is to rebuild,
+ * because guessing wrong in the cheap direction reinstates the 404 this exists to
+ * prevent, while guessing wrong in the safe direction costs one redundant build
+ * (Vercel coalesces concurrent hook triggers, so it is not a queue).
  *
  * Best-effort by design: revalidation has already succeeded by this point, so a
  * missing, slow, or failing hook must not turn that into a 500 — hence the
@@ -130,9 +140,25 @@ async function requestRedeploy(paths: string[]): Promise<boolean> {
   );
   if (!needsParams) return false;
 
+  // The hook URL is a bearer capability — anyone holding it can trigger a deploy — so
+  // refuse to transmit it in cleartext if it is ever misconfigured as http://.
+  let hookUrl: URL;
+  try {
+    hookUrl = new URL(hook);
+  } catch {
+    console.warn('[revalidate] VERCEL_DEPLOY_HOOK_URL is not a valid URL; skipping redeploy');
+    return false;
+  }
+  if (hookUrl.protocol !== 'https:') {
+    console.warn(
+      `[revalidate] refusing to POST the deploy hook over ${hookUrl.protocol} — https required`,
+    );
+    return false;
+  }
+
   try {
     // Bounded: an unresponsive hook must not hold the revalidate response open.
-    const res = await fetch(hook, {
+    const res = await fetch(hookUrl, {
       method: 'POST',
       signal: AbortSignal.timeout(DEPLOY_HOOK_TIMEOUT_MS),
     });

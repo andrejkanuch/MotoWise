@@ -1,9 +1,10 @@
 /**
  * Bare-slug → canonical-slug recovery for trip detail pages.
  *
- * ⚠️ CURRENTLY UNWIRED. The trip route calls these from the page body, which
- * cannot work: the route is statically prerendered, and a `permanentRedirect()`
- * during prerender is baked as a 200 "Trip Not Found" instead of emitting a 308.
+ * ⚠️ CURRENTLY UNWIRED — nothing calls these. The trip route USED to call them from
+ * the page body, which could never work: the route is statically prerendered, and a
+ * `permanentRedirect()` during prerender is baked as a 200 "Trip Not Found" instead of
+ * emitting a 308.
  * Production confirmed it — `/trips/us/ca/pacific-coast-highway` has always
  * returned 200 with not-found content, never a redirect. A redirect has to run
  * BEFORE rendering, so the page's calls were removed and the renamed-slug case
@@ -20,10 +21,11 @@
  * Old indexed links, hand-typed URLs, or pre-hash sitemaps may hit the *bare*
  * slug (`/trips/us/ut/zionmount-carmel-highway`), which has no row and hard-404s.
  *
- * Rather than serving the same trip at two URLs (duplicate content), the page
- * 301-redirects a bare slug to its canonical hashed slug — but only when the
- * match is unambiguous. If two trips share the same base slug (the very reason
- * the hash exists), the bare URL is genuinely ambiguous and must stay a 404.
+ * The intended behaviour — retained here for the follow-up, NOT currently active —
+ * was to 301 a bare slug to its canonical hashed slug rather than serve the same trip
+ * at two URLs, and only when the match is unambiguous: if two trips share a base slug
+ * (the very reason the hash exists), the bare URL is genuinely ambiguous and must stay
+ * a 404. Today those URLs simply 404, which is correct for a URL with no content.
  */
 
 /** Minimal shape needed to resolve a redirect — decoupled from GraphQL types. */
