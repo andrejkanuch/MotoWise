@@ -660,6 +660,13 @@ deleted floor-guard tests, −4 deleted `findLegacySlugAlias` tests, +6 `definit
   the workflow. The CI-level protection today is the static tripwire in `pnpm test`.
 - **`sitemapPublishedTrips` fails soft** (`return []` on DB error at HTTP 200). No longer
   load-bearing for the build, but still wrong in `apps/api`.
+- **Preview deployments render zero blog content.** Found while verifying this PR on its
+  preview: `NEXT_PUBLIC_SUPABASE_URL` / `_ANON_KEY` are scoped to the `production` target
+  only, so `blogClient()` returns null on a preview and *every* blog slug 404s. Pre-existing,
+  unrelated to this change (production serves the same URL at 200), but it means previews
+  cannot be used to review blog rendering, and it makes `check:404`'s `blog:real` row fail
+  spuriously there — now documented in the script header. These are publishable anon keys, so
+  extending them to the `preview` target is low-risk; left alone here to keep scope tight.
 
 ---
 
