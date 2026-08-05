@@ -16,11 +16,11 @@
 #   apps/web/src/app/__tests__/not-found-contract.test.ts
 # See docs/solutions/runtime-errors/nextjs-streaming-swallows-404s-and-redirects.md
 #
-# KNOWN FALSE FAILURE on a Vercel PREVIEW deployment: `blog:real` returns 404 there.
-# NEXT_PUBLIC_SUPABASE_URL / _ANON_KEY are scoped to the `production` target only, so a
-# preview cannot read blog_posts and EVERY blog slug 404s. That is a preview-env gap, not
-# a 404-contract failure — the `blog:bogus` row still tests what matters. Production and a
-# local build with those vars in apps/web/.env.local both return 200.
+# If `blog:real` 404s on a Vercel PREVIEW, check the Supabase env vars first — that is a
+# missing-credentials symptom, not a 404-contract failure. The four SUPABASE_* /
+# NEXT_PUBLIC_SUPABASE_* vars were `production`-only until 2026-08-05, so previews could not
+# read blog_posts and EVERY blog slug 404'd. They now cover `preview` too. A local build
+# needs them in apps/web/.env.local for the same reason.
 set -uo pipefail
 
 BASE="${1:-${BASE_URL:-https://motovault.app}}"

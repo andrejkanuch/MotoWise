@@ -125,11 +125,25 @@ If you see those on a URL that should 404, the response was cached as a successf
   `NEXT_PUBLIC_BASE_URL` (matching the port you serve on — something server-side fetches it),
   and `NEXT_PUBLIC_SUPABASE_URL` / `_ANON_KEY` for the blog to resolve.
 
-## If you want the progress bar back
+## The progress bar, rebuilt without a boundary
 
-Do **not** reintroduce `loading.tsx`. Implement it as a client component driven by
-navigation events (`usePathname`/`useRouter` transitions) rendered inside the layout — that
-creates no Suspense boundary, so it cannot affect response status.
+`apps/web/src/components/navigation-progress.tsx` replaces the deleted `loading.tsx`. It is a
+client component in the root layout, so it creates no Suspense boundary and cannot affect
+response status. **Do not reintroduce `loading.tsx` for this.**
+
+Neither Next primitive gives a global indicator on its own: `useLinkStatus()` reports the
+pending state of the `<Link>` it is rendered *inside* (so one sensor per link), and
+`onNavigate` fires only for `<Link>` clicks — not `router.push()` or back/forward. So the
+component listens on the capture phase for the click that starts a same-origin navigation and
+clears when `usePathname()` changes.
+
+Two details that matter:
+
+- Use `usePathname()`, **never `useSearchParams()`** — the latter opts a statically rendered
+  route into needing a Suspense boundary, which is this exact bug again.
+- A bare programmatic `router.push()` shows no bar; there is no client navigation event to
+  observe without monkey-patching the router. Visitor-initiated navigation on the marketing
+  pages all goes through links.
 
 ## References
 

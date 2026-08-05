@@ -651,11 +651,28 @@ transient `GraphQL 502` (R4). Zero `[soft-404]` lines.
 deleted floor-guard tests, −4 deleted `findLegacySlugAlias` tests, +6 `definitiveOrThrow`,
 +2 not-found-contract) · `pnpm lint` **16 warnings / 0 errors** (baseline held).
 
-### Follow-ups deliberately not done here
+### Both original follow-ups were then closed on request
 
-- **Navigation progress bar.** Deleting `app/loading.tsx` removes the 3px bar. Reimplement as
-  a client component driven by navigation events — that creates no Suspense boundary, so it
-  cannot affect response status. Do **not** restore `loading.tsx`.
+- **Navigation progress bar — DONE.** `apps/web/src/components/navigation-progress.tsx`, a
+  client component mounted in the root layout. No Suspense boundary, so it cannot affect
+  response status. Neither Next hook fits a global bar: `useLinkStatus()` reports the pending
+  state of the `<Link>` it renders *inside* (one sensor per link), and `onNavigate` fires only
+  for `<Link>` clicks. So it intercepts the click that starts a navigation (capture phase) and
+  clears on the resulting `usePathname()` change, with a 150ms delay so prefetched navigations
+  don't flash and a 10s failsafe so an abandoned navigation can't strand the bar.
+  `usePathname()` not `useSearchParams()` — the latter would opt static routes into needing a
+  Suspense boundary, reintroducing exactly this bug. Known gap: a bare programmatic
+  `router.push()` shows no bar. 9 tests cover the "will this click navigate?" predicate
+  (hash anchors, current URL, external, `target=_blank`, `download`, `mailto:`/`tel:`).
+- **Supabase keys on preview — DONE.** All four (`SUPABASE_URL`, `SUPABASE_ANON_KEY`,
+  `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`) now target
+  `["production","preview"]`. Zero new exposure: the web app holds no service-role key
+  (verified), and the `NEXT_PUBLIC_` pair is already in production client bundles. Previews can
+  now render blog content, and `check:404`'s `blog:real` row stops failing spuriously.
+  Rollback: set each back to `["production"]`.
+
+### Follow-ups still open
+
 - **Wire `check:404` to CI.** It needs a live URL; the Vercel preview URL isn't plumbed into
   the workflow. The CI-level protection today is the static tripwire in `pnpm test`.
 - **`sitemapPublishedTrips` fails soft** (`return []` on DB error at HTTP 200). No longer

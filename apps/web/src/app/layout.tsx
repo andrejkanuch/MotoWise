@@ -7,6 +7,7 @@ import { getLocale, getMessages } from 'next-intl/server';
 import { AnalyticsWithConsent } from '@/components/analytics-consent';
 import { CookieConsentBanner, CookieConsentProvider } from '@/components/cookie-consent';
 import { MetaPixel } from '@/components/meta-pixel';
+import { NavigationProgress } from '@/components/navigation-progress';
 import { WebVitalsReporter } from '@/components/web-vitals-reporter';
 import { QueryProvider } from '@/providers/query-provider';
 import { ThemeProvider } from '@/providers/theme-provider';
@@ -100,6 +101,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="bg-[--color-surface] text-[--color-on-surface] m-0">
         <ThemeProvider>
           <CookieConsentProvider>
+            {/* Replaces the deleted app/loading.tsx — a client component, so it
+                creates no Suspense boundary and cannot turn a notFound() into a
+                streamed 200. Never swap this back for a loading.tsx. */}
+            <NavigationProgress />
             <QueryProvider>{children}</QueryProvider>
             <NextIntlClientProvider locale={locale} messages={cookieBannerMessages}>
               <CookieConsentBanner />
