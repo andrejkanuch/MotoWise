@@ -1,9 +1,30 @@
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { type NextRequest, NextResponse } from 'next/server';
 import { routing } from '@/i18n/routing';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+const TIMING_SAFE_KEY = 'revalidate-timing-safe-compare' as const;
+
+/**
+ * Constant-time secret comparison, matching the pattern the API's own public
+ * webhook controllers use (`safeCompare` in ride-idle-check.controller.ts and
+ * maintenance-due-push.controller.ts). HMAC first so both sides are fixed-length,
+ * since timingSafeEqual throws on a length mismatch — and a raw `!==` leaks the
+ * secret's length and a prefix-match position through response timing.
+ *
+ * This route already gated on a shared secret, but it now also triggers a paid
+ * production deploy, so the cost of that secret being brute-forced went up.
+ */
+function safeCompare(a: string, b: string): boolean {
+  const hmac = (v: string) => createHmac('sha256', TIMING_SAFE_KEY).update(v).digest();
+  return timingSafeEqual(hmac(a), hmac(b));
+}
+
+/** Deploy-hook POST budget. Revalidation already succeeded; never hang the response. */
+const DEPLOY_HOOK_TIMEOUT_MS = 10_000;
 
 /**
  * Expand a non-localized path to every locale variant it's served at. The
@@ -43,7 +64,8 @@ function localeVariants(path: string): string[] {
  */
 export async function POST(req: NextRequest) {
   const secret = process.env.REVALIDATE_SECRET;
-  if (!secret || req.headers.get('x-revalidate-secret') !== secret) {
+  const provided = req.headers.get('x-revalidate-secret');
+  if (!secret || !provided || !safeCompare(provided, secret)) {
     return NextResponse.json({ revalidated: false, error: 'unauthorized' }, { status: 401 });
   }
 
@@ -68,13 +90,13 @@ export async function POST(req: NextRequest) {
   for (const tag of tags) revalidateTag(tag, 'max');
   for (const path of paths) revalidatePath(path);
 
-  const redeployed = await requestRedeployIfNewPath(paths);
+  const redeployed = await requestRedeploy(paths);
 
   return NextResponse.json({ revalidated: true, tags, paths, redeployed });
 }
 
 /**
- * Ask Vercel to rebuild when a path we were told about does not exist yet.
+ * Ask Vercel to rebuild, so a newly published trip stops 404ing.
  *
  * The trip/explore routes set `dynamicParams = false` so an unknown URL is a real
  * 404 instead of a 200 soft-404 (MOTOVAULT-WEB-Q/P/R). The cost of that is a new
@@ -84,23 +106,36 @@ export async function POST(req: NextRequest) {
  * the gap (~2 min) and is the piece that makes `dynamicParams = false` safe for
  * regularly-published content.
  *
- * Best-effort by design: revalidation has already happened by this point, so a
- * missing/failing hook must not turn a successful revalidate into a 500. The
- * response reports what happened instead.
+ * Deliberately NOT conditional on the path being new. This route is fire-and-forget
+ * from the API's perspective and has no way to know the build's param list, so
+ * "is this slug already prerendered?" is not answerable here — and guessing wrong
+ * in the cheap direction (skipping a rebuild a new trip needed) reinstates the
+ * 404 this exists to prevent. The cost of guessing wrong in the safe direction is
+ * a redundant build on an edit; Vercel coalesces concurrent hook triggers, so the
+ * worst case is one extra deploy, not a queue. An earlier version of this was
+ * named `...IfNewPath`, which promised a check it never performed.
+ *
+ * Best-effort by design: revalidation has already succeeded by this point, so a
+ * missing, slow, or failing hook must not turn that into a 500 — hence the
+ * timeout and the swallowed error. The response reports what happened instead.
  */
-async function requestRedeployIfNewPath(paths: string[]): Promise<boolean> {
+async function requestRedeploy(paths: string[]): Promise<boolean> {
   const hook = process.env.VERCEL_DEPLOY_HOOK_URL;
   if (!hook || paths.length === 0) return false;
 
-  // Only paths that can be affected by a stale param list are worth a rebuild —
-  // a trip/explore URL. Everything else is already covered by revalidatePath.
+  // Only paths whose route depends on a build-time param list are worth a rebuild;
+  // everything else is fully covered by revalidatePath above.
   const needsParams = paths.some((p) =>
     /^\/(?:[a-z]{2}(?:-[A-Z]{2})?\/)?(?:trips|explore)\//.test(p),
   );
   if (!needsParams) return false;
 
   try {
-    const res = await fetch(hook, { method: 'POST' });
+    // Bounded: an unresponsive hook must not hold the revalidate response open.
+    const res = await fetch(hook, {
+      method: 'POST',
+      signal: AbortSignal.timeout(DEPLOY_HOOK_TIMEOUT_MS),
+    });
     if (!res.ok) console.warn(`[revalidate] deploy hook returned ${res.status}`);
     return res.ok;
   } catch (err) {

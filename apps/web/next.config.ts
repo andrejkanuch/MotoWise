@@ -38,6 +38,10 @@ const NON_LOCALIZED_ROUTE_SECTIONS = [
  * Trip slugs that changed and still have inbound links / index entries.
  * Kept here rather than in the page because only a config-level redirect runs
  * before rendering, which is what a genuine 308 requires — see redirects() below.
+ *
+ * This is the LIVE copy. `LEGACY_TRIP_SLUG_ALIASES` in
+ * src/lib/trips/bare-slug-redirect.ts mirrors it but is currently inert; keep both
+ * in sync until the bare-slug follow-up consolidates them.
  */
 const LEGACY_TRIP_REDIRECTS = [
   { from: '/trips/us/ca/pacific-coast-highway', to: '/trips/us/ca/pacific-coast-highway-big-sur' },

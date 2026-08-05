@@ -42,37 +42,14 @@ const DEDUP_HASH_RE = /^[0-9a-f]{8}$/;
  * `/route/... → /trips/...` and would 404 here (Sentry MOTOVAULT-WEB-Q).
  * Key: `{country}/{region}/{slug}` (lowercase) → canonical trips slug.
  */
+// KEEP IN SYNC with LEGACY_TRIP_REDIRECTS in apps/web/next.config.ts, which is the
+// LIVE copy — only a config-level redirect runs before rendering, so only that one
+// actually emits a 308. This map is inert until the bare-slug follow-up lands. Same
+// duplicate-with-a-sync-comment tradeoff PR #177 accepted for the active-locale list:
+// importing app modules into config evaluation is a build risk for low payoff.
 const LEGACY_TRIP_SLUG_ALIASES: Record<string, string> = {
   'us/ca/pacific-coast-highway': 'pacific-coast-highway-big-sur',
 };
-
-/**
- * The `{country}/{region}/{slug}` keys above, as route params.
- *
- * Load-bearing for `generateStaticParams` under `dynamicParams = false`: an alias
- * slug has no trip row, so it is absent from the published-trip list. Without it in
- * the static params the router 404s before the page runs, and the 301 below never
- * fires — turning a redirect that preserves link equity back into the dead end
- * PR #177 fixed.
- */
-export function legacyAliasParams(): { country: string; region: string; slug: string }[] {
-  return Object.keys(LEGACY_TRIP_SLUG_ALIASES).map((key) => {
-    const [country, region, slug] = key.split('/');
-    return { country, region, slug };
-  });
-}
-
-/**
- * The bare (hash-stripped) form of a slug, or null when it carries no dedup hash.
- *
- * Same reason as `legacyAliasParams`: a bare slug has no row of its own, so it must
- * be prerendered for `findBareSlugRedirect` to get the chance to 301 it.
- */
-export function bareSlugOf(slug: string): string | null {
-  const idx = slug.lastIndexOf('-');
-  if (idx <= 0) return null;
-  return DEDUP_HASH_RE.test(slug.slice(idx + 1)) ? slug.slice(0, idx) : null;
-}
 
 /** Canonical slug for a known legacy alias, or null. */
 export function findLegacySlugAlias(country: string, region: string, slug: string): string | null {
