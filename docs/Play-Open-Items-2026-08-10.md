@@ -43,15 +43,27 @@ rules about existing subscribers on a changed price. That is the owner's call.
 
 **Options**
 
-- **(a) Correct annual to ~$49.99** (restores the ~0.5× ratio the earlier generations used).
-  Most likely the intended value.
-- **(b) Pick a deliberate ratio** — e.g. annual at 10× monthly ($99.99) for a "2 months
-  free" framing, which is the common pattern.
-- **(c) Leave it and stop offering annual** on the paywall, so users are not shown a plan
-  that is strictly worse for them.
+These are two *different* rationales and they do not land on the same number — worth keeping
+apart:
 
-**Recommendation: (a).** It matches the historical ratio, is almost certainly the intended
-number, and is the smallest change. Note it interacts with the revenue problem recorded in
+- **(a) Correct the suspected typo: annual → $49.99.** Justified by the digit, not by a
+  ratio: `$149.99` is `$49.99` with a leading `1`, and `$49.99` is what `_v3` charged. At
+  today's $9.99 monthly this is **0.42×** of 12× monthly, i.e. a deeper discount than any
+  previous generation gave.
+- **(b) Restore the historical 0.5× ratio: annual → $59.99.** 12 × $9.99 = $119.88, so the
+  0.5× point is **$59.94** — which is essentially the original generation's $59.99. Pick
+  this if the intent is "annual is half price", not "undo the typo".
+- **(c) Pick a deliberate round ratio** — e.g. 10× monthly = **$99.90** for the common "2
+  months free" framing.
+- **(d) Stop offering annual** on the paywall, so users are never shown a plan that is
+  strictly worse for them.
+
+**Recommendation: (b), $59.99.** It is the only option justified by the pricing model rather
+than by guessing at a keystroke, it matches what this app charged annually before the
+discounting experiments, and at the current $9.99 monthly it is the honest "half price"
+claim. Choose (a) instead only if you know $49.99 was the intended number.
+
+Note this interacts with the revenue problem recorded in
 `docs/SEO-Conversion-Plan-2026-07-15.md`: traffic converting at ~zero is easier to explain
 when the headline annual plan is worse value than monthly.
 
@@ -68,7 +80,7 @@ shipped builds actually ask for. Worth doing, but deliberately.
 
 Re-run the audit with:
 
-```
+```text
 mcp: revenuecat list-offerings  project_id=proj46e69448  expand=[items.package, items.package.product]
 gplay subscriptions list --package com.motovault.app --output json
 ```

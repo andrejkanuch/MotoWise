@@ -1,6 +1,6 @@
 Motociklo savininko programėlė, o ne dar vienas GPS.
 
-MotoVault sukurta motociklininkams, kuriems motociklas svarbus tiek pat, kiek ir kelias. Užrašykite kiekvieną techninį aptarnavimą, kiekvieną kilometrą ir kiekvieną išlaidą, planuokite maršrutus ir klauskite AI mechaniko ko tik norite.
+MotoVault sukurta motociklininkams, kuriems motociklas svarbus tiek pat, kiek ir kelias. Užrašykite kiekvieną techninį aptarnavimą, kiekvieną kilometrą ir kiekvieną išlaidą, planuokite maršrutus ir klauskite AI mechaniko, ko tik norite.
 
 ──────────────
 FUNKCIJOS

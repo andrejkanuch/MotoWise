@@ -39,7 +39,14 @@ module.exports = function withSentryAgpOrder(config) {
     // Nothing to do if either is absent, or Sentry is already below Android.
     if (sentryAt === -1 || androidAt === -1 || sentryAt > androidAt) return config;
 
-    const withoutSentry = contents.replace(`${SENTRY_APPLY}\n`, '');
+    // Strip the trailing newline too, tolerating CRLF: on a CRLF file a plain
+    // `SENTRY_APPLY\n` removal silently fails, and we would then ADD a second
+    // apply line while leaving the original above com.android.application.
+    const withoutSentry = contents.replace(
+      new RegExp(`${SENTRY_APPLY.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\r?\\n`),
+      '',
+    );
+    if (withoutSentry === contents) return config; // removal failed — leave as-is
     config.modResults.contents = withoutSentry.replace(
       ANDROID_APPLY,
       `${ANDROID_APPLY}\n${SENTRY_APPLY}`,
