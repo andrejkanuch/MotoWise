@@ -3,6 +3,13 @@
 import { palette } from '@motovault/design-system';
 import { useCallback, useRef, useState } from 'react';
 import { useModal } from '@/hooks/use-modal';
+import {
+  type AuthErrorRecovery,
+  EMPTY_FIELDS_MESSAGE,
+  hasCredentials,
+  humanizeAuthError,
+  recoveryForAttempt,
+} from '@/lib/auth-errors';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 interface AuthModalProps {
@@ -28,6 +35,9 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [recovery, setRecovery] = useState<AuthErrorRecovery>(null);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
@@ -39,23 +49,41 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
     async (e: React.FormEvent) => {
       e.preventDefault();
       if (loading) return;
+      if (!hasCredentials(email, password)) {
+        setError(
+          mode === 'signin'
+            ? EMPTY_FIELDS_MESSAGE
+            : 'Enter your email and password to create an account.',
+        );
+        setRecovery(null);
+        return;
+      }
       setLoading(true);
       setError('');
+      setRecovery(null);
+      setResendState('idle');
 
       if (mode === 'signin') {
         const supabase = getSupabaseBrowserClient();
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
         if (error) {
-          setError(error.message);
+          const errorInfo = humanizeAuthError(error);
+          const attempts = failedAttempts + 1;
+          setFailedAttempts(attempts);
+          setError(errorInfo.message);
+          setRecovery(recoveryForAttempt(errorInfo, attempts));
           setLoading(false);
         } else {
           window.location.reload();
         }
       } else {
         const supabase = getSupabaseBrowserClient();
-        const { data, error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
         if (error) {
-          setError(error.message);
+          setError(humanizeAuthError(error).message);
           setLoading(false);
         } else if (data.user && !data.session) {
           setInfo('We sent a confirmation link to your email. Open it to finish signing up.');
@@ -66,8 +94,21 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
         }
       }
     },
-    [mode, email, password, loading],
+    [mode, email, password, loading, failedAttempts],
   );
+
+  const handleResendConfirmation = useCallback(async () => {
+    if (resendState === 'sending' || !email.trim()) return;
+    setResendState('sending');
+    const supabase = getSupabaseBrowserClient();
+    const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim() });
+    if (error) {
+      setError(humanizeAuthError(error).message);
+      setResendState('idle');
+    } else {
+      setResendState('sent');
+    }
+  }, [email, resendState]);
 
   const handleOAuth = useCallback(async (provider: 'google' | 'apple') => {
     setOauthLoading(provider);
@@ -106,9 +147,31 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
 
         <div aria-live="polite" aria-atomic="true">
           {error && (
-            <p className="mt-3 text-sm text-red-400" role="alert">
-              {error}
-            </p>
+            <div className="mt-3 text-sm text-red-400" role="alert">
+              <p>{error}</p>
+              {recovery === 'reset_password' && (
+                <a
+                  href="/forgot-password"
+                  className="mt-2 inline-block font-medium text-white underline"
+                >
+                  Reset your password
+                </a>
+              )}
+              {recovery === 'resend_confirmation' && (
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={resendState !== 'idle'}
+                  className="mt-2 inline-block font-medium text-white underline disabled:no-underline disabled:opacity-70"
+                >
+                  {resendState === 'sent'
+                    ? 'Confirmation email sent — check your inbox.'
+                    : resendState === 'sending'
+                      ? 'Sending…'
+                      : 'Resend confirmation email'}
+                </button>
+              )}
+            </div>
           )}
           {info && (
             <p className="mt-3 rounded-lg bg-green-950/50 p-3 text-sm text-green-400">{info}</p>
@@ -201,6 +264,8 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
                   setMode('signup');
                   setError('');
                   setInfo('');
+                  setRecovery(null);
+                  setResendState('idle');
                 }}
                 className="font-medium text-white"
               >
@@ -216,6 +281,8 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
                   setMode('signin');
                   setError('');
                   setInfo('');
+                  setRecovery(null);
+                  setResendState('idle');
                 }}
                 className="font-medium text-white"
               >
