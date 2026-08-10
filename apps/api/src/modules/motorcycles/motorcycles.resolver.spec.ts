@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { IS_PUBLIC_KEY } from '../../common/decorators/public.decorator';
 import type { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
@@ -70,7 +71,8 @@ describe('MotorcyclesResolver', () => {
     } as unknown as OemSchedulesService;
 
     const mockMakeStatsService = { getMakeStats: vi.fn() } as never;
-    const mockSupabase = {} as any;
+    // Never exercised — these cases only assert guard metadata, not query behavior.
+    const mockSupabase = {} as unknown as SupabaseClient;
 
     beforeEach(() => {
       vi.clearAllMocks();

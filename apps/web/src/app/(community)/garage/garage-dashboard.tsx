@@ -133,7 +133,7 @@ function formatNumber(value: number): string {
 }
 
 function countryFlag(code: string | null | undefined): string {
-  if (!code || code.length !== 2) return '';
+  if (code?.length !== 2) return '';
   return String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1f1a5 + c.charCodeAt(0)));
 }
 

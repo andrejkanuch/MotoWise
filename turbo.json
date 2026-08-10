@@ -1,6 +1,12 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "globalEnv": ["CI", "NODE_ENV"],
+  // Secrets read at runtime (apps/api services via ConfigService, apps/web static route
+  // previews, and the maintenance scripts in scripts/). Declared as pass-through, not
+  // globalEnv, so rotating a key does not invalidate every task's cache — same rationale
+  // as the build task's SENTRY_AUTH_TOKEN. Biome's noUndeclaredEnvVars checks reads of
+  // process.env against this file, so an undeclared var here surfaces as a lint warning.
+  "globalPassThroughEnv": ["MAPBOX_ACCESS_TOKEN", "OPENAI_API_KEY"],
   "globalDependencies": [".env"],
   "tasks": {
     "build": {

@@ -96,7 +96,7 @@ export default function DiagnosticResultScreen() {
   const bikeName = bike ? `${bike.year} ${bike.make} ${bike.model}` : 'Motorcycle';
 
   const handleShareReport = async () => {
-    if (!diagnostic || diagnostic.status !== 'completed') return;
+    if (diagnostic?.status !== 'completed') return;
     triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     try {
       await exportDiagnosticReport(

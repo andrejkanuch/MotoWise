@@ -321,7 +321,7 @@ function renderResults(results: SampleResult[]): string {
     '_Record the decision here and in `docs/prd-receipt-scan.md` (Q4 / Phase 0 gate): proceed to U2 / rescope (printed-only, prompt-tighten + re-spike, model switch or defer) + model choice (4.1 vs 4.1-mini)._',
   );
   lines.push('');
-  return lines.join('\n') + '\n';
+  return `${lines.join('\n')}\n`;
 }
 
 async function main(): Promise<void> {
