@@ -32,8 +32,16 @@ ALLOWED_LATIN = {'motovault', 'pro', 'gps', 'gpx', 'ai', 'google', 'play', 'http
 # Alphabetic currency codes MUST be \b-anchored: unanchored, "kr" and "lei" match
 # inside ordinary words, so Norwegian "24 krav" or "24 leiligheter" would be
 # reported as prices. Symbols need no anchoring — they are not word characters.
-CURRENCY_SYMBOL = r'[$€£¥₹₩₺₫₱]'
-CURRENCY_CODE = r'\b(?:USD|EUR|GBP|MXN|CHF|BRL|zł|kr|Kč|Ft|lei|лв|RM)\b'
+# The symbol/code set must cover the currency of EVERY locale in EXPECTED_LOCALES,
+# or a hardcoded price in that language slips through: Thai ฿99 and Indonesian
+# Rp 99.000 both bypassed an earlier version. Native-script currency words
+# (円/元/원/руб/грн/ден/дин) are listed as symbols rather than \b-anchored codes
+# because \b does not work in CJK/Cyrillic runs; requiring an adjacent digit is
+# what keeps 元素 or 円形 from matching.
+CURRENCY_SYMBOL = r'[$€£¥₹₩₺₫₱฿₽₴₪₸]|円|元|원|руб|грн|ден|дин'
+CURRENCY_CODE = (r'\b(?:USD|EUR|GBP|MXN|CHF|BRL|THB|IDR|RUB|UAH|INR|PHP|MYR|TRY'
+                 r'|CZK|PLN|HUF|RON|DKK|NOK|SEK|JPY|CNY|KRW|TWD|VND|SGD|AUD|CAD'
+                 r'|NZD|BGN|MKD|RSD|zł|kr|Kč|Ft|lei|лв|RM|Rp|Rs|TL)\b')
 CURRENCY = rf'(?:{CURRENCY_SYMBOL}|{CURRENCY_CODE})'
 PRICE = re.compile(rf'{CURRENCY}\s?\d|\d+(?:[.,]\d{{1,2}})?\s?{CURRENCY}')
 # No false-positive exemption list. PRICE only matches when a currency token is
@@ -93,7 +101,14 @@ def self_test():
     for text, expected in [('at least 24 hours before', False), ('12,000+ models', False),
                            ('4000 characters', False), ('24 krav', False),
                            ('24 leiligheter', False), ('24 EUR', True), ('24 €', True),
-                           ('3,99 $/mois', True), ('$4 per month', True)]:
+                           ('3,99 $/mois', True), ('$4 per month', True),
+                           # Locale currencies an earlier pattern set missed entirely.
+                           ('฿99 ต่อเดือน', True), ('Rp 99.000/bulan', True),
+                           ('99 ₽ в месяц', True), ('99 ₴ на місяць', True),
+                           ('月額980円', True), ('每月 30 元', True), ('월 4900원', True),
+                           ('99 TL/ay', True), ('₹299/month', True),
+                           # Native-script words that are NOT currencies: no adjacent digit.
+                           ('元素と円形のデザイン', False), ('디자인 원칙', False)]:
         if bool(PRICE.search(text)) != expected:
             failures.append(f'price fixture expected {expected}: {text!r}')
     return failures
