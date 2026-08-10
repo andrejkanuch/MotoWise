@@ -38,11 +38,16 @@ ALLOWED_LATIN = {'motovault', 'pro', 'gps', 'gpx', 'ai', 'google', 'play', 'http
 # (円/元/원/руб/грн/ден/дин) are listed as symbols rather than \b-anchored codes
 # because \b does not work in CJK/Cyrillic runs; requiring an adjacent digit is
 # what keeps 元素 or 円形 from matching.
-CURRENCY_SYMBOL = r'[$€£¥₹₩₺₫₱฿₽₴₪₸]|円|元|원|руб|грн|ден|дин'
+CURRENCY_SYMBOL = r'[$€£¥₹₩₺₫₱฿₽₴₪₸]'
+# Native-script currency words need a trailing non-word boundary of their own. \b
+# cannot provide it inside a CJK/Cyrillic run, and requiring a preceding digit is
+# not enough: without the lookahead, "30 元素" (30 elements), "980 円形" and
+# "4900 원칙" all match as prices.
+CURRENCY_WORD = r'(?:円|元|원|руб|грн|ден|дин)(?!\w)'
 CURRENCY_CODE = (r'\b(?:USD|EUR|GBP|MXN|CHF|BRL|THB|IDR|RUB|UAH|INR|PHP|MYR|TRY'
                  r'|CZK|PLN|HUF|RON|DKK|NOK|SEK|JPY|CNY|KRW|TWD|VND|SGD|AUD|CAD'
                  r'|NZD|BGN|MKD|RSD|zł|kr|Kč|Ft|lei|лв|RM|Rp|Rs|TL)\b')
-CURRENCY = rf'(?:{CURRENCY_SYMBOL}|{CURRENCY_CODE})'
+CURRENCY = rf'(?:{CURRENCY_SYMBOL}|{CURRENCY_WORD}|{CURRENCY_CODE})'
 PRICE = re.compile(rf'{CURRENCY}\s?\d|\d+(?:[.,]\d{{1,2}})?\s?{CURRENCY}')
 # No false-positive exemption list. PRICE only matches when a currency token is
 # adjacent, so "12,000+ models", "4000 characters" and a bare "24 hours" cannot
@@ -107,8 +112,12 @@ def self_test():
                            ('99 ₽ в месяц', True), ('99 ₴ на місяць', True),
                            ('月額980円', True), ('每月 30 元', True), ('월 4900원', True),
                            ('99 TL/ay', True), ('₹299/month', True),
-                           # Native-script words that are NOT currencies: no adjacent digit.
-                           ('元素と円形のデザイン', False), ('디자인 원칙', False)]:
+                           # Native-script words that are NOT currencies. The second
+                           # group is the harder case: a digit DOES precede them, so
+                           # only the trailing boundary rules them out.
+                           ('元素と円形のデザイン', False), ('디자인 원칙', False),
+                           ('30 元素', False), ('980 円形', False), ('4900 원칙', False),
+                           ('99 рубрика', False), ('50 грница', False)]:
         if bool(PRICE.search(text)) != expected:
             failures.append(f'price fixture expected {expected}: {text!r}')
     return failures
