@@ -29,9 +29,7 @@ Commencez avec une moto dans votre garage, un accès complet à la base de conna
 MOTOVAULT PRO
 Débloquez un nombre illimité de motos, de diagnostics IA, des rappels d'entretien pour toutes vos machines et l'export PDF des fiches de service.
 
-Options d'abonnement :
-- Mensuel : 3,99 $/mois
-- Annuel : 29,99 $/an (économisez plus de 37 %)
+Options d'abonnement : mensuel ou annuel. Le prix est indiqué dans l'app avant la confirmation.
 
 Le paiement sera débité de votre compte Google Play lors de la confirmation de l'achat. L'abonnement se renouvelle automatiquement sauf annulation au moins 24 heures avant la fin de la période en cours. Vous pouvez gérer et annuler vos abonnements dans les paramètres de votre compte Google Play.
 

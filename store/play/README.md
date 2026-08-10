@@ -14,11 +14,29 @@ store/play/metadata/<locale>/
 ## Workflow
 
 ```bash
+python3 store/play/check-metadata.py                                             # REQUIRED gate — see below
 gplay metadata validate --dir store/play/metadata                                # offline, char limits
 gplay metadata push --package com.motovault.app --dir store/play/metadata --dry-run
 gplay metadata push --package com.motovault.app --dir store/play/metadata --confirm
-gplay metadata pull  --package com.motovault.app --dir store/play/metadata       # overwrite local from Play
 ```
+
+**`check-metadata.py` is not optional, and `gplay metadata validate` is not a
+substitute.** `validate` only checks character limits; the repo gate is what enforces
+the hardcoded-price, `App Store`, keyword-bearing-title, subscription-disclosure and
+mixed-script rules below. It exits non-zero on any violation, so it can gate CI.
+
+Pulling **overwrites** `store/play/metadata`, which is the reviewed source of truth — so
+never pull straight over it. Pull into a scratch directory and diff, then copy across
+only what you actually intend to adopt:
+
+```bash
+tmp=$(mktemp -d)
+gplay metadata pull --package com.motovault.app --dir "$tmp"
+diff -ru store/play/metadata "$tmp"     # review Console-side drift before adopting any of it
+```
+
+A non-empty diff means someone edited the listing in the Play Console, bypassing review.
+Reconcile deliberately rather than letting a pull silently revert repo changes.
 
 Limits are **characters, not bytes** — `wc -c` overstates every non-Latin locale by 2-3x
 (Devanagari, Thai, CJK, Cyrillic, Greek, Arabic). Count with Python, or just let
@@ -40,9 +58,17 @@ Limits are **characters, not bytes** — `wc -c` overstates every non-Latin loca
   highest-weight ASO field on Play. Six locales shipped with the bare app name.
 - **Watch for Latin letters inside non-Latin words.** A Serbian line read `миris`
   (Cyrillic + Latin), which no spellchecker in the pipeline would catch.
+- **State the subscription terms in every locale**: auto-renewal, the 24-hour
+  cancellation deadline, and where to manage or cancel. Four pre-existing listings said
+  only "cancel anytime in the Play Store" and omitted the rest.
+- **A price regex must match the currency symbol on either side of the amount.** The
+  first version only caught prefix-`$` and suffix `€/EUR/USD`, so the French listing's
+  `3,99 $/mois` passed the gate and shipped.
 
-The QA script that enforces all of the above lives in the commit that added this file;
-re-run it after any bulk edit.
+`check-metadata.py` enforces all of the above. Run it after any bulk edit — and note
+that its `EXPECTED_LOCALES` tuple is a deliberate ratchet: adding or removing a locale
+means editing that list, so a directory disappearing can never silently shrink the
+checked set into a false pass.
 
 ## Why 46 locales
 

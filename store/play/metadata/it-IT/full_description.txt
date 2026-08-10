@@ -64,15 +64,13 @@ PERFETTO PER
 - Avventurieri che tracciano viaggi lunghi
 - Smanettoni che fanno manutenzione da soli
 - Nuovi piloti che vogliono un meccanico in tasca
-- Chi è stanco di app per auto che trattano le moto come
-  ripensamento
+- Chi è stanco di app pensate per le auto
 
 DESIGN PER CHI PILOTA
-Dark-mode di default, leggibile con i guanti. Ottimizzato
-per piloti solitari E per uscite di gruppo. Progettato per
-motociclisti europei e nordamericani. GDPR-compliant, hosting
-UE, TLS 1.3 in transito, AES-256 a riposo. I tuoi dati sono
-tuoi — esporta o cancella tutto con un tocco.
+Dark-mode di default, leggibile con i guanti. Ottimizzato per
+uscite solitarie e di gruppo. Progettato per
+motociclisti europei e nordamericani. GDPR-compliant, hosting UE.
+I tuoi dati sono tuoi: esporta o cancella tutto con un tocco.
 
 MOTOVAULT PRO
 Gratis per sempre: moto illimitate, gestione manutenzione
@@ -82,15 +80,17 @@ GPS, pianificatore viaggi (fino a 3 percorsi salvati) e
 
 Pro sblocca: diagnosi AI illimitate, statistiche avanzate
 con report settimanali, esportazioni GPX illimitate e
-statistiche estese. Con piano mensile o annuale. Il prezzo
-è mostrato nell'app prima della conferma. Cancella
-in qualsiasi momento dal Play Store.
+statistiche estese. Piano mensile o annuale; il prezzo è mostrato nell'app
+prima della conferma. L'abbonamento si rinnova
+automaticamente se non viene annullato almeno 24 ore prima
+della fine del periodo. Gestiscilo o annullalo quando vuoi
+nelle impostazioni del tuo account Google Play.
 
 NESSUN OBD-II
-MotoVault funziona interamente dal telefono — niente scan
-tools, niente adattatori Bluetooth, niente cavi. Camera per
-la diagnosi, GPS per la registrazione. Funziona su
-qualsiasi moto, qualsiasi anno, qualsiasi costruttore.
+MotoVault funziona interamente dal telefono: niente scan
+tool, niente adattatori, niente cavi. Camera per la
+diagnosi, GPS per la registrazione. Su qualsiasi moto,
+qualsiasi anno e costruttore.
 
 Domande, feedback? Leggiamo ogni email:
 hello@motovault.app

@@ -27,7 +27,7 @@ Temel özellikler sonsuza kadar ücretsizdir. Rotaları takip edin, bakım yöne
 MOTOVAULT PRO
 Sınırsız AI tanılama, gelişmiş rota istatistikleri, ayrıntılı masraf raporları ve yeni özelliklere öncelikli erişim dahil premium özelliklerin kilidini açın. Aylık veya yıllık abonelikle kullanılabilir.
 
-Ödeme, satın alma onayında Google Play hesabınızdan tahsil edilecektir. Abonelik, mevcut dönemin bitiminden en az 24 saat önce iptal edilmediği sürece otomatik olarak yenilenir. Aboneliğinizi Google Play hesap ayarlarından yönetin.
+Ödeme, satın alma onayında Google Play hesabınızdan tahsil edilecektir. Abonelik, mevcut dönemin bitiminden en az 24 saat önce iptal edilmediği sürece otomatik olarak yenilenir. Aboneliğinizi Google Play hesap ayarlarından yönetebilir veya iptal edebilirsiniz.
 
 Gizlilik Politikası: https://motovault.app/privacy
 Kullanım Koşulları: https://motovault.app/terms

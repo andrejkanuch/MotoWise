@@ -39,7 +39,7 @@ Dark-Mode-First, lesbar mit Handschuhen. Optimiert für Solo und Gruppentouren. 
 MOTOVAULT PRO
 Kostenlos für immer: unbegrenzte Motorräder, vollständige Wartungsverfolgung, Kostenprotokoll, Tour-Aufzeichnung mit GPS, Tourenplaner (bis zu 3 gespeicherte Routen) und 5 KI-Diagnosen pro Monat.
 
-Pro schaltet frei: unbegrenzte KI-Diagnosen, erweiterte Statistiken mit wöchentlichen Berichten, unbegrenzte GPX-Exports und ausführliche Fahrstatistiken. Im Monats- oder Jahresabo. Den Preis siehst du in der App, bevor du bestätigst. Jederzeit im Play Store kündbar.
+Pro schaltet frei: unbegrenzte KI-Diagnosen, erweiterte Statistiken mit wöchentlichen Berichten, unbegrenzte GPX-Exports und ausführliche Fahrstatistiken. Im Monats- oder Jahresabo. Den Preis siehst du in der App, bevor du bestätigst. Das Abo verlängert sich automatisch, sofern es nicht mindestens 24 Stunden vor Ende der Laufzeit gekündigt wird. Verwalten oder kündigen jederzeit in den Google-Play-Kontoeinstellungen.
 
 KEIN OBD-II NÖTIG
 MotoVault funktioniert komplett über dein Smartphone — keine Scan-Tools, keine Adapter, keine Kabel. Kamera für Diagnose, GPS für Aufzeichnung. Funktioniert auf jedem Motorrad, jedem Jahr, jedem Hersteller.

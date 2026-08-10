@@ -39,7 +39,7 @@ Modo oscuro por defecto, legible con guantes. Optimizada para pilotos solo Y rod
 MOTOVAULT PRO
 Gratis para siempre: motos ilimitadas, control completo de mantenimiento, registro de gastos, grabación de rodadas con GPS, planeador de viajes (hasta 3 rutas guardadas) y 5 diagnósticos IA al mes.
 
-Pro desbloquea: diagnósticos IA ilimitados, estadísticas avanzadas con reportes semanales, exportaciones GPX ilimitadas y estadísticas extendidas. Con plan mensual o anual. El precio se muestra en la app antes de confirmar. Cancela cuando quieras en el Play Store.
+Pro desbloquea: diagnósticos IA ilimitados, estadísticas avanzadas con reportes semanales, exportaciones GPX ilimitadas y estadísticas extendidas. Con plan mensual o anual. El precio se muestra en la app antes de confirmar. La suscripción se renueva automáticamente salvo que se cancele al menos 24 horas antes del final del periodo. Gestiónala o cancélala cuando quieras en los ajustes de tu cuenta de Google Play.
 
 SIN OBD-II
 MotoVault funciona completamente desde tu celular — sin scan tools, sin adaptadores Bluetooth, sin cables. Cámara para diagnóstico, GPS para grabación. Funciona en cualquier moto, cualquier año, cualquier fabricante.

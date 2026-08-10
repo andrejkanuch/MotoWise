@@ -68,8 +68,8 @@ PERFEITO PARA
 DESIGN FEITO PRA QUEM PILOTA
 Modo escuro por padrão, legível com luvas. Otimizado para
 pilotos solo E rolês em grupo. Pensado para motociclistas
-brasileiros, latino-americanos e europeus. LGPD/GDPR-compliant,
-TLS 1.3 em trânsito, AES-256 em repouso. Seus dados são seus
+brasileiros, latino-americanos e europeus. LGPD/GDPR-compliant.
+Seus dados são seus
 — exporte ou apague tudo com um toque.
 
 MOTOVAULT PRO
@@ -80,9 +80,11 @@ IA por mês.
 
 Pro libera: diagnósticos IA ilimitados, estatísticas avançadas
 com relatórios semanais, exportações GPX ilimitadas e
-estatísticas estendidas. Com plano mensal ou anual. O preço aparece
-no app antes de você confirmar. Cancele
-a qualquer momento no Play Store.
+estatísticas estendidas. Plano mensal ou anual; o preço aparece no app antes de você
+confirmar. A assinatura é renovada automaticamente, salvo
+cancelamento com pelo menos 24 horas de antecedência do fim
+do período. Gerencie ou cancele nas configurações da sua
+conta Google Play.
 
 SEM OBD-II
 MotoVault funciona totalmente pelo celular — sem scan tools,
