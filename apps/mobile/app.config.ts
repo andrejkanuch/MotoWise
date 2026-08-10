@@ -43,6 +43,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     url: 'https://u.expo.dev/359ae282-329d-455d-b9f3-64919afad0b4',
   },
   plugins: [
+    // FIRST on purpose, because it must have the LAST word on AndroidManifest.xml.
+    // Expo executes mods in REVERSE registration order: withMod runs its own
+    // action and only then calls nextMod (the previously registered plugin), so
+    // the first plugin listed here is the last one to touch the manifest.
+    // This one exists to undo what other libraries' plugins write — see its header.
+    './plugins/with-android-manifest-hygiene',
     [
       '@sentry/react-native/expo',
       {
@@ -322,7 +328,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       monochromeImage: './src/assets/images/MotoVaultDark.png',
       backgroundColor: '#0F1B2D',
     },
-    permissions: ['NOTIFICATIONS', 'SCHEDULE_EXACT_ALARM'],
+    // No app-level permission additions. Every permission we actually use is
+    // declared by the module that needs it (expo-notifications ships
+    // POST_NOTIFICATIONS + RECEIVE_BOOT_COMPLETED, expo-location the location
+    // set, expo-image-picker CAMERA).
+    //   - 'NOTIFICATIONS' was junk: Expo prefixes bare names, emitting a
+    //     non-existent `android.permission.NOTIFICATIONS`.
+    //   - 'SCHEDULE_EXACT_ALARM' is a Play rejection risk that needs a written
+    //     justification, and we don't need it: expo-notifications degrades to
+    //     AlarmManagerCompat.setAndAllowWhileIdle when the permission is absent
+    //     (ExpoSchedulingDelegate.kt), which is fine for maintenance reminders —
+    //     nothing here is time-critical to the minute.
+    permissions: [],
     // Force-remove every media-read permission from the FINAL merged manifest
     // (tools:node="remove"), regardless of what expo-media-library or any
     // transitive library declares. We only save share cards (write-only) and
@@ -341,6 +358,20 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       // This keeps the build honest with the Play Console "Advertising ID: No"
       // declaration regardless of whether Meta is present in a given build.
       'com.google.android.gms.permission.AD_ID',
+      // Boilerplate from Expo's bare AndroidManifest template ("OPTIONAL
+      // PERMISSIONS, REMOVE WHATEVER YOU DO NOT NEED" — see
+      // getAndroidManifestTemplate in @expo/config-plugins). Overlays are only
+      // used by the RN dev menu / LogBox in debug builds; no production code
+      // draws over other apps. Play treats it as a high-risk permission and a
+      // common rejection reason.
+      'android.permission.SYSTEM_ALERT_WINDOW',
+      // expo-image-picker's plugin adds RECORD_AUDIO for video capture unless
+      // microphonePermission is false. Every call site passes
+      // mediaTypes: 'images', so we never record. Blocking here rather than via
+      // the plugin prop deliberately: microphonePermission: false would also
+      // strip the iOS NSMicrophoneUsageDescription that CarPlay's bundled
+      // speech APIs require (ITMS-90683).
+      'android.permission.RECORD_AUDIO',
     ],
     intentFilters: [
       {
