@@ -27,7 +27,7 @@
     "@uiw/codemirror-theme-vscode": "^4.25.10",
     "@uiw/react-codemirror": "^4.25.10",
     "chart.js": "^4.5.1",
-    "expo": "~56.0.17",
+    "expo": "~56.0.18",
     "geist": "^1.7.2",
     "graphql": "^16.14.2",
     "graphql-request": "^7.4.0",
