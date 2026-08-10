@@ -8,7 +8,7 @@ FUNKCIJAS
 
 * IZDEVUMI — Katra uzpilde, katra detaļa, katra vizīte servisā. Redzat precīzi, cik motocikls izmaksā uz kilometru, mēnesī un gadā.
 
-* APKOPJU VĒSTURE — Eļļas maiņa, ķēdes regulēšana, riepas, vārsti. Pierakstiet katru darbu un uzturiet pilnu vēsturi, kas paaugstina cenu pārdodot.
+* APKOPJU VĒSTURE — Eļļas maiņa, ķēdes regulēšana, riepas, vārstu atstarpes. Pierakstiet katru darbu un uzturiet pilnu vēsturi, kas paaugstina tālākpārdošanas vērtību.
 
 * GUDRI ATGĀDINĀJUMI — Vairs nepalaidīsiet garām apkopes intervālu. MotoVault seko gan kilometriem, gan laikam un brīdina, pirms tas kļūst par problēmu.
 

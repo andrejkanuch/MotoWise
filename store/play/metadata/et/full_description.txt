@@ -8,7 +8,7 @@ FUNKTSIOONID
 
 * KULUD — Iga tankimine, iga varuosa, iga töökojaskäik. Näed täpselt, kui palju ratas kulutab kilomeetri, kuu ja aasta kohta.
 
-* HOOLDUSAJALUGU — Õlivahetus, keti reguleerimine, rehvid, klapid. Märgi üles iga töö ja pea täielikku ajalugu, mis tõstab edasimüügihinda.
+* HOOLDUSAJALUGU — Õlivahetus, keti reguleerimine, rehvid, klapivahed. Märgi üles iga töö ja pea täielikku ajalugu, mis tõstab edasimüügihinda.
 
 * NUTIKAD MEELDETULETUSED — Ei jää enam ühtki hooldusintervalli vahele. MotoVault jälgib nii läbisõitu kui aega ja annab märku enne, kui asi probleemiks muutub.
 

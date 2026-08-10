@@ -14,7 +14,7 @@ MGA TAMPOK
 
 * RIDE LOG — Awtomatikong naitatala ang bawat ride: distansya, oras, ruta at gasolina. Bumuo ng logbook ng lahat ng kilometrong nilakbay mo.
 
-* PAGPLAPLANO NG BIYAHE — Mula sa Linggong ride hanggang sa malayong tour. I-save ang ruta, maglagay ng hintuan, at i-share sa barkada.
+* PAGPAPLANO NG BIYAHE — Mula sa Linggong ride hanggang sa malayong tour. I-save ang ruta, maglagay ng hintuan, at i-share sa barkada.
 
 * AI MECHANIC — May kakaibang tunog? May amoy na hindi tama? Kuhanan ng litrato at ipapaliwanag ng AI diagnostic ang malamang na sanhi at solusyon sa loob ng ilang segundo.
 
