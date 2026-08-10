@@ -5,6 +5,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { identifyUser, trackEvent, WebEvent } from '@/lib/analytics';
+import {
+  type AuthErrorRecovery,
+  EMPTY_FIELDS_MESSAGE,
+  hasCredentials,
+  humanizeAuthError,
+  recoveryForAttempt,
+} from '@/lib/auth-errors';
 import { safeRedirectPath } from '@/lib/safe-redirect';
 
 /* ------------------------------------------------------------------ */
@@ -36,6 +43,9 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [recovery, setRecovery] = useState<AuthErrorRecovery>(null);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -43,12 +53,26 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
+    if (!hasCredentials(email, password)) {
+      setError(EMPTY_FIELDS_MESSAGE);
+      setRecovery(null);
+      return;
+    }
     setLoading(true);
     setError('');
+    setRecovery(null);
+    setResendState('idle');
     trackEvent(WebEvent.SIGN_IN_SUBMITTED, { method: 'email' });
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
     if (error) {
-      setError(error.message);
+      const info = humanizeAuthError(error);
+      const attempts = failedAttempts + 1;
+      setFailedAttempts(attempts);
+      setError(info.message);
+      setRecovery(recoveryForAttempt(info, attempts));
       setLoading(false);
       trackEvent(WebEvent.SIGN_IN_ERROR, { method: 'email', error_message: error.message });
     } else {
@@ -58,6 +82,18 @@ export default function LoginPage() {
       const params = new URLSearchParams(window.location.search);
       const redirectTo = safeRedirectPath(params.get('redirect'));
       window.location.href = redirectTo;
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (resendState === 'sending' || !email.trim()) return;
+    setResendState('sending');
+    const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim() });
+    if (error) {
+      setError(humanizeAuthError(error).message);
+      setResendState('idle');
+    } else {
+      setResendState('sent');
     }
   };
 
@@ -506,7 +542,7 @@ export default function LoginPage() {
               {/* Error */}
               <div aria-live="polite" aria-atomic="true">
                 {error && (
-                  <p
+                  <div
                     role="alert"
                     style={{
                       marginTop: 16,
@@ -519,7 +555,47 @@ export default function LoginPage() {
                     }}
                   >
                     {error}
-                  </p>
+                    {recovery === 'reset_password' && (
+                      <Link
+                        href="/forgot-password"
+                        style={{
+                          display: 'inline-block',
+                          marginTop: 8,
+                          color: t.warm400,
+                          fontWeight: 500,
+                          textDecoration: 'underline',
+                        }}
+                      >
+                        Reset your password
+                      </Link>
+                    )}
+                    {recovery === 'resend_confirmation' && (
+                      <button
+                        type="button"
+                        onClick={handleResendConfirmation}
+                        disabled={resendState !== 'idle'}
+                        style={{
+                          display: 'inline-block',
+                          marginTop: 8,
+                          padding: 0,
+                          background: 'transparent',
+                          border: 'none',
+                          color: t.warm400,
+                          fontFamily: 'inherit',
+                          fontSize: 13,
+                          fontWeight: 500,
+                          textDecoration: 'underline',
+                          cursor: resendState === 'idle' ? 'pointer' : 'default',
+                        }}
+                      >
+                        {resendState === 'sent'
+                          ? 'Confirmation email sent — check your inbox.'
+                          : resendState === 'sending'
+                            ? 'Sending…'
+                            : 'Resend confirmation email'}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
 
