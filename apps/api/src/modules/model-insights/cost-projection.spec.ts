@@ -16,15 +16,16 @@ function schedule(partial: Partial<OemSchedule>): OemSchedule {
 }
 
 /**
- * `projectFirstYearCostEur` returns null only for an empty schedule (asserted in the
- * first case below). Every other case passes a non-empty plan, so narrow to a number
+ * `projectFirstYearCostEur` returns null on two paths: an empty schedule (asserted in
+ * the first case below), and any plan whose estimate rounds down to €0. Every case
+ * using this helper passes a non-empty plan of real priced tasks, so narrow to a number
  * once here — that keeps the assertions readable and fails loudly with a clear message
- * if the null contract ever widens, instead of silently comparing against `NaN`.
+ * if either null path is ever hit, instead of silently comparing against `NaN`.
  */
 function projectedCost(schedules: ReadonlyArray<OemSchedule>): number {
   const cost = projectFirstYearCostEur(schedules);
   if (cost === null) {
-    throw new Error('expected a cost projection for a non-empty schedule, got null');
+    throw new Error('expected a positive cost projection, got null');
   }
   return cost;
 }
