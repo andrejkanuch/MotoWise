@@ -28,22 +28,75 @@ ALLOWED_LATIN = {'motovault', 'pro', 'gps', 'gpx', 'ai', 'google', 'play', 'http
 # The currency symbol may PRECEDE or FOLLOW the amount. An earlier version only
 # matched prefix-$ and suffix €/EUR/USD, so the French listing's "3,99 $/mois" and
 # "29,99 $/an" passed the gate and shipped.
-CURRENCY = (r'(?:\$|€|£|¥|₹|₩|₺|₫|₱|USD|EUR|MXN|CHF|R\$|zł|kr|Kč|Ft|lei|лв|RM)')
+#
+# Alphabetic currency codes MUST be \b-anchored: unanchored, "kr" and "lei" match
+# inside ordinary words, so Norwegian "24 krav" or "24 leiligheter" would be
+# reported as prices. Symbols need no anchoring — they are not word characters.
+CURRENCY_SYMBOL = r'[$€£¥₹₩₺₫₱]'
+CURRENCY_CODE = r'\b(?:USD|EUR|GBP|MXN|CHF|BRL|zł|kr|Kč|Ft|lei|лв|RM)\b'
+CURRENCY = rf'(?:{CURRENCY_SYMBOL}|{CURRENCY_CODE})'
 PRICE = re.compile(rf'{CURRENCY}\s?\d|\d+(?:[.,]\d{{1,2}})?\s?{CURRENCY}')
-# Figures that look like prices but are not: the model-catalogue count, the
-# description limit quoted in copy, and the 24-hour cancellation deadline.
-PRICE_FALSE_POSITIVES = re.compile(r'12[\s.,]?000|4[\s.,]?000|\b24\b')
+# No false-positive exemption list. PRICE only matches when a currency token is
+# adjacent, so "12,000+ models", "4000 characters" and a bare "24 hours" cannot
+# match it in the first place. An earlier version exempted `\b24\b`, which also
+# suppressed the genuine prices "24 EUR" and "24 €".
 REQUIRED = [('motovault.app/privacy', 'privacy URL'),
             ('motovault.app/terms', 'terms URL'),
             ('hello@motovault.app', 'support email')]
-# Subscription terms Play expects a paid listing to state. Both patterns are
-# deliberately loose because the wording differs per language:
+# Subscription terms Play expects a paid listing to state: that it auto-renews,
+# the 24-hour cancellation deadline, and where to manage or cancel.
+#
+# Checking each token anywhere in the description is too weak — a listing with
+# "24 bikes" in a feature bullet and "Google Play" in a footer would pass while
+# stating neither. So both must appear in the SAME paragraph, which is what makes
+# them one coherent disclosure sentence. That stays language-agnostic; per-locale
+# grammars for 46 languages would be a large maintenance surface for little gain.
+#
+# The token patterns themselves are deliberately loose:
 #   - a bare "24" rather than \b24\b, because \b never matches inside CJK runs
 #     ("の24時間前", "24시간 전") where the adjacent character is also a word char;
 #   - "Google-Play" as well as "Google Play", because German compounds hyphenate
 #     it ("Google-Play-Kontoeinstellungen").
-RENEWAL_DISCLOSURE = re.compile(r'24')
-CANCEL_LOCATION = re.compile(r'Google[\s-]?Play')
+RENEWAL_DEADLINE = re.compile(r'24')
+CANCEL_LOCATION = re.compile(r'Google[\s -]?Play')
+
+
+def has_subscription_disclosure(full_description):
+    """True when one paragraph carries both the 24-hour deadline and where to cancel."""
+    return any(RENEWAL_DEADLINE.search(para) and CANCEL_LOCATION.search(para)
+               for para in re.split(r'\n\s*\n', full_description))
+
+
+# Negative fixtures: each must FAIL the disclosure check. These guard the gate's
+# own logic, so a future loosening of the patterns breaks the gate loudly.
+DISCLOSURE_FIXTURES = [
+    ('', False),
+    ('Track 24 bikes for free.\n\nAvailable on Google Play.', False),
+    ('Cancel anytime in the Play Store.', False),
+    ('Manage or cancel in your Google Play account settings.', False),
+    ('Auto-renews unless cancelled 24 hours before the period ends.', False),
+    ('Auto-renews unless cancelled at least 24 hours before the period ends. '
+     'Manage or cancel in your Google Play account settings.', True),
+    ('期間終了の24時間前までに解約しない限り自動更新されます。'
+     '解約や管理はGoogle Playのアカウント設定から行えます。', True),
+    ('Mindestens 24 Stunden vor Ende kündbar, in den '
+     'Google-Play-Kontoeinstellungen.', True),
+]
+
+
+def self_test():
+    """Verify the gate's own logic before trusting its verdict on real files."""
+    failures = []
+    for text, expected in DISCLOSURE_FIXTURES:
+        if has_subscription_disclosure(text) != expected:
+            failures.append(f'disclosure fixture expected {expected}: {text[:60]!r}')
+    for text, expected in [('at least 24 hours before', False), ('12,000+ models', False),
+                           ('4000 characters', False), ('24 krav', False),
+                           ('24 leiligheter', False), ('24 EUR', True), ('24 €', True),
+                           ('3,99 $/mois', True), ('$4 per month', True)]:
+        if bool(PRICE.search(text)) != expected:
+            failures.append(f'price fixture expected {expected}: {text!r}')
+    return failures
 
 def field_problems(locale, fname, text):
     """Checks that apply to EVERY field, not just the full description.
@@ -55,10 +108,9 @@ def field_problems(locale, fname, text):
     problems = []
     if 'App Store' in text:
         problems.append(f'{locale}/{fname}: says "App Store" on a Play listing')
-    for match in PRICE.finditer(text):
-        if not PRICE_FALSE_POSITIVES.search(match.group()):
-            problems.append(f'{locale}/{fname}: hardcoded price {match.group()!r}')
-            break
+    match = PRICE.search(text)
+    if match:
+        problems.append(f'{locale}/{fname}: hardcoded price {match.group()!r}')
     if locale in NON_LATIN:
         body = re.sub(r'https?://\S+|\S+@\S+', '', text)
         stray = {w for w in re.findall(r'[A-Za-z]{2,}', body)
@@ -70,7 +122,12 @@ def field_problems(locale, fname, text):
 
 
 def main():
-    problems = []
+    problems = self_test()
+    if problems:
+        print(f'GATE SELF-TEST FAILED ({len(problems)}) — not checking listings')
+        for p in problems:
+            print(' -', p)
+        return 1
     locales = sorted(name for name in os.listdir(BASE)
                      if os.path.isdir(os.path.join(BASE, name)))
 
@@ -104,11 +161,9 @@ def main():
         for needle, label in REQUIRED:
             if needle not in full:
                 problems.append(f'{locale}: missing {label}')
-        # Subscription terms: auto-renewal deadline and where to cancel.
-        if not RENEWAL_DISCLOSURE.search(full):
-            problems.append(f'{locale}: no 24-hour auto-renewal/cancellation disclosure')
-        if not CANCEL_LOCATION.search(full):
-            problems.append(f'{locale}: never says where to manage/cancel (Google Play)')
+        if not has_subscription_disclosure(full):
+            problems.append(f'{locale}: no single paragraph states both the 24-hour '
+                            'cancellation deadline and where to manage/cancel')
 
     print(f'{len(locales)} locales checked, {len(problems)} problems')
     for p in problems:
