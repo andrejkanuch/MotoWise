@@ -49,11 +49,36 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // the first plugin listed here is the last one to touch the manifest.
     // This one exists to undo what other libraries' plugins write — see its header.
     './plugins/with-android-manifest-hygiene',
+    // Same reasoning: must run after @sentry/react-native's Gradle mod, so it is
+    // registered before it. See its header.
+    './plugins/with-sentry-agp-order',
     [
       '@sentry/react-native/expo',
       {
         organization: process.env.SENTRY_ORG ?? '',
         project: process.env.SENTRY_PROJECT ?? '',
+        // Applies the Sentry Android Gradle Plugin, which is what uploads the R8
+        // mapping and the NDK debug symbols. WITHOUT THIS, Sentry only ever gets
+        // the JS source maps (sentry.gradle.kts does bundle/sourcemaps and nothing
+        // else), so with R8 on, every Java/Kotlin frame stays obfuscated and native
+        // frames stay unsymbolicated. Play Vitals was unaffected because the AAB
+        // embeds both, and Play ingests them on upload.
+        //
+        // The plugin sets autoInstallation.enabled = false, which is mandatory for
+        // React Native — otherwise the AGP would install its own sentry-android and
+        // conflict with the version @sentry/react-native ships.
+        //
+        // Uploads are gated on shouldSentryAutoUpload() (SENTRY_DISABLE_AUTO_UPLOAD
+        // / SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD). When disabled it still runs a
+        // dry-run and injects the io.sentry.proguard-uuid meta-data, so a build's
+        // mapping can be uploaded after the fact; with no uuid in the manifest, as
+        // in vc 81, no later upload can ever be associated with those events.
+        experimental_android: {
+          enableAndroidGradlePlugin: true,
+          // Symbols are what we need. Uploading the native SOURCE of third-party
+          // native deps adds build time and upload weight for no benefit here.
+          includeNativeSources: false,
+        },
       },
     ],
     'expo-router',

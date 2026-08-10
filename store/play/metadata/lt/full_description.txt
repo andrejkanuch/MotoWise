@@ -1,6 +1,6 @@
 Motociklo savininko programėlė, o ne dar vienas GPS.
 
-MotoVault sukurta motociklininkams, kuriems motociklas svarbus tiek pat, kiek ir kelias. Užrašykite kiekvieną techninę apžiūrą, kiekvieną kilometrą ir kiekvieną išlaidą, planuokite maršrutus ir klauskite AI mechaniko ko tik norite.
+MotoVault sukurta motociklininkams, kuriems motociklas svarbus tiek pat, kiek ir kelias. Užrašykite kiekvieną techninį aptarnavimą, kiekvieną kilometrą ir kiekvieną išlaidą, planuokite maršrutus ir klauskite AI mechaniko, ko tik norite.
 
 ──────────────
 FUNKCIJOS
@@ -8,9 +8,9 @@ FUNKCIJOS
 
 * IŠLAIDOS — Kiekvienas degalų pylimas, kiekviena detalė, kiekvienas apsilankymas servise. Matote tiksliai, kiek motociklas kainuoja kilometrui, mėnesiui ir metams.
 
-* SERVISO ISTORIJA — Tepalų keitimas, grandinės reguliavimas, padangos, vožtuvai. Užrašykite kiekvieną darbą ir turėkite pilną istoriją, kuri pakelia kainą perkant iš naujo.
+* SERVISO ISTORIJA — Tepalų keitimas, grandinės reguliavimas, padangos, vožtuvų tarpeliai. Užrašykite kiekvieną darbą ir turėkite pilną istoriją, kuri pakelia perpardavimo vertę.
 
-* IŠMANŪS PRIMINIMAI — Daugiau nepraleisite techninės apžiūros intervalo. MotoVault seka ir kilometrus, ir laiką, ir praneša anksčiau, nei tai taps problema.
+* IŠMANŪS PRIMINIMAI — Daugiau nepraleisite techninio aptarnavimo intervalo. MotoVault seka ir kilometrus, ir laiką, ir praneša anksčiau, nei tai taps problema.
 
 * VAŽIAVIMŲ ŽURNALAS — Kiekvienas važiavimas įrašomas automatiškai: atstumas, laikas, maršrutas ir degalai. Sukurkite visų nuvažiuotų kilometrų žurnalą.
 
@@ -24,7 +24,7 @@ NEMOKAMA IR PRO
 
 Nemokamai visada: neribotai motociklų, pilna serviso knyga, išlaidos, važiavimų įrašymas ir 5 AI diagnostikos per mėnesį. MotoVault Pro atveria neribotas AI diagnostikas, išsamią statistiką, neribotą GPX eksportą ir platesnius važiavimų duomenis.
 
-Yra mėnesinis ir metinis planas; kaina rodoma programėlėje prieš patvirtinimą. Prenumeratos atsinaujina automatiškai, nebent atšaukiamos ne vėliau kaip 24 valandos iki periodo pabaigos. Tvarkyti ar atšaukti galite bet kada Google Play paskyros nustatymuose.
+Yra mėnesinis ir metinis planas; kaina rodoma programėlėje prieš patvirtinimą. Prenumeratos atsinaujina automatiškai, nebent atšaukiamos ne vėliau kaip prieš 24 valandas iki periodo pabaigos. Tvarkyti ar atšaukti galite bet kada Google Play paskyros nustatymuose.
 
 Privatumo politika: https://motovault.app/privacy
 Naudojimo sąlygos: https://motovault.app/terms
