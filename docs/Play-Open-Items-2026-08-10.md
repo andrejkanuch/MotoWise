@@ -58,10 +58,12 @@ apart:
 - **(d) Stop offering annual** on the paywall, so users are never shown a plan that is
   strictly worse for them.
 
-**Recommendation: (b), $59.99.** It is the only option justified by the pricing model rather
-than by guessing at a keystroke, it matches what this app charged annually before the
-discounting experiments, and at the current $9.99 monthly it is the honest "half price"
-claim. Choose (a) instead only if you know $49.99 was the intended number.
+**Recommendation: (b), $59.99.** It restores this app's own historical 0.5× ratio, matches
+what it charged annually before the discounting experiments, and at the current $9.99
+monthly it is the honest "half price" claim — rather than being inferred from a suspected
+keystroke, as (a) is. (c) is also ratio-based; pick it if a round "2 months free" headline
+matters more than continuity with previous pricing. Choose (a) only if you know $49.99 was
+the intended number.
 
 Note this interacts with the revenue problem recorded in
 `docs/SEO-Conversion-Plan-2026-07-15.md`: traffic converting at ~zero is easier to explain
