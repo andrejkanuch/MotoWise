@@ -1,0 +1,34 @@
+Moottoripyörän omistajan sovellus — ei taas yksi navigaattori.
+
+MotoVault on tehty kuljettajille, joille pyörä merkitsee yhtä paljon kuin ajaminen. Kirjaa jokainen huolto, jokainen kilometri ja jokainen kulu, suunnittele reissut ja kysy AI-mekaanikolta mitä vain.
+
+──────────────
+OMINAISUUDET
+──────────────
+
+* KULUT — Jokainen tankkaus, jokainen osa, jokainen korjaamokäynti. Näet tarkalleen, mitä pyörä kustantaa kilometriä, kuukautta ja vuotta kohden.
+
+* HUOLTOHISTORIA — Öljynvaihdot, ketjun säätö, renkaat, venttiilit. Kirjaa jokainen toimenpide ja pidä täydellistä historiaa, joka nostaa jälleenmyyntiarvoa.
+
+* ÄLYKKÄÄT MUISTUTUKSET — Et missaa enää huoltoväliä. MotoVault seuraa sekä kilometrejä että aikaa ja muistuttaa ennen kuin siitä tulee ongelma.
+
+* AJOPÄIVÄKIRJA — Jokainen ajo tallentuu automaattisesti: matka, aika, reitti ja polttoaine. Rakenna päiväkirja kaikista ajamistasi kilometreistä.
+
+* REISSUSUUNNITTELU — Sunnuntailenkistä siihen isoon matkaan. Tallenna reittejä, merkitse pysähdykset ja jaa porukalle.
+
+* AI-MEKAANIKKO — Outo ääni? Haiseeko oudolta? Ota kuva, ja AI-diagnoosi käy läpi todennäköisimmät syyt ja korjaukset sekunneissa.
+
+──────────────
+ILMAINEN JA PRO
+──────────────
+
+Ilmainen ikuisesti: rajattomasti pyöriä, täysi huoltokirja, kulut, ajojen tallennus ja 5 AI-diagnoosia kuukaudessa. MotoVault Pro avaa rajattomat AI-diagnoosit, tarkat tilastot, rajattoman GPX-viennin ja laajemmat ajotiedot.
+
+Saatavilla on kuukausi- ja vuositilaus; hinta näkyy sovelluksessa ennen vahvistusta. Tilaukset uusiutuvat automaattisesti, ellei niitä peruta vähintään 24 tuntia ennen jakson loppua. Voit hallita tai peruuttaa milloin vain Google Play -tilisi asetuksista.
+
+Tietosuojakäytäntö: https://motovault.app/privacy
+Käyttöehdot: https://motovault.app/terms
+
+Kysymyksiä tai palautetta? Luemme jokaisen viestin: hello@motovault.app
+
+Kaksi pyörää. Yksi sovellus.

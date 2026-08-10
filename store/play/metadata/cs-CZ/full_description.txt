@@ -1,0 +1,43 @@
+Aplikace pro majitele motorky, ne další navigace.
+
+MotoVault je pro motorkáře, kterým na stroji záleží stejně jako na jízdě. Zapisujte každý servis, každý kilometr a každý výdaj, plánujte výlety a zeptejte se na cokoli AI mechanika. Všechno v jedné aplikaci dělané pro motorky.
+
+──────────────
+PROČ MOTORKÁŘI POUŽÍVAJÍ MOTOVAULT
+──────────────
+
+* VÝDAJE — Každé tankování, každý díl, každá návštěva servisu. Uvidíte přesně, kolik vás motorka stojí na kilometr, na měsíc a na rok.
+
+* SERVISNÍ HISTORIE — Výměny oleje, seřízení řetězu, pneumatiky, ventily. Zapište každý úkon a mějte kompletní historii, která zvyšuje cenu při prodeji.
+
+* CHYTRÉ PŘIPOMÍNKY — Už nikdy nezmeškáte servisní interval. MotoVault sleduje kilometry i čas a ozve se dřív, než se z toho stane problém.
+
+* KNIHA JÍZD — Každá jízda se zaznamená sama: vzdálenost, čas, trasa a spotřeba. Postavte si deník všech ujetých kilometrů.
+
+* PLÁNOVÁNÍ VÝLETŮ — Od nedělní vyjížďky po velkou cestu. Uložte trasy, přidejte zastávky a pošlete je partě.
+
+* AI MECHANIK — Divný zvuk? Něco je jinak? Vyfoťte to a AI diagnostika vám za pár sekund projde nejpravděpodobnější příčiny a řešení.
+
+──────────────
+DĚLANÉ PRO SKUTEČNÉ MOTORKÁŘE
+──────────────
+
+- Neomezený počet motorek — všechny své stroje zdarma, navždy
+- Více než 12 000 podporovaných modelů
+- Povedený design pro tmavý režim
+- Soukromé a bezpečné — vaše data jsou vaše
+
+──────────────
+MOTOVAULT PRO
+──────────────
+
+Zdarma navždy: neomezeně motorek, kompletní servisní kniha, výdaje, záznam jízd a 5 AI diagnostik měsíčně. MotoVault Pro odemkne neomezené AI diagnostiky, podrobné statistiky, neomezený export GPX a rozšířené údaje o jízdách.
+
+K dispozici je měsíční i roční plán; cenu uvidíte v aplikaci před potvrzením. Předplatné se automaticky obnovuje, pokud ho nezrušíte alespoň 24 hodin před koncem období. Spravovat nebo zrušit ho můžete kdykoli v nastavení účtu Google Play.
+
+Zásady ochrany osobních údajů: https://motovault.app/privacy
+Podmínky služby: https://motovault.app/terms
+
+Dotazy nebo nápady? Čteme každý e-mail: hello@motovault.app
+
+Dvě kola. Jedna aplikace.

@@ -1,0 +1,34 @@
+Aplikacija za lastnika motorja, ne še en GPS.
+
+MotoVault je narejen za motoriste, ki jim je motor pomemben toliko kot vožnja. Zabeležite vsak servis, vsak kilometer in vsak strošek, načrtujte ture in vprašajte AI mehanika, kar želite.
+
+──────────────
+FUNKCIJE
+──────────────
+
+* STROŠKI — Vsako polnjenje goriva, vsak del, vsak obisk servisa. Vidite točno, koliko vas motor stane na kilometer, na mesec in na leto.
+
+* ZGODOVINA SERVISOV — Menjava olja, nastavitev verige, gume, ventili. Zabeležite vsak poseg in vodite popolno zgodovino, ki dvigne ceno pri prodaji.
+
+* PAMETNI OPOMNIKI — Nikoli več zamujen servisni interval. MotoVault spremlja kilometre in čas ter vas opozori, preden nastane težava.
+
+* DNEVNIK VOŽENJ — Vsaka vožnja se posname samodejno: razdalja, čas, pot in gorivo. Zgradite dnevnik vseh prevoženih kilometrov.
+
+* NAČRTOVANJE TUR — Od nedeljske vožnje do velikega potovanja. Shranite poti, dodajte postanke in jih delite z ekipo.
+
+* AI MEHANIK — Čuden zvok? Nenavaden vonj? Fotografirajte in AI diagnostika v nekaj sekundah predstavi najverjetnejše vzroke in rešitve.
+
+──────────────
+BREZPLAČNO IN PRO
+──────────────
+
+Brezplačno za vedno: neomejeno motorjev, popolna servisna knjiga, stroški, snemanje voženj in 5 AI diagnostik na mesec. MotoVault Pro odklene neomejene AI diagnostike, napredno statistiko, neomejen izvoz GPX in razširjene podatke o vožnjah.
+
+Na voljo sta mesečni in letni paket; cena je prikazana v aplikaciji pred potrditvijo. Naročnine se samodejno podaljšajo, če jih ne prekličete vsaj 24 ur pred koncem obdobja. Upravljate ali prekličete jih lahko kadar koli v nastavitvah računa Google Play.
+
+Politika zasebnosti: https://motovault.app/privacy
+Pogoji uporabe: https://motovault.app/terms
+
+Vprašanja ali predlogi? Preberemo vsako e-pošto: hello@motovault.app
+
+Dve kolesi. Ena aplikacija.

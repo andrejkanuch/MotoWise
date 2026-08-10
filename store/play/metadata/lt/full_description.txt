@@ -1,0 +1,34 @@
+Motociklo savininko programėlė, o ne dar vienas GPS.
+
+MotoVault sukurta motociklininkams, kuriems motociklas svarbus tiek pat, kiek ir kelias. Užrašykite kiekvieną techninę apžiūrą, kiekvieną kilometrą ir kiekvieną išlaidą, planuokite maršrutus ir klauskite AI mechaniko ko tik norite.
+
+──────────────
+FUNKCIJOS
+──────────────
+
+* IŠLAIDOS — Kiekvienas degalų pylimas, kiekviena detalė, kiekvienas apsilankymas servise. Matote tiksliai, kiek motociklas kainuoja kilometrui, mėnesiui ir metams.
+
+* SERVISO ISTORIJA — Tepalų keitimas, grandinės reguliavimas, padangos, vožtuvai. Užrašykite kiekvieną darbą ir turėkite pilną istoriją, kuri pakelia kainą perkant iš naujo.
+
+* IŠMANŪS PRIMINIMAI — Daugiau nepraleisite techninės apžiūros intervalo. MotoVault seka ir kilometrus, ir laiką, ir praneša anksčiau, nei tai taps problema.
+
+* VAŽIAVIMŲ ŽURNALAS — Kiekvienas važiavimas įrašomas automatiškai: atstumas, laikas, maršrutas ir degalai. Sukurkite visų nuvažiuotų kilometrų žurnalą.
+
+* MARŠRUTŲ PLANAVIMAS — Nuo sekmadienio pasivažinėjimo iki didelės kelionės. Išsaugokite maršrutus, pažymėkite stoteles ir pasidalinkite su draugais.
+
+* AI MECHANIKAS — Keistas garsas? Neįprastas kvapas? Nufotografuokite ir AI diagnostika per kelias sekundes išvardins tikėtinas priežastis bei sprendimus.
+
+──────────────
+NEMOKAMA IR PRO
+──────────────
+
+Nemokamai visada: neribotai motociklų, pilna serviso knyga, išlaidos, važiavimų įrašymas ir 5 AI diagnostikos per mėnesį. MotoVault Pro atveria neribotas AI diagnostikas, išsamią statistiką, neribotą GPX eksportą ir platesnius važiavimų duomenis.
+
+Yra mėnesinis ir metinis planas; kaina rodoma programėlėje prieš patvirtinimą. Prenumeratos atsinaujina automatiškai, nebent atšaukiamos ne vėliau kaip 24 valandos iki periodo pabaigos. Tvarkyti ar atšaukti galite bet kada Google Play paskyros nustatymuose.
+
+Privatumo politika: https://motovault.app/privacy
+Naudojimo sąlygos: https://motovault.app/terms
+
+Klausimai ar pasiūlymai? Perskaitome kiekvieną laišką: hello@motovault.app
+
+Du ratai. Viena programėlė.

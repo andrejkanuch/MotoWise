@@ -1,0 +1,34 @@
+Motocikla īpašnieka lietotne, nevis vēl viens GPS.
+
+MotoVault ir veidota motociklistiem, kuriem motocikls ir tikpat svarīgs kā pats ceļš. Pierakstiet katru apkopi, katru kilometru un katru izdevumu, plānojiet maršrutus un jautājiet AI mehāniķim visu, ko vēlaties.
+
+──────────────
+FUNKCIJAS
+──────────────
+
+* IZDEVUMI — Katra uzpilde, katra detaļa, katra vizīte servisā. Redzat precīzi, cik motocikls izmaksā uz kilometru, mēnesī un gadā.
+
+* APKOPJU VĒSTURE — Eļļas maiņa, ķēdes regulēšana, riepas, vārsti. Pierakstiet katru darbu un uzturiet pilnu vēsturi, kas paaugstina cenu pārdodot.
+
+* GUDRI ATGĀDINĀJUMI — Vairs nepalaidīsiet garām apkopes intervālu. MotoVault seko gan kilometriem, gan laikam un brīdina, pirms tas kļūst par problēmu.
+
+* BRAUCIENU ŽURNĀLS — Katrs brauciens tiek ierakstīts automātiski: attālums, laiks, maršruts un degviela. Izveidojiet visu nobraukto kilometru žurnālu.
+
+* MARŠRUTU PLĀNOŠANA — No svētdienas izbrauciena līdz lielajam ceļojumam. Saglabājiet maršrutus, atzīmējiet pieturas un dalieties ar draugiem.
+
+* AI MEHĀNIĶIS — Dīvaina skaņa? Neparasta smaka? Nofotografējiet, un AI diagnostika dažās sekundēs nosauks iespējamos iemeslus un risinājumus.
+
+──────────────
+BEZ MAKSAS UN PRO
+──────────────
+
+Bez maksas vienmēr: neierobežots motociklu skaits, pilna servisa grāmata, izdevumi, braucienu ierakstīšana un 5 AI diagnostikas mēnesī. MotoVault Pro atver neierobežotas AI diagnostikas, detalizētu statistiku, neierobežotu GPX eksportu un plašākus braucienu datus.
+
+Pieejams mēneša un gada plāns; cena tiek parādīta lietotnē pirms apstiprināšanas. Abonementi atjaunojas automātiski, ja vien tie netiek atcelti vismaz 24 stundas pirms perioda beigām. Pārvaldīt vai atcelt varat jebkurā laikā Google Play konta iestatījumos.
+
+Privātuma politika: https://motovault.app/privacy
+Lietošanas noteikumi: https://motovault.app/terms
+
+Jautājumi vai ieteikumi? Izlasām katru e-pastu: hello@motovault.app
+
+Divi riteņi. Viena lietotne.

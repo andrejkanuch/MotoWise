@@ -112,13 +112,26 @@ Per-locale justification:
 - `pl` is deliberately **kept** despite only 7 app users: it is a target European
   market, it is still active (last seen today), and it has 22 web visitors.
 
-### 2. Play: drop the `hi-IN`, `id`, `th`, `tr-TR` listings.
+### 2. Play: expand to 46 locales. **Superseded — see the decision note below.**
 
-Not for cost — those listings are already written and their release notes already fall
-back to `en-US`, so they are nearly free to keep. Drop them because once the app stops
-shipping those UI languages, a store listing in Hindi/Thai/Indonesian/Turkish
-**advertises a localized app that does not exist**. Keep `ja-JP` (it pairs with the
-web pages below) and keep both `es-ES` and `es-419`.
+> **Owner decision, 2026-08-10 (supersedes this section).** Store listings were
+> **expanded from 13 to 46 locales**, not cut. The reasoning is sound and the original
+> recommendation here was wrong to treat listings like app strings: a listing is
+> **one-time text with no recurring cost**, whereas an app locale is taxed on every PR
+> by the i18n ratchet. Listings are also the *discovery* surface — they feed Play search
+> ranking per language — so breadth is how we find out which languages convert, which is
+> exactly the open question. Cheap optionality on the acquisition side, no per-PR drag.
+>
+> The cut recommendation stands for **app UI strings** (decision 1) and is unaffected.
+> The one real trade-off accepted: a listing can now be localized in a language the app
+> UI does not offer, which can attract users who then meet an English interface. Watch
+> per-locale ratings and uninstalls for the languages outside decision 1's keep-list.
+>
+> Implementation: `store/play/metadata/` (version-controlled, `gplay metadata push`).
+
+Original recommendation, kept for the record: drop the `hi-IN`, `id`, `th`, `tr-TR`
+listings, because once the app stops shipping those UI languages a store listing in
+those languages advertises a localized app that does not exist.
 
 ### 3. Web: no change. Keep all 8, including `ja`.
 

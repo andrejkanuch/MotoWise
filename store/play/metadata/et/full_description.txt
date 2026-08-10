@@ -1,0 +1,34 @@
+Mootorratta omaniku rakendus, mitte järjekordne GPS.
+
+MotoVault on tehtud sõitjatele, kelle jaoks ratas on sama tähtis kui sõit ise. Pane kirja iga hooldus, iga kilomeeter ja iga kulu, planeeri sõite ja küsi AI-mehaanikult mida iganes.
+
+──────────────
+FUNKTSIOONID
+──────────────
+
+* KULUD — Iga tankimine, iga varuosa, iga töökojaskäik. Näed täpselt, kui palju ratas kulutab kilomeetri, kuu ja aasta kohta.
+
+* HOOLDUSAJALUGU — Õlivahetus, keti reguleerimine, rehvid, klapid. Märgi üles iga töö ja pea täielikku ajalugu, mis tõstab edasimüügihinda.
+
+* NUTIKAD MEELDETULETUSED — Ei jää enam ühtki hooldusintervalli vahele. MotoVault jälgib nii läbisõitu kui aega ja annab märku enne, kui asi probleemiks muutub.
+
+* SÕIDUPÄEVIK — Iga sõit salvestub automaatselt: vahemaa, aeg, marsruut ja kütus. Loo päevik kõigist läbitud kilomeetritest.
+
+* SÕIDUPLANEERIJA — Pühapäevasest ringist suure reisini. Salvesta marsruudid, märgi peatused ja jaga neid seltskonnaga.
+
+* AI-MEHAANIK — Kummaline heli? Imelik lõhn? Tee pilt ja AI-diagnostika käib sekunditega läbi tõenäolisemad põhjused ja lahendused.
+
+──────────────
+TASUTA JA PRO
+──────────────
+
+Tasuta igavesti: piiramatu arv rattaid, täielik hooldusraamat, kulud, sõitude salvestamine ja 5 AI-diagnostikat kuus. MotoVault Pro avab piiramatud AI-diagnostikad, põhjaliku statistika, piiramatu GPX-ekspordi ja laiendatud sõiduandmed.
+
+Saadaval on kuu- ja aastapakett; hind kuvatakse rakenduses enne kinnitamist. Tellimused uuenevad automaatselt, kui neid ei tühistata vähemalt 24 tundi enne perioodi lõppu. Halda või tühista igal ajal oma Google Play konto seadetes.
+
+Privaatsuspoliitika: https://motovault.app/privacy
+Kasutustingimused: https://motovault.app/terms
+
+Küsimused või ettepanekud? Loeme iga kirja: hello@motovault.app
+
+Kaks ratast. Üks rakendus.

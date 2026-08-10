@@ -1,0 +1,34 @@
+Appen för dig som äger en motorcykel, inte ännu en GPS.
+
+MotoVault är byggd för förare som bryr sig om hojen lika mycket som om turen. Logga varje service, varje mil och varje utgift, planera turer och fråga AI-mekanikern vad du vill.
+
+──────────────
+FUNKTIONER
+──────────────
+
+* KOSTNADER — Varje tankning, varje del, varje verkstadsbesök. Se exakt vad hojen kostar dig per mil, per månad och per år.
+
+* SERVICEHISTORIK — Oljebyte, kedjejustering, däck, ventiler. Logga varje åtgärd och håll en komplett historik som höjer andrahandsvärdet.
+
+* SMARTA PÅMINNELSER — Missa aldrig ett serviceintervall igen. MotoVault följer både mätarställning och tid och hör av sig innan det blir ett problem.
+
+* TURLOGG — Varje tur spelas in automatiskt: sträcka, tid, rutt och bränsle. Bygg en loggbok över alla dina mil.
+
+* TURPLANERARE — Från söndagsrundan till den stora resan. Spara rutter, sätt ut stopp och dela med gänget.
+
+* AI-MEKANIKER — Konstigt ljud? Luktar det bränt? Ta ett foto och AI-diagnosen går igenom de troligaste orsakerna och lösningarna på några sekunder.
+
+──────────────
+GRATIS OCH PRO
+──────────────
+
+Gratis för alltid: obegränsat antal motorcyklar, full servicebok, utgifter, turinspelning och 5 AI-diagnoser per månad. MotoVault Pro låser upp obegränsade AI-diagnoser, avancerad statistik, obegränsad GPX-export och utökade turdata.
+
+Det finns månads- och årsabonnemang; priset visas i appen innan du bekräftar. Abonnemang förnyas automatiskt om de inte avslutas minst 24 timmar före periodens slut. Hantera eller avsluta när du vill i inställningarna för ditt Google Play-konto.
+
+Integritetspolicy: https://motovault.app/privacy
+Användarvillkor: https://motovault.app/terms
+
+Frågor eller synpunkter? Vi läser varje mejl: hello@motovault.app
+
+Två hjul. En app.

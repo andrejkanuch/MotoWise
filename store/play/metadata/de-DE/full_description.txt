@@ -1,0 +1,51 @@
+Die App für Motorradbesitzer — nicht einfach noch ein GPS.
+
+MotoVault ist die All-in-One-Motorradapp für Fahrer, die ihr Motorrad genauso ernst nehmen wie die Fahrt. Dokumentiere jede Wartung, protokolliere jeden Kilometer, plane jede Tour und frag den KI-Mechaniker, was los ist. Alles in einer App, die für Motorräder gemacht ist — keine umgebaute Autosoftware.
+
+★ MOTORRAD-KOSTENVERFOLGUNG
+Verfolge Sprit, Ausrüstung, Teile, Versicherung und Werkstattbesuche. Sieh genau, was dein Motorrad pro Kilometer, pro Monat, pro Jahr kostet. Der erste echte Kostentracker, gebaut für Fahrer.
+
+★ MOTORRAD-WARTUNGSPROTOKOLL
+Ölwechsel, Kettenpflege, Reifenwechsel, Ventile, Bremsbeläge. Dokumentiere jede Wartung und führe eine Historie, die den Wiederverkaufswert steigert. Erinnerungen nach Kilometerstand und Zeit melden sich, BEVOR etwas zum Problem wird.
+
+★ FAHRTENBUCH MIT GPS
+Erfasse automatisch jede Tour: Distanz, Zeit, Strecke, Sprit, Durchschnittsgeschwindigkeit. Bau ein schönes Fahrtenbuch jedes gefahrenen Kilometers auf. Funktioniert offline, synchronisiert sich automatisch.
+
+★ MEHRTAGES-TOURENPLANER
+Plane die Wochenend-Tour oder die große Reise deines Lebens. Speichere Routen, setze typisierte Wegpunkte (Sprit, Aussicht, Übernachtung, Pass, Grenze), exportiere GPX und teile mit der Gruppe. Funktioniert mit Garmin Zumo, TomTom Rider, Hammerhead Karoo und jedem GPS, das GPX akzeptiert.
+
+★ KI-MOTORRADMECHANIKER
+Seltsames Geräusch? Ölleck entdeckt? Warnleuchte verwirrend? Mach ein Foto und unsere KI-Diagnose führt dich durch die wahrscheinlichsten Ursachen und Lösungen — in unter fünf Sekunden. Der erste KI-Mechaniker speziell für Motorräder. Kein OBD-II-Adapter nötig.
+
+★ KURATIERTE MOTORRADROUTEN ENTDECKEN
+Finde landschaftliche Motorradstrecken in deiner Nähe, handverlesen von Fahrern. Vom 90-Minuten-Loop bis zur einzigen Straße zum Arktischen Ozean. Jede Route mit Belag, Schwierigkeit und Höhenprofil.
+
+★ MULTI-MOTORRAD-GARAGE
+Unbegrenzt viele Motorräder — kostenlos, für immer. Daily, Weekender, Projekt, Adventure. Jedes Bike bekommt sein eigenes Profil mit Wartungsplan, Verbrauch, Kostenhistorie und Fahrstatistik.
+
+ÜBER 12.000 MOTORRADMODELLE UNTERSTÜTZT
+Basierend auf der NHTSA-Datenbank. Vorausgefüllte Wartungsintervalle, Hubraum und empfohlene Flüssigkeiten für Honda, Yamaha, Kawasaki, Suzuki, BMW, Ducati, KTM, Harley-Davidson, Triumph, Royal Enfield, Aprilia, Indian, Husqvarna, Moto Guzzi und mehr.
+
+PERFEKT FÜR
+- Tägliche Pendler, die ihr Motorrad in Topform halten
+- Wochenend-Fahrer, die die nächste Tour planen
+- Adventure-Fahrer auf Langstrecken
+- Schrauber mit eigener Werkstatt
+- Neue Fahrer, die einen klugen Mechaniker in der Tasche wollen
+
+FAHRER-ZENTRIERTES DESIGN
+Dark-Mode-First, lesbar mit Handschuhen. Optimiert für Solo und Gruppentouren. DSGVO-konform, EU-gehostet, TLS 1.3 in Übertragung, AES-256 im Speicher. Deine Daten gehören dir — exportiere oder lösche alles mit einem Tipp.
+
+MOTOVAULT PRO
+Kostenlos für immer: unbegrenzte Motorräder, vollständige Wartungsverfolgung, Kostenprotokoll, Tour-Aufzeichnung mit GPS, Tourenplaner (bis zu 3 gespeicherte Routen) und 5 KI-Diagnosen pro Monat.
+
+Pro schaltet frei: unbegrenzte KI-Diagnosen, erweiterte Statistiken mit wöchentlichen Berichten, unbegrenzte GPX-Exports und ausführliche Fahrstatistiken. Im Monats- oder Jahresabo. Den Preis siehst du in der App, bevor du bestätigst. Jederzeit im Play Store kündbar.
+
+KEIN OBD-II NÖTIG
+MotoVault funktioniert komplett über dein Smartphone — keine Scan-Tools, keine Adapter, keine Kabel. Kamera für Diagnose, GPS für Aufzeichnung. Funktioniert auf jedem Motorrad, jedem Jahr, jedem Hersteller.
+
+Fragen, Feedback? Wir lesen jede Mail: hello@motovault.app
+Datenschutz: https://motovault.app/privacy
+AGB: https://motovault.app/terms
+
+Zwei Räder. Eine App. Besser fahren.

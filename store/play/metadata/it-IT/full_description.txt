@@ -1,0 +1,100 @@
+L'app di chi possiede una moto — non un altro GPS.
+
+MotoVault è l'app moto all-in-one per chi ama la propria moto
+quanto la strada. Registra ogni intervento. Annota ogni
+chilometro. Pianifica ogni viaggio. Scatta una foto e chiedi
+al Meccanico AI. Tutto in un'app pensata per le moto — non
+software per auto adattato.
+
+★ GESTIONE SPESE MOTO
+Tieni traccia di carburante, equipaggiamento, pezzi,
+assicurazione e visite in officina. Vedi esattamente quanto
+ti costa la moto al chilometro, al mese, all'anno. Il primo
+vero gestore spese per moto.
+
+★ REGISTRO MANUTENZIONE
+Cambi olio, tensionamento catena, gomme, valvole, pastiglie.
+Registra ogni intervento e mantieni uno storico completo che
+aumenta il valore di rivendita. Promemoria al chilometro e
+al tempo ti avvisano PRIMA che diventi un problema.
+
+★ DIARIO DI PILOTAGGIO CON GPS
+Registra automaticamente ogni uscita: distanza, tempo,
+percorso, consumo, velocità media. Costruisci un libretto
+completo di ogni chilometro percorso. Funziona offline; si
+sincronizza automaticamente.
+
+★ PIANIFICATORE VIAGGI MULTI-GIORNO
+Pianifica il giro del weekend o il grande viaggio della tua
+vita. Salva percorsi, imposta tappe (carburante, panorama,
+pernottamento, valico, frontiera), esporta in GPX e condividi
+con il tuo gruppo. Funziona con Garmin Zumo, TomTom Rider,
+Hammerhead Karoo e qualsiasi GPS che accetti GPX.
+
+★ MECCANICO AI PER MOTO
+Un rumore strano? Una perdita d'olio? Una spia accesa?
+Scatta una foto e la nostra diagnosi AI ti guida tra le
+cause più probabili e le soluzioni — in meno di cinque
+secondi. Il primo meccanico AI fatto specificamente per
+moto. Senza OBD-II.
+
+★ SCOPRI PERCORSI CURATI
+Trova percorsi panoramici vicino a te, scelti dai
+motociclisti. Dal giro di 90 minuti all'unica strada per
+l'Oceano Artico. Ogni percorso con fondo (asfalto, misto,
+off-road), difficoltà (facile → expert) e profilo
+altimetrico.
+
+★ GARAGE MULTI-MOTO
+Moto illimitate — registra tutte le moto che possiedi,
+gratis per sempre. Quotidiana, weekend, progetto, big trail.
+Ogni moto ha il suo profilo con piano manutenzione, consumi,
+storico spese e statistiche di pilotaggio.
+
+OLTRE 12.000 MODELLI DI MOTO SUPPORTATI
+Database NHTSA. Intervalli di manutenzione precaricati,
+cilindrata, fluidi consigliati per ogni costruttore degli
+ultimi 30 anni — Honda, Yamaha, Kawasaki, Suzuki, BMW,
+Ducati, KTM, Harley-Davidson, Triumph, Royal Enfield,
+Aprilia, Indian, Husqvarna, Moto Guzzi e molti altri.
+
+PERFETTO PER
+- Motociclisti quotidiani che vogliono mantenere la moto
+- Riders del weekend che pianificano il prossimo giro
+- Avventurieri che tracciano viaggi lunghi
+- Smanettoni che fanno manutenzione da soli
+- Nuovi piloti che vogliono un meccanico in tasca
+- Chi è stanco di app per auto che trattano le moto come
+  ripensamento
+
+DESIGN PER CHI PILOTA
+Dark-mode di default, leggibile con i guanti. Ottimizzato
+per piloti solitari E per uscite di gruppo. Progettato per
+motociclisti europei e nordamericani. GDPR-compliant, hosting
+UE, TLS 1.3 in transito, AES-256 a riposo. I tuoi dati sono
+tuoi — esporta o cancella tutto con un tocco.
+
+MOTOVAULT PRO
+Gratis per sempre: moto illimitate, gestione manutenzione
+completa, registro spese, registrazione delle uscite con
+GPS, pianificatore viaggi (fino a 3 percorsi salvati) e
+5 diagnosi AI al mese.
+
+Pro sblocca: diagnosi AI illimitate, statistiche avanzate
+con report settimanali, esportazioni GPX illimitate e
+statistiche estese. Con piano mensile o annuale. Il prezzo
+è mostrato nell'app prima della conferma. Cancella
+in qualsiasi momento dal Play Store.
+
+NESSUN OBD-II
+MotoVault funziona interamente dal telefono — niente scan
+tools, niente adattatori Bluetooth, niente cavi. Camera per
+la diagnosi, GPS per la registrazione. Funziona su
+qualsiasi moto, qualsiasi anno, qualsiasi costruttore.
+
+Domande, feedback? Leggiamo ogni email:
+hello@motovault.app
+Privacy: https://motovault.app/privacy
+Termini: https://motovault.app/terms
+
+Due ruote. Una app. Guidare meglio.

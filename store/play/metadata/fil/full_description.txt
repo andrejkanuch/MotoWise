@@ -1,0 +1,34 @@
+Ang app para sa may motor — hindi lang panibagong GPS.
+
+Ginawa ang MotoVault para sa mga rider na kasing-halaga ang motor nila gaya ng biyahe. Itala ang bawat service, bawat kilometro at bawat gastos, magplano ng ruta, at magtanong sa AI Mechanic.
+
+──────────────
+MGA TAMPOK
+──────────────
+
+* GASTOS — Bawat kargada ng gasolina, bawat piyesa, bawat pasok sa talyer. Malalaman mo kung magkano talaga ang motor mo kada kilometro, kada buwan at kada taon.
+
+* KASAYSAYAN NG SERVICE — Change oil, ayos ng chain, gulong, valve. Itala ang bawat trabaho at magkaroon ng kumpletong record na nagtataas ng halaga kapag ipinagbili.
+
+* MATALINONG PAALALA — Hindi na malilimutan ang service interval. Sinusubaybayan ng MotoVault ang kilometro at panahon, at magpapaalala bago pa maging problema.
+
+* RIDE LOG — Awtomatikong naitatala ang bawat ride: distansya, oras, ruta at gasolina. Bumuo ng logbook ng lahat ng kilometrong nilakbay mo.
+
+* PAGPLAPLANO NG BIYAHE — Mula sa Linggong ride hanggang sa malayong tour. I-save ang ruta, maglagay ng hintuan, at i-share sa barkada.
+
+* AI MECHANIC — May kakaibang tunog? May amoy na hindi tama? Kuhanan ng litrato at ipapaliwanag ng AI diagnostic ang malamang na sanhi at solusyon sa loob ng ilang segundo.
+
+──────────────
+LIBRE AT PRO
+──────────────
+
+Libre habambuhay: walang limitasyong motor, kumpletong maintenance record, gastos, pagre-record ng ride, at 5 AI diagnostic scan kada buwan. Ang MotoVault Pro ay may walang limitasyong AI diagnostics, malalim na analytics, walang limitasyong GPX export at mas maraming datos ng ride.
+
+May buwanan at taunang plano; makikita ang presyo sa app bago mo kumpirmahin. Awtomatikong nare-renew ang subscription maliban kung kanselahin nang hindi bababa sa 24 oras bago matapos ang panahon. Maaari itong pamahalaan o kanselahin anumang oras sa settings ng Google Play account mo.
+
+Patakaran sa Privacy: https://motovault.app/privacy
+Mga Tuntunin: https://motovault.app/terms
+
+May tanong o puna? Binabasa namin ang bawat email: hello@motovault.app
+
+Dalawang gulong. Isang app.
