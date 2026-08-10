@@ -29,9 +29,7 @@
     "knip": "knip",
     "precheck": "pnpm check:api-bans && pnpm check:router && pnpm check:mobile-colors && pnpm check:arch && pnpm lint && pnpm typecheck && pnpm test",
     "precheck:push": "sh scripts/precheck-changed.sh",
-    "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
-    "android": "expo run:android",
-    "ios": "expo run:ios"
+    "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.1",
@@ -44,8 +42,6 @@
   "version": "1.0.0",
   "dependencies": {
     "date-fns": "^4.4.0",
-    "expo": "~56.0.18",
-    "react": "19.2.3",
-    "react-native": "0.85.3"
+    "react": "19.2.3"
   }
 }

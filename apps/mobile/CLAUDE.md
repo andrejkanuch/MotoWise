@@ -1,4 +1,4 @@
-# Mobile — Expo 56
+# Mobile — Expo 57
 
 ## Commands
 - `pnpm --filter mobile start` — Expo dev server
