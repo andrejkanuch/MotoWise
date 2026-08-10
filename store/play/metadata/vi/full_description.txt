@@ -1,0 +1,34 @@
+Ứng dụng dành cho người sở hữu xe máy, không phải thêm một app dẫn đường.
+
+MotoVault được làm cho những người yêu chiếc xe của mình như yêu chuyến đi. Ghi lại mọi lần bảo dưỡng, mọi ki-lô-mét và mọi khoản chi, lên kế hoạch cho chuyến đi và hỏi Thợ máy AI bất cứ điều gì.
+
+──────────────
+TÍNH NĂNG
+──────────────
+
+* CHI PHÍ — Mỗi lần đổ xăng, mỗi phụ tùng, mỗi lần ghé tiệm. Bạn thấy chính xác chiếc xe tốn bao nhiêu cho mỗi ki-lô-mét, mỗi tháng và mỗi năm.
+
+* LỊCH SỬ BẢO DƯỠNG — Thay nhớt, căng dây sên, lốp, xú-páp. Ghi lại từng việc và giữ lịch sử đầy đủ, giúp bán lại được giá hơn.
+
+* NHẮC THÔNG MINH — Không còn bỏ lỡ mốc bảo dưỡng. MotoVault theo dõi cả số ki-lô-mét và thời gian, rồi nhắc bạn trước khi thành vấn đề.
+
+* GHI HÀNH TRÌNH — Mỗi chuyến đi được ghi tự động: quãng đường, thời gian, lộ trình và nhiên liệu. Tạo sổ ghi tất cả những cây số bạn đã đi.
+
+* LÊN KẾ HOẠCH CHUYẾN ĐI — Từ vòng chạy cuối tuần đến chuyến đi dài. Lưu lộ trình, đặt điểm dừng và chia sẻ với nhóm.
+
+* THỢ MÁY AI — Có tiếng lạ? Có mùi khác thường? Chụp một tấm ảnh và chẩn đoán AI sẽ nêu những nguyên nhân khả năng nhất cùng cách xử lý trong vài giây.
+
+──────────────
+MIỄN PHÍ VÀ PRO
+──────────────
+
+Miễn phí mãi mãi: không giới hạn số xe, sổ bảo dưỡng đầy đủ, ghi chi phí, ghi hành trình và 5 lần chẩn đoán AI mỗi tháng. MotoVault Pro mở khóa chẩn đoán AI không giới hạn, thống kê nâng cao, xuất GPX không giới hạn và dữ liệu hành trình mở rộng.
+
+Có gói tháng và gói năm; giá được hiển thị trong ứng dụng trước khi bạn xác nhận. Gói đăng ký tự động gia hạn nếu không hủy ít nhất 24 giờ trước khi kỳ hiện tại kết thúc. Bạn có thể quản lý hoặc hủy bất cứ lúc nào trong phần cài đặt tài khoản Google Play.
+
+Chính sách bảo mật: https://motovault.app/privacy
+Điều khoản sử dụng: https://motovault.app/terms
+
+Có câu hỏi hoặc góp ý? Chúng tôi đọc mọi email: hello@motovault.app
+
+Hai bánh xe. Một ứng dụng.

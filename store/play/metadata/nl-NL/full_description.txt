@@ -1,0 +1,43 @@
+De app voor motorrijders — niet zomaar een navigatie-app.
+
+MotoVault is gemaakt voor rijders die net zoveel om hun motor geven als om de rit. Houd elk onderhoud bij, log elke kilometer, plan elke tocht en vraag onze AI-monteur om raad. Alles in één doordachte app, speciaal voor motoren.
+
+──────────────
+WAAROM RIJDERS MOTOVAULT GEBRUIKEN
+──────────────
+
+* KOSTEN BIJHOUDEN — Elke tankbeurt, elk onderdeel, elke werkplaatsbeurt. Zie precies wat je motor je kost per kilometer, per maand en per jaar.
+
+* ONDERHOUDSHISTORIE — Olie verversen, ketting stellen, nieuwe tyres, ventielen controleren. Leg elk onderhoud vast en houd een volledige historie bij die de inruilwaarde verhoogt.
+
+* SLIMME HERINNERINGEN — Nooit meer een onderhoudsinterval missen. MotoVault kijkt naar kilometerstand én tijd en waarschuwt je voordat het een probleem wordt.
+
+* RITTENBOEK — Elke rit automatisch vastgelegd: afstand, tijd, route en brandstof. Zo bouw je een compleet logboek van al je kilometers op.
+
+* TOCHTPLANNER — Van het rondje op zondag tot die grote reis. Bewaar routes, zet waypoints en deel ze met je groep.
+
+* AI-MONTEUR — Vreemd geluid? Rare geur? Maak een foto en de AI-diagnose loopt in seconden de meest waarschijnlijke oorzaken en oplossingen met je door.
+
+──────────────
+GEMAAKT VOOR ECHTE RIJDERS
+──────────────
+
+- Onbeperkt motoren toevoegen — altijd gratis
+- Meer dan 12.000 motormodellen ondersteund
+- Mooi ontwerp, gemaakt voor donkere modus
+- Privé en veilig — jouw data blijft van jou
+
+──────────────
+MOTOVAULT PRO
+──────────────
+
+Gratis blijft gratis: onbeperkt motoren, volledig onderhoud bijhouden, kosten vastleggen, ritten opnemen en 5 AI-diagnoses per maand. MotoVault Pro geeft je onbeperkte AI-diagnoses, uitgebreide rijstatistieken, onbeperkte GPX-exports en extra ritgegevens.
+
+Er zijn maand- en jaarabonnementen; de prijs staat in de app voordat je bevestigt. Abonnementen worden automatisch verlengd tenzij je ze uiterlijk 24 uur voor het einde van de periode opzegt. Beheren of opzeggen kan altijd via de accountinstellingen van Google Play.
+
+Privacybeleid: https://motovault.app/privacy
+Voorwaarden: https://motovault.app/terms
+
+Vragen of feedback? We lezen elke e-mail: hello@motovault.app
+
+Twee wielen. Eén app.

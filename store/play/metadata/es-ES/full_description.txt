@@ -1,0 +1,51 @@
+La app de quien tiene moto — no es otro GPS más.
+
+MotoVault es la app de motociclismo completa para quienes cuidan su moto tanto como disfrutan manejar. Registra cada servicio, anota cada kilómetro, planea cada viaje y pregúntale al Mecánico IA qué pasa. Todo en una app diseñada para motos — no software de carros adaptado.
+
+★ CONTROL DE GASTOS DE LA MOTO
+Lleva el control de gasolina, equipo, refacciones, seguro y visitas al taller. Mira exactamente cuánto te cuesta tu moto por kilómetro, por mes, por año. El primer control de gastos de verdad para motos.
+
+★ HISTORIAL DE MANTENIMIENTO
+Cambios de aceite, ajustes de cadena, llantas, válvulas, balatas. Registra cada servicio y mantén un historial completo que aumenta el valor de reventa. Recordatorios por kilometraje y por tiempo te avisan ANTES de que se vuelva problema.
+
+★ BITÁCORA DE PILOTAJE CON GPS
+Graba automáticamente cada salida: distancia, tiempo, ruta, gasolina, velocidad promedio. Construye una bitácora de cada kilómetro recorrido. Funciona sin conexión, se sincroniza automáticamente.
+
+★ PLANEADOR DE VIAJES DE VARIOS DÍAS
+Planea tu rodada de fin de semana o el gran viaje de tu vida. Guarda rutas, marca puntos (gasolina, mirador, hospedaje, paso, frontera), exporta GPX y comparte con tu grupo. Funciona con Garmin Zumo, TomTom Rider, Hammerhead Karoo y cualquier GPS que acepte GPX.
+
+★ MECÁNICO IA PARA MOTOS
+¿Un ruido raro? ¿Una fuga de aceite? ¿Una luz en el tablero? Toma una foto y nuestro diagnóstico IA te lleva por las causas más probables y las soluciones — en menos de cinco segundos. El primer mecánico IA hecho específicamente para motos. Sin necesidad de OBD-II.
+
+★ DESCUBRE RUTAS SELECCIONADAS
+Encuentra rutas panorámicas cerca de ti, elegidas por motociclistas. Desde la rodada de 90 minutos hasta el único camino al Océano Ártico. Cada ruta con superficie, dificultad y perfil de elevación.
+
+★ GARAGE MULTI-MOTO
+Motos ilimitadas — registra todas las motos que tengas, gratis para siempre. Diaria, de fin de semana, de proyecto, de aventura. Cada moto con plan de mantenimiento, consumo, historial de gastos y estadísticas.
+
+MÁS DE 12,000 MODELOS DE MOTO SOPORTADOS
+Base de datos NHTSA. Intervalos de mantenimiento precargados, cilindrada y fluidos recomendados para Honda, Yamaha, Kawasaki, Suzuki, BMW, Ducati, KTM, Harley-Davidson, Triumph, Royal Enfield, Aprilia, Indian, Husqvarna, Moto Guzzi y muchos más.
+
+PERFECTO PARA
+- Motociclistas diarios que mantienen su moto al 100
+- Riders de fin de semana planeando la próxima rodada
+- Aventureros en viajes de larga distancia
+- Mecánicos caseros con su propio taller
+- Pilotos nuevos que quieren un mecánico en el bolsillo
+
+DISEÑO PARA QUIENES MANEJAN
+Modo oscuro por defecto, legible con guantes. Optimizada para pilotos solo Y rodadas en grupo. GDPR-compliant, infraestructura en UE, TLS 1.3 en tránsito, AES-256 en reposo. Tus datos son tuyos — exporta o elimina todo con un toque.
+
+MOTOVAULT PRO
+Gratis para siempre: motos ilimitadas, control completo de mantenimiento, registro de gastos, grabación de rodadas con GPS, planeador de viajes (hasta 3 rutas guardadas) y 5 diagnósticos IA al mes.
+
+Pro desbloquea: diagnósticos IA ilimitados, estadísticas avanzadas con reportes semanales, exportaciones GPX ilimitadas y estadísticas extendidas. Con plan mensual o anual. El precio se muestra en la app antes de confirmar. La suscripción se renueva automáticamente salvo que se cancele al menos 24 horas antes del final del periodo. Gestiónala o cancélala cuando quieras en los ajustes de tu cuenta de Google Play.
+
+SIN OBD-II
+MotoVault funciona completamente desde tu celular — sin scan tools, sin adaptadores Bluetooth, sin cables. Cámara para diagnóstico, GPS para grabación. Funciona en cualquier moto, cualquier año, cualquier fabricante.
+
+¿Preguntas, comentarios? Leemos cada correo: hello@motovault.app
+Privacidad: https://motovault.app/privacy
+Términos: https://motovault.app/terms
+
+Dos ruedas. Una app. Maneja mejor.

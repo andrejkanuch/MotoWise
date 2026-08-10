@@ -1,0 +1,44 @@
+The motorbike owner's app — not just another GPS.
+
+MotoVault is built for riders who care about their bike as much as the ride. Track every service, log every kilometre, plan every trip, and ask our AI Mechanic anything — all in one beautifully designed app made for motorbikes.
+
+──────────────
+WHY RIDERS LOVE MOTOVAULT
+──────────────
+
+* RUNNING COSTS — Every fill-up, every part, every visit to the garage. See exactly what your bike costs you per kilometre, per month, per year.
+
+* SERVICE HISTORY — Oil changes, chain adjustments, tyre swaps, valve checks. Log every service and keep a complete maintenance history that boosts resale value.
+
+* SMART REMINDERS — Never miss a service interval again. MotoVault tracks mileage and time, then nudges you before something becomes a problem.
+
+* RIDE LOG — Auto-track every ride. Distance, time, route, fuel used. Build a proper logbook of every kilometre you have ever ridden.
+
+* TRIP PLANNER — Plan the Sunday ride or that big bucket-list tour. Save routes, set waypoints and share them with your group.
+
+* AI MECHANIC — Odd noise? Something smell off? Snap a photo and our AI diagnostic walks you through the most likely causes and fixes in seconds.
+
+──────────────
+BUILT FOR REAL RIDERS
+──────────────
+
+- Unlimited bikes — track every bike you own, free forever
+- 12,000+ motorbike models supported
+- Beautiful, dark-mode-first design
+- Private and secure — your data is yours
+- Rego and service planning made simple
+
+──────────────
+MOTOVAULT PRO
+──────────────
+
+Free forever includes unlimited bikes, full maintenance tracking, expense logging, ride recording and 5 AI diagnostic scans per month. MotoVault Pro unlocks unlimited AI diagnostics, advanced rider analytics, unlimited GPX exports and extended ride statistics.
+
+Monthly and annual plans are available; the price is shown in the app before you confirm. Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period. Manage or cancel anytime in your Google Play account settings.
+
+Privacy Policy: https://motovault.app/privacy
+Terms of Service: https://motovault.app/terms
+
+Questions? Feedback? We read every email: hello@motovault.app
+
+Two wheels. One app. Ride better.

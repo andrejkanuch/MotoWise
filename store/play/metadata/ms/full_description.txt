@@ -1,0 +1,34 @@
+Aplikasi untuk pemilik motosikal — bukan sekadar GPS lagi.
+
+MotoVault dibina untuk penunggang yang menyayangi motosikal mereka sama seperti perjalanan itu sendiri. Rekod setiap servis, setiap kilometer dan setiap perbelanjaan, rancang perjalanan, dan tanya apa sahaja kepada Mekanik AI.
+
+──────────────
+CIRI-CIRI
+──────────────
+
+* PERBELANJAAN — Setiap isi minyak, setiap alat ganti, setiap kunjungan ke kedai. Lihat dengan tepat kos motosikal anda bagi setiap kilometer, sebulan dan setahun.
+
+* SEJARAH SERVIS — Tukar minyak, laras rantai, tayar, valve. Rekod setiap kerja dan simpan sejarah lengkap yang menaikkan nilai jualan semula.
+
+* PERINGATAN PINTAR — Tidak akan terlepas selang servis lagi. MotoVault memantau kilometer dan masa, lalu mengingatkan anda sebelum ia menjadi masalah.
+
+* LOG PERJALANAN — Setiap perjalanan dirakam secara automatik: jarak, masa, laluan dan minyak. Bina log semua kilometer yang pernah anda tunggang.
+
+* PERANCANG PERJALANAN — Dari ronda hujung minggu hingga perjalanan jauh. Simpan laluan, tetapkan tempat berhenti dan kongsi dengan kumpulan anda.
+
+* MEKANIK AI — Bunyi pelik? Bau tidak sedap? Ambil gambar dan diagnostik AI akan menerangkan punca yang paling mungkin serta cara mengatasinya dalam beberapa detik.
+
+──────────────
+PERCUMA DAN PRO
+──────────────
+
+Percuma selamanya: motosikal tanpa had, rekod penyelenggaraan penuh, perbelanjaan, rakaman perjalanan dan 5 diagnostik AI sebulan. MotoVault Pro membuka diagnostik AI tanpa had, analitik lanjutan, eksport GPX tanpa had dan data perjalanan yang lebih lengkap.
+
+Terdapat pelan bulanan dan tahunan; harga dipaparkan dalam aplikasi sebelum anda mengesahkan. Langganan diperbaharui secara automatik melainkan dibatalkan sekurang-kurangnya 24 jam sebelum tempoh berakhir. Uruskan atau batalkan pada bila-bila masa dalam tetapan akaun Google Play anda.
+
+Dasar Privasi: https://motovault.app/privacy
+Terma Perkhidmatan: https://motovault.app/terms
+
+Ada pertanyaan atau maklum balas? Kami membaca setiap emel: hello@motovault.app
+
+Dua roda. Satu aplikasi.
