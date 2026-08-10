@@ -14,7 +14,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: getAppName(),
   slug: 'motowise',
   description: 'AI-powered motorcycle maintenance, diagnostics & expense tracking',
-  version: '3.18.0',
+  version: '3.19.0',
   // 'default' (not 'portrait') so Android emits NO android:screenOrientation
   // restriction. Android 16 ignores orientation/resizability locks on large-screen
   // devices (foldables, tablets) and Play Console flags the restriction as a
