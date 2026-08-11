@@ -20,10 +20,30 @@
         "app.json"
       ],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      // `!NEXT_PUBLIC_VERCEL_*` is load-bearing, do not drop it. Turborepo's framework
+      // inference auto-adds every NEXT_PUBLIC_* var to a Next.js package's hash, and
+      // Vercel's "automatically expose System Environment Variables" injects
+      // NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA / _DEPLOYMENT_ID / _URL, which change on
+      // EVERY deployment. Together they made the remote cache miss 100% of the time —
+      // the Aug-2026 billing review measured 11 GB of cache uploads against 0 B of
+      // downloads, so every build ran cold. Negation is the documented escape hatch
+      // (turborepo.dev/docs/crafting-your-repository/using-environment-variables).
+      // The app reads no VERCEL_* var, so excluding the whole prefix is safe.
       "env": [
+        "!NEXT_PUBLIC_VERCEL_*",
         "SUPABASE_URL",
         "SUPABASE_ANON_KEY",
-        "NEXT_PUBLIC_*",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_BASE_URL",
+        "NEXT_PUBLIC_GA_MEASUREMENT_ID",
+        "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN",
+        "NEXT_PUBLIC_MAPBOX_TOKEN",
+        "NEXT_PUBLIC_META_PIXEL_ID",
+        "NEXT_PUBLIC_PLAUSIBLE_DOMAIN",
+        "NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN",
+        "NEXT_PUBLIC_REVENUECAT_WEB_API_KEY",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "NEXT_PUBLIC_SUPABASE_URL",
         "EXPO_PUBLIC_*",
         "APPLE_TEAM_ID",
         "ANDROID_CERT_SHA256"
