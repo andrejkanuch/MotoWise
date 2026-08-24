@@ -68,12 +68,17 @@ function decodePolyline(encoded: string): [number, number][] {
 
 /** Wait for the CDN-loaded mapboxgl global to become available. */
 function useMapboxReady(): boolean {
-  const [ready, setReady] = useState(
-    // biome-ignore lint/suspicious/noExplicitAny: globalThis CDN access
-    () => !!(globalThis as Record<string, any>).mapboxgl,
-  );
+  // Start false so the server and the client's first render agree on the
+  // "Loading map…" placeholder. A warm CDN cache can define window.mapboxgl
+  // before hydration; reading it in the useState initializer made the first
+  // client render diverge from the server HTML and threw React #418.
+  const [ready, setReady] = useState(false);
   useEffect(() => {
-    if (ready) return;
+    // biome-ignore lint/suspicious/noExplicitAny: globalThis CDN access
+    if ((globalThis as Record<string, any>).mapboxgl) {
+      setReady(true);
+      return;
+    }
     const id = setInterval(() => {
       // biome-ignore lint/suspicious/noExplicitAny: globalThis CDN access
       if ((globalThis as Record<string, any>).mapboxgl) {
@@ -82,7 +87,7 @@ function useMapboxReady(): boolean {
       }
     }, 50);
     return () => clearInterval(id);
-  }, [ready]);
+  }, []);
   return ready;
 }
 
