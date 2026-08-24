@@ -17,10 +17,11 @@
     "dependencyDashboardApproval": true
   },
   "vulnerabilityAlerts": {
-    "description": "The one sanctioned exception to the single-branch rule. Security fixes bypass the schedule, the group and minimumReleaseAge, because waiting a week on a known CVE is worse than a second branch. Requires GitHub Dependabot *alerts* to stay enabled on the repo — Renovate reads them; it does not have its own advisory feed for this.",
+    "description": "The one sanctioned exception to the single-branch rule. Security fixes bypass the schedule, the group and minimumReleaseAge, because waiting a week on a known CVE is worse than a second branch. `prConcurrentLimit: 0` (no limit) is load-bearing: security PRs are otherwise subject to the repo-wide limit, so a CVE fix would queue behind the weekly grouped PR and the exception would not actually work. Requires GitHub Dependabot *alerts* to stay enabled on the repo — Renovate reads them; it does not have its own advisory feed for this.",
     "enabled": true,
     "labels": ["dependencies", "security"],
-    "minimumReleaseAge": null
+    "minimumReleaseAge": null,
+    "prConcurrentLimit": 0
   },
   "packageRules": [
     {
