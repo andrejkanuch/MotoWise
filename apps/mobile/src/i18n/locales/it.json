@@ -1712,6 +1712,12 @@
       "remindersTitle": "Non perdere nessun rinnovo",
       "remindersDesc": "Aggiungi una data di scadenza e ti ricorderemo 30, 7 e 1 giorno prima — così assicurazione o libretto non scadono mai.",
       "cta": "Aggiungi il tuo primo documento"
+    },
+    "v3191": {
+      "receiptTitle": "Scansiona una ricevuta, niente da digitare",
+      "receiptDesc": "Inquadra una ricevuta di carburante, ricambi o officina: MotoVault legge importo, data e fornitore e compila la spesa per te. Controlla, salva, fatto.",
+      "carplayTitle": "MotoVault su CarPlay",
+      "carplayDesc": "Registra i tuoi viaggi dallo schermo del veicolo. Avvia, metti in pausa e concludi un viaggio sull’head unit senza toccare il telefono — oppure lascia che la modalità Automatica parta al primo segnale GPS."
     }
   },
   "oem": {

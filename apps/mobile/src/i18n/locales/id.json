@@ -1711,6 +1711,12 @@
       "remindersTitle": "Never Miss a Renewal",
       "remindersDesc": "Add an expiry date and we'll remind you 30, 7, and 1 day before — so your insurance or registration never lapses again.",
       "cta": "Add your first document"
+    },
+    "v3191": {
+      "receiptTitle": "Pindai struk, tanpa mengetik",
+      "receiptDesc": "Arahkan kamera ke struk bahan bakar, suku cadang, atau servis — MotoVault membaca jumlah, tanggal, dan penjualnya, lalu mengisi pengeluaran untuk Anda. Periksa, simpan, selesai.",
+      "carplayTitle": "MotoVault di CarPlay",
+      "carplayDesc": "Catat perjalanan dari layar kendaraan Anda. Mulai, jeda, dan akhiri perjalanan di head unit tanpa menyentuh ponsel — atau biarkan mode Otomatis memulainya pada sinyal GPS pertama."
     }
   },
   "oem": {

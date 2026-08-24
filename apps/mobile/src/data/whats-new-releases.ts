@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react-native';
 import {
   BellRing,
   Bike,
+  Car,
   FileText,
   Gauge,
   LayoutGrid,
@@ -12,6 +13,7 @@ import {
   Navigation,
   Paintbrush,
   Route,
+  ScanLine,
   Share2,
   Sparkles,
   TrendingUp,
@@ -25,6 +27,14 @@ import {
  */
 export type WhatsNewAction = 'open-document-vault';
 
+/** Platforms a slide can be restricted to. Matches `process.env.EXPO_OS`. */
+export const SLIDE_PLATFORM = {
+  IOS: 'ios',
+  ANDROID: 'android',
+} as const;
+
+export type SlidePlatform = (typeof SLIDE_PLATFORM)[keyof typeof SLIDE_PLATFORM];
+
 export interface WhatsNewSlide {
   icon: LucideIcon;
   iconColor: string;
@@ -34,6 +44,16 @@ export interface WhatsNewSlide {
   ctaAction?: WhatsNewAction;
   /** i18n key for the action button label (falls back to the standard CTA copy). */
   ctaLabelKey?: string;
+  /**
+   * Restricts the slide to specific platforms. Omit for a feature that shipped
+   * everywhere — that is the common case and stays zero-config.
+   *
+   * Needed because not every feature is cross-platform: CarPlay is iOS-only
+   * (`@iternio/react-native-auto-play` is excluded from Android autolinking in
+   * `package.json`, and the driving-task entitlement is an iOS one), so
+   * announcing it to Android riders would advertise something they cannot use.
+   */
+  platforms?: readonly SlidePlatform[];
 }
 
 export interface WhatsNewRelease {
@@ -47,6 +67,28 @@ export interface WhatsNewRelease {
  * the current app version is shown.
  */
 export const WHATS_NEW_RELEASES = [
+  {
+    // Both features shipped earlier without ever being announced in-app — this
+    // array had no entry between 3.11.0 and here, so the modal stayed dormant
+    // for eight releases and riders were never told either existed.
+    version: '3.19.1',
+    slides: [
+      {
+        icon: ScanLine,
+        iconColor: palette.signature400,
+        titleKey: 'whatsNew.v3191.receiptTitle' as const,
+        descriptionKey: 'whatsNew.v3191.receiptDesc' as const,
+      },
+      {
+        icon: Car,
+        iconColor: palette.accent400,
+        titleKey: 'whatsNew.v3191.carplayTitle' as const,
+        descriptionKey: 'whatsNew.v3191.carplayDesc' as const,
+        // iOS only — see `platforms` on WhatsNewSlide.
+        platforms: [SLIDE_PLATFORM.IOS] as const,
+      },
+    ],
+  },
   {
     version: '3.11.0',
     slides: [
@@ -187,12 +229,36 @@ export const WHATS_NEW_RELEASES = [
 export type WhatsNewReleaseEntry = (typeof WHATS_NEW_RELEASES)[number];
 export type WhatsNewSlideEntry = WhatsNewReleaseEntry['slides'][number];
 
-/** Find the release entry for a given version, or null if none exists. */
-export function getWhatsNewRelease(version: string): WhatsNewReleaseEntry | null {
-  return WHATS_NEW_RELEASES.find((r) => r.version === version) ?? null;
+/** Slides from `release` that apply to `os`. A slide with no `platforms` is universal. */
+export function visibleSlides(
+  release: WhatsNewRelease,
+  os: string | undefined = process.env.EXPO_OS,
+): WhatsNewSlide[] {
+  return release.slides.filter((s) => !s.platforms || s.platforms.some((p) => p === os));
 }
 
-/** Return the most recent release (first entry in the array). */
-export function getLatestRelease(): WhatsNewReleaseEntry {
-  return WHATS_NEW_RELEASES[0];
+/**
+ * Find the release entry for a given version, or null if none exists.
+ *
+ * Also returns null when every slide in that release is gated to another
+ * platform — the caller uses this to decide whether to open the modal at all,
+ * and a release whose only slides are hidden must not push an empty one.
+ */
+export function getWhatsNewRelease(
+  version: string,
+  os: string | undefined = process.env.EXPO_OS,
+): WhatsNewReleaseEntry | null {
+  const release = WHATS_NEW_RELEASES.find((r) => r.version === version);
+  if (!release) return null;
+  return visibleSlides(release, os).length > 0 ? release : null;
+}
+
+/**
+ * Return the most recent release that has at least one slide for this platform.
+ * Skipping empty ones keeps `slides[0]` defined in the modal.
+ */
+export function getLatestRelease(
+  os: string | undefined = process.env.EXPO_OS,
+): WhatsNewReleaseEntry {
+  return WHATS_NEW_RELEASES.find((r) => visibleSlides(r, os).length > 0) ?? WHATS_NEW_RELEASES[0];
 }

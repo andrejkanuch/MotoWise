@@ -1712,6 +1712,12 @@
       "remindersTitle": "No te pierdas ninguna renovación",
       "remindersDesc": "Añade una fecha de caducidad y te avisaremos 30, 7 y 1 día antes, para que tu seguro o matrícula nunca caduquen.",
       "cta": "Añade tu primer documento"
+    },
+    "v3191": {
+      "receiptTitle": "Escanea un recibo y olvídate de teclear",
+      "receiptDesc": "Apunta la cámara a un recibo de combustible, piezas o taller: MotoVault lee el importe, la fecha y el proveedor, y rellena el gasto por ti. Revísalo, guárdalo y listo.",
+      "carplayTitle": "MotoVault en CarPlay",
+      "carplayDesc": "Registra tus rutas desde la pantalla del vehículo. Inicia, pausa y termina una ruta sin tocar el móvil, o deja que el modo Automático la inicie con la primera señal GPS."
     }
   },
   "oem": {
