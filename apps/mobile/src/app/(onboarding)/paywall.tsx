@@ -1,3 +1,22 @@
+/**
+ * OFF-FLOW as of 2026-08-24 (U6). This screen is in NO onboarding flow.
+ *
+ * It sat at step 5 of onboarding — BEFORE the account step — and 395 of the 692
+ * riders who started onboarding saw it. Selling before the app had delivered
+ * anything is the single change this work exists to make. Paid conversion is now
+ * driven only by gated-feature triggers, which already existed and already fire:
+ * `presentPaywall({ placement: 'feature_gate' })` from `use-pro-gate`.
+ *
+ * The file is retained rather than deleted because the route is still reachable:
+ * the retired V1 screen chain ends with `insights.tsx` doing a hardcoded
+ * `router.replace('/(onboarding)/paywall')`, and a stale deep link could too.
+ * `getNextRoute` resolves this screen forward to `account`
+ * (RETIRED_SCREEN_SUCCESSOR), so arriving here is a pass-through, not a trap.
+ * `useOnboardingStep` returns stepIndex -1 for an off-flow screen.
+ *
+ * Do NOT add it back to a flow. If the paywall-timing question is revisited, the
+ * treatment belongs after first value, not during onboarding.
+ */
 import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import Constants from 'expo-constants';
 import { useCallback, useEffect, useRef, useState } from 'react';

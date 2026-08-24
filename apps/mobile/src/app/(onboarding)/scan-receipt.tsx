@@ -1,3 +1,14 @@
+/**
+ * OFF-FLOW as of 2026-08-24 (U6). This screen is in NO onboarding flow.
+ *
+ * Removed as friction, on the most decisive number in the audit: 40 riders saw
+ * it, **0** completed it, 40 skipped. Retained as a route for riders caught
+ * mid-flow by the OTA; `getNextRoute` resolves it forward to `personalizing`
+ * (RETIRED_SCREEN_SUCCESSOR). `useOnboardingStep` returns stepIndex -1 here.
+ *
+ * Receipt scanning itself is live and used from the expenses flow — the feature
+ * is fine, the placement was not.
+ */
 import { type Href, useFocusEffect, useRouter } from 'expo-router';
 import { Clock, ScanLine, Sparkles } from 'lucide-react-native';
 import { useCallback, useEffect, useRef } from 'react';

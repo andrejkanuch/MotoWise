@@ -1,14 +1,32 @@
 /**
- * Onboarding A/B experiment (2026) — PostHog multivariate flag key + variants.
- * `lean` (A) and `invested` (B) are the test arms; `control` maps to the
- * pre-test V4 flow and doubles as the safe degradation when the flag is
- * disabled or returns an unknown value.
+ * Onboarding variant values.
+ *
+ * The 2026 A/B experiment (PostHog 83476, flag `onboarding_ab_2026`) is RETIRED
+ * as of 2026-08-24. `lean` won on both readable metrics — onboarding completion
+ * 40.5% vs 29.4% and bike-add 75.2% vs 64.7%, each at roughly p≈0.02 — and one
+ * flow now ships to everyone.
+ *
+ * `SHIPPED` is a NEW value rather than a reuse of `lean`, and that distinction is
+ * load-bearing: the shipped flow is 11 screens, while experiment-era `lean` was
+ * 14 (it still contained the paywall, maintenance and scan-receipt steps that U6
+ * removed). Filing post-cutover users under `lean` would make every historical
+ * funnel silently average two different flows together — the exact mistake the
+ * PostHog cutover annotation exists to prevent.
+ *
+ * The three experiment values are kept as READ-ONLY legacy: ~423 users have one
+ * persisted in MMKV and set as a PostHog person property, and that property is
+ * the only record of which flow they went through. They are never assigned again,
+ * they are never cleared, and they all resolve to the shipped flow so nobody is
+ * stranded or reset mid-onboarding.
  */
-export const EXPERIMENT_FLAG_KEY = 'onboarding_ab_2026';
-
 export const OB_VARIANT = {
+  /** The single shipped flow. Every new install gets this. */
+  SHIPPED: 'shipped',
+  /** RETIRED 2026-08-24 — the winning experiment arm. Read-only. */
   LEAN: 'lean',
+  /** RETIRED 2026-08-24 — the losing experiment arm. Read-only. */
   INVESTED: 'invested',
+  /** RETIRED 2026-08-24 — the 0%-rollout holdout / pre-test V4 flow. Read-only. */
   CONTROL: 'control',
 } as const;
 
@@ -24,115 +42,105 @@ export function isObVariant(value: unknown): value is ObVariant {
  * referenced (resume tracking, Back fallback, progress index).
  */
 export const OB_SCREEN = {
+  // --- In the shipped flow ------------------------------------------------
   WELCOME: 'index',
   EXPERIENCE: 'experience',
   GOALS: 'goals',
   BIKE_SETUP: 'bike-setup',
-  MAINTENANCE: 'maintenance',
-  PAYWALL: 'paywall',
   NOTIFICATIONS: 'notifications',
   PERSONALIZING: 'personalizing',
-  // A/B 2026 — shared new steps (lean + invested)
   REVEAL: 'reveal',
   // Value-payoff slot for riders who skipped bike-setup — the inverse of the
   // Reveal (which needs a bike). Shown only when there's no bike so skippers see
-  // universal value before the paywall instead of a cold empty garage (P2.3/T4b).
+  // universal value instead of a cold empty garage (P2.3/T4b).
   NO_BIKE_VALUE: 'no-bike-value',
   COMMITMENT: 'commitment',
   ACCOUNT: 'account',
-  // Attribution — "How did you hear about us?" (post-paywall, all variants)
+  // Attribution — "How did you hear about us?". Kept deliberately: 66 of 85
+  // riders answer it, and self-reported attribution is the only working
+  // install-attribution signal this product has.
   HEARD_ABOUT: 'heard-about',
-  // Activation (G7) — quota-exempt "snap a receipt" invitation (KTD-10). Skippable;
-  // placed post-account so the scan is authenticated, and never blocks completion.
+
+  // --- Not a flow step ----------------------------------------------------
+  // Standalone: returning-user sign-in, entered from Welcome "Log in".
+  SIGN_IN: 'sign-in',
+
+  // --- RETIRED 2026-08-24 — in NO flow ------------------------------------
+  // Kept as identifiers for two reasons, both load-bearing:
+  //   (a) `OB_STEP_NAME` must still resolve them, so historical
+  //       `onboarding_step_viewed/completed/skipped` events stay readable in
+  //       PostHog. Removing a step from the flow is not deleting its event.
+  //   (b) `RETIRED_SCREEN_SUCCESSOR` needs them as keys, to resolve a persisted
+  //       `lastCompletedScreen` forward when this ships as an OTA.
+  // Do NOT add any of these back to a flow.
+  //
+  // maintenance / paywall / scan-receipt still have route files (reachable in
+  // principle by a deep link, and `insights.tsx` in the dead V1 chain still
+  // hardcodes a jump to the paywall). The four invested-arm screens do not —
+  // their files were deleted with the arm.
+  MAINTENANCE: 'maintenance',
+  PAYWALL: 'paywall',
   SCAN_RECEIPT: 'scan-receipt',
-  // A/B 2026 — invested-only profiling + loader
   FREQUENCY: 'frequency',
   STAY_ON_TOP: 'stay-on-top',
   LAST_SERVICE: 'last-service',
   BUILDING_PLAN: 'building-plan',
-  // Standalone (not a flow step): returning-user sign-in, entered from
-  // Welcome "Log in" and the paywall's "Already have an account?".
-  SIGN_IN: 'sign-in',
 } as const;
 
 export type OnboardingRoute = (typeof OB_SCREEN)[keyof typeof OB_SCREEN];
 
 /**
- * Ordered flows per experiment variant — drive the progress index, resume
- * target, Back fallback, and forward navigation.
+ * The one shipped onboarding flow — drives the progress index, resume target,
+ * Back fallback, and forward navigation.
  *
- * control  = pre-test V4 flow (auth-first, unchanged).
- * lean (A) = value-first short path: bike is the first real action, paid off
- *            by the Reveal; 1-tap Commitment; paywall on day 0; account after.
- * invested (B) = same restructure plus profiling questions, a "building your
- *            plan" loader, a projection-led Reveal, and a hold-to-commit.
+ * Descended from the winning `lean` arm with three steps removed (U6, 14 → 11):
+ *
+ *  - `paywall`     sold before the app had delivered anything. It sat at step 5,
+ *                  BEFORE the account step, and 395 of 692 people who started
+ *                  onboarding saw it. Paid conversion is now driven only by
+ *                  gated-feature triggers, which already exist and already fire
+ *                  (`presentPaywall({ placement: 'feature_gate' })`).
+ *  - `maintenance` completed by 2 of 150 riders who saw it. 146 skipped.
+ *  - `scan_receipt` completed by 0 of 40. Every single one skipped.
+ *
+ * Kept deliberately: `heard_about` (66 of 85 answer it, and self-reported
+ * attribution is the only working install-attribution signal this product has).
  */
-const V4_FLOW = [
-  OB_SCREEN.WELCOME,
-  OB_SCREEN.EXPERIENCE,
-  OB_SCREEN.GOALS,
-  OB_SCREEN.BIKE_SETUP,
-  OB_SCREEN.MAINTENANCE,
-  OB_SCREEN.PAYWALL,
-  OB_SCREEN.HEARD_ABOUT,
-  OB_SCREEN.NOTIFICATIONS,
-  OB_SCREEN.PERSONALIZING,
-] as const satisfies ReadonlyArray<OnboardingRoute>;
-
-const LEAN_FLOW = [
+const SHIPPED_FLOW = [
   OB_SCREEN.WELCOME,
   OB_SCREEN.EXPERIENCE,
   OB_SCREEN.BIKE_SETUP,
   OB_SCREEN.REVEAL,
   OB_SCREEN.NO_BIKE_VALUE,
   OB_SCREEN.GOALS,
-  OB_SCREEN.MAINTENANCE,
   OB_SCREEN.COMMITMENT,
-  OB_SCREEN.PAYWALL,
   OB_SCREEN.ACCOUNT,
   OB_SCREEN.HEARD_ABOUT,
   OB_SCREEN.NOTIFICATIONS,
-  // Activation scan sits last, just before the finalizing loader, so the
-  // heard-about → notifications attribution contract is untouched.
-  OB_SCREEN.SCAN_RECEIPT,
   OB_SCREEN.PERSONALIZING,
 ] as const satisfies ReadonlyArray<OnboardingRoute>;
 
-const INVESTED_FLOW = [
-  OB_SCREEN.WELCOME,
-  OB_SCREEN.EXPERIENCE,
-  OB_SCREEN.FREQUENCY,
-  OB_SCREEN.STAY_ON_TOP,
-  OB_SCREEN.LAST_SERVICE,
-  OB_SCREEN.BIKE_SETUP,
-  OB_SCREEN.BUILDING_PLAN,
-  OB_SCREEN.REVEAL,
-  OB_SCREEN.NO_BIKE_VALUE,
-  OB_SCREEN.GOALS,
-  OB_SCREEN.MAINTENANCE,
-  OB_SCREEN.COMMITMENT,
-  OB_SCREEN.PAYWALL,
-  OB_SCREEN.ACCOUNT,
-  OB_SCREEN.HEARD_ABOUT,
-  OB_SCREEN.NOTIFICATIONS,
-  // Activation scan sits last, just before the finalizing loader, so the
-  // heard-about → notifications attribution contract is untouched.
-  OB_SCREEN.SCAN_RECEIPT,
-  OB_SCREEN.PERSONALIZING,
-] as const satisfies ReadonlyArray<OnboardingRoute>;
-
+/**
+ * Every variant value resolves to the same flow. This is what "retire the arms
+ * without resetting anyone" means concretely: a rider who is mid-onboarding with
+ * `invested` persisted in MMKV keeps a valid flow and simply continues, rather
+ * than hitting an undefined lookup or being re-rolled onto a different path.
+ */
 export const ONBOARDING_FLOWS: Record<ObVariant, ReadonlyArray<OnboardingRoute>> = {
-  [OB_VARIANT.CONTROL]: V4_FLOW,
-  [OB_VARIANT.LEAN]: LEAN_FLOW,
-  [OB_VARIANT.INVESTED]: INVESTED_FLOW,
+  [OB_VARIANT.SHIPPED]: SHIPPED_FLOW,
+  [OB_VARIANT.LEAN]: SHIPPED_FLOW,
+  [OB_VARIANT.INVESTED]: SHIPPED_FLOW,
+  [OB_VARIANT.CONTROL]: SHIPPED_FLOW,
 };
 
 /**
- * Legacy V4 flow length — referenced only by the retired V1 screens, which are
- * unreachable but still compile. Active screens derive their progress via
- * `useOnboardingStep` (variant-aware). Do not use in new code.
+ * Length of the pre-experiment V4 flow. Referenced only by the retired V1
+ * screens (bike-year → … → smart-maintenance → insights), which are unreachable
+ * from any flow but still compile — see the removal note in `(onboarding)/_layout`.
+ * A literal now that V4_FLOW is gone. Do not use in new code; active screens
+ * derive progress from `useOnboardingStep`.
  */
-export const TOTAL_SCREENS = V4_FLOW.length;
+export const TOTAL_SCREENS = 9;
 
 /** Ordered screen list for a variant. */
 export function getFlowScreens(variant: ObVariant): ReadonlyArray<OnboardingRoute> {
@@ -194,10 +202,8 @@ export const OB_ROUTE = {
   ACCOUNT: '/(onboarding)/account',
   HEARD_ABOUT: '/(onboarding)/heard-about',
   SCAN_RECEIPT: '/(onboarding)/scan-receipt',
-  FREQUENCY: '/(onboarding)/frequency',
-  STAY_ON_TOP: '/(onboarding)/stay-on-top',
-  LAST_SERVICE: '/(onboarding)/last-service',
-  BUILDING_PLAN: '/(onboarding)/building-plan',
+  // frequency / stay-on-top / last-service / building-plan are absent: those four
+  // screens were invested-arm-only and their files were deleted with the arm.
   SIGN_IN: '/(onboarding)/sign-in',
   HOME: '/(tabs)/(home)',
 } as const;
@@ -273,14 +279,52 @@ function routeForScreen(screen: OnboardingRoute): OnboardingRoutePath {
 }
 
 /**
+ * Screens that are no longer part of any flow, mapped to the surviving screen
+ * that should follow them.
+ *
+ * This exists because removing a step from the flow array is NOT the whole job.
+ * `lastCompletedScreen` is persisted in MMKV, so when this ships as an OTA there
+ * are riders sitting mid-flow with `paywall`, `maintenance`, `scan-receipt` or
+ * one of the four invested-only screens recorded as their last completed step.
+ * Without a mapping, `flow.indexOf(current)` returns -1, `getNextRoute` returns
+ * null, and the rider resumes into nothing — a permanent lockout of exactly the
+ * kind the account screen's Back button already had to be fixed for.
+ *
+ * The successor is the screen each retired step used to precede in its own flow,
+ * so resuming feels like continuing rather than jumping:
+ *   frequency / stay-on-top / last-service → bike-setup  (all three preceded it)
+ *   building-plan                          → reveal
+ *   maintenance                            → commitment
+ *   paywall                                → account
+ *   scan-receipt                           → personalizing
+ *
+ * It also covers two non-resume cases for free: a deep link or notification
+ * aimed at a retired route, and the retired V1 screen chain, whose `insights`
+ * screen still does `router.replace('/(onboarding)/paywall')` as a raw string.
+ */
+const RETIRED_SCREEN_SUCCESSOR: Partial<Record<OnboardingRoute, OnboardingRoute>> = {
+  [OB_SCREEN.FREQUENCY]: OB_SCREEN.BIKE_SETUP,
+  [OB_SCREEN.STAY_ON_TOP]: OB_SCREEN.BIKE_SETUP,
+  [OB_SCREEN.LAST_SERVICE]: OB_SCREEN.BIKE_SETUP,
+  [OB_SCREEN.BUILDING_PLAN]: OB_SCREEN.REVEAL,
+  [OB_SCREEN.MAINTENANCE]: OB_SCREEN.COMMITMENT,
+  [OB_SCREEN.PAYWALL]: OB_SCREEN.ACCOUNT,
+  [OB_SCREEN.SCAN_RECEIPT]: OB_SCREEN.PERSONALIZING,
+};
+
+/** True when `screen` is no longer in the shipped flow. */
+export function isRetiredScreen(screen: OnboardingRoute): boolean {
+  return screen in RETIRED_SCREEN_SUCCESSOR;
+}
+
+/**
  * Screens that only pay off when the rider has a bike. When there's no bike,
- * the lean/invested flows route *around* them (spec §4): a true bike-skip goes
- * straight to `goals` (no Reveal to pay off), and `goals` jumps to `paywall`
- * (no Maintenance/Commitment to build a plan for).
+ * the flow routes *around* them (spec §4): a true bike-skip goes straight to
+ * `goals` (no Reveal to pay off), and `goals` skips the Commitment (no plan to
+ * commit to). `maintenance` used to be in this set and left with U6.
  */
 const BIKE_DEPENDENT_SCREENS: ReadonlySet<OnboardingRoute> = new Set([
   OB_SCREEN.REVEAL,
-  OB_SCREEN.MAINTENANCE,
   OB_SCREEN.COMMITMENT,
 ]);
 
@@ -305,10 +349,19 @@ export interface OnboardingNavContext {
 }
 
 /**
- * Full route path for the screen after `current` in the variant's flow. Bike
- * state routes around the wrong-cohort screens: when `ctx.hasBike` is false the
- * bike-dependent screens are skipped, when it's true the no-bike value screen is
- * skipped (lean/invested only — `control` is the untouched V4 flow).
+ * Full route path for the screen after `current` in the flow. Bike state routes
+ * around the wrong-cohort screens: when `ctx.hasBike` is false the bike-dependent
+ * screens are skipped, when it's true the no-bike value screen is skipped.
+ *
+ * A `current` that is no longer in the flow resolves FORWARD to its recorded
+ * successor rather than returning null — see RETIRED_SCREEN_SUCCESSOR. Without
+ * that branch, every rider mid-flow on a removed step would resume into a dead
+ * end the moment this ships as an OTA.
+ *
+ * The bike-state routing no longer exempts `control`. It used to, because control
+ * was the V4 flow and had none of these screens; now every variant resolves to
+ * the same flow, so exempting control would march a bike-less control user
+ * straight into the Reveal, which has no bike to reveal.
  */
 export function getNextRoute(
   variant: ObVariant,
@@ -317,11 +370,25 @@ export function getNextRoute(
 ): OnboardingRoutePath | null {
   const flow = ONBOARDING_FLOWS[variant];
   let idx = flow.indexOf(current);
-  if (idx === -1 || idx >= flow.length - 1) return null;
+
+  if (idx === -1) {
+    const successor = RETIRED_SCREEN_SUCCESSOR[current];
+    if (!successor) return null;
+    // Land ON the successor (it was never completed), not after it. Re-enter
+    // through this function so the successor itself is still subject to
+    // bike-state skipping — a bike-less rider resuming from `maintenance` must
+    // not be dropped onto the Commitment.
+    if (ctx && isSkippedForBikeState(successor, ctx.hasBike)) {
+      return getNextRoute(variant, successor, ctx);
+    }
+    return routeForScreen(successor);
+  }
+
+  if (idx >= flow.length - 1) return null;
   // Route past the screens the rider's bike-state pays off the other way:
   // bike-dependent screens when there's no bike, the no-bike value screen when
-  // there is one (lean/invested only — control is the untouched V4 flow).
-  if (ctx && variant !== OB_VARIANT.CONTROL) {
+  // there is one.
+  if (ctx) {
     while (idx < flow.length - 1 && isSkippedForBikeState(flow[idx + 1], ctx.hasBike)) {
       idx++;
     }
@@ -340,26 +407,21 @@ export function getResumeRoute(
 }
 
 /**
- * Screens that must never be a Back target because they act on mount and bounce
- * the rider forward again. Back skips over them to the previous real step.
- *
- * - `building_plan` re-runs its timer (a building-plan↔reveal loop). Forward nav
- *   already replaces past it — see BuildingPlanScreen's `goNext({ replace })`.
- * - `paywall` re-presents the native RevenueCat modal on mount, so landing on it
- *   from Back produces a paywall↔account loop with no way out — the rider is
- *   asked to pay again every time they try to step back from the account gate.
- */
-const AUTO_ADVANCE_SCREENS: ReadonlySet<OnboardingRoute> = new Set([
-  OB_SCREEN.BUILDING_PLAN,
-  OB_SCREEN.PAYWALL,
-]);
-
-/**
  * Full route path for the screen immediately before `current`, or null if it is
  * the first screen. Used as a fallback for Back when there is no navigation
  * history to pop (e.g. after resume-after-kill drops the user onto a mid-flow
  * screen) — `router.back()` would otherwise throw "GO_BACK was not handled".
- * Skips auto-advancing loader screens so Back never lands on one.
+ *
+ * This used to skip an `AUTO_ADVANCE_SCREENS` set — screens that act on mount and
+ * bounce the rider forward, so landing on one from Back created a loop. That set
+ * held exactly two entries and BOTH are now gone from every flow: `paywall`
+ * (removed in U6 — it re-presented the RevenueCat modal on mount, which is what
+ * trapped riders in a paywall↔account loop) and `building-plan` (invested-only,
+ * retired with the arm). The skip loop therefore had nothing left to skip, so it
+ * is removed rather than left pointing at screens no flow contains.
+ *
+ * If a future step ever auto-advances on mount, reintroduce the set — do not
+ * quietly rely on this being a plain decrement.
  */
 export function getPreviousRoute(
   variant: ObVariant,
@@ -367,13 +429,10 @@ export function getPreviousRoute(
 ): OnboardingRoutePath | null {
   const flow = ONBOARDING_FLOWS[variant];
   const currentIndex = flow.indexOf(current);
-
-  // Walk backward to the nearest real step, skipping auto-advance loaders.
-  for (let i = currentIndex - 1; i >= 0; i--) {
-    const screen = flow[i];
-    if (!AUTO_ADVANCE_SCREENS.has(screen)) return routeForScreen(screen);
+  if (currentIndex <= 0) {
+    // First step, or a retired screen that is no longer in the flow at all —
+    // in both cases there is no previous step to derive.
+    return null;
   }
-
-  // First step, or only loaders precede it — nothing to go back to.
-  return null;
+  return routeForScreen(flow[currentIndex - 1]);
 }

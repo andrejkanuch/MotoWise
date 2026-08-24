@@ -77,7 +77,6 @@ export default function AccountScreen() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const advancedRef = useRef(false);
-  const methodRef = useRef<'apple' | 'google' | 'email'>('email');
 
   useEffect(() => {
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.ACCOUNT, {
@@ -114,18 +113,21 @@ export default function AccountScreen() {
         ?.onboardingCompleted === true;
 
     advancedRef.current = true;
-    trackOnboardingEvent(AnalyticsEvent.ACCOUNT_CREATED, OB_SCREEN.ACCOUNT, {
-      context: isPro ? 'post_purchase' : 'post_paywall_free',
-      method: methodRef.current,
-    });
+    // `account_created` used to fire here. Retired 2026-08-24: emitted from ONE
+    // onboarding screen, it measured screen traversal rather than signup (154
+    // events against 320 real signups) and became the broken denominator under
+    // every activation tile. Signup is now counted server-side off the
+    // public.users insert — see migration 00174 and SignupEventsService. The
+    // client-side `user_signed_up` stays because it carries `auth_method` at the
+    // moment of the auth call; the constant is kept so historical events still
+    // resolve in PostHog.
 
     // Already-onboarded → let the root gate redirect to (tabs); don't push the
     // notifications step. New accounts → continue the onboarding flow.
     if (!alreadyOnboarded) goNext();
-  }, [session, isPro, goNext, meQuery.isLoading, meQuery.isError, meQuery.data]);
+  }, [session, goNext, meQuery.isLoading, meQuery.isError, meQuery.data]);
 
   const handleApple = async () => {
-    methodRef.current = 'apple';
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
       await signInWithApple();
@@ -136,7 +138,6 @@ export default function AccountScreen() {
   };
 
   const handleGoogle = async () => {
-    methodRef.current = 'google';
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
       await signInWithGoogle();
@@ -147,7 +148,6 @@ export default function AccountScreen() {
   };
 
   const handleEmail = async () => {
-    methodRef.current = 'email';
     setBusy(true);
     try {
       const { data, error } = await supabase.auth.signUp({

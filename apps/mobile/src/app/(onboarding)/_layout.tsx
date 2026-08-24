@@ -41,17 +41,9 @@ export default function OnboardingLayout() {
       <Stack.Screen name="index" options={{ gestureEnabled: false }} />
       <Stack.Screen name="experience" options={{ gestureEnabled: false }} />
 
-      {/* A/B 2026 — Variant B profiling steps (invested arm only) */}
-      <Stack.Screen name="frequency" options={{ gestureEnabled: false }} />
-      <Stack.Screen name="stay-on-top" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="last-service" options={{ gestureEnabled: true }} />
-
       {/* Section B: Personalization & Bike */}
       <Stack.Screen name="goals" options={{ gestureEnabled: true }} />
       <Stack.Screen name="bike-setup" options={{ gestureEnabled: true }} />
-      {/* A/B 2026 — invested loader before the Reveal */}
-      <Stack.Screen name="building-plan" options={{ gestureEnabled: false }} />
-      {/* A/B 2026 — shared new steps (lean + invested) */}
       <Stack.Screen name="reveal" options={{ gestureEnabled: false }} />
       {/* Value-payoff slot for bike-skippers (shown instead of reveal when no bike) */}
       <Stack.Screen name="no-bike-value" options={{ gestureEnabled: true }} />
