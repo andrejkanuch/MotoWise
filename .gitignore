@@ -86,3 +86,7 @@ Ride-*.jsx
 .worktrees
 
 .compound-engineering/*.local.yaml
+
+# Python bytecode (store/play tooling)
+__pycache__/
+*.pyc
