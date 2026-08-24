@@ -35,6 +35,23 @@ jobs:
           # The script is the only thing needed; skip credentials it never uses.
           persist-credentials: false
 
+      # Always probe the deployment's own *.vercel.app URL, production included.
+      #
+      # This job used to hardcode https://motovault.app for production, on the
+      # reasoning that Deployment Protection is scoped "all_except_custom_domains"
+      # so the custom domain needs no bypass secret. True of Vercel — but
+      # motovault.app is fronted by CLOUDFLARE, which serves GitHub's datacenter
+      # runners a "Just a moment..." bot-challenge interstitial instead of the site.
+      # The script's identity check then fails with an error that reads like a
+      # misconfiguration. Every production run had failed this way (2026-08-10,
+      # -08-11, -08-24) while every preview run passed; preview runs hid it until
+      # #207 stopped creating previews and left this with no working signal at all.
+      #
+      # environment_url on a production deployment_status is the *.vercel.app
+      # deployment URL, not the alias — so this path skips Cloudflare entirely and
+      # reaches the origin, which is where the 404 contract actually lives. The
+      # trade-off is that it no longer proves what a crawler sees through
+      # Cloudflare; the redirect/alias layer is not what notFound() runs in.
       - name: Resolve the URL to probe
         id: target
         env:
@@ -45,28 +62,19 @@ jobs:
           HAS_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET != '' }}
         run: |
           set -euo pipefail
-          case "$ENVIRONMENT" in
-            [Pp]roduction)
-              # Deployment Protection is scoped "all_except_custom_domains", so the
-              # *.vercel.app production URL is gated but the custom domain is not.
-              # Probing the canonical domain is also what real crawlers see.
-              echo "url=https://motovault.app" >> "$GITHUB_OUTPUT"
-              echo "run=true" >> "$GITHUB_OUTPUT"
-              ;;
-            *)
-              if [ "$HAS_BYPASS" != "true" ]; then
-                echo "::notice title=404 contract::Skipped for $ENVIRONMENT — previews are behind Deployment Protection and VERCEL_AUTOMATION_BYPASS_SECRET is not set. Generate it (Vercel > Project > Settings > Deployment Protection > Protection Bypass for Automation), add it as a repo secret, and preview runs start working. Production runs are unaffected."
-                echo "run=false" >> "$GITHUB_OUTPUT"
-                exit 0
-              fi
-              if [ -z "$TARGET_URL" ]; then
-                echo "::error title=404 contract::deployment_status carried no URL for $ENVIRONMENT."
-                exit 1
-              fi
-              echo "url=$TARGET_URL" >> "$GITHUB_OUTPUT"
-              echo "run=true" >> "$GITHUB_OUTPUT"
-              ;;
-          esac
+          # The *.vercel.app URL is gated for every environment, production too,
+          # so the bypass secret is now required rather than preview-only.
+          if [ "$HAS_BYPASS" != "true" ]; then
+            echo "::notice title=404 contract::Skipped for $ENVIRONMENT — the deployment URL is behind Deployment Protection and VERCEL_AUTOMATION_BYPASS_SECRET is not set. Generate it (Vercel > Project > Settings > Deployment Protection > Protection Bypass for Automation) and add it as a repo secret."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ -z "$TARGET_URL" ]; then
+            echo "::error title=404 contract::deployment_status carried no URL for $ENVIRONMENT."
+            exit 1
+          fi
+          echo "url=$TARGET_URL" >> "$GITHUB_OUTPUT"
+          echo "run=true" >> "$GITHUB_OUTPUT"
 
       - name: Check the 404 contract
         if: steps.target.outputs.run == 'true'
