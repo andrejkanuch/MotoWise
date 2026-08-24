@@ -12,13 +12,20 @@
 #   scripts/check-404-contract.sh                       # defaults to https://motovault.app
 #   scripts/check-404-contract.sh http://127.0.0.1:3100 # local `next start`
 #
-# Vercel PREVIEW deployments sit behind Deployment Protection, so an unauthenticated
+# Vercel deployment URLs sit behind Deployment Protection, so an unauthenticated
 # request 302s to an auth wall and the identity check below fails. Export
 # VERCEL_AUTOMATION_BYPASS_SECRET to send Vercel's `x-vercel-protection-bypass` header
 # (the documented method for automation; the header form keeps the secret out of proxy
-# logs, unlike the query-parameter form). Production is reachable without it via the
-# custom domain — protection is scoped "all_except_custom_domains", so
-# https://motovault.app is exempt while its *.vercel.app deployment URL is not.
+# logs, unlike the query-parameter form). Protection is scoped
+# "all_except_custom_domains", so https://motovault.app is exempt while its
+# *.vercel.app deployment URL is not.
+#
+# BUT: do not conclude from that exemption that CI should probe motovault.app. The
+# custom domain is fronted by CLOUDFLARE, which answers datacenter IPs (GitHub Actions
+# runners included) with a "Just a moment..." bot-challenge page — the identity check
+# below then fails with a message that reads like a misconfiguration. From a normal
+# machine the custom domain is fine, which is why the default below is still
+# motovault.app; from CI, probe the *.vercel.app deployment URL with the bypass secret.
 #
 # Companion cheap tripwire that DOES run in CI on every PR:
 #   apps/web/src/app/__tests__/not-found-contract.test.ts
