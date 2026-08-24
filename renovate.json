@@ -1,32 +1,38 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    "helpers:pinGitHubActionDigests",
-    ":configMigration",
-    ":maintainLockFilesWeekly"
-  ],
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests", ":configMigration"],
   "timezone": "Europe/Bratislava",
   "schedule": ["before 6am on monday"],
   "labels": ["dependencies"],
-  "prConcurrentLimit": 5,
-  "prHourlyLimit": 2,
   "rangeStrategy": "bump",
   "minimumReleaseAge": "3 days",
+  "prConcurrentLimit": 2,
+  "prHourlyLimit": 2,
   "lockFileMaintenance": {
+    "description": "Off on purpose. Renovate never groups lock file maintenance with other updates, so enabling it guarantees a second standing dependency branch — the one thing this config exists to prevent. The weekly grouped PR already refreshes pnpm-lock.yaml. Re-enable only if transitive drift becomes a real problem, and accept the extra branch.",
+    "enabled": false
+  },
+  "major": {
+    "description": "Majors never open a branch on their own — they queue on the Dependency Dashboard issue behind a checkbox. This is what keeps the repo at exactly one standing dependency branch. Tick a box when you want to take one on, deliberately and alone.",
+    "dependencyDashboardApproval": true
+  },
+  "vulnerabilityAlerts": {
+    "description": "The one sanctioned exception to the single-branch rule. Security fixes bypass the schedule, the group and minimumReleaseAge, because waiting a week on a known CVE is worse than a second branch. Requires GitHub Dependabot *alerts* to stay enabled on the repo — Renovate reads them; it does not have its own advisory feed for this.",
     "enabled": true,
-    "schedule": ["before 6am on monday"]
+    "labels": ["dependencies", "security"],
+    "minimumReleaseAge": null
   },
   "packageRules": [
     {
-      "description": "Group all non-major devDependencies and auto-merge",
-      "matchDepTypes": ["devDependencies"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "devDependencies (non-major)",
-      "automerge": true
+      "description": "ONE branch for every routine update — npm and GitHub Actions, minor/patch/digest/pin alike, all managers in a single weekly PR. Renovate applies packageRules in order and the LAST match wins, so this catch-all must stay first: every rule below it narrows or disables what it grouped.",
+      "matchPackageNames": ["*"],
+      "matchUpdateTypes": ["minor", "patch", "digest", "pin", "pinDigest"],
+      "groupName": "all dependencies",
+      "groupSlug": "all",
+      "automerge": false
     },
     {
-      "description": "Do NOT bump Expo SDK or React Native packages independently — `expo`, `expo-*`, `@expo/*`, `react-native`, every `react-native-*` native module, and `nativewind` are version-locked to the installed Expo SDK and must be upgraded together via `expo install` / `expo install --fix` during a deliberate SDK upgrade. Piecemeal bot bumps (a lone `expo` patch, or an `expo-*`/`react-native-*` ahead of the SDK) cause duplicate native modules, lightningcss deserialize failures, and React renderer mismatches. To pull a specific community-library fix, re-enable this rule temporarily or bump that one package by hand.",
+      "description": "Do NOT bump Expo SDK or React Native packages independently — `expo`, `expo-*`, `@expo/*`, `react-native`, every `react-native-*` native module, and `nativewind` are version-locked to the installed Expo SDK and must be upgraded together via `expo install` / `expo install --fix` during a deliberate SDK upgrade. Piecemeal bot bumps (a lone `expo` patch, or an `expo-*`/`react-native-*` ahead of the SDK) cause duplicate native modules, lightningcss deserialize failures, and React renderer mismatches. #150 proved it: a *minor* react-native bump (0.85 -> 0.86) slipped a major-only ignore and broke `pod install`. To pull a specific community-library fix, re-enable this rule temporarily or bump that one package by hand.",
       "matchPackageNames": [
         "expo",
         "/^expo-/",
@@ -38,38 +44,20 @@
       "enabled": false
     },
     {
-      "description": "Group non-major NestJS ecosystem updates",
-      "matchPackageNames": ["/^@nestjs//"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "nestjs (non-major)"
-    },
-    {
-      "description": "Group non-major GraphQL tooling updates",
-      "matchPackageNames": ["/graphql/", "/^@graphql-codegen//", "graphql-request"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "graphql tooling (non-major)"
-    },
-    {
-      "description": "Group GitHub Actions and auto-merge non-major",
-      "matchManagers": ["github-actions"],
-      "matchUpdateTypes": ["minor", "patch", "digest"],
-      "groupName": "github-actions",
-      "automerge": true
-    },
-    {
-      "description": "Pin pnpm and Node engines but never auto-merge — surface major toolchain bumps for manual review",
-      "matchDepTypes": ["packageManager", "engines"],
-      "automerge": false
-    },
-    {
       "description": "Never update lightningcss — NativeWind v5 / react-native-css require it pinned to exactly 1.30.1 via pnpm.overrides. Newer versions change the lightningcss serde schema and break the Metro CSS transformer with 'failed to deserialize ... Specifier' errors. See https://www.nativewind.dev/v5/getting-started/installation",
       "matchPackageNames": ["lightningcss"],
       "enabled": false
     },
     {
-      "description": "Never update react/react-dom independently — react must byte-match the react-native-renderer bundled with react-native (0.85.3 -> 19.2.3). Bumping ahead (e.g. 19.2.7 via #112) throws 'Incompatible React versions' at runtime on native. Bump only as part of a react-native/Expo SDK upgrade.",
+      "description": "Never update react/react-dom independently — react must byte-match the react-native-renderer bundled with react-native (0.86 -> 19.2.x). Bumping ahead (e.g. 19.2.7 via #112) throws 'Incompatible React versions' at runtime on native. Bump only as part of a react-native/Expo SDK upgrade.",
       "matchPackageNames": ["react", "react-dom"],
       "enabled": false
+    },
+    {
+      "description": "pnpm and Node engines leave the group and get their own PR — a toolchain bump changes what every CI job and every developer runs, and it should never ride along unread inside a 30-package update.",
+      "matchDepTypes": ["packageManager", "engines"],
+      "groupName": null,
+      "automerge": false
     }
   ]
 }
