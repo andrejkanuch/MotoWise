@@ -83,3 +83,10 @@ Ride-*.jsx
 .worktrees
 
 .compound-engineering/*.local.yaml
+.vercel
+.env*
+# ...but .env.example IS the committed template each app is set up from
+# (apps/api, apps/mobile, apps/web). Without this negation the blanket rule
+# above silently swallows `git add` for a NEW one.
+!.env.example
+!**/.env.example
