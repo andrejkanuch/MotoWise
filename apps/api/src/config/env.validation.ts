@@ -37,6 +37,15 @@ export const envSchema = z.object({
   // match the Supabase Vault secret `ride_idle_secret`. Endpoint fails closed when
   // unset, so an unconfigured deploy simply never sweeps.
   RIDE_IDLE_SECRET: optionalString,
+  // Shared secret for the 10-minute canonical-signup-event sweep (migration
+  // 00174); must match the Supabase Vault secret `signup_event_secret`. Endpoint
+  // fails closed when unset.
+  SIGNUP_EVENT_SECRET: optionalString,
+  // PostHog server-side capture for the canonical signup event. Without the
+  // token the sweep no-ops WITHOUT claiming, so signups queue up rather than
+  // being silently consumed (see SignupEventsService).
+  POSTHOG_PROJECT_TOKEN: optionalString,
+  POSTHOG_HOST: optionalUrl,
   RESEND_API_KEY: optionalString,
   UPSTASH_REDIS_REST_URL: optionalUrl,
   UPSTASH_REDIS_REST_TOKEN: optionalString,

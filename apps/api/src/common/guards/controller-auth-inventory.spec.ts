@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { GUARDS_METADATA } from '@nestjs/common/constants';
 import { describe, expect, it } from 'vitest';
+import { SignupEventsController } from '../../modules/analytics/signup-events.controller';
 import { HealthController } from '../../modules/health/health.controller';
 import { MaintenanceDuePushController } from '../../modules/push-tokens/maintenance-due-push.controller';
 import { RideIdleCheckController } from '../../modules/push-tokens/ride-idle-check.controller';
@@ -35,6 +36,7 @@ describe('REST controller auth inventory', () => {
     RevenueCatWebhookController,
     MaintenanceDuePushController,
     RideIdleCheckController,
+    SignupEventsController,
   ] as const;
 
   const isClassPublic = (cls: object) => Reflect.getMetadata(IS_PUBLIC_KEY, cls) === true;
@@ -99,6 +101,28 @@ describe('REST controller auth inventory', () => {
     expect(src).toMatch(/!secret\s*\|\|\s*!secretHeader/);
     // Takes no request body: thresholds are service constants, so a leaked secret
     // cannot be used to end rides earlier than the configured 24h.
+    expect(src).not.toContain('@Body');
+  });
+
+  it('SignupEventsController is explicitly @Public()', () => {
+    expect(isClassPublic(SignupEventsController)).toBe(true);
+  });
+
+  it('signup-events performs its own secret-header authentication (the real auth behind @Public)', () => {
+    // This endpoint emits identified analytics events for real users, so a leaked
+    // secret is a privacy concern rather than a data-integrity one. Pin that it
+    // fails closed, and that it takes no body — WHICH users get emitted comes from
+    // signup_event_log, never from the caller, so the secret cannot be used to
+    // target a chosen user or to re-emit one.
+    const src = readFileSync(
+      join(__dirname, '../../modules/analytics/signup-events.controller.ts'),
+      'utf8',
+    );
+    expect(src).toContain('timingSafeEqual');
+    expect(src).toContain('SIGNUP_EVENT_SECRET');
+    expect(src).toContain('UnauthorizedException');
+    // Fails closed: rejects when the secret env or the secret header is absent.
+    expect(src).toMatch(/!secret\s*\|\|\s*!secretHeader/);
     expect(src).not.toContain('@Body');
   });
 
