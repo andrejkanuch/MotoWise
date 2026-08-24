@@ -1,0 +1,34 @@
+[
+  {
+    "language": "en-US",
+    "text": "Receipt Scan is here — snap a fuel or workshop receipt and MotoVault fills in the amount, date and work done. No typing.\n\n• New expense detail screen: tap any expense to view, edit or delete it\n• Service labels and prices now shown in your language and currency\n• Forgot to stop a ride? We nudge you, and end it for you\n• Fixed: recorded rides lost when your session expired\n• Fixed: onboarding getting stuck on the paywall\n• Smoother, faster app on the latest Android"
+  },
+  {
+    "language": "de-DE",
+    "text": "Belegscan ist da — fotografiere einen Tank- oder Werkstattbeleg und MotoVault trägt Betrag, Datum und Arbeiten ein. Kein Tippen.\n\n• Neue Ausgaben-Detailansicht: ansehen, bearbeiten, löschen\n• Servicebezeichnungen und Preise in deiner Sprache und Währung\n• Fahrt vergessen zu beenden? Wir erinnern und beenden sie\n• Behoben: aufgezeichnete Fahrten gingen bei Sitzungsende verloren\n• Behoben: Onboarding hing an der Paywall\n• Flüssiger und schneller unter Android"
+  },
+  {
+    "language": "fr-FR",
+    "text": "Le scan de reçus arrive — photographiez un reçu de carburant ou d'atelier et MotoVault remplit le montant, la date et les travaux. Sans rien saisir.\n\n• Nouvel écran de détail des dépenses : voir, modifier, supprimer\n• Libellés d'entretien et prix dans votre langue et devise\n• Trajet oublié ? Nous vous le rappelons et le terminons\n• Corrigé : trajets perdus à l'expiration de la session\n• Corrigé : inscription bloquée sur l'abonnement\n• Application plus rapide et plus fluide"
+  },
+  {
+    "language": "es-ES",
+    "text": "Ya está el escaneo de recibos: fotografía un recibo de gasolina o del taller y MotoVault rellena el importe, la fecha y el trabajo. Sin escribir nada.\n\n• Nueva pantalla de detalle de gastos: ver, editar o eliminar\n• Etiquetas de mantenimiento y precios en tu idioma y moneda\n• ¿Olvidaste terminar una ruta? Te avisamos y la cerramos\n• Corregido: rutas perdidas al caducar la sesión\n• Corregido: registro bloqueado en la suscripción\n• App más rápida y fluida"
+  },
+  {
+    "language": "es-419",
+    "text": "Ya llegó el escaneo de recibos: fotografía un recibo de nafta o del taller y MotoVault completa el monto, la fecha y el trabajo. Sin escribir nada.\n\n• Nueva pantalla de detalle de gastos: ver, editar o eliminar\n• Etiquetas de mantenimiento y precios en tu idioma y moneda\n• ¿Olvidaste terminar un recorrido? Te avisamos y lo cerramos\n• Corregido: recorridos perdidos al vencer la sesión\n• Corregido: registro trabado en la suscripción\n• App más rápida y fluida"
+  },
+  {
+    "language": "it-IT",
+    "text": "Arriva la scansione delle ricevute: fotografa una ricevuta di carburante o dell'officina e MotoVault compila importo, data e lavoro. Senza digitare.\n\n• Nuova schermata dettaglio spese: vedi, modifica o elimina\n• Etichette di manutenzione e prezzi nella tua lingua e valuta\n• Giro non terminato? Ti avvisiamo e lo chiudiamo noi\n• Corretto: giri persi alla scadenza della sessione\n• Corretto: registrazione bloccata sull'abbonamento\n• App più rapida e fluida"
+  },
+  {
+    "language": "pt-BR",
+    "text": "Chegou a leitura de recibos: fotografe um recibo de combustível ou da oficina e o MotoVault preenche o valor, a data e o serviço feito. Sem digitar.\n\n• Nova tela de detalhes da despesa: ver, editar ou excluir\n• Rótulos de manutenção e preços no seu idioma e moeda\n• Esqueceu de encerrar um trajeto? Avisamos e encerramos para você\n• Corrigido: trajetos perdidos quando a sessão expirava\n• Corrigido: cadastro travando na tela de assinatura\n• App mais rápido e fluido"
+  },
+  {
+    "language": "pl-PL",
+    "text": "Skanowanie paragonów jest już dostępne — zrób zdjęcie paragonu z tankowania lub warsztatu, a MotoVault wpisze kwotę, datę i wykonaną pracę.\n\n• Nowy ekran szczegółów wydatku: podejrzyj, edytuj lub usuń\n• Nazwy serwisów i ceny w Twoim języku i walucie\n• Zapomniałeś zakończyć przejazd? Przypomnimy i zakończymy go\n• Naprawiono: utratę nagranych przejazdów po wygaśnięciu sesji\n• Naprawiono: blokowanie się rejestracji na ekranie subskrypcji\n• Szybsza i płynniejsza aplikacja"
+  }
+]

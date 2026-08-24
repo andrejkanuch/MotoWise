@@ -1,0 +1,112 @@
+If you want to know **how to start motorcycle maintenance**, the honest answer is simpler than most first-year riders expect: learn a two-minute pre-ride check, keep your oil and chain on schedule, and treat your owner's manual as the final word on every number. Do those three things and you'll catch nearly every problem before it strands you — or worse. This guide walks a brand-new rider through the exact routine, the five jobs worth learning first, and a first-year schedule you can actually follow.
+
+You don't need a lift, a torque wrench collection, or a mechanic's background. You need a habit.
+
+{/* One natural product mention near the top, per house rules. */}
+MotoVault can track this whole schedule for you and remind you before each service is due — but the routine below works with nothing more than your manual and ten minutes.
+
+## Start with your owner's manual — it outranks every blog
+
+Every make, model, and year is slightly different. Oil capacity, chain slack, tire pressure, and service intervals are set by the people who built your bike, and those figures live in your owner's manual (and often on a sticker on the swingarm, chain guard, or under the seat). Any range you read online — including this article — is a starting point for understanding, not a substitute for your specific manual.
+
+If you bought used and the manual is missing, most manufacturers publish free PDF versions on their websites. Download it before you touch anything.
+
+## The 10-minute pre-ride check (T-CLOCS)
+
+The single most valuable habit in motorcycling is a pre-ride inspection. The Motorcycle Safety Foundation (MSF) teaches a checklist called **T-CLOCS**, and it's the framework taught in the Basic RiderCourse. The acronym covers six systems:
+
+- **T — Tires & Wheels:** tread, pressure (checked cold), wheels, and brakes.
+- **C — Controls:** levers, cables, hoses, and throttle (it should snap closed on its own).
+- **L — Lights & Electrics:** headlight, brake light, turn signals, battery, and switches.
+- **O — Oil & Other Fluids:** engine oil, coolant, brake and clutch fluid, fuel — levels and leaks.
+- **C — Chassis:** frame, suspension, chain or belt, and fasteners.
+- **S — Stands:** side and center stand condition and springs.
+
+You won't inspect all of it every single ride, but a quick scan of tires, lights, oil level, and chain before you roll takes about two minutes and prevents the most common breakdowns. As MSF puts it, doing this regularly "helps you discover small issues before they become big ones."
+
+## The five jobs every new rider should learn
+
+You can pay a shop for everything, but these five are cheap, teach you your machine, and are hard to get wrong once you've done them once.
+
+### 1. Oil and filter changes
+
+Oil is the cheapest insurance your engine will ever get. Two intervals matter:
+
+- **The first (break-in) change** comes early — many manufacturers call for it around **1,000 km / ~600 miles** on a new bike to flush out fine metal from break-in. If you just bought new, don't skip this one. (More on this in our [motorcycle break-in period guide](/blog/motorcycle-break-in-period).)
+- **Routine changes** for most street bikes fall in the **~5,000 km / ~3,000 mile to ~8,000 km / ~5,000 mile range, or at least once a year**, whichever comes first. Mineral oils sit at the shorter end; full synthetics can go longer. Your manual sets your number.
+
+Change the oil warm (it drains cleaner), on level ground, and replace the filter at the same time. Time riding matters as much as distance — oil degrades with heat cycles and moisture even if you barely ride, which is why the annual change matters for low-mileage bikes.
+
+### 2. Chain: clean, lube, and adjust
+
+If your bike is chain-driven (most are), this is your most frequent job. A dry or over-tight chain wears sprockets fast and, at the extreme, can lock a rear wheel.
+
+- **Clean and lube every ~500–1,000 km / ~300–600 miles**, and always after riding in rain or dust. Harley-Davidson and Haynes both put routine chain care in this range for street riders.
+- **Lube the inside of the chain** while slowly rotating the rear wheel, so centrifugal force carries it into the rollers. Wipe off the excess.
+- **Check slack at the tightest point.** Manuals typically specify somewhere in the **20–35 mm / ~0.8–1.4 in** window, but this varies by bike — use your manual's figure, not a generic one. Too tight is worse than slightly loose.
+
+Note: if your bike has a belt drive, clean it but **never lubricate a belt**.
+
+### 3. Tire pressure and condition
+
+Under-inflation is the most common — and most dangerous — neglected item on a beginner's bike. It ruins handling, causes uneven wear, and raises blowout risk.
+
+- **Check pressure cold**, meaning the bike has sat for about three hours or hasn't been ridden more than a mile or two. Riding heats the air and gives a falsely high reading.
+- **Use the pressure in your owner's manual or the bike's placard** (swingarm, chain guard, or under the seat) — **not** the "Max PSI" stamped on the tire sidewall. As Michelin and Bridgestone both stress, the sidewall number is the tire's ceiling, not your target.
+- **Inspect the tread and sidewalls** for wear bars, cracks, embedded objects, and bulges every time you check pressure.
+
+### 4. Brakes
+
+You don't need to rebuild calipers, but you should know two things: your **pads** and your **fluid**. Look at pad thickness through the caliper; if the friction material is getting thin, book a change. Check the brake fluid level in the reservoir sight glass and note that fluid should be replaced periodically (many manuals say every two years) because it absorbs moisture over time. Each brake, used alone, should firmly hold the bike from rolling.
+
+### 5. Controls, cables, and lights
+
+Squeeze every lever and roll the throttle: motion should be smooth and the throttle should **snap shut on its own**. Lubricate cable ends and pivots if they feel sticky. Then walk around and confirm the headlight (high and low), brake light (on both front and rear brake application), and all four turn signals actually work. These take 60 seconds and are the difference between being seen and being invisible.
+
+## A simple first-year maintenance schedule
+
+Use this as a mental model, then override every figure with your manual. Distances are shown in metric and imperial.
+
+| Task | Typical interval | Notes |
+|---|---|---|
+| Pre-ride check (T-CLOCS scan) | Every ride | Tires, lights, oil, chain — ~2 min |
+| Chain clean & lube | ~500–1,000 km / 300–600 mi | Sooner in wet or dusty riding |
+| Chain slack check | Every ~1,000 km / 600 mi | Adjust to manual's spec |
+| Tire pressure | Weekly, and before long rides | Cold pressure only |
+| Engine oil & filter — first (break-in) | ~1,000 km / 600 mi (new bikes) | Don't skip on a new bike |
+| Engine oil & filter — routine | ~5,000–8,000 km / 3,000–5,000 mi, or yearly | Whichever comes first |
+| Brake pad & fluid check | Monthly glance; fluid ~every 2 yrs | Replace pads before backing plate shows |
+| Air filter, coolant, valves | Per manual (often longer intervals) | Bigger jobs — schedule with a shop early on |
+
+Logging these by date **and** mileage is the part beginners forget. A notebook works; a maintenance app is easier because it reminds you before something is due rather than after. (MotoVault's garage log does exactly this, and you can see how it compares in our [roundup of motorcycle maintenance apps for 2026](/blog/best-motorcycle-apps-2026).)
+
+## The starter toolkit
+
+You can begin with very little:
+
+- A quality **tire pressure gauge** (the built-in gas-station ones are often inaccurate).
+- **Chain cleaner, a soft brush, and chain lube** suited to your chain type (O/X-ring vs. standard).
+- **Basic metric sockets and hex/Torx keys** to fit your bike.
+- An **oil drain pan, funnel, and the right oil filter** for oil changes.
+- A **rear/paddock stand** so the wheel spins freely for chain work.
+- Your **owner's manual** — and, if you want step-by-step depth, a model-specific service manual (see our [best motorcycle maintenance books for 2026](/blog/best-motorcycle-maintenance-books-2026)).
+
+Add a torque wrench when you're ready to do fastener work — torque specs matter, and guessing on brake or axle bolts is exactly where beginners get into trouble.
+
+## Common beginner mistakes to avoid
+
+- **Riding on the sidewall max pressure.** It's a ceiling, not a target.
+- **Over-tightening the chain.** A too-tight chain stresses the countershaft bearing and can bind the suspension.
+- **Skipping the first oil change** on a new bike to save money — it's the most important one.
+- **Only counting miles.** Oil and brake fluid age with time and heat cycles, so the annual/biennial clock matters even for low-mileage bikes.
+- **Guessing torque values** instead of looking them up. When a number is safety-critical, verify it against your manual.
+
+## Sources
+
+- [MSF T-CLOCS Pre-Ride Inspection Checklist (PDF)](https://msf-usa.org/wp-content/uploads/2023/03/t-clocks-pre-ride-inspection-checklist.pdf) — Motorcycle Safety Foundation — pre-ride inspection categories, tire pressure "check cold, adjust to load," chain slack/lube guidance.
+- [MSF: About the T-CLOCS Pre-Ride Inspection](https://msf-usa.org/documents/library/t-clocs-pre-ride-inspection-checklist/) — Motorcycle Safety Foundation — purpose and use of the checklist.
+- [How Often Do You Need to Change Your Motorcycle Oil?](https://us.haynes.com/blogs/tips-tutorials/how-often-do-you-need-change-your-motorcycle-oil) — Haynes Manuals — routine oil-change ranges and time-based intervals.
+- [How to Clean & Lube a Motorcycle Chain](https://www.harley-davidson.com/us/en/content/expert-advice/clean-lubricate-motorcycle-chain.html) — Harley-Davidson — chain cleaning and lubrication method.
+- [How Often Should You Lube Your Motorcycle Chain?](https://us.haynes.com/blogs/tips-tutorials/how-often-should-you-lube-your-motorcycle-chain) — Haynes Manuals — chain lube interval range.
+- [Check Your Motorcycle Tire Pressure](https://www.michelinman.com/motorcycle/tips-and-advice/tips-to-take-care-of-motorcycle-tires/check-your-tire-pressure) — Michelin — cold-pressure checking, use manual/placard not sidewall max.
+- [Bridgestone's Guide for Proper Inflation of Motorcycle Tires](https://tires.bridgestone.com/en-us/learn/motorcycle/tire-maintenance/bridgestones-guide-for-proper-inflation-of-motorcycle-tires) — Bridgestone — inflation and cold-check confirmation.

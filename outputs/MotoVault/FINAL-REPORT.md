@@ -1,126 +1,167 @@
-# MotoVault ASO Audit — Final Report
+# MotoVault ASO audit — executive summary, 2026-08-24
 
-**Generated:** 2026-04-11
-**Auditor:** ASO Master Orchestrator (multi-agent synthesis)
-**App:** MotoVault — Apple ID 6760291360 — com.motovault.app
-**Audit type:** Optimization refresh (app already live)
-
----
-
-## TL;DR
-
-MotoVault is in an uncontested category position with one critical weakness: its current store metadata says "Bike Maintenance," which Apple's search algorithm associates with bicycles. Fixing the name + subtitle, leading with the AI Mechanic differentiator, and reordering screenshots will materially lift impressions and conversion. The audit found a clear path to 80%+ impression growth in 90 days at near-zero engineering cost.
-
-**Recommended changes:**
-- New name: `MotoVault: Motorcycle Garage` (28/30)
-- New subtitle: `Service, Trips & AI Mechanic` (28/30)
-- New keyword field: `moto,bike,rider,biker,maintenance,service,reminder,oil,tire,fuel,mileage,mpg,expense,trip,logbook` (99/100)
-- Reorder screenshots: AI Mechanic to position 1
-- Submit by: **2026-04-15** to catch the spring riding-season install peak
+_Full ASO audit: three specialist phases (research / optimization / strategy) over
+first-party App Store Connect and Play data. Every figure verified this session; no
+modelled or estimated numbers. Action list: `00-MASTER-ACTION-PLAN.md`._
 
 ---
 
-## Key findings
+## 1. Are we growing? Yes at the top, no at the bottom.
 
-### 1. The competitive landscape splits into 4 tribes — MotoVault has its own
-Live data from iTunes Search API (US + DE storefronts) shows:
-- **Navigation giants** (REVER 14.8k reviews, Scenic 7.1k, Detecht 3.4k, calimoto 940, RISER 1.3k, MyRide 1.5k) own GPS/route discovery
-- **Maintenance specialists** (Bikeminder, mo.ride 145, MotoMainte 5, Strox 0, MotoShed 1) are all sub-200 reviews, fragmented, ugly
-- **Cross-vehicle fuel apps** (Fuelly 28.7k) are car-first and dormant (last update June 2024)
-- **MotoVault** is the only polished, motorcycle-first app that combines maintenance, expenses, trip planning, ride logging, AND AI diagnostics
+3.18.0 shipped rebuilt keyword fields on 2026-07-29. Against the six weeks immediately
+before it (matched window, same source, weekly series):
 
-### 2. AI Mechanic is a defensible moat
-Across all 50+ motorcycle apps surveyed, ZERO use AI for diagnostics. The only AI-diagnostic apps are car-focused (FIXD, Carly, OBDeleven, MECH.AI). The navigation giants will not pivot to add this — it conflicts with their core positioning. Lead with it everywhere.
-
-### 3. The current name leaks relevance
-"MotoVault - Bike Maintenance" uses "Bike," which Apple's algorithm associates with bicycles. Switching to "Motorcycle" in the name + claiming "Garage" (a high-intent moto term no top competitor owns) repositions cleanly.
-
-### 4. Spring 2026 timing is urgent
-Riding season peaks April-September in both target markets. Every week of delay costs visible install volume. Refresh should be live by mid-April.
-
-### 5. Localization is uncaptured upside
-calimoto (German) and MyRide (Yamaha EU) prove there's strong moto demand in Europe. MotoVault's English-only listing is leaving 30-40% of European intent on the table. de-DE, fr-FR, it-IT, es-ES localization is high-ROI.
-
----
-
-## Top 5 keyword opportunities
-
-1. **"ai diagnostic" / "ai mechanic"** — zero motorcycle competitors. Wide-open differentiator.
-2. **"motorcycle expenses" / "motorcycle costs"** — Fuelly owns car fuel, but no one owns moto expenses.
-3. **"trip planner" + "motorcycle"** — competitors compete on "navigation/GPS"; literal "trip planner" is less crowded.
-4. **"service reminder" + "motorcycle"** — Bikeminder is the only direct competitor with minimal traction.
-5. **"bike maintenance" cross-traffic** — bicycle maintenance apps rank here. Motorcycle riders also search this. Easy wins.
-
----
-
-## Recommended new Apple identity
-
-| Field | Current | New | Rationale |
+| Per day | Before | After | |
 |---|---|---|---|
-| Name | MotoVault - Bike Maintenance (28) | **MotoVault: Motorcycle Garage** (28) | Replace ambiguous "Bike" with "Motorcycle"; claim "Garage" |
-| Subtitle | Track Service, Costs & Rides (28) | **Service, Trips & AI Mechanic** (28) | Claim AI Mechanic differentiator; tighter feature trio |
-| Keywords | unknown | **moto,bike,rider,biker,maintenance,service,reminder,oil,tire,fuel,mileage,mpg,expense,trip,logbook** (99) | 15 unique terms, no name/subtitle duplicates, no trademarks |
+| Impressions | 56.5 | 138.4 | **×2.45** |
+| Product-page views | 5.02 | 12.43 | **×2.47** |
+| First-time installs | 0.50 | 1.24 | **×2.48** |
+| Impression→page view | 8.9% | 9.0% | flat |
+| Page view→download | 10.0% | 10.0% | flat |
 
-(See `02-metadata/apple-metadata.md` for full description, promo text, seasonal variants.)
+Three metrics, three near-identical multiples, both ratios unchanged: **the funnel scaled
+linearly and it is attributable**, because 3.18.0 was a metadata-only change. The week of
+Aug 10 (1,160 impressions) is the highest ever; Aug 17–22 held at ~132/day, so it is not a
+decaying spike.
 
----
+Where growth stops: **7 ratings total**, **~65% of first-time installs delete**, 3 paying
+users, and both v4 annual SKUs showing purchases at **$0.00 sales** (trials only). A wider
+funnel was built on top of an unchanged leak.
 
-## Top 3 action items (do these this week)
+## 2. The finding that outranks the rest
 
-1. **Update Apple + Google metadata to the new name/subtitle/keywords.** All copy is ready in `02-metadata/`. Submit by 2026-04-15. Expected impact: +20% impressions in 30 days.
-2. **Reorder screenshots so AI Mechanic is screen 1.** Screen 1 drives 60-70% of tap-to-install. Currently this slot is wasted on a non-differentiator. Then validate with an Apple PPO test. Expected impact: +10-15% conversion.
-3. **Set up daily review responses + weekly metrics tracking.** Start the cadences in `05-optimization/`. Apple/Google both reward developer responsiveness in their ranking signals — and editing-up of negative reviews is 4x more likely after a reply.
+**31 of 46 Play locales advertise a free tier that does not exist.** Swept at source in
+`store/play/metadata/`: 24 locales claim "unlimited bikes" as part of the free tier when
+`MAX_BIKES` is 1, and 18 promise 5 free AI diagnostic scans when the limit is 1.
 
----
+This is Play policy exposure (misrepresentation), EU consumer-protection exposure, and the
+most plausible single explanation for the ~65% delete rate — a rider installs expecting a
+free unlimited garage and hits a one-bike wall. That causal link is a hypothesis, not a
+measured fact, but it is the right shape and it is testable by fixing the copy and watching
+the deletion ratio.
 
-## Files created (16)
+The iOS 3.19.1 rewrite fixed this bug class for the App Store. Play never got it.
 
-```
-outputs/MotoVault/
-├── 00-MASTER-ACTION-PLAN.md
-├── FINAL-REPORT.md
-├── 01-research/
-│   ├── keyword-list.md
-│   ├── competitor-gaps.md
-│   └── action-research.md
-├── 02-metadata/
-│   ├── apple-metadata.md
-│   ├── google-metadata.md
-│   ├── visual-assets-spec.md
-│   └── action-metadata.md
-├── 03-testing/
-│   ├── ab-test-setup.md
-│   └── action-testing.md
-├── 04-launch/
-│   ├── relaunch-checklist.md
-│   ├── submission-guide.md
-│   ├── timeline.md
-│   └── action-launch.md
-└── 05-optimization/
-    ├── review-responses.md
-    ├── ongoing-tasks.md
-    └── action-optimization.md
-```
+## 3. The next multiple is in the subtitle, not the keyword field
 
----
+The field-weight ladder, measured on MotoVault's own listing (one app across its three
+indexed fields, so the iTunes-vs-App-Store engine caveat cannot explain it; replicates in
+all 7 locales):
 
-## 90-day forecast
+| Query | Matching term lives in | US rank |
+|---|---|---|
+| `motorcycle garage` | **name** | **1 of 16** |
+| `motorcycle expense` | **subtitle** | **3 of 18** |
+| `motorcycle cost` | keyword field | 14 of 14 |
+| `motorcycle carplay` | keyword field | 19 of 19 |
+| `motorcycle maintenance` | keyword field | **absent from top 20** |
 
-Assuming the metadata refresh ships by 2026-04-15 and the A/B testing cadence is honored:
+Name ≫ subtitle ≫ keyword field. **The ×2.45 came from the keyword field alone** — the
+subtitle changed only word order in 3.18.0 (`Service, Expense, Trip & Ride` →
+`Expense, Service, Trip & Ride`, identical token set, so nothing new was indexed) and
+Apple does not index promotional text at all. So the *weakest* surface delivered ×2.45 by
+itself, and **the two higher-weight surfaces have been untouched since launch.**
 
-- **Days 1-30:** +20% impressions, conversion holds, 1 A/B winner promoted
-- **Days 31-60:** +50% impressions cumulative, +10% conversion, top-5 keywords moving into top 50, EU localizations live
-- **Days 61-90:** +80% impressions cumulative, +20% conversion, 3-4 keywords in top 10, Pro subscription rate +25%, peak riding season fully captured
+The priority edit is one string per locale: **subtitle → `Expense & Maintenance Tracker`**,
+demoting `service` into the field to preserve the GB rank. `tracker` — the category's most
+common name noun and July's #1 identified gap — is currently indexed nowhere at all. This
+reverses July's B2 action, which put `maintenance` into the keyword field: right term,
+wrong field.
 
-These are aspirational targets — actual lift depends on baseline volume (which Apple Connect can confirm) and whether the AI Mechanic claim resonates as strongly as the gap analysis suggests.
+## 4. You cannot test your way there
 
----
+Two-proportion z-test, α=0.05, 80% power, against verified traffic:
 
-## Open questions for the founder
+| Test | Effect | Time needed |
+|---|---|---|
+| PPO, 2 arms | +20% relative | 2.9 years |
+| PPO, 3 arms (`cc64b9d2` as configured) | +20% relative | **4.3 years** |
+| PPO, 2 arms | +50% relative | 6 months |
 
-1. What is the current baseline impression count and conversion rate? (Pull from App Store Connect → Analytics.) The forecast above is relative — knowing the absolute numbers sharpens the planning.
-2. How confident are you in the AI Mechanic answer quality? If it's <80% accurate on common moto issues, leading with it in the subtitle is risky for review velocity.
-3. Are there any feature releases planned for the next 30 days that should be folded into the same submission? (See `04-launch/submission-guide.md` Option A vs Option B.)
-4. Localization budget — willing to invest 2 hours/locale for de-DE/fr-FR/it-IT/es-ES? ROI is high but it's a real time commitment.
+PPO's denominator is impressions, so the base rate is 9.0% × 10.0% ≈ 0.9%. Checked against
+the alternative reading (page-view→download, base 10%): 2.6–3.9 years. **Denominator-
+independent.** Conversion is not measurable here by any method (±5–10pp MDE on a 10% base).
+Impressions *are* measurable — which is precisely why 3.18.0 gave a clean read.
 
-These don't block execution — proceed with the refresh as designed and answer the questions in parallel.
+Consequences: stop `cc64b9d2` (read it in the ASC UI first — it is attached to 3.18.0 and
+3.19.1 has zero experiments attached, so release will orphan ~3 months of accrual); ship
+screenshot and copy changes directly at 100% of traffic; run sequential one-lever-per-
+release tests on 21-day reads; do **not** open a Play experiment at "100+ downloads".
+
+## 5. Three free discovery channels have never been used once
+
+- `asc nominations list` → 0 draft, 0 submitted, 0 archived. **The editorial/featuring
+  channel has never been touched.** Apple asks ~3 weeks' lead; the CarPlay Driving Task
+  entitlement (case 20710293) is a rare hook and 3.19.1 is in review now.
+- `asc app-events list` → one in-app event, `6772116373`, state `DRAFT`, never published.
+  In-app events surface on Today/category/search and need no chart velocity.
+- `asc app-tags list` → empty. Zero Apple discoverability tags attached.
+- `custom-pages list` → 0. No Custom Product Page exists for blog/SEO inbound.
+
+**Do not change primary category.** All 57 Apple categories were enumerated: there is no
+automotive or motorcycle category, charts run on download velocity (1.24 installs/day is
+nowhere near Top 200 of anything), and a change forfeits five months of category-relevance
+signal. Also killed: there is no App Store "CarPlay apps" browse collection, so any plan
+premised on CarPlay creating a browse surface is void.
+
+## 6. The competitive picture changed since July
+
+The direct motorcycle cluster is still wide open — ceiling 11 ratings across our 7
+storefronts, and 8 of 22 apps at literally zero. But "the whole cluster is 0–6 ratings" is
+**refuted in two target markets**: Italy has My Garage at **1,428 @ 4.4** (abandoned since
+2020, beatable on freshness) and France has EMX at **88 @ 4.7, shipping today**.
+
+**A clone farm arrived.** The same queries that returned 7 competitors in July return 22.
+Fifteen entrants are one product under locale-exact-match names (`Motorrad Wartung–FixioMoto`,
+`Entretien moto–FixioMoto`, Iron, Garagely, Cylabike, MotorApp, Revvo). Zero ratings, zero
+retention — and they outrank MotoVault in every localized maintenance query, purely because
+the query string is their app name. That is the field-weight ladder weaponised, and it is
+beatable with a metadata change. The cluster now ships weekly: move competitor review from
+quarterly to monthly.
+
+## 7. Trust is narrower than 4.43★ suggests
+
+7 ratings / 4.43 average resolves to **exactly 2 ratings inside the seven storefronts we
+maintain listings for** (US 1@2.0, DE 1@4.0). Every positive rating we own is in a
+storefront with no localized listing (SK, BE, MK, CL). In the US — 40% of impressions — we
+display **the worst visible rating in the entire result set**, and a zero-rating competitor
+shows no stars at all, which is strictly better than showing 2.0.
+
+The rating soft-ask exists but is a bare `Alert.alert` (`store-review.ts:116`) despite its
+docstring promising a themed sheet, and it stamps `REVIEWED_VERSION_KEY` at line 103 —
+*before* the alert renders — so a dismissal burns that version's only attempt. It is live on
+Android (3.19.0) and reaches **zero iOS users**, who are all on 3.18.0.
+
+## 8. Corrections this audit made to prior work
+
+| Prior claim | Reality |
+|---|---|
+| "Reply to the US 2★" (top of the July plan) | **Impossible.** Star-only rating; Apple has no response mechanism. Never was executable. |
+| "1 rating, US 2★, zero elsewhere" | 7 ratings / 4.43 across 6 countries. Prior audits queried only the 8 localized storefronts. |
+| "~15% deletion rate" | Divided by *all* install events (mostly auto-updates). Real figure ≈ **65% of first-time installs**. |
+| "Impression→PV collapsed 19.4% → 8.8%" | Artifact of a Mar–Jun average inflated by two tiny-denominator outlier weeks. True pre-release rate was 8.9%; it is **flat**. |
+| "At ~138 impr/day PPO is no longer underpowered" | Wrong by >1 order of magnitude. 2.9–4.3 years. |
+| "Proceeds flat at $0.43/day" | Sparse daily pull missed a sale. $0.52 → $2.21/day, but the whole delta is one $29.99 conversion. |
+| Keyword volumes like "45K/month" in the July file | **Invented.** No Apple search volume exists without a Search Ads campaign. Removed, not carried forward. |
+| "B4 localized keyword fields — open" | Already done in the prepared 3.19.1. |
+| "PPO results are entirely un-queryable" | Config *is* queryable via `asc product-pages`; only results are UI-only. |
+
+## 9. Biggest remaining blind spot
+
+**No Apple Search Ads campaign exists**, so there are no Apple search volumes and no
+term-level impression data. Every demand judgement in this audit is ordinal. A $5/day ASA
+campaign is the cheapest way to close that gap and would make the keyword work measurable
+per-term rather than per-release.
+
+Secondary: Play install/rating time series are unavailable until the Play Console GCS
+reports bucket is configured.
+
+## 10. Do these, in this order
+
+1. **Rewrite the 31 Play descriptions** to match the free tier that actually ships.
+2. **Press release on 3.19.1** — it is `WAITING_FOR_REVIEW` with `releaseType: MANUAL`, so
+   approval will not publish it. This is what finally delivers the soft-ask to iOS.
+3. **Submit a featuring nomination** while the CarPlay hook and a release are both live.
+4. **Change the subtitle** in all 7 locales (3.20.0, on its own, so the read is clean).
+5. **Read then stop `cc64b9d2`**; build a Custom Product Page for blog inbound.
+6. **Start a $5/day ASA campaign** to get real search volumes.
