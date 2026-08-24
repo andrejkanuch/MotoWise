@@ -21,7 +21,7 @@ Planea tu rodada de fin de semana o el gran viaje de tu vida. Guarda rutas, marc
 Encuentra rutas panorámicas cerca de ti, elegidas por motociclistas. Desde la rodada de 90 minutos hasta el único camino al Océano Ártico. Cada ruta con superficie, dificultad y perfil de elevación.
 
 ★ GARAGE MULTI-MOTO
-Motos ilimitadas — registra todas las motos que tengas, gratis para siempre. Diaria, de fin de semana, de proyecto, de aventura. Cada moto con plan de mantenimiento, consumo, historial de gastos y estadísticas.
+Una moto gratis, más motos con Pro. Diaria, de fin de semana, de proyecto, de aventura. Cada moto con plan de mantenimiento, consumo, historial de gastos y estadísticas.
 
 MÁS DE 12,000 MODELOS DE MOTO SOPORTADOS
 Base de datos NHTSA. Intervalos de mantenimiento precargados, cilindrada y fluidos recomendados para Honda, Yamaha, Kawasaki, Suzuki, BMW, Ducati, KTM, Harley-Davidson, Triumph, Royal Enfield, Aprilia, Indian, Husqvarna, Moto Guzzi y muchos más.
@@ -37,14 +37,14 @@ DISEÑO PARA QUIENES MANEJAN
 Modo oscuro por defecto, legible con guantes. Optimizada para pilotos solo Y rodadas en grupo. GDPR-compliant, infraestructura en UE, TLS 1.3 en tránsito, AES-256 en reposo. Tus datos son tuyos — exporta o elimina todo con un toque.
 
 MOTOVAULT PRO
-Gratis para siempre: motos ilimitadas, control completo de mantenimiento, registro de gastos, grabación de rodadas con GPS, planeador de viajes (hasta 3 rutas guardadas) y 5 diagnósticos IA al mes.
+Gratis para siempre: 1 moto, registro ilimitado de mantenimiento y gastos, grabación ilimitada de rodadas, 1 diagnóstico IA y 3 escaneos de recibos al mes.
 
 Pro desbloquea: diagnósticos IA ilimitados, estadísticas avanzadas con reportes semanales, exportaciones GPX ilimitadas y estadísticas extendidas. Con plan mensual o anual. El precio se muestra en la app antes de confirmar. La suscripción se renueva automáticamente salvo que se cancele al menos 24 horas antes del final del periodo. Gestiónala o cancélala cuando quieras en los ajustes de tu cuenta de Google Play.
 
 SIN OBD-II
 MotoVault funciona completamente desde tu celular — sin scan tools, sin adaptadores Bluetooth, sin cables. Cámara para diagnóstico, GPS para grabación. Funciona en cualquier moto, cualquier año, cualquier fabricante.
 
-¿Preguntas, comentarios? Leemos cada correo: hello@motovault.app
+¿Preguntas, comentarios? Leemos cada correo: support@motovault.app
 Privacidad: https://motovault.app/privacy
 Términos: https://motovault.app/terms
 

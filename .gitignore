@@ -11,6 +11,9 @@ screenshots/
 dist/
 .next/
 .expo/
+# Vercel CLI local link state (project/org ids + pulled env). Machine-local, and
+# `vercel env pull` writes secrets next to it — never commit this directory.
+.vercel/
 ios/
 android/
 

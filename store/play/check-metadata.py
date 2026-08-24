@@ -5,8 +5,20 @@ Enforces the rules in README.md that came from real defects: character limits
 (not bytes), no trailing newline, no hardcoded prices, "Google Play" not
 "App Store", keyword-bearing titles, and no Latin letters stranded inside a
 non-Latin script.
+
+Free-tier claim accuracy lives in `free_tier_claims.py` and is called from here so
+CI has a single entry point. That check exists because 43 of 46 locales shipped a
+free tier that does not exist; see that module's header for the design.
 """
 import os, re, sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from free_tier_claims import (
+    authored_for_problems,
+    free_tier_problems,
+    read_limits,
+    self_test as free_tier_self_test,
+)
 
 BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'metadata')
 # The locale set is a ratchet: adding or removing a listing is a deliberate edit
@@ -23,7 +35,7 @@ NON_LATIN = {'bg', 'uk', 'ru-RU', 'sr', 'mk-MK', 'el-GR', 'th', 'hi-IN',
              'ja-JP', 'ko-KR', 'zh-CN', 'zh-TW', 'ar'}
 # Latin tokens that legitimately appear inside non-Latin copy.
 ALLOWED_LATIN = {'motovault', 'pro', 'gps', 'gpx', 'ai', 'google', 'play', 'https',
-                 'app', 'hello', 'com', 'privacy', 'terms', 'km', 'email', 'pdf',
+                 'app', 'support', 'com', 'privacy', 'terms', 'km', 'email', 'pdf',
                  'obd', 'ii'}
 # The currency symbol may PRECEDE or FOLLOW the amount. An earlier version only
 # matched prefix-$ and suffix €/EUR/USD, so the French listing's "3,99 $/mois" and
@@ -53,9 +65,12 @@ PRICE = re.compile(rf'{CURRENCY}\s?\d|\d+(?:[.,]\d{{1,2}})?\s?{CURRENCY}')
 # adjacent, so "12,000+ models", "4000 characters" and a bare "24 hours" cannot
 # match it in the first place. An earlier version exempted `\b24\b`, which also
 # suppressed the genuine prices "24 EUR" and "24 €".
+# support@ is canonical, decided 2026-08-24. This constant said `hello@` for a
+# while after all 46 listings were swept to support@, which turned the whole gate
+# red on every locale at once — a required-token check is only as good as the token.
 REQUIRED = [('motovault.app/privacy', 'privacy URL'),
             ('motovault.app/terms', 'terms URL'),
-            ('hello@motovault.app', 'support email')]
+            ('support@motovault.app', 'support email')]
 # Subscription terms Play expects a paid listing to state: that it auto-renews,
 # the 24-hour cancellation deadline, and where to manage or cancel.
 #
@@ -120,6 +135,7 @@ def self_test():
                            ('99 рубрика', False), ('50 грница', False)]:
         if bool(PRICE.search(text)) != expected:
             failures.append(f'price fixture expected {expected}: {text!r}')
+    failures.extend(free_tier_self_test())
     return failures
 
 def field_problems(locale, fname, text):
@@ -155,6 +171,17 @@ def main():
     locales = sorted(name for name in os.listdir(BASE)
                      if os.path.isdir(os.path.join(BASE, name)))
 
+    # Free-tier numbers come from the app's own constants. A mismatch between
+    # those constants and what the copy was written for is fatal on its own: every
+    # locale claim below would be unverifiable, so say so once instead of 46 times.
+    limits = read_limits()
+    authored = authored_for_problems(limits)
+    if authored:
+        print(f'FREE-TIER CONSTANTS CHANGED ({len(authored)}) — not checking listings')
+        for problem in authored:
+            print(' -', problem)
+        return 1
+
     # Compare against the committed expected set, not just what happens to be on
     # disk: a deleted or renamed locale directory would otherwise shrink the
     # checked set and still report success.
@@ -188,6 +215,7 @@ def main():
         if not has_subscription_disclosure(full):
             problems.append(f'{locale}: no single paragraph states both the 24-hour '
                             'cancellation deadline and where to manage/cancel')
+        problems.extend(free_tier_problems(locale, full, limits))
 
     print(f'{len(locales)} locales checked, {len(problems)} problems')
     for p in problems:

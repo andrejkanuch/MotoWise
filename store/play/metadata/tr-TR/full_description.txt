@@ -22,7 +22,7 @@ MOTOSİKLETÇİLER İÇİN TASARLANDI
 Motosikletçiler tarafından motosikletçiler için tasarlandı. Bir gezi planlarken veya garajda bakım takibi yaparken mükemmel çalışan temiz ve sezgisel arayüz.
 
 ÜCRETSİZ BAŞLAYIN
-Temel özellikler sonsuza kadar ücretsizdir. Rotaları takip edin, bakım yönetin ve masrafları ücretsiz izleyin.
+Sonsuza kadar ücretsiz: 1 motosiklet, sınırsız bakım ve masraf kaydı, sınırsız sürüş kaydı, ayda 1 AI tanılama ve 3 fiş taraması.
 
 MOTOVAULT PRO
 Sınırsız AI tanılama, gelişmiş rota istatistikleri, ayrıntılı masraf raporları ve yeni özelliklere öncelikli erişim dahil premium özelliklerin kilidini açın. Aylık veya yıllık abonelikle kullanılabilir.
@@ -32,4 +32,4 @@ Sınırsız AI tanılama, gelişmiş rota istatistikleri, ayrıntılı masraf ra
 Gizlilik Politikası: https://motovault.app/privacy
 Kullanım Koşulları: https://motovault.app/terms
 
-Sorunuz veya öneriniz mi var? Her e-postayı okuyoruz: hello@motovault.app
+Sorunuz veya öneriniz mi var? Her e-postayı okuyoruz: support@motovault.app

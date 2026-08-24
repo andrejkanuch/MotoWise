@@ -22,7 +22,7 @@ PORQUE OS MOTARDS GOSTAM DO MOTOVAULT
 FEITO PARA QUEM ANDA A SÉRIO
 ──────────────
 
-- Motas ilimitadas — registe todas as que tiver, sempre grátis
+- Registos ilimitados — cada revisão, cada despesa, cada quilómetro, sempre grátis
 - Mais de 12.000 modelos de mota suportados
 - Design cuidado, pensado para modo escuro
 - Privado e seguro — os seus dados são seus
@@ -31,13 +31,13 @@ FEITO PARA QUEM ANDA A SÉRIO
 MOTOVAULT PRO
 ──────────────
 
-A versão gratuita inclui motas ilimitadas, manutenção completa, registo de despesas, gravação de viagens e 5 diagnósticos com IA por mês. O MotoVault Pro desbloqueia diagnósticos com IA ilimitados, estatísticas avançadas, exportações GPX ilimitadas e mais dados das viagens.
+A versão gratuita inclui 1 mota, registo ilimitado de manutenção e despesas, gravação ilimitada de viagens, 1 diagnóstico com IA e 3 digitalizações de recibos por mês. O MotoVault Pro acrescenta mais motas, diagnósticos com IA ilimitados, digitalizações ilimitadas, estatísticas avançadas, exportações GPX ilimitadas e mais dados das viagens.
 
 Há planos mensais e anuais; o preço aparece na app antes de confirmar. As subscrições renovam-se automaticamente salvo cancelamento até 24 horas antes do fim do período. Pode gerir ou cancelar quando quiser nas configurações da sua conta Google Play.
 
 Política de Privacidade: https://motovault.app/privacy
 Termos de Serviço: https://motovault.app/terms
 
-Dúvidas ou sugestões? Lemos todos os emails: hello@motovault.app
+Dúvidas ou sugestões? Lemos todos os emails: support@motovault.app
 
 Duas rodas. Uma app.

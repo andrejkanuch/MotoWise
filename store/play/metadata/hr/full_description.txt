@@ -22,7 +22,7 @@ ZAŠTO MOTOCIKLISTI KORISTE MOTOVAULT
 ZA PRAVE MOTOCIKLISTE
 ──────────────
 
-- Neograničeno motocikla — svi tvoji strojevi, zauvijek besplatno
+- Neograničeni zapisi — svaki servis, svaki trošak, svaki kilometar, besplatno
 - Više od 12.000 podržanih modela motocikla
 - Lijep dizajn, napravljen za tamni način
 - Privatno i sigurno — tvoji podaci ostaju tvoji
@@ -31,13 +31,13 @@ ZA PRAVE MOTOCIKLISTE
 MOTOVAULT PRO
 ──────────────
 
-Besplatno zauvijek uključuje neograničeno motocikla, potpunu servisnu knjigu, troškove, snimanje vožnji i 5 AI dijagnostika mjesečno. MotoVault Pro otključava neograničene AI dijagnostike, napredne statistike, neograničen GPX izvoz i dodatne podatke o vožnjama.
+Besplatno zauvijek uključuje 1 motocikl, neograničen servisni zapis i troškove, neograničeno snimanje vožnji, 1 AI dijagnostiku i 3 skeniranja računa mjesečno. MotoVault Pro dodaje više motocikala, neograničene AI dijagnostike, neograničena skeniranja, napredne statistike, neograničen GPX izvoz i dodatne podatke o vožnjama.
 
 Postoje mjesečni i godišnji plan; cijena se prikazuje u aplikaciji prije potvrde. Pretplate se automatski obnavljaju ako ih ne otkažeš najmanje 24 sata prije kraja razdoblja. Možeš ih urediti ili otkazati bilo kada u postavkama Google Play računa.
 
 Pravila privatnosti: https://motovault.app/privacy
 Uvjeti korištenja: https://motovault.app/terms
 
-Pitanja ili predlozi? Čitamo svaki e-mail: hello@motovault.app
+Pitanja ili predlozi? Čitamo svaki e-mail: support@motovault.app
 
 Dva kotača. Jedna aplikacija.

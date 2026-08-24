@@ -24,7 +24,7 @@ CONÇU POUR LES MOTARDS
 Lors de la configuration, MotoVault apprend votre niveau d'expérience, votre style de conduite, vos objectifs et vos préférences d'entretien pour fournir des recommandations adaptées.
 
 GRATUIT POUR COMMENCER
-Commencez avec une moto dans votre garage, un accès complet à la base de connaissances et 3 diagnostics IA par mois — entièrement gratuit.
+Gratuit pour toujours : 1 moto dans votre garage, suivi illimité de l'entretien et des dépenses, enregistrement illimité des trajets, 1 diagnostic IA et 3 scans de reçus par mois.
 
 MOTOVAULT PRO
 Débloquez un nombre illimité de motos, de diagnostics IA, des rappels d'entretien pour toutes vos machines et l'export PDF des fiches de service.
@@ -36,4 +36,4 @@ Le paiement sera débité de votre compte Google Play lors de la confirmation de
 Politique de confidentialité : https://motovault.app/privacy
 Conditions d'utilisation : https://motovault.app/terms
 
-Des questions ? Nous lisons chaque e-mail : hello@motovault.app
+Des questions ? Nous lisons chaque e-mail : support@motovault.app

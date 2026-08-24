@@ -26,8 +26,9 @@
     "check:mobile-colors": "sh scripts/check-no-hardcoded-mobile-colors.sh",
     "check:arch": "tsx scripts/check-arch-boundaries.ts",
     "check:404": "bash scripts/check-404-contract.sh",
+    "check:store-copy": "python3 store/play/check-metadata.py",
     "knip": "knip",
-    "precheck": "pnpm check:api-bans && pnpm check:router && pnpm check:mobile-colors && pnpm check:arch && pnpm lint && pnpm typecheck && pnpm test",
+    "precheck": "pnpm check:api-bans && pnpm check:router && pnpm check:mobile-colors && pnpm check:arch && pnpm check:store-copy && pnpm lint && pnpm typecheck && pnpm test",
     "precheck:push": "sh scripts/precheck-changed.sh",
     "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true"
   },

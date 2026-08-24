@@ -22,7 +22,7 @@ WHY RIDERS LOVE MOTOVAULT
 BUILT FOR REAL RIDERS
 --------------------------
 
-- Unlimited bikes—track every bike you own, free forever
+- Unlimited logging—every service, every expense, every mile, free forever
 - 12,000+ motorcycle models supported (NHTSA-backed catalog)
 - Beautiful, dark-mode-first design
 - Private and secure—your data is yours
@@ -44,7 +44,7 @@ WHO IT'S FOR
 MOTOVAULT PRO
 --------------------------
 
-Free forever includes unlimited bikes, full maintenance tracking, expense logging, ride recording, and 5 AI diagnostic scans per month. MotoVault Pro unlocks unlimited AI diagnostics, advanced rider analytics, unlimited GPX exports, and extended ride statistics, on a monthly or annual plan. The price is shown in the app before you confirm.
+Free forever includes 1 bike, unlimited maintenance and expense logging, unlimited ride recording, 1 AI diagnostic scan per month, and 3 receipt scans per month. MotoVault Pro unlocks additional bikes, unlimited AI diagnostics, unlimited receipt scans, advanced rider analytics, unlimited GPX exports, and extended ride statistics, on a monthly or annual plan. The price is shown in the app before you confirm.
 
 Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period. Manage or cancel anytime in your Google Play account settings.
 
@@ -53,6 +53,6 @@ Terms of Service: https://motovault.app/terms
 
 --------------------------
 
-Questions? Feedback? We read every email: hello@motovault.app
+Questions? Feedback? We read every email: support@motovault.app
 
 Two wheels. One app. Ride better.

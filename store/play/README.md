@@ -64,11 +64,32 @@ Limits are **characters, not bytes** — `wc -c` overstates every non-Latin loca
 - **A price regex must match the currency symbol on either side of the amount.** The
   first version only caught prefix-`$` and suffix `€/EUR/USD`, so the French listing's
   `3,99 $/mois` passed the gate and shipped.
+- **Never write a free-tier number in prose.** 43 of 46 locales advertised a free tier
+  that does not ship — 40 promised "unlimited bikes" and "5 AI diagnostic scans per
+  month", and fr-FR/id/hi-IN promised 3 AI scans, when the real limits are **1 bike and
+  1 AI scan**. Four locales also invented a "trip planner (up to 3 saved routes)" limit
+  that exists nowhere in the code. The free-tier sentence is now **generated per locale**
+  from `packages/types/src/constants/limits.ts` (see `free_tier_claims.py`) and must
+  appear verbatim, so a number cannot drift from the constant that enforces it.
+- **Do not trust a scrape to find these.** The audit that first counted the damage
+  pattern-matched English-shaped phrasing and reported 31 affected locales, clearing
+  pl-PL and hu-HU while both were broken. A later hand survey missed pt-PT because its
+  bike word was `motas`. That is why the second-site check is an **allowlist by content
+  hash** (`ACKNOWLEDGED_CLAIMS`) rather than a classifier: an unrecognised
+  "unlimited"+bike sentence fails CI until a human writes down why it is acceptable.
 
 `check-metadata.py` enforces all of the above. Run it after any bulk edit — and note
 that its `EXPECTED_LOCALES` tuple is a deliberate ratchet: adding or removing a locale
 means editing that list, so a directory disappearing can never silently shrink the
 checked set into a false pass.
+
+### If you change a free-tier constant
+
+The guard **hard-fails** when `limits.ts` disagrees with `AUTHORED_FOR` in
+`free_tier_claims.py`, and it will not auto-substitute the new value. That is
+deliberate: "1 bike" is singular, and most of these 46 languages inflect the noun by
+quantity, so blindly rendering `2` would ship 46 grammatically broken claims that nobody
+reviewed. Re-author the affected sentences first, then update `AUTHORED_FOR`.
 
 ## Why 46 locales
 
