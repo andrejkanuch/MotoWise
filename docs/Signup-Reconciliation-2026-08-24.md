@@ -2,8 +2,13 @@
 
 **Date:** 2026-08-24
 **Gate for:** U2 of `docs/plans/2026-08-24-1622-feat-activation-and-store-truth-plan.md`
-**Status:** ⚠️ **OPEN.** The canonical event has not shipped, so the gate cannot
-have been met. U2 is not done until the number below is filled in.
+**Status:** ⚠️ **OPEN — but the event is now live.** Shipped to production
+2026-08-24 (see "Deployment record" below). The gate cannot be evaluated until
+September is over. U2 is not done until the number below is filled in.
+
+**Gate month: September 2026.** The sweep went live on 2026-08-24, so August is
+a partial month and unusable. Evaluate from **2026-10-01**, once September is
+complete.
 
 Reproduce the denominator with `pnpm reconcile:signup`. It applies the same
 `role = 'user' AND deleted_at IS NULL` filters as `claim_pending_signup_events`,
@@ -76,14 +81,37 @@ It is also the clearest example of what an independent review of the plan would
 have been for. The plan's remedy (one canonical server-side event) is correct and
 unchanged — but it was justified with half the diagnosis.
 
+## Deployment record — 2026-08-24
+
+All three parts are live and verified end-to-end:
+
+| Part | State | Evidence |
+|---|---|---|
+| Migration `00174` | Applied to production | 577 rows seeded into `signup_event_log`, 0 pending, RLS on, 3 functions present, recorded in `supabase_migrations.schema_migrations` as version `00174` |
+| Vault secret `signup_event_secret` | Created | sha256 fingerprint matches Render byte-for-byte |
+| Render env (`SIGNUP_EVENT_SECRET`, `POSTHOG_PROJECT_TOKEN`, `POSTHOG_HOST`) | Set + deployed | deploy `dep-da6al6bm8hqs73eptfc0`, status `live` |
+| pg_cron job `signup-events` | Active, `*/10 * * * *` | jobid 10 |
+
+End-to-end proof: invoking `public.cron_trigger_signup_events()` produced
+`net._http_response` id 548 — **HTTP 200**,
+`{"claimed":0,"identified":0,"anonymous":0,"released":0,"status":"ok"}`. `claimed:0`
+is the correct result, because the migration's seed deliberately suppresses the
+~577-user backfill. The endpoint also returns **401** for a missing or wrong
+secret, so it fails closed.
+
+The seed is why August cannot be the gate month: every user existing on
+2026-08-24 was marked as already-claimed, so only signups from that moment
+forward emit an event.
+
 ## The gate
 
-Fill this in for the **first full calendar month after the sweep is live**. If
-the sweep goes live mid-September, the gate month is **October**, not September.
+Fill this in for the **first full calendar month after the sweep is live**. The
+sweep went live **2026-08-24**, so the gate month is **September 2026**, and it
+can first be evaluated on **2026-10-01**.
 
 | | Value |
 |---|---|
-| Gate month | _(fill in)_ |
+| Gate month | **2026-09** |
 | `signup_completed` unique users (PostHog) | _(fill in)_ |
 | New `public.users` rows, `role='user'`, not deleted (`pnpm reconcile:signup`) | _(fill in)_ |
 | Ratio | _(fill in)_ |
