@@ -111,14 +111,50 @@ function paywallProperties(
   };
 }
 
-function trackPaywallResult(options: PresentPaywallOptions, result: PaywallResult) {
+/**
+ * Which product was actually bought.
+ *
+ * The paywall result only says a purchase happened, never *what* was purchased,
+ * so `purchase_completed` shipped with no SKU on it — meaning the monthly-vs-annual
+ * mix was unmeasurable and a pricing change could not be evaluated. RevenueCat
+ * exposes it on the active entitlement, so read it back from there.
+ *
+ * Best-effort by design: a failed lookup must never cost us the purchase event,
+ * so it resolves to nulls rather than throwing.
+ */
+async function purchasedProductProperties(): Promise<Record<string, JsonType>> {
+  try {
+    const Purchases = await getPurchases();
+    const info = await Purchases.getCustomerInfo();
+    const entitlement = info.entitlements.active[REVENUECAT_ENTITLEMENT_PRO];
+    return {
+      product_identifier: entitlement?.productIdentifier ?? null,
+      period_type: entitlement?.periodType ?? null,
+      will_renew: entitlement?.willRenew ?? null,
+    };
+  } catch (e) {
+    addBreadcrumb(
+      e instanceof Error ? e.message : String(e),
+      'revenuecat.purchasedProduct.lookupFailed',
+    );
+    return { product_identifier: null, period_type: null, will_renew: null };
+  }
+}
+
+async function trackPaywallResult(options: PresentPaywallOptions, result: PaywallResult) {
   const properties = paywallProperties(options, { paywall_result: result });
   trackEvent(AnalyticsEvent.PAYWALL_RESULT, properties);
 
   if (result === 'purchased') {
-    trackEvent(AnalyticsEvent.PURCHASE_COMPLETED, properties);
+    trackEvent(AnalyticsEvent.PURCHASE_COMPLETED, {
+      ...properties,
+      ...(await purchasedProductProperties()),
+    });
   } else if (result === 'restored') {
-    trackEvent(AnalyticsEvent.SUBSCRIPTION_RESTORED, properties);
+    trackEvent(AnalyticsEvent.SUBSCRIPTION_RESTORED, {
+      ...properties,
+      ...(await purchasedProductProperties()),
+    });
   } else if (result === 'cancelled') {
     trackEvent(AnalyticsEvent.PAYWALL_DISMISSED, {
       ...properties,
@@ -499,7 +535,7 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
 
   if (isExpoGo()) {
     logger.warn('[RevenueCat] Paywall not available in Expo Go');
-    trackPaywallResult(options, 'not_presented');
+    await trackPaywallResult(options, 'not_presented');
     return 'not_presented';
   }
 
@@ -542,7 +578,7 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
     // there is no dismiss handle, so this is the only point at which "the rider
     // already moved on" can still be honoured.
     if (options.shouldAbort?.() === true) {
-      trackPaywallResult(options, 'not_presented');
+      await trackPaywallResult(options, 'not_presented');
       return 'not_presented';
     }
 
@@ -583,24 +619,24 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
 
     switch (result) {
       case PAYWALL_RESULT.PURCHASED:
-        trackPaywallResult(options, 'purchased');
+        await trackPaywallResult(options, 'purchased');
         return 'purchased';
       case PAYWALL_RESULT.RESTORED:
-        trackPaywallResult(options, 'restored');
+        await trackPaywallResult(options, 'restored');
         return 'restored';
       case PAYWALL_RESULT.NOT_PRESENTED:
-        trackPaywallResult(options, 'not_presented');
+        await trackPaywallResult(options, 'not_presented');
         return 'not_presented';
       case PAYWALL_RESULT.ERROR:
-        trackPaywallResult(options, 'error');
+        await trackPaywallResult(options, 'error');
         return 'error';
       default:
-        trackPaywallResult(options, 'cancelled');
+        await trackPaywallResult(options, 'cancelled');
         return 'cancelled';
     }
   } catch (e) {
     reportRevenueCatError(e, 'revenuecat.presentPaywall');
-    trackPaywallResult(options, 'error');
+    await trackPaywallResult(options, 'error');
     return 'error';
   }
 }
