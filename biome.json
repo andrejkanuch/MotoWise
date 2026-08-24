@@ -24,7 +24,9 @@
       "!marketing/video",
       "!figma-paywall-v3.js",
       "!figma-paywall-script.js",
-      "!docs/design-reference"
+      "!docs/design-reference",
+      "!outputs/**/raw-data",
+      "!.vercel"
     ]
   },
   "formatter": {

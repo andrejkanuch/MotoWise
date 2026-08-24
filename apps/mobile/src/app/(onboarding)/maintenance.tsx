@@ -1,3 +1,15 @@
+/**
+ * OFF-FLOW as of 2026-08-24 (U6). This screen is in NO onboarding flow.
+ *
+ * Removed as friction: in the winning arm since 2026-06-15 it was viewed by 150
+ * riders, completed by **2**, and skipped by 146. Retained as a route because a
+ * rider mid-flow when the OTA lands may have it persisted as their last
+ * completed step; `getNextRoute` resolves it forward to `commitment`
+ * (RETIRED_SCREEN_SUCCESSOR). `useOnboardingStep` returns stepIndex -1 here.
+ *
+ * The OEM-schedule import this screen wraps is still valuable — it just does not
+ * belong in front of a rider who has not used the app yet.
+ */
 import { OemSchedulesPreviewDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { ImpactFeedbackStyle } from 'expo-haptics';

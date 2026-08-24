@@ -44,8 +44,7 @@ Oceano Ártico. Cada rota traz piso (asfalto, misto, off-road),
 dificuldade (fácil → expert) e perfil de elevação.
 
 ★ GARAGEM MULTI-MOTO
-Motos ilimitadas — registre todas as motos que você tem,
-grátis para sempre. Diária, de fim de semana, projeto, big
+Uma moto grátis, mais motos com Pro. Diária, de fim de semana, projeto, big
 trail. Cada moto ganha seu perfil próprio com cronograma de
 manutenção, consumo, histórico de gastos e estatísticas.
 
@@ -73,10 +72,9 @@ Seus dados são seus
 — exporte ou apague tudo com um toque.
 
 MOTOVAULT PRO
-Grátis para sempre: motos ilimitadas, controle completo de
-manutenção, registro de gastos, gravação de rolês com GPS,
-planejador de viagens (até 3 rotas salvas) e 5 diagnósticos
-IA por mês.
+Grátis para sempre: 1 moto, registro de manutenção e
+gastos ilimitado, gravação de rolês ilimitada, 1
+diagnóstico IA e 3 escaneamentos de recibos por mês.
 
 Pro libera: diagnósticos IA ilimitados, estatísticas avançadas
 com relatórios semanais, exportações GPX ilimitadas e
@@ -93,7 +91,7 @@ GPS para gravação. Funciona em qualquer moto, qualquer ano,
 qualquer fabricante.
 
 Dúvidas, feedback? Lemos todos os e-mails:
-hello@motovault.app
+support@motovault.app
 Privacidade: https://motovault.app/privacy
 Termos: https://motovault.app/terms
 

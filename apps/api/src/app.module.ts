@@ -17,6 +17,7 @@ import { THROTTLE_PRESETS } from './config/constants';
 import { envSchema } from './config/env.validation';
 import { AffiliatesModule } from './modules/affiliates/affiliates.module';
 import { AiBudgetModule } from './modules/ai-budget/ai-budget.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { ArticlesModule } from './modules/articles/articles.module';
 import { BlogModule } from './modules/blog/blog.module';
 import { CommentsModule } from './modules/comments/comments.module';
@@ -96,6 +97,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     SupabaseModule,
     EmailModule,
     AiBudgetModule,
+    AnalyticsModule,
     AffiliatesModule,
     CommentsModule,
     UsersModule,

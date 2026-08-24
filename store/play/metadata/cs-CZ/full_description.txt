@@ -22,7 +22,7 @@ PROČ MOTORKÁŘI POUŽÍVAJÍ MOTOVAULT
 DĚLANÉ PRO SKUTEČNÉ MOTORKÁŘE
 ──────────────
 
-- Neomezený počet motorek — všechny své stroje zdarma, navždy
+- Neomezené záznamy — každý servis, každý výdaj, každý kilometr, zdarma
 - Více než 12 000 podporovaných modelů
 - Povedený design pro tmavý režim
 - Soukromé a bezpečné — vaše data jsou vaše
@@ -31,13 +31,13 @@ DĚLANÉ PRO SKUTEČNÉ MOTORKÁŘE
 MOTOVAULT PRO
 ──────────────
 
-Zdarma navždy: neomezeně motorek, kompletní servisní kniha, výdaje, záznam jízd a 5 AI diagnostik měsíčně. MotoVault Pro odemkne neomezené AI diagnostiky, podrobné statistiky, neomezený export GPX a rozšířené údaje o jízdách.
+Zdarma navždy: 1 motorka, neomezený servisní zápis a výdaje, neomezený záznam jízd, 1 AI diagnostika a 3 skeny účtenek měsíčně. MotoVault Pro přidá další motorky, neomezené AI diagnostiky, neomezené skeny účtenek, podrobné statistiky, neomezený export GPX a rozšířené údaje o jízdách.
 
 K dispozici je měsíční i roční plán; cenu uvidíte v aplikaci před potvrzením. Předplatné se automaticky obnovuje, pokud ho nezrušíte alespoň 24 hodin před koncem období. Spravovat nebo zrušit ho můžete kdykoli v nastavení účtu Google Play.
 
 Zásady ochrany osobních údajů: https://motovault.app/privacy
 Podmínky služby: https://motovault.app/terms
 
-Dotazy nebo nápady? Čteme každý e-mail: hello@motovault.app
+Dotazy nebo nápady? Čteme každý e-mail: support@motovault.app
 
 Dvě kola. Jedna aplikace.

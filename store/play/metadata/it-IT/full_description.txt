@@ -46,8 +46,7 @@ off-road), difficoltà (facile → expert) e profilo
 altimetrico.
 
 ★ GARAGE MULTI-MOTO
-Moto illimitate — registra tutte le moto che possiedi,
-gratis per sempre. Quotidiana, weekend, progetto, big trail.
+Una moto gratis, altre con Pro. Quotidiana, weekend, progetto, big trail.
 Ogni moto ha il suo profilo con piano manutenzione, consumi,
 storico spese e statistiche di pilotaggio.
 
@@ -73,10 +72,9 @@ motociclisti europei e nordamericani. GDPR-compliant, hosting UE.
 I tuoi dati sono tuoi: esporta o cancella tutto con un tocco.
 
 MOTOVAULT PRO
-Gratis per sempre: moto illimitate, gestione manutenzione
-completa, registro spese, registrazione delle uscite con
-GPS, pianificatore viaggi (fino a 3 percorsi salvati) e
-5 diagnosi AI al mese.
+Gratis per sempre: 1 moto, gestione manutenzione e
+spese illimitata, registrazione delle uscite illimitata,
+1 diagnosi AI e 3 scansioni di ricevute al mese.
 
 Pro sblocca: diagnosi AI illimitate, statistiche avanzate
 con report settimanali, esportazioni GPX illimitate e
@@ -93,7 +91,7 @@ diagnosi, GPS per la registrazione. Su qualsiasi moto,
 qualsiasi anno e costruttore.
 
 Domande, feedback? Leggiamo ogni email:
-hello@motovault.app
+support@motovault.app
 Privacy: https://motovault.app/privacy
 Termini: https://motovault.app/terms
 

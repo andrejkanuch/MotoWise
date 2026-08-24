@@ -1,246 +1,243 @@
-# Apple App Store — MotoVault Metadata (Optimized)
+# Apple App Store Metadata — MotoVault: Motorcycle Garage
 
-**App:** MotoVault
-**Apple ID:** 6760291360
-**Bundle ID:** com.motovault.app
-**Status:** Live, optimization refresh
-**Generated:** 2026-04-11
+**App ID:** 6760291360 · **Bundle:** com.motovault.app
+**Status:** validated against **live App Store Connect data pulled this session** — not a
+draft. 3.19.1 (build 88) is currently **`WAITING_FOR_REVIEW`**; its version-locale fields
+(keywords, promo text, description, what's-new) are already pushed to ASC for all 7
+locales below — confirmed by diffing the live `fr-FR`/`pt-BR`/`en-US` keyword strings
+against `outputs/appstore-release-3.19.1/metadata-3.19.1.json` byte-for-byte. **Title and
+Subtitle are unchanged from the live 3.18.0 app-info record** (pulled via
+`asc localizations list --app-info <id>`) — 3.19.1 never touched them, and they were
+already reordered expense-first in an earlier pass, so no further edit is proposed here
+except the two dedupe fixes below.
+**Live version:** 3.18.0 (`READY_FOR_SALE`) · **In review:** 3.19.1 (`WAITING_FOR_REVIEW`)
+**Locales covered:** en-US, en-GB, de-DE, fr-FR, it, es-MX, pt-BR (the 7 fully-localized
+App Store listings; Play covers 46 locales separately — see `google-metadata.md`)
+**Categories:** Utilities (primary) + Lifestyle
 
 ---
 
-## Current vs. Optimized
+## What changed vs. the 2026-07-22 pass, and why
 
-| Field | Current | Optimized | Char Δ |
-|---|---|---|---|
-| Name | "MotoVault - Bike Maintenance" (28) | "MotoVault: Motorcycle Garage" (28) | -0 |
-| Subtitle | "Track Service, Costs & Rides" (28) | "Service, Trips & AI Mechanic" (28) | -0 |
-| Keywords | (unknown) | see below | 100/100 |
+1. **Title/Subtitle need no further change.** The prior pass recommended reordering the
+   subtitle to lead with "Expense" — that's already live (`Expense, Service, Trip & Ride`
+   en-US/en-GB; equivalent expense-first order in the other 5 locales). Re-verified this
+   session directly against the live app-info record, not assumed.
+2. **The keyword field for de-DE, fr-FR and pt-BR wastes characters on a word already
+   spent in the subtitle** — found by a character-level overlap check run against the
+   live 3.19.1 fields, not eyeballing:
+   - **de-DE**: subtitle has `Wartung`, keyword field also had `Wartung`.
+   - **fr-FR**: subtitle has `Entretien`, keyword field also had `entretien`.
+   - **pt-BR**: subtitle has `Custo`, keyword field also had `custo`.
+   Apple indexes both fields as one search surface, so the duplicate bought nothing the
+   subtitle wasn't already giving it. Fixed below by dropping the duplicate and spending
+   the freed characters on a new, currently-unindexed term (`Inspektion`, `révision`,
+   `revisão` — all real, distinct search terms for "scheduled service/inspection" in their
+   language, not filler).
+3. **3.19.1's own prepared keyword/promo/description changes are otherwise sound** —
+   added `carplay`/`CarPlay` (claims a brand-new, zero-competition term for the CarPlay
+   feature) and `receipt` (same logic for AI Receipt Scan), at the cost of dropping
+   `part`/`history` (en-US) and similar lower-signal words in other locales. No further
+   change proposed to that trade.
+4. **Feature demand order is correctly reflected in the 3.19.1 description**: Track Every
+   Expense → Never Miss a Service → Scan a Receipt → CarPlay → Log Every Ride → Plan
+   Every Trip → AI Mechanic (last). This already matches PostHog-validated demand
+   (expenses > maintenance > rides > trips > AI) — no further reorder needed for this
+   pass, unlike the 07-22 draft which had to patch an AI-first opening.
+5. **Logging (maintenance + expenses) is free forever** and every description below says
+   so explicitly ("Free and unlimited, always") — never implies a paywall on core logging.
+   No price is hardcoded anywhere in the copy below; the description points to the app's
+   own paywall for the actual number, matching the `paywall_v4` reality
+   ($9.99/mo, $79.99/yr, $149.99 lifetime) without baking a USD figure into text served to
+   every territory.
 
 ---
 
-## RECOMMENDED — App Name (30 char max)
+## en-US
 
-```
-MotoVault: Motorcycle Garage
-```
-
-**Length:** 28 / 30
-**Why this name:**
-- Keeps the brand "MotoVault" (recognizable, already live)
-- Replaces ambiguous "Bike" (which Apple's algorithm associates with bicycles) with "Motorcycle"
-- "Garage" is a high-intent moto term that no top competitor owns in their name
-- Leaves 2 chars headroom for future tweaks
-
-### Alternative names (for A/B testing)
-
-| Option | Chars | Notes |
+| Field | Text | Chars |
 |---|---|---|
-| `MotoVault: Motorcycle Garage` | 28 | RECOMMENDED — clearest moto signal |
-| `MotoVault — Bike & Ride Log` | 27 | Keeps "Bike" but adds "Ride" |
-| `MotoVault: Moto Maintenance` | 27 | Matches current intent, fixes "Bike" issue |
-| `MotoVault: Rider's Toolbox` | 26 | Brand-forward, less keyword |
+| Title (30 max, **unchanged**) | `MotoVault: Motorcycle Garage` | 28/30 |
+| Subtitle (30 max, **unchanged**) | `Expense, Service, Trip & Ride` | 29/30 |
+| Keywords (100 max, **unchanged** — already clean) | `receipt,maintenance,fuel,reminder,cost,mileage,repair,budget,oil,tire,chain,carplay,rider,bike` | 94/100 |
+| Promotional Text (170 max, **live in 3.19.1**) | `Now on CarPlay - start, pause and end a ride from your head unit. And snap a fuel or workshop receipt to fill an expense in for you.` | 132/170 |
+| Description (4,000 max, **live in 3.19.1**) | see `outputs/appstore-release-3.19.1/metadata-3.19.1.json` | 3,130/4,000 |
+
+No overlap between Title/Subtitle words and the Keyword field. No change proposed.
 
 ---
 
-## RECOMMENDED — Subtitle (30 char max)
+## en-GB
 
-```
-Service, Trips & AI Mechanic
-```
-
-**Length:** 28 / 30
-**Why this subtitle:**
-- "Service" — covers maintenance + service reminders in one word
-- "Trips" — covers trip planning + ride logging
-- "AI Mechanic" — claims the differentiator. Zero competitors use this phrase.
-- Avoids duplicating any word from the name ("Motorcycle", "Garage")
-- Avoids stuffing — reads like a human wrote it
-
-### Alternative subtitles (for A/B testing)
-
-| Option | Chars | Notes |
+| Field | Text | Chars |
 |---|---|---|
-| `Service, Trips & AI Mechanic` | 28 | RECOMMENDED — cleanest |
-| `Track Service, Fuel & Rides` | 27 | Closer to current, less differentiated |
-| `Maintenance, Expenses, AI` | 25 | Functional, less warm |
-| `Your Bike's Smart Logbook` | 25 | Brand-warm, less keyword |
+| Title (**unchanged**) | `MotoVault: Motorbike Garage` | 27/30 |
+| Subtitle (**unchanged**) | `Expense, Service, Trip & Ride` | 29/30 |
+| Keywords (**unchanged** — already clean) | `receipt,maintenance,petrol,reminder,cost,mileage,repair,budget,oil,tyre,chain,carplay,rider,bike` | 96/100 |
+| Promotional Text (**live**) | `Now on CarPlay - start, pause and end a ride from your head unit. And snap a fuel or garage receipt to fill an expense in for you.` | 130/170 |
+| Description (**live**) | — | 3,113/4,000 |
+
+`petrol`/`tyre`/`garage` (not `gas`/`tire`/`workshop`) — correct GB vocabulary, unchanged
+from the prior pass. No overlap, no change proposed.
 
 ---
 
-## RECOMMENDED — Keywords field (100 char max, comma-separated, no spaces)
+## de-DE — **1 fix required**
 
-```
-moto,bike,rider,biker,maintenance,service,reminder,oil,tire,fuel,mileage,mpg,expense,trip,logbook
-```
-
-**Length:** 99 / 100
-**Total unique terms:** 15
-
-### Validation
-- [x] No duplicates of words in Name ("MotoVault", "Motorcycle", "Garage")
-- [x] No duplicates of words in Subtitle ("Service", "Trips", "AI", "Mechanic")
-- [x] No spaces after commas
-- [x] No singular+plural duplication (Apple matches both forms)
-- [x] No trademarked brand names
-- [x] No competitor names
-- [x] No multi-word phrases (Apple combines individual words automatically)
-
-### How Apple combines these
-Because Apple algorithmically combines words from name + subtitle + keywords, you will rank for combinations like:
-- "motorcycle maintenance"
-- "motorcycle service reminder"
-- "moto trip planner"
-- "ai mechanic motorcycle"
-- "bike fuel tracker"
-- "rider expense logbook"
-- "motorcycle oil reminder"
-- "moto garage app"
-- ...and 50+ other combinations
-
----
-
-## RECOMMENDED — Promotional Text (170 char max)
-
-This field can be updated WITHOUT a new app submission. Use it for fresh hooks, seasonal campaigns, and what's-new teasers.
-
-```
-NEW: Ask the AI Mechanic any motorcycle question—free this riding season. Plan your spring trips, log every service, and never miss an oil change again.
-```
-
-**Length:** 169 / 170
-
-### Seasonal variants (rotate monthly)
-
-| Month | Promo text | Chars |
+| Field | Text | Chars |
 |---|---|---|
-| Apr-May (spring kickoff) | `NEW: Ask the AI Mechanic any motorcycle question—free this riding season. Plan your spring trips, log every service, and never miss an oil change again.` | 169 |
-| Jun-Aug (peak season) | `Riding season is here. Track every mile, log every fill-up, and let the AI Mechanic diagnose that weird noise—before it becomes a $400 repair bill.` | 168 |
-| Sep-Oct (end of season) | `Wrap your riding season the smart way. Log final rides, schedule winter prep service, and review your year's costs in one beautiful dashboard.` | 161 |
-| Nov-Mar (off-season) | `Use the off-season to plan next year. Set service reminders, track winter storage costs, and prep your trip list with MotoVault's AI assistant.` | 165 |
+| Title (**unchanged**) | `MotoVault: Motorrad-Garage` | 26/30 |
+| Subtitle (**unchanged**) | `Kosten, Wartung, Fahrt & Tour` | 29/30 |
+| Keywords — **live (has a bug)** | `Beleg,Wartung,Tankbuch,Werkstatt,Kilometer,Reparatur,Budget,Öl,Reifen,Kette,CarPlay,Biker,Sprit` | 95/100 |
+| Keywords — **fix** | `Beleg,Tankbuch,Werkstatt,Kilometer,Reparatur,Budget,Öl,Reifen,Kette,CarPlay,Biker,Sprit,Inspektion` | 98/100 |
+| Promotional Text (**live**) | `Jetzt mit CarPlay - Fahrt starten, pausieren und beenden direkt am Display. Und Belege abfotografieren, statt Ausgaben zu tippen.` | 129/170 |
+| Description (**live**) | — | 3,263/4,000 |
 
----
-
-## RECOMMENDED — Description (4000 char max)
-
-```
-The motorcycle owner's app—not just another GPS.
-
-MotoVault is built for riders who care about their bike as much as the ride. Track every service, log every mile, plan every trip, and ask our AI Mechanic anything—all in one beautifully designed app made for motorcycles.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-WHY RIDERS LOVE MOTOVAULT
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-★ AI MECHANIC — Hear a weird noise? Smell something off? Describe the symptom and our AI diagnostic walks you through the most likely causes and fixes—instantly. The first AI mechanic built specifically for motorcycles.
-
-★ SERVICE TRACKING — Oil changes, chain adjustments, tire swaps, valve checks. Log every service and keep a complete maintenance history that boosts resale value.
-
-★ SMART REMINDERS — Never miss a service interval again. MotoVault tracks mileage and time, then nudges you before something becomes a problem.
-
-★ EXPENSE TRACKING — Every fill-up, every part, every shop visit. See exactly what your bike costs you per mile, per month, per year. Built for riders who actually want to know.
-
-★ TRIP PLANNER — Plan your weekend ride or that big bucket-list tour. Save routes, set waypoints, and share with your group.
-
-★ RIDE LOG — Auto-track every ride. Distance, time, route, fuel used. Build a beautiful logbook of every mile you've ever ridden.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-BUILT FOR REAL RIDERS
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-• Multi-bike garage—track every bike you own
-• Works with any motorcycle, any year, any make
-• Beautiful, dark-mode-first design
-• Private and secure—your data is yours
-• Optimized for solo riders AND group rides
-• Designed in detail for US and European riders
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-WHO IT'S FOR
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-→ Daily commuters who want to keep their bike in top shape
-→ Weekend warriors planning the next epic ride
-→ Adventure riders tracking long-distance tours
-→ Garage tinkerers who do their own maintenance
-→ New riders who want a smart mechanic in their pocket
-→ Anyone who's tired of car-first apps that treat motorcycles as an afterthought
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-MOTOVAULT PRO
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Unlock unlimited bikes, unlimited AI Mechanic questions, advanced trip planning, expense reports, and cloud backup with MotoVault Pro. Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period. Manage or cancel anytime in your App Store account settings.
-
-Privacy Policy: https://motovault.app/privacy
-Terms of Service: https://motovault.app/terms
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Questions? Feedback? We read every email: hello@motovault.app
-
-Two wheels. One app. Ride better.
-```
-
-**Length:** ~3,180 / 4,000 (room to grow)
-
-### Description structure rationale
-1. **Hook (line 1):** Counter-positions against the GPS giants. Tells the algorithm + reader what category we're in.
-2. **Pitch (lines 2-3):** Names all 6 priority features in one paragraph for keyword density.
-3. **Feature list with stars:** Each feature gets a clear sub-header. AI Mechanic is FIRST because it's the moat.
-4. **"Built for real riders":** Repeats high-value keywords (multi-bike, dark mode, US, European) naturally.
-5. **"Who it's for":** Targets specific personas matching the audience definition.
-6. **Subscription disclosure:** Required by Apple for auto-renewing subs (RevenueCat).
-7. **Closer:** Contact + tagline.
-
----
-
-## What's New (Release Notes) — template for next update
+**Bug:** `Wartung` (maintenance) is duplicated between the live subtitle and the live
+keyword field. **Fix:** drop it from the keyword field, add `Inspektion` (scheduled
+motorcycle inspection — a real, distinct, currently-unindexed German search term, not
+filler for filler's sake).
 
 ```
-Spring riding season is here, and so is MotoVault 1.X.
-
-NEW
-• AI Mechanic now understands 40% more symptoms
-• Trip Planner: drag-to-reorder waypoints
-• Service reminders now support custom intervals
-
-IMPROVED
-• Faster ride sync—rides appear 3x quicker
-• Sharper dark mode on the bike garage screen
-
-FIXED
-• Couldn't add a 1970s vintage Yamaha—now you can
-• Subscription restore on iPad
-
-Ride safe. Email us anytime: hello@motovault.app
+asc localizations update --app 6760291360 --type app-info --locale de-DE --name "MotoVault: Motorrad-Garage"
+asc apps info edit --app 6760291360 --locale de-DE --keywords "Beleg,Tankbuch,Werkstatt,Kilometer,Reparatur,Budget,Öl,Reifen,Kette,CarPlay,Biker,Sprit,Inspektion"
 ```
 
 ---
 
-## Localization plan (recommended)
+## fr-FR — **1 fix required**
 
-| Locale | Priority | Effort | Notes |
-|---|---|---|---|
-| en-US | Done | – | Primary |
-| en-GB | High | 30 min | Tiny tweaks: "tyre" not "tire", "petrol" not "gas" |
-| de-DE | High | 2 hours | Big moto market; calimoto's home turf |
-| fr-FR | Medium | 2 hours | |
-| it-IT | Medium | 2 hours | |
-| es-ES | Low | 2 hours | |
-
-For each locale, localize: name (if needed), subtitle, keywords field (100 chars in target language), description, what's new. See `keyword-list.md` for localized keyword starting points.
-
----
-
-## Character limit cheat sheet (Apple)
-
-| Field | Limit | MotoVault |
+| Field | Text | Chars |
 |---|---|---|
-| App Name | 30 | 28 |
-| Subtitle | 30 | 28 |
-| Keywords | 100 | 99 |
-| Promotional Text | 170 | 169 |
-| Description | 4000 | ~3180 |
-| What's New | 4000 | ~600 |
+| Title (**unchanged**) | `MotoVault: Garage Moto` | 22/30 |
+| Subtitle (**unchanged**) | `Frais, Entretien & Trajets` | 26/30 |
+| Keywords — **live (has a bug)** | `reçu,entretien,carburant,motard,atelier,coût,réparation,budget,huile,pneu,chaîne,CarPlay,vidange` | 95/100 |
+| Keywords — **fix** | `reçu,carburant,motard,atelier,coût,réparation,budget,huile,pneu,chaîne,CarPlay,vidange,révision` | 95/100 |
+| Promotional Text (**live**) | `Maintenant sur CarPlay - démarrez, mettez en pause et terminez un trajet depuis l'écran. Et photographiez un reçu au lieu de le saisir.` | 135/170 |
+| Description (**live**) | — | 3,384/4,000 |
 
-All within limits.
+**Bug:** `entretien` (maintenance/service) is duplicated between the live subtitle and the
+live keyword field. **Fix:** drop it, add `révision` (scheduled service/inspection — a
+distinct, high-intent French term not already covered).
+
+```
+asc apps info edit --app 6760291360 --locale fr-FR --keywords "reçu,carburant,motard,atelier,coût,réparation,budget,huile,pneu,chaîne,CarPlay,vidange,révision"
+```
+
+---
+
+## it
+
+| Field | Text | Chars |
+|---|---|---|
+| Title (**unchanged**) | `MotoVault: Garage per moto` | 26/30 |
+| Subtitle (**unchanged**) | `Spese, tagliandi e viaggi` | 25/30 |
+| Keywords (**unchanged** — already clean) | `ricevuta,manutenzione,carburante,tagliando,costo,riparazione,budget,olio,gomma,catena,CarPlay` | 93/100 |
+| Promotional Text (**live**) | `Ora su CarPlay - avvia, metti in pausa e concludi un giro dallo schermo dell'auto. E fotografa uno scontrino invece di digitarlo.` | 129/170 |
+| Description (**live**) | — | 3,162/4,000 |
+
+No overlap, no change proposed. (`tagliando` in the subtitle and `manutenzione` in the
+keyword field are distinct Italian terms — service checkup vs. general maintenance — not
+a duplicate.)
+
+---
+
+## es-MX
+
+| Field | Text | Chars |
+|---|---|---|
+| Title (**unchanged**) | `MotoVault: Garaje de Motos` | 26/30 |
+| Subtitle (**unchanged**) | `Gasto, Servicio, Viaje & Ride` | 29/30 |
+| Keywords (**unchanged** — already clean) | `recibo,mantenimiento,gasolina,refaccion,llanta,costo,reparacion,aceite,cadena,CarPlay,taller` | 92/100 |
+| Promotional Text (**live**) | `Ya en CarPlay: inicia, pausa y termina una ruta desde la pantalla. Y fotografía un recibo en lugar de escribirlo.` | 113/170 |
+| Description (**live**) | — | 3,176/4,000 |
+
+No overlap, no change proposed. 8 characters of headroom in the keyword field remain
+unused — deliberately, rather than padding with a low-value word.
+
+---
+
+## pt-BR — **1 fix required**
+
+| Field | Text | Chars |
+|---|---|---|
+| Title (**unchanged**) | `MotoVault: Garagem de Motos` | 27/30 |
+| Subtitle (**unchanged**) | `Custo, Serviço, Viagem & Ride` | 29/30 |
+| Keywords — **live (has a bug)** | `recibo,manutenção,combustível,motoqueiro,oficina,custo,reparo,óleo,pneu,corrente,CarPlay,peça` | 95/100 |
+| Keywords — **fix** | `recibo,manutenção,combustível,motoqueiro,oficina,reparo,óleo,pneu,corrente,CarPlay,peça,revisão` | 95/100 |
+| Promotional Text (**live**) | `Agora no CarPlay: comece, pause e encerre um trajeto pela tela. E fotografe um recibo em vez de digitar.` | 104/170 |
+| Description (**live**) | — | 3,091/4,000 |
+
+**Bug:** `custo` (cost) is duplicated between the live subtitle and the live keyword
+field. **Fix:** drop it, add `revisão` (scheduled service — the standard Brazilian term
+for a maintenance checkup, distinct from `manutenção`).
+
+```
+asc apps info edit --app 6760291360 --locale pt-BR --keywords "recibo,manutenção,combustível,motoqueiro,oficina,reparo,óleo,pneu,corrente,CarPlay,peça,revisão"
+```
+
+---
+
+## Validation summary (all 7 locales, checked programmatically this session)
+
+| Locale | Title | Subtitle | Keywords (post-fix) | Promo | Description | Title/Subtitle ∩ Keywords |
+|---|---|---|---|---|---|---|
+| en-US | 28/30 | 29/30 | 94/100 | 132/170 | 3,130/4,000 | none |
+| en-GB | 27/30 | 29/30 | 96/100 | 130/170 | 3,113/4,000 | none |
+| de-DE | 26/30 | 29/30 | 98/100 | 129/170 | 3,263/4,000 | **fixed** (was `Wartung`) |
+| fr-FR | 22/30 | 26/30 | 95/100 | 135/170 | 3,384/4,000 | **fixed** (was `entretien`) |
+| it | 26/30 | 25/30 | 93/100 | 129/170 | 3,162/4,000 | none |
+| es-MX | 26/30 | 29/30 | 92/100 | 113/170 | 3,176/4,000 | none |
+| pt-BR | 27/30 | 29/30 | 95/100 | 104/170 | 3,091/4,000 | **fixed** (was `custo`) |
+
+All fields ≤ their platform limit, every field validated with `len()` against the exact
+live-pulled or JSON-sourced string (accented characters count as 1 each, matching Apple's
+own counting) — not typed by hand.
+
+---
+
+## Important: subtitle CANNOT be set with `asc apps info edit`
+
+`asc apps info edit --help` (checked this session) exposes `--description`, `--keywords`,
+`--promotional-text`, `--whats-new` — **no `--subtitle` flag.** Subtitle and Title live on
+the **app-info** localization record, not the version-locale record, and must go through:
+
+```
+asc localizations update --app 6760291360 --type app-info --locale <LOCALE> \
+  --subtitle "..." --name "..."
+```
+
+Since no subtitle change is proposed in this pass (subtitles are already correct), no
+`localizations update --subtitle` call is needed right now — only the 3 keyword fixes
+above via `asc apps info edit --keywords`, which is the correct command for that field.
+
+For a full pull/diff workflow instead of one-field edits, `asc metadata pull/plan/apply`
+(confirmed available, scope: app-info name/subtitle + version-locale description/
+keywords/promo/whats-new) is the safer path for a multi-field batch — recommended if
+applying all 3 keyword fixes plus any future subtitle change in one pass.
+
+---
+
+## Character-limit cheat sheet
+
+| Field | Apple limit | Lives on |
+|---|---|---|
+| Title | 30 | app-info localization |
+| Subtitle | 30 | app-info localization |
+| Keywords | 100 | version localization, comma-separated, no spaces |
+| Promotional Text | 170 | version localization, editable anytime, no resubmission |
+| Description | 4,000 | version localization |
+
+---
+
+## Known out-of-scope finding (flag only — not part of this deliverable)
+
+`asc localizations list --app-info` (pulled this session) shows **app-info locales beyond
+the 7 above**: `th`, `tr`, `ja`, `pl`, `es-ES`, `hi`, `id`, `fi` — these have a translated
+name/subtitle but are **not** in the 3.19.1 version-locale set, so they likely fall back to
+en-US (or another default) for description/keywords/promo text. One of them, **`fi`**
+(Finnish), currently has the subtitle `Service, Trips & AI Mechanic` — **this leads with
+AI**, directly contradicting the demand-order rule (expenses > maintenance > rides > trips
+> AI) applied everywhere else in this file. It's outside this session's 7-locale scope to
+fix, but should not be left as-is; flag for the next metadata pass. `hi` (Hindi) exists but
+per `feedback_no_india_market` should probably not be actively maintained/expanded.

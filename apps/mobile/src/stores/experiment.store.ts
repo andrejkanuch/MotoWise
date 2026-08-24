@@ -4,17 +4,28 @@ import type { ObVariant } from '../config/onboarding';
 import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 
 /**
- * How the variant was decided — `posthog` = flag evaluated, `fallback` = offline
- * default, `override` = forced via `EXPO_PUBLIC_OB_VARIANT` in a dev build.
+ * How the variant was decided.
+ *
+ * `shipped` is the only source new installs produce, as of the 2026-08-24
+ * experiment retirement — one flow ships, so there is nothing to evaluate and
+ * nothing to fall back from.
+ *
+ * `posthog` and `fallback` are RETIRED but must stay in the union: ~423 installs
+ * have one of them persisted in MMKV, and narrowing the type would make those
+ * stored records fail to parse.
  */
-export type VariantSource = 'posthog' | 'fallback' | 'override';
+export type VariantSource = 'shipped' | 'posthog' | 'fallback' | 'override';
 
 interface ExperimentState {
   /**
-   * Resolved onboarding A/B variant. Assigned once at first launch and then
+   * Resolved onboarding variant. Assigned once at first launch and then
    * immutable for the lifetime of the install — it must NEVER re-roll
    * mid-flow, across resume-after-kill, or on sign-out (deliberately not
    * reset with the auth/onboarding stores).
+   *
+   * Post-retirement this is `shipped` for new installs and one of the three
+   * legacy experiment values for existing ones. All four resolve to the same
+   * flow; the stored value is kept purely as cohort history.
    */
   onboardingVariant: ObVariant | null;
   assignedAt: string | null;

@@ -24,7 +24,7 @@ DIBUAT UNTUK PENGENDARA
 Selama pengaturan, MotoVault mempelajari tingkat pengalaman, gaya berkendara, tujuan, dan preferensi perawatan Anda untuk memberikan rekomendasi yang disesuaikan.
 
 GRATIS UNTUK MEMULAI
-Mulai dengan satu motor di garasi Anda, akses penuh ke basis pengetahuan, dan 3 diagnostik AI per bulan — sepenuhnya gratis.
+Gratis selamanya: 1 motor di garasi Anda, pencatatan perawatan dan pengeluaran tanpa batas, perekaman perjalanan tanpa batas, 1 diagnostik AI dan 3 pemindaian struk per bulan.
 
 MOTOVAULT PRO
 Buka motor tak terbatas, diagnostik AI tak terbatas, pengingat perawatan untuk semua motor, dan ekspor PDF catatan servis.
@@ -38,4 +38,4 @@ Pembayaran akan dibebankan ke akun Google Play Anda saat konfirmasi pembelian. L
 Kebijakan Privasi: https://motovault.app/privacy
 Ketentuan Layanan: https://motovault.app/terms
 
-Ada pertanyaan atau masukan? Kami membaca setiap email: hello@motovault.app
+Ada pertanyaan atau masukan? Kami membaca setiap email: support@motovault.app

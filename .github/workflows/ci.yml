@@ -96,6 +96,19 @@ jobs:
       - run: pnpm check:router
       - run: pnpm check:mobile-colors
 
+  store-copy:
+    name: Store Copy Accuracy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # No pnpm install: the gate is a stdlib-only Python script that reads
+      # store/play/metadata and packages/types/src/constants/limits.ts directly.
+      # Keeping it dependency-free is deliberate — a listing-accuracy check should
+      # not be able to fail because a JS dependency did.
+      - run: python3 store/play/check-metadata.py
+
   audit:
     name: Security Audit
     runs-on: ubuntu-latest

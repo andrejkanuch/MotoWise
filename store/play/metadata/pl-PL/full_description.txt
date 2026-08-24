@@ -22,7 +22,7 @@ STWORZONE DLA MOTOCYKLISTÓW
 Zaprojektowane przez motocyklistów dla motocyklistów. Czysty, intuicyjny interfejs, który działa idealnie zarówno przy planowaniu trasy, jak i śledzeniu serwisu w garażu.
 
 ZACZNIJ ZA DARMO
-Podstawowe funkcje są darmowe na zawsze. Śledź trasy, zarządzaj serwisem i monitoruj wydatki bez opłat.
+Bezpłatnie na zawsze: 1 motocykl, nieograniczony rejestr serwisu i wydatków, nieograniczone zapisywanie tras, 1 diagnostyka AI i 3 skany paragonów miesięcznie.
 
 MOTOVAULT PRO
 Odblokuj funkcje premium, w tym nieograniczoną diagnostykę AI, zaawansowane statystyki tras, szczegółowe raporty wydatków i priorytetowy dostęp do nowych funkcji. Dostępne w subskrypcji miesięcznej lub rocznej.
@@ -32,4 +32,4 @@ Płatność zostanie pobrana z Twojego konta Google Play po potwierdzeniu zakupu
 Polityka prywatności: https://motovault.app/privacy
 Regulamin: https://motovault.app/terms
 
-Pytania lub uwagi? Czytamy każdy e-mail: hello@motovault.app
+Pytania lub uwagi? Czytamy każdy e-mail: support@motovault.app

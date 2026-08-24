@@ -267,9 +267,15 @@ describe('Onboarding Config', () => {
     });
   });
 
-  describe('getResumeRoute (control / V4 flow)', () => {
+  // A persisted `control` value no longer selects the old V4 flow — every variant
+  // resolves to the one shipped flow (2026-08-24 retirement). These cases are kept
+  // pointed at CONTROL on purpose: they are the regression guard that a legacy
+  // variant value still navigates, rather than falling through to an undefined flow.
+  describe('getResumeRoute (persisted legacy `control` value)', () => {
     it('returns the next screen after the last completed one', () => {
-      expect(getResumeRoute(OB_VARIANT.CONTROL, OB_SCREEN.EXPERIENCE)).toBe('/(onboarding)/goals');
+      expect(getResumeRoute(OB_VARIANT.CONTROL, OB_SCREEN.EXPERIENCE)).toBe(
+        '/(onboarding)/bike-setup',
+      );
       expect(getResumeRoute(OB_VARIANT.CONTROL, OB_SCREEN.WELCOME)).toBe(
         '/(onboarding)/experience',
       );
@@ -280,10 +286,10 @@ describe('Onboarding Config', () => {
     });
   });
 
-  describe('getPreviousRoute (control / V4 flow)', () => {
+  describe('getPreviousRoute (persisted legacy `control` value)', () => {
     it('returns the screen immediately before the current one', () => {
       expect(getPreviousRoute(OB_VARIANT.CONTROL, OB_SCREEN.GOALS)).toBe(
-        '/(onboarding)/experience',
+        '/(onboarding)/no-bike-value',
       );
       expect(getPreviousRoute(OB_VARIANT.CONTROL, OB_SCREEN.PERSONALIZING)).toBe(
         '/(onboarding)/notifications',

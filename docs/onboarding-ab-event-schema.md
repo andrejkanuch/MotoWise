@@ -1,5 +1,35 @@
 # Onboarding A/B (2026) — Event Schema
 
+> ## RETIRED 2026-08-24 — one flow ships
+>
+> [Experiment #83476](https://eu.posthog.com/project/155556/experiments/83476) is
+> **stopped**. `lean` won on both readable metrics — onboarding completion
+> **40.5% (90/222) vs 29.4% (59/201)** and bike-add **75.2% (167/222) vs 64.7%
+> (130/201)**, each at roughly **p≈0.02**. The expense-logged (20 vs 12) and
+> purchase (12 vs 6) differences are directional only at that volume.
+>
+> The primary metric — install → trial start — never had the volume to reach
+> significance at 6–12 purchases, and choosing it is what put a paywall at step 5
+> of onboarding. Its replacement measures **first-value-logged** instead; see
+> `docs/plans/2026-08-24-1622-feat-activation-and-store-truth-plan.md` (U7).
+>
+> **What shipped instead:** one flow of **11 screens**, descended from `lean` with
+> the `paywall`, `maintenance` and `scan_receipt` steps removed (14 → 11), plus a
+> new variant value `shipped`. `lean` / `invested` / `control` survive as
+> **read-only** legacy values for the ~423 installs that persisted one; all four
+> resolve to the same flow, and `onboarding_variant` is deliberately **never
+> cleared** — it is the only record of which flow a user went through.
+>
+> **A PostHog annotation marks the cutover.** Do not build a funnel that spans it:
+> before and after are different flows, and averaging them is exactly the error the
+> annotation exists to prevent.
+>
+> Everything below documents the experiment as it ran, and remains accurate for
+> reading historical data. It is **not** a description of the current flow — for
+> that, read `ONBOARDING_FLOWS` in `apps/mobile/src/config/onboarding.ts`.
+
+## As it ran (historical)
+
 **Experiment:** PostHog [Experiment #83476](https://eu.posthog.com/project/155556/experiments/83476) on flag [`onboarding_ab_2026`](https://eu.posthog.com/project/155556/feature_flags/202343) — variants `lean` (A) / `invested` (B) / `control` (V4 holdout, 0% by default).
 **Source of truth in code:** `apps/mobile/src/lib/onboarding-analytics.ts` + `apps/mobile/src/config/onboarding.ts`.
 **Property naming:** the variant is `variant` on every onboarding event AND `onboarding_variant` as a super + person property. (The earlier planning doc `posthog-ab-spec.md` proposed `ab_variant`; that name was **not** adopted — this schema is authoritative.)
@@ -16,6 +46,8 @@ Every onboarding event carries:
 
 Event names are identical across arms (parity); variant B simply emits the same `onboarding_step_viewed/completed` events for its extra steps (`frequency`, `stay_on_top`, `last_service`, `building_plan`).
 
+**Event names were kept stable through the retirement.** `onboarding_step_viewed/completed/skipped` still fire for the surviving steps, and `OB_STEP_NAME` still resolves every retired step (`paywall`, `maintenance`, `scan_receipt`, `frequency`, `stay_on_top`, `last_service`, `building_plan`) so historical funnels continue to resolve. Removing a step from the flow is not deleting its event.
+
 ## Funnel events
 
 | Event | When | Extra properties |
@@ -28,7 +60,7 @@ Event names are identical across arms (parity); variant B simply emits the same 
 | `reveal_viewed` | Bike Dossier shown | `recall_count`, `has_projection`, `has_known_issues` |
 | `commitment_completed` | pledge done | `commitment_style: 'tap' \| 'hold' \| 'signature'` (A = `hold`; B = `signature`, a drawn signature) |
 | `paywall_viewed` / `paywall_result` | RC paywall lifecycle (fired by `subscription.ts`) | `paywall_result: purchased \| restored \| cancelled \| …`, `placement` |
-| `account_created` | post-purchase/post-paywall account created or signed in | `context: 'post_purchase' \| 'post_paywall_free'`, `method: apple \| google \| email` |
+| `account_created` | **RETIRED 2026-08-24 — no longer emitted.** Fired from the account screen only, so it measured screen traversal, not signup (154 events against 320 real signups). Superseded by the server-side `signup_completed` (migration 00174). Historical events remain queryable. | `context`, `method` |
 | `onboarding_completed` | personalizing finished | `has_bike`, `primary_goal`, `variant`, `goals`, `experience_level`, … |
 | `onboarding_resumed` | resume-after-kill | `last_completed`, `resume_target` |
 

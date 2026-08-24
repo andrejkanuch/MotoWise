@@ -427,6 +427,14 @@ export const AnalyticsEvent = {
   BIKE_ADDED: 'bike_added',
   REVEAL_VIEWED: 'reveal_viewed',
   COMMITMENT_COMPLETED: 'commitment_completed',
+  /**
+   * RETIRED 2026-08-24 — no longer emitted. Kept so historical events (154 of
+   * them, against 320 real signups over the same window) still resolve in
+   * PostHog queries and saved insights. Signup is now counted server-side from
+   * the `public.users` insert; see supabase/migrations/00174 and
+   * `SignupEventsService`. Do not re-add a client-side signup event: this is the
+   * third one to drift, because a screen can only see the path it sits on.
+   */
   ACCOUNT_CREATED: 'account_created',
   // Attribution — self-reported acquisition channel ("How did you hear about us?")
   REFERRAL_SOURCE_SELECTED: 'referral_source_selected',

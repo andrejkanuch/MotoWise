@@ -31,13 +31,13 @@ IGAZI MOTOROSOKNAK
 MOTOVAULT PRO
 ──────────────
 
-Az ingyenes verzió korlátlan számú motort, teljes karbantartás-nyilvántartást, költségrögzítést, menetrögzítést és havi 5 AI diagnosztikát tartalmaz. A MotoVault Pro korlátlan AI diagnosztikát, részletes statisztikákat, korlátlan GPX exportot és bővített menetadatokat nyit meg.
+Az ingyenes verzió 1 motort, korlátlan karbantartás- és költségnyilvántartást, korlátlan menetrögzítést, havi 1 AI diagnosztikát és 3 bizonylat-beolvasást tartalmaz. A MotoVault Pro további motorokat, korlátlan AI diagnosztikát, korlátlan beolvasást, részletes statisztikákat, korlátlan GPX exportot és bővített menetadatokat nyit meg.
 
 Havi és éves csomag is van; az árat a megerősítés előtt az alkalmazásban látod. Az előfizetés automatikusan megújul, ha nem mondod le legalább 24 órával a periódus vége előtt. Kezelheted vagy lemondhatod bármikor a Google Play fiókbeállításaiban.
 
 Adatvédelmi irányelvek: https://motovault.app/privacy
 Felhasználási feltételek: https://motovault.app/terms
 
-Kérdés vagy javaslat? Minden e-mailt elolvasunk: hello@motovault.app
+Kérdés vagy javaslat? Minden e-mailt elolvasunk: support@motovault.app
 
 Két kerék. Egy alkalmazás.
