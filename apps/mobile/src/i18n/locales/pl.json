@@ -1713,6 +1713,12 @@
       "remindersTitle": "Nie przegap żadnego przedłużenia",
       "remindersDesc": "Dodaj datę ważności, a przypomnimy Ci 30, 7 i 1 dzień wcześniej — aby ubezpieczenie lub rejestracja nigdy nie wygasły.",
       "cta": "Dodaj pierwszy dokument"
+    },
+    "v3191": {
+      "receiptTitle": "Zeskanuj paragon, nie przepisuj",
+      "receiptDesc": "Skieruj kamerę na paragon za paliwo, części lub serwis — MotoVault odczyta kwotę, datę i sprzedawcę oraz wypełni wydatek za Ciebie. Sprawdź, zapisz, gotowe.",
+      "carplayTitle": "MotoVault w CarPlay",
+      "carplayDesc": "Zapisuj przejazdy z ekranu w samochodzie. Rozpoczynaj, wstrzymuj i kończ przejazd bez dotykania telefonu — albo pozwól trybowi automatycznemu zacząć przy pierwszym sygnale GPS."
     }
   },
   "oem": {

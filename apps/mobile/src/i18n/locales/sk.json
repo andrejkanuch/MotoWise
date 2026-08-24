@@ -1713,6 +1713,12 @@
       "remindersTitle": "Nezmeškaj žiadne obnovenie",
       "remindersDesc": "Pridaj dátum platnosti a pripomenieme ti to 30, 7 a 1 deň vopred — aby ti poistenie či evidencia nikdy nevypršali.",
       "cta": "Pridaj svoj prvý dokument"
+    },
+    "v3191": {
+      "receiptTitle": "Naskenuj účtenku, nič neprepisuj",
+      "receiptDesc": "Namier kameru na účtenku za palivo, diely alebo servis — MotoVault prečíta sumu, dátum aj predajcu a výdavok vyplní za teba. Skontroluj, ulož, hotovo.",
+      "carplayTitle": "MotoVault v CarPlay",
+      "carplayDesc": "Zaznamenávaj jazdy z obrazovky vo vozidle. Spusti, pozastav a ukonči jazdu priamo na displeji bez toho, aby si sa dotkol telefónu — alebo nechaj automatický režim spustiť ju pri prvom GPS signále."
     }
   },
   "oem": {

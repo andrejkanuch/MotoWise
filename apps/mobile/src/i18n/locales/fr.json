@@ -1712,6 +1712,12 @@
       "remindersTitle": "Ne manquez plus aucun renouvellement",
       "remindersDesc": "Ajoutez une date d'expiration et nous vous préviendrons 30, 7 et 1 jour avant — pour que votre assurance ou votre carte grise n'expire jamais.",
       "cta": "Ajoutez votre premier document"
+    },
+    "v3191": {
+      "receiptTitle": "Scannez un reçu, fini la saisie",
+      "receiptDesc": "Pointez l’appareil photo sur un reçu de carburant, de pièces ou d’atelier : MotoVault lit le montant, la date et le vendeur, et remplit la dépense pour vous. Vérifiez, enregistrez, c’est fait.",
+      "carplayTitle": "MotoVault sur CarPlay",
+      "carplayDesc": "Enregistrez vos trajets depuis l’écran du véhicule. Démarrez, mettez en pause et terminez un trajet sans toucher votre téléphone — ou laissez le mode Automatique le lancer au premier signal GPS."
     }
   },
   "oem": {

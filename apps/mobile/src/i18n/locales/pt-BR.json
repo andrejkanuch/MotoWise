@@ -1712,6 +1712,12 @@
       "remindersTitle": "Nunca perca uma renovação",
       "remindersDesc": "Adicione uma data de validade e avisaremos 30, 7 e 1 dia antes — para que seu seguro ou licenciamento nunca vença.",
       "cta": "Adicione seu primeiro documento"
+    },
+    "v3191": {
+      "receiptTitle": "Escaneie um recibo, sem digitar",
+      "receiptDesc": "Aponte a câmera para um recibo de combustível, peças ou oficina: o MotoVault lê o valor, a data e o fornecedor e preenche a despesa para você. Confira, salve, pronto.",
+      "carplayTitle": "MotoVault no CarPlay",
+      "carplayDesc": "Registre suas viagens pela tela do veículo. Inicie, pause e finalize uma viagem na central multimídia sem tocar no celular — ou deixe o modo Automático começar no primeiro sinal de GPS."
     }
   },
   "oem": {

@@ -1711,6 +1711,12 @@
       "remindersTitle": "Verpasse keine Verlängerung mehr",
       "remindersDesc": "Füge ein Ablaufdatum hinzu und wir erinnern dich 30, 7 und 1 Tag vorher – damit Versicherung oder Zulassung nie ablaufen.",
       "cta": "Erstes Dokument hinzufügen"
+    },
+    "v3191": {
+      "receiptTitle": "Belege scannen statt tippen",
+      "receiptDesc": "Richte die Kamera auf einen Tank-, Teile- oder Werkstattbeleg — MotoVault liest Betrag, Datum und Händler und füllt die Ausgabe für dich aus. Prüfen, speichern, fertig.",
+      "carplayTitle": "MotoVault in CarPlay",
+      "carplayDesc": "Zeichne Fahrten über das Fahrzeugdisplay auf. Starte, pausiere und beende eine Fahrt direkt an der Head-Unit, ohne dein Telefon anzufassen — oder lass den Automatikmodus beim ersten GPS-Fix starten."
     }
   },
   "oem": {

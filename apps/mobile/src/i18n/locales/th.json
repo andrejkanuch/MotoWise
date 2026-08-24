@@ -1711,6 +1711,12 @@
       "remindersTitle": "Never Miss a Renewal",
       "remindersDesc": "Add an expiry date and we'll remind you 30, 7, and 1 day before — so your insurance or registration never lapses again.",
       "cta": "Add your first document"
+    },
+    "v3191": {
+      "receiptTitle": "สแกนใบเสร็จ ไม่ต้องพิมพ์",
+      "receiptDesc": "เล็งกล้องไปที่ใบเสร็จน้ำมัน อะไหล่ หรือค่าบริการ — MotoVault จะอ่านยอดเงิน วันที่ และร้านค้า แล้วกรอกค่าใช้จ่ายให้คุณ ตรวจสอบ บันทึก เสร็จเรียบร้อย",
+      "carplayTitle": "MotoVault บน CarPlay",
+      "carplayDesc": "บันทึกการออกทริปจากหน้าจอในรถ เริ่ม หยุดพัก และจบทริปได้เลยโดยไม่ต้องแตะโทรศัพท์ — หรือให้โหมดอัตโนมัติเริ่มให้เมื่อจับสัญญาณ GPS ครั้งแรก"
     }
   },
   "oem": {

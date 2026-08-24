@@ -1711,6 +1711,12 @@
       "remindersTitle": "Never Miss a Renewal",
       "remindersDesc": "Add an expiry date and we'll remind you 30, 7, and 1 day before — so your insurance or registration never lapses again.",
       "cta": "Add your first document"
+    },
+    "v3191": {
+      "receiptTitle": "Fiş tara, yazmayı bırak",
+      "receiptDesc": "Kamerayı yakıt, parça veya servis fişine doğrult — MotoVault tutarı, tarihi ve satıcıyı okuyup gideri senin yerine doldurur. Kontrol et, kaydet, bitti.",
+      "carplayTitle": "CarPlay’de MotoVault",
+      "carplayDesc": "Sürüşlerini aracının ekranından kaydet. Telefonuna dokunmadan ekrandan sürüş başlat, duraklat ve bitir — ya da Otomatik mod ilk GPS sinyalinde başlatsın."
     }
   },
   "oem": {

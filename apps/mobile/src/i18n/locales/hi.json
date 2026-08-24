@@ -1711,6 +1711,12 @@
       "remindersTitle": "Never Miss a Renewal",
       "remindersDesc": "Add an expiry date and we'll remind you 30, 7, and 1 day before — so your insurance or registration never lapses again.",
       "cta": "Add your first document"
+    },
+    "v3191": {
+      "receiptTitle": "रसीद स्कैन करें, टाइप करना छोड़ें",
+      "receiptDesc": "ईंधन, पुर्ज़ों या सर्विस की रसीद पर कैमरा रखें — MotoVault राशि, तारीख़ और विक्रेता पढ़कर खर्च ख़ुद भर देता है। जाँचें, सेव करें, हो गया।",
+      "carplayTitle": "CarPlay पर MotoVault",
+      "carplayDesc": "गाड़ी की स्क्रीन से राइड रिकॉर्ड करें। फ़ोन छुए बिना राइड शुरू करें, रोकें और ख़त्म करें — या ऑटोमैटिक मोड को पहले GPS सिग्नल पर शुरू करने दें।"
     }
   },
   "oem": {

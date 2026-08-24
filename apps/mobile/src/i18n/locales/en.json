@@ -1717,6 +1717,12 @@
       "remindersTitle": "Never Miss a Renewal",
       "remindersDesc": "Add an expiry date and we'll remind you 30, 7, and 1 day before — so your insurance or registration never lapses again.",
       "cta": "Add your first document"
+    },
+    "v3191": {
+      "receiptTitle": "Scan a Receipt, Skip the Typing",
+      "receiptDesc": "Point your camera at a fuel, parts, or service receipt — MotoVault reads the amount, date, and vendor and fills in the expense for you. Check it, save it, done.",
+      "carplayTitle": "MotoVault on CarPlay",
+      "carplayDesc": "Log rides from your bike’s screen. Start, pause, and finish a ride on the head unit without touching your phone — or let Automatic mode start it on the first GPS fix."
     }
   },
   "oem": {
