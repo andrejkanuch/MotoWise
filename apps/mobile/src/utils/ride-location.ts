@@ -20,7 +20,7 @@ import {
   restoreBufferFromMMKV,
   rideMMKV,
 } from './ride-storage';
-import { enqueueOrExecute } from './ride-sync-queue';
+import { enqueueOrExecute, enqueueWaypointUpload } from './ride-sync-queue';
 
 // --- Constants ---
 
@@ -367,12 +367,12 @@ function processLocation(location: Location.LocationObject): void {
     recordedAt: new Date(location.timestamp).toISOString(),
   };
 
+  // Returns null when the fix was decimated away by the ride's waypoint budget,
+  // or when the chunk isn't full yet.
   const flushedChunk = appendWaypoint(rideId, waypoint);
   if (flushedChunk) {
     // Chunk was flushed to MMKV — queue for server upload
-    enqueueOrExecute('uploadWaypoints', {
-      variables: { input: { rideId, waypoints: flushedChunk } },
-    });
+    void enqueueWaypointUpload(rideId, flushedChunk);
   }
 }
 
@@ -425,11 +425,7 @@ function autoEndRide(idleSince: number): void {
   // Upload any remaining waypoints that didn't fill a full chunk, then drop the
   // persisted buffer key — the durable copy now lives in the sync queue, so a
   // kill after this point must not let crash-recovery re-enqueue the same points.
-  if (bufferPoints.length > 0) {
-    enqueueOrExecute('uploadWaypoints', {
-      variables: { input: { rideId, waypoints: bufferPoints } },
-    });
-  }
+  void enqueueWaypointUpload(rideId, bufferPoints);
   removeWaypointBuffer(rideId);
 
   useRideStore.getState().endRide();

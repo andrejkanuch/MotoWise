@@ -47,7 +47,10 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { OB_VARIANT } from '../config/onboarding';
 import { getWhatsNewRelease } from '../data/whats-new-releases';
-import { startCarPlayCoordinator } from '../features/carplay/carplay-coordinator';
+import {
+  refreshCarPlayHeadsUpData,
+  startCarPlayCoordinator,
+} from '../features/carplay/carplay-coordinator';
 import { clearParkedScans } from '../features/receipt-scan/parked-scan-store';
 import { initReceiptScanQueue } from '../features/receipt-scan/receipt-scan-queue';
 import { ReceiptScanSaveSnackbar } from '../features/receipt-scan/receipt-scan-save-snackbar';
@@ -85,6 +88,7 @@ import {
   SIGNOUT_UNSYNCED_MESSAGE,
   SIGNOUT_UNSYNCED_SOURCE,
 } from '../lib/auth-state-change';
+import { bestEffortNativeCall, NativeSideEffect } from '../lib/best-effort-native';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
 import { captureMetaAttribution } from '../lib/meta-attribution';
@@ -144,9 +148,22 @@ SplashScreen.setOptions({ duration: SPLASH_FADE_MS, fade: true });
 const SPLASH_FAILSAFE_MS = 10000;
 
 // Root view defaults to white — paint it the splash color so no frame between
-// the native splash and React's first paint can flash white. (The app.config
-// `backgroundColor` covers builds; this covers dev reloads at runtime.)
-SystemUI.setBackgroundColorAsync(palette.editorialDarkBg2);
+// the native splash and React's first paint can flash white.
+//
+// Builds do NOT need this: expo-system-ui's prebuild mods bake the identical
+// color into `android:windowBackground` / the iOS root view from app.config's
+// top-level `backgroundColor`, which is kept equal to palette.editorialDarkBg2.
+// Only dev reloads need the runtime call, and running it in production is what
+// produced the unhandled rejection — module scope also executes when Android
+// evaluates the bundle with no Activity (headless/background, process-death),
+// where it rejects with ERR_MISSING_ACTIVITY. Gated to dev, then wrapped so a
+// Fast Refresh mid-teardown cannot escape either.
+// (Sentry MOTO-VAULT-REACT-NATIVE-19)
+if (__DEV__) {
+  bestEffortNativeCall(NativeSideEffect.SYSTEM_UI_ROOT_BACKGROUND, () =>
+    SystemUI.setBackgroundColorAsync(palette.editorialDarkBg2),
+  );
+}
 
 // Initialize Sentry and PostHog as early as possible
 initSentry();
@@ -478,6 +495,11 @@ function RootLayout() {
         // hours away from the moment the token comes back. Fires on SIGNED_IN and
         // TOKEN_REFRESHED alike, which is exactly when a blocked queue can proceed.
         drainQueue();
+        // Same trigger, same reason for CarPlay: a head unit connected while the
+        // rider was signed out skipped its user-scoped heads-up load (rather than
+        // firing a request the API can only reject — MOTO-VAULT-REACT-NATIVE-1J).
+        // No-ops when no head unit is attached.
+        refreshCarPlayHeadsUpData();
       } else {
         if (decision.shouldResetUser) {
           // Reset only when we PREVIOUSLY had a user in this app session. On a

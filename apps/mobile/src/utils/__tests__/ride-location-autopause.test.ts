@@ -28,6 +28,7 @@ jest.mock('expo-secure-store', () => ({
 }));
 jest.mock('../ride-sync-queue', () => ({
   enqueueOrExecute: jest.fn().mockResolvedValue(undefined),
+  enqueueWaypointUpload: jest.fn().mockResolvedValue(undefined),
   enqueue: jest.fn(),
   getQueueLength: jest.fn().mockReturnValue(0),
 }));

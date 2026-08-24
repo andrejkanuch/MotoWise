@@ -46,6 +46,22 @@ export const MAX_DIAGNOSTIC_IMAGE_BYTES = 5 * 1024 * 1024;
 /** Maximum base64 string length for diagnostic uploads (~6.7 MB base64 = ~5 MB decoded) */
 export const MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH = Math.ceil(MAX_DIAGNOSTIC_IMAGE_BYTES / 3) * 4;
 
+/**
+ * GPS waypoint budgets for one recorded ride. Shared because the server enforces
+ * `MAX_PER_RIDE` as a hard abuse guard, which makes it a client constraint too: a
+ * batch the cap rejects can never be accepted, so a recorder that keeps producing
+ * them mints a fresh permanently-failing payload every chunk for the rest of the
+ * ride. That is the whole of Sentry MOTO-VAULT-REACT-NATIVE-1M — 351 of its 391
+ * events came from ONE rider on ONE long ride, one per rejected chunk. Both sides
+ * must read the same number or the client cannot know where to stop.
+ */
+export const RIDE_WAYPOINT_LIMITS = {
+  /** Hard cap on stored waypoints for a single ride (RidesService.uploadWaypoints). */
+  MAX_PER_RIDE: 10_000,
+  /** Most waypoints one `uploadWaypoints` mutation will accept (UploadWaypointsInputSchema). */
+  MAX_PER_UPLOAD: 500,
+} as const;
+
 export const AI_BUDGET_LIMITS = {
   /** Maximum AI generations per day for free-tier users */
   FREE_DAILY_GENERATIONS: 50,

@@ -13,7 +13,7 @@ import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { RIDE_EVENTS } from '../../common/constants/events';
 import { buildConnection, decodeCursor, encodeCursor } from '../../common/pagination/connection';
 import { PG_ERROR } from '../../common/supabase/unwrap';
-import { QUERY_LIMITS } from '../../config/constants';
+import { POSTGRES_REAL, QUERY_LIMITS } from '../../config/constants';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { EndRideInput } from './dto/end-ride.input';
@@ -27,20 +27,64 @@ import type { Waypoint } from './models/waypoint.model';
 const MAX_WAYPOINTS_PER_RIDE = QUERY_LIMITS.MAX_WAYPOINTS_PER_RIDE;
 
 /**
- * Postgres SQLSTATE classes that signal a transient, retryable failure rather
- * than a permanent one (bad input, constraint violation). Matched by class
- * prefix so every code in the class is covered:
- *   08 — connection exception        53 — insufficient resources (e.g. 53300 too_many_connections)
- *   40 — transaction rollback (40001 serialization, 40P01 deadlock)
- *   57 — operator intervention (57014 statement_timeout / query_canceled)
- * These map to 503 (retryable) so the mobile sync queue backs off and retries
- * instead of dead-lettering the batch as a hard failure.
+ * Postgres SQLSTATE class → whether a retry could ever succeed. Matched by class
+ * prefix so every code in the class is covered.
+ *
+ *   transient — 08 connection exception
+ *               40 transaction rollback (40001 serialization, 40P01 deadlock)
+ *               53 insufficient resources (53300 too_many_connections)
+ *               57 operator intervention (57014 statement_timeout)
+ *   permanent — 22 data exception (22003 numeric_value_out_of_range, …)
+ *               23 integrity constraint violation (23502 not-null, 23503 FK)
+ *
+ * A `permanent` class used to fall through to 500 alongside genuinely unknown
+ * failures, and the mobile sync queue treats 5xx as retryable: one poison batch
+ * burned five retries with exponential backoff and a Sentry event each, which is
+ * how 48 events landed in 43 minutes for a handful of bad payloads
+ * (MOTO-VAULT-NODE-NESTJS-8). The payload is the problem, so it must come back as
+ * a 4xx that dead-letters once. Unknown classes still map to 500 — an unknown
+ * failure is worth retrying, and worth alerting on.
  */
-const TRANSIENT_PG_ERROR_CLASSES = ['08', '40', '53', '57'] as const;
+const PG_ERROR_CLASS_DISPOSITION = {
+  '08': 'transient',
+  '40': 'transient',
+  '53': 'transient',
+  '57': 'transient',
+  '22': 'permanent',
+  '23': 'permanent',
+} as const;
 
-function isTransientDbError(code: string | null | undefined): boolean {
-  if (!code) return false;
-  return TRANSIENT_PG_ERROR_CLASSES.some((cls) => code.startsWith(cls));
+type PgDisposition = (typeof PG_ERROR_CLASS_DISPOSITION)[keyof typeof PG_ERROR_CLASS_DISPOSITION];
+
+function pgDisposition(code: string | null | undefined): PgDisposition | 'unknown' {
+  if (!code) return 'unknown';
+  const match = Object.entries(PG_ERROR_CLASS_DISPOSITION).find(([cls]) => code.startsWith(cls));
+  return match ? match[1] : 'unknown';
+}
+
+/**
+ * Coerce a client-supplied float into a value a Postgres `real` column accepts.
+ *
+ * `ride_waypoints.altitude / speed_mps / heading / accuracy` are all REAL (00047),
+ * and Postgres rejects rather than rounds a non-zero magnitude below the smallest
+ * normal float4. Because the insert is one multi-row upsert, ONE such sample failed
+ * the entire batch — up to 500 waypoints lost per bad fix, reported as an opaque
+ * 500: `pg 22003: "1.366286406007969e-77" is out of range for type real`
+ * (MOTO-VAULT-NODE-NESTJS-8). Zod cannot catch it either; a denormal satisfies
+ * every range check on WaypointSchema.
+ *
+ * A sub-normal magnitude is physically zero for all four of these quantities, so it
+ * collapses to 0 rather than being dropped — the fix must not turn a numeric glitch
+ * into a hole in the rider's track.
+ */
+function toRealColumn(value: number | null | undefined): number | null {
+  if (value == null || !Number.isFinite(value)) return null;
+  const magnitude = Math.abs(value);
+  if (magnitude < POSTGRES_REAL.MIN_MAGNITUDE) return 0;
+  if (magnitude > POSTGRES_REAL.MAX_MAGNITUDE) {
+    return Math.sign(value) * POSTGRES_REAL.MAX_MAGNITUDE;
+  }
+  return value;
 }
 
 @Injectable()
@@ -410,22 +454,44 @@ export class RidesService {
       this.logger.warn(
         `uploadWaypoints: quota count failed, proceeding without it: ${countError.message} (${countError.code}) rideId=${input.rideId}`,
       );
-    } else if ((count ?? 0) + input.waypoints.length > MAX_WAYPOINTS_PER_RIDE) {
-      throw new BadRequestException(
-        `Waypoint limit exceeded. Maximum ${MAX_WAYPOINTS_PER_RIDE} per ride.`,
+    }
+
+    // Over the cap: TRUNCATE the batch, never reject it. Throwing 400 here turned
+    // the quota into a poison pill — the recorder re-enqueues a fresh chunk every
+    // CHUNK_SIZE GPS fixes, and every one of them was permanently rejected, so a
+    // single long ride produced hundreds of dead-lettered payloads and one Sentry
+    // event each (MOTO-VAULT-REACT-NATIVE-1M: 351 of 391 events, ONE rider, one
+    // release). Storing what fits holds the cap just as firmly while letting the
+    // client's sync queue drain, which is what stops the loop on builds already in
+    // the field — they cannot be fixed by a client-side change. The return value is
+    // the number actually stored, so the caller is never told more was kept than was.
+    const accepted = countError
+      ? input.waypoints
+      : input.waypoints.slice(0, Math.max(0, MAX_WAYPOINTS_PER_RIDE - (count ?? 0)));
+
+    if (accepted.length === 0) {
+      this.logger.warn(
+        `uploadWaypoints: ride ${input.rideId} already at the ${MAX_WAYPOINTS_PER_RIDE}-waypoint cap — dropped ${input.waypoints.length}`,
+      );
+      return 0;
+    }
+    if (accepted.length < input.waypoints.length) {
+      this.logger.warn(
+        `uploadWaypoints: ride ${input.rideId} truncated to the cap — stored ${accepted.length} of ${input.waypoints.length}`,
       );
     }
 
-    // INSERT...ON CONFLICT DO NOTHING for idempotency
-    const rows = input.waypoints.map((wp) => ({
+    // INSERT...ON CONFLICT DO NOTHING for idempotency. Every REAL column goes
+    // through toRealColumn — one unrepresentable float fails the whole upsert.
+    const rows = accepted.map((wp) => ({
       ride_id: input.rideId,
       recorded_at: wp.recordedAt,
       latitude: wp.latitude,
       longitude: wp.longitude,
-      altitude: wp.altitude ?? null,
-      speed_mps: wp.speedMps ?? null,
-      heading: wp.heading ?? null,
-      accuracy: wp.accuracy ?? null,
+      altitude: toRealColumn(wp.altitude),
+      speed_mps: toRealColumn(wp.speedMps),
+      heading: toRealColumn(wp.heading),
+      accuracy: toRealColumn(wp.accuracy),
     }));
 
     const { error } = await this.supabase.from('ride_waypoints').upsert(rows, {
@@ -437,28 +503,53 @@ export class RidesService {
       this.throwWaypointUploadError(error, input);
     }
 
-    return input.waypoints.length;
+    return accepted.length;
   }
 
   /**
    * Translate a waypoint-upsert Postgres error into the right HTTP exception and
-   * make it diagnosable. The client-facing message stays generic (the global
-   * filter hides 5xx internals), but the Postgres code + message are attached as
-   * the exception `cause` so Sentry's linked-errors integration records exactly
-   * which DB failure occurred — previously every occurrence collapsed into an
-   * opaque "Failed to upload waypoints" with no code (Sentry
-   * MOTO-VAULT-REACT-NATIVE-1J). Transient classes map to 503 so the mobile sync
-   * queue retries rather than dead-letters.
+   * make it diagnosable. Disposition is a table lookup
+   * (PG_ERROR_CLASS_DISPOSITION) rather than a chain of ifs, and only `unknown`
+   * reaches 500 — see that table for why a permanent failure must not.
+   *
+   * Three things about AllExceptionsFilter govern what each branch actually
+   * delivers, and they are not obvious from here:
+   *
+   * 1. The filter maps HTTP status → `extensions.code` (400 → BAD_REQUEST,
+   *    503 → SERVICE_UNAVAILABLE, 500 → INTERNAL_SERVER_ERROR). That code is the
+   *    ONLY signal the mobile queue classifies on, because a GraphQL error still
+   *    returns HTTP 200. BAD_REQUEST is in the queue's NON_RETRYABLE_CODES, so the
+   *    `permanent` branch is what makes a poison batch dead-letter after one try.
+   * 2. The filter passes `exception.message` through only for status < 500. So the
+   *    SQLSTATE in the `permanent` message REACHES the client; the one in the
+   *    `transient` message is replaced with "Internal server error" and is there
+   *    purely for the log line and local debugging.
+   * 3. The filter calls Sentry.captureException only for non-HttpExceptions and
+   *    status >= 500. Routing class 22/23 to 400 therefore also stops these being
+   *    reported to Sentry at all — deliberate (they were pure retry noise), but it
+   *    means a NEW class-22/23 failure mode is visible only in the Render logs via
+   *    the logger.error below. `cause` still carries the code for the 500 branch,
+   *    which is the one Sentry keeps.
    */
   private throwWaypointUploadError(error: PostgrestError, input: UploadWaypointsInput): never {
     this.logger.error(
       `uploadWaypoints failed: ${error.message} (${error.code}) rideId=${input.rideId} count=${input.waypoints.length}`,
     );
-    const cause = new Error(`pg ${error.code ?? 'unknown'}: ${error.message}`);
-    if (isTransientDbError(error.code)) {
-      throw new ServiceUnavailableException('Failed to upload waypoints', { cause });
-    }
-    throw new InternalServerErrorException('Failed to upload waypoints', { cause });
+    const code = error.code ?? 'unknown';
+    const cause = new Error(`pg ${code}: ${error.message}`);
+    const options = { cause };
+
+    const WAYPOINT_UPLOAD_EXCEPTIONS: Record<PgDisposition | 'unknown', () => Error> = {
+      transient: () =>
+        new ServiceUnavailableException(`Failed to upload waypoints (${code})`, options),
+      // 4xx so the mobile sync queue dead-letters once instead of retrying a
+      // payload the database will refuse every time.
+      permanent: () =>
+        new BadRequestException(`Waypoint upload rejected: invalid data (${code})`, options),
+      unknown: () => new InternalServerErrorException('Failed to upload waypoints', options),
+    };
+
+    throw WAYPOINT_UPLOAD_EXCEPTIONS[pgDisposition(error.code)]();
   }
 
   async updateRide(userId: string, input: UpdateRideInput): Promise<Ride> {

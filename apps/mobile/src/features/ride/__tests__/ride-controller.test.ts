@@ -46,10 +46,14 @@ jest.mock('../../../utils/ride-storage', () => {
     getPointBuffer: jest.fn(() => []),
     getWaypointChunks: jest.fn(() => []),
     removeWaypointBuffer: jest.fn(),
+    resetWaypointBudget: jest.fn(),
     clearRideData: jest.fn(),
   };
 });
-jest.mock('../../../utils/ride-sync-queue', () => ({ enqueueOrExecute: jest.fn() }));
+jest.mock('../../../utils/ride-sync-queue', () => ({
+  enqueueOrExecute: jest.fn(),
+  enqueueWaypointUpload: jest.fn().mockResolvedValue(undefined),
+}));
 // Bike-less rides resolve the primary bike (cache-first, then fetch) so the odometer
 // still tracks — mock the data seam; default to "no bikes cached / fetch empty".
 jest.mock('../../../lib/graphql-client', () => ({
@@ -108,6 +112,9 @@ const clearRideData = storage.clearRideData as jest.Mock;
 const getWaypointChunks = storage.getWaypointChunks as jest.Mock;
 const getPointBuffer = storage.getPointBuffer as jest.Mock;
 const enqueue = syncQueue.enqueueOrExecute as jest.Mock;
+// Waypoint batches go through their own producer so they are always split to the
+// server's per-upload max (MOTO-VAULT-REACT-NATIVE-1M).
+const enqueueWaypoints = syncQueue.enqueueWaypointUpload as jest.Mock;
 const store = useRideStore.getState();
 
 beforeEach(() => {
@@ -159,6 +166,9 @@ describe('startRideSession', () => {
     expect(store.startRide).toHaveBeenCalledTimes(1);
     expect(startGPS).toHaveBeenCalledTimes(1);
     expect(enqueue).toHaveBeenCalledWith('startRide', expect.anything());
+    // A previous ride's banked waypoint count would start this one part-way
+    // through its cap and decimate a short ride for no reason.
+    expect(storage.resetWaypointBudget).toHaveBeenCalledTimes(1);
   });
 
   it('rolls back (clears id, reverts store) and does NOT enqueue when GPS start throws', async () => {
@@ -221,6 +231,7 @@ describe('endRideSession', () => {
     expect(result).toBeNull();
     expect(store.endRide).not.toHaveBeenCalled();
     expect(enqueue).not.toHaveBeenCalled();
+    expect(enqueueWaypoints).not.toHaveBeenCalled();
   });
 
   it('aggregates waypoints, stops GPS, and enqueues both uploads and the end', () => {
@@ -232,7 +243,7 @@ describe('endRideSession', () => {
     const summary = endRideSession('phone');
 
     expect(store.endRide).toHaveBeenCalledTimes(1);
-    expect(enqueue).toHaveBeenCalledWith('uploadWaypoints', expect.anything());
+    expect(enqueueWaypoints).toHaveBeenCalledWith('ride-7', [wp(0, 0, 115, 30)]);
     expect(enqueue).toHaveBeenCalledWith('endRide', expect.anything());
     expect(summary).toMatchObject({ rideId: 'ride-7', maxSpeedMps: 30, motorcycleId: 'bike-9' });
   });

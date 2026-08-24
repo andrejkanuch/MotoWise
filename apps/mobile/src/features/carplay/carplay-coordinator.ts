@@ -28,6 +28,7 @@ import {
   updateBikeList,
 } from '../../../modules/carplay/src';
 import { captureException } from '../../lib/analytics';
+import { hasAuthenticatedSession } from '../../lib/gql-auth-session';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -252,6 +253,14 @@ async function loadBikeStatus(): Promise<void> {
   const stale = () => token !== bikeLoadToken || !bikeVisible;
   try {
     const system = useAuthStore.getState().measurementSystem ?? 'metric';
+    // A connected head unit is not a signed-in user: CarPlay can attach while the
+    // phone sits on the login screen. Every query below is user-scoped, so with no
+    // session the only possible outcome is an UNAUTHENTICATED rejection — show the
+    // recoverable row instead of firing it. (Sentry MOTO-VAULT-REACT-NATIVE-1J)
+    if (!hasAuthenticatedSession()) {
+      if (!stale()) updateBikeList(buildBikeError());
+      return;
+    }
     if (rideIsMoving()) {
       if (!stale()) {
         updateBikeList(buildBikeStatus({ moving: true, bike: null, tasks: [] }, system));
@@ -304,6 +313,14 @@ async function loadBikeStatus(): Promise<void> {
 async function loadHeadsUpData(): Promise<void> {
   const token = ++headsUpToken;
   const stale = () => token !== headsUpToken;
+  // Signed out: skip entirely. This ran on EVERY head-unit connect, including
+  // connects made while the phone sat on the login screen, and both queries below
+  // are user-scoped — it was the single largest contributor to
+  // MOTO-VAULT-REACT-NATIVE-1J ("Missing authorization header").
+  if (!hasAuthenticatedSession()) {
+    headsUpSnapshot = EMPTY_HEADS_UP;
+    return;
+  }
   try {
     let cache = queryClient.getQueryData<MyMotorcyclesQuery>(queryKeys.motorcycles.all);
     if (!cache) cache = await gqlFetcher(MyMotorcyclesDocument);
@@ -334,6 +351,19 @@ async function loadHeadsUpData(): Promise<void> {
     // Leave the last-good snapshot; the picker falls back to the climb row.
     captureException(err, { source: 'carplay-coordinator.loadHeadsUpData' });
   }
+}
+
+/**
+ * Re-warm the heads-up snapshot after auth is restored. `loadHeadsUpData` runs on
+ * head-unit connect, which can happen while the rider is still signed out (or
+ * mid-sign-in) — it then skips the user-scoped fetch and the row would stay on its
+ * climb fallback until the next disconnect/reconnect. Called from the root layout's
+ * auth-state-change handler, the same "a session just became available" trigger that
+ * drains the ride sync queue. No-ops unless a head unit is actually attached.
+ */
+export function refreshCarPlayHeadsUpData(): void {
+  if (!started || !unsubStore) return;
+  void loadHeadsUpData();
 }
 
 /**

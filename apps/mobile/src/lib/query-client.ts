@@ -1,6 +1,7 @@
 import { MutationCache, onlineManager, QueryCache, QueryClient } from '@tanstack/react-query';
 import { Alert } from 'react-native';
 import { addBreadcrumb, captureException } from './analytics';
+import { HANDLED_GRAPHQL_CAPTURE_SOURCE } from './graphql-error-classification';
 import { hasGraphQLCode, userFriendlyError } from './graphql-errors';
 import { isNetworkError } from './network-error';
 
@@ -71,7 +72,7 @@ export const queryClient = new QueryClient({
       if (isTransportError || isUpstreamOutage) {
         addBreadcrumb(
           error instanceof Error ? error.message : String(error),
-          'queryCache.onError',
+          HANDLED_GRAPHQL_CAPTURE_SOURCE.QUERY_CACHE,
           {
             queryKey: JSON.stringify(query?.queryKey),
           },
@@ -79,7 +80,7 @@ export const queryClient = new QueryClient({
       } else {
         captureException(error, {
           queryKey: JSON.stringify(query?.queryKey),
-          source: 'queryCache.onError',
+          source: HANDLED_GRAPHQL_CAPTURE_SOURCE.QUERY_CACHE,
         });
       }
       if (query?.meta?.showErrorAlert === false) return;
@@ -94,7 +95,7 @@ export const queryClient = new QueryClient({
       if (!shouldSkipCapture) {
         captureException(error, {
           mutationKey: JSON.stringify(mutation.options.mutationKey),
-          source: 'mutationCache.onError',
+          source: HANDLED_GRAPHQL_CAPTURE_SOURCE.MUTATION_CACHE,
         });
       }
       if (mutation.options.onError) return;

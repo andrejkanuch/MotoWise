@@ -28,9 +28,10 @@ import {
   getPointBuffer,
   getWaypointChunks,
   removeWaypointBuffer,
+  resetWaypointBudget,
   rideMMKV,
 } from '../../utils/ride-storage';
-import { enqueueOrExecute } from '../../utils/ride-sync-queue';
+import { enqueueOrExecute, enqueueWaypointUpload } from '../../utils/ride-sync-queue';
 
 export type RideSource = 'phone' | 'carplay';
 
@@ -94,6 +95,9 @@ export async function startRideSession({
   // leak into this one's elapsed/duration math.
   rideMMKV.setTotalPausedMs(0);
   rideMMKV.setPausedAt(0);
+  // Same reasoning for the waypoint budget: a previous ride's banked count would
+  // start this one part-way through its cap and decimate a short ride for no reason.
+  resetWaypointBudget();
   if (effectiveMotorcycleId) rideMMKV.setMotorcycleId(effectiveMotorcycleId);
 
   const store = useRideStore.getState();
@@ -182,11 +186,7 @@ export function endRideSession(source: RideSource = 'phone'): RideEndSummary | n
   const bufferPoints = [...getPointBuffer()];
   const combined = [...chunks.flat(), ...bufferPoints];
 
-  if (bufferPoints.length > 0) {
-    enqueueOrExecute('uploadWaypoints', {
-      variables: { input: { rideId, waypoints: bufferPoints } },
-    });
-  }
+  void enqueueWaypointUpload(rideId, bufferPoints);
   // Drop the persisted buffer key now that the points are durably enqueued —
   // prevents crash-recovery from re-enqueuing them as duplicates after end.
   removeWaypointBuffer(rideId);

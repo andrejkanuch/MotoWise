@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { RIDE_WAYPOINT_LIMITS } from '../constants/limits';
 
 // --- Ride Status ---
 
@@ -53,7 +54,7 @@ export type Waypoint = z.infer<typeof WaypointSchema>;
 
 export const UploadWaypointsInputSchema = z.object({
   rideId: z.string().uuid(),
-  waypoints: z.array(WaypointSchema).min(1).max(500),
+  waypoints: z.array(WaypointSchema).min(1).max(RIDE_WAYPOINT_LIMITS.MAX_PER_UPLOAD),
 });
 export type UploadWaypointsInput = z.infer<typeof UploadWaypointsInputSchema>;
 

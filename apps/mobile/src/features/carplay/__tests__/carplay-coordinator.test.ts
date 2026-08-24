@@ -88,8 +88,15 @@ jest.mock('../../../stores/ride.store', () => ({
 jest.mock('../../../stores/carplay.store', () => ({
   useCarPlayStore: { getState: () => ({ startMode: 'automatic' }) },
 }));
+// A head unit can connect while the phone sits on the login screen, so the
+// coordinator's user-scoped loads are gated on there being a session at all
+// (Sentry MOTO-VAULT-REACT-NATIVE-1J). Keep it settable per test.
+const mockAuth = { measurementSystem: 'metric', session: { access_token: 't' } as unknown };
 jest.mock('../../../stores/auth.store', () => ({
-  useAuthStore: { getState: () => ({ measurementSystem: 'metric' }) },
+  useAuthStore: { getState: () => mockAuth },
+}));
+jest.mock('../../../lib/gql-auth-session', () => ({
+  hasAuthenticatedSession: () => mockAuth.session !== null,
 }));
 
 import { router } from 'expo-router';
@@ -97,7 +104,11 @@ import { captureException } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryClient } from '../../../lib/query-client';
 import * as rideController from '../../ride/ride-controller';
-import { __resetCarPlayCoordinator, startCarPlayCoordinator } from '../carplay-coordinator';
+import {
+  __resetCarPlayCoordinator,
+  refreshCarPlayHeadsUpData,
+  startCarPlayCoordinator,
+} from '../carplay-coordinator';
 
 const THROTTLE_MS = 10_000; // mirror of the coordinator's internal throttle window
 const fireConnect = () => (carplay.addConnectListener as jest.Mock).mock.calls[0][0]();
@@ -138,6 +149,7 @@ describe('carplay-coordinator', () => {
     jest.clearAllMocks();
     __resetCarPlayCoordinator();
     mockStoreListeners.length = 0;
+    mockAuth.session = { access_token: 't' };
     mockRide.status = 'recording';
     mockRide.recordingSubState = 'moving';
     mockRide.distance = 42_300;
@@ -472,5 +484,70 @@ describe('carplay-coordinator', () => {
     );
     // Panel still rendered on connect; row 4 falls back to Climb (no recall/overdue signal).
     expect(lastRenderedItems()?.[3]?.title).toBe('Climb');
+  });
+
+  // --- Signed-out head unit (Sentry MOTO-VAULT-REACT-NATIVE-1J) ---
+  // Every query here is user-scoped, so firing one with no session can only
+  // produce "Missing authorization header". Connecting a head unit while the
+  // phone sits on the login screen was the largest source of that group.
+
+  describe('with no session', () => {
+    beforeEach(() => {
+      mockAuth.session = null;
+    });
+
+    it('renders the panel on connect but fetches nothing', async () => {
+      (queryClient.getQueryData as jest.Mock).mockReturnValue(undefined);
+      startCarPlayCoordinator();
+      fireConnect();
+      await flush();
+
+      expect(gqlFetcher).not.toHaveBeenCalled();
+      expect(captureException).not.toHaveBeenCalled();
+      // Projection still works — row 4 degrades to the climb fallback.
+      expect(lastRenderedItems()?.[3]?.title).toBe('Climb');
+    });
+
+    it('shows the recoverable row instead of fetching the bike list', async () => {
+      mockRide.status = 'recording';
+      mockRide.recordingSubState = 'stopped';
+      (queryClient.getQueryData as jest.Mock).mockReturnValue(undefined);
+      startCarPlayCoordinator();
+      fireConnect();
+      fireAction('bike');
+      lastBikeLifecycle()?.onWillAppear();
+      await flush();
+
+      expect(gqlFetcher).not.toHaveBeenCalled();
+      expect(captureException).not.toHaveBeenCalled();
+      expect(carplay.updateBikeList).toHaveBeenCalledWith(
+        expect.objectContaining({ rows: [{ title: "Couldn't load", detail: 'Reopen to retry' }] }),
+      );
+    });
+
+    it('re-warms the heads-up row once auth is restored', async () => {
+      (queryClient.getQueryData as jest.Mock).mockReturnValue(bikeCache({ recallCount: 2 }));
+      (gqlFetcher as jest.Mock).mockResolvedValue({ maintenanceTasks: [] });
+      startCarPlayCoordinator();
+      fireConnect();
+      await flush();
+      expect(gqlFetcher).not.toHaveBeenCalled();
+
+      // Root layout's auth-state-change handler fires this when a session lands.
+      mockAuth.session = { access_token: 't' };
+      refreshCarPlayHeadsUpData();
+      await flush();
+
+      expect(lastRenderedItems()?.[3]).toEqual({ title: 'Recall', detail: '2 open recalls' });
+    });
+
+    it('does not re-warm when no head unit is attached', async () => {
+      startCarPlayCoordinator();
+      mockAuth.session = { access_token: 't' };
+      refreshCarPlayHeadsUpData();
+      await flush();
+
+      expect(gqlFetcher).not.toHaveBeenCalled();
+    });
   });
 });

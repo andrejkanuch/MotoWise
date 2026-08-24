@@ -16,12 +16,19 @@ import {
   endRideSession,
 } from '../../features/ride/ride-controller';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { bestEffortNativeCall, NativeSideEffect } from '../../lib/best-effort-native';
 import { useRideStore } from '../../stores/ride.store';
 import { toggleBatterySaver } from '../../utils/ride-location';
 import { getPointBuffer, getWaypointChunks, rideMMKV, rideStorage } from '../../utils/ride-storage';
 import { hasPendingSyncWork } from '../../utils/ride-sync-queue';
 
 type SparklineMode = 'altitude' | 'speed';
+
+/**
+ * Keep-awake lock tag. Activation and deactivation must pass the SAME tag or the
+ * lock is never released, so it lives in one constant.
+ */
+const KEEP_AWAKE_TAG = 'ride-hud';
 
 function haptic(style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Light) {
   if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(style);
@@ -123,11 +130,19 @@ export default function RideHudScreen() {
     return () => clearInterval(interval);
   }, [isPaused]);
 
-  // Keep screen awake
+  // Keep screen awake. Both calls are fire-and-forget native side effects, and
+  // a ride HUD is exactly where Android tears the Activity down under us — long
+  // sessions, screen off, low-end devices reclaiming memory. The unmount
+  // deactivate then rejects with ERR_MISSING_ACTIVITY and used to escape as an
+  // unhandled rejection. (Sentry MOTO-VAULT-REACT-NATIVE-19)
   useEffect(() => {
-    activateKeepAwakeAsync('ride-hud');
+    bestEffortNativeCall(NativeSideEffect.KEEP_AWAKE_ACTIVATE, () =>
+      activateKeepAwakeAsync(KEEP_AWAKE_TAG),
+    );
     return () => {
-      deactivateKeepAwake('ride-hud');
+      bestEffortNativeCall(NativeSideEffect.KEEP_AWAKE_DEACTIVATE, () =>
+        deactivateKeepAwake(KEEP_AWAKE_TAG),
+      );
     };
   }, []);
 

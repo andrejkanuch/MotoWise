@@ -5,6 +5,7 @@ import {
   UpdateRideDocument,
   UploadWaypointsDocument,
 } from '@motovault/graphql';
+import { RIDE_WAYPOINT_LIMITS, type Waypoint } from '@motovault/types';
 import * as Network from 'expo-network';
 import { createMMKV } from 'react-native-mmkv';
 import { captureException } from '../lib/analytics';
@@ -171,6 +172,37 @@ export async function enqueueOrExecute(
 ): Promise<void> {
   enqueue(type, payload);
   await drainQueue();
+}
+
+/**
+ * Enqueue a waypoint batch as server-sized uploads and drain once.
+ *
+ * `UploadWaypointsInputSchema` accepts at most `MAX_PER_UPLOAD` waypoints per
+ * mutation; an oversized payload comes back BAD_USER_INPUT, which is
+ * non-retryable, so the whole batch dead-letters and those GPS points are gone.
+ * Every producer (chunk flush, rider-ended, auto-ended) routes through here so
+ * none of them can build one by accident — the graceful-end and auto-end paths
+ * upload a crash-restored buffer whose size they do not control.
+ *
+ * Splitting then draining once (rather than awaiting per chunk) keeps all chunks
+ * in a single seq-ordered cycle, so `endRide` still cannot overtake its waypoints.
+ */
+export function enqueueWaypointUpload(
+  rideId: string,
+  waypoints: readonly Waypoint[],
+): Promise<void> {
+  if (waypoints.length === 0) return Promise.resolve();
+  for (let i = 0; i < waypoints.length; i += RIDE_WAYPOINT_LIMITS.MAX_PER_UPLOAD) {
+    enqueue('uploadWaypoints', {
+      variables: {
+        input: {
+          rideId,
+          waypoints: waypoints.slice(i, i + RIDE_WAYPOINT_LIMITS.MAX_PER_UPLOAD),
+        },
+      },
+    });
+  }
+  return drainQueue();
 }
 
 /** The drain cycle currently running, or null. Also the re-entry lock. */

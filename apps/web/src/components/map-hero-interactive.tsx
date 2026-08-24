@@ -17,6 +17,11 @@ function readMapboxPublicToken(): string {
   return process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ?? '';
 }
 
+/** The CDN bundle installs itself as a global; never read this during render. */
+function readMapboxGlobal(): MapboxGL | null {
+  return ((globalThis as Record<string, unknown>).mapboxgl as MapboxGL | undefined) ?? null;
+}
+
 function StaticRoutePreview({ src, className }: { src: string; className: string }) {
   return (
     <div className={`relative h-full w-full ${className}`}>
@@ -252,12 +257,25 @@ export function MapHeroInteractive({
   mapInstanceKey,
 }: MapHeroInteractiveProps) {
   const token = readMapboxPublicToken();
-  const [mapboxgl, setMapboxgl] = useState<MapboxGL | null>(
-    () => ((globalThis as Record<string, unknown>).mapboxgl as MapboxGL | null) ?? null,
-  );
+  // MUST start `null`. The server has no `window.mapboxgl` and always renders
+  // the "Loading map…" placeholder, so reading the global in the useState
+  // initializer made the first client render return the real map <div> whenever
+  // the CDN bundle was already cached — an element mismatch that threw React
+  // #418 and discarded the server-rendered subtree. Same bug as b3490255 on the
+  // trip map; the global is picked up post-mount below instead.
+  const [mapboxgl, setMapboxgl] = useState<MapboxGL | null>(null);
 
   const onScriptReady = useCallback(() => {
-    const gl = (globalThis as Record<string, unknown>).mapboxgl as MapboxGL | undefined;
+    const gl = readMapboxGlobal();
+    if (gl) setMapboxgl(gl);
+  }, []);
+
+  // Warm-cache path. `next/script`'s loadScript returns early when its cacheKey
+  // (`id || src`) is already in LoadCache, so a callback is not guaranteed for a
+  // script some other component already finished loading. Reading the global
+  // once post-mount covers that without depending on which callback fires.
+  useEffect(() => {
+    const gl = readMapboxGlobal();
     if (gl) setMapboxgl(gl);
   }, []);
 

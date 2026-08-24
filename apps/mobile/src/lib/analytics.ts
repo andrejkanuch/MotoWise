@@ -4,6 +4,16 @@ import Constants from 'expo-constants';
 import PostHog from 'posthog-react-native';
 import { Settings } from 'react-native-fbsdk-next';
 import { getStoredAnalyticsConsent, setStoredAnalyticsConsent } from './analytics-consent';
+import {
+  describeGraphQLError,
+  describeGraphQLErrorFromMessage,
+  type GraphQLErrorDescriptor,
+  graphQLFingerprint,
+  isExpectedBusinessRuleCode,
+  isHandledGraphQLCaptureSource,
+  isMissingGqlSessionError,
+  MISSING_GQL_SESSION_MESSAGE,
+} from './graphql-error-classification';
 import { getStoredUtmProperties } from './meta-attribution';
 import { isNetworkError } from './network-error';
 
@@ -86,8 +96,70 @@ export const sentryNavigationIntegration: ReturnType<typeof Sentry.reactNavigati
     enableTimeToInitialDisplay: true,
   });
 
+/** Longest GraphQL server message kept as the Sentry issue title. */
+const GRAPHQL_TITLE_MAX_CHARS = 200;
+
+/**
+ * The slice of Sentry's `EventHint` that `beforeSend` actually reads.
+ * `@sentry/react-native` does not re-export the `EventHint` type, and
+ * `@sentry/core` is a transitive dependency — structurally compatible, so the
+ * SDK still accepts this handler.
+ */
+interface SentryEventHint {
+  originalException?: unknown;
+}
+
+/**
+ * Every `graphql-request` failure throws from the same place (`runRequest.js` →
+ * `new ClientError`), so Sentry's default stacktrace grouping collapsed unrelated
+ * server rejections into one issue and titled it with whichever message arrived
+ * first — the reason MOTO-VAULT-REACT-NATIVE-1J and -1M each hold thousands of
+ * events under an unrelated headline.
+ *
+ * Fix the grouping instead of the symptom: fingerprint on the failing field +
+ * error code (never the message, which interpolates ids, limits and user input),
+ * expose both as searchable tags, and trim the title down to the server message
+ * so the issue list is readable — the full serialized response body added ~2 KB
+ * of headers per event and nothing actionable.
+ */
+function applyGraphQLGrouping(
+  event: Sentry.ErrorEvent,
+  descriptor: GraphQLErrorDescriptor,
+): Sentry.ErrorEvent {
+  event.fingerprint = graphQLFingerprint(descriptor);
+  event.tags = {
+    ...event.tags,
+    'graphql.code': descriptor.code ?? 'none',
+    'graphql.field': descriptor.path ?? 'unknown',
+    ...(descriptor.operationName ? { 'graphql.operation': descriptor.operationName } : {}),
+  };
+  const value = event.exception?.values?.[0];
+  if (value && descriptor.message) {
+    value.value = descriptor.message.slice(0, GRAPHQL_TITLE_MAX_CHARS);
+  }
+  return event;
+}
+
+/**
+ * The GraphQL shape of a failed request, preferring the live exception. Some
+ * transport paths hand `beforeSend` only the serialized event, so fall back to
+ * parsing the exception value.
+ */
+function describeGraphQLEvent(
+  event: Sentry.ErrorEvent,
+  hint?: SentryEventHint,
+): GraphQLErrorDescriptor | null {
+  return (
+    describeGraphQLError(hint?.originalException) ??
+    describeGraphQLErrorFromMessage(event.exception?.values?.[0]?.value)
+  );
+}
+
 /** Exported for testing — filters non-actionable native crashes from Sentry. */
-export function sentryBeforeSend(event: Sentry.ErrorEvent): Sentry.ErrorEvent | null {
+export function sentryBeforeSend(
+  event: Sentry.ErrorEvent,
+  hint?: SentryEventHint,
+): Sentry.ErrorEvent | null {
   const message = event.exception?.values?.[0]?.value ?? event.exception?.values?.[0]?.type ?? '';
   // Known React Native Fabric race condition — view is unmounted before
   // an async image/reanimated callback can update props. Not actionable.
@@ -109,6 +181,30 @@ export function sentryBeforeSend(event: Sentry.ErrorEvent): Sentry.ErrorEvent | 
   // (Sentry MOTO-VAULT-REACT-NATIVE-4 / -6)
   if (message.includes('current user is anonymous')) {
     return null;
+  }
+  // gqlFetcher refused an authenticated request because nobody is signed in
+  // (background/headless path firing while signed out, or a refresh token that
+  // is gone). A client-side state, not a failure: the caller already treats it
+  // as "session expired". (Sentry MOTO-VAULT-REACT-NATIVE-1J)
+  if (
+    isMissingGqlSessionError(hint?.originalException) ||
+    message.includes(MISSING_GQL_SESSION_MESSAGE)
+  ) {
+    return null;
+  }
+  // Handled GraphQL rejections: drop the ones that are normal product behaviour
+  // (free-tier limits, off-topic prompts, invalid date ranges, a trip that is no
+  // longer joinable) and regroup the rest so real failures stay distinguishable.
+  // (Sentry MOTO-VAULT-REACT-NATIVE-1J / -1M)
+  const graphQLError = describeGraphQLEvent(event, hint);
+  if (graphQLError) {
+    if (
+      isExpectedBusinessRuleCode(graphQLError.code) &&
+      isHandledGraphQLCaptureSource(event.extra?.source)
+    ) {
+      return null;
+    }
+    return applyGraphQLGrouping(event, graphQLError);
   }
   // Hermes VM internal native crash — memory corruption or GC bug
   // in the engine itself, not in application JS. Not actionable.

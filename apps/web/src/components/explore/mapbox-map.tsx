@@ -30,11 +30,22 @@ type MarkerEntry = {
   lat: number;
 };
 
-/** Track Mapbox script readiness via onLoad callback instead of polling. */
-let _mapboxReady =
-  // biome-ignore lint/suspicious/noExplicitAny: globalThis access for CDN-loaded mapbox
-  typeof window !== 'undefined' && !!(globalThis as Record<string, any>).mapboxgl;
+/**
+ * Track Mapbox script readiness via the `onLoad` callback instead of polling.
+ *
+ * The latch is module-scoped, and the hook below also probes the global
+ * directly, because `onLoad` is not guaranteed to fire: `next/script`'s
+ * `loadScript` returns early when its cacheKey (`id || src` — this `<Script>`
+ * passes no `id`, so the shared CDN `src`) is already in `LoadCache`. A second
+ * `<MapboxMap>`, or a client-side navigation back to a map route, would
+ * otherwise wait forever for an event that already happened.
+ */
+let _mapboxReady = false;
 const _listeners = new Set<() => void>();
+
+// biome-ignore lint/suspicious/noExplicitAny: globalThis access for CDN-loaded mapbox
+const isMapboxGlobalPresent = () => !!(globalThis as Record<string, any>).mapboxgl;
+
 function notifyMapboxReady() {
   _mapboxReady = true;
   for (const fn of _listeners) fn();
@@ -42,9 +53,15 @@ function notifyMapboxReady() {
 }
 
 function useMapboxReady(): [boolean, () => void] {
-  const [ready, setReady] = useState(() => _mapboxReady);
+  // MUST start `false`. The server has no `window.mapboxgl` and always renders
+  // the not-ready tree, so seeding this from the module latch (which used to be
+  // initialised from `globalThis.mapboxgl` at module-eval time) made the first
+  // client render diverge from the server HTML whenever the CDN bundle was
+  // already cached — the React #418 hydration mismatch fixed on the trip map in
+  // b3490255, still live here. Detect the global post-mount instead.
+  const [ready, setReady] = useState(false);
   useEffect(() => {
-    if (_mapboxReady) {
+    if (_mapboxReady || isMapboxGlobalPresent()) {
       setReady(true);
       return;
     }
