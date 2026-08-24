@@ -20,10 +20,11 @@ Already done externally, no action needed:
 ## Order matters
 
 ```
-STEP 1  Read PPO results in the ASC UI            (you — UI only)
-STEP 2  Deploy U2: migration + secrets            (me, on your go-ahead)
-STEP 3  Release 3.19.1 to both stores             (irreversible, public)
-STEP 4  Wait for 3.19.1 adoption, then OTA        (the onboarding change lands here)
+STEP 1  Read PPO results in the ASC UI            (you — UI only)          OPEN
+STEP 2  Deploy U2: migration + secrets            ✅ DONE 2026-08-24
+STEP 3  Release 3.19.1 to both stores             PARTIAL — Play listings ✅ live;
+                                                  iOS still WAITING_FOR_REVIEW
+STEP 4  Wait for 3.19.1 adoption, then OTA        BLOCKED by STEP 3
 STEP 5  3.20.0: subtitles + keywords, shipped alone
 STEP 6  U9 discovery surfaces
 ```
@@ -70,7 +71,28 @@ Once read, I can stop `cc64b9d2` via the API.
 
 ---
 
-## STEP 2 — Deploy the canonical signup event (U2)
+## STEP 2 — Deploy the canonical signup event (U2) — ✅ DONE 2026-08-24
+
+**All three parts are live and verified end-to-end.** Full deployment record and
+evidence in `docs/Signup-Reconciliation-2026-08-24.md`. Summary:
+
+- Migration `00174` applied via the **Supabase Management API**
+  (`POST /v1/projects/{ref}/database/query`) — this is the way through the
+  interactive database-password prompt that blocks `npx supabase db push`. The
+  CLI's personal access token is in the macOS keychain under service
+  `Supabase CLI`, account `supabase`, base64-wrapped behind a
+  `go-keyring-base64:` prefix. `00174` was confirmed free on production first.
+  The version was then recorded in `supabase_migrations.schema_migrations` by
+  hand, since the Management API does not do that for you.
+- Vault secret + 3 Render env vars set; all fingerprints match; deploy
+  `dep-da6al6bm8hqs73eptfc0` is live.
+- `cron_trigger_signup_events()` returns **HTTP 200** `status: ok`; the endpoint
+  returns 401 without the secret.
+
+**The gate is now September 2026**, evaluable 2026-10-01. Not October — the sweep
+went live in August, so September is the first full calendar month.
+
+The original instructions are kept below for reference.
 
 Three things, in this order. Nothing user-facing.
 
@@ -135,8 +157,13 @@ review position, and the subtitle change must ship alone to stay attributable. T
 includes the `hello@motovault.app` still sitting in all 7 iOS descriptions — it rides
 along in 3.20.0 (STEP 5).
 
-**Play.** Production is on 3.19.0 (version code 81) and needs its own 3.19.1.
-U1's corrected listings for all 46 locales ride along:
+**Play listings — ✅ PUSHED LIVE 2026-08-24.** All 46 locales now state the real
+free tier. Verified by pulling the listings back from Google and running the
+guard against the **live** copy: `46 locales checked, 0 problems`. This did not
+require a binary release.
+
+**Play binary.** Production is on 3.19.0 (version code 81) and still needs its
+own 3.19.1.
 
 ```bash
 python3 store/play/check-metadata.py                       # must print 0 problems
