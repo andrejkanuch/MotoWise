@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import * as SecureStore from 'expo-secure-store';
 import { captureException } from './analytics';
+import { secureStoreAuthAdapter } from './secure-store';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
@@ -12,30 +12,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: {
-      getItem: async (key: string) => {
-        try {
-          return await SecureStore.getItemAsync(key);
-        } catch {
-          // iOS blocks Keychain access during screen transitions ("User interaction is not allowed")
-          return null;
-        }
-      },
-      setItem: async (key: string, value: string) => {
-        try {
-          await SecureStore.setItemAsync(key, value);
-        } catch {
-          // Silently fail — session will be re-persisted on next successful write
-        }
-      },
-      removeItem: async (key: string) => {
-        try {
-          await SecureStore.deleteItemAsync(key);
-        } catch {
-          // Silently fail
-        }
-      },
-    },
+    // Keychain-backed, fail-soft, and stored with AFTER_FIRST_UNLOCK so a
+    // background TOKEN_REFRESHED on a locked device can still read the session
+    // instead of dropping it (lib/secure-store, MOTO-VAULT-REACT-NATIVE-2D).
+    storage: secureStoreAuthAdapter,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,

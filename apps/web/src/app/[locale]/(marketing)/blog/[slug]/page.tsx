@@ -2,6 +2,7 @@ import * as Sentry from '@sentry/nextjs';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
+import { hasLocale } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { compileMDX } from 'next-mdx-remote/rsc';
 import rehypeSlug from 'rehype-slug';
@@ -13,6 +14,7 @@ import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { RelatedResources } from '@/components/marketing/related-resources';
 import { TableOfContents } from '@/components/marketing/table-of-contents';
 import { Link } from '@/i18n/navigation';
+import { routing } from '@/i18n/routing';
 import { getAuthor, getDefaultAuthor } from '@/lib/authors';
 import {
   getArticleBySlug,
@@ -60,6 +62,9 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: BlogArticlePageProps): Promise<Metadata> {
   const { slug, locale } = await params;
+  if (!hasLocale(routing.locales, locale)) {
+    return { title: 'Article Not Found', robots: { index: false, follow: false } };
+  }
   setRequestLocale(locale);
   const article = await getArticleBySlug(slug, locale);
 
@@ -157,6 +162,17 @@ function splitAfterNthH2(source: string, n: number): { head: string; tail: strin
 
 export default async function BlogArticlePage({ params }: BlogArticlePageProps) {
   const { slug, locale } = await params;
+  // The `[locale]` segment is untrusted. `src/proxy.ts` skips any path with a
+  // dot in it, so /motovault.app/blog/<slug> reaches this route with
+  // locale === 'motovault.app' and used to 500 on Intl (MOTOVAULT-WEB-16).
+  // `[locale]/layout.tsx` also notFound()s an unknown locale, but Next renders
+  // layouts and pages concurrently, so the layout's throw does not stop this
+  // render — the page has to guard for itself. next-intl's own docs make this
+  // explicit: validate the locale BEFORE handing it to setRequestLocale, in
+  // every layout AND page.
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
+  }
   setRequestLocale(locale);
   const t = await getTranslations('Blog');
   const article = await getArticleBySlug(slug, locale);
@@ -316,7 +332,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
             {article.title}
           </h1>
           <div className="mt-5">
-            <AuthorByline author={author} date={article.date} locale={locale} />
+            <AuthorByline author={author} date={article.date} />
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-neutral-500">
             <span>

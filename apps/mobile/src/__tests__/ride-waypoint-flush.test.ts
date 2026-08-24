@@ -51,6 +51,7 @@ jest.mock('expo-secure-store', () => ({
 jest.mock('../utils/ride-sync-queue', () => ({
   enqueue: jest.fn(),
   enqueueOrExecute: jest.fn().mockResolvedValue(undefined),
+  enqueueWaypointUpload: jest.fn().mockResolvedValue(undefined),
   getQueueLength: jest.fn().mockReturnValue(0),
 }));
 // ride-storage lazily import()s analytics on the corruption path; stub it so the

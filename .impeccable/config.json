@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "geist mono",
+        "createdAt": "2026-08-24T10:15:31.219Z",
+        "reason": "Project design system: CLAUDE.md Design Context designates 'Geist Mono for data/code' alongside Plus Jakarta Sans (UI) and Instrument Serif (editorial). Flagged line renders a numeric map-pin index (String(i+1)) = data, the prescribed use. Pre-existing code, not introduced by current work."
+      }
+    ]
+  }
+}

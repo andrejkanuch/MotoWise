@@ -370,21 +370,101 @@ describe('RidesService', () => {
       expect(mockUserClient._chain.upsert).toHaveBeenCalled();
     });
 
-    it('should throw BadRequestException when quota exceeded', async () => {
+    it('truncates to the cap instead of rejecting the batch', async () => {
       // Result 0: ride ownership check
       mockUserClient._pushResult({ data: { id: 'ride-123' } });
-      // Result 1: count query — already at 9999
+      // Result 1: count query — 9999 stored, so exactly one of the two fits
       mockUserClient._pushResult({ count: 9999 });
+      // Result 2: upsert
+      mockUserClient._pushResult({ data: null, error: null });
 
-      await expect(
-        service.uploadWaypoints(userId, {
+      // Rejecting here (the old behaviour) made the cap a poison pill: the recorder
+      // re-enqueues a chunk every 50 fixes and each one dead-lettered with a Sentry
+      // event — 351 of MOTO-VAULT-REACT-NATIVE-1M's events, one rider. Storing what
+      // fits holds the cap and lets the client's queue drain.
+      const result = await service.uploadWaypoints(userId, {
+        rideId: 'ride-123',
+        waypoints: [
+          { recordedAt: '2026-03-22T14:00:00Z', latitude: 45.0, longitude: 14.0 },
+          { recordedAt: '2026-03-22T14:00:01Z', latitude: 45.001, longitude: 14.001 },
+        ],
+      });
+
+      expect(result).toBe(1);
+      const rows = mockUserClient._chain.upsert.mock.calls[0][0] as unknown[];
+      expect(rows).toHaveLength(1);
+    });
+
+    it('returns 0 without an upsert when the ride is already at the cap', async () => {
+      mockUserClient._pushResult({ data: { id: 'ride-123' } });
+      mockUserClient._pushResult({ count: 10_000 });
+
+      const result = await service.uploadWaypoints(userId, {
+        rideId: 'ride-123',
+        waypoints: [{ recordedAt: '2026-03-22T14:00:00Z', latitude: 45.0, longitude: 14.0 }],
+      });
+
+      // Success-with-zero, not an error: the op leaves the client's sync queue
+      // instead of being retried forever against a cap that will never move.
+      expect(result).toBe(0);
+      expect(mockUserClient._chain.upsert).not.toHaveBeenCalled();
+    });
+
+    it('collapses a denormal float to 0 so the REAL columns do not underflow', async () => {
+      mockUserClient._pushResult({ data: { id: 'ride-123' } });
+      mockUserClient._pushResult({ count: 0 });
+      mockUserClient._pushResult({ data: null, error: null });
+
+      // The exact value from MOTO-VAULT-NODE-NESTJS-8. It passes every WaypointSchema
+      // range check, but Postgres rejects it for a REAL column with 22003 "underflow"
+      // and fails the WHOLE multi-row upsert — up to 500 waypoints lost per bad fix.
+      const result = await service.uploadWaypoints(userId, {
+        rideId: 'ride-123',
+        waypoints: [
+          {
+            recordedAt: '2026-03-22T14:00:00Z',
+            latitude: 45.0,
+            longitude: 14.0,
+            speedMps: 1.366286406007969e-77,
+            altitude: 4.9e-324,
+            heading: 12.5,
+            accuracy: 8,
+          },
+        ],
+      });
+
+      expect(result).toBe(1);
+      const rows = mockUserClient._chain.upsert.mock.calls[0][0] as Array<
+        Record<string, number | null>
+      >;
+      expect(rows[0].speed_mps).toBe(0);
+      expect(rows[0].altitude).toBe(0);
+      // Representable values pass through untouched.
+      expect(rows[0].heading).toBe(12.5);
+      expect(rows[0].accuracy).toBe(8);
+      // Latitude/longitude are DOUBLE PRECISION — never rewritten.
+      expect(rows[0].latitude).toBe(45.0);
+    });
+
+    it('maps a 22003 out-of-range upsert error to 400, not 500', async () => {
+      mockUserClient._pushResult({ data: { id: 'ride-123' } });
+      mockUserClient._pushResult({ count: 0 });
+      mockUserClient._pushResult({
+        error: { message: '"1e-77" is out of range for type real', code: '22003' },
+      });
+
+      const err = await service
+        .uploadWaypoints(userId, {
           rideId: 'ride-123',
-          waypoints: [
-            { recordedAt: '2026-03-22T14:00:00Z', latitude: 45.0, longitude: 14.0 },
-            { recordedAt: '2026-03-22T14:00:01Z', latitude: 45.001, longitude: 14.001 },
-          ],
-        }),
-      ).rejects.toThrow(BadRequestException);
+          waypoints: [{ recordedAt: '2026-03-22T14:00:00Z', latitude: 45.0, longitude: 14.0 }],
+        })
+        .catch((e) => e);
+
+      // 5xx is what made the sync queue burn five retries + five Sentry events on a
+      // payload the database will refuse every time (48 events in 43 minutes).
+      expect(err).toBeInstanceOf(BadRequestException);
+      expect(err.message).toContain('22003');
+      expect((err.cause as Error)?.message).toContain('22003');
     });
 
     it('should throw NotFoundException when ride not found', async () => {
@@ -437,7 +517,7 @@ describe('RidesService', () => {
       expect((err.cause as Error)?.message).toContain('57014');
     });
 
-    it('maps a permanent upsert error to 500 and attaches the pg code as cause', async () => {
+    it('maps a permanent upsert error to 400 and attaches the pg code as cause', async () => {
       mockUserClient._pushResult({ data: { id: 'ride-123' } });
       mockUserClient._pushResult({ count: 0 });
       // not_null_violation (class 23) → permanent
@@ -452,8 +532,24 @@ describe('RidesService', () => {
         })
         .catch((e) => e);
 
-      expect(err).toBeInstanceOf(InternalServerErrorException);
+      expect(err).toBeInstanceOf(BadRequestException);
       expect((err.cause as Error)?.message).toContain('23502');
+    });
+
+    it('maps an unrecognised pg class to 500 so it stays retryable and alertable', async () => {
+      mockUserClient._pushResult({ data: { id: 'ride-123' } });
+      mockUserClient._pushResult({ count: 0 });
+      mockUserClient._pushResult({ error: { message: 'something new', code: '99999' } });
+
+      const err = await service
+        .uploadWaypoints(userId, {
+          rideId: 'ride-123',
+          waypoints: [{ recordedAt: '2026-03-22T14:00:00Z', latitude: 45.0, longitude: 14.0 }],
+        })
+        .catch((e) => e);
+
+      expect(err).toBeInstanceOf(InternalServerErrorException);
+      expect((err.cause as Error)?.message).toContain('99999');
     });
   });
 

@@ -32,6 +32,7 @@ jest.mock('../../lib/graphql-client', () => ({
 
 jest.mock('../../lib/analytics', () => ({ captureException: jest.fn() }));
 
+import { RIDE_WAYPOINT_LIMITS } from '@motovault/types';
 import { captureException } from '../../lib/analytics';
 import {
   clearDeliveredQueue,
@@ -39,6 +40,7 @@ import {
   drainQueue,
   enqueue,
   enqueueOrExecute,
+  enqueueWaypointUpload,
   getDeadLetterCount,
   getPendingCount,
   getQueueLength,
@@ -110,6 +112,63 @@ describe('enqueueOrExecute', () => {
     mockGqlFetcher.mockRejectedValueOnce(new Error('{"code":"NOT_FOUND"}'));
     await enqueueOrExecute('deleteRide', { variables: { id: 'x' } });
     expect(getQueueLength()).toBe(0);
+  });
+});
+
+describe('enqueueWaypointUpload (MOTO-VAULT-REACT-NATIVE-1M)', () => {
+  function points(count: number) {
+    return Array.from({ length: count }, (_, i) => ({
+      latitude: 45,
+      longitude: 14,
+      recordedAt: new Date(1_700_000_000_000 + i * 1000).toISOString(),
+    }));
+  }
+
+  it('does nothing for an empty batch', async () => {
+    await enqueueWaypointUpload('ride-1', []);
+    expect(mockGqlFetcher).not.toHaveBeenCalled();
+    expect(getQueueLength()).toBe(0);
+  });
+
+  it('sends one mutation per batch that fits in a single upload', async () => {
+    mockGqlFetcher.mockResolvedValue({});
+    await enqueueWaypointUpload('ride-1', points(50));
+
+    expect(mockGqlFetcher).toHaveBeenCalledTimes(1);
+    expect(getQueueLength()).toBe(0);
+  });
+
+  it('splits an oversized batch at MAX_PER_UPLOAD instead of losing all of it', async () => {
+    // A single payload over the schema max comes back BAD_USER_INPUT, which is
+    // non-retryable — the whole batch dead-letters and those GPS points are gone.
+    mockGqlFetcher.mockResolvedValue({});
+    const total = RIDE_WAYPOINT_LIMITS.MAX_PER_UPLOAD * 2 + 25;
+    await enqueueWaypointUpload('ride-1', points(total));
+
+    expect(mockGqlFetcher).toHaveBeenCalledTimes(3);
+    const sizes = mockGqlFetcher.mock.calls.map(
+      (call) => (call[1] as { input: { waypoints: unknown[] } }).input.waypoints.length,
+    );
+    expect(sizes).toEqual([
+      RIDE_WAYPOINT_LIMITS.MAX_PER_UPLOAD,
+      RIDE_WAYPOINT_LIMITS.MAX_PER_UPLOAD,
+      25,
+    ]);
+    // Every point is accounted for, and none of them is still queued.
+    expect(sizes.reduce((a, b) => a + b, 0)).toBe(total);
+    expect(getQueueLength()).toBe(0);
+  });
+
+  it('keeps the chunks in one seq-ordered cycle so endRide cannot overtake them', async () => {
+    mockGetNetworkStateAsync.mockResolvedValue(OFFLINE);
+    await enqueueWaypointUpload('ride-1', points(RIDE_WAYPOINT_LIMITS.MAX_PER_UPLOAD + 1));
+    enqueue('endRide', { variables: { input: {} } });
+
+    const queued = queue();
+    expect(queued.map((op) => op.type)).toEqual(['uploadWaypoints', 'uploadWaypoints', 'endRide']);
+    expect(queued.map((op) => op.seq)).toEqual(
+      [...queued].sort((a, b) => a.seq - b.seq).map((op) => op.seq),
+    );
   });
 });
 

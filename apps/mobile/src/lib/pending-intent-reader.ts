@@ -1,4 +1,3 @@
-import * as SecureStore from 'expo-secure-store';
 import { useOnboardingStore } from '../stores/onboarding.store';
 import {
   AnalyticsEvent,
@@ -14,6 +13,13 @@ import {
   type IntentMethod,
   parseIntentToken,
 } from './pending-intent';
+import {
+  readSecureItem,
+  runWithUnlockRetry,
+  SECURE_STORE_KEY,
+  SECURE_STORE_STATUS,
+  writeSecureItem,
+} from './secure-store';
 
 /**
  * First-launch resolver for the web→app "which bike" intent (P2). Reads the
@@ -28,12 +34,14 @@ import {
  *
  * RULE #0 — this is a non-blocking, best-effort side effect. It NEVER throws,
  * NEVER blocks render/navigation, and any failure leaves onboarding untouched.
- * Runs at most once per install (SecureStore flag); the referrer reflects a
- * single install, so there is nothing to retry.
+ * Runs at most once per install (keychain flag); the referrer reflects a single
+ * install, so a successful run is never repeated. The one exception is a locked
+ * keychain — the flag could not be read, so nothing has been consumed and the
+ * whole resolution is deferred to the next foreground.
  */
 
-/** SecureStore flag: the intent transport has already been consumed this install. */
-const INTENT_CHECKED_KEY = 'pending_intent_checked';
+/** Value of the one-shot "transport already consumed" keychain flag. */
+const INTENT_CHECKED = '1';
 
 /**
  * Hard ceiling on the whole resolution flow. The Play Referrer native callback
@@ -43,11 +51,17 @@ const INTENT_CHECKED_KEY = 'pending_intent_checked';
  */
 const RESOLVE_TIMEOUT_MS = 4000;
 
-/** Reject after `ms` so a stalled await can't hang the resolution flow. */
-function rejectAfter(ms: number): Promise<never> {
-  return new Promise((_resolve, reject) => {
-    setTimeout(() => reject(new Error('pending-intent resolution timed out')), ms);
+/**
+ * Reject after `ms` so a stalled await can't hang the resolution flow, plus the
+ * handle to cancel it once the race settles — an un-cleared 4s timer keeps the
+ * runtime (and a jest worker) alive for no reason.
+ */
+function rejectAfter(ms: number): { expiry: Promise<never>; cancel: () => void } {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const expiry = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => reject(new Error('pending-intent resolution timed out')), ms);
   });
+  return { expiry, cancel: () => clearTimeout(timer) };
 }
 
 /**
@@ -89,17 +103,25 @@ async function readTransport(): Promise<{ raw: string; method: IntentMethod } | 
   return null;
 }
 
-async function readAndStoreIntent(): Promise<void> {
-  if (await SecureStore.getItemAsync(INTENT_CHECKED_KEY)) return;
+/**
+ * Returns false when the one-shot flag could not be read — a locked keychain on
+ * a background cold start. Resolution is then deferred to the next foreground,
+ * which is the only way to tell "already consumed" from "never ran" without
+ * risking a duplicate resolution.
+ */
+async function readAndStoreIntent(): Promise<boolean> {
+  const checked = await readSecureItem(SECURE_STORE_KEY.PENDING_INTENT_CHECKED);
+  if (checked.status !== SECURE_STORE_STATUS.OK) return false;
+  if (checked.value) return true;
 
   const transport = await readTransport();
   // One-shot: mark checked as soon as we've read (or determined there is
   // nothing to read). The transports cannot be re-read, so never retry.
-  await SecureStore.setItemAsync(INTENT_CHECKED_KEY, '1');
-  if (!transport) return; // organic install / no intent → normal flow
+  await writeSecureItem(SECURE_STORE_KEY.PENDING_INTENT_CHECKED, INTENT_CHECKED);
+  if (!transport) return true; // organic install / no intent → normal flow
 
   const intent = parseIntentToken(transport.raw);
-  if (!intent) return; // garbage / expired token → normal flow
+  if (!intent) return true; // garbage / expired token → normal flow
 
   // Store the raw intent. The make is resolved + the bike seeded in bike-setup
   // (where the make list is already loaded), so no network fetch is needed here
@@ -123,18 +145,29 @@ async function readAndStoreIntent(): Promise<void> {
   });
   // Durable cohort tag for whole-funnel segmentation + paywall personalization.
   registerSuperProperties({ intent_cohort: getIntentCohort(intent) });
+  return true;
 }
 
 export async function resolvePendingIntent(): Promise<void> {
+  let cancelTimeout: (() => void) | null = null;
   try {
     if (!INTENT_PREFILL_ENABLED) return;
-    // Bound the whole read: a stalled Play Referrer callback (or SecureStore
-    // call) must never hang the paywall, which waits on `intentResolved`. On
-    // timeout we abandon the read and fall through to the no-intent path.
-    await Promise.race([readAndStoreIntent(), rejectAfter(RESOLVE_TIMEOUT_MS)]);
+    // Bound the first attempt: a stalled Play Referrer callback must never hang
+    // the paywall, which waits on `intentResolved`. On timeout we abandon the
+    // read and fall through to the no-intent path.
+    //
+    // Keychain reads no longer throw (lib/secure-store) — a locked device on a
+    // background cold start resolves false instead, and `runWithUnlockRetry`
+    // picks the resolution back up the next time the app is foregrounded rather
+    // than burning the one-shot or reporting an expected condition to Sentry.
+    // (MOTO-VAULT-REACT-NATIVE-2D)
+    const timeout = rejectAfter(RESOLVE_TIMEOUT_MS);
+    cancelTimeout = timeout.cancel;
+    await Promise.race([runWithUnlockRetry(() => readAndStoreIntent()), timeout.expiry]);
   } catch (e) {
     captureException(e, { source: 'pending-intent-reader.resolvePendingIntent' });
   } finally {
+    cancelTimeout?.();
     // Signal that resolution has settled (any path — kill-switch off, already
     // checked, intent found, timed out, or error). The paywall waits on this so a
     // late-arriving intent can still select the maintenance placement.

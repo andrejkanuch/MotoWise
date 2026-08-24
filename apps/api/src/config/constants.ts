@@ -1,3 +1,5 @@
+import { RIDE_WAYPOINT_LIMITS } from '@motovault/types';
+
 /** OpenAI model identifiers */
 export const AI_MODELS = {
   ARTICLE_GENERATOR: 'gpt-4.1',
@@ -83,9 +85,24 @@ export const DOCUMENT_SIGNED_URL_TTL = {
   DOWNLOAD: 300,
 } as const;
 
+/**
+ * Bounds of the Postgres `real` (float4) type. Needed because Postgres does NOT
+ * round a too-small magnitude down to zero — it REJECTS the whole statement with
+ * SQLSTATE 22003 ("value out of range: underflow"). Any column typed REAL that
+ * takes a client-supplied float has to be filtered through these.
+ */
+export const POSTGRES_REAL = {
+  /** Smallest positive normal float4 (2^-126); anything smaller and non-zero underflows. */
+  MIN_MAGNITUDE: 1.1754943508222875e-38,
+  /** Largest finite float4. */
+  MAX_MAGNITUDE: 3.4028234663852886e38,
+} as const;
+
 /** Query and data limits */
 export const QUERY_LIMITS = {
-  MAX_WAYPOINTS_PER_RIDE: 10_000,
+  // Shared with the mobile recorder — see RIDE_WAYPOINT_LIMITS for why the client
+  // must know this number rather than discovering it via a rejection.
+  MAX_WAYPOINTS_PER_RIDE: RIDE_WAYPOINT_LIMITS.MAX_PER_RIDE,
   MAX_EXPENSES_PER_QUERY: 5_000,
   MAX_EXPORT_ROWS_PER_TABLE: 10_000,
   DEFAULT_MAINTENANCE_HISTORY_LIMIT: 100,

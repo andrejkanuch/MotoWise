@@ -15,31 +15,55 @@
 
 import MapboxGL from '@rnmapbox/maps';
 import * as Crypto from 'expo-crypto';
-import * as SecureStore from 'expo-secure-store';
 import { createMMKV } from 'react-native-mmkv';
+import {
+  readSecureItemSync,
+  SECURE_STORE_KEY,
+  SECURE_STORE_STATUS,
+  setSecureItemSync,
+} from './secure-store';
 
-const MMKV_KEY_STORE_KEY = 'motovault.offline.mmkv.key.v1';
+const OFFLINE_STORE_ID = 'offline-trips-v1';
+/** Bytes of entropy in the per-install MMKV encryption key. */
+const MMKV_KEY_BYTES = 32;
 
 /**
- * Pulls (or lazily generates) a per-install 32-byte encryption key from
- * expo-secure-store. expo-secure-store v13+ exposes sync getItem/setItem, so
- * we can keep a module-level MMKV handle without forcing every call-site async.
+ * Pulls (or lazily generates) a per-install encryption key from the keychain.
+ *
+ * Returns null when the keychain is unreadable — which happens for real on a
+ * background launch with the screen locked (MOTO-VAULT-REACT-NATIVE-2D). A
+ * `locked`/`failed` read must NEVER fall through to minting a fresh key: that
+ * would re-encrypt the store under a new key and orphan the rider's existing
+ * offline packs. Only a definitive "no such item" generates one.
  */
-function getOrCreateMmkvKey(): string {
-  const existing = SecureStore.getItem(MMKV_KEY_STORE_KEY);
-  if (existing) return existing;
-  const bytes = Crypto.getRandomBytes(32);
-  const key = Array.from(bytes)
+function readOrCreateMmkvKey(): string | null {
+  const stored = readSecureItemSync(SECURE_STORE_KEY.OFFLINE_MMKV_KEY);
+  if (stored.value) return stored.value;
+  if (stored.status !== SECURE_STORE_STATUS.OK) return null;
+
+  const key = Array.from(Crypto.getRandomBytes(MMKV_KEY_BYTES))
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
-  SecureStore.setItem(MMKV_KEY_STORE_KEY, key);
-  return key;
+  return setSecureItemSync(SECURE_STORE_KEY.OFFLINE_MMKV_KEY, key) ? key : null;
 }
 
-const OFFLINE_STORE = createMMKV({
-  id: 'offline-trips-v1',
-  encryptionKey: getOrCreateMmkvKey(),
-});
+type OfflineStore = ReturnType<typeof createMMKV>;
+
+let offlineStore: OfflineStore | null = null;
+
+/**
+ * The encrypted MMKV handle, created on first use rather than at module load —
+ * reading the key at import time turned a locked keychain into a bundle-level
+ * throw. Returns null while the key is unavailable; every offline feature then
+ * degrades to "nothing cached" and retries on the next call.
+ */
+function getOfflineStore(): OfflineStore | null {
+  if (offlineStore) return offlineStore;
+  const encryptionKey = readOrCreateMmkvKey();
+  if (!encryptionKey) return null;
+  offlineStore = createMMKV({ id: OFFLINE_STORE_ID, encryptionKey });
+  return offlineStore;
+}
 
 const PACK_NAME = (tripId: string) => `trip-${tripId}`;
 const REGISTRY_KEY = 'registry';
@@ -101,7 +125,7 @@ interface Registry {
 }
 
 function readRegistry(): Registry {
-  const raw = OFFLINE_STORE.getString(REGISTRY_KEY);
+  const raw = getOfflineStore()?.getString(REGISTRY_KEY);
   if (!raw) return { packs: {} };
   try {
     return JSON.parse(raw) as Registry;
@@ -111,7 +135,7 @@ function readRegistry(): Registry {
 }
 
 function writeRegistry(reg: Registry): void {
-  OFFLINE_STORE.set(REGISTRY_KEY, JSON.stringify(reg));
+  getOfflineStore()?.set(REGISTRY_KEY, JSON.stringify(reg));
 }
 
 export function getOfflineMeta(tripId: string): OfflinePackMeta | null {
@@ -153,11 +177,11 @@ function stripPii<T>(payload: T): T {
 
 /** Cache the rendered trip payload so `trip-detail` can hydrate offline. */
 export function cacheTripPayload<T>(tripId: string, payload: T): void {
-  OFFLINE_STORE.set(PAYLOAD_KEY(tripId), JSON.stringify(stripPii(payload)));
+  getOfflineStore()?.set(PAYLOAD_KEY(tripId), JSON.stringify(stripPii(payload)));
 }
 
 export function readCachedTripPayload<T>(tripId: string): T | null {
-  const raw = OFFLINE_STORE.getString(PAYLOAD_KEY(tripId));
+  const raw = getOfflineStore()?.getString(PAYLOAD_KEY(tripId));
   if (!raw) return null;
   try {
     return JSON.parse(raw) as T;
@@ -289,7 +313,7 @@ export async function removeOfflinePack(tripId: string): Promise<void> {
   const reg = readRegistry();
   delete reg.packs[tripId];
   writeRegistry(reg);
-  OFFLINE_STORE.remove(PAYLOAD_KEY(tripId));
+  getOfflineStore()?.remove(PAYLOAD_KEY(tripId));
 }
 
 /**

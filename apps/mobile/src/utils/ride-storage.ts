@@ -1,4 +1,4 @@
-import type { Waypoint } from '@motovault/types';
+import { RIDE_WAYPOINT_LIMITS, type Waypoint } from '@motovault/types';
 import { createMMKV } from 'react-native-mmkv';
 
 // Lazy-loaded on the (rare) corruption path only, so this low-level storage
@@ -27,6 +27,7 @@ export const RIDE_KEYS = {
   FORGOT_TO_STOP_PENDING: 'ride.forgot_to_stop_pending',
   PERMISSION_LEVEL: 'ride.permission_level',
   HUD_LAYOUT: 'ride.hud_layout',
+  WAYPOINT_COUNT: 'ride.waypoint_count',
 } as const;
 
 const waypointChunkKey = (rideId: string, chunkIndex: number) => `ride:${rideId}:wp:${chunkIndex}`;
@@ -97,7 +98,69 @@ export const rideMMKV = {
   // HUD layout preference
   getHudLayout: () => (rideStorage.getString(RIDE_KEYS.HUD_LAYOUT) as 'A' | 'B' | undefined) ?? 'A',
   setHudLayout: (layout: 'A' | 'B') => rideStorage.set(RIDE_KEYS.HUD_LAYOUT, layout),
+
+  // Waypoints this ride has banked for upload. PERSISTED because it mirrors rows
+  // the server now holds: a headless relaunch after an app kill keeps recording
+  // into the same ride, and an in-memory counter would restart the budget from
+  // zero and walk straight past the cap.
+  getWaypointCount: () => rideStorage.getNumber(RIDE_KEYS.WAYPOINT_COUNT) ?? 0,
+  setWaypointCount: (count: number) => rideStorage.set(RIDE_KEYS.WAYPOINT_COUNT, count),
 } as const;
+
+// --- Waypoint budget (client-side cap + progressive decimation) ---
+
+/**
+ * How many GPS fixes to skip per kept waypoint, given how many this ride has
+ * already banked.
+ *
+ * The server caps a ride at `MAX_PER_RIDE` and permanently rejects anything past
+ * it, so an uncapped recorder does not merely lose points — it mints a payload
+ * that can never be accepted every time a chunk fills, for the rest of the ride
+ * (MOTO-VAULT-REACT-NATIVE-1M). Simply stopping at the cap would instead truncate
+ * the track: a rider who passes it loses the entire back half of their route.
+ *
+ * So the budget is spent geometrically. Each tier consumes half of what is left at
+ * twice the stride, so every tier covers twice as much riding as the one before
+ * while the running total converges on the cap and never reaches it:
+ *
+ *   stride 1 for the first 5,000 points, 2 for the next 2,500, 4 for the next
+ *   1,250, and so on — at the ~1 fix/sec this recorder is configured for
+ *   (expo-location timeInterval 1000 / distanceInterval 5), each of those tiers
+ *   is roughly 80 minutes of riding.
+ *
+ * The budget is denominated in POINTS, not seconds, so the invariant holds at any
+ * capture rate — the minutes above are only there to show the shape. Full
+ * resolution for every ride a person actually takes, graceful thinning past that,
+ * and a hard stop (Infinity) only if the cap is somehow still reached.
+ *
+ * Decimating here rather than lowering the capture rate is deliberate: coarser
+ * expo-location options would cost every ride fidelity to fix a problem that only
+ * appears after ~3 hours, and this recorder cannot switch to the cheaper
+ * watchPositionAsync anyway — that API is foreground-only and would stop recording
+ * the moment the screen locks.
+ */
+export function waypointRecordingStride(recorded: number): number {
+  const cap = RIDE_WAYPOINT_LIMITS.MAX_PER_RIDE;
+  if (recorded >= cap) return Number.POSITIVE_INFINITY;
+  let stride = 1;
+  let threshold = cap / 2;
+  while (recorded >= threshold) {
+    stride *= 2;
+    threshold += (cap - threshold) / 2;
+  }
+  return stride;
+}
+
+// Fixes seen since the last kept one. Deliberately NOT persisted: it only sets the
+// sampling phase, so losing it to an app kill re-phases the sampling and nothing
+// else. The count that must survive is the banked total, which lives in MMKV.
+let fixesSinceKept = 0;
+
+/** Reset the per-ride waypoint budget. Call when a fresh ride starts. */
+export function resetWaypointBudget(): void {
+  fixesSinceKept = 0;
+  rideMMKV.setWaypointCount(0);
+}
 
 // --- In-memory waypoint buffer ---
 // Avoids JSON parse/serialize on every GPS callback.
@@ -106,7 +169,18 @@ export const rideMMKV = {
 let pointBuffer: Waypoint[] = [];
 
 export function appendWaypoint(rideId: string, waypoint: Waypoint): Waypoint[] | null {
+  // Spend the ride's waypoint budget before touching the buffer — a point the
+  // budget cannot afford must never reach the sync queue, because the server
+  // rejects it permanently. See waypointRecordingStride.
+  const recorded = rideMMKV.getWaypointCount();
+  const stride = waypointRecordingStride(recorded);
+  if (!Number.isFinite(stride)) return null;
+  fixesSinceKept++;
+  if (fixesSinceKept < stride) return null;
+  fixesSinceKept = 0;
+
   pointBuffer.push(waypoint);
+  rideMMKV.setWaypointCount(recorded + 1);
 
   if (pointBuffer.length >= CHUNK_SIZE) {
     const chunk = pointBuffer;
@@ -201,6 +275,7 @@ export function clearRideData(rideId: string): void {
   for (const key of Object.values(RIDE_KEYS)) {
     rideStorage.remove(key);
   }
-  // Clear in-memory buffer
+  // Clear in-memory buffer + the budget that tracked it
   pointBuffer = [];
+  fixesSinceKept = 0;
 }

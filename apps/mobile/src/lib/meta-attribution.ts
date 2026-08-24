@@ -1,21 +1,24 @@
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
-import * as SecureStore from 'expo-secure-store';
 import { isAnalyticsEnabled, posthogClient } from './analytics';
 import { getStoredAnalyticsConsent } from './analytics-consent';
+import { deleteSecureItem, getSecureItem, SECURE_STORE_KEY, setSecureItem } from './secure-store';
 
 const STORE_KEYS = {
-  FBCLID: 'meta_fbclid',
-  UTM_CONTENT: 'meta_utm_content',
-  UTM_SOURCE: 'meta_utm_source',
-  UTM_CAMPAIGN: 'meta_utm_campaign',
-  CAPTURED: 'meta_captured',
-  FIRST_SEEN_AT: 'meta_first_seen_at',
-  INSTALL_VERSION: 'meta_install_version',
+  FBCLID: SECURE_STORE_KEY.META_FBCLID,
+  UTM_CONTENT: SECURE_STORE_KEY.META_UTM_CONTENT,
+  UTM_SOURCE: SECURE_STORE_KEY.META_UTM_SOURCE,
+  UTM_CAMPAIGN: SECURE_STORE_KEY.META_UTM_CAMPAIGN,
+  CAPTURED: SECURE_STORE_KEY.META_CAPTURED,
+  FIRST_SEEN_AT: SECURE_STORE_KEY.META_FIRST_SEEN_AT,
+  INSTALL_VERSION: SECURE_STORE_KEY.META_INSTALL_VERSION,
 } as const;
 
 /** Real PostHog event the first-touch install $set_once attaches to. */
 const INSTALL_EVENT = 'install_attribution_captured';
+
+/** Value stored under CAPTURED once the install emit has fired. */
+const CAPTURED_FLAG = '1';
 
 const MAX_PARAM_LENGTH = 256;
 
@@ -67,7 +70,7 @@ export function captureMetaAttribution(): Promise<void> {
 /** Returns true iff the install-attribution event was emitted (and CAPTURED set). */
 async function doCaptureMetaAttribution(): Promise<boolean> {
   try {
-    const alreadyCaptured = await SecureStore.getItemAsync(STORE_KEYS.CAPTURED);
+    const alreadyCaptured = await getSecureItem(STORE_KEYS.CAPTURED);
     if (alreadyCaptured) return true;
 
     // Parse the initial deep link if there is one. Organic installs have none —
@@ -86,36 +89,34 @@ async function doCaptureMetaAttribution(): Promise<boolean> {
     }
 
     // Persist fbclid for CAPI attribution (MOT-209).
-    if (fbclid) await SecureStore.setItemAsync(STORE_KEYS.FBCLID, fbclid);
+    if (fbclid) await setSecureItem(STORE_KEYS.FBCLID, fbclid);
 
     // Persist UTM for PostHog/RC segmentation (MOT-210). Store each key whenever it
     // is present — NOT gated on utm_content — so source-only / campaign-only links
     // (common for non-Meta channels) are recoverable downstream (KTD-4).
-    if (utmSource) await SecureStore.setItemAsync(STORE_KEYS.UTM_SOURCE, utmSource);
-    if (utmContent) await SecureStore.setItemAsync(STORE_KEYS.UTM_CONTENT, utmContent);
-    if (utmCampaign) await SecureStore.setItemAsync(STORE_KEYS.UTM_CAMPAIGN, utmCampaign);
+    if (utmSource) await setSecureItem(STORE_KEYS.UTM_SOURCE, utmSource);
+    if (utmContent) await setSecureItem(STORE_KEYS.UTM_CONTENT, utmContent);
+    if (utmCampaign) await setSecureItem(STORE_KEYS.UTM_CAMPAIGN, utmCampaign);
 
     // Resolve the effective first-touch UTM, preferring this launch's values but
     // falling back to anything persisted on an earlier (e.g. pre-consent) launch,
     // so a real source captured before consent is not later replaced by 'organic'.
-    const sourceForInstall = utmSource ?? (await SecureStore.getItemAsync(STORE_KEYS.UTM_SOURCE));
-    const contentForInstall =
-      utmContent ?? (await SecureStore.getItemAsync(STORE_KEYS.UTM_CONTENT));
-    const campaignForInstall =
-      utmCampaign ?? (await SecureStore.getItemAsync(STORE_KEYS.UTM_CAMPAIGN));
+    const sourceForInstall = utmSource ?? (await getSecureItem(STORE_KEYS.UTM_SOURCE));
+    const contentForInstall = utmContent ?? (await getSecureItem(STORE_KEYS.UTM_CONTENT));
+    const campaignForInstall = utmCampaign ?? (await getSecureItem(STORE_KEYS.UTM_CAMPAIGN));
 
     // Persist first-seen timestamp + app version on the very FIRST launch (any
     // consent state) and emit those persisted values — so for an opted-out→opted-in
     // user the emit reflects the true install, not the first consented launch.
-    let firstSeenAt = await SecureStore.getItemAsync(STORE_KEYS.FIRST_SEEN_AT);
+    let firstSeenAt = await getSecureItem(STORE_KEYS.FIRST_SEEN_AT);
     if (!firstSeenAt) {
       firstSeenAt = new Date().toISOString();
-      await SecureStore.setItemAsync(STORE_KEYS.FIRST_SEEN_AT, firstSeenAt);
+      await setSecureItem(STORE_KEYS.FIRST_SEEN_AT, firstSeenAt);
     }
-    let installVersion = await SecureStore.getItemAsync(STORE_KEYS.INSTALL_VERSION);
+    let installVersion = await getSecureItem(STORE_KEYS.INSTALL_VERSION);
     if (!installVersion) {
       installVersion = Constants.expoConfig?.version ?? 'unknown';
-      await SecureStore.setItemAsync(STORE_KEYS.INSTALL_VERSION, installVersion);
+      await setSecureItem(STORE_KEYS.INSTALL_VERSION, installVersion);
     }
 
     // Emit first-touch install attribution — consent-gated. Only mark CAPTURED (and
@@ -134,7 +135,7 @@ async function doCaptureMetaAttribution(): Promise<boolean> {
           ...(campaignForInstall && { utm_campaign: campaignForInstall }),
         },
       });
-      await SecureStore.setItemAsync(STORE_KEYS.CAPTURED, '1');
+      await setSecureItem(STORE_KEYS.CAPTURED, CAPTURED_FLAG);
       return true;
     }
     return false;
@@ -150,39 +151,27 @@ async function doCaptureMetaAttribution(): Promise<boolean> {
  * NOT gated on utm_content (KTD-4), so source-only links are honored.
  */
 export async function getStoredUtmProperties(): Promise<Record<string, string> | null> {
-  try {
-    const utmSource = await SecureStore.getItemAsync(STORE_KEYS.UTM_SOURCE);
-    const utmContent = await SecureStore.getItemAsync(STORE_KEYS.UTM_CONTENT);
-    const utmCampaign = await SecureStore.getItemAsync(STORE_KEYS.UTM_CAMPAIGN);
-    if (!utmSource && !utmContent && !utmCampaign) return null;
-    return {
-      ...(utmSource && { utm_source: utmSource }),
-      ...(utmContent && { utm_content: utmContent }),
-      ...(utmCampaign && { utm_campaign: utmCampaign }),
-    };
-  } catch {
-    return null;
-  }
+  const utmSource = await getSecureItem(STORE_KEYS.UTM_SOURCE);
+  const utmContent = await getSecureItem(STORE_KEYS.UTM_CONTENT);
+  const utmCampaign = await getSecureItem(STORE_KEYS.UTM_CAMPAIGN);
+  if (!utmSource && !utmContent && !utmCampaign) return null;
+  return {
+    ...(utmSource && { utm_source: utmSource }),
+    ...(utmContent && { utm_content: utmContent }),
+    ...(utmCampaign && { utm_campaign: utmCampaign }),
+  };
 }
 
 /**
  * Returns the stored fbclid for passing to the API on registration.
  */
 export async function getStoredFbclid(): Promise<string | null> {
-  try {
-    return await SecureStore.getItemAsync(STORE_KEYS.FBCLID);
-  } catch {
-    return null;
-  }
+  return getSecureItem(STORE_KEYS.FBCLID);
 }
 
 /**
  * Clears the stored fbclid after it has been used for registration.
  */
 export async function clearStoredFbclid(): Promise<void> {
-  try {
-    await SecureStore.deleteItemAsync(STORE_KEYS.FBCLID);
-  } catch {
-    // Ignore
-  }
+  await deleteSecureItem(STORE_KEYS.FBCLID);
 }

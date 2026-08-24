@@ -37,10 +37,32 @@ function dedupedRefresh(): Promise<Session | null> {
  * Refresh-and-invalidate entry point for gqlFetcher's UNAUTHENTICATED retry.
  * De-duped across concurrent callers; the next buildGqlRequestHeaders re-reads
  * the freshly-refreshed session.
+ *
+ * Returns whether a usable access token now exists. `false` means nobody is
+ * signed in (or the refresh token is gone), so retrying the request would send
+ * a second header-less request — gqlFetcher fails fast instead.
  */
-export async function refreshGqlSession(): Promise<void> {
+export async function refreshGqlSession(): Promise<boolean> {
   invalidateGqlAccessTokenCache();
-  await dedupedRefresh();
+  const session = await dedupedRefresh();
+  return !!session?.access_token;
+}
+
+/**
+ * True when the app believes a user is signed in. Cheap and synchronous (reads
+ * the auth store, not SecureStore) so background/headless code paths — CarPlay,
+ * widget sync, sync-queue drains — can skip authenticated GraphQL work instead
+ * of firing a request that the API can only reject.
+ *
+ * `isLoading` guards the cold-start window: the store's session is null until
+ * `supabase.auth.getSession()` resolves in the root layout, and a request fired
+ * in that gap would look "signed out" while a perfectly good session is one tick
+ * away. During hydration we let the request through and rely on
+ * `materializeSession` to pick the token up. (Sentry MOTO-VAULT-REACT-NATIVE-1J)
+ */
+export function hasAuthenticatedSession(): boolean {
+  const { session, isLoading } = useAuthStore.getState();
+  return !!session || isLoading;
 }
 
 async function materializeSession(): Promise<CachedAccess | null> {

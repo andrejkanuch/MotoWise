@@ -1,45 +1,37 @@
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import * as SecureStore from 'expo-secure-store';
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 import { useAuthStore } from '../stores/auth.store';
 import { queryClient } from './query-client';
 import { queryPersister, shouldDehydratePersistedQuery } from './query-persist';
+import {
+  deleteSecureItem,
+  getSecureItemSync,
+  SECURE_STORE_KEY,
+  setSecureItemSync,
+} from './secure-store';
 
 const MAX_PERSIST_AGE_MS = 1000 * 60 * 60 * 24 * 7;
-export const LAST_USER_KEY = 'motovault.last-user-id';
 
-// LAST_USER_KEY is read during background TOKEN_REFRESHED events, when the
-// device may still be locked. Persist it with AFTER_FIRST_UNLOCK so the
-// keychain item stays readable in the background, and guard every access so a
-// locked keychain (or the pre-first-unlock window after a reboot) degrades to
-// "no persisted user" instead of throwing an unhandled rejection.
-// (Sentry MOTO-VAULT-REACT-NATIVE-21)
-const LAST_USER_OPTIONS: SecureStore.SecureStoreOptions = {
-  keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK,
-};
+// LAST_USER_ID is read during background TOKEN_REFRESHED events, when the
+// device may still be locked. lib/secure-store stores it with
+// AFTER_FIRST_UNLOCK so the keychain item stays readable in the background, and
+// every access degrades to "no persisted user" instead of throwing an unhandled
+// rejection. (Sentry MOTO-VAULT-REACT-NATIVE-21 / -2D)
 
 export function getLastUserId(): string | null {
-  try {
-    return SecureStore.getItem(LAST_USER_KEY);
-  } catch {
-    return null;
-  }
+  return getSecureItemSync(SECURE_STORE_KEY.LAST_USER_ID);
 }
 
 export function setLastUserId(sessionUserId: string): void {
-  try {
-    SecureStore.setItem(LAST_USER_KEY, sessionUserId, LAST_USER_OPTIONS);
-  } catch {
-    // Best-effort: a locked keychain just means the next cold start falls back
-    // to an empty buster.
-  }
+  // Best-effort: a locked keychain just means the next cold start falls back to
+  // an empty buster.
+  setSecureItemSync(SECURE_STORE_KEY.LAST_USER_ID, sessionUserId);
 }
 
 export function clearLastUserId(): void {
-  SecureStore.deleteItemAsync(LAST_USER_KEY).catch(() => {
-    // Best-effort cleanup; a locked keychain retries on the next sign-out.
-  });
+  // Best-effort cleanup; a locked keychain retries on the next sign-out.
+  void deleteSecureItem(SECURE_STORE_KEY.LAST_USER_ID);
 }
 
 export function PersistedQueryClientBoundary({ children }: { children: ReactNode }) {
