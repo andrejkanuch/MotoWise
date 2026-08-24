@@ -327,7 +327,15 @@ Every unit here can land, every gate can pass, and day-7 activity can still not 
 Honest store copy and three fewer screens remove **reasons to leave**; neither creates a
 **reason to come back on day two**. That question is deferred on purpose.
 
-The cheapest way to answer it is already available and has never been used: **mobile
-session replay is enabled on this project.** At ~44 onboarding starts a week, watching 20
-real abandonments will teach more than any experiment this traffic can support — which is
-the same conclusion U4 reached about PPO and U7 reached about the paywall-timing test.
+**⚠️ Mobile session replay is NOT capturing.** Verified 2026-08-24: the project has `session_recording_opt_in: true` and web recordings are arriving today, but filtering to `snapshot_source = mobile` over 90 days returns **zero**. The 2026-06-09 replay fix listed the project-side "Record mobile sessions" toggle as still outstanding and it appears never to have been set. Flip it and confirm recordings arrive BEFORE relying on this. See `docs/Plan-Verification-2026-08-24.md`.
+
+So the cheapest way to answer it is one toggle away rather than available today. Once
+mobile capture is on, watching 20 real abandonments at ~44 onboarding starts a week will
+teach more than any experiment this traffic can support — the same conclusion U4 reached
+about PPO and U7 about the paywall-timing test.
+
+In the meantime the event data already names the target: onboarding abandonment by last
+step reached over 30 days puts **`account` first at 62 sessions**, more than 3× the
+paywall's 19. With the paywall removed, the account gate is the largest remaining reason
+to leave — and U6 moved it *earlier* in the flow. That is the strongest candidate for the
+next plan.

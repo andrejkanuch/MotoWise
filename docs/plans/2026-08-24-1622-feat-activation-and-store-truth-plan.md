@@ -18,6 +18,25 @@ depth: deep
 
 ---
 
+> **VERIFIED AND PARTIALLY CORRECTED, 2026-08-24** — see
+> `docs/Plan-Verification-2026-08-24.md`. This plan was never independently reviewed
+> (`ce-doc-review` returned no findings), so every load-bearing number was re-derived from
+> production Postgres, PostHog, App Store Connect and Google Play while implementing it.
+> 19 of ~25 claims verified exactly or within ±1. Three were materially wrong:
+>
+> 1. **"20 on `pro`"** — actually 19 lifetime, 16 not-deleted, and only **7 `active` + 2
+>    `trialing`** currently entitled. Seven users keep `tier = pro` after cancelling.
+> 2. **`account_created` OVER-counts**, it does not only undercount — it fired on returning
+>    sign-ins too, so the monthly union of the legacy events runs 7% → 22% → 43% → **104%**
+>    → 98% of real signups. The remedy is unchanged; the diagnosis was half the story.
+> 3. **The 33 NULL-variant users** are on builds 3.8.0/3.9.0/3.3.0 that predate the
+>    assignment code — not an assignment failure and not consent-related.
+>
+> Also retracted: the claim that mobile session replay is available (it is not).
+> The affected-Play-locale count was **43 of 46**, not 31.
+
+---
+
 ## Product Contract
 
 ### Summary
@@ -129,7 +148,11 @@ instrumentation, and the App Store discovery actions.
 
 - The deeper day-1 retention product work beyond removing the paywall — what actually
   brings a rider back on day 2 is a product question this plan does not answer. Watch the
-  session replays first (replay is enabled on this project).
+  session replays first — but note this plan was **wrong** that replay was available:
+  mobile capture has produced **zero** recordings in 90 days and needs a project-side
+  toggle first. Meanwhile the event data already names the target: onboarding abandonment
+  by last step reached puts `account` first at 62 sessions/30d, more than 3× the paywall's
+  19. See `docs/Plan-Verification-2026-08-24.md`.
 - A full positioning rewrite of all 46 Play locales. The ~30-language translation cost is
   not justified until the accuracy fix is measured.
 - Merging the `experience` and `goals` steps into one. Both complete at ~95%, so they are

@@ -27,6 +27,7 @@
     "check:arch": "tsx scripts/check-arch-boundaries.ts",
     "check:404": "bash scripts/check-404-contract.sh",
     "check:store-copy": "python3 store/play/check-metadata.py",
+    "reconcile:signup": "tsx scripts/reconcile-signup-events.ts",
     "knip": "knip",
     "precheck": "pnpm check:api-bans && pnpm check:router && pnpm check:mobile-colors && pnpm check:arch && pnpm check:store-copy && pnpm lint && pnpm typecheck && pnpm test",
     "precheck:push": "sh scripts/precheck-changed.sh",

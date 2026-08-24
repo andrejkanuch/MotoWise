@@ -26,12 +26,21 @@ import { isAnalyticsEnabled, posthogClient, setUserProperties } from './analytic
 //     continuing to report exposures for it would add rows to a series nobody
 //     can act on and make the stopped experiment look live.
 //
-// On the "33 NULL variant" users the plan flagged: this is not an assignment
-// failure. `registerVariantWithAnalytics` early-returns when analytics consent
-// is off, so a rider who declined analytics is assigned locally and simply never
-// reports the property. Assignment is total by construction now — every install
-// gets a value on first launch, and an unassigned read degrades to `shipped`
-// rather than to a variant whose flow no longer exists.
+// On the "33 NULL variant" users the plan flagged: NOT an assignment failure.
+// Checked against PostHog 2026-08-24 — all 33 are on app versions 3.8.0 (29),
+// 3.9.0 (3) and 3.3.0 (1), i.e. builds that predate the assignment code
+// entirely. They are the slow-updating tail, not a bug.
+//
+// It is specifically NOT analytics consent, which was the intuitive guess: with
+// consent off `trackEvent` no-ops (see analytics.ts), so those users emit no
+// events at all and cannot show up in PostHog as a null-variant cohort.
+//
+// Assignment is total by construction now — every install gets a value on first
+// launch, and an unassigned read degrades to `shipped` rather than to a variant
+// whose flow no longer exists.
+//
+// Related: `control` accumulated 8 users despite a 0% rollout, via the old
+// "flag fetched but disabled/unknown value" branch. That branch is gone.
 // -------------------------------------------------------------------
 
 const isDev = typeof __DEV__ !== 'undefined' && __DEV__;

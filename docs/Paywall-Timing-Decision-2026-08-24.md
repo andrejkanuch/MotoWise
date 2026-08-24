@@ -98,10 +98,13 @@ Shipping one change at a time and reading the series is.
    requires is what makes this readable at all: it marks the boundary so nobody builds a
    funnel spanning two different flows. Compare the 8 weeks after the OTA reaches most
    users against the 14 weeks tabulated above.
-4. **Watch session replays.** Replay is enabled on this project and has never been used
-   for this question. At 44 onboarding starts a week, watching 20 real abandonments is
-   both faster and more informative than any test the traffic can support. This is the
-   plan's own deferred item and it is now the highest-value next step.
+4. **Watch session replays — after enabling mobile capture.** **⚠️ Mobile session replay is NOT capturing.** Verified 2026-08-24: the project has `session_recording_opt_in: true` and web recordings are arriving today, but filtering to `snapshot_source = mobile` over 90 days returns **zero**. The 2026-06-09 replay fix listed the project-side "Record mobile sessions" toggle as still outstanding and it appears never to have been set. Flip it and confirm recordings arrive BEFORE relying on this. See `docs/Plan-Verification-2026-08-24.md`.
+   Once it is on, watching 20 real abandonments at 44 onboarding starts a week is both
+   faster and more informative than any test this traffic can support.
+5. **Meanwhile, the event data already names the target.** Onboarding abandonment by last
+   step reached over 30 days puts `account` first at **62 sessions** — more than 3× the
+   paywall's 19. With the paywall gone the account gate is the biggest remaining reason to
+   leave, and it now sits earlier in the flow.
 
 ## The stop-loss (U6 rollback trigger)
 

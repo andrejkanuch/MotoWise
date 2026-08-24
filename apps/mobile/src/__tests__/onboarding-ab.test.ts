@@ -418,10 +418,11 @@ describe('resolveOnboardingVariant after the retirement', () => {
     expect(useExperimentStore.getState().source).toBe('shipped');
   });
 
-  it('assigns even when analytics consent is off (the 33 NULL-variant users)', async () => {
-    // The NULLs were never an assignment failure: registerVariantWithAnalytics
-    // early-returns without consent, so the variant is assigned locally and
-    // simply never reported. Assignment must still happen.
+  it('assigns even when analytics consent is off', async () => {
+    // Assignment must not depend on reporting. (Note: this is NOT the
+    // explanation for the 33 null-variant users seen in PostHog — those are all
+    // on builds 3.8.0/3.9.0/3.3.0, which predate the assignment code. A
+    // consent-off user emits no events at all, so cannot appear there.)
     mockAnalyticsEnabled = false;
 
     const variant = await resolveOnboardingVariant();
