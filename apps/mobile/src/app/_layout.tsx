@@ -152,10 +152,10 @@ const SPLASH_FAILSAFE_MS = 10000;
 //
 // Builds do NOT need this: expo-system-ui's prebuild mods bake the identical
 // color into `android:windowBackground` / the iOS root view from app.config's
-// `backgroundColor` ('#110e0a' === palette.editorialDarkBg2). Only dev reloads
-// need the runtime call, and running it in production is what produced the
-// unhandled rejection — module scope also executes when Android evaluates the
-// bundle with no Activity (headless/background runtime, process-death restore),
+// top-level `backgroundColor`, which is kept equal to palette.editorialDarkBg2.
+// Only dev reloads need the runtime call, and running it in production is what
+// produced the unhandled rejection — module scope also executes when Android
+// evaluates the bundle with no Activity (headless/background, process-death),
 // where it rejects with ERR_MISSING_ACTIVITY. Gated to dev, then wrapped so a
 // Fast Refresh mid-teardown cannot escape either.
 // (Sentry MOTO-VAULT-REACT-NATIVE-19)
