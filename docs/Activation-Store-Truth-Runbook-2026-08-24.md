@@ -496,7 +496,7 @@ Every unit here can land, every gate can pass, and day-7 activity can still not 
 Honest store copy and three fewer screens remove **reasons to leave**; neither creates a
 **reason to come back on day two**. That question is deferred on purpose.
 
-**⚠️ Mobile session replay is NOT capturing.** Verified 2026-08-24: the project has `session_recording_opt_in: true` and web recordings are arriving today, but filtering to `snapshot_source = mobile` over 90 days returns **zero**. The 2026-06-09 replay fix listed the project-side "Record mobile sessions" toggle as still outstanding and it appears never to have been set. Flip it and confirm recordings arrive BEFORE relying on this. See `docs/Plan-Verification-2026-08-24.md`.
+**⚠️ Mobile session replay is NOT capturing, and it is NOT a toggle.** `snapshot_source = mobile` over 90 days returns **zero**. Corrected 2026-08-25: the cause is **not** an unset project-side "Record mobile sessions" toggle — no such separate setting exists, and the one that does (`session_recording_opt_in`) is already `true`, which is why web replay works. The actual gap is that the native plugin **`@posthog/react-native-plugin`** is an *optional* peer of `posthog-react-native@4.47.2` and is **not installed**, so `enableSessionReplay` has no recorder to drive. Fixing it needs the package **plus a new native build** — it cannot ship via OTA. Full analysis: `docs/solutions/integration-issues/posthog-onboarding-funnel-instrumentation.md`.
 
 So the cheapest way to answer it is one toggle away rather than available today. Once
 mobile capture is on, watching 20 real abandonments at ~44 onboarding starts a week will
