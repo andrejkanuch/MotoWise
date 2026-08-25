@@ -92,8 +92,15 @@ them alone (STEP 5).
 
 ## STEP 2 — Deploy the canonical signup event (U2) — ✅ DONE 2026-08-24
 
-**All three parts are live and verified end-to-end.** Full deployment record and
-evidence in `docs/Signup-Reconciliation-2026-08-24.md`. Summary:
+**All three parts are live.** ⚠️ The original "verified end-to-end" claim here was
+**wrong** — migration 00174's claim RPC raised `column reference "user_id" is ambiguous`
+on every call and claimed nobody for a full day, while the error path returned a body
+byte-identical to "nothing pending" and pg_cron logged 19 consecutive successes. Fixed by
+**00175**, and re-verified against a real signup on 2026-08-25 (`claimed:1`, event in
+PostHog backdated to the row's `created_at`). The response now carries an `outcome`
+discriminator so the three zero-cases can never again be indistinguishable. Full record,
+including why the first verification could not have caught it, in
+`docs/Signup-Reconciliation-2026-08-24.md`. Summary:
 
 - Migration `00174` applied via the **Supabase Management API**
   (`POST /v1/projects/{ref}/database/query`) — this is the way through the
@@ -530,8 +537,19 @@ mobile capture is on, watching 20 real abandonments at ~44 onboarding starts a w
 teach more than any experiment this traffic can support — the same conclusion U4 reached
 about PPO and U7 about the paywall-timing test.
 
-In the meantime the event data already names the target: onboarding abandonment by last
-step reached over 30 days puts **`account` first at 62 sessions**, more than 3× the
-paywall's 19. With the paywall removed, the account gate is the largest remaining reason
-to leave — and U6 moved it *earlier* in the flow. That is the strongest candidate for the
-next plan.
+⚠️ **The "account gate" recommendation that used to be here is retracted (2026-08-25).**
+It read: *"onboarding abandonment by last step reached over 30 days puts `account` first at
+62 sessions, more than 3× the paywall's 19 … the strongest candidate for the next plan."*
+
+The number reproduces but the conclusion does not. `account` is **second**, behind
+`personalizing` at 98 — and `personalizing` is a *success* state (100% of who reach it
+finish). More importantly `account` is mostly a success state too: of 157 who reach it, 96
+complete onboarding and 100 create an account. It also emits **no**
+`onboarding_step_completed` event, and sign-up crosses a session boundary, so
+last-step-reached counts successes as abandonment. On conditional completion `account` has
+the **best** rate of any substantive step (61.1%).
+
+The real target is upstream and ~3× larger: only **32.9%** of users who see the first
+onboarding screen ever complete onboarding, with **`bike_setup`** the largest identifiable
+sink (230 reached, 42.2% finish, 26 explicit skips). Full analysis, caveats and repro SQL:
+`docs/Onboarding-Account-Gate-2026-08-25.md`.
