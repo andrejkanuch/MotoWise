@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import { Controller, Headers, HttpCode, Post, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Public } from '../../common/decorators/public.decorator';
-import { SignupEventsService } from './signup-events.service';
+import { SignupEventsService, SWEEP_OUTCOME } from './signup-events.service';
 
 const TIMING_SAFE_KEY = 'signup-events-timing-safe-compare' as const;
 const SECRET_HEADER = 'x-signup-event-secret' as const;
@@ -40,7 +40,10 @@ export class SignupEventsController {
     }
 
     const summary = await this.service.sweepPendingSignups();
-    // Spread first so a future summary field can never shadow the status literal.
-    return { ...summary, status: 'ok' };
+    // `status` reports whether the SWEEP worked, not whether the request parsed.
+    // It used to be the literal 'ok' unconditionally, which is how a claim RPC
+    // that raised on every call still answered `status: "ok"` for a full day
+    // (see SWEEP_OUTCOME). Spread first so a summary field cannot shadow it.
+    return { ...summary, status: summary.outcome === SWEEP_OUTCOME.OK ? 'ok' : 'error' };
   }
 }
