@@ -262,9 +262,43 @@ export const GOAL_TO_PLACEMENT: Record<string, string> = {
  */
 export const MAINTENANCE_INTENT_PLACEMENT = 'onboarding_maintenance';
 
-type OnboardingRoutePath =
-  | `/(onboarding)/${Exclude<OnboardingRoute, typeof OB_SCREEN.WELCOME>}`
-  | '/(onboarding)';
+/**
+ * Retired screens whose route FILES were deleted with the invested arm (see the
+ * RETIRED block in OB_SCREEN). They stay in the taxonomy as identifiers, because
+ * `OB_STEP_NAME` must keep resolving historical PostHog events and
+ * `RETIRED_SCREEN_SUCCESSOR` needs them as keys — but they are not routes.
+ *
+ * They must be excluded from `OnboardingRoutePath`. Expo Router generates its
+ * typed-route union from the files that actually exist, so including these made
+ * `routeForScreen`'s return type unassignable to `router.replace`/`push`
+ * (TS2322 at `(onboarding)/index.tsx`).
+ *
+ * That error was invisible in CI: `.expo/` is gitignored, so CI has no generated
+ * `router.d.ts` and the union it checks against is not the real one. It only
+ * appears once someone has run the app locally — which means a green CI here was
+ * never evidence that these types line up.
+ *
+ * Unlike maintenance / paywall / scan-receipt, which are also retired but still
+ * HAVE route files (reachable by deep link, and `insights.tsx` still hardcodes a
+ * jump to the paywall), so those remain legitimate route paths.
+ */
+export const DELETED_ROUTE_SCREENS = [
+  OB_SCREEN.FREQUENCY,
+  OB_SCREEN.STAY_ON_TOP,
+  OB_SCREEN.LAST_SERVICE,
+  OB_SCREEN.BUILDING_PLAN,
+] as const;
+
+type DeletedRouteScreen = (typeof DELETED_ROUTE_SCREENS)[number];
+
+/** A screen that has a route file and is therefore a legal navigation target. */
+type NavigableScreen = Exclude<OnboardingRoute, typeof OB_SCREEN.WELCOME | DeletedRouteScreen>;
+
+function isDeletedRouteScreen(screen: OnboardingRoute): screen is DeletedRouteScreen {
+  return (DELETED_ROUTE_SCREENS as readonly OnboardingRoute[]).includes(screen);
+}
+
+type OnboardingRoutePath = `/(onboarding)/${NavigableScreen}` | '/(onboarding)';
 
 /**
  * Href for a screen. The welcome screen is the group's index file, so its route
@@ -273,9 +307,18 @@ type OnboardingRoutePath =
  * falls through to the welcome step).
  */
 function routeForScreen(screen: OnboardingRoute): OnboardingRoutePath {
-  return screen === OB_SCREEN.WELCOME
+  // A screen whose route file was deleted can never be navigated to, so resolve
+  // it forward first. Callers already do this for retired screens generally, but
+  // doing it here too keeps the function total: every OnboardingRoute maps to a
+  // path that exists, rather than the caller having to remember which four are
+  // fileless. Their successors (bike-setup, reveal) are all navigable.
+  const target: OnboardingRoute = isDeletedRouteScreen(screen)
+    ? (RETIRED_SCREEN_SUCCESSOR[screen] ?? OB_SCREEN.BIKE_SETUP)
+    : screen;
+
+  return target === OB_SCREEN.WELCOME
     ? '/(onboarding)'
-    : `/(onboarding)/${screen as Exclude<OnboardingRoute, typeof OB_SCREEN.WELCOME>}`;
+    : `/(onboarding)/${target as NavigableScreen}`;
 }
 
 /**
