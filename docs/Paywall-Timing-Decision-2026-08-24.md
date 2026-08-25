@@ -101,10 +101,19 @@ Shipping one change at a time and reading the series is.
 4. **Watch session replays — after enabling mobile capture.** **⚠️ Mobile session replay is NOT capturing, and it is NOT a toggle.** `snapshot_source = mobile` over 90 days returns **zero**. Corrected 2026-08-25: the cause is **not** an unset project-side "Record mobile sessions" toggle — no such separate setting exists, and the one that does (`session_recording_opt_in`) is already `true`, which is why web replay works. The actual gap is that the native plugin **`@posthog/react-native-plugin`** is an *optional* peer of `posthog-react-native@4.47.2` and is **not installed**, so `enableSessionReplay` has no recorder to drive. Fixing it needs the package **plus a new native build** — it cannot ship via OTA. Full analysis: `docs/solutions/integration-issues/posthog-onboarding-funnel-instrumentation.md`.
    Once it is on, watching 20 real abandonments at 44 onboarding starts a week is both
    faster and more informative than any test this traffic can support.
-5. **Meanwhile, the event data already names the target.** Onboarding abandonment by last
-   step reached over 30 days puts `account` first at **62 sessions** — more than 3× the
-   paywall's 19. With the paywall gone the account gate is the biggest remaining reason to
-   leave, and it now sits earlier in the flow.
+5. **~~Meanwhile, the event data already names the target: the account gate.~~
+   RETRACTED 2026-08-25.** The 62-session figure reproduces, but `account` is **second**
+   behind `personalizing` at 98 — and both are largely *success* states. Of 157 users who
+   reach `account`, 96 complete onboarding and 100 create an account; it emits no
+   `onboarding_step_completed` event and sign-up crosses a session boundary, so
+   last-step-reached counts successes as abandonment. On conditional completion `account`
+   has the **best** rate of any substantive step (61.1%).
+   The real target is upstream and ~3× larger: only **32.9%** of users who see the first
+   onboarding screen ever finish, with **`bike_setup`** the largest identifiable sink (230
+   reached, 42.2% finish, 26 explicit skips). See
+   `docs/Onboarding-Account-Gate-2026-08-25.md`.
+   Also update the replay note above: the plugin **is now installed** — only a native
+   build is outstanding.
 
 ## The stop-loss (U6 rollback trigger)
 
