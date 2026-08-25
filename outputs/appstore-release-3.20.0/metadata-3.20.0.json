@@ -1,0 +1,71 @@
+{
+  "_readme": "Planned 3.20.0 App Store metadata. NOT APPLIED. Validate with scripts/check-appstore-3200-metadata.py, then apply only AFTER 3.19.1 is released — editing the WAITING_FOR_REVIEW appInfo/version risks the review slot. Subtitles live on appInfoLocalizations; keywords live on appStoreVersionLocalizations. These are different resources.",
+  "app_id": "6760291360",
+  "ship_alone": "Nothing else user-visible in this release. The 3.18.0 result is readable precisely because it was metadata-only; bundling a screenshot or name change makes the impression series unattributable.",
+
+  "version_localizations": {
+    "_resource": "appStoreVersionLocalizations",
+    "_fields": "keywords (100 max). Names are NOT changed in 3.20.0 — putting the head term in the name is a later release, never the same one as the subtitle.",
+    "en-US": { "keywords": "service,log,fuel,reminder,cost,mileage,repair,oil,tire,chain,bike,moto,odometer,receipt" },
+    "en-GB": { "keywords": "service,log,fuel,petrol,reminder,cost,mileage,repair,oil,tyre,chain,bike,moto,mot,receipt" },
+    "de-DE": { "keywords": "Werkstatt,Kilometer,Reparatur,Öl,Reifen,Kette,Biker,Sprit,Inspektion,Beleg,Scheckheft" },
+    "fr-FR": { "keywords": "révision,carburant,motard,atelier,réparation,huile,pneu,chaîne,vidange,reçu,kilométrage" },
+    "it": { "keywords": "tagliando,carburante,costo,riparazione,olio,gomma,catena,officina,libretto,ricevuta,km" },
+    "es-MX": { "keywords": "servicio,gasolina,refaccion,llanta,costo,reparacion,aceite,cadena,recibo,kilometraje" },
+    "pt-BR": { "keywords": "revisão,combustível,oficina,custo,reparo,óleo,pneu,corrente,peça,recibo,quilometragem" }
+  },
+
+  "app_info_localizations": {
+    "_resource": "appInfoLocalizations",
+    "_fields": "subtitle (30 max). name is unchanged everywhere EXCEPT fi, which is currently English.",
+    "_managed": "The 7 locales that also have version localizations.",
+    "en-US": { "subtitle": "Expense & Maintenance Tracker" },
+    "en-GB": { "subtitle": "Expense & Maintenance Tracker" },
+    "de-DE": { "subtitle": "Wartung, Kosten & Tankbuch" },
+    "fr-FR": { "subtitle": "Entretien, Coûts & Carnet" },
+    "it": { "subtitle": "Manutenzione, Spese e Consumi" },
+    "es-MX": { "subtitle": "Mantenimiento, Gastos, Taller" },
+    "pt-BR": { "subtitle": "Manutenção, Gastos e Consumo" },
+
+    "_unmanaged_fix": "Target markets, indexed, currently wrong. Copy written 2026-08-25 — keyword-list.md diagnoses these but supplies no replacement strings, contrary to what the runbook says.",
+    "fi": {
+      "subtitle": "Kulut, huolto ja ajot",
+      "name": "MotoVault: Moottoripyörä",
+      "_was_subtitle": "Service, Trips & AI Mechanic",
+      "_was_name": "MotoVault: Motorcycle Garage",
+      "_why": "The worst string in the account: English text in a Finnish listing that also led on AI diagnostics, which positioning says must never be the hero. Now Finnish and in validated demand order (expenses > maintenance > rides). The NAME was English too, which the plan did not mention."
+    },
+    "es-ES": {
+      "subtitle": "Gastos, mantenimiento, taller",
+      "_was_subtitle": "Rutas, Mantenimiento y Gastos",
+      "_why": "Spain is a target market with no version localization, so this subtitle is the whole listing. Was routes-first, contradicting demand order; now expenses-first."
+    },
+    "pl": {
+      "subtitle": "Wydatki, serwis i przebieg",
+      "_was_subtitle": "Trasy, Serwis i Wydatki",
+      "_why": "Was routes-first. Now expenses-first, and trades 'trasy' for 'przebieg' (mileage), which is closer to what the app is for."
+    },
+
+    "_decide_deliberately": {
+      "_locales": ["ja", "tr", "th", "id", "hi"],
+      "_status": "NO COPY WRITTEN — this is a call for the owner, not a copy task.",
+      "_context": "All non-target markets. `hi` has had zero users ever. These correlate with the ~330 junk-geography impressions in the tail (IN 93, TR 80, TH 45, PH 69). They cost nothing to keep but dilute the impression→page-view ratio with traffic that will never convert. Options: leave as-is, rewrite in demand order, or delete the localization so Apple falls back to en-US.",
+      "_recommendation": "Delete `hi` at minimum — zero users ever, and India is explicitly not a target market."
+    }
+  },
+
+  "description_sweep": {
+    "_resource": "appStoreVersionLocalizations.description",
+    "_action": "Replace hello@motovault.app with support@motovault.app in all 7 descriptions.",
+    "_verified_2026_08_25": "All 7 contain hello@ and none contain support@. Every one of the 46 Play listings already says support@, as do the privacy policy and web app.",
+    "from": "hello@motovault.app",
+    "to": "support@motovault.app"
+  },
+
+  "measurement": {
+    "_read_over": "21 days",
+    "_pin_the_source": "The runbook's recorded pre-release impression series (854 / 892 / 1,160 for weeks of Jul 27, Aug 3, Aug 10) comes from the Analytics Reports API. `asc web analytics --measures impressionsTotal` gives 921 / 959 / 1,274 for the same weeks — ~8% higher, because they are two different systems. Pin ONE source and one measure key, and re-pull the baseline with the same command used for the after-reading.",
+    "_also_track": "pageViewCount alongside impressions — impressions roughly tripled off the June trough while page views did not follow, so impressions alone would hide that.",
+    "_expected_effect": "Measured on our own listing across 7 locales, a name term ranked 1 of 16 for 'motorcycle garage', a subtitle term 3 of 18 for 'motorcycle expense', and keyword-field terms 14 of 14, 19 of 19, or absent. This release moves head terms into the field that actually ranks, reversing the July change that pushed 'maintenance' into the keyword field."
+  }
+}
