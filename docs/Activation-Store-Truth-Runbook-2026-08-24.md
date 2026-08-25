@@ -172,8 +172,28 @@ free tier. Verified by pulling the listings back from Google and running the
 guard against the **live** copy: `46 locales checked, 0 problems`. This did not
 require a binary release.
 
+**iOS — ✅ RESUBMITTED 2026-08-25 on build 90.** Version 3.19.1
+(`c5a76389`) now carries build **90** (`d70d1b8b`), built from `7a20430e` so it includes
+both #212 (single onboarding flow) and #216 (What's New platform gate). Submission
+`0488a12a`, `WAITING_FOR_REVIEW`, `releaseType: MANUAL` — **approval still does not
+publish it; someone must press Release.** The earlier build-88 submission was deliberately
+cancelled, forfeiting its queue position. `asc validate` reports no blocking errors (10
+non-blocking subscription-promo-image warnings).
+
+Sequence used, if it is ever needed again:
+
+```bash
+asc builds upload --app 6760291360 --ipa <path>.ipa --concurrency 4 --wait
+asc review submissions-update --id <old-submission-id> --canceled=true   # → DEVELOPER_REJECTED
+asc versions attach-build --version-id <version-id> --build <build-id>
+asc review submit --app 6760291360 --version 3.19.1 --build <build-id> --confirm
+```
+
 **Play binary.** Production is on 3.19.0 (version code 81) and still needs its
-own 3.19.1.
+own 3.19.1. ⚠️ **Rebuild from `main`** — the vc82 bundle predates #216 and would show
+Android users a CarPlay slide. Release notes for 8 locales are ready at
+`outputs/play-release-3.19.1/release-notes-3.19.1.json` (deliberately no CarPlay, and no
+Receipt Scan since 3.19.0 already announced it).
 
 ```bash
 python3 store/play/check-metadata.py                       # must print 0 problems
@@ -191,7 +211,36 @@ declaration is still approved in Play Console. It has no API and fails at submis
 
 ---
 
-## STEP 4 — OTA the onboarding change
+## STEP 4 — OTA the onboarding change — ❌ NO LONGER NEEDED (2026-08-25)
+
+> **Both 3.19.1 binaries were rebuilt from `main` after #212 merged, so they already
+> contain the single-flow onboarding. The OTA would deliver nothing.**
+>
+> - **iOS build 90** (`d70d1b8b`), built 2026-08-25 12:26 from `7a20430e`, replaces
+>   build 88 on version 3.19.1. Build 88 predated #212 by ~8.5 hours, which is the only
+>   reason an OTA was ever required. The in-review submission was cancelled and
+>   resubmitted (`0488a12a`); the review-queue position was knowingly forfeited.
+> - **Android** must likewise be rebuilt from `main` (vc83+). The vc82 bundle predates
+>   **#216** and would show Android users a CarPlay slide — do not ship it.
+>
+> The reasoning, so nobody re-derives it: `runtimeVersion` policy is `appVersion`, so an
+> OTA only ever reaches devices **already on 3.19.1**. If the 3.19.1 binaries carry the
+> change themselves, the OTA is redundant. Users on 3.18.0/3.19.0 were never reachable by
+> it either way — they have to update.
+>
+> **Consequences.** The "OTA reaches zero users" trap and the adoption wait both
+> disappear. The PostHog annotation moves to **release day**, which is now the true
+> user-facing cutover. Both platforms get the paywall-free flow simultaneously, so
+> activation stays comparable across them — the temporary asymmetry that a build-88 iOS
+> release would have created no longer exists.
+>
+> Keep flag `onboarding_ab_2026` **active** regardless: 3.18.0 and 3.19.0 users still
+> read it, and disabling it drops them to the control (V4) flow.
+>
+> The stop-loss below still applies — it is about the paywall removal, not the delivery
+> mechanism.
+
+Original instructions, kept for reference:
 
 **Do not publish the OTA until 3.19.1 is live on both stores and `Application Opened`
 shows a non-trivial 3.19.1 population in PostHog.** `runtimeVersion` policy is
