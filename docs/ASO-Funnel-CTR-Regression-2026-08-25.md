@@ -1,136 +1,132 @@
-# The impression→page-view CTR has collapsed and has not recovered
+# Impression→page-view CTR: what the web-analytics series actually shows
 
 **Date:** 2026-08-25
 **Source:** first-party `asc web analytics metrics` (authenticated web session), App
-Store only. 13 weekly buckets, 2026-05-25 → 2026-08-23.
-**Status:** ⚠️ finding, with a leading hypothesis that is **not yet confirmed**. The
-confirming read is UI-only (see "What would confirm it").
+Store only. Weekly buckets, 2026-03-16 → 2026-08-23.
+**Verdict:** ⚠️ **No CTR regression is demonstrated.** An earlier draft of this document
+claimed one. That claim was wrong and is retracted below, with the arithmetic that
+refutes it, because it is a mistake this repo has now made twice.
 
-## The numbers
+## The retraction, first
 
-| Week | Impressions | Page views | Units | CTR (impr→PV) | PV→DL |
-|---|---|---|---|---|---|
-| 2026-05-25 | 1,092 | 195 | 51 | **17.9%** | 26% |
-| 2026-06-01 | 731 | 132 | 34 | **18.1%** | 26% |
-| 2026-06-08 | 430 | 50 | 11 | **11.6%** | 22% |
-| 2026-06-15 | 508 | 29 | 16 | 5.7% | 55% |
-| 2026-06-22 | 395 | 33 | 9 | 8.4% | 27% |
-| 2026-06-29 | 361 | 30 | 10 | 8.3% | 33% |
-| 2026-07-06 | 343 | 33 | 6 | 9.6% | 18% |
-| 2026-07-13 | 546 | 61 | 12 | 11.2% | 20% |
-| 2026-07-20 | 430 | 25 | 8 | 5.8% | 32% |
-| 2026-07-27 | 921 | 67 | 18 | 7.3% | 27% |
-| 2026-08-03 | 959 | 67 | 27 | 7.0% | 40% |
-| 2026-08-10 | 1,274 | 114 | 39 | 8.9% | 34% |
-| 2026-08-17 | 1,028 | 65 | 23 | 6.3% | 35% |
+The first version of this file claimed CTR "collapsed from ~18% to ~6% and never
+recovered," anchored on two weeks:
 
-Same pattern on unique counts, so it is **not a counting artifact**: unique CTR runs
-16.7% / 18.4% in late May, then 8.0% / 5.5% / 7.8% / 8.2% from 2026-06-08 onward, and
-5.6% in the most recent week.
+| Week | Impressions | Page views | CTR |
+|---|---|---|---|
+| 2026-05-25 | 1,092 | 195 | 17.9% |
+| 2026-08-17 | 1,028 | 65 | 6.3% |
 
-## The one comparison that matters
+Same impressions, one third the page views — which looks decisive. It is not, because
+**there was never a stable ~18% regime to fall from.** Extending the series backwards
+shows the pre-June period is violently unstable at low volume:
 
-**2026-05-25: 1,092 impressions → 195 page views.**
-**2026-08-17: 1,028 impressions → 65 page views.**
+| Week | Impressions | Page views | CTR |
+|---|---|---|---|
+| 2026-03-16 | 230 | 3 | **1.3%** |
+| 2026-03-23 | 335 | 93 | **27.8%** |
+| 2026-03-30 | 185 | 31 | 16.8% |
+| 2026-04-06 | 118 | 18 | 15.3% |
+| 2026-04-13 | 91 | 10 | 11.0% |
+| 2026-04-20 | 261 | 25 | 9.6% |
+| 2026-04-27 | 232 | 16 | 6.9% |
+| 2026-05-04 | 226 | 29 | 12.8% |
+| 2026-05-11 | 218 | 31 | 14.2% |
+| 2026-05-18 | 595 | 218 | **36.6%** |
+| 2026-05-25 | 1,092 | 195 | 17.9% |
 
-Essentially identical impression volume, **one third** the page views. Impressions fully
-recovered from the June trough; CTR did not recover at all.
+CTR ranges from **1.3% to 36.6%** across these weeks. Picking 05-25 as "the baseline"
+is picking one point out of that spread. A 36.6% App Store search CTR is not a
+plausible steady state for any app, which is itself the tell.
 
-`PV→DL` held up (26% → 35%, if anything better). So the leak is specifically
-**impression → page view**, i.e. people see the listing in search and do not tap.
+## What the series actually supports
 
-## This corrects a previous conclusion
+Compare like with like — the trailing weeks either side of the 3.18.0 keyword release
+(2026-07-29):
 
-`project_aso_snapshot_0824` records that the funnel "scaled ×2.5 end-to-end after 3.18.0
-keywords went live 07-29, conversion ratios FLAT." That is right for `PV→DL` and **wrong
-for `impr→PV`**, which roughly halved. Reading the funnel as uniformly scaled hides the
-regression, because impressions and downloads both rose while the middle step decayed.
+| Period | Weeks | CTR range | Rough mean |
+|---|---|---|---|
+| Six weeks before 3.18.0 | 06-15 → 07-20 | 5.7 – 11.2% | **~8.2%** |
+| After 3.18.0 | 07-27 → 08-17 | 6.3 – 8.9% | **~7.4%** |
 
-## Leading hypothesis: the running PPO experiment
+**Flat.** The difference is well inside the week-to-week spread. This *confirms* the
+existing finding in `project_aso_snapshot_0824` — imp→PV 8.9% → 9.0%, ratios unchanged
+while the funnel scaled — measured independently and from a different data source.
 
-The cliff sits between the weeks of **2026-06-01 (18.1%)** and **2026-06-08 (11.6%)**,
-landing inside the window of PPO experiment `060bdd96` "Title Test - Maintenance Angles"
-(2026-05-29 → 2026-06-24, **75% traffic**). CTR never recovered afterwards, and experiment
-`cc64b9d2` "Title Test" has been running since **2026-06-29 at 66% traffic** ever since.
+The step down therefore happens in **early June**, before the keyword change, out of a
+volatile low-volume period and into a stable ~6–9% band that has held for eleven weeks.
+The most economical explanation is **composition, not degradation**: the May spike weeks
+(05-18, 05-25) carried unusually high-intent traffic — branded or referred visitors who
+search the app by name and tap almost every time — while today's much larger impression
+volume is broad keyword matching that converts at a normal-for-search rate. High CTR on
+595 impressions and low CTR on 1,028 impressions can both be healthy; they are different
+kinds of impression.
 
-So for nearly three months, most search traffic has been served a **non-control title**.
-If the treatments underperform control, this is exactly the shape it would produce: normal
-impressions, depressed tap-through.
+## The mistake, so it is not made a third time
 
-### Why this reframes the PPO read
+`project_aso_snapshot_0824` already records a first pass of this analysis getting it
+wrong in the *same direction* — reporting imp→PV "collapsing" 19.4% → 8.8% by diffing
+against a Mar–Jun average inflated by low-denominator outlier weeks, with the stated
+lesson: **never diff against a multi-month average when a trailing-window series is
+available.**
 
-`outputs/MotoVault/03-testing/ppo-experiment-cc64b9d2-record.md` concludes the result is
-statistically meaningless, on the grounds that detecting a **+20%** relative lift needs
-~47,500 impressions per arm ≈ 4.3 years. That arithmetic is correct **for +20%**. It does
-not apply here: the effect visible above is a **~60–65% relative decline**, which is an
-order of magnitude larger and needs far fewer impressions to detect.
+This draft did not use an average. It picked two individual weeks, which is the same
+error wearing a different hat: **anchoring on a favourable historical point instead of
+the trailing window.** The general rule that covers both:
 
-A test that cannot resolve a small win can still resolve a large loss. The read is
-therefore worth doing — not to harvest a winner, but to check whether the experiment is
-**actively costing page views** and should be stopped immediately rather than allowed to
-run to its 2026-09-27 end date.
+> Establish the baseline from the trailing window adjacent to the change, and only after
+> checking that the window is stable. If the candidate baseline sits in a period whose
+> week-to-week spread is wider than the effect being claimed, there is no baseline.
 
-## Competing explanations, not excluded
+Volume-weight it, too: a 36.6% week on 595 impressions and a 1.3% week on 230 carry
+almost no information individually.
 
-Be honest that this is correlational:
+## What does survive, and is still worth acting on
 
-1. **The 3.18.0 keyword change (2026-07-29)** could be buying broader, lower-intent
-   impressions — more people see it, fewer want it. This predicts the *August* CTR level
-   but **cannot** explain the June cliff, which precedes it by seven weeks.
-2. **Composition shift from losing rank.** Impressions fell 3× into June; if the app lost
-   high-intent branded/near-branded queries and kept broad ones, CTR falls without any
-   listing change. The August recovery in impressions was driven by the keyword change, so
-   the recovered impressions are not the same impressions.
-3. **Trust.** 2★/1 rating suppresses tap-through, but that was equally true in May at 18%
-   CTR, so it cannot explain a *change*.
-4. **Seasonality.** Northern-hemisphere riding season peaks in May–June; May could simply
-   be a high-intent month.
+1. **Absolute page views are low and have not grown with impressions.** 195 page views
+   in the week of 05-25 versus 65 in the week of 08-17 is a real, unexplained fact even
+   though the *ratio* framing was wrong — impressions roughly tripled off the June trough
+   while page views did not follow. Whether that is composition (likely) or a listing
+   problem is exactly what STEP 5 is designed to read.
+2. **The PPO experiment is still unread and still running at 66% traffic.** That remains
+   worth the five-minute UI read — but on the original grounds (three months of accrual,
+   directional only), **not** because a CTR collapse has been demonstrated. It has not.
+   Nothing here justifies stopping `cc64b9d2` early.
+3. **The two data sources disagree by ~8%, and that matters for STEP 5.** See below.
 
-Explanations 1 and 2 are both plausible and both point at the **same corrective action**
-as the PPO hypothesis: get the head terms into the fields that actually rank (STEP 5), and
-stop paying for impressions that do not convert.
+## Data-source caveat — the real STEP 5 problem
 
-## What would confirm it
+`docs/Activation-Store-Truth-Runbook-2026-08-24.md` STEP 5 records a pre-release weekly
+impression series of **854** (Jul 27), **892** (Aug 3), **1,160** (Aug 10). This
+document's `impressionsTotal` for the same weeks is **921 / 959 / 1,274** — consistently
+~7–9% higher.
 
-The decisive read is **UI-only** — no App Store Connect API exposes PPO results
-(exhaustively established in the record file, including with an authenticated web session).
-In App Store Connect → MotoVault → Product Page Optimization, for `cc64b9d2`:
+That is not data revision; it is too systematic. The two figures come from **two
+different systems**:
 
-- If **control** shows materially higher conversion than both treatments, the experiment is
-  the cause. **Stop it immediately** — do not wait for 2026-09-27. At 66% traffic this is a
-  live, ongoing cost.
-- If the arms are indistinguishable, the cause is composition/keywords, and STEP 5 is the
-  fix.
+- the **Analytics Reports API** (`asc analytics`, the `r14-WEEKLY` instances used for the
+  ASO snapshots — see `reference_asc_analytics_pull`), and
+- the **web dashboard endpoints** (`asc web analytics`, used here), which the CLI's own
+  help explicitly describes as "separate from the official Analytics Reports API."
 
-Read `060bdd96` in the same sitting; it covers the June cliff itself.
+**Never mix them in one before/after comparison.** Pin one source and one measure key,
+name it in the doc, and re-pull the baseline with the same command used for the
+after-reading. Otherwise the 3.20.0 subtitle read starts with a built-in ~8% bias in
+whichever direction the sources happen to differ.
 
-## Measurement caveat for STEP 5
-
-`docs/Activation-Store-Truth-Runbook-2026-08-24.md` STEP 5 says to read the 3.20.0 subtitle
-change against a recorded pre-release weekly impression series of **854** (Jul 27), **892**
-(Aug 3), **1,160** (Aug 10).
-
-Those numbers **do not reproduce**. `impressionsTotal` for the same weeks is **921 / 959 /
-1,274** — consistently ~7–9% higher, which is too systematic to be data revision. The
-recorded series was evidently pulled with a different measure key or aggregation.
-
-**Pin the exact measure key before using any before/after comparison**, or the 3.20.0 read
-starts with a built-in ~8% bias. Recommended: quote `impressionsTotal` *and*
-`impressionsTotalUnique`, name the measure in the doc, and re-pull the baseline with the
-same command used for the after-reading.
-
-Also worth tracking `pageViewCount` alongside impressions, since this finding shows
-impressions alone can rise while the funnel gets worse.
+Track `pageViewCount` next to impressions as well — point 1 above shows impressions alone
+can rise while page views do not follow.
 
 ## Reproducing
 
 ```bash
+# web dashboard source (this document)
 asc web analytics metrics --app 6760291360 \
-  --start 2026-05-25 --end 2026-08-23 --frequency week \
+  --start 2026-03-16 --end 2026-08-23 --frequency week \
   --measures impressionsTotal,pageViewCount,units
 ```
 
-Needs an authenticated web session (`asc web auth login --apple-id ...`, interactive 2FA);
+Needs an authenticated web session (`asc web auth login --apple-id …`, interactive 2FA);
 `asc web auth status` should report `{"authenticated":true}`. Apple rate-limits the whole
 ASC API after a few hundred analytics calls, so batch measures into one call rather than
 looping.

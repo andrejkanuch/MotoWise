@@ -35,18 +35,15 @@ Steps 1 and 2 are independent of each other. Everything from 3 down is a chain.
 
 ## STEP 1 — Read the PPO experiment results (only you can do this)
 
-> **🔴 Escalated 2026-08-25 — this is no longer a nice-to-have record.**
-> Impression→page-view CTR fell from ~18% (late May) to ~6% and never recovered:
-> 1,092 impressions → 195 page views in the week of 05-25, versus 1,028 → **65** in
-> the week of 08-17. Same impressions, one third the page views. The cliff lands
-> inside the window of PPO experiment `060bdd96` (75% traffic), and `cc64b9d2` has
-> served a non-control title to **66% of traffic** ever since.
-> The "results are statistically meaningless" conclusion below was computed for a
-> **+20%** effect; the decline visible here is **~60–65%**, which needs far fewer
-> impressions to detect. **If control beats both treatments, stop `cc64b9d2`
-> immediately rather than letting it run to 2026-09-27.**
-> Full analysis, competing explanations and the reproducing command:
-> `docs/ASO-Funnel-CTR-Regression-2026-08-25.md`.
+> **Priority unchanged (checked 2026-08-25).** An intermediate draft claimed a CTR
+> collapse that would have made this urgent; it was wrong and is retracted in
+> `docs/ASO-Funnel-CTR-Regression-2026-08-25.md`. Independently measured from the web
+> dashboard, imp→PV is **flat** across the 3.18.0 release (~8.2% before, ~7.4% after),
+> confirming the existing snapshot. Nothing justifies stopping `cc64b9d2` early — read
+> it on the original grounds below.
+> That file does carry one thing that affects **STEP 5**: the recorded impression
+> baseline comes from a *different data source* than `asc web analytics`, and the two
+> differ by ~8%. Read the caveat at STEP 5 before making any before/after claim.
 
 **Why now:** the plan's premise is that releasing 3.19.1 orphans three months of
 accrual. I could not confirm that (see
@@ -282,14 +279,18 @@ the July action that moved `maintenance` into the keyword field: right term, wro
 **Read it over 21 days** against the recorded pre-release weekly impression series:
 **854** (week of Jul 27), **892** (Aug 3), **1,160** (Aug 10).
 
-⚠️ **Those three numbers do not reproduce.** `asc web analytics metrics
---measures impressionsTotal` returns **921 / 959 / 1,274** for exactly those weeks —
-systematically ~7–9% higher, so it is a different measure key, not data revision.
-**Pin the measure key before making any before/after claim**, and re-pull the
-baseline with the same command you will use for the after-reading, or the 3.20.0
-read carries a built-in ~8% bias. Track `pageViewCount` alongside impressions too:
-per `docs/ASO-Funnel-CTR-Regression-2026-08-25.md`, impressions can rise while
-tap-through falls, and impressions alone would have hidden that.
+⚠️ **Those three numbers come from a specific source — do not mix sources.**
+`asc web analytics metrics --measures impressionsTotal` returns **921 / 959 / 1,274**
+for exactly those weeks, ~7–9% higher. That is not revision; the series above is from
+the **Analytics Reports API** (`asc analytics`, `r14-WEEKLY`) while `asc web analytics`
+hits the **web dashboard**, which the CLI's own help calls "separate from the official
+Analytics Reports API."
+
+**Pin one source and one measure key**, name it here, and re-pull the baseline with the
+same command you will use for the after-reading — otherwise the 3.20.0 read starts with
+a built-in ~8% bias. Track `pageViewCount` alongside impressions too: impressions
+roughly tripled off the June trough while page views did not follow, so impressions
+alone would hide that. Detail in `docs/ASO-Funnel-CTR-Regression-2026-08-25.md`.
 
 Not in scope: putting the head term in the **name**. The research is explicit — do it in a
 later release, never in the same one as the subtitle, or the result is uninterpretable.
