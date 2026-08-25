@@ -440,7 +440,7 @@ describe('carplay-coordinator', () => {
     fireConnect();
     await flush();
     // Row 4 is the heads-up row; the recall rung wins.
-    expect(lastRenderedItems()?.[3]).toEqual({ title: 'Recall', detail: '2 open recalls' });
+    expect(lastRenderedItems()?.[2]).toEqual({ title: 'Recall', detail: '2 open recalls' });
   });
 
   it('is cache-first for the active bike (no MyMotorcycles fetch when cached), still loads tasks', async () => {
@@ -482,8 +482,8 @@ describe('carplay-coordinator', () => {
       expect.any(Error),
       expect.objectContaining({ source: 'carplay-coordinator.loadHeadsUpData' }),
     );
-    // Panel still rendered on connect; row 4 falls back to Climb (no recall/overdue signal).
-    expect(lastRenderedItems()?.[3]?.title).toBe('Climb');
+    // Panel still rendered on connect; the heads-up row falls back to Climb (no recall/overdue signal).
+    expect(lastRenderedItems()?.[2]?.title).toBe('Climb');
   });
 
   // --- Signed-out head unit (Sentry MOTO-VAULT-REACT-NATIVE-1J) ---
@@ -505,7 +505,7 @@ describe('carplay-coordinator', () => {
       expect(gqlFetcher).not.toHaveBeenCalled();
       expect(captureException).not.toHaveBeenCalled();
       // Projection still works — row 4 degrades to the climb fallback.
-      expect(lastRenderedItems()?.[3]?.title).toBe('Climb');
+      expect(lastRenderedItems()?.[2]?.title).toBe('Climb');
     });
 
     it('shows the recoverable row instead of fetching the bike list', async () => {
@@ -538,7 +538,7 @@ describe('carplay-coordinator', () => {
       refreshCarPlayHeadsUpData();
       await flush();
 
-      expect(lastRenderedItems()?.[3]).toEqual({ title: 'Recall', detail: '2 open recalls' });
+      expect(lastRenderedItems()?.[2]).toEqual({ title: 'Recall', detail: '2 open recalls' });
     });
 
     it('does not re-warm when no head unit is attached', async () => {
