@@ -114,9 +114,50 @@ If `signInWithApple()` / `signInWithGoogle()` can't reliably compute `isNewUser`
 
 ---
 
-## Defect 3 — Mobile session replay is OFF (blocks "watch the wall") — ✅ DONE (2026-06-09)
+## Defect 3 — Mobile session replay is OFF (blocks "watch the wall") — ⚠️ REOPENED (2026-08-25)
+
+> ### 2026-08-25 correction: the missing piece is a package, not a project toggle
+>
+> Marked DONE in 2026-06-09, but **mobile replay has never captured anything**:
+> `snapshot_source = mobile` over 90 days returns **zero**, and no event in 30 days
+> carries `$recording_status` (0 of 10,377).
+>
+> Three documents blamed an unset project-side **"Record mobile sessions"** toggle.
+> **That diagnosis is wrong.** Per PostHog's current React Native docs there is exactly
+> one project setting — *"Record user sessions"* — and it maps to
+> `session_recording_opt_in`, which is **already `true`** on project 155556 (web replay
+> arrives daily, which proves it). There is nothing left to flip.
+>
+> **The real cause: the native plugin is not installed.** Mobile replay needs
+> **`@posthog/react-native-plugin`** (the renamed `posthog-react-native-session-replay`,
+> required for `posthog-react-native` >= 4.47.0). The app runs
+> `posthog-react-native@4.47.2` and the plugin is declared only as an **optional peer
+> dependency** in `pnpm-lock.yaml:10028` (`peerDependenciesMeta.optional: true`) and is
+> **absent from `apps/mobile/package.json` and from `node_modules`**.
+>
+> So `enableSessionReplay: !__DEV__` in `analytics.ts` is correct and has simply had **no
+> native recorder to drive**. Everything else was already done properly — consent gating,
+> `maskAllTextInputs` / `maskAllImages` / `maskAllSandboxedViews`, `captureLog: false`.
+>
+> **Fix:** `pnpm --filter mobile add @posthog/react-native-plugin` (>= 2.0.1), then a
+> **new native build** — it is a native module, so it **cannot ship via OTA**. Earliest
+> realistic vehicle is 3.20.0.
+>
+> An install was attempted on 2026-08-25 and **reverted**: it wrote `package.json` and
+> `pnpm-lock.yaml` but never linked `node_modules`, and a half-applied native dependency
+> is not something to leave in the tree while 3.19.1 is in review with a 20% rollout live.
+> Redo it deliberately, alongside a build that can actually verify it.
+>
+> **Do not mark this DONE again without evidence of arriving recordings.** The 2026-06-09
+> entry was closed on "the code is correct", which was true and insufficient — the same
+> mistake shape as the signup-event gate.
 
 > Implemented in `analytics.ts`: session replay with privacy-safe masking (`maskAllTextInputs`/`maskAllImages`/`maskAllSandboxedViews`/`captureLog`), **gated to release builds only**. PostHog is fully disabled in development — `disabled: __DEV__ || !POSTHOG_API_KEY` (no events or replay sent under Metro/dev-client) and `enableSessionReplay: !__DEV__`, mirroring the existing Sentry `enabled: !__DEV__` gate. Verified against posthog-react-native v4.41.1 type defs + official docs (Context7). **Still requires:** a fresh native build (not OTA) + the project-side "Record mobile sessions" toggle in PostHog settings.
+>
+> ⛔ **The last sentence is wrong — superseded by the 2026-08-25 correction above.** The
+> "fresh native build" half was right; the toggle half was not. There is no separate
+> mobile toggle, and the missing piece is the `@posthog/react-native-plugin` package.
+> Kept verbatim because this line is what sent three later documents down the wrong path.
 
 
 **Root cause.** `apps/mobile/src/lib/analytics.ts:25` → `enableSessionReplay: false`. There are **zero** mobile recordings in PostHog; every recording is from the web marketing site. We literally cannot watch a user hesitate at `/login`.
