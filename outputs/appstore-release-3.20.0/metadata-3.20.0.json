@@ -6,13 +6,27 @@
   "version_localizations": {
     "_resource": "appStoreVersionLocalizations",
     "_fields": "keywords (100 max). Names are NOT changed in 3.20.0 — putting the head term in the name is a later release, never the same one as the subtitle.",
-    "en-US": { "keywords": "service,log,fuel,reminder,cost,mileage,repair,oil,tire,chain,bike,moto,odometer,receipt" },
-    "en-GB": { "keywords": "service,log,fuel,petrol,reminder,cost,mileage,repair,oil,tyre,chain,bike,moto,mot,receipt" },
-    "de-DE": { "keywords": "Werkstatt,Kilometer,Reparatur,Öl,Reifen,Kette,Biker,Sprit,Inspektion,Beleg,Scheckheft" },
-    "fr-FR": { "keywords": "révision,carburant,motard,atelier,réparation,huile,pneu,chaîne,vidange,reçu,kilométrage" },
-    "it": { "keywords": "tagliando,carburante,costo,riparazione,olio,gomma,catena,officina,libretto,ricevuta,km" },
-    "es-MX": { "keywords": "servicio,gasolina,refaccion,llanta,costo,reparacion,aceite,cadena,recibo,kilometraje" },
-    "pt-BR": { "keywords": "revisão,combustível,oficina,custo,reparo,óleo,pneu,corrente,peça,recibo,quilometragem" }
+    "en-US": {
+      "keywords": "service,log,fuel,reminder,cost,mileage,repair,oil,tire,chain,bike,moto,odometer,receipt"
+    },
+    "en-GB": {
+      "keywords": "service,log,fuel,petrol,reminder,cost,mileage,repair,oil,tyre,chain,bike,moto,mot,receipt"
+    },
+    "de-DE": {
+      "keywords": "Werkstatt,Kilometer,Reparatur,Öl,Reifen,Kette,Biker,Sprit,Inspektion,Beleg,Scheckheft"
+    },
+    "fr-FR": {
+      "keywords": "révision,carburant,motard,atelier,réparation,huile,pneu,chaîne,vidange,reçu,kilométrage"
+    },
+    "it": {
+      "keywords": "tagliando,carburante,costo,riparazione,olio,gomma,catena,officina,libretto,ricevuta,km"
+    },
+    "es-MX": {
+      "keywords": "servicio,gasolina,refaccion,llanta,costo,reparacion,aceite,cadena,recibo,kilometraje"
+    },
+    "pt-BR": {
+      "keywords": "revisão,combustível,oficina,custo,reparo,óleo,pneu,corrente,peça,recibo,quilometragem"
+    }
   },
 
   "app_info_localizations": {
