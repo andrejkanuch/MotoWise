@@ -1,4 +1,54 @@
-# Featuring nomination — draft for your review
+# Featuring nomination — SUBMITTED 2026-08-25
+
+**Status:** ✅ **SUBMITTED to Apple.** Nomination id
+`9de30a02-279c-43d9-933c-046771df2d4f`, state `SUBMITTED`, type `APP_ENHANCEMENTS`,
+device family `IPHONE`, locale `EN-US`, publish start `2026-09-16T08:00:00Z`.
+First use of this channel ever — `asc nominations list` returned 0 in every state
+beforehand.
+
+## ⚠️ The description field caps at 1,000 characters
+
+Not documented in the CLI help; the API rejects a longer body with
+`A parameter has an invalid value: The maximum allowable limit is '1000'`. The
+drafted pitch below was **1,677 characters** and had to be cut to **935**. If you
+write another nomination, write to 1,000 from the start.
+
+What was cut, in priority order (the hook was never at risk):
+
+- the panel's craft details — dashes instead of a confident `0.0` before GPS lock,
+  and "Keep Riding" leading the stop confirm;
+- "four rows sized to be read at a glance";
+- the closing line about record-keeping being what a phone should do.
+
+What was kept: the Driving Task entitlement with its case ID, the recall →
+overdue → due-soon row, receipt scanning in one sentence, and the solo-developer
+line.
+
+## The submitted text (935 chars, verbatim)
+
+```
+MotoVault is a motorcycle ownership app: expenses, service history, rides and trip planning.
+
+We are writing about CarPlay. Apple granted us the Driving Task entitlement (Case-ID 20710293), and we used it for something a rider cannot do with a phone in a pocket. On the head unit MotoVault shows a live ride panel that starts, pauses and ends the ride from the dash, and auto-pauses when the bike stops.
+
+One row on it is not a number. It carries what the rider most needs to know about the bike they are on, in priority order: an open safety recall first, then overdue service, then anything due soon. A rider can set off on a Sunday morning and learn from their dashboard that their machine has an unresolved factory recall. We have not found another app that puts that on a head unit.
+
+Also new: point the camera at a fuel or workshop receipt and MotoVault fills in the amount, date and work done.
+
+Built by one developer who rides.
+```
+
+## Supplemental materials: still empty
+
+`--supplemental-materials-uris` takes **hosted URIs**, not local files, so the
+CarPlay captures could not be attached from the CLI. **Worth adding the head-unit
+screenshot by hand in App Store Connect** — the recall row is the whole pitch, and
+editorial responds to seeing a surface rather than reading about it.
+
+---
+
+## Original draft, kept for the record
+
 
 **Status:** DRAFT. Nothing has been created in App Store Connect. Approve or edit the
 description below and I will run the `asc nominations create` command at the end.
@@ -39,11 +89,11 @@ vehicle.
 > no number. Ending a ride asks for confirmation with "Keep Riding" as the first option,
 > since the one thing a rider should never do is hunt for a button.
 >
-> The row we are proudest of is the fourth. It carries whatever the rider most needs to
+> One of those rows is not a number at all. It carries whatever the rider most needs to
 > know about the bike they are on, in priority order: an open safety recall first, then
 > overdue service, then anything due soon. A rider can set off on a Sunday morning and
 > learn from their dashboard that their machine has an unresolved factory recall. We have
-> not seen another app put that on a head unit.
+> not found another app that puts that on a head unit.
 >
 > Also new: receipt scanning. Point the camera at a fuel, parts or workshop receipt and
 > MotoVault reads the amount, the date and the work done, then fills the expense form in.
