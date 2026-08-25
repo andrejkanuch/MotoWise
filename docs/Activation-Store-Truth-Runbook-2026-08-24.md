@@ -35,6 +35,16 @@ Steps 1 and 2 are independent of each other. Everything from 3 down is a chain.
 
 ## STEP 1 — Read the PPO experiment results (only you can do this)
 
+> **Priority unchanged (checked 2026-08-25).** An intermediate draft claimed a CTR
+> collapse that would have made this urgent; it was wrong and is retracted in
+> `docs/ASO-Funnel-CTR-Regression-2026-08-25.md`. Independently measured from the web
+> dashboard, imp→PV is **flat** across the 3.18.0 release (~8.2% before, ~7.4% after),
+> confirming the existing snapshot. Nothing justifies stopping `cc64b9d2` early — read
+> it on the original grounds below.
+> That file does carry one thing that affects **STEP 5**: the recorded impression
+> baseline comes from a *different data source* than `asc web analytics`, and the two
+> differ by ~8%. Read the caveat at STEP 5 before making any before/after claim.
+
 **Why now:** the plan's premise is that releasing 3.19.1 orphans three months of
 accrual. I could not confirm that (see
 `outputs/MotoVault/03-testing/ppo-experiment-cc64b9d2-record.md` — the experiment
@@ -268,6 +278,19 @@ the July action that moved `maintenance` into the keyword field: right term, wro
 
 **Read it over 21 days** against the recorded pre-release weekly impression series:
 **854** (week of Jul 27), **892** (Aug 3), **1,160** (Aug 10).
+
+⚠️ **Those three numbers come from a specific source — do not mix sources.**
+`asc web analytics metrics --measures impressionsTotal` returns **921 / 959 / 1,274**
+for exactly those weeks, ~7–9% higher. That is not revision; the series above is from
+the **Analytics Reports API** (`asc analytics`, `r14-WEEKLY`) while `asc web analytics`
+hits the **web dashboard**, which the CLI's own help calls "separate from the official
+Analytics Reports API."
+
+**Pin one source and one measure key**, name it here, and re-pull the baseline with the
+same command you will use for the after-reading — otherwise the 3.20.0 read starts with
+a built-in ~8% bias. Track `pageViewCount` alongside impressions too: impressions
+roughly tripled off the June trough while page views did not follow, so impressions
+alone would hide that. Detail in `docs/ASO-Funnel-CTR-Regression-2026-08-25.md`.
 
 Not in scope: putting the head term in the **name**. The research is explicit — do it in a
 later release, never in the same one as the subtitle, or the result is uninterpretable.
