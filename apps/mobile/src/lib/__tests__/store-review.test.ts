@@ -130,7 +130,14 @@ describe('maybeRequestReview', () => {
     expect(mockRequestReview).not.toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalledWith('review_soft_ask_negative', expect.anything());
     expect(mockTrackEvent).toHaveBeenCalledWith('review_feedback_opened', expect.anything());
-    expect(openURLSpy).toHaveBeenCalledWith(expect.stringContaining('mailto:'));
+    // Assert the actual address, not just that it is a mailto. This is the escape
+    // hatch for users who would otherwise leave a 1-star review, so sending it to
+    // an address nobody reads is worse than not asking. `support@` is what all 46
+    // Play listings, the privacy policy and the web app publish; app code carried
+    // a stray `hello@` until 2026-08-25.
+    expect(openURLSpy).toHaveBeenCalledWith(
+      expect.stringContaining('mailto:support@motovault.app'),
+    );
   });
 
   it('does not open feedback when the unhappy rider declines', async () => {

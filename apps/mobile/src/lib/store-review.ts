@@ -21,8 +21,15 @@ function getStorage(): MMKV {
 const ACTION_COUNT_KEY = 'review:actionCount';
 const REVIEWED_VERSION_KEY = 'review:version';
 
-/** Where unhappy soft-ask responders are routed instead of a public 1-star review. */
-const FEEDBACK_EMAIL = 'hello@motovault.app';
+/**
+ * Where unhappy soft-ask responders are routed instead of a public 1-star review.
+ *
+ * MUST stay `support@` — that is the address all 46 Play listings, the privacy
+ * policy and the web app publish. `hello@` was the last inconsistent use of a
+ * second address in app code, and this is the worst place to get it wrong: it is
+ * the escape hatch for the exact users who would otherwise leave a 1-star review.
+ */
+const FEEDBACK_EMAIL = 'support@motovault.app';
 
 /**
  * Minimum number of value-moment actions before the review prompt is eligible.
