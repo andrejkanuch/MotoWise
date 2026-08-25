@@ -89,4 +89,29 @@ describe('whats-new releases', () => {
       }
     });
   });
+
+  describe('the modal actually applies the platform gate', () => {
+    // The data layer above is thoroughly tested, but in 3.19.1 the modal read
+    // `release.slides` directly and never called visibleSlides(), so Android
+    // users were shown the iOS-only CarPlay slide. The gate is worthless if the
+    // one consumer bypasses it, and a unit test of visibleSlides cannot catch
+    // that -- so assert the wiring at the source level.
+    const modalSource = require('node:fs').readFileSync(
+      require('node:path').join(__dirname, '../../app/(modals)/whats-new.tsx'),
+      'utf8',
+    );
+
+    it('calls visibleSlides()', () => {
+      expect(modalSource).toContain('visibleSlides(');
+    });
+
+    it('never reads the unfiltered .slides list', () => {
+      const offending = modalSource
+        .split('\n')
+        .map((line: string, i: number) => [i + 1, line] as const)
+        .filter(([, line]) => /\brelease\.slides\b/.test(line))
+        .filter(([, line]) => !line.trimStart().startsWith('//'));
+      expect(offending).toEqual([]);
+    });
+  });
 });

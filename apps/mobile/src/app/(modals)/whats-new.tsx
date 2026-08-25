@@ -12,6 +12,7 @@ import Animated, { FadeIn, FadeInUp, FadeOut, FadeOutDown } from 'react-native-r
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   getLatestRelease,
+  visibleSlides,
   type WhatsNewAction,
   type WhatsNewSlide,
 } from '../../data/whats-new-releases';
@@ -31,7 +32,11 @@ export default function WhatsNewModal() {
   const currentVersion = Application.nativeApplicationVersion ?? '0.0.0';
   const release = getLatestRelease();
   const displayVersion = release.version;
-  const slides = release.slides;
+  // MUST be the platform-filtered set, not `release.slides`. Slides carry a
+  // `platforms` gate for features that are not cross-platform (CarPlay is
+  // iOS-only; Android Auto is deliberately excluded from this app), and reading
+  // the raw list showed Android users a CarPlay slide in 3.19.1.
+  const slides = visibleSlides(release);
 
   // Cached from the home screen — used to resolve the fast-action target bike.
   const { data: bikesData } = useQuery({
