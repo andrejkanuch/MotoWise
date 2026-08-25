@@ -5,6 +5,7 @@ import {
   MAX_SIGNUPS_PER_RUN,
   SIGNUP_EVENT,
   SignupEventsService,
+  SWEEP_OUTCOME,
 } from '../signup-events.service';
 
 interface PendingRow {
@@ -83,7 +84,13 @@ describe('SignupEventsService', () => {
       // schedule irrelevant to the monthly reconciliation.
       timestamp: '2026-09-03T09:58:00.000Z',
     });
-    expect(summary).toEqual({ claimed: 1, identified: 1, anonymous: 0, released: 0 });
+    expect(summary).toEqual({
+      claimed: 1,
+      identified: 1,
+      anonymous: 0,
+      released: 0,
+      outcome: SWEEP_OUTCOME.OK,
+    });
   });
 
   it.each([
@@ -252,7 +259,15 @@ describe('SignupEventsService', () => {
 
     expect(calls).toHaveLength(0);
     expect(fn).not.toHaveBeenCalled();
-    expect(summary).toEqual({ claimed: 0, identified: 0, anonymous: 0, released: 0 });
+    // `outcome` MUST distinguish this from an empty queue. When both returned the
+    // same body, a claim RPC that raised on every call went unnoticed for a day.
+    expect(summary).toEqual({
+      claimed: 0,
+      identified: 0,
+      anonymous: 0,
+      released: 0,
+      outcome: SWEEP_OUTCOME.NO_TOKEN,
+    });
   });
 
   it('bounds one sweep with the same limit the claim RPC applies', async () => {
@@ -279,6 +294,8 @@ describe('SignupEventsService', () => {
       identified: 0,
       anonymous: 0,
       released: 0,
+      // A raising RPC must be reported as CLAIM_FAILED, never as a quiet zero.
+      outcome: SWEEP_OUTCOME.CLAIM_FAILED,
     });
   });
 });

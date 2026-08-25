@@ -40,11 +40,42 @@ interface PendingSignupRow {
   measurement_system: string | null;
 }
 
+/**
+ * Why the sweep did nothing, when it did nothing.
+ *
+ * Added 2026-08-25 after a real incident. Migration 00174's claim RPC raised
+ * `column reference "user_id" is ambiguous` on every call, so the sweep claimed
+ * nobody for a full day. It went unnoticed because all three of these outcomes
+ * returned the identical body `{claimed:0,identified:0,anonymous:0,released:0}`
+ * with HTTP 200:
+ *
+ *   - nothing was pending (the healthy case),
+ *   - POSTHOG_PROJECT_TOKEN was unset (fail-closed),
+ *   - the claim RPC errored (broken).
+ *
+ * pg_cron logged 19 consecutive "succeeded" runs against a function that could
+ * never succeed. `outcome` makes the three distinguishable from the response
+ * alone, without reading Render logs.
+ */
+export const SWEEP_OUTCOME = {
+  /** Ran normally. `claimed` may still legitimately be 0. */
+  OK: 'ok',
+  /** No PostHog token configured — deliberately claimed nothing. */
+  NO_TOKEN: 'no_token',
+  /** The claim RPC raised. This is a bug, not an empty queue. */
+  CLAIM_FAILED: 'claim_failed',
+  /** Claimed, but PostHog rejected the batch; claims were released for retry. */
+  CAPTURE_FAILED: 'capture_failed',
+} as const;
+
+export type SweepOutcome = (typeof SWEEP_OUTCOME)[keyof typeof SWEEP_OUTCOME];
+
 export interface SignupSweepSummary {
   claimed: number;
   identified: number;
   anonymous: number;
   released: number;
+  outcome: SweepOutcome;
 }
 
 @Injectable()
@@ -57,7 +88,13 @@ export class SignupEventsService {
   ) {}
 
   async sweepPendingSignups(): Promise<SignupSweepSummary> {
-    const empty: SignupSweepSummary = { claimed: 0, identified: 0, anonymous: 0, released: 0 };
+    const empty = (outcome: SweepOutcome): SignupSweepSummary => ({
+      claimed: 0,
+      identified: 0,
+      anonymous: 0,
+      released: 0,
+      outcome,
+    });
 
     const token = this.config.get<string>('POSTHOG_PROJECT_TOKEN');
     if (!token) {
@@ -66,7 +103,7 @@ export class SignupEventsService {
       // emission, which the PK on signup_event_log makes unrecoverable except by
       // hand-deleting log rows.
       this.logger.warn('POSTHOG_PROJECT_TOKEN unset; skipping signup-event sweep');
-      return empty;
+      return empty(SWEEP_OUTCOME.NO_TOKEN);
     }
 
     const { data, error } = await this.supabase.rpc('claim_pending_signup_events', {
@@ -74,11 +111,11 @@ export class SignupEventsService {
     });
     if (error) {
       this.logger.error(`Failed to claim pending signup events: ${error.message}`);
-      return empty;
+      return empty(SWEEP_OUTCOME.CLAIM_FAILED);
     }
 
     const rows = (data ?? []) as PendingSignupRow[];
-    if (rows.length === 0) return empty;
+    if (rows.length === 0) return empty(SWEEP_OUTCOME.OK);
 
     const events = rows.map((row) => this.buildEvent(row));
     const identified = rows.filter((row) => row.analytics_enabled !== false).length;
@@ -87,7 +124,13 @@ export class SignupEventsService {
     if (!delivered) {
       // Give the claims back so the next tick retries rather than losing them.
       const released = await this.releaseClaims(rows.map((row) => row.user_id));
-      return { claimed: rows.length, identified: 0, anonymous: 0, released };
+      return {
+        claimed: rows.length,
+        identified: 0,
+        anonymous: 0,
+        released,
+        outcome: SWEEP_OUTCOME.CAPTURE_FAILED,
+      };
     }
 
     this.logger.log(
@@ -98,6 +141,7 @@ export class SignupEventsService {
       identified,
       anonymous: rows.length - identified,
       released: 0,
+      outcome: SWEEP_OUTCOME.OK,
     };
   }
 

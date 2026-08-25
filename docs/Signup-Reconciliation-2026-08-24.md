@@ -92,12 +92,57 @@ All three parts are live and verified end-to-end:
 | Render env (`SIGNUP_EVENT_SECRET`, `POSTHOG_PROJECT_TOKEN`, `POSTHOG_HOST`) | Set + deployed | deploy `dep-da6al6bm8hqs73eptfc0`, status `live` |
 | pg_cron job `signup-events` | Active, `*/10 * * * *` | jobid 10 |
 
-End-to-end proof: invoking `public.cron_trigger_signup_events()` produced
-`net._http_response` id 548 — **HTTP 200**,
-`{"claimed":0,"identified":0,"anonymous":0,"released":0,"status":"ok"}`. `claimed:0`
-is the correct result, because the migration's seed deliberately suppresses the
-~577-user backfill. The endpoint also returns **401** for a missing or wrong
-secret, so it fails closed.
+### ⚠️ The 2026-08-24 "end-to-end proof" was not one — corrected 2026-08-25
+
+The original record claimed end-to-end success on the strength of
+`net._http_response` id 548: **HTTP 200**,
+`{"claimed":0,...,"status":"ok"}`, reasoning that `claimed:0` was correct because
+the seed suppresses the backfill. The reasoning was sound and the conclusion was
+wrong.
+
+**Migration 00174's claim RPC raised on every single call.** `RETURNS TABLE (user_id
+UUID, …)` makes `user_id` a PL/pgSQL variable, which collides with the
+`ON CONFLICT (user_id)` target:
+
+```
+ERROR: 42702: column reference "user_id" is ambiguous
+DETAIL: It could refer to either a PL/pgSQL variable or a table column.
+```
+
+`SignupEventsService` catches the RPC error, logs it, and returns
+`{claimed:0, identified:0, anonymous:0, released:0}` — **byte-identical** to "nothing
+pending", and identical again to the fail-closed no-token path. So the webhook
+answered `200 status: ok` on every tick while doing nothing, and pg_cron recorded 19
+consecutive `succeeded` runs. The 14 unit tests all mock the RPC, so none executed
+the SQL.
+
+`claimed: 0` is unfalsifiable while nothing is pending. It only became visible when a
+real user signed up at **2026-08-25 08:07:05 UTC** and was still unclaimed three
+hours later. Render logs confirmed it exactly: the ambiguity error at 11:00, 11:10
+and 11:20.
+
+**Fixed by `00175_fix_signup_claim_ambiguous_user_id.sql`** (`#variable_conflict
+use_column`), applied to production 2026-08-25 and carrying a `DO` block that
+re-raises if the function is still broken, so this cannot be applied silently again.
+
+### Actual end-to-end proof, 2026-08-25 11:30 UTC
+
+Verified against a **real signup**, not an empty queue:
+
+| Check | Evidence |
+|---|---|
+| Sweep response | `{"claimed":1,"identified":1,"anonymous":0,"released":0,"status":"ok"}` |
+| API log | `[SignupEventsService] Emitted 1 signup events (1 identified, 0 anonymous)` |
+| Pending after | `0` |
+| Event in PostHog | `signup_completed`, `distinct_id` = the real user id |
+| Backdating works | event `timestamp` = `2026-08-25T08:07:05.836Z` — **exactly** the row's `created_at`, 3.4h before the sweep ran |
+| `auth.users` join works | `auth_method: google` |
+| Fails closed | endpoint returns **401** for a missing or wrong secret |
+
+The response now carries an `outcome` discriminator
+(`ok` / `no_token` / `claim_failed` / `capture_failed`) so these three cases can
+never again be indistinguishable, and `status` is derived from it instead of being
+the constant `'ok'`.
 
 The seed is why August cannot be the gate month: every user existing on
 2026-08-24 was marked as already-claimed, so only signups from that moment
