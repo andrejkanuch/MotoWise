@@ -379,6 +379,41 @@ alone would hide that. Detail in `docs/ASO-Funnel-CTR-Regression-2026-08-25.md`.
 Not in scope: putting the head term in the **name**. The research is explicit — do it in a
 later release, never in the same one as the subtitle, or the result is uninterpretable.
 
+### Where these fields actually live — verified first-party 2026-08-25
+
+Established before 3.20.0 so the release does not start with a discovery phase:
+
+- **The subtitle is NOT on `appStoreVersionLocalizations`.** All 7 version
+  localizations return `subtitle: null`. Subtitles live on
+  **`appInfoLocalizations`**, which is why the "8 unmanaged locales" problem exists at
+  all. Target the right resource or the change silently does nothing.
+- **There are TWO `appInfo` records**: `7b9eff37…` (`READY_FOR_SALE`, what users see
+  now) and `19d74176…` (`WAITING_FOR_REVIEW`, what ships with the in-review version).
+  Editing the in-review one is precisely what risks the review slot — which is why
+  U8 waits for 3.19.1 to be released.
+- **15 app-info locales**, confirming the estimate: the 7 with version localizations
+  (`en-US, en-GB, de-DE, fr-FR, it, es-MX, pt-BR`) plus exactly **8 unmanaged** —
+  `th, tr, ja, pl, id, fi, es-ES, hi`.
+- **Keywords** are on the version localization, not app info, so the keyword-field
+  work and the subtitle work touch **different resources**.
+
+Live subtitles as of 2026-08-25, with the three known problems confirmed rather than
+assumed:
+
+| Locale | Subtitle | Note |
+|---|---|---|
+| `fi` | `Service, Trips & AI Mechanic` | **English**, and leads on AI — worst of the set. Its *name* is English too (`MotoVault: Motorcycle Garage`). |
+| `es-ES` | `Rutas, Mantenimiento y Gastos` | Routes-first, contradicting the validated demand order (expenses > maintenance > rides > trips > AI). |
+| `pl` | `Trasy, Serwis i Wydatki` | Routes-first, same problem. |
+| `hi` | `राइड, मेंटेनेंस और खर्चे` | Still occupying a slot although Hindi has **zero users ever** and India is not a target market. Consider dropping rather than rewriting. |
+
+Also confirmed: **all 7 version descriptions contain `hello@motovault.app` and none
+contain `support@`.** The App Store support URL `https://motovault.app/support`
+resolves **HTTP 200**. The last `hello@` in *app code*
+(`apps/mobile/src/lib/store-review.ts`) was fixed on 2026-08-25 and is now covered by
+a test asserting the actual address; the 7 store descriptions still need the sweep and
+must wait for 3.20.0.
+
 ### The 8 unmanaged app-info locales
 
 `asc metadata pull` returns only the 7 locales that have version localizations, but ~15
