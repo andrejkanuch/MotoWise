@@ -153,7 +153,7 @@ describe('buildPanelItems', () => {
   it('shows Mode instead of Speed before a ride (idle)', () => {
     const model = buildPanelItems(deriveSnapshot({ ...base, status: 'idle' }, 'metric'));
     expect(model.title).toBe('READY');
-    expect(model.items.map((i) => i.title)).toEqual(['Distance', 'Moving', 'Climb', 'Mode']);
+    expect(model.items.map((i) => i.title)).toEqual(['Distance', 'Moving', 'Mode', 'Climb']);
   });
 
   it('shows a stop confirm overlay when armed (Keep Riding leads, then End Ride)', () => {

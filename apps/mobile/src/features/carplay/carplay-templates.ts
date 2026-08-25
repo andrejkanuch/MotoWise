@@ -301,8 +301,19 @@ export function buildPanelItems(s: PanelSnapshot, stopArmed = false): CPInformat
     : [
         { title: 'Distance', detail: s.distance },
         { title: 'Moving', detail: s.movingTime },
-        { title: 'Climb', detail: s.climb },
+        // Same reasoning as the live branch: the last row may be covered by the
+        // action buttons, so it must not hold the row that matters. Before a ride
+        // that is `Mode` — whether a Start press is even needed, or whether the
+        // ride will arm itself — while Distance, Moving and Climb are all leftovers
+        // from the previous ride. So `Climb` takes the risky slot.
+        //
+        // Unlike the live branch this is reasoned, not observed: idle carries a
+        // different action set (Start only under manual, none under automatic), so
+        // a shorter button row may not overlap at all. Applied anyway because the
+        // ordering costs nothing and the failure mode is a rider unable to tell
+        // whether the app is waiting for them.
         { title: 'Mode', detail: MODE_LABEL[s.startMode] },
+        { title: 'Climb', detail: s.climb },
       ];
   if (stopArmed) {
     // R17 stop guard: a single Stop press arms this confirm rather than ending the
