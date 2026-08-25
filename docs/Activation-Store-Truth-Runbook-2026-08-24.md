@@ -424,8 +424,35 @@ indexes and no keyword field, and they are currently wrong in ways nobody chose:
 - **`es-ES`** and **`pl`** — routes-first, contradicting the demand order
   (expenses > maintenance > rides > trips > AI).
 
-Fix these in the same release. Per-locale copy is in the "unmanaged app-info locales"
-section of `keyword-list.md`.
+Fix these in the same release.
+
+⚠️ **Correction (2026-08-25):** this used to say the per-locale copy was in the
+"unmanaged app-info locales" section of `keyword-list.md`. It is not — that section
+*diagnoses* the eight locales and explicitly ends with "Fix `fi` and `es-ES` … Decide
+deliberately on `hi`/`th`/`id`/`tr`", supplying no replacement strings at all. Anyone
+following the old pointer would have gone looking for copy that was never written.
+
+**Replacement copy now exists** in `outputs/appstore-release-3.20.0/metadata-3.20.0.json`,
+covering the whole release — the 7 keyword fields, all 10 subtitles, the `fi` name (English
+until now, which the plan never mentioned), and the `hello@` → `support@` description sweep.
+
+Validate before applying:
+
+```bash
+python3 scripts/check-appstore-3200-metadata.py     # 0 problems = safe to apply
+```
+
+It enforces the three things that are easy to get wrong by hand: field limits counted in
+**characters not bytes** (the accented locales are exactly where a byte count invents a
+phantom failure), duplicate tokens **within** a keyword field, and tokens duplicated
+**across** name + subtitle + keywords — Apple indexes all three together, so a repeat is
+wasted budget. Accent- and case-insensitive, so `Öl` and `ol` collide as they do for Apple.
+Verified to fail on a deliberately over-long subtitle, a repeated keyword and a name/keyword
+overlap.
+
+`ja`, `tr`, `th`, `id`, `hi` deliberately have **no copy written** — keeping, rewriting or
+deleting them is an owner call, not a copy task. The file records the recommendation to
+delete `hi` at minimum: zero users ever, and India is explicitly not a target market.
 
 ---
 
