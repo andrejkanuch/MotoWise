@@ -70,9 +70,34 @@ work should not wait on it — but the release itself still should.
 ## Outstanding — requires you (UI-only)
 
 No App Store Connect API exposes PPO results. `asc product-pages experiments` offers
-`list` / `view` / `create` / `update` / `delete` / `treatments` and no results verb. The
-`asc web analytics product-pages` web-session route exists but `asc web auth status` reports
-`{"authenticated":false}`, and authenticating needs an interactive Apple ID login with 2FA.
+`list` / `view` / `create` / `update` / `delete` / `treatments` and no results verb.
+
+**The authenticated-web-session route was tried on 2026-08-25 and does not work either.**
+`asc web auth status` now returns `{"authenticated":true}` after an interactive Apple ID +
+2FA login, and it still cannot produce results. Do not spend another session on this:
+
+- `asc web analytics` has 13 subcommands (overview, sources, metrics, retention, cohorts,
+  …) and **none** is experiment-aware. `metrics` has no dimension/breakdown flag, so there
+  is no way to split a measure by treatment.
+- `asc web analytics product-pages` is about **Custom Product Pages**, not PPO. With an
+  authenticated session it returns `status: unavailable`, `reason: "App metadata reports
+  zero custom product pages, so App Store Connect disables this tab."`
+- Apple's internal **iris** API, queried directly with the session cookies
+  (`GET /iris/v1/appStoreVersionExperiments/{id}?include=appStoreVersionExperimentTreatments`),
+  returns **200** but carries only config: name, trafficProportion, state, dates, and
+  per-treatment `name` / `appIcon` / `appIconName` / `promotedDate`. **No metrics of any
+  kind.**
+- Three plausible analytics result paths were probed and all returned **404**:
+  `/analytics/api/v1/data/app/{app}/experiments/{id}`,
+  `/analytics/api/v1/data/experiments/{id}`, `/iris/v1/.../{id}/results`.
+- Decisive: `strings $(which asc)` contains **only** CRUD paths for
+  `appStoreVersionExperiments`, `appStoreVersionExperimentTreatments` and
+  `appStoreVersionExperimentTreatmentLocalizations`. There is no results, metrics or
+  analytics-experiment path anywhere in the binary.
+
+⚠️ Apple rate-limits the *whole* ASC API after a few hundred analytics calls
+(`reference_asc_analytics_pull`), so brute-forcing more endpoint guesses has a real cost.
+This is a genuine UI-only read.
 
 Read these in App Store Connect → MotoVault → **Product Page Optimization**, for both
 experiments, and paste them into the table below:
