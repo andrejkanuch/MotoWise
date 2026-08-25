@@ -1,0 +1,34 @@
+[
+  {
+    "language": "en-US",
+    "text": "Getting started is quicker — setup is three screens shorter, and nothing interrupts you on the way to your garage.\n\n• Fixed: being signed out, or your garage not loading, after opening the app on a locked phone\n• Fixed: occasional failures loading your bikes, rides and expenses\n• More reliable ride recording, including rides saved while offline\n• Stability and performance fixes throughout"
+  },
+  {
+    "language": "de-DE",
+    "text": "Der Einstieg geht schneller — die Einrichtung ist drei Schritte kürzer, und nichts unterbricht dich auf dem Weg in deine Garage.\n\n• Behoben: Abmeldung oder Garage lädt nicht, wenn die App bei gesperrtem Display geöffnet wird\n• Behoben: Motorräder, Fahrten und Kosten ließen sich gelegentlich nicht laden\n• Zuverlässigere Fahrtaufzeichnung, auch für offline gespeicherte Fahrten\n• Stabilität und Performance verbessert"
+  },
+  {
+    "language": "fr-FR",
+    "text": "La prise en main est plus rapide — trois écrans de moins à la configuration, et plus rien ne vous interrompt avant votre garage.\n\n• Corrigé : déconnexion ou garage qui ne se charge pas après ouverture de l'app sur un téléphone verrouillé\n• Corrigé : échecs occasionnels de chargement des motos, trajets et frais\n• Enregistrement des trajets plus fiable, y compris hors ligne\n• Stabilité et performances améliorées"
+  },
+  {
+    "language": "es-ES",
+    "text": "Empezar es más rápido: la configuración tiene tres pantallas menos y nada te interrumpe de camino a tu garaje.\n\n• Corregido: cierre de sesión o garaje que no carga al abrir la app con el teléfono bloqueado\n• Corregido: fallos puntuales al cargar motos, rutas y gastos\n• Registro de rutas más fiable, incluidas las guardadas sin conexión\n• Mejoras de estabilidad y rendimiento"
+  },
+  {
+    "language": "es-419",
+    "text": "Empezar es más rápido: la configuración tiene tres pantallas menos y nada te interrumpe en el camino a tu garaje.\n\n• Corregido: cierre de sesión o garaje que no carga al abrir la app con el teléfono bloqueado\n• Corregido: fallas ocasionales al cargar motos, rodadas y gastos\n• Registro de rodadas más confiable, incluidas las guardadas sin conexión\n• Mejoras de estabilidad y rendimiento"
+  },
+  {
+    "language": "it-IT",
+    "text": "Iniziare è più rapido: la configurazione ha tre schermate in meno e niente ti interrompe prima del tuo garage.\n\n• Risolto: disconnessione o garage che non si carica aprendo l'app con il telefono bloccato\n• Risolto: caricamento di moto, uscite e spese che a volte non riusciva\n• Registrazione delle uscite più affidabile, anche per quelle salvate offline\n• Stabilità e prestazioni migliorate"
+  },
+  {
+    "language": "pt-BR",
+    "text": "Começar é mais rápido — a configuração tem três telas menos, e nada interrompe você no caminho para a sua garagem.\n\n• Corrigido: sair da conta ou garagem que não carrega ao abrir o app com o celular bloqueado\n• Corrigido: falhas ocasionais ao carregar motos, rodadas e gastos\n• Registro de rodadas mais confiável, incluindo as salvas offline\n• Melhorias de estabilidade e desempenho"
+  },
+  {
+    "language": "pl-PL",
+    "text": "Start jest szybszy — konfiguracja jest krótsza o trzy ekrany i nic nie przerywa Ci drogi do garażu.\n\n• Naprawione: wylogowanie lub brak wczytywania garażu po otwarciu aplikacji na zablokowanym telefonie\n• Naprawione: sporadyczne błędy wczytywania motocykli, tras i wydatków\n• Bardziej niezawodne zapisywanie tras, także offline\n• Poprawki stabilności i wydajności"
+  }
+]
