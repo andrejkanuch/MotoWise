@@ -36,6 +36,7 @@
     "@motovault/design-system": "workspace:*",
     "@motovault/graphql": "workspace:*",
     "@motovault/types": "workspace:*",
+    "@posthog/react-native-plugin": "^2.4.1",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-google-signin/google-signin": "^16.1.2",
     "@rnmapbox/maps": "^10.3.5",

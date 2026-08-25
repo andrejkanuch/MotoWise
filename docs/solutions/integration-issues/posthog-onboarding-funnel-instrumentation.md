@@ -143,10 +143,20 @@ If `signInWithApple()` / `signInWithGoogle()` can't reliably compute `isNewUser`
 > **new native build** — it is a native module, so it **cannot ship via OTA**. Earliest
 > realistic vehicle is 3.20.0.
 >
-> An install was attempted on 2026-08-25 and **reverted**: it wrote `package.json` and
-> `pnpm-lock.yaml` but never linked `node_modules`, and a half-applied native dependency
-> is not something to leave in the tree while 3.19.1 is in review with a 20% rollout live.
-> Redo it deliberately, alongside a build that can actually verify it.
+> **Package installed 2026-08-25** — `@posthog/react-native-plugin@2.4.1`, satisfying the
+> `>= 2.0.1` peer. It ships `android/`, `ios/` and a podspec and is picked up by
+> autolinking, so **no Expo config plugin and no code change is needed**:
+> `enableSessionReplay: !__DEV__` in `analytics.ts` was already correct and was only ever
+> missing its recorder. `pnpm precheck` is green.
+>
+> **Remaining step is a native build.** Nothing captures until a build containing this
+> module reaches devices, and it cannot go by OTA. Target 3.20.0.
+>
+> A first install attempt the same day was reverted on the belief it had half-applied.
+> That was a misread: pnpm **hoists** this package to the repo-root `node_modules/@posthog/`,
+> and the check had looked only at `apps/mobile/node_modules/@posthog/`, which does not
+> exist. `require.resolve` from `apps/mobile` finds it correctly. Verify hoisted
+> dependencies with `require.resolve`, not a directory listing.
 >
 > **Do not mark this DONE again without evidence of arriving recordings.** The 2026-06-09
 > entry was closed on "the code is correct", which was true and insufficient — the same
