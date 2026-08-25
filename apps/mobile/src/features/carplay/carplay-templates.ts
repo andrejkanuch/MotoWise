@@ -282,15 +282,38 @@ export function buildPanelItems(s: PanelSnapshot, stopArmed = false): CPInformat
     ? [
         { title: 'Speed', detail: s.speed },
         { title: 'Distance', detail: s.distance },
-        { title: 'Moving', detail: s.movingTime },
-        // Row 4 is the self-prioritizing heads-up row: recall > overdue > due-soon > climb.
+        // The self-prioritizing heads-up row: recall > overdue > due-soon > climb.
+        //
+        // It sits THIRD, not last, and that ordering is load-bearing. CarPlay pins
+        // the action buttons (Pause/Stop) to the bottom of the InformationTemplate,
+        // and on a real head unit they render OVER the final row — verified on the
+        // simulator's CarPlay display 2026-08-25, where "Pause" covered all but a
+        // sliver of the overdue-service text. Canvas heights vary by head unit, so
+        // whether row 4 is legible is a property of the car, not of this code.
+        //
+        // Which is exactly why the safety row must not be the one gambled on. An
+        // open factory recall is the only value here a rider cannot get anywhere
+        // else: speed is on the bike's own speedometer and distance and moving time
+        // are both on the phone. So `Moving` takes the position that may be covered.
         { title: s.headsUp.title, detail: s.headsUp.detail },
+        { title: 'Moving', detail: s.movingTime },
       ]
     : [
         { title: 'Distance', detail: s.distance },
         { title: 'Moving', detail: s.movingTime },
-        { title: 'Climb', detail: s.climb },
+        // Same reasoning as the live branch: the last row may be covered by the
+        // action buttons, so it must not hold the row that matters. Before a ride
+        // that is `Mode` — whether a Start press is even needed, or whether the
+        // ride will arm itself — while Distance, Moving and Climb are all leftovers
+        // from the previous ride. So `Climb` takes the risky slot.
+        //
+        // Unlike the live branch this is reasoned, not observed: idle carries a
+        // different action set (Start only under manual, none under automatic), so
+        // a shorter button row may not overlap at all. Applied anyway because the
+        // ordering costs nothing and the failure mode is a rider unable to tell
+        // whether the app is waiting for them.
         { title: 'Mode', detail: MODE_LABEL[s.startMode] },
+        { title: 'Climb', detail: s.climb },
       ];
   if (stopArmed) {
     // R17 stop guard: a single Stop press arms this confirm rather than ending the

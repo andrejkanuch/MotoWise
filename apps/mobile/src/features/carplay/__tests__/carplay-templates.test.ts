@@ -110,32 +110,57 @@ describe('buildPanelItems', () => {
     const model = buildPanelItems(deriveSnapshot(base, 'metric'));
     // Title is the state word only — numerics stay in rows so churn can refresh in
     // place (the CarPlay template title is fixed at construction). While riding,
-    // speed + distance are the hero values; row 4 is the heads-up row (Climb fallback
-    // here, since base has no recall/overdue signal); the row budget is 4.
+    // speed + distance are the hero values; the row budget is 4.
+    //
+    // The heads-up row is THIRD, not last. CarPlay pins the action buttons over the
+    // final row on at least some head-unit canvas sizes (observed on the simulator
+    // 2026-08-25: "Pause" covered the overdue-service text), so the last slot is the
+    // one that may be invisible. `Moving` takes that risk because it is also on the
+    // phone; an open recall is the only value here a rider cannot see anywhere else.
     expect(model.title).toBe('RECORDING');
-    expect(model.items.map((i) => i.title)).toEqual(['Speed', 'Distance', 'Moving', 'Climb']);
+    expect(model.items.map((i) => i.title)).toEqual(['Speed', 'Distance', 'Climb', 'Moving']);
     expect(model.items.length).toBeLessThanOrEqual(4);
     expect(model.items[0].detail).toMatch(/km\/h/);
   });
 
-  it('replaces row 4 with the heads-up recall row when the active bike has an open recall', () => {
+  it('never puts the heads-up row last, where CarPlay action buttons can cover it', () => {
+    // Guards the ordering above for every heads-up variant, not just the Climb
+    // fallback. If someone reorders the rows and pushes a recall warning into the
+    // final slot, this fails — the whole point of the row is that it is readable at
+    // a glance, and the last slot is the one that may not be.
+    for (const input of [
+      base,
+      { ...base, recallCount: 1 },
+      {
+        ...base,
+        tasks: [{ title: 'Replace front brake pads', dueDate: dayOffset(-30) } as HeadsUpTask],
+      },
+    ]) {
+      const model = buildPanelItems(deriveSnapshot(input, 'metric'));
+      const titles = model.items.map((i) => i.title);
+      expect(titles[titles.length - 1]).toBe('Moving');
+    }
+  });
+
+  it('puts the heads-up recall in row 3 when the active bike has an open recall', () => {
     const model = buildPanelItems(deriveSnapshot({ ...base, recallCount: 1 }, 'metric'));
-    expect(model.items.map((i) => i.title)).toEqual(['Speed', 'Distance', 'Moving', 'Recall']);
-    expect(model.items[3].detail).toBe('1 open recall');
+    expect(model.items.map((i) => i.title)).toEqual(['Speed', 'Distance', 'Recall', 'Moving']);
+    // Index 2, not 3 — row 4 is where CarPlay's action buttons land.
+    expect(model.items[2].detail).toBe('1 open recall');
     expect(model.items.length).toBe(4); // still within Apple's cap
   });
 
   it('shows Mode instead of Speed before a ride (idle)', () => {
     const model = buildPanelItems(deriveSnapshot({ ...base, status: 'idle' }, 'metric'));
     expect(model.title).toBe('READY');
-    expect(model.items.map((i) => i.title)).toEqual(['Distance', 'Moving', 'Climb', 'Mode']);
+    expect(model.items.map((i) => i.title)).toEqual(['Distance', 'Moving', 'Mode', 'Climb']);
   });
 
   it('shows a stop confirm overlay when armed (Keep Riding leads, then End Ride)', () => {
     const model = buildPanelItems(deriveSnapshot(base, 'metric'), true);
     expect(model.title).toBe('STOP RIDE?');
     // metric rows are unchanged — only the title + actions flip to the confirm
-    expect(model.items.map((i) => i.title)).toEqual(['Speed', 'Distance', 'Moving', 'Climb']);
+    expect(model.items.map((i) => i.title)).toEqual(['Speed', 'Distance', 'Climb', 'Moving']);
     expect(model.actions.map((a) => a.id)).toEqual(['cancelStop', 'stop']);
   });
 });
