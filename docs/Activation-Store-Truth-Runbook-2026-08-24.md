@@ -13,7 +13,12 @@ Already done externally, no action needed:
 - PostHog **annotation 111074** created at the cutover, scoped `project`.
 - Feature flag `onboarding_ab_2026` deliberately **left active** — 3.18.0 and 3.19.0 are
   still live and still read it; disabling it would drop those users to the `control` (V4)
-  flow. It goes inert when the OTA lands.
+  flow. It goes inert as users move to 3.19.1, which ships the single flow in the binary.
+  (It was originally going to go inert "when the OTA lands"; there is no OTA now — see
+  STEP 4.)
+- PPO experiment `cc64b9d2` **STOPPED 2026-08-25**, end-dated that day. 100% of App Store
+  traffic sees the control listing again. Results survive the stop and remain readable in
+  the ASC UI — `060bdd96` has been STOPPED since June and its results are still there.
 
 ---
 
@@ -22,9 +27,10 @@ Already done externally, no action needed:
 ```
 STEP 1  Read PPO results in the ASC UI            (you — UI only)          OPEN
 STEP 2  Deploy U2: migration + secrets            ✅ DONE 2026-08-24
-STEP 3  Release 3.19.1 to both stores             PARTIAL — Play listings ✅ live;
-                                                  iOS still WAITING_FOR_REVIEW
-STEP 4  Wait for 3.19.1 adoption, then OTA        BLOCKED by STEP 3
+STEP 3  Release 3.19.1 to both stores             Play ✅ LIVE (vc84, 20% staged);
+                                                  iOS resubmitted, build 90, in review
+STEP 4  OTA the onboarding change                 ❌ NO LONGER NEEDED — it is in
+                                                  the 3.19.1 binaries themselves
 STEP 5  3.20.0: subtitles + keywords, shipped alone
 STEP 6  U9 discovery surfaces
 ```
@@ -53,15 +59,18 @@ v2 collection, and the two representations disagree about what it is attached to
 conservative reading is to read before releasing: the delay is short, and being wrong
 costs accrual that cannot be recreated at ~40 impressions/day.
 
-No App Store Connect API exposes PPO results. `asc product-pages experiments` has no
-results verb, and the `asc web analytics product-pages` route needs an interactive Apple
-ID login with 2FA (`asc web auth status` → `{"authenticated":false}`).
+No App Store Connect API exposes PPO results, and **an authenticated web session does not
+help** — that was tried on 2026-08-25 with `asc web auth status` returning
+`{"authenticated":true}`. iris returns experiment config but zero metrics, no
+`asc web analytics` subcommand is experiment-aware, and `strings` on the `asc` binary
+contains only CRUD paths. Fully documented in the record file; do not spend another
+session hunting an endpoint.
 
 **Do this:** App Store Connect → MotoVault → Product Page Optimization. Two experiments:
 
 | Experiment | Name | State | Ran |
 |---|---|---|---|
-| `cc64b9d2-5365-47fb-be9e-05332168dddc` | `Title Test - ` | APPROVED (running), 66% traffic, 3 arms | 2026-06-29 → end date already set to 2026-09-27 |
+| `cc64b9d2-5365-47fb-be9e-05332168dddc` | `Title Test - ` | **STOPPED 2026-08-25**, was 66% traffic, 3 arms | 2026-06-29 → 2026-08-25 |
 | `060bdd96-e5b4-4e17-bfda-d007faeccaac` | `Title Test - Maintenance Angles` | STOPPED, 75% traffic | 2026-05-29 → 2026-06-24 |
 
 Arms of `cc64b9d2`: control (original), **"Know what your bike really cost"**,
@@ -77,7 +86,7 @@ Apple shows as a winner is noise at this sample size. Do not create a replacemen
 experiment; screenshot and title changes now ship at 100% and are attributed by shipping
 them alone (STEP 5).
 
-Once read, I can stop `cc64b9d2` via the API.
+**`cc64b9d2` is already stopped** (2026-08-25) — stopping does not destroy the results, so read them whenever suits. Nothing is accruing or being spent while they wait.
 
 ---
 
@@ -189,11 +198,37 @@ asc versions attach-build --version-id <version-id> --build <build-id>
 asc review submit --app 6760291360 --version 3.19.1 --build <build-id> --confirm
 ```
 
-**Play binary.** Production is on 3.19.0 (version code 81) and still needs its
-own 3.19.1. ⚠️ **Rebuild from `main`** — the vc82 bundle predates #216 and would show
-Android users a CarPlay slide. Release notes for 8 locales are ready at
-`outputs/play-release-3.19.1/release-notes-3.19.1.json` (deliberately no CarPlay, and no
-Receipt Scan since 3.19.0 already announced it).
+**Play — ✅ LIVE 2026-08-25 at 20% staged rollout.** Version 3.19.1, **version code 84**,
+`status: inProgress`, `userFraction: 0.2`; 3.19.0 (vc81) continues to serve the other 80%.
+Built from a tree containing #216, so the CarPlay slide is correctly hidden on Android.
+An earlier vc82 bundle predated #216 and was **deliberately not shipped**.
+
+Release notes attached in all 8 locales (`en-US, de-DE, fr-FR, es-ES, es-419, it-IT,
+pt-BR, pl-PL`) from `outputs/play-release-3.19.1/release-notes-3.19.1.json` — verified
+present on Google's side, with no CarPlay claim in any locale.
+
+```bash
+gplay preflight --file <bundle>.aab --listings-dir store/play/metadata   # adjudicate findings
+gplay release --package com.motovault.app --track production \
+  --bundle <bundle>.aab --rollout 0.2 --status inProgress \
+  --release-notes @outputs/play-release-3.19.1/release-notes-3.19.1.json --wait
+```
+
+⚠️ `--status` defaults to `completed`, which **silently ignores `--rollout`** and ships to
+100%. A staged rollout requires `--status inProgress`. There is no `--confirm` flag on
+`gplay release` — it runs immediately.
+
+**Next step for Play:** watch Play Vitals, then widen with
+`gplay rollout update --track production --user-fraction 1.0`.
+
+Preflight findings on this bundle, all adjudicated as non-blocking:
+
+| Finding | Verdict |
+|---|---|
+| ERROR `credential_file: base/assets/expo-root.pem` | **False positive.** Expo's *public* root CA (self-signed, CN=Expo Root Certificate, 2022–2042), shipped by `expo-updates` to verify OTA signatures. Zero private-key material, and present in the already-live vc81 lineage. |
+| WARN `ACCESS_BACKGROUND_LOCATION` | Declaration already approved — vc81 is live carrying the same permission. |
+| WARN `misplaced_files` (gradle `app-metadata.properties`) | Standard AAB bundle metadata, not a packaged asset. |
+| WARN `advertising_id` / AD_ID missing | **Intentional.** Blocked in `apps/mobile/app.config.ts` to stay honest with the Play Console "Advertising ID: No" declaration. |
 
 ```bash
 python3 store/play/check-metadata.py                       # must print 0 problems
@@ -220,8 +255,8 @@ declaration is still approved in Play Console. It has no API and fails at submis
 >   build 88 on version 3.19.1. Build 88 predated #212 by ~8.5 hours, which is the only
 >   reason an OTA was ever required. The in-review submission was cancelled and
 >   resubmitted (`0488a12a`); the review-queue position was knowingly forfeited.
-> - **Android** must likewise be rebuilt from `main` (vc83+). The vc82 bundle predates
->   **#216** and would show Android users a CarPlay slide — do not ship it.
+> - **Android vc84** shipped 2026-08-25 at 20% staged rollout, built from a tree
+>   containing #216. The vc82 bundle predated it and was deliberately not shipped.
 >
 > The reasoning, so nobody re-derives it: `runtimeVersion` policy is `appVersion`, so an
 > OTA only ever reaches devices **already on 3.19.1**. If the 3.19.1 binaries carry the
