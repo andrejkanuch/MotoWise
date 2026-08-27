@@ -139,7 +139,7 @@ export function unwrap<T>(result: SupabaseResult<T>, ctx: UnwrapContext<T>): T {
 
   if (error) {
     if (ctx.notFound !== undefined && error.code === PG_ERROR.NOT_FOUND) {
-      throw new NotFoundException(ctx.notFound);
+      throw new NotFoundException(ctx.notFound, { cause: toCause(error) });
     }
 
     if (ctx.onConflict !== undefined && error.code === PG_ERROR.UNIQUE_VIOLATION) {

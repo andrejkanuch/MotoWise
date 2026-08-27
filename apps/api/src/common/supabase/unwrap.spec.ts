@@ -41,6 +41,20 @@ describe('unwrap', () => {
     expect(logger.error).not.toHaveBeenCalled();
   });
 
+  it('attaches the cause on the not-found path too', () => {
+    // Holds `unwrap` to its documented contract: EVERY exception it throws
+    // carries the Postgres error, so no throw site is a diagnostic dead end.
+    try {
+      unwrap(
+        { data: null, error: makeError(PG_ERROR.NOT_FOUND, 'Results contain 0 rows') },
+        { logger, op: 'getThing', message: 'Failed', notFound: 'Thing not found' },
+      );
+      expect.unreachable('unwrap should have thrown');
+    } catch (err) {
+      expect(((err as Error).cause as Error).message).toBe('PGRST116: Results contain 0 rows');
+    }
+  });
+
   it('falls through PGRST116 to the generic branch when notFound is absent', () => {
     expect(() =>
       unwrap(
