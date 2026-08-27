@@ -45,6 +45,13 @@ export const PG_ERROR = {
  * `PGRST300` is deliberately absent. It is PostgREST's only 500 in this family
  * — the server is missing its JWT secret — which is a real config fault that
  * must keep paging.
+ *
+ * ⚠️ INVARIANT: every `unwrap` call site is fed by the per-request **user**
+ * client (`SUPABASE_USER`), so a rejected token here is always the caller's
+ * own. If you ever route a `SUPABASE_ADMIN` query through `unwrap`, do NOT let
+ * it reach this branch: a refused *service-role* key is a deployment fault
+ * (stale key after a JWT-secret rotation) that must page, and answering the
+ * rider 401 would hide a total outage behind a pointless token refresh.
  */
 const POSTGREST_AUTH_CODES: ReadonlySet<string> = new Set([
   PG_ERROR.JWT_INVALID,
