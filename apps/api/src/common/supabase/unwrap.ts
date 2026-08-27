@@ -1,4 +1,10 @@
-import { InternalServerErrorException, type Logger, NotFoundException } from '@nestjs/common';
+import {
+  type HttpExceptionOptions,
+  InternalServerErrorException,
+  type Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { PostgrestError } from '@supabase/supabase-js';
 
 /**
@@ -13,7 +19,52 @@ export const PG_ERROR = {
   UNIQUE_VIOLATION: '23505',
   /** Postgres foreign-key violation (e.g. ON DELETE RESTRICT blocks a delete). */
   FOREIGN_KEY_VIOLATION: '23503',
+  /**
+   * PostgREST: the JWT could not be decoded or is invalid. PostgREST's own
+   * tutorial shows an expired token surfacing here as `"JWT expired"`.
+   */
+  JWT_INVALID: 'PGRST301',
+  /**
+   * PostgREST: the request carried no usable authentication and the anonymous
+   * role is disabled (`db-anon-role` unset).
+   */
+  JWT_MISSING: 'PGRST302',
+  /**
+   * PostgREST: JWT claim validation or parsing failed — `exp` / `iat` / `nbf` /
+   * `aud`. Observed in production as `"JWT issued at future"` (Sentry
+   * MOTO-VAULT-NODE-NESTJS-B/C).
+   */
+  JWT_CLAIMS_INVALID: 'PGRST303',
 } as const;
+
+/**
+ * The PostgREST codes that mean "this token is not usable", all of which
+ * PostgREST itself answers with **401**. They are a client/session condition,
+ * not a server fault: the caller has to obtain a fresh token and retry.
+ *
+ * `PGRST300` is deliberately absent. It is PostgREST's only 500 in this family
+ * — the server is missing its JWT secret — which is a real config fault that
+ * must keep paging.
+ */
+const POSTGREST_AUTH_CODES: ReadonlySet<string> = new Set([
+  PG_ERROR.JWT_INVALID,
+  PG_ERROR.JWT_MISSING,
+  PG_ERROR.JWT_CLAIMS_INVALID,
+]);
+
+/**
+ * Message thrown for a rejected token. Client-visible: `AllExceptionsFilter`
+ * passes messages through for sub-500 statuses. Mobile keys its refresh on the
+ * `UNAUTHENTICATED` GraphQL code, never on this string.
+ */
+export const TOKEN_REJECTED_MESSAGE = 'Session token was rejected';
+
+/** True when a Supabase error is PostgREST refusing the caller's JWT. */
+export function isPostgrestAuthError(
+  error: Pick<PostgrestError, 'code'> | null | undefined,
+): boolean {
+  return error != null && POSTGREST_AUTH_CODES.has(error.code);
+}
 
 /** Minimal shape of a Supabase `{ data, error }` result. */
 export interface SupabaseResult<T> {
@@ -21,8 +72,12 @@ export interface SupabaseResult<T> {
   error: PostgrestError | null;
 }
 
-/** Constructable exception (e.g. `BadRequestException`, `ForbiddenException`). */
-type ExceptionClass = new (message?: string) => Error;
+/**
+ * Constructable exception (e.g. `BadRequestException`, `ForbiddenException`).
+ * The second parameter is Nest's `HttpExceptionOptions`, which is how the
+ * underlying Postgres error is attached as `cause`.
+ */
+type ExceptionClass = new (message?: string, options?: HttpExceptionOptions) => Error;
 
 export interface UnwrapContext<T> {
   /** Logger of the calling service — errors are logged through it. */
@@ -47,14 +102,30 @@ export interface UnwrapContext<T> {
 }
 
 /**
+ * Builds the `cause` carried into Sentry. `AllExceptionsFilter` captures the
+ * thrown exception, and Sentry's LinkedErrors integration walks `cause`, so the
+ * PostgREST code lands on the event as a chained exception instead of being
+ * visible only in the Render logs. Grouping is unaffected — Sentry groups on the
+ * top-level exception, so no existing issue splits.
+ */
+const toCause = (error: PostgrestError): Error =>
+  new Error(`${error.code}: ${error.message}`, {
+    cause: { details: error.details, hint: error.hint },
+  });
+
+/**
  * Unwraps a Supabase `{ data, error }` result, mapping known Postgres error
  * codes to the right behaviour and logging + throwing on everything else.
  *
  * - PGRST116 + `notFound` → `NotFoundException(notFound)`
  * - 23505 + `onConflict` → returns `onConflict()` (no throw)
- * - any other error → logs `[op] message: <db message>` and throws `error`
- *   (default `InternalServerErrorException`)
+ * - PGRST301/302/303 → `UnauthorizedException` (see {@link POSTGREST_AUTH_CODES});
+ *   logged at **warn**, and `ctx.error` is deliberately ignored
+ * - any other error → logs `[op] message: <db message> (<code>)` and throws
+ *   `ctx.error` (default `InternalServerErrorException`)
  * - success → returns `data`
+ *
+ * Every thrown exception carries the Postgres error as `cause`.
  */
 export function unwrap<T>(result: SupabaseResult<T>, ctx: UnwrapContext<T>): T {
   const { error } = result;
@@ -68,9 +139,21 @@ export function unwrap<T>(result: SupabaseResult<T>, ctx: UnwrapContext<T>): T {
       return ctx.onConflict();
     }
 
-    ctx.logger.error(`[${ctx.op}] ${ctx.message}: ${error.message}`);
+    // A refused token is normal traffic (a stale session, or clock skew beyond
+    // PostgREST's 30s leeway on `iat`/`exp`/`nbf`). Mapping it to 401 makes the
+    // filter answer `UNAUTHENTICATED`, which is what mobile's gqlFetcher keys its
+    // de-duped refresh-and-retry on — and it keeps a self-healing condition out of
+    // Sentry, since the filter only captures 5xx. `ctx.error` is ignored on this
+    // branch: a caller asking for `BadRequestException` cannot know the token is
+    // the problem, and answering 400 would strand the client without a refresh.
+    if (isPostgrestAuthError(error)) {
+      ctx.logger.warn(`[${ctx.op}] token rejected by PostgREST: ${error.message} (${error.code})`);
+      throw new UnauthorizedException(TOKEN_REJECTED_MESSAGE, { cause: toCause(error) });
+    }
+
+    ctx.logger.error(`[${ctx.op}] ${ctx.message}: ${error.message} (${error.code})`);
     const ExceptionCtor = ctx.error ?? InternalServerErrorException;
-    throw new ExceptionCtor(ctx.message);
+    throw new ExceptionCtor(ctx.message, { cause: toCause(error) });
   }
 
   return result.data as T;

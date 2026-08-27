@@ -3,6 +3,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
   ServiceUnavailableException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RidesService } from './rides.service';
@@ -648,6 +649,27 @@ describe('RidesService', () => {
       const invalidCursor = Buffer.from('not-a-date').toString('base64');
 
       await expect(service.myRides(userId, 20, invalidCursor)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw InternalServerErrorException on a generic query failure', async () => {
+      mockUserClient._pushResult({
+        data: null,
+        error: { code: '42P01', message: 'relation does not exist' },
+      });
+
+      await expect(service.myRides(userId, 20)).rejects.toThrow(InternalServerErrorException);
+    });
+
+    it('should throw UnauthorizedException when PostgREST refuses the token', async () => {
+      // The regression this guards: PGRST303 ("JWT issued at future") came back
+      // as an opaque 500, so the client never refreshed and the alert paged
+      // (MOTO-VAULT-NODE-NESTJS-C, 2026-08-27).
+      mockUserClient._pushResult({
+        data: null,
+        error: { code: 'PGRST303', message: 'JWT issued at future' },
+      });
+
+      await expect(service.myRides(userId, 20)).rejects.toThrow(UnauthorizedException);
     });
   });
 

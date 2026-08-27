@@ -12,7 +12,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { RIDE_EVENTS } from '../../common/constants/events';
 import { buildConnection, decodeCursor, encodeCursor } from '../../common/pagination/connection';
-import { PG_ERROR } from '../../common/supabase/unwrap';
+import { PG_ERROR, unwrap } from '../../common/supabase/unwrap';
 import { POSTGRES_REAL, QUERY_LIMITS } from '../../config/constants';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -741,13 +741,16 @@ export class RidesService {
 
     const { data, error, count } = await query;
 
-    if (error) {
-      this.logger.error(`myRides failed: ${error.message} (${error.code})`);
-      throw new InternalServerErrorException('Failed to fetch rides');
-    }
+    // Routed through `unwrap` (rather than a hand-rolled throw) so a PostgREST
+    // token rejection becomes a 401 the client can refresh on, instead of the
+    // opaque 500 that paged as MOTO-VAULT-NODE-NESTJS-C.
+    const rows = unwrap(
+      { data, error },
+      { logger: this.logger, op: 'myRides', message: 'Failed to fetch rides' },
+    );
 
     return buildConnection({
-      rows: data ?? [],
+      rows: rows ?? [],
       limit,
       mapNode: (row) => this.mapRow(row),
       cursorOf: (row) => encodeCursor(row.started_at),
