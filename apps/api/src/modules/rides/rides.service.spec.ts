@@ -582,41 +582,54 @@ describe('RidesService', () => {
   });
 
   describe('deleteRide', () => {
-    it('should soft-delete and return true', async () => {
-      mockUserClient._pushResult({ data: { id: 'ride-123' } });
+    it('should soft-delete through the RPC and return true', async () => {
+      mockUserClient.rpc.mockResolvedValueOnce({ data: true, error: null });
 
       const result = await service.deleteRide(userId, 'ride-123');
 
       expect(result).toBe(true);
-      expect(mockUserClient._chain.update).toHaveBeenCalledWith(
-        expect.objectContaining({ deleted_at: expect.any(String) }),
-      );
-      expect(mockUserClient._chain.is).toHaveBeenCalledWith('deleted_at', null);
+      expect(mockUserClient.rpc).toHaveBeenCalledWith('soft_delete_ride', { ride_id: 'ride-123' });
     });
 
-    it('should return true when ride is already deleted (idempotent)', async () => {
-      // Result 0: soft-delete update finds no un-deleted row
-      mockUserClient._pushResult({
-        data: null,
-        error: { message: 'Row not found', code: 'PGRST116' },
-      });
-      // Result 1: existence check finds the already-deleted ride
-      mockUserClient._pushResult({ count: 1 });
+    it('should never issue a direct UPDATE against rides', async () => {
+      // A direct UPDATE cannot work: the `deleted_at IS NULL` SELECT policy is
+      // applied to the new row, so stamping deleted_at gets the statement
+      // rejected with 42501. That is why this used to need supabaseAdmin, and
+      // why 00176 moved it into a SECURITY DEFINER RPC instead — the ownership
+      // check stays in the database rather than in an app-layer filter.
+      mockUserClient.rpc.mockResolvedValueOnce({ data: true, error: null });
 
-      const result = await service.deleteRide(userId, 'ride-123');
-      expect(result).toBe(true);
+      await service.deleteRide(userId, 'ride-123');
+
+      expect(mockUserClient._chain.update).not.toHaveBeenCalled();
     });
 
-    it('should throw NotFoundException when ride does not exist', async () => {
-      // Result 0: soft-delete update finds no row
-      mockUserClient._pushResult({
-        data: null,
-        error: { message: 'Row not found', code: 'PGRST116' },
-      });
-      // Result 1: existence check finds nothing
-      mockUserClient._pushResult({ count: 0 });
+    it('should return true when the ride is already deleted (idempotent)', async () => {
+      // The RPC answers "is it deleted and theirs", so a duplicate tap or a
+      // sync-queue retry returns true in one round trip. This previously took a
+      // second admin-client count query to establish.
+      mockUserClient.rpc.mockResolvedValueOnce({ data: true, error: null });
+
+      await expect(service.deleteRide(userId, 'ride-123')).resolves.toBe(true);
+    });
+
+    it('should throw NotFoundException when the user has no such ride', async () => {
+      mockUserClient.rpc.mockResolvedValueOnce({ data: false, error: null });
 
       await expect(service.deleteRide(userId, 'ride-123')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw InternalServerErrorException when the RPC itself fails', async () => {
+      // A transport/DB fault is not "ride not found" — reporting it as a 404
+      // would tell the client to stop retrying something that might succeed.
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'connection reset', code: '08006' },
+      });
+
+      await expect(service.deleteRide(userId, 'ride-123')).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
   });
 

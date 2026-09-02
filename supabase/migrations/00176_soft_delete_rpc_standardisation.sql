@@ -1,0 +1,199 @@
+-- Migration: 00176_soft_delete_rpc_standardisation
+--
+-- Standardises every user-facing soft delete on one pattern: a SECURITY DEFINER
+-- RPC that checks ownership in the database.
+--
+-- THE BUG THIS CLOSES
+-- Every table here has a SELECT policy shaped
+--   USING (auth.uid() = user_id AND deleted_at IS NULL)
+-- and PostgreSQL applies SELECT policies to the NEW row of an UPDATE. Stamping
+-- deleted_at therefore makes the row invisible to that policy and the statement
+-- is rejected outright:
+--   42501 new row violates row-level security policy for table "<t>"
+-- The table's own UPDATE policy passes; it is the SELECT policy doing the
+-- rejecting, which is why 00053's attempt to fix expenses by relaxing the UPDATE
+-- WITH CHECK changed nothing. Expense deletion was broken for every rider from
+-- the day it shipped (Sentry MOTO-VAULT-REACT-NATIVE-1M).
+--
+-- WHY AN RPC AND NOT THE ADMIN CLIENT
+-- Both work. The service-role client bypasses RLS entirely, which moves the
+-- ownership check into application code and leaves the database with no say.
+-- SECURITY DEFINER runs as the table owner (so the SELECT policy does not apply)
+-- while still pinning `user_id = auth.uid()` inside the function, so ownership
+-- stays enforced where it cannot be refactored away. Root CLAUDE.md's standing
+-- rule is "NEVER use service-role for user-scoped writes"; this keeps that rule
+-- intact instead of widening its exception list.
+--
+-- ONE SHAPE, ONE MEANING
+-- Before this migration the codebase solved the same defect three ways
+-- (admin client for rides, RPC for motorcycles/maintenance_tasks, and expenses
+-- simply broken), and the two RPCs returned "we flipped a live row" — so
+-- deleting something already deleted raised NotFound. Every function here now
+-- returns the same thing:
+--
+--   true  -> the row is soft-deleted AND belongs to the caller
+--   false -> no such row for this caller (missing, or owned by someone else)
+--
+-- Deleting an already-deleted row returns true. That is what a caller means by
+-- "delete this": duplicate taps, offline sync retries and stale lists all
+-- converge on the same answer instead of surfacing an error for work that is
+-- already done. `false` deliberately does not distinguish "missing" from "not
+-- yours" — that distinction is an existence oracle for other users' ids.
+--
+-- SET search_path = '' on all four: a SECURITY DEFINER function without a pinned
+-- search_path can be hijacked via a shadowing schema. The two functions from
+-- 00027 predate that hardening and are re-created here to pick it up; every
+-- reference inside is already schema-qualified, so pinning it changes nothing
+-- else.
+--
+-- DEPLOY ORDER: apply this migration BEFORE the API that calls the two new
+-- functions. Until it lands, expense/ride deletes fail as they already do.
+
+BEGIN;
+
+-- Expenses -- new. The table this whole migration exists for.
+CREATE OR REPLACE FUNCTION public.soft_delete_expense(expense_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_uid uuid := (SELECT auth.uid());
+BEGIN
+  IF v_uid IS NULL THEN
+    RETURN false;
+  END IF;
+
+  UPDATE public.expenses
+  SET deleted_at = NOW()
+  WHERE id = expense_id
+    AND user_id = v_uid
+    AND deleted_at IS NULL;
+
+  IF FOUND THEN
+    RETURN true;
+  END IF;
+
+  -- Already deleted and still the caller's row -> idempotent success.
+  RETURN EXISTS (
+    SELECT 1 FROM public.expenses
+    WHERE id = expense_id AND user_id = v_uid
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.soft_delete_expense(uuid) TO authenticated;
+
+-- Rides -- new. Replaces the supabaseAdmin bypass in rides.deleteRide, including
+-- its second round trip that counted already-deleted rows through the admin
+-- client; the EXISTS below answers that in the same statement.
+CREATE OR REPLACE FUNCTION public.soft_delete_ride(ride_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_uid uuid := (SELECT auth.uid());
+BEGIN
+  IF v_uid IS NULL THEN
+    RETURN false;
+  END IF;
+
+  UPDATE public.rides
+  SET deleted_at = NOW()
+  WHERE id = ride_id
+    AND user_id = v_uid
+    AND deleted_at IS NULL;
+
+  IF FOUND THEN
+    RETURN true;
+  END IF;
+
+  RETURN EXISTS (
+    SELECT 1 FROM public.rides
+    WHERE id = ride_id AND user_id = v_uid
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.soft_delete_ride(uuid) TO authenticated;
+
+-- Motorcycles -- re-created from 00027 for the pinned search_path and the
+-- idempotent already-deleted answer.
+CREATE OR REPLACE FUNCTION public.soft_delete_motorcycle(motorcycle_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_uid uuid := (SELECT auth.uid());
+BEGIN
+  IF v_uid IS NULL THEN
+    RETURN false;
+  END IF;
+
+  UPDATE public.motorcycles
+  SET deleted_at = NOW()
+  WHERE id = motorcycle_id
+    AND user_id = v_uid
+    AND deleted_at IS NULL;
+
+  IF FOUND THEN
+    RETURN true;
+  END IF;
+
+  RETURN EXISTS (
+    SELECT 1 FROM public.motorcycles
+    WHERE id = motorcycle_id AND user_id = v_uid
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.soft_delete_motorcycle(uuid) TO authenticated;
+
+-- Maintenance tasks -- same treatment.
+CREATE OR REPLACE FUNCTION public.soft_delete_maintenance_task(task_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_uid uuid := (SELECT auth.uid());
+BEGIN
+  IF v_uid IS NULL THEN
+    RETURN false;
+  END IF;
+
+  UPDATE public.maintenance_tasks
+  SET deleted_at = NOW()
+  WHERE id = task_id
+    AND user_id = v_uid
+    AND deleted_at IS NULL;
+
+  IF FOUND THEN
+    RETURN true;
+  END IF;
+
+  RETURN EXISTS (
+    SELECT 1 FROM public.maintenance_tasks
+    WHERE id = task_id AND user_id = v_uid
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.soft_delete_maintenance_task(uuid) TO authenticated;
+
+COMMENT ON FUNCTION public.soft_delete_expense(uuid) IS
+  'Soft-deletes the caller''s expense. Returns true when the row is deleted and owned by the caller (idempotent), false when no such row exists for them. SECURITY DEFINER because a deleted_at IS NULL SELECT policy rejects the UPDATE that sets deleted_at.';
+COMMENT ON FUNCTION public.soft_delete_ride(uuid) IS
+  'Soft-deletes the caller''s ride. Same contract as soft_delete_expense.';
+COMMENT ON FUNCTION public.soft_delete_motorcycle(uuid) IS
+  'Soft-deletes the caller''s motorcycle. Same contract as soft_delete_expense.';
+COMMENT ON FUNCTION public.soft_delete_maintenance_task(uuid) IS
+  'Soft-deletes the caller''s maintenance task. Same contract as soft_delete_expense.';
+
+COMMIT;
