@@ -13,16 +13,32 @@ describe('expense category investment split', () => {
     expect(isInvestmentCategory('fuel')).toBe(false);
   });
 
-  it('classifies the consumable set as exactly fuel, tolls, parking and taxes_fees', () => {
+  it('keeps everything a buyer would not pay for out of the investment side', () => {
     // Pinned deliberately. Re-bucketing a category silently moves money between
     // the two figures a rider reads when deciding an asking price, so that
     // decision should have to change this list on purpose.
+    //
+    // insurance/registration are ownership costs, training buys rider skill,
+    // and gear leaves with the rider — none of them reach the next owner, so
+    // none of them belong in the number that argues for an asking price.
     expect([...CONSUMABLE_EXPENSE_CATEGORIES].sort()).toEqual([
       'fuel',
+      'gear',
+      'insurance',
       'parking',
+      'registration',
       'taxes_fees',
       'tolls',
+      'training',
     ]);
+  });
+
+  it('keeps the categories that physically stay with the bike on the investment side', () => {
+    // The other half of the pin: a careless edit that flipped everything to
+    // consumable would still satisfy the assertion above.
+    for (const key of ['maintenance', 'parts', 'tires', 'accessories', 'modifications']) {
+      expect(isInvestmentCategory(key)).toBe(true);
+    }
   });
 
   it('counts an unknown category as investment rather than dropping it', () => {

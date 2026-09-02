@@ -22,22 +22,20 @@ export interface ExpenseCategoryMeta {
   /** Whether the category shows in the primary chip row by default. */
   readonly primary: boolean;
   /**
-   * Does this spend belong to the MACHINE, or to the act of riding it?
+   * Would a BUYER pay for this? That is the whole test.
    *
-   * `false` — spent per trip, scaling with how much you ride: fuel, tolls,
-   *           parking, taxes & fees.
-   * `true`  — everything else, i.e. spend attached to owning this specific
-   *           bike: parts, tyres, service history, mods, gear, insurance,
-   *           registration, training.
+   * `true`  — the money is still in the machine, so it argues for the asking
+   *           price: parts, tyres, service history, accessories, mods.
+   * `false` — the money is gone whoever owns the bike next: fuel, tolls,
+   *           parking, taxes & fees, insurance, registration, training, gear.
    *
-   * Note this is NOT "recoverable at resale" — insurance, registration and
-   * training are on the `true` side and none of them come back when the bike
-   * sells. The line is per-trip cost vs cost of ownership, which is the split
-   * riders actually described wanting. If someone later wants a strict
-   * recoverable-value figure, that is a THIRD bucket, not a re-reading of this
-   * flag.
+   * Insurance and registration are ownership costs, not bike value — a buyer
+   * pays neither, and the seller cannot recover them. Training buys rider
+   * skill. Gear leaves with the rider; a helmet is not part of the bike. All
+   * four read as "invested" under a looser reading and would inflate the exact
+   * number this flag exists to keep honest.
    *
-   * Drives the "Invested in bike" vs "Cost of riding" split on the expense
+   * Drives the "Invested in Bike" vs "Running Costs" split on the expense
    * dashboard. Riders asked for it to price a bike they are selling — a rider
    * with a VTX1800R put it plainly: fuel "doesn't add any value to the bike…
    * that is just a part of riding".
@@ -61,7 +59,7 @@ export const EXPENSE_CATEGORY_META = [
   },
   { key: 'parts', label: 'Parts', colorToken: 'accent500', primary: true, investment: true },
   { key: 'tires', label: 'Tires', colorToken: 'danger500', primary: true, investment: true },
-  { key: 'gear', label: 'Gear', colorToken: 'signature500', primary: true, investment: true },
+  { key: 'gear', label: 'Gear', colorToken: 'signature500', primary: true, investment: false },
   {
     key: 'accessories',
     label: 'Accessories',
@@ -81,14 +79,14 @@ export const EXPENSE_CATEGORY_META = [
     label: 'Insurance',
     colorToken: 'indigo500',
     primary: false,
-    investment: true,
+    investment: false,
   },
   {
     key: 'registration',
     label: 'Registration',
     colorToken: 'moduleSuspension',
     primary: false,
-    investment: true,
+    investment: false,
   },
   {
     key: 'taxes_fees',
@@ -104,20 +102,20 @@ export const EXPENSE_CATEGORY_META = [
     label: 'Training',
     colorToken: 'success500',
     primary: false,
-    investment: true,
+    investment: false,
   },
   { key: 'other', label: 'Other', colorToken: 'neutral400', primary: false, investment: true },
 ] as const satisfies readonly ExpenseCategoryMeta[];
 
 export type ExpenseCategory = (typeof EXPENSE_CATEGORY_META)[number]['key'];
 
-/** Category keys billed per trip rather than attached to owning the bike. */
+/** Category keys whose spend a buyer would not pay for. */
 export const CONSUMABLE_EXPENSE_CATEGORIES: readonly string[] = EXPENSE_CATEGORY_META.filter(
   (m) => !m.investment,
 ).map((m) => m.key);
 
 /**
- * Whether spend in `category` counts toward "Invested in bike".
+ * Whether spend in `category` counts toward "Invested in Bike".
  *
  * Unknown keys count as investment. A category retired from the meta table
  * still has rows in the DB, and silently dropping them would make the split
@@ -129,7 +127,8 @@ export function isInvestmentCategory(category: string): boolean {
 }
 
 /**
- * Splits all-time category totals into what the bike kept and what riding used.
+ * Splits all-time category totals into what the bike kept and what running it
+ * cost.
  *
  * Takes the dashboard's `categoryTotals`, which is already all-time and sums to
  * `allTimeTotal`, so `invested + consumed === allTimeTotal` by construction.

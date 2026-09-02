@@ -723,9 +723,10 @@ export default function ExpenseDashboardScreen() {
                 value={formatAgg(dashboard.allTimeTotal)}
               />
             </View>
-            {/* What the bike keeps vs what riding burns. Riders selling a bike
-                need the first number, and fuel is not in it — the two sum back
-                to the total of ownership above, so nothing is hidden. */}
+            {/* What a buyer would pay for vs what owning it cost. Riders
+                selling a bike need the first number, and fuel is not in it —
+                the two sum back to the total of ownership above, so nothing is
+                hidden. */}
             <View
               style={{
                 height: 1,
@@ -741,7 +742,7 @@ export default function ExpenseDashboardScreen() {
               />
               <StatColumn
                 theme={theme}
-                label={t('expenses.costOfRiding')}
+                label={t('expenses.runningCosts')}
                 value={formatAgg(consumed)}
               />
             </View>
