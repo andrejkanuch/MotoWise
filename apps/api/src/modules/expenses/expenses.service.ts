@@ -201,7 +201,22 @@ export class ExpensesService {
     // exactly the caller's intent. `.single()` here threw PGRST116 on every
     // double-tap / stale-list / retry, surfacing a BAD_REQUEST to the client
     // (MOTO-VAULT-REACT-NATIVE-1J: ~877 events, 10 users).
-    const { data, error } = await this.supabase
+    //
+    // `adminClient`, not `supabase` — the documented soft-delete RLS footgun,
+    // same as rides.deleteRide. `Users read own expenses` is
+    // `USING (auth.uid() = user_id AND deleted_at IS NULL)`, and PostgreSQL
+    // applies SELECT policies to the NEW row of an UPDATE. Stamping deleted_at
+    // makes that row invisible, so the statement is rejected with 42501
+    // "new row violates row-level security policy" — even though the UPDATE
+    // policy's own WITH CHECK (`auth.uid() = user_id`) passes. Proven against
+    // production: relaxing the SELECT policy lets the update through, while
+    // relaxing the UPDATE WITH CHECK to `true` does not.
+    //
+    // This made expense deletion fail for EVERY user, not an unlucky few
+    // (MOTO-VAULT-REACT-NATIVE-1M: 418 events, 14 users — the retry count is
+    // riders tapping Delete over and over). Ownership is still enforced by
+    // `.eq('user_id', userId)`, where userId comes from the verified JWT.
+    const { data, error } = await this.adminClient
       .from('expenses')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)

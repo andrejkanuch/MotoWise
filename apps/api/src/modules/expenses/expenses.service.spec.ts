@@ -251,7 +251,7 @@ describe('ExpensesService', () => {
   // ---------------------------------------------------------------------------
   describe('softDelete', () => {
     it('sets deleted_at and scopes by user_id, returns true', async () => {
-      mock.chain.maybeSingle.mockResolvedValueOnce({
+      adminMock.chain.maybeSingle.mockResolvedValueOnce({
         data: { id: 'exp-1' },
         error: null,
       });
@@ -259,16 +259,34 @@ describe('ExpensesService', () => {
       const result = await service.softDelete('u1', 'exp-1');
 
       expect(result).toBe(true);
-      expect(mock.from).toHaveBeenCalledWith('expenses');
-      expect(mock.chain.update).toHaveBeenCalledWith({
+      expect(adminMock.from).toHaveBeenCalledWith('expenses');
+      expect(adminMock.chain.update).toHaveBeenCalledWith({
         deleted_at: expect.any(String),
       });
-      expect(mock.chain.eq).toHaveBeenCalledWith('id', 'exp-1');
-      expect(mock.chain.eq).toHaveBeenCalledWith('user_id', 'u1');
+      expect(adminMock.chain.eq).toHaveBeenCalledWith('id', 'exp-1');
+      expect(adminMock.chain.eq).toHaveBeenCalledWith('user_id', 'u1');
       // Locks in the `deleted_at IS NULL` guard: without it a re-delete would
       // re-flip deleted_at to a fresh timestamp and re-run the receipts purge,
       // silently degrading the "already gone" idempotent semantics.
-      expect(mock.chain.is).toHaveBeenCalledWith('deleted_at', null);
+      expect(adminMock.chain.is).toHaveBeenCalledWith('deleted_at', null);
+    });
+
+    it('goes through the admin client, never the user client', async () => {
+      // Regression guard for MOTO-VAULT-REACT-NATIVE-1M. On the user client this
+      // UPDATE is rejected outright with 42501 "new row violates row-level
+      // security policy": `Users read own expenses` is
+      // `USING (auth.uid() = user_id AND deleted_at IS NULL)`, PostgreSQL applies
+      // SELECT policies to the NEW row of an UPDATE, and stamping deleted_at
+      // makes that row invisible. Every rider's expense delete failed, not a
+      // subset. Ownership is preserved by the explicit user_id filter asserted
+      // above, so routing this back through `supabase` re-breaks deletion
+      // entirely — hence a dedicated test rather than a comment.
+      adminMock.chain.maybeSingle.mockResolvedValueOnce({ data: { id: 'exp-1' }, error: null });
+
+      await service.softDelete('u1', 'exp-1');
+
+      expect(adminMock.chain.update).toHaveBeenCalledWith({ deleted_at: expect.any(String) });
+      expect(mock.chain.update).not.toHaveBeenCalled();
     });
 
     it('returns true idempotently when no live row matches (already gone)', async () => {
@@ -277,13 +295,13 @@ describe('ExpensesService', () => {
       // { data: null, error: null } — the caller's intent ("this is gone") is
       // already satisfied, so we return true instead of throwing BAD_REQUEST
       // (regression guard for MOTO-VAULT-REACT-NATIVE-1J).
-      mock.chain.maybeSingle.mockResolvedValueOnce({ data: null, error: null });
+      adminMock.chain.maybeSingle.mockResolvedValueOnce({ data: null, error: null });
 
       await expect(service.softDelete('u1', 'exp-1')).resolves.toBe(true);
     });
 
     it('throws BadRequestException on a genuine DB error', async () => {
-      mock.chain.maybeSingle.mockResolvedValueOnce({
+      adminMock.chain.maybeSingle.mockResolvedValueOnce({
         data: null,
         error: { message: 'connection reset', code: '08006' },
       });
@@ -497,8 +515,10 @@ describe('ExpensesService', () => {
   // ---------------------------------------------------------------------------
   describe('softDelete receipts purge', () => {
     it('removes the receipts storage object when the expense had one', async () => {
-      // The soft-delete update resolves via .maybeSingle().
-      mock.chain.maybeSingle.mockResolvedValueOnce({ data: { id: 'e1' }, error: null });
+      // The soft-delete update resolves via .maybeSingle() on the ADMIN client
+      // (the RLS footgun — see the softDelete suite); the purge that follows
+      // still reads expense_photos through the user client.
+      adminMock.chain.maybeSingle.mockResolvedValueOnce({ data: { id: 'e1' }, error: null });
       // The purge SELECT terminates on .eq('bucket', 'receipts') — resolve it.
       mock.chain.eq.mockImplementation((col: string) =>
         col === 'bucket'
