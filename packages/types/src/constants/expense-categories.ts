@@ -22,11 +22,20 @@ export interface ExpenseCategoryMeta {
   /** Whether the category shows in the primary chip row by default. */
   readonly primary: boolean;
   /**
-   * Does this spend go INTO the machine, or is it the price of using it?
+   * Does this spend belong to the MACHINE, or to the act of riding it?
    *
-   * `true`  — money the bike still carries: parts, tyres, service history, mods.
-   * `false` — consumed by riding and unrecoverable at resale: fuel, tolls,
+   * `false` — spent per trip, scaling with how much you ride: fuel, tolls,
    *           parking, taxes & fees.
+   * `true`  — everything else, i.e. spend attached to owning this specific
+   *           bike: parts, tyres, service history, mods, gear, insurance,
+   *           registration, training.
+   *
+   * Note this is NOT "recoverable at resale" — insurance, registration and
+   * training are on the `true` side and none of them come back when the bike
+   * sells. The line is per-trip cost vs cost of ownership, which is the split
+   * riders actually described wanting. If someone later wants a strict
+   * recoverable-value figure, that is a THIRD bucket, not a re-reading of this
+   * flag.
    *
    * Drives the "Invested in bike" vs "Cost of riding" split on the expense
    * dashboard. Riders asked for it to price a bike they are selling — a rider
@@ -102,7 +111,7 @@ export const EXPENSE_CATEGORY_META = [
 
 export type ExpenseCategory = (typeof EXPENSE_CATEGORY_META)[number]['key'];
 
-/** Category keys consumed by riding rather than retained by the bike. */
+/** Category keys billed per trip rather than attached to owning the bike. */
 export const CONSUMABLE_EXPENSE_CATEGORIES: readonly string[] = EXPENSE_CATEGORY_META.filter(
   (m) => !m.investment,
 ).map((m) => m.key);

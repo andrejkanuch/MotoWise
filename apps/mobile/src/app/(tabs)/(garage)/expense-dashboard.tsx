@@ -59,6 +59,44 @@ const PERIOD_LABELS: Record<Period, string> = {
  */
 const QUICK_ADD_CATEGORIES: ExpenseCategory[] = ['fuel', 'maintenance', 'insurance'];
 
+const STAT_LABEL_STYLE = {
+  fontSize: 10,
+  fontWeight: '700' as const,
+  letterSpacing: 1,
+  textTransform: 'uppercase' as const,
+};
+
+const STAT_VALUE_STYLE = {
+  fontFamily: 'InstrumentSerif-Regular',
+  fontSize: 18,
+  fontVariant: ['tabular-nums' as const],
+  marginTop: 4,
+};
+
+/**
+ * One label/value cell in the cost-of-ownership card. The card carries four of
+ * them across two rows (purchase + all expenses, then invested + cost of
+ * riding); inlining the styles four times is what the mobile "inline unless
+ * reused" rule stops covering. Mirrors LABEL_STYLE/VALUE_STYLE in
+ * components/bike-hub/bike-stats-row.tsx.
+ */
+function StatColumn({
+  theme,
+  label,
+  value,
+}: {
+  theme: ReturnType<typeof useEditorialTheme>['t'];
+  label: string;
+  value: string;
+}) {
+  return (
+    <View style={{ flex: 1 }}>
+      <Text style={{ ...STAT_LABEL_STYLE, color: theme.ink3 }}>{label}</Text>
+      <Text style={{ ...STAT_VALUE_STYLE, color: theme.ink }}>{value}</Text>
+    </View>
+  );
+}
+
 function EmptyState({ motorcycleId }: { motorcycleId: string }) {
   const { t } = useTranslation();
   const { t: theme } = useEditorialTheme();
@@ -674,54 +712,16 @@ export default function ExpenseDashboardScreen() {
               }}
             />
             <View style={{ flexDirection: 'row', gap: 16 }}>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontWeight: '700',
-                    letterSpacing: 1,
-                    textTransform: 'uppercase',
-                    color: theme.ink3,
-                  }}
-                >
-                  {t('expenses.bikePurchase')}
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: 'InstrumentSerif-Regular',
-                    fontSize: 18,
-                    color: theme.ink,
-                    fontVariant: ['tabular-nums'],
-                    marginTop: 4,
-                  }}
-                >
-                  {formatAgg(purchasePrice)}
-                </Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontWeight: '700',
-                    letterSpacing: 1,
-                    textTransform: 'uppercase',
-                    color: theme.ink3,
-                  }}
-                >
-                  {t('expenses.allExpenses')}
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: 'InstrumentSerif-Regular',
-                    fontSize: 18,
-                    color: theme.ink,
-                    fontVariant: ['tabular-nums'],
-                    marginTop: 4,
-                  }}
-                >
-                  {formatAgg(dashboard.allTimeTotal)}
-                </Text>
-              </View>
+              <StatColumn
+                theme={theme}
+                label={t('expenses.bikePurchase')}
+                value={formatAgg(purchasePrice)}
+              />
+              <StatColumn
+                theme={theme}
+                label={t('expenses.allExpenses')}
+                value={formatAgg(dashboard.allTimeTotal)}
+              />
             </View>
             {/* What the bike keeps vs what riding burns. Riders selling a bike
                 need the first number, and fuel is not in it — the two sum back
@@ -734,54 +734,16 @@ export default function ExpenseDashboardScreen() {
               }}
             />
             <View style={{ flexDirection: 'row', gap: 16 }}>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontWeight: '700',
-                    letterSpacing: 1,
-                    textTransform: 'uppercase',
-                    color: theme.ink3,
-                  }}
-                >
-                  {t('expenses.investedInBike')}
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: 'InstrumentSerif-Regular',
-                    fontSize: 18,
-                    color: theme.ink,
-                    fontVariant: ['tabular-nums'],
-                    marginTop: 4,
-                  }}
-                >
-                  {formatAgg(invested)}
-                </Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontWeight: '700',
-                    letterSpacing: 1,
-                    textTransform: 'uppercase',
-                    color: theme.ink3,
-                  }}
-                >
-                  {t('expenses.costOfRiding')}
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: 'InstrumentSerif-Regular',
-                    fontSize: 18,
-                    color: theme.ink,
-                    fontVariant: ['tabular-nums'],
-                    marginTop: 4,
-                  }}
-                >
-                  {formatAgg(consumed)}
-                </Text>
-              </View>
+              <StatColumn
+                theme={theme}
+                label={t('expenses.investedInBike')}
+                value={formatAgg(invested)}
+              />
+              <StatColumn
+                theme={theme}
+                label={t('expenses.costOfRiding')}
+                value={formatAgg(consumed)}
+              />
             </View>
           </View>
         </Animated.View>

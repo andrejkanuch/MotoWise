@@ -25,6 +25,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "test": "vitest run --passWithNoTests",
     "generate:types": "supabase gen types typescript --linked --workdir ../.. --schema public,graphql_public > src/database.types.ts.tmp && mv src/database.types.ts.tmp src/database.types.ts"
   },
   "dependencies": {
@@ -32,6 +33,7 @@
   },
   "devDependencies": {
     "@motovault/tsconfig": "workspace:*",
-    "tsup": "^8.5.1"
+    "tsup": "^8.5.1",
+    "vitest": "^4.1.9"
   }
 }
