@@ -4,7 +4,7 @@ import {
   type ExpensesByMotorcycleQuery,
   MyMotorcyclesDocument,
 } from '@motovault/graphql';
-import type { ExpenseCategory } from '@motovault/types';
+import { type ExpenseCategory, splitExpenseTotals } from '@motovault/types';
 import * as Sentry from '@sentry/react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -417,6 +417,16 @@ export default function ExpenseDashboardScreen() {
 
   const costPerUnit =
     mileageNum != null && mileageNum > 0 ? dashboard.allTimeTotal / mileageNum : null;
+
+  // What the machine kept vs what riding used up. Deliberately reads
+  // `dashboard.categoryTotals` (all-time, straight from the RPC) and NOT the
+  // `categoryTotals` in scope above, which useDashboardData narrows to the
+  // selected period — this sits inside the all-time cost-of-ownership card, so a
+  // period-scoped split would not add up to the total printed above it.
+  const { invested, consumed } = splitExpenseTotals(
+    dashboard.categoryTotals ?? [],
+    purchasePrice ?? 0,
+  );
   const unitLabel = mileageUnit === 'km' ? 'COST/KM' : 'COST/MI';
 
   const periodContextLabel =
@@ -710,6 +720,66 @@ export default function ExpenseDashboardScreen() {
                   }}
                 >
                   {formatAgg(dashboard.allTimeTotal)}
+                </Text>
+              </View>
+            </View>
+            {/* What the bike keeps vs what riding burns. Riders selling a bike
+                need the first number, and fuel is not in it — the two sum back
+                to the total of ownership above, so nothing is hidden. */}
+            <View
+              style={{
+                height: 1,
+                backgroundColor: theme.line,
+                marginVertical: 12,
+              }}
+            />
+            <View style={{ flexDirection: 'row', gap: 16 }}>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 10,
+                    fontWeight: '700',
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                    color: theme.ink3,
+                  }}
+                >
+                  {t('expenses.investedInBike')}
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: 'InstrumentSerif-Regular',
+                    fontSize: 18,
+                    color: theme.ink,
+                    fontVariant: ['tabular-nums'],
+                    marginTop: 4,
+                  }}
+                >
+                  {formatAgg(invested)}
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 10,
+                    fontWeight: '700',
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                    color: theme.ink3,
+                  }}
+                >
+                  {t('expenses.costOfRiding')}
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: 'InstrumentSerif-Regular',
+                    fontSize: 18,
+                    color: theme.ink,
+                    fontVariant: ['tabular-nums'],
+                    marginTop: 4,
+                  }}
+                >
+                  {formatAgg(consumed)}
                 </Text>
               </View>
             </View>

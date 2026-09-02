@@ -1483,6 +1483,8 @@
     "totalCostOfOwnership": "CAŁKOWITY KOSZT POSIADANIA",
     "bikePurchase": "Zakup motocykla",
     "allExpenses": "Wszystkie wydatki",
+    "investedInBike": "Zainwestowane w Motocykl",
+    "costOfRiding": "Koszt Jazdy",
     "addPurchasePriceHint": "Dodaj cenę zakupu motocykla w Edytuj motocykl, aby zobaczyć całkowity koszt posiadania",
     "byCategory": "Wg kategorii",
     "monthlyTrend": "Trend miesięczny",

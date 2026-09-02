@@ -1442,6 +1442,8 @@
     "totalCostOfOwnership": "COÛT TOTAL DE POSSESSION",
     "bikePurchase": "Achat de la moto",
     "allExpenses": "Toutes les dépenses",
+    "investedInBike": "Investi dans la Moto",
+    "costOfRiding": "Coût d'Utilisation",
     "addPurchasePriceHint": "Ajoute le prix d'achat de ta moto dans Modifier la moto pour voir le coût total de possession",
     "byCategory": "Par catégorie",
     "monthlyTrend": "Tendance mensuelle",

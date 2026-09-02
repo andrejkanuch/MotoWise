@@ -1487,6 +1487,8 @@
     "totalCostOfOwnership": "TOTAL COST OF OWNERSHIP",
     "bikePurchase": "Bike Purchase",
     "allExpenses": "All Expenses",
+    "investedInBike": "Invested in Bike",
+    "costOfRiding": "Cost of Riding",
     "addPurchasePriceHint": "Add your bike's purchase price in Edit Bike to see total cost of ownership",
     "byCategory": "By category",
     "monthlyTrend": "Monthly trend",

@@ -1481,6 +1481,8 @@
     "totalCostOfOwnership": "ต้นทุนการเป็นเจ้าของทั้งหมด",
     "bikePurchase": "การซื้อรถ",
     "allExpenses": "ค่าใช้จ่ายทั้งหมด",
+    "investedInBike": "ลงทุนในรถ",
+    "costOfRiding": "ค่าใช้จ่ายในการขับขี่",
     "addPurchasePriceHint": "เพิ่มราคาซื้อรถของคุณในแก้ไขมอเตอร์ไซค์เพื่อดูต้นทุนการเป็นเจ้าของทั้งหมด",
     "byCategory": "ตามหมวดหมู่",
     "monthlyTrend": "แนวโน้มรายเดือน",

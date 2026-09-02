@@ -1483,6 +1483,8 @@
     "totalCostOfOwnership": "CELKOVÉ NÁKLADY NA VLASTNÍCTVO",
     "bikePurchase": "Kúpa motorky",
     "allExpenses": "Všetky výdavky",
+    "investedInBike": "Investované do Motorky",
+    "costOfRiding": "Náklady na Jazdu",
     "addPurchasePriceHint": "Pridaj kúpnu cenu motorky v Upraviť motorku, aby si videl celkové náklady na vlastníctvo",
     "byCategory": "Podľa kategórie",
     "monthlyTrend": "Mesačný trend",
