@@ -114,11 +114,28 @@ export interface UnwrapContext<T> {
  * PostgREST code lands on the event as a chained exception instead of being
  * visible only in the Render logs. Grouping is unaffected — Sentry groups on the
  * top-level exception, so no existing issue splits.
+ *
+ * `details` and `hint` deliberately do NOT go here. LinkedErrors walks a chain of
+ * **Errors**, so hanging a plain `{ details, hint }` object off this Error's own
+ * `cause` terminates the chain and serializes nowhere — the two most diagnostic
+ * PostgREST fields would be collected and silently dropped. They belong on the log
+ * line instead (see `pgDetail`), which is also the safer home: `instrument.ts` sets
+ * `sendDefaultPii: false`, and PostgREST `details` can echo the offending row.
  */
-const toCause = (error: PostgrestError): Error =>
-  new Error(`${error.code}: ${error.message}`, {
-    cause: { details: error.details, hint: error.hint },
-  });
+const toCause = (error: PostgrestError): Error => new Error(`${error.code}: ${error.message}`);
+
+/**
+ * Renders `details`/`hint` for a log line, omitting whichever PostgREST left empty
+ * (both are frequently `''` or null, and ` details=null` in every log line is noise
+ * that trains you to stop reading the tail). Returns `''` when neither is present.
+ */
+const pgDetail = (error: PostgrestError): string => {
+  const parts = [
+    error.details ? `details=${error.details}` : null,
+    error.hint ? `hint=${error.hint}` : null,
+  ].filter(Boolean);
+  return parts.length > 0 ? ` [${parts.join(', ')}]` : '';
+};
 
 /**
  * Unwraps a Supabase `{ data, error }` result, mapping known Postgres error
@@ -132,7 +149,8 @@ const toCause = (error: PostgrestError): Error =>
  *   `ctx.error` (default `InternalServerErrorException`)
  * - success → returns `data`
  *
- * Every thrown exception carries the Postgres error as `cause`.
+ * Every thrown exception carries the Postgres error as `cause`. Both log lines
+ * append ` [details=…, hint=…]` when PostgREST supplied either.
  */
 export function unwrap<T>(result: SupabaseResult<T>, ctx: UnwrapContext<T>): T {
   const { error } = result;
@@ -154,11 +172,15 @@ export function unwrap<T>(result: SupabaseResult<T>, ctx: UnwrapContext<T>): T {
     // branch: a caller asking for `BadRequestException` cannot know the token is
     // the problem, and answering 400 would strand the client without a refresh.
     if (isPostgrestAuthError(error)) {
-      ctx.logger.warn(`[${ctx.op}] token rejected by PostgREST: ${error.message} (${error.code})`);
+      ctx.logger.warn(
+        `[${ctx.op}] token rejected by PostgREST: ${error.message} (${error.code})${pgDetail(error)}`,
+      );
       throw new UnauthorizedException(TOKEN_REJECTED_MESSAGE, { cause: toCause(error) });
     }
 
-    ctx.logger.error(`[${ctx.op}] ${ctx.message}: ${error.message} (${error.code})`);
+    ctx.logger.error(
+      `[${ctx.op}] ${ctx.message}: ${error.message} (${error.code})${pgDetail(error)}`,
+    );
     const ExceptionCtor = ctx.error ?? InternalServerErrorException;
     throw new ExceptionCtor(ctx.message, { cause: toCause(error) });
   }

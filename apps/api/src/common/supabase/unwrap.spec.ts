@@ -103,6 +103,85 @@ describe('unwrap', () => {
     }
   });
 
+  describe('details and hint', () => {
+    const withDetail = (details: string, hint: string): PostgrestError =>
+      ({
+        code: 'XXYYZ',
+        message: 'boom',
+        details,
+        hint,
+        name: 'PostgrestError',
+      }) as PostgrestError;
+
+    it('puts details and hint on the log line, where they can actually be read', () => {
+      // They used to be hung off the cause Error's own `cause` as a plain object.
+      // LinkedErrors walks a chain of *Errors*, so a plain object terminates the
+      // chain: both fields were collected and then serialized nowhere, while
+      // neither log line printed them either.
+      expect(() =>
+        unwrap(
+          { data: null, error: withDetail('Key (user_id)=(u1) is not present', 'check the FK') },
+          { logger, op: 'getThing', message: 'Failed to load thing' },
+        ),
+      ).toThrow(InternalServerErrorException);
+      expect(logger.error).toHaveBeenCalledWith(
+        '[getThing] Failed to load thing: boom (XXYYZ) [details=Key (user_id)=(u1) is not present, hint=check the FK]',
+      );
+    });
+
+    it('keeps details and hint off the exception cause', () => {
+      // instrument.ts sets sendDefaultPii: false and PostgREST `details` can echo
+      // the offending row, so the cause stays code + message only.
+      try {
+        unwrap(
+          { data: null, error: withDetail('user_id=(u1)', 'check the FK') },
+          { logger, op: 'getThing', message: 'Failed to load thing' },
+        );
+        expect.unreachable('unwrap should have thrown');
+      } catch (err) {
+        const cause = (err as Error).cause as Error;
+        expect(cause.message).toBe('XXYYZ: boom');
+        expect(cause.cause).toBeUndefined();
+      }
+    });
+
+    it('omits whichever of the two PostgREST left empty', () => {
+      expect(() =>
+        unwrap(
+          { data: null, error: withDetail('', 'check the FK') },
+          { logger, op: 'getThing', message: 'Failed to load thing' },
+        ),
+      ).toThrow(InternalServerErrorException);
+      expect(logger.error).toHaveBeenCalledWith(
+        '[getThing] Failed to load thing: boom (XXYYZ) [hint=check the FK]',
+      );
+    });
+
+    it('adds no bracket at all when PostgREST supplied neither', () => {
+      // ` [details=null, hint=null]` on every line is noise that trains you to
+      // stop reading the tail, which is where the useful part lives.
+      expect(() =>
+        unwrap(
+          { data: null, error: makeError('XXYYZ', 'boom') },
+          { logger, op: 'getThing', message: 'Failed to load thing' },
+        ),
+      ).toThrow(InternalServerErrorException);
+      expect(logger.error).toHaveBeenCalledWith('[getThing] Failed to load thing: boom (XXYYZ)');
+    });
+
+    it('appends them to the token-rejection warn line too', () => {
+      expect(() =>
+        unwrap(
+          { data: null, error: { ...withDetail('', 'refresh the session'), code: 'PGRST303' } },
+          { logger, op: 'myRides', message: 'Failed to fetch rides' },
+        ),
+      ).toThrow(UnauthorizedException);
+      expect(logger.warn).toHaveBeenCalledWith(
+        '[myRides] token rejected by PostgREST: boom (PGRST303) [hint=refresh the session]',
+      );
+    });
+  });
+
   it('throws the provided exception class on a generic error', () => {
     expect(() =>
       unwrap(
