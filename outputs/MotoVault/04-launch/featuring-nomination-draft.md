@@ -26,7 +26,7 @@ line.
 
 ## The submitted text (935 chars, verbatim)
 
-```
+```text
 MotoVault is a motorcycle ownership app: expenses, service history, rides and trip planning.
 
 We are writing about CarPlay. Apple granted us the Driving Task entitlement (Case-ID 20710293), and we used it for something a rider cannot do with a phone in a pocket. On the head unit MotoVault shows a live ride panel that starts, pauses and ends the ride from the dash, and auto-pauses when the bike stops.
