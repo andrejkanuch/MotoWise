@@ -131,9 +131,16 @@ export function isInvestmentCategory(category: string): boolean {
  * cost.
  *
  * Takes the dashboard's `categoryTotals`, which is already all-time and sums to
- * `allTimeTotal`, so `invested + consumed === allTimeTotal` by construction.
- * `purchasePrice` is part of the investment because it is the largest sum the
- * machine actually carries.
+ * `allTimeTotal`. Every category lands in exactly one bucket, so the two parts
+ * always reconcile — but against `purchasePrice + allTimeTotal`, not
+ * `allTimeTotal` alone:
+ *
+ *   invested + consumed === purchasePrice + allTimeTotal
+ *
+ * `invested` is seeded with `purchasePrice` because that is the largest sum the
+ * machine actually carries, and it is not an expense row, so it is not in
+ * `categoryTotals` and not in `allTimeTotal`. Call with the default
+ * `purchasePrice = 0` and the identity collapses to `allTimeTotal`.
  */
 export function splitExpenseTotals(
   categoryTotals: readonly { category: string; total: number }[],
