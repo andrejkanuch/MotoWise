@@ -17,7 +17,16 @@ interface TripCardProps {
  * it falls through to the trip-by-id page, which 404s any non-UUID segment.
  */
 export function TripCard({ country, region, slug, name }: TripCardProps) {
-  const displayName = name || slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  // ~28 canonical trip slugs carry an 8-hex dedup suffix (`furka-pass-6625deaf`),
+  // so strip it before humanizing: without this the `name`-less fallback renders
+  // "Furka Pass 6625Deaf". Every current card passes an explicit `name`; this
+  // keeps the fallback usable for the next one that does not.
+  const displayName =
+    name ||
+    slug
+      .replace(/-[0-9a-f]{8}$/, '')
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
     <Link
