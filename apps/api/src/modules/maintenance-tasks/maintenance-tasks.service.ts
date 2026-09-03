@@ -413,6 +413,9 @@ export class MaintenanceTasksService {
       this.logger.error(`softDelete failed: ${error.message} (${error.code})`);
       throw new InternalServerErrorException('Failed to delete maintenance task');
     }
+    // Since 00176 the RPC answers "is it deleted and yours", so an
+    // already-deleted task returns true and a duplicate tap no longer 404s.
+    // `false` now means only "no task of yours by that id".
     if (data === false) {
       throw new NotFoundException('Maintenance task not found');
     }

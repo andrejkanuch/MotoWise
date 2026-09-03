@@ -173,9 +173,12 @@ export class MotorcyclesService {
       this.logger.error(`softDelete failed: ${error.message} (${error.code}) ${error.details}`);
       throw new InternalServerErrorException('Failed to delete motorcycle');
     }
+    // Since 00176 the RPC answers "is it deleted and yours", so an
+    // already-deleted bike returns true and a duplicate tap no longer 400s.
+    // `false` now means only "no motorcycle of yours by that id".
     if (data === false) {
       this.logger.warn(`softDelete: no matching motorcycle found for userId=${userId}`);
-      throw new BadRequestException('Motorcycle not found or already deleted');
+      throw new BadRequestException('Motorcycle not found');
     }
     this.logger.log(`softDelete success: motorcycleId=${motorcycleId}`);
     return true;

@@ -195,20 +195,33 @@ export class ExpensesService {
   async softDelete(userId: string, id: string): Promise<boolean> {
     this.logger.log(`softDelete: userId=${userId}, expenseId=${id}`);
 
-    // `.maybeSingle()` (not `.single()`): a 0-row result must NOT be an error.
-    // Deleting is idempotent — if the update matches no live row the expense is
-    // already gone (already soft-deleted, missing, or not owned), which is
-    // exactly the caller's intent. `.single()` here threw PGRST116 on every
-    // double-tap / stale-list / retry, surfacing a BAD_REQUEST to the client
-    // (MOTO-VAULT-REACT-NATIVE-1J: ~877 events, 10 users).
-    const { data, error } = await this.supabase
-      .from('expenses')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id)
-      .eq('user_id', userId)
-      .is('deleted_at', null)
-      .select('id')
-      .maybeSingle();
+    // Goes through soft_delete_expense (00176), NOT a direct UPDATE, because a
+    // direct UPDATE cannot work here at all. `Users read own expenses` is
+    // `USING (auth.uid() = user_id AND deleted_at IS NULL)`, and PostgreSQL
+    // applies SELECT policies to the NEW row of an UPDATE whenever the
+    // statement reads table columns — a WHERE clause is already enough, so
+    // every real soft delete qualifies. Stamping deleted_at therefore makes
+    // the row invisible to that policy and the statement is rejected with
+    // 42501 "new row violates row-level security policy". The table's own
+    // UPDATE policy passes; the SELECT policy is what rejects it, which is why
+    // 00053 relaxing the UPDATE WITH CHECK changed nothing. Expense deletion
+    // failed for EVERY rider, not an unlucky few (MOTO-VAULT-REACT-NATIVE-1M:
+    // 418 events, 14 users — that count is people tapping Delete over and over).
+    //
+    // The RPC is SECURITY DEFINER, so the SELECT policy does not apply to it,
+    // and it pins `user_id = auth.uid()` internally — ownership stays in the
+    // database rather than moving into an app-layer filter, which is what using
+    // the service-role client here would have cost. See
+    // docs/solutions/architecture/soft-delete-rejected-by-select-rls-policy.md.
+    //
+    // Returns true when the expense is deleted AND the caller's, including when
+    // it was already deleted. That idempotence is deliberate: double-taps,
+    // stale lists and sync retries all mean "make this gone", and the earlier
+    // `.single()` treated them as PGRST116 errors (MOTO-VAULT-REACT-NATIVE-1J:
+    // ~877 events, 10 users).
+    const { data, error } = await this.supabase.rpc('soft_delete_expense', {
+      expense_id: id,
+    });
 
     if (error) {
       this.logger.error(
@@ -217,18 +230,19 @@ export class ExpensesService {
       throw new BadRequestException('Failed to delete expense');
     }
 
-    // No live row flipped this call — nothing to purge. Return success so the
-    // client treats an already-gone expense as deleted (idempotent).
-    if (!data) {
-      this.logger.log(
-        `softDelete: no live expense matched id=${id} (already gone) — idempotent OK`,
-      );
+    // No expense of theirs by that id. Report success anyway — the caller's
+    // intent ("this should be gone") already holds, and saying otherwise would
+    // also confirm whether an id exists on someone else's account.
+    if (data === false) {
+      this.logger.log(`softDelete: no expense matched id=${id} for this user — idempotent OK`);
       return true;
     }
 
     // R5/R10: a soft-deleted expense's private receipt objects must be purged
     // from storage (not just left behind an orphaned link row). Legacy public
-    // photos are unaffected — the public bucket has its own lifecycle.
+    // photos are unaffected — the public bucket has its own lifecycle. Safe to
+    // re-run on an already-deleted expense: the link rows are gone, so it
+    // no-ops, and it reclaims anything a previous failed purge left behind.
     await this.purgeReceiptsPhotos(userId, id);
     return true;
   }

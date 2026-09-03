@@ -584,41 +584,35 @@ export class RidesService {
   async deleteRide(userId: string, id: string): Promise<boolean> {
     this.logger.log(`deleteRide: userId=${userId}, rideId=${id}`);
 
-    // Uses supabaseAdmin because the soft-delete UPDATE sets deleted_at,
-    // which makes the new row invisible to SELECT RLS policies
-    // (they require deleted_at IS NULL). PostgreSQL rejects the UPDATE
-    // when the new row fails SELECT visibility — even though the UPDATE
-    // WITH CHECK passes. Ownership is enforced via .eq('user_id', userId)
-    // where userId comes from the authenticated JWT.
-    const { data, error } = await this.supabaseAdmin
-      .from('rides')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id)
-      .eq('user_id', userId)
-      .is('deleted_at', null)
-      .select('id')
-      .single();
+    // Goes through soft_delete_ride (00176) rather than a direct UPDATE. A
+    // soft delete sets deleted_at, which makes the new row fail the
+    // `deleted_at IS NULL` SELECT policy, and PostgreSQL applies SELECT
+    // policies to the new row of an UPDATE whenever the statement reads table
+    // columns — a WHERE clause is enough — so the statement is rejected
+    // outright even though the UPDATE WITH CHECK passes. This used to be worked
+    // around with supabaseAdmin, which bypasses RLS wholesale and moved the
+    // ownership check into `.eq('user_id', userId)` here. The RPC is SECURITY
+    // DEFINER instead: the SELECT policy does not apply to it, and it pins
+    // `user_id = auth.uid()` internally, so ownership stays in the database.
+    // See docs/solutions/architecture/soft-delete-rejected-by-select-rls-policy.md.
+    //
+    // It also folds in the already-deleted check that previously needed a
+    // second admin round trip: `true` means the ride is deleted and theirs,
+    // whether this call did it or a duplicate tap / sync-queue retry already
+    // had.
+    const { data, error } = await this.supabase.rpc('soft_delete_ride', { ride_id: id });
 
-    if (data) return true;
-
-    // Idempotent: if the ride is already soft-deleted, treat as success
-    // (sync queue retries, duplicate taps, etc.)
-    if (error?.code === PG_ERROR.NOT_FOUND) {
-      const { count } = await this.supabaseAdmin
-        .from('rides')
-        .select('id', { count: 'exact', head: true })
-        .eq('id', id)
-        .eq('user_id', userId)
-        .not('deleted_at', 'is', null);
-
-      if (count && count > 0) {
-        this.logger.log(`deleteRide: ride ${id} already deleted — idempotent success`);
-        return true;
-      }
+    if (error) {
+      this.logger.error(`deleteRide failed: ${error.message} (${error.code})`);
+      throw new InternalServerErrorException('Failed to delete ride');
     }
 
-    this.logger.error(`deleteRide failed: ${error?.message} (${error?.code})`);
-    throw new NotFoundException('Ride not found');
+    if (data === false) {
+      this.logger.warn(`deleteRide: no ride matched id=${id} for this user`);
+      throw new NotFoundException('Ride not found');
+    }
+
+    return true;
   }
 
   // ==========================================

@@ -250,40 +250,68 @@ describe('ExpensesService', () => {
   // softDelete
   // ---------------------------------------------------------------------------
   describe('softDelete', () => {
-    it('sets deleted_at and scopes by user_id, returns true', async () => {
-      mock.chain.maybeSingle.mockResolvedValueOnce({
-        data: { id: 'exp-1' },
-        error: null,
-      });
+    it('deletes through the soft_delete_expense RPC and returns true', async () => {
+      mock.rpc.mockResolvedValueOnce({ data: true, error: null });
 
       const result = await service.softDelete('u1', 'exp-1');
 
       expect(result).toBe(true);
-      expect(mock.from).toHaveBeenCalledWith('expenses');
-      expect(mock.chain.update).toHaveBeenCalledWith({
-        deleted_at: expect.any(String),
-      });
-      expect(mock.chain.eq).toHaveBeenCalledWith('id', 'exp-1');
-      expect(mock.chain.eq).toHaveBeenCalledWith('user_id', 'u1');
-      // Locks in the `deleted_at IS NULL` guard: without it a re-delete would
-      // re-flip deleted_at to a fresh timestamp and re-run the receipts purge,
-      // silently degrading the "already gone" idempotent semantics.
-      expect(mock.chain.is).toHaveBeenCalledWith('deleted_at', null);
+      expect(mock.rpc).toHaveBeenCalledWith('soft_delete_expense', { expense_id: 'exp-1' });
     });
 
-    it('returns true idempotently when no live row matches (already gone)', async () => {
-      // A double-tap / stale-list / retry deleting an already-soft-deleted,
-      // missing, or non-owned expense matches 0 rows. `.maybeSingle()` returns
-      // { data: null, error: null } — the caller's intent ("this is gone") is
-      // already satisfied, so we return true instead of throwing BAD_REQUEST
-      // (regression guard for MOTO-VAULT-REACT-NATIVE-1J).
-      mock.chain.maybeSingle.mockResolvedValueOnce({ data: null, error: null });
+    it('never issues a direct UPDATE against expenses', async () => {
+      // Regression guard for MOTO-VAULT-REACT-NATIVE-1M. A direct UPDATE cannot
+      // work here on ANY client: `Users read own expenses` is
+      // `USING (auth.uid() = user_id AND deleted_at IS NULL)`, PostgreSQL
+      // applies SELECT policies to the NEW row of an UPDATE whenever the
+      // statement reads table columns (a WHERE clause does it), and stamping
+      // deleted_at makes that row invisible — 42501, for every rider, not a
+      // subset. Rewriting this back into a `.update()` re-breaks deletion
+      // entirely, whichever client it is issued on, so the assertion covers
+      // both.
+      mock.rpc.mockResolvedValueOnce({ data: true, error: null });
+
+      await service.softDelete('u1', 'exp-1');
+
+      expect(mock.chain.update).not.toHaveBeenCalled();
+      expect(adminMock.chain.update).not.toHaveBeenCalled();
+    });
+
+    it('uses the user client, so RLS still applies to the call', async () => {
+      // The RPC is SECURITY DEFINER and pins user_id = auth.uid() internally.
+      // That only holds if it is invoked with the caller's JWT — on the
+      // service-role client auth.uid() is null and the function would refuse
+      // every delete. Ownership lives in the database precisely because this
+      // call is NOT made as admin.
+      mock.rpc.mockResolvedValueOnce({ data: true, error: null });
+
+      await service.softDelete('u1', 'exp-1');
+
+      expect(mock.rpc).toHaveBeenCalled();
+      expect(adminMock.rpc).not.toHaveBeenCalled();
+    });
+
+    it('returns true idempotently when the user has no such expense', async () => {
+      // A double-tap / stale-list / retry against an already-deleted, missing,
+      // or non-owned expense returns false from the RPC. The caller's intent
+      // ("this is gone") already holds, so we return true rather than throwing
+      // BAD_REQUEST (regression guard for MOTO-VAULT-REACT-NATIVE-1J), and we
+      // avoid confirming whether the id exists on another account.
+      mock.rpc.mockResolvedValueOnce({ data: false, error: null });
 
       await expect(service.softDelete('u1', 'exp-1')).resolves.toBe(true);
     });
 
+    it('skips the receipts purge when nothing of theirs matched', async () => {
+      mock.rpc.mockResolvedValueOnce({ data: false, error: null });
+
+      await service.softDelete('u1', 'exp-1');
+
+      expect(adminMock.storage.from).not.toHaveBeenCalled();
+    });
+
     it('throws BadRequestException on a genuine DB error', async () => {
-      mock.chain.maybeSingle.mockResolvedValueOnce({
+      mock.rpc.mockResolvedValueOnce({
         data: null,
         error: { message: 'connection reset', code: '08006' },
       });
@@ -497,8 +525,10 @@ describe('ExpensesService', () => {
   // ---------------------------------------------------------------------------
   describe('softDelete receipts purge', () => {
     it('removes the receipts storage object when the expense had one', async () => {
-      // The soft-delete update resolves via .maybeSingle().
-      mock.chain.maybeSingle.mockResolvedValueOnce({ data: { id: 'e1' }, error: null });
+      // The delete itself resolves through the soft_delete_expense RPC (the RLS
+      // footgun — see the softDelete suite); the purge that follows still reads
+      // expense_photos through the user client.
+      mock.rpc.mockResolvedValueOnce({ data: true, error: null });
       // The purge SELECT terminates on .eq('bucket', 'receipts') — resolve it.
       mock.chain.eq.mockImplementation((col: string) =>
         col === 'bucket'
