@@ -593,7 +593,8 @@ describe('RidesService', () => {
 
     it('should never issue a direct UPDATE against rides', async () => {
       // A direct UPDATE cannot work: the `deleted_at IS NULL` SELECT policy is
-      // applied to the new row, so stamping deleted_at gets the statement
+      // applied to the new row whenever the statement reads table columns (the
+      // WHERE clause alone does it), so stamping deleted_at gets the statement
       // rejected with 42501. That is why this used to need supabaseAdmin, and
       // why 00176 moved it into a SECURITY DEFINER RPC instead — the ownership
       // check stays in the database rather than in an app-layer filter.

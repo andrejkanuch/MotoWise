@@ -6,9 +6,11 @@
 -- THE BUG THIS CLOSES
 -- Every table here has a SELECT policy shaped
 --   USING (auth.uid() = user_id AND deleted_at IS NULL)
--- and PostgreSQL applies SELECT policies to the NEW row of an UPDATE. Stamping
--- deleted_at therefore makes the row invisible to that policy and the statement
--- is rejected outright:
+-- and PostgreSQL applies SELECT policies to the NEW row of an UPDATE whenever
+-- the statement needs read access to table columns -- a WHERE clause, a
+-- RETURNING clause, or a Supabase `.select()`, which every real soft delete has.
+-- Stamping deleted_at therefore makes the row invisible to that policy and the
+-- statement is rejected outright:
 --   42501 new row violates row-level security policy for table "<t>"
 -- The table's own UPDATE policy passes; it is the SELECT policy doing the
 -- rejecting, which is why 00053's attempt to fix expenses by relaxing the UPDATE
@@ -45,6 +47,27 @@
 -- 00027 predate that hardening and are re-created here to pick it up; every
 -- reference inside is already schema-qualified, so pinning it changes nothing
 -- else.
+--
+-- REVOKE ... FROM PUBLIC, anon on all four. Two separate default grants have to
+-- go, and revoking only the first is the trap:
+--   1. PostgreSQL grants EXECUTE to PUBLIC on every new function, and privileges
+--      are additive, so GRANT ... TO authenticated does not take it away.
+--   2. This database also carries `ALTER DEFAULT PRIVILEGES ... IN SCHEMA public
+--      GRANT EXECUTE ON FUNCTIONS TO anon, authenticated, service_role` (the
+--      Supabase default, visible in pg_default_acl). That is an *explicit* anon
+--      grant, so `REVOKE ... FROM PUBLIC` alone does not remove it -- verified
+--      against this database: a probe function revoked only FROM PUBLIC is still
+--      executable after `SET LOCAL role anon`, and stops being executable once
+--      anon is named in the REVOKE.
+-- Naming anon is therefore what actually closes the grant, and it also clears the
+-- one 00027 left on the two re-created functions (CREATE OR REPLACE keeps a
+-- function's existing ACL, so replacing them does not reset it).
+--
+-- This is defence in depth rather than a live hole: the `auth.uid() IS NULL`
+-- guard already makes an anon call return false and delete nothing. service_role
+-- keeps its grant -- the same guard makes the function refuse it, and RLS-bypass
+-- roles gain nothing from it. REVOKE and GRANT sit in the same transaction as the
+-- functions, so there is no window where they are executable by everyone.
 --
 -- DEPLOY ORDER: apply this migration BEFORE the API that calls the two new
 -- functions. Until it lands, expense/ride deletes fail as they already do.
@@ -83,6 +106,7 @@ BEGIN
 END;
 $$;
 
+REVOKE EXECUTE ON FUNCTION public.soft_delete_expense(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.soft_delete_expense(uuid) TO authenticated;
 
 -- Rides -- new. Replaces the supabaseAdmin bypass in rides.deleteRide, including
@@ -118,6 +142,7 @@ BEGIN
 END;
 $$;
 
+REVOKE EXECUTE ON FUNCTION public.soft_delete_ride(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.soft_delete_ride(uuid) TO authenticated;
 
 -- Motorcycles -- re-created from 00027 for the pinned search_path and the
@@ -152,6 +177,7 @@ BEGIN
 END;
 $$;
 
+REVOKE EXECUTE ON FUNCTION public.soft_delete_motorcycle(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.soft_delete_motorcycle(uuid) TO authenticated;
 
 -- Maintenance tasks -- same treatment.
@@ -185,6 +211,7 @@ BEGIN
 END;
 $$;
 
+REVOKE EXECUTE ON FUNCTION public.soft_delete_maintenance_task(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.soft_delete_maintenance_task(uuid) TO authenticated;
 
 COMMENT ON FUNCTION public.soft_delete_expense(uuid) IS

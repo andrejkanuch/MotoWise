@@ -263,7 +263,8 @@ describe('ExpensesService', () => {
       // Regression guard for MOTO-VAULT-REACT-NATIVE-1M. A direct UPDATE cannot
       // work here on ANY client: `Users read own expenses` is
       // `USING (auth.uid() = user_id AND deleted_at IS NULL)`, PostgreSQL
-      // applies SELECT policies to the NEW row of an UPDATE, and stamping
+      // applies SELECT policies to the NEW row of an UPDATE whenever the
+      // statement reads table columns (a WHERE clause does it), and stamping
       // deleted_at makes that row invisible — 42501, for every rider, not a
       // subset. Rewriting this back into a `.update()` re-breaks deletion
       // entirely, whichever client it is issued on, so the assertion covers

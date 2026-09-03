@@ -198,8 +198,10 @@ export class ExpensesService {
     // Goes through soft_delete_expense (00176), NOT a direct UPDATE, because a
     // direct UPDATE cannot work here at all. `Users read own expenses` is
     // `USING (auth.uid() = user_id AND deleted_at IS NULL)`, and PostgreSQL
-    // applies SELECT policies to the NEW row of an UPDATE — so stamping
-    // deleted_at makes the row invisible and the statement is rejected with
+    // applies SELECT policies to the NEW row of an UPDATE whenever the
+    // statement reads table columns — a WHERE clause is already enough, so
+    // every real soft delete qualifies. Stamping deleted_at therefore makes
+    // the row invisible to that policy and the statement is rejected with
     // 42501 "new row violates row-level security policy". The table's own
     // UPDATE policy passes; the SELECT policy is what rejects it, which is why
     // 00053 relaxing the UPDATE WITH CHECK changed nothing. Expense deletion

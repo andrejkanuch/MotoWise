@@ -587,7 +587,8 @@ export class RidesService {
     // Goes through soft_delete_ride (00176) rather than a direct UPDATE. A
     // soft delete sets deleted_at, which makes the new row fail the
     // `deleted_at IS NULL` SELECT policy, and PostgreSQL applies SELECT
-    // policies to the new row of an UPDATE — so the statement is rejected
+    // policies to the new row of an UPDATE whenever the statement reads table
+    // columns — a WHERE clause is enough — so the statement is rejected
     // outright even though the UPDATE WITH CHECK passes. This used to be worked
     // around with supabaseAdmin, which bypasses RLS wholesale and moved the
     // ownership check into `.eq('user_id', userId)` here. The RPC is SECURITY
