@@ -1,6 +1,9 @@
 import Link from 'next/link';
+import { relativeTrip } from '@/lib/seo/canonical';
 
 interface TripCardProps {
+  country: string;
+  region: string;
   slug: string;
   name?: string;
 }
@@ -8,13 +11,17 @@ interface TripCardProps {
 /**
  * A styled link card for embedding trip references in MDX guides.
  * Renders as a static link — no GraphQL calls during MDX compilation.
+ *
+ * The href must be the canonical three-segment trip path
+ * (/trips/{country}/{region}/{slug}). A one-segment /trips/{slug} has no route:
+ * it falls through to the trip-by-id page, which 404s any non-UUID segment.
  */
-export function TripCard({ slug, name }: TripCardProps) {
+export function TripCard({ country, region, slug, name }: TripCardProps) {
   const displayName = name || slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
     <Link
-      href={`/trips/${slug}`}
+      href={relativeTrip(country, region, slug)}
       className="my-4 flex items-center gap-3 rounded-xl border border-neutral-800 bg-neutral-900/60 p-4 transition-colors hover:border-amber-500/40 hover:bg-neutral-900/80"
     >
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-lg">
