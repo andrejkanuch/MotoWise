@@ -70,7 +70,19 @@
 -- functions, so there is no window where they are executable by everyone.
 --
 -- DEPLOY ORDER: apply this migration BEFORE the API that calls the two new
--- functions. Until it lands, expense/ride deletes fail as they already do.
+-- functions. Render auto-deploys apps/api on merge to main, so that window opens
+-- by itself and only a human closes it.
+--
+-- The two sides of the window are NOT symmetric, and the asymmetry is the reason
+-- to care:
+--   expenses -- deletion is already 100% broken in production, so an API that
+--     cannot find soft_delete_expense yet is no worse than today. No regression.
+--   rides    -- deletion currently WORKS. It goes through supabaseAdmin, and
+--     service_role bypasses RLS, so the direct UPDATE lands. An API deployed
+--     ahead of this migration calls a function that does not exist, PostgREST
+--     answers with an error, and deleteRide raises a 500. Ride deletion
+--     regresses from working to broken for the length of the window.
+-- So: `npx supabase db push` first, then merge. Not the other way around.
 
 BEGIN;
 
