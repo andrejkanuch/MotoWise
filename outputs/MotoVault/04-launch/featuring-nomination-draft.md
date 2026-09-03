@@ -10,7 +10,7 @@ beforehand.
 
 Not documented in the CLI help; the API rejects a longer body with
 `A parameter has an invalid value: The maximum allowable limit is '1000'`. The
-drafted pitch below was **1,677 characters** and had to be cut to **935**. If you
+drafted pitch below was **1,670 characters** and had to be cut to **935**. If you
 write another nomination, write to 1,000 from the start.
 
 What was cut, in priority order (the hook was never at risk):
@@ -89,11 +89,11 @@ vehicle.
 > no number. Ending a ride asks for confirmation with "Keep Riding" as the first option,
 > since the one thing a rider should never do is hunt for a button.
 >
-> One of those rows is not a number at all. It carries whatever the rider most needs to
+> The row we are proudest of is the fourth. It carries whatever the rider most needs to
 > know about the bike they are on, in priority order: an open safety recall first, then
 > overdue service, then anything due soon. A rider can set off on a Sunday morning and
 > learn from their dashboard that their machine has an unresolved factory recall. We have
-> not found another app that puts that on a head unit.
+> not seen another app put that on a head unit.
 >
 > Also new: receipt scanning. Point the camera at a fuel, parts or workshop receipt and
 > MotoVault reads the amount, the date and the work done, then fills the expense form in.
