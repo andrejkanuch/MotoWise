@@ -1441,6 +1441,8 @@
     "totalCostOfOwnership": "GESAMTKOSTEN",
     "bikePurchase": "Motorradkauf",
     "allExpenses": "Alle Ausgaben",
+    "investedInBike": "Ins Motorrad investiert",
+    "runningCosts": "Laufende Kosten",
     "addPurchasePriceHint": "Füge den Kaufpreis deines Motorrads unter „Motorrad bearbeiten“ hinzu, um die Gesamtkosten zu sehen",
     "byCategory": "Nach Kategorie",
     "monthlyTrend": "Monatlicher Trend",

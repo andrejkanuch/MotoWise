@@ -1481,6 +1481,8 @@
     "totalCostOfOwnership": "TOPLAM SAHİP OLMA MALİYETİ",
     "bikePurchase": "Motor Alımı",
     "allExpenses": "Tüm Harcamalar",
+    "investedInBike": "Motosiklete Yatırım",
+    "runningCosts": "İşletme Giderleri",
     "addPurchasePriceHint": "Toplam sahip olma maliyetini görmek için Motoru Düzenle'den motorunun alış fiyatını ekle",
     "byCategory": "Kategoriye göre",
     "monthlyTrend": "Aylık eğilim",

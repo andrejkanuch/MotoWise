@@ -1441,6 +1441,8 @@
     "totalCostOfOwnership": "総所有コスト",
     "bikePurchase": "バイク購入",
     "allExpenses": "すべての費用",
+    "investedInBike": "バイクへの投資",
+    "runningCosts": "維持費",
     "addPurchasePriceHint": "総所有コストを表示するには、バイクの編集で購入価格を追加してください",
     "byCategory": "カテゴリー別",
     "monthlyTrend": "月別の推移",

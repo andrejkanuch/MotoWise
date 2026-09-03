@@ -4,7 +4,7 @@ import {
   type ExpensesByMotorcycleQuery,
   MyMotorcyclesDocument,
 } from '@motovault/graphql';
-import type { ExpenseCategory } from '@motovault/types';
+import { type ExpenseCategory, splitExpenseTotals } from '@motovault/types';
 import * as Sentry from '@sentry/react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -58,6 +58,44 @@ const PERIOD_LABELS: Record<Period, string> = {
  * "I see the value" and "I logged my first expense".
  */
 const QUICK_ADD_CATEGORIES: ExpenseCategory[] = ['fuel', 'maintenance', 'insurance'];
+
+const STAT_LABEL_STYLE = {
+  fontSize: 10,
+  fontWeight: '700' as const,
+  letterSpacing: 1,
+  textTransform: 'uppercase' as const,
+};
+
+const STAT_VALUE_STYLE = {
+  fontFamily: 'InstrumentSerif-Regular',
+  fontSize: 18,
+  fontVariant: ['tabular-nums' as const],
+  marginTop: 4,
+};
+
+/**
+ * One label/value cell in the cost-of-ownership card. The card carries four of
+ * them across two rows (purchase + all expenses, then invested + cost of
+ * riding); inlining the styles four times is what the mobile "inline unless
+ * reused" rule stops covering. Mirrors LABEL_STYLE/VALUE_STYLE in
+ * components/bike-hub/bike-stats-row.tsx.
+ */
+function StatColumn({
+  theme,
+  label,
+  value,
+}: {
+  theme: ReturnType<typeof useEditorialTheme>['t'];
+  label: string;
+  value: string;
+}) {
+  return (
+    <View style={{ flex: 1 }}>
+      <Text style={{ ...STAT_LABEL_STYLE, color: theme.ink3 }}>{label}</Text>
+      <Text style={{ ...STAT_VALUE_STYLE, color: theme.ink }}>{value}</Text>
+    </View>
+  );
+}
 
 function EmptyState({ motorcycleId }: { motorcycleId: string }) {
   const { t } = useTranslation();
@@ -417,6 +455,16 @@ export default function ExpenseDashboardScreen() {
 
   const costPerUnit =
     mileageNum != null && mileageNum > 0 ? dashboard.allTimeTotal / mileageNum : null;
+
+  // What the machine kept vs what riding used up. Deliberately reads
+  // `dashboard.categoryTotals` (all-time, straight from the RPC) and NOT the
+  // `categoryTotals` in scope above, which useDashboardData narrows to the
+  // selected period — this sits inside the all-time cost-of-ownership card, so a
+  // period-scoped split would not add up to the total printed above it.
+  const { invested, consumed } = splitExpenseTotals(
+    dashboard.categoryTotals ?? [],
+    purchasePrice ?? 0,
+  );
   const unitLabel = mileageUnit === 'km' ? 'COST/KM' : 'COST/MI';
 
   const periodContextLabel =
@@ -664,54 +712,39 @@ export default function ExpenseDashboardScreen() {
               }}
             />
             <View style={{ flexDirection: 'row', gap: 16 }}>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontWeight: '700',
-                    letterSpacing: 1,
-                    textTransform: 'uppercase',
-                    color: theme.ink3,
-                  }}
-                >
-                  {t('expenses.bikePurchase')}
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: 'InstrumentSerif-Regular',
-                    fontSize: 18,
-                    color: theme.ink,
-                    fontVariant: ['tabular-nums'],
-                    marginTop: 4,
-                  }}
-                >
-                  {formatAgg(purchasePrice)}
-                </Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontWeight: '700',
-                    letterSpacing: 1,
-                    textTransform: 'uppercase',
-                    color: theme.ink3,
-                  }}
-                >
-                  {t('expenses.allExpenses')}
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: 'InstrumentSerif-Regular',
-                    fontSize: 18,
-                    color: theme.ink,
-                    fontVariant: ['tabular-nums'],
-                    marginTop: 4,
-                  }}
-                >
-                  {formatAgg(dashboard.allTimeTotal)}
-                </Text>
-              </View>
+              <StatColumn
+                theme={theme}
+                label={t('expenses.bikePurchase')}
+                value={formatAgg(purchasePrice)}
+              />
+              <StatColumn
+                theme={theme}
+                label={t('expenses.allExpenses')}
+                value={formatAgg(dashboard.allTimeTotal)}
+              />
+            </View>
+            {/* What a buyer would pay for vs what owning it cost. Riders
+                selling a bike need the first number, and fuel is not in it —
+                the two sum back to the total of ownership above, so nothing is
+                hidden. */}
+            <View
+              style={{
+                height: 1,
+                backgroundColor: theme.line,
+                marginVertical: 12,
+              }}
+            />
+            <View style={{ flexDirection: 'row', gap: 16 }}>
+              <StatColumn
+                theme={theme}
+                label={t('expenses.investedInBike')}
+                value={formatAgg(invested)}
+              />
+              <StatColumn
+                theme={theme}
+                label={t('expenses.runningCosts')}
+                value={formatAgg(consumed)}
+              />
             </View>
           </View>
         </Animated.View>

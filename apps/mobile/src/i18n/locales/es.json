@@ -1482,6 +1482,8 @@
     "totalCostOfOwnership": "COSTO TOTAL DE PROPIEDAD",
     "bikePurchase": "Compra de la moto",
     "allExpenses": "Todos los gastos",
+    "investedInBike": "Invertido en la moto",
+    "runningCosts": "Gastos corrientes",
     "addPurchasePriceHint": "Agrega el precio de compra de tu moto en Editar moto para ver el costo total de propiedad",
     "byCategory": "Por categoría",
     "monthlyTrend": "Tendencia mensual",
