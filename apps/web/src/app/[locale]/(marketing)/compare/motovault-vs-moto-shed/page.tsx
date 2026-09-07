@@ -75,8 +75,20 @@ const FEATURES = [
   { key: 'featureRouteDiscovery', mv: true, comp: false },
   { key: 'featureLearning', mv: true, comp: false },
   { key: 'featureMultiBike', mv: true, comp: true },
-  { key: 'featureAndroid', mv: true, comp: false },
+  { key: 'featureAndroid', mv: true, comp: true },
   { key: 'featureRides', mv: true, comp: false },
+] as const;
+
+const MOTO_SHED_LINKS = [
+  {
+    key: 'sourceAppStore',
+    href: 'https://apps.apple.com/us/app/moto-shed-bike-maintenance/id6758318635',
+  },
+  {
+    key: 'sourceGooglePlay',
+    href: 'https://play.google.com/store/apps/details?id=com.bikeshed.maintenance',
+  },
+  { key: 'sourceDeveloper', href: 'https://toddclement.net/moto-shed.html' },
 ] as const;
 
 const PARITY_ROWS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
@@ -355,6 +367,33 @@ export default async function VsMotoShedPage({ params }: PageProps) {
 
       <div
         className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
+        aria-hidden="true"
+      />
+
+      {/* Sources — verify Moto Shed's details first-hand */}
+      <section className="px-6 pb-4">
+        <div className="mx-auto max-w-4xl rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6 md:p-8">
+          <h2 className="text-lg font-semibold text-neutral-100">{t('sourcesHeading')}</h2>
+          <p className="mt-3 text-sm text-neutral-400 leading-relaxed">{t('sourcesNote')}</p>
+          <ul className="mt-4 flex flex-col gap-2">
+            {MOTO_SHED_LINKS.map(({ key, href }) => (
+              <li key={key}>
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-warm-400 underline decoration-warm-400/40 underline-offset-4 transition-colors hover:text-warm-300"
+                >
+                  {t(key)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <div
+        className="mx-auto mt-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
         aria-hidden="true"
       />
 

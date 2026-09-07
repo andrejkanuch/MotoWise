@@ -145,7 +145,7 @@ export function buildSoftwareApplication(args: {
       { '@type': 'Offer', price: '0', priceCurrency: 'USD', name: 'Free' },
       {
         '@type': 'Offer',
-        price: '4.99',
+        price: '9.99',
         priceCurrency: 'USD',
         name: 'MotoVault Pro',
         description: 'Unlock all features with a 7-day free trial',
