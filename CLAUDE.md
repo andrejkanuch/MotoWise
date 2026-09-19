@@ -88,10 +88,16 @@ Monorepo for MotoVault — AI-powered motorcycle learning & diagnostics platform
   - Free, no API key required
 
 ## OTA Updates (EAS Update)
-- **CRITICAL**: `eas update` does NOT read env vars from `eas.json` build profiles. It bundles whatever `EXPO_PUBLIC_*` vars are set in the shell at publish time.
-- **Always** use `apps/mobile/.env.production` when publishing OTA updates to avoid bundling local dev URLs (e.g. `http://192.168.x.x:4000`).
-- Command: `cd apps/mobile && env $(grep -v '^#' .env.production | grep -v '^$' | xargs) eas update --branch production --message "description"`
-- Runtime version policy is `appVersion` (currently `3.19.1`), so OTA updates only reach builds with matching app version.
+- **Publish with `--environment production`, NOT with `apps/mobile/.env.production`** (2026-09-03). `eas update` still ignores `eas.json` build-profile env, but it now reads **EAS Environment Variables**, and the EAS `production` environment is the source of truth — it is what `eas build --local --profile production` used for the shipped binary. Command:
+  ```bash
+  cd apps/mobile && npx eas update --branch production --environment production --message "description"
+  ```
+  `--environment` is **required** in `--non-interactive` mode, so a scripted publish cannot silently fall back to shell env.
+- **The old `env $(grep … .env.production | xargs) eas update` recipe was actively dangerous and has been removed.** `apps/mobile/.env.production` is untracked, drifts silently, and its `EXPO_PUBLIC_API_URL` is `https://motowise.onrender.com` — **without `/graphql`**. `src/lib/graphql-client.ts` passes that value straight to `new GraphQLClient(apiUrl)`, and the API serves GraphQL **only** at `/graphql` (a POST to the origin returns 404), so publishing with that file breaks *every GraphQL request for every user on the runtime version* — a total outage delivered over the air, with a green publish. Verify what you actually shipped before walking away: `strings apps/mobile/dist/_expo/static/js/*/entry-*.hbc | grep -oE 'https://motowise\.onrender\.com[a-z/]*'` must print the `/graphql` form.
+- **`EXPO_PUBLIC_API_URL` is consumed two incompatible ways** and only one can be right: `src/lib/graphql-client.ts:7` treats it as the full GraphQL endpoint (dev fallback `http://localhost:4000/graphql`), while `src/hooks/use-gpx-export.ts:115` treats it as an origin and appends `/routes/…` (dev fallback `http://localhost:4000`). The `/graphql` form is correct because GraphQL is the critical path; GPX export is therefore requesting `…/graphql/routes/…`. Fix the split before trusting either fallback.
+- **An OTA ships everything mobile on `main` since the store binary was cut — not just your PR.** Scope it deliberately: find the binary's upload time with `asc builds list --app 6760291360` (local builds are **invisible** to `eas build:list`, which only knows EAS-built versions), then `git log <since>..main -- apps/mobile packages/types packages/design-system packages/graphql`.
+- **`runtimeVersion.policy: 'appVersion'` does NOT protect against a native mismatch.** The runtime version is just the version string, so an update reaches the matching binary even when `main` has since added a native module. Check for changes to `apps/mobile/package.json`, `app.config.ts`, `plugins/`, `ios/`, `android/` in that same range; if one added a native dependency, an OTA is only safe when no JS imports it (e.g. `@posthog/react-native-plugin` in `c653ced6` is autolinking-only with zero JS imports, so it is inert over OTA rather than a crash).
+- Metro bundles `@motovault/*` from **source**: `metro.config.js`'s `resolveRequest` maps them to `packages/<pkg>/src/index.ts`, so a workspace change needs no `tsup` build before publishing and there is no stale-`dist` risk.
 - EAS project ID: `359ae282-329d-455d-b9f3-64919afad0b4`, owner: `andykeny`
 
 ## Repo maintenance (local + CI)
