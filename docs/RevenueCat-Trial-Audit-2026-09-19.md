@@ -143,7 +143,33 @@ The only mechanism RC Targeting supports is custom attributes / country / app ve
 - **Mobile fallback not yet shipped**: the last production OTA (2 weeks ago, runtime 3.19.1) predates #234; `main` has exactly one mobile commit since (#234). 3.19.1 is `READY_FOR_DISTRIBUTION`, so an OTA reaches every current install. Publish with the #233 recipe (`npx eas update --branch production --environment production`, then verify the bundle contains `https://motowise.onrender.com/graphql`) — **never** the old `.env.production` command.
 - **CI "Security Audit" red on `main`**: both critical advisories were `next` 16.1.6 (RCE via Image Optimization AVIF / Windows hosts, fixed ≥16.3.3). Bumped `next` + `@next/third-parties` to `^16.3.5`; `pnpm audit --audit-level=critical` is clean.
 - **Side-finding escalated — none of 00141 is live in prod** (not just the users grants): `share_links` is still anon-readable, and `mark_article_read` / `join_group_ride` are `SECURITY DEFINER` with **no `auth.uid()` check** and `EXECUTE` granted to `PUBLIC`/`anon` — any anon-key holder can mark articles read or join group rides as any user. Migration **00178** re-applies 00141 idempotently; dry-run against prod inside a rolled-back transaction passed every check (12 SELECT / 13 UPDATE column grants, no table grants, own-row email denied, other public profile visible, tier update denied, RPC as another user → `Unauthorized`, anon RPC → `permission denied`, anon `share_links` denied). Code prerequisite: `BlogService.assertAdmin` read `users.role` via the user client — switched to the admin client in the same PR. **Deploy the API before applying 00178.** `apps/web/src/proxy.ts` has a DB `role` fallback via the session client; under 00178 it fails closed (redirect) for an admin whose JWT lacks `app_metadata.role`, which is the safe direction.
-- **Retention offers (0.6) — still open, now scoped**: ASC has promo offers only on v1 (`annual_cancel_40off_1yr`, `monthly_cancel_40off_2mo`, both `PAY_AS_YOU_GO`, 40% off); v2/v3/v4 have none, and the Customer Center maps `annual_v2_cancel_40off_1yr` which does not exist. Play v3/v4 base plans carry only the free-trial offer. Doing it properly = 4 ASC promo offers × 175 territory price points (script: `pricing prices list --resolved` per territory → nearest 60% price point → `offers promotional create --prices`), 4 Play offers (`relativeDiscount` phases, far simpler), then the Customer Center `cross_product_promotions` mapping in the dashboard (no API). Not started.
+### Executed later the same evening (after #235 merged)
+
+- **00178 applied to prod** (Render deploy `03abfb58` live first). Verification: 5 users policies exactly as expected, no table grants for anon/authenticated, column grants 12 SELECT (anon + authenticated) / 13 UPDATE, both RPCs carry the `auth.uid()` check with EXECUTE only for `authenticated`/`service_role`, `share_links` anon policy gone. Live smoke test as `test@test.com`: `me` and `myMotorcycles` OK; PostgREST `select=email` → `42501`; public profile columns readable; anon `rpc/mark_article_read` → `permission denied for function`. Recorded as `00178` in `schema_migrations`.
+- **OTA published**: update group `9bb29159-d8bf-4e93-b2ab-ac0e76bd80d6`, runtime 3.19.1, both platforms, commit `03abfb58`, via `--environment production`; both bundles verified to contain `https://motowise.onrender.com/graphql`. Every current install now gets the `has_had_trial` client fallback.
+- **Play retention offers created + ACTIVE** (developer-determined, `targeting: {}`, 40% `relativeDiscount` on all 173 regions + other-regions, tag `retention`): `monthly-v3-cancel-40off-2mo` (P1M ×2), `monthly-v4-cancel-40off-2mo`, `annual-v3-cancel-40off-1yr` (P1Y ×1), `annual-v4-cancel-40off-1yr`. Found on the way: the v1 Play `annual-cancel-40off-1yr` the Customer Center maps is **DRAFT** (never activated) and `monthly-cancel-40off-2mo` on v2 is **INACTIVE** and was a free month, not 40% — Play retention never worked.
+
+- **Apple retention offers created** (all `PAY_AS_YOU_GO`, 175 territory prices each, every territory at the price point nearest 60% of that territory's *current* price for that product — v4 is priced higher than v3 in every territory, so each product got its own list):
+  | product | offer code | shape |
+  | --- | --- | --- |
+  | `motovault_pro_annual_v3` | `annual_v3_cancel_40off_1yr` | ONE_YEAR × 1 |
+  | `motovault_pro_annual_v4` | `annual_v4_cancel_40off_1yr` | ONE_YEAR × 1 |
+  | `motovault_pro_monthly_v3` | `monthly_v3_cancel_40off_2mo` | ONE_MONTH × 2 |
+  | `motovault_pro_monthly_v4` | `monthly_v4_cancel_40off_2mo` | ONE_MONTH × 2 |
+  Method: `asc subscriptions pricing prices list --resolved` for the current price per territory, `pricing price-points list --territory X` per territory (the tier ladder is global — the `p` in the price-point id is the same tier for every subscription, only `s` differs, verified by `price-points view`), nearest-to-60% pick, then `offers promotional create --prices "TERRITORY:PRICE_POINT_ID,…"`. Needs asc ≥ 5.x for the `TERRITORY:PRICE_POINT_ID` form (2.8.2 silently dropped the price point → "Missing a required include subscriptionPricePoint"). The upgraded binary hits a macOS keychain prompt; env-var auth (`ASC_KEY_ID`/`ASC_ISSUER_ID`/`ASC_PRIVATE_KEY_PATH=~/.asc/keys/AuthKey_B7J3LS6SPC.p8`) bypasses it.
+
+- **Retention offers (0.6) — ONE step left, dashboard only**: RevenueCat → Customer Center → Promotional offers → "Cancellation Retention Discount" → add cross-product promotions (origin = target for each):
+  | app | origin/target product | store offer identifier |
+  | --- | --- | --- |
+  | App Store | `motovault_pro_annual_v3` | `annual_v3_cancel_40off_1yr` |
+  | App Store | `motovault_pro_annual_v4` | `annual_v4_cancel_40off_1yr` |
+  | App Store | `motovault_pro_monthly_v3` | `monthly_v3_cancel_40off_2mo` |
+  | App Store | `motovault_pro_monthly_v4` | `monthly_v4_cancel_40off_2mo` |
+  | Play | `motovault_pro_v3_annual_v3:motovault-pro-v3-annual-v3` | `annual-v3-cancel-40off-1yr` |
+  | Play | `motovault_pro_v4_annual_v4:motovault-pro-v4-annual` | `annual-v4-cancel-40off-1yr` |
+  | Play | `motovault_pro_v3_monthly_v3:monthly-v3` | `monthly-v3-cancel-40off-2mo` |
+  | Play | `motovault_pro_v4_monthly_v4:motovault-pro-monthly-v4` | `monthly-v4-cancel-40off-2mo` |
+  While there, delete the dead `annual_v2_cancel_40off_1yr` (App Store, does not exist) and note the v1 Play `annual-cancel-40off-1yr` is DRAFT. The Customer Center config has no public API (the MCP is read-only for it), so this cannot be scripted.
 
 ---
 
