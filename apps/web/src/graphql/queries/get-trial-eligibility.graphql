@@ -1,0 +1,6 @@
+query GetTrialEligibility {
+  me {
+    id
+    hasUsedTrial
+  }
+}
