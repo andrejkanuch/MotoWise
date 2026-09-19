@@ -111,6 +111,31 @@ The only mechanism RC Targeting supports is custom attributes / country / app ve
 - Blocking a customer who uses two Apple IDs or an Apple ID + Google account **at the store level** — impossible; Phase 2 covers it at the paywall as long as they log into the same MotoVault account.
 - Revoking this customer's active Play trial.
 
+
+## Status (2026-09-19, same day)
+
+**Phase 0 — done via CLI/MCP, verified live**
+- ASC Billing Grace Period: `optIn=true, SIXTEEN_DAYS, ALL_RENEWALS` (sandbox too).
+- Play trial offers on `v3_annual_v3` and `v4_annual_v4`: targeting `anySubscriptionInApp` (updated in place, still ACTIVE).
+- Play legacy trials `free-trial-7day`, `offer-trial-1-month`, `offer-monthly-1-month`: INACTIVE.
+- ASC `annual_v2` / `monthly_v2` 1-month intro offers: end date 2026-09-20 on all 175 territories (Apple rejects same-day).
+- RC offerings `default`, `new_offering_4_29_24_4`, `new_offering_4_29_24_4_v2`: archived (the last needed its paywall `pwe6c48357bb7646ec` unpublished first).
+- 0.6 retention offers: **open** — Customer Center "Cancellation Retention Discount" maps only v1/v2 products (one to a non-existent Apple promo), so v3/v4 subscribers get no retention offer at all. Needs promo offers on v3/v4 in both stores + dashboard mapping.
+- 0.7: App Store Server Notifications proven live (BILLING_ISSUE arrived 10 s after Apple's timestamp); Play RTDN not readable by CLI.
+
+**Phase 1 — migration 00177 applied to prod; code on `fix/revenuecat-trial-history`**
+- `users.trial_started_at` backfilled for 29 users from RC per-customer event history (only this customer had >1 trial); `has_had_trial=true` set on those 29 RC customers via v1 API.
+- Deviation from the plan: sandbox events are still processed (the RC SDK grants sandbox entitlements on the client, so skipping them server-side would make the API disagree with the app); the environment is now persisted instead. The RC subscriber is still deleted on account deletion (GDPR); local purchase history survives because the FK cascade is gone.
+- Side-finding: prod `public.users` has table-wide ALL grants for `anon`/`authenticated` and none of 00141's column ACLs or policies, although 00141 is recorded as applied. Not exploitable for Pro (`subscription_tier`/`expires_at`/`trial_started_at`/`role`/`email` are frozen by both live UPDATE policies) but CLAUDE.md's description of `users` protection is wrong for prod and `subscription_status` + `revenuecat_id` are user-writable. Needs its own ticket.
+
+**Phase 2 — products + offering + paywall done; targeting rule needs the dashboard**
+- iOS `motovault_pro_annual_v4_nt` (ASC 6813886154): $79.99 equalized, 175 territories, 39 localizations, no intro offer, same group, **WAITING_FOR_REVIEW**. RC product `prod4b81196665`.
+- Play `motovault_pro_v4_annual_nt` / base plan `motovault-pro-v4-annual-nt`: ACTIVE, $59.99, 173 regions, no offers. RC product `prod86184f8c02`.
+- Both attached to entitlement `MotoWise Pro`. Offering `paywall_v4_no_trial` (`ofrng630d66512e`) = v4 packages with the annual swapped to the `_nt` products; paywall `pwce8049bfefde4d2a` **published** (trial pill removed, annual CTA "Continue").
+- **Targeting rule — create in dashboard** (MCP key lacks `targeting_rules:read_write`): condition custom attribute `has_had_trial` in [`true`] → offering `paywall_v4_no_trial`, active, above the experiment.
+- Found while duplicating: the live v3 and v4 paywalls promise a trial unconditionally in two places (annual-selected CTA override "Start 7 day free trial", ungated "1 week FREE TRIAL" pill). Drafts that gate both on `intro_offer` are saved on `pwc2b2f4aed92443c0` (v3) and `pwa365e62b6bb44922` (v4) — **review and publish**.
+- Mobile fallback (`hasUsedTrial` + `syncAttributesAndOfferingsIfNeeded`) and web checkout gating are in the same branch. Mobile change reaches users with the next OTA/build.
+
 ---
 
 ## Re-run commands
