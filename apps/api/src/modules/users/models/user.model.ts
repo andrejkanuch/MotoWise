@@ -22,6 +22,10 @@ export class User {
   @Field(() => String, { nullable: true })
   subscriptionTier?: string;
 
+  /** True once any store has granted this account a free trial (users.trial_started_at). */
+  @Field({ nullable: true })
+  hasUsedTrial?: boolean;
+
   @Field({ nullable: true })
   measurementSystem?: string;
 

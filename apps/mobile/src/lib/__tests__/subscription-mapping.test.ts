@@ -6,7 +6,7 @@ jest.mock('../analytics', () => require('../../test/mocks').mockAnalytics());
 
 import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import { useSubscriptionStore } from '../../stores/subscription.store';
-import { updateStoreFromCustomerInfo } from '../subscription';
+import { hasUsedTrial, updateStoreFromCustomerInfo } from '../subscription';
 
 const PRO = REVENUECAT_ENTITLEMENT_PRO;
 
@@ -59,5 +59,24 @@ describe('updateStoreFromCustomerInfo', () => {
     expect(s.isPro).toBe(false);
     expect(s.isTrialing).toBe(false);
     expect(s.isVerified).toBe(true);
+  });
+});
+
+// One trial per person, cross-store: the client stamps has_had_trial from the
+// latest Pro period so Targeting can serve the no-trial offering even before the
+// webhook has, or when the receipt came from another store account.
+describe('hasUsedTrial', () => {
+  it('is true when the latest Pro period is a trial (active or expired)', () => {
+    expect(hasUsedTrial({ entitlements: { all: { [PRO]: { periodType: 'TRIAL' } } } })).toBe(true);
+  });
+
+  it('is false for a paying (NORMAL) period — a converted trialer is a customer', () => {
+    expect(hasUsedTrial({ entitlements: { all: { [PRO]: { periodType: 'NORMAL' } } } })).toBe(
+      false,
+    );
+  });
+
+  it('is false when the account never held Pro', () => {
+    expect(hasUsedTrial({ entitlements: { all: {} } })).toBe(false);
   });
 });

@@ -1,11 +1,14 @@
 'use client';
 
+import { GetTrialEligibilityDocument } from '@motovault/graphql';
+import type { Offering } from '@revenuecat/purchases-js';
 import { createBrowserClient } from '@supabase/ssr';
 import { Crown, Lock, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { trackEvent, WebEvent } from '@/lib/analytics';
+import { gqlFetcher } from '@/lib/graphql-client';
 
 const PLAN_CONFIG = {
   monthly: {
@@ -23,6 +26,29 @@ const PLAN_CONFIG = {
 } as const;
 
 type PlanId = keyof typeof PLAN_CONFIG;
+
+const WEB_OFFERING_ID = process.env.NODE_ENV === 'development' ? 'default-web-test' : 'default-web';
+
+/** ISO 8601 duration → days, for the trial phase RevenueCat reports (P7D, P1W, P1M). */
+function durationToDays(iso: string | null | undefined): number | null {
+  const match = iso?.match(/^P(?:(\d+)M)?(?:(\d+)W)?(?:(\d+)D)?$/);
+  if (!match) return null;
+  const [, months, weeks, days] = match;
+  return Number(months ?? 0) * 30 + Number(weeks ?? 0) * 7 + Number(days ?? 0) || null;
+}
+
+async function loadWebOffering(userId: string): Promise<Offering | null> {
+  const { Purchases } = await import('@revenuecat/purchases-js');
+  const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_WEB_API_KEY;
+  if (!apiKey) {
+    throw new Error('RevenueCat Web API key is not configured.');
+  }
+  if (!Purchases.isConfigured()) {
+    Purchases.configure({ apiKey, appUserId: userId });
+  }
+  const offerings = await Purchases.getSharedInstance().getOfferings();
+  return offerings.all[WEB_OFFERING_ID] ?? offerings.current ?? null;
+}
 
 function CheckoutContent() {
   const router = useRouter();
@@ -45,6 +71,10 @@ function CheckoutContent() {
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [webOffering, setWebOffering] = useState<Offering | null>(null);
+  // One trial per person, on any platform (docs/RevenueCat-Trial-Audit-2026-09-19.md).
+  // Starts true so the page never promises a trial before the answer is in.
+  const [hasUsedTrial, setHasUsedTrial] = useState(true);
 
   // Check auth on mount
   useEffect(() => {
@@ -65,18 +95,47 @@ function CheckoutContent() {
     })();
   }, [supabase, router, selectedPlan, redirectAfter]);
 
+  // Resolve what this customer can actually buy: the RevenueCat offering (whose
+  // trial phase reflects Web Billing's own eligibility) and our cross-store
+  // trial history. Either failing leaves the no-trial copy, never the reverse.
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    (async () => {
+      const [offering, eligibility] = await Promise.all([
+        loadWebOffering(userId).catch(() => null),
+        gqlFetcher(GetTrialEligibilityDocument).catch(() => null),
+      ]);
+      if (cancelled) return;
+      setWebOffering(offering);
+      setHasUsedTrial(eligibility?.me.hasUsedTrial !== false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
   const plan = PLAN_CONFIG[selectedPlan];
+  const rcPackage = webOffering
+    ? selectedPlan === 'annual'
+      ? webOffering.annual
+      : webOffering.monthly
+    : null;
+  const trialDays = hasUsedTrial
+    ? null
+    : durationToDays(rcPackage?.webBillingProduct.freeTrialPhase?.periodDuration);
 
   const trialEndDate = useMemo(() => {
+    if (!trialDays) return null;
     const date = new Date();
-    date.setDate(date.getDate() + 7);
+    date.setDate(date.getDate() + trialDays);
     return date.toLocaleDateString('en-US', {
       timeZone: 'UTC',
       month: 'long',
       day: 'numeric',
       year: 'numeric',
     });
-  }, []);
+  }, [trialDays]);
 
   const handleCheckout = useCallback(async () => {
     if (loading || !userId) return;
@@ -86,35 +145,19 @@ function CheckoutContent() {
     trackEvent(WebEvent.CHECKOUT_INITIATED, { plan: selectedPlan });
 
     try {
-      const { Purchases } = await import('@revenuecat/purchases-js');
-
-      const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_WEB_API_KEY;
-      if (!apiKey) {
-        throw new Error('RevenueCat Web API key is not configured.');
-      }
-
-      if (!Purchases.isConfigured()) {
-        Purchases.configure({ apiKey, appUserId: userId });
-      }
-
-      const purchases = Purchases.getSharedInstance();
-      const offerings = await purchases.getOfferings();
-      const offeringId =
-        process.env.NODE_ENV === 'development' ? 'default-web-test' : 'default-web';
-      const webOffering = offerings.all[offeringId] ?? offerings.current;
-
-      if (!webOffering) {
+      const offering = webOffering ?? (await loadWebOffering(userId));
+      if (!offering) {
         throw new Error('No offerings available. Please try again later.');
       }
 
-      const rcPackage = selectedPlan === 'annual' ? webOffering.annual : webOffering.monthly;
-
-      if (!rcPackage) {
+      const pkg = selectedPlan === 'annual' ? offering.annual : offering.monthly;
+      if (!pkg) {
         throw new Error(`The ${selectedPlan} plan is not available right now.`);
       }
 
-      const result = await purchases.purchase({
-        rcPackage,
+      const { Purchases } = await import('@revenuecat/purchases-js');
+      const result = await Purchases.getSharedInstance().purchase({
+        rcPackage: pkg,
         customerEmail: userEmail ?? undefined,
       });
 
@@ -144,7 +187,7 @@ function CheckoutContent() {
       }
       setLoading(false);
     }
-  }, [loading, userId, userEmail, selectedPlan, router, redirectAfter]);
+  }, [loading, userId, userEmail, selectedPlan, router, redirectAfter, webOffering]);
 
   if (!authChecked) {
     return (
@@ -172,7 +215,9 @@ function CheckoutContent() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-neutral-50">Upgrade to Pro</h1>
-              <p className="text-sm text-neutral-400">Start your 7-day free trial</p>
+              <p className="text-sm text-neutral-400">
+                {trialDays ? `Start your ${trialDays}-day free trial` : 'Unlock every Pro feature'}
+              </p>
             </div>
           </div>
 
@@ -215,25 +260,39 @@ function CheckoutContent() {
 
               <div className="h-px bg-neutral-800" />
 
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-neutral-300">7-day free trial</span>
-                <span className="text-sm font-medium text-accent-400">Free</span>
-              </div>
+              {trialDays && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-neutral-300">{trialDays}-day free trial</span>
+                  <span className="text-sm font-medium text-accent-400">Free</span>
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-neutral-300">Due today</span>
-                <span className="text-lg font-bold text-neutral-50">$0.00</span>
+                <span className="text-lg font-bold text-neutral-50">
+                  {trialDays ? '$0.00' : plan.price}
+                </span>
               </div>
 
               <div className="h-px bg-neutral-800" />
 
-              <p className="text-xs text-neutral-500">
-                After your trial ends on {trialEndDate}, you will be charged{' '}
-                <span className="text-neutral-400">
-                  {plan.price}/{plan.period}
-                </span>
-                . Cancel anytime before then and you won&apos;t be charged.
-              </p>
+              {trialDays ? (
+                <p className="text-xs text-neutral-500">
+                  After your trial ends on {trialEndDate}, you will be charged{' '}
+                  <span className="text-neutral-400">
+                    {plan.price}/{plan.period}
+                  </span>
+                  . Cancel anytime before then and you won&apos;t be charged.
+                </p>
+              ) : (
+                <p className="text-xs text-neutral-500">
+                  Billed{' '}
+                  <span className="text-neutral-400">
+                    {plan.price}/{plan.period}
+                  </span>{' '}
+                  today and on each renewal. Cancel anytime.
+                </p>
+              )}
             </div>
           </div>
 

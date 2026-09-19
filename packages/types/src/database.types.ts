@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
+    PostgrestVersion: "14.5"
   }
   graphql_public: {
     Tables: {
@@ -2600,38 +2600,50 @@ export type Database = {
       revenuecat_webhook_events: {
         Row: {
           app_user_id: string
+          environment: string | null
           event_id: string
           event_type: string
+          expiration_at: string | null
+          grace_period_expiration_at: string | null
+          is_trial_conversion: boolean | null
+          payload: Json | null
+          period_type: string | null
           processed_at: string
+          product_id: string | null
+          purchased_at: string | null
+          store: string | null
         }
         Insert: {
           app_user_id: string
+          environment?: string | null
           event_id: string
           event_type: string
+          expiration_at?: string | null
+          grace_period_expiration_at?: string | null
+          is_trial_conversion?: boolean | null
+          payload?: Json | null
+          period_type?: string | null
           processed_at?: string
+          product_id?: string | null
+          purchased_at?: string | null
+          store?: string | null
         }
         Update: {
           app_user_id?: string
+          environment?: string | null
           event_id?: string
           event_type?: string
+          expiration_at?: string | null
+          grace_period_expiration_at?: string | null
+          is_trial_conversion?: boolean | null
+          payload?: Json | null
+          period_type?: string | null
           processed_at?: string
+          product_id?: string | null
+          purchased_at?: string | null
+          store?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "revenuecat_webhook_events_app_user_id_fkey"
-            columns: ["app_user_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "revenuecat_webhook_events_app_user_id_fkey"
-            columns: ["app_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ride_idle_nudge_log: {
         Row: {
@@ -3437,6 +3449,36 @@ export type Database = {
             columns: ["motorcycle_id"]
             isOneToOne: false
             referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      signup_event_log: {
+        Row: {
+          claimed_at: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signup_event_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signup_event_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -4678,6 +4720,17 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      claim_pending_signup_events: {
+        Args: { p_limit?: number }
+        Returns: {
+          analytics_enabled: boolean
+          auth_method: string
+          created_at: string
+          currency: string
+          measurement_system: string
+          user_id: string
+        }[]
+      }
       clone_discover_trip: {
         Args: { p_discover_trip_id: string; p_user_id: string }
         Returns: string
@@ -4711,6 +4764,7 @@ export type Database = {
       }
       cron_trigger_maintenance_due_push: { Args: never; Returns: undefined }
       cron_trigger_ride_idle_check: { Args: never; Returns: undefined }
+      cron_trigger_signup_events: { Args: never; Returns: undefined }
       disablelongtransactions: { Args: never; Returns: string }
       document_vault_bytes_used: { Args: never; Returns: number }
       dropgeometrycolumn:
@@ -4966,10 +5020,18 @@ export type Database = {
       process_revenuecat_event: {
         Args: {
           p_app_user_id: string
+          p_environment?: string
           p_event_id: string
           p_event_type: string
           p_expiration_at?: string
+          p_grace_period_expiration_at?: string
+          p_is_trial_conversion?: boolean
+          p_payload?: Json
           p_period_type?: string
+          p_product_id?: string
+          p_purchased_at?: string
+          p_store?: string
+          p_transferred_from?: string[]
         }
         Returns: undefined
       }
@@ -4990,6 +5052,10 @@ export type Database = {
       refresh_blog_post_keyword_text: {
         Args: { p_post_id: string }
         Returns: undefined
+      }
+      release_signup_event_claims: {
+        Args: { p_user_ids: string[] }
+        Returns: number
       }
       reorder_trip_waypoints: {
         Args: { p_trip_id: string; p_waypoint_ids: string[] }
@@ -5030,6 +5096,7 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      soft_delete_expense: { Args: { expense_id: string }; Returns: boolean }
       soft_delete_maintenance_task: {
         Args: { task_id: string }
         Returns: boolean
@@ -5038,6 +5105,7 @@ export type Database = {
         Args: { motorcycle_id: string }
         Returns: boolean
       }
+      soft_delete_ride: { Args: { ride_id: string }; Returns: boolean }
       soft_delete_user: { Args: { p_user_id: string }; Returns: undefined }
       st_3dclosestpoint: {
         Args: { geom1: unknown; geom2: unknown }
@@ -5737,12 +5805,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -5766,11 +5834,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -5791,11 +5859,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -5816,11 +5884,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -5833,11 +5901,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

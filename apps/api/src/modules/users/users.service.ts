@@ -87,6 +87,7 @@ export class UsersService {
       role: r.role,
       preferences: (r.preferences as Record<string, unknown>) ?? undefined,
       subscriptionTier: r.subscription_tier ?? undefined,
+      hasUsedTrial: r.trial_started_at != null,
       measurementSystem: r.measurement_system ?? undefined,
       currency: r.currency,
       publicUsername: r.public_username ?? undefined,

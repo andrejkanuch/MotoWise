@@ -56,13 +56,16 @@ const PRO_FEATURES = [
 type Status = 'polling' | 'activated' | 'timeout' | 'already_pro';
 
 /** Check RevenueCat entitlements for 'pro' */
-async function checkProEntitlement(userId: string): Promise<boolean> {
+/** Pro entitlement state after checkout; `trialing` drives the welcome copy. */
+async function checkProEntitlement(
+  userId: string,
+): Promise<{ isPro: boolean; isTrialing: boolean }> {
   try {
     const customerInfo = await getRevenueCatCustomerInfo(userId);
-    if (!customerInfo) return false;
-    return customerInfo.entitlements.active[REVENUECAT_ENTITLEMENT_PRO] !== undefined;
+    const entitlement = customerInfo?.entitlements.active[REVENUECAT_ENTITLEMENT_PRO];
+    return { isPro: entitlement !== undefined, isTrialing: entitlement?.periodType === 'trial' };
   } catch {
-    return false;
+    return { isPro: false, isTrialing: false };
   }
 }
 
@@ -79,6 +82,7 @@ function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
   const redirectTo = safeRedirectPath(searchParams.get('redirect'));
   const [status, setStatus] = useState<Status>('polling');
+  const [isTrialing, setIsTrialing] = useState(false);
   const [pollIndex, setPollIndex] = useState(0);
   const cancelledRef = useRef(false);
   const userIdRef = useRef<string | null>(null);
@@ -119,10 +123,11 @@ function CheckoutSuccessContent() {
       return;
     }
 
-    const isPro = await checkProEntitlement(userId);
+    const { isPro, isTrialing: trialing } = await checkProEntitlement(userId);
     if (cancelledRef.current) return;
 
     if (isPro) {
+      setIsTrialing(trialing);
       setStatus('activated');
       sessionStorage.removeItem(SESSION_KEY);
       clearProStatusCache();
@@ -155,7 +160,7 @@ function CheckoutSuccessContent() {
 
       const userId = userIdRef.current;
       if (userId) {
-        const alreadyPro = await checkProEntitlement(userId);
+        const { isPro: alreadyPro } = await checkProEntitlement(userId);
         if (cancelledRef.current) return;
         if (alreadyPro) {
           setStatus('already_pro');
@@ -227,7 +232,9 @@ function CheckoutSuccessContent() {
 
               <h1 className="text-3xl font-bold">Welcome to Pro!</h1>
               <p className="mx-auto mt-3 max-w-sm text-neutral-400">
-                Your 7-day free trial is active. All Pro features are now unlocked.
+                {isTrialing
+                  ? 'Your free trial is active. All Pro features are now unlocked.'
+                  : 'Your subscription is active. All Pro features are now unlocked.'}
               </p>
 
               {/* Features unlocked */}

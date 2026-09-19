@@ -2309,6 +2309,7 @@ type User {
   followingCount: Float
   fullName: String
   handle: String
+  hasUsedTrial: Boolean
   id: ID!
   isPublic: Boolean
   measurementSystem: String

@@ -1,3 +1,4 @@
+import { SUBSCRIPTION_STATUS_REVOKED } from '@motovault/types';
 import {
   CanActivate,
   ExecutionContext,
@@ -190,17 +191,27 @@ export class GqlAuthGuard implements CanActivate {
         return 'free'; // fail open
       }
 
-      // A null expiry means no expiration (lifetime / comped grants) — treat it
-      // as valid rather than letting `new Date(null)` coerce to 1970 and ALWAYS
-      // read as expired, which silently downgraded active/trialing Pro users to
-      // free.
-      const notExpired =
-        data.subscription_expires_at == null || new Date(data.subscription_expires_at) > new Date();
+      // Status only says whether the store has already revoked access.
+      // `cancelled` (auto-renew off, paid through period end) and `past_due`
+      // (inside the store's grace period) both keep the entitlement alive until
+      // subscription_expires_at — which is what the RC SDK tells the client, so
+      // gating on active/trialing alone made the API say free while the app
+      // said Pro (docs/RevenueCat-Trial-Audit-2026-09-19.md).
+      const revoked = (SUBSCRIPTION_STATUS_REVOKED as readonly string[]).includes(
+        data.subscription_status,
+      );
 
-      const isPro =
-        data.subscription_tier === 'pro' &&
-        ['active', 'trialing'].includes(data.subscription_status) &&
-        notExpired;
+      // A null expiry means no expiration (lifetime / comped grants) — but only
+      // for active/trialing rows. Treating it as valid avoids `new Date(null)`
+      // coercing to 1970 and ALWAYS reading as expired, which silently
+      // downgraded lifetime Pro users; a cancelled/past_due row with no expiry
+      // is an anomaly and stays free.
+      const notExpired =
+        data.subscription_expires_at == null
+          ? ['active', 'trialing'].includes(data.subscription_status)
+          : new Date(data.subscription_expires_at) > new Date();
+
+      const isPro = data.subscription_tier === 'pro' && !revoked && notExpired;
 
       const tier: Tier = isPro ? 'pro' : 'free';
       this.cacheTier(userId, tier);

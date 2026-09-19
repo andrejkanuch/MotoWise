@@ -1,4 +1,8 @@
-import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
+import {
+  RC_ATTRIBUTE_HAS_HAD_TRIAL,
+  RC_ATTRIBUTE_TRUE,
+  REVENUECAT_ENTITLEMENT_PRO,
+} from '@motovault/types';
 import type { JsonType } from '@posthog/core';
 import Constants from 'expo-constants';
 import type { CustomVariables } from 'react-native-purchases-ui';
@@ -514,6 +518,38 @@ function buildPaywallCustomVariables(
   return Object.fromEntries(entries);
 }
 
+// Exported for unit testing. The latest Pro period being a trial means this
+// account already redeemed one (an expired trial keeps periodType TRIAL; a
+// converted one reads NORMAL and is a paying customer). Client-side fallback for
+// the server-set attribute — covers the window before the webhook lands and
+// receipts restored from another store account.
+export function hasUsedTrial(info: {
+  entitlements: { all: Record<string, { periodType?: string }> };
+}): boolean {
+  return info.entitlements.all[REVENUECAT_ENTITLEMENT_PRO]?.periodType === 'TRIAL';
+}
+
+/**
+ * Offerings for the paywall, with the one-trial-per-person rule applied: a
+ * customer who already had a trial gets `has_had_trial=true` stamped and the
+ * offerings re-fetched so the RevenueCat Targeting rule can swap in the
+ * no-trial offering. Neither store enforces this across stores (Apple scopes
+ * eligibility to a subscription group, Google to a product), so this attribute
+ * is the only cross-store guard (docs/RevenueCat-Trial-Audit-2026-09-19.md).
+ */
+async function getOfferingsForCustomer(Purchases: Awaited<ReturnType<typeof getPurchases>>) {
+  try {
+    const info = await Purchases.getCustomerInfo();
+    if (hasUsedTrial(info)) {
+      await Purchases.setAttributes({ [RC_ATTRIBUTE_HAS_HAD_TRIAL]: RC_ATTRIBUTE_TRUE });
+      return await Purchases.syncAttributesAndOfferingsIfNeeded();
+    }
+  } catch (err) {
+    logger.warn('[RevenueCat] Trial-history check failed, serving default offerings', err);
+  }
+  return Purchases.getOfferings();
+}
+
 /**
  * Present the RevenueCat remote paywall.
  * Uses the paywall configured in the RevenueCat dashboard.
@@ -553,7 +589,7 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
     const RevenueCatUI = await import('react-native-purchases-ui');
     const { PAYWALL_RESULT } = RevenueCatUI;
 
-    const offerings = await Purchases.getOfferings();
+    const offerings = await getOfferingsForCustomer(Purchases);
 
     // Resolve the offering to present:
     // 1. Explicit offeringIdentifier (bypasses experiments — use for one-off products like health_report)
