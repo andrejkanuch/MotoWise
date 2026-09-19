@@ -17,6 +17,7 @@ import {
 } from '../../common/pagination/connection';
 import { RevalidationService } from '../../common/revalidation/revalidation.service';
 import { PG_ERROR } from '../../common/supabase/unwrap';
+import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { translationToRow, typeDataToRow } from './blog-write';
 import type { CreateBlogPostInput } from './dto/create-blog-post.input';
@@ -58,14 +59,20 @@ export class BlogService {
 
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
     private readonly revalidation: RevalidationService,
   ) {
     this.mapRow = this.mapRow.bind(this);
   }
 
-  /** Admin gate — DB role check (the JWT role claim is informational only). */
+  /**
+   * Admin gate — DB role check (the JWT role claim is informational only).
+   * `users.role` is a service-role-only read (00141 column grants: the user client
+   * gets `permission denied` on it), so the own-row lookup goes through the admin
+   * client, filtered to the caller's id.
+   */
   private async assertAdmin(userId: string): Promise<void> {
-    const { data: caller, error } = await this.supabase
+    const { data: caller, error } = await this.supabaseAdmin
       .from('users')
       .select('role')
       .eq('id', userId)
