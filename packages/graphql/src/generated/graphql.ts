@@ -3294,6 +3294,7 @@ export type User = {
   followingCount?: Maybe<Scalars['Float']['output']>;
   fullName?: Maybe<Scalars['String']['output']>;
   handle?: Maybe<Scalars['String']['output']>;
+  hasUsedTrial?: Maybe<Scalars['Boolean']['output']>;
   id: Scalars['ID']['output'];
   isPublic?: Maybe<Scalars['Boolean']['output']>;
   measurementSystem?: Maybe<Scalars['String']['output']>;

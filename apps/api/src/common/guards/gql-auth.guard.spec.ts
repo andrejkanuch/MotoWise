@@ -379,12 +379,63 @@ describe('GqlAuthGuard', () => {
     it("keeps a cancelled Pro row with a null expiry as 'free'", async () => {
       const g = guardWithUserRow({
         subscription_tier: 'pro',
-        subscription_status: 'canceled',
+        subscription_status: 'cancelled',
         subscription_expires_at: null,
       });
       const tier = await (
         g as unknown as { resolveEffectiveTier: (id: string) => Promise<string> }
       ).resolveEffectiveTier('user-cancelled');
+      expect(tier).toBe('free');
+    });
+
+    // Auto-renew off is not revocation: the subscriber paid through the period
+    // end and the store (and RC SDK on the client) keep the entitlement alive.
+    it("keeps a cancelled Pro row with a future expiry as 'pro'", async () => {
+      const g = guardWithUserRow({
+        subscription_tier: 'pro',
+        subscription_status: 'cancelled',
+        subscription_expires_at: '2999-01-01T00:00:00.000Z',
+      });
+      const tier = await (
+        g as unknown as { resolveEffectiveTier: (id: string) => Promise<string> }
+      ).resolveEffectiveTier('user-cancelled-paid-through');
+      expect(tier).toBe('pro');
+    });
+
+    // BILLING_ISSUE inside the store grace period: expiry = grace end, access stays.
+    it("keeps a past_due Pro row inside its grace period as 'pro'", async () => {
+      const g = guardWithUserRow({
+        subscription_tier: 'pro',
+        subscription_status: 'past_due',
+        subscription_expires_at: '2999-01-01T00:00:00.000Z',
+      });
+      const tier = await (
+        g as unknown as { resolveEffectiveTier: (id: string) => Promise<string> }
+      ).resolveEffectiveTier('user-grace');
+      expect(tier).toBe('pro');
+    });
+
+    it("downgrades a past_due Pro row whose grace period has ended to 'free'", async () => {
+      const g = guardWithUserRow({
+        subscription_tier: 'pro',
+        subscription_status: 'past_due',
+        subscription_expires_at: '2000-01-01T00:00:00.000Z',
+      });
+      const tier = await (
+        g as unknown as { resolveEffectiveTier: (id: string) => Promise<string> }
+      ).resolveEffectiveTier('user-grace-over');
+      expect(tier).toBe('free');
+    });
+
+    it('treats an expired status as revoked even with a future expiry', async () => {
+      const g = guardWithUserRow({
+        subscription_tier: 'pro',
+        subscription_status: 'expired',
+        subscription_expires_at: '2999-01-01T00:00:00.000Z',
+      });
+      const tier = await (
+        g as unknown as { resolveEffectiveTier: (id: string) => Promise<string> }
+      ).resolveEffectiveTier('user-revoked');
       expect(tier).toBe('free');
     });
   });
