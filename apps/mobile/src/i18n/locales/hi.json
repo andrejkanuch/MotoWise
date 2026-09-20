@@ -968,9 +968,6 @@
     "obRevealCatSport": "स्पोर्ट",
     "obRevealCatCruiser": "क्रूज़र",
     "obRevealCatTracked": "ट्रैक",
-    "obSignInRestore": "खरीदारी बहाल करें",
-    "obSignInRestoreFound": "आपकी Pro सदस्यता बहाल कर दी गई है।",
-    "obSignInRestoreNone": "कोई पिछली खरीदारी नहीं मिली।",
     "cpPromptTitleLead": "इसे अपने",
     "cpPromptTitleAccent": "गैराज में सेव करें।",
     "cpPromptBodyRide": "एक मुफ़्त खाता बनाएं ताकि आपकी राइड बैकअप हो और आपके सभी डिवाइस पर सिंक रहे।",
@@ -1173,7 +1170,6 @@
     "logSection": "रिकॉर्ड"
   },
   "paywall": {
-    "title": "आपका MotoVault अनुभव तैयार है",
     "personalizedFor": "आपकी {{bike}} के लिए पर्सनलाइज़्ड",
     "featureaiDiagnosticsTitle": "AI-पावर्ड डायग्नोस्टिक्स",
     "featureaiDiagnosticsDesc": "आपकी बाइक के लिए फोटो एनालिसिस और ट्रबलशूटिंग",
@@ -1183,22 +1179,8 @@
     "featuremaintenanceAlertsDesc": "कभी भी सर्विस इंटरवल मिस न करें",
     "annual": "वार्षिक",
     "monthly": "मासिक",
-    "annualTrialDays": "{{days}}-दिन फ्री ट्रायल",
-    "monthlyTrialDays": "{{days}}-दिन फ्री ट्रायल",
     "year": "साल",
-    "month": "महीना",
-    "bestValue": "सबसे अच्छी कीमत",
-    "cancelAnytime": "कभी भी कैंसल करें",
-    "noChargeDuringTrial": "ट्रायल के दौरान कोई चार्ज नहीं",
-    "startFreeTrial": "फ्री ट्रायल शुरू करें",
-    "restorePurchases": "खरीदारी रिस्टोर करें",
-    "continueWithFree": "फ्री में जारी रखें",
-    "skipDevMode": "छोड़ें (Dev Mode)",
-    "packageUnavailable": "यह प्लान अभी उपलब्ध नहीं है। कृपया बाद में कोशिश करें।",
-    "purchaseFailed": "खरीदारी पूरी नहीं हो पाई। कृपया फिर कोशिश करें।",
-    "noSubscriptionFound": "कोई सब्सक्रिप्शन नहीं मिला",
-    "noSubscriptionFoundDesc": "हमें कोई एक्टिव सब्सक्रिप्शन रिस्टोर नहीं मिला।",
-    "restoreFailed": "खरीदारी रिस्टोर नहीं हो पाई। कृपया फिर कोशिश करें।"
+    "continueWithFree": "फ्री में जारी रखें"
   },
   "quiz": {
     "loading": "क्विज़ लोड हो रहा है...",

@@ -970,9 +970,6 @@
     "obRevealCatSport": "Šport",
     "obRevealCatCruiser": "Cruiser",
     "obRevealCatTracked": "Okruhová",
-    "obSignInRestore": "Obnoviť nákupy",
-    "obSignInRestoreFound": "Tvoje predplatné Pro bolo obnovené.",
-    "obSignInRestoreNone": "Nenašli sa žiadne predchádzajúce nákupy.",
     "cpPromptTitleLead": "Ulož to do",
     "cpPromptTitleAccent": "svojej garáže.",
     "cpPromptBodyRide": "Vytvor si bezplatný účet, aby bola tvoja jazda zálohovaná a synchronizovaná na všetkých zariadeniach.",
@@ -1175,7 +1172,6 @@
     "logSection": "Záznam"
   },
   "paywall": {
-    "title": "Tvoj MotoVault zážitok je pripravený",
     "personalizedFor": "Personalizované pre tvoj {{bike}}",
     "featureaiDiagnosticsTitle": "AI diagnostika",
     "featureaiDiagnosticsDesc": "Analýza fotografií a riešenie problémov pre tvoju motorku",
@@ -1185,22 +1181,8 @@
     "featuremaintenanceAlertsDesc": "Nikdy nezmeškaj interval servisu",
     "annual": "Ročné",
     "monthly": "Mesačné",
-    "annualTrialDays": "{{days}}-dňová bezplatná skúšobná verzia",
-    "monthlyTrialDays": "{{days}}-dňová bezplatná skúšobná verzia",
     "year": "rok",
-    "month": "mes",
-    "bestValue": "Najlepšia hodnota",
-    "cancelAnytime": "Zrušiť kedykoľvek",
-    "noChargeDuringTrial": "Počas skúšobnej verzie sa neúčtuje nič",
-    "startFreeTrial": "Začať bezplatnú skúšobnú verziu",
-    "restorePurchases": "Obnoviť nákupy",
-    "continueWithFree": "Pokračovať zadarmo",
-    "skipDevMode": "Preskočiť (Dev režim)",
-    "packageUnavailable": "Tento plán je momentálne nedostupný. Skúste to neskôr.",
-    "purchaseFailed": "Nákup sa nepodarilo dokončiť. Skúste to znova.",
-    "noSubscriptionFound": "Predplatné nenájdené",
-    "noSubscriptionFoundDesc": "Nepodarilo sa nájsť aktívne predplatné na obnovenie.",
-    "restoreFailed": "Nepodarilo sa obnoviť nákupy. Skúste to znova."
+    "continueWithFree": "Pokračovať zadarmo"
   },
   "quiz": {
     "loading": "Načítava sa kvíz...",

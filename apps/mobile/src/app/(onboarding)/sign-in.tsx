@@ -24,7 +24,6 @@ import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytic
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
-import { restorePurchases } from '../../lib/subscription';
 import { supabase } from '../../lib/supabase';
 
 /**
@@ -52,22 +51,6 @@ export default function OnboardingSignInScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_STARTED, {});
     router.replace(OB_ROUTE.EXPERIENCE);
-  };
-
-  const handleRestore = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setBusy(true);
-    try {
-      const isPro = await restorePurchases();
-      Alert.alert(
-        t('onboarding.obSignInRestore' as never),
-        isPro
-          ? t('onboarding.obSignInRestoreFound' as never)
-          : t('onboarding.obSignInRestoreNone' as never),
-      );
-    } finally {
-      setBusy(false);
-    }
   };
 
   const handleApple = async () => {
@@ -287,16 +270,6 @@ export default function OnboardingSignInScreen() {
                 <Text style={{ color: ONBOARDING_COLORS.warm2, fontWeight: '600' }}>
                   {t('onboarding.obSignInGetStarted' as never)}
                 </Text>
-              </Text>
-            </Pressable>
-
-            <Pressable
-              onPress={handleRestore}
-              hitSlop={8}
-              style={{ alignSelf: 'center', marginTop: 14 }}
-            >
-              <Text style={{ fontSize: 12.5, color: ONBOARDING_COLORS.textMuted }}>
-                {t('onboarding.obSignInRestore' as never)}
               </Text>
             </Pressable>
           </Animated.View>

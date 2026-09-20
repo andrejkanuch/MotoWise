@@ -968,9 +968,6 @@
     "obRevealCatSport": "Sport",
     "obRevealCatCruiser": "Cruiser",
     "obRevealCatTracked": "Sirkuit",
-    "obSignInRestore": "Pulihkan pembelian",
-    "obSignInRestoreFound": "Langganan Pro kamu telah dipulihkan.",
-    "obSignInRestoreNone": "Tidak ada pembelian sebelumnya.",
     "cpPromptTitleLead": "Simpan ini ke",
     "cpPromptTitleAccent": "garasimu.",
     "cpPromptBodyRide": "Buat akun gratis agar perjalananmu dicadangkan dan tersinkron di semua perangkatmu.",
@@ -1173,7 +1170,6 @@
     "logSection": "Catatan"
   },
   "paywall": {
-    "title": "Pengalaman MotoVault-mu sudah siap",
     "personalizedFor": "Dipersonalisasi untuk {{bike}}-mu",
     "featureaiDiagnosticsTitle": "Diagnostik Bertenaga AI",
     "featureaiDiagnosticsDesc": "Analisis foto dan pemecahan masalah untuk motormu",
@@ -1183,22 +1179,8 @@
     "featuremaintenanceAlertsDesc": "Jangan pernah lewatkan interval servis lagi",
     "annual": "Tahunan",
     "monthly": "Bulanan",
-    "annualTrialDays": "Uji coba gratis {{days}} hari",
-    "monthlyTrialDays": "Uji coba gratis {{days}} hari",
     "year": "thn",
-    "month": "bln",
-    "bestValue": "Paling Hemat",
-    "cancelAnytime": "Batalkan kapan saja",
-    "noChargeDuringTrial": "Tidak dikenakan biaya selama uji coba",
-    "startFreeTrial": "Mulai Uji Coba Gratis",
-    "restorePurchases": "Pulihkan Pembelian",
-    "continueWithFree": "Lanjutkan dengan Gratis",
-    "skipDevMode": "Lewati (Dev Mode)",
-    "packageUnavailable": "Paket ini sedang tidak tersedia. Silakan coba lagi nanti.",
-    "purchaseFailed": "Pembelian tidak bisa diselesaikan. Silakan coba lagi.",
-    "noSubscriptionFound": "Langganan Tidak Ditemukan",
-    "noSubscriptionFoundDesc": "Kami tidak menemukan langganan aktif untuk dipulihkan.",
-    "restoreFailed": "Tidak bisa memulihkan pembelian. Silakan coba lagi."
+    "continueWithFree": "Lanjutkan dengan Gratis"
   },
   "quiz": {
     "loading": "Memuat kuis...",

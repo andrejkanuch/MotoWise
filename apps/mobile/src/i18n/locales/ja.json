@@ -968,9 +968,6 @@
     "obRevealCatSport": "スポーツ",
     "obRevealCatCruiser": "クルーザー",
     "obRevealCatTracked": "サーキット",
-    "obSignInRestore": "購入を復元",
-    "obSignInRestoreFound": "Proサブスクリプションを復元しました。",
-    "obSignInRestoreNone": "以前の購入は見つかりませんでした。",
     "cpPromptTitleLead": "これを",
     "cpPromptTitleAccent": "ガレージに保存。",
     "cpPromptBodyRide": "無料アカウントを作成すると、ライドがバックアップされ、すべてのデバイスで同期されます。",
@@ -1173,7 +1170,6 @@
     "logSection": "記録"
   },
   "paywall": {
-    "title": "MotoVault体験の準備ができました",
     "personalizedFor": "あなたの{{bike}}向けにパーソナライズ",
     "featureaiDiagnosticsTitle": "AI搭載診断",
     "featureaiDiagnosticsDesc": "写真分析とトラブルシューティング",
@@ -1183,22 +1179,8 @@
     "featuremaintenanceAlertsDesc": "サービス間隔を見逃しません",
     "annual": "年間",
     "monthly": "月額",
-    "annualTrialDays": "{{days}}日間無料トライアル",
-    "monthlyTrialDays": "{{days}}日間無料トライアル",
     "year": "年",
-    "month": "月",
-    "bestValue": "お得",
-    "cancelAnytime": "いつでもキャンセル可能",
-    "noChargeDuringTrial": "トライアル中は課金されません",
-    "startFreeTrial": "無料トライアルを始める",
-    "restorePurchases": "購入を復元",
-    "continueWithFree": "無料で続ける",
-    "skipDevMode": "スキップ（開発モード）",
-    "packageUnavailable": "このプランは現在ご利用いただけません。後ほどお試しください。",
-    "purchaseFailed": "購入を完了できませんでした。もう一度お試しください。",
-    "noSubscriptionFound": "サブスクリプションが見つかりません",
-    "noSubscriptionFoundDesc": "復元できるアクティブなサブスクリプションが見つかりませんでした。",
-    "restoreFailed": "購入を復元できませんでした。もう一度お試しください。"
+    "continueWithFree": "無料で続ける"
   },
   "quiz": {
     "loading": "クイズを読み込み中...",

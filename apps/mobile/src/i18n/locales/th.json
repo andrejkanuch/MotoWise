@@ -968,9 +968,6 @@
     "obRevealCatSport": "สปอร์ต",
     "obRevealCatCruiser": "ครุยเซอร์",
     "obRevealCatTracked": "สนามแข่ง",
-    "obSignInRestore": "กู้คืนการซื้อ",
-    "obSignInRestoreFound": "กู้คืนการสมัครสมาชิก Pro ของคุณแล้ว",
-    "obSignInRestoreNone": "ไม่พบการซื้อก่อนหน้านี้",
     "cpPromptTitleLead": "บันทึกสิ่งนี้ไว้ใน",
     "cpPromptTitleAccent": "โรงรถของคุณ",
     "cpPromptBodyRide": "สร้างบัญชีฟรีเพื่อให้การขี่ของคุณถูกสำรองและซิงค์ทุกอุปกรณ์",
@@ -1173,7 +1170,6 @@
     "logSection": "บันทึก"
   },
   "paywall": {
-    "title": "ประสบการณ์ MotoVault ของคุณพร้อมแล้ว",
     "personalizedFor": "ปรับแต่งสำหรับ {{bike}} ของคุณ",
     "featureaiDiagnosticsTitle": "การวินิจฉัยด้วย AI",
     "featureaiDiagnosticsDesc": "วิเคราะห์ภาพถ่ายและแก้ไขปัญหาสำหรับรถของคุณ",
@@ -1183,22 +1179,8 @@
     "featuremaintenanceAlertsDesc": "ไม่พลาดรอบเข้าศูนย์อีกต่อไป",
     "annual": "รายปี",
     "monthly": "รายเดือน",
-    "annualTrialDays": "ทดลองใช้ฟรี {{days}} วัน",
-    "monthlyTrialDays": "ทดลองใช้ฟรี {{days}} วัน",
     "year": "ปี",
-    "month": "เดือน",
-    "bestValue": "คุ้มค่าที่สุด",
-    "cancelAnytime": "ยกเลิกได้ทุกเมื่อ",
-    "noChargeDuringTrial": "ไม่เสียค่าใช้จ่ายระหว่างทดลอง",
-    "startFreeTrial": "เริ่มทดลองใช้ฟรี",
-    "restorePurchases": "กู้คืนการซื้อ",
-    "continueWithFree": "ใช้แบบฟรีต่อ",
-    "skipDevMode": "ข้าม (Dev Mode)",
-    "packageUnavailable": "แพ็กเกจนี้ยังไม่พร้อมใช้งาน กรุณาลองอีกครั้งภายหลัง",
-    "purchaseFailed": "ไม่สามารถทำการซื้อได้ กรุณาลองอีกครั้ง",
-    "noSubscriptionFound": "ไม่พบการสมัครสมาชิก",
-    "noSubscriptionFoundDesc": "ไม่พบการสมัครสมาชิกที่ใช้งานอยู่",
-    "restoreFailed": "ไม่สามารถกู้คืนการซื้อ กรุณาลองอีกครั้ง"
+    "continueWithFree": "ใช้แบบฟรีต่อ"
   },
   "quiz": {
     "loading": "กำลังโหลดแบบทดสอบ...",
