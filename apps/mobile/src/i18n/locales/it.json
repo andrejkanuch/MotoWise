@@ -969,9 +969,6 @@
     "obRevealCatSport": "Sport",
     "obRevealCatCruiser": "Cruiser",
     "obRevealCatTracked": "Pista",
-    "obSignInRestore": "Ripristina acquisti",
-    "obSignInRestoreFound": "Il tuo abbonamento Pro è stato ripristinato.",
-    "obSignInRestoreNone": "Nessun acquisto precedente trovato.",
     "cpPromptTitleLead": "Salva questo nel",
     "cpPromptTitleAccent": "tuo garage.",
     "cpPromptBodyRide": "Crea un account gratuito per salvare e sincronizzare la tua corsa su tutti i tuoi dispositivi.",
@@ -1174,7 +1171,6 @@
     "logSection": "Registrazione"
   },
   "paywall": {
-    "title": "La tua esperienza MotoVault è pronta",
     "personalizedFor": "Personalizzata per la tua {{bike}}",
     "featureaiDiagnosticsTitle": "Diagnostica potenziata dall'AI",
     "featureaiDiagnosticsDesc": "Analisi foto e risoluzione problemi per la tua moto",
@@ -1184,22 +1180,8 @@
     "featuremaintenanceAlertsDesc": "Non saltare mai più un intervallo di manutenzione",
     "annual": "Annuale",
     "monthly": "Mensile",
-    "annualTrialDays": "{{days}} giorni di prova gratuita",
-    "monthlyTrialDays": "{{days}} giorni di prova gratuita",
     "year": "anno",
-    "month": "mese",
-    "bestValue": "Miglior offerta",
-    "cancelAnytime": "Cancella quando vuoi",
-    "noChargeDuringTrial": "Nessun addebito durante la prova",
-    "startFreeTrial": "Inizia la prova gratuita",
-    "restorePurchases": "Ripristina acquisti",
-    "continueWithFree": "Continua gratis",
-    "skipDevMode": "Salta (Modalità Dev)",
-    "packageUnavailable": "Questo piano non è disponibile al momento. Riprova più tardi.",
-    "purchaseFailed": "L'acquisto non è andato a buon fine. Riprova.",
-    "noSubscriptionFound": "Nessun abbonamento trovato",
-    "noSubscriptionFoundDesc": "Non abbiamo trovato un abbonamento attivo da ripristinare.",
-    "restoreFailed": "Impossibile ripristinare gli acquisti. Riprova."
+    "continueWithFree": "Continua gratis"
   },
   "quiz": {
     "loading": "Caricamento quiz...",

@@ -968,9 +968,6 @@
     "obRevealCatSport": "Sport",
     "obRevealCatCruiser": "Cruiser",
     "obRevealCatTracked": "Pist",
-    "obSignInRestore": "Satın alımları geri yükle",
-    "obSignInRestoreFound": "Pro aboneliğin geri yüklendi.",
-    "obSignInRestoreNone": "Önceki satın alım bulunamadı.",
     "cpPromptTitleLead": "Bunu garajına",
     "cpPromptTitleAccent": "kaydet.",
     "cpPromptBodyRide": "Ücretsiz bir hesap oluştur, böylece sürüşün yedeklenir ve tüm cihazlarında senkronize edilir.",
@@ -1173,7 +1170,6 @@
     "logSection": "Kayıt"
   },
   "paywall": {
-    "title": "MotoVault deneyimin hazir",
     "personalizedFor": "{{bike}} icin kisisellestirildi",
     "featureaiDiagnosticsTitle": "Yapay Zeka Teshisi",
     "featureaiDiagnosticsDesc": "Motorun icin foto analizi ve sorun giderme",
@@ -1183,22 +1179,8 @@
     "featuremaintenanceAlertsDesc": "Bir daha servis araligini kacirma",
     "annual": "Yillik",
     "monthly": "Aylik",
-    "annualTrialDays": "{{days}} gun ucretsiz deneme",
-    "monthlyTrialDays": "{{days}} gun ucretsiz deneme",
     "year": "yil",
-    "month": "ay",
-    "bestValue": "En Iyi Deger",
-    "cancelAnytime": "Istedigin zaman iptal et",
-    "noChargeDuringTrial": "Deneme surecinde ucret yok",
-    "startFreeTrial": "Ucretsiz Denemeyi Basla",
-    "restorePurchases": "Satin Alimlari Geri Yukle",
-    "continueWithFree": "Ucretsiz Devam Et",
-    "skipDevMode": "Atla (Gelistirici Modu)",
-    "packageUnavailable": "Bu plan su anda mevcut degil. Lutfen daha sonra tekrar dene.",
-    "purchaseFailed": "Satin alma tamamlanamadi. Lutfen tekrar dene.",
-    "noSubscriptionFound": "Abonelik Bulunamadi",
-    "noSubscriptionFoundDesc": "Geri yuklenecek aktif bir abonelik bulamadik.",
-    "restoreFailed": "Satin alimlar geri yuklenemedi. Lutfen tekrar dene."
+    "continueWithFree": "Ucretsiz Devam Et"
   },
   "quiz": {
     "loading": "Test yukleniyor...",

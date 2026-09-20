@@ -970,9 +970,6 @@
     "obRevealCatSport": "Sport",
     "obRevealCatCruiser": "Cruiser",
     "obRevealCatTracked": "Torowy",
-    "obSignInRestore": "Przywróć zakupy",
-    "obSignInRestoreFound": "Twoja subskrypcja Pro została przywrócona.",
-    "obSignInRestoreNone": "Nie znaleziono wcześniejszych zakupów.",
     "cpPromptTitleLead": "Zapisz to w",
     "cpPromptTitleAccent": "swoim garażu.",
     "cpPromptBodyRide": "Załóż darmowe konto, aby Twój przejazd był zapisany i zsynchronizowany na wszystkich urządzeniach.",
@@ -1175,7 +1172,6 @@
     "logSection": "Zapis"
   },
   "paywall": {
-    "title": "Twoje doswiadczenie MotoVault jest gotowe",
     "personalizedFor": "Spersonalizowane dla {{bike}}",
     "featureaiDiagnosticsTitle": "Diagnostyka AI",
     "featureaiDiagnosticsDesc": "Analiza zdjec i rozwiazywanie problemow dla twojego motocykla",
@@ -1185,22 +1181,8 @@
     "featuremaintenanceAlertsDesc": "Nigdy wiecej nie przegapisz terminu serwisu",
     "annual": "Roczny",
     "monthly": "Miesieczny",
-    "annualTrialDays": "{{days}}-dniowy darmowy okres probny",
-    "monthlyTrialDays": "{{days}}-dniowy darmowy okres probny",
     "year": "rok",
-    "month": "mies.",
-    "bestValue": "Najlepsza wartosc",
-    "cancelAnytime": "Anuluj w dowolnym momencie",
-    "noChargeDuringTrial": "Bez oplat w okresie probnym",
-    "startFreeTrial": "Rozpocznij darmowy okres probny",
-    "restorePurchases": "Przywroc zakupy",
-    "continueWithFree": "Kontynuuj za darmo",
-    "skipDevMode": "Pomin (tryb dewelopera)",
-    "packageUnavailable": "Ten plan jest obecnie niedostepny. Sprobuj ponownie pozniej.",
-    "purchaseFailed": "Zakup nie mogl byc zrealizowany. Sprobuj ponownie.",
-    "noSubscriptionFound": "Nie znaleziono subskrypcji",
-    "noSubscriptionFoundDesc": "Nie znalezlismy aktywnej subskrypcji do przywrocenia.",
-    "restoreFailed": "Nie udalo sie przywrocic zakupow. Sprobuj ponownie."
+    "continueWithFree": "Kontynuuj za darmo"
   },
   "quiz": {
     "loading": "Ladowanie quizu...",

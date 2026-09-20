@@ -33,6 +33,5 @@ export const PROFILE_ROUTE = {
   NOTIFICATIONS: '/(tabs)/(profile)/notifications',
   SUPPORT: '/(tabs)/(profile)/support',
   PRIVACY: '/(tabs)/(profile)/privacy',
-  UPGRADE: '/(tabs)/(profile)/upgrade',
   EDIT_PROFILE: '/(tabs)/(profile)/edit-profile',
 } as const;

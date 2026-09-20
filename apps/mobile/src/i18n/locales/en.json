@@ -968,9 +968,6 @@
     "obRevealCatSport": "Sport",
     "obRevealCatCruiser": "Cruiser",
     "obRevealCatTracked": "Tracked",
-    "obSignInRestore": "Restore purchases",
-    "obSignInRestoreFound": "Your Pro subscription has been restored.",
-    "obSignInRestoreNone": "No previous purchases found.",
     "cpPromptTitleLead": "Save this to",
     "cpPromptTitleAccent": "your garage.",
     "cpPromptBodyRide": "Create a free account so your ride is backed up and synced across your devices.",
@@ -1179,7 +1176,6 @@
     "logSection": "Record"
   },
   "paywall": {
-    "title": "Your MotoVault experience is ready",
     "personalizedFor": "Personalized for your {{bike}}",
     "featureaiDiagnosticsTitle": "AI-Powered Diagnostics",
     "featureaiDiagnosticsDesc": "Photo analysis and troubleshooting for your bike",
@@ -1189,22 +1185,8 @@
     "featuremaintenanceAlertsDesc": "Never miss a service interval again",
     "annual": "Annual",
     "monthly": "Monthly",
-    "annualTrialDays": "{{days}}-day free trial",
-    "monthlyTrialDays": "{{days}}-day free trial",
     "year": "yr",
-    "month": "mo",
-    "bestValue": "Best Value",
-    "cancelAnytime": "Cancel anytime",
-    "noChargeDuringTrial": "No charge during trial",
-    "startFreeTrial": "Start Free Trial",
-    "restorePurchases": "Restore Purchases",
-    "continueWithFree": "Continue with Free",
-    "skipDevMode": "Skip (Dev Mode)",
-    "packageUnavailable": "This plan is currently unavailable. Please try again later.",
-    "purchaseFailed": "Purchase could not be completed. Please try again.",
-    "noSubscriptionFound": "No Subscription Found",
-    "noSubscriptionFoundDesc": "We couldn't find an active subscription to restore.",
-    "restoreFailed": "Could not restore purchases. Please try again."
+    "continueWithFree": "Continue with Free"
   },
   "quiz": {
     "loading": "Loading quiz...",
