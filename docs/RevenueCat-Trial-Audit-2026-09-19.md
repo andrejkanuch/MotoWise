@@ -175,6 +175,12 @@ The only mechanism RC Targeting supports is custom attributes / country / app ve
   | Play | `motovault_pro_v4_monthly_v4:motovault-pro-monthly-v4` | `monthly-v4-cancel-40off-2mo` |
   While there, delete the dead `annual_v2_cancel_40off_1yr` (App Store, does not exist) and note the v1 Play `annual-cancel-40off-1yr` is DRAFT. The Customer Center config has no public API (the MCP is read-only for it), so this cannot be scripted.
 
+### Legacy Play annual closed out (2026-09-20, evening)
+
+- **Play `annual-cancel-40off-1yr` (v1 base plan `motovault_pro_annual:annual-autorenew`) is ACTIVE.** It was a DRAFT whose single phase said `P1Y × 2` — two years at 40% off, despite the `1yr` name. Corrected to `P1Y × 1` while still a draft, then activated. Also tagged `retention` so all five Play retention offers match; `offers update` rejects a tag-only patch with `Regions Version must be specified` — pass `--regions-version 2022/02` (the offer's own GET does not return the field).
+- **Customer Center now maps 12 products**: the 11 from earlier plus `app6f29b09758 / motovault_pro_annual:annual-autorenew → annual-cancel-40off-1yr`. Verified through `get-customer-center-config` (`cross_product_promotions[12]`), not just the dashboard's "12 products" label. Legacy Play annual subscribers now get the same 40%-off retention offer as everyone else; **every live subscription product on both stores is covered**.
+- Method note: the earlier Playwright script removes any slot whose promo field reads empty, which is a data-loss risk on a re-run if the promo values have not finished loading. The single-row variant used here does no removals, prints the full block list before and after, and supports `DRY_RUN=1` — run the dry pass first and read the summary.
+
 ---
 
 ## Re-run commands
