@@ -175,6 +175,49 @@ The only mechanism RC Targeting supports is custom attributes / country / app ve
   | Play | `motovault_pro_v4_monthly_v4:motovault-pro-monthly-v4` | `monthly-v4-cancel-40off-2mo` |
   While there, delete the dead `annual_v2_cancel_40off_1yr` (App Store, does not exist) and note the v1 Play `annual-cancel-40off-1yr` is DRAFT. The Customer Center config has no public API (the MCP is read-only for it), so this cannot be scripted.
 
+### Legacy Play annual closed out (2026-09-20, evening)
+
+- **Play `annual-cancel-40off-1yr` (v1 base plan `motovault_pro_annual:annual-autorenew`) is ACTIVE.** It was a DRAFT whose single phase said `P1Y × 2` — two years at 40% off, despite the `1yr` name. Corrected to `P1Y × 1` while still a draft, then activated. Also tagged `retention` so all five Play retention offers match; `offers update` rejects a tag-only patch with `Regions Version must be specified` — pass `--regions-version 2022/02` (the offer's own GET does not return the field).
+- **Customer Center now maps 12 products**: the 11 from earlier plus `app6f29b09758 / motovault_pro_annual:annual-autorenew → annual-cancel-40off-1yr`. Verified through `get-customer-center-config` (`cross_product_promotions[12]`), not just the dashboard's "12 products" label. Legacy Play annual subscribers now get the same 40%-off retention offer as everyone else; **every live subscription product on both stores is covered**.
+- Method note: the earlier Playwright script removes any slot whose promo field reads empty, which is a data-loss risk on a re-run if the promo values have not finished loading. The single-row variant used here does no removals, prints the full block list before and after, and supports `DRY_RUN=1` — run the dry pass first and read the summary.
+
+## Verification sweep (2026-09-20)
+
+Every change this audit recorded as executed was re-checked against the live systems. All pass.
+
+| Claim | Check | Result |
+| --- | --- | --- |
+| Apple billing grace period ON | `GET /v1/apps/6760291360/subscriptionGracePeriod` | `optIn=true`, `sandboxOptIn=true`, `SIXTEEN_DAYS`, `ALL_RENEWALS` |
+| One Apple subscription group | `asc subscriptions list --group-id 21974881` | 9 products, all in `MotoVault Pro`; `motovault_pro_annual_v4_nt` still `WAITING_FOR_REVIEW`, the rest `APPROVED` |
+| Legacy Apple intro offers ended | `offers introductory list` on `annual_v2`, `monthly_v2` | 0 rows on both |
+| Apple retention offers | `offers promotional list` on the four v3/v4 subs | `annual_v3/v4_cancel_40off_1yr` = `ONE_YEAR × 1`, `monthly_v3/v4_cancel_40off_2mo` = `ONE_MONTH × 2`, all `PAY_AS_YOU_GO` |
+| Play base plans | `gplay subscriptions list` | all 9 `ACTIVE`, including `motovault_pro_v4_annual_nt/motovault-pro-v4-annual-nt`, which carries no offers |
+| Play trials rescoped | `gplay offers list` on the v3/v4 annual plans | 7-day free, `acquisitionRule.scope = anySubscriptionInApp`, `ACTIVE` |
+| Legacy Play trials off | same, on the v1/v2 plans | `free-trial-7day`, `free-trial-3day`, `offer-trial-1-month`, `offer-monthly-1-month` all `INACTIVE` |
+| Play retention offers | same, all five plans | five `ACTIVE`, tag `retention`, `P1Y × 1` / `P1M × 2` at 40%; the dead v2 `monthly-cancel-40off-2mo` still `INACTIVE` |
+| Stale RC offerings archived | `list-offerings` | `default`, `new_offering_4_29_24_4`, `new_offering_4_29_24_4_v2` all `inactive`; `paywall_v4` is current |
+| No-trial offering wired | `get-offering ofrng630d66512e` expanded | annual package = `motovault_pro_annual_v4_nt` (iOS) + `motovault_pro_v4_annual_nt:…` (Play); monthly/lifetime unchanged |
+| `_nt` products entitled | `get-products-from-entitlement entlcbbd43776c` | both `_nt` products attached to `MotoVault Pro` |
+| Paywalls published | `get-paywall` ×3 | v3 rev 216, v4 rev 41, no-trial rev 3 — all `published_at` 2026-09-19 |
+| Trial copy gated | `get-paywall … expand=components` on v3 and v4 | the "1 week FREE TRIAL" pill stack is `visible: false` with a single override `intro_offer_condition = true → visible: true`; the CTA text overrides to "Start 7-day free trial" only under an `intro_offer` condition. Identical in both paywalls |
+| Targeting rule live | `list-targeting-rules` | `b8bf6277e0` active, `has_had_trial in ["true"]` → `ofrng630d66512e`, the only rule |
+| `has_had_trial` stamped | `get-customer … expand=attributes` on a backfilled user | `has_had_trial = "true"`, written 2026-09-19T14:13Z |
+| Migrations live | prod `schema_migrations` | `00177` and `00178` both present |
+| Trial backfill | prod `public.users` | 29 of 728 rows carry `trial_started_at` |
+| 00178 effects | prod catalogs | no table-wide grants for `anon`/`authenticated` on `users`; 12 SELECT columns (both roles) / 13 UPDATE columns (`authenticated`); `share_links` has only the owner policy; `mark_article_read`, `join_group_ride`, `soft_delete_expense` all carry an `auth.uid()` check with EXECUTE limited to `authenticated`/`service_role` |
+| OTA shipped | `eas update:list --branch production` | `9bb29159…` is the newest, runtime 3.19.1, android + ios |
+| Phase 3 hygiene | repo | `(profile)/upgrade.tsx` gone, no `ROUTES.UPGRADE` / `restorePurchases` references, `paywall.*` locale keys gone, `next` at `^16.3.5` |
+| Trial history wired end to end | repo | `users.service.ts` maps `trial_started_at → hasUsedTrial`, `GetTrialEligibility` is generated, `apps/web/src/app/pro/checkout/page.tsx` gates trial copy on it, mobile `subscription.ts` stamps the attribute |
+| Customer Center coverage | `get-customer-center-config` | `cross_product_promotions[12]` |
+| CI | `gh run list --branch main` | last three runs green |
+
+Two caveats worth carrying forward, neither a defect:
+
+- RC's cached product metadata still advertises `trial_duration: P1M` for `motovault_pro_annual_v2` and `motovault_pro_monthly_v2` although both intro offers have ended in App Store Connect. The store is authoritative — no offer exists — but do not read trial eligibility off RC product metadata.
+- The experiment `compare v3 and v4` is still `new_and_existing`, as planned: RevenueCat only lets enrollment mode change on a restart, and the targeting rule already sits above it, so anyone with `has_had_trial` skips trial copy regardless.
+
+Open, unchanged: Apple's review of `motovault_pro_annual_v4_nt`.
+
 ---
 
 ## Re-run commands
