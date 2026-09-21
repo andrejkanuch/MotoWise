@@ -43,7 +43,9 @@
     "checkEmail": "Sprawdz swoj e-mail",
     "confirmationSent": "Wyslalismy link weryfikacyjny na twoj e-mail. Zweryfikuj, aby kontynuowac.",
     "accountExistsTitle": "Konto już istnieje",
-    "accountExistsMessage": "Ten adres e-mail jest już zarejestrowany. Zaloguj się zamiast tego."
+    "accountExistsMessage": "Ten adres e-mail jest już zarejestrowany. Zaloguj się zamiast tego.",
+    "restoringSession": "Przywracanie sesji…",
+    "signInInstead": "Zaloguj się"
   },
   "tabs": {
     "home": "Glowna",
@@ -1795,6 +1797,8 @@
     "descriptionPlaceholder": "Opisz trase, atrakcje, co zabrac...",
     "maxRidersLabel": "Maks. jezdzcy",
     "maxRidersPlaceholder": "10",
+    "maxRidersRequired": "Podaj, ilu motocyklistow moze dolaczyc",
+    "maxRidersRange": "Wybierz od {{min}} do {{max}} motocyklistow",
     "stopNotesPlaceholder": "Dodaj notatki o tym przystanku...",
     "reviewPlaceholder": "Podziel sie swoim doswiadczeniem...",
     "assistantPlaceholder": "Zapytaj o swoja trase…",
@@ -1862,6 +1866,8 @@
   "rideHud": {
     "forgotToStopTitle": "Nadal jedziesz?",
     "forgotToStopBody": "Stoisz już {{minutes}} minut. Dotknij, aby zakończyć trasę, lub jedź dalej.",
+    "gpsLostTitle": "Śledzenie GPS zatrzymane",
+    "gpsLostBody": "Uprawnienie do lokalizacji zostało wyłączone, więc Twoja trasa nie jest już zapisywana. Dotknij, aby to naprawić lub zakończyć przejazd.",
     "dist": "DYST",
     "time": "CZAS",
     "avg": "SR",

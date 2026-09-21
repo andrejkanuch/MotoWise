@@ -43,7 +43,9 @@
     "checkEmail": "Controlla la tua email",
     "confirmationSent": "Ti abbiamo inviato un link di conferma via email. Verifica la tua casella per continuare.",
     "accountExistsTitle": "L'account esiste già",
-    "accountExistsMessage": "Questa email è già registrata. Accedi invece."
+    "accountExistsMessage": "Questa email è già registrata. Accedi invece.",
+    "restoringSession": "Ripristino della sessione…",
+    "signInInstead": "Accedi"
   },
   "tabs": {
     "home": "Home",
@@ -1794,6 +1796,8 @@
     "descriptionPlaceholder": "Descrivi il percorso, i punti salienti, cosa portare...",
     "maxRidersLabel": "Max. piloti",
     "maxRidersPlaceholder": "10",
+    "maxRidersRequired": "Indica quanti motociclisti possono partecipare",
+    "maxRidersRange": "Scegli tra {{min}} e {{max}} motociclisti",
     "stopNotesPlaceholder": "Aggiungi note su questa tappa...",
     "reviewPlaceholder": "Condividi la tua esperienza...",
     "assistantPlaceholder": "Chiedi della tua uscita...",
@@ -1861,6 +1865,8 @@
   "rideHud": {
     "forgotToStopTitle": "Ancora in viaggio?",
     "forgotToStopBody": "Sei fermo da {{minutes}} minuti. Tocca per terminare il giro o continua.",
+    "gpsLostTitle": "Tracciamento GPS interrotto",
+    "gpsLostBody": "L'autorizzazione alla posizione è stata disattivata, il tuo giro non viene più registrato. Tocca per risolvere o terminare il giro.",
     "dist": "DIST",
     "time": "TMPO",
     "avg": "MED",

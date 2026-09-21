@@ -43,7 +43,9 @@
     "checkEmail": "ตรวจสอบอีเมลของคุณ",
     "confirmationSent": "เราได้ส่งลิงก์ยืนยันไปที่อีเมลของคุณแล้วครับ กรุณายืนยันเพื่อดำเนินการต่อ",
     "accountExistsTitle": "มีบัญชีอยู่แล้ว",
-    "accountExistsMessage": "อีเมลนี้ลงทะเบียนไว้แล้ว กรุณาลงชื่อเข้าใช้แทน"
+    "accountExistsMessage": "อีเมลนี้ลงทะเบียนไว้แล้ว กรุณาลงชื่อเข้าใช้แทน",
+    "restoringSession": "กำลังกู้คืนเซสชันของคุณ…",
+    "signInInstead": "เข้าสู่ระบบแทน"
   },
   "tabs": {
     "home": "หน้าแรก",
@@ -1811,6 +1813,8 @@
     "descriptionPlaceholder": "อธิบายเส้นทาง จุดเด่น สิ่งที่ต้องเตรียม...",
     "maxRidersLabel": "จำนวนนักขี่สูงสุด",
     "maxRidersPlaceholder": "10",
+    "maxRidersRequired": "ระบุจำนวนผู้ขี่ที่เข้าร่วมได้",
+    "maxRidersRange": "เลือกระหว่าง {{min}} ถึง {{max}} คน",
     "stopNotesPlaceholder": "เพิ่มบันทึกเกี่ยวกับจุดแวะนี้...",
     "reviewPlaceholder": "แบ่งปันประสบการณ์ของคุณ...",
     "assistantPlaceholder": "ถามเกี่ยวกับทริปของคุณ…",
@@ -1860,6 +1864,8 @@
   "rideHud": {
     "forgotToStopTitle": "ยังขี่อยู่ไหม?",
     "forgotToStopBody": "คุณหยุดอยู่ {{minutes}} นาที แตะเพื่อจบการขี่ หรือขี่ต่อได้",
+    "gpsLostTitle": "หยุดการติดตาม GPS แล้ว",
+    "gpsLostBody": "สิทธิ์การเข้าถึงตำแหน่งถูกปิด การขี่ของคุณจึงไม่ถูกบันทึกอีกต่อไป แตะเพื่อแก้ไขหรือจบการขี่",
     "dist": "ระยะ",
     "time": "เวลา",
     "avg": "เฉลี่ย",

@@ -43,7 +43,9 @@
     "checkEmail": "Cek Email Kamu",
     "confirmationSent": "Kami telah mengirimkan link konfirmasi ke email kamu. Silakan verifikasi untuk melanjutkan.",
     "accountExistsTitle": "Akun sudah ada",
-    "accountExistsMessage": "Email ini sudah terdaftar. Silakan masuk saja."
+    "accountExistsMessage": "Email ini sudah terdaftar. Silakan masuk saja.",
+    "restoringSession": "Memulihkan sesi Anda…",
+    "signInInstead": "Masuk saja"
   },
   "tabs": {
     "home": "Beranda",
@@ -1793,6 +1795,8 @@
     "descriptionPlaceholder": "Jelaskan rute perjalanan, sorotan, apa yang perlu dibawa...",
     "maxRidersLabel": "Maks Pengendara",
     "maxRidersPlaceholder": "10",
+    "maxRidersRequired": "Masukkan berapa rider yang bisa bergabung",
+    "maxRidersRange": "Pilih antara {{min}} dan {{max}} rider",
     "stopNotesPlaceholder": "Tambahkan catatan tentang perhentian ini...",
     "reviewPlaceholder": "Bagikan pengalamanmu...",
     "assistantPlaceholder": "Tanya tentang perjalananmu…",
@@ -1860,6 +1864,8 @@
   "rideHud": {
     "forgotToStopTitle": "Masih berkendara?",
     "forgotToStopBody": "Kamu berhenti selama {{minutes}} menit. Ketuk untuk mengakhiri atau lanjutkan.",
+    "gpsLostTitle": "Pelacakan GPS berhenti",
+    "gpsLostBody": "Izin lokasi dimatikan, jadi perjalananmu tidak lagi direkam. Ketuk untuk memperbaikinya atau mengakhiri perjalanan.",
     "dist": "JARAK",
     "time": "WAKTU",
     "avg": "RATA",

@@ -43,7 +43,9 @@
     "checkEmail": "Verifique Seu E-mail",
     "confirmationSent": "Enviamos um link de confirmação para o seu e-mail. Verifique para continuar.",
     "accountExistsTitle": "A conta já existe",
-    "accountExistsMessage": "Este e-mail já está registrado. Faça login em vez disso."
+    "accountExistsMessage": "Este e-mail já está registrado. Faça login em vez disso.",
+    "restoringSession": "Restaurando sua sessão…",
+    "signInInstead": "Entrar"
   },
   "tabs": {
     "home": "Início",
@@ -1794,6 +1796,8 @@
     "descriptionPlaceholder": "Descreva a rota, destaques e o que levar...",
     "maxRidersLabel": "Máximo de Pilotos",
     "maxRidersPlaceholder": "10",
+    "maxRidersRequired": "Informe quantos motociclistas podem participar",
+    "maxRidersRange": "Escolha entre {{min}} e {{max}} motociclistas",
     "stopNotesPlaceholder": "Adicionar notas sobre esta parada...",
     "reviewPlaceholder": "Compartilhe sua experiência...",
     "assistantPlaceholder": "Pergunte sobre sua viagem…",
@@ -1861,6 +1865,8 @@
   "rideHud": {
     "forgotToStopTitle": "Ainda pilotando?",
     "forgotToStopBody": "Você está parado há {{minutes}} minutos. Toque para encerrar ou continue.",
+    "gpsLostTitle": "Rastreamento GPS parado",
+    "gpsLostBody": "A permissão de localização foi desativada, então seu trajeto não está mais sendo gravado. Toque para corrigir ou encerrar o trajeto.",
     "dist": "DIST",
     "time": "TEMPO",
     "avg": "MÉD",

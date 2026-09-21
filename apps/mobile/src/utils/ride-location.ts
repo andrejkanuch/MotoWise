@@ -4,7 +4,14 @@ import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 import i18n from '../i18n';
-import { captureException } from '../lib/analytics';
+import { addBreadcrumb, captureException } from '../lib/analytics';
+import {
+  CORE_LOCATION_ERROR_CODE,
+  classifyLocationTaskError,
+  LOCATION_TASK_ERROR_ACTION,
+  type LocationTaskError,
+  type LocationTaskErrorAction,
+} from '../lib/location-error';
 import { NOTIFICATION_KIND } from '../lib/notifications';
 import { useRideStore } from '../stores/ride.store';
 import { haversineMeters } from './geo-utils';
@@ -32,12 +39,19 @@ const AUTO_PAUSE_SPEED_THRESHOLD = 0.5; // m/s
 const AUTO_PAUSE_DISTANCE_THRESHOLD = 5; // meters
 const AUTO_PAUSE_DURATION_MS = 60_000; // 60 seconds
 
+/** Single origin tag for everything this task reports — it is also the Sentry
+ *  fingerprint/`capture.source` key, so it must not drift between call sites. */
+const LOCATION_TASK_CAPTURE_SOURCE = 'ride-location.backgroundLocationTask';
+
 // --- Auto-pause state (module-level, survives across callbacks) ---
 
 let zeroSpeedTimer: number | null = null;
 let zeroSpeedAnchor: { lat: number; lng: number } | null = null;
 let continuousAutoPauseStart: number | null = null;
 let forgotToStopNotified = false;
+/** One capture + one notification per ride, however many denied callbacks fire.
+ *  51 Sentry events across 4 riders came from re-reporting the same dead stream. */
+let permissionLostReported = false;
 
 // --- Haversine ---
 
@@ -378,15 +392,35 @@ function processLocation(location: Location.LocationObject): void {
 
 // --- Background task (H10: writes to MMKV, not Zustand) ---
 
+/** What to do with a TaskManager error, keyed by classification. No branching
+ *  at the call site — same shape as AUTO_PAUSE_EFFECT_HANDLERS above. */
+const LOCATION_TASK_ERROR_HANDLERS: Record<
+  LocationTaskErrorAction,
+  (error: LocationTaskError) => void
+> = {
+  // kCLErrorLocationUnknown: Apple says keep waiting, the manager has not
+  // stopped. Breadcrumb only, so the context survives into any later real error.
+  [LOCATION_TASK_ERROR_ACTION.IGNORE]: (error) => {
+    addBreadcrumb(error.message, 'ride-location', { code: error.code });
+  },
+  [LOCATION_TASK_ERROR_ACTION.REPORT]: (error) => {
+    captureException(error, { source: LOCATION_TASK_CAPTURE_SOURCE });
+  },
+  [LOCATION_TASK_ERROR_ACTION.PERMISSION_LOST]: handleLocationPermissionLost,
+};
+
 TaskManager.defineTask<{ locations: Location.LocationObject[] }>(
   BACKGROUND_LOCATION_TASK,
   async ({ data, error }) => {
     if (error) {
-      captureException(error, { source: 'ride-location.backgroundLocationTask' });
+      LOCATION_TASK_ERROR_HANDLERS[classifyLocationTaskError(error)](error);
       return;
     }
 
-    for (const location of data.locations) {
+    // `data` can arrive without `locations` (task woken with no payload); the
+    // bare `data.locations` this replaced threw a TypeError inside the headless
+    // callback, which is itself a source of synthesised-stack noise.
+    for (const location of data?.locations ?? []) {
       processLocation(location);
       onLocationCallback?.(location);
     }
@@ -481,12 +515,60 @@ async function showForgotToStopNotification(): Promise<void> {
   });
 }
 
+/**
+ * Content for the "GPS stopped" alert. Reuses NOTIFICATION_KIND.RIDE_IDLE with
+ * `autoEnded: false` so the tap lands on the live HUD via the handler already in
+ * _layout — deliberately no new notification kind and no new handler branch.
+ */
+export function gpsPermissionLostNotificationContent(rideId: string | undefined) {
+  return {
+    title: i18n.t('rideHud.gpsLostTitle', { defaultValue: 'GPS tracking stopped' }),
+    body: i18n.t('rideHud.gpsLostBody', {
+      defaultValue:
+        'Location permission was turned off, so your ride is no longer recording. Tap to fix it or end the ride.',
+    }),
+    data: { kind: NOTIFICATION_KIND.RIDE_IDLE, rideId, autoEnded: false },
+  };
+}
+
+/**
+ * kCLErrorDenied: the rider revoked location permission mid-ride. iOS has stopped
+ * the update stream for good, so nothing else in this module will ever run again
+ * for this ride — including the forgot-to-stop escalation in `decideAutoPause`,
+ * which is sample-driven and therefore unreachable once the stream dies.
+ *
+ * The ride is deliberately NOT ended: the rider may still be riding, the buffered
+ * waypoints are real, and re-granting permission should be able to resume. Mark
+ * the state, tell the rider once, report once.
+ */
+function handleLocationPermissionLost(error: LocationTaskError): void {
+  if (permissionLostReported) return;
+  permissionLostReported = true;
+
+  rideMMKV.setGpsPermissionLost(true);
+  useRideStore.getState().setGpsPermissionLost(true);
+
+  captureException(error, {
+    source: LOCATION_TASK_CAPTURE_SOURCE,
+    coreLocationCode: CORE_LOCATION_ERROR_CODE.DENIED,
+    rideId: rideMMKV.getCurrentId(),
+  });
+
+  void Notifications.scheduleNotificationAsync({
+    content: gpsPermissionLostNotificationContent(rideMMKV.getCurrentId()),
+    trigger: null,
+  });
+}
+
 function resetAutoPauseState(): void {
   zeroSpeedTimer = null;
   zeroSpeedAnchor = null;
   continuousAutoPauseStart = null;
   forgotToStopNotified = false;
-  // Persisted flag must die with the session too, or the next ride's CarPlay panel
-  // opens already showing "STILL RIDING?" from a previous ride's stop.
+  permissionLostReported = false;
+  // Persisted flags must die with the session too, or the next ride's CarPlay panel
+  // opens already showing "STILL RIDING?" from a previous ride's stop — and the HUD
+  // opens already warning that GPS is off.
   rideMMKV.setForgotToStopPending(false);
+  rideMMKV.setGpsPermissionLost(false);
 }

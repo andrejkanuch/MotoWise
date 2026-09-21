@@ -43,7 +43,9 @@
     "checkEmail": "Vérifie tes e-mails",
     "confirmationSent": "Nous t'avons envoyé un lien de confirmation par e-mail. Vérifie ta boîte pour continuer.",
     "accountExistsTitle": "Le compte existe déjà",
-    "accountExistsMessage": "Cet e-mail est déjà enregistré. Connecte-toi à la place."
+    "accountExistsMessage": "Cet e-mail est déjà enregistré. Connecte-toi à la place.",
+    "restoringSession": "Restauration de votre session…",
+    "signInInstead": "Se connecter"
   },
   "tabs": {
     "home": "Accueil",
@@ -1811,6 +1813,8 @@
     "descriptionPlaceholder": "Decris ton itineraire, les points forts, ce qu'il faut emporter...",
     "maxRidersLabel": "Pilotes max.",
     "maxRidersPlaceholder": "10",
+    "maxRidersRequired": "Indiquez combien de motards peuvent participer",
+    "maxRidersRange": "Choisissez entre {{min}} et {{max}} motards",
     "stopNotesPlaceholder": "Ajouter des notes sur cet arret...",
     "reviewPlaceholder": "Partage ton experience...",
     "assistantPlaceholder": "Pose une question sur ta sortie...",
@@ -1861,6 +1865,8 @@
   "rideHud": {
     "forgotToStopTitle": "Toujours en route ?",
     "forgotToStopBody": "Tu es arrêté depuis {{minutes}} minutes. Touche pour terminer ou continue.",
+    "gpsLostTitle": "Suivi GPS interrompu",
+    "gpsLostBody": "L'autorisation de localisation a été désactivée, ton trajet n'est plus enregistré. Touche pour corriger ou terminer le trajet.",
     "dist": "DIST",
     "time": "TPMS",
     "avg": "MOY",
