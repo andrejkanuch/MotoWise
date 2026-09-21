@@ -1,5 +1,6 @@
 import type { Session } from '@supabase/supabase-js';
 import { useAuthStore } from '../stores/auth.store';
+import { AUTH_HYDRATION } from './auth-hydration';
 import { supabase } from './supabase';
 
 type CachedAccess = { accessToken: string; expiresAtMs: number };
@@ -55,14 +56,20 @@ export async function refreshGqlSession(): Promise<boolean> {
  * of firing a request that the API can only reject.
  *
  * `isLoading` guards the cold-start window: the store's session is null until
- * `supabase.auth.getSession()` resolves in the root layout, and a request fired
- * in that gap would look "signed out" while a perfectly good session is one tick
- * away. During hydration we let the request through and rely on
- * `materializeSession` to pick the token up. (Sentry MOTO-VAULT-REACT-NATIVE-1J)
+ * the Supabase auth listener delivers INITIAL_SESSION in the root layout, and a
+ * request fired in that gap would look "signed out" while a perfectly good
+ * session is one tick away. During hydration we let the request through and rely
+ * on `materializeSession` to pick the token up. (Sentry MOTO-VAULT-REACT-NATIVE-1J)
+ *
+ * UNRESOLVED gets the same treatment for the same reason: the hydration timer
+ * fired without an answer, so "no session" is unknown rather than false. Letting
+ * the request through costs at most one rejected call (filtered by the
+ * MISSING_GQL_SESSION beforeSend rule); skipping it silently denies a signed-in
+ * rider their CarPlay heads-up and widget data on every slow cold start.
  */
 export function hasAuthenticatedSession(): boolean {
-  const { session, isLoading } = useAuthStore.getState();
-  return !!session || isLoading;
+  const { session, isLoading, hydration } = useAuthStore.getState();
+  return !!session || isLoading || hydration === AUTH_HYDRATION.UNRESOLVED;
 }
 
 async function materializeSession(): Promise<CachedAccess | null> {
