@@ -32,7 +32,7 @@ jest.mock('../../lib/graphql-client', () => ({
 
 jest.mock('../../lib/analytics', () => ({ captureException: jest.fn() }));
 
-import { RIDE_WAYPOINT_LIMITS } from '@motovault/types';
+import { RIDE_SYNC_LIMITS, RIDE_WAYPOINT_LIMITS } from '@motovault/types';
 import { captureException } from '../../lib/analytics';
 import {
   clearDeliveredQueue,
@@ -46,6 +46,7 @@ import {
   getQueueLength,
   hasPendingSyncWork,
   redriveDeadLetterQueue,
+  redriveDeadLetterQueueOnce,
   setDeadLetterListener,
 } from '../ride-sync-queue';
 
@@ -66,6 +67,32 @@ function queue(): { seq: number; type: string; retries: number }[] {
 function deadLetter(): unknown[] {
   const raw = mockSyncStore.get('sync.dead_letter');
   return typeof raw === 'string' ? JSON.parse(raw) : [];
+}
+
+/**
+ * Build a persisted SyncOperation for seeding MMKV directly.
+ *
+ * EVERY fixture goes through here rather than an inline object literal, so a new
+ * field on the interface — the per-op owner stamp the cross-user leak fix adds —
+ * is one edit here instead of seven scattered literals that each silently keep the
+ * old shape.
+ */
+function syncOp(op: {
+  seq: number;
+  type: string;
+  rideId?: string;
+  retries?: number;
+  createdAt?: string;
+  payload?: Record<string, unknown>;
+}) {
+  const { seq, type, rideId, retries = 5, createdAt = '', payload } = op;
+  return {
+    seq,
+    type,
+    payload: payload ?? { variables: rideId ? { input: { rideId } } : {} },
+    retries,
+    createdAt,
+  };
 }
 
 beforeEach(() => {
@@ -200,9 +227,7 @@ describe('drainQueue', () => {
     // Seed an op already at retries=4; one more failure crosses MAX_RETRIES (5).
     mockSyncStore.set(
       'sync.queue',
-      JSON.stringify([
-        { seq: 1, type: 'updateRide', payload: { variables: {} }, retries: 4, createdAt: '' },
-      ]),
+      JSON.stringify([syncOp({ seq: 1, type: 'updateRide', retries: 4 })]),
     );
     mockGqlFetcher.mockRejectedValue(new Error('boom'));
     // Make the exponential backoff sleep instant.
@@ -339,10 +364,7 @@ describe('redriveDeadLetterQueue (MOT-262)', () => {
   it('moves dead-lettered ops back to the queue (retries reset) sorted by seq', async () => {
     mockSyncStore.set(
       'sync.dead_letter',
-      JSON.stringify([
-        { seq: 2, type: 'endRide', payload: { variables: {} }, retries: 5, createdAt: '' },
-        { seq: 1, type: 'startRide', payload: { variables: {} }, retries: 5, createdAt: '' },
-      ]),
+      JSON.stringify([syncOp({ seq: 2, type: 'endRide' }), syncOp({ seq: 1, type: 'startRide' })]),
     );
     // Offline so the trailing drain is a no-op and the redriven queue is observable.
     mockGetNetworkStateAsync.mockResolvedValue(OFFLINE);
@@ -510,5 +532,208 @@ describe('pending work counts BOTH stores', () => {
 
     expect(getDeadLetterCount()).toBe(0);
     expect(mockGqlFetcher).toHaveBeenCalled();
+  });
+});
+
+describe('dependency-aware dead-lettering (MOTO-VAULT-REACT-NATIVE-3C)', () => {
+  function rideOp(rideId: string) {
+    return { variables: { input: { rideId } } } as Record<string, unknown>;
+  }
+
+  it('dead-letters a whole ride group at once, and lets other rides through', async () => {
+    // The production shape: `startRide` fails permanently, so every op behind it for
+    // the SAME ride is undeliverable — no `rides` row means each waypoint chunk 404s
+    // and `endRide` 400s. Advancing into them one at a time is how one long ride
+    // became 107 parked ops and 107 Sentry events.
+    enqueue('startRide', rideOp('ride-A'));
+    enqueue('uploadWaypoints', rideOp('ride-A'));
+    enqueue('uploadWaypoints', rideOp('ride-A'));
+    enqueue('endRide', rideOp('ride-A'));
+    // An unrelated ride, deliberately queued behind the poisoned one.
+    enqueue('updateRide', rideOp('ride-B'));
+
+    const listener = jest.fn();
+    setDeadLetterListener(listener);
+    mockGqlFetcher.mockImplementation((_doc: unknown, vars: { input: { rideId: string } }) =>
+      vars.input.rideId === 'ride-A'
+        ? Promise.reject(gqlError('BAD_REQUEST'))
+        : Promise.resolve({}),
+    );
+
+    await drainQueue();
+
+    // All four ride-A ops parked together...
+    expect(deadLetter()).toHaveLength(4);
+    // ...and only the head was ever sent; the other three were never attempted.
+    expect(mockGqlFetcher).toHaveBeenCalledTimes(2);
+    // The independent ride still delivered.
+    expect(getQueueLength()).toBe(0);
+    // ONE report for the group, not one per op. This is the 107-event storm guard.
+    expect(mockCapture).toHaveBeenCalledTimes(1);
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports the group with its rideId and size', async () => {
+    enqueue('startRide', rideOp('ride-A'));
+    enqueue('endRide', rideOp('ride-A'));
+    mockGqlFetcher.mockRejectedValue(gqlError('BAD_REQUEST'));
+
+    await drainQueue();
+
+    expect(mockCapture).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ rideId: 'ride-A', groupSize: '2', opType: 'startRide' }),
+    );
+  });
+
+  it('does not group ops that belong to a different ride', async () => {
+    enqueue('startRide', rideOp('ride-A'));
+    enqueue('startRide', rideOp('ride-B'));
+    mockGqlFetcher.mockRejectedValue(gqlError('BAD_REQUEST'));
+
+    await drainQueue();
+
+    // Two independent permanent failures = two groups of one, two reports.
+    expect(deadLetter()).toHaveLength(2);
+    expect(mockGqlFetcher).toHaveBeenCalledTimes(2);
+    expect(mockCapture).toHaveBeenCalledTimes(2);
+  });
+
+  it('falls back to a group of one when the payload carries no rideId', async () => {
+    enqueue('updateRide', { variables: { input: {} } });
+    enqueue('updateRide', { variables: { input: {} } });
+    mockGqlFetcher.mockRejectedValue(gqlError('FORBIDDEN'));
+
+    await drainQueue();
+
+    expect(deadLetter()).toHaveLength(2);
+    expect(mockCapture).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('the dead-letter queue is bounded', () => {
+  const MAX = RIDE_SYNC_LIMITS.MAX_DEAD_LETTER_OPS;
+
+  function seedDeadLetter(count: number) {
+    const seeded = Array.from({ length: count }, (_, i) =>
+      syncOp({
+        seq: i + 1,
+        type: 'uploadWaypoints',
+        rideId: `old-${i}`,
+        // Strictly increasing age, oldest first.
+        createdAt: new Date(Date.UTC(2026, 0, 1) + i * 60_000).toISOString(),
+      }),
+    );
+    mockSyncStore.set('sync.dead_letter', JSON.stringify(seeded));
+    // Keep new ops' seq above every seeded one.
+    mockSyncStore.set('sync.seq', count + 1000);
+    return seeded;
+  }
+
+  it('evicts oldest-first at the cap and keeps the newest', async () => {
+    const seeded = seedDeadLetter(MAX);
+    const overflow = 10;
+    for (let i = 0; i < overflow; i++) {
+      enqueue('startRide', { variables: { input: { rideId: `new-${i}` } } });
+    }
+    mockGqlFetcher.mockRejectedValue(gqlError('BAD_REQUEST'));
+
+    await drainQueue();
+
+    const dlq = deadLetter() as { seq: number }[];
+    expect(getDeadLetterCount()).toBe(MAX);
+    const survivingSeqs = new Set(dlq.map((op) => op.seq));
+    // The `overflow` oldest seeded entries are gone...
+    for (const op of seeded.slice(0, overflow)) expect(survivingSeqs.has(op.seq)).toBe(false);
+    // ...every newer seeded entry survived...
+    for (const op of seeded.slice(overflow)) expect(survivingSeqs.has(op.seq)).toBe(true);
+    // ...and so did all the newly parked ones.
+    expect(dlq.filter((op) => op.seq > MAX + 1000)).toHaveLength(overflow);
+  });
+
+  it('reports an eviction separately from a dead-letter', async () => {
+    seedDeadLetter(MAX);
+    enqueue('startRide', { variables: { input: { rideId: 'new-0' } } });
+    mockGqlFetcher.mockRejectedValue(gqlError('BAD_REQUEST'));
+
+    await drainQueue();
+
+    // Eviction is irreversible data loss, not just an undelivered op — it gets its
+    // own signal so it can never be read as ordinary dead-letter noise.
+    expect(mockCapture).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ source: 'ride-sync-queue.evictDeadLetter', evictedCount: '1' }),
+    );
+  });
+
+  it('leaves the queue untouched below the cap', async () => {
+    enqueue('startRide', { variables: { input: { rideId: 'ride-A' } } });
+    mockGqlFetcher.mockRejectedValue(gqlError('BAD_REQUEST'));
+
+    await drainQueue();
+
+    expect(getDeadLetterCount()).toBe(1);
+    expect(mockCapture).not.toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ source: 'ride-sync-queue.evictDeadLetter' }),
+    );
+  });
+});
+
+describe('recovery of already-stranded ops', () => {
+  const STRANDED_AT = '2026-09-19T10:00:00.000Z';
+
+  function strandedRide() {
+    return [
+      syncOp({ seq: 1, type: 'startRide', rideId: 'ride-A', createdAt: STRANDED_AT }),
+      syncOp({ seq: 2, type: 'uploadWaypoints', rideId: 'ride-A', createdAt: STRANDED_AT }),
+      syncOp({ seq: 3, type: 'uploadWaypoints', rideId: 'ride-A', createdAt: STRANDED_AT }),
+      syncOp({ seq: 4, type: 'endRide', rideId: 'ride-A', createdAt: STRANDED_AT }),
+    ];
+  }
+
+  it('redrives a stranded ride group in seq order once the server accepts it', async () => {
+    // This is the test that proves data recovery works: the dead-letter payload is
+    // the ONLY remaining copy of those GPS fixes.
+    mockSyncStore.set('sync.dead_letter', JSON.stringify(strandedRide()));
+    const sent: string[] = [];
+    mockGqlFetcher.mockImplementation((_doc: unknown, vars: { input: { rideId: string } }) => {
+      sent.push(vars.input.rideId);
+      return Promise.resolve({});
+    });
+
+    await redriveDeadLetterQueue();
+
+    expect(getDeadLetterCount()).toBe(0);
+    expect(getPendingCount()).toBe(0);
+    expect(sent).toEqual(['ride-A', 'ride-A', 'ride-A', 'ride-A']);
+  });
+
+  it('redriveDeadLetterQueueOnce runs exactly once per version', async () => {
+    mockSyncStore.set('sync.dead_letter', JSON.stringify(strandedRide()));
+    mockGqlFetcher.mockResolvedValue({});
+
+    await redriveDeadLetterQueueOnce();
+    expect(getDeadLetterCount()).toBe(0);
+    expect(mockGqlFetcher).toHaveBeenCalledTimes(4);
+
+    // A later dead-letter must NOT be swept up by the same one-time redrive —
+    // otherwise a genuinely permanent failure would replay on every launch.
+    mockSyncStore.set('sync.dead_letter', JSON.stringify(strandedRide().slice(0, 1)));
+    await redriveDeadLetterQueueOnce();
+
+    expect(getDeadLetterCount()).toBe(1);
+    expect(mockGqlFetcher).toHaveBeenCalledTimes(4);
+  });
+
+  it('marks the redrive as done BEFORE draining, so a crash mid-redrive is not a replay loop', async () => {
+    mockSyncStore.set('sync.dead_letter', JSON.stringify(strandedRide()));
+    // The drain never settles — app killed mid-redrive.
+    mockGqlFetcher.mockImplementation(() => new Promise(() => {}));
+
+    redriveDeadLetterQueueOnce();
+    await new Promise((r) => setImmediate(r));
+
+    expect(mockSyncStore.get('sync.redrive_version')).toBe(1);
   });
 });

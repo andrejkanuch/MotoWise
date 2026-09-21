@@ -5,7 +5,8 @@ import {
   UpdateRideDocument,
   UploadWaypointsDocument,
 } from '@motovault/graphql';
-import { RIDE_WAYPOINT_LIMITS, type Waypoint } from '@motovault/types';
+import { RIDE_SYNC_LIMITS, RIDE_WAYPOINT_LIMITS, type Waypoint } from '@motovault/types';
+import { compareAsc, isValid, parseISO } from 'date-fns';
 import * as Network from 'expo-network';
 import { createMMKV } from 'react-native-mmkv';
 import { captureException } from '../lib/analytics';
@@ -44,8 +45,22 @@ const syncStorage = createMMKV({ id: 'ride-sync-queue' });
 const QUEUE_KEY = 'sync.queue';
 const DEAD_LETTER_KEY = 'sync.dead_letter';
 const SEQ_KEY = 'sync.seq';
+/** Marks which one-time dead-letter redrive this install has already run. */
+const REDRIVE_VERSION_KEY = 'sync.redrive_version';
 const MAX_RETRIES = 5;
 const BASE_DELAY_MS = 1000;
+
+/**
+ * Bump when a server fix makes previously-undeliverable dead-lettered ops
+ * deliverable again, to redrive them ONCE on the next launch.
+ *
+ * 1 — `startRide` became idempotent on `rideId` and stopped reporting transient
+ *     SQLSTATEs as permanent (Sentry MOTO-VAULT-REACT-NATIVE-3C). Ops stranded by
+ *     that bug — up to a whole ride each — only become replayable once that server
+ *     change is live, which is why the API half MUST ship first: redriving against
+ *     the old server replays every op straight back into the same 400s.
+ */
+const DEAD_LETTER_REDRIVE_VERSION = 1;
 
 // GraphQL error codes that will never succeed on retry — dead-letter immediately
 // instead of burning the retry budget (and head-of-line-blocking the queue).
@@ -72,6 +87,38 @@ function isNonRetryableError(error: unknown): boolean {
  */
 function isAuthError(error: unknown): boolean {
   return hasGraphQLCode(error, 'UNAUTHENTICATED');
+}
+
+/**
+ * Where each operation's ride id lives inside its serialized payload. Ride ops are
+ * a DEPENDENCY CHAIN keyed by this id, which is what makes group dead-lettering
+ * possible at all — see the permanent-failure branch in `drainPass`.
+ *
+ * A path table rather than a switch so adding an op type is a one-line data change,
+ * and so the shapes are stated in one place: every mutation but `deleteRide` nests
+ * its id under `input`; `deleteRide` takes a bare `id` variable.
+ */
+const RIDE_ID_PAYLOAD_PATH: Record<SyncOperationType, readonly string[]> = {
+  startRide: ['variables', 'input', 'rideId'],
+  uploadWaypoints: ['variables', 'input', 'rideId'],
+  endRide: ['variables', 'input', 'rideId'],
+  updateRide: ['variables', 'input', 'rideId'],
+  deleteRide: ['variables', 'id'],
+};
+
+/**
+ * The ride an op belongs to, or null when the payload does not carry one (a
+ * malformed or older-shape entry restored from MMKV). Walks `unknown` rather than
+ * casting, so a shape change degrades to "ungrouped" instead of throwing on the
+ * ride hot path.
+ */
+function rideIdOf(op: SyncOperation): string | null {
+  let cursor: unknown = op.payload;
+  for (const key of RIDE_ID_PAYLOAD_PATH[op.type] ?? []) {
+    if (typeof cursor !== 'object' || cursor === null) return null;
+    cursor = (cursor as Record<string, unknown>)[key];
+  }
+  return typeof cursor === 'string' && cursor.length > 0 ? cursor : null;
 }
 
 // Notified (with the current dead-letter count) whenever drainQueue dead-letters
@@ -123,23 +170,95 @@ function getDeadLetterQueue(): SyncOperation[] {
   return JSON.parse(raw) as SyncOperation[];
 }
 
-function moveToDeadLetter(op: SyncOperation, error?: unknown): void {
-  const dlq = getDeadLetterQueue();
-  dlq.push(op);
+/**
+ * Oldest first. `createdAt` is the real age, but entries restored from older builds
+ * (and the fixtures that mimic them) can carry an unparseable value, so `seq` — a
+ * monotonic counter, hence a perfect age proxy — is both the tiebreak and the
+ * fallback. Comparison goes through date-fns rather than hand-rolled `Date` math.
+ */
+function compareByAge(a: SyncOperation, b: SyncOperation): number {
+  const left = parseISO(a.createdAt);
+  const right = parseISO(b.createdAt);
+  if (isValid(left) && isValid(right)) {
+    const byDate = compareAsc(left, right);
+    if (byDate !== 0) return byDate;
+  }
+  return a.seq - b.seq;
+}
+
+/**
+ * Hold the dead-letter queue to `MAX_DEAD_LETTER_OPS`, evicting oldest-first.
+ *
+ * Eviction is reported SEPARATELY from a dead-letter, and deliberately so: a
+ * dead-letter is "we could not deliver this, it is still on the device and a
+ * redrive may yet save it", while an eviction is unambiguous, irreversible data
+ * loss — the payload was the only remaining copy of those GPS fixes.
+ *
+ * Survivors keep their original array order; only the evicted set is chosen by age.
+ */
+function boundDeadLetterQueue(dlq: SyncOperation[]): SyncOperation[] {
+  const overflow = dlq.length - RIDE_SYNC_LIMITS.MAX_DEAD_LETTER_OPS;
+  if (overflow <= 0) return dlq;
+
+  const evicted = [...dlq].sort(compareByAge).slice(0, overflow);
+  const evictedSeqs = new Set(evicted.map((op) => op.seq));
+
+  captureException(new Error(`Ride sync dead-letter evicted: ${overflow} op(s) discarded`), {
+    source: 'ride-sync-queue.evictDeadLetter',
+    evictedCount: String(overflow),
+    evictedOpTypes: [...new Set(evicted.map((op) => op.type))].join(','),
+    evictedRideIds: [...new Set(evicted.map(rideIdOf).filter(Boolean))].join(','),
+    oldestEvictedAt: evicted[0]?.createdAt ?? 'unknown',
+    deadLetterQueueLength: String(RIDE_SYNC_LIMITS.MAX_DEAD_LETTER_OPS),
+  });
+
+  return dlq.filter((op) => !evictedSeqs.has(op.seq));
+}
+
+/**
+ * Park a whole GROUP of ops — one ride's worth — with a SINGLE report.
+ *
+ * Ride ops are a dependency chain keyed by `rideId`, so a permanently-failed head
+ * takes its dependents with it (see `drainPass`). Reporting once per group instead
+ * of once per op is what turns a 107-event Sentry storm into one event, and it is
+ * what makes the dead-letter count mean "rides" rather than "50-waypoint chunks".
+ */
+function moveGroupToDeadLetter(ops: readonly SyncOperation[], error?: unknown): void {
+  if (ops.length === 0) return;
+  const [head] = ops;
+  const dlq = boundDeadLetterQueue([...getDeadLetterQueue(), ...ops]);
   syncStorage.set(DEAD_LETTER_KEY, JSON.stringify(dlq));
+
   // A dead-lettered ride op is silent data loss — always report it with enough
   // context to identify which op/ride and how long it had been queued.
   captureException(
-    error instanceof Error ? error : new Error(`Ride sync dead-letter: ${op.type}`),
+    error instanceof Error ? error : new Error(`Ride sync dead-letter: ${head.type}`),
     {
       source: 'ride-sync-queue.moveToDeadLetter',
-      opType: op.type,
-      seq: String(op.seq),
-      retries: String(op.retries),
-      ageMs: String(Date.now() - new Date(op.createdAt).getTime()),
+      opType: head.type,
+      seq: String(head.seq),
+      retries: String(head.retries),
+      ageMs: String(Date.now() - new Date(head.createdAt).getTime()),
       deadLetterQueueLength: String(dlq.length),
+      rideId: rideIdOf(head) ?? 'unknown',
+      groupSize: String(ops.length),
+      groupOpTypes: ops.map((op) => op.type).join(','),
     },
   );
+}
+
+/**
+ * Queued ops that can no longer possibly succeed because `failed` did not.
+ *
+ * Only ops for the SAME ride and LATER in the sequence: a `uploadWaypoints` or
+ * `endRide` whose `startRide` never created the row gets NOT_FOUND / 400 on every
+ * attempt. Ops for other rides are deliberately untouched — they are genuinely
+ * independent and must still get their chance.
+ */
+function dependentOpsOf(failed: SyncOperation): SyncOperation[] {
+  const rideId = rideIdOf(failed);
+  if (!rideId) return [];
+  return getQueue().filter((op) => op.seq > failed.seq && rideIdOf(op) === rideId);
 }
 
 export function enqueue(type: SyncOperationType, payload: Record<string, unknown>): void {
@@ -296,11 +415,22 @@ async function drainPass(): Promise<void> {
 
       const nextRetries = op.retries + 1;
       if (isNonRetryableError(error) || nextRetries >= MAX_RETRIES) {
-        // Permanent failure — this op will never deliver. Dead-letter it and
-        // advance; later independent ops still get a chance.
-        moveToDeadLetter({ ...op, retries: nextRetries }, error);
-        removeOpBySeq(op.seq);
-        deadLettered++;
+        // Permanent failure. The old code dead-lettered just this op and advanced,
+        // on the premise that "later independent ops still get a chance" — false for
+        // ride ops, which are a dependency chain keyed by rideId
+        // (startRide -> uploadWaypoints x N -> endRide). With no `rides` row every
+        // following chunk 404s and endRide 400s: one dead-letter and one Sentry event
+        // each, which is how a single long ride became 107 parked ops and 107 events
+        // (MOTO-VAULT-REACT-NATIVE-3C, same amplification as -1M).
+        //
+        // Note the asymmetry the `else` branch below already acknowledges: it
+        // head-of-line blocks precisely BECAUSE a later op may be dependent. Take the
+        // whole group down together; ops for other rides are untouched and still run.
+        const failed = { ...op, retries: nextRetries };
+        const group = [failed, ...dependentOpsOf(failed)];
+        moveGroupToDeadLetter(group, error);
+        for (const member of group) removeOpBySeq(member.seq);
+        deadLettered += group.length;
       } else {
         // Retryable server error (e.g. 5xx): bump retries and head-of-line
         // block so a dependent later op can't be delivered ahead of this one.
@@ -382,6 +512,31 @@ export function redriveDeadLetterQueue(): Promise<void> {
 }
 
 /**
+ * Redrive the dead-letter queue ONCE per shipped server fix, on app launch.
+ *
+ * Ops stranded by a server-side bug do not self-heal: nothing drains the dead-letter
+ * queue automatically, and the only manual route is an `Alert` that in the reported
+ * incident fired while the app was backgrounded (so it was never presented) and then
+ * latched. Those payloads — waypoints included — are the ONLY remaining copy, since
+ * local chunks are dropped once enqueued.
+ *
+ * The marker is written BEFORE draining, so a crash or kill mid-redrive cannot turn
+ * this into a replay loop on every launch; the ops stay in the main queue and drain
+ * normally from there.
+ *
+ * ORDERING IS LOAD-BEARING: this must not reach users before the matching API fix is
+ * live, or it replays every parked op into the same permanent failures and produces a
+ * fresh Sentry storm. See `DEAD_LETTER_REDRIVE_VERSION`.
+ */
+export function redriveDeadLetterQueueOnce(): Promise<void> {
+  if (syncStorage.getNumber(REDRIVE_VERSION_KEY) === DEAD_LETTER_REDRIVE_VERSION) {
+    return Promise.resolve();
+  }
+  syncStorage.set(REDRIVE_VERSION_KEY, DEAD_LETTER_REDRIVE_VERSION);
+  return redriveDeadLetterQueue();
+}
+
+/**
  * Clear the DELIVERED queue only — never the dead-letter queue.
  *
  * This is what a sign-out / local-cleanup path should call. It exists because the
@@ -417,6 +572,7 @@ export function destroyAllSyncData(): void {
   syncStorage.remove(QUEUE_KEY);
   syncStorage.remove(DEAD_LETTER_KEY);
   syncStorage.remove(SEQ_KEY);
+  syncStorage.remove(REDRIVE_VERSION_KEY);
 }
 
 function sleep(ms: number): Promise<void> {
