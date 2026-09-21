@@ -1,6 +1,7 @@
 import { type MeasurementSystem, metersToUnit, mileageUnitLabel } from '@motovault/types';
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -97,6 +98,31 @@ export class RidesService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
+  /**
+   * Start a ride, IDEMPOTENTLY, keyed on the client-generated `input.rideId`.
+   *
+   * `rideId` is a client UUID that becomes `rides.id`, so this contract has always
+   * been idempotency-capable — the server simply never honoured it. A bare
+   * `.insert()` plus a blanket `BadRequestException` collapsed every Postgres
+   * failure into `BAD_REQUEST`, which the mobile sync queue lists in
+   * NON_RETRYABLE_CODES and therefore DISCARDS PERMANENTLY. Two production
+   * consequences, both in Sentry MOTO-VAULT-REACT-NATIVE-3C:
+   *
+   * 1. A statement timeout or pooler drop — a hiccup that would have succeeded on
+   *    the very next attempt — destroyed a fully recorded ride.
+   * 2. So did a REPLAY. iOS suspends a backgrounded app mid-request, so the
+   *    response is lost AFTER the INSERT committed; the queue re-sends, the insert
+   *    hits 23505 on the primary key, and the op dead-letters.
+   *
+   * Ride ops are a dependency chain (startRide -> uploadWaypoints x N -> endRide),
+   * so a dead-lettered head poisons everything behind it: without a `rides` row
+   * every waypoint chunk 404s and `endRide` 400s. One rider reached 107 stranded
+   * ops — one long ride, entirely lost. `uploadWaypoints` and `endRide` were both
+   * hardened after earlier incidents; `startRide` never was.
+   *
+   * The insert is deliberately still an INSERT rather than an upsert: a replay must
+   * not overwrite `started_at` or `motorcycle_id` on a ride that is already running.
+   */
   async startRide(userId: string, input: StartRideInput): Promise<Ride> {
     this.logger.log(`startRide: userId=${userId}, rideId=${input.rideId}`);
 
@@ -104,8 +130,53 @@ export class RidesService {
     // (rides_one_active_per_user) doesn't block the new insert.
     // This handles cases where a previous ride wasn't properly ended
     // (app crash, reinstall, cleared local data).
-    await this.closeStaleRides(userId);
+    await this.closeStaleRides(userId, input.rideId);
 
+    const first = await this.insertRide(userId, input);
+    if (first.data) return this.mapRow(first.data);
+    if (first.error?.code !== PG_ERROR.UNIQUE_VIOLATION) {
+      this.throwStartRideError(first.error, input);
+    }
+
+    // 23505. Either the primary key (this exact ride already exists — a replay) or
+    // the partial unique index rides_one_active_per_user (00047: one recording/paused
+    // ride per user). Which one is settled by LOOKING, not by parsing the constraint
+    // name out of the message: the row either is ours or it is not.
+    const existing = await this.findOwnRide(userId, input.rideId);
+    if (existing) {
+      // Replay of an op that DID commit — the desired state already exists, so this
+      // is a success. This is the branch that stops a lost response destroying a ride.
+      this.logger.log(`startRide: ride ${input.rideId} already exists — idempotent success`);
+      return this.mapRow(existing);
+    }
+
+    // Not ours ⇒ another active ride is holding the index. closeStaleRides above
+    // either raced with it or could not close it; try once more, then give up.
+    await this.closeStaleRides(userId, input.rideId);
+    const retry = await this.insertRide(userId, input);
+    if (retry.data) return this.mapRow(retry.data);
+    if (retry.error?.code !== PG_ERROR.UNIQUE_VIOLATION) {
+      this.throwStartRideError(retry.error, input);
+    }
+
+    // Still conflicting. Concurrent start from a second device, or a row this user
+    // cannot see (another owner's UUID, or one of their own soft-deleted rides —
+    // invisible to the RLS-scoped user client). 409 rather than 400 on purpose:
+    // CONFLICT is not in the mobile queue's NON_RETRYABLE_CODES, so a racing start
+    // is retried rather than discarded.
+    this.logger.error(
+      `startRide: ride ${input.rideId} still conflicts after closing stale rides (${retry.error?.code})`,
+    );
+    throw new ConflictException(
+      `Another ride is already active (${retry.error?.code ?? PG_ERROR.UNIQUE_VIOLATION})`,
+      { cause: new Error(`pg ${retry.error?.code}: ${retry.error?.message}`) },
+    );
+  }
+
+  private async insertRide(
+    userId: string,
+    input: StartRideInput,
+  ): Promise<{ data: Record<string, unknown> | null; error: PostgrestError | null }> {
     const { data, error } = await this.supabase
       .from('rides')
       .insert({
@@ -118,11 +189,76 @@ export class RidesService {
       .select()
       .single();
 
-    if (error || !data) {
-      this.logger.error(`startRide failed: ${error?.message} (${error?.code})`);
-      throw new BadRequestException('Failed to start ride');
+    return { data: data as Record<string, unknown> | null, error };
+  }
+
+  /**
+   * The ride with this id IF it belongs to this user. Scoped by `user_id` so a
+   * UUID collision across riders can never return someone else's ride as an
+   * "idempotent success" — it falls through to the conflict branch instead.
+   */
+  private async findOwnRide(
+    userId: string,
+    rideId: string,
+  ): Promise<Record<string, unknown> | null> {
+    const { data, error } = await this.supabase
+      .from('rides')
+      .select('*')
+      .eq('id', rideId)
+      .eq('user_id', userId)
+      .is('deleted_at', null)
+      .single();
+
+    if (error && error.code !== PG_ERROR.NOT_FOUND) {
+      this.logger.warn(
+        `startRide: idempotency lookup failed for ride ${rideId}: ${error.message} (${error.code})`,
+      );
     }
-    return this.mapRow(data);
+    return (data as Record<string, unknown> | null) ?? null;
+  }
+
+  /**
+   * Translate a failed ride INSERT into the right HTTP exception.
+   *
+   * Mirrors `throwWaypointUploadError` — same `pgDisposition` table, same dispatch
+   * shape, same AllExceptionsFilter contract (see that method's doc comment for how
+   * status maps to `extensions.code`, which message text reaches the client, and
+   * which branches Sentry keeps).
+   *
+   * The `transient` branch is the whole point of this method: 08/40/53/57 become
+   * 503 -> SERVICE_UNAVAILABLE, which is NOT in the mobile queue's
+   * NON_RETRYABLE_CODES, so a database blip is retried instead of destroying a ride.
+   *
+   * The SQLSTATE is embedded in every 4xx message because the filter passes
+   * `message` through for status < 500 — so it reaches the client and Sentry. Its
+   * absence is precisely why the failing branch for the reported rider could not be
+   * determined from the Sentry payload alone.
+   */
+  private throwStartRideError(error: PostgrestError | null, input: StartRideInput): never {
+    this.logger.error(
+      `startRide failed: ${error?.message} (${error?.code}) rideId=${input.rideId}`,
+    );
+    const code = error?.code ?? 'unknown';
+    const options = { cause: new Error(`pg ${code}: ${error?.message ?? 'no row returned'}`) };
+
+    // Codes that need a message more specific than their class disposition gives.
+    const START_RIDE_CODE_EXCEPTIONS: Partial<Record<string, () => Error>> = {
+      [PG_ERROR.FOREIGN_KEY_VIOLATION]: () =>
+        new BadRequestException(
+          `Ride rejected: motorcycle ${input.motorcycleId ?? 'null'} does not exist (${code})`,
+          options,
+        ),
+    };
+
+    const START_RIDE_EXCEPTIONS: Record<PgDisposition | 'unknown', () => Error> = {
+      transient: () => new ServiceUnavailableException(`Failed to start ride (${code})`, options),
+      // 4xx so the sync queue dead-letters once instead of retrying a payload the
+      // database will refuse every time.
+      permanent: () => new BadRequestException(`Ride rejected: invalid data (${code})`, options),
+      unknown: () => new InternalServerErrorException('Failed to start ride', options),
+    };
+
+    throw (START_RIDE_CODE_EXCEPTIONS[code] ?? START_RIDE_EXCEPTIONS[pgDisposition(error?.code)])();
   }
 
   /**
@@ -137,8 +273,14 @@ export class RidesService {
    *
    * `auto_ended_reason: 'stale_on_start'` marks these so stats can exclude them —
    * a forgotten ride must never set a "longest ride" record. (Migration 00173.)
+   *
+   * `excludeRideId` is the ride currently being started. On a REPLAYED startRide the
+   * row from the first (committed) attempt is still `recording`, so without this it
+   * looks stale: the replay would end the rider's live ride mid-ride at zero duration
+   * (no waypoints yet ⇒ ended_at = started_at) and emit a bogus `ride.completed` into
+   * the rollups. It is never stale — it is the very ride being started.
    */
-  private async closeStaleRides(userId: string): Promise<void> {
+  private async closeStaleRides(userId: string, excludeRideId?: string): Promise<void> {
     const { data: stale, error } = await this.supabase
       .from('rides')
       .select('id, started_at')
@@ -147,10 +289,18 @@ export class RidesService {
       .is('deleted_at', null);
 
     if (error) {
+      // A failed lookup means UNKNOWN, not NONE. Returning here (the old behaviour)
+      // walked straight into a guaranteed rides_one_active_per_user violation, which
+      // the caller reported as a permanent 400 — laundering a transient read failure
+      // into irreversible ride loss. Surfacing 503 lets the client retry instead.
       this.logger.error(`closeStaleRides lookup failed: ${error.message} (${error.code})`);
-      return;
+      throw new ServiceUnavailableException(`Failed to start ride (${error.code})`, {
+        cause: new Error(`pg ${error.code}: ${error.message}`),
+      });
     }
-    const staleRides = (stale ?? []) as Array<{ id: string; started_at: string }>;
+    const staleRides = ((stale ?? []) as Array<{ id: string; started_at: string }>).filter(
+      (ride) => ride.id !== excludeRideId,
+    );
     if (staleRides.length === 0) return;
 
     for (const ride of staleRides) {

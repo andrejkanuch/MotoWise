@@ -1,11 +1,13 @@
 import {
   BadRequestException,
+  ConflictException,
   InternalServerErrorException,
   NotFoundException,
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { RidesService } from './rides.service';
 
 describe('RidesService', () => {
@@ -73,6 +75,8 @@ describe('RidesService', () => {
       chain[m] = vi.fn().mockReturnValue(chain);
     }
     chain.single = vi.fn().mockImplementation(() => Promise.resolve(getResult()));
+    // closeStaleRides' last-waypoint lookup terminates on maybeSingle.
+    chain.maybeSingle = vi.fn().mockImplementation(() => Promise.resolve(getResult()));
     // biome-ignore lint/suspicious/noThenProperty: Supabase query builders are thenable
     chain.then = vi
       .fn()
@@ -138,22 +142,178 @@ describe('RidesService', () => {
       );
     });
 
-    it('should throw BadRequestException on error', async () => {
-      // Result 0: auto-end stale active rides (thenable)
-      mockUserClient._pushResult({ data: null, error: null });
-      // Result 1: insert fails
+    const startInput = {
+      rideId: 'ride-123',
+      motorcycleId: 'moto-456',
+      startedAt: '2026-03-22T14:00:00Z',
+    };
+
+    // MOTO-VAULT-REACT-NATIVE-3C. iOS suspends a backgrounded app mid-request, so
+    // the response is lost AFTER the INSERT committed. The sync queue re-sends, the
+    // insert hits 23505 on the primary key, and the old blanket BadRequestException
+    // made the client (which lists BAD_REQUEST in NON_RETRYABLE_CODES) discard the
+    // op — taking every dependent waypoint chunk and the endRide down with it.
+    it('is idempotent: a replayed startRide for a committed ride succeeds instead of 400ing', async () => {
+      mockUserClient._pushResult({ data: [], error: null }); // 0: no stale rides
       mockUserClient._pushResult({
         data: null,
-        error: { message: 'Duplicate key', code: '23505' },
+        error: { message: 'duplicate key value violates unique constraint', code: '23505' },
+      }); // 1: insert conflicts
+      mockUserClient._pushResult({ data: fakeRow }); // 2: the row is already ours
+
+      const result = await service.startRide(userId, startInput);
+
+      expect(result.id).toBe('ride-123');
+      expect(result.userId).toBe(userId);
+    });
+
+    // N5: on a replay, the row the FIRST attempt created is still `recording`, so it
+    // looks stale. Closing it would end the rider's live ride at zero duration and
+    // emit a bogus ride.completed into the rollups.
+    it('never auto-ends the ride it is being asked to start', async () => {
+      mockUserClient._pushResult({
+        data: [{ id: 'ride-123', started_at: '2026-03-22T14:00:00Z' }],
+        error: null,
+      }); // 0: the only "stale" ride IS this one
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'duplicate key', code: '23505' },
+      }); // 1: insert conflicts on the PK
+      mockUserClient._pushResult({ data: fakeRow }); // 2: idempotent lookup finds it
+
+      const result = await service.startRide(userId, startInput);
+
+      expect(result.id).toBe('ride-123');
+      expect(mockUserClient._chain.update).not.toHaveBeenCalled();
+      expect(mockEventEmitter.emit).not.toHaveBeenCalled();
+    });
+
+    // The damning row of the disposition table: a database blip must never be
+    // reported as permanent, because the client is told never to retry and the
+    // fully-recorded ride is discarded.
+    it.each([
+      ['57014', 'statement timeout'],
+      ['08006', 'connection failure'],
+      ['40001', 'serialization failure'],
+      ['40P01', 'deadlock detected'],
+      ['53300', 'too many connections'],
+    ])('returns 503 (retryable), not 400, for transient SQLSTATE %s', async (code, message) => {
+      mockUserClient._pushResult({ data: [], error: null });
+      mockUserClient._pushResult({ data: null, error: { message, code } });
+
+      const promise = service.startRide(userId, startInput);
+
+      await expect(promise).rejects.toThrow(ServiceUnavailableException);
+      await expect(promise).rejects.not.toThrow(BadRequestException);
+    });
+
+    it('embeds the SQLSTATE in the message so it reaches the client and Sentry', async () => {
+      mockUserClient._pushResult({ data: [], error: null });
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'canceling statement due to statement timeout', code: '57014' },
       });
 
-      await expect(
-        service.startRide(userId, {
-          rideId: 'ride-123',
-          motorcycleId: 'moto-456',
-          startedAt: '2026-03-22T14:00:00Z',
-        }),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.startRide(userId, startInput)).rejects.toThrow(/57014/);
+    });
+
+    it('keeps a foreign-key violation permanent (400) and names the motorcycle', async () => {
+      mockUserClient._pushResult({ data: [], error: null });
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'insert violates foreign key constraint', code: '23503' },
+      });
+
+      const promise = service.startRide(userId, startInput);
+
+      await expect(promise).rejects.toThrow(BadRequestException);
+      await expect(promise).rejects.toThrow(/moto-456/);
+    });
+
+    it('routes an unrecognised SQLSTATE to 500 so it keeps alerting', async () => {
+      mockUserClient._pushResult({ data: [], error: null });
+      mockUserClient._pushResult({ data: null, error: { message: 'who knows', code: 'XX000' } });
+
+      await expect(service.startRide(userId, startInput)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+    });
+
+    // M3: a failed stale-ride lookup means UNKNOWN, not NONE. Swallowing it walked
+    // into a guaranteed rides_one_active_per_user violation that surfaced as a
+    // permanent 400 — a transient read failure laundered into ride loss.
+    it('surfaces a closeStaleRides lookup failure as 503 and never reaches the insert', async () => {
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'canceling statement due to statement timeout', code: '57014' },
+      });
+
+      await expect(service.startRide(userId, startInput)).rejects.toThrow(
+        ServiceUnavailableException,
+      );
+      expect(mockUserClient._chain.insert).not.toHaveBeenCalled();
+    });
+
+    it('closes the blocking active ride and retries the insert once', async () => {
+      mockUserClient._pushResult({ data: [], error: null }); // 0: stale lookup races, sees none
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'duplicate key', code: PG_ERROR.UNIQUE_VIOLATION },
+      }); // 1: insert blocked by rides_one_active_per_user
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } }); // 2: not ours
+      mockUserClient._pushResult({
+        data: [{ id: 'stale-1', started_at: '2026-03-20T09:00:00Z' }],
+        error: null,
+      }); // 3: second stale lookup finds the blocker
+      mockUserClient._pushResult({ data: { recorded_at: '2026-03-20T10:00:00Z' } }); // 4: last fix
+      mockUserClient._pushResult({ data: [{ id: 'stale-1' }], error: null }); // 5: closed
+      mockUserClient._pushResult({ data: fakeRow }); // 6: retried insert succeeds
+
+      const result = await service.startRide(userId, startInput);
+
+      expect(result.id).toBe('ride-123');
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith(
+        'ride.completed',
+        expect.objectContaining({ rideId: 'stale-1', autoEndedReason: 'stale_on_start' }),
+      );
+    });
+
+    // 409, not 400: CONFLICT is absent from the client's NON_RETRYABLE_CODES, so a
+    // ride racing in from a second device is retried rather than discarded.
+    it('throws ConflictException when the insert still conflicts after closing stale rides', async () => {
+      mockUserClient._pushResult({ data: [], error: null });
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'duplicate key', code: PG_ERROR.UNIQUE_VIOLATION },
+      });
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
+      mockUserClient._pushResult({ data: [], error: null });
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'duplicate key', code: PG_ERROR.UNIQUE_VIOLATION },
+      });
+
+      await expect(service.startRide(userId, startInput)).rejects.toThrow(ConflictException);
+    });
+
+    // A UUID collision across riders must never be answered with someone else's
+    // ride: findOwnRide is scoped by user_id, so it falls through to the conflict
+    // branch rather than returning a foreign row as an idempotent success.
+    it("never returns another rider's ride as an idempotent success", async () => {
+      mockUserClient._pushResult({ data: [], error: null });
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'duplicate key', code: PG_ERROR.UNIQUE_VIOLATION },
+      });
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
+      mockUserClient._pushResult({ data: [], error: null });
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'duplicate key', code: PG_ERROR.UNIQUE_VIOLATION },
+      });
+
+      await expect(service.startRide(userId, startInput)).rejects.toThrow(ConflictException);
+      expect(mockUserClient._chain.eq).toHaveBeenCalledWith('user_id', userId);
     });
   });
 
