@@ -91,6 +91,28 @@ describe('shouldDropClientEvent', () => {
       ).toBe(true);
     });
 
+    it('drops the injected-script variant whose frames carry the document URL', () => {
+      // Mirrors the real event: a browser-injected script overflowed its stack
+      // on the blog article, and every frame is filenamed with the article's
+      // own document URL — no `/_next/static` frame, so not our recursion.
+      expect(
+        shouldDropClientEvent(
+          eventWith('RangeError: Maximum call stack size exceeded.', {
+            frames: [
+              {
+                filename: 'https://motovault.app/blog/motorcycle-check-engine-light-guide',
+                in_app: false,
+              },
+              {
+                filename: 'https://motovault.app/blog/motorcycle-check-engine-light-guide',
+                in_app: false,
+              },
+            ],
+          }),
+        ),
+      ).toBe(true);
+    });
+
     it('KEEPS a genuine recursion carrying first-party bundle frames', () => {
       expect(
         shouldDropClientEvent(
