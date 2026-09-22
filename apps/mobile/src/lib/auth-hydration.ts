@@ -22,8 +22,14 @@ export const AUTH_HYDRATION_TIMEOUT_MS = 15000;
 export const AUTH_HYDRATION_ESCAPE_MS = 5000;
 
 /**
- * Hard cap in `_layout.tsx` — if hydration or the `me` query ever hangs, the
- * native splash is hidden anyway so the app can never wedge behind it.
+ * Hard cap in `_layout.tsx`, used twice and deliberately shared.
+ *
+ * It hides the native splash, AND it bounds `NavigationGate`'s hold on the `me`
+ * query. Both are needed: hiding the splash alone does not settle the gate, so a
+ * signed-in rider whose `me` request never returned watched the splash fade to a
+ * blank screen. Together they are the anti-wedge guarantee — past this deadline
+ * the app routes on the state it has rather than waiting for state it may never
+ * get.
  *
  * Derived, not a second independent magic number, because the ordering is load
  * bearing: the hydration timer is what puts a real surface (SessionRestoring) on

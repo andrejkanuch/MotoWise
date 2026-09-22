@@ -328,6 +328,25 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
 
   const inOnboarding = segments[0] === '(onboarding)';
 
+  /**
+   * The same deadline the splash failsafe uses, applied to THIS gate.
+   *
+   * `SPLASH_FAILSAFE_MS` hides the native splash; it does not settle the gate. A
+   * signed-in rider whose `me` request never returns therefore watched the splash
+   * fade to a blank screen — `holding` stays true while `meQuery.isLoading` is
+   * true, and the gate renders `null`. Nothing forces that query to settle:
+   * neither `meOptions()` nor `gqlFetcher` sets a timeout or an AbortSignal.
+   *
+   * Giving up on `me` is safe because it is only a confirmation: `onboardingCompleted`
+   * falls back to the persisted store value, so a returning rider still lands in
+   * the app. Waiting forever is not safe, because it renders nothing at all.
+   */
+  const [meWaitExpired, setMeWaitExpired] = useState(false);
+  useEffect(() => {
+    const timeout = setTimeout(() => setMeWaitExpired(true), SPLASH_FAILSAFE_MS);
+    return () => clearTimeout(timeout);
+  }, []);
+
   // Hold the splash (render nothing) until auth + the `me` query resolve, so the
   // guards below evaluate against settled state — otherwise a returning,
   // already-onboarded user would briefly route through (onboarding) before `me`
@@ -335,7 +354,8 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
   // (post-paywall account step signs the user in), keep the stack mounted —
   // unmounting would reset onboarding navigation state.
   const holding =
-    isLoading || (!!session && meQuery.isLoading && !meQuery.isError && !inOnboarding);
+    !meWaitExpired &&
+    (isLoading || (!!session && meQuery.isLoading && !meQuery.isError && !inOnboarding));
 
   // The gate settling means real UI is about to paint — tell the root to drop
   // the native splash (it fades out over the first frames of the stack).
