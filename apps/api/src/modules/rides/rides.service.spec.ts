@@ -232,14 +232,8 @@ describe('RidesService', () => {
       expect(result.id).toBe('ride-123');
       // closeStaleRides is the only path that selects the user's active rides; it
       // must not have run, so the live ride was never even looked at.
-      expect(mockUserClient._chain.in).not.toHaveBeenCalledWith('status', [
-        'recording',
-        'paused',
-      ]);
-      expect(mockEventEmitter.emit).not.toHaveBeenCalledWith(
-        'ride.completed',
-        expect.anything(),
-      );
+      expect(mockUserClient._chain.in).not.toHaveBeenCalledWith('status', ['recording', 'paused']);
+      expect(mockEventEmitter.emit).not.toHaveBeenCalledWith('ride.completed', expect.anything());
     });
 
     // The damning row of the disposition table: a database blip must never be
