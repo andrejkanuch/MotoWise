@@ -547,9 +547,15 @@ function RootLayout() {
           // Preserve unsynced rides across a forced sign-out / token revocation:
           // keep the sync queue AND the active ride's local data while a ride is
           // in progress or ops are still pending, so they drain once auth is
-          // restored instead of silently vanishing. (Edge case: a different user
-          // signing in inherits these; the backend rejects cross-owner ops, which
-          // the queue dead-letters + surfaces.)
+          // restored instead of silently vanishing.
+          //
+          // Safe on a shared device because the ride queue is owner-scoped: each
+          // op carries the `userId` that enqueued it and `isOwnedByCurrentSession`
+          // refuses to drain anyone else's. It did NOT used to be — the backend
+          // does not reject a cross-owner `startRide` (it stamps `user_id` from
+          // whatever JWT presents it), so what the earlier note here described as
+          // a dead-lettered edge case was in fact rider A's GPS track being
+          // written into rider B's account.
           // `hasPendingSyncWork()`, NOT `getQueueLength()`. The old guard counted
           // only the main queue, which is empty precisely when every op has already
           // been dead-lettered — so the branch meant to PRESERVE unsynced rides

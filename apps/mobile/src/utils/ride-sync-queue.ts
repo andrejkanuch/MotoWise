@@ -13,6 +13,8 @@ import { captureException } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
 import { hasGraphQLCode } from '../lib/graphql-errors';
 import { isNetworkError } from '../lib/network-error';
+import { getSecureItemSync, SECURE_STORE_KEY } from '../lib/secure-store';
+import { useAuthStore } from '../stores/auth.store';
 
 // --- Types ---
 
@@ -36,6 +38,20 @@ interface SyncOperation {
   payload: Record<string, unknown>;
   retries: number;
   createdAt: string;
+  /**
+   * Supabase id of the rider who enqueued this op.
+   *
+   * The queue is device-global and deliberately SURVIVES sign-out (see the
+   * data-preservation branch in `_layout.tsx`), so without this field rider A's
+   * unsynced ride is drained under rider B's JWT on the next sign-in — and
+   * `startRide` stamps `user_id` from whatever JWT presents it, so A's GPS track
+   * lands in B's account. Stamped at enqueue, enforced at drain by
+   * `isOwnedByCurrentSession`.
+   *
+   * Optional only because ops written before this field existed are still in
+   * MMKV; `claimLegacyOpsForCurrentSession` retires that case once, at upgrade.
+   */
+  userId?: string;
 }
 
 // --- MMKV instance ---
@@ -47,6 +63,9 @@ const DEAD_LETTER_KEY = 'sync.dead_letter';
 const SEQ_KEY = 'sync.seq';
 /** Marks which one-time dead-letter redrive this install has already run. */
 const REDRIVE_VERSION_KEY = 'sync.redrive_version';
+/** Version of the one-time legacy-ownership claim that has already run. */
+const OWNERSHIP_CLAIM_KEY = 'sync.ownership_claim_version';
+const OWNERSHIP_CLAIM_VERSION = 1;
 const MAX_RETRIES = 5;
 const BASE_DELAY_MS = 1000;
 
@@ -170,6 +189,10 @@ function getDeadLetterQueue(): SyncOperation[] {
   return JSON.parse(raw) as SyncOperation[];
 }
 
+function setDeadLetterQueue(dlq: SyncOperation[]): void {
+  syncStorage.set(DEAD_LETTER_KEY, JSON.stringify(dlq));
+}
+
 /**
  * Oldest first. `createdAt` is the real age, but entries restored from older builds
  * (and the fixtures that mimic them) can carry an unparseable value, so `seq` — a
@@ -227,7 +250,7 @@ function moveGroupToDeadLetter(ops: readonly SyncOperation[], error?: unknown): 
   if (ops.length === 0) return;
   const [head] = ops;
   const dlq = boundDeadLetterQueue([...getDeadLetterQueue(), ...ops]);
-  syncStorage.set(DEAD_LETTER_KEY, JSON.stringify(dlq));
+  setDeadLetterQueue(dlq);
 
   // A dead-lettered ride op is silent data loss — always report it with enough
   // context to identify which op/ride and how long it had been queued.
@@ -250,25 +273,124 @@ function moveGroupToDeadLetter(ops: readonly SyncOperation[], error?: unknown): 
 /**
  * Queued ops that can no longer possibly succeed because `failed` did not.
  *
- * Only ops for the SAME ride and LATER in the sequence: a `uploadWaypoints` or
- * `endRide` whose `startRide` never created the row gets NOT_FOUND / 400 on every
- * attempt. Ops for other rides are deliberately untouched — they are genuinely
- * independent and must still get their chance.
+ * ONLY a failed `startRide` has dependents. The chain is
+ * startRide -> uploadWaypoints x N -> endRide, and only `startRide` creates the
+ * `rides` row the rest need: without it every waypoint chunk 404s and `endRide`
+ * 400s, so parking them together is the whole point. Every OTHER op type has no
+ * dependents at all — a single bad waypoint batch (a denormal float, say, or one
+ * that exhausts its retries on a 5xx) costs the rider that batch and nothing
+ * else. Without this gate it took the rest of the ride with it, `endRide`
+ * included, turning a lost chunk into a lost ride — the exact outcome this whole
+ * change set exists to prevent.
+ *
+ * Ops for other rides are deliberately untouched: they are genuinely independent
+ * and must still get their chance. So are ops belonging to another rider — a
+ * failure on this device must never reach into someone else's parked data.
  */
 function dependentOpsOf(failed: SyncOperation): SyncOperation[] {
+  if (failed.type !== 'startRide') return [];
   const rideId = rideIdOf(failed);
   if (!rideId) return [];
-  return getQueue().filter((op) => op.seq > failed.seq && rideIdOf(op) === rideId);
+  return getQueue().filter(
+    (op) => op.seq > failed.seq && rideIdOf(op) === rideId && isOwnedByCurrentSession(op),
+  );
+}
+
+// --- Ownership (cross-user leak guard) ---
+
+/**
+ * The rider this device is currently signed in as, or null.
+ *
+ * The auth store is the live signal, but it is null during the cold-start /
+ * headless window before `supabase.auth.getSession()` resolves — and the
+ * background location task enqueues waypoint flushes inside exactly that window.
+ * `LAST_USER_ID` closes it: it is written on every identify and CLEARED on
+ * sign-out (`clearLastUserId` in the local-cleanup branch of `_layout.tsx`), so
+ * it can only ever name the rider signed in on this device right now, never a
+ * previous account. Both null means nobody is signed in and nothing may be sent.
+ *
+ * This fallback is for STAMPING ops we are creating now. It is deliberately not
+ * used by `isOwnedByCurrentSession`: deciding who may RECEIVE a queued op must
+ * key on the live session only.
+ */
+function currentOwnerId(): string | null {
+  return (
+    useAuthStore.getState().session?.user?.id ?? getSecureItemSync(SECURE_STORE_KEY.LAST_USER_ID)
+  );
+}
+
+/**
+ * May the session that is signed in RIGHT NOW deliver this op?
+ *
+ * Exposed as a named predicate rather than inlined at the call site on purpose:
+ * a raw `a.userId === b.userId` treats two UNOWNED ops (both `undefined`) as the
+ * same owner, which is wrong in principle and a trap for any grouping built on
+ * it. Routing every ownership question through here removes that by construction.
+ *
+ * `dependentOpsOf` groups by this predicate AND `rideId`, so group dead-lettering
+ * can never reach across accounts.
+ *
+ * Signed out (`null`) owns nothing, so a drain with no session sends nothing
+ * rather than firing requests the API can only reject.
+ */
+export function isOwnedByCurrentSession(op: SyncOperation): boolean {
+  const sessionUserId = useAuthStore.getState().session?.user?.id ?? null;
+  return sessionUserId !== null && op.userId === sessionUserId;
+}
+
+/**
+ * One-time, marker-guarded claim of ops that predate `userId`.
+ *
+ * Quarantining legacy ops forever would shred a ride that straddles the upgrade:
+ * a pre-upgrade `startRide` could never be sent, while post-upgrade waypoint
+ * chunks for the same ride ARE sendable, deliver, find no `rides` row, come back
+ * NOT_FOUND and dead-letter one chunk at a time. The ride would be lost AND
+ * amplified into a dead-letter pile.
+ *
+ * So: on the first launch after the upgrade where a session is actually active,
+ * stamp every unowned op with that user id. With no session we do nothing AND
+ * leave the marker unconsumed, so the claim is retried on a later launch — the
+ * owner is only ever taken from a live session, never from a stored leftover.
+ *
+ * Strictly one-time. This is an upgrade migration, never a standing "adopt
+ * unowned ops" rule: that would re-open the very leak this field closes.
+ *
+ * Accepted residual risk (state it in the PR): A-queues → A-signs-out →
+ * B-signs-in → upgrade → B claims A's ops. That exact sequence already leaks in
+ * the shipped code, so it is not a regression — it is one bounded window during
+ * a single upgrade, after which the leak is closed permanently.
+ */
+function claimLegacyOpsForCurrentSession(): void {
+  if ((syncStorage.getNumber(OWNERSHIP_CLAIM_KEY) ?? 0) >= OWNERSHIP_CLAIM_VERSION) return;
+
+  // Live session only — never `currentOwnerId()`, whose SecureStore fallback is
+  // for stamping ops we create, not for deciding whose historical data this is.
+  const sessionUserId = useAuthStore.getState().session?.user?.id ?? null;
+  if (!sessionUserId) return;
+
+  const claim = (ops: SyncOperation[]): SyncOperation[] =>
+    ops.map((op) => (op.userId === undefined ? { ...op, userId: sessionUserId } : op));
+
+  // The dead-letter queue is claimed in the same pass: `redriveDeadLetterQueue`
+  // merges it back into the main queue, where an unowned op would be undeliverable
+  // for the rest of the install's life.
+  setQueue(claim(getQueue()));
+  setDeadLetterQueue(claim(getDeadLetterQueue()));
+  syncStorage.set(OWNERSHIP_CLAIM_KEY, OWNERSHIP_CLAIM_VERSION);
 }
 
 export function enqueue(type: SyncOperationType, payload: Record<string, unknown>): void {
   const queue = getQueue();
+  const userId = currentOwnerId();
   queue.push({
     seq: nextSeq(),
     type,
     payload,
     retries: 0,
     createdAt: new Date().toISOString(),
+    // Omitted rather than stored as null when nobody is signed in, so the shape
+    // matches a pre-upgrade op and the one-time claim can still adopt it.
+    ...(userId === null ? {} : { userId }),
   });
   setQueue(queue);
 }
@@ -364,6 +486,10 @@ export function drainQueue(): Promise<void> {
 }
 
 async function drainPass(): Promise<void> {
+  // Runs before the network probe so an offline launch still retires the legacy
+  // ops; it is a local MMKV rewrite, not a delivery.
+  claimLegacyOpsForCurrentSession();
+
   // A thrown network probe is treated as no-connectivity: leave the queue
   // intact and return so it drains on the next trigger, rather than throwing
   // an unhandled rejection out of a fire-and-forget drainQueue() call.
@@ -377,15 +503,24 @@ async function drainPass(): Promise<void> {
 
   let deadLettered = 0;
 
-  // Deliver strictly in seq order, persisting after EVERY op so an app kill
-  // mid-drain can't re-deliver an op that already reached the server. The
-  // queue is re-read each pass, so an op enqueued while we were draining (the
-  // endRide that lands behind an in-flight uploadWaypoints) is picked up in
-  // order within the same drain.
+  // Deliver in strict seq order within the signed-in rider's own ops, persisting
+  // after EVERY op so an app kill mid-drain can't re-deliver an op that already
+  // reached the server. The queue is re-read each pass, so an op enqueued while
+  // we were draining (the endRide that lands behind an in-flight
+  // uploadWaypoints) is picked up in order within the same drain.
   while (true) {
-    const queue = getQueue();
-    if (queue.length === 0) break;
-    const op = queue[0];
+    // The FIRST op this session owns, not the head. Ops belonging to another
+    // rider (or to nobody, pre-claim) are skipped and RETAINED: never sent,
+    // never dropped, never dead-lettered — their owner's data survives for them
+    // and delivers the moment they sign back in.
+    //
+    // Termination: this loop advances by REMOVAL, not by a cursor. Every branch
+    // below either removes the selected op or breaks, so the queue strictly
+    // shrinks on each iteration that does not break. A `continue` past a
+    // retained op would re-select it forever and hang the main thread on
+    // sign-in — which is why the skip lives in the SELECTION, not in the body.
+    const op = getQueue().find(isOwnedByCurrentSession);
+    if (!op) break;
 
     // Exponential backoff with jitter — only sleep on retries, not first attempt
     if (op.retries > 0) {
@@ -573,6 +708,9 @@ export function destroyAllSyncData(): void {
   syncStorage.remove(DEAD_LETTER_KEY);
   syncStorage.remove(SEQ_KEY);
   syncStorage.remove(REDRIVE_VERSION_KEY);
+  // Nothing is left to claim, so re-arming the one-time claim is a no-op in
+  // production and lets tests start from a clean slate.
+  syncStorage.remove(OWNERSHIP_CLAIM_KEY);
 }
 
 function sleep(ms: number): Promise<void> {

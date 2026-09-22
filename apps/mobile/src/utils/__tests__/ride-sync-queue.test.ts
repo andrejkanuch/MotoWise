@@ -1,12 +1,22 @@
 // Capture the single MMKV instance the module creates so tests can seed/inspect it.
 let mockSyncStore: Map<string, string | number | boolean>;
 
+// Budget on `sync.queue` reads, armed only by the termination test. The drain loop
+// advances by REMOVAL, so a skip implemented as `continue` past a retained head
+// would re-read the same head forever — a pure synchronous spin that jest's own
+// timeout cannot interrupt. Exhausting the budget turns that hang into a failure.
+let mockQueueReadBudget: number | null = null;
+
 jest.mock('react-native-mmkv', () => ({
   createMMKV: () => {
     const store = new Map<string, string | number | boolean>();
     mockSyncStore = store;
     return {
       getString: (k: string) => {
+        if (k === 'sync.queue' && mockQueueReadBudget !== null) {
+          mockQueueReadBudget -= 1;
+          if (mockQueueReadBudget < 0) throw new Error('drain did not terminate');
+        }
         const v = store.get(k);
         return typeof v === 'string' ? v : undefined;
       },
@@ -32,6 +42,28 @@ jest.mock('../../lib/graphql-client', () => ({
 
 jest.mock('../../lib/analytics', () => ({ captureException: jest.fn() }));
 
+const USER_A = 'user-a';
+const USER_B = 'user-b';
+
+// The signed-in rider, mutated per test to model a shared device.
+const mockAuthState: { session: { user: { id: string } } | null } = { session: null };
+jest.mock('../../stores/auth.store', () => ({
+  useAuthStore: { getState: () => mockAuthState },
+}));
+
+// `LAST_USER_ID` — the cold-start/headless fallback `enqueue` stamps from when the
+// auth store has not hydrated yet. Cleared on sign-out in production.
+let mockLastUserId: string | null = null;
+jest.mock('../../lib/secure-store', () => ({
+  SECURE_STORE_KEY: { LAST_USER_ID: 'motovault.last-user-id' },
+  getSecureItemSync: () => mockLastUserId,
+}));
+
+function signIn(userId: string | null): void {
+  mockAuthState.session = userId === null ? null : { user: { id: userId } };
+  mockLastUserId = userId;
+}
+
 import { RIDE_SYNC_LIMITS, RIDE_WAYPOINT_LIMITS } from '@motovault/types';
 import { captureException } from '../../lib/analytics';
 import {
@@ -45,6 +77,7 @@ import {
   getPendingCount,
   getQueueLength,
   hasPendingSyncWork,
+  isOwnedByCurrentSession,
   redriveDeadLetterQueue,
   redriveDeadLetterQueueOnce,
   setDeadLetterListener,
@@ -59,7 +92,7 @@ function gqlError(code: string): { response: { errors: { extensions: { code: str
   return { response: { errors: [{ extensions: { code } }] } };
 }
 
-function queue(): { seq: number; type: string; retries: number }[] {
+function queue(): { seq: number; type: string; retries: number; userId?: string }[] {
   const raw = mockSyncStore.get('sync.queue');
   return typeof raw === 'string' ? JSON.parse(raw) : [];
 }
@@ -76,6 +109,12 @@ function deadLetter(): unknown[] {
  * field on the interface — the per-op owner stamp the cross-user leak fix adds —
  * is one edit here instead of seven scattered literals that each silently keep the
  * old shape.
+ *
+ * `userId` defaults to the rider `beforeEach` signs in, so a seeded op is OWNED
+ * and the drain will actually select it. Leaving it off would make every fixture
+ * a pre-upgrade legacy op and route these tests through the one-time ownership
+ * claim, which is a different code path and not what they are testing. The
+ * legacy path has its own fixtures in `seedLegacy`.
  */
 function syncOp(op: {
   seq: number;
@@ -84,23 +123,61 @@ function syncOp(op: {
   retries?: number;
   createdAt?: string;
   payload?: Record<string, unknown>;
+  userId?: string;
 }) {
-  const { seq, type, rideId, retries = 5, createdAt = '', payload } = op;
+  const { seq, type, rideId, retries = 5, createdAt = '', payload, userId = USER_A } = op;
   return {
     seq,
     type,
     payload: payload ?? { variables: rideId ? { input: { rideId } } : {} },
     retries,
     createdAt,
+    userId,
   };
 }
 
+/**
+ * A request that never settles, modelling an app killed mid-drain — plus the
+ * means to settle it at teardown.
+ *
+ * `drainQueue` is single-flight: it caches the in-flight promise and hands it to
+ * every later caller. A test that leaves a genuinely unresolvable request behind
+ * therefore makes EVERY subsequent `drainQueue()` in the file await that same
+ * promise forever. The symptom is every test in the NEXT describe block timing
+ * out while each one passes in isolation, which reads like a product bug and is
+ * not one. Registering the settler here keeps the hang inside the test that
+ * wants it.
+ */
+const pendingFetches: Array<(reason: Error) => void> = [];
+
+function neverSettles(): Promise<never> {
+  return new Promise<never>((_resolve, reject) => {
+    pendingFetches.push(reject);
+  });
+}
+
 beforeEach(() => {
+  // Every pre-existing test models one rider on their own device.
+  signIn(USER_A);
+  mockQueueReadBudget = null;
   destroyAllSyncData();
   mockGqlFetcher.mockReset();
   mockCapture.mockReset();
   setDeadLetterListener(null);
   mockGetNetworkStateAsync.mockReset().mockResolvedValue(ONLINE);
+});
+
+afterEach(async () => {
+  // Release anything a test deliberately left hanging, so the single-flight
+  // drain can finish before the next test runs. A rejection here lands on the
+  // retryable-server-error branch, which bumps retries and breaks — one step,
+  // and the state is wiped by the next `beforeEach` regardless.
+  while (pendingFetches.length > 0) {
+    for (const reject of pendingFetches.splice(0, pendingFetches.length)) {
+      reject(new Error('test teardown'));
+    }
+    await new Promise((resolve) => setImmediate(resolve));
+  }
 });
 
 describe('enqueue / sequence ordering', () => {
@@ -729,11 +806,182 @@ describe('recovery of already-stranded ops', () => {
   it('marks the redrive as done BEFORE draining, so a crash mid-redrive is not a replay loop', async () => {
     mockSyncStore.set('sync.dead_letter', JSON.stringify(strandedRide()));
     // The drain never settles — app killed mid-redrive.
-    mockGqlFetcher.mockImplementation(() => new Promise(() => {}));
+    mockGqlFetcher.mockImplementation(() => neverSettles());
 
     redriveDeadLetterQueueOnce();
     await new Promise((r) => setImmediate(r));
 
     expect(mockSyncStore.get('sync.redrive_version')).toBe(1);
+  });
+});
+
+describe('cross-user leak guard on a shared device', () => {
+  // The defect: the queue is device-global and deliberately SURVIVES sign-out, and
+  // `startRide` stamps `user_id` from whatever JWT presents it. So rider A signing
+  // out with an unsynced ride, then rider B signing in, wrote A's ride — and every
+  // GPS waypoint behind it — into B's account.
+
+  it('terminates with a foreign op at the head instead of spinning forever', async () => {
+    // The loop advances by REMOVAL — there is no cursor. A retained head therefore
+    // has to be skipped by SELECTION; skipping it with `continue` re-reads the same
+    // head forever and hangs the main thread on sign-in, which is strictly worse
+    // than the leak. The read budget makes that spin a failure, not a hung run.
+    signIn(USER_B);
+    enqueue('startRide', { variables: { input: { tag: 'b' } } });
+    signIn(USER_A);
+    enqueue('endRide', { variables: { input: { tag: 'a' } } });
+    mockGqlFetcher.mockResolvedValue({});
+    mockQueueReadBudget = 200;
+
+    await expect(drainQueue()).resolves.toBeUndefined();
+
+    // A's op delivered even though B's sits ahead of it: a foreign op must not
+    // head-of-line block the rider who is actually signed in.
+    expect(mockGqlFetcher).toHaveBeenCalledTimes(1);
+    expect(queue().map((o) => o.type)).toEqual(['startRide']);
+  });
+
+  it('retains a foreign op — never sent, never dropped, never dead-lettered', async () => {
+    signIn(USER_B);
+    enqueue('startRide', { variables: { input: {} } });
+    signIn(USER_A);
+    mockGqlFetcher.mockResolvedValue({});
+
+    await drainQueue();
+
+    expect(mockGqlFetcher).not.toHaveBeenCalled();
+    expect(getQueueLength()).toBe(1);
+    expect(getDeadLetterCount()).toBe(0);
+    expect(queue()[0].userId).toBe(USER_B);
+  });
+
+  it('delivers the foreign op to its own owner once they sign back in', async () => {
+    signIn(USER_B);
+    enqueue('startRide', { variables: { input: {} } });
+    signIn(USER_A);
+    mockGqlFetcher.mockResolvedValue({});
+    await drainQueue();
+    expect(mockGqlFetcher).not.toHaveBeenCalled();
+
+    signIn(USER_B);
+    await drainQueue();
+
+    expect(mockGqlFetcher).toHaveBeenCalledTimes(1);
+    expect(getQueueLength()).toBe(0);
+  });
+
+  it("sends the current rider's own op", async () => {
+    signIn(USER_A);
+    enqueue('startRide', { variables: { input: {} } });
+    mockGqlFetcher.mockResolvedValue({});
+
+    await drainQueue();
+
+    expect(mockGqlFetcher).toHaveBeenCalledTimes(1);
+    expect(getQueueLength()).toBe(0);
+  });
+
+  it('sends nothing at all while signed out', async () => {
+    enqueue('startRide', { variables: { input: {} } });
+    signIn(null);
+    mockGqlFetcher.mockResolvedValue({});
+
+    await drainQueue();
+
+    expect(mockGqlFetcher).not.toHaveBeenCalled();
+    expect(getQueueLength()).toBe(1);
+  });
+
+  it('isOwnedByCurrentSession never treats two unowned ops as the same owner', () => {
+    const unowned = { seq: 1, type: 'startRide' as const, payload: {}, retries: 0, createdAt: '' };
+    signIn(USER_A);
+    expect(isOwnedByCurrentSession(unowned)).toBe(false);
+    expect(isOwnedByCurrentSession({ ...unowned, userId: USER_A })).toBe(true);
+    signIn(null);
+    expect(isOwnedByCurrentSession({ ...unowned, userId: USER_A })).toBe(false);
+  });
+});
+
+describe('one-time claim of legacy (pre-userId) ops', () => {
+  // Quarantining them forever shreds a ride that straddles the upgrade: the
+  // pre-upgrade startRide could never be sent, while post-upgrade waypoint chunks
+  // for the same ride deliver, find no `rides` row and dead-letter one at a time.
+
+  /** Fixtures that predate the `userId` field — deliberately unowned. */
+  function seedLegacy(key: 'sync.queue' | 'sync.dead_letter', ...types: string[]): void {
+    mockSyncStore.set(
+      key,
+      JSON.stringify(
+        types.map((type, i) => ({
+          seq: i + 1,
+          type,
+          payload: { variables: { input: {} } },
+          retries: 0,
+          createdAt: new Date(1_700_000_000_000).toISOString(),
+        })),
+      ),
+    );
+  }
+
+  it('claims unowned ops for the active session, in the main queue and the DLQ', async () => {
+    seedLegacy('sync.queue', 'startRide', 'uploadWaypoints');
+    seedLegacy('sync.dead_letter', 'endRide');
+    // Offline: the claim is a local rewrite and must not depend on connectivity.
+    mockGetNetworkStateAsync.mockResolvedValue(OFFLINE);
+    signIn(USER_A);
+
+    await drainQueue();
+
+    expect(queue().map((o) => o.userId)).toEqual([USER_A, USER_A]);
+    expect(deadLetter().map((o) => (o as { userId?: string }).userId)).toEqual([USER_A]);
+  });
+
+  it('claims exactly once — a later rider never adopts unowned ops', async () => {
+    seedLegacy('sync.queue', 'startRide');
+    mockGetNetworkStateAsync.mockResolvedValue(OFFLINE);
+    signIn(USER_A);
+    await drainQueue();
+    expect(queue()[0].userId).toBe(USER_A);
+
+    // A second unowned op appears after the claim has run (e.g. a headless enqueue
+    // with no resolvable owner). Rider B must NOT inherit it.
+    mockSyncStore.set(
+      'sync.queue',
+      JSON.stringify([
+        ...queue(),
+        { seq: 9, type: 'endRide', payload: { variables: {} }, retries: 0, createdAt: '' },
+      ]),
+    );
+    signIn(USER_B);
+    await drainQueue();
+
+    expect(queue().map((o) => o.userId)).toEqual([USER_A, undefined]);
+  });
+
+  it('does not consume the marker when no session is active', async () => {
+    seedLegacy('sync.queue', 'startRide');
+    mockGetNetworkStateAsync.mockResolvedValue(OFFLINE);
+    signIn(null);
+
+    await drainQueue();
+    expect(queue()[0].userId).toBeUndefined();
+
+    // A later launch WITH a session must still get its one claim.
+    signIn(USER_A);
+    await drainQueue();
+
+    expect(queue()[0].userId).toBe(USER_A);
+  });
+
+  it('a claimed op then sends normally', async () => {
+    seedLegacy('sync.queue', 'startRide');
+    signIn(USER_A);
+    mockGqlFetcher.mockResolvedValue({});
+
+    await drainQueue();
+
+    expect(mockGqlFetcher).toHaveBeenCalledTimes(1);
+    expect(getQueueLength()).toBe(0);
+    expect(getDeadLetterCount()).toBe(0);
   });
 });
