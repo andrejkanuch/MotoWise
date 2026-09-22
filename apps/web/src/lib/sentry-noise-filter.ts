@@ -118,18 +118,18 @@ function shouldDropExceptions(exceptions: NoiseException[] | undefined): boolean
   }
 
   // "Maximum call stack size exceeded" with no first-party frames
-  // (MOTOVAULT-WEB-X). Injected by iOS in-app-browser webviews (e.g. the Google
-  // app) and surfaced via the global onerror handler as a single opaque
-  // `undefined`-filename frame. The routes that report it (e.g. the blog
-  // article page) are fully server-rendered with trivial client components, so
-  // no first-party recursion is possible. A real recursion in our bundle
-  // carries `/_next/static` frames (with filenames) and still reports.
+  // (MOTOVAULT-WEB-X). Injected by browser or in-app-webview scripts and
+  // surfaced via the global onerror handler. The frames arrive either stackless,
+  // as a single opaque `undefined`-filename frame, or filenamed with the
+  // document URL of the route the user was on (never `/_next/static`). The
+  // routes that report it (e.g. the blog article page) are fully server-rendered
+  // with trivial client components, so no first-party recursion is possible. A
+  // real recursion in our bundle carries `/_next/static` frames and still
+  // reports — so scope on the shared first-party guard, not on the presence of a
+  // filename.
   if (
-    exceptions.some(
-      (e) =>
-        e.value?.includes('Maximum call stack size exceeded') &&
-        !e.stacktrace?.frames?.some((f) => f.filename),
-    )
+    !hasFirstPartyFrame &&
+    exceptions.some((e) => e.value?.includes('Maximum call stack size exceeded'))
   ) {
     return true;
   }
