@@ -26,6 +26,7 @@ export const RIDE_KEYS = {
   RECORDING_SUB_STATE: 'ride.recording_sub_state',
   FORGOT_TO_STOP_PENDING: 'ride.forgot_to_stop_pending',
   PERMISSION_LEVEL: 'ride.permission_level',
+  GPS_PERMISSION_LOST: 'ride.gps_permission_lost',
   HUD_LAYOUT: 'ride.hud_layout',
   WAYPOINT_COUNT: 'ride.waypoint_count',
 } as const;
@@ -94,6 +95,13 @@ export const rideMMKV = {
       | undefined,
   setPermissionLevel: (level: 'full' | 'foreground_only' | 'denied') =>
     rideStorage.set(RIDE_KEYS.PERMISSION_LEVEL, level),
+
+  // GPS permission revoked mid-ride (kCLErrorDenied). Persisted so the warning
+  // survives a background/foreground cycle or an app relaunch. Deliberately NOT
+  // PERMISSION_LEVEL: nothing writes that key, so hydrate() reads it back as
+  // 'denied' on every restore and any UI keyed off it would fire spuriously.
+  getGpsPermissionLost: () => rideStorage.getBoolean(RIDE_KEYS.GPS_PERMISSION_LOST) ?? false,
+  setGpsPermissionLost: (lost: boolean) => rideStorage.set(RIDE_KEYS.GPS_PERMISSION_LOST, lost),
 
   // HUD layout preference
   getHudLayout: () => (rideStorage.getString(RIDE_KEYS.HUD_LAYOUT) as 'A' | 'B' | undefined) ?? 'A',

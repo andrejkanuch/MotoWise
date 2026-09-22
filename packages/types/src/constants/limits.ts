@@ -62,6 +62,48 @@ export const RIDE_WAYPOINT_LIMITS = {
   MAX_PER_UPLOAD: 500,
 } as const;
 
+/**
+ * Bounds on the mobile ride sync queue's DEAD-LETTER store (`ride-sync-queue.ts`).
+ *
+ * The dead-letter queue had no cap, no TTL and no eviction: it grew forever, and
+ * the whole array is JSON.parse'd + JSON.stringify'd on every dead-letter, on the
+ * ride hot path. One rider reached 107 parked ops — each `uploadWaypoints` entry
+ * carrying up to `RIDE_WAYPOINT_LIMITS.MAX_PER_UPLOAD` full Waypoint objects — and
+ * because `clearDeliveredQueue` refuses to run while anything is pending, those
+ * entries also permanently disabled queue cleanup for that install.
+ *
+ * MAX_DEAD_LETTER_OPS is deliberately generous: an eviction is UNAMBIGUOUS,
+ * irreversible rider data loss (the dead-letter payload is the only remaining copy
+ * — local waypoint chunks are dropped once enqueued), so the cap exists to stop
+ * unbounded growth, not to ration storage. A fully stranded 10,000-waypoint ride is
+ * ~20 ops at MAX_PER_UPLOAD, so 200 holds several whole lost rides before anything
+ * is discarded.
+ */
+export const RIDE_SYNC_LIMITS = {
+  /** Most ops the dead-letter queue retains; oldest-first eviction beyond it. */
+  MAX_DEAD_LETTER_OPS: 200,
+} as const;
+
+/**
+ * Rider-count bounds on a trip. Shared because THREE places must agree:
+ *   - the Zod bounds in `validators/trip.ts` (Create / CreateWithWaypoints / Update)
+ *   - `trips_max_riders_check` on `public.trips` (`BETWEEN 1 AND 50` since
+ *     migration `00179_allow_solo_trips_max_riders`)
+ *   - the mobile create/edit-trip form (`apps/mobile/src/utils/trip-max-riders.ts`)
+ *
+ * MIN is 1 because a solo trip is a supported plan — `trip-completeness.ts` treats
+ * `maxRiders <= 1` as complete. Moving one side alone is exactly what produced
+ * MOTO-VAULT-NODE-NESTJS-K: Zod accepted 1, Postgres refused it, and every solo
+ * trip creation returned a 500. A comment asking the next person to keep three
+ * copies in sync is what allowed that drift; one exported constant removes it.
+ */
+export const TRIP_MAX_RIDERS = {
+  MIN: 1,
+  MAX: 50,
+  /** Pre-filled in the create-trip form; not a validation bound. */
+  DEFAULT: 10,
+} as const;
+
 export const AI_BUDGET_LIMITS = {
   /** Maximum AI generations per day for free-tier users */
   FREE_DAILY_GENERATIONS: 50,

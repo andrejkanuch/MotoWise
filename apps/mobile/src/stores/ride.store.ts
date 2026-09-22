@@ -22,6 +22,10 @@ interface RideState {
   isNightMode: boolean;
   isBatterySaver: boolean;
   permissionLevel: PermissionLevel;
+  /** True once CoreLocation reported kCLErrorDenied mid-ride — the update stream
+   *  is dead and the ride is no longer recording. Separate from `permissionLevel`
+   *  on purpose: that one is never persisted, so hydrate() always reads 'denied'. */
+  gpsPermissionLost: boolean;
   startRide: () => void;
   pauseRide: () => void;
   resumeRide: () => void;
@@ -36,6 +40,7 @@ interface RideState {
   toggleNightMode: () => void;
   toggleBatterySaver: () => void;
   setPermissionLevel: (level: PermissionLevel) => void;
+  setGpsPermissionLost: (lost: boolean) => void;
   hydrate: () => void;
 }
 
@@ -60,6 +65,7 @@ export const useRideStore = create<RideState>()((set) => ({
   isNightMode: false,
   isBatterySaver: false,
   permissionLevel: 'denied',
+  gpsPermissionLost: false,
   startRide: () =>
     set({
       status: 'recording',
@@ -100,6 +106,7 @@ export const useRideStore = create<RideState>()((set) => ({
   toggleNightMode: () => set((state) => ({ isNightMode: !state.isNightMode })),
   toggleBatterySaver: () => set((state) => ({ isBatterySaver: !state.isBatterySaver })),
   setPermissionLevel: (permissionLevel) => set({ permissionLevel }),
+  setGpsPermissionLost: (gpsPermissionLost) => set({ gpsPermissionLost }),
   hydrate: () => {
     // Restore ride state from MMKV on AppState 'active'
     const currentId = rideMMKV.getCurrentId();
@@ -113,6 +120,9 @@ export const useRideStore = create<RideState>()((set) => ({
       status: storedStatus ?? 'recording',
       recordingSubState: subState ?? 'moving',
       permissionLevel: permLevel ?? 'denied',
+      // Written on both sides (ride-location marks it, resetAutoPauseState clears
+      // it), so unlike permissionLevel this one is correct by construction.
+      gpsPermissionLost: rideMMKV.getGpsPermissionLost(),
     });
   },
 }));

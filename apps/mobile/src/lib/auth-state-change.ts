@@ -32,18 +32,25 @@
 // -------------------------------------------------------------------
 
 /**
- * Warning reported to Sentry when a null-session cleanup runs while a ride is
- * active or sync ops are still queued. This path fires for BOTH a server-forced
- * sign-out (revocation / token-rotation failure) AND a normal user-initiated
- * sign-out — the decision (`decideAuthStateChange`) keys only on whether a user
- * previously existed, not on the auth event — so the wording stays neutral about
- * the cause. Not a crash: the local cleanup deliberately PRESERVES the sync
- * queue and ride data so they drain once auth is restored.
- * (MOTO-VAULT-REACT-NATIVE-27)
+ * Sentry BREADCRUMB text recorded when a null-session cleanup runs while a ride
+ * is active or sync ops are still queued. This path fires for BOTH a
+ * server-forced sign-out (revocation / token-rotation failure) AND a normal
+ * user-initiated sign-out — the decision (`decideAuthStateChange`) keys only on
+ * whether a user previously existed, not on the auth event — so the wording
+ * stays neutral about the cause. Not a crash: the local cleanup deliberately
+ * PRESERVES the sync queue and ride data so they drain once auth is restored.
+ *
+ * A breadcrumb, not `captureMessage`. Sentry has no non-issue message
+ * destination: every captured message becomes an Issue listed under
+ * `is:unresolved` whatever its `level`, so this expected-path counter was filed
+ * as a defect — twice over, because the synthetic stacktrace attached to message
+ * events split one string across two issues. The rate belongs in PostHog; the
+ * context belongs on whatever real error follows.
+ * (MOTO-VAULT-REACT-NATIVE-27 / -2T / -39)
  */
 export const SIGNOUT_UNSYNCED_MESSAGE = 'Sign-out with unsynced ride data — preserving sync queue';
 
-/** Sentry `source` tag identifying where the unsynced-sign-out warning fired. */
+/** Breadcrumb category identifying where the unsynced-sign-out signal fired. */
 export const SIGNOUT_UNSYNCED_SOURCE = 'auth-state-change.localCleanup';
 
 export interface AuthStateChangeInputs {

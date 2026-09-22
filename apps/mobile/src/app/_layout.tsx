@@ -45,6 +45,7 @@ import { PostHogProvider, PostHogSurveyProvider } from 'posthog-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
+import { SessionRestoring } from '../components/auth/session-restoring';
 import { OB_VARIANT } from '../config/onboarding';
 import { getWhatsNewRelease } from '../data/whats-new-releases';
 import {
@@ -61,8 +62,8 @@ import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import i18n from '../i18n';
 import {
   AnalyticsEvent,
+  addBreadcrumb,
   captureException,
-  captureMessage,
   getAnalyticsDistinctId,
   identifyUser,
   initPostHog,
@@ -81,6 +82,10 @@ import {
   AUTH_HYDRATION_TIMEOUT_MESSAGE,
   AUTH_HYDRATION_TIMEOUT_MS,
   AUTH_HYDRATION_TIMEOUT_SOURCE,
+  type AuthGateInput,
+  SPLASH_FAILSAFE_MS,
+  shouldRenderAuthGroup,
+  shouldRenderRestoring,
   shouldReportHydrationTimeout,
 } from '../lib/auth-hydration';
 import {
@@ -134,6 +139,7 @@ import {
   getPendingCount,
   hasPendingSyncWork,
   redriveDeadLetterQueue,
+  redriveDeadLetterQueueOnce,
   setDeadLetterListener,
 } from '../utils/ride-sync-queue';
 
@@ -144,8 +150,8 @@ SplashScreen.preventAutoHideAsync();
 const SPLASH_FADE_MS = 400;
 SplashScreen.setOptions({ duration: SPLASH_FADE_MS, fade: true });
 
-/** Hard cap — if hydration or the `me` query ever hangs, never wedge the splash. */
-const SPLASH_FAILSAFE_MS = 10000;
+// `SPLASH_FAILSAFE_MS` lives in lib/auth-hydration alongside the hydration
+// timeout it must outlast — see the comment there. (BUG-4 Q1)
 
 // Root view defaults to white — paint it the splash color so no frame between
 // the native splash and React's first paint can flash white.
@@ -193,6 +199,8 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
   const {
     session,
     isLoading,
+    hydration,
+    forceHydrationResolved,
     onboardingCompleted: storeOnboardingCompleted,
     setOnboardingCompleted,
   } = useAuthStore();
@@ -320,6 +328,25 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
 
   const inOnboarding = segments[0] === '(onboarding)';
 
+  /**
+   * The same deadline the splash failsafe uses, applied to THIS gate.
+   *
+   * `SPLASH_FAILSAFE_MS` hides the native splash; it does not settle the gate. A
+   * signed-in rider whose `me` request never returns therefore watched the splash
+   * fade to a blank screen — `holding` stays true while `meQuery.isLoading` is
+   * true, and the gate renders `null`. Nothing forces that query to settle:
+   * neither `meOptions()` nor `gqlFetcher` sets a timeout or an AbortSignal.
+   *
+   * Giving up on `me` is safe because it is only a confirmation: `onboardingCompleted`
+   * falls back to the persisted store value, so a returning rider still lands in
+   * the app. Waiting forever is not safe, because it renders nothing at all.
+   */
+  const [meWaitExpired, setMeWaitExpired] = useState(false);
+  useEffect(() => {
+    const timeout = setTimeout(() => setMeWaitExpired(true), SPLASH_FAILSAFE_MS);
+    return () => clearTimeout(timeout);
+  }, []);
+
   // Hold the splash (render nothing) until auth + the `me` query resolve, so the
   // guards below evaluate against settled state — otherwise a returning,
   // already-onboarded user would briefly route through (onboarding) before `me`
@@ -327,7 +354,8 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
   // (post-paywall account step signs the user in), keep the stack mounted —
   // unmounting would reset onboarding navigation state.
   const holding =
-    isLoading || (!!session && meQuery.isLoading && !meQuery.isError && !inOnboarding);
+    !meWaitExpired &&
+    (isLoading || (!!session && meQuery.isLoading && !meQuery.isError && !inOnboarding));
 
   // The gate settling means real UI is about to paint — tell the root to drop
   // the native splash (it fades out over the first frames of the stack).
@@ -341,6 +369,20 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
 
   const isSignedIn = !!session;
 
+  // Auth hydration answers three questions, not two: signed in, signed out, and
+  // "we do not know yet". The safety timeout used to collapse the third into the
+  // second by dropping `isLoading` while `session` was still null, so a signed-in
+  // rider on a slow cold start was routed straight to /login. The gate now routes
+  // on the hydration state itself. (BUG-4 Q1)
+  const gateInput: AuthGateInput = { isSignedIn, isAnonOnboarding, hydration };
+
+  // Hydration timed out with no answer: say so, rather than rendering a login
+  // screen at a rider who may well be signed in. Bounded — the screen offers an
+  // explicit escape hatch of its own, so this can never wedge.
+  if (shouldRenderRestoring(gateInput)) {
+    return <SessionRestoring onGiveUp={forceHydrationResolved} />;
+  }
+
   // Declarative gating via Stack.Protected: when a guard flips (sign-in, sign-out,
   // onboarding completion) Expo Router auto-navigates to the next available
   // screen. No imperative router.replace — which would collapse the back stack.
@@ -349,7 +391,7 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
   // anonymous onboarding without any cross-group navigation.
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={!isSignedIn && !isAnonOnboarding}>
+      <Stack.Protected guard={shouldRenderAuthGroup(gateInput)}>
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
 
@@ -376,7 +418,7 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
 }
 
 function RootLayout() {
-  const { setSession, setLoading } = useAuthStore();
+  const { setSession } = useAuthStore();
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
   // Tracks the last identified user so a null session is only treated as a
   // logout when we actually had one — see onAuthStateChange below.
@@ -428,41 +470,45 @@ function RootLayout() {
     startCarPlayCoordinator();
   }, []);
 
-  // Safety timeout: if auth takes too long, unblock the splash anyway
+  // Safety timeout: if auth takes too long, stop holding the splash — but do NOT
+  // let a timeout masquerade as "signed out". Moving to UNRESOLVED renders the
+  // bounded restoring screen; only a real INITIAL_SESSION answer reaches RESOLVED
+  // and lets (auth) render. (BUG-4 Q1)
   useEffect(() => {
     const timeout = setTimeout(() => {
-      // Only report when the app is actually foregrounded — a real user
-      // staring at a stuck splash. On background launches (widget sync,
-      // location updates) iOS throttles JS so getSession() can't resolve in
-      // wall-clock time and this timer fires harmlessly. Reporting that is
-      // pure noise. (Sentry MOTO-VAULT-REACT-NATIVE-W)
+      // Only record when the app is actually foregrounded — a real user staring
+      // at a stuck splash. On background launches (widget sync, location updates)
+      // iOS throttles JS so hydration can't resolve in wall-clock time and this
+      // timer fires harmlessly. Recording that is pure noise.
+      // (Sentry MOTO-VAULT-REACT-NATIVE-W)
       if (shouldReportHydrationTimeout(useAuthStore.getState().isLoading, AppState.currentState)) {
-        // Expected-but-worth-watching edge case, not a crash: report as a warning
-        // so it stays observable without polluting the unresolved-error stream
-        // (MOTO-VAULT-REACT-NATIVE-W / 2F / 2G).
-        captureMessage(AUTH_HYDRATION_TIMEOUT_MESSAGE, 'warning', {
-          source: AUTH_HYDRATION_TIMEOUT_SOURCE,
+        // A breadcrumb, NOT captureMessage: Sentry files every captured message
+        // as an Issue under `is:unresolved` regardless of level, so this latency
+        // signal sat in the error stream pretending to be a defect. As a
+        // breadcrumb it still rides along on any real error that follows.
+        // (MOTO-VAULT-REACT-NATIVE-33)
+        addBreadcrumb(AUTH_HYDRATION_TIMEOUT_MESSAGE, AUTH_HYDRATION_TIMEOUT_SOURCE, {
+          appState: AppState.currentState,
+          timeoutMs: AUTH_HYDRATION_TIMEOUT_MS,
+        });
+        trackEvent(AnalyticsEvent.AUTH_HYDRATION_TIMEOUT, {
+          app_state: AppState.currentState,
+          timeout_ms: AUTH_HYDRATION_TIMEOUT_MS,
         });
       }
-      if (useAuthStore.getState().isLoading) {
-        setLoading(false);
-      }
+      useAuthStore.getState().markHydrationUnresolved();
     }, AUTH_HYDRATION_TIMEOUT_MS);
     return () => clearTimeout(timeout);
-  }, [setLoading]);
+  }, []);
 
+  // No `supabase.auth.getSession()` here on purpose. supabase-js guarantees
+  // INITIAL_SESSION fires exactly once per subscriber once hydration finishes —
+  // including with a null session when nothing is stored, and with null from the
+  // catch path when hydration errors — so the listener below is a complete
+  // resolution signal on its own. Calling getSession() as well ran the same
+  // `__loadSession` twice: two chunked Keychain reads and, at cold start, two
+  // racing blocking token refreshes. (BUG-4 Q1)
   useEffect(() => {
-    supabase.auth
-      .getSession()
-      .then(({ data: { session } }) => {
-        setSession(session);
-        setLoading(false);
-      })
-      .catch((error) => {
-        captureException(error, { source: 'supabase.auth.getSession' });
-        setLoading(false);
-      });
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -521,9 +567,15 @@ function RootLayout() {
           // Preserve unsynced rides across a forced sign-out / token revocation:
           // keep the sync queue AND the active ride's local data while a ride is
           // in progress or ops are still pending, so they drain once auth is
-          // restored instead of silently vanishing. (Edge case: a different user
-          // signing in inherits these; the backend rejects cross-owner ops, which
-          // the queue dead-letters + surfaces.)
+          // restored instead of silently vanishing.
+          //
+          // Safe on a shared device because the ride queue is owner-scoped: each
+          // op carries the `userId` that enqueued it and `isOwnedByCurrentSession`
+          // refuses to drain anyone else's. It did NOT used to be — the backend
+          // does not reject a cross-owner `startRide` (it stamps `user_id` from
+          // whatever JWT presents it), so what the earlier note here described as
+          // a dead-lettered edge case was in fact rider A's GPS track being
+          // written into rider B's account.
           // `hasPendingSyncWork()`, NOT `getQueueLength()`. The old guard counted
           // only the main queue, which is empty precisely when every op has already
           // been dead-lettered — so the branch meant to PRESERVE unsynced rides
@@ -537,13 +589,19 @@ function RootLayout() {
           } else {
             // Intentional data-preservation path (a ride was active or ops were
             // still queued/dead-lettered when a null session was observed —
-            // server-forced OR user-initiated sign-out), not a crash — report as a
-            // warning so it's observable without sitting in the unresolved-error
-            // stream (MOTO-VAULT-REACT-NATIVE-27).
-            captureMessage(SIGNOUT_UNSYNCED_MESSAGE, 'warning', {
-              source: SIGNOUT_UNSYNCED_SOURCE,
-              pendingCount: String(getPendingCount()),
-              hasActiveRide: String(activeRideId != null),
+            // server-forced OR user-initiated sign-out), not a crash. A
+            // breadcrumb, NOT captureMessage: Sentry has no non-issue message
+            // destination, so `level: 'warning'` only recoloured the badge while
+            // the signal still sat under `is:unresolved` — and the synthetic
+            // stacktrace split one string across two issues besides.
+            // (MOTO-VAULT-REACT-NATIVE-2T / -39)
+            addBreadcrumb(SIGNOUT_UNSYNCED_MESSAGE, SIGNOUT_UNSYNCED_SOURCE, {
+              pendingCount: getPendingCount(),
+              hasActiveRide: activeRideId != null,
+            });
+            trackEvent(AnalyticsEvent.SIGNOUT_WITH_UNSYNCED_DATA, {
+              pending_count: getPendingCount(),
+              has_active_ride: activeRideId != null,
             });
           }
           cancelAllNotifications();
@@ -564,7 +622,7 @@ function RootLayout() {
     });
 
     return () => subscription.unsubscribe();
-  }, [setLoading, setSession]);
+  }, [setSession]);
 
   // Handle deep link auth callback (email confirmation / password reset)
   // When the web intermediary redirects to motovault://auth/callback?code=xxx,
@@ -665,14 +723,34 @@ function RootLayout() {
 
   // Drain ride sync queue on app resume, initial mount, and connectivity restore
   useEffect(() => {
+    // Ops stranded by the startRide 400 bug (MOTO-VAULT-REACT-NATIVE-3C) do not
+    // self-heal: nothing drains the dead-letter queue automatically, and the only
+    // manual route is the alert below — which in that incident fired while the app
+    // was backgrounded and then latched forever. Guarded by a version marker in the
+    // sync MMKV, so this runs once per shipped server fix, not on every launch.
+    redriveDeadLetterQueueOnce();
     drainQueue();
     let debounceTimer: ReturnType<typeof setTimeout> | undefined;
     let deadLetterAlertOpen = false;
+    // A dead-letter raised while backgrounded, waiting to be shown on the next
+    // transition to active. `Alert.alert` from a background JS task is never
+    // presented, so it must not consume the one-shot.
+    let pendingDeadLetterCount: number | null = null;
 
     // Surface permanently-failed ride ops (silent data loss otherwise) with a
     // retry path. Guarded so repeated drains don't stack alerts.
-    setDeadLetterListener((count) => {
+    function showDeadLetterAlert(count: number) {
       if (deadLetterAlertOpen) return;
+      // THE LATCH BUG: `deadLetterAlertOpen = true` used to be set here
+      // unconditionally, before presentation. An Alert fired from a backgrounded JS
+      // task is never shown, so neither button is ever pressed, so the flag never
+      // reset — the rider was never told, then or ever. The reported incident fired
+      // in BACKGROUND with 107 ops parked. Defer instead of burning the one-shot.
+      if (AppState.currentState !== 'active') {
+        pendingDeadLetterCount = count;
+        return;
+      }
+      pendingDeadLetterCount = null;
       deadLetterAlertOpen = true;
       Alert.alert(
         'Ride sync failed',
@@ -688,11 +766,15 @@ function RootLayout() {
           },
         ],
       );
-    });
+    }
+
+    setDeadLetterListener(showDeadLetterAlert);
 
     const appSub = AppState.addEventListener('change', (state: string) => {
       if (state === 'active') {
         drainQueue();
+        // Re-raise anything that failed while we were backgrounded.
+        if (pendingDeadLetterCount !== null) showDeadLetterAlert(pendingDeadLetterCount);
         // Delay widget sync to let TanStack Query refetches settle, then read from cache
         setTimeout(() => syncWidgets(), 3000);
       }

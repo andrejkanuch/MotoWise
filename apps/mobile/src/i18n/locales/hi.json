@@ -43,7 +43,9 @@
     "checkEmail": "अपना ईमेल चेक करें",
     "confirmationSent": "हमने आपके ईमेल पर एक कन्फर्मेशन लिंक भेजा है। कृपया जारी रखने के लिए वेरिफाई करें।",
     "accountExistsTitle": "खाता पहले से मौजूद है",
-    "accountExistsMessage": "यह ईमेल पहले से पंजीकृत है। कृपया इसके बजाय साइन इन करें।"
+    "accountExistsMessage": "यह ईमेल पहले से पंजीकृत है। कृपया इसके बजाय साइन इन करें।",
+    "restoringSession": "आपका सत्र पुनः प्राप्त किया जा रहा है…",
+    "signInInstead": "इसके बजाय साइन इन करें"
   },
   "tabs": {
     "home": "होम",
@@ -1793,6 +1795,8 @@
     "descriptionPlaceholder": "अपने ट्रिप रूट, हाइलाइट्स, क्या लाना है बताएं...",
     "maxRidersLabel": "अधिकतम राइडर्स",
     "maxRidersPlaceholder": "10",
+    "maxRidersRequired": "बताएं कि कितने राइडर शामिल हो सकते हैं",
+    "maxRidersRange": "{{min}} से {{max}} राइडर के बीच चुनें",
     "stopNotesPlaceholder": "इस स्टॉप के बारे में नोट्स जोड़ें...",
     "reviewPlaceholder": "अपना अनुभव साझा करें...",
     "assistantPlaceholder": "अपनी ट्रिप के बारे में पूछें…",
@@ -1860,6 +1864,8 @@
   "rideHud": {
     "forgotToStopTitle": "अभी भी राइड पर हैं?",
     "forgotToStopBody": "आप {{minutes}} मिनट से रुके हैं। राइड समाप्त करने के लिए टैप करें या चलते रहें।",
+    "gpsLostTitle": "GPS ट्रैकिंग बंद हो गई",
+    "gpsLostBody": "लोकेशन की अनुमति बंद कर दी गई, इसलिए आपकी राइड अब रिकॉर्ड नहीं हो रही है। ठीक करने या राइड समाप्त करने के लिए टैप करें।",
     "dist": "दूरी",
     "time": "समय",
     "avg": "औसत",

@@ -43,7 +43,9 @@
     "checkEmail": "Check Your Email",
     "confirmationSent": "We sent a confirmation link to your email. Please verify to continue.",
     "accountExistsTitle": "Account already exists",
-    "accountExistsMessage": "This email is already registered. Sign in instead."
+    "accountExistsMessage": "This email is already registered. Sign in instead.",
+    "restoringSession": "Restoring your session…",
+    "signInInstead": "Sign in instead"
   },
   "tabs": {
     "home": "Home",
@@ -1799,6 +1801,8 @@
     "descriptionPlaceholder": "Describe your trip route, highlights, what to bring...",
     "maxRidersLabel": "Max Riders",
     "maxRidersPlaceholder": "10",
+    "maxRidersRequired": "Enter how many riders can join",
+    "maxRidersRange": "Choose between {{min}} and {{max}} riders",
     "stopNotesPlaceholder": "Add notes about this stop...",
     "reviewPlaceholder": "Share your experience...",
     "assistantPlaceholder": "Ask about your trip…",
@@ -1974,6 +1978,8 @@
   "rideHud": {
     "forgotToStopTitle": "Still riding?",
     "forgotToStopBody": "You've been stopped for {{minutes}} minutes. Tap to end your ride or keep going.",
+    "gpsLostTitle": "GPS tracking stopped",
+    "gpsLostBody": "Location permission was turned off, so your ride is no longer recording. Tap to fix it or end the ride.",
     "dist": "DIST",
     "time": "TIME",
     "avg": "AVG",

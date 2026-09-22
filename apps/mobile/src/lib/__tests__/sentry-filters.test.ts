@@ -401,4 +401,61 @@ describe('sentryBeforeSend', () => {
       expect(sentryBeforeSend(event)).toBe(event);
     });
   });
+
+  // Sentry fingerprinting for intentional captureMessage signals.
+  // attachStacktrace defaults to true in @sentry/react-native, so one message
+  // string arrived with a different synthetic stack per call site and Sentry
+  // grouped it into several issues: "Sign-out with unsynced ride data" became
+  // both MOTO-VAULT-REACT-NATIVE-2T ("captureMessage") and -39 ("anonymous").
+  describe('message-event grouping', () => {
+    const SIGNOUT_MESSAGE = 'Sign-out with unsynced ride data — preserving sync queue';
+
+    function messageEvent(message: string, topFrameFunction: string): SentryEvent {
+      return {
+        message,
+        // The synthetic stack that attachStacktrace bolts on — different per
+        // call site, which is exactly what default grouping hashed.
+        threads: {
+          values: [{ stacktrace: { frames: [{ function: topFrameFunction }] } }],
+        },
+      } as unknown as SentryEvent;
+    }
+
+    it('gives the same fingerprint to one message captured from two different stacks', () => {
+      const fromWrapper = sentryBeforeSend(messageEvent(SIGNOUT_MESSAGE, 'captureMessage'));
+      const fromListener = sentryBeforeSend(messageEvent(SIGNOUT_MESSAGE, 'anonymous'));
+
+      expect(fromWrapper?.fingerprint).toBeDefined();
+      expect(fromWrapper?.fingerprint).toEqual(fromListener?.fingerprint);
+    });
+
+    it('gives different messages different fingerprints', () => {
+      const signout = sentryBeforeSend(messageEvent(SIGNOUT_MESSAGE, 'captureMessage'));
+      const hydration = sentryBeforeSend(
+        messageEvent('Auth hydration timeout — forcing app ready', 'I18n#loadLanguages'),
+      );
+
+      expect(signout?.fingerprint).not.toEqual(hydration?.fingerprint);
+    });
+
+    it('leaves a plain exception event unfingerprinted', () => {
+      const event = makeEvent({
+        exception: { values: [{ type: 'TypeError', value: 'undefined is not a function' }] },
+      });
+
+      expect(sentryBeforeSend(event)?.fingerprint).toBeUndefined();
+    });
+
+    it('still applies GraphQL grouping to a GraphQL exception event', () => {
+      const { error, event } = graphQLFailure(
+        'Bike not found',
+        GRAPHQL_ERROR_CODE.INTERNAL_SERVER_ERROR,
+      );
+
+      const result = sentryBeforeSend(event, { originalException: error });
+
+      expect(result?.fingerprint).toBeDefined();
+      expect(result?.fingerprint?.[0]).not.toBe('motovault.message');
+    });
+  });
 });

@@ -12,6 +12,11 @@ import { buildConnection, decodeCursor, encodeCursor } from '../../../common/pag
 import { PG_ERROR } from '../../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
+import {
+  PG_CHECK_VIOLATION,
+  throwTripCheckViolation,
+  throwTripDbError,
+} from '../errors/trip-db.errors';
 import type { Trip, TripConnection, TripWaypoint } from '../models/trip.model';
 
 /** Shape returned by trips + users join */
@@ -512,8 +517,7 @@ export class TripLifecycleService {
       .single();
 
     if (error) {
-      this.logger.error(`createTrip failed: ${error.message} (${error.code})`);
-      throw new InternalServerErrorException('Failed to create trip');
+      throwTripDbError(this.logger, error, 'createTrip', 'Failed to create trip');
     }
 
     return mapRowToTrip(data as unknown as TripRow);
@@ -574,10 +578,14 @@ export class TripLifecycleService {
       .single();
 
     if (tripError) {
-      this.logger.error(
-        `createTripWithWaypoints trip failed: ${tripError.message} (${tripError.code})`,
+      // Keep the log wording ("createTripWithWaypoints trip failed: …") so saved
+      // Render searches for the original incident keep matching.
+      throwTripDbError(
+        this.logger,
+        tripError,
+        'createTripWithWaypoints trip',
+        'Failed to create trip',
       );
-      throw new InternalServerErrorException('Failed to create trip');
     }
 
     const trip = mapRowToTrip(tripData as unknown as TripRow);
@@ -597,12 +605,15 @@ export class TripLifecycleService {
         });
 
       if (organiserParticipantError) {
-        this.logger.error(
-          `createTripWithWaypoints organiser participant failed: ${organiserParticipantError.message} (${organiserParticipantError.code})`,
-        );
-        // Roll back the trip so we don't leak an orphaned row.
+        // Roll back the trip so we don't leak an orphaned row. The rollback runs
+        // before the throw because throwTripDbError never returns.
         await this.supabase.from('trips').delete().eq('id', trip.id);
-        throw new InternalServerErrorException('Failed to create trip');
+        throwTripDbError(
+          this.logger,
+          organiserParticipantError,
+          'createTripWithWaypoints organiser participant',
+          'Failed to create trip',
+        );
       }
       // Reflect the trigger's bump in the returned object so callers don't
       // refetch just to see a count of 1.
@@ -629,12 +640,14 @@ export class TripLifecycleService {
         .select('*');
 
       if (wpError) {
-        this.logger.error(
-          `createTripWithWaypoints waypoints failed: ${wpError.message} (${wpError.code})`,
-        );
-        // Trip was created but waypoints failed — clean up
+        // Trip was created but waypoints failed — clean up before throwing.
         await this.supabase.from('trips').delete().eq('id', trip.id);
-        throw new InternalServerErrorException('Failed to create trip waypoints');
+        throwTripDbError(
+          this.logger,
+          wpError,
+          'createTripWithWaypoints waypoints',
+          'Failed to create trip waypoints',
+        );
       }
 
       if (waypointData) {
@@ -734,13 +747,10 @@ export class TripLifecycleService {
       .single();
 
     if (error) {
-      this.logger.error(`updateTrip failed: ${error.message} (${error.code})`);
-      if (error.code === '23514') {
-        throw new BadRequestException(
-          'Invalid trip dates. The end date must be on or after the start date.',
-        );
+      if (error.code === PG_CHECK_VIOLATION) {
+        throwTripCheckViolation(this.logger, error, 'updateTrip');
       }
-      throw new InternalServerErrorException('Failed to update trip');
+      throwTripDbError(this.logger, error, 'updateTrip', 'Failed to update trip');
     }
 
     const trip = mapRowToTrip(data as unknown as TripRow);

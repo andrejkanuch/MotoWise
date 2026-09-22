@@ -2,7 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { format, isSaturday, isSunday, parseISO } from 'date-fns';
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { QUERY_CRITICALITY } from '../lib/query-criticality';
 import { queryKeys } from '../lib/query-keys';
+import { UPSTREAM_SERVICE, UpstreamHttpError } from '../lib/upstream-http-error';
 import { requestForegroundLocationPermission } from '../utils/location-permission';
 
 // --- Open-Meteo API types ---
@@ -133,11 +135,17 @@ const OPEN_METEO_BASE = 'https://api.open-meteo.com/v1/forecast';
 const DAILY_PARAMS =
   'temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code';
 
-async function fetchForecast(coords: Coordinates): Promise<WeatherSummary> {
+/**
+ * Exported for tests: the thrown type is a contract the global query handler
+ * depends on (`query-client.ts` downgrades only a typed `UpstreamHttpError`,
+ * never a message match), so a refactor back to a bare `Error` must fail a
+ * test rather than silently re-open Sentry MOTO-VAULT-REACT-NATIVE-35.
+ */
+export async function fetchForecast(coords: Coordinates): Promise<WeatherSummary> {
   const url = `${OPEN_METEO_BASE}?latitude=${coords.lat}&longitude=${coords.lon}&daily=${DAILY_PARAMS}&timezone=auto&forecast_days=5`;
 
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`Open-Meteo ${res.status}`);
+  if (!res.ok) throw new UpstreamHttpError(UPSTREAM_SERVICE.OPEN_METEO, res.status);
 
   const data: OpenMeteoResponse = await res.json();
   const { daily } = data;
@@ -189,6 +197,14 @@ export function useWeatherForecast(): UseWeatherResult {
     enabled: coords != null,
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
+    // Open-Meteo is a free API with no SLA and the strip renders null without
+    // it (weather-strip.tsx). Four attempts against a down provider buys
+    // nothing but battery.
+    retry: 1,
+    // Decorative surface: a provider outage must neither page us nor raise a
+    // modal the rider can do nothing about. Our own bugs inside the query are
+    // still reported in full — see the downgrade rules in `query-client.ts`.
+    meta: { criticality: QUERY_CRITICALITY.ENHANCEMENT },
   });
 
   return {

@@ -43,7 +43,9 @@
     "checkEmail": "メールを確認してください",
     "confirmationSent": "確認リンクをメールに送信しました。続行するには確認してください。",
     "accountExistsTitle": "アカウントは既に存在します",
-    "accountExistsMessage": "このメールアドレスは既に登録されています。代わりにサインインしてください。"
+    "accountExistsMessage": "このメールアドレスは既に登録されています。代わりにサインインしてください。",
+    "restoringSession": "セッションを復元しています…",
+    "signInInstead": "ログインする"
   },
   "tabs": {
     "home": "ホーム",
@@ -1810,6 +1812,8 @@
     "descriptionPlaceholder": "ルート、見どころ、持ち物などを記入...",
     "maxRidersLabel": "最大ライダー数",
     "maxRidersPlaceholder": "10",
+    "maxRidersRequired": "参加できるライダー数を入力してください",
+    "maxRidersRange": "{{min}}〜{{max}}人の範囲で選んでください",
     "stopNotesPlaceholder": "このストップについてメモを追加...",
     "reviewPlaceholder": "体験をシェア...",
     "assistantPlaceholder": "ツーリングについて質問...",
@@ -1860,6 +1864,8 @@
   "rideHud": {
     "forgotToStopTitle": "まだ走行中ですか？",
     "forgotToStopBody": "{{minutes}}分間停止しています。タップして終了、または走行を続けてください。",
+    "gpsLostTitle": "GPS記録を停止しました",
+    "gpsLostBody": "位置情報の許可がオフになったため、ライドは記録されていません。タップして設定を直すか、ライドを終了してください。",
     "dist": "距離",
     "time": "時間",
     "avg": "平均",

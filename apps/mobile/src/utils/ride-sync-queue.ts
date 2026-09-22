@@ -5,13 +5,16 @@ import {
   UpdateRideDocument,
   UploadWaypointsDocument,
 } from '@motovault/graphql';
-import { RIDE_WAYPOINT_LIMITS, type Waypoint } from '@motovault/types';
+import { RIDE_SYNC_LIMITS, RIDE_WAYPOINT_LIMITS, type Waypoint } from '@motovault/types';
+import { compareAsc, isValid, parseISO } from 'date-fns';
 import * as Network from 'expo-network';
 import { createMMKV } from 'react-native-mmkv';
 import { captureException } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
 import { hasGraphQLCode } from '../lib/graphql-errors';
 import { isNetworkError } from '../lib/network-error';
+import { getSecureItemSync, SECURE_STORE_KEY } from '../lib/secure-store';
+import { useAuthStore } from '../stores/auth.store';
 
 // --- Types ---
 
@@ -35,6 +38,20 @@ interface SyncOperation {
   payload: Record<string, unknown>;
   retries: number;
   createdAt: string;
+  /**
+   * Supabase id of the rider who enqueued this op.
+   *
+   * The queue is device-global and deliberately SURVIVES sign-out (see the
+   * data-preservation branch in `_layout.tsx`), so without this field rider A's
+   * unsynced ride is drained under rider B's JWT on the next sign-in — and
+   * `startRide` stamps `user_id` from whatever JWT presents it, so A's GPS track
+   * lands in B's account. Stamped at enqueue, enforced at drain by
+   * `isOwnedByCurrentSession`.
+   *
+   * Optional only because ops written before this field existed are still in
+   * MMKV; `claimLegacyOpsForCurrentSession` retires that case once, at upgrade.
+   */
+  userId?: string;
 }
 
 // --- MMKV instance ---
@@ -44,8 +61,42 @@ const syncStorage = createMMKV({ id: 'ride-sync-queue' });
 const QUEUE_KEY = 'sync.queue';
 const DEAD_LETTER_KEY = 'sync.dead_letter';
 const SEQ_KEY = 'sync.seq';
+/** Marks which one-time dead-letter redrive this install has already run. */
+const REDRIVE_VERSION_KEY = 'sync.redrive_version';
+/**
+ * How many times the one-time redrive has been STARTED but not yet confirmed,
+ * and which `DEAD_LETTER_REDRIVE_VERSION` that count belongs to.
+ *
+ * The version marker is only written once the redrive is known to have recovered
+ * something, so on its own it would let a redrive that crashes the app mid-flight
+ * retry on every single launch. This counter bounds that loop.
+ *
+ * It is scoped to the version for the same reason the marker is. An unscoped
+ * counter left at its cap by an abandoned redrive would make the NEXT version
+ * abandon on its first launch — a future server fix would recover nothing and the
+ * parked rides would stay parked, which is the failure this whole function exists
+ * to prevent.
+ */
+const REDRIVE_ATTEMPT_KEY = 'sync.redrive_attempts';
+const REDRIVE_ATTEMPT_VERSION_KEY = 'sync.redrive_attempts_version';
+const MAX_REDRIVE_ATTEMPTS = 3;
+/** Version of the one-time legacy-ownership claim that has already run. */
+const OWNERSHIP_CLAIM_KEY = 'sync.ownership_claim_version';
+const OWNERSHIP_CLAIM_VERSION = 1;
 const MAX_RETRIES = 5;
 const BASE_DELAY_MS = 1000;
+
+/**
+ * Bump when a server fix makes previously-undeliverable dead-lettered ops
+ * deliverable again, to redrive them ONCE on the next launch.
+ *
+ * 1 — `startRide` became idempotent on `rideId` and stopped reporting transient
+ *     SQLSTATEs as permanent (Sentry MOTO-VAULT-REACT-NATIVE-3C). Ops stranded by
+ *     that bug — up to a whole ride each — only become replayable once that server
+ *     change is live, which is why the API half MUST ship first: redriving against
+ *     the old server replays every op straight back into the same 400s.
+ */
+const DEAD_LETTER_REDRIVE_VERSION = 1;
 
 // GraphQL error codes that will never succeed on retry — dead-letter immediately
 // instead of burning the retry budget (and head-of-line-blocking the queue).
@@ -74,6 +125,38 @@ function isAuthError(error: unknown): boolean {
   return hasGraphQLCode(error, 'UNAUTHENTICATED');
 }
 
+/**
+ * Where each operation's ride id lives inside its serialized payload. Ride ops are
+ * a DEPENDENCY CHAIN keyed by this id, which is what makes group dead-lettering
+ * possible at all — see the permanent-failure branch in `drainPass`.
+ *
+ * A path table rather than a switch so adding an op type is a one-line data change,
+ * and so the shapes are stated in one place: every mutation but `deleteRide` nests
+ * its id under `input`; `deleteRide` takes a bare `id` variable.
+ */
+const RIDE_ID_PAYLOAD_PATH: Record<SyncOperationType, readonly string[]> = {
+  startRide: ['variables', 'input', 'rideId'],
+  uploadWaypoints: ['variables', 'input', 'rideId'],
+  endRide: ['variables', 'input', 'rideId'],
+  updateRide: ['variables', 'input', 'rideId'],
+  deleteRide: ['variables', 'id'],
+};
+
+/**
+ * The ride an op belongs to, or null when the payload does not carry one (a
+ * malformed or older-shape entry restored from MMKV). Walks `unknown` rather than
+ * casting, so a shape change degrades to "ungrouped" instead of throwing on the
+ * ride hot path.
+ */
+function rideIdOf(op: SyncOperation): string | null {
+  let cursor: unknown = op.payload;
+  for (const key of RIDE_ID_PAYLOAD_PATH[op.type] ?? []) {
+    if (typeof cursor !== 'object' || cursor === null) return null;
+    cursor = (cursor as Record<string, unknown>)[key];
+  }
+  return typeof cursor === 'string' && cursor.length > 0 ? cursor : null;
+}
+
 // Notified (with the current dead-letter count) whenever drainQueue dead-letters
 // one or more ops, so the app can surface a "rides failed to sync" prompt with a
 // retry path. Registered once from the root layout.
@@ -94,11 +177,51 @@ function nextSeq(): number {
 
 // --- Queue operations (single JSON array in MMKV, ordered by seq) ---
 
-function getQueue(): SyncOperation[] {
-  const raw = syncStorage.getString(QUEUE_KEY);
+/**
+ * Parse a persisted op list, surviving content that will not parse.
+ *
+ * An unguarded `JSON.parse` here is a crash, not a bad read: `getQueue` is called
+ * from `redriveDeadLetterQueueOnce`, which the root layout invokes SYNCHRONOUSLY
+ * from a `useEffect`, so a throw fails the whole layout rather than rejecting a
+ * promise. Every rider on that install would see a broken app, not a lost ride.
+ *
+ * The corrupt value is quarantined rather than left in place, because the caller
+ * will write a fresh list straight over the key and that would destroy the only
+ * remaining copy of those GPS fixes. Quarantined content is never read back
+ * automatically — it exists so a support path can recover it.
+ */
+function parseOps(raw: string | undefined, key: string): SyncOperation[] {
   if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) throw new Error('sync store value is not an array');
+    return parsed as SyncOperation[];
+  } catch (error) {
+    const quarantineKey = `${key}.corrupt`;
+    // MOVE, don't copy. Leaving the bad value under the live key means every
+    // reachable read re-quarantines and re-reports it — and several paths read
+    // without writing back, so nothing would ever clear it. An existing
+    // quarantine is never overwritten: the first corruption is the one that
+    // still holds rider data.
+    if (syncStorage.getString(quarantineKey) === undefined) {
+      syncStorage.set(quarantineKey, raw);
+    }
+    syncStorage.remove(key);
+    captureException(
+      error instanceof Error ? error : new Error(`Corrupt ride sync store: ${key}`),
+      {
+        source: 'ride-sync-queue.parseOps',
+        key,
+        rawLength: String(raw.length),
+      },
+    );
+    return [];
+  }
+}
+
+function getQueue(): SyncOperation[] {
   // Insertion order already guarantees seq ordering (monotonic counter)
-  return JSON.parse(raw) as SyncOperation[];
+  return parseOps(syncStorage.getString(QUEUE_KEY), QUEUE_KEY);
 }
 
 function setQueue(queue: SyncOperation[]): void {
@@ -118,38 +241,211 @@ function bumpRetryBySeq(seq: number): void {
 }
 
 function getDeadLetterQueue(): SyncOperation[] {
-  const raw = syncStorage.getString(DEAD_LETTER_KEY);
-  if (!raw) return [];
-  return JSON.parse(raw) as SyncOperation[];
+  return parseOps(syncStorage.getString(DEAD_LETTER_KEY), DEAD_LETTER_KEY);
 }
 
-function moveToDeadLetter(op: SyncOperation, error?: unknown): void {
-  const dlq = getDeadLetterQueue();
-  dlq.push(op);
+function setDeadLetterQueue(dlq: SyncOperation[]): void {
   syncStorage.set(DEAD_LETTER_KEY, JSON.stringify(dlq));
+}
+
+/**
+ * Oldest first. `createdAt` is the real age, but entries restored from older builds
+ * (and the fixtures that mimic them) can carry an unparseable value, so `seq` — a
+ * monotonic counter, hence a perfect age proxy — is both the tiebreak and the
+ * fallback. Comparison goes through date-fns rather than hand-rolled `Date` math.
+ */
+function compareByAge(a: SyncOperation, b: SyncOperation): number {
+  const left = parseISO(a.createdAt);
+  const right = parseISO(b.createdAt);
+  if (isValid(left) && isValid(right)) {
+    const byDate = compareAsc(left, right);
+    if (byDate !== 0) return byDate;
+  }
+  return a.seq - b.seq;
+}
+
+/**
+ * Hold the dead-letter queue to `MAX_DEAD_LETTER_OPS`, evicting oldest-first.
+ *
+ * Eviction is reported SEPARATELY from a dead-letter, and deliberately so: a
+ * dead-letter is "we could not deliver this, it is still on the device and a
+ * redrive may yet save it", while an eviction is unambiguous, irreversible data
+ * loss — the payload was the only remaining copy of those GPS fixes.
+ *
+ * Survivors keep their original array order; only the evicted set is chosen by age.
+ */
+function boundDeadLetterQueue(dlq: SyncOperation[]): SyncOperation[] {
+  const overflow = dlq.length - RIDE_SYNC_LIMITS.MAX_DEAD_LETTER_OPS;
+  if (overflow <= 0) return dlq;
+
+  const evicted = [...dlq].sort(compareByAge).slice(0, overflow);
+  const evictedSeqs = new Set(evicted.map((op) => op.seq));
+
+  captureException(new Error(`Ride sync dead-letter evicted: ${overflow} op(s) discarded`), {
+    source: 'ride-sync-queue.evictDeadLetter',
+    evictedCount: String(overflow),
+    evictedOpTypes: [...new Set(evicted.map((op) => op.type))].join(','),
+    evictedRideIds: [...new Set(evicted.map(rideIdOf).filter(Boolean))].join(','),
+    oldestEvictedAt: evicted[0]?.createdAt ?? 'unknown',
+    deadLetterQueueLength: String(RIDE_SYNC_LIMITS.MAX_DEAD_LETTER_OPS),
+  });
+
+  return dlq.filter((op) => !evictedSeqs.has(op.seq));
+}
+
+/**
+ * Park a whole GROUP of ops — one ride's worth — with a SINGLE report.
+ *
+ * Ride ops are a dependency chain keyed by `rideId`, so a permanently-failed head
+ * takes its dependents with it (see `drainPass`). Reporting once per group instead
+ * of once per op is what turns a 107-event Sentry storm into one event, and it is
+ * what makes the dead-letter count mean "rides" rather than "50-waypoint chunks".
+ */
+function moveGroupToDeadLetter(ops: readonly SyncOperation[], error?: unknown): void {
+  if (ops.length === 0) return;
+  const [head] = ops;
+  const dlq = boundDeadLetterQueue([...getDeadLetterQueue(), ...ops]);
+  setDeadLetterQueue(dlq);
+
   // A dead-lettered ride op is silent data loss — always report it with enough
   // context to identify which op/ride and how long it had been queued.
   captureException(
-    error instanceof Error ? error : new Error(`Ride sync dead-letter: ${op.type}`),
+    error instanceof Error ? error : new Error(`Ride sync dead-letter: ${head.type}`),
     {
       source: 'ride-sync-queue.moveToDeadLetter',
-      opType: op.type,
-      seq: String(op.seq),
-      retries: String(op.retries),
-      ageMs: String(Date.now() - new Date(op.createdAt).getTime()),
+      opType: head.type,
+      seq: String(head.seq),
+      retries: String(head.retries),
+      ageMs: String(Date.now() - new Date(head.createdAt).getTime()),
       deadLetterQueueLength: String(dlq.length),
+      rideId: rideIdOf(head) ?? 'unknown',
+      groupSize: String(ops.length),
+      groupOpTypes: ops.map((op) => op.type).join(','),
     },
   );
 }
 
+/**
+ * Queued ops that can no longer possibly succeed because `failed` did not.
+ *
+ * ONLY a failed `startRide` has dependents. The chain is
+ * startRide -> uploadWaypoints x N -> endRide, and only `startRide` creates the
+ * `rides` row the rest need: without it every waypoint chunk 404s and `endRide`
+ * 400s, so parking them together is the whole point. Every OTHER op type has no
+ * dependents at all — a single bad waypoint batch (a denormal float, say, or one
+ * that exhausts its retries on a 5xx) costs the rider that batch and nothing
+ * else. Without this gate it took the rest of the ride with it, `endRide`
+ * included, turning a lost chunk into a lost ride — the exact outcome this whole
+ * change set exists to prevent.
+ *
+ * Ops for other rides are deliberately untouched: they are genuinely independent
+ * and must still get their chance. So are ops belonging to another rider — a
+ * failure on this device must never reach into someone else's parked data.
+ */
+function dependentOpsOf(failed: SyncOperation): SyncOperation[] {
+  if (failed.type !== 'startRide') return [];
+  const rideId = rideIdOf(failed);
+  if (!rideId) return [];
+  return getQueue().filter(
+    (op) => op.seq > failed.seq && rideIdOf(op) === rideId && isOwnedByCurrentSession(op),
+  );
+}
+
+// --- Ownership (cross-user leak guard) ---
+
+/**
+ * The rider this device is currently signed in as, or null.
+ *
+ * The auth store is the live signal, but it is null during the cold-start /
+ * headless window before `supabase.auth.getSession()` resolves — and the
+ * background location task enqueues waypoint flushes inside exactly that window.
+ * `LAST_USER_ID` closes it: it is written on every identify and CLEARED on
+ * sign-out (`clearLastUserId` in the local-cleanup branch of `_layout.tsx`), so
+ * it can only ever name the rider signed in on this device right now, never a
+ * previous account. Both null means nobody is signed in and nothing may be sent.
+ *
+ * This fallback is for STAMPING ops we are creating now. It is deliberately not
+ * used by `isOwnedByCurrentSession`: deciding who may RECEIVE a queued op must
+ * key on the live session only.
+ */
+function currentOwnerId(): string | null {
+  return (
+    useAuthStore.getState().session?.user?.id ?? getSecureItemSync(SECURE_STORE_KEY.LAST_USER_ID)
+  );
+}
+
+/**
+ * May the session that is signed in RIGHT NOW deliver this op?
+ *
+ * Exposed as a named predicate rather than inlined at the call site on purpose:
+ * a raw `a.userId === b.userId` treats two UNOWNED ops (both `undefined`) as the
+ * same owner, which is wrong in principle and a trap for any grouping built on
+ * it. Routing every ownership question through here removes that by construction.
+ *
+ * `dependentOpsOf` groups by this predicate AND `rideId`, so group dead-lettering
+ * can never reach across accounts.
+ *
+ * Signed out (`null`) owns nothing, so a drain with no session sends nothing
+ * rather than firing requests the API can only reject.
+ */
+export function isOwnedByCurrentSession(op: SyncOperation): boolean {
+  const sessionUserId = useAuthStore.getState().session?.user?.id ?? null;
+  return sessionUserId !== null && op.userId === sessionUserId;
+}
+
+/**
+ * One-time, marker-guarded claim of ops that predate `userId`.
+ *
+ * Quarantining legacy ops forever would shred a ride that straddles the upgrade:
+ * a pre-upgrade `startRide` could never be sent, while post-upgrade waypoint
+ * chunks for the same ride ARE sendable, deliver, find no `rides` row, come back
+ * NOT_FOUND and dead-letter one chunk at a time. The ride would be lost AND
+ * amplified into a dead-letter pile.
+ *
+ * So: on the first launch after the upgrade where a session is actually active,
+ * stamp every unowned op with that user id. With no session we do nothing AND
+ * leave the marker unconsumed, so the claim is retried on a later launch — the
+ * owner is only ever taken from a live session, never from a stored leftover.
+ *
+ * Strictly one-time. This is an upgrade migration, never a standing "adopt
+ * unowned ops" rule: that would re-open the very leak this field closes.
+ *
+ * Accepted residual risk (state it in the PR): A-queues → A-signs-out →
+ * B-signs-in → upgrade → B claims A's ops. That exact sequence already leaks in
+ * the shipped code, so it is not a regression — it is one bounded window during
+ * a single upgrade, after which the leak is closed permanently.
+ */
+function claimLegacyOpsForCurrentSession(): void {
+  if ((syncStorage.getNumber(OWNERSHIP_CLAIM_KEY) ?? 0) >= OWNERSHIP_CLAIM_VERSION) return;
+
+  // Live session only — never `currentOwnerId()`, whose SecureStore fallback is
+  // for stamping ops we create, not for deciding whose historical data this is.
+  const sessionUserId = useAuthStore.getState().session?.user?.id ?? null;
+  if (!sessionUserId) return;
+
+  const claim = (ops: SyncOperation[]): SyncOperation[] =>
+    ops.map((op) => (op.userId === undefined ? { ...op, userId: sessionUserId } : op));
+
+  // The dead-letter queue is claimed in the same pass: `redriveDeadLetterQueue`
+  // merges it back into the main queue, where an unowned op would be undeliverable
+  // for the rest of the install's life.
+  setQueue(claim(getQueue()));
+  setDeadLetterQueue(claim(getDeadLetterQueue()));
+  syncStorage.set(OWNERSHIP_CLAIM_KEY, OWNERSHIP_CLAIM_VERSION);
+}
+
 export function enqueue(type: SyncOperationType, payload: Record<string, unknown>): void {
   const queue = getQueue();
+  const userId = currentOwnerId();
   queue.push({
     seq: nextSeq(),
     type,
     payload,
     retries: 0,
     createdAt: new Date().toISOString(),
+    // Omitted rather than stored as null when nobody is signed in, so the shape
+    // matches a pre-upgrade op and the one-time claim can still adopt it.
+    ...(userId === null ? {} : { userId }),
   });
   setQueue(queue);
 }
@@ -245,6 +541,10 @@ export function drainQueue(): Promise<void> {
 }
 
 async function drainPass(): Promise<void> {
+  // Runs before the network probe so an offline launch still retires the legacy
+  // ops; it is a local MMKV rewrite, not a delivery.
+  claimLegacyOpsForCurrentSession();
+
   // A thrown network probe is treated as no-connectivity: leave the queue
   // intact and return so it drains on the next trigger, rather than throwing
   // an unhandled rejection out of a fire-and-forget drainQueue() call.
@@ -258,15 +558,24 @@ async function drainPass(): Promise<void> {
 
   let deadLettered = 0;
 
-  // Deliver strictly in seq order, persisting after EVERY op so an app kill
-  // mid-drain can't re-deliver an op that already reached the server. The
-  // queue is re-read each pass, so an op enqueued while we were draining (the
-  // endRide that lands behind an in-flight uploadWaypoints) is picked up in
-  // order within the same drain.
+  // Deliver in strict seq order within the signed-in rider's own ops, persisting
+  // after EVERY op so an app kill mid-drain can't re-deliver an op that already
+  // reached the server. The queue is re-read each pass, so an op enqueued while
+  // we were draining (the endRide that lands behind an in-flight
+  // uploadWaypoints) is picked up in order within the same drain.
   while (true) {
-    const queue = getQueue();
-    if (queue.length === 0) break;
-    const op = queue[0];
+    // The FIRST op this session owns, not the head. Ops belonging to another
+    // rider (or to nobody, pre-claim) are skipped and RETAINED: never sent,
+    // never dropped, never dead-lettered — their owner's data survives for them
+    // and delivers the moment they sign back in.
+    //
+    // Termination: this loop advances by REMOVAL, not by a cursor. Every branch
+    // below either removes the selected op or breaks, so the queue strictly
+    // shrinks on each iteration that does not break. A `continue` past a
+    // retained op would re-select it forever and hang the main thread on
+    // sign-in — which is why the skip lives in the SELECTION, not in the body.
+    const op = getQueue().find(isOwnedByCurrentSession);
+    if (!op) break;
 
     // Exponential backoff with jitter — only sleep on retries, not first attempt
     if (op.retries > 0) {
@@ -296,11 +605,22 @@ async function drainPass(): Promise<void> {
 
       const nextRetries = op.retries + 1;
       if (isNonRetryableError(error) || nextRetries >= MAX_RETRIES) {
-        // Permanent failure — this op will never deliver. Dead-letter it and
-        // advance; later independent ops still get a chance.
-        moveToDeadLetter({ ...op, retries: nextRetries }, error);
-        removeOpBySeq(op.seq);
-        deadLettered++;
+        // Permanent failure. The old code dead-lettered just this op and advanced,
+        // on the premise that "later independent ops still get a chance" — false for
+        // ride ops, which are a dependency chain keyed by rideId
+        // (startRide -> uploadWaypoints x N -> endRide). With no `rides` row every
+        // following chunk 404s and endRide 400s: one dead-letter and one Sentry event
+        // each, which is how a single long ride became 107 parked ops and 107 events
+        // (MOTO-VAULT-REACT-NATIVE-3C, same amplification as -1M).
+        //
+        // Note the asymmetry the `else` branch below already acknowledges: it
+        // head-of-line blocks precisely BECAUSE a later op may be dependent. Take the
+        // whole group down together; ops for other rides are untouched and still run.
+        const failed = { ...op, retries: nextRetries };
+        const group = [failed, ...dependentOpsOf(failed)];
+        moveGroupToDeadLetter(group, error);
+        for (const member of group) removeOpBySeq(member.seq);
+        deadLettered += group.length;
       } else {
         // Retryable server error (e.g. 5xx): bump retries and head-of-line
         // block so a dependent later op can't be delivered ahead of this one.
@@ -382,6 +702,84 @@ export function redriveDeadLetterQueue(): Promise<void> {
 }
 
 /**
+ * Redrive the dead-letter queue ONCE per shipped server fix, on app launch.
+ *
+ * Ops stranded by a server-side bug do not self-heal: nothing drains the dead-letter
+ * queue automatically, and the only manual route is an `Alert` that in the reported
+ * incident fired while the app was backgrounded (so it was never presented) and then
+ * latched. Those payloads — waypoints included — are the ONLY remaining copy, since
+ * local chunks are dropped once enqueued.
+ *
+ * The marker is written BEFORE draining, so a crash or kill mid-redrive cannot turn
+ * this into a replay loop on every launch; the ops stay in the main queue and drain
+ * normally from there.
+ *
+ * ORDERING IS LOAD-BEARING: this must not reach users before the matching API fix is
+ * live, or it replays every parked op into the same permanent failures and produces a
+ * fresh Sentry storm. See `DEAD_LETTER_REDRIVE_VERSION`.
+ */
+export async function redriveDeadLetterQueueOnce(): Promise<void> {
+  try {
+    if ((syncStorage.getNumber(REDRIVE_VERSION_KEY) ?? 0) >= DEAD_LETTER_REDRIVE_VERSION) return;
+
+    // A count recorded against an older version is not ours — start clean.
+    const countedFor = syncStorage.getNumber(REDRIVE_ATTEMPT_VERSION_KEY) ?? 0;
+    const previous =
+      countedFor === DEAD_LETTER_REDRIVE_VERSION
+        ? (syncStorage.getNumber(REDRIVE_ATTEMPT_KEY) ?? 0)
+        : 0;
+    const attempts = previous + 1;
+    if (attempts > MAX_REDRIVE_ATTEMPTS) {
+      // Give up rather than retry on every launch forever. Consume the version so
+      // this stops, and report it: the ops are still parked and still visible to
+      // `hasPendingSyncWork`, so the rider's own "Retry now?" path remains.
+      syncStorage.set(REDRIVE_VERSION_KEY, DEAD_LETTER_REDRIVE_VERSION);
+      captureException(new Error('Ride sync redrive abandoned after repeated attempts'), {
+        source: 'ride-sync-queue.redriveOnce',
+        attempts: String(attempts - 1),
+        deadLetterCount: String(getDeadLetterCount()),
+      });
+      return;
+    }
+    // Counted BEFORE the await, so an app killed mid-redrive still spends an
+    // attempt. That is what bounds a genuine crash loop.
+    syncStorage.set(REDRIVE_ATTEMPT_KEY, attempts);
+    syncStorage.set(REDRIVE_ATTEMPT_VERSION_KEY, DEAD_LETTER_REDRIVE_VERSION);
+
+    const before = getDeadLetterCount();
+    if (before === 0) {
+      // Nothing stranded, so the recovery is complete by definition.
+      syncStorage.set(REDRIVE_VERSION_KEY, DEAD_LETTER_REDRIVE_VERSION);
+      return;
+    }
+
+    await redriveDeadLetterQueue();
+
+    // The marker is EARNED, never assumed. Writing it first — as this did — spent
+    // the one-time recovery whether or not anything was delivered, and two things
+    // routinely make it deliver nothing: shipping this before the matching API fix
+    // is live (every op replays into the same permanent failure and parks again),
+    // and a throw in the synchronous merge. Either one retired the only automatic
+    // recovery these rides have, leaving a `DEAD_LETTER_REDRIVE_VERSION` bump and
+    // another release as the only way back.
+    //
+    // A drop is the right test rather than "empty": ops that moved to the main
+    // queue and are merely waiting on connectivity are recovered — they are no
+    // longer stranded.
+    if (getDeadLetterCount() < before) {
+      syncStorage.set(REDRIVE_VERSION_KEY, DEAD_LETTER_REDRIVE_VERSION);
+    }
+  } catch (error) {
+    // Fire-and-forget from the root layout's effect, so a rejection would surface
+    // as an unhandled rejection and nothing else. Report it and leave the version
+    // unconsumed so the next launch tries again, within the attempt bound.
+    captureException(error instanceof Error ? error : new Error('Ride sync redrive failed'), {
+      source: 'ride-sync-queue.redriveOnce',
+    });
+  }
+}
+
+/**
  * Clear the DELIVERED queue only — never the dead-letter queue.
  *
  * This is what a sign-out / local-cleanup path should call. It exists because the
@@ -417,6 +815,12 @@ export function destroyAllSyncData(): void {
   syncStorage.remove(QUEUE_KEY);
   syncStorage.remove(DEAD_LETTER_KEY);
   syncStorage.remove(SEQ_KEY);
+  syncStorage.remove(REDRIVE_VERSION_KEY);
+  syncStorage.remove(REDRIVE_ATTEMPT_KEY);
+  syncStorage.remove(REDRIVE_ATTEMPT_VERSION_KEY);
+  // Nothing is left to claim, so re-arming the one-time claim is a no-op in
+  // production and lets tests start from a clean slate.
+  syncStorage.remove(OWNERSHIP_CLAIM_KEY);
 }
 
 function sleep(ms: number): Promise<void> {

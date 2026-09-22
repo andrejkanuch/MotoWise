@@ -43,7 +43,9 @@
     "checkEmail": "E-postani Kontrol Et",
     "confirmationSent": "E-postana bir dogrulama baglantisi gonderdik. Devam etmek icin lutfen dogrula.",
     "accountExistsTitle": "Hesap zaten mevcut",
-    "accountExistsMessage": "Bu e-posta zaten kayıtlı. Lütfen giriş yapın."
+    "accountExistsMessage": "Bu e-posta zaten kayıtlı. Lütfen giriş yapın.",
+    "restoringSession": "Oturumunuz geri yükleniyor…",
+    "signInInstead": "Bunun yerine giriş yap"
   },
   "tabs": {
     "home": "Ana Sayfa",
@@ -1793,6 +1795,8 @@
     "descriptionPlaceholder": "Rota, onemli yerler, yanina alinacaklar...",
     "maxRidersLabel": "Maks Surucu",
     "maxRidersPlaceholder": "10",
+    "maxRidersRequired": "Kac surucunun katilabilecegini girin",
+    "maxRidersRange": "{{min}} ile {{max}} surucu arasinda secin",
     "stopNotesPlaceholder": "Bu durak hakkinda not ekle...",
     "reviewPlaceholder": "Deneyimini paylas...",
     "assistantPlaceholder": "Turunla ilgili sor…",
@@ -1860,6 +1864,8 @@
   "rideHud": {
     "forgotToStopTitle": "Hâlâ yolda mısın?",
     "forgotToStopBody": "{{minutes}} dakikadır duruyorsun. Bitirmek için dokun ya da devam et.",
+    "gpsLostTitle": "GPS takibi durdu",
+    "gpsLostBody": "Konum izni kapatıldı, bu yüzden sürüşün artık kaydedilmiyor. Düzeltmek veya sürüşü bitirmek için dokun.",
     "dist": "MSFE",
     "time": "SURE",
     "avg": "ORT",

@@ -43,7 +43,9 @@
     "checkEmail": "E-Mail pruefen",
     "confirmationSent": "Wir haben einen Bestaetigungslink an deine E-Mail gesendet. Bitte bestaetige, um fortzufahren.",
     "accountExistsTitle": "Konto existiert bereits",
-    "accountExistsMessage": "Diese E-Mail ist bereits registriert. Bitte melde dich stattdessen an."
+    "accountExistsMessage": "Diese E-Mail ist bereits registriert. Bitte melde dich stattdessen an.",
+    "restoringSession": "Sitzung wird wiederhergestellt…",
+    "signInInstead": "Stattdessen anmelden"
   },
   "tabs": {
     "home": "Start",
@@ -1810,6 +1812,8 @@
     "descriptionPlaceholder": "Beschreibe deine Route, Highlights, was mitgebracht werden soll...",
     "maxRidersLabel": "Max. Fahrer",
     "maxRidersPlaceholder": "10",
+    "maxRidersRequired": "Gib an, wie viele Fahrer teilnehmen können",
+    "maxRidersRange": "Wähle zwischen {{min}} und {{max}} Fahrern",
     "stopNotesPlaceholder": "Notizen zu diesem Stopp hinzufuegen...",
     "reviewPlaceholder": "Teile deine Erfahrung...",
     "assistantPlaceholder": "Frage zu deiner Tour...",
@@ -1860,6 +1864,8 @@
   "rideHud": {
     "forgotToStopTitle": "Noch unterwegs?",
     "forgotToStopBody": "Du stehst seit {{minutes}} Minuten. Zum Beenden tippen oder weiterfahren.",
+    "gpsLostTitle": "GPS-Aufzeichnung gestoppt",
+    "gpsLostBody": "Die Standortberechtigung wurde deaktiviert, deine Fahrt wird nicht mehr aufgezeichnet. Tippe, um das zu beheben oder die Fahrt zu beenden.",
     "dist": "DIST",
     "time": "ZEIT",
     "avg": "DSN",

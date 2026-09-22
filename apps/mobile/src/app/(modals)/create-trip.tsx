@@ -60,6 +60,14 @@ import {
   safeTripDatesFromApi,
   validateTripFormDateRangeForSave,
 } from '../../utils/trip-form-dates';
+import {
+  MAX_RIDERS_ISSUE,
+  type MaxRidersIssue,
+  normalizeMaxRidersInput,
+  parseMaxRiders,
+  TRIP_MAX_RIDERS,
+  validateMaxRidersInput,
+} from '../../utils/trip-max-riders';
 
 type Difficulty = 'easy' | 'moderate' | 'challenging' | 'expert';
 
@@ -73,6 +81,17 @@ function getDifficulties(i18n: TI18n): { key: Difficulty; label: string }[] {
     { key: 'expert', label: i18n('trips.difficultyLabelExpert') },
   ];
 }
+
+/**
+ * Why the "Max riders" field is unusable → the copy the rider sees. A dispatch
+ * table rather than a chain of ifs, and i18n keys rather than literals: the
+ * validator (`trip-max-riders.ts`) is copy-free so it stays unit-testable.
+ */
+const MAX_RIDERS_ISSUE_I18N_KEY = {
+  [MAX_RIDERS_ISSUE.EMPTY]: 'trips.maxRidersRequired',
+  [MAX_RIDERS_ISSUE.BELOW_MIN]: 'trips.maxRidersRange',
+  [MAX_RIDERS_ISSUE.ABOVE_MAX]: 'trips.maxRidersRange',
+} as const satisfies Record<MaxRidersIssue, string>;
 
 type Visibility = 'private' | 'unlisted' | 'public';
 
@@ -262,7 +281,11 @@ export default function CreateTripScreen() {
             endDate: endDate.toISOString().split('T')[0],
           }),
       difficulty,
-      maxRiders: Number.parseInt(maxRiders, 10) || 10,
+      // `Number.parseInt(maxRiders, 10) || 10` silently turned a typed "0" (falsy)
+      // into a ten-rider trip, and let "1" through to a DB CHECK that refused it
+      // with a 500 (MOTO-VAULT-NODE-NESTJS-K). The form now blocks saving while
+      // the field is out of range; this clamp is the last line of defence.
+      maxRiders: parseMaxRiders(maxRiders),
       visibility,
       waypoints: sorted.map((wp, i) => ({
         sortOrder: wp.sortOrder,
@@ -385,10 +408,23 @@ export default function CreateTripScreen() {
     [startDate, endDate],
   );
 
+  // A showcase has no roster, so the field is not rendered and not validated.
+  const maxRidersIssue = useMemo(
+    () => (isShowcase ? null : validateMaxRidersInput(maxRiders)),
+    [isShowcase, maxRiders],
+  );
+  const maxRidersError = maxRidersIssue
+    ? i18n(MAX_RIDERS_ISSUE_I18N_KEY[maxRidersIssue], {
+        min: TRIP_MAX_RIDERS.MIN,
+        max: TRIP_MAX_RIDERS.MAX,
+      })
+    : null;
+
   const isValid =
     title.trim().length > 0 &&
     description.trim().length > 0 &&
     waypoints.length >= 2 &&
+    !maxRidersError &&
     // Showcase mode has no dates to validate.
     (isShowcase || (!dateRangeError && startDate <= endDate));
 
@@ -1075,14 +1111,19 @@ export default function CreateTripScreen() {
                       <TextInput
                         value={maxRiders}
                         onChangeText={(text) => setMaxRiders(text.replace(/[^0-9]/g, ''))}
+                        // Clamp on blur and write the value back, so the rider is
+                        // never told one number and handed another.
+                        onBlur={() => setMaxRiders(normalizeMaxRidersInput(maxRiders))}
                         placeholder={i18n('trips.maxRidersPlaceholder')}
                         placeholderTextColor={placeholderColor}
                         keyboardType="number-pad"
-                        maxLength={3}
+                        // 2 digits matches the 50 ceiling; 3 let riders type 999.
+                        maxLength={2}
+                        accessibilityLabel={i18n('trips.maxRidersLabel')}
                         style={{
                           backgroundColor: inputBg,
                           borderWidth: 1,
-                          borderColor: inputBorder,
+                          borderColor: maxRidersError ? t.danger : inputBorder,
                           borderRadius: 12,
                           borderCurve: 'continuous',
                           paddingHorizontal: 14,
@@ -1092,6 +1133,11 @@ export default function CreateTripScreen() {
                           width: 100,
                         }}
                       />
+                      {maxRidersError && (
+                        <Text style={{ fontSize: 13, color: t.danger, marginTop: 6 }}>
+                          {maxRidersError}
+                        </Text>
+                      )}
                     </Animated.View>
                   )}
                 </>

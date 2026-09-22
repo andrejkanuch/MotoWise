@@ -43,7 +43,9 @@
     "checkEmail": "Skontroluj email",
     "confirmationSent": "Poslali sme ti potvrdzovací odkaz na email. Prosím, over ho pre pokračovanie.",
     "accountExistsTitle": "Účet už existuje",
-    "accountExistsMessage": "Tento e-mail je už zaregistrovaný. Radšej sa prihlás."
+    "accountExistsMessage": "Tento e-mail je už zaregistrovaný. Radšej sa prihlás.",
+    "restoringSession": "Obnovujeme tvoju reláciu…",
+    "signInInstead": "Prihlásiť sa"
   },
   "tabs": {
     "home": "Domov",
@@ -1795,6 +1797,8 @@
     "descriptionPlaceholder": "Opíš trasu, zaujímavosti, čo si vziať so sebou...",
     "maxRidersLabel": "Max jazdcov",
     "maxRidersPlaceholder": "10",
+    "maxRidersRequired": "Zadaj, kolko jazdcov sa moze pridat",
+    "maxRidersRange": "Vyber od {{min}} do {{max}} jazdcov",
     "stopNotesPlaceholder": "Pridaj poznámky k tejto zastávke...",
     "reviewPlaceholder": "Podeľ sa o svoj zážitok...",
     "assistantPlaceholder": "Opýtaj sa na svoju jazdu…",
@@ -1862,6 +1866,8 @@
   "rideHud": {
     "forgotToStopTitle": "Stále na cestách?",
     "forgotToStopBody": "Stojíš už {{minutes}} minút. Ťuknutím ukončíš jazdu, alebo pokračuj.",
+    "gpsLostTitle": "Sledovanie GPS sa zastavilo",
+    "gpsLostBody": "Povolenie polohy bolo vypnuté, takže sa tvoja jazda už nezaznamenáva. Ťuknutím to napravíš alebo jazdu ukončíš.",
     "dist": "VZDI",
     "time": "ČAS",
     "avg": "PRIE",

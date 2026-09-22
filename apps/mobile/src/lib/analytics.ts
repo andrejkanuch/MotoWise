@@ -16,6 +16,7 @@ import {
 } from './graphql-error-classification';
 import { getStoredUtmProperties } from './meta-attribution';
 import { isNetworkError } from './network-error';
+import { isMessageEvent, messageFingerprint } from './sentry-message-grouping';
 
 // -------------------------------------------------------------------
 // Analytics & Crash Reporting Wrapper
@@ -161,6 +162,17 @@ export function sentryBeforeSend(
   hint?: SentryEventHint,
 ): Sentry.ErrorEvent | null {
   const message = event.exception?.values?.[0]?.value ?? event.exception?.values?.[0]?.type ?? '';
+  // Message events (`captureMessage`) carry a SYNTHETIC stacktrace because
+  // `attachStacktrace` defaults to true in @sentry/react-native, so Sentry's
+  // default grouping hashes whatever frames happened to be live at capture time
+  // and splits one intentional signal across several issues, each titled by the
+  // top frame instead of the message. Fingerprint on the message instead.
+  // Scoped to message events so the tuned GraphQL grouping below is untouched.
+  // (MOTO-VAULT-REACT-NATIVE-2T / -39 / -33)
+  if (isMessageEvent(event) && typeof event.message === 'string') {
+    event.fingerprint = messageFingerprint(event.message);
+    return event;
+  }
   // Known React Native Fabric race condition — view is unmounted before
   // an async image/reanimated callback can update props. Not actionable.
   if (message.includes('Unable to find viewState for tag')) {
@@ -412,6 +424,18 @@ export const AnalyticsEvent = {
   // Auth
   USER_SIGNED_IN: 'user_signed_in',
   USER_SIGNED_UP: 'user_signed_up',
+  /**
+   * Auth hydration exceeded AUTH_HYDRATION_TIMEOUT_MS on a foregrounded launch.
+   * A latency signal, not a defect: what matters is its RATE against launches,
+   * which is why it lives here and not in Sentry's issue stream. (BUG-4 Q2)
+   */
+  AUTH_HYDRATION_TIMEOUT: 'auth_hydration_timeout',
+  /**
+   * A null-session cleanup ran while a ride was active or sync ops were still
+   * queued, so local ride data was deliberately preserved. Expected-path
+   * counter. (BUG-4 Q2)
+   */
+  SIGNOUT_WITH_UNSYNCED_DATA: 'signout_with_unsynced_data',
 
   // Onboarding
   ONBOARDING_STARTED: 'onboarding_started',
@@ -658,19 +682,109 @@ export function trackScreen(screenName: string, properties?: Record<string, Json
 
 // ---- Sentry Error Helpers -------------------------------------------
 
+/** Fallback used for both the fingerprint and the tag when a caller passes no origin. */
+const UNKNOWN_CAPTURE_SOURCE = 'unknown';
+/** Fingerprint namespace, so a wrapped value can never collide with a real Error's group. */
+const NON_ERROR_FINGERPRINT_PREFIX = 'non-error';
+/** Indexed tag that restores triage for wrapped values (see `nonErrorFingerprint`). */
+const CAPTURE_SOURCE_TAG = 'capture.source';
+
+/** Every call site passes its origin under one of these keys. */
+function captureSourceOf(context?: Record<string, unknown>): string {
+  return String(context?.source ?? context?.boundary ?? UNKNOWN_CAPTURE_SOURCE);
+}
+
+/**
+ * Sentry generates a *synthetic* exception to manufacture a stack whenever a
+ * non-Error value is captured, then titles the event "Non-Error exception …
+ * captured with keys: …" and dumps the value into `extra.__serialized__`.
+ * Sentry's own troubleshooting guidance for this is to turn the plain object
+ * into an Error, which is what this does. expo-task-manager hands the background
+ * location task exactly such a value (`TaskManagerError` = `{ code, message }`),
+ * which is how two identical CoreLocation failures became
+ * MOTO-VAULT-REACT-NATIVE-2Z and -3E, titled after the unrelated
+ * `snoozeTaskNotification` / `cancelScanNotification`.
+ *
+ * A genuine `Error` is returned BY IDENTITY so its real stack is never destroyed.
+ */
+export function toCapturableError(value: unknown): Error {
+  if (value instanceof Error) return value;
+  const message =
+    typeof value === 'object' && value !== null && 'message' in value
+      ? String((value as { message: unknown }).message)
+      : String(value);
+  // `cause` is walked by the LinkedErrors integration (on by default, key
+  // "cause", depth 5) when it is itself an Error. Sentry does not document the
+  // plain-object case, so this is a bonus for triage only — `extra` at the call
+  // site below is the carrier we actually rely on.
+  return new Error(message, { cause: value });
+}
+
+/**
+ * Grouping key for a wrapped non-Error value.
+ *
+ * REQUIRED, not optional. The wrapper Error's stack is rooted in this module, so
+ * without an explicit fingerprint every non-Error capture from all ~40 call sites
+ * shares the same top in-app frames and Sentry may collapse them into a single
+ * issue. Sentry's grouping precedence is fingerprint → stack → exception →
+ * message, so an explicit fingerprint overrides the untrustworthy synthetic /
+ * wrapper stack entirely. `{{ default }}` is deliberately OMITTED so the stack is
+ * overridden rather than merged.
+ *
+ * Keys chosen to be low-cardinality and stable: the caller's `source` (e.g.
+ * 'ride-location.backgroundLocationTask'), the sorted shape of the object (the
+ * same signal Sentry puts in its own title), and the native `code` when present.
+ * The raw message is NEVER part of the key — it interpolates ids, limits and
+ * user input.
+ */
+function nonErrorFingerprint(value: unknown, context?: Record<string, unknown>): string[] {
+  const source = captureSourceOf(context);
+  if (typeof value !== 'object' || value === null) {
+    return [NON_ERROR_FINGERPRINT_PREFIX, source, typeof value];
+  }
+  const record = value as Record<string, unknown>;
+  const shape = Object.keys(record).sort().join(',');
+  const code = 'code' in record ? String(record.code) : '';
+  return [NON_ERROR_FINGERPRINT_PREFIX, source, shape, code];
+}
+
 export function captureException(error: unknown, context?: Record<string, unknown>) {
   if (!crashReportingEnabled) return;
 
   if (SENTRY_DSN) {
-    Sentry.captureException(error, { extra: context });
+    // A real Error keeps its real stack and Sentry's default grouping. A non-Error
+    // value is wrapped (readable title) AND fingerprinted (deterministic grouping);
+    // the wrapper's stack must never be what groups it.
+    if (error instanceof Error) {
+      Sentry.captureException(error, { extra: context });
+      return;
+    }
+    Sentry.captureException(toCapturableError(error), {
+      // Sentry's troubleshooting doc points at Additional Data for the contents of
+      // a non-Error value, so the raw object rides in `extra`, not in `cause`.
+      extra: { ...context, originalValue: error },
+      fingerprint: nonErrorFingerprint(error, context),
+      // The wrapper's stack is rooted in this file, so the Issue Details culprit
+      // will read `analytics.ts` for every wrapped event. An indexed tag restores
+      // triage: filter the issue list by `capture.source:<the real origin>`.
+      tags: { [CAPTURE_SOURCE_TAG]: captureSourceOf(context) },
+    });
   }
 }
 
 /**
- * Records an intentional, non-crash signal (an expected edge case worth
- * observing) at a chosen severity — NOT the error stream. Use this instead of
- * `captureException(new Error(...))` for telemetry that should not show up as an
- * unresolved error/issue in Sentry.
+ * Records an intentional, non-crash signal at a chosen severity.
+ *
+ * NOTE: the previous version of this comment promised something the SDK does not
+ * implement. Sentry has no separate "messages" destination — a captured message
+ * becomes an ISSUE and appears under `is:unresolved` exactly like an error.
+ * `level` only sets the badge colour and the `level:` search facet.
+ *
+ * Use this ONLY for signals that genuinely warrant an issue. For telemetry, use
+ * `addBreadcrumb` (context for a later real error) plus `trackEvent` (the rate,
+ * in PostHog) — that is what the auth-hydration timeout and the unsynced
+ * sign-out were switched to. Messages are fingerprinted by content in
+ * `sentryBeforeSend`, so one string is now one issue.
  */
 export function captureMessage(
   message: string,

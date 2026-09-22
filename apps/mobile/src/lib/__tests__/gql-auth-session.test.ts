@@ -7,21 +7,29 @@ jest.mock('../supabase', () => ({
   supabase: { auth: { refreshSession: () => mockRefresh() } },
 }));
 
-const mockAuthState: { locale: string; session: unknown; isLoading: boolean } = {
+const mockAuthState: {
+  locale: string;
+  session: unknown;
+  isLoading: boolean;
+  hydration: AuthHydration;
+} = {
   locale: 'en',
   session: null,
   isLoading: false,
+  hydration: AUTH_HYDRATION.RESOLVED,
 };
 jest.mock('../../stores/auth.store', () => ({
   useAuthStore: { getState: () => mockAuthState },
 }));
 
+import { AUTH_HYDRATION, type AuthHydration } from '../auth-hydration';
 import { hasAuthenticatedSession, refreshGqlSession } from '../gql-auth-session';
 
 beforeEach(() => {
   mockRefresh.mockReset();
   mockAuthState.session = null;
   mockAuthState.isLoading = false;
+  mockAuthState.hydration = AUTH_HYDRATION.RESOLVED;
 });
 
 describe('refreshGqlSession (in-flight dedupe)', () => {
@@ -91,10 +99,26 @@ describe('hasAuthenticatedSession', () => {
     expect(hasAuthenticatedSession()).toBe(false);
   });
 
-  // Fail-open: the store's session is null until getSession() resolves at boot,
-  // so a headless path in that window must not be misread as "signed out".
+  // Fail-open: the store's session is null until the auth listener delivers
+  // INITIAL_SESSION at boot, so a headless path in that window must not be
+  // misread as "signed out".
   it('is true while auth is still hydrating', () => {
     mockAuthState.isLoading = true;
     expect(hasAuthenticatedSession()).toBe(true);
+  });
+
+  // BUG-4 Q1: the hydration timeout used to close this grace window with the
+  // session still null, so a signed-in rider's CarPlay heads-up and widget sync
+  // silently short-circuited as "signed out" on every slow cold start.
+  it('is true when hydration timed out without an answer (UNRESOLVED)', () => {
+    mockAuthState.isLoading = false;
+    mockAuthState.hydration = AUTH_HYDRATION.UNRESOLVED;
+    expect(hasAuthenticatedSession()).toBe(true);
+  });
+
+  it('is false once hydration RESOLVED with no session — that null is authoritative', () => {
+    mockAuthState.isLoading = false;
+    mockAuthState.hydration = AUTH_HYDRATION.RESOLVED;
+    expect(hasAuthenticatedSession()).toBe(false);
   });
 });
