@@ -84,6 +84,26 @@ export const RIDE_SYNC_LIMITS = {
   MAX_DEAD_LETTER_OPS: 200,
 } as const;
 
+/**
+ * Rider-count bounds on a trip. Shared because THREE places must agree:
+ *   - the Zod bounds in `validators/trip.ts` (Create / CreateWithWaypoints / Update)
+ *   - `trips_max_riders_check` on `public.trips` (`BETWEEN 1 AND 50` since
+ *     migration `00179_allow_solo_trips_max_riders`)
+ *   - the mobile create/edit-trip form (`apps/mobile/src/utils/trip-max-riders.ts`)
+ *
+ * MIN is 1 because a solo trip is a supported plan — `trip-completeness.ts` treats
+ * `maxRiders <= 1` as complete. Moving one side alone is exactly what produced
+ * MOTO-VAULT-NODE-NESTJS-K: Zod accepted 1, Postgres refused it, and every solo
+ * trip creation returned a 500. A comment asking the next person to keep three
+ * copies in sync is what allowed that drift; one exported constant removes it.
+ */
+export const TRIP_MAX_RIDERS = {
+  MIN: 1,
+  MAX: 50,
+  /** Pre-filled in the create-trip form; not a validation bound. */
+  DEFAULT: 10,
+} as const;
+
 export const AI_BUDGET_LIMITS = {
   /** Maximum AI generations per day for free-tier users */
   FREE_DAILY_GENERATIONS: 50,
