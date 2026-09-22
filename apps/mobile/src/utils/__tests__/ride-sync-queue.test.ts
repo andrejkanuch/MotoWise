@@ -919,13 +919,37 @@ describe('recovery of already-stranded ops', () => {
 
     await expect(redriveDeadLetterQueueOnce()).resolves.toBeUndefined();
 
-    // The unparseable value is quarantined, not overwritten: it is the only
-    // remaining copy of whatever it held.
+    // The unparseable value is MOVED aside: preserved, because it is the only
+    // remaining copy of whatever it held, and cleared from the live key so it is
+    // reported once rather than on every read that reaches it.
     expect(mockSyncStore.get('sync.dead_letter.corrupt')).toBe('{not json');
+    expect(mockSyncStore.get('sync.dead_letter')).toBeUndefined();
     expect(mockCapture).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ source: 'ride-sync-queue.parseOps' }),
     );
+
+    mockCapture.mockClear();
+    expect(getDeadLetterCount()).toBe(0);
+    expect(mockCapture).not.toHaveBeenCalled();
+  });
+
+  // The attempt counter is scoped to the redrive version for the same reason the
+  // marker is. An unscoped counter left at its cap by an abandoned redrive would
+  // make the NEXT version abandon on its first launch, so a future server fix
+  // would recover nothing and the parked rides would stay parked.
+  it('starts a fresh attempt budget when the redrive version changes', async () => {
+    mockSyncStore.set('sync.dead_letter', JSON.stringify(strandedRide()));
+    // A previous, now-abandoned redrive version left its counter at the cap.
+    mockSyncStore.set('sync.redrive_attempts', 3);
+    mockSyncStore.set('sync.redrive_attempts_version', 0);
+    mockGqlFetcher.mockResolvedValue({});
+
+    await redriveDeadLetterQueueOnce();
+
+    expect(getDeadLetterCount()).toBe(0);
+    expect(mockSyncStore.get('sync.redrive_version')).toBe(1);
+    expect(mockSyncStore.get('sync.redrive_attempts')).toBe(1);
   });
 });
 

@@ -291,6 +291,24 @@ describe('RidesService', () => {
       );
     });
 
+    // The same rule as closeStaleRides, and it matters more here: returning null on
+    // a blip tells startRide "not a replay", and its next act is closeStaleRides,
+    // which force-ends whichever ride is recording right now. So a statement timeout
+    // on the pre-check would reopen the very defect the ordering closes.
+    it('surfaces a failed idempotency pre-check as 503 and writes nothing', async () => {
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'canceling statement due to statement timeout', code: '57014' },
+      });
+
+      await expect(service.startRide(userId, startInput)).rejects.toThrow(
+        ServiceUnavailableException,
+      );
+      expect(mockUserClient._chain.insert).not.toHaveBeenCalled();
+      expect(mockUserClient._chain.update).not.toHaveBeenCalled();
+      expect(mockEventEmitter.emit).not.toHaveBeenCalled();
+    });
+
     // M3: a failed stale-ride lookup means UNKNOWN, not NONE. Swallowing it walked
     // into a guaranteed rides_one_active_per_user violation that surfaced as a
     // permanent 400 — a transient read failure laundered into ride loss.

@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@motovault/tsconfig": "workspace:*",
+    "date-fns": "^4.4.0",
     "tsup": "^8.5.1",
     "vitest": "^4.1.9"
   }

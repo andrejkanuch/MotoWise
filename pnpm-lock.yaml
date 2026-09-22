@@ -676,6 +676,9 @@ importers:
       '@motovault/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      date-fns:
+        specifier: ^4.4.0
+        version: 4.4.0
       tsup:
         specifier: ^8.5.1
         version: 8.5.1(@swc/core@1.15.43(@swc/helpers@0.5.23))(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@6.0.3)(yaml@2.9.0)

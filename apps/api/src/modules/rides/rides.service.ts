@@ -230,9 +230,19 @@ export class RidesService {
       .single();
 
     if (error && error.code !== PG_ERROR.NOT_FOUND) {
-      this.logger.warn(
+      // A failed lookup means UNKNOWN, not NONE — the same rule `closeStaleRides`
+      // already follows, and it matters more here. Returning null on a blip tells
+      // the caller "not a replay", and the caller's next act is `closeStaleRides`,
+      // which force-ends whichever ride is recording right now. A statement timeout
+      // on the pre-check would therefore reopen the exact defect this ordering
+      // exists to close. 503 keeps it retryable: SERVICE_UNAVAILABLE is absent from
+      // the mobile queue's NON_RETRYABLE_CODES.
+      this.logger.error(
         `startRide: idempotency lookup failed for ride ${rideId}: ${error.message} (${error.code})`,
       );
+      throw new ServiceUnavailableException(`Failed to start ride (${error.code})`, {
+        cause: new Error(`pg ${error.code}: ${error.message}`),
+      });
     }
     return (data as Record<string, unknown> | null) ?? null;
   }
