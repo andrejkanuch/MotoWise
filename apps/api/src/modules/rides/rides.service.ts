@@ -126,6 +126,25 @@ export class RidesService {
   async startRide(userId: string, input: StartRideInput): Promise<Ride> {
     this.logger.log(`startRide: userId=${userId}, rideId=${input.rideId}`);
 
+    // IDEMPOTENCY IS CHECKED BEFORE ANY WRITE, and that ordering is load-bearing.
+    //
+    // `closeStaleRides` force-ends every OTHER recording ride this user owns. A
+    // replay is not a new start, so it must not be allowed to do that. The mobile
+    // dead-letter redrive replays parked ops at their ORIGINAL, older `seq`, so a
+    // startRide for ride X stranded weeks ago can arrive while ride Y is recording
+    // right now — and `excludeRideId` only protects X. Y would be marked completed
+    // mid-ride with `ended_at` trimmed back to its last waypoint, plus a bogus
+    // `ride.completed` in the rollups. The rider's later `endRide` reclaims the row
+    // only if they finish Y through the app; a killed app leaves Y truncated.
+    //
+    // Returning here makes a pure replay side-effect-free. The cost is one indexed
+    // primary-key SELECT on a genuinely new start — once per ride.
+    const replayed = await this.findOwnRide(userId, input.rideId);
+    if (replayed) {
+      this.logger.log(`startRide: ride ${input.rideId} already exists — idempotent success`);
+      return this.mapRow(replayed);
+    }
+
     // Auto-end any stale active rides so the unique-index
     // (rides_one_active_per_user) doesn't block the new insert.
     // This handles cases where a previous ride wasn't properly ended
@@ -138,14 +157,15 @@ export class RidesService {
       this.throwStartRideError(first.error, input);
     }
 
-    // 23505. Either the primary key (this exact ride already exists — a replay) or
-    // the partial unique index rides_one_active_per_user (00047: one recording/paused
-    // ride per user). Which one is settled by LOOKING, not by parsing the constraint
-    // name out of the message: the row either is ours or it is not.
+    // 23505. Either the primary key (a concurrent replay committed the row between
+    // the pre-check above and this insert) or the partial unique index
+    // rides_one_active_per_user (00047: one recording/paused ride per user). Which
+    // one is settled by LOOKING, not by parsing the constraint name out of the
+    // message: the row either is ours or it is not.
     const existing = await this.findOwnRide(userId, input.rideId);
     if (existing) {
-      // Replay of an op that DID commit — the desired state already exists, so this
-      // is a success. This is the branch that stops a lost response destroying a ride.
+      // The desired state already exists, so this is a success. Together with the
+      // pre-check this is what stops a lost response destroying a ride.
       this.logger.log(`startRide: ride ${input.rideId} already exists — idempotent success`);
       return this.mapRow(existing);
     }
