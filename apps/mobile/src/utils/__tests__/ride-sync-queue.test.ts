@@ -676,6 +676,35 @@ describe('dependency-aware dead-lettering (MOTO-VAULT-REACT-NATIVE-3C)', () => {
     expect(mockCapture).toHaveBeenCalledTimes(2);
   });
 
+  // The gate that makes grouping safe. Only `startRide` creates the `rides` row the
+  // rest of the chain needs, so only `startRide` has dependents. Without the
+  // op-type check, one bad waypoint batch — a denormal float, or one that exhausts
+  // its retries on a 5xx — took every remaining chunk AND the endRide with it: a
+  // rider who used to lose one batch now lost the whole ride, which is the exact
+  // outcome this change set exists to prevent.
+  it('costs only the failed chunk when a mid-chain uploadWaypoints fails permanently', async () => {
+    enqueue('startRide', rideOp('ride-A'));
+    enqueue('uploadWaypoints', { variables: { input: { rideId: 'ride-A', batch: 1 } } });
+    enqueue('uploadWaypoints', { variables: { input: { rideId: 'ride-A', batch: 2 } } });
+    enqueue('endRide', rideOp('ride-A'));
+
+    mockGqlFetcher.mockImplementation((_doc: unknown, vars: { input: { batch?: number } }) =>
+      vars.input.batch === 1 ? Promise.reject(gqlError('BAD_REQUEST')) : Promise.resolve({}),
+    );
+
+    await drainQueue();
+
+    // Exactly one op parked — the bad batch...
+    expect(deadLetter()).toHaveLength(1);
+    expect(
+      (deadLetter()[0] as { payload: { variables: { input: { batch: number } } } }).payload
+        .variables.input.batch,
+    ).toBe(1);
+    // ...and everything behind it still delivered, endRide included.
+    expect(getQueueLength()).toBe(0);
+    expect(mockGqlFetcher).toHaveBeenCalledTimes(4);
+  });
+
   it('falls back to a group of one when the payload carries no rideId', async () => {
     enqueue('updateRide', { variables: { input: {} } });
     enqueue('updateRide', { variables: { input: {} } });
@@ -803,7 +832,72 @@ describe('recovery of already-stranded ops', () => {
     expect(mockGqlFetcher).toHaveBeenCalledTimes(4);
   });
 
-  it('marks the redrive as done BEFORE draining, so a crash mid-redrive is not a replay loop', async () => {
+  // The one-time recovery must be SPENT only when it recovered something. This is
+  // the failure the wrong deploy order produces: ship the mobile half before the
+  // API half is live and every op replays into the same permanent failure, parks
+  // again, and the marker retires the only automatic recovery these rides have.
+  it('does not consume the version when the redrive recovers nothing', async () => {
+    mockSyncStore.set('sync.dead_letter', JSON.stringify(strandedRide()));
+    mockGqlFetcher.mockRejectedValue(gqlError('BAD_REQUEST'));
+
+    await redriveDeadLetterQueueOnce();
+
+    expect(getDeadLetterCount()).toBe(4); // re-parked, nothing lost
+    expect(mockSyncStore.get('sync.redrive_version')).toBeUndefined();
+
+    // ...so once the API fix IS live, the next launch still gets its redrive.
+    mockGqlFetcher.mockReset().mockResolvedValue({});
+    await redriveDeadLetterQueueOnce();
+
+    expect(getDeadLetterCount()).toBe(0);
+    expect(mockSyncStore.get('sync.redrive_version')).toBe(1);
+  });
+
+  it('consumes the version once the redrive actually delivers', async () => {
+    mockSyncStore.set('sync.dead_letter', JSON.stringify(strandedRide()));
+    mockGqlFetcher.mockResolvedValue({});
+
+    await redriveDeadLetterQueueOnce();
+
+    expect(mockSyncStore.get('sync.redrive_version')).toBe(1);
+  });
+
+  // Recovered does not mean delivered: ops that made it back to the main queue and
+  // are merely waiting on connectivity are no longer stranded.
+  it('counts ops moved back to the main queue as recovered', async () => {
+    mockSyncStore.set('sync.dead_letter', JSON.stringify(strandedRide()));
+    mockGetNetworkStateAsync.mockResolvedValue(OFFLINE);
+
+    await redriveDeadLetterQueueOnce();
+
+    expect(getDeadLetterCount()).toBe(0);
+    expect(getQueueLength()).toBe(4);
+    expect(mockSyncStore.get('sync.redrive_version')).toBe(1);
+  });
+
+  // An unbounded retry is the other half of the trade: not consuming the version
+  // on failure means a redrive that kills the app would otherwise retry forever.
+  it('gives up after a bounded number of attempts', async () => {
+    mockSyncStore.set('sync.dead_letter', JSON.stringify(strandedRide()));
+    mockGqlFetcher.mockRejectedValue(gqlError('BAD_REQUEST'));
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await redriveDeadLetterQueueOnce();
+      expect(mockSyncStore.get('sync.redrive_version')).toBeUndefined();
+    }
+
+    // Fourth launch: stop trying, but say so, and leave the ops parked.
+    await redriveDeadLetterQueueOnce();
+
+    expect(mockSyncStore.get('sync.redrive_version')).toBe(1);
+    expect(getDeadLetterCount()).toBe(4);
+    expect(mockCapture).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('redrive abandoned') }),
+      expect.objectContaining({ source: 'ride-sync-queue.redriveOnce' }),
+    );
+  });
+
+  it('spends an attempt even when the app is killed mid-redrive', async () => {
     mockSyncStore.set('sync.dead_letter', JSON.stringify(strandedRide()));
     // The drain never settles — app killed mid-redrive.
     mockGqlFetcher.mockImplementation(() => neverSettles());
@@ -811,7 +905,27 @@ describe('recovery of already-stranded ops', () => {
     redriveDeadLetterQueueOnce();
     await new Promise((r) => setImmediate(r));
 
-    expect(mockSyncStore.get('sync.redrive_version')).toBe(1);
+    // Not done — nothing was recovered — but the attempt is counted, so a redrive
+    // that reliably crashes the app cannot retry on every launch forever.
+    expect(mockSyncStore.get('sync.redrive_version')).toBeUndefined();
+    expect(mockSyncStore.get('sync.redrive_attempts')).toBe(1);
+  });
+
+  // `redriveDeadLetterQueueOnce` is called synchronously from a `useEffect` in the
+  // root layout, so an unguarded JSON.parse throw takes the whole layout down —
+  // a broken app for every rider on that install, not one lost ride.
+  it('survives a corrupt sync store instead of failing the root layout', async () => {
+    mockSyncStore.set('sync.dead_letter', '{not json');
+
+    await expect(redriveDeadLetterQueueOnce()).resolves.toBeUndefined();
+
+    // The unparseable value is quarantined, not overwritten: it is the only
+    // remaining copy of whatever it held.
+    expect(mockSyncStore.get('sync.dead_letter.corrupt')).toBe('{not json');
+    expect(mockCapture).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ source: 'ride-sync-queue.parseOps' }),
+    );
   });
 });
 

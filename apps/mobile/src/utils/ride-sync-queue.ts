@@ -63,6 +63,15 @@ const DEAD_LETTER_KEY = 'sync.dead_letter';
 const SEQ_KEY = 'sync.seq';
 /** Marks which one-time dead-letter redrive this install has already run. */
 const REDRIVE_VERSION_KEY = 'sync.redrive_version';
+/**
+ * How many times the one-time redrive has been STARTED but not yet confirmed.
+ *
+ * The version marker is only written once the redrive is known to have recovered
+ * something, so on its own it would let a redrive that crashes the app mid-flight
+ * retry on every single launch. This counter bounds that loop.
+ */
+const REDRIVE_ATTEMPT_KEY = 'sync.redrive_attempts';
+const MAX_REDRIVE_ATTEMPTS = 3;
 /** Version of the one-time legacy-ownership claim that has already run. */
 const OWNERSHIP_CLAIM_KEY = 'sync.ownership_claim_version';
 const OWNERSHIP_CLAIM_VERSION = 1;
@@ -160,11 +169,42 @@ function nextSeq(): number {
 
 // --- Queue operations (single JSON array in MMKV, ordered by seq) ---
 
-function getQueue(): SyncOperation[] {
-  const raw = syncStorage.getString(QUEUE_KEY);
+/**
+ * Parse a persisted op list, surviving content that will not parse.
+ *
+ * An unguarded `JSON.parse` here is a crash, not a bad read: `getQueue` is called
+ * from `redriveDeadLetterQueueOnce`, which the root layout invokes SYNCHRONOUSLY
+ * from a `useEffect`, so a throw fails the whole layout rather than rejecting a
+ * promise. Every rider on that install would see a broken app, not a lost ride.
+ *
+ * The corrupt value is quarantined rather than left in place, because the caller
+ * will write a fresh list straight over the key and that would destroy the only
+ * remaining copy of those GPS fixes. Quarantined content is never read back
+ * automatically — it exists so a support path can recover it.
+ */
+function parseOps(raw: string | undefined, key: string): SyncOperation[] {
   if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) throw new Error('sync store value is not an array');
+    return parsed as SyncOperation[];
+  } catch (error) {
+    syncStorage.set(`${key}.corrupt`, raw);
+    captureException(
+      error instanceof Error ? error : new Error(`Corrupt ride sync store: ${key}`),
+      {
+        source: 'ride-sync-queue.parseOps',
+        key,
+        rawLength: String(raw.length),
+      },
+    );
+    return [];
+  }
+}
+
+function getQueue(): SyncOperation[] {
   // Insertion order already guarantees seq ordering (monotonic counter)
-  return JSON.parse(raw) as SyncOperation[];
+  return parseOps(syncStorage.getString(QUEUE_KEY), QUEUE_KEY);
 }
 
 function setQueue(queue: SyncOperation[]): void {
@@ -184,9 +224,7 @@ function bumpRetryBySeq(seq: number): void {
 }
 
 function getDeadLetterQueue(): SyncOperation[] {
-  const raw = syncStorage.getString(DEAD_LETTER_KEY);
-  if (!raw) return [];
-  return JSON.parse(raw) as SyncOperation[];
+  return parseOps(syncStorage.getString(DEAD_LETTER_KEY), DEAD_LETTER_KEY);
 }
 
 function setDeadLetterQueue(dlq: SyncOperation[]): void {
@@ -663,12 +701,58 @@ export function redriveDeadLetterQueue(): Promise<void> {
  * live, or it replays every parked op into the same permanent failures and produces a
  * fresh Sentry storm. See `DEAD_LETTER_REDRIVE_VERSION`.
  */
-export function redriveDeadLetterQueueOnce(): Promise<void> {
-  if (syncStorage.getNumber(REDRIVE_VERSION_KEY) === DEAD_LETTER_REDRIVE_VERSION) {
-    return Promise.resolve();
+export async function redriveDeadLetterQueueOnce(): Promise<void> {
+  try {
+    if ((syncStorage.getNumber(REDRIVE_VERSION_KEY) ?? 0) >= DEAD_LETTER_REDRIVE_VERSION) return;
+
+    const attempts = (syncStorage.getNumber(REDRIVE_ATTEMPT_KEY) ?? 0) + 1;
+    if (attempts > MAX_REDRIVE_ATTEMPTS) {
+      // Give up rather than retry on every launch forever. Consume the version so
+      // this stops, and report it: the ops are still parked and still visible to
+      // `hasPendingSyncWork`, so the rider's own "Retry now?" path remains.
+      syncStorage.set(REDRIVE_VERSION_KEY, DEAD_LETTER_REDRIVE_VERSION);
+      captureException(new Error('Ride sync redrive abandoned after repeated attempts'), {
+        source: 'ride-sync-queue.redriveOnce',
+        attempts: String(attempts - 1),
+        deadLetterCount: String(getDeadLetterCount()),
+      });
+      return;
+    }
+    // Counted BEFORE the await, so an app killed mid-redrive still spends an
+    // attempt. That is what bounds a genuine crash loop.
+    syncStorage.set(REDRIVE_ATTEMPT_KEY, attempts);
+
+    const before = getDeadLetterCount();
+    if (before === 0) {
+      // Nothing stranded, so the recovery is complete by definition.
+      syncStorage.set(REDRIVE_VERSION_KEY, DEAD_LETTER_REDRIVE_VERSION);
+      return;
+    }
+
+    await redriveDeadLetterQueue();
+
+    // The marker is EARNED, never assumed. Writing it first — as this did — spent
+    // the one-time recovery whether or not anything was delivered, and two things
+    // routinely make it deliver nothing: shipping this before the matching API fix
+    // is live (every op replays into the same permanent failure and parks again),
+    // and a throw in the synchronous merge. Either one retired the only automatic
+    // recovery these rides have, leaving a `DEAD_LETTER_REDRIVE_VERSION` bump and
+    // another release as the only way back.
+    //
+    // A drop is the right test rather than "empty": ops that moved to the main
+    // queue and are merely waiting on connectivity are recovered — they are no
+    // longer stranded.
+    if (getDeadLetterCount() < before) {
+      syncStorage.set(REDRIVE_VERSION_KEY, DEAD_LETTER_REDRIVE_VERSION);
+    }
+  } catch (error) {
+    // Fire-and-forget from the root layout's effect, so a rejection would surface
+    // as an unhandled rejection and nothing else. Report it and leave the version
+    // unconsumed so the next launch tries again, within the attempt bound.
+    captureException(error instanceof Error ? error : new Error('Ride sync redrive failed'), {
+      source: 'ride-sync-queue.redriveOnce',
+    });
   }
-  syncStorage.set(REDRIVE_VERSION_KEY, DEAD_LETTER_REDRIVE_VERSION);
-  return redriveDeadLetterQueue();
 }
 
 /**
@@ -708,6 +792,7 @@ export function destroyAllSyncData(): void {
   syncStorage.remove(DEAD_LETTER_KEY);
   syncStorage.remove(SEQ_KEY);
   syncStorage.remove(REDRIVE_VERSION_KEY);
+  syncStorage.remove(REDRIVE_ATTEMPT_KEY);
   // Nothing is left to claim, so re-arming the one-time claim is a no-op in
   // production and lets tests start from a clean slate.
   syncStorage.remove(OWNERSHIP_CLAIM_KEY);
