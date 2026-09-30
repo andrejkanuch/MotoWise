@@ -227,6 +227,56 @@ describe('shouldDropClientEvent', () => {
     });
   });
 
+  describe('WebKit-masked injected-script throws', () => {
+    it('drops a throw whose only frame is a masked WebKit filename', () => {
+      // Mirrors the real event: one `webkit-masked-url://hidden/` frame that
+      // WebKit rewrote from an injected script, with `in_app: false`.
+      expect(
+        shouldDropClientEvent(
+          eventWith("null is not an object (evaluating 's.id')", {
+            type: 'TypeError',
+            frames: [{ filename: 'webkit-masked-url://hidden/', in_app: false }],
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('drops it when every frame is masked', () => {
+      expect(
+        shouldDropClientEvent(
+          eventWith('some injected-script error', {
+            frames: [
+              { filename: 'webkit-masked-url://hidden/', in_app: false },
+              { filename: 'webkit-masked-url://hidden/', in_app: false },
+            ],
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('KEEPS an event mixing a masked frame with a first-party bundle frame', () => {
+      expect(
+        shouldDropClientEvent(
+          eventWith("null is not an object (evaluating 's.id')", {
+            type: 'TypeError',
+            frames: [
+              { filename: 'webkit-masked-url://hidden/', in_app: false },
+              { filename: 'https://motovault.app/_next/static/chunks/page.js', in_app: true },
+            ],
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('KEEPS a frameless throw — no masked frame to match on', () => {
+      // A frameless throw is a different shape; other rules handle those by
+      // message. This rule only fires when a masked frame is actually present.
+      expect(shouldDropClientEvent(eventWith("null is not an object (evaluating 's.id')"))).toBe(
+        false,
+      );
+    });
+  });
+
   it('keeps unrelated first-party errors', () => {
     expect(
       shouldDropClientEvent(
