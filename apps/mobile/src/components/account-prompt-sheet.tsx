@@ -8,6 +8,7 @@ import Svg, { Path } from 'react-native-svg';
 import { captureException } from '../lib/analytics';
 import { userFriendlyError } from '../lib/graphql-errors';
 import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../lib/oauth';
+import { presentOAuthError } from '../lib/oauth-error-alert';
 import { supabase } from '../lib/supabase';
 import { AppleGlyph, GoogleGlyph } from './onboarding/oauth-glyphs';
 import { ONBOARDING_COLORS } from './onboarding/onboarding-colors';
@@ -105,8 +106,7 @@ export function AccountPromptSheet({
       onAuthenticated?.();
       onDismiss();
     } catch (err) {
-      reportUnexpectedAuthError(err, captureException);
-      Alert.alert(t('common.error'), userFriendlyError(err));
+      presentOAuthError(err);
     }
   };
 

@@ -26,6 +26,7 @@
     "deleting": "Odstraňuje sa..."
   },
   "auth": {
+    "googlePlayServicesUnavailable": "Prihlásenie cez Google vyžaduje služby Google Play, ktoré toto zariadenie nemá. Pokračujte radšej e-mailom.",
     "signIn": "Prihlásiť sa",
     "signingIn": "Prihlasovanie...",
     "signUp": "Vytvoriť účet",

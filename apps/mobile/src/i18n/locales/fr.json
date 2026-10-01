@@ -26,6 +26,7 @@
     "deleting": "Suppression..."
   },
   "auth": {
+    "googlePlayServicesUnavailable": "La connexion Google nécessite les services Google Play, absents de cet appareil. Continuez plutôt avec votre e-mail.",
     "signIn": "Se connecter",
     "signingIn": "Connexion...",
     "signUp": "Créer un compte",

@@ -26,6 +26,7 @@
     "deleting": "Eliminando..."
   },
   "auth": {
+    "googlePlayServicesUnavailable": "El inicio de sesión con Google necesita los servicios de Google Play, que este dispositivo no tiene. Continúa con tu correo electrónico.",
     "signIn": "Iniciar Sesión",
     "signingIn": "Iniciando sesión...",
     "signUp": "Crear Cuenta",

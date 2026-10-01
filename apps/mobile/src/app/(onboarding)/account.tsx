@@ -30,6 +30,7 @@ import {
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
+import { presentOAuthError } from '../../lib/oauth-error-alert';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { meOptions } from '../../lib/query-options';
 import { supabase } from '../../lib/supabase';
@@ -142,8 +143,7 @@ export default function AccountScreen() {
     try {
       await signInWithGoogle();
     } catch (err) {
-      reportUnexpectedAuthError(err, captureException);
-      Alert.alert(t('common.error'), userFriendlyError(err));
+      presentOAuthError(err);
     }
   };
 

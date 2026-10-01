@@ -1,6 +1,14 @@
+// Native code constants come from the module at runtime; mirror the Android values.
 jest.mock('@react-native-google-signin/google-signin', () => ({
   GoogleSignin: { configure: jest.fn(), hasPlayServices: jest.fn(), signIn: jest.fn() },
   isSuccessResponse: jest.fn(),
+  isErrorWithCode: (e: unknown) => typeof e === 'object' && e !== null && 'code' in e,
+  statusCodes: {
+    SIGN_IN_CANCELLED: '12501',
+    IN_PROGRESS: 'ASYNC_OP_IN_PROGRESS',
+    PLAY_SERVICES_NOT_AVAILABLE: 'PLAY_SERVICES_NOT_AVAILABLE',
+    SIGN_IN_REQUIRED: 'SIGN_IN_REQUIRED',
+  },
 }));
 jest.mock('expo-apple-authentication', () => ({}));
 jest.mock('expo-crypto', () => ({ randomUUID: jest.fn(), digestStringAsync: jest.fn() }));
@@ -10,12 +18,17 @@ jest.mock('expo-secure-store', () => ({
 }));
 jest.mock('../supabase', () => ({ supabase: { auth: { signInWithIdToken: jest.fn() } } }));
 
+import { GoogleSignin, isSuccessResponse } from '@react-native-google-signin/google-signin';
 import type { Session, User } from '@supabase/supabase-js';
 import {
+  classifyOAuthError,
+  GoogleSignInInProgressError,
   isExpectedAuthError,
   isNewlyCreatedUser,
+  OAUTH_ERROR_KIND,
   reportUnexpectedAuthError,
   resolveUser,
+  signInWithGoogle,
 } from '../oauth';
 
 const NOW = new Date('2026-06-09T12:00:00.000Z');
@@ -148,5 +161,56 @@ describe('reportUnexpectedAuthError', () => {
     const err = new Error('Something went wrong');
     reportUnexpectedAuthError(err, report);
     expect(report).toHaveBeenCalledWith(err);
+  });
+});
+
+const codeError = (code: string) => Object.assign(new Error(`native ${code}`), { code });
+
+describe('classifyOAuthError', () => {
+  it('treats the native IN_PROGRESS code (Android double tap) as in-progress, by code', () => {
+    expect(classifyOAuthError(codeError('ASYNC_OP_IN_PROGRESS'))).toBe(OAUTH_ERROR_KIND.inProgress);
+  });
+
+  it('treats a missing Play services device as noPlayServices, not a bug', () => {
+    const err = codeError('PLAY_SERVICES_NOT_AVAILABLE');
+    expect(classifyOAuthError(err)).toBe(OAUTH_ERROR_KIND.noPlayServices);
+    expect(isExpectedAuthError(err)).toBe(true);
+  });
+
+  it('treats our own in-flight guard error as in-progress', () => {
+    expect(classifyOAuthError(new GoogleSignInInProgressError())).toBe(OAUTH_ERROR_KIND.inProgress);
+  });
+
+  it('falls back to the message rules for codes it does not know', () => {
+    expect(classifyOAuthError(codeError('SOMETHING_ELSE'))).toBe(OAUTH_ERROR_KIND.unexpected);
+    expect(classifyOAuthError(new Error('Sign in canceled'))).toBe(OAUTH_ERROR_KIND.expected);
+  });
+});
+
+// MOTO-VAULT-REACT-NATIVE-A: a second signIn() while the sheet is open made the
+// native module reject the first call.
+describe('signInWithGoogle in-flight guard', () => {
+  it('refuses a second call while the first is open, without touching the native module', async () => {
+    let finishSignIn: (v: unknown) => void = () => {};
+    (GoogleSignin.hasPlayServices as jest.Mock).mockResolvedValue(true);
+    (GoogleSignin.signIn as jest.Mock).mockImplementationOnce(
+      () =>
+        new Promise((r) => {
+          finishSignIn = r;
+        }),
+    );
+    (isSuccessResponse as unknown as jest.Mock).mockReturnValue(false);
+
+    const first = signInWithGoogle();
+    await expect(signInWithGoogle()).rejects.toBeInstanceOf(GoogleSignInInProgressError);
+    expect(GoogleSignin.signIn).toHaveBeenCalledTimes(1);
+
+    finishSignIn({ type: 'cancelled' });
+    await expect(first).rejects.toThrow('cancelled');
+
+    // Released once the first call settles.
+    (GoogleSignin.signIn as jest.Mock).mockResolvedValueOnce({ type: 'cancelled' });
+    await expect(signInWithGoogle()).rejects.toThrow('cancelled');
+    expect(GoogleSignin.signIn).toHaveBeenCalledTimes(2);
   });
 });

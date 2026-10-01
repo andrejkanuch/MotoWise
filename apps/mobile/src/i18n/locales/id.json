@@ -26,6 +26,7 @@
     "deleting": "Deleting..."
   },
   "auth": {
+    "googlePlayServicesUnavailable": "Masuk dengan Google memerlukan layanan Google Play, yang tidak tersedia di perangkat ini. Silakan lanjutkan dengan email.",
     "signIn": "Masuk",
     "signingIn": "Sedang masuk...",
     "signUp": "Buat Akun",

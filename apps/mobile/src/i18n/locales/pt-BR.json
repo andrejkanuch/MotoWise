@@ -26,6 +26,7 @@
     "deleting": "Excluindo..."
   },
   "auth": {
+    "googlePlayServicesUnavailable": "O login com o Google precisa do Google Play Services, que este aparelho não tem. Continue com o e-mail.",
     "signIn": "Entrar",
     "signingIn": "Entrando...",
     "signUp": "Criar Conta",

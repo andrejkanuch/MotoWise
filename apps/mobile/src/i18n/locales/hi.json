@@ -26,6 +26,7 @@
     "deleting": "Deleting..."
   },
   "auth": {
+    "googlePlayServicesUnavailable": "Google साइन-इन के लिए Google Play सेवाएँ चाहिए, जो इस डिवाइस पर नहीं हैं। कृपया इसके बजाय ईमेल से जारी रखें।",
     "signIn": "साइन इन करें",
     "signingIn": "साइन इन हो रहा है...",
     "signUp": "अकाउंट बनाएं",

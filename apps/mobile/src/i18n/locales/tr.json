@@ -26,6 +26,7 @@
     "deleting": "Deleting..."
   },
   "auth": {
+    "googlePlayServicesUnavailable": "Google ile giriş için bu cihazda bulunmayan Google Play Hizmetleri gerekir. Lütfen bunun yerine e-postayla devam edin.",
     "signIn": "Giris Yap",
     "signingIn": "Giris yapiliyor...",
     "signUp": "Hesap Olustur",

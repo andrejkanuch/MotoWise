@@ -23,6 +23,7 @@ import { OB_ROUTE } from '../../config/onboarding';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
+import { presentOAuthError } from '../../lib/oauth-error-alert';
 import { trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { supabase } from '../../lib/supabase';
 
@@ -74,8 +75,7 @@ export default function OnboardingSignInScreen() {
         auth_method: 'google',
       });
     } catch (err) {
-      reportUnexpectedAuthError(err, captureException);
-      Alert.alert(t('common.error'), userFriendlyError(err));
+      presentOAuthError(err);
     }
   };
 
