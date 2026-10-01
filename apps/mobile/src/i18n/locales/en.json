@@ -1189,7 +1189,9 @@
     "annual": "Annual",
     "monthly": "Monthly",
     "year": "yr",
-    "continueWithFree": "Continue with Free"
+    "continueWithFree": "Continue with Free",
+    "unavailableTitle": "Upgrade unavailable right now",
+    "unavailableMessage": "We couldn't load the upgrade options. Check your connection and that you're signed in to your app store, then try again."
   },
   "quiz": {
     "loading": "Loading quiz...",

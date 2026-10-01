@@ -70,3 +70,21 @@ export function isExpectedRevenueCatError(error: unknown): boolean {
   const readable = userInfo?.readableErrorCode;
   return typeof readable === 'string' && EXPECTED_RC_READABLE_CODES.has(readable);
 }
+
+const MAX_ERROR_MESSAGE_LENGTH = 200;
+
+/** Flat, analytics-safe description of a RevenueCat rejection. */
+export function revenueCatErrorProperties(error: unknown): {
+  error_code: string | null;
+  error_readable_code: string | null;
+  error_message: string | null;
+} {
+  const { code, userInfo } = (error && typeof error === 'object' ? error : {}) as RcErrorLike;
+  const readable = userInfo?.readableErrorCode;
+  const message = error instanceof Error ? error.message : error == null ? null : String(error);
+  return {
+    error_code: typeof code === 'string' || typeof code === 'number' ? String(code) : null,
+    error_readable_code: typeof readable === 'string' ? readable : null,
+    error_message: message?.slice(0, MAX_ERROR_MESSAGE_LENGTH) ?? null,
+  };
+}

@@ -32,7 +32,17 @@ export default function ModalsLayout() {
         name="ride-hud"
         options={{ presentation: 'fullScreenModal', gestureEnabled: false }}
       />
-      <Stack.Screen name="ride-summary" />
+      {/* Not swipe-dismissable: leaving without Save or Discard strands the ended
+          ride in local storage, and the next Start Ride reports it as abandoned. */}
+      <Stack.Screen
+        name="ride-summary"
+        options={{
+          gestureEnabled: false,
+          // gestureEnabled only stops the iOS swipe; an Android form sheet is always
+          // draggable, so present it full screen there.
+          ...(process.env.EXPO_OS === 'android' ? { presentation: 'fullScreenModal' } : {}),
+        }}
+      />
       <Stack.Screen name="add-ride-expense" />
       <Stack.Screen
         name="ride-detail"

@@ -1185,7 +1185,9 @@
     "annual": "Ročné",
     "monthly": "Mesačné",
     "year": "rok",
-    "continueWithFree": "Pokračovať zadarmo"
+    "continueWithFree": "Pokračovať zadarmo",
+    "unavailableTitle": "Upgrade teraz nie je dostupný",
+    "unavailableMessage": "Nepodarilo sa načítať možnosti upgradu. Skontrolujte pripojenie a či ste prihlásení v obchode s aplikáciami, a skúste to znova."
   },
   "quiz": {
     "loading": "Načítava sa kvíz...",

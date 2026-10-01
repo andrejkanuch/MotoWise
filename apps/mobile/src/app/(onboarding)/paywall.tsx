@@ -178,6 +178,7 @@ export default function PaywallScreen() {
         source: 'onboarding',
         feature: 'subscription',
         surface: 'onboarding_paywall',
+        silentOnError: true,
         // The check above only covers a stall in `setOnboardingAttributes`. The
         // offerings fetch happens INSIDE presentPaywall, so it is the likelier stall
         // point and lands past every guard we can place out here — hence the callback,

@@ -26,7 +26,10 @@ import { StepReviewSubmit } from '../../../components/diagnostic-flow/step-revie
 import { useProGate } from '../../../hooks/use-pro-gate';
 import { AnalyticsEvent, captureException, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { GRAPHQL_ERROR_CODE } from '../../../lib/graphql-error-classification';
+import { hasGraphQLCode } from '../../../lib/graphql-errors';
 import { MetaAnalytics } from '../../../lib/meta-analytics';
+import { isNetworkError } from '../../../lib/network-error';
 import { queryKeys } from '../../../lib/query-keys';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { useDiagnosticFlowStore } from '../../../stores/diagnostic-flow.store';
@@ -40,7 +43,7 @@ export default function NewDiagnosticScreen() {
   const queryClient = useQueryClient();
   const prefersReducedMotion = useReducedMotion();
   const colors = useDiagnosticColors();
-  const { requirePro } = useProGate();
+  const { requirePro, isPro } = useProGate();
 
   const { currentStep, navigationDirection, reset, goBack, hasAnyData } = useDiagnosticFlowStore(
     useShallow((s) => ({
@@ -138,13 +141,14 @@ export default function NewDiagnosticScreen() {
   };
 
   const handleSubmit = async () => {
-    // Gate: free users must subscribe to run AI diagnostics
-    if (!requirePro('full_ai_diagnostics')) return;
-
+    // No client-side Pro gate here: the free tier includes one diagnosis a month
+    // (FREE_TIER_LIMITS.MAX_AI_DIAGNOSTICS_PER_MONTH, and the store listings say so).
+    // The server counts and answers FORBIDDEN once it is used — see the catch below.
     const state = store.getState();
     if (state.isSubmitting) return;
     state.setIsSubmitting(true);
     state.setSubmitError(null);
+    trackEvent(AnalyticsEvent.DIAGNOSTIC_SUBMITTED, { has_photo: !!state.photoUri });
 
     try {
       // Read base64 from photoUri at submission time
@@ -202,7 +206,14 @@ export default function NewDiagnosticScreen() {
           message = error.message;
         }
       }
-      captureException(error, { source: 'diagnose.submitDiagnostic', message });
+      if (!isPro && hasGraphQLCode(error, GRAPHQL_ERROR_CODE.FORBIDDEN)) {
+        // Free monthly diagnosis used: an expected outcome, and the upgrade moment.
+        trackEvent(AnalyticsEvent.DIAGNOSTIC_LIMIT_REACHED);
+        requirePro('full_ai_diagnostics');
+      } else {
+        trackEvent(AnalyticsEvent.DIAGNOSTIC_FAILED, { offline: isNetworkError(error) });
+        captureException(error, { source: 'diagnose.submitDiagnostic', message });
+      }
       state.setSubmitError(message);
     } finally {
       state.setIsSubmitting(false);

@@ -469,6 +469,11 @@ export const AnalyticsEvent = {
   // Feature usage — Diagnostics
   DIAGNOSTIC_STARTED: 'diagnostic_started',
   DIAGNOSTIC_COMPLETED: 'diagnostic_completed',
+  // `diagnostic_started` fires on entering the wizard, so on its own it cannot say
+  // why a diagnosis never completed. These mark the submit tap and how it ended.
+  DIAGNOSTIC_SUBMITTED: 'diagnostic_submitted',
+  DIAGNOSTIC_LIMIT_REACHED: 'diagnostic_limit_reached',
+  DIAGNOSTIC_FAILED: 'diagnostic_failed',
   DIAGNOSTIC_LIST_VIEWED: 'diagnostic_list_viewed',
 
   // Store review
@@ -496,6 +501,8 @@ export const AnalyticsEvent = {
   // Receipt scan (U6)
   RECEIPT_SCAN_STARTED: 'receipt_scan_started',
   RECEIPT_SCAN_COMPLETED: 'receipt_scan_completed',
+  // `receipt_scan_started` fires when the modal opens, before any photo exists.
+  RECEIPT_SCAN_CAPTURE_RESULT: 'receipt_scan_capture_result',
   RECEIPT_SCAN_PARKED: 'receipt_scan_parked',
   RECEIPT_SCAN_MANUAL_FALLBACK: 'receipt_scan_manual_fallback',
   // Receipt scan telemetry (R8) — completes the funnel so the feature is
@@ -607,6 +614,14 @@ export const AnalyticsEvent = {
   // Nav-app handoff (superset — emitted alongside legacy TRIP_OPENED_IN_MAPS
   // / ROUTE_GPX_EXPORTED for PostHog funnel continuity).
   NAV_HANDOFF: 'nav_handoff',
+
+  // CarPlay head unit. Rides started there already carry `source: 'carplay'` on
+  // ride_started / ride_ended; these make the session itself visible, including
+  // the ones where Start never produced a ride.
+  CARPLAY_CONNECTED: 'carplay_connected',
+  CARPLAY_DISCONNECTED: 'carplay_disconnected',
+  CARPLAY_ACTION: 'carplay_action',
+  CARPLAY_START_FAILED: 'carplay_start_failed',
 
   // Subscription funnel
   PAYWALL_PRESENT_REQUESTED: 'paywall_present_requested',

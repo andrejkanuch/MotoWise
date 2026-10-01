@@ -1183,7 +1183,9 @@
     "annual": "Yillik",
     "monthly": "Aylik",
     "year": "yil",
-    "continueWithFree": "Ucretsiz Devam Et"
+    "continueWithFree": "Ucretsiz Devam Et",
+    "unavailableTitle": "Yükseltme şu anda kullanılamıyor",
+    "unavailableMessage": "Yükseltme seçenekleri yüklenemedi. Bağlantınızı ve uygulama mağazasında oturum açtığınızı kontrol edip tekrar deneyin."
   },
   "quiz": {
     "loading": "Test yukleniyor...",

@@ -236,7 +236,7 @@ export default function RideHudScreen() {
         ride_id: rideMMKV.getCurrentId() ?? null,
         elapsed_s: elapsed,
         distance_m: Math.round(dist),
-        action: 'keep',
+        action: 'shown',
       });
       return;
     }
@@ -245,9 +245,17 @@ export default function RideHudScreen() {
   }, [executeEndRide]);
 
   const handleGuardKeepRiding = useCallback(() => {
+    if (guardData) {
+      trackEvent(AnalyticsEvent.RIDE_TOO_SHORT_SHOWN, {
+        ride_id: rideMMKV.getCurrentId() ?? null,
+        elapsed_s: guardData.elapsed_s,
+        distance_m: guardData.distance_m,
+        action: 'keep',
+      });
+    }
     guardSheetRef.current?.close();
     setGuardData(null);
-  }, []);
+  }, [guardData]);
 
   const handleGuardEndAnyway = useCallback(() => {
     if (guardData) {
