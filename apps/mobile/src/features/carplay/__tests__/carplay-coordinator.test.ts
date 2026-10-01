@@ -190,6 +190,18 @@ describe('carplay-coordinator', () => {
     expect(carplay.renderInformation).toHaveBeenCalledTimes(1);
   });
 
+  it('retries the root build on the next replay when the first one throws', () => {
+    (carplay.renderInformation as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('template build failed');
+    });
+    startCarPlayCoordinator();
+    fireConnect();
+    expect(captureException).toHaveBeenCalledTimes(1);
+    fireConnect(); // the library's replay / isConnected path
+    expect(carplay.renderInformation).toHaveBeenCalledTimes(2);
+    expect(mockStoreListeners.length).toBe(1);
+  });
+
   it('rebuilds on a reconnect after a disconnect', () => {
     startCarPlayCoordinator();
     fireConnect();
@@ -249,6 +261,28 @@ describe('carplay-coordinator', () => {
       expect(rideController.startRideSession).toHaveBeenCalledTimes(1);
       fireAction('start'); // settled → a new press is accepted again
       expect(rideController.startRideSession).toHaveBeenCalledTimes(2);
+    });
+
+    // The ride still records on the phone; only stale head-unit feedback is dropped.
+    it('drops a Start result that lands after the head unit disconnected', async () => {
+      let resolveStart: (r: { ok: false; reason: 'denied' }) => void = () => {};
+      (rideController.startRideSession as jest.Mock).mockImplementationOnce(
+        () =>
+          new Promise((r) => {
+            resolveStart = r;
+          }),
+      );
+      startCarPlayCoordinator();
+      fireConnect();
+      fireAction('start');
+      fireDisconnect();
+      const rendersAtDisconnect = (carplay.renderInformation as jest.Mock).mock.calls.length;
+      resolveStart({ ok: false, reason: 'denied' });
+      await flush();
+      expect(carplay.renderInformation).toHaveBeenCalledTimes(rendersAtDisconnect);
+      // …and the next session starts clean.
+      fireConnect();
+      expect(lastRenderedItems()?.[0]?.title).toBe('Distance');
     });
 
     it('still reports a GPS start failure to Sentry and shows it on the panel', async () => {

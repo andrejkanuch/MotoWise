@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 jest.mock('../carplay-coordinator', () => ({ startCarPlayCoordinator: jest.fn() }));
+jest.mock('../../../lib/analytics', () => ({ initSentry: jest.fn(), captureException: jest.fn() }));
 
 const APP_ROOT = join(__dirname, '../../../..');
 const read = (rel: string) => readFileSync(join(APP_ROOT, rel), 'utf8');
@@ -15,6 +16,20 @@ describe('carplay-entry', () => {
     const { startCarPlayCoordinator } = jest.requireMock('../carplay-coordinator');
     require('../carplay-entry');
     expect(startCarPlayCoordinator).toHaveBeenCalledTimes(1);
+  });
+
+  it('never lets a CarPlay start failure abort the bundle', () => {
+    const coordinator = jest.requireMock('../carplay-coordinator');
+    const { captureException } = jest.requireMock('../../../lib/analytics');
+    coordinator.startCarPlayCoordinator.mockImplementationOnce(() => {
+      throw new Error('boom');
+    });
+    jest.isolateModules(() => {
+      expect(() => require('../carplay-entry')).not.toThrow();
+    });
+    expect(captureException).toHaveBeenCalledWith(expect.any(Error), {
+      source: 'carplay-entry.start',
+    });
   });
 
   it('is the bundle entry, imported before expo-router', () => {
@@ -32,6 +47,21 @@ describe('carplay-entry', () => {
       .split('\n')
       .filter((line) => line.startsWith('import '));
     expect(imports[0]).toBe("import './src/features/carplay/install-timers';");
+  });
+
+  // A CarPlay-only launch never evaluates the root layout, so Sentry must be live
+  // before the coordinator registers or its captureException calls are dropped.
+  it('initializes Sentry from the entry, before CarPlay registers', () => {
+    const { initSentry } = jest.requireMock('../../../lib/analytics');
+    require('../../../lib/init-sentry-entry');
+    expect(initSentry).toHaveBeenCalledTimes(1);
+
+    const entry = read('index.ts');
+    const sentry = entry.indexOf("import './src/lib/init-sentry-entry';");
+    const carplay = entry.indexOf("import './src/features/carplay/carplay-entry';");
+    expect(sentry).toBeGreaterThan(-1);
+    expect(carplay).toBeGreaterThan(sentry);
+    expect(read('src/app/_layout.tsx')).not.toMatch(/\binitSentry\(/);
   });
 
   it('keeps the phone UI graph out of the entry path', () => {

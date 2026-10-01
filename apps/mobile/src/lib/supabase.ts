@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { AppState } from 'react-native';
 import { captureException } from './analytics';
 import { secureStoreAuthAdapter } from './secure-store';
 
@@ -20,6 +21,23 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: false,
   },
+});
+
+// Supabase's React Native guidance: run the token auto-refresh timer only while the
+// app is active. It is a permanently pending interval, and on iOS the CarPlay
+// library's native timers (install-timers.ts) keep a main-thread tick alive for as
+// long as any timer is pending, so leaving it on in the background costs battery on
+// every locked-phone ride. Nothing loses auth: every GraphQL request refreshes a
+// near-expiry token on demand (gql-auth-session.materializeSession), and getSession()
+// refreshes an expired one. A CarPlay session keeps the app `active`, so refresh
+// stays on while the head unit is in use.
+const APP_STATE_ACTIVE = 'active';
+AppState.addEventListener('change', (state) => {
+  if (state === APP_STATE_ACTIVE) {
+    supabase.auth.startAutoRefresh();
+  } else {
+    supabase.auth.stopAutoRefresh();
+  }
 });
 
 /**

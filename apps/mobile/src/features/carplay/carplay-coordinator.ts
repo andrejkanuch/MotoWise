@@ -67,6 +67,10 @@ let started = false;
 // registered while a scene is already attached (the normal CarPlay-only cold launch),
 // and start() also checks isHeadUnitConnected() — without this both would build.
 let connected = false;
+// Bumped on every connect and disconnect. An async result (a Start resolving) checks
+// it so a result that lands after the head unit went away neither renders to a dead
+// scene nor carries its notice into the next session.
+let connectSession = 0;
 // A Start press is async (permission read, bike lookup, GPS start); repeat taps while
 // it is in flight must not start a second ride.
 let startInFlight = false;
@@ -431,13 +435,23 @@ function onConnect(): void {
   // one attach; only the first builds the root.
   if (connected) return;
   connected = true;
+  connectSession++;
+  notice = null; // a new session never shows the last one's Start failure
   disarmStop(); // a fresh connection never inherits a stale armed-stop
   bikeVisible = false;
   // Synchronous, store-only (MMKV-hydrated): the panel is up the moment the scene
   // connects — no auth, network or phone UI in the way.
   const snap = currentSnapshot();
   clearInformation(); // ensure the next render builds a fresh root template
-  renderInformation(panelModel(snap)); // projection, not start
+  try {
+    renderInformation(panelModel(snap)); // projection, not start
+  } catch (err) {
+    // Release the guard so the next replay (or reconnect) retries the build instead
+    // of leaving the head unit blank until a disconnect.
+    connected = false;
+    captureException(err, { source: 'carplay-coordinator.onConnect' });
+    return;
+  }
   lastState = snap.state;
   lastPushAt = Date.now();
   unsubStore?.();
@@ -449,6 +463,7 @@ function onConnect(): void {
 
 function onDisconnect(): void {
   connected = false;
+  connectSession++;
   notice = null;
   clearFlush();
   disarmStop();
@@ -476,7 +491,7 @@ function onAction(actionId: string): void {
     case CARPLAY_ACTION.resume:
       ride.resumeRide();
       break;
-    case CARPLAY_ACTION.start:
+    case CARPLAY_ACTION.start: {
       // CarPlay-initiated rides are Quick Rides — there's no bike picker on the
       // head unit. Routes through the shared controller so the GPS/background
       // listener, MMKV, and server sync all start exactly as a phone-started ride.
@@ -489,8 +504,12 @@ function onAction(actionId: string): void {
       if (startInFlight) return;
       startInFlight = true;
       notice = null;
+      const session = connectSession;
       startRideSession({ motorcycleId: null, source: 'carplay' })
         .then((result) => {
+          // The ride itself is real either way (it records on the phone); only the
+          // head-unit feedback is dropped once its session is gone.
+          if (session !== connectSession) return;
           if (result.ok) {
             notice = null;
           } else {
@@ -513,6 +532,7 @@ function onAction(actionId: string): void {
           startInFlight = false;
         });
       return; // async path owns its own render; skip the synchronous one below
+    }
     case CARPLAY_ACTION.bike:
       // Nav-bar button: push the bike-status list on top of the Ride panel.
       openBikeList();
@@ -574,6 +594,7 @@ export function startCarPlayCoordinator(): void {
 export function __resetCarPlayCoordinator(): void {
   started = false;
   connected = false;
+  connectSession = 0;
   startInFlight = false;
   notice = null;
   clearFlush();
