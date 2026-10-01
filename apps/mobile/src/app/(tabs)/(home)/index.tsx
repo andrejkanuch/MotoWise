@@ -357,12 +357,7 @@ export default function HomeScreen() {
           <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
             <EmptyState
               isDark={isDark}
-              onAddBike={() => {
-                // Same gate as the Garage button: a free rider at the bike limit sees the
-                // paywall now, not after filling in the whole form (MOTO-VAULT-REACT-NATIVE-2Y).
-                if (!requireAccess('MAX_BIKES', motorcycles.length)) return;
-                router.push('/(tabs)/(garage)/add-bike');
-              }}
+              onAddBike={() => router.push('/(tabs)/(garage)/add-bike')}
               onExplore={() => router.push('/(tabs)/(learn)')}
             />
           </View>
@@ -374,7 +369,12 @@ export default function HomeScreen() {
             bikes={motorcycles}
             selectedIndex={activeBikeIdx}
             onSelect={setSelectedBikeIdx}
-            onAddBike={() => router.push('/(tabs)/(garage)/add-bike')}
+            onAddBike={() => {
+              // Same gate as the Garage button: a free rider at the bike limit sees the
+              // paywall now, not after filling in the whole form (MOTO-VAULT-REACT-NATIVE-2Y).
+              if (!requireAccess('MAX_BIKES', motorcycles.length)) return;
+              router.push('/(tabs)/(garage)/add-bike');
+            }}
           />
         )}
 
