@@ -465,7 +465,8 @@ function onConnect(): void {
   connectedAt = lastPushAt;
   trackEvent(AnalyticsEvent.CARPLAY_CONNECTED, {
     ride_state: snap.state,
-    signed_in: hasAuthenticatedSession(),
+    // The session itself: hasAuthenticatedSession() is also true while auth hydrates.
+    signed_in: !!useAuthStore.getState().session,
   });
   unsubStore?.();
   unsubStore = useRideStore.subscribe(() => render());

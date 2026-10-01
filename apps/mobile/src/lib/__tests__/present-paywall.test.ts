@@ -141,6 +141,26 @@ describe('presentPaywall', () => {
     expect(mockShowUnavailable).not.toHaveBeenCalled();
   });
 
+  it('never overlaps two native paywalls, even behind an abortable flight', async () => {
+    let settleFirst: (value: string) => void = () => {};
+    mockPresent.mockImplementationOnce(
+      () =>
+        new Promise<string>((resolve) => {
+          settleFirst = resolve;
+        }),
+    );
+
+    const onboarding = presentPaywall({ source: 'onboarding', shouldAbort: () => false });
+    const tapped = presentPaywall({ source: 'feature_gate' });
+    await new Promise((r) => setImmediate(r));
+    expect(mockPresent).toHaveBeenCalledTimes(1); // the tap is waiting, not presenting
+
+    settleFirst('CANCELLED');
+    await expect(onboarding).resolves.toBe('cancelled');
+    await expect(tapped).resolves.toBe('cancelled');
+    expect(mockPresent).toHaveBeenCalledTimes(2);
+  });
+
   it('does not let a later tap join a flight its caller can abort', async () => {
     const [aborted, tapped] = await Promise.all([
       presentPaywall({ source: 'onboarding', shouldAbort: () => true }),

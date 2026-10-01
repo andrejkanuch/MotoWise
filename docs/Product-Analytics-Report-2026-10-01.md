@@ -77,7 +77,7 @@ The short version: reach roughly doubled and held, a small base of returning use
 
 ### Reading
 
-1. **The 3.18.0 keyword change is the cause of the iOS step-up.** Impressions doubled in the release week and never went back; the pre-change weeks ranged 343–546, the post-change weeks 920–1,274, so the ranges do not overlap.
+1. **The 3.18.0 store update (keywords, subtitle, promo text) coincided with the iOS step-up.** Impressions doubled in the release week and never went back; the pre-change weeks ranged 343–546, the post-change weeks 920–1,274, so the ranges do not overlap.
 2. **The Play 46-locale listing coincides with a second step in total installs** (58 → 92 in its release week; 3.19.0 installs have run 34–53 per week since). This is an estimate — there is no Play Console data in this report.
 3. **3.19.1 did not add reach.** The four weeks after it average 954 impressions / 59 page views / 21 downloads against 1,045 / 76 / 25 in the five weeks before. That is inside normal week-to-week variation, so call it a plateau, not a drop. Impression→page-view rate slipped from 8.2% to 6.8% over the whole period.
 4. **Active users follow installs, not retention.** In an average week ~70% of WAU are brand-new installs. WAU rose ×1.6 because installs rose ×1.9.

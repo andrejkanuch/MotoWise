@@ -549,7 +549,8 @@ async function getOfferingsForCustomer(Purchases: Awaited<ReturnType<typeof getP
   return Purchases.getOfferings();
 }
 
-let paywallInFlight: Promise<PaywallResult> | null = null;
+type PaywallFlight = { promise: Promise<PaywallResult>; abortable: boolean };
+let paywallInFlight: PaywallFlight | null = null;
 
 /**
  * Present the RevenueCat remote paywall.
@@ -571,19 +572,24 @@ export function presentPaywall(options: PresentPaywallOptions = {}): Promise<Pay
   // One paywall at a time. A second request while the first is still resolving
   // offerings (or is on screen) joins it instead of stacking another native present
   // and another round of events — every caller fires this from a tap handler.
-  if (paywallInFlight) return paywallInFlight;
-  const flight = doPresentPaywall(options).then((result) => {
-    if (result === 'error' && !options.silentOnError) showPaywallUnavailable();
-    return result;
-  });
-  // A flight its caller may abort (`shouldAbort`) is not shared: a later tap that
-  // joined it would inherit that abort and get no paywall at all.
-  if (options.shouldAbort) return flight;
-  const tracked: Promise<PaywallResult> = flight.finally(() => {
-    if (paywallInFlight === tracked) paywallInFlight = null;
-  });
-  paywallInFlight = tracked;
-  return tracked;
+  const current = paywallInFlight;
+  if (current && !current.abortable) return current.promise;
+  const start = () =>
+    doPresentPaywall(options).then((result) => {
+      if (result === 'error' && !options.silentOnError) showPaywallUnavailable();
+      return result;
+    });
+  // A flight its caller may abort (`shouldAbort`) is never joined — a later tap would
+  // inherit that abort and get no paywall. It waits for that flight to settle and
+  // then presents on its own, so two native paywalls still cannot overlap.
+  const promise = current ? current.promise.then(start, start) : start();
+  const flight: PaywallFlight = { promise, abortable: options.shouldAbort !== undefined };
+  paywallInFlight = flight;
+  const release = () => {
+    if (paywallInFlight === flight) paywallInFlight = null;
+  };
+  promise.then(release, release);
+  return promise;
 }
 
 /** Where in presentPaywall a failure happened — the only way to tell "the store

@@ -4,7 +4,7 @@ import MapboxGL from '@rnmapbox/maps';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import {
   ArrowDown,
   ArrowUp,
@@ -22,7 +22,7 @@ import {
   X,
 } from 'lucide-react-native';
 // NOTE: palette is kept only for speed-gradient colors (speedSlow/Medium/Fast)
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
@@ -113,10 +113,13 @@ export default function RideSummaryScreen() {
 
   // Android hardware back would leave without Save or Discard — the same stranded
   // ride the disabled swipe prevents on iOS.
-  useEffect(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
-    return () => sub.remove();
-  }, []);
+  // Focus-scoped: Add Expense is pushed on top and must keep its own back button.
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
+      return () => sub.remove();
+    }, []),
+  );
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
   const defaultRideName = useMemo(() => smartRideName(startedAtMs), [startedAtMs]);
   const [rideName, setRideName] = useState(defaultRideName);
