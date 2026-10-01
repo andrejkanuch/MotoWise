@@ -23,6 +23,7 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useProGate } from '../../../hooks/use-pro-gate';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { GRAPHQL_ERROR_CODE } from '../../../lib/graphql-error-classification';
 import { hasGraphQLCode, userFriendlyError } from '../../../lib/graphql-errors';
 import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { queryKeys } from '../../../lib/query-keys';
@@ -33,6 +34,9 @@ function haptic() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }
 }
+
+const isBikeLimitRejection = (error: unknown) =>
+  hasGraphQLCode(error, GRAPHQL_ERROR_CODE.FORBIDDEN);
 
 export default function AddBikeScreen() {
   const { t } = useTranslation();
@@ -114,6 +118,11 @@ export default function AddBikeScreen() {
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
     },
     onError: () => {}, // handled in handleSubmit try/catch
+    // The free-tier bike limit comes back as FORBIDDEN and handleSubmit turns it into
+    // the paywall — expected product behaviour, not a failure. FORBIDDEN stays
+    // reportable everywhere else, where it would mean an authorization anomaly.
+    // (MOTO-VAULT-REACT-NATIVE-2Y)
+    meta: { skipSentryCapture: isBikeLimitRejection },
   });
 
   const isValid =
@@ -140,7 +149,7 @@ export default function AddBikeScreen() {
       }
       router.back();
     } catch (e: unknown) {
-      if (hasGraphQLCode(e, 'FORBIDDEN')) {
+      if (isBikeLimitRejection(e)) {
         requireAccess('MAX_BIKES', Number.POSITIVE_INFINITY);
         return;
       }
