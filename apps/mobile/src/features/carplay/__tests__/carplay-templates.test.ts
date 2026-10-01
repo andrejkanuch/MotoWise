@@ -1,6 +1,7 @@
 import {
   buildActions,
   buildPanelItems,
+  CARPLAY_NOTICE,
   DUE_SOON_DAYS,
   deriveSnapshot,
   deriveState,
@@ -312,5 +313,30 @@ describe('forgot-to-stop prompt (CarPlay title)', () => {
   it('keeps Resume + Stop available so the prompt is actionable', () => {
     const snap = deriveSnapshot({ ...stopped, forgotToStopPending: true }, 'metric');
     expect(buildPanelItems(snap).actions?.map((a) => a.id)).toEqual(['resume', 'stop']);
+  });
+});
+
+describe('buildPanelItems notices', () => {
+  const idle = { ...base, status: 'idle' as const, startMode: 'manual' as const };
+
+  it('puts the notice in the first idle row and keeps Start', () => {
+    const model = buildPanelItems(
+      deriveSnapshot(idle, 'metric'),
+      false,
+      CARPLAY_NOTICE.locationOff,
+    );
+    expect(model.items[0]).toEqual({ title: 'Location', detail: 'Off · ride not recorded' });
+    expect(model.items.map((i) => i.title)).toEqual(['Location', 'Moving', 'Mode', 'Climb']);
+    expect(model.actions.map((a) => a.id)).toEqual(['start']);
+  });
+
+  it('ignores a notice while a ride is live', () => {
+    const snap = deriveSnapshot(base, 'metric');
+    expect(buildPanelItems(snap, false, CARPLAY_NOTICE.gpsFailed)).toEqual(buildPanelItems(snap));
+  });
+
+  it('is identical to the no-notice panel when the notice is null', () => {
+    const snap = deriveSnapshot(idle, 'metric');
+    expect(buildPanelItems(snap, false, null)).toEqual(buildPanelItems(snap));
   });
 });

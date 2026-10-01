@@ -2,7 +2,7 @@
   "name": "@motovault/mobile",
   "private": true,
   "version": "0.0.1",
-  "main": "expo-router/entry",
+  "main": "index.ts",
   "scripts": {
     "dev": "expo start",
     "start": "expo start",

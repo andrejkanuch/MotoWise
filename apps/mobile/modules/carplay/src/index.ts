@@ -71,10 +71,11 @@ export interface CarPlaySubscription {
   remove(): void;
 }
 
-// Eagerly load the library on iOS so its `didConnect` listener is live before a
-// head unit attaches (including a cold, headless CarPlay launch). require (not
-// import) keeps it off platforms where the native pod is absent; the try/catch
-// turns a missing native side into a graceful no-op.
+// Load the library on iOS. Loading registers nothing by itself — the coordinator's
+// connect listener is what makes the head unit render, and it is registered at bundle
+// evaluation (src/features/carplay/carplay-entry.ts) so a cold, CarPlay-only launch
+// gets a panel. require (not import) keeps it off platforms where the native pod is
+// absent; the try/catch turns a missing native side into a graceful no-op.
 type AutoPlayLib = typeof import('@iternio/react-native-auto-play');
 let lib: AutoPlayLib | null = null;
 if (Platform.OS === 'ios') {
@@ -294,5 +295,25 @@ export function addConnectListener(listener: () => void): CarPlaySubscription | 
 export function addDisconnectListener(listener: () => void): CarPlaySubscription | null {
   if (!lib) return null;
   const cleanup = lib.HybridAutoPlay.addListener('didDisconnect', listener);
+  return { remove: cleanup };
+}
+
+// Module name the library's WindowApplicationSceneDelegate reports the phone UI under
+// (SceneStore.windowSceneModuleName).
+const PHONE_SCENE_MODULE = 'main';
+const PHONE_SCENE_VISIBLE_STATES: ReadonlySet<string> = new Set(['willAppear', 'didAppear']);
+
+/**
+ * Whether the phone UI (not the CarPlay screen) is on screen. RN's AppState cannot
+ * tell: the CarPlay scene alone makes the app `active`. The library replays the
+ * current state on subscribe. Returns null when the library is absent.
+ */
+export function addPhoneSceneVisibilityListener(
+  listener: (visible: boolean) => void,
+): CarPlaySubscription | null {
+  if (!lib) return null;
+  const cleanup = lib.HybridAutoPlay.addListenerRenderState(PHONE_SCENE_MODULE, (state) =>
+    listener(PHONE_SCENE_VISIBLE_STATES.has(state)),
+  );
   return { remove: cleanup };
 }

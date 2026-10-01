@@ -2,7 +2,7 @@ import * as Location from 'expo-location';
 import { captureException } from '../lib/analytics';
 import { rideStorage } from './ride-storage';
 
-type PermissionLevel = 'full' | 'foreground_only' | 'denied';
+export type PermissionLevel = 'full' | 'foreground_only' | 'denied';
 
 const COOLDOWN_KEY = 'permissions.pre_prompt_dismissed_at';
 const FOREGROUND_RIDE_COUNT_KEY = 'permissions.foreground_ride_count';
@@ -38,6 +38,31 @@ export async function checkAndRequestPermissions(): Promise<PermissionLevel> {
   }
 
   return 'full';
+}
+
+/**
+ * Read-only counterpart of `checkAndRequestPermissions` for surfaces that must never
+ * prompt. CarPlay is one: the system alert is iPhone UI the rider cannot answer on a
+ * moving bike, iOS holds it back while the phone app is not in front (so the awaited
+ * request never settles and Start looks dead), and Apple's CarPlay guidelines forbid
+ * flows that need the phone. The app counts as in use while it is on the CarPlay
+ * screen, so When-In-Use is enough to record — the Always upgrade is never asked here.
+ */
+export async function readPermissionLevel(): Promise<PermissionLevel> {
+  try {
+    const foreground = await Location.getForegroundPermissionsAsync();
+    if (!foreground.granted) return 'denied';
+  } catch (err) {
+    captureException(err, { source: 'ride-permissions.readForeground' });
+    return 'denied';
+  }
+  // Same Android throw as above; foreground-only still records a ride.
+  try {
+    const background = await Location.getBackgroundPermissionsAsync();
+    return background.granted ? 'full' : 'foreground_only';
+  } catch {
+    return 'foreground_only';
+  }
 }
 
 /**

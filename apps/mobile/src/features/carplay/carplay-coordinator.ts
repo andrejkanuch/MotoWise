@@ -4,8 +4,9 @@
 // coalesced to >=10s (Apple's CPInformationTemplate refresh limit). Head-unit
 // actions route into the ride engine. The CarPlay process holds no ride truth.
 //
-// Started once on app init (src/app/_layout.tsx). No-ops when the native module
-// is absent (Android / pre-CarPlay build).
+// Started once at bundle evaluation (carplay-entry.ts, imported by index.ts before
+// expo-router) — NOT from the phone UI, which a CarPlay-only cold launch may never
+// mount. No-ops when the native module is absent (Android / pre-CarPlay build).
 
 import {
   MaintenanceTasksByMotorcycleDocument,
@@ -27,7 +28,7 @@ import {
   setInformationLifecycle,
   updateBikeList,
 } from '../../../modules/carplay/src';
-import { captureException } from '../../lib/analytics';
+import { addBreadcrumb, captureException } from '../../lib/analytics';
 import { hasAuthenticatedSession } from '../../lib/gql-auth-session';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryClient } from '../../lib/query-client';
@@ -46,9 +47,12 @@ import { type BikeStatusInput, buildBikeError, buildBikeStatus } from './carplay
 import {
   buildPanelItems,
   CARPLAY_ACTION,
+  CARPLAY_NOTICE,
+  type CarPlayNotice,
   type CarPlayPanelState,
   deriveSnapshot,
   type HeadsUpTask,
+  type PanelSnapshot,
   type RideInput,
 } from './carplay-templates';
 
@@ -59,6 +63,20 @@ const THROTTLE_MS = 10_000;
 const STOP_CONFIRM_MS = 5_000;
 
 let started = false;
+// One root build per head-unit session. The library replays `didConnect` to a listener
+// registered while a scene is already attached (the normal CarPlay-only cold launch),
+// and start() also checks isHeadUnitConnected() — without this both would build.
+let connected = false;
+// A Start press is async (permission read, bike lookup, GPS start); repeat taps while
+// it is in flight must not start a second ride.
+let startInFlight = false;
+// Why the last head-unit Start did not record. Shown on the idle panel until the next
+// Start press, a ride state change or a disconnect — see panelModel().
+let notice: CarPlayNotice | null = null;
+const START_FAILURE_NOTICE: Record<'denied' | 'gps_failed', CarPlayNotice> = {
+  denied: CARPLAY_NOTICE.locationOff,
+  gps_failed: CARPLAY_NOTICE.gpsFailed,
+};
 const eventSubs: CarPlaySubscription[] = [];
 let unsubStore: (() => void) | null = null;
 let lastState: CarPlayPanelState | null = null;
@@ -118,11 +136,21 @@ function forceRender(now: number = Date.now()): void {
   // picked up when the list pops (render() then sees the stale lastState).
   if (bikeVisible) return;
   clearFlush();
-  const system = useAuthStore.getState().measurementSystem ?? 'metric';
-  const snap = deriveSnapshot(currentRideInput(), system);
-  renderInformation(buildPanelItems(snap, stopArmed));
+  const snap = currentSnapshot();
+  renderInformation(panelModel(snap));
   lastState = snap.state;
   lastPushAt = now;
+}
+
+function currentSnapshot(): PanelSnapshot {
+  const system = useAuthStore.getState().measurementSystem ?? 'metric';
+  return deriveSnapshot(currentRideInput(), system);
+}
+
+// The single panel builder for every render site, so a notice set by a failed Start
+// is not dropped by the next store tick.
+function panelModel(snap: PanelSnapshot) {
+  return buildPanelItems(snap, stopArmed, notice);
 }
 
 function currentRideInput(): RideInput {
@@ -159,9 +187,11 @@ function render(now: number = Date.now()): void {
   // lastState is deliberately left stale so the render() fired on list-dismiss
   // detects the missed transition and rebuilds; otherwise it refreshes rows.
   if (bikeVisible) return;
-  const system = useAuthStore.getState().measurementSystem ?? 'metric';
-  const snap = deriveSnapshot(currentRideInput(), system);
-  const model = buildPanelItems(snap, stopArmed);
+  const snap = currentSnapshot();
+  // A ride started or ended (e.g. from the phone) — a stale Start-failure notice
+  // no longer describes anything.
+  if (snap.state !== lastState && snap.state !== 'idle') notice = null;
+  const model = panelModel(snap);
 
   if (snap.state !== lastState) {
     // State transition — render immediately (title + available actions change, so
@@ -395,17 +425,19 @@ function onRidePanelReappeared(): void {
 }
 
 function onConnect(): void {
+  // Library replay + the isHeadUnitConnected() check in start() both land here for
+  // one attach; only the first builds the root.
+  if (connected) return;
+  connected = true;
   disarmStop(); // a fresh connection never inherits a stale armed-stop
   bikeVisible = false;
-  const system = useAuthStore.getState().measurementSystem ?? 'metric';
-  const snap = deriveSnapshot(currentRideInput(), system);
+  // Synchronous, store-only (MMKV-hydrated): the panel is up the moment the scene
+  // connects — no auth, network or phone UI in the way.
+  const snap = currentSnapshot();
   clearInformation(); // ensure the next render builds a fresh root template
-  renderInformation(buildPanelItems(snap, stopArmed)); // projection, not start
+  renderInformation(panelModel(snap)); // projection, not start
   lastState = snap.state;
   lastPushAt = Date.now();
-  // Idempotent: onConnect can fire more than once without an intervening
-  // disconnect (scene attach + an already-connected unit on cold start). Drop any
-  // prior subscription so exactly one stays live.
   unsubStore?.();
   unsubStore = useRideStore.subscribe(() => render());
   // Warm the heads-up snapshot off the render path (cache-first). Fire-and-forget:
@@ -414,6 +446,8 @@ function onConnect(): void {
 }
 
 function onDisconnect(): void {
+  connected = false;
+  notice = null;
   clearFlush();
   disarmStop();
   popBikeList();
@@ -447,16 +481,35 @@ function onAction(actionId: string): void {
       // The result is async: surface a denied/gps_failed outcome (otherwise the
       // rider presses Start and nothing happens, with no Sentry signal) and render
       // off the resolved state — the store subscription also re-renders on success.
+      //
+      // `source: 'carplay'` never prompts for location (see ride-controller): a
+      // missing permission comes back as `denied` and is shown on the panel.
+      if (startInFlight) return;
+      startInFlight = true;
+      notice = null;
       startRideSession({ motorcycleId: null, source: 'carplay' })
         .then((result) => {
-          if (!result.ok) {
-            captureException(new Error(`CarPlay start failed: ${result.reason}`), {
-              source: 'carplay-coordinator.start',
-            });
+          if (result.ok) {
+            notice = null;
+          } else {
+            notice = START_FAILURE_NOTICE[result.reason];
+            // No location permission is a rider setting, not a bug — breadcrumb only.
+            if (result.reason === 'denied') {
+              addBreadcrumb('CarPlay start: location not granted', 'carplay');
+            } else {
+              captureException(new Error(`CarPlay start failed: ${result.reason}`), {
+                source: 'carplay-coordinator.start',
+              });
+            }
           }
-          render(Date.now());
+          // The state may be unchanged (still idle) while the notice flipped, so
+          // bypass the throttle.
+          forceRender();
         })
-        .catch((err) => captureException(err, { source: 'carplay-coordinator.start' }));
+        .catch((err) => captureException(err, { source: 'carplay-coordinator.start' }))
+        .finally(() => {
+          startInFlight = false;
+        });
       return; // async path owns its own render; skip the synchronous one below
     case CARPLAY_ACTION.bike:
       // Nav-bar button: push the bike-status list on top of the Ride panel.
@@ -510,12 +563,17 @@ export function startCarPlayCoordinator(): void {
   const c = addConnectListener(onConnect);
   const d = addDisconnectListener(onDisconnect);
   for (const s of [c, d]) if (s) eventSubs.push(s);
-  if (isHeadUnitConnected()) onConnect(); // catch an already-connected head unit
+  // The library already replays didConnect for an attached scene; this covers a
+  // future version that drops the replay. The `connected` guard dedupes the two.
+  if (isHeadUnitConnected()) onConnect();
 }
 
 // Test-only reset.
 export function __resetCarPlayCoordinator(): void {
   started = false;
+  connected = false;
+  startInFlight = false;
+  notice = null;
   clearFlush();
   disarmStop();
   popBikeList();

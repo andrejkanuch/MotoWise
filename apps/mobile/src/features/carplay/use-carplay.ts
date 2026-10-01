@@ -7,9 +7,11 @@
 import { MyMotorcyclesDocument, type MyMotorcyclesQuery } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+import { AppState } from 'react-native';
 import {
   addConnectListener,
   addDisconnectListener,
+  addPhoneSceneVisibilityListener,
   isCarPlayAvailable,
   isHeadUnitConnected,
 } from '../../../modules/carplay/src';
@@ -20,8 +22,25 @@ import { queryKeys } from '../../lib/query-keys';
 import { useCarPlayStore } from '../../stores/carplay.store';
 import { useRideStore } from '../../stores/ride.store';
 import { formatDistance, formatElapsed, formatElevation } from '../../utils/ride-formatters';
+import { initialPhoneSceneVisible } from './phone-scene';
 
 export type Motorcycle = MyMotorcyclesQuery['myMotorcycles'][number];
+
+/** Whether the phone UI (not just the CarPlay screen) is on screen. */
+export function usePhoneSceneVisible(): boolean {
+  const [visible, setVisible] = useState(() =>
+    initialPhoneSceneVisible({
+      carPlayAvailable: isCarPlayAvailable,
+      appActive: AppState.currentState === 'active',
+      headUnitConnected: isHeadUnitConnected(),
+    }),
+  );
+  useEffect(() => {
+    const sub = addPhoneSceneVisibilityListener(setVisible);
+    return () => sub?.remove();
+  }, []);
+  return visible;
+}
 
 // CarPlay connection state, wired to the native module. Disconnected (and inert)
 // when the module is unavailable.
