@@ -26,6 +26,7 @@
     "deleting": "Deleting..."
   },
   "auth": {
+    "googlePlayServicesUnavailable": "Google sign-in needs Google Play services, which this device doesn't have. Please continue with email instead.",
     "signIn": "Sign In",
     "signingIn": "Signing in...",
     "signUp": "Create Account",
@@ -1902,6 +1903,7 @@
     "dur": "Dur"
   },
   "rideDetail": {
+    "unavailable": "This ride is no longer available. It may have been deleted or made private.",
     "noRouteData": "No route data",
     "showDetails": "Show Details",
     "distance": "Distance",

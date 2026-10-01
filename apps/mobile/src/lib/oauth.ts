@@ -1,4 +1,9 @@
-import { GoogleSignin, isSuccessResponse } from '@react-native-google-signin/google-signin';
+import {
+  GoogleSignin,
+  isErrorWithCode,
+  isSuccessResponse,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 import type { Session, User } from '@supabase/supabase-js';
 import { differenceInSeconds } from 'date-fns';
 import * as AppleAuthentication from 'expo-apple-authentication';
@@ -11,10 +16,49 @@ const EXPECTED_AUTH_MESSAGES = [
   'authorization attempt failed for an unknown reason',
 ];
 
+/** How a failed OAuth attempt is presented: silently, with a specific message, or reported. */
+export const OAUTH_ERROR_KIND = {
+  /** A second Google sign-in started while one was already open (double tap). Silent. */
+  inProgress: 'inProgress',
+  /** The device has no Google Play services (e.g. Huawei without GMS). Guide to email. */
+  noPlayServices: 'noPlayServices',
+  /** A normal user outcome such as cancelling. Not a bug. */
+  expected: 'expected',
+  /** Anything else: a real failure to report. */
+  unexpected: 'unexpected',
+} as const;
+export type OAuthErrorKind = (typeof OAUTH_ERROR_KIND)[keyof typeof OAUTH_ERROR_KIND];
+
+/** Thrown by `signInWithGoogle` when it is called while an earlier call is still open. */
+export class GoogleSignInInProgressError extends Error {
+  constructor() {
+    super('Google sign-in is already in progress');
+    this.name = 'GoogleSignInInProgressError';
+  }
+}
+
+// Classified by the library's error CODE, not its message: the native messages are
+// long, platform-specific and not stable. (MOTO-VAULT-REACT-NATIVE-A, -3H)
+const GOOGLE_CODE_KIND: Readonly<Record<string, OAuthErrorKind>> = {
+  [statusCodes.IN_PROGRESS]: OAUTH_ERROR_KIND.inProgress,
+  [statusCodes.PLAY_SERVICES_NOT_AVAILABLE]: OAUTH_ERROR_KIND.noPlayServices,
+};
+
+export function classifyOAuthError(err: unknown): OAuthErrorKind {
+  if (err instanceof GoogleSignInInProgressError) return OAUTH_ERROR_KIND.inProgress;
+  if (isErrorWithCode(err)) {
+    const kind = GOOGLE_CODE_KIND[String(err.code)];
+    if (kind) return kind;
+  }
+  const msg = err instanceof Error ? err.message.toLowerCase() : '';
+  return EXPECTED_AUTH_MESSAGES.some((m) => msg.includes(m))
+    ? OAUTH_ERROR_KIND.expected
+    : OAUTH_ERROR_KIND.unexpected;
+}
+
 /** Returns true for auth errors that are expected user-facing outcomes, not bugs. */
 export function isExpectedAuthError(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message.toLowerCase() : '';
-  return EXPECTED_AUTH_MESSAGES.some((m) => msg.includes(m));
+  return classifyOAuthError(err) !== OAUTH_ERROR_KIND.unexpected;
 }
 
 /**
@@ -102,7 +146,26 @@ export async function signInWithApple(): Promise<OAuthResult> {
   return { isNewUser: isNewlyCreatedUser(resolveUser(data)) };
 }
 
+// One Google sign-in at a time. A second `GoogleSignin.signIn()` while the sheet is
+// open makes the native module reject the FIRST promise ("previous promise did not
+// settle and was overwritten"), which the first handler then reported and alerted on
+// while sign-in continued (MOTO-VAULT-REACT-NATIVE-A, double taps on Android). The
+// extra call is refused before it reaches the native module, and not given the first
+// call's result either: every caller tracks its own sign-in/sign-up event, so sharing
+// the result would double-count it.
+let googleSignInInFlight = false;
+
 export async function signInWithGoogle(): Promise<OAuthResult> {
+  if (googleSignInInFlight) throw new GoogleSignInInProgressError();
+  googleSignInInFlight = true;
+  try {
+    return await runGoogleSignIn();
+  } finally {
+    googleSignInInFlight = false;
+  }
+}
+
+async function runGoogleSignIn(): Promise<OAuthResult> {
   await GoogleSignin.hasPlayServices();
   const response = await GoogleSignin.signIn();
 

@@ -6,7 +6,7 @@ import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, View } from 'react-native';
+import { AppState, Pressable, Text, View } from 'react-native';
 import { HudLayoutA } from '../../components/ride/hud-layout-a';
 import { HudLayoutB } from '../../components/ride/hud-layout-b';
 import { type HudLayout, HudLayoutSwitcher } from '../../components/ride/hud-layout-switcher';
@@ -42,6 +42,8 @@ function getPersistedLayout(): HudLayout {
 function persistLayout(layout: HudLayout) {
   rideMMKV.setHudLayout(layout);
 }
+
+const APP_STATE_ACTIVE = 'active';
 
 export default function RideHudScreen() {
   const { t } = useTranslation();
@@ -99,9 +101,15 @@ export default function RideHudScreen() {
     [hudLayout],
   );
 
-  // Collect sparkline data + live waypoints every ~5 seconds
+  // Collect sparkline data + live waypoints every ~5 seconds — only while the HUD can
+  // be seen. In the background nobody is looking, and the full waypoint re-read below
+  // grows with ride length: on a long backgrounded ride it was re-rendering and
+  // re-laying out the HUD every 5 s for nobody (implicated in a background ANR on
+  // Android, MOTO-VAULT-REACT-NATIVE-3J; and the 3.20.0 CarPlay timer swap keeps JS
+  // timers running in the background on iOS too). Recording itself is unaffected:
+  // GPS points are written by the location task, not here.
   useEffect(() => {
-    const interval = setInterval(() => {
+    const sample = () => {
       if (isPaused) return;
 
       setSpeedHistory((prev) => {
@@ -126,8 +134,18 @@ export default function RideHudScreen() {
         const chunks = getWaypointChunks(rideId);
         setLiveWaypoints([...chunks.flat(), ...buffer]);
       }
+    };
+    const interval = setInterval(() => {
+      if (AppState.currentState === APP_STATE_ACTIVE) sample();
     }, 5000);
-    return () => clearInterval(interval);
+    // Catch the route up as soon as the rider is back on the HUD.
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === APP_STATE_ACTIVE) sample();
+    });
+    return () => {
+      clearInterval(interval);
+      sub.remove();
+    };
   }, [isPaused]);
 
   // Keep screen awake. Both calls are fire-and-forget native side effects, and
@@ -150,14 +168,25 @@ export default function RideHudScreen() {
   // timestamps and freezes during a pause (it subtracts banked + in-progress pause),
   // so the HUD no longer tracks pause time itself (that lived here and in CarPlay
   // divergently; the store's pauseRide/resumeRide now own the single pause clock).
+  // Display-only (the HUD, the tab-bar ride banner): skipped in the background and
+  // recomputed on return, which is exact because elapsed derives from timestamps.
   useEffect(() => {
-    const interval = setInterval(() => {
+    const tick = () => {
       const elapsed = elapsedRideSeconds();
       elapsedRef.current = elapsed;
       setElapsedSeconds(elapsed);
       updateElapsedTime(elapsed);
+    };
+    const interval = setInterval(() => {
+      if (AppState.currentState === APP_STATE_ACTIVE) tick();
     }, 1000);
-    return () => clearInterval(interval);
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === APP_STATE_ACTIVE) tick();
+    });
+    return () => {
+      clearInterval(interval);
+      sub.remove();
+    };
   }, [updateElapsedTime]);
 
   const handlePause = useCallback(() => {

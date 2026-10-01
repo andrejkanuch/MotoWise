@@ -26,6 +26,7 @@
     "deleting": "Eliminazione..."
   },
   "auth": {
+    "googlePlayServicesUnavailable": "L'accesso con Google richiede i servizi Google Play, non disponibili su questo dispositivo. Continua invece con l'email.",
     "signIn": "Accedi",
     "signingIn": "Accesso in corso...",
     "signUp": "Crea account",
@@ -2007,6 +2008,7 @@
     "dur": "Dur"
   },
   "rideDetail": {
+    "unavailable": "Questo giro non è più disponibile. Potrebbe essere stato eliminato o reso privato.",
     "noRouteData": "Nessun dato percorso",
     "showDetails": "Mostra dettagli",
     "distance": "Distanza",

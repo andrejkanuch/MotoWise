@@ -26,6 +26,7 @@
     "deleting": "Usuwanie..."
   },
   "auth": {
+    "googlePlayServicesUnavailable": "Logowanie przez Google wymaga usług Google Play, których to urządzenie nie ma. Kontynuuj za pomocą adresu e-mail.",
     "signIn": "Zaloguj sie",
     "signingIn": "Logowanie...",
     "signUp": "Utworz konto",
@@ -2009,6 +2010,7 @@
     "dur": "Dur"
   },
   "rideDetail": {
+    "unavailable": "Ta jazda nie jest już dostępna. Mogła zostać usunięta lub ustawiona jako prywatna.",
     "noRouteData": "Brak danych trasy",
     "showDetails": "Pokaż szczegóły",
     "distance": "Dystans",

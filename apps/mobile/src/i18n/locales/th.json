@@ -26,6 +26,7 @@
     "deleting": "Deleting..."
   },
   "auth": {
+    "googlePlayServicesUnavailable": "การลงชื่อเข้าใช้ด้วย Google ต้องใช้บริการ Google Play ซึ่งอุปกรณ์นี้ไม่มี โปรดดำเนินการต่อด้วยอีเมลแทน",
     "signIn": "เข้าสู่ระบบ",
     "signingIn": "กำลังเข้าสู่ระบบ...",
     "signUp": "สร้างบัญชี",
@@ -2005,6 +2006,7 @@
     "dur": "Dur"
   },
   "rideDetail": {
+    "unavailable": "การขับขี่นี้ไม่พร้อมใช้งานแล้ว อาจถูกลบหรือตั้งเป็นส่วนตัว",
     "noRouteData": "ไม่มีข้อมูลเส้นทาง",
     "showDetails": "แสดงรายละเอียด",
     "distance": "ระยะทาง",

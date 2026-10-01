@@ -26,6 +26,7 @@
     "deleting": "削除中..."
   },
   "auth": {
+    "googlePlayServicesUnavailable": "Google ログインには Google Play 開発者サービスが必要ですが、この端末にはありません。メールアドレスで続行してください。",
     "signIn": "サインイン",
     "signingIn": "サインイン中...",
     "signUp": "アカウント作成",
@@ -2005,6 +2006,7 @@
     "dur": "Dur"
   },
   "rideDetail": {
+    "unavailable": "このライドは利用できなくなりました。削除されたか、非公開に設定された可能性があります。",
     "noRouteData": "ルートデータなし",
     "showDetails": "詳細を表示",
     "distance": "距離",

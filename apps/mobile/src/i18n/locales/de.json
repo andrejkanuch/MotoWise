@@ -26,6 +26,7 @@
     "deleting": "Wird gelöscht..."
   },
   "auth": {
+    "googlePlayServicesUnavailable": "Die Google-Anmeldung benötigt Google Play-Dienste, die auf diesem Gerät nicht verfügbar sind. Bitte fahre stattdessen mit E-Mail fort.",
     "signIn": "Anmelden",
     "signingIn": "Anmeldung...",
     "signUp": "Konto erstellen",
@@ -2005,6 +2006,7 @@
     "dur": "Dur"
   },
   "rideDetail": {
+    "unavailable": "Diese Fahrt ist nicht mehr verfügbar. Sie wurde möglicherweise gelöscht oder auf privat gestellt.",
     "noRouteData": "Keine Routendaten",
     "showDetails": "Details anzeigen",
     "distance": "Distanz",

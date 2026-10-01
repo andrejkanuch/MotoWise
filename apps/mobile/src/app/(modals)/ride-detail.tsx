@@ -1,9 +1,7 @@
 import BottomSheet, { BottomSheetBackdrop, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { palette } from '@motovault/design-system';
 import {
-  GetPublicRideDocument,
   type GetPublicRideQuery,
-  GetRideDocument,
   type GetRideQuery,
   GetRideWaypointsDocument,
   type GetRideWaypointsQuery,
@@ -37,6 +35,7 @@ import { RideSpeedChart } from '../../components/ride/ride-speed-chart';
 import { RideStatTile } from '../../components/ride/ride-stat-tile';
 import { ShareActivitySheet } from '../../components/share/share-activity-sheet';
 import type { RideSharePayload } from '../../components/share/share-card-types';
+import { fetchRideBundle, RIDE_VIEWER } from '../../features/ride/fetch-ride-bundle';
 import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useRideHeatmapData } from '../../hooks/use-ride-heatmap-data';
@@ -84,23 +83,23 @@ export default function RideDetailScreen() {
   const [mapSnapshotUri, setMapSnapshotUri] = useState<string | null>(null);
   const snapPoints = useMemo(() => [100, '45%', '92%'], []);
 
-  const { data: rideBundle, isLoading } = useQuery({
+  const {
+    data: rideBundle,
+    isLoading,
+    isError: rideUnavailable,
+  } = useQuery({
     queryKey: queryKeys.rides.detail(rideId ?? ''),
     queryFn: async () => {
       const id = rideId;
       if (!id) throw new Error('Missing rideId');
-      try {
-        const r = await gqlFetcher(GetRideDocument, { id });
-        return { viewer: 'owner' as const, ride: r.ride };
-      } catch {
-        const r = await gqlFetcher(GetPublicRideDocument, { id });
-        return { viewer: 'public' as const, ride: r.getPublicRide };
-      }
+      return fetchRideBundle(id);
     },
     enabled: !!rideId,
+    // The screen renders its own unavailable state; no modal on top of it.
+    meta: { showErrorAlert: false },
   });
 
-  const isOwnerViewer = rideBundle?.viewer === 'owner';
+  const isOwnerViewer = rideBundle?.viewer === RIDE_VIEWER.owner;
   const canLoadWaypoints = !!rideId && rideBundle != null && isOwnerViewer;
 
   const { data: waypointData, isLoading: waypointsLoading } = useQuery({
@@ -111,6 +110,8 @@ export default function RideDetailScreen() {
     },
     enabled: canLoadWaypoints,
     staleTime: Number.POSITIVE_INFINITY,
+    // A missing route degrades to the "No route data" map state.
+    meta: { showErrorAlert: false },
   });
 
   const ride = rideBundle?.ride as RideDetailPayload | undefined;
@@ -288,6 +289,45 @@ export default function RideDetailScreen() {
     });
     return () => handler.remove();
   }, [showMapPicker]);
+
+  // Deleted, private or unreachable ride: say so instead of spinning forever (the
+  // loading branch below treated any missing ride as "still loading").
+  if (rideUnavailable && !ride) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: theme.bg,
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 20,
+          paddingHorizontal: 32,
+        }}
+      >
+        <Text
+          selectable
+          style={{ color: theme.ink2, fontSize: 16, lineHeight: 22, textAlign: 'center' }}
+        >
+          {t('rideDetail.unavailable')}
+        </Text>
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          style={{
+            paddingHorizontal: 20,
+            paddingVertical: 12,
+            borderRadius: 999,
+            borderCurve: 'continuous',
+            backgroundColor: theme.warm,
+          }}
+        >
+          <Text style={{ color: palette.white, fontSize: 15, fontWeight: '600' }}>
+            {t('common.goBack')}
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   if (isLoading || !ride) {
     return (

@@ -26,6 +26,7 @@
     "deleting": "Odstraňuje sa..."
   },
   "auth": {
+    "googlePlayServicesUnavailable": "Prihlásenie cez Google vyžaduje služby Google Play, ktoré toto zariadenie nemá. Pokračujte radšej e-mailom.",
     "signIn": "Prihlásiť sa",
     "signingIn": "Prihlasovanie...",
     "signUp": "Vytvoriť účet",
@@ -2009,6 +2010,7 @@
     "dur": "Dur"
   },
   "rideDetail": {
+    "unavailable": "Táto jazda už nie je dostupná. Možno bola odstránená alebo nastavená ako súkromná.",
     "noRouteData": "Žiadne dáta trasy",
     "showDetails": "Zobraziť detaily",
     "distance": "Vzdialenosť",
