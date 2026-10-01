@@ -22,6 +22,13 @@ overrides:
   lightningcss: 1.30.1
   protobufjs: '>=7.6.4'
   shell-quote: '>=1.9.0'
+  # Xcode 27 (required by @iternio/react-native-auto-play 0.7.0, #247): expo-modules-jsi
+  # 57.0.4's "Build ExpoModulesJSI xcframework" phase prints Xcode 27's new foreign
+  # reference ownership warnings as errors while exiting 0, which fails `xcodebuild
+  # archive` ("PhaseScriptExecution emitted errors"). Fixed in 57.0.5 (expo/expo#49120),
+  # inside expo-modules-core 57.0.10's declared ~57.0.4 range. Drop this once the Expo
+  # SDK 57 patch bump brings expo-modules-core onto a release that requires >=57.0.5.
+  expo-modules-jsi: 57.0.5
 # Version-pinned bypass of pnpm 11's default 1-day minimumReleaseAge for the Next.js
 # 16.3.8 security release (GHSA-cjq9-62q9-8jv4 SSRF in image optimization, plus five
 # cache-poisoning / disclosure fixes): published 2026-09-30, adopted 2026-10-01 (#248).
