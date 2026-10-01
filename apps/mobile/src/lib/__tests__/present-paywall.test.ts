@@ -133,6 +133,25 @@ describe('presentPaywall', () => {
     ]);
   });
 
+  it('does not show the alert for a paywall the app presented on its own', async () => {
+    mockPresent.mockResolvedValue('ERROR');
+
+    await presentPaywall({ source: 'onboarding', silentOnError: true });
+
+    expect(mockShowUnavailable).not.toHaveBeenCalled();
+  });
+
+  it('does not let a later tap join a flight its caller can abort', async () => {
+    const [aborted, tapped] = await Promise.all([
+      presentPaywall({ source: 'onboarding', shouldAbort: () => true }),
+      presentPaywall({ source: 'feature_gate' }),
+    ]);
+
+    expect(aborted).toBe('not_presented');
+    expect(tapped).toBe('cancelled');
+    expect(mockPresent).toHaveBeenCalledTimes(1);
+  });
+
   it('stays quiet when the rider simply closes the paywall', async () => {
     await presentPaywall();
 

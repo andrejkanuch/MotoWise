@@ -43,7 +43,7 @@ export default function NewDiagnosticScreen() {
   const queryClient = useQueryClient();
   const prefersReducedMotion = useReducedMotion();
   const colors = useDiagnosticColors();
-  const { requirePro } = useProGate();
+  const { requirePro, isPro } = useProGate();
 
   const { currentStep, navigationDirection, reset, goBack, hasAnyData } = useDiagnosticFlowStore(
     useShallow((s) => ({
@@ -206,7 +206,7 @@ export default function NewDiagnosticScreen() {
           message = error.message;
         }
       }
-      if (hasGraphQLCode(error, GRAPHQL_ERROR_CODE.FORBIDDEN)) {
+      if (!isPro && hasGraphQLCode(error, GRAPHQL_ERROR_CODE.FORBIDDEN)) {
         // Free monthly diagnosis used: an expected outcome, and the upgrade moment.
         trackEvent(AnalyticsEvent.DIAGNOSTIC_LIMIT_REACHED);
         requirePro('full_ai_diagnostics');

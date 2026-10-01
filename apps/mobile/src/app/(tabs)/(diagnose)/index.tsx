@@ -8,7 +8,6 @@ import {
   Camera,
   ChevronRight,
   Clock,
-  Crown,
   Disc,
   Droplets,
   ScanLine,
@@ -30,7 +29,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useProGate } from '../../../hooks/use-pro-gate';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
@@ -107,7 +105,6 @@ export default function DiagnoseScreen() {
   const { t: eTheme, isDark: colorSchemeDark } = useEditorialTheme();
   const colorScheme = colorSchemeDark ? 'dark' : 'light';
   const isDark = colorScheme === 'dark';
-  const { isPro } = useProGate();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isRefreshingRef = useRef(false);
@@ -299,30 +296,6 @@ export default function DiagnoseScreen() {
                   >
                     {t('diagnose.scanDescription')}
                   </Text>
-
-                  {/* Pro badge */}
-                  {!isPro && (
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 6,
-                        marginTop: 12,
-                        backgroundColor: 'rgba(255,255,255,0.12)',
-                        borderRadius: 20,
-                        paddingHorizontal: 12,
-                        paddingVertical: 6,
-                        borderCurve: 'continuous',
-                      }}
-                    >
-                      <Crown size={14} color={palette.signature400} strokeWidth={2} />
-                      <Text
-                        style={{ fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.7)' }}
-                      >
-                        Pro
-                      </Text>
-                    </View>
-                  )}
                 </LinearGradient>
               </Animated.View>
             </Pressable>

@@ -105,6 +105,12 @@ type PresentPaywallOptions = PaywallAnalyticsOptions & {
    * get a native paywall dropped over the next onboarding screen.
    */
   shouldAbort?: () => boolean;
+  /**
+   * Skip the "upgrade unavailable" alert when the paywall fails. For paywalls the
+   * app presents on its own (onboarding): the rider did not ask for one, so a
+   * failure is not something to interrupt them with.
+   */
+  silentOnError?: boolean;
 };
 
 function paywallProperties(
@@ -566,15 +572,18 @@ export function presentPaywall(options: PresentPaywallOptions = {}): Promise<Pay
   // offerings (or is on screen) joins it instead of stacking another native present
   // and another round of events — every caller fires this from a tap handler.
   if (paywallInFlight) return paywallInFlight;
-  paywallInFlight = doPresentPaywall(options)
-    .then((result) => {
-      if (result === 'error') showPaywallUnavailable();
-      return result;
-    })
-    .finally(() => {
-      paywallInFlight = null;
-    });
-  return paywallInFlight;
+  const flight = doPresentPaywall(options).then((result) => {
+    if (result === 'error' && !options.silentOnError) showPaywallUnavailable();
+    return result;
+  });
+  // A flight its caller may abort (`shouldAbort`) is not shared: a later tap that
+  // joined it would inherit that abort and get no paywall at all.
+  if (options.shouldAbort) return flight;
+  const tracked: Promise<PaywallResult> = flight.finally(() => {
+    if (paywallInFlight === tracked) paywallInFlight = null;
+  });
+  paywallInFlight = tracked;
+  return tracked;
 }
 
 /** Where in presentPaywall a failure happened — the only way to tell "the store

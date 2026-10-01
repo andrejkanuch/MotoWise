@@ -22,9 +22,18 @@ import {
   X,
 } from 'lucide-react-native';
 // NOTE: palette is kept only for speed-gradient colors (speedSlow/Medium/Fast)
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
+import {
+  Alert,
+  BackHandler,
+  Pressable,
+  ScrollView,
+  Share,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeToggle } from '../../components/ui/native-toggle';
@@ -101,6 +110,13 @@ export default function RideSummaryScreen() {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const { t: theme, isDark } = useEditorialTheme();
+
+  // Android hardware back would leave without Save or Discard — the same stranded
+  // ride the disabled swipe prevents on iOS.
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
+    return () => sub.remove();
+  }, []);
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
   const defaultRideName = useMemo(() => smartRideName(startedAtMs), [startedAtMs]);
   const [rideName, setRideName] = useState(defaultRideName);
@@ -319,9 +335,12 @@ export default function RideSummaryScreen() {
           });
           // The ride was already completed on the server when it ended; without
           // this it stays in the rider's history after they discard it.
-          enqueueOrExecute('deleteRide', { variables: { id: rideId } });
+          // Refetch after the delete has drained — an immediate refetch races it and
+          // brings the discarded ride straight back into the list.
+          void enqueueOrExecute('deleteRide', { variables: { id: rideId } }).finally(() =>
+            queryClient.invalidateQueries({ queryKey: queryKeys.rides.all }),
+          );
           clearRideData(rideId);
-          queryClient.invalidateQueries({ queryKey: queryKeys.rides.all });
           router.replace('/(tabs)/(profile)');
         },
       },
