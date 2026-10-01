@@ -58,6 +58,14 @@ jest.mock('expo-router', () => ({ router: { replace: jest.fn() } }));
 jest.mock('../../../lib/analytics', () => ({
   captureException: jest.fn(),
   addBreadcrumb: jest.fn(),
+  trackEvent: jest.fn(),
+  flushAnalytics: jest.fn(() => Promise.resolve()),
+  AnalyticsEvent: {
+    CARPLAY_CONNECTED: 'carplay_connected',
+    CARPLAY_DISCONNECTED: 'carplay_disconnected',
+    CARPLAY_ACTION: 'carplay_action',
+    CARPLAY_START_FAILED: 'carplay_start_failed',
+  },
 }));
 
 // --- store mocks (avoid the MMKV / expo dependency chain) ---
@@ -103,7 +111,7 @@ jest.mock('../../../lib/gql-auth-session', () => ({
 }));
 
 import { router } from 'expo-router';
-import { captureException } from '../../../lib/analytics';
+import { captureException, flushAnalytics, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryClient } from '../../../lib/query-client';
 import * as rideController from '../../ride/ride-controller';
@@ -202,6 +210,26 @@ describe('carplay-coordinator', () => {
     expect(mockStoreListeners.length).toBe(1);
   });
 
+  it('reports the head-unit session to analytics and flushes when it ends', () => {
+    startCarPlayCoordinator();
+    fireConnect();
+    fireConnect(); // replayed didConnect — still one session
+    expect(trackEvent).toHaveBeenCalledWith('carplay_connected', {
+      ride_state: expect.any(String),
+      signed_in: true,
+    });
+    fireAction('pause');
+    expect(trackEvent).toHaveBeenCalledWith('carplay_action', {
+      action: 'pause',
+      ride_state: 'recording',
+    });
+    fireDisconnect();
+    fireDisconnect(); // a disconnect with no session reports nothing
+    const events = (trackEvent as jest.Mock).mock.calls.map(([event]) => event);
+    expect(events).toEqual(['carplay_connected', 'carplay_action', 'carplay_disconnected']);
+    expect(flushAnalytics).toHaveBeenCalledTimes(1);
+  });
+
   it('rebuilds on a reconnect after a disconnect', () => {
     startCarPlayCoordinator();
     fireConnect();
@@ -231,6 +259,7 @@ describe('carplay-coordinator', () => {
       });
       // An expected rider setting, not an error.
       expect(captureException).not.toHaveBeenCalled();
+      expect(trackEvent).toHaveBeenCalledWith('carplay_start_failed', { reason: 'denied' });
       // A later render must not drop the notice.
       jest.spyOn(Date, 'now').mockReturnValue(Date.now() + THROTTLE_MS + 1);
       fireStore();

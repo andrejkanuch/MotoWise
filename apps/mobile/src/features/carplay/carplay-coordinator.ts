@@ -28,7 +28,13 @@ import {
   setInformationLifecycle,
   updateBikeList,
 } from '../../../modules/carplay/src';
-import { addBreadcrumb, captureException } from '../../lib/analytics';
+import {
+  AnalyticsEvent,
+  addBreadcrumb,
+  captureException,
+  flushAnalytics,
+  trackEvent,
+} from '../../lib/analytics';
 import { hasAuthenticatedSession } from '../../lib/gql-auth-session';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryClient } from '../../lib/query-client';
@@ -71,6 +77,8 @@ let connected = false;
 // it so a result that lands after the head unit went away neither renders to a dead
 // scene nor carries its notice into the next session.
 let connectSession = 0;
+// When the current head-unit session attached — for carplay_disconnected's duration.
+let connectedAt = 0;
 // A Start press is async (permission read, bike lookup, GPS start); repeat taps while
 // it is in flight must not start a second ride.
 let startInFlight = false;
@@ -454,6 +462,11 @@ function onConnect(): void {
   }
   lastState = snap.state;
   lastPushAt = Date.now();
+  connectedAt = lastPushAt;
+  trackEvent(AnalyticsEvent.CARPLAY_CONNECTED, {
+    ride_state: snap.state,
+    signed_in: hasAuthenticatedSession(),
+  });
   unsubStore?.();
   unsubStore = useRideStore.subscribe(() => render());
   // Warm the heads-up snapshot off the render path (cache-first). Fire-and-forget:
@@ -462,6 +475,14 @@ function onConnect(): void {
 }
 
 function onDisconnect(): void {
+  if (connected) {
+    trackEvent(AnalyticsEvent.CARPLAY_DISCONNECTED, {
+      session_duration_s: Math.round((Date.now() - connectedAt) / 1000),
+    });
+    // The phone UI may never come to the foreground after a drive; don't leave the
+    // session's events queued on disk until the app is next opened.
+    void flushAnalytics().catch(() => {});
+  }
   connected = false;
   connectSession++;
   notice = null;
@@ -484,6 +505,7 @@ function onAction(actionId: string): void {
   // from behind the list. The list's own back button is native, not an action.
   if (bikeVisible) return;
   const ride = useRideStore.getState();
+  trackEvent(AnalyticsEvent.CARPLAY_ACTION, { action: actionId, ride_state: ride.status });
   switch (actionId) {
     case CARPLAY_ACTION.pause:
       ride.pauseRide();
@@ -514,6 +536,7 @@ function onAction(actionId: string): void {
             notice = null;
           } else {
             notice = START_FAILURE_NOTICE[result.reason];
+            trackEvent(AnalyticsEvent.CARPLAY_START_FAILED, { reason: result.reason });
             // No location permission is a rider setting, not a bug — breadcrumb only.
             if (result.reason === 'denied') {
               addBreadcrumb('CarPlay start: location not granted', 'carplay');

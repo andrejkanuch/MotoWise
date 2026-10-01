@@ -1183,7 +1183,9 @@
     "annual": "Tahunan",
     "monthly": "Bulanan",
     "year": "thn",
-    "continueWithFree": "Lanjutkan dengan Gratis"
+    "continueWithFree": "Lanjutkan dengan Gratis",
+    "unavailableTitle": "Upgrade belum tersedia saat ini",
+    "unavailableMessage": "Kami tidak dapat memuat pilihan upgrade. Periksa koneksi Anda dan pastikan Anda sudah masuk ke toko aplikasi, lalu coba lagi."
   },
   "quiz": {
     "loading": "Memuat kuis...",

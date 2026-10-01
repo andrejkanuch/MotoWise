@@ -1183,7 +1183,9 @@
     "annual": "Jaehrlich",
     "monthly": "Monatlich",
     "year": "Jahr",
-    "continueWithFree": "Mit kostenloser Version fortfahren"
+    "continueWithFree": "Mit kostenloser Version fortfahren",
+    "unavailableTitle": "Upgrade derzeit nicht verfügbar",
+    "unavailableMessage": "Die Upgrade-Optionen konnten nicht geladen werden. Prüfe deine Verbindung und ob du im App-Store angemeldet bist, und versuche es erneut."
   },
   "quiz": {
     "loading": "Quiz wird geladen...",

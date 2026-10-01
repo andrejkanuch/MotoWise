@@ -1185,7 +1185,9 @@
     "annual": "Roczny",
     "monthly": "Miesieczny",
     "year": "rok",
-    "continueWithFree": "Kontynuuj za darmo"
+    "continueWithFree": "Kontynuuj za darmo",
+    "unavailableTitle": "Ulepszenie jest teraz niedostępne",
+    "unavailableMessage": "Nie udało się wczytać opcji ulepszenia. Sprawdź połączenie i to, czy jesteś zalogowany w sklepie z aplikacjami, a następnie spróbuj ponownie."
   },
   "quiz": {
     "loading": "Ladowanie quizu...",

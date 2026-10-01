@@ -7,7 +7,7 @@ import * as Crypto from 'expo-crypto';
 import * as Network from 'expo-network';
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { useProGate } from '../../hooks/use-pro-gate';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { pickImage, takePhoto, uploadReceiptPhoto } from '../../lib/image-upload';
 import { logger } from '../../lib/logger';
@@ -35,6 +35,10 @@ import {
 } from './scan-flow-constants';
 import { hasAcceptedScanConsent, setScanConsentAccepted } from './scan-preferences';
 import { useReceiptScanQuota } from './use-receipt-scan-quota';
+
+/** `code` on receipt_scan_extraction_failed when the request threw instead of
+ * returning a server error code (timeout, network, GraphQL error). */
+const SCAN_THROWN_CODE = 'THROWN';
 
 export interface ScanBike {
   id: string;
@@ -239,6 +243,14 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
   const routeResolved = useCallback(
     (resolved: ScanResolved, bikeId: string | null) => {
       if (resolved.kind === 'thrown') {
+        // A thrown scan (timeout, network, GraphQL error) used to end here with no
+        // trace at all, indistinguishable from the rider closing the modal.
+        const offline = isNetworkError(resolved.error);
+        trackEvent(AnalyticsEvent.RECEIPT_SCAN_EXTRACTION_FAILED, {
+          code: SCAN_THROWN_CODE,
+          offline,
+        });
+        if (!offline) captureException(resolved.error, { source: 'receipt-scan.analyze' });
         dispatch({ type: 'FAILED', error: ANALYZE_ERROR_OUTCOME });
         return;
       }
@@ -377,6 +389,10 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
   const capture = useCallback(
     async (source: 'camera' | 'library') => {
       const uri = source === 'camera' ? await takePhoto() : await pickImage();
+      trackEvent(AnalyticsEvent.RECEIPT_SCAN_CAPTURE_RESULT, {
+        source,
+        result: uri ? 'captured' : 'none',
+      });
       if (!uri) return; // permission denied / cancelled — screen offers fallbacks
       dispatch({ type: 'PHOTO_CAPTURED', photoUri: uri });
       await beginUpload(uri);

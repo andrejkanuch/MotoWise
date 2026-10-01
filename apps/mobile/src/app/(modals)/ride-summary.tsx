@@ -312,12 +312,21 @@ export default function RideSummaryScreen() {
         text: 'Discard',
         style: 'destructive',
         onPress: () => {
+          trackEvent(AnalyticsEvent.RIDE_DISCARDED, {
+            ride_id: rideId,
+            distance_m: distanceM,
+            duration_s: durationS,
+          });
+          // The ride was already completed on the server when it ended; without
+          // this it stays in the rider's history after they discard it.
+          enqueueOrExecute('deleteRide', { variables: { id: rideId } });
           clearRideData(rideId);
+          queryClient.invalidateQueries({ queryKey: queryKeys.rides.all });
           router.replace('/(tabs)/(profile)');
         },
       },
     ]);
-  }, [rideId, router]);
+  }, [rideId, router, distanceM, durationS, queryClient]);
 
   const handleCycleMapStyle = useCallback(() => {
     // Compute next outside the state updater — firing inside it double-counts

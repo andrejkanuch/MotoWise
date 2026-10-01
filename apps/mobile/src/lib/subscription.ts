@@ -12,7 +12,8 @@ import { getStoredAnalyticsConsent } from './analytics-consent';
 import { logger } from './logger';
 import { getStoredUtmProperties } from './meta-attribution';
 import { isNetworkError } from './network-error';
-import { isExpectedRevenueCatError } from './revenuecat-errors';
+import { showPaywallUnavailable } from './paywall-error-alert';
+import { isExpectedRevenueCatError, revenueCatErrorProperties } from './revenuecat-errors';
 
 // Module-level cached import — resolve once, reuse everywhere
 let PurchasesModule: typeof import('react-native-purchases') | null = null;
@@ -28,6 +29,15 @@ async function getPurchases() {
     }
   }
   return PurchasesModule?.default;
+}
+
+// Same lazy-load + Jest fallback as getPurchases, for the paywall UI module.
+async function getPurchasesUI(): Promise<typeof import('react-native-purchases-ui')> {
+  try {
+    return await import('react-native-purchases-ui');
+  } catch {
+    return require('react-native-purchases-ui') as typeof import('react-native-purchases-ui');
+  }
 }
 
 function isExpoGo(): boolean {
@@ -145,8 +155,12 @@ async function purchasedProductProperties(): Promise<Record<string, JsonType>> {
   }
 }
 
-async function trackPaywallResult(options: PresentPaywallOptions, result: PaywallResult) {
-  const properties = paywallProperties(options, { paywall_result: result });
+async function trackPaywallResult(
+  options: PresentPaywallOptions,
+  result: PaywallResult,
+  extra: Record<string, JsonType> = {},
+) {
+  const properties = paywallProperties(options, { paywall_result: result, ...extra });
   trackEvent(AnalyticsEvent.PAYWALL_RESULT, properties);
 
   if (result === 'purchased') {
@@ -529,6 +543,8 @@ async function getOfferingsForCustomer(Purchases: Awaited<ReturnType<typeof getP
   return Purchases.getOfferings();
 }
 
+let paywallInFlight: Promise<PaywallResult> | null = null;
+
 /**
  * Present the RevenueCat remote paywall.
  * Uses the paywall configured in the RevenueCat dashboard.
@@ -545,8 +561,35 @@ async function getOfferingsForCustomer(Purchases: Awaited<ReturnType<typeof getP
  *   is configured in the RC dashboard.
  * @returns 'purchased' | 'restored' | 'cancelled' | 'not_presented' | 'error'
  */
-export async function presentPaywall(options: PresentPaywallOptions = {}): Promise<PaywallResult> {
+export function presentPaywall(options: PresentPaywallOptions = {}): Promise<PaywallResult> {
+  // One paywall at a time. A second request while the first is still resolving
+  // offerings (or is on screen) joins it instead of stacking another native present
+  // and another round of events — every caller fires this from a tap handler.
+  if (paywallInFlight) return paywallInFlight;
+  paywallInFlight = doPresentPaywall(options)
+    .then((result) => {
+      if (result === 'error') showPaywallUnavailable();
+      return result;
+    })
+    .finally(() => {
+      paywallInFlight = null;
+    });
+  return paywallInFlight;
+}
+
+/** Where in presentPaywall a failure happened — the only way to tell "the store
+ * returned no offering" from "the native paywall failed" in `paywall_result`. */
+const PAYWALL_ERROR_STAGE = {
+  offerings: 'offerings',
+  nativePresent: 'native_present',
+  nativeResult: 'native_result',
+} as const;
+type PaywallErrorStage = (typeof PAYWALL_ERROR_STAGE)[keyof typeof PAYWALL_ERROR_STAGE];
+
+async function doPresentPaywall(options: PresentPaywallOptions): Promise<PaywallResult> {
   trackEvent(AnalyticsEvent.PAYWALL_PRESENT_REQUESTED, paywallProperties(options));
+  let stage: PaywallErrorStage = PAYWALL_ERROR_STAGE.offerings;
+  let packageCount: number | null = null;
 
   if (isExpoGo()) {
     logger.warn('[RevenueCat] Paywall not available in Expo Go');
@@ -565,7 +608,7 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
 
   try {
     const Purchases = await getPurchases();
-    const RevenueCatUI = await import('react-native-purchases-ui');
+    const RevenueCatUI = await getPurchasesUI();
     const { PAYWALL_RESULT } = RevenueCatUI;
 
     const offerings = await getOfferingsForCustomer(Purchases);
@@ -596,6 +639,9 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
       await trackPaywallResult(options, 'not_presented');
       return 'not_presented';
     }
+
+    packageCount = offering?.availablePackages?.length ?? null;
+    stage = PAYWALL_ERROR_STAGE.nativePresent;
 
     trackEvent(
       AnalyticsEvent.PAYWALL_VIEWED,
@@ -643,7 +689,11 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
         await trackPaywallResult(options, 'not_presented');
         return 'not_presented';
       case PAYWALL_RESULT.ERROR:
-        await trackPaywallResult(options, 'error');
+        // The native SDK reports no cause here, so record what we do know.
+        await trackPaywallResult(options, 'error', {
+          error_stage: PAYWALL_ERROR_STAGE.nativeResult,
+          offering_package_count: packageCount,
+        });
         return 'error';
       default:
         await trackPaywallResult(options, 'cancelled');
@@ -651,7 +701,13 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
     }
   } catch (e) {
     reportRevenueCatError(e, 'revenuecat.presentPaywall');
-    await trackPaywallResult(options, 'error');
+    // "Expected" errors are only a breadcrumb in Sentry, so the event is the one
+    // place their cause survives.
+    await trackPaywallResult(options, 'error', {
+      error_stage: stage,
+      offering_package_count: packageCount,
+      ...revenueCatErrorProperties(e),
+    });
     return 'error';
   }
 }
