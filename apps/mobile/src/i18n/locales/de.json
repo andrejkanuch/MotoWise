@@ -2006,6 +2006,7 @@
     "dur": "Dur"
   },
   "rideDetail": {
+    "unavailable": "Diese Fahrt ist nicht mehr verfügbar. Sie wurde möglicherweise gelöscht oder auf privat gestellt.",
     "noRouteData": "Keine Routendaten",
     "showDetails": "Details anzeigen",
     "distance": "Distanz",

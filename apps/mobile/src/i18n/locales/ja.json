@@ -2006,6 +2006,7 @@
     "dur": "Dur"
   },
   "rideDetail": {
+    "unavailable": "このライドは利用できなくなりました。削除されたか、非公開に設定された可能性があります。",
     "noRouteData": "ルートデータなし",
     "showDetails": "詳細を表示",
     "distance": "距離",

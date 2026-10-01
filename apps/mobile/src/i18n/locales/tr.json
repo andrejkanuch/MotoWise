@@ -2006,6 +2006,7 @@
     "dur": "Dur"
   },
   "rideDetail": {
+    "unavailable": "Bu sürüş artık mevcut değil. Silinmiş veya gizli yapılmış olabilir.",
     "noRouteData": "Rota verisi yok",
     "showDetails": "Detayları göster",
     "distance": "Mesafe",

@@ -2010,6 +2010,7 @@
     "dur": "Dur"
   },
   "rideDetail": {
+    "unavailable": "Táto jazda už nie je dostupná. Možno bola odstránená alebo nastavená ako súkromná.",
     "noRouteData": "Žiadne dáta trasy",
     "showDetails": "Zobraziť detaily",
     "distance": "Vzdialenosť",

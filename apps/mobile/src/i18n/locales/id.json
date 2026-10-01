@@ -2006,6 +2006,7 @@
     "dur": "Dur"
   },
   "rideDetail": {
+    "unavailable": "Perjalanan ini tidak lagi tersedia. Mungkin sudah dihapus atau dijadikan pribadi.",
     "noRouteData": "Tidak ada data rute",
     "showDetails": "Tampilkan detail",
     "distance": "Jarak",

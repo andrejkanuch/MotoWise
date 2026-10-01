@@ -2008,6 +2008,7 @@
     "dur": "Dur"
   },
   "rideDetail": {
+    "unavailable": "Esta ruta ya no está disponible. Puede que se haya eliminado o que ahora sea privada.",
     "noRouteData": "Sin datos de ruta",
     "showDetails": "Mostrar detalles",
     "distance": "Distancia",

@@ -1903,6 +1903,7 @@
     "dur": "Dur"
   },
   "rideDetail": {
+    "unavailable": "This ride is no longer available. It may have been deleted or made private.",
     "noRouteData": "No route data",
     "showDetails": "Show Details",
     "distance": "Distance",

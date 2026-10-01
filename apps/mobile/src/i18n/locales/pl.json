@@ -2010,6 +2010,7 @@
     "dur": "Dur"
   },
   "rideDetail": {
+    "unavailable": "Ta jazda nie jest już dostępna. Mogła zostać usunięta lub ustawiona jako prywatna.",
     "noRouteData": "Brak danych trasy",
     "showDetails": "Pokaż szczegóły",
     "distance": "Dystans",

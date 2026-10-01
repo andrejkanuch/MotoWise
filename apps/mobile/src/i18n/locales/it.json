@@ -2008,6 +2008,7 @@
     "dur": "Dur"
   },
   "rideDetail": {
+    "unavailable": "Questo giro non è più disponibile. Potrebbe essere stato eliminato o reso privato.",
     "noRouteData": "Nessun dato percorso",
     "showDetails": "Mostra dettagli",
     "distance": "Distanza",
