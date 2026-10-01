@@ -3,9 +3,10 @@
  *
  * Deliberately dependency-free. Both the fetcher (`graphql-client.ts`) and
  * Sentry's `beforeSend` (`analytics.ts`) need this logic, and `analytics.ts` is
- * imported at the very top of the root layout to call `initSentry()`. Routing it
- * through `graphql-client.ts` would pull the Supabase client (and SecureStore)
- * into that first import, so the shared pieces live here instead.
+ * imported by the bundle entry (`index.ts` -> `init-sentry-entry.ts`) to call
+ * `initSentry()`. Routing it through `graphql-client.ts` would pull the Supabase
+ * client (and SecureStore) into that early import, so the shared pieces live here
+ * instead.
  */
 
 /** GraphQL `extensions.code` values the NestJS API emits. */

@@ -55,7 +55,10 @@ jest.mock('../../ride/ride-controller', () => ({
 // Coordinator now routes the phone to the ride-summary on Stop, and logs nav
 // failures — mock the imperative router + analytics to avoid the native chains.
 jest.mock('expo-router', () => ({ router: { replace: jest.fn() } }));
-jest.mock('../../../lib/analytics', () => ({ captureException: jest.fn() }));
+jest.mock('../../../lib/analytics', () => ({
+  captureException: jest.fn(),
+  addBreadcrumb: jest.fn(),
+}));
 
 // --- store mocks (avoid the MMKV / expo dependency chain) ---
 const mockRide = {
@@ -164,6 +167,7 @@ describe('carplay-coordinator', () => {
     fireConnect();
     fireConnect(); // cold-start dual path: scene attach + already-connected check
     expect(mockStoreListeners.length).toBe(1);
+    expect(carplay.renderInformation).toHaveBeenCalledTimes(1);
   });
 
   it('projects an already-connected head unit on startup', () => {
@@ -171,6 +175,128 @@ describe('carplay-coordinator', () => {
     startCarPlayCoordinator();
     // No didConnect event fired — startup sees the live connection and renders.
     expect(carplay.renderInformation).toHaveBeenCalledTimes(1);
+  });
+
+  // Cold, CarPlay-only launch: the scene is attached before JS evaluates, so the
+  // library replays didConnect synchronously on registration AND start() sees an
+  // attached unit. Exactly one root build.
+  it('builds the root once when the library replays didConnect for an attached unit', () => {
+    (carplay.isHeadUnitConnected as jest.Mock).mockReturnValueOnce(true);
+    (carplay.addConnectListener as jest.Mock).mockImplementationOnce((cb: () => void) => {
+      cb(); // HybridAutoPlay.addListener replays didConnect when already connected
+      return { remove: jest.fn() };
+    });
+    startCarPlayCoordinator();
+    expect(carplay.renderInformation).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries the root build on the next replay when the first one throws', () => {
+    (carplay.renderInformation as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('template build failed');
+    });
+    startCarPlayCoordinator();
+    fireConnect();
+    expect(captureException).toHaveBeenCalledTimes(1);
+    fireConnect(); // the library's replay / isConnected path
+    expect(carplay.renderInformation).toHaveBeenCalledTimes(2);
+    expect(mockStoreListeners.length).toBe(1);
+  });
+
+  it('rebuilds on a reconnect after a disconnect', () => {
+    startCarPlayCoordinator();
+    fireConnect();
+    fireDisconnect();
+    fireConnect();
+    expect(carplay.renderInformation).toHaveBeenCalledTimes(2);
+  });
+
+  describe('Start from the head unit', () => {
+    beforeEach(() => {
+      mockRide.status = 'idle';
+      mockRide.distance = 0;
+    });
+
+    it('shows a Location row (not a phone prompt) when location is not granted, and keeps it across store ticks', async () => {
+      (rideController.startRideSession as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        reason: 'denied',
+      });
+      startCarPlayCoordinator();
+      fireConnect();
+      fireAction('start');
+      await flush();
+      expect(lastRenderedItems()?.[0]).toEqual({
+        title: 'Location',
+        detail: 'Off · ride not recorded',
+      });
+      // An expected rider setting, not an error.
+      expect(captureException).not.toHaveBeenCalled();
+      // A later render must not drop the notice.
+      jest.spyOn(Date, 'now').mockReturnValue(Date.now() + THROTTLE_MS + 1);
+      fireStore();
+      expect(lastRenderedItems()?.[0]?.title).toBe('Location');
+      (Date.now as jest.Mock).mockRestore();
+    });
+
+    it('clears the notice on the next Start press', async () => {
+      (rideController.startRideSession as jest.Mock)
+        .mockResolvedValueOnce({ ok: false, reason: 'denied' })
+        .mockResolvedValueOnce({ ok: true, rideId: 'r2' });
+      startCarPlayCoordinator();
+      fireConnect();
+      fireAction('start');
+      await flush();
+      fireAction('start');
+      await flush();
+      expect(lastRenderedItems()?.[0]?.title).toBe('Distance');
+    });
+
+    it('starts one ride for repeated taps while a start is in flight', async () => {
+      startCarPlayCoordinator();
+      fireConnect();
+      fireAction('start');
+      fireAction('start');
+      fireAction('start');
+      await flush();
+      expect(rideController.startRideSession).toHaveBeenCalledTimes(1);
+      fireAction('start'); // settled → a new press is accepted again
+      expect(rideController.startRideSession).toHaveBeenCalledTimes(2);
+    });
+
+    // The ride still records on the phone; only stale head-unit feedback is dropped.
+    it('drops a Start result that lands after the head unit disconnected', async () => {
+      let resolveStart: (r: { ok: false; reason: 'denied' }) => void = () => {};
+      (rideController.startRideSession as jest.Mock).mockImplementationOnce(
+        () =>
+          new Promise((r) => {
+            resolveStart = r;
+          }),
+      );
+      startCarPlayCoordinator();
+      fireConnect();
+      fireAction('start');
+      fireDisconnect();
+      const rendersAtDisconnect = (carplay.renderInformation as jest.Mock).mock.calls.length;
+      resolveStart({ ok: false, reason: 'denied' });
+      await flush();
+      expect(carplay.renderInformation).toHaveBeenCalledTimes(rendersAtDisconnect);
+      // …and the next session starts clean.
+      fireConnect();
+      expect(lastRenderedItems()?.[0]?.title).toBe('Distance');
+    });
+
+    it('still reports a GPS start failure to Sentry and shows it on the panel', async () => {
+      (rideController.startRideSession as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        reason: 'gps_failed',
+      });
+      startCarPlayCoordinator();
+      fireConnect();
+      fireAction('start');
+      await flush();
+      expect(lastRenderedItems()?.[0]?.title).toBe('GPS');
+      expect(captureException).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('renders the panel on connect (projection, not start)', () => {

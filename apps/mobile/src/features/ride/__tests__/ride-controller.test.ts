@@ -7,6 +7,7 @@
 
 jest.mock('../../../utils/ride-permissions', () => ({
   checkAndRequestPermissions: jest.fn(() => Promise.resolve('full')),
+  readPermissionLevel: jest.fn(() => Promise.resolve('full')),
 }));
 jest.mock('../../../utils/ride-location', () => ({
   startGPSListener: jest.fn(() => Promise.resolve()),
@@ -106,6 +107,7 @@ const mmkvState = (storage as any).__state as {
   currentId: string;
 };
 const checkPerms = perms.checkAndRequestPermissions as jest.Mock;
+const readPerms = perms.readPermissionLevel as jest.Mock;
 const startGPS = gps.startGPSListener as jest.Mock;
 const rideMMKV = storage.rideMMKV as unknown as Record<string, jest.Mock>;
 const clearRideData = storage.clearRideData as jest.Mock;
@@ -125,6 +127,7 @@ beforeEach(() => {
   mmkvState.currentId = '';
   store.status = 'recording';
   checkPerms.mockResolvedValue('full');
+  readPerms.mockResolvedValue('full');
 });
 
 describe('elapsedRideSeconds', () => {
@@ -151,11 +154,34 @@ describe('elapsedRideSeconds', () => {
 
 describe('startRideSession', () => {
   it('bails without starting GPS when permission is denied', async () => {
-    checkPerms.mockResolvedValueOnce('denied');
+    readPerms.mockResolvedValueOnce('denied');
     const result = await startRideSession({ motorcycleId: null, source: 'carplay' });
     expect(result).toEqual({ ok: false, reason: 'denied' });
     expect(startGPS).not.toHaveBeenCalled();
     expect(rideMMKV.setCurrentId).not.toHaveBeenCalled();
+  });
+
+  // A CarPlay Start must never raise an iPhone permission prompt: the rider can't
+  // answer it on the bike, and iOS holds it back until the phone app is in front, so
+  // the awaited request never settles and Start looks dead.
+  it('only READS permission for a CarPlay start (never requests)', async () => {
+    await startRideSession({ motorcycleId: null, source: 'carplay' });
+    expect(readPerms).toHaveBeenCalledTimes(1);
+    expect(checkPerms).not.toHaveBeenCalled();
+  });
+
+  it('lets the phone start request permission as before', async () => {
+    await startRideSession({ motorcycleId: null, source: 'phone' });
+    expect(checkPerms).toHaveBeenCalledTimes(1);
+    expect(readPerms).not.toHaveBeenCalled();
+  });
+
+  it('records a CarPlay ride on When-In-Use alone (foreground_only)', async () => {
+    readPerms.mockResolvedValueOnce('foreground_only');
+    const result = await startRideSession({ motorcycleId: null, source: 'carplay' });
+    expect(result).toEqual({ ok: true, rideId: 'ride-uuid-1' });
+    expect(store.setPermissionLevel).toHaveBeenCalledWith('foreground_only');
+    expect(startGPS).toHaveBeenCalledTimes(1);
   });
 
   it('mints a ride, flips the store, enqueues the server start, and starts GPS', async () => {

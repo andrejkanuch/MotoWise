@@ -48,10 +48,8 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SessionRestoring } from '../components/auth/session-restoring';
 import { OB_VARIANT } from '../config/onboarding';
 import { getWhatsNewRelease } from '../data/whats-new-releases';
-import {
-  refreshCarPlayHeadsUpData,
-  startCarPlayCoordinator,
-} from '../features/carplay/carplay-coordinator';
+import { refreshCarPlayHeadsUpData } from '../features/carplay/carplay-coordinator';
+import { usePhoneSceneVisible } from '../features/carplay/use-carplay';
 import { clearParkedScans } from '../features/receipt-scan/parked-scan-store';
 import { initReceiptScanQueue } from '../features/receipt-scan/receipt-scan-queue';
 import { ReceiptScanSaveSnackbar } from '../features/receipt-scan/receipt-scan-save-snackbar';
@@ -67,7 +65,6 @@ import {
   getAnalyticsDistinctId,
   identifyUser,
   initPostHog,
-  initSentry,
   posthogClient,
   resetUser,
   sentryNavigationIntegration,
@@ -171,8 +168,9 @@ if (__DEV__) {
   );
 }
 
-// Initialize Sentry and PostHog as early as possible
-initSentry();
+// Sentry is initialized by the bundle entry (index.ts -> lib/init-sentry-entry), not
+// here: a CarPlay-only cold launch never evaluates this module. PostHog initializes
+// eagerly when lib/analytics loads.
 initPostHog();
 
 // Initialize Mapbox
@@ -428,6 +426,8 @@ function RootLayout() {
   // settles — or by the failsafe below. `splashDismissed` flips after the fade
   // completes and gates the ATT prompt (it must never appear under the splash).
   const [splashDismissed, setSplashDismissed] = useState(false);
+  const phoneSceneVisible = usePhoneSceneVisible();
+  const attStartedRef = useRef(false);
   const splashHiddenRef = useRef(false);
   const hideSplash = useCallback(() => {
     if (splashHiddenRef.current) return;
@@ -464,11 +464,6 @@ function RootLayout() {
       sentryNavigationIntegration.registerNavigationContainer(navigationRef);
     }
   }, [navigationRef]);
-
-  // Start the CarPlay coordinator once. No-ops when the native module is absent.
-  useEffect(() => {
-    startCarPlayCoordinator();
-  }, []);
 
   // Safety timeout: if auth takes too long, stop holding the splash — but do NOT
   // let a timeout masquerade as "signed out". Moving to UNRESOLVED renders the
@@ -689,8 +684,15 @@ function RootLayout() {
     // dialog is not hidden behind it (Apple rejects apps where the prompt is
     // invisible — Guideline 2.1).
     if (!splashDismissed) return;
-
-    let cancelled = false;
+    // A CarPlay-only launch also dismisses the splash (failsafe) with no phone UI on
+    // screen — the ATT dialog would sit unseen behind the lock screen. Wait for the
+    // rider to actually open the phone app.
+    if (!phoneSceneVisible) return;
+    // Once per launch. The effect re-runs on every phone-scene visibility flip — the
+    // ATT alert itself resigns the scene — and a re-run must neither cancel the run
+    // waiting on the rider's answer nor raise a second prompt.
+    if (attStartedRef.current) return;
+    attStartedRef.current = true;
 
     async function initATTAndMetaSDK() {
       // Check if the user has already responded to the ATT prompt in a
@@ -703,8 +705,6 @@ function RootLayout() {
         finalStatus = status;
       }
 
-      if (cancelled) return;
-
       // Initialise the Facebook SDK only AFTER the ATT decision is made so
       // no data is collected before consent.
       Settings.initializeSDK();
@@ -716,10 +716,7 @@ function RootLayout() {
     }
 
     initATTAndMetaSDK();
-    return () => {
-      cancelled = true;
-    };
-  }, [splashDismissed]);
+  }, [splashDismissed, phoneSceneVisible]);
 
   // Drain ride sync queue on app resume, initial mount, and connectivity restore
   useEffect(() => {

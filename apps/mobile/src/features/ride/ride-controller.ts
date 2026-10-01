@@ -22,7 +22,11 @@ import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
 import { encodePolyline } from '../../utils/ride-heatmap';
 import { distanceMeters, startGPSListener, stopGPSListener } from '../../utils/ride-location';
-import { checkAndRequestPermissions } from '../../utils/ride-permissions';
+import {
+  checkAndRequestPermissions,
+  type PermissionLevel,
+  readPermissionLevel,
+} from '../../utils/ride-permissions';
 import {
   flushBufferToMMKV,
   getPointBuffer,
@@ -38,6 +42,14 @@ export type RideSource = 'phone' | 'carplay';
 export type RideStartResult =
   | { ok: true; rideId: string }
   | { ok: false; reason: 'denied' | 'gps_failed' };
+
+// Which surface may prompt for location. The phone shows the disclosure modal first
+// and owns every request; CarPlay only reads, so a head-unit Start never raises an
+// iPhone alert (or the "Change to Always Allow?" upgrade) the rider can't answer.
+const RESOLVE_PERMISSION_LEVEL: Record<RideSource, () => Promise<PermissionLevel>> = {
+  phone: checkAndRequestPermissions,
+  carplay: readPermissionLevel,
+};
 
 export interface StartRideOptions {
   motorcycleId: string | null;
@@ -68,7 +80,8 @@ async function resolvePrimaryMotorcycleId(): Promise<string | null> {
 }
 
 /**
- * Start a fresh ride: request permissions, mint the ride id, persist it, flip the
+ * Start a fresh ride: resolve location permission for the calling surface (the phone
+ * may prompt, CarPlay only reads — see RESOLVE_PERMISSION_LEVEL), mint the ride id, persist it, flip the
  * store to recording, enqueue the server start, and begin the background-capable
  * GPS listener. Returns the new ride id, or `{ ok: false, reason: 'denied' }` when
  * location permission is refused (the caller surfaces the UI).
@@ -78,7 +91,7 @@ export async function startRideSession({
   source,
   motorcycleMake = null,
 }: StartRideOptions): Promise<RideStartResult> {
-  const level = await checkAndRequestPermissions();
+  const level = await RESOLVE_PERMISSION_LEVEL[source]();
   if (level === 'denied') return { ok: false, reason: 'denied' };
 
   // No bike explicitly chosen (CarPlay has no picker; phone "Quick Ride") → attribute

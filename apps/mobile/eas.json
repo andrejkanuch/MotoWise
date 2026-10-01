@@ -10,7 +10,8 @@
       "channel": "development",
       "environment": "development",
       "ios": {
-        "simulator": true
+        "simulator": true,
+        "image": "macos-tahoe-26.6-xcode-27.0"
       },
       "env": {
         "APP_VARIANT": "development"
@@ -23,6 +24,9 @@
       "environment": "development",
       "env": {
         "APP_VARIANT": "development"
+      },
+      "ios": {
+        "image": "macos-tahoe-26.6-xcode-27.0"
       }
     },
     "preview": {
@@ -33,6 +37,9 @@
       "env": {
         "APP_VARIANT": "preview",
         "SENTRY_DISABLE_AUTO_UPLOAD": "false"
+      },
+      "ios": {
+        "image": "macos-tahoe-26.6-xcode-27.0"
       }
     },
     "production": {
@@ -42,6 +49,9 @@
       "env": {
         "APP_VARIANT": "production",
         "SENTRY_DISABLE_AUTO_UPLOAD": "false"
+      },
+      "ios": {
+        "image": "macos-tahoe-26.6-xcode-27.0"
       }
     }
   },

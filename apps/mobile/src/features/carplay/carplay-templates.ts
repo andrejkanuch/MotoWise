@@ -3,7 +3,7 @@
 // glanceable hierarchy and state vocabulary testable in isolation.
 
 import { MaintenanceTaskStatus, type MeasurementSystem } from '@motovault/types';
-import type { CPInformationTemplateModel } from '../../../modules/carplay/src';
+import type { CPInfoItem, CPInformationTemplateModel } from '../../../modules/carplay/src';
 import i18n from '../../i18n';
 import { getRelativeDueDate } from '../../lib/health-score';
 import type { StartMode } from '../../stores/carplay.store';
@@ -33,6 +33,22 @@ export const CARPLAY_ACTION = {
 // The persistent "Bike" nav-bar button on the Ride panel (pushes the bike-status
 // list). Kept constant across every state so it never churns the rebuild key.
 const RIDE_HEADER_ACTIONS = [{ id: CARPLAY_ACTION.bike, title: 'Bike' }];
+
+// Head-unit notices: a condition the rider must know about before a ride, shown on
+// the idle panel in place of a leftover row. CarPlay copy is hardcoded English by
+// design (see carplay-bike-status). Apple CarPlay guideline: state the condition,
+// never tell the rider to pick up the phone.
+export const CARPLAY_NOTICE = {
+  locationOff: 'locationOff',
+  gpsFailed: 'gpsFailed',
+} as const;
+
+export type CarPlayNotice = (typeof CARPLAY_NOTICE)[keyof typeof CARPLAY_NOTICE];
+
+const NOTICE_ROW: Record<CarPlayNotice, CPInfoItem> = {
+  locationOff: { title: 'Location', detail: 'Off · ride not recorded' },
+  gpsFailed: { title: 'GPS', detail: "Couldn't start · try again" },
+};
 
 export type CarPlayActionId = (typeof CARPLAY_ACTION)[keyof typeof CARPLAY_ACTION];
 
@@ -269,7 +285,11 @@ export function deriveSnapshot(input: RideInput, system: MeasurementSystem): Pan
   };
 }
 
-export function buildPanelItems(s: PanelSnapshot, stopArmed = false): CPInformationTemplateModel {
+export function buildPanelItems(
+  s: PanelSnapshot,
+  stopArmed = false,
+  notice: CarPlayNotice | null = null,
+): CPInformationTemplateModel {
   // Title carries the state word only. Numerics live in rows, not the title: the
   // CarPlay InformationTemplate fixes its title at construction, so fusing a
   // constantly-ticking value into it would force a full re-push on every GPS tick.
@@ -315,6 +335,11 @@ export function buildPanelItems(s: PanelSnapshot, stopArmed = false): CPInformat
         { title: 'Mode', detail: MODE_LABEL[s.startMode] },
         { title: 'Climb', detail: s.climb },
       ];
+  // A notice applies before a ride only — a live ride is already recording, so it is
+  // moot. It takes the FIRST row (Distance, a leftover from the last ride), never the
+  // last one, which the action buttons may cover.
+  const idleNotice = live ? null : notice;
+  if (idleNotice) items[0] = NOTICE_ROW[idleNotice];
   if (stopArmed) {
     // R17 stop guard: a single Stop press arms this confirm rather than ending the
     // ride outright. "Keep Riding" leads (the safe default) so an accidental tap on
