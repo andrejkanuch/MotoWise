@@ -70,6 +70,7 @@ import {
   clearDeliveredQueue,
   destroyAllSyncData,
   drainQueue,
+  dropDeadLetteredRide,
   enqueue,
   enqueueOrExecute,
   enqueueWaypointUpload,
@@ -797,6 +798,22 @@ describe('recovery of already-stranded ops', () => {
       syncOp({ seq: 4, type: 'endRide', rideId: 'ride-A', createdAt: STRANDED_AT }),
     ];
   }
+
+  it('forgets a discarded ride so a redrive cannot bring it back', async () => {
+    mockSyncStore.set(
+      'sync.dead_letter',
+      JSON.stringify([
+        ...strandedRide(),
+        syncOp({ seq: 5, type: 'startRide', rideId: 'ride-B', createdAt: STRANDED_AT }),
+      ]),
+    );
+
+    dropDeadLetteredRide('ride-A');
+
+    expect(getDeadLetterCount()).toBe(1); // ride-B is untouched
+    dropDeadLetteredRide('ride-unknown');
+    expect(getDeadLetterCount()).toBe(1);
+  });
 
   it('redrives a stranded ride group in seq order once the server accepts it', async () => {
     // This is the test that proves data recovery works: the dead-letter payload is

@@ -24,7 +24,6 @@ import {
   ANALYZING_STAGE_KEYS,
   type ReceiptReviewHandoff,
   type ReceiptReviewPayload,
-  SCAN_ERROR_CODE,
   SCAN_PHASE,
   type ScanPhase,
   type TranslationKey,
@@ -498,8 +497,9 @@ function ErrorView({
   const primary = {
     retry: {
       label: t('receiptScan.error.retry'),
-      onPress:
-        outcome.code === SCAN_ERROR_CODE.IMAGE_INVALID ? flow.retryUpload : flow.retryAnalyze,
+      // An upload failure retried through analyze would scan an object that was
+      // never stored and dead-end on IMAGE_INVALID.
+      onPress: outcome.retryFrom === 'upload' ? flow.retryUpload : flow.retryAnalyze,
     },
     manual: { label: t('receiptScan.common.enterManually'), onPress: onManualEntry },
     paywall: { label: t('receiptScan.common.enterManually'), onPress: onManualEntry },

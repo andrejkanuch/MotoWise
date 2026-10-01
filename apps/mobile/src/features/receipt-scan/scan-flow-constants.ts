@@ -79,6 +79,12 @@ export interface ErrorOutcome {
   bodyKey: TranslationKey;
   noCreditUsed: boolean;
   retainPhoto: boolean;
+  /**
+   * Which step a `retry` recovery restarts. Defaults to the analyze step; `upload`
+   * is for failures where the photo never reached storage, so there is nothing to
+   * analyze yet.
+   */
+  retryFrom?: 'upload';
 }
 
 /**
@@ -145,6 +151,7 @@ export const LOCAL_ERROR_OUTCOME: ErrorOutcome = {
   bodyKey: 'receiptScan.error.uploadFailedBody',
   noCreditUsed: true,
   retainPhoto: true,
+  retryFrom: 'upload',
 };
 
 /**

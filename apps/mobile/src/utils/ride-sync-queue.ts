@@ -661,6 +661,19 @@ export function getDeadLetterCount(): number {
 }
 
 /**
+ * Drop a ride's parked ops when the rider discards or deletes that ride.
+ *
+ * A `deleteRide` for a ride whose `startRide` group was dead-lettered finds nothing
+ * on the server and counts as done — and a later redrive would then replay the
+ * parked start/waypoints/end and bring the discarded ride back.
+ */
+export function dropDeadLetteredRide(rideId: string): void {
+  const dlq = getDeadLetterQueue();
+  const kept = dlq.filter((op) => rideIdOf(op) !== rideId);
+  if (kept.length !== dlq.length) setDeadLetterQueue(kept);
+}
+
+/**
  * Total unsynced ops — main queue PLUS dead-letter. The single source of truth for
  * "is there rider data we haven't delivered yet".
  *

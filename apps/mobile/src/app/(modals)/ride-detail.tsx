@@ -61,7 +61,7 @@ import {
   formatSpeedValue,
   speedUnitLabel,
 } from '../../utils/ride-formatters';
-import { enqueueOrExecute } from '../../utils/ride-sync-queue';
+import { dropDeadLetteredRide, enqueueOrExecute } from '../../utils/ride-sync-queue';
 
 type RideDetailPayload = NonNullable<GetRideQuery['ride'] | GetPublicRideQuery['getPublicRide']>;
 
@@ -245,6 +245,7 @@ export default function RideDetailScreen() {
         style: 'destructive',
         onPress: () => {
           trackEvent(AnalyticsEvent.RIDE_DELETED, { ride_id: rideId ?? '' });
+          if (rideId) dropDeadLetteredRide(rideId);
           enqueueOrExecute('deleteRide', {
             variables: { id: rideId },
           });

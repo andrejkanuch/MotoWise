@@ -60,7 +60,7 @@ import {
   formatSpeed,
 } from '../../utils/ride-formatters';
 import { clearRideData, getPointBuffer, getWaypointChunks } from '../../utils/ride-storage';
-import { enqueueOrExecute } from '../../utils/ride-sync-queue';
+import { dropDeadLetteredRide, enqueueOrExecute } from '../../utils/ride-sync-queue';
 
 const MAP_HEIGHT = 260;
 const SHEET_RADIUS = 28;
@@ -340,6 +340,7 @@ export default function RideSummaryScreen() {
           // this it stays in the rider's history after they discard it.
           // Refetch after the delete has drained — an immediate refetch races it and
           // brings the discarded ride straight back into the list.
+          dropDeadLetteredRide(rideId);
           void enqueueOrExecute('deleteRide', { variables: { id: rideId } }).finally(() =>
             queryClient.invalidateQueries({ queryKey: queryKeys.rides.all }),
           );

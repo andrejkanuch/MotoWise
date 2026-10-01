@@ -323,14 +323,22 @@ The first draft of this report inferred platform from app version and treated 3.
   - Receipt scan: `receipt_scan_started` fires when the modal opens, before any photo, so most of the drop is people who never took one; scans that threw (timeout, network) left no trace.
   - Android paywall errors: a failed paywall showed nothing, so users tapped again (98 events from 3 users), and the cause was discarded.
 
+### Second follow-up (same day)
+
+- **Android paywall errors are mostly a country effect, not a configuration fault.** 104 of the ~140 Android error events in 90 days come from Madagascar (one rider produced 97 by re-tapping), with single cases from Russia and Iran; Google Play cannot sell there. Every active RevenueCat offering has its Play products attached. The alert added in #250 is the right response; nothing to fix in RevenueCat.
+- **Receipt scan:** Retry after a failed upload now restarts the upload. It used to run the analyze step on a photo that was never stored and dead-end.
+- **The 90 s client timeout on a scan stays.** It is deliberately shorter than the server's worst case (3 × 60 s); a retry is deduplicated server-side. Thrown scans are now measured (#250), so the number can be revisited with data.
+- **Discarded or deleted rides** are also removed from the parked-sync store, so a later redrive cannot bring them back.
+- **The five April flags that never ran are archived** in PostHog (`onboarding-v2`, `trip-social-features`, `paywall-timing-experiment`, `discover-tab-prominence`, `ride-recording-auto-detect`). No code referenced them.
+
 ### Suggested next steps, in order
 
 1. ~~Ship the "shipped" onboarding to Android and turn off `onboarding_ab_2026`.~~ Done by completing the 3.19.1 Play rollout; keep the flag on (see above).
-2. Investigate "ride too short" (43 of 64 ride starters) and the Android paywall `error` results.
-3. Fix or cut the receipt-scan and AI-diagnosis drop-offs before promoting them in store copy.
+2. ~~Investigate "ride too short" and the Android paywall `error` results.~~ Done (#250 and above).
+3. ~~Fix the receipt-scan and AI-diagnosis drop-offs.~~ Done in code; ships with the 3.20.0 store build.
 4. Decide whether store positioning should lead with ride tracking.
-5. Delete the five April flags that never ran.
-6. Authenticate `gplay` for MotoVault so the next snapshot has real Play numbers.
+5. ~~Delete the five April flags that never ran.~~ Archived.
+6. ~~Authenticate `gplay` for MotoVault.~~ Not needed: the existing service account already reaches `com.motovault.app`. Play vitals return nothing at this install volume.
 
 ### Caveats to carry forward
 
