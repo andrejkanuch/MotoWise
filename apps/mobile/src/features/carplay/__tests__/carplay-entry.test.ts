@@ -26,6 +26,14 @@ describe('carplay-entry', () => {
     expect(router).toBeGreaterThan(carplay);
   });
 
+  // The library's timer swap only helps if nothing has captured setTimeout yet.
+  it('installs the lock-screen-safe timers before any other import', () => {
+    const imports = read('index.ts')
+      .split('\n')
+      .filter((line) => line.startsWith('import '));
+    expect(imports[0]).toBe("import './src/features/carplay/install-timers';");
+  });
+
   it('keeps the phone UI graph out of the entry path', () => {
     for (const file of [
       'src/features/carplay/carplay-entry.ts',

@@ -410,16 +410,18 @@ function clearBikeCovering(): void {
   render();
 }
 
-// Fired via the list's onPopped — a programmatic pop (onDisconnect's popBikeList) or
-// a push rejected before it ever appeared (adapter onGone recovery).
+// Fired via the list's onPopped — the native back button (library 0.6.0+), a
+// programmatic pop, a head-unit disconnect (the library pops every stored template
+// just before didDisconnect), or a push rejected before it ever appeared (adapter
+// onGone recovery).
 function onBikeListDismissed(): void {
   clearBikeCovering();
 }
 
 // Fired via the root panel's onDidAppear — the list left the stack and the Ride panel
-// is topmost again. This is what catches the native CarPlay BACK button, which never
-// fires the list's onPopped; without it a back-button dismiss strands bikeVisible=true
-// and freezes the panel + kills every ride-control action (pause/resume/stop/start).
+// is topmost again. On library 0.5.x this was the only signal for the native CarPlay
+// BACK button (stranding bikeVisible=true froze the panel and killed every ride
+// control); 0.6.0+ also fires onPopped there. Kept as the version-independent signal.
 function onRidePanelReappeared(): void {
   clearBikeCovering();
 }
@@ -557,8 +559,8 @@ export function startCarPlayCoordinator(): void {
   if (started || !isCarPlayAvailable) return;
   started = true;
   setActionDispatcher(onAction);
-  // Root-panel reappear is the reliable "Bike list dismissed" signal (covers the
-  // native back button, which the list's onPopped does not) — see onRidePanelReappeared.
+  // Root-panel reappear is the version-independent "Bike list dismissed" signal — see
+  // onRidePanelReappeared.
   setInformationLifecycle({ onDidAppear: onRidePanelReappeared });
   const c = addConnectListener(onConnect);
   const d = addDisconnectListener(onDisconnect);

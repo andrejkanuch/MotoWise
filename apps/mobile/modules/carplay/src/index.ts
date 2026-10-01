@@ -92,7 +92,7 @@ export const isCarPlayAvailable = lib != null;
 // native template valid (min-1 tuple) instead of pushing an empty `[]`.
 const DASH_ROW = '—';
 // Defensive cap on Bike-list rows. The library exposes no head-unit maximumItemCount
-// (v0.5.4), and the Bike list is small (~4-6 rows) — well under any unit's limit.
+// (v0.7.0), and the Bike list is small (~4-6 rows) — well under any unit's limit.
 const MAX_LIST_ROWS = 12;
 
 let dispatch: ((actionId: string) => void) | null = null;
@@ -123,7 +123,12 @@ function toRows(items: CPInfoItem[]): InformationItems {
   return rows as InformationItems;
 }
 
-function toIosActions(actions: CPInfoAction[]): InformationTemplateConfig['actions'] {
+// Since 0.6.0 InformationTemplateConfig is a union discriminated on `mapConfig` (map
+// panels allow 1 text + 1 image button). We never set mapConfig, so pin the plain
+// branch: up to 3 text buttons.
+type InformationActions = Extract<InformationTemplateConfig, { mapConfig?: undefined }>['actions'];
+
+function toIosActions(actions: CPInfoAction[]): InformationActions {
   if (!actions.length) return undefined;
   // iOS allows up to 3 text buttons; each routes through the shared dispatcher.
   const buttons = actions.slice(0, 3).map(
@@ -133,7 +138,7 @@ function toIosActions(actions: CPInfoAction[]): InformationTemplateConfig['actio
       onPress: () => dispatch?.(a.id),
     }),
   );
-  return { ios: buttons as NonNullable<InformationTemplateConfig['actions']>['ios'] };
+  return { ios: buttons as NonNullable<InformationActions>['ios'] };
 }
 
 function toIosHeaderActions(
@@ -158,13 +163,12 @@ function buildTemplate(model: CPInformationTemplateModel): InformationTemplate {
     items: toRows(model.items),
     actions: toIosActions(model.actions),
     headerActions: toIosHeaderActions(model.headerActions),
-    // Root panel is topmost again → any pushed Bike list is gone. This fires on the
-    // native CarPlay back button too — unlike the list's own onPopped, which iOS only
-    // delivers on a *programmatic* pop (see AutoPlayInterfaceController: back-button
-    // dismiss runs templateDidDisappear, which removes + fires onPopped for a
-    // CPAlertTemplate only). Drop the stale list ref so the next pushBikeList
-    // re-pushes instead of updateSections-ing a popped template, and notify the
-    // coordinator so it clears its covered flag and resumes rendering.
+    // Root panel is topmost again → any pushed Bike list is gone. Up to 0.5.x this was
+    // the ONLY signal for the native CarPlay back button (the list's onPopped fired on
+    // a programmatic pop only); since 0.6.0 onPopped fires for the back button too, and
+    // this stays as a second, idempotent signal. Drop the stale list ref so the next
+    // pushBikeList re-pushes instead of updateSections-ing a popped template, and
+    // notify the coordinator so it clears its covered flag and resumes rendering.
     onDidAppear: () => {
       currentList = null;
       rootDidAppear?.();
@@ -191,10 +195,11 @@ export function setActionDispatcher(fn: (actionId: string) => void): void {
 
 /**
  * Register a callback fired when the root ride panel becomes topmost again — i.e. a
- * pushed secondary template (the Bike list) was dismissed. This is the only reliable
- * "list gone" signal on iOS: the list's own `onPopped` fires solely on a programmatic
- * pop, never on the native CarPlay back button. `onDidAppear` on the root covers both,
- * and — unlike `onDidDisappear` — does not fire when the panel is merely covered.
+ * pushed secondary template (the Bike list) was dismissed. Library 0.5.x fired the
+ * list's own `onPopped` only on a programmatic pop, never on the native CarPlay back
+ * button; 0.6.0+ fires it for both (and on disconnect). Root `onDidAppear` covers every
+ * path either way and — unlike `onDidDisappear` — does not fire when the panel is merely
+ * covered, so it is kept as the version-independent signal.
  */
 export function setInformationLifecycle(lifecycle: { onDidAppear?: () => void }): void {
   rootDidAppear = lifecycle.onDidAppear ?? null;
