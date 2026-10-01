@@ -23,6 +23,7 @@ import { ReceiptScanEntry } from '../../../features/receipt-scan/receipt-scan-en
 import { ReceiptScanRecoveryCard } from '../../../features/receipt-scan/receipt-scan-recovery-card';
 import { SCAN_ENTRY_SURFACE } from '../../../features/receipt-scan/scan-flow-constants';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
+import { useProGate } from '../../../hooks/use-pro-gate';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
 
 type FocusTab = 'stats' | 'trip' | 'history';
@@ -34,6 +35,7 @@ export default function HomeScreen() {
   const { t: theme, isDark } = useEditorialTheme();
   // Unit label follows the user's profile preference (deprecated per-bike field).
   const mileageUnit = useMileageUnit();
+  const { requireAccess } = useProGate();
 
   const {
     isLoading,
@@ -355,7 +357,12 @@ export default function HomeScreen() {
           <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
             <EmptyState
               isDark={isDark}
-              onAddBike={() => router.push('/(tabs)/(garage)/add-bike')}
+              onAddBike={() => {
+                // Same gate as the Garage button: a free rider at the bike limit sees the
+                // paywall now, not after filling in the whole form (MOTO-VAULT-REACT-NATIVE-2Y).
+                if (!requireAccess('MAX_BIKES', motorcycles.length)) return;
+                router.push('/(tabs)/(garage)/add-bike');
+              }}
               onExplore={() => router.push('/(tabs)/(learn)')}
             />
           </View>

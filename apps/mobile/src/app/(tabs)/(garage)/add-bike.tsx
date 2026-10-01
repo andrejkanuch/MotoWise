@@ -24,7 +24,11 @@ import { useProGate } from '../../../hooks/use-pro-gate';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { GRAPHQL_ERROR_CODE } from '../../../lib/graphql-error-classification';
-import { hasGraphQLCode, userFriendlyError } from '../../../lib/graphql-errors';
+import {
+  extractGraphQLMessage,
+  hasGraphQLCode,
+  userFriendlyError,
+} from '../../../lib/graphql-errors';
 import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { queryKeys } from '../../../lib/query-keys';
 import { useEditorialTheme } from '../../../theme/editorial';
@@ -149,8 +153,14 @@ export default function AddBikeScreen() {
       }
       router.back();
     } catch (e: unknown) {
+      // requireAccess shows the paywall and returns false. It returns true when the
+      // app already believes the rider is Pro (e.g. entitlement not yet synced to the
+      // server's tier), and then the rider must still be told why nothing was saved.
       if (isBikeLimitRejection(e)) {
-        requireAccess('MAX_BIKES', Number.POSITIVE_INFINITY);
+        if (!requireAccess('MAX_BIKES', Number.POSITIVE_INFINITY)) return;
+        // The server's own wording says why ("Your free plan includes 1 motorcycle…");
+        // the generic FORBIDDEN text would read as a permissions bug.
+        Alert.alert(t('common.error'), extractGraphQLMessage(e) || userFriendlyError(e));
         return;
       }
       Alert.alert(t('common.error'), userFriendlyError(e));
