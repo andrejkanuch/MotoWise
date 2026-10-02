@@ -6,7 +6,7 @@ The lead's only memory between runs. Read this first; continue from the first un
 
 | # | Phase | Branch | Status | Step | PR | Migration pushed |
 |---|---|---|---|---|---|---|
-| 1 | Shell + Overview | `feat/bike-detail-shell-overview` | in progress | 5 · Implement | — | no |
+| 1 | Shell + Overview | `feat/bike-detail-shell-overview` | in progress | 6 · Tests / 8 · Review / 9 · Visual | — | no |
 | 2 | Service segment | — | not started | — | — | — |
 | 3 | Task flows | — | not started | — | — | — |
 | 4 | Costs | — | not started | — | — | — |
@@ -94,6 +94,9 @@ Not removed yet (phase 6): `bike-stats-row`, `mileage-display`, health-report sc
 
 - 2026-10-02 · step 5 Implement — plan Phases 3–4 **done** (`e962d3b9`, `092ec53d`, `49286d83`, `839e2c95`, `246b4b5d`): pure logic + 75 tests, copy in 13 locales, palette tokens, hub fonts, UI primitives, `BikeHeader`, `SegmentBar`, shell, interim segments; `[id].tsx` is now 31 lines. typecheck 4/4, mobile 85 suites / 1,215 tests, all `check:*` + `check:i18n` pass. **No device check run yet.** New dev deps: `@testing-library/react-native@14`, `test-renderer`. Known for the PR: Service/Costs/Bike tabs follow the system scheme (light possible) until their phases; Android tabs are plain RN (no Compose tab row); tab-bar clearance is a constant (custom floating tab bar has no height hook); translations are not native-reviewed.
 - 2026-10-02 · step 5 Implement — plan Phases 5–7 dispatched (Overview, Log/Odometer/Note sheets, Notes screen, undo, deep links, Maestro files).
+
+- 2026-10-02 · step 5 Implement — plan Phases 5–7 **done** (`f243823d`, `4763864b`, `42951459`, `f320d523`, `1d0a41ba`, `d499f417`): Overview segment, Log/Odometer/Note sheets, Notes screen, deferred delete + undo, deep links, 15 Maestro flow files (syntax-checked only). typecheck 4/4; tests mobile 94 suites / 1,306, api 917, web 266, types 136; all `check:*` + `check:i18n` pass. Implementer deviations 1–24 accepted (list goes in the PR body). Live NHTSA returns 2 recalls for the fixture bike (design shows 1).
+- 2026-10-02 · steps 6, 8, 9 dispatched in parallel: Test writer, adversarial Code reviewer (read-only), Visual QA (iOS simulator, local stack). Fixes from all three go to the implementer in one round afterwards; step 7 static verify runs after the fixes.
 
 ### Q5 — verification database (route 2 in use; routes 1 and 3 remain the owner's call)
 
