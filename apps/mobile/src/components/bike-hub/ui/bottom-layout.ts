@@ -1,11 +1,6 @@
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTabBarStore } from '../../../stores/tab-bar.store';
-import {
-  HUB_PILL_CLEARANCE,
-  HUB_PILL_GAP,
-  HUB_TAB_BAR_HEIGHT,
-  HUB_TAB_BAR_MIN_INSET,
-} from './tokens';
+import { tabBarBottomOffset, useTabBarStore } from '../../../stores/tab-bar.store';
+import { HUB_PILL_CLEARANCE, HUB_PILL_GAP, HUB_TAB_BAR_HEIGHT } from './tokens';
 
 export interface HubBottomLayout {
   /** Distance from the screen's bottom edge to the top of the floating tab bar. */
@@ -27,7 +22,7 @@ export function hubBottomLayout(
   measuredTabBarHeight: number | null,
 ): HubBottomLayout {
   const tabBarHeight = measuredTabBarHeight ?? HUB_TAB_BAR_HEIGHT;
-  const tabBarClearance = Math.max(insetBottom, HUB_TAB_BAR_MIN_INSET) + tabBarHeight;
+  const tabBarClearance = tabBarBottomOffset(insetBottom) + tabBarHeight;
   return {
     tabBarClearance,
     pillBottom: tabBarClearance + HUB_PILL_GAP,

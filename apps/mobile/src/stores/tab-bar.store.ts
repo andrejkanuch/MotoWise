@@ -1,5 +1,17 @@
 import { create } from 'zustand';
 
+/** The floating tab bar never sits closer than this to the screen's bottom edge. */
+export const TAB_BAR_MIN_INSET = 12;
+
+/**
+ * The floating tab bar's `bottom`: the safe-area inset, or the minimum where
+ * there is none (Android 3-button nav, older iPhones). One source for the bar
+ * itself and for screens that float chrome above it.
+ */
+export function tabBarBottomOffset(insetBottom: number): number {
+  return Math.max(insetBottom, TAB_BAR_MIN_INSET);
+}
+
 interface TabBarState {
   /**
    * The floating tab bar's rendered height, measured by its own `onLayout`

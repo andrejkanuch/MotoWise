@@ -10,7 +10,11 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 import { act, renderHook } from '@testing-library/react-native';
-import { useTabBarStore } from '../../../stores/tab-bar.store';
+import {
+  TAB_BAR_MIN_INSET,
+  tabBarBottomOffset,
+  useTabBarStore,
+} from '../../../stores/tab-bar.store';
 import { hubBottomLayout, useHubBottomLayout } from '../ui/bottom-layout';
 import {
   HUB_HEIGHT,
@@ -49,6 +53,14 @@ describe('hubBottomLayout', () => {
 
   it('with no bottom inset (Android 3-button nav, older iPhones) the bar floats at the minimum inset', () => {
     expect(hubBottomLayout(0, 70).tabBarClearance).toBe(HUB_TAB_BAR_MIN_INSET + 70);
+  });
+
+  it('measures from the same bottom offset the tab bar itself uses', () => {
+    expect(HUB_TAB_BAR_MIN_INSET).toBe(TAB_BAR_MIN_INSET);
+    for (const inset of [0, 8, TAB_BAR_MIN_INSET, 20, IPHONE_HOME_INDICATOR]) {
+      expect(tabBarBottomOffset(inset)).toBe(Math.max(inset, TAB_BAR_MIN_INSET));
+      expect(hubBottomLayout(inset, 70).tabBarClearance).toBe(tabBarBottomOffset(inset) + 70);
+    }
   });
 
   it('the content clearance is the pill gap + the pill + room for a last row’s chevron', () => {

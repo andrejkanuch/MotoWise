@@ -23,7 +23,7 @@ import { GlobalCarPlayBanner } from '../../components/carplay/global-carplay-ban
 import { ErrorFallback } from '../../components/error-fallback';
 import { maintenanceBadgeOptions } from '../../lib/query-options';
 import { useRideStore } from '../../stores/ride.store';
-import { useTabBarStore } from '../../stores/tab-bar.store';
+import { tabBarBottomOffset, useTabBarStore } from '../../stores/tab-bar.store';
 import { useEditorialTheme } from '../../theme/editorial';
 
 const TAB_CONFIG = [
@@ -160,7 +160,7 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
       onLayout={(event) => setTabBarHeight(event.nativeEvent.layout.height)}
       style={{
         position: 'absolute',
-        bottom: Math.max(insets.bottom, 12),
+        bottom: tabBarBottomOffset(insets.bottom),
         left: 20,
         right: 20,
         backgroundColor: theme.bg,

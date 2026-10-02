@@ -7,6 +7,7 @@ import {
   RIDE_STATUS,
   type RideStatus,
 } from '../../../lib/bike-hub/constants';
+import { TAB_BAR_MIN_INSET } from '../../../stores/tab-bar.store';
 
 /**
  * Semantic colours of the bike hub (DESIGN-SPEC.md §2). The hub is dark in both
@@ -88,14 +89,15 @@ export const HUB_ROW_SUB_LINES = 2;
 export const HUB_TOUCH_TARGET = process.env.EXPO_OS === 'android' ? 48 : 44;
 
 /**
- * The app's floating tab bar (`app/(tabs)/_layout.tsx`) sits `max(inset, 12)`
- * above the bottom edge. Its real height is measured by its own `onLayout`
+ * The app's floating tab bar (`app/(tabs)/_layout.tsx`) sits
+ * `tabBarBottomOffset(inset)` above the bottom edge. Its real height is measured by its own `onLayout`
  * (`useTabBarStore`) — it grows with Dynamic Type / font scale. This is only
  * the fallback until that first layout: the height at the default text size
  * (measured on device, iOS 26.3). Pushed garage screens keep the bar.
  */
 export const HUB_TAB_BAR_HEIGHT = 65;
-export const HUB_TAB_BAR_MIN_INSET = 12;
+/** The bar's own minimum inset (`stores/tab-bar.store.ts`), so the two cannot drift. */
+export const HUB_TAB_BAR_MIN_INSET = TAB_BAR_MIN_INSET;
 
 /** Gap between the top of the tab bar and the floating action pill. */
 export const HUB_PILL_GAP = 16;
