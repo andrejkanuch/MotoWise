@@ -19,6 +19,10 @@ interface SheetScrollProps {
  * out of reach. The title and every row are INSIDE it: a form sheet adopts the
  * first scroll view it finds, and one wrapping a single row was lifted over the
  * title (visual QA round 1).
+ *
+ * `nestedScrollEnabled`: on Android a form sheet is itself a draggable
+ * container, and without it the sheet's drag gesture takes the vertical pan
+ * from this scroll view (no-op on iOS).
  */
 export function SheetScroll({ children, contentContainerStyle, testID }: SheetScrollProps) {
   const { height } = useWindowDimensions();
@@ -36,6 +40,7 @@ export function SheetScroll({ children, contentContainerStyle, testID }: SheetSc
       contentInsetAdjustmentBehavior="never"
       automaticallyAdjustContentInsets={false}
       keyboardShouldPersistTaps="handled"
+      nestedScrollEnabled
     >
       {children}
     </ScrollView>

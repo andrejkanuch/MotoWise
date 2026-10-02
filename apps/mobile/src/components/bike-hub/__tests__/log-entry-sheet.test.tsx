@@ -217,6 +217,8 @@ describe('Log sheet — largest text sizes (visual QA round 2)', () => {
     const style = StyleSheet.flatten(scroll.props.style);
     expect(style.flexGrow).toBe(0);
     expect(style.maxHeight).toBe(height - 54 - SHEET_TOP_CLEARANCE);
+    // Android: the form sheet's drag must not steal this scroll view's pan.
+    expect(scroll.props.nestedScrollEnabled).toBe(true);
     expect(within(scroll).getByText('Log on the Africa Twin')).toBeOnTheScreen();
     // The fifth option is inside it, so it can be scrolled to at AX5.
     expect(within(scroll).getByTestId('log-option-document')).toBeOnTheScreen();
