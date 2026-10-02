@@ -1,4 +1,10 @@
-import { MutationCache, onlineManager, QueryCache, QueryClient } from '@tanstack/react-query';
+import {
+  MutationCache,
+  onlineManager,
+  QueryCache,
+  QueryClient,
+  type QueryMeta,
+} from '@tanstack/react-query';
 import { Alert } from 'react-native';
 import { addBreadcrumb, captureException } from './analytics';
 import { GRAPHQL_ERROR_CODE, HANDLED_GRAPHQL_CAPTURE_SOURCE } from './graphql-error-classification';
@@ -10,7 +16,11 @@ import { isProviderSideFailure, isUpstreamHttpError } from './upstream-http-erro
 declare module '@tanstack/react-query' {
   interface Register {
     queryMeta: {
-      /** When false, global query error UI is skipped (default: show on first-load failures only). */
+      /**
+       * When false, global query error UI is skipped (default: show on first-load
+       * failures only). Honoured only when EVERY observer of the key passes it —
+       * see `resolveFailureHandling`.
+       */
       showErrorAlert?: boolean;
       /**
        * How much the user depends on this query. Absent ⇒ CRITICAL.
@@ -105,6 +115,52 @@ export function downgradeReasonFor(
   return QUERY_DOWNGRADE_RULES.find((rule) => rule.matches(error, criticality))?.reason ?? null;
 }
 
+/** What `resolveFailureHandling` reads off a failed query: its own meta and its observers'. */
+export interface FailedQueryMetaSource {
+  meta?: QueryMeta;
+  observers?: ReadonlyArray<{ options: { meta?: QueryMeta } }>;
+}
+
+export interface FailureHandling {
+  criticality: QueryCriticality;
+  /** Every observer renders the failure itself, so the global alert stays away. */
+  alertOptOut: boolean;
+}
+
+/** An observer that shows the failure itself — inline error, or nothing on a decorative surface. */
+const ownsFailureUi = (meta: QueryMeta | undefined): boolean =>
+  meta?.showErrorAlert === false ||
+  resolveCriticality(meta?.criticality) === QUERY_CRITICALITY.ENHANCEMENT;
+
+/**
+ * How a failed query is handled, decided over EVERY observer of it — never off
+ * `query.meta` alone.
+ *
+ * Observers of one key share one `Query`, and each render's
+ * `QueryObserver.setOptions` writes that observer's options (meta included)
+ * onto it, so `query.meta` is whatever the LAST-rendered observer passed. The
+ * hub's opt-out leaked onto legacy screens sharing a key, or was lost to them,
+ * depending on render order.
+ *
+ * Reading each observer's own options makes the answer order-independent, and
+ * the rule is fail-safe: one observer without its own error UI keeps the alert
+ * (and CRITICAL keeps its Sentry capture), so a forgotten opt-out costs a
+ * duplicate alert, never a silent "no data". With no observer (a prefetch or
+ * `fetchQuery`) the query's own meta — the one call's options — decides.
+ */
+export function resolveFailureHandling(query: FailedQueryMetaSource | undefined): FailureHandling {
+  const observers = query?.observers ?? [];
+  const metas =
+    observers.length > 0 ? observers.map((observer) => observer.options.meta) : [query?.meta];
+  const allEnhancement = metas.every(
+    (meta) => resolveCriticality(meta?.criticality) === QUERY_CRITICALITY.ENHANCEMENT,
+  );
+  return {
+    criticality: allEnhancement ? QUERY_CRITICALITY.ENHANCEMENT : QUERY_CRITICALITY.CRITICAL,
+    alertOptOut: metas.every(ownsFailureUi),
+  };
+}
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -137,7 +193,7 @@ export const queryClient = new QueryClient({
         return;
       }
 
-      const criticality = resolveCriticality(query?.meta?.criticality);
+      const { criticality, alertOptOut } = resolveFailureHandling(query);
       const downgradeReason = downgradeReasonFor(error, criticality);
 
       // Known-offline failures stay fully silent (no alert): the UI's offline
@@ -165,8 +221,8 @@ export const queryClient = new QueryClient({
       // the consuming component already renders nothing on absence, so an alert
       // would interrupt the rider about something that was successfully hidden.
       // (Sentry MOTO-VAULT-REACT-NATIVE-35 — the user-facing half of that bug.)
-      if (criticality === QUERY_CRITICALITY.ENHANCEMENT) return;
-      if (query?.meta?.showErrorAlert === false) return;
+      // Same for `showErrorAlert: false` — but only when EVERY observer says so.
+      if (alertOptOut) return;
       if (query?.state.data !== undefined) return;
       Alert.alert('Error', userFriendlyError(error));
     },

@@ -13,6 +13,7 @@ import { getRideStatus, type RideStatusResult } from '../../../lib/bike-hub/ride
 import type { TaskDue } from '../../../lib/bike-hub/task-due';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { QUERY_META } from '../../../lib/query-meta';
 import { type HubNote, useNotes } from '../notes/use-notes';
 import type { BikeHubData, HubBike, HubTask } from '../shell/use-bike-hub-data';
 import { useToday } from '../shell/use-today';
@@ -20,10 +21,11 @@ import { useToday } from '../shell/use-today';
 const RECALLS_STALE_MS = 24 * 60 * 60 * 1000;
 const NO_CATEGORIES: never[] = [];
 /**
- * The Overview degrades block by block (recall count fallback, costs / notes
- * error rows with Retry), so its own queries never raise the global alert.
+ * The Overview degrades block by block (recall count fallback, ride-status and
+ * costs / notes error rows with Retry), so its own queries never raise the
+ * global alert. Observers elsewhere of the same keys pass the same meta.
  */
-const OWN_ERROR_UI = { showErrorAlert: false } as const;
+const OWN_ERROR_UI = QUERY_META.OWN_ERROR_UI;
 
 interface Block {
   isLoading: boolean;
@@ -37,9 +39,10 @@ export interface OverviewData {
   today: Date;
   status: RideStatusResult;
   /**
-   * Whether `status` can be trusted. It is computed from tasks AND documents:
-   * while either is loading or has failed there is no verdict — never "Ready to
-   * ride" or "Nothing tracked yet" off an empty, not-yet-loaded list.
+   * Whether `status` can be trusted. It is computed from tasks, documents AND
+   * document categories (which documents block riding): while any is loading or
+   * has failed there is no verdict — never "Ready to ride" or "Nothing tracked
+   * yet" off an empty, not-yet-loaded list.
    */
   statusSource: Block;
   attention: AttentionResult;
@@ -93,7 +96,10 @@ export function useOverviewData(
   const categoriesQuery = useQuery({
     queryKey: queryKeys.documents.categories(true),
     queryFn: () => gqlFetcher(DocumentCategoriesDocument, { includeHidden: true }),
+    meta: OWN_ERROR_UI,
   });
+  const categoriesLoading = categoriesQuery.data === undefined && !categoriesQuery.isError;
+  const categoriesError = categoriesQuery.isError && !categoriesQuery.data;
   // Keyed with the year: the bare `byMotorcycle` key is shared with other variables.
   const currentYear = useQuery({
     queryKey: [...queryKeys.expenses.byMotorcycle(id), year],
@@ -148,11 +154,12 @@ export function useOverviewData(
     today,
     ...derived,
     statusSource: {
-      isLoading: shell.tasksLoading || shell.documentsLoading,
-      isError: shell.tasksError || shell.documentsError,
+      isLoading: shell.tasksLoading || shell.documentsLoading || categoriesLoading,
+      isError: shell.tasksError || shell.documentsError || categoriesError,
       refetch: () => {
         if (shell.tasksError) shell.refetchTasks();
         if (shell.documentsError) shell.refetchDocuments();
+        if (categoriesError) void categoriesQuery.refetch();
       },
     },
     tasks: {

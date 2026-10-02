@@ -45,9 +45,18 @@ afterEach(() => {
   for (const client of clients.splice(0)) client.clear();
 });
 
-function respond(recalls: 'ok' | 'error') {
+function respond(
+  recalls: 'ok' | 'error',
+  failing: { categories?: boolean; years?: readonly number[] } = {},
+) {
   const years: Record<number, unknown> = { 2026: EXPENSES_2026, 2025: EXPENSES_2025 };
   mockFetcher.mockImplementation((document: unknown, variables: { year?: number }) => {
+    if (document === DocumentCategoriesDocument && failing.categories) {
+      return Promise.reject(new Error('API is down'));
+    }
+    if (document === ExpensesByMotorcycleDocument && failing.years?.includes(variables.year ?? 0)) {
+      return Promise.reject(new Error('API is down'));
+    }
     if (document === MotorcycleRecallsDocument) {
       return recalls === 'error'
         ? Promise.reject(new Error('NHTSA down'))
@@ -118,6 +127,16 @@ describe('useOverviewData', () => {
       count: 1,
     });
     expect(result.current.attention.items[0]).toMatchObject({ count: 1, components: [] });
+  });
+
+  it('failed document categories withhold the verdict: which documents block riding is unknown', async () => {
+    respond('ok', { categories: true });
+    const result = await renderData();
+    expect(result.current.statusSource).toMatchObject({ isLoading: false, isError: true });
+    respond('ok');
+    await act(async () => result.current.statusSource.refetch());
+    await waitFor(() => expect(result.current.statusSource.isError).toBe(false));
+    expect(mockFetcher).toHaveBeenCalledWith(DocumentCategoriesDocument, { includeHidden: true });
   });
 });
 

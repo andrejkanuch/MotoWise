@@ -17,7 +17,12 @@ import type { Query } from '@tanstack/react-query';
 import { Alert } from 'react-native';
 import { addBreadcrumb, captureException } from '../analytics';
 import { GRAPHQL_ERROR_CODE } from '../graphql-error-classification';
-import { DOWNGRADE_REASON, downgradeReasonFor, queryClient } from '../query-client';
+import {
+  DOWNGRADE_REASON,
+  downgradeReasonFor,
+  queryClient,
+  resolveFailureHandling,
+} from '../query-client';
 import { QUERY_CRITICALITY, type QueryCriticality, resolveCriticality } from '../query-criticality';
 import { UPSTREAM_SERVICE, UpstreamHttpError } from '../upstream-http-error';
 
@@ -128,6 +133,46 @@ describe('downgradeReasonFor', () => {
 describe('resolveCriticality', () => {
   it('defaults to CRITICAL — silence is opt-in', () => {
     expect(resolveCriticality(undefined)).toBe(QUERY_CRITICALITY.CRITICAL);
+  });
+});
+
+describe('resolveFailureHandling — decided over every observer, never the last-rendered meta', () => {
+  const OPT_OUT = { showErrorAlert: false };
+  const ENHANCEMENT = { criticality: QUERY_CRITICALITY.ENHANCEMENT };
+  const observing = (...metas: Array<Record<string, unknown> | undefined>) => ({
+    // `query.meta` is whatever the last-rendered observer wrote — deliberately
+    // contradicting the observers here, to prove it is not what decides.
+    meta: OPT_OUT,
+    observers: metas.map((meta) => ({ options: { meta } })),
+  });
+
+  it.each([
+    ['opt-out, plain', [OPT_OUT, undefined]],
+    ['plain, opt-out', [undefined, OPT_OUT]],
+    ['enhancement, plain', [ENHANCEMENT, undefined]],
+  ])('keeps the alert when any observer lacks its own error UI (%s)', (_name, metas) => {
+    expect(resolveFailureHandling(observing(...metas)).alertOptOut).toBe(false);
+  });
+
+  it('opts out when every observer renders the failure itself (opt-out or ENHANCEMENT)', () => {
+    expect(resolveFailureHandling(observing(OPT_OUT, ENHANCEMENT, OPT_OUT)).alertOptOut).toBe(true);
+  });
+
+  it('is ENHANCEMENT only when every observer declares it — CRITICAL wins', () => {
+    expect(resolveFailureHandling(observing(ENHANCEMENT, ENHANCEMENT)).criticality).toBe(
+      QUERY_CRITICALITY.ENHANCEMENT,
+    );
+    expect(resolveFailureHandling(observing(ENHANCEMENT, OPT_OUT)).criticality).toBe(
+      QUERY_CRITICALITY.CRITICAL,
+    );
+  });
+
+  it('falls back to the query’s own meta when nothing observes it (prefetch, fetchQuery)', () => {
+    expect(resolveFailureHandling({ meta: OPT_OUT, observers: [] }).alertOptOut).toBe(true);
+    expect(resolveFailureHandling({ meta: undefined, observers: [] })).toEqual({
+      alertOptOut: false,
+      criticality: QUERY_CRITICALITY.CRITICAL,
+    });
   });
 });
 

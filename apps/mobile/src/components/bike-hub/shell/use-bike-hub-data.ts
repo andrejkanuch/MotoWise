@@ -13,6 +13,7 @@ import type { HubUnit } from '../../../lib/bike-hub/constants';
 import { toHubUnit } from '../../../lib/bike-hub/format';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { QUERY_META } from '../../../lib/query-meta';
 import { useToday } from './use-today';
 
 export type HubBike = MyMotorcyclesQuery['myMotorcycles'][number];
@@ -52,6 +53,11 @@ export interface BikeHubData {
 /**
  * The queries the shell needs. Each uses the shared `queryKeys`, so the wrapped
  * legacy sections and the Overview read the same cache entries.
+ *
+ * None of them raises the global alert — each failure has its own UI. That
+ * holds only while every other mounted observer of the key opts out too (see
+ * `resolveFailureHandling` in `lib/query-client.ts`); one that does not keeps
+ * the alert.
  */
 export function useBikeHubData(id: string): BikeHubData {
   const queryClient = useQueryClient();
@@ -59,24 +65,29 @@ export function useBikeHubData(id: string): BikeHubData {
   const today = useToday();
   const refreshingRef = useRef(false);
 
+  // The full-screen error state covers a bike list that failed with nothing cached.
   const bikes = useQuery({
     queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    meta: QUERY_META.OWN_ERROR_UI,
   });
   const tasksQuery = useQuery({
     queryKey: queryKeys.maintenanceTasks.byMotorcycle(id),
     queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId: id }),
+    meta: QUERY_META.OWN_ERROR_UI,
   });
+  // Only the photo band's rides chip, which is hidden while the count is absent.
   const rides = useQuery({
     queryKey: queryKeys.rides.byMotorcycle(id),
     queryFn: () => gqlFetcher(MyRidesDocument, { first: 1, motorcycleId: id }),
+    meta: QUERY_META.DECORATION,
   });
   const {
     documents,
     isPending: documentsLoading,
     isError: documentsError,
     refetch: refetchDocuments,
-  } = useMotorcycleDocuments(id);
+  } = useMotorcycleDocuments(id, { meta: QUERY_META.OWN_ERROR_UI });
 
   const bike = bikes.data?.myMotorcycles.find((motorcycle) => motorcycle.id === id) ?? null;
   const unit = toHubUnit(bike?.distanceUnit);

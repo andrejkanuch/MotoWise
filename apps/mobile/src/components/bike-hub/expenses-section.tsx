@@ -22,6 +22,7 @@ import {
 } from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { QUERY_META } from '../../lib/query-meta';
 import { SwipeableExpense } from '../shared/swipeable-expense';
 
 interface ExpensesSectionProps {
@@ -44,16 +45,28 @@ export function ExpensesSection({
   const [year, setYear] = useState(currentYear);
   const [showAll, setShowAll] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  // Shares the Overview's cache entry for this year, so it passes the same
+  // opt-out and renders its own error with Retry (below) — never "No expenses
+  // yet" for a list that failed to load.
+  const {
+    data,
+    isLoading,
+    isError: expensesError,
+    refetch: refetchExpenses,
+  } = useQuery({
     queryKey: [...queryKeys.expenses.byMotorcycle(motorcycleId), year],
     queryFn: () => gqlFetcher(ExpensesByMotorcycleDocument, { motorcycleId, year }),
+    meta: QUERY_META.OWN_ERROR_UI,
   });
+  const loadFailed = expensesError && !data;
 
   // Same cache entry as the bike hub — used to gate the wrench badge so list and
-  // detail agree when maintenanceTaskId is orphaned.
+  // detail agree when maintenanceTaskId is orphaned. A failure only hides the
+  // badge; the hub shell shows the task list's own error.
   const { data: tasksData } = useQuery({
     queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
     queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId }),
+    meta: QUERY_META.OWN_ERROR_UI,
   });
   const liveTaskIds = useMemo(
     () => new Set(tasksData?.maintenanceTasks.map((task) => task.id) ?? []),
@@ -237,8 +250,45 @@ export function ExpensesSection({
         </View>
       )}
 
+      {/* Error state */}
+      {loadFailed && (
+        <View
+          testID="expenses-load-error"
+          style={{
+            backgroundColor: cardBg,
+            borderRadius: 14,
+            borderCurve: 'continuous',
+            padding: 24,
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 15,
+              fontWeight: '600',
+              color: isDark ? palette.neutral200 : palette.neutral800,
+              textAlign: 'center',
+            }}
+          >
+            {t('expenses.failedToLoad')}
+          </Text>
+          <Pressable
+            testID="expenses-retry"
+            onPress={() => void refetchExpenses()}
+            accessibilityRole="button"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={({ pressed }) => ({ paddingVertical: 6, opacity: pressed ? 0.6 : 1 })}
+          >
+            <Text style={{ fontSize: 14, fontWeight: '600', color: palette.primary500 }}>
+              {t('common.retry')}
+            </Text>
+          </Pressable>
+        </View>
+      )}
+
       {/* Empty state */}
-      {!isLoading && allExpenses.length === 0 && (
+      {!isLoading && !loadFailed && allExpenses.length === 0 && (
         <Animated.View entering={FadeInUp.duration(300)}>
           <Pressable
             onPress={() => {

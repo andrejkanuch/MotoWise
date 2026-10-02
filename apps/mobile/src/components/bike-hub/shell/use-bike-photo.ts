@@ -27,6 +27,8 @@ export function useBikePhoto(bikeId: string): { uploading: boolean; changePhoto:
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
     },
+    // `changePhoto` shows "Failed to upload photo" itself.
+    meta: { showErrorAlert: false },
   });
 
   const changePhoto = useCallback(() => {

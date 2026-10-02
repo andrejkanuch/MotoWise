@@ -1,5 +1,5 @@
 import { DocumentsByMotorcycleDocument } from '@motovault/graphql';
-import { useQuery } from '@tanstack/react-query';
+import { type QueryMeta, useQuery } from '@tanstack/react-query';
 import { isExpiringSoon } from '../lib/document-expiry';
 import { gqlFetcher } from '../lib/graphql-client';
 import { queryKeys } from '../lib/query-keys';
@@ -10,9 +10,10 @@ import { queryKeys } from '../lib/query-keys';
  * card and the full DocumentsSection) reads one cache entry / one network request.
  * The expiring rule comes from {@link isExpiringSoon} so it can't drift from badges.
  */
-export function useMotorcycleDocuments(motorcycleId: string) {
+export function useMotorcycleDocuments(motorcycleId: string, options: { meta?: QueryMeta } = {}) {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: queryKeys.documents.byMotorcycle(motorcycleId),
+    meta: options.meta,
     queryFn: () => gqlFetcher(DocumentsByMotorcycleDocument, { motorcycleId }),
     select: (d) => ({
       documents: d.documents,

@@ -20,13 +20,39 @@ const mockFetcher = jest.fn();
 jest.mock('../../../lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  notificationAsync: jest.fn(),
+  ImpactFeedbackStyle: { Light: 'light' },
+  NotificationFeedbackType: { Success: 'success', Warning: 'warning' },
+}));
+jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn(), back: jest.fn() }) }));
+jest.mock('../../../lib/notifications', () => ({
+  cancelDocumentNotificationsForBike: jest.fn(),
+}));
+jest.mock('../../../lib/image-upload', () => ({
+  pickImage: jest.fn(),
+  takePhoto: jest.fn(() => Promise.resolve('file:///photo.jpg')),
+  uploadBikePhoto: jest.fn(() => Promise.resolve({ publicUrl: 'https://example.test/p.jpg' })),
+}));
+jest.mock('../../../stores/auth.store', () => ({
+  useAuthStore: (selector: (state: unknown) => unknown) =>
+    selector({ session: { user: { id: 'user-1' } } }),
+}));
+const mockActionSheet = jest.fn();
+jest.mock('../../../utils/action-sheet', () => ({
+  showActionSheet: (...args: unknown[]) => mockActionSheet(...args),
+}));
 
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { Alert } from 'react-native';
-import { NOTE_SOURCE } from '../../../lib/bike-hub/constants';
-import { queryClient } from '../../../lib/query-client';
+import { HUB_UNIT, NOTE_SOURCE } from '../../../lib/bike-hub/constants';
+import { userFriendlyError } from '../../../lib/graphql-errors';
+import { queryClient, resolveFailureHandling } from '../../../lib/query-client';
+import { queryKeys } from '../../../lib/query-keys';
+import { QUERY_META } from '../../../lib/query-meta';
 import { BIKE_A } from '../../../test/bike-hub-fixtures';
 import {
   useCreateNote,
@@ -35,15 +61,24 @@ import {
   useNotes,
   useUpdateNote,
 } from '../notes/use-notes';
+import { useOverviewData } from '../overview/use-overview-data';
 import { useLogOdometer, useOdometerContext } from '../sheets/use-log-odometer';
+import { useBikeActions } from '../shell/use-bike-actions';
+import { type HubBike, useBikeHubData } from '../shell/use-bike-hub-data';
+import { useBikePhoto } from '../shell/use-bike-photo';
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 );
 
-/** Long enough for every retry of the app client (queries: 3, backing off 1 + 2 + 4 s). */
+/**
+ * Long enough for every retry of the app client: queries retry 3 times with
+ * `retryDelay = 1000 * 2 ** failureCount`, i.e. 2 + 4 + 8 s for failureCount 1–3.
+ */
 const ALL_RETRIES_MS = 30_000;
 const settle = () => act(async () => jest.advanceTimersByTimeAsync(ALL_RETRIES_MS));
+const API_DOWN = new Error('API is down');
+const GLOBAL_ALERT_MESSAGE = userFriendlyError(API_DOWN);
 
 let alert: jest.SpyInstance;
 
@@ -51,7 +86,7 @@ beforeEach(() => {
   jest.useFakeTimers();
   jest.clearAllMocks();
   alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
-  mockFetcher.mockImplementation(() => Promise.reject(new Error('API is down')));
+  mockFetcher.mockImplementation(() => Promise.reject(API_DOWN));
 });
 afterEach(() => {
   queryClient.getMutationCache().clear();
@@ -129,5 +164,123 @@ describe('hub queries: a first-load failure shows only the hub’s own state', (
     await settle();
     expect(result.current.isError).toBe(true);
     expect(alert).not.toHaveBeenCalled();
+  });
+});
+
+describe('the opt-out does not depend on which observer rendered last', () => {
+  // Observers of one key share one Query, and every render writes that
+  // observer's options (meta included) onto it — so `query.meta` is whoever
+  // rendered last. The handler must decide over every observer instead.
+  const KEY = ['shared-key'];
+  const optedOut = () =>
+    useQuery({ queryKey: KEY, queryFn: () => mockFetcher(), meta: QUERY_META.OWN_ERROR_UI });
+  const plain = () => useQuery({ queryKey: KEY, queryFn: () => mockFetcher() });
+
+  it.each([
+    ['opted-out first, plain last', [optedOut, plain]],
+    ['plain first, opted-out last', [plain, optedOut]],
+  ] as const)('%s: an observer without its own error UI keeps the alert', async (_name, hooks) => {
+    await renderHook(() => hooks.map((useHook) => useHook()), { wrapper });
+    await settle();
+    expect(alert).toHaveBeenCalledTimes(1);
+    expect(alert).toHaveBeenCalledWith('Error', GLOBAL_ALERT_MESSAGE);
+  });
+
+  it('every observer opted out: no alert', async () => {
+    await renderHook(() => [optedOut(), optedOut()], { wrapper });
+    await settle();
+    expect(queryClient.getQueryCache().find({ queryKey: KEY })?.state.status).toBe('error');
+    expect(alert).not.toHaveBeenCalled();
+  });
+});
+
+describe('bike hub cold open with the API down and nothing cached', () => {
+  const renderHub = () =>
+    renderHook(
+      () => {
+        const shell = useBikeHubData(BIKE_A.id);
+        const overview = useOverviewData(BIKE_A as unknown as HubBike, shell, HUB_UNIT.KM);
+        return { shell, overview };
+      },
+      { wrapper },
+    );
+
+  it('raises zero alerts while every block shows its own error', async () => {
+    const { result } = await renderHub();
+    await settle();
+    const { shell, overview } = result.current;
+    expect(shell.isError).toBe(true);
+    expect(shell.tasksError).toBe(true);
+    expect(shell.documentsError).toBe(true);
+    expect(overview.statusSource.isError).toBe(true);
+    expect(overview.tasks.isError).toBe(true);
+    expect(overview.costs.isError).toBe(true);
+    expect(overview.notes.isError).toBe(true);
+    expect(overview.recallsKnown).toBe(false);
+    // Every query really ran its retries and failed with nothing cached.
+    const statuses = queryClient
+      .getQueryCache()
+      .getAll()
+      .map((query) => query.state.status);
+    expect(statuses.length).toBeGreaterThanOrEqual(9);
+    expect(new Set(statuses)).toEqual(new Set(['error']));
+    expect(alert).not.toHaveBeenCalled();
+  });
+
+  const year = new Date().getFullYear();
+  it.each([
+    ['bike list', queryKeys.motorcycles.all],
+    ['tasks', queryKeys.maintenanceTasks.byMotorcycle(BIKE_A.id)],
+    ['documents', queryKeys.documents.byMotorcycle(BIKE_A.id)],
+    ['rides', queryKeys.rides.byMotorcycle(BIKE_A.id)],
+    ['recalls', queryKeys.motorcycleRecalls.byMotorcycle(BIKE_A.id)],
+    ['document categories', queryKeys.documents.categories(true)],
+    ['expenses this year', [...queryKeys.expenses.byMotorcycle(BIKE_A.id), year]],
+    ['expenses last year', [...queryKeys.expenses.byMotorcycle(BIKE_A.id), year - 1]],
+    ['notes', queryKeys.notes.byMotorcycle(BIKE_A.id)],
+  ] as const)('the %s query is opted out of the global alert', async (_name, queryKey) => {
+    await renderHub();
+    await settle();
+    const query = queryClient.getQueryCache().find({ queryKey, exact: true });
+    expect(query?.state.status).toBe('error');
+    expect(resolveFailureHandling(query).alertOptOut).toBe(true);
+  });
+});
+
+describe('hub mutations whose caller shows its own alert do not get a second one', () => {
+  it('useBikeActions.removeBike: only the confirm and the caller’s "Failed to delete"', async () => {
+    const onRemoved = jest.fn();
+    const { result } = await renderHook(
+      () => useBikeActions(BIKE_A as unknown as HubBike, onRemoved),
+      { wrapper },
+    );
+    await act(async () => result.current.removeBike());
+    const [, , buttons] = alert.mock.calls[0] as [string, string, Array<{ onPress?: () => void }>];
+    await act(async () => {
+      buttons[1]?.onPress?.();
+    });
+    await settle();
+    expect(mockFetcher).toHaveBeenCalled();
+    expect(onRemoved).not.toHaveBeenCalled();
+    expect(alert).toHaveBeenCalledTimes(2);
+    expect(alert).toHaveBeenLastCalledWith(
+      'Error',
+      'Failed to delete motorcycle. Please try again.',
+    );
+    expect(alert).not.toHaveBeenCalledWith('Error', GLOBAL_ALERT_MESSAGE);
+  });
+
+  it('useBikePhoto.changePhoto: only the caller’s "Failed to upload photo"', async () => {
+    const { result } = await renderHook(() => useBikePhoto(BIKE_A.id), { wrapper });
+    await act(async () => result.current.changePhoto());
+    const [, options] = mockActionSheet.mock.calls[0] as [string, Array<{ onPress: () => void }>];
+    await act(async () => {
+      options[0]?.onPress();
+    });
+    await settle();
+    expect(mockFetcher).toHaveBeenCalled();
+    expect(alert).toHaveBeenCalledTimes(1);
+    expect(alert).toHaveBeenCalledWith('Error', 'Failed to upload photo');
+    expect(result.current.uploading).toBe(false);
   });
 });

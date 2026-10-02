@@ -45,6 +45,8 @@ export function useBikeActions(bike: HubBike, onRemoved: () => void): BikeAction
       trackEvent(AnalyticsEvent.GARAGE_BIKE_REMOVED, { motorcycle_id: id });
       triggerNotification(Haptics.NotificationFeedbackType.Warning);
     },
+    // `removeBike` shows "Failed to delete motorcycle" itself.
+    meta: { showErrorAlert: false },
   });
 
   const importOem = useMutation({
