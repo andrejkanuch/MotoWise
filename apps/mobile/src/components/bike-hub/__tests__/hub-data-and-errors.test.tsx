@@ -18,6 +18,7 @@ import {
 import { onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
+import { Alert } from 'react-native';
 import { BIKE_A } from '../../../test/bike-hub-fixtures';
 import { useCreateTaskFromNote, useDeleteNote, useUpdateNote } from '../notes/use-notes';
 import { useLogOdometer } from '../sheets/use-log-odometer';
@@ -143,5 +144,55 @@ describe('hub mutations keep the global error alert out of the way', () => {
     const [mutation] = client.getMutationCache().getAll();
     expect(mutation?.meta).toEqual({ showErrorAlert: false });
     expect(mutation?.options.onError).toBeUndefined();
+  });
+});
+
+describe('a failed odometer save shows only the inline error (app mutation cache)', () => {
+  it('the app\'s global handler raises no "Error" alert for it, on the first attempt or a retried one', async () => {
+    // The app's own mutation cache is what raises the global alert. Run the
+    // sheet's mutation to failure twice on a plain client, then hand each failed
+    // mutation to the app's real handler.
+    const { queryClient: appClient } = jest.requireActual('../../../lib/query-client') as {
+      queryClient: QueryClient;
+    };
+    const globalOnError = appClient.getMutationCache().config.onError;
+    expect(globalOnError).toBeDefined();
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+
+    mockFetcher.mockRejectedValue(new Error('offline'));
+    const client = newClient();
+    const { result } = await renderHook(() => useLogOdometer(BIKE_A.id), {
+      wrapper: wrapperFor(client),
+    });
+    const variables = {
+      value: 39_407,
+      recordedAt: new Date(),
+      today: new Date(),
+      delta: 1240,
+      backdated: false,
+      usedQuickAdd: false,
+    };
+    for (const _attempt of ['first', 'retry']) {
+      await act(async () => {
+        await result.current.mutateAsync(variables).catch(() => {});
+      });
+    }
+    const failed = client.getMutationCache().getAll();
+    expect(failed.length).toBeGreaterThan(0);
+    for (const mutation of failed) {
+      globalOnError?.(new Error('offline'), variables, undefined, mutation as never, {} as never);
+    }
+    expect(alert).not.toHaveBeenCalled();
+
+    // Control: the same handler does alert for a mutation that has not opted out.
+    globalOnError?.(
+      new Error('offline'),
+      variables,
+      undefined,
+      { meta: undefined, options: {} } as never,
+      {} as never,
+    );
+    expect(alert).toHaveBeenCalledTimes(1);
+    alert.mockRestore();
   });
 });

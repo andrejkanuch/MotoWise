@@ -24,6 +24,8 @@ interface Block {
   isLoading: boolean;
   isError: boolean;
   refetch: () => void;
+  /** The block still shows its last data, but the latest refetch failed. */
+  refreshFailed?: boolean;
 }
 
 export interface OverviewData {
@@ -61,6 +63,7 @@ export function useOverviewData(
     | 'tasksLoading'
     | 'tasksError'
     | 'refetchTasks'
+    | 'tasksRefreshFailed'
     | 'documents'
     | 'documentsLoading'
     | 'documentsError'
@@ -146,12 +149,14 @@ export function useOverviewData(
       isLoading: shell.tasksLoading,
       isError: shell.tasksError,
       refetch: shell.refetchTasks,
+      refreshFailed: shell.tasksRefreshFailed,
     },
     costs: {
       year,
       summary,
       isLoading: currentYear.isLoading,
       isError: currentYear.isError && !currentYear.data,
+      refreshFailed: currentYear.isError && !!currentYear.data,
       refetch: () => {
         void currentYear.refetch();
         void previousYear.refetch();
@@ -162,6 +167,7 @@ export function useOverviewData(
       isLoading: notes.isLoading,
       isError: notes.isError,
       refetch: notes.refetch,
+      refreshFailed: notes.refreshFailed,
     },
     documentCount: documents.length,
   };

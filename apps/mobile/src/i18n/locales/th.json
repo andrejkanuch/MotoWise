@@ -1288,7 +1288,8 @@
       "composerAdd": "เพิ่ม",
       "attachPhotoA11y": "แนบรูป",
       "photoA11y": "รูปในโน้ต"
-    }
+    },
+    "refreshFailed": "รีเฟรชไม่สำเร็จ"
   },
   "maintenance": {
     "healthScore": "คะแนนสุขภาพ",

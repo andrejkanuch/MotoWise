@@ -1288,7 +1288,8 @@
       "composerAdd": "Tambah",
       "attachPhotoA11y": "Lampirkan foto",
       "photoA11y": "Foto catatan"
-    }
+    },
+    "refreshFailed": "Gagal memperbarui"
   },
   "maintenance": {
     "healthScore": "Skor Kesehatan",

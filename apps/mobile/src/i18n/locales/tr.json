@@ -1288,7 +1288,8 @@
       "composerAdd": "Ekle",
       "attachPhotoA11y": "Fotoğraf ekle",
       "photoA11y": "Not fotoğrafı"
-    }
+    },
+    "refreshFailed": "Yenilenemedi"
   },
   "maintenance": {
     "healthScore": "Saglik Puani",

@@ -123,6 +123,7 @@ export function OverviewSegment({
             isLoading={data.tasks.isLoading}
             isError={data.tasks.isError}
             onRetry={data.tasks.refetch}
+            refreshFailed={data.tasks.refreshFailed}
             onPressItem={onPressItem}
             onPressAll={showService}
           />,
@@ -147,6 +148,7 @@ export function OverviewSegment({
         isLoading={data.costs.isLoading}
         isError={data.costs.isError}
         onRetry={data.costs.refetch}
+        refreshFailed={data.costs.refreshFailed}
         onPress={() => onShowSegment(BIKE_SEGMENT.COSTS)}
       />,
     ],
@@ -161,6 +163,7 @@ export function OverviewSegment({
         isLoading={data.notes.isLoading}
         isError={data.notes.isError}
         onRetry={data.notes.refetch}
+        refreshFailed={data.notes.refreshFailed}
         onOpenNotes={navigation.openNotes}
         onOpenNoteSheet={navigation.openNoteSheet}
       />,

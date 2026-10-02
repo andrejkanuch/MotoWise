@@ -1294,7 +1294,8 @@
       "composerAdd": "Add",
       "attachPhotoA11y": "Attach a photo",
       "photoA11y": "Note photo"
-    }
+    },
+    "refreshFailed": "Couldn't refresh"
   },
   "maintenance": {
     "healthScore": "Health Score",

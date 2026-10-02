@@ -34,6 +34,8 @@ export interface BikeHubData {
   tasksLoading: boolean;
   tasksError: boolean;
   refetchTasks: () => void;
+  /** Tasks are shown from the cache: the latest refetch failed. */
+  tasksRefreshFailed: boolean;
   documents: ReturnType<typeof useMotorcycleDocuments>['documents'];
   /** No document list yet and no error — loading, or paused offline. */
   documentsLoading: boolean;
@@ -123,6 +125,7 @@ export function useBikeHubData(id: string): BikeHubData {
     tasksLoading: tasksQuery.data === undefined && !tasksQuery.isError,
     tasksError: tasksQuery.isError && !tasksQuery.data,
     refetchTasks: () => void tasksQuery.refetch(),
+    tasksRefreshFailed: tasksQuery.isError && !!tasksQuery.data,
     documents,
     documentsLoading,
     documentsError,

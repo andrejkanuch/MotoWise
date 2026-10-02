@@ -1324,7 +1324,8 @@
       "composerAdd": "Pridať",
       "attachPhotoA11y": "Priložiť fotku",
       "photoA11y": "Fotka poznámky"
-    }
+    },
+    "refreshFailed": "Nepodarilo sa obnoviť"
   },
   "maintenance": {
     "healthScore": "Skóre stavu",

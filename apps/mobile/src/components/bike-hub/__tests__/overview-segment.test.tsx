@@ -65,6 +65,7 @@ interface Scenario {
   notes: unknown[];
   tasksLoading?: boolean;
   tasksError?: boolean;
+  tasksRefreshFailed?: boolean;
   documentsLoading?: boolean;
   documentsError?: boolean;
 }
@@ -130,6 +131,7 @@ async function renderOverview(overrides: Partial<Scenario> = {}) {
     tasksLoading: scenario.tasksLoading ?? false,
     tasksError: scenario.tasksError ?? false,
     refetchTasks,
+    tasksRefreshFailed: scenario.tasksRefreshFailed ?? false,
     documents: scenario.documents as Documents,
     documentsLoading: scenario.documentsLoading ?? false,
     documentsError: scenario.documentsError ?? false,
@@ -466,6 +468,39 @@ describe('Overview — status variants', () => {
     expect(screen.queryByTestId('setup-list')).toBeNull();
     await fireEvent.press(screen.getByTestId('ride-status-retry'));
     expect(refetchDocuments).toHaveBeenCalledTimes(1);
+  });
+
+  it('a failed refetch over cached tasks keeps the rows and says "Couldn\'t refresh · Retry"', async () => {
+    await renderOverview({ tasksRefreshFailed: true });
+    expect(await screen.findByText('Needs attention · 6')).toBeOnTheScreen();
+    const line = within(screen.getByTestId('attention-refresh-failed'));
+    expect(line.getByText(/^Couldn't refresh/)).toBeOnTheScreen();
+    await fireEvent.press(line.getByRole('button', { name: 'Retry' }));
+    expect(refetchTasks).toHaveBeenCalledTimes(1);
+    // The status is still a verdict from the cached data, not an error.
+    expect(screen.getByText('Check before riding')).toBeOnTheScreen();
+  });
+
+  it('shows no refresh line when nothing failed', async () => {
+    await renderOverview();
+    await screen.findByText('Needs attention · 6');
+    expect(screen.queryByText(/^Couldn't refresh/)).toBeNull();
+  });
+
+  it('a failed refetch over cached costs and notes keeps both and offers Retry in each block', async () => {
+    await renderOverview();
+    await screen.findByTestId('costs-card');
+    // The next refetch of everything fails; the cached data stays.
+    mockFetcher.mockImplementation(() => Promise.reject(new Error('offline')));
+    const client = clients[clients.length - 1];
+    await act(async () => {
+      await client?.refetchQueries();
+    });
+    expect(screen.getByText('€1,960.62')).toBeOnTheScreen();
+    expect(screen.getByText('Notes · 5')).toBeOnTheScreen();
+    expect(screen.getByTestId('costs-refresh-failed')).toBeOnTheScreen();
+    expect(screen.getByTestId('notes-refresh-failed')).toBeOnTheScreen();
+    expect(screen.queryByText("Couldn't load costs")).toBeNull();
   });
 
   it('no expenses last year: no YoY line', async () => {

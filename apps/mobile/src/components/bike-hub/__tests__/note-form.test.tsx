@@ -222,6 +222,11 @@ describe('NoteForm — new note', () => {
     mockFetcher.mockImplementation(() => Promise.reject(new Error('offline')));
     await fireEvent.press(screen.getByTestId('note-save'));
     expect(await screen.findByText("Couldn't save the note. Try again.")).toBeOnTheScreen();
+    // In the keyboard-attached footer, right above Save — not in the scroll area,
+    // where it sat below the fold with the keyboard open.
+    expect(screen.getByTestId('note-save-error').parent).toBe(
+      screen.getByTestId('note-save').parent,
+    );
     expect(screen.getByTestId('note-text').props.value).toBe('Will fail');
     expect(onClose).not.toHaveBeenCalled();
   });

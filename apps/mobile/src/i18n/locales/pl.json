@@ -1324,7 +1324,8 @@
       "composerAdd": "Dodaj",
       "attachPhotoA11y": "Dołącz zdjęcie",
       "photoA11y": "Zdjęcie notatki"
-    }
+    },
+    "refreshFailed": "Nie udało się odświeżyć"
   },
   "maintenance": {
     "healthScore": "Wynik stanu",

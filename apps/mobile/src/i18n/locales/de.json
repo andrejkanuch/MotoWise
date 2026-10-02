@@ -1288,7 +1288,8 @@
       "composerAdd": "Hinzufügen",
       "attachPhotoA11y": "Foto anhängen",
       "photoA11y": "Foto der Notiz"
-    }
+    },
+    "refreshFailed": "Aktualisierung fehlgeschlagen"
   },
   "maintenance": {
     "headerLabel": "WARTUNG",

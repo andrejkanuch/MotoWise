@@ -1289,7 +1289,8 @@
       "composerAdd": "Aggiungi",
       "attachPhotoA11y": "Allega una foto",
       "photoA11y": "Foto della nota"
-    }
+    },
+    "refreshFailed": "Aggiornamento non riuscito"
   },
   "maintenance": {
     "healthScore": "Punteggio salute",

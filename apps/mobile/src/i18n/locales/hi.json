@@ -1288,7 +1288,8 @@
       "composerAdd": "जोड़ें",
       "attachPhotoA11y": "फ़ोटो संलग्न करें",
       "photoA11y": "नोट की फ़ोटो"
-    }
+    },
+    "refreshFailed": "रीफ़्रेश नहीं हो सका"
   },
   "maintenance": {
     "healthScore": "हेल्थ स्कोर",

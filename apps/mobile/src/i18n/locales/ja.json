@@ -1288,7 +1288,8 @@
       "composerAdd": "追加",
       "attachPhotoA11y": "写真を添付",
       "photoA11y": "メモの写真"
-    }
+    },
+    "refreshFailed": "更新できませんでした"
   },
   "maintenance": {
     "headerLabel": "メンテナンス",

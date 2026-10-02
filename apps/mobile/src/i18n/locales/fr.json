@@ -1289,7 +1289,8 @@
       "composerAdd": "Ajouter",
       "attachPhotoA11y": "Joindre une photo",
       "photoA11y": "Photo de la note"
-    }
+    },
+    "refreshFailed": "Échec de l'actualisation"
   },
   "maintenance": {
     "headerLabel": "ENTRETIEN",

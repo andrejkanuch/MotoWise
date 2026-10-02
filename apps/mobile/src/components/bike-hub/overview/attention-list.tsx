@@ -16,6 +16,7 @@ import { formatShortDate } from '../../../lib/bike-hub/format';
 import { DueLine, describeDue } from '../ui/due-line';
 import type { RowIcon } from '../ui/list-row';
 import { PriorityTag } from '../ui/priority-tag';
+import { RefreshFailed } from '../ui/refresh-failed';
 import { SectionHeader } from '../ui/section-header';
 import {
   HUB_FONT,
@@ -191,6 +192,8 @@ interface AttentionListProps {
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
+  /** Rows are from the cache: the latest refetch failed. */
+  refreshFailed?: boolean;
   onPressItem: (item: AttentionItem) => void;
   /** "All" and the overflow row: open the Service segment. */
   onPressAll: () => void;
@@ -207,6 +210,7 @@ export function AttentionList({
   isLoading,
   isError,
   onRetry,
+  refreshFailed = false,
   onPressItem,
   onPressAll,
 }: AttentionListProps) {
@@ -272,6 +276,7 @@ export function AttentionList({
           onPress: onPressAll,
         }}
       />
+      {refreshFailed ? <RefreshFailed testID="attention-refresh-failed" onRetry={onRetry} /> : null}
       {result.visible.map((item) => {
         const Row = ROW[item.kind] as (props: {
           item: AttentionItem;

@@ -499,14 +499,6 @@ export function NoteForm({
             ) : null}
           </View>
         ) : null}
-        {saveFailed ? (
-          <Text
-            accessibilityLiveRegion="polite"
-            style={{ fontFamily: HUB_FONT.sans, fontSize: 13, color: hub.late }}
-          >
-            {t('bikeHub.notes.saveFailed')}
-          </Text>
-        ) : null}
       </KeyboardAwareScrollView>
 
       <KeyboardStickyView offset={{ closed: 0, opened: footerPadding - 12 }}>
@@ -520,6 +512,17 @@ export function NoteForm({
             backgroundColor: hub.card,
           }}
         >
+          {/* In the keyboard-attached footer, right above the button it explains:
+              inside the scroll area it sat below the fold with the keyboard open. */}
+          {saveFailed ? (
+            <Text
+              testID="note-save-error"
+              accessibilityLiveRegion="polite"
+              style={{ fontFamily: HUB_FONT.sans, fontSize: 13, color: hub.late, marginBottom: 8 }}
+            >
+              {t('bikeHub.notes.saveFailed')}
+            </Text>
+          ) : null}
           <Pressable
             testID="note-save"
             onPress={saved ? onClose : save}

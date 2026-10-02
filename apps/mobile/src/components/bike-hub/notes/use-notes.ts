@@ -43,6 +43,8 @@ export function useNotes(motorcycleId: string) {
     notes,
     isLoading: query.isLoading,
     isError: query.isError && !query.data,
+    /** Notes are shown from the cache: the latest refetch failed. */
+    refreshFailed: query.isError && !!query.data,
     refetch: () => void query.refetch(),
   };
 }
