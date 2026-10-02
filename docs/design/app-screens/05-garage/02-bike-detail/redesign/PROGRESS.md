@@ -6,7 +6,7 @@ The lead's only memory between runs. Read this first; continue from the first un
 
 | # | Phase | Branch | Status | Step | PR | Migration pushed |
 |---|---|---|---|---|---|---|
-| 1 | Shell + Overview | `feat/bike-detail-shell-overview` | in progress | 4 · Data first | — | no |
+| 1 | Shell + Overview | `feat/bike-detail-shell-overview` | in progress | 4 · Data first + 5 · Implement (parallel) | — | no |
 | 2 | Service segment | — | not started | — | — | — |
 | 3 | Task flows | — | not started | — | — | — |
 | 4 | Costs | — | not started | — | — | — |
@@ -84,7 +84,15 @@ Not removed yet (phase 6): `bike-stats-row`, `mileage-display`, health-report sc
   - `.env` files unchanged (still production). **Do not run the API from this branch against production**: `myMotorcycles` selects `distance_unit`, which does not exist there.
   - Resume at: free disk → Docker back → owner's Q5 choice → run the probes in `data-verification.md` → generate `database.types.ts` → commit the API slices → plan Phase 3.
 
-### Q5 — verification database (waiting for the owner)
+- 2026-10-02 · disk freed to 16 GB (npm cache, pnpm store prune, CocoaPods cache, unavailable simulators, duplicate Supabase images); Docker relaunched, owner's containers healthy.
+- 2026-10-02 · owner said "continue with implementation" without picking a Q5 route. Lead chose route 2 (patched scratch copy), the only one that needs no production access, with a fidelity gate: types generated from the scratch DB before 00180–00182 must equal the committed `database.types.ts`. Data agent resumed on that; Mobile implementer dispatched in parallel for plan Phases 3–4 (foundations + shell). Device checks wait for the scratch stack.
+
+- 2026-10-02 · step 4 Data — **done** (plan Phases 1–2 + Task 0.2). Scratch stack `mvscratch` running (one clean replay of 00001–00182; 00097, 00098, 00102 patched in the scratch copy only). Fidelity: identical to the committed types on every table this phase touches; 28 differences elsewhere (11 generator dialect, 17 real production-vs-folder drift, listed in `features/bike-detail-shell-overview/data-verification.md`). All probes for 00180–00182 and the API round-trips pass. One defect found and fixed (`63185755`: initial reading of 0). `database.types.ts` = committed file + scripted delta of 163 lines (`0826a283`); **after the production push `pnpm generate:types` must give a zero diff, else commit the generator output.** Commits `2397f28b`…`41e362b1`. typecheck 4/4, tests green (types 136, web 266, api 75 files, mobile 80 suites / 1,164).
+  - Before the push, run the four read-only production queries listed in `data-verification.md` (column grants on `motorcycles`, live `set_mileage_updated_at`, live task/expense policies, `current_mileage` default).
+  - Local run: `features/bike-detail-shell-overview/local-stack.md`. Users `qa-metric@local.test` (Africa Twin km + empty Ténéré) and `qa-imperial@local.test` (miles copy). `pnpm dev` cannot start the API here (`node_modules/.bin` not executable); the doc has the node command. The scratch workdir is under `/private/tmp` and does not survive a reboot; rebuild steps are in the doc. `.env` files untouched (production).
+  - Recalls cannot be seeded (live NHTSA); seeded documents have no files.
+
+### Q5 — verification database (route 2 in use; routes 1 and 3 remain the owner's call)
 
 1. Schema-only dump of production loaded into a local Postgres (read-only on production; most faithful).
 2. Scratch copy of the migrations folder with unreplayable old files patched in the copy only (approximate schema; unknown number of files after 00097).
