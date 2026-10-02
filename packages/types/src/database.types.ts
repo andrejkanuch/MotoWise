@@ -2198,6 +2198,7 @@ export type Database = {
           created_at: string
           current_mileage: number | null
           deleted_at: string | null
+          distance_unit: string
           engine_cc: number | null
           id: string
           is_primary: boolean
@@ -2225,6 +2226,7 @@ export type Database = {
           created_at?: string
           current_mileage?: number | null
           deleted_at?: string | null
+          distance_unit: string
           engine_cc?: number | null
           id?: string
           is_primary?: boolean
@@ -2252,6 +2254,7 @@ export type Database = {
           created_at?: string
           current_mileage?: number | null
           deleted_at?: string | null
+          distance_unit?: string
           engine_cc?: number | null
           id?: string
           is_primary?: boolean
@@ -2295,6 +2298,153 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      note_photos: {
+        Row: {
+          created_at: string
+          file_size_bytes: number | null
+          id: string
+          mime_type: string
+          note_id: string
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string
+          note_id: string
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string
+          note_id?: string
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_photos_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notes: {
+        Row: {
+          body: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          linked_expense_id: string | null
+          linked_task_id: string | null
+          motorcycle_id: string
+          odometer: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          linked_expense_id?: string | null
+          linked_task_id?: string | null
+          motorcycle_id: string
+          odometer?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          linked_expense_id?: string | null
+          linked_task_id?: string | null
+          motorcycle_id?: string
+          odometer?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_linked_expense_id_fkey"
+            columns: ["linked_expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_linked_task_id_fkey"
+            columns: ["linked_task_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      odometer_readings: {
+        Row: {
+          created_at: string
+          id: string
+          motorcycle_id: string
+          recorded_at: string
+          ride_id: string | null
+          source: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          motorcycle_id: string
+          recorded_at: string
+          ride_id?: string | null
+          source: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          motorcycle_id?: string
+          recorded_at?: string
+          ride_id?: string | null
+          source?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "odometer_readings_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "odometer_readings_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
             referencedColumns: ["id"]
           },
         ]
@@ -4957,6 +5107,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      log_odometer_reading: {
+        Args: {
+          p_motorcycle_id: string
+          p_recorded_at: string
+          p_value: number
+        }
+        Returns: string
+      }
       longtransactionsenabled: { Args: never; Returns: boolean }
       mark_article_read: {
         Args: { p_article_id: string; p_user_id: string }
@@ -4980,6 +5138,10 @@ export type Database = {
       populate_geometry_columns:
         | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }
         | { Args: { use_typmod?: boolean }; Returns: string }
+      note_link_is_own: {
+        Args: { p_expense_id: string; p_task_id: string }
+        Returns: boolean
+      }
       postgis_constraint_dims: {
         Args: { geomcolumn: string; geomschema: string; geomtable: string }
         Returns: number
@@ -5105,6 +5267,7 @@ export type Database = {
         Args: { motorcycle_id: string }
         Returns: boolean
       }
+      soft_delete_note: { Args: { note_id: string }; Returns: boolean }
       soft_delete_ride: { Args: { ride_id: string }; Returns: boolean }
       soft_delete_user: { Args: { p_user_id: string }; Returns: undefined }
       st_3dclosestpoint: {
