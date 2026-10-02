@@ -57,6 +57,9 @@ const LEAF_OWNER: Record<BikeLeaf, BikeSegment | null> = {
   [BIKE_LEAF.SERVICE_REPORT]: BIKE_SEGMENT.BIKE,
   [BIKE_LEAF.RECALLS]: BIKE_SEGMENT.OVERVIEW,
   [BIKE_LEAF.NOTES]: null,
+  [BIKE_LEAF.NOTE_SHEET]: null,
+  [BIKE_LEAF.LOG_SHEET]: null,
+  [BIKE_LEAF.ODOMETER_SHEET]: null,
 };
 
 /** The segment a rider lands on when coming back from a pushed leaf. */

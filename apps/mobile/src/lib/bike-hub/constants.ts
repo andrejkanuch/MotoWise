@@ -180,6 +180,9 @@ export const BIKE_LEAF = {
   SERVICE_REPORT: 'service_report',
   RECALLS: 'recalls',
   NOTES: 'notes',
+  NOTE_SHEET: 'note_sheet',
+  LOG_SHEET: 'log_sheet',
+  ODOMETER_SHEET: 'odometer_sheet',
 } as const;
 export type BikeLeaf = (typeof BIKE_LEAF)[keyof typeof BIKE_LEAF];
 
@@ -187,3 +190,46 @@ export type BikeLeaf = (typeof BIKE_LEAF)[keyof typeof BIKE_LEAF];
 export const ADD_TASK_MODE = {
   LOG: 'log',
 } as const;
+
+/** Where a note was written — the `source` property of `NOTE_CREATED`. */
+export const NOTE_SOURCE = {
+  OVERVIEW_QUICK: 'overview_quick',
+  SHEET: 'sheet',
+  NOTES_COMPOSER: 'notes_composer',
+} as const;
+export type NoteSource = (typeof NOTE_SOURCE)[keyof typeof NOTE_SOURCE];
+
+/** The `source` property of `ODOMETER_UPDATED`. */
+export const ODOMETER_SOURCE = {
+  SHEET: 'sheet',
+} as const;
+
+/** Notes shown on the Overview before "All notes". */
+export const OVERVIEW_NOTES_SHOWN = 2;
+
+/** Options of the Log sheet, in the order they are drawn. */
+export const LOG_OPTION = {
+  EXPENSE: 'expense',
+  TASK: 'task',
+  PAST_WORK: 'past_work',
+  NOTE: 'note',
+  DOCUMENT: 'document',
+} as const;
+export type LogOption = (typeof LOG_OPTION)[keyof typeof LOG_OPTION];
+
+/**
+ * Languages that capitalise nouns: a category name stays as written when it is
+ * placed mid-sentence. Every other language lower-cases it.
+ */
+export const NOUN_CAPITALISING_LANGUAGES = ['de'] as const;
+
+/** Which link a note row offers on the right of its meta line. */
+export const NOTE_LINK = {
+  TASK: 'task',
+  EXPENSE: 'expense',
+  MAKE_TASK: 'make_task',
+} as const;
+export type NoteLinkKind = (typeof NOTE_LINK)[keyof typeof NOTE_LINK];
+
+/** Debounce of the Notes search field. */
+export const NOTES_SEARCH_DEBOUNCE_MS = 200;
