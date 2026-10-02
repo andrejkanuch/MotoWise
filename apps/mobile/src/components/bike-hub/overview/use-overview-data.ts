@@ -19,6 +19,11 @@ import { useToday } from '../shell/use-today';
 
 const RECALLS_STALE_MS = 24 * 60 * 60 * 1000;
 const NO_CATEGORIES: never[] = [];
+/**
+ * The Overview degrades block by block (recall count fallback, costs / notes
+ * error rows with Retry), so its own queries never raise the global alert.
+ */
+const OWN_ERROR_UI = { showErrorAlert: false } as const;
 
 interface Block {
   isLoading: boolean;
@@ -46,6 +51,8 @@ export interface OverviewData {
   /** Expired or expiring documents, most urgent first. */
   documentSignals: DocumentSignal[];
   documentCount: number;
+  /** The recalls list is loaded (so "no open recalls" is a fact, not a guess). */
+  recallsKnown: boolean;
 }
 
 /**
@@ -81,6 +88,7 @@ export function useOverviewData(
     queryFn: () => gqlFetcher(MotorcycleRecallsDocument, { motorcycleId: id }),
     staleTime: RECALLS_STALE_MS,
     retry: 1,
+    meta: OWN_ERROR_UI,
   });
   const categoriesQuery = useQuery({
     queryKey: queryKeys.documents.categories(true),
@@ -90,10 +98,12 @@ export function useOverviewData(
   const currentYear = useQuery({
     queryKey: [...queryKeys.expenses.byMotorcycle(id), year],
     queryFn: () => gqlFetcher(ExpensesByMotorcycleDocument, { motorcycleId: id, year }),
+    meta: OWN_ERROR_UI,
   });
   const previousYear = useQuery({
     queryKey: [...queryKeys.expenses.byMotorcycle(id), year - 1],
     queryFn: () => gqlFetcher(ExpensesByMotorcycleDocument, { motorcycleId: id, year: year - 1 }),
+    meta: OWN_ERROR_UI,
   });
   const notes = useNotes(id);
 
@@ -170,5 +180,6 @@ export function useOverviewData(
       refreshFailed: notes.refreshFailed,
     },
     documentCount: documents.length,
+    recallsKnown: recalls !== null,
   };
 }

@@ -11,6 +11,14 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 
 const LATEST_ONLY = 1;
+/**
+ * The sheet works without these two (no delta line, no rides chip), so a failed
+ * first load must not raise the query client's global "Error" alert. That alert
+ * — not the save mutation — is what appeared beside the inline save error when
+ * the API was down: both queries fail with nothing cached, and their retries
+ * end a few seconds after the sheet opens.
+ */
+const OWN_ERROR_UI = { showErrorAlert: false } as const;
 
 /** The latest logged reading and the ride distance not yet on the odometer. */
 export function useOdometerContext(motorcycleId: string) {
@@ -18,11 +26,13 @@ export function useOdometerContext(motorcycleId: string) {
     queryKey: queryKeys.odometer.readings(motorcycleId),
     queryFn: () => gqlFetcher(OdometerReadingsDocument, { motorcycleId, limit: LATEST_ONLY }),
     enabled: !!motorcycleId,
+    meta: OWN_ERROR_UI,
   });
   const pendingRides = useQuery({
     queryKey: queryKeys.odometer.pendingRides(motorcycleId),
     queryFn: () => gqlFetcher(PendingRideDistanceDocument, { motorcycleId }),
     enabled: !!motorcycleId,
+    meta: OWN_ERROR_UI,
   });
   return {
     latest: readings.data?.odometerReadings[0] ?? null,
@@ -51,7 +61,7 @@ export function useLogOdometer(motorcycleId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     // The sheet shows the failure inline and keeps the entry: no global alert on top.
-    meta: { showErrorAlert: false },
+    meta: OWN_ERROR_UI,
     mutationFn: ({ value, recordedAt, today }: LogOdometerVariables) =>
       gqlFetcher(LogOdometerReadingDocument, {
         input: {

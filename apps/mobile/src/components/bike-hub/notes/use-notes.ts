@@ -19,9 +19,10 @@ export type HubNote = NotesByMotorcycleQuery['notes'][number];
 const NO_NOTES: HubNote[] = [];
 const OPTIMISTIC_PREFIX = 'optimistic-';
 /**
- * Every caller of these mutations shows its own inline error (or its own alert),
- * so the query client's global "Error" alert must stay out of the way — it only
- * skips mutations that have `onError` in their options, which these do not.
+ * Every caller of these mutations, and of the notes query, shows its own inline
+ * error (or its own alert), so the query client's global "Error" alert must stay
+ * out of the way. For mutations it only skips those with `onError` in their
+ * options; for queries it fires on any first-load failure.
  */
 const OWN_ERROR_UI = { showErrorAlert: false } as const;
 
@@ -36,6 +37,8 @@ export function useNotes(motorcycleId: string) {
     queryKey: queryKeys.notes.byMotorcycle(motorcycleId),
     queryFn: () => gqlFetcher(NotesByMotorcycleDocument, { motorcycleId }),
     enabled: !!motorcycleId,
+    // The notes block and the Notes screen render their own error + Retry.
+    meta: OWN_ERROR_UI,
   });
   const all = query.data?.notes ?? NO_NOTES;
   const notes = useMemo(() => all.filter((note) => !hiddenIds[note.id]), [all, hiddenIds]);
