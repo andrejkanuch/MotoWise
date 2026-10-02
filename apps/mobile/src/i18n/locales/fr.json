@@ -1170,7 +1170,8 @@
       "more_one": "{{count}} autre",
       "more_other": "{{count}} autres",
       "listAnd": "{{first}} et {{last}}",
-      "loadError": "Impossible de charger les tâches"
+      "loadError": "Impossible de charger les tâches",
+      "docActionInsurance": "renouvelez ou ajoutez la nouvelle police"
     },
     "nextUp": {
       "title": "À venir"

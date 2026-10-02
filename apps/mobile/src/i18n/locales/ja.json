@@ -1169,7 +1169,8 @@
       "more_one": "ほか{{count}}件",
       "more_other": "ほか{{count}}件",
       "listAnd": "{{first}}・{{last}}",
-      "loadError": "タスクを読み込めませんでした"
+      "loadError": "タスクを読み込めませんでした",
+      "docActionInsurance": "更新するか新しい保険証券をアップロード"
     },
     "nextUp": {
       "title": "次の予定"

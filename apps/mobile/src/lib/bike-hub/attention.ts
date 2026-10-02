@@ -10,6 +10,7 @@ import {
   type HubCategoryInput,
   type HubDocumentInput,
 } from './documents';
+import { recallComponentLabels } from './recall-label';
 import { countOpenRecalls, getRecallSeverity } from './recall-severity';
 import {
   comparePriority,
@@ -38,7 +39,11 @@ export interface RecallAttentionItem {
   kind: typeof ATTENTION_KIND.RECALL;
   id: string;
   count: number;
-  /** NHTSA component strings; empty while the recall detail is unknown. */
+  /**
+   * The recalls' components as a rider reads them (`recallComponentLabel`:
+   * most specific level, sentence case, repeats dropped); empty while the
+   * recall detail is unknown.
+   */
   components: string[];
   /** True when any recall is Critical. Unknown detail is treated as not critical. */
   critical: boolean;
@@ -110,7 +115,7 @@ function recallItem(
       kind: ATTENTION_KIND.RECALL,
       id: RECALL_ITEM_ID,
       count,
-      components: known.map((recall) => recall.component),
+      components: recallComponentLabels(known.map((recall) => recall.component)),
       critical: known.some((recall) => getRecallSeverity(recall) === RECALL_SEVERITY.CRITICAL),
     },
   ];

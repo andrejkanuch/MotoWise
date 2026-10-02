@@ -17,6 +17,14 @@ jest.mock('../../../stores/auth.store', () => ({
     selector({ currency: 'EUR', session: { user: { id: 'user-1' } } }),
 }));
 
+// The document row's icon renders as a marker, so a test can tell which one it drew.
+jest.mock('lucide-react-native', () => {
+  const actual = jest.requireActual('lucide-react-native');
+  const { Text } = jest.requireActual('react-native');
+  const marker = (name: string) => () => <Text testID={`icon-${name}`}>{name}</Text>;
+  return { ...actual, Shield: marker('Shield'), FileText: marker('FileText') };
+});
+
 const mockFetcher = jest.fn();
 jest.mock('../../../lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
@@ -179,13 +187,15 @@ describe('Overview — bike A', () => {
     await renderOverview();
     expect(await screen.findByText('Needs attention · 6')).toBeOnTheScreen();
     const list = within(screen.getByTestId('attention-list'));
-    expect(list.getByText('Open safety recall · ELECTRICAL SYSTEM: ECU')).toBeOnTheScreen();
+    expect(list.getByText('Open safety recall · ECU')).toBeOnTheScreen();
     expect(list.getByText('Free dealer fix')).toBeOnTheScreen();
     expect(list.getByText('SAFETY')).toBeOnTheScreen();
     expect(list.getByText('Brake pads inspection')).toBeOnTheScreen();
     expect(list.getByText('201 days late · 3,933 km to target')).toBeOnTheScreen();
     expect(list.getByText('Insurance expires Oct 14')).toBeOnTheScreen();
-    expect(list.getByText('In 12 days · Mapfre')).toBeOnTheScreen();
+    expect(
+      list.getByText('In 12 days · Mapfre · renew or upload the new policy'),
+    ).toBeOnTheScreen();
     expect(list.getByText('DOC')).toBeOnTheScreen();
     expect(list.getByText('3 more overdue, medium and low')).toBeOnTheScreen();
     expect(list.getByText('Coolant · Tire pressure · Chain clean & lube')).toBeOnTheScreen();
@@ -199,6 +209,39 @@ describe('Overview — bike A', () => {
       'attention-document-doc-insurance',
       'attention-overflow',
     ]);
+  });
+
+  it('the insurance row (riding-blocking, seeded) carries a shield and says what to do', async () => {
+    await renderOverview();
+    const row = within(await screen.findByTestId('attention-document-doc-insurance'));
+    expect(row.getByTestId('icon-Shield')).toBeOnTheScreen();
+    expect(row.queryByTestId('icon-FileText')).toBeNull();
+  });
+
+  it('a custom category named "Insurance" is not riding-blocking: document icon, no action hint', async () => {
+    await renderOverview({
+      documents: [{ ...BIKE_A_DOCUMENTS[0], id: 'doc-custom', categoryId: 'cat-custom-insurance' }],
+    });
+    const row = within(await screen.findByTestId('attention-document-doc-custom'));
+    expect(row.getByTestId('icon-FileText')).toBeOnTheScreen();
+    expect(row.getByText('In 12 days · Mapfre')).toBeOnTheScreen();
+  });
+
+  it('two recalls: NHTSA components read as sentence-case parts, not raw uppercase', async () => {
+    await renderOverview({
+      recalls: [
+        ECU_RECALL,
+        {
+          ...ECU_RECALL,
+          campaignNumber: '25V-001',
+          component: 'FUEL SYSTEM, GASOLINE:DELIVERY:FUEL PUMP',
+        },
+      ],
+    });
+    const row = within(await screen.findByTestId('attention-recall'));
+    expect(row.getByText('2 open safety recalls')).toBeOnTheScreen();
+    expect(row.getByText('Free dealer fix · ECU · Fuel pump')).toBeOnTheScreen();
+    expect(row.queryByText(/FUEL SYSTEM/)).toBeNull();
   });
 
   it('next up: Air filter, "In 2 days · or in 8,733 km"', async () => {

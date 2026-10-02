@@ -1199,7 +1199,8 @@
       "more_many": "{{count}} więcej",
       "more_other": "{{count}} więcej",
       "listAnd": "{{first}} i {{last}}",
-      "loadError": "Nie udało się wczytać zadań"
+      "loadError": "Nie udało się wczytać zadań",
+      "docActionInsurance": "odnów lub dodaj nową polisę"
     },
     "nextUp": {
       "title": "Następne"

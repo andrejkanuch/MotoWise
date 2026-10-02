@@ -1199,7 +1199,8 @@
       "more_many": "{{count}} ďalšej",
       "more_other": "{{count}} ďalších",
       "listAnd": "{{first}} a {{last}}",
-      "loadError": "Úlohy sa nepodarilo načítať"
+      "loadError": "Úlohy sa nepodarilo načítať",
+      "docActionInsurance": "obnovte alebo nahrajte novú poistku"
     },
     "nextUp": {
       "title": "Nasleduje"

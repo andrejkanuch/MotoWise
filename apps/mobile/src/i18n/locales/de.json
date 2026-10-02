@@ -1169,7 +1169,8 @@
       "more_one": "{{count}} weitere",
       "more_other": "{{count}} weitere",
       "listAnd": "{{first}} und {{last}}",
-      "loadError": "Aufgaben konnten nicht geladen werden"
+      "loadError": "Aufgaben konnten nicht geladen werden",
+      "docActionInsurance": "verlängern oder neue Police hochladen"
     },
     "nextUp": {
       "title": "Als Nächstes"

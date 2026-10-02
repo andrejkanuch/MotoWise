@@ -1170,7 +1170,8 @@
       "more_one": "{{count}} altra",
       "more_other": "altre {{count}}",
       "listAnd": "{{first}} e {{last}}",
-      "loadError": "Impossibile caricare le attività"
+      "loadError": "Impossibile caricare le attività",
+      "docActionInsurance": "rinnova o carica la nuova polizza"
     },
     "nextUp": {
       "title": "In arrivo"

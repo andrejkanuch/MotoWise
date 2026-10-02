@@ -1169,7 +1169,8 @@
       "more_one": "{{count}} lagi",
       "more_other": "{{count}} lagi",
       "listAnd": "{{first}} dan {{last}}",
-      "loadError": "Tidak dapat memuat tugas"
+      "loadError": "Tidak dapat memuat tugas",
+      "docActionInsurance": "perpanjang atau unggah polis baru"
     },
     "nextUp": {
       "title": "Berikutnya"

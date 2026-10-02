@@ -1170,7 +1170,8 @@
       "more_one": "mais {{count}}",
       "more_other": "mais {{count}}",
       "listAnd": "{{first}} e {{last}}",
-      "loadError": "Não foi possível carregar as tarefas"
+      "loadError": "Não foi possível carregar as tarefas",
+      "docActionInsurance": "renove ou envie a nova apólice"
     },
     "nextUp": {
       "title": "A seguir"

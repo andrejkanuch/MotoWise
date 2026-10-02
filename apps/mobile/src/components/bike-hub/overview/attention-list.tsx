@@ -1,6 +1,6 @@
 import type { MaintenancePriority } from '@motovault/graphql';
 import type { TFunction } from 'i18next';
-import { FileText, ShieldAlert, Wrench } from 'lucide-react-native';
+import { FileText, type LucideIcon, Shield, ShieldAlert, Wrench } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import type {
@@ -11,7 +11,12 @@ import type {
   RecallAttentionItem,
   TaskAttentionItem,
 } from '../../../lib/bike-hub/attention';
-import { ATTENTION_KIND, type AttentionKind, type HubUnit } from '../../../lib/bike-hub/constants';
+import {
+  ATTENTION_KIND,
+  type AttentionKind,
+  type HubUnit,
+  type RIDE_BLOCKING_DOCUMENT_CATEGORIES,
+} from '../../../lib/bike-hub/constants';
 import { formatShortDate } from '../../../lib/bike-hub/format';
 import { DueLine, describeDue } from '../ui/due-line';
 import type { RowIcon } from '../ui/list-row';
@@ -63,6 +68,21 @@ function subLine(lead: string, leadColor: string, rest?: string) {
       ) : null}
     </Text>
   );
+}
+
+type BlockingCategory = (typeof RIDE_BLOCKING_DOCUMENT_CATEGORIES)[number];
+
+/** A riding-blocking document's own icon and what the rider should do about it. */
+const BLOCKING_DOCUMENT_ROW: Partial<
+  Record<BlockingCategory, { icon: LucideIcon; actionKey: HubCopyKey }>
+> = {
+  Insurance: { icon: Shield, actionKey: 'bikeHub.attention.docActionInsurance' },
+};
+
+function blockingDocumentRow(item: DocumentAttentionItem) {
+  const { blocksRiding, categoryName } = item.signal;
+  if (!blocksRiding || !categoryName) return undefined;
+  return BLOCKING_DOCUMENT_ROW[categoryName as BlockingCategory];
 }
 
 function RecallRow({ item, context }: { item: RecallAttentionItem; context: RowContext }) {
@@ -126,15 +146,23 @@ function DocumentRow({ item, context }: { item: DocumentAttentionItem; context: 
     : signal.days === 0
       ? t('bikeHub.attention.docToday')
       : t('bikeHub.due.inDays', { count: signal.days });
-  const icon: RowIcon = { icon: FileText, color: colors.fg, background: colors.bg };
+  const blocking = blockingDocumentRow(item);
+  const rest = [signal.document.title, blocking ? t(blocking.actionKey) : null]
+    .filter(Boolean)
+    .join(SEPARATOR);
+  const icon: RowIcon = {
+    icon: blocking?.icon ?? FileText,
+    color: colors.fg,
+    background: colors.bg,
+  };
   return (
     <AttentionRow
       testID={`attention-document-${item.id}`}
       icon={icon}
       title={title}
-      sub={subLine(lead, colors.fg, signal.document.title)}
+      sub={subLine(lead, colors.fg, rest)}
       trailing={<PriorityTag variant={TAG_VARIANT.DOC} critical={signal.expired} />}
-      accessibilityLabel={`${title}. ${lead}. ${signal.document.title}`}
+      accessibilityLabel={`${title}. ${lead}. ${rest}`}
       onPress={() => context.onPress(item)}
     />
   );

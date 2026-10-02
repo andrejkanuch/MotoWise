@@ -1169,7 +1169,8 @@
       "more_one": "{{count}} और",
       "more_other": "{{count}} और",
       "listAnd": "{{first}} और {{last}}",
-      "loadError": "कार्य लोड नहीं हो सके"
+      "loadError": "कार्य लोड नहीं हो सके",
+      "docActionInsurance": "नवीनीकरण करें या नई पॉलिसी अपलोड करें"
     },
     "nextUp": {
       "title": "आगे"

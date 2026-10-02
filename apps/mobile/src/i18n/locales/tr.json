@@ -1169,7 +1169,8 @@
       "more_one": "{{count}} tane daha",
       "more_other": "{{count}} tane daha",
       "listAnd": "{{first}} ve {{last}}",
-      "loadError": "Görevler yüklenemedi"
+      "loadError": "Görevler yüklenemedi",
+      "docActionInsurance": "yenileyin veya yeni poliçeyi yükleyin"
     },
     "nextUp": {
       "title": "Sırada"

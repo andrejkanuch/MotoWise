@@ -1169,7 +1169,8 @@
       "more_one": "อีก {{count}} รายการ",
       "more_other": "อีก {{count}} รายการ",
       "listAnd": "{{first}} และ {{last}}",
-      "loadError": "โหลดงานไม่สำเร็จ"
+      "loadError": "โหลดงานไม่สำเร็จ",
+      "docActionInsurance": "ต่ออายุหรืออัปโหลดกรมธรรม์ใหม่"
     },
     "nextUp": {
       "title": "ถัดไป"

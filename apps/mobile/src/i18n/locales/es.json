@@ -1170,7 +1170,8 @@
       "more_one": "{{count}} más",
       "more_other": "{{count}} más",
       "listAnd": "{{first}} y {{last}}",
-      "loadError": "No se pudieron cargar las tareas"
+      "loadError": "No se pudieron cargar las tareas",
+      "docActionInsurance": "renuévalo o sube la nueva póliza"
     },
     "nextUp": {
       "title": "Lo próximo"

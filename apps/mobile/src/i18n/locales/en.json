@@ -1175,7 +1175,8 @@
       "more_one": "{{count}} more",
       "more_other": "{{count}} more",
       "listAnd": "{{first}} and {{last}}",
-      "loadError": "Couldn't load tasks"
+      "loadError": "Couldn't load tasks",
+      "docActionInsurance": "renew or upload the new policy"
     },
     "nextUp": {
       "title": "Next up"
