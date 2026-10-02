@@ -1,0 +1,128 @@
+jest.mock('expo-localization', () => ({
+  getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
+}));
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 54, bottom: 34, left: 0, right: 0 }),
+}));
+jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  ImpactFeedbackStyle: { Light: 'light' },
+}));
+
+const mockRouter = { push: jest.fn(), back: jest.fn() };
+let mockTransitionEnd: ((event: { data: { closing: boolean } }) => void) | undefined;
+jest.mock('expo-router', () => ({
+  // A getter: the factory runs at import time, before `mockRouter` is initialised.
+  get router() {
+    return mockRouter;
+  },
+  useLocalSearchParams: () => ({ motorcycleId: 'bike-a' }),
+  useNavigation: () => ({
+    addListener: (_event: string, listener: typeof mockTransitionEnd) => {
+      mockTransitionEnd = listener;
+      return () => {};
+    },
+  }),
+}));
+
+const mockFetcher = jest.fn();
+jest.mock('../../../lib/graphql-client', () => ({
+  gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
+}));
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import LogEntrySheet from '../../../app/(tabs)/(garage)/log-entry';
+import '../../../i18n';
+import { LOG_OPTION } from '../../../lib/bike-hub/constants';
+import { BIKE_A } from '../../../test/bike-hub-fixtures';
+
+const clients: QueryClient[] = [];
+
+async function renderSheet(bike: Record<string, unknown> = BIKE_A) {
+  mockFetcher.mockResolvedValue({ myMotorcycles: [bike] });
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  clients.push(client);
+  await render(
+    <QueryClientProvider client={client}>
+      <LogEntrySheet />
+    </QueryClientProvider>,
+  );
+  await screen.findByText(/^Log on the/);
+}
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.useFakeTimers();
+});
+afterEach(() => {
+  for (const client of clients.splice(0)) client.clear();
+  jest.useRealTimers();
+});
+
+describe('Log sheet', () => {
+  it('titles the sheet with the bike and lists the five options in order', async () => {
+    await renderSheet();
+    await act(async () => jest.advanceTimersByTimeAsync(0));
+    expect(await screen.findByText('Log on the Africa Twin')).toBeOnTheScreen();
+    expect(screen.getAllByTestId(/^log-option-/).map((row) => row.props.testID)).toEqual([
+      'log-option-expense',
+      'log-option-task',
+      'log-option-past_work',
+      'log-option-note',
+      'log-option-document',
+    ]);
+  });
+
+  it('uses the nickname in quotes when the bike has one', async () => {
+    await renderSheet({ ...BIKE_A, nickname: 'Big Red' });
+    await act(async () => jest.advanceTimersByTimeAsync(0));
+    expect(await screen.findByText('Log on the “Big Red”')).toBeOnTheScreen();
+  });
+
+  it('choosing an option dismisses the sheet first and opens the form when the dismissal ends', async () => {
+    await renderSheet();
+    await act(async () => jest.advanceTimersByTimeAsync(0));
+    await screen.findByText('Log on the Africa Twin');
+    await fireEvent.press(screen.getByTestId('log-option-expense'));
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+    expect(mockRouter.push).not.toHaveBeenCalled();
+    const { trackEvent } = jest.requireMock('../../../lib/analytics') as { trackEvent: jest.Mock };
+    expect(trackEvent).toHaveBeenCalledWith('BIKE_LOG_OPTION_SELECTED', {
+      motorcycle_id: BIKE_A.id,
+      option: LOG_OPTION.EXPENSE,
+    });
+
+    await act(async () => mockTransitionEnd?.({ data: { closing: true } }));
+    expect(mockRouter.push).toHaveBeenCalledTimes(1);
+    expect(mockRouter.push).toHaveBeenCalledWith({
+      pathname: '/(tabs)/(garage)/add-expense',
+      params: { motorcycleId: BIKE_A.id, bikeName: '2022 Honda Africa Twin' },
+    });
+    // The fallback timer must not open it a second time.
+    await act(async () => jest.advanceTimersByTimeAsync(2000));
+    expect(mockRouter.push).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the form by the fallback timer if the closing transition never reports', async () => {
+    await renderSheet();
+    await act(async () => jest.advanceTimersByTimeAsync(0));
+    await screen.findByText('Log on the Africa Twin');
+    await fireEvent.press(screen.getByTestId('log-option-note'));
+    expect(mockRouter.push).not.toHaveBeenCalled();
+    await act(async () => jest.advanceTimersByTimeAsync(700));
+    expect(mockRouter.push).toHaveBeenCalledWith({
+      pathname: '/(tabs)/(garage)/note',
+      params: { motorcycleId: BIKE_A.id },
+    });
+  });
+
+  it('Cancel dismisses without opening anything', async () => {
+    await renderSheet();
+    await act(async () => jest.advanceTimersByTimeAsync(0));
+    await fireEvent.press(await screen.findByText('Cancel'));
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+    expect(mockRouter.push).not.toHaveBeenCalled();
+  });
+});

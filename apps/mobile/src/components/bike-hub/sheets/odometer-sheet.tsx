@@ -1,0 +1,395 @@
+import DateTimePicker from '@expo/ui/community/datetime-picker';
+import * as Haptics from 'expo-haptics';
+import type { TFunction } from 'i18next';
+import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  DELTA_DIRECTION,
+  type HubUnit,
+  ODOMETER_ERROR,
+  ODOMETER_QUICK_ADD,
+  type OdometerKey,
+} from '../../../lib/bike-hub/constants';
+import { formatOdometer, formatShortDate, toHubUnit } from '../../../lib/bike-hub/format';
+import {
+  applyKey,
+  applyQuickAdd,
+  describeDelta,
+  type OdometerDelta,
+  parseEntry,
+  validateReading,
+} from '../../../lib/bike-hub/odometer-input';
+import { triggerNotification, triggerSelection } from '../../../utils/haptics';
+import type { HubBike } from '../shell/use-bike-hub-data';
+import { HUB_FONT, HUB_HEIGHT, HUB_RADIUS, hub } from '../ui/tokens';
+import { OdometerKeypad } from './odometer-keypad';
+import { SheetGrabber, SheetHeader } from './sheet-header';
+import { useLogOdometer, useOdometerContext } from './use-log-odometer';
+
+const CHIP_HEIGHT = 40;
+
+interface DeltaContext {
+  t: TFunction;
+  unit: HubUnit;
+  last: string;
+  since: string | null;
+  language: string;
+}
+
+/** The line under the entry: what the new reading means against the last one. */
+function deltaLine(
+  delta: OdometerDelta | null,
+  context: DeltaContext,
+): { text: string; warn: boolean } {
+  const { t, unit, last, since, language } = context;
+  if (!delta) return { text: t('bikeHub.odometer.first'), warn: false };
+  const amount = formatOdometer(delta.amount, language);
+  const copy: Record<typeof delta.direction, () => { text: string; warn: boolean }> = {
+    [DELTA_DIRECTION.UP]: () => ({
+      text: since
+        ? t('bikeHub.odometer.deltaUp', { delta: amount, unit, date: since, last })
+        : t('bikeHub.odometer.deltaUpNoDate', { delta: amount, unit, last }),
+      warn: false,
+    }),
+    [DELTA_DIRECTION.DOWN]: () => ({
+      text: t('bikeHub.odometer.deltaDown', { delta: amount, unit, last }),
+      warn: true,
+    }),
+    [DELTA_DIRECTION.FLAT]: () => ({
+      text: t('bikeHub.odometer.unchanged', { last }),
+      warn: false,
+    }),
+  };
+  return copy[delta.direction]();
+}
+
+interface OdometerSheetProps {
+  bike: HubBike;
+  onClose: () => void;
+  /** Tests pin the date; the screen omits it. */
+  now?: Date;
+}
+
+/**
+ * Odometer sheet: the only place the bike's odometer is edited, on both
+ * platforms. A numeric pad, quick-add chips, a date, and a confirmation before
+ * a reading lower than the last one is saved. Every save is an
+ * `odometer_readings` row; nothing is converted between units.
+ */
+export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
+  const { t, i18n } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const language = i18n.language;
+  const unit = toHubUnit(bike.distanceUnit);
+  const today = useMemo(() => now ?? new Date(), [now]);
+  const { latest, readingsLoading, pendingRides } = useOdometerContext(bike.id);
+  const logOdometer = useLogOdometer(bike.id);
+
+  const [digits, setDigits] = useState('');
+  const [recordedAt, setRecordedAt] = useState(today);
+  const [pickingDate, setPickingDate] = useState(false);
+  const [usedQuickAdd, setUsedQuickAdd] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
+
+  const lastValue = latest?.value ?? bike.currentMileage ?? null;
+  const lastRecordedAt = latest ? new Date(latest.recordedAt) : null;
+  const value = parseEntry(digits);
+  const validation = validateReading({ value, lastValue, recordedAt, lastRecordedAt, today });
+  const backdated = validation.ok && validation.backdated;
+  const delta = describeDelta(value, lastValue);
+  const lastText = lastValue == null ? '' : formatOdometer(lastValue, language);
+  const since = lastRecordedAt ? formatShortDate(lastRecordedAt, language) : null;
+
+  const detail =
+    value === null
+      ? {
+          text:
+            lastValue == null
+              ? t('bikeHub.odometer.first')
+              : t('bikeHub.odometer.lastReading', { last: lastText, unit, date: since ?? '' }),
+          warn: false,
+        }
+      : deltaLine(delta, { t, unit, last: lastText, since, language });
+
+  const onKey = (key: OdometerKey) => {
+    setSaveFailed(false);
+    setDigits((current) => applyKey(current, key));
+  };
+
+  const quickAdd = (amount: number) => {
+    triggerSelection();
+    setSaveFailed(false);
+    setUsedQuickAdd(true);
+    setDigits(String(applyQuickAdd(value, lastValue, amount)));
+  };
+
+  const save = () => {
+    if (value === null) return;
+    setSaveFailed(false);
+    logOdometer.mutate(
+      {
+        value,
+        recordedAt,
+        today,
+        delta: lastValue == null ? null : value - lastValue,
+        backdated,
+        usedQuickAdd,
+      },
+      {
+        onSuccess: () => {
+          triggerNotification(Haptics.NotificationFeedbackType.Success);
+          onClose();
+        },
+        // The sheet stays open and the entry is kept.
+        onError: () => setSaveFailed(true),
+      },
+    );
+  };
+
+  const onSavePress = () => {
+    if (validation.ok) return save();
+    if (!('needsConfirm' in validation)) return;
+    // A lower reading is allowed — a typo has to stay correctable — but asked first.
+    Alert.alert(
+      t('bikeHub.odometer.lowerTitle'),
+      t('bikeHub.odometer.lowerMessage', { last: lastText, unit }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('common.save'), onPress: save },
+      ],
+    );
+  };
+
+  const blocked = !validation.ok && 'error' in validation;
+  const futureDate = blocked && validation.error === ODOMETER_ERROR.FUTURE_DATE;
+  const entryText = value === null ? lastText || '0' : formatOdometer(value, language);
+  const dateLabel = isSameCalendarDay(recordedAt, today)
+    ? t('bikeHub.odometer.dateToday')
+    : t('bikeHub.odometer.dateOn', { date: formatShortDate(recordedAt, language) });
+  const saveLabel =
+    value === null
+      ? t('common.save')
+      : t('bikeHub.odometer.save', { value: formatOdometer(value, language), unit });
+
+  return (
+    <View
+      style={{
+        paddingTop: 16,
+        paddingHorizontal: 16,
+        paddingBottom: Math.max(insets.bottom, 16) + 8,
+        gap: 14,
+        backgroundColor: hub.card,
+      }}
+    >
+      <SheetGrabber />
+      <SheetHeader title={t('bikeHub.odometer.title')} onCancel={onClose} />
+
+      <View style={{ gap: 4, paddingVertical: 6 }}>
+        <Text
+          style={{
+            fontFamily: HUB_FONT.mono,
+            fontSize: 11,
+            letterSpacing: 0.88,
+            textTransform: 'uppercase',
+            color: hub.muted,
+          }}
+        >
+          {t('bikeHub.odometer.newReading')}
+        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text
+              testID="odometer-entry"
+              accessibilityLabel={`${entryText} ${unit}`}
+              style={{
+                fontFamily: HUB_FONT.monoMedium,
+                fontSize: 44,
+                lineHeight: 46,
+                letterSpacing: -0.88,
+                color: value === null ? hub.muted : hub.text,
+              }}
+            >
+              {entryText}
+            </Text>
+            <View style={{ width: 2, height: 36, marginLeft: 2, backgroundColor: hub.copper }} />
+          </View>
+          <Text style={{ fontFamily: HUB_FONT.mono, fontSize: 18, color: hub.muted }}>{unit}</Text>
+        </View>
+        <Text
+          testID="odometer-delta"
+          style={{
+            fontFamily: HUB_FONT.sans,
+            fontSize: 13,
+            color: detail.warn ? hub.soon : hub.dim,
+            opacity: readingsLoading ? 0.4 : 1,
+          }}
+        >
+          {detail.text}
+        </Text>
+      </View>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        style={{ flexGrow: 0 }}
+        contentContainerStyle={{ gap: 6 }}
+      >
+        {pendingRides && pendingRides.rideCount > 0 ? (
+          <Chip
+            testID="chip-rides"
+            highlighted
+            label={t('bikeHub.odometer.ridesChip', {
+              count: pendingRides.rideCount,
+              distance: formatOdometer(pendingRides.distance, language),
+            })}
+            onPress={() => quickAdd(pendingRides.distance)}
+          />
+        ) : null}
+        {ODOMETER_QUICK_ADD.map((amount) => (
+          <Chip
+            key={amount}
+            testID={`chip-${amount}`}
+            label={`+${amount}`}
+            onPress={() => quickAdd(amount)}
+          />
+        ))}
+      </ScrollView>
+
+      {pickingDate ? (
+        <View style={{ gap: 8 }}>
+          <DateTimePicker
+            value={recordedAt}
+            mode="date"
+            maximumDate={today}
+            display={process.env.EXPO_OS === 'ios' ? 'inline' : 'default'}
+            onChange={(event, selected) => {
+              if (process.env.EXPO_OS === 'android') setPickingDate(false);
+              if (event.type === 'set' && selected) setRecordedAt(selected);
+            }}
+            style={process.env.EXPO_OS === 'ios' ? { height: 320 } : undefined}
+          />
+          <Pressable
+            onPress={() => setPickingDate(false)}
+            accessibilityRole="button"
+            style={{
+              height: HUB_HEIGHT.secondary,
+              borderRadius: HUB_RADIUS.button,
+              borderCurve: 'continuous',
+              backgroundColor: hub.raised,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, color: hub.text }}>
+              {t('common.done')}
+            </Text>
+          </Pressable>
+        </View>
+      ) : (
+        <OdometerKeypad
+          onKey={onKey}
+          dateLabel={dateLabel}
+          onDatePress={() => setPickingDate(true)}
+        />
+      )}
+
+      <Text
+        testID="odometer-notice"
+        accessibilityLiveRegion="polite"
+        style={{
+          fontFamily: HUB_FONT.sans,
+          fontSize: 12,
+          lineHeight: 16,
+          color: saveFailed || futureDate ? hub.late : hub.muted,
+        }}
+      >
+        {noticeText({ t, saveFailed, futureDate, backdated, last: lastText, unit })}
+      </Text>
+
+      <Pressable
+        testID="odometer-save"
+        onPress={onSavePress}
+        disabled={blocked || logOdometer.isPending}
+        accessibilityRole="button"
+        accessibilityLabel={saveLabel}
+        accessibilityState={{ disabled: blocked, busy: logOdometer.isPending }}
+        style={({ pressed }) => ({
+          height: HUB_HEIGHT.primary,
+          borderRadius: HUB_RADIUS.button,
+          borderCurve: 'continuous',
+          backgroundColor: hub.copper,
+          alignItems: 'center',
+          justifyContent: 'center',
+          opacity: blocked || logOdometer.isPending ? 0.4 : pressed ? 0.85 : 1,
+        })}
+      >
+        <Text style={{ fontFamily: HUB_FONT.sansBold, fontSize: 16, color: hub.ink }}>
+          {saveLabel}
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function isSameCalendarDay(a: Date, b: Date): boolean {
+  return a.toDateString() === b.toDateString();
+}
+
+function noticeText(input: {
+  t: TFunction;
+  saveFailed: boolean;
+  futureDate: boolean;
+  backdated: boolean;
+  last: string;
+  unit: HubUnit;
+}): string {
+  const { t, saveFailed, futureDate, backdated, last, unit } = input;
+  if (saveFailed) return t('bikeHub.odometer.saveFailed');
+  if (futureDate) return t('bikeHub.odometer.futureDate');
+  if (backdated) return t('bikeHub.odometer.backdatedNotice', { last, unit });
+  return t('bikeHub.odometer.helper');
+}
+
+interface ChipProps {
+  label: string;
+  onPress: () => void;
+  highlighted?: boolean;
+  testID: string;
+}
+
+function Chip({ label, onPress, highlighted = false, testID }: ChipProps) {
+  return (
+    <Pressable
+      testID={testID}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      hitSlop={{ top: 4, bottom: 4 }}
+      style={({ pressed }) => ({
+        height: CHIP_HEIGHT,
+        paddingHorizontal: 14,
+        borderRadius: 11,
+        borderCurve: 'continuous',
+        backgroundColor: hub.ground,
+        borderWidth: 1,
+        borderColor: highlighted ? hub.chipOnBorder : hub.ripple,
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: pressed ? 0.7 : 1,
+      })}
+    >
+      <Text
+        style={{
+          fontFamily: HUB_FONT.mono,
+          fontSize: 13,
+          color: highlighted ? hub.copperText : hub.text,
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
