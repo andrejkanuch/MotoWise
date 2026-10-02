@@ -421,6 +421,88 @@ linked task soft-deleted, the note is still editable (P182.9). The control swaps
 the plan wrote it (plain `EXISTS` on `maintenance_tasks`) and the same edit is rejected with
 42501 (P182.9b), because that `EXISTS` runs under the tasks SELECT policy (`deleted_at IS NULL`).
 
+## Fix round 1 (code review) — re-probed 2026-10-02
+
+Applied to the running local database with targeted `DROP POLICY` / `CREATE POLICY` in one
+transaction (no reset; QA users' data untouched; probe users `rider-a` / `rider-b` only; every
+probe below ran inside a rolled-back transaction). The migration files carry the same text.
+
+1. **`notes` UPDATE policy now re-checks the bike** (same owned-and-not-deleted `EXISTS` as the
+   INSERT policy). Before, an UPDATE could move a note onto another rider's bike.
+   Decision: the **plain clause**, not a second SECURITY DEFINER helper. Consequence, accepted
+   and probed (F1.6): once a bike is soft-deleted its notes can still be read and soft-deleted
+   but no longer edited. Those notes are unreachable in the app (the bike is gone from the
+   garage), and a helper would have added a function to the schema and to `database.types.ts`
+   for no user-facing gain.
+2. **`note_photos` WITH CHECK now requires the note to be the caller's.** Before, `user_id` alone
+   let a caller attach a row to any note id.
+3. 00180 header corrected: `authenticated` holds table-level UPDATE on `motorcycles`, so a rider
+   can write `distance_unit` on their own bike directly; no column guard on purpose (R5's
+   Edit-bike control writes it).
+4. API: `logOdometerReading` maps the RPC's P0002 to NotFound (other errors stay 400);
+   notes `create` / `update` / `addPhoto` map 42501 to Forbidden (other errors stay 400);
+   `addNotePhoto` refuses any storage path that is not in normal form (`..`, `.`, `//`).
+
+```
+== F1.0 live policies (expect the bike EXISTS in notes UPDATE with_check, the notes EXISTS in note_photos with_check)
+        polname         | checks_bike | checks_note 
+ Users own note photos  | f           | t
+ Users update own notes | t           | f
+(2 rows)
+== F1.1 A edits own note on own live bike (expect UPDATE 1)
+UPDATE 1
+== F1.2 A moves the note to another own live bike (expect UPDATE 1), then back
+UPDATE 1
+UPDATE 1
+== F1.3 A moves the note onto the bike of B (expect 42501 - was allowed before this fix)
+ERROR:  42501: new row violates row-level security policy for table "notes"
+== F1.4 note_photos: own note ok (INSERT 0 1); note of B refused (42501 - was allowed before); unknown note id refused (42501)
+ERROR:  42501: new row violates row-level security policy for table "note_photos"
+ERROR:  42501: new row violates row-level security policy for table "note_photos"
+== F1.5 note_photos: re-pointing an own photo at the note of B refused (42501); own photo still readable (1) and deletable (DELETE 1)
+ERROR:  42501: new row violates row-level security policy for table "note_photos"
+ own_photos 
+          1
+DELETE 1
+== F1.6 the accepted consequence: bike soft-deleted -> note still readable (1), edit refused (42501), soft_delete_note still works (t)
+ bike_deleted 
+ t
+ note_readable 
+             1
+ERROR:  42501: new row violates row-level security policy for table "notes"
+ note_deleted 
+ t
+== F1.7 nothing persisted (expect 0 probe notes; bike A live)
+ probe_notes | bike_a_live 
+           0 | t
+```
+
+Through the API (temporary instance on `:4010`, probe users):
+
+```
+-- X1 logOdometerReading on the bike of B as A -> NOT_FOUND (was BAD_REQUEST)
+   "ERROR: Motorcycle not found [NOT_FOUND]"
+-- X2 logOdometerReading on own bike still works
+   {"logOdometerReading": {"currentMileage": 39700}}
+-- X3 createNote on the bike of B as A -> FORBIDDEN (was BAD_REQUEST)
+   "ERROR: You do not have access to this motorcycle or note [FORBIDDEN]"
+-- X4 updateNote on own note still works
+   {"updateNote": {"text": "fix round API probe, edited"}}
+-- X5 addNotePhoto parent-directory escape -> BAD_REQUEST
+   "ERROR: Invalid storage path [BAD_REQUEST]"
+-- X5 addNotePhoto escape back into the prefix -> BAD_REQUEST
+   "ERROR: Invalid storage path [BAD_REQUEST]"
+-- X5 addNotePhoto doubled slash -> BAD_REQUEST
+   "ERROR: Invalid storage path [BAD_REQUEST]"
+-- X6 addNotePhoto with a clean path still works
+   {"addNotePhoto": {"storagePath": "<uuid>/notes/<uuid>/1.webp"}}
+-- X7 cleanup: deleteNote
+   {"deleteNote": true}
+```
+
+`database.types.ts` is unaffected: `supabase gen types --local` after the policy changes is
+byte-identical to the generation before them (policies are not part of the generated types).
+
 ## API round-trips (Tasks 2.2 / 2.3)
 
 Local API on `:4010` against the local stack, two signed-in users (password grant), real
