@@ -54,7 +54,8 @@ jest.mock('../../../lib/graphql-client', () => ({
 import { AddNotePhotoDocument, CreateNoteDocument, UpdateNoteDocument } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import { Alert } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
+import { useKeyboardState } from 'react-native-keyboard-controller';
 import '../../../i18n';
 import { BIKE_A, BIKE_B, NOTES } from '../../../test/bike-hub-fixtures';
 import type { HubNote } from '../notes/use-notes';
@@ -317,5 +318,55 @@ describe('NoteForm — unset odometer, unsaved changes, photo picker', () => {
     await rerender(form({ draft: 'From the composer', openPhotoPicker: true }, client));
     await act(async () => {});
     expect(mockPick).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('NoteForm — keyboard open (visual QA round 2)', () => {
+  const keyboard = useKeyboardState as jest.Mock;
+  afterEach(() => keyboard.mockImplementation((selector) => selector({ isVisible: false })));
+
+  const inputMinHeight = () =>
+    StyleSheet.flatten(screen.getByTestId('note-text').props.style).minHeight;
+
+  it('the field starts at four lines with the keyboard up (six without), keeping the task toggle above Save', async () => {
+    await renderForm();
+    expect(inputMinHeight()).toBe(6 * 23 + 28);
+    keyboard.mockImplementation((selector) => selector({ isVisible: true }));
+    await renderForm();
+    expect(inputMinHeight()).toBe(4 * 23 + 28);
+  });
+
+  it('the scroll area reserves the Save bar’s measured height on top of the keyboard, error line included', async () => {
+    await renderForm();
+    const footer = screen.getByTestId('note-footer');
+    await act(async () => footer.props.onLayout({ nativeEvent: { layout: { height: 124 } } }));
+    // The keyboard-aware scroll view (a plain ScrollView in the library's jest mock).
+    const findSpace = (node: unknown): number | undefined => {
+      if (!node || typeof node !== 'object') return undefined;
+      const host = node as { props?: { extraKeyboardSpace?: number }; children?: unknown[] };
+      if (host.props?.extraKeyboardSpace !== undefined) return host.props.extraKeyboardSpace;
+      for (const child of host.children ?? []) {
+        const found = findSpace(child);
+        if (found !== undefined) return found;
+      }
+      return undefined;
+    };
+    expect(findSpace(screen.toJSON())).toBe(124);
+  });
+});
+
+describe('NoteForm — "also make it a task" names the task', () => {
+  it('names the task the server will create from the note, as the design does', async () => {
+    await renderForm();
+    expect(screen.getByTestId('note-also-task-sub')).toHaveTextContent(
+      'Creates a low-priority task with no due date, with this note attached',
+    );
+    await fireEvent.changeText(
+      screen.getByTestId('note-text'),
+      'Check rear sag — two-up preload felt soft. More later.',
+    );
+    expect(screen.getByTestId('note-also-task-sub')).toHaveTextContent(
+      'Creates “Check rear sag” · Low · no due date, with this note attached',
+    );
   });
 });

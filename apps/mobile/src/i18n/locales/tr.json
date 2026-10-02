@@ -1271,7 +1271,8 @@
       "discard": "Sil",
       "photoFailed": "Not kaydedildi, fotoğraf yüklenemedi",
       "taskNotCreated": "Not kaydedildi. Görev oluşturulamadı — notta “Görev yap” seçeneğini kullanın.",
-      "photoLimit": "Not başına en fazla {{max}} fotoğraf"
+      "photoLimit": "Not başına en fazla {{max}} fotoğraf",
+      "alsoTaskSubNamed": "“{{title}}” oluşturur · Düşük · tarihsiz, bu not ekli"
     },
     "notesScreen": {
       "title": "Notlar · {{name}}",

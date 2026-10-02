@@ -1,5 +1,5 @@
 import { posix } from 'node:path';
-import { MaintenancePriority, NOTE_PHOTOS_MAX } from '@motovault/types';
+import { deriveTaskTitleFromNote, MaintenancePriority, NOTE_PHOTOS_MAX } from '@motovault/types';
 import {
   BadRequestException,
   ForbiddenException,
@@ -20,7 +20,6 @@ import type { CreateNoteInput } from './dto/create-note.input';
 import type { UpdateNoteInput } from './dto/update-note.input';
 import type { Note } from './models/note.model';
 import type { NotePhoto } from './models/note-photo.model';
-import { deriveTaskTitleFromNote } from './note-task-title';
 
 const NOTES_TABLE = 'notes';
 const NOTE_PHOTOS_TABLE = 'note_photos';

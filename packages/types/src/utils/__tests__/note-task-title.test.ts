@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { deriveTaskTitleFromNote, NOTE_TASK_TITLE_MAX } from './note-task-title';
+import { deriveTaskTitleFromNote, NOTE_TASK_TITLE_MAX } from '../note-task-title';
 
 describe('deriveTaskTitleFromNote', () => {
   it.each([

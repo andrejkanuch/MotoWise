@@ -1277,7 +1277,8 @@
       "discard": "Discard",
       "photoFailed": "Note saved, photo failed",
       "taskNotCreated": "Note saved. The task could not be created — use “Make it a task” on the note.",
-      "photoLimit": "Up to {{max}} photos per note"
+      "photoLimit": "Up to {{max}} photos per note",
+      "alsoTaskSubNamed": "Creates “{{title}}” · Low · no due date, with this note attached"
     },
     "notesScreen": {
       "title": "Notes · {{name}}",

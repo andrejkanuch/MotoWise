@@ -1,5 +1,5 @@
 import { AddNotePhotoDocument, DeleteNotePhotoDocument } from '@motovault/graphql';
-import { NOTE_PHOTOS_MAX, NOTE_TEXT_MAX } from '@motovault/types';
+import { deriveTaskTitleFromNote, NOTE_PHOTOS_MAX, NOTE_TEXT_MAX } from '@motovault/types';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
@@ -7,7 +7,11 @@ import { Camera, Gauge, X } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
+import {
+  KeyboardAwareScrollView,
+  KeyboardStickyView,
+  useKeyboardState,
+} from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NOTE_SOURCE } from '../../../lib/bike-hub/constants';
 import {
@@ -30,7 +34,14 @@ import { HUB_FONT, HUB_HEIGHT, HUB_RADIUS, HUB_TOUCH_TARGET, hub } from '../ui/t
 
 const CHIP_SLOP = Math.ceil((HUB_TOUCH_TARGET - HUB_HEIGHT.small) / 2);
 const THUMBNAIL = 64;
-const MIN_INPUT_HEIGHT = 6 * 23 + 28;
+const INPUT_LINE_HEIGHT = 23;
+const INPUT_PADDING = 14;
+const MIN_INPUT_HEIGHT = 6 * INPUT_LINE_HEIGHT + 2 * INPUT_PADDING;
+/**
+ * With the keyboard up the field starts at four lines (it still grows with the
+ * text), so "Also make it a task" stays above the keyboard-attached Save bar.
+ */
+const MIN_INPUT_HEIGHT_TYPING = 4 * INPUT_LINE_HEIGHT + 2 * INPUT_PADDING;
 
 interface NoteFormProps {
   /** The bike the sheet was opened for. */
@@ -115,6 +126,11 @@ export function NoteForm({
   const queryClient = useQueryClient();
   const userId = useAuthStore((state) => state.session?.user?.id);
   const isEdit = !!note;
+  const keyboardOpen = useKeyboardState((state) => state.isVisible);
+  // The Save bar rides on the keyboard and covers the bottom of the scroll area;
+  // its height (it grows with the error line) is added to the keyboard space so
+  // the last row can always be scrolled clear of it.
+  const [footerHeight, setFooterHeight] = useState(0);
 
   const [text, setText] = useState(note?.text ?? draft ?? '');
   const [targetId, setTargetId] = useState(bike.id);
@@ -301,6 +317,7 @@ export function NoteForm({
       <KeyboardAwareScrollView
         keyboardShouldPersistTaps="handled"
         bottomOffset={HUB_HEIGHT.primary + 32}
+        extraKeyboardSpace={footerHeight}
         contentContainerStyle={{ gap: 12, paddingTop: 6, paddingHorizontal: 16, paddingBottom: 24 }}
       >
         <TextInput
@@ -319,8 +336,8 @@ export function NoteForm({
           accessibilityLabel={t('bikeHub.log.note')}
           textAlignVertical="top"
           style={{
-            minHeight: MIN_INPUT_HEIGHT,
-            padding: 14,
+            minHeight: keyboardOpen ? MIN_INPUT_HEIGHT_TYPING : MIN_INPUT_HEIGHT,
+            padding: INPUT_PADDING,
             borderRadius: HUB_RADIUS.button,
             borderCurve: 'continuous',
             borderWidth: 1,
@@ -329,7 +346,7 @@ export function NoteForm({
             color: hub.text,
             fontFamily: HUB_FONT.sans,
             fontSize: 16,
-            lineHeight: 23,
+            lineHeight: INPUT_LINE_HEIGHT,
           }}
         />
 
@@ -439,6 +456,7 @@ export function NoteForm({
                 {t('bikeHub.noteSheet.alsoTask')}
               </Text>
               <Text
+                testID="note-also-task-sub"
                 style={{
                   fontFamily: HUB_FONT.sans,
                   fontSize: 12,
@@ -446,7 +464,12 @@ export function NoteForm({
                   color: hub.muted,
                 }}
               >
-                {t('bikeHub.noteSheet.alsoTaskSub')}
+                {/* Names the task the server will create (same derivation as the API). */}
+                {cleanText
+                  ? t('bikeHub.noteSheet.alsoTaskSubNamed', {
+                      title: deriveTaskTitleFromNote(cleanText),
+                    })
+                  : t('bikeHub.noteSheet.alsoTaskSub')}
               </Text>
             </View>
             <View
@@ -505,6 +528,8 @@ export function NoteForm({
 
       <KeyboardStickyView offset={{ closed: 0, opened: footerPadding - 12 }}>
         <View
+          testID="note-footer"
+          onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}
           style={{
             paddingTop: 12,
             paddingHorizontal: 16,

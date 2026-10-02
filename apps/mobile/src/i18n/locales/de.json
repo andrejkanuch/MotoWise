@@ -1271,7 +1271,8 @@
       "discard": "Verwerfen",
       "photoFailed": "Notiz gespeichert, Foto fehlgeschlagen",
       "taskNotCreated": "Notiz gespeichert. Die Aufgabe konnte nicht angelegt werden – nutze „Als Aufgabe anlegen“ an der Notiz.",
-      "photoLimit": "Bis zu {{max}} Fotos pro Notiz"
+      "photoLimit": "Bis zu {{max}} Fotos pro Notiz",
+      "alsoTaskSubNamed": "Legt „{{title}}“ an · Niedrig · ohne Termin, mit dieser Notiz"
     },
     "notesScreen": {
       "title": "Notizen · {{name}}",

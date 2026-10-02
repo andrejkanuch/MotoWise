@@ -1305,7 +1305,8 @@
       "discard": "Odrzuć",
       "photoFailed": "Notatka zapisana, zdjęcie nie",
       "taskNotCreated": "Notatka zapisana. Nie udało się utworzyć zadania — użyj „Utwórz zadanie” przy notatce.",
-      "photoLimit": "Maksymalnie {{max}} zdjęcia na notatkę"
+      "photoLimit": "Maksymalnie {{max}} zdjęcia na notatkę",
+      "alsoTaskSubNamed": "Tworzy „{{title}}” · Niski · bez terminu, z dołączoną notatką"
     },
     "notesScreen": {
       "title": "Notatki · {{name}}",

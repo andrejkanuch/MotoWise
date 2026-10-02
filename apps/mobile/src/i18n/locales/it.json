@@ -1272,7 +1272,8 @@
       "discard": "Scarta",
       "photoFailed": "Nota salvata, foto non riuscita",
       "taskNotCreated": "Nota salvata. Non è stato possibile creare l’attività: usa «Rendila un’attività» sulla nota.",
-      "photoLimit": "Fino a {{max}} foto per nota"
+      "photoLimit": "Fino a {{max}} foto per nota",
+      "alsoTaskSubNamed": "Crea “{{title}}” · Bassa · senza scadenza, con questa nota allegata"
     },
     "notesScreen": {
       "title": "Note · {{name}}",

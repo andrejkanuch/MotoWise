@@ -1271,7 +1271,8 @@
       "discard": "破棄",
       "photoFailed": "メモは保存済み、写真は失敗しました",
       "taskNotCreated": "メモは保存されました。タスクを作成できませんでした。メモの「タスクにする」をお使いください。",
-      "photoLimit": "メモ1件につき写真は{{max}}枚まで"
+      "photoLimit": "メモ1件につき写真は{{max}}枚まで",
+      "alsoTaskSubNamed": "「{{title}}」を作成・優先度低・期限なし、このメモを添付"
     },
     "notesScreen": {
       "title": "メモ · {{name}}",

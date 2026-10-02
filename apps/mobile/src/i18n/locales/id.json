@@ -1271,7 +1271,8 @@
       "discard": "Buang",
       "photoFailed": "Catatan tersimpan, foto gagal",
       "taskNotCreated": "Catatan tersimpan. Tugas tidak dapat dibuat — gunakan “Jadikan tugas” pada catatan.",
-      "photoLimit": "Maksimal {{max}} foto per catatan"
+      "photoLimit": "Maksimal {{max}} foto per catatan",
+      "alsoTaskSubNamed": "Membuat “{{title}}” · Rendah · tanpa tenggat, dengan catatan ini terlampir"
     },
     "notesScreen": {
       "title": "Catatan · {{name}}",

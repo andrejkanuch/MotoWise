@@ -1272,7 +1272,8 @@
       "discard": "Abandonner",
       "photoFailed": "Note enregistrée, échec de la photo",
       "taskNotCreated": "Note enregistrée. La tâche n’a pas pu être créée : utilisez « En faire une tâche » sur la note.",
-      "photoLimit": "Jusqu'à {{max}} photos par note"
+      "photoLimit": "Jusqu'à {{max}} photos par note",
+      "alsoTaskSubNamed": "Crée « {{title}} » · Basse · sans échéance, avec cette note jointe"
     },
     "notesScreen": {
       "title": "Notes · {{name}}",

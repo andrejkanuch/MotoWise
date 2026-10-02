@@ -1305,7 +1305,8 @@
       "discard": "Zahodiť",
       "photoFailed": "Poznámka uložená, fotka zlyhala",
       "taskNotCreated": "Poznámka uložená. Úlohu sa nepodarilo vytvoriť — použite „Vytvoriť úlohu“ pri poznámke.",
-      "photoLimit": "Najviac {{max}} fotky na poznámku"
+      "photoLimit": "Najviac {{max}} fotky na poznámku",
+      "alsoTaskSubNamed": "Vytvorí „{{title}}“ · Nízka · bez termínu, s touto poznámkou"
     },
     "notesScreen": {
       "title": "Poznámky · {{name}}",

@@ -1272,7 +1272,8 @@
       "discard": "Descartar",
       "photoFailed": "Nota guardada, la foto falló",
       "taskNotCreated": "Nota guardada. No se pudo crear la tarea: usa «Convertir en tarea» en la nota.",
-      "photoLimit": "Hasta {{max}} fotos por nota"
+      "photoLimit": "Hasta {{max}} fotos por nota",
+      "alsoTaskSubNamed": "Crea «{{title}}» · Baja · sin fecha, con esta nota adjunta"
     },
     "notesScreen": {
       "title": "Notas · {{name}}",

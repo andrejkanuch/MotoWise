@@ -1272,7 +1272,8 @@
       "discard": "Descartar",
       "photoFailed": "Nota salva, a foto falhou",
       "taskNotCreated": "Nota salva. Não foi possível criar a tarefa — use “Criar tarefa” na nota.",
-      "photoLimit": "Até {{max}} fotos por nota"
+      "photoLimit": "Até {{max}} fotos por nota",
+      "alsoTaskSubNamed": "Cria “{{title}}” · Baixa · sem prazo, com esta nota anexada"
     },
     "notesScreen": {
       "title": "Notas · {{name}}",

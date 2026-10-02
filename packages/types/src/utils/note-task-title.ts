@@ -1,4 +1,4 @@
-/** Longest task title derived from a note, ellipsis included. */
+/** Longest task title derived from a note, ellipsis included (API task + Note sheet preview). */
 export const NOTE_TASK_TITLE_MAX = 60;
 
 const ELLIPSIS = '…';
