@@ -173,7 +173,10 @@ export function useOverviewData(
       summary,
       isLoading: currentYear.isLoading,
       isError: currentYear.isError && !currentYear.data,
-      refreshFailed: currentYear.isError && !!currentYear.data,
+      // The card shows both years (YTD and the year-over-year line): once this
+      // year is on screen, a failed fetch of either year leaves part of it
+      // stale or missing — say so, with Retry (which refetches both).
+      refreshFailed: !!currentYear.data && (currentYear.isError || previousYear.isError),
       refetch: () => {
         void currentYear.refetch();
         void previousYear.refetch();

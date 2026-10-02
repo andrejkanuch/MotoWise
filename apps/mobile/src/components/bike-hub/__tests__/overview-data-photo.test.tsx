@@ -129,6 +129,27 @@ describe('useOverviewData', () => {
     expect(result.current.attention.items[0]).toMatchObject({ count: 1, components: [] });
   });
 
+  it.each([
+    ['last year only (the year-over-year line is missing)', [2025]],
+    ['this year only (the YTD is stale)', [2026]],
+    ['both years', [2025, 2026]],
+  ] as const)('costs: once this year is shown, a failed fetch of %s says "Couldn\u2019t refresh"', async (_name, failingYears) => {
+    respond('ok');
+    const result = await renderData();
+    expect(result.current.costs.refreshFailed).toBe(false);
+    respond('ok', { years: failingYears });
+    await act(async () => result.current.costs.refetch());
+    await waitFor(() => expect(result.current.costs.refreshFailed).toBe(true));
+    expect(result.current.costs.isError).toBe(false);
+  });
+
+  it('costs: last year failing on the first load is flagged too, beside this year’s data', async () => {
+    respond('ok', { years: [2025] });
+    const result = await renderData();
+    expect(result.current.costs).toMatchObject({ isError: false, refreshFailed: true });
+    expect(result.current.costs.summary.yoy).toBeNull();
+  });
+
   it('failed document categories withhold the verdict: which documents block riding is unknown', async () => {
     respond('ok', { categories: true });
     const result = await renderData();
