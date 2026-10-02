@@ -1,6 +1,8 @@
+import { posix } from 'node:path';
 import { MaintenancePriority, NOTE_PHOTOS_MAX } from '@motovault/types';
 import {
   BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -8,8 +10,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { SupabaseClient } from '@supabase/supabase-js';
+import { type PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { PHOTO_BUCKETS } from '../../common/storage/photo-storage';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { MaintenanceTasksService } from '../maintenance-tasks/maintenance-tasks.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -36,6 +39,8 @@ const NOTE_PHOTO_SELECT =
 /** `maintenance_tasks.notes` is capped at 2000 by the task Zod schemas; a longer
  *  copy would make the created task impossible to edit. */
 const TASK_NOTES_MAX = 2000;
+
+const PARENT_SEGMENT = '..';
 
 const DEFAULT_PHOTO_MIME_TYPE = 'image/webp';
 const PHOTO_MIME_TYPES: Record<string, string> = {
@@ -120,6 +125,7 @@ export class NotesService {
       .single();
 
     if (error || !data) {
+      this.throwIfRlsRejected(error, 'create');
       this.logger.error(`create failed: ${error?.message} (${error?.code})`);
       throw new BadRequestException('Failed to create note');
     }
@@ -157,6 +163,7 @@ export class NotesService {
       .maybeSingle();
 
     if (error) {
+      this.throwIfRlsRejected(error, 'update');
       this.logger.error(`update failed: ${error.message} (${error.code})`);
       throw new BadRequestException('Failed to update note');
     }
@@ -197,7 +204,12 @@ export class NotesService {
 
     // Server-side prefix check: stops a caller registering someone else's object
     // as their own photo and then deleting it through deletePhoto's admin client.
-    if (!storagePath.startsWith(`${userId}/notes/${noteId}/`)) {
+    // A path that is not already in normal form (`..`, `.`, `//`) is refused
+    // outright: `uid/notes/id/../../x` passes a naive startsWith and resolves
+    // outside the note's folder.
+    const isNormalised =
+      posix.normalize(storagePath) === storagePath && !storagePath.includes(PARENT_SEGMENT);
+    if (!isNormalised || !storagePath.startsWith(`${userId}/notes/${noteId}/`)) {
       this.logger.warn(`addPhoto: rejected storage path outside the note prefix. userId=${userId}`);
       throw new BadRequestException('Invalid storage path');
     }
@@ -228,6 +240,7 @@ export class NotesService {
       .single();
 
     if (error || !data) {
+      this.throwIfRlsRejected(error, 'addPhoto');
       this.logger.error(`addPhoto failed: ${error?.message} (${error?.code})`);
       throw new BadRequestException('Failed to add photo');
     }
@@ -287,6 +300,17 @@ export class NotesService {
       map.get(row.note_id)?.push(this.mapPhotoRow(row));
     }
     return map;
+  }
+
+  /**
+   * A write refused by row-level security (42501) is an ownership failure — the
+   * bike, the note or a linked row is not the caller's — not a malformed
+   * request. Forbidden, as elsewhere in the API (trip-suggestions).
+   */
+  private throwIfRlsRejected(error: PostgrestError | null, op: string): void {
+    if (error?.code !== PG_ERROR.INSUFFICIENT_PRIVILEGE) return;
+    this.logger.warn(`${op}: rejected by row-level security`);
+    throw new ForbiddenException('You do not have access to this motorcycle or note');
   }
 
   /** Creates the low-priority, undated task for a note and stores the link. */

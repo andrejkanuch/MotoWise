@@ -251,7 +251,7 @@ describe('OdometerService', () => {
       ).resolves.toBeDefined();
     });
 
-    it('throws BadRequestException on an RPC error', async () => {
+    it('throws NotFoundException when the RPC reports no such bike (P0002)', async () => {
       mock.rpc.mockResolvedValueOnce({
         data: null,
         error: { message: 'motorcycle_not_found', code: 'P0002' },
@@ -259,8 +259,19 @@ describe('OdometerService', () => {
 
       await expect(
         service.logReading(USER_ID, { motorcycleId: BIKE_ID, value: 39407 }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(NotFoundException);
       expect(motorcyclesService.findById).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['a future timestamp', 'recorded_at_in_future', '22023'],
+      ['a CHECK violation', 'violates check constraint', '23514'],
+    ])('throws BadRequestException for %s', async (_label, message, code) => {
+      mock.rpc.mockResolvedValueOnce({ data: null, error: { message, code } });
+
+      await expect(
+        service.logReading(USER_ID, { motorcycleId: BIKE_ID, value: 39407 }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

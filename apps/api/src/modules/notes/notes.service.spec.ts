@@ -1,6 +1,7 @@
 import { NOTE_PHOTOS_MAX } from '@motovault/types';
 import {
   BadRequestException,
+  ForbiddenException,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
@@ -199,10 +200,20 @@ describe('NotesService', () => {
       expect(note.linkedTaskId).toBeUndefined();
     });
 
-    it('throws BadRequestException when the insert is rejected (e.g. RLS)', async () => {
+    it('throws ForbiddenException when row-level security rejects the insert (42501)', async () => {
       mock.chain.single.mockResolvedValueOnce({
         data: null,
-        error: { message: 'rls', code: '42501' },
+        error: { message: 'new row violates row-level security policy', code: '42501' },
+      });
+      await expect(
+        service.create(USER_ID, { motorcycleId: BIKE_ID, text: FIXTURE_TEXT }),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('throws BadRequestException for any other insert error', async () => {
+      mock.chain.single.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'violates check constraint', code: '23514' },
       });
       await expect(
         service.create(USER_ID, { motorcycleId: BIKE_ID, text: FIXTURE_TEXT }),
@@ -238,6 +249,26 @@ describe('NotesService', () => {
       mock.chain.maybeSingle.mockResolvedValueOnce({ data: null, error: null });
       await expect(service.update(USER_ID, NOTE_ID, { text: 'x' })).rejects.toThrow(
         NotFoundException,
+      );
+    });
+
+    it('throws ForbiddenException when row-level security rejects the update (42501)', async () => {
+      mock.chain.maybeSingle.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'new row violates row-level security policy', code: '42501' },
+      });
+      await expect(service.update(USER_ID, NOTE_ID, { text: 'x' })).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('throws BadRequestException for any other update error', async () => {
+      mock.chain.maybeSingle.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'violates check constraint', code: '23514' },
+      });
+      await expect(service.update(USER_ID, NOTE_ID, { text: 'x' })).rejects.toThrow(
+        BadRequestException,
       );
     });
   });
@@ -326,6 +357,10 @@ describe('NotesService', () => {
       ['another user', `user-2/notes/${NOTE_ID}/1.webp`],
       ['another note', `${USER_ID}/notes/note-2/1.webp`],
       ['the expenses folder', `${USER_ID}/expenses/${NOTE_ID}/1.webp`],
+      ['a parent-directory escape', `${USER_ID}/notes/${NOTE_ID}/../../x`],
+      ['an escape back into the prefix', `${USER_ID}/notes/${NOTE_ID}/../${NOTE_ID}/1.webp`],
+      ['a doubled slash', `${USER_ID}/notes/${NOTE_ID}//1.webp`],
+      ['a dot segment', `${USER_ID}/notes/${NOTE_ID}/./1.webp`],
     ])('rejects a path under %s before touching the database', async (_label, path) => {
       await expect(service.addPhoto(USER_ID, NOTE_ID, path)).rejects.toThrow(BadRequestException);
       expect(mock.from).not.toHaveBeenCalled();

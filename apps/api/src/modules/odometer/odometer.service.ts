@@ -8,6 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { Motorcycle } from '../motorcycles/models/motorcycle.model';
 import { MotorcyclesService } from '../motorcycles/motorcycles.service';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -123,6 +124,13 @@ export class OdometerService {
     });
 
     if (error) {
+      // The RPC raises P0002 for a bike that is missing, deleted or someone
+      // else's (one answer for all three: no existence oracle). Everything else
+      // it raises is a rejected value, e.g. 22023 for a timestamp in the future.
+      if (error.code === PG_ERROR.NO_DATA_FOUND) {
+        this.logger.warn(`logReading: no such motorcycle for userId=${userId}`);
+        throw new NotFoundException('Motorcycle not found');
+      }
       this.logger.error(`logReading failed: ${error.message} (${error.code})`);
       throw new BadRequestException('Failed to log odometer reading');
     }
