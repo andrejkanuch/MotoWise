@@ -37,18 +37,18 @@
 -- issues a column-level GRANT or a table-level REVOKE on public.motorcycles
 -- (grep for GRANT/REVOKE ... motorcycles: no hit), so per the migration folder
 -- authenticated holds table-level privileges and a new column needs no grant.
--- NOT VERIFIED AGAINST A LIVE ACL: the local stack could not replay the chain
--- (00097 fails on an empty database), so `\dp public.motorcycles` was not run.
--- Before pushing, run on production:
---   SELECT grantee, privilege_type, column_name
---   FROM information_schema.column_privileges
+-- Checked with `\dp public.motorcycles` on a local replay of 00001-00179: no
+-- column privileges, authenticated holds table-level arwdDxtm. Nothing to add.
+-- That replay is not production, and production has drifted from this folder
+-- before (00141 was recorded as applied and was not; see 00178). So before
+-- pushing, confirm on production that this returns a row:
+--   SELECT 1 FROM information_schema.table_privileges
 --   WHERE table_schema = 'public' AND table_name = 'motorcycles'
---     AND grantee = 'authenticated' AND column_name = 'make';
--- and compare with information_schema.table_privileges. If authenticated has
--- only column-level SELECT (no table-level SELECT row), add
+--     AND grantee = 'authenticated' AND privilege_type = 'SELECT';
+-- If it does not (column-level grants only), add
 --   GRANT SELECT (distance_unit) ON public.motorcycles TO authenticated;
--- otherwise myMotorcycles fails with 42501 for every rider. No UPDATE grant in
--- R1 either way: the column is written only by the two triggers below.
+-- or myMotorcycles fails with 42501 for every rider. No UPDATE grant in R1
+-- either way: the column is written only by the two triggers below.
 --
 -- DEPLOY ORDER: apply BEFORE the API that selects distance_unit. Render
 -- auto-deploys apps/api on merge to main; MOTORCYCLE_SELECT is used by

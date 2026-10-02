@@ -77,12 +77,12 @@ CREATE POLICY "Users insert own odometer readings" ON public.odometer_readings
 
 -- Backfill: one row per bike that has an odometer, stamped with when it was
 -- last set. Runs before the trigger exists and does not touch motorcycles.
--- The value/user guards keep the migration from failing on a stray row.
+-- current_mileage defaults to 0, so 0 means "never entered": no row.
+-- The user guard keeps the migration from failing on a stray row.
 INSERT INTO public.odometer_readings (user_id, motorcycle_id, value, recorded_at, source)
 SELECT m.user_id, m.id, m.current_mileage, COALESCE(m.mileage_updated_at, m.created_at), 'backfill'
 FROM public.motorcycles m
-WHERE m.current_mileage IS NOT NULL
-  AND m.current_mileage >= 0
+WHERE m.current_mileage > 0
   AND EXISTS (SELECT 1 FROM auth.users au WHERE au.id = m.user_id);
 
 -- 00028's function, changed so an explicit mileage_updated_at survives (header).
@@ -181,6 +181,14 @@ BEGIN
     END IF;
 
     IF TG_OP = 'UPDATE' AND NEW.current_mileage IS NOT DISTINCT FROM OLD.current_mileage THEN
+      RETURN NULL;
+    END IF;
+
+    -- A bike created without an odometer carries the column default 0. Logging
+    -- that as a reading dated "now" would make every back-dated first entry look
+    -- older than the latest reading, and log_odometer_reading() would then
+    -- refuse to move the bike. Same rule as set_mileage_updated_at (00028).
+    IF TG_OP = 'INSERT' AND NEW.current_mileage = 0 THEN
       RETURN NULL;
     END IF;
 
