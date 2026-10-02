@@ -1246,7 +1246,8 @@
       "stored_many": "{{count}} uloženého",
       "stored_other": "{{count}} uložených",
       "empty": "Poistenie, registrácia, vlastníctvo a servisné záznamy",
-      "bought": "kúpená {{date}}"
+      "bought": "kúpená {{date}}",
+      "loadError": "Doklady sa nepodarilo načítať"
     },
     "log": {
       "title": "Zapísať pre {{name}}",

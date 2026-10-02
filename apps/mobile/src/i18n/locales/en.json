@@ -1220,7 +1220,8 @@
       "stored_one": "{{count}} stored",
       "stored_other": "{{count}} stored",
       "empty": "Insurance, registration, title & service records",
-      "bought": "bought {{date}}"
+      "bought": "bought {{date}}",
+      "loadError": "Couldn't load documents"
     },
     "log": {
       "title": "Log on the {{name}}",

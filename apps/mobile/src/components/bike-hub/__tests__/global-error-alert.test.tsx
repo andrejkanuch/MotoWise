@@ -10,6 +10,11 @@
  * reading" came from the Odometer sheet's two QUERIES failing, not from the
  * save mutation.
  */
+jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
+jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+jest.mock('expo-localization', () => ({
+  getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
+}));
 jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
 jest.mock('../../../lib/analytics', () => ({
   ...require('../../../test/mocks').mockAnalytics(),
@@ -45,7 +50,7 @@ jest.mock('../../../utils/action-sheet', () => ({
 }));
 
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
-import { act, renderHook } from '@testing-library/react-native';
+import { act, fireEvent, render, renderHook, screen } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { Alert } from 'react-native';
 import { HUB_UNIT, NOTE_SOURCE } from '../../../lib/bike-hub/constants';
@@ -54,6 +59,7 @@ import { queryClient, resolveFailureHandling } from '../../../lib/query-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { QUERY_META } from '../../../lib/query-meta';
 import { BIKE_A } from '../../../test/bike-hub-fixtures';
+import { DocumentsSection } from '../documents-section';
 import {
   useCreateNote,
   useCreateTaskFromNote,
@@ -244,6 +250,42 @@ describe('bike hub cold open with the API down and nothing cached', () => {
     const query = queryClient.getQueryCache().find({ queryKey, exact: true });
     expect(query?.state.status).toBe('error');
     expect(resolveFailureHandling(query).alertOptOut).toBe(true);
+  });
+});
+
+describe('bike hub cold open on the Bike segment (remembered) with the API down', () => {
+  // The remembered segment mounts first: the Bike segment's legacy documents
+  // section then observes the documents and categories keys WITHOUT the
+  // Overview's observers — it must opt out and show its own error itself.
+  it('the documents section raises no alert and shows its own error with Retry', async () => {
+    await render(
+      <QueryClientProvider client={queryClient}>
+        <DocumentsSection motorcycleId={BIKE_A.id} bikeName="Africa Twin" />
+      </QueryClientProvider>,
+    );
+    await settle();
+    for (const queryKey of [
+      queryKeys.documents.byMotorcycle(BIKE_A.id),
+      queryKeys.documents.categories(true),
+    ]) {
+      const query = queryClient.getQueryCache().find({ queryKey, exact: true });
+      expect(query?.state.status).toBe('error');
+      expect(resolveFailureHandling(query).alertOptOut).toBe(true);
+    }
+    expect(alert).not.toHaveBeenCalled();
+    // i18n is not initialised in this file (other tests read the `defaultValue`
+    // fallbacks), so copy renders as its key.
+    expect(screen.getByTestId('documents-load-error')).toHaveTextContent(
+      /bikeHub\.papers\.loadError/,
+    );
+    // Never the empty state for a list that failed to load.
+    expect(screen.queryByText(/No documents yet|documents\.empty/)).toBeNull();
+
+    const callsBefore = mockFetcher.mock.calls.length;
+    await fireEvent.press(screen.getByRole('button', { name: /retry/i }));
+    await settle();
+    expect(mockFetcher.mock.calls.length).toBeGreaterThan(callsBefore);
+    expect(alert).not.toHaveBeenCalled();
   });
 });
 

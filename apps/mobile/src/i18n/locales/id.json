@@ -1214,7 +1214,8 @@
       "stored_one": "{{count}} tersimpan",
       "stored_other": "{{count}} tersimpan",
       "empty": "Asuransi, registrasi, kepemilikan & catatan servis",
-      "bought": "dibeli {{date}}"
+      "bought": "dibeli {{date}}",
+      "loadError": "Dokumen tidak dapat dimuat"
     },
     "log": {
       "title": "Catat untuk {{name}}",

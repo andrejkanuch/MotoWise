@@ -1215,7 +1215,8 @@
       "stored_one": "{{count}} enregistré",
       "stored_other": "{{count}} enregistrés",
       "empty": "Assurance, carte grise, titre et justificatifs d'entretien",
-      "bought": "achetée en {{date}}"
+      "bought": "achetée en {{date}}",
+      "loadError": "Impossible de charger les documents"
     },
     "log": {
       "title": "Consigner pour {{name}}",

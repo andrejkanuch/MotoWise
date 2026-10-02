@@ -1215,7 +1215,8 @@
       "stored_one": "{{count}} guardado",
       "stored_other": "{{count}} guardados",
       "empty": "Seguro, matriculación, título y registros de servicio",
-      "bought": "comprada en {{date}}"
+      "bought": "comprada en {{date}}",
+      "loadError": "No se pudieron cargar los documentos"
     },
     "log": {
       "title": "Registrar en la {{name}}",

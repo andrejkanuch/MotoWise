@@ -18,8 +18,10 @@ import { documentExpiryStatus } from '../../lib/document-expiry';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { cancelDocumentNotifications } from '../../lib/notifications';
 import { queryKeys } from '../../lib/query-keys';
+import { QUERY_META } from '../../lib/query-meta';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
+import { HUB_TOUCH_TARGET } from './ui/tokens';
 
 type DocumentItem = DocumentsByMotorcycleQuery['documents'][number];
 
@@ -36,12 +38,29 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
   const queryClient = useQueryClient();
   const [showHidden, setShowHidden] = useState(false);
 
-  const { documents, isLoading } = useMotorcycleDocuments(motorcycleId);
+  // Both keys are shared with the Overview, which opts out of the global alert;
+  // this section opts out too and shows its own error with Retry (below), so a
+  // cold open on this segment with the API down raises no system alert and never
+  // reads a failed load as "No documents yet".
+  const {
+    documents,
+    isLoading,
+    isError: documentsError,
+    refetch: refetchDocuments,
+  } = useMotorcycleDocuments(motorcycleId, { meta: QUERY_META.OWN_ERROR_UI });
 
-  const { data: categoryData } = useQuery({
+  const categoriesQuery = useQuery({
     queryKey: queryKeys.documents.categories(true),
     queryFn: () => gqlFetcher(DocumentCategoriesDocument, { includeHidden: true }),
+    meta: QUERY_META.OWN_ERROR_UI,
   });
+  const categoryData = categoriesQuery.data;
+  const categoriesError = categoriesQuery.isError && !categoryData;
+  const loadFailed = documentsError || categoriesError;
+  const retryLoad = () => {
+    if (documentsError) refetchDocuments();
+    if (categoriesError) void categoriesQuery.refetch();
+  };
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => gqlFetcher(DeleteDocumentDocument, { id }),
@@ -200,7 +219,33 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
         </View>
       </View>
 
-      {isLoading && (
+      {loadFailed && (
+        <View
+          testID="documents-load-error"
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            paddingHorizontal: 2,
+          }}
+        >
+          <Text style={{ flex: 1, fontSize: 14, color: theme.ink2 }}>
+            {t('bikeHub.papers.loadError')}
+          </Text>
+          <Pressable
+            onPress={retryLoad}
+            accessibilityRole="button"
+            style={{ minHeight: HUB_TOUCH_TARGET, justifyContent: 'center', paddingHorizontal: 8 }}
+          >
+            <Text style={{ fontSize: 14, fontWeight: '600', color: theme.warm }}>
+              {t('common.retry')}
+            </Text>
+          </Pressable>
+        </View>
+      )}
+
+      {!loadFailed && isLoading && (
         <View
           style={{
             backgroundColor: theme.surface,
@@ -216,7 +261,7 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
         </View>
       )}
 
-      {!isLoading && documents.length === 0 && (
+      {!loadFailed && !isLoading && documents.length === 0 && (
         <Animated.View entering={FadeInUp.duration(300)}>
           <Pressable
             onPress={() =>
@@ -268,7 +313,7 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
         </Animated.View>
       )}
 
-      {!isLoading && documents.length > 0 && (
+      {!loadFailed && !isLoading && documents.length > 0 && (
         <View style={{ gap: 16 }}>
           {/* Pinned subsection — roadside fast-retrieval surface (R14) */}
           {pinned.length > 0 && (

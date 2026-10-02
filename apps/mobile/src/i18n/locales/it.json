@@ -1215,7 +1215,8 @@
       "stored_one": "{{count}} salvato",
       "stored_other": "{{count}} salvati",
       "empty": "Assicurazione, immatricolazione, proprietà e tagliandi",
-      "bought": "acquistata a {{date}}"
+      "bought": "acquistata a {{date}}",
+      "loadError": "Impossibile caricare i documenti"
     },
     "log": {
       "title": "Registra per {{name}}",

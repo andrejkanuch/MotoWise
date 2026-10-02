@@ -1246,7 +1246,8 @@
       "stored_many": "{{count}} zapisanych",
       "stored_other": "{{count}} zapisanych",
       "empty": "Ubezpieczenie, rejestracja, własność i historia serwisu",
-      "bought": "kupiony {{date}}"
+      "bought": "kupiony {{date}}",
+      "loadError": "Nie udało się wczytać dokumentów"
     },
     "log": {
       "title": "Dodaj wpis: {{name}}",

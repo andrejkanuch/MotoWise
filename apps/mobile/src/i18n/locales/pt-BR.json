@@ -1215,7 +1215,8 @@
       "stored_one": "{{count}} guardado",
       "stored_other": "{{count}} guardados",
       "empty": "Seguro, licenciamento, documento e registros de manutenção",
-      "bought": "comprada em {{date}}"
+      "bought": "comprada em {{date}}",
+      "loadError": "Não foi possível carregar os documentos"
     },
     "log": {
       "title": "Registrar na {{name}}",

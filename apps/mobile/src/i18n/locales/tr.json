@@ -1214,7 +1214,8 @@
       "stored_one": "{{count}} kayıtlı",
       "stored_other": "{{count}} kayıtlı",
       "empty": "Sigorta, ruhsat, mülkiyet ve servis kayıtları",
-      "bought": "{{date}} tarihinde alındı"
+      "bought": "{{date}} tarihinde alındı",
+      "loadError": "Belgeler yüklenemedi"
     },
     "log": {
       "title": "{{name}} için kayıt ekle",

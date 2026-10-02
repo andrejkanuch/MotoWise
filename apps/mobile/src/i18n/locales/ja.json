@@ -1214,7 +1214,8 @@
       "stored_one": "{{count}}件保存済み",
       "stored_other": "{{count}}件保存済み",
       "empty": "保険、登録、所有権、整備記録",
-      "bought": "{{date}}購入"
+      "bought": "{{date}}購入",
+      "loadError": "書類を読み込めませんでした"
     },
     "log": {
       "title": "{{name}}に記録",

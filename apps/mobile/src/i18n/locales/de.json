@@ -1214,7 +1214,8 @@
       "stored_one": "{{count}} gespeichert",
       "stored_other": "{{count}} gespeichert",
       "empty": "Versicherung, Zulassung, Fahrzeugbrief und Servicenachweise",
-      "bought": "gekauft {{date}}"
+      "bought": "gekauft {{date}}",
+      "loadError": "Dokumente konnten nicht geladen werden"
     },
     "log": {
       "title": "Eintragen für {{name}}",
