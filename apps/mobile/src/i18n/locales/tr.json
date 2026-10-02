@@ -1096,7 +1096,9 @@
       "dueBy": "son tarih {{date}}",
       "schedule": "{{make}} bakım planı",
       "scheduleGeneric": "Üretici bakım planı",
-      "someday": "Tarih yok"
+      "someday": "Tarih yok",
+      "dueNow": "Şimdi yapılmalı",
+      "targetReached": "hedefe ulaşıldı"
     },
     "rideStatus": {
       "notReady": "Hazır değil",

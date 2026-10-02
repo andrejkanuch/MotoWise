@@ -102,6 +102,54 @@ describe('DueLine', () => {
     );
   });
 
+  // Odometer exactly at the target: the task is due, but nothing is "past" yet.
+  it.each([
+    [HUB_UNIT.KM, 'km'],
+    [HUB_UNIT.MI, 'mi'],
+  ])('at the target [%s] it reads "Due now", never "0 %s past target"', async (unit, label) => {
+    const atTarget = task({ id: 'at', title: 'Chain', targetMileage: 12_000 });
+    const due = getTaskDue(atTarget, { odometer: 12_000, today: TODAY, unit });
+    await render(<DueLine due={due} unit={unit} />);
+    expect(screen.getByText('Due now')).toBeOnTheScreen();
+    expect(screen.queryByText(new RegExp(`0 ${label} past target`))).toBeNull();
+    expect(StyleSheet.flatten(screen.getByText('Due now').props.style).color).toBe(palette.hubLate);
+  });
+
+  it.each([
+    [HUB_UNIT.KM, '1 km past target'],
+    [HUB_UNIT.MI, '1 mi past target'],
+  ])('one past the target [%s] reads "%s"', async (unit, expected) => {
+    const past = task({ id: 'past', title: 'Chain', targetMileage: 12_000 });
+    await render(
+      <DueLine due={getTaskDue(past, { odometer: 12_001, today: TODAY, unit })} unit={unit} />,
+    );
+    expect(screen.getByText(expected)).toBeOnTheScreen();
+  });
+
+  it.each([
+    [HUB_UNIT.KM],
+    [HUB_UNIT.MI],
+  ])('late by date and exactly at the target [%s]: "12 days late · target reached"', async (unit) => {
+    const both = task({ id: 'both', title: 'Chain', dueDate: '2026-09-20', targetMileage: 12_000 });
+    await render(
+      <DueLine due={getTaskDue(both, { odometer: 12_000, today: TODAY, unit })} unit={unit} />,
+    );
+    expect(screen.getByText('12 days late · target reached')).toBeOnTheScreen();
+  });
+
+  it('due today is "Due today" — a date is never "0 days late"', async () => {
+    const today = task({ id: 'today', title: 'Chain', dueDate: '2026-10-02' });
+    await render(<DueLine due={getTaskDue(today, KM)} unit={HUB_UNIT.KM} />);
+    expect(screen.getByText('Due today')).toBeOnTheScreen();
+    expect(screen.queryByText(/0 days late/)).toBeNull();
+  });
+
+  it('one day late is the first late wording: "1 day late"', async () => {
+    const yesterday = task({ id: 'y', title: 'Chain', dueDate: '2026-10-01' });
+    await render(<DueLine due={getTaskDue(yesterday, KM)} unit={HUB_UNIT.KM} />);
+    expect(screen.getByText('1 day late')).toBeOnTheScreen();
+  });
+
   it('an undated task reads "No due date"', async () => {
     await render(
       <DueLine due={getTaskDue(task({ id: 'x', title: 'x' }), KM)} unit={HUB_UNIT.KM} />,

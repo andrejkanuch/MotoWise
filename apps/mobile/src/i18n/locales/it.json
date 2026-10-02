@@ -1097,7 +1097,9 @@
       "dueBy": "scade il {{date}}",
       "schedule": "Piano {{make}}",
       "scheduleGeneric": "Piano del costruttore",
-      "someday": "Senza scadenza"
+      "someday": "Senza scadenza",
+      "dueNow": "Da fare ora",
+      "targetReached": "obiettivo raggiunto"
     },
     "rideStatus": {
       "notReady": "Non pronta",

@@ -1096,7 +1096,9 @@
       "dueBy": "{{date}} को देय",
       "schedule": "{{make}} शेड्यूल",
       "scheduleGeneric": "निर्माता शेड्यूल",
-      "someday": "कोई नियत तारीख नहीं"
+      "someday": "कोई नियत तारीख नहीं",
+      "dueNow": "अभी देय",
+      "targetReached": "लक्ष्य पूरा"
     },
     "rideStatus": {
       "notReady": "तैयार नहीं",

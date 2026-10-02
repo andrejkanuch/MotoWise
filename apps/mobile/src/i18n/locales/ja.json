@@ -1096,7 +1096,9 @@
       "dueBy": "期限 {{date}}",
       "schedule": "{{make}}の整備スケジュール",
       "scheduleGeneric": "メーカーの整備スケジュール",
-      "someday": "期限なし"
+      "someday": "期限なし",
+      "dueNow": "今が期限",
+      "targetReached": "目標に到達"
     },
     "rideStatus": {
       "notReady": "走行不可",

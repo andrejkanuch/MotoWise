@@ -1097,7 +1097,9 @@
       "dueBy": "vence el {{date}}",
       "schedule": "Plan de {{make}}",
       "scheduleGeneric": "Plan del fabricante",
-      "someday": "Sin fecha"
+      "someday": "Sin fecha",
+      "dueNow": "Toca ahora",
+      "targetReached": "objetivo alcanzado"
     },
     "rideStatus": {
       "notReady": "No está lista",

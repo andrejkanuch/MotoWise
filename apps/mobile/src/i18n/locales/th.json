@@ -1096,7 +1096,9 @@
       "dueBy": "ครบกำหนด {{date}}",
       "schedule": "ตารางของ {{make}}",
       "scheduleGeneric": "ตารางของผู้ผลิต",
-      "someday": "ไม่มีกำหนด"
+      "someday": "ไม่มีกำหนด",
+      "dueNow": "ถึงกำหนดแล้ว",
+      "targetReached": "ถึงเป้าแล้ว"
     },
     "rideStatus": {
       "notReady": "ยังไม่พร้อม",

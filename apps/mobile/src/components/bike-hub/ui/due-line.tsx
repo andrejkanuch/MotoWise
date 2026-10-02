@@ -48,8 +48,12 @@ const PRIMARY_COPY: Record<string, LimitCopy> = {
     if (limit.amount === 0) return t('bikeHub.due.today');
     return t('bikeHub.due.inDays', { count: limit.amount });
   },
+  // Exactly at the target the task is due, but nothing is "past" yet: say so
+  // instead of "0 km past target". (A date has no such case: due today is not late.)
   [`${DUE_DIMENSION.DISTANCE}:${DUE_DIRECTION.PAST}`]: (limit, context) =>
-    context.t('bikeHub.due.pastTarget', distanceValues(limit, context)),
+    limit.amount === 0
+      ? context.t('bikeHub.due.dueNow')
+      : context.t('bikeHub.due.pastTarget', distanceValues(limit, context)),
   [`${DUE_DIMENSION.DISTANCE}:${DUE_DIRECTION.AHEAD}`]: (limit, context) =>
     isRelative(limit)
       ? context.t('bikeHub.due.inDistance', distanceValues(limit, context))
@@ -77,7 +81,9 @@ const SECONDARY_AFTER_PAST: Record<string, LimitCopy> = {
     return t('bikeHub.due.dueInDays', { count: limit.amount });
   },
   [`${DUE_DIMENSION.DISTANCE}:${DUE_DIRECTION.PAST}`]: (limit, context) =>
-    context.t('bikeHub.due.pastTarget', distanceValues(limit, context)),
+    limit.amount === 0
+      ? context.t('bikeHub.due.targetReached')
+      : context.t('bikeHub.due.pastTarget', distanceValues(limit, context)),
   [`${DUE_DIMENSION.DISTANCE}:${DUE_DIRECTION.AHEAD}`]: (limit, context) =>
     isRelative(limit)
       ? context.t('bikeHub.due.toTarget', distanceValues(limit, context))

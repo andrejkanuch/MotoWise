@@ -1096,7 +1096,9 @@
       "dueBy": "jatuh tempo {{date}}",
       "schedule": "Jadwal {{make}}",
       "scheduleGeneric": "Jadwal pabrikan",
-      "someday": "Tanpa tenggat"
+      "someday": "Tanpa tenggat",
+      "dueNow": "Jatuh tempo sekarang",
+      "targetReached": "target tercapai"
     },
     "rideStatus": {
       "notReady": "Belum siap",

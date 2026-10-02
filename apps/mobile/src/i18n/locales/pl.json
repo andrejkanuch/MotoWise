@@ -1108,7 +1108,9 @@
       "dueBy": "termin {{date}}",
       "schedule": "Harmonogram {{make}}",
       "scheduleGeneric": "Harmonogram producenta",
-      "someday": "Bez terminu"
+      "someday": "Bez terminu",
+      "dueNow": "Termin teraz",
+      "targetReached": "cel osiągnięty"
     },
     "rideStatus": {
       "notReady": "Niegotowy",

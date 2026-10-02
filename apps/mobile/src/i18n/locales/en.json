@@ -1102,7 +1102,9 @@
       "dueBy": "due {{date}}",
       "schedule": "{{make}} schedule",
       "scheduleGeneric": "Manufacturer schedule",
-      "someday": "No due date"
+      "someday": "No due date",
+      "dueNow": "Due now",
+      "targetReached": "target reached"
     },
     "rideStatus": {
       "notReady": "Not ready",

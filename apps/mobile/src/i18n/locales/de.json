@@ -1096,7 +1096,9 @@
       "dueBy": "fällig am {{date}}",
       "schedule": "{{make}}-Wartungsplan",
       "scheduleGeneric": "Hersteller-Wartungsplan",
-      "someday": "Kein Termin"
+      "someday": "Kein Termin",
+      "dueNow": "Jetzt fällig",
+      "targetReached": "Ziel erreicht"
     },
     "rideStatus": {
       "notReady": "Nicht fahrbereit",

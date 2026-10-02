@@ -1108,7 +1108,9 @@
       "dueBy": "termín {{date}}",
       "schedule": "Plán {{make}}",
       "scheduleGeneric": "Plán výrobcu",
-      "someday": "Bez termínu"
+      "someday": "Bez termínu",
+      "dueNow": "Termín teraz",
+      "targetReached": "cieľ dosiahnutý"
     },
     "rideStatus": {
       "notReady": "Nepripravená",
