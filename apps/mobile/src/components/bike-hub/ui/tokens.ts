@@ -88,7 +88,8 @@ export const HUB_TOUCH_TARGET = process.env.EXPO_OS === 'android' ? 48 : 44;
  * The app's floating tab bar (`app/(tabs)/_layout.tsx`) sits `max(inset, 12)`
  * above the bottom edge and is about this tall. Pushed garage screens keep it.
  */
-export const HUB_TAB_BAR_HEIGHT = 76;
+// Measured on device (iOS 26.3): with 76 the pill sat 27 pt above the bar instead of 16.
+export const HUB_TAB_BAR_HEIGHT = 65;
 export const HUB_TAB_BAR_MIN_INSET = 12;
 
 /**

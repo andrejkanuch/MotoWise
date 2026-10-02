@@ -1138,7 +1138,8 @@
         "documentExpiresToday": "{{category}}: wygasa dzisiaj"
       },
       "untrackedHint": "Status pojawi się, gdy dodasz zadanie lub dokument.",
-      "loadError": "Nie udało się wczytać statusu motocykla"
+      "loadError": "Nie udało się wczytać statusu motocykla",
+      "noOpenRecalls": "Brak otwartych wycofań."
     },
     "action": {
       "log": "Dodaj wpis",
@@ -1279,7 +1280,7 @@
       "helper": "Odczyty są zapisywane w historii. Odczyt niższy od ostatniego wymaga potwierdzenia przed zapisaniem.",
       "save": "Zapisz {{value}} {{unit}}",
       "lowerTitle": "Niższy niż ostatni odczyt",
-      "lowerMessage": "Niższy niż ostatni odczyt ({{last}} {{unit}}). Zapisać mimo to?",
+      "lowerMessage": "Ostatni odczyt to {{last}} {{unit}}. Zapisać mimo to {{value}} {{unit}}?",
       "backdatedNotice": "Data sprzed ostatniego odczytu: wpis zostanie zapisany, a przebieg pozostanie {{last}} {{unit}}.",
       "futureDate": "Data nie może być z przyszłości.",
       "saveFailed": "Nie udało się zapisać odczytu. Spróbuj ponownie.",
@@ -1311,7 +1312,7 @@
       "count_many": "{{count}} notatek",
       "count_other": "{{count}} notatek",
       "hint": "najnowsze najpierw · przesuń, aby edytować · usunąć",
-      "searchPlaceholder": "Szukaj w notatkach…",
+      "searchPlaceholder": "Szukaj numerów części, ciśnień, warsztatów…",
       "searchA11y": "Szukaj w notatkach",
       "makeTask": "Utwórz zadanie",
       "linkedExpense": "Powiązany wydatek · {{amount}}",

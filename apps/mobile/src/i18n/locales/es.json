@@ -1119,7 +1119,8 @@
         "documentExpiresToday": "{{category}} caduca hoy"
       },
       "untrackedHint": "El estado aparece cuando exista una tarea o un documento.",
-      "loadError": "No se pudo cargar el estado de la moto"
+      "loadError": "No se pudo cargar el estado de la moto",
+      "noOpenRecalls": "Sin retiros abiertos."
     },
     "action": {
       "log": "Registrar",
@@ -1246,7 +1247,7 @@
       "helper": "Las lecturas se guardan como un registro. Una lectura menor que la última pide confirmación antes de guardar.",
       "save": "Guardar {{value}} {{unit}}",
       "lowerTitle": "Menor que la última lectura",
-      "lowerMessage": "Menor que la última lectura ({{last}} {{unit}}). ¿Guardar de todos modos?",
+      "lowerMessage": "La última lectura fue {{last}} {{unit}}. ¿Guardar {{value}} {{unit}} de todos modos?",
       "backdatedNotice": "Fecha anterior a tu última lectura: se registra y el odómetro se queda en {{last}} {{unit}}.",
       "futureDate": "La fecha no puede estar en el futuro.",
       "saveFailed": "No se pudo guardar la lectura. Inténtalo de nuevo.",
@@ -1276,7 +1277,7 @@
       "count_one": "{{count}} nota",
       "count_other": "{{count}} notas",
       "hint": "más recientes primero · desliza para editar · borrar",
-      "searchPlaceholder": "Buscar en las notas…",
+      "searchPlaceholder": "Busca referencias, presiones, talleres…",
       "searchA11y": "Buscar en las notas",
       "makeTask": "Convertir en tarea",
       "linkedExpense": "Gasto vinculado · {{amount}}",

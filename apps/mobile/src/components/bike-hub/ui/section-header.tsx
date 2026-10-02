@@ -24,6 +24,8 @@ interface SectionHeaderProps {
   action?: SectionHeaderAction;
   /** Grey rule-of-sorting hint on the right, when there is no action. */
   hint?: string;
+  /** Eyebrow colour for a header that sits on a non-hub ground (the interim Bike tab). */
+  color?: string;
 }
 
 /**
@@ -31,7 +33,7 @@ interface SectionHeaderProps {
  * optional count, and either a copper text action or a grey hint on the right.
  * No serif section titles (DESIGN-SPEC §2).
  */
-export function SectionHeader({ label, count, tone, action, hint }: SectionHeaderProps) {
+export function SectionHeader({ label, count, tone, action, hint, color }: SectionHeaderProps) {
   const eyebrow = count === undefined ? label : `${label} · ${count}`;
   return (
     <View
@@ -52,7 +54,7 @@ export function SectionHeader({ label, count, tone, action, hint }: SectionHeade
           fontSize: EYEBROW_SIZE,
           letterSpacing: EYEBROW_SIZE * 0.08,
           textTransform: 'uppercase',
-          color: tone ? DUE_TONE_COLOR[tone] : hub.muted,
+          color: tone ? DUE_TONE_COLOR[tone] : (color ?? hub.muted),
         }}
       >
         {eyebrow}

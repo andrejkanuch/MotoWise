@@ -186,6 +186,17 @@ describe('NoteForm — new note', () => {
     expect(created()).toMatchObject({ input: { motorcycleId: BIKE_B.id, odometer: 1_240 } });
   });
 
+  it('"Attach to" lists the current bike first and preselected, whatever the garage order', async () => {
+    await renderForm({ draft: 'Order', bike: A, bikes: [B, A] });
+    const chips = screen.getAllByTestId(/^note-bike-/);
+    expect(chips.map((chip) => chip.props.testID)).toEqual([
+      `note-bike-${BIKE_A.id}`,
+      `note-bike-${BIKE_B.id}`,
+    ]);
+    expect(chips[0]).toBeSelected();
+    expect(chips[1]).not.toBeSelected();
+  });
+
   it('single-bike account: no "Attach to"; the unbuilt "Link a job" chip is not rendered', async () => {
     await renderForm();
     expect(screen.queryByText('Attach to')).toBeNull();

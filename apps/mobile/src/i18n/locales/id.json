@@ -1118,7 +1118,8 @@
         "documentExpiresToday": "{{category}} kedaluwarsa hari ini"
       },
       "untrackedHint": "Status berkendara muncul setelah ada tugas atau dokumen.",
-      "loadError": "Tidak dapat memuat status berkendara"
+      "loadError": "Tidak dapat memuat status berkendara",
+      "noOpenRecalls": "Tidak ada recall terbuka."
     },
     "action": {
       "log": "Catat",
@@ -1245,7 +1246,7 @@
       "helper": "Angka disimpan sebagai riwayat. Angka yang lebih rendah dari sebelumnya akan dikonfirmasi sebelum disimpan.",
       "save": "Simpan {{value}} {{unit}}",
       "lowerTitle": "Lebih rendah dari angka terakhir",
-      "lowerMessage": "Lebih rendah dari angka terakhir ({{last}} {{unit}}). Tetap simpan?",
+      "lowerMessage": "Angka terakhir {{last}} {{unit}}. Tetap simpan {{value}} {{unit}}?",
       "backdatedNotice": "Bertanggal sebelum angka terakhir: tetap dicatat, dan odometer tetap {{last}} {{unit}}.",
       "futureDate": "Tanggal tidak boleh di masa depan.",
       "saveFailed": "Angka tidak dapat disimpan. Coba lagi.",
@@ -1275,7 +1276,7 @@
       "count_one": "{{count}} catatan",
       "count_other": "{{count}} catatan",
       "hint": "terbaru dulu · geser untuk edit · hapus",
-      "searchPlaceholder": "Cari catatan…",
+      "searchPlaceholder": "Cari nomor suku cadang, tekanan, bengkel…",
       "searchA11y": "Cari catatan",
       "makeTask": "Jadikan tugas",
       "linkedExpense": "Pengeluaran terkait · {{amount}}",

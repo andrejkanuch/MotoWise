@@ -374,12 +374,27 @@ describe('Overview — status variants', () => {
     await renderOverview({ ...quiet, tasks: [later], bike: { ...BIKE_A, recallCount: 0 } });
     expect(await screen.findByText('Ready to ride')).toBeOnTheScreen();
     expect(screen.queryByTestId('attention-list')).toBeNull();
+    // No empty wrapper either: the status card is followed directly by Next up,
+    // so only the list's one 12 pt gap separates them.
+    expect(screen.queryByTestId('overview-block-attention')).toBeNull();
+    expect(screen.getAllByTestId(/^overview-block-/).map((block) => block.props.testID)).toEqual([
+      'overview-block-photo',
+      'overview-block-status',
+      'overview-block-next-up',
+      'overview-block-costs',
+      'overview-block-notes',
+      'overview-block-papers',
+    ]);
     expect(screen.getByTestId('ride-status-ready').props.accessibilityRole).toBeUndefined();
   });
 
   it('UNTRACKED (bike B): setup list instead of attention, costs zero with the purchase price', async () => {
     await renderOverview({ ...quiet, tasks: [], bike: BIKE_B as unknown as typeof BIKE_A });
     expect(await screen.findByText('Nothing tracked yet')).toBeOnTheScreen();
+    // Recalls loaded and empty: the design's full sub-line.
+    expect(
+      screen.getByText('No open recalls. Ride status appears once a task or a document exists.'),
+    ).toBeOnTheScreen();
     expect(screen.queryByTestId('attention-list')).toBeNull();
     expect(screen.getByText('Set this bike up')).toBeOnTheScreen();
     expect(screen.getByText('Import the Yamaha service schedule')).toBeOnTheScreen();
@@ -395,7 +410,6 @@ describe('Overview — status variants', () => {
       'overview-block-photo',
       'overview-block-status',
       'overview-block-setup',
-      'overview-block-next-up',
       'overview-block-costs',
       'overview-block-notes',
       'overview-block-papers',
@@ -407,6 +421,20 @@ describe('Overview — status variants', () => {
     expect(navigation.logPastWork).toHaveBeenCalledTimes(1);
     await fireEvent.press(screen.getByTestId('setup-documents'));
     expect(navigation.addDocument).toHaveBeenCalledTimes(1);
+  });
+
+  it('recalls unknown (query failed, count 0): no "No open recalls." claim', async () => {
+    await renderOverview({
+      ...quiet,
+      tasks: [],
+      recalls: 'error',
+      bike: { ...BIKE_B, recallCount: 0 } as unknown as typeof BIKE_A,
+    });
+    expect(await screen.findByText('Nothing tracked yet')).toBeOnTheScreen();
+    expect(
+      screen.getByText('Ride status appears once a task or a document exists.'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText(/No open recalls/)).toBeNull();
   });
 
   it('a failed recalls query still yields a status, from the bike’s recall count', async () => {

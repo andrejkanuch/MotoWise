@@ -192,6 +192,13 @@ describe('NotesScreen', () => {
     ).toEqual(['edit', 'delete', 'link']);
   });
 
+  it('the search field uses the design placeholder', async () => {
+    await renderNotes();
+    expect(screen.getByTestId('notes-search').props.placeholder).toBe(
+      'Search part numbers, pressures, shops…',
+    );
+  });
+
   it('the composer caps a note at the length limit', async () => {
     await renderNotes();
     expect(screen.getByTestId('notes-composer-input').props.maxLength).toBe(4000);

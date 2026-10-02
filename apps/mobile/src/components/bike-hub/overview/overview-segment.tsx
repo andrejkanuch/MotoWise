@@ -75,7 +75,16 @@ export function OverviewSegment({
     (openItem[item.kind] as (item: AttentionItem) => void)(item);
   const topItem = data.attention.visible[0];
 
-  const blocks: Array<[key: string, node: ReactNode]> = [
+  // A block that renders nothing must not be listed at all, or its empty
+  // wrapper would still take a 12 pt gap (READY: status card → costs).
+  const attentionHidden =
+    !untracked && !data.tasks.isLoading && !data.tasks.isError && data.attention.total === 0;
+  const hidden = new Set([
+    ...(attentionHidden ? ['attention'] : []),
+    ...(data.nextUp ? [] : ['next-up']),
+  ]);
+
+  const allBlocks: Array<[key: string, node: ReactNode]> = [
     [
       'photo',
       <PhotoBand
@@ -97,6 +106,10 @@ export function OverviewSegment({
         isLoading={statusLoading}
         isError={statusError}
         onRetry={data.statusSource.refetch}
+        noOpenRecalls={
+          data.recallsKnown &&
+          !data.attention.items.some((item) => item.kind === ATTENTION_KIND.RECALL)
+        }
         onPress={topItem ? () => onPressItem(topItem) : undefined}
       />,
     ],
@@ -179,6 +192,8 @@ export function OverviewSegment({
       />,
     ],
   ];
+
+  const blocks = allBlocks.filter(([key]) => !hidden.has(key));
 
   return (
     <View testID="overview-segment" style={{ gap: 12, paddingTop: 12, paddingHorizontal: 16 }}>

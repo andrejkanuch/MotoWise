@@ -1119,7 +1119,8 @@
         "documentExpiresToday": "{{category}}: vence hoje"
       },
       "untrackedHint": "O status aparece quando houver uma tarefa ou um documento.",
-      "loadError": "Não foi possível carregar o status da moto"
+      "loadError": "Não foi possível carregar o status da moto",
+      "noOpenRecalls": "Nenhum recall aberto."
     },
     "action": {
       "log": "Registrar",
@@ -1246,7 +1247,7 @@
       "helper": "As leituras ficam em um histórico. Uma leitura menor que a última pede confirmação antes de salvar.",
       "save": "Salvar {{value}} {{unit}}",
       "lowerTitle": "Menor que a última leitura",
-      "lowerMessage": "Menor que a última leitura ({{last}} {{unit}}). Salvar mesmo assim?",
+      "lowerMessage": "A última leitura foi {{last}} {{unit}}. Salvar {{value}} {{unit}} mesmo assim?",
       "backdatedNotice": "Anterior à sua última leitura: ela é registrada e o hodômetro continua em {{last}} {{unit}}.",
       "futureDate": "A data não pode estar no futuro.",
       "saveFailed": "Não foi possível salvar a leitura. Tente novamente.",
@@ -1276,7 +1277,7 @@
       "count_one": "{{count}} nota",
       "count_other": "{{count}} notas",
       "hint": "mais recentes primeiro · deslize para editar · excluir",
-      "searchPlaceholder": "Buscar nas notas…",
+      "searchPlaceholder": "Buscar números de peças, pressões, oficinas…",
       "searchA11y": "Buscar nas notas",
       "makeTask": "Criar tarefa",
       "linkedExpense": "Despesa vinculada · {{amount}}",

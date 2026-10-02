@@ -1118,7 +1118,8 @@
         "documentExpiresToday": "{{category}}は今日が期限"
       },
       "untrackedHint": "タスクか書類を追加すると走行ステータスが表示されます。",
-      "loadError": "走行ステータスを読み込めませんでした"
+      "loadError": "走行ステータスを読み込めませんでした",
+      "noOpenRecalls": "未対応のリコールはありません。"
     },
     "action": {
       "log": "記録",
@@ -1245,7 +1246,7 @@
       "helper": "値は履歴として保存されます。前回より小さい値は保存前に確認します。",
       "save": "{{value}} {{unit}} を保存",
       "lowerTitle": "前回より小さい値です",
-      "lowerMessage": "前回の値（{{last}} {{unit}}）より小さい値です。保存しますか？",
+      "lowerMessage": "前回の値は {{last}} {{unit}} です。{{value}} {{unit}} で保存しますか？",
       "backdatedNotice": "最新の記録より前の日付です。記録されますが、オドメーターは {{last}} {{unit}} のままです。",
       "futureDate": "未来の日付は指定できません。",
       "saveFailed": "値を保存できませんでした。もう一度お試しください。",
@@ -1275,7 +1276,7 @@
       "count_one": "メモ{{count}}件",
       "count_other": "メモ{{count}}件",
       "hint": "新しい順 · スワイプで編集 · 削除",
-      "searchPlaceholder": "メモを検索…",
+      "searchPlaceholder": "部品番号、空気圧、ショップを検索…",
       "searchA11y": "メモを検索",
       "makeTask": "タスクにする",
       "linkedExpense": "関連する費用 · {{amount}}",

@@ -198,6 +198,13 @@ describe('SectionHeader / Stat', () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
+  it('takes an eyebrow colour for a header on a non-hub ground (interim Bike tab)', async () => {
+    await render(<SectionHeader label="Manage" color={palette.editorialLightInk3} />);
+    expect(StyleSheet.flatten(screen.getByText('Manage').props.style).color).toBe(
+      palette.editorialLightInk3,
+    );
+  });
+
   it('shows a hint when there is no action', async () => {
     await render(<SectionHeader label="Overdue" count={4} hint="priority, then lateness" />);
     expect(screen.getByText('priority, then lateness')).toBeOnTheScreen();

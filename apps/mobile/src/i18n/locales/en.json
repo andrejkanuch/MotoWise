@@ -1124,7 +1124,8 @@
         "documentExpiresToday": "{{category}} expires today"
       },
       "untrackedHint": "Ride status appears once a task or a document exists.",
-      "loadError": "Couldn't load the ride status"
+      "loadError": "Couldn't load the ride status",
+      "noOpenRecalls": "No open recalls."
     },
     "action": {
       "log": "Log",
@@ -1251,7 +1252,7 @@
       "helper": "Readings are kept as a log. A reading lower than the last asks before saving.",
       "save": "Save {{value}} {{unit}}",
       "lowerTitle": "Lower than the last reading",
-      "lowerMessage": "Lower than the last reading ({{last}} {{unit}}). Save anyway?",
+      "lowerMessage": "The last reading was {{last}} {{unit}}. Save {{value}} {{unit}} anyway?",
       "backdatedNotice": "Dated before your latest reading: it is logged, and the odometer stays at {{last}} {{unit}}.",
       "futureDate": "The date can't be in the future.",
       "saveFailed": "Couldn't save the reading. Try again.",
@@ -1281,7 +1282,7 @@
       "count_one": "{{count}} note",
       "count_other": "{{count}} notes",
       "hint": "newest first · swipe for edit · delete",
-      "searchPlaceholder": "Search notes…",
+      "searchPlaceholder": "Search part numbers, pressures, shops…",
       "searchA11y": "Search notes",
       "makeTask": "Make it a task",
       "linkedExpense": "Linked expense · {{amount}}",

@@ -1138,7 +1138,8 @@
         "documentExpiresToday": "{{category}}: platnosť vyprší dnes"
       },
       "untrackedHint": "Stav sa zobrazí, keď pribudne úloha alebo dokument.",
-      "loadError": "Stav motorky sa nepodarilo načítať"
+      "loadError": "Stav motorky sa nepodarilo načítať",
+      "noOpenRecalls": "Žiadne otvorené stiahnutia."
     },
     "action": {
       "log": "Zapísať",
@@ -1279,7 +1280,7 @@
       "helper": "Stavy sa ukladajú do histórie. Pri nižšom stave ako naposledy sa pred uložením opýtame.",
       "save": "Uložiť {{value}} {{unit}}",
       "lowerTitle": "Nižší ako posledný stav",
-      "lowerMessage": "Nižší ako posledný stav ({{last}} {{unit}}). Uložiť aj tak?",
+      "lowerMessage": "Posledný stav bol {{last}} {{unit}}. Uložiť aj tak {{value}} {{unit}}?",
       "backdatedNotice": "Dátum pred posledným stavom: zapíše sa a tachometer zostane na {{last}} {{unit}}.",
       "futureDate": "Dátum nemôže byť v budúcnosti.",
       "saveFailed": "Stav sa nepodarilo uložiť. Skúste to znova.",
@@ -1311,7 +1312,7 @@
       "count_many": "{{count}} poznámky",
       "count_other": "{{count}} poznámok",
       "hint": "najnovšie prvé · potiahnutím upraviť · vymazať",
-      "searchPlaceholder": "Hľadať v poznámkach…",
+      "searchPlaceholder": "Hľadať čísla dielov, tlaky, servisy…",
       "searchA11y": "Hľadať v poznámkach",
       "makeTask": "Vytvoriť úlohu",
       "linkedExpense": "Prepojený výdavok · {{amount}}",

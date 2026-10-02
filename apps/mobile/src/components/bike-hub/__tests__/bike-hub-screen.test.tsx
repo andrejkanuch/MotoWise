@@ -260,7 +260,7 @@ describe('BikeHubScreen — segments', () => {
     await screen.findByRole('tab', { name: 'Overview' });
     const scroll = screen.getByTestId('segment-scroll-overview');
     const { paddingBottom } = StyleSheet.flatten(scroll.props.contentContainerStyle);
-    const tabBar = 34 + 76; // bottom inset + the app's floating tab bar
+    const tabBar = 34 + 65; // bottom inset + the app's floating tab bar (measured)
     const pillTop = tabBar + 16 + 52; // pill offset + pill height
     expect(paddingBottom).toBe(tabBar + 144);
     expect(paddingBottom).toBeGreaterThan(pillTop + 40);

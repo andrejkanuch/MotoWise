@@ -152,6 +152,38 @@ describe('OdometerSheet', () => {
     expect(screen.getByRole('button', { name: 'Save 39,407 km' })).toBeOnTheScreen();
   });
 
+  it('the rides chip SETS last reading + ride distance, whatever is typed, however often it is tapped', async () => {
+    await renderSheet();
+    await type('38000');
+    await fireEvent.press(screen.getByTestId('chip-rides'));
+    expect(screen.getByTestId('odometer-entry')).toHaveTextContent('39,407');
+    await fireEvent.press(screen.getByTestId('chip-rides'));
+    expect(screen.getByTestId('odometer-entry')).toHaveTextContent('39,407');
+    // The fixed chips still add to the current entry.
+    await fireEvent.press(screen.getByTestId('chip-50'));
+    expect(screen.getByTestId('odometer-entry')).toHaveTextContent('39,457');
+  });
+
+  it('the lower-reading confirmation says different things in its title and its body', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    await renderSheet();
+    await type('38000');
+    await fireEvent.press(screen.getByTestId('odometer-save'));
+    const [title, body] = alert.mock.calls[0] ?? [];
+    expect(title).toBe('Lower than the last reading');
+    expect(body).toBe('The last reading was 38,167 km. Save 38,000 km anyway?');
+    expect(body).not.toContain(title as string);
+  });
+
+  it('keypad rows keep the design height of 56', async () => {
+    await renderSheet();
+    const row = screen.getByTestId('key-1').parent;
+    expect(StyleSheet.flatten(row?.props.style)).toMatchObject({ height: 56, flexShrink: 0 });
+    expect(StyleSheet.flatten(screen.getByTestId('key-1').props.style)).toMatchObject({
+      height: 56,
+    });
+  });
+
   it('hides the rides chip when no ride is pending', async () => {
     await renderSheet({ pending: { rideCount: 0, distance: 0 } });
     expect(screen.queryByTestId('chip-rides')).toBeNull();
@@ -166,7 +198,7 @@ describe('OdometerSheet', () => {
     expect(saved()).toHaveLength(0);
     expect(alert).toHaveBeenCalledWith(
       'Lower than the last reading',
-      'Lower than the last reading (38,167 km). Save anyway?',
+      'The last reading was 38,167 km. Save 38,000 km anyway?',
       expect.any(Array),
     );
     const buttons = alert.mock.calls[0]?.[2] ?? [];

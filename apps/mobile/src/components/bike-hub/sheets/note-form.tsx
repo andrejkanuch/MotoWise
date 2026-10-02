@@ -131,6 +131,8 @@ export function NoteForm({
     taskMissing: boolean;
   } | null>(null);
 
+  // The bike the sheet was opened for comes first (and is preselected).
+  const attachChoices = [bike, ...bikes.filter((candidate) => candidate.id !== bike.id)];
   const target = bikes.find((candidate) => candidate.id === targetId) ?? bike;
   const unit = toHubUnit(target.distanceUnit);
   // Edit keeps the note's own stamp; a new note stamps the target bike's odometer.
@@ -403,7 +405,7 @@ export function NoteForm({
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ gap: 6 }}
             >
-              {bikes.map((candidate) => (
+              {attachChoices.map((candidate) => (
                 <Chip
                   key={candidate.id}
                   testID={`note-bike-${candidate.id}`}

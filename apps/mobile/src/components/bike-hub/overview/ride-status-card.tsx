@@ -65,6 +65,8 @@ interface RideStatusCardProps {
   /** Tasks or documents failed to load: no verdict, offer Retry. */
   isError?: boolean;
   onRetry?: () => void;
+  /** The recalls list is loaded and empty — only then may the card say "No open recalls." */
+  noOpenRecalls?: boolean;
   /** Performs the top attention row's action. Omit when there is nothing to open. */
   onPress?: () => void;
 }
@@ -83,6 +85,7 @@ export function RideStatusCard({
   isLoading = false,
   isError = false,
   onRetry,
+  noOpenRecalls = false,
   onPress,
 }: RideStatusCardProps) {
   const { t, i18n } = useTranslation();
@@ -153,7 +156,12 @@ export function RideStatusCard({
   const title = t(style.titleKey);
   const detail =
     status === RIDE_STATUS.UNTRACKED
-      ? t('bikeHub.rideStatus.untrackedHint')
+      ? [
+          noOpenRecalls ? t('bikeHub.rideStatus.noOpenRecalls') : null,
+          t('bikeHub.rideStatus.untrackedHint'),
+        ]
+          .filter(Boolean)
+          .join(' ')
       : describeRideStatusReasons(reasons, t, i18n.language);
 
   return (

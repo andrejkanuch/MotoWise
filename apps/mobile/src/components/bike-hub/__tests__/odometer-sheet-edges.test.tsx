@@ -204,7 +204,7 @@ describe('OdometerSheet — a back-dated reading', () => {
     await fireEvent.press(screen.getByTestId('odometer-save'));
     expect(alert).toHaveBeenCalledWith(
       'Lower than the last reading',
-      'Lower than the last reading (38,167 km). Save anyway?',
+      'The last reading was 38,167 km. Save 38,000 km anyway?',
       expect.any(Array),
     );
     expect(savedInputs()).toHaveLength(0);

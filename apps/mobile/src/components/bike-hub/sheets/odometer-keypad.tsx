@@ -17,6 +17,10 @@ const DIGIT_ROWS: readonly (readonly OdometerDigit[])[] = [
   ['7', '8', '9'],
 ];
 
+// Rows keep their height: a fit-to-contents sheet must size to the keypad, not
+// squeeze it.
+const ROW = { flexDirection: 'row', gap: GAP, height: KEY_HEIGHT, flexShrink: 0 } as const;
+
 interface KeyProps {
   onPress: () => void;
   onLongPress?: () => void;
@@ -91,11 +95,11 @@ export function OdometerKeypad({ onKey, dateLabel, onDatePress }: OdometerKeypad
   return (
     <View style={{ gap: GAP }}>
       {DIGIT_ROWS.map((row) => (
-        <View key={row.join('')} style={{ flexDirection: 'row', gap: GAP }}>
+        <View key={row.join('')} style={ROW}>
           {row.map(digit)}
         </View>
       ))}
-      <View style={{ flexDirection: 'row', gap: GAP }}>
+      <View style={ROW}>
         <Key testID="key-date" filled={false} accessibilityLabel={dateLabel} onPress={onDatePress}>
           <Text
             maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}

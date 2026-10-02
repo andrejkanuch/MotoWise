@@ -1119,7 +1119,8 @@
         "documentExpiresToday": "{{category}}: scade oggi"
       },
       "untrackedHint": "Lo stato compare quando esiste un’attività o un documento.",
-      "loadError": "Impossibile caricare lo stato della moto"
+      "loadError": "Impossibile caricare lo stato della moto",
+      "noOpenRecalls": "Nessun richiamo aperto."
     },
     "action": {
       "log": "Registra",
@@ -1246,7 +1247,7 @@
       "helper": "Le letture vengono conservate in un registro. Una lettura inferiore all’ultima chiede conferma prima di salvare.",
       "save": "Salva {{value}} {{unit}}",
       "lowerTitle": "Inferiore all’ultima lettura",
-      "lowerMessage": "Inferiore all’ultima lettura ({{last}} {{unit}}). Salvare comunque?",
+      "lowerMessage": "L’ultima lettura era {{last}} {{unit}}. Salvare comunque {{value}} {{unit}}?",
       "backdatedNotice": "Precedente all’ultima lettura: viene registrata e il contachilometri resta a {{last}} {{unit}}.",
       "futureDate": "La data non può essere nel futuro.",
       "saveFailed": "Impossibile salvare la lettura. Riprova.",
@@ -1276,7 +1277,7 @@
       "count_one": "{{count}} nota",
       "count_other": "{{count}} note",
       "hint": "più recenti prima · scorri per modificare · eliminare",
-      "searchPlaceholder": "Cerca nelle note…",
+      "searchPlaceholder": "Cerca codici ricambio, pressioni, officine…",
       "searchA11y": "Cerca nelle note",
       "makeTask": "Rendila un’attività",
       "linkedExpense": "Spesa collegata · {{amount}}",

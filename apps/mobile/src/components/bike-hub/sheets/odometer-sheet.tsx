@@ -135,6 +135,16 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
     setDigits(String(applyQuickAdd(value, lastValue, amount)));
   };
 
+  // Unlike +50 / +100 / +250, the rides chip does not add to what is typed: it
+  // SETS the entry to the last reading plus the distance of the rides that are
+  // not on the odometer yet — the same result however often it is tapped.
+  const addTrackedRides = (distance: number) => {
+    triggerSelection();
+    setSaveFailed(false);
+    setUsedQuickAdd(true);
+    setDigits(String(applyQuickAdd(null, lastValue, distance)));
+  };
+
   const save = () => {
     if (value === null) return;
     setSaveFailed(false);
@@ -160,11 +170,15 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
 
   const onSavePress = () => {
     if (validation.ok) return save();
-    if (!('needsConfirm' in validation)) return;
+    if (!('needsConfirm' in validation) || value === null) return;
     // A lower reading is allowed — a typo has to stay correctable — but asked first.
     Alert.alert(
       t('bikeHub.odometer.lowerTitle'),
-      t('bikeHub.odometer.lowerMessage', { last: lastText, unit }),
+      t('bikeHub.odometer.lowerMessage', {
+        last: lastText,
+        value: formatOdometer(value, language),
+        unit,
+      }),
       [
         { text: t('common.cancel'), style: 'cancel' },
         { text: t('common.save'), onPress: save },
@@ -259,7 +273,7 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
               count: pendingRides.rideCount,
               distance: formatOdometer(pendingRides.distance, language),
             })}
-            onPress={() => quickAdd(pendingRides.distance)}
+            onPress={() => addTrackedRides(pendingRides.distance)}
           />
         ) : null}
         {ODOMETER_QUICK_ADD.map((amount) => (

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { useEditorialTheme } from '../../../theme/editorial';
 import { BikeDetailsCard } from '../bike-details-card';
 import { DocumentsSection } from '../documents-section';
 import type { BikeActions } from '../shell/use-bike-actions';
@@ -88,6 +89,7 @@ function ActionListRow({ row, isLast }: { row: ActionRow; isLast: boolean }) {
  */
 export function BikeSegment({ bike, actions, onChangePhoto, isUploadingPhoto }: BikeSegmentProps) {
   const { t } = useTranslation();
+  const { t: theme } = useEditorialTheme();
 
   const rows: ActionRow[] = [
     {
@@ -132,19 +134,11 @@ export function BikeSegment({ bike, actions, onChangePhoto, isUploadingPhoto }: 
       />
       <BikeDetailsCard bike={bike} delay={0} />
 
-      {/* On the hub ground in both colour schemes: the legacy sections above
-          follow the system scheme, the hub tokens below are dark-only. */}
-      <View
-        style={{
-          marginTop: 24,
-          paddingHorizontal: 16,
-          paddingTop: 12,
-          paddingBottom: 16,
-          gap: 8,
-          backgroundColor: hub.ground,
-        }}
-      >
-        <SectionHeader label={t('bikeHub.bikeActions.title')} />
+      {/* Same ground as the wrapped sections above (they follow the system
+          scheme), so the tab reads as one surface. The eyebrow takes the legacy
+          theme's muted ink to stay readable on a light ground. */}
+      <View style={{ marginTop: 24, paddingHorizontal: 16, paddingBottom: 16, gap: 8 }}>
+        <SectionHeader label={t('bikeHub.bikeActions.title')} color={theme.ink3} />
         <HubCard style={{ overflow: 'hidden' }}>
           {rows.map((row, index) => (
             <ActionListRow key={row.id} row={row} isLast={index === rows.length - 1} />

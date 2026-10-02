@@ -1118,7 +1118,8 @@
         "documentExpiresToday": "{{category}} läuft heute ab"
       },
       "untrackedHint": "Der Fahrstatus erscheint, sobald es eine Aufgabe oder ein Dokument gibt.",
-      "loadError": "Der Fahrstatus konnte nicht geladen werden"
+      "loadError": "Der Fahrstatus konnte nicht geladen werden",
+      "noOpenRecalls": "Keine offenen Rückrufe."
     },
     "action": {
       "log": "Eintragen",
@@ -1245,7 +1246,7 @@
       "helper": "Stände werden als Verlauf gespeichert. Bei einem niedrigeren Stand als zuletzt wird vor dem Speichern nachgefragt.",
       "save": "{{value}} {{unit}} speichern",
       "lowerTitle": "Niedriger als der letzte Stand",
-      "lowerMessage": "Niedriger als der letzte Stand ({{last}} {{unit}}). Trotzdem speichern?",
+      "lowerMessage": "Der letzte Stand war {{last}} {{unit}}. Trotzdem {{value}} {{unit}} speichern?",
       "backdatedNotice": "Liegt vor deinem letzten Stand: Er wird gespeichert, der Kilometerstand bleibt bei {{last}} {{unit}}.",
       "futureDate": "Das Datum darf nicht in der Zukunft liegen.",
       "saveFailed": "Der Stand konnte nicht gespeichert werden. Versuch es noch einmal.",
@@ -1275,7 +1276,7 @@
       "count_one": "{{count}} Notiz",
       "count_other": "{{count}} Notizen",
       "hint": "neueste zuerst · wischen zum Bearbeiten · Löschen",
-      "searchPlaceholder": "Notizen durchsuchen…",
+      "searchPlaceholder": "Teilenummern, Reifendrücke, Werkstätten suchen…",
       "searchA11y": "Notizen durchsuchen",
       "makeTask": "Als Aufgabe anlegen",
       "linkedExpense": "Verknüpfte Ausgabe · {{amount}}",
