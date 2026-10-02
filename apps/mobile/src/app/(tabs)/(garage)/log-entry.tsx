@@ -18,13 +18,29 @@ import { triggerImpact } from '../../../utils/haptics';
 const DISMISS_FALLBACK_MS = 600;
 const OPTION_MIN_HEIGHT = 64;
 
+interface StackState {
+  index?: number;
+  routes: Array<{ key: string; state?: StackState }>;
+}
+
+/** A navigator that outlives this sheet (the tabs above the garage stack). */
+interface ParentNavigation {
+  getState: () => StackState | undefined;
+}
+
 /** The slice of the native-stack navigation object this screen uses; `useNavigation` is untyped for it. */
 interface SheetNavigation {
   addListener: (
     event: 'transitionEnd',
     listener: (event: { data: { closing: boolean } }) => void,
   ) => () => void;
-  getState: () => { index: number; routes: Array<{ key: string }> } | undefined;
+  getState: () => StackState | undefined;
+  getParent: () => ParentNavigation | undefined;
+}
+
+function focusedRoute(state: StackState | undefined): StackState['routes'][number] | undefined {
+  if (!state) return undefined;
+  return state.routes[state.index ?? state.routes.length - 1];
 }
 
 /**
@@ -34,17 +50,30 @@ interface SheetNavigation {
 function screenBeneath(navigation: SheetNavigation): string | null {
   try {
     const state = navigation.getState();
-    return state?.routes[state.index - 1]?.key ?? null;
+    const index = state?.index ?? (state ? state.routes.length - 1 : 0);
+    return state?.routes[index - 1]?.key ?? null;
   } catch (_error) {
     return null;
   }
 }
 
-/** The stack's top screen right now. `null` when it cannot be read. */
-function topScreen(navigation: SheetNavigation): string | null {
+function parentOf(navigation: SheetNavigation): ParentNavigation | undefined {
   try {
-    const state = navigation.getState();
-    return state?.routes[state.index]?.key ?? null;
+    return navigation.getParent();
+  } catch (_error) {
+    return undefined;
+  }
+}
+
+/**
+ * The screen the rider is on right now, read through the PARENT navigator: the
+ * sheet's own navigation object is dead once the sheet is dismissed and may
+ * still report the stack as it was. The parent's focused route carries the
+ * garage stack's live state. `null` when it cannot be read.
+ */
+function currentScreen(parent: ParentNavigation | undefined): string | null {
+  try {
+    return focusedRoute(focusedRoute(parent?.getState())?.state)?.key ?? null;
   } catch (_error) {
     return null;
   }
@@ -84,16 +113,20 @@ export default function LogEntrySheet() {
       motorcycleId: bike.id,
       bikeName: `${bike.year} ${bike.make} ${bike.model}`,
     });
+    // Captured while the sheet is alive; both are read again after it is gone.
     const expected = screenBeneath(navigation);
+    const parent = parentOf(navigation);
     pendingHref.current = href;
     router.back();
     setTimeout(() => {
       if (pendingHref.current !== href) return;
       pendingHref.current = null;
-      // Only if the rider is still where the sheet left them: if they moved on
-      // in the meantime, the form must not appear on top of another screen.
-      const current = topScreen(navigation);
-      if (expected && current && current !== expected) return;
+      // Open the form unless the rider is KNOWN to have moved on (another screen
+      // or another tab). When the state cannot be read, open it — a chosen
+      // option must never end in nothing.
+      const current = currentScreen(parent);
+      const movedOn = expected !== null && current !== null && current !== expected;
+      if (movedOn) return;
       router.push(href);
     }, DISMISS_FALLBACK_MS);
   };

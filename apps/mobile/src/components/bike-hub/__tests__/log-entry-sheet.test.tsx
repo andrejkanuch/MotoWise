@@ -13,6 +13,10 @@ jest.mock('expo-haptics', () => ({
 const mockRouter = { push: jest.fn(), back: jest.fn() };
 // The garage stack: bike hub beneath, the Log sheet on top.
 let mockStackState = { index: 1, routes: [{ key: 'bike-1' }, { key: 'log-entry-1' }] };
+// What the dismissed sheet's own navigation object keeps reporting: the stack
+// as it was BEFORE the pop. The fallback must not trust it.
+const mockSheetState = { index: 1, routes: [{ key: 'bike-1' }, { key: 'log-entry-1' }] };
+let mockParentReadable = true;
 let mockTransitionEnd: ((event: { data: { closing: boolean } }) => void) | undefined;
 jest.mock('expo-router', () => ({
   // A getter: the factory runs at import time, before `mockRouter` is initialised.
@@ -25,7 +29,13 @@ jest.mock('expo-router', () => ({
       mockTransitionEnd = listener;
       return () => {};
     },
-    getState: () => mockStackState,
+    getState: () => mockSheetState,
+    // The tabs navigator above the garage stack: it outlives the sheet and its
+    // focused route carries the stack's live state.
+    getParent: () =>
+      mockParentReadable
+        ? { getState: () => ({ index: 0, routes: [{ key: 'garage-tab', state: mockStackState }] }) }
+        : undefined,
   }),
 }));
 
@@ -58,6 +68,7 @@ async function renderSheet(bike: Record<string, unknown> = BIKE_A) {
 beforeEach(() => {
   jest.clearAllMocks();
   jest.useFakeTimers();
+  mockParentReadable = true;
   mockStackState = { index: 1, routes: [{ key: 'bike-1' }, { key: 'log-entry-1' }] };
   // Going back pops the sheet: the hub is the top screen again.
   mockRouter.back.mockImplementation(() => {
@@ -158,6 +169,16 @@ describe('Log sheet', () => {
     mockStackState = { index: 1, routes: [{ key: 'bike-1' }, { key: 'notes-1' }] };
     await act(async () => jest.advanceTimersByTimeAsync(700));
     expect(mockRouter.push).not.toHaveBeenCalled();
+  });
+
+  it('opens the form when the stack cannot be read at all — a chosen option never ends in nothing', async () => {
+    mockParentReadable = false;
+    await renderSheet();
+    await act(async () => jest.advanceTimersByTimeAsync(0));
+    await screen.findByText('Log on the Africa Twin');
+    await fireEvent.press(screen.getByTestId('log-option-expense'));
+    await act(async () => jest.advanceTimersByTimeAsync(700));
+    expect(mockRouter.push).toHaveBeenCalledTimes(1);
   });
 
   it('Cancel dismisses without opening anything', async () => {
