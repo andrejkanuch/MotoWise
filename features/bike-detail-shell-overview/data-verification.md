@@ -124,6 +124,60 @@ tables `notes`, `note_photos`, `odometer_readings`; functions `log_odometer_read
 `note_link_is_own`, `soft_delete_note`; `motorcycles.distance_unit` (Row `string`, Insert
 **required** `string` — the column has no default, a BEFORE INSERT trigger fills it — Update optional).
 
+## Production drift found
+
+For the owner. The migration folder and production have drifted apart; none of it touches this
+phase's tables, all of it was found while building the verification database.
+
+**The folder does not replay on an empty database** (`supabase db reset` fails):
+
+| Migration | Why it fails | What production really has |
+|---|---|---|
+| `00093_places.sql` | uses `ll_to_earth()` before 00094 creates `cube`/`earthdistance` | the extensions already existed when 00093 ran; `earth()` is visible in production's `public` schema |
+| `00097_users_handle.sql` | `CREATE OR REPLACE VIEW public_profiles` inserts a column mid-list, which Postgres rejects | a `public_profiles` view without `city`, `follower_count`, `following_count` — i.e. not what 00097 would create either |
+| `00098_surface_reports.sql` | `UNIQUE (route_id, user_id, (reported_at::date))` is not valid SQL | a `surface_reports.report_date` column (non-null, has a default or is generated) and a `user_id` FK to `public.users`. **My scratch patch (a unique index on the UTC day) guessed wrong.** |
+| `00102_user_gating_events_year_month.sql` | `to_char(timestamptz)` in a generated column is not immutable | a function `public.year_month_immutable(ts)` that no migration creates; its body is unknown (the scratch patch guesses `to_char(ts AT TIME ZONE 'UTC', 'YYYY-MM')`) |
+
+**Schema objects where production differs from what the folder builds** (the 17 structural
+differences of the fidelity check, grouped):
+
+1. `social_post_queue.headline` — column in production, in no migration (3: Row / Insert / Update).
+2. `claim_next_social_post()` — return type includes `headline` in production (1).
+3. `find_nearest_place()` — returns `place_id: number` in production; the folder's version returns `id: string` (1).
+4. `earth()` — present in production's `public` schema, absent locally (1).
+5. `_visibility_backfill_audit` — table created by the folder, absent in production (1).
+6. `sponsorships` — `cta_text` and `cta_url` are NOT NULL and `monthly_budget` is nullable in production; the folder builds the opposite (3).
+7. `surface_reports` — `report_date` column and the `user_id` → `public.users` relationship exist only in production (4: Row / Insert / Update / Relationships).
+8. `public_profiles` view — `city`, `follower_count`, `following_count` exist only in the folder's version (3).
+
+Consequence beyond this phase: nobody can stand up a faithful local or CI database from the
+folder, and `schema_migrations` is not proof of what is live (as 00141 → 00178 already showed).
+A baseline migration dumped from production would close it; that is an owner decision and is
+not part of this phase.
+
+## How `database.types.ts` was produced (commit `0826a283`)
+
+It is **not generator output**. `supabase gen types --local` cannot reproduce the committed
+file: its text format differs (above) and it would write the drift into the file (e.g. delete
+`social_post_queue.headline`). So:
+
+1. `types-before.ts` = `supabase gen types typescript --local --schema public,graphql_public` on
+   the scratch database at 00179; `types-after.ts` = the same at 00182.
+2. A scratch ts-morph script (kept out of the repo) read the nine new objects from
+   `types-after.ts` — tables `notes`, `note_photos`, `odometer_readings`; functions
+   `log_odometer_reading`, `note_link_is_own`, `soft_delete_note`; `motorcycles.distance_unit` in
+   Row / Insert / Update — and inserted them into the committed file at their alphabetical
+   positions, printed in that file's style (no semicolons, 80-column fit-or-break for functions).
+   Result: 163 lines added, 0 removed.
+3. Check, with the same structural comparison used for fidelity:
+   - committed file after − committed file before = scratch types after − scratch types before:
+     the same 9 objects, **exact**;
+   - committed file after vs `types-after.ts` = the 28 pre-existing differences and nothing else,
+     so each new object is structurally equal to what the generator emitted.
+
+After the owner pushes 00180–00182: run `pnpm generate:types`. It must give a **zero diff**. If
+it does not, commit the generator's output — it is the source of truth, this file is a stand-in.
+
 ## Column-level grants on `motorcycles` (Task 1.1)
 
 `\dp public.motorcycles` on the replay: no column privileges; `authenticated` holds table-level

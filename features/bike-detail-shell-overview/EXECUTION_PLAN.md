@@ -81,7 +81,7 @@ The new tables and column do not exist in production, and both the local API and
     - `DEVICE` Signed in on the simulator against the local stack; Garage list shows the test bike.
   - Requirement: lead brief "say plainly how mobile work is verified locally before the push".
 
-- [ ] Task 0.2: Seed the two QA bikes locally
+- [x] Task 0.2: Seed the two QA bikes locally
   - Files: `scripts/seed-bike-hub-fixtures.ts` (new, dev-only, takes `--user <id>` and refuses to run unless `SUPABASE_URL` is a `127.0.0.1` / `localhost` URL)
   - Details: bike A "Africa Twin" (2022 Honda, primary, km, odometer 38,167, purchase 2022-06 €11,800) with the tasks, documents, expenses and rides of the Fixtures section; bike B "Ténéré 700" (2024 Yamaha, odometer 1,240, purchase price €10,400, **all auto-populated OEM tasks deleted**, no documents, no expenses); bike C = a copy of A for a second user whose `measurement_system` is `imperial` (miles states).
   - Acceptance:
@@ -102,7 +102,7 @@ Order inside every data slice: migration → types (`--local`) → Zod → (Phas
 `npx supabase gen types typescript --local --schema public,graphql_public > packages/types/src/database.types.ts`
 and review the diff: it must contain only the objects added in this phase. Unrelated noise means local and production schemas differ — stop and report. After the owner pushes, run `pnpm generate:types` once and confirm a zero diff.
 
-- [ ] Task 1.1: Migration `00180_motorcycles_distance_unit.sql`
+- [x] Task 1.1: Migration `00180_motorcycles_distance_unit.sql`
   - Files: `supabase/migrations/00180_motorcycles_distance_unit.sql`
   - Details (D1 — label only, nothing is converted):
     - `ALTER TABLE public.motorcycles ADD COLUMN distance_unit text` (nullable for the backfill).
@@ -117,7 +117,7 @@ and review the diff: it must contain only the objects added in this phase. Unrel
     - `MANUAL` `\dp public.motorcycles` checked for column-level grants. A code comment (`motorcycles.service.ts:247`) says `recall_*` columns sit outside the user UPDATE grants, but no such `GRANT` is in `supabase/migrations/`. If column grants exist, the migration adds `GRANT SELECT (distance_unit)` (and no UPDATE grant in R1); if they do not, nothing to add. Record the finding in the migration header.
   - Requirement: spec §3 `motorcycles.distance_unit`; D1.
 
-- [ ] Task 1.2: Migration `00181_odometer_readings.sql`
+- [x] Task 1.2: Migration `00181_odometer_readings.sql`
   - Files: `supabase/migrations/00181_odometer_readings.sql`
   - Details:
     - Table `public.odometer_readings`: `id uuid pk default gen_random_uuid()`, `user_id uuid not null references auth.users(id) on delete cascade`, `motorcycle_id uuid not null references public.motorcycles(id) on delete cascade`, `value integer not null check (value >= 0)`, `recorded_at timestamptz not null`, `source text not null check (source in ('manual','gps_ride','initial','backfill'))`, `ride_id uuid null references public.rides(id) on delete set null`, `created_at timestamptz not null default now()`. Append-only in R1: no `deleted_at`, no UPDATE/DELETE policy. Spec names `at` → `recorded_at` (`at` reads badly in SQL and GraphQL).
@@ -133,7 +133,7 @@ and review the diff: it must contain only the objects added in this phase. Unrel
     - `MANUAL` Ending a ride on the local stack adds a `gps_ride` row with `ride_id` set.
   - Requirement: spec §3 `odometer_readings`.
 
-- [ ] Task 1.3: Migration `00182_notes.sql`
+- [x] Task 1.3: Migration `00182_notes.sql`
   - Files: `supabase/migrations/00182_notes.sql`
   - Details:
     - Table `public.notes`: `id`, `user_id` (→ `auth.users`, cascade), `motorcycle_id` (→ `motorcycles`, cascade), `body text not null check (char_length(btrim(body)) between 1 and 4000)`, `odometer integer null check (odometer >= 0)`, `linked_task_id uuid null references public.maintenance_tasks(id) on delete set null`, `linked_expense_id uuid null references public.expenses(id) on delete set null`, `created_at`, `updated_at`, `deleted_at`. Spec `text` → column `body` (GraphQL field stays `text`). The two `linked_*` columns are created now (D3); only `linked_task_id` is written in R1 (by "make it a task").
@@ -148,7 +148,7 @@ and review the diff: it must contain only the objects added in this phase. Unrel
     - `MANUAL` `anon` cannot execute `soft_delete_note`.
   - Requirement: spec §3 `notes`.
 
-- [ ] Task 1.4: Types and Zod
+- [x] Task 1.4: Types and Zod
   - Files: `packages/types/src/database.types.ts` (generated with `--local`, see above), `packages/types/src/constants/enums.ts` (add `DistanceUnit` alias note + `OdometerReadingSource` as const), `packages/types/src/constants/limits.ts` (`NOTE_TEXT_MAX = 4000`, `NOTE_PHOTOS_MAX = 3`, `ODOMETER_MAX = 9_999_999`), `packages/types/src/validators/note.ts` (new: `CreateNoteSchema`, `UpdateNoteSchema`, `AddNotePhotoSchema` + inferred types), `packages/types/src/validators/odometer.ts` (new: `LogOdometerReadingSchema`), `packages/types/src/validators/index.ts`, tests in `packages/types/src/validators/__tests__/`
   - Details: reuse the existing `MileageUnit` const (`'mi'|'km'`) as the type of `distance_unit` — do not create a second unit enum. `CreateNoteSchema`: `motorcycleId` uuid, `text` trimmed 1–4000, `odometer` int ≥ 0 optional, `alsoCreateTask` boolean optional. `LogOdometerReadingSchema`: `motorcycleId` uuid, `value` int 0–`ODOMETER_MAX`, `recordedAt` ISO datetime optional. `MotorcycleSchema`/`UpdateMotorcycleSchema` are **not** given a writable `distanceUnit` in R1 (the control is R5).
   - Acceptance:
@@ -166,14 +166,14 @@ and review the diff: it must contain only the objects added in this phase. Unrel
 
 Before the push, regenerate with `pnpm --filter @motovault/api generate:schema && pnpm --filter @motovault/graphql generate:graphql` — **not** `pnpm generate`.
 
-- [ ] Task 2.1: `distanceUnit` on `Motorcycle`
+- [x] Task 2.1: `distanceUnit` on `Motorcycle`
   - Files: `apps/api/src/modules/motorcycles/motorcycles.service.ts` (`MOTORCYCLE_SELECT`, `mapRow`), `models/motorcycle.model.ts` (`distanceUnit: string`, non-null; mark `mileageUnit` `deprecationReason`), `motorcycles.service.spec.ts`, `apps/mobile/src/graphql/queries/my-motorcycles.graphql`, `apps/mobile/src/graphql/mutations/update-motorcycle.graphql`, any `apps/web` `.graphql` document selecting motorcycles only if codegen requires it
   - Details: read-only field. `MOTORCYCLE_SELECT` is used by `myMotorcycles` for every user — see the deploy-order rule in Phase 7.
   - Acceptance:
     - `TEST` service spec: row with `distance_unit: 'mi'` maps to `distanceUnit: 'mi'`.
     - `TYPE` `MyMotorcyclesQuery['myMotorcycles'][number]['distanceUnit']` is `string` after codegen.
 
-- [ ] Task 2.2: Odometer slice
+- [x] Task 2.2: Odometer slice
   - Files: new `apps/api/src/modules/odometer/` (`odometer.module.ts`, `odometer.resolver.ts`, `odometer.service.ts`, `dto/log-odometer-reading.input.ts`, `models/odometer-reading.model.ts`, `models/pending-ride-distance.model.ts`, `odometer.service.spec.ts`), `apps/api/src/app.module.ts`, `apps/mobile/src/graphql/queries/odometer-readings.graphql`, `…/queries/pending-ride-distance.graphql`, `…/mutations/log-odometer-reading.graphql`, `apps/mobile/src/lib/query-keys.ts` (`odometer.readings(id)`, `odometer.pendingRides(id)`)
   - Details:
     - `odometerReadings(motorcycleId: String!, limit: Int = 20): [OdometerReading!]!` newest first (`id`, `value`, `recordedAt`, `source`, `rideId`).
@@ -185,7 +185,7 @@ Before the push, regenerate with `pnpm --filter @motovault/api generate:schema &
     - `TEST` Zod pipe rejects a future `recordedAt` beyond tolerance and a negative value.
     - `MANUAL` Local stack, GraphQL playground: mutation returns the bike with the new `currentMileage`; `odometerReadings` lists it first.
 
-- [ ] Task 2.3: Notes slice
+- [x] Task 2.3: Notes slice
   - Files: new `apps/api/src/modules/notes/` (`notes.module.ts`, `notes.resolver.ts`, `notes.service.ts`, `note-photos.loader.ts`, `note-task-title.ts`, `dto/{create-note,update-note,add-note-photo}.input.ts`, `models/{note,note-photo}.model.ts`, specs), `apps/api/src/app.module.ts`, `apps/mobile/src/graphql/queries/notes-by-motorcycle.graphql`, `…/mutations/{create-note,update-note,delete-note,create-task-from-note,add-note-photo,delete-note-photo}.graphql`, `apps/mobile/src/lib/query-keys.ts` (`notes.byMotorcycle(id)`)
   - Details:
     - `notes(motorcycleId: String!): [Note!]!` newest first, unpaginated (personal notes; revisit with a Relay connection if a bike passes ~200). `Note`: `id`, `motorcycleId`, `text`, `odometer`, `createdAt`, `updatedAt`, `linkedTaskId`, `linkedTaskTitle`, `linkedExpenseId`, `linkedExpenseAmount`, `linkedExpenseCurrency` (PostgREST embeds `maintenance_tasks(title)` / `expenses(amount,currency)` in the one select — no N+1), `photos: [NotePhoto!]!` via a request-scoped `NotePhotosLoader` (copy `expense-photos.loader.ts`; resolver marked `Scope.REQUEST`).
