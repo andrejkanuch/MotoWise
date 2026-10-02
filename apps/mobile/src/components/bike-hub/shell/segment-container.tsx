@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { RefreshControl, View } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import Animated, {
   type SharedValue,
   useAnimatedScrollHandler,
@@ -69,7 +70,8 @@ function SegmentScroll({
   }, [isActive, collapse, scrollY]);
 
   return (
-    <View
+    <KeyboardAvoidingView
+      behavior="padding"
       testID={`segment-panel-${segment}`}
       accessibilityElementsHidden={!isActive}
       importantForAccessibility={isActive ? 'auto' : 'no-hide-descendants'}
@@ -91,14 +93,15 @@ function SegmentScroll({
       >
         {definition.render()}
       </Animated.ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 /**
  * One scroll view per segment. A segment mounts the first time it is opened and
  * then stays mounted (hidden with `display: 'none'`), so each keeps its own
- * scroll position natively and its queries stay warm.
+ * scroll position natively and its queries stay warm. Each panel shrinks above
+ * the keyboard, so the Overview's quick-note field is never covered.
  */
 export function SegmentContainer({ active, segments, ...scrollProps }: SegmentContainerProps) {
   const [mounted, setMounted] = useState<readonly BikeSegment[]>([active]);

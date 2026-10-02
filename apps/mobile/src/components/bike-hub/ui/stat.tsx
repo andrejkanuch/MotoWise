@@ -9,15 +9,24 @@ interface StatProps {
   /** The period and denominator behind the value ("9 months") — keeps money figures honest. */
   basis?: string;
   valueStyle?: TextStyle;
+  /** Drops the cell padding when the parent lays the stats out itself. */
+  compact?: boolean;
 }
 
 /**
  * Eyebrow · mono value · one-line basis. A stat is never pressable on its own —
  * the card that holds it is.
  */
-export function Stat({ eyebrow, value, basis, valueStyle }: StatProps) {
+export function Stat({ eyebrow, value, basis, valueStyle, compact = false }: StatProps) {
   return (
-    <View style={{ flex: 1, gap: 3, paddingVertical: 12, paddingHorizontal: 14 }}>
+    <View
+      style={{
+        flex: 1,
+        gap: compact ? 2 : 3,
+        paddingVertical: compact ? 0 : 12,
+        paddingHorizontal: compact ? 0 : 14,
+      }}
+    >
       <Text
         numberOfLines={1}
         style={{

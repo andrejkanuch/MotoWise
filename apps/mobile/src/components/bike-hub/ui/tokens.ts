@@ -34,6 +34,7 @@ export const hub = {
   low: palette.hubLow,
   ok: palette.hubOk,
   tagCritBg: palette.hubTagCritBg,
+  tagHighBg: palette.hubTagHighBg,
   hairline: palette.whiteAlpha06,
   hairlineStrong: palette.whiteAlpha08,
   dashed: palette.whiteAlpha18,
@@ -74,6 +75,9 @@ export const HUB_RADIUS = {
   tag: 5,
   photoChip: 7,
 } as const;
+
+/** Corner radius of the hub's form sheets. */
+export const HUB_SHEET_RADIUS = 24;
 
 export const HUB_HEIGHT = { primary: 52, secondary: 48, small: 36 } as const;
 

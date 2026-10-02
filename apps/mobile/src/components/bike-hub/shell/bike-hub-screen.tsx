@@ -1,17 +1,16 @@
 import * as Sentry from '@sentry/react-native';
-import { useIsFocused, useRouter } from 'expo-router';
+import { useIsFocused } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Plus } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Keyboard, Pressable, Text, View } from 'react-native';
 import { type SharedValue, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ADD_TASK_MODE, BIKE_SEGMENT, type BikeSegment } from '../../../lib/bike-hub/constants';
+import { BIKE_SEGMENT, type BikeSegment } from '../../../lib/bike-hub/constants';
 import { parseOrigin, resolveInitialSegment } from '../../../lib/bike-hub/segments';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
 import { useEditorialTheme } from '../../../theme/editorial';
-import { showActionSheet } from '../../../utils/action-sheet';
 import { OverviewSegment } from '../overview/overview-segment';
 import { BikeSegment as BikeSegmentPanel } from '../segments/bike-segment';
 import { CostsSegment } from '../segments/costs-segment';
@@ -31,7 +30,8 @@ import {
 import { SegmentContainer, type SegmentDefinition } from './segment-container';
 import { useBikeActions } from './use-bike-actions';
 import { useBikeBack } from './use-bike-back';
-import { type HubBike, useBikeHubData } from './use-bike-hub-data';
+import { type BikeHubData, type HubBike, useBikeHubData } from './use-bike-hub-data';
+import { type BikeHubNavigation, useBikeHubNavigation } from './use-bike-hub-navigation';
 import { useBikePhoto } from './use-bike-photo';
 
 export interface BikeHubScreenProps {
@@ -57,7 +57,7 @@ const PILL: Record<BikeSegment, { labelKey?: HubCopyKey; a11yKey: HubCopyKey }> 
 };
 
 interface Landing {
-  /** Identity of the navigation that produced this landing. */
+  /** Identity of the request that produced this landing (a navigation or an Overview row). */
   key: string;
   highlightTaskId: string | null;
 }
@@ -82,7 +82,6 @@ function CentredState({ children }: { children: React.ReactNode }) {
 export function BikeHubScreen(props: BikeHubScreenProps) {
   const { id, highlightTask, segment: segmentParam, from } = props;
   const { t } = useTranslation();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const { t: legacyTheme } = useEditorialTheme();
@@ -103,15 +102,17 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
   );
 
   const [active, setActive] = useState<BikeSegment>(resolveLanding);
+  const [navKey, setNavKey] = useState(() => landingKey(props));
   const [landing, setLanding] = useState<Landing>(() => ({
-    key: landingKey(props),
+    key: navKey,
     highlightTaskId: highlightTask ?? null,
   }));
 
   // Home re-navigates to this already-mounted screen with a fresh `_ts` (and
   // maybe another task): apply the landing rule again.
   const nextKey = landingKey(props);
-  if (nextKey !== landing.key) {
+  if (nextKey !== navKey) {
+    setNavKey(nextKey);
     setLanding({ key: nextKey, highlightTaskId: highlightTask ?? null });
     setActive(resolveLanding());
   }
@@ -123,6 +124,21 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
     },
     [id, setLastSegment],
   );
+
+  // An Overview row opens a task: show Service with it expanded (a state change).
+  const openTask = useCallback(
+    (taskId: string) => {
+      setLanding({ key: `task|${taskId}|${Date.now()}`, highlightTaskId: taskId });
+      selectSegment(BIKE_SEGMENT.SERVICE);
+    },
+    [selectSegment],
+  );
+
+  // The header's odometer chip lives outside the loaded hub but opens one of its leaves.
+  const navigationRef = useRef<BikeHubNavigation | null>(null);
+  const setNavigation = useCallback((navigation: BikeHubNavigation) => {
+    navigationRef.current = navigation;
+  }, []);
 
   const tabBarClearance = Math.max(insets.bottom, HUB_TAB_BAR_MIN_INSET) + HUB_TAB_BAR_HEIGHT;
 
@@ -143,11 +159,7 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
           unit={data.unit}
           collapse={collapse}
           onBack={goBack}
-          onOdometerPress={() =>
-            // Interim until the Odometer sheet (plan Task 6.2): the odometer is
-            // edited on the Edit bike screen.
-            router.push({ pathname: '/(tabs)/(garage)/edit-bike', params: { id } })
-          }
+          onOdometerPress={() => navigationRef.current?.openOdometerSheet()}
         />
         {data.bike ? (
           <SegmentBar active={active} onChange={selectSegment} serviceBadge={data.serviceBadge} />
@@ -165,6 +177,10 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
           bottomInset={tabBarClearance + HUB_PILL_CLEARANCE}
           pillBottom={tabBarClearance + PILL_GAP}
           onRemoved={goBack}
+          onShowSegment={setActive}
+          onSelectSegment={selectSegment}
+          onOpenTask={openTask}
+          navigationRef={setNavigation}
         />
       ) : data.isLoading ? (
         <CentredState>
@@ -213,7 +229,7 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
 
 interface LoadedHubProps {
   bike: HubBike;
-  data: ReturnType<typeof useBikeHubData>;
+  data: BikeHubData;
   active: BikeSegment;
   landing: Landing;
   collapse: SharedValue<number>;
@@ -221,6 +237,12 @@ interface LoadedHubProps {
   bottomInset: number;
   pillBottom: number;
   onRemoved: () => void;
+  /** Show a segment without remembering it (a leaf is about to open). */
+  onShowSegment: (segment: BikeSegment) => void;
+  /** The rider chose a segment: show it and remember it. */
+  onSelectSegment: (segment: BikeSegment) => void;
+  onOpenTask: (taskId: string) => void;
+  navigationRef: (navigation: BikeHubNavigation) => void;
 }
 
 function LoadedHub({
@@ -233,47 +255,40 @@ function LoadedHub({
   bottomInset,
   pillBottom,
   onRemoved,
+  onShowSegment,
+  onSelectSegment,
+  onOpenTask,
+  navigationRef,
 }: LoadedHubProps) {
   const { t } = useTranslation();
-  const router = useRouter();
   const actions = useBikeActions(bike, onRemoved);
   const photo = useBikePhoto(bike.id);
-  const leafParams = {
-    motorcycleId: bike.id,
-    bikeName: `${bike.year} ${bike.make} ${bike.model}`,
-  };
-
-  const addTask = () =>
-    router.push({ pathname: '/(tabs)/(garage)/add-maintenance-task', params: leafParams });
-  const logPastWork = () =>
-    router.push({
-      pathname: '/(tabs)/(garage)/add-maintenance-task',
-      params: { ...leafParams, mode: ADD_TASK_MODE.LOG },
-    });
-  const addExpense = () =>
-    router.push({ pathname: '/(tabs)/(garage)/add-expense', params: leafParams });
-  const addDocument = () =>
-    router.push({ pathname: '/(tabs)/(garage)/add-document', params: leafParams });
-
-  // Interim chooser until the Log sheet (plan Task 6.1). Same destinations, none gated.
-  const openLogChooser = () =>
-    showActionSheet(t('bikeHub.action.log'), [
-      { label: t('garage.addExpense', { defaultValue: 'Add Expense' }), onPress: addExpense },
-      { label: t('garage.addMaintenanceTask', { defaultValue: 'Add Task' }), onPress: addTask },
-      { label: t('maintenance.modeLog', { defaultValue: 'Log past work' }), onPress: logPastWork },
-      { label: t('documents.addTitle', { defaultValue: 'Add Document' }), onPress: addDocument },
-      { label: t('common.cancel', { defaultValue: 'Cancel' }), onPress: () => {}, style: 'cancel' },
-    ]);
+  const navigation = useBikeHubNavigation(bike, active, onShowSegment);
+  useEffect(() => navigationRef(navigation), [navigationRef, navigation]);
+  const keyboardVisible = useKeyboardVisible();
 
   const pillAction: Record<BikeSegment, () => void> = {
-    [BIKE_SEGMENT.OVERVIEW]: openLogChooser,
-    [BIKE_SEGMENT.SERVICE]: addTask,
-    [BIKE_SEGMENT.COSTS]: addExpense,
-    [BIKE_SEGMENT.BIKE]: addDocument,
+    [BIKE_SEGMENT.OVERVIEW]: navigation.openLogSheet,
+    [BIKE_SEGMENT.SERVICE]: navigation.addTask,
+    [BIKE_SEGMENT.COSTS]: navigation.addExpense,
+    [BIKE_SEGMENT.BIKE]: navigation.addDocument,
   };
 
   const segments: Record<BikeSegment, SegmentDefinition> = {
-    [BIKE_SEGMENT.OVERVIEW]: { render: () => <OverviewSegment /> },
+    [BIKE_SEGMENT.OVERVIEW]: {
+      render: () => (
+        <OverviewSegment
+          bike={bike}
+          unit={data.unit}
+          shell={data}
+          actions={actions}
+          navigation={navigation}
+          photo={photo}
+          onShowSegment={onSelectSegment}
+          onOpenTask={onOpenTask}
+        />
+      ),
+    },
     [BIKE_SEGMENT.SERVICE]: {
       background: legacyBackground,
       render: () => (
@@ -315,15 +330,31 @@ function LoadedHub({
         onRefresh={() => void data.refresh()}
         bottomInset={bottomInset}
       />
-      <View style={{ position: 'absolute', right: 16, bottom: pillBottom }}>
-        <ActionPill
-          testID={`action-pill-${active}`}
-          icon={Plus}
-          label={pill.labelKey ? t(pill.labelKey) : undefined}
-          accessibilityLabel={t(pill.a11yKey)}
-          onPress={pillAction[active]}
-        />
-      </View>
+      {/* Out of the way while typing a quick note. */}
+      {keyboardVisible ? null : (
+        <View style={{ position: 'absolute', right: 16, bottom: pillBottom }}>
+          <ActionPill
+            testID={`action-pill-${active}`}
+            icon={Plus}
+            label={pill.labelKey ? t(pill.labelKey) : undefined}
+            accessibilityLabel={t(pill.a11yKey)}
+            onPress={pillAction[active]}
+          />
+        </View>
+      )}
     </>
   );
+}
+
+function useKeyboardVisible(): boolean {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', () => setVisible(true));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setVisible(false));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+  return visible;
 }

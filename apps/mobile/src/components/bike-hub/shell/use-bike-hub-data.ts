@@ -38,7 +38,7 @@ export interface BikeHubData {
   /** Overdue Critical / High tasks — the Service segment badge. */
   serviceBadge: number;
   isRefreshing: boolean;
-  /** Pull-to-refresh: bike, tasks, expenses, rides and documents. */
+  /** Pull-to-refresh: bike, tasks, expenses, rides, documents, notes and recalls. */
   refresh: () => Promise<void>;
 }
 
@@ -86,6 +86,8 @@ export function useBikeHubData(id: string): BikeHubData {
       queryKeys.expenses.byMotorcycle(id),
       queryKeys.rides.byMotorcycle(id),
       queryKeys.documents.byMotorcycle(id),
+      queryKeys.notes.byMotorcycle(id),
+      queryKeys.motorcycleRecalls.byMotorcycle(id),
     ];
     try {
       await Promise.allSettled(

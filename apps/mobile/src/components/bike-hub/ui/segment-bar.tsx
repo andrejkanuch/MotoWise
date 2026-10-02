@@ -10,7 +10,7 @@ import {
 import { triggerSelection } from '../../../utils/haptics';
 import { HUB_FONT, HUB_HEIGHT, HUB_RADIUS, HUB_TOUCH_TARGET, type HubCopyKey, hub } from './tokens';
 
-const SEGMENT_LABEL_KEY: Record<BikeSegment, HubCopyKey> = {
+export const SEGMENT_LABEL_KEY: Record<BikeSegment, HubCopyKey> = {
   [BIKE_SEGMENT.OVERVIEW]: 'bikeHub.segment.overview',
   [BIKE_SEGMENT.SERVICE]: 'bikeHub.segment.service',
   [BIKE_SEGMENT.COSTS]: 'bikeHub.segment.costs',

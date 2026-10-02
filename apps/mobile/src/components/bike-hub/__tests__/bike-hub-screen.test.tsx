@@ -9,6 +9,9 @@ jest.mock('react-native-safe-area-context', () => ({
 jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
 jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
 jest.mock('expo-status-bar', () => ({ StatusBar: () => null }));
+jest.mock('react-native-keyboard-controller', () =>
+  require('react-native-keyboard-controller/jest'),
+);
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
   notificationAsync: jest.fn(),
@@ -61,6 +64,11 @@ const mockMaintenanceSection = jest.fn((_props: Record<string, unknown>) => null
 jest.mock('../maintenance-section', () => ({
   MaintenanceSection: (props: Record<string, unknown>) => mockMaintenanceSection(props),
 }));
+// The Overview has its own suite; here it is a stand-in that exposes its callbacks.
+const mockOverviewSegment = jest.fn((_props: Record<string, unknown>) => null);
+jest.mock('../overview/overview-segment', () => ({
+  OverviewSegment: (props: Record<string, unknown>) => mockOverviewSegment(props),
+}));
 jest.mock('../expenses-section', () => ({ ExpensesSection: () => null }));
 jest.mock('../documents-section', () => ({ DocumentsSection: () => null }));
 jest.mock('../bike-details-card', () => ({ BikeDetailsCard: () => null }));
@@ -79,7 +87,7 @@ import {
   MyRidesDocument,
 } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import '../../../i18n';
 import { ADD_TASK_MODE, BIKE_ORIGIN, BIKE_SEGMENT } from '../../../lib/bike-hub/constants';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
@@ -233,6 +241,12 @@ describe('BikeHubScreen — segments', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText('Log')).toBeOnTheScreen();
 
+    await fireEvent.press(screen.getByRole('button', { name: 'Log something on this bike' }));
+    expect(mockRouter.push).toHaveBeenLastCalledWith({
+      pathname: '/(tabs)/(garage)/log-entry',
+      params: { motorcycleId: BIKE_ID },
+    });
+
     await fireEvent.press(screen.getByRole('tab', { name: 'Costs' }));
     await fireEvent.press(screen.getByRole('button', { name: 'Add an expense' }));
     expect(mockRouter.push).toHaveBeenCalledWith({
@@ -299,6 +313,47 @@ describe('BikeHubScreen — segments', () => {
     });
     expect(screen.getByTestId('bike-action-photo')).toBeOnTheScreen();
     expect(screen.getByTestId('bike-action-remove')).toBeOnTheScreen();
+  });
+});
+
+describe('BikeHubScreen — header and Overview wiring', () => {
+  it('the odometer chip opens the Odometer sheet for this bike', async () => {
+    await renderHub();
+    await fireEvent.press(
+      await screen.findByRole('button', { name: 'Odometer 38,167 km, tap to update' }),
+    );
+    expect(mockRouter.push).toHaveBeenLastCalledWith({
+      pathname: '/(tabs)/(garage)/odometer',
+      params: { motorcycleId: BIKE_ID },
+    });
+  });
+
+  it('an Overview task row shows Service with that task expanded, and remembers Service', async () => {
+    await renderHub();
+    await screen.findByRole('tab', { name: 'Overview' });
+    const { onOpenTask } = mockOverviewSegment.mock.lastCall?.[0] as {
+      onOpenTask: (taskId: string) => void;
+    };
+    await act(async () => onOpenTask('task-1'));
+    expect(screen.getByRole('tab', { name: /^Service/ })).toBeSelected();
+    expect(mockMaintenanceSection).toHaveBeenLastCalledWith(
+      expect.objectContaining({ initialExpandedId: 'task-1' }),
+    );
+    expect(useBikeHubStore.getState().lastSegmentByBike[BIKE_ID]).toBe(BIKE_SEGMENT.SERVICE);
+  });
+
+  it('opening a document from the Overview shows the Bike segment without remembering it', async () => {
+    await renderHub();
+    await screen.findByRole('tab', { name: 'Overview' });
+    const { navigation } = mockOverviewSegment.mock.lastCall?.[0] as {
+      navigation: { openDocument: (id: string) => void };
+    };
+    await act(async () => navigation.openDocument('doc-1'));
+    expect(mockRouter.push).toHaveBeenLastCalledWith(
+      expect.objectContaining({ pathname: '/(tabs)/(garage)/document/[id]' }),
+    );
+    expect(screen.getByRole('tab', { name: 'Bike' })).toBeSelected();
+    expect(useBikeHubStore.getState().lastSegmentByBike[BIKE_ID]).toBeUndefined();
   });
 });
 
