@@ -81,6 +81,9 @@ export const HUB_SHEET_RADIUS = 24;
 
 export const HUB_HEIGHT = { primary: 52, secondary: 48, small: 36 } as const;
 
+/** A row's sub-line wraps to this many lines (as the design does) before it ellipsizes. */
+export const HUB_ROW_SUB_LINES = 2;
+
 /** Minimum touch target: 44 pt on iOS, 48 dp on Android. */
 export const HUB_TOUCH_TARGET = process.env.EXPO_OS === 'android' ? 48 : 44;
 

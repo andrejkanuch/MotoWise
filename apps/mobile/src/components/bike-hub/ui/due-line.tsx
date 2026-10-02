@@ -11,7 +11,7 @@ import {
 } from '../../../lib/bike-hub/constants';
 import { formatOdometer } from '../../../lib/bike-hub/format';
 import type { DueLimit, TaskDue } from '../../../lib/bike-hub/task-due';
-import { DUE_TONE_COLOR, HUB_FONT, hub } from './tokens';
+import { DUE_TONE_COLOR, HUB_FONT, HUB_ROW_SUB_LINES, hub } from './tokens';
 
 interface CopyContext {
   t: TFunction;
@@ -156,7 +156,7 @@ export function DueLine({ due, unit, scheduleName, style }: DueLineProps) {
   const copy = describeDue(due, { t, unit, language: i18n.language, scheduleName });
   return (
     <Text
-      numberOfLines={1}
+      numberOfLines={HUB_ROW_SUB_LINES}
       style={[{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 16 }, style]}
     >
       <Text style={{ color: DUE_TONE_COLOR[due.tone] }}>{copy.primary}</Text>

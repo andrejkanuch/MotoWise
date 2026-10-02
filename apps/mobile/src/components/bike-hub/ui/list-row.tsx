@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { triggerImpact } from '../../../utils/haptics';
 import { RowChevron } from './row-chevron';
-import { HUB_FONT, HUB_RADIUS, hub } from './tokens';
+import { HUB_FONT, HUB_RADIUS, HUB_ROW_SUB_LINES, hub } from './tokens';
 
 const TILE_SIZE = 36;
 
@@ -61,7 +61,7 @@ export function RowBody({ icon, title, sub, trailing, busy = false }: RowBodyPro
         </Text>
         {typeof sub === 'string' ? (
           <Text
-            numberOfLines={2}
+            numberOfLines={HUB_ROW_SUB_LINES}
             style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 16, color: hub.dim }}
           >
             {sub}

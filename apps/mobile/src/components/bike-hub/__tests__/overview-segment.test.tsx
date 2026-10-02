@@ -61,6 +61,7 @@ import { OverviewSegment } from '../overview/overview-segment';
 import type { BikeActions } from '../shell/use-bike-actions';
 import type { BikeHubData, HubBike, HubTask } from '../shell/use-bike-hub-data';
 import type { BikeHubNavigation } from '../shell/use-bike-hub-navigation';
+import { HUB_ROW_SUB_LINES } from '../ui/tokens';
 
 type Documents = BikeHubData['documents'];
 
@@ -242,6 +243,40 @@ describe('Overview — bike A', () => {
     expect(row.getByText('2 open safety recalls')).toBeOnTheScreen();
     expect(row.getByText('Free dealer fix · ECU · Fuel pump')).toBeOnTheScreen();
     expect(row.queryByText(/FUEL SYSTEM/)).toBeNull();
+  });
+
+  it('two recalls: the row names the components to VoiceOver too, not only "Free dealer fix"', async () => {
+    await renderOverview({
+      recalls: [
+        ECU_RECALL,
+        {
+          ...ECU_RECALL,
+          campaignNumber: '25V-001',
+          component: 'FUEL SYSTEM, GASOLINE:DELIVERY:FUEL PUMP',
+        },
+      ],
+    });
+    expect(await screen.findByTestId('attention-recall')).toHaveProp(
+      'accessibilityLabel',
+      '2 open safety recalls. Free dealer fix. ECU, Fuel pump',
+    );
+  });
+
+  it('attention sub-lines wrap to two lines like the design, so a long one is not cut at one', async () => {
+    await renderOverview();
+    const list = within(await screen.findByTestId('attention-list'));
+    for (const text of [
+      'Free dealer fix',
+      '201 days late · 3,933 km to target',
+      'In 12 days · Mapfre · renew or upload the new policy',
+      'Coolant · Tire pressure · Chain clean & lube',
+    ]) {
+      // The line cap sits on the outer Text; a lone lead part is a nested one.
+      let line = list.getByText(text);
+      while (line.props.numberOfLines === undefined && line.parent) line = line.parent;
+      expect(line.props.numberOfLines).toBe(HUB_ROW_SUB_LINES);
+    }
+    expect(HUB_ROW_SUB_LINES).toBe(2);
   });
 
   it('next up: Air filter, "In 2 days · or in 8,733 km"', async () => {

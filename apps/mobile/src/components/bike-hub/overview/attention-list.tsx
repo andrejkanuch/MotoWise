@@ -26,6 +26,7 @@ import { SectionHeader } from '../ui/section-header';
 import {
   HUB_FONT,
   HUB_RADIUS,
+  HUB_ROW_SUB_LINES,
   HUB_TOUCH_TARGET,
   type HubCopyKey,
   hub,
@@ -58,7 +59,10 @@ function tone(critical: boolean): { fg: string; bg: string } {
 
 function subLine(lead: string, leadColor: string, rest?: string) {
   return (
-    <Text numberOfLines={1} style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 16 }}>
+    <Text
+      numberOfLines={HUB_ROW_SUB_LINES}
+      style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 16 }}
+    >
       <Text style={{ color: leadColor }}>{lead}</Text>
       {rest ? (
         <Text style={{ color: hub.muted }}>
@@ -96,15 +100,17 @@ function RecallRow({ item, context }: { item: RecallAttentionItem; context: RowC
         : t('bikeHub.attention.recallOneNoDetail')
       : t('bikeHub.attention.recallMany', { count: item.count });
   const sub = t('bikeHub.attention.recallSub');
+  // One recall names its component in the title; several list them on the sub-line.
+  const listed = item.count > 1 ? item.components : [];
   const icon: RowIcon = { icon: ShieldAlert, color: colors.fg, background: colors.bg };
   return (
     <AttentionRow
       testID="attention-recall"
       icon={icon}
       title={title}
-      sub={subLine(sub, colors.fg, item.count > 1 ? components : undefined)}
+      sub={subLine(sub, colors.fg, listed.join(SEPARATOR))}
       trailing={<PriorityTag variant={TAG_VARIANT.SAFETY} critical={item.critical} />}
-      accessibilityLabel={`${title}. ${sub}`}
+      accessibilityLabel={[title, sub, listed.join(', ')].filter(Boolean).join('. ')}
       onPress={() => context.onPress(item)}
     />
   );
