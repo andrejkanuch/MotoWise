@@ -27,8 +27,12 @@ export function Stat({ eyebrow, value, basis, valueStyle, compact = false }: Sta
         paddingHorizontal: compact ? 0 : 14,
       }}
     >
+      {/* Never truncated: "Per month · 2026" must keep its year. It shrinks a
+          little first, then wraps to a second line (long locales). */}
       <Text
-        numberOfLines={1}
+        numberOfLines={2}
+        adjustsFontSizeToFit
+        minimumFontScale={0.85}
         style={{
           fontFamily: HUB_FONT.mono,
           fontSize: EYEBROW_SIZE,

@@ -7,7 +7,7 @@ import {
   type OdometerKey,
 } from '../../../lib/bike-hub/constants';
 import { triggerSelection } from '../../../utils/haptics';
-import { HUB_FONT, HUB_RADIUS, hub } from '../ui/tokens';
+import { HUB_CHROME_MAX_FONT_SCALE, HUB_FONT, HUB_RADIUS, hub } from '../ui/tokens';
 
 const KEY_HEIGHT = 56;
 const GAP = 8;
@@ -80,7 +80,10 @@ export function OdometerKeypad({ onKey, dateLabel, onDatePress }: OdometerKeypad
       accessibilityLabel={value}
       onPress={() => onKey(value)}
     >
-      <Text style={{ fontFamily: HUB_FONT.monoMedium, fontSize: 24, color: hub.text }}>
+      <Text
+        maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+        style={{ fontFamily: HUB_FONT.monoMedium, fontSize: 24, color: hub.text }}
+      >
         {value}
       </Text>
     </Key>
@@ -95,6 +98,7 @@ export function OdometerKeypad({ onKey, dateLabel, onDatePress }: OdometerKeypad
       <View style={{ flexDirection: 'row', gap: GAP }}>
         <Key testID="key-date" filled={false} accessibilityLabel={dateLabel} onPress={onDatePress}>
           <Text
+            maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
             numberOfLines={1}
             adjustsFontSizeToFit
             style={{ fontFamily: HUB_FONT.sansMedium, fontSize: 14, color: hub.dim }}

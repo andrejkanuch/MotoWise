@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import { HUB_FONT, HUB_TOUCH_TARGET, hub } from '../ui/tokens';
+import { HUB_CHROME_MAX_FONT_SCALE, HUB_FONT, HUB_TOUCH_TARGET, hub } from '../ui/tokens';
 
 /** Grabber for Android, where the form sheet draws none of its own. */
 export function SheetGrabber() {
@@ -38,6 +38,7 @@ export function SheetHeader({ title, onCancel }: SheetHeaderProps) {
       }}
     >
       <Text
+        maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
         accessibilityRole="header"
         numberOfLines={2}
         style={{
@@ -60,7 +61,10 @@ export function SheetHeader({ title, onCancel }: SheetHeaderProps) {
           opacity: pressed ? 0.6 : 1,
         })}
       >
-        <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.dim }}>
+        <Text
+          maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+          style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.dim }}
+        >
           {t('common.cancel')}
         </Text>
       </Pressable>

@@ -167,6 +167,18 @@ describe('ActionPill', () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
+  it('caps its label at 1.3× and grows in height rather than clipping', async () => {
+    await render(
+      <ActionPill icon={Plus} label="Log" onPress={jest.fn()} accessibilityLabel="Log something" />,
+    );
+    expect(screen.getByText('Log').props.maxFontSizeMultiplier).toBe(1.3);
+    const style = StyleSheet.flatten(
+      screen.getByRole('button', { name: 'Log something' }).props.style,
+    );
+    expect(style.minHeight).toBe(52);
+    expect(style.height).toBeUndefined();
+  });
+
   it('labelled: shows the label', async () => {
     await render(
       <ActionPill icon={Plus} label="Log" onPress={jest.fn()} accessibilityLabel="Log something" />,
@@ -189,6 +201,19 @@ describe('SectionHeader / Stat', () => {
   it('shows a hint when there is no action', async () => {
     await render(<SectionHeader label="Overdue" count={4} hint="priority, then lateness" />);
     expect(screen.getByText('priority, then lateness')).toBeOnTheScreen();
+  });
+
+  it('a stat eyebrow is never truncated: it shrinks a little, then wraps to a second line', async () => {
+    await render(<Stat compact eyebrow="Per month · 2026" value="€218" />);
+    const eyebrow = screen.getByText('Per month · 2026');
+    expect(eyebrow.props.numberOfLines).toBe(2);
+    expect(eyebrow.props.adjustsFontSizeToFit).toBe(true);
+    expect(eyebrow.props.minimumFontScale).toBe(0.85);
+  });
+
+  it('body text is not capped: a section header scales freely', async () => {
+    await render(<SectionHeader label="Needs attention" count={6} />);
+    expect(screen.getByText('Needs attention · 6').props.maxFontSizeMultiplier).toBeUndefined();
   });
 
   it('a stat renders eyebrow, value and basis and is not pressable', async () => {

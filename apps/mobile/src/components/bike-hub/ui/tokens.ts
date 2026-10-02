@@ -91,8 +91,22 @@ export const HUB_TOUCH_TARGET = process.env.EXPO_OS === 'android' ? 48 : 44;
 export const HUB_TAB_BAR_HEIGHT = 76;
 export const HUB_TAB_BAR_MIN_INSET = 12;
 
-/** Clearance the floating action pill needs under a segment's content. */
-export const HUB_PILL_CLEARANCE = 96;
+/**
+ * Bottom padding a segment's content gets on top of the tab bar, so its last
+ * row can always be scrolled clear of the floating action pill: the pill's
+ * offset (16) + its height (52) + room to see the row's right edge (chevrons).
+ */
+export const HUB_PILL_CLEARANCE = 144;
+
+/**
+ * Largest font scale for the hub's chrome — header, odometer chip, segment
+ * labels, action pill, sheet titles and the keypad. These sit in fixed-size
+ * controls that cannot grow without breaking the layout; at the largest
+ * Dynamic Type sizes they stop scaling here (the app's existing cap, see
+ * receipt-scan's review card). Body content — rows, cards, notes — is not
+ * capped and keeps scaling freely.
+ */
+export const HUB_CHROME_MAX_FONT_SCALE = 1.3;
 
 export const HUB_PRESSED_SCALE = 0.98;
 

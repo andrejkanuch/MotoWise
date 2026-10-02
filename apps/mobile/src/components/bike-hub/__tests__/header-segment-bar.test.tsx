@@ -8,6 +8,7 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { makeMutable } from 'react-native-reanimated';
 import '../../../i18n';
 import { BIKE_ORIGIN, BIKE_SEGMENT, HUB_UNIT } from '../../../lib/bike-hub/constants';
@@ -126,5 +127,26 @@ describe('SegmentBar', () => {
     expect(
       screen.getByRole('tab', { name: 'Service, 1 overdue high-priority task' }),
     ).toBeOnTheScreen();
+  });
+});
+
+describe('largest Dynamic Type: the chrome stops growing at 1.3×', () => {
+  it('caps the bike name, the eyebrow and the odometer chip', async () => {
+    await render(header());
+    for (const text of ['Africa Twin', '2022 · Honda', '38,167 km']) {
+      expect(screen.getByText(text).props.maxFontSizeMultiplier).toBe(1.3);
+    }
+  });
+
+  it('caps the segment labels and the badge, and lets a pill grow instead of clipping its label', async () => {
+    await render(
+      <SegmentBar active={BIKE_SEGMENT.OVERVIEW} onChange={jest.fn()} serviceBadge={1} />,
+    );
+    for (const text of ['Overview', 'Service', 'Costs', 'Bike', '1']) {
+      expect(screen.getByText(text).props.maxFontSizeMultiplier).toBe(1.3);
+    }
+    const pill = StyleSheet.flatten(screen.getByTestId('segment-overview').props.style);
+    expect(pill.minHeight).toBe(36);
+    expect(pill.height).toBeUndefined();
   });
 });

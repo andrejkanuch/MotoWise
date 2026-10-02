@@ -8,7 +8,15 @@ import {
   type BikeSegment,
 } from '../../../lib/bike-hub/constants';
 import { triggerSelection } from '../../../utils/haptics';
-import { HUB_FONT, HUB_HEIGHT, HUB_RADIUS, HUB_TOUCH_TARGET, type HubCopyKey, hub } from './tokens';
+import {
+  HUB_CHROME_MAX_FONT_SCALE,
+  HUB_FONT,
+  HUB_HEIGHT,
+  HUB_RADIUS,
+  HUB_TOUCH_TARGET,
+  type HubCopyKey,
+  hub,
+} from './tokens';
 
 export const SEGMENT_LABEL_KEY: Record<BikeSegment, HubCopyKey> = {
   [BIKE_SEGMENT.OVERVIEW]: 'bikeHub.segment.overview',
@@ -21,8 +29,6 @@ const PILL_SLOP = Math.ceil((HUB_TOUCH_TARGET - HUB_HEIGHT.small) / 2);
 const ANDROID_TAB_HEIGHT = 48;
 const INDICATOR_HEIGHT = 2;
 const INDICATOR_MS = 200;
-// Keeps the Material tabs one line at large font scales; the iOS bar scrolls instead.
-const ANDROID_MAX_FONT_SCALE = 1.3;
 
 export interface SegmentBarProps {
   active: BikeSegment;
@@ -44,7 +50,12 @@ function Badge({ count }: { count: number }) {
         justifyContent: 'center',
       }}
     >
-      <Text style={{ fontFamily: HUB_FONT.mono, fontSize: 11, color: hub.late }}>{count}</Text>
+      <Text
+        maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+        style={{ fontFamily: HUB_FONT.mono, fontSize: 11, color: hub.late }}
+      >
+        {count}
+      </Text>
     </View>
   );
 }
@@ -106,7 +117,8 @@ function PillBar({ active, onChange, serviceBadge = 0 }: SegmentBarProps) {
             accessibilityState={{ selected }}
             hitSlop={{ top: PILL_SLOP, bottom: PILL_SLOP }}
             style={{
-              height: HUB_HEIGHT.small,
+              // Grows with the (capped) label instead of clipping it.
+              minHeight: HUB_HEIGHT.small,
               minWidth: 72,
               paddingHorizontal: 14,
               borderRadius: HUB_RADIUS.segment,
@@ -119,6 +131,7 @@ function PillBar({ active, onChange, serviceBadge = 0 }: SegmentBarProps) {
             }}
           >
             <Text
+              maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
               style={{
                 fontFamily: HUB_FONT.sansSemiBold,
                 fontSize: 13,
@@ -183,8 +196,8 @@ function MaterialTabs({ active, onChange, serviceBadge = 0 }: SegmentBarProps) {
             }}
           >
             <Text
+              maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
               numberOfLines={1}
-              maxFontSizeMultiplier={ANDROID_MAX_FONT_SCALE}
               style={{
                 fontFamily: HUB_FONT.sansSemiBold,
                 fontSize: 14,

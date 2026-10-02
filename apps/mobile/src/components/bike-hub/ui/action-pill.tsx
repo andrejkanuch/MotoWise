@@ -1,7 +1,14 @@
 import type { LucideIcon } from 'lucide-react-native';
 import { Pressable, Text } from 'react-native';
 import { triggerImpact } from '../../../utils/haptics';
-import { HUB_FONT, HUB_HEIGHT, HUB_PRESSED_SCALE, HUB_RADIUS, hub } from './tokens';
+import {
+  HUB_CHROME_MAX_FONT_SCALE,
+  HUB_FONT,
+  HUB_HEIGHT,
+  HUB_PRESSED_SCALE,
+  HUB_RADIUS,
+  hub,
+} from './tokens';
 
 interface ActionPillProps {
   /** Shown beside the icon. Without it the pill is a 52 px icon-only circle. */
@@ -37,7 +44,7 @@ export function ActionPill({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       style={({ pressed }) => ({
-        height: HUB_HEIGHT.primary,
+        minHeight: HUB_HEIGHT.primary,
         minWidth: HUB_HEIGHT.primary,
         paddingLeft: labelled ? 16 : 0,
         paddingRight: labelled ? 20 : 0,
@@ -58,7 +65,12 @@ export function ActionPill({
     >
       <Icon size={20} color={hub.ink} strokeWidth={2.5} />
       {labelled ? (
-        <Text style={{ fontFamily: HUB_FONT.sansBold, fontSize: 15, color: hub.ink }}>{label}</Text>
+        <Text
+          maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+          style={{ fontFamily: HUB_FONT.sansBold, fontSize: 15, color: hub.ink }}
+        >
+          {label}
+        </Text>
       ) : null}
     </Pressable>
   );

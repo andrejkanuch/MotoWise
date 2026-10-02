@@ -7,7 +7,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BIKE_ORIGIN, type BikeOrigin, type HubUnit } from '../../../lib/bike-hub/constants';
 import { formatOdometer, hasOdometer } from '../../../lib/bike-hub/format';
 import { triggerImpact } from '../../../utils/haptics';
-import { HUB_FONT, HUB_HEIGHT, HUB_RADIUS, HUB_TOUCH_TARGET, type HubCopyKey, hub } from './tokens';
+import {
+  HUB_CHROME_MAX_FONT_SCALE,
+  HUB_FONT,
+  HUB_HEIGHT,
+  HUB_RADIUS,
+  HUB_TOUCH_TARGET,
+  type HubCopyKey,
+  hub,
+} from './tokens';
 
 type Motorcycle = MyMotorcyclesQuery['myMotorcycles'][number];
 
@@ -110,6 +118,7 @@ export function BikeHeader({
           {bike ? (
             <>
               <Text
+                maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
                 accessibilityRole="header"
                 numberOfLines={1}
                 style={{
@@ -122,6 +131,7 @@ export function BikeHeader({
                 {bike.model}
               </Text>
               <Animated.Text
+                maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
                 numberOfLines={1}
                 style={[
                   {
@@ -166,7 +176,10 @@ export function BikeHeader({
             })}
           >
             <Gauge size={14} color={hub.muted} strokeWidth={2} />
-            <Text style={{ fontFamily: HUB_FONT.monoMedium, fontSize: 13, color: hub.text }}>
+            <Text
+              maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+              style={{ fontFamily: HUB_FONT.monoMedium, fontSize: 13, color: hub.text }}
+            >
               {chipLabel}
             </Text>
           </Pressable>

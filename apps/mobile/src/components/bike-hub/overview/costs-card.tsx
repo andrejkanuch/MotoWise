@@ -11,6 +11,7 @@ import {
 import type { CostsShare, CostsSummary } from '../../../lib/bike-hub/costs-summary';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../../lib/expense-constants';
 import { HubCard } from '../ui/hub-card';
+import { RefreshFailed } from '../ui/refresh-failed';
 import { RowChevron } from '../ui/row-chevron';
 import { SectionHeader } from '../ui/section-header';
 import { Stat } from '../ui/stat';
@@ -47,6 +48,8 @@ interface CostsCardProps {
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
+  /** Figures are from the cache: the latest refetch failed. */
+  refreshFailed?: boolean;
   /** Card and "Full analytics" both open the Costs segment. */
   onPress: () => void;
 }
@@ -63,6 +66,7 @@ export function CostsCard({
   isLoading,
   isError,
   onRetry,
+  refreshFailed = false,
   onPress,
 }: CostsCardProps) {
   const { t } = useTranslation();
@@ -152,6 +156,7 @@ export function CostsCard({
         count={year}
         action={{ label: t('bikeHub.costs.full'), onPress }}
       />
+      {refreshFailed ? <RefreshFailed testID="costs-refresh-failed" onRetry={onRetry} /> : null}
       <HubCard
         onPress={onPress}
         accessibilityLabel={t('bikeHub.costs.cardA11y', { year, total })}
@@ -211,6 +216,8 @@ export function CostsCard({
         <View
           style={{
             flexDirection: 'row',
+            // Values share a baseline even when one eyebrow wraps to two lines.
+            alignItems: 'flex-end',
             gap: 12,
             borderTopWidth: 1,
             borderTopColor: hub.hairline,
