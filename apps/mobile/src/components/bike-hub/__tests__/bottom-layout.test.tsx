@@ -56,6 +56,60 @@ describe('hubBottomLayout', () => {
   });
 });
 
+/**
+ * Where the bottom of a segment's content (its last row) can be brought, as a
+ * distance from the screen's bottom edge, once scrolled as far as it goes. The
+ * scroll view fills the screen down to its bottom edge (the tab bar and the
+ * pill float over it) and pads its content by `contentInset`.
+ */
+function lastRowLowestReach(viewport: number, content: number, contentInset: number): number {
+  const maxOffset = Math.max(0, content + contentInset - viewport);
+  return viewport - (content - maxOffset);
+}
+
+describe('the last row can always be scrolled clear of the pill', () => {
+  // Visual QA round 3: on an uncached Ténéré hub (short content, inline error
+  // blocks) the Costs Retry rested at 717–761 under the Log pill (707–759) on an
+  // 874 pt screen; a small scroll had to bring it clear.
+  const VIEWPORT = 874 - 210; // screen minus the header + segment bar
+  const CONTENT = {
+    short: 300, // nothing to scroll: sits above the inset on its own
+    justOverflowing: 500, // content + inset barely exceed the viewport
+    restsUnderPill: 600, // the round-3 case: last row starts out under the pill
+    long: 2400,
+  } as const;
+  const DEVICES = [
+    { name: 'home indicator, default text', inset: IPHONE_HOME_INDICATOR, tabBar: null },
+    {
+      name: 'home indicator, AX3 tab bar',
+      inset: IPHONE_HOME_INDICATOR,
+      tabBar: AX3_TAB_BAR_HEIGHT,
+    },
+    { name: 'no inset (Android 3-button)', inset: 0, tabBar: 70 },
+  ] as const;
+
+  for (const device of DEVICES) {
+    for (const [label, content] of Object.entries(CONTENT)) {
+      it(`${device.name}, ${label} content: last row ends a full gap above the pill's top`, () => {
+        const layout = hubBottomLayout(device.inset, device.tabBar);
+        const pillTop = layout.pillBottom + HUB_HEIGHT.primary;
+        const reach = lastRowLowestReach(VIEWPORT, content, layout.contentInset);
+        expect(reach).toBeGreaterThanOrEqual(pillTop + HUB_PILL_GAP);
+      });
+    }
+  }
+
+  it('the inset itself is at least the pill top + a gap, at every tab-bar height', () => {
+    for (const tabBar of [null, 49, 65, 70, AX3_TAB_BAR_HEIGHT, 140]) {
+      for (const inset of [0, 20, IPHONE_HOME_INDICATOR]) {
+        const layout = hubBottomLayout(inset, tabBar);
+        const pillTop = layout.pillBottom + HUB_HEIGHT.primary;
+        expect(layout.contentInset - pillTop).toBeGreaterThanOrEqual(HUB_PILL_GAP);
+      }
+    }
+  });
+});
+
 describe('useHubBottomLayout', () => {
   it('follows the height the tab bar reports from onLayout, and ignores a zero layout', async () => {
     const { result } = await renderHook(() => useHubBottomLayout());
