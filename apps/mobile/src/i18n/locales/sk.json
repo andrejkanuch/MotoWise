@@ -1326,7 +1326,12 @@
       "attachPhotoA11y": "Priložiť fotku",
       "photoA11y": "Fotka poznámky"
     },
-    "refreshFailed": "Nepodarilo sa obnoviť"
+    "refreshFailed": "Nepodarilo sa obnoviť",
+    "refreshRetryA11y": {
+      "attention": "Znova načítať Vyžaduje pozornosť",
+      "costs": "Znova načítať náklady",
+      "notes": "Znova načítať poznámky"
+    }
   },
   "maintenance": {
     "healthScore": "Skóre stavu",

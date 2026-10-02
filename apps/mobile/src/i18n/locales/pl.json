@@ -1326,7 +1326,12 @@
       "attachPhotoA11y": "Dołącz zdjęcie",
       "photoA11y": "Zdjęcie notatki"
     },
-    "refreshFailed": "Nie udało się odświeżyć"
+    "refreshFailed": "Nie udało się odświeżyć",
+    "refreshRetryA11y": {
+      "attention": "Ponów: wymaga uwagi",
+      "costs": "Ponów: koszty",
+      "notes": "Ponów: notatki"
+    }
   },
   "maintenance": {
     "healthScore": "Wynik stanu",

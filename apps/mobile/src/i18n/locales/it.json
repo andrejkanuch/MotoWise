@@ -1291,7 +1291,12 @@
       "attachPhotoA11y": "Allega una foto",
       "photoA11y": "Foto della nota"
     },
-    "refreshFailed": "Aggiornamento non riuscito"
+    "refreshFailed": "Aggiornamento non riuscito",
+    "refreshRetryA11y": {
+      "attention": "Riprova richiede attenzione",
+      "costs": "Riprova costi",
+      "notes": "Riprova note"
+    }
   },
   "maintenance": {
     "healthScore": "Punteggio salute",

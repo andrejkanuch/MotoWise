@@ -1291,7 +1291,12 @@
       "attachPhotoA11y": "Anexar uma foto",
       "photoA11y": "Foto da nota"
     },
-    "refreshFailed": "Não foi possível atualizar"
+    "refreshFailed": "Não foi possível atualizar",
+    "refreshRetryA11y": {
+      "attention": "Tentar novamente: precisa de atenção",
+      "costs": "Tentar novamente: custos",
+      "notes": "Tentar novamente: notas"
+    }
   },
   "maintenance": {
     "healthScore": "Pontuação de Saúde",

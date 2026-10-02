@@ -16,7 +16,7 @@ import { formatShortDate } from '../../../lib/bike-hub/format';
 import { DueLine, describeDue } from '../ui/due-line';
 import type { RowIcon } from '../ui/list-row';
 import { PriorityTag } from '../ui/priority-tag';
-import { RefreshFailed } from '../ui/refresh-failed';
+import { REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { SectionHeader } from '../ui/section-header';
 import {
   HUB_FONT,
@@ -276,7 +276,13 @@ export function AttentionList({
           onPress: onPressAll,
         }}
       />
-      {refreshFailed ? <RefreshFailed testID="attention-refresh-failed" onRetry={onRetry} /> : null}
+      {refreshFailed ? (
+        <RefreshFailed
+          block={REFRESH_BLOCK.ATTENTION}
+          testID="attention-refresh-failed"
+          onRetry={onRetry}
+        />
+      ) : null}
       {result.visible.map((item) => {
         const Row = ROW[item.kind] as (props: {
           item: AttentionItem;

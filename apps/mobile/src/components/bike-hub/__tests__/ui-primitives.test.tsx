@@ -6,7 +6,7 @@ import { palette } from '@motovault/design-system';
 import { MaintenancePriority, MaintenanceTaskSource } from '@motovault/graphql';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Plus } from 'lucide-react-native';
-import { StyleSheet } from 'react-native';
+import { AccessibilityInfo, StyleSheet } from 'react-native';
 import '../../../i18n';
 import { HUB_UNIT } from '../../../lib/bike-hub/constants';
 import { getTaskDue } from '../../../lib/bike-hub/task-due';
@@ -14,6 +14,7 @@ import { AIR_FILTER, BRAKE_PADS, KM, TODAY, task } from '../../../test/bike-hub-
 import { ActionPill } from '../ui/action-pill';
 import { DueLine } from '../ui/due-line';
 import { PriorityTag } from '../ui/priority-tag';
+import { REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { SectionHeader } from '../ui/section-header';
 import { Stat } from '../ui/stat';
 import { TAG_VARIANT } from '../ui/tokens';
@@ -228,5 +229,43 @@ describe('SectionHeader / Stat', () => {
     expect(screen.getByText('€218')).toBeOnTheScreen();
     expect(screen.getByText('9 months')).toBeOnTheScreen();
     expect(screen.queryByRole('button')).toBeNull();
+  });
+});
+
+describe('RefreshFailed', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it('gives each block’s Retry its own accessibility label', async () => {
+    const onRetry = jest.fn();
+    await render(
+      <>
+        <RefreshFailed block={REFRESH_BLOCK.ATTENTION} onRetry={onRetry} />
+        <RefreshFailed block={REFRESH_BLOCK.COSTS} onRetry={onRetry} />
+        <RefreshFailed block={REFRESH_BLOCK.NOTES} onRetry={onRetry} />
+      </>,
+    );
+    for (const name of ['Retry needs attention', 'Retry costs', 'Retry notes']) {
+      expect(screen.getByRole('button', { name })).toBeOnTheScreen();
+    }
+    await fireEvent.press(screen.getByRole('button', { name: 'Retry costs' }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('wraps, so Retry moves to the next line instead of off-screen', async () => {
+    await render(<RefreshFailed block={REFRESH_BLOCK.COSTS} onRetry={jest.fn()} testID="line" />);
+    expect(StyleSheet.flatten(screen.getByTestId('line').props.style).flexWrap).toBe('wrap');
+    const label = screen.getByText(/^Couldn't refresh/);
+    expect(StyleSheet.flatten(label.props.style).flexShrink).toBe(1);
+  });
+
+  it('is announced when it appears: explicitly on iOS (the jest-expo default platform), live region for Android', async () => {
+    // `process.env.EXPO_OS` is inlined at build time, so only the preset's iOS
+    // branch can run here; the Android path is the `accessibilityLiveRegion`.
+    const announce = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => {});
+    await render(<RefreshFailed block={REFRESH_BLOCK.NOTES} onRetry={jest.fn()} testID="line" />);
+    expect(announce).toHaveBeenCalledWith("Couldn't refresh");
+    expect(screen.getByTestId('line').props.accessibilityLiveRegion).toBe('polite');
   });
 });

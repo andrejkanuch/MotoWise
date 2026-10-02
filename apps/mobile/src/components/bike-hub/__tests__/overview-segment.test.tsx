@@ -522,7 +522,7 @@ describe('Overview — status variants', () => {
     expect(await screen.findByText('Needs attention · 6')).toBeOnTheScreen();
     const line = within(screen.getByTestId('attention-refresh-failed'));
     expect(line.getByText(/^Couldn't refresh/)).toBeOnTheScreen();
-    await fireEvent.press(line.getByRole('button', { name: 'Retry' }));
+    await fireEvent.press(line.getByRole('button', { name: 'Retry needs attention' }));
     expect(refetchTasks).toHaveBeenCalledTimes(1);
     // The status is still a verdict from the cached data, not an error.
     expect(screen.getByText('Check before riding')).toBeOnTheScreen();
@@ -548,6 +548,9 @@ describe('Overview — status variants', () => {
     expect(screen.getByTestId('costs-refresh-failed')).toBeOnTheScreen();
     expect(screen.getByTestId('notes-refresh-failed')).toBeOnTheScreen();
     expect(screen.queryByText("Couldn't load costs")).toBeNull();
+    // Each block's Retry is told apart by a screen reader.
+    expect(screen.getByRole('button', { name: 'Retry costs' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Retry notes' })).toBeOnTheScreen();
   });
 
   it('no expenses last year: no YoY line', async () => {

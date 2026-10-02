@@ -1290,7 +1290,12 @@
       "attachPhotoA11y": "写真を添付",
       "photoA11y": "メモの写真"
     },
-    "refreshFailed": "更新できませんでした"
+    "refreshFailed": "更新できませんでした",
+    "refreshRetryA11y": {
+      "attention": "要対応を再読み込み",
+      "costs": "費用を再読み込み",
+      "notes": "メモを再読み込み"
+    }
   },
   "maintenance": {
     "headerLabel": "メンテナンス",

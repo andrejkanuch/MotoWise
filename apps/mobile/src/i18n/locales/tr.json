@@ -1290,7 +1290,12 @@
       "attachPhotoA11y": "Fotoğraf ekle",
       "photoA11y": "Not fotoğrafı"
     },
-    "refreshFailed": "Yenilenemedi"
+    "refreshFailed": "Yenilenemedi",
+    "refreshRetryA11y": {
+      "attention": "İlgi bekleyenleri yeniden dene",
+      "costs": "Masrafları yeniden dene",
+      "notes": "Notları yeniden dene"
+    }
   },
   "maintenance": {
     "healthScore": "Saglik Puani",

@@ -1291,7 +1291,12 @@
       "attachPhotoA11y": "Joindre une photo",
       "photoA11y": "Photo de la note"
     },
-    "refreshFailed": "Échec de l'actualisation"
+    "refreshFailed": "Échec de l'actualisation",
+    "refreshRetryA11y": {
+      "attention": "Réessayer À traiter",
+      "costs": "Réessayer les coûts",
+      "notes": "Réessayer les notes"
+    }
   },
   "maintenance": {
     "headerLabel": "ENTRETIEN",

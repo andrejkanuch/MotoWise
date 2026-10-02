@@ -1290,7 +1290,12 @@
       "attachPhotoA11y": "फ़ोटो संलग्न करें",
       "photoA11y": "नोट की फ़ोटो"
     },
-    "refreshFailed": "रीफ़्रेश नहीं हो सका"
+    "refreshFailed": "रीफ़्रेश नहीं हो सका",
+    "refreshRetryA11y": {
+      "attention": "ध्यान दें फिर से लोड करें",
+      "costs": "खर्च फिर से लोड करें",
+      "notes": "नोट्स फिर से लोड करें"
+    }
   },
   "maintenance": {
     "healthScore": "हेल्थ स्कोर",

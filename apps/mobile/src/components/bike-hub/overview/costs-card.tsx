@@ -11,7 +11,7 @@ import {
 import type { CostsShare, CostsSummary } from '../../../lib/bike-hub/costs-summary';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../../lib/expense-constants';
 import { HubCard } from '../ui/hub-card';
-import { RefreshFailed } from '../ui/refresh-failed';
+import { REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { RowChevron } from '../ui/row-chevron';
 import { SectionHeader } from '../ui/section-header';
 import { Stat } from '../ui/stat';
@@ -156,7 +156,13 @@ export function CostsCard({
         count={year}
         action={{ label: t('bikeHub.costs.full'), onPress }}
       />
-      {refreshFailed ? <RefreshFailed testID="costs-refresh-failed" onRetry={onRetry} /> : null}
+      {refreshFailed ? (
+        <RefreshFailed
+          block={REFRESH_BLOCK.COSTS}
+          testID="costs-refresh-failed"
+          onRetry={onRetry}
+        />
+      ) : null}
       <HubCard
         onPress={onPress}
         accessibilityLabel={t('bikeHub.costs.cardA11y', { year, total })}

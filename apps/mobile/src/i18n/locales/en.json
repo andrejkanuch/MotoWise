@@ -1296,7 +1296,12 @@
       "attachPhotoA11y": "Attach a photo",
       "photoA11y": "Note photo"
     },
-    "refreshFailed": "Couldn't refresh"
+    "refreshFailed": "Couldn't refresh",
+    "refreshRetryA11y": {
+      "attention": "Retry needs attention",
+      "costs": "Retry costs",
+      "notes": "Retry notes"
+    }
   },
   "maintenance": {
     "healthScore": "Health Score",

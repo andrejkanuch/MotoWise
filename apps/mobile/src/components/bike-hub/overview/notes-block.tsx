@@ -9,7 +9,7 @@ import { normaliseNoteText } from '../../../lib/bike-hub/notes';
 import { triggerImpact } from '../../../utils/haptics';
 import { type HubNote, useCreateNote } from '../notes/use-notes';
 import { HubCard } from '../ui/hub-card';
-import { RefreshFailed } from '../ui/refresh-failed';
+import { REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { SectionHeader } from '../ui/section-header';
 import { HUB_FONT, HUB_HEIGHT, HUB_RADIUS, HUB_TOUCH_TARGET, hub } from '../ui/tokens';
 
@@ -98,7 +98,13 @@ export function NotesBlock({
           notes.length > 0 ? { label: t('bikeHub.notes.all'), onPress: onOpenNotes } : undefined
         }
       />
-      {refreshFailed ? <RefreshFailed testID="notes-refresh-failed" onRetry={onRetry} /> : null}
+      {refreshFailed ? (
+        <RefreshFailed
+          block={REFRESH_BLOCK.NOTES}
+          testID="notes-refresh-failed"
+          onRetry={onRetry}
+        />
+      ) : null}
       <HubCard style={{ overflow: 'hidden' }}>
         {isLoading ? (
           <View
