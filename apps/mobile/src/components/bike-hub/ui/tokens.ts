@@ -86,18 +86,25 @@ export const HUB_TOUCH_TARGET = process.env.EXPO_OS === 'android' ? 48 : 44;
 
 /**
  * The app's floating tab bar (`app/(tabs)/_layout.tsx`) sits `max(inset, 12)`
- * above the bottom edge and is about this tall. Pushed garage screens keep it.
+ * above the bottom edge. Its real height is measured by its own `onLayout`
+ * (`useTabBarStore`) — it grows with Dynamic Type / font scale. This is only
+ * the fallback until that first layout: the height at the default text size
+ * (measured on device, iOS 26.3). Pushed garage screens keep the bar.
  */
-// Measured on device (iOS 26.3): with 76 the pill sat 27 pt above the bar instead of 16.
 export const HUB_TAB_BAR_HEIGHT = 65;
 export const HUB_TAB_BAR_MIN_INSET = 12;
 
+/** Gap between the top of the tab bar and the floating action pill. */
+export const HUB_PILL_GAP = 16;
+
+/** Room above the pill so a last row's right edge (its chevron) can be seen. */
+export const HUB_LAST_ROW_MARGIN = 76;
+
 /**
  * Bottom padding a segment's content gets on top of the tab bar, so its last
- * row can always be scrolled clear of the floating action pill: the pill's
- * offset (16) + its height (52) + room to see the row's right edge (chevrons).
+ * row can always be scrolled clear of the floating action pill.
  */
-export const HUB_PILL_CLEARANCE = 144;
+export const HUB_PILL_CLEARANCE = HUB_PILL_GAP + HUB_HEIGHT.primary + HUB_LAST_ROW_MARGIN;
 
 /**
  * Largest font scale for the hub's chrome — header, odometer chip, segment

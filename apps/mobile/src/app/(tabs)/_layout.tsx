@@ -23,6 +23,7 @@ import { GlobalCarPlayBanner } from '../../components/carplay/global-carplay-ban
 import { ErrorFallback } from '../../components/error-fallback';
 import { maintenanceBadgeOptions } from '../../lib/query-options';
 import { useRideStore } from '../../stores/ride.store';
+import { useTabBarStore } from '../../stores/tab-bar.store';
 import { useEditorialTheme } from '../../theme/editorial';
 
 const TAB_CONFIG = [
@@ -124,6 +125,10 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { t: theme, isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
+  // Screens that float chrome above the bar (the bike hub's action pill) read
+  // its real height: it grows with the system text size. Measuring only — the
+  // bar's look is unchanged.
+  const setTabBarHeight = useTabBarStore((s) => s.setHeight);
 
   // Badge count for garage tab
   const { data: maintenanceData } = useQuery(maintenanceBadgeOptions());
@@ -152,6 +157,7 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
   return (
     <Animated.View
       entering={FadeIn.duration(400)}
+      onLayout={(event) => setTabBarHeight(event.nativeEvent.layout.height)}
       style={{
         position: 'absolute',
         bottom: Math.max(insets.bottom, 12),

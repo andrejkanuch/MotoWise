@@ -19,14 +19,9 @@ import { filterNotes, getNoteLink } from '../../../lib/bike-hub/notes';
 import { isBikeSegment } from '../../../lib/bike-hub/segments';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
 import type { HubBike } from '../shell/use-bike-hub-data';
+import { useHubBottomLayout } from '../ui/bottom-layout';
 import { SEGMENT_LABEL_KEY } from '../ui/segment-bar';
-import {
-  HUB_FONT,
-  HUB_TAB_BAR_HEIGHT,
-  HUB_TAB_BAR_MIN_INSET,
-  HUB_TOUCH_TARGET,
-  hub,
-} from '../ui/tokens';
+import { HUB_FONT, HUB_TOUCH_TARGET, hub } from '../ui/tokens';
 import { UndoSnackbar } from '../ui/undo-snackbar';
 import { useDeferredDelete } from '../ui/use-deferred-delete';
 import { NoteRow, type NoteRowLink } from './note-row';
@@ -80,7 +75,7 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
   useFocusEffect(useCallback(() => flush, [flush]));
 
   const visible = filterNotes(notes, search);
-  const tabBarClearance = Math.max(insets.bottom, HUB_TAB_BAR_MIN_INSET) + HUB_TAB_BAR_HEIGHT;
+  const { tabBarClearance } = useHubBottomLayout();
 
   const openSheet = (params: { noteId?: string; draft?: string; photo?: boolean }) => {
     const href: Href = {

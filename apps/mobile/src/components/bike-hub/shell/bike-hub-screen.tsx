@@ -6,7 +6,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Keyboard, Pressable, Text, View } from 'react-native';
 import { type SharedValue, useSharedValue } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BIKE_SEGMENT, type BikeSegment } from '../../../lib/bike-hub/constants';
 import { parseOrigin, resolveInitialSegment } from '../../../lib/bike-hub/segments';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
@@ -17,16 +16,9 @@ import { CostsSegment } from '../segments/costs-segment';
 import { ServiceSegment } from '../segments/service-segment';
 import { ActionPill } from '../ui/action-pill';
 import { BikeHeader } from '../ui/bike-header';
+import { useHubBottomLayout } from '../ui/bottom-layout';
 import { SegmentBar } from '../ui/segment-bar';
-import {
-  HUB_FONT,
-  HUB_PILL_CLEARANCE,
-  HUB_TAB_BAR_HEIGHT,
-  HUB_TAB_BAR_MIN_INSET,
-  HUB_TOUCH_TARGET,
-  type HubCopyKey,
-  hub,
-} from '../ui/tokens';
+import { HUB_FONT, HUB_TOUCH_TARGET, type HubCopyKey, hub } from '../ui/tokens';
 import { SegmentContainer, type SegmentDefinition } from './segment-container';
 import { useBikeActions } from './use-bike-actions';
 import { useBikeBack } from './use-bike-back';
@@ -46,8 +38,6 @@ export interface BikeHubScreenProps {
   /** Changes on every re-navigation to an already-mounted screen. */
   ts?: string;
 }
-
-const PILL_GAP = 16;
 
 /** Segment → its one primary action. Labelled on Overview (a chooser), icon-only elsewhere. */
 const PILL: Record<BikeSegment, { labelKey?: HubCopyKey; a11yKey: HubCopyKey }> = {
@@ -83,7 +73,7 @@ function CentredState({ children }: { children: React.ReactNode }) {
 export function BikeHubScreen(props: BikeHubScreenProps) {
   const { id, highlightTask, segment: segmentParam, from } = props;
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
+  const bottomLayout = useHubBottomLayout();
   const isFocused = useIsFocused();
   const { t: legacyTheme } = useEditorialTheme();
   const origin = parseOrigin(from);
@@ -155,8 +145,6 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
     navigationRef.current = navigation;
   }, []);
 
-  const tabBarClearance = Math.max(insets.bottom, HUB_TAB_BAR_MIN_INSET) + HUB_TAB_BAR_HEIGHT;
-
   return (
     <View style={{ flex: 1, backgroundColor: hub.ground }}>
       {isFocused ? <StatusBar style="light" /> : null}
@@ -189,8 +177,8 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
           landing={landing}
           collapse={collapse}
           legacyBackground={legacyTheme.bg}
-          bottomInset={tabBarClearance + HUB_PILL_CLEARANCE}
-          pillBottom={tabBarClearance + PILL_GAP}
+          bottomInset={bottomLayout.contentInset}
+          pillBottom={bottomLayout.pillBottom}
           onRemoved={goBack}
           onShowSegment={setActive}
           onSelectSegment={selectSegment}
