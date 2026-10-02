@@ -32,7 +32,7 @@ import {
 } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
-import '../../../i18n';
+import i18n from '../../../i18n';
 import { BIKE_SEGMENT, HUB_UNIT, NOTE_SOURCE } from '../../../lib/bike-hub/constants';
 import {
   AIR_FILTER,
@@ -421,6 +421,25 @@ describe('Overview — status variants', () => {
     expect(navigation.logPastWork).toHaveBeenCalledTimes(1);
     await fireEvent.press(screen.getByTestId('setup-documents'));
     expect(navigation.addDocument).toHaveBeenCalledTimes(1);
+  });
+
+  it('UNTRACKED sub-line is one translated string, not two sentences joined with a space (ja)', async () => {
+    await act(async () => {
+      await i18n.changeLanguage('ja');
+    });
+    try {
+      await renderOverview({ ...quiet, tasks: [], bike: BIKE_B as unknown as typeof BIKE_A });
+      expect(await screen.findByText(i18n.t('bikeHub.rideStatus.untracked'))).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          '未対応のリコールはありません。タスクか書類を追加すると走行ステータスが表示されます。',
+        ),
+      ).toBeOnTheScreen();
+    } finally {
+      await act(async () => {
+        await i18n.changeLanguage('en');
+      });
+    }
   });
 
   it('recalls unknown (query failed, count 0): no "No open recalls." claim', async () => {

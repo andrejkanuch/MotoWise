@@ -1119,8 +1119,8 @@
         "documentExpiresToday": "{{category}}: vence hoje"
       },
       "untrackedHint": "O status aparece quando houver uma tarefa ou um documento.",
-      "loadError": "Não foi possível carregar o status da moto",
-      "noOpenRecalls": "Nenhum recall aberto."
+      "untrackedHintNoRecalls": "Nenhum recall aberto. O status aparece quando houver uma tarefa ou um documento.",
+      "loadError": "Não foi possível carregar o status da moto"
     },
     "action": {
       "log": "Registrar",

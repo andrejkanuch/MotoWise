@@ -1119,8 +1119,8 @@
         "documentExpiresToday": "{{category}}: scade oggi"
       },
       "untrackedHint": "Lo stato compare quando esiste un’attività o un documento.",
-      "loadError": "Impossibile caricare lo stato della moto",
-      "noOpenRecalls": "Nessun richiamo aperto."
+      "untrackedHintNoRecalls": "Nessun richiamo aperto. Lo stato compare quando esiste un’attività o un documento.",
+      "loadError": "Impossibile caricare lo stato della moto"
     },
     "action": {
       "log": "Registra",

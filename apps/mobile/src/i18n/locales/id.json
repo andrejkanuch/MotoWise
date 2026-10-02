@@ -1118,8 +1118,8 @@
         "documentExpiresToday": "{{category}} kedaluwarsa hari ini"
       },
       "untrackedHint": "Status berkendara muncul setelah ada tugas atau dokumen.",
-      "loadError": "Tidak dapat memuat status berkendara",
-      "noOpenRecalls": "Tidak ada recall terbuka."
+      "untrackedHintNoRecalls": "Tidak ada recall terbuka. Status berkendara muncul setelah ada tugas atau dokumen.",
+      "loadError": "Tidak dapat memuat status berkendara"
     },
     "action": {
       "log": "Catat",

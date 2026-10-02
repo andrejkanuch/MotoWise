@@ -1119,8 +1119,8 @@
         "documentExpiresToday": "{{category}} caduca hoy"
       },
       "untrackedHint": "El estado aparece cuando exista una tarea o un documento.",
-      "loadError": "No se pudo cargar el estado de la moto",
-      "noOpenRecalls": "Sin retiros abiertos."
+      "untrackedHintNoRecalls": "Sin retiros abiertos. El estado aparece cuando exista una tarea o un documento.",
+      "loadError": "No se pudo cargar el estado de la moto"
     },
     "action": {
       "log": "Registrar",

@@ -1138,8 +1138,8 @@
         "documentExpiresToday": "{{category}}: platnosť vyprší dnes"
       },
       "untrackedHint": "Stav sa zobrazí, keď pribudne úloha alebo dokument.",
-      "loadError": "Stav motorky sa nepodarilo načítať",
-      "noOpenRecalls": "Žiadne otvorené stiahnutia."
+      "untrackedHintNoRecalls": "Žiadne otvorené stiahnutia. Stav sa zobrazí, keď pribudne úloha alebo dokument.",
+      "loadError": "Stav motorky sa nepodarilo načítať"
     },
     "action": {
       "log": "Zapísať",

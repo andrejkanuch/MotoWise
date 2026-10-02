@@ -1118,8 +1118,8 @@
         "documentExpiresToday": "{{category}}は今日が期限"
       },
       "untrackedHint": "タスクか書類を追加すると走行ステータスが表示されます。",
-      "loadError": "走行ステータスを読み込めませんでした",
-      "noOpenRecalls": "未対応のリコールはありません。"
+      "untrackedHintNoRecalls": "未対応のリコールはありません。タスクか書類を追加すると走行ステータスが表示されます。",
+      "loadError": "走行ステータスを読み込めませんでした"
     },
     "action": {
       "log": "記録",

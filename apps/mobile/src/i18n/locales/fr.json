@@ -1119,8 +1119,8 @@
         "documentExpiresToday": "{{category}} : expire aujourd'hui"
       },
       "untrackedHint": "L'état apparaît dès qu'une tâche ou un document existe.",
-      "loadError": "Impossible de charger l'état de la moto",
-      "noOpenRecalls": "Aucun rappel ouvert."
+      "untrackedHintNoRecalls": "Aucun rappel ouvert. L'état apparaît dès qu'une tâche ou un document existe.",
+      "loadError": "Impossible de charger l'état de la moto"
     },
     "action": {
       "log": "Consigner",

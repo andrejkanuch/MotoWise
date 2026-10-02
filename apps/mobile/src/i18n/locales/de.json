@@ -1118,8 +1118,8 @@
         "documentExpiresToday": "{{category}} läuft heute ab"
       },
       "untrackedHint": "Der Fahrstatus erscheint, sobald es eine Aufgabe oder ein Dokument gibt.",
-      "loadError": "Der Fahrstatus konnte nicht geladen werden",
-      "noOpenRecalls": "Keine offenen Rückrufe."
+      "untrackedHintNoRecalls": "Keine offenen Rückrufe. Der Fahrstatus erscheint, sobald es eine Aufgabe oder ein Dokument gibt.",
+      "loadError": "Der Fahrstatus konnte nicht geladen werden"
     },
     "action": {
       "log": "Eintragen",

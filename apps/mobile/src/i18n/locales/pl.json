@@ -1138,8 +1138,8 @@
         "documentExpiresToday": "{{category}}: wygasa dzisiaj"
       },
       "untrackedHint": "Status pojawi się, gdy dodasz zadanie lub dokument.",
-      "loadError": "Nie udało się wczytać statusu motocykla",
-      "noOpenRecalls": "Brak otwartych wycofań."
+      "untrackedHintNoRecalls": "Brak otwartych wycofań. Status pojawi się, gdy dodasz zadanie lub dokument.",
+      "loadError": "Nie udało się wczytać statusu motocykla"
     },
     "action": {
       "log": "Dodaj wpis",

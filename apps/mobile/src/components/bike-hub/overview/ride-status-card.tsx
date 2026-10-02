@@ -156,12 +156,12 @@ export function RideStatusCard({
   const title = t(style.titleKey);
   const detail =
     status === RIDE_STATUS.UNTRACKED
-      ? [
-          noOpenRecalls ? t('bikeHub.rideStatus.noOpenRecalls') : null,
-          t('bikeHub.rideStatus.untrackedHint'),
-        ]
-          .filter(Boolean)
-          .join(' ')
+      ? // One sentence pair per locale: joining two keys with ' ' is wrong for ja/th.
+        t(
+          noOpenRecalls
+            ? 'bikeHub.rideStatus.untrackedHintNoRecalls'
+            : 'bikeHub.rideStatus.untrackedHint',
+        )
       : describeRideStatusReasons(reasons, t, i18n.language);
 
   return (

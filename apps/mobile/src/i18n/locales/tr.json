@@ -1118,8 +1118,8 @@
         "documentExpiresToday": "{{category}} süresi bugün doluyor"
       },
       "untrackedHint": "Bir görev veya belge eklendiğinde sürüş durumu görünür.",
-      "loadError": "Sürüş durumu yüklenemedi",
-      "noOpenRecalls": "Açık geri çağırma yok."
+      "untrackedHintNoRecalls": "Açık geri çağırma yok. Bir görev veya belge eklendiğinde sürüş durumu görünür.",
+      "loadError": "Sürüş durumu yüklenemedi"
     },
     "action": {
       "log": "Kayıt ekle",

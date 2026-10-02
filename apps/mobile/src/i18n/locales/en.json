@@ -1124,8 +1124,8 @@
         "documentExpiresToday": "{{category}} expires today"
       },
       "untrackedHint": "Ride status appears once a task or a document exists.",
-      "loadError": "Couldn't load the ride status",
-      "noOpenRecalls": "No open recalls."
+      "untrackedHintNoRecalls": "No open recalls. Ride status appears once a task or a document exists.",
+      "loadError": "Couldn't load the ride status"
     },
     "action": {
       "log": "Log",

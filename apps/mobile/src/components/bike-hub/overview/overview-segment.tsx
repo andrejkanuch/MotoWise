@@ -106,10 +106,9 @@ export function OverviewSegment({
         isLoading={statusLoading}
         isError={statusError}
         onRetry={data.statusSource.refetch}
-        noOpenRecalls={
-          data.recallsKnown &&
-          !data.attention.items.some((item) => item.kind === ATTENTION_KIND.RECALL)
-        }
+        // Read only on UNTRACKED, which already requires zero open recalls
+        // (ride-status.ts) — so a known recall list is all that is left to check.
+        noOpenRecalls={data.recallsKnown}
         onPress={topItem ? () => onPressItem(topItem) : undefined}
       />,
     ],
