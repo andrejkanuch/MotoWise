@@ -133,20 +133,42 @@ CREATE POLICY "Users insert own notes" ON public.notes
     AND public.note_link_is_own(linked_task_id, linked_expense_id)
   );
 
+-- WITH CHECK repeats the INSERT policy's bike clause, so an UPDATE cannot move
+-- a note onto someone else's bike (motorcycle_id is an ordinary column; without
+-- this, only the FK stood in the way). Consequence, accepted: the clause runs
+-- under the motorcycles SELECT policy, so a note whose bike was soft-deleted
+-- can no longer be edited. Such a note is unreachable in the app (the bike is
+-- gone from the garage), it can still be read and soft-deleted, and keeping it
+-- editable would have needed a second SECURITY DEFINER helper for no user-facing
+-- gain.
 CREATE POLICY "Users update own notes" ON public.notes
   FOR UPDATE TO authenticated
   USING ((SELECT auth.uid()) = user_id)
   WITH CHECK (
     (SELECT auth.uid()) = user_id
+    AND EXISTS (
+      SELECT 1 FROM public.motorcycles m
+      WHERE m.id = motorcycle_id
+        AND m.user_id = (SELECT auth.uid())
+        AND m.deleted_at IS NULL
+    )
     AND public.note_link_is_own(linked_task_id, linked_expense_id)
   );
 
 -- No DELETE policy: notes are soft-deleted through soft_delete_note().
 
+-- WITH CHECK also ties the photo to one of the caller's own (live) notes:
+-- user_id alone would let a caller attach a row to any note id they can guess.
 CREATE POLICY "Users own note photos" ON public.note_photos
   FOR ALL TO authenticated
   USING ((SELECT auth.uid()) = user_id)
-  WITH CHECK ((SELECT auth.uid()) = user_id);
+  WITH CHECK (
+    (SELECT auth.uid()) = user_id
+    AND EXISTS (
+      SELECT 1 FROM public.notes n
+      WHERE n.id = note_id AND n.user_id = (SELECT auth.uid())
+    )
+  );
 
 CREATE TRIGGER notes_updated_at
   BEFORE UPDATE ON public.notes

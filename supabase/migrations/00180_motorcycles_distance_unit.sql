@@ -47,8 +47,17 @@
 --     AND grantee = 'authenticated' AND privilege_type = 'SELECT';
 -- If it does not (column-level grants only), add
 --   GRANT SELECT (distance_unit) ON public.motorcycles TO authenticated;
--- or myMotorcycles fails with 42501 for every rider. No UPDATE grant in R1
--- either way: the column is written only by the two triggers below.
+-- or myMotorcycles fails with 42501 for every rider.
+--
+-- WHO CAN WRITE distance_unit
+-- authenticated holds table-level UPDATE on motorcycles, so a rider CAN set the
+-- column on their own bike directly through PostgREST; the UPDATE policy and
+-- the CHECK ('km' | 'mi') are the only limits. Nothing in R1 does: the API never
+-- writes it, and the two triggers below are the only writers in practice. No
+-- column guard is added on purpose — the Edit-bike unit control writes this
+-- column through the user client in R5. Until then a hand-made write is label
+-- only (no stored value changes) and is overwritten by the interim sync trigger
+-- the next time the profile unit changes.
 --
 -- DEPLOY ORDER: apply BEFORE the API that selects distance_unit. Render
 -- auto-deploys apps/api on merge to main; MOTORCYCLE_SELECT is used by
