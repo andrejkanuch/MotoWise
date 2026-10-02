@@ -32,6 +32,8 @@ export * from './validators/maintenance-sourcing';
 export * from './validators/maintenance-task';
 export * from './validators/model-insights';
 export * from './validators/motorcycle';
+export * from './validators/note';
+export * from './validators/odometer';
 export * from './validators/onboarding-input';
 export * from './validators/paywall';
 export * from './validators/place';
