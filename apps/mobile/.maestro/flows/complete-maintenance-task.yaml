@@ -52,13 +52,18 @@ env:
 - tapOn:
     text: ".*Honda.*" # the bike added during onboarding setup
 - extendedWaitUntil:
-    visible: "Add task"
+    visible: "Overview" # the bike hub's first segment — the header and segment bar are up
     timeout: 20000
 
 # 3. Create a non-recurring task with a known title (deterministic precondition).
 #    Verbatim from edit-maintenance-task.yaml — leave the Repeat toggle default
 #    (off) so the completion screen shows no "Schedule next" toggle.
-- tapOn: "Add task"
+# The bike hub opens on Overview. Tasks live on the Service segment, whose action
+# pill (icon-only, a11y label "Add a maintenance task") opens the add-task form.
+- tapOn:
+    id: "segment-service"
+- tapOn:
+    id: "action-pill-service"
 - assertVisible: "Priority" # single-element label confirms the add-task screen
 - inputText: ${TASK_TITLE} # title input is autoFocused on open
 - tapOn: "High" # priority pill

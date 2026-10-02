@@ -20,6 +20,7 @@ import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { useProGate } from '../../../hooks/use-pro-gate';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { QUERY_META } from '../../../lib/query-meta';
 import { presentPaywall } from '../../../lib/subscription';
 import { useEditorialTheme } from '../../../theme/editorial';
 
@@ -41,6 +42,10 @@ export default function GarageScreen() {
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    // Renders its own error state with Retry (below). It stays mounted beneath
+    // the bike hub, which opts out of the same key; the global handler needs
+    // every observer to agree.
+    meta: QUERY_META.OWN_ERROR_UI,
   });
 
   const onRefresh = useCallback(() => {

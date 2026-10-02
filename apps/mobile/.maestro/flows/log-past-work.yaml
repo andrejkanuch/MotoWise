@@ -4,8 +4,9 @@
 #   1. Units unify by the global preference. Set Imperial in Profile, then assert
 #      the maintenance screen's odometer suffix reads "mi" (the exact regression:
 #      it used to hardcode "km" regardless of the user's setting).
-#   2. The "Log past work" entry point in the bike screen's More (⋯) menu, which
-#      deep-links the Add-task modal into log mode (?mode=log).
+#   2. The "Work already done" entry point in the bike hub's Log sheet (Overview
+#      "Log" pill), which deep-links the Add-task modal into log mode (?mode=log).
+#      Until the bike-detail redesign this lived in the More (⋯) menu.
 #   3. Log-done-work mode itself: it relabels the form (Odometer / Date completed
 #      / "Log it"), HIDES the Priority block, and creates the record as a
 #      completed history entry (status=completed) rather than a pending task.
@@ -26,7 +27,7 @@
 # dev-client/Metro builds are unsupported because onboarding.yaml uses clearState).
 #
 # AUTHORED FROM SOURCE 2026-07-16, PENDING ON-DEVICE VALIDATION. Selectors were
-# extracted from the screen code (bike/[id].tsx handleMoreActions,
+# extracted from the screen code (bike hub Log sheet: sheets/log-options.ts,
 # add-maintenance-task.tsx, preferences-section.tsx) and en.json, not yet driven
 # live. Device-specific quirks handled inline (see .maestro/README.md):
 #   - the Garage/Profile tab a11y text carries a badge/label, so match tabs as a
@@ -38,8 +39,8 @@
 #     (a value-moment) — dismiss "Not Now" (optional);
 #   - a logged (completed) record leaves the Active view — on the bike hub it
 #     moves to the "History" tab.
-# TO VERIFY ON DEVICE: the Profile tab label; that the native More action sheet
-# exposes "Log past work" as tappable text; and that the odometer input (no
+# TO VERIFY ON DEVICE: the Profile tab label; that the Log sheet row is tappable
+# by its testID while the form sheet is presented; and that the odometer input (no
 # testID) is reachable by its placeholder "e.g. 15000".
 appId: ${APP_ID}
 env:
@@ -69,14 +70,16 @@ env:
 - tapOn:
     text: ".*Honda.*" # the bike added during onboarding setup
 - extendedWaitUntil:
-    visible: "Add task"
+    visible: "Overview" # the bike hub's first segment — the header and segment bar are up
     timeout: 20000
 
-# 4. Use the NEW entry point: More (⋯) → "Log past work" deep-links into the
-#    Add-task modal already in log mode.
+# 4. Entry point since the bike-detail redesign: the Overview's "Log" pill opens
+#    the Log sheet; "Work already done" dismisses it and deep-links into the
+#    Add-task modal already in log mode (the ⋯ menu is gone).
 - tapOn:
-    text: "More" # accessibilityLabel on the ⋯ quick-action
-- tapOn: "Log past work" # maintenance.modeLog, the featured action-sheet item
+    id: "action-pill-overview"
+- tapOn:
+    id: "log-option-past_work"
 
 # 5. Assert LOG-MODE shape: the save button reads "Log it", the mileage row is
 #    "Odometer", and the Priority block is HIDDEN (it only shows in Plan mode).
@@ -117,6 +120,8 @@ env:
 
 # 9. Success — the record was created as COMPLETED, so it lives under History on
 #    the hub (the Active view hides it), and its card offers no pending "Done".
+- tapOn:
+    id: "segment-service" # the Log sheet leaves the hub on Overview
 - tapOn:
     text: ".*History.*"
     optional: true

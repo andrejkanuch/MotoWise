@@ -1,0 +1,173 @@
+# Bike hub (bike-detail redesign R1) — shell, Overview, sheets and Notes.
+#
+# Walks the new bike screen end to end:
+#   1. the four segments switch and each keeps its own content;
+#   2. Overview "Log" pill → Log sheet → Note → Note sheet → save;
+#   3. the note shows on the Overview and on the Notes screen;
+#   4. deleting it shows the "Note deleted · Undo" snackbar and Undo restores it;
+#   5. the header odometer chip opens the Odometer sheet (own keypad, no system
+#      keyboard) and saving updates the chip.
+#
+# Setup: composes onboarding.yaml (signs in a pre-created user, leaves a Honda in
+# the garage, ends at Home). Needs a STANDALONE/PREVIEW build (clearState) pointed
+# at a backend that has migrations 00180–00182 (the local stack in
+# features/bike-detail-shell-overview/local-stack.md, or production once pushed).
+#
+# AUTHORED FROM SOURCE 2026-10-02, PENDING ON-DEVICE VALIDATION. Selectors are
+# testIDs and en.json strings read from components/bike-hub/** — not yet driven
+# live. Things to verify on a device (see .maestro/README.md "App-specific gotchas"):
+#   - testIDs inside a presented form sheet (log-option-*, key-*, note-*) are
+#     reachable by Maestro on both platforms;
+#   - the Log sheet's dismiss-then-push hand-off to the Note sheet needs no
+#     extra wait beyond extendedWaitUntil;
+#   - the swipe-revealed Delete button (note-delete-<id>) cannot be targeted by a
+#     known id here (the note id is server-generated), so the flow long-presses
+#     the note and uses the menu's "Delete";
+#   - the onboarding bike's odometer is unknown, so the reading typed below
+#     (ODOMETER_READING) is chosen high enough not to trigger the lower-than-last
+#     confirmation; if it does, the optional "Save" tap answers it.
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+  NOTE_TEXT: "E2E hub note marker"
+  ODOMETER_READING: "98765"
+---
+# 1. Setup — reach a signed-in Home with a bike in the garage.
+- runFlow: onboarding.yaml
+
+# 2. Open the bike hub. The Garage tab a11y text carries a badge count.
+- tapOn:
+    text: ".*Garage.*"
+- tapOn:
+    text: ".*Honda.*"
+- extendedWaitUntil:
+    visible: "Overview"
+    timeout: 20000
+- assertVisible:
+    id: "bike-header-odometer"
+- assertVisible:
+    id: "overview-segment"
+- takeScreenshot: bike-hub-overview
+
+# 3. The four segments. Each panel mounts on first visit and stays mounted.
+- tapOn:
+    id: "segment-service"
+- assertVisible:
+    id: "segment-panel-service"
+- assertVisible:
+    id: "action-pill-service"
+- tapOn:
+    id: "segment-costs"
+- assertVisible:
+    id: "segment-panel-costs"
+- tapOn:
+    id: "segment-bike"
+- assertVisible:
+    id: "segment-panel-bike"
+- scrollUntilVisible:
+    element:
+      id: "bike-action-edit" # interim Bike action list (edit, photo, recalls, schedule, report)
+    direction: DOWN
+- tapOn:
+    id: "segment-overview"
+- assertVisible:
+    id: "action-pill-overview"
+
+# 4. Log → Note. The Log sheet lists five options; "Note" dismisses it and opens
+#    the Note sheet.
+- tapOn:
+    id: "action-pill-overview"
+- extendedWaitUntil:
+    visible:
+      id: "log-option-note"
+    timeout: 10000
+- assertVisible:
+    id: "log-option-expense"
+- assertVisible:
+    id: "log-option-task"
+- assertVisible:
+    id: "log-option-past_work"
+- assertVisible:
+    id: "log-option-document"
+- takeScreenshot: bike-hub-log-sheet
+- tapOn:
+    id: "log-option-note"
+- extendedWaitUntil:
+    visible:
+      id: "note-text"
+    timeout: 10000
+- assertVisible: "New note"
+
+# 5. Write and save the note. The text field is autofocused; Save is attached to
+#    the keyboard, so no keyboard dismissal is needed.
+- inputText: ${NOTE_TEXT}
+- takeScreenshot: bike-hub-note-sheet
+- tapOn:
+    id: "note-save"
+- extendedWaitUntil:
+    visible:
+      id: "notes-block"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: ${NOTE_TEXT}
+    direction: DOWN
+- assertVisible: ${NOTE_TEXT}
+
+# 6. Notes screen: the note is listed; delete it through the long-press menu and
+#    take it back with Undo.
+- tapOn: "All notes"
+- extendedWaitUntil:
+    visible:
+      id: "notes-search"
+    timeout: 10000
+- assertVisible: ${NOTE_TEXT}
+- longPressOn: ${NOTE_TEXT}
+- tapOn: "Delete"
+- assertVisible: "Note deleted"
+- assertNotVisible: ${NOTE_TEXT}
+- takeScreenshot: bike-hub-notes-undo
+- tapOn: "Undo"
+- assertVisible: ${NOTE_TEXT}
+- assertNotVisible: "Note deleted"
+
+# 7. Cleanup — delete the note for real: delete, then leave the screen (leaving
+#    closes the undo window and sends the delete).
+- longPressOn: ${NOTE_TEXT}
+- tapOn: "Delete"
+- tapOn:
+    id: "notes-back"
+- extendedWaitUntil:
+    visible:
+      id: "bike-header-odometer"
+    timeout: 10000
+
+# 8. Odometer sheet from the header chip. The app's own keypad — no system keyboard.
+- tapOn:
+    id: "bike-header-odometer"
+- extendedWaitUntil:
+    visible:
+      id: "odometer-save"
+    timeout: 10000
+- assertVisible: "New reading"
+- tapOn:
+    id: "key-9"
+- tapOn:
+    id: "key-8"
+- tapOn:
+    id: "key-7"
+- tapOn:
+    id: "key-6"
+- tapOn:
+    id: "key-5"
+- takeScreenshot: bike-hub-odometer-sheet
+- tapOn:
+    id: "odometer-save"
+# Only if the bike already had a higher reading: confirm the lower-than-last prompt.
+- tapOn:
+    text: "Save"
+    optional: true
+- extendedWaitUntil:
+    visible: "98,765.*" # header chip now shows the new reading with the bike's unit
+    timeout: 10000
+- takeScreenshot: bike-hub-odometer-saved

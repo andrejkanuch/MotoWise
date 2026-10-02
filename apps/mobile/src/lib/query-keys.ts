@@ -55,6 +55,13 @@ export const queryKeys = {
   expensePhotos: {
     byExpense: (expenseId: string) => ['expense-photos', expenseId] as const,
   },
+  odometer: {
+    readings: (motorcycleId: string) => ['odometer', 'readings', motorcycleId] as const,
+    pendingRides: (motorcycleId: string) => ['odometer', 'pendingRides', motorcycleId] as const,
+  },
+  notes: {
+    byMotorcycle: (motorcycleId: string) => ['notes', 'byMotorcycle', motorcycleId] as const,
+  },
   receiptScans: {
     /** Server-authoritative monthly used-count (drives the client paywall gate). */
     quota: ['receipt-scans', 'quota'] as const,

@@ -18,10 +18,15 @@ import { documentExpiryStatus } from '../../lib/document-expiry';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { cancelDocumentNotifications } from '../../lib/notifications';
 import { queryKeys } from '../../lib/query-keys';
+import { QUERY_META } from '../../lib/query-meta';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
+import { LoadError } from './load-error';
 
 type DocumentItem = DocumentsByMotorcycleQuery['documents'][number];
+
+/** Group key of the one list shown when the categories failed to load. */
+const UNGROUPED = 'ungrouped';
 
 interface DocumentsSectionProps {
   motorcycleId: string;
@@ -36,12 +41,32 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
   const queryClient = useQueryClient();
   const [showHidden, setShowHidden] = useState(false);
 
-  const { documents, isLoading } = useMotorcycleDocuments(motorcycleId);
+  // Both keys are shared with the Overview, which opts out of the global alert;
+  // this section opts out too and shows its own error with Retry (below), so a
+  // cold open on this segment with the API down raises no system alert and never
+  // reads a failed load as "No documents yet".
+  const {
+    documents,
+    isLoading,
+    isError: documentsError,
+    refetch: refetchDocuments,
+  } = useMotorcycleDocuments(motorcycleId, { meta: QUERY_META.OWN_ERROR_UI });
 
-  const { data: categoryData } = useQuery({
+  const categoriesQuery = useQuery({
     queryKey: queryKeys.documents.categories(true),
     queryFn: () => gqlFetcher(DocumentCategoriesDocument, { includeHidden: true }),
+    meta: QUERY_META.OWN_ERROR_UI,
   });
+  const categoryData = categoriesQuery.data;
+  const categoriesError = categoriesQuery.isError && !categoryData;
+  // Only the documents failing hides the list. Without categories the rows still
+  // show, ungrouped — a pinned insurance card must be reachable at the roadside
+  // even when the category list is down.
+  const loadFailed = documentsError;
+  const retryLoad = () => {
+    refetchDocuments();
+    if (categoriesError) void categoriesQuery.refetch();
+  };
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => gqlFetcher(DeleteDocumentDocument, { id }),
@@ -83,7 +108,13 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
   }, [isLoading, documents.length, pinned.length]);
 
   // Group documents by category; hidden-category groups appear only when toggled (R7).
+  // Without categories, one ungrouped list (nothing is known to be hidden).
   const groups = useMemo(() => {
+    if (categoriesError) {
+      return documents.length > 0
+        ? [{ categoryId: UNGROUPED, category: undefined, docs: documents }]
+        : [];
+    }
     const byCat = new Map<string, DocumentItem[]>();
     for (const doc of documents) {
       const list = byCat.get(doc.categoryId) ?? [];
@@ -98,7 +129,7 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
       }))
       .filter((g) => showHidden || !g.category?.isHidden)
       .sort((a, b) => (a.category?.name ?? '').localeCompare(b.category?.name ?? ''));
-  }, [documents, categoryById, showHidden]);
+  }, [documents, categoryById, showHidden, categoriesError]);
 
   const hasHiddenWithDocs = useMemo(
     () => documents.some((d) => categoryById.get(d.categoryId)?.isHidden),
@@ -200,7 +231,15 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
         </View>
       </View>
 
-      {isLoading && (
+      {loadFailed && (
+        <LoadError
+          testID="documents-load-error"
+          message={t('bikeHub.papers.loadError')}
+          onRetry={retryLoad}
+        />
+      )}
+
+      {!loadFailed && isLoading && (
         <View
           style={{
             backgroundColor: theme.surface,
@@ -216,7 +255,7 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
         </View>
       )}
 
-      {!isLoading && documents.length === 0 && (
+      {!loadFailed && !isLoading && documents.length === 0 && (
         <Animated.View entering={FadeInUp.duration(300)}>
           <Pressable
             onPress={() =>
@@ -268,8 +307,17 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
         </Animated.View>
       )}
 
-      {!isLoading && documents.length > 0 && (
+      {!loadFailed && !isLoading && documents.length > 0 && (
         <View style={{ gap: 16 }}>
+          {categoriesError && (
+            <LoadError
+              testID="documents-categories-error"
+              message={t('documents.categoriesLoadError')}
+              onRetry={() => void categoriesQuery.refetch()}
+              retryAccessibilityLabel={t('documents.categoriesRetryA11y')}
+            />
+          )}
+
           {/* Pinned subsection — roadside fast-retrieval surface (R14) */}
           {pinned.length > 0 && (
             <DocumentGroup
@@ -285,7 +333,11 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
           {groups.map((g) => (
             <DocumentGroup
               key={g.categoryId}
-              label={g.category?.name ?? t('documents.uncategorized', { defaultValue: 'Other' })}
+              label={
+                g.categoryId === UNGROUPED
+                  ? t('documents.allDocuments')
+                  : (g.category?.name ?? t('documents.uncategorized', { defaultValue: 'Other' }))
+              }
               docs={g.docs}
               category={g.category}
               categoryById={categoryById}

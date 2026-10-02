@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Edit bike</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#141210;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#F3EEE6}
+a{color:#F3EEE6;text-decoration:none}a:hover{color:#FFFFFF}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
+input{font-family:inherit;color:#F3EEE6;background:#141210;border:1px solid rgba(255,255,255,0.1);border-radius:12px;font-size:15px;padding:0 14px;box-sizing:border-box;width:100%;height:48px}
+.mono{font-family:'Geist Mono',ui-monospace,monospace}
+.serif{font-family:'Instrument Serif',Georgia,serif}
+.eyebrow{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#9C958A}
+.muted{color:#9C958A}.dim{color:#B5ADA2}
+.lbl{font-size:13px;font-weight:600;color:#B5ADA2}
+.field{display:flex;flex-direction:column;gap:6px}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;background:#141210">
+<div style="position:absolute;inset:0;background:rgba(10,9,8,0.5)"></div>
+
+<div style="position:absolute;left:0;right:0;top:64px;bottom:0;background:#1E1C19;border-radius:24px 24px 0 0;display:flex;flex-direction:column;border-top:1px solid rgba(255,255,255,0.08)">
+<div style="display:flex;align-items:center;padding:14px 8px 6px 8px">
+<a href="BikeDetails.dc.html" style="height:44px;padding:0 10px;display:flex;align-items:center;font-size:15px;font-weight:600;color:#B5ADA2">Cancel</a>
+<div class="serif" style="flex:1;text-align:center;font-size:24px">Edit bike</div>
+<div style="width:72px"></div>
+</div>
+
+<div style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:14px;padding:6px 16px 0 16px">
+
+<div style="display:flex;align-items:center;gap:12px">
+<div style="width:72px;height:72px;border-radius:14px;overflow:hidden;flex:none"><img src="./hero.jpg" alt="Current bike photo" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+<button style="height:40px;padding:0 14px;border-radius:11px;background:#2A2724;font-size:14px;font-weight:600">Change photo</button>
+</div>
+
+<div style="display:flex;gap:8px">
+<div class="field" style="flex:1"><label class="lbl" for="b-make">Make</label><input id="b-make" type="text" value="Honda"></div>
+<div class="field" style="width:96px"><label class="lbl" for="b-year">Year</label><input id="b-year" type="text" class="mono" value="2022"></div>
+</div>
+<div class="field"><label class="lbl" for="b-model">Model</label><input id="b-model" type="text" value="Africa Twin CRF1100L"></div>
+<div class="field"><label class="lbl" for="b-nick">Nickname <span class="muted" style="font-weight:500">· optional, shown instead of the model</span></label><input id="b-nick" type="text" placeholder="e.g. The Twin"></div>
+<div class="field"><label class="lbl" for="b-vin">VIN <span class="muted" style="font-weight:500">· used for recall checks</span></label><input id="b-vin" type="text" class="mono" value="JH2SD08A6NK204471"></div>
+
+<div style="display:flex;gap:8px">
+<div class="field" style="flex:1"><label class="lbl" for="b-price">Purchase price</label><div style="position:relative"><span class="mono muted" style="position:absolute;left:14px;top:14px;font-size:15px">€</span><input id="b-price" type="text" class="mono" value="11,800.00" style="padding-left:32px"></div></div>
+<div class="field" style="flex:1"><label class="lbl" for="b-date">Purchase date</label><input id="b-date" type="text" value="Jun 18, 2022"></div>
+</div>
+
+
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:12px;background:#141210;border:1px solid rgba(255,255,255,0.06)">
+<div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:15px;font-weight:600">Primary bike</div><div class="muted" style="font-size:12px">Shown first in the Garage and on Home</div></div>
+<button role="switch" aria-checked="true" aria-label="Primary bike" style="width:50px;height:30px;border-radius:15px;background:#D4622E;position:relative;flex:none"><span style="position:absolute;right:3px;top:3px;width:24px;height:24px;border-radius:12px;background:#FFFFFF"></span></button>
+</div>
+
+<div class="field"><div class="lbl">Distance unit <span class="muted" style="font-weight:500">· per bike, matches its speedo</span></div>
+<div style="display:flex;gap:6px">
+<button style="flex:1;height:44px;border-radius:12px;border:1px solid rgba(224,122,72,0.5);background:#2A2017;font-size:14px;font-weight:600">Kilometres</button>
+<button style="flex:1;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,0.08);background:#141210;font-size:14px;font-weight:600;color:#B5ADA2">Miles</button>
+</div>
+<div class="muted" style="font-size:12px;line-height:16px">Every reading on this bike is stored and shown in this unit. Home totals across bikes convert to your profile unit.</div>
+</div>
+<div class="muted" style="font-size:12px;line-height:16px">Odometer is edited from the chip in the bike header, so it stays one number with one history.</div>
+
+</div>
+
+<div style="padding:12px 16px 34px 16px;border-top:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;gap:8px">
+<button style="width:100%;height:52px;border-radius:14px;background:#D4622E;color:#1A1410;font-size:16px;font-weight:700">Save changes</button>
+<a href="DeleteBike.dc.html" style="height:44px;font-size:14px;font-weight:600;color:#FF7A6B;display:flex;align-items:center;justify-content:center">Delete bike and everything logged on it…</a>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

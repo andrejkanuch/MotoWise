@@ -52,13 +52,17 @@ env:
     text: ".*Garage.*"
 - tapOn:
     text: ".*Honda.*" # the bike added during onboarding setup
-# The quick-actions grid (Add task / Add Expense) sits just below the hero.
+# The bike hub opens on Overview (header + segment bar).
 - extendedWaitUntil:
-    visible: "Add Expense"
+    visible: "Overview"
     timeout: 20000
 
-# 3. Open the Add Expense screen (garage.addExpense → "Add Expense").
-- tapOn: "Add Expense"
+# 3. Open the Add Expense screen from the Costs segment: its action pill is
+#    icon-only (a11y label "Add an expense"), so target it by testID.
+- tapOn:
+    id: "segment-costs"
+- tapOn:
+    id: "action-pill-costs"
 - assertVisible: "AMOUNT" # single-element section label confirms the add-expense screen
 
 # 4. Enter a distinctive amount. The amount TextInput is autoFocused on open, so

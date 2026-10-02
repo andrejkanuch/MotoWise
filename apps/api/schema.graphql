@@ -13,6 +13,12 @@ input AddExpensePhotoInput {
   storagePath: String!
 }
 
+input AddNotePhotoInput {
+  fileSizeBytes: Int
+  noteId: String!
+  storagePath: String!
+}
+
 input AddTaskPhotoInput {
   bucket: String
   fileSizeBytes: Int
@@ -425,6 +431,13 @@ input CreateMotorcycleInput {
   nickname: String
   variant: String
   year: Int!
+}
+
+input CreateNoteInput {
+  alsoCreateTask: Boolean
+  motorcycleId: String!
+  odometer: Int
+  text: String!
 }
 
 input CreateServiceReminderInput {
@@ -913,6 +926,12 @@ input LogExpenseInput {
   motorcycleId: String!
 }
 
+input LogOdometerReadingInput {
+  motorcycleId: String!
+  recordedAt: String
+  value: Int!
+}
+
 type MaintenanceDraftReview {
   schedules: [AdminOemScheduleDraft!]!
   specs: [AdminMotorcycleSpecDraft!]!
@@ -1041,12 +1060,13 @@ type MonthlyBucket {
 type Motorcycle {
   createdAt: String!
   currentMileage: Int
+  distanceUnit: String!
   documents: [Document!]!
   engineCc: Int
   id: ID!
   isPrimary: Boolean!
   make: String!
-  mileageUnit: String
+  mileageUnit: String @deprecated(reason: "Unreliable legacy column (defaults to mi). Use distanceUnit. Dropped in the R6 cleanup.")
   mileageUpdatedAt: String
   model: String!
   nickname: String
@@ -1090,6 +1110,7 @@ enum MotorcycleType {
 type Mutation {
   addDocumentCategory(input: AddDocumentCategoryInput!): DocumentCategory!
   addExpensePhoto(input: AddExpensePhotoInput!): ExpensePhoto!
+  addNotePhoto(input: AddNotePhotoInput!): NotePhoto!
   addTaskPhoto(input: AddTaskPhotoInput!): TaskPhoto!
   addWaypoint(input: CreateWaypointInput!): TripWaypoint!
   approveMaintenanceDraft(input: ApproveMaintenanceDraftInput!): Boolean!
@@ -1111,8 +1132,10 @@ type Mutation {
   createGroupRide(input: CreateGroupRideInput!): GroupRide!
   createMaintenanceTask(input: CreateMaintenanceTaskInput!): MaintenanceTask!
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
+  createNote(input: CreateNoteInput!): Note!
   createServiceReminder(input: CreateServiceReminderInput!): MaintenanceTask!
   createShareLink(input: CreateShareLinkInput!): ShareLink!
+  createTaskFromNote(noteId: String!): Note!
   createTrip(input: CreateTripInput!): Trip!
   createTripReview(input: CreateTripReviewInput!): TripReview!
   createTripSuggestion(input: CreateTripSuggestionInput!): TripSuggestion!
@@ -1126,6 +1149,8 @@ type Mutation {
   deleteExpensePhoto(photoId: String!): Boolean!
   deleteMaintenanceTask(id: String!): Boolean!
   deleteMotorcycle(id: String!): Boolean!
+  deleteNote(id: String!): Boolean!
+  deleteNotePhoto(photoId: String!): Boolean!
   deleteRide(id: String!): Boolean!
   deleteTaskPhoto(photoId: ID!): Boolean!
   deleteTrip(tripId: ID!): Boolean!
@@ -1152,6 +1177,7 @@ type Mutation {
   leaveGroupRide(groupRideId: ID!): Boolean!
   leaveTrip(tripId: ID!): Boolean!
   logExpense(input: LogExpenseInput!): Expense!
+  logOdometerReading(input: LogOdometerReadingInput!): Motorcycle!
   markArticleRead(articleId: String!): LearningProgress!
   publishAsTemplate(tripId: ID!): Trip!
   publishBlogPost(id: String!): BlogPost!
@@ -1200,6 +1226,7 @@ type Mutation {
   updateMaintenanceTask(id: String!, input: UpdateMaintenanceTaskInput!): MaintenanceTask!
   updateMotorcycle(id: String!, input: UpdateMotorcycleInput!): Motorcycle!
   updateMyProfile(input: UpdateProfileInput!): User!
+  updateNote(id: String!, input: UpdateNoteInput!): Note!
   updateParticipantStatus(input: UpdateParticipantStatusInput!): Boolean!
   updateRide(input: UpdateRideInput!): Ride!
   updateRideVisibility(rideId: String!, visibility: String!): Ride!
@@ -1207,6 +1234,39 @@ type Mutation {
   updateUser(input: UpdateUserInput!): User!
   updateWaypoint(input: UpdateWaypointInput!): TripWaypoint!
   uploadWaypoints(input: UploadWaypointsInput!): Int!
+}
+
+type Note {
+  createdAt: String!
+  id: ID!
+  linkedExpenseAmount: Float
+  linkedExpenseCurrency: String
+  linkedExpenseId: String
+  linkedTaskId: String
+  linkedTaskTitle: String
+  motorcycleId: String!
+  odometer: Int
+  photos: [NotePhoto!]!
+  text: String!
+  updatedAt: String!
+}
+
+type NotePhoto {
+  createdAt: String!
+  fileSizeBytes: Int
+  id: ID!
+  mimeType: String!
+  noteId: String!
+  publicUrl: String!
+  storagePath: String!
+}
+
+type OdometerReading {
+  id: ID!
+  recordedAt: String!
+  rideId: String
+  source: String!
+  value: Int!
 }
 
 type OemSchedule {
@@ -1278,6 +1338,11 @@ enum ParticipantRole {
   co_planner
   organizer
   rider
+}
+
+type PendingRideDistance {
+  distance: Int!
+  rideCount: Int!
 }
 
 """Period of the day assigned to a waypoint or ride segment."""
@@ -1390,6 +1455,8 @@ type Query {
   myRides(after: String, first: Int = 20, motorcycleId: String): RideConnection!
   myShareLinks(motorcycleId: ID!): [ShareLink!]!
   myTrips(after: String, first: Int = 20): TripConnection!
+  notes(motorcycleId: String!): [Note!]!
+  odometerReadings(limit: Int! = 20, motorcycleId: String!): [OdometerReading!]!
   oemSchedulesForBike(motorcycleId: String!): [OemSchedule!]!
   oemSchedulesPreview(make: String!, model: String, variant: String, year: Int): [OemSchedule!]!
 
@@ -1397,6 +1464,7 @@ type Query {
   Composed Bike Dossier for the onboarding Reveal (recalls, plan, cost, AI flavor).
   """
   onboardingReveal(make: String!, model: String, year: Int!): OnboardingReveal!
+  pendingRideDistance(motorcycleId: String!): PendingRideDistance!
   popularArticles(first: Int! = 10): [Article!]!
 
   """Public saved trips for a user by handle (public_username)"""
@@ -2232,6 +2300,11 @@ input UpdateMotorcycleInput {
   variant: String
   vin: String
   year: Int
+}
+
+input UpdateNoteInput {
+  odometer: Int
+  text: String
 }
 
 input UpdateParticipantStatusInput {

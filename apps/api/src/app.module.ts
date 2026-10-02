@@ -41,6 +41,8 @@ import { MaintenanceTasksModule } from './modules/maintenance-tasks/maintenance-
 import { MetaModule } from './modules/meta/meta.module';
 import { ModelInsightsModule } from './modules/model-insights/model-insights.module';
 import { MotorcyclesModule } from './modules/motorcycles/motorcycles.module';
+import { NotesModule } from './modules/notes/notes.module';
+import { OdometerModule } from './modules/odometer/odometer.module';
 import { OemSchedulesModule } from './modules/oem-schedules/oem-schedules.module';
 import { PlacesModule } from './modules/places/places.module';
 import { PushTokensModule } from './modules/push-tokens/push-tokens.module';
@@ -123,6 +125,8 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     MaintenanceTasksModule,
     MetaModule,
     ModelInsightsModule,
+    NotesModule,
+    OdometerModule,
     OemSchedulesModule,
     RideAnalyticsModule,
     RideSummariesModule,

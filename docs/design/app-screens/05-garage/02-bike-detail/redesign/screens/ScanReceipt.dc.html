@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scan a receipt — camera</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#141210;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#F3EEE6}
+a{color:#F3EEE6;text-decoration:none}a:hover{color:#FFFFFF}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
+.mono{font-family:'Geist Mono',ui-monospace,monospace}
+.muted{color:#9C958A}.dim{color:#B5ADA2}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;background:#0C0B0A;display:flex;flex-direction:column">
+
+<div style="position:absolute;inset:0;background:#1A1816" aria-label="Camera viewfinder"></div>
+<div style="position:absolute;left:40px;right:40px;top:170px;bottom:260px;border:2px solid rgba(243,238,230,0.9);border-radius:12px"></div>
+<div style="position:absolute;left:60px;right:60px;top:190px;bottom:280px;background:#EDE8DF;border-radius:4px;opacity:0.85;display:flex;flex-direction:column;gap:6px;padding:16px;box-sizing:border-box;color:#2A2622;font-family:'Geist Mono',ui-monospace,monospace;font-size:10px" aria-hidden="true">
+<div style="font-size:12px;font-weight:600;text-align:center">REPSOL · E.S. ZARAGOZA</div><div style="text-align:center">06/09/2026 18:42</div><div style="height:1px;background:#C9C2B6;margin:4px 0"></div><div style="display:flex;justify-content:space-between"><span>SIN PLOMO 98</span><span>18.21 L</span></div><div style="display:flex;justify-content:space-between"><span>1.633 €/L</span><span>29.74 €</span></div><div style="height:1px;background:#C9C2B6;margin:4px 0"></div><div style="display:flex;justify-content:space-between;font-weight:600"><span>TOTAL</span><span>29.74 €</span></div>
+</div>
+
+<div style="position:absolute;left:0;right:0;top:54px;display:flex;align-items:center;justify-content:space-between;padding:0 12px">
+<a href="AddExpense.dc.html" aria-label="Close" style="width:44px;height:44px;border-radius:22px;background:rgba(20,18,16,0.7);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></a>
+<div class="mono" style="font-size:12px;padding:6px 10px;border-radius:8px;background:rgba(20,18,16,0.7)">3 free scans left</div>
+<button aria-label="Flash" style="width:44px;height:44px;border-radius:22px;background:rgba(20,18,16,0.7);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg></button>
+</div>
+
+<div style="position:absolute;left:0;right:0;top:118px;text-align:center;font-size:14px;font-weight:600;color:#F3EEE6">Fit the receipt in the frame</div>
+<div style="position:absolute;left:0;right:0;top:140px;text-align:center;font-size:12px" class="dim">Reads the total, date, shop and litres · you check before saving</div>
+
+<div style="position:absolute;left:0;right:0;bottom:0;padding:16px 24px 40px 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(12,11,10,0.85)">
+<button aria-label="Choose from photos" style="width:48px;height:48px;border-radius:12px;background:#2A2724;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></button>
+<a href="ScanReview.dc.html" aria-label="Take photo" style="width:76px;height:76px;border-radius:38px;border:4px solid #F3EEE6;display:flex;align-items:center;justify-content:center"><span style="width:60px;height:60px;border-radius:30px;background:#F3EEE6;display:block"></span></a>
+<a href="AddExpense.dc.html" style="width:48px;height:48px;border-radius:12px;background:#2A2724;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;text-align:center;line-height:12px">Type<br>instead</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

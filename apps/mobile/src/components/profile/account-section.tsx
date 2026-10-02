@@ -21,6 +21,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { BIKE_ORIGIN } from '../../lib/bike-hub/constants';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
 import { ProBadge } from '../pro-badge';
@@ -401,7 +402,10 @@ export function AccountSection({
                   key={bike.id}
                   onPress={() => {
                     triggerImpact();
-                    router.push(`/(garage)/bike/${bike.id}`);
+                    router.push({
+                      pathname: '/(tabs)/(garage)/bike/[id]',
+                      params: { id: bike.id, from: BIKE_ORIGIN.PROFILE },
+                    });
                   }}
                   style={({ pressed }) => ({
                     flexDirection: 'row',

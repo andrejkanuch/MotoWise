@@ -1,0 +1,20 @@
+mutation CreateTaskFromNote($noteId: String!) {
+  createTaskFromNote(noteId: $noteId) {
+    id
+    motorcycleId
+    text
+    odometer
+    createdAt
+    updatedAt
+    linkedTaskId
+    linkedTaskTitle
+    linkedExpenseId
+    linkedExpenseAmount
+    linkedExpenseCurrency
+    photos {
+      id
+      storagePath
+      publicUrl
+    }
+  }
+}

@@ -1,0 +1,6 @@
+query PendingRideDistance($motorcycleId: String!) {
+  pendingRideDistance(motorcycleId: $motorcycleId) {
+    rideCount
+    distance
+  }
+}

@@ -20,6 +20,13 @@ export const PG_ERROR = {
   /** Postgres foreign-key violation (e.g. ON DELETE RESTRICT blocks a delete). */
   FOREIGN_KEY_VIOLATION: '23503',
   /**
+   * Postgres insufficient_privilege. In practice: a row-level security policy
+   * rejected the write ("new row violates row-level security policy").
+   */
+  INSUFFICIENT_PRIVILEGE: '42501',
+  /** PL/pgSQL no_data_found — raised by RPCs for "no such row for this caller". */
+  NO_DATA_FOUND: 'P0002',
+  /**
    * PostgREST: the JWT could not be decoded or is invalid. PostgREST's own
    * tutorial shows an expired token surfacing here as `"JWT expired"`.
    */

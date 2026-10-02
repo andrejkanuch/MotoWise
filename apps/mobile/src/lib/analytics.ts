@@ -536,6 +536,12 @@ export const AnalyticsEvent = {
   DOCUMENTS_SECTION_VIEWED: 'documents_section_viewed',
   DOCUMENT_EXPIRY_ALERT_TAPPED: 'document_expiry_alert_tapped',
 
+  // Feature usage — Garage / Bike hub (bike-detail redesign R1)
+  NOTE_CREATED: 'note_created',
+  NOTE_DELETED: 'note_deleted',
+  BIKE_LOG_OPTION_SELECTED: 'bike_log_option_selected',
+  ODOMETER_UPDATED: 'odometer_updated',
+
   // Rides — lifecycle
   RIDE_STARTED: 'ride_started',
   RIDE_PAUSED: 'ride_paused',

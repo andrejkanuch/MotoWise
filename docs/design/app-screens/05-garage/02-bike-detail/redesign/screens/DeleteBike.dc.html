@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Delete bike — typed confirmation</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#141210;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#F3EEE6}
+a{color:#F3EEE6;text-decoration:none}a:hover{color:#FFFFFF}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
+input{font-family:inherit;color:#F3EEE6;background:#141210;border:1px solid rgba(255,255,255,0.1);border-radius:12px;font-size:15px;padding:0 14px;box-sizing:border-box;width:100%;height:48px}
+.mono{font-family:'Geist Mono',ui-monospace,monospace}
+.serif{font-family:'Instrument Serif',Georgia,serif}
+.eyebrow{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#9C958A}
+.muted{color:#9C958A}.dim{color:#B5ADA2}
+.row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:14px}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;background:#141210">
+<div style="position:absolute;inset:0;background:rgba(10,9,8,0.6)"></div>
+
+<div style="position:absolute;left:0;right:0;bottom:0;background:#1E1C19;border-radius:24px 24px 0 0;padding:10px 16px 34px 16px;display:flex;flex-direction:column;gap:14px;border-top:1px solid rgba(255,255,255,0.08)">
+<div style="width:36px;height:4px;border-radius:2px;background:#4A4640;align-self:center"></div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<div class="serif" style="font-size:28px;line-height:30px">Delete the Africa Twin?</div>
+<div class="dim" style="font-size:14px;line-height:19px">This removes the bike and everything logged on it. Export the service report first if you are selling it — buyers ask for it.</div>
+</div>
+
+<div style="display:flex;flex-direction:column;padding:4px 14px;border-radius:14px;background:#141210;border:1px solid rgba(255,255,255,0.06)">
+<div class="row"><span class="dim">Maintenance tasks and history</span><span class="mono">20</span></div>
+<div class="row"><span class="dim">Expenses · 22 this year</span><span class="mono">€3,540.00</span></div>
+<div class="row"><span class="dim">Documents</span><span class="mono">4</span></div>
+<div class="row"><span class="dim">Notes</span><span class="mono">5</span></div>
+<div class="row" style="border-bottom:0"><span class="dim">Rides</span><span class="mono">9</span></div>
+</div>
+
+<a href="ServiceHistory.dc.html" style="height:48px;border-radius:14px;background:#2A2724;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>Export the service report first</a>
+
+<div style="display:flex;flex-direction:column;gap:6px">
+<label for="del-name" style="font-size:13px;font-weight:600;color:#B5ADA2">Type <span class="mono" style="color:#F3EEE6">Africa Twin</span> to confirm</label>
+<input id="del-name" type="text" placeholder="Africa Twin">
+</div>
+
+<button disabled style="height:52px;border-radius:14px;background:#3A1A16;color:#FF7A6B;font-size:16px;font-weight:700;opacity:0.6">Delete bike</button>
+<a href="BikeDetails.dc.html" style="height:44px;font-size:14px;font-weight:600;color:#B5ADA2;display:flex;align-items:center;justify-content:center">Keep it</a>
+<div class="muted" style="font-size:12px;text-align:center">Deleted bikes can be restored from Profile › Data for 30 days.</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
