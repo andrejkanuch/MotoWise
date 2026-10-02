@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Task — Brake pads inspection</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#141210;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#F3EEE6}
+a{color:#F3EEE6;text-decoration:none}a:hover{color:#FFFFFF}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
+.mono{font-family:'Geist Mono',ui-monospace,monospace}
+.serif{font-family:'Instrument Serif',Georgia,serif}
+.card{background:#1E1C19;border:1px solid rgba(255,255,255,0.06);border-radius:16px}
+.eyebrow{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#9C958A}
+.tag{font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:0.06em;font-weight:500;padding:3px 7px;border-radius:5px;line-height:12px}
+.t-high{background:#3A2412;color:#F0A050}.t-over{background:#3A1A16;color:#FF7A6B}
+.late{color:#FF7A6B}.muted{color:#9C958A}.dim{color:#B5ADA2}
+.cell{flex:1;display:flex;flex-direction:column;gap:3px;padding:12px 14px;min-width:0}
+.kv{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid rgba(255,255,255,0.06);min-width:0}
+.kv .eyebrow{width:64px;flex:none;font-size:10px}
+.kv .v{flex:1;min-width:0;font-size:14px;line-height:18px;overflow-wrap:anywhere}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;background:#141210;display:flex;flex-direction:column">
+
+<div style="padding:54px 8px 0 8px;display:flex;align-items:center;height:48px;border-bottom:1px solid rgba(255,255,255,0.06)">
+<a href="ServiceActive.dc.html" style="height:44px;padding:0 8px 0 4px;display:flex;align-items:center;gap:2px;font-size:15px;font-weight:600;color:#E07A48"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Service</a>
+<div style="flex:1;text-align:center;font-size:15px;font-weight:600">Africa Twin</div>
+<a href="EditTask.dc.html" style="height:44px;padding:0 10px;display:flex;align-items:center;font-size:15px;font-weight:600;color:#E07A48">Edit</a>
+</div>
+
+<div style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:14px 16px 0 16px">
+
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;gap:6px;align-items:center"><span class="tag t-high">HIGH PRIORITY</span><span class="muted" style="font-size:12px">· Honda schedule</span></div>
+<h1 class="serif" style="margin:0;font-size:28px;line-height:30px;font-weight:400">Brake pads inspection</h1>
+</div>
+
+<div class="card" style="display:flex;overflow:hidden">
+<div class="cell" style="border-right:1px solid rgba(255,255,255,0.06)"><div class="eyebrow">By date</div><div class="late" style="font-size:17px;font-weight:600">201 days late</div><div class="muted" style="font-size:12px">was due Mar 15, 2026</div></div>
+<div class="cell"><div class="eyebrow">By distance</div><div style="font-size:17px;font-weight:600">3,933 km to go</div><div class="muted" style="font-size:12px">target 42,100 km</div></div>
+</div>
+
+<div class="card" style="display:flex;flex-direction:column;overflow:hidden">
+<div class="kv"><div class="eyebrow">Repeats</div><div class="v">Every 12,000 km or 12 months</div></div>
+<a href="JobDetail.dc.html" class="kv" style="border-bottom:0"><div class="eyebrow">Last done</div><div class="v">Mar 15, 2025 · 30,100 km · €379.46</div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9C958A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></a>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:6px">
+<div class="eyebrow" style="padding:0 2px">What to do</div>
+<div style="font-size:14px;line-height:19px;color:#E6E0D6">Check pad thickness front and rear, minimum 1.5 mm to the wear indicator. Inspect discs for scoring; measure front disc thickness (min 4.5 mm).</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:6px">
+<div class="eyebrow" style="padding:0 2px">Notes</div>
+<div style="font-size:14px;line-height:19px;color:#E6E0D6">Front pads were at the limit before the Pyrenees trip last year — rears looked fine. Order EBC FA679HH if the fronts need replacing.</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:6px">
+<div class="eyebrow" style="padding:0 2px">Photos · 2 of 5</div>
+<div style="display:flex;gap:8px">
+<div style="width:72px;height:72px;border-radius:12px;background:#2A2724" aria-label="Photo of the front caliper"></div>
+<div style="width:72px;height:72px;border-radius:12px;background:#2A2724" aria-label="Photo of the pad wear indicator"></div>
+<button aria-label="Add photo" style="width:72px;height:72px;border-radius:12px;border:1px dashed rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;color:#B5ADA2"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+</div>
+</div>
+
+</div>
+
+<div style="padding:10px 16px 34px 16px;display:flex;gap:8px;align-items:center;background:#141210;border-top:1px solid rgba(255,255,255,0.06)">
+<a href="CompleteTask.dc.html" style="flex:1;height:52px;border-radius:14px;background:#D4622E;color:#1A1410;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Mark done</a>
+<button style="height:52px;padding:0 14px;font-size:14px;font-weight:600;color:#FF7A6B">Delete</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
