@@ -209,7 +209,7 @@ Before the push, regenerate with `pnpm --filter @motovault/api generate:schema &
 
 ## Phase 3: Foundations — tokens, fonts, copy, pure logic
 
-- [ ] Task 3.1: Palette tokens and the hub token module
+- [x] Task 3.1: Palette tokens and the hub token module
   - Files: `packages/design-system/src/palette.ts`, `apps/mobile/src/components/bike-hub/ui/tokens.ts` (new)
   - Details — add under a `// ── Bike hub redesign ──` block (names are binding so later phases reuse them):
 
@@ -245,14 +245,14 @@ Before the push, regenerate with `pnpm --filter @motovault/api generate:schema &
     - `TEST` `pnpm --filter @motovault/design-system test` (if the package has tests) still green.
     - `TYPE` `PRIORITY_TAG` is exhaustive over `MaintenancePriority` (a missing key fails typecheck).
 
-- [ ] Task 3.2: Register the two missing font families for the hub
+- [x] Task 3.2: Register the two missing font families for the hub
   - Files: `apps/mobile/package.json` (`@expo-google-fonts/geist-mono`, `@expo-google-fonts/plus-jakarta-sans` via `npx expo install` run **from `apps/mobile`**), `apps/mobile/src/app/_layout.tsx` (`useFonts` map), `apps/mobile/src/components/bike-hub/ui/tokens.ts` (`HUB_FONT`)
   - Details: register under **new** family keys used only by the hub — `HubMono-Regular`, `HubMono-Medium`, `HubSans-Regular`, `HubSans-Medium`, `HubSans-SemiBold`, `HubSans-Bold` — so the ~130 existing usages of the unregistered names `GeistMono*` / `PlusJakartaSans*` do not change appearance in this PR (Open question 5). JS-loaded fonts ship over OTA; no native change. Look up the current `useFonts` / package export names with Context7 before writing.
   - Acceptance:
     - `DEVICE` Header odometer chip renders in Geist Mono (zero with a slash-less, monospaced figure width: "38,167" and "11,111" are the same width); the bike name renders in Instrument Serif.
     - `DEVICE` A screen outside the hub that uses `fontFamily: 'GeistMono'` (ride summary) looks unchanged.
 
-- [ ] Task 3.3: Copy keys in all 13 locales
+- [x] Task 3.3: Copy keys in all 13 locales
   - Files: `apps/mobile/src/i18n/locales/{en,es,de,fr,it,pt-BR,ja,hi,th,id,tr,pl,sk}.json`
   - Details: add the `bikeHub.*` keys for every string in the seven screens (segment names, ride-status titles and reason fragments, attention rows, due-line fragments, costs card, notes, sheets, empty states, accessibility labels, errors, snackbar). Plurals via i18next `_one` / `_other` (and the forms each language needs); interpolate numbers and units (`{{count}}`, `{{distance}}`, `{{unit}}`) — never concatenate. Reuse existing keys where they already exist (`common.cancel`, `tabs.garage`, `documents.title`, `maintenance.modeLog`, `garage.addPhoto`, `recalls.*`). Subsequent tasks add keys as they need them; this task establishes the namespace and the due-line / ride-status vocabulary used by the pure modules.
   - Acceptance:
@@ -260,7 +260,7 @@ Before the push, regenerate with `pnpm --filter @motovault/api generate:schema &
     - `TEST` `apps/mobile/src/__tests__/i18n.test.ts` green.
     - `MANUAL` Non-English values are translations, not English copies.
 
-- [ ] Task 3.4: Pure logic modules (the Test writer covers these; fixtures at the end of this plan)
+- [x] Task 3.4: Pure logic modules (the Test writer covers these; fixtures at the end of this plan)
   - Files: `apps/mobile/src/lib/bike-hub/{constants.ts,task-due.ts,ride-status.ts,attention.ts,costs-summary.ts,odometer-input.ts,segments.ts,recall-severity.ts,format.ts}` + `__tests__/`
   - Rules: no React, no i18n, no `Date.now()` inside — every function takes `today: Date` (and the unit) as an argument and returns **data** (kinds + numbers); components turn that into copy with `t()`.
   - Modules:
@@ -285,7 +285,7 @@ Before the push, regenerate with `pnpm --filter @motovault/api generate:schema &
 
 ## Phase 4: Shell
 
-- [ ] Task 4.1: Shared UI primitives
+- [x] Task 4.1: Shared UI primitives
   - Files: `apps/mobile/src/components/bike-hub/ui/{section-header.tsx,priority-tag.tsx,due-line.tsx,stat.tsx,action-pill.tsx,hub-card.tsx,row-chevron.tsx}`
   - Details (APIs chosen so R2–R5 reuse them):
     - `SectionHeader({ label, count?, tone?, action?: { label, onPress, accessibilityLabel? }, hint? })` — mono 11 px uppercase eyebrow, 0.08 em; copper text action with a 44 pt hit area.
@@ -299,27 +299,27 @@ Before the push, regenerate with `pnpm --filter @motovault/api generate:schema &
     - `TEST` Render tests (`@testing-library/react-native`): `PriorityTag` label and colours per priority; `DueLine` output for the three component-sheet examples in `km` and one in `mi`; `ActionPill` exposes `accessibilityRole="button"` and the label when icon-only.
     - `DEVICE` Spot check against `Components.dc.html` (tag, section header, stat, buttons).
 
-- [ ] Task 4.2: `BikeHeader`
+- [x] Task 4.2: `BikeHeader`
   - Files: `apps/mobile/src/components/bike-hub/ui/bike-header.tsx`
   - Details: safe-area top inset; row 48 high: back button (44×44 chevron; `accessibilityLabel` "Back to {{origin}}"; the visible label is the chevron only at full size, per `Main.dc.html`), centred name (Instrument Serif 22/24) + eyebrow (mono 10, "{{year}} · {{make}}"), odometer chip (36 high, mono 13, gauge icon, `accessibilityLabel` "Odometer {{value}} {{unit}}, tap to update", `hitSlop` to 44). Chip shows "Set odometer" when `currentMileage` is null. Props: `bike`, `origin`, `unit`, `collapse: SharedValue<number>` (0–1), `onBack`, `onOdometerPress`. On scroll (Reanimated `interpolate`, no layout animation): the two-line block collapses into **one 44 px row** — name 17 px, eyebrow fades out, chip stays. The segment bar is a sibling and never collapses. The header never scrolls away. The unit is `bike.distanceUnit` — not `useMileageUnit()`.
   - Acceptance:
     - `TEST` Renders name, eyebrow and "38,167 km"; back label per origin (`Garage` / `Home` / `Profile`); `mi` bike shows `mi`.
     - `DEVICE` Scrolling Overview collapses the header to one row within ~40 px of scroll, with no jump and no dropped frames; scrolling back restores it.
 
-- [ ] Task 4.3: `SegmentBar`
+- [x] Task 4.3: `SegmentBar`
   - Files: `apps/mobile/src/components/bike-hub/ui/segment-bar.tsx` (+ `segment-bar.ios.tsx` / `.android.tsx` only if the two variants diverge enough to justify it)
   - Details: iOS/default — horizontally scrollable row, pills 36 high, 14 px side padding, min width 72, 6 px gap, radius 10, selected = `hubRaised` + `hubText`; `accessibilityRole="tablist"` / `"tab"` + `accessibilityState.selected`; each pill's hit area ≥ 44 pt (vertical `hitSlop`). Android — Material tabs: 48 dp tall, equal-width, 2 dp copper indicator animated with Reanimated, ripple. First check `@expo/ui/jetpack-compose` for a tab-row primitive via Context7; use a plain RN implementation if none fits (no new dependency). Badge on a segment: `badge?: number` → mono 11 px pill (`hubTagCritBg` / `hubLate`), hidden at 0, included in the tab's accessibility label ("Service, 1 overdue high-priority task"). Only Service passes a badge. Scrolls the selected pill into view under large text.
   - Acceptance:
     - `TEST` Four tabs render from `BIKE_SEGMENT`; `onChange` fires with the typed id; badge hidden at 0 and shown at 1; selected state exposed to accessibility.
     - `DEVICE` iOS: matches `Main.dc.html`. Android: Material tabs with indicator and ripple. Largest Dynamic Type: bar scrolls horizontally, nothing truncates.
 
-- [ ] Task 4.4: Segment state store
+- [x] Task 4.4: Segment state store
   - Files: `apps/mobile/src/stores/bike-hub.store.ts`, `apps/mobile/src/stores/__tests__/bike-hub.store.test.ts`
   - Details: Zustand `persist` + `createJSONStorage(() => createZustandMMKVStorage('bike-hub'))` (same mechanism as `whats-new.store.ts`). State: `lastSegmentByBike: Record<string, BikeSegment>`, `setLastSegment(bikeId, segment)`, `forgetBike(bikeId)` (called when a bike is deleted). Scroll offsets are **not** persisted — they live in the mounted scroll views (Task 4.5).
   - Acceptance:
     - `TEST` set / read / forget; a persisted unknown segment string resolves to OVERVIEW through `resolveInitialSegment`.
 
-- [ ] Task 4.5: Screen rewrite — segment container
+- [x] Task 4.5: Screen rewrite — segment container
   - Files: `apps/mobile/src/app/(tabs)/(garage)/bike/[id].tsx` (rewritten to a thin container, target < 250 lines), `apps/mobile/src/components/bike-hub/shell/{bike-hub-screen.tsx,segment-container.tsx,use-bike-hub-data.ts,use-bike-photo.ts}`, `apps/mobile/src/components/bike-hub/segments/{service-segment.tsx,costs-segment.tsx,bike-segment.tsx}`
   - Details:
     - Route params (typed): `id`, `highlightTask?`, `segment?`, `from?`, `_ts?`.
@@ -341,7 +341,7 @@ Before the push, regenerate with `pnpm --filter @motovault/api generate:schema &
     - `DEVICE` Pull-to-refresh on the Bike segment refetches documents.
     - `TYPE` No `any`; route params typed; `pnpm check:router` clean.
 
-- [ ] Task 4.6: Origin-aware back
+- [x] Task 4.6: Origin-aware back
   - Files: `apps/mobile/src/app/(tabs)/(home)/index.tsx` (2 call sites), `apps/mobile/src/components/home/use-home-data.ts` (2), `apps/mobile/src/components/profile/account-section.tsx` (1), `apps/mobile/src/components/bike-hub/shell/use-bike-back.ts`
   - Details: callers add `from: BIKE_ORIGIN.HOME` / `.PROFILE`; Garage, notification and What's New pass nothing (→ GARAGE). `useBikeBack(origin)` uses a dispatch table: GARAGE → `router.back()` when `router.canGoBack()`, else `router.replace('/(tabs)/(garage)')`; HOME → pop the bike off the garage stack, then `router.navigate('/(tabs)/(home)')`; PROFILE → same towards the profile tab. Typed `Href`s only.
   - Acceptance:
