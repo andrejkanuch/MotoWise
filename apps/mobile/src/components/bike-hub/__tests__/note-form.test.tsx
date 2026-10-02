@@ -369,4 +369,13 @@ describe('NoteForm — "also make it a task" names the task', () => {
       'Creates “Check rear sag” · Low · no due date, with this note attached',
     );
   });
+
+  it('a note with no words to name it shows the plain copy, not the English fallback "Note"', async () => {
+    await renderForm();
+    await fireEvent.changeText(screen.getByTestId('note-text'), '—');
+    expect(screen.getByTestId('note-also-task-sub')).toHaveTextContent(
+      'Creates a low-priority task with no due date, with this note attached',
+    );
+    expect(screen.getByTestId('note-also-task-sub')).not.toHaveTextContent(/“Note”/);
+  });
 });

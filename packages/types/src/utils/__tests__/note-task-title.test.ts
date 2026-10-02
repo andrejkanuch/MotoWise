@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { deriveTaskTitleFromNote, NOTE_TASK_TITLE_MAX } from '../note-task-title';
+import {
+  deriveTaskTitleFromNote,
+  NOTE_TASK_TITLE_FALLBACK,
+  NOTE_TASK_TITLE_MAX,
+} from '../note-task-title';
 
 describe('deriveTaskTitleFromNote', () => {
   it.each([
@@ -20,7 +24,7 @@ describe('deriveTaskTitleFromNote', () => {
     ['skips leading blank lines', '\n\n  Replace mirror  \nleft side', 'Replace mirror'],
     ['cuts at a question mark', 'Heated grips? Maybe next winter', 'Heated grips'],
     ['keeps a line that opens with a dash', '- buy 10W-40 oil', 'buy 10W-40 oil'],
-    ['falls back when nothing is left', '—', 'Note'],
+    ['falls back when nothing is left', '—', NOTE_TASK_TITLE_FALLBACK],
   ])('%s', (_label, text, expected) => {
     expect(deriveTaskTitleFromNote(text)).toBe(expected);
   });
@@ -37,5 +41,18 @@ describe('deriveTaskTitleFromNote', () => {
   it('leaves a title of exactly 60 characters alone', () => {
     const text = 'a'.repeat(NOTE_TASK_TITLE_MAX);
     expect(deriveTaskTitleFromNote(text)).toBe(text);
+  });
+
+  it('counts code points: an emoji title of exactly 60 is left alone', () => {
+    const text = '🏍'.repeat(NOTE_TASK_TITLE_MAX); // 120 UTF-16 units
+    expect(deriveTaskTitleFromNote(text)).toBe(text);
+  });
+
+  it('truncates by code points and never splits a surrogate pair', () => {
+    const title = deriveTaskTitleFromNote(`a${'🏍'.repeat(NOTE_TASK_TITLE_MAX)}`);
+    const characters = Array.from(title);
+    expect(characters).toHaveLength(NOTE_TASK_TITLE_MAX);
+    expect(characters[characters.length - 1]).toBe('…');
+    expect(title).toBe(`a${'🏍'.repeat(NOTE_TASK_TITLE_MAX - 2)}…`);
   });
 });

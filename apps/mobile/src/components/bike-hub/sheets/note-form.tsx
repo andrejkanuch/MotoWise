@@ -1,5 +1,10 @@
 import { AddNotePhotoDocument, DeleteNotePhotoDocument } from '@motovault/graphql';
-import { deriveTaskTitleFromNote, NOTE_PHOTOS_MAX, NOTE_TEXT_MAX } from '@motovault/types';
+import {
+  deriveTaskTitleFromNote,
+  NOTE_PHOTOS_MAX,
+  NOTE_TASK_TITLE_FALLBACK,
+  NOTE_TEXT_MAX,
+} from '@motovault/types';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
@@ -158,6 +163,9 @@ export function NoteForm({
   const keptPhotos = (note?.photos ?? []).filter((photo) => !removedPhotoIds.includes(photo.id));
   const photoCount = keptPhotos.length + newPhotos.length;
   const cleanText = normaliseNoteText(text);
+  // The API's fallback title is the English 'Note'; a note with no words shows
+  // the plain localised copy instead of naming it.
+  const derivedTaskTitle = cleanText ? deriveTaskTitleFromNote(cleanText) : null;
   const initialStampOn = isEdit ? note.odometer != null : true;
   const dirty =
     text !== (note?.text ?? draft ?? '') ||
@@ -465,10 +473,8 @@ export function NoteForm({
                 }}
               >
                 {/* Names the task the server will create (same derivation as the API). */}
-                {cleanText
-                  ? t('bikeHub.noteSheet.alsoTaskSubNamed', {
-                      title: deriveTaskTitleFromNote(cleanText),
-                    })
+                {derivedTaskTitle && derivedTaskTitle !== NOTE_TASK_TITLE_FALLBACK
+                  ? t('bikeHub.noteSheet.alsoTaskSubNamed', { title: derivedTaskTitle })
                   : t('bikeHub.noteSheet.alsoTaskSub')}
               </Text>
             </View>
