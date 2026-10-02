@@ -6,7 +6,7 @@ The lead's only memory between runs. Read this first; continue from the first un
 
 | # | Phase | Branch | Status | Step | PR | Migration pushed |
 |---|---|---|---|---|---|---|
-| 1 | Shell + Overview | `feat/bike-detail-shell-overview` | in progress | targeted captures → 10 PR | — | no |
+| 1 | Shell + Overview | `feat/bike-detail-shell-overview` | in review | 11 · STOP | #253 | no |
 | 2 | Service segment | — | plan drafted (not started) | 2 · Plan (lead check pending) | — | — |
 | 3 | Task flows | — | not started | — | — | — |
 | 4 | Costs | — | not started | — | — | — |
@@ -126,6 +126,7 @@ Not removed yet (phase 6): `bike-stats-row`, `mileage-display`, health-report sc
 - 2026-10-02 · fix round 7 done (`4e8fae37`, `ce247069`, `91eeb688`, `9f54caf6`, `5131670a`, `73a4ffda`, `ff67bd8a`, `665216a2`, `cc217f23`): disabled observers are ignored by the alert rule, and Home's checklist opts out (Home-level test via the real client); shared tab-bar inset; Android nested scroll (unverified); single refresh announcement; recall label acronyms, digits and generic levels; code-point-safe task title; one Save-bar reservation in the Note sheet (no real-keyboard check); shared `LoadError`, and a categories-only failure keeps documents visible, ungrouped. Gates: typecheck 4/4; mobile 113 / 1,865, types 150, api 1,002; check:* ok. Left as designed: Learn, Diagnose, Profile › rides, CarPlay and whats-new observe `motorcycles.all` without meta, so after visiting them a bike-list failure still alerts (the safe side; out of scope). Final targeted visual check and the PR-body update dispatched in parallel.
 - 2026-10-02 22:20 · final targeted check on `cc217f23`: 7/8 PASS (two-line sub-lines; uncached hub with zero alerts; refresh wraps without a dangling separator at AX3; warm-Retry legacy error states; Note sheet unchanged; sheets pixel-identical to round 3; pill 16 pt). FAIL: Home cold start with the API down still raises ONE global alert over Home's card (query not identified); 2 of 3 attempts landed on the signed-out welcome screen again. Debug agent (isolated worktree) dispatched to find the query and prove regression or pre-existing on `main`; it fixes only a regression or a hub query. The PR waits for this.
 - 2026-10-02 · Home cold-start alert diagnosed: NOT a regression. It comes from `['receipt-scans','quota']` (`useReceiptScanQuota`, no opt-out), and the same alert reproduces on `main` `965ad1de` through the real query client. Out of scope; listed in the PR with a suggested one-line fix. The welcome-screen-while-signed-in case is pre-existing (auth files identical to `main`; likely INITIAL_SESSION null after a failed refresh). Proceeding to step 10.
+- 2026-10-02 22:35 · step 10 PR opened: #253 (`bd29feee`). Pre-push hook green (Biome on changed files, typecheck 4/4, tests). **Merge blocked on the owner pushing 00180–00182 to production first** (deploy order in the PR body). Step 11: STOP.
 - Outside scope, seen by QA: Home hero for the imperial user shows "23.7k km" for a 23,716 mi bike and "READY TO RIDE" while the hub says "Check before riding".
 
 ### Q6 — GraphQL request timeout
