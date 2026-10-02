@@ -26,6 +26,11 @@ export function useMotorcycleDocuments(motorcycleId: string) {
     count: data?.count ?? 0,
     expiringCount: data?.expiringCount ?? 0,
     isLoading,
+    /**
+     * No list yet and no error: also true for a query that is paused offline
+     * (pending, not fetching), which `isLoading` does not cover.
+     */
+    isPending: data === undefined && !isError,
     /** The list failed and nothing is cached. */
     isError: isError && !data,
     refetch: () => void refetch(),

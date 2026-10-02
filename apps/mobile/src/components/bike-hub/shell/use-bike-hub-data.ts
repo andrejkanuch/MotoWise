@@ -13,6 +13,7 @@ import type { HubUnit } from '../../../lib/bike-hub/constants';
 import { toHubUnit } from '../../../lib/bike-hub/format';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { useToday } from './use-today';
 
 export type HubBike = MyMotorcyclesQuery['myMotorcycles'][number];
 export type HubTask = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
@@ -29,10 +30,12 @@ export interface BikeHubData {
   isError: boolean;
   retry: () => void;
   tasks: HubTask[];
+  /** No task list yet and no error — loading, or paused offline. */
   tasksLoading: boolean;
   tasksError: boolean;
   refetchTasks: () => void;
   documents: ReturnType<typeof useMotorcycleDocuments>['documents'];
+  /** No document list yet and no error — loading, or paused offline. */
   documentsLoading: boolean;
   documentsError: boolean;
   refetchDocuments: () => void;
@@ -51,6 +54,7 @@ export interface BikeHubData {
 export function useBikeHubData(id: string): BikeHubData {
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const today = useToday();
   const refreshingRef = useRef(false);
 
   const bikes = useQuery({
@@ -67,7 +71,7 @@ export function useBikeHubData(id: string): BikeHubData {
   });
   const {
     documents,
-    isLoading: documentsLoading,
+    isPending: documentsLoading,
     isError: documentsError,
     refetch: refetchDocuments,
   } = useMotorcycleDocuments(id);
@@ -78,8 +82,8 @@ export function useBikeHubData(id: string): BikeHubData {
   const odometer = bike?.currentMileage;
 
   const serviceBadge = useMemo(
-    () => getServiceBadgeCount(tasks, { odometer, today: new Date(), unit }),
-    [tasks, odometer, unit],
+    () => getServiceBadgeCount(tasks, { odometer, today, unit }),
+    [tasks, odometer, today, unit],
   );
 
   const refresh = useCallback(async () => {
@@ -113,7 +117,10 @@ export function useBikeHubData(id: string): BikeHubData {
     isError: bikes.isError && !bikes.data,
     retry: () => void bikes.refetch(),
     tasks,
-    tasksLoading: tasksQuery.isLoading,
+    // "No data yet", not `isLoading`: with `networkMode: 'offlineFirst'` an
+    // offline cold open leaves the query pending but paused (not fetching, no
+    // error) — an empty list then must not read as "this bike has no tasks".
+    tasksLoading: tasksQuery.data === undefined && !tasksQuery.isError,
     tasksError: tasksQuery.isError && !tasksQuery.data,
     refetchTasks: () => void tasksQuery.refetch(),
     documents,

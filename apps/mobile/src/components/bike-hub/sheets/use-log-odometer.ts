@@ -50,6 +50,8 @@ export interface LogOdometerVariables {
 export function useLogOdometer(motorcycleId: string) {
   const queryClient = useQueryClient();
   return useMutation({
+    // The sheet shows the failure inline and keeps the entry: no global alert on top.
+    meta: { showErrorAlert: false },
     mutationFn: ({ value, recordedAt, today }: LogOdometerVariables) =>
       gqlFetcher(LogOdometerReadingDocument, {
         input: {

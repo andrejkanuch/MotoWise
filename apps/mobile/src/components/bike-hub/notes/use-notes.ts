@@ -18,6 +18,12 @@ export type HubNote = NotesByMotorcycleQuery['notes'][number];
 
 const NO_NOTES: HubNote[] = [];
 const OPTIMISTIC_PREFIX = 'optimistic-';
+/**
+ * Every caller of these mutations shows its own inline error (or its own alert),
+ * so the query client's global "Error" alert must stay out of the way — it only
+ * skips mutations that have `onError` in their options, which these do not.
+ */
+const OWN_ERROR_UI = { showErrorAlert: false } as const;
 
 export function isOptimisticNote(note: Pick<HubNote, 'id'>): boolean {
   return note.id.startsWith(OPTIMISTIC_PREFIX);
@@ -128,6 +134,7 @@ function invalidateTasks(queryClient: ReturnType<typeof useQueryClient>, motorcy
 export function useUpdateNote(motorcycleId: string) {
   const queryClient = useQueryClient();
   return useMutation({
+    meta: OWN_ERROR_UI,
     mutationFn: (variables: { id: string; text: string; odometer: number | null }) =>
       gqlFetcher(UpdateNoteDocument, {
         id: variables.id,
@@ -146,6 +153,7 @@ export function useUpdateNote(motorcycleId: string) {
 export function useDeleteNote(motorcycleId: string) {
   const queryClient = useQueryClient();
   return useMutation({
+    meta: OWN_ERROR_UI,
     mutationFn: (id: string) => gqlFetcher(DeleteNoteDocument, { id }),
     onSuccess: (_data, id) => {
       const key = queryKeys.notes.byMotorcycle(motorcycleId);
@@ -162,6 +170,7 @@ export function useDeleteNote(motorcycleId: string) {
 export function useCreateTaskFromNote(motorcycleId: string) {
   const queryClient = useQueryClient();
   return useMutation({
+    meta: OWN_ERROR_UI,
     mutationFn: (noteId: string) => gqlFetcher(CreateTaskFromNoteDocument, { noteId }),
     onSuccess: (data) => {
       const key = queryKeys.notes.byMotorcycle(motorcycleId);
