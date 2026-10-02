@@ -1114,7 +1114,8 @@
         "documentExpiresIn_one": "{{category}} की अवधि {{count}} दिन में समाप्त होगी",
         "documentExpiresIn_other": "{{category}} की अवधि {{count}} दिन में समाप्त होगी",
         "documentExpiresToday": "{{category}} की अवधि आज समाप्त होगी"
-      }
+      },
+      "untrackedHint": "कोई कार्य या दस्तावेज़ जोड़ने पर राइड स्थिति दिखेगी।"
     },
     "action": {
       "log": "लॉग करें",
@@ -1129,6 +1130,160 @@
     },
     "bikeActions": {
       "title": "प्रबंधन"
+    },
+    "undo": "पूर्ववत करें",
+    "priority": {
+      "critical": "गंभीर",
+      "high": "उच्च",
+      "medium": "मध्यम",
+      "low": "निम्न"
+    },
+    "photo": {
+      "a11y": "बाइक की फ़ोटो, बाइक का विवरण खोलें",
+      "primary": "मुख्य",
+      "rides_one": "{{count}} राइड",
+      "rides_other": "{{count}} राइड",
+      "add": "फ़ोटो जोड़ें",
+      "addA11y": "इस बाइक की फ़ोटो जोड़ें"
+    },
+    "attention": {
+      "title": "ध्यान दें",
+      "all": "सभी",
+      "allA11y": "सभी कार्य, सर्विस खोलें",
+      "recallOne": "ओपन सेफ्टी रीकॉल · {{component}}",
+      "recallOneNoDetail": "ओपन सेफ्टी रीकॉल",
+      "recallMany_one": "{{count}} ओपन सेफ्टी रीकॉल",
+      "recallMany_other": "{{count}} ओपन सेफ्टी रीकॉल",
+      "recallSub": "डीलर पर मुफ़्त मरम्मत",
+      "docExpires": "{{category}} {{date}} को समाप्त होगा",
+      "docExpired": "{{category}} {{date}} को समाप्त हो गया",
+      "docDaysAgo_one": "{{count}} दिन पहले",
+      "docDaysAgo_other": "{{count}} दिन पहले",
+      "docToday": "आज",
+      "moreOverdue_one": "{{count}} और लंबित, {{priorities}}",
+      "moreOverdue_other": "{{count}} और लंबित, {{priorities}}",
+      "more_one": "{{count}} और",
+      "more_other": "{{count}} और",
+      "listAnd": "{{first}} और {{last}}",
+      "loadError": "कार्य लोड नहीं हो सके"
+    },
+    "nextUp": {
+      "title": "आगे"
+    },
+    "setup": {
+      "title": "इस बाइक को सेट करें",
+      "import": "{{make}} सर्विस शेड्यूल इम्पोर्ट करें",
+      "importSub": "फ़ैक्टरी अंतराल को {{unit}} या महीनों के आधार पर कार्यों के रूप में बनाता है",
+      "logWork": "पहले हो चुका काम लॉग करें",
+      "logWorkSub": "रनिंग-इन सर्विस, टायर, MotoVault से पहले का कोई भी काम",
+      "documents": "बीमा और रजिस्ट्रेशन जोड़ें",
+      "documentsSub": "समाप्ति से 30 दिन पहले चेतावनी मिलेगी"
+    },
+    "costs": {
+      "title": "खर्च",
+      "full": "पूरा विश्लेषण",
+      "percent": "{{value}}%",
+      "vsSamePeriod": "{{year}} की समान अवधि की तुलना में",
+      "thisMonth": "इस महीने",
+      "perMonth": "प्रति माह · {{year}}",
+      "topCategory": "सबसे बड़ी श्रेणी",
+      "topCategoryValue": "{{category}} {{percent}}%",
+      "shareA11y": "{{category}} {{percent}}%",
+      "rest": "अन्य",
+      "emptyWithPrice": "खरीद मूल्य {{price}} दर्ज है। कुल शुरू करने के लिए ईंधन या रसीद लॉग करें।",
+      "empty": "कुल शुरू करने के लिए ईंधन या रसीद लॉग करें।",
+      "loadError": "खर्च लोड नहीं हो सके",
+      "cardA11y": "{{year}} का खर्च, {{total}}। खर्च विश्लेषण खोलें"
+    },
+    "notes": {
+      "title": "नोट्स",
+      "all": "सभी नोट्स",
+      "placeholder": "कुछ लिखें…",
+      "noteButton": "नोट",
+      "noteButtonA11y": "लंबा नोट लिखें",
+      "inputA11y": "नोट जोड़ें",
+      "saveFailed": "नोट सेव नहीं हो सका। फिर से कोशिश करें।",
+      "loadError": "नोट्स लोड नहीं हो सके"
+    },
+    "papers": {
+      "title": "कागज़ात और बाइक",
+      "stored_one": "{{count}} सहेजे गए",
+      "stored_other": "{{count}} सहेजे गए",
+      "empty": "बीमा, रजिस्ट्रेशन, स्वामित्व और सर्विस रिकॉर्ड",
+      "bought": "{{date}} में खरीदी"
+    },
+    "log": {
+      "title": "{{name}} के लिए लॉग करें",
+      "expense": "खर्च",
+      "expenseSub": "ईंधन, पार्ट्स, बीमा, टोल",
+      "task": "मेंटेनेंस कार्य",
+      "taskSub": "कुछ करने को, तारीख या दूरी के अनुसार देय",
+      "pastWork": "पहले हो चुका काम",
+      "pastWorkSub": "सीधे सर्विस हिस्ट्री में जाता है, लागत के साथ यदि हो",
+      "note": "नोट",
+      "noteSub": "कोई विचार, पार्ट नंबर, याद रखने की बात",
+      "document": "दस्तावेज़",
+      "documentSub": "बीमा, रजिस्ट्रेशन, स्वामित्व, सर्विस रिकॉर्ड"
+    },
+    "odometer": {
+      "title": "ओडोमीटर",
+      "newReading": "नई रीडिंग",
+      "deltaUp": "{{date}} से +{{delta}} {{unit}} · पहले {{last}}",
+      "deltaUpNoDate": "+{{delta}} {{unit}} · पहले {{last}}",
+      "deltaDown": "−{{delta}} {{unit}} · पहले {{last}}",
+      "unchanged": "पिछली रीडिंग जैसी ही · {{last}}",
+      "first": "इस बाइक की पहली रीडिंग",
+      "lastReading": "पिछली रीडिंग {{last}} {{unit}} · {{date}}",
+      "ridesChip_one": "{{count}} ट्रैक की गई राइड से +{{distance}}",
+      "ridesChip_other": "{{count}} ट्रैक की गई राइड से +{{distance}}",
+      "dateToday": "तारीख · आज",
+      "dateOn": "तारीख · {{date}}",
+      "deleteA11y": "अंक हटाएँ",
+      "helper": "रीडिंग लॉग के रूप में रखी जाती हैं। पिछली से कम रीडिंग सेव करने से पहले पूछा जाएगा।",
+      "save": "{{value}} {{unit}} सेव करें",
+      "lowerTitle": "पिछली रीडिंग से कम",
+      "lowerMessage": "पिछली रीडिंग ({{last}} {{unit}}) से कम है। फिर भी सेव करें?",
+      "backdatedNotice": "आपकी नवीनतम रीडिंग से पहले की तारीख: यह लॉग होगी और ओडोमीटर {{last}} {{unit}} पर ही रहेगा।",
+      "futureDate": "तारीख भविष्य की नहीं हो सकती।",
+      "saveFailed": "रीडिंग सेव नहीं हो सकी। फिर से कोशिश करें।"
+    },
+    "noteSheet": {
+      "new": "नया नोट",
+      "edit": "नोट संपादित करें",
+      "placeholder": "आप क्या याद रखना चाहते हैं?",
+      "stamp": "{{odometer}} {{unit}} · आज",
+      "stampA11y": "ओडोमीटर स्टैम्प",
+      "photo": "फ़ोटो",
+      "removePhotoA11y": "फ़ोटो हटाएँ",
+      "attachTo": "इससे जोड़ें",
+      "alsoTask": "इसे कार्य भी बनाएँ",
+      "alsoTaskSub": "बिना नियत तारीख का निम्न प्राथमिकता वाला कार्य बनाता है, इस नोट के साथ",
+      "save": "नोट सेव करें",
+      "discardTitle": "यह नोट छोड़ दें?",
+      "discardKeep": "संपादन जारी रखें",
+      "discard": "छोड़ दें",
+      "photoFailed": "नोट सेव हो गया, फ़ोटो विफल रही",
+      "taskNotCreated": "नोट सेव हो गया। कार्य नहीं बन सका — नोट पर “इसे कार्य बनाएँ” का उपयोग करें।",
+      "photoLimit": "प्रति नोट अधिकतम {{max}} फ़ोटो"
+    },
+    "notesScreen": {
+      "title": "नोट्स · {{name}}",
+      "count_one": "{{count}} नोट",
+      "count_other": "{{count}} नोट",
+      "hint": "नए पहले · संपादित करने · हटाने के लिए स्वाइप करें",
+      "searchPlaceholder": "नोट्स खोजें…",
+      "searchA11y": "नोट्स खोजें",
+      "makeTask": "इसे कार्य बनाएँ",
+      "linkedExpense": "लिंक किया गया खर्च · {{amount}}",
+      "deleted": "नोट हटाया गया",
+      "deleteFailed": "नोट हटाया नहीं जा सका।",
+      "makeTaskFailed": "कार्य नहीं बन सका।",
+      "empty": "अभी कोई नोट नहीं",
+      "emptySub": "इस बाइक के पार्ट नंबर, प्रेशर और याद रखने की बातें लिखें।",
+      "noMatch": "“{{query}}” से कोई नोट मेल नहीं खाता",
+      "composerAdd": "जोड़ें",
+      "attachPhotoA11y": "फ़ोटो संलग्न करें",
+      "photoA11y": "नोट की फ़ोटो"
     }
   },
   "maintenance": {

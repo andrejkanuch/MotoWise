@@ -1120,7 +1120,8 @@
         "documentExpiresIn_one": "{{category}} expires in {{count}} day",
         "documentExpiresIn_other": "{{category}} expires in {{count}} days",
         "documentExpiresToday": "{{category}} expires today"
-      }
+      },
+      "untrackedHint": "Ride status appears once a task or a document exists."
     },
     "action": {
       "log": "Log",
@@ -1135,6 +1136,160 @@
     },
     "bikeActions": {
       "title": "Manage"
+    },
+    "undo": "Undo",
+    "priority": {
+      "critical": "critical",
+      "high": "high",
+      "medium": "medium",
+      "low": "low"
+    },
+    "photo": {
+      "a11y": "Bike photo, open bike details",
+      "primary": "PRIMARY",
+      "rides_one": "{{count}} ride",
+      "rides_other": "{{count}} rides",
+      "add": "Add a photo",
+      "addA11y": "Add a photo of this bike"
+    },
+    "attention": {
+      "title": "Needs attention",
+      "all": "All",
+      "allA11y": "All tasks, open Service",
+      "recallOne": "Open safety recall · {{component}}",
+      "recallOneNoDetail": "Open safety recall",
+      "recallMany_one": "{{count}} open safety recall",
+      "recallMany_other": "{{count}} open safety recalls",
+      "recallSub": "Free dealer fix",
+      "docExpires": "{{category}} expires {{date}}",
+      "docExpired": "{{category}} expired {{date}}",
+      "docDaysAgo_one": "{{count}} day ago",
+      "docDaysAgo_other": "{{count}} days ago",
+      "docToday": "Today",
+      "moreOverdue_one": "{{count}} more overdue, {{priorities}}",
+      "moreOverdue_other": "{{count}} more overdue, {{priorities}}",
+      "more_one": "{{count}} more",
+      "more_other": "{{count}} more",
+      "listAnd": "{{first}} and {{last}}",
+      "loadError": "Couldn't load tasks"
+    },
+    "nextUp": {
+      "title": "Next up"
+    },
+    "setup": {
+      "title": "Set this bike up",
+      "import": "Import the {{make}} service schedule",
+      "importSub": "Creates the factory intervals as tasks, due by {{unit}} or months",
+      "logWork": "Log work already done",
+      "logWorkSub": "Running-in service, tyres, anything from before MotoVault",
+      "documents": "Add insurance and registration",
+      "documentsSub": "You'll get a warning 30 days before they expire"
+    },
+    "costs": {
+      "title": "Costs",
+      "full": "Full analytics",
+      "percent": "{{value}}%",
+      "vsSamePeriod": "vs same period of {{year}}",
+      "thisMonth": "This month",
+      "perMonth": "Per month · {{year}}",
+      "topCategory": "Top category",
+      "topCategoryValue": "{{category}} {{percent}}%",
+      "shareA11y": "{{category}} {{percent}}%",
+      "rest": "Other",
+      "emptyWithPrice": "Purchase price {{price}} recorded. Log fuel or a receipt to start the running total.",
+      "empty": "Log fuel or a receipt to start the running total.",
+      "loadError": "Couldn't load costs",
+      "cardA11y": "Costs {{year}}, {{total}}. Open cost analytics"
+    },
+    "notes": {
+      "title": "Notes",
+      "all": "All notes",
+      "placeholder": "Jot something down…",
+      "noteButton": "Note",
+      "noteButtonA11y": "Write a longer note",
+      "inputA11y": "Add a note",
+      "saveFailed": "Couldn't save the note. Try again.",
+      "loadError": "Couldn't load notes"
+    },
+    "papers": {
+      "title": "Papers & bike",
+      "stored_one": "{{count}} stored",
+      "stored_other": "{{count}} stored",
+      "empty": "Insurance, registration, title & service records",
+      "bought": "bought {{date}}"
+    },
+    "log": {
+      "title": "Log on the {{name}}",
+      "expense": "Expense",
+      "expenseSub": "Fuel, parts, insurance, tolls",
+      "task": "Maintenance task",
+      "taskSub": "Something to do, due by date or distance",
+      "pastWork": "Work already done",
+      "pastWorkSub": "Goes straight into the service history, with cost if any",
+      "note": "Note",
+      "noteSub": "An idea, a part number, a thing to remember",
+      "document": "Document",
+      "documentSub": "Insurance, registration, title, service record"
+    },
+    "odometer": {
+      "title": "Odometer",
+      "newReading": "New reading",
+      "deltaUp": "+{{delta}} {{unit}} since {{date}} · was {{last}}",
+      "deltaUpNoDate": "+{{delta}} {{unit}} · was {{last}}",
+      "deltaDown": "−{{delta}} {{unit}} · was {{last}}",
+      "unchanged": "Same as the last reading · {{last}}",
+      "first": "First reading for this bike",
+      "lastReading": "Last reading {{last}} {{unit}} · {{date}}",
+      "ridesChip_one": "+{{distance}} from {{count}} tracked ride",
+      "ridesChip_other": "+{{distance}} from {{count}} tracked rides",
+      "dateToday": "Date · today",
+      "dateOn": "Date · {{date}}",
+      "deleteA11y": "Delete digit",
+      "helper": "Readings are kept as a log. A reading lower than the last asks before saving.",
+      "save": "Save {{value}} {{unit}}",
+      "lowerTitle": "Lower than the last reading",
+      "lowerMessage": "Lower than the last reading ({{last}} {{unit}}). Save anyway?",
+      "backdatedNotice": "Dated before your latest reading: it is logged, and the odometer stays at {{last}} {{unit}}.",
+      "futureDate": "The date can't be in the future.",
+      "saveFailed": "Couldn't save the reading. Try again."
+    },
+    "noteSheet": {
+      "new": "New note",
+      "edit": "Edit note",
+      "placeholder": "What do you want to remember?",
+      "stamp": "{{odometer}} {{unit}} · today",
+      "stampA11y": "Odometer stamp",
+      "photo": "Photo",
+      "removePhotoA11y": "Remove photo",
+      "attachTo": "Attach to",
+      "alsoTask": "Also make it a task",
+      "alsoTaskSub": "Creates a low-priority task with no due date, with this note attached",
+      "save": "Save note",
+      "discardTitle": "Discard this note?",
+      "discardKeep": "Keep editing",
+      "discard": "Discard",
+      "photoFailed": "Note saved, photo failed",
+      "taskNotCreated": "Note saved. The task could not be created — use “Make it a task” on the note.",
+      "photoLimit": "Up to {{max}} photos per note"
+    },
+    "notesScreen": {
+      "title": "Notes · {{name}}",
+      "count_one": "{{count}} note",
+      "count_other": "{{count}} notes",
+      "hint": "newest first · swipe for edit · delete",
+      "searchPlaceholder": "Search notes…",
+      "searchA11y": "Search notes",
+      "makeTask": "Make it a task",
+      "linkedExpense": "Linked expense · {{amount}}",
+      "deleted": "Note deleted",
+      "deleteFailed": "Couldn't delete the note.",
+      "makeTaskFailed": "Couldn't create the task.",
+      "empty": "No notes yet",
+      "emptySub": "Jot down part numbers, pressures and things to remember about this bike.",
+      "noMatch": "No notes match “{{query}}”",
+      "composerAdd": "Add",
+      "attachPhotoA11y": "Attach a photo",
+      "photoA11y": "Note photo"
     }
   },
   "maintenance": {

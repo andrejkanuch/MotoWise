@@ -1114,7 +1114,8 @@
         "documentExpiresIn_one": "{{category}}จะหมดอายุในอีก {{count}} วัน",
         "documentExpiresIn_other": "{{category}}จะหมดอายุในอีก {{count}} วัน",
         "documentExpiresToday": "{{category}}หมดอายุวันนี้"
-      }
+      },
+      "untrackedHint": "สถานะจะแสดงเมื่อมีงานหรือเอกสาร"
     },
     "action": {
       "log": "บันทึก",
@@ -1129,6 +1130,160 @@
     },
     "bikeActions": {
       "title": "จัดการ"
+    },
+    "undo": "เลิกทำ",
+    "priority": {
+      "critical": "วิกฤต",
+      "high": "สูง",
+      "medium": "กลาง",
+      "low": "ต่ำ"
+    },
+    "photo": {
+      "a11y": "รูปรถ เปิดรายละเอียดรถ",
+      "primary": "คันหลัก",
+      "rides_one": "{{count}} ทริป",
+      "rides_other": "{{count}} ทริป",
+      "add": "เพิ่มรูป",
+      "addA11y": "เพิ่มรูปของรถคันนี้"
+    },
+    "attention": {
+      "title": "ต้องดูแล",
+      "all": "ทั้งหมด",
+      "allA11y": "งานทั้งหมด เปิดซ่อมบำรุง",
+      "recallOne": "การเรียกคืนที่ยังเปิดอยู่ · {{component}}",
+      "recallOneNoDetail": "การเรียกคืนที่ยังเปิดอยู่",
+      "recallMany_one": "การเรียกคืนที่ยังเปิดอยู่ {{count}} รายการ",
+      "recallMany_other": "การเรียกคืนที่ยังเปิดอยู่ {{count}} รายการ",
+      "recallSub": "ซ่อมฟรีที่ศูนย์บริการ",
+      "docExpires": "{{category}}หมดอายุ {{date}}",
+      "docExpired": "{{category}}หมดอายุเมื่อ {{date}}",
+      "docDaysAgo_one": "{{count}} วันที่แล้ว",
+      "docDaysAgo_other": "{{count}} วันที่แล้ว",
+      "docToday": "วันนี้",
+      "moreOverdue_one": "เลยกำหนดอีก {{count}} รายการ, {{priorities}}",
+      "moreOverdue_other": "เลยกำหนดอีก {{count}} รายการ, {{priorities}}",
+      "more_one": "อีก {{count}} รายการ",
+      "more_other": "อีก {{count}} รายการ",
+      "listAnd": "{{first}} และ {{last}}",
+      "loadError": "โหลดงานไม่สำเร็จ"
+    },
+    "nextUp": {
+      "title": "ถัดไป"
+    },
+    "setup": {
+      "title": "ตั้งค่ารถคันนี้",
+      "import": "นำเข้าตารางซ่อมบำรุงของ {{make}}",
+      "importSub": "สร้างรอบซ่อมบำรุงจากโรงงานเป็นงาน ตาม {{unit}} หรือเดือน",
+      "logWork": "บันทึกงานที่ทำไปแล้ว",
+      "logWorkSub": "เช็กระยะรันอิน ยาง หรืออะไรก็ตามก่อนใช้ MotoVault",
+      "documents": "เพิ่มประกันและทะเบียน",
+      "documentsSub": "คุณจะได้รับคำเตือน 30 วันก่อนหมดอายุ"
+    },
+    "costs": {
+      "title": "ค่าใช้จ่าย",
+      "full": "การวิเคราะห์ทั้งหมด",
+      "percent": "{{value}}%",
+      "vsSamePeriod": "เทียบกับช่วงเดียวกันของปี {{year}}",
+      "thisMonth": "เดือนนี้",
+      "perMonth": "ต่อเดือน · {{year}}",
+      "topCategory": "หมวดสูงสุด",
+      "topCategoryValue": "{{category}} {{percent}}%",
+      "shareA11y": "{{category}} {{percent}}%",
+      "rest": "อื่น ๆ",
+      "emptyWithPrice": "บันทึกราคาซื้อ {{price}} แล้ว บันทึกค่าน้ำมันหรือใบเสร็จเพื่อเริ่มยอดรวม",
+      "empty": "บันทึกค่าน้ำมันหรือใบเสร็จเพื่อเริ่มยอดรวม",
+      "loadError": "โหลดค่าใช้จ่ายไม่สำเร็จ",
+      "cardA11y": "ค่าใช้จ่ายปี {{year}} {{total}} เปิดการวิเคราะห์ค่าใช้จ่าย"
+    },
+    "notes": {
+      "title": "โน้ต",
+      "all": "โน้ตทั้งหมด",
+      "placeholder": "จดอะไรสักหน่อย…",
+      "noteButton": "โน้ต",
+      "noteButtonA11y": "เขียนโน้ตยาวขึ้น",
+      "inputA11y": "เพิ่มโน้ต",
+      "saveFailed": "บันทึกโน้ตไม่สำเร็จ ลองอีกครั้ง",
+      "loadError": "โหลดโน้ตไม่สำเร็จ"
+    },
+    "papers": {
+      "title": "เอกสารและรถ",
+      "stored_one": "เก็บไว้ {{count}} รายการ",
+      "stored_other": "เก็บไว้ {{count}} รายการ",
+      "empty": "ประกัน ทะเบียน กรรมสิทธิ์ และประวัติซ่อมบำรุง",
+      "bought": "ซื้อเมื่อ {{date}}"
+    },
+    "log": {
+      "title": "บันทึกสำหรับ {{name}}",
+      "expense": "ค่าใช้จ่าย",
+      "expenseSub": "น้ำมัน อะไหล่ ประกัน ค่าทางด่วน",
+      "task": "งานซ่อมบำรุง",
+      "taskSub": "สิ่งที่ต้องทำ กำหนดตามวันที่หรือระยะทาง",
+      "pastWork": "งานที่ทำไปแล้ว",
+      "pastWorkSub": "เข้าประวัติซ่อมบำรุงทันที พร้อมค่าใช้จ่ายถ้ามี",
+      "note": "โน้ต",
+      "noteSub": "ไอเดีย หมายเลขอะไหล่ หรือสิ่งที่อยากจำ",
+      "document": "เอกสาร",
+      "documentSub": "ประกัน ทะเบียน กรรมสิทธิ์ ประวัติซ่อมบำรุง"
+    },
+    "odometer": {
+      "title": "เลขไมล์",
+      "newReading": "ค่าใหม่",
+      "deltaUp": "+{{delta}} {{unit}} ตั้งแต่ {{date}} · เดิม {{last}}",
+      "deltaUpNoDate": "+{{delta}} {{unit}} · เดิม {{last}}",
+      "deltaDown": "−{{delta}} {{unit}} · เดิม {{last}}",
+      "unchanged": "เท่ากับค่าล่าสุด · {{last}}",
+      "first": "ค่าแรกของรถคันนี้",
+      "lastReading": "ค่าล่าสุด {{last}} {{unit}} · {{date}}",
+      "ridesChip_one": "+{{distance}} จาก {{count}} ทริปที่บันทึก",
+      "ridesChip_other": "+{{distance}} จาก {{count}} ทริปที่บันทึก",
+      "dateToday": "วันที่ · วันนี้",
+      "dateOn": "วันที่ · {{date}}",
+      "deleteA11y": "ลบตัวเลข",
+      "helper": "ค่าจะถูกเก็บเป็นประวัติ หากค่าต่ำกว่าครั้งล่าสุดจะถามก่อนบันทึก",
+      "save": "บันทึก {{value}} {{unit}}",
+      "lowerTitle": "ต่ำกว่าค่าล่าสุด",
+      "lowerMessage": "ต่ำกว่าค่าล่าสุด ({{last}} {{unit}}) บันทึกต่อไปหรือไม่",
+      "backdatedNotice": "วันที่ก่อนค่าล่าสุด: ระบบจะบันทึกไว้ และเลขไมล์ยังคงเป็น {{last}} {{unit}}",
+      "futureDate": "วันที่ต้องไม่อยู่ในอนาคต",
+      "saveFailed": "บันทึกค่าไม่สำเร็จ ลองอีกครั้ง"
+    },
+    "noteSheet": {
+      "new": "โน้ตใหม่",
+      "edit": "แก้ไขโน้ต",
+      "placeholder": "อยากจดอะไรไว้",
+      "stamp": "{{odometer}} {{unit}} · วันนี้",
+      "stampA11y": "ประทับเลขไมล์",
+      "photo": "รูป",
+      "removePhotoA11y": "ลบรูป",
+      "attachTo": "แนบกับ",
+      "alsoTask": "สร้างเป็นงานด้วย",
+      "alsoTaskSub": "สร้างงานความสำคัญต่ำที่ไม่มีกำหนด พร้อมแนบโน้ตนี้",
+      "save": "บันทึกโน้ต",
+      "discardTitle": "ทิ้งโน้ตนี้หรือไม่",
+      "discardKeep": "แก้ไขต่อ",
+      "discard": "ทิ้ง",
+      "photoFailed": "บันทึกโน้ตแล้ว แต่รูปไม่สำเร็จ",
+      "taskNotCreated": "บันทึกโน้ตแล้ว แต่สร้างงานไม่สำเร็จ ใช้ “สร้างเป็นงาน” ที่โน้ตได้",
+      "photoLimit": "สูงสุด {{max}} รูปต่อโน้ต"
+    },
+    "notesScreen": {
+      "title": "โน้ต · {{name}}",
+      "count_one": "{{count}} โน้ต",
+      "count_other": "{{count}} โน้ต",
+      "hint": "ใหม่สุดก่อน · ปัดเพื่อแก้ไข · ลบ",
+      "searchPlaceholder": "ค้นหาโน้ต…",
+      "searchA11y": "ค้นหาโน้ต",
+      "makeTask": "สร้างเป็นงาน",
+      "linkedExpense": "ค่าใช้จ่ายที่ลิงก์ · {{amount}}",
+      "deleted": "ลบโน้ตแล้ว",
+      "deleteFailed": "ลบโน้ตไม่สำเร็จ",
+      "makeTaskFailed": "สร้างงานไม่สำเร็จ",
+      "empty": "ยังไม่มีโน้ต",
+      "emptySub": "จดหมายเลขอะไหล่ แรงดันลม และสิ่งที่อยากจำเกี่ยวกับรถคันนี้",
+      "noMatch": "ไม่มีโน้ตที่ตรงกับ “{{query}}”",
+      "composerAdd": "เพิ่ม",
+      "attachPhotoA11y": "แนบรูป",
+      "photoA11y": "รูปในโน้ต"
     }
   },
   "maintenance": {

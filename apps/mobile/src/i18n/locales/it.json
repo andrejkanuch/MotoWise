@@ -1115,7 +1115,8 @@
         "documentExpiresIn_one": "{{category}}: scade tra {{count}} giorno",
         "documentExpiresIn_other": "{{category}}: scade tra {{count}} giorni",
         "documentExpiresToday": "{{category}}: scade oggi"
-      }
+      },
+      "untrackedHint": "Lo stato compare quando esiste un’attività o un documento."
     },
     "action": {
       "log": "Registra",
@@ -1130,6 +1131,160 @@
     },
     "bikeActions": {
       "title": "Gestisci"
+    },
+    "undo": "Annulla",
+    "priority": {
+      "critical": "critica",
+      "high": "alta",
+      "medium": "media",
+      "low": "bassa"
+    },
+    "photo": {
+      "a11y": "Foto della moto, apri i dettagli della moto",
+      "primary": "PRINCIPALE",
+      "rides_one": "{{count}} uscita",
+      "rides_other": "{{count}} uscite",
+      "add": "Aggiungi una foto",
+      "addA11y": "Aggiungi una foto di questa moto"
+    },
+    "attention": {
+      "title": "Richiede attenzione",
+      "all": "Tutte",
+      "allA11y": "Tutte le attività, apri Manutenzione",
+      "recallOne": "Richiamo di sicurezza aperto · {{component}}",
+      "recallOneNoDetail": "Richiamo di sicurezza aperto",
+      "recallMany_one": "{{count}} richiamo di sicurezza aperto",
+      "recallMany_other": "{{count}} richiami di sicurezza aperti",
+      "recallSub": "Riparazione gratuita dal concessionario",
+      "docExpires": "{{category}}: scade il {{date}}",
+      "docExpired": "{{category}}: scaduto il {{date}}",
+      "docDaysAgo_one": "{{count}} giorno fa",
+      "docDaysAgo_other": "{{count}} giorni fa",
+      "docToday": "Oggi",
+      "moreOverdue_one": "{{count}} altra scaduta, {{priorities}}",
+      "moreOverdue_other": "altre {{count}} scadute, {{priorities}}",
+      "more_one": "{{count}} altra",
+      "more_other": "altre {{count}}",
+      "listAnd": "{{first}} e {{last}}",
+      "loadError": "Impossibile caricare le attività"
+    },
+    "nextUp": {
+      "title": "In arrivo"
+    },
+    "setup": {
+      "title": "Configura questa moto",
+      "import": "Importa il piano di manutenzione {{make}}",
+      "importSub": "Crea gli intervalli di fabbrica come attività, in {{unit}} o mesi",
+      "logWork": "Registra lavori già fatti",
+      "logWorkSub": "Tagliando di rodaggio, pneumatici, tutto ciò che precede MotoVault",
+      "documents": "Aggiungi assicurazione e immatricolazione",
+      "documentsSub": "Riceverai un avviso 30 giorni prima della scadenza"
+    },
+    "costs": {
+      "title": "Costi",
+      "full": "Analisi completa",
+      "percent": "{{value}}%",
+      "vsSamePeriod": "rispetto allo stesso periodo del {{year}}",
+      "thisMonth": "Questo mese",
+      "perMonth": "Al mese · {{year}}",
+      "topCategory": "Categoria principale",
+      "topCategoryValue": "{{category}} {{percent}}%",
+      "shareA11y": "{{category}} {{percent}}%",
+      "rest": "Altro",
+      "emptyWithPrice": "Prezzo di acquisto {{price}} registrato. Registra carburante o una ricevuta per avviare il totale.",
+      "empty": "Registra carburante o una ricevuta per avviare il totale.",
+      "loadError": "Impossibile caricare i costi",
+      "cardA11y": "Costi {{year}}, {{total}}. Apri l’analisi dei costi"
+    },
+    "notes": {
+      "title": "Note",
+      "all": "Tutte le note",
+      "placeholder": "Annota qualcosa…",
+      "noteButton": "Nota",
+      "noteButtonA11y": "Scrivi una nota più lunga",
+      "inputA11y": "Aggiungi una nota",
+      "saveFailed": "Impossibile salvare la nota. Riprova.",
+      "loadError": "Impossibile caricare le note"
+    },
+    "papers": {
+      "title": "Documenti e moto",
+      "stored_one": "{{count}} salvato",
+      "stored_other": "{{count}} salvati",
+      "empty": "Assicurazione, immatricolazione, proprietà e tagliandi",
+      "bought": "acquistata a {{date}}"
+    },
+    "log": {
+      "title": "Registra per {{name}}",
+      "expense": "Spesa",
+      "expenseSub": "Carburante, ricambi, assicurazione, pedaggi",
+      "task": "Attività di manutenzione",
+      "taskSub": "Qualcosa da fare, con scadenza per data o distanza",
+      "pastWork": "Lavoro già fatto",
+      "pastWorkSub": "Va direttamente nello storico di manutenzione, con il costo se presente",
+      "note": "Nota",
+      "noteSub": "Un’idea, un codice ricambio, una cosa da ricordare",
+      "document": "Documento",
+      "documentSub": "Assicurazione, immatricolazione, proprietà, tagliando"
+    },
+    "odometer": {
+      "title": "Contachilometri",
+      "newReading": "Nuova lettura",
+      "deltaUp": "+{{delta}} {{unit}} dal {{date}} · prima {{last}}",
+      "deltaUpNoDate": "+{{delta}} {{unit}} · prima {{last}}",
+      "deltaDown": "−{{delta}} {{unit}} · prima {{last}}",
+      "unchanged": "Uguale all’ultima lettura · {{last}}",
+      "first": "Prima lettura per questa moto",
+      "lastReading": "Ultima lettura {{last}} {{unit}} · {{date}}",
+      "ridesChip_one": "+{{distance}} da {{count}} uscita registrata",
+      "ridesChip_other": "+{{distance}} da {{count}} uscite registrate",
+      "dateToday": "Data · oggi",
+      "dateOn": "Data · {{date}}",
+      "deleteA11y": "Cancella cifra",
+      "helper": "Le letture vengono conservate in un registro. Una lettura inferiore all’ultima chiede conferma prima di salvare.",
+      "save": "Salva {{value}} {{unit}}",
+      "lowerTitle": "Inferiore all’ultima lettura",
+      "lowerMessage": "Inferiore all’ultima lettura ({{last}} {{unit}}). Salvare comunque?",
+      "backdatedNotice": "Precedente all’ultima lettura: viene registrata e il contachilometri resta a {{last}} {{unit}}.",
+      "futureDate": "La data non può essere nel futuro.",
+      "saveFailed": "Impossibile salvare la lettura. Riprova."
+    },
+    "noteSheet": {
+      "new": "Nuova nota",
+      "edit": "Modifica nota",
+      "placeholder": "Cosa vuoi ricordare?",
+      "stamp": "{{odometer}} {{unit}} · oggi",
+      "stampA11y": "Timbro del contachilometri",
+      "photo": "Foto",
+      "removePhotoA11y": "Rimuovi foto",
+      "attachTo": "Associa a",
+      "alsoTask": "Rendila anche un’attività",
+      "alsoTaskSub": "Crea un’attività a bassa priorità senza scadenza, con questa nota allegata",
+      "save": "Salva nota",
+      "discardTitle": "Scartare questa nota?",
+      "discardKeep": "Continua a modificare",
+      "discard": "Scarta",
+      "photoFailed": "Nota salvata, foto non riuscita",
+      "taskNotCreated": "Nota salvata. Non è stato possibile creare l’attività: usa «Rendila un’attività» sulla nota.",
+      "photoLimit": "Fino a {{max}} foto per nota"
+    },
+    "notesScreen": {
+      "title": "Note · {{name}}",
+      "count_one": "{{count}} nota",
+      "count_other": "{{count}} note",
+      "hint": "più recenti prima · scorri per modificare · eliminare",
+      "searchPlaceholder": "Cerca nelle note…",
+      "searchA11y": "Cerca nelle note",
+      "makeTask": "Rendila un’attività",
+      "linkedExpense": "Spesa collegata · {{amount}}",
+      "deleted": "Nota eliminata",
+      "deleteFailed": "Impossibile eliminare la nota.",
+      "makeTaskFailed": "Impossibile creare l’attività.",
+      "empty": "Ancora nessuna nota",
+      "emptySub": "Annota codici ricambio, pressioni e cose da ricordare su questa moto.",
+      "noMatch": "Nessuna nota corrisponde a «{{query}}»",
+      "composerAdd": "Aggiungi",
+      "attachPhotoA11y": "Allega una foto",
+      "photoA11y": "Foto della nota"
     }
   },
   "maintenance": {

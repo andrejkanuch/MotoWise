@@ -1115,7 +1115,8 @@
         "documentExpiresIn_one": "{{category}} : expire dans {{count}} jour",
         "documentExpiresIn_other": "{{category}} : expire dans {{count}} jours",
         "documentExpiresToday": "{{category}} : expire aujourd'hui"
-      }
+      },
+      "untrackedHint": "L'état apparaît dès qu'une tâche ou un document existe."
     },
     "action": {
       "log": "Consigner",
@@ -1130,6 +1131,160 @@
     },
     "bikeActions": {
       "title": "Gérer"
+    },
+    "undo": "Annuler",
+    "priority": {
+      "critical": "critique",
+      "high": "élevée",
+      "medium": "moyenne",
+      "low": "basse"
+    },
+    "photo": {
+      "a11y": "Photo de la moto, ouvrir les détails de la moto",
+      "primary": "PRINCIPALE",
+      "rides_one": "{{count}} sortie",
+      "rides_other": "{{count}} sorties",
+      "add": "Ajouter une photo",
+      "addA11y": "Ajouter une photo de cette moto"
+    },
+    "attention": {
+      "title": "À traiter",
+      "all": "Tout",
+      "allA11y": "Toutes les tâches, ouvrir Entretien",
+      "recallOne": "Rappel de sécurité ouvert · {{component}}",
+      "recallOneNoDetail": "Rappel de sécurité ouvert",
+      "recallMany_one": "{{count}} rappel de sécurité ouvert",
+      "recallMany_other": "{{count}} rappels de sécurité ouverts",
+      "recallSub": "Réparation gratuite chez le concessionnaire",
+      "docExpires": "{{category}} : expire le {{date}}",
+      "docExpired": "{{category}} : expiré le {{date}}",
+      "docDaysAgo_one": "Il y a {{count}} jour",
+      "docDaysAgo_other": "Il y a {{count}} jours",
+      "docToday": "Aujourd'hui",
+      "moreOverdue_one": "{{count}} autre en retard, {{priorities}}",
+      "moreOverdue_other": "{{count}} autres en retard, {{priorities}}",
+      "more_one": "{{count}} autre",
+      "more_other": "{{count}} autres",
+      "listAnd": "{{first}} et {{last}}",
+      "loadError": "Impossible de charger les tâches"
+    },
+    "nextUp": {
+      "title": "À venir"
+    },
+    "setup": {
+      "title": "Configurer cette moto",
+      "import": "Importer le plan d'entretien {{make}}",
+      "importSub": "Crée les intervalles d'usine sous forme de tâches, en {{unit}} ou en mois",
+      "logWork": "Consigner des travaux déjà faits",
+      "logWorkSub": "Révision de rodage, pneus, tout ce qui date d’avant MotoVault",
+      "documents": "Ajouter l'assurance et la carte grise",
+      "documentsSub": "Vous serez averti 30 jours avant leur expiration"
+    },
+    "costs": {
+      "title": "Coûts",
+      "full": "Analyse complète",
+      "percent": "{{value}} %",
+      "vsSamePeriod": "par rapport à la même période de {{year}}",
+      "thisMonth": "Ce mois-ci",
+      "perMonth": "Par mois · {{year}}",
+      "topCategory": "Première catégorie",
+      "topCategoryValue": "{{category}} {{percent}} %",
+      "shareA11y": "{{category}} {{percent}} %",
+      "rest": "Autres",
+      "emptyWithPrice": "Prix d'achat {{price}} enregistré. Consignez du carburant ou un reçu pour lancer le total.",
+      "empty": "Consignez du carburant ou un reçu pour lancer le total.",
+      "loadError": "Impossible de charger les coûts",
+      "cardA11y": "Coûts {{year}}, {{total}}. Ouvrir l'analyse des coûts"
+    },
+    "notes": {
+      "title": "Notes",
+      "all": "Toutes les notes",
+      "placeholder": "Notez quelque chose…",
+      "noteButton": "Note",
+      "noteButtonA11y": "Écrire une note plus longue",
+      "inputA11y": "Ajouter une note",
+      "saveFailed": "Impossible d'enregistrer la note. Réessayez.",
+      "loadError": "Impossible de charger les notes"
+    },
+    "papers": {
+      "title": "Papiers et moto",
+      "stored_one": "{{count}} enregistré",
+      "stored_other": "{{count}} enregistrés",
+      "empty": "Assurance, carte grise, titre et justificatifs d'entretien",
+      "bought": "achetée en {{date}}"
+    },
+    "log": {
+      "title": "Consigner pour {{name}}",
+      "expense": "Dépense",
+      "expenseSub": "Carburant, pièces, assurance, péages",
+      "task": "Tâche d'entretien",
+      "taskSub": "Quelque chose à faire, à échéance par date ou distance",
+      "pastWork": "Travail déjà fait",
+      "pastWorkSub": "Va directement dans l'historique d'entretien, avec le coût le cas échéant",
+      "note": "Note",
+      "noteSub": "Une idée, une référence de pièce, une chose à retenir",
+      "document": "Document",
+      "documentSub": "Assurance, carte grise, titre, justificatif d'entretien"
+    },
+    "odometer": {
+      "title": "Compteur",
+      "newReading": "Nouveau relevé",
+      "deltaUp": "+{{delta}} {{unit}} depuis le {{date}} · avant {{last}}",
+      "deltaUpNoDate": "+{{delta}} {{unit}} · avant {{last}}",
+      "deltaDown": "−{{delta}} {{unit}} · avant {{last}}",
+      "unchanged": "Identique au dernier relevé · {{last}}",
+      "first": "Premier relevé pour cette moto",
+      "lastReading": "Dernier relevé {{last}} {{unit}} · {{date}}",
+      "ridesChip_one": "+{{distance}} de {{count}} sortie enregistrée",
+      "ridesChip_other": "+{{distance}} de {{count}} sorties enregistrées",
+      "dateToday": "Date · aujourd'hui",
+      "dateOn": "Date · {{date}}",
+      "deleteA11y": "Supprimer le chiffre",
+      "helper": "Les relevés sont conservés dans un journal. Un relevé inférieur au dernier demande confirmation avant l'enregistrement.",
+      "save": "Enregistrer {{value}} {{unit}}",
+      "lowerTitle": "Inférieur au dernier relevé",
+      "lowerMessage": "Inférieur au dernier relevé ({{last}} {{unit}}). Enregistrer quand même ?",
+      "backdatedNotice": "Antérieur à votre dernier relevé : il est consigné et le compteur reste à {{last}} {{unit}}.",
+      "futureDate": "La date ne peut pas être dans le futur.",
+      "saveFailed": "Impossible d'enregistrer le relevé. Réessayez."
+    },
+    "noteSheet": {
+      "new": "Nouvelle note",
+      "edit": "Modifier la note",
+      "placeholder": "Que voulez-vous retenir ?",
+      "stamp": "{{odometer}} {{unit}} · aujourd'hui",
+      "stampA11y": "Marque du compteur",
+      "photo": "Photo",
+      "removePhotoA11y": "Retirer la photo",
+      "attachTo": "Associer à",
+      "alsoTask": "En faire aussi une tâche",
+      "alsoTaskSub": "Crée une tâche de priorité basse sans échéance, avec cette note jointe",
+      "save": "Enregistrer la note",
+      "discardTitle": "Abandonner cette note ?",
+      "discardKeep": "Continuer la modification",
+      "discard": "Abandonner",
+      "photoFailed": "Note enregistrée, échec de la photo",
+      "taskNotCreated": "Note enregistrée. La tâche n’a pas pu être créée : utilisez « En faire une tâche » sur la note.",
+      "photoLimit": "Jusqu'à {{max}} photos par note"
+    },
+    "notesScreen": {
+      "title": "Notes · {{name}}",
+      "count_one": "{{count}} note",
+      "count_other": "{{count}} notes",
+      "hint": "plus récentes d'abord · balayez pour modifier · supprimer",
+      "searchPlaceholder": "Rechercher dans les notes…",
+      "searchA11y": "Rechercher dans les notes",
+      "makeTask": "En faire une tâche",
+      "linkedExpense": "Dépense liée · {{amount}}",
+      "deleted": "Note supprimée",
+      "deleteFailed": "Impossible de supprimer la note.",
+      "makeTaskFailed": "Impossible de créer la tâche.",
+      "empty": "Pas encore de notes",
+      "emptySub": "Notez des références de pièces, des pressions et tout ce qu’il faut retenir sur cette moto.",
+      "noMatch": "Aucune note ne correspond à « {{query}} »",
+      "composerAdd": "Ajouter",
+      "attachPhotoA11y": "Joindre une photo",
+      "photoA11y": "Photo de la note"
     }
   },
   "maintenance": {
