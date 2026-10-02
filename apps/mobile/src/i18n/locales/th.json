@@ -1049,7 +1049,87 @@
     "updatedYesterdayFrom": "อัปเดตเมื่อวานจาก {{source}}",
     "updatedDaysAgoFrom": "อัปเดต {{days}} วันที่แล้วจาก {{source}}",
     "maintenance": "การบำรุงรักษา",
-    "allTasks": "งานทั้งหมด"
+    "allTasks": "งานทั้งหมด",
+    "segment": {
+      "overview": "ภาพรวม",
+      "service": "ซ่อมบำรุง",
+      "costs": "ค่าใช้จ่าย",
+      "bike": "รถ",
+      "listA11y": "ส่วนต่าง ๆ ของรถ",
+      "serviceBadgeA11y_one": "ซ่อมบำรุง งานสำคัญสูงที่เลยกำหนด {{count}} รายการ",
+      "serviceBadgeA11y_other": "ซ่อมบำรุง งานสำคัญสูงที่เลยกำหนด {{count}} รายการ"
+    },
+    "header": {
+      "backTo": "กลับไปที่{{origin}}",
+      "odometerA11y": "เลขไมล์ {{value}} {{unit}} แตะเพื่ออัปเดต",
+      "setOdometer": "ตั้งเลขไมล์",
+      "setOdometerA11y": "ยังไม่ได้ตั้งเลขไมล์ แตะเพื่อตั้งค่า"
+    },
+    "tag": {
+      "critical": "วิกฤต",
+      "high": "สูง",
+      "medium": "กลาง",
+      "low": "ต่ำ",
+      "safety": "ปลอดภัย",
+      "doc": "เอกสาร"
+    },
+    "due": {
+      "daysLate_one": "เลยกำหนด {{count}} วัน",
+      "daysLate_other": "เลยกำหนด {{count}} วัน",
+      "today": "ครบกำหนดวันนี้",
+      "inDays_one": "อีก {{count}} วัน",
+      "inDays_other": "อีก {{count}} วัน",
+      "pastTarget": "เกินเป้า {{distance}} {{unit}}",
+      "inDistance": "อีก {{distance}} {{unit}}",
+      "atDistance": "ที่ {{distance}} {{unit}}",
+      "orToday": "หรือวันนี้",
+      "orInDays_one": "หรืออีก {{count}} วัน",
+      "orInDays_other": "หรืออีก {{count}} วัน",
+      "orBy": "หรือภายใน {{date}}",
+      "orInDistance": "หรืออีก {{distance}} {{unit}}",
+      "orAtDistance": "หรือที่ {{distance}} {{unit}}",
+      "toTarget": "เหลือ {{distance}} {{unit}} ถึงเป้า",
+      "targetAt": "เป้า {{distance}} {{unit}}",
+      "dueToday": "ครบกำหนดวันนี้",
+      "dueInDays_one": "ครบกำหนดในอีก {{count}} วัน",
+      "dueInDays_other": "ครบกำหนดในอีก {{count}} วัน",
+      "dueBy": "ครบกำหนด {{date}}",
+      "schedule": "ตารางของ {{make}}",
+      "scheduleGeneric": "ตารางของผู้ผลิต",
+      "someday": "ไม่มีกำหนด"
+    },
+    "rideStatus": {
+      "notReady": "ยังไม่พร้อม",
+      "check": "ตรวจสอบก่อนขี่",
+      "ready": "พร้อมขี่",
+      "untracked": "ยังไม่มีการติดตาม",
+      "reason": {
+        "openRecalls_one": "การเรียกคืนที่ยังเปิดอยู่ {{count}} รายการ",
+        "openRecalls_other": "การเรียกคืนที่ยังเปิดอยู่ {{count}} รายการ",
+        "overdueCritical_one": "งานวิกฤตที่เลยกำหนด {{count}} รายการ",
+        "overdueCritical_other": "งานวิกฤตที่เลยกำหนด {{count}} รายการ",
+        "overdueHigh_one": "งานสำคัญสูงที่เลยกำหนด {{count}} รายการ",
+        "overdueHigh_other": "งานสำคัญสูงที่เลยกำหนด {{count}} รายการ",
+        "documentExpired": "{{category}}หมดอายุแล้ว",
+        "documentExpiresIn_one": "{{category}}จะหมดอายุในอีก {{count}} วัน",
+        "documentExpiresIn_other": "{{category}}จะหมดอายุในอีก {{count}} วัน",
+        "documentExpiresToday": "{{category}}หมดอายุวันนี้"
+      }
+    },
+    "action": {
+      "log": "บันทึก",
+      "logA11y": "บันทึกข้อมูลของรถคันนี้",
+      "addTaskA11y": "เพิ่มงานซ่อมบำรุง",
+      "addExpenseA11y": "เพิ่มค่าใช้จ่าย",
+      "addDocumentA11y": "เพิ่มเอกสาร"
+    },
+    "state": {
+      "notFound": "รถคันนี้ไม่อยู่ในโรงรถของคุณแล้ว",
+      "loadingA11y": "กำลังโหลดรถ"
+    },
+    "bikeActions": {
+      "title": "จัดการ"
+    }
   },
   "maintenance": {
     "healthScore": "คะแนนสุขภาพ",

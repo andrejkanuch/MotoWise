@@ -1050,7 +1050,87 @@
     "updatedYesterdayFrom": "Aggiornato ieri da {{source}}",
     "updatedDaysAgoFrom": "Aggiornato {{days}}g fa da {{source}}",
     "maintenance": "Manutenzione",
-    "allTasks": "Tutte le attività"
+    "allTasks": "Tutte le attività",
+    "segment": {
+      "overview": "Panoramica",
+      "service": "Manutenzione",
+      "costs": "Costi",
+      "bike": "Moto",
+      "listA11y": "Sezioni della moto",
+      "serviceBadgeA11y_one": "Manutenzione, {{count}} attività scaduta ad alta priorità",
+      "serviceBadgeA11y_other": "Manutenzione, {{count}} attività scadute ad alta priorità"
+    },
+    "header": {
+      "backTo": "Torna a {{origin}}",
+      "odometerA11y": "Contachilometri {{value}} {{unit}}, tocca per aggiornare",
+      "setOdometer": "Imposta contachilometri",
+      "setOdometerA11y": "Contachilometri non impostato, tocca per impostarlo"
+    },
+    "tag": {
+      "critical": "CRIT",
+      "high": "ALTA",
+      "medium": "MED",
+      "low": "BASSA",
+      "safety": "SICUR",
+      "doc": "DOC"
+    },
+    "due": {
+      "daysLate_one": "{{count}} giorno di ritardo",
+      "daysLate_other": "{{count}} giorni di ritardo",
+      "today": "Scade oggi",
+      "inDays_one": "Tra {{count}} giorno",
+      "inDays_other": "Tra {{count}} giorni",
+      "pastTarget": "{{distance}} {{unit}} oltre l'obiettivo",
+      "inDistance": "Tra {{distance}} {{unit}}",
+      "atDistance": "A {{distance}} {{unit}}",
+      "orToday": "o oggi",
+      "orInDays_one": "o tra {{count}} giorno",
+      "orInDays_other": "o tra {{count}} giorni",
+      "orBy": "o entro il {{date}}",
+      "orInDistance": "o tra {{distance}} {{unit}}",
+      "orAtDistance": "o a {{distance}} {{unit}}",
+      "toTarget": "mancano {{distance}} {{unit}}",
+      "targetAt": "obiettivo {{distance}} {{unit}}",
+      "dueToday": "scade oggi",
+      "dueInDays_one": "scade tra {{count}} giorno",
+      "dueInDays_other": "scade tra {{count}} giorni",
+      "dueBy": "scade il {{date}}",
+      "schedule": "Piano {{make}}",
+      "scheduleGeneric": "Piano del costruttore",
+      "someday": "Senza scadenza"
+    },
+    "rideStatus": {
+      "notReady": "Non pronta",
+      "check": "Controlla prima di partire",
+      "ready": "Pronta a partire",
+      "untracked": "Ancora niente da monitorare",
+      "reason": {
+        "openRecalls_one": "{{count}} richiamo di sicurezza aperto",
+        "openRecalls_other": "{{count}} richiami di sicurezza aperti",
+        "overdueCritical_one": "{{count}} attività critica scaduta",
+        "overdueCritical_other": "{{count}} attività critiche scadute",
+        "overdueHigh_one": "{{count}} attività ad alta priorità scaduta",
+        "overdueHigh_other": "{{count}} attività ad alta priorità scadute",
+        "documentExpired": "{{category}}: scadenza superata",
+        "documentExpiresIn_one": "{{category}}: scade tra {{count}} giorno",
+        "documentExpiresIn_other": "{{category}}: scade tra {{count}} giorni",
+        "documentExpiresToday": "{{category}}: scade oggi"
+      }
+    },
+    "action": {
+      "log": "Registra",
+      "logA11y": "Registra qualcosa per questa moto",
+      "addTaskA11y": "Aggiungi un'attività di manutenzione",
+      "addExpenseA11y": "Aggiungi una spesa",
+      "addDocumentA11y": "Aggiungi un documento"
+    },
+    "state": {
+      "notFound": "Questa moto non è più nel tuo garage.",
+      "loadingA11y": "Caricamento della moto"
+    },
+    "bikeActions": {
+      "title": "Gestisci"
+    }
   },
   "maintenance": {
     "healthScore": "Punteggio salute",

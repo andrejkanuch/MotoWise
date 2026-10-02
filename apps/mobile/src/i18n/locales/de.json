@@ -1049,7 +1049,87 @@
     "updatedYesterdayFrom": "Gestern aktualisiert von {{source}}",
     "updatedDaysAgoFrom": "Vor {{days}} T. aktualisiert von {{source}}",
     "maintenance": "Wartung",
-    "allTasks": "Alle Aufgaben"
+    "allTasks": "Alle Aufgaben",
+    "segment": {
+      "overview": "Übersicht",
+      "service": "Service",
+      "costs": "Kosten",
+      "bike": "Motorrad",
+      "listA11y": "Motorrad-Bereiche",
+      "serviceBadgeA11y_one": "Service, {{count}} überfällige Aufgabe mit hoher Priorität",
+      "serviceBadgeA11y_other": "Service, {{count}} überfällige Aufgaben mit hoher Priorität"
+    },
+    "header": {
+      "backTo": "Zurück zu {{origin}}",
+      "odometerA11y": "Kilometerstand {{value}} {{unit}}, zum Aktualisieren tippen",
+      "setOdometer": "Kilometerstand eintragen",
+      "setOdometerA11y": "Kein Kilometerstand, zum Eintragen tippen"
+    },
+    "tag": {
+      "critical": "KRIT",
+      "high": "HOCH",
+      "medium": "MITT",
+      "low": "NIED",
+      "safety": "SICH",
+      "doc": "DOK"
+    },
+    "due": {
+      "daysLate_one": "{{count}} Tag überfällig",
+      "daysLate_other": "{{count}} Tage überfällig",
+      "today": "Heute fällig",
+      "inDays_one": "In {{count}} Tag",
+      "inDays_other": "In {{count}} Tagen",
+      "pastTarget": "{{distance}} {{unit}} über dem Ziel",
+      "inDistance": "In {{distance}} {{unit}}",
+      "atDistance": "Bei {{distance}} {{unit}}",
+      "orToday": "oder heute",
+      "orInDays_one": "oder in {{count}} Tag",
+      "orInDays_other": "oder in {{count}} Tagen",
+      "orBy": "oder bis {{date}}",
+      "orInDistance": "oder in {{distance}} {{unit}}",
+      "orAtDistance": "oder bei {{distance}} {{unit}}",
+      "toTarget": "noch {{distance}} {{unit}} bis zum Ziel",
+      "targetAt": "Ziel {{distance}} {{unit}}",
+      "dueToday": "heute fällig",
+      "dueInDays_one": "fällig in {{count}} Tag",
+      "dueInDays_other": "fällig in {{count}} Tagen",
+      "dueBy": "fällig am {{date}}",
+      "schedule": "{{make}}-Wartungsplan",
+      "scheduleGeneric": "Hersteller-Wartungsplan",
+      "someday": "Kein Termin"
+    },
+    "rideStatus": {
+      "notReady": "Nicht fahrbereit",
+      "check": "Vor der Fahrt prüfen",
+      "ready": "Fahrbereit",
+      "untracked": "Noch nichts erfasst",
+      "reason": {
+        "openRecalls_one": "{{count}} offener Rückruf",
+        "openRecalls_other": "{{count}} offene Rückrufe",
+        "overdueCritical_one": "{{count}} überfällige kritische Aufgabe",
+        "overdueCritical_other": "{{count}} überfällige kritische Aufgaben",
+        "overdueHigh_one": "{{count}} überfällige Aufgabe mit hoher Priorität",
+        "overdueHigh_other": "{{count}} überfällige Aufgaben mit hoher Priorität",
+        "documentExpired": "{{category}} abgelaufen",
+        "documentExpiresIn_one": "{{category}} läuft in {{count}} Tag ab",
+        "documentExpiresIn_other": "{{category}} läuft in {{count}} Tagen ab",
+        "documentExpiresToday": "{{category}} läuft heute ab"
+      }
+    },
+    "action": {
+      "log": "Eintragen",
+      "logA11y": "Etwas für dieses Motorrad eintragen",
+      "addTaskA11y": "Wartungsaufgabe hinzufügen",
+      "addExpenseA11y": "Ausgabe hinzufügen",
+      "addDocumentA11y": "Dokument hinzufügen"
+    },
+    "state": {
+      "notFound": "Dieses Motorrad ist nicht mehr in deiner Garage.",
+      "loadingA11y": "Motorrad wird geladen"
+    },
+    "bikeActions": {
+      "title": "Verwalten"
+    }
   },
   "maintenance": {
     "headerLabel": "WARTUNG",

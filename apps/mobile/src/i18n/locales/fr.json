@@ -1050,7 +1050,87 @@
     "updatedYesterdayFrom": "Mis à jour hier depuis {{source}}",
     "updatedDaysAgoFrom": "Mis à jour il y a {{days}} j depuis {{source}}",
     "maintenance": "Entretien",
-    "allTasks": "Toutes les tâches"
+    "allTasks": "Toutes les tâches",
+    "segment": {
+      "overview": "Aperçu",
+      "service": "Entretien",
+      "costs": "Coûts",
+      "bike": "Moto",
+      "listA11y": "Sections de la moto",
+      "serviceBadgeA11y_one": "Entretien, {{count}} tâche en retard de priorité élevée",
+      "serviceBadgeA11y_other": "Entretien, {{count}} tâches en retard de priorité élevée"
+    },
+    "header": {
+      "backTo": "Retour à {{origin}}",
+      "odometerA11y": "Compteur {{value}} {{unit}}, touchez pour mettre à jour",
+      "setOdometer": "Saisir le kilométrage",
+      "setOdometerA11y": "Kilométrage non renseigné, touchez pour le saisir"
+    },
+    "tag": {
+      "critical": "CRIT",
+      "high": "HAUT",
+      "medium": "MOY",
+      "low": "BAS",
+      "safety": "SÉCU",
+      "doc": "DOC"
+    },
+    "due": {
+      "daysLate_one": "{{count}} jour de retard",
+      "daysLate_other": "{{count}} jours de retard",
+      "today": "À faire aujourd'hui",
+      "inDays_one": "Dans {{count}} jour",
+      "inDays_other": "Dans {{count}} jours",
+      "pastTarget": "{{distance}} {{unit}} au-delà de l'objectif",
+      "inDistance": "Dans {{distance}} {{unit}}",
+      "atDistance": "À {{distance}} {{unit}}",
+      "orToday": "ou aujourd'hui",
+      "orInDays_one": "ou dans {{count}} jour",
+      "orInDays_other": "ou dans {{count}} jours",
+      "orBy": "ou avant le {{date}}",
+      "orInDistance": "ou dans {{distance}} {{unit}}",
+      "orAtDistance": "ou à {{distance}} {{unit}}",
+      "toTarget": "encore {{distance}} {{unit}} avant l'objectif",
+      "targetAt": "objectif {{distance}} {{unit}}",
+      "dueToday": "à faire aujourd'hui",
+      "dueInDays_one": "à faire dans {{count}} jour",
+      "dueInDays_other": "à faire dans {{count}} jours",
+      "dueBy": "à faire le {{date}}",
+      "schedule": "Plan {{make}}",
+      "scheduleGeneric": "Plan constructeur",
+      "someday": "Sans échéance"
+    },
+    "rideStatus": {
+      "notReady": "Pas prête",
+      "check": "À vérifier avant de rouler",
+      "ready": "Prête à rouler",
+      "untracked": "Rien de suivi pour l'instant",
+      "reason": {
+        "openRecalls_one": "{{count}} rappel de sécurité ouvert",
+        "openRecalls_other": "{{count}} rappels de sécurité ouverts",
+        "overdueCritical_one": "{{count}} tâche critique en retard",
+        "overdueCritical_other": "{{count}} tâches critiques en retard",
+        "overdueHigh_one": "{{count}} tâche prioritaire en retard",
+        "overdueHigh_other": "{{count}} tâches prioritaires en retard",
+        "documentExpired": "{{category}} : échéance dépassée",
+        "documentExpiresIn_one": "{{category}} : expire dans {{count}} jour",
+        "documentExpiresIn_other": "{{category}} : expire dans {{count}} jours",
+        "documentExpiresToday": "{{category}} : expire aujourd'hui"
+      }
+    },
+    "action": {
+      "log": "Consigner",
+      "logA11y": "Consigner quelque chose pour cette moto",
+      "addTaskA11y": "Ajouter une tâche d'entretien",
+      "addExpenseA11y": "Ajouter une dépense",
+      "addDocumentA11y": "Ajouter un document"
+    },
+    "state": {
+      "notFound": "Cette moto n'est plus dans votre garage.",
+      "loadingA11y": "Chargement de la moto"
+    },
+    "bikeActions": {
+      "title": "Gérer"
+    }
   },
   "maintenance": {
     "headerLabel": "ENTRETIEN",

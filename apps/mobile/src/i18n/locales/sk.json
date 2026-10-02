@@ -1051,7 +1051,105 @@
     "updatedYesterdayFrom": "Aktualizované včera z {{source}}",
     "updatedDaysAgoFrom": "Aktualizované pred {{days}} d z {{source}}",
     "maintenance": "Údržba",
-    "allTasks": "Všetky úlohy"
+    "allTasks": "Všetky úlohy",
+    "segment": {
+      "overview": "Prehľad",
+      "service": "Servis",
+      "costs": "Náklady",
+      "bike": "Motorka",
+      "listA11y": "Sekcie motorky",
+      "serviceBadgeA11y_one": "Servis, {{count}} úloha s vysokou prioritou po termíne",
+      "serviceBadgeA11y_few": "Servis, {{count}} úlohy s vysokou prioritou po termíne",
+      "serviceBadgeA11y_many": "Servis, {{count}} úlohy s vysokou prioritou po termíne",
+      "serviceBadgeA11y_other": "Servis, {{count}} úloh s vysokou prioritou po termíne"
+    },
+    "header": {
+      "backTo": "Späť na {{origin}}",
+      "odometerA11y": "Stav tachometra {{value}} {{unit}}, ťuknutím aktualizujete",
+      "setOdometer": "Nastaviť tachometer",
+      "setOdometerA11y": "Tachometer nie je nastavený, ťuknutím ho nastavíte"
+    },
+    "tag": {
+      "critical": "KRIT",
+      "high": "VYS",
+      "medium": "STR",
+      "low": "NÍZ",
+      "safety": "BEZP",
+      "doc": "DOK"
+    },
+    "due": {
+      "daysLate_one": "{{count}} deň po termíne",
+      "daysLate_few": "{{count}} dni po termíne",
+      "daysLate_many": "{{count}} dňa po termíne",
+      "daysLate_other": "{{count}} dní po termíne",
+      "today": "Termín dnes",
+      "inDays_one": "O {{count}} deň",
+      "inDays_few": "O {{count}} dni",
+      "inDays_many": "O {{count}} dňa",
+      "inDays_other": "O {{count}} dní",
+      "pastTarget": "{{distance}} {{unit}} nad cieľom",
+      "inDistance": "O {{distance}} {{unit}}",
+      "atDistance": "Pri {{distance}} {{unit}}",
+      "orToday": "alebo dnes",
+      "orInDays_one": "alebo o {{count}} deň",
+      "orInDays_few": "alebo o {{count}} dni",
+      "orInDays_many": "alebo o {{count}} dňa",
+      "orInDays_other": "alebo o {{count}} dní",
+      "orBy": "alebo do {{date}}",
+      "orInDistance": "alebo o {{distance}} {{unit}}",
+      "orAtDistance": "alebo pri {{distance}} {{unit}}",
+      "toTarget": "{{distance}} {{unit}} do cieľa",
+      "targetAt": "cieľ {{distance}} {{unit}}",
+      "dueToday": "termín dnes",
+      "dueInDays_one": "termín o {{count}} deň",
+      "dueInDays_few": "termín o {{count}} dni",
+      "dueInDays_many": "termín o {{count}} dňa",
+      "dueInDays_other": "termín o {{count}} dní",
+      "dueBy": "termín {{date}}",
+      "schedule": "Plán {{make}}",
+      "scheduleGeneric": "Plán výrobcu",
+      "someday": "Bez termínu"
+    },
+    "rideStatus": {
+      "notReady": "Nepripravená",
+      "check": "Skontrolujte pred jazdou",
+      "ready": "Pripravená na jazdu",
+      "untracked": "Zatiaľ sa nič nesleduje",
+      "reason": {
+        "openRecalls_one": "{{count}} otvorené stiahnutie",
+        "openRecalls_few": "{{count}} otvorené stiahnutia",
+        "openRecalls_many": "{{count}} otvoreného stiahnutia",
+        "openRecalls_other": "{{count}} otvorených stiahnutí",
+        "overdueCritical_one": "{{count}} kritická úloha po termíne",
+        "overdueCritical_few": "{{count}} kritické úlohy po termíne",
+        "overdueCritical_many": "{{count}} kritickej úlohy po termíne",
+        "overdueCritical_other": "{{count}} kritických úloh po termíne",
+        "overdueHigh_one": "{{count}} úloha s vysokou prioritou po termíne",
+        "overdueHigh_few": "{{count}} úlohy s vysokou prioritou po termíne",
+        "overdueHigh_many": "{{count}} úlohy s vysokou prioritou po termíne",
+        "overdueHigh_other": "{{count}} úloh s vysokou prioritou po termíne",
+        "documentExpired": "{{category}}: platnosť vypršala",
+        "documentExpiresIn_one": "{{category}}: platnosť vyprší o {{count}} deň",
+        "documentExpiresIn_few": "{{category}}: platnosť vyprší o {{count}} dni",
+        "documentExpiresIn_many": "{{category}}: platnosť vyprší o {{count}} dňa",
+        "documentExpiresIn_other": "{{category}}: platnosť vyprší o {{count}} dní",
+        "documentExpiresToday": "{{category}}: platnosť vyprší dnes"
+      }
+    },
+    "action": {
+      "log": "Zapísať",
+      "logA11y": "Zapísať niečo k tejto motorke",
+      "addTaskA11y": "Pridať servisnú úlohu",
+      "addExpenseA11y": "Pridať výdavok",
+      "addDocumentA11y": "Pridať dokument"
+    },
+    "state": {
+      "notFound": "Táto motorka už nie je vo vašej garáži.",
+      "loadingA11y": "Načítava sa motorka"
+    },
+    "bikeActions": {
+      "title": "Spravovať"
+    }
   },
   "maintenance": {
     "healthScore": "Skóre stavu",

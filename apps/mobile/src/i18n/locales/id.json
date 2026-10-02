@@ -1049,7 +1049,87 @@
     "updatedYesterdayFrom": "Diperbarui kemarin dari {{source}}",
     "updatedDaysAgoFrom": "Diperbarui {{days}} hari lalu dari {{source}}",
     "maintenance": "Perawatan",
-    "allTasks": "Semua Tugas"
+    "allTasks": "Semua Tugas",
+    "segment": {
+      "overview": "Ringkasan",
+      "service": "Servis",
+      "costs": "Biaya",
+      "bike": "Motor",
+      "listA11y": "Bagian motor",
+      "serviceBadgeA11y_one": "Servis, {{count}} tugas prioritas tinggi yang terlambat",
+      "serviceBadgeA11y_other": "Servis, {{count}} tugas prioritas tinggi yang terlambat"
+    },
+    "header": {
+      "backTo": "Kembali ke {{origin}}",
+      "odometerA11y": "Odometer {{value}} {{unit}}, ketuk untuk memperbarui",
+      "setOdometer": "Atur odometer",
+      "setOdometerA11y": "Odometer belum diatur, ketuk untuk mengatur"
+    },
+    "tag": {
+      "critical": "KRITIS",
+      "high": "TINGGI",
+      "medium": "SEDANG",
+      "low": "RENDAH",
+      "safety": "AMAN",
+      "doc": "DOK"
+    },
+    "due": {
+      "daysLate_one": "Terlambat {{count}} hari",
+      "daysLate_other": "Terlambat {{count}} hari",
+      "today": "Jatuh tempo hari ini",
+      "inDays_one": "{{count}} hari lagi",
+      "inDays_other": "{{count}} hari lagi",
+      "pastTarget": "{{distance}} {{unit}} melewati target",
+      "inDistance": "{{distance}} {{unit}} lagi",
+      "atDistance": "Pada {{distance}} {{unit}}",
+      "orToday": "atau hari ini",
+      "orInDays_one": "atau {{count}} hari lagi",
+      "orInDays_other": "atau {{count}} hari lagi",
+      "orBy": "atau sebelum {{date}}",
+      "orInDistance": "atau {{distance}} {{unit}} lagi",
+      "orAtDistance": "atau pada {{distance}} {{unit}}",
+      "toTarget": "{{distance}} {{unit}} menuju target",
+      "targetAt": "target {{distance}} {{unit}}",
+      "dueToday": "jatuh tempo hari ini",
+      "dueInDays_one": "jatuh tempo {{count}} hari lagi",
+      "dueInDays_other": "jatuh tempo {{count}} hari lagi",
+      "dueBy": "jatuh tempo {{date}}",
+      "schedule": "Jadwal {{make}}",
+      "scheduleGeneric": "Jadwal pabrikan",
+      "someday": "Tanpa tenggat"
+    },
+    "rideStatus": {
+      "notReady": "Belum siap",
+      "check": "Periksa sebelum berkendara",
+      "ready": "Siap berkendara",
+      "untracked": "Belum ada yang dilacak",
+      "reason": {
+        "openRecalls_one": "{{count}} recall terbuka",
+        "openRecalls_other": "{{count}} recall terbuka",
+        "overdueCritical_one": "{{count}} tugas kritis terlambat",
+        "overdueCritical_other": "{{count}} tugas kritis terlambat",
+        "overdueHigh_one": "{{count}} tugas prioritas tinggi terlambat",
+        "overdueHigh_other": "{{count}} tugas prioritas tinggi terlambat",
+        "documentExpired": "{{category}} kedaluwarsa",
+        "documentExpiresIn_one": "{{category}} kedaluwarsa dalam {{count}} hari",
+        "documentExpiresIn_other": "{{category}} kedaluwarsa dalam {{count}} hari",
+        "documentExpiresToday": "{{category}} kedaluwarsa hari ini"
+      }
+    },
+    "action": {
+      "log": "Catat",
+      "logA11y": "Catat sesuatu untuk motor ini",
+      "addTaskA11y": "Tambah tugas perawatan",
+      "addExpenseA11y": "Tambah pengeluaran",
+      "addDocumentA11y": "Tambah dokumen"
+    },
+    "state": {
+      "notFound": "Motor ini sudah tidak ada di garasi Anda.",
+      "loadingA11y": "Memuat motor"
+    },
+    "bikeActions": {
+      "title": "Kelola"
+    }
   },
   "maintenance": {
     "healthScore": "Skor Kesehatan",

@@ -1051,7 +1051,105 @@
     "updatedYesterdayFrom": "Zaktualizowane wczoraj z {{source}}",
     "updatedDaysAgoFrom": "Zaktualizowane {{days}} dni temu z {{source}}",
     "maintenance": "Serwis",
-    "allTasks": "Wszystkie zadania"
+    "allTasks": "Wszystkie zadania",
+    "segment": {
+      "overview": "Przegląd",
+      "service": "Serwis",
+      "costs": "Koszty",
+      "bike": "Motocykl",
+      "listA11y": "Sekcje motocykla",
+      "serviceBadgeA11y_one": "Serwis, {{count}} zaległe zadanie o wysokim priorytecie",
+      "serviceBadgeA11y_few": "Serwis, {{count}} zaległe zadania o wysokim priorytecie",
+      "serviceBadgeA11y_many": "Serwis, {{count}} zaległych zadań o wysokim priorytecie",
+      "serviceBadgeA11y_other": "Serwis, {{count}} zaległych zadań o wysokim priorytecie"
+    },
+    "header": {
+      "backTo": "Wróć do: {{origin}}",
+      "odometerA11y": "Przebieg {{value}} {{unit}}, dotknij, aby zaktualizować",
+      "setOdometer": "Ustaw przebieg",
+      "setOdometerA11y": "Przebieg nieustawiony, dotknij, aby ustawić"
+    },
+    "tag": {
+      "critical": "KRYT",
+      "high": "WYS",
+      "medium": "ŚRED",
+      "low": "NIS",
+      "safety": "BEZP",
+      "doc": "DOK"
+    },
+    "due": {
+      "daysLate_one": "{{count}} dzień po terminie",
+      "daysLate_few": "{{count}} dni po terminie",
+      "daysLate_many": "{{count}} dni po terminie",
+      "daysLate_other": "{{count}} dni po terminie",
+      "today": "Termin dzisiaj",
+      "inDays_one": "Za {{count}} dzień",
+      "inDays_few": "Za {{count}} dni",
+      "inDays_many": "Za {{count}} dni",
+      "inDays_other": "Za {{count}} dni",
+      "pastTarget": "{{distance}} {{unit}} ponad cel",
+      "inDistance": "Za {{distance}} {{unit}}",
+      "atDistance": "Przy {{distance}} {{unit}}",
+      "orToday": "lub dzisiaj",
+      "orInDays_one": "lub za {{count}} dzień",
+      "orInDays_few": "lub za {{count}} dni",
+      "orInDays_many": "lub za {{count}} dni",
+      "orInDays_other": "lub za {{count}} dni",
+      "orBy": "lub do {{date}}",
+      "orInDistance": "lub za {{distance}} {{unit}}",
+      "orAtDistance": "lub przy {{distance}} {{unit}}",
+      "toTarget": "{{distance}} {{unit}} do celu",
+      "targetAt": "cel {{distance}} {{unit}}",
+      "dueToday": "termin dzisiaj",
+      "dueInDays_one": "termin za {{count}} dzień",
+      "dueInDays_few": "termin za {{count}} dni",
+      "dueInDays_many": "termin za {{count}} dni",
+      "dueInDays_other": "termin za {{count}} dni",
+      "dueBy": "termin {{date}}",
+      "schedule": "Harmonogram {{make}}",
+      "scheduleGeneric": "Harmonogram producenta",
+      "someday": "Bez terminu"
+    },
+    "rideStatus": {
+      "notReady": "Niegotowy",
+      "check": "Sprawdź przed jazdą",
+      "ready": "Gotowy do jazdy",
+      "untracked": "Nic jeszcze nie jest śledzone",
+      "reason": {
+        "openRecalls_one": "{{count}} otwarte wycofanie",
+        "openRecalls_few": "{{count}} otwarte wycofania",
+        "openRecalls_many": "{{count}} otwartych wycofań",
+        "openRecalls_other": "{{count}} otwartych wycofań",
+        "overdueCritical_one": "{{count}} zaległe zadanie krytyczne",
+        "overdueCritical_few": "{{count}} zaległe zadania krytyczne",
+        "overdueCritical_many": "{{count}} zaległych zadań krytycznych",
+        "overdueCritical_other": "{{count}} zaległych zadań krytycznych",
+        "overdueHigh_one": "{{count}} zaległe zadanie o wysokim priorytecie",
+        "overdueHigh_few": "{{count}} zaległe zadania o wysokim priorytecie",
+        "overdueHigh_many": "{{count}} zaległych zadań o wysokim priorytecie",
+        "overdueHigh_other": "{{count}} zaległych zadań o wysokim priorytecie",
+        "documentExpired": "{{category}}: termin minął",
+        "documentExpiresIn_one": "{{category}}: wygasa za {{count}} dzień",
+        "documentExpiresIn_few": "{{category}}: wygasa za {{count}} dni",
+        "documentExpiresIn_many": "{{category}}: wygasa za {{count}} dni",
+        "documentExpiresIn_other": "{{category}}: wygasa za {{count}} dni",
+        "documentExpiresToday": "{{category}}: wygasa dzisiaj"
+      }
+    },
+    "action": {
+      "log": "Dodaj wpis",
+      "logA11y": "Dodaj wpis dla tego motocykla",
+      "addTaskA11y": "Dodaj zadanie serwisowe",
+      "addExpenseA11y": "Dodaj wydatek",
+      "addDocumentA11y": "Dodaj dokument"
+    },
+    "state": {
+      "notFound": "Tego motocykla nie ma już w Twoim garażu.",
+      "loadingA11y": "Ładowanie motocykla"
+    },
+    "bikeActions": {
+      "title": "Zarządzaj"
+    }
   },
   "maintenance": {
     "healthScore": "Wynik stanu",

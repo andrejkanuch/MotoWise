@@ -1049,7 +1049,87 @@
     "updatedYesterdayFrom": "कल {{source}} से अपडेट किया",
     "updatedDaysAgoFrom": "{{days}} दिन पहले {{source}} से अपडेट किया",
     "maintenance": "मेंटेनेंस",
-    "allTasks": "सभी टास्क"
+    "allTasks": "सभी टास्क",
+    "segment": {
+      "overview": "अवलोकन",
+      "service": "सर्विस",
+      "costs": "खर्च",
+      "bike": "बाइक",
+      "listA11y": "बाइक के अनुभाग",
+      "serviceBadgeA11y_one": "सर्विस, उच्च प्राथमिकता का {{count}} लंबित कार्य",
+      "serviceBadgeA11y_other": "सर्विस, उच्च प्राथमिकता के {{count}} लंबित कार्य"
+    },
+    "header": {
+      "backTo": "{{origin}} पर वापस जाएँ",
+      "odometerA11y": "ओडोमीटर {{value}} {{unit}}, अपडेट करने के लिए टैप करें",
+      "setOdometer": "ओडोमीटर सेट करें",
+      "setOdometerA11y": "ओडोमीटर सेट नहीं है, सेट करने के लिए टैप करें"
+    },
+    "tag": {
+      "critical": "गंभीर",
+      "high": "उच्च",
+      "medium": "मध्यम",
+      "low": "निम्न",
+      "safety": "सुरक्षा",
+      "doc": "दस्तावेज़"
+    },
+    "due": {
+      "daysLate_one": "{{count}} दिन देर",
+      "daysLate_other": "{{count}} दिन देर",
+      "today": "आज देय",
+      "inDays_one": "{{count}} दिन में",
+      "inDays_other": "{{count}} दिन में",
+      "pastTarget": "लक्ष्य से {{distance}} {{unit}} आगे",
+      "inDistance": "{{distance}} {{unit}} में",
+      "atDistance": "{{distance}} {{unit}} पर",
+      "orToday": "या आज",
+      "orInDays_one": "या {{count}} दिन में",
+      "orInDays_other": "या {{count}} दिन में",
+      "orBy": "या {{date}} तक",
+      "orInDistance": "या {{distance}} {{unit}} में",
+      "orAtDistance": "या {{distance}} {{unit}} पर",
+      "toTarget": "लक्ष्य तक {{distance}} {{unit}} बाकी",
+      "targetAt": "लक्ष्य {{distance}} {{unit}}",
+      "dueToday": "आज देय",
+      "dueInDays_one": "{{count}} दिन में देय",
+      "dueInDays_other": "{{count}} दिन में देय",
+      "dueBy": "{{date}} को देय",
+      "schedule": "{{make}} शेड्यूल",
+      "scheduleGeneric": "निर्माता शेड्यूल",
+      "someday": "कोई नियत तारीख नहीं"
+    },
+    "rideStatus": {
+      "notReady": "तैयार नहीं",
+      "check": "राइड से पहले जाँचें",
+      "ready": "राइड के लिए तैयार",
+      "untracked": "अभी कुछ ट्रैक नहीं किया गया",
+      "reason": {
+        "openRecalls_one": "{{count}} ओपन रीकॉल",
+        "openRecalls_other": "{{count}} ओपन रीकॉल",
+        "overdueCritical_one": "{{count}} लंबित गंभीर कार्य",
+        "overdueCritical_other": "{{count}} लंबित गंभीर कार्य",
+        "overdueHigh_one": "{{count}} लंबित उच्च प्राथमिकता कार्य",
+        "overdueHigh_other": "{{count}} लंबित उच्च प्राथमिकता कार्य",
+        "documentExpired": "{{category}} की अवधि समाप्त",
+        "documentExpiresIn_one": "{{category}} की अवधि {{count}} दिन में समाप्त होगी",
+        "documentExpiresIn_other": "{{category}} की अवधि {{count}} दिन में समाप्त होगी",
+        "documentExpiresToday": "{{category}} की अवधि आज समाप्त होगी"
+      }
+    },
+    "action": {
+      "log": "लॉग करें",
+      "logA11y": "इस बाइक के लिए कुछ लॉग करें",
+      "addTaskA11y": "मेंटेनेंस कार्य जोड़ें",
+      "addExpenseA11y": "खर्च जोड़ें",
+      "addDocumentA11y": "दस्तावेज़ जोड़ें"
+    },
+    "state": {
+      "notFound": "यह बाइक अब आपके गैराज में नहीं है।",
+      "loadingA11y": "बाइक लोड हो रही है"
+    },
+    "bikeActions": {
+      "title": "प्रबंधन"
+    }
   },
   "maintenance": {
     "healthScore": "हेल्थ स्कोर",

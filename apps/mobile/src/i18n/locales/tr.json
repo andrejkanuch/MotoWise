@@ -1049,7 +1049,87 @@
     "updatedYesterdayFrom": "Dün {{source}} üzerinden güncellendi",
     "updatedDaysAgoFrom": "{{days}} gün önce {{source}} üzerinden güncellendi",
     "maintenance": "Bakım",
-    "allTasks": "Tüm Görevler"
+    "allTasks": "Tüm Görevler",
+    "segment": {
+      "overview": "Genel bakış",
+      "service": "Servis",
+      "costs": "Masraflar",
+      "bike": "Motosiklet",
+      "listA11y": "Motosiklet bölümleri",
+      "serviceBadgeA11y_one": "Servis, {{count}} gecikmiş yüksek öncelikli görev",
+      "serviceBadgeA11y_other": "Servis, {{count}} gecikmiş yüksek öncelikli görev"
+    },
+    "header": {
+      "backTo": "{{origin}} sayfasına dön",
+      "odometerA11y": "Kilometre sayacı {{value}} {{unit}}, güncellemek için dokunun",
+      "setOdometer": "Kilometreyi gir",
+      "setOdometerA11y": "Kilometre girilmedi, girmek için dokunun"
+    },
+    "tag": {
+      "critical": "KRİTİK",
+      "high": "YÜKSEK",
+      "medium": "ORTA",
+      "low": "DÜŞÜK",
+      "safety": "GÜVENLİK",
+      "doc": "BELGE"
+    },
+    "due": {
+      "daysLate_one": "{{count}} gün gecikti",
+      "daysLate_other": "{{count}} gün gecikti",
+      "today": "Bugün yapılmalı",
+      "inDays_one": "{{count}} gün içinde",
+      "inDays_other": "{{count}} gün içinde",
+      "pastTarget": "Hedef {{distance}} {{unit}} aşıldı",
+      "inDistance": "{{distance}} {{unit}} sonra",
+      "atDistance": "{{distance}} {{unit}} olduğunda",
+      "orToday": "veya bugün",
+      "orInDays_one": "veya {{count}} gün içinde",
+      "orInDays_other": "veya {{count}} gün içinde",
+      "orBy": "veya {{date}} tarihine kadar",
+      "orInDistance": "veya {{distance}} {{unit}} sonra",
+      "orAtDistance": "veya {{distance}} {{unit}} olduğunda",
+      "toTarget": "hedefe {{distance}} {{unit}} kaldı",
+      "targetAt": "hedef {{distance}} {{unit}}",
+      "dueToday": "bugün yapılmalı",
+      "dueInDays_one": "{{count}} gün içinde yapılmalı",
+      "dueInDays_other": "{{count}} gün içinde yapılmalı",
+      "dueBy": "son tarih {{date}}",
+      "schedule": "{{make}} bakım planı",
+      "scheduleGeneric": "Üretici bakım planı",
+      "someday": "Tarih yok"
+    },
+    "rideStatus": {
+      "notReady": "Hazır değil",
+      "check": "Sürüşten önce kontrol et",
+      "ready": "Sürüşe hazır",
+      "untracked": "Henüz takip edilen bir şey yok",
+      "reason": {
+        "openRecalls_one": "{{count}} açık geri çağırma",
+        "openRecalls_other": "{{count}} açık geri çağırma",
+        "overdueCritical_one": "{{count}} gecikmiş kritik görev",
+        "overdueCritical_other": "{{count}} gecikmiş kritik görev",
+        "overdueHigh_one": "{{count}} gecikmiş yüksek öncelikli görev",
+        "overdueHigh_other": "{{count}} gecikmiş yüksek öncelikli görev",
+        "documentExpired": "{{category}} süresi doldu",
+        "documentExpiresIn_one": "{{category}} süresi {{count}} gün içinde doluyor",
+        "documentExpiresIn_other": "{{category}} süresi {{count}} gün içinde doluyor",
+        "documentExpiresToday": "{{category}} süresi bugün doluyor"
+      }
+    },
+    "action": {
+      "log": "Kayıt ekle",
+      "logA11y": "Bu motosiklet için kayıt ekle",
+      "addTaskA11y": "Bakım görevi ekle",
+      "addExpenseA11y": "Masraf ekle",
+      "addDocumentA11y": "Belge ekle"
+    },
+    "state": {
+      "notFound": "Bu motosiklet artık garajınızda değil.",
+      "loadingA11y": "Motosiklet yükleniyor"
+    },
+    "bikeActions": {
+      "title": "Yönet"
+    }
   },
   "maintenance": {
     "healthScore": "Saglik Puani",

@@ -1050,7 +1050,87 @@
     "updatedYesterdayFrom": "Atualizado ontem de {{source}}",
     "updatedDaysAgoFrom": "Atualizado há {{days}}d de {{source}}",
     "maintenance": "Manutenção",
-    "allTasks": "Todas as tarefas"
+    "allTasks": "Todas as tarefas",
+    "segment": {
+      "overview": "Visão geral",
+      "service": "Manutenção",
+      "costs": "Custos",
+      "bike": "Moto",
+      "listA11y": "Seções da moto",
+      "serviceBadgeA11y_one": "Manutenção, {{count}} tarefa atrasada de alta prioridade",
+      "serviceBadgeA11y_other": "Manutenção, {{count}} tarefas atrasadas de alta prioridade"
+    },
+    "header": {
+      "backTo": "Voltar para {{origin}}",
+      "odometerA11y": "Hodômetro {{value}} {{unit}}, toque para atualizar",
+      "setOdometer": "Definir hodômetro",
+      "setOdometerA11y": "Hodômetro não definido, toque para definir"
+    },
+    "tag": {
+      "critical": "CRÍT",
+      "high": "ALTA",
+      "medium": "MÉD",
+      "low": "BAIXA",
+      "safety": "SEGUR",
+      "doc": "DOC"
+    },
+    "due": {
+      "daysLate_one": "{{count}} dia de atraso",
+      "daysLate_other": "{{count}} dias de atraso",
+      "today": "Vence hoje",
+      "inDays_one": "Em {{count}} dia",
+      "inDays_other": "Em {{count}} dias",
+      "pastTarget": "{{distance}} {{unit}} além da meta",
+      "inDistance": "Em {{distance}} {{unit}}",
+      "atDistance": "Aos {{distance}} {{unit}}",
+      "orToday": "ou hoje",
+      "orInDays_one": "ou em {{count}} dia",
+      "orInDays_other": "ou em {{count}} dias",
+      "orBy": "ou até {{date}}",
+      "orInDistance": "ou em {{distance}} {{unit}}",
+      "orAtDistance": "ou aos {{distance}} {{unit}}",
+      "toTarget": "faltam {{distance}} {{unit}}",
+      "targetAt": "meta {{distance}} {{unit}}",
+      "dueToday": "vence hoje",
+      "dueInDays_one": "vence em {{count}} dia",
+      "dueInDays_other": "vence em {{count}} dias",
+      "dueBy": "vence em {{date}}",
+      "schedule": "Plano {{make}}",
+      "scheduleGeneric": "Plano do fabricante",
+      "someday": "Sem prazo"
+    },
+    "rideStatus": {
+      "notReady": "Não está pronta",
+      "check": "Verifique antes de rodar",
+      "ready": "Pronta para rodar",
+      "untracked": "Nada acompanhado ainda",
+      "reason": {
+        "openRecalls_one": "{{count}} recall de segurança aberto",
+        "openRecalls_other": "{{count}} recalls de segurança abertos",
+        "overdueCritical_one": "{{count}} tarefa crítica atrasada",
+        "overdueCritical_other": "{{count}} tarefas críticas atrasadas",
+        "overdueHigh_one": "{{count}} tarefa de alta prioridade atrasada",
+        "overdueHigh_other": "{{count}} tarefas de alta prioridade atrasadas",
+        "documentExpired": "{{category}}: prazo vencido",
+        "documentExpiresIn_one": "{{category}}: vence em {{count}} dia",
+        "documentExpiresIn_other": "{{category}}: vence em {{count}} dias",
+        "documentExpiresToday": "{{category}}: vence hoje"
+      }
+    },
+    "action": {
+      "log": "Registrar",
+      "logA11y": "Registrar algo nesta moto",
+      "addTaskA11y": "Adicionar uma tarefa de manutenção",
+      "addExpenseA11y": "Adicionar uma despesa",
+      "addDocumentA11y": "Adicionar um documento"
+    },
+    "state": {
+      "notFound": "Esta moto não está mais na sua garagem.",
+      "loadingA11y": "Carregando moto"
+    },
+    "bikeActions": {
+      "title": "Gerenciar"
+    }
   },
   "maintenance": {
     "healthScore": "Pontuação de Saúde",

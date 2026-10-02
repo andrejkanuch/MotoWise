@@ -1055,7 +1055,87 @@
     "analytics": "Analytics",
     "viewAnalytics": "View →",
     "maintenance": "Maintenance",
-    "allTasks": "All Tasks"
+    "allTasks": "All Tasks",
+    "segment": {
+      "overview": "Overview",
+      "service": "Service",
+      "costs": "Costs",
+      "bike": "Bike",
+      "listA11y": "Bike sections",
+      "serviceBadgeA11y_one": "Service, {{count}} overdue high-priority task",
+      "serviceBadgeA11y_other": "Service, {{count}} overdue high-priority tasks"
+    },
+    "header": {
+      "backTo": "Back to {{origin}}",
+      "odometerA11y": "Odometer {{value}} {{unit}}, tap to update",
+      "setOdometer": "Set odometer",
+      "setOdometerA11y": "Odometer not set, tap to set it"
+    },
+    "tag": {
+      "critical": "CRIT",
+      "high": "HIGH",
+      "medium": "MED",
+      "low": "LOW",
+      "safety": "SAFETY",
+      "doc": "DOC"
+    },
+    "due": {
+      "daysLate_one": "{{count}} day late",
+      "daysLate_other": "{{count}} days late",
+      "today": "Due today",
+      "inDays_one": "In {{count}} day",
+      "inDays_other": "In {{count}} days",
+      "pastTarget": "{{distance}} {{unit}} past target",
+      "inDistance": "In {{distance}} {{unit}}",
+      "atDistance": "At {{distance}} {{unit}}",
+      "orToday": "or today",
+      "orInDays_one": "or in {{count}} day",
+      "orInDays_other": "or in {{count}} days",
+      "orBy": "or by {{date}}",
+      "orInDistance": "or in {{distance}} {{unit}}",
+      "orAtDistance": "or at {{distance}} {{unit}}",
+      "toTarget": "{{distance}} {{unit}} to target",
+      "targetAt": "target {{distance}} {{unit}}",
+      "dueToday": "due today",
+      "dueInDays_one": "due in {{count}} day",
+      "dueInDays_other": "due in {{count}} days",
+      "dueBy": "due {{date}}",
+      "schedule": "{{make}} schedule",
+      "scheduleGeneric": "Manufacturer schedule",
+      "someday": "No due date"
+    },
+    "rideStatus": {
+      "notReady": "Not ready",
+      "check": "Check before riding",
+      "ready": "Ready to ride",
+      "untracked": "Nothing tracked yet",
+      "reason": {
+        "openRecalls_one": "{{count}} open recall",
+        "openRecalls_other": "{{count}} open recalls",
+        "overdueCritical_one": "{{count}} overdue critical task",
+        "overdueCritical_other": "{{count}} overdue critical tasks",
+        "overdueHigh_one": "{{count}} overdue high task",
+        "overdueHigh_other": "{{count}} overdue high tasks",
+        "documentExpired": "{{category}} expired",
+        "documentExpiresIn_one": "{{category}} expires in {{count}} day",
+        "documentExpiresIn_other": "{{category}} expires in {{count}} days",
+        "documentExpiresToday": "{{category}} expires today"
+      }
+    },
+    "action": {
+      "log": "Log",
+      "logA11y": "Log something on this bike",
+      "addTaskA11y": "Add a maintenance task",
+      "addExpenseA11y": "Add an expense",
+      "addDocumentA11y": "Add a document"
+    },
+    "state": {
+      "notFound": "This bike is no longer in your garage.",
+      "loadingA11y": "Loading bike"
+    },
+    "bikeActions": {
+      "title": "Manage"
+    }
   },
   "maintenance": {
     "healthScore": "Health Score",

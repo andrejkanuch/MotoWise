@@ -1049,7 +1049,87 @@
     "updatedYesterdayFrom": "昨日{{source}}から更新",
     "updatedDaysAgoFrom": "{{days}}日前に{{source}}から更新",
     "maintenance": "メンテナンス",
-    "allTasks": "すべてのタスク"
+    "allTasks": "すべてのタスク",
+    "segment": {
+      "overview": "概要",
+      "service": "整備",
+      "costs": "費用",
+      "bike": "バイク",
+      "listA11y": "バイクのセクション",
+      "serviceBadgeA11y_one": "整備、優先度の高い期限切れタスク{{count}}件",
+      "serviceBadgeA11y_other": "整備、優先度の高い期限切れタスク{{count}}件"
+    },
+    "header": {
+      "backTo": "{{origin}}に戻る",
+      "odometerA11y": "オドメーター {{value}} {{unit}}、タップして更新",
+      "setOdometer": "オドメーターを設定",
+      "setOdometerA11y": "オドメーター未設定、タップして設定"
+    },
+    "tag": {
+      "critical": "緊急",
+      "high": "高",
+      "medium": "中",
+      "low": "低",
+      "safety": "安全",
+      "doc": "書類"
+    },
+    "due": {
+      "daysLate_one": "{{count}}日超過",
+      "daysLate_other": "{{count}}日超過",
+      "today": "今日が期限",
+      "inDays_one": "あと{{count}}日",
+      "inDays_other": "あと{{count}}日",
+      "pastTarget": "目標を{{distance}} {{unit}}超過",
+      "inDistance": "あと{{distance}} {{unit}}",
+      "atDistance": "{{distance}} {{unit}}で",
+      "orToday": "または今日",
+      "orInDays_one": "またはあと{{count}}日",
+      "orInDays_other": "またはあと{{count}}日",
+      "orBy": "または{{date}}まで",
+      "orInDistance": "またはあと{{distance}} {{unit}}",
+      "orAtDistance": "または{{distance}} {{unit}}で",
+      "toTarget": "目標まで{{distance}} {{unit}}",
+      "targetAt": "目標 {{distance}} {{unit}}",
+      "dueToday": "今日が期限",
+      "dueInDays_one": "あと{{count}}日で期限",
+      "dueInDays_other": "あと{{count}}日で期限",
+      "dueBy": "期限 {{date}}",
+      "schedule": "{{make}}の整備スケジュール",
+      "scheduleGeneric": "メーカーの整備スケジュール",
+      "someday": "期限なし"
+    },
+    "rideStatus": {
+      "notReady": "走行不可",
+      "check": "走行前に確認",
+      "ready": "走行可能",
+      "untracked": "まだ何も記録されていません",
+      "reason": {
+        "openRecalls_one": "未対応のリコール{{count}}件",
+        "openRecalls_other": "未対応のリコール{{count}}件",
+        "overdueCritical_one": "期限切れの緊急タスク{{count}}件",
+        "overdueCritical_other": "期限切れの緊急タスク{{count}}件",
+        "overdueHigh_one": "期限切れの優先度高タスク{{count}}件",
+        "overdueHigh_other": "期限切れの優先度高タスク{{count}}件",
+        "documentExpired": "{{category}}の期限切れ",
+        "documentExpiresIn_one": "{{category}}の期限まであと{{count}}日",
+        "documentExpiresIn_other": "{{category}}の期限まであと{{count}}日",
+        "documentExpiresToday": "{{category}}は今日が期限"
+      }
+    },
+    "action": {
+      "log": "記録",
+      "logA11y": "このバイクに記録を追加",
+      "addTaskA11y": "整備タスクを追加",
+      "addExpenseA11y": "費用を追加",
+      "addDocumentA11y": "書類を追加"
+    },
+    "state": {
+      "notFound": "このバイクはガレージにありません。",
+      "loadingA11y": "バイクを読み込み中"
+    },
+    "bikeActions": {
+      "title": "管理"
+    }
   },
   "maintenance": {
     "headerLabel": "メンテナンス",
