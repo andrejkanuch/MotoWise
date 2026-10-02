@@ -359,21 +359,21 @@ Before the push, regenerate with `pnpm --filter @motovault/api generate:schema &
 
 All under `apps/mobile/src/components/bike-hub/overview/`. Entering animation: `FadeInUp.delay(index * 50)` capped under 300 ms. Composition file: `overview-segment.tsx`; data: `use-overview-data.ts`.
 
-- [ ] Task 5.1: Overview data hook
+- [x] Task 5.1: Overview data hook
   - Files: `overview/use-overview-data.ts`
   - Details: composes shell data + `MotorcycleRecalls` (existing query and key, `staleTime` 24 h, `retry: 1`; while loading or on error fall back to `bike.recallCount` for the count and show no recall detail) + `DocumentCategories` (`includeHidden: true`, to resolve category names) + `ExpensesByMotorcycle` for the current and the previous year + `NotesByMotorcycle`. Feeds `getRideStatus`, `rankAttention`, `getNextUp`, `summariseCosts`. Exposes per-block `isLoading` / `isError` / `refetch` so one failing query degrades one block, not the page.
   - Acceptance:
     - `TEST` Hook test with mocked fetchers: fixture data produces status CHECK, attention total 6, visible 3 + overflow 3, next-up "Air filter", costs total 1960.62 / yoy 12; recalls query error still yields a status (from `recallCount`).
     - `TYPE` Inputs typed from generated query types.
 
-- [ ] Task 5.2: Photo band
+- [x] Task 5.2: Photo band
   - Files: `overview/photo-band.tsx`
   - Details: 150 high, radius 16, `expo-image` cover; chips bottom-left (mono 11, `withAlpha(palette.surfaceDark, 0.78)`): "PRIMARY" when `isPrimary`, "{{count}} rides" when > 0. Tap → Bike segment (D3: `BikeDetails` is R5). `accessibilityLabel` "Bike photo, open bike details". No photo → dashed 120-high button "Add a photo" (camera icon) → today's take / choose action sheet, upload overlay while uploading, error alert on failure (reuse `uploadBikePhoto`, logic moved into `shell/use-bike-photo.ts`).
   - Acceptance:
     - `DEVICE` Populated: matches `Main.dc.html`. Empty: matches `OverviewEmpty.dc.html`; adding a photo replaces the dashed button with the band.
     - `TEST` Chips: primary + 9 rides; non-primary with 0 rides renders no chip row.
 
-- [ ] Task 5.3: Ride status card + Needs attention + Next up
+- [x] Task 5.3: Ride status card + Needs attention + Next up
   - Files: `overview/ride-status-card.tsx`, `overview/attention-list.tsx`, `overview/attention-row.tsx`, `overview/next-up.tsx`, `overview/setup-list.tsx`
   - Details:
     - `RideStatusCard`: dot 10, serif 24/26 title, 13 px reasons line joined with " · " (built from `reasons[]` with plural keys), chevron; card style from `RIDE_STATUS_STYLE`. Pressing it performs the action of the top attention row; UNTRACKED and READY with no attention are not pressable. `accessibilityRole="button"` only when pressable; the label reads title + reasons.
@@ -393,7 +393,7 @@ All under `apps/mobile/src/components/bike-hub/overview/`. Entering animation: `
     - `DEVICE` Tapping the task row lands on Service with the task expanded; recall row opens the recalls sheet; document row opens the document.
     - `MANUAL` Status is readable without colour (words beside every dot).
 
-- [ ] Task 5.4: Costs card
+- [x] Task 5.4: Costs card
   - Files: `overview/costs-card.tsx`
   - Details: `SectionHeader` "Costs · {{year}}" + action "Full analytics". Card (pressable as a whole; stats inside are not): total mono 32/34 via `useCurrency().formatFor`; YoY line "▲ {{percent}}% vs same period of {{year}}" (▲ in `hubSoon` when higher, ▼ in `hubOk` when lower, line omitted when `yoy` is null); 8 px category bar (top 5 + rest in `hubTrack`, 2 px gaps), each share carrying an `accessibilityLabel` "{{category}} {{percent}}%"; three `Stat`s — "This month", "Per month · {{year}}" (rounded to whole currency units), "Top category" ("{{label}} {{percent}}%"). Bar and top-category colours come from today's `CATEGORY_COLORS` (already tokenised); the redesign's category palette is R4. Card and "Full analytics" → Costs segment. Empty (no expenses this year): compact card "{{zero}}" + "Purchase price {{price}} recorded. Log fuel or a receipt to start the running total." (without a purchase price: "Log fuel or a receipt to start the running total."). Loading → skeleton; error → inline retry.
   - Acceptance:
@@ -401,21 +401,21 @@ All under `apps/mobile/src/components/bike-hub/overview/`. Entering animation: `
     - `DEVICE` Matches `OverviewScrolled.dc.html` layout (colours of the bar differ until R4 — expected).
     - `MANUAL` No cost-per-distance figure anywhere.
 
-- [ ] Task 5.5: Notes block
+- [x] Task 5.5: Notes block
   - Files: `overview/notes-block.tsx`, `apps/mobile/src/components/bike-hub/notes/use-notes.ts` (queries + mutations with optimistic insert and invalidation of `queryKeys.notes.byMotorcycle(id)`)
   - Details: `SectionHeader` "Notes · {{count}}" + "All notes" → Notes screen. Card: the two newest notes (14/19 text, max 3 lines; mono 12 meta "{{date}} · {{odometer}} {{unit}}", odometer part omitted when null), each row → Notes screen; then the quick-add row: `TextInput` "Jot something down…" (36 high; return key = send → `createNote` with text + current odometer stamp, then clear and light haptic) + copper "Note" button (36 high, `accessibilityLabel` "Write a longer note") → Note sheet carrying the typed draft. Zero notes: only the quick-add row under "Notes". The segment scroll view uses `react-native-keyboard-controller` so the input is never covered. Create failure → the row shows the error inline and the text is restored. New analytics event `NOTE_CREATED` (`motorcycle_id`, `source`: `overview_quick` | `sheet` | `notes_composer`, `has_photo`, `also_task`) added to `lib/analytics.ts`.
   - Acceptance:
     - `TEST` Two newest of five shown, count 5; quick add calls the mutation with the trimmed text and the bike's odometer; whitespace-only input does nothing.
     - `DEVICE` iOS and Android: type, send, note appears at the top, keyboard does not cover the input, the action pill does not overlap the row while the keyboard is open.
 
-- [ ] Task 5.6: Papers & bike rows
+- [x] Task 5.6: Papers & bike rows
   - Files: `overview/papers-bike-rows.tsx`
   - Details: "Papers & bike" eyebrow; card with two rows. Documents row: sub-line = most urgent document signal in tone colour ("{{category}} expires in {{count}} days" / "{{category}} expired") + " · {{count}} stored"; with none stored: "Insurance, registration, title & service records" (existing key `documents.cardEmptySubtitle`). → Bike segment. Bike row: title "{{year}} {{make}} {{model}}", sub-line = the present parts of [variant, "bought {{month year}}", purchase price] joined with " · ". → Bike segment.
   - Acceptance:
     - `TEST` Fixture: "Insurance expires in 12 days · 4 stored"; bike row "2022 Honda Africa Twin" / "DCT · bought June 2022 · €11,800"; bike without purchase data renders only what exists.
     - `DEVICE` Both rows switch to the Bike segment.
 
-- [ ] Task 5.7: Compose the Overview
+- [x] Task 5.7: Compose the Overview
   - Files: `overview/overview-segment.tsx`
   - Details: order — photo band → ride status → (attention | setup list) → next up → costs → notes → papers & bike. 12 px gaps, 16 px side padding. In the UNTRACKED state the order is photo → status → setup list → costs (as `OverviewEmpty.dc.html`), then notes and papers & bike.
   - Acceptance:
@@ -433,14 +433,14 @@ All under `apps/mobile/src/components/bike-hub/overview/`. Entering animation: `
 
 Routes live in `app/(tabs)/(garage)/` and are registered in `_layout.tsx` with `presentation: 'formSheet'` (D4), `headerShown: false`, `sheetGrabberVisible: true`, `sheetCornerRadius: 24`, `contentStyle` in the hub card colour. Look up the current `sheetAllowedDetents` / `fitToContents` options for expo-router 57 / react-native-screens 4.26 with Context7 before writing.
 
-- [ ] Task 6.1: Log sheet
+- [x] Task 6.1: Log sheet
   - Files: `apps/mobile/src/app/(tabs)/(garage)/log-entry.tsx`, `_layout.tsx`, `apps/mobile/src/components/bike-hub/sheets/log-options.ts` (typed option table)
   - Details: detent fit-to-contents. Title serif 26 "Log on the {{name}}", "Cancel". Five options from a table (`id`, icon, tint, title key, sub-line key, `href(bike)`): Expense → `add-expense`; Maintenance task → `add-maintenance-task`; Work already done → `add-maintenance-task` with `mode: 'log'`; Note → `note`; Document → `add-document` (D3). Each row ≥ 64 high, `accessibilityRole="button"`. Choosing dismisses the sheet and then opens the target (the target is itself a sheet/modal — do it as dismiss → push after the dismissal completes; if stacked form sheets misbehave on either platform, fall back to an in-screen `@gorhom/bottom-sheet` for this chooser only and record it). New event `BIKE_LOG_OPTION_SELECTED` (`motorcycle_id`, `option`). **No Pro gate on any option.**
   - Acceptance:
     - `TEST` Five options in the spec order, each resolving to the expected typed route + params.
     - `DEVICE` iOS and Android: each option opens the right form with the bike pre-selected; no flash of the previous sheet; Cancel and swipe-down both dismiss. Checked for the duplicate-content problem recorded for dark form sheets (Open question 2).
 
-- [ ] Task 6.2: Odometer sheet
+- [x] Task 6.2: Odometer sheet
   - Files: `apps/mobile/src/app/(tabs)/(garage)/odometer.tsx`, `_layout.tsx`, `apps/mobile/src/components/bike-hub/sheets/{odometer-keypad.tsx,use-log-odometer.ts}`
   - Details (replaces the iOS-only `Alert.prompt`; identical on both platforms, no system keyboard):
     - "Odometer" serif 26 + Cancel; eyebrow "New reading"; value mono 44/46 with a copper caret + unit (`bike.distanceUnit`); delta line "+{{delta}} {{unit}} since {{date}} · was {{last}}" (from the latest `odometerReadings` row; when lower: "−{{delta}} {{unit}} · was {{last}}" in `hubSoon`).
@@ -454,7 +454,7 @@ Routes live in `app/(tabs)/(garage)/` and are registered in `_layout.tsx` with `
     - `DEVICE` iOS and Android: save updates the header chip immediately; reopening shows "was 39,407"; back-dated reading older than the latest does not change the chip (and says so in a one-line notice before saving).
     - `MANUAL` Local stack: an `odometer_readings` row exists per save with the chosen date.
 
-- [ ] Task 6.3: Note sheet
+- [x] Task 6.3: Note sheet
   - Files: `apps/mobile/src/app/(tabs)/(garage)/note.tsx`, `_layout.tsx`, `apps/mobile/src/components/bike-hub/sheets/note-form.tsx`, `apps/mobile/src/lib/image-upload.ts` (`uploadNotePhoto(uri, userId, noteId)` → `{userId}/notes/{noteId}/{timestamp}.webp`, same compression as maintenance photos)
   - Details: params `motorcycleId`, `noteId?` (edit), `draft?`. Large detent. Header: Cancel · "New note" / "Edit note" (serif 24). Multiline input (16/23, autofocus, 6 rows min, `maxLength` `NOTE_TEXT_MAX`). Chips: odometer stamp "{{odometer}} {{unit}} · today" (on by default, toggles the stamp off), "Photo" (take / choose; thumbnail with remove; up to `NOTE_PHOTOS_MAX`). The "Link a job or expense" chip is **not rendered** (D3). "Attach to": one chip per bike from `MyMotorcycles` (`bikeDisplayName`), current bike selected; hidden with a single bike; changing it changes the target bike and the odometer stamp. "Also make it a task" row with `NativeToggle` + sub-line "Creates a low-priority task with no due date, with this note attached". The "recognised and become tappable" hint line is **not rendered** (the feature is not built — out of scope). Keyboard-attached "Save note" (52 high) via `KeyboardStickyView`; the form scrolls. Save: `createNote` (or `updateNote`) → then upload photos and `addNotePhoto` for each (a failed photo keeps the note and shows "Note saved, photo failed — Retry"). Discard confirmation only when there is unsaved text. No gate.
   - Acceptance:
@@ -470,7 +470,7 @@ Routes live in `app/(tabs)/(garage)/` and are registered in `_layout.tsx` with `
 
 ## Phase 7: Notes screen, undo, wiring
 
-- [ ] Task 7.1: `UndoSnackbar` + deferred delete
+- [x] Task 7.1: `UndoSnackbar` + deferred delete
   - Files: `apps/mobile/src/components/bike-hub/ui/undo-snackbar.tsx`, `apps/mobile/src/stores/pending-delete.store.ts`, `apps/mobile/src/components/bike-hub/ui/use-deferred-delete.ts`, tests
   - Decision — **deferred delete on the client, server delete through the `soft_delete_note` RPC**: on delete the row is hidden optimistically and a 5 s timer starts; Undo cancels it; when it elapses the client calls `deleteNote`. The pending entry is committed immediately when the screen blurs, the app goes to background, or a second delete starts. Why not "soft-delete now + restore RPC": it needs a second SECURITY DEFINER function per table (notes now; tasks and expenses in R2/R4 have no restore either) purely to support five seconds of regret, while the deferred form needs none and fails safe — if the app dies inside the window the note is simply still there. The one cost (a delete can be lost on a crash within 5 s) is acceptable for a note. A failed commit restores the row and shows an error.
   - `UndoSnackbar({ message, actionLabel, onAction, secondaryAction?, durationMs = UNDO_WINDOW_MS })`: rendered inside the screen above the composer / action pill, `FadeInUp` 250 ms / `FadeOutDown` 200 ms, `accessibilityLiveRegion="polite"`, action hit area ≥ 44 pt; does not collide with the root `ReceiptScanSaveSnackbar` (`bottom: 96`). `secondaryAction` exists for R2's "Add details".
@@ -478,21 +478,21 @@ Routes live in `app/(tabs)/(garage)/` and are registered in `_layout.tsx` with `
     - `TEST` (fake timers) delete → hidden; Undo within 5 s → mutation never called, row back; 5 s elapse → mutation called once; blur at 2 s → mutation called at once; mutation failure → row restored + error surfaced; second delete commits the first.
     - `DEVICE` Delete a note, Undo, the note is back in place.
 
-- [ ] Task 7.2: Notes screen
+- [x] Task 7.2: Notes screen
   - Files: `apps/mobile/src/app/(tabs)/(garage)/notes.tsx`, `_layout.tsx` (`presentation: 'card'`, custom header), `apps/mobile/src/components/bike-hub/notes/{note-row.tsx,notes-composer.tsx}`
   - Details: params `motorcycleId`, `from?: BikeSegment` (back label = that segment's name, default Overview). Header 48: copper back "‹ Overview", title "Notes · {{name}}" 15/600. Body: "{{count}} notes" serif 30 + hint "newest first · swipe for edit · delete"; search field (40 high, "Search notes…", client-side case-insensitive filter over text, debounced); card list (`FlatList`): text 15/21 `hubTextSoft`, meta row mono 12 "{{date}} · {{odometer}} {{unit}}" + right link by dispatch — linked task → its title → bike detail Service segment with `highlightTask`; linked expense → "Linked expense · {{amount}}" → `expense-detail`; neither → "Make it a task" → `createTaskFromNote`, then the link shows the task title. Photos as 56 px thumbnails. Swipe left reveals Edit · Delete (gesture-handler + Reanimated, pattern of `components/shared/swipeable-expense.tsx`); the same two as `accessibilityActions` and in a long-press menu. Edit → Note sheet with `noteId`; Delete → Task 7.1 ("Note deleted" · Undo), event `NOTE_DELETED`. Composer bar (keyboard-sticky, above the tab bar): growing input (min 48) "Jot something down…", photo button (48, `accessibilityLabel` "Attach a photo" → Note sheet with the draft and the picker open), "Add" (copper, 48) — saves the draft directly when it has text, opens the Note sheet when empty. States: loading skeleton rows; error + Retry; empty ("No notes yet" + one line, composer still present); search with no match ("No notes match "{{query}}"").
   - Acceptance:
     - `TEST` Five fixture notes newest first; search "2.5 bar" leaves one; right-link variants; composer Add with text calls `createNote` with `source: 'notes_composer'`.
     - `DEVICE` iOS and Android: composer stays above the keyboard and above the tab bar; swipe actions; back label matches the origin segment; a 60-note list scrolls at 60 fps.
 
-- [ ] Task 7.3: Deep links and landing rule
+- [x] Task 7.3: Deep links and landing rule
   - Files: `apps/mobile/src/components/bike-hub/shell/use-bike-hub-navigation.ts`, call-site review of `hooks/use-notification-deep-link.ts`, `app/(modals)/whats-new.tsx`, `app/(tabs)/(garage)/expense-detail.tsx`
   - Details: one helper exposes `openLeaf(leaf, params)` = set the owning segment (`ownerSegmentOf`) and remember it, then push the leaf, so back from any leaf lands on its owning segment (notes → the segment it was opened from; document → Bike; recalls → Overview; task forms → Service; expense forms → Costs). `highlightTask` from Home / notifications lands on Service with the task expanded — `MaintenanceSection` is unchanged, so a highlighted task beyond its first five still does not render (existing defect, fixed in R2 — record it in the PR). Notification payloads carry only `motorcycleId`; they keep landing by the default rule.
   - Acceptance:
     - `TEST` `ownerSegmentOf` table; navigation helper with a mocked router and store.
     - `DEVICE` Home "upcoming task" card → bike opens on Service with that task expanded and back says "Home". Overview → document row → back → Overview is still selected in the store but the Bike segment is the one remembered only if the rider switched to it (verify the remembered segment is not overwritten by a leaf push).
 
-- [ ] Task 7.4: Regression flows and clean-up of references
+- [x] Task 7.4: Regression flows and clean-up of references
   - Files: `apps/mobile/.maestro/flows/{log-past-work.yaml,add-expense.yaml,complete-maintenance-task.yaml,edit-maintenance-task.yaml,units-display-toggle.yaml}` (entry-point selectors changed: no ⋯ menu, no quick-action row), new `apps/mobile/.maestro/flows/bike-hub-overview.yaml` (open bike → four segments → Log → Note → save → Notes → delete → Undo; odometer save), `apps/mobile/.maestro/README.md`
   - Acceptance:
     - `E2E` The new flow passes on a preview simulator build against the local stack (README: flows need a bundled build, not the dev client).

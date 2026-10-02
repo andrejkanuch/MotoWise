@@ -46,10 +46,10 @@ env:
 - tapOn:
     text: ".*Honda.*"
 - extendedWaitUntil:
-    visible: "Add task"
+    visible: "Overview" # the bike hub's first segment — the header and segment bar are up
     timeout: 20000
 - assertVisible:
-    text: "mi"
+    text: ".* mi" # header odometer chip: "<value> mi"
 - takeScreenshot: units-label-imperial
 
 # 3. Switch to Metric; the SAME bike's odometer chip must now read "km".
@@ -66,8 +66,8 @@ env:
 - tapOn:
     text: ".*Honda.*"
 - extendedWaitUntil:
-    visible: "Add task"
+    visible: "Overview" # the bike hub's first segment — the header and segment bar are up
     timeout: 20000
 - assertVisible:
-    text: "km"
+    text: ".* km" # header odometer chip: "<value> km"
 - takeScreenshot: units-label-metric

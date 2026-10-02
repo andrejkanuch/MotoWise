@@ -64,6 +64,18 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   on-device 2026-07-15.** Uses `setLocation` for a GPS fix; ends via a long-press ("Hold to end
   ride") + a point-tap on the "End Anyway" bottom-sheet confirm (buttons not in the a11y tree).
   `test:e2e:log-ride`.
+- **`flows/bike-hub-overview.yaml`** — the redesigned bike screen (bike-detail redesign R1): four
+  segments, Overview "Log" pill → Log sheet → Note sheet → save, the Notes screen with delete + Undo,
+  and the Odometer sheet from the header chip. Needs a backend with migrations 00180–00182 (see
+  `features/bike-detail-shell-overview/local-stack.md`). **Authored from source 2026-10-02, pending
+  on-device validation.** `test:e2e:bike-hub`.
+  The same redesign moved the entry points the older bike flows use — there is no quick-action grid
+  and no More (⋯) menu any more. `add-expense`, `complete-maintenance-task`, `edit-maintenance-task`,
+  `log-past-work` and `units-display-toggle` now wait for the **"Overview"** segment, switch with
+  `id: segment-<overview|service|costs|bike>` and open forms through the action pill
+  (`id: action-pill-<segment>`; icon-only except on Overview) or the Log sheet
+  (`id: log-option-<expense|task|past_work|note|document>`). Their updated steps are **not yet
+  re-validated on a device**.
 - **`flows/units-display-toggle.yaml`** — odometer unit label (PR #165). Odometer values are stored
   RAW in the user's global unit (no km normalization), so toggling the global Units preference flips
   the bike-hub odometer **label** between **mi** and **km** on the same bike (guards the hardcoded-"km"
