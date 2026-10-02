@@ -8,8 +8,10 @@ import {
   type LogOptionDefinition,
 } from '../../../components/bike-hub/sheets/log-options';
 import { SheetGrabber, SheetHeader } from '../../../components/bike-hub/sheets/sheet-header';
+import { SheetScroll } from '../../../components/bike-hub/sheets/sheet-scroll';
 import { useHubBike } from '../../../components/bike-hub/shell/use-hub-bike';
-import { HUB_FONT, hub } from '../../../components/bike-hub/ui/tokens';
+import { HUB_CHROME_MAX_FONT_SCALE, HUB_FONT, hub } from '../../../components/bike-hub/ui/tokens';
+import { useCurrency } from '../../../hooks/use-currency';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { bikeDisplayName } from '../../../lib/bike-hub/format';
 import { triggerImpact } from '../../../utils/haptics';
@@ -91,6 +93,7 @@ export default function LogEntrySheet() {
   const { motorcycleId } = useLocalSearchParams<{ motorcycleId: string }>();
   const { bike } = useHubBike(motorcycleId);
   const pendingHref = useRef<Href | null>(null);
+  const { currency } = useCurrency();
 
   useEffect(() => {
     return navigation.addListener('transitionEnd', (event) => {
@@ -131,14 +134,16 @@ export default function LogEntrySheet() {
     }, DISMISS_FALLBACK_MS);
   };
 
+  // Capped at the hub's 1.3x and scrollable: at the largest text sizes all five
+  // options stay reachable and "Maintenance task" never breaks mid-word.
   return (
-    <View
-      style={{
+    <SheetScroll
+      testID="log-sheet-scroll"
+      contentContainerStyle={{
         paddingTop: 16,
         paddingHorizontal: 16,
         paddingBottom: Math.max(insets.bottom, 16) + 8,
         gap: 10,
-        backgroundColor: hub.card,
       }}
     >
       <SheetGrabber />
@@ -147,7 +152,7 @@ export default function LogEntrySheet() {
         onCancel={() => router.back()}
       />
       {LOG_OPTIONS.map((option) => {
-        const Icon = option.icon;
+        const Icon = option.iconFor?.(currency) ?? option.icon;
         const title = t(option.titleKey);
         const sub = t(option.subKey);
         return (
@@ -184,10 +189,14 @@ export default function LogEntrySheet() {
               <Icon size={20} color={option.iconColor} strokeWidth={2} />
             </View>
             <View style={{ flex: 1, gap: 2 }}>
-              <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 16, color: hub.text }}>
+              <Text
+                maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+                style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 16, color: hub.text }}
+              >
                 {title}
               </Text>
               <Text
+                maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
                 style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 17, color: hub.dim }}
               >
                 {sub}
@@ -196,6 +205,6 @@ export default function LogEntrySheet() {
           </Pressable>
         );
       })}
-    </View>
+    </SheetScroll>
   );
 }

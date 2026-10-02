@@ -160,7 +160,7 @@ describe('OdometerSheet — a back-dated reading', () => {
     await renderSheet();
     await pickDate(AUGUST_1);
     await type('37000');
-    expect(screen.getByTestId('odometer-notice')).toHaveTextContent(BACKDATED_NOTICE);
+    expect(screen.getByTestId('odometer-delta')).toHaveTextContent(BACKDATED_NOTICE);
     expect(screen.getByTestId('key-date')).toHaveAccessibleName('Date · Aug 1');
   });
 
@@ -259,7 +259,7 @@ describe('OdometerSheet — the day of the latest reading', () => {
     await renderSheet({ readings: [EVENING] });
     await pickDate(new Date(2026, 8, 28));
     await type('38000');
-    expect(screen.getByTestId('odometer-notice')).not.toHaveTextContent(BACKDATED_NOTICE);
+    expect(screen.getByTestId('odometer-delta')).not.toHaveTextContent(BACKDATED_NOTICE);
     await fireEvent.press(screen.getByTestId('odometer-save'));
     expect(alert).toHaveBeenCalledTimes(1);
     expect(savedInputs()).toHaveLength(0);
@@ -269,7 +269,7 @@ describe('OdometerSheet — the day of the latest reading', () => {
     await renderSheet({ readings: [EVENING] });
     await pickDate(new Date(2026, 8, 27));
     await type('38300');
-    expect(screen.getByTestId('odometer-notice')).toHaveTextContent(BACKDATED_NOTICE);
+    expect(screen.getByTestId('odometer-delta')).toHaveTextContent(BACKDATED_NOTICE);
   });
 });
 

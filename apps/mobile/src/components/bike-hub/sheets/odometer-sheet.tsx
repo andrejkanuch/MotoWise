@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import type { TFunction } from 'i18next';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Alert, type DimensionValue, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   DELTA_DIRECTION,
@@ -32,9 +32,17 @@ import { useToday } from '../shell/use-today';
 import { HUB_CHROME_MAX_FONT_SCALE, HUB_FONT, HUB_HEIGHT, HUB_RADIUS, hub } from '../ui/tokens';
 import { OdometerKeypad } from './odometer-keypad';
 import { SheetGrabber, SheetHeader } from './sheet-header';
+import { SheetScroll } from './sheet-scroll';
 import { useLogOdometer, useOdometerContext } from './use-log-odometer';
 
 const CHIP_HEIGHT = 40;
+/**
+ * The rides chip's share of the row: its label wraps onto two lines so the
+ * quick-add chips stay beside it (the design's single row). Wider text pushes
+ * the quick-add chips onto the next line instead of squeezing anything.
+ */
+const RIDES_CHIP_MAX_WIDTH = '45%';
+const CHIP_LINE_HEIGHT = 17;
 
 interface DeltaContext {
   t: TFunction;
@@ -118,10 +126,14 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
       ? t('bikeHub.odometer.lastReading', { last: lastText, unit, date: since })
       : t('bikeHub.odometer.lastReadingNoDate', { last: lastText, unit });
   };
+  // A back-dated reading is not compared with the latest one ("+250 km since
+  // Oct 1" for a Sep 27 reading is wrong): the line says what happens to it.
   const detail =
     value === null
       ? { text: emptyDetail(), warn: false }
-      : deltaLine(delta, { t, unit, last: lastText, since, language });
+      : backdated
+        ? { text: t('bikeHub.odometer.backdatedNotice', { last: lastText, unit }), warn: true }
+        : deltaLine(delta, { t, unit, last: lastText, since, language });
 
   const onKey = (key: OdometerKey) => {
     setSaveFailed(false);
@@ -198,13 +210,13 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
       : t('bikeHub.odometer.save', { value: formatOdometer(value, language), unit });
 
   return (
-    <View
-      style={{
+    <SheetScroll
+      testID="odometer-sheet-scroll"
+      contentContainerStyle={{
         paddingTop: 16,
         paddingHorizontal: 16,
         paddingBottom: Math.max(insets.bottom, 16) + 8,
         gap: 14,
-        backgroundColor: hub.card,
       }}
     >
       <SheetGrabber />
@@ -250,6 +262,7 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
         </View>
         <Text
           testID="odometer-delta"
+          maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
           style={{
             fontFamily: HUB_FONT.sans,
             fontSize: 13,
@@ -263,12 +276,13 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
 
       {/* A plain wrapping row, not a horizontal ScrollView: a form sheet adopts
           the first scroll view inside it as "the sheet's scroller" and lifts it
-          out of the column (it rendered over the title). Nothing scrolls here. */}
+          out of the column (it rendered over the title). */}
       <View testID="odometer-chips" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
         {pendingRides && pendingRides.rideCount > 0 ? (
           <Chip
             testID="chip-rides"
             highlighted
+            maxWidth={RIDES_CHIP_MAX_WIDTH}
             label={t('bikeHub.odometer.ridesChip', {
               count: pendingRides.rideCount,
               distance: formatOdometer(pendingRides.distance, language),
@@ -330,6 +344,7 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
       <Text
         testID="odometer-notice"
         accessibilityLiveRegion="polite"
+        maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
         style={{
           fontFamily: HUB_FONT.sans,
           fontSize: 12,
@@ -337,7 +352,7 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
           color: saveFailed || futureDate ? hub.late : hub.muted,
         }}
       >
-        {noticeText({ t, saveFailed, futureDate, backdated, last: lastText, unit })}
+        {noticeText({ t, saveFailed, futureDate })}
       </Text>
 
       <Pressable
@@ -364,7 +379,7 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
           {saveLabel}
         </Text>
       </Pressable>
-    </View>
+    </SheetScroll>
   );
 }
 
@@ -372,18 +387,11 @@ function isSameCalendarDay(a: Date, b: Date): boolean {
   return a.toDateString() === b.toDateString();
 }
 
-function noticeText(input: {
-  t: TFunction;
-  saveFailed: boolean;
-  futureDate: boolean;
-  backdated: boolean;
-  last: string;
-  unit: HubUnit;
-}): string {
-  const { t, saveFailed, futureDate, backdated, last, unit } = input;
+/** The footnote. A back-dated reading is explained on the detail line under the entry. */
+function noticeText(input: { t: TFunction; saveFailed: boolean; futureDate: boolean }): string {
+  const { t, saveFailed, futureDate } = input;
   if (saveFailed) return t('bikeHub.odometer.saveFailed');
   if (futureDate) return t('bikeHub.odometer.futureDate');
-  if (backdated) return t('bikeHub.odometer.backdatedNotice', { last, unit });
   return t('bikeHub.odometer.helper');
 }
 
@@ -391,10 +399,12 @@ interface ChipProps {
   label: string;
   onPress: () => void;
   highlighted?: boolean;
+  /** Set = the label wraps inside this width instead of widening the chip. */
+  maxWidth?: DimensionValue;
   testID: string;
 }
 
-function Chip({ label, onPress, highlighted = false, testID }: ChipProps) {
+function Chip({ label, onPress, highlighted = false, maxWidth, testID }: ChipProps) {
   return (
     <Pressable
       testID={testID}
@@ -403,8 +413,10 @@ function Chip({ label, onPress, highlighted = false, testID }: ChipProps) {
       accessibilityLabel={label}
       hitSlop={{ top: 4, bottom: 4 }}
       style={({ pressed }) => ({
-        height: CHIP_HEIGHT,
+        minHeight: CHIP_HEIGHT,
+        maxWidth,
         paddingHorizontal: 14,
+        paddingVertical: 3,
         borderRadius: 11,
         borderCurve: 'continuous',
         backgroundColor: hub.ground,
@@ -420,6 +432,8 @@ function Chip({ label, onPress, highlighted = false, testID }: ChipProps) {
         style={{
           fontFamily: HUB_FONT.mono,
           fontSize: 13,
+          lineHeight: CHIP_LINE_HEIGHT,
+          textAlign: 'center',
           color: highlighted ? hub.copperText : hub.text,
         }}
       >

@@ -33,11 +33,12 @@ import {
   PendingRideDistanceDocument,
 } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import { Alert, StyleSheet } from 'react-native';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
+import { Alert, Dimensions, StyleSheet } from 'react-native';
 import '../../../i18n';
 import { BIKE_A, TODAY } from '../../../test/bike-hub-fixtures';
 import { OdometerSheet } from '../sheets/odometer-sheet';
+import { SHEET_TOP_CLEARANCE } from '../sheets/sheet-scroll';
 import type { HubBike } from '../shell/use-bike-hub-data';
 
 const LATEST = {
@@ -96,6 +97,22 @@ async function renderSheet(scenario: Scenario = {}) {
 
 async function type(digits: string) {
   for (const digit of digits) await fireEvent.press(screen.getByTestId(`key-${digit}`));
+}
+
+interface HostNode {
+  type: string;
+  props: Record<string, unknown>;
+  children: (HostNode | string)[] | null;
+}
+
+/** Every host <Text> in a rendered tree. */
+function hostTexts(tree: unknown): HostNode[] {
+  const nodes = (Array.isArray(tree) ? tree : [tree]) as (HostNode | string | null)[];
+  return nodes.flatMap((node) => {
+    if (!node || typeof node === 'string') return [];
+    const own = node.type === 'Text' ? [node] : [];
+    return [...own, ...hostTexts(node.children ?? [])];
+  });
 }
 
 const saved = () =>
@@ -290,9 +307,13 @@ describe('OdometerSheet — a reading on the day of the latest one (M2)', () => 
     await renderSheet({ now: NOW, readings: reading(new Date(2026, 9, 2, 9, 0)) });
     await pickDate(YESTERDAY);
     await type('38300');
-    expect(screen.getByTestId('odometer-notice')).toHaveTextContent(
+    // On the detail line, in place of a "since" delta that would compare it
+    // with a later reading; the footnote goes back to the helper.
+    expect(screen.getByTestId('odometer-delta')).toHaveTextContent(
       'Dated before your latest reading: it is logged, and the odometer stays at 38,167 km.',
     );
+    expect(screen.getByTestId('odometer-delta')).not.toHaveTextContent(/since/);
+    expect(screen.getByTestId('odometer-notice')).not.toHaveTextContent(/Dated before/);
     await fireEvent.press(screen.getByTestId('odometer-save'));
     await waitFor(() => expect(saved()).toHaveLength(1));
     const { trackEvent } = jest.requireMock('../../../lib/analytics') as { trackEvent: jest.Mock };
@@ -319,10 +340,34 @@ describe('OdometerSheet — unset odometer (0 or null, no reading)', () => {
   });
 });
 
-describe('OdometerSheet — layout that cannot escape the sheet (visual QA round 1)', () => {
-  it('renders no scroll view at all: a form sheet lifts the first one out of the column', async () => {
+describe('OdometerSheet — a back-dated reading never shows a "since" delta (visual QA round 2)', () => {
+  it('a higher value dated Sep 27, before the Oct 1 reading: the back-dated wording, not "+250 km since Oct 1"', async () => {
+    const now = new Date(2026, 9, 2, 15, 30);
+    await renderSheet({
+      now,
+      readings: [
+        { ...LATEST, value: 39_407, recordedAt: new Date(2026, 9, 1, 23, 0).toISOString() },
+      ],
+    });
+    await pickDate(new Date(2026, 8, 27, 8, 0));
+    await type('39657');
+    expect(screen.getByTestId('odometer-delta')).toHaveTextContent(
+      'Dated before your latest reading: it is logged, and the odometer stays at 39,407 km.',
+    );
+    expect(screen.queryByText(/since Oct 1/)).toBeNull();
+  });
+});
+
+describe('OdometerSheet — layout that cannot escape the sheet (visual QA rounds 1 and 2)', () => {
+  it('one vertical scroll view holds everything, title included; the chips are not in a scroller of their own', async () => {
     await renderSheet();
-    expect(JSON.stringify(screen.toJSON())).not.toContain('RCTScrollView');
+    const scroll = screen.getByTestId('odometer-sheet-scroll');
+    expect(scroll.props.horizontal).toBeFalsy();
+    // Title, chips and Save are all inside the one scroll view.
+    expect(within(scroll).getByText('Odometer')).toBeOnTheScreen();
+    expect(within(scroll).getByTestId('odometer-chips')).toBeOnTheScreen();
+    expect(within(scroll).getByTestId('odometer-save')).toBeOnTheScreen();
+    expect(JSON.stringify(screen.toJSON()).match(/RCTScrollView/g)).toHaveLength(1);
     const chips = screen.getByTestId('odometer-chips');
     expect(chips.props.horizontal).toBeUndefined();
     expect(StyleSheet.flatten(chips.props.style)).toMatchObject({
@@ -345,13 +390,40 @@ describe('OdometerSheet — layout that cannot escape the sheet (visual QA round
     ]);
   });
 
-  it('caps the chrome at the largest text sizes, and lets the explanatory text scale', async () => {
+  it('stops growing at the top of the screen and scrolls from there (window − top inset − clearance)', async () => {
     await renderSheet();
-    expect(screen.getByText('Odometer').props.maxFontSizeMultiplier).toBe(1.3);
-    expect(screen.getByText('Cancel').props.maxFontSizeMultiplier).toBe(1.3);
-    expect(screen.getByText('7').props.maxFontSizeMultiplier).toBe(1.3);
-    expect(screen.getByTestId('odometer-entry').props.maxFontSizeMultiplier).toBe(1.3);
-    expect(screen.getByTestId('odometer-notice').props.maxFontSizeMultiplier).toBeUndefined();
-    expect(screen.getByTestId('odometer-delta').props.maxFontSizeMultiplier).toBeUndefined();
+    const { height } = Dimensions.get('window');
+    const style = StyleSheet.flatten(screen.getByTestId('odometer-sheet-scroll').props.style);
+    expect(style.flexGrow).toBe(0);
+    expect(style.maxHeight).toBe(height - 54 - SHEET_TOP_CLEARANCE);
+  });
+
+  it('caps every text at 1.3x, so Save stays reachable at AX5 (the detail line and footnote were uncapped)', async () => {
+    await renderSheet();
+    const texts = hostTexts(screen.toJSON());
+    expect(texts.length).toBeGreaterThan(10);
+    for (const text of texts) expect(text.props.maxFontSizeMultiplier).toBe(1.3);
+    expect(screen.getByTestId('odometer-notice').props.maxFontSizeMultiplier).toBe(1.3);
+    expect(screen.getByTestId('odometer-delta').props.maxFontSizeMultiplier).toBe(1.3);
+  });
+
+  it('the rides chip takes at most 45% of the row and wraps its label, so +50 / +100 / +250 stay beside it', async () => {
+    await renderSheet();
+    const rides = screen.getByTestId('chip-rides');
+    const style = StyleSheet.flatten(
+      typeof rides.props.style === 'function'
+        ? rides.props.style({ pressed: false })
+        : rides.props.style,
+    );
+    expect(style.maxWidth).toBe('45%');
+    expect(style.minHeight).toBe(40);
+    expect(style.height).toBeUndefined();
+    const quick = screen.getByTestId('chip-250');
+    const quickStyle = StyleSheet.flatten(
+      typeof quick.props.style === 'function'
+        ? quick.props.style({ pressed: false })
+        : quick.props.style,
+    );
+    expect(quickStyle.maxWidth).toBeUndefined();
   });
 });

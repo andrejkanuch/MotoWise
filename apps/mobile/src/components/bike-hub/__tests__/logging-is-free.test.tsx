@@ -4,6 +4,7 @@
  * never count-limited. Two guards: the Log sheet is exercised as a free rider,
  * and the hub's own source is checked for any reach into the gating code.
  */
+jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));

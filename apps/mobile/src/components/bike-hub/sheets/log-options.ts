@@ -1,17 +1,54 @@
+import { Currency } from '@motovault/types';
 import type { Href } from 'expo-router';
-import { Check, FileText, type LucideIcon, PenLine, Receipt, Wrench } from 'lucide-react-native';
+import {
+  Check,
+  FileText,
+  type LucideIcon,
+  PenLine,
+  Receipt,
+  ReceiptEuro,
+  ReceiptJapaneseYen,
+  ReceiptPoundSterling,
+  ReceiptSwissFranc,
+  ReceiptText,
+  ReceiptTurkishLira,
+  Wrench,
+} from 'lucide-react-native';
 import { ADD_TASK_MODE, LOG_OPTION, type LogOption } from '../../../lib/bike-hub/constants';
 import { type HubCopyKey, hub } from '../ui/tokens';
 
 export interface LogOptionDefinition {
   id: LogOption;
   icon: LucideIcon;
+  /** Set = the icon depends on the rider's currency (the Expense receipt). */
+  iconFor?: (currency: Currency) => LucideIcon;
   iconColor: string;
   tileBackground: string;
   titleKey: HubCopyKey;
   subKey: HubCopyKey;
   /** The form this option opens, for the given bike. D3: today's screens. */
   href: (target: { motorcycleId: string; bikeName: string }) => Href;
+}
+
+/** Receipts that carry the currency's own sign; `Receipt` is lucide's "$" receipt. */
+const RECEIPT_BY_CURRENCY: Partial<Record<Currency, LucideIcon>> = {
+  [Currency.USD]: Receipt,
+  [Currency.CAD]: Receipt,
+  [Currency.AUD]: Receipt,
+  [Currency.MXN]: Receipt,
+  [Currency.COP]: Receipt,
+  [Currency.ARS]: Receipt,
+  [Currency.CLP]: Receipt,
+  [Currency.EUR]: ReceiptEuro,
+  [Currency.GBP]: ReceiptPoundSterling,
+  [Currency.JPY]: ReceiptJapaneseYen,
+  [Currency.CHF]: ReceiptSwissFranc,
+  [Currency.TRY]: ReceiptTurkishLira,
+};
+
+/** The Expense option's receipt for the rider's currency; a plain receipt for the rest. */
+export function expenseIconFor(currency: Currency): LucideIcon {
+  return RECEIPT_BY_CURRENCY[currency] ?? ReceiptText;
 }
 
 /**
@@ -21,7 +58,8 @@ export interface LogOptionDefinition {
 export const LOG_OPTIONS: readonly LogOptionDefinition[] = [
   {
     id: LOG_OPTION.EXPENSE,
-    icon: Receipt,
+    icon: ReceiptText,
+    iconFor: expenseIconFor,
     iconColor: hub.soon,
     tileBackground: hub.tagHighBg,
     titleKey: 'bikeHub.log.expense',

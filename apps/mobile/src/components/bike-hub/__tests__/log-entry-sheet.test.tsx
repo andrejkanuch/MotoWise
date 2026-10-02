@@ -1,3 +1,4 @@
+jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
@@ -39,17 +40,34 @@ jest.mock('expo-router', () => ({
   }),
 }));
 
+// Each receipt renders as a marker, so a test can tell which one the sheet drew.
+jest.mock('lucide-react-native', () => {
+  const actual = jest.requireActual('lucide-react-native');
+  const { Text } = jest.requireActual('react-native');
+  const marker = (name: string) => () => <Text testID={`icon-${name}`}>{name}</Text>;
+  return {
+    ...actual,
+    Receipt: marker('Receipt'),
+    ReceiptEuro: marker('ReceiptEuro'),
+    ReceiptPoundSterling: marker('ReceiptPoundSterling'),
+    ReceiptText: marker('ReceiptText'),
+  };
+});
+
 const mockFetcher = jest.fn();
 jest.mock('../../../lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 import LogEntrySheet from '../../../app/(tabs)/(garage)/log-entry';
 import '../../../i18n';
 import { LOG_OPTION } from '../../../lib/bike-hub/constants';
+import { useAuthStore } from '../../../stores/auth.store';
 import { BIKE_A } from '../../../test/bike-hub-fixtures';
+import { SHEET_TOP_CLEARANCE } from '../sheets/sheet-scroll';
 
 const clients: QueryClient[] = [];
 
@@ -187,5 +205,46 @@ describe('Log sheet', () => {
     await fireEvent.press(await screen.findByText('Cancel'));
     expect(mockRouter.back).toHaveBeenCalledTimes(1);
     expect(mockRouter.push).not.toHaveBeenCalled();
+  });
+});
+
+describe('Log sheet — largest text sizes (visual QA round 2)', () => {
+  it('everything sits in one vertical scroll view that stops at the top of the screen', async () => {
+    await renderSheet();
+    await act(async () => jest.advanceTimersByTimeAsync(0));
+    const scroll = await screen.findByTestId('log-sheet-scroll');
+    const { height } = Dimensions.get('window');
+    const style = StyleSheet.flatten(scroll.props.style);
+    expect(style.flexGrow).toBe(0);
+    expect(style.maxHeight).toBe(height - 54 - SHEET_TOP_CLEARANCE);
+    expect(within(scroll).getByText('Log on the Africa Twin')).toBeOnTheScreen();
+    // The fifth option is inside it, so it can be scrolled to at AX5.
+    expect(within(scroll).getByTestId('log-option-document')).toBeOnTheScreen();
+  });
+
+  it('option titles and sub-lines are capped at 1.3x, so "Maintenance task" does not break mid-word', async () => {
+    await renderSheet();
+    await act(async () => jest.advanceTimersByTimeAsync(0));
+    expect((await screen.findByText('Maintenance task')).props.maxFontSizeMultiplier).toBe(1.3);
+    expect(
+      screen.getByText('Something to do, due by date or distance').props.maxFontSizeMultiplier,
+    ).toBe(1.3);
+  });
+});
+
+describe('Log sheet — the Expense receipt follows the rider’s currency', () => {
+  afterEach(() => useAuthStore.setState({ currency: 'USD' }));
+
+  it.each([
+    ['EUR', 'ReceiptEuro'],
+    ['USD', 'Receipt'],
+    ['GBP', 'ReceiptPoundSterling'],
+    ['SEK', 'ReceiptText'],
+  ] as const)('%s rider: %s', async (currency, icon) => {
+    useAuthStore.setState({ currency });
+    await renderSheet();
+    await act(async () => jest.advanceTimersByTimeAsync(0));
+    const expense = await screen.findByTestId('log-option-expense');
+    expect(within(expense).getByTestId(`icon-${icon}`)).toBeOnTheScreen();
   });
 });
