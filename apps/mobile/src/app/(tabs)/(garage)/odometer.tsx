@@ -1,7 +1,9 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { OdometerSheet } from '../../../components/bike-hub/sheets/odometer-sheet';
 import { useHubBike } from '../../../components/bike-hub/shell/use-hub-bike';
+import { refreshToday } from '../../../components/bike-hub/shell/use-today';
 import { hub } from '../../../components/bike-hub/ui/tokens';
 
 const PLACEHOLDER_HEIGHT = 240;
@@ -10,6 +12,8 @@ const PLACEHOLDER_HEIGHT = 240;
 export default function OdometerScreen() {
   const { motorcycleId } = useLocalSearchParams<{ motorcycleId: string }>();
   const { bike } = useHubBike(motorcycleId);
+  // "Date · today" and the future-date check must use the day the sheet is opened on.
+  useFocusEffect(useCallback(() => refreshToday(), []));
   if (!bike) {
     return (
       <View

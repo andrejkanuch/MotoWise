@@ -1,7 +1,7 @@
 import DateTimePicker from '@expo/ui/community/datetime-picker';
 import * as Haptics from 'expo-haptics';
 import type { TFunction } from 'i18next';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,7 +12,12 @@ import {
   ODOMETER_QUICK_ADD,
   type OdometerKey,
 } from '../../../lib/bike-hub/constants';
-import { formatOdometer, formatShortDate, toHubUnit } from '../../../lib/bike-hub/format';
+import {
+  formatOdometer,
+  formatShortDate,
+  hasOdometer,
+  toHubUnit,
+} from '../../../lib/bike-hub/format';
 import {
   applyKey,
   applyQuickAdd,
@@ -23,6 +28,7 @@ import {
 } from '../../../lib/bike-hub/odometer-input';
 import { triggerNotification, triggerSelection } from '../../../utils/haptics';
 import type { HubBike } from '../shell/use-bike-hub-data';
+import { useToday } from '../shell/use-today';
 import { HUB_FONT, HUB_HEIGHT, HUB_RADIUS, hub } from '../ui/tokens';
 import { OdometerKeypad } from './odometer-keypad';
 import { SheetGrabber, SheetHeader } from './sheet-header';
@@ -83,17 +89,21 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
   const insets = useSafeAreaInsets();
   const language = i18n.language;
   const unit = toHubUnit(bike.distanceUnit);
-  const today = useMemo(() => now ?? new Date(), [now]);
+  const today = useToday(now);
   const { latest, readingsLoading, pendingRides } = useOdometerContext(bike.id);
   const logOdometer = useLogOdometer(bike.id);
 
   const [digits, setDigits] = useState('');
-  const [recordedAt, setRecordedAt] = useState(today);
+  // `null` = the rider has not picked a date: the reading is for today.
+  const [pickedDate, setPickedDate] = useState<Date | null>(null);
+  const recordedAt = pickedDate ?? today;
   const [pickingDate, setPickingDate] = useState(false);
   const [usedQuickAdd, setUsedQuickAdd] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
 
-  const lastValue = latest?.value ?? bike.currentMileage ?? null;
+  // 0 (or nothing) with no reading means the odometer was never set.
+  const loggedValue = latest?.value ?? bike.currentMileage;
+  const lastValue = hasOdometer(loggedValue) ? loggedValue : null;
   const lastRecordedAt = latest ? new Date(latest.recordedAt) : null;
   const value = parseEntry(digits);
   const validation = validateReading({ value, lastValue, recordedAt, lastRecordedAt, today });
@@ -102,15 +112,15 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
   const lastText = lastValue == null ? '' : formatOdometer(lastValue, language);
   const since = lastRecordedAt ? formatShortDate(lastRecordedAt, language) : null;
 
+  const emptyDetail = (): string => {
+    if (lastValue == null) return t('bikeHub.odometer.first');
+    return since
+      ? t('bikeHub.odometer.lastReading', { last: lastText, unit, date: since })
+      : t('bikeHub.odometer.lastReadingNoDate', { last: lastText, unit });
+  };
   const detail =
     value === null
-      ? {
-          text:
-            lastValue == null
-              ? t('bikeHub.odometer.first')
-              : t('bikeHub.odometer.lastReading', { last: lastText, unit, date: since ?? '' }),
-          warn: false,
-        }
+      ? { text: emptyDetail(), warn: false }
       : deltaLine(delta, { t, unit, last: lastText, since, language });
 
   const onKey = (key: OdometerKey) => {
@@ -267,7 +277,7 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
             display={process.env.EXPO_OS === 'ios' ? 'inline' : 'default'}
             onChange={(event, selected) => {
               if (process.env.EXPO_OS === 'android') setPickingDate(false);
-              if (event.type === 'set' && selected) setRecordedAt(selected);
+              if (event.type === 'set' && selected) setPickedDate(selected);
             }}
             style={process.env.EXPO_OS === 'ios' ? { height: 320 } : undefined}
           />

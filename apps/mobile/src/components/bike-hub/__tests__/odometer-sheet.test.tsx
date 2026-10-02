@@ -12,7 +12,15 @@ jest.mock('expo-haptics', () => ({
   ImpactFeedbackStyle: { Light: 'light' },
   NotificationFeedbackType: { Success: 'success', Warning: 'warning' },
 }));
-jest.mock('@expo/ui/community/datetime-picker', () => ({ __esModule: true, default: () => null }));
+// The picker is native; capture its props so a test can "pick" a day.
+let mockPicker: { onChange: (event: { type: string }, date?: Date) => void } | undefined;
+jest.mock('@expo/ui/community/datetime-picker', () => ({
+  __esModule: true,
+  default: (props: typeof mockPicker) => {
+    mockPicker = props;
+    return null;
+  },
+}));
 
 const mockFetcher = jest.fn();
 jest.mock('../../../lib/graphql-client', () => ({
@@ -45,6 +53,7 @@ const onClose = jest.fn();
 interface Scenario {
   bike?: Record<string, unknown>;
   readings?: unknown[];
+  now?: Date;
   pending?: { rideCount: number; distance: number };
   saveFails?: boolean;
 }
@@ -75,7 +84,7 @@ async function renderSheet(scenario: Scenario = {}) {
       <OdometerSheet
         bike={{ ...BIKE_A, ...scenario.bike } as unknown as HubBike}
         onClose={onClose}
-        now={TODAY}
+        now={scenario.now ?? TODAY}
       />
     </QueryClientProvider>,
   );
@@ -209,5 +218,71 @@ describe('OdometerSheet', () => {
     expect(await screen.findByText("Couldn't save the reading. Try again.")).toBeOnTheScreen();
     expect(onClose).not.toHaveBeenCalled();
     expect(screen.getByTestId('odometer-entry')).toHaveTextContent('39,407');
+  });
+});
+
+async function pickDate(date: Date) {
+  await fireEvent.press(screen.getByTestId('key-date'));
+  await act(async () => mockPicker?.onChange({ type: 'set' }, date));
+  await fireEvent.press(screen.getByText('Done'));
+}
+
+describe('OdometerSheet — a reading on the day of the latest one (M2)', () => {
+  const NOW = new Date(2026, 9, 2, 15, 30);
+  const YESTERDAY = new Date(2026, 9, 1, 8, 0);
+  const reading = (recordedAt: Date) => [{ ...LATEST, recordedAt: recordedAt.toISOString() }];
+
+  it('last reading yesterday 18:00, pick yesterday, higher value: sent at the end of that day, no notice', async () => {
+    await renderSheet({ now: NOW, readings: reading(new Date(2026, 9, 1, 18, 0)) });
+    await pickDate(YESTERDAY);
+    await type('38300');
+    expect(screen.getByTestId('odometer-notice')).not.toHaveTextContent(/Dated before/);
+    await fireEvent.press(screen.getByTestId('odometer-save'));
+    await waitFor(() => expect(saved()).toHaveLength(1));
+    // After the 18:00 reading, so the server applies it to the bike.
+    expect(saved()[0]?.[1]).toEqual({
+      input: {
+        motorcycleId: BIKE_A.id,
+        value: 38_300,
+        recordedAt: new Date(2026, 9, 1, 23, 59, 59, 999).toISOString(),
+      },
+    });
+    const { trackEvent } = jest.requireMock('../../../lib/analytics') as { trackEvent: jest.Mock };
+    expect(trackEvent).toHaveBeenCalledWith(
+      'ODOMETER_UPDATED',
+      expect.objectContaining({ backdated: false }),
+    );
+  });
+
+  it('last reading today 09:00, pick yesterday: says before saving that the odometer will not move', async () => {
+    await renderSheet({ now: NOW, readings: reading(new Date(2026, 9, 2, 9, 0)) });
+    await pickDate(YESTERDAY);
+    await type('38300');
+    expect(screen.getByTestId('odometer-notice')).toHaveTextContent(
+      'Dated before your latest reading: it is logged, and the odometer stays at 38,167 km.',
+    );
+    await fireEvent.press(screen.getByTestId('odometer-save'));
+    await waitFor(() => expect(saved()).toHaveLength(1));
+    const { trackEvent } = jest.requireMock('../../../lib/analytics') as { trackEvent: jest.Mock };
+    expect(trackEvent).toHaveBeenCalledWith(
+      'ODOMETER_UPDATED',
+      expect.objectContaining({ backdated: true }),
+    );
+  });
+});
+
+describe('OdometerSheet — unset odometer (0 or null, no reading)', () => {
+  it('0 with no reading reads "First reading for this bike", with no dangling separator', async () => {
+    await renderSheet({ bike: { currentMileage: 0 }, readings: [] });
+    expect(screen.getByTestId('odometer-delta')).toHaveTextContent('First reading for this bike');
+    await type('12');
+    expect(screen.getByTestId('odometer-delta')).toHaveTextContent('First reading for this bike');
+    expect(screen.getByRole('button', { name: 'Save 12 km' })).toBeEnabled();
+  });
+
+  it('a bike value without a logged reading shows the last reading without a date', async () => {
+    await renderSheet({ readings: [] });
+    expect(screen.getByTestId('odometer-delta')).toHaveTextContent('Last reading 38,167 km');
+    expect(screen.getByTestId('odometer-delta')).not.toHaveTextContent(/·/);
   });
 });

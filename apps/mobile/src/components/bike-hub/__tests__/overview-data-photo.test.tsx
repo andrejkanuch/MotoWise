@@ -75,6 +75,9 @@ async function renderData() {
     tasksError: false,
     refetchTasks: jest.fn(),
     documents: BIKE_A_DOCUMENTS as BikeHubData['documents'],
+    documentsLoading: false,
+    documentsError: false,
+    refetchDocuments: jest.fn(),
   };
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={client}>{children}</QueryClientProvider>

@@ -1,9 +1,10 @@
+import { NOTE_TEXT_MAX } from '@motovault/types';
 import { Plus } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { type HubUnit, NOTE_SOURCE, OVERVIEW_NOTES_SHOWN } from '../../../lib/bike-hub/constants';
-import { formatOdometer, formatShortDate } from '../../../lib/bike-hub/format';
+import { formatOdometer, formatShortDate, hasOdometer } from '../../../lib/bike-hub/format';
 import { normaliseNoteText } from '../../../lib/bike-hub/notes';
 import { triggerImpact } from '../../../utils/haptics';
 import { type HubNote, useCreateNote } from '../notes/use-notes';
@@ -21,7 +22,7 @@ export function noteMeta(
   language: string,
 ): string {
   const date = formatShortDate(note.createdAt, language);
-  if (note.odometer == null) return date;
+  if (!hasOdometer(note.odometer)) return date;
   return `${date}${SEPARATOR}${formatOdometer(note.odometer, language)} ${unit}`;
 }
 
@@ -67,7 +68,13 @@ export function NotesBlock({
     setFailed(false);
     triggerImpact();
     createNote.mutate(
-      { motorcycleId, text, odometer: odometer ?? null, source: NOTE_SOURCE.OVERVIEW_QUICK },
+      {
+        motorcycleId,
+        text,
+        // An unset odometer (null or 0) leaves the note unstamped.
+        odometer: hasOdometer(odometer) ? odometer : null,
+        source: NOTE_SOURCE.OVERVIEW_QUICK,
+      },
       {
         // Give the text back so nothing typed is lost.
         onError: () => {
@@ -182,6 +189,7 @@ export function NotesBlock({
             placeholder={t('bikeHub.notes.placeholder')}
             placeholderTextColor={hub.muted}
             accessibilityLabel={t('bikeHub.notes.inputA11y')}
+            maxLength={NOTE_TEXT_MAX}
             returnKeyType="send"
             submitBehavior="submit"
             hitSlop={{ top: INPUT_SLOP, bottom: INPUT_SLOP }}

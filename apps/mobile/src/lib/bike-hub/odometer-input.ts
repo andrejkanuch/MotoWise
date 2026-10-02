@@ -1,5 +1,5 @@
 import { ODOMETER_MAX } from '@motovault/types';
-import { differenceInCalendarDays } from 'date-fns';
+import { differenceInCalendarDays, endOfDay, isSameDay } from 'date-fns';
 import {
   DELTA_DIRECTION,
   type DeltaDirection,
@@ -60,14 +60,43 @@ export type ReadingValidation =
 export interface ReadingInput {
   value: number | null;
   lastValue: number | null | undefined;
+  /** The day the rider picked. */
   recordedAt: Date;
+  /** `recordedAt` of the latest logged reading — an exact timestamp. */
   lastRecordedAt: Date | null | undefined;
   today: Date;
 }
 
 /**
- * Checks a reading before it is saved. A reading dated before the latest one is
- * history being filled in — it is accepted as is and does not move the bike's
+ * The timestamp a reading is saved with. Today's reading is stamped by the
+ * server at save time (`null` here); a reading for an earlier day is stamped at
+ * the END of that local day, so it sorts after anything already logged that day.
+ */
+export function readingTimestamp(pickedDay: Date, today: Date): Date | null {
+  return isSameDay(pickedDay, today) ? null : endOfDay(pickedDay);
+}
+
+/**
+ * True when the server will log the reading without moving the bike's odometer:
+ * `log_odometer_reading` (00181) only applies a reading when no logged reading
+ * has a later timestamp. Decided on the timestamp that is actually sent, not on
+ * calendar days — a reading for "yesterday" after yesterday's 18:00 reading
+ * still applies; one for yesterday when a reading exists from this morning does not.
+ */
+export function isBackdated(
+  pickedDay: Date,
+  lastRecordedAt: Date | null | undefined,
+  today: Date,
+): boolean {
+  const sentAt = readingTimestamp(pickedDay, today);
+  // Today's reading is stamped "now" by the server: never older than a logged one.
+  if (!sentAt || !lastRecordedAt) return false;
+  return sentAt.getTime() < lastRecordedAt.getTime();
+}
+
+/**
+ * Checks a reading before it is saved. A back-dated reading (see `isBackdated`)
+ * is history being filled in — it is accepted as is and does not move the bike's
  * odometer. Otherwise an unchanged value is rejected and a lower one needs the
  * rider's confirmation (a typo must stay correctable).
  */
@@ -77,7 +106,7 @@ export function validateReading(input: ReadingInput): ReadingValidation {
   if (differenceInCalendarDays(recordedAt, today) > 0) {
     return { ok: false, error: ODOMETER_ERROR.FUTURE_DATE };
   }
-  const backdated = !!lastRecordedAt && differenceInCalendarDays(recordedAt, lastRecordedAt) < 0;
+  const backdated = isBackdated(recordedAt, lastRecordedAt, today);
   if (backdated || lastValue == null) return { ok: true, backdated };
   if (value === lastValue) return { ok: false, error: ODOMETER_ERROR.UNCHANGED };
   if (value < lastValue) return { ok: false, needsConfirm: ODOMETER_CONFIRM.LOWER_THAN_LAST };

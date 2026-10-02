@@ -16,7 +16,9 @@ import {
   applyKey,
   applyQuickAdd,
   describeDelta,
+  isBackdated,
   parseEntry,
+  readingTimestamp,
   validateReading,
 } from '../odometer-input';
 import { ownerSegmentOf, parseOrigin, resolveInitialSegment } from '../segments';
@@ -78,9 +80,12 @@ describe('summariseCosts — bike A', () => {
     expect(summary.yoy?.percent).toBe(12);
   });
 
-  it('this month €0.00, September €65.62', () => {
+  it('this month €0.00', () => {
     expect(summary.thisMonth).toBe(0);
-    expect(summary.previousMonth).toBeCloseTo(65.62, 2);
+  });
+
+  it('carries no previous-month figure (it was unused, and wrong in January)', () => {
+    expect(summary).not.toHaveProperty('previousMonth');
   });
 
   it('per month €218 over 9 completed months', () => {
@@ -225,6 +230,61 @@ describe('odometer input', () => {
       }),
     ).toEqual({ ok: true, backdated: false });
     expect(describeDelta(1240, null)).toBeNull();
+  });
+});
+
+describe('reading timestamp and back-dating (matches log_odometer_reading, 00181)', () => {
+  const NOW = new Date(2026, 9, 2, 15, 30);
+  const YESTERDAY = new Date(2026, 9, 1, 8, 0);
+
+  it('today is stamped by the server; an earlier day is sent as the END of that local day', () => {
+    expect(readingTimestamp(NOW, NOW)).toBeNull();
+    expect(readingTimestamp(YESTERDAY, NOW)).toEqual(new Date(2026, 9, 1, 23, 59, 59, 999));
+  });
+
+  it('last reading yesterday 18:00, pick yesterday, higher value → applied, not back-dated', () => {
+    const lastRecordedAt = new Date(2026, 9, 1, 18, 0);
+    expect(isBackdated(YESTERDAY, lastRecordedAt, NOW)).toBe(false);
+    expect(
+      validateReading({
+        value: 38_300,
+        lastValue: 38_167,
+        recordedAt: YESTERDAY,
+        lastRecordedAt,
+        today: NOW,
+      }),
+    ).toEqual({ ok: true, backdated: false });
+  });
+
+  it('last reading today 09:00, pick yesterday → back-dated (logged, odometer not moved)', () => {
+    const lastRecordedAt = new Date(2026, 9, 2, 9, 0);
+    expect(isBackdated(YESTERDAY, lastRecordedAt, NOW)).toBe(true);
+    expect(
+      validateReading({
+        value: 38_300,
+        lastValue: 38_167,
+        recordedAt: YESTERDAY,
+        lastRecordedAt,
+        today: NOW,
+      }),
+    ).toEqual({ ok: true, backdated: true });
+  });
+
+  it('a reading for today is never back-dated, whatever time the last one has', () => {
+    expect(isBackdated(NOW, new Date(2026, 9, 2, 23, 0), NOW)).toBe(false);
+    expect(isBackdated(new Date(2026, 9, 2, 0, 0), new Date(2026, 9, 2, 9, 0), NOW)).toBe(false);
+  });
+
+  it('same day as the last reading keeps the lower-than-last confirmation', () => {
+    expect(
+      validateReading({
+        value: 38_000,
+        lastValue: 38_167,
+        recordedAt: YESTERDAY,
+        lastRecordedAt: new Date(2026, 9, 1, 18, 0),
+        today: NOW,
+      }),
+    ).toEqual({ ok: false, needsConfirm: ODOMETER_CONFIRM.LOWER_THAN_LAST });
   });
 });
 

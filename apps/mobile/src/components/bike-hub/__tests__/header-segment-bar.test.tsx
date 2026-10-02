@@ -69,6 +69,15 @@ describe('BikeHeader', () => {
     expect(onOdometerPress).toHaveBeenCalledTimes(1);
   });
 
+  it('an odometer of 0 is "not set": the chip invites setting it instead of showing "0 km"', async () => {
+    await render(header({ bike: { ...AFRICA_TWIN, currentMileage: 0 } }));
+    expect(screen.getByText('Set odometer')).toBeOnTheScreen();
+    expect(screen.queryByText('0 km')).toBeNull();
+    expect(
+      screen.getByRole('button', { name: 'Odometer not set, tap to set it' }),
+    ).toBeOnTheScreen();
+  });
+
   it('without a bike (loading / not found) still offers a working back button', async () => {
     const onBack = jest.fn();
     await render(header({ bike: null, onBack }));

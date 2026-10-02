@@ -57,7 +57,11 @@ export function OverviewSegment({
   now,
 }: OverviewSegmentProps) {
   const data = useOverviewData(bike, shell, unit, now);
-  const untracked = data.status.status === RIDE_STATUS.UNTRACKED && !data.tasks.isLoading;
+  // A verdict needs tasks and documents both loaded: until then no status, and
+  // no "Set this bike up" list for a bike that may well have tasks.
+  const { isLoading: statusLoading, isError: statusError } = data.statusSource;
+  const statusKnown = !statusLoading && !statusError;
+  const untracked = statusKnown && data.status.status === RIDE_STATUS.UNTRACKED;
   const showService = () => onShowSegment(BIKE_SEGMENT.SERVICE);
   const showBike = () => onShowSegment(BIKE_SEGMENT.BIKE);
 
@@ -90,6 +94,9 @@ export function OverviewSegment({
         key="status"
         status={data.status.status}
         reasons={data.status.reasons}
+        isLoading={statusLoading}
+        isError={statusError}
+        onRetry={data.statusSource.refetch}
         onPress={topItem ? () => onPressItem(topItem) : undefined}
       />,
     ],

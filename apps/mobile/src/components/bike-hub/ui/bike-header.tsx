@@ -5,7 +5,7 @@ import { Pressable, Text, View } from 'react-native';
 import Animated, { interpolate, type SharedValue, useAnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BIKE_ORIGIN, type BikeOrigin, type HubUnit } from '../../../lib/bike-hub/constants';
-import { formatOdometer } from '../../../lib/bike-hub/format';
+import { formatOdometer, hasOdometer } from '../../../lib/bike-hub/format';
 import { triggerImpact } from '../../../utils/haptics';
 import { HUB_FONT, HUB_HEIGHT, HUB_RADIUS, HUB_TOUCH_TARGET, type HubCopyKey, hub } from './tokens';
 
@@ -74,10 +74,11 @@ export function BikeHeader({
     opacity: interpolate(collapse.value, [0, 0.6], [1, 0], 'clamp'),
   }));
 
-  const hasOdometer = bike?.currentMileage != null;
-  const odometer = hasOdometer ? formatOdometer(bike.currentMileage ?? 0, i18n.language) : '';
-  const chipLabel = hasOdometer ? `${odometer} ${unit}` : t('bikeHub.header.setOdometer');
-  const chipA11y = hasOdometer
+  // null and 0 both mean "never set": the chip invites setting it instead of showing "0 km".
+  const odometerSet = hasOdometer(bike?.currentMileage);
+  const odometer = odometerSet ? formatOdometer(bike?.currentMileage ?? 0, i18n.language) : '';
+  const chipLabel = odometerSet ? `${odometer} ${unit}` : t('bikeHub.header.setOdometer');
+  const chipA11y = odometerSet
     ? t('bikeHub.header.odometerA11y', { value: odometer, unit })
     : t('bikeHub.header.setOdometerA11y');
 

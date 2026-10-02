@@ -1,5 +1,5 @@
 import type { ExpensesByMotorcycleQuery } from '@motovault/graphql';
-import { endOfDay, isSameMonth, parseISO, subMonths, subYears } from 'date-fns';
+import { endOfDay, isSameMonth, parseISO, subYears } from 'date-fns';
 import {
   COSTS_REST_KEY,
   COSTS_TOP_SHARES,
@@ -34,7 +34,6 @@ export interface CostsSummary {
   /** `null` when last year's same period has no spend (nothing to compare with). */
   yoy: CostsYoy | null;
   thisMonth: number;
-  previousMonth: number;
   /** `total / monthsCounted`, unrounded. */
   perMonth: number;
   /** Completed calendar months of the year, at least 1 — the "per month" denominator. */
@@ -123,7 +122,6 @@ export function summariseCosts(input: CostsSummaryInput): CostsSummary {
       : null;
 
   const monthsCounted = Math.max(1, today.getMonth());
-  const lastMonth = subMonths(today, 1);
   const shares = buildShares(currentYearExpenses, total);
   const top = shares.find((share) => share.key !== COSTS_REST_KEY);
 
@@ -132,7 +130,6 @@ export function summariseCosts(input: CostsSummaryInput): CostsSummary {
     samePeriodLastYear,
     yoy,
     thisMonth: sum(current.filter((expense) => isSameMonth(expense.date, today))),
-    previousMonth: sum(current.filter((expense) => isSameMonth(expense.date, lastMonth))),
     perMonth: total / monthsCounted,
     monthsCounted,
     shares,

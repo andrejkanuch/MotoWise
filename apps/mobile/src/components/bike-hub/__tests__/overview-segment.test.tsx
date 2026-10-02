@@ -65,6 +65,8 @@ interface Scenario {
   notes: unknown[];
   tasksLoading?: boolean;
   tasksError?: boolean;
+  documentsLoading?: boolean;
+  documentsError?: boolean;
 }
 
 const BIKE_A_SCENARIO: Scenario = {
@@ -91,6 +93,8 @@ const navigation = {
 const photo = { uploading: false, changePhoto: jest.fn() };
 const onShowSegment = jest.fn();
 const onOpenTask = jest.fn();
+const refetchTasks = jest.fn();
+const refetchDocuments = jest.fn();
 const clients: QueryClient[] = [];
 
 async function renderOverview(overrides: Partial<Scenario> = {}) {
@@ -125,8 +129,11 @@ async function renderOverview(overrides: Partial<Scenario> = {}) {
     tasks: scenario.tasks as HubTask[],
     tasksLoading: scenario.tasksLoading ?? false,
     tasksError: scenario.tasksError ?? false,
-    refetchTasks: jest.fn(),
+    refetchTasks,
     documents: scenario.documents as Documents,
+    documentsLoading: scenario.documentsLoading ?? false,
+    documentsError: scenario.documentsError ?? false,
+    refetchDocuments,
     ridesCount: 9,
   } as unknown as BikeHubData;
   await render(
@@ -305,6 +312,28 @@ describe('Overview — quick note', () => {
     );
   });
 
+  it('an unset odometer (0) leaves the quick note unstamped', async () => {
+    await renderOverview({ bike: { ...BIKE_A, currentMileage: 0 } });
+    const input = screen.getByTestId('quick-note-input');
+    await fireEvent.changeText(input, 'No stamp');
+    await fireEvent(input, 'submitEditing');
+    await waitFor(() =>
+      expect(mockFetcher).toHaveBeenCalledWith(CreateNoteDocument, {
+        input: {
+          motorcycleId: BIKE_A.id,
+          text: 'No stamp',
+          odometer: undefined,
+          alsoCreateTask: false,
+        },
+      }),
+    );
+  });
+
+  it('caps the quick note at the note length limit', async () => {
+    await renderOverview();
+    expect(screen.getByTestId('quick-note-input').props.maxLength).toBe(4000);
+  });
+
   it('does nothing for whitespace-only input', async () => {
     await renderOverview();
     const input = screen.getByTestId('quick-note-input');
@@ -391,10 +420,52 @@ describe('Overview — status variants', () => {
     expect(screen.queryByTestId('setup-list')).toBeNull();
   });
 
-  it('a tasks error degrades only the attention block and offers Retry', async () => {
+  it('a tasks error degrades the status and attention blocks only; costs still render', async () => {
     await renderOverview({ tasks: [], tasksError: true });
     expect(screen.getByText("Couldn't load tasks")).toBeOnTheScreen();
+    expect(screen.getByTestId('ride-status-error')).toBeOnTheScreen();
     expect(await screen.findByTestId('costs-card')).toBeOnTheScreen();
+  });
+
+  // M1: the status is computed from tasks AND documents. Without both loaded
+  // there is no verdict — never "Ready to ride" / "Nothing tracked yet".
+  it('cold cache: while tasks load there is no verdict, even though the list is still empty', async () => {
+    await renderOverview({ ...quiet, tasks: [], tasksLoading: true });
+    expect(screen.getByTestId('ride-status-loading')).toBeOnTheScreen();
+    expect(screen.queryByText('Ready to ride')).toBeNull();
+    expect(screen.queryByText('Nothing tracked yet')).toBeNull();
+    expect(screen.queryByTestId('setup-list')).toBeNull();
+  });
+
+  it('while documents load there is no verdict either', async () => {
+    await renderOverview({ ...quiet, tasks: [], documentsLoading: true });
+    expect(screen.getByTestId('ride-status-loading')).toBeOnTheScreen();
+    expect(screen.queryByText('Nothing tracked yet')).toBeNull();
+    expect(screen.queryByTestId('setup-list')).toBeNull();
+  });
+
+  it('tasks failed on a bike with no documents: an error with Retry, not "Nothing tracked yet"', async () => {
+    await renderOverview({
+      ...quiet,
+      tasks: [],
+      tasksError: true,
+      bike: { ...BIKE_A, recallCount: 0 },
+    });
+    expect(screen.getByText("Couldn't load the ride status")).toBeOnTheScreen();
+    expect(screen.queryByText('Nothing tracked yet')).toBeNull();
+    expect(screen.queryByText('Ready to ride')).toBeNull();
+    expect(screen.queryByTestId('setup-list')).toBeNull();
+    await fireEvent.press(screen.getByTestId('ride-status-retry'));
+    expect(refetchTasks).toHaveBeenCalledTimes(1);
+    expect(refetchDocuments).not.toHaveBeenCalled();
+  });
+
+  it('documents failed: an error with Retry that refetches the documents', async () => {
+    await renderOverview({ ...quiet, tasks: [], documentsError: true });
+    expect(screen.getByTestId('ride-status-error')).toBeOnTheScreen();
+    expect(screen.queryByTestId('setup-list')).toBeNull();
+    await fireEvent.press(screen.getByTestId('ride-status-retry'));
+    expect(refetchDocuments).toHaveBeenCalledTimes(1);
   });
 
   it('no expenses last year: no YoY line', async () => {

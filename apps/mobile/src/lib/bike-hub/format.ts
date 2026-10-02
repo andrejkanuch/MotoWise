@@ -58,3 +58,11 @@ export function formatMonthYear(value: string | Date, locale: string): string {
 export function formatShortDate(value: string | Date, locale: string): string {
   return toDate(value).toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 }
+
+/**
+ * Whether the bike has an odometer reading to show. `null` and 0 both mean "not
+ * set yet": no rider logs a note or a service at 0, and "0 km" reads as data.
+ */
+export function hasOdometer(value: number | null | undefined): value is number {
+  return value != null && value > 0;
+}

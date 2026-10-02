@@ -34,6 +34,8 @@ export interface BikeHubData {
   refetchTasks: () => void;
   documents: ReturnType<typeof useMotorcycleDocuments>['documents'];
   documentsLoading: boolean;
+  documentsError: boolean;
+  refetchDocuments: () => void;
   ridesCount: number;
   /** Overdue Critical / High tasks — the Service segment badge. */
   serviceBadge: number;
@@ -63,7 +65,12 @@ export function useBikeHubData(id: string): BikeHubData {
     queryKey: queryKeys.rides.byMotorcycle(id),
     queryFn: () => gqlFetcher(MyRidesDocument, { first: 1, motorcycleId: id }),
   });
-  const { documents, isLoading: documentsLoading } = useMotorcycleDocuments(id);
+  const {
+    documents,
+    isLoading: documentsLoading,
+    isError: documentsError,
+    refetch: refetchDocuments,
+  } = useMotorcycleDocuments(id);
 
   const bike = bikes.data?.myMotorcycles.find((motorcycle) => motorcycle.id === id) ?? null;
   const unit = toHubUnit(bike?.distanceUnit);
@@ -111,6 +118,8 @@ export function useBikeHubData(id: string): BikeHubData {
     refetchTasks: () => void tasksQuery.refetch(),
     documents,
     documentsLoading,
+    documentsError,
+    refetchDocuments,
     ridesCount: rides.data?.myRides.totalCount ?? 0,
     serviceBadge,
     isRefreshing,

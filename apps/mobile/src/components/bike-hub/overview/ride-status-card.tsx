@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import {
   RIDE_STATUS,
   RIDE_STATUS_REASON,
@@ -11,7 +11,7 @@ import { midSentence } from '../../../lib/bike-hub/format';
 import type { RideStatusReason } from '../../../lib/bike-hub/ride-status';
 import { HubCard } from '../ui/hub-card';
 import { RowChevron } from '../ui/row-chevron';
-import { HUB_FONT, hub, RIDE_STATUS_STYLE } from '../ui/tokens';
+import { HUB_FONT, HUB_TOUCH_TARGET, hub, RIDE_STATUS_STYLE } from '../ui/tokens';
 
 const SEPARATOR = ' · ';
 
@@ -60,17 +60,95 @@ export function describeRideStatusReasons(
 interface RideStatusCardProps {
   status: RideStatus;
   reasons: readonly RideStatusReason[];
+  /** Tasks or documents are still loading: no verdict yet. */
+  isLoading?: boolean;
+  /** Tasks or documents failed to load: no verdict, offer Retry. */
+  isError?: boolean;
+  onRetry?: () => void;
   /** Performs the top attention row's action. Omit when there is nothing to open. */
   onPress?: () => void;
 }
 
+const NEUTRAL = RIDE_STATUS_STYLE[RIDE_STATUS.UNTRACKED];
+
 /**
  * Three words in serif on a tinted card: Not ready / Check before riding /
  * Ready to ride, or neutral "Nothing tracked yet". The words carry the meaning;
- * the dot and tint only repeat it.
+ * the dot and tint only repeat it. Without loaded tasks and documents it gives
+ * no verdict: a neutral skeleton while loading, an error with Retry on failure.
  */
-export function RideStatusCard({ status, reasons, onPress }: RideStatusCardProps) {
+export function RideStatusCard({
+  status,
+  reasons,
+  isLoading = false,
+  isError = false,
+  onRetry,
+  onPress,
+}: RideStatusCardProps) {
   const { t, i18n } = useTranslation();
+
+  if (isLoading) {
+    return (
+      <HubCard
+        testID="ride-status-loading"
+        accessibilityLabel={t('common.loading')}
+        style={{
+          height: 76,
+          backgroundColor: NEUTRAL.card,
+          borderColor: NEUTRAL.border,
+          opacity: 0.6,
+        }}
+      >
+        {null}
+      </HubCard>
+    );
+  }
+
+  if (isError) {
+    return (
+      <HubCard
+        testID="ride-status-error"
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+          paddingVertical: 8,
+          paddingLeft: 16,
+          paddingRight: 8,
+          backgroundColor: NEUTRAL.card,
+          borderColor: NEUTRAL.border,
+        }}
+      >
+        <Text
+          style={{
+            flex: 1,
+            fontFamily: HUB_FONT.sans,
+            fontSize: 14,
+            lineHeight: 19,
+            color: hub.dim,
+          }}
+        >
+          {t('bikeHub.rideStatus.loadError')}
+        </Text>
+        <Pressable
+          testID="ride-status-retry"
+          onPress={onRetry}
+          accessibilityRole="button"
+          style={({ pressed }) => ({
+            minHeight: HUB_TOUCH_TARGET,
+            justifyContent: 'center',
+            paddingHorizontal: 8,
+            opacity: pressed ? 0.6 : 1,
+          })}
+        >
+          <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.copperText }}>
+            {t('common.retry')}
+          </Text>
+        </Pressable>
+      </HubCard>
+    );
+  }
+
   const style = RIDE_STATUS_STYLE[status];
   const title = t(style.titleKey);
   const detail =

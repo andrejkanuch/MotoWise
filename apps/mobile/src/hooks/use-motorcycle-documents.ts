@@ -11,7 +11,7 @@ import { queryKeys } from '../lib/query-keys';
  * The expiring rule comes from {@link isExpiringSoon} so it can't drift from badges.
  */
 export function useMotorcycleDocuments(motorcycleId: string) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: queryKeys.documents.byMotorcycle(motorcycleId),
     queryFn: () => gqlFetcher(DocumentsByMotorcycleDocument, { motorcycleId }),
     select: (d) => ({
@@ -26,5 +26,8 @@ export function useMotorcycleDocuments(motorcycleId: string) {
     count: data?.count ?? 0,
     expiringCount: data?.expiringCount ?? 0,
     isLoading,
+    /** The list failed and nothing is cached. */
+    isError: isError && !data,
+    refetch: () => void refetch(),
   };
 }

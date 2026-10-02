@@ -15,6 +15,7 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { type HubNote, useNotes } from '../notes/use-notes';
 import type { BikeHubData, HubBike, HubTask } from '../shell/use-bike-hub-data';
+import { useToday } from '../shell/use-today';
 
 const RECALLS_STALE_MS = 24 * 60 * 60 * 1000;
 const NO_CATEGORIES: never[] = [];
@@ -28,6 +29,12 @@ interface Block {
 export interface OverviewData {
   today: Date;
   status: RideStatusResult;
+  /**
+   * Whether `status` can be trusted. It is computed from tasks AND documents:
+   * while either is loading or has failed there is no verdict — never "Ready to
+   * ride" or "Nothing tracked yet" off an empty, not-yet-loaded list.
+   */
+  statusSource: Block;
   attention: AttentionResult;
   nextUp: { task: HubTask; due: TaskDue } | null;
   /** Loading / error of the tasks behind status, attention and next up. */
@@ -48,13 +55,22 @@ export interface OverviewData {
  */
 export function useOverviewData(
   bike: HubBike,
-  shell: Pick<BikeHubData, 'tasks' | 'tasksLoading' | 'tasksError' | 'refetchTasks' | 'documents'>,
+  shell: Pick<
+    BikeHubData,
+    | 'tasks'
+    | 'tasksLoading'
+    | 'tasksError'
+    | 'refetchTasks'
+    | 'documents'
+    | 'documentsLoading'
+    | 'documentsError'
+    | 'refetchDocuments'
+  >,
   unit: HubUnit,
   now?: Date,
 ): OverviewData {
   const id = bike.id;
-  // One Date per mount keeps the memoised derivations stable across renders.
-  const today = useMemo(() => now ?? new Date(), [now]);
+  const today = useToday(now);
   const year = today.getFullYear();
 
   const recallsQuery = useQuery({
@@ -118,6 +134,14 @@ export function useOverviewData(
   return {
     today,
     ...derived,
+    statusSource: {
+      isLoading: shell.tasksLoading || shell.documentsLoading,
+      isError: shell.tasksError || shell.documentsError,
+      refetch: () => {
+        if (shell.tasksError) shell.refetchTasks();
+        if (shell.documentsError) shell.refetchDocuments();
+      },
+    },
     tasks: {
       isLoading: shell.tasksLoading,
       isError: shell.tasksError,

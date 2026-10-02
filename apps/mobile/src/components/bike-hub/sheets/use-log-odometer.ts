@@ -4,14 +4,13 @@ import {
   PendingRideDistanceDocument,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { isSameDay, set } from 'date-fns';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { ODOMETER_SOURCE } from '../../../lib/bike-hub/constants';
+import { readingTimestamp } from '../../../lib/bike-hub/odometer-input';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 
 const LATEST_ONLY = 1;
-const NOON = { hours: 12, minutes: 0, seconds: 0, milliseconds: 0 };
 
 /** The latest logged reading and the ride distance not yet on the odometer. */
 export function useOdometerContext(motorcycleId: string) {
@@ -44,9 +43,9 @@ export interface LogOdometerVariables {
 
 /**
  * Saves a reading through `logOdometerReading` (an `odometer_readings` row; the
- * bike's odometer moves unless the reading is older than the latest one). A
- * reading for today carries no timestamp — the server stamps it; another day is
- * sent as that day at noon so it never lands on a neighbouring date.
+ * bike's odometer moves unless a later reading is already logged). The timestamp
+ * comes from `readingTimestamp` — the same value `isBackdated` decides on, so the
+ * sheet's back-dated notice and the server's behaviour cannot disagree.
  */
 export function useLogOdometer(motorcycleId: string) {
   const queryClient = useQueryClient();
@@ -56,9 +55,7 @@ export function useLogOdometer(motorcycleId: string) {
         input: {
           motorcycleId,
           value,
-          recordedAt: isSameDay(recordedAt, today)
-            ? undefined
-            : set(recordedAt, NOON).toISOString(),
+          recordedAt: readingTimestamp(recordedAt, today)?.toISOString(),
         },
       }),
     onSuccess: (_data, variables) => {
