@@ -74,6 +74,22 @@ Not removed yet (phase 6): `bike-stats-row`, `mileage-display`, health-report sc
 - 2026-10-02 · step 2 Plan — done. `features/bike-detail-shell-overview/EXECUTION_PLAN.md` (plan phases 0–7, 22 open questions with fallbacks). Checked against the 7 screens and spec §1–§3; decisions D5–D8 added.
 - 2026-10-02 · step 4 Data — Data agent dispatched for plan phases 0–2 (local stack, migrations 00180–00182, types, Zod, API, `.graphql`).
 
+- 2026-10-02 · step 4 Data — **blocked on a verification database.** The migration folder does not replay on an empty database: `00093` needs `earthdistance` before `00094` creates it (worked around locally with an untracked `supabase/roles.sql`), and `00097` fails for real (`CREATE OR REPLACE VIEW public_profiles` inserts `handle` mid-list, SQLSTATE 42P16). 00098–00179 untested. Host disk has ~2 GB free; the Data agent deleted `apps/web/.next/dev` and `apps/web/.next/cache` (regenerable) and the Supabase studio/logflare/vector/edge-runtime images it had just pulled to make room. Data agent continues with everything that needs no database (migration SQL, Zod, API, `.graphql`); `database.types.ts` and codegen wait. Owner asked to choose the route (see Q5).
+
+- 2026-10-02 · step 4 Data — **STOPPED, machine needs the owner.** Disk is full (296 MB free): Supabase image pulls grew `Docker.raw` to 13 GB, including a second image set pulled by mistake from a scratch workdir. Docker Desktop's VM crashed on the disk-full error and `com.docker.backend` (pid 21652) is hung; not force-killed, because the owner's `iqor-leads-crm-postgres` containers were running when it died. After a Docker restart, `docker rmi $(docker images -q 'public.ecr.aws/supabase/*')` returns ~8–9 GB (all pulled in this session).
+  - Committed: `2397f28b` migrations 00180–00182 (hand-reviewed, **no probe run**), `36c8715d` Zod + limits (types tests 136 pass).
+  - Uncommitted in the working tree (API typecheck red by exactly 2 errors until `database.types.ts` has `distance_unit`): motorcycles `distanceUnit`, `apps/api/src/modules/{odometer,notes}/`, `app.module.ts`, `schema.graphql`, 10 new + 2 edited mobile `.graphql` documents, `query-keys.ts`, regenerated `packages/graphql`, `features/bike-detail-shell-overview/data-verification.md` (probes, NOT RUN), untracked `supabase/roles.sql`.
+  - Tests: api 917 (was 846), web 266, mobile 77 suites, all pass; five `check:*` pass; Biome clean on touched files.
+  - Deviations to review in the PR: `note_link_is_own()` helper in 00182 (soft-deleted linked task would otherwise block note edits); 00181 changes `set_mileage_updated_at` so an explicit stamp wins; `createNote` + `alsoCreateTask` returns the note unlinked if task creation fails; task notes cut at 2,000 chars.
+  - `.env` files unchanged (still production). **Do not run the API from this branch against production**: `myMotorcycles` selects `distance_unit`, which does not exist there.
+  - Resume at: free disk → Docker back → owner's Q5 choice → run the probes in `data-verification.md` → generate `database.types.ts` → commit the API slices → plan Phase 3.
+
+### Q5 — verification database (waiting for the owner)
+
+1. Schema-only dump of production loaded into a local Postgres (read-only on production; most faithful).
+2. Scratch copy of the migrations folder with unreplayable old files patched in the copy only (approximate schema; unknown number of files after 00097).
+3. Owner pushes 00180–00182 to production unverified (they are additive, but 00181 adds a trigger on every odometer write).
+
 ## Baseline typecheck/test
 
 `main` @ `965ad1de`, 2026-10-02: `pnpm typecheck` green (4/4 tasks). `pnpm test` green — types 111, web 266, api 846, mobile 1,089 tests (77 suites).
