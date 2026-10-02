@@ -11,6 +11,8 @@ jest.mock('expo-haptics', () => ({
 }));
 
 const mockRouter = { push: jest.fn(), back: jest.fn() };
+// The garage stack: bike hub beneath, the Log sheet on top.
+let mockStackState = { index: 1, routes: [{ key: 'bike-1' }, { key: 'log-entry-1' }] };
 let mockTransitionEnd: ((event: { data: { closing: boolean } }) => void) | undefined;
 jest.mock('expo-router', () => ({
   // A getter: the factory runs at import time, before `mockRouter` is initialised.
@@ -23,6 +25,7 @@ jest.mock('expo-router', () => ({
       mockTransitionEnd = listener;
       return () => {};
     },
+    getState: () => mockStackState,
   }),
 }));
 
@@ -55,6 +58,11 @@ async function renderSheet(bike: Record<string, unknown> = BIKE_A) {
 beforeEach(() => {
   jest.clearAllMocks();
   jest.useFakeTimers();
+  mockStackState = { index: 1, routes: [{ key: 'bike-1' }, { key: 'log-entry-1' }] };
+  // Going back pops the sheet: the hub is the top screen again.
+  mockRouter.back.mockImplementation(() => {
+    mockStackState = { index: 0, routes: [{ key: 'bike-1' }] };
+  });
 });
 afterEach(() => {
   for (const client of clients.splice(0)) client.clear();
@@ -116,6 +124,40 @@ describe('Log sheet', () => {
       pathname: '/(tabs)/(garage)/note',
       params: { motorcycleId: BIKE_A.id },
     });
+  });
+
+  it('a second tap while the sheet is closing does not pop another screen or open a second form', async () => {
+    await renderSheet();
+    await act(async () => jest.advanceTimersByTimeAsync(0));
+    await screen.findByText('Log on the Africa Twin');
+    await fireEvent.press(screen.getByTestId('log-option-expense'));
+    await fireEvent.press(screen.getByTestId('log-option-task'));
+    await fireEvent.press(screen.getByTestId('log-option-expense'));
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+    await act(async () => jest.advanceTimersByTimeAsync(2000));
+    expect(mockRouter.push).toHaveBeenCalledTimes(1);
+    expect(mockRouter.push).toHaveBeenCalledWith(
+      expect.objectContaining({ pathname: '/(tabs)/(garage)/add-expense' }),
+    );
+  });
+
+  it('the fallback opens the form when the rider is still on the screen beneath the sheet', async () => {
+    await renderSheet();
+    await act(async () => jest.advanceTimersByTimeAsync(0));
+    await screen.findByText('Log on the Africa Twin');
+    await fireEvent.press(screen.getByTestId('log-option-document'));
+    await act(async () => jest.advanceTimersByTimeAsync(700));
+    expect(mockRouter.push).toHaveBeenCalledTimes(1);
+  });
+
+  it('the fallback is cancelled when the rider has moved to another screen meanwhile', async () => {
+    await renderSheet();
+    await act(async () => jest.advanceTimersByTimeAsync(0));
+    await screen.findByText('Log on the Africa Twin');
+    await fireEvent.press(screen.getByTestId('log-option-document'));
+    mockStackState = { index: 1, routes: [{ key: 'bike-1' }, { key: 'notes-1' }] };
+    await act(async () => jest.advanceTimersByTimeAsync(700));
+    expect(mockRouter.push).not.toHaveBeenCalled();
   });
 
   it('Cancel dismisses without opening anything', async () => {

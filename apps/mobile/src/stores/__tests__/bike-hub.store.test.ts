@@ -39,6 +39,15 @@ describe('bike-hub store', () => {
     });
   });
 
+  it('a task request is held until cleared and is never persisted', () => {
+    useBikeHubStore.getState().requestTask('bike-a', 'task-1');
+    expect(useBikeHubStore.getState().pendingTask).toEqual({ bikeId: 'bike-a', taskId: 'task-1' });
+    const { __store } = jest.requireMock('react-native-mmkv') as { __store: Map<string, string> };
+    expect(JSON.parse(__store.get('bike-hub') ?? '{}').state).not.toHaveProperty('pendingTask');
+    useBikeHubStore.getState().clearPendingTask();
+    expect(useBikeHubStore.getState().pendingTask).toBeNull();
+  });
+
   it('a persisted segment this build does not know resolves to Overview', () => {
     useBikeHubStore.setState({
       lastSegmentByBike: { 'bike-a': 'insights' as never },

@@ -33,6 +33,7 @@ import { useBikeBack } from './use-bike-back';
 import { type BikeHubData, type HubBike, useBikeHubData } from './use-bike-hub-data';
 import { type BikeHubNavigation, useBikeHubNavigation } from './use-bike-hub-navigation';
 import { useBikePhoto } from './use-bike-photo';
+import { refreshToday } from './use-today';
 
 export interface BikeHubScreenProps {
   id: string;
@@ -133,6 +134,20 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
     },
     [selectSegment],
   );
+
+  // Coming back to the hub (from a leaf, another tab) re-reads the date.
+  useEffect(() => {
+    if (isFocused) refreshToday();
+  }, [isFocused]);
+
+  // A screen pushed above this hub (Notes) asked for a task: it goes back, we show it.
+  const pendingTask = useBikeHubStore((state) => state.pendingTask);
+  const clearPendingTask = useBikeHubStore((state) => state.clearPendingTask);
+  useEffect(() => {
+    if (pendingTask?.bikeId !== id) return;
+    clearPendingTask();
+    openTask(pendingTask.taskId);
+  }, [pendingTask, id, clearPendingTask, openTask]);
 
   // The header's odometer chip lives outside the loaded hub but opens one of its leaves.
   const navigationRef = useRef<BikeHubNavigation | null>(null);

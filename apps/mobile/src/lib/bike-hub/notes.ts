@@ -5,10 +5,14 @@ type Note = NotesByMotorcycleQuery['notes'][number];
 
 /**
  * The link shown on a note's meta row: its linked task, else its linked
- * expense, else the offer to turn the note into a task.
+ * expense, else the offer to turn the note into a task. A task link needs the
+ * task's title: an id without one points at a task that is gone (deleted), and
+ * "Make it a task" lets the API relink the note to a fresh one.
  */
-export function getNoteLink(note: Pick<Note, 'linkedTaskId' | 'linkedExpenseId'>): NoteLinkKind {
-  if (note.linkedTaskId) return NOTE_LINK.TASK;
+export function getNoteLink(
+  note: Pick<Note, 'linkedTaskId' | 'linkedTaskTitle' | 'linkedExpenseId'>,
+): NoteLinkKind {
+  if (note.linkedTaskId && note.linkedTaskTitle) return NOTE_LINK.TASK;
   if (note.linkedExpenseId) return NOTE_LINK.EXPENSE;
   return NOTE_LINK.MAKE_TASK;
 }

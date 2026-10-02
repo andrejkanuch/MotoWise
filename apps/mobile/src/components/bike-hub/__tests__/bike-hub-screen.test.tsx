@@ -167,7 +167,7 @@ afterEach(() => {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  useBikeHubStore.setState({ lastSegmentByBike: {} });
+  useBikeHubStore.setState({ lastSegmentByBike: {}, pendingTask: null });
   respondWith();
 });
 
@@ -340,6 +340,28 @@ describe('BikeHubScreen — header and Overview wiring', () => {
       expect.objectContaining({ initialExpandedId: 'task-1' }),
     );
     expect(useBikeHubStore.getState().lastSegmentByBike[BIKE_ID]).toBe(BIKE_SEGMENT.SERVICE);
+  });
+
+  it('a task requested by a screen above (Notes) is shown on Service and the request is cleared', async () => {
+    await renderHub();
+    await screen.findByRole('tab', { name: 'Overview' });
+    await act(async () => useBikeHubStore.getState().requestTask(BIKE_ID, 'task-1'));
+    expect(screen.getByRole('tab', { name: /^Service/ })).toBeSelected();
+    expect(mockMaintenanceSection).toHaveBeenLastCalledWith(
+      expect.objectContaining({ initialExpandedId: 'task-1' }),
+    );
+    expect(useBikeHubStore.getState().pendingTask).toBeNull();
+  });
+
+  it('ignores a task requested for another bike', async () => {
+    await renderHub();
+    await screen.findByRole('tab', { name: 'Overview' });
+    await act(async () => useBikeHubStore.getState().requestTask('other-bike', 'task-9'));
+    expect(screen.getByRole('tab', { name: 'Overview' })).toBeSelected();
+    expect(useBikeHubStore.getState().pendingTask).toEqual({
+      bikeId: 'other-bike',
+      taskId: 'task-9',
+    });
   });
 
   it('opening a document from the Overview shows the Bike segment without remembering it', async () => {

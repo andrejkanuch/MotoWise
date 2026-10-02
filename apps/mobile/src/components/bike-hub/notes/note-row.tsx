@@ -37,6 +37,8 @@ interface NoteRowProps {
   link: NoteRowLink | null;
   onEdit: () => void;
   onDelete: () => void;
+  /** An optimistic row that is not saved yet: no swipe, menu or actions. */
+  readOnly?: boolean;
   isFirst: boolean;
   isLast: boolean;
 }
@@ -47,7 +49,16 @@ interface NoteRowProps {
  * long-press menu. The row itself is not a pressable, so the link is never
  * nested inside one.
  */
-export function NoteRow({ note, unit, link, onEdit, onDelete, isFirst, isLast }: NoteRowProps) {
+export function NoteRow({
+  note,
+  unit,
+  link,
+  onEdit,
+  onDelete,
+  readOnly = false,
+  isFirst,
+  isLast,
+}: NoteRowProps) {
   const { t, i18n } = useTranslation();
   const translateX = useSharedValue(0);
   const startX = useSharedValue(0);
@@ -70,6 +81,7 @@ export function NoteRow({ note, unit, link, onEdit, onDelete, isFirst, isLast }:
     ]);
 
   const pan = Gesture.Pan()
+    .enabled(!readOnly)
     .activeOffsetX([-12, 12])
     .failOffsetY([-10, 10])
     .onStart(() => {
@@ -83,9 +95,11 @@ export function NoteRow({ note, unit, link, onEdit, onDelete, isFirst, isLast }:
         duration: SNAP_MS,
       });
     });
-  const longPress = Gesture.LongPress().onStart(() => {
-    runOnJS(openMenu)();
-  });
+  const longPress = Gesture.LongPress()
+    .enabled(!readOnly)
+    .onStart(() => {
+      runOnJS(openMenu)();
+    });
 
   const rowStyle = useAnimatedStyle(() => ({ transform: [{ translateX: translateX.value }] }));
   const meta = noteMeta(note, unit, i18n.language);
@@ -96,15 +110,20 @@ export function NoteRow({ note, unit, link, onEdit, onDelete, isFirst, isLast }:
       accessible
       accessibilityLabel={`${note.text}. ${meta}`}
       accessibilityActions={[
-        { name: ACTION.EDIT, label: editLabel },
-        { name: ACTION.DELETE, label: deleteLabel },
+        ...(readOnly
+          ? []
+          : [
+              { name: ACTION.EDIT, label: editLabel },
+              { name: ACTION.DELETE, label: deleteLabel },
+            ]),
         // The row is one accessibility element, so its link is offered as an action too.
         ...(link ? [{ name: ACTION.LINK, label: link.label }] : []),
       ]}
       onAccessibilityAction={(event) => {
+        if (event.nativeEvent.actionName === ACTION.LINK) link?.onPress();
+        if (readOnly) return;
         if (event.nativeEvent.actionName === ACTION.EDIT) onEdit();
         if (event.nativeEvent.actionName === ACTION.DELETE) onDelete();
-        if (event.nativeEvent.actionName === ACTION.LINK) link?.onPress();
       }}
       style={{
         overflow: 'hidden',
@@ -117,6 +136,7 @@ export function NoteRow({ note, unit, link, onEdit, onDelete, isFirst, isLast }:
       }}
     >
       <View
+        pointerEvents={readOnly ? 'none' : 'auto'}
         style={{ position: 'absolute', top: 0, right: 0, bottom: 0, flexDirection: 'row' }}
         importantForAccessibility="no-hide-descendants"
         accessibilityElementsHidden

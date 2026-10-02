@@ -4,13 +4,18 @@ import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { Camera, Gauge, X } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NOTE_SOURCE } from '../../../lib/bike-hub/constants';
-import { bikeDisplayName, formatOdometer, toHubUnit } from '../../../lib/bike-hub/format';
+import {
+  bikeDisplayName,
+  formatOdometer,
+  hasOdometer,
+  toHubUnit,
+} from '../../../lib/bike-hub/format';
 import { normaliseNoteText } from '../../../lib/bike-hub/notes';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { pickImage, takePhoto, uploadNotePhoto } from '../../../lib/image-upload';
@@ -35,7 +40,10 @@ interface NoteFormProps {
   /** Set = edit mode. */
   note?: HubNote;
   draft?: string;
-  /** Open the take / choose photo sheet straight away (the composer's photo button). */
+  /**
+   * Turns true when the photo sheet should open (the composer's photo button):
+   * the route sets it after the form sheet's presenting transition has ended.
+   */
   openPhotoPicker?: boolean;
   onClose: () => void;
 }
@@ -126,11 +134,19 @@ export function NoteForm({
   const target = bikes.find((candidate) => candidate.id === targetId) ?? bike;
   const unit = toHubUnit(target.distanceUnit);
   // Edit keeps the note's own stamp; a new note stamps the target bike's odometer.
-  const stampValue = isEdit ? (note.odometer ?? target.currentMileage) : target.currentMileage;
+  const stampSource = isEdit ? (note.odometer ?? target.currentMileage) : target.currentMileage;
+  // An unset odometer (null or 0) offers no stamp at all.
+  const stampValue = hasOdometer(stampSource) ? stampSource : null;
   const keptPhotos = (note?.photos ?? []).filter((photo) => !removedPhotoIds.includes(photo.id));
   const photoCount = keptPhotos.length + newPhotos.length;
   const cleanText = normaliseNoteText(text);
-  const dirty = text !== (note?.text ?? draft ?? '') || newPhotos.length > 0;
+  const initialStampOn = isEdit ? note.odometer != null : true;
+  const dirty =
+    text !== (note?.text ?? draft ?? '') ||
+    newPhotos.length > 0 ||
+    removedPhotoIds.length > 0 ||
+    stampOn !== initialStampOn ||
+    alsoTask;
 
   const addPhoto = () => {
     if (photoCount >= NOTE_PHOTOS_MAX) {
@@ -147,10 +163,16 @@ export function NoteForm({
     ]);
   };
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: runs once on mount by design
+  // The photo sheet is opened only once the caller says the form sheet has
+  // finished presenting (`openPhotoPicker` turns true) — never on mount, when a
+  // second native sheet would be asked for mid-transition.
+  const pickerOpened = useRef(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fires once, when the flag turns true
   useEffect(() => {
-    if (openPhotoPicker) addPhoto();
-  }, []);
+    if (!openPhotoPicker || pickerOpened.current) return;
+    pickerOpened.current = true;
+    addPhoto();
+  }, [openPhotoPicker]);
 
   /** Uploads the given photos to the saved note; returns the ones that failed. */
   const uploadPhotos = async (noteId: string, uris: readonly string[]): Promise<string[]> => {

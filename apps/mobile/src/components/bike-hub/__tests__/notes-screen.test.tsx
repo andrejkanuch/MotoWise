@@ -11,6 +11,7 @@ jest.mock('react-native-safe-area-context', () => ({
 jest.mock('react-native-keyboard-controller', () =>
   require('react-native-keyboard-controller/jest'),
 );
+jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
 jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
@@ -25,7 +26,13 @@ jest.mock('../../../stores/auth.store', () => ({
     selector({ currency: 'EUR', session: { user: { id: 'user-1' } } }),
 }));
 
-const mockRouter = { push: jest.fn(), back: jest.fn(), navigate: jest.fn() };
+const mockRouter = {
+  push: jest.fn(),
+  back: jest.fn(),
+  navigate: jest.fn(),
+  replace: jest.fn(),
+  canGoBack: jest.fn(() => true),
+};
 jest.mock('expo-router', () => ({
   useRouter: () => mockRouter,
   useFocusEffect: (effect: () => undefined | (() => void)) => {
@@ -49,6 +56,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import '../../../i18n';
 import { NOTE_SOURCE, NOTES_SEARCH_DEBOUNCE_MS } from '../../../lib/bike-hub/constants';
+import { useBikeHubStore } from '../../../stores/bike-hub.store';
 import { usePendingDeleteStore } from '../../../stores/pending-delete.store';
 import { BIKE_A, NOTES } from '../../../test/bike-hub-fixtures';
 import { NotesScreen } from '../notes/notes-screen';
@@ -104,6 +112,8 @@ const settle = (ms: number) =>
 beforeEach(() => {
   jest.clearAllMocks();
   usePendingDeleteStore.setState({ hiddenIds: {} });
+  useBikeHubStore.setState({ pendingTask: null });
+  mockRouter.canGoBack.mockReturnValue(true);
 });
 afterEach(() => {
   for (const client of clients.splice(0)) client.clear();
@@ -128,22 +138,63 @@ describe('NotesScreen', () => {
     expect(screen.getByTestId('note-link-note-5')).toHaveTextContent('2nd scheduled service');
   });
 
-  it('a linked task opens the bike on Service with that task; a linked expense its detail', async () => {
+  it('a linked task goes BACK to the hub beneath and asks it for the task — no second hub', async () => {
     await renderNotes();
     await fireEvent.press(screen.getByTestId('note-link-note-5'));
-    expect(mockRouter.navigate).toHaveBeenCalledWith({
-      pathname: '/(tabs)/(garage)/bike/[id]',
-      params: expect.objectContaining({
-        id: BIKE_A.id,
-        segment: 'service',
-        highlightTask: 'task-service',
-      }),
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+    expect(mockRouter.navigate).not.toHaveBeenCalled();
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+    expect(useBikeHubStore.getState().pendingTask).toEqual({
+      bikeId: BIKE_A.id,
+      taskId: 'task-service',
     });
+  });
+
+  it('without a screen beneath, a linked task opens the bike on Service with that task', async () => {
+    mockRouter.canGoBack.mockReturnValue(false);
+    await renderNotes();
+    await fireEvent.press(screen.getByTestId('note-link-note-5'));
+    expect(mockRouter.back).not.toHaveBeenCalled();
+    expect(mockRouter.replace).toHaveBeenCalledWith({
+      pathname: '/(tabs)/(garage)/bike/[id]',
+      params: { id: BIKE_A.id, segment: 'service', highlightTask: 'task-service' },
+    });
+  });
+
+  it('a linked expense opens its detail', async () => {
+    await renderNotes();
     await fireEvent.press(screen.getByTestId('note-link-note-2'));
     expect(mockRouter.push).toHaveBeenCalledWith({
       pathname: '/(tabs)/(garage)/expense-detail',
       params: { expenseId: 'expense-1', motorcycleId: BIKE_A.id },
     });
+  });
+
+  it('a note whose linked task is gone (id, no title) offers "Make it a task" again', async () => {
+    const orphan = { ...NOTES[4], linkedTaskTitle: null };
+    await renderNotes({ notes: [orphan] });
+    expect(screen.getByTestId('note-link-note-5')).toHaveTextContent('Make it a task');
+  });
+
+  it('an optimistic row (not saved yet) has no link and no edit / delete actions', async () => {
+    const optimistic = { ...NOTES[3], id: 'optimistic-2026' };
+    await renderNotes({ notes: [optimistic, NOTES[0]] });
+    const row = screen.getByTestId('note-row-optimistic-2026');
+    expect(row.props.accessibilityActions).toEqual([]);
+    expect(screen.queryByTestId('note-link-optimistic-2026')).toBeNull();
+    await fireEvent(row, 'accessibilityAction', { nativeEvent: { actionName: 'delete' } });
+    expect(screen.queryByText('Note deleted')).toBeNull();
+    // A saved row keeps them.
+    expect(
+      screen
+        .getByTestId('note-row-note-1')
+        .props.accessibilityActions.map((a: { name: string }) => a.name),
+    ).toEqual(['edit', 'delete', 'link']);
+  });
+
+  it('the composer caps a note at the length limit', async () => {
+    await renderNotes();
+    expect(screen.getByTestId('notes-composer-input').props.maxLength).toBe(4000);
   });
 
   it('"Make it a task" creates the task and the link then shows its title', async () => {

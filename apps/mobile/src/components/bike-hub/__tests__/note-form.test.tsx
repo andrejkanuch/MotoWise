@@ -54,6 +54,7 @@ jest.mock('../../../lib/graphql-client', () => ({
 import { AddNotePhotoDocument, CreateNoteDocument, UpdateNoteDocument } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import '../../../i18n';
 import { BIKE_A, BIKE_B, NOTES } from '../../../test/bike-hub-fixtures';
 import type { HubNote } from '../notes/use-notes';
@@ -70,6 +71,23 @@ interface Scenario {
   note?: HubNote;
   draft?: string;
   created?: Record<string, unknown>;
+  bike?: HubBike;
+  openPhotoPicker?: boolean;
+}
+
+function form(scenario: Scenario, client: QueryClient) {
+  return (
+    <QueryClientProvider client={client}>
+      <NoteForm
+        bike={scenario.bike ?? A}
+        bikes={scenario.bikes ?? [scenario.bike ?? A]}
+        note={scenario.note}
+        draft={scenario.draft}
+        openPhotoPicker={scenario.openPhotoPicker}
+        onClose={onClose}
+      />
+    </QueryClientProvider>
+  );
 }
 
 async function renderForm(scenario: Scenario = {}) {
@@ -87,17 +105,8 @@ async function renderForm(scenario: Scenario = {}) {
     defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { gcTime: 0 } },
   });
   clients.push(client);
-  await render(
-    <QueryClientProvider client={client}>
-      <NoteForm
-        bike={A}
-        bikes={scenario.bikes ?? [A]}
-        note={scenario.note}
-        draft={scenario.draft}
-        onClose={onClose}
-      />
-    </QueryClientProvider>,
-  );
+  const view = await render(form(scenario, client));
+  return { ...view, client };
 }
 
 const created = () =>
@@ -232,5 +241,65 @@ describe('NoteForm — edit', () => {
       id: note.id,
       input: { text: 'Updated', odometer: 38_100 },
     });
+  });
+});
+
+describe('NoteForm — unset odometer, unsaved changes, photo picker', () => {
+  it('a bike whose odometer is 0 offers no stamp and sends none', async () => {
+    await renderForm({ draft: 'No odometer yet', bike: { ...A, currentMileage: 0 } as HubBike });
+    expect(screen.queryByTestId('note-stamp')).toBeNull();
+    await fireEvent.press(screen.getByTestId('note-save'));
+    await waitFor(() => expect(created()).toBeDefined());
+    expect(created()?.input.odometer).toBeUndefined();
+  });
+
+  it('Cancel asks before discarding when only the stamp was toggled', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    await renderForm({ note: NOTES[0] as unknown as HubNote });
+    await fireEvent.press(screen.getByTestId('note-stamp'));
+    await fireEvent.press(screen.getByTestId('note-cancel'));
+    expect(alert).toHaveBeenCalledWith('Discard this note?', undefined, expect.any(Array));
+    expect(onClose).not.toHaveBeenCalled();
+    alert.mockRestore();
+  });
+
+  it('Cancel asks before discarding when only a photo was removed', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    const withPhoto = {
+      ...NOTES[0],
+      photos: [{ id: 'photo-1', storagePath: 'p', publicUrl: 'https://example.test/p.webp' }],
+    } as unknown as HubNote;
+    await renderForm({ note: withPhoto });
+    await fireEvent.press(screen.getByRole('button', { name: 'Remove photo' }));
+    await fireEvent.press(screen.getByTestId('note-cancel'));
+    expect(alert).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    alert.mockRestore();
+  });
+
+  it('Cancel closes at once when nothing changed', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    await renderForm({ note: NOTES[0] as unknown as HubNote });
+    await fireEvent.press(screen.getByTestId('note-cancel'));
+    expect(alert).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
+    alert.mockRestore();
+  });
+
+  it('never opens the photo sheet on mount; opens it once when the route says the sheet is presented', async () => {
+    const { rerender, client } = await renderForm({
+      draft: 'From the composer',
+      openPhotoPicker: false,
+    });
+    await act(async () => {});
+    expect(mockPick).not.toHaveBeenCalled();
+
+    await rerender(form({ draft: 'From the composer', openPhotoPicker: true }, client));
+    await act(async () => {});
+    expect(mockPick).toHaveBeenCalledTimes(1);
+
+    await rerender(form({ draft: 'From the composer', openPhotoPicker: true }, client));
+    await act(async () => {});
+    expect(mockPick).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,3 +1,4 @@
+import { NOTE_TEXT_MAX } from '@motovault/types';
 import { Camera } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -58,6 +59,7 @@ export function NotesComposer({ onSubmit, onOpenSheet }: NotesComposerProps) {
             if (failed) setFailed(false);
           }}
           multiline
+          maxLength={NOTE_TEXT_MAX}
           placeholder={t('bikeHub.notes.placeholder')}
           placeholderTextColor={hub.muted}
           accessibilityLabel={t('bikeHub.notes.inputA11y')}

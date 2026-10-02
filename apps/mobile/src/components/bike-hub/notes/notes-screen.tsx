@@ -14,9 +14,10 @@ import {
   NOTES_SEARCH_DEBOUNCE_MS,
   type NoteLinkKind,
 } from '../../../lib/bike-hub/constants';
-import { bikeDisplayName, toHubUnit } from '../../../lib/bike-hub/format';
+import { bikeDisplayName, hasOdometer, toHubUnit } from '../../../lib/bike-hub/format';
 import { filterNotes, getNoteLink } from '../../../lib/bike-hub/notes';
 import { isBikeSegment } from '../../../lib/bike-hub/segments';
+import { useBikeHubStore } from '../../../stores/bike-hub.store';
 import type { HubBike } from '../shell/use-bike-hub-data';
 import { SEGMENT_LABEL_KEY } from '../ui/segment-bar';
 import {
@@ -94,21 +95,29 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
     router.push(href);
   };
 
+  // This screen sits on top of the bike hub. Going back to that hub and asking
+  // it for the task keeps one hub on the stack; navigating to `bike/[id]` from
+  // here could mount a second one. Without a hub beneath (a future deep link),
+  // open the bike with the task as its landing.
+  const requestTask = useBikeHubStore((state) => state.requestTask);
+  const openLinkedTask = (taskId: string) => {
+    if (router.canGoBack()) {
+      requestTask(bike.id, taskId);
+      router.back();
+      return;
+    }
+    router.replace({
+      pathname: '/(tabs)/(garage)/bike/[id]',
+      params: { id: bike.id, segment: BIKE_SEGMENT.SERVICE, highlightTask: taskId },
+    });
+  };
+
   const linkFor = (note: HubNote): NoteRowLink | null => {
     if (isOptimisticNote(note)) return null;
     const links: Record<NoteLinkKind, () => NoteRowLink> = {
       [NOTE_LINK.TASK]: () => ({
         label: note.linkedTaskTitle ?? t('bikeHub.log.task'),
-        onPress: () =>
-          router.navigate({
-            pathname: '/(tabs)/(garage)/bike/[id]',
-            params: {
-              id: bike.id,
-              segment: BIKE_SEGMENT.SERVICE,
-              highlightTask: note.linkedTaskId ?? '',
-              _ts: Date.now().toString(),
-            },
-          }),
+        onPress: () => openLinkedTask(note.linkedTaskId ?? ''),
       }),
       [NOTE_LINK.EXPENSE]: () => ({
         label: t('bikeHub.notesScreen.linkedExpense', {
@@ -137,7 +146,8 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
       await createNote.mutateAsync({
         motorcycleId: bike.id,
         text,
-        odometer: bike.currentMileage ?? null,
+        // An unset odometer (null or 0) leaves the note unstamped.
+        odometer: hasOdometer(bike.currentMileage) ? bike.currentMileage : null,
         source: NOTE_SOURCE.NOTES_COMPOSER,
       });
       return true;
@@ -296,6 +306,8 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
             note={item}
             unit={unit}
             link={linkFor(item)}
+            // Not saved yet: no id to edit or delete.
+            readOnly={isOptimisticNote(item)}
             isFirst={index === 0}
             isLast={index === visible.length - 1}
             onEdit={() => openSheet({ noteId: item.id })}

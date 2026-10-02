@@ -18,12 +18,36 @@ import { triggerImpact } from '../../../utils/haptics';
 const DISMISS_FALLBACK_MS = 600;
 const OPTION_MIN_HEIGHT = 64;
 
-/** The one native-stack event this screen listens to; `useNavigation` is untyped for it. */
-interface TransitionEvents {
+/** The slice of the native-stack navigation object this screen uses; `useNavigation` is untyped for it. */
+interface SheetNavigation {
   addListener: (
     event: 'transitionEnd',
     listener: (event: { data: { closing: boolean } }) => void,
   ) => () => void;
+  getState: () => { index: number; routes: Array<{ key: string }> } | undefined;
+}
+
+/**
+ * The screen under this sheet in its stack — where the rider must still be when
+ * the fallback timer opens the chosen form. `null` when it cannot be read.
+ */
+function screenBeneath(navigation: SheetNavigation): string | null {
+  try {
+    const state = navigation.getState();
+    return state?.routes[state.index - 1]?.key ?? null;
+  } catch (_error) {
+    return null;
+  }
+}
+
+/** The stack's top screen right now. `null` when it cannot be read. */
+function topScreen(navigation: SheetNavigation): string | null {
+  try {
+    const state = navigation.getState();
+    return state?.routes[state.index]?.key ?? null;
+  } catch (_error) {
+    return null;
+  }
 }
 
 /**
@@ -34,25 +58,23 @@ interface TransitionEvents {
 export default function LogEntrySheet() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation() as unknown as SheetNavigation;
   const { motorcycleId } = useLocalSearchParams<{ motorcycleId: string }>();
   const { bike } = useHubBike(motorcycleId);
   const pendingHref = useRef<Href | null>(null);
 
   useEffect(() => {
-    const openPending = () => {
+    return navigation.addListener('transitionEnd', (event) => {
+      if (!event.data.closing) return;
       const href = pendingHref.current;
       pendingHref.current = null;
       if (href) router.push(href);
-    };
-    const events = navigation as unknown as TransitionEvents;
-    return events.addListener('transitionEnd', (event) => {
-      if (event.data.closing) openPending();
     });
   }, [navigation]);
 
   const choose = (option: LogOptionDefinition) => {
-    if (!bike) return;
+    // A second tap while the sheet is closing must not pop another screen.
+    if (!bike || pendingHref.current) return;
     triggerImpact();
     trackEvent(AnalyticsEvent.BIKE_LOG_OPTION_SELECTED, {
       motorcycle_id: bike.id,
@@ -62,11 +84,16 @@ export default function LogEntrySheet() {
       motorcycleId: bike.id,
       bikeName: `${bike.year} ${bike.make} ${bike.model}`,
     });
+    const expected = screenBeneath(navigation);
     pendingHref.current = href;
     router.back();
     setTimeout(() => {
       if (pendingHref.current !== href) return;
       pendingHref.current = null;
+      // Only if the rider is still where the sheet left them: if they moved on
+      // in the meantime, the form must not appear on top of another screen.
+      const current = topScreen(navigation);
+      if (expected && current && current !== expected) return;
       router.push(href);
     }, DISMISS_FALLBACK_MS);
   };
