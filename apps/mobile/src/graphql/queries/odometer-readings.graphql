@@ -1,0 +1,9 @@
+query OdometerReadings($motorcycleId: String!, $limit: Int) {
+  odometerReadings(motorcycleId: $motorcycleId, limit: $limit) {
+    id
+    value
+    recordedAt
+    source
+    rideId
+  }
+}

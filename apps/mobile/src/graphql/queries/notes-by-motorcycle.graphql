@@ -1,0 +1,20 @@
+query NotesByMotorcycle($motorcycleId: String!) {
+  notes(motorcycleId: $motorcycleId) {
+    id
+    motorcycleId
+    text
+    odometer
+    createdAt
+    updatedAt
+    linkedTaskId
+    linkedTaskTitle
+    linkedExpenseId
+    linkedExpenseAmount
+    linkedExpenseCurrency
+    photos {
+      id
+      storagePath
+      publicUrl
+    }
+  }
+}
