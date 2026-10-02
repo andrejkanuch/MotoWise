@@ -88,6 +88,7 @@ import {
 } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import '../../../i18n';
 import { ADD_TASK_MODE, BIKE_ORIGIN, BIKE_SEGMENT } from '../../../lib/bike-hub/constants';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
@@ -232,6 +233,37 @@ describe('BikeHubScreen — segments', () => {
     expect(useBikeHubStore.getState().lastSegmentByBike[BIKE_ID]).toBe(BIKE_SEGMENT.OVERVIEW);
     // Stays mounted (hidden) so its scroll position survives.
     expect(screen.getByTestId('segment-panel-costs', { includeHiddenElements: true })).toBeTruthy();
+  });
+
+  it('a hidden panel takes no touches and is out of the accessibility tree; the active one is live', async () => {
+    await renderHub();
+    await fireEvent.press(await screen.findByRole('tab', { name: 'Costs' }));
+    await fireEvent.press(screen.getByRole('tab', { name: /^Service/ }));
+
+    const hidden = screen.getByTestId('segment-panel-costs', { includeHiddenElements: true });
+    expect(hidden.props.pointerEvents).toBe('none');
+    expect(hidden.props['aria-hidden']).toBe(true);
+    expect(hidden.props.accessibilityElementsHidden).toBe(true);
+    expect(hidden.props.importantForAccessibility).toBe('no-hide-descendants');
+    expect(StyleSheet.flatten(hidden.props.style)).toEqual({ display: 'none' });
+    // Not reachable as a visible element at all.
+    expect(screen.queryByTestId('segment-panel-costs')).toBeNull();
+
+    const active = screen.getByTestId('segment-panel-service');
+    expect(active.props.pointerEvents).toBe('auto');
+    expect(active.props['aria-hidden']).toBe(false);
+    expect(StyleSheet.flatten(active.props.style)).toEqual({ flex: 1 });
+  });
+
+  it('every segment can scroll its last row clear of the pill: tab bar + pill offset + pill height', async () => {
+    await renderHub();
+    await screen.findByRole('tab', { name: 'Overview' });
+    const scroll = screen.getByTestId('segment-scroll-overview');
+    const { paddingBottom } = StyleSheet.flatten(scroll.props.contentContainerStyle);
+    const tabBar = 34 + 76; // bottom inset + the app's floating tab bar
+    const pillTop = tabBar + 16 + 52; // pill offset + pill height
+    expect(paddingBottom).toBe(tabBar + 144);
+    expect(paddingBottom).toBeGreaterThan(pillTop + 40);
   });
 
   it('Overview shows the labelled "Log" pill; other segments an icon-only one', async () => {

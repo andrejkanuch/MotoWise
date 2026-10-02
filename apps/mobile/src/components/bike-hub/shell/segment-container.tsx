@@ -70,30 +70,38 @@ function SegmentScroll({
   }, [isActive, collapse, scrollY]);
 
   return (
-    <KeyboardAvoidingView
-      behavior="padding"
+    // The hiding wrapper is a plain View: `display: 'none'` on it is honoured by
+    // the layout engine, and `pointerEvents="none"` keeps a hidden panel from
+    // ever receiving a touch even if a platform still hit-tests it. It is also
+    // taken out of the accessibility tree. The panel stays mounted, so its
+    // scroll position survives.
+    <View
       testID={`segment-panel-${segment}`}
+      pointerEvents={isActive ? 'auto' : 'none'}
+      aria-hidden={!isActive}
       accessibilityElementsHidden={!isActive}
       importantForAccessibility={isActive ? 'auto' : 'no-hide-descendants'}
-      style={{
-        flex: 1,
-        display: isActive ? 'flex' : 'none',
-        backgroundColor: definition.background ?? hub.ground,
-      }}
+      style={isActive ? { flex: 1 } : { display: 'none' }}
     >
-      <Animated.ScrollView
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingBottom: bottomInset }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={hub.copper} />
-        }
+      <KeyboardAvoidingView
+        behavior="padding"
+        style={{ flex: 1, backgroundColor: definition.background ?? hub.ground }}
       >
-        {definition.render()}
-      </Animated.ScrollView>
-    </KeyboardAvoidingView>
+        <Animated.ScrollView
+          testID={`segment-scroll-${segment}`}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: bottomInset }}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={hub.copper} />
+          }
+        >
+          {definition.render()}
+        </Animated.ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 

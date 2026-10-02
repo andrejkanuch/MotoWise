@@ -34,7 +34,7 @@ import {
 } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import { Alert } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 import '../../../i18n';
 import { BIKE_A, TODAY } from '../../../test/bike-hub-fixtures';
 import { OdometerSheet } from '../sheets/odometer-sheet';
@@ -284,5 +284,42 @@ describe('OdometerSheet — unset odometer (0 or null, no reading)', () => {
     await renderSheet({ readings: [] });
     expect(screen.getByTestId('odometer-delta')).toHaveTextContent('Last reading 38,167 km');
     expect(screen.getByTestId('odometer-delta')).not.toHaveTextContent(/·/);
+  });
+});
+
+describe('OdometerSheet — layout that cannot escape the sheet (visual QA round 1)', () => {
+  it('renders no scroll view at all: a form sheet lifts the first one out of the column', async () => {
+    await renderSheet();
+    expect(JSON.stringify(screen.toJSON())).not.toContain('RCTScrollView');
+    const chips = screen.getByTestId('odometer-chips');
+    expect(chips.props.horizontal).toBeUndefined();
+    expect(StyleSheet.flatten(chips.props.style)).toMatchObject({
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+    });
+  });
+
+  it('keeps the design order: detail line, chips, keypad, notice, Save', async () => {
+    await renderSheet();
+    const order = screen
+      .getAllByTestId(/^(odometer-delta|odometer-chips|key-1|odometer-notice|odometer-save)$/)
+      .map((node) => node.props.testID);
+    expect(order).toEqual([
+      'odometer-delta',
+      'odometer-chips',
+      'key-1',
+      'odometer-notice',
+      'odometer-save',
+    ]);
+  });
+
+  it('caps the chrome at the largest text sizes, and lets the explanatory text scale', async () => {
+    await renderSheet();
+    expect(screen.getByText('Odometer').props.maxFontSizeMultiplier).toBe(1.3);
+    expect(screen.getByText('Cancel').props.maxFontSizeMultiplier).toBe(1.3);
+    expect(screen.getByText('7').props.maxFontSizeMultiplier).toBe(1.3);
+    expect(screen.getByTestId('odometer-entry').props.maxFontSizeMultiplier).toBe(1.3);
+    expect(screen.getByTestId('odometer-notice').props.maxFontSizeMultiplier).toBeUndefined();
+    expect(screen.getByTestId('odometer-delta').props.maxFontSizeMultiplier).toBeUndefined();
   });
 });

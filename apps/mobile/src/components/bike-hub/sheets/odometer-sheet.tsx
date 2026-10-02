@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import type { TFunction } from 'i18next';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   DELTA_DIRECTION,
@@ -29,7 +29,7 @@ import {
 import { triggerNotification, triggerSelection } from '../../../utils/haptics';
 import type { HubBike } from '../shell/use-bike-hub-data';
 import { useToday } from '../shell/use-today';
-import { HUB_FONT, HUB_HEIGHT, HUB_RADIUS, hub } from '../ui/tokens';
+import { HUB_CHROME_MAX_FONT_SCALE, HUB_FONT, HUB_HEIGHT, HUB_RADIUS, hub } from '../ui/tokens';
 import { OdometerKeypad } from './odometer-keypad';
 import { SheetGrabber, SheetHeader } from './sheet-header';
 import { useLogOdometer, useOdometerContext } from './use-log-odometer';
@@ -198,6 +198,7 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
 
       <View style={{ gap: 4, paddingVertical: 6 }}>
         <Text
+          maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
           style={{
             fontFamily: HUB_FONT.mono,
             fontSize: 11,
@@ -211,6 +212,7 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text
+              maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
               testID="odometer-entry"
               accessibilityLabel={`${entryText} ${unit}`}
               style={{
@@ -225,7 +227,12 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
             </Text>
             <View style={{ width: 2, height: 36, marginLeft: 2, backgroundColor: hub.copper }} />
           </View>
-          <Text style={{ fontFamily: HUB_FONT.mono, fontSize: 18, color: hub.muted }}>{unit}</Text>
+          <Text
+            maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+            style={{ fontFamily: HUB_FONT.mono, fontSize: 18, color: hub.muted }}
+          >
+            {unit}
+          </Text>
         </View>
         <Text
           testID="odometer-delta"
@@ -240,13 +247,10 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
         </Text>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        style={{ flexGrow: 0 }}
-        contentContainerStyle={{ gap: 6 }}
-      >
+      {/* A plain wrapping row, not a horizontal ScrollView: a form sheet adopts
+          the first scroll view inside it as "the sheet's scroller" and lifts it
+          out of the column (it rendered over the title). Nothing scrolls here. */}
+      <View testID="odometer-chips" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
         {pendingRides && pendingRides.rideCount > 0 ? (
           <Chip
             testID="chip-rides"
@@ -266,7 +270,7 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
             onPress={() => quickAdd(amount)}
           />
         ))}
-      </ScrollView>
+      </View>
 
       {pickingDate ? (
         <View style={{ gap: 8 }}>
@@ -293,7 +297,10 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
               justifyContent: 'center',
             }}
           >
-            <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, color: hub.text }}>
+            <Text
+              maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+              style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, color: hub.text }}
+            >
               {t('common.done')}
             </Text>
           </Pressable>
@@ -336,7 +343,10 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
           opacity: blocked || logOdometer.isPending ? 0.4 : pressed ? 0.85 : 1,
         })}
       >
-        <Text style={{ fontFamily: HUB_FONT.sansBold, fontSize: 16, color: hub.ink }}>
+        <Text
+          maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+          style={{ fontFamily: HUB_FONT.sansBold, fontSize: 16, color: hub.ink }}
+        >
           {saveLabel}
         </Text>
       </Pressable>
@@ -392,6 +402,7 @@ function Chip({ label, onPress, highlighted = false, testID }: ChipProps) {
       })}
     >
       <Text
+        maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
         style={{
           fontFamily: HUB_FONT.mono,
           fontSize: 13,
