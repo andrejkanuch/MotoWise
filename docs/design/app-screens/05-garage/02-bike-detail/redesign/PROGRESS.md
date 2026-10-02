@@ -6,7 +6,7 @@ The lead's only memory between runs. Read this first; continue from the first un
 
 | # | Phase | Branch | Status | Step | PR | Migration pushed |
 |---|---|---|---|---|---|---|
-| 1 | Shell + Overview | `feat/bike-detail-shell-overview` | in progress | 4 · Data first + 5 · Implement (parallel) | — | no |
+| 1 | Shell + Overview | `feat/bike-detail-shell-overview` | in progress | 5 · Implement | — | no |
 | 2 | Service segment | — | not started | — | — | — |
 | 3 | Task flows | — | not started | — | — | — |
 | 4 | Costs | — | not started | — | — | — |
@@ -91,6 +91,9 @@ Not removed yet (phase 6): `bike-stats-row`, `mileage-display`, health-report sc
   - Before the push, run the four read-only production queries listed in `data-verification.md` (column grants on `motorcycles`, live `set_mileage_updated_at`, live task/expense policies, `current_mileage` default).
   - Local run: `features/bike-detail-shell-overview/local-stack.md`. Users `qa-metric@local.test` (Africa Twin km + empty Ténéré) and `qa-imperial@local.test` (miles copy). `pnpm dev` cannot start the API here (`node_modules/.bin` not executable); the doc has the node command. The scratch workdir is under `/private/tmp` and does not survive a reboot; rebuild steps are in the doc. `.env` files untouched (production).
   - Recalls cannot be seeded (live NHTSA); seeded documents have no files.
+
+- 2026-10-02 · step 5 Implement — plan Phases 3–4 **done** (`e962d3b9`, `092ec53d`, `49286d83`, `839e2c95`, `246b4b5d`): pure logic + 75 tests, copy in 13 locales, palette tokens, hub fonts, UI primitives, `BikeHeader`, `SegmentBar`, shell, interim segments; `[id].tsx` is now 31 lines. typecheck 4/4, mobile 85 suites / 1,215 tests, all `check:*` + `check:i18n` pass. **No device check run yet.** New dev deps: `@testing-library/react-native@14`, `test-renderer`. Known for the PR: Service/Costs/Bike tabs follow the system scheme (light possible) until their phases; Android tabs are plain RN (no Compose tab row); tab-bar clearance is a constant (custom floating tab bar has no height hook); translations are not native-reviewed.
+- 2026-10-02 · step 5 Implement — plan Phases 5–7 dispatched (Overview, Log/Odometer/Note sheets, Notes screen, undo, deep links, Maestro files).
 
 ### Q5 — verification database (route 2 in use; routes 1 and 3 remain the owner's call)
 
