@@ -24,6 +24,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { QUERY_META } from '../../lib/query-meta';
 import { SwipeableExpense } from '../shared/swipeable-expense';
+import { LoadError } from './load-error';
 
 interface ExpensesSectionProps {
   motorcycleId: string;
@@ -252,39 +253,12 @@ export function ExpensesSection({
 
       {/* Error state */}
       {loadFailed && (
-        <View
+        <LoadError
           testID="expenses-load-error"
-          style={{
-            backgroundColor: cardBg,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            padding: 24,
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 15,
-              fontWeight: '600',
-              color: isDark ? palette.neutral200 : palette.neutral800,
-              textAlign: 'center',
-            }}
-          >
-            {t('expenses.failedToLoad')}
-          </Text>
-          <Pressable
-            testID="expenses-retry"
-            onPress={() => void refetchExpenses()}
-            accessibilityRole="button"
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={({ pressed }) => ({ paddingVertical: 6, opacity: pressed ? 0.6 : 1 })}
-          >
-            <Text style={{ fontSize: 14, fontWeight: '600', color: palette.primary500 }}>
-              {t('common.retry')}
-            </Text>
-          </Pressable>
-        </View>
+          retryTestID="expenses-retry"
+          message={t('expenses.failedToLoad')}
+          onRetry={() => void refetchExpenses()}
+        />
       )}
 
       {/* Empty state */}

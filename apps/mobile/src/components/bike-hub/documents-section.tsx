@@ -21,9 +21,12 @@ import { queryKeys } from '../../lib/query-keys';
 import { QUERY_META } from '../../lib/query-meta';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
-import { HUB_TOUCH_TARGET } from './ui/tokens';
+import { LoadError } from './load-error';
 
 type DocumentItem = DocumentsByMotorcycleQuery['documents'][number];
+
+/** Group key of the one list shown when the categories failed to load. */
+const UNGROUPED = 'ungrouped';
 
 interface DocumentsSectionProps {
   motorcycleId: string;
@@ -56,9 +59,12 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
   });
   const categoryData = categoriesQuery.data;
   const categoriesError = categoriesQuery.isError && !categoryData;
-  const loadFailed = documentsError || categoriesError;
+  // Only the documents failing hides the list. Without categories the rows still
+  // show, ungrouped — a pinned insurance card must be reachable at the roadside
+  // even when the category list is down.
+  const loadFailed = documentsError;
   const retryLoad = () => {
-    if (documentsError) refetchDocuments();
+    refetchDocuments();
     if (categoriesError) void categoriesQuery.refetch();
   };
 
@@ -102,7 +108,13 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
   }, [isLoading, documents.length, pinned.length]);
 
   // Group documents by category; hidden-category groups appear only when toggled (R7).
+  // Without categories, one ungrouped list (nothing is known to be hidden).
   const groups = useMemo(() => {
+    if (categoriesError) {
+      return documents.length > 0
+        ? [{ categoryId: UNGROUPED, category: undefined, docs: documents }]
+        : [];
+    }
     const byCat = new Map<string, DocumentItem[]>();
     for (const doc of documents) {
       const list = byCat.get(doc.categoryId) ?? [];
@@ -117,7 +129,7 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
       }))
       .filter((g) => showHidden || !g.category?.isHidden)
       .sort((a, b) => (a.category?.name ?? '').localeCompare(b.category?.name ?? ''));
-  }, [documents, categoryById, showHidden]);
+  }, [documents, categoryById, showHidden, categoriesError]);
 
   const hasHiddenWithDocs = useMemo(
     () => documents.some((d) => categoryById.get(d.categoryId)?.isHidden),
@@ -220,29 +232,11 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
       </View>
 
       {loadFailed && (
-        <View
+        <LoadError
           testID="documents-load-error"
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
-            paddingHorizontal: 2,
-          }}
-        >
-          <Text style={{ flex: 1, fontSize: 14, color: theme.ink2 }}>
-            {t('bikeHub.papers.loadError')}
-          </Text>
-          <Pressable
-            onPress={retryLoad}
-            accessibilityRole="button"
-            style={{ minHeight: HUB_TOUCH_TARGET, justifyContent: 'center', paddingHorizontal: 8 }}
-          >
-            <Text style={{ fontSize: 14, fontWeight: '600', color: theme.warm }}>
-              {t('common.retry')}
-            </Text>
-          </Pressable>
-        </View>
+          message={t('bikeHub.papers.loadError')}
+          onRetry={retryLoad}
+        />
       )}
 
       {!loadFailed && isLoading && (
@@ -315,6 +309,15 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
 
       {!loadFailed && !isLoading && documents.length > 0 && (
         <View style={{ gap: 16 }}>
+          {categoriesError && (
+            <LoadError
+              testID="documents-categories-error"
+              message={t('documents.categoriesLoadError')}
+              onRetry={() => void categoriesQuery.refetch()}
+              retryAccessibilityLabel={t('documents.categoriesRetryA11y')}
+            />
+          )}
+
           {/* Pinned subsection — roadside fast-retrieval surface (R14) */}
           {pinned.length > 0 && (
             <DocumentGroup
@@ -330,7 +333,11 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
           {groups.map((g) => (
             <DocumentGroup
               key={g.categoryId}
-              label={g.category?.name ?? t('documents.uncategorized', { defaultValue: 'Other' })}
+              label={
+                g.categoryId === UNGROUPED
+                  ? t('documents.allDocuments')
+                  : (g.category?.name ?? t('documents.uncategorized', { defaultValue: 'Other' }))
+              }
               docs={g.docs}
               category={g.category}
               categoryById={categoryById}
