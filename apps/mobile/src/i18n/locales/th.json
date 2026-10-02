@@ -1115,7 +1115,8 @@
         "documentExpiresIn_other": "{{category}}จะหมดอายุในอีก {{count}} วัน",
         "documentExpiresToday": "{{category}}หมดอายุวันนี้"
       },
-      "untrackedHint": "สถานะจะแสดงเมื่อมีงานหรือเอกสาร"
+      "untrackedHint": "สถานะจะแสดงเมื่อมีงานหรือเอกสาร",
+      "loadError": "โหลดสถานะรถไม่สำเร็จ"
     },
     "action": {
       "log": "บันทึก",
@@ -1245,7 +1246,8 @@
       "lowerMessage": "ต่ำกว่าค่าล่าสุด ({{last}} {{unit}}) บันทึกต่อไปหรือไม่",
       "backdatedNotice": "วันที่ก่อนค่าล่าสุด: ระบบจะบันทึกไว้ และเลขไมล์ยังคงเป็น {{last}} {{unit}}",
       "futureDate": "วันที่ต้องไม่อยู่ในอนาคต",
-      "saveFailed": "บันทึกค่าไม่สำเร็จ ลองอีกครั้ง"
+      "saveFailed": "บันทึกค่าไม่สำเร็จ ลองอีกครั้ง",
+      "lastReadingNoDate": "ค่าล่าสุด {{last}} {{unit}}"
     },
     "noteSheet": {
       "new": "โน้ตใหม่",

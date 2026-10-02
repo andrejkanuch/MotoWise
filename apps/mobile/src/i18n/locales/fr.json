@@ -1116,7 +1116,8 @@
         "documentExpiresIn_other": "{{category}} : expire dans {{count}} jours",
         "documentExpiresToday": "{{category}} : expire aujourd'hui"
       },
-      "untrackedHint": "L'état apparaît dès qu'une tâche ou un document existe."
+      "untrackedHint": "L'état apparaît dès qu'une tâche ou un document existe.",
+      "loadError": "Impossible de charger l'état de la moto"
     },
     "action": {
       "log": "Consigner",
@@ -1246,7 +1247,8 @@
       "lowerMessage": "Inférieur au dernier relevé ({{last}} {{unit}}). Enregistrer quand même ?",
       "backdatedNotice": "Antérieur à votre dernier relevé : il est consigné et le compteur reste à {{last}} {{unit}}.",
       "futureDate": "La date ne peut pas être dans le futur.",
-      "saveFailed": "Impossible d'enregistrer le relevé. Réessayez."
+      "saveFailed": "Impossible d'enregistrer le relevé. Réessayez.",
+      "lastReadingNoDate": "Dernier relevé {{last}} {{unit}}"
     },
     "noteSheet": {
       "new": "Nouvelle note",

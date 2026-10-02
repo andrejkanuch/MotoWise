@@ -1116,7 +1116,8 @@
         "documentExpiresIn_other": "{{category}}: vence em {{count}} dias",
         "documentExpiresToday": "{{category}}: vence hoje"
       },
-      "untrackedHint": "O status aparece quando houver uma tarefa ou um documento."
+      "untrackedHint": "O status aparece quando houver uma tarefa ou um documento.",
+      "loadError": "Não foi possível carregar o status da moto"
     },
     "action": {
       "log": "Registrar",
@@ -1246,7 +1247,8 @@
       "lowerMessage": "Menor que a última leitura ({{last}} {{unit}}). Salvar mesmo assim?",
       "backdatedNotice": "Anterior à sua última leitura: ela é registrada e o hodômetro continua em {{last}} {{unit}}.",
       "futureDate": "A data não pode estar no futuro.",
-      "saveFailed": "Não foi possível salvar a leitura. Tente novamente."
+      "saveFailed": "Não foi possível salvar a leitura. Tente novamente.",
+      "lastReadingNoDate": "Última leitura {{last}} {{unit}}"
     },
     "noteSheet": {
       "new": "Nova nota",

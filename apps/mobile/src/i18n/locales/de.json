@@ -1115,7 +1115,8 @@
         "documentExpiresIn_other": "{{category}} läuft in {{count}} Tagen ab",
         "documentExpiresToday": "{{category}} läuft heute ab"
       },
-      "untrackedHint": "Der Fahrstatus erscheint, sobald es eine Aufgabe oder ein Dokument gibt."
+      "untrackedHint": "Der Fahrstatus erscheint, sobald es eine Aufgabe oder ein Dokument gibt.",
+      "loadError": "Der Fahrstatus konnte nicht geladen werden"
     },
     "action": {
       "log": "Eintragen",
@@ -1245,7 +1246,8 @@
       "lowerMessage": "Niedriger als der letzte Stand ({{last}} {{unit}}). Trotzdem speichern?",
       "backdatedNotice": "Liegt vor deinem letzten Stand: Er wird gespeichert, der Kilometerstand bleibt bei {{last}} {{unit}}.",
       "futureDate": "Das Datum darf nicht in der Zukunft liegen.",
-      "saveFailed": "Der Stand konnte nicht gespeichert werden. Versuch es noch einmal."
+      "saveFailed": "Der Stand konnte nicht gespeichert werden. Versuch es noch einmal.",
+      "lastReadingNoDate": "Letzter Stand {{last}} {{unit}}"
     },
     "noteSheet": {
       "new": "Neue Notiz",

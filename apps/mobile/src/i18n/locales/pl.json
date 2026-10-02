@@ -1135,7 +1135,8 @@
         "documentExpiresIn_other": "{{category}}: wygasa za {{count}} dni",
         "documentExpiresToday": "{{category}}: wygasa dzisiaj"
       },
-      "untrackedHint": "Status pojawi się, gdy dodasz zadanie lub dokument."
+      "untrackedHint": "Status pojawi się, gdy dodasz zadanie lub dokument.",
+      "loadError": "Nie udało się wczytać statusu motocykla"
     },
     "action": {
       "log": "Dodaj wpis",
@@ -1279,7 +1280,8 @@
       "lowerMessage": "Niższy niż ostatni odczyt ({{last}} {{unit}}). Zapisać mimo to?",
       "backdatedNotice": "Data sprzed ostatniego odczytu: wpis zostanie zapisany, a przebieg pozostanie {{last}} {{unit}}.",
       "futureDate": "Data nie może być z przyszłości.",
-      "saveFailed": "Nie udało się zapisać odczytu. Spróbuj ponownie."
+      "saveFailed": "Nie udało się zapisać odczytu. Spróbuj ponownie.",
+      "lastReadingNoDate": "Ostatni odczyt {{last}} {{unit}}"
     },
     "noteSheet": {
       "new": "Nowa notatka",

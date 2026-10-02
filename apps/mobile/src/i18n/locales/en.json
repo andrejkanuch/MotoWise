@@ -1121,7 +1121,8 @@
         "documentExpiresIn_other": "{{category}} expires in {{count}} days",
         "documentExpiresToday": "{{category}} expires today"
       },
-      "untrackedHint": "Ride status appears once a task or a document exists."
+      "untrackedHint": "Ride status appears once a task or a document exists.",
+      "loadError": "Couldn't load the ride status"
     },
     "action": {
       "log": "Log",
@@ -1251,7 +1252,8 @@
       "lowerMessage": "Lower than the last reading ({{last}} {{unit}}). Save anyway?",
       "backdatedNotice": "Dated before your latest reading: it is logged, and the odometer stays at {{last}} {{unit}}.",
       "futureDate": "The date can't be in the future.",
-      "saveFailed": "Couldn't save the reading. Try again."
+      "saveFailed": "Couldn't save the reading. Try again.",
+      "lastReadingNoDate": "Last reading {{last}} {{unit}}"
     },
     "noteSheet": {
       "new": "New note",

@@ -1135,7 +1135,8 @@
         "documentExpiresIn_other": "{{category}}: platnosť vyprší o {{count}} dní",
         "documentExpiresToday": "{{category}}: platnosť vyprší dnes"
       },
-      "untrackedHint": "Stav sa zobrazí, keď pribudne úloha alebo dokument."
+      "untrackedHint": "Stav sa zobrazí, keď pribudne úloha alebo dokument.",
+      "loadError": "Stav motorky sa nepodarilo načítať"
     },
     "action": {
       "log": "Zapísať",
@@ -1279,7 +1280,8 @@
       "lowerMessage": "Nižší ako posledný stav ({{last}} {{unit}}). Uložiť aj tak?",
       "backdatedNotice": "Dátum pred posledným stavom: zapíše sa a tachometer zostane na {{last}} {{unit}}.",
       "futureDate": "Dátum nemôže byť v budúcnosti.",
-      "saveFailed": "Stav sa nepodarilo uložiť. Skúste to znova."
+      "saveFailed": "Stav sa nepodarilo uložiť. Skúste to znova.",
+      "lastReadingNoDate": "Posledný stav {{last}} {{unit}}"
     },
     "noteSheet": {
       "new": "Nová poznámka",

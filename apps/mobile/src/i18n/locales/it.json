@@ -1116,7 +1116,8 @@
         "documentExpiresIn_other": "{{category}}: scade tra {{count}} giorni",
         "documentExpiresToday": "{{category}}: scade oggi"
       },
-      "untrackedHint": "Lo stato compare quando esiste un’attività o un documento."
+      "untrackedHint": "Lo stato compare quando esiste un’attività o un documento.",
+      "loadError": "Impossibile caricare lo stato della moto"
     },
     "action": {
       "log": "Registra",
@@ -1246,7 +1247,8 @@
       "lowerMessage": "Inferiore all’ultima lettura ({{last}} {{unit}}). Salvare comunque?",
       "backdatedNotice": "Precedente all’ultima lettura: viene registrata e il contachilometri resta a {{last}} {{unit}}.",
       "futureDate": "La data non può essere nel futuro.",
-      "saveFailed": "Impossibile salvare la lettura. Riprova."
+      "saveFailed": "Impossibile salvare la lettura. Riprova.",
+      "lastReadingNoDate": "Ultima lettura {{last}} {{unit}}"
     },
     "noteSheet": {
       "new": "Nuova nota",
