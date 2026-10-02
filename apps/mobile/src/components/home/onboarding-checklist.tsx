@@ -20,6 +20,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { GARAGE_ROUTE, TAB_ROUTE } from '../../config/routes';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { QUERY_META } from '../../lib/query-meta';
 import {
   ALL_CHECKLIST_ITEMS,
   CHECKLIST_ITEM_ID,
@@ -61,6 +62,9 @@ export function OnboardingChecklist() {
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
     staleTime: 5 * 60 * 1000,
     enabled: hasExpenseItem,
+    // Nothing here depends on the list failing (the item falls back to the
+    // garage tab), so it must not veto Home's own error card with an alert.
+    meta: QUERY_META.DECORATION,
   });
   const firstBikeId = bikesData?.myMotorcycles?.[0]?.id;
 

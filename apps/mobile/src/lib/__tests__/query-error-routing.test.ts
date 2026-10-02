@@ -167,6 +167,32 @@ describe('resolveFailureHandling — decided over every observer, never the last
     );
   });
 
+  it('ignores a disabled observer: it never asked for the fetch, so it cannot veto the opt-out', () => {
+    // Home: its own read opts out; the onboarding checklist's read of the same
+    // key (no meta) is disabled until the expense item is on the checklist.
+    const home = { meta: OPT_OUT, observers: [{ options: { meta: OPT_OUT } }] };
+    const disabledPlain = { options: { meta: undefined, enabled: false } };
+    expect(
+      resolveFailureHandling({ ...home, observers: [...home.observers, disabledPlain] })
+        .alertOptOut,
+    ).toBe(true);
+    // Enabled (or function-valued `enabled`) without meta still keeps the alert.
+    for (const enabled of [true, undefined, () => true]) {
+      const plain = { options: { meta: undefined, enabled } };
+      expect(
+        resolveFailureHandling({ ...home, observers: [...home.observers, plain] }).alertOptOut,
+      ).toBe(false);
+    }
+  });
+
+  it('with only disabled observers, falls back to the query’s own meta like a prefetch', () => {
+    const disabled = { options: { meta: undefined, enabled: false } };
+    expect(resolveFailureHandling({ meta: OPT_OUT, observers: [disabled] }).alertOptOut).toBe(true);
+    expect(resolveFailureHandling({ meta: undefined, observers: [disabled] }).alertOptOut).toBe(
+      false,
+    );
+  });
+
   it('falls back to the query’s own meta when nothing observes it (prefetch, fetchQuery)', () => {
     expect(resolveFailureHandling({ meta: OPT_OUT, observers: [] }).alertOptOut).toBe(true);
     expect(resolveFailureHandling({ meta: undefined, observers: [] })).toEqual({

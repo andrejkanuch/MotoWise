@@ -118,7 +118,7 @@ export function downgradeReasonFor(
 /** What `resolveFailureHandling` reads off a failed query: its own meta and its observers'. */
 export interface FailedQueryMetaSource {
   meta?: QueryMeta;
-  observers?: ReadonlyArray<{ options: { meta?: QueryMeta } }>;
+  observers?: ReadonlyArray<{ options: { meta?: QueryMeta; enabled?: unknown } }>;
 }
 
 export interface FailureHandling {
@@ -147,9 +147,17 @@ const ownsFailureUi = (meta: QueryMeta | undefined): boolean =>
  * (and CRITICAL keeps its Sentry capture), so a forgotten opt-out costs a
  * duplicate alert, never a silent "no data". With no observer (a prefetch or
  * `fetchQuery`) the query's own meta — the one call's options — decides.
+ *
+ * An observer with `enabled: false` is left out: it subscribes (so it sits in
+ * `query.observers`) but never asked for the fetch, and would otherwise veto
+ * every other observer's opt-out — the Home checklist's disabled bike-list read
+ * raised a system alert over Home's own error card. A function-valued `enabled`
+ * still counts (fail-safe: the alert stays).
  */
 export function resolveFailureHandling(query: FailedQueryMetaSource | undefined): FailureHandling {
-  const observers = query?.observers ?? [];
+  const observers = (query?.observers ?? []).filter(
+    (observer) => observer.options.enabled !== false,
+  );
   const metas =
     observers.length > 0 ? observers.map((observer) => observer.options.meta) : [query?.meta];
   const allEnhancement = metas.every(
