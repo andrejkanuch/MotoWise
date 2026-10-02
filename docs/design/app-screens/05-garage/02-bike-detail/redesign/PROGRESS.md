@@ -1,0 +1,79 @@
+# Bike-detail redesign — progress log
+
+The lead's only memory between runs. Read this first; continue from the first unfinished step.
+
+## Phases
+
+| # | Phase | Branch | Status | Step | PR | Migration pushed |
+|---|---|---|---|---|---|---|
+| 1 | Shell + Overview | `feat/bike-detail-shell-overview` | in progress | 4 · Data first | — | no |
+| 2 | Service segment | — | not started | — | — | — |
+| 3 | Task flows | — | not started | — | — | — |
+| 4 | Costs | — | not started | — | — | — |
+| 5 | Bike segment + recalls | — | not started | — | — | — |
+| 6 | Cleanup + Home card | — | not started | — | — | — |
+
+## First run — 2026-10-02
+
+- Inputs confirmed: `DESIGN-SPEC.md`, 48 `.dc.html` screens, `canvas.json`, `hero.jpg`. No `screens/png/` — Visual QA renders the HTML with headless Chromium at 390×844.
+- `screens/*.dc.html` load `./support.js`, which is not in the folder. Styles sit in a plain `<style>` inside `<helmet>`, so the files should still render; Visual QA confirms on its first render.
+- Design library committed on the phase 1 branch (`d2ad7e07`, `3626a4d6`). PNG screenshots are not in git: `.gitignore:5` ignores `screenshots/` repo-wide.
+- Baseline on `main` @ `965ad1de`:
+  - `pnpm install --frozen-lockfile`: ok.
+  - `pnpm precheck`: **fails at `pnpm lint`** with 2 Biome format errors, neither in tracked code: `redesign/screens/canvas.json` (fixed in `3626a4d6`) and `outputs/play-release-3.20.0/release-notes-3.20.0.json` (untracked, the owner's file, left alone). 4 `useOptionalChain` warnings in `apps/mobile/src/widgets/*Widget.tsx` are pre-existing.
+  - typecheck + test baseline: see "Baseline typecheck/test" below.
+
+## Phase 1 — Shell + Overview
+
+### What changes (step 1)
+
+Today `app/(tabs)/(garage)/bike/[id].tsx` is one `ScrollView` with 13 stacked blocks and a 320 pt hero. Phase 1 replaces the frame and the first segment:
+
+- **Shell**: persistent header (origin-aware back, serif 22 bike name + mono eyebrow "2022 · Honda", one odometer chip → `OdometerSheet`), segment bar (Overview · Service · Costs · Bike; Service badge = overdue Critical/High count; Material tabs on Android), segment container with per-segment scroll and remembered last segment per bike, copper action pill ("Log" on Overview), `UndoSnackbar`, deep-link landing rule. Header name + chip merge into one 44 px row on scroll.
+- **Overview** (`Main`, `OverviewScrolled`, `OverviewEmpty`): 150 px photo band (PRIMARY / rides chips) → ride-status card → Needs attention (ranked, max 3 + "N more", count in eyebrow) → Next up → Costs card (year total, YoY vs same period, category bar, This month / Per month / Top category) → Notes block (2 latest + quick add) → Papers & bike rows. Empty bike: dashed "Add a photo", "Nothing tracked yet", "Set this bike up" (import schedule · log past work · add documents), €0.00 costs card.
+- **LogSheet**: bottom drawer — Expense · Maintenance task · Work already done · Note · Document.
+- **OdometerSheet**: keypad, quick-add chips (+rides distance, +50/+100/+250), date, lower-than-last confirm; replaces iOS-only `Alert.prompt`; writes an `odometer_readings` row.
+- **NoteSheet** + **Notes**: per-bike notes (text, odometer stamp, photo, "also make it a task"), list with search, swipe edit/delete with 5 s undo, composer bar.
+- **Service / Costs / Bike tabs**: wrap today's `hub/maintenance-section`, `hub/expenses-section`, `hub/documents-section` + `hub/bike-details-card` unchanged.
+- **Data**: `notes`, `odometer_readings`, `motorcycles.distance_unit`.
+
+Not removed yet (phase 6): `bike-stats-row`, `mileage-display`, health-report screen and card.
+
+### Lead decisions for phase 1
+
+| # | Decision | Why |
+|---|---|---|
+| D1 | `distance_unit` is label-only. Backfill each bike from its owner's current measurement system; odometer and interval values stay RAW, nothing is converted. The Edit-bike control for it lands in phase 5; phase 1 adds the column and reads it. | Odometer is stored raw in the user's unit on `main` (PR #164 contract); a km-normalising migration would ship a 1.61× bug. |
+| D2 | Ride status in phase 1 uses a constant list of riding-blocking document categories (insurance, inspection, registration) and treats every recall returned for the bike as open. Both are swapped for real data in phase 5 (`document_categories.blocks_riding`, `recall_acknowledgements`). | Those columns belong to phase 5; the rule must still work now. |
+| D3 | Links to leaves not built yet go to today's screens: task → Service tab with `highlightTask`; recall → `/(modals)/recalls`; document → `document/[id]`; Log drawer → today's `add-expense`, `add-maintenance-task`, `add-maintenance-task?mode=log`, `add-document`. NoteSheet's "Link a job or expense" chip waits for `LinkJob` (phase 3); the `linked_*` columns are created now. | "Never ship a broken tab"; no new data beyond spec §3. |
+| D4 | Create/edit sheets follow the spec: `presentation: 'formSheet'`. | Spec + CLAUDE.md. See open question Q2. |
+
+| D5 | Until phase 5, an interim `users.measurement_system` → `motorcycles.distance_unit` sync trigger keeps the bike unit equal to the profile unit (plan open question 3). Dropped in the phase 5 migration, together with moving the four API conversion sites to the bike's unit. | Four API conversion sites and ~10 screens still read the profile unit; a diverging bike unit before then is the 1.61× bug again. |
+| D6 | Geist Mono and Plus Jakarta Sans are registered under hub-only family names. | They are named in ~130 places but never loaded; registering them under the existing names would restyle the whole app inside this PR. |
+| D7 | Plan fallbacks 4, 6–20 accepted as written (see `features/bike-detail-shell-overview/EXECUTION_PLAN.md` › Open questions). Notable: recall row has no "already fixed" fragment and no short title until phase 5; "Link a job" chip and the "recognised part numbers" hint are not rendered; `photo_ids[]` is a `note_photos` link table; spec `at`/`text` columns are `recorded_at`/`body`. | No data beyond spec §3; nearest existing pattern. |
+| D8 | Verification route before the production push: local Supabase stack (plan Phase 0). If `supabase db reset` cannot replay 00001–00179, stop and ask the owner to pre-push 00180–00182. | Local API and `pnpm generate:types` both point at the production project today. |
+
+### Constraints found by the Planner
+
+- **Deploy order is hard**: the API selects `distance_unit` in `myMotorcycles` and Render auto-deploys on merge. The PR must not be merged before 00180–00182 are on production, or the garage breaks for every user.
+- **Never run `pnpm generate:types` / `pnpm generate` before the push** — they read the linked production schema and would drop the new tables from `database.types.ts`. Use `supabase gen types --local` and the per-package codegen scripts.
+- 00181 adds a trigger that runs inside every production odometer write (ride end, receipt scan, manual). Its body swallows its own errors so a failed log row cannot fail a ride end.
+- The i18n ratchet (`pnpm check:i18n`, pre-push + CI) requires every new key in all 13 locale files.
+
+### Open questions for the owner
+
+- **Q1 — `pnpm precheck` cannot be green locally** while `outputs/play-release-3.20.0/release-notes-3.20.0.json` is unformatted (Biome scans it). Until it is formatted, moved or ignored, step 7 is verified as: every `check:*` script + Biome on everything except that file + typecheck + test.
+- **Q2 — formSheet vs fullScreenModal.** An earlier preference was `fullScreenModal` for dark-themed modals (duplicate-content issue with formSheet). The spec says formSheet; phase 1 follows the spec. Visual QA checks the new sheets for the duplicate-content problem.
+- **Q3 — per-bike unit vs per-user unit.** After D1 the profile-level unit only seeds new bikes and converts Home totals. Confirm that is the intended end state.
+- **Q4 — screenshots are gitignored**, so the audits' image references resolve only on this machine.
+
+### Step log
+
+- 2026-10-02 · step 1 Read — done (spec §1–§5, 7 phase screens, IA code audit).
+- 2026-10-02 · step 3 Branch — done early (`feat/bike-detail-shell-overview` from `main` @ `965ad1de`) to carry the design-library commit.
+- 2026-10-02 · step 2 Plan — done. `features/bike-detail-shell-overview/EXECUTION_PLAN.md` (plan phases 0–7, 22 open questions with fallbacks). Checked against the 7 screens and spec §1–§3; decisions D5–D8 added.
+- 2026-10-02 · step 4 Data — Data agent dispatched for plan phases 0–2 (local stack, migrations 00180–00182, types, Zod, API, `.graphql`).
+
+## Baseline typecheck/test
+
+`main` @ `965ad1de`, 2026-10-02: `pnpm typecheck` green (4/4 tasks). `pnpm test` green — types 111, web 266, api 846, mobile 1,089 tests (77 suites).
