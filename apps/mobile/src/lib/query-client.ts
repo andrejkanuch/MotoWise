@@ -18,8 +18,10 @@ declare module '@tanstack/react-query' {
     queryMeta: {
       /**
        * When false, global query error UI is skipped (default: show on first-load
-       * failures only). Honoured only when EVERY observer of the key passes it —
-       * see `resolveFailureHandling`.
+       * failures only). Observers of a key share one alert decision, and it is a
+       * veto: ONE enabled observer without its own error UI (neither this flag
+       * nor ENHANCEMENT) keeps the alert for every screen on that key. Disabled
+       * observers (`enabled: false`) do not count. See `resolveFailureHandling`.
        */
       showErrorAlert?: boolean;
       /**

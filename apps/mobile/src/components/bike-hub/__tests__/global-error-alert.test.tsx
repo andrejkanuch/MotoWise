@@ -192,6 +192,15 @@ describe('the opt-out does not depend on which observer rendered last', () => {
     expect(alert).toHaveBeenCalledWith('Error', GLOBAL_ALERT_MESSAGE);
   });
 
+  it('a disabled observer without meta does not veto the opt-out (it never asked for the fetch)', async () => {
+    const disabledPlain = () =>
+      useQuery({ queryKey: KEY, queryFn: () => mockFetcher(), enabled: false });
+    await renderHook(() => [disabledPlain(), optedOut()], { wrapper });
+    await settle();
+    expect(queryClient.getQueryCache().find({ queryKey: KEY })?.state.status).toBe('error');
+    expect(alert).not.toHaveBeenCalled();
+  });
+
   it('every observer opted out: no alert', async () => {
     await renderHook(() => [optedOut(), optedOut()], { wrapper });
     await settle();
