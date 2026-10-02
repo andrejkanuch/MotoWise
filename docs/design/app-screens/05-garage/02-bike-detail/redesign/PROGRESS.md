@@ -6,7 +6,7 @@ The lead's only memory between runs. Read this first; continue from the first un
 
 | # | Phase | Branch | Status | Step | PR | Migration pushed |
 |---|---|---|---|---|---|---|
-| 1 | Shell + Overview | `feat/bike-detail-shell-overview` | in progress | 6 · Tests / 8 · Review / 9 · Visual | — | no |
+| 1 | Shell + Overview | `feat/bike-detail-shell-overview` | in progress | 9 · Visual (fix round 3) | — | no |
 | 2 | Service segment | — | not started | — | — | — |
 | 3 | Task flows | — | not started | — | — | — |
 | 4 | Costs | — | not started | — | — | — |
@@ -100,6 +100,11 @@ Not removed yet (phase 6): `bike-stats-row`, `mileage-display`, health-report sc
 
 - 2026-10-02 · step 8 Review round 1 — no blocker, 2 MAJOR (ride status computed before tasks/documents load; same-day back-dated odometer reading silently not applied), 13 MINOR, 2 device-only suspicions. All fixed with tests: mobile `3cbd278b`, `e5eddcdf`, `ba130a0e`; migrations/API `3136e4be`, `e6dab0bd`, `a0410043` (notes UPDATE policy re-checks the bike; `note_photos` requires an own note; storage paths not in normal form rejected; P0002 → NotFound, 42501 → Forbidden). Accepted: a note on a soft-deleted bike is readable and deletable but not editable. `database.types.ts` unchanged. Gates after fixes: typecheck 4/4; mobile 106 suites / 1,720, api 1,014, web 266, types 136.
 - 2026-10-02 · re-review dispatched; Test writer (≈380 new mobile tests, uncommitted) and Visual QA told to finish against the committed fix round.
+
+- 2026-10-02 · step 6 Tests — done: 454 new tests (`f30f805c`, `18fcc5d2`, `71d3414b`, `e8f35d8b`).
+- 2026-10-02 · step 8 Re-review — no blocker; remainders fixed in round 2 (`0b790dde`, `0e566bee`, `b67545f3`): paused-offline ride status, Service badge date, Log sheet fallback via parent navigator, double error alerts, "Due now" at target. Seeded document category names stay English in all locales (same as the existing documents screens). Gates: typecheck 4/4; mobile 107 suites / 1,736, api 1,014, web 266, types 136.
+- 2026-10-02 · step 9 Visual round 1 (iOS 26.3 sim 402×874, 3.19.1 dev client, local stack, final on `b67545f3`): 3 must-fix (Odometer sheet chip row overlays title/Cancel; hidden segments receive touches; AX5 Dynamic Type breaks header/segment bar), 6 should-fix, 12 nits. Captures in `features/bike-detail-shell-overview/visual/` (untracked, 52 MB). **Agent claimed a `REPORT.md` that did not exist — asked to write it.** Android not run (no SDK/emulator). Photo states not captured (seed has no photos). Fix round 3 dispatched to the implementer; Visual round 2 follows.
+- Local DB: `preferences.onboardingCompleted = true` was set by hand for qa-metric / qa-imperial; the seed script should set it.
 
 ### Q5 — verification database (route 2 in use; routes 1 and 3 remain the owner's call)
 
