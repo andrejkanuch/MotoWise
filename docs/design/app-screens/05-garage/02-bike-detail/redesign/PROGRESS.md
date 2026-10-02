@@ -98,6 +98,9 @@ Not removed yet (phase 6): `bike-stats-row`, `mileage-display`, health-report sc
 - 2026-10-02 · step 5 Implement — plan Phases 5–7 **done** (`f243823d`, `4763864b`, `42951459`, `f320d523`, `1d0a41ba`, `d499f417`): Overview segment, Log/Odometer/Note sheets, Notes screen, deferred delete + undo, deep links, 15 Maestro flow files (syntax-checked only). typecheck 4/4; tests mobile 94 suites / 1,306, api 917, web 266, types 136; all `check:*` + `check:i18n` pass. Implementer deviations 1–24 accepted (list goes in the PR body). Live NHTSA returns 2 recalls for the fixture bike (design shows 1).
 - 2026-10-02 · steps 6, 8, 9 dispatched in parallel: Test writer, adversarial Code reviewer (read-only), Visual QA (iOS simulator, local stack). Fixes from all three go to the implementer in one round afterwards; step 7 static verify runs after the fixes.
 
+- 2026-10-02 · step 8 Review round 1 — no blocker, 2 MAJOR (ride status computed before tasks/documents load; same-day back-dated odometer reading silently not applied), 13 MINOR, 2 device-only suspicions. All fixed with tests: mobile `3cbd278b`, `e5eddcdf`, `ba130a0e`; migrations/API `3136e4be`, `e6dab0bd`, `a0410043` (notes UPDATE policy re-checks the bike; `note_photos` requires an own note; storage paths not in normal form rejected; P0002 → NotFound, 42501 → Forbidden). Accepted: a note on a soft-deleted bike is readable and deletable but not editable. `database.types.ts` unchanged. Gates after fixes: typecheck 4/4; mobile 106 suites / 1,720, api 1,014, web 266, types 136.
+- 2026-10-02 · re-review dispatched; Test writer (≈380 new mobile tests, uncommitted) and Visual QA told to finish against the committed fix round.
+
 ### Q5 — verification database (route 2 in use; routes 1 and 3 remain the owner's call)
 
 1. Schema-only dump of production loaded into a local Postgres (read-only on production; most faithful).
