@@ -14,6 +14,22 @@ describe('recallComponentLabel', () => {
     ['a trailing separator falls back to the last named level', 'SUSPENSION:FRONT:', 'Front'],
     ['mixed case is normalised', 'Steering:Handlebar', 'Handlebar'],
     ['blank stays blank', '   ', ''],
+    ['empty stays empty', '', ''],
+    ['an all-acronym level stays in capitals', 'POWER TRAIN:DCT:TCM ECU', 'TCM ECU'],
+    ['the new acronyms', 'FUEL SYSTEM:EVAP:PCM WIRING', 'PCM wiring'],
+    ['a word with a digit is left alone', 'ELECTRICAL SYSTEM:12V BATTERY', '12V battery'],
+    [
+      'non-ASCII letters are sentence-cased too',
+      'SYSTÈME ÉLECTRIQUE:ÉCLAIRAGE AVANT',
+      'Éclairage avant',
+    ],
+    [
+      'a generic last level falls back to the one before',
+      'ELECTRICAL SYSTEM:WIRING:OTHER',
+      'Wiring',
+    ],
+    ['"unknown" is generic too', 'POWER TRAIN:CVT:UNKNOWN', 'CVT'],
+    ['an only-generic component keeps its words', 'UNKNOWN OR OTHER', 'Unknown or other'],
   ])('%s: %s → %s', (_label, component, expected) => {
     expect(recallComponentLabel(component)).toBe(expected);
   });
