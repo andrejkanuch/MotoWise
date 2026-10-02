@@ -6,7 +6,7 @@ The lead's only memory between runs. Read this first; continue from the first un
 
 | # | Phase | Branch | Status | Step | PR | Migration pushed |
 |---|---|---|---|---|---|---|
-| 1 | Shell + Overview | `feat/bike-detail-shell-overview` | in progress | 9 · Visual (fix round 3) | — | no |
+| 1 | Shell + Overview | `feat/bike-detail-shell-overview` | in progress | 9 · Visual round 2 | — | no |
 | 2 | Service segment | — | not started | — | — | — |
 | 3 | Task flows | — | not started | — | — | — |
 | 4 | Costs | — | not started | — | — | — |
@@ -105,6 +105,10 @@ Not removed yet (phase 6): `bike-stats-row`, `mileage-display`, health-report sc
 - 2026-10-02 · step 8 Re-review — no blocker; remainders fixed in round 2 (`0b790dde`, `0e566bee`, `b67545f3`): paused-offline ride status, Service badge date, Log sheet fallback via parent navigator, double error alerts, "Due now" at target. Seeded document category names stay English in all locales (same as the existing documents screens). Gates: typecheck 4/4; mobile 107 suites / 1,736, api 1,014, web 266, types 136.
 - 2026-10-02 · step 9 Visual round 1 (iOS 26.3 sim 402×874, 3.19.1 dev client, local stack, final on `b67545f3`): 3 must-fix (Odometer sheet chip row overlays title/Cancel; hidden segments receive touches; AX5 Dynamic Type breaks header/segment bar), 6 should-fix, 12 nits. Captures in `features/bike-detail-shell-overview/visual/` (untracked, 52 MB). **Agent claimed a `REPORT.md` that did not exist — asked to write it.** Android not run (no SDK/emulator). Photo states not captured (seed has no photos). Fix round 3 dispatched to the implementer; Visual round 2 follows.
 - Local DB: `preferences.onboardingCompleted = true` was set by hand for qa-metric / qa-imperial; the seed script should set it.
+
+- 2026-10-02 · fix round 3 done (`2ca2a002`, `fc433360`, `10a9ba90`, `c10b2fd8`, `1f980061`): Odometer chip row in normal flow (no scroll view in the sheet), inactive segment panels non-interactive, 1.3× font cap on hub chrome, larger bottom inset, note-save error above Save, "Couldn't refresh · Retry", costs eyebrow, 8 nits. **Double alert cause:** not the mutation — `QueryCache.onError` alerts for the sheet's own queries failing with no cache; hub queries now opt out. Edit-bike "Discard changes?" prompt predates the branch (untouched). Gates: typecheck 4/4; mobile 108 suites / 1,764, api 1,014, web 266, types 136. Nothing in this round device-verified yet.
+- 2026-10-02 · Visual round 2 dispatched on frozen `1f980061` with a 26-line PASS/FAIL checklist (round-1 fixes + everything never checked on a final commit). `features/bike-detail-shell-overview/visual/REPORT.md` written by the lead from the agent's text (subagent could not write it).
+- Outside scope, seen by QA: Home hero for the imperial user shows "23.7k km" for a 23,716 mi bike and "READY TO RIDE" while the hub says "Check before riding".
 
 ### Q5 — verification database (route 2 in use; routes 1 and 3 remain the owner's call)
 
