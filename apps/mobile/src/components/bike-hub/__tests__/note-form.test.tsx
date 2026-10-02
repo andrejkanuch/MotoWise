@@ -336,22 +336,29 @@ describe('NoteForm — keyboard open (visual QA round 2)', () => {
     expect(inputMinHeight()).toBe(4 * 23 + 28);
   });
 
-  it('the scroll area reserves the Save bar’s measured height on top of the keyboard, error line included', async () => {
+  it('reserves only the part of the Save bar above the keyboard, once — measured, error line included', async () => {
     await renderForm();
     const footer = screen.getByTestId('note-footer');
     await act(async () => footer.props.onLayout({ nativeEvent: { layout: { height: 124 } } }));
     // The keyboard-aware scroll view (a plain ScrollView in the library's jest mock).
-    const findSpace = (node: unknown): number | undefined => {
+    const findProps = (node: unknown): Record<string, number> | undefined => {
       if (!node || typeof node !== 'object') return undefined;
-      const host = node as { props?: { extraKeyboardSpace?: number }; children?: unknown[] };
-      if (host.props?.extraKeyboardSpace !== undefined) return host.props.extraKeyboardSpace;
+      const host = node as { props?: Record<string, number>; children?: unknown[] };
+      if (host.props?.extraKeyboardSpace !== undefined) return host.props;
       for (const child of host.children ?? []) {
-        const found = findSpace(child);
+        const found = findProps(child);
         if (found !== undefined) return found;
       }
       return undefined;
     };
-    expect(findSpace(screen.toJSON())).toBe(124);
+    const props = findProps(screen.toJSON());
+    // With the keyboard up the bar slides down by its safe-area padding (34)
+    // less a 12 pt gap: 124 - 22 = 102 of it covers the scroll area.
+    const aboveKeyboard = 124 - (34 - 12);
+    expect(props?.extraKeyboardSpace).toBe(aboveKeyboard);
+    // The focused field is kept just above that part — not that part plus a
+    // fixed guess at the bar on top.
+    expect(props?.bottomOffset).toBe(aboveKeyboard + 8);
   });
 });
 

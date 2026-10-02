@@ -47,6 +47,12 @@ const MIN_INPUT_HEIGHT = 6 * INPUT_LINE_HEIGHT + 2 * INPUT_PADDING;
  * text), so "Also make it a task" stays above the keyboard-attached Save bar.
  */
 const MIN_INPUT_HEIGHT_TYPING = 4 * INPUT_LINE_HEIGHT + 2 * INPUT_PADDING;
+/** Gap the Save bar keeps above the keyboard (the rest of its bottom padding slides under it). */
+const FOOTER_KEYBOARD_GAP = 12;
+/** Save bar part above the keyboard before its first layout: top padding + button + gap. */
+const FOOTER_FALLBACK_HEIGHT = 12 + HUB_HEIGHT.primary + FOOTER_KEYBOARD_GAP;
+/** Room between the focused field's caret and the top of the Save bar. */
+const CARET_MARGIN = 8;
 
 interface NoteFormProps {
   /** The bike the sheet was opened for. */
@@ -280,6 +286,13 @@ export function NoteForm({
   };
 
   const footerPadding = Math.max(insets.bottom, 16);
+  // With the keyboard up the bar is pushed down by its own safe-area padding
+  // (less a small gap), so only this much of it covers the scroll area. That
+  // part — not the full measured height — is the extra scroll room, and the
+  // focused field is kept just above it.
+  const stickyOpenedOffset = footerPadding - FOOTER_KEYBOARD_GAP;
+  const footerAboveKeyboard =
+    footerHeight > 0 ? Math.max(0, footerHeight - stickyOpenedOffset) : FOOTER_FALLBACK_HEIGHT;
 
   return (
     <View style={{ flex: 1, backgroundColor: hub.card }}>
@@ -324,8 +337,8 @@ export function NoteForm({
 
       <KeyboardAwareScrollView
         keyboardShouldPersistTaps="handled"
-        bottomOffset={HUB_HEIGHT.primary + 32}
-        extraKeyboardSpace={footerHeight}
+        bottomOffset={footerAboveKeyboard + CARET_MARGIN}
+        extraKeyboardSpace={footerAboveKeyboard}
         contentContainerStyle={{ gap: 12, paddingTop: 6, paddingHorizontal: 16, paddingBottom: 24 }}
       >
         <TextInput
@@ -532,7 +545,7 @@ export function NoteForm({
         ) : null}
       </KeyboardAwareScrollView>
 
-      <KeyboardStickyView offset={{ closed: 0, opened: footerPadding - 12 }}>
+      <KeyboardStickyView offset={{ closed: 0, opened: stickyOpenedOffset }}>
         <View
           testID="note-footer"
           onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}
