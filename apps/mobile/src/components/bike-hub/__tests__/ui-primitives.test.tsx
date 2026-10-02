@@ -2,7 +2,7 @@ jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
 
-import { palette } from '@motovault/design-system';
+import { palette, withAlpha } from '@motovault/design-system';
 import { MaintenancePriority, MaintenanceTaskSource } from '@motovault/graphql';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Plus } from 'lucide-react-native';
@@ -14,7 +14,7 @@ import { AIR_FILTER, BRAKE_PADS, KM, TODAY, task } from '../../../test/bike-hub-
 import { ActionPill } from '../ui/action-pill';
 import { DueLine } from '../ui/due-line';
 import { PriorityTag } from '../ui/priority-tag';
-import { REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
+import { REFRESH_ANNOUNCE_WINDOW_MS, REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { SectionHeader } from '../ui/section-header';
 import { Stat } from '../ui/stat';
 import { TAG_VARIANT } from '../ui/tokens';
@@ -258,14 +258,74 @@ describe('RefreshFailed', () => {
     expect(StyleSheet.flatten(label.props.style).flexShrink).toBe(1);
   });
 
-  it('is announced when it appears: explicitly on iOS (the jest-expo default platform), live region for Android', async () => {
-    // `process.env.EXPO_OS` is inlined at build time, so only the preset's iOS
-    // branch can run here; the Android path is the `accessibilityLiveRegion`.
-    const announce = jest
-      .spyOn(AccessibilityInfo, 'announceForAccessibility')
-      .mockImplementation(() => {});
-    await render(<RefreshFailed block={REFRESH_BLOCK.NOTES} onRetry={jest.fn()} testID="line" />);
-    expect(announce).toHaveBeenCalledWith("Couldn't refresh");
-    expect(screen.getByTestId('line').props.accessibilityLiveRegion).toBe('polite');
+  describe('announcement', () => {
+    // The once-per-failure window is module state keyed on Date.now: start well
+    // past any real-clock announcement from earlier tests, then each test opens
+    // a window past the previous one.
+    let now = Date.now() + 1_000_000_000;
+    let announce: jest.SpyInstance;
+    beforeEach(() => {
+      now += 10 * REFRESH_ANNOUNCE_WINDOW_MS;
+      jest.spyOn(Date, 'now').mockImplementation(() => now);
+      announce = jest
+        .spyOn(AccessibilityInfo, 'announceForAccessibility')
+        .mockImplementation(() => {});
+      // RN's jest setup already makes it a jest.fn: spyOn returns that same mock,
+      // with the calls earlier tests made.
+      announce.mockClear();
+    });
+
+    it('is announced when it appears', async () => {
+      await render(<RefreshFailed block={REFRESH_BLOCK.NOTES} onRetry={jest.fn()} />);
+      expect(announce).toHaveBeenCalledTimes(1);
+      expect(announce).toHaveBeenCalledWith("Couldn't refresh");
+    });
+
+    it('three blocks failing on one refresh are announced once, not three times', async () => {
+      await render(
+        <>
+          <RefreshFailed block={REFRESH_BLOCK.ATTENTION} onRetry={jest.fn()} />
+          <RefreshFailed block={REFRESH_BLOCK.COSTS} onRetry={jest.fn()} />
+          <RefreshFailed block={REFRESH_BLOCK.NOTES} onRetry={jest.fn()} />
+        </>,
+      );
+      expect(announce).toHaveBeenCalledTimes(1);
+    });
+
+    it('a later, separate failure is announced again', async () => {
+      const { unmount } = await render(
+        <RefreshFailed block={REFRESH_BLOCK.COSTS} onRetry={jest.fn()} />,
+      );
+      await unmount();
+      now += REFRESH_ANNOUNCE_WINDOW_MS;
+      await render(<RefreshFailed block={REFRESH_BLOCK.COSTS} onRetry={jest.fn()} />);
+      expect(announce).toHaveBeenCalledTimes(2);
+    });
+
+    it('carries no live region per block (that announced once per block on Android)', async () => {
+      await render(<RefreshFailed block={REFRESH_BLOCK.NOTES} onRetry={jest.fn()} testID="line" />);
+      expect(screen.getByTestId('line').props.accessibilityLiveRegion).toBeUndefined();
+    });
+  });
+
+  it('the " · " is not drawn at the end of a line once Retry wraps below, but keeps its space', async () => {
+    await render(<RefreshFailed block={REFRESH_BLOCK.COSTS} onRetry={jest.fn()} />);
+    const separator = screen.getByText(' · ');
+    const layout = (target: Parameters<typeof fireEvent>[0], y: number, height: number) =>
+      fireEvent(target, 'layout', { nativeEvent: { layout: { x: 0, y, width: 100, height } } });
+    const message = screen.getByText(/^Couldn't refresh/);
+    const retry = screen.getByRole('button', { name: 'Retry costs' });
+
+    // One row: Retry beside the (one- or two-line) message.
+    await layout(message, 0, 36);
+    await layout(retry, 9, 18);
+    expect(StyleSheet.flatten(separator.props.style).color).toBe(palette.hubSoon);
+
+    // Wrapped: Retry on the row below.
+    await layout(retry, 36, 18);
+    const hidden = StyleSheet.flatten(separator.props.style).color;
+    expect(hidden).not.toBe(palette.hubSoon);
+    expect(hidden).toBe(withAlpha(palette.hubSoon, 0));
+    expect(separator).toBeOnTheScreen();
   });
 });

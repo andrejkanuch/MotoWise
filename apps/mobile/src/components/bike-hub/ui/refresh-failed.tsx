@@ -1,15 +1,36 @@
-import { useEffect } from 'react';
+import { withAlpha } from '@motovault/design-system';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AccessibilityInfo, Pressable, Text, View } from 'react-native';
+import { AccessibilityInfo, type LayoutRectangle, Pressable, Text, View } from 'react-native';
 import { HUB_FONT, HUB_TOUCH_TARGET, type HubCopyKey, hub } from './tokens';
 
 const SEPARATOR = ' · ';
+const SEPARATOR_HIDDEN = withAlpha(hub.soon, 0);
 const FONT_SIZE = 13;
 const LINE_HEIGHT = 18;
 /** Vertical slop that lifts the one-line Retry to a full touch target. */
 const SLOP = Math.ceil((HUB_TOUCH_TARGET - LINE_HEIGHT) / 2);
 const SLOP_LEFT = 8;
 const SLOP_RIGHT = 12;
+
+/**
+ * One pull-to-refresh can fail several blocks at once; they share one
+ * announcement. A line appearing within this window of the last one stays quiet.
+ */
+export const REFRESH_ANNOUNCE_WINDOW_MS = 2000;
+let lastAnnouncedAt = Number.NEGATIVE_INFINITY;
+
+/** Whether the line appearing now is the one that announces the failure. */
+function claimAnnouncement(now: number): boolean {
+  if (now - lastAnnouncedAt < REFRESH_ANNOUNCE_WINDOW_MS) return false;
+  lastAnnouncedAt = now;
+  return true;
+}
+
+/** Retry sits on a row below the message: the row has wrapped. */
+function retryWrapped(message: LayoutRectangle, retry: LayoutRectangle): boolean {
+  return retry.y >= message.y + message.height;
+}
 
 /** The Overview blocks that can show "Couldn't refresh". */
 export const REFRESH_BLOCK = {
@@ -38,22 +59,26 @@ interface RefreshFailedProps {
  * learns it may be out of date.
  *
  * The row wraps, so Retry moves to the next line instead of off-screen with a
- * long translation at a large text size. The line is announced when it
- * appears: a live region on Android, an explicit announcement on iOS (which
- * has no live regions).
+ * long translation at a large text size; the " · " then keeps its space (so
+ * the row cannot flip back and forth) but is not drawn at the end of a line.
+ * The failure is announced when the line appears — once for all the blocks a
+ * refresh failed, not once per block (`announceForAccessibility`, on both
+ * platforms).
  */
 export function RefreshFailed({ block, onRetry, testID }: RefreshFailedProps) {
   const { t } = useTranslation();
   const message = t('bikeHub.refreshFailed');
+  const [messageLayout, setMessageLayout] = useState<LayoutRectangle | null>(null);
+  const [retryLayout, setRetryLayout] = useState<LayoutRectangle | null>(null);
+  const wrapped = !!messageLayout && !!retryLayout && retryWrapped(messageLayout, retryLayout);
 
   useEffect(() => {
-    if (process.env.EXPO_OS === 'ios') AccessibilityInfo.announceForAccessibility(message);
+    if (claimAnnouncement(Date.now())) AccessibilityInfo.announceForAccessibility(message);
   }, [message]);
 
   return (
     <View
       testID={testID}
-      accessibilityLiveRegion="polite"
       style={{
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -62,6 +87,7 @@ export function RefreshFailed({ block, onRetry, testID }: RefreshFailedProps) {
       }}
     >
       <Text
+        onLayout={(event) => setMessageLayout(event.nativeEvent.layout)}
         style={{
           flexShrink: 1,
           fontFamily: HUB_FONT.sans,
@@ -71,9 +97,11 @@ export function RefreshFailed({ block, onRetry, testID }: RefreshFailedProps) {
         }}
       >
         {message}
-        {SEPARATOR}
+        {/* Nested Text takes no opacity: a clear colour keeps the space, hides the glyph. */}
+        <Text style={{ color: wrapped ? SEPARATOR_HIDDEN : hub.soon }}>{SEPARATOR}</Text>
       </Text>
       <Pressable
+        onLayout={(event) => setRetryLayout(event.nativeEvent.layout)}
         onPress={onRetry}
         accessibilityRole="button"
         accessibilityLabel={t(RETRY_A11Y_KEY[block])}
