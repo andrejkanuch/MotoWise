@@ -10,8 +10,8 @@
   },
   "devDependencies": {
     "@motovault/tsconfig": "workspace:*",
-    "@graphql-codegen/cli": "^5.0.7",
-    "@graphql-codegen/client-preset": "^4.8.3",
+    "@graphql-codegen/cli": "^7.4.3",
+    "@graphql-codegen/client-preset": "^6.2.0",
     "graphql": "^16.14.2",
     "typescript": "~5.9.3"
   }
