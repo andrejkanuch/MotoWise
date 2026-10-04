@@ -1866,7 +1866,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "Masih berkendara?",
-    "forgotToStopBody": "Kamu berhenti selama {{minutes}} menit. Ketuk untuk mengakhiri atau lanjutkan.",
     "gpsLostTitle": "Pelacakan GPS berhenti",
     "gpsLostBody": "Izin lokasi dimatikan, jadi perjalananmu tidak lagi direkam. Ketuk untuk memperbaikinya atau mengakhiri perjalanan.",
     "dist": "JARAK",
@@ -1886,7 +1885,19 @@
     "shortRideWarning": "Perjalanan Anda sangat singkat ({{seconds}}d, {{meters}}m). Anda yakin?",
     "gpsTip": "Tip: Pastikan ponsel Anda memiliki pandangan langit yang jelas untuk pelacakan GPS",
     "keepRiding": "Lanjutkan berkendara",
-    "endAnyway": "Tetap akhiri"
+    "endAnyway": "Tetap akhiri",
+    "reminderNudgeBody": "Perjalanan Anda masih direkam, tetapi Anda tidak bergerak selama {{minutes}} menit. Akhiri atau lanjutkan.",
+    "reminderFinalTitle": "Perjalanan Anda masih direkam",
+    "reminderFinalBody": "Tidak ada pergerakan selama {{minutes}} menit. Akhiri perjalanan untuk menyimpannya seperti saat Anda berhenti.",
+    "actionEndRide": "Akhiri perjalanan",
+    "actionKeepRiding": "Masih berkendara",
+    "rideAlertsChannel": "Peringatan perjalanan",
+    "autoEndedTitle": "Perjalanan disimpan",
+    "autoEndedBody": "Anda tidak bergerak selama {{minutes}} menit, jadi kami mengakhiri perjalanan dan menyimpannya sampai titik Anda berhenti.",
+    "serviceTitle": "MotoVault sedang merekam perjalanan Anda",
+    "serviceBody": "Ketuk untuk kembali ke perjalanan. Akhiri saat Anda turun dari motor.",
+    "noGpsTitle": "Kami tidak dapat melacak perjalanan ini",
+    "noGpsBody": "{{minutes}} menit terekam, tetapi hampir tanpa jarak. GPS mungkin terhalang, mati, atau diatur ke lokasi perkiraan."
   },
   "rideSummary": {
     "namePlaceholder": "Beri nama perjalananmu...",
@@ -2063,7 +2074,10 @@
     "disclosureBody": "MotoVault merekam rute, jarak, dan kecepatan Anda saat berkendara — termasuk di latar belakang ketika aplikasi ditutup atau layar Anda mati, agar seluruh perjalanan Anda terekam. Lokasi hanya digunakan selama perjalanan sedang berlangsung.",
     "disclosureSettingsNote": "Anda mungkin akan diarahkan ke Pengaturan — pilih “Izinkan sepanjang waktu” agar perekaman tetap berjalan di latar belakang.",
     "disclosureContinue": "Lanjutkan",
-    "disclosureNotNow": "Nanti saja"
+    "disclosureNotNow": "Nanti saja",
+    "approximateTitle": "Lokasi akurat nonaktif",
+    "approximateBody": "Dengan lokasi perkiraan, MotoVault tidak dapat merekam rute atau jarak. Aktifkan Lokasi Akurat untuk MotoVault di Pengaturan.",
+    "rideAnyway": "Tetap berkendara"
   },
   "preFlight": {
     "title": "Pra-perjalanan",

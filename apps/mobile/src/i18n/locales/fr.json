@@ -1867,7 +1867,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "Toujours en route ?",
-    "forgotToStopBody": "Tu es arrêté depuis {{minutes}} minutes. Touche pour terminer ou continue.",
     "gpsLostTitle": "Suivi GPS interrompu",
     "gpsLostBody": "L'autorisation de localisation a été désactivée, ton trajet n'est plus enregistré. Touche pour corriger ou terminer le trajet.",
     "dist": "DIST",
@@ -1887,7 +1886,19 @@
     "shortRideWarning": "Votre trajet était très court ({{seconds}}s, {{meters}}m). Êtes-vous sûr ?",
     "gpsTip": "Astuce : assurez-vous que votre téléphone a une vue dégagée sur le ciel pour le suivi GPS",
     "keepRiding": "Continuer à rouler",
-    "endAnyway": "Terminer quand même"
+    "endAnyway": "Terminer quand même",
+    "reminderNudgeBody": "Votre trajet est toujours enregistré, mais vous n'avez pas bougé depuis {{minutes}} minutes. Terminez-le ou continuez.",
+    "reminderFinalTitle": "Votre trajet est toujours enregistré",
+    "reminderFinalBody": "Aucun mouvement depuis {{minutes}} minutes. Terminez le trajet pour l'enregistrer tel qu'il était à votre arrêt.",
+    "actionEndRide": "Terminer",
+    "actionKeepRiding": "Je roule encore",
+    "rideAlertsChannel": "Alertes de trajet",
+    "autoEndedTitle": "Trajet enregistré",
+    "autoEndedBody": "Vous n'aviez pas bougé depuis {{minutes}} minutes : nous avons terminé votre trajet et l'avons enregistré jusqu'à votre arrêt.",
+    "serviceTitle": "MotoVault enregistre votre trajet",
+    "serviceBody": "Touchez pour revenir au trajet. Terminez-le en descendant de la moto.",
+    "noGpsTitle": "Impossible de suivre ce trajet",
+    "noGpsBody": "{{minutes}} min enregistrées, mais presque aucune distance. Le GPS était peut-être bloqué, désactivé ou en position approximative."
   },
   "rideSummary": {
     "namePlaceholder": "Nomme ta balade...",
@@ -2065,7 +2076,10 @@
     "disclosureBody": "MotoVault enregistre votre itinéraire, votre distance et votre vitesse pendant que vous roulez, y compris en arrière-plan lorsque l’app est fermée ou l’écran éteint, afin de capturer tout le trajet. La position n’est utilisée que pendant un trajet actif.",
     "disclosureSettingsNote": "Vous serez peut-être redirigé vers les Réglages : choisissez « Toujours autoriser » pour continuer l’enregistrement en arrière-plan.",
     "disclosureContinue": "Continuer",
-    "disclosureNotNow": "Pas maintenant"
+    "disclosureNotNow": "Pas maintenant",
+    "approximateTitle": "La position exacte est désactivée",
+    "approximateBody": "Avec une position approximative, MotoVault ne peut pas enregistrer votre itinéraire ni la distance. Activez la position exacte pour MotoVault dans Réglages.",
+    "rideAnyway": "Rouler quand même"
   },
   "preFlight": {
     "title": "Pré-vol",

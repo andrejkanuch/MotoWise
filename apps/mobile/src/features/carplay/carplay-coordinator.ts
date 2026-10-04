@@ -47,6 +47,7 @@ import {
   buildRideSummaryHref,
   elapsedRideSeconds,
   endRideSession,
+  type RideStartFailureReason,
   startRideSession,
 } from '../ride/ride-controller';
 import { type BikeStatusInput, buildBikeError, buildBikeStatus } from './carplay-bike-status';
@@ -85,9 +86,12 @@ let startInFlight = false;
 // Why the last head-unit Start did not record. Shown on the idle panel until the next
 // Start press, a ride state change or a disconnect — see panelModel().
 let notice: CarPlayNotice | null = null;
-const START_FAILURE_NOTICE: Record<'denied' | 'gps_failed', CarPlayNotice> = {
+// `approximate` is phone-only (CarPlay can't show the choice and records anyway),
+// so it is unreachable here; mapped for exhaustiveness.
+const START_FAILURE_NOTICE: Record<RideStartFailureReason, CarPlayNotice> = {
   denied: CARPLAY_NOTICE.locationOff,
   gps_failed: CARPLAY_NOTICE.gpsFailed,
+  approximate: CARPLAY_NOTICE.gpsFailed,
 };
 const eventSubs: CarPlaySubscription[] = [];
 let unsubStore: (() => void) | null = null;

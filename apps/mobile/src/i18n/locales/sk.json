@@ -1868,7 +1868,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "Stále na cestách?",
-    "forgotToStopBody": "Stojíš už {{minutes}} minút. Ťuknutím ukončíš jazdu, alebo pokračuj.",
     "gpsLostTitle": "Sledovanie GPS sa zastavilo",
     "gpsLostBody": "Povolenie polohy bolo vypnuté, takže sa tvoja jazda už nezaznamenáva. Ťuknutím to napravíš alebo jazdu ukončíš.",
     "dist": "VZDI",
@@ -1888,7 +1887,19 @@
     "shortRideWarning": "Tvoja jazda bola veľmi krátka ({{seconds}}s, {{meters}}m). Naozaj?",
     "gpsTip": "Tip: uisti sa, že tvoj telefón má voľný výhľad na oblohu pre GPS sledovanie",
     "keepRiding": "Pokračovať v jazde",
-    "endAnyway": "Aj tak ukončiť"
+    "endAnyway": "Aj tak ukončiť",
+    "reminderNudgeBody": "Tvoja jazda sa stále nahráva, ale už {{minutes}} minút si sa nepohol. Ukonči ju alebo pokračuj.",
+    "reminderFinalTitle": "Tvoja jazda sa stále nahráva",
+    "reminderFinalBody": "Žiadny pohyb {{minutes}} minút. Ukonči jazdu a uloží sa tak, ako bola, keď si zastavil.",
+    "actionEndRide": "Ukončiť jazdu",
+    "actionKeepRiding": "Stále jazdím",
+    "rideAlertsChannel": "Upozornenia na jazdu",
+    "autoEndedTitle": "Jazda uložená",
+    "autoEndedBody": "{{minutes}} minút si sa nepohol, preto sme jazdu ukončili a uložili po miesto, kde si zastavil.",
+    "serviceTitle": "MotoVault nahráva tvoju jazdu",
+    "serviceBody": "Ťukni pre návrat k jazde. Ukonči ju, keď zosadneš z motorky.",
+    "noGpsTitle": "Túto jazdu sa nepodarilo zaznamenať",
+    "noGpsBody": "Nahraných {{minutes}} min, ale takmer žiadna vzdialenosť. GPS mohlo byť zatienené, vypnuté alebo nastavené na približnú polohu."
   },
   "rideSummary": {
     "namePlaceholder": "Pomenuj svoju jazdu...",
@@ -2067,7 +2078,10 @@
     "disclosureBody": "MotoVault počas jazdy zaznamenáva tvoju trasu, vzdialenosť a rýchlosť — aj na pozadí, keď je aplikácia zatvorená alebo obrazovka vypnutá, aby zachytila celú jazdu. Poloha sa používa iba počas aktívnej jazdy.",
     "disclosureSettingsNote": "Môžeš byť presmerovaný do Nastavení — vyber „Povoliť vždy“, aby zaznamenávanie pokračovalo na pozadí.",
     "disclosureContinue": "Pokračovať",
-    "disclosureNotNow": "Teraz nie"
+    "disclosureNotNow": "Teraz nie",
+    "approximateTitle": "Presná poloha je vypnutá",
+    "approximateBody": "S približnou polohou MotoVault nezaznamená trasu ani vzdialenosť. V Nastaveniach zapni pre MotoVault presnú polohu.",
+    "rideAnyway": "Aj tak jazdiť"
   },
   "preFlight": {
     "title": "Predjazdná kontrola",

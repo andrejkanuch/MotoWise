@@ -1868,7 +1868,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "Nadal jedziesz?",
-    "forgotToStopBody": "Stoisz już {{minutes}} minut. Dotknij, aby zakończyć trasę, lub jedź dalej.",
     "gpsLostTitle": "Śledzenie GPS zatrzymane",
     "gpsLostBody": "Uprawnienie do lokalizacji zostało wyłączone, więc Twoja trasa nie jest już zapisywana. Dotknij, aby to naprawić lub zakończyć przejazd.",
     "dist": "DYST",
@@ -1888,7 +1887,19 @@
     "shortRideWarning": "Twój przejazd był bardzo krótki ({{seconds}}s, {{meters}}m). Na pewno?",
     "gpsTip": "Wskazówka: upewnij się, że telefon ma czysty widok na niebo dla śledzenia GPS",
     "keepRiding": "Jedź dalej",
-    "endAnyway": "Zakończ mimo to"
+    "endAnyway": "Zakończ mimo to",
+    "reminderNudgeBody": "Twoja jazda wciąż się nagrywa, ale nie ruszasz się od {{minutes}} minut. Zakończ ją lub jedź dalej.",
+    "reminderFinalTitle": "Twoja jazda wciąż się nagrywa",
+    "reminderFinalBody": "Brak ruchu od {{minutes}} minut. Zakończ jazdę, aby zapisać ją do miejsca, w którym się zatrzymałeś.",
+    "actionEndRide": "Zakończ jazdę",
+    "actionKeepRiding": "Wciąż jadę",
+    "rideAlertsChannel": "Powiadomienia o jeździe",
+    "autoEndedTitle": "Jazda zapisana",
+    "autoEndedBody": "Nie ruszałeś się od {{minutes}} minut, więc zakończyliśmy jazdę i zapisaliśmy ją do miejsca, w którym się zatrzymałeś.",
+    "serviceTitle": "MotoVault nagrywa Twoją jazdę",
+    "serviceBody": "Dotknij, aby wrócić do jazdy. Zakończ ją, gdy zejdziesz z motocykla.",
+    "noGpsTitle": "Nie udało się zarejestrować tej jazdy",
+    "noGpsBody": "Nagrano {{minutes}} min, ale prawie bez dystansu. GPS mógł być zasłonięty, wyłączony lub ustawiony na przybliżoną lokalizację."
   },
   "rideSummary": {
     "namePlaceholder": "Nazwij swoja jazde...",
@@ -2067,7 +2078,10 @@
     "disclosureBody": "MotoVault rejestruje trasę, dystans i prędkość podczas jazdy — także w tle, gdy aplikacja jest zamknięta lub ekran wyłączony, aby zapisać całą trasę. Lokalizacja jest używana tylko podczas aktywnej jazdy.",
     "disclosureSettingsNote": "Możesz zostać przekierowany do Ustawień — wybierz „Zezwalaj zawsze”, aby kontynuować rejestrowanie w tle.",
     "disclosureContinue": "Kontynuuj",
-    "disclosureNotNow": "Nie teraz"
+    "disclosureNotNow": "Nie teraz",
+    "approximateTitle": "Dokładna lokalizacja jest wyłączona",
+    "approximateBody": "Przy przybliżonej lokalizacji MotoVault nie zapisze trasy ani dystansu. Włącz dokładną lokalizację dla MotoVault w Ustawieniach.",
+    "rideAnyway": "Jedź mimo to"
   },
   "preFlight": {
     "title": "Kontrola przedjazdowa",
