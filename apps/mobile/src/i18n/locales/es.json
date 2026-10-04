@@ -1867,7 +1867,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "¿Sigues rodando?",
-    "forgotToStopBody": "Llevas {{minutes}} minutos detenido. Toca para finalizar la ruta o sigue.",
     "gpsLostTitle": "Seguimiento GPS detenido",
     "gpsLostBody": "Se desactivó el permiso de ubicación, así que tu ruta ya no se está grabando. Toca para solucionarlo o finalizar la ruta.",
     "dist": "DIST",
@@ -1887,7 +1886,19 @@
     "shortRideWarning": "Tu ruta fue muy corta ({{seconds}}s, {{meters}}m). ¿Estás seguro?",
     "gpsTip": "Consejo: asegúrate de que tu teléfono tenga vista despejada al cielo para el seguimiento GPS",
     "keepRiding": "Seguir conduciendo",
-    "endAnyway": "Finalizar de todos modos"
+    "endAnyway": "Finalizar de todos modos",
+    "reminderNudgeBody": "Tu ruta sigue grabándose, pero llevas {{minutes}} minutos sin moverte. Termínala o sigue rodando.",
+    "reminderFinalTitle": "Tu ruta sigue grabándose",
+    "reminderFinalBody": "Sin movimiento desde hace {{minutes}} minutos. Termina la ruta para guardarla tal como estaba al detenerte.",
+    "actionEndRide": "Terminar ruta",
+    "actionKeepRiding": "Sigo rodando",
+    "rideAlertsChannel": "Avisos de ruta",
+    "autoEndedTitle": "Ruta guardada",
+    "autoEndedBody": "Llevabas {{minutes}} minutos sin moverte, así que terminamos tu ruta y la guardamos hasta donde te detuviste.",
+    "serviceTitle": "MotoVault está grabando tu ruta",
+    "serviceBody": "Toca para volver a tu ruta. Termínala cuando te bajes de la moto.",
+    "noGpsTitle": "No pudimos registrar esta ruta",
+    "noGpsBody": "{{minutes}} min grabados, pero casi sin distancia. Puede que el GPS estuviera bloqueado, apagado o en ubicación aproximada."
   },
   "rideSummary": {
     "namePlaceholder": "Nombra tu ruta...",
@@ -2065,7 +2076,10 @@
     "disclosureBody": "MotoVault registra tu ruta, distancia y velocidad mientras conduces, incluso en segundo plano cuando la app está cerrada o la pantalla apagada, para capturar toda la ruta. La ubicación solo se usa mientras hay una ruta activa.",
     "disclosureSettingsNote": "Puede que se abran los Ajustes: elige «Permitir siempre» para seguir grabando en segundo plano.",
     "disclosureContinue": "Continuar",
-    "disclosureNotNow": "Ahora no"
+    "disclosureNotNow": "Ahora no",
+    "approximateTitle": "La ubicación exacta está desactivada",
+    "approximateBody": "Con la ubicación aproximada, MotoVault no puede registrar tu ruta ni la distancia. Activa la ubicación exacta para MotoVault en Ajustes.",
+    "rideAnyway": "Rodar igualmente"
   },
   "preFlight": {
     "title": "Pre-vuelo",

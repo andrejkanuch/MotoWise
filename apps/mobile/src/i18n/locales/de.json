@@ -1866,7 +1866,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "Noch unterwegs?",
-    "forgotToStopBody": "Du stehst seit {{minutes}} Minuten. Zum Beenden tippen oder weiterfahren.",
     "gpsLostTitle": "GPS-Aufzeichnung gestoppt",
     "gpsLostBody": "Die Standortberechtigung wurde deaktiviert, deine Fahrt wird nicht mehr aufgezeichnet. Tippe, um das zu beheben oder die Fahrt zu beenden.",
     "dist": "DIST",
@@ -1886,7 +1885,19 @@
     "shortRideWarning": "Deine Fahrt war sehr kurz ({{seconds}}s, {{meters}}m). Bist du sicher?",
     "gpsTip": "Tipp: Achte auf freie Sicht zum Himmel für das GPS-Tracking",
     "keepRiding": "Weiterfahren",
-    "endAnyway": "Trotzdem beenden"
+    "endAnyway": "Trotzdem beenden",
+    "reminderNudgeBody": "Deine Fahrt wird noch aufgezeichnet, aber du hast dich seit {{minutes}} Minuten nicht bewegt. Beende sie oder fahr weiter.",
+    "reminderFinalTitle": "Deine Fahrt wird noch aufgezeichnet",
+    "reminderFinalBody": "Seit {{minutes}} Minuten keine Bewegung. Beende die Fahrt, um sie so zu speichern, wie sie beim Anhalten war.",
+    "actionEndRide": "Fahrt beenden",
+    "actionKeepRiding": "Fahre noch",
+    "rideAlertsChannel": "Fahrt-Hinweise",
+    "autoEndedTitle": "Fahrt gespeichert",
+    "autoEndedBody": "Du hast dich {{minutes}} Minuten nicht bewegt. Wir haben deine Fahrt beendet und bis zu deinem Halt gespeichert.",
+    "serviceTitle": "MotoVault zeichnet deine Fahrt auf",
+    "serviceBody": "Tippe, um zur Fahrt zurückzukehren. Beende sie, wenn du absteigst.",
+    "noGpsTitle": "Diese Fahrt konnte nicht aufgezeichnet werden",
+    "noGpsBody": "{{minutes}} Min. aufgezeichnet, aber kaum Strecke. GPS war vielleicht blockiert, ausgeschaltet oder auf ungefähren Standort gestellt."
   },
   "rideSummary": {
     "namePlaceholder": "Benenne deine Fahrt...",
@@ -2063,7 +2074,10 @@
     "disclosureBody": "MotoVault zeichnet während der Fahrt deine Route, Distanz und Geschwindigkeit auf – auch im Hintergrund, wenn die App geschlossen oder der Bildschirm aus ist, damit die gesamte Fahrt erfasst wird. Der Standort wird nur während einer aktiven Fahrt verwendet.",
     "disclosureSettingsNote": "Du wirst möglicherweise zu den Einstellungen weitergeleitet – wähle „Immer zulassen“, um die Aufzeichnung im Hintergrund fortzusetzen.",
     "disclosureContinue": "Weiter",
-    "disclosureNotNow": "Jetzt nicht"
+    "disclosureNotNow": "Jetzt nicht",
+    "approximateTitle": "Genauer Standort ist aus",
+    "approximateBody": "Mit ungefährem Standort kann MotoVault weder Route noch Strecke aufzeichnen. Aktiviere „Genauer Standort“ für MotoVault in den Einstellungen.",
+    "rideAnyway": "Trotzdem fahren"
   },
   "preFlight": {
     "title": "Vorab-Check",

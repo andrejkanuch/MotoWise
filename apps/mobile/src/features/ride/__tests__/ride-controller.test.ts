@@ -8,6 +8,15 @@
 jest.mock('../../../utils/ride-permissions', () => ({
   checkAndRequestPermissions: jest.fn(() => Promise.resolve('full')),
   readPermissionLevel: jest.fn(() => Promise.resolve('full')),
+  isApproximateLocation: jest.fn(() => Promise.resolve(false)),
+}));
+jest.mock('../ride-reminders', () => ({
+  armRideReminders: jest.fn(() => Promise.resolve()),
+  cancelRideReminders: jest.fn(() => Promise.resolve()),
+}));
+jest.mock('expo-notifications', () => ({
+  getPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted', canAskAgain: true })),
+  requestPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
 }));
 jest.mock('../../../utils/ride-location', () => ({
   startGPSListener: jest.fn(() => Promise.resolve()),
@@ -47,6 +56,7 @@ jest.mock('../../../utils/ride-storage', () => {
     getPointBuffer: jest.fn(() => []),
     getWaypointChunks: jest.fn(() => []),
     removeWaypointBuffer: jest.fn(),
+    restoreBufferFromMMKV: jest.fn(),
     resetWaypointBudget: jest.fn(),
     clearRideData: jest.fn(),
   };
@@ -90,6 +100,7 @@ jest.mock('expo-haptics', () => ({
   ImpactFeedbackStyle: { Heavy: 'heavy' },
 }));
 
+import * as Notifications from 'expo-notifications';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryClient } from '../../../lib/query-client';
 import { useRideStore } from '../../../stores/ride.store';
@@ -98,6 +109,7 @@ import * as perms from '../../../utils/ride-permissions';
 import * as storage from '../../../utils/ride-storage';
 import * as syncQueue from '../../../utils/ride-sync-queue';
 import { elapsedRideSeconds, endRideSession, startRideSession } from '../ride-controller';
+import * as reminders from '../ride-reminders';
 
 // biome-ignore lint/suspicious/noExplicitAny: reaching into the mock's mutable state
 const mmkvState = (storage as any).__state as {
@@ -118,6 +130,12 @@ const enqueue = syncQueue.enqueueOrExecute as jest.Mock;
 // server's per-upload max (MOTO-VAULT-REACT-NATIVE-1M).
 const enqueueWaypoints = syncQueue.enqueueWaypointUpload as jest.Mock;
 const store = useRideStore.getState();
+const isApproximate = perms.isApproximateLocation as jest.Mock;
+const restoreBuffer = storage.restoreBufferFromMMKV as jest.Mock;
+const armReminders = reminders.armRideReminders as jest.Mock;
+const cancelReminders = reminders.cancelRideReminders as jest.Mock;
+const notifPerms = Notifications.getPermissionsAsync as jest.Mock;
+const requestNotifPerms = Notifications.requestPermissionsAsync as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -128,6 +146,9 @@ beforeEach(() => {
   store.status = 'recording';
   checkPerms.mockResolvedValue('full');
   readPerms.mockResolvedValue('full');
+  isApproximate.mockResolvedValue(false);
+  notifPerms.mockResolvedValue({ status: 'granted', canAskAgain: true });
+  getPointBuffer.mockReturnValue([]);
 });
 
 describe('elapsedRideSeconds', () => {
@@ -264,7 +285,7 @@ describe('endRideSession', () => {
     mmkvState.currentId = 'ride-7';
     mmkvState.startedAt = 1_000_000;
     getWaypointChunks.mockReturnValueOnce([[wp(0, 0, 100, 10), wp(0, 0, 110, 20)]]);
-    getPointBuffer.mockReturnValueOnce([wp(0, 0, 115, 30)]);
+    getPointBuffer.mockReturnValue([wp(0, 0, 115, 30)]);
 
     const summary = endRideSession('phone');
 
@@ -300,3 +321,107 @@ describe('endRideSession', () => {
     expect(enqueue).not.toHaveBeenCalledWith('endRide', expect.anything());
   });
 });
+
+describe('startRideSession — forgotten-ride reminders and location quality', () => {
+  it('arms the still-riding reminders once GPS is running', async () => {
+    const result = await startRideSession({ motorcycleId: 'bike-1', source: 'phone' });
+    expect(result).toEqual({ ok: true, rideId: 'ride-uuid-1' });
+    expect(armReminders).toHaveBeenCalledTimes(1);
+  });
+
+  it('cancels reminders and never arms them when GPS start fails', async () => {
+    startGPS.mockRejectedValueOnce(new Error('boom'));
+    const result = await startRideSession({ motorcycleId: 'bike-1', source: 'phone' });
+    expect(result).toEqual({ ok: false, reason: 'gps_failed' });
+    expect(cancelReminders).toHaveBeenCalled();
+    expect(armReminders).not.toHaveBeenCalled();
+  });
+
+  it('stops a phone start on approximate location, before minting a ride', async () => {
+    isApproximate.mockResolvedValueOnce(true);
+    const result = await startRideSession({ motorcycleId: 'bike-1', source: 'phone' });
+    expect(result).toEqual({ ok: false, reason: 'approximate' });
+    expect(startGPS).not.toHaveBeenCalled();
+    expect(rideMMKV.setCurrentId).not.toHaveBeenCalled();
+  });
+
+  it('starts anyway on approximate location when the rider chose to', async () => {
+    isApproximate.mockResolvedValue(true);
+    const result = await startRideSession({
+      motorcycleId: 'bike-1',
+      source: 'phone',
+      allowApproximate: true,
+    });
+    expect(result.ok).toBe(true);
+  });
+
+  it('never blocks a CarPlay start on approximate location (no way to ask there)', async () => {
+    isApproximate.mockResolvedValue(true);
+    const result = await startRideSession({ motorcycleId: null, source: 'carplay' });
+    expect(result.ok).toBe(true);
+    expect(isApproximate).not.toHaveBeenCalled();
+  });
+
+  it('asks for notification permission on a phone start only when undetermined', async () => {
+    notifPerms.mockResolvedValueOnce({ status: 'undetermined', canAskAgain: true });
+    await startRideSession({ motorcycleId: 'bike-1', source: 'phone' });
+    expect(requestNotifPerms).toHaveBeenCalledTimes(1);
+
+    requestNotifPerms.mockClear();
+    notifPerms.mockResolvedValueOnce({ status: 'denied', canAskAgain: false });
+    await startRideSession({ motorcycleId: 'bike-1', source: 'phone' });
+    expect(requestNotifPerms).not.toHaveBeenCalled();
+  });
+
+  it('never prompts for notifications from CarPlay', async () => {
+    notifPerms.mockResolvedValue({ status: 'undetermined', canAskAgain: true });
+    await startRideSession({ motorcycleId: null, source: 'carplay' });
+    expect(requestNotifPerms).not.toHaveBeenCalled();
+  });
+});
+
+describe('endRideSession — trimmed end', () => {
+  it('ends at the given time: duration and endedAt stop at the last movement', () => {
+    jest.spyOn(Date, 'now').mockReturnValue(10_000_000);
+    mmkvState.currentId = 'ride-trim';
+    mmkvState.startedAt = 1_000_000;
+
+    const summary = endRideSession('phone', { endAt: 4_000_000 });
+
+    expect(summary?.durationS).toBe(3_000);
+    const endCall = enqueue.mock.calls.find(([type]) => type === 'endRide');
+    expect(endCall?.[1].variables.input.endedAt).toBe(new Date(4_000_000).toISOString());
+    (Date.now as jest.Mock).mockRestore();
+  });
+
+  it('banks only the part of an open pause that falls before the trimmed end', () => {
+    jest.spyOn(Date, 'now').mockReturnValue(10_000_000);
+    mmkvState.currentId = 'ride-trim-pause';
+    mmkvState.startedAt = 1_000_000;
+    mmkvState.pausedAt = 3_000_000;
+
+    const summary = endRideSession('phone', { endAt: 4_000_000 });
+
+    // 3,000 s from start to end, minus the 1,000 s paused before the end point.
+    expect(summary?.durationS).toBe(2_000);
+    (Date.now as jest.Mock).mockRestore();
+  });
+
+  it('restores the on-disk partial buffer when memory is empty (ended after an app kill)', () => {
+    mmkvState.currentId = 'ride-restored';
+    getPointBuffer.mockReturnValue([]);
+    endRideSession('phone');
+    expect(restoreBuffer).toHaveBeenCalledWith('ride-restored');
+  });
+
+  it('does not touch the on-disk buffer when this process still holds points', () => {
+    mmkvState.currentId = 'ride-live';
+    getPointBuffer.mockReturnValue([wpAt(1, 1)]);
+    endRideSession('phone');
+    expect(restoreBuffer).not.toHaveBeenCalled();
+  });
+});
+
+function wpAt(latitude: number, longitude: number) {
+  return { latitude, longitude, altitude: 0, speedMps: 5, recordedAt: '2026-10-04T00:00:00.000Z' };
+}

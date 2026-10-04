@@ -2,6 +2,7 @@ import { palette } from '@motovault/design-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { differenceInCalendarDays } from 'date-fns';
 import * as Notifications from 'expo-notifications';
+import i18n from '../i18n';
 import { logger } from './logger';
 
 /** Notification `data.kind` discriminator — shared with the tap handler in _layout. */
@@ -27,6 +28,17 @@ export const NOTIFICATION_KIND = {
 export const NOTIFICATION_CATEGORY = {
   MAINTENANCE_REMINDER: 'MAINTENANCE_REMINDER',
   DOCUMENT_EXPIRY: 'DOCUMENT_EXPIRY',
+  /** "Still riding?" — End ride / Still riding buttons on a forgotten-ride reminder. */
+  RIDE_IDLE: 'RIDE_IDLE',
+} as const;
+
+/** Android notification channel ids. */
+export const NOTIFICATION_CHANNEL = {
+  MAINTENANCE: 'maintenance',
+  DOCUMENTS: 'documents',
+  RECEIPT_SCANS: 'receipt-scans',
+  /** Forgotten-ride reminders and the "ride saved" notice. HIGH so it heads up. */
+  RIDE_ALERTS: 'ride-alerts',
 } as const;
 
 /** Notification action-button identifiers — shared with the tap handler in _layout. */
@@ -34,6 +46,10 @@ export const NOTIFICATION_ACTION = {
   MARK_DONE: 'MARK_DONE',
   SNOOZE_1D: 'SNOOZE_1D',
   VIEW_DOCUMENT: 'VIEW_DOCUMENT',
+  /** Ride reminder: end the ride, trimmed to the last movement. Opens the app. */
+  END_RIDE: 'END_RIDE',
+  /** Ride reminder: the rider is still out — restart the reminder clock. */
+  KEEP_RIDING: 'KEEP_RIDING',
 } as const;
 
 // MOT-139: Map now stores an ARRAY of notification ids per task so we can
@@ -158,7 +174,7 @@ async function scheduleStages(params: {
  */
 export async function setupNotificationChannels(): Promise<void> {
   if (process.env.EXPO_OS !== 'android') return;
-  await Notifications.setNotificationChannelAsync('maintenance', {
+  await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL.MAINTENANCE, {
     name: 'Maintenance Reminders',
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
@@ -168,17 +184,24 @@ export async function setupNotificationChannels(): Promise<void> {
     // file of that name — none exists, so it errors. A HIGH-importance channel
     // plays the default sound without this field.
   });
-  await Notifications.setNotificationChannelAsync('documents', {
+  await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL.DOCUMENTS, {
     name: 'Document Renewal Reminders',
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
     lightColor: palette.signature500,
     // See note above — omit `sound` for the OS default channel sound.
   });
-  await Notifications.setNotificationChannelAsync('receipt-scans', {
+  await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL.RECEIPT_SCANS, {
     name: 'Receipt Scans',
     importance: Notifications.AndroidImportance.DEFAULT,
     vibrationPattern: [0, 200, 200, 200],
+    lightColor: palette.signature500,
+    // See note above — omit `sound` for the OS default channel sound.
+  });
+  await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL.RIDE_ALERTS, {
+    name: i18n.t('rideHud.rideAlertsChannel', { defaultValue: 'Ride alerts' }),
+    importance: Notifications.AndroidImportance.HIGH,
+    vibrationPattern: [0, 250, 250, 250],
     lightColor: palette.signature500,
     // See note above — omit `sound` for the OS default channel sound.
   });
@@ -209,6 +232,21 @@ export async function setupNotificationCategories(): Promise<void> {
       buttonTitle: 'View',
       identifier: NOTIFICATION_ACTION.VIEW_DOCUMENT,
       options: { opensAppToForeground: true },
+    },
+  ]);
+  // Forgotten-ride reminder. "End ride" opens the app: ending runs the full ride
+  // controller and lands on the summary, which needs the JS runtime and the UI.
+  // "Still riding" stays in the background — it only restarts the reminder clock.
+  await Notifications.setNotificationCategoryAsync(NOTIFICATION_CATEGORY.RIDE_IDLE, [
+    {
+      buttonTitle: i18n.t('rideHud.actionEndRide', { defaultValue: 'End ride' }),
+      identifier: NOTIFICATION_ACTION.END_RIDE,
+      options: { opensAppToForeground: true },
+    },
+    {
+      buttonTitle: i18n.t('rideHud.actionKeepRiding', { defaultValue: 'Still riding' }),
+      identifier: NOTIFICATION_ACTION.KEEP_RIDING,
+      options: { opensAppToForeground: false },
     },
   ]);
 }
@@ -250,7 +288,7 @@ export async function scheduleMaintenanceReminder(
 
   const scheduledIds = await scheduleStages({
     targetDate: dueDate,
-    channelId: 'maintenance',
+    channelId: NOTIFICATION_CHANNEL.MAINTENANCE,
     stages: [
       { daysBefore: 30, enabled: task.remind30d ?? false, label: '30d' },
       { daysBefore: 7, enabled: task.remind7d ?? false, label: '7d' },
@@ -376,7 +414,7 @@ export async function scheduleDocumentExpiryReminder(
 
   const scheduledIds = await scheduleStages({
     targetDate: expiry,
-    channelId: 'documents',
+    channelId: NOTIFICATION_CHANNEL.DOCUMENTS,
     stages: [
       { daysBefore: 30, enabled: true, label: '30d' },
       { daysBefore: 7, enabled: true, label: '7d' },
@@ -469,7 +507,7 @@ export async function snoozeTaskNotification(
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DATE,
       date: snoozeDate,
-      channelId: 'maintenance',
+      channelId: NOTIFICATION_CHANNEL.MAINTENANCE,
     },
   });
 
@@ -518,7 +556,7 @@ export async function scheduleParkedScanReminder(
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
         date: reminderDate,
-        channelId: 'receipt-scans',
+        channelId: NOTIFICATION_CHANNEL.RECEIPT_SCANS,
       },
     });
     await setNotificationIds(scanKey(scanId), [id]);

@@ -32,12 +32,21 @@ jest.mock('../ride-sync-queue', () => ({
   enqueue: jest.fn(),
   getQueueLength: jest.fn().mockReturnValue(0),
 }));
-jest.mock('../../lib/analytics', () => ({ captureException: jest.fn() }));
+jest.mock('../../lib/analytics', () => ({
+  captureException: jest.fn(),
+  addBreadcrumb: jest.fn(),
+  trackEvent: jest.fn(),
+  AnalyticsEvent: { RIDE_AUTO_SAVED: 'ride_auto_saved' },
+}));
+jest.mock('../../features/ride/ride-reminders', () => ({
+  noteRideMovement: jest.fn(),
+  cancelRideReminders: jest.fn(() => Promise.resolve()),
+}));
 
 import {
   type AutoPauseState,
   decideAutoPause,
-  forgotToStopNotificationContent,
+  rideAutoEndedNotificationContent,
 } from '../ride-location';
 
 const NOW = 1_700_000_000_000;
@@ -76,7 +85,7 @@ describe('decideAutoPause', () => {
     expect(d.next.continuousAutoPauseStart).toBe(NOW);
   });
 
-  it('re-anchors instead of pausing when the rider creeps forward >5m', () => {
+  it('re-anchors instead of pausing when the rider creeps forward past the jitter radius', () => {
     const state: AutoPauseState = { ...FRESH, zeroSpeedTimer: NOW - 61_000, zeroSpeedAnchor: POS };
     const movedPos = { lat: 50.001, lng: 14 }; // ~111m away
     const d = decideAutoPause(state, { rawSpeed: 0, pos: movedPos }, 'moving', NOW);
@@ -125,7 +134,7 @@ describe('decideAutoPause', () => {
     expect(d.next.continuousAutoPauseStart).toBe(NOW);
   });
 
-  it('fires the forgot-to-stop notification once after 10 min stopped', () => {
+  it('flags forgot-to-stop once after 10 min stopped (the notification itself is scheduled by ride-reminders)', () => {
     const state: AutoPauseState = {
       zeroSpeedTimer: NOW - 12 * MIN,
       zeroSpeedAnchor: POS,
@@ -135,10 +144,7 @@ describe('decideAutoPause', () => {
     const d = decideAutoPause(state, { rawSpeed: 0, pos: POS }, 'stopped', NOW);
     // The persisted flag ships alongside the notification so the CarPlay panel can
     // show the prompt too — the notification alone is easy to miss on a bike.
-    expect(d.effects).toEqual([
-      { kind: 'notifyForgotToStop' },
-      { kind: 'setForgotToStopPending', value: true },
-    ]);
+    expect(d.effects).toEqual([{ kind: 'setForgotToStopPending', value: true }]);
     expect(d.next.forgotToStopNotified).toBe(true);
   });
 
@@ -192,34 +198,55 @@ describe('decideAutoPause', () => {
   });
 });
 
-describe('forgotToStopNotificationContent', () => {
-  it('carries the RIDE_IDLE kind and rideId so the tap is routable', () => {
-    // The bug this pins: the nudge used to ship with no `data` at all, so the tap
-    // handler in _layout hit its `if (!data?.taskId) return` guard and tapping the
-    // notification did nothing. The kind is what makes it routable, and the shape
-    // must match the server sweep's push so one handler branch covers both.
-    const content = forgotToStopNotificationContent('ride-123');
+describe('creep radius', () => {
+  const stopped: AutoPauseState = {
+    ...FRESH,
+    zeroSpeedTimer: NOW - 61_000,
+    zeroSpeedAnchor: POS,
+  };
+  // ~11 m north of POS: well inside the GPS jitter of a parked phone.
+  const jitterPos = { lat: 50.0001, lng: 14 };
 
-    expect(content.data).toEqual({
+  it('treats wander inside 25 m as standing still, not creeping', () => {
+    // At the old 5 m radius every jittery fix re-anchored and restarted the stop
+    // clock, so a parked rider indoors was never flagged and never auto-ended.
+    const d = decideAutoPause(stopped, { rawSpeed: 0, pos: jitterPos, accuracy: 8 }, 'moving', NOW);
+    expect(d.next.zeroSpeedAnchor).toEqual(POS);
+    expect(d.effects).toContainEqual({ kind: 'setSubState', value: 'stopped' });
+  });
+
+  it("widens the radius to twice a poor fix's accuracy", () => {
+    const farPos = { lat: 50.0003, lng: 14 }; // ~33 m
+    const precise = decideAutoPause(
+      stopped,
+      { rawSpeed: 0, pos: farPos, accuracy: 5 },
+      'moving',
+      NOW,
+    );
+    expect(precise.next.zeroSpeedAnchor).toEqual(farPos); // beyond 25 m: creeping
+
+    const poor = decideAutoPause(
+      stopped,
+      { rawSpeed: 0, pos: farPos, accuracy: 30 },
+      'moving',
+      NOW,
+    );
+    expect(poor.next.zeroSpeedAnchor).toEqual(POS); // inside 60 m: still standing
+  });
+});
+
+describe('rideAutoEndedNotificationContent', () => {
+  it('marks the ride as already ended so the tap opens the saved ride', () => {
+    expect(rideAutoEndedNotificationContent('ride-123').data).toEqual({
       kind: 'ride_idle',
       rideId: 'ride-123',
-      autoEnded: false,
+      autoEnded: true,
     });
   });
 
-  it('is still routable when no ride id is available', () => {
-    // A missing rideId must not drop the kind — the handler falls back to the live
-    // HUD, which is the correct destination for a ride that is still recording.
-    expect(forgotToStopNotificationContent(undefined).data).toMatchObject({
-      kind: 'ride_idle',
-      autoEnded: false,
-    });
-  });
-
-  it('interpolates the stopped-for duration from the configured threshold', () => {
-    // i18n is not initialized under jest, so t() returns the defaultValue — which is
-    // exactly what we want to assert: the fallback copy is interpolated, not literal.
-    expect(forgotToStopNotificationContent('r1', 15 * 60_000).body).toContain('15');
-    expect(forgotToStopNotificationContent('r1', 15 * 60_000).body).not.toContain('{{minutes}}');
+  it('interpolates the auto-end threshold into the fallback copy', () => {
+    const { body } = rideAutoEndedNotificationContent('r1');
+    expect(body).toContain('30');
+    expect(body).not.toContain('{{minutes}}');
   });
 });

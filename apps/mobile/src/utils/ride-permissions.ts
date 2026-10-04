@@ -91,6 +91,22 @@ export async function hasAllLocationPermissions(): Promise<boolean> {
   }
 }
 
+/**
+ * True when location is granted but only approximately (iOS "Precise: Off", Android
+ * "Approximate"). Such fixes are kilometres wide, so the GPS filter rejects every one
+ * and the ride records no route and no distance. A failed read counts as precise:
+ * this is an advisory check and must never block a start on its own.
+ */
+export async function isApproximateLocation(): Promise<boolean> {
+  try {
+    const { granted, ios, android } = await Location.getForegroundPermissionsAsync();
+    if (!granted) return false;
+    return ios?.accuracy === 'reduced' || android?.accuracy === 'coarse';
+  } catch {
+    return false;
+  }
+}
+
 export function shouldShowPrePrompt(): boolean {
   const dismissedAt = rideStorage.getNumber(COOLDOWN_KEY);
   if (dismissedAt) {

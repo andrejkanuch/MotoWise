@@ -56,6 +56,10 @@ import { ReceiptScanSaveSnackbar } from '../features/receipt-scan/receipt-scan-s
 import { clearAllReceiptSaveUndo } from '../features/receipt-scan/receipt-scan-undo-store';
 import { SCAN_RESUME_SOURCE } from '../features/receipt-scan/scan-flow-constants';
 import { clearScanConsent } from '../features/receipt-scan/scan-preferences';
+import {
+  handleRideIdleResponse,
+  rideIdleResponseKey,
+} from '../features/ride/ride-notification-response';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import i18n from '../i18n';
 import {
@@ -885,19 +889,13 @@ function RootLayout() {
           action: actionId,
         });
 
-        // Forgotten-ride nudge — from the local auto-pause machine OR the server
-        // sweep, which send an identical payload. Two destinations:
-        //   * still recording  -> the live HUD, where Stop is one tap away
-        //   * already ended    -> the saved ride, so the rider can see what we kept
-        // Deliberately no auto-stop on tap: ending someone's ride from a notification
-        // press, when they may have opened it to say "no, I'm still out", would be
-        // the wrong default.
+        // Forgotten-ride reminder — scheduled locally off the last movement, or
+        // pushed by the server sweep with the same payload. "End ride" ends it
+        // trimmed to the last movement, "Still riding" restarts the clock, and a
+        // plain tap only navigates (see handleRideIdleResponse).
         if (data?.kind === NOTIFICATION_KIND.RIDE_IDLE) {
-          if (data.autoEnded && data.rideId) {
-            expoRouter.push(`/ride/${data.rideId}` as Href);
-          } else {
-            expoRouter.push('/(modals)/ride-hud' as Href);
-          }
+          const target = handleRideIdleResponse(rideIdleResponseKey(response), actionId, data);
+          if (target) expoRouter.push(target);
           return;
         }
 
@@ -956,6 +954,25 @@ function RootLayout() {
         }
       },
     );
+
+    // Cold start: an "End ride" press can launch a killed app before the listener
+    // above exists. Handle a launching ride reminder once, then clear it so it is not
+    // replayed on the next launch. Other kinds are left for useNotificationDeepLink.
+    void Notifications.getLastNotificationResponseAsync()
+      .then((last) => {
+        const lastData = last?.notification.request.content.data as
+          | { kind?: string; rideId?: string; autoEnded?: boolean }
+          | undefined;
+        if (!last || lastData?.kind !== NOTIFICATION_KIND.RIDE_IDLE) return;
+        void Notifications.clearLastNotificationResponseAsync();
+        const target = handleRideIdleResponse(
+          rideIdleResponseKey(last),
+          last.actionIdentifier,
+          lastData,
+        );
+        if (target) expoRouter.push(target);
+      })
+      .catch((err) => captureException(err, { source: 'layout.rideIdleColdStart' }));
 
     return () => {
       if (notificationResponseListener.current) {

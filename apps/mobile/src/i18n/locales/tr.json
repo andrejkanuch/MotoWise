@@ -1866,7 +1866,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "Hâlâ yolda mısın?",
-    "forgotToStopBody": "{{minutes}} dakikadır duruyorsun. Bitirmek için dokun ya da devam et.",
     "gpsLostTitle": "GPS takibi durdu",
     "gpsLostBody": "Konum izni kapatıldı, bu yüzden sürüşün artık kaydedilmiyor. Düzeltmek veya sürüşü bitirmek için dokun.",
     "dist": "MSFE",
@@ -1886,7 +1885,19 @@
     "shortRideWarning": "Sürüşün çok kısaydı ({{seconds}}sn, {{meters}}m). Emin misin?",
     "gpsTip": "İpucu: GPS takibi için telefonunun gökyüzünü net gördüğünden emin ol",
     "keepRiding": "Sürüşe devam et",
-    "endAnyway": "Yine de bitir"
+    "endAnyway": "Yine de bitir",
+    "reminderNudgeBody": "Sürüşün hâlâ kaydediliyor ama {{minutes}} dakikadır hareket etmedin. Bitir ya da devam et.",
+    "reminderFinalTitle": "Sürüşün hâlâ kaydediliyor",
+    "reminderFinalBody": "{{minutes}} dakikadır hareket yok. Sürüşü durduğun andaki hâliyle kaydetmek için bitir.",
+    "actionEndRide": "Sürüşü bitir",
+    "actionKeepRiding": "Hâlâ sürüyorum",
+    "rideAlertsChannel": "Sürüş uyarıları",
+    "autoEndedTitle": "Sürüş kaydedildi",
+    "autoEndedBody": "{{minutes}} dakikadır hareket etmediğin için sürüşünü bitirdik ve durduğun yere kadar kaydettik.",
+    "serviceTitle": "MotoVault sürüşünü kaydediyor",
+    "serviceBody": "Sürüşe dönmek için dokun. Motordan inince bitir.",
+    "noGpsTitle": "Bu sürüş takip edilemedi",
+    "noGpsBody": "{{minutes}} dk kaydedildi ama neredeyse hiç mesafe yok. GPS engellenmiş, kapalı ya da yaklaşık konuma ayarlı olabilir."
   },
   "rideSummary": {
     "namePlaceholder": "Surusune isim ver...",
@@ -2063,7 +2074,10 @@
     "disclosureBody": "MotoVault, sürüş sırasında rotanızı, mesafenizi ve hızınızı kaydeder. Sürüşün tamamını kaydetmek için uygulama kapalıyken veya ekranınız kapalıyken arka planda da çalışır. Konum yalnızca etkin bir sürüş sırasında kullanılır.",
     "disclosureSettingsNote": "Ayarlara yönlendirilebilirsiniz — arka planda kayda devam etmek için “Her zaman izin ver” seçeneğini belirleyin.",
     "disclosureContinue": "Devam et",
-    "disclosureNotNow": "Şimdi değil"
+    "disclosureNotNow": "Şimdi değil",
+    "approximateTitle": "Kesin konum kapalı",
+    "approximateBody": "Yaklaşık konumla MotoVault rotanı ya da mesafeni kaydedemez. Ayarlar'dan MotoVault için Kesin Konum'u aç.",
+    "rideAnyway": "Yine de sür"
   },
   "preFlight": {
     "title": "Ön kontrol",

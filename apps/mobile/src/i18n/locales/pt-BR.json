@@ -1867,7 +1867,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "Ainda pilotando?",
-    "forgotToStopBody": "Você está parado há {{minutes}} minutos. Toque para encerrar ou continue.",
     "gpsLostTitle": "Rastreamento GPS parado",
     "gpsLostBody": "A permissão de localização foi desativada, então seu trajeto não está mais sendo gravado. Toque para corrigir ou encerrar o trajeto.",
     "dist": "DIST",
@@ -1887,7 +1886,19 @@
     "shortRideWarning": "Seu percurso foi muito curto ({{seconds}}s, {{meters}}m). Tem certeza?",
     "gpsTip": "Dica: certifique-se de que seu telefone tenha visão livre do céu para o rastreamento por GPS",
     "keepRiding": "Continuar pilotando",
-    "endAnyway": "Encerrar mesmo assim"
+    "endAnyway": "Encerrar mesmo assim",
+    "reminderNudgeBody": "Seu passeio ainda está sendo gravado, mas você está parado há {{minutes}} minutos. Encerre ou continue.",
+    "reminderFinalTitle": "Seu passeio ainda está sendo gravado",
+    "reminderFinalBody": "Sem movimento há {{minutes}} minutos. Encerre o passeio para salvá-lo como estava quando você parou.",
+    "actionEndRide": "Encerrar passeio",
+    "actionKeepRiding": "Ainda rodando",
+    "rideAlertsChannel": "Alertas de passeio",
+    "autoEndedTitle": "Passeio salvo",
+    "autoEndedBody": "Você estava parado há {{minutes}} minutos, então encerramos o passeio e o salvamos até onde você parou.",
+    "serviceTitle": "O MotoVault está gravando seu passeio",
+    "serviceBody": "Toque para voltar ao passeio. Encerre ao descer da moto.",
+    "noGpsTitle": "Não conseguimos registrar este passeio",
+    "noGpsBody": "{{minutes}} min gravados, mas quase nenhuma distância. O GPS pode ter sido bloqueado, desligado ou definido como localização aproximada."
   },
   "rideSummary": {
     "namePlaceholder": "Dê um nome ao seu passeio...",
@@ -2065,7 +2076,10 @@
     "disclosureBody": "O MotoVault registra seu trajeto, distância e velocidade enquanto você pilota, inclusive em segundo plano quando o app está fechado ou a tela desligada, para capturar todo o percurso. A localização só é usada durante um trajeto ativo.",
     "disclosureSettingsNote": "Você pode ser levado às Configurações: escolha “Permitir o tempo todo” para continuar gravando em segundo plano.",
     "disclosureContinue": "Continuar",
-    "disclosureNotNow": "Agora não"
+    "disclosureNotNow": "Agora não",
+    "approximateTitle": "A localização precisa está desativada",
+    "approximateBody": "Com a localização aproximada, o MotoVault não consegue registrar sua rota nem a distância. Ative a Localização Precisa para o MotoVault em Ajustes.",
+    "rideAnyway": "Rodar mesmo assim"
   },
   "preFlight": {
     "title": "Pré-viagem",

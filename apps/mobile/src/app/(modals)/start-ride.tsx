@@ -18,7 +18,12 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LocationDisclosureModal } from '../../components/ride/location-disclosure-modal';
 import { PreFlightChecklist } from '../../components/ride/pre-flight-checklist';
-import { startRideSession } from '../../features/ride/ride-controller';
+import {
+  buildRideSummaryHref,
+  endRideSession,
+  startRideSession,
+} from '../../features/ride/ride-controller';
+import { armRideReminders, rideEndTrimTarget } from '../../features/ride/ride-reminders';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -33,7 +38,6 @@ import {
   shouldShowPrePrompt,
 } from '../../utils/ride-permissions';
 import { rideMMKV } from '../../utils/ride-storage';
-import { enqueueOrExecute } from '../../utils/ride-sync-queue';
 
 export default function StartRideScreen() {
   const router = useRouter();
@@ -88,6 +92,7 @@ export default function StartRideScreen() {
     const rideId = rideMMKV.getCurrentId();
     startRide();
     startGPSListener(() => {});
+    void armRideReminders();
     trackEvent(AnalyticsEvent.RIDE_STARTED, {
       ride_id: rideId ?? null,
       has_motorcycle: !!rideMMKV.getMotorcycleId(),
@@ -102,48 +107,65 @@ export default function StartRideScreen() {
   const handleEndUnfinished = useCallback(() => {
     const rideId = rideMMKV.getCurrentId();
     if (rideId) {
-      enqueueOrExecute('endRide', {
-        variables: { input: { rideId, endedAt: new Date().toISOString(), distanceM: 0 } },
-      });
       trackEvent(AnalyticsEvent.RIDE_ABANDONED, {
         ride_id: rideId,
         recovery_reason: 'crash',
       });
+      // End it like any other ride, from the waypoints already on the phone and
+      // trimmed to the last movement. This used to send distance 0 with no route —
+      // throwing the recorded ride away, and overwriting the real distance if the
+      // server sweep had already closed it.
+      const summary = endRideSession('phone', { endAt: rideEndTrimTarget() });
+      if (summary) {
+        setHasUnfinished(false);
+        router.replace(buildRideSummaryHref(summary));
+        return;
+      }
     }
     rideMMKV.setCurrentId('');
     setHasUnfinished(false);
-  }, []);
+  }, [router]);
 
-  const runStartRide = useCallback(async () => {
-    setIsStarting(true);
-    try {
-      const result = await startRideSession({
-        motorcycleId: selectedBikeId,
-        source: 'phone',
-        motorcycleMake: selectedBike?.make ?? null,
-      });
+  const runStartRide = useCallback(
+    async (allowApproximate = false) => {
+      setIsStarting(true);
+      try {
+        const result = await startRideSession({
+          motorcycleId: selectedBikeId,
+          source: 'phone',
+          motorcycleMake: selectedBike?.make ?? null,
+          allowApproximate,
+        });
 
-      if (!result.ok) {
-        if (result.reason === 'denied') {
-          Alert.alert(t('startRide.locationRequired'), t('startRide.locationMessage'), [
-            { text: t('common.cancel'), style: 'cancel' },
-            { text: t('startRide.openSettings'), onPress: () => Linking.openSettings() },
-          ]);
-        } else {
-          // gps_failed — the listener threw; the controller already rolled back.
-          Alert.alert(t('common.error'), t('startRide.startError'));
+        if (!result.ok) {
+          if (result.reason === 'approximate') {
+            trackEvent(AnalyticsEvent.RIDE_GPS_READINESS, { status: 'approximate_location' });
+            Alert.alert(t('startRide.approximateTitle'), t('startRide.approximateBody'), [
+              { text: t('startRide.rideAnyway'), onPress: () => void runStartRide(true) },
+              { text: t('startRide.openSettings'), onPress: () => Linking.openSettings() },
+            ]);
+          } else if (result.reason === 'denied') {
+            Alert.alert(t('startRide.locationRequired'), t('startRide.locationMessage'), [
+              { text: t('common.cancel'), style: 'cancel' },
+              { text: t('startRide.openSettings'), onPress: () => Linking.openSettings() },
+            ]);
+          } else {
+            // gps_failed — the listener threw; the controller already rolled back.
+            Alert.alert(t('common.error'), t('startRide.startError'));
+          }
+          return;
         }
-        return;
-      }
 
-      router.replace('/(modals)/ride-hud');
-    } catch (error) {
-      captureException(error, { source: 'start-ride.startRide' });
-      Alert.alert(t('common.error'), t('startRide.startError'));
-    } finally {
-      setIsStarting(false);
-    }
-  }, [selectedBikeId, selectedBike?.make, router, t]);
+        router.replace('/(modals)/ride-hud');
+      } catch (error) {
+        captureException(error, { source: 'start-ride.startRide' });
+        Alert.alert(t('common.error'), t('startRide.startError'));
+      } finally {
+        setIsStarting(false);
+      }
+    },
+    [selectedBikeId, selectedBike?.make, router, t],
+  );
 
   const handleStartRide = useCallback(async () => {
     // Prominent disclosure (Google Play policy + Expo guidance): explain background

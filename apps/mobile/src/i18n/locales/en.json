@@ -1960,7 +1960,10 @@
     "disclosureBody": "MotoVault records your route, distance, and speed while you ride — including in the background when the app is closed or your screen is off, so your whole ride is captured. Location is only used while a ride is active.",
     "disclosureSettingsNote": "You may be taken to Settings — choose “Allow all the time” to keep recording in the background.",
     "disclosureContinue": "Continue",
-    "disclosureNotNow": "Not now"
+    "disclosureNotNow": "Not now",
+    "approximateTitle": "Precise location is off",
+    "approximateBody": "With approximate location, MotoVault can't record your route or distance. Turn on Precise Location for MotoVault in Settings.",
+    "rideAnyway": "Ride anyway"
   },
   "preFlight": {
     "title": "Pre-flight",
@@ -1981,7 +1984,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "Still riding?",
-    "forgotToStopBody": "You've been stopped for {{minutes}} minutes. Tap to end your ride or keep going.",
     "gpsLostTitle": "GPS tracking stopped",
     "gpsLostBody": "Location permission was turned off, so your ride is no longer recording. Tap to fix it or end the ride.",
     "dist": "DIST",
@@ -2001,7 +2003,19 @@
     "shortRideWarning": "Your ride was very short ({{seconds}}s, {{meters}}m). Are you sure?",
     "gpsTip": "Tip: Make sure your phone has clear sky view for GPS tracking",
     "keepRiding": "Keep Riding",
-    "endAnyway": "End Anyway"
+    "endAnyway": "End Anyway",
+    "reminderNudgeBody": "Your ride is still recording, but you haven't moved for {{minutes}} minutes. End it or keep going.",
+    "reminderFinalTitle": "Your ride is still recording",
+    "reminderFinalBody": "No movement for {{minutes}} minutes. End the ride to save it as it was when you stopped.",
+    "actionEndRide": "End ride",
+    "actionKeepRiding": "Still riding",
+    "rideAlertsChannel": "Ride alerts",
+    "autoEndedTitle": "Ride saved",
+    "autoEndedBody": "You hadn't moved for {{minutes}} minutes, so we ended your ride and saved it up to where you stopped.",
+    "serviceTitle": "MotoVault is recording your ride",
+    "serviceBody": "Tap to return to your ride. End it when you get off the bike.",
+    "noGpsTitle": "We couldn't track this ride",
+    "noGpsBody": "{{minutes}} min recorded, but almost no distance. GPS may have been blocked, switched off or set to approximate location."
   },
   "rideSummary": {
     "namePlaceholder": "Name your ride...",

@@ -1867,7 +1867,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "Ancora in viaggio?",
-    "forgotToStopBody": "Sei fermo da {{minutes}} minuti. Tocca per terminare il giro o continua.",
     "gpsLostTitle": "Tracciamento GPS interrotto",
     "gpsLostBody": "L'autorizzazione alla posizione è stata disattivata, il tuo giro non viene più registrato. Tocca per risolvere o terminare il giro.",
     "dist": "DIST",
@@ -1887,7 +1886,19 @@
     "shortRideWarning": "Il tuo giro è stato molto breve ({{seconds}}s, {{meters}}m). Sei sicuro?",
     "gpsTip": "Suggerimento: assicurati che il telefono abbia una visuale libera del cielo per il tracciamento GPS",
     "keepRiding": "Continua a guidare",
-    "endAnyway": "Termina comunque"
+    "endAnyway": "Termina comunque",
+    "reminderNudgeBody": "Il tuo giro è ancora in registrazione, ma sei fermo da {{minutes}} minuti. Terminalo o continua.",
+    "reminderFinalTitle": "Il tuo giro è ancora in registrazione",
+    "reminderFinalBody": "Nessun movimento da {{minutes}} minuti. Termina il giro per salvarlo com'era quando ti sei fermato.",
+    "actionEndRide": "Termina giro",
+    "actionKeepRiding": "Sto ancora guidando",
+    "rideAlertsChannel": "Avvisi giro",
+    "autoEndedTitle": "Giro salvato",
+    "autoEndedBody": "Eri fermo da {{minutes}} minuti, quindi abbiamo terminato il giro e l'abbiamo salvato fino al punto in cui ti sei fermato.",
+    "serviceTitle": "MotoVault sta registrando il tuo giro",
+    "serviceBody": "Tocca per tornare al giro. Terminalo quando scendi dalla moto.",
+    "noGpsTitle": "Non siamo riusciti a tracciare questo giro",
+    "noGpsBody": "{{minutes}} min registrati, ma quasi nessuna distanza. Il GPS potrebbe essere stato bloccato, spento o impostato su posizione approssimativa."
   },
   "rideSummary": {
     "namePlaceholder": "Dai un nome alla tua uscita...",
@@ -2065,7 +2076,10 @@
     "disclosureBody": "MotoVault registra il tuo percorso, la distanza e la velocità mentre guidi, anche in background quando l’app è chiusa o lo schermo è spento, per acquisire l’intero viaggio. La posizione viene usata solo durante un viaggio attivo.",
     "disclosureSettingsNote": "Potresti essere reindirizzato alle Impostazioni: scegli «Consenti sempre» per continuare a registrare in background.",
     "disclosureContinue": "Continua",
-    "disclosureNotNow": "Non ora"
+    "disclosureNotNow": "Non ora",
+    "approximateTitle": "La posizione esatta è disattivata",
+    "approximateBody": "Con la posizione approssimativa, MotoVault non può registrare percorso e distanza. Attiva la posizione esatta per MotoVault nelle Impostazioni.",
+    "rideAnyway": "Guida comunque"
   },
   "preFlight": {
     "title": "Pre-partenza",
