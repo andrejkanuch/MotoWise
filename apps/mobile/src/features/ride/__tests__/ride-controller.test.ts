@@ -10,7 +10,7 @@ jest.mock('../../../utils/ride-permissions', () => ({
   readPermissionLevel: jest.fn(() => Promise.resolve('full')),
   isApproximateLocation: jest.fn(() => Promise.resolve(false)),
 }));
-jest.mock('../ride-reminders', () => ({
+jest.mock('../../../utils/ride-reminders', () => ({
   armRideReminders: jest.fn(() => Promise.resolve()),
   cancelRideReminders: jest.fn(() => Promise.resolve()),
 }));
@@ -106,10 +106,10 @@ import { queryClient } from '../../../lib/query-client';
 import { useRideStore } from '../../../stores/ride.store';
 import * as gps from '../../../utils/ride-location';
 import * as perms from '../../../utils/ride-permissions';
+import * as reminders from '../../../utils/ride-reminders';
 import * as storage from '../../../utils/ride-storage';
 import * as syncQueue from '../../../utils/ride-sync-queue';
 import { elapsedRideSeconds, endRideSession, startRideSession } from '../ride-controller';
-import * as reminders from '../ride-reminders';
 
 // biome-ignore lint/suspicious/noExplicitAny: reaching into the mock's mutable state
 const mmkvState = (storage as any).__state as {

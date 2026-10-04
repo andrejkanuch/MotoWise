@@ -12,23 +12,23 @@ jest.mock('expo-notifications', () => {
     SchedulableTriggerInputTypes: { TIME_INTERVAL: 'timeInterval' },
   };
 });
-jest.mock('../../../lib/analytics', () => ({ captureException: jest.fn() }));
-jest.mock('../../../lib/notifications', () => ({
+jest.mock('../../lib/analytics', () => ({ captureException: jest.fn() }));
+jest.mock('../../lib/notifications', () => ({
   NOTIFICATION_CATEGORY: { RIDE_IDLE: 'RIDE_IDLE' },
   NOTIFICATION_CHANNEL: { RIDE_ALERTS: 'ride-alerts' },
   NOTIFICATION_KIND: { RIDE_IDLE: 'ride_idle' },
 }));
-jest.mock('../../../i18n', () => ({
+jest.mock('../../i18n', () => ({
   __esModule: true,
   default: {
     t: (_key: string, opts: { defaultValue: string }) => opts.defaultValue,
   },
 }));
-jest.mock('../../../stores/ride.store', () => {
+jest.mock('../../stores/ride.store', () => {
   const store = { status: 'recording' as string };
   return { useRideStore: { getState: () => store } };
 });
-jest.mock('../../../utils/ride-storage', () => {
+jest.mock('../ride-storage', () => {
   const state = {
     currentId: 'ride-1' as string | undefined,
     startedAt: 1_000_000 as number | undefined,
@@ -53,8 +53,7 @@ jest.mock('../../../utils/ride-storage', () => {
 });
 
 import * as Notifications from 'expo-notifications';
-import { useRideStore } from '../../../stores/ride.store';
-import * as storage from '../../../utils/ride-storage';
+import { useRideStore } from '../../stores/ride.store';
 import {
   __resetRideRemindersForTest,
   armRideReminders,
@@ -64,6 +63,7 @@ import {
   rideEndTrimTarget,
   rideReminderContent,
 } from '../ride-reminders';
+import * as storage from '../ride-storage';
 
 // biome-ignore lint/suspicious/noExplicitAny: reaching into the mock's mutable state
 const state = (storage as any).__state as {

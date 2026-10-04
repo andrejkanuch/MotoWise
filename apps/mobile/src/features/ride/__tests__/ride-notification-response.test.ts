@@ -16,20 +16,23 @@ jest.mock('../ride-controller', () => ({
   endRideSession: jest.fn(() => ({ rideId: 'ride-1' })),
   buildRideSummaryHref: jest.fn(() => '/summary-href'),
 }));
-jest.mock('../ride-reminders', () => ({
+jest.mock('../../../utils/ride-reminders', () => ({
   armRideReminders: jest.fn(() => Promise.resolve()),
   rideEndTrimTarget: jest.fn(() => 4_000_000),
 }));
 
 import { useRideStore } from '../../../stores/ride.store';
+import { armRideReminders } from '../../../utils/ride-reminders';
 import * as storage from '../../../utils/ride-storage';
 import { endRideSession } from '../ride-controller';
 import {
   __resetRideIdleResponsesForTest,
+  flushPendingRideIdleResponse,
   handleRideIdleResponse,
+  receiveRideIdleResponse,
   rideIdleResponseKey,
+  subscribeRideIdleResponses,
 } from '../ride-notification-response';
-import { armRideReminders } from '../ride-reminders';
 
 // biome-ignore lint/suspicious/noExplicitAny: reaching into the mock's mutable state
 const state = (storage as any).__state as { currentId: string | undefined };
@@ -100,4 +103,41 @@ it('keys a response by notification and button', () => {
     notification: { request: { identifier: 'n1' } },
   };
   expect(rideIdleResponseKey(response)).toBe('n1:END_RIDE');
+});
+
+describe('deferring until navigation is ready', () => {
+  it('holds "End ride" — nothing is ended until the flush', () => {
+    receiveRideIdleResponse(key(), 'END_RIDE', { rideId: 'ride-1' });
+    expect(endRide).not.toHaveBeenCalled();
+
+    expect(flushPendingRideIdleResponse()).toBe('/summary-href');
+    expect(endRide).toHaveBeenCalledTimes(1);
+    expect(flushPendingRideIdleResponse()).toBeNull();
+  });
+
+  it('tells subscribers a response is waiting, and stops after unsubscribe', () => {
+    const listener = jest.fn();
+    const unsubscribe = subscribeRideIdleResponses(listener);
+    receiveRideIdleResponse(key(), DEFAULT_TAP, { rideId: 'ride-1' });
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    unsubscribe();
+    receiveRideIdleResponse(key(), DEFAULT_TAP, { rideId: 'ride-1' });
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs "Still riding" immediately — it needs no screen', () => {
+    receiveRideIdleResponse(key(), 'KEEP_RIDING', { rideId: 'ride-1' });
+    expect(arm).toHaveBeenCalledTimes(1);
+    expect(flushPendingRideIdleResponse()).toBeNull();
+  });
+
+  it('ignores a response that was already handled (listener + cold start)', () => {
+    const k = key();
+    receiveRideIdleResponse(k, 'END_RIDE', { rideId: 'ride-1' });
+    flushPendingRideIdleResponse();
+    receiveRideIdleResponse(k, 'END_RIDE', { rideId: 'ride-1' });
+    expect(flushPendingRideIdleResponse()).toBeNull();
+    expect(endRide).toHaveBeenCalledTimes(1);
+  });
 });

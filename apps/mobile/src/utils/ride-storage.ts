@@ -218,6 +218,10 @@ export function appendWaypoint(rideId: string, waypoint: Waypoint): Waypoint[] |
     const chunk = pointBuffer;
     const chunkIndex = getNextChunkIndex(rideId);
     rideStorage.set(waypointChunkKey(rideId, chunkIndex), JSON.stringify(chunk));
+    // The partial buffer persisted by the periodic flush now duplicates this chunk.
+    // Left behind, a restore after a kill would re-add these points: a route that
+    // doubles back, double-counted distance, and the same waypoints uploaded twice.
+    rideStorage.remove(waypointBufferKey(rideId));
     pointBuffer = [];
     return chunk; // Caller should queue for upload
   }

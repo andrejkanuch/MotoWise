@@ -13,15 +13,15 @@
 // delivers it on time with no JS running.
 
 import * as Notifications from 'expo-notifications';
-import i18n from '../../i18n';
-import { captureException } from '../../lib/analytics';
+import i18n from '../i18n';
+import { captureException } from '../lib/analytics';
 import {
   NOTIFICATION_CATEGORY,
   NOTIFICATION_CHANNEL,
   NOTIFICATION_KIND,
-} from '../../lib/notifications';
-import { useRideStore } from '../../stores/ride.store';
-import { rideMMKV } from '../../utils/ride-storage';
+} from '../lib/notifications';
+import { useRideStore } from '../stores/ride.store';
+import { rideMMKV } from './ride-storage';
 
 /** Reminder stages, by minutes without movement. */
 export const RIDE_REMINDER_STAGE = {
@@ -30,12 +30,18 @@ export const RIDE_REMINDER_STAGE = {
 } as const;
 export type RideReminderStage = (typeof RIDE_REMINDER_STAGE)[keyof typeof RIDE_REMINDER_STAGE];
 
+/** Minutes without movement before the "still riding?" nudge, and before the final
+ *  reminder. The single source for these thresholds: ride-location's CarPlay flag and
+ *  30-minute auto-end derive from the same values, so they cannot drift apart. */
+export const RIDE_IDLE_NUDGE_MINUTES = 10;
+export const RIDE_IDLE_FINAL_MINUTES = 30;
+
 export const RIDE_REMINDER_SCHEDULE: readonly {
   stage: RideReminderStage;
   afterMinutes: number;
 }[] = [
-  { stage: RIDE_REMINDER_STAGE.NUDGE, afterMinutes: 10 },
-  { stage: RIDE_REMINDER_STAGE.FINAL, afterMinutes: 30 },
+  { stage: RIDE_REMINDER_STAGE.NUDGE, afterMinutes: RIDE_IDLE_NUDGE_MINUTES },
+  { stage: RIDE_REMINDER_STAGE.FINAL, afterMinutes: RIDE_IDLE_FINAL_MINUTES },
 ];
 
 /** Re-scheduling costs a native round trip; a moving fix arrives about every second.

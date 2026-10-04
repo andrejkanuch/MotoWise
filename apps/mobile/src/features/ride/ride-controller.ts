@@ -29,6 +29,7 @@ import {
   type PermissionLevel,
   readPermissionLevel,
 } from '../../utils/ride-permissions';
+import { armRideReminders, cancelRideReminders } from '../../utils/ride-reminders';
 import {
   flushBufferToMMKV,
   getPointBuffer,
@@ -39,7 +40,6 @@ import {
   rideMMKV,
 } from '../../utils/ride-storage';
 import { enqueueOrExecute, enqueueWaypointUpload } from '../../utils/ride-sync-queue';
-import { armRideReminders, cancelRideReminders } from './ride-reminders';
 
 export type RideSource = 'phone' | 'carplay';
 
@@ -214,12 +214,6 @@ export function elapsedRideSeconds(now: number = Date.now()): number {
   return Math.max(0, Math.round((now - startedAt - totalPausedMs) / 1000));
 }
 
-/**
- * End the current ride: aggregate the recorded waypoints, stop the GPS listener,
- * flip the store to ended, fire analytics, and enqueue the server end. Returns a
- * summary for the caller to render/navigate with, or null when no ride is active.
- * Pure of navigation so it can run from CarPlay with no phone UI mounted.
- */
 export interface EndRideOptions {
   /**
    * Epoch ms the ride really ended — the last movement, when ended from a
@@ -229,6 +223,12 @@ export interface EndRideOptions {
   endAt?: number;
 }
 
+/**
+ * End the current ride: aggregate the recorded waypoints, stop the GPS listener,
+ * flip the store to ended, fire analytics, and enqueue the server end. Returns a
+ * summary for the caller to render/navigate with, or null when no ride is active.
+ * Pure of navigation so it can run from CarPlay with no phone UI mounted.
+ */
 export function endRideSession(
   source: RideSource = 'phone',
   { endAt }: EndRideOptions = {},

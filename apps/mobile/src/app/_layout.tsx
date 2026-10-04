@@ -57,10 +57,11 @@ import { clearAllReceiptSaveUndo } from '../features/receipt-scan/receipt-scan-u
 import { SCAN_RESUME_SOURCE } from '../features/receipt-scan/scan-flow-constants';
 import { clearScanConsent } from '../features/receipt-scan/scan-preferences';
 import {
-  handleRideIdleResponse,
+  receiveRideIdleResponse,
   rideIdleResponseKey,
 } from '../features/ride/ride-notification-response';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
+import { useRideIdleResponses } from '../hooks/use-ride-idle-responses';
 import i18n from '../i18n';
 import {
   AnalyticsEvent,
@@ -455,6 +456,7 @@ function RootLayout() {
   const previousPathname = useRef<string | undefined>(undefined);
 
   useNotificationDeepLink();
+  useRideIdleResponses();
 
   useEffect(() => {
     if (previousPathname.current !== pathname) {
@@ -894,8 +896,8 @@ function RootLayout() {
         // trimmed to the last movement, "Still riding" restarts the clock, and a
         // plain tap only navigates (see handleRideIdleResponse).
         if (data?.kind === NOTIFICATION_KIND.RIDE_IDLE) {
-          const target = handleRideIdleResponse(rideIdleResponseKey(response), actionId, data);
-          if (target) expoRouter.push(target);
+          // Deferred until navigation can land — see useRideIdleResponses.
+          receiveRideIdleResponse(rideIdleResponseKey(response), actionId, data);
           return;
         }
 
@@ -954,25 +956,6 @@ function RootLayout() {
         }
       },
     );
-
-    // Cold start: an "End ride" press can launch a killed app before the listener
-    // above exists. Handle a launching ride reminder once, then clear it so it is not
-    // replayed on the next launch. Other kinds are left for useNotificationDeepLink.
-    void Notifications.getLastNotificationResponseAsync()
-      .then((last) => {
-        const lastData = last?.notification.request.content.data as
-          | { kind?: string; rideId?: string; autoEnded?: boolean }
-          | undefined;
-        if (!last || lastData?.kind !== NOTIFICATION_KIND.RIDE_IDLE) return;
-        void Notifications.clearLastNotificationResponseAsync();
-        const target = handleRideIdleResponse(
-          rideIdleResponseKey(last),
-          last.actionIdentifier,
-          lastData,
-        );
-        if (target) expoRouter.push(target);
-      })
-      .catch((err) => captureException(err, { source: 'layout.rideIdleColdStart' }));
 
     return () => {
       if (notificationResponseListener.current) {

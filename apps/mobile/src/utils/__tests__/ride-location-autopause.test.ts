@@ -38,9 +38,11 @@ jest.mock('../../lib/analytics', () => ({
   trackEvent: jest.fn(),
   AnalyticsEvent: { RIDE_AUTO_SAVED: 'ride_auto_saved' },
 }));
-jest.mock('../../features/ride/ride-reminders', () => ({
+jest.mock('../ride-reminders', () => ({
   noteRideMovement: jest.fn(),
   cancelRideReminders: jest.fn(() => Promise.resolve()),
+  RIDE_IDLE_NUDGE_MINUTES: 10,
+  RIDE_IDLE_FINAL_MINUTES: 30,
 }));
 
 import {

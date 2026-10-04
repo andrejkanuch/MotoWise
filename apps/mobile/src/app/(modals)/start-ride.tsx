@@ -23,7 +23,6 @@ import {
   endRideSession,
   startRideSession,
 } from '../../features/ride/ride-controller';
-import { armRideReminders, rideEndTrimTarget } from '../../features/ride/ride-reminders';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -37,6 +36,11 @@ import {
   markPrePromptDismissed,
   shouldShowPrePrompt,
 } from '../../utils/ride-permissions';
+import {
+  armRideReminders,
+  cancelRideReminders,
+  rideEndTrimTarget,
+} from '../../utils/ride-reminders';
 import { rideMMKV } from '../../utils/ride-storage';
 
 export default function StartRideScreen() {
@@ -122,6 +126,7 @@ export default function StartRideScreen() {
         return;
       }
     }
+    void cancelRideReminders();
     rideMMKV.setCurrentId('');
     setHasUnfinished(false);
   }, [router]);

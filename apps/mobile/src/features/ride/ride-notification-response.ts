@@ -1,14 +1,14 @@
 // What a tap on a forgotten-ride notification does. Shared by the running-app
-// listener and the cold-start check in _layout, because "End ride" on an iOS
-// notification can launch a killed app, and a listener registered in an effect
-// is not guaranteed to see the response that launched it.
+// listener in _layout and the cold-start check in useRideIdleResponses, because
+// "End ride" on an iOS notification can launch a killed app, and a listener
+// registered in an effect is not guaranteed to see the response that launched it.
 
 import type { Href } from 'expo-router';
 import { NOTIFICATION_ACTION } from '../../lib/notifications';
 import { useRideStore } from '../../stores/ride.store';
+import { armRideReminders, rideEndTrimTarget } from '../../utils/ride-reminders';
 import { rideMMKV } from '../../utils/ride-storage';
 import { buildRideSummaryHref, endRideSession } from './ride-controller';
-import { armRideReminders, rideEndTrimTarget } from './ride-reminders';
 
 export interface RideIdleResponseData {
   rideId?: string;
@@ -65,7 +65,61 @@ export function handleRideIdleResponse(
   return useRideStore.getState().status === 'idle' ? '/(modals)/start-ride' : '/(modals)/ride-hud';
 }
 
+// --- Deferring until navigation can land ---
+//
+// Ending a ride and navigating to its summary must happen together. When "End ride"
+// launches a killed app, the response arrives while auth is still hydrating and no
+// navigator is mounted: ending first and pushing second ended the ride, failed the
+// push, and stranded the ride data the summary is meant to clean up. So responses
+// wait here until the root layout reports navigation ready, then run in one step.
+
+interface PendingRideIdleResponse {
+  key: string;
+  actionId: string;
+  data: RideIdleResponseData;
+}
+
+let pending: PendingRideIdleResponse | null = null;
+const subscribers = new Set<() => void>();
+
+/**
+ * Accept a RIDE_IDLE response from either source (live listener or cold start).
+ * "Still riding" needs no screen — it runs now, which also covers iOS delivering it
+ * to a background launch where no UI ever mounts. Everything else waits for
+ * `flushPendingRideIdleResponse`. A newer response replaces an older unhandled one.
+ */
+export function receiveRideIdleResponse(
+  key: string,
+  actionId: string,
+  data: RideIdleResponseData,
+): void {
+  if (actionId === NOTIFICATION_ACTION.KEEP_RIDING) {
+    handleRideIdleResponse(key, actionId, data);
+    return;
+  }
+  if (handledResponses.has(key)) return;
+  pending = { key, actionId, data };
+  for (const notify of subscribers) notify();
+}
+
+/** Run the pending response, if any. Call only when navigation can land. */
+export function flushPendingRideIdleResponse(): Href | null {
+  const next = pending;
+  pending = null;
+  return next ? handleRideIdleResponse(next.key, next.actionId, next.data) : null;
+}
+
+/** Be told when a response is waiting. Returns the unsubscribe. */
+export function subscribeRideIdleResponses(listener: () => void): () => void {
+  subscribers.add(listener);
+  return () => {
+    subscribers.delete(listener);
+  };
+}
+
 /** Test seam. */
 export function __resetRideIdleResponsesForTest(): void {
   handledResponses.clear();
+  pending = null;
+  subscribers.clear();
 }

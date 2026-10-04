@@ -3,7 +3,6 @@ import type { Waypoint } from '@motovault/types';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
-import { cancelRideReminders, noteRideMovement } from '../features/ride/ride-reminders';
 import i18n from '../i18n';
 import { AnalyticsEvent, addBreadcrumb, captureException, trackEvent } from '../lib/analytics';
 import {
@@ -18,6 +17,12 @@ import { useRideStore } from '../stores/ride.store';
 import { haversineMeters } from './geo-utils';
 import { gpsFilter } from './ride-gps-filter';
 import { encodePolyline } from './ride-heatmap';
+import {
+  cancelRideReminders,
+  noteRideMovement,
+  RIDE_IDLE_FINAL_MINUTES,
+  RIDE_IDLE_NUDGE_MINUTES,
+} from './ride-reminders';
 import {
   appendWaypoint,
   clearPointBuffer,
@@ -39,8 +44,8 @@ export const BACKGROUND_LOCATION_TASK = 'ride-background-location';
 // The rider-facing notifications are NOT driven from here — they are scheduled by
 // ride-reminders off the last movement, because this machine only runs when a GPS
 // sample arrives and a parked bike delivers none.
-const FORGOT_TO_STOP_NOTIFY_MS = 10 * 60 * 1000; // 10 min
-const FORGOT_TO_STOP_AUTO_END_MS = 30 * 60 * 1000; // 30 min
+const FORGOT_TO_STOP_NOTIFY_MS = RIDE_IDLE_NUDGE_MINUTES * 60_000;
+const FORGOT_TO_STOP_AUTO_END_MS = RIDE_IDLE_FINAL_MINUTES * 60_000;
 const AUTO_PAUSE_SPEED_THRESHOLD = 0.5; // m/s
 /** Minimum radius a stopped rider must leave before it counts as creeping forward.
  *  A parked phone's fixes wander well past 5 m (indoors, under trees); the old 5 m
@@ -66,6 +71,11 @@ let forgotToStopNotified = false;
  *  51 Sentry events across 4 riders came from re-reporting the same dead stream. */
 let permissionLostReported = false;
 let lastBufferFlushAt = 0;
+/** The ride whose on-disk partial buffer this process has already loaded. A headless
+ *  relaunch (iOS wakes the app for a location update after a kill) never runs
+ *  startGPSListener, so without this the first periodic flush would overwrite the
+ *  points saved before the kill with a one-point buffer. */
+let bufferRestoredForRideId: string | null = null;
 
 // --- Haversine ---
 
@@ -118,7 +128,10 @@ export async function startGPSListener(
   onLocationCallback = onLocation;
   // Restore any in-memory buffer from MMKV (crash recovery)
   const rideId = rideMMKV.getCurrentId();
-  if (rideId) restoreBufferFromMMKV(rideId);
+  if (rideId) {
+    restoreBufferFromMMKV(rideId);
+    bufferRestoredForRideId = rideId;
+  }
 
   // Reset GPS filter for fresh ride
   gpsFilter.reset();
@@ -138,6 +151,12 @@ export async function startGPSListener(
 }
 
 export async function stopGPSListener(): Promise<void> {
+  // Cancel the forgotten-ride reminders first, synchronously: their ids are taken
+  // before any await, so neither a caller that clears all ride data right after
+  // (the headless auto-end) nor a rejected stopLocationUpdatesAsync below can
+  // leave a "still riding?" reminder scheduled for an ended ride.
+  void cancelRideReminders();
+
   // Flush in-memory buffer to MMKV before stopping
   const rideId = rideMMKV.getCurrentId();
   if (rideId) flushBufferToMMKV(rideId);
@@ -147,7 +166,6 @@ export async function stopGPSListener(): Promise<void> {
   }
   onLocationCallback = null;
   resetAutoPauseState();
-  void cancelRideReminders();
 }
 
 export async function toggleBatterySaver(enabled: boolean): Promise<void> {
@@ -180,6 +198,9 @@ export type AutoPauseEffect =
 
 export interface AutoPauseDecision {
   next: AutoPauseState;
+  /** True only when this sample proves real movement: speed above the threshold, or
+   *  a creep beyond the jitter radius. A parked phone's wandering fixes are not. */
+  moving: boolean;
   /** Ordered side effects for the caller to apply via the effect handlers. */
   effects: AutoPauseEffect[];
   /** When true, the caller should stop processing this location sample. */
@@ -210,7 +231,7 @@ export function decideAutoPause(
 
   // Moving fast enough — clear any pending stop, banking the pause if it counted.
   if (rawSpeed >= AUTO_PAUSE_SPEED_THRESHOLD) {
-    if (!next.zeroSpeedTimer) return { next, effects: [], abort: false };
+    if (!next.zeroSpeedTimer) return { next, effects: [], abort: false, moving: true };
     const pauseDuration = now - next.zeroSpeedTimer;
     const effects: AutoPauseEffect[] =
       pauseDuration > AUTO_PAUSE_DURATION_MS
@@ -228,7 +249,7 @@ export function decideAutoPause(
     next.zeroSpeedAnchor = null;
     next.continuousAutoPauseStart = null;
     next.forgotToStopNotified = false;
-    return { next, effects, abort: false };
+    return { next, effects, abort: false, moving: true };
   }
 
   // Slow/stationary — arm the zero-speed timer on the first slow sample.
@@ -236,7 +257,7 @@ export function decideAutoPause(
     next.zeroSpeedTimer = now;
     next.zeroSpeedAnchor = pos;
   }
-  if (!next.zeroSpeedAnchor) return { next, effects: [], abort: true };
+  if (!next.zeroSpeedAnchor) return { next, effects: [], abort: true, moving: false };
 
   // Creeping forward (beyond the jitter radius) re-anchors instead of pausing.
   if (distanceMeters(next.zeroSpeedAnchor, pos) > creepRadius) {
@@ -261,12 +282,12 @@ export function decideAutoPause(
     if (subState === 'stopped') effects.push({ kind: 'setSubState', value: 'moving' });
     next.continuousAutoPauseStart = null;
     next.forgotToStopNotified = false;
-    return { next, effects, abort: false };
+    return { next, effects, abort: false, moving: true };
   }
 
   // Not stopped long enough to auto-pause yet.
   if (now - next.zeroSpeedTimer <= AUTO_PAUSE_DURATION_MS) {
-    return { next, effects: [], abort: false };
+    return { next, effects: [], abort: false, moving: false };
   }
 
   const effects: AutoPauseEffect[] = [];
@@ -277,19 +298,19 @@ export function decideAutoPause(
     effects.push({ kind: 'setSubState', value: 'stopped' }, { kind: 'updateSpeedZero' });
   }
 
-  if (!next.continuousAutoPauseStart) return { next, effects, abort: false };
+  if (!next.continuousAutoPauseStart) return { next, effects, abort: false, moving: false };
 
   // Forgot-to-stop escalation: flag at 10 min (CarPlay), auto-end at 30 min.
   const stoppedFor = now - next.continuousAutoPauseStart;
   if (stoppedFor > FORGOT_TO_STOP_AUTO_END_MS) {
     effects.push({ kind: 'autoEnd', idleSince: next.continuousAutoPauseStart });
-    return { next, effects, abort: true };
+    return { next, effects, abort: true, moving: false };
   }
   if (stoppedFor > FORGOT_TO_STOP_NOTIFY_MS && !next.forgotToStopNotified) {
     next.forgotToStopNotified = true;
     effects.push({ kind: 'setForgotToStopPending', value: true });
   }
-  return { next, effects, abort: false };
+  return { next, effects, abort: false, moving: false };
 }
 
 // --- Auto-pause effect handlers (dispatch table — no branching at the call site) ---
@@ -340,6 +361,13 @@ function processLocation(location: Location.LocationObject): void {
     decision.next);
   applyAutoPauseEffects(decision.effects);
   if (decision.abort) return;
+
+  // First sample this process sees for the ride: load what an earlier process
+  // persisted before appending to (and later flushing over) the buffer.
+  if (bufferRestoredForRideId !== rideId) {
+    if (getPointBuffer().length === 0) restoreBufferFromMMKV(rideId);
+    bufferRestoredForRideId = rideId;
+  }
 
   // --- Apply GPS filter (Kalman + smoothing + drift prevention) ---
   const result = gpsFilter.process(
@@ -408,8 +436,11 @@ function processLocation(location: Location.LocationObject): void {
     void enqueueWaypointUpload(rideId, flushedChunk);
   }
 
-  // Real movement: push the "still riding?" reminders back (throttled inside).
-  if (filtered.segmentDistance > 0) noteRideMovement(location.timestamp);
+  // Real movement: push the "still riding?" reminders back (throttled inside). Both
+  // conditions: the filter accepted distance AND the stop machine saw movement — the
+  // filter alone counts jitter past 1.2x accuracy as distance, which would keep a
+  // parked phone's reminders from ever firing.
+  if (decision.moving && filtered.segmentDistance > 0) noteRideMovement(location.timestamp);
 
   // A chunk only reaches disk every 50 points, so a kill used to lose up to 49
   // points — all of a short ride. Persist the partial buffer on a timer too.
@@ -458,7 +489,8 @@ TaskManager.defineTask<{ locations: Location.LocationObject[] }>(
 
 // --- Forgot-to-stop helpers ---
 
-function autoEndRide(idleSince: number): void {
+/** Exported for tests; production calls it only through the auto-pause effects. */
+export function autoEndRide(idleSince: number): void {
   const rideId = rideMMKV.getCurrentId();
   if (!rideId) return;
 
@@ -594,6 +626,7 @@ function resetAutoPauseState(): void {
   forgotToStopNotified = false;
   permissionLostReported = false;
   lastBufferFlushAt = 0;
+  bufferRestoredForRideId = null;
   // Persisted flags must die with the session too, or the next ride's CarPlay panel
   // opens already showing "STILL RIDING?" from a previous ride's stop — and the HUD
   // opens already warning that GPS is off.
