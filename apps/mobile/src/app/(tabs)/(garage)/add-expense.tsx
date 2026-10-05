@@ -17,7 +17,11 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { ExpensePhotoGallery } from '../../../components/expense-photo-gallery';
 import { useCurrency } from '../../../hooks/use-currency';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
+import {
+  EXPENSE_ENTRY_SOURCE,
+  parseExpenseEntrySource,
+  trackExpenseAdded,
+} from '../../../lib/expense-analytics';
 import {
   CATEGORY_COLORS,
   CATEGORY_LABELS,
@@ -63,6 +67,7 @@ export default function AddExpenseScreen() {
     itemName: itemNameParam,
     description: descriptionParam,
     photoUri: photoUriParam,
+    entrySource: entrySourceParam,
   } = useLocalSearchParams<{
     motorcycleId: string;
     category?: string;
@@ -71,7 +76,10 @@ export default function AddExpenseScreen() {
     itemName?: string;
     description?: string;
     photoUri?: string;
+    /** Set by callers that are not the plain manual form (receipt-scan fallback). */
+    entrySource?: string;
   }>();
+  const entrySource = parseExpenseEntrySource(entrySourceParam, EXPENSE_ENTRY_SOURCE.MANUAL);
   const { t: theme, isDark } = useEditorialTheme();
   const { currency, symbol } = useCurrency();
   const queryClient = useQueryClient();
@@ -150,10 +158,11 @@ export default function AddExpenseScreen() {
         },
       }),
     onSuccess: (result) => {
-      trackEvent(AnalyticsEvent.EXPENSE_ADDED, {
-        category,
-        amount: parsedAmount,
-        currency,
+      trackExpenseAdded({
+        entrySource,
+        bikeId: motorcycleId,
+        date,
+        properties: { category, amount: parsedAmount, currency },
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),

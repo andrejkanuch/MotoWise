@@ -16,6 +16,7 @@ import { useReceiptScanQuota } from '../../features/receipt-scan/use-receipt-sca
 import { useReceiptScanSave } from '../../features/receipt-scan/use-receipt-scan-save';
 import { type ScanBike, useScanFlow } from '../../features/receipt-scan/use-scan-flow';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { EXPENSE_ENTRY_SOURCE } from '../../lib/expense-analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
@@ -154,6 +155,7 @@ function ScanFlowHost({ initialBikeId, isOnboarding, initialResume, surface }: S
     bikeName: flow.bikeName,
     freeScansLeft,
     scanStartedAt: flow.scanStartedAt,
+    isOnboarding,
     onSaved: () => router.back(),
   });
   const onSave = useCallback(
@@ -182,6 +184,9 @@ function ScanFlowHost({ initialBikeId, isOnboarding, initialResume, surface }: S
         ...(salvage?.vendor ? { description: salvage.vendor } : {}),
         ...(salvage?.itemName ? { itemName: salvage.itemName } : {}),
         ...(photoUri ? { photoUri } : {}),
+        entrySource: isOnboarding
+          ? EXPENSE_ENTRY_SOURCE.ONBOARDING
+          : EXPENSE_ENTRY_SOURCE.RECEIPT_SCAN_FALLBACK,
       },
     } as Href);
   };
