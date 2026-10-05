@@ -60,6 +60,7 @@ export function AnalyticsIdentity() {
   useEffect(() => {
     if (typeof consent !== 'boolean') return;
     const supabase = getSupabaseBrowserClient();
+    const pending = new Set<ReturnType<typeof setTimeout>>();
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -70,11 +71,18 @@ export function AnalyticsIdentity() {
       if (!data) return;
       // Never await a Supabase call inside this callback (it can deadlock the
       // auth lock); defer it.
-      setTimeout(() => {
+      const timer = setTimeout(() => {
+        pending.delete(timer);
         supabase.auth.updateUser({ data }).catch(() => {});
       }, 0);
+      pending.add(timer);
     });
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      // A decision that changed (e.g. Undo → not decided) must kill a write
+      // still queued for the old one.
+      for (const timer of pending) clearTimeout(timer);
+    };
   }, [consent]);
 
   return null;

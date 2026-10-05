@@ -162,6 +162,18 @@ describe('AnalyticsIdentity — account consent sync', () => {
     expect(updateUser).not.toHaveBeenCalled();
   });
 
+  it('a change of decision cancels a write still queued for the old one (Undo race)', () => {
+    vi.useFakeTimers();
+    consent = true;
+    const root = render();
+    emit('INITIAL_SESSION', session('user-a', {}));
+    // Undo before the deferred write runs: the effect re-runs with no decision.
+    consent = null;
+    act(() => root.render(createElement(AnalyticsIdentity)));
+    vi.runAllTimers();
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
   it('swallows a failed write', async () => {
     consent = false;
     updateUser.mockRejectedValue(new Error('network'));

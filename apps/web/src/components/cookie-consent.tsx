@@ -129,16 +129,17 @@ function clearConsentCookie() {
 }
 
 /**
- * Clear the decision a signed-in account carries (written by AnalyticsIdentity),
- * so an undone "yes" does not keep identifying the rider's web purchases. The
- * server treats a non-boolean as "no decision". Best effort: errors are ignored.
+ * Withdraw an undone "yes" from a signed-in account (written by
+ * AnalyticsIdentity), so it stops identifying the rider's web purchases. Only a
+ * stored TRUE is cleared: a stored "no" must survive, because NULL can read as
+ * consent on the server. Reads the user fresh from the server (`getUser`), not
+ * the cached session. Best effort: errors are ignored.
  */
 async function clearAccountConsent(): Promise<void> {
   try {
     const supabase = getSupabaseBrowserClient();
-    const { data } = await supabase.auth.getSession();
-    const saved = data.session?.user.user_metadata?.[SIGNUP_CONSENT_METADATA_KEY];
-    if (typeof saved !== 'boolean') return;
+    const { data } = await supabase.auth.getUser();
+    if (data.user?.user_metadata?.[SIGNUP_CONSENT_METADATA_KEY] !== true) return;
     await supabase.auth.updateUser({ data: { [SIGNUP_CONSENT_METADATA_KEY]: null } });
   } catch {
     // Best effort; the next explicit choice is synced again.
@@ -178,6 +179,8 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
   const reset = useCallback(() => {
     clearConsentCookie();
     setConsentState(null);
+    // Undecided means nothing is captured, the same as a "no" for PostHog.
+    applyPostHogConsent(false);
     void clearAccountConsent();
   }, []);
 
