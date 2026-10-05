@@ -196,11 +196,12 @@ Also consider an "active paid now" tile: persons whose `rc_subscription_status` 
 - `product_id`, `new_product_id`, `store`, `purchase_source` (ios/android/web), `environment`.
 - `period_type`, `is_trial`, `is_trial_conversion`, `is_paid_conversion`.
 - `cancel_reason`, `expiration_reason`, `renewal_number`, `presented_offering_id`.
-- `rc_event_id`, which is also the PostHog `uuid`.
+- `rc_event_id`, which is also the PostHog `uuid`. Both are sent for consented riders only (review fix, commit 1df2e9c5).
 - `emitted_by = revenuecat_webhook`.
+- `$geoip_disable: true`. This was added in a second commit and applies to `signup_completed` as well, because PostHog was geolocating the Render server and recording every signup as US. Historical signup country can't be fixed; use `currency` as the EU stand-in for old data.
 
 **Checks.**
-- `pnpm --filter @motovault/api test`: 874/874 pass.
+- `pnpm --filter @motovault/api test`: 876/876 pass.
 - `tsc` on `tsconfig.build.json` is clean.
 - Biome is clean, and the pre-push precheck passed.
 
@@ -208,13 +209,13 @@ Also consider an "active paid now" tile: persons whose `rc_subscription_status` 
 - an event from PR #263 with `is_paid_conversion = true`: a non-trial initial purchase, a lifetime purchase, or the trial-converting renewal;
 - an event from the old integration (no `emitted_by`): a non-trial `rc_initial_purchase` with revenue.
 
-A rider who declined counts once per paid event, under source `consent_declined`. I ran the query against the old data: it executes and returns 1 web subscriber (2026-04-27 bucket, unattributed).
+A rider who declined counts once per paid event (keyed by PostHog's own event `uuid`, because declined events carry no `rc_event_id`), under source `consent_declined`. I ran the query against the old data: it executes and returns 1 web subscriber (2026-04-27 bucket, unattributed).
 
 ```sql
 SELECT addDays(toDate('2026-01-05'), 28 * intDiv(dateDiff('day', toDate('2026-01-05'), toDate(first_paid)), 28)) AS period_start,
        source, self_reported, purchase_source, count() AS paid_subscribers
 FROM (
-  SELECT if(distinct_id = 'revenuecat-no-consent', concat('nc:', toString(properties.rc_event_id)), toString(person_id)) AS subscriber,
+  SELECT if(distinct_id = 'revenuecat-no-consent', concat('nc:', toString(uuid)), toString(person_id)) AS subscriber,
          min(timestamp) AS first_paid,
          argMin(coalesce(toString(properties.purchase_source),
                          multiIf(properties.store = 'APP_STORE', 'ios', properties.store = 'PLAY_STORE', 'android',
@@ -244,3 +245,74 @@ ORDER BY period_start, paid_subscribers DESC
 - Keep the RevenueCat dashboard PostHog integration OFF.
 - Confirm `POSTHOG_PROJECT_TOKEN` is set on Render; the signup sweep already uses it.
 - After deploy, run the verification query in the PR's test plan.
+
+## 9. Review fixes (commit 1df2e9c5 on #263)
+
+- **Web purchases** (`STRIPE` / `RC_BILLING`) need an explicit TRUE; NULL counts as **no** consent. App-store purchases keep NULL = consent.
+- **Web sign-up carries the cookie-banner decision.** `/signup` and the auth modal send `raw_user_meta_data.analytics_consent` through `apps/web/src/lib/signup-consent.ts`, only once the visitor has answered the banner. Web OAuth sign-ins cannot carry metadata, so their web purchases stay anonymous until the account saves a decision.
+- **Declined events carry no RevenueCat event id:** neither `rc_event_id` nor `uuid`.
+- **Smaller fixes:**
+  - a fail-closed test for an error reading the sign-up metadata;
+  - `UUID_REGEX` is shared instead of duplicated;
+  - the private method was renamed `loadAnalyticsDecision`, so it no longer shadows the imported helper.
+- **Checks:** API 883/883 and web 295/295 tests pass; API and web `tsc` are clean; Biome is clean; the pre-push precheck passed.
+- **Closed in commit af692821:** a declined event's timestamp is cut to 00:00:00Z of its UTC day, while revenue is kept. Before this, an exact time plus product, store and price could be matched against RevenueCat data. API tests: 885/885 pass.
+
+## 10. Web account consent sync (commit 740442e7 on #263)
+
+- `apps/web/src/components/analytics-identity.tsx` keeps a signed-in account's `user_metadata.analytics_consent` in step with the cookie banner (helper `consentMetadataUpdate` in `apps/web/src/lib/signup-consent.ts`).
+- It covers a later change of mind on the banner and Google/Apple sign-ins.
+- It never writes null and makes no write when equal or signed out; it is best effort.
+- Web tests: 303/303 pass; `tsc` and Biome are clean.
+- Precedence: resolved in commit 4e58add4. For web purchases a "no" in either the in-app setting or the metadata wins (`hasPurchaseAnalyticsConsent`). App-store purchases and the signup sweep are unchanged. API tests: 893/893 pass.
+
+## 11. Banner sync hardening (commit 038b343f on #263)
+
+- **Cross-tab ping-pong fixed.** The sync reads the shared consent cookie at event time and acts only on INITIAL_SESSION / SIGNED_IN, never on USER_UPDATED.
+- **Only explicit banner choices are synced or sent at sign-up.**
+  - The cookie now records its source as `explicit` or `implied`, and `readExplicitConsent()` reads it.
+  - The automatic non-EU grant is never written to the account.
+  - Consequence: a non-EU web buyer is always anonymous in PostHog for web purchases.
+- **Checks:** web tests 311/311, API tests 893/893; both `tsc` runs and Biome are clean.
+
+## 12. Web purchases by buyer country (commit 27a11f9b on #263)
+
+- Web purchases with no explicit "no" anywhere are decided by RevenueCat's `country_code`:
+  - a known country outside the EEA/UK/CH is identified;
+  - inside the EEA/UK/CH, only an explicit yes identifies;
+  - a missing or unknown country stays anonymous.
+- An explicit "no" in either saved place still wins everywhere.
+- `OPT_IN_COUNTRIES` (32) is identical to the mobile and web lists.
+- API tests: 904/904 pass.
+- This replaces the §11 consequence: non-EU web buyers are now attributable.
+
+## 13. Undo, outermost regions, and a country_code check (commit eb4b6db2 on #263)
+
+- **Banner Undo** now resets the provider: it clears the cookie, sets consent to null, and for a signed-in session sets `user_metadata.analytics_consent` to null. Best effort.
+- **EU outermost regions** RE, GP, MQ, GF, YT, MF and AX were added to all three opt-in lists (API, web proxy, mobile). All three are identical, 39 codes; GI is not included.
+- **Production check of `country_code`** (read-only, counts only). There are no Web Billing webhook rows since 2026-09-20, so it can't be verified from data.
+  - App Store events carry it 3/3 and Play events 10/10.
+  - RevenueCat's docs say it is "sometimes" present for RC Billing and Stripe.
+  - Where it is missing, a non-EU web buyer stays anonymous unless they explicitly accepted the banner.
+- **Checks:** API 904/904, web 314/314 and mobile consent 50/50 pass; `tsc` is clean for API, web and mobile; Biome is clean.
+
+## 14. Undo hardening (commit 83388680 on #263)
+
+- Undo clears only a stored TRUE on the account, read fresh with `getUser()`; a stored "no" survives.
+- Undo opts PostHog out.
+- The banner sync's queued write is cancelled when the decision changes. A mutation check showed the test catches this.
+- Web tests: 316/316 pass; `tsc` and Biome are clean.
+
+## 15. Asymmetric sync, ordered writes, region refresh (commit df581feb on #263)
+
+- **Asymmetric background sync:** a banner "yes" only fills a missing account decision and never overwrites a "no". Accept/Decline clicks write straight to the account.
+- **Ordered writes:** all account consent writes go through one queue in `apps/web/src/lib/account-consent.ts`.
+- **Region refresh:** `mv_region` is rewritten when the geo classification changes. The country list now lives in `apps/web/src/lib/consent-region.ts`.
+- **Checks:** web tests 326/326 pass; the ordering test was mutation-checked; `tsc` and Biome are clean.
+
+## 16. Legacy cookie and region flip (commit 4f7001a6 on #263)
+
+- An old-format (source-less) "accepted" cookie is always treated as implied; an old-format "rejected" stays explicit.
+- On mount, an implied "yes" in a region that now requires opt-in is dropped: the cookie is cleared, the banner shows and PostHog is opted out. The account is not touched.
+- **Residual, noted in the PR:** the write queue is per tab.
+- Web tests: 330/330 pass.

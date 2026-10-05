@@ -53,33 +53,40 @@ Platform bucket used in tiles 2, 5 (event `utm_source`):
 | 4 | "How did you hear about us?" answers (6353622 / `06cfzgcN`) | `referral_source_selected` unique people by `referral_source` | TikTok 10 vs 6, Instagram 3 vs 3, YouTube 6 vs 7; facebook/reddit rows appear with 3.21.0 |
 | 5 | Web checkout started / completed by platform (6353624 / `8e5S0D6S`) | `checkout_initiated` + `checkout_completed` unique people, event bucket | 2 starts (other/direct), 0 completions. `checkout_completed` has never fired: it first ships with #260. |
 | 6 | Purchasers by platform (any signal), includes trials (6353627 / `irV3u9Ji`) | `purchase_completed` unique people, any-signal bucket | 7 (6 other/direct, 1 instagram) vs 7 |
-| 7 | PLACEHOLDER: Paid subscribers by platform × store (RevenueCat), empty until RC events flow (6353633 / `BCy5zCFf`) | Unique people in an OR-group (see "Tile 7 definition" below), any-signal bucket (adds the web first-touch `ft_utm_source`) × event `store` | The saved insight parses and runs. The 28-day window is empty, as expected. Over 365 days the same query returns 2 people (other/direct, STRIPE) from the Apr–Jun historical events, which are mostly sandbox. |
+| 7 | PLACEHOLDER: Paid subscribers by source × purchase platform (RevenueCat), empty until PR #263 is deployed (6353633 / `BCy5zCFf`) | See "Tile 7 definition" below | The saved insight parses and runs. The 28-day window is empty, as expected. Over 365 days it returns 2 historic people (other / direct, web). |
 
 Layout: text full width at top, then tiles 1–6 in a 2-column grid, then tile 7 full width at the bottom.
 
-### Tile 7 definition (final, per team-lead 2026-10-05)
+### Tile 7 definition (final, per rc-posthog correction: PR #263, server-side capture from our RevenueCat webhook)
 
-RevenueCat data comes from **our API's webhook capture** (agent rc-posthog, `apps/api/src/modules/webhooks/revenuecat-posthog.ts` on branch `feat/api-revenuecat-posthog`), not from RevenueCat's dashboard integration. Paid = the first paid conversion only. Each branch maps to one node of the OR-group:
+Insight 6353633 / `BCy5zCFf`, renamed "7 · PLACEHOLDER — Paid subscribers by source × purchase platform (RevenueCat) — empty until PR #263 is deployed".
+
+**Series A, "Paid subscribers (people)":** unique people in an OR-group of:
 
 | Branch | Event | Filter |
 |---|---|---|
-| Webhook (custom names) | `rc_initial_purchase` | `period_type != 'TRIAL'` |
-| Webhook | `rc_renewal` | `is_trial_conversion` true (the one renewal that converts a trial; plain renewals are excluded) |
-| Webhook | `rc_non_renewing_purchase` | none (lifetime) |
+| Webhook (#263) | any event | `startsWith(event,'rc_') AND properties.is_paid_conversion = true AND distinct_id != 'revenuecat-no-consent'`. The webhook sets `is_paid_conversion` on the first paid conversion only: a non-trial initial purchase, the renewal that converts a trial, or a lifetime purchase (`rc_non_renewing_purchase`). |
+| Old dashboard integration (kept) | `rc_initial_purchase` | `is_paid_conversion IS NULL AND revenue > 0 AND period_type != 'TRIAL'`, so old rows only and no double count with the webhook branch |
 | Old dashboard integration (kept) | `rc_initial_purchase_event` | `revenue > 0 AND period_type != 'TRIAL'` |
-| Old dashboard integration (kept) | `rc_trial_converted`, `rc_trial_converted_event` | none |
-| Old dashboard integration (kept) | `rc_non_subscription_purchase`, `rc_non_subscription_purchase_event` | none |
+| Old dashboard integration (kept) | `rc_trial_converted`, `rc_trial_converted_event`, `rc_non_subscription_purchase`, `rc_non_subscription_purchase_event` | none |
 
-The source bucket reads current person properties: `install_source`, then `ft_utm_source` (web first touch from #260, the same field rc-posthog's query uses), then `$initial_utm_source`, then `heard_from`; else other / direct. The second breakdown is `store` (STRIPE = web checkout).
+**Series B, "Paid conversions, no analytics consent (events)":** a total count of rc_* events with `is_paid_conversion = true` from distinct_id `revenuecat-no-consent`. These riders have no person profile, so they are counted per event; this uses a plain total count, not `rc_event_id`. After the #263 review these events no longer carry `rc_event_id` or a RevenueCat-derived uuid, so a webhook re-send of the same purchase can be counted twice; treat the number as approximate. The bucket also includes web purchases with no saved consent decision. Their source is unknowable, so they always land in "other / direct".
 
-Caveat: the webhook sends events from riders without analytics consent under a constant distinct_id with person processing off. All such riders count as **one** person, in "other / direct". Their sources are unknown anyway.
+**Breakdowns:**
+1. Source, from current person properties: `install_source`, then `ft_utm_source`, then `$initial_utm_source`, then `heard_from`; else other / direct.
+2. Purchase platform: `purchase_source` (ios / android / web). For old rows without it, `store` is mapped (APP_STORE → ios, PLAY_STORE → android, STRIPE / RC_BILLING → web).
 
-Change log for insight 6353633 (my own object):
-- v1: default names only (`rc_initial_purchase_event`, `rc_trial_converted_event`, `rc_non_subscription_purchase_event`), no filters, platform bucket only.
-- v2: added the custom names, the `revenue > 0 AND period_type != TRIAL` filter and the `store` breakdown.
-- v3 (current): added the webhook branches (`rc_initial_purchase` with period_type != TRIAL, `rc_renewal` with is_trial_conversion, `rc_non_renewing_purchase`) and `ft_utm_source` in the bucket; renamed the tile. Every earlier event branch is kept.
+**Window:** last 28 days vs the previous 28, test accounts filtered.
 
-Tile 6 is unchanged; its bucket does not include `ft_utm_source`.
+**Verified:** the saved insight parses and runs. The 28-day window is empty, as expected before #263 is deployed. Over 365 days (filters_override) it returns 2 people (other / direct, web) from the old Apr–Jun integration rows, which are mostly sandbox.
+
+Change log for insight 6353633 (my own object, edited only by me):
+- v1: default `_event` names only.
+- v2: added the custom names, the revenue / trial filter and a `store` breakdown.
+- v3: added explicit webhook branches (rc_initial_purchase not trial, rc_renewal with is_trial_conversion, rc_non_renewing_purchase) and `ft_utm_source`.
+- v4 (current): replaced the v3 webhook branches with the single `is_paid_conversion` branch (same set of events, one source of truth); added series B for no-consent riders; second breakdown is now `purchase_source` with a fallback from `store`. Every old-integration branch is kept.
+
+Tile 6 is unchanged.
 
 ### Item 4: survey
 

@@ -8,13 +8,26 @@ Follow-up to the [Social Campaign Attribution Audit](https://claude.ai/code/arti
 
 | # | Item | Result | Record |
 |---|------|--------|--------|
-| 1 | RevenueCat → PostHog | The dashboard integration last delivered in June, and most of what it sent was sandbox data. It is replaced by server-side capture from our webhook, which applies consent, skips sandbox and covers web purchases (PR #263). | [rc-posthog.md](rc-posthog.md) |
+| 1 | RevenueCat → PostHog | The dashboard integration last delivered in June, and most of what it sent was sandbox data. It is replaced by server-side capture from our webhook (PR #263), which skips sandbox purchases and covers web purchases. It applies consent (see "Purchase consent rule" below). A declined rider's purchase is anonymous, carries no RevenueCat id and is dated to the day only. The web now saves the rider's cookie-banner choice to their account. | [rc-posthog.md](rc-posthog.md) (§9–§16 record each review round) |
 | 2 | Data hygiene | The project test-account filter now also drops the Douyin `AppName/aweme` scraper and the 2026-07-14 backtick test rows. Slovakia was already excluded. Test filtering is also on in Revenue and Marketing analytics. | [hygiene.md](hygiene.md) |
 | 3 | Social → Paid dashboard | Dashboard [999445](https://eu.posthog.com/project/155556/dashboard/999445), 7 tiles on 28-day vs previous 28-day windows, plus a how-to-read tile. | [dashboard-survey.md](dashboard-survey.md) |
 | 4 | Milestone survey | A two-question survey (Sean Ellis + "what would you pay for"), triggered by `core_action_milestone` and shown once per person. Launched. Its targeting flag (301161) was activated, without which React Native never shows it. | [dashboard-survey.md](dashboard-survey.md) |
 | 5 | Saved insights | 142 insights, 10 dashboards, cohorts, actions, flags and the survey were searched. None filter on mobile `$screen_name` values or on the removed Meta alias events, so none were edited. | [insight-migration.md](insight-migration.md) |
 | 6 | 3.21.0 screen names | The first 3.21.0 `$screen` events pass: route templates, `feature_area` set, no ids. The privacy check is saved as insight [yS1dc5xy](https://eu.posthog.com/project/155556/insights/yS1dc5xy) ([screen-check.sql](screen-check.sql)). | [insight-migration.md](insight-migration.md) |
 | 7 | EU numbers after 3.21.0 | Annotations 138558–138560 mark the internal test and the filter change. The explainer is below. | [hygiene.md](hygiene.md) |
+
+## Purchase consent rule (PR #263)
+
+- **App Store / Play purchases:** sent under the rider's account unless they said "no". A missing decision counts as consent for now, because app versions before 3.21.0 never saved one.
+- **Web purchases:**
+  - a "no" in the app or on the web banner keeps the purchase anonymous;
+  - otherwise a clicked "yes" sends it under the rider's account;
+  - with no decision saved, the buyer's RevenueCat country decides: outside the EEA/UK/Switzerland it is sent under the account; inside, or when the country is missing, it stays anonymous.
+- **The web banner and the account:**
+  - only a clicked choice is saved to the account, never the automatic "yes" given outside the EU;
+  - the background sync can only fill an empty account value or change "yes" to "no"; a "no" becomes a "yes" only through an Accept click;
+  - Undo clears only a saved "yes".
+- **One country list in three places:** the API, the web site and the app all use the same 39-country opt-in list (EEA, UK, Switzerland and the EU's overseas regions); change all three together. The web's copy is in `apps/web/src/lib/consent-region.ts`.
 
 ## How to read EU numbers after 3.21.0
 
