@@ -621,10 +621,11 @@ describe('Overview — status variants', () => {
     await act(async () => {
       await client?.refetchQueries();
     });
+    // The error state can land a tick after refetchQueries settles on a slow runner.
+    expect(await screen.findByTestId('costs-refresh-failed')).toBeOnTheScreen();
+    expect(await screen.findByTestId('notes-refresh-failed')).toBeOnTheScreen();
     expect(screen.getByText('€1,960.62')).toBeOnTheScreen();
     expect(screen.getByText('Notes · 5')).toBeOnTheScreen();
-    expect(screen.getByTestId('costs-refresh-failed')).toBeOnTheScreen();
-    expect(screen.getByTestId('notes-refresh-failed')).toBeOnTheScreen();
     expect(screen.queryByText("Couldn't load costs")).toBeNull();
     // Each block's Retry is told apart by a screen reader.
     expect(screen.getByRole('button', { name: 'Retry costs' })).toBeOnTheScreen();
