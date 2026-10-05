@@ -48,22 +48,41 @@ function isConsentRequired(): boolean {
 }
 
 /**
+ * Whether the stored decision was a click. Cookies written before the source
+ * field existed: a "no" is always a choice (the automatic grant only ever says
+ * yes), and a "yes" is ALWAYS treated as implied — it may be an old automatic
+ * grant, and the region cookie can since have flipped to EU. Genuine old EU
+ * clicks lose nothing but the account sync; they are asked again (see mount).
+ */
+function isExplicitDecision(parts: string[], decision: Decision): boolean {
+  const source = parts[4];
+  return source === undefined ? decision === 'rejected' : source === CONSENT_SOURCE.EXPLICIT;
+}
+
+/**
  * The visitor's banner decision, read from the shared cookie at call time (so
  * every tab sees the same value), or null unless they actually CHOSE it.
- * Cookies written before the source field existed: a "no" is always a choice
- * (the automatic grant only ever says yes), and a "yes" counts only where the
- * banner is shown (EU), because elsewhere it was the automatic grant.
  */
 export function readExplicitConsent(): boolean | null {
   const parts = readConsentCookie();
   const decision = parseConsent();
-  if (!parts || !decision) return null;
-  const source = parts[4];
-  const explicit =
-    source === undefined
-      ? decision === 'rejected' || isConsentRequired()
-      : source === CONSENT_SOURCE.EXPLICIT;
-  return explicit ? decision === 'accepted' : null;
+  if (!parts || !decision || !isExplicitDecision(parts, decision)) return null;
+  return decision === 'accepted';
+}
+
+/**
+ * An automatic "yes" that no longer applies: the visitor is now in an opt-in
+ * region (e.g. the region cookie was refreshed to EU), so they must be asked.
+ */
+function isImpliedYesInOptInRegion(): boolean {
+  const parts = readConsentCookie();
+  const decision = parseConsent();
+  return (
+    !!parts &&
+    decision === 'accepted' &&
+    !isExplicitDecision(parts, decision) &&
+    isConsentRequired()
+  );
 }
 
 function writeConsent(decision: Decision, source: ConsentSource) {
@@ -133,6 +152,13 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
   const [consent, setConsentState] = useState<boolean | null>(null);
 
   useEffect(() => {
+    if (isImpliedYesInOptInRegion()) {
+      // Ask again: drop the automatic grant and stop capturing until they choose.
+      // The account is not touched — an implied yes was never written to it.
+      clearConsentCookie();
+      applyPostHogConsent(false);
+      return;
+    }
     const current = parseConsent();
     if (current !== null) {
       const asBool = current === 'accepted';

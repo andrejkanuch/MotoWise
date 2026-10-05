@@ -136,15 +136,14 @@ describe('readExplicitConsent', () => {
     expect(readExplicitConsent()).toBeNull();
   });
 
-  it('legacy cookies: a "no" is a choice; a "yes" only where the banner is shown', () => {
-    setCookie('mv_region', 'OTHER');
-    setCookie('mv_consent', 'v1:accepted:1790000000:EU');
-    expect(readExplicitConsent()).toBeNull();
-    setCookie('mv_consent', 'v1:rejected:1790000000:EU');
-    expect(readExplicitConsent()).toBe(false);
-    setCookie('mv_region', 'EU');
-    setCookie('mv_consent', 'v1:accepted:1790000000:EU');
-    expect(readExplicitConsent()).toBe(true);
+  it('legacy cookies: a "no" is a choice; a "yes" is always implied, in any region', () => {
+    for (const region of ['OTHER', 'EU']) {
+      setCookie('mv_region', region);
+      setCookie('mv_consent', 'v1:accepted:1790000000:EU');
+      expect(readExplicitConsent()).toBeNull();
+      setCookie('mv_consent', 'v1:rejected:1790000000:EU');
+      expect(readExplicitConsent()).toBe(false);
+    }
   });
 
   it('returns null when nothing is decided', () => {
@@ -167,6 +166,62 @@ describe('readExplicitConsent', () => {
 
     act(() => probe.api?.deny());
     expect(readExplicitConsent()).toBe(false);
+    act(() => root.unmount());
+  });
+});
+
+describe('CookieConsentProvider re-prompt when an automatic yes no longer applies', () => {
+  const mountWith = (consentCookie: string, region: string) => {
+    Object.assign(globalThis, { React, IS_REACT_ACT_ENVIRONMENT: true });
+    for (const [name, value] of [
+      ['mv_region', region],
+      ['mv_consent', consentCookie],
+    ]) {
+      // biome-ignore lint/suspicious/noDocumentCookie: seeding test cookies
+      document.cookie = `${name}=${encodeURIComponent(value)}; path=/`;
+    }
+    const probe: { api: ReturnType<typeof useCookieConsent> | null } = { api: null };
+    const Probe = () => {
+      probe.api = useCookieConsent();
+      return null;
+    };
+    const root = createRoot(document.createElement('div'));
+    act(() => root.render(createElement(CookieConsentProvider, null, createElement(Probe))));
+    return { probe, root };
+  };
+
+  afterEach(() => {
+    for (const name of ['mv_consent', 'mv_region']) {
+      // biome-ignore lint/suspicious/noDocumentCookie: test reset
+      document.cookie = `${name}=; path=/; max-age=0`;
+    }
+  });
+
+  it.each([
+    ['an implied cookie', 'v1:accepted:1790000000:EU:implied'],
+    ['a legacy accepted cookie', 'v1:accepted:1790000000:EU'],
+  ])('%s in an opt-in region: banner shown, PostHog off, account untouched', async (_label, cookie) => {
+    const { probe, root } = mountWith(cookie, 'EU');
+    await Promise.resolve();
+    expect(probe.api?.consent).toBeNull();
+    expect(document.cookie).not.toContain('mv_consent=');
+    expect(optOut).toHaveBeenCalledTimes(1);
+    expect(optIn).not.toHaveBeenCalled();
+    expect(getUser).not.toHaveBeenCalled();
+    expect(updateUser).not.toHaveBeenCalled();
+    act(() => root.unmount());
+  });
+
+  it('keeps an explicit yes in an opt-in region', () => {
+    const { probe, root } = mountWith('v1:accepted:1790000000:EU:explicit', 'EU');
+    expect(probe.api?.consent).toBe(true);
+    expect(optOut).not.toHaveBeenCalled();
+    act(() => root.unmount());
+  });
+
+  it('keeps an implied yes outside the opt-in regions', () => {
+    const { probe, root } = mountWith('v1:accepted:1790000000:EU:implied', 'OTHER');
+    expect(probe.api?.consent).toBe(true);
     act(() => root.unmount());
   });
 });
