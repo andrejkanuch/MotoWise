@@ -22,7 +22,7 @@ MGA TAMPOK
 LIBRE AT PRO
 ──────────────
 
-Libre habambuhay: 1 motor, walang limitasyong maintenance at gastos record, walang limitasyong pagre-record ng ride, 1 AI diagnostic at 3 receipt scan kada buwan. Ang MotoVault Pro ay nagdadagdag ng mas maraming motor, walang limitasyong AI diagnostics, walang limitasyong scan, malalim na analytics, walang limitasyong GPX export at mas maraming datos ng ride.
+Libre habambuhay: 1 motor, walang limitasyong maintenance at gastos record, walang limitasyong pagre-record ng ride, 1 AI diagnostic at 3 receipt scan kada buwan. Ang MotoVault Pro ay nagdadagdag ng mas maraming motor, walang limitasyong AI diagnostics, walang limitasyong scan, walang limitasyong GPX export at offline na mapa ng trip.
 
 May buwanan at taunang plano; makikita ang presyo sa app bago mo kumpirmahin. Awtomatikong nare-renew ang subscription maliban kung kanselahin nang hindi bababa sa 24 oras bago matapos ang panahon. Maaari itong pamahalaan o kanselahin anumang oras sa settings ng Google Play account mo.
 

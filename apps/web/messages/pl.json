@@ -300,7 +300,7 @@
       },
       {
         "question": "Co obejmuje MotoVault Pro?",
-        "answer": "MotoVault Pro odblokowuje nielimitowana diagnostyke AI, dostep do wszystkich lekcji i kursow, nielimitowane motocykle w garazu, priorytetowe wsparcie i ekskluzywne tresci. Mozesz subskrybowac miesiecznie lub rocznie z poziomu aplikacji."
+        "answer": "MotoVault Pro odblokowuje nielimitowaną liczbę motocykli w garażu, nielimitowaną diagnostykę AI, więcej artykułów AI, pytań do asystenta tras i podsumowań przejazdów AI, nielimitowane skanowanie paragonów, eksport GPX oraz mapy tras offline. Rejestrowanie serwisu i wydatków pozostaje darmowe. Możesz subskrybować miesięcznie lub rocznie z poziomu aplikacji."
       },
       {
         "question": "Czy mogę korzystać z MotoVault offline?",
@@ -324,7 +324,7 @@
       },
       {
         "question": "Czy mogę eksportować dane jazdy w formacie GPX?",
-        "answer": "MotoVault obsługuje eksport GPX zarówno dla nagranych przejazdów, jak i zaplanowanych tras. Każdy przejazd nagrany z śledzeniem GPS można wyeksportować jako standardowy plik GPX zawierający pełną trasę ze znacznikami czasu, danymi o wysokości i prędkości. Plany tras utworzone w planerze również eksportują się jako pliki tras GPX, które można zaimportować bezpośrednio do Garmin Zumo, TomTom Rider, Hammerhead Karoo lub dowolnego urządzenia nawigacyjnego GPS akceptującego format GPX. Darmowe konta obejmują pięć eksportów GPX miesięcznie, co pokrywa potrzeby większości motocyklistów w zakresie okazjonalnego udostępniania lub przenoszenia na urządzenie. MotoVault Pro odblokowuje nielimitowane eksporty bez miesięcznego limitu. Eksportowane pliki GPX są zgodne ze specyfikacją GPX 1.1 i działają z narzędziami zewnętrznymi, w tym Google Earth, Strava, Komoot i Basecamp, bez modyfikacji."
+        "answer": "MotoVault obsługuje eksport GPX zarówno dla nagranych przejazdów, jak i zaplanowanych tras. Każdy przejazd nagrany z śledzeniem GPS można wyeksportować jako standardowy plik GPX zawierający pełną trasę ze znacznikami czasu, danymi o wysokości i prędkości. Plany tras utworzone w planerze również eksportują się jako pliki tras GPX, które można zaimportować bezpośrednio do Garmin Zumo, TomTom Rider, Hammerhead Karoo lub dowolnego urządzenia nawigacyjnego GPS akceptującego format GPX. Darmowe konta obejmują jeden eksport GPX miesięcznie do okazjonalnego udostępniania lub przenoszenia na urządzenie. MotoVault Pro odblokowuje nielimitowane eksporty bez miesięcznego limitu. Eksportowane pliki GPX są zgodne ze specyfikacją GPX 1.1 i działają z narzędziami zewnętrznymi, w tym Google Earth, Strava, Komoot i Basecamp, bez modyfikacji."
       },
       {
         "question": "W jakich krajach dostępne są trasy motocyklowe?",
@@ -502,7 +502,7 @@
     "faq2Question": "Jak dziala diagnostyka AI?",
     "faq2Answer": "Zrob zdjecie dowolnej czesci motocykla lub opisz objawy. Nasze AI analizuje obraz i dostarcza ocene diagnostyczna z ocenami powagi i zalecanymi dzialaniami.",
     "faq3Question": "Czy MotoVault jest darmowy?",
-    "faq3Answer": "Tak! MotoVault oferuje darmowy plan z podstawowymi tresciami edukacyjnymi, jednym motocyklem w garazu i ograniczona diagnostyka AI. Ulepszz do MotoVault Pro, aby uzyskac nielimitowany dostep do wszystkich funkcji.",
+    "faq3Answer": "Tak! MotoVault oferuje darmowy plan z podstawowymi tresciami edukacyjnymi, jednym motocyklem w garazu i ograniczona diagnostyka AI. Rejestrowanie serwisu i wydatków, nagrywanie przejazdów i planowanie tras są darmowe dla wszystkich. MotoVault Pro dodaje nielimitowaną liczbę motocykli, nielimitowaną diagnostykę AI i skanowanie paragonów, eksport GPX oraz mapy tras offline.",
     "faq4Question": "Jak anulowac subskrypcje?",
     "faq4Answer": "Subskrypcje MotoVault Pro sa zarzadzane przez App Store (iOS) lub Google Play (Android). Przejdz do ustawien subskrypcji urzadzenia, aby anulowac lub zarzadzac planem.",
     "faq5Question": "Czy moge usunac swoje konto?",
@@ -983,7 +983,7 @@
     "pillar6Title": "Eksportowalna historia.",
     "pillar6Body": "Sprzedajesz motocykl? Wyeksportuj pełny raport serwisowy w PDF — każdą wymianę oleju, każdą oponę, każdą fakturę. Realnie zwiększa wartość odsprzedaży.",
     "pillar6KvLabel": "Eksport",
-    "pillar6KvValue": "PDF · CSV",
+    "pillar6KvValue": "PDF",
     "maintLabel": "Oś czasu serwisu",
     "maintTitle": "Już nigdy nie zaskoczy Cię",
     "maintTitleSerif": "kolejny serwis.",
@@ -1817,7 +1817,7 @@
     "rvWin1": "Nawigacja zakręt po zakręcie z mapami offline (Pro) do turystyki i wypraw",
     "rvWin2": "Lokalizator znajomych w czasie rzeczywistym — udostępniaj swoją lokalizację kumplom z trasy",
     "rvWin3": "Duża społeczność motocyklistów udostępniających i oceniających trasy na całym świecie",
-    "pricing": "REVER jest darmowy w zakresie podstawowych funkcji; Pro kosztuje $79.99/rok i dodaje mapy offline, Butler Maps oraz nawigację. MotoVault jest darmowy, a Pro od $9.99/miesiąc daje nieograniczoną diagnostykę AI i zaawansowane funkcje.",
+    "pricing": "REVER jest darmowy w zakresie podstawowych funkcji; Pro kosztuje $79.99/rok i dodaje mapy offline, Butler Maps oraz nawigację. MotoVault jest darmowy, a Pro od $9.99/miesiąc daje nieograniczoną liczbę motocykli, nieograniczoną diagnostykę AI i mapy tras offline.",
     "verdict": "Nie wybieraj między nimi — używaj obu. REVER to najlepszy dostępny planer tras motocyklowych, ale nie śledzi konserwacji, wydatków ani nie pomaga diagnozować usterek. MotoVault zajmuje się wszystkim poza drogą: konserwacją, wydatkami, diagnostyką i nauką. Razem pokrywają całe doświadczenie jazdy.",
     "faq": [
       {
@@ -1931,7 +1931,7 @@
     "rvWin1": "Mapy offline (Pro) dostrojone do pozbawionych zasięgu przełęczy alpejskich i wielokrajowych wypraw",
     "rvWin2": "Sprawdzony w boju w Alpach, Schwarzwaldzie i Dolomitach przez bardzo zaangażowaną europejską społeczność",
     "rvWin3": "Czysty eksport GPX i linki do tras, które dobrze współpracują z Garminem i innymi dedykowanymi urządzeniami GPS",
-    "pricing": "Kurviger jest darmowy przy planowaniu krętych tras online, a płatne poziomy roczne startują od około €15 rocznie i odblokowują mapy offline oraz zaawansowane wyznaczanie tras — aktualne poziomy znajdziesz na kurviger.com. MotoVault jest darmowy, a Pro kosztuje $9,99/miesiąc lub $79,99/rok i daje nielimitowaną diagnostykę AI oraz zaawansowane funkcje serwisowe. Te dwie aplikacje nie konkurują ceną — są wycenione pod różne zadania.",
+    "pricing": "Kurviger jest darmowy przy planowaniu krętych tras online, a płatne poziomy roczne startują od około €15 rocznie i odblokowują mapy offline oraz zaawansowane wyznaczanie tras — aktualne poziomy znajdziesz na kurviger.com. MotoVault jest darmowy, a Pro kosztuje $9,99/miesiąc lub $79,99/rok i daje więcej motocykli, nielimitowaną diagnostykę AI oraz mapy tras offline — rejestrowanie serwisu i wydatków jest darmowe. Te dwie aplikacje nie konkurują ceną — są wycenione pod różne zadania.",
     "verdict": "Nie wybieraj między nimi — używaj obu. Kurviger to jeden z najlepszych planerów krętych tras w Europie, ale nie śledzi ani jednego interwału serwisowego, paragonu za paliwo czy kontrolki ostrzegawczej. MotoVault obejmuje wszystko poza jazdą: serwis, wydatki, diagnostykę i naukę. Odpal Kurvigera na kierownicy na czas jazdy, a MotoVault w garażu po niej, a obejmiesz całe doświadczenie jazdy bez wchodzenia jednej aplikacji w drogę drugiej.",
     "faq": [
       {
@@ -2045,7 +2045,7 @@
     "rvWin1": "Aktywny kanał społecznościowy z postami, zdjęciami i komentarzami — codzienna społeczność motocyklistów, której MotoVault nie próbuje odtwarzać",
     "rvWin2": "Udostępnianie przejazdów stworzone dla społeczności — Twoje przejazdy naturalnie pojawiają się u znajomych i pobliskich motocyklistów",
     "rvWin3": "Jazda grupowa z potwierdzeniami obecności i udostępnianiem lokalizacji na żywo, idealna do organizowania i prowadzenia rzeczywistych przejazdów grupowych",
-    "pricing": "EatSleepRIDE jest darmowy w zakresie społeczności i zapisu przejazdów, a wykrywanie wypadków CRASHLIGHT to dodatek za US$49 rocznie. MotoVault jest darmowy, a Pro kosztuje $9,99/miesiąc lub $79,99/rok i daje nielimitowaną diagnostykę AI, dłuższą historię oraz zaawansowane funkcje serwisowe. Aplikacje odpowiadają na różne potrzeby — alarmowanie po wypadku kontra zarządzanie motocyklem.",
+    "pricing": "EatSleepRIDE jest darmowy w zakresie społeczności i zapisu przejazdów, a wykrywanie wypadków CRASHLIGHT to dodatek za US$49 rocznie. MotoVault jest darmowy, a Pro kosztuje $9,99/miesiąc lub $79,99/rok i daje więcej motocykli, nielimitowaną diagnostykę AI oraz mapy tras offline — rejestrowanie serwisu i wydatków jest darmowe. Aplikacje odpowiadają na różne potrzeby — alarmowanie po wypadku kontra zarządzanie motocyklem.",
     "verdict": "Nie traktuj tego jako rywalizacji, w której zwycięzca bierze wszystko. EatSleepRIDE to najlepsza warstwa społecznościowa i wykrywania wypadków, jaką testowaliśmy, a MotoVault to najlepsza warstwa zarządzania posiadaniem, jaką znamy. Są komplementarne, a nie konkurencyjne: jedna pilnuje Twojego motocykla, druga pilnuje Twoich pleców. Jeśli jeździsz na tyle często, że zależy Ci na obu, korzystanie z nich równolegle kosztuje niewiele i obejmuje cały obraz.",
     "faq": [
       {
@@ -2159,7 +2159,7 @@
     "rvWin1": "Solidne pakiety map offline, które działają nawet w głębi terenów bez zasięgu",
     "rvWin2": "Dopracowana aplikacja na Apple Watch z nawigacją zakręt po zakręcie na nadgarstku",
     "rvWin3": "Niższa cena miesięczna niż w większości pełnych platform motocyklowych, z darmową wersją do przetestowania",
-    "pricing": "Scenic to darmowe pobranie z subskrypcją Premium — $4,99/miesiąc przy płatności rocznej, a także plany miesięczne i kwartalne, z cenami zależnymi od regionu. MotoVault jest darmowy w podstawowych funkcjach, a Pro kosztuje $9,99/miesiąc lub $79,99/rok i daje diagnostykę AI, nielimitowaną analitykę oraz wszystkie funkcje Pro na iOS i Androidzie. Jeśli potrzebujesz tylko planowania tras na iPhonie, Scenic jest tańszą subskrypcją.",
+    "pricing": "Scenic to darmowe pobranie z subskrypcją Premium — $4,99/miesiąc przy płatności rocznej, a także plany miesięczne i kwartalne, z cenami zależnymi od regionu. MotoVault jest darmowy w podstawowych funkcjach, a Pro kosztuje $9,99/miesiąc lub $79,99/rok i daje więcej motocykli, nielimitowaną diagnostykę AI, eksport GPX oraz mapy tras offline na iOS i Androidzie. Jeśli potrzebujesz tylko planowania tras na iPhonie, Scenic jest tańszą subskrypcją.",
     "verdict": "Szczerze mówiąc, te aplikacje prawie się nie pokrywają — nie ma tu prawdziwego zwycięzcy pojedynku. Scenic to z miłością zbudowana niezależna aplikacja na iOS, która planuje trasy lepiej niż radzą sobie z tym całe zespoły. MotoVault obsługuje wszystko, czego Scenic nie robi: serwis, wydatki, diagnostykę, naukę oraz androidową połowę świata riderów. Jeśli masz iPhone’a, po prostu używaj obu. Jeśli jeździsz z Androidem, MotoVault to jedyna z tych dwóch, którą faktycznie zainstalujesz — a jego funkcje serwisu i diagnostyki bronią się same tak czy inaczej.",
     "faq": [
       {
@@ -2452,13 +2452,6 @@
     "multiBikeTitle": "Garaż na wiele motocykli jest",
     "multiBikeDesc": "Darmowi użytkownicy mają jeden motocykl. Przejdź na wyższy plan, aby zarządzać każdym motocyklem z osobną historią.",
     "upgradeToPro": "Przejdź na Pro",
-    "unlockFeature": "Odblokuj {feature}",
-    "lockCtaLabel": "Przejdź na Pro",
-    "lockPrice": "Od $5.99/mies. · 7-dniowy bezpłatny okres próbny",
-    "expenseTracking": "śledzenie wydatków",
-    "expenseTrackingDesc": "Śledź każdą złotówkę wydaną na motocykle dzięki szczegółowym zestawieniom i miesięcznym trendom — paliwo, części, serwis, wszystko.",
-    "maintenanceTracking": "śledzenie konserwacji",
-    "maintenanceTrackingDesc": "Nigdy nie przegap wymiany oleju, regulacji łańcucha czy zmiany opon. Przypomnienia oparte na przebiegu i czasie dla każdego posiadanego motocykla.",
     "yearToDate": "Od początku roku",
     "upVsLastYear": "Wzrost",
     "downVsLastYear": "Spadek",
@@ -2622,7 +2615,7 @@
       },
       {
         "question": "Czy MotoVault jest naprawdę darmowy?",
-        "answer": "Tak, MotoVault ma hojny plan darmowy, który obejmuje śledzenie serwisu, rejestrowanie wydatków i ograniczoną diagnostykę AI. MotoVault Pro odblokowuje nieograniczoną diagnostykę, zaawansowane analizy i premium treści edukacyjne."
+        "answer": "Tak, MotoVault ma hojny plan darmowy, który obejmuje śledzenie serwisu, rejestrowanie wydatków i ograniczoną diagnostykę AI. MotoVault Pro odblokowuje nieograniczoną liczbę motocykli, nieograniczoną diagnostykę AI i skanowanie paragonów, eksport GPX oraz mapy tras offline."
       },
       {
         "question": "Czy MotoVault działa offline?",
@@ -2844,7 +2837,7 @@
       },
       {
         "question": "Która aplikacja jest korzystniejsza cenowo?",
-        "answer": "Moto Shed to jednorazowy zakup za $0,99 do rejestrowania serwisów, bez subskrypcji i bez reklam — w dłuższym okresie jest znacznie tańszy. Darmowy plan MotoVault zawiera więcej funkcji niż Moto Shed, a Pro ($9,99/miesiąc lub $79,99/rok) dodaje nielimitowaną liczbę motocykli, pełną analitykę, diagnostykę AI i treści edukacyjne. Do samego rejestrowania serwisów Moto Shed daje lepszy stosunek ceny do możliwości. We wszystkim innym darmowy plan MotoVault trudno pobić."
+        "answer": "Moto Shed to jednorazowy zakup za $0,99 do rejestrowania serwisów, bez subskrypcji i bez reklam — w dłuższym okresie jest znacznie tańszy. Darmowy plan MotoVault zawiera więcej funkcji niż Moto Shed, a Pro ($9,99/miesiąc lub $79,99/rok) dodaje nielimitowaną liczbę motocykli, nielimitowaną diagnostykę AI i skanowanie paragonów, eksport GPX oraz mapy tras offline. Do samego rejestrowania serwisów Moto Shed daje lepszy stosunek ceny do możliwości. We wszystkim innym darmowy plan MotoVault trudno pobić."
       },
       {
         "question": "Czy mogę przejść z Moto Shed na MotoVault?",
@@ -2988,7 +2981,7 @@
       },
       {
         "question": "Czy śledzenie konserwacji jest darmowe?",
-        "answer": "Tak. Śledzenie konserwacji jest darmowe na iOS i Android. Opcjonalna subskrypcja MotoVault Pro ($4.99/miesiąc) odblokowuje zaawansowane funkcje."
+        "answer": "Tak. Śledzenie konserwacji jest darmowe na iOS i Android. Opcjonalna subskrypcja MotoVault Pro ($4.99/miesiąc) dodaje więcej motocykli, nielimitowaną diagnostykę AI i skanowanie paragonów, eksport GPX oraz mapy tras offline."
       }
     ],
     "faqMore": "Masz więcej pytań?",
@@ -3024,7 +3017,7 @@
     "faq": [
       {
         "question": "Czy śledzenie wydatków jest darmowe?",
-        "answer": "Tak. Śledzenie wydatków jest darmowe na iOS i Android. Opcjonalna subskrypcja MotoVault Pro ($4.99/miesiąc) odblokowuje zaawansowane funkcje."
+        "answer": "Tak. Śledzenie wydatków jest darmowe na iOS i Android. Opcjonalna subskrypcja MotoVault Pro ($4.99/miesiąc) dodaje więcej motocykli, nielimitowaną diagnostykę AI i skanowanie paragonów, eksport GPX oraz mapy tras offline."
       },
       {
         "question": "Jakie wydatki mogę śledzić?",
@@ -3072,7 +3065,7 @@
     "faq": [
       {
         "question": "Czy śledzenie przejazdów jest bezpłatne?",
-        "answer": "Tak. Śledzenie przejazdów przez GPS jest bezpłatne na iOS i Android. Opcjonalna subskrypcja MotoVault Pro ($4.99/miesiąc) odblokowuje zaawansowane funkcje."
+        "answer": "Tak. Śledzenie przejazdów przez GPS jest bezpłatne na iOS i Android. Opcjonalna subskrypcja MotoVault Pro ($4.99/miesiąc) dodaje więcej motocykli, nielimitowaną diagnostykę AI i skanowanie paragonów, eksport GPX oraz mapy tras offline."
       },
       {
         "question": "Jakie dane MotoVault rejestruje podczas przejazdu?",

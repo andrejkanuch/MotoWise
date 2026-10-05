@@ -22,7 +22,6 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertTriangle,
-  ArrowRight,
   Bike,
   Calendar,
   CheckCircle2,
@@ -144,47 +143,6 @@ function daysUntil(dateStr: string): number {
 function formatShortDate(dateStr: string): string {
   const d = new Date(dateStr);
   return d.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' });
-}
-
-// ═══════════════════════════════════════════════
-// ProGate Component
-// ═══════════════════════════════════════════════
-function ProGate({
-  feature,
-  description,
-  isPro,
-  children,
-}: {
-  feature: string;
-  description: string;
-  isPro: boolean;
-  children: React.ReactNode;
-}) {
-  const t = useTranslations('Garage');
-  if (isPro) return <>{children}</>;
-
-  return (
-    <div style={{ position: 'relative', borderRadius: '20px', overflow: 'hidden' }}>
-      <div style={{ filter: 'blur(8px) saturate(0.55)', opacity: 0.4, pointerEvents: 'none' }}>
-        {children}
-      </div>
-      <div className="lock-overlay">
-        <div className="lock-card">
-          <div className="lock-icon">
-            <Crown className="h-6 w-6" />
-          </div>
-          <h4 className="lock-title">
-            {t('unlockFeature', { feature: '' })} <span className="serif">{feature}</span>
-          </h4>
-          <p className="lock-desc">{description}</p>
-          <a className="lock-cta" href="/pro/checkout?redirect=/garage">
-            {t('lockCtaLabel')} <ArrowRight className="h-3.5 w-3.5" />
-          </a>
-          <div className="lock-price">{t('lockPrice')}</div>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 // ═══════════════════════════════════════════════
@@ -612,13 +570,8 @@ export function GarageDashboard() {
           </div>
         </div>
 
-        <ProGate
-          feature={t('expenseTracking')}
-          description={t('expenseTrackingDesc')}
-          isPro={isPro}
-        >
-          <ExpenseDashboardPanel dashboard={dashboard} />
-        </ProGate>
+        {/* Expense and maintenance logging are free for every rider — never gate them. */}
+        <ExpenseDashboardPanel dashboard={dashboard} />
 
         {/* ─── Section D: Maintenance ─── */}
         <div className="sect-header" id="maintenance">
@@ -633,20 +586,14 @@ export function GarageDashboard() {
           </div>
         </div>
 
-        <ProGate
-          feature={t('maintenanceTracking')}
-          description={t('maintenanceTrackingDesc')}
-          isPro={isPro}
-        >
-          <MaintenanceSection
-            overdue={overdueTasks}
-            upcoming={upcomingTasks}
-            scheduled={scheduledTasks}
-            bikes={bikes}
-            onComplete={(id) => completeTaskMutation.mutate(id)}
-            isCompleting={completeTaskMutation.isPending}
-          />
-        </ProGate>
+        <MaintenanceSection
+          overdue={overdueTasks}
+          upcoming={upcomingTasks}
+          scheduled={scheduledTasks}
+          bikes={bikes}
+          onComplete={(id) => completeTaskMutation.mutate(id)}
+          isCompleting={completeTaskMutation.isPending}
+        />
 
         {/* ─── Section E: Saved Trips ─── */}
         <SavedTripsSection trips={trips} />

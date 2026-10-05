@@ -139,7 +139,7 @@ export function buildSoftwareApplication(args: {
       'GPS ride recording with route maps, speed, and elevation',
       'Multi-day motorcycle trip planning with typed waypoints',
       'AI motorcycle diagnostics from photos — no OBD hardware required',
-      'Digital garage management for unlimited bikes',
+      'Digital garage with per-bike service history (multiple bikes with Pro)',
     ],
     offers: [
       { '@type': 'Offer', price: '0', priceCurrency: 'USD', name: 'Free' },
@@ -148,7 +148,8 @@ export function buildSoftwareApplication(args: {
         price: '9.99',
         priceCurrency: 'USD',
         name: 'MotoVault Pro',
-        description: 'Unlock all features with a 7-day free trial',
+        description:
+          'Unlimited bikes, AI diagnostics and receipt scans, GPX export and offline trip maps; 7-day free trial',
       },
     ],
     publisher: { '@id': SCHEMA_IDS.organization },

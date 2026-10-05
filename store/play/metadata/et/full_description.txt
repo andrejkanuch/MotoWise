@@ -22,7 +22,7 @@ FUNKTSIOONID
 TASUTA JA PRO
 ──────────────
 
-Tasuta igavesti: 1 ratas, piiramatu hooldus- ja kuluarvestus, piiramatu sõitude salvestamine, 1 AI-diagnostika ja 3 kviitungiskannimist kuus. MotoVault Pro lisab rohkem rattaid, piiramatud AI-diagnostikad, piiramatud skannimised, põhjaliku statistika, piiramatu GPX-ekspordi ja laiendatud sõiduandmed.
+Tasuta igavesti: 1 ratas, piiramatu hooldus- ja kuluarvestus, piiramatu sõitude salvestamine, 1 AI-diagnostika ja 3 kviitungiskannimist kuus. MotoVault Pro lisab rohkem rattaid, piiramatud AI-diagnostikad, piiramatud skannimised, piiramatu GPX-ekspordi ja võrguühenduseta reisikaardid.
 
 Saadaval on kuu- ja aastapakett; hind kuvatakse rakenduses enne kinnitamist. Tellimused uuenevad automaatselt, kui neid ei tühistata vähemalt 24 tundi enne perioodi lõppu. Halda või tühista igal ajal oma Google Play konto seadetes.
 

@@ -567,12 +567,6 @@
   overflow: hidden;
 }
 
-.exp-panel.locked .exp-content {
-  filter: blur(8px) saturate(0.55);
-  opacity: 0.4;
-  pointer-events: none;
-}
-
 .exp-grid {
   display: grid;
   grid-template-columns: 1fr 1.1fr;
@@ -889,121 +883,11 @@
   font-feature-settings: "tnum";
 }
 
-/* ─── Pro Lock Overlay ─── */
-.lock-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32px;
-}
-
-.lock-card {
-  background: oklch(0.09 0.008 55 / 0.78);
-  backdrop-filter: blur(20px) saturate(1.2);
-  border: 1px solid var(--mv-line);
-  border-radius: 20px;
-  padding: 32px 36px;
-  max-width: 380px;
-  text-align: center;
-  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.7);
-}
-
-.lock-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  background: linear-gradient(180deg, oklch(0.84 0.15 68 / 0.22), oklch(0.76 0.18 60 / 0.1));
-  border: 1px solid oklch(0.84 0.15 68 / 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 18px;
-  color: var(--mv-warm-300);
-  box-shadow: 0 0 30px oklch(0.84 0.15 68 / 0.15);
-}
-
-.lock-icon svg {
-  width: 24px;
-  height: 24px;
-}
-
-.lock-title {
-  font-size: 22px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  margin: 0 0 8px;
-  line-height: 1.2;
-  color: var(--mv-ink);
-}
-
-.lock-title .serif {
-  font-family: 'Instrument Serif', serif;
-  font-style: italic;
-  font-weight: 400;
-  letter-spacing: -0.03em;
-  color: var(--mv-warm-300);
-}
-
-.lock-desc {
-  font-size: 13.5px;
-  color: var(--mv-ink-2);
-  line-height: 1.55;
-  margin: 0 0 20px;
-  max-width: 36ch;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.lock-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 22px;
-  border-radius: 999px;
-  background: var(--mv-warm-500);
-  color: #15110b;
-  font-size: 13.5px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: 0.2s;
-  letter-spacing: -0.005em;
-  text-decoration: none;
-}
-
-.lock-cta:hover {
-  background: var(--mv-warm-400);
-  transform: translateY(-1px);
-}
-
-.lock-cta svg {
-  width: 14px;
-  height: 14px;
-}
-
-.lock-price {
-  margin-top: 12px;
-  font-family: 'Geist Mono', monospace;
-  font-size: 10.5px;
-  color: var(--mv-ink-3);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
 /* ─── Maintenance ─── */
 .maint-section {
   position: relative;
   border-radius: 20px;
   overflow: hidden;
-}
-
-.maint-section.locked .maint-content {
-  filter: blur(8px) saturate(0.55);
-  opacity: 0.4;
-  pointer-events: none;
 }
 
 .maint-group {

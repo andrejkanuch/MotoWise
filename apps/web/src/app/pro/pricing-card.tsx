@@ -3,17 +3,7 @@
 import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-
-const HERO_BENEFITS = [
-  'Unlimited AI diagnostic scans',
-  'Unlimited bikes in your garage',
-  'Multi-day trip planning + GPX export',
-  'Route discovery & curated rides',
-  'Advanced ride analytics & lean angle',
-  'AI Health Reports \u2014 monthly summary',
-  'Export everything (CSV / PDF)',
-  'Priority support \u2014 24h reply',
-] as const;
+import { PRO_BENEFIT_BULLETS } from '@/lib/pro-plan';
 
 const PLANS = {
   monthly: { price: '$5.99', period: '/mo', sub: '$5.99 / month', crossed: null },
@@ -75,7 +65,7 @@ export function PricingCard() {
 
         {/* Benefits list */}
         <ul className="mt-6 space-y-3">
-          {HERO_BENEFITS.map((b) => (
+          {PRO_BENEFIT_BULLETS.map((b) => (
             <li key={b} className="flex items-center gap-3 text-[13px] text-neutral-300">
               <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-warm-500/20">
                 <span className="size-1.5 rounded-full bg-warm-500" />

@@ -2,21 +2,23 @@
 
 import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import {
-  BarChart3,
   Brain,
   CheckCircle2,
   Clock,
   Crown,
+  Download,
+  type LucideIcon,
+  MapPin,
   PartyPopper,
-  Route,
-  Shield,
-  Wrench,
+  Receipt,
+  Sparkles,
   Zap,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { clearProStatusCache } from '@/hooks/use-pro-status';
+import { PRO_FEATURE_KEYS, PRO_FEATURES, type ProFeatureKey } from '@/lib/pro-plan';
 import { getRevenueCatCustomerInfo } from '@/lib/revenuecat';
 import { safeRedirectPath } from '@/lib/safe-redirect';
 
@@ -43,14 +45,15 @@ const POLL_SCHEDULE = [
 
 const SESSION_KEY = 'mv_pro_poll_start';
 
-const PRO_FEATURES = [
-  { icon: Brain, label: 'Unlimited AI diagnostics' },
-  { icon: Route, label: 'Route discovery & planning' },
-  { icon: BarChart3, label: 'Advanced ride analytics' },
-  { icon: Wrench, label: 'AI Health Reports' },
-  { icon: Zap, label: 'Multi-bike garage' },
-  { icon: Shield, label: 'Priority support' },
-] as const;
+/** Icon per Pro feature; labels come from lib/pro-plan.ts so they match /pro. */
+const FEATURE_ICONS: Record<ProFeatureKey, LucideIcon> = {
+  [PRO_FEATURE_KEYS.BIKES]: Zap,
+  [PRO_FEATURE_KEYS.AI_DIAGNOSTICS]: Brain,
+  [PRO_FEATURE_KEYS.AI_EXTRAS]: Sparkles,
+  [PRO_FEATURE_KEYS.RECEIPT_SCANS]: Receipt,
+  [PRO_FEATURE_KEYS.GPX_EXPORT]: Download,
+  [PRO_FEATURE_KEYS.OFFLINE_MAPS]: MapPin,
+};
 
 type Status = 'polling' | 'activated' | 'timeout' | 'already_pro';
 
@@ -245,11 +248,11 @@ function CheckoutSuccessContent() {
                 </div>
                 <ul className="space-y-3">
                   {PRO_FEATURES.map((feature) => {
-                    const Icon = feature.icon;
+                    const Icon = FEATURE_ICONS[feature.key];
                     return (
-                      <li key={feature.label} className="flex items-center gap-3 text-left">
+                      <li key={feature.key} className="flex items-center gap-3 text-left">
                         <Icon className="size-4 shrink-0 text-accent-400" />
-                        <span className="text-sm text-neutral-300">{feature.label}</span>
+                        <span className="text-sm text-neutral-300">{feature.title}</span>
                       </li>
                     );
                   })}

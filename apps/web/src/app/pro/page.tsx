@@ -1,69 +1,36 @@
-import { BarChart3, ChevronDown, Download, Heart, MapPin, Search, Zap } from 'lucide-react';
+import {
+  ChevronDown,
+  Download,
+  type LucideIcon,
+  MapPin,
+  Receipt,
+  Search,
+  Sparkles,
+  Zap,
+} from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { FREE_VS_PRO, PRO_FEATURE_KEYS, PRO_FEATURES, type ProFeatureKey } from '@/lib/pro-plan';
 import { PricingCard } from './pricing-card';
 
 export const metadata: Metadata = {
-  title: 'Pro — Unlock Every Feature | MotoVault',
+  title: 'Pro — More Bikes, Unlimited AI | MotoVault',
   description:
-    'Upgrade to MotoVault Pro for unlimited AI diagnostics, advanced ride analytics, multi-bike garage, and more. Start your 7-day free trial.',
+    'MotoVault Pro adds unlimited bikes, unlimited AI diagnostics, unlimited receipt scans, GPX export and offline trip maps. Maintenance and expense logging stay free. Start your 7-day free trial.',
   alternates: { canonical: 'https://motovault.app/pro' },
 };
 
 /* ── Data ─────────────────────────────────────────────────────── */
 
-const PRO_FEATURES = [
-  {
-    icon: Search,
-    title: 'Unlimited AI diagnostics',
-    description:
-      'Snap a photo of any part or warning light. Get severity, fix steps, and parts cost — no scan limit.',
-  },
-  {
-    icon: MapPin,
-    title: 'Multi-day trip planning',
-    description:
-      'Typed waypoints (fuel, food, passes), rider RSVPs, GPX export, offline-ready maps for the whole route.',
-  },
-  {
-    icon: Zap,
-    title: 'Unlimited bikes',
-    description:
-      'Daily commuter, track day weapon, vintage project — all in one garage, each with its own service history.',
-  },
-  {
-    icon: BarChart3,
-    title: 'Advanced ride analytics',
-    description:
-      'Lean angle, max speed, elevation, sector splits, and cost-per-km. See exactly how you ride and what it costs.',
-  },
-  {
-    icon: Heart,
-    title: 'AI Health Reports',
-    description:
-      "Monthly summary of every bike: what's due, what's overdue, what AI noticed in your photos. Catch issues early.",
-  },
-  {
-    icon: Download,
-    title: 'Export everything',
-    description:
-      'Full CSV / PDF export of garage, service log, expenses, and rides. Your data stays yours, forever.',
-  },
-] as const;
-
-const COMPARISON = [
-  { name: 'Motorcycles in garage', free: '1', pro: 'Unlimited' },
-  { name: 'AI diagnostic scans', free: '1 / month', pro: 'Unlimited' },
-  { name: 'Ride recording & history', free: true, pro: true },
-  { name: 'Maintenance reminders', free: true, pro: true },
-  { name: 'Expense tracking', free: true, pro: true },
-  { name: 'Multi-day trip planning', free: true, pro: true },
-  { name: 'Route discovery', free: true, pro: true },
-  { name: 'Advanced ride analytics', free: false, pro: true },
-  { name: 'AI Health Reports', free: false, pro: true },
-  { name: 'Export data (CSV / PDF)', free: false, pro: true },
-  { name: 'Priority support', free: false, pro: true },
-] as const;
+/** Icon per Pro feature; the copy itself lives in lib/pro-plan.ts. */
+const FEATURE_ICONS: Record<ProFeatureKey, LucideIcon> = {
+  [PRO_FEATURE_KEYS.BIKES]: Zap,
+  [PRO_FEATURE_KEYS.AI_DIAGNOSTICS]: Search,
+  [PRO_FEATURE_KEYS.AI_EXTRAS]: Sparkles,
+  [PRO_FEATURE_KEYS.RECEIPT_SCANS]: Receipt,
+  [PRO_FEATURE_KEYS.GPX_EXPORT]: Download,
+  [PRO_FEATURE_KEYS.OFFLINE_MAPS]: MapPin,
+};
 
 const FAQ = [
   {
@@ -80,7 +47,7 @@ const FAQ = [
   },
   {
     q: 'Why subscribe vs. pay once?',
-    a: 'AI diagnostics, route data, and ride analytics all need ongoing infrastructure (Anthropic, Mapbox, Supabase). A subscription lets us keep the model up to date and ship new features instead of charging for every release.',
+    a: 'AI diagnostics, receipt scanning and offline map data all cost us something every time you use them (AI models, Mapbox, Supabase). A subscription pays for that usage and lets us keep shipping, while logging maintenance and expenses stays free for everyone.',
   },
   {
     q: 'Is my data private?',
@@ -88,7 +55,7 @@ const FAQ = [
   },
   {
     q: 'Does Pro work offline?',
-    a: 'Yes \u2014 your garage, maintenance log, and downloaded GPX routes all work offline. AI diagnostics and route discovery need a connection.',
+    a: 'Yes \u2014 Pro lets you download a trip\u2019s maps for offline use, and your garage and maintenance log work offline on every plan. AI diagnostics, receipt scans and route discovery need a connection.',
   },
   {
     q: 'Can I switch plans later?',
@@ -134,15 +101,15 @@ export default function ProPage() {
             </div>
 
             <h1 className="text-4xl leading-[1.08] font-medium tracking-tight sm:text-5xl lg:text-6xl">
-              Unlock <span className="font-serif italic text-warm-400">every feature.</span>
+              More bikes. <span className="font-serif italic text-warm-400">More AI.</span>
               <br />
-              Ride smarter.
+              Logging stays free.
             </h1>
 
             <p className="mt-6 max-w-md text-[15px] leading-relaxed text-neutral-400">
-              One subscription. Unlimited AI diagnostics, multi-day trip planning, advanced ride
-              analytics, unlimited bikes. Built specifically for motorcycles, by people who actually
-              ride.
+              One subscription. Unlimited bikes, unlimited AI diagnostics and receipt scans, GPX
+              export and offline trip maps. Maintenance, expenses, rides and trips are free for
+              every rider, forever.
             </p>
 
             <ul className="mt-8 space-y-2.5">
@@ -170,26 +137,31 @@ export default function ProPage() {
       <section className="px-6 pt-20 pb-16 md:pt-28">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-3xl font-medium tracking-tight sm:text-4xl lg:text-[52px] lg:leading-[1.1]">
-            Everything <span className="font-serif italic text-warm-400">unlocked.</span>
+            What Pro <span className="font-serif italic text-warm-400">adds.</span>
           </h2>
           <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-neutral-400">
-            Pro is one bundle, not a tier ladder. Every feature, every bike, every ride — for the
-            price of three coffees a month.
+            Pro is one bundle, not a tier ladder. It lifts the limits on bikes and AI, and adds GPX
+            export and offline maps. Everything you log stays free.
           </p>
 
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {PRO_FEATURES.map((f) => (
-              <div
-                key={f.title}
-                className="rounded-xl border border-neutral-800/50 bg-neutral-900/30 p-6"
-              >
-                <div className="mb-5 flex size-11 items-center justify-center rounded-xl border border-warm-500/30 bg-warm-500/10">
-                  <f.icon className="size-5 text-warm-400" />
+            {PRO_FEATURES.map((f) => {
+              const Icon = FEATURE_ICONS[f.key];
+              return (
+                <div
+                  key={f.key}
+                  className="rounded-xl border border-neutral-800/50 bg-neutral-900/30 p-6"
+                >
+                  <div className="mb-5 flex size-11 items-center justify-center rounded-xl border border-warm-500/30 bg-warm-500/10">
+                    <Icon className="size-5 text-warm-400" />
+                  </div>
+                  <h3 className="text-[15px] font-medium">{f.title}</h3>
+                  <p className="mt-2 text-[13px] leading-relaxed text-neutral-500">
+                    {f.description}
+                  </p>
                 </div>
-                <h3 className="text-[15px] font-medium">{f.title}</h3>
-                <p className="mt-2 text-[13px] leading-relaxed text-neutral-500">{f.description}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -216,11 +188,11 @@ export default function ProPage() {
               </span>
             </div>
 
-            {COMPARISON.map((row, i) => (
+            {FREE_VS_PRO.map((row, i) => (
               <div
                 key={row.name}
                 className={`grid grid-cols-[1fr_120px_120px] items-center px-6 py-3.5 sm:grid-cols-[1fr_160px_160px] ${
-                  i < COMPARISON.length - 1 ? 'border-b border-neutral-800/30' : ''
+                  i < FREE_VS_PRO.length - 1 ? 'border-b border-neutral-800/30' : ''
                 }`}
               >
                 <span className="text-sm text-neutral-300">{row.name}</span>
