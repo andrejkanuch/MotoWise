@@ -6,18 +6,20 @@ import {
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { type AnalyticsDecision, readAnalyticsDecision } from '../analytics/analytics-consent';
+import { readAnalyticsDecision } from '../analytics/analytics-consent';
 import { postHogCaptureTarget, sendPostHogBatch } from '../analytics/posthog-capture';
 import { MetaEventsService } from '../meta/meta-events.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import type { RevenueCatEvent } from './dto/revenuecat-event.dto';
 import {
   buildRevenueCatPostHogEvent,
+  FAIL_CLOSED_DECISIONS,
   isPaidConversion,
   isTrialStart,
   purchaseSourceForStore,
   RC_ENVIRONMENT_PRODUCTION,
   revenueCatPostHogEventName,
+  type StoredAnalyticsDecisions,
   UUID_REGEX,
 } from './revenuecat-posthog';
 
@@ -153,32 +155,40 @@ export class RevenueCatService {
       return;
     }
 
-    const decision = await this.loadAnalyticsDecision(event.app_user_id);
+    const decisions = await this.loadAnalyticsDecisions(
+      event.app_user_id,
+      purchaseSourceForStore(event.store) === 'web',
+    );
     const failure = await sendPostHogBatch(target, [
-      buildRevenueCatPostHogEvent(event, eventName, decision),
+      buildRevenueCatPostHogEvent(event, eventName, decisions),
     ]);
     if (failure) this.logger.error(`PostHog capture of ${event.id} ${failure}`);
   }
 
   /**
-   * The rider's saved analytics decision, read where the signup sweep reads it.
-   * Fails CLOSED: when the account cannot be read the event goes to the
+   * The rider's saved analytics decisions, read where the signup sweep reads
+   * them. The sign-up metadata is read only when it can matter: always for a web
+   * purchase (a "no" there wins), else only when the account has no decision.
+   * Fails CLOSED: an unreadable source counts as "no", so the event goes to the
    * anonymous bucket, never to an identified person.
    */
-  private async loadAnalyticsDecision(userId: string): Promise<AnalyticsDecision> {
+  private async loadAnalyticsDecisions(
+    userId: string,
+    isWebPurchase: boolean,
+  ): Promise<StoredAnalyticsDecisions> {
     const { data: user, error } = await this.adminClient
       .from('users')
       .select('preferences')
       .eq('id', userId)
       .maybeSingle();
-    if (error || !user) return false;
+    if (error || !user) return FAIL_CLOSED_DECISIONS;
 
-    const fromAccount = readAnalyticsDecision(user.preferences, undefined);
-    if (fromAccount !== null) return fromAccount;
+    const account = readAnalyticsDecision(user.preferences, undefined);
+    if (account !== null && !isWebPurchase) return { account, signup: null };
 
     const { data: auth, error: authError } = await this.adminClient.auth.admin.getUserById(userId);
-    if (authError) return false;
-    return readAnalyticsDecision(undefined, auth.user?.user_metadata);
+    if (authError) return { account, signup: false };
+    return { account, signup: readAnalyticsDecision(undefined, auth.user?.user_metadata) };
   }
 
   private async fireMetaEvent(event: RevenueCatEvent, purchaseSource: string): Promise<void> {

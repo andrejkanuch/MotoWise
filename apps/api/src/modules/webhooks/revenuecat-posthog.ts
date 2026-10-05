@@ -83,20 +83,39 @@ export function isPaidConversion(event: RevenueCatEvent): boolean {
 }
 
 /**
+ * The rider's decision as saved in each place, read separately because web
+ * purchases weigh them differently. `account` is
+ * `users.preferences.privacy.analyticsEnabled` (the in-app setting); `signup` is
+ * `user_metadata.analytics_consent` (sent with sign-up, and kept in step with
+ * the web cookie banner for signed-in visitors). NULL = nothing saved there.
+ */
+export interface StoredAnalyticsDecisions {
+  account: AnalyticsDecision;
+  signup: AnalyticsDecision;
+}
+
+/** Both places unreadable or refused: never identify. */
+export const FAIL_CLOSED_DECISIONS: StoredAnalyticsDecisions = { account: false, signup: false };
+
+/**
  * Whether this purchase may be sent identified.
  *
- * Mobile stores follow the shared rule (NULL = consent for now: apps before
- * 3.21.0 save no decision). Web Billing does NOT: the web never saved a decision
- * before this change, so NULL there is a visitor who may well have declined the
- * cookie banner. Only an explicit TRUE identifies a web purchase.
+ * App-store purchases follow the signup sweep exactly: the account decision,
+ * else the sign-up one (00184 order), with NULL = consent for now (apps before
+ * 3.21.0 save no decision).
+ *
+ * Web Billing is conservative: a "no" in EITHER place wins, and only a resolved
+ * explicit TRUE identifies. NULL there may be a visitor who declined the cookie
+ * banner, and a rider who said yes in the app can still decline the banner later.
  */
 export function hasPurchaseAnalyticsConsent(
   event: RevenueCatEvent,
-  decision: AnalyticsDecision,
+  decisions: StoredAnalyticsDecisions,
 ): boolean {
+  const resolved = decisions.account ?? decisions.signup;
   return purchaseSourceForStore(event.store) === 'web'
-    ? decision === true
-    : hasAnalyticsConsent(decision);
+    ? resolved === true && decisions.signup !== false
+    : hasAnalyticsConsent(resolved);
 }
 
 /** The PostHog event name for a webhook type, or null when it is not sent. */
@@ -125,9 +144,9 @@ export function revenueCatPostHogEventName(type: string): RcPostHogEventName | n
 export function buildRevenueCatPostHogEvent(
   event: RevenueCatEvent,
   eventName: RcPostHogEventName,
-  decision: AnalyticsDecision,
+  decisions: StoredAnalyticsDecisions,
 ): PostHogCaptureEvent {
-  const consented = hasPurchaseAnalyticsConsent(event, decision);
+  const consented = hasPurchaseAnalyticsConsent(event, decisions);
   const takesMoney = REVENUE_EVENT_TYPES.has(event.type) && typeof event.price === 'number';
   const properties: Record<string, unknown> = {
     rc_event_id: consented ? event.id : undefined,

@@ -1,11 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { AnalyticsDecision } from '../analytics/analytics-consent';
 import type { RevenueCatEvent } from './dto/revenuecat-event.dto';
 import { RevenueCatService } from './revenuecat.service';
 import {
   buildRevenueCatPostHogEvent,
+  hasPurchaseAnalyticsConsent,
   RC_NO_CONSENT_DISTINCT_ID,
   RC_POSTHOG_EVENT_NAMES,
   revenueCatPostHogEventName,
+  type StoredAnalyticsDecisions,
 } from './revenuecat-posthog';
 
 /**
@@ -16,6 +19,12 @@ import {
 const USER_ID = '11111111-1111-1111-1111-111111111111';
 const RC_EVENT_ID = 'CD489E0E-6A9A-4B04-B6E3-4ED6C1D9C3F7';
 const POSTHOG_TOKEN = 'phc_test';
+
+/** Saved decisions: the in-app account setting, and the sign-up/banner metadata. */
+const decided = (
+  account: AnalyticsDecision,
+  signup: AnalyticsDecision = null,
+): StoredAnalyticsDecisions => ({ account, signup });
 
 function rcEvent(overrides: Partial<RevenueCatEvent> = {}): RevenueCatEvent {
   return {
@@ -56,11 +65,40 @@ describe('revenueCatPostHogEventName', () => {
   });
 });
 
+describe('hasPurchaseAnalyticsConsent', () => {
+  const web = rcEvent({ store: 'RC_BILLING' });
+  const app = rcEvent({ store: 'APP_STORE' });
+
+  it('web: an app "yes" with a web banner "no" stays anonymous (a no anywhere wins)', () => {
+    expect(hasPurchaseAnalyticsConsent(web, decided(true, false))).toBe(false);
+  });
+
+  it('web: an app "yes" with no banner metadata is identified', () => {
+    expect(hasPurchaseAnalyticsConsent(web, decided(true, null))).toBe(true);
+  });
+
+  it('web: a banner "yes" with no app setting is identified; a "no" in the app wins', () => {
+    expect(hasPurchaseAnalyticsConsent(web, decided(null, true))).toBe(true);
+    expect(hasPurchaseAnalyticsConsent(web, decided(false, true))).toBe(false);
+  });
+
+  it('web: nothing saved anywhere is not consent', () => {
+    expect(hasPurchaseAnalyticsConsent(web, decided(null, null))).toBe(false);
+  });
+
+  it('app store: unchanged — the account decision wins, NULL counts as consent', () => {
+    expect(hasPurchaseAnalyticsConsent(app, decided(true, false))).toBe(true);
+    expect(hasPurchaseAnalyticsConsent(app, decided(false, true))).toBe(false);
+    expect(hasPurchaseAnalyticsConsent(app, decided(null, false))).toBe(false);
+    expect(hasPurchaseAnalyticsConsent(app, decided(null, null))).toBe(true);
+  });
+});
+
 describe('buildRevenueCatPostHogEvent', () => {
   const NAME = RC_POSTHOG_EVENT_NAMES.INITIAL_PURCHASE;
 
   it('identifies a consented rider by their Supabase user id', () => {
-    const built = buildRevenueCatPostHogEvent(rcEvent(), NAME, true);
+    const built = buildRevenueCatPostHogEvent(rcEvent(), NAME, decided(true));
     expect(built).toMatchObject({
       event: 'rc_initial_purchase',
       distinct_id: USER_ID,
@@ -83,13 +121,15 @@ describe('buildRevenueCatPostHogEvent', () => {
 
   it('treats no saved decision as consent for an app-store purchase (signup sweep rule)', () => {
     for (const store of ['APP_STORE', 'PLAY_STORE']) {
-      expect(buildRevenueCatPostHogEvent(rcEvent({ store }), NAME, null).distinct_id).toBe(USER_ID);
+      expect(buildRevenueCatPostHogEvent(rcEvent({ store }), NAME, decided(null)).distinct_id).toBe(
+        USER_ID,
+      );
     }
   });
 
   it('treats no saved decision as NO consent for a web purchase', () => {
     for (const store of ['STRIPE', 'RC_BILLING']) {
-      const built = buildRevenueCatPostHogEvent(rcEvent({ store }), NAME, null);
+      const built = buildRevenueCatPostHogEvent(rcEvent({ store }), NAME, decided(null));
       expect(built.distinct_id).toBe(RC_NO_CONSENT_DISTINCT_ID);
       expect(built.properties).toMatchObject({ $process_person_profile: false });
     }
@@ -97,14 +137,14 @@ describe('buildRevenueCatPostHogEvent', () => {
 
   it('identifies a web purchase only on an explicit yes, and never on a no', () => {
     const web = rcEvent({ store: 'RC_BILLING' });
-    expect(buildRevenueCatPostHogEvent(web, NAME, true).distinct_id).toBe(USER_ID);
-    expect(buildRevenueCatPostHogEvent(web, NAME, false).distinct_id).toBe(
+    expect(buildRevenueCatPostHogEvent(web, NAME, decided(true)).distinct_id).toBe(USER_ID);
+    expect(buildRevenueCatPostHogEvent(web, NAME, decided(false)).distinct_id).toBe(
       RC_NO_CONSENT_DISTINCT_ID,
     );
   });
 
   it('puts a rider who declined into the anonymous bucket with no person profile', () => {
-    const built = buildRevenueCatPostHogEvent(rcEvent(), NAME, false);
+    const built = buildRevenueCatPostHogEvent(rcEvent(), NAME, decided(false));
     expect(built.distinct_id).toBe(RC_NO_CONSENT_DISTINCT_ID);
     expect(built.properties).toMatchObject({
       $process_person_profile: false,
@@ -114,7 +154,7 @@ describe('buildRevenueCatPostHogEvent', () => {
   });
 
   it('drops the RevenueCat event id for a rider who declined (it joins back to the account)', () => {
-    const built = buildRevenueCatPostHogEvent(rcEvent(), NAME, false);
+    const built = buildRevenueCatPostHogEvent(rcEvent(), NAME, decided(false));
     // What actually goes over the wire: undefined keys are not serialised.
     const sent = JSON.parse(JSON.stringify(built));
     expect(sent).not.toHaveProperty('uuid');
@@ -124,19 +164,19 @@ describe('buildRevenueCatPostHogEvent', () => {
 
   it('cuts a declined rider’s timestamp to the start of the UTC purchase day', () => {
     // event_timestamp_ms 1_790_000_000_000 = 2026-09-21T14:13:20.000Z
-    const declined = buildRevenueCatPostHogEvent(rcEvent(), NAME, false);
+    const declined = buildRevenueCatPostHogEvent(rcEvent(), NAME, decided(false));
     expect(declined.timestamp).toBe('2026-09-21T00:00:00.000Z');
-    const consented = buildRevenueCatPostHogEvent(rcEvent(), NAME, true);
+    const consented = buildRevenueCatPostHogEvent(rcEvent(), NAME, decided(true));
     expect(consented.timestamp).toBe('2026-09-21T14:13:20.000Z');
   });
 
   it('keeps revenue on a declined rider’s purchase (dashboard totals)', () => {
-    const declined = buildRevenueCatPostHogEvent(rcEvent(), NAME, false);
+    const declined = buildRevenueCatPostHogEvent(rcEvent(), NAME, decided(false));
     expect(declined.properties).toMatchObject({ revenue: 59.99, currency: 'USD' });
   });
 
   it('keeps the RevenueCat event id for a consented rider', () => {
-    const built = buildRevenueCatPostHogEvent(rcEvent(), NAME, true);
+    const built = buildRevenueCatPostHogEvent(rcEvent(), NAME, decided(true));
     expect(built.uuid).toBe(RC_EVENT_ID.toLowerCase());
     expect(built.properties.rc_event_id).toBe(RC_EVENT_ID);
   });
@@ -145,7 +185,7 @@ describe('buildRevenueCatPostHogEvent', () => {
     const built = buildRevenueCatPostHogEvent(
       rcEvent({ period_type: 'TRIAL', price: 0 }),
       NAME,
-      true,
+      decided(true),
     );
     expect(built.properties).toMatchObject({ is_trial: true, is_paid_conversion: false });
     expect(built.properties.revenue).toBe(0);
@@ -155,7 +195,7 @@ describe('buildRevenueCatPostHogEvent', () => {
     const built = buildRevenueCatPostHogEvent(
       rcEvent({ type: 'RENEWAL', is_trial_conversion: true }),
       RC_POSTHOG_EVENT_NAMES.RENEWAL,
-      true,
+      decided(true),
     );
     expect(built.properties).toMatchObject({ is_trial_conversion: true, is_paid_conversion: true });
   });
@@ -164,7 +204,7 @@ describe('buildRevenueCatPostHogEvent', () => {
     const built = buildRevenueCatPostHogEvent(
       rcEvent({ type: 'CANCELLATION', cancel_reason: 'UNSUBSCRIBE' }),
       RC_POSTHOG_EVENT_NAMES.CANCELLATION,
-      true,
+      decided(true),
     );
     expect(built.properties).not.toHaveProperty('revenue');
     expect(built.properties).toMatchObject({ cancel_reason: 'UNSUBSCRIBE', price_usd: 59.99 });
@@ -172,14 +212,14 @@ describe('buildRevenueCatPostHogEvent', () => {
 
   it('never geolocates the API server, consented or not', () => {
     for (const decision of [true, false, null]) {
-      const built = buildRevenueCatPostHogEvent(rcEvent(), NAME, decision);
+      const built = buildRevenueCatPostHogEvent(rcEvent(), NAME, decided(decision));
       expect(built.properties.$geoip_disable).toBe(true);
     }
   });
 
   it('maps Web Billing to the web purchase source', () => {
     for (const store of ['STRIPE', 'RC_BILLING']) {
-      const built = buildRevenueCatPostHogEvent(rcEvent({ store }), NAME, true);
+      const built = buildRevenueCatPostHogEvent(rcEvent({ store }), NAME, decided(true));
       expect(built.properties.purchase_source).toBe('web');
     }
   });
@@ -188,7 +228,7 @@ describe('buildRevenueCatPostHogEvent', () => {
     const built = buildRevenueCatPostHogEvent(
       rcEvent({ subscriber_attributes: { $email: { value: 'x' } } }),
       NAME,
-      true,
+      decided(true),
     );
     expect(built.properties).not.toHaveProperty('subscriber_attributes');
   });
@@ -306,6 +346,29 @@ describe('RevenueCatService → PostHog capture', () => {
     await service.processEvent(rcEvent({ store: 'RC_BILLING' }));
     await flush();
     expect(posthogBatches()[0].batch).toEqual([expect.objectContaining({ distinct_id: USER_ID })]);
+  });
+
+  it('sends a web purchase anonymously when the app says yes but the banner said no', async () => {
+    authResult = { data: { user: { user_metadata: { analytics_consent: false } } }, error: null };
+    await service.processEvent(rcEvent({ store: 'RC_BILLING' }));
+    await flush();
+    expect(posthogBatches()[0].batch).toEqual([
+      expect.objectContaining({ distinct_id: RC_NO_CONSENT_DISTINCT_ID }),
+    ]);
+  });
+
+  it('identifies a web purchase when the app says yes and there is no banner metadata', async () => {
+    await service.processEvent(rcEvent({ store: 'RC_BILLING' }));
+    await flush();
+    expect(posthogBatches()[0].batch).toEqual([expect.objectContaining({ distinct_id: USER_ID })]);
+  });
+
+  it('leaves an app-store purchase unaffected: app "yes" wins, metadata is not read', async () => {
+    authResult = { data: { user: { user_metadata: { analytics_consent: false } } }, error: null };
+    await service.processEvent(rcEvent({ store: 'PLAY_STORE' }));
+    await flush();
+    expect(posthogBatches()[0].batch).toEqual([expect.objectContaining({ distinct_id: USER_ID })]);
+    expect(adminClient.auth.admin.getUserById).not.toHaveBeenCalled();
   });
 
   it('fails closed to the anonymous bucket when the sign-up metadata read errors', async () => {
