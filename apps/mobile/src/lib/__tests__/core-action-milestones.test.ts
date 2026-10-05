@@ -6,7 +6,9 @@ jest.mock('../analytics', () => ({
   AnalyticsEvent: { CORE_ACTION_MILESTONE: 'core_action_milestone' },
   trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
   setUserProperties: (...args: unknown[]) => mockSetUserProperties(...args),
+  isAnalyticsEnabled: () => mockAnalyticsEnabled,
 }));
+let mockAnalyticsEnabled = true;
 
 let mockUserId: string | null = 'user-1';
 jest.mock('../../stores/auth.store', () => ({
@@ -22,6 +24,7 @@ import {
 } from '../core-action-milestones';
 
 beforeEach(() => {
+  mockAnalyticsEnabled = true;
   mockTrackEvent.mockClear();
   mockSetUserProperties.mockClear();
 });
@@ -68,5 +71,25 @@ describe('recordCoreAction', () => {
     recordCoreAction(CORE_ACTION_KIND.RIDE_SAVED);
     mockUserId = 'rider-e';
     expect(recordCoreAction(CORE_ACTION_KIND.RIDE_SAVED)).toBe(1);
+  });
+});
+
+describe('milestone while analytics is off', () => {
+  it('is kept for the next save after opt-in, then sent exactly once', () => {
+    mockUserId = 'user-consent-later';
+    mockAnalyticsEnabled = false;
+    for (let i = 0; i < CORE_ACTION_MILESTONE_COUNT; i++) {
+      recordCoreAction(CORE_ACTION_KIND.SERVICE_LOGGED);
+    }
+    expect(milestoneCalls()).toHaveLength(0);
+
+    mockAnalyticsEnabled = true;
+    recordCoreAction(CORE_ACTION_KIND.SERVICE_LOGGED);
+    expect(milestoneCalls()).toEqual([
+      ['core_action_milestone', { kind: 'service_logged', count: CORE_ACTION_MILESTONE_COUNT + 1 }],
+    ]);
+
+    recordCoreAction(CORE_ACTION_KIND.SERVICE_LOGGED);
+    expect(milestoneCalls()).toHaveLength(1);
   });
 });

@@ -20,8 +20,9 @@ export const SUPER_PROPERTY = {
 } as const;
 
 export interface SuperPropertySources {
-  isPro: boolean;
-  isTrialing: boolean;
+  /** Undefined until RevenueCat has answered — a Pro rider is never reported as free. */
+  isPro: boolean | undefined;
+  isTrialing: boolean | undefined;
   /** Undefined until the garage query has answered — never guessed as 0. */
   bikeCount: number | undefined;
   measurementSystem: string;

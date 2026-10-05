@@ -43,6 +43,22 @@ describe('buildSuperProperties', () => {
   });
 });
 
+describe('buildSuperProperties before RevenueCat answers', () => {
+  it('leaves the tier out rather than reporting a Pro rider as free', () => {
+    const props = buildSuperProperties({
+      isPro: undefined,
+      isTrialing: undefined,
+      bikeCount: 2,
+      measurementSystem: 'metric',
+      ridingGoals: [],
+      platform: 'ios',
+    });
+    expect(props).not.toHaveProperty('is_pro');
+    expect(props).not.toHaveProperty('is_trialing');
+    expect(props).toMatchObject({ bike_count: 2 });
+  });
+});
+
 describe('personPropertiesFrom', () => {
   it('drops the per-device platform and keeps the rest', () => {
     const person = personPropertiesFrom(buildSuperProperties(BASE));

@@ -9,6 +9,7 @@ import {
   expenseAddedProperties,
   isBackdated,
   parseExpenseEntrySource,
+  taskCompletionExpenseAmount,
   trackExpenseAdded,
 } from '../expense-analytics';
 
@@ -90,5 +91,19 @@ describe('trackExpenseAdded', () => {
       bike_id: 'b',
       is_backdated: false,
     });
+  });
+});
+
+describe('taskCompletionExpenseAmount (a costed task completion creates an expense)', () => {
+  it.each([
+    ['12.5', 12.5],
+    ['40', 40],
+    ['', null],
+    [undefined, null],
+    ['0', null],
+    ['-3', null],
+    ['abc', null],
+  ])('%p -> %p', (cost, expected) => {
+    expect(taskCompletionExpenseAmount(cost)).toBe(expected);
   });
 });

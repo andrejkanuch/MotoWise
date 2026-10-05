@@ -999,10 +999,13 @@ function RootLayout() {
 
         if (actionId === NOTIFICATION_ACTION.MARK_DONE) {
           try {
-            await gqlFetcher(CompleteMaintenanceTaskDocument, { id: data.taskId });
+            const completion = await gqlFetcher(CompleteMaintenanceTaskDocument, {
+              id: data.taskId,
+            });
             trackEvent(AnalyticsEvent.MAINTENANCE_TASK_COMPLETED, {
               has_cost: false,
-              scheduled_next: false,
+              // The server schedules the next occurrence of a recurring task by default.
+              scheduled_next: !!completion.completeMaintenanceTask.nextOccurrence,
               surface: MAINTENANCE_COMPLETION_SURFACE.REMINDER_NOTIFICATION,
             });
             recordCoreAction(CORE_ACTION_KIND.SERVICE_LOGGED);

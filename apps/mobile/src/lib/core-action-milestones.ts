@@ -1,6 +1,6 @@
 import { createMMKV, type MMKV } from 'react-native-mmkv';
 import { useAuthStore } from '../stores/auth.store';
-import { AnalyticsEvent, setUserProperties, trackEvent } from './analytics';
+import { AnalyticsEvent, isAnalyticsEnabled, setUserProperties, trackEvent } from './analytics';
 
 /**
  * Core-action counters for PostHog survey targeting.
@@ -48,10 +48,17 @@ function countKey(kind: CoreActionKind): string {
   return `${owner}:${kind}`;
 }
 
+/** Set once the milestone event has actually been sent for this key. */
+function sentKey(key: string): string {
+  return `${key}:milestone_sent`;
+}
+
 /**
  * Record one completed core action and return the new count. Fires the
- * milestone event exactly when the count reaches the milestone, so it is once
- * per kind per user per install.
+ * milestone event once per kind per user per install, the first time the count
+ * is at or past the milestone WHILE analytics is on — a rider who reaches it
+ * with analytics off (or before answering the consent screen) gets it on their
+ * next save after opting in, instead of losing it.
  */
 export function recordCoreAction(kind: CoreActionKind): number {
   const key = countKey(kind);
@@ -60,8 +67,10 @@ export function recordCoreAction(kind: CoreActionKind): number {
   store.set(key, count);
 
   setUserProperties({ [COUNT_PERSON_PROPERTY[kind]]: count });
-  if (count === CORE_ACTION_MILESTONE_COUNT) {
+  const sent = store.getBoolean(sentKey(key)) ?? false;
+  if (count >= CORE_ACTION_MILESTONE_COUNT && !sent && isAnalyticsEnabled()) {
     trackEvent(AnalyticsEvent.CORE_ACTION_MILESTONE, { kind, count });
+    store.set(sentKey(key), true);
   }
   return count;
 }

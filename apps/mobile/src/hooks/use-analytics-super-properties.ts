@@ -29,8 +29,10 @@ function ridingGoalsFrom(preferences: unknown): string[] {
 export function useAnalyticsSuperProperties(): void {
   const signedIn = useAuthStore((s) => !!s.session);
   const measurementSystem = useAuthStore((s) => s.measurementSystem);
-  const isPro = useSubscriptionStore((s) => s.isPro);
-  const isTrialing = useSubscriptionStore((s) => s.isTrialing);
+  // The store holds `false` until RevenueCat answers, so read the tier only once
+  // verified — otherwise every cold start tags a Pro rider as free first.
+  const isPro = useSubscriptionStore((s) => (s.isVerified ? s.isPro : undefined));
+  const isTrialing = useSubscriptionStore((s) => (s.isVerified ? s.isTrialing : undefined));
   const localGoals = useOnboardingStore((s) => s.ridingGoals);
 
   // Same key + fetcher as every garage screen, so this shares their cache.
@@ -42,9 +44,12 @@ export function useAnalyticsSuperProperties(): void {
   });
   const meQuery = useQuery({ ...meOptions(), enabled: signedIn });
 
-  const serverGoals = ridingGoalsFrom(meQuery.data?.me?.preferences);
+  // Signed out, a disabled query still returns the previous account's cached
+  // data, and sign-out's reset() has just cleared the super properties — so
+  // account-scoped values are left out rather than re-registered from the cache.
+  const serverGoals = signedIn ? ridingGoalsFrom(meQuery.data?.me?.preferences) : [];
   const ridingGoals = serverGoals.length > 0 ? serverGoals : localGoals;
-  const bikeCount = bikesQuery.data?.myMotorcycles.length;
+  const bikeCount = signedIn ? bikesQuery.data?.myMotorcycles.length : undefined;
 
   // Rebuilt every render (cheap); the effect below is keyed on its serialized
   // value, so an equal object never re-registers.

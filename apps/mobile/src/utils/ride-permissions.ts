@@ -43,7 +43,9 @@ export async function checkAndRequestPermissions(): Promise<PermissionLevel> {
     // The caller (Start Ride flow) shows the prominent-disclosure modal before
     // reaching here — see LocationDisclosureModal + hasAllLocationPermissions.
     const result = await Location.requestForegroundPermissionsAsync();
-    trackPermissionResult(RIDE_LOCATION_PERMISSION.FOREGROUND, result);
+    // Only when the OS can still show its dialog: after a permanent "no" the
+    // request resolves silently, and counting it would inflate the denial rate.
+    if (foreground.canAskAgain) trackPermissionResult(RIDE_LOCATION_PERMISSION.FOREGROUND, result);
     if (!result.granted) return 'denied';
   }
 
@@ -56,7 +58,10 @@ export async function checkAndRequestPermissions(): Promise<PermissionLevel> {
     const background = await Location.getBackgroundPermissionsAsync();
     if (!background.granted) {
       const bgResult = await Location.requestBackgroundPermissionsAsync();
-      trackPermissionResult(RIDE_LOCATION_PERMISSION.BACKGROUND, bgResult);
+      // Every ride start re-requests; only a request the OS can show is a result.
+      if (background.canAskAgain) {
+        trackPermissionResult(RIDE_LOCATION_PERMISSION.BACKGROUND, bgResult);
+      }
       if (!bgResult.granted) {
         return 'foreground_only';
       }

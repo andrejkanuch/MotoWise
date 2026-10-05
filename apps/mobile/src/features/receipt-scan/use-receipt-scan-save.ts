@@ -23,6 +23,7 @@ import { queryKeys } from '../../lib/query-keys';
 import { triggerNotification } from '../../utils/haptics';
 import { deleteDurablePhoto } from './durable-receipt-photo';
 import { unparkScan } from './parked-scan-store';
+import { receiptSaveCreatesExpense } from './receipt-save-expense';
 import {
   clearReceiptSaveUndo,
   pushReceiptSaveUndo,
@@ -83,15 +84,6 @@ function toSaveInput(payload: ReceiptReviewPayload): SaveReceiptScanInput {
     odometerValue: payload.odometerValue ?? undefined,
     odometerUnit: payload.odometerUnit ?? undefined,
   };
-}
-
-/**
- * Whether a saved record put a row in `expenses`: an expense save always does,
- * a maintenance save does when it carries a cost (the server's linked
- * auto-expense, see MaintenanceTasksService.createAutoExpenseIfNeeded).
- */
-export function receiptSaveCreatesExpense(recordType: string, amount: number | null): boolean {
-  return recordType === RECEIPT_REVIEW_TYPE.EXPENSE || (amount ?? 0) > 0;
 }
 
 function isSameCalendarDay(a: string, b: string): boolean {

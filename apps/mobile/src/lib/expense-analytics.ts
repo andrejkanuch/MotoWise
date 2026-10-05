@@ -43,6 +43,16 @@ export function parseExpenseEntrySource(
     : fallback;
 }
 
+/**
+ * The expense amount a completed maintenance task creates, from the cost field
+ * as typed, or null when it creates none (empty, non-numeric, or not positive —
+ * the server links an expense only for a positive cost).
+ */
+export function taskCompletionExpenseAmount(cost: string | null | undefined): number | null {
+  const value = cost ? Number.parseFloat(cost) : Number.NaN;
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+
 /** An expense date as the rider entered it: a Date, or an ISO `YYYY-MM-DD[...]` string. */
 export type ExpenseDate = Date | string | null | undefined;
 

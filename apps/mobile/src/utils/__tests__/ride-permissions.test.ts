@@ -116,8 +116,11 @@ describe('checkAndRequestPermissions — ride_location_permission_result', () =>
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
+  // A permission the OS can still ask about (before the request).
+  const askable = { granted: false, status: 'undetermined', canAskAgain: true };
+
   it('reports a denied foreground request and stops there', async () => {
-    mockGetForeground.mockResolvedValue({ granted: false });
+    mockGetForeground.mockResolvedValue(askable);
     mockRequestForeground.mockResolvedValue(denied);
     expect(await checkAndRequestPermissions()).toBe('denied');
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -130,9 +133,9 @@ describe('checkAndRequestPermissions — ride_location_permission_result', () =>
   });
 
   it('reports each request when foreground is granted and background is refused', async () => {
-    mockGetForeground.mockResolvedValue({ granted: false });
+    mockGetForeground.mockResolvedValue(askable);
     mockRequestForeground.mockResolvedValue(granted);
-    mockGetBackground.mockResolvedValue({ granted: false });
+    mockGetBackground.mockResolvedValue(askable);
     mockRequestBackground.mockResolvedValue(denied);
     expect(await checkAndRequestPermissions()).toBe('foreground_only');
     expect(mockTrackEvent.mock.calls).toEqual([
@@ -145,5 +148,15 @@ describe('checkAndRequestPermissions — ride_location_permission_result', () =>
         { permission: 'background', granted: false, status: 'denied', can_ask_again: false },
       ],
     ]);
+  });
+
+  // Every ride start re-requests background location. After a permanent "no"
+  // the OS shows nothing, so that request is not a result.
+  it('reports nothing for a request the OS can no longer show', async () => {
+    mockGetForeground.mockResolvedValue({ granted: true });
+    mockGetBackground.mockResolvedValue(denied);
+    mockRequestBackground.mockResolvedValue(denied);
+    expect(await checkAndRequestPermissions()).toBe('foreground_only');
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });

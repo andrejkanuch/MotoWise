@@ -31,6 +31,7 @@ import { CORE_ACTION_KIND, recordCoreAction } from '../../../lib/core-action-mil
 import {
   EXPENSE_ENTRY_SOURCE,
   MAINTENANCE_EXPENSE_CATEGORY,
+  taskCompletionExpenseAmount,
   trackExpenseAdded,
 } from '../../../lib/expense-analytics';
 import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../../lib/expense-constants';
@@ -121,8 +122,8 @@ export default function CompleteTaskScreen() {
         surface: MAINTENANCE_COMPLETION_SURFACE.COMPLETE_TASK_SCREEN,
       });
       // A cost makes the server add a linked expense — count it like any other.
-      const costValue = cost ? Number.parseFloat(cost) : 0;
-      if (costValue > 0) {
+      const costValue = taskCompletionExpenseAmount(cost);
+      if (costValue !== null) {
         trackExpenseAdded({
           entrySource: EXPENSE_ENTRY_SOURCE.MAINTENANCE_COST,
           bikeId: motorcycleId,
