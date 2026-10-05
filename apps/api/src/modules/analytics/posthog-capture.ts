@@ -5,6 +5,15 @@ export const DEFAULT_POSTHOG_HOST = 'https://eu.i.posthog.com';
 
 const CAPTURE_TIMEOUT_MS = 10_000;
 
+/**
+ * Properties every server-side event carries. `$geoip_disable`: PostHog would
+ * otherwise geolocate the API server's IP (Render, US), stamping every rider's
+ * country as US. Country is left to the client-side events on the same person.
+ */
+export const SERVER_EVENT_PROPERTIES = {
+  $geoip_disable: true,
+} as const;
+
 /** One event in a PostHog `/batch/` request. */
 export interface PostHogCaptureEvent {
   event: string;

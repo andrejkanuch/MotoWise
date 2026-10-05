@@ -218,11 +218,32 @@ describe('SignupEventsService', () => {
     // that has to come through this test.
     const properties = (EVENTS(bodies)[0] as { properties: Record<string, unknown> }).properties;
     expect(Object.keys(properties).sort()).toEqual([
+      '$geoip_disable',
       'auth_method',
       'currency',
       'emitted_by',
       'measurement_system',
     ]);
+  });
+
+  it('never geolocates the API server: country would always read US', async () => {
+    const { client } = makeSupabase({
+      claim_pending_signup_events: () => ({
+        data: [
+          row(),
+          row({ user_id: '22222222-2222-2222-2222-222222222222', analytics_enabled: false }),
+        ],
+        error: null,
+      }),
+    });
+    const { bodies } = stubFetch({ ok: true });
+
+    const service = new SignupEventsService(client, config({ POSTHOG_PROJECT_TOKEN: 'phc_test' }));
+    await service.sweepPendingSignups();
+
+    const events = EVENTS(bodies) as { properties: Record<string, unknown> }[];
+    expect(events).toHaveLength(2);
+    for (const event of events) expect(event.properties.$geoip_disable).toBe(true);
   });
 
   it('releases the claims when capture fails, so the next sweep retries', async () => {

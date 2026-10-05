@@ -6,6 +6,7 @@ import { hasAnalyticsConsent, NO_CONSENT_PROPERTIES } from './analytics-consent'
 import {
   type PostHogCaptureEvent,
   postHogCaptureTarget,
+  SERVER_EVENT_PROPERTIES,
   sendPostHogBatch,
 } from './posthog-capture';
 
@@ -189,6 +190,7 @@ export class SignupEventsService {
       // Lets an analyst tell this apart from the legacy client-side events while
       // both series exist.
       emitted_by: 'server_sweep',
+      ...SERVER_EVENT_PROPERTIES,
     };
     if (!consented) Object.assign(properties, NO_CONSENT_PROPERTIES);
     return {

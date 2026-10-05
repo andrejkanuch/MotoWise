@@ -124,6 +124,13 @@ describe('buildRevenueCatPostHogEvent', () => {
     expect(built.properties).toMatchObject({ cancel_reason: 'UNSUBSCRIBE', price_usd: 59.99 });
   });
 
+  it('never geolocates the API server, consented or not', () => {
+    for (const decision of [true, false, null]) {
+      const built = buildRevenueCatPostHogEvent(rcEvent(), NAME, decision);
+      expect(built.properties.$geoip_disable).toBe(true);
+    }
+  });
+
   it('maps Web Billing to the web purchase source', () => {
     for (const store of ['STRIPE', 'RC_BILLING']) {
       const built = buildRevenueCatPostHogEvent(rcEvent({ store }), NAME, true);
@@ -201,7 +208,11 @@ describe('RevenueCatService → PostHog capture', () => {
     const [body] = posthogBatches();
     expect(body.api_key).toBe(POSTHOG_TOKEN);
     expect(body.batch).toEqual([
-      expect.objectContaining({ event: 'rc_initial_purchase', distinct_id: USER_ID }),
+      expect.objectContaining({
+        event: 'rc_initial_purchase',
+        distinct_id: USER_ID,
+        properties: expect.objectContaining({ $geoip_disable: true }),
+      }),
     ]);
   });
 

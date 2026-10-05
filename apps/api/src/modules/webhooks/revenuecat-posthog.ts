@@ -3,7 +3,7 @@ import {
   hasAnalyticsConsent,
   NO_CONSENT_PROPERTIES,
 } from '../analytics/analytics-consent';
-import type { PostHogCaptureEvent } from '../analytics/posthog-capture';
+import { type PostHogCaptureEvent, SERVER_EVENT_PROPERTIES } from '../analytics/posthog-capture';
 import type { RevenueCatEvent } from './dto/revenuecat-event.dto';
 
 /**
@@ -125,6 +125,7 @@ export function buildRevenueCatPostHogEvent(
     cancel_reason: event.cancel_reason,
     expiration_reason: event.expiration_reason,
     emitted_by: 'revenuecat_webhook',
+    ...SERVER_EVENT_PROPERTIES,
   };
   if (takesMoney) {
     properties.revenue = event.price;
