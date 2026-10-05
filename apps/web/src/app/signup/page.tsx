@@ -4,7 +4,9 @@ import { createBrowserClient } from '@supabase/ssr';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { useCookieConsent } from '@/components/cookie-consent';
 import { identifyUser, trackEvent, WebEvent } from '@/lib/analytics';
+import { signUpConsentOptions } from '@/lib/signup-consent';
 
 /* ------------------------------------------------------------------ */
 /*  CSS variable tokens (from marketing design-system.css / login.html) */
@@ -40,6 +42,7 @@ export default function SignUpPage() {
   const [success, setSuccess] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const { consent } = useCookieConsent();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +54,11 @@ export default function SignUpPage() {
     setLoading(true);
     setError('');
     trackEvent(WebEvent.SIGN_UP_SUBMITTED, { method: 'email' });
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: signUpConsentOptions(consent),
+    });
     if (error) {
       setError(error.message);
       setLoading(false);

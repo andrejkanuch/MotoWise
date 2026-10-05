@@ -46,7 +46,8 @@ const REVENUE_EVENT_TYPES: ReadonlySet<string> = new Set([
   'NON_RENEWING_PURCHASE',
 ]);
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** A Supabase user id / RevenueCat event id. */
+export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type PurchaseSource = 'ios' | 'android' | 'web' | 'unknown';
 
@@ -81,6 +82,23 @@ export function isPaidConversion(event: RevenueCatEvent): boolean {
   );
 }
 
+/**
+ * Whether this purchase may be sent identified.
+ *
+ * Mobile stores follow the shared rule (NULL = consent for now: apps before
+ * 3.21.0 save no decision). Web Billing does NOT: the web never saved a decision
+ * before this change, so NULL there is a visitor who may well have declined the
+ * cookie banner. Only an explicit TRUE identifies a web purchase.
+ */
+export function hasPurchaseAnalyticsConsent(
+  event: RevenueCatEvent,
+  decision: AnalyticsDecision,
+): boolean {
+  return purchaseSourceForStore(event.store) === 'web'
+    ? decision === true
+    : hasAnalyticsConsent(decision);
+}
+
 /** The PostHog event name for a webhook type, or null when it is not sent. */
 export function revenueCatPostHogEventName(type: string): RcPostHogEventName | null {
   return Object.hasOwn(RC_POSTHOG_EVENT_NAMES, type)
@@ -93,8 +111,11 @@ export function revenueCatPostHogEventName(type: string): RcPostHogEventName | n
  *
  * - `distinct_id` is the Supabase user id (= RevenueCat app user id, the same id
  *   the apps `identify()` with) when the rider consented, else the constant
- *   bucket with person processing off — the rule shared with the signup sweep.
- * - `uuid` is the RevenueCat event id, so a re-sent copy collapses in PostHog.
+ *   bucket with person processing off — the signup sweep's rule, stricter for
+ *   web purchases (see `hasPurchaseAnalyticsConsent`).
+ * - `uuid` and `rc_event_id` are the RevenueCat event id, so a re-sent copy
+ *   collapses in PostHog — consented riders only: for a rider who declined the
+ *   id would join the anonymous event back to their account outside PostHog.
  * - `revenue` is RevenueCat's USD `price`, only on types that take money.
  * - No email, name, or subscriber attributes: they are PII and are not needed.
  */
@@ -103,10 +124,10 @@ export function buildRevenueCatPostHogEvent(
   eventName: RcPostHogEventName,
   decision: AnalyticsDecision,
 ): PostHogCaptureEvent {
-  const consented = hasAnalyticsConsent(decision);
+  const consented = hasPurchaseAnalyticsConsent(event, decision);
   const takesMoney = REVENUE_EVENT_TYPES.has(event.type) && typeof event.price === 'number';
   const properties: Record<string, unknown> = {
-    rc_event_id: event.id,
+    rc_event_id: consented ? event.id : undefined,
     rc_event_type: event.type,
     product_id: event.product_id,
     new_product_id: event.new_product_id,
@@ -139,7 +160,7 @@ export function buildRevenueCatPostHogEvent(
     timestamp: event.event_timestamp_ms
       ? new Date(event.event_timestamp_ms).toISOString()
       : undefined,
-    uuid: UUID_REGEX.test(event.id) ? event.id.toLowerCase() : undefined,
+    uuid: consented && UUID_REGEX.test(event.id) ? event.id.toLowerCase() : undefined,
     properties,
   };
 }

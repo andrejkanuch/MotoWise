@@ -81,8 +81,26 @@ describe('buildRevenueCatPostHogEvent', () => {
     expect(built.properties).not.toHaveProperty('$process_person_profile');
   });
 
-  it('treats no saved decision as consent (same rule as the signup sweep)', () => {
-    expect(buildRevenueCatPostHogEvent(rcEvent(), NAME, null).distinct_id).toBe(USER_ID);
+  it('treats no saved decision as consent for an app-store purchase (signup sweep rule)', () => {
+    for (const store of ['APP_STORE', 'PLAY_STORE']) {
+      expect(buildRevenueCatPostHogEvent(rcEvent({ store }), NAME, null).distinct_id).toBe(USER_ID);
+    }
+  });
+
+  it('treats no saved decision as NO consent for a web purchase', () => {
+    for (const store of ['STRIPE', 'RC_BILLING']) {
+      const built = buildRevenueCatPostHogEvent(rcEvent({ store }), NAME, null);
+      expect(built.distinct_id).toBe(RC_NO_CONSENT_DISTINCT_ID);
+      expect(built.properties).toMatchObject({ $process_person_profile: false });
+    }
+  });
+
+  it('identifies a web purchase only on an explicit yes, and never on a no', () => {
+    const web = rcEvent({ store: 'RC_BILLING' });
+    expect(buildRevenueCatPostHogEvent(web, NAME, true).distinct_id).toBe(USER_ID);
+    expect(buildRevenueCatPostHogEvent(web, NAME, false).distinct_id).toBe(
+      RC_NO_CONSENT_DISTINCT_ID,
+    );
   });
 
   it('puts a rider who declined into the anonymous bucket with no person profile', () => {
@@ -93,6 +111,21 @@ describe('buildRevenueCatPostHogEvent', () => {
       analytics_consent: false,
     });
     expect(JSON.stringify(built)).not.toContain(USER_ID);
+  });
+
+  it('drops the RevenueCat event id for a rider who declined (it joins back to the account)', () => {
+    const built = buildRevenueCatPostHogEvent(rcEvent(), NAME, false);
+    // What actually goes over the wire: undefined keys are not serialised.
+    const sent = JSON.parse(JSON.stringify(built));
+    expect(sent).not.toHaveProperty('uuid');
+    expect(sent.properties).not.toHaveProperty('rc_event_id');
+    expect(JSON.stringify(built).toLowerCase()).not.toContain(RC_EVENT_ID.toLowerCase());
+  });
+
+  it('keeps the RevenueCat event id for a consented rider', () => {
+    const built = buildRevenueCatPostHogEvent(rcEvent(), NAME, true);
+    expect(built.uuid).toBe(RC_EVENT_ID.toLowerCase());
+    expect(built.properties.rc_event_id).toBe(RC_EVENT_ID);
   });
 
   it('marks a trial start, with no revenue', () => {
@@ -243,6 +276,33 @@ describe('RevenueCatService → PostHog capture', () => {
     await service.processEvent(rcEvent());
     await flush();
     expect(posthogBatches()[0].batch).toEqual([expect.objectContaining({ distinct_id: USER_ID })]);
+  });
+
+  it('sends a web purchase with no saved decision anonymously', async () => {
+    usersResult = { data: { preferences: {} }, error: null };
+    await service.processEvent(rcEvent({ store: 'RC_BILLING' }));
+    await flush();
+    expect(posthogBatches()[0].batch).toEqual([
+      expect.objectContaining({ distinct_id: RC_NO_CONSENT_DISTINCT_ID }),
+    ]);
+  });
+
+  it('identifies a web purchase when the cookie-banner yes was sent with sign-up', async () => {
+    usersResult = { data: { preferences: {} }, error: null };
+    authResult = { data: { user: { user_metadata: { analytics_consent: true } } }, error: null };
+    await service.processEvent(rcEvent({ store: 'RC_BILLING' }));
+    await flush();
+    expect(posthogBatches()[0].batch).toEqual([expect.objectContaining({ distinct_id: USER_ID })]);
+  });
+
+  it('fails closed to the anonymous bucket when the sign-up metadata read errors', async () => {
+    usersResult = { data: { preferences: {} }, error: null };
+    authResult = { data: { user: null }, error: { message: 'auth unavailable' } };
+    await service.processEvent(rcEvent());
+    await flush();
+    expect(posthogBatches()[0].batch).toEqual([
+      expect.objectContaining({ distinct_id: RC_NO_CONSENT_DISTINCT_ID }),
+    ]);
   });
 
   it('fails closed to the anonymous bucket when the account cannot be read', async () => {

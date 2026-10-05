@@ -18,10 +18,10 @@ import {
   purchaseSourceForStore,
   RC_ENVIRONMENT_PRODUCTION,
   revenueCatPostHogEventName,
+  UUID_REGEX,
 } from './revenuecat-posthog';
 
 const RC_API_BASE = 'https://api.revenuecat.com/v1' as const;
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const EVENT_TRANSFER = 'TRANSFER' as const;
 
 /** The receiver's live subscription state, resolved from RC for a TRANSFER. */
@@ -153,7 +153,7 @@ export class RevenueCatService {
       return;
     }
 
-    const decision = await this.readAnalyticsDecision(event.app_user_id);
+    const decision = await this.loadAnalyticsDecision(event.app_user_id);
     const failure = await sendPostHogBatch(target, [
       buildRevenueCatPostHogEvent(event, eventName, decision),
     ]);
@@ -165,7 +165,7 @@ export class RevenueCatService {
    * Fails CLOSED: when the account cannot be read the event goes to the
    * anonymous bucket, never to an identified person.
    */
-  private async readAnalyticsDecision(userId: string): Promise<AnalyticsDecision> {
+  private async loadAnalyticsDecision(userId: string): Promise<AnalyticsDecision> {
     const { data: user, error } = await this.adminClient
       .from('users')
       .select('preferences')
