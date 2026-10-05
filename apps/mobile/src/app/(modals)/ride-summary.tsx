@@ -40,6 +40,7 @@ import { NativeToggle } from '../../components/ui/native-toggle';
 import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
+import { CORE_ACTION_KIND, recordCoreAction } from '../../lib/core-action-milestones';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
@@ -292,6 +293,7 @@ export default function RideSummaryScreen() {
         shared_to_discover: shareToDiscover,
       });
       MetaAnalytics.trackLogRide();
+      recordCoreAction(CORE_ACTION_KIND.RIDE_SAVED);
       maybeRequestReview(REVIEW_MILESTONE.RIDE_COMPLETED);
 
       // Share to Discover (fire-and-forget, non-blocking)

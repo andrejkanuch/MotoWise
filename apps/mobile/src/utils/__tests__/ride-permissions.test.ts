@@ -11,14 +11,24 @@ jest.mock('expo-location', () => ({
 }));
 
 // ride-permissions imports these at module load — stub so no native deps load.
-jest.mock('../../lib/analytics', () => ({ captureException: jest.fn() }));
+const mockTrackEvent = jest.fn();
+jest.mock('../../lib/analytics', () => ({
+  captureException: jest.fn(),
+  trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
+  AnalyticsEvent: { RIDE_LOCATION_PERMISSION_RESULT: 'ride_location_permission_result' },
+}));
 jest.mock('../ride-storage', () => ({
   rideStorage: { getNumber: jest.fn(), set: jest.fn(), remove: jest.fn() },
 }));
 
-import { hasAllLocationPermissions, readPermissionLevel } from '../ride-permissions';
+import {
+  checkAndRequestPermissions,
+  hasAllLocationPermissions,
+  readPermissionLevel,
+} from '../ride-permissions';
 
 beforeEach(() => {
+  mockTrackEvent.mockReset();
   mockGetForeground.mockReset();
   mockGetBackground.mockReset();
   mockRequestForeground.mockReset();
@@ -91,5 +101,49 @@ describe('readPermissionLevel', () => {
     mockGetForeground.mockResolvedValue({ granted: true });
     mockGetBackground.mockRejectedValue(new Error('ACCESS_BACKGROUND_LOCATION'));
     expect(await readPermissionLevel()).toBe('foreground_only');
+  });
+});
+
+describe('checkAndRequestPermissions — ride_location_permission_result', () => {
+  const RESULT_EVENT = 'ride_location_permission_result';
+  const granted = { granted: true, status: 'granted', canAskAgain: true };
+  const denied = { granted: false, status: 'denied', canAskAgain: false };
+
+  it('reports nothing when both permissions were already granted (no request made)', async () => {
+    mockGetForeground.mockResolvedValue({ granted: true });
+    mockGetBackground.mockResolvedValue({ granted: true });
+    expect(await checkAndRequestPermissions()).toBe('full');
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('reports a denied foreground request and stops there', async () => {
+    mockGetForeground.mockResolvedValue({ granted: false });
+    mockRequestForeground.mockResolvedValue(denied);
+    expect(await checkAndRequestPermissions()).toBe('denied');
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith(RESULT_EVENT, {
+      permission: 'foreground',
+      granted: false,
+      status: 'denied',
+      can_ask_again: false,
+    });
+  });
+
+  it('reports each request when foreground is granted and background is refused', async () => {
+    mockGetForeground.mockResolvedValue({ granted: false });
+    mockRequestForeground.mockResolvedValue(granted);
+    mockGetBackground.mockResolvedValue({ granted: false });
+    mockRequestBackground.mockResolvedValue(denied);
+    expect(await checkAndRequestPermissions()).toBe('foreground_only');
+    expect(mockTrackEvent.mock.calls).toEqual([
+      [
+        RESULT_EVENT,
+        { permission: 'foreground', granted: true, status: 'granted', can_ask_again: true },
+      ],
+      [
+        RESULT_EVENT,
+        { permission: 'background', granted: false, status: 'denied', can_ask_again: false },
+      ],
+    ]);
   });
 });

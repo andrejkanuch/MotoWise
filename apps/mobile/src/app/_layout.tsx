@@ -35,7 +35,6 @@ import {
   type Href,
   Stack,
   useNavigationContainerRef,
-  usePathname,
   useRouter,
   useSegments,
 } from 'expo-router';
@@ -60,8 +59,10 @@ import {
   receiveRideIdleResponse,
   rideIdleResponseKey,
 } from '../features/ride/ride-notification-response';
+import { useAnalyticsSuperProperties } from '../hooks/use-analytics-super-properties';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import { useRideIdleResponses } from '../hooks/use-ride-idle-responses';
+import { useScreenTracking } from '../hooks/use-screen-tracking';
 import i18n from '../i18n';
 import {
   AnalyticsEvent,
@@ -77,7 +78,6 @@ import {
   setCrashReportingEnabled,
   setUserProperties,
   trackEvent,
-  trackScreen,
   withSentry,
 } from '../lib/analytics';
 import {
@@ -107,8 +107,10 @@ import {
 import { bestEffortNativeCall, NativeSideEffect } from '../lib/best-effort-native';
 import { saveConsentToAccount } from '../lib/consent-account-sync';
 import { canShowConsentPrompt } from '../lib/consent-prompt';
+import { CORE_ACTION_KIND, recordCoreAction } from '../lib/core-action-milestones';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
+import { MAINTENANCE_COMPLETION_SURFACE } from '../lib/maintenance-analytics';
 import { captureMetaAttribution } from '../lib/meta-attribution';
 import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
 import {
@@ -310,6 +312,11 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
       app_version: Application.nativeApplicationVersion ?? null,
     });
   }, [session?.user?.id, meData, userPreferences, isPro]);
+
+  // Tier / garage / units / onboarding-goal / platform on every event (and on the
+  // person). Mounted after the privacy sync above so a consent change in the same
+  // commit is already applied when it registers.
+  useAnalyticsSuperProperties();
 
   // --- What's New modal trigger ---
   // Module-scoped `whatsNewPushed` flag survives React 19 StrictMode
@@ -521,18 +528,10 @@ function RootLayout() {
     'InstrumentSerif-Italic': InstrumentSerif_400Regular_Italic,
   });
   const navigationRef = useNavigationContainerRef();
-  const pathname = usePathname();
-  const previousPathname = useRef<string | undefined>(undefined);
 
   useNotificationDeepLink();
   useRideIdleResponses();
-
-  useEffect(() => {
-    if (previousPathname.current !== pathname) {
-      trackScreen(pathname, { previous_screen: previousPathname.current ?? null });
-      previousPathname.current = pathname;
-    }
-  }, [pathname]);
+  useScreenTracking();
 
   useEffect(() => {
     if (navigationRef) {
@@ -1001,6 +1000,12 @@ function RootLayout() {
         if (actionId === NOTIFICATION_ACTION.MARK_DONE) {
           try {
             await gqlFetcher(CompleteMaintenanceTaskDocument, { id: data.taskId });
+            trackEvent(AnalyticsEvent.MAINTENANCE_TASK_COMPLETED, {
+              has_cost: false,
+              scheduled_next: false,
+              surface: MAINTENANCE_COMPLETION_SURFACE.REMINDER_NOTIFICATION,
+            });
+            recordCoreAction(CORE_ACTION_KIND.SERVICE_LOGGED);
             // Cancel any remaining reminder stages for the now-completed task.
             await cancelTaskNotification(data.taskId);
             queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
@@ -1037,7 +1042,12 @@ function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PostHogProvider
         client={posthogClient}
-        autocapture={{ captureScreens: false, captureTouches: true }}
+        // Both off. Screens come from useScreenTracking (route-template names,
+        // feature_area) — SDK screen capture would double-count them under raw
+        // navigator names. Touch capture produced ~36k unlabeled `$autocapture`
+        // events a month that no insight could use; product actions are tracked
+        // explicitly with trackEvent.
+        autocapture={{ captureScreens: false, captureTouches: false }}
       >
         {/* Renders PostHog-managed popover surveys natively. Display timing,
             targeting, and appearance are all configured server-side in PostHog;

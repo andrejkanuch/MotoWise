@@ -516,7 +516,6 @@ export const AnalyticsEvent = {
   ONBOARDING_COMPLETED: 'onboarding_completed',
   // Activation Goal 7 — a receipt scan completed during onboarding (KTD-10 quota-exempt).
   ONBOARDING_SCAN_COMPLETED: 'receipt_scan_onboarding_completed',
-  ONBOARDING_DROPPED_OFF: 'onboarding_dropped_off',
   ONBOARDING_RESUMED: 'onboarding_resumed',
   // Onboarding A/B (2026) funnel — see docs/onboarding-ab-event-schema.md
   BIKE_ADDED: 'bike_added',
@@ -625,6 +624,12 @@ export const AnalyticsEvent = {
   RIDE_AUTO_SAVED: 'ride_auto_saved',
   RIDE_GPS_READINESS: 'ride_gps_readiness',
   RIDE_ZERO_DISTANCE_SHOWN: 'ride_zero_distance_shown',
+  /**
+   * Outcome of each foreground/background location request made to record a
+   * ride (`permission`, `granted`, `status`, `can_ask_again`). Only fires when
+   * the OS was actually asked — an already-granted read is not a result.
+   */
+  RIDE_LOCATION_PERMISSION_RESULT: 'ride_location_permission_result',
   // Rides — engagement
   RIDE_HUD_LAYOUT_SWITCHED: 'ride_hud_layout_switched',
   RIDE_NAME_EDITED: 'ride_name_edited',
@@ -655,10 +660,6 @@ export const AnalyticsEvent = {
   SHARE_RESULT: 'share_result',
 
   // Routes (discovery)
-  ROUTE_VIEWED: 'route_viewed',
-  ROUTE_SAVED: 'route_saved',
-  ROUTE_UNSAVED: 'route_unsaved',
-  ROUTE_SHARED: 'route_shared',
   ROUTE_GPX_EXPORTED: 'route_gpx_exported',
 
   // Discovery
@@ -699,7 +700,6 @@ export const AnalyticsEvent = {
   PAYWALL_VIEWED: 'paywall_viewed',
   PAYWALL_DISMISSED: 'paywall_dismissed',
   PAYWALL_RESULT: 'paywall_result',
-  PURCHASE_STARTED: 'purchase_started',
   PURCHASE_COMPLETED: 'purchase_completed',
   PURCHASE_CANCELLED: 'purchase_cancelled',
   SUBSCRIPTION_RESTORED: 'subscription_restored',
@@ -732,29 +732,27 @@ export const AnalyticsEvent = {
 
   // Checklist
   CHECKLIST_ITEM_COMPLETED: 'checklist_item_completed',
+
+  /**
+   * The rider's Nth saved ride / logged service (`kind`, `count`), fired once
+   * per kind at the milestone count. Exists for PostHog survey targeting — see
+   * lib/core-action-milestones.ts.
+   */
+  CORE_ACTION_MILESTONE: 'core_action_milestone',
 } as const;
 
 export type AnalyticsEventName = (typeof AnalyticsEvent)[keyof typeof AnalyticsEvent];
 
-// Meta scoring aliases — maps existing events to Meta-required names (MOT-212).
-// Fired automatically inside trackEvent so components don't need duplicate calls.
-const META_ALIASES: Partial<Record<AnalyticsEventName, string>> = {
-  diagnostic_started: 'ai_diagnosis_started',
-  diagnostic_completed: 'ai_diagnosis_completed',
-  maintenance_task_created: 'maintenance_log_added',
-  trip_viewed: 'trip_plan_viewed',
-};
-
+// No Meta-named alias events go to PostHog any more. They used to be captured a
+// second time under Meta's names (`ai_diagnosis_started`, `maintenance_log_added`,
+// …, tagged `_meta_alias`) — duplicates every insight had to filter out, and
+// PostHog is not where Meta reads them: the Meta SDK (lib/meta-analytics.ts) and
+// the API's server-side Conversions API send their own events.
 export function trackEvent(event: AnalyticsEventName, properties?: Record<string, JsonType>) {
   if (!analyticsEnabled) return;
 
   if (posthogClient) {
     posthogClient.capture(event, properties);
-    const alias = META_ALIASES[event];
-    // Tag alias captures so PostHog insights can exclude them (filter `_meta_alias`
-    // is not set). They exist only to satisfy Meta Conversions API naming (MOT-212);
-    // always analyze diagnostic/trip/maintenance activity on the ORIGINAL event name.
-    if (alias) posthogClient.capture(alias, { ...properties, _meta_alias: true });
   }
 }
 
@@ -762,6 +760,12 @@ export function trackEvent(event: AnalyticsEventName, properties?: Record<string
 // _layout.tsx — display timing, targeting, and capture (`survey shown/sent/
 // dismissed`) are handled by the SDK. No app-side survey trigger logic.
 
+/**
+ * Capture a `$screen` view. Called from ONE place — hooks/use-screen-tracking.ts,
+ * mounted in the root layout — with the route-template name and `feature_area`
+ * (lib/analytics-screen.ts). Screens must not call this themselves; that is how
+ * the same screen ended up under two names (`/privacy` and `Privacy`).
+ */
 export function trackScreen(screenName: string, properties?: Record<string, JsonType>) {
   if (!analyticsEnabled) return;
 

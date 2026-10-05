@@ -1,8 +1,35 @@
 import * as Location from 'expo-location';
-import { captureException } from '../lib/analytics';
+import { AnalyticsEvent, captureException, trackEvent } from '../lib/analytics';
 import { rideStorage } from './ride-storage';
 
 export type PermissionLevel = 'full' | 'foreground_only' | 'denied';
+
+/** Which location permission a ride asked the OS for. */
+export const RIDE_LOCATION_PERMISSION = {
+  FOREGROUND: 'foreground',
+  BACKGROUND: 'background',
+} as const;
+
+type RideLocationPermission =
+  (typeof RIDE_LOCATION_PERMISSION)[keyof typeof RIDE_LOCATION_PERMISSION];
+
+/**
+ * Report what the rider answered. Only called after a real request — reading an
+ * already-granted permission is not a result. The grant rate here is the ceiling
+ * on every ride metric: a denied foreground request means no ride at all, a
+ * denied background one means a ride that stops when the screen locks.
+ */
+function trackPermissionResult(
+  permission: RideLocationPermission,
+  result: Location.LocationPermissionResponse,
+): void {
+  trackEvent(AnalyticsEvent.RIDE_LOCATION_PERMISSION_RESULT, {
+    permission,
+    granted: result.granted,
+    status: result.status,
+    can_ask_again: result.canAskAgain,
+  });
+}
 
 const COOLDOWN_KEY = 'permissions.pre_prompt_dismissed_at';
 const FOREGROUND_RIDE_COUNT_KEY = 'permissions.foreground_ride_count';
@@ -16,6 +43,7 @@ export async function checkAndRequestPermissions(): Promise<PermissionLevel> {
     // The caller (Start Ride flow) shows the prominent-disclosure modal before
     // reaching here — see LocationDisclosureModal + hasAllLocationPermissions.
     const result = await Location.requestForegroundPermissionsAsync();
+    trackPermissionResult(RIDE_LOCATION_PERMISSION.FOREGROUND, result);
     if (!result.granted) return 'denied';
   }
 
@@ -28,6 +56,7 @@ export async function checkAndRequestPermissions(): Promise<PermissionLevel> {
     const background = await Location.getBackgroundPermissionsAsync();
     if (!background.granted) {
       const bgResult = await Location.requestBackgroundPermissionsAsync();
+      trackPermissionResult(RIDE_LOCATION_PERMISSION.BACKGROUND, bgResult);
       if (!bgResult.granted) {
         return 'foreground_only';
       }

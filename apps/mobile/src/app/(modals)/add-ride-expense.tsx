@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useCurrency } from '../../hooks/use-currency';
+import { EXPENSE_ENTRY_SOURCE, trackExpenseAdded } from '../../lib/expense-analytics';
 import {
   CATEGORY_COLORS,
   CATEGORY_LABELS,
@@ -59,6 +60,12 @@ export default function AddExpenseScreen() {
         },
       }),
     onSuccess: () => {
+      trackExpenseAdded({
+        entrySource: EXPENSE_ENTRY_SOURCE.RIDE,
+        bikeId: motorcycleId,
+        date,
+        properties: { category, amount: parsedAmount, currency },
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),
       });

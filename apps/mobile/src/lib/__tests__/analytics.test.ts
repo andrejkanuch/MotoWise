@@ -69,16 +69,27 @@ jest.mock('../subscription', () => ({
 }));
 
 import {
+  AnalyticsEvent,
   sentryBeforeSend,
   setAnalyticsEnabled,
   setUserProperties,
   setUserPropertiesOnce,
+  trackEvent,
 } from '../analytics';
 
 beforeEach(() => {
   jest.clearAllMocks();
   setAnalyticsEnabled(true); // reset module state to enabled
   mockCapture.mockClear();
+});
+
+describe('trackEvent', () => {
+  it('captures the event once — no Meta-named alias duplicate goes to PostHog', () => {
+    trackEvent(AnalyticsEvent.DIAGNOSTIC_STARTED, { source: 'test' });
+
+    expect(mockCapture).toHaveBeenCalledTimes(1);
+    expect(mockCapture).toHaveBeenCalledWith('diagnostic_started', { source: 'test' });
+  });
 });
 
 describe('setUserPropertiesOnce', () => {

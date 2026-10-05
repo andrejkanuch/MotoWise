@@ -15,6 +15,8 @@ import { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
+import { CORE_ACTION_KIND, recordCoreAction } from '../../lib/core-action-milestones';
+import { EXPENSE_ENTRY_SOURCE, trackExpenseAdded } from '../../lib/expense-analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -81,6 +83,15 @@ function toSaveInput(payload: ReceiptReviewPayload): SaveReceiptScanInput {
     odometerValue: payload.odometerValue ?? undefined,
     odometerUnit: payload.odometerUnit ?? undefined,
   };
+}
+
+/**
+ * Whether a saved record put a row in `expenses`: an expense save always does,
+ * a maintenance save does when it carries a cost (the server's linked
+ * auto-expense, see MaintenanceTasksService.createAutoExpenseIfNeeded).
+ */
+export function receiptSaveCreatesExpense(recordType: string, amount: number | null): boolean {
+  return recordType === RECEIPT_REVIEW_TYPE.EXPENSE || (amount ?? 0) > 0;
 }
 
 function isSameCalendarDay(a: string, b: string): boolean {
@@ -162,13 +173,15 @@ export interface UseReceiptScanSaveParams {
   freeScansLeft: number | null;
   /** Flow-start timestamp (ms) for the <20s Goal-1 measurement; null if unknown. */
   scanStartedAt: number | null;
+  /** The scan was launched from onboarding (attributed as such on `expense_added`). */
+  isOnboarding?: boolean;
   /** Called after a successful save so the caller can dismiss the modal. */
   onSaved: () => void;
 }
 
 export function useReceiptScanSave(params: UseReceiptScanSaveParams) {
   const { t } = useTranslation();
-  const { bikeName, freeScansLeft, scanStartedAt, onSaved } = params;
+  const { bikeName, freeScansLeft, scanStartedAt, isOnboarding = false, onSaved } = params;
 
   const saveMutation = useMutation({
     mutationFn: (vars: { scanId: string; input: SaveReceiptScanInput }) =>
@@ -231,6 +244,26 @@ export function useReceiptScanSave(params: UseReceiptScanSaveParams) {
           route: recordType,
           ms: scanStartedAt != null ? Date.now() - scanStartedAt : null,
         });
+        // receipt_scan_save_completed measures the scan funnel; expense_added counts
+        // expenses across every entry path, so the scan must report it too.
+        if (receiptSaveCreatesExpense(recordType, payload.amount)) {
+          trackExpenseAdded({
+            entrySource: isOnboarding
+              ? EXPENSE_ENTRY_SOURCE.ONBOARDING
+              : EXPENSE_ENTRY_SOURCE.RECEIPT_SCAN,
+            bikeId: payload.motorcycleId,
+            date: payload.date,
+            properties: {
+              record_type: recordType,
+              category: payload.category ?? null,
+              amount: payload.amount,
+              currency: payload.currency ?? null,
+            },
+          });
+        }
+        if (recordType === RECEIPT_REVIEW_TYPE.MAINTENANCE) {
+          recordCoreAction(CORE_ACTION_KIND.SERVICE_LOGGED);
+        }
         if (payload.applyOdometer) {
           // G3 odometer-freshness signal: the rider accepted the scanned reading,
           // advancing the bike's known mileage. NOTE: this is captured for the R8
@@ -272,7 +305,7 @@ export function useReceiptScanSave(params: UseReceiptScanSaveParams) {
         inFlightRef.current = false;
       }
     },
-    [t, saveMutation, bikeName, freeScansLeft, scanStartedAt, onSaved],
+    [t, saveMutation, bikeName, freeScansLeft, scanStartedAt, isOnboarding, onSaved],
   );
 
   return { save, saving: saveMutation.isPending };

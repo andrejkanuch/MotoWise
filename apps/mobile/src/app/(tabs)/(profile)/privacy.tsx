@@ -19,7 +19,6 @@ import {
   setAnalyticsEnabled,
   setCrashReportingEnabled,
   trackEvent,
-  trackScreen,
 } from '../../../lib/analytics';
 import {
   type AccountPrivacyPreference,
@@ -141,11 +140,6 @@ export default function PrivacyScreen() {
   /** The privacy object most recently sent from this screen (each update builds on it). */
   const lastSentRef = useRef<AccountPrivacyPreference | null>(null);
   const [initialized, setInitialized] = useState(false);
-
-  // Track screen view on mount
-  useEffect(() => {
-    trackScreen('Privacy');
-  }, []);
 
   useEffect(() => {
     if (meQuery.data && !initialized) {
