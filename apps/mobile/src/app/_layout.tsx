@@ -85,6 +85,7 @@ import {
   accountConsentDecision,
   deviceConsentDecision,
   isConsentPromptOwed,
+  reconcileConsent,
 } from '../lib/analytics-consent';
 import {
   AUTH_HYDRATION_TIMEOUT_MESSAGE,
@@ -103,6 +104,7 @@ import {
 } from '../lib/auth-state-change';
 import { bestEffortNativeCall, NativeSideEffect } from '../lib/best-effort-native';
 import { saveConsentToAccount } from '../lib/consent-account-sync';
+import { canShowConsentPrompt } from '../lib/consent-prompt';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
 import { captureMetaAttribution } from '../lib/meta-attribution';
@@ -209,17 +211,8 @@ let whatsNewPushed = false;
 let consentPromptPushed = false;
 let consentPromptScheduled = false;
 
-/** Route groups the consent screen may open over — never a ride or other modal. */
-const CONSENT_PROMPT_GROUPS: ReadonlySet<string> = new Set(['(tabs)', '(onboarding)', '(auth)']);
 /** Later than What's New (500 ms) so, if both are owed, consent sits on top. */
 const CONSENT_PROMPT_DELAY_MS = 700;
-
-/** True on a route the consent screen may open over: not welcome, not a ride or modal. */
-function canShowConsentPrompt(segments: readonly string[]): boolean {
-  const [group, screen] = segments;
-  if (!group || !CONSENT_PROMPT_GROUPS.has(group)) return false;
-  return !(group === '(onboarding)' && (!screen || screen === 'index'));
-}
 
 function NavigationGate({ onSettled }: { onSettled: () => void }) {
   const {
@@ -277,17 +270,23 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
   useEffect(() => {
     const privacy = userPreferences?.privacy as AccountPrivacyPreference | undefined;
 
-    // Analytics follows the account only when the account holds a decision this
-    // device can trust (a "no", or a versioned "yes" — see accountConsentDecision).
-    // Otherwise the device's own decision, if it has one, is saved to the account:
-    // a rider who answered the consent screen before signing up would else leave
-    // the account with no decision, and the server-side signup event reads it.
-    const accountDecision = accountConsentDecision(privacy);
-    if (accountDecision !== null) {
-      setAnalyticsEnabled(accountDecision);
-    } else if (session && userPreferences !== undefined) {
-      const deviceDecision = deviceConsentDecision();
-      if (deviceDecision !== null) void saveConsentToAccount(deviceDecision, privacy);
+    // Once the account is loaded, reconcile its analytics decision with this
+    // device's: the newer explicit decision wins (a tie goes to "no"), and a
+    // decision only one side has goes to the other. The account's decision only
+    // counts when this device can trust it (accountConsentDecision); the device's
+    // only when the rider actually chose (deviceConsentDecision). Uploading
+    // matters beyond this device: the server-side signup event reads it.
+    if (session && userPreferences !== undefined) {
+      const { apply, upload } = reconcileConsent(
+        deviceConsentDecision(),
+        accountConsentDecision(privacy),
+      );
+      if (apply) setAnalyticsEnabled(apply.enabled, apply.decidedAt);
+      if (upload) {
+        void saveConsentToAccount(upload, privacy).then((saved) => {
+          if (saved) void queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
+        });
+      }
     }
     if (typeof privacy?.crashReportingEnabled === 'boolean') {
       setCrashReportingEnabled(privacy.crashReportingEnabled);

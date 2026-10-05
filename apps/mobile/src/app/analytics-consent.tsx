@@ -9,7 +9,7 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../components/onboarding/onboarding-colors';
 import { AnalyticsEvent, setAnalyticsEnabled, trackEvent } from '../lib/analytics';
-import type { AccountPrivacyPreference } from '../lib/analytics-consent';
+import type { AccountPrivacyPreference, ConsentDecision } from '../lib/analytics-consent';
 import { saveConsentToAccount } from '../lib/consent-account-sync';
 import { queryKeys } from '../lib/query-keys';
 import { useAuthStore } from '../stores/auth.store';
@@ -55,22 +55,24 @@ export default function AnalyticsConsentScreen() {
    * who answers before signing in has it saved by the root layout once a
    * session exists (it uploads the device decision when the account has none).
    */
-  const saveToAccount = (enabled: boolean) => {
+  const saveToAccount = (decision: ConsentDecision) => {
     if (!session) return;
     const current = queryClient.getQueryData<MeCache>(queryKeys.user.me)?.me?.preferences?.privacy;
-    void saveConsentToAccount(enabled, current).then(() =>
-      queryClient.invalidateQueries({ queryKey: queryKeys.user.me }),
-    );
+    void saveConsentToAccount(decision, current).then((saved) => {
+      if (saved) void queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
+    });
   };
 
   const answer = (enabled: boolean) => {
     if (answeredRef.current) return;
     answeredRef.current = true;
     triggerImpact(ImpactFeedbackStyle.Light);
-    setAnalyticsEnabled(enabled);
+    // One timestamp for both sides, so device and account compare equal later.
+    const decision: ConsentDecision = { enabled, decidedAt: Date.now() };
+    setAnalyticsEnabled(decision.enabled, decision.decidedAt);
     // Only an acceptance can be recorded — a refusal sends nothing, by design.
     if (enabled) trackEvent(AnalyticsEvent.ANALYTICS_CONSENT_GRANTED, { surface: CONSENT_SURFACE });
-    saveToAccount(enabled);
+    saveToAccount(decision);
     if (router.canGoBack()) router.back();
   };
 

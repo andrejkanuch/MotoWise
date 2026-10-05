@@ -148,4 +148,19 @@ describe('launch consent enforcement (release build)', () => {
     expect(mockOptOut).not.toHaveBeenCalled();
     expect(analytics.isAnalyticsEnabled()).toBe(true);
   });
+
+  // An install opted in under the old model keeps that opt-in persisted until
+  // the re-apply runs; the SDK captures lifecycle events before then.
+  it('drops anything captured before consent through before_send', () => {
+    launch('undecided', /* persistedOptedOut */ false);
+    const beforeSend = mockConstructorOptions.before_send as (e: unknown) => unknown;
+    expect(beforeSend({ event: 'Application Updated' })).toBeNull();
+  });
+
+  it('passes events once consent is granted', () => {
+    const analytics = launch('undecided');
+    const beforeSend = mockConstructorOptions.before_send as (e: unknown) => unknown;
+    analytics.setAnalyticsEnabled(true);
+    expect(beforeSend({ event: 'screen' })).toEqual({ event: 'screen' });
+  });
 });

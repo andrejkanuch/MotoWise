@@ -22,9 +22,11 @@ import {
   trackScreen,
 } from '../../../lib/analytics';
 import {
-  accountConsentDecision,
-  CONSENT_VERSION,
+  type AccountPrivacyPreference,
+  buildPrivacyUpdate,
+  type ConsentDecision,
   getStoredAnalyticsConsent,
+  type PrivacyChange,
 } from '../../../lib/analytics-consent';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { isAccountAlreadyDeleted, userFriendlyError } from '../../../lib/graphql-errors';
@@ -132,7 +134,7 @@ export default function PrivacyScreen() {
 
   const meQuery = useQuery(meOptions());
 
-  const prefs = (meQuery.data?.me?.preferences as { privacy?: Partial<PrivacyPrefs> } | null)
+  const prefs = (meQuery.data?.me?.preferences as { privacy?: AccountPrivacyPreference } | null)
     ?.privacy;
 
   const [state, setState] = useState<PrivacyPrefs>(privacyDefaults);
@@ -145,24 +147,29 @@ export default function PrivacyScreen() {
 
   useEffect(() => {
     if (meQuery.data && !initialized) {
-      const merged = { ...privacyDefaults(), ...prefs };
+      // The analytics toggle shows what is in force on this device: the root
+      // layout has already reconciled it with the account, and the raw account
+      // value may be an untrusted legacy "yes". Opening this screen never
+      // records a decision (it used to save the default "yes").
+      const merged: PrivacyPrefs = {
+        analyticsEnabled: getStoredAnalyticsConsent(),
+        crashReportingEnabled:
+          typeof prefs?.crashReportingEnabled === 'boolean'
+            ? prefs.crashReportingEnabled
+            : privacyDefaults().crashReportingEnabled,
+      };
       setState(merged);
       setInitialized(true);
-
-      // Sync the account's saved choices to the SDKs. Analytics is applied only
-      // when the account holds a decision this device can trust: opening this
-      // screen must never record one (it used to save the default "yes").
-      const accountDecision = accountConsentDecision(prefs);
-      if (accountDecision !== null) setAnalyticsEnabled(accountDecision);
       setCrashReportingEnabled(merged.crashReportingEnabled);
     }
   }, [meQuery.data, prefs, initialized]);
 
   const updateMutation = useMutation({
-    // Versioned: a choice made on this screen is a real decision (see CONSENT_VERSION).
-    mutationFn: (privacy: PrivacyPrefs) =>
+    // Only the toggled setting changes (buildPrivacyUpdate); an analytics toggle
+    // is a real, timestamped decision.
+    mutationFn: (change: PrivacyChange) =>
       gqlFetcher(UpdateUserDocument, {
-        input: { preferences: { privacy: { ...privacy, consentVersion: CONSENT_VERSION } } },
+        input: { preferences: { privacy: buildPrivacyUpdate(prefs, change) } },
       }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.user.me }),
   });
@@ -171,18 +178,20 @@ export default function PrivacyScreen() {
     (key: keyof PrivacyPrefs, value: boolean) => {
       const next = { ...state, [key]: value };
       setState(next);
-      updateMutation.mutate(next);
 
       // Sync with Sentry / PostHog
       if (key === 'analyticsEnabled') {
-        if (value) setAnalyticsEnabled(true);
+        const decision: ConsentDecision = { enabled: value, decidedAt: Date.now() };
+        updateMutation.mutate({ analytics: decision });
+        if (value) setAnalyticsEnabled(true, decision.decidedAt);
         trackEvent(AnalyticsEvent.SETTINGS_CHANGED, {
           setting: key,
           value,
           source: 'privacy',
         });
-        if (!value) setAnalyticsEnabled(false);
+        if (!value) setAnalyticsEnabled(false, decision.decidedAt);
       } else if (key === 'crashReportingEnabled') {
+        updateMutation.mutate({ crashReportingEnabled: value });
         setCrashReportingEnabled(value);
         trackEvent(AnalyticsEvent.SETTINGS_CHANGED, {
           setting: key,
@@ -191,7 +200,7 @@ export default function PrivacyScreen() {
         });
       }
     },
-    [state, updateMutation],
+    [state, updateMutation.mutate],
   );
 
   const exportMutation = useMutation({

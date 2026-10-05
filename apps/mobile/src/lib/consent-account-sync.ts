@@ -1,29 +1,32 @@
 import { UpdateUserDocument } from '@motovault/graphql';
 import { captureException } from './analytics';
-import { type AccountPrivacyPreference, CONSENT_VERSION } from './analytics-consent';
+import {
+  type AccountPrivacyPreference,
+  buildPrivacyUpdate,
+  type ConsentDecision,
+} from './analytics-consent';
 import { gqlFetcher } from './graphql-client';
 
 /**
  * Save an analytics decision to the signed-in account, versioned so later
  * launches (and other devices) can trust it — see `accountConsentDecision`.
  *
- * `preferences` merges one level deep on the server, so the whole `privacy`
- * object is sent; `current` carries the other privacy keys through unchanged.
+ * The whole `privacy` object is sent (see buildPrivacyUpdate); `current`
+ * carries the other privacy keys through unchanged.
  * Best-effort: a failed write is reported and the device keeps its decision.
+ * Resolves true when saved, so callers refetch only after a real change (a
+ * refetch after a failure would retry in a loop).
  */
 export async function saveConsentToAccount(
-  enabled: boolean,
+  decision: ConsentDecision,
   current: AccountPrivacyPreference | null | undefined,
-): Promise<void> {
-  const privacy = {
-    analyticsEnabled: enabled,
-    crashReportingEnabled:
-      typeof current?.crashReportingEnabled === 'boolean' ? current.crashReportingEnabled : true,
-    consentVersion: CONSENT_VERSION,
-  };
+): Promise<boolean> {
+  const privacy = buildPrivacyUpdate(current, { analytics: decision });
   try {
     await gqlFetcher(UpdateUserDocument, { input: { preferences: { privacy } } });
+    return true;
   } catch (e) {
     captureException(e, { source: 'consent-account-sync.saveConsentToAccount' });
+    return false;
   }
 }

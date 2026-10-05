@@ -47,7 +47,10 @@ interface PendingSignupRow {
   user_id: string;
   created_at: string;
   auth_method: string | null;
-  /** The rider's saved decision; NULL when none is saved (00183). See `hasAnalyticsConsent`. */
+  /**
+   * The rider's decision: the account's, else the one sent with sign-up; NULL
+   * when neither exists (00184). See `hasAnalyticsConsent`.
+   */
   analytics_enabled: boolean | null;
   currency: string | null;
   measurement_system: string | null;

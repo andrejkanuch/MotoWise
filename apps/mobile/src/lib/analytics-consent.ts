@@ -21,7 +21,7 @@ import {
 //    consenting and the decision is persisted at first launch; the rider can
 //    turn it off in Settings → Privacy.
 //  - Inside (or region unknown): opt-IN. Nothing is sent until the rider
-//    accepts on the consent screen (app/(modals)/analytics-consent.tsx), which
+//    accepts on the consent screen (app/analytics-consent.tsx, a root route), which
 //    the root layout presents once the rider leaves the welcome screen.
 //
 // The decision lives in the keychain so it can be read synchronously at module
@@ -34,18 +34,40 @@ import {
 export const ANALYTICS_CONSENT_KEY = SECURE_STORE_KEY.ANALYTICS_CONSENT;
 
 /**
- * Persisted consent values. Decisions are versioned because the values before
- * 3.21.0 (`'true'`/`'false'`) were not all real choices: the Privacy screen
- * defaulted analytics ON and pushed that default into this flag just by being
- * opened. A legacy "yes" is therefore NOT honoured where opt-in is required —
- * that rider is asked once. A legacy "no" is always honoured.
+ * Persisted consent values.
+ *
+ * - An explicit decision (the consent screen, the Privacy toggle, or one taken
+ *   over from the account) is `granted:v2:<ms>` / `denied:v2:<ms>`, stamped with
+ *   when it was made, so the newer of the device's and the account's decisions
+ *   can win (see {@link reconcileConsent}).
+ * - The automatic opt-out-region grant is `granted-default:v2`: it counts as
+ *   granted here, but it is not a choice, so it is never uploaded to the
+ *   account (where an opt-in-region device would otherwise trust it).
+ * - Before 3.21.0 values were `'true'`/`'false'` and not all real choices: the
+ *   Privacy screen saved its default "yes" just by being opened. A legacy "yes"
+ *   is not honoured where opt-in is required (that rider is asked once); a
+ *   legacy "no" is always honoured.
  */
 const CONSENT_VALUE = {
-  GRANTED: 'granted:v2',
-  DENIED: 'denied:v2',
+  GRANTED_PREFIX: 'granted:v2:',
+  DENIED_PREFIX: 'denied:v2:',
+  DEFAULT_GRANTED: 'granted-default:v2',
   LEGACY_GRANTED: 'true',
   LEGACY_DENIED: 'false',
 } as const;
+
+/** A decision and when it was made (epoch ms; 0 when unknown, i.e. oldest). */
+export interface ConsentDecision {
+  enabled: boolean;
+  decidedAt: number;
+}
+
+/** What a stored value means, for a readable keychain. */
+interface StoredConsent {
+  state: ConsentState;
+  /** Only an explicit decision is ever uploaded to the account. */
+  decision: ConsentDecision | null;
+}
 
 /**
  * Version stamped on the account's `preferences.privacy.consentVersion` with
@@ -122,12 +144,32 @@ export function getDeviceRegion(): string | null {
   }
 }
 
-/** Persisted value → state, for a readable keychain. A legacy "yes" is resolved by region. */
-const STORED_TO_STATE: Record<string, ConsentState> = {
-  [CONSENT_VALUE.GRANTED]: CONSENT_STATE.GRANTED,
-  [CONSENT_VALUE.DENIED]: CONSENT_STATE.DENIED,
-  [CONSENT_VALUE.LEGACY_DENIED]: CONSENT_STATE.DENIED,
-};
+/** Explicit-decision prefixes → the decision they encode. */
+const DECISION_PREFIXES: ReadonlyArray<readonly [string, boolean]> = [
+  [CONSENT_VALUE.GRANTED_PREFIX, true],
+  [CONSENT_VALUE.DENIED_PREFIX, false],
+];
+
+/**
+ * Parse a stored value. Returns null for "no decision": nothing stored, an
+ * unrecognised value, or a legacy "yes" (which the caller resolves by region).
+ */
+function parseStoredConsent(value: unknown): StoredConsent | null {
+  if (typeof value !== 'string' || !value) return null;
+  if (value === CONSENT_VALUE.DEFAULT_GRANTED) {
+    return { state: CONSENT_STATE.GRANTED, decision: null };
+  }
+  if (value === CONSENT_VALUE.LEGACY_DENIED) {
+    return { state: CONSENT_STATE.DENIED, decision: { enabled: false, decidedAt: 0 } };
+  }
+  for (const [prefix, enabled] of DECISION_PREFIXES) {
+    if (!value.startsWith(prefix)) continue;
+    const decidedAt = Number(value.slice(prefix.length));
+    const decision = { enabled, decidedAt: Number.isFinite(decidedAt) ? decidedAt : 0 };
+    return { state: enabled ? CONSENT_STATE.GRANTED : CONSENT_STATE.DENIED, decision };
+  }
+  return null;
+}
 
 /**
  * Resolve the consent decision for this launch, synchronously.
@@ -143,11 +185,12 @@ const STORED_TO_STATE: Record<string, ConsentState> = {
 export function resolveLaunchConsent(regionCode: string | null = getDeviceRegion()): ConsentState {
   const read = readSecureItemSync(ANALYTICS_CONSENT_KEY);
   if (read.status !== SECURE_STORE_STATUS.OK) return CONSENT_STATE.UNKNOWN;
-  const stored = read.value ? STORED_TO_STATE[read.value] : undefined;
+  const stored = parseStoredConsent(read.value);
   // Legacy "yes" falls through to the no-decision path below.
-  if (stored) return stored;
+  if (stored) return stored.state;
   if (requiresOptIn(regionCode)) return CONSENT_STATE.UNDECIDED;
-  setStoredAnalyticsConsent(true);
+  // Not a choice: stored as the automatic grant, never uploaded to the account.
+  setSecureItemSync(ANALYTICS_CONSENT_KEY, CONSENT_VALUE.DEFAULT_GRANTED);
   return CONSENT_STATE.GRANTED;
 }
 
@@ -160,7 +203,9 @@ export function resolveLaunchConsent(regionCode: string | null = getDeviceRegion
  * so for them this is `true` from then on.
  */
 export function getStoredAnalyticsConsent(): boolean {
-  return getSecureItemSync(ANALYTICS_CONSENT_KEY) === CONSENT_VALUE.GRANTED;
+  return (
+    parseStoredConsent(getSecureItemSync(ANALYTICS_CONSENT_KEY))?.state === CONSENT_STATE.GRANTED
+  );
 }
 
 /** True when the rider has never answered and the region needs an answer. */
@@ -168,9 +213,14 @@ export function isConsentPromptOwed(): boolean {
   return resolveLaunchConsent() === CONSENT_STATE.UNDECIDED;
 }
 
-/** Persist the analytics consent so it can be applied on the next cold start. */
-export function setStoredAnalyticsConsent(enabled: boolean): void {
-  setSecureItemSync(ANALYTICS_CONSENT_KEY, enabled ? CONSENT_VALUE.GRANTED : CONSENT_VALUE.DENIED);
+/**
+ * Persist an explicit decision so it applies on the next cold start. `decidedAt`
+ * defaults to now; pass the account's timestamp when taking over its decision,
+ * so the two compare equal afterwards instead of re-uploading.
+ */
+export function setStoredAnalyticsConsent(enabled: boolean, decidedAt: number = Date.now()): void {
+  const prefix = enabled ? CONSENT_VALUE.GRANTED_PREFIX : CONSENT_VALUE.DENIED_PREFIX;
+  setSecureItemSync(ANALYTICS_CONSENT_KEY, `${prefix}${decidedAt}`);
 }
 
 /** The `preferences.privacy` shape the consent model reads from the account. */
@@ -178,6 +228,8 @@ export interface AccountPrivacyPreference {
   analyticsEnabled?: unknown;
   crashReportingEnabled?: unknown;
   consentVersion?: unknown;
+  /** When the analytics decision was made (epoch ms); absent before 3.21.0. */
+  decidedAt?: unknown;
 }
 
 /**
@@ -190,18 +242,96 @@ export interface AccountPrivacyPreference {
 export function accountConsentDecision(
   privacy: AccountPrivacyPreference | null | undefined,
   regionCode: string | null = getDeviceRegion(),
-): boolean | null {
+): ConsentDecision | null {
   if (typeof privacy?.analyticsEnabled !== 'boolean') return null;
-  if (!privacy.analyticsEnabled) return false;
+  const decidedAt =
+    typeof privacy.decidedAt === 'number' && Number.isFinite(privacy.decidedAt)
+      ? privacy.decidedAt
+      : 0;
+  if (!privacy.analyticsEnabled) return { enabled: false, decidedAt };
   const versioned =
     typeof privacy.consentVersion === 'number' && privacy.consentVersion >= CONSENT_VERSION;
-  return versioned || !requiresOptIn(regionCode) ? true : null;
+  return versioned || !requiresOptIn(regionCode) ? { enabled: true, decidedAt } : null;
 }
 
-/** This device's own decision, when it has one (never for UNDECIDED/UNKNOWN). */
-export function deviceConsentDecision(): boolean | null {
-  const state = resolveLaunchConsent();
-  if (state === CONSENT_STATE.GRANTED) return true;
-  if (state === CONSENT_STATE.DENIED) return false;
-  return null;
+/**
+ * This device's own explicit decision, or null — for UNDECIDED, UNKNOWN, and
+ * the automatic opt-out-region grant (not a choice, so never uploaded).
+ * Read-only: unlike {@link resolveLaunchConsent} it never writes.
+ */
+export function deviceConsentDecision(): ConsentDecision | null {
+  const read = readSecureItemSync(ANALYTICS_CONSENT_KEY);
+  if (read.status !== SECURE_STORE_STATUS.OK) return null;
+  return parseStoredConsent(read.value)?.decision ?? null;
+}
+
+/** What to do when the device's and the account's decisions are compared. */
+export interface ConsentReconciliation {
+  /** The account's decision, to take over on this device. */
+  apply: ConsentDecision | null;
+  /** The device's decision, to save to the account. */
+  upload: ConsentDecision | null;
+}
+
+/**
+ * Reconcile this device's explicit decision with the account's. The newer
+ * decision wins; on a tie the "no" wins. A decision only one side has goes to
+ * the other side. Nothing happens when they agree. Pure — callers do the I/O.
+ */
+export function reconcileConsent(
+  device: ConsentDecision | null,
+  account: ConsentDecision | null,
+): ConsentReconciliation {
+  const none: ConsentReconciliation = { apply: null, upload: null };
+  if (!device) return account ? { apply: account, upload: null } : none;
+  if (!account) return { apply: null, upload: device };
+  if (device.enabled === account.enabled) return none;
+  const deviceWins =
+    device.decidedAt > account.decidedAt ||
+    (device.decidedAt === account.decidedAt && !device.enabled);
+  return deviceWins ? { apply: null, upload: device } : { apply: account, upload: null };
+}
+
+/** A change to the account's privacy preferences. */
+export interface PrivacyChange {
+  /** A new analytics decision — saved versioned and timestamped. */
+  analytics?: ConsentDecision;
+  crashReportingEnabled?: boolean;
+}
+
+/**
+ * The full `preferences.privacy` object to save for a change. The server merges
+ * `preferences` one level deep, so `privacy` is replaced whole: every key not
+ * being changed is carried over exactly as stored. In particular a crash-only
+ * change leaves an unversioned legacy "yes" unversioned — it must never be
+ * turned into a trusted decision as a side effect.
+ */
+export function buildPrivacyUpdate(
+  current: AccountPrivacyPreference | null | undefined,
+  change: PrivacyChange,
+): Record<string, unknown> {
+  const next: Record<string, unknown> = { ...(current ?? {}) };
+  if (change.analytics) {
+    next.analyticsEnabled = change.analytics.enabled;
+    next.decidedAt = change.analytics.decidedAt;
+    next.consentVersion = CONSENT_VERSION;
+  }
+  if (change.crashReportingEnabled !== undefined) {
+    next.crashReportingEnabled = change.crashReportingEnabled;
+  }
+  return next;
+}
+
+/**
+ * Sign-up metadata key carrying the rider's decision to the server. The signup
+ * sweep falls back to it when the account has no saved decision — which is the
+ * case for an email sign-up that confirms later than the sweep's 10-minute wait
+ * (no session until confirmation, so the app cannot upload it). See 00184.
+ */
+export const SIGNUP_CONSENT_METADATA_KEY = 'analytics_consent';
+
+/** `options.data` to merge into `supabase.auth.signUp`: the explicit decision, if any. */
+export function signUpConsentMetadata(): Record<string, boolean> {
+  const decision = deviceConsentDecision();
+  return decision ? { [SIGNUP_CONSENT_METADATA_KEY]: decision.enabled } : {};
 }

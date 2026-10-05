@@ -42,6 +42,13 @@ const POSTHOG_HOST = Constants.expoConfig?.extra?.posthogHost ?? 'https://eu.i.p
 // device in an opt-in region until the rider accepts. See analytics-consent.ts.
 const launchConsent: ConsentState = resolveLaunchConsent();
 
+// Events wait for the same decision as attribution and replay. UNKNOWN (a
+// locked keychain on a background launch) starts off and then follows the
+// SDK's own persisted opt state, which mirrors the last decision because every
+// decision goes through `setAnalyticsEnabled` → optIn/optOut. Declared before
+// the client so the `before_send` guard below can read it from the first event.
+let analyticsEnabled = launchConsent === CONSENT_STATE.GRANTED;
+
 // Eagerly initialize PostHog so the instance can be passed to PostHogProvider.
 // The client is disabled when no API key is configured, so events are no-ops.
 export const posthogClient: PostHog = new PostHog(POSTHOG_API_KEY || 'placeholder', {
@@ -50,6 +57,12 @@ export const posthogClient: PostHog = new PostHog(POSTHOG_API_KEY || 'placeholde
   // already granted. A persisted opt state from an earlier launch overrides
   // this default, so it is re-applied below once storage has loaded.
   defaultOptIn: launchConsent === CONSENT_STATE.GRANTED,
+  // Last line of defence: drop anything captured while analytics is off. An
+  // install opted in under the pre-3.21 model keeps that opt-in persisted until
+  // the re-apply below runs, and the SDK captures lifecycle events
+  // ("Application Updated") while loading storage — before that re-apply — and
+  // flushes without re-checking opt-out. Nothing passes until consent is given.
+  before_send: (event) => (analyticsEnabled ? event : null),
   // `captureAppLifecycleEvents` is intentionally left at its SDK default (`true`):
   // `Application Installed`/`Opened`/`Backgrounded` already flow to PostHog and are
   // relied on as the install-count denominator. Do NOT set it to false. (Note: the
@@ -98,11 +111,6 @@ if (!__DEV__ && POSTHOG_API_KEY) {
   }
 }
 
-// Events wait for the same decision as attribution and replay. UNKNOWN (a
-// locked keychain on a background launch) starts off and then follows the
-// SDK's own persisted opt state, which mirrors the last decision because every
-// decision goes through `setAnalyticsEnabled` → optIn/optOut.
-let analyticsEnabled = launchConsent === CONSENT_STATE.GRANTED;
 /** Set once `setAnalyticsEnabled` runs, so the launch value never overrides it. */
 let consentAppliedThisRun = false;
 
@@ -331,13 +339,17 @@ export function initPostHog() {
 
 // ---- Privacy Controls -----------------------------------------------
 
-export function setAnalyticsEnabled(enabled: boolean) {
+/**
+ * Apply an explicit analytics decision. `decidedAt` defaults to now; pass the
+ * account's timestamp when taking over the account's decision.
+ */
+export function setAnalyticsEnabled(enabled: boolean, decidedAt?: number) {
   analyticsEnabled = enabled;
   consentAppliedThisRun = true;
   // Persist consent so the recorder can be gated synchronously on the next
   // cold start, before the server `me` query resolves (closes the pre-consent
   // recording window — todo 184).
-  setStoredAnalyticsConsent(enabled);
+  setStoredAnalyticsConsent(enabled, decidedAt);
   if (enabled) {
     // Consent just granted — wire attribution that was suppressed pre-consent
     // (KTD-9). Lazy imports avoid a static analytics↔subscription cycle; consent

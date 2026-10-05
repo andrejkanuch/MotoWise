@@ -132,11 +132,17 @@ describe('setAnalyticsEnabled consent persistence (KTD-9)', () => {
   // synchronous contract: consent is persisted so the gates inside those targets pass.
   it('persists consent synchronously so opt-in unblocks the attribution gates', () => {
     setAnalyticsEnabled(true);
-    expect(mockSetStoredConsent).toHaveBeenLastCalledWith(true);
+    // decidedAt defaults to "now" inside setStoredAnalyticsConsent.
+    expect(mockSetStoredConsent).toHaveBeenLastCalledWith(true, undefined);
+  });
+
+  it('persists a decision taken over from the account with its own timestamp', () => {
+    setAnalyticsEnabled(true, 1234);
+    expect(mockSetStoredConsent).toHaveBeenLastCalledWith(true, 1234);
   });
 
   it('persists withdrawal synchronously', () => {
     setAnalyticsEnabled(false);
-    expect(mockSetStoredConsent).toHaveBeenLastCalledWith(false);
+    expect(mockSetStoredConsent).toHaveBeenLastCalledWith(false, undefined);
   });
 });
