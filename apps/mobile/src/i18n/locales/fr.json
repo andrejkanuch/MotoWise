@@ -499,7 +499,8 @@
     "roadsTitle": "Routes parcourues",
     "roadsSubtitle": "Carte de chaleur à vie et bilan de l'année",
     "savedRoutesTitle": "Itinéraires enregistrés",
-    "savedRoutesSubtitle": "Itinéraires à parcourir plus tard"
+    "savedRoutesSubtitle": "Itinéraires à parcourir plus tard",
+    "redeemCode": "Utiliser un code"
   },
   "onboarding": {
     "welcomeTitle": "Bienvenue sur MotoVault",
@@ -1009,7 +1010,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "Où ? (facultatif)",
+    "heardAboutOtherContinue": "Continuer"
   },
   "bikeHub": {
     "upcoming": "À venir",
@@ -2459,5 +2464,14 @@
     "feedbackYes": "Envoyer un avis",
     "feedbackNo": "Plus tard",
     "feedbackSubject": "Avis MotoVault"
+  },
+  "analyticsConsent": {
+    "title": "Aidez à façonner MotoVault",
+    "body": "Avec votre accord, nous collectons des données d’utilisation de cette app pour décider de la suite.",
+    "pointWhat": "Les fonctionnalités que vous utilisez, et le lien ou la publication qui vous a amené ici.",
+    "pointNever": "Jamais vendues, jamais utilisées pour la publicité.",
+    "pointChange": "Modifiable à tout moment dans Profil → Confidentialité.",
+    "allow": "Autoriser",
+    "decline": "Ne pas autoriser"
   }
 }

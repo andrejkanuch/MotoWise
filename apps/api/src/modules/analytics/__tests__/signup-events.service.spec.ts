@@ -180,6 +180,23 @@ describe('SignupEventsService', () => {
     expect(summary.identified).toBe(0);
   });
 
+  it('still identifies a signup with no saved decision (pre-3.21.0 apps save none)', async () => {
+    const { client } = makeSupabase({
+      claim_pending_signup_events: () => ({
+        data: [row({ analytics_enabled: null })],
+        error: null,
+      }),
+    });
+    const { bodies } = stubFetch({ ok: true });
+
+    const service = new SignupEventsService(client, config({ POSTHOG_PROJECT_TOKEN: 'phc_test' }));
+    const summary = await service.sweepPendingSignups();
+
+    const event = EVENTS(bodies)[0] as { distinct_id: string };
+    expect(event.distinct_id).not.toBe(ANONYMOUS_DISTINCT_ID);
+    expect(summary.identified).toBe(1);
+  });
+
   it('never sends email or any direct identifier', async () => {
     const { client } = makeSupabase({
       claim_pending_signup_events: () => ({ data: [row()], error: null }),

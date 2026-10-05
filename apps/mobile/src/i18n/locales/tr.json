@@ -498,7 +498,8 @@
     "roadsTitle": "Sürdüğüm yollar",
     "roadsSubtitle": "Tüm zamanların ısı haritası ve yıl özeti",
     "savedRoutesTitle": "Kayıtlı Rotalar",
-    "savedRoutesSubtitle": "Daha sonra sürmek istediğin rotalar"
+    "savedRoutesSubtitle": "Daha sonra sürmek istediğin rotalar",
+    "redeemCode": "Kod kullan"
   },
   "onboarding": {
     "welcomeTitle": "MotoVault'a Hosgeldin",
@@ -1008,7 +1009,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "Nerede? (isteğe bağlı)",
+    "heardAboutOtherContinue": "Devam"
   },
   "bikeHub": {
     "upcoming": "Yaklasan",
@@ -2456,5 +2461,14 @@
     "feedbackYes": "Geri bildirim gönder",
     "feedbackNo": "Şimdi değil",
     "feedbackSubject": "MotoVault geri bildirim"
+  },
+  "analyticsConsent": {
+    "title": "MotoVault'u birlikte şekillendirelim",
+    "body": "İzninle, sırada ne yapacağımıza karar vermek için bu uygulamanın kullanım verilerini topluyoruz.",
+    "pointWhat": "Hangi özellikleri kullandığın ve seni buraya getiren bağlantı ya da gönderi.",
+    "pointNever": "Asla satılmaz, asla reklam için kullanılmaz.",
+    "pointChange": "Profil → Gizlilik bölümünden istediğin zaman değiştir.",
+    "allow": "İzin ver",
+    "decline": "İzin verme"
   }
 }

@@ -2,6 +2,8 @@ import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import { isAnalyticsEnabled, posthogClient } from './analytics';
 import { getStoredAnalyticsConsent } from './analytics-consent';
+import { whenReferrerSettled } from './install-referrer-gate';
+import type { ReferrerCampaign } from './pending-intent';
 import { deleteSecureItem, getSecureItem, SECURE_STORE_KEY, setSecureItem } from './secure-store';
 
 const STORE_KEYS = {
@@ -98,6 +100,12 @@ async function doCaptureMetaAttribution(): Promise<boolean> {
     if (utmContent) await setSecureItem(STORE_KEYS.UTM_CONTENT, utmContent);
     if (utmCampaign) await setSecureItem(STORE_KEYS.UTM_CAMPAIGN, utmCampaign);
 
+    // On Android a bio-link install carries its source in the Play install
+    // referrer, read concurrently at cold start (pending-intent-reader). Wait for
+    // it — bounded — before resolving the source: `install_source` is set-once,
+    // so emitting first would stamp the install `organic_unknown` permanently.
+    await whenReferrerSettled();
+
     // Resolve the effective first-touch UTM, preferring this launch's values but
     // falling back to anything persisted on an earlier (e.g. pre-consent) launch,
     // so a real source captured before consent is not later replaced by 'organic'.
@@ -142,6 +150,28 @@ async function doCaptureMetaAttribution(): Promise<boolean> {
   } catch {
     // Silently ignore — attribution is best-effort, don't crash the app.
     return false;
+  }
+}
+
+/**
+ * Persist the campaign from a Play install referrer (a `/get?src=…` bio link,
+ * or a blog link) as the install's UTMs, so the install emit above and the
+ * RevenueCat `$mediaSource` write pick it up. First touch wins: a key already
+ * stored (from a deep link) is never overwritten. Stays on-device until consent,
+ * like every other UTM here. Never throws.
+ */
+export async function storeReferrerCampaign(campaign: ReferrerCampaign): Promise<void> {
+  try {
+    const writes: ReadonlyArray<readonly [string, string | null]> = [
+      [STORE_KEYS.UTM_SOURCE, sanitize(campaign.source)],
+      [STORE_KEYS.UTM_CAMPAIGN, sanitize(campaign.campaign)],
+      [STORE_KEYS.UTM_CONTENT, sanitize(campaign.content)],
+    ];
+    for (const [key, value] of writes) {
+      if (value && !(await getSecureItem(key))) await setSecureItem(key, value);
+    }
+  } catch {
+    // Best-effort, like the rest of attribution.
   }
 }
 

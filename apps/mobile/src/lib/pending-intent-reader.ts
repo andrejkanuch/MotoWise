@@ -6,12 +6,15 @@ import {
   setUserPropertiesOnce,
   trackEvent,
 } from './analytics';
+import { markReferrerSettled } from './install-referrer-gate';
+import { storeReferrerCampaign } from './meta-attribution';
 import {
   getIntentCohort,
   INTENT_METHOD,
   INTENT_PREFILL_ENABLED,
   type IntentMethod,
   parseIntentToken,
+  parseReferrerCampaign,
 } from './pending-intent';
 import {
   readSecureItem,
@@ -120,6 +123,21 @@ async function readAndStoreIntent(): Promise<boolean> {
   await writeSecureItem(SECURE_STORE_KEY.PENDING_INTENT_CHECKED, INTENT_CHECKED);
   if (!transport) return true; // organic install / no intent → normal flow
 
+  // The campaign (a `/get?src=instagram` bio link, a blog link) is attribution in
+  // its own right, bike or no bike — store it before the intent check below,
+  // which drops every referrer without `mv_make`. The install emit waits for
+  // this (install-referrer-gate), and RevenueCat's write-once `$mediaSource` is
+  // re-applied now that a real source exists (consent-gated inside).
+  const campaign = parseReferrerCampaign(transport.raw);
+  if (campaign) {
+    await storeReferrerCampaign(campaign);
+    void import('./subscription')
+      .then((m) => m.configureRcAttribution())
+      .catch((e) => captureException(e, { source: 'pending-intent-reader.rcAttribution' }));
+  }
+
+  // The kill switch covers the bike pre-fill only, never campaign attribution.
+  if (!INTENT_PREFILL_ENABLED) return true;
   const intent = parseIntentToken(transport.raw);
   if (!intent) return true; // garbage / expired token → normal flow
 
@@ -151,7 +169,6 @@ async function readAndStoreIntent(): Promise<boolean> {
 export async function resolvePendingIntent(): Promise<void> {
   let cancelTimeout: (() => void) | null = null;
   try {
-    if (!INTENT_PREFILL_ENABLED) return;
     // Bound the first attempt: a stalled Play Referrer callback must never hang
     // the paywall, which waits on `intentResolved`. On timeout we abandon the
     // read and fall through to the no-intent path.
@@ -168,6 +185,8 @@ export async function resolvePendingIntent(): Promise<void> {
     captureException(e, { source: 'pending-intent-reader.resolvePendingIntent' });
   } finally {
     cancelTimeout?.();
+    // Release the install-attribution emit, which waits for the referrer.
+    markReferrerSettled();
     // Signal that resolution has settled (any path — kill-switch off, already
     // checked, intent found, timed out, or error). The paywall waits on this so a
     // late-arriving intent can still select the maintenance placement.

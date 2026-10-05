@@ -11,9 +11,9 @@
  */
 
 /**
- * Master kill switch. Flip to false to disable the entire intent path instantly
- * (the reader short-circuits before any I/O) without touching the rest of
- * onboarding. The Android referrer reader MUST check this before doing work.
+ * Master kill switch for the bike pre-fill. Flip to false to disable the intent
+ * path instantly without touching the rest of onboarding. The referrer is still
+ * read for its campaign UTMs (install attribution); only the pre-fill stops.
  */
 export const INTENT_PREFILL_ENABLED = true;
 
@@ -97,6 +97,56 @@ export function parseIntentToken(raw: string | null | undefined): PendingIntent 
       model: clean(params.get(INTENT_PARAM.MODEL)),
       source: clean(params.get(INTENT_PARAM.SOURCE)),
       campaign: clean(params.get(INTENT_PARAM.CAMPAIGN)),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** UTM keys carried by the Play install referrer, independent of any bike intent. */
+const REFERRER_UTM_PARAM = {
+  SOURCE: 'utm_source',
+  MEDIUM: 'utm_medium',
+  CAMPAIGN: 'utm_campaign',
+  CONTENT: 'utm_content',
+} as const;
+
+/**
+ * Referrer values Google Play writes for an install that no link drove — a
+ * store search or browse. Stamping these as an install source would be wrong,
+ * and RevenueCat's `$mediaSource` is write-once, so they must never get that far.
+ */
+const ORGANIC_REFERRER_SOURCES: ReadonlySet<string> = new Set(['google-play', '(not set)']);
+const ORGANIC_REFERRER_MEDIUM = 'organic';
+
+/** Campaign tags from an install referrer — the bio link's `utm_source=instagram`, etc. */
+export interface ReferrerCampaign {
+  source: string;
+  medium: string | null;
+  campaign: string | null;
+  content: string | null;
+}
+
+/**
+ * Parse the campaign UTMs out of a Play install referrer, whether or not it
+ * carries a bike (`mv_make`). `/get?src=…` bio links send only UTMs, and
+ * {@link parseIntentToken} drops those because it needs a make. Returns null for
+ * an untagged or organic referrer. Never throws.
+ */
+export function parseReferrerCampaign(raw: string | null | undefined): ReferrerCampaign | null {
+  try {
+    if (typeof raw !== 'string') return null;
+    const params = new URLSearchParams(raw.trim().replace(/^[/?]+/, ''));
+    const source = clean(params.get(REFERRER_UTM_PARAM.SOURCE))?.toLowerCase() ?? null;
+    const medium = clean(params.get(REFERRER_UTM_PARAM.MEDIUM))?.toLowerCase() ?? null;
+    if (!source || ORGANIC_REFERRER_SOURCES.has(source) || medium === ORGANIC_REFERRER_MEDIUM) {
+      return null;
+    }
+    return {
+      source,
+      medium,
+      campaign: clean(params.get(REFERRER_UTM_PARAM.CAMPAIGN)),
+      content: clean(params.get(REFERRER_UTM_PARAM.CONTENT)),
     };
   } catch {
     return null;

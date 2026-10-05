@@ -500,7 +500,8 @@
     "myTripsTitle": "Moje trasy",
     "myTripsDescription": "Śledź i udostępniaj swoje trasy motocyklowe",
     "currency": "Waluta",
-    "selectCurrency": "Wybierz walutę"
+    "selectCurrency": "Wybierz walutę",
+    "redeemCode": "Zrealizuj kod"
   },
   "onboarding": {
     "welcomeTitle": "Witaj w MotoVault",
@@ -1010,7 +1011,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "Gdzie? (opcjonalnie)",
+    "heardAboutOtherContinue": "Dalej"
   },
   "bikeHub": {
     "upcoming": "Nadchodzace",
@@ -2462,5 +2467,14 @@
     "feedbackYes": "Wyślij opinię",
     "feedbackNo": "Nie teraz",
     "feedbackSubject": "Opinia o MotoVault"
+  },
+  "analyticsConsent": {
+    "title": "Pomóż rozwijać MotoVault",
+    "body": "Za Twoją zgodą zbieramy dane o korzystaniu z tej aplikacji, by decydować, co budować dalej.",
+    "pointWhat": "Z jakich funkcji korzystasz oraz link lub post, który Cię tu przyprowadził.",
+    "pointNever": "Nigdy nie sprzedajemy ich ani nie używamy do reklam.",
+    "pointChange": "Zmienisz to w każdej chwili w Profil → Prywatność.",
+    "allow": "Zezwól",
+    "decline": "Nie zezwalaj"
   }
 }

@@ -498,7 +498,8 @@
     "roadsTitle": "เส้นทางที่ฉันเคยขี่",
     "roadsSubtitle": "แผนที่ความร้อนตลอดชีวิตและสรุปประจำปี",
     "savedRoutesTitle": "เส้นทางที่บันทึกไว้",
-    "savedRoutesSubtitle": "เส้นทางที่คุณอยากขี่ในภายหลัง"
+    "savedRoutesSubtitle": "เส้นทางที่คุณอยากขี่ในภายหลัง",
+    "redeemCode": "แลกรหัส"
   },
   "onboarding": {
     "welcomeTitle": "ยินดีต้อนรับสู่ MotoVault",
@@ -1008,7 +1009,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "ที่ไหน? (ไม่บังคับ)",
+    "heardAboutOtherContinue": "ดำเนินการต่อ"
   },
   "bikeHub": {
     "upcoming": "กำลังจะถึง",
@@ -2456,5 +2461,14 @@
     "feedbackYes": "ส่งความคิดเห็น",
     "feedbackNo": "ไว้ทีหลัง",
     "feedbackSubject": "ความคิดเห็น MotoVault"
+  },
+  "analyticsConsent": {
+    "title": "ช่วยพัฒนา MotoVault",
+    "body": "เมื่อคุณอนุญาต เราจะเก็บข้อมูลการใช้งานแอปนี้เพื่อตัดสินใจว่าจะพัฒนาอะไรต่อไป",
+    "pointWhat": "ฟีเจอร์ที่คุณใช้ และลิงก์หรือโพสต์ที่พาคุณมาที่นี่",
+    "pointNever": "ไม่ขาย และไม่ใช้เพื่อโฆษณา",
+    "pointChange": "เปลี่ยนได้ทุกเมื่อที่ โปรไฟล์ → ความเป็นส่วนตัว",
+    "allow": "อนุญาต",
+    "decline": "ไม่อนุญาต"
   }
 }

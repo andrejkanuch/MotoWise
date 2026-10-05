@@ -4,6 +4,7 @@ import {
   INTENT_COHORT,
   isMaintenanceIntent,
   parseIntentToken,
+  parseReferrerCampaign,
   resolveMakeFromIntent,
   resolveMakeId,
 } from '../pending-intent';
@@ -137,5 +138,34 @@ describe('resolveMakeFromIntent', () => {
     expect(
       resolveMakeFromIntent({ make: 'Yamaha', model: null, source: null, campaign: null }, []),
     ).toBeNull();
+  });
+});
+
+describe('parseReferrerCampaign (bio links and other tagged referrers)', () => {
+  it('reads a /get bio-link referrer with no bike in it', () => {
+    expect(
+      parseReferrerCampaign('utm_source=instagram&utm_medium=social&utm_campaign=bio'),
+    ).toEqual({ source: 'instagram', medium: 'social', campaign: 'bio', content: null });
+  });
+
+  it('still reads the campaign when the referrer also carries a bike', () => {
+    expect(
+      parseReferrerCampaign('utm_source=blog&utm_campaign=blog_maintenance&mv_make=Yamaha'),
+    ).toMatchObject({ source: 'blog', campaign: 'blog_maintenance' });
+  });
+
+  it('lowercases the source so "TikTok" and "tiktok" are one platform', () => {
+    expect(parseReferrerCampaign('utm_source=TikTok')?.source).toBe('tiktok');
+  });
+
+  it.each([
+    ['Google Play organic', 'utm_source=google-play&utm_medium=organic'],
+    ['organic medium', 'utm_source=somewhere&utm_medium=organic'],
+    ['not set', 'utm_source=(not set)&utm_medium=(not set)'],
+    ['no source', 'utm_medium=social'],
+    ['empty', ''],
+    ['null', null],
+  ])('returns null for %s', (_label, raw) => {
+    expect(parseReferrerCampaign(raw)).toBeNull();
   });
 });

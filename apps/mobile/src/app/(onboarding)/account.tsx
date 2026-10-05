@@ -28,6 +28,7 @@ import {
   useOnboardingVariant,
 } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
+import { signUpConsentMetadata } from '../../lib/analytics-consent';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { presentOAuthError } from '../../lib/oauth-error-alert';
@@ -154,6 +155,8 @@ export default function AccountScreen() {
         email,
         password,
         options: {
+          // The rider's analytics decision, for the server-side signup event.
+          data: signUpConsentMetadata(),
           emailRedirectTo: 'https://motovault.app/auth/callback?redirect=motovault://auth/callback',
         },
       });

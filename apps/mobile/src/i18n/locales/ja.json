@@ -498,7 +498,8 @@
     "roadsTitle": "走った道",
     "roadsSubtitle": "生涯のヒートマップと年間まとめ",
     "savedRoutesTitle": "保存したルート",
-    "savedRoutesSubtitle": "あとで走りたいルート"
+    "savedRoutesSubtitle": "あとで走りたいルート",
+    "redeemCode": "コードを利用"
   },
   "onboarding": {
     "welcomeTitle": "MotoVaultへようこそ",
@@ -1008,7 +1009,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "どこで？（任意）",
+    "heardAboutOtherContinue": "続ける"
   },
   "bikeHub": {
     "upcoming": "予定",
@@ -2456,5 +2461,14 @@
     "feedbackYes": "フィードバックを送る",
     "feedbackNo": "今はしない",
     "feedbackSubject": "MotoVault フィードバック"
+  },
+  "analyticsConsent": {
+    "title": "MotoVaultづくりにご協力ください",
+    "body": "同意いただいた場合、次に何を作るかを決めるため、このアプリの利用データを収集します。",
+    "pointWhat": "使っている機能と、ここに来るきっかけになったリンクや投稿。",
+    "pointNever": "販売や広告に使うことはありません。",
+    "pointChange": "プロフィール → プライバシーでいつでも変更できます。",
+    "allow": "許可する",
+    "decline": "許可しない"
   }
 }
