@@ -1,3 +1,6 @@
+import { StoreLink } from '@/components/marketing/store-buttons';
+import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
+
 export default function SharedTripNotFound() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4">
@@ -9,12 +12,14 @@ export default function SharedTripNotFound() {
           The rider may have made it private or the link has been revoked.
         </p>
         <div className="mt-8 flex items-center justify-center gap-3">
-          <a
-            href="https://apps.apple.com/us/app/motovault/id6760291360"
+          <StoreLink
+            platform={StorePlatform.Unknown}
+            pageType={CtaPageType.SharedTrip}
+            placement={CtaPlacement.Inline}
             className="inline-flex items-center rounded-xl bg-neutral-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
           >
             Get MotoVault
-          </a>
+          </StoreLink>
           <a
             href="https://motovault.app"
             aria-label="Learn more about MotoVault"

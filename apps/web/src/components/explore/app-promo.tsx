@@ -1,3 +1,5 @@
+import { StoreLink } from '@/components/marketing/store-buttons';
+import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 import { MonoLabel } from './primitives';
 
 export function AppPromo() {
@@ -45,18 +47,22 @@ export function AppPromo() {
           pre-rendered before you leave.
         </p>
         <div style={{ marginTop: 22, display: 'flex', gap: 10 }}>
-          <a
-            href="https://apps.apple.com/us/app/motovault/id6760291360"
+          <StoreLink
+            platform={StorePlatform.Ios}
+            pageType={CtaPageType.Explore}
+            placement={CtaPlacement.Inline}
             className="mv-btn mv-btn-primary"
           >
             <span>App Store</span>
-          </a>
-          <a
-            href="https://play.google.com/store/apps/details?id=com.motovault.app"
+          </StoreLink>
+          <StoreLink
+            platform={StorePlatform.Android}
+            pageType={CtaPageType.Explore}
+            placement={CtaPlacement.Inline}
             className="mv-btn mv-btn-ghost"
           >
             Google Play
-          </a>
+          </StoreLink>
         </div>
       </div>
       <div style={{ position: 'relative', height: 240 }}>

@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { cache } from 'react';
+import { StoreLink } from '@/components/marketing/store-buttons';
+import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { isTargetMarket } from '@/lib/seo/market-indexing';
 import '@/components/trip-detail/trip-detail.css';
@@ -399,11 +401,12 @@ export default async function TripByIdPage({ params }: PageParams) {
 
           <div className="rh-actions">
             <div className="rh-cta-row">
-              <a
+              <StoreLink
+                platform={StorePlatform.Unknown}
+                pageType={CtaPageType.Trip}
+                placement={CtaPlacement.Hero}
+                slug={segment}
                 className="rh-icon-btn"
-                href="https://apps.apple.com/us/app/motovault-motorcycle-garage/id6760291360"
-                target="_blank"
-                rel="noopener noreferrer"
               >
                 <svg
                   width="14"
@@ -420,7 +423,7 @@ export default async function TripByIdPage({ params }: PageParams) {
                   <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                 </svg>
                 Clone in App
-              </a>
+              </StoreLink>
             </div>
             <div className="rh-author">
               <div className="rh-author-avatar">{getInitials(trip.organiser.displayName)}</div>
@@ -438,14 +441,15 @@ export default async function TripByIdPage({ params }: PageParams) {
               {sec.label} <span className="num">{sec.num}</span>
             </a>
           ))}
-          <a
+          <StoreLink
+            platform={StorePlatform.Unknown}
+            pageType={CtaPageType.Trip}
+            placement={CtaPlacement.Navbar}
+            slug={segment}
             className="tabnav-cta"
-            href="https://apps.apple.com/us/app/motovault-motorcycle-garage/id6760291360"
-            target="_blank"
-            rel="noopener noreferrer"
           >
             Open in app &rarr;
-          </a>
+          </StoreLink>
         </div>
       </nav>
 
@@ -656,11 +660,12 @@ export default async function TripByIdPage({ params }: PageParams) {
           Clone it to your planner, customize dates and stops, then ride. All free.
         </p>
         <div className="end-cta-actions">
-          <a
-            href="https://apps.apple.com/us/app/motovault-motorcycle-garage/id6760291360"
+          <StoreLink
+            platform={StorePlatform.Unknown}
+            pageType={CtaPageType.Trip}
+            placement={CtaPlacement.EndArticle}
+            slug={segment}
             className="mv-btn mv-btn-primary"
-            target="_blank"
-            rel="noopener noreferrer"
           >
             <span>
               Get the app{' '}
@@ -679,7 +684,7 @@ export default async function TripByIdPage({ params }: PageParams) {
                 <polyline points="12 5 19 12 12 19" />
               </svg>
             </span>
-          </a>
+          </StoreLink>
           <a href="/explore" className="mv-btn mv-btn-ghost">
             More routes &rarr;
           </a>

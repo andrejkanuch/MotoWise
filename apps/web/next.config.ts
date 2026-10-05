@@ -32,6 +32,7 @@ const NON_LOCALIZED_ROUTE_SECTIONS = [
   'rider',
   'pro',
   'piel',
+  'get',
 ] as const;
 
 /**

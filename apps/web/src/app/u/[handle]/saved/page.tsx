@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { StoreLink } from '@/components/marketing/store-buttons';
+import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 import { fetchProfile } from '../../../../lib/fetch-profile';
 import { fetchSavedTrips } from '../../../../lib/fetch-saved-routes';
 import { formatDistance } from '../../../../lib/format-utils';
@@ -78,7 +80,7 @@ export default async function SavedRoutesPage({ params }: { params: Promise<{ ha
       )}
 
       {/* Soft-wall overlay for unauthenticated users */}
-      <SoftWallOverlay />
+      <SoftWallOverlay handle={handle} />
     </div>
   );
 }
@@ -202,7 +204,7 @@ function EmptyState({ handle }: { handle: string }) {
   );
 }
 
-function SoftWallOverlay() {
+function SoftWallOverlay({ handle }: { handle: string }) {
   return (
     <div className="pointer-events-none relative mt-8">
       {/* Gradient fade */}
@@ -215,18 +217,24 @@ function SoftWallOverlay() {
           Download MotoVault to browse, save, and navigate routes on your rides.
         </p>
         <div className="mt-5 flex items-center justify-center gap-3">
-          <a
-            href="https://apps.apple.com/us/app/motovault/id6760291360"
+          <StoreLink
+            platform={StorePlatform.Ios}
+            pageType={CtaPageType.Rider}
+            placement={CtaPlacement.Inline}
+            slug={handle}
             className="inline-flex items-center rounded-xl bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
           >
             Download on iOS
-          </a>
-          <a
-            href="https://play.google.com/store/apps/details?id=com.motovault.app"
+          </StoreLink>
+          <StoreLink
+            platform={StorePlatform.Android}
+            pageType={CtaPageType.Rider}
+            placement={CtaPlacement.Inline}
+            slug={handle}
             className="inline-flex items-center rounded-xl border border-neutral-300 bg-white px-5 py-2.5 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50"
           >
             Get on Android
-          </a>
+          </StoreLink>
         </div>
       </div>
     </div>
