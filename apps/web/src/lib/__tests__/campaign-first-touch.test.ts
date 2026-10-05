@@ -64,6 +64,29 @@ describe('first-touch capture', () => {
     expect(getCampaignParams()?.utm_source).toBe('instagram');
   });
 
+  it('lets a tagged visit replace a click-id-only touch in both tiers', () => {
+    visit('/?fbclid=abc');
+    captureCampaignParams();
+    persistFirstTouch();
+    expect(getCampaignParams()).toBeNull();
+    visit('/?utm_source=tiktok');
+    captureCampaignParams();
+    expect(getCampaignParams()).toEqual({ utm_source: 'tiktok' });
+    expect(persistFirstTouch()).toMatchObject({ utm_source: 'tiktok' });
+    window.sessionStorage.clear(); // a later day, a new tab
+    visit('/pro');
+    expect(getCampaignParams()).toEqual({ utm_source: 'tiktok' });
+  });
+
+  it('falls back to the current URL when the stored touch is click ids only', () => {
+    visit('/?fbclid=abc');
+    captureCampaignParams();
+    persistFirstTouch();
+    window.sessionStorage.clear();
+    visit('/get?src=instagram');
+    expect(getCampaignParams()?.utm_source).toBe('instagram');
+  });
+
   it('prefixes PostHog properties with ft_', () => {
     expect(firstTouchProperties({ utm_source: 'instagram', landing_path: '/get' })).toEqual({
       ft_utm_source: 'instagram',

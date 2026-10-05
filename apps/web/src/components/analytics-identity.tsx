@@ -3,7 +3,7 @@
 import posthog from 'posthog-js';
 import { useEffect } from 'react';
 import { useCookieConsent } from '@/components/cookie-consent';
-import { identifyUser } from '@/lib/analytics';
+import { identifyUser, resetUser } from '@/lib/analytics';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 /**
@@ -16,6 +16,10 @@ import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
  * Waits for analytics consent: identifying while PostHog is opted out would
  * switch the distinct id without sending the `$identify` that merges this
  * browser's anonymous history into the person.
+ *
+ * Resets on a real sign-out (a user → no user transition), so the next person
+ * on a shared browser does not inherit this one's distinct id. A page load with
+ * no session never resets — that would split every anonymous visitor.
  */
 export function AnalyticsIdentity() {
   const { consent } = useCookieConsent();
@@ -23,11 +27,14 @@ export function AnalyticsIdentity() {
   useEffect(() => {
     if (consent !== true) return;
     const supabase = getSupabaseBrowserClient();
+    let signedInUserId: string | null = null;
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      const userId = session?.user.id;
+      const userId = session?.user.id ?? null;
       if (userId && posthog.get_distinct_id() !== userId) identifyUser(userId);
+      if (!userId && signedInUserId) resetUser();
+      signedInUserId = userId;
     });
     return () => subscription.unsubscribe();
   }, [consent]);

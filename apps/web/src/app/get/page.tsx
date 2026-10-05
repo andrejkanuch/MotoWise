@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { after } from 'next/server';
 import { renderSVG } from 'uqr';
 import { StoreButtons } from '@/components/marketing/store-buttons';
 import { captureAnonymousCount } from '@/lib/anonymous-counter';
@@ -65,11 +66,15 @@ export default async function GetPage({ searchParams }: { searchParams: SearchPa
     : storeRedirectFor(platform, source, process.env.APPLE_CAMPAIGN_PROVIDER_TOKEN);
 
   if (!isBot) {
-    await captureAnonymousCount(GET_LINK_EVENT, {
-      source,
-      platform,
-      outcome: storeUrl ? GetOutcome.StoreRedirect : GetOutcome.Page,
-    });
+    // after() runs once the response is sent (redirect included), so the
+    // PostHog round-trip never delays the hop to the store.
+    after(() =>
+      captureAnonymousCount(GET_LINK_EVENT, {
+        source,
+        platform,
+        outcome: storeUrl ? GetOutcome.StoreRedirect : GetOutcome.Page,
+      }),
+    );
   }
   if (storeUrl) redirect(storeUrl);
 

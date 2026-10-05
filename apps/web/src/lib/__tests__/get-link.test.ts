@@ -54,6 +54,26 @@ describe('isBotUserAgent', () => {
     expect(isBotUserAgent(IPHONE_INSTAGRAM)).toBe(false);
     expect(isBotUserAgent(ANDROID_TIKTOK)).toBe(false);
   });
+
+  it('does not mistake CUBOT phones or the Telegram in-app browser for bots', () => {
+    expect(
+      isBotUserAgent(
+        'Mozilla/5.0 (Linux; Android 12; CUBOT KINGKONG 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36',
+      ),
+    ).toBe(false);
+    expect(
+      isBotUserAgent(
+        'Mozilla/5.0 (Linux; Android 14; Pixel 8; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/128.0 Mobile Safari/537.36 Telegram-Android/11.2.3',
+      ),
+    ).toBe(false);
+  });
+
+  it('still flags named preview bots', () => {
+    expect(isBotUserAgent('Twitterbot/1.0')).toBe(true);
+    expect(isBotUserAgent('TelegramBot (like TwitterBot)')).toBe(true);
+    expect(isBotUserAgent('Slackbot-LinkExpanding 1.0')).toBe(true);
+    expect(isBotUserAgent('LinkedInBot/1.0')).toBe(true);
+  });
 });
 
 describe('store redirects', () => {

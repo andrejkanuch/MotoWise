@@ -20,6 +20,9 @@
 //     (persistFirstTouch, called from the consent provider). It carries the
 //     source across the days between watching a video and buying on the web.
 // First touch wins in both tiers: a later tagged visit never overwrites them.
+// The one exception is a click-id-only touch (Meta adds fbclid to every
+// outbound link, tagged or not): it names no source, so a later touch that
+// carries UTMs replaces it.
 // -------------------------------------------------------------------
 
 import { GET_PATH, GET_SOURCE_PARAM, getLinkCampaign, normalizeGetSource } from '@/lib/get-link';
@@ -69,6 +72,10 @@ function campaignOnly(touch: FirstTouch): CampaignParams | null {
     if (touch[key]) params[key] = touch[key];
   }
   return Object.keys(params).length > 0 ? params : null;
+}
+
+function hasCampaign(touch: FirstTouch | null): touch is FirstTouch {
+  return touch !== null && campaignOnly(touch) !== null;
 }
 
 function externalReferrer(): string | undefined {
@@ -145,9 +152,13 @@ function writeCookie(value: string, maxAge: number) {
 export function captureCampaignParams(): void {
   if (typeof window === 'undefined') return;
   try {
-    if (window.sessionStorage.getItem(STORAGE_KEY)) return; // first-touch wins
+    const existing = readSession();
+    if (hasCampaign(existing)) return; // first-touch wins
     const touch = touchFromLocation();
-    if (touch) window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(touch));
+    // A click-id-only touch only ever fills an empty slot.
+    if (touch && (!existing || hasCampaign(touch))) {
+      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(touch));
+    }
   } catch {
     // Attribution is best-effort, never worth surfacing an error to the visitor.
   }
@@ -161,9 +172,9 @@ export function captureCampaignParams(): void {
 export function persistFirstTouch(): FirstTouch | null {
   if (typeof window === 'undefined') return null;
   const existing = readCookie();
-  if (existing) return existing;
+  if (hasCampaign(existing)) return existing;
   const touch = readSession();
-  if (!touch) return null;
+  if (!touch || (existing && !hasCampaign(touch))) return existing;
   try {
     writeCookie(encodeURIComponent(JSON.stringify(touch)), FIRST_TOUCH_MAX_AGE);
   } catch {
@@ -182,13 +193,17 @@ export function clearFirstTouch(): void {
   }
 }
 
-/** First-touch campaign params: cookie, then this tab, then the current URL. */
+/**
+ * First-touch campaign params: cookie, then this tab, then the current URL.
+ * A tier whose touch has no UTMs (click ids only) falls through to the next.
+ */
 export function getCampaignParams(): CampaignParams | null {
   if (typeof window === 'undefined') return null;
-  const stored = readCookie() ?? readSession();
-  if (stored) return campaignOnly(stored);
-  const current = touchFromLocation();
-  return current ? campaignOnly(current) : null;
+  for (const touch of [readCookie(), readSession(), touchFromLocation()]) {
+    const params = touch ? campaignOnly(touch) : null;
+    if (params) return params;
+  }
+  return null;
 }
 
 /**

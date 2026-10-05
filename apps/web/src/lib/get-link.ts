@@ -67,10 +67,12 @@ export function platformFromUserAgent(userAgent: string): GetPlatform {
  * Link-preview fetchers and scrapers. They get the page (with its Open Graph
  * tags) instead of a redirect, and are not counted. The Douyin/TikTok `aweme`
  * scraper is listed because it passes PostHog's bot filter and otherwise looks
- * like TikTok traffic.
+ * like TikTok traffic. `bot` skips CUBOT phone model strings, and Telegram is
+ * matched as `telegrambot` so its Android in-app browser (`Telegram-Android/...`)
+ * still counts as a phone.
  */
 const BOT_PATTERN =
-  /bot|crawl|spider|slurp|preview|facebookexternalhit|meta-externalagent|embedly|whatsapp|telegram|skype|discord|aweme|bytespider|headless|curl|wget|python|okhttp/i;
+  /(?<!cu)bot|crawl|spider|slurp|preview|facebookexternalhit|meta-externalagent|embedly|whatsapp|telegrambot|skype|discord|aweme|bytespider|headless|curl|wget|python|okhttp/i;
 
 export function isBotUserAgent(userAgent: string): boolean {
   return !userAgent || BOT_PATTERN.test(userAgent);
