@@ -99,7 +99,8 @@ export const FAIL_CLOSED_DECISIONS: StoredAnalyticsDecisions = { account: false,
 
 /**
  * Countries where analytics needs prior opt-in: the EEA (EU-27 + Iceland,
- * Liechtenstein, Norway), the United Kingdom and Switzerland. ISO 3166-1
+ * Liechtenstein, Norway), the EU outermost regions that have their own codes
+ * (RE, GP, MQ, GF, YT, MF, AX), the United Kingdom and Switzerland. ISO 3166-1
  * alpha-2. Mirrors `OPT_IN_REGIONS` in apps/mobile/src/lib/analytics-consent.ts
  * and `CONSENT_REQUIRED_COUNTRIES` in apps/web/src/proxy.ts — change all three
  * together. Everywhere else is opt-out.
@@ -137,6 +138,14 @@ export const OPT_IN_COUNTRIES = [
   'NO',
   'GB',
   'CH',
+  // EU outermost regions billed/geolocated under their own ISO codes (GDPR applies)
+  'RE',
+  'GP',
+  'MQ',
+  'GF',
+  'YT',
+  'MF',
+  'AX',
 ] as const;
 
 const OPT_IN_COUNTRY_SET: ReadonlySet<string> = new Set(OPT_IN_COUNTRIES);

@@ -4,6 +4,8 @@ import { useTranslations } from 'next-intl';
 import posthog from 'posthog-js';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { clearFirstTouch, firstTouchProperties, persistFirstTouch } from '@/lib/campaign';
+import { SIGNUP_CONSENT_METADATA_KEY } from '@/lib/signup-consent';
+import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 // ---------------------------------------------------------------------------
 // Consent primitives (cookie read/write, PostHog opt-in/out, geo detection)
@@ -117,7 +119,31 @@ type ConsentContextValue = {
   consent: boolean | null;
   accept: () => void;
   deny: () => void;
+  /** Withdraw the decision entirely (the banner's Undo): back to "not decided". */
+  reset: () => void;
 };
+
+function clearConsentCookie() {
+  // biome-ignore lint/suspicious/noDocumentCookie: clearing the consent primitive
+  document.cookie = `${CONSENT_COOKIE}=; path=/; max-age=0`;
+}
+
+/**
+ * Clear the decision a signed-in account carries (written by AnalyticsIdentity),
+ * so an undone "yes" does not keep identifying the rider's web purchases. The
+ * server treats a non-boolean as "no decision". Best effort: errors are ignored.
+ */
+async function clearAccountConsent(): Promise<void> {
+  try {
+    const supabase = getSupabaseBrowserClient();
+    const { data } = await supabase.auth.getSession();
+    const saved = data.session?.user.user_metadata?.[SIGNUP_CONSENT_METADATA_KEY];
+    if (typeof saved !== 'boolean') return;
+    await supabase.auth.updateUser({ data: { [SIGNUP_CONSENT_METADATA_KEY]: null } });
+  } catch {
+    // Best effort; the next explicit choice is synced again.
+  }
+}
 
 const ConsentContext = createContext<ConsentContextValue | null>(null);
 
@@ -149,8 +175,16 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
     applyPostHogConsent(false);
   }, []);
 
+  const reset = useCallback(() => {
+    clearConsentCookie();
+    setConsentState(null);
+    void clearAccountConsent();
+  }, []);
+
   return (
-    <ConsentContext.Provider value={{ consent, accept, deny }}>{children}</ConsentContext.Provider>
+    <ConsentContext.Provider value={{ consent, accept, deny, reset }}>
+      {children}
+    </ConsentContext.Provider>
   );
 }
 
@@ -203,7 +237,7 @@ const T = {
 type CookieToggles = { pref: boolean; telemetry: boolean; replay: boolean };
 
 export function CookieConsentBanner() {
-  const { consent, accept, deny } = useCookieConsent();
+  const { consent, accept, deny, reset } = useCookieConsent();
   const t = useTranslations('CookieBanner');
   const [mounted, setMounted] = useState(false);
   const [view, setView] = useState<'main' | 'list' | 'settled'>('main');
@@ -238,11 +272,10 @@ export function CookieConsentBanner() {
   }, [settle, t, accept]);
 
   const handleUndo = useCallback(() => {
-    // biome-ignore lint/suspicious/noDocumentCookie: clearing consent cookie
-    document.cookie = `${CONSENT_COOKIE}=; path=/; max-age=0`;
+    reset();
     setView('main');
     setToggles({ pref: true, telemetry: false, replay: false });
-  }, []);
+  }, [reset]);
 
   const toggle = useCallback((key: keyof CookieToggles) => {
     setToggles((prev) => ({ ...prev, [key]: !prev[key] }));

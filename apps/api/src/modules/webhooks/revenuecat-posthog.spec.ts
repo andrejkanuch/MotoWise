@@ -127,10 +127,26 @@ describe('hasPurchaseAnalyticsConsent', () => {
 });
 
 describe('consentRegionForCountry', () => {
-  it('lists the EEA (30), the UK and Switzerland', () => {
-    expect(OPT_IN_COUNTRIES).toHaveLength(32);
-    expect(new Set(OPT_IN_COUNTRIES).size).toBe(32);
-    for (const code of ['DE', 'FR', 'IS', 'LI', 'NO', 'GB', 'CH']) {
+  it('lists the EEA (30), its outermost regions with own codes (7), the UK and Switzerland', () => {
+    expect(OPT_IN_COUNTRIES).toHaveLength(39);
+    expect(new Set(OPT_IN_COUNTRIES).size).toBe(39);
+    expect(OPT_IN_COUNTRIES).not.toContain('GI');
+    for (const code of [
+      'DE',
+      'FR',
+      'IS',
+      'LI',
+      'NO',
+      'GB',
+      'CH',
+      'RE',
+      'GP',
+      'MQ',
+      'GF',
+      'YT',
+      'MF',
+      'AX',
+    ]) {
       expect(consentRegionForCountry(code)).toBe('opt_in');
     }
   });

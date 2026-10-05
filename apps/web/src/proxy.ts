@@ -352,8 +352,11 @@ async function communityAuth(request: NextRequest) {
   return supabaseResponse;
 }
 
-// EU/EEA + UK + CH — visitors from these countries require GDPR consent
-// before analytics tracking. Everyone else gets auto-opted-in.
+// EU/EEA (incl. outermost regions with their own ISO codes) + UK + CH —
+// visitors from these countries require GDPR consent before analytics tracking.
+// Everyone else gets auto-opted-in. Mirrors OPT_IN_REGIONS (mobile
+// lib/analytics-consent.ts) and OPT_IN_COUNTRIES (api revenuecat-posthog.ts) —
+// change all three together.
 const CONSENT_REQUIRED_COUNTRIES = new Set([
   // EU 27
   'AT',
@@ -390,6 +393,14 @@ const CONSENT_REQUIRED_COUNTRIES = new Set([
   // UK (UK GDPR) + Switzerland (FADP)
   'GB',
   'CH',
+  // EU outermost regions geolocated under their own ISO codes (GDPR applies)
+  'RE',
+  'GP',
+  'MQ',
+  'GF',
+  'YT',
+  'MF',
+  'AX',
 ]);
 
 function applyRegionCookie(request: NextRequest, response: NextResponse) {

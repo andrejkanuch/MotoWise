@@ -26,6 +26,17 @@ vi.mock('posthog-js', () => ({
   },
 }));
 
+const getSession = vi.fn();
+const updateUser = vi.fn();
+vi.mock('@/lib/supabase-browser', () => ({
+  getSupabaseBrowserClient: () => ({
+    auth: {
+      getSession: () => getSession(),
+      updateUser: (...args: unknown[]) => updateUser(...args),
+    },
+  }),
+}));
+
 const securityError = () => {
   throw new DOMException('The request was denied.', 'SecurityError');
 };
@@ -156,6 +167,69 @@ describe('readExplicitConsent', () => {
 
     act(() => probe.api?.deny());
     expect(readExplicitConsent()).toBe(false);
+    act(() => root.unmount());
+  });
+});
+
+describe('CookieConsentProvider reset (banner Undo)', () => {
+  const mount = () => {
+    Object.assign(globalThis, { React, IS_REACT_ACT_ENVIRONMENT: true });
+    // biome-ignore lint/suspicious/noDocumentCookie: an EU visitor, so nothing is auto-granted
+    document.cookie = 'mv_region=EU; path=/';
+    const probe: { api: ReturnType<typeof useCookieConsent> | null } = { api: null };
+    const Probe = () => {
+      probe.api = useCookieConsent();
+      return null;
+    };
+    const root = createRoot(document.createElement('div'));
+    act(() => root.render(createElement(CookieConsentProvider, null, createElement(Probe))));
+    return { probe, root };
+  };
+  const settle = async () => {
+    for (let i = 0; i < 5; i++) await Promise.resolve();
+  };
+
+  afterEach(() => {
+    for (const name of ['mv_consent', 'mv_region']) {
+      // biome-ignore lint/suspicious/noDocumentCookie: test reset
+      document.cookie = `${name}=; path=/; max-age=0`;
+    }
+  });
+
+  it('signed in: Accept then Undo clears the cookie, the state and the account decision', async () => {
+    getSession.mockResolvedValue({
+      data: { session: { user: { user_metadata: { analytics_consent: true } } } },
+    });
+    updateUser.mockResolvedValue({ error: null });
+    const { probe, root } = mount();
+    act(() => probe.api?.accept());
+    expect(readExplicitConsent()).toBe(true);
+
+    act(() => probe.api?.reset());
+    await settle();
+    expect(probe.api?.consent).toBeNull();
+    expect(readExplicitConsent()).toBeNull();
+    expect(updateUser).toHaveBeenCalledWith({ data: { analytics_consent: null } });
+    act(() => root.unmount());
+  });
+
+  it('signed out: Undo writes nothing to any account', async () => {
+    getSession.mockResolvedValue({ data: { session: null } });
+    const { probe, root } = mount();
+    act(() => probe.api?.deny());
+    act(() => probe.api?.reset());
+    await settle();
+    expect(updateUser).not.toHaveBeenCalled();
+    act(() => root.unmount());
+  });
+
+  it('an auth failure during Undo is swallowed', async () => {
+    getSession.mockRejectedValue(new Error('offline'));
+    const { probe, root } = mount();
+    act(() => probe.api?.accept());
+    expect(() => act(() => probe.api?.reset())).not.toThrow();
+    await settle();
+    expect(probe.api?.consent).toBeNull();
     act(() => root.unmount());
   });
 });
