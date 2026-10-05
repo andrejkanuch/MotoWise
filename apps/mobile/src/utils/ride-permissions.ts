@@ -19,10 +19,24 @@ type RideLocationPermission =
  * on every ride metric: a denied foreground request means no ride at all, a
  * denied background one means a ride that stops when the screen locks.
  */
+/** Last status reported per permission, so an unchanged answer is not re-sent. */
+const LAST_REPORTED_STATUS_KEY = 'permissions.last_reported_status.';
+
+/**
+ * Report a permission result only when its status differs from the last one
+ * reported on this install. Every ride start re-requests, and the OS often
+ * answers without showing anything — after a permanent "no", or on iOS, where
+ * expo-location forgets in each new process that it already asked for "Always"
+ * and re-resolves a "While Using" rider as a silent denial. `canAskAgain` cannot
+ * tell those apart, so the event counts real changes of answer instead.
+ */
 function trackPermissionResult(
   permission: RideLocationPermission,
   result: Location.LocationPermissionResponse,
 ): void {
+  const key = `${LAST_REPORTED_STATUS_KEY}${permission}`;
+  if (rideStorage.getString(key) === result.status) return;
+  rideStorage.set(key, result.status);
   trackEvent(AnalyticsEvent.RIDE_LOCATION_PERMISSION_RESULT, {
     permission,
     granted: result.granted,
@@ -43,9 +57,7 @@ export async function checkAndRequestPermissions(): Promise<PermissionLevel> {
     // The caller (Start Ride flow) shows the prominent-disclosure modal before
     // reaching here — see LocationDisclosureModal + hasAllLocationPermissions.
     const result = await Location.requestForegroundPermissionsAsync();
-    // Only when the OS can still show its dialog: after a permanent "no" the
-    // request resolves silently, and counting it would inflate the denial rate.
-    if (foreground.canAskAgain) trackPermissionResult(RIDE_LOCATION_PERMISSION.FOREGROUND, result);
+    trackPermissionResult(RIDE_LOCATION_PERMISSION.FOREGROUND, result);
     if (!result.granted) return 'denied';
   }
 
@@ -58,10 +70,7 @@ export async function checkAndRequestPermissions(): Promise<PermissionLevel> {
     const background = await Location.getBackgroundPermissionsAsync();
     if (!background.granted) {
       const bgResult = await Location.requestBackgroundPermissionsAsync();
-      // Every ride start re-requests; only a request the OS can show is a result.
-      if (background.canAskAgain) {
-        trackPermissionResult(RIDE_LOCATION_PERMISSION.BACKGROUND, bgResult);
-      }
+      trackPermissionResult(RIDE_LOCATION_PERMISSION.BACKGROUND, bgResult);
       if (!bgResult.granted) {
         return 'foreground_only';
       }

@@ -4,6 +4,7 @@ import {
   featureAreaForSegments,
   routeParamProperties,
   routeTemplateFromSegments,
+  screenKeyFor,
 } from '../analytics-screen';
 
 describe('routeTemplateFromSegments', () => {
@@ -104,5 +105,27 @@ describe('buildScreenView', () => {
         route_id: 'b-1',
       },
     });
+  });
+});
+
+// Expo Router reports every tab root as pathname '/', so a key on the pathname
+// alone never saw a tab switch as a new screen view.
+describe('screenKeyFor', () => {
+  it('tells tab roots apart even though they share the pathname "/"', () => {
+    expect(screenKeyFor(['(tabs)', '(home)'], '/')).not.toBe(
+      screenKeyFor(['(tabs)', '(garage)'], '/'),
+    );
+  });
+
+  it('tells same-URL routes in different groups apart', () => {
+    expect(screenKeyFor(['(onboarding)', 'scan-receipt'], '/scan-receipt')).not.toBe(
+      screenKeyFor(['(modals)', 'scan-receipt'], '/scan-receipt'),
+    );
+  });
+
+  it('treats two bikes as two views of the same template', () => {
+    expect(screenKeyFor(['(tabs)', '(garage)', 'bike', '[id]'], '/bike/a')).not.toBe(
+      screenKeyFor(['(tabs)', '(garage)', 'bike', '[id]'], '/bike/b'),
+    );
   });
 });

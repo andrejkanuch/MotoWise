@@ -166,3 +166,12 @@ export function buildScreenView(
     },
   };
 }
+
+/**
+ * Identity of a screen view for de-duplication: the route template plus the
+ * pathname. The pathname alone is not enough — Expo Router drops `(group)`
+ * segments and a trailing `index`, so every tab root is `/`.
+ */
+export function screenKeyFor(segments: readonly string[], pathname: string): string {
+  return `${routeTemplateFromSegments(segments)}|${pathname}`;
+}

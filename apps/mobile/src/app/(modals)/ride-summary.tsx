@@ -264,7 +264,13 @@ export default function RideSummaryScreen() {
     }
   }, [distanceM, durationS, system]);
 
+  // `handleSave` never awaits, so `isSaving` cannot disable the button before a
+  // second tap lands; a ref guards it synchronously. Reset only on failure: on
+  // success the screen is replaced, and a re-run would count the ride twice.
+  const savingRef = useRef(false);
   const handleSave = useCallback(async () => {
+    if (savingRef.current) return;
+    savingRef.current = true;
     setIsSaving(true);
     try {
       triggerNotification(Haptics.NotificationFeedbackType.Success);
@@ -309,6 +315,7 @@ export default function RideSummaryScreen() {
 
       router.replace('/(tabs)/(profile)');
     } catch (error) {
+      savingRef.current = false;
       captureException(error, { source: 'ride-summary.saveRide', rideId });
     } finally {
       setIsSaving(false);

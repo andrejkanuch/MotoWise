@@ -48,7 +48,10 @@ export function useAnalyticsSuperProperties(): void {
   // data, and sign-out's reset() has just cleared the super properties — so
   // account-scoped values are left out rather than re-registered from the cache.
   const serverGoals = signedIn ? ridingGoalsFrom(meQuery.data?.me?.preferences) : [];
-  const ridingGoals = serverGoals.length > 0 ? serverGoals : localGoals;
+  // The goals kept on the device belong to whoever onboarded on it and are not
+  // cleared on sign-out, so they only stand in while signed out (an anonymous
+  // onboarder). Signed in, only the account's own goals count.
+  const ridingGoals = signedIn ? serverGoals : localGoals;
   const bikeCount = signedIn ? bikesQuery.data?.myMotorcycles.length : undefined;
 
   // Rebuilt every render (cheap); the effect below is keyed on its serialized

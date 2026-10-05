@@ -145,7 +145,6 @@ import { supabase } from '../lib/supabase';
 import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
 import { useAuthStore } from '../stores/auth.store';
 import { useExperimentStore } from '../stores/experiment.store';
-import { useSubscriptionStore } from '../stores/subscription.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
 import { rideMMKV } from '../utils/ride-storage';
 import {
@@ -268,7 +267,6 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
 
   // Sync user properties to PostHog for segmentation
   const meData = meQuery.data?.me;
-  const isPro = useSubscriptionStore((s) => s.isPro);
   const userPreferences = meData?.preferences as Record<string, unknown> | null | undefined;
 
   useEffect(() => {
@@ -306,12 +304,13 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
     if (!session?.user?.id || !meData) return;
     setUserProperties({
       experience_level: (userPreferences?.experienceLevel as string) ?? null,
-      is_pro: isPro,
+      // is_pro is mirrored by useAnalyticsSuperProperties once RevenueCat has
+      // verified it; sending the store's unverified `false` here tagged Pro riders free.
       currency: meData.currency ?? null,
       locale: useAuthStore.getState().locale,
       app_version: Application.nativeApplicationVersion ?? null,
     });
-  }, [session?.user?.id, meData, userPreferences, isPro]);
+  }, [session?.user?.id, meData, userPreferences]);
 
   // Tier / garage / units / onboarding-goal / platform on every event (and on the
   // person). Mounted after the privacy sync above so a consent change in the same

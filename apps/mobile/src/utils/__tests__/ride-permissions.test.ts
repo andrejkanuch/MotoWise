@@ -17,8 +17,14 @@ jest.mock('../../lib/analytics', () => ({
   trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
   AnalyticsEvent: { RIDE_LOCATION_PERMISSION_RESULT: 'ride_location_permission_result' },
 }));
+const mockStore = new Map<string, string | number>();
 jest.mock('../ride-storage', () => ({
-  rideStorage: { getNumber: jest.fn(), set: jest.fn(), remove: jest.fn() },
+  rideStorage: {
+    getNumber: (k: string) => mockStore.get(k),
+    getString: (k: string) => mockStore.get(k),
+    set: (k: string, v: string | number) => mockStore.set(k, v),
+    remove: (k: string) => mockStore.delete(k),
+  },
 }));
 
 import {
@@ -28,6 +34,7 @@ import {
 } from '../ride-permissions';
 
 beforeEach(() => {
+  mockStore.clear();
   mockTrackEvent.mockReset();
   mockGetForeground.mockReset();
   mockGetBackground.mockReset();
@@ -150,13 +157,30 @@ describe('checkAndRequestPermissions — ride_location_permission_result', () =>
     ]);
   });
 
-  // Every ride start re-requests background location. After a permanent "no"
-  // the OS shows nothing, so that request is not a result.
-  it('reports nothing for a request the OS can no longer show', async () => {
+  // Every ride start re-requests background location, and the OS often answers
+  // without showing anything (a permanent "no"; iOS re-resolving "While Using"
+  // as denied in each new process). Only a change of answer is a result.
+  it('reports an unchanged answer once, then only when it changes', async () => {
     mockGetForeground.mockResolvedValue({ granted: true });
-    mockGetBackground.mockResolvedValue(denied);
+    mockGetBackground.mockResolvedValue({
+      granted: false,
+      status: 'undetermined',
+      canAskAgain: true,
+    });
     mockRequestBackground.mockResolvedValue(denied);
-    expect(await checkAndRequestPermissions()).toBe('foreground_only');
-    expect(mockTrackEvent).not.toHaveBeenCalled();
+
+    await checkAndRequestPermissions();
+    await checkAndRequestPermissions();
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+
+    mockRequestBackground.mockResolvedValue(granted);
+    await checkAndRequestPermissions();
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+    expect(mockTrackEvent).toHaveBeenLastCalledWith(RESULT_EVENT, {
+      permission: 'background',
+      granted: true,
+      status: 'granted',
+      can_ask_again: true,
+    });
   });
 });
