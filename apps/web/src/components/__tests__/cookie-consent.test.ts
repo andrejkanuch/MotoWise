@@ -10,6 +10,9 @@ const setConfig = vi.fn();
 const optIn = vi.fn();
 const optOut = vi.fn();
 const capture = vi.fn();
+const register = vi.fn();
+const setPersonProperties = vi.fn();
+const getProperty = vi.fn();
 
 vi.mock('posthog-js', () => ({
   default: {
@@ -17,6 +20,9 @@ vi.mock('posthog-js', () => ({
     opt_in_capturing: (...args: unknown[]) => optIn(...args),
     opt_out_capturing: (...args: unknown[]) => optOut(...args),
     capture: (...args: unknown[]) => capture(...args),
+    register: (...args: unknown[]) => register(...args),
+    setPersonProperties: (...args: unknown[]) => setPersonProperties(...args),
+    get_property: (...args: unknown[]) => getProperty(...args),
   },
 }));
 
@@ -27,6 +33,9 @@ const securityError = () => {
 import { applyPostHogConsent } from '../cookie-consent';
 
 afterEach(() => {
+  window.sessionStorage.clear();
+  // biome-ignore lint/suspicious/noDocumentCookie: test reset of the attribution cookie
+  document.cookie = 'mv_ft=; path=/; max-age=0';
   // resetAllMocks (not clearAllMocks) so a securityError implementation set by
   // one test does not leak into the next.
   vi.resetAllMocks();
@@ -44,16 +53,41 @@ describe('applyPostHogConsent (Sentry MOTOVAULT-WEB-T regression guard)', () => 
     expect(() => applyPostHogConsent(false)).not.toThrow();
   });
 
-  it('opts in and records consent when granted and storage works', () => {
-    applyPostHogConsent(true);
+  it('opts in and records consent when the visitor decides now', () => {
+    applyPostHogConsent(true, { announce: true });
     expect(optIn).toHaveBeenCalledTimes(1);
     expect(capture).toHaveBeenCalledWith('$consent_granted');
     expect(optOut).not.toHaveBeenCalled();
   });
 
-  it('opts out when consent is rejected', () => {
+  it('does not re-send $consent_granted when re-applying a stored decision', () => {
+    applyPostHogConsent(true);
+    expect(optIn).toHaveBeenCalledTimes(1);
+    expect(capture).not.toHaveBeenCalled();
+  });
+
+  it('hands the first touch to PostHog once, as super and set_once properties', () => {
+    window.sessionStorage.setItem(
+      'mv_campaign_params',
+      JSON.stringify({ utm_source: 'instagram', utm_campaign: 'bio' }),
+    );
+    applyPostHogConsent(true);
+    const props = { ft_utm_source: 'instagram', ft_utm_campaign: 'bio' };
+    expect(register).toHaveBeenCalledWith({ ...props, ft_sent: true });
+    expect(setPersonProperties).toHaveBeenCalledWith(undefined, props);
+    expect(document.cookie).toContain('mv_ft=');
+
+    getProperty.mockReturnValue(true);
+    applyPostHogConsent(true);
+    expect(register).toHaveBeenCalledTimes(1);
+  });
+
+  it('opts out and drops the attribution cookie when consent is rejected', () => {
+    // biome-ignore lint/suspicious/noDocumentCookie: seeding the attribution cookie
+    document.cookie = `mv_ft=${encodeURIComponent('{"utm_source":"tiktok"}')}; path=/`;
     applyPostHogConsent(false);
     expect(optOut).toHaveBeenCalledTimes(1);
     expect(optIn).not.toHaveBeenCalled();
+    expect(document.cookie).not.toContain('mv_ft=');
   });
 });

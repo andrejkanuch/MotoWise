@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import posthog from 'posthog-js';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { clearFirstTouch, firstTouchProperties, persistFirstTouch } from '@/lib/campaign';
 
 // ---------------------------------------------------------------------------
 // Consent primitives (cookie read/write, PostHog opt-in/out, geo detection)
@@ -38,15 +39,32 @@ function writeConsent(decision: Decision) {
   document.cookie = `${CONSENT_COOKIE}=${value}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
 }
 
-export function applyPostHogConsent(granted: boolean) {
+/** Super property marking that this browser's first touch already reached PostHog. */
+const FIRST_TOUCH_SENT = 'ft_sent';
+
+/**
+ * Apply the stored consent decision to PostHog. Runs on every page load for a
+ * visitor who already decided, so `announce` is true only when the decision is
+ * made right now — `$consent_granted` fires once per person, not once per page.
+ */
+export function applyPostHogConsent(granted: boolean, { announce = false } = {}) {
   if (typeof window === 'undefined') return;
   try {
     if (granted) {
       posthog.set_config({ persistence: 'localStorage+cookie' });
       posthog.opt_in_capturing();
-      posthog.capture('$consent_granted');
+      if (announce) posthog.capture('$consent_granted');
+      const touch = persistFirstTouch();
+      if (touch && posthog.get_property(FIRST_TOUCH_SENT) === undefined) {
+        const props = firstTouchProperties(touch);
+        // Super properties put the source on every later event (store click,
+        // checkout); $set_once keeps the person's first source permanently.
+        posthog.register({ ...props, [FIRST_TOUCH_SENT]: true });
+        posthog.setPersonProperties(undefined, props);
+      }
     } else {
       posthog.opt_out_capturing();
+      clearFirstTouch();
     }
   } catch {
     // In private mode / blocked-storage, set_config + opt_in/out_capturing touch
@@ -80,14 +98,14 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
     } else if (!isConsentRequired()) {
       writeConsent('accepted');
       setConsentState(true);
-      applyPostHogConsent(true);
+      applyPostHogConsent(true, { announce: true });
     }
   }, []);
 
   const accept = useCallback(() => {
     writeConsent('accepted');
     setConsentState(true);
-    applyPostHogConsent(true);
+    applyPostHogConsent(true, { announce: true });
   }, []);
 
   const deny = useCallback(() => {

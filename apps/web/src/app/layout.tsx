@@ -5,6 +5,7 @@ import Script from 'next/script';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { AnalyticsWithConsent } from '@/components/analytics-consent';
+import { AnalyticsIdentity } from '@/components/analytics-identity';
 import { CookieConsentBanner, CookieConsentProvider } from '@/components/cookie-consent';
 import { MetaPixel } from '@/components/meta-pixel';
 import { NavigationProgress } from '@/components/navigation-progress';
@@ -112,6 +113,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {process.env.NODE_ENV === 'production' && (
               <>
                 <AnalyticsWithConsent />
+                <AnalyticsIdentity />
                 <MetaPixel />
                 <WebVitalsReporter />
               </>

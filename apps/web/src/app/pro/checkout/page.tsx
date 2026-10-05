@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { trackEvent, WebEvent } from '@/lib/analytics';
+import { getCampaignParams } from '@/lib/campaign';
 import { gqlFetcher } from '@/lib/graphql-client';
 
 const PLAN_CONFIG = {
@@ -55,6 +56,9 @@ function CheckoutContent() {
   const searchParams = useSearchParams();
   const initialPlan = searchParams.get('plan') === 'monthly' ? 'monthly' : 'annual';
   const redirectAfter = searchParams.get('redirect');
+  // RevenueCat's own query-param name, so a per-platform code in a bio link
+  // (e.g. /pro/checkout?plan=annual&discount_code=INSTA20) arrives pre-applied.
+  const discountCode = searchParams.get('discount_code') ?? undefined;
 
   const supabase = useMemo(
     () =>
@@ -83,9 +87,10 @@ function CheckoutContent() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        const checkoutUrl = redirectAfter
-          ? `/pro/checkout?plan=${selectedPlan}&redirect=${encodeURIComponent(redirectAfter)}`
-          : `/pro/checkout?plan=${selectedPlan}`;
+        // Keep every query param (plan, redirect, discount_code) across sign-in.
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('plan', selectedPlan);
+        const checkoutUrl = `/pro/checkout?${params.toString()}`;
         router.replace(`/login?redirect=${encodeURIComponent(checkoutUrl)}`);
         return;
       }
@@ -93,7 +98,7 @@ function CheckoutContent() {
       setUserEmail(user.email ?? null);
       setAuthChecked(true);
     })();
-  }, [supabase, router, selectedPlan, redirectAfter]);
+  }, [supabase, router, selectedPlan, searchParams]);
 
   // Resolve what this customer can actually buy: the RevenueCat offering (whose
   // trial phase reflects Web Billing's own eligibility) and our cross-store
@@ -142,7 +147,10 @@ function CheckoutContent() {
     setLoading(true);
     setError('');
 
-    trackEvent(WebEvent.CHECKOUT_INITIATED, { plan: selectedPlan });
+    // First-touch source rides along on both events and into the purchase
+    // metadata, so a web purchase can be traced back to the social post.
+    const campaign = getCampaignParams() ?? {};
+    trackEvent(WebEvent.CHECKOUT_INITIATED, { plan: selectedPlan, ...campaign });
 
     try {
       const offering = webOffering ?? (await loadWebOffering(userId));
@@ -159,11 +167,15 @@ function CheckoutContent() {
       const result = await Purchases.getSharedInstance().purchase({
         rcPackage: pkg,
         customerEmail: userEmail ?? undefined,
+        metadata: { ...campaign, ...(discountCode ? { discount_code: discountCode } : {}) },
+        ...(discountCode ? { discountCode, showDiscountCodeField: true } : {}),
       });
 
       trackEvent(WebEvent.CHECKOUT_COMPLETED, {
         plan: selectedPlan,
         transaction_id: result.storeTransaction.storeTransactionId,
+        ...campaign,
+        ...(discountCode ? { discount_code: discountCode } : {}),
       });
 
       const successUrl = redirectAfter
@@ -187,7 +199,7 @@ function CheckoutContent() {
       }
       setLoading(false);
     }
-  }, [loading, userId, userEmail, selectedPlan, router, redirectAfter, webOffering]);
+  }, [loading, userId, userEmail, selectedPlan, router, redirectAfter, webOffering, discountCode]);
 
   if (!authChecked) {
     return (

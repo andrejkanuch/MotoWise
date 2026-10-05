@@ -191,6 +191,7 @@ export function trackStoreCtaClick(
     placement: ctx.placement,
     platform,
     slug: ctx.slug,
+    utm_source: campaign?.utm_source,
   });
 }
 
@@ -206,6 +207,7 @@ function pingCtaCounter(payload: {
   placement: CtaPlacement;
   platform: StorePlatform;
   slug?: string;
+  utm_source?: string;
 }) {
   if (typeof navigator === 'undefined' || typeof navigator.sendBeacon !== 'function') return;
   try {

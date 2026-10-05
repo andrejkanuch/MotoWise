@@ -17,7 +17,6 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { clearProStatusCache } from '@/hooks/use-pro-status';
-import { trackEvent, WebEvent } from '@/lib/analytics';
 import { getRevenueCatCustomerInfo } from '@/lib/revenuecat';
 import { safeRedirectPath } from '@/lib/safe-redirect';
 
@@ -131,7 +130,8 @@ function CheckoutSuccessContent() {
       setStatus('activated');
       sessionStorage.removeItem(SESSION_KEY);
       clearProStatusCache();
-      trackEvent(WebEvent.CHECKOUT_COMPLETED);
+      // checkout_completed fires once, on the checkout page when the purchase
+      // resolves (with plan, transaction id and source) — not again here.
       return;
     }
 

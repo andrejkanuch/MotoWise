@@ -162,7 +162,7 @@ function applySecurityHeaders(response: NextResponse, nonce: string | null) {
 const MARKETING_CACHEABLE_RE =
   /^\/($|explore|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|piel|(?:en|de|fr|es|it|ja|pl|pt-BR)(?:\/|$))/;
 
-const NOINDEX_PREFIXES = ['/login', '/signup', '/forgot-password', '/explore/search'];
+const NOINDEX_PREFIXES = ['/login', '/signup', '/forgot-password', '/explore/search', '/get'];
 
 function isNoIndexRoute(pathname: string): boolean {
   return NOINDEX_PREFIXES.some(
@@ -471,10 +471,11 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/trips') ||
     pathname.startsWith('/pro') ||
     pathname.startsWith('/piel') ||
+    pathname === '/get' ||
     pathname.startsWith('/ingest')
   ) {
-    // Auth + public community routes + explore + route/trip detail + pro + PostHog proxy (/ingest → next.config rewrites): skip locale processing.
-    // NOTE: the indexable root-only sections here (trips/route/routes/ride/rider/pro)
+    // Auth + public community routes + explore + route/trip detail + pro + /get bio link + PostHog proxy (/ingest → next.config rewrites): skip locale processing.
+    // NOTE: the root-only sections here (trips/route/routes/ride/rider/pro/get)
     // are mirrored by NON_LOCALIZED_ROUTE_SECTIONS in next.config.ts, which strips
     // stray locale prefixes off them. Keep the two lists aligned so /{locale}/… of a
     // root-only section 308-consolidates instead of 404ing.
