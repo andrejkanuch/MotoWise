@@ -28,12 +28,15 @@ const CAPTURE_BATCH_SIZE = 50;
 const CAPTURE_TIMEOUT_MS = 10_000;
 
 /**
- * Only an explicit saved "yes" is consent. NULL means no decision was saved —
- * not consent (00183; the app saves the decision on the first signed-in load,
- * and the sweep waits 10 minutes for it).
+ * A saved "no" is never identified. NULL (no decision saved) still counts as
+ * consent for now: no app before 3.21.0 saves a decision, so treating NULL as
+ * "no" would make almost every signup anonymous until 3.21.0 is adopted. From
+ * 3.21.0 the app saves the rider's decision on the first signed-in load and the
+ * sweep waits 10 minutes for it (00183), so an EU rider's "no" lands first.
+ * TODO: once nearly all signups come from >= 3.21.0, require an explicit TRUE.
  */
 function hasAnalyticsConsent(row: PendingSignupRow): boolean {
-  return row.analytics_enabled === true;
+  return row.analytics_enabled !== false;
 }
 
 /**
@@ -44,7 +47,7 @@ interface PendingSignupRow {
   user_id: string;
   created_at: string;
   auth_method: string | null;
-  /** The rider's saved decision; NULL when none is saved (00183). */
+  /** The rider's saved decision; NULL when none is saved (00183). See `hasAnalyticsConsent`. */
   analytics_enabled: boolean | null;
   currency: string | null;
   measurement_system: string | null;
@@ -170,10 +173,10 @@ export class SignupEventsService {
    *  2. `timestamp` is the row's `created_at`, not now(). This is what makes the
    *     sweep's schedule an irrelevance rather than a measurement artefact.
    *
-   * Consent: only an explicit `analyticsEnabled: true` is consent. A user who
-   * declined, or saved no decision (an EEA rider who never answered the app's
-   * consent screen), still needs to be COUNTED — otherwise the reconciliation
-   * gate can never pass — but must not be identifiable. So they are emitted under a single constant bucket with
+   * Consent: a user who saved `analyticsEnabled: false` still needs to be
+   * COUNTED — otherwise the reconciliation gate can never pass — but must not be
+   * identifiable. No saved decision is treated as consent for now; see
+   * `hasAnalyticsConsent`. So they are emitted under a single constant bucket with
    * person processing off, which is a tally, not a profile. Emitting an
    * identified event for someone who declined analytics would contradict the
    * app's own privacy toggle regardless of legal basis.

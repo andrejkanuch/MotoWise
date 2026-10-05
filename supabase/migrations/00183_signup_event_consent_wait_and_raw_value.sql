@@ -1,23 +1,23 @@
--- Signup event consent: no decision is not consent (PR #261).
+-- Signup event consent: let the app's saved decision land first (PR #261).
 --
--- 00174/00175 defaulted a missing `preferences.privacy.analyticsEnabled` to TRUE,
--- justified by the app's old Privacy-screen default (analyticsEnabled: true).
--- From mobile 3.21.0 riders in the EEA/UK/CH opt in on a consent screen, often
--- BEFORE the account exists, and the app saves that decision to the account on
--- the first signed-in load. With the TRUE default, the sweep identified every
--- new account in PostHog — including riders who had just declined.
+-- From mobile 3.21.0 riders in the EEA/UK/CH answer a consent screen, often
+-- BEFORE the account exists; the app saves that decision to
+-- `preferences.privacy` on the first signed-in load. 00174/00175 claimed new
+-- accounts on the next 10-minute tick and turned a missing decision into TRUE
+-- in SQL, so a rider who had just declined could be identified at signup.
 --
 -- Two changes, nothing else:
---   1. Return the stored value as-is (NULL when absent). signup-events.service
---      sends an identified event only for an explicit TRUE; NULL and FALSE go to
---      the shared anonymous bucket, so the signup is still counted.
---   2. Claim only accounts older than 10 minutes, so the app's consent upload
---      lands first and consenting riders are still identified.
+--   1. Claim only accounts older than 10 minutes, so the app's upload lands
+--      first. Events keep `timestamp = created_at`, so daily counts don't move;
+--      they arrive up to ~20 minutes after signup instead of ~10.
+--   2. Return the stored value as-is (NULL when none is saved) instead of
+--      COALESCE(..., TRUE), so the API — not SQL — owns the consent rule.
+--      signup-events.service treats only a saved FALSE as "no" for now (NULL
+--      still counts as consent: apps before 3.21.0 save no decision).
 --
--- Deploy order is free: old API + this function treats NULL as `!== false`
--- (consented, as today); new API + old function sees TRUE for NULL (as today).
--- CREATE OR REPLACE keeps the existing ACL (EXECUTE was revoked from PUBLIC and
--- anon in 00174), and the signature is unchanged.
+-- Safe with the current API: it already treats anything but FALSE as consent.
+-- CREATE OR REPLACE keeps the existing ACL (EXECUTE revoked from PUBLIC/anon in
+-- 00174) and the signature is unchanged.
 
 CREATE OR REPLACE FUNCTION public.claim_pending_signup_events(p_limit INT DEFAULT 200)
 RETURNS TABLE (
@@ -59,8 +59,7 @@ BEGIN
     u.id,
     u.created_at,
     COALESCE(au.raw_app_meta_data->>'provider', 'email')::TEXT,
-    -- NULL = no decision saved. The API treats only an explicit TRUE as
-    -- consent, so an undecided or declining rider is counted anonymously.
+    -- NULL = no decision saved; the API decides what that means (see header).
     (u.preferences->'privacy'->>'analyticsEnabled')::BOOLEAN,
     u.currency::TEXT,
     u.measurement_system::TEXT
@@ -72,7 +71,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION public.claim_pending_signup_events(INT) IS
-  'Atomically claims up to p_limit users (older than 10 minutes) with no signup event yet and returns the properties needed to emit it. analytics_enabled is the stored decision or NULL when none is saved; only TRUE means consent (00183). Only rows this call inserted are returned, so overlapping ticks cannot double-emit.';
+  'Atomically claims up to p_limit users (older than 10 minutes) with no signup event yet and returns the properties needed to emit it. analytics_enabled is the stored decision, or NULL when none is saved; the API applies the consent rule (00183). Only rows this call inserted are returned, so overlapping ticks cannot double-emit.';
 
 -- Smoke check, as in 00175: abort instead of reporting success if the function raises.
 DO $$
