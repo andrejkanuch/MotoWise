@@ -13,8 +13,10 @@ import {
   type LocationTaskErrorAction,
 } from '../lib/location-error';
 import { NOTIFICATION_CHANNEL, NOTIFICATION_KIND } from '../lib/notifications';
+import { RIDE_SAVE_TRIGGER, trackRideCompleted } from '../lib/ride-analytics';
 import { useRideStore } from '../stores/ride.store';
 import { haversineMeters } from './geo-utils';
+import { activeRideSeconds } from './ride-duration';
 import { gpsFilter } from './ride-gps-filter';
 import { encodePolyline } from './ride-heatmap';
 import {
@@ -496,6 +498,16 @@ export function autoEndRide(idleSince: number): void {
 
   const endedAt = new Date(idleSince).toISOString();
   const totalAutoPaused = rideMMKV.getTotalAutoPausedMs();
+  // Read before clearRideData below wipes them — ride_completed needs both.
+  const motorcycleId = rideMMKV.getMotorcycleId() ?? null;
+  const durationS = activeRideSeconds(
+    {
+      startedAt: rideMMKV.getStartedAt(),
+      totalPausedMs: rideMMKV.getTotalPausedMs(),
+      pausedAt: rideMMKV.getPausedAt(),
+    },
+    idleSince,
+  );
 
   // Encode polyline from stored waypoints before clearing
   flushBufferToMMKV(rideId);
@@ -544,6 +556,15 @@ export function autoEndRide(idleSince: number): void {
     distance_m: Math.round(totalDistance),
     waypoint_count: allWaypoints.length,
     idle_minutes: Math.round(FORGOT_TO_STOP_AUTO_END_MS / 60_000),
+  });
+  // The ride is kept, and no summary will open to say so — this is its one
+  // canonical "ride saved" event (ride_auto_saved above is the diagnostic).
+  trackRideCompleted({
+    trigger: RIDE_SAVE_TRIGGER.AUTO_END,
+    rideId,
+    motorcycleId,
+    distanceM: totalDistance,
+    durationS,
   });
 
   // This end is headless — no summary screen will ever open to own cleanup. Leaving

@@ -47,6 +47,11 @@ export const MetaAnalytics = {
       fb_content_type: 'ride',
     }),
 
+  /**
+   * Meta's copy of a maintenance entry. The canonical PostHog event is
+   * `maintenance_task_created`. The old `maintenance_log_added` alias only
+   * duplicated that inside PostHog and is gone; this SDK call is Meta's copy.
+   */
   trackLogMaintenance: (maintenanceType: string) =>
     AppEventsLogger.logEvent('fb_mobile_spent_credits', {
       fb_content_type: 'maintenance',

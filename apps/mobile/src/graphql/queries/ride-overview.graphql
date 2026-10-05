@@ -33,7 +33,6 @@ query RideOverview {
       date
       distanceM
     }
-    currentStreak
     personalRecords {
       recordType
       value
