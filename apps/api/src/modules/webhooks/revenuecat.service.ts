@@ -5,6 +5,7 @@ import {
 } from '@motovault/types';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as Sentry from '@sentry/nestjs';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { readAnalyticsDecision } from '../analytics/analytics-consent';
 import { postHogCaptureTarget, sendPostHogBatch } from '../analytics/posthog-capture';
@@ -22,9 +23,11 @@ import {
   type StoredAnalyticsDecisions,
   UUID_REGEX,
 } from './revenuecat-posthog';
+import { NON_RENEWING_GRANT, type NonRenewingGrant, nonRenewingGrant } from './revenuecat-products';
 
 const RC_API_BASE = 'https://api.revenuecat.com/v1' as const;
 const EVENT_TRANSFER = 'TRANSFER' as const;
+const EVENT_NON_RENEWING_PURCHASE = 'NON_RENEWING_PURCHASE' as const;
 
 /** The receiver's live subscription state, resolved from RC for a TRANSFER. */
 interface TransferResolution {
@@ -55,6 +58,21 @@ interface RcSubscriberResponse {
 const toIso = (ms: number | null | undefined): string | null =>
   ms ? new Date(ms).toISOString() : null;
 
+/**
+ * The expiry handed to the RPC. A lifetime SKU is forced to NULL (= never
+ * expires) whatever RC sent; a TRANSFER uses the receiver's resolved state;
+ * everything else (incl. a time-limited non-renewing grant) uses the event's.
+ */
+function expirationFor(
+  event: RevenueCatEvent,
+  transfer: TransferResolution | null,
+  grant: NonRenewingGrant | null,
+): string | null {
+  if (grant === NON_RENEWING_GRANT.LIFETIME) return null;
+  if (transfer) return transfer.expirationAt;
+  return toIso(event.expiration_at_ms);
+}
+
 @Injectable()
 export class RevenueCatService {
   private readonly logger = new Logger(RevenueCatService.name);
@@ -80,17 +98,25 @@ export class RevenueCatService {
         ? (event.transferred_from ?? []).filter((id) => UUID_REGEX.test(id))
         : null;
 
+    // NON_RENEWING_PURCHASE covers every non-subscription product, so it means
+    // lifetime Pro ONLY for a known lifetime SKU. A product with an expiry is a
+    // time-limited grant; anything else (consumable, unknown SKU) grants nothing.
+    // (Health reports are a free feature; the old paid-IAP path was removed.)
+    const grant = event.type === EVENT_NON_RENEWING_PURCHASE ? nonRenewingGrant(event) : null;
+    if (grant === NON_RENEWING_GRANT.NONE) {
+      this.reportUngrantedNonRenewing(event);
+      return;
+    }
+    const expirationAt = expirationFor(event, transfer, grant);
+
     // Strip PII-bearing subscriber attributes; keep the rest for forensics.
     const { subscriber_attributes: _attrs, ...payload } = event;
 
-    // NON_RENEWING_PURCHASE (lifetime Pro) is handled by process_revenuecat_event
-    // like every other purchase event — it grants Pro with no expiry. (Health
-    // reports are a free feature; the old paid-IAP path was removed.)
     const { error } = await this.adminClient.rpc('process_revenuecat_event', {
       p_event_id: event.id,
       p_event_type: event.type,
       p_app_user_id: event.app_user_id,
-      p_expiration_at: transfer ? transfer.expirationAt : toIso(event.expiration_at_ms),
+      p_expiration_at: expirationAt,
       p_period_type: transfer ? transfer.periodType : (event.period_type ?? null),
       p_product_id: transfer ? transfer.productId : (event.product_id ?? null),
       p_store: transfer ? transfer.store : (event.store ?? null),
@@ -135,6 +161,31 @@ export class RevenueCatService {
     // event, so a duplicate delivery (already_processed, above) is never re-sent.
     this.captureToPostHog(event).catch((err) => {
       this.logger.error(`PostHog capture failed for ${event.id}: ${err}`);
+    });
+  }
+
+  /**
+   * A NON_RENEWING_PURCHASE for a product that is neither a known lifetime SKU
+   * nor time-limited. Granting it would hand out Pro forever (the RPC maps a
+   * NULL expiry to lifetime), so the event is acknowledged without touching the
+   * user and surfaced for a human: either a new lifetime SKU is missing from
+   * LIFETIME_PRODUCT_IDS (that buyer needs a manual grant) or a consumable was
+   * sold. Returning normally (HTTP 200) stops RevenueCat retrying.
+   */
+  private reportUngrantedNonRenewing(event: RevenueCatEvent): void {
+    const message = `NON_RENEWING_PURCHASE ${event.id}: product "${event.product_id ?? 'unknown'}" is not a lifetime SKU and has no expiry — no Pro granted`;
+    this.logger.warn(message);
+    Sentry.captureMessage(message, {
+      level: 'warning',
+      tags: { webhook: 'revenuecat', rc_event_type: event.type },
+      extra: {
+        eventId: event.id,
+        appUserId: event.app_user_id,
+        productId: event.product_id ?? null,
+        store: event.store ?? null,
+        environment: event.environment ?? null,
+        entitlementIds: event.entitlement_ids ?? null,
+      },
     });
   }
 
