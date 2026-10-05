@@ -14,14 +14,30 @@ const COOKIE_MAX_AGE = 15_552_000; // 6 months in seconds
 
 type Decision = 'accepted' | 'rejected';
 
-function parseConsent(): Decision | null {
+/**
+ * How the decision came about, stored as the cookie's 5th field. `implied` is
+ * the automatic grant outside the EU (no banner shown): a default, not a choice,
+ * so it must never be written to the rider's account as their decision.
+ */
+const CONSENT_SOURCE = {
+  EXPLICIT: 'explicit',
+  IMPLIED: 'implied',
+} as const;
+type ConsentSource = (typeof CONSENT_SOURCE)[keyof typeof CONSENT_SOURCE];
+
+/** The cookie's fields: `v1:<decision>:<epoch>:EU[:<source>]`. */
+function readConsentCookie(): string[] | null {
   if (typeof document === 'undefined') return null;
   const match = document.cookie.match(new RegExp(`(?:^|; )${CONSENT_COOKIE}=([^;]*)`));
   if (!match) return null;
   const parts = decodeURIComponent(match[1]).split(':');
   if (parts.length < 2 || parts[0] !== 'v1') return null;
-  if (parts[1] === 'accepted' || parts[1] === 'rejected') return parts[1];
-  return null;
+  return parts;
+}
+
+function parseConsent(): Decision | null {
+  const decision = readConsentCookie()?.[1];
+  return decision === 'accepted' || decision === 'rejected' ? decision : null;
 }
 
 function isConsentRequired(): boolean {
@@ -30,9 +46,28 @@ function isConsentRequired(): boolean {
   return !match || match[1] === 'EU';
 }
 
-function writeConsent(decision: Decision) {
+/**
+ * The visitor's banner decision, read from the shared cookie at call time (so
+ * every tab sees the same value), or null unless they actually CHOSE it.
+ * Cookies written before the source field existed: a "no" is always a choice
+ * (the automatic grant only ever says yes), and a "yes" counts only where the
+ * banner is shown (EU), because elsewhere it was the automatic grant.
+ */
+export function readExplicitConsent(): boolean | null {
+  const parts = readConsentCookie();
+  const decision = parseConsent();
+  if (!parts || !decision) return null;
+  const source = parts[4];
+  const explicit =
+    source === undefined
+      ? decision === 'rejected' || isConsentRequired()
+      : source === CONSENT_SOURCE.EXPLICIT;
+  return explicit ? decision === 'accepted' : null;
+}
+
+function writeConsent(decision: Decision, source: ConsentSource) {
   const epoch = Math.floor(Date.now() / 1000);
-  const value = `v1:${decision}:${epoch}:EU`;
+  const value = `v1:${decision}:${epoch}:EU:${source}`;
   const secure =
     typeof location !== 'undefined' && location.protocol === 'https:' ? '; Secure' : '';
   // biome-ignore lint/suspicious/noDocumentCookie: this IS the consent primitive itself
@@ -96,20 +131,20 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
       setConsentState(asBool);
       applyPostHogConsent(asBool);
     } else if (!isConsentRequired()) {
-      writeConsent('accepted');
+      writeConsent('accepted', CONSENT_SOURCE.IMPLIED);
       setConsentState(true);
       applyPostHogConsent(true, { announce: true });
     }
   }, []);
 
   const accept = useCallback(() => {
-    writeConsent('accepted');
+    writeConsent('accepted', CONSENT_SOURCE.EXPLICIT);
     setConsentState(true);
     applyPostHogConsent(true, { announce: true });
   }, []);
 
   const deny = useCallback(() => {
-    writeConsent('rejected');
+    writeConsent('rejected', CONSENT_SOURCE.EXPLICIT);
     setConsentState(false);
     applyPostHogConsent(false);
   }, []);

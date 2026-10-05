@@ -11,6 +11,8 @@ const resetUser = vi.fn();
 const unsubscribe = vi.fn();
 const getDistinctId = vi.fn();
 let consent: boolean | null = true;
+/** What the shared cookie holds as an explicit choice; undefined = same as `consent`. */
+let cookieChoice: boolean | null | undefined;
 const updateUser = vi.fn().mockResolvedValue({ error: null });
 let authCallbacks: AuthCallback[] = [];
 
@@ -19,7 +21,10 @@ vi.mock('@/lib/analytics', () => ({
   identifyUser: (...args: unknown[]) => identifyUser(...args),
   resetUser: () => resetUser(),
 }));
-vi.mock('@/components/cookie-consent', () => ({ useCookieConsent: () => ({ consent }) }));
+vi.mock('@/components/cookie-consent', () => ({
+  useCookieConsent: () => ({ consent }),
+  readExplicitConsent: () => (cookieChoice === undefined ? consent : cookieChoice),
+}));
 vi.mock('@/lib/supabase-browser', () => ({
   getSupabaseBrowserClient: () => ({
     auth: {
@@ -55,6 +60,7 @@ function render(): Root {
 afterEach(() => {
   vi.clearAllMocks();
   consent = true;
+  cookieChoice = undefined;
   authCallbacks = [];
   vi.useRealTimers();
 });
@@ -132,6 +138,27 @@ describe('AnalyticsIdentity — account consent sync', () => {
     consent = null;
     run('INITIAL_SESSION', session('user-a', { analytics_consent: true }));
     expect(authCallbacks).toHaveLength(0);
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
+  it('never reacts to USER_UPDATED (broadcast to every tab), whatever the metadata says', () => {
+    consent = false;
+    run('USER_UPDATED', session('user-a', { analytics_consent: true }));
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
+  it('a stale tab writes the shared cookie’s answer, not the one it captured', () => {
+    // This tab still holds "yes" in memory; another tab changed the cookie to "no".
+    consent = true;
+    cookieChoice = false;
+    run('SIGNED_IN', session('user-a', { analytics_consent: false }));
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
+  it('never writes the automatic grant outside the EU (implied, not chosen)', () => {
+    consent = true;
+    cookieChoice = null;
+    run('INITIAL_SESSION', session('user-a', {}));
     expect(updateUser).not.toHaveBeenCalled();
   });
 

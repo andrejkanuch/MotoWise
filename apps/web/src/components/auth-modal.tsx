@@ -2,7 +2,7 @@
 
 import { palette } from '@motovault/design-system';
 import { useCallback, useRef, useState } from 'react';
-import { useCookieConsent } from '@/components/cookie-consent';
+import { readExplicitConsent } from '@/components/cookie-consent';
 import { useModal } from '@/hooks/use-modal';
 import {
   type AuthErrorRecovery,
@@ -34,7 +34,6 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
   // Nothing is lost: all three uses below are in async handlers, so the memo was
   // never saving work on a path the user actually hits.
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
-  const { consent } = useCookieConsent();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -87,7 +86,7 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
-          options: signUpConsentOptions(consent),
+          options: signUpConsentOptions(readExplicitConsent()),
         });
         if (error) {
           setError(humanizeAuthError(error).message);
@@ -101,7 +100,7 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
         }
       }
     },
-    [mode, email, password, loading, failedAttempts, consent],
+    [mode, email, password, loading, failedAttempts],
   );
 
   const handleResendConfirmation = useCallback(async () => {

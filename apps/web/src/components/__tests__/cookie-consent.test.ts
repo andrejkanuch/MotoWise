@@ -30,7 +30,14 @@ const securityError = () => {
   throw new DOMException('The request was denied.', 'SecurityError');
 };
 
-import { applyPostHogConsent } from '../cookie-consent';
+import React, { act, createElement } from 'react';
+import { createRoot } from 'react-dom/client';
+import {
+  applyPostHogConsent,
+  CookieConsentProvider,
+  readExplicitConsent,
+  useCookieConsent,
+} from '../cookie-consent';
 
 afterEach(() => {
   window.sessionStorage.clear();
@@ -89,5 +96,66 @@ describe('applyPostHogConsent (Sentry MOTOVAULT-WEB-T regression guard)', () => 
     expect(optOut).toHaveBeenCalledTimes(1);
     expect(optIn).not.toHaveBeenCalled();
     expect(document.cookie).not.toContain('mv_ft=');
+  });
+});
+
+describe('readExplicitConsent', () => {
+  const setCookie = (name: string, value: string) => {
+    // biome-ignore lint/suspicious/noDocumentCookie: seeding test cookies
+    document.cookie = `${name}=${encodeURIComponent(value)}; path=/`;
+  };
+  const clear = () => {
+    for (const name of ['mv_consent', 'mv_region']) {
+      // biome-ignore lint/suspicious/noDocumentCookie: test reset
+      document.cookie = `${name}=; path=/; max-age=0`;
+    }
+  };
+  afterEach(clear);
+
+  it('returns an explicit banner choice', () => {
+    setCookie('mv_consent', 'v1:rejected:1790000000:EU:explicit');
+    expect(readExplicitConsent()).toBe(false);
+    setCookie('mv_consent', 'v1:accepted:1790000000:EU:explicit');
+    expect(readExplicitConsent()).toBe(true);
+  });
+
+  it('returns null for the automatic grant outside the EU', () => {
+    setCookie('mv_region', 'OTHER');
+    setCookie('mv_consent', 'v1:accepted:1790000000:EU:implied');
+    expect(readExplicitConsent()).toBeNull();
+  });
+
+  it('legacy cookies: a "no" is a choice; a "yes" only where the banner is shown', () => {
+    setCookie('mv_region', 'OTHER');
+    setCookie('mv_consent', 'v1:accepted:1790000000:EU');
+    expect(readExplicitConsent()).toBeNull();
+    setCookie('mv_consent', 'v1:rejected:1790000000:EU');
+    expect(readExplicitConsent()).toBe(false);
+    setCookie('mv_region', 'EU');
+    setCookie('mv_consent', 'v1:accepted:1790000000:EU');
+    expect(readExplicitConsent()).toBe(true);
+  });
+
+  it('returns null when nothing is decided', () => {
+    expect(readExplicitConsent()).toBeNull();
+  });
+
+  it('the provider marks its automatic non-EU grant as implied, and a click as explicit', () => {
+    // Vitest compiles the provider's JSX with the classic runtime (no Next here).
+    Object.assign(globalThis, { React, IS_REACT_ACT_ENVIRONMENT: true });
+    setCookie('mv_region', 'OTHER');
+    const probe: { api: ReturnType<typeof useCookieConsent> | null } = { api: null };
+    const Probe = () => {
+      probe.api = useCookieConsent();
+      return null;
+    };
+    const root = createRoot(document.createElement('div'));
+    act(() => root.render(createElement(CookieConsentProvider, null, createElement(Probe))));
+    expect(probe.api?.consent).toBe(true);
+    expect(readExplicitConsent()).toBeNull();
+
+    act(() => probe.api?.deny());
+    expect(readExplicitConsent()).toBe(false);
+    act(() => root.unmount());
   });
 });
