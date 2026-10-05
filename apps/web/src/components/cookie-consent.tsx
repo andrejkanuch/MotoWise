@@ -3,9 +3,8 @@
 import { useTranslations } from 'next-intl';
 import posthog from 'posthog-js';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { clearAccountConsent, writeAccountConsent } from '@/lib/account-consent';
 import { clearFirstTouch, firstTouchProperties, persistFirstTouch } from '@/lib/campaign';
-import { SIGNUP_CONSENT_METADATA_KEY } from '@/lib/signup-consent';
-import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 // ---------------------------------------------------------------------------
 // Consent primitives (cookie read/write, PostHog opt-in/out, geo detection)
@@ -128,24 +127,6 @@ function clearConsentCookie() {
   document.cookie = `${CONSENT_COOKIE}=; path=/; max-age=0`;
 }
 
-/**
- * Withdraw an undone "yes" from a signed-in account (written by
- * AnalyticsIdentity), so it stops identifying the rider's web purchases. Only a
- * stored TRUE is cleared: a stored "no" must survive, because NULL can read as
- * consent on the server. Reads the user fresh from the server (`getUser`), not
- * the cached session. Best effort: errors are ignored.
- */
-async function clearAccountConsent(): Promise<void> {
-  try {
-    const supabase = getSupabaseBrowserClient();
-    const { data } = await supabase.auth.getUser();
-    if (data.user?.user_metadata?.[SIGNUP_CONSENT_METADATA_KEY] !== true) return;
-    await supabase.auth.updateUser({ data: { [SIGNUP_CONSENT_METADATA_KEY]: null } });
-  } catch {
-    // Best effort; the next explicit choice is synced again.
-  }
-}
-
 const ConsentContext = createContext<ConsentContextValue | null>(null);
 
 export function CookieConsentProvider({ children }: { children: React.ReactNode }) {
@@ -164,16 +145,20 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
     }
   }, []);
 
+  // A click is a deliberate choice, so it goes straight to a signed-in account,
+  // including a "no" → "yes" change the background sync will never make.
   const accept = useCallback(() => {
     writeConsent('accepted', CONSENT_SOURCE.EXPLICIT);
     setConsentState(true);
     applyPostHogConsent(true, { announce: true });
+    void writeAccountConsent(true);
   }, []);
 
   const deny = useCallback(() => {
     writeConsent('rejected', CONSENT_SOURCE.EXPLICIT);
     setConsentState(false);
     applyPostHogConsent(false);
+    void writeAccountConsent(false);
   }, []);
 
   const reset = useCallback(() => {

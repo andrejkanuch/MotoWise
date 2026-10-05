@@ -99,7 +99,7 @@ export type ConsentState = (typeof CONSENT_STATE)[keyof typeof CONSENT_STATE];
  * (RE, GP, MQ, GF, YT, MF, AX), the United Kingdom and Switzerland. ISO 3166-1
  * alpha-2, as `expo-localization` reports `regionCode` (e.g. fr-RE → RE).
  * Mirrors `OPT_IN_COUNTRIES` (apps/api/src/modules/webhooks/revenuecat-posthog.ts)
- * and `CONSENT_REQUIRED_COUNTRIES` (apps/web/src/proxy.ts) — change all three together.
+ * and `CONSENT_REQUIRED_COUNTRIES` (apps/web/src/lib/consent-region.ts) — change all three together.
  */
 const OPT_IN_REGIONS: ReadonlySet<string> = new Set([
   'AT',

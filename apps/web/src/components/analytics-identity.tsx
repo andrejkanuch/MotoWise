@@ -3,6 +3,7 @@
 import posthog from 'posthog-js';
 import { useEffect } from 'react';
 import { readExplicitConsent, useCookieConsent } from '@/components/cookie-consent';
+import { enqueueAccountConsentWrite } from '@/lib/account-consent';
 import { identifyUser, resetUser } from '@/lib/analytics';
 import { consentMetadataUpdate } from '@/lib/signup-consent';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
@@ -73,7 +74,7 @@ export function AnalyticsIdentity() {
       // auth lock); defer it.
       const timer = setTimeout(() => {
         pending.delete(timer);
-        supabase.auth.updateUser({ data }).catch(() => {});
+        void enqueueAccountConsentWrite(() => supabase.auth.updateUser({ data }));
       }, 0);
       pending.add(timer);
     });

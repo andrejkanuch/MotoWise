@@ -29,6 +29,10 @@ describe('consentMetadataUpdate', () => {
     expect(consentMetadataUpdate(true, undefined)).toEqual({ analytics_consent: true });
   });
 
+  it('never turns a stored "no" into "yes" in the background (asymmetric)', () => {
+    expect(consentMetadataUpdate(true, { analytics_consent: false })).toBeNull();
+  });
+
   it('writes nothing when equal or undecided (never null)', () => {
     expect(consentMetadataUpdate(true, { analytics_consent: true })).toBeNull();
     expect(consentMetadataUpdate(null, { analytics_consent: true })).toBeNull();

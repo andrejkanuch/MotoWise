@@ -224,6 +224,41 @@ describe('CookieConsentProvider reset (banner Undo)', () => {
     act(() => root.unmount());
   });
 
+  it('signed in: an Accept click overwrites a stored "no" (the only no → yes path)', async () => {
+    getUser.mockResolvedValue({ data: { user: { user_metadata: { analytics_consent: false } } } });
+    updateUser.mockResolvedValue({ error: null });
+    const { probe, root } = mount();
+    act(() => probe.api?.accept());
+    await settle();
+    expect(updateUser).toHaveBeenCalledWith({ data: { analytics_consent: true } });
+    act(() => root.unmount());
+  });
+
+  it('Undo then Decline ends at "no": account writes land in the order clicked', async () => {
+    // A stateful account: the clear is slow, the "no" is fast, so without the
+    // queue the clear would land last and leave NULL.
+    let stored: boolean | null = true;
+    getUser.mockImplementation(async () => ({
+      data: { user: { user_metadata: { analytics_consent: stored } } },
+    }));
+    updateUser.mockImplementation(
+      async ({ data }: { data: { analytics_consent: boolean | null } }) => {
+        await new Promise((resolve) =>
+          setTimeout(resolve, data.analytics_consent === null ? 20 : 0),
+        );
+        stored = data.analytics_consent;
+        return { error: null };
+      },
+    );
+    const { probe, root } = mount();
+    act(() => probe.api?.reset());
+    act(() => probe.api?.deny());
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    expect(stored).toBe(false);
+    expect(updateUser.mock.calls.map(([arg]) => arg.data.analytics_consent)).toEqual([null, false]);
+    act(() => root.unmount());
+  });
+
   it('signed out: Undo writes nothing to any account', async () => {
     getUser.mockResolvedValue({ data: { user: null } });
     const { probe, root } = mount();

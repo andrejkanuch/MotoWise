@@ -101,68 +101,76 @@ describe('AnalyticsIdentity', () => {
 });
 
 describe('AnalyticsIdentity — account consent sync', () => {
-  const run = (event: string, value: Session | null) => {
+  /** Render, deliver one auth event, run the deferred write and drain the write queue. */
+  const run = async (event: string, value: Session | null) => {
     vi.useFakeTimers();
     render();
     emit(event, value);
     vi.runAllTimers();
+    for (let i = 0; i < 5; i++) await Promise.resolve();
   };
 
-  it('saves a declined banner on a signed-in account that still says yes', () => {
+  it('saves a declined banner on a signed-in account that still says yes', async () => {
     consent = false;
     updateUser.mockResolvedValue({ error: null });
-    run('INITIAL_SESSION', session('user-a', { analytics_consent: true }));
+    await run('INITIAL_SESSION', session('user-a', { analytics_consent: true }));
     expect(updateUser).toHaveBeenCalledWith({ data: { analytics_consent: false } });
   });
 
-  it('saves the decision for an OAuth account with no metadata decision', () => {
+  it('saves the decision for an OAuth account with no metadata decision', async () => {
     consent = true;
     updateUser.mockResolvedValue({ error: null });
-    run('SIGNED_IN', session('user-a', {}));
+    await run('SIGNED_IN', session('user-a', {}));
     expect(updateUser).toHaveBeenCalledWith({ data: { analytics_consent: true } });
   });
 
-  it('does not write when the account already matches', () => {
+  it('does not write when the account already matches', async () => {
     consent = false;
-    run('INITIAL_SESSION', session('user-a', { analytics_consent: false }));
+    await run('INITIAL_SESSION', session('user-a', { analytics_consent: false }));
     expect(updateUser).not.toHaveBeenCalled();
   });
 
-  it('does not write when signed out', () => {
+  it('does not write when signed out', async () => {
     consent = false;
-    run('INITIAL_SESSION', null);
+    await run('INITIAL_SESSION', null);
     expect(updateUser).not.toHaveBeenCalled();
   });
 
-  it('does not write (or subscribe) when the visitor has not decided', () => {
+  it('does not write (or subscribe) when the visitor has not decided', async () => {
     consent = null;
-    run('INITIAL_SESSION', session('user-a', { analytics_consent: true }));
+    await run('INITIAL_SESSION', session('user-a', { analytics_consent: true }));
     expect(authCallbacks).toHaveLength(0);
     expect(updateUser).not.toHaveBeenCalled();
   });
 
-  it('never reacts to USER_UPDATED (broadcast to every tab), whatever the metadata says', () => {
+  it('never reacts to USER_UPDATED (broadcast to every tab), whatever the metadata says', async () => {
     consent = false;
-    run('USER_UPDATED', session('user-a', { analytics_consent: true }));
+    await run('USER_UPDATED', session('user-a', { analytics_consent: true }));
     expect(updateUser).not.toHaveBeenCalled();
   });
 
-  it('a stale tab writes the shared cookie’s answer, not the one it captured', () => {
+  it('a stale tab writes the shared cookie’s answer, not the one it captured', async () => {
     // This tab still holds "yes" in memory; another tab changed the cookie to "no".
     consent = true;
     cookieChoice = false;
-    run('SIGNED_IN', session('user-a', { analytics_consent: false }));
+    await run('SIGNED_IN', session('user-a', { analytics_consent: false }));
     expect(updateUser).not.toHaveBeenCalled();
   });
 
-  it('never writes the automatic grant outside the EU (implied, not chosen)', () => {
+  it('background sync never turns a stored "no" into "yes" (stale or shared browser)', async () => {
+    consent = true;
+    await run('INITIAL_SESSION', session('user-a', { analytics_consent: false }));
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
+  it('never writes the automatic grant outside the EU (implied, not chosen)', async () => {
     consent = true;
     cookieChoice = null;
-    run('INITIAL_SESSION', session('user-a', {}));
+    await run('INITIAL_SESSION', session('user-a', {}));
     expect(updateUser).not.toHaveBeenCalled();
   });
 
-  it('a change of decision cancels a write still queued for the old one (Undo race)', () => {
+  it('a change of decision cancels a write still queued for the old one (Undo race)', async () => {
     vi.useFakeTimers();
     consent = true;
     const root = render();
@@ -171,14 +179,14 @@ describe('AnalyticsIdentity — account consent sync', () => {
     consent = null;
     act(() => root.render(createElement(AnalyticsIdentity)));
     vi.runAllTimers();
+    for (let i = 0; i < 5; i++) await Promise.resolve();
     expect(updateUser).not.toHaveBeenCalled();
   });
 
   it('swallows a failed write', async () => {
     consent = false;
     updateUser.mockRejectedValue(new Error('network'));
-    expect(() => run('INITIAL_SESSION', session('user-a', {}))).not.toThrow();
-    await Promise.resolve();
+    await expect(run('INITIAL_SESSION', session('user-a', {}))).resolves.toBeUndefined();
     expect(updateUser).toHaveBeenCalledTimes(1);
   });
 });
