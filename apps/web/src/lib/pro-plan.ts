@@ -129,3 +129,69 @@ export const FREE_VS_PRO: readonly ComparisonRow[] = [
 
 /** Short benefit bullets for the pricing card and the checkout success screen. */
 export const PRO_BENEFIT_BULLETS: readonly string[] = PRO_FEATURES.map((f) => f.title);
+
+/**
+ * Free-trial length of the web (RevenueCat Web Billing / Stripe) packages.
+ *
+ * 0 because the `default-web` and `default-web-test` offerings carry no trial —
+ * a sandbox purchase on 2026-10-05 billed the full price immediately while /pro
+ * still promised "7 days free · $0 today". The checkout page reads the real
+ * trial phase from the RevenueCat package; the static /pro page cannot, so every
+ * trial claim on it is driven from this one constant. Raise it only after the
+ * web product actually has a trial in RevenueCat.
+ */
+export const WEB_TRIAL_DAYS = 0;
+
+export interface WebOfferCopy {
+  hasTrial: boolean;
+  eyebrow: string;
+  metaCallToAction: string;
+  heroBullets: readonly string[];
+  cardCta: string;
+  cardFootnote: string;
+  finalLine: string;
+  finalCta: string;
+  billingFaq: { q: string; a: string };
+}
+
+/** All /pro copy that depends on whether web checkout has a free trial. */
+export function webOfferCopy(trialDays: number): WebOfferCopy {
+  if (trialDays > 0) {
+    return {
+      hasTrial: true,
+      eyebrow: `MotoVault Pro · ${trialDays} days free`,
+      metaCallToAction: `Start your ${trialDays}-day free trial.`,
+      heroBullets: [
+        `${trialDays}-day free trial — full Pro access`,
+        `Cancel anytime, no charge before day ${trialDays}`,
+      ],
+      cardCta: `Start ${trialDays}-day free trial →`,
+      cardFootnote: 'Secured by Stripe via RevenueCat · No charge today',
+      finalLine: `${trialDays} days free. No charge today. Cancel with one tap.`,
+      finalCta: 'Start free trial · $0 today',
+      billingFaq: {
+        q: `How does the ${trialDays}-day free trial work?`,
+        a: `You get full Pro access immediately and are not charged until day ${trialDays}. Cancel before the trial ends and you won’t be charged.`,
+      },
+    };
+  }
+  return {
+    hasTrial: false,
+    eyebrow: 'MotoVault Pro · Cancel anytime',
+    metaCallToAction: 'Billed when you subscribe, cancel anytime.',
+    heroBullets: [
+      'Full Pro access the moment you subscribe',
+      'Billed today · cancel anytime, keep Pro until the period ends',
+    ],
+    cardCta: 'Get MotoVault Pro →',
+    cardFootnote: 'Secured by Stripe via RevenueCat · Billed today',
+    finalLine: 'Billed today. Cancel anytime from your Profile.',
+    finalCta: 'Get MotoVault Pro',
+    billingFaq: {
+      q: 'When am I charged?',
+      a: 'On the web you are billed as soon as you subscribe, for the plan you pick, and it renews each month or year until you cancel. Web checkout has no free trial. On iPhone, the annual plan can include a free trial for first-time subscribers; the App Store shows any trial before you confirm.',
+    },
+  };
+}
+
+export const WEB_OFFER_COPY: WebOfferCopy = webOfferCopy(WEB_TRIAL_DAYS);

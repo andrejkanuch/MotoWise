@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { WEB_TRIAL_DAYS, webOfferCopy } from '@/lib/pro-plan';
 
 /**
  * Guard: logging maintenance and expenses is free for every rider, on every
@@ -67,6 +68,38 @@ describe('Pro copy contract (web)', () => {
     for (const file of listFiles(PRO_DIR).filter((f) => /\.tsx?$/.test(f))) {
       expect(fs.readFileSync(file, 'utf8'), path.relative(SRC, file)).not.toMatch(banned);
     }
+  });
+
+  it('makes no free-trial claim on /pro while web checkout has no trial', () => {
+    // The RevenueCat web packages bill immediately (sandbox purchase, 2026-10-05).
+    expect(WEB_TRIAL_DAYS).toBe(0);
+    const trialClaim = /free trial|days? free|\$0 today|no charge|trial/i;
+    const copy = webOfferCopy(WEB_TRIAL_DAYS);
+    const strings = [
+      copy.eyebrow,
+      copy.metaCallToAction,
+      ...copy.heroBullets,
+      copy.cardCta,
+      copy.cardFootnote,
+      copy.finalLine,
+      copy.finalCta,
+      copy.billingFaq.q,
+    ];
+    for (const s of strings) expect(s).not.toMatch(trialClaim);
+    // The only trial mention allowed is the FAQ answer saying web has none.
+    expect(copy.billingFaq.a).toMatch(/no free trial/i);
+
+    // And the page sources must not hardcode trial copy around the constant.
+    for (const file of ['page.tsx', 'pricing-card.tsx']) {
+      const src = fs.readFileSync(path.join(PRO_DIR, file), 'utf8');
+      expect(src, file).not.toMatch(/7[- ]days?|free trial|\$0 today|no charge/i);
+    }
+  });
+
+  it('turns trial copy on only through WEB_TRIAL_DAYS', () => {
+    const withTrial = webOfferCopy(7);
+    expect(withTrial.hasTrial).toBe(true);
+    expect(withTrial.cardCta).toMatch(/7-day free trial/);
   });
 
   it('no locale message pairs Pro with CSV export or priority support', () => {

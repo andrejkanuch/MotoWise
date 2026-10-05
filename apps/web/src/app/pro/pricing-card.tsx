@@ -3,7 +3,7 @@
 import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { PRO_BENEFIT_BULLETS } from '@/lib/pro-plan';
+import { PRO_BENEFIT_BULLETS, WEB_OFFER_COPY } from '@/lib/pro-plan';
 
 const PLANS = {
   monthly: { price: '$5.99', period: '/mo', sub: '$5.99 / month', crossed: null },
@@ -80,11 +80,11 @@ export function PricingCard() {
           href={`/pro/checkout?plan=${plan}`}
           className="mt-7 flex items-center justify-center gap-2 rounded-full border border-neutral-700 bg-neutral-900 px-6 py-3.5 text-sm font-medium text-neutral-200 transition-colors hover:border-warm-500/40 hover:bg-neutral-800"
         >
-          Start 7-day free trial &rarr;
+          {WEB_OFFER_COPY.cardCta}
         </Link>
         <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-neutral-600">
           <Lock className="size-3" />
-          Secured by Stripe via RevenueCat &middot; No charge today
+          {WEB_OFFER_COPY.cardFootnote}
         </p>
       </div>
     </div>

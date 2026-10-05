@@ -149,7 +149,7 @@ export function buildSoftwareApplication(args: {
         priceCurrency: 'USD',
         name: 'MotoVault Pro',
         description:
-          'Unlimited bikes, AI diagnostics and receipt scans, GPX export and offline trip maps; 7-day free trial',
+          'Unlimited bikes, AI diagnostics and receipt scans, GPX export and offline trip maps',
       },
     ],
     publisher: { '@id': SCHEMA_IDS.organization },

@@ -228,7 +228,7 @@ function CheckoutContent() {
             <div>
               <h1 className="text-xl font-bold text-neutral-50">Upgrade to Pro</h1>
               <p className="text-sm text-neutral-400">
-                {trialDays ? `Start your ${trialDays}-day free trial` : 'Unlock every Pro feature'}
+                {trialDays ? `Start your ${trialDays}-day free trial` : 'Upgrade to MotoVault Pro'}
               </p>
             </div>
           </div>

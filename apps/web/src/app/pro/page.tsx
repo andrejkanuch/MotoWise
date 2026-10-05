@@ -10,13 +10,18 @@ import {
 } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { FREE_VS_PRO, PRO_FEATURE_KEYS, PRO_FEATURES, type ProFeatureKey } from '@/lib/pro-plan';
+import {
+  FREE_VS_PRO,
+  PRO_FEATURE_KEYS,
+  PRO_FEATURES,
+  type ProFeatureKey,
+  WEB_OFFER_COPY,
+} from '@/lib/pro-plan';
 import { PricingCard } from './pricing-card';
 
 export const metadata: Metadata = {
   title: 'Pro — More Bikes, Unlimited AI | MotoVault',
-  description:
-    'MotoVault Pro adds unlimited bikes, unlimited AI diagnostics, unlimited receipt scans, GPX export and offline trip maps. Maintenance and expense logging stay free. Start your 7-day free trial.',
+  description: `MotoVault Pro adds unlimited bikes, unlimited AI diagnostics, unlimited receipt scans, GPX export and offline trip maps. Maintenance and expense logging stay free. ${WEB_OFFER_COPY.metaCallToAction}`,
   alternates: { canonical: 'https://motovault.app/pro' },
 };
 
@@ -33,10 +38,7 @@ const FEATURE_ICONS: Record<ProFeatureKey, LucideIcon> = {
 };
 
 const FAQ = [
-  {
-    q: 'How does the 7-day free trial work?',
-    a: 'You get full Pro access immediately. We don\u2019t charge until day 7 \u2014 and we send you an email reminder 48\u00a0hours before that. Cancel before the trial ends and you won\u2019t be charged; if you started your trial through the App Store, cancel at least 24\u00a0hours before it ends, as Apple requires.',
-  },
+  WEB_OFFER_COPY.billingFaq,
   {
     q: 'How do I cancel my subscription?',
     a: 'If you subscribed on the web, open your Profile and click \u201cManage subscription\u201d on the Pro banner \u2014 that opens the billing portal where you can cancel in one click. If you subscribed on iPhone or iPad, cancel in Settings \u203a your name \u203a Subscriptions; on Android, in Google Play \u203a Payments & subscriptions. Your Pro features stay active until the end of the current billing period.',
@@ -96,7 +98,7 @@ export default function ProPage() {
             <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/60 px-4 py-1.5">
               <span className="size-2 rounded-full bg-warm-500" />
               <span className="font-mono text-[10px] tracking-[0.14em] text-neutral-400 uppercase">
-                MotoVault Pro &middot; 7 days free
+                {WEB_OFFER_COPY.eyebrow}
               </span>
             </div>
 
@@ -114,8 +116,7 @@ export default function ProPage() {
 
             <ul className="mt-8 space-y-2.5">
               {[
-                '7-day free trial — full Pro access',
-                'Cancel anytime, no charge before day 7',
+                ...WEB_OFFER_COPY.heroBullets,
                 'Secure checkout \u00b7 works on iOS, Android, Web',
               ].map((t) => (
                 <li key={t} className="flex items-center gap-3 text-sm text-neutral-300">
@@ -236,15 +237,13 @@ export default function ProPage() {
           <h2 className="text-4xl font-medium tracking-tight sm:text-5xl lg:text-7xl lg:leading-[1.05]">
             Ready when <span className="font-serif italic text-warm-400">you are.</span>
           </h2>
-          <p className="mt-5 text-sm text-neutral-500">
-            7 days free. No charge today. Cancel with one tap.
-          </p>
+          <p className="mt-5 text-sm text-neutral-500">{WEB_OFFER_COPY.finalLine}</p>
 
           <Link
             href="/pro/checkout?plan=annual"
             className="mt-8 inline-flex items-center gap-2 rounded-full border border-neutral-700 bg-neutral-900 px-8 py-4 text-sm font-medium text-neutral-200 transition-colors hover:border-warm-500/40 hover:bg-neutral-800"
           >
-            Start free trial &middot; $0 today
+            {WEB_OFFER_COPY.finalCta}
           </Link>
 
           <div className="mt-6 inline-flex items-center gap-3 rounded-2xl border border-neutral-800/50 bg-neutral-900/40 px-6 py-3">
