@@ -122,6 +122,19 @@ describe('buildRevenueCatPostHogEvent', () => {
     expect(JSON.stringify(built).toLowerCase()).not.toContain(RC_EVENT_ID.toLowerCase());
   });
 
+  it('cuts a declined rider’s timestamp to the start of the UTC purchase day', () => {
+    // event_timestamp_ms 1_790_000_000_000 = 2026-09-21T14:13:20.000Z
+    const declined = buildRevenueCatPostHogEvent(rcEvent(), NAME, false);
+    expect(declined.timestamp).toBe('2026-09-21T00:00:00.000Z');
+    const consented = buildRevenueCatPostHogEvent(rcEvent(), NAME, true);
+    expect(consented.timestamp).toBe('2026-09-21T14:13:20.000Z');
+  });
+
+  it('keeps revenue on a declined rider’s purchase (dashboard totals)', () => {
+    const declined = buildRevenueCatPostHogEvent(rcEvent(), NAME, false);
+    expect(declined.properties).toMatchObject({ revenue: 59.99, currency: 'USD' });
+  });
+
   it('keeps the RevenueCat event id for a consented rider', () => {
     const built = buildRevenueCatPostHogEvent(rcEvent(), NAME, true);
     expect(built.uuid).toBe(RC_EVENT_ID.toLowerCase());

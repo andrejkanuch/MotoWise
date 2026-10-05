@@ -116,6 +116,9 @@ export function revenueCatPostHogEventName(type: string): RcPostHogEventName | n
  * - `uuid` and `rc_event_id` are the RevenueCat event id, so a re-sent copy
  *   collapses in PostHog — consented riders only: for a rider who declined the
  *   id would join the anonymous event back to their account outside PostHog.
+ * - `timestamp` is exact for consented riders. For a rider who declined it is
+ *   cut to 00:00:00Z of the purchase day: an exact time plus product and price
+ *   could be matched against RevenueCat data. The day keeps period buckets right.
  * - `revenue` is RevenueCat's USD `price`, only on types that take money.
  * - No email, name, or subscriber attributes: they are PII and are not needed.
  */
@@ -157,10 +160,19 @@ export function buildRevenueCatPostHogEvent(
   return {
     event: eventName,
     distinct_id: consented ? event.app_user_id : RC_NO_CONSENT_DISTINCT_ID,
-    timestamp: event.event_timestamp_ms
-      ? new Date(event.event_timestamp_ms).toISOString()
-      : undefined,
+    timestamp: eventTimestamp(event.event_timestamp_ms, consented),
     uuid: consented && UUID_REGEX.test(event.id) ? event.id.toLowerCase() : undefined,
     properties,
   };
+}
+
+/**
+ * ISO timestamp of the event: exact when consented, else the start of its UTC
+ * day. Undefined (PostHog uses receipt time) when RevenueCat sent none.
+ */
+function eventTimestamp(ms: number | undefined, consented: boolean): string | undefined {
+  if (!ms) return undefined;
+  const iso = new Date(ms).toISOString();
+  // toISOString is always UTC, so its date part is the UTC day.
+  return consented ? iso : `${iso.slice(0, 10)}T00:00:00.000Z`;
 }
