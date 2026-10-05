@@ -7,7 +7,9 @@ import {
   reconcileConsent,
   requiresOptIn,
   resolveLaunchConsent,
+  setStoredAnalyticsConsent,
   signUpConsentMetadata,
+  storedTimestampFor,
 } from '../analytics-consent';
 import { SECURE_STORE_STATUS } from '../secure-store';
 
@@ -108,6 +110,7 @@ describe('accountConsentDecision', () => {
     expect(accountConsentDecision({ analyticsEnabled: false }, 'DE')).toEqual({
       enabled: false,
       decidedAt: 0,
+      legacy: true,
     });
   });
 
@@ -125,6 +128,7 @@ describe('accountConsentDecision', () => {
     expect(accountConsentDecision({ analyticsEnabled: true }, 'US')).toEqual({
       enabled: true,
       decidedAt: 0,
+      legacy: true,
     });
   });
 });
@@ -174,6 +178,13 @@ describe('reconcileConsent (the newer decision wins)', () => {
     expect(reconcileConsent(yes(10), no(20))).toEqual({ apply: no(20), upload: null });
   });
 
+  // A 3.20 app writes "no" without a timestamp. It may be the newest decision,
+  // so a dated device "yes" must never overturn it.
+  it('never overturns an undated (pre-3.21) account "no"', () => {
+    const legacyNo = { enabled: false, decidedAt: 0, legacy: true as const };
+    expect(reconcileConsent(yes(50), legacyNo)).toEqual({ apply: legacyNo, upload: null });
+  });
+
   it('lets "no" win a tie', () => {
     expect(reconcileConsent(yes(10), no(10))).toEqual({ apply: no(10), upload: null });
     expect(reconcileConsent(no(10), yes(10))).toEqual({ apply: null, upload: no(10) });
@@ -216,5 +227,23 @@ describe('signUpConsentMetadata', () => {
   it('carries nothing without an explicit decision', () => {
     stored('granted-default:v2');
     expect(signUpConsentMetadata()).toEqual({});
+  });
+});
+
+describe('taking over a legacy account "yes"', () => {
+  it('stores it as the automatic grant, never as an explicit decision', () => {
+    const legacyYes = { enabled: true, decidedAt: 0, legacy: true as const };
+    setStoredAnalyticsConsent(legacyYes.enabled, storedTimestampFor(legacyYes));
+    expect(mockWrite).toHaveBeenCalledWith(ANALYTICS_CONSENT_KEY, 'granted-default:v2');
+  });
+
+  it('stores a legacy "no" and a dated decision with their timestamps', () => {
+    setStoredAnalyticsConsent(
+      false,
+      storedTimestampFor({ enabled: false, decidedAt: 0, legacy: true }),
+    );
+    expect(mockWrite).toHaveBeenLastCalledWith(ANALYTICS_CONSENT_KEY, 'denied:v2:0');
+    setStoredAnalyticsConsent(true, storedTimestampFor({ enabled: true, decidedAt: 77 }));
+    expect(mockWrite).toHaveBeenLastCalledWith(ANALYTICS_CONSENT_KEY, 'granted:v2:77');
   });
 });

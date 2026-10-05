@@ -8,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { AlertTriangle, ArrowLeft, Database, Shield } from 'lucide-react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -138,6 +138,8 @@ export default function PrivacyScreen() {
     ?.privacy;
 
   const [state, setState] = useState<PrivacyPrefs>(privacyDefaults);
+  /** The privacy object most recently sent from this screen (each update builds on it). */
+  const lastSentRef = useRef<AccountPrivacyPreference | null>(null);
   const [initialized, setInitialized] = useState(false);
 
   // Track screen view on mount
@@ -167,10 +169,14 @@ export default function PrivacyScreen() {
   const updateMutation = useMutation({
     // Only the toggled setting changes (buildPrivacyUpdate); an analytics toggle
     // is a real, timestamped decision.
-    mutationFn: (change: PrivacyChange) =>
-      gqlFetcher(UpdateUserDocument, {
-        input: { preferences: { privacy: buildPrivacyUpdate(prefs, change) } },
-      }),
+    mutationFn: (change: PrivacyChange) => {
+      // Build on what was last SENT, not the cached `me`: a second toggle before
+      // the refetch lands would otherwise resend the first setting's old value
+      // (the server replaces `privacy` whole).
+      const privacy = buildPrivacyUpdate(lastSentRef.current ?? prefs, change);
+      lastSentRef.current = privacy;
+      return gqlFetcher(UpdateUserDocument, { input: { preferences: { privacy } } });
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.user.me }),
   });
 

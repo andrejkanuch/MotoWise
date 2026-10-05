@@ -60,6 +60,13 @@ const CONSENT_VALUE = {
 export interface ConsentDecision {
   enabled: boolean;
   decidedAt: number;
+  /**
+   * Set on an account value written before 3.21.0 (no timestamp, no version).
+   * A legacy "no" is authoritative — it may be newer than any 3.21 decision,
+   * since 3.20 apps are still live. A legacy "yes" is only the old default, so
+   * it is taken over as the automatic grant, never as an explicit decision.
+   */
+  legacy?: true;
 }
 
 /** What a stored value means, for a readable keychain. */
@@ -199,7 +206,8 @@ export function resolveLaunchConsent(regionCode: string | null = getDeviceRegion
  *
  * Returns `false` when nothing is persisted, the keychain is locked, or the
  * value is a legacy "yes" — the conservative default. Opt-out regions are
- * persisted (as a versioned grant) at launch by {@link resolveLaunchConsent},
+ * persisted (as the automatic grant, `granted-default:v2`) at launch by
+ * {@link resolveLaunchConsent},
  * so for them this is `true` from then on.
  */
 export function getStoredAnalyticsConsent(): boolean {
@@ -214,13 +222,29 @@ export function isConsentPromptOwed(): boolean {
 }
 
 /**
- * Persist an explicit decision so it applies on the next cold start. `decidedAt`
- * defaults to now; pass the account's timestamp when taking over its decision,
- * so the two compare equal afterwards instead of re-uploading.
+ * Persist a decision so it applies on the next cold start. `decidedAt` defaults
+ * to now; pass the account's timestamp when taking over its decision, so the two
+ * compare equal afterwards instead of re-uploading. `null` marks a "yes" that is
+ * not a choice (a legacy account default): it is stored as the automatic grant.
  */
-export function setStoredAnalyticsConsent(enabled: boolean, decidedAt: number = Date.now()): void {
+export function setStoredAnalyticsConsent(
+  enabled: boolean,
+  decidedAt: number | null = Date.now(),
+): void {
+  if (decidedAt === null && enabled) {
+    setSecureItemSync(ANALYTICS_CONSENT_KEY, CONSENT_VALUE.DEFAULT_GRANTED);
+    return;
+  }
   const prefix = enabled ? CONSENT_VALUE.GRANTED_PREFIX : CONSENT_VALUE.DENIED_PREFIX;
-  setSecureItemSync(ANALYTICS_CONSENT_KEY, `${prefix}${decidedAt}`);
+  setSecureItemSync(ANALYTICS_CONSENT_KEY, `${prefix}${decidedAt ?? 0}`);
+}
+
+/**
+ * The timestamp to store when taking over an account decision: its own, or
+ * null for a legacy "yes" (stored as the automatic grant, never uploaded).
+ */
+export function storedTimestampFor(decision: ConsentDecision): number | null {
+  return decision.legacy && decision.enabled ? null : decision.decidedAt;
 }
 
 /** The `preferences.privacy` shape the consent model reads from the account. */
@@ -244,14 +268,15 @@ export function accountConsentDecision(
   regionCode: string | null = getDeviceRegion(),
 ): ConsentDecision | null {
   if (typeof privacy?.analyticsEnabled !== 'boolean') return null;
-  const decidedAt =
-    typeof privacy.decidedAt === 'number' && Number.isFinite(privacy.decidedAt)
-      ? privacy.decidedAt
-      : 0;
-  if (!privacy.analyticsEnabled) return { enabled: false, decidedAt };
+  const dated = typeof privacy.decidedAt === 'number' && Number.isFinite(privacy.decidedAt);
+  const decidedAt = dated ? (privacy.decidedAt as number) : 0;
   const versioned =
     typeof privacy.consentVersion === 'number' && privacy.consentVersion >= CONSENT_VERSION;
-  return versioned || !requiresOptIn(regionCode) ? { enabled: true, decidedAt } : null;
+  const legacy = !dated || !versioned;
+  const decision = (enabled: boolean): ConsentDecision =>
+    legacy ? { enabled, decidedAt, legacy: true } : { enabled, decidedAt };
+  if (!privacy.analyticsEnabled) return decision(false);
+  return versioned || !requiresOptIn(regionCode) ? decision(true) : null;
 }
 
 /**
@@ -286,6 +311,9 @@ export function reconcileConsent(
   if (!device) return account ? { apply: account, upload: null } : none;
   if (!account) return { apply: null, upload: device };
   if (device.enabled === account.enabled) return none;
+  // A pre-3.21 "no" has no timestamp but may be the newest decision (3.20 apps
+  // are still live), so it is never overturned.
+  if (account.legacy && !account.enabled) return { apply: account, upload: null };
   const deviceWins =
     device.decidedAt > account.decidedAt ||
     (device.decidedAt === account.decidedAt && !device.enabled);

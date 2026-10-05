@@ -343,7 +343,7 @@ export function initPostHog() {
  * Apply an explicit analytics decision. `decidedAt` defaults to now; pass the
  * account's timestamp when taking over the account's decision.
  */
-export function setAnalyticsEnabled(enabled: boolean, decidedAt?: number) {
+export function setAnalyticsEnabled(enabled: boolean, decidedAt?: number | null) {
   analyticsEnabled = enabled;
   consentAppliedThisRun = true;
   // Persist consent so the recorder can be gated synchronously on the next

@@ -84,8 +84,10 @@ import {
   type AccountPrivacyPreference,
   accountConsentDecision,
   deviceConsentDecision,
+  getStoredAnalyticsConsent,
   isConsentPromptOwed,
   reconcileConsent,
+  storedTimestampFor,
 } from '../lib/analytics-consent';
 import {
   AUTH_HYDRATION_TIMEOUT_MESSAGE,
@@ -281,7 +283,12 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
         deviceConsentDecision(),
         accountConsentDecision(privacy),
       );
-      if (apply) setAnalyticsEnabled(apply.enabled, apply.decidedAt);
+      // A legacy account "yes" is taken over as the automatic grant; once stored
+      // it reconciles as "no device decision" again, so skip re-applying it.
+      const alreadyInForce = apply?.legacy && apply.enabled && getStoredAnalyticsConsent();
+      if (apply && !alreadyInForce) {
+        setAnalyticsEnabled(apply.enabled, storedTimestampFor(apply));
+      }
       if (upload) {
         void saveConsentToAccount(upload, privacy).then((saved) => {
           if (saved) void queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
