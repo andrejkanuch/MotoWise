@@ -1,8 +1,17 @@
 import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { isAnalyticsEnabled, registerSuperProperties, setUserProperties } from '../lib/analytics';
-import { buildSuperProperties, personPropertiesFrom } from '../lib/analytics-super-properties';
+import {
+  isAnalyticsEnabled,
+  registerSuperProperties,
+  setUserProperties,
+  unregisterSuperProperty,
+} from '../lib/analytics';
+import {
+  buildSuperProperties,
+  personPropertiesFrom,
+  SUPER_PROPERTY,
+} from '../lib/analytics-super-properties';
 import { gqlFetcher } from '../lib/graphql-client';
 import { queryKeys } from '../lib/query-keys';
 import { meOptions } from '../lib/query-options';
@@ -65,12 +74,19 @@ export function useAnalyticsSuperProperties(): void {
     platform: process.env.EXPO_OS,
   });
   const propertiesKey = JSON.stringify(properties);
+  const accountLoaded = meQuery.isSuccess;
   const consented = isAnalyticsEnabled();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the serialized value so an equal object does not re-register
   useEffect(() => {
     if (!consented) return;
     registerSuperProperties(properties);
+    // A goal registered before sign-in (the device's onboarding goals) does not
+    // belong to an account that has none of its own; omitting it would leave the
+    // old value in place, so clear it once the account's preferences are known.
+    if (signedIn && accountLoaded && !(SUPER_PROPERTY.ONBOARDING_GOAL_PRIMARY in properties)) {
+      unregisterSuperProperty(SUPER_PROPERTY.ONBOARDING_GOAL_PRIMARY);
+    }
     if (signedIn) setUserProperties(personPropertiesFrom(properties));
-  }, [propertiesKey, consented, signedIn]);
+  }, [propertiesKey, consented, signedIn, accountLoaded]);
 }

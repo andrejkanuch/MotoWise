@@ -1,5 +1,5 @@
 import * as Location from 'expo-location';
-import { AnalyticsEvent, captureException, trackEvent } from '../lib/analytics';
+import { AnalyticsEvent, captureException, isAnalyticsEnabled, trackEvent } from '../lib/analytics';
 import { rideStorage } from './ride-storage';
 
 export type PermissionLevel = 'full' | 'foreground_only' | 'denied';
@@ -13,17 +13,16 @@ export const RIDE_LOCATION_PERMISSION = {
 type RideLocationPermission =
   (typeof RIDE_LOCATION_PERMISSION)[keyof typeof RIDE_LOCATION_PERMISSION];
 
+/** Last status reported per permission, so an unchanged answer is not re-sent. */
+const LAST_REPORTED_STATUS_KEY = 'permissions.last_reported_status.';
+
 /**
  * Report what the rider answered. Only called after a real request — reading an
  * already-granted permission is not a result. The grant rate here is the ceiling
  * on every ride metric: a denied foreground request means no ride at all, a
  * denied background one means a ride that stops when the screen locks.
- */
-/** Last status reported per permission, so an unchanged answer is not re-sent. */
-const LAST_REPORTED_STATUS_KEY = 'permissions.last_reported_status.';
-
-/**
- * Report a permission result only when its status differs from the last one
+ *
+ * Reported only when the status differs from the last one
  * reported on this install. Every ride start re-requests, and the OS often
  * answers without showing anything — after a permanent "no", or on iOS, where
  * expo-location forgets in each new process that it already asked for "Always"
@@ -34,6 +33,9 @@ function trackPermissionResult(
   permission: RideLocationPermission,
   result: Location.LocationPermissionResponse,
 ): void {
+  // Nothing is sent while analytics is off, so nothing is marked as reported
+  // either: an answer given before consent is reported on the next request.
+  if (!isAnalyticsEnabled()) return;
   const key = `${LAST_REPORTED_STATUS_KEY}${permission}`;
   if (rideStorage.getString(key) === result.status) return;
   rideStorage.set(key, result.status);

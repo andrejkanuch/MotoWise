@@ -15,8 +15,10 @@ const mockTrackEvent = jest.fn();
 jest.mock('../../lib/analytics', () => ({
   captureException: jest.fn(),
   trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
+  isAnalyticsEnabled: () => mockAnalyticsEnabled,
   AnalyticsEvent: { RIDE_LOCATION_PERMISSION_RESULT: 'ride_location_permission_result' },
 }));
+let mockAnalyticsEnabled = true;
 const mockStore = new Map<string, string | number>();
 jest.mock('../ride-storage', () => ({
   rideStorage: {
@@ -34,6 +36,7 @@ import {
 } from '../ride-permissions';
 
 beforeEach(() => {
+  mockAnalyticsEnabled = true;
   mockStore.clear();
   mockTrackEvent.mockReset();
   mockGetForeground.mockReset();
@@ -182,5 +185,25 @@ describe('checkAndRequestPermissions — ride_location_permission_result', () =>
       status: 'granted',
       can_ask_again: true,
     });
+  });
+
+  // Nothing is sent before consent, so nothing may be marked as reported then:
+  // the answer must still go out once the rider opts in.
+  it('reports an answer given before consent on the first request after opt-in', async () => {
+    mockGetForeground.mockResolvedValue({ granted: true });
+    mockGetBackground.mockResolvedValue({
+      granted: false,
+      status: 'undetermined',
+      canAskAgain: true,
+    });
+    mockRequestBackground.mockResolvedValue(denied);
+
+    mockAnalyticsEnabled = false;
+    await checkAndRequestPermissions();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+
+    mockAnalyticsEnabled = true;
+    await checkAndRequestPermissions();
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 });

@@ -475,6 +475,17 @@ export function registerSuperProperties(properties: Record<string, JsonType>) {
   posthogClient.register(properties);
 }
 
+/**
+ * Remove a super property from this device. Omitting a key from a later
+ * `registerSuperProperties` call does not remove it, so a value that no longer
+ * applies (another account's goal) must be unregistered explicitly. Not
+ * consent-gated: removing data is always allowed.
+ */
+export function unregisterSuperProperty(name: string) {
+  if (!posthogClient) return;
+  void posthogClient.unregister(name);
+}
+
 export function getAnalyticsDistinctId(): string | undefined {
   if (!analyticsEnabled || !posthogClient) return undefined;
   return posthogClient.getDistinctId();
