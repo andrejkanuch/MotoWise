@@ -4,7 +4,9 @@ import type { RevenueCatEvent } from './dto/revenuecat-event.dto';
 import { RevenueCatService } from './revenuecat.service';
 import {
   buildRevenueCatPostHogEvent,
+  consentRegionForCountry,
   hasPurchaseAnalyticsConsent,
+  OPT_IN_COUNTRIES,
   RC_NO_CONSENT_DISTINCT_ID,
   RC_POSTHOG_EVENT_NAMES,
   revenueCatPostHogEventName,
@@ -82,8 +84,38 @@ describe('hasPurchaseAnalyticsConsent', () => {
     expect(hasPurchaseAnalyticsConsent(web, decided(false, true))).toBe(false);
   });
 
-  it('web: nothing saved anywhere is not consent', () => {
+  it('web: nothing saved and no country is not consent (fail closed)', () => {
     expect(hasPurchaseAnalyticsConsent(web, decided(null, null))).toBe(false);
+  });
+
+  it('web: a US purchase with nothing saved is identified (opt-out region)', () => {
+    const us = rcEvent({ store: 'RC_BILLING', country_code: 'US' });
+    expect(hasPurchaseAnalyticsConsent(us, decided(null, null))).toBe(true);
+  });
+
+  it('web: a DE purchase with nothing saved is anonymous (opt-in region)', () => {
+    const de = rcEvent({ store: 'RC_BILLING', country_code: 'DE' });
+    expect(hasPurchaseAnalyticsConsent(de, decided(null, null))).toBe(false);
+    expect(hasPurchaseAnalyticsConsent(de, decided(null, true))).toBe(true);
+  });
+
+  it('web: an explicit no wins even in an opt-out region', () => {
+    const us = rcEvent({ store: 'RC_BILLING', country_code: 'US' });
+    expect(hasPurchaseAnalyticsConsent(us, decided(null, false))).toBe(false);
+    expect(hasPurchaseAnalyticsConsent(us, decided(false, null))).toBe(false);
+    expect(hasPurchaseAnalyticsConsent(us, decided(true, false))).toBe(false);
+  });
+
+  it('web: a missing or malformed country is anonymous', () => {
+    for (const country_code of [undefined, null, '', 'XYZ', '1A']) {
+      const event = rcEvent({ store: 'STRIPE', country_code });
+      expect(hasPurchaseAnalyticsConsent(event, decided(null, null))).toBe(false);
+    }
+  });
+
+  it('app store: the buyer country changes nothing', () => {
+    const deApp = rcEvent({ store: 'APP_STORE', country_code: 'DE' });
+    expect(hasPurchaseAnalyticsConsent(deApp, decided(null, null))).toBe(true);
   });
 
   it('app store: unchanged — the account decision wins, NULL counts as consent', () => {
@@ -91,6 +123,28 @@ describe('hasPurchaseAnalyticsConsent', () => {
     expect(hasPurchaseAnalyticsConsent(app, decided(false, true))).toBe(false);
     expect(hasPurchaseAnalyticsConsent(app, decided(null, false))).toBe(false);
     expect(hasPurchaseAnalyticsConsent(app, decided(null, null))).toBe(true);
+  });
+});
+
+describe('consentRegionForCountry', () => {
+  it('lists the EEA (30), the UK and Switzerland', () => {
+    expect(OPT_IN_COUNTRIES).toHaveLength(32);
+    expect(new Set(OPT_IN_COUNTRIES).size).toBe(32);
+    for (const code of ['DE', 'FR', 'IS', 'LI', 'NO', 'GB', 'CH']) {
+      expect(consentRegionForCountry(code)).toBe('opt_in');
+    }
+  });
+
+  it('treats any other known country as opt-out, case-insensitively', () => {
+    for (const code of ['US', 'BR', 'MX', 'ca', 'JP']) {
+      expect(consentRegionForCountry(code)).toBe('opt_out');
+    }
+  });
+
+  it('reports a missing or malformed country as unknown', () => {
+    for (const code of [undefined, null, '', ' ', 'USA', '12']) {
+      expect(consentRegionForCountry(code)).toBe('unknown');
+    }
   });
 });
 
@@ -346,6 +400,32 @@ describe('RevenueCatService → PostHog capture', () => {
     await service.processEvent(rcEvent({ store: 'RC_BILLING' }));
     await flush();
     expect(posthogBatches()[0].batch).toEqual([expect.objectContaining({ distinct_id: USER_ID })]);
+  });
+
+  it('identifies a US web purchase with nothing saved (opt-out region)', async () => {
+    usersResult = { data: { preferences: {} }, error: null };
+    await service.processEvent(rcEvent({ store: 'RC_BILLING', country_code: 'US' }));
+    await flush();
+    expect(posthogBatches()[0].batch).toEqual([expect.objectContaining({ distinct_id: USER_ID })]);
+  });
+
+  it('sends a DE web purchase with nothing saved anonymously (opt-in region)', async () => {
+    usersResult = { data: { preferences: {} }, error: null };
+    await service.processEvent(rcEvent({ store: 'RC_BILLING', country_code: 'DE' }));
+    await flush();
+    expect(posthogBatches()[0].batch).toEqual([
+      expect.objectContaining({ distinct_id: RC_NO_CONSENT_DISTINCT_ID }),
+    ]);
+  });
+
+  it('sends a US web purchase anonymously when the banner said no', async () => {
+    usersResult = { data: { preferences: {} }, error: null };
+    authResult = { data: { user: { user_metadata: { analytics_consent: false } } }, error: null };
+    await service.processEvent(rcEvent({ store: 'RC_BILLING', country_code: 'US' }));
+    await flush();
+    expect(posthogBatches()[0].batch).toEqual([
+      expect.objectContaining({ distinct_id: RC_NO_CONSENT_DISTINCT_ID }),
+    ]);
   });
 
   it('sends a web purchase anonymously when the app says yes but the banner said no', async () => {

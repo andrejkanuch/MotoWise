@@ -98,24 +98,88 @@ export interface StoredAnalyticsDecisions {
 export const FAIL_CLOSED_DECISIONS: StoredAnalyticsDecisions = { account: false, signup: false };
 
 /**
+ * Countries where analytics needs prior opt-in: the EEA (EU-27 + Iceland,
+ * Liechtenstein, Norway), the United Kingdom and Switzerland. ISO 3166-1
+ * alpha-2. Mirrors `OPT_IN_REGIONS` in apps/mobile/src/lib/analytics-consent.ts
+ * and `CONSENT_REQUIRED_COUNTRIES` in apps/web/src/proxy.ts — change all three
+ * together. Everywhere else is opt-out.
+ */
+export const OPT_IN_COUNTRIES = [
+  'AT',
+  'BE',
+  'BG',
+  'HR',
+  'CY',
+  'CZ',
+  'DK',
+  'EE',
+  'FI',
+  'FR',
+  'DE',
+  'GR',
+  'HU',
+  'IE',
+  'IT',
+  'LV',
+  'LT',
+  'LU',
+  'MT',
+  'NL',
+  'PL',
+  'PT',
+  'RO',
+  'SK',
+  'SI',
+  'ES',
+  'SE',
+  'IS',
+  'LI',
+  'NO',
+  'GB',
+  'CH',
+] as const;
+
+const OPT_IN_COUNTRY_SET: ReadonlySet<string> = new Set(OPT_IN_COUNTRIES);
+const COUNTRY_CODE_REGEX = /^[A-Z]{2}$/;
+
+/**
+ * The buyer's consent regime from RevenueCat's `country_code`: `opt_in` inside
+ * the EEA/UK/CH, `opt_out` in any other known country, `unknown` when missing
+ * or malformed.
+ */
+export function consentRegionForCountry(
+  countryCode: string | null | undefined,
+): 'opt_in' | 'opt_out' | 'unknown' {
+  const code = countryCode?.trim().toUpperCase();
+  if (!code || !COUNTRY_CODE_REGEX.test(code)) return 'unknown';
+  return OPT_IN_COUNTRY_SET.has(code) ? 'opt_in' : 'opt_out';
+}
+
+/**
  * Whether this purchase may be sent identified.
  *
  * App-store purchases follow the signup sweep exactly: the account decision,
  * else the sign-up one (00184 order), with NULL = consent for now (apps before
  * 3.21.0 save no decision).
  *
- * Web Billing is conservative: a "no" in EITHER place wins, and only a resolved
- * explicit TRUE identifies. NULL there may be a visitor who declined the cookie
- * banner, and a rider who said yes in the app can still decline the banner later.
+ * Web Billing applies the owner's policy, the same as mobile: strict opt-in in
+ * the EEA/UK/CH, opt-out elsewhere.
+ * - A "no" in EITHER saved place wins, everywhere.
+ * - An explicit yes (resolved in the 00184 order) identifies.
+ * - With nothing saved, the buyer's RevenueCat `country_code` decides: a known
+ *   country outside the EEA/UK/CH identifies (opt-out region); inside, or when
+ *   the country is unknown, the purchase stays anonymous (fail closed).
  */
 export function hasPurchaseAnalyticsConsent(
   event: RevenueCatEvent,
   decisions: StoredAnalyticsDecisions,
 ): boolean {
   const resolved = decisions.account ?? decisions.signup;
-  return purchaseSourceForStore(event.store) === 'web'
-    ? resolved === true && decisions.signup !== false
-    : hasAnalyticsConsent(resolved);
+  if (purchaseSourceForStore(event.store) !== 'web') return hasAnalyticsConsent(resolved);
+
+  if (decisions.account === false || decisions.signup === false) return false;
+  if (resolved === true) return true;
+  return consentRegionForCountry(event.country_code) === 'opt_out';
 }
 
 /** The PostHog event name for a webhook type, or null when it is not sent. */
