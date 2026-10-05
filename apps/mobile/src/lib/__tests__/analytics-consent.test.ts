@@ -1,5 +1,6 @@
 import {
   ANALYTICS_CONSENT_KEY,
+  accountConsentDecision,
   CONSENT_STATE,
   requiresOptIn,
   resolveLaunchConsent,
@@ -43,14 +44,14 @@ describe('requiresOptIn', () => {
 });
 
 describe('resolveLaunchConsent', () => {
-  it('honours a stored "yes" in any region', () => {
-    stored('true');
+  it('honours a stored versioned "yes" in any region', () => {
+    stored('granted:v2');
     expect(resolveLaunchConsent('DE')).toBe(CONSENT_STATE.GRANTED);
     expect(mockWrite).not.toHaveBeenCalled();
   });
 
   it('honours a stored "no" even where the default is opt-out', () => {
-    stored('false');
+    stored('denied:v2');
     expect(resolveLaunchConsent('US')).toBe(CONSENT_STATE.DENIED);
     expect(mockWrite).not.toHaveBeenCalled();
   });
@@ -58,7 +59,7 @@ describe('resolveLaunchConsent', () => {
   it('grants AND persists consent for a fresh install outside the opt-in regions', () => {
     stored(null);
     expect(resolveLaunchConsent('US')).toBe(CONSENT_STATE.GRANTED);
-    expect(mockWrite).toHaveBeenCalledWith(ANALYTICS_CONSENT_KEY, 'true');
+    expect(mockWrite).toHaveBeenCalledWith(ANALYTICS_CONSENT_KEY, 'granted:v2');
   });
 
   it('leaves a fresh install in an opt-in region undecided, writing nothing', () => {
@@ -71,5 +72,47 @@ describe('resolveLaunchConsent', () => {
     stored(null, SECURE_STORE_STATUS.LOCKED);
     expect(resolveLaunchConsent('US')).toBe(CONSENT_STATE.UNKNOWN);
     expect(mockWrite).not.toHaveBeenCalled();
+  });
+
+  // Before 3.21.0 the Privacy screen saved its default "yes" just by being
+  // opened, so a legacy "yes" is not a choice where opt-in is required.
+  it('re-asks a legacy "yes" in an opt-in region, writing nothing', () => {
+    stored('true');
+    expect(resolveLaunchConsent('DE')).toBe(CONSENT_STATE.UNDECIDED);
+    expect(mockWrite).not.toHaveBeenCalled();
+  });
+
+  it('upgrades a legacy "yes" to a versioned grant outside opt-in regions', () => {
+    stored('true');
+    expect(resolveLaunchConsent('US')).toBe(CONSENT_STATE.GRANTED);
+    expect(mockWrite).toHaveBeenCalledWith(ANALYTICS_CONSENT_KEY, 'granted:v2');
+  });
+
+  it('always honours a legacy "no"', () => {
+    stored('false');
+    expect(resolveLaunchConsent('DE')).toBe(CONSENT_STATE.DENIED);
+  });
+});
+
+describe('accountConsentDecision', () => {
+  it('has no decision when the account saved none', () => {
+    expect(accountConsentDecision(undefined, 'DE')).toBeNull();
+    expect(accountConsentDecision({}, 'US')).toBeNull();
+  });
+
+  it('always applies a saved "no"', () => {
+    expect(accountConsentDecision({ analyticsEnabled: false }, 'DE')).toBe(false);
+  });
+
+  it('applies a versioned "yes" anywhere', () => {
+    expect(accountConsentDecision({ analyticsEnabled: true, consentVersion: 2 }, 'DE')).toBe(true);
+  });
+
+  it('ignores an unversioned "yes" (the old default) in an opt-in region', () => {
+    expect(accountConsentDecision({ analyticsEnabled: true }, 'DE')).toBeNull();
+  });
+
+  it('applies an unversioned "yes" outside opt-in regions', () => {
+    expect(accountConsentDecision({ analyticsEnabled: true }, 'US')).toBe(true);
   });
 });

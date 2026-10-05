@@ -1,24 +1,19 @@
-import { UpdateUserDocument } from '@motovault/graphql';
 import { useQueryClient } from '@tanstack/react-query';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { router } from 'expo-router';
 import { ChartNoAxesColumn } from 'lucide-react-native';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { BackHandler, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
-import {
-  AnalyticsEvent,
-  captureException,
-  setAnalyticsEnabled,
-  trackEvent,
-} from '../../lib/analytics';
-import { gqlFetcher } from '../../lib/graphql-client';
-import { queryKeys } from '../../lib/query-keys';
-import { useAuthStore } from '../../stores/auth.store';
-import { triggerImpact } from '../../utils/haptics';
+import { ONBOARDING_COLORS } from '../components/onboarding/onboarding-colors';
+import { AnalyticsEvent, setAnalyticsEnabled, trackEvent } from '../lib/analytics';
+import type { AccountPrivacyPreference } from '../lib/analytics-consent';
+import { saveConsentToAccount } from '../lib/consent-account-sync';
+import { queryKeys } from '../lib/query-keys';
+import { useAuthStore } from '../stores/auth.store';
+import { triggerImpact } from '../utils/haptics';
 
 /**
  * Analytics consent — shown once to riders in an opt-in region (EEA, UK,
@@ -29,15 +24,17 @@ import { triggerImpact } from '../../utils/haptics';
  *
  * Both answers carry equal weight on purpose: refusing must be as easy as
  * accepting, so the two buttons share one style and neither is preselected.
- * Not swipe-dismissable (registered with `gestureEnabled: false`) — closing it
- * without an answer would only bring it back on the next launch.
+ * Not dismissable without an answer: the iOS swipe is off in the root layout
+ * (`gestureEnabled: false`) and the Android back button is swallowed here.
+ *
+ * A root route, not under (modals): (modals) only mounts for signed-in riders
+ * who finished onboarding, and this must open during onboarding and sign-in.
  */
 
 /** Where the consent was given, on `analytics_consent_granted`. */
 const CONSENT_SURFACE = 'consent_screen';
 
-type PrivacyPreferences = { analyticsEnabled?: boolean; crashReportingEnabled?: boolean };
-type MeCache = { me?: { preferences?: { privacy?: PrivacyPreferences } | null } };
+type MeCache = { me?: { preferences?: { privacy?: AccountPrivacyPreference } | null } };
 
 export default function AnalyticsConsentScreen() {
   const { t } = useTranslation();
@@ -47,22 +44,23 @@ export default function AnalyticsConsentScreen() {
   // One answer per presentation — a double tap must not apply two decisions.
   const answeredRef = useRef(false);
 
+  // Android back would close the screen without an answer.
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
+    return () => sub.remove();
+  }, []);
+
   /**
-   * A signed-in rider's answer is saved to their account as well, because the
-   * root layout re-applies the server preference on every `me` load and would
-   * otherwise flip this device back. `preferences` merges one level deep on
-   * the server, so the whole `privacy` object is sent.
+   * A signed-in rider's answer is saved to their account right away. A rider
+   * who answers before signing in has it saved by the root layout once a
+   * session exists (it uploads the device decision when the account has none).
    */
   const saveToAccount = (enabled: boolean) => {
     if (!session) return;
     const current = queryClient.getQueryData<MeCache>(queryKeys.user.me)?.me?.preferences?.privacy;
-    const privacy = {
-      analyticsEnabled: enabled,
-      crashReportingEnabled: current?.crashReportingEnabled ?? true,
-    };
-    gqlFetcher(UpdateUserDocument, { input: { preferences: { privacy } } })
-      .then(() => queryClient.invalidateQueries({ queryKey: queryKeys.user.me }))
-      .catch((e) => captureException(e, { source: 'analytics-consent.saveToAccount' }));
+    void saveConsentToAccount(enabled, current).then(() =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.me }),
+    );
   };
 
   const answer = (enabled: boolean) => {

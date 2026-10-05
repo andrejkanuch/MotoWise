@@ -80,7 +80,12 @@ import {
   trackScreen,
   withSentry,
 } from '../lib/analytics';
-import { isConsentPromptOwed } from '../lib/analytics-consent';
+import {
+  type AccountPrivacyPreference,
+  accountConsentDecision,
+  deviceConsentDecision,
+  isConsentPromptOwed,
+} from '../lib/analytics-consent';
 import {
   AUTH_HYDRATION_TIMEOUT_MESSAGE,
   AUTH_HYDRATION_TIMEOUT_MS,
@@ -97,6 +102,7 @@ import {
   SIGNOUT_UNSYNCED_SOURCE,
 } from '../lib/auth-state-change';
 import { bestEffortNativeCall, NativeSideEffect } from '../lib/best-effort-native';
+import { saveConsentToAccount } from '../lib/consent-account-sync';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
 import { captureMetaAttribution } from '../lib/meta-attribution';
@@ -198,13 +204,22 @@ setupOnlineManager();
 // Module-scoped guard: survives React 19 StrictMode double-mount so the
 // What's New modal is only pushed once per app cold-start.
 let whatsNewPushed = false;
-// Same module-scoped one-shot pattern for the analytics consent screen.
+// Same module-scoped one-shot pattern for the analytics consent screen. Set only
+// once the push is made, so a check that fails when the timer fires is retried.
 let consentPromptPushed = false;
+let consentPromptScheduled = false;
 
 /** Route groups the consent screen may open over — never a ride or other modal. */
 const CONSENT_PROMPT_GROUPS: ReadonlySet<string> = new Set(['(tabs)', '(onboarding)', '(auth)']);
 /** Later than What's New (500 ms) so, if both are owed, consent sits on top. */
 const CONSENT_PROMPT_DELAY_MS = 700;
+
+/** True on a route the consent screen may open over: not welcome, not a ride or modal. */
+function canShowConsentPrompt(segments: readonly string[]): boolean {
+  const [group, screen] = segments;
+  if (!group || !CONSENT_PROMPT_GROUPS.has(group)) return false;
+  return !(group === '(onboarding)' && (!screen || screen === 'index'));
+}
 
 function NavigationGate({ onSettled }: { onSettled: () => void }) {
   const {
@@ -260,17 +275,24 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
   const userPreferences = meData?.preferences as Record<string, unknown> | null | undefined;
 
   useEffect(() => {
-    const privacy = userPreferences?.privacy as
-      | { analyticsEnabled?: boolean; crashReportingEnabled?: boolean }
-      | undefined;
+    const privacy = userPreferences?.privacy as AccountPrivacyPreference | undefined;
 
-    if (typeof privacy?.analyticsEnabled === 'boolean') {
-      setAnalyticsEnabled(privacy.analyticsEnabled);
+    // Analytics follows the account only when the account holds a decision this
+    // device can trust (a "no", or a versioned "yes" — see accountConsentDecision).
+    // Otherwise the device's own decision, if it has one, is saved to the account:
+    // a rider who answered the consent screen before signing up would else leave
+    // the account with no decision, and the server-side signup event reads it.
+    const accountDecision = accountConsentDecision(privacy);
+    if (accountDecision !== null) {
+      setAnalyticsEnabled(accountDecision);
+    } else if (session && userPreferences !== undefined) {
+      const deviceDecision = deviceConsentDecision();
+      if (deviceDecision !== null) void saveConsentToAccount(deviceDecision, privacy);
     }
     if (typeof privacy?.crashReportingEnabled === 'boolean') {
       setCrashReportingEnabled(privacy.crashReportingEnabled);
     }
-  }, [userPreferences]);
+  }, [userPreferences, session]);
 
   useEffect(() => {
     if (!session?.user?.id || !meData) return;
@@ -313,18 +335,24 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
   // existing rider); nothing is sent to PostHog until they answer. Outside those
   // regions consent defaults on and this never fires. See lib/analytics-consent.ts.
   const meSettled = meQuery.isFetched;
+  // Latest route, for the re-check when the delayed push fires.
+  const segmentsRef = useRef<readonly string[]>(segments);
+  segmentsRef.current = segments;
   useEffect(() => {
-    if (consentPromptPushed || isLoading) return;
+    if (consentPromptPushed || consentPromptScheduled || isLoading) return;
     // A signed-in rider may already have answered on another device — the
     // preference effect above applies it once `me` loads, so wait for that.
     if (session && !meSettled) return;
-    const [group, screen] = segments as readonly string[];
-    if (!group || !CONSENT_PROMPT_GROUPS.has(group)) return;
-    const onWelcome = group === '(onboarding)' && (!screen || screen === 'index');
-    if (onWelcome) return;
-    if (!isConsentPromptOwed()) return;
-    consentPromptPushed = true;
-    setTimeout(() => router.push('/(modals)/analytics-consent'), CONSENT_PROMPT_DELAY_MS);
+    if (!canShowConsentPrompt(segments) || !isConsentPromptOwed()) return;
+    consentPromptScheduled = true;
+    setTimeout(() => {
+      consentPromptScheduled = false;
+      // Re-check: the rider may have started a ride, or answered elsewhere, in
+      // the delay. A failed check leaves the prompt owed for the next change.
+      if (!canShowConsentPrompt(segmentsRef.current) || !isConsentPromptOwed()) return;
+      consentPromptPushed = true;
+      router.push('/analytics-consent');
+    }, CONSENT_PROMPT_DELAY_MS);
   }, [isLoading, session, meSettled, segments, router]);
 
   // --- Anonymous-first onboarding (A/B 2026) ---
@@ -439,6 +467,13 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
       {/* Public share-link routes — always accessible to anonymous AND
           authenticated users (even mid-onboarding). Declared last so they are
           never resolved as the default landing screen. */}
+      {/* Reachable from every state — onboarding, sign-in and tabs — because the
+          consent question is owed before anything is sent. Not swipe-dismissable;
+          the screen also swallows Android back. */}
+      <Stack.Screen
+        name="analytics-consent"
+        options={{ presentation: 'fullScreenModal', gestureEnabled: false }}
+      />
       <Stack.Screen name="t/[token]/index" />
       <Stack.Screen name="ride/[id]" />
       <Stack.Screen name="route/[country]/[region]/[slug]" />

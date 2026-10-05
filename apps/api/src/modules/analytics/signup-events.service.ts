@@ -28,6 +28,15 @@ const CAPTURE_BATCH_SIZE = 50;
 const CAPTURE_TIMEOUT_MS = 10_000;
 
 /**
+ * Only an explicit saved "yes" is consent. NULL means no decision was saved —
+ * not consent (00183; the app saves the decision on the first signed-in load,
+ * and the sweep waits 10 minutes for it).
+ */
+function hasAnalyticsConsent(row: PendingSignupRow): boolean {
+  return row.analytics_enabled === true;
+}
+
+/**
  * A user claimed for emission, as returned by `claim_pending_signup_events`.
  * snake_case because it is a raw RPC row; mapped to camelCase below.
  */
@@ -35,6 +44,7 @@ interface PendingSignupRow {
   user_id: string;
   created_at: string;
   auth_method: string | null;
+  /** The rider's saved decision; NULL when none is saved (00183). */
   analytics_enabled: boolean | null;
   currency: string | null;
   measurement_system: string | null;
@@ -118,7 +128,7 @@ export class SignupEventsService {
     if (rows.length === 0) return empty(SWEEP_OUTCOME.OK);
 
     const events = rows.map((row) => this.buildEvent(row));
-    const identified = rows.filter((row) => row.analytics_enabled !== false).length;
+    const identified = rows.filter(hasAnalyticsConsent).length;
 
     const delivered = await this.capture(events, token);
     if (!delivered) {
@@ -160,9 +170,10 @@ export class SignupEventsService {
    *  2. `timestamp` is the row's `created_at`, not now(). This is what makes the
    *     sweep's schedule an irrelevance rather than a measurement artefact.
    *
-   * Consent: a user who explicitly set `analyticsEnabled: false` still needs to
-   * be COUNTED — otherwise the reconciliation gate can never pass — but must not
-   * be identifiable. So they are emitted under a single constant bucket with
+   * Consent: only an explicit `analyticsEnabled: true` is consent. A user who
+   * declined, or saved no decision (an EEA rider who never answered the app's
+   * consent screen), still needs to be COUNTED — otherwise the reconciliation
+   * gate can never pass — but must not be identifiable. So they are emitted under a single constant bucket with
    * person processing off, which is a tally, not a profile. Emitting an
    * identified event for someone who declined analytics would contradict the
    * app's own privacy toggle regardless of legal basis.
@@ -174,7 +185,7 @@ export class SignupEventsService {
    * place for them.
    */
   private buildEvent(row: PendingSignupRow) {
-    const consented = row.analytics_enabled !== false;
+    const consented = hasAnalyticsConsent(row);
     const properties: Record<string, unknown> = {
       auth_method: row.auth_method ?? 'email',
       currency: row.currency ?? undefined,

@@ -33,11 +33,26 @@ import {
 /** Keychain key holding the analytics consent decision. */
 export const ANALYTICS_CONSENT_KEY = SECURE_STORE_KEY.ANALYTICS_CONSENT;
 
-/** The two persisted consent values. */
+/**
+ * Persisted consent values. Decisions are versioned because the values before
+ * 3.21.0 (`'true'`/`'false'`) were not all real choices: the Privacy screen
+ * defaulted analytics ON and pushed that default into this flag just by being
+ * opened. A legacy "yes" is therefore NOT honoured where opt-in is required —
+ * that rider is asked once. A legacy "no" is always honoured.
+ */
 const CONSENT_VALUE = {
-  GRANTED: 'true',
-  DENIED: 'false',
+  GRANTED: 'granted:v2',
+  DENIED: 'denied:v2',
+  LEGACY_GRANTED: 'true',
+  LEGACY_DENIED: 'false',
 } as const;
+
+/**
+ * Version stamped on the account's `preferences.privacy.consentVersion` with
+ * every decision made from 3.21.0 on. A server `analyticsEnabled: true` without
+ * it is the same unreliable legacy default as above.
+ */
+export const CONSENT_VERSION = 2;
 
 export const CONSENT_STATE = {
   GRANTED: 'granted',
@@ -107,19 +122,21 @@ export function getDeviceRegion(): string | null {
   }
 }
 
-/** Persisted value → state, for a readable keychain. */
+/** Persisted value → state, for a readable keychain. A legacy "yes" is resolved by region. */
 const STORED_TO_STATE: Record<string, ConsentState> = {
   [CONSENT_VALUE.GRANTED]: CONSENT_STATE.GRANTED,
   [CONSENT_VALUE.DENIED]: CONSENT_STATE.DENIED,
+  [CONSENT_VALUE.LEGACY_DENIED]: CONSENT_STATE.DENIED,
 };
 
 /**
  * Resolve the consent decision for this launch, synchronously.
  *
- * A stored decision always wins. With none stored, an opt-out region is
- * granted AND persisted (so attribution, replay and RevenueCat — which read
- * the stored flag — agree with the events), and an opt-in region stays
- * UNDECIDED until the rider answers the consent screen. An unreadable keychain
+ * A stored decision always wins, except a legacy "yes" (see CONSENT_VALUE),
+ * which counts as no decision. With none, an opt-out region is granted AND
+ * persisted (so attribution, replay and RevenueCat — which read the stored
+ * flag — agree with the events), and an opt-in region stays UNDECIDED until
+ * the rider answers the consent screen. An unreadable keychain
  * is UNKNOWN and nothing is written, so a locked background launch can never
  * overwrite a rider's "no".
  */
@@ -127,6 +144,7 @@ export function resolveLaunchConsent(regionCode: string | null = getDeviceRegion
   const read = readSecureItemSync(ANALYTICS_CONSENT_KEY);
   if (read.status !== SECURE_STORE_STATUS.OK) return CONSENT_STATE.UNKNOWN;
   const stored = read.value ? STORED_TO_STATE[read.value] : undefined;
+  // Legacy "yes" falls through to the no-decision path below.
   if (stored) return stored;
   if (requiresOptIn(regionCode)) return CONSENT_STATE.UNDECIDED;
   setStoredAnalyticsConsent(true);
@@ -136,9 +154,10 @@ export function resolveLaunchConsent(regionCode: string | null = getDeviceRegion
 /**
  * Read the last-known analytics consent synchronously.
  *
- * Returns `false` when nothing is persisted or the keychain is locked — the
- * conservative default. Opt-out regions are persisted at first launch by
- * {@link resolveLaunchConsent}, so for them this is `true` from then on.
+ * Returns `false` when nothing is persisted, the keychain is locked, or the
+ * value is a legacy "yes" — the conservative default. Opt-out regions are
+ * persisted (as a versioned grant) at launch by {@link resolveLaunchConsent},
+ * so for them this is `true` from then on.
  */
 export function getStoredAnalyticsConsent(): boolean {
   return getSecureItemSync(ANALYTICS_CONSENT_KEY) === CONSENT_VALUE.GRANTED;
@@ -152,4 +171,37 @@ export function isConsentPromptOwed(): boolean {
 /** Persist the analytics consent so it can be applied on the next cold start. */
 export function setStoredAnalyticsConsent(enabled: boolean): void {
   setSecureItemSync(ANALYTICS_CONSENT_KEY, enabled ? CONSENT_VALUE.GRANTED : CONSENT_VALUE.DENIED);
+}
+
+/** The `preferences.privacy` shape the consent model reads from the account. */
+export interface AccountPrivacyPreference {
+  analyticsEnabled?: unknown;
+  crashReportingEnabled?: unknown;
+  consentVersion?: unknown;
+}
+
+/**
+ * The analytics decision an account carries that is safe to apply on this
+ * device, or null when it carries none. A "no" always applies. A "yes" applies
+ * when it was given under the versioned model, or where opt-in is not required
+ * — an unversioned "yes" from an opt-in region is the legacy Privacy-screen
+ * default, not a choice.
+ */
+export function accountConsentDecision(
+  privacy: AccountPrivacyPreference | null | undefined,
+  regionCode: string | null = getDeviceRegion(),
+): boolean | null {
+  if (typeof privacy?.analyticsEnabled !== 'boolean') return null;
+  if (!privacy.analyticsEnabled) return false;
+  const versioned =
+    typeof privacy.consentVersion === 'number' && privacy.consentVersion >= CONSENT_VERSION;
+  return versioned || !requiresOptIn(regionCode) ? true : null;
+}
+
+/** This device's own decision, when it has one (never for UNDECIDED/UNKNOWN). */
+export function deviceConsentDecision(): boolean | null {
+  const state = resolveLaunchConsent();
+  if (state === CONSENT_STATE.GRANTED) return true;
+  if (state === CONSENT_STATE.DENIED) return false;
+  return null;
 }

@@ -21,7 +21,11 @@ import {
   trackEvent,
   trackScreen,
 } from '../../../lib/analytics';
-import { getStoredAnalyticsConsent } from '../../../lib/analytics-consent';
+import {
+  accountConsentDecision,
+  CONSENT_VERSION,
+  getStoredAnalyticsConsent,
+} from '../../../lib/analytics-consent';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { isAccountAlreadyDeleted, userFriendlyError } from '../../../lib/graphql-errors';
 import { queryKeys } from '../../../lib/query-keys';
@@ -145,15 +149,21 @@ export default function PrivacyScreen() {
       setState(merged);
       setInitialized(true);
 
-      // Sync initial privacy state to SDKs
-      setAnalyticsEnabled(merged.analyticsEnabled);
+      // Sync the account's saved choices to the SDKs. Analytics is applied only
+      // when the account holds a decision this device can trust: opening this
+      // screen must never record one (it used to save the default "yes").
+      const accountDecision = accountConsentDecision(prefs);
+      if (accountDecision !== null) setAnalyticsEnabled(accountDecision);
       setCrashReportingEnabled(merged.crashReportingEnabled);
     }
   }, [meQuery.data, prefs, initialized]);
 
   const updateMutation = useMutation({
+    // Versioned: a choice made on this screen is a real decision (see CONSENT_VERSION).
     mutationFn: (privacy: PrivacyPrefs) =>
-      gqlFetcher(UpdateUserDocument, { input: { preferences: { privacy } } }),
+      gqlFetcher(UpdateUserDocument, {
+        input: { preferences: { privacy: { ...privacy, consentVersion: CONSENT_VERSION } } },
+      }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.user.me }),
   });
 
