@@ -6,15 +6,23 @@ import {
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { type AnalyticsDecision, readAnalyticsDecision } from '../analytics/analytics-consent';
+import { postHogCaptureTarget, sendPostHogBatch } from '../analytics/posthog-capture';
 import { MetaEventsService } from '../meta/meta-events.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import type { RevenueCatEvent } from './dto/revenuecat-event.dto';
+import {
+  buildRevenueCatPostHogEvent,
+  isPaidConversion,
+  isTrialStart,
+  purchaseSourceForStore,
+  RC_ENVIRONMENT_PRODUCTION,
+  revenueCatPostHogEventName,
+} from './revenuecat-posthog';
 
 const RC_API_BASE = 'https://api.revenuecat.com/v1' as const;
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const EVENT_TRANSFER = 'TRANSFER' as const;
-const EVENT_INITIAL_PURCHASE = 'INITIAL_PURCHASE' as const;
-const PERIOD_TRIAL = 'TRIAL' as const;
 
 /** The receiver's live subscription state, resolved from RC for a TRANSFER. */
 interface TransferResolution {
@@ -101,14 +109,14 @@ export class RevenueCatService {
       throw error;
     }
 
-    const purchaseSource = this.mapStoreToPurchaseSource(event.store);
+    const purchaseSource = purchaseSourceForStore(event.store);
     this.logger.log(
       `Processed ${event.type} for user ${event.app_user_id} (source: ${purchaseSource})`,
     );
 
     // First trial on any store → flag the RC customer so Targeting serves the
     // no-trial offering everywhere else (fire and forget).
-    if (event.type === EVENT_INITIAL_PURCHASE && event.period_type === PERIOD_TRIAL) {
+    if (isTrialStart(event)) {
       this.setCustomerAttributes(event.app_user_id, {
         [RC_ATTRIBUTE_HAS_HAD_TRIAL]: RC_ATTRIBUTE_TRUE,
       }).catch((err) => {
@@ -120,46 +128,65 @@ export class RevenueCatService {
     this.fireMetaEvent(event, purchaseSource).catch((err) => {
       this.logger.warn(`Meta CAPI event failed for ${event.id}: ${err}`);
     });
+
+    // Product analytics (fire and forget). Runs only after the RPC accepted the
+    // event, so a duplicate delivery (already_processed, above) is never re-sent.
+    this.captureToPostHog(event).catch((err) => {
+      this.logger.error(`PostHog capture failed for ${event.id}: ${err}`);
+    });
   }
 
   /**
-   * Map RevenueCat store identifier to a human-readable purchase source.
-   * RC_BILLING = Stripe (web checkout via RevenueCat Web Billing).
+   * Send the event to PostHog so paid subscribers can be broken down by
+   * acquisition source next to the client-side events. Replaces RevenueCat's own
+   * PostHog integration, which must stay OFF (it would double count, and it
+   * cannot honour a rider's analytics opt-out). Sandbox events are never sent.
+   * Never throws into the webhook: a lost analytics event is logged, not retried.
    */
-  private mapStoreToPurchaseSource(
-    store: string | undefined,
-  ): 'ios' | 'android' | 'web' | 'unknown' {
-    switch (store) {
-      case 'APP_STORE':
-      case 'app_store':
-        return 'ios';
-      case 'PLAY_STORE':
-      case 'play_store':
-        return 'android';
-      case 'STRIPE':
-      case 'stripe':
-      case 'RC_BILLING':
-      case 'rc_billing':
-        return 'web';
-      default:
-        return 'unknown';
+  private async captureToPostHog(event: RevenueCatEvent): Promise<void> {
+    const eventName = revenueCatPostHogEventName(event.type);
+    if (!eventName) return;
+    if (event.environment !== RC_ENVIRONMENT_PRODUCTION) return;
+    const target = postHogCaptureTarget(this.configService);
+    if (!target) {
+      this.logger.warn(`POSTHOG_PROJECT_TOKEN unset; ${event.id} not sent to PostHog`);
+      return;
     }
+
+    const decision = await this.readAnalyticsDecision(event.app_user_id);
+    const failure = await sendPostHogBatch(target, [
+      buildRevenueCatPostHogEvent(event, eventName, decision),
+    ]);
+    if (failure) this.logger.error(`PostHog capture of ${event.id} ${failure}`);
+  }
+
+  /**
+   * The rider's saved analytics decision, read where the signup sweep reads it.
+   * Fails CLOSED: when the account cannot be read the event goes to the
+   * anonymous bucket, never to an identified person.
+   */
+  private async readAnalyticsDecision(userId: string): Promise<AnalyticsDecision> {
+    const { data: user, error } = await this.adminClient
+      .from('users')
+      .select('preferences')
+      .eq('id', userId)
+      .maybeSingle();
+    if (error || !user) return false;
+
+    const fromAccount = readAnalyticsDecision(user.preferences, undefined);
+    if (fromAccount !== null) return fromAccount;
+
+    const { data: auth, error: authError } = await this.adminClient.auth.admin.getUserById(userId);
+    if (authError) return false;
+    return readAnalyticsDecision(undefined, auth.user?.user_metadata);
   }
 
   private async fireMetaEvent(event: RevenueCatEvent, purchaseSource: string): Promise<void> {
-    // StartTrial: INITIAL_PURCHASE with trial period
-    const isTrialStart = event.type === 'INITIAL_PURCHASE' && event.period_type === 'TRIAL';
-
-    // Subscribe: first paid conversion ONLY — direct purchase, a lifetime
-    // (non-renewing) purchase, or the single RENEWAL that converts a trial.
-    // Plain monthly renewals must NOT re-fire Subscribe, or ad attribution
-    // counts every billing cycle as a new conversion.
-    const isPaidConversion =
-      (event.type === 'INITIAL_PURCHASE' && event.period_type !== 'TRIAL') ||
-      event.type === 'NON_RENEWING_PURCHASE' ||
-      (event.type === 'RENEWAL' && event.is_trial_conversion === true);
-
-    if (!isTrialStart && !isPaidConversion) return;
+    // StartTrial on a trial start; Subscribe on the first paid conversion ONLY,
+    // or ad attribution counts every billing cycle as a new conversion.
+    const trialStart = isTrialStart(event);
+    const paidConversion = isPaidConversion(event);
+    if (!trialStart && !paidConversion) return;
 
     // Look up user email from app_user_id
     const { data: user } = await this.adminClient
@@ -173,14 +200,14 @@ export class RevenueCatService {
       return;
     }
 
-    if (isTrialStart) {
+    if (trialStart) {
       this.logger.log(`StartTrial for ${event.app_user_id} (purchase_source: ${purchaseSource})`);
       await this.metaEventsService.sendAppEvent({
         eventName: 'StartTrial',
         userEmail: user.email,
         userId: event.app_user_id,
       });
-    } else if (isPaidConversion) {
+    } else if (paidConversion) {
       this.logger.log(
         `Subscribe for ${event.app_user_id} (purchase_source: ${purchaseSource}, ${event.currency} ${event.price})`,
       );

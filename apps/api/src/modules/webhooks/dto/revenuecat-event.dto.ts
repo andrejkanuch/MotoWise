@@ -28,6 +28,11 @@ export const revenueCatEventSchema = z
     store: z.string().optional(),
     price: z.number().nullable().optional(),
     currency: z.string().nullable().optional(),
+    // Read by the PostHog capture (revenuecat-posthog.ts).
+    event_timestamp_ms: z.number().optional(),
+    price_in_purchased_currency: z.number().nullable().optional(),
+    presented_offering_id: z.string().nullable().optional(),
+    renewal_number: z.number().nullable().optional(),
     // TRANSFER only — sent for the destination user.
     transferred_from: z.array(z.string()).optional(),
     transferred_to: z.array(z.string()).optional(),
