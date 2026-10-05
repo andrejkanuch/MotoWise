@@ -35,11 +35,26 @@ beforeEach(() => {
 });
 
 describe('requiresOptIn', () => {
-  it.each(['DE', 'SK', 'FR', 'NO', 'GB', 'CH', 'de'])('%s needs opt-in', (region) => {
+  it.each([
+    'DE',
+    'SK',
+    'FR',
+    'NO',
+    'GB',
+    'CH',
+    'de',
+    'RE',
+    'GP',
+    'MQ',
+    'GF',
+    'YT',
+    'MF',
+    'AX',
+  ])('%s needs opt-in', (region) => {
     expect(requiresOptIn(region)).toBe(true);
   });
 
-  it.each(['US', 'BR', 'CA', 'MX', 'JP'])('%s is opt-out', (region) => {
+  it.each(['US', 'BR', 'CA', 'MX', 'JP', 'GI'])('%s is opt-out', (region) => {
     expect(requiresOptIn(region)).toBe(false);
   });
 

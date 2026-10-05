@@ -2,6 +2,7 @@
 
 import { palette } from '@motovault/design-system';
 import { useCallback, useRef, useState } from 'react';
+import { readExplicitConsent } from '@/components/cookie-consent';
 import { useModal } from '@/hooks/use-modal';
 import {
   type AuthErrorRecovery,
@@ -10,6 +11,7 @@ import {
   humanizeAuthError,
   recoveryForAttempt,
 } from '@/lib/auth-errors';
+import { signUpConsentOptions } from '@/lib/signup-consent';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 interface AuthModalProps {
@@ -81,7 +83,11 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
         }
       } else {
         const supabase = getSupabaseBrowserClient();
-        const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: signUpConsentOptions(readExplicitConsent()),
+        });
         if (error) {
           setError(humanizeAuthError(error).message);
           setLoading(false);

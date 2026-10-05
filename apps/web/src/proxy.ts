@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 import createIntlMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
+import { REGION_COOKIE, regionCookieUpdate } from './lib/consent-region';
 import { resolveUuidToSlug } from './lib/redirect/uuid-to-slug';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
@@ -352,57 +353,20 @@ async function communityAuth(request: NextRequest) {
   return supabaseResponse;
 }
 
-// EU/EEA + UK + CH — visitors from these countries require GDPR consent
-// before analytics tracking. Everyone else gets auto-opted-in.
-const CONSENT_REQUIRED_COUNTRIES = new Set([
-  // EU 27
-  'AT',
-  'BE',
-  'BG',
-  'HR',
-  'CY',
-  'CZ',
-  'DK',
-  'EE',
-  'FI',
-  'FR',
-  'DE',
-  'GR',
-  'HU',
-  'IE',
-  'IT',
-  'LV',
-  'LT',
-  'LU',
-  'MT',
-  'NL',
-  'PL',
-  'PT',
-  'RO',
-  'SK',
-  'SI',
-  'ES',
-  'SE',
-  // EEA
-  'IS',
-  'LI',
-  'NO',
-  // UK (UK GDPR) + Switzerland (FADP)
-  'GB',
-  'CH',
-]);
-
 function applyRegionCookie(request: NextRequest, response: NextResponse) {
-  // Skip if the cookie already exists — only set once per browser.
-  if (request.cookies.has('mv_region')) return;
-
-  const country = request.headers.get('x-vercel-ip-country') ?? '';
-  const region = CONSENT_REQUIRED_COUNTRIES.has(country) ? 'EU' : 'OTHER';
+  // Set once, then rewritten only when the visitor's geo region no longer
+  // matches it (e.g. a country newly added to the opt-in list). No geo header →
+  // keep what is stored.
+  const region = regionCookieUpdate(
+    request.cookies.get(REGION_COOKIE)?.value,
+    request.headers.get('x-vercel-ip-country'),
+  );
+  if (!region) return;
   const secure = request.nextUrl.protocol === 'https:' ? '; Secure' : '';
   // 1-year lifetime — region doesn't change often.
   response.headers.append(
     'Set-Cookie',
-    `mv_region=${region}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`,
+    `${REGION_COOKIE}=${region}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`,
   );
 }
 

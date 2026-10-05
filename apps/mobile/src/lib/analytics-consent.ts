@@ -95,8 +95,11 @@ export type ConsentState = (typeof CONSENT_STATE)[keyof typeof CONSENT_STATE];
 
 /**
  * Regions where analytics needs prior opt-in: the EEA (EU-27 + Iceland,
- * Liechtenstein, Norway), the United Kingdom and Switzerland. ISO 3166-1
- * alpha-2, as `expo-localization` reports `regionCode`.
+ * Liechtenstein, Norway), the EU outermost regions that have their own codes
+ * (RE, GP, MQ, GF, YT, MF, AX), the United Kingdom and Switzerland. ISO 3166-1
+ * alpha-2, as `expo-localization` reports `regionCode` (e.g. fr-RE → RE).
+ * Mirrors `OPT_IN_COUNTRIES` (apps/api/src/modules/webhooks/revenuecat-posthog.ts)
+ * and `CONSENT_REQUIRED_COUNTRIES` (apps/web/src/lib/consent-region.ts) — change all three together.
  */
 const OPT_IN_REGIONS: ReadonlySet<string> = new Set([
   'AT',
@@ -131,6 +134,14 @@ const OPT_IN_REGIONS: ReadonlySet<string> = new Set([
   'NO',
   'GB',
   'CH',
+  // EU outermost regions reported under their own ISO codes (GDPR applies)
+  'RE',
+  'GP',
+  'MQ',
+  'GF',
+  'YT',
+  'MF',
+  'AX',
 ]);
 
 /**
