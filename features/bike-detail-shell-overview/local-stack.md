@@ -6,7 +6,11 @@ scratch copy of `supabase/` with three old migrations patched (see `data-verific
 Nothing here touches `apps/api/.env` or `apps/mobile/.env` — both still point at production
 and must stay that way; every local value is passed on the command line.
 
-## What is running (left up on 2026-10-02)
+## State on 2026-10-05: NOT running, must be rebuilt
+
+Before a machine restart on 2026-10-05 the stack was already gone: no `mvscratch` containers, no data volume and no `public.ecr.aws/supabase/*` images left in Docker (Docker was cleaned between Oct 2 and Oct 5). The patched workdir was copied out of `/private/tmp` to `~/.motovault-local/mvscratch` (config, patched migrations 00001–00182, roles.sql, seeds, `.temp/*-version`). To bring it back: `npx supabase start --workdir ~/.motovault-local/mvscratch --exclude studio,logflare,vector,edge-runtime,imgproxy,realtime,supavisor` (this pulls the images again, a few GB; disk had 108 GB free), then re-create the QA users through the Auth admin API (`email_confirm: true`, password `localTest123`), set `preferences.onboardingCompleted = true` for them, and run the seed script with the NEW user ids. The ids in the table below go stale.
+
+## What was running (2026-10-02)
 
 | Thing | Value |
 |---|---|
@@ -14,7 +18,7 @@ and must stay that way; every local value is passed on the command line.
 | Postgres | `postgresql://postgres:postgres@127.0.0.1:54322/postgres` |
 | Mail (Mailpit) | `http://127.0.0.1:54324` |
 | Docker project | `mvscratch` — containers `supabase_{db,kong,auth,rest,storage,pg_meta,inbucket}_mvscratch` |
-| Workdir | `/private/tmp/claude-501/-Users-andrejmacm5-personal-MotoWise/d38cb248-17b1-4a8b-9b07-3f43b990f9ac/scratchpad/mvscratch` |
+| Workdir | `~/.motovault-local/mvscratch` |
 | Not running | Studio, Realtime, Edge Functions, analytics, imgproxy (disabled to avoid image pulls) |
 
 The keys are the public Supabase CLI demo keys (issuer `supabase-demo`), identical on every
@@ -93,7 +97,7 @@ one shows no attachment) and photos.
 ## Stop, restart, rebuild
 
 ```bash
-W=/private/tmp/claude-501/-Users-andrejmacm5-personal-MotoWise/d38cb248-17b1-4a8b-9b07-3f43b990f9ac/scratchpad/mvscratch
+W=$HOME/.motovault-local/mvscratch
 npx supabase stop  --workdir $W               # keeps the data volume
 npx supabase start --workdir $W --exclude studio,logflare,vector,edge-runtime,imgproxy,realtime,supavisor
 npx supabase stop  --workdir $W --no-backup   # wipes the database
@@ -107,7 +111,7 @@ npx supabase stop  --workdir $W --no-backup   # wipes the database
   edge_runtime. If the CLI prints "Pulling from", stop it.
 - After a wipe: re-create the users (Auth admin API, `email_confirm: true`) and re-seed. User ids
   change, so the ids in this file go stale.
-- The workdir lives in a session scratchpad under `/private/tmp` and does not survive a reboot.
+- The workdir now lives at `~/.motovault-local/mvscratch` (outside the repo, survives reboots). It was first in a session scratchpad under `/private/tmp`, which does not survive one.
   To rebuild it: copy `supabase/{config.toml,roles.sql,seed.sql,seed-articles.sql,migrations}`,
   copy only the `*-version` and `storage-migration` files from `supabase/.temp` (not
   `project-ref`, `pooler-url`, `linked-project.json` — those link a directory to production),
