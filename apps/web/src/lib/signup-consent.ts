@@ -18,3 +18,19 @@ export function signUpConsentOptions(
     ? { data: { [SIGNUP_CONSENT_METADATA_KEY]: consent } }
     : undefined;
 }
+
+/**
+ * `data` for `supabase.auth.updateUser` that brings a signed-in account's saved
+ * decision in line with the cookie banner, or null when nothing should be
+ * written: no decision yet (never write null), or the account already matches.
+ * Covers what sign-up metadata alone cannot: a later change of mind on the
+ * banner, and Google/Apple sign-ins, whose OAuth flow carries no metadata.
+ */
+export function consentMetadataUpdate(
+  consent: boolean | null,
+  userMetadata: Record<string, unknown> | null | undefined,
+): Record<string, boolean> | null {
+  if (typeof consent !== 'boolean') return null;
+  if (userMetadata?.[SIGNUP_CONSENT_METADATA_KEY] === consent) return null;
+  return { [SIGNUP_CONSENT_METADATA_KEY]: consent };
+}
