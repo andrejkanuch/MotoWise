@@ -498,7 +498,8 @@
     "roadsTitle": "Befahrene Strecken",
     "roadsSubtitle": "Lebenslange Heatmap & Jahresrückblick",
     "savedRoutesTitle": "Gespeicherte Routen",
-    "savedRoutesSubtitle": "Routen, die du später fahren möchtest"
+    "savedRoutesSubtitle": "Routen, die du später fahren möchtest",
+    "redeemCode": "Code einlösen"
   },
   "onboarding": {
     "welcomeTitle": "Willkommen bei MotoVault",
@@ -1008,7 +1009,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "Wo? (optional)",
+    "heardAboutOtherContinue": "Weiter"
   },
   "bikeHub": {
     "upcoming": "Anstehend",
@@ -2456,5 +2461,14 @@
     "feedbackYes": "Feedback senden",
     "feedbackNo": "Jetzt nicht",
     "feedbackSubject": "MotoVault Feedback"
+  },
+  "analyticsConsent": {
+    "title": "Gestalte MotoVault mit",
+    "body": "Mit deiner Zustimmung erfassen wir Nutzungsdaten dieser App, um zu entscheiden, was wir als Nächstes bauen.",
+    "pointWhat": "Welche Funktionen du nutzt und über welchen Link oder Beitrag du hierher gekommen bist.",
+    "pointNever": "Niemals verkauft, niemals für Werbung genutzt.",
+    "pointChange": "Jederzeit änderbar unter Profil → Datenschutz.",
+    "allow": "Erlauben",
+    "decline": "Nicht erlauben"
   }
 }

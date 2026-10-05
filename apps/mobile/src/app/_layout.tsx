@@ -80,6 +80,7 @@ import {
   trackScreen,
   withSentry,
 } from '../lib/analytics';
+import { isConsentPromptOwed } from '../lib/analytics-consent';
 import {
   AUTH_HYDRATION_TIMEOUT_MESSAGE,
   AUTH_HYDRATION_TIMEOUT_MS,
@@ -197,6 +198,13 @@ setupOnlineManager();
 // Module-scoped guard: survives React 19 StrictMode double-mount so the
 // What's New modal is only pushed once per app cold-start.
 let whatsNewPushed = false;
+// Same module-scoped one-shot pattern for the analytics consent screen.
+let consentPromptPushed = false;
+
+/** Route groups the consent screen may open over — never a ride or other modal. */
+const CONSENT_PROMPT_GROUPS: ReadonlySet<string> = new Set(['(tabs)', '(onboarding)', '(auth)']);
+/** Later than What's New (500 ms) so, if both are owed, consent sits on top. */
+const CONSENT_PROMPT_DELAY_MS = 700;
 
 function NavigationGate({ onSettled }: { onSettled: () => void }) {
   const {
@@ -298,6 +306,26 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
     trackEvent(AnalyticsEvent.WHATS_NEW_VIEWED, { version: currentVersion });
     setTimeout(() => router.push('/(modals)/whats-new'), 500);
   }, [isLoading, session, onboardingCompleted, segments, lastSeenVersion, router]);
+
+  // --- Analytics consent (opt-in regions) ---
+  // Riders in the EEA/UK/Switzerland who have not answered see the consent
+  // screen once they leave the onboarding welcome screen (or on launch, for an
+  // existing rider); nothing is sent to PostHog until they answer. Outside those
+  // regions consent defaults on and this never fires. See lib/analytics-consent.ts.
+  const meSettled = meQuery.isFetched;
+  useEffect(() => {
+    if (consentPromptPushed || isLoading) return;
+    // A signed-in rider may already have answered on another device — the
+    // preference effect above applies it once `me` loads, so wait for that.
+    if (session && !meSettled) return;
+    const [group, screen] = segments as readonly string[];
+    if (!group || !CONSENT_PROMPT_GROUPS.has(group)) return;
+    const onWelcome = group === '(onboarding)' && (!screen || screen === 'index');
+    if (onWelcome) return;
+    if (!isConsentPromptOwed()) return;
+    consentPromptPushed = true;
+    setTimeout(() => router.push('/(modals)/analytics-consent'), CONSENT_PROMPT_DELAY_MS);
+  }, [isLoading, session, meSettled, segments, router]);
 
   // --- Anonymous-first onboarding (A/B 2026) ---
   // Fresh installs (never authenticated on this install) onboard BEFORE auth:

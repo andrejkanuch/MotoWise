@@ -498,7 +498,8 @@
     "roadsTitle": "Roads I've ridden",
     "roadsSubtitle": "Lifetime heatmap & year recap",
     "savedRoutesTitle": "Saved Routes",
-    "savedRoutesSubtitle": "Routes you want to ride later"
+    "savedRoutesSubtitle": "Routes you want to ride later",
+    "redeemCode": "Redeem a code"
   },
   "onboarding": {
     "welcomeTitle": "Welcome to MotoVault",
@@ -1008,7 +1009,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "Where? (optional)",
+    "heardAboutOtherContinue": "Continue"
   },
   "checklist": {
     "getStarted": "Get Started",
@@ -2451,5 +2456,14 @@
     "feedbackYes": "Send feedback",
     "feedbackNo": "Not now",
     "feedbackSubject": "MotoVault feedback"
+  },
+  "analyticsConsent": {
+    "title": "Help shape MotoVault",
+    "body": "With your OK, we collect usage data from this app to decide what to build next.",
+    "pointWhat": "Which features you use, and the link or post that brought you here.",
+    "pointNever": "Never sold, never used for ads.",
+    "pointChange": "Change it anytime in Profile → Privacy.",
+    "allow": "Allow",
+    "decline": "Don't allow"
   }
 }

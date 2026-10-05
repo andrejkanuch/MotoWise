@@ -499,7 +499,8 @@
     "roadsTitle": "Estradas que percorri",
     "roadsSubtitle": "Mapa de calor e retrospectiva do ano",
     "savedRoutesTitle": "Rotas salvas",
-    "savedRoutesSubtitle": "Rotas que você quer percorrer depois"
+    "savedRoutesSubtitle": "Rotas que você quer percorrer depois",
+    "redeemCode": "Resgatar um código"
   },
   "onboarding": {
     "welcomeTitle": "Bem-vindo ao MotoVault",
@@ -1009,7 +1010,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "Onde? (opcional)",
+    "heardAboutOtherContinue": "Continuar"
   },
   "bikeHub": {
     "upcoming": "Próximas",
@@ -2459,5 +2464,14 @@
     "feedbackYes": "Enviar feedback",
     "feedbackNo": "Agora não",
     "feedbackSubject": "Feedback do MotoVault"
+  },
+  "analyticsConsent": {
+    "title": "Ajude a construir o MotoVault",
+    "body": "Com a sua permissão, coletamos dados de uso deste app para decidir o que construir a seguir.",
+    "pointWhat": "Quais recursos você usa e o link ou post que trouxe você até aqui.",
+    "pointNever": "Nunca vendidos, nunca usados para anúncios.",
+    "pointChange": "Altere quando quiser em Perfil → Privacidade.",
+    "allow": "Permitir",
+    "decline": "Não permitir"
   }
 }

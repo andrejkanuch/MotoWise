@@ -498,7 +498,8 @@
     "roadsTitle": "Jalan yang telah kulalui",
     "roadsSubtitle": "Heatmap sepanjang masa & rekap tahunan",
     "savedRoutesTitle": "Rute Tersimpan",
-    "savedRoutesSubtitle": "Rute yang ingin kamu lalui nanti"
+    "savedRoutesSubtitle": "Rute yang ingin kamu lalui nanti",
+    "redeemCode": "Tukarkan kode"
   },
   "onboarding": {
     "welcomeTitle": "Selamat Datang di MotoVault",
@@ -1008,7 +1009,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "Di mana? (opsional)",
+    "heardAboutOtherContinue": "Lanjutkan"
   },
   "bikeHub": {
     "upcoming": "Akan Datang",
@@ -2456,5 +2461,14 @@
     "feedbackYes": "Kirim masukan",
     "feedbackNo": "Nanti saja",
     "feedbackSubject": "Masukan MotoVault"
+  },
+  "analyticsConsent": {
+    "title": "Bantu bentuk MotoVault",
+    "body": "Dengan izinmu, kami mengumpulkan data penggunaan aplikasi ini untuk menentukan apa yang dibuat selanjutnya.",
+    "pointWhat": "Fitur yang kamu gunakan, dan tautan atau postingan yang membawamu ke sini.",
+    "pointNever": "Tidak pernah dijual, tidak pernah dipakai untuk iklan.",
+    "pointChange": "Ubah kapan saja di Profil → Privasi.",
+    "allow": "Izinkan",
+    "decline": "Jangan izinkan"
   }
 }

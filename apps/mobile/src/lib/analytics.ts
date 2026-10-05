@@ -3,7 +3,13 @@ import * as Sentry from '@sentry/react-native';
 import Constants from 'expo-constants';
 import PostHog from 'posthog-react-native';
 import { Settings } from 'react-native-fbsdk-next';
-import { getStoredAnalyticsConsent, setStoredAnalyticsConsent } from './analytics-consent';
+import {
+  CONSENT_STATE,
+  type ConsentState,
+  getStoredAnalyticsConsent,
+  resolveLaunchConsent,
+  setStoredAnalyticsConsent,
+} from './analytics-consent';
 import {
   describeGraphQLError,
   describeGraphQLErrorFromMessage,
@@ -31,10 +37,19 @@ const SENTRY_DSN = Constants.expoConfig?.extra?.sentryDsn ?? '';
 const POSTHOG_API_KEY = Constants.expoConfig?.extra?.posthogApiKey ?? '';
 const POSTHOG_HOST = Constants.expoConfig?.extra?.posthogHost ?? 'https://eu.i.posthog.com';
 
+// The consent decision for this launch, resolved synchronously BEFORE the client
+// exists so nothing — not even the SDK's own lifecycle events — leaves the
+// device in an opt-in region until the rider accepts. See analytics-consent.ts.
+const launchConsent: ConsentState = resolveLaunchConsent();
+
 // Eagerly initialize PostHog so the instance can be passed to PostHogProvider.
 // The client is disabled when no API key is configured, so events are no-ops.
 export const posthogClient: PostHog = new PostHog(POSTHOG_API_KEY || 'placeholder', {
   host: POSTHOG_HOST,
+  // Fresh installs (nothing persisted yet) start opted out unless consent is
+  // already granted. A persisted opt state from an earlier launch overrides
+  // this default, so it is re-applied below once storage has loaded.
+  defaultOptIn: launchConsent === CONSENT_STATE.GRANTED,
   // `captureAppLifecycleEvents` is intentionally left at its SDK default (`true`):
   // `Application Installed`/`Opened`/`Backgrounded` already flow to PostHog and are
   // relied on as the install-count denominator. Do NOT set it to false. (Note: the
@@ -83,7 +98,42 @@ if (!__DEV__ && POSTHOG_API_KEY) {
   }
 }
 
-let analyticsEnabled = true;
+// Events wait for the same decision as attribution and replay. UNKNOWN (a
+// locked keychain on a background launch) starts off and then follows the
+// SDK's own persisted opt state, which mirrors the last decision because every
+// decision goes through `setAnalyticsEnabled` → optIn/optOut.
+let analyticsEnabled = launchConsent === CONSENT_STATE.GRANTED;
+/** Set once `setAnalyticsEnabled` runs, so the launch value never overrides it. */
+let consentAppliedThisRun = false;
+
+/** Launch states whose decision is re-applied to the SDK's persisted opt state. */
+const ENFORCED_OPT_STATE: Partial<Record<ConsentState, boolean>> = {
+  [CONSENT_STATE.GRANTED]: true,
+  [CONSENT_STATE.DENIED]: false,
+  [CONSENT_STATE.UNDECIDED]: false,
+};
+
+if (!__DEV__ && POSTHOG_API_KEY) {
+  // `defaultOptIn` only applies while nothing is persisted, and persisted
+  // storage loads asynchronously — so an install that was opted IN under the
+  // old model (events before consent) would keep sending. Re-apply the launch
+  // decision once storage is ready.
+  void posthogClient
+    .ready()
+    .then(() => {
+      if (consentAppliedThisRun) return;
+      const optIn = ENFORCED_OPT_STATE[launchConsent];
+      if (optIn === undefined) {
+        analyticsEnabled = !posthogClient.optedOut;
+        return;
+      }
+      if (optIn) posthogClient.optIn();
+      else posthogClient.optOut();
+    })
+    .catch(() => {
+      // Storage failed to load — the SDK falls back to `defaultOptIn`.
+    });
+}
 let crashReportingEnabled = true;
 
 export function isAnalyticsEnabled() {
@@ -283,6 +333,7 @@ export function initPostHog() {
 
 export function setAnalyticsEnabled(enabled: boolean) {
   analyticsEnabled = enabled;
+  consentAppliedThisRun = true;
   // Persist consent so the recorder can be gated synchronously on the next
   // cold start, before the server `me` query resolves (closes the pre-consent
   // recording window — todo 184).
@@ -294,7 +345,15 @@ export function setAnalyticsEnabled(enabled: boolean) {
     // wires RevenueCat; captureMetaAttribution re-fires the PostHog install emit
     // same-session (its memo was released because the pre-consent run did not emit).
     void import('./subscription')
-      .then((m) => m.configureRcAttribution())
+      .then((m) =>
+        Promise.all([
+          m.configureRcAttribution(),
+          // The anonymous-purchase join id is only readable once analytics is
+          // on, so an opt-in rider's launch-time stamp was skipped (see
+          // stampAnonymousPosthogId). `analyticsEnabled` is already true here.
+          m.stampAnonymousPosthogId(getAnalyticsDistinctId()),
+        ]),
+      )
       .catch((e) => captureException(e, { source: 'analytics.setAnalyticsEnabled.rcAttribution' }));
     void import('./meta-attribution')
       .then((m) => m.captureMetaAttribution())
@@ -632,6 +691,8 @@ export const AnalyticsEvent = {
   PURCHASE_COMPLETED: 'purchase_completed',
   PURCHASE_CANCELLED: 'purchase_cancelled',
   SUBSCRIPTION_RESTORED: 'subscription_restored',
+  /** The store's offer-code redemption was opened (sheet on iOS, Play page on Android). */
+  CODE_REDEMPTION_OPENED: 'code_redemption_opened',
 
   // Notifications & reminders (lifecycle) — grant rate gates the retention bets
   NOTIFICATION_PERMISSION_REQUESTED: 'notification_permission_requested',
@@ -641,6 +702,8 @@ export const AnalyticsEvent = {
 
   // Privacy
   DATA_EXPORT_REQUESTED: 'data_export_requested',
+  /** Accepted on the opt-in consent screen. A refusal is never sent, by design. */
+  ANALYTICS_CONSENT_GRANTED: 'analytics_consent_granted',
 
   // What's New
   WHATS_NEW_VIEWED: 'whats_new_viewed',

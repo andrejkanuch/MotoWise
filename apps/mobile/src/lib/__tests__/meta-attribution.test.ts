@@ -215,3 +215,33 @@ describe('captureMetaAttribution dedup + sanitization', () => {
     expect(mockCapture.mock.calls[0][1].$set_once.install_source).toBe('tiktok');
   });
 });
+
+describe('storeReferrerCampaign (Play install referrer)', () => {
+  const BIO_LINK = { source: 'instagram', medium: 'social', campaign: 'bio', content: null };
+
+  it('stores a bio-link campaign so the install emit reports it as the source', async () => {
+    mockGetInitialURL.mockResolvedValue(null);
+    const { storeReferrerCampaign, captureMetaAttribution } = loadModule();
+
+    await storeReferrerCampaign(BIO_LINK);
+    await captureMetaAttribution();
+
+    expect(mockCapture.mock.calls[0][1].$set_once).toMatchObject({
+      install_source: 'instagram',
+      utm_source: 'instagram',
+      utm_campaign: 'bio',
+    });
+  });
+
+  it('never overwrites a first touch already stored from a deep link', async () => {
+    mockStore.set('meta_utm_source', 'tiktok');
+    const { storeReferrerCampaign, getStoredUtmProperties } = loadModule();
+
+    await storeReferrerCampaign(BIO_LINK);
+
+    await expect(getStoredUtmProperties()).resolves.toEqual({
+      utm_source: 'tiktok',
+      utm_campaign: 'bio',
+    });
+  });
+});

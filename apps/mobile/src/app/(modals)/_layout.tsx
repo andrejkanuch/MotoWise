@@ -56,6 +56,12 @@ export default function ModalsLayout() {
         name="ride-flyover"
         options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
       />
+      {/* Not swipe-dismissable: the consent question needs an answer, and leaving
+          without one would only bring it back on the next launch. */}
+      <Stack.Screen
+        name="analytics-consent"
+        options={{ presentation: 'fullScreenModal', gestureEnabled: false }}
+      />
       <Stack.Screen
         name="whats-new"
         options={{ presentation: 'fullScreenModal', gestureEnabled: true }}

@@ -21,6 +21,7 @@ import {
   trackEvent,
   trackScreen,
 } from '../../../lib/analytics';
+import { getStoredAnalyticsConsent } from '../../../lib/analytics-consent';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { isAccountAlreadyDeleted, userFriendlyError } from '../../../lib/graphql-errors';
 import { queryKeys } from '../../../lib/query-keys';
@@ -33,10 +34,18 @@ type PrivacyPrefs = {
   crashReportingEnabled: boolean;
 };
 
-const DEFAULTS: PrivacyPrefs = {
-  analyticsEnabled: true,
-  crashReportingEnabled: true,
-};
+/**
+ * Defaults for a rider with no saved server preference. Analytics follows the
+ * on-device consent decision rather than defaulting on: in an opt-in region a
+ * rider who has not accepted must not be opted in by opening this screen (the
+ * mount effect below pushes these values into the SDKs).
+ */
+function privacyDefaults(): PrivacyPrefs {
+  return {
+    analyticsEnabled: getStoredAnalyticsConsent(),
+    crashReportingEnabled: true,
+  };
+}
 
 function haptic() {
   if (process.env.EXPO_OS === 'ios') {
@@ -122,7 +131,7 @@ export default function PrivacyScreen() {
   const prefs = (meQuery.data?.me?.preferences as { privacy?: Partial<PrivacyPrefs> } | null)
     ?.privacy;
 
-  const [state, setState] = useState<PrivacyPrefs>(DEFAULTS);
+  const [state, setState] = useState<PrivacyPrefs>(privacyDefaults);
   const [initialized, setInitialized] = useState(false);
 
   // Track screen view on mount
@@ -132,7 +141,7 @@ export default function PrivacyScreen() {
 
   useEffect(() => {
     if (meQuery.data && !initialized) {
-      const merged = { ...DEFAULTS, ...prefs };
+      const merged = { ...privacyDefaults(), ...prefs };
       setState(merged);
       setInitialized(true);
 

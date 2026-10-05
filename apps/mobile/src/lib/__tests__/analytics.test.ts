@@ -45,6 +45,13 @@ jest.mock('expo-constants', () => ({
 
 const mockSetStoredConsent = jest.fn();
 jest.mock('../analytics-consent', () => ({
+  CONSENT_STATE: {
+    GRANTED: 'granted',
+    DENIED: 'denied',
+    UNDECIDED: 'undecided',
+    UNKNOWN: 'unknown',
+  },
+  resolveLaunchConsent: jest.fn(() => 'undecided'),
   getStoredAnalyticsConsent: jest.fn(() => false),
   setStoredAnalyticsConsent: (...a: unknown[]) => mockSetStoredConsent(...a),
 }));

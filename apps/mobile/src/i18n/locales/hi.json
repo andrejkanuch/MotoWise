@@ -498,7 +498,8 @@
     "roadsTitle": "मैंने जिन रास्तों पर सवारी की",
     "roadsSubtitle": "आजीवन हीटमैप और वार्षिक सारांश",
     "savedRoutesTitle": "सहेजे गए रूट",
-    "savedRoutesSubtitle": "वे रूट जिन पर आप बाद में सवारी करना चाहते हैं"
+    "savedRoutesSubtitle": "वे रूट जिन पर आप बाद में सवारी करना चाहते हैं",
+    "redeemCode": "कोड रिडीम करें"
   },
   "onboarding": {
     "welcomeTitle": "MotoVault में आपका स्वागत है",
@@ -1008,7 +1009,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "कहाँ? (वैकल्पिक)",
+    "heardAboutOtherContinue": "जारी रखें"
   },
   "bikeHub": {
     "upcoming": "आगामी",
@@ -2456,5 +2461,14 @@
     "feedbackYes": "फ़ीडबैक भेजें",
     "feedbackNo": "अभी नहीं",
     "feedbackSubject": "MotoVault फ़ीडबैक"
+  },
+  "analyticsConsent": {
+    "title": "MotoVault को बेहतर बनाने में मदद करें",
+    "body": "आपकी अनुमति से, हम आगे क्या बनाना है तय करने के लिए इस ऐप का उपयोग डेटा इकट्ठा करते हैं।",
+    "pointWhat": "आप कौन-सी सुविधाएँ इस्तेमाल करते हैं, और कौन-सा लिंक या पोस्ट आपको यहाँ लाया।",
+    "pointNever": "कभी बेचा नहीं जाता, कभी विज्ञापनों के लिए इस्तेमाल नहीं होता।",
+    "pointChange": "इसे कभी भी प्रोफ़ाइल → गोपनीयता में बदलें।",
+    "allow": "अनुमति दें",
+    "decline": "अनुमति न दें"
   }
 }

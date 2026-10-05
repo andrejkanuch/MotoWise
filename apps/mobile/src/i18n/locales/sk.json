@@ -500,7 +500,8 @@
     "myTripsTitle": "Moje jazdy",
     "myTripsDescription": "Sleduj a zdieľaj svoje motocyklové jazdy",
     "currency": "Mena",
-    "selectCurrency": "Vybrať menu"
+    "selectCurrency": "Vybrať menu",
+    "redeemCode": "Uplatniť kód"
   },
   "onboarding": {
     "welcomeTitle": "Vitaj v MotoVault",
@@ -1010,7 +1011,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "Kde? (nepovinné)",
+    "heardAboutOtherContinue": "Pokračovať"
   },
   "bikeHub": {
     "upcoming": "Nadchádzajúce",
@@ -2462,5 +2467,14 @@
     "feedbackYes": "Poslať spätnú väzbu",
     "feedbackNo": "Teraz nie",
     "feedbackSubject": "Spätná väzba MotoVault"
+  },
+  "analyticsConsent": {
+    "title": "Pomôž tvoriť MotoVault",
+    "body": "S tvojím súhlasom zbierame údaje o používaní tejto aplikácie, aby sme vedeli, čo stavať ďalej.",
+    "pointWhat": "Ktoré funkcie používaš a odkaz alebo príspevok, ktorý ťa sem priviedol.",
+    "pointNever": "Nikdy ich nepredávame ani nepoužívame na reklamu.",
+    "pointChange": "Zmeníš to kedykoľvek v Profil → Súkromie.",
+    "allow": "Povoliť",
+    "decline": "Nepovoliť"
   }
 }

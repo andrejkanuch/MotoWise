@@ -1,9 +1,13 @@
 import { palette } from '@motovault/design-system';
-import { ChevronRight, Crown } from 'lucide-react-native';
+import { ChevronRight, Crown, Ticket } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { presentPaywall } from '../../lib/subscription';
+import {
+  CODE_REDEMPTION_SURFACE,
+  presentCodeRedemption,
+  presentPaywall,
+} from '../../lib/subscription';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
 
@@ -105,6 +109,27 @@ export function SubscriptionSection({ isPro, isDark }: { isPro: boolean; isDark:
           </View>
           <ChevronRight size={20} color={tint(palette.white, 0.6)} strokeWidth={2} />
         </View>
+      </Pressable>
+      {/* Offer codes from social posts (one per platform) are redeemed here. */}
+      <Pressable
+        onPress={() => {
+          triggerImpact();
+          void presentCodeRedemption(CODE_REDEMPTION_SURFACE.PROFILE);
+        }}
+        accessibilityRole="button"
+        hitSlop={8}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 6,
+          paddingVertical: 12,
+        }}
+      >
+        <Ticket size={15} color={theme.ink3} strokeWidth={2} />
+        <Text style={{ color: theme.ink3, fontSize: 14, fontWeight: '600' }}>
+          {t('profile.redeemCode')}
+        </Text>
       </Pressable>
     </Animated.View>
   );
