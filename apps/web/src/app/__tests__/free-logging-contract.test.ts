@@ -18,7 +18,8 @@ import { WEB_TRIAL_DAYS, webOfferCopy } from '@/lib/pro-plan';
 const SRC = path.join(process.cwd(), 'src');
 const GARAGE_DIR = path.join(SRC, 'app/(community)/garage');
 const PROFILE_DIR = path.join(SRC, 'app/(community)/profile');
-const GARAGE_DASHBOARD = path.join(GARAGE_DIR, 'garage-dashboard.tsx');
+const GARAGE_VIEW = path.join(GARAGE_DIR, 'garage-view.tsx');
+const GARAGE_CARDS = path.join(GARAGE_DIR, 'garage-cards.tsx');
 const GENERATED_GRAPHQL = path.join(
   process.cwd(),
   '../../packages/graphql/src/generated/graphql.ts',
@@ -26,8 +27,8 @@ const GENERATED_GRAPHQL = path.join(
 const PRO_DIR = path.join(SRC, 'app/pro');
 const MESSAGES_DIR = path.join(process.cwd(), 'messages');
 
-const EXPENSE_SECTION_MARKER = 'Section C: Expense Dashboard';
-const SAVED_TRIPS_MARKER = 'Section E: Saved Trips';
+const FREE_LOGGING_START = 'Free logging: service + spend';
+const FREE_LOGGING_END = 'End free logging';
 
 /** Words that, next to "Pro", mean a false claim in any shipped locale. */
 const FALSE_PRO_CLAIM =
@@ -49,22 +50,29 @@ function collectStrings(node: unknown, out: string[] = []): string[] {
 }
 
 describe('free logging contract (web garage)', () => {
-  const source = fs.readFileSync(GARAGE_DASHBOARD, 'utf8');
+  const view = fs.readFileSync(GARAGE_VIEW, 'utf8');
+  const cards = fs.readFileSync(GARAGE_CARDS, 'utf8');
 
-  it('has no ProGate wrapper', () => {
-    expect(source).not.toMatch(/ProGate/);
+  it('has no ProGate wrapper anywhere in the garage', () => {
+    for (const file of listFiles(GARAGE_DIR).filter((f) => /\.tsx?$/.test(f))) {
+      expect(fs.readFileSync(file, 'utf8'), path.relative(SRC, file)).not.toMatch(/ProGate/);
+    }
   });
 
-  it('renders the expense dashboard and maintenance section ungated', () => {
-    const start = source.indexOf(EXPENSE_SECTION_MARKER);
-    const end = source.indexOf(SAVED_TRIPS_MARKER);
+  it('renders the next-service and spend cards ungated', () => {
+    const start = view.indexOf(FREE_LOGGING_START);
+    const end = view.indexOf(FREE_LOGGING_END);
     expect(start).toBeGreaterThan(-1);
     expect(end).toBeGreaterThan(start);
-    const sections = source.slice(start, end);
-    expect(sections).toContain('<ExpenseDashboardPanel');
-    expect(sections).toContain('<MaintenanceSection');
+    const sections = view.slice(start, end);
+    expect(sections).toContain('<NextServiceCard');
+    expect(sections).toContain('<SpendCard');
     expect(sections).not.toMatch(/isPro/);
     expect(sections).not.toMatch(/blur\(/);
+  });
+
+  it('the cards themselves never read the plan', () => {
+    expect(cards).not.toMatch(/isPro|useProStatus|blur\(/);
   });
 });
 

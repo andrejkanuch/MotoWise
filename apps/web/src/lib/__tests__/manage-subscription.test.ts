@@ -27,8 +27,16 @@ describe('resolveManageSubscription', () => {
   });
 
   it('sends store subscribers and non-subscribers to the store guidance', () => {
-    expect(resolveManageSubscription(info(null, 'app_store'))).toEqual({ status: 'store' });
-    expect(resolveManageSubscription(info(null, 'play_store'))).toEqual({ status: 'store' });
+    expect(resolveManageSubscription(info(null, 'app_store'))).toEqual({
+      status: 'store',
+      store: 'app_store',
+    });
+    expect(resolveManageSubscription(info(null, 'play_store'))).toEqual({
+      status: 'store',
+      store: 'play_store',
+    });
+    // An unknown or promotional store keeps the generic store guidance.
+    expect(resolveManageSubscription(info(null, 'promotional'))).toEqual({ status: 'store' });
     expect(resolveManageSubscription(info(null))).toEqual({ status: 'store' });
     expect(resolveManageSubscription(null)).toEqual({ status: 'store' });
   });
