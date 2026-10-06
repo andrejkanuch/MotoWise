@@ -106,10 +106,11 @@ export default function ProfilePage() {
           {t('setupDesc')}
         </p>
         <DoInAppHint reason={tHandoff('reasonProfileSetup')} className="app-hint-spaced" />
-        <div className="garage-inner" style={{ maxWidth: '780px', textAlign: 'left' }}>
-          <div style={{ marginTop: '48px' }}>
-            <GarageSummary />
-          </div>
+        <div
+          className="garage-inner"
+          style={{ maxWidth: '780px', textAlign: 'left', marginTop: '48px' }}
+        >
+          <GarageSummary />
         </div>
       </div>
     );

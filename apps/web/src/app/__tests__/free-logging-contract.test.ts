@@ -161,7 +161,7 @@ describe('read-only summary contract (web garage + profile)', () => {
       'utf8',
     );
     expect(query).toContain('thisYearByCurrency');
-    expect(query).not.toMatch(/\b(thisYear|allTime)\b(?!By)/);
+    expect(query).not.toMatch(/\b(thisYear|allTime)\b/);
     expect(summary).toContain('sumTotalsPerCurrency');
   });
 
