@@ -1,0 +1,9 @@
+query GetServiceSpendThisYear($motorcycleId: String!) {
+  spendingSummary(motorcycleId: $motorcycleId) {
+    thisYearByCurrency {
+      currency
+      total
+      count
+    }
+  }
+}

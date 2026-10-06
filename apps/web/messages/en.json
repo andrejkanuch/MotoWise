@@ -2847,14 +2847,8 @@
     "saveYourFavourites": "and save your favourites here.",
     "days": "{count, plural, one {1 day} other {# days}}",
     "bikes": "Bikes",
-    "unlimited": "unlimited",
-    "free": "1 free",
-    "ytdSpend": "YTD Spend",
     "ytd": "YTD",
-    "upcomingTasks": "Upcoming Tasks",
-    "allClear": "All clear",
     "overdue": "overdue",
-    "totalRides": "Total Rides",
     "primary": "Primary",
     "mileage": "Mileage",
     "ownedSince": "Owned since",
@@ -2897,7 +2891,24 @@
     "catTolls": "Tolls",
     "catParking": "Parking",
     "catModifications": "Modifications",
-    "catTraining": "Training"
+    "catTraining": "Training",
+    "summaryTitle": "At a",
+    "summaryTitleSerif": "glance",
+    "summaryNextService": "Next service",
+    "summaryNothingDue": "Nothing due",
+    "summaryServiceSpend": "Service spend this year",
+    "summaryNoSpend": "None yet",
+    "summaryBikeScope": "{visible} of {total} bikes",
+    "summaryRides": "Rides this year",
+    "summaryRideDistance": "{km} km · {hours} h",
+    "summaryHealth": "Health",
+    "summaryHealthScore": "Health score {score} of 100",
+    "summaryNoHealthData": "No dated tasks yet",
+    "summaryHiddenBikes": "{count, plural, one {1 more bike} other {# more bikes}} with Pro",
+    "planPro": "Pro",
+    "planProTrial": "Pro trial",
+    "planProTrialDays": "Pro trial · {days, plural, one {1 day} other {# days}} left",
+    "planFree": "Free plan"
   },
   "Profile": {
     "failedToLoad": "Failed to load profile",
@@ -2923,7 +2934,13 @@
     "manageWebFallback": "To cancel, use the “Manage subscription” link in your Stripe receipt email, or <link>email {email}</link> and we’ll cancel it for you."
   },
   "AppHandoff": {
-    "doInApp": "Do this in the MotoVault app"
+    "doInApp": "Do this in the MotoVault app",
+    "reasonBikes": "The web only shows your garage. You add and edit bikes in the app, so all changes go to one place.",
+    "reasonService": "The app sets your service reminders on your phone. Complete services in the app so the reminders stay correct.",
+    "reasonRides": "The app records rides with your phone's GPS. The web cannot record a ride.",
+    "reasonExpenses": "The app scans receipts with your phone camera, so you log expenses there.",
+    "reasonProfile": "The web only shows your profile. You edit it in the app, so all changes go to one place.",
+    "reasonProfileSetup": "You choose your public username in the app. The web only shows the profile."
   },
   "Followers": {
     "title": "Connections",

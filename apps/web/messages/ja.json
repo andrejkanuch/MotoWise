@@ -2435,14 +2435,8 @@
     "saveYourFavourites": "お気に入りをここに保存しましょう。",
     "days": "{count, plural, one {1日} other {#日}}",
     "bikes": "バイク",
-    "unlimited": "無制限",
-    "free": "無料1台",
-    "ytdSpend": "年初来の支出",
     "ytd": "年初来",
-    "upcomingTasks": "今後のタスク",
-    "allClear": "問題なし",
     "overdue": "期限切れ",
-    "totalRides": "総走行回数",
     "primary": "メイン",
     "mileage": "走行距離",
     "ownedSince": "所有開始",
@@ -2485,7 +2479,24 @@
     "catTolls": "通行料",
     "catParking": "駐車",
     "catModifications": "改造",
-    "catTraining": "トレーニング"
+    "catTraining": "トレーニング",
+    "summaryTitle": "ひと目で",
+    "summaryTitleSerif": "確認",
+    "summaryNextService": "次の整備",
+    "summaryNothingDue": "予定なし",
+    "summaryServiceSpend": "今年の整備費",
+    "summaryNoSpend": "まだありません",
+    "summaryBikeScope": "{total}台中{visible}台",
+    "summaryRides": "今年のライド",
+    "summaryRideDistance": "{km} km · {hours} 時間",
+    "summaryHealth": "状態",
+    "summaryHealthScore": "状態スコア {score}/100",
+    "summaryNoHealthData": "期日付きのタスクはまだありません",
+    "summaryHiddenBikes": "Proでさらに{count}台",
+    "planPro": "Pro",
+    "planProTrial": "Pro トライアル",
+    "planProTrialDays": "Pro トライアル · 残り{days}日",
+    "planFree": "無料プラン"
   },
   "CompareAlternatives": {
     "title": "バイクアプリの代替アプリ — あなたのライディングに最適なアプリを見つけよう",
@@ -3096,7 +3107,13 @@
     "manageWebFallback": "解約するには、Stripeの領収書メールにある「サブスクリプションを管理」リンクを使うか、<link>{email}</link>までご連絡ください。こちらで解約します。"
   },
   "AppHandoff": {
-    "doInApp": "MotoVaultアプリで行えます"
+    "doInApp": "MotoVaultアプリで行えます",
+    "reasonBikes": "Webではガレージを表示するだけです。バイクの追加と編集はアプリで行うため、変更は1か所にまとまります。",
+    "reasonService": "整備リマインダーはアプリがスマホに設定します。リマインダーを正しく保つため、整備の完了はアプリで記録してください。",
+    "reasonRides": "ライドはアプリがスマホのGPSで記録します。Webではライドを記録できません。",
+    "reasonExpenses": "アプリはスマホのカメラでレシートを読み取ります。そのため経費はアプリで記録します。",
+    "reasonProfile": "Webではプロフィールを表示するだけです。編集はアプリで行うため、変更は1か所にまとまります。",
+    "reasonProfileSetup": "公開ユーザー名はアプリで設定します。Webではプロフィールを表示するだけです。"
   },
   "DiagnosticsDemo": {
     "aiTag": "AI搭載",

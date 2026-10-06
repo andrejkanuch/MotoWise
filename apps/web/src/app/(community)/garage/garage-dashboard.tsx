@@ -3,14 +3,12 @@
 import type {
   AllMaintenanceTasksQuery,
   ExpenseDashboardQuery,
-  GetRiderProfileQuery,
   MyMotorcyclesQuery,
   SavedTripsQuery,
 } from '@motovault/graphql';
 import {
   AllMaintenanceTasksDocument,
   ExpenseDashboardDocument,
-  GetRiderProfileDocument,
   MaintenancePriority,
   MaintenanceTaskStatus,
   MeDocument,
@@ -45,11 +43,11 @@ import { trackEvent, WebEvent } from '@/lib/analytics';
 import {
   currencySymbol,
   DEFAULT_MONEY_CURRENCY,
-  formatMoneyTotalsShort,
   formatWholeAmount,
   ytdPanelBreakdown,
 } from '@/lib/expense-money';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { GarageSummary } from './garage-summary';
 import { garageQueryKeys } from './query-keys';
 import './garage.css';
 
@@ -57,7 +55,6 @@ import './garage.css';
 type Motorcycle = MyMotorcyclesQuery['myMotorcycles'][number];
 type Task = AllMaintenanceTasksQuery['allMaintenanceTasks'][number];
 type TripEdge = SavedTripsQuery['savedTrips']['edges'][number];
-type RideStats = GetRiderProfileQuery['getRiderProfile']['rideStats'];
 
 // ─── Constants ───
 const MONTH_LABELS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'] as const;
@@ -146,6 +143,7 @@ function formatShortDate(dateStr: string): string {
 // the web used to offer those actions it shows a DoInAppHint instead.
 export function GarageDashboard() {
   const t = useTranslations('Garage');
+  const tHandoff = useTranslations('AppHandoff');
   const { isPro } = useProStatus();
 
   useEffect(() => {
@@ -188,14 +186,7 @@ export function GarageDashboard() {
     queryFn: () => gqlFetcher(SavedTripsDocument, { first: 10 }),
   });
 
-  const { data: profileData } = useQuery({
-    queryKey: garageQueryKeys.profile(user?.publicUsername),
-    queryFn: () => gqlFetcher(GetRiderProfileDocument, { username: user?.publicUsername ?? '' }),
-    enabled: !!user?.publicUsername,
-  });
-
   // ─── Derived data ───
-  const rideStats: RideStats | undefined = profileData?.getRiderProfile?.rideStats;
   const tasks = maintenanceData?.allMaintenanceTasks ?? [];
   const trips = tripsData?.savedTrips?.edges ?? [];
   const dashboard = expenseData?.expenseDashboard;
@@ -297,6 +288,7 @@ export function GarageDashboard() {
           >
             {t('noBikesDesc')}
           </p>
+          <DoInAppHint reason={tHandoff('reasonBikes')} className="app-hint-spaced" />
 
           {/* Still show saved trips if any */}
           {trips.length > 0 && <SavedTripsSection trips={trips} />}
@@ -328,21 +320,8 @@ export function GarageDashboard() {
           </div>
         </header>
 
-        {/* ─── Section A: Quick Stats ─── */}
-        <QuickStats
-          bikeCount={bikes.length}
-          ytdSpend={formatMoneyTotalsShort(
-            breakdownTotals(
-              dashboardBreakdowns(dashboard, DEFAULT_MONEY_CURRENCY),
-              (b) => b.currentYearTotal,
-            ),
-          )}
-          pendingTaskCount={pendingTasks.length}
-          overdueCount={overdueTasks.length}
-          totalRides={rideStats?.totalRides ?? 0}
-          totalDistance={rideStats?.totalDistance ?? 0}
-          isPro={isPro}
-        />
+        {/* ─── Section A: Read-only Summary ─── */}
+        <GarageSummary />
 
         {/* ─── Section B: Motorcycles ─── */}
         <div className="sect-header" style={{ marginTop: '0' }}>
@@ -373,7 +352,7 @@ export function GarageDashboard() {
             </span>
           </div>
           <div className="sect-header-actions">
-            <DoInAppHint />
+            <DoInAppHint reason={tHandoff('reasonExpenses')} />
           </div>
         </div>
 
@@ -392,7 +371,7 @@ export function GarageDashboard() {
             </span>
           </div>
           <div className="sect-header-actions">
-            <DoInAppHint />
+            <DoInAppHint reason={tHandoff('reasonService')} />
           </div>
         </div>
 
@@ -405,87 +384,6 @@ export function GarageDashboard() {
 
         {/* ─── Section E: Saved Trips ─── */}
         <SavedTripsSection trips={trips} />
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// Quick Stats Bar
-// ═══════════════════════════════════════════════
-function QuickStats({
-  bikeCount,
-  ytdSpend,
-  pendingTaskCount,
-  overdueCount,
-  totalRides,
-  totalDistance,
-  isPro,
-}: {
-  bikeCount: number;
-  /** Formatted per currency ("€320 · $45"), never a cross-currency sum. */
-  ytdSpend: string;
-  pendingTaskCount: number;
-  overdueCount: number;
-  totalRides: number;
-  totalDistance: number;
-  isPro: boolean;
-}) {
-  const t = useTranslations('Garage');
-  return (
-    <div className="stats-bar">
-      <div className="stat-card">
-        <div className="stat-top">
-          <div className="stat-icon">
-            <Bike className="h-4 w-4" />
-          </div>
-          <div className="stat-trend flat">
-            {bikeCount} / {isPro ? t('unlimited') : t('free')}
-          </div>
-        </div>
-        <div className="stat-num ink">{bikeCount}</div>
-        <div className="stat-lbl">{t('bikes')}</div>
-      </div>
-
-      <div className="stat-card">
-        <div className="stat-top">
-          <div className="stat-icon">
-            <CircleDollarSign className="h-4 w-4" />
-          </div>
-          <div className="stat-trend">{t('ytd')}</div>
-        </div>
-        <div className="stat-num">{ytdSpend}</div>
-        <div className="stat-lbl">{t('ytdSpend')}</div>
-      </div>
-
-      <div className="stat-card">
-        <div className="stat-top">
-          <div className="stat-icon">
-            <Wrench className="h-4 w-4" />
-          </div>
-          {overdueCount > 0 ? (
-            <div className="stat-trend warn">{t('overdueCount', { count: overdueCount })}</div>
-          ) : (
-            <div className="stat-trend">{t('allClear')}</div>
-          )}
-        </div>
-        <div className="stat-num ink">{pendingTaskCount}</div>
-        <div className="stat-lbl">{t('upcomingTasks')}</div>
-      </div>
-
-      <div className="stat-card">
-        <div className="stat-top">
-          <div className="stat-icon">
-            <Route className="h-4 w-4" />
-          </div>
-          <div className="stat-trend">
-            {totalDistance > 0
-              ? `${(totalDistance / 1000).toLocaleString('en-US', { maximumFractionDigits: 0 })} km`
-              : ''}
-          </div>
-        </div>
-        <div className="stat-num ink">{totalRides}</div>
-        <div className="stat-lbl">{t('totalRides')}</div>
       </div>
     </div>
   );

@@ -1,0 +1,9 @@
+query GetRideTotalsThisYear {
+  rideOverview {
+    thisYear {
+      rideCount
+      distanceM
+      durationS
+    }
+  }
+}

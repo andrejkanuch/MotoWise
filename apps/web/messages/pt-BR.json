@@ -2435,14 +2435,8 @@
     "saveYourFavourites": "e salve suas favoritas aqui.",
     "days": "{count, plural, one {1 dia} other {# dias}}",
     "bikes": "Motos",
-    "unlimited": "ilimitado",
-    "free": "1 grátis",
-    "ytdSpend": "Gasto no ano",
     "ytd": "No ano",
-    "upcomingTasks": "Tarefas futuras",
-    "allClear": "Tudo certo",
     "overdue": "em atraso",
-    "totalRides": "Total de pilotagens",
     "primary": "Principal",
     "mileage": "Quilometragem",
     "ownedSince": "Adquirida em",
@@ -2485,7 +2479,24 @@
     "catTolls": "Pedágios",
     "catParking": "Estacionamento",
     "catModifications": "Modificações",
-    "catTraining": "Treinamento"
+    "catTraining": "Treinamento",
+    "summaryTitle": "Em",
+    "summaryTitleSerif": "resumo",
+    "summaryNextService": "Próxima revisão",
+    "summaryNothingDue": "Nada pendente",
+    "summaryServiceSpend": "Gastos com revisões este ano",
+    "summaryNoSpend": "Nenhum ainda",
+    "summaryBikeScope": "{visible} de {total} motos",
+    "summaryRides": "Rolês este ano",
+    "summaryRideDistance": "{km} km · {hours} h",
+    "summaryHealth": "Estado",
+    "summaryHealthScore": "Pontuação de estado {score} de 100",
+    "summaryNoHealthData": "Ainda sem tarefas com data",
+    "summaryHiddenBikes": "{count, plural, one {Mais 1 moto} other {Mais # motos}} com o Pro",
+    "planPro": "Pro",
+    "planProTrial": "Teste do Pro",
+    "planProTrialDays": "Teste do Pro · {days, plural, one {falta 1 dia} other {faltam # dias}}",
+    "planFree": "Plano gratuito"
   },
   "CompareAlternatives": {
     "title": "Alternativas de apps para motociclistas — encontre o app certo para suas pedaladas",
@@ -3096,7 +3107,13 @@
     "manageWebFallback": "Para cancelar, use o link “Gerenciar assinatura” no e-mail de recibo da Stripe ou <link>escreva para {email}</link> que cancelamos para você."
   },
   "AppHandoff": {
-    "doInApp": "Faça isso no aplicativo MotoVault"
+    "doInApp": "Faça isso no aplicativo MotoVault",
+    "reasonBikes": "A web só mostra a sua garagem. Você adiciona e edita motos no app, assim todas as mudanças ficam em um só lugar.",
+    "reasonService": "O app agenda os lembretes de revisão no seu celular. Conclua as revisões no app para que os lembretes continuem corretos.",
+    "reasonRides": "O app grava os rolês com o GPS do seu celular. A web não consegue gravar um rolê.",
+    "reasonExpenses": "O app escaneia recibos com a câmera do celular, por isso você registra as despesas lá.",
+    "reasonProfile": "A web só mostra o seu perfil. Você edita no app, assim todas as mudanças ficam em um só lugar.",
+    "reasonProfileSetup": "Você escolhe o seu nome de usuário público no app. A web só mostra o perfil."
   },
   "DiagnosticsDemo": {
     "aiTag": "Com tecnologia de IA",

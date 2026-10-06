@@ -1,7 +1,8 @@
 import {
   AllMaintenanceTasksDocument,
   ExpenseDashboardDocument,
-  GetRiderProfileDocument,
+  GetRideTotalsThisYearDocument,
+  GetServiceSpendThisYearDocument,
   MeDocument,
   MyMotorcyclesDocument,
   SavedTripsDocument,
@@ -28,15 +29,13 @@ import { garageQueryKeys } from './query-keys';
 export default async function GaragePage() {
   const queryClient = new QueryClient();
 
-  // Level 1 — independent. Fetch into the cache AND read back so we can resolve
-  // the dependent queries' keys (primary bike id, public username).
-  const [meData, bikesData] = await Promise.all([
-    queryClient
-      .fetchQuery({
-        queryKey: garageQueryKeys.me,
-        queryFn: () => gqlServerFetcherAuthed(MeDocument),
-      })
-      .catch(() => null),
+  // Level 1 — independent. Bikes are fetched into the cache AND read back so we
+  // can resolve the dependent queries' keys (primary bike id, first bike id).
+  const [, bikesData] = await Promise.all([
+    queryClient.prefetchQuery({
+      queryKey: garageQueryKeys.me,
+      queryFn: () => gqlServerFetcherAuthed(MeDocument),
+    }),
     queryClient
       .fetchQuery({
         queryKey: garageQueryKeys.motorcycles,
@@ -47,11 +46,12 @@ export default async function GaragePage() {
 
   const bikes = bikesData?.myMotorcycles ?? [];
   const primaryBike = bikes.find((b) => b.isPrimary) ?? bikes[0];
-  const username = meData?.me?.publicUsername;
+  const firstBike = bikes[0];
 
-  // Level 2 — depends on level-1 results. Keys mirror garage-dashboard.tsx
-  // exactly (expenses is keyed by the resolved primary bike id; profile by the
-  // public username), matching the client's `enabled`-gated queries.
+  // Level 2 — depends on level-1 results. Keys mirror garage-dashboard.tsx and
+  // garage-summary.tsx exactly (expenses is keyed by the resolved primary bike
+  // id). Service spend is prefetched for the first bike only: the server does
+  // not know the Pro status, and the first bike is the one every rider sees.
   await Promise.all([
     primaryBike
       ? queryClient.prefetchQuery({
@@ -68,10 +68,15 @@ export default async function GaragePage() {
       queryKey: garageQueryKeys.trips,
       queryFn: () => gqlServerFetcherAuthed(SavedTripsDocument, { first: 10 }),
     }),
-    username
+    queryClient.prefetchQuery({
+      queryKey: garageQueryKeys.rideTotals,
+      queryFn: () => gqlServerFetcherAuthed(GetRideTotalsThisYearDocument),
+    }),
+    firstBike
       ? queryClient.prefetchQuery({
-          queryKey: garageQueryKeys.profile(username),
-          queryFn: () => gqlServerFetcherAuthed(GetRiderProfileDocument, { username }),
+          queryKey: garageQueryKeys.serviceSpend(firstBike.id),
+          queryFn: () =>
+            gqlServerFetcherAuthed(GetServiceSpendThisYearDocument, { motorcycleId: firstBike.id }),
         })
       : Promise.resolve(),
   ]);

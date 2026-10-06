@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect } from 'react';
+import { GarageSummary } from '@/app/(community)/garage/garage-summary';
 import { DoInAppHint } from '@/components/do-in-app-hint';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
@@ -17,6 +18,7 @@ type RideStats = GetRiderProfileQuery['getRiderProfile']['rideStats'];
 
 export default function ProfilePage() {
   const t = useTranslations('Profile');
+  const tHandoff = useTranslations('AppHandoff');
 
   const {
     data: meData,
@@ -103,7 +105,12 @@ export default function ProfilePage() {
         >
           {t('setupDesc')}
         </p>
-        <DoInAppHint className="app-hint-spaced" />
+        <DoInAppHint reason={tHandoff('reasonProfileSetup')} className="app-hint-spaced" />
+        <div className="garage-inner" style={{ maxWidth: '780px', textAlign: 'left' }}>
+          <div style={{ marginTop: '48px' }}>
+            <GarageSummary />
+          </div>
+        </div>
       </div>
     );
   }
@@ -206,7 +213,7 @@ export default function ProfilePage() {
                 )}
               </div>
             </div>
-            <DoInAppHint />
+            <DoInAppHint reason={tHandoff('reasonProfile')} />
           </div>
 
           {user.bio && (
@@ -256,6 +263,10 @@ export default function ProfilePage() {
               <div className="prof-stat-lbl">{t('memberSince')}</div>
             </div>
           </div>
+        </div>
+
+        <div style={{ marginTop: '40px' }}>
+          <GarageSummary />
         </div>
       </div>
     </div>

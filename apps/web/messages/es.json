@@ -2847,14 +2847,8 @@
     "saveYourFavourites": "y guarda tus favoritos aquí.",
     "days": "{count, plural, one {1 día} other {# días}}",
     "bikes": "Motos",
-    "unlimited": "ilimitado",
-    "free": "1 gratis",
-    "ytdSpend": "Gastos (año)",
     "ytd": "Año actual",
-    "upcomingTasks": "Tareas próximas",
-    "allClear": "Todo en orden",
     "overdue": "vencida",
-    "totalRides": "Salidas totales",
     "primary": "Principal",
     "mileage": "Kilometraje",
     "ownedSince": "En propiedad desde",
@@ -2897,7 +2891,24 @@
     "catTolls": "Peajes",
     "catParking": "Aparcamiento",
     "catModifications": "Modificaciones",
-    "catTraining": "Formación"
+    "catTraining": "Formación",
+    "summaryTitle": "De un",
+    "summaryTitleSerif": "vistazo",
+    "summaryNextService": "Próximo servicio",
+    "summaryNothingDue": "Nada pendiente",
+    "summaryServiceSpend": "Gasto en servicios este año",
+    "summaryNoSpend": "Ninguno aún",
+    "summaryBikeScope": "{visible} de {total} motos",
+    "summaryRides": "Rutas este año",
+    "summaryRideDistance": "{km} km · {hours} h",
+    "summaryHealth": "Estado",
+    "summaryHealthScore": "Puntuación de estado {score} de 100",
+    "summaryNoHealthData": "Aún no hay tareas con fecha",
+    "summaryHiddenBikes": "{count, plural, one {1 moto más} other {# motos más}} con Pro",
+    "planPro": "Pro",
+    "planProTrial": "Prueba de Pro",
+    "planProTrialDays": "Prueba de Pro · {days, plural, one {queda 1 día} other {quedan # días}}",
+    "planFree": "Plan gratuito"
   },
   "Profile": {
     "failedToLoad": "No se pudo cargar el perfil",
@@ -2923,7 +2934,13 @@
     "manageWebFallback": "Para cancelar, usa el enlace «Gestionar suscripción» del correo de recibo de Stripe o <link>escribe a {email}</link> y la cancelamos por ti."
   },
   "AppHandoff": {
-    "doInApp": "Hazlo en la app de MotoVault"
+    "doInApp": "Hazlo en la app de MotoVault",
+    "reasonBikes": "La web solo muestra tu garaje. Añades y editas motos en la app, así todos los cambios quedan en un solo lugar.",
+    "reasonService": "La app programa tus recordatorios de servicio en el teléfono. Completa los servicios en la app para que los recordatorios sigan siendo correctos.",
+    "reasonRides": "La app graba las rutas con el GPS de tu teléfono. La web no puede grabar una ruta.",
+    "reasonExpenses": "La app escanea recibos con la cámara del teléfono, por eso registras los gastos allí.",
+    "reasonProfile": "La web solo muestra tu perfil. Lo editas en la app, así todos los cambios quedan en un solo lugar.",
+    "reasonProfileSetup": "Eliges tu nombre de usuario público en la app. La web solo muestra el perfil."
   },
   "Followers": {
     "title": "Conexiones",
