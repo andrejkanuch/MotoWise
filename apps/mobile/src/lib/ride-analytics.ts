@@ -1,4 +1,5 @@
 import type { JsonType } from '@posthog/core';
+import { MIN_RIDE_DISTANCE_M, MIN_RIDE_ELAPSED_S } from '../utils/ride-constants';
 import { AnalyticsEvent, trackEvent } from './analytics';
 
 /**
@@ -17,6 +18,9 @@ import { AnalyticsEvent, trackEvent } from './analytics';
  * Not counted here: a ride closed by the server's idle sweep (no client code
  * runs), and a dead-letter redrive — that replays the server write of a save whose
  * event already fired, so emitting again would count the ride twice.
+ * `below_min_ride` marks rides under the HUD's end-ride floors — mostly a Start
+ * tap left alone until the 30-minute auto-end. The ride is still saved, so it is
+ * still counted; filter `below_min_ride = false` for real-ride insights.
  * `ride_auto_saved` stays as the auto-end diagnostic (idle minutes, waypoints);
  * `ride_ended` is the Stop tap, before the rider chose Save or Discard.
  */
@@ -43,6 +47,7 @@ export interface RideCompletedInput {
 
 export function rideCompletedProperties(input: RideCompletedInput): Record<string, JsonType> {
   const distanceM = Math.max(0, Math.round(input.distanceM));
+  const durationS = Math.max(0, Math.round(input.durationS));
   return {
     ...input.properties,
     ride_id: input.rideId,
@@ -50,7 +55,8 @@ export function rideCompletedProperties(input: RideCompletedInput): Record<strin
     distance_m: distanceM,
     distance_km:
       Math.round((distanceM / METERS_PER_KM) * DISTANCE_KM_PRECISION) / DISTANCE_KM_PRECISION,
-    duration_s: Math.max(0, Math.round(input.durationS)),
+    duration_s: durationS,
+    below_min_ride: durationS < MIN_RIDE_ELAPSED_S || distanceM < MIN_RIDE_DISTANCE_M,
     save_trigger: input.trigger,
     auto_ended: input.trigger === RIDE_SAVE_TRIGGER.AUTO_END,
   };

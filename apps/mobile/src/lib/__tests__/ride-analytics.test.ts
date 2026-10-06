@@ -26,6 +26,7 @@ describe('rideCompletedProperties', () => {
       distance_m: 42_350,
       distance_km: 42.4,
       duration_s: 3_600,
+      below_min_ride: false,
       save_trigger: 'summary',
       auto_ended: false,
     });
@@ -45,7 +46,22 @@ describe('rideCompletedProperties', () => {
       distance_km: 0,
       save_trigger: 'auto_end',
       auto_ended: true,
+      below_min_ride: true,
     });
+  });
+
+  it('tags rides under either HUD floor as below_min_ride', () => {
+    const base = { trigger: RIDE_SAVE_TRIGGER.AUTO_END, rideId: 'r4', motorcycleId: 'b1' };
+    // A Start tap left alone until the 30-minute auto-end: long, but nowhere.
+    expect(
+      rideCompletedProperties({ ...base, distanceM: 12, durationS: 1_800 }).below_min_ride,
+    ).toBe(true);
+    expect(
+      rideCompletedProperties({ ...base, distanceM: 5_000, durationS: 20 }).below_min_ride,
+    ).toBe(true);
+    expect(rideCompletedProperties({ ...base, distanceM: 50, durationS: 30 }).below_min_ride).toBe(
+      false,
+    );
   });
 
   it('never lets path extras overwrite the canonical fields', () => {
