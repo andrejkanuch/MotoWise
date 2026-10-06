@@ -9,11 +9,15 @@
 -- `currencies` array: one full breakdown (year totals, month buckets, category
 -- totals, count) per currency, ordered most-used first (expense count, then
 -- total, then code — deterministic). The legacy top-level keys are kept for the
--- API build that predates this migration, but they now carry the FIRST
--- (primary) currency's figures instead of a cross-currency sum; `expenseCount`
--- stays the bike's total row count (a count, not money). An API build that
--- reads `currencies` therefore works against either version of the function,
--- and the pre-fix API stops summing currencies as soon as this lands.
+-- API build that predates this migration, but they now carry ONE currency's
+-- figures instead of a cross-currency sum: the currency with the largest
+-- all-time total (then count, then code). That is not always `currencies[0]`
+-- on purpose: mobile 3.20.0 labels these keys with the currency holding the
+-- largest summed amount, so any other pick would print one currency's figures
+-- under another's symbol. `expenseCount` stays the bike's total row count (a
+-- count, not money). An API build that reads `currencies` therefore works
+-- against either version of the function, and the pre-fix API stops summing
+-- currencies as soon as this lands.
 --
 -- Unchanged: SECURITY INVOKER on the per-request user client, owner pinned via
 -- auth.uid(), motorcycle id is the only parameter, and the ACL below.
@@ -82,6 +86,9 @@ AS $$
       row_number() OVER (
         ORDER BY pc.expense_count DESC, pc.all_time_total DESC, pc.currency ASC
       ) AS rank,
+      row_number() OVER (
+        ORDER BY pc.all_time_total DESC, pc.expense_count DESC, pc.currency ASC
+      ) AS legacy_rank,
       jsonb_build_object(
         'currency', pc.currency,
         'currentYearTotal', pc.current_year_total,
@@ -109,20 +116,20 @@ AS $$
       ) AS obj
     FROM per_currency pc
   ),
-  primary_breakdown AS (
-    SELECT obj FROM breakdowns WHERE rank = 1
+  legacy_breakdown AS (
+    SELECT obj FROM breakdowns WHERE legacy_rank = 1
   )
   SELECT jsonb_build_object(
     'currencies', COALESCE(
       (SELECT jsonb_agg(obj ORDER BY rank) FROM breakdowns),
       '[]'::jsonb
     ),
-    'currentYearTotal', COALESCE((SELECT obj -> 'currentYearTotal' FROM primary_breakdown), '0'::jsonb),
-    'previousYearTotal', COALESCE((SELECT obj -> 'previousYearTotal' FROM primary_breakdown), '0'::jsonb),
-    'allTimeTotal', COALESCE((SELECT obj -> 'allTimeTotal' FROM primary_breakdown), '0'::jsonb),
+    'currentYearTotal', COALESCE((SELECT obj -> 'currentYearTotal' FROM legacy_breakdown), '0'::jsonb),
+    'previousYearTotal', COALESCE((SELECT obj -> 'previousYearTotal' FROM legacy_breakdown), '0'::jsonb),
+    'allTimeTotal', COALESCE((SELECT obj -> 'allTimeTotal' FROM legacy_breakdown), '0'::jsonb),
     'expenseCount', (SELECT count(*) FROM scoped),
-    'monthlyBuckets', COALESCE((SELECT obj -> 'monthlyBuckets' FROM primary_breakdown), '[]'::jsonb),
-    'categoryTotals', COALESCE((SELECT obj -> 'categoryTotals' FROM primary_breakdown), '[]'::jsonb)
+    'monthlyBuckets', COALESCE((SELECT obj -> 'monthlyBuckets' FROM legacy_breakdown), '[]'::jsonb),
+    'categoryTotals', COALESCE((SELECT obj -> 'categoryTotals' FROM legacy_breakdown), '[]'::jsonb)
   );
 $$;
 

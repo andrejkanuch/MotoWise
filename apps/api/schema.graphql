@@ -622,7 +622,7 @@ type ExpenseCategory {
   expenses: [Expense!]!
 
   """
-  Total of this category's most-used currency only, never a cross-currency sum. Display currencyTotals instead.
+  This category's spend in the bike's legacy currency (the one with the largest total, the same currency as ExpenseSummary.ytdTotal); 0 when the category has none. Never a cross-currency sum. Display currencyTotals instead.
   """
   total: Float!
 }
@@ -649,7 +649,7 @@ type ExpenseDashboardSummary {
   currencies: [ExpenseCurrencyBreakdown!]!
 
   """
-  Currency of the top-level money fields (the primary breakdown). Null when there are no expenses or the per-currency aggregate is unavailable.
+  Currency of the top-level money fields (the breakdown with the largest all-time total). Null when there are no expenses or the per-currency aggregate is unavailable.
   """
   currency: String
   currentYearTotal: Float!
@@ -677,7 +677,7 @@ type ExpenseSummary {
   currencyTotals: [CurrencyTotal!]!
 
   """
-  Total of the bike's most-used currency only, never a cross-currency sum. Display currencyTotals instead.
+  Total of the bike's currency with the largest total only, never a cross-currency sum. Display currencyTotals instead.
   """
   ytdTotal: Float!
 }

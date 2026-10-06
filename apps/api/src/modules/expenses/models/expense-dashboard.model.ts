@@ -55,15 +55,16 @@ export class ExpenseCurrencyBreakdown {
 /**
  * Expense dashboard for one bike. Amounts are never summed across currencies:
  * `currencies` holds one breakdown per currency (most-used first), and the
- * top-level money fields mirror the FIRST breakdown, so clients that predate
- * `currencies` show one currency's figures instead of a mixed sum.
+ * top-level money fields mirror the breakdown with the largest all-time total
+ * (the currency 3.20.0 labels them with), so clients that predate `currencies`
+ * show one correctly labelled currency's figures instead of a mixed sum.
  */
 @ObjectType()
 export class ExpenseDashboardSummary {
   @Field(() => String, {
     nullable: true,
     description:
-      'Currency of the top-level money fields (the primary breakdown). Null when there are no expenses or the per-currency aggregate is unavailable.',
+      'Currency of the top-level money fields (the breakdown with the largest all-time total). Null when there are no expenses or the per-currency aggregate is unavailable.',
   })
   currency: string | null;
 

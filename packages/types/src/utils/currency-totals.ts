@@ -1,5 +1,9 @@
 import { CURRENCY_SYMBOLS, type Currency } from '../constants/enums';
 
+/** Joins per-currency totals for display ("€320.00 · $45.00"); amounts in
+ *  different currencies are listed side by side, never added together. */
+export const CURRENCY_TOTALS_SEPARATOR = ' · ';
+
 /** One currency's share of a money aggregate. */
 export interface CurrencyTotal {
   currency: Currency;
@@ -69,6 +73,59 @@ export function groupTotalsByCurrency(
   return [...totals.values()]
     .map((entry) => ({ ...entry, total: roundMoney(entry.total) }))
     .sort(compareCurrencyTotals);
+}
+
+/** A per-currency figure as the legacy-field ranking sees it. */
+export interface RankedCurrencyFigure {
+  currency: string;
+  total: number;
+  count: number;
+}
+
+/**
+ * Orders per-currency figures for the LEGACY single-number fields only
+ * (`ExpenseSummary.ytdTotal`, `ExpenseCategory.total` and the expense
+ * dashboard's top-level money fields): largest total first, then count, then
+ * code. Mobile 3.20.0 and older label those numbers with the currency holding
+ * the largest summed amount (its `dominantCurrency`), so the legacy figures
+ * must come from that same currency, or old clients print one currency's
+ * numbers under another's symbol. Every per-currency list stays most-used
+ * first (`compareCurrencyTotals`).
+ */
+export function compareLegacyCurrencyTotals(
+  a: RankedCurrencyFigure,
+  b: RankedCurrencyFigure,
+): number {
+  return b.total - a.total || b.count - a.count || a.currency.localeCompare(b.currency);
+}
+
+/** The item whose figure ranks first under `compareLegacyCurrencyTotals`;
+ *  `undefined` for no items. */
+export function pickLegacyPrimary<T>(
+  items: ReadonlyArray<T>,
+  figure: (item: T) => RankedCurrencyFigure,
+): T | undefined {
+  let best: T | undefined;
+  for (const item of items) {
+    if (best === undefined || compareLegacyCurrencyTotals(figure(item), figure(best)) < 0) {
+      best = item;
+    }
+  }
+  return best;
+}
+
+/** The currency the legacy single-number fields are reported in (see
+ *  `compareLegacyCurrencyTotals`); `undefined` for no items. */
+export function legacyPrimaryCurrency(groups: ReadonlyArray<CurrencyTotal>): Currency | undefined {
+  return pickLegacyPrimary(groups, (group) => group)?.currency;
+}
+
+/** `currency`'s total in `groups`, or 0 when it has none. */
+export function totalInCurrency(
+  groups: ReadonlyArray<CurrencyTotal>,
+  currency: Currency | undefined,
+): number {
+  return groups.find((group) => group.currency === currency)?.total ?? 0;
 }
 
 /** The primary currency's total, or 0 for no items. Only meaningful as a

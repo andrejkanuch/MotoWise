@@ -171,7 +171,7 @@ describe('ExpensesService', () => {
         { currency: 'EUR', total: 80, count: 2 },
         { currency: 'USD', total: 40, count: 1 },
       ]);
-      // The legacy scalar carries the most-used currency only.
+      // The legacy scalar carries one currency only (here EUR, the largest total).
       expect(result.ytdTotal).toBe(80);
 
       const fuel = result.categories.find((c) => c.category === 'fuel');
@@ -182,6 +182,36 @@ describe('ExpensesService', () => {
           { currency: 'USD', total: 40, count: 1 },
         ]),
       );
+    });
+
+    it('keeps every legacy category total in the same currency as ytdTotal (3.20.0 bar shares)', async () => {
+      // EUR is most-used (5 rows) but USD holds the largest total. 3.20.0 draws
+      // each category bar as total / ytdTotal, so both must be in one currency.
+      mock.chain.order.mockResolvedValueOnce({
+        data: [
+          ...Array.from({ length: 5 }, (_, i) =>
+            expenseRow({ id: `f${i}`, amount: '20.00', category: 'fuel', currency: 'EUR' }),
+          ),
+          expenseRow({ id: 'p1', amount: '900.00', category: 'parts', currency: 'USD' }),
+          expenseRow({ id: 'p2', amount: '10.00', category: 'parts', currency: 'EUR' }),
+        ],
+        error: null,
+      });
+
+      const result = await service.findByMotorcycle('u1', 'm1');
+
+      // New clients: per-currency, most-used first.
+      expect(result.currencyTotals.map((g) => g.currency)).toEqual(['EUR', 'USD']);
+      // Legacy scalars: all in USD (largest total), shares add up to 100%.
+      expect(result.ytdTotal).toBe(900);
+      const parts = result.categories.find((c) => c.category === 'parts');
+      const fuel = result.categories.find((c) => c.category === 'fuel');
+      expect(parts?.total).toBe(900);
+      // Fuel has no USD spend, so its legacy total is 0, never the EUR figure.
+      expect(fuel?.total).toBe(0);
+      expect(fuel?.currencyTotals).toEqual([{ currency: 'EUR', total: 100, count: 5 }]);
+      const legacySum = result.categories.reduce((sum, c) => sum + c.total, 0);
+      expect(legacySum).toBe(result.ytdTotal);
     });
 
     it('returns no currency totals and a zero total when there are no expenses', async () => {
@@ -730,6 +760,39 @@ describe('ExpensesService', () => {
       expect(result.expenseCount).toBe(3);
       expect(result.monthlyBuckets).toEqual(result.currencies[0].monthlyBuckets);
       expect(result.categoryTotals).toEqual([{ category: 'fuel', total: 50 }]);
+    });
+
+    it('fills the legacy fields from the largest-total currency, as 3.20.0 labels them', async () => {
+      const currentYear = new Date().getFullYear();
+      mock.rpc.mockResolvedValueOnce({
+        data: {
+          // Most-used first: EUR (10 rows) before JPY (1 row).
+          currencies: [
+            dashboardBreakdown('EUR', currentYear, 500, 10),
+            dashboardBreakdown('JPY', currentYear, 30000, 1),
+          ],
+          currentYearTotal: 30000,
+          previousYearTotal: 0,
+          allTimeTotal: 30000,
+          expenseCount: 11,
+          monthlyBuckets: [],
+          categoryTotals: [],
+        },
+        error: null,
+      });
+
+      const result = await service.getDashboard('u1', 'm1');
+
+      // The per-currency list keeps its most-used-first order for new clients.
+      expect(result.currencies.map((c) => c.currency)).toEqual(['EUR', 'JPY']);
+      // 3.20.0 labels the legacy fields with its dominantCurrency (largest
+      // summed amount = JPY), so they must hold the JPY figures, not EUR's.
+      expect(result.currency).toBe('JPY');
+      expect(result.allTimeTotal).toBe(30000);
+      expect(result.currentYearTotal).toBe(30000);
+      expect(result.monthlyBuckets).toEqual(result.currencies[1].monthlyBuckets);
+      expect(result.categoryTotals).toEqual(result.currencies[1].categoryTotals);
+      expect(result.expenseCount).toBe(11);
     });
 
     it('serves a single-currency dashboard unchanged, with its currency named', async () => {

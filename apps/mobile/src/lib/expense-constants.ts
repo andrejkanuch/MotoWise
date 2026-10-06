@@ -1,6 +1,7 @@
 import { palette } from '@motovault/design-system';
 import {
   CURRENCY_SYMBOLS,
+  CURRENCY_TOTALS_SEPARATOR,
   type Currency,
   type CurrencyTotal,
   EXPENSE_CATEGORY_META,
@@ -13,9 +14,6 @@ export type { CurrencyTotal };
 // Per-currency grouping lives in @motovault/types so the API, mobile and web
 // agree on it (same totals, same most-used-first order).
 export { groupTotalsByCurrency };
-
-/** Joins per-currency totals ("€320.00 · $45.00"); never a cross-currency sum. */
-export const CURRENCY_TOTALS_SEPARATOR = ' · ';
 
 // Colours, labels and the primary chip set all derive from the single source of
 // truth (packages/types EXPENSE_CATEGORY_META). `colorToken` is a palette key,

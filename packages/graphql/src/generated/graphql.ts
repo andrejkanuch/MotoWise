@@ -662,7 +662,7 @@ export type ExpenseCategory = {
   /** Per-currency totals, most-used currency first */
   currencyTotals: Array<CurrencyTotal>;
   expenses: Array<Expense>;
-  /** Total of this category's most-used currency only, never a cross-currency sum. Display currencyTotals instead. */
+  /** This category's spend in the bike's legacy currency (the one with the largest total, the same currency as ExpenseSummary.ytdTotal); 0 when the category has none. Never a cross-currency sum. Display currencyTotals instead. */
   total: Scalars['Float']['output'];
 };
 
@@ -684,7 +684,7 @@ export type ExpenseDashboardSummary = {
   categoryTotals: Array<CategoryTotal>;
   /** One breakdown per currency, most-used first. Empty when there are no expenses. */
   currencies: Array<ExpenseCurrencyBreakdown>;
-  /** Currency of the top-level money fields (the primary breakdown). Null when there are no expenses or the per-currency aggregate is unavailable. */
+  /** Currency of the top-level money fields (the breakdown with the largest all-time total). Null when there are no expenses or the per-currency aggregate is unavailable. */
   currency?: Maybe<Scalars['String']['output']>;
   currentYearTotal: Scalars['Float']['output'];
   expenseCount: Scalars['Int']['output'];
@@ -708,7 +708,7 @@ export type ExpenseSummary = {
   categories: Array<ExpenseCategory>;
   /** Per-currency totals, most-used currency first. Empty when there are no expenses. */
   currencyTotals: Array<CurrencyTotal>;
-  /** Total of the bike's most-used currency only, never a cross-currency sum. Display currencyTotals instead. */
+  /** Total of the bike's currency with the largest total only, never a cross-currency sum. Display currencyTotals instead. */
   ytdTotal: Scalars['Float']['output'];
 };
 

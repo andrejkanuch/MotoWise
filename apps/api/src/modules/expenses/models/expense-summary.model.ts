@@ -9,7 +9,7 @@ export class ExpenseCategory {
 
   @Field(() => Float, {
     description:
-      "Total of this category's most-used currency only, never a cross-currency sum. Display currencyTotals instead.",
+      "This category's spend in the bike's legacy currency (the one with the largest total, the same currency as ExpenseSummary.ytdTotal); 0 when the category has none. Never a cross-currency sum. Display currencyTotals instead.",
   })
   total: number;
 
@@ -24,7 +24,7 @@ export class ExpenseCategory {
 export class ExpenseSummary {
   @Field(() => Float, {
     description:
-      "Total of the bike's most-used currency only, never a cross-currency sum. Display currencyTotals instead.",
+      "Total of the bike's currency with the largest total only, never a cross-currency sum. Display currencyTotals instead.",
   })
   ytdTotal: number;
 

@@ -1,5 +1,4 @@
-/** Separator between per-currency totals ("€320.00 · $45.00"). */
-export const CURRENCY_TOTALS_SEPARATOR = ' · ';
+import { CURRENCY_TOTALS_SEPARATOR } from '@motovault/types';
 
 /** Locale for the PDF's money formatting (the report is English-only). */
 const REPORT_LOCALE = 'en-US';

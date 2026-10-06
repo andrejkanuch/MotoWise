@@ -19,7 +19,7 @@ import {
   MyMotorcyclesDocument,
   SavedTripsDocument,
 } from '@motovault/graphql';
-import { breakdownTotals, dashboardBreakdowns } from '@motovault/types';
+import { breakdownTotals, CURRENCY_TOTALS_SEPARATOR, dashboardBreakdowns } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertTriangle,
@@ -47,11 +47,11 @@ import { useEffect, useState } from 'react';
 import { useProStatus } from '@/hooks/use-pro-status';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import {
-  CURRENCY_TOTALS_SEPARATOR,
   currencySymbol,
   DEFAULT_MONEY_CURRENCY,
   formatMoneyTotalsShort,
   formatWholeAmount,
+  ytdPanelBreakdown,
 } from '@/lib/expense-money';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { garageQueryKeys } from './query-keys';
@@ -894,10 +894,11 @@ function ExpenseDashboardPanel({
   }
 
   // Amounts are never summed across currencies (no FX source). The headline
-  // lists every currency; the trend, YoY and category breakdown are drawn for
-  // the most-used currency, labelled with its own symbol.
+  // lists every currency with spend this year; the trend, YoY and category
+  // breakdown are drawn for one of those (the most-used one with spend this
+  // year), labelled with its own symbol.
   const breakdowns = dashboardBreakdowns(dashboard, DEFAULT_MONEY_CURRENCY);
-  const primary = breakdowns[0];
+  const primary = ytdPanelBreakdown(breakdowns);
   const primaryCurrency = primary?.currency ?? DEFAULT_MONEY_CURRENCY;
   const symbol = currencySymbol(primaryCurrency);
   const currentYearTotal = primary?.currentYearTotal ?? 0;

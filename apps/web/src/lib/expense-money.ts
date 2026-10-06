@@ -1,3 +1,5 @@
+import { CURRENCY_TOTALS_SEPARATOR } from '@motovault/types';
+
 /**
  * Money formatting for the garage expense dashboard. Expenses are stored in the
  * currency they were logged in and there is no FX source, so totals that span
@@ -6,9 +8,6 @@
  * Pinned to 'en-US' so server HTML and client hydration agree regardless of the
  * browser locale (avoids React #418 hydration mismatches).
  */
-
-/** Joins per-currency totals. */
-export const CURRENCY_TOTALS_SEPARATOR = ' · ';
 
 /** Amounts from this size up are shortened to thousands ("$12.3k"). */
 const SHORT_THOUSANDS_FROM = 10_000;
@@ -57,4 +56,18 @@ export function formatMoneyTotalsShort(
   return totals
     .map(({ currency, total }) => formatMoneyShort(total, currency))
     .join(CURRENCY_TOTALS_SEPARATOR);
+}
+
+/**
+ * The breakdown the year-to-date panel draws its trend, YoY line and category
+ * list from: the first breakdown (most-used first) with spend this year, else
+ * the first one. Picking `breakdowns[0]` alone fails a rider whose most-used
+ * currency has only prior-year spend: the headline would show this year's
+ * other currency while the chart, categories and "down 100% vs last year"
+ * described the idle one.
+ */
+export function ytdPanelBreakdown<B extends { currentYearTotal: number }>(
+  breakdowns: ReadonlyArray<B>,
+): B | undefined {
+  return breakdowns.find((breakdown) => breakdown.currentYearTotal > 0) ?? breakdowns[0];
 }

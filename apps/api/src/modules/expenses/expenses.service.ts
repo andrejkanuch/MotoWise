@@ -1,4 +1,9 @@
-import { groupTotalsByCurrency, primaryCurrencyTotal } from '@motovault/types';
+import {
+  groupTotalsByCurrency,
+  legacyPrimaryCurrency,
+  pickLegacyPrimary,
+  totalInCurrency,
+} from '@motovault/types';
 import {
   BadRequestException,
   Inject,
@@ -160,21 +165,30 @@ export class ExpensesService {
 
     // Amounts are stored in the currency they were logged in and there is no
     // FX source, so totals are per currency — €50 + $40 is two totals, not 90.
-    // The scalar `total`/`ytdTotal` keep their pre-currency shape for older
-    // clients but carry the most-used currency only, never a mixed sum.
+    // The scalar `ytdTotal` and every category `total` keep their pre-currency
+    // shape for older clients, all in ONE bike-level currency (the one with the
+    // largest total, which is how 3.20.0 labels them): 3.20.0 draws category
+    // shares as `total / ytdTotal`, so the two must never be in different
+    // currencies. A category with no spend in that currency reports 0.
+    const currencyTotals = groupTotalsByCurrency(rows);
+    const legacyCurrency = legacyPrimaryCurrency(currencyTotals);
+
     const categories: ExpenseCategory[] = [];
     for (const [category, expenses] of categoryMap) {
-      const currencyTotals = groupTotalsByCurrency(expenses);
+      const categoryCurrencyTotals = groupTotalsByCurrency(expenses);
       categories.push({
         category,
-        total: primaryCurrencyTotal(currencyTotals),
-        currencyTotals,
+        total: totalInCurrency(categoryCurrencyTotals, legacyCurrency),
+        currencyTotals: categoryCurrencyTotals,
         expenses,
       });
     }
 
-    const currencyTotals = groupTotalsByCurrency(rows);
-    return { ytdTotal: primaryCurrencyTotal(currencyTotals), currencyTotals, categories };
+    return {
+      ytdTotal: totalInCurrency(currencyTotals, legacyCurrency),
+      currencyTotals,
+      categories,
+    };
   }
 
   async create(
@@ -392,10 +406,19 @@ export class ExpensesService {
     // top-level keys, which are a cross-currency sum: still serve them (the
     // dashboard must not break mid-deploy), but with `currency: null` and no
     // breakdowns, so clients fall back to their per-row currency heuristic.
+    //
+    // The legacy top-level money fields come from the breakdown with the
+    // largest all-time total, not from `currencies[0]`: 3.20.0 labels them
+    // with its `dominantCurrency` (largest summed all-time amount), so any
+    // other choice prints one currency's figures under another's symbol.
     const currencies = (result.currencies ?? []).map((breakdown) =>
       this.mapCurrencyBreakdown(breakdown),
     );
-    const primary = currencies[0];
+    const primary = pickLegacyPrimary(currencies, (breakdown) => ({
+      currency: breakdown.currency,
+      total: breakdown.allTimeTotal,
+      count: breakdown.expenseCount,
+    }));
 
     return {
       currency: primary?.currency ?? null,
