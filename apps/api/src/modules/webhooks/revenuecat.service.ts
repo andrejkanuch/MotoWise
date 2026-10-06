@@ -11,6 +11,7 @@ import type { RevenueCatEvent } from './dto/revenuecat-event.dto';
 import {
   type ProResolution,
   type RcSubscriberResponse,
+  RESOLUTION_FAILURE,
   type ResolvedProState,
   resolveProEntitlement,
 } from './revenuecat-entitlement';
@@ -43,6 +44,42 @@ export const RC_REQUEST_TIMEOUT_MS = 8_000;
 const RPC_NAME = 'process_revenuecat_event' as const;
 /** PostgREST: no function matches the named arguments (00187 not applied yet). */
 const PGRST_FUNCTION_NOT_FOUND = 'PGRST202' as const;
+/**
+ * Event types that change what the rider is entitled to, so the users row is
+ * (re)derived from the live entitlement. Source: RevenueCat's webhook event
+ * types (https://www.revenuecat.com/docs/integrations/webhooks/event-types-and-fields).
+ * Refunds arrive as CANCELLATION (cancel_reason CUSTOMER_SUPPORT); a reversed
+ * Apple refund as REFUND_REVERSED.
+ *
+ * Every other type — TEST, SUBSCRIBER_ALIAS, EXPERIMENT_ENROLLMENT,
+ * INVOICE_ISSUANCE, VIRTUAL_CURRENCY_TRANSACTION, and any type RevenueCat adds
+ * later — is only logged: no lookup, no p_rc_*, and the RPC's fallback leaves
+ * the row alone. Writing the entitlement there flipped every never-paid rider
+ * from free/free to free/expired on an experiment enrollment.
+ */
+export const ENTITLEMENT_EVENT_TYPES = [
+  'INITIAL_PURCHASE',
+  'RENEWAL',
+  'NON_RENEWING_PURCHASE',
+  'PRODUCT_CHANGE',
+  'CANCELLATION',
+  'UNCANCELLATION',
+  'BILLING_ISSUE',
+  'EXPIRATION',
+  'SUBSCRIPTION_PAUSED',
+  'SUBSCRIPTION_EXTENDED',
+  'TEMPORARY_ENTITLEMENT_GRANT',
+  'REFUND_REVERSED',
+  'TRANSFER',
+] as const;
+const ENTITLEMENT_EVENT_TYPE_SET: ReadonlySet<string> = new Set(ENTITLEMENT_EVENT_TYPES);
+/** Sentry `rc_entitlement` tag values. */
+const RC_ENTITLEMENT_TAG = {
+  DEFERRED: 'deferred',
+  FALLBACK: 'fallback',
+  MISSING_ENTITLEMENT: RESOLUTION_FAILURE.MISSING_ENTITLEMENT,
+} as const;
+type RcEntitlementTag = (typeof RC_ENTITLEMENT_TAG)[keyof typeof RC_ENTITLEMENT_TAG];
 /**
  * Event types whose event-type fallback can take Pro away: EXPIRATION writes
  * free/expired, and CANCELLATION / BILLING_ISSUE overwrite a lifetime row's
@@ -129,7 +166,10 @@ export class RevenueCatService {
     // from the subscriber's live Pro entitlement, which knows about every
     // purchase (a lifetime purchase outlives an old subscription's EXPIRATION;
     // a refund removes it). Unresolved → the RPC's event-type logic (fallback).
-    const resolved = await this.resolveProState(event);
+    // Only for events that can change the entitlement (see ENTITLEMENT_EVENT_TYPES).
+    const resolved = ENTITLEMENT_EVENT_TYPE_SET.has(event.type)
+      ? await this.resolveProState(event)
+      : null;
     const transferredFrom =
       event.type === EVENT_TRANSFER
         ? (event.transferred_from ?? []).filter((id) => UUID_REGEX.test(id))
@@ -399,6 +439,14 @@ export class RevenueCatService {
       );
     }
     if (!resolution.resolved) {
+      if (resolution.failure === RESOLUTION_FAILURE.MISSING_ENTITLEMENT) {
+        // Likely a renamed/detached entitlement: its own tag, so it is not lost
+        // among ordinary fallbacks. Handled exactly like a permanent failure.
+        this.reportUnresolved(event, resolution.reason, RC_ENTITLEMENT_TAG.MISSING_ENTITLEMENT, {
+          productIds: resolution.productIds ?? [],
+        });
+        return null;
+      }
       return this.unresolved(event, resolution.reason, LOOKUP_FAILURE.PERMANENT);
     }
     return resolution.state;
@@ -419,7 +467,11 @@ export class RevenueCatService {
       this.logger.warn(message);
       Sentry.captureMessage(message, {
         level: 'warning',
-        tags: { webhook: 'revenuecat', rc_event_type: event.type, rc_entitlement: 'deferred' },
+        tags: {
+          webhook: 'revenuecat',
+          rc_event_type: event.type,
+          rc_entitlement: RC_ENTITLEMENT_TAG.DEFERRED,
+        },
         extra: {
           eventId: event.id,
           appUserId: event.app_user_id,
@@ -434,18 +486,24 @@ export class RevenueCatService {
     return null;
   }
 
-  private reportUnresolved(event: RevenueCatEvent, reason: string): void {
+  private reportUnresolved(
+    event: RevenueCatEvent,
+    reason: string,
+    tag: RcEntitlementTag = RC_ENTITLEMENT_TAG.FALLBACK,
+    extra: Record<string, unknown> = {},
+  ): void {
     const message = `RevenueCat ${event.type} ${event.id}: entitlement not resolved (${reason}); falling back to event-type state`;
     this.logger.warn(message);
     Sentry.captureMessage(message, {
       level: 'warning',
-      tags: { webhook: 'revenuecat', rc_event_type: event.type, rc_entitlement: 'fallback' },
+      tags: { webhook: 'revenuecat', rc_event_type: event.type, rc_entitlement: tag },
       extra: {
         eventId: event.id,
         appUserId: event.app_user_id,
         productId: event.product_id ?? null,
         environment: event.environment ?? null,
         reason,
+        ...extra,
       },
     });
   }

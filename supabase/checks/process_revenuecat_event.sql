@@ -158,6 +158,9 @@ DECLARE
   u17 CONSTANT UUID := '00000000-0000-0000-0000-000000000017';
   u18 CONSTANT UUID := '00000000-0000-0000-0000-000000000018';
   u19 CONSTANT UUID := '00000000-0000-0000-0000-000000000019';
+  u20 CONSTANT UUID := '00000000-0000-0000-0000-000000000020';
+  u21 CONSTANT UUID := '00000000-0000-0000-0000-000000000021';
+  u22 CONSTANT UUID := '00000000-0000-0000-0000-000000000022';
   end_user_role TEXT;
   sig CONSTANT TEXT := 'public.process_revenuecat_event(text,text,uuid,timestamptz,text,text,text,text,boolean,timestamptz,timestamptz,uuid[],jsonb,text,text,timestamptz)';
   old_sig CONSTANT TEXT := 'public.process_revenuecat_event(text,text,uuid,timestamptz,text,text,text,text,boolean,timestamptz,timestamptz,uuid[],jsonb)';
@@ -261,6 +264,29 @@ BEGIN
     'resolved state applies to SUBSCRIPTION_EXTENDED');
   PERFORM pg_temp.rc('u15-can', 'CANCELLATION', u15, soon, 'pro', 'cancelled', soon);
   PERFORM pg_temp.expect(pg_temp.state(u15) = 'pro/cancelled', 'resolved CANCELLATION -> pro/cancelled');
+
+  -- Never-Pro rider with no entitlement at all stays free/free (the event is
+  -- still logged); a rider who had Pro becomes free/expired (u13 above).
+  PERFORM pg_temp.seed(u20, 'free', 'free', NULL);
+  PERFORM pg_temp.rc('u20-tr', 'TRANSFER', u20, NULL, 'free', 'expired', NULL);
+  PERFORM pg_temp.rc('u20-can', 'CANCELLATION', u20, NULL, 'free', 'expired', NULL);
+  PERFORM pg_temp.expect(pg_temp.state(u20) = 'free/free' AND pg_temp.expiry(u20) IS NULL
+    AND (SELECT revenuecat_id FROM public.users WHERE id = u20) = u20::TEXT
+    AND (SELECT count(*) FROM public.revenuecat_webhook_events WHERE app_user_id = u20) = 2,
+    'never-Pro + no entitlement -> stays free/free, events logged');
+  PERFORM pg_temp.seed(u21, 'free', 'expired', past);
+  PERFORM pg_temp.rc('u21-can', 'CANCELLATION', u21, NULL, 'free', 'expired', NULL);
+  PERFORM pg_temp.expect(pg_temp.state(u21) = 'free/expired' AND pg_temp.expiry(u21) = past,
+    'formerly-Pro + no entitlement -> stays free/expired, last expiry kept');
+
+  -- Non-entitlement events (the API sends no p_rc_*): the row is untouched.
+  PERFORM pg_temp.seed(u22, 'free', 'free', NULL);
+  PERFORM pg_temp.ev('u22-exp', 'EXPERIMENT_ENROLLMENT', u22, NULL);
+  PERFORM pg_temp.ev('u22-alias', 'SUBSCRIBER_ALIAS', u22, NULL);
+  PERFORM pg_temp.ev('u22-test', 'TEST', u22, NULL);
+  PERFORM pg_temp.expect(pg_temp.state(u22) = 'free/free'
+    AND (SELECT count(*) FROM public.revenuecat_webhook_events WHERE app_user_id = u22) = 3,
+    'non-entitlement events on a never-Pro rider keep free/free');
 
   -- Resolved trial start still records trial_started_at; resolved TRANSFER
   -- still downgrades the source.

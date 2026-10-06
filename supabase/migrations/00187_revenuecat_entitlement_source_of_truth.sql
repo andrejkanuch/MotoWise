@@ -13,7 +13,11 @@
 --   lifetime + old sub CANCELLATION/EXPIRATION → entitlement still active, no
 --     expiry → stays pro/active, NULL expiry;
 --   lifetime refund → RC removes the entitlement → free/expired;
---   subscription refund → RC expires the entitlement at the refund → free/expired.
+--   subscription refund → RC expires the entitlement at the refund → free/expired;
+--   no entitlement on a row that was never Pro (free/free) → stays free/free.
+-- The API sends p_rc_* only for entitlement-changing event types; TEST,
+-- SUBSCRIBER_ALIAS, EXPERIMENT_ENROLLMENT etc. take the fallback, which leaves
+-- the row alone.
 -- When p_rc_tier is NULL (RevenueCat unreachable, or a pre-00187 API) the
 -- 00185 event-type logic below runs unchanged — that is the fallback.
 --
@@ -175,6 +179,20 @@ BEGIN
       ELSE
         RETURN;
     END CASE;
+  END IF;
+
+  -- Step 2c: no entitlement at all (resolved free with no expiry) for a rider
+  -- who was never Pro here: stay free/free. 'expired' means "had Pro and lost
+  -- it"; RevenueCat cannot tell a never-paid subscriber from a refunded
+  -- lifetime one (both have no entitlement), but this row can.
+  IF v_resolved AND v_tier = 'free' AND v_expiration IS NULL THEN
+    UPDATE users SET revenuecat_id = p_app_user_id::TEXT
+    WHERE id = p_app_user_id
+      AND subscription_tier = 'free'
+      AND subscription_status = 'free';
+    IF FOUND THEN
+      RETURN;
+    END IF;
   END IF;
 
   -- Step 3: atomic user update.

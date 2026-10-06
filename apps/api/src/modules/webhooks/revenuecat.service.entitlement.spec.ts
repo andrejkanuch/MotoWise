@@ -340,6 +340,112 @@ describe('RevenueCatService: RevenueCat entitlement is the source of truth (#273
     });
   });
 
+  describe('non-entitlement events never write the entitlement (never-paid riders stay free)', () => {
+    it.each([
+      'EXPERIMENT_ENROLLMENT',
+      'SUBSCRIBER_ALIAS',
+      'TEST',
+      'INVOICE_ISSUANCE',
+      'VIRTUAL_CURRENCY_TRANSACTION',
+      'SOME_FUTURE_EVENT',
+    ])('%s: logged without a lookup or p_rc_*', async (type) => {
+      fetchMock.mockResolvedValue(okResponse(refundedLifetimeSubscriber));
+      await service.processEvent(event({ id: `non-lifecycle-${type}`, type }));
+      expect(subscriberLookups()).toHaveLength(0);
+      expect(rpc).toHaveBeenCalledTimes(1);
+      expect(rpcArgs()).toMatchObject({ p_event_id: `non-lifecycle-${type}`, p_event_type: type });
+      expect(rpcArgs()).not.toHaveProperty('p_rc_tier');
+      expect(rpcArgs().p_payload).not.toHaveProperty('motovault_rc_entitlement');
+      expect(Sentry.captureMessage).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      'INITIAL_PURCHASE',
+      'RENEWAL',
+      'NON_RENEWING_PURCHASE',
+      'PRODUCT_CHANGE',
+      'CANCELLATION',
+      'UNCANCELLATION',
+      'BILLING_ISSUE',
+      'EXPIRATION',
+      'SUBSCRIPTION_PAUSED',
+      'SUBSCRIPTION_EXTENDED',
+      'TEMPORARY_ENTITLEMENT_GRANT',
+      'REFUND_REVERSED',
+      'TRANSFER',
+    ])('%s: resolves the entitlement', async (type) => {
+      await service.processEvent(
+        event({ id: `lifecycle-${type}`, type, product_id: LIFETIME, transferred_from: [] }),
+      );
+      expect(subscriberLookups()).toHaveLength(1);
+      expect(rpcArgs()).toMatchObject({ p_rc_tier: 'pro', p_rc_expires_at: null });
+    });
+
+    it('TRANSFER of nothing to a never-paid rider passes free/expired + NULL expiry (00187 keeps free/free)', async () => {
+      fetchMock.mockResolvedValue(okResponse({ subscriber: { entitlements: {} } }));
+      await service.processEvent(
+        event({ id: 'empty-transfer', type: 'TRANSFER', transferred_from: [] }),
+      );
+      expect(rpcArgs()).toMatchObject({
+        p_rc_tier: 'free',
+        p_rc_status: 'expired',
+        p_rc_expires_at: null,
+      });
+    });
+  });
+
+  describe('entitlement renamed in RevenueCat → missing_entitlement warning, permanent fallback', () => {
+    it.each<[string, RcSubscriberResponse]>([
+      [
+        'entitlements present but none is "MotoWise Pro"',
+        {
+          subscriber: {
+            entitlements: {
+              'MotoVault Pro': { expires_date: null, product_identifier: LIFETIME },
+            },
+            non_subscriptions: { [LIFETIME]: [{ is_sandbox: false, store: 'app_store' }] },
+          },
+        },
+      ],
+      [
+        'a live subscription with no entitlement',
+        {
+          subscriber: {
+            entitlements: {},
+            subscriptions: { [MONTHLY]: { expires_date: '2999-01-01T00:00:00Z' } },
+          },
+        },
+      ],
+    ])('%s', async (_label, body) => {
+      fetchMock.mockResolvedValue(okResponse(body));
+      await service.processEvent(
+        event({
+          id: 'renamed',
+          type: 'EXPIRATION',
+          product_id: MONTHLY,
+          expiration_at_ms: PAST_MS,
+        }),
+      );
+      expect(rpc).toHaveBeenCalledTimes(1);
+      expect(rpcArgs()).not.toHaveProperty('p_rc_tier');
+      expect(rpcArgs()).toMatchObject({ p_event_type: 'EXPIRATION', p_expiration_at: PAST_ISO });
+      expect(Sentry.captureMessage).toHaveBeenCalledTimes(1);
+      const [, context] = vi.mocked(Sentry.captureMessage).mock.calls[0] as [
+        string,
+        { tags: Record<string, string>; extra: Record<string, unknown> },
+      ];
+      expect(context.tags).toEqual({
+        webhook: 'revenuecat',
+        rc_event_type: 'EXPIRATION',
+        rc_entitlement: 'missing_entitlement',
+      });
+      expect(context.extra).toMatchObject({ eventId: 'renamed', appUserId: USER });
+      expect(context.extra.productIds).toEqual(expect.arrayContaining([expect.any(String)]));
+      // No PII beyond the user id: the subscriber body is never attached.
+      expect(context.extra).not.toHaveProperty('subscriber');
+    });
+  });
+
   it('database without 00187 (PGRST202) → retries once with the legacy arguments and reports it', async () => {
     rpc
       .mockResolvedValueOnce({

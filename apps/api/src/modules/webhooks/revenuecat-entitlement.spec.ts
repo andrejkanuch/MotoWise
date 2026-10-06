@@ -66,6 +66,53 @@ describe('resolveProEntitlement', () => {
     });
   });
 
+  it('refunded lifetime still listed in non_subscriptions → free/expired (not a missing entitlement)', () => {
+    expect(
+      resolve({
+        subscriber: {
+          entitlements: {},
+          non_subscriptions: { [LIFETIME]: [{ is_sandbox: false }] },
+          subscriptions: {
+            [MONTHLY]: { expires_date: PAST },
+            refunded_annual: { expires_date: FUTURE, refunded_at: PAST },
+          },
+        },
+      }),
+    ).toMatchObject({ resolved: true, state: { tier: 'free', status: 'expired' } });
+  });
+
+  describe('missing "MotoWise Pro" entitlement while the subscriber has purchases (renamed)', () => {
+    it('other entitlements present → unresolved missing_entitlement with product ids', () => {
+      expect(
+        resolve({
+          subscriber: {
+            entitlements: { 'MotoVault Pro': { expires_date: null, product_identifier: LIFETIME } },
+            non_subscriptions: { [LIFETIME]: [{ is_sandbox: false }] },
+          },
+        }),
+      ).toEqual({
+        resolved: false,
+        failure: 'missing_entitlement',
+        reason: expect.stringContaining('MotoVault Pro'),
+        productIds: [LIFETIME],
+      });
+    });
+
+    it.each([
+      ['an unexpired subscription', { expires_date: FUTURE }],
+      ['a subscription with no expiry', { expires_date: null }],
+    ])('no entitlements but %s → unresolved missing_entitlement', (_l, subscription) => {
+      expect(
+        resolve({ subscriber: { entitlements: {}, subscriptions: { [MONTHLY]: subscription } } }),
+      ).toMatchObject({
+        resolved: false,
+        failure: 'missing_entitlement',
+        reason: expect.stringContaining('live subscription'),
+        productIds: [MONTHLY],
+      });
+    });
+  });
+
   it('refunded or expired subscription: expiry in the past → free/expired with that expiry', () => {
     expect(
       resolve(
