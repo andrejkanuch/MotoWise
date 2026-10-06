@@ -488,7 +488,7 @@ const DiscoverHeader = memo(function DiscoverHeader({
 
       {showBelowFold && (
         <>
-          {/* Bike banner + weather (weather off until a licensed provider, #272) */}
+          {/* Bike banner + weather (weather off until a licensed provider, issue 272) */}
           <View style={{ gap: 10 }}>
             <BikeBanner />
             {WEATHER_ENABLED && <WeatherStrip />}

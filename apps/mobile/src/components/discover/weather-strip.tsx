@@ -7,7 +7,7 @@ import { useWeatherForecast } from '../../hooks/use-weather-forecast';
 export const WeatherStrip = memo(function WeatherStrip() {
   const { enabled, data, isLoading } = useWeatherForecast();
 
-  // Weather is switched off (WEATHER_ENABLED, #272) or not ready: render nothing.
+  // Weather is switched off (WEATHER_ENABLED, issue 272) or not ready: render nothing.
   if (!enabled || isLoading || !data?.headline) return null;
 
   return (

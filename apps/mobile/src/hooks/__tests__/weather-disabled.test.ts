@@ -1,5 +1,5 @@
 /**
- * Issue #272: Open-Meteo's free endpoint is licensed for non-commercial use only,
+ * Issue 272: Open-Meteo's free endpoint is licensed for non-commercial use only,
  * so with WEATHER_ENABLED off the app must make ZERO requests to it: no fetch,
  * no react-query query, and no location prompt on the weather's behalf.
  *
@@ -40,7 +40,7 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-describe('weather disabled (#272)', () => {
+describe('weather disabled (issue 272)', () => {
   it('ships with the switch off', () => {
     expect(WEATHER_ENABLED).toBe(false);
   });

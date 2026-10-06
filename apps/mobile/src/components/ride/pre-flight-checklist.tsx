@@ -46,7 +46,7 @@ export function PreFlightChecklist({ motorcycleId }: PreFlightChecklistProps) {
     };
   }, []);
 
-  // Weather — hidden entirely while WEATHER_ENABLED is off (#272).
+  // Weather — hidden entirely while WEATHER_ENABLED is off (issue 272).
   const {
     enabled: weatherEnabled,
     data: weather,

@@ -80,7 +80,7 @@ export async function resolveWeatherLocation(): Promise<ResolvedWeatherLocation>
 }
 
 export interface UseWeatherResult {
-  /** False while weather is switched off (WEATHER_ENABLED, #272): render nothing. */
+  /** False while weather is switched off (WEATHER_ENABLED, issue 272): render nothing. */
   enabled: boolean;
   data: WeatherSummary | undefined;
   isLoading: boolean;
@@ -135,7 +135,7 @@ function buildHeadline(days: DayForecast[]): string {
 // --- Fetcher ---
 
 // Open-Meteo's free endpoint is licensed for NON-COMMERCIAL use only, and
-// MotoVault sells subscriptions (#272). The code stays so a licensed provider
+// MotoVault sells subscriptions (issue 272). The code stays so a licensed provider
 // can replace it, but it never runs while WEATHER_ENABLED is false.
 
 const OPEN_METEO_BASE = 'https://api.open-meteo.com/v1/forecast';
@@ -148,7 +148,7 @@ const DAILY_PARAMS =
  * never a message match), so a refactor back to a bare `Error` must fail a
  * test rather than silently re-open Sentry MOTO-VAULT-REACT-NATIVE-35.
  */
-export const WEATHER_DISABLED_MESSAGE = 'Weather is disabled (WEATHER_ENABLED=false, #272)';
+export const WEATHER_DISABLED_MESSAGE = 'Weather is disabled (WEATHER_ENABLED=false, issue 272)';
 
 export async function fetchForecast(coords: Coordinates): Promise<WeatherSummary> {
   // Second line of defence: even a caller that bypasses the hook cannot reach
@@ -195,7 +195,7 @@ const DISABLED_RESULT: UseWeatherResult = {
 };
 
 /**
- * Weather switched off (#272): no location request, no query, no fetch.
+ * Weather switched off (issue 272): no location request, no query, no fetch.
  * Uses no hooks, so swapping it in at module load keeps the rules of hooks.
  */
 function useDisabledWeatherForecast(): UseWeatherResult {

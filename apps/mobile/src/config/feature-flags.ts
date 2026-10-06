@@ -11,7 +11,7 @@
  *
  * OFF because the only provider wired up, Open-Meteo's free endpoint
  * (`api.open-meteo.com`), is licensed for non-commercial use only and
- * MotoVault sells subscriptions — see issue #272. While this is `false` the
+ * MotoVault sells subscriptions — see issue 272. While this is `false` the
  * app must make ZERO requests to Open-Meteo: `useWeatherForecast` returns a
  * disabled state without resolving location or fetching, `fetchForecast`
  * refuses to run, and every weather surface hides itself.
