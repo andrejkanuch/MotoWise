@@ -16,7 +16,13 @@ import { WEB_TRIAL_DAYS, webOfferCopy } from '@/lib/pro-plan';
  */
 
 const SRC = path.join(process.cwd(), 'src');
-const GARAGE_DASHBOARD = path.join(SRC, 'app/(community)/garage/garage-dashboard.tsx');
+const GARAGE_DIR = path.join(SRC, 'app/(community)/garage');
+const PROFILE_DIR = path.join(SRC, 'app/(community)/profile');
+const GARAGE_DASHBOARD = path.join(GARAGE_DIR, 'garage-dashboard.tsx');
+const GENERATED_GRAPHQL = path.join(
+  process.cwd(),
+  '../../packages/graphql/src/generated/graphql.ts',
+);
 const PRO_DIR = path.join(SRC, 'app/pro');
 const MESSAGES_DIR = path.join(process.cwd(), 'messages');
 
@@ -59,6 +65,62 @@ describe('free logging contract (web garage)', () => {
     expect(sections).toContain('<MaintenanceSection');
     expect(sections).not.toMatch(/isPro/);
     expect(sections).not.toMatch(/blur\(/);
+  });
+});
+
+/**
+ * Every generated GraphQL document whose operation is a mutation. Read from the
+ * codegen output so a new mutation is covered without touching this test.
+ */
+function mutationDocumentNames(): string[] {
+  const generated = fs.readFileSync(GENERATED_GRAPHQL, 'utf8');
+  return [
+    ...generated.matchAll(
+      /export const (\w+Document) = \{"kind":"Document","definitions":\[\{"kind":"OperationDefinition","operation":"mutation"/g,
+    ),
+  ].map((m) => m[1]);
+}
+
+/**
+ * Guard (#277): the web displays, the app does. The garage and profile pages
+ * show a rider's data but never create or edit it — logging, completing
+ * maintenance and editing the profile happen in the app. Displaying expenses
+ * and maintenance stays free (above); acting on them moves to the app.
+ *
+ * The one allowed write is account management: the billing-portal session a
+ * web (Stripe) subscriber needs to manage or cancel Pro.
+ */
+describe('read-only contract (web garage + profile)', () => {
+  const ALLOWED_MUTATIONS = new Set(['CreateBillingPortalSessionDocument']);
+  const files = [...listFiles(GARAGE_DIR), ...listFiles(PROFILE_DIR)].filter((f) =>
+    /\.tsx?$/.test(f),
+  );
+  const mutations = mutationDocumentNames();
+
+  it('finds the generated mutation documents', () => {
+    expect(mutations).toContain('LogExpenseDocument');
+    expect(mutations).toContain('CompleteMaintenanceTaskDocument');
+  });
+
+  it('calls no data mutation and no server action', () => {
+    for (const file of files) {
+      const src = fs.readFileSync(file, 'utf8');
+      const rel = path.relative(SRC, file);
+      expect(src, rel).not.toMatch(/useMutation|['"]use server['"]/);
+      const used = mutations.filter(
+        (name) => !ALLOWED_MUTATIONS.has(name) && new RegExp(`\\b${name}\\b`).test(src),
+      );
+      expect(used, rel).toEqual([]);
+    }
+  });
+
+  it('has no profile edit route', () => {
+    expect(fs.existsSync(path.join(PROFILE_DIR, 'edit'))).toBe(false);
+    for (const file of files) {
+      expect(fs.readFileSync(file, 'utf8'), path.relative(SRC, file)).not.toMatch(
+        /\/profile\/edit/,
+      );
+    }
   });
 });
 

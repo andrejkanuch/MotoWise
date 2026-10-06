@@ -57,7 +57,6 @@ export const WebEvent = {
 
   // Community
   PROFILE_VIEWED: 'profile_viewed',
-  PROFILE_EDITED: 'profile_edited',
   GARAGE_VIEWED: 'garage_viewed',
 
   // Tools

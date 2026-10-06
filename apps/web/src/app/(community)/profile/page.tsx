@@ -4,9 +4,9 @@ import type { GetRiderProfileQuery, MeQuery } from '@motovault/graphql';
 import { GetRiderProfileDocument, MeDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { MapPin } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect } from 'react';
+import { DoInAppHint } from '@/components/do-in-app-hint';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { ProBanner } from './pro-banner';
@@ -17,7 +17,6 @@ type RideStats = GetRiderProfileQuery['getRiderProfile']['rideStats'];
 
 export default function ProfilePage() {
   const t = useTranslations('Profile');
-  const router = useRouter();
 
   const {
     data: meData,
@@ -42,13 +41,6 @@ export default function ProfilePage() {
   useEffect(() => {
     trackEvent(WebEvent.PROFILE_VIEWED);
   }, []);
-
-  // If no public profile set up, redirect to edit
-  useEffect(() => {
-    if (!meLoading && user && !user.publicUsername) {
-      router.replace('/profile/edit');
-    }
-  }, [meLoading, user, router]);
 
   if (meLoading) {
     return (
@@ -90,9 +82,15 @@ export default function ProfilePage() {
 
   if (!user) return null;
 
+  // Read-only (#277): the public profile is set up and edited in the app. The
+  // ProBanner stays so a Pro rider without a public username still reaches the
+  // manage/cancel path.
   if (!user.publicUsername) {
     return (
       <div className="garage-page" style={{ textAlign: 'center', paddingTop: '80px' }}>
+        <div className="garage-inner" style={{ maxWidth: '780px', textAlign: 'left' }}>
+          <ProBanner />
+        </div>
         <p style={{ fontSize: '18px', color: 'var(--mv-ink-2)' }}>{t('setupProfile')}</p>
         <p
           style={{
@@ -105,13 +103,7 @@ export default function ProfilePage() {
         >
           {t('setupDesc')}
         </p>
-        <a
-          href="/profile/edit"
-          className="mv-btn primary"
-          style={{ marginTop: '16px', display: 'inline-flex' }}
-        >
-          {t('createProfile')}
-        </a>
+        <DoInAppHint className="app-hint-spaced" />
       </div>
     );
   }
@@ -214,9 +206,7 @@ export default function ProfilePage() {
                 )}
               </div>
             </div>
-            <a href="/profile/edit" className="mv-btn">
-              {t('editProfile')}
-            </a>
+            <DoInAppHint />
           </div>
 
           {user.bio && (
