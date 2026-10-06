@@ -36,7 +36,7 @@ jest.mock('../../lib/analytics', () => ({
   captureException: jest.fn(),
   addBreadcrumb: jest.fn(),
   trackEvent: jest.fn(),
-  AnalyticsEvent: { RIDE_AUTO_SAVED: 'ride_auto_saved' },
+  AnalyticsEvent: { RIDE_AUTO_SAVED: 'ride_auto_saved', RIDE_COMPLETED: 'ride_completed' },
 }));
 jest.mock('../ride-reminders', () => ({
   noteRideMovement: jest.fn(),
