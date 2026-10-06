@@ -3149,5 +3149,51 @@
     "message": "Your whole moto life in one app.",
     "cta": "Get MotoVault",
     "dismiss": "Dismiss"
+  },
+  "AuthV2": {
+    "homeLabel": "MotoVault home",
+    "orWithEmail": "or with email",
+    "google": "Google",
+    "apple": "Apple",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithApple": "Continue with Apple",
+    "redirecting": "Redirecting...",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "legal": "By continuing you confirm you've read and accepted our <terms>Terms</terms> and <privacy>Privacy Policy</privacy>.",
+    "resendConfirmation": "Resend confirmation email",
+    "resendSending": "Sending…",
+    "resendSent": "Confirmation email sent — check your inbox.",
+    "signIn": {
+      "eyebrow": "Sign in",
+      "title": "Welcome <serif>back.</serif>",
+      "subtitle": "Pick up where you left off — your garage, routes and history sync across all devices.",
+      "forgot": "Forgot?",
+      "submit": "Sign in",
+      "submitting": "One moment…",
+      "resetPassword": "Reset your password",
+      "altPrompt": "No account yet?",
+      "altCta": "Create account"
+    },
+    "signUp": {
+      "eyebrow": "Create account",
+      "title": "Start your <serif>logbook.</serif>",
+      "subtitle": "Free forever for logging. Pro removes the limits.",
+      "passwordPlaceholder": "At least 6 characters",
+      "confirmPasswordLabel": "Confirm password",
+      "submit": "Create account",
+      "submitting": "Creating account…",
+      "altPrompt": "Already a rider?",
+      "altCta": "Sign in"
+    },
+    "checkEmail": {
+      "title": "Check your <serif>email.</serif>",
+      "body": "Check your email for a confirmation link to complete your registration.",
+      "nothingArrived": "Nothing arrived?",
+      "differentEmail": "Use a different email"
+    }
   }
 }

@@ -3149,5 +3149,51 @@
     "message": "Toda tu vida en moto en una app.",
     "cta": "Descargar MotoVault",
     "dismiss": "Cerrar"
+  },
+  "AuthV2": {
+    "homeLabel": "Inicio de MotoVault",
+    "orWithEmail": "o con email",
+    "google": "Google",
+    "apple": "Apple",
+    "continueWithGoogle": "Continuar con Google",
+    "continueWithApple": "Continuar con Apple",
+    "redirecting": "Redirigiendo...",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Contraseña",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
+    "legal": "Al continuar confirmas que has leído y aceptado nuestros <terms>Términos</terms> y la <privacy>Política de privacidad</privacy>.",
+    "resendConfirmation": "Reenviar email de confirmación",
+    "resendSending": "Enviando…",
+    "resendSent": "Email de confirmación enviado: revisa tu bandeja de entrada.",
+    "signIn": {
+      "eyebrow": "Iniciar sesión",
+      "title": "Bienvenido <serif>de nuevo.</serif>",
+      "subtitle": "Retoma donde lo dejaste: tu garaje, rutas e historial se sincronizan en todos tus dispositivos.",
+      "forgot": "¿La olvidaste?",
+      "submit": "Iniciar sesión",
+      "submitting": "Un momento…",
+      "resetPassword": "Restablecer contraseña",
+      "altPrompt": "¿Aún no tienes cuenta?",
+      "altCta": "Crear cuenta"
+    },
+    "signUp": {
+      "eyebrow": "Crear cuenta",
+      "title": "Empieza tu <serif>bitácora.</serif>",
+      "subtitle": "Registrar es gratis para siempre. Pro elimina los límites.",
+      "passwordPlaceholder": "Al menos 6 caracteres",
+      "confirmPasswordLabel": "Confirmar contraseña",
+      "submit": "Crear cuenta",
+      "submitting": "Creando cuenta…",
+      "altPrompt": "¿Ya eres motero?",
+      "altCta": "Iniciar sesión"
+    },
+    "checkEmail": {
+      "title": "Revisa tu <serif>email.</serif>",
+      "body": "Revisa tu email: te enviamos un enlace de confirmación para completar el registro.",
+      "nothingArrived": "¿No te llegó nada?",
+      "differentEmail": "Usar otro email"
+    }
   }
 }

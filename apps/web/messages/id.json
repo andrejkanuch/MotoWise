@@ -1064,5 +1064,51 @@
     "barOpen": "Buka aplikasi",
     "barDismiss": "Tutup",
     "barRegion": "Dapatkan aplikasi"
+  },
+  "AuthV2": {
+    "homeLabel": "Beranda MotoVault",
+    "orWithEmail": "atau dengan email",
+    "google": "Google",
+    "apple": "Apple",
+    "continueWithGoogle": "Lanjutkan dengan Google",
+    "continueWithApple": "Lanjutkan dengan Apple",
+    "redirecting": "Mengalihkan...",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Kata sandi",
+    "showPassword": "Tampilkan kata sandi",
+    "hidePassword": "Sembunyikan kata sandi",
+    "legal": "Dengan melanjutkan, Anda mengonfirmasi telah membaca dan menyetujui <terms>Ketentuan</terms> dan <privacy>Kebijakan Privasi</privacy> kami.",
+    "resendConfirmation": "Kirim ulang email konfirmasi",
+    "resendSending": "Mengirim…",
+    "resendSent": "Email konfirmasi terkirim — cek kotak masuk Anda.",
+    "signIn": {
+      "eyebrow": "Masuk",
+      "title": "Selamat datang <serif>kembali.</serif>",
+      "subtitle": "Lanjutkan dari terakhir kali — garasi, rute, dan riwayat Anda tersinkron di semua perangkat.",
+      "forgot": "Lupa?",
+      "submit": "Masuk",
+      "submitting": "Sebentar…",
+      "resetPassword": "Atur ulang kata sandi",
+      "altPrompt": "Belum punya akun?",
+      "altCta": "Buat akun"
+    },
+    "signUp": {
+      "eyebrow": "Buat akun",
+      "title": "Mulai <serif>logbook</serif> Anda.",
+      "subtitle": "Pencatatan gratis selamanya. Pro menghapus batasannya.",
+      "passwordPlaceholder": "Minimal 6 karakter",
+      "confirmPasswordLabel": "Konfirmasi kata sandi",
+      "submit": "Buat akun",
+      "submitting": "Membuat akun…",
+      "altPrompt": "Sudah jadi rider?",
+      "altCta": "Masuk"
+    },
+    "checkEmail": {
+      "title": "Cek <serif>email</serif> Anda.",
+      "body": "Cek email Anda untuk tautan konfirmasi guna menyelesaikan pendaftaran.",
+      "nothingArrived": "Tidak ada yang masuk?",
+      "differentEmail": "Gunakan email lain"
+    }
   }
 }

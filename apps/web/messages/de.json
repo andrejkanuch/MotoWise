@@ -3149,5 +3149,51 @@
     "message": "Dein ganzes Bike-Leben in einer App.",
     "cta": "MotoVault holen",
     "dismiss": "Schließen"
+  },
+  "AuthV2": {
+    "homeLabel": "MotoVault Startseite",
+    "orWithEmail": "oder mit E-Mail",
+    "google": "Google",
+    "apple": "Apple",
+    "continueWithGoogle": "Weiter mit Google",
+    "continueWithApple": "Weiter mit Apple",
+    "redirecting": "Weiterleitung...",
+    "emailLabel": "E-Mail",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Passwort",
+    "showPassword": "Passwort anzeigen",
+    "hidePassword": "Passwort verbergen",
+    "legal": "Mit dem Fortfahren bestätigst du, dass du unsere <terms>AGB</terms> und <privacy>Datenschutzerklärung</privacy> gelesen und akzeptiert hast.",
+    "resendConfirmation": "Bestätigungs-E-Mail erneut senden",
+    "resendSending": "Wird gesendet…",
+    "resendSent": "Bestätigungs-E-Mail gesendet – sieh in deinem Posteingang nach.",
+    "signIn": {
+      "eyebrow": "Anmelden",
+      "title": "Willkommen <serif>zurück.</serif>",
+      "subtitle": "Mach da weiter, wo du aufgehört hast – Garage, Routen und Verlauf sind auf allen Geräten synchron.",
+      "forgot": "Vergessen?",
+      "submit": "Anmelden",
+      "submitting": "Einen Moment…",
+      "resetPassword": "Passwort zurücksetzen",
+      "altPrompt": "Noch kein Konto?",
+      "altCta": "Konto erstellen"
+    },
+    "signUp": {
+      "eyebrow": "Konto erstellen",
+      "title": "Starte dein <serif>Logbuch.</serif>",
+      "subtitle": "Erfassen ist für immer kostenlos. Pro hebt die Limits auf.",
+      "passwordPlaceholder": "Mindestens 6 Zeichen",
+      "confirmPasswordLabel": "Passwort bestätigen",
+      "submit": "Konto erstellen",
+      "submitting": "Konto wird erstellt…",
+      "altPrompt": "Schon dabei?",
+      "altCta": "Anmelden"
+    },
+    "checkEmail": {
+      "title": "Prüfe deine <serif>E-Mails.</serif>",
+      "body": "Wir haben dir einen Bestätigungslink geschickt. Öffne ihn, um die Registrierung abzuschließen.",
+      "nothingArrived": "Nichts angekommen?",
+      "differentEmail": "Andere E-Mail verwenden"
+    }
   }
 }
