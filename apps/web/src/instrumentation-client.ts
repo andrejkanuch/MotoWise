@@ -15,6 +15,15 @@ captureCampaignParams();
 // ── Sentry ──────────────────────────────────────────────────────────────────
 Sentry.init({
   dsn: 'https://a3cf72113ed0793fa895a40f6baa3ab1@o4510167517954048.ingest.us.sentry.io/4511299447291904',
+  // Report only from production builds, like the server and edge configs.
+  // MOTOVAULT-WEB-1Q was a `next dev` session on localhost:3000 (a headless
+  // browser in a checkout with no .env.local) landing in the production project.
+  // This uses NODE_ENV, not VERCEL_ENV like the server: VERCEL_ENV is not
+  // inlined into the client bundle, and turbo.json excludes NEXT_PUBLIC_VERCEL_*.
+  // Vercel builds every deployment with NODE_ENV=production, and previews are
+  // off (vercel.json git.deploymentEnabled), so this keeps production reporting
+  // and drops `next dev`.
+  enabled: process.env.NODE_ENV === 'production',
   integrations: [Sentry.replayIntegration()],
   tracesSampleRate: 1,
   enableLogs: true,

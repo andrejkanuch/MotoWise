@@ -227,6 +227,96 @@ describe('shouldDropClientEvent', () => {
     });
   });
 
+  describe('wallet extension (MOTOVAULT-WEB-1N)', () => {
+    it('drops MetaMask in-page provider failures', () => {
+      expect(
+        shouldDropClientEvent(
+          eventWithExceptions([
+            {
+              value: 'MetaMask extension not found',
+              frames: [{ filename: 'app:///scripts/inpage.js' }],
+            },
+            {
+              value: 'Failed to connect to MetaMask',
+              frames: [{ filename: 'app:///scripts/inpage.js' }],
+            },
+          ]),
+        ),
+      ).toBe(true);
+    });
+  });
+
+  describe('injected scripts outside the bundle (MOTOVAULT-WEB-1H, -1J, -1P)', () => {
+    it('drops global-handler events whose frames all point at the page document', () => {
+      // -1H: Google app on iOS, recursion attributed to line 226 of a 211-line page.
+      expect(
+        shouldDropClientEvent(
+          eventWith('Maximum call stack size exceeded.', {
+            type: 'RangeError',
+            mechanismType: 'auto.browser.global_handlers.onerror',
+            frames: [
+              { filename: 'app:///blog/motorcycle-check-engine-light-guide' },
+              { filename: 'app:///blog/motorcycle-check-engine-light-guide' },
+            ],
+          }),
+        ),
+      ).toBe(true);
+      // -1P: Chrome on iOS, an unhandled rejection with the opaque message "La".
+      expect(
+        shouldDropClientEvent(
+          eventWith('La', {
+            mechanismType: 'auto.browser.global_handlers.onunhandledrejection',
+            frames: [{ filename: 'app:///blog/yamaha-tenere-700-service-intervals' }],
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('drops global-handler events from files the site does not serve', () => {
+      // -1J: an automation tool's `executors/200.js`.
+      expect(
+        shouldDropClientEvent(
+          eventWith("Cannot read properties of undefined (reading 'M_ID')", {
+            type: 'TypeError',
+            mechanismType: 'auto.browser.global_handlers.onunhandledrejection',
+            frames: [{ filename: 'app:///executors/200.js' }],
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('keeps global-handler events with a first-party /_next/ frame', () => {
+      expect(
+        shouldDropClientEvent(
+          eventWith("Cannot read properties of undefined (reading 'id')", {
+            type: 'TypeError',
+            mechanismType: 'auto.browser.global_handlers.onerror',
+            frames: [
+              { filename: 'app:///executors/200.js' },
+              { filename: 'app:///_next/static/immutable/chunks/app.js' },
+            ],
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('keeps events we capture ourselves, and stackless global-handler events', () => {
+      expect(
+        shouldDropClientEvent(
+          eventWith('La', {
+            mechanismType: 'generic',
+            frames: [{ filename: 'app:///blog/some-post' }],
+          }),
+        ),
+      ).toBe(false);
+      expect(
+        shouldDropClientEvent(
+          eventWith('Something broke', { mechanismType: 'auto.browser.global_handlers.onerror' }),
+        ),
+      ).toBe(false);
+    });
+  });
+
   it('keeps unrelated first-party errors', () => {
     expect(
       shouldDropClientEvent(

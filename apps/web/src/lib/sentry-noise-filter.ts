@@ -134,6 +134,38 @@ function shouldDropExceptions(exceptions: NoiseException[] | undefined): boolean
     return true;
   }
 
+  // Wallet-extension failures (MOTOVAULT-WEB-1N "Failed to connect to MetaMask",
+  // chained to "MetaMask extension not found" from `scripts/inpage.js`). The
+  // wallet's own in-page provider throws when its extension is missing or locked;
+  // we never call a wallet API.
+  if (!hasFirstPartyFrame && exceptions.some((e) => e.value?.includes('MetaMask'))) {
+    return true;
+  }
+
+  // Injected-script errors that reach the global handlers with a stack that lies
+  // entirely outside our bundle (MOTOVAULT-WEB-1H, -1J, -1P). In-app browsers
+  // (the Google app, Chrome on iOS) inject minified scripts whose frames Sentry
+  // attributes to the page document itself — `app:///blog/<slug>:226:63` on a
+  // document that has 211 lines — and automation tools inject their own files
+  // (`app:///executors/200.js`, which the site does not serve). Every first-party
+  // module is served from `/_next/`, and the only first-party inline scripts are
+  // one-line constants (the theme class, the console banner, JSON-LD) that cannot
+  // throw, so a global-handler event with filenamed frames and none under
+  // `/_next/` is not ours. Scoped to the global handlers so an error we capture
+  // ourselves always reports.
+  const isGlobalHandler = exceptions.some((e) => {
+    const mechanism = e.mechanism?.type ?? '';
+    return mechanism.endsWith('onerror') || mechanism.endsWith('onunhandledrejection');
+  });
+  const frames = exceptions.flatMap((e) => e.stacktrace?.frames ?? []);
+  if (
+    isGlobalHandler &&
+    frames.length > 0 &&
+    frames.every((f) => f.filename && !f.filename.includes('/_next/'))
+  ) {
+    return true;
+  }
+
   return false;
 }
 
