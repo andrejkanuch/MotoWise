@@ -1,17 +1,24 @@
+import * as Sentry from '@sentry/nestjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RevenueCatEvent } from './dto/revenuecat-event.dto';
 import { RevenueCatService } from './revenuecat.service';
+import { LIFETIME_PRODUCT_IDS } from './revenuecat-products';
+
+vi.mock('@sentry/nestjs', () => ({ captureMessage: vi.fn(), addBreadcrumb: vi.fn() }));
 
 /**
  * RevenueCat webhook processing (audit: ad-attribution + idempotency guards).
  *
  * Covers the event-handling invariants that, if regressed, double-count ad spend or
  * make RevenueCat retry a permanently-failing delivery forever:
- *  - NON_RENEWING_PURCHASE (lifetime Pro) → routed through the entitlement RPC
+ *  - NON_RENEWING_PURCHASE → lifetime Pro ONLY for a known lifetime SKU; a
+ *    product with an expiry is time-limited; anything else grants nothing
  *  - plain RENEWAL → NO Meta 'Subscribe' (only trial-converting renewals fire it)
  *  - first INITIAL_PURCHASE (non-trial) → fires 'Subscribe' exactly once
  */
 const VALID_UUID = '11111111-1111-1111-1111-111111111111';
+const LIFETIME_V4 = 'motovault_lifetime_v4';
+const ALLOWED_SANDBOX_UUID = '22222222-2222-2222-2222-222222222222';
 
 function baseEvent(overrides: Partial<RevenueCatEvent> = {}): RevenueCatEvent {
   return {
@@ -48,7 +55,11 @@ describe('RevenueCatService.processEvent', () => {
 
     service = new RevenueCatService(
       {
-        get: vi.fn((key: string) => (key === 'REVENUECAT_SECRET_API_KEY' ? 'sk_test' : undefined)),
+        get: vi.fn((key: string) => {
+          if (key === 'REVENUECAT_SECRET_API_KEY') return 'sk_test';
+          if (key === 'REVENUECAT_SANDBOX_ALLOWED_USER_IDS') return [ALLOWED_SANDBOX_UUID];
+          return undefined;
+        }),
       } as never,
       adminClient as never,
       meta as never,
@@ -69,9 +80,169 @@ describe('RevenueCatService.processEvent', () => {
     expect(adminClient.rpc).not.toHaveBeenCalled();
   });
 
+  describe('SANDBOX events (Stripe test mode, App Store sandbox / TestFlight, Play testers)', () => {
+    it.each([
+      ['Stripe test card', 'STRIPE'],
+      ['TestFlight / App Store sandbox', 'APP_STORE'],
+      ['Play license tester', 'PLAY_STORE'],
+    ])('ignores a %s purchase by a user not on the allowlist (no entitlement write, 200)', async (_label, store) => {
+      await expect(
+        service.processEvent(
+          baseEvent({ environment: 'SANDBOX', store, product_id: 'motovault_pro_monthly_v4' }),
+        ),
+      ).resolves.toBeUndefined();
+      await flush();
+      expect(adminClient.rpc).not.toHaveBeenCalled();
+      expect(meta.sendAppEvent).not.toHaveBeenCalled();
+      expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'revenuecat.webhook',
+          data: expect.objectContaining({ eventId: 'evt-1', appUserId: VALID_UUID, store }),
+        }),
+      );
+    });
+
+    it('ignores every sandbox event type, not just purchases (e.g. a sandbox lifetime SKU)', async () => {
+      await service.processEvent(
+        baseEvent({
+          type: 'NON_RENEWING_PURCHASE',
+          environment: 'SANDBOX',
+          product_id: LIFETIME_V4,
+        }),
+      );
+      expect(adminClient.rpc).not.toHaveBeenCalled();
+    });
+
+    it('processes a sandbox event for an allowlisted user', async () => {
+      await service.processEvent(
+        baseEvent({
+          app_user_id: ALLOWED_SANDBOX_UUID,
+          environment: 'SANDBOX',
+          store: 'APP_STORE',
+        }),
+      );
+      expect(adminClient.rpc).toHaveBeenCalledWith(
+        'process_revenuecat_event',
+        expect.objectContaining({ p_app_user_id: ALLOWED_SANDBOX_UUID, p_environment: 'SANDBOX' }),
+      );
+      expect(Sentry.addBreadcrumb).not.toHaveBeenCalled();
+    });
+
+    it('processes PRODUCTION events as before', async () => {
+      await service.processEvent(baseEvent({ environment: 'PRODUCTION' }));
+      expect(adminClient.rpc).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('CANCELLATION + EXPIRATION delivered together: RPC pass-through only', () => {
+    // RPC pass-through only: the RPC is mocked, so this proves nothing about the
+    // resulting row. The order-independent state machine lives in
+    // process_revenuecat_event (00185) and is checked by
+    // supabase/checks/process_revenuecat_event.sql (run supabase/checks/run.sh).
+    // Here the service must hand both events to the RPC with the event's own
+    // (past) expiry, in whichever order they land.
+    const pastMs = Date.UTC(2026, 9, 6, 6, 54, 7);
+    const cancellation = baseEvent({
+      id: 'evt-cancel',
+      type: 'CANCELLATION',
+      expiration_at_ms: pastMs,
+    });
+    const expiration = baseEvent({
+      id: 'evt-expire',
+      type: 'EXPIRATION',
+      expiration_at_ms: pastMs,
+    });
+
+    it.each([
+      ['EXPIRATION then CANCELLATION', [expiration, cancellation]],
+      ['CANCELLATION then EXPIRATION', [cancellation, expiration]],
+    ])('%s: both reach the RPC with the past expiry', async (_label, events) => {
+      for (const event of events) await service.processEvent(event);
+      expect(adminClient.rpc.mock.calls.map(([, args]) => args.p_event_type)).toEqual(
+        events.map((event) => event.type),
+      );
+      for (const [, args] of adminClient.rpc.mock.calls) {
+        expect(args.p_expiration_at).toBe(new Date(pastMs).toISOString());
+      }
+    });
+  });
+
   describe('NON_RENEWING_PURCHASE (lifetime Pro)', () => {
+    it.each(
+      LIFETIME_PRODUCT_IDS,
+    )('grants lifetime (NULL expiry) for lifetime SKU %s', async (productId) => {
+      await service.processEvent(
+        baseEvent({
+          type: 'NON_RENEWING_PURCHASE',
+          id: `txn-${productId}`,
+          product_id: productId,
+          // Even if RC ever sent an expiry, a lifetime SKU stays lifetime.
+          expiration_at_ms: Date.UTC(2027, 0, 1),
+        }),
+      );
+      expect(adminClient.rpc).toHaveBeenCalledWith(
+        'process_revenuecat_event',
+        expect.objectContaining({
+          p_event_type: 'NON_RENEWING_PURCHASE',
+          p_product_id: productId,
+          p_expiration_at: null,
+        }),
+      );
+      expect(Sentry.captureMessage).not.toHaveBeenCalled();
+    });
+
+    it('grants a time-limited Pro (event expiry) for a non-lifetime product that carries one', async () => {
+      const expiresMs = Date.UTC(2027, 1, 1);
+      await service.processEvent(
+        baseEvent({
+          type: 'NON_RENEWING_PURCHASE',
+          id: 'txn-season',
+          product_id: 'motovault_season_pass',
+          expiration_at_ms: expiresMs,
+        }),
+      );
+      expect(adminClient.rpc).toHaveBeenCalledWith(
+        'process_revenuecat_event',
+        expect.objectContaining({
+          p_event_type: 'NON_RENEWING_PURCHASE',
+          p_product_id: 'motovault_season_pass',
+          p_expiration_at: new Date(expiresMs).toISOString(),
+        }),
+      );
+    });
+
+    it.each([
+      ['an unknown product', 'motovault_tip_jar'],
+      ['a missing product id', undefined],
+    ])('grants nothing and reports %s with no expiry (never lifetime)', async (_label, productId) => {
+      await expect(
+        service.processEvent(
+          baseEvent({
+            type: 'NON_RENEWING_PURCHASE',
+            id: 'txn-unknown',
+            product_id: productId,
+            expiration_at_ms: null,
+            price: 2.99,
+            currency: 'USD',
+          }),
+        ),
+      ).resolves.toBeUndefined();
+      await flush();
+      expect(adminClient.rpc).not.toHaveBeenCalled();
+      expect(meta.sendAppEvent).not.toHaveBeenCalled();
+      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+        expect.stringContaining('no Pro granted'),
+        expect.objectContaining({
+          level: 'warning',
+          extra: expect.objectContaining({ eventId: 'txn-unknown', productId: productId ?? null }),
+        }),
+      );
+    });
+
     it('routes the lifetime purchase through the entitlement RPC (grants Pro, no health report)', async () => {
-      await service.processEvent(baseEvent({ type: 'NON_RENEWING_PURCHASE', id: 'txn-1' }));
+      await service.processEvent(
+        baseEvent({ type: 'NON_RENEWING_PURCHASE', id: 'txn-1', product_id: LIFETIME_V4 }),
+      );
       expect(adminClient.rpc).toHaveBeenCalledWith(
         'process_revenuecat_event',
         expect.objectContaining({
@@ -88,13 +259,21 @@ describe('RevenueCatService.processEvent', () => {
         error: { message: 'event already_processed' },
       });
       await expect(
-        service.processEvent(baseEvent({ type: 'NON_RENEWING_PURCHASE', id: 'txn-1' })),
+        service.processEvent(
+          baseEvent({ type: 'NON_RENEWING_PURCHASE', id: 'txn-1', product_id: LIFETIME_V4 }),
+        ),
       ).resolves.toBeUndefined();
     });
 
     it('fires Meta Subscribe for a lifetime purchase (paid conversion)', async () => {
       await service.processEvent(
-        baseEvent({ type: 'NON_RENEWING_PURCHASE', id: 'txn-1', price: 99.99, currency: 'USD' }),
+        baseEvent({
+          type: 'NON_RENEWING_PURCHASE',
+          id: 'txn-1',
+          product_id: LIFETIME_V4,
+          price: 99.99,
+          currency: 'USD',
+        }),
       );
       await Promise.resolve();
       await Promise.resolve();

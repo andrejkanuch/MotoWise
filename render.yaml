@@ -57,6 +57,11 @@ envVarGroups:
         sync: false
       - key: REVENUECAT_WEBHOOK_SECRET
         sync: false
+      # Comma-separated user UUIDs whose RevenueCat SANDBOX events (Stripe test
+      # cards, TestFlight / App Store sandbox, Play testers) may write
+      # entitlements. Unset → every sandbox event is ignored. Optional.
+      - key: REVENUECAT_SANDBOX_ALLOWED_USER_IDS
+        sync: false
       # MOT-278: shared secret for the maintenance-due push trigger endpoint; must
       # match the Supabase Vault secret `maintenance_push_secret`. The endpoint fails
       # closed when unset. Value is set in the Render dashboard (sync: false).

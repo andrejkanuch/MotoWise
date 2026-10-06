@@ -571,10 +571,22 @@ export const AnalyticsEvent = {
   // Feature usage — Garage
   GARAGE_BIKE_ADDED: 'garage_bike_added',
   GARAGE_BIKE_REMOVED: 'garage_bike_removed',
+  /**
+   * CANONICAL PostHog maintenance events: `maintenance_task_created` (a task or
+   * logged service was added) and `maintenance_task_completed` (marked done, from
+   * the form or the reminder's "Mark done"). Analyse maintenance on these names.
+   *
+   * `maintenance_log_added` is NOT a PostHog event any more — it was a Meta-named
+   * alias of `maintenance_task_created` captured a second time into PostHog (and
+   * still arrives from builds before 3.21.0, so exclude it from insights). Meta's
+   * own copy goes through `MetaAnalytics.trackLogMaintenance` (the FB SDK, event
+   * `fb_mobile_spent_credits`), which is untouched by PostHog.
+   */
   MAINTENANCE_TASK_CREATED: 'maintenance_task_created',
   MAINTENANCE_TASK_UPDATED: 'maintenance_task_updated',
   MAINTENANCE_TASK_COMPLETED: 'maintenance_task_completed',
   MAINTENANCE_TASK_DELETED: 'maintenance_task_deleted',
+  /** CANONICAL "expense created" — every path, split by `entry_source` (lib/expense-analytics.ts). */
   EXPENSE_ADDED: 'expense_added',
   EXPENSE_QUICK_ADD_TAPPED: 'expense_quick_add_tapped',
   EXPENSE_DASHBOARD_VIEWED: 'expense_dashboard_viewed',
@@ -617,7 +629,8 @@ export const AnalyticsEvent = {
   DOCUMENTS_SECTION_VIEWED: 'documents_section_viewed',
   DOCUMENT_EXPIRY_ALERT_TAPPED: 'document_expiry_alert_tapped',
 
-  // Rides — lifecycle
+  // Rides — lifecycle. `ride_started` counts Start taps (test taps included);
+  // `ride_completed` is the CANONICAL "ride saved" event — see lib/ride-analytics.ts.
   RIDE_STARTED: 'ride_started',
   RIDE_PAUSED: 'ride_paused',
   RIDE_RESUMED: 'ride_resumed',

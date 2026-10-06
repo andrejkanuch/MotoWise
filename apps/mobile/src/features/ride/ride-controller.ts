@@ -21,6 +21,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
+import { activeRideSeconds } from '../../utils/ride-duration';
 import { encodePolyline } from '../../utils/ride-heatmap';
 import { distanceMeters, startGPSListener, stopGPSListener } from '../../utils/ride-location';
 import {
@@ -204,14 +205,16 @@ export interface RideEndSummary {
 
 /** Elapsed riding seconds derived from persisted timestamps (no UI timer needed). */
 export function elapsedRideSeconds(now: number = Date.now()): number {
-  const startedAt = rideMMKV.getStartedAt();
-  if (!startedAt) return 0;
   // Subtract banked pauses plus any pause currently in progress, so the clock
   // freezes while paused — from either surface — without a live UI timer running.
-  const pausedAt = rideMMKV.getPausedAt();
-  const inProgressPauseMs = pausedAt > 0 ? now - pausedAt : 0;
-  const totalPausedMs = rideMMKV.getTotalPausedMs() + inProgressPauseMs;
-  return Math.max(0, Math.round((now - startedAt - totalPausedMs) / 1000));
+  return activeRideSeconds(
+    {
+      startedAt: rideMMKV.getStartedAt(),
+      totalPausedMs: rideMMKV.getTotalPausedMs(),
+      pausedAt: rideMMKV.getPausedAt(),
+    },
+    now,
+  );
 }
 
 export interface EndRideOptions {
