@@ -71,28 +71,60 @@ export function collectRouteCss(manifest, readCssFile) {
       if (seen.has(relPath)) continue;
       seen.add(relPath);
       const inlined = typeof file === 'object' ? file.content : undefined;
-      css += inlined ?? readCssFile(relPath);
+      css += inlined ?? readCssOrExplain(readCssFile, relPath);
     }
   }
   return { css, files: [...seen] };
 }
 
 /**
+ * @param {(relPath: string) => string} readCssFile
+ * @param {string} relPath
+ */
+function readCssOrExplain(readCssFile, relPath) {
+  try {
+    return readCssFile(relPath);
+  } catch (error) {
+    throw new Error(`cannot read stylesheet ${relPath}: ${errorMessage(error)}`);
+  }
+}
+
+/** @param {unknown} error */
+function errorMessage(error) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Checks one route. Returns a failure line, or null when the route ships the tokens.
+ * @param {string} route
+ * @param {{ readManifest: (route: string) => string | null, readCssFile: (relPath: string) => string }} io
+ * @returns {string | null}
+ */
+function checkRoute(route, { readManifest, readCssFile }) {
+  const source = readManifest(route);
+  if (source === null) {
+    return `${route}: no client-reference manifest (route renamed or removed? update ROUTES)`;
+  }
+  const { css, files } = collectRouteCss(parseManifest(source, route), readCssFile);
+  if (REQUIRED_TOKEN_DEFINITION.test(css)) return null;
+  return `${route}: none of its ${files.length} stylesheet(s) defines --mv-page (${files.join(', ') || 'no CSS at all'})`;
+}
+
+/**
+ * Fails closed: a route whose manifest cannot be read, evaluated or lacks the
+ * route key, or whose CSS cannot be read, is reported as a failure, never skipped.
  * @param {{ routes: string[], readManifest: (route: string) => string | null, readCssFile: (relPath: string) => string }} io
  * @returns {string[]} one human-readable failure per broken route
  */
 export function findRoutesMissingTokens({ routes, readManifest, readCssFile }) {
   const failures = [];
   for (const route of routes) {
-    const source = readManifest(route);
-    if (source === null) {
-      failures.push(`${route}: no client-reference manifest (route renamed or removed? update ROUTES)`);
-      continue;
-    }
-    const { css, files } = collectRouteCss(parseManifest(source, route), readCssFile);
-    if (!REQUIRED_TOKEN_DEFINITION.test(css)) {
+    try {
+      const failure = checkRoute(route, { readManifest, readCssFile });
+      if (failure !== null) failures.push(failure);
+    } catch (error) {
       failures.push(
-        `${route}: none of its ${files.length} stylesheet(s) defines --mv-page (${files.join(', ') || 'no CSS at all'})`,
+        `${route}: could not be checked, treating as broken (manifest format changed?): ${errorMessage(error)}`,
       );
     }
   }

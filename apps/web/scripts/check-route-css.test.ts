@@ -69,6 +69,63 @@ describe('findRoutesMissingTokens', () => {
     });
     expect(failures[0]).toContain('no client-reference manifest');
   });
+
+  it('fails a route whose manifest has no entry for the route key', () => {
+    const failures = findRoutesMissingTokens({
+      routes: ['/login/page'],
+      readManifest: () =>
+        manifest('/some-other/page', {
+          layout: [{ path: 'static/chunks/a.css', inlined: true, content: TOKENS }],
+        }),
+      readCssFile: () => TOKENS,
+    });
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('/login/page');
+    expect(failures[0]).toContain('no __RSC_MANIFEST entry');
+  });
+
+  it.each([
+    ['no entryCSSFiles key', `globalThis.__RSC_MANIFEST = { "/login/page": {} };`],
+    ['an empty entryCSSFiles', manifest('/login/page', {})],
+  ])('fails a route whose manifest has %s (no CSS at all)', (_label, source) => {
+    const failures = findRoutesMissingTokens({
+      routes: ['/login/page'],
+      readManifest: () => source,
+      readCssFile: () => TOKENS,
+    });
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('/login/page');
+    expect(failures[0]).toContain('no CSS at all');
+  });
+
+  it('fails, rather than passing, when a non-inlined stylesheet cannot be read', () => {
+    const failures = findRoutesMissingTokens({
+      routes: ['/signup/page'],
+      readManifest: (route) => manifest(route, { layout: ['static/chunks/missing.css'] }),
+      readCssFile: (relPath) => {
+        throw new Error(`ENOENT: no such file, open '.next/${relPath}'`);
+      },
+    });
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('/signup/page');
+    expect(failures[0]).toContain('cannot read stylesheet static/chunks/missing.css');
+  });
+
+  it('fails a route whose manifest throws on evaluation, and still checks the others', () => {
+    const failures = findRoutesMissingTokens({
+      routes: ['/login/page', '/signup/page'],
+      readManifest: (route) =>
+        route === '/login/page'
+          ? 'throw new Error("unexpected manifest layout");'
+          : manifest(route, {
+              layout: [{ path: 'static/chunks/a.css', inlined: true, content: TOKENS }],
+            }),
+      readCssFile: () => '',
+    });
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('/login/page');
+    expect(failures[0]).toContain('unexpected manifest layout');
+  });
 });
 
 describe('manifestPathFor', () => {
