@@ -12,7 +12,7 @@ import {
   humanizeAuthError,
   recoveryForAttempt,
 } from '@/lib/auth-errors';
-import { safeRedirectPath } from '@/lib/safe-redirect';
+import { postAuthDestination } from '@/lib/post-auth-redirect';
 
 /* ------------------------------------------------------------------ */
 /*  CSS variable tokens (from marketing design-system.css / login.html) */
@@ -80,7 +80,9 @@ export default function LoginPage() {
         identifyUser(data.user.id);
       }
       const params = new URLSearchParams(window.location.search);
-      const redirectTo = safeRedirectPath(params.get('redirect'));
+      // First sign-in after confirming the email elsewhere → /welcome; else
+      // ?redirect= or /garage, as before (lib/post-auth-redirect.ts).
+      const redirectTo = postAuthDestination({ redirect: params.get('redirect'), user: data.user });
       window.location.href = redirectTo;
     }
   };

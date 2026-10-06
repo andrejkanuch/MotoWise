@@ -1064,5 +1064,24 @@
     "barOpen": "เปิดแอป",
     "barDismiss": "ปิด",
     "barRegion": "รับแอป"
+  },
+  "Welcome": {
+    "metaTitle": "รับแอป",
+    "homeLabel": "หน้าแรก MotoVault",
+    "signedInAs": "ลงชื่อเข้าใช้เป็น <b>{email}</b>",
+    "eyebrow": "สร้างบัญชีแล้ว",
+    "title": "เรียบร้อย ตอนนี้พก MotoVault <serif>ไว้ในกระเป๋า</serif>",
+    "reasonsLabel": "สิ่งที่แอปเพิ่มให้",
+    "ridesTitle": "บันทึกการขี่ด้วย GPS",
+    "ridesTag": "GPS",
+    "remindersTitle": "รับการแจ้งเตือนเข้าศูนย์ก่อนถึงกำหนด",
+    "remindersTag": "แจ้งเตือน",
+    "receiptsTitle": "สแกนใบเสร็จด้วยกล้อง",
+    "receiptsTag": "กล้อง",
+    "qrTitle": "สแกนด้วยโทรศัพท์ของคุณ",
+    "qrBody": "เปิด App Store หรือ Google Play บนโทรศัพท์ของคุณ",
+    "getApp": "รับแอป",
+    "getAppLabel": "รับ MotoVault สำหรับ iPhone หรือ Android",
+    "continue": "ไปที่โรงรถของคุณบนเว็บ"
   }
 }

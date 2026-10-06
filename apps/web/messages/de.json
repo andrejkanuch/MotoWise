@@ -3149,5 +3149,24 @@
     "message": "Dein ganzes Bike-Leben in einer App.",
     "cta": "MotoVault holen",
     "dismiss": "Schließen"
+  },
+  "Welcome": {
+    "metaTitle": "App holen",
+    "homeLabel": "MotoVault Startseite",
+    "signedInAs": "Angemeldet als <b>{email}</b>",
+    "eyebrow": "Konto erstellt",
+    "title": "Du bist dabei. Jetzt hol dir MotoVault <serif>aufs Handy.</serif>",
+    "reasonsLabel": "Was die App zusätzlich kann",
+    "ridesTitle": "Fahrten mit GPS aufzeichnen",
+    "ridesTag": "GPS",
+    "remindersTitle": "Service-Erinnerungen, bevor es fällig ist",
+    "remindersTag": "Push",
+    "receiptsTitle": "Belege mit der Kamera scannen",
+    "receiptsTag": "Kamera",
+    "qrTitle": "Mit dem Handy scannen",
+    "qrBody": "Öffnet den App Store oder Google Play auf deinem Handy.",
+    "getApp": "App holen",
+    "getAppLabel": "MotoVault für iPhone oder Android holen",
+    "continue": "Weiter zu deiner Garage im Web"
   }
 }

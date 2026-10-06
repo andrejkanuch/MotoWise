@@ -3149,5 +3149,24 @@
     "message": "Toda tu vida en moto en una app.",
     "cta": "Descargar MotoVault",
     "dismiss": "Cerrar"
+  },
+  "Welcome": {
+    "metaTitle": "Descarga la app",
+    "homeLabel": "Inicio de MotoVault",
+    "signedInAs": "Sesión iniciada como <b>{email}</b>",
+    "eyebrow": "Cuenta creada",
+    "title": "Ya estás dentro. Ahora lleva MotoVault <serif>en el bolsillo.</serif>",
+    "reasonsLabel": "Lo que añade la app",
+    "ridesTitle": "Graba tus rutas con GPS",
+    "ridesTag": "GPS",
+    "remindersTitle": "Recibe avisos de mantenimiento antes de que toque",
+    "remindersTag": "Push",
+    "receiptsTitle": "Escanea tickets con la cámara",
+    "receiptsTag": "Cámara",
+    "qrTitle": "Escanea con tu móvil",
+    "qrBody": "Abre el App Store o Google Play en tu móvil.",
+    "getApp": "Descarga la app",
+    "getAppLabel": "Descarga MotoVault para iPhone o Android",
+    "continue": "Continuar a tu garaje en la web"
   }
 }

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { readExplicitConsent } from '@/components/cookie-consent';
 import { identifyUser, trackEvent, WebEvent } from '@/lib/analytics';
+import { postAuthDestination, signUpEmailRedirectTo } from '@/lib/post-auth-redirect';
 import { signUpConsentOptions } from '@/lib/signup-consent';
 
 /* ------------------------------------------------------------------ */
@@ -56,7 +57,15 @@ export default function SignUpPage() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: signUpConsentOptions(readExplicitConsent()),
+      options: {
+        ...signUpConsentOptions(readExplicitConsent()),
+        // The confirmation link returns through /auth/callback, which sends a
+        // first session to /welcome (lib/post-auth-redirect.ts).
+        emailRedirectTo: signUpEmailRedirectTo(
+          window.location.origin,
+          new URLSearchParams(window.location.search).get('redirect'),
+        ),
+      },
     });
     if (error) {
       setError(error.message);
@@ -71,7 +80,11 @@ export default function SignUpPage() {
         identifyUser(data.user.id);
       }
       const params = new URLSearchParams(window.location.search);
-      window.location.href = params.get('redirect') || '/garage';
+      // Signed in at once (confirmations off): first session → /welcome.
+      window.location.href = postAuthDestination({
+        redirect: params.get('redirect'),
+        user: data.user,
+      });
     }
   };
 

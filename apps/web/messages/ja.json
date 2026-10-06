@@ -3189,5 +3189,24 @@
     "message": "バイクライフのすべてを1つのアプリに。",
     "cta": "MotoVaultを入手",
     "dismiss": "閉じる"
+  },
+  "Welcome": {
+    "metaTitle": "アプリを入手",
+    "homeLabel": "MotoVault ホーム",
+    "signedInAs": "<b>{email}</b> でサインイン中",
+    "eyebrow": "アカウントを作成しました",
+    "title": "準備完了。MotoVault を<serif>ポケットに。</serif>",
+    "reasonsLabel": "アプリでできること",
+    "ridesTitle": "GPS でライドを記録",
+    "ridesTag": "GPS",
+    "remindersTitle": "期限前に整備リマインダーを受け取る",
+    "remindersTag": "通知",
+    "receiptsTitle": "カメラでレシートをスキャン",
+    "receiptsTag": "カメラ",
+    "qrTitle": "スマートフォンでスキャン",
+    "qrBody": "お使いのスマートフォンの App Store または Google Play が開きます。",
+    "getApp": "アプリを入手",
+    "getAppLabel": "iPhone または Android 版 MotoVault を入手",
+    "continue": "Web のガレージへ進む"
   }
 }

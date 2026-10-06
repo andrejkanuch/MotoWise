@@ -3149,5 +3149,24 @@
     "message": "Your whole moto life in one app.",
     "cta": "Get MotoVault",
     "dismiss": "Dismiss"
+  },
+  "Welcome": {
+    "metaTitle": "Get the app",
+    "homeLabel": "MotoVault home",
+    "signedInAs": "Signed in as <b>{email}</b>",
+    "eyebrow": "Account created",
+    "title": "You're in. Now put MotoVault <serif>in your pocket.</serif>",
+    "reasonsLabel": "What the app adds",
+    "ridesTitle": "Record rides with GPS",
+    "ridesTag": "GPS",
+    "remindersTitle": "Get service reminders before they're due",
+    "remindersTag": "Push",
+    "receiptsTitle": "Scan receipts with the camera",
+    "receiptsTag": "Camera",
+    "qrTitle": "Scan with your phone",
+    "qrBody": "Opens the App Store or Google Play for your phone.",
+    "getApp": "Get the app",
+    "getAppLabel": "Get MotoVault for iPhone or Android",
+    "continue": "Continue to your garage on the web"
   }
 }
