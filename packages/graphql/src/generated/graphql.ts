@@ -169,8 +169,8 @@ export type BillingPortalSession = {
 
 /** Outcome of creating a Stripe billing portal session for a web subscriber. */
 export enum BillingPortalStatus {
-  NoCustomer = 'no_customer',
   NotConfigured = 'not_configured',
+  NotFound = 'not_found',
   Ok = 'ok',
   Unavailable = 'unavailable'
 }

@@ -148,8 +148,8 @@ type BillingPortalSession {
 Outcome of creating a Stripe billing portal session for a web subscriber.
 """
 enum BillingPortalStatus {
-  no_customer
   not_configured
+  not_found
   ok
   unavailable
 }
