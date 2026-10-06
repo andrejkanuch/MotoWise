@@ -1,5 +1,6 @@
 -- Repeatable check for public.process_revenuecat_event as defined by
--- migrations/00185_revenuecat_non_renewing_expiry.sql.
+-- migrations/00187_revenuecat_entitlement_source_of_truth.sql (on top of 00185).
+-- The 00185 scenarios now exercise 00187's fallback path (no resolved state).
 --
 -- THROWAWAY DATABASE ONLY. NEVER RUN THIS AGAINST PROD, STAGING OR A LOCAL
 -- SUPABASE STACK. It creates its own minimal public.users and
@@ -83,8 +84,9 @@ GRANT EXECUTE ON FUNCTION public.process_revenuecat_event(
   TEXT, TEXT, UUID, TIMESTAMPTZ, TEXT, TEXT, TEXT, TEXT, BOOLEAN, TIMESTAMPTZ, TIMESTAMPTZ, UUID[], JSONB
 ) TO PUBLIC, anon, authenticated;
 
--- The migration under test.
+-- The migrations under test: 00185 (the version live before 00187), then 00187.
 \ir ../migrations/00185_revenuecat_non_renewing_expiry.sql
+\ir ../migrations/00187_revenuecat_entitlement_source_of_truth.sql
 
 -- Helpers (session-local).
 CREATE FUNCTION pg_temp.expect(ok BOOLEAN, label TEXT) RETURNS void LANGUAGE plpgsql AS $$
@@ -111,6 +113,19 @@ CREATE FUNCTION pg_temp.ev(
   );
 $$;
 
+-- An event carrying RevenueCat's resolved entitlement state (00187).
+CREATE FUNCTION pg_temp.rc(
+  event_id TEXT, event_type TEXT, uid UUID, expires TIMESTAMPTZ,
+  rc_tier TEXT, rc_status TEXT, rc_expires TIMESTAMPTZ,
+  product TEXT DEFAULT NULL, period TEXT DEFAULT NULL
+) RETURNS void LANGUAGE sql AS $$
+  SELECT public.process_revenuecat_event(
+    p_event_id => event_id, p_event_type => event_type, p_app_user_id => uid,
+    p_expiration_at => expires, p_product_id => product, p_period_type => period,
+    p_rc_tier => rc_tier, p_rc_status => rc_status, p_rc_expires_at => rc_expires
+  );
+$$;
+
 CREATE FUNCTION pg_temp.state(uid UUID) RETURNS TEXT LANGUAGE sql AS $$
   SELECT subscription_tier || '/' || subscription_status FROM public.users WHERE id = uid;
 $$;
@@ -134,7 +149,15 @@ DECLARE
   u8 CONSTANT UUID := '00000000-0000-0000-0000-000000000008';
   u9 CONSTANT UUID := '00000000-0000-0000-0000-000000000009';
   u10 CONSTANT UUID := '00000000-0000-0000-0000-000000000010';
-  sig CONSTANT TEXT := 'public.process_revenuecat_event(text,text,uuid,timestamptz,text,text,text,text,boolean,timestamptz,timestamptz,uuid[],jsonb)';
+  u11 CONSTANT UUID := '00000000-0000-0000-0000-000000000011';
+  u12 CONSTANT UUID := '00000000-0000-0000-0000-000000000012';
+  u13 CONSTANT UUID := '00000000-0000-0000-0000-000000000013';
+  u14 CONSTANT UUID := '00000000-0000-0000-0000-000000000014';
+  u15 CONSTANT UUID := '00000000-0000-0000-0000-000000000015';
+  u16 CONSTANT UUID := '00000000-0000-0000-0000-000000000016';
+  u17 CONSTANT UUID := '00000000-0000-0000-0000-000000000017';
+  sig CONSTANT TEXT := 'public.process_revenuecat_event(text,text,uuid,timestamptz,text,text,text,text,boolean,timestamptz,timestamptz,uuid[],jsonb,text,text,timestamptz)';
+  old_sig CONSTANT TEXT := 'public.process_revenuecat_event(text,text,uuid,timestamptz,text,text,text,text,boolean,timestamptz,timestamptz,uuid[],jsonb)';
   raised BOOLEAN := FALSE;
 BEGIN
   -- Immediate cancel, EXPIRATION first.
@@ -203,6 +226,68 @@ BEGIN
   PERFORM pg_temp.expect(raised AND pg_temp.state(u10) = 'pro/active',
     'duplicate event_id -> already_processed, row untouched');
 
+  -- 00187: RevenueCat's resolved entitlement decides (issue #273).
+  -- Lifetime + old subscription EXPIRATION / CANCELLATION, in both orders.
+  PERFORM pg_temp.seed(u11, 'pro', 'active', NULL);
+  PERFORM pg_temp.rc('u11-exp', 'EXPIRATION', u11, past, 'pro', 'active', NULL, 'motovault_pro_monthly_v4');
+  PERFORM pg_temp.rc('u11-can', 'CANCELLATION', u11, past, 'pro', 'active', NULL, 'motovault_pro_monthly_v4');
+  PERFORM pg_temp.expect(pg_temp.state(u11) = 'pro/active' AND pg_temp.expiry(u11) IS NULL,
+    'lifetime + old sub EXPIRATION -> CANCELLATION stays pro/active lifetime');
+  PERFORM pg_temp.seed(u12, 'pro', 'active', NULL);
+  PERFORM pg_temp.rc('u12-can', 'CANCELLATION', u12, past, 'pro', 'active', NULL, 'motovault_pro_monthly_v4');
+  PERFORM pg_temp.rc('u12-exp', 'EXPIRATION', u12, past, 'pro', 'active', NULL, 'motovault_pro_monthly_v4');
+  PERFORM pg_temp.expect(pg_temp.state(u12) = 'pro/active' AND pg_temp.expiry(u12) IS NULL,
+    'lifetime + old sub CANCELLATION -> EXPIRATION stays pro/active lifetime');
+
+  -- Lifetime refund: RC removed the entitlement -> free/expired.
+  PERFORM pg_temp.seed(u13, 'pro', 'active', NULL);
+  PERFORM pg_temp.rc('u13-ref', 'CANCELLATION', u13, NULL, 'free', 'expired', NULL, 'motovault_lifetime_v4');
+  PERFORM pg_temp.expect(pg_temp.state(u13) = 'free/expired', 'lifetime refund -> free/expired');
+
+  -- Subscription refund: entitlement expired at the refund -> free/expired, expiry recorded.
+  PERFORM pg_temp.seed(u14, 'pro', 'active', later);
+  PERFORM pg_temp.rc('u14-ref', 'CANCELLATION', u14, past, 'free', 'expired', past, 'motovault_pro_annual_v4');
+  PERFORM pg_temp.expect(pg_temp.state(u14) = 'free/expired' AND pg_temp.expiry(u14) = past,
+    'subscription refund -> free/expired at the refund time');
+
+  -- A resolved state is written for event types the fallback ignores, and
+  -- may lift a row out of 'expired' (e.g. a re-subscribe processed late).
+  PERFORM pg_temp.seed(u15, 'free', 'expired', past);
+  PERFORM pg_temp.rc('u15-ext', 'SUBSCRIPTION_EXTENDED', u15, NULL, 'pro', 'active', soon);
+  PERFORM pg_temp.expect(pg_temp.state(u15) = 'pro/active' AND pg_temp.expiry(u15) = soon,
+    'resolved state applies to SUBSCRIPTION_EXTENDED');
+  PERFORM pg_temp.rc('u15-can', 'CANCELLATION', u15, soon, 'pro', 'cancelled', soon);
+  PERFORM pg_temp.expect(pg_temp.state(u15) = 'pro/cancelled', 'resolved CANCELLATION -> pro/cancelled');
+
+  -- Resolved trial start still records trial_started_at; resolved TRANSFER
+  -- still downgrades the source.
+  PERFORM pg_temp.seed(u16, 'free', 'free', NULL);
+  PERFORM pg_temp.rc('u16-trial', 'INITIAL_PURCHASE', u16, soon, 'pro', 'trialing', soon, 'motovault_pro_annual_v4', 'TRIAL');
+  PERFORM pg_temp.expect(pg_temp.state(u16) = 'pro/trialing'
+    AND (SELECT trial_started_at IS NOT NULL FROM public.users WHERE id = u16),
+    'resolved trial start -> pro/trialing + trial_started_at');
+  PERFORM pg_temp.seed(u17, 'free', 'free', NULL);
+  PERFORM public.process_revenuecat_event(
+    p_event_id => 'u17-tr', p_event_type => 'TRANSFER', p_app_user_id => u17,
+    p_transferred_from => ARRAY[u16], p_rc_tier => 'pro', p_rc_status => 'trialing', p_rc_expires_at => soon);
+  PERFORM pg_temp.expect(pg_temp.state(u17) = 'pro/trialing' AND pg_temp.state(u16) = 'free/expired',
+    'resolved TRANSFER -> receiver from RC, source downgraded');
+
+  -- Invalid resolved state is rejected (and the event is not logged).
+  raised := FALSE;
+  BEGIN
+    PERFORM pg_temp.rc('u17-bad', 'RENEWAL', u17, NULL, 'gold', 'active', NULL);
+  EXCEPTION WHEN OTHERS THEN
+    raised := SQLERRM LIKE 'invalid resolved state%';
+  END;
+  PERFORM pg_temp.expect(raised, 'invalid resolved tier raises');
+
+  -- Only the 16-argument version exists (no PGRST203 ambiguity).
+  PERFORM pg_temp.expect(to_regprocedure(old_sig) IS NULL, '13-argument overload dropped');
+  PERFORM pg_temp.expect(
+    (SELECT count(*) FROM pg_proc WHERE proname = 'process_revenuecat_event') = 1,
+    'exactly one process_revenuecat_event');
+
   -- ACL: service_role only, stale grants cleared.
   PERFORM pg_temp.expect(NOT has_function_privilege('anon', sig, 'EXECUTE'), 'anon has no EXECUTE');
   PERFORM pg_temp.expect(NOT has_function_privilege('authenticated', sig, 'EXECUTE'), 'authenticated has no EXECUTE');
@@ -213,4 +298,4 @@ END $$;
 
 ROLLBACK;
 
-\echo 'process_revenuecat_event (00185): all checks passed'
+\echo 'process_revenuecat_event (00187): all checks passed'

@@ -1,8 +1,4 @@
-import {
-  RC_ATTRIBUTE_HAS_HAD_TRIAL,
-  RC_ATTRIBUTE_TRUE,
-  REVENUECAT_ENTITLEMENT_PRO,
-} from '@motovault/types';
+import { RC_ATTRIBUTE_HAS_HAD_TRIAL, RC_ATTRIBUTE_TRUE } from '@motovault/types';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Sentry from '@sentry/nestjs';
@@ -12,6 +8,12 @@ import { postHogCaptureTarget, sendPostHogBatch } from '../analytics/posthog-cap
 import { MetaEventsService } from '../meta/meta-events.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import type { RevenueCatEvent } from './dto/revenuecat-event.dto';
+import {
+  type ProResolution,
+  type RcSubscriberResponse,
+  type ResolvedProState,
+  resolveProEntitlement,
+} from './revenuecat-entitlement';
 import {
   buildRevenueCatPostHogEvent,
   FAIL_CLOSED_DECISIONS,
@@ -31,48 +33,32 @@ const EVENT_NON_RENEWING_PURCHASE = 'NON_RENEWING_PURCHASE' as const;
 /** RevenueCat `environment` for Stripe test mode, App Store sandbox/TestFlight and Play testers. */
 export const RC_ENVIRONMENT_SANDBOX = 'SANDBOX' as const;
 const ENV_SANDBOX_ALLOWED_USER_IDS = 'REVENUECAT_SANDBOX_ALLOWED_USER_IDS' as const;
-
-/** The receiver's live subscription state, resolved from RC for a TRANSFER. */
-interface TransferResolution {
-  expirationAt: string | null;
-  periodType: string | null;
-  productId: string | null;
-  store: string | null;
-}
-
-/** Subset of RC v1 `GET /subscribers/{id}` we read. */
-interface RcSubscriberResponse {
-  subscriber?: {
-    entitlements?: Record<
-      string,
-      {
-        expires_date: string | null;
-        product_identifier?: string;
-        grace_period_expires_date?: string | null;
-      }
-    >;
-    subscriptions?: Record<
-      string,
-      { period_type?: string; store?: string; expires_date?: string | null }
-    >;
-  };
-}
+const ENV_RC_SECRET_API_KEY = 'REVENUECAT_SECRET_API_KEY' as const;
+/**
+ * Per RevenueCat REST call. RevenueCat drops a webhook delivery after 60s and
+ * retries it, so the lookup must leave room for the RPC; same budget as the
+ * billing-portal RevenueCat/Stripe calls.
+ */
+export const RC_REQUEST_TIMEOUT_MS = 8_000;
+const RPC_NAME = 'process_revenuecat_event' as const;
+/** PostgREST: no function matches the named arguments (00187 not applied yet). */
+const PGRST_FUNCTION_NOT_FOUND = 'PGRST202' as const;
 
 const toIso = (ms: number | null | undefined): string | null =>
   ms ? new Date(ms).toISOString() : null;
 
 /**
- * The expiry handed to the RPC. A lifetime SKU is forced to NULL (= never
- * expires) whatever RC sent; a TRANSFER uses the receiver's resolved state;
- * everything else (incl. a time-limited non-renewing grant) uses the event's.
+ * The event's own expiry, logged with the event and used by the event-type
+ * fallback. A lifetime SKU is forced to NULL (= never expires) whatever RC
+ * sent; a TRANSFER (which carries none) uses the receiver's resolved state.
  */
 function expirationFor(
   event: RevenueCatEvent,
-  transfer: TransferResolution | null,
+  transfer: ResolvedProState | null,
   grant: NonRenewingGrant | null,
 ): string | null {
   if (grant === NON_RENEWING_GRANT.LIFETIME) return null;
-  if (transfer) return transfer.expirationAt;
+  if (transfer) return transfer.expiresAt;
   return toIso(event.expiration_at_ms);
 }
 
@@ -102,13 +88,6 @@ export class RevenueCatService {
 
     if (this.isIgnoredSandboxEvent(event)) return;
 
-    // TRANSFER carries no product/expiry of its own — look the receiver up.
-    const transfer = event.type === EVENT_TRANSFER ? await this.resolveTransfer(event) : null;
-    const transferredFrom =
-      event.type === EVENT_TRANSFER
-        ? (event.transferred_from ?? []).filter((id) => UUID_REGEX.test(id))
-        : null;
-
     // NON_RENEWING_PURCHASE covers every non-subscription product, so it means
     // lifetime Pro ONLY for a known lifetime SKU. A product with an expiry is a
     // time-limited grant; anything else (consumable, unknown SKU) grants nothing.
@@ -118,12 +97,24 @@ export class RevenueCatService {
       this.reportUngrantedNonRenewing(event);
       return;
     }
+
+    // RevenueCat is the source of truth (issue #273): the users row is written
+    // from the subscriber's live Pro entitlement, which knows about every
+    // purchase (a lifetime purchase outlives an old subscription's EXPIRATION;
+    // a refund removes it). Unresolved → the RPC's event-type logic (fallback).
+    const resolved = await this.resolveProState(event);
+    const transferredFrom =
+      event.type === EVENT_TRANSFER
+        ? (event.transferred_from ?? []).filter((id) => UUID_REGEX.test(id))
+        : null;
+    // TRANSFER carries no product/expiry of its own: log the receiver's.
+    const transfer = event.type === EVENT_TRANSFER ? resolved : null;
     const expirationAt = expirationFor(event, transfer, grant);
 
     // Strip PII-bearing subscriber attributes; keep the rest for forensics.
     const { subscriber_attributes: _attrs, ...payload } = event;
 
-    const { error } = await this.adminClient.rpc('process_revenuecat_event', {
+    const legacyArgs = {
       p_event_id: event.id,
       p_event_type: event.type,
       p_app_user_id: event.app_user_id,
@@ -136,8 +127,9 @@ export class RevenueCatService {
       p_purchased_at: toIso(event.purchased_at_ms),
       p_grace_period_expiration_at: toIso(event.grace_period_expiration_at_ms),
       p_transferred_from: transferredFrom,
-      p_payload: payload,
-    });
+      p_payload: resolved ? { ...payload, motovault_rc_entitlement: resolved } : payload,
+    };
+    const error = await this.callRpc(event, legacyArgs, resolved);
 
     if (error) {
       if (error.message?.includes('already_processed')) {
@@ -323,46 +315,94 @@ export class RevenueCatService {
   }
 
   /**
-   * Resolve what the TRANSFER receiver now holds. RC sends TRANSFER only to the
-   * destination user and without product/expiry, so without this lookup the
-   * receiver would stay on whatever tier they had until their next RENEWAL.
-   * Returns null (leave the receiver untouched) when RC is unreachable or the
-   * secret key is not configured; the sources are still downgraded by the RPC.
+   * The subscriber's live Pro state from RevenueCat (v1 `GET /subscribers`,
+   * RevenueCat's recommended post-webhook sync). Null when it cannot be
+   * resolved — key unset, timeout, non-2xx, bad body, or a sandbox-backed
+   * entitlement for a non-allowlisted user — and the RPC then falls back to the
+   * event-type logic. Every null is reported to Sentry: while it lasts, the
+   * #273 downgrade can happen again.
    */
-  private async resolveTransfer(event: RevenueCatEvent): Promise<TransferResolution | null> {
-    const rcApiKey = this.configService.get<string>('REVENUECAT_SECRET_API_KEY');
+  private async resolveProState(event: RevenueCatEvent): Promise<ResolvedProState | null> {
+    const rcApiKey = this.configService.get<string>(ENV_RC_SECRET_API_KEY);
     if (!rcApiKey) {
-      this.logger.warn(
-        `TRANSFER ${event.id}: REVENUECAT_SECRET_API_KEY not set, receiver not synced`,
-      );
+      this.reportUnresolved(event, `${ENV_RC_SECRET_API_KEY} not set`);
       return null;
     }
+    let resolution: ProResolution;
     try {
-      const response = await fetch(`${RC_API_BASE}/subscribers/${event.app_user_id}`, {
-        headers: { Authorization: `Bearer ${rcApiKey}` },
-      });
+      const response = await fetch(
+        `${RC_API_BASE}/subscribers/${encodeURIComponent(event.app_user_id)}`,
+        {
+          headers: { Authorization: `Bearer ${rcApiKey}` },
+          signal: AbortSignal.timeout(RC_REQUEST_TIMEOUT_MS),
+        },
+      );
       if (!response.ok) {
-        this.logger.warn(`TRANSFER ${event.id}: RC subscriber lookup returned ${response.status}`);
+        this.reportUnresolved(event, `RC subscriber lookup returned ${response.status}`);
         return null;
       }
       const body = (await response.json()) as RcSubscriberResponse;
-      const entitlement = body.subscriber?.entitlements?.[REVENUECAT_ENTITLEMENT_PRO];
-      if (!entitlement) return null;
-      const productId = entitlement.product_identifier ?? null;
-      const subscription = productId ? body.subscriber?.subscriptions?.[productId] : undefined;
-      if (!productId) return null;
-      return {
-        // null = lifetime (non-renewing) entitlement; the RPC keys "resolved"
-        // off productId, so a null expiry is stored as-is, matching 00165.
-        expirationAt: entitlement.expires_date ?? null,
-        periodType: subscription?.period_type?.toUpperCase() ?? null,
-        productId,
-        store: subscription?.store?.toUpperCase() ?? null,
-      };
+      resolution = resolveProEntitlement(body, {
+        nowMs: Date.now(),
+        sandboxAllowed: this.sandboxAllowedUserIds.has(event.app_user_id.toLowerCase()),
+      });
     } catch (err) {
-      this.logger.warn(`TRANSFER ${event.id}: RC subscriber lookup failed: ${err}`);
+      const message = err instanceof Error ? err.message : String(err);
+      this.reportUnresolved(event, `RC subscriber lookup failed: ${message}`);
       return null;
     }
+    if (!resolution.resolved) {
+      this.reportUnresolved(event, resolution.reason);
+      return null;
+    }
+    return resolution.state;
+  }
+
+  private reportUnresolved(event: RevenueCatEvent, reason: string): void {
+    const message = `RevenueCat ${event.type} ${event.id}: entitlement not resolved (${reason}); falling back to event-type state`;
+    this.logger.warn(message);
+    Sentry.captureMessage(message, {
+      level: 'warning',
+      tags: { webhook: 'revenuecat', rc_event_type: event.type, rc_entitlement: 'fallback' },
+      extra: {
+        eventId: event.id,
+        appUserId: event.app_user_id,
+        productId: event.product_id ?? null,
+        environment: event.environment ?? null,
+        reason,
+      },
+    });
+  }
+
+  /**
+   * Calls the RPC with the resolved state (00187's p_rc_* parameters). If the
+   * database does not have 00187 yet (PGRST202: no function with these named
+   * arguments), retries once with the 00185 arguments — the event-type
+   * fallback — and reports it, so deploying the API first degrades instead of
+   * failing every webhook.
+   */
+  private async callRpc(
+    event: RevenueCatEvent,
+    legacyArgs: Record<string, unknown>,
+    resolved: ResolvedProState | null,
+  ): Promise<{ message?: string; code?: string } | null> {
+    if (!resolved) {
+      const { error } = await this.adminClient.rpc(RPC_NAME, legacyArgs);
+      return error;
+    }
+    const { error } = await this.adminClient.rpc(RPC_NAME, {
+      ...legacyArgs,
+      p_rc_tier: resolved.tier,
+      p_rc_status: resolved.status,
+      p_rc_expires_at: resolved.expiresAt,
+    });
+    if (error?.code !== PGRST_FUNCTION_NOT_FOUND) return error;
+    this.reportUnresolved(
+      event,
+      'process_revenuecat_event has no p_rc_* parameters (00187 not applied)',
+    );
+    const retry = await this.adminClient.rpc(RPC_NAME, legacyArgs);
+    return retry.error;
   }
 
   /** Server-side customer attribute write (secret key). */
@@ -370,7 +410,7 @@ export class RevenueCatService {
     userId: string,
     attributes: Record<string, string>,
   ): Promise<void> {
-    const rcApiKey = this.configService.get<string>('REVENUECAT_SECRET_API_KEY');
+    const rcApiKey = this.configService.get<string>(ENV_RC_SECRET_API_KEY);
     if (!rcApiKey) {
       this.logger.warn('REVENUECAT_SECRET_API_KEY not configured — skipping attribute update');
       return;
@@ -392,7 +432,7 @@ export class RevenueCatService {
   }
 
   async cancelSubscription(userId: string): Promise<void> {
-    const rcApiKey = this.configService.get<string>('REVENUECAT_SECRET_API_KEY');
+    const rcApiKey = this.configService.get<string>(ENV_RC_SECRET_API_KEY);
     if (!rcApiKey) {
       this.logger.warn(
         'REVENUECAT_SECRET_API_KEY not configured — skipping subscription cancellation',
