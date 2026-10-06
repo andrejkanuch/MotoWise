@@ -122,6 +122,24 @@ describe('read-only contract (web garage + profile)', () => {
       );
     }
   });
+
+  // The allowed write above must stay reachable: /profile is the only place a
+  // web (Stripe) subscriber can manage or cancel Pro, in both profile states.
+  it('keeps the billing-portal manage/cancel path on /profile', () => {
+    const page = fs.readFileSync(path.join(PROFILE_DIR, 'page.tsx'), 'utf8');
+    const noUsernameStart = page.indexOf('if (!user.publicUsername)');
+    const profileCardStart = page.indexOf('const initial =');
+    expect(noUsernameStart).toBeGreaterThan(-1);
+    expect(profileCardStart).toBeGreaterThan(noUsernameStart);
+    expect(page.slice(noUsernameStart, profileCardStart)).toContain('<ProBanner');
+    expect(page.slice(profileCardStart)).toContain('<ProBanner');
+
+    const banner = fs.readFileSync(path.join(PROFILE_DIR, 'pro-banner.tsx'), 'utf8');
+    expect(banner).toContain('<ManageWebSubscription');
+
+    const manage = fs.readFileSync(path.join(PROFILE_DIR, 'manage-web-subscription.tsx'), 'utf8');
+    expect(manage).toMatch(/\bCreateBillingPortalSessionDocument\b/);
+  });
 });
 
 describe('Pro copy contract (web)', () => {
