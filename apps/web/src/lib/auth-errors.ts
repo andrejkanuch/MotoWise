@@ -74,3 +74,10 @@ export function recoveryForAttempt(info: AuthErrorInfo, failedAttempts: number):
   if (info.recovery) return info.recovery;
   return failedAttempts >= 2 ? 'reset_password' : null;
 }
+
+/**
+ * How long the "Resend" button stays in its "sent" state before it can be used
+ * again. Matches Supabase's default per-address email rate limit (60s), so a
+ * retry after the cooldown is not rejected as too frequent.
+ */
+export const RESEND_COOLDOWN_MS = 60_000;

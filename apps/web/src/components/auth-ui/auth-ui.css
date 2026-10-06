@@ -3,9 +3,11 @@
    Every colour is an --mv-* token (packages/design-system mv-tokens.css).
    Breakpoints:
      <768      phone: header bar, 16px gutters, stacked "Continue with …"
-               OAuth buttons, 52px fields at 16px (no iOS zoom).
+               OAuth buttons, 52px fields.
      768–1023  header bar, form centred at 440.
      ≥1024     photo panel | 640px form column, form max 400.
+     Field text stays 16px at every width: iOS Safari zooms into a focused
+     field under 16px, and iPad portrait sits in the 768+ range.
    ═══════════════════════════════════════════════════════════════ */
 
 .mva-root {
@@ -519,7 +521,6 @@
 @media (min-width: 768px) {
   .mva-input {
     height: 48px;
-    font-size: 15px;
   }
   .mva-toggle {
     right: 2px;

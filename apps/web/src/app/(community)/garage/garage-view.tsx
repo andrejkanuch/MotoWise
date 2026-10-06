@@ -251,7 +251,7 @@ export function GarageView({
             <BikePreview />
           </div>
           {/* Rides exist without a bike only when the bike was deleted: still the rider's data. */}
-          {rides.hasRides && <RidesCard totals={rides} unit={unit} />}
+          {rides.hasRides && ridesCard}
           <AccountSection account={account} />
         </div>
       </div>

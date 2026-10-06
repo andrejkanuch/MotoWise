@@ -47,7 +47,8 @@ export default async function GaragePage() {
       .catch(() => null),
     // Display only (which sign-in button to name in the handoff); the layout
     // already authenticated the rider. getClaims verifies the access token
-    // locally (no Auth round trip); reading `session.user` from getSession()
+    // locally against the cached JWKS (asymmetric signing keys; a legacy HS256
+    // project falls back to a getUser round trip); reading `session.user` from getSession()
     // instead made supabase-js log an "insecure user object" warning on every
     // render (replayed into the browser console in dev).
     getSupabaseServerClient()

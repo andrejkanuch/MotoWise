@@ -315,6 +315,36 @@ describe('shouldDropClientEvent', () => {
         ),
       ).toBe(false);
     });
+
+    it.each([
+      ['missing', undefined],
+      ['blank', '   '],
+      ['<anonymous>', '<anonymous>'],
+      ['[native code]', '[native code]'],
+      ['the literal undefined', 'undefined'],
+    ])('keeps the event when a frame has a %s filename (unknown origin)', (_label, filename) => {
+      expect(
+        shouldDropClientEvent(
+          eventWith('Unexpected token < in JSON', {
+            type: 'SyntaxError',
+            mechanismType: 'auto.browser.global_handlers.onunhandledrejection',
+            frames: [{ filename: 'app:///blog/some-post' }, { filename }],
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('keeps errors thrown inside mapbox-gl, which we load from the Mapbox CDN', () => {
+      expect(
+        shouldDropClientEvent(
+          eventWith("Cannot read properties of undefined (reading 'getLayer')", {
+            type: 'TypeError',
+            mechanismType: 'auto.browser.global_handlers.onerror',
+            frames: [{ filename: 'app:///mapbox-gl-js/v3.6.0/mapbox-gl.js' }],
+          }),
+        ),
+      ).toBe(false);
+    });
   });
 
   it('keeps unrelated first-party errors', () => {

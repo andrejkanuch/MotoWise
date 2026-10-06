@@ -192,3 +192,17 @@ describe('/signup empty submit', () => {
     expect(guard).toBeLessThan(signUp);
   });
 });
+
+describe('trimmed email', () => {
+  // A pasted address often carries a trailing space; Supabase rejects it as
+  // invalid (or, on sign-in, as wrong credentials) instead of trimming it.
+  it.each([
+    ['signup/page.tsx', 'signUp'],
+    ['login/page.tsx', 'signInWithPassword'],
+  ])('%s sends email.trim() to supabase.auth.%s', (file, method) => {
+    const sf = parse(file);
+    const [call] = authCalls(sf, method);
+    expect(call).toBeDefined();
+    expect(property(call.arguments[0], 'email')?.getText(sf)).toBe('email.trim()');
+  });
+});

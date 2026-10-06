@@ -3,7 +3,7 @@
 import { createBrowserClient } from '@supabase/ssr';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   AltLink,
   AuthBanner,
@@ -25,6 +25,7 @@ import {
   EMPTY_FIELDS_MESSAGE,
   hasCredentials,
   humanizeAuthError,
+  RESEND_COOLDOWN_MS,
   recoveryForAttempt,
 } from '@/lib/auth-errors';
 import { postAuthDestination, signUpEmailRedirectTo } from '@/lib/post-auth-redirect';
@@ -48,6 +49,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+
+  // A sent confirmation can still go missing: after the cooldown the button is
+  // usable again for the same address.
+  useEffect(() => {
+    if (resendState !== 'sent') return;
+    const timer = setTimeout(() => setResendState('idle'), RESEND_COOLDOWN_MS);
+    return () => clearTimeout(timer);
+  }, [resendState]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

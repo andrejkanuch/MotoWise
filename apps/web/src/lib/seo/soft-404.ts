@@ -24,7 +24,7 @@ export const CONTRACT_PROBE_SENTINELS: ReadonlySet<string> = new Set([
  * storefront scanner guessing paths, never a link of ours, so it cannot be a
  * soft-404 of an advertised URL.
  */
-const ROUTE_SEGMENT_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/i;
+const ROUTE_SEGMENT_RE = /^[a-z0-9][a-z0-9-]*$/i;
 
 /** Detail keys that are route segments (as opposed to `locale`, which is not). */
 const SEGMENT_KEYS = ['country', 'region', 'slug'] as const;

@@ -2,7 +2,7 @@
 
 import { createBrowserClient } from '@supabase/ssr';
 import { useTranslations } from 'next-intl';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   AltLink,
   AuthBanner,
@@ -22,7 +22,12 @@ import {
 } from '@/components/auth-ui/auth-ui';
 import { readExplicitConsent } from '@/components/cookie-consent';
 import { identifyUser, trackEvent, WebEvent } from '@/lib/analytics';
-import { hasCredentials, humanizeAuthError, SIGNUP_EMPTY_FIELDS_MESSAGE } from '@/lib/auth-errors';
+import {
+  hasCredentials,
+  humanizeAuthError,
+  RESEND_COOLDOWN_MS,
+  SIGNUP_EMPTY_FIELDS_MESSAGE,
+} from '@/lib/auth-errors';
 import { postAuthDestination, signUpEmailRedirectTo } from '@/lib/post-auth-redirect';
 import { signUpConsentOptions } from '@/lib/signup-consent';
 
@@ -49,6 +54,14 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [resendState, setResendState] = useState<ResendState>('idle');
 
+  // A sent confirmation can still go missing: after the cooldown the button is
+  // usable again for the same address.
+  useEffect(() => {
+    if (resendState !== 'sent') return;
+    const timer = setTimeout(() => setResendState('idle'), RESEND_COOLDOWN_MS);
+    return () => clearTimeout(timer);
+  }, [resendState]);
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
@@ -64,7 +77,7 @@ export default function SignUpPage() {
     setError('');
     trackEvent(WebEvent.SIGN_UP_SUBMITTED, { method: 'email' });
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: email.trim(),
       password,
       options: {
         ...signUpConsentOptions(readExplicitConsent()),
