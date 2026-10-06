@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
-import { SUPPORT_EMAIL } from '@/lib/manage-subscription';
+import { isSafePortalUrl, SUPPORT_EMAIL } from '@/lib/manage-subscription';
 
 const PHASE = {
   IDLE: 'idle',
@@ -35,7 +35,7 @@ export function ManageWebSubscription() {
       const { createBillingPortalSession: session } = await gqlFetcher(
         CreateBillingPortalSessionDocument,
       );
-      if (session.status === BillingPortalStatus.Ok && session.url) {
+      if (session.status === BillingPortalStatus.Ok && isSafePortalUrl(session.url)) {
         window.location.assign(session.url);
         return;
       }

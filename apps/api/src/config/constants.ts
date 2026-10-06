@@ -60,6 +60,8 @@ export const THROTTLE_PRESETS = {
   RECEIPT_SCAN: { limit: 5, ttl: 60_000 },
   ARTICLE_LIST: { limit: 30, ttl: 60_000 },
   SHARE_LINK: { limit: 10, ttl: 60_000 },
+  /** Each call is up to 3 Stripe requests (2 searches + 1 portal session). */
+  BILLING_PORTAL: { limit: 5, ttl: 60_000 },
   WAYPOINT_UPLOAD: { limit: 10, ttl: 60_000 },
   WAYPOINT_QUERY: { limit: 30, ttl: 60_000 },
   TYPEAHEAD: { limit: 60, ttl: 60_000 },

@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import type { ConfigService } from '@nestjs/config';
+import * as Sentry from '@sentry/nestjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BillingPortalStatusEnum, STRIPE_API_BASE } from './billing-portal.constants';
 import { BillingPortalService } from './billing-portal.service';
@@ -21,6 +22,7 @@ let calls: Array<{ url: string; init: RequestInit }>;
 beforeEach(() => {
   routes = {};
   calls = [];
+  vi.mocked(Sentry.captureException).mockClear();
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string, init: RequestInit) => {
@@ -96,9 +98,46 @@ describe('BillingPortalService', () => {
 
     const result = await makeService({ STRIPE_BILLING_PORTAL_KEY: KEY }).createSession(USER_ID);
     expect(result.status).toBe(BillingPortalStatusEnum.ok);
+    expect(new URL(calls[1].url).searchParams.get('query')).toBe(
+      `metadata['rc_customer_id']:'${USER_ID}'`,
+    );
+    expect((calls[2].init.body as URLSearchParams).get('customer')).toBe('cus_direct');
     expect((calls[2].init.body as URLSearchParams).get('return_url')).toBe(
       'https://motovault.app/profile',
     );
+  });
+
+  it('treats an empty WEB_APP_URL as unset, so the return_url stays absolute', async () => {
+    routes['/subscriptions/search'] = { body: { data: [{ customer: 'cus_1', created: 1 }] } };
+    routes['/billing_portal/sessions'] = {
+      body: { url: 'https://billing.stripe.com/p/session/z' },
+    };
+
+    await makeService({ STRIPE_BILLING_PORTAL_KEY: KEY, WEB_APP_URL: '' }).createSession(USER_ID);
+    expect((calls[1].init.body as URLSearchParams).get('return_url')).toBe(
+      'https://motovault.app/profile',
+    );
+  });
+
+  it('bounds every Stripe request with a timeout signal', async () => {
+    routes['/subscriptions/search'] = { body: { data: [] } };
+    routes['/customers/search'] = { body: { data: [] } };
+    await makeService({ STRIPE_BILLING_PORTAL_KEY: KEY }).createSession(USER_ID);
+    expect(calls).toHaveLength(2);
+    for (const call of calls) expect(call.init.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it('degrades to unavailable, and reports without the key, when Stripe times out', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new DOMException('The operation was aborted due to timeout', 'TimeoutError');
+      }),
+    );
+    const result = await makeService({ STRIPE_BILLING_PORTAL_KEY: KEY }).createSession(USER_ID);
+    expect(result).toEqual({ status: BillingPortalStatusEnum.unavailable, url: null });
+    expect(Sentry.captureException).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(vi.mocked(Sentry.captureException).mock.calls)).not.toContain(KEY);
   });
 
   it('reports no_customer for someone who never bought on the web', async () => {

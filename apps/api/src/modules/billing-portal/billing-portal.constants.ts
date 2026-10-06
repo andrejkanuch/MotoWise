@@ -16,6 +16,9 @@ export const DEFAULT_WEB_APP_URL = 'https://motovault.app';
 /** Stripe search returns newest-first is NOT guaranteed, so we sort; this bounds the page. */
 export const STRIPE_SEARCH_LIMIT = 10;
 
+/** Per Stripe request; a hung Stripe call must not hold the resolver open. */
+export const STRIPE_REQUEST_TIMEOUT_MS = 8_000;
+
 /** Keys equal values so the wire format stays lowercase (repo convention). */
 export const BillingPortalStatusEnum = {
   ok: 'ok',

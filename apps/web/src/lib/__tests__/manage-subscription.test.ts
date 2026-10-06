@@ -1,6 +1,6 @@
 import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import { describe, expect, it } from 'vitest';
-import { resolveManageSubscription } from '../manage-subscription';
+import { isSafePortalUrl, resolveManageSubscription } from '../manage-subscription';
 
 function info(managementURL: string | null, store?: string) {
   return {
@@ -31,5 +31,23 @@ describe('resolveManageSubscription', () => {
     expect(resolveManageSubscription(info(null, 'play_store'))).toEqual({ status: 'store' });
     expect(resolveManageSubscription(info(null))).toEqual({ status: 'store' });
     expect(resolveManageSubscription(null)).toEqual({ status: 'store' });
+  });
+});
+
+describe('isSafePortalUrl', () => {
+  it('accepts an absolute https portal URL', () => {
+    expect(isSafePortalUrl('https://billing.stripe.com/p/session/test_123')).toBe(true);
+  });
+
+  it('rejects anything location.assign could execute or misroute', () => {
+    for (const url of [
+      'javascript:alert(1)',
+      'http://billing.stripe.com/p',
+      '/profile',
+      '',
+      null,
+    ]) {
+      expect(isSafePortalUrl(url)).toBe(false);
+    }
   });
 });

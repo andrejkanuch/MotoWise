@@ -7,6 +7,7 @@ import {
   DEFAULT_WEB_APP_URL,
   RC_CUSTOMER_ID_METADATA_KEY,
   STRIPE_API_BASE,
+  STRIPE_REQUEST_TIMEOUT_MS,
   STRIPE_SEARCH_LIMIT,
 } from './billing-portal.constants';
 import type { BillingPortalSession } from './models/billing-portal-session.model';
@@ -119,12 +120,16 @@ export class BillingPortalService {
         ...(init.body ? { 'Content-Type': 'application/x-www-form-urlencoded' } : {}),
       },
       body: init.body,
+      signal: AbortSignal.timeout(STRIPE_REQUEST_TIMEOUT_MS),
     });
     if (!response.ok) throw new StripeRequestError(response.status, path.split('?')[0]);
     return (await response.json()) as T;
   }
 
   private webAppUrl(): string {
-    return (this.config.get<string>('WEB_APP_URL') ?? DEFAULT_WEB_APP_URL).replace(/\/+$/, '');
+    // `||`, not `??`: ConfigService.get falls through to process.env, where an
+    // empty `WEB_APP_URL=` (as in .env.example) is '' — that would send Stripe a
+    // relative return_url and fail every session.
+    return (this.config.get<string>('WEB_APP_URL') || DEFAULT_WEB_APP_URL).replace(/\/+$/, '');
   }
 }

@@ -25,6 +25,21 @@ export const SUPPORT_EMAIL = 'support@motovault.app';
 /** RevenueCat stores whose subscriptions are billed through our own Stripe account. */
 export const WEB_BILLING_STORES: ReadonlySet<string> = new Set(['stripe', 'rc_billing']);
 
+/**
+ * A portal URL is only ever navigated to when it is an absolute https URL. It
+ * comes from our API, but `location.assign` would run a `javascript:` URL, so the
+ * client never trusts the shape. The host is not pinned: Stripe lets the portal
+ * run on a custom domain.
+ */
+export function isSafePortalUrl(url: string | null | undefined): url is string {
+  if (!url) return false;
+  try {
+    return new URL(url).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 type ManagementInfo = Pick<CustomerInfo, 'managementURL'> & {
   entitlements: { active: Record<string, { store: string } | undefined> };
 };

@@ -17,7 +17,7 @@ export class BillingPortalResolver {
       "Creates a Stripe Customer Portal session for the current user's web subscription, so they can manage or cancel it.",
   })
   @UseGuards(GqlThrottlerGuard)
-  @Throttle({ default: THROTTLE_PRESETS.SHARE_LINK })
+  @Throttle({ default: THROTTLE_PRESETS.BILLING_PORTAL })
   async createBillingPortalSession(@CurrentUser() user: AuthUser): Promise<BillingPortalSession> {
     return this.billingPortalService.createSession(user.id);
   }
