@@ -15,6 +15,7 @@ interface PendingRow {
   analytics_enabled: boolean | null;
   currency: string | null;
   measurement_system: string | null;
+  signup_platform?: string | null;
 }
 
 const row = (over: Partial<PendingRow> = {}): PendingRow => ({
@@ -115,6 +116,27 @@ describe('SignupEventsService', () => {
     expect((events[0] as { properties: Record<string, unknown> }).properties.auth_method).toBe(
       provider,
     );
+  });
+
+  it.each([
+    ['a web sign-up', 'web', 'web'],
+    ['an untagged (app) sign-up', null, 'app'],
+    ['a row from before migration 00188', undefined, 'app'],
+    ['an unknown value the rider wrote into their own metadata', 'admin', 'app'],
+  ])('labels %s with signup_platform', async (_label, stored, expected) => {
+    const { client } = makeSupabase({
+      claim_pending_signup_events: () => ({
+        data: [row({ signup_platform: stored })],
+        error: null,
+      }),
+    });
+    const { bodies } = stubFetch({ ok: true });
+
+    const service = new SignupEventsService(client, config({ POSTHOG_PROJECT_TOKEN: 'phc_test' }));
+    await service.sweepPendingSignups();
+
+    const event = EVENTS(bodies)[0] as { properties: Record<string, unknown> };
+    expect(event.properties.signup_platform).toBe(expected);
   });
 
   it('emits nothing when no users are pending — a returning sign-in is not a signup', async () => {
@@ -223,6 +245,7 @@ describe('SignupEventsService', () => {
       'currency',
       'emitted_by',
       'measurement_system',
+      'signup_platform',
     ]);
   });
 

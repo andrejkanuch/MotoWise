@@ -2,6 +2,12 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 import { safeRedirectPath } from '@/lib/safe-redirect';
+import {
+  isNewWebOAuthAccount,
+  SIGNUP_PLATFORM_METADATA_KEY,
+  WEB_SIGNUP_PLATFORM,
+  WELCOME_PATH,
+} from '@/lib/signup-platform';
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
@@ -40,13 +46,24 @@ export async function GET(request: NextRequest) {
     },
   );
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
     return NextResponse.redirect(`${origin}/login`);
   }
 
-  // Redirect within the web app (same-origin internal path only)
-  const destination = safeRedirectPath(redirect);
+  const newWebAccount = isNewWebOAuthAccount(data.user);
+  if (newWebAccount) {
+    // Best effort: without the tag the signup is still counted, as `app`.
+    await supabase.auth.updateUser({
+      data: { [SIGNUP_PLATFORM_METADATA_KEY]: WEB_SIGNUP_PLATFORM },
+    });
+  }
+
+  // Redirect within the web app (same-origin internal path only). A Google or
+  // Apple sign-in from /login can create the account, so a new account goes to
+  // the app hand-off instead of the default garage.
+  let destination = safeRedirectPath(redirect);
+  if (newWebAccount && destination === '/garage') destination = WELCOME_PATH;
   return NextResponse.redirect(`${origin}${destination}`);
 }

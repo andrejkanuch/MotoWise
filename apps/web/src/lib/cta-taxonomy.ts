@@ -21,6 +21,8 @@ export const CtaPageType = {
   Tool: 'tool',
   /** `/get` — the social bio-link landing page. */
   Get: 'get',
+  /** `/welcome` — the hand-off screen after a web signup. */
+  Welcome: 'welcome',
   /** Shareable pages a rider sends around: ride, rider/profile, shared trip. */
   Ride: 'ride',
   Rider: 'rider',

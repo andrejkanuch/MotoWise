@@ -23,6 +23,19 @@ export const SIGNUP_EVENT = 'signup_completed' as const;
  */
 export const ANONYMOUS_DISTINCT_ID = 'signup-no-consent';
 
+/**
+ * Where an account was created. The web tags its sign-ups (00188); the app
+ * sends no tag, and the web and the app are the only places an account is made,
+ * so an untagged account is an app sign-up.
+ */
+export const SIGNUP_PLATFORM = { Web: 'web', App: 'app' } as const;
+export type SignupPlatform = (typeof SIGNUP_PLATFORM)[keyof typeof SIGNUP_PLATFORM];
+
+/** The rider can edit their own metadata: accept only the known tag. */
+export function signupPlatformFrom(raw: string | null | undefined): SignupPlatform {
+  return raw === SIGNUP_PLATFORM.Web ? SIGNUP_PLATFORM.Web : SIGNUP_PLATFORM.App;
+}
+
 /** Bound one sweep's work. The claim RPC applies the same cap. */
 export const MAX_SIGNUPS_PER_RUN = 200;
 
@@ -44,6 +57,11 @@ interface PendingSignupRow {
   analytics_enabled: boolean | null;
   currency: string | null;
   measurement_system: string | null;
+  /**
+   * `raw_user_meta_data.signup_platform` (00188). Absent until that migration
+   * is applied, which reads as an app sign-up.
+   */
+  signup_platform?: string | null;
 }
 
 /**
@@ -176,10 +194,12 @@ export class SignupEventsService {
    * app's own privacy toggle regardless of legal basis.
    *
    * Deliberately absent: email, name, or any other direct identifier. The
-   * analytics store must not become a second copy of the user table. Platform and
-   * locale are also absent because `public.users` does not carry them — they are
-   * already on the identified person from client-side events, which is the right
-   * place for them.
+   * analytics store must not become a second copy of the user table. Device
+   * platform and locale are also absent because `public.users` does not carry
+   * them — they are already on the identified person from client-side events.
+   * `signup_platform` (web or app) is sent because the client-side signup events
+   * are consent-gated and reach almost no web signups; it is the only way to
+   * measure how many web signups go on to open the app.
    */
   private buildEvent(row: PendingSignupRow): PostHogCaptureEvent {
     const consented = hasAnalyticsConsent(row.analytics_enabled);
@@ -187,6 +207,7 @@ export class SignupEventsService {
       auth_method: row.auth_method ?? 'email',
       currency: row.currency ?? undefined,
       measurement_system: row.measurement_system ?? undefined,
+      signup_platform: signupPlatformFrom(row.signup_platform),
       // Lets an analyst tell this apart from the legacy client-side events while
       // both series exist.
       emitted_by: 'server_sweep',

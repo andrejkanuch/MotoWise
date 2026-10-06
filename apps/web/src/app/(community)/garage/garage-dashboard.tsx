@@ -50,6 +50,7 @@ import {
   ytdPanelBreakdown,
 } from '@/lib/expense-money';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { OpenFrom, openGarageHref } from '@/lib/open-link';
 import { garageQueryKeys } from './query-keys';
 import './garage.css';
 
@@ -297,6 +298,13 @@ export function GarageDashboard() {
           >
             {t('noBikesDesc')}
           </p>
+          <Link
+            href={openGarageHref(OpenFrom.GarageEmpty)}
+            className="mv-btn primary"
+            style={{ marginTop: '20px' }}
+          >
+            {t('getTheApp')}
+          </Link>
 
           {/* Still show saved trips if any */}
           {trips.length > 0 && <SavedTripsSection trips={trips} />}

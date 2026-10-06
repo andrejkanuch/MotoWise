@@ -2418,6 +2418,7 @@
     "retry": "再試行",
     "noBikesYet": "バイクがまだありません",
     "noBikesDesc": "MotoVaultモバイルアプリで最初のバイクを追加すると、ここに表示されます。",
+    "getTheApp": "MotoVaultアプリを入手",
     "motorcycles": "バイク",
     "inGarage": "ガレージに{count}台",
     "oneVisible": "1台表示中",

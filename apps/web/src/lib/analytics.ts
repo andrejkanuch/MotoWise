@@ -58,6 +58,7 @@ export const WebEvent = {
   // Community
   PROFILE_VIEWED: 'profile_viewed',
   GARAGE_VIEWED: 'garage_viewed',
+  WELCOME_VIEWED: 'welcome_viewed',
 
   // Tools
   TOOL_USED: 'tool_used',
@@ -147,6 +148,7 @@ type WebEventProperties = {
   [WebEvent.BUILDER_OPENED]: { source: 'explore' | 'trip_detail' | 'nav' };
   [WebEvent.BUILDER_SAVED]: { waypointCount: number; distanceKm: number };
   [WebEvent.BUILDER_SHARED]: { method: 'link' | 'social'; tripSlug: string };
+  [WebEvent.WELCOME_VIEWED]: { device: 'ios' | 'android' | 'desktop' };
   [WebEvent.AFFILIATE_CLICK]: { provider: 'booking' | 'eaglerider' | 'revzilla'; tripSlug: string };
 };
 
