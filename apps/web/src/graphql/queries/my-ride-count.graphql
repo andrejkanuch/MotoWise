@@ -1,0 +1,7 @@
+# All-time ride count for the read-only garage (rides card, "All time").
+# `first: 1` keeps the payload to one row; only totalCount is read.
+query MyRideCount {
+  myRides(first: 1) {
+    totalCount
+  }
+}

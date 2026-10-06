@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getRevenueCatCustomerInfo } from '../revenuecat';
+import { getRevenueCatCustomerInfo, resetRevenueCatReadCacheForTests } from '../revenuecat';
 
 const { isConfigured, configure, getSharedInstance, instance } = vi.hoisted(() => {
   const instance = {
@@ -22,8 +22,14 @@ vi.mock('@revenuecat/purchases-js', () => ({
 const ENV_KEY = 'NEXT_PUBLIC_REVENUECAT_WEB_API_KEY';
 
 describe('getRevenueCatCustomerInfo', () => {
-  beforeEach(() => vi.clearAllMocks());
-  afterEach(() => vi.unstubAllEnvs());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetRevenueCatReadCacheForTests();
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.useRealTimers();
+  });
 
   it('returns null and never touches the SDK when the web API key is not set', async () => {
     vi.stubEnv(ENV_KEY, '');
@@ -87,5 +93,58 @@ describe('getRevenueCatCustomerInfo', () => {
     await Promise.all([getRevenueCatCustomerInfo('user-a'), getRevenueCatCustomerInfo('user-a')]);
 
     expect(configure).toHaveBeenCalledTimes(1);
+  });
+
+  it('shares one read between callers for the same user in the same burst', async () => {
+    vi.stubEnv(ENV_KEY, 'rcb_test');
+    isConfigured.mockReturnValue(true);
+    instance.getAppUserId.mockReturnValue('user-a');
+    const info = { managementURL: null };
+    instance.getCustomerInfo.mockResolvedValue(info);
+
+    // In flight: nav badge, account section and manage link mount together.
+    const reads = [1, 2, 3].map(() => getRevenueCatCustomerInfo('user-a'));
+    await expect(Promise.all(reads)).resolves.toEqual([info, info, info]);
+    // Just settled: a component that mounts a render later.
+    await expect(getRevenueCatCustomerInfo('user-a')).resolves.toBe(info);
+    expect(instance.getCustomerInfo).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads again once the shared window has passed (tab refocus refresh)', async () => {
+    vi.useFakeTimers();
+    vi.stubEnv(ENV_KEY, 'rcb_test');
+    isConfigured.mockReturnValue(true);
+    instance.getAppUserId.mockReturnValue('user-a');
+    instance.getCustomerInfo.mockResolvedValue({ managementURL: null });
+
+    await getRevenueCatCustomerInfo('user-a');
+    vi.advanceTimersByTime(2_001);
+    await getRevenueCatCustomerInfo('user-a');
+    expect(instance.getCustomerInfo).toHaveBeenCalledTimes(2);
+  });
+
+  it('never shares a read across users', async () => {
+    vi.stubEnv(ENV_KEY, 'rcb_test');
+    isConfigured.mockReturnValue(true);
+    instance.getAppUserId.mockReturnValue('user-a');
+    instance.getCustomerInfo.mockResolvedValue({ managementURL: null });
+    const infoB = { managementURL: 'https://pay.rev.cat/b' };
+    instance.changeUser.mockResolvedValue(infoB);
+
+    await getRevenueCatCustomerInfo('user-a');
+    await expect(getRevenueCatCustomerInfo('user-b')).resolves.toBe(infoB);
+    expect(instance.changeUser).toHaveBeenCalledWith('user-b');
+  });
+
+  it('does not reuse a failed read', async () => {
+    vi.stubEnv(ENV_KEY, 'rcb_test');
+    isConfigured.mockReturnValue(true);
+    instance.getAppUserId.mockReturnValue('user-a');
+    const info = { managementURL: null };
+    instance.getCustomerInfo.mockRejectedValueOnce(new Error('network')).mockResolvedValue(info);
+
+    await expect(getRevenueCatCustomerInfo('user-a')).rejects.toThrow('network');
+    await expect(getRevenueCatCustomerInfo('user-a')).resolves.toBe(info);
+    expect(instance.getCustomerInfo).toHaveBeenCalledTimes(2);
   });
 });

@@ -28,6 +28,8 @@ export const CtaPageType = {
   /** Public trip/route guides under /trips and /explore. */
   Trip: 'trip',
   Explore: 'explore',
+  /** Signed-in read-only web garage/profile (app handoff rail, band, bar). */
+  Garage: 'garage',
 } as const;
 export type CtaPageType = (typeof CtaPageType)[keyof typeof CtaPageType];
 
@@ -58,6 +60,8 @@ const SEGMENT_PAGE_TYPE: Record<string, CtaPageType> = {
   t: CtaPageType.SharedTrip,
   trips: CtaPageType.Trip,
   explore: CtaPageType.Explore,
+  garage: CtaPageType.Garage,
+  profile: CtaPageType.Garage,
 };
 
 /**

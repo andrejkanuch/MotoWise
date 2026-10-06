@@ -22,8 +22,15 @@ type Phase = (typeof PHASE)[keyof typeof PHASE];
  * session and sends the rider there. If the API can't (feature not configured,
  * Stripe error), shows how to cancel anyway: the link in the Stripe receipt
  * email, or support — a subscriber must never be left without a cancel path.
+ *
+ * `className` restyles the button (the garage account row renders it as a
+ * copper text link); the default is the /profile banner's button.
  */
-export function ManageWebSubscription() {
+export function ManageWebSubscription({
+  className = 'prof-banner-manage',
+}: {
+  className?: string;
+} = {}) {
   const t = useTranslations('Profile');
   const [phase, setPhase] = useState<Phase>(PHASE.IDLE);
 
@@ -54,12 +61,7 @@ export function ManageWebSubscription() {
 
   return (
     <>
-      <button
-        type="button"
-        className="prof-banner-manage"
-        onClick={open}
-        disabled={phase === PHASE.OPENING}
-      >
+      <button type="button" className={className} onClick={open} disabled={phase === PHASE.OPENING}>
         {phase === PHASE.OPENING ? t('manageOpening') : t('manageOrCancel')}
       </button>
       {phase === PHASE.FALLBACK && (

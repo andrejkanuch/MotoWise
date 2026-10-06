@@ -1,0 +1,103 @@
+/* ═══════════════════════════════════════════════════════════════
+   MotoVault web app surface tokens (--mv-*)
+   Signed-in web app: /garage, /profile, the app handoff.
+   ═══════════════════════════════════════════════════════════════
+   Dark values only. The signed-in web app is dark-first and the
+   ThemeProvider pins `html.dark`, so there is no light variant to
+   honour yet. The marketing site keeps its own light override in
+   apps/web/src/components/marketing/design-system.css
+   (`html:not(.dark)`); its dark values match these exactly.
+
+   Colours are oklch to match the web redesign spec 1:1. Two values
+   are hex on purpose:
+   - --mv-card is the brand card colour (palette.cardDark).
+   - --mv-qr-ink is the QR module colour. It stays fixed in every
+     theme for scan reliability (dark modules on a light tile).
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Surfaces, darkest first */
+  --mv-page: oklch(0.085 0.008 55);
+  --mv-bg-2: oklch(0.09 0.008 55);
+  --mv-bg: oklch(0.12 0.01 55);
+  --mv-surface: oklch(0.15 0.012 55);
+  --mv-surface-2: oklch(0.18 0.014 55);
+  --mv-card: #1e1c19;
+  /* Raised bar over content (surface-2 at 92%) */
+  --mv-surface-2-glass: oklch(0.18 0.014 55 / 0.92);
+
+  /* Ink */
+  --mv-ink: oklch(0.98 0.006 80);
+  --mv-ink-2: oklch(0.78 0.012 70);
+  --mv-ink-3: oklch(0.58 0.012 65);
+  --mv-ink-4: oklch(0.4 0.012 60);
+  --mv-on-accent: oklch(0.17 0.01 55);
+
+  /* Lines and fills (white at low alpha) */
+  --mv-line: oklch(1 0 0 / 0.07);
+  --mv-line-2: oklch(1 0 0 / 0.03);
+  --mv-field-line: oklch(1 0 0 / 0.14);
+  --mv-fill: oklch(1 0 0 / 0.04);
+  --mv-fill-icon: oklch(1 0 0 / 0.05);
+  --mv-skel: oklch(1 0 0 / 0.06);
+  --mv-skel-shine: oklch(1 0 0 / 0.1);
+
+  /* Signature copper. Text uses 400 only (5.6:1 on card), never 500. */
+  --mv-copper-400: oklch(0.68 0.15 45);
+  --mv-copper-500: oklch(0.6 0.16 45);
+  --mv-copper-600: oklch(0.52 0.15 45);
+  --mv-copper-tint: oklch(0.6 0.16 45 / 0.1);
+  --mv-copper-tint-strong: oklch(0.6 0.16 45 / 0.16);
+  --mv-copper-border: oklch(0.68 0.15 45 / 0.45);
+
+  /* Warm amber */
+  --mv-warm-500: oklch(0.76 0.18 60);
+  --mv-warm-400: oklch(0.84 0.15 68);
+  --mv-warm-300: oklch(0.9 0.11 72);
+  --mv-warm-900: oklch(0.32 0.1 55);
+  --mv-warm-tint: oklch(0.84 0.15 68 / 0.12);
+  --mv-warm-border: oklch(0.84 0.15 68 / 0.25);
+
+  /* Status */
+  --mv-success: oklch(0.72 0.2 145);
+  --mv-warning: oklch(0.75 0.15 80);
+  --mv-danger: oklch(0.7 0.21 25);
+  --mv-danger-tint: oklch(0.7 0.21 25 / 0.07);
+  --mv-danger-border: oklch(0.7 0.21 25 / 0.28);
+
+  /* QR handoff tile */
+  --mv-qr-tile: oklch(0.97 0.01 80);
+  --mv-qr-ink: #1a1714;
+
+  /* Google "G" mark: the official brand colours (Google's guidelines
+     forbid recolouring the mark), used by the sign-in account line. */
+  --mv-google-blue: #4285f4;
+  --mv-google-green: #34a853;
+  --mv-google-yellow: #fbbc05;
+  --mv-google-red: #ea4335;
+
+  /* Focus ring */
+  --mv-focus: var(--mv-warm-400);
+
+  /* Shape and motion */
+  --mv-radius: 20px;
+  --mv-radius-card: 20px;
+  --mv-radius-inner: 12px;
+  --mv-radius-field: 8px;
+  --mv-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Type families. The --font-* variables come from next/font in apps/web:
+   the root layout sets --font-sans (Plus Jakarta Sans) and --font-geist-mono
+   on <html>; Instrument Serif is set by the layout that needs it, on its own
+   wrapper. A custom property's var() resolves where it is declared, so these
+   are declared on :root AND on .mv-fonts: put `mv-fonts` on the element that
+   carries the Instrument Serif variable class (apps/web src/lib/fonts.ts,
+   `mvFontsClassName`). The quoted names are the fallback when a page did not
+   load that next/font. */
+:root,
+.mv-fonts {
+  --mv-font-sans: var(--font-sans, "Plus Jakarta Sans"), ui-sans-serif, system-ui, sans-serif;
+  --mv-font-serif: var(--font-instrument-serif, "Instrument Serif"), Georgia, serif;
+  --mv-font-mono: var(--font-geist-mono, "Geist Mono"), ui-monospace, Menlo, monospace;
+}

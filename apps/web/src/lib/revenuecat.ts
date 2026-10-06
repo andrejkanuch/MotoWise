@@ -13,6 +13,22 @@ import type { CustomerInfo } from '@revenuecat/purchases-js';
 let queue: Promise<unknown> = Promise.resolve();
 
 /**
+ * How long a settled read is shared with later callers. Long enough to cover
+ * hooks that mount a render or two apart (and React Strict Mode's re-run of
+ * effects); short enough that a tab-refocus refresh still reads fresh data.
+ */
+const SHARED_READ_MS = 2_000;
+
+interface SharedRead {
+  appUserId: string;
+  promise: Promise<CustomerInfo>;
+  /** `null` while in flight. */
+  settledAt: number | null;
+}
+
+let shared: SharedRead | null = null;
+
+/**
  * Configure (or re-key) the shared RevenueCat Web SDK for `appUserId` and return
  * the current customer info.
  *
@@ -36,10 +52,40 @@ export async function getRevenueCatCustomerInfo(appUserId: string): Promise<Cust
   const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_WEB_API_KEY;
   if (!apiKey) return null;
 
+  // One read per burst: /garage mounts useProStatus twice (nav badge + account
+  // section) and useManageSubscription once, and each used to queue its own
+  // GET /v1/subscribers/<id>. Callers for the same user that arrive while a read
+  // is in flight, or within SHARED_READ_MS of it settling, share its result.
+  const now = Date.now();
+  if (
+    shared &&
+    shared.appUserId === appUserId &&
+    (shared.settledAt === null || now - shared.settledAt < SHARED_READ_MS)
+  ) {
+    return shared.promise;
+  }
+
   const run = queue.then(() => resolveCustomerInfo(apiKey, appUserId));
   // Keep the chain alive regardless of this call's outcome.
   queue = run.catch(() => undefined);
+
+  const entry: SharedRead = { appUserId, promise: run, settledAt: null };
+  shared = entry;
+  run.then(
+    () => {
+      entry.settledAt = Date.now();
+    },
+    () => {
+      // Never reuse a failure: the next caller retries.
+      if (shared === entry) shared = null;
+    },
+  );
   return run;
+}
+
+/** Test hook: forget the shared read. */
+export function resetRevenueCatReadCacheForTests(): void {
+  shared = null;
 }
 
 /** Perform one config/re-key/read cycle. Callers must funnel through the queue. */

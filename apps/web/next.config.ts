@@ -33,6 +33,8 @@ const NON_LOCALIZED_ROUTE_SECTIONS = [
   'pro',
   'piel',
   'get',
+  // Post-signup "Get the app" screen (auth-gated via PROTECTED_PREFIXES in proxy.ts).
+  'welcome',
 ] as const;
 
 /**

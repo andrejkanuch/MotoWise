@@ -5,6 +5,7 @@ import createIntlMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
 import { REGION_COOKIE, regionCookieUpdate } from './lib/consent-region';
 import { resolveUuidToSlug } from './lib/redirect/uuid-to-slug';
+import { THEME_INIT_SCRIPT_CSP_HASH } from './lib/theme-init-script';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
@@ -122,8 +123,12 @@ function buildCsp(scriptInlineToken: string): string {
   ].join('; ');
 }
 
+// The root layout's inline theme script carries no nonce (it is raw inline
+// HTML, not a Next-managed script), so the strict CSP allows it by hash. Only
+// here: next to 'unsafe-inline' a hash would make browsers ignore
+// 'unsafe-inline' and break every other inline script on nonce-free routes.
 function buildCspHeader(nonce: string): string {
-  return buildCsp(`'nonce-${nonce}'`);
+  return buildCsp(`'nonce-${nonce}' ${THEME_INIT_SCRIPT_CSP_HASH}`);
 }
 
 // Nonce-free CSP (the DEFAULT). A nonce-based CSP only works on dynamically
@@ -266,7 +271,9 @@ async function adminAuth(request: NextRequest) {
   return response;
 }
 
-const PROTECTED_PREFIXES = ['/feed', '/garage', '/profile'];
+// '/welcome' is the post-signup "Get the app" screen: auth-gated and
+// dynamic like the garage, and it lives outside the [locale] tree.
+const PROTECTED_PREFIXES = ['/feed', '/garage', '/profile', '/welcome'];
 
 const PUBLIC_PREFIXES = [
   '/rider/',

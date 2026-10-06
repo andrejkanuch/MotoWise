@@ -177,8 +177,10 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
             top: '100%',
             left: 0,
             right: 0,
-            background: 'oklch(0.085 0.008 55 / 0.95)',
-            backdropFilter: 'blur(20px)',
+            // Opaque: at 95% alpha the page's large white headings showed
+            // through the open menu (the nav's own backdrop-filter means this
+            // nested blur never sees the page, so it cannot hide them either).
+            background: 'var(--mv-page)',
             borderBottom: '1px solid var(--mv-line)',
             padding: '16px 28px',
             zIndex: 50,

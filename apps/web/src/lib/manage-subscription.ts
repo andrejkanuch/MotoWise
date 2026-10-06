@@ -13,12 +13,30 @@ import type { CustomerInfo } from '@revenuecat/purchases-js';
  *   dashboard, which left web subscribers with no in-app way to cancel. The UI
  *   asks the API for a Stripe portal session instead, with a support fallback.
  * - `store` — App Store / Google Play (or nothing active): manage in the store.
+ *   `store` names which one when RevenueCat says so; absent when unknown (no
+ *   active entitlement, or RevenueCat failed), so the UI falls back to generic
+ *   "manage in your app store" copy.
  */
 export type ManageSubscription =
   | { status: 'loading' }
   | { status: 'web'; url: string }
   | { status: 'web_portal' }
-  | { status: 'store' };
+  | { status: 'store'; store?: AppStoreKind };
+
+/** The two mobile stores, as RevenueCat names them in `entitlement.store`. */
+export const AppStoreKind = {
+  AppStore: 'app_store',
+  PlayStore: 'play_store',
+} as const;
+export type AppStoreKind = (typeof AppStoreKind)[keyof typeof AppStoreKind];
+
+/** Where a store subscriber manages (and cancels) the subscription. */
+export const STORE_SUBSCRIPTIONS_URL: Record<AppStoreKind, string> = {
+  [AppStoreKind.AppStore]: 'https://apps.apple.com/account/subscriptions',
+  [AppStoreKind.PlayStore]: 'https://play.google.com/store/account/subscriptions',
+};
+
+const APP_STORE_KINDS: ReadonlySet<string> = new Set(Object.values(AppStoreKind));
 
 export const SUPPORT_EMAIL = 'support@motovault.app';
 
@@ -48,5 +66,9 @@ export function resolveManageSubscription(info: ManagementInfo | null): ManageSu
   if (!info) return { status: 'store' };
   if (info.managementURL) return { status: 'web', url: info.managementURL };
   const store = info.entitlements.active[REVENUECAT_ENTITLEMENT_PRO]?.store;
-  return store && WEB_BILLING_STORES.has(store) ? { status: 'web_portal' } : { status: 'store' };
+  if (store && WEB_BILLING_STORES.has(store)) return { status: 'web_portal' };
+  if (store && APP_STORE_KINDS.has(store)) {
+    return { status: 'store', store: store as AppStoreKind };
+  }
+  return { status: 'store' };
 }
