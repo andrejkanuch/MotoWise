@@ -18,6 +18,13 @@
 -- is applied a time-limited product would still be stored as lifetime — so
 -- apply this BEFORE any time-limited non-renewing product goes on sale.
 --
+-- Also (event ordering): RevenueCat can deliver CANCELLATION and EXPIRATION in
+-- the same second (Stripe "cancel immediately"). Processed EXPIRATION-first,
+-- the CANCELLATION overwrote the row to tier=pro/status=cancelled with a past
+-- expiry. Now, in either order, the row ends free/expired:
+--   - a CANCELLATION never moves a row out of 'expired',
+--   - a CANCELLATION whose expiration_at is already past records free/expired.
+--
 -- Same signature as 00177; CREATE OR REPLACE keeps its ACL (service_role
 -- only), and the REVOKE/GRANT below restate it.
 -- 00180-00182 are reserved by an unmerged branch.
@@ -78,8 +85,16 @@ BEGIN
       v_tier := 'pro';
       v_status := 'active';
     WHEN 'CANCELLATION' THEN
-      v_tier := 'pro';
-      v_status := 'cancelled';
+      -- A cancelled subscription keeps Pro until its expiry. When that expiry
+      -- has already passed (Stripe "cancel immediately", a late delivery) the
+      -- access is gone, so record it as expired rather than a live 'cancelled'.
+      IF v_expiration IS NOT NULL AND v_expiration <= now() THEN
+        v_tier := 'free';
+        v_status := 'expired';
+      ELSE
+        v_tier := 'pro';
+        v_status := 'cancelled';
+      END IF;
     WHEN 'UNCANCELLATION' THEN
       v_tier := 'pro';
       v_status := 'active';
@@ -144,7 +159,12 @@ BEGIN
       ELSE trial_started_at
     END,
     revenuecat_id = p_app_user_id::TEXT
-  WHERE id = p_app_user_id;
+  WHERE id = p_app_user_id
+    -- Order independence: a CANCELLATION processed after its EXPIRATION (RC
+    -- sends both at once for an immediate cancel) must not pull the row back
+    -- out of 'expired'. Evaluated in the UPDATE itself so a concurrent
+    -- EXPIRATION that commits first is re-checked against its new row version.
+    AND NOT (p_event_type = 'CANCELLATION' AND subscription_status = 'expired');
 END;
 $$;
 

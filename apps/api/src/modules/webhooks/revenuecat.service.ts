@@ -28,6 +28,9 @@ import { NON_RENEWING_GRANT, type NonRenewingGrant, nonRenewingGrant } from './r
 const RC_API_BASE = 'https://api.revenuecat.com/v1' as const;
 const EVENT_TRANSFER = 'TRANSFER' as const;
 const EVENT_NON_RENEWING_PURCHASE = 'NON_RENEWING_PURCHASE' as const;
+/** RevenueCat `environment` for Stripe test mode, App Store sandbox/TestFlight and Play testers. */
+export const RC_ENVIRONMENT_SANDBOX = 'SANDBOX' as const;
+const ENV_SANDBOX_ALLOWED_USER_IDS = 'REVENUECAT_SANDBOX_ALLOWED_USER_IDS' as const;
 
 /** The receiver's live subscription state, resolved from RC for a TRANSFER. */
 interface TransferResolution {
@@ -76,12 +79,18 @@ function expirationFor(
 @Injectable()
 export class RevenueCatService {
   private readonly logger = new Logger(RevenueCatService.name);
+  /** Users whose SANDBOX events may write entitlements (env, validated at boot). */
+  private readonly sandboxAllowedUserIds: ReadonlySet<string>;
 
   constructor(
     private readonly configService: ConfigService,
     @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
     private readonly metaEventsService: MetaEventsService,
-  ) {}
+  ) {
+    this.sandboxAllowedUserIds = new Set(
+      this.configService.get<string[]>(ENV_SANDBOX_ALLOWED_USER_IDS) ?? [],
+    );
+  }
 
   async processEvent(event: RevenueCatEvent): Promise<void> {
     if (!UUID_REGEX.test(event.app_user_id)) {
@@ -90,6 +99,8 @@ export class RevenueCatService {
       );
       return;
     }
+
+    if (this.isIgnoredSandboxEvent(event)) return;
 
     // TRANSFER carries no product/expiry of its own — look the receiver up.
     const transfer = event.type === EVENT_TRANSFER ? await this.resolveTransfer(event) : null;
@@ -162,6 +173,35 @@ export class RevenueCatService {
     this.captureToPostHog(event).catch((err) => {
       this.logger.error(`PostHog capture failed for ${event.id}: ${err}`);
     });
+  }
+
+  /**
+   * SANDBOX purchases (Stripe test cards, App Store sandbox / TestFlight, Play
+   * license testers) cost nothing, so they must not write real entitlements to
+   * the production database — anyone with a sandbox key and card 4242 could
+   * otherwise grant themselves Pro. Only users on the
+   * REVENUECAT_SANDBOX_ALLOWED_USER_IDS allowlist are processed. An ignored
+   * event is logged and breadcrumbed, never recorded, and the webhook still
+   * answers 200 so RevenueCat does not retry it.
+   */
+  private isIgnoredSandboxEvent(event: RevenueCatEvent): boolean {
+    if (event.environment !== RC_ENVIRONMENT_SANDBOX) return false;
+    if (this.sandboxAllowedUserIds.has(event.app_user_id.toLowerCase())) return false;
+    const message = `Ignoring SANDBOX ${event.type} ${event.id}: user ${event.app_user_id} is not on the sandbox allowlist`;
+    this.logger.log(message);
+    Sentry.addBreadcrumb({
+      category: 'revenuecat.webhook',
+      level: 'info',
+      message,
+      data: {
+        eventId: event.id,
+        eventType: event.type,
+        appUserId: event.app_user_id,
+        productId: event.product_id ?? null,
+        store: event.store ?? null,
+      },
+    });
+    return true;
   }
 
   /**

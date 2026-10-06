@@ -4,7 +4,7 @@ import type { RevenueCatEvent } from './dto/revenuecat-event.dto';
 import { RevenueCatService } from './revenuecat.service';
 import { LIFETIME_PRODUCT_IDS } from './revenuecat-products';
 
-vi.mock('@sentry/nestjs', () => ({ captureMessage: vi.fn() }));
+vi.mock('@sentry/nestjs', () => ({ captureMessage: vi.fn(), addBreadcrumb: vi.fn() }));
 
 /**
  * RevenueCat webhook processing (audit: ad-attribution + idempotency guards).
@@ -18,6 +18,7 @@ vi.mock('@sentry/nestjs', () => ({ captureMessage: vi.fn() }));
  */
 const VALID_UUID = '11111111-1111-1111-1111-111111111111';
 const LIFETIME_V4 = 'motovault_lifetime_v4';
+const ALLOWED_SANDBOX_UUID = '22222222-2222-2222-2222-222222222222';
 
 function baseEvent(overrides: Partial<RevenueCatEvent> = {}): RevenueCatEvent {
   return {
@@ -54,7 +55,11 @@ describe('RevenueCatService.processEvent', () => {
 
     service = new RevenueCatService(
       {
-        get: vi.fn((key: string) => (key === 'REVENUECAT_SECRET_API_KEY' ? 'sk_test' : undefined)),
+        get: vi.fn((key: string) => {
+          if (key === 'REVENUECAT_SECRET_API_KEY') return 'sk_test';
+          if (key === 'REVENUECAT_SANDBOX_ALLOWED_USER_IDS') return [ALLOWED_SANDBOX_UUID];
+          return undefined;
+        }),
       } as never,
       adminClient as never,
       meta as never,
@@ -73,6 +78,91 @@ describe('RevenueCatService.processEvent', () => {
   it('skips events whose app_user_id is not a UUID (anonymous RC ids)', async () => {
     await service.processEvent(baseEvent({ app_user_id: '$RCAnonymousID:abc' }));
     expect(adminClient.rpc).not.toHaveBeenCalled();
+  });
+
+  describe('SANDBOX events (Stripe test mode, App Store sandbox / TestFlight, Play testers)', () => {
+    it.each([
+      ['Stripe test card', 'STRIPE'],
+      ['TestFlight / App Store sandbox', 'APP_STORE'],
+      ['Play license tester', 'PLAY_STORE'],
+    ])('ignores a %s purchase by a user not on the allowlist (no entitlement write, 200)', async (_label, store) => {
+      await expect(
+        service.processEvent(
+          baseEvent({ environment: 'SANDBOX', store, product_id: 'motovault_pro_monthly_v4' }),
+        ),
+      ).resolves.toBeUndefined();
+      await flush();
+      expect(adminClient.rpc).not.toHaveBeenCalled();
+      expect(meta.sendAppEvent).not.toHaveBeenCalled();
+      expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'revenuecat.webhook',
+          data: expect.objectContaining({ eventId: 'evt-1', appUserId: VALID_UUID, store }),
+        }),
+      );
+    });
+
+    it('ignores every sandbox event type, not just purchases (e.g. a sandbox lifetime SKU)', async () => {
+      await service.processEvent(
+        baseEvent({
+          type: 'NON_RENEWING_PURCHASE',
+          environment: 'SANDBOX',
+          product_id: LIFETIME_V4,
+        }),
+      );
+      expect(adminClient.rpc).not.toHaveBeenCalled();
+    });
+
+    it('processes a sandbox event for an allowlisted user', async () => {
+      await service.processEvent(
+        baseEvent({
+          app_user_id: ALLOWED_SANDBOX_UUID,
+          environment: 'SANDBOX',
+          store: 'APP_STORE',
+        }),
+      );
+      expect(adminClient.rpc).toHaveBeenCalledWith(
+        'process_revenuecat_event',
+        expect.objectContaining({ p_app_user_id: ALLOWED_SANDBOX_UUID, p_environment: 'SANDBOX' }),
+      );
+      expect(Sentry.addBreadcrumb).not.toHaveBeenCalled();
+    });
+
+    it('processes PRODUCTION events as before', async () => {
+      await service.processEvent(baseEvent({ environment: 'PRODUCTION' }));
+      expect(adminClient.rpc).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('CANCELLATION + EXPIRATION delivered together (Stripe cancel immediately)', () => {
+    // The order-independent state machine lives in process_revenuecat_event
+    // (00185: a CANCELLATION never leaves 'expired', and one whose expiry is
+    // already past records free/expired). The service must hand both events to
+    // the RPC with the event's own (past) expiry, in whichever order they land.
+    const pastMs = Date.UTC(2026, 9, 6, 6, 54, 7);
+    const cancellation = baseEvent({
+      id: 'evt-cancel',
+      type: 'CANCELLATION',
+      expiration_at_ms: pastMs,
+    });
+    const expiration = baseEvent({
+      id: 'evt-expire',
+      type: 'EXPIRATION',
+      expiration_at_ms: pastMs,
+    });
+
+    it.each([
+      ['EXPIRATION then CANCELLATION', [expiration, cancellation]],
+      ['CANCELLATION then EXPIRATION', [cancellation, expiration]],
+    ])('%s: both reach the RPC with the past expiry', async (_label, events) => {
+      for (const event of events) await service.processEvent(event);
+      expect(adminClient.rpc.mock.calls.map(([, args]) => args.p_event_type)).toEqual(
+        events.map((event) => event.type),
+      );
+      for (const [, args] of adminClient.rpc.mock.calls) {
+        expect(args.p_expiration_at).toBe(new Date(pastMs).toISOString());
+      }
+    });
   });
 
   describe('NON_RENEWING_PURCHASE (lifetime Pro)', () => {

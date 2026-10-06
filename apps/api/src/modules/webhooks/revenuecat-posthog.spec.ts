@@ -490,7 +490,8 @@ describe('RevenueCatService → PostHog capture', () => {
     await service.processEvent(rcEvent({ environment: 'SANDBOX' }));
     await flush();
     expect(posthogBatches()).toHaveLength(0);
-    expect(adminClient.rpc).toHaveBeenCalled();
+    // Not on REVENUECAT_SANDBOX_ALLOWED_USER_IDS → no entitlement write either.
+    expect(adminClient.rpc).not.toHaveBeenCalled();
   });
 
   it('skips unmapped event types', async () => {
