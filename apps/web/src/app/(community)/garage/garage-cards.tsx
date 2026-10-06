@@ -3,7 +3,7 @@
 import { ArrowUpRight, Camera, CircleCheck, Route, TriangleAlert } from 'lucide-react';
 import Image from 'next/image';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
-import type { ReactNode } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { APP_HANDOFF_URL, GarageCard, MonoLabel, Skeleton } from '@/components/garage-ui';
 import { expenseCategoryMessageKey } from '@/lib/expense-category-label';
 import {
@@ -14,6 +14,7 @@ import {
   formatMoney,
   formatMoneyWhole,
   type GarageFormat,
+  localDayOf,
   OverdueKind,
   type RideTotals,
   type ServiceRow,
@@ -420,6 +421,19 @@ export function SpendSkeleton() {
 // ── Rides ────────────────────────────────────────────────────────────
 
 /**
+ * A day value as the rider's local day. The first render keeps the value as
+ * given (formatDay reads it in UTC, as SSR did, so hydration matches); after
+ * mount a timestamp switches to the browser's own calendar day.
+ */
+function useLocalDay(value: string | null): string | null {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  return value && mounted ? localDayOf(value) : value;
+}
+
+/**
  * All-time ride totals. The design's "Rides 2026" numbers have no API source
  * (no year-scoped ride stats), so the card shows the real all-time count (and
  * distance when the rider profile provides it), labelled "All time".
@@ -427,6 +441,7 @@ export function SpendSkeleton() {
 export function RidesCard({ totals, unit }: { totals: RideTotals; unit: string }) {
   const t = useTranslations('GarageV2');
   const fmt = useGarageFormat();
+  const lastRideDay = useLocalDay(totals.lastRideDate);
   const link = (
     <AppLink icon={<Route size={16} strokeWidth={2} aria-hidden="true" />}>
       {t('recordRide')}
@@ -449,7 +464,7 @@ export function RidesCard({ totals, unit }: { totals: RideTotals; unit: string }
     );
   }
 
-  const lastRide = totals.lastRideDate ? formatDay(totals.lastRideDate, fmt) : null;
+  const lastRide = lastRideDay ? formatDay(lastRideDay, fmt) : null;
   const stats = 1 + (totals.distance != null ? 1 : 0) + (lastRide ? 1 : 0);
   return (
     <GarageCard

@@ -6,7 +6,9 @@
  * pins the handoff logic onto the new pages so a later UI pass cannot drop it:
  *
  * - /login sends a password sign-in through `postAuthDestination` (never the
- *   bare `safeRedirectPath`, which skips /welcome on a first session).
+ *   bare `safeRedirectPath`, which skips /welcome on a first session), and
+ *   gives its "Resend confirmation email" the same `emailRedirectTo` as
+ *   /signup, so the resent link also returns through /auth/callback.
  * - /signup passes `emailRedirectTo: signUpEmailRedirectTo(...)` to
  *   `supabase.auth.signUp` (and to the resend of the confirmation email), so
  *   the link returns through /auth/callback, and sends an instant session
@@ -125,6 +127,29 @@ describe('post-auth contract: /login', () => {
   });
 });
 
+function expectResendsCarryEmailRedirectTo(sf: ts.SourceFile) {
+  const resends = authCalls(sf, 'resend');
+  expect(resends.length).toBeGreaterThan(0);
+  for (const resend of resends) {
+    const options = property(resend.arguments[0], 'options');
+    expect(isCallTo(sf, property(options, 'emailRedirectTo'), SIGN_UP_EMAIL_REDIRECT_TO)).toBe(
+      true,
+    );
+  }
+}
+
+describe('post-auth contract: /login resend', () => {
+  const sf = parse('login/page.tsx');
+
+  it('imports signUpEmailRedirectTo', () => {
+    expect(importsFrom(sf, POST_AUTH_MODULE)).toContain(SIGN_UP_EMAIL_REDIRECT_TO);
+  });
+
+  it('gives the resent confirmation email emailRedirectTo: signUpEmailRedirectTo(...)', () => {
+    expectResendsCarryEmailRedirectTo(sf);
+  });
+});
+
 describe('post-auth contract: /signup', () => {
   const sf = parse('signup/page.tsx');
 
@@ -146,14 +171,7 @@ describe('post-auth contract: /signup', () => {
   });
 
   it('gives the resent confirmation email the same emailRedirectTo', () => {
-    const resends = authCalls(sf, 'resend');
-    expect(resends.length).toBeGreaterThan(0);
-    for (const resend of resends) {
-      const options = property(resend.arguments[0], 'options');
-      expect(isCallTo(sf, property(options, 'emailRedirectTo'), SIGN_UP_EMAIL_REDIRECT_TO)).toBe(
-        true,
-      );
-    }
+    expectResendsCarryEmailRedirectTo(sf);
   });
 
   it('sends an instant session to postAuthDestination with the new user', () => {

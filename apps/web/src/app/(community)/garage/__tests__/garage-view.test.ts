@@ -239,3 +239,40 @@ describe('GarageView: populated', () => {
     expect(html).not.toMatch(/\[GRADE\]|expenses<\/span>|Health ·/);
   });
 });
+
+describe('GarageView: ride count failed and no rider profile', () => {
+  const html = render((client) => {
+    // A settled error: without this, mount would retry and show the query as pending.
+    client.setDefaultOptions({ queries: { retry: false, retryOnMount: false } });
+    client.setQueryData<MeQuery>(garageQueryKeys.me, me());
+    client.setQueryData<MyMotorcyclesQuery>(garageQueryKeys.motorcycles, {
+      myMotorcycles: [
+        {
+          id: 'b1',
+          userId: 'u1',
+          make: 'Honda',
+          model: 'Africa Twin',
+          year: 2022,
+          variant: 'DCT',
+          isPrimary: true,
+          primaryPhotoUrl: null,
+          currentMileage: 38_423,
+          mileageUnit: 'mi',
+          createdAt: '2026-01-01T00:00:00Z',
+        },
+      ],
+    });
+    client.setQueryData<RideOverviewQuery>(garageQueryKeys.rideOverview, rides(null));
+    // MyRideCount errored; publicUsername is null, so the profile query never runs.
+    client
+      .getQueryCache()
+      .build(client, { queryKey: garageQueryKeys.rideCount })
+      .setState({ status: 'error', error: new Error('boom'), fetchStatus: 'idle' });
+  });
+
+  it('shows the rides card failed state instead of a skeleton forever', () => {
+    expect(html).toContain('Rides · All time');
+    expect(html).toContain('This didn&#x27;t load. Refresh the page to try again.');
+    expect(html).not.toContain('gv-rides-skel');
+  });
+});

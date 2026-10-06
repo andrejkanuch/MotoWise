@@ -11,7 +11,7 @@ import {
 } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import {
   AppHandoffBand,
   AppHandoffBar,
@@ -44,6 +44,8 @@ import {
   isoDay,
   otherBikes,
   pickLeadBike,
+  RidesCardState,
+  ridesCardState,
   rideTotals,
   serviceSchedule,
   showsAppHandoff,
@@ -177,8 +179,14 @@ export function GarageView({
     lastRideKnown: rideOverviewQuery.isSuccess,
     unit,
   });
-  const ridesSettled =
-    (rideCountQuery.isSuccess || profileQuery.isSuccess) && !rideOverviewQuery.isPending;
+  const ridesState = ridesCardState({
+    countSucceeded: rideCountQuery.isSuccess,
+    countFailed: rideCountQuery.isError,
+    profileSucceeded: profileQuery.isSuccess,
+    profileFailed: profileQuery.isError,
+    profileEnabled: !!me?.publicUsername,
+    lastRidePending: rideOverviewQuery.isPending,
+  });
 
   // At most one promoted "Better in the app" reason per page. Unknowns (still
   // loading, or failed) never promote.
@@ -225,7 +233,12 @@ export function GarageView({
     );
   }
 
-  const ridesCard = ridesSettled ? <RidesCard totals={rides} unit={unit} /> : <RidesSkeleton />;
+  const ridesCardByState: Record<RidesCardState, ReactNode> = {
+    [RidesCardState.Ready]: <RidesCard totals={rides} unit={unit} />,
+    [RidesCardState.Failed]: <CardFailed heading={t('ridesAllTime')} />,
+    [RidesCardState.Loading]: <RidesSkeleton />,
+  };
+  const ridesCard = ridesCardByState[ridesState];
 
   // ─── Empty: no bike. The start hero is the handoff: no rail, band or bar. ───
   if (mode === GarageMode.Empty) {

@@ -267,6 +267,49 @@ export function rideTotals(input: {
   return { count, distance, lastRideDate, hasRides };
 }
 
+/** What the populated garage's rides card shows. */
+export const RidesCardState = {
+  /** A count source or the last-ride query is still out: skeleton. */
+  Loading: 'loading',
+  /** No count source can answer any more: the card's failed state, never a skeleton forever. */
+  Failed: 'failed',
+  Ready: 'ready',
+} as const;
+export type RidesCardState = (typeof RidesCardState)[keyof typeof RidesCardState];
+
+/**
+ * The count comes from `myRides.totalCount` or the rider profile. The profile
+ * query only runs for a rider with a public username, so a failed count with
+ * no profile (disabled or failed) is final.
+ */
+export function ridesCardState(input: {
+  countSucceeded: boolean;
+  countFailed: boolean;
+  profileSucceeded: boolean;
+  profileFailed: boolean;
+  profileEnabled: boolean;
+  lastRidePending: boolean;
+}): RidesCardState {
+  if ((input.countSucceeded || input.profileSucceeded) && !input.lastRidePending) {
+    return RidesCardState.Ready;
+  }
+  if (input.countFailed && (input.profileFailed || !input.profileEnabled)) {
+    return RidesCardState.Failed;
+  }
+  return RidesCardState.Loading;
+}
+
+/**
+ * The rider's local calendar day for a date-only value or a timestamp. A
+ * timestamp (e.g. a ride's `ended_at`) is converted with the browser's zone,
+ * so call this only after mount; before it, `formatDay` renders the UTC day.
+ */
+export function localDayOf(value: string): string {
+  if (value.length === 10) return value;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : isoDay(date);
+}
+
 // ── Formatting ───────────────────────────────────────────────────────
 // Through next-intl's formatter only: it takes its locale from
 // src/i18n/request.ts (validated by hasLocale), so no request-derived locale

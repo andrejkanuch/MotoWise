@@ -10,10 +10,13 @@ import {
   GarageMode,
   garageMode,
   isoDay,
+  localDayOf,
   OverdueKind,
   otherBikes,
   overdueKind,
   pickLeadBike,
+  RidesCardState,
+  ridesCardState,
   rideTotals,
   serviceSchedule,
   showsAppHandoff,
@@ -268,6 +271,41 @@ describe('rideTotals', () => {
   });
 });
 
+describe('ridesCardState', () => {
+  const base = {
+    countSucceeded: false,
+    countFailed: false,
+    profileSucceeded: false,
+    profileFailed: false,
+    profileEnabled: false,
+    lastRidePending: false,
+  };
+
+  it('is ready once a count source answered and the last ride is known', () => {
+    expect(ridesCardState({ ...base, countSucceeded: true })).toBe(RidesCardState.Ready);
+    expect(
+      ridesCardState({ ...base, countFailed: true, profileEnabled: true, profileSucceeded: true }),
+    ).toBe(RidesCardState.Ready);
+    expect(ridesCardState({ ...base, countSucceeded: true, lastRidePending: true })).toBe(
+      RidesCardState.Loading,
+    );
+  });
+
+  it('fails (never a skeleton forever) when the count fails and no profile can answer', () => {
+    expect(ridesCardState({ ...base, countFailed: true })).toBe(RidesCardState.Failed);
+    expect(
+      ridesCardState({ ...base, countFailed: true, profileEnabled: true, profileFailed: true }),
+    ).toBe(RidesCardState.Failed);
+  });
+
+  it('keeps loading while the profile can still answer', () => {
+    expect(ridesCardState({ ...base, countFailed: true, profileEnabled: true })).toBe(
+      RidesCardState.Loading,
+    );
+    expect(ridesCardState(base)).toBe(RidesCardState.Loading);
+  });
+});
+
 describe('formatting', () => {
   const en = { format: createFormatter({ locale: 'en', timeZone: 'UTC' }), locale: 'en' };
   it('writes days as D Mon YYYY in English, in UTC', () => {
@@ -279,6 +317,13 @@ describe('formatting', () => {
     expect(formatMoney(1960.62, 'EUR', en)).toBe('€1,960.62');
     expect(formatMoneyWhole(491.6, 'EUR', en)).toBe('€492');
     expect(formatMoney(45, 'USD', en)).toBe('$45.00');
+  });
+
+  it('localDayOf keeps date-only values and reads timestamps in the local zone', () => {
+    expect(localDayOf('2026-10-03')).toBe('2026-10-03');
+    const endedAt = new Date(2026, 9, 3, 20, 30);
+    expect(localDayOf(endedAt.toISOString())).toBe('2026-10-03');
+    expect(localDayOf('not a date')).toBe('not a date');
   });
 
   it('isoDay is the local calendar day', () => {

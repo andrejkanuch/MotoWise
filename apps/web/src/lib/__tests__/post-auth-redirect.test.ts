@@ -99,7 +99,14 @@ describe('postAuthDestination', () => {
   });
 
   it('never follows an off-site redirect; falls back by first-session as usual', () => {
-    for (const redirect of ['https://evil.com', '//evil.com', '/\\evil.com', 'garage']) {
+    for (const redirect of [
+      'https://evil.com',
+      '//evil.com',
+      '/\\evil.com',
+      '/\t/evil.com',
+      '/\n/evil.com',
+      'garage',
+    ]) {
       expect(postAuthDestination({ redirect, user: returningUser, now: NOW })).toBe(
         DEFAULT_POST_AUTH_PATH,
       );

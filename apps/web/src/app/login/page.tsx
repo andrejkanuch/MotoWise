@@ -27,7 +27,7 @@ import {
   humanizeAuthError,
   recoveryForAttempt,
 } from '@/lib/auth-errors';
-import { postAuthDestination } from '@/lib/post-auth-redirect';
+import { postAuthDestination, signUpEmailRedirectTo } from '@/lib/post-auth-redirect';
 
 export default function LoginPage() {
   const t = useTranslations('AuthV2');
@@ -89,7 +89,18 @@ export default function LoginPage() {
   const handleResendConfirmation = async () => {
     if (resendState === 'sending' || !email.trim()) return;
     setResendState('sending');
-    const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim() });
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email.trim(),
+      // Same return path as the signup confirmation email: back through
+      // /auth/callback, so a first session lands on /welcome.
+      options: {
+        emailRedirectTo: signUpEmailRedirectTo(
+          window.location.origin,
+          new URLSearchParams(window.location.search).get('redirect'),
+        ),
+      },
+    });
     if (error) {
       setError(humanizeAuthError(error).message);
       setResendState('idle');
