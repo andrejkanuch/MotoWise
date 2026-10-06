@@ -2919,14 +2919,8 @@
     "saveYourFavourites": "e salva qui i tuoi preferiti.",
     "days": "{count, plural, one {1 giorno} other {# giorni}}",
     "bikes": "Moto",
-    "unlimited": "illimitate",
-    "free": "1 gratis",
-    "ytdSpend": "Spesa da inizio anno",
     "ytd": "Da inizio anno",
-    "upcomingTasks": "Interventi in programma",
-    "allClear": "Tutto in regola",
     "overdue": "in ritardo",
-    "totalRides": "Uscite totali",
     "mileage": "Chilometraggio",
     "multiBikeTitle": "Il garage multi-moto è",
     "multiBikeDesc": "I rider gratuiti hanno una sola moto. Passa a Pro per gestire ogni moto con cronologie separate.",
@@ -2940,7 +2934,24 @@
     "high": "Alta",
     "normal": "Normale",
     "dLate": "{days}g di ritardo",
-    "dRemaining": "{days}g"
+    "dRemaining": "{days}g",
+    "summaryTitle": "In",
+    "summaryTitleSerif": "sintesi",
+    "summaryNextService": "Prossimo tagliando",
+    "summaryNothingDue": "Niente in scadenza",
+    "summaryServiceSpend": "Spesa per manutenzione quest'anno",
+    "summaryNoSpend": "Ancora nessuna",
+    "summaryBikeScope": "{visible} di {total} moto",
+    "summaryRides": "Uscite quest'anno",
+    "summaryRideDistance": "{km} km · {hours} h",
+    "summaryHealth": "Stato",
+    "summaryHealthScore": "Punteggio stato {score} su 100",
+    "summaryNoHealthData": "Ancora nessuna attività con data",
+    "summaryHiddenBikes": "{count, plural, one {1 altra moto} other {altre # moto}} con Pro",
+    "planPro": "Pro",
+    "planProTrial": "Prova Pro",
+    "planProTrialDays": "Prova Pro · {days, plural, one {1 giorno rimasto} other {# giorni rimasti}}",
+    "planFree": "Piano gratuito"
   },
   "Profile": {
     "title": "Profilo",
@@ -2975,7 +2986,13 @@
     "manageWebFallback": "Per annullare, usa il link «Gestisci abbonamento» nell’email di ricevuta di Stripe oppure <link>scrivi a {email}</link> e lo annulliamo noi."
   },
   "AppHandoff": {
-    "doInApp": "Fallo nell'app MotoVault"
+    "doInApp": "Fallo nell'app MotoVault",
+    "reasonBikes": "Il web mostra soltanto il tuo garage. Aggiungi e modifichi le moto nell'app, così tutte le modifiche restano in un unico posto.",
+    "reasonService": "L'app imposta i promemoria di manutenzione sul telefono. Completa la manutenzione nell'app perché i promemoria restino corretti.",
+    "reasonRides": "L'app registra le uscite con il GPS del telefono. Il web non può registrare un'uscita.",
+    "reasonExpenses": "L'app scansiona le ricevute con la fotocamera del telefono, quindi registri le spese lì.",
+    "reasonProfile": "Il web mostra soltanto il tuo profilo. Lo modifichi nell'app, così tutte le modifiche restano in un unico posto.",
+    "reasonProfileSetup": "Scegli il tuo nome utente pubblico nell'app. Il web mostra soltanto il profilo."
   },
   "Followers": {
     "followersTab": "Follower",

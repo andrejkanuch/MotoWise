@@ -2847,14 +2847,8 @@
     "saveYourFavourites": "et sauvegardez vos favoris ici.",
     "days": "{count, plural, one {1 jour} other {# jours}}",
     "bikes": "Motos",
-    "unlimited": "illimité",
-    "free": "1 gratuite",
-    "ytdSpend": "Dépenses (année)",
     "ytd": "Cumul annuel",
-    "upcomingTasks": "Tâches à venir",
-    "allClear": "Tout est en ordre",
     "overdue": "en retard",
-    "totalRides": "Sorties totales",
     "primary": "Principale",
     "mileage": "Kilométrage",
     "ownedSince": "Possédée depuis",
@@ -2897,7 +2891,24 @@
     "catTolls": "Péages",
     "catParking": "Stationnement",
     "catModifications": "Modifications",
-    "catTraining": "Formation"
+    "catTraining": "Formation",
+    "summaryTitle": "En un",
+    "summaryTitleSerif": "coup d'œil",
+    "summaryNextService": "Prochain entretien",
+    "summaryNothingDue": "Rien à prévoir",
+    "summaryServiceSpend": "Dépenses d'entretien cette année",
+    "summaryNoSpend": "Aucune pour l'instant",
+    "summaryBikeScope": "{visible} motos sur {total}",
+    "summaryRides": "Sorties cette année",
+    "summaryRideDistance": "{km} km · {hours} h",
+    "summaryHealth": "État",
+    "summaryHealthScore": "Score d'état {score} sur 100",
+    "summaryNoHealthData": "Aucune tâche datée pour l'instant",
+    "summaryHiddenBikes": "{count, plural, one {1 moto de plus} other {# motos de plus}} avec Pro",
+    "planPro": "Pro",
+    "planProTrial": "Essai Pro",
+    "planProTrialDays": "Essai Pro · {days, plural, one {1 jour restant} other {# jours restants}}",
+    "planFree": "Offre gratuite"
   },
   "Profile": {
     "failedToLoad": "Impossible de charger le profil",
@@ -2923,7 +2934,13 @@
     "manageWebFallback": "Pour résilier, utilisez le lien « Gérer l’abonnement » de votre reçu Stripe par e-mail, ou <link>écrivez à {email}</link> et nous le résilierons pour vous."
   },
   "AppHandoff": {
-    "doInApp": "À faire dans l'application MotoVault"
+    "doInApp": "À faire dans l'application MotoVault",
+    "reasonBikes": "Le web affiche seulement ton garage. Tu ajoutes et modifies tes motos dans l'app, pour garder toutes les modifications au même endroit.",
+    "reasonService": "L'app programme tes rappels d'entretien sur ton téléphone. Valide les entretiens dans l'app pour que les rappels restent justes.",
+    "reasonRides": "L'app enregistre les sorties avec le GPS de ton téléphone. Le web ne peut pas enregistrer de sortie.",
+    "reasonExpenses": "L'app scanne les reçus avec l'appareil photo du téléphone, c'est donc là que tu saisis tes dépenses.",
+    "reasonProfile": "Le web affiche seulement ton profil. Tu le modifies dans l'app, pour garder toutes les modifications au même endroit.",
+    "reasonProfileSetup": "Tu choisis ton nom d'utilisateur public dans l'app. Le web affiche seulement le profil."
   },
   "Followers": {
     "title": "Connexions",

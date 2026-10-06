@@ -14,5 +14,6 @@ export const garageQueryKeys = {
     ['garage', 'expenses', motorcycleId] as const,
   maintenance: ['garage', 'maintenance'] as const,
   trips: ['garage', 'trips'] as const,
-  profile: (username: string | null | undefined) => ['garage', 'profile', username] as const,
+  rideTotals: ['garage', 'ride-totals'] as const,
+  serviceSpend: (motorcycleId: string) => ['garage', 'service-spend', motorcycleId] as const,
 };

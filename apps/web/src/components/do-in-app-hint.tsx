@@ -11,14 +11,17 @@ import '@/app/(community)/garage/garage.css';
  * the app only. Links to /get, which redirects a phone to its store and shows a
  * desktop visitor the store buttons and a QR code.
  *
- * Deliberately minimal; #277 designs the full web→app handoff.
+ * `reason` is required: each hint says why only the app can do the action.
  */
-export function DoInAppHint({ className }: { className?: string }) {
+export function DoInAppHint({ reason, className }: { reason: string; className?: string }) {
   const t = useTranslations('AppHandoff');
   return (
     <Link href={GET_PATH} className={className ? `app-hint ${className}` : 'app-hint'}>
       <Smartphone aria-hidden="true" />
-      <span>{t('doInApp')}</span>
+      <span className="app-hint-text">
+        <span>{t('doInApp')}</span>
+        <span className="app-hint-reason">{reason}</span>
+      </span>
       <span className="app-hint-cta" aria-hidden="true">
         &rarr;
       </span>

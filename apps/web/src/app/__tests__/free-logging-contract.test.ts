@@ -142,6 +142,34 @@ describe('read-only contract (web garage + profile)', () => {
   });
 });
 
+/**
+ * Guard: the read-only summary on /garage and /profile shows this year's spend
+ * per currency and the health grade from the shared computeHealthScore, so the
+ * web never adds currencies together or drifts from the app's score.
+ */
+describe('read-only summary contract (web garage + profile)', () => {
+  const summary = fs.readFileSync(path.join(GARAGE_DIR, 'garage-summary.tsx'), 'utf8');
+
+  it('renders on both /garage and /profile', () => {
+    expect(fs.readFileSync(GARAGE_DASHBOARD, 'utf8')).toContain('<GarageSummary');
+    expect(fs.readFileSync(path.join(PROFILE_DIR, 'page.tsx'), 'utf8')).toContain('<GarageSummary');
+  });
+
+  it('reads spend only per currency', () => {
+    const query = fs.readFileSync(
+      path.join(SRC, 'graphql/queries/get-service-spend-this-year.graphql'),
+      'utf8',
+    );
+    expect(query).toContain('thisYearByCurrency');
+    expect(query).not.toMatch(/\b(thisYear|allTime)\b/);
+    expect(summary).toContain('sumTotalsPerCurrency');
+  });
+
+  it('takes the health grade from the shared computeHealthScore', () => {
+    expect(summary).toMatch(/import \{[^}]*\bcomputeHealthScore\b[^}]*\} from '@motovault\/types'/);
+  });
+});
+
 describe('Pro copy contract (web)', () => {
   it('Pro pages do not sell free or non-existent features', () => {
     const banned = /csv|priority support|ride analytics|health report|export everything/i;

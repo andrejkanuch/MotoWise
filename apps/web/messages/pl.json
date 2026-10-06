@@ -2435,14 +2435,8 @@
     "saveYourFavourites": "i zapisz swoje ulubione tutaj.",
     "days": "{count, plural, one {1 dzień} few {# dni} many {# dni} other {# dnia}}",
     "bikes": "Motocykle",
-    "unlimited": "bez limitu",
-    "free": "1 za darmo",
-    "ytdSpend": "Wydatki od początku roku",
     "ytd": "Od pocz. roku",
-    "upcomingTasks": "Nadchodzące zadania",
-    "allClear": "Wszystko w porządku",
     "overdue": "po terminie",
-    "totalRides": "Łączna liczba przejazdów",
     "primary": "Główny",
     "mileage": "Przebieg",
     "ownedSince": "W posiadaniu od",
@@ -2485,7 +2479,24 @@
     "catTolls": "Opłaty drogowe",
     "catParking": "Parking",
     "catModifications": "Modyfikacje",
-    "catTraining": "Szkolenie"
+    "catTraining": "Szkolenie",
+    "summaryTitle": "W",
+    "summaryTitleSerif": "skrócie",
+    "summaryNextService": "Następny serwis",
+    "summaryNothingDue": "Nic do zrobienia",
+    "summaryServiceSpend": "Koszty serwisu w tym roku",
+    "summaryNoSpend": "Jeszcze brak",
+    "summaryBikeScope": "{visible} z {total} motocykli",
+    "summaryRides": "Przejazdy w tym roku",
+    "summaryRideDistance": "{km} km · {hours} godz.",
+    "summaryHealth": "Stan",
+    "summaryHealthScore": "Wynik stanu {score} na 100",
+    "summaryNoHealthData": "Brak zadań z terminem",
+    "summaryHiddenBikes": "{count, plural, one {Jeszcze 1 motocykl} few {Jeszcze # motocykle} many {Jeszcze # motocykli} other {Jeszcze # motocykla}} z Pro",
+    "planPro": "Pro",
+    "planProTrial": "Okres próbny Pro",
+    "planProTrialDays": "Okres próbny Pro · {days, plural, one {został 1 dzień} few {zostały # dni} many {zostało # dni} other {zostało # dnia}}",
+    "planFree": "Plan darmowy"
   },
   "CompareAlternatives": {
     "title": "Alternatywy dla aplikacji motocyklowych — znajdź odpowiednią aplikację na każdą trasę",
@@ -3096,7 +3107,13 @@
     "manageWebFallback": "Aby anulować, użyj linku „Zarządzaj subskrypcją” w e-mailu z potwierdzeniem Stripe albo <link>napisz na {email}</link>, a anulujemy ją za Ciebie."
   },
   "AppHandoff": {
-    "doInApp": "Zrób to w aplikacji MotoVault"
+    "doInApp": "Zrób to w aplikacji MotoVault",
+    "reasonBikes": "Strona tylko wyświetla Twój garaż. Motocykle dodajesz i edytujesz w aplikacji, więc wszystkie zmiany trafiają w jedno miejsce.",
+    "reasonService": "Aplikacja ustawia przypomnienia o serwisie w telefonie. Oznaczaj serwisy w aplikacji, aby przypomnienia były poprawne.",
+    "reasonRides": "Aplikacja nagrywa przejazdy przez GPS telefonu. Strona nie może nagrać przejazdu.",
+    "reasonExpenses": "Aplikacja skanuje paragony aparatem telefonu, dlatego wydatki zapisujesz właśnie tam.",
+    "reasonProfile": "Strona tylko wyświetla Twój profil. Edytujesz go w aplikacji, więc wszystkie zmiany trafiają w jedno miejsce.",
+    "reasonProfileSetup": "Publiczną nazwę użytkownika wybierasz w aplikacji. Strona tylko wyświetla profil."
   },
   "DiagnosticsDemo": {
     "aiTag": "Napędzane przez AI",
