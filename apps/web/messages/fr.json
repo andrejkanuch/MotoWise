@@ -2932,7 +2932,10 @@
     "active": "Actif",
     "daysLeft": "{days} jours restants",
     "manageSubscription": "Gérer l'abonnement",
-    "manageInStore": "Gérer dans votre store"
+    "manageInStore": "Gérer dans votre store",
+    "manageOrCancel": "Gérer ou résilier",
+    "manageOpening": "Ouverture…",
+    "manageWebFallback": "Pour résilier, utilisez le lien « Gérer l’abonnement » de votre reçu Stripe par e-mail, ou <link>écrivez à {email}</link> et nous le résilierons pour vous."
   },
   "ProfileEdit": {
     "setupTitle": "Configurer votre profil public",

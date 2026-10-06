@@ -2932,7 +2932,10 @@
     "active": "Aktiv",
     "daysLeft": "{days} Tage übrig",
     "manageSubscription": "Abo verwalten",
-    "manageInStore": "Im App Store verwalten"
+    "manageInStore": "Im App Store verwalten",
+    "manageOrCancel": "Verwalten oder kündigen",
+    "manageOpening": "Wird geöffnet…",
+    "manageWebFallback": "Zum Kündigen nutze den Link „Abo verwalten“ in deiner Stripe-Belegmail oder <link>schreib an {email}</link> – wir kündigen es für dich."
   },
   "ProfileEdit": {
     "setupTitle": "Öffentliches Profil einrichten",

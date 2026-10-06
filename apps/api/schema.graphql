@@ -134,6 +134,26 @@ enum AssistantMessageRole {
   user
 }
 
+"""
+A one-time Stripe Customer Portal link for a web (Stripe) subscriber to manage or cancel.
+"""
+type BillingPortalSession {
+  status: BillingPortalStatus!
+
+  """Short-lived portal URL; present only when status is ok."""
+  url: String
+}
+
+"""
+Outcome of creating a Stripe billing portal session for a web subscriber.
+"""
+enum BillingPortalStatus {
+  not_configured
+  not_found
+  ok
+  unavailable
+}
+
 type BlogCategory {
   id: ID!
   isPrimary: Boolean
@@ -1148,6 +1168,11 @@ type Mutation {
   cloneTrip(tripId: ID!): ID!
   completeMaintenanceTask(createNextOccurrence: Boolean, id: String!, input: CompleteMaintenanceTaskInput): CompleteTaskResult!
   completeOnboarding(input: CompleteOnboardingInput!): User!
+
+  """
+  Creates a Stripe Customer Portal session for the current user's web subscription, so they can manage or cancel it.
+  """
+  createBillingPortalSession: BillingPortalSession!
   createBlogCategory(input: CreateBlogCategoryInput!): BlogCategory!
   createBlogKeyword(input: CreateBlogKeywordInput!): BlogKeyword!
   createBlogPost(input: CreateBlogPostInput!): BlogPost!

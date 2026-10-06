@@ -2,32 +2,17 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { useEffect, useState } from 'react';
+import { type ManageSubscription, resolveManageSubscription } from '@/lib/manage-subscription';
 import { getRevenueCatCustomerInfo } from '@/lib/revenuecat';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
-/**
- * Resolution state for the current user's subscription-management options.
- *
- * - `loading` — still resolving (haven't completed a lookup yet); render nothing
- *   or a placeholder rather than a misleading "no options" state.
- * - `web` — an active Web Billing subscription; `url` opens RevenueCat's hosted
- *   management/cancel page (self-serve cancel).
- * - `store` — resolved with no Web Billing management URL: a store-billed
- *   (App Store / Google Play) or otherwise non-web subscriber, who manages in
- *   the respective store rather than on the web.
- */
-export type ManageSubscription =
-  | { status: 'loading' }
-  | { status: 'web'; url: string }
-  | { status: 'store' };
+export type { ManageSubscription } from '@/lib/manage-subscription';
 
 /**
  * Resolve how the current user can manage their subscription.
  *
- * RevenueCat exposes `customerInfo.managementURL` only for active *Web Billing*
- * subscriptions (bought through the web checkout, backed by Stripe). Store
- * subscriptions return `null` — those are managed in the store. So a non-null
- * value is exactly the set of users we can offer a self-serve web cancel link to.
+ * A non-null `customerInfo.managementURL` is linked directly. A web (Stripe)
+ * subscriber whose URL is null gets `web_portal` — see resolveManageSubscription.
  *
  * Re-resolves when the tab regains visibility (mirrors use-pro-status), so a
  * user who just finished checkout and landed on /profile, or who returns after
@@ -64,8 +49,7 @@ export function useManageSubscription(): ManageSubscription {
           }
 
           const customerInfo = await getRevenueCatCustomerInfo(user.id);
-          const url = customerInfo?.managementURL ?? null;
-          commit(url ? { status: 'web', url } : { status: 'store' }, token);
+          commit(resolveManageSubscription(customerInfo), token);
         } catch (err) {
           // A real RC/network failure otherwise looks identical to "no web
           // subscription" — report it so a fleet-wide outage on the cancel

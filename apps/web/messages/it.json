@@ -2984,7 +2984,10 @@
     "daysRemaining": "{days} giorni rimanenti",
     "daysLeft": "{days} giorni rimasti",
     "manageSubscription": "Gestisci abbonamento",
-    "manageInStore": "Gestisci nel tuo app store"
+    "manageInStore": "Gestisci nel tuo app store",
+    "manageOrCancel": "Gestisci o annulla",
+    "manageOpening": "Apertura…",
+    "manageWebFallback": "Per annullare, usa il link «Gestisci abbonamento» nell’email di ricevuta di Stripe oppure <link>scrivi a {email}</link> e lo annulliamo noi."
   },
   "ProfileEdit": {
     "setupTitle": "Configura il tuo profilo pubblico",

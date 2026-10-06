@@ -19,6 +19,7 @@ import { AffiliatesModule } from './modules/affiliates/affiliates.module';
 import { AiBudgetModule } from './modules/ai-budget/ai-budget.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { ArticlesModule } from './modules/articles/articles.module';
+import { BillingPortalModule } from './modules/billing-portal/billing-portal.module';
 import { BlogModule } from './modules/blog/blog.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { ContentFlagsModule } from './modules/content-flags/content-flags.module';
@@ -129,6 +130,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     RidesModule,
     SearchModule,
     EntitlementsModule,
+    BillingPortalModule,
     FuelStopsModule,
     SurfaceReportsModule,
     ShareLinksModule,

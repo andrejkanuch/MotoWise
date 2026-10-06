@@ -2932,7 +2932,10 @@
     "active": "Activo",
     "daysLeft": "{days} días restantes",
     "manageSubscription": "Gestionar suscripción",
-    "manageInStore": "Gestionar en tu tienda de apps"
+    "manageInStore": "Gestionar en tu tienda de apps",
+    "manageOrCancel": "Gestionar o cancelar",
+    "manageOpening": "Abriendo…",
+    "manageWebFallback": "Para cancelar, usa el enlace «Gestionar suscripción» del correo de recibo de Stripe o <link>escribe a {email}</link> y la cancelamos por ti."
   },
   "ProfileEdit": {
     "setupTitle": "Configura tu perfil público",

@@ -6,6 +6,7 @@ import { useManageSubscription } from '@/hooks/use-manage-subscription';
 import { useProStatus } from '@/hooks/use-pro-status';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import '@/app/(community)/garage/garage.css';
+import { ManageWebSubscription } from './manage-web-subscription';
 
 /**
  * Pro membership banner with self-serve subscription management.
@@ -14,6 +15,8 @@ import '@/app/(community)/garage/garage.css';
  * subscribed:
  * - Web Billing → a "Manage subscription" link into RevenueCat's hosted portal
  *   (cancel/update in one click).
+ * - Stripe without a management URL → "Manage or cancel", which opens a Stripe
+ *   Customer Portal session from the API, with a support fallback.
  * - App Store / Google Play → static "manage in your app store" copy, since
  *   store subscriptions can't be cancelled from the web.
  * - Still resolving → nothing, to avoid flashing the wrong option.
@@ -69,6 +72,7 @@ export function ProBanner({ className }: { className?: string }) {
             {t('manageSubscription')}
           </a>
         )}
+        {manage.status === 'web_portal' && <ManageWebSubscription />}
         {manage.status === 'store' && (
           <span className="prof-banner-manage-note">{t('manageInStore')}</span>
         )}

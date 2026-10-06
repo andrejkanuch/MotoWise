@@ -2932,7 +2932,10 @@
     "active": "Active",
     "daysLeft": "{days} days left",
     "manageSubscription": "Manage subscription",
-    "manageInStore": "Manage in your app store"
+    "manageInStore": "Manage in your app store",
+    "manageOrCancel": "Manage or cancel",
+    "manageOpening": "Opening…",
+    "manageWebFallback": "To cancel, use the “Manage subscription” link in your Stripe receipt email, or <link>email {email}</link> and we’ll cancel it for you."
   },
   "ProfileEdit": {
     "setupTitle": "Set Up Your Public Profile",

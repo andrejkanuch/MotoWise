@@ -29,6 +29,20 @@ export const envSchema = z.object({
   CORS_ORIGINS: z.string().default('http://localhost:8081,http://localhost:3000'),
   REVENUECAT_WEBHOOK_SECRET: optionalString,
   REVENUECAT_SECRET_API_KEY: optionalString,
+  // Stripe Customer Portal sessions for web (Stripe) subscribers — RevenueCat
+  // returns managementURL: null for them. Must be a RESTRICTED key with only
+  // Customer portal: Write, Subscriptions: Read. Optional: when unset,
+  // createBillingPortalSession returns not_configured and the web shows
+  // support-email guidance instead.
+  STRIPE_BILLING_PORTAL_KEY: optionalString,
+  // Optional primary lookup for the billing portal: RevenueCat REST API v2 (the
+  // v1 REVENUECAT_SECRET_API_KEY does not work on v2). A v2 secret key with
+  // customer_information:subscriptions:read. Both unset → Stripe subscription
+  // metadata search only.
+  REVENUECAT_PROJECT_ID: optionalString,
+  REVENUECAT_V2_API_KEY: optionalString,
+  // Public web origin the billing portal returns to (default https://motovault.app).
+  WEB_APP_URL: optionalUrl,
   // Comma-separated user ids (UUIDs) whose RevenueCat SANDBOX purchases may
   // write entitlements: Stripe test cards, App Store sandbox / TestFlight and
   // Play license testers all arrive as environment=SANDBOX. Every other sandbox
