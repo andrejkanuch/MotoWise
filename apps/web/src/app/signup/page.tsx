@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { readExplicitConsent } from '@/components/cookie-consent';
 import { identifyUser, trackEvent, WebEvent } from '@/lib/analytics';
-import { signUpConsentOptions } from '@/lib/signup-consent';
+import { oauthCallbackUrl, safeRedirectPath } from '@/lib/safe-redirect';
+import { WELCOME_PATH, webSignUpOptions } from '@/lib/signup-platform';
 
 /* ------------------------------------------------------------------ */
 /*  CSS variable tokens (from marketing design-system.css / login.html) */
@@ -56,7 +57,7 @@ export default function SignUpPage() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: signUpConsentOptions(readExplicitConsent()),
+      options: webSignUpOptions(readExplicitConsent()),
     });
     if (error) {
       setError(error.message);
@@ -71,7 +72,7 @@ export default function SignUpPage() {
         identifyUser(data.user.id);
       }
       const params = new URLSearchParams(window.location.search);
-      window.location.href = params.get('redirect') || '/garage';
+      window.location.href = safeRedirectPath(params.get('redirect'), WELCOME_PATH);
     }
   };
 
@@ -81,7 +82,10 @@ export default function SignUpPage() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirect') || '/garage')}`,
+        redirectTo: oauthCallbackUrl(
+          window.location.origin,
+          new URLSearchParams(window.location.search).get('redirect'),
+        ),
       },
     });
   };
@@ -92,7 +96,10 @@ export default function SignUpPage() {
     await supabase.auth.signInWithOAuth({
       provider: 'apple',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirect') || '/garage')}`,
+        redirectTo: oauthCallbackUrl(
+          window.location.origin,
+          new URLSearchParams(window.location.search).get('redirect'),
+        ),
       },
     });
   };

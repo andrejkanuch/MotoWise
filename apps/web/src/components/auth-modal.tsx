@@ -11,7 +11,7 @@ import {
   humanizeAuthError,
   recoveryForAttempt,
 } from '@/lib/auth-errors';
-import { signUpConsentOptions } from '@/lib/signup-consent';
+import { webSignUpOptions } from '@/lib/signup-platform';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 interface AuthModalProps {
@@ -86,7 +86,7 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
-          options: signUpConsentOptions(readExplicitConsent()),
+          options: webSignUpOptions(readExplicitConsent()),
         });
         if (error) {
           setError(humanizeAuthError(error).message);

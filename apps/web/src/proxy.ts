@@ -266,7 +266,7 @@ async function adminAuth(request: NextRequest) {
   return response;
 }
 
-const PROTECTED_PREFIXES = ['/feed', '/garage', '/profile'];
+const PROTECTED_PREFIXES = ['/feed', '/garage', '/profile', '/welcome'];
 
 const PUBLIC_PREFIXES = [
   '/rider/',
@@ -436,10 +436,11 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/pro') ||
     pathname.startsWith('/piel') ||
     pathname === '/get' ||
+    pathname.startsWith('/open/') ||
     pathname.startsWith('/ingest')
   ) {
-    // Auth + public community routes + explore + route/trip detail + pro + /get bio link + PostHog proxy (/ingest → next.config rewrites): skip locale processing.
-    // NOTE: the root-only sections here (trips/route/routes/ride/rider/pro/get)
+    // Auth + public community routes + explore + route/trip detail + pro + /get bio link + /open/* app hand-off + PostHog proxy (/ingest → next.config rewrites): skip locale processing.
+    // NOTE: the root-only sections here (trips/route/routes/ride/rider/pro/get/open)
     // are mirrored by NON_LOCALIZED_ROUTE_SECTIONS in next.config.ts, which strips
     // stray locale prefixes off them. Keep the two lists aligned so /{locale}/… of a
     // root-only section 308-consolidates instead of 404ing.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { safeRedirectPath } from '../safe-redirect';
+import { oauthCallbackUrl, safeRedirectPath } from '../safe-redirect';
 
 describe('safeRedirectPath', () => {
   it('allows internal app paths', () => {
@@ -32,5 +32,19 @@ describe('safeRedirectPath', () => {
 
   it('rejects bare hosts with no leading slash', () => {
     expect(safeRedirectPath('evil.com')).toBe('/garage');
+  });
+});
+
+describe('oauthCallbackUrl', () => {
+  it('forwards an explicit redirect, encoded', () => {
+    expect(oauthCallbackUrl('https://motovault.app', '/pro/checkout?plan=annual')).toBe(
+      'https://motovault.app/auth/callback?redirect=%2Fpro%2Fcheckout%3Fplan%3Dannual',
+    );
+  });
+
+  it('leaves the default to the callback when the page has no redirect', () => {
+    expect(oauthCallbackUrl('https://motovault.app', null)).toBe(
+      'https://motovault.app/auth/callback',
+    );
   });
 });

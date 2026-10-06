@@ -12,7 +12,7 @@ import {
   humanizeAuthError,
   recoveryForAttempt,
 } from '@/lib/auth-errors';
-import { safeRedirectPath } from '@/lib/safe-redirect';
+import { oauthCallbackUrl, safeRedirectPath } from '@/lib/safe-redirect';
 
 /* ------------------------------------------------------------------ */
 /*  CSS variable tokens (from marketing design-system.css / login.html) */
@@ -103,7 +103,10 @@ export default function LoginPage() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirect') || '/garage')}`,
+        redirectTo: oauthCallbackUrl(
+          window.location.origin,
+          new URLSearchParams(window.location.search).get('redirect'),
+        ),
       },
     });
   };
@@ -114,7 +117,10 @@ export default function LoginPage() {
     await supabase.auth.signInWithOAuth({
       provider: 'apple',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirect') || '/garage')}`,
+        redirectTo: oauthCallbackUrl(
+          window.location.origin,
+          new URLSearchParams(window.location.search).get('redirect'),
+        ),
       },
     });
   };

@@ -26,6 +26,8 @@ export const GetSource = {
   TikTok: 'tiktok',
   Facebook: 'facebook',
   YouTube: 'youtube',
+  /** Signed-in web pages, through /open/garage. */
+  WebProfile: 'web_profile',
   Other: 'other',
 } as const;
 export type GetSource = (typeof GetSource)[keyof typeof GetSource];
