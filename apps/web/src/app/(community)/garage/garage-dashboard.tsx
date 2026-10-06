@@ -9,10 +9,8 @@ import type {
 } from '@motovault/graphql';
 import {
   AllMaintenanceTasksDocument,
-  CompleteMaintenanceTaskDocument,
   ExpenseDashboardDocument,
   GetRiderProfileDocument,
-  LogExpenseDocument,
   MaintenancePriority,
   MaintenanceTaskStatus,
   MeDocument,
@@ -20,7 +18,7 @@ import {
   SavedTripsDocument,
 } from '@motovault/graphql';
 import { breakdownTotals, CURRENCY_TOTALS_SEPARATOR, dashboardBreakdowns } from '@motovault/types';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   AlertTriangle,
   Bike,
@@ -32,17 +30,16 @@ import {
   Gauge,
   Lock,
   MapPin,
-  Plus,
   Route,
   Settings,
   Shield,
   Wrench,
-  X,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { DoInAppHint } from '@/components/do-in-app-hint';
 import { useProStatus } from '@/hooks/use-pro-status';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import {
@@ -77,20 +74,6 @@ const MONTH_KEYS = [
   'oct',
   'nov',
   'dec',
-] as const;
-
-const EXPENSE_CATEGORIES = [
-  'fuel',
-  'maintenance',
-  'parts',
-  'gear',
-  'tires',
-  'insurance',
-  'registration',
-  'tolls',
-  'parking',
-  'modifications',
-  'training',
 ] as const;
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
@@ -149,186 +132,21 @@ function formatShortDate(dateStr: string): string {
 }
 
 // ═══════════════════════════════════════════════
-// Log Expense Modal
-// ═══════════════════════════════════════════════
-function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () => void }) {
-  const t = useTranslations('Garage');
-  const queryClient = useQueryClient();
-  const [motorcycleId, setMotorcycleId] = useState(
-    bikes.find((b) => b.isPrimary)?.id ?? bikes[0]?.id ?? '',
-  );
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('fuel');
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [description, setDescription] = useState('');
-
-  // Guard against non-numeric input ('abc', '.'): parseFloat yields NaN, which
-  // serializes to null over GraphQL and fails the non-null Float with an opaque
-  // error. Number.isFinite also rejects Infinity ('1e999'). Only a finite,
-  // positive amount is submittable.
-  const parsedAmount = Number.parseFloat(amount);
-  const isAmountValid = Number.isFinite(parsedAmount) && parsedAmount > 0;
-
-  const mutation = useMutation({
-    mutationFn: () =>
-      gqlFetcher(LogExpenseDocument, {
-        input: {
-          motorcycleId,
-          amount: parsedAmount,
-          category,
-          date,
-          description: description || undefined,
-        },
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: garageQueryKeys.expensesBase });
-      onClose();
-    },
-  });
-
-  return (
-    // biome-ignore lint/a11y/useKeyWithClickEvents: backdrop dismiss
-    // biome-ignore lint/a11y/noStaticElementInteractions: backdrop dismiss
-    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal-card" role="dialog" aria-modal="true" aria-label="Log expense">
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '24px',
-          }}
-        >
-          <h3 className="modal-title" style={{ margin: 0 }}>
-            {t('modalTitle')}
-          </h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="mv-btn ghost"
-            style={{ padding: '6px' }}
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="modal-field">
-          <label htmlFor="exp-bike" className="modal-label">
-            {t('modalMotorcycle')}
-          </label>
-          <select
-            id="exp-bike"
-            className="modal-select"
-            value={motorcycleId}
-            onChange={(e) => setMotorcycleId(e.target.value)}
-          >
-            {bikes.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.nickname ?? `${b.year} ${b.make} ${b.model}`}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="modal-field">
-          <label htmlFor="exp-amount" className="modal-label">
-            {t('modalAmount')}
-          </label>
-          <input
-            id="exp-amount"
-            type="number"
-            className="modal-input"
-            placeholder="0.00"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            min="0"
-            step="0.01"
-          />
-        </div>
-
-        <div className="modal-field">
-          <label htmlFor="exp-cat" className="modal-label">
-            {t('modalCategory')}
-          </label>
-          <select
-            id="exp-cat"
-            className="modal-select"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            {EXPENSE_CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {t(`cat${c.charAt(0).toUpperCase()}${c.slice(1)}` as Parameters<typeof t>[0])}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="modal-field">
-          <label htmlFor="exp-date" className="modal-label">
-            {t('modalDate')}
-          </label>
-          <input
-            id="exp-date"
-            type="date"
-            className="modal-input"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </div>
-
-        <div className="modal-field">
-          <label htmlFor="exp-desc" className="modal-label">
-            {t('modalDescription')}
-          </label>
-          <input
-            id="exp-desc"
-            type="text"
-            className="modal-input"
-            placeholder={t('modalDescPlaceholder')}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-
-        {mutation.isError && (
-          <p style={{ color: 'var(--mv-danger)', fontSize: '13px', marginBottom: '14px' }}>
-            {t('modalError')}
-          </p>
-        )}
-
-        <div className="modal-actions">
-          <button type="button" className="mv-btn" onClick={onClose}>
-            {t('modalCancel')}
-          </button>
-          <button
-            type="button"
-            className="mv-btn primary"
-            disabled={!isAmountValid || !motorcycleId || mutation.isPending}
-            onClick={() => mutation.mutate()}
-          >
-            {mutation.isPending ? t('modalSaving') : t('modalSave')}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
 // Main Garage Page
 // ═══════════════════════════════════════════════
 // Client dashboard for /garage. Initial data is prefetched server-side and
 // handed to these useQuery hooks via a HydrationBoundary in page.tsx, so the
 // dashboard paints with content on first render (no spinner gate) — fixing the
 // prior client-render LCP (~4.5s) and the spinner→content CLS. Query keys stay
-// verbatim so the dehydrated server cache matches; mutations/refetch still run
+// verbatim so the dehydrated server cache matches; refetch still runs
 // client-side.
+//
+// Read-only by design (#277): the web displays, the app does. Logging expenses,
+// completing maintenance and editing bikes happen in the MotoVault app; where
+// the web used to offer those actions it shows a DoInAppHint instead.
 export function GarageDashboard() {
   const t = useTranslations('Garage');
   const { isPro } = useProStatus();
-  const queryClient = useQueryClient();
-  const [expenseModalOpen, setExpenseModalOpen] = useState(false);
 
   useEffect(() => {
     trackEvent(WebEvent.GARAGE_VIEWED);
@@ -374,15 +192,6 @@ export function GarageDashboard() {
     queryKey: garageQueryKeys.profile(user?.publicUsername),
     queryFn: () => gqlFetcher(GetRiderProfileDocument, { username: user?.publicUsername ?? '' }),
     enabled: !!user?.publicUsername,
-  });
-
-  // ─── Mutations ───
-  const completeTaskMutation = useMutation({
-    mutationFn: (id: string) =>
-      gqlFetcher(CompleteMaintenanceTaskDocument, { id, createNextOccurrence: true }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: garageQueryKeys.maintenance });
-    },
   });
 
   // ─── Derived data ───
@@ -549,14 +358,7 @@ export function GarageDashboard() {
         <div className="bikes-grid">
           {bikes.map((bike, index) => {
             const isLocked = !isPro && index > 0;
-            return (
-              <BikeCard
-                key={bike.id}
-                bike={bike}
-                isLocked={isLocked}
-                onLogExpense={() => setExpenseModalOpen(true)}
-              />
-            );
+            return <BikeCard key={bike.id} bike={bike} isLocked={isLocked} />;
           })}
         </div>
 
@@ -571,10 +373,7 @@ export function GarageDashboard() {
             </span>
           </div>
           <div className="sect-header-actions">
-            <button type="button" className="mv-btn warm" onClick={() => setExpenseModalOpen(true)}>
-              <Plus className="h-3.5 w-3.5" />
-              {t('logExpense')}
-            </button>
+            <DoInAppHint />
           </div>
         </div>
 
@@ -592,6 +391,9 @@ export function GarageDashboard() {
                 : ''}
             </span>
           </div>
+          <div className="sect-header-actions">
+            <DoInAppHint />
+          </div>
         </div>
 
         <MaintenanceSection
@@ -599,17 +401,10 @@ export function GarageDashboard() {
           upcoming={upcomingTasks}
           scheduled={scheduledTasks}
           bikes={bikes}
-          onComplete={(id) => completeTaskMutation.mutate(id)}
-          isCompleting={completeTaskMutation.isPending}
         />
 
         {/* ─── Section E: Saved Trips ─── */}
         <SavedTripsSection trips={trips} />
-
-        {/* ─── Expense Modal ─── */}
-        {expenseModalOpen && (
-          <LogExpenseModal bikes={bikes} onClose={() => setExpenseModalOpen(false)} />
-        )}
       </div>
     </div>
   );
@@ -699,15 +494,7 @@ function QuickStats({
 // ═══════════════════════════════════════════════
 // Bike Card
 // ═══════════════════════════════════════════════
-function BikeCard({
-  bike,
-  isLocked,
-  onLogExpense,
-}: {
-  bike: Motorcycle;
-  isLocked: boolean;
-  onLogExpense: () => void;
-}) {
+function BikeCard({ bike, isLocked }: { bike: Motorcycle; isLocked: boolean }) {
   const t = useTranslations('Garage');
   const ownedSince = bike.purchaseDate
     ? new Date(bike.purchaseDate).toLocaleDateString('en-US', {
@@ -780,10 +567,6 @@ function BikeCard({
         </div>
 
         <div className="bike-actions">
-          <button type="button" className="mv-btn primary" onClick={onLogExpense}>
-            <CircleDollarSign className="h-3.5 w-3.5" />
-            {t('logExpense')}
-          </button>
           <a href="#maintenance" className="mv-btn">
             <Wrench className="h-3.5 w-3.5" />
             {t('viewMaintenance')}
@@ -992,15 +775,11 @@ function MaintenanceSection({
   upcoming,
   scheduled,
   bikes,
-  onComplete,
-  isCompleting,
 }: {
   overdue: Task[];
   upcoming: Task[];
   scheduled: Task[];
   bikes: Motorcycle[];
-  onComplete: (id: string) => void;
-  isCompleting: boolean;
 }) {
   const getBikeName = (motorcycleId: string) => {
     const bike = bikes.find((b) => b.id === motorcycleId);
@@ -1043,8 +822,6 @@ function MaintenanceSection({
           variant="overdue"
           tasks={overdue}
           getBikeName={getBikeName}
-          onComplete={onComplete}
-          isCompleting={isCompleting}
         />
       )}
       {upcoming.length > 0 && (
@@ -1053,8 +830,6 @@ function MaintenanceSection({
           variant="upcoming"
           tasks={upcoming}
           getBikeName={getBikeName}
-          onComplete={onComplete}
-          isCompleting={isCompleting}
         />
       )}
       {scheduled.length > 0 && (
@@ -1063,8 +838,6 @@ function MaintenanceSection({
           variant="scheduled"
           tasks={scheduled}
           getBikeName={getBikeName}
-          onComplete={onComplete}
-          isCompleting={isCompleting}
         />
       )}
     </div>
@@ -1076,15 +849,11 @@ function TaskGroup({
   variant,
   tasks,
   getBikeName,
-  onComplete,
-  isCompleting,
 }: {
   label: string;
   variant: 'overdue' | 'upcoming' | 'scheduled';
   tasks: Task[];
   getBikeName: (id: string) => string;
-  onComplete: (id: string) => void;
-  isCompleting: boolean;
 }) {
   const t = useTranslations('Garage');
 
@@ -1144,15 +913,6 @@ function TaskGroup({
                   </strong>
                 </div>
               )}
-              <button
-                type="button"
-                className={`mv-btn${variant === 'overdue' ? ' primary' : ''}`}
-                onClick={() => onComplete(task.id)}
-                disabled={isCompleting}
-              >
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                {t('markDone')}
-              </button>
             </div>
           );
         })}

@@ -10,8 +10,6 @@
 export const garageQueryKeys = {
   me: ['me'] as const,
   motorcycles: ['garage', 'motorcycles'] as const,
-  // Prefix used for cache invalidation (matches all per-bike expense queries).
-  expensesBase: ['garage', 'expenses'] as const,
   expenses: (motorcycleId: string | null | undefined) =>
     ['garage', 'expenses', motorcycleId] as const,
   maintenance: ['garage', 'maintenance'] as const,

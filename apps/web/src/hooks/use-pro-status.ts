@@ -155,7 +155,7 @@ export function useProStatus(): ProStatus {
   // INITIAL on both the server and the client's FIRST render. Reading the
   // sessionStorage cache during the initial render would desync server/client
   // HTML and throw React hydration error #418 (the flicker behind the rage
-  // clicks on /garage, /profile, /profile/edit). The cached value is applied
+  // clicks on /garage, /profile). The cached value is applied
   // one tick later, post-mount — warm-cache users still skip the loading flash.
   const [status, setStatus] = useState<ProStatus>(INITIAL);
 

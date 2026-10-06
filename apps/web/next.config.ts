@@ -107,6 +107,10 @@ const nextConfig: NextConfig = {
         destination: to,
         permanent: true,
       })),
+      // The web profile is read-only (#277) and /profile/edit was deleted. A
+      // bookmarked or login-`?redirect=` /profile/edit lands on /profile instead
+      // of a 404.
+      { source: '/profile/edit', destination: '/profile', permanent: true },
       ...DROPPED_LOCALES.flatMap((locale) => [
         { source: `/${locale}`, destination: '/', permanent: true },
         { source: `/${locale}/:path*`, destination: '/:path*', permanent: true },

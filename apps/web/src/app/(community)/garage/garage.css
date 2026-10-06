@@ -952,7 +952,7 @@
 
 .task-item {
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto 1fr auto;
   gap: 18px;
   align-items: center;
   padding: 16px 20px;
@@ -1466,82 +1466,38 @@ button.prof-banner-manage:disabled {
   margin-top: 8px;
 }
 
-/* ─── Modal ─── */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  display: flex;
+/* ─── "Do this in the app" hint (DoInAppHint) ─── */
+.app-hint {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-
-.modal-card {
-  background: oklch(0.12 0.01 55);
-  border: 1px solid var(--mv-line);
-  border-radius: 20px;
-  padding: 32px;
-  max-width: 480px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 40px 100px -40px rgba(0, 0, 0, 0.8);
-}
-
-.modal-title {
-  font-size: 24px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  margin: 0 0 24px;
-  color: var(--mv-ink);
-}
-
-.modal-field {
-  margin-bottom: 18px;
-}
-
-.modal-label {
-  display: block;
-  font-family: 'Geist Mono', monospace;
-  font-size: 10.5px;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 11px;
+  font-size: 12px;
   color: var(--mv-ink-3);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-
-.modal-input,
-.modal-select {
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--mv-line);
-  background: oklch(0.1 0.008 55 / 0.6);
-  color: var(--mv-ink);
-  font-size: 14px;
-  font-family: inherit;
-  outline: none;
+  border: 1px dashed var(--mv-line);
+  text-decoration: none;
   transition: 0.2s;
+  letter-spacing: -0.005em;
 }
 
-.modal-input:focus,
-.modal-select:focus {
-  border-color: var(--mv-warm-500);
-  box-shadow: 0 0 0 2px oklch(0.84 0.15 68 / 0.15);
+.app-hint:hover {
+  color: var(--mv-warm-300);
+  border-color: oklch(0.84 0.15 68 / 0.3);
 }
 
-.modal-input::placeholder {
-  color: var(--mv-ink-4);
+.app-hint svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
 }
 
-.modal-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-top: 28px;
+.app-hint-cta {
+  color: var(--mv-warm-400);
+}
+
+.app-hint-spaced {
+  margin-top: 16px;
 }
 
 /* ─── Skeletons ─── */
@@ -1602,8 +1558,7 @@ button.prof-banner-manage:disabled {
     grid-template-columns: auto 1fr;
     gap: 12px;
   }
-  .task-due,
-  .task-item > .mv-btn {
+  .task-due {
     grid-column: 2;
   }
 }

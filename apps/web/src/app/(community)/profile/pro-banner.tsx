@@ -21,9 +21,9 @@ import { ManageWebSubscription } from './manage-web-subscription';
  *   store subscriptions can't be cancelled from the web.
  * - Still resolving → nothing, to avoid flashing the wrong option.
  *
- * Lives in its own component (not inline in the profile page) so it can also be
- * shown on /profile/edit — a Pro user who hasn't set up a public username is
- * redirected there and would otherwise never reach the cancel link.
+ * Lives in its own component (not inline in the profile card) so it renders in
+ * both /profile states, including the one for a Pro user who hasn't set up a
+ * public username, who would otherwise never reach the cancel link.
  */
 export function ProBanner({ className }: { className?: string }) {
   const t = useTranslations('Profile');
