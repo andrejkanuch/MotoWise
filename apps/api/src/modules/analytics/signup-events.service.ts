@@ -28,11 +28,11 @@ export const ANONYMOUS_DISTINCT_ID = 'signup-no-consent';
  * sends no tag, and the web and the app are the only places an account is made,
  * so an untagged account is an app sign-up.
  */
-export const SIGNUP_PLATFORM = { Web: 'web', App: 'app' } as const;
-export type SignupPlatform = (typeof SIGNUP_PLATFORM)[keyof typeof SIGNUP_PLATFORM];
+const SIGNUP_PLATFORM = { Web: 'web', App: 'app' } as const;
+type SignupPlatform = (typeof SIGNUP_PLATFORM)[keyof typeof SIGNUP_PLATFORM];
 
 /** The rider can edit their own metadata: accept only the known tag. */
-export function signupPlatformFrom(raw: string | null | undefined): SignupPlatform {
+function signupPlatformFrom(raw: string | null | undefined): SignupPlatform {
   return raw === SIGNUP_PLATFORM.Web ? SIGNUP_PLATFORM.Web : SIGNUP_PLATFORM.App;
 }
 

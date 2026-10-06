@@ -1,11 +1,10 @@
-import { palette } from '@motovault/design-system';
 import { Bell, Receipt, Route } from 'lucide-react';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { after } from 'next/server';
-import { renderSVG } from 'uqr';
+import { AppQrCard } from '@/components/marketing/app-qr-card';
 import { StoreButtons } from '@/components/marketing/store-buttons';
 import { captureAnonymousCount } from '@/lib/anonymous-counter';
 import { CtaPageType, CtaPlacement } from '@/lib/cta-taxonomy';
@@ -84,14 +83,6 @@ export default async function GetPage({ searchParams }: { searchParams: SearchPa
     ? `/pro/checkout?plan=annual&discount_code=${encodeURIComponent(discountCode)}`
     : '/pro';
 
-  // The QR code points back at this same URL, so the phone that scans it takes
-  // the per-platform redirect above with the source intact.
-  const qrSvg = renderSVG(`${SITE_URL}${GET_PATH}?${GET_SOURCE_PARAM}=${source}`, {
-    border: 1,
-    whiteColor: palette.white,
-    blackColor: palette.neutral950,
-  });
-
   return (
     <main className="dark flex min-h-screen items-center justify-center bg-neutral-950 px-4 py-16 text-neutral-50">
       <div className="w-full max-w-[880px]">
@@ -126,16 +117,12 @@ export default async function GetPage({ searchParams }: { searchParams: SearchPa
             </p>
           </div>
 
-          <figure className="hidden w-56 rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5 text-center md:block">
-            <div
-              className="overflow-hidden rounded-xl [&>svg]:block [&>svg]:h-auto [&>svg]:w-full"
-              // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG generated server-side by uqr from our own URL
-              dangerouslySetInnerHTML={{ __html: qrSvg }}
-            />
-            <figcaption className="mt-4 text-sm text-neutral-400">
-              Scan with your phone camera
-            </figcaption>
-          </figure>
+          {/* The QR code points back at this same URL, so the phone that scans it
+              takes the per-platform redirect above with the source intact. */}
+          <AppQrCard
+            url={`${SITE_URL}${GET_PATH}?${GET_SOURCE_PARAM}=${source}`}
+            className="hidden md:block"
+          />
         </div>
       </div>
     </main>

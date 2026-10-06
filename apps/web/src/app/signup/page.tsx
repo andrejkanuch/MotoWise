@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { readExplicitConsent } from '@/components/cookie-consent';
 import { identifyUser, trackEvent, WebEvent } from '@/lib/analytics';
-import { safeRedirectPath } from '@/lib/safe-redirect';
+import { oauthCallbackUrl, safeRedirectPath } from '@/lib/safe-redirect';
 import { WELCOME_PATH, webSignUpOptions } from '@/lib/signup-platform';
 
 /* ------------------------------------------------------------------ */
@@ -82,7 +82,10 @@ export default function SignUpPage() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirect') || WELCOME_PATH)}`,
+        redirectTo: oauthCallbackUrl(
+          window.location.origin,
+          new URLSearchParams(window.location.search).get('redirect'),
+        ),
       },
     });
   };
@@ -93,7 +96,10 @@ export default function SignUpPage() {
     await supabase.auth.signInWithOAuth({
       provider: 'apple',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirect') || WELCOME_PATH)}`,
+        redirectTo: oauthCallbackUrl(
+          window.location.origin,
+          new URLSearchParams(window.location.search).get('redirect'),
+        ),
       },
     });
   };

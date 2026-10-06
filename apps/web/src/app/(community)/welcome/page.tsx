@@ -1,20 +1,19 @@
-import { palette } from '@motovault/design-system';
 import { Bell, Receipt, Route } from 'lucide-react';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Link from 'next/link';
-import { renderSVG } from 'uqr';
+import { AppQrCard } from '@/components/marketing/app-qr-card';
 import { StoreButtons } from '@/components/marketing/store-buttons';
+import { TrackOnMount } from '@/components/track-on-mount';
+import { WebEvent } from '@/lib/analytics';
+import { BASE_URL } from '@/lib/constants';
 import { CtaPageType, CtaPlacement } from '@/lib/cta-taxonomy';
 import { GetPlatform, platformFromUserAgent } from '@/lib/get-link';
 import { OpenFrom, openGarageHref } from '@/lib/open-link';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
-import { WelcomeViewed } from './welcome-viewed';
 
 // Per-user (email) and per-device (QR or button) content: never prerender or cache.
 export const dynamic = 'force-dynamic';
-
-const SITE_URL = 'https://motovault.app';
 
 export const metadata: Metadata = {
   title: 'Welcome to MotoVault',
@@ -38,24 +37,17 @@ const PROVIDER_LABEL: Record<string, string> = { google: 'Google', apple: 'Apple
  */
 export default async function WelcomePage() {
   const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const provider = PROVIDER_LABEL[String(user?.app_metadata?.provider ?? '')];
+  // The page needs only the email and provider, which the verified JWT carries;
+  // getClaims() avoids a second Auth round-trip after the layout's getUser().
+  const { data } = await supabase.auth.getClaims();
+  const email = data?.claims.email;
+  const provider = PROVIDER_LABEL[String(data?.claims.app_metadata?.provider ?? '')];
   const platform = platformFromUserAgent((await headers()).get('user-agent') ?? '');
   const isDesktop = platform === GetPlatform.Desktop;
 
-  const qrSvg = isDesktop
-    ? renderSVG(`${SITE_URL}${openGarageHref(OpenFrom.WelcomeQr)}`, {
-        border: 1,
-        whiteColor: palette.white,
-        blackColor: palette.neutral950,
-      })
-    : null;
-
   return (
     <div className="dark flex items-center justify-center px-4 py-16 text-neutral-50">
-      <WelcomeViewed device={platform} />
+      <TrackOnMount event={WebEvent.WELCOME_VIEWED} properties={{ device: platform }} />
       <div className="w-full max-w-[880px]">
         <div className="grid items-center gap-10 md:grid-cols-[1fr_auto]">
           <div>
@@ -87,11 +79,11 @@ export default async function WelcomePage() {
               </Link>
             )}
 
-            {user?.email && (
+            {email && (
               <p className="mt-6 text-sm text-neutral-400">
                 In the app, sign in with the same account:{' '}
                 <span className="text-neutral-200">
-                  {provider ? `Continue with ${provider} (${user.email})` : user.email}
+                  {provider ? `Continue with ${provider} (${email})` : email}
                 </span>
               </p>
             )}
@@ -102,18 +94,7 @@ export default async function WelcomePage() {
             </p>
           </div>
 
-          {qrSvg && (
-            <figure className="w-56 rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5 text-center">
-              <div
-                className="overflow-hidden rounded-xl [&>svg]:block [&>svg]:h-auto [&>svg]:w-full"
-                // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG generated server-side by uqr from our own URL
-                dangerouslySetInnerHTML={{ __html: qrSvg }}
-              />
-              <figcaption className="mt-4 text-sm text-neutral-400">
-                Scan with your phone camera
-              </figcaption>
-            </figure>
-          )}
+          {isDesktop && <AppQrCard url={`${BASE_URL}${openGarageHref(OpenFrom.WelcomeQr)}`} />}
         </div>
       </div>
     </div>

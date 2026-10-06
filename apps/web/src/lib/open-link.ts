@@ -9,7 +9,7 @@
 // a change to the pages that link to it.
 // -------------------------------------------------------------------
 
-export const OPEN_GARAGE_PATH = '/open/garage';
+const OPEN_GARAGE_PATH = '/open/garage';
 export const OPEN_FROM_PARAM = 'from';
 
 /** The placements that link to /open/garage. Anything else is counted as `other`. */

@@ -20,3 +20,13 @@ export function safeRedirectPath(value: string | null | undefined, fallback = '/
   if (value.startsWith('//') || value.startsWith('/\\')) return fallback;
   return value;
 }
+
+/**
+ * `/auth/callback` URL for an OAuth sign-in. Forwards `?redirect=` only when the
+ * page has one, so the callback (which knows whether the account is new) picks
+ * the default destination.
+ */
+export function oauthCallbackUrl(origin: string, redirect: string | null): string {
+  const base = `${origin}/auth/callback`;
+  return redirect ? `${base}?redirect=${encodeURIComponent(redirect)}` : base;
+}

@@ -1,6 +1,7 @@
 import posthog from 'posthog-js';
 import type { CampaignParams } from '@/lib/campaign';
 import { CtaPageType, CtaPlacement, type StoreCtaContext, StorePlatform } from '@/lib/cta-taxonomy';
+import type { GetPlatform } from '@/lib/get-link';
 
 export type { StoreCtaContext };
 // Re-export the taxonomy so existing `@/lib/analytics` imports keep working.
@@ -148,7 +149,7 @@ type WebEventProperties = {
   [WebEvent.BUILDER_OPENED]: { source: 'explore' | 'trip_detail' | 'nav' };
   [WebEvent.BUILDER_SAVED]: { waypointCount: number; distanceKm: number };
   [WebEvent.BUILDER_SHARED]: { method: 'link' | 'social'; tripSlug: string };
-  [WebEvent.WELCOME_VIEWED]: { device: 'ios' | 'android' | 'desktop' };
+  [WebEvent.WELCOME_VIEWED]: { device: GetPlatform };
   [WebEvent.AFFILIATE_CLICK]: { provider: 'booking' | 'eaglerider' | 'revzilla'; tripSlug: string };
 };
 

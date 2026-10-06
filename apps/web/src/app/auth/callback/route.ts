@@ -60,10 +60,8 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  // Redirect within the web app (same-origin internal path only). A Google or
-  // Apple sign-in from /login can create the account, so a new account goes to
-  // the app hand-off instead of the default garage.
-  let destination = safeRedirectPath(redirect);
-  if (newWebAccount && destination === '/garage') destination = WELCOME_PATH;
+  // Redirect within the web app (same-origin internal path only). With no
+  // explicit redirect, a new account goes to the app hand-off, not the garage.
+  const destination = safeRedirectPath(redirect, newWebAccount ? WELCOME_PATH : undefined);
   return NextResponse.redirect(`${origin}${destination}`);
 }
