@@ -181,3 +181,14 @@ describe('post-auth contract: /signup', () => {
     expect(isPostAuthCallWithUser(sf, hrefs[0] as ts.CallExpression)).toBe(true);
   });
 });
+
+describe('/signup empty submit', () => {
+  it('checks for an email and password before calling supabase.auth.signUp', () => {
+    const source = parse('signup/page.tsx').getFullText();
+    const guard = source.indexOf('hasCredentials(email, password)');
+    const signUp = source.indexOf('supabase.auth.signUp(');
+    expect(guard).toBeGreaterThan(-1);
+    expect(signUp).toBeGreaterThan(-1);
+    expect(guard).toBeLessThan(signUp);
+  });
+});

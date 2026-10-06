@@ -22,7 +22,7 @@ import {
 } from '@/components/auth-ui/auth-ui';
 import { readExplicitConsent } from '@/components/cookie-consent';
 import { identifyUser, trackEvent, WebEvent } from '@/lib/analytics';
-import { humanizeAuthError } from '@/lib/auth-errors';
+import { hasCredentials, humanizeAuthError, SIGNUP_EMPTY_FIELDS_MESSAGE } from '@/lib/auth-errors';
 import { postAuthDestination, signUpEmailRedirectTo } from '@/lib/post-auth-redirect';
 import { signUpConsentOptions } from '@/lib/signup-consent';
 
@@ -52,6 +52,10 @@ export default function SignUpPage() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
+    if (!hasCredentials(email, password)) {
+      setError(SIGNUP_EMPTY_FIELDS_MESSAGE);
+      return;
+    }
     if (password !== confirmPassword) {
       setError(PASSWORD_MISMATCH_MESSAGE);
       return;

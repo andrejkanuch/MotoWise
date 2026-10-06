@@ -32,7 +32,7 @@ export default async function GaragePage() {
 
   // Level 1: independent. Fetch into the cache AND read back so the dependent
   // keys (lead bike id, public username) can be resolved.
-  const [meData, bikesData, session] = await Promise.all([
+  const [meData, bikesData, claims] = await Promise.all([
     queryClient
       .fetchQuery({
         queryKey: garageQueryKeys.me,
@@ -45,11 +45,14 @@ export default async function GaragePage() {
         queryFn: () => gqlServerFetcherAuthed(MyMotorcyclesDocument),
       })
       .catch(() => null),
-    // Display only (which sign-in button to name in the handoff); the session
-    // was already verified by the layout. getSession reads the cookie, no network.
+    // Display only (which sign-in button to name in the handoff); the layout
+    // already authenticated the rider. getClaims verifies the access token
+    // locally (no Auth round trip); reading `session.user` from getSession()
+    // instead made supabase-js log an "insecure user object" warning on every
+    // render (replayed into the browser console in dev).
     getSupabaseServerClient()
-      .then((supabase) => supabase.auth.getSession())
-      .then(({ data }) => data.session)
+      .then((supabase) => supabase.auth.getClaims())
+      .then(({ data }) => data?.claims ?? null)
       .catch(() => null),
   ]);
 
@@ -85,14 +88,13 @@ export default async function GaragePage() {
       : Promise.resolve(),
   ]);
 
-  const user = session?.user;
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <GarageView
         initialToday={isoDayUtc()}
         account={{
-          method: signInMethodFromProvider(user?.app_metadata?.provider),
-          email: user?.email ?? meData?.me?.email ?? null,
+          method: signInMethodFromProvider(claims?.app_metadata?.provider),
+          email: claims?.email ?? meData?.me?.email ?? null,
         }}
       />
     </HydrationBoundary>

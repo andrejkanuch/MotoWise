@@ -10,6 +10,7 @@ import { CookieConsentBanner, CookieConsentProvider } from '@/components/cookie-
 import { MetaPixel } from '@/components/meta-pixel';
 import { NavigationProgress } from '@/components/navigation-progress';
 import { WebVitalsReporter } from '@/components/web-vitals-reporter';
+import { THEME_INIT_SCRIPT } from '@/lib/theme-init-script';
 import { QueryProvider } from '@/providers/query-provider';
 import { ThemeProvider } from '@/providers/theme-provider';
 import './globals.css';
@@ -75,7 +76,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script
           // biome-ignore lint/security/noDangerouslySetInnerHtml: inline script required to prevent FOUC on theme load
           dangerouslySetInnerHTML={{
-            __html: `document.documentElement.classList.add('dark')`,
+            __html: THEME_INIT_SCRIPT,
           }}
         />
         <link rel="dns-prefetch" href="https://tpsoneenbrmdwvzcbifw.supabase.co" />

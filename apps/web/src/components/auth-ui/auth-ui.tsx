@@ -59,14 +59,18 @@ export function AuthShell({ headerLink, children }: AuthShellProps) {
   return (
     <div className="mva-root">
       <div className="mva-panel">
-        <Image
-          src={HERO_PHOTO}
-          alt=""
-          fill
-          priority
-          sizes="(min-width: 1024px) calc(100vw - 640px), 1px"
-          className="mva-panel-photo"
-        />
+        {/* `fill` needs a relative/absolute/fixed parent; the panel is sticky
+            (and static while hidden), which next/image warns about on every load. */}
+        <div className="mva-panel-media">
+          <Image
+            src={HERO_PHOTO}
+            alt=""
+            fill
+            priority
+            sizes="(min-width: 1024px) calc(100vw - 640px), 1px"
+            className="mva-panel-photo"
+          />
+        </div>
         <Brand />
       </div>
       <header className="mva-header">

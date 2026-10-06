@@ -82,6 +82,10 @@ function BikePhoto({ bike, sizes }: { bike: Bike; sizes: string }) {
         alt={t('bikePhotoAlt', { year: bike.year, make: bike.make, model: bike.model })}
         fill
         sizes={sizes}
+        // Above the fold at every width and the page's LCP element: load it
+        // eagerly at high priority instead of lazily (Next flagged it as LCP).
+        loading="eager"
+        fetchPriority="high"
         style={{ objectFit: 'cover' }}
       />
     </div>

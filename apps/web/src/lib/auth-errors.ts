@@ -14,6 +14,13 @@ export interface AuthErrorInfo {
 /** Message shown when a field is empty, before any network call. */
 export const EMPTY_FIELDS_MESSAGE = 'Enter your email and password to sign in.';
 
+/**
+ * /signup's empty-form message. Without it an empty submit went to Supabase,
+ * which answered with its raw "Anonymous sign-ins are disabled".
+ */
+export const SIGNUP_EMPTY_FIELDS_MESSAGE =
+  'Enter your email and a password to create your account.';
+
 /** True when both fields carry a value the network call can use. */
 export function hasCredentials(email: string, password: string): boolean {
   return email.trim().length > 0 && password.length > 0;
