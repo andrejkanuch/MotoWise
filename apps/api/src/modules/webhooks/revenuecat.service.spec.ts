@@ -40,6 +40,12 @@ describe('RevenueCatService.processEvent', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // No real network: by default the RevenueCat lookup fails permanently (401),
+    // so these tests exercise the event-type fallback for every event type. (A
+    // transient failure would defer EXPIRATION/CANCELLATION/BILLING_ISSUE.) The
+    // source-of-truth and deferral paths are covered in
+    // revenuecat.service.entitlement.spec.ts.
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401 }));
     meta = { sendAppEvent: vi.fn().mockResolvedValue(undefined) };
 
     // from('users').select().eq().single() → resolves user email for Meta lookups.
@@ -188,7 +194,10 @@ describe('RevenueCatService.processEvent', () => {
           p_expiration_at: null,
         }),
       );
-      expect(Sentry.captureMessage).not.toHaveBeenCalled();
+      expect(Sentry.captureMessage).not.toHaveBeenCalledWith(
+        expect.stringContaining('no Pro granted'),
+        expect.anything(),
+      );
     });
 
     it('grants a time-limited Pro (event expiry) for a non-lifetime product that carries one', async () => {
@@ -401,7 +410,9 @@ describe('RevenueCatService.processEvent', () => {
         baseEvent({ id: 'evt-2', type: 'RENEWAL', is_trial_conversion: true }),
       );
       await flush();
-      expect(fetchMock).not.toHaveBeenCalled();
+      expect(
+        fetchMock.mock.calls.filter(([url]) => String(url).endsWith('/attributes')),
+      ).toHaveLength(0);
     });
   });
 
@@ -443,17 +454,35 @@ describe('RevenueCatService.processEvent', () => {
         expect.objectContaining({
           p_event_type: 'TRANSFER',
           p_app_user_id: RECEIVER,
-          p_expiration_at: '2027-01-01T00:00:00Z',
+          p_expiration_at: '2027-01-01T00:00:00.000Z',
           p_period_type: 'NORMAL',
           p_product_id: 'motovault_pro_annual_v4',
           p_store: 'APP_STORE',
           p_transferred_from: [LOSER],
+          p_rc_tier: 'pro',
+          p_rc_status: 'active',
+          p_rc_expires_at: '2027-01-01T00:00:00.000Z',
         }),
       );
     });
 
-    it('still downgrades the losers when RC cannot be reached (receiver left untouched)', async () => {
+    it('defers on a transient RC failure so the redelivery can sync the receiver', async () => {
       vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network')));
+      await expect(
+        service.processEvent(
+          baseEvent({
+            id: 'tr-3',
+            type: 'TRANSFER',
+            app_user_id: RECEIVER,
+            transferred_from: [LOSER],
+          }),
+        ),
+      ).rejects.toThrow('deferring so RevenueCat redelivers it');
+      expect(adminClient.rpc).not.toHaveBeenCalled();
+    });
+
+    it('still downgrades the losers on a permanent RC failure (receiver left untouched)', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401 }));
       await service.processEvent(
         baseEvent({
           id: 'tr-2',
