@@ -284,7 +284,7 @@
       },
       {
         "question": "O MotoVault é gratuito?",
-        "answer": "Sim! O MotoVault oferece um plano gratuito que inclui conteúdo básico de aprendizado, uma moto na garagem e diagnósticos limitados com IA. Para diagnósticos ilimitados, todo o conteúdo de aprendizado e motos ilimitadas, você pode assinar o MotoVault Pro dentro do app."
+        "answer": "Sim! O MotoVault é grátis: uma moto na garagem, registro ilimitado de manutenção e despesas, gravação de percursos, planejamento de viagens e um diagnóstico com IA por mês. Para motos ilimitadas, diagnósticos com IA e escaneamento de recibos ilimitados, mais artigos com IA, exportação GPX e mapas de viagem offline, assine o MotoVault Pro dentro do app."
       },
       {
         "question": "Quais motos são suportadas?",
@@ -323,8 +323,8 @@
         "answer": "O MotoVault não exige hardware OBD-II, adaptadores Bluetooth, cabos de diagnóstico ou qualquer dispositivo externo de leitura. O recurso de diagnóstico com IA funciona inteiramente pela câmera do seu smartphone, o que significa que você pode fotografar uma peça, luz de advertência, vazamento de fluido ou qualquer problema visível e receber uma avaliação gerada por IA sem comprar equipamento adicional. Essa abordagem foi escolhida de propósito, porque a maioria das motos não tem portas OBD-II padrão, usa conectores de diagnóstico proprietários ou exige ferramentas de leitura específicas do fabricante que custam centenas de dólares. Ao usar visão computacional em vez de protocolos de hardware, o diagnóstico do MotoVault funciona em qualquer moto, independentemente da idade, fabricante ou sofisticação eletrônica. Basta apontar a câmera para o ponto de interesse, e o modelo de visão da IA analisa o que vê em comparação com padrões de falha conhecidos para a sua moto específica."
       },
       {
-        "question": "Posso exportar os dados dos meus percursos em GPX?",
-        "answer": "O MotoVault oferece exportação em GPX tanto para percursos gravados quanto para rotas de viagem planejadas. Cada percurso que você grava com rastreamento por GPS pode ser exportado como um arquivo GPX padrão, contendo a trilha completa com marcações de tempo, dados de altitude e velocidade. Os planos de viagem criados no planejador de rotas também são exportados como arquivos de rota GPX, que podem ser importados diretamente em Garmin Zumo, TomTom Rider, Hammerhead Karoo ou qualquer unidade de navegação GPS que aceite o formato GPX. As contas gratuitas incluem uma exportação GPX por mês para compartilhamento ocasional ou transferência para dispositivos. O MotoVault Pro libera exportações ilimitadas, sem limite mensal. Os arquivos GPX exportados são compatíveis com a especificação GPX 1.1 e funcionam com ferramentas de terceiros, incluindo Google Earth, Strava, Komoot e Basecamp, sem modificações."
+        "question": "Posso exportar rotas em GPX?",
+        "answer": "Sim. As viagens que você planeja no MotoVault são exportadas como arquivos de rota GPX padrão, que podem ser importados diretamente em Garmin Zumo, TomTom Rider, Hammerhead Karoo ou qualquer GPS que aceite o formato GPX. Os arquivos seguem a especificação GPX 1.1 e funcionam sem modificações com Google Earth, Komoot, Basecamp e outras ferramentas. As contas gratuitas incluem uma exportação GPX por mês de rotas publicadas na web; o MotoVault Pro libera exportações ilimitadas, inclusive das suas próprias viagens no app. Os percursos gravados ficam no seu histórico e ainda não podem ser exportados em GPX."
       },
       {
         "question": "Em quais países as rotas de moto estão disponíveis?",
@@ -1628,7 +1628,7 @@
     "pricingRow0Competitor": "Plano gratuito limitado",
     "pricingRow0Notes": "O plano gratuito do MotoVault inclui manutenção, despesas, pilotagens e diagnóstico por IA limitado.",
     "pricingRow1Plan": "Plano pago",
-    "pricingRow1Mv": "Pro US$ 9,99/mês ou US$ 79,99/ano",
+    "pricingRow1Mv": "Pro US$ 9,99/mês ou US$ 59,99–US$ 79,99/ano",
     "pricingRow1Competitor": "Premium (preço não divulgado publicamente)",
     "pricingRow1Notes": "O preço da assinatura do RideLog não aparece nas páginas de marketing — confirme no aplicativo antes de assinar.",
     "pricingRow2Plan": "Teste gratuito",
@@ -1742,7 +1742,7 @@
     "pricingRow0Competitor": "Gratuito com limites de rotas",
     "pricingRow0Notes": "O plano gratuito do REVER grava pedaladas e exibe rotas; o planejamento avançado e os mapas offline são Pro.",
     "pricingRow1Plan": "Plano pago",
-    "pricingRow1Mv": "Pro $9.99/mês ou $79.99/ano",
+    "pricingRow1Mv": "Pro $9.99/mês ou $59.99–$79.99/ano",
     "pricingRow1Competitor": "REVER Pro ~$39.99/ano",
     "pricingRow1Notes": "Preço anual comparável, mas você paga por coisas diferentes — navegação vs. gestão da sua moto.",
     "pricingRow2Plan": "Teste gratuito",
@@ -1817,7 +1817,7 @@
     "rvWin1": "Navegação curva a curva com mapas offline (Pro) para viagens e road trips",
     "rvWin2": "Rastreador de amigos em tempo real — compartilhe sua localização com os parceiros de pilotagem",
     "rvWin3": "Grande comunidade de pilotos compartilhando e avaliando rotas pelo mundo todo",
-    "pricing": "O REVER é gratuito nos recursos básicos; o Pro custa $79.99/ano e adiciona mapas offline, Butler Maps e navegação. O MotoVault é gratuito, com o Pro a partir de $9.99/mês para motos ilimitadas, diagnóstico com IA ilimitado e mapas de viagem offline.",
+    "pricing": "O REVER é gratuito nos recursos básicos; o Pro custa $39.99/ano e adiciona mapas offline, Butler Maps e navegação. O MotoVault é gratuito, com o Pro a partir de $9.99/mês para motos ilimitadas, diagnóstico com IA ilimitado e mapas de viagem offline.",
     "verdict": "Não escolha entre eles — use os dois. O REVER é o melhor planejador de rotas de motocicleta disponível, mas não controla sua manutenção, suas despesas nem ajuda a diagnosticar problemas. O MotoVault cuida de tudo fora da estrada: manutenção, despesas, diagnóstico e aprendizado. Juntos, cobrem toda a experiência de pilotagem.",
     "faq": [
       {
@@ -1856,7 +1856,7 @@
     "pricingRow0Competitor": "Gratuito com roteamento online",
     "pricingRow0Notes": "O plano gratuito do Kurviger traça rotas sinuosas online; mapas offline e recursos avançados exigem o Pro.",
     "pricingRow1Plan": "Plano pago",
-    "pricingRow1Mv": "Pro US$ 9,99/mês ou US$ 79,99/ano",
+    "pricingRow1Mv": "Pro US$ 9,99/mês ou US$ 59,99–US$ 79,99/ano",
     "pricingRow1Competitor": "Níveis pagos a partir de cerca de €15/ano",
     "pricingRow1Notes": "O Kurviger Pro é mais barato, mas você paga apenas pelo roteamento — não por manutenção, despesas ou diagnóstico.",
     "pricingRow2Plan": "Teste gratuito",
@@ -1931,7 +1931,7 @@
     "rvWin1": "Mapas offline (Pro) ajustados para passagens alpinas sem cobertura e viagens por vários países",
     "rvWin2": "Comprovado em campo nos Alpes, na Floresta Negra e nas Dolomitas por uma comunidade europeia altamente engajada",
     "rvWin3": "Exportação em GPX limpa e links de rota compartilháveis que funcionam bem com o Garmin e outros aparelhos de GPS dedicados",
-    "pricing": "O Kurviger é grátis para planejar estradas sinuosas online, e os níveis anuais pagos começam em torno de €15 por ano, liberando mapas offline e roteamento avançado — confira os níveis atuais em kurviger.com. O MotoVault é grátis, com o Pro a $9,99/mês ou $79,99/ano para mais motos, diagnóstico por IA ilimitado e mapas de viagem offline — o registro de manutenção e despesas é grátis. Os dois não competem de verdade em preço: são precificados para tarefas diferentes.",
+    "pricing": "O Kurviger é grátis para planejar estradas sinuosas online, e os níveis anuais pagos começam em torno de €15 por ano, liberando mapas offline e roteamento avançado — confira os níveis atuais em kurviger.com. O MotoVault é grátis, com o Pro a $9,99/mês ou $59,99–$79,99/ano para mais motos, diagnóstico por IA ilimitado e mapas de viagem offline — o registro de manutenção e despesas é grátis. Os dois não competem de verdade em preço: são precificados para tarefas diferentes.",
     "verdict": "Não escolha entre eles — use os dois. O Kurviger é um dos melhores planejadores de estradas sinuosas da Europa, mas não registra um único intervalo de revisão, recibo de combustível ou luz de alerta. O MotoVault cobre tudo fora da moto: manutenção, despesas, diagnóstico e aprendizado. Use o Kurviger no guidão durante o trajeto e o MotoVault na garagem depois, e você terá coberto toda a experiência de pilotagem sem que um app atrapalhe o outro.",
     "faq": [
       {
@@ -1970,7 +1970,7 @@
     "pricingRow0Competitor": "Gratuito com acesso total à comunidade",
     "pricingRow0Notes": "O plano gratuito do EatSleepRIDE inclui o feed social, gravação de passeios e alertas básicos do CRASH Light.",
     "pricingRow1Plan": "Plano pago",
-    "pricingRow1Mv": "Pro US$ 9,99/mês ou US$ 79,99/ano",
+    "pricingRow1Mv": "Pro US$ 9,99/mês ou US$ 59,99–US$ 79,99/ano",
     "pricingRow1Competitor": "CRASHLIGHT US$49/ano",
     "pricingRow1Notes": "O EatSleepRIDE Pro libera configurações avançadas do CRASH Light, estatísticas extras e navegação sem anúncios.",
     "pricingRow2Plan": "Teste gratuito",
@@ -2045,7 +2045,7 @@
     "rvWin1": "Feed social ativo com posts, fotos e comentários — a comunidade cotidiana de pilotos que o MotoVault não tenta reproduzir",
     "rvWin2": "Compartilhamento de passeios feito para a comunidade — seus passeios aparecem naturalmente para amigos e pilotos por perto",
     "rvWin3": "Passeios em grupo com confirmações de presença e compartilhamento de localização ao vivo, ideais para organizar e conduzir passeios em grupo no mundo real",
-    "pricing": "O EatSleepRIDE é grátis para a comunidade e o registro de pilotagens, e a detecção de acidentes CRASHLIGHT é um upgrade de US$49 por ano. O MotoVault é grátis, com o Pro a $9,99/mês ou $79,99/ano para mais motos, diagnóstico por IA ilimitado e mapas de viagem offline — o registro de manutenção e despesas é grátis. Os dois resolvem coisas diferentes: alerta de segurança versus gestão da moto.",
+    "pricing": "O EatSleepRIDE é grátis para a comunidade e o registro de pilotagens, e a detecção de acidentes CRASHLIGHT é um upgrade de US$49 por ano. O MotoVault é grátis, com o Pro a $9,99/mês ou $59,99–$79,99/ano para mais motos, diagnóstico por IA ilimitado e mapas de viagem offline — o registro de manutenção e despesas é grátis. Os dois resolvem coisas diferentes: alerta de segurança versus gestão da moto.",
     "verdict": "Não encare isto como um \"o vencedor leva tudo\". O EatSleepRIDE é a melhor camada de comunidade e detecção de acidentes que já testamos, e o MotoVault é a melhor camada de gestão de propriedade que conhecemos. Eles são complementares, não concorrentes: um cuida da sua moto, o outro cuida das suas costas. Se você pilota com frequência suficiente para se importar com os dois, usá-los lado a lado custa pouco e cobre o quadro inteiro.",
     "faq": [
       {
@@ -2084,7 +2084,7 @@
     "pricingRow0Competitor": "Download gratuito com assinatura Premium",
     "pricingRow0Notes": "O Scenic é um download gratuito; o Premium libera os recursos pagos.",
     "pricingRow1Plan": "Plano pago",
-    "pricingRow1Mv": "Pro $9,99/mês ou $79,99/ano",
+    "pricingRow1Mv": "Pro $9,99/mês ou $59,99–$79,99/ano",
     "pricingRow1Competitor": "Premium $4,99/mês na cobrança anual",
     "pricingRow1Notes": "O Scenic também vende planos mensais e trimestrais, e o preço varia por região.",
     "pricingRow2Plan": "Teste gratuito",
@@ -2159,7 +2159,7 @@
     "rvWin1": "Pacotes de mapas offline robustos que continuam funcionando no fundo de áreas sem sinal",
     "rvWin2": "App complementar para Apple Watch refinado, com navegação curva a curva no pulso",
     "rvWin3": "Mensalidade menor que a da maioria das plataformas completas, com versão gratuita para testar",
-    "pricing": "O Scenic é um download gratuito com assinatura Premium — $4,99/mês na cobrança anual, além de planos mensais e trimestrais, com preços que variam por região. O MotoVault é grátis nos recursos essenciais, com o Pro a $9,99/mês ou $79,99/ano, o que adiciona mais motos, diagnóstico por IA ilimitado, exportação GPX e mapas de viagem offline no iOS e no Android. Se você só precisa de planejamento de rotas no iPhone, o Scenic é a assinatura mais barata.",
+    "pricing": "O Scenic é um download gratuito com assinatura Premium — $4,99/mês na cobrança anual, além de planos mensais e trimestrais, com preços que variam por região. O MotoVault é grátis nos recursos essenciais, com o Pro a $9,99/mês ou $59,99–$79,99/ano, o que adiciona mais motos, diagnóstico por IA ilimitado, exportação GPX e mapas de viagem offline no iOS e no Android. Se você só precisa de planejamento de rotas no iPhone, o Scenic é a assinatura mais barata.",
     "verdict": "Sinceramente, esses apps quase não se sobrepõem — não há um vencedor real no confronto direto. O Scenic é um app indie de iOS feito com carinho que planeja rotas melhor do que a maioria das equipes completas consegue. O MotoVault cuida de tudo o que o Scenic não faz: manutenção, despesas, diagnóstico, aprendizado e a metade Android do mundo dos pilotos. Se você tem um iPhone, use os dois. Se você pilota com Android, o MotoVault é o único dos dois que dá para realmente instalar — e seus recursos de manutenção e diagnóstico se sustentam sozinhos de qualquer forma.",
     "faq": [
       {
@@ -2198,7 +2198,7 @@
     "pricingRow0Competitor": "Nível Lite gratuito",
     "pricingRow0Notes": "O MotoScan tem um nível Lite gratuito, mas não faz nada sem o adaptador OBD pago.",
     "pricingRow1Plan": "Plano pago",
-    "pricingRow1Mv": "Pro US$ 9,99/mês ou US$ 79,99/ano",
+    "pricingRow1Mv": "Pro US$ 9,99/mês ou US$ 59,99–US$ 79,99/ano",
     "pricingRow1Competitor": "Níveis pagos do app + adaptador OBD ~$60–$100 (pagamento único)",
     "pricingRow1Notes": "A maior parte do custo do MotoScan é o adaptador — uma compra única de hardware, não uma assinatura.",
     "pricingRow2Plan": "Teste gratuito",
@@ -2273,7 +2273,7 @@
     "rvWin1": "Limpa e redefine códigos de falha após um reparo DIY — apaga a luz de serviço",
     "rvWin2": "Fluxos de dados de sensores ao vivo: temperatura do líquido de arrefecimento, leituras de O2, pressão de combustível, telemetria de RPM",
     "rvWin3": "Monitoramento em tempo real da tensão da bateria e do sistema de carga via adaptador",
-    "pricing": "A MotoScan vende o app em níveis (uma versão Lite gratuita mais desbloqueios pagos) e exige um adaptador OBD compatível de cerca de $60–$100 — uma compra única de hardware. O MotoVault é grátis nos recursos essenciais, com o Pro a $9,99/mês ou $79,99/ano. A MotoScan é um compromisso de hardware ligado a marcas específicas, enquanto o MotoVault é software que funciona em qualquer moto.",
+    "pricing": "A MotoScan vende o app em níveis (uma versão Lite gratuita mais desbloqueios pagos) e exige um adaptador OBD compatível de cerca de $60–$100 — uma compra única de hardware. O MotoVault é grátis nos recursos essenciais, com o Pro a $9,99/mês ou $59,99–$79,99/ano. A MotoScan é um compromisso de hardware ligado a marcas específicas, enquanto o MotoVault é software que funciona em qualquer moto.",
     "verdict": "Estas são ferramentas complementares, não concorrentes. A MotoScan oferece leituras genuínas da ECU em nível de hardware em motos BMW, KTM, Kawasaki e Ducati compatíveis — nada mais faz isso a partir de um app de consumo. O MotoVault oferece diagnóstico de sintomas por IA, controle de manutenção, análise de despesas e conteúdo de aprendizado em qualquer moto, sem hardware. Mecânicos DIY sérios em motos compatíveis vão querer os dois: a MotoScan para a voz da própria moto, o MotoVault para tudo ao redor dela.",
     "faq": [
       {
@@ -2312,7 +2312,7 @@
     "pricingRow0Competitor": "Região de teste gratuito, limitado depois",
     "pricingRow0Notes": "A experiência gratuita do Calimoto é essencialmente uma porta de entrada para o plano pago.",
     "pricingRow1Plan": "Plano pago",
-    "pricingRow1Mv": "Pro $9,99/mês ou $79,99/ano",
+    "pricingRow1Mv": "Pro $9,99/mês ou $59,99–$79,99/ano",
     "pricingRow1Competitor": "Assinatura — semanal ou anual, preço por região",
     "pricingRow1Notes": "O Calimoto é um dos aplicativos para motociclistas mais caros, especialmente no plano semanal.",
     "pricingRow2Plan": "Teste gratuito",
@@ -2392,7 +2392,7 @@
     "faq": [
       {
         "question": "O MotoVault é mais barato que o Calimoto?",
-        "answer": "Pelo que cada app cobre, sim. O MotoVault tem plano gratuito e o Pro custa $9,99/mês ou $79,99/ano, incluindo controle de manutenção, diagnóstico por IA e conteúdo de aprendizado — recursos que o Calimoto não oferece a nenhum preço. O Calimoto é só navegação e só por assinatura, com planos semanais e anuais por região."
+        "answer": "Pelo que cada app cobre, sim. O MotoVault tem plano gratuito e o Pro custa $9,99/mês ou $59,99–$79,99/ano, incluindo controle de manutenção, diagnóstico por IA e conteúdo de aprendizado — recursos que o Calimoto não oferece a nenhum preço. O Calimoto é só navegação e só por assinatura, com planos semanais e anuais por região."
       },
       {
         "question": "O MotoVault tem planejamento de rotas como o Calimoto?",
@@ -2515,7 +2515,7 @@
     "pricingHeaderNotes": "Observações",
     "pricingRow0App": "MotoVault",
     "pricingRow0Free": "Todos os recursos principais gratuitos",
-    "pricingRow0Paid": "Pro $9,99/mês ou $79,99/ano",
+    "pricingRow0Paid": "Pro $9,99/mês ou $59,99–$79,99/ano",
     "pricingRow0Notes": "O plano gratuito inclui manutenção, despesas, pedaladas, planejamento de viagens e diagnóstico por IA limitado.",
     "pricingRow1App": "REVER",
     "pricingRow1Free": "Gratuito com limite de rotas",
@@ -2732,7 +2732,7 @@
       },
       {
         "question": "Qual app é mais barato?",
-        "answer": "O MotorManage é grátis para duas motos, e o plano King custa €3,99 por mês ou €29,99 por ano. O MotoVault oferece um plano gratuito, com o Pro a $9,99/mês ou $79,99/ano. Para controle básico de manutenção de uma ou duas motos, o MotorManage sai mais barato. Para o conjunto completo de recursos, o MotoVault Pro entrega muito mais."
+        "answer": "O MotorManage é grátis para duas motos, e o plano King custa €3,99 por mês ou €29,99 por ano. O MotoVault oferece um plano gratuito, com o Pro a $9,99/mês ou $59,99–$79,99/ano. Para controle básico de manutenção de uma ou duas motos, o MotorManage sai mais barato. Para o conjunto completo de recursos, o MotoVault Pro entrega muito mais."
       }
     ]
   },
@@ -2815,7 +2815,7 @@
       },
       {
         "label": "Preço",
-        "mv": "$9,99/mês ou $79,99/ano (Pro)",
+        "mv": "$9,99/mês ou $59,99–$79,99/ano (Pro)",
         "comp": "Compra única $0,99"
       },
       {
@@ -2837,7 +2837,7 @@
       },
       {
         "question": "Qual app tem melhor custo-benefício?",
-        "answer": "O Moto Shed é uma compra única de $0,99 para registrar serviços, sem assinatura e sem anúncios — no custo total, sai bem mais barato. O plano gratuito do MotoVault inclui mais recursos que o Moto Shed, e o Pro ($9,99/mês ou $79,99/ano) adiciona motos ilimitadas, diagnóstico por IA e escaneamento de recibos ilimitados, exportação GPX e mapas de viagem offline. Para puro registro de serviços, o Moto Shed tem o melhor custo-benefício. Para todo o resto, o plano gratuito do MotoVault é difícil de superar."
+        "answer": "O Moto Shed é uma compra única de $0,99 para registrar serviços, sem assinatura e sem anúncios — no custo total, sai bem mais barato. O plano gratuito do MotoVault inclui mais recursos que o Moto Shed, e o Pro ($9,99/mês ou $59,99–$79,99/ano) adiciona motos ilimitadas, diagnóstico por IA e escaneamento de recibos ilimitados, exportação GPX e mapas de viagem offline. Para puro registro de serviços, o Moto Shed tem o melhor custo-benefício. Para todo o resto, o plano gratuito do MotoVault é difícil de superar."
       },
       {
         "question": "Posso migrar do Moto Shed para o MotoVault?",
@@ -2981,7 +2981,7 @@
       },
       {
         "question": "O rastreador de manutenção é gratuito?",
-        "answer": "Sim. O rastreamento de manutenção é gratuito no iOS e no Android. Uma assinatura opcional MotoVault Pro ($4.99/mês) adiciona mais motos, diagnóstico por IA e escaneamento de recibos ilimitados, exportação GPX e mapas de viagem offline."
+        "answer": "Sim. O rastreamento de manutenção é gratuito no iOS e no Android. Uma assinatura opcional MotoVault Pro ($9.99/mês no app, $5.99/mês na web) adiciona mais motos, diagnóstico por IA e escaneamento de recibos ilimitados, exportação GPX e mapas de viagem offline."
       }
     ],
     "faqMore": "Tem mais dúvidas?",
@@ -3017,7 +3017,7 @@
     "faq": [
       {
         "question": "O controle de gastos é grátis?",
-        "answer": "Sim. O controle de gastos é grátis no iOS e Android. A assinatura opcional do MotoVault Pro ($4.99/mês) adiciona mais motos, diagnóstico por IA e escaneamento de recibos ilimitados, exportação GPX e mapas de viagem offline."
+        "answer": "Sim. O controle de gastos é grátis no iOS e Android. A assinatura opcional do MotoVault Pro ($9.99/mês no app, $5.99/mês na web) adiciona mais motos, diagnóstico por IA e escaneamento de recibos ilimitados, exportação GPX e mapas de viagem offline."
       },
       {
         "question": "Que gastos posso registrar?",
@@ -3065,7 +3065,7 @@
     "faq": [
       {
         "question": "O rastreamento de pilotagens é grátis?",
-        "answer": "Sim. O rastreamento de pilotagens por GPS é grátis no iOS e Android. Uma assinatura opcional do MotoVault Pro ($4.99/mês) adiciona mais motos, diagnóstico por IA e escaneamento de recibos ilimitados, exportação GPX e mapas de viagem offline."
+        "answer": "Sim. O rastreamento de pilotagens por GPS é grátis no iOS e Android. Uma assinatura opcional do MotoVault Pro ($9.99/mês no app, $5.99/mês na web) adiciona mais motos, diagnóstico por IA e escaneamento de recibos ilimitados, exportação GPX e mapas de viagem offline."
       },
       {
         "question": "Quais dados o MotoVault registra em uma pilotagem?",

@@ -4,16 +4,10 @@ import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { PRO_BENEFIT_BULLETS, WEB_OFFER_COPY } from '@/lib/pro-plan';
+import { STATIC_WEB_PLANS } from '@/lib/web-pricing';
 
-const PLANS = {
-  monthly: { price: '$5.99', period: '/mo', sub: '$5.99 / month', crossed: null },
-  annual: {
-    price: '$49.99',
-    period: '/yr',
-    sub: '$4.17 / month \u00b7 billed yearly',
-    crossed: '$71.88',
-  },
-} as const;
+/** Static marketing prices; checkout renders the live RevenueCat price instead. */
+const PLANS = STATIC_WEB_PLANS.plans;
 
 type Plan = keyof typeof PLANS;
 
@@ -45,9 +39,11 @@ export function PricingCard() {
             }`}
           >
             Annual{' '}
-            <span className="ml-1.5 inline-flex rounded-full bg-warm-500 px-2 py-0.5 text-[10px] font-bold text-neutral-950">
-              &minus;30%
-            </span>
+            {STATIC_WEB_PLANS.savingsPercent !== null && (
+              <span className="ml-1.5 inline-flex rounded-full bg-warm-500 px-2 py-0.5 text-[10px] font-bold text-neutral-950">
+                &minus;{STATIC_WEB_PLANS.savingsPercent}%
+              </span>
+            )}
           </button>
         </div>
 

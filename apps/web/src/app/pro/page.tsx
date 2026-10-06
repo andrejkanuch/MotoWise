@@ -17,6 +17,7 @@ import {
   type ProFeatureKey,
   WEB_OFFER_COPY,
 } from '@/lib/pro-plan';
+import { STATIC_WEB_PLANS } from '@/lib/web-pricing';
 import { PricingCard } from './pricing-card';
 
 export const metadata: Metadata = {
@@ -250,8 +251,12 @@ export default function ProPage() {
             <span className="text-xs font-medium text-neutral-300">
               MotoVault Pro &middot; Annual
             </span>
-            <span className="text-lg font-bold tabular-nums text-neutral-100">$49.99</span>
-            <span className="text-xs text-neutral-500">/yr &middot; $4.17/mo</span>
+            <span className="text-lg font-bold tabular-nums text-neutral-100">
+              {STATIC_WEB_PLANS.plans.annual.price}
+            </span>
+            <span className="text-xs text-neutral-500">
+              {STATIC_WEB_PLANS.plans.annual.period} &middot; {STATIC_WEB_PLANS.plans.annual.sub}
+            </span>
           </div>
         </div>
       </section>

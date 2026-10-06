@@ -112,3 +112,44 @@ describe('Pro copy contract (web)', () => {
     }
   });
 });
+
+describe('price copy contract (web)', () => {
+  it('checkout renders prices from RevenueCat, never hardcoded', () => {
+    // '$0.00' is the "due today" amount during a trial, not a plan price.
+    const src = fs
+      .readFileSync(path.join(PRO_DIR, 'checkout/page.tsx'), 'utf8')
+      .replace("'$0.00'", '');
+    expect(src).not.toMatch(/\$\d+\.\d{2}/);
+    expect(src).not.toMatch(/-30%/);
+    expect(src).toContain('webBillingProduct.currentPrice');
+  });
+
+  it('the static /pro page reads prices only from lib/web-pricing', () => {
+    for (const file of ['page.tsx', 'pricing-card.tsx']) {
+      const src = fs.readFileSync(path.join(PRO_DIR, file), 'utf8');
+      expect(src, file).not.toMatch(/\$\d+\.\d{2}|[−-]30%/);
+    }
+  });
+
+  it('no locale quotes a price MotoVault has never charged', () => {
+    // $4 / $36 and $4.99 were never MotoVault prices (app: $9.99/mo, $79.99 iOS /
+    // $59.99 Play annual; web: $5.99/mo, $49.99/yr).
+    const stale =
+      /\$4 per month|\$36 per year|\b4 \$ (pro|al|par)|\b36 \$|\(\$4[.,]99\/|\(4,99 \$\/|[（(]月額 \$4\.99[）)]/;
+    for (const file of fs.readdirSync(MESSAGES_DIR).filter((f) => f.endsWith('.json'))) {
+      const messages = JSON.parse(fs.readFileSync(path.join(MESSAGES_DIR, file), 'utf8'));
+      const offenders = collectStrings(messages).filter(
+        (s) => /MotoVault/.test(s) && stale.test(s),
+      );
+      expect(offenders, file).toEqual([]);
+    }
+  });
+
+  it('does not claim recorded rides export as GPX', () => {
+    const messages = JSON.parse(fs.readFileSync(path.join(MESSAGES_DIR, 'en.json'), 'utf8'));
+    const offenders = collectStrings(messages).filter((s) =>
+      /every ride you record[^.]*can be exported|GPX export for both recorded rides/i.test(s),
+    );
+    expect(offenders).toEqual([]);
+  });
+});
