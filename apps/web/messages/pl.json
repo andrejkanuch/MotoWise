@@ -3134,7 +3134,10 @@
     "active": "Aktywny",
     "daysLeft": "Pozostało {days} dni",
     "manageSubscription": "Zarządzaj subskrypcją",
-    "manageInStore": "Zarządzaj w sklepie z aplikacjami"
+    "manageInStore": "Zarządzaj w sklepie z aplikacjami",
+    "manageOrCancel": "Zarządzaj lub anuluj",
+    "manageOpening": "Otwieranie…",
+    "manageWebFallback": "Aby anulować, użyj linku „Zarządzaj subskrypcją” w e-mailu z potwierdzeniem Stripe albo <link>napisz na {email}</link>, a anulujemy ją za Ciebie."
   },
   "DiagnosticsDemo": {
     "aiTag": "Napędzane przez AI",

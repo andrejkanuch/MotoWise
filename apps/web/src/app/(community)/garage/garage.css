@@ -1482,6 +1482,32 @@
   color: var(--mv-warm-300);
 }
 
+button.prof-banner-manage {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+button.prof-banner-manage:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.prof-banner-manage-help {
+  margin-top: 8px;
+  max-width: 34ch;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--mv-ink-3);
+}
+
+.prof-banner-manage-help a {
+  color: var(--mv-warm-300);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .prof-banner-manage-note {
   display: inline-block;
   margin-top: 8px;

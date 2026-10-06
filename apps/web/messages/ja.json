@@ -3134,7 +3134,10 @@
     "active": "有効",
     "daysLeft": "残り{days}日",
     "manageSubscription": "サブスクリプションを管理",
-    "manageInStore": "アプリストアで管理"
+    "manageInStore": "アプリストアで管理",
+    "manageOrCancel": "管理・解約",
+    "manageOpening": "開いています…",
+    "manageWebFallback": "解約するには、Stripeの領収書メールにある「サブスクリプションを管理」リンクを使うか、<link>{email}</link>までご連絡ください。こちらで解約します。"
   },
   "DiagnosticsDemo": {
     "aiTag": "AI搭載",

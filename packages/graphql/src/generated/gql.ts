@@ -160,6 +160,7 @@ type Documents = {
     "query UnreviewedReceiptScans {\n  unreviewedReceiptScans {\n    scanId\n    storagePath\n    createdAt\n    result {\n      type\n      amount\n      currency\n      date\n      vendor\n      itemName\n      category\n      partsCost\n      laborCost\n      taxAmount\n      taxRate\n      lineItems {\n        label\n        serviceType\n        partRef\n        quantity\n        unitPrice\n        lineTotal\n      }\n      odometerValue\n      odometerUnit\n      fuelLitres\n      partsNeeded\n      legibilityNote\n      needsCheck\n      fieldConfidence {\n        amount\n        currency\n        date\n        vendor\n        category\n        odometer\n      }\n    }\n  }\n}": typeof types.UnreviewedReceiptScansDocument,
     "fragment BlogPostFields on BlogPost {\n  id\n  type\n  slug\n  status\n  publishedAt\n  scheduledFor\n  author\n  coverImage\n  coverAlt\n  specData\n  isSafetyCritical\n  createdAt\n  updatedAt\n  typeData\n  translations {\n    locale\n    title\n    excerpt\n    seoTitle\n    seoDescription\n    bodyRaw\n    faq\n    readingTime\n    wordCount\n  }\n  categories {\n    id\n    slug\n    name\n    parentId\n    isPrimary\n  }\n  keywords {\n    id\n    slug\n    name\n  }\n}": typeof types.BlogPostFieldsFragmentDoc,
     "mutation ApproveMaintenanceDraft($input: ApproveMaintenanceDraftInput!) {\n  approveMaintenanceDraft(input: $input)\n}": typeof types.ApproveMaintenanceDraftDocument,
+    "mutation CreateBillingPortalSession {\n  createBillingPortalSession {\n    status\n    url\n  }\n}": typeof types.CreateBillingPortalSessionDocument,
     "mutation CreateBlogCategory($input: CreateBlogCategoryInput!) {\n  createBlogCategory(input: $input) {\n    id\n    slug\n    name\n    parentId\n  }\n}": typeof types.CreateBlogCategoryDocument,
     "mutation CreateBlogKeyword($input: CreateBlogKeywordInput!) {\n  createBlogKeyword(input: $input) {\n    id\n    slug\n    name\n  }\n}": typeof types.CreateBlogKeywordDocument,
     "mutation CreateBlogPost($input: CreateBlogPostInput!) {\n  createBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}": typeof types.CreateBlogPostDocument,
@@ -331,6 +332,7 @@ const documents: Documents = {
     "query UnreviewedReceiptScans {\n  unreviewedReceiptScans {\n    scanId\n    storagePath\n    createdAt\n    result {\n      type\n      amount\n      currency\n      date\n      vendor\n      itemName\n      category\n      partsCost\n      laborCost\n      taxAmount\n      taxRate\n      lineItems {\n        label\n        serviceType\n        partRef\n        quantity\n        unitPrice\n        lineTotal\n      }\n      odometerValue\n      odometerUnit\n      fuelLitres\n      partsNeeded\n      legibilityNote\n      needsCheck\n      fieldConfidence {\n        amount\n        currency\n        date\n        vendor\n        category\n        odometer\n      }\n    }\n  }\n}": types.UnreviewedReceiptScansDocument,
     "fragment BlogPostFields on BlogPost {\n  id\n  type\n  slug\n  status\n  publishedAt\n  scheduledFor\n  author\n  coverImage\n  coverAlt\n  specData\n  isSafetyCritical\n  createdAt\n  updatedAt\n  typeData\n  translations {\n    locale\n    title\n    excerpt\n    seoTitle\n    seoDescription\n    bodyRaw\n    faq\n    readingTime\n    wordCount\n  }\n  categories {\n    id\n    slug\n    name\n    parentId\n    isPrimary\n  }\n  keywords {\n    id\n    slug\n    name\n  }\n}": types.BlogPostFieldsFragmentDoc,
     "mutation ApproveMaintenanceDraft($input: ApproveMaintenanceDraftInput!) {\n  approveMaintenanceDraft(input: $input)\n}": types.ApproveMaintenanceDraftDocument,
+    "mutation CreateBillingPortalSession {\n  createBillingPortalSession {\n    status\n    url\n  }\n}": types.CreateBillingPortalSessionDocument,
     "mutation CreateBlogCategory($input: CreateBlogCategoryInput!) {\n  createBlogCategory(input: $input) {\n    id\n    slug\n    name\n    parentId\n  }\n}": types.CreateBlogCategoryDocument,
     "mutation CreateBlogKeyword($input: CreateBlogKeywordInput!) {\n  createBlogKeyword(input: $input) {\n    id\n    slug\n    name\n  }\n}": types.CreateBlogKeywordDocument,
     "mutation CreateBlogPost($input: CreateBlogPostInput!) {\n  createBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}": types.CreateBlogPostDocument,
@@ -954,6 +956,10 @@ export function graphql(source: "fragment BlogPostFields on BlogPost {\n  id\n  
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation ApproveMaintenanceDraft($input: ApproveMaintenanceDraftInput!) {\n  approveMaintenanceDraft(input: $input)\n}"): (typeof documents)["mutation ApproveMaintenanceDraft($input: ApproveMaintenanceDraftInput!) {\n  approveMaintenanceDraft(input: $input)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation CreateBillingPortalSession {\n  createBillingPortalSession {\n    status\n    url\n  }\n}"): (typeof documents)["mutation CreateBillingPortalSession {\n  createBillingPortalSession {\n    status\n    url\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

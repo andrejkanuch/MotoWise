@@ -3134,7 +3134,10 @@
     "active": "Ativo",
     "daysLeft": "{days} dias restantes",
     "manageSubscription": "Gerenciar assinatura",
-    "manageInStore": "Gerenciar na sua loja de apps"
+    "manageInStore": "Gerenciar na sua loja de apps",
+    "manageOrCancel": "Gerenciar ou cancelar",
+    "manageOpening": "Abrindo…",
+    "manageWebFallback": "Para cancelar, use o link “Gerenciar assinatura” no e-mail de recibo da Stripe ou <link>escreva para {email}</link> que cancelamos para você."
   },
   "DiagnosticsDemo": {
     "aiTag": "Com tecnologia de IA",

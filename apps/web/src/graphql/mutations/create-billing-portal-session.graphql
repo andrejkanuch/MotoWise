@@ -1,0 +1,6 @@
+mutation CreateBillingPortalSession {
+  createBillingPortalSession {
+    status
+    url
+  }
+}
