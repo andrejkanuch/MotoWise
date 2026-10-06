@@ -181,7 +181,7 @@
       },
       {
         "question": "MotoVault ucretsiz mi?",
-        "answer": "Evet! MotoVault, temel ogrenme icerigi, garajinizda bir motor ve sinirli yapay zeka teshisi iceren ucretsiz bir katman sunar. Sinirsiz teshis, tum ogrenme icerigi ve sinirsiz motor icin uygulama icinden MotoVault Pro'ya yukseltebilirsiniz."
+        "answer": "Evet! MotoVault ücretsizdir: garajınızda bir motor, sınırsız bakım ve masraf kaydı, sürüş kaydı, rota planlama ve ayda bir yapay zeka teşhisi. Sınırsız motor, sınırsız yapay zeka teşhisi ve fiş taraması, daha fazla yapay zeka makalesi, GPX dışa aktarma ve çevrimdışı rota haritaları için uygulama içinden MotoVault Pro'ya yükseltin."
       },
       {
         "question": "Hangi motosikletler destekleniyor?",
@@ -197,7 +197,7 @@
       },
       {
         "question": "MotoVault Pro'ya neler dahil?",
-        "answer": "MotoVault Pro sinirsiz yapay zeka teshisi, tum ders ve kurslara erisim, garajinizda sinirsiz motor, oncelikli destek ve ozel icerik sunar. Uygulama icinden aylik veya yillik abone olabilirsiniz."
+        "answer": "MotoVault Pro garajınızda sınırsız motor, sınırsız yapay zeka teşhisi, daha fazla yapay zeka makalesi, rota asistanı sorusu ve sürüş özeti, sınırsız fiş taraması, GPX dışa aktarma ve çevrimdışı rota haritaları sunar. Bakım ve masraf kaydı ücretsiz kalır. Uygulama içinden aylık veya yıllık abone olabilirsiniz."
       }
     ]
   },
@@ -347,7 +347,7 @@
     "faq2Question": "Yapay zeka teshisi nasil calisir?",
     "faq2Answer": "Motosikletinizin herhangi bir parcasinin fotografini cekin veya belirtilerinizi aciklayin. Yapay zekamiz goruntuyu analiz eder ve ciddiyet derecelendirmesi ile onerilen eylemlerle bir teshis degerlendirmesi saglar.",
     "faq3Question": "MotoVault ucretsiz mi?",
-    "faq3Answer": "Evet! MotoVault, temel ogrenme icerigi, garajinizda bir motor ve sinirli yapay zeka teshisi iceren ucretsiz bir katman sunar. Tum ozelliklere sinirsiz erisim icin MotoVault Pro'ya yukseltin.",
+    "faq3Answer": "Evet! MotoVault, temel ogrenme icerigi, garajinizda bir motor ve sinirli yapay zeka teshisi iceren ucretsiz bir katman sunar. Bakım ve masraf kaydı, sürüş kaydı ve rota planlama herkes için ücretsizdir. MotoVault Pro sınırsız motor, sınırsız yapay zeka teşhisi ve fiş taraması, GPX dışa aktarma ve çevrimdışı rota haritaları ekler.",
     "faq4Question": "Aboneligimi nasil iptal ederim?",
     "faq4Answer": "MotoVault Pro abonelikleri App Store (iOS) veya Google Play (Android) uzerinden yonetilir. Planininzi iptal etmek veya yonetmek icin cihazinizin abonelik ayarlarina gidin.",
     "faq5Question": "Hesabimi silebilir miyim?",

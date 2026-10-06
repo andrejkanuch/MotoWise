@@ -78,7 +78,17 @@ Limits are **characters, not bytes** — `wc -c` overstates every non-Latin loca
   hash** (`ACKNOWLEDGED_CLAIMS`) rather than a classifier: an unrecognised
   "unlimited"+bike sentence fails CI until a human writes down why it is acceptable.
 
-`check-metadata.py` enforces all of the above. Run it after any bulk edit — and note
+- **Only sell as Pro what a gate in code unlocks.** Until 2026-10 every locale sold
+  "advanced rider analytics" and "extended ride statistics" (plus weekly reports,
+  detailed expense reports, priority access, PDF export and "reminders for every bike"
+  in older templates) as Pro. None of that is gated: ride stats, health reports and
+  reminders are free, the rest does not exist. Pro unlocks more bikes, AI beyond the
+  free allowance, receipt scans beyond the free allowance, unlimited GPX export and
+  offline trip maps — check `packages/types/src/constants/limits.ts` and the
+  `useProGate` call sites before adding anything to that list.
+
+`check-metadata.py` enforces all of the above except the Pro-list rule, which is a
+review rule (the Pro half of each free-tier block is still pinned verbatim). Run it after any bulk edit — and note
 that its `EXPECTED_LOCALES` tuple is a deliberate ratchet: adding or removing a locale
 means editing that list, so a directory disappearing can never silently shrink the
 checked set into a false pass.

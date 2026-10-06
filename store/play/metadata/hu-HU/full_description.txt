@@ -22,7 +22,7 @@ MIÉRT SZERETIK A MOTOROSOK
 IGAZI MOTOROSOKNAK
 ──────────────
 
-- Bármennyi motor — az összes gépedet ingyen, örökre
+- Korlátlan karbantartás- és költségnyilvántartás — ingyen, örökre
 - Több mint 12 000 támogatott motormodell
 - Igényes, sötét módra tervezett felület
 - Privát és biztonságos — az adataid a tieid
@@ -31,7 +31,7 @@ IGAZI MOTOROSOKNAK
 MOTOVAULT PRO
 ──────────────
 
-Az ingyenes verzió 1 motort, korlátlan karbantartás- és költségnyilvántartást, korlátlan menetrögzítést, havi 1 AI diagnosztikát és 3 bizonylat-beolvasást tartalmaz. A MotoVault Pro további motorokat, korlátlan AI diagnosztikát, korlátlan beolvasást, részletes statisztikákat, korlátlan GPX exportot és bővített menetadatokat nyit meg.
+Az ingyenes verzió 1 motort, korlátlan karbantartás- és költségnyilvántartást, korlátlan menetrögzítést, havi 1 AI diagnosztikát és 3 bizonylat-beolvasást tartalmaz. A MotoVault Pro további motorokat, korlátlan AI diagnosztikát, korlátlan beolvasást, korlátlan GPX exportot és offline túratérképeket nyit meg.
 
 Havi és éves csomag is van; az árat a megerősítés előtt az alkalmazásban látod. Az előfizetés automatikusan megújul, ha nem mondod le legalább 24 órával a periódus vége előtt. Kezelheted vagy lemondhatod bármikor a Google Play fiókbeállításaiban.
 

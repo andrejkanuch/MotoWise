@@ -1,7 +1,8 @@
 'use client';
 
 import { GetTrialEligibilityDocument } from '@motovault/graphql';
-import type { Offering } from '@revenuecat/purchases-js';
+import type { Offering, Package } from '@revenuecat/purchases-js';
+import * as Sentry from '@sentry/nextjs';
 import { createBrowserClient } from '@supabase/ssr';
 import { Crown, Lock, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
@@ -9,24 +10,49 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { getCampaignParams } from '@/lib/campaign';
+import {
+  describeCheckoutError,
+  isReportableCheckoutFailure,
+  SUPPORT_EMAIL,
+} from '@/lib/checkout-errors';
 import { gqlFetcher } from '@/lib/graphql-client';
+import {
+  annualSavingsPercent,
+  WEB_PLAN_IDS,
+  type WebPlanId,
+  type WebPrice,
+} from '@/lib/web-pricing';
 
+/**
+ * Display names and billing periods only. Prices come from the RevenueCat
+ * package (`webBillingProduct.currentPrice`) — what Stripe will actually charge.
+ */
 const PLAN_CONFIG = {
-  monthly: {
-    name: 'Pro Monthly',
-    price: '$5.99',
-    period: 'month',
-    rcPackageId: '$rc_monthly',
-  },
-  annual: {
-    name: 'Pro Annual',
-    price: '$49.99',
-    period: 'year',
-    rcPackageId: '$rc_annual',
-  },
+  [WEB_PLAN_IDS.MONTHLY]: { name: 'Pro Monthly', period: 'month' },
+  [WEB_PLAN_IDS.ANNUAL]: { name: 'Pro Annual', period: 'year' },
 } as const;
 
-type PlanId = keyof typeof PLAN_CONFIG;
+type PlanId = WebPlanId;
+
+const OFFERING_STATUS = {
+  LOADING: 'loading',
+  READY: 'ready',
+  UNAVAILABLE: 'unavailable',
+} as const;
+
+type OfferingStatus = (typeof OFFERING_STATUS)[keyof typeof OFFERING_STATUS];
+
+const PRICE_PLACEHOLDER = '\u2014';
+
+function packageFor(offering: Offering | null, plan: PlanId): Package | null {
+  if (!offering) return null;
+  return (plan === WEB_PLAN_IDS.ANNUAL ? offering.annual : offering.monthly) ?? null;
+}
+
+function priceOf(pkg: Package | null): WebPrice | null {
+  const price = pkg?.webBillingProduct.currentPrice;
+  return price ? { amountMicros: price.amountMicros, currency: price.currency } : null;
+}
 
 const WEB_OFFERING_ID = process.env.NODE_ENV === 'development' ? 'default-web-test' : 'default-web';
 
@@ -76,6 +102,10 @@ function CheckoutContent() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [webOffering, setWebOffering] = useState<Offering | null>(null);
+  const [offeringStatus, setOfferingStatus] = useState<OfferingStatus>(OFFERING_STATUS.LOADING);
+  // Bumped by "Try again" so a transient offering-load failure is recoverable
+  // without a full page reload.
+  const [offeringAttempt, setOfferingAttempt] = useState(0);
   // One trial per person, on any platform (docs/RevenueCat-Trial-Audit-2026-09-19.md).
   // Starts true so the page never promises a trial before the answer is in.
   const [hasUsedTrial, setHasUsedTrial] = useState(true);
@@ -103,29 +133,61 @@ function CheckoutContent() {
   // Resolve what this customer can actually buy: the RevenueCat offering (whose
   // trial phase reflects Web Billing's own eligibility) and our cross-store
   // trial history. Either failing leaves the no-trial copy, never the reverse.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: offeringAttempt is the "Try again" trigger, intentionally not read
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
     (async () => {
       const [offering, eligibility] = await Promise.all([
-        loadWebOffering(userId).catch(() => null),
+        loadWebOffering(userId).catch((err: unknown) => {
+          // Without an offering nobody can buy — never swallow this silently.
+          trackEvent(WebEvent.CHECKOUT_OFFERING_UNAVAILABLE, {
+            offering_id: WEB_OFFERING_ID,
+            reason: 'load_failed',
+          });
+          Sentry.captureException(err, {
+            tags: { area: 'checkout', op: 'loadWebOffering' },
+            extra: { offeringId: WEB_OFFERING_ID },
+          });
+          return undefined;
+        }),
         gqlFetcher(GetTrialEligibilityDocument).catch(() => null),
       ]);
       if (cancelled) return;
-      setWebOffering(offering);
+      const resolved = offering ?? null;
+      if (offering === null) {
+        trackEvent(WebEvent.CHECKOUT_OFFERING_UNAVAILABLE, {
+          offering_id: WEB_OFFERING_ID,
+          reason: 'not_found',
+        });
+        Sentry.captureMessage('Web checkout offering not found', {
+          level: 'error',
+          tags: { area: 'checkout', op: 'loadWebOffering' },
+          extra: { offeringId: WEB_OFFERING_ID },
+        });
+      }
+      setWebOffering(resolved);
+      setOfferingStatus(resolved ? OFFERING_STATUS.READY : OFFERING_STATUS.UNAVAILABLE);
       setHasUsedTrial(eligibility?.me.hasUsedTrial !== false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, offeringAttempt]);
+
+  const retryOfferingLoad = useCallback(() => {
+    setOfferingStatus(OFFERING_STATUS.LOADING);
+    setOfferingAttempt((attempt) => attempt + 1);
+  }, []);
 
   const plan = PLAN_CONFIG[selectedPlan];
-  const rcPackage = webOffering
-    ? selectedPlan === 'annual'
-      ? webOffering.annual
-      : webOffering.monthly
-    : null;
+  const rcPackage = packageFor(webOffering, selectedPlan);
+  const planPrice = rcPackage?.webBillingProduct.currentPrice.formattedPrice ?? PRICE_PLACEHOLDER;
+  const savingsPercent = annualSavingsPercent(
+    priceOf(packageFor(webOffering, WEB_PLAN_IDS.MONTHLY)),
+    priceOf(packageFor(webOffering, WEB_PLAN_IDS.ANNUAL)),
+  );
+  const canPurchase = offeringStatus === OFFERING_STATUS.READY && rcPackage !== null;
   const trialDays = hasUsedTrial
     ? null
     : durationToDays(rcPackage?.webBillingProduct.freeTrialPhase?.periodDuration);
@@ -143,7 +205,7 @@ function CheckoutContent() {
   }, [trialDays]);
 
   const handleCheckout = useCallback(async () => {
-    if (loading || !userId) return;
+    if (loading || !userId || !canPurchase) return;
     setLoading(true);
     setError('');
 
@@ -184,22 +246,46 @@ function CheckoutContent() {
       router.push(successUrl);
     } catch (err: unknown) {
       const { PurchasesError, ErrorCode } = await import('@revenuecat/purchases-js');
+      const isPurchasesError = err instanceof PurchasesError;
 
-      if (err instanceof PurchasesError) {
-        if (err.errorCode === ErrorCode.UserCancelledError) {
-          trackEvent(WebEvent.CHECKOUT_CANCELLED, { plan: selectedPlan });
-          router.push('/pro/checkout/cancel');
-          return;
-        }
-        setError(err.message);
-      } else if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Something went wrong. Please try again.');
+      if (isPurchasesError && err.errorCode === ErrorCode.UserCancelledError) {
+        trackEvent(WebEvent.CHECKOUT_CANCELLED, { plan: selectedPlan });
+        router.push('/pro/checkout/cancel');
+        return;
       }
+
+      const errorCode = isPurchasesError ? err.errorCode : null;
+      const backendErrorCode = isPurchasesError ? (err.extra?.backendErrorCode ?? null) : null;
+      const statusCode = isPurchasesError ? (err.extra?.statusCode ?? null) : null;
+      const failure = describeCheckoutError({ errorCode, backendErrorCode });
+
+      trackEvent(WebEvent.CHECKOUT_FAILED, {
+        plan: selectedPlan,
+        reason: failure.reason,
+        error_code: errorCode,
+        backend_error_code: backendErrorCode,
+        status_code: statusCode,
+      });
+      if (isReportableCheckoutFailure(failure.reason)) {
+        Sentry.captureException(err, {
+          tags: { area: 'checkout', op: 'purchase' },
+          extra: { plan: selectedPlan, errorCode, backendErrorCode, statusCode },
+        });
+      }
+      setError(failure.message);
       setLoading(false);
     }
-  }, [loading, userId, userEmail, selectedPlan, router, redirectAfter, webOffering, discountCode]);
+  }, [
+    loading,
+    userId,
+    userEmail,
+    selectedPlan,
+    router,
+    redirectAfter,
+    webOffering,
+    discountCode,
+    canPurchase,
+  ]);
 
   if (!authChecked) {
     return (
@@ -228,7 +314,7 @@ function CheckoutContent() {
             <div>
               <h1 className="text-xl font-bold text-neutral-50">Upgrade to Pro</h1>
               <p className="text-sm text-neutral-400">
-                {trialDays ? `Start your ${trialDays}-day free trial` : 'Unlock every Pro feature'}
+                {trialDays ? `Start your ${trialDays}-day free trial` : 'Upgrade to MotoVault Pro'}
               </p>
             </div>
           </div>
@@ -248,9 +334,9 @@ function CheckoutContent() {
                   }`}
                 >
                   {cfg.name}
-                  {id === 'annual' && (
+                  {id === WEB_PLAN_IDS.ANNUAL && savingsPercent !== null && (
                     <span className="ml-1.5 inline-block rounded-full bg-warm-500/20 px-1.5 py-0.5 text-[10px] font-bold text-warm-400">
-                      -30%
+                      -{savingsPercent}%
                     </span>
                   )}
                 </button>
@@ -266,7 +352,7 @@ function CheckoutContent() {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-neutral-300">{plan.name}</span>
                 <span className="font-semibold text-neutral-50">
-                  {plan.price}/{plan.period}
+                  {planPrice}/{plan.period}
                 </span>
               </div>
 
@@ -282,7 +368,7 @@ function CheckoutContent() {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-neutral-300">Due today</span>
                 <span className="text-lg font-bold text-neutral-50">
-                  {trialDays ? '$0.00' : plan.price}
+                  {trialDays ? '$0.00' : planPrice}
                 </span>
               </div>
 
@@ -292,7 +378,7 @@ function CheckoutContent() {
                 <p className="text-xs text-neutral-500">
                   After your trial ends on {trialEndDate}, you will be charged{' '}
                   <span className="text-neutral-400">
-                    {plan.price}/{plan.period}
+                    {planPrice}/{plan.period}
                   </span>
                   . Cancel anytime before then and you won&apos;t be charged.
                 </p>
@@ -300,13 +386,30 @@ function CheckoutContent() {
                 <p className="text-xs text-neutral-500">
                   Billed{' '}
                   <span className="text-neutral-400">
-                    {plan.price}/{plan.period}
+                    {planPrice}/{plan.period}
                   </span>{' '}
                   today and on each renewal. Cancel anytime.
                 </p>
               )}
             </div>
           </div>
+
+          {/* Offering could not be loaded: say so instead of a dead Pay button. */}
+          {offeringStatus === OFFERING_STATUS.UNAVAILABLE && !error && (
+            <div role="alert" className="mb-4 text-sm text-danger-500">
+              <p>
+                Checkout is temporarily unavailable. Please try again in a few minutes, or contact{' '}
+                {SUPPORT_EMAIL}.
+              </p>
+              <button
+                type="button"
+                onClick={retryOfferingLoad}
+                className="mt-2 font-medium text-neutral-300 underline underline-offset-2 transition-colors hover:text-neutral-50"
+              >
+                Try again
+              </button>
+            </div>
+          )}
 
           {/* Error */}
           {error && (
@@ -319,7 +422,7 @@ function CheckoutContent() {
           <button
             type="button"
             onClick={handleCheckout}
-            disabled={loading}
+            disabled={loading || !canPurchase}
             className="cta-primary flex w-full items-center justify-center gap-2 rounded-full bg-warm-500 px-6 py-3.5 font-semibold text-neutral-950 transition-colors hover:bg-warm-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? (
@@ -350,7 +453,7 @@ function CheckoutContent() {
               Privacy Policy
             </Link>
             <a
-              href="mailto:support@motovault.app"
+              href={`mailto:${SUPPORT_EMAIL}`}
               className="transition-colors hover:text-neutral-300"
             >
               Refund Policy

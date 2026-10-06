@@ -3,27 +3,11 @@
 import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { PRO_BENEFIT_BULLETS, WEB_OFFER_COPY } from '@/lib/pro-plan';
+import { STATIC_WEB_PLANS } from '@/lib/web-pricing';
 
-const HERO_BENEFITS = [
-  'Unlimited AI diagnostic scans',
-  'Unlimited bikes in your garage',
-  'Multi-day trip planning + GPX export',
-  'Route discovery & curated rides',
-  'Advanced ride analytics & lean angle',
-  'AI Health Reports \u2014 monthly summary',
-  'Export everything (CSV / PDF)',
-  'Priority support \u2014 24h reply',
-] as const;
-
-const PLANS = {
-  monthly: { price: '$5.99', period: '/mo', sub: '$5.99 / month', crossed: null },
-  annual: {
-    price: '$49.99',
-    period: '/yr',
-    sub: '$4.17 / month \u00b7 billed yearly',
-    crossed: '$71.88',
-  },
-} as const;
+/** Static marketing prices; checkout renders the live RevenueCat price instead. */
+const PLANS = STATIC_WEB_PLANS.plans;
 
 type Plan = keyof typeof PLANS;
 
@@ -55,9 +39,11 @@ export function PricingCard() {
             }`}
           >
             Annual{' '}
-            <span className="ml-1.5 inline-flex rounded-full bg-warm-500 px-2 py-0.5 text-[10px] font-bold text-neutral-950">
-              &minus;30%
-            </span>
+            {STATIC_WEB_PLANS.savingsPercent !== null && (
+              <span className="ml-1.5 inline-flex rounded-full bg-warm-500 px-2 py-0.5 text-[10px] font-bold text-neutral-950">
+                &minus;{STATIC_WEB_PLANS.savingsPercent}%
+              </span>
+            )}
           </button>
         </div>
 
@@ -75,7 +61,7 @@ export function PricingCard() {
 
         {/* Benefits list */}
         <ul className="mt-6 space-y-3">
-          {HERO_BENEFITS.map((b) => (
+          {PRO_BENEFIT_BULLETS.map((b) => (
             <li key={b} className="flex items-center gap-3 text-[13px] text-neutral-300">
               <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-warm-500/20">
                 <span className="size-1.5 rounded-full bg-warm-500" />
@@ -90,11 +76,11 @@ export function PricingCard() {
           href={`/pro/checkout?plan=${plan}`}
           className="mt-7 flex items-center justify-center gap-2 rounded-full border border-neutral-700 bg-neutral-900 px-6 py-3.5 text-sm font-medium text-neutral-200 transition-colors hover:border-warm-500/40 hover:bg-neutral-800"
         >
-          Start 7-day free trial &rarr;
+          {WEB_OFFER_COPY.cardCta}
         </Link>
         <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-neutral-600">
           <Lock className="size-3" />
-          Secured by Stripe via RevenueCat &middot; No charge today
+          {WEB_OFFER_COPY.cardFootnote}
         </p>
       </div>
     </div>

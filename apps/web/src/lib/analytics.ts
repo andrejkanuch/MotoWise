@@ -43,6 +43,8 @@ export const WebEvent = {
   CHECKOUT_INITIATED: 'checkout_initiated',
   CHECKOUT_COMPLETED: 'checkout_completed',
   CHECKOUT_CANCELLED: 'checkout_cancelled',
+  CHECKOUT_FAILED: 'checkout_failed',
+  CHECKOUT_OFFERING_UNAVAILABLE: 'checkout_offering_unavailable',
   MANAGE_SUBSCRIPTION_CLICKED: 'manage_subscription_clicked',
 
   // Blog
@@ -132,6 +134,17 @@ type WebEventProperties = {
     tripSlug?: string;
   };
   [WebEvent.CHECKOUT_ATTRIBUTION_GATE_SHOWN]: { tripSlug?: string; source: string };
+  [WebEvent.CHECKOUT_FAILED]: {
+    plan: string;
+    reason: string;
+    error_code: number | null;
+    backend_error_code: number | null;
+    status_code: number | null;
+  };
+  [WebEvent.CHECKOUT_OFFERING_UNAVAILABLE]: {
+    offering_id: string;
+    reason: 'load_failed' | 'not_found';
+  };
   [WebEvent.BUILDER_OPENED]: { source: 'explore' | 'trip_detail' | 'nav' };
   [WebEvent.BUILDER_SAVED]: { waypointCount: number; distanceKm: number };
   [WebEvent.BUILDER_SHARED]: { method: 'link' | 'social'; tripSlug: string };
