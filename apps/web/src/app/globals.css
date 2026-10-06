@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "../../../../packages/design-system/src/tokens.css";
 @import "../../../../packages/design-system/src/semantic.css";
+@import "../../../../packages/design-system/src/mv-tokens.css";
 @source "../../../../packages/";
 @custom-variant dark (&:where(.dark, .dark *));
 

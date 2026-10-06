@@ -2,26 +2,8 @@
    MotoVault Garage — Community Dashboard Styles
    ═══════════════════════════════════════════════ */
 
-:root {
-  --mv-bg: oklch(0.12 0.01 55);
-  --mv-bg-2: oklch(0.09 0.008 55);
-  --mv-surface: oklch(0.15 0.012 55);
-  --mv-surface-2: oklch(0.18 0.014 55);
-  --mv-ink: oklch(0.98 0.006 80);
-  --mv-ink-2: oklch(0.78 0.012 70);
-  --mv-ink-3: oklch(0.58 0.012 65);
-  --mv-ink-4: oklch(0.4 0.012 60);
-  --mv-line: oklch(1 0 0 / 0.07);
-  --mv-line-2: oklch(1 0 0 / 0.03);
-  --mv-warm-500: oklch(0.76 0.18 60);
-  --mv-warm-400: oklch(0.84 0.15 68);
-  --mv-warm-300: oklch(0.9 0.11 72);
-  --mv-warm-900: oklch(0.32 0.1 55);
-  --mv-success: oklch(0.72 0.2 145);
-  --mv-danger: oklch(0.7 0.21 25);
-  --mv-radius: 20px;
-  --mv-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-}
+/* The --mv-* tokens live in @motovault/design-system (mv-tokens.css),
+   imported globally by app/globals.css. */
 
 /* ─── Page Shell ─── */
 .garage-page {

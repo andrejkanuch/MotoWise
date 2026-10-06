@@ -5,6 +5,7 @@
   "exports": {
     "./tokens.css": "./src/tokens.css",
     "./semantic.css": "./src/semantic.css",
+    "./mv-tokens.css": "./src/mv-tokens.css",
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
