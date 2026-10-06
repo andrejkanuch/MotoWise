@@ -1064,5 +1064,24 @@
     "barOpen": "Uygulamayı aç",
     "barDismiss": "Kapat",
     "barRegion": "Uygulamayı edin"
+  },
+  "Welcome": {
+    "metaTitle": "Uygulamayı edinin",
+    "homeLabel": "MotoVault ana sayfa",
+    "signedInAs": "<b>{email}</b> olarak oturum açıldı",
+    "eyebrow": "Hesap oluşturuldu",
+    "title": "Hazırsınız. Şimdi MotoVault'u <serif>cebinize koyun.</serif>",
+    "reasonsLabel": "Uygulamanın kattıkları",
+    "ridesTitle": "Sürüşleri GPS ile kaydedin",
+    "ridesTag": "GPS",
+    "remindersTitle": "Bakım zamanı gelmeden hatırlatma alın",
+    "remindersTag": "Bildirim",
+    "receiptsTitle": "Fişleri kamerayla tarayın",
+    "receiptsTag": "Kamera",
+    "qrTitle": "Telefonunuzla tarayın",
+    "qrBody": "Telefonunuzda App Store'u veya Google Play'i açar.",
+    "getApp": "Uygulamayı edinin",
+    "getAppLabel": "iPhone veya Android için MotoVault'u edinin",
+    "continue": "Web'deki garajınıza devam edin"
   }
 }

@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
-import { safeRedirectPath } from '@/lib/safe-redirect';
+import { postAuthDestination } from '@/lib/post-auth-redirect';
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
@@ -40,13 +40,16 @@ export async function GET(request: NextRequest) {
     },
   );
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
     return NextResponse.redirect(`${origin}/login`);
   }
 
-  // Redirect within the web app (same-origin internal path only)
-  const destination = safeRedirectPath(redirect);
+  // Redirect within the web app (same-origin internal path only). A rider's
+  // first session (email confirmation, first Google/Apple login) lands on the
+  // post-signup "Get the app" screen instead of /garage; an explicit
+  // ?redirect= always wins. See lib/post-auth-redirect.ts.
+  const destination = postAuthDestination({ redirect, user: data.user });
   return NextResponse.redirect(`${origin}${destination}`);
 }

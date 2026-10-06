@@ -1064,5 +1064,24 @@
     "barOpen": "ऐप खोलें",
     "barDismiss": "बंद करें",
     "barRegion": "ऐप पाएं"
+  },
+  "Welcome": {
+    "metaTitle": "ऐप पाएं",
+    "homeLabel": "MotoVault होम",
+    "signedInAs": "<b>{email}</b> के रूप में साइन इन",
+    "eyebrow": "खाता बन गया",
+    "title": "आप जुड़ गए। अब MotoVault को <serif>अपनी जेब में रखें।</serif>",
+    "reasonsLabel": "ऐप में और क्या है",
+    "ridesTitle": "GPS से राइड रिकॉर्ड करें",
+    "ridesTag": "GPS",
+    "remindersTitle": "सर्विस से पहले रिमाइंडर पाएं",
+    "remindersTag": "पुश",
+    "receiptsTitle": "कैमरे से रसीदें स्कैन करें",
+    "receiptsTag": "कैमरा",
+    "qrTitle": "अपने फ़ोन से स्कैन करें",
+    "qrBody": "आपके फ़ोन पर App Store या Google Play खुलता है।",
+    "getApp": "ऐप पाएं",
+    "getAppLabel": "iPhone या Android के लिए MotoVault पाएं",
+    "continue": "वेब पर अपने गैराज में जाएं"
   }
 }

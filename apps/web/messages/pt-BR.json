@@ -3188,5 +3188,24 @@
     "message": "Toda a sua vida sobre duas rodas em um app.",
     "cta": "Baixar MotoVault",
     "dismiss": "Fechar"
+  },
+  "Welcome": {
+    "metaTitle": "Baixe o app",
+    "homeLabel": "Início do MotoVault",
+    "signedInAs": "Conectado como <b>{email}</b>",
+    "eyebrow": "Conta criada",
+    "title": "Pronto. Agora leve o MotoVault <serif>no bolso.</serif>",
+    "reasonsLabel": "O que o app acrescenta",
+    "ridesTitle": "Grave rolês com GPS",
+    "ridesTag": "GPS",
+    "remindersTitle": "Receba lembretes de revisão antes do vencimento",
+    "remindersTag": "Push",
+    "receiptsTitle": "Escaneie recibos com a câmera",
+    "receiptsTag": "Câmera",
+    "qrTitle": "Escaneie com o celular",
+    "qrBody": "Abre a App Store ou o Google Play no seu celular.",
+    "getApp": "Baixe o app",
+    "getAppLabel": "Baixe o MotoVault para iPhone ou Android",
+    "continue": "Continuar para sua garagem na web"
   }
 }

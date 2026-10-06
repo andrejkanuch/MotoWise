@@ -1064,5 +1064,24 @@
     "barOpen": "Buka aplikasi",
     "barDismiss": "Tutup",
     "barRegion": "Dapatkan aplikasi"
+  },
+  "Welcome": {
+    "metaTitle": "Dapatkan aplikasinya",
+    "homeLabel": "Beranda MotoVault",
+    "signedInAs": "Masuk sebagai <b>{email}</b>",
+    "eyebrow": "Akun dibuat",
+    "title": "Anda sudah masuk. Sekarang bawa MotoVault <serif>di saku Anda.</serif>",
+    "reasonsLabel": "Yang ditambahkan aplikasi",
+    "ridesTitle": "Rekam perjalanan dengan GPS",
+    "ridesTag": "GPS",
+    "remindersTitle": "Dapatkan pengingat servis sebelum jatuh tempo",
+    "remindersTag": "Push",
+    "receiptsTitle": "Pindai struk dengan kamera",
+    "receiptsTag": "Kamera",
+    "qrTitle": "Pindai dengan ponsel Anda",
+    "qrBody": "Membuka App Store atau Google Play di ponsel Anda.",
+    "getApp": "Dapatkan aplikasinya",
+    "getAppLabel": "Dapatkan MotoVault untuk iPhone atau Android",
+    "continue": "Lanjut ke garasi Anda di web"
   }
 }

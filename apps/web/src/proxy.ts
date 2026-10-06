@@ -266,7 +266,9 @@ async function adminAuth(request: NextRequest) {
   return response;
 }
 
-const PROTECTED_PREFIXES = ['/feed', '/garage', '/profile'];
+// '/welcome' is the post-signup "Get the app" screen: auth-gated and
+// dynamic like the garage, and it lives outside the [locale] tree.
+const PROTECTED_PREFIXES = ['/feed', '/garage', '/profile', '/welcome'];
 
 const PUBLIC_PREFIXES = [
   '/rider/',
