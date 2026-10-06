@@ -134,6 +134,25 @@ function shouldDropExceptions(exceptions: NoiseException[] | undefined): boolean
     return true;
   }
 
+  // Scripts WebKit injected itself — a browser extension's content script or an
+  // in-app webview's user script — surface with their real filename replaced by
+  // `webkit-masked-url://hidden/` and `in_app: false`, so the browser hides
+  // which script ran. Our bundle always resolves to `/_next/static` filenames,
+  // so an event whose frames are all masked has none of our code on the stack
+  // and is not ours to fix (e.g. the `null is not an object (evaluating 's.id')`
+  // throw on the server-rendered blog). Matched on the frame shape rather than a
+  // single message, so every masked-script variant drops. Scoped like the other
+  // injected-script rules: a genuine first-party frame anywhere in the chain
+  // keeps the event.
+  const allFrames = exceptions.flatMap((e) => e.stacktrace?.frames ?? []);
+  if (
+    !hasFirstPartyFrame &&
+    allFrames.length > 0 &&
+    allFrames.every((f) => f.filename?.includes('webkit-masked-url:'))
+  ) {
+    return true;
+  }
+
   return false;
 }
 
