@@ -44,8 +44,9 @@
 -- end: DROP + CREATE makes a NEW function, which Supabase's default privileges
 -- make EXECUTE-able by anon and authenticated until the REVOKE lands. The
 -- caller-role guard at the top of the body is the second barrier for that
--- window: it refuses any PostgREST call whose JWT role is anon or
--- authenticated, so even a split apply cannot let a rider pass
+-- window: it refuses any PostgREST call whose JWT role is not service_role
+-- (direct database sessions carry no JWT and pass), so even a split apply
+-- cannot let a rider pass
 -- p_rc_tier => 'pro' for themselves.
 
 DROP FUNCTION IF EXISTS public.process_revenuecat_event(
@@ -83,18 +84,29 @@ DECLARE
   v_expiration TIMESTAMPTZ := p_expiration_at;
   v_is_trial_start BOOLEAN := FALSE;
   v_resolved BOOLEAN := p_rc_tier IS NOT NULL;
-  -- The JWT role PostgREST sets for the request; NULL for a direct database
-  -- session (postgres, migrations, supabase/checks).
-  v_caller_role TEXT := NULLIF(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role';
+  -- The JWT claims PostgREST sets for the request (Supabase's auth.role()
+  -- reads the same setting); NULL for a direct database session (postgres,
+  -- migrations, supabase/checks). NULLIF: a pooled session keeps '' after an
+  -- earlier request's SET LOCAL.
+  v_claims TEXT := NULLIF(current_setting('request.jwt.claims', true), '');
+  v_caller_role TEXT := v_claims::jsonb ->> 'role';
 BEGIN
-  -- Defense in depth on top of the service_role-only ACL: an end-user JWT may
-  -- never call this SECURITY DEFINER function (it writes subscription_tier).
-  IF v_caller_role IN ('anon', 'authenticated') THEN
-    RAISE EXCEPTION 'process_revenuecat_event: not allowed for role %', v_caller_role
+  -- Defense in depth on top of the service_role-only ACL: through PostgREST
+  -- only a service_role JWT may call this SECURITY DEFINER function (it writes
+  -- subscription_tier). An allowlist, so claims without a role (which PostgREST
+  -- runs as its anon role) are refused too, not just 'anon'/'authenticated'.
+  IF v_claims IS NOT NULL AND v_caller_role IS DISTINCT FROM 'service_role' THEN
+    RAISE EXCEPTION 'process_revenuecat_event: not allowed for role %', COALESCE(v_caller_role, '(none)')
       USING ERRCODE = '42501';
   END IF;
 
-  IF v_resolved AND (p_rc_tier NOT IN ('free', 'pro') OR p_rc_status IS NULL) THEN
+  -- Only consistent tier/status pairs: a contradictory one (free/active,
+  -- pro/expired) would be written as-is, since no constraint pairs the columns.
+  IF v_resolved AND NOT COALESCE(
+    (p_rc_tier = 'pro' AND p_rc_status IN ('trialing', 'active', 'past_due', 'cancelled'))
+    OR (p_rc_tier = 'free' AND p_rc_status IN ('free', 'expired')),
+    FALSE
+  ) THEN
     RAISE EXCEPTION 'invalid resolved state: tier=% status=%', p_rc_tier, p_rc_status;
   END IF;
 

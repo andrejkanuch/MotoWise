@@ -81,21 +81,24 @@ const RC_ENTITLEMENT_TAG = {
 } as const;
 type RcEntitlementTag = (typeof RC_ENTITLEMENT_TAG)[keyof typeof RC_ENTITLEMENT_TAG];
 /**
- * Event types whose event-type fallback can take Pro away: EXPIRATION writes
- * free/expired, and CANCELLATION / BILLING_ISSUE overwrite a lifetime row's
- * NULL expiry with the old subscription's. For these, a TRANSIENT lookup
- * failure must not fall back (that is #273 again, and permanently: the event
- * row is written, so RevenueCat's redelivery hits already_processed). The
- * webhook fails instead, before the RPC, and RevenueCat redelivers it.
+ * Event types whose event-type fallback leaves the row wrong for good:
+ * EXPIRATION writes free/expired, and CANCELLATION / BILLING_ISSUE overwrite a
+ * lifetime row's NULL expiry with the old subscription's (#273); TRANSFER
+ * downgrades the sources but leaves the receiver untouched (the event carries
+ * no product). For these, a TRANSIENT lookup failure must not fall back:
+ * the event row would be written, so RevenueCat's redelivery would hit
+ * already_processed. The webhook fails instead, before the RPC, and
+ * RevenueCat redelivers it.
  */
-const DOWNGRADE_EVENT_TYPES: ReadonlySet<string> = new Set([
+const DEFER_ON_TRANSIENT_EVENT_TYPES: ReadonlySet<string> = new Set([
   'EXPIRATION',
   'CANCELLATION',
   'BILLING_ISSUE',
+  'TRANSFER',
 ]);
 /** How a failed RevenueCat lookup is handled. */
 const LOOKUP_FAILURE = {
-  /** Timeout, network error, 429, 5xx: worth a redelivery. */
+  /** Timeout, network error, 408, 429, 5xx: worth a redelivery. */
   TRANSIENT: 'transient',
   /** Key unset, other 4xx, malformed body, untrusted entitlement: retrying will not help. */
   PERMANENT: 'permanent',
@@ -106,7 +109,9 @@ type LookupFailure = (typeof LOOKUP_FAILURE)[keyof typeof LOOKUP_FAILURE];
 const ABORT_ERROR_NAMES: ReadonlySet<string> = new Set(['TimeoutError', 'AbortError']);
 
 const isTransientStatus = (status: number): boolean =>
-  status === HttpStatus.TOO_MANY_REQUESTS || status >= HttpStatus.INTERNAL_SERVER_ERROR;
+  status === HttpStatus.REQUEST_TIMEOUT ||
+  status === HttpStatus.TOO_MANY_REQUESTS ||
+  status >= HttpStatus.INTERNAL_SERVER_ERROR;
 
 const toIso = (ms: number | null | undefined): string | null =>
   ms ? new Date(ms).toISOString() : null;
@@ -388,7 +393,7 @@ export class RevenueCatService {
    * entitlement for a non-allowlisted user — and the RPC then falls back to the
    * event-type logic. Every null is reported to Sentry: while it lasts, the
    * #273 downgrade can happen again. Throws instead (see
-   * DOWNGRADE_EVENT_TYPES) when the failure is transient and the event could
+   * DEFER_ON_TRANSIENT_EVENT_TYPES) when the failure is transient and the event could
    * take Pro away, so RevenueCat redelivers it.
    */
   private async resolveProState(event: RevenueCatEvent): Promise<ResolvedProState | null> {
@@ -462,24 +467,9 @@ export class RevenueCatService {
    * reported to Sentry (`rc_entitlement: deferred`) for a manual check.
    */
   private unresolved(event: RevenueCatEvent, reason: string, failure: LookupFailure): null {
-    if (failure === LOOKUP_FAILURE.TRANSIENT && DOWNGRADE_EVENT_TYPES.has(event.type)) {
+    if (failure === LOOKUP_FAILURE.TRANSIENT && DEFER_ON_TRANSIENT_EVENT_TYPES.has(event.type)) {
       const message = `RevenueCat ${event.type} ${event.id}: entitlement not resolved (${reason}); deferring so RevenueCat redelivers it`;
-      this.logger.warn(message);
-      Sentry.captureMessage(message, {
-        level: 'warning',
-        tags: {
-          webhook: 'revenuecat',
-          rc_event_type: event.type,
-          rc_entitlement: RC_ENTITLEMENT_TAG.DEFERRED,
-        },
-        extra: {
-          eventId: event.id,
-          appUserId: event.app_user_id,
-          productId: event.product_id ?? null,
-          environment: event.environment ?? null,
-          reason,
-        },
-      });
+      this.captureEntitlementWarning(event, message, RC_ENTITLEMENT_TAG.DEFERRED, reason);
       throw new Error(message);
     }
     this.reportUnresolved(event, reason);
@@ -493,6 +483,17 @@ export class RevenueCatService {
     extra: Record<string, unknown> = {},
   ): void {
     const message = `RevenueCat ${event.type} ${event.id}: entitlement not resolved (${reason}); falling back to event-type state`;
+    this.captureEntitlementWarning(event, message, tag, reason, extra);
+  }
+
+  /** Logs and reports an unresolved entitlement lookup (deferred or fallback). */
+  private captureEntitlementWarning(
+    event: RevenueCatEvent,
+    message: string,
+    tag: RcEntitlementTag,
+    reason: string,
+    extra: Record<string, unknown> = {},
+  ): void {
     this.logger.warn(message);
     Sentry.captureMessage(message, {
       level: 'warning',

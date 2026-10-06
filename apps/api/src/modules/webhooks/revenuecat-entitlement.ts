@@ -120,13 +120,21 @@ function liveSubscriptionIds(subscriber: RcSubscriber, nowMs: number): string[] 
  * Null when "no entitlement" is a genuine answer (never bought, or refunded).
  */
 function missingEntitlement(subscriber: RcSubscriber, nowMs: number): ProResolution | null {
-  const otherEntitlements = Object.keys(subscriber.entitlements ?? {});
+  // Only entitlements that still grant access: v1 also lists expired ones, and
+  // a long-gone second entitlement must not turn a lifetime refund into a
+  // fallback that keeps Pro.
+  const otherEntitlements = Object.entries(subscriber.entitlements ?? {})
+    .filter(([, e]) => {
+      const expiresMs = toMs(e.expires_date);
+      return expiresMs === null || expiresMs > nowMs;
+    })
+    .map(([id]) => id);
   const liveSubscriptions = liveSubscriptionIds(subscriber, nowMs);
   if (otherEntitlements.length === 0 && liveSubscriptions.length === 0) return null;
   const productIds = [
     ...new Set([
-      ...Object.values(subscriber.entitlements ?? {})
-        .map((e) => e.product_identifier)
+      ...otherEntitlements
+        .map((id) => subscriber.entitlements?.[id]?.product_identifier)
         .filter((id): id is string => Boolean(id)),
       ...liveSubscriptions,
       ...Object.keys(subscriber.non_subscriptions ?? {}),

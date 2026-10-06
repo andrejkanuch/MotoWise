@@ -17,8 +17,8 @@ vi.mock('@sentry/nestjs', () => ({ captureMessage: vi.fn(), addBreadcrumb: vi.fn
  *  - lifetime + old subscription CANCELLATION/EXPIRATION (either order) → stays pro, lifetime
  *  - lifetime refund → revoked
  *  - subscription refund → revoked
- *  - RevenueCat API down (timeout, network, 429, 5xx) on EXPIRATION /
- *    CANCELLATION / BILLING_ISSUE → deferred: throws before the RPC, so
+ *  - RevenueCat API down (timeout, network, 408, 429, 5xx) on EXPIRATION /
+ *    CANCELLATION / BILLING_ISSUE / TRANSFER → deferred: throws before the RPC, so
  *    RevenueCat redelivers it; on any other event → event-type fallback
  *  - permanent lookup failure (key unset, other 4xx, bad body) → event-type
  *    fallback (no p_rc_*), reported to Sentry
@@ -222,6 +222,7 @@ describe('RevenueCatService: RevenueCat entitlement is the source of truth (#273
     ['HTTP 500', () => fetchMock.mockResolvedValue({ ok: false, status: 500 })],
     ['HTTP 503', () => fetchMock.mockResolvedValue({ ok: false, status: 503 })],
     ['HTTP 429 (rate limited)', () => fetchMock.mockResolvedValue({ ok: false, status: 429 })],
+    ['HTTP 408 (request timeout)', () => fetchMock.mockResolvedValue({ ok: false, status: 408 })],
     [
       'timeout while reading the body',
       () =>
@@ -236,7 +237,7 @@ describe('RevenueCatService: RevenueCat entitlement is the source of truth (#273
   ];
 
   describe('transient RevenueCat failure on a downgrade-capable event → deferred, RevenueCat redelivers', () => {
-    const downgrades = ['EXPIRATION', 'CANCELLATION', 'BILLING_ISSUE'] as const;
+    const downgrades = ['EXPIRATION', 'CANCELLATION', 'BILLING_ISSUE', 'TRANSFER'] as const;
     for (const type of downgrades) {
       it.each(transientFailures)(`${type}: %s`, async (_label, arrange) => {
         arrange();

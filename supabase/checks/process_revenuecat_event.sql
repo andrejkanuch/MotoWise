@@ -311,6 +311,32 @@ BEGIN
   END;
   PERFORM pg_temp.expect(raised, 'invalid resolved tier raises');
 
+  -- Contradictory tier/status pairs and a NULL status are rejected too.
+  raised := FALSE;
+  BEGIN
+    PERFORM pg_temp.rc('u17-bad2', 'RENEWAL', u17, NULL, 'free', 'active', NULL);
+  EXCEPTION WHEN OTHERS THEN
+    raised := SQLERRM LIKE 'invalid resolved state%';
+  END;
+  PERFORM pg_temp.expect(raised, 'resolved free/active raises');
+  raised := FALSE;
+  BEGIN
+    PERFORM pg_temp.rc('u17-bad3', 'RENEWAL', u17, NULL, 'pro', 'expired', NULL);
+  EXCEPTION WHEN OTHERS THEN
+    raised := SQLERRM LIKE 'invalid resolved state%';
+  END;
+  PERFORM pg_temp.expect(raised, 'resolved pro/expired raises');
+  raised := FALSE;
+  BEGIN
+    PERFORM pg_temp.rc('u17-bad4', 'RENEWAL', u17, NULL, 'pro', NULL, NULL);
+  EXCEPTION WHEN OTHERS THEN
+    raised := SQLERRM LIKE 'invalid resolved state%';
+  END;
+  PERFORM pg_temp.expect(raised, 'resolved pro with NULL status raises');
+  PERFORM pg_temp.expect(pg_temp.state(u17) = 'pro/trialing'
+    AND NOT EXISTS (SELECT 1 FROM public.revenuecat_webhook_events WHERE event_id LIKE 'u17-bad%'),
+    'rejected resolved states leave the row and the event log untouched');
+
   -- Caller-role guard: a PostgREST call carrying an end-user JWT (anon or
   -- authenticated) is refused even by a role that holds EXECUTE, and neither
   -- logs the event nor touches the row.
@@ -347,6 +373,21 @@ BEGIN
   EXECUTE format('REVOKE EXECUTE ON FUNCTION %s FROM anon', sig);
   PERFORM pg_temp.expect(raised AND pg_temp.state(u18) = 'free/free',
     'split apply: anon with EXECUTE still cannot self-grant Pro');
+
+  -- Claims without a role (PostgREST runs them as anon) and any other role
+  -- are refused too: the guard is an allowlist.
+  FOREACH end_user_role IN ARRAY ARRAY['{}', '{"role":"supabase_storage_admin"}'] LOOP
+    raised := FALSE;
+    BEGIN
+      PERFORM set_config('request.jwt.claims', end_user_role, true);
+      PERFORM pg_temp.rc('u18-claims-' || md5(end_user_role), 'RENEWAL', u18, NULL, 'pro', 'active', NULL);
+    EXCEPTION WHEN insufficient_privilege THEN
+      raised := SQLERRM LIKE 'process_revenuecat_event: not allowed for role%';
+    END;
+    PERFORM set_config('request.jwt.claims', '', true);
+    PERFORM pg_temp.expect(raised AND pg_temp.state(u18) = 'free/free',
+      format('claims %s are refused', end_user_role));
+  END LOOP;
 
   -- The API's own path (service_role JWT through PostgREST) is allowed; a
   -- direct database session (no JWT, as everywhere above) is allowed too.

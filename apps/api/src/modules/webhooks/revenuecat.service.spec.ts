@@ -466,8 +466,23 @@ describe('RevenueCatService.processEvent', () => {
       );
     });
 
-    it('still downgrades the losers when RC cannot be reached (receiver left untouched)', async () => {
+    it('defers on a transient RC failure so the redelivery can sync the receiver', async () => {
       vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network')));
+      await expect(
+        service.processEvent(
+          baseEvent({
+            id: 'tr-3',
+            type: 'TRANSFER',
+            app_user_id: RECEIVER,
+            transferred_from: [LOSER],
+          }),
+        ),
+      ).rejects.toThrow('deferring so RevenueCat redelivers it');
+      expect(adminClient.rpc).not.toHaveBeenCalled();
+    });
+
+    it('still downgrades the losers on a permanent RC failure (receiver left untouched)', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401 }));
       await service.processEvent(
         baseEvent({
           id: 'tr-2',

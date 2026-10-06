@@ -98,6 +98,17 @@ describe('resolveProEntitlement', () => {
       });
     });
 
+    it('an expired other entitlement is history, not a rename → free/expired', () => {
+      expect(
+        resolve({
+          subscriber: {
+            entitlements: { 'Old Pro': { expires_date: PAST, product_identifier: MONTHLY } },
+            subscriptions: { [MONTHLY]: { expires_date: PAST } },
+          },
+        }),
+      ).toMatchObject({ resolved: true, state: { tier: 'free', status: 'expired' } });
+    });
+
     it.each([
       ['an unexpired subscription', { expires_date: FUTURE }],
       ['a subscription with no expiry', { expires_date: null }],
