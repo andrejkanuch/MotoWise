@@ -3,7 +3,7 @@
 import { Crown } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useProStatus } from '@/hooks/use-pro-status';
 import { resetUser } from '@/lib/analytics';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
@@ -22,6 +22,8 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
 
   const handleSignOut = useCallback(async () => {
     if (signingOut) return;
@@ -32,16 +34,27 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
     router.push('/login');
   }, [signingOut, router]);
 
-  // Close mobile menu on outside click
+  // Close the mobile menu on an outside click or Escape. The toggle button is
+  // excluded from the outside test: otherwise its mousedown closes the menu and
+  // the click that follows re-opens it, so the X could never close the menu.
   useEffect(() => {
     if (!menuOpen) return;
     function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
+      const target = e.target as Node;
+      if (menuRef.current?.contains(target) || menuButtonRef.current?.contains(target)) return;
+      setMenuOpen(false);
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key !== 'Escape') return;
+      setMenuOpen(false);
+      menuButtonRef.current?.focus();
     }
     document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [menuOpen]);
 
   const initial = displayName?.charAt(0)?.toUpperCase() ?? 'R';
@@ -51,7 +64,7 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
       {/* Brand */}
       <a href="/" className="nav-brand">
         <span className="nav-mark">M</span>
-        MotoVault
+        <span className="nav-brand-word">MotoVault</span>
       </a>
 
       {/* Desktop pill tabs */}
@@ -125,10 +138,12 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
         {/* Mobile hamburger */}
         <button
           type="button"
-          onClick={() => setMenuOpen(!menuOpen)}
+          ref={menuButtonRef}
+          onClick={() => setMenuOpen((open) => !open)}
           className="nav-menu-btn"
           aria-expanded={menuOpen}
-          aria-label="Toggle navigation menu"
+          aria-controls={menuId}
+          aria-label={t('menu')}
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <title>{t('menu')}</title>
@@ -154,7 +169,9 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
       {/* Mobile menu */}
       {menuOpen && (
         <div
+          id={menuId}
           ref={menuRef}
+          className="nav-mobile-menu"
           style={{
             position: 'absolute',
             top: '100%',

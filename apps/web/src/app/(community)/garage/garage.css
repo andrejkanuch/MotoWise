@@ -1805,3 +1805,21 @@ button.prof-banner-manage:disabled {
     display: flex;
   }
 }
+
+/* The menu belongs to the narrow layout only: if the viewport widens while it
+   is open (rotation, resize), hide it instead of showing a second Upgrade and
+   Sign out next to the desktop ones. */
+@media (min-width: 721px) {
+  .nav-mobile-menu {
+    display: none;
+  }
+}
+
+/* Longer trial labels (pl "Okres próbny", de "Testphase", pt-BR "Avaliação")
+   push the badge into the menu button on the narrowest phones; the mark alone
+   still identifies the brand. */
+@media (max-width: 380px) {
+  .nav-brand-word {
+    display: none;
+  }
+}
