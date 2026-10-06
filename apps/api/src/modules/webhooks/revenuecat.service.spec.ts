@@ -40,10 +40,12 @@ describe('RevenueCatService.processEvent', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // No real network: by default RevenueCat is unreachable, so these tests
-    // exercise the event-type fallback. The source-of-truth path is covered in
+    // No real network: by default the RevenueCat lookup fails permanently (401),
+    // so these tests exercise the event-type fallback for every event type. (A
+    // transient failure would defer EXPIRATION/CANCELLATION/BILLING_ISSUE.) The
+    // source-of-truth and deferral paths are covered in
     // revenuecat.service.entitlement.spec.ts.
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401 }));
     meta = { sendAppEvent: vi.fn().mockResolvedValue(undefined) };
 
     // from('users').select().eq().single() → resolves user email for Meta lookups.

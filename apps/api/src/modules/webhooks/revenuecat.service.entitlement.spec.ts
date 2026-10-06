@@ -17,7 +17,11 @@ vi.mock('@sentry/nestjs', () => ({ captureMessage: vi.fn(), addBreadcrumb: vi.fn
  *  - lifetime + old subscription CANCELLATION/EXPIRATION (either order) → stays pro, lifetime
  *  - lifetime refund → revoked
  *  - subscription refund → revoked
- *  - RevenueCat API down → event-type fallback (no p_rc_*), reported to Sentry
+ *  - RevenueCat API down (timeout, network, 429, 5xx) on EXPIRATION /
+ *    CANCELLATION / BILLING_ISSUE → deferred: throws before the RPC, so
+ *    RevenueCat redelivers it; on any other event → event-type fallback
+ *  - permanent lookup failure (key unset, other 4xx, bad body) → event-type
+ *    fallback (no p_rc_*), reported to Sentry
  */
 const USER = '11111111-1111-1111-1111-111111111111';
 const ALLOWED_SANDBOX_USER = '22222222-2222-2222-2222-222222222222';
@@ -212,15 +216,100 @@ describe('RevenueCatService: RevenueCat entitlement is the source of truth (#273
     });
   });
 
-  describe('RevenueCat API unavailable → event-type fallback, reported to Sentry', () => {
+  const transientFailures: [string, () => void][] = [
+    ['network error', () => fetchMock.mockRejectedValue(new Error('ECONNRESET'))],
+    ['timeout', () => fetchMock.mockRejectedValue(new DOMException('timed out', 'TimeoutError'))],
+    ['HTTP 500', () => fetchMock.mockResolvedValue({ ok: false, status: 500 })],
+    ['HTTP 503', () => fetchMock.mockResolvedValue({ ok: false, status: 503 })],
+    ['HTTP 429 (rate limited)', () => fetchMock.mockResolvedValue({ ok: false, status: 429 })],
+    [
+      'timeout while reading the body',
+      () =>
+        fetchMock.mockResolvedValue({
+          ok: true,
+          status: 200,
+          json: async () => {
+            throw new DOMException('timed out', 'TimeoutError');
+          },
+        }),
+    ],
+  ];
+
+  describe('transient RevenueCat failure on a downgrade-capable event → deferred, RevenueCat redelivers', () => {
+    const downgrades = ['EXPIRATION', 'CANCELLATION', 'BILLING_ISSUE'] as const;
+    for (const type of downgrades) {
+      it.each(transientFailures)(`${type}: %s`, async (_label, arrange) => {
+        arrange();
+        await expect(
+          service.processEvent(
+            event({ id: 'deferred', type, product_id: MONTHLY, expiration_at_ms: PAST_MS }),
+          ),
+        ).rejects.toThrow('deferring so RevenueCat redelivers it');
+        // No RPC call → no event row → the redelivery is processed, not already_processed.
+        expect(rpc).not.toHaveBeenCalled();
+        expect(Sentry.captureMessage).toHaveBeenCalledWith(
+          expect.stringContaining('deferring'),
+          expect.objectContaining({
+            tags: expect.objectContaining({ webhook: 'revenuecat', rc_entitlement: 'deferred' }),
+            extra: expect.objectContaining({ eventId: 'deferred', appUserId: USER }),
+          }),
+        );
+      });
+    }
+
+    it('the redelivery after RevenueCat recovers keeps a lifetime owner Pro', async () => {
+      const expiration = event({
+        id: 'old-expire',
+        type: 'EXPIRATION',
+        product_id: MONTHLY,
+        expiration_at_ms: PAST_MS,
+      });
+      fetchMock.mockRejectedValueOnce(new DOMException('timed out', 'TimeoutError'));
+      await expect(service.processEvent(expiration)).rejects.toThrow();
+      await service.processEvent(expiration);
+      expect(rpc).toHaveBeenCalledTimes(1);
+      expect(rpcArgs()).toMatchObject({
+        p_event_id: 'old-expire',
+        p_rc_tier: 'pro',
+        p_rc_status: 'active',
+        p_rc_expires_at: null,
+      });
+    });
+  });
+
+  describe('transient RevenueCat failure on an event that cannot take Pro away → fallback', () => {
+    it.each(transientFailures)('RENEWAL: %s', async (_label, arrange) => {
+      arrange();
+      await service.processEvent(event({ id: 'renewal-fallback', type: 'RENEWAL' }));
+      expect(rpc).toHaveBeenCalledTimes(1);
+      expect(rpcArgs()).not.toHaveProperty('p_rc_tier');
+      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+        expect.stringContaining('falling back to event-type state'),
+        expect.objectContaining({
+          tags: expect.objectContaining({ rc_entitlement: 'fallback' }),
+        }),
+      );
+    });
+  });
+
+  describe('permanent RevenueCat failure → event-type fallback, reported to Sentry', () => {
     it.each([
-      ['network error', () => fetchMock.mockRejectedValue(new Error('ECONNRESET'))],
-      ['timeout', () => fetchMock.mockRejectedValue(new DOMException('timed out', 'TimeoutError'))],
-      ['HTTP 500', () => fetchMock.mockResolvedValue({ ok: false, status: 500 })],
-      ['HTTP 429 (rate limited)', () => fetchMock.mockResolvedValue({ ok: false, status: 429 })],
+      ['HTTP 401 (bad key)', () => fetchMock.mockResolvedValue({ ok: false, status: 401 })],
+      ['HTTP 404', () => fetchMock.mockResolvedValue({ ok: false, status: 404 })],
       [
         'malformed body',
         () => fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => ({}) }),
+      ],
+      [
+        'unparseable body',
+        () =>
+          fetchMock.mockResolvedValue({
+            ok: true,
+            status: 200,
+            json: async () => {
+              throw new SyntaxError('Unexpected token <');
+            },
+          }),
       ],
       [
         'secret key unset',

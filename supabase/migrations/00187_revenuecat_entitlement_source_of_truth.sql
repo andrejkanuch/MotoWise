@@ -33,6 +33,16 @@
 -- The DROP and CREATE must land together: the Supabase CLI applies each
 -- migration file in one transaction (as 00177 relied on for the same function).
 -- 00180-00182 are reserved by an unmerged branch.
+--
+-- Apply this whole file as ONE statement batch (one Management API call, with
+-- this leading comment block stripped: a call that starts with a comment
+-- executes nothing). Never send the DROP/CREATE without the REVOKE/GRANT at the
+-- end: DROP + CREATE makes a NEW function, which Supabase's default privileges
+-- make EXECUTE-able by anon and authenticated until the REVOKE lands. The
+-- caller-role guard at the top of the body is the second barrier for that
+-- window: it refuses any PostgREST call whose JWT role is anon or
+-- authenticated, so even a split apply cannot let a rider pass
+-- p_rc_tier => 'pro' for themselves.
 
 DROP FUNCTION IF EXISTS public.process_revenuecat_event(
   TEXT, TEXT, UUID, TIMESTAMPTZ, TEXT, TEXT, TEXT, TEXT, BOOLEAN, TIMESTAMPTZ, TIMESTAMPTZ, UUID[], JSONB
@@ -69,7 +79,17 @@ DECLARE
   v_expiration TIMESTAMPTZ := p_expiration_at;
   v_is_trial_start BOOLEAN := FALSE;
   v_resolved BOOLEAN := p_rc_tier IS NOT NULL;
+  -- The JWT role PostgREST sets for the request; NULL for a direct database
+  -- session (postgres, migrations, supabase/checks).
+  v_caller_role TEXT := NULLIF(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role';
 BEGIN
+  -- Defense in depth on top of the service_role-only ACL: an end-user JWT may
+  -- never call this SECURITY DEFINER function (it writes subscription_tier).
+  IF v_caller_role IN ('anon', 'authenticated') THEN
+    RAISE EXCEPTION 'process_revenuecat_event: not allowed for role %', v_caller_role
+      USING ERRCODE = '42501';
+  END IF;
+
   IF v_resolved AND (p_rc_tier NOT IN ('free', 'pro') OR p_rc_status IS NULL) THEN
     RAISE EXCEPTION 'invalid resolved state: tier=% status=%', p_rc_tier, p_rc_status;
   END IF;

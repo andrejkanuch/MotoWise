@@ -1,5 +1,5 @@
 import { RC_ATTRIBUTE_HAS_HAD_TRIAL, RC_ATTRIBUTE_TRUE } from '@motovault/types';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Sentry from '@sentry/nestjs';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -43,6 +43,33 @@ export const RC_REQUEST_TIMEOUT_MS = 8_000;
 const RPC_NAME = 'process_revenuecat_event' as const;
 /** PostgREST: no function matches the named arguments (00187 not applied yet). */
 const PGRST_FUNCTION_NOT_FOUND = 'PGRST202' as const;
+/**
+ * Event types whose event-type fallback can take Pro away: EXPIRATION writes
+ * free/expired, and CANCELLATION / BILLING_ISSUE overwrite a lifetime row's
+ * NULL expiry with the old subscription's. For these, a TRANSIENT lookup
+ * failure must not fall back (that is #273 again, and permanently: the event
+ * row is written, so RevenueCat's redelivery hits already_processed). The
+ * webhook fails instead, before the RPC, and RevenueCat redelivers it.
+ */
+const DOWNGRADE_EVENT_TYPES: ReadonlySet<string> = new Set([
+  'EXPIRATION',
+  'CANCELLATION',
+  'BILLING_ISSUE',
+]);
+/** How a failed RevenueCat lookup is handled. */
+const LOOKUP_FAILURE = {
+  /** Timeout, network error, 429, 5xx: worth a redelivery. */
+  TRANSIENT: 'transient',
+  /** Key unset, other 4xx, malformed body, untrusted entitlement: retrying will not help. */
+  PERMANENT: 'permanent',
+} as const;
+type LookupFailure = (typeof LOOKUP_FAILURE)[keyof typeof LOOKUP_FAILURE];
+
+/** `AbortSignal.timeout` rejects with TimeoutError (AbortError on older runtimes). */
+const ABORT_ERROR_NAMES: ReadonlySet<string> = new Set(['TimeoutError', 'AbortError']);
+
+const isTransientStatus = (status: number): boolean =>
+  status === HttpStatus.TOO_MANY_REQUESTS || status >= HttpStatus.INTERNAL_SERVER_ERROR;
 
 const toIso = (ms: number | null | undefined): string | null =>
   ms ? new Date(ms).toISOString() : null;
@@ -320,27 +347,42 @@ export class RevenueCatService {
    * resolved — key unset, timeout, non-2xx, bad body, or a sandbox-backed
    * entitlement for a non-allowlisted user — and the RPC then falls back to the
    * event-type logic. Every null is reported to Sentry: while it lasts, the
-   * #273 downgrade can happen again.
+   * #273 downgrade can happen again. Throws instead (see
+   * DOWNGRADE_EVENT_TYPES) when the failure is transient and the event could
+   * take Pro away, so RevenueCat redelivers it.
    */
   private async resolveProState(event: RevenueCatEvent): Promise<ResolvedProState | null> {
     const rcApiKey = this.configService.get<string>(ENV_RC_SECRET_API_KEY);
     if (!rcApiKey) {
-      this.reportUnresolved(event, `${ENV_RC_SECRET_API_KEY} not set`);
-      return null;
+      return this.unresolved(event, `${ENV_RC_SECRET_API_KEY} not set`, LOOKUP_FAILURE.PERMANENT);
     }
-    let resolution: ProResolution;
+    let response: Response;
     try {
-      const response = await fetch(
+      response = await fetch(
         `${RC_API_BASE}/subscribers/${encodeURIComponent(event.app_user_id)}`,
         {
           headers: { Authorization: `Bearer ${rcApiKey}` },
           signal: AbortSignal.timeout(RC_REQUEST_TIMEOUT_MS),
         },
       );
-      if (!response.ok) {
-        this.reportUnresolved(event, `RC subscriber lookup returned ${response.status}`);
-        return null;
-      }
+    } catch (err) {
+      // Network error or the request timeout (TimeoutError / AbortError).
+      const message = err instanceof Error ? err.message : String(err);
+      return this.unresolved(
+        event,
+        `RC subscriber lookup failed: ${message}`,
+        LOOKUP_FAILURE.TRANSIENT,
+      );
+    }
+    if (!response.ok) {
+      return this.unresolved(
+        event,
+        `RC subscriber lookup returned ${response.status}`,
+        isTransientStatus(response.status) ? LOOKUP_FAILURE.TRANSIENT : LOOKUP_FAILURE.PERMANENT,
+      );
+    }
+    let resolution: ProResolution;
+    try {
       const body = (await response.json()) as RcSubscriberResponse;
       resolution = resolveProEntitlement(body, {
         nowMs: Date.now(),
@@ -348,14 +390,48 @@ export class RevenueCatService {
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      this.reportUnresolved(event, `RC subscriber lookup failed: ${message}`);
-      return null;
+      // The request timeout also covers reading the body.
+      const timedOut = err instanceof Error && ABORT_ERROR_NAMES.has(err.name);
+      return this.unresolved(
+        event,
+        `RC subscriber lookup returned an unreadable body: ${message}`,
+        timedOut ? LOOKUP_FAILURE.TRANSIENT : LOOKUP_FAILURE.PERMANENT,
+      );
     }
     if (!resolution.resolved) {
-      this.reportUnresolved(event, resolution.reason);
-      return null;
+      return this.unresolved(event, resolution.reason, LOOKUP_FAILURE.PERMANENT);
     }
     return resolution.state;
+  }
+
+  /**
+   * A lookup that did not resolve. Permanent failures, and transient ones on
+   * events that cannot take Pro away, fall back to the event-type logic (null).
+   * A transient failure on a downgrade-capable event throws BEFORE the RPC, so
+   * no event row is written, the webhook answers 5xx and RevenueCat redelivers
+   * it with backoff. If RevenueCat stays down past its redelivery window the
+   * event is lost and the rider keeps their current state: every deferral is
+   * reported to Sentry (`rc_entitlement: deferred`) for a manual check.
+   */
+  private unresolved(event: RevenueCatEvent, reason: string, failure: LookupFailure): null {
+    if (failure === LOOKUP_FAILURE.TRANSIENT && DOWNGRADE_EVENT_TYPES.has(event.type)) {
+      const message = `RevenueCat ${event.type} ${event.id}: entitlement not resolved (${reason}); deferring so RevenueCat redelivers it`;
+      this.logger.warn(message);
+      Sentry.captureMessage(message, {
+        level: 'warning',
+        tags: { webhook: 'revenuecat', rc_event_type: event.type, rc_entitlement: 'deferred' },
+        extra: {
+          eventId: event.id,
+          appUserId: event.app_user_id,
+          productId: event.product_id ?? null,
+          environment: event.environment ?? null,
+          reason,
+        },
+      });
+      throw new Error(message);
+    }
+    this.reportUnresolved(event, reason);
+    return null;
   }
 
   private reportUnresolved(event: RevenueCatEvent, reason: string): void {

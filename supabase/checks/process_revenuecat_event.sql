@@ -156,6 +156,9 @@ DECLARE
   u15 CONSTANT UUID := '00000000-0000-0000-0000-000000000015';
   u16 CONSTANT UUID := '00000000-0000-0000-0000-000000000016';
   u17 CONSTANT UUID := '00000000-0000-0000-0000-000000000017';
+  u18 CONSTANT UUID := '00000000-0000-0000-0000-000000000018';
+  u19 CONSTANT UUID := '00000000-0000-0000-0000-000000000019';
+  end_user_role TEXT;
   sig CONSTANT TEXT := 'public.process_revenuecat_event(text,text,uuid,timestamptz,text,text,text,text,boolean,timestamptz,timestamptz,uuid[],jsonb,text,text,timestamptz)';
   old_sig CONSTANT TEXT := 'public.process_revenuecat_event(text,text,uuid,timestamptz,text,text,text,text,boolean,timestamptz,timestamptz,uuid[],jsonb)';
   raised BOOLEAN := FALSE;
@@ -281,6 +284,51 @@ BEGIN
     raised := SQLERRM LIKE 'invalid resolved state%';
   END;
   PERFORM pg_temp.expect(raised, 'invalid resolved tier raises');
+
+  -- Caller-role guard: a PostgREST call carrying an end-user JWT (anon or
+  -- authenticated) is refused even by a role that holds EXECUTE, and neither
+  -- logs the event nor touches the row.
+  PERFORM pg_temp.seed(u18, 'free', 'free', NULL);
+  FOREACH end_user_role IN ARRAY ARRAY['anon', 'authenticated'] LOOP
+    raised := FALSE;
+    BEGIN
+      PERFORM set_config('request.jwt.claims', json_build_object('role', end_user_role)::TEXT, true);
+      PERFORM pg_temp.rc('u18-' || end_user_role, 'RENEWAL', u18, NULL, 'pro', 'active', NULL);
+    EXCEPTION WHEN insufficient_privilege THEN
+      raised := SQLERRM LIKE 'process_revenuecat_event: not allowed for role%';
+    END;
+    PERFORM set_config('request.jwt.claims', '', true);
+    PERFORM pg_temp.expect(raised AND pg_temp.state(u18) = 'free/free'
+      AND NOT EXISTS (SELECT 1 FROM public.revenuecat_webhook_events WHERE app_user_id = u18),
+      format('%s JWT is refused, nothing written', end_user_role));
+  END LOOP;
+
+  -- Split apply (DROP+CREATE committed, REVOKE not yet): anon holds EXECUTE
+  -- through the default privileges and calls as itself. The guard still refuses.
+  EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO anon', sig);
+  raised := FALSE;
+  BEGIN
+    PERFORM set_config('request.jwt.claims', '{"role":"anon"}', true);
+    SET LOCAL ROLE anon;
+    PERFORM public.process_revenuecat_event(
+      p_event_id => 'u18-split', p_event_type => 'RENEWAL', p_app_user_id => u18,
+      p_rc_tier => 'pro', p_rc_status => 'active');
+  EXCEPTION WHEN OTHERS THEN
+    raised := SQLERRM LIKE 'process_revenuecat_event: not allowed for role%';
+  END;
+  RESET ROLE;
+  PERFORM set_config('request.jwt.claims', '', true);
+  EXECUTE format('REVOKE EXECUTE ON FUNCTION %s FROM anon', sig);
+  PERFORM pg_temp.expect(raised AND pg_temp.state(u18) = 'free/free',
+    'split apply: anon with EXECUTE still cannot self-grant Pro');
+
+  -- The API's own path (service_role JWT through PostgREST) is allowed; a
+  -- direct database session (no JWT, as everywhere above) is allowed too.
+  PERFORM pg_temp.seed(u19, 'free', 'free', NULL);
+  PERFORM set_config('request.jwt.claims', '{"role":"service_role"}', true);
+  PERFORM pg_temp.rc('u19-sr', 'RENEWAL', u19, NULL, 'pro', 'active', soon);
+  PERFORM set_config('request.jwt.claims', '', true);
+  PERFORM pg_temp.expect(pg_temp.state(u19) = 'pro/active', 'service_role JWT is allowed');
 
   -- Only the 16-argument version exists (no PGRST203 ambiguity).
   PERFORM pg_temp.expect(to_regprocedure(old_sig) IS NULL, '13-argument overload dropped');
