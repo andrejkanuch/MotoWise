@@ -46,8 +46,12 @@ export function PreFlightChecklist({ motorcycleId }: PreFlightChecklistProps) {
     };
   }, []);
 
-  // Weather — real data from Open-Meteo
-  const { data: weather, isLoading: weatherLoading } = useWeatherForecast();
+  // Weather — hidden entirely while WEATHER_ENABLED is off (#272).
+  const {
+    enabled: weatherEnabled,
+    data: weather,
+    isLoading: weatherLoading,
+  } = useWeatherForecast();
   const todayWeather = weather?.days?.[0];
 
   // Maintenance tasks — real data for selected bike
@@ -109,31 +113,32 @@ export function PreFlightChecklist({ motorcycleId }: PreFlightChecklistProps) {
       : 'warn'
     : 'na';
 
-  const items: ChecklistItem[] = [
-    {
-      icon: Navigation,
-      label: t('preFlight.gps'),
-      subtitle:
-        gpsStatus === 'loading'
-          ? t('preFlight.gpsChecking')
-          : gpsStatus === 'ok'
-            ? t('preFlight.gpsReady')
-            : t('preFlight.gpsDenied'),
-      status: gpsStatus === 'loading' ? 'na' : gpsStatus,
-    },
-    {
-      icon: Cloud,
-      label: t('preFlight.weather'),
-      subtitle: weatherSubtitle,
-      status: weatherStatus,
-    },
-    {
-      icon: Wrench,
-      label: t('preFlight.bikeStatus'),
-      subtitle: bikeStatus.subtitle,
-      status: bikeStatus.status,
-    },
-  ];
+  const gpsItem: ChecklistItem = {
+    icon: Navigation,
+    label: t('preFlight.gps'),
+    subtitle:
+      gpsStatus === 'loading'
+        ? t('preFlight.gpsChecking')
+        : gpsStatus === 'ok'
+          ? t('preFlight.gpsReady')
+          : t('preFlight.gpsDenied'),
+    status: gpsStatus === 'loading' ? 'na' : gpsStatus,
+  };
+  const weatherItem: ChecklistItem = {
+    icon: Cloud,
+    label: t('preFlight.weather'),
+    subtitle: weatherSubtitle,
+    status: weatherStatus,
+  };
+  const bikeItem: ChecklistItem = {
+    icon: Wrench,
+    label: t('preFlight.bikeStatus'),
+    subtitle: bikeStatus.subtitle,
+    status: bikeStatus.status,
+  };
+  const items: ChecklistItem[] = weatherEnabled
+    ? [gpsItem, weatherItem, bikeItem]
+    : [gpsItem, bikeItem];
 
   const auxLabels: Record<string, string> = {
     ok: t('preFlight.auxOk', { defaultValue: 'OK' }),

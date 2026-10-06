@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { format, isSaturday, isSunday, parseISO } from 'date-fns';
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { WEATHER_ENABLED } from '../config/feature-flags';
 import { QUERY_CRITICALITY } from '../lib/query-criticality';
 import { queryKeys } from '../lib/query-keys';
 import { UPSTREAM_SERVICE, UpstreamHttpError } from '../lib/upstream-http-error';
@@ -79,6 +80,8 @@ export async function resolveWeatherLocation(): Promise<ResolvedWeatherLocation>
 }
 
 export interface UseWeatherResult {
+  /** False while weather is switched off (WEATHER_ENABLED, #272): render nothing. */
+  enabled: boolean;
   data: WeatherSummary | undefined;
   isLoading: boolean;
   locationStatus: LocationStatus;
@@ -131,6 +134,10 @@ function buildHeadline(days: DayForecast[]): string {
 
 // --- Fetcher ---
 
+// Open-Meteo's free endpoint is licensed for NON-COMMERCIAL use only, and
+// MotoVault sells subscriptions (#272). The code stays so a licensed provider
+// can replace it, but it never runs while WEATHER_ENABLED is false.
+
 const OPEN_METEO_BASE = 'https://api.open-meteo.com/v1/forecast';
 const DAILY_PARAMS =
   'temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code';
@@ -141,7 +148,13 @@ const DAILY_PARAMS =
  * never a message match), so a refactor back to a bare `Error` must fail a
  * test rather than silently re-open Sentry MOTO-VAULT-REACT-NATIVE-35.
  */
+export const WEATHER_DISABLED_MESSAGE = 'Weather is disabled (WEATHER_ENABLED=false, #272)';
+
 export async function fetchForecast(coords: Coordinates): Promise<WeatherSummary> {
+  // Second line of defence: even a caller that bypasses the hook cannot reach
+  // the unlicensed provider while the switch is off.
+  if (!WEATHER_ENABLED) throw new Error(WEATHER_DISABLED_MESSAGE);
+
   const url = `${OPEN_METEO_BASE}?latitude=${coords.lat}&longitude=${coords.lon}&daily=${DAILY_PARAMS}&timezone=auto&forecast_days=5`;
 
   const res = await fetch(url);
@@ -170,7 +183,26 @@ export async function fetchForecast(coords: Coordinates): Promise<WeatherSummary
 
 // --- Hook ---
 
-export function useWeatherForecast(): UseWeatherResult {
+const noop = () => {};
+
+const DISABLED_RESULT: UseWeatherResult = {
+  enabled: false,
+  data: undefined,
+  isLoading: false,
+  locationStatus: 'unavailable',
+  requestPermission: noop,
+  coords: null,
+};
+
+/**
+ * Weather switched off (#272): no location request, no query, no fetch.
+ * Uses no hooks, so swapping it in at module load keeps the rules of hooks.
+ */
+function useDisabledWeatherForecast(): UseWeatherResult {
+  return DISABLED_RESULT;
+}
+
+function useLiveWeatherForecast(): UseWeatherResult {
   const [coords, setCoords] = useState<Coordinates | null>(null);
   const [locationStatus, setLocationStatus] = useState<LocationStatus>('pending');
   const isResolving = useRef(false);
@@ -208,6 +240,7 @@ export function useWeatherForecast(): UseWeatherResult {
   });
 
   return {
+    enabled: true,
     data: query.data,
     isLoading: query.isLoading,
     locationStatus,
@@ -215,3 +248,11 @@ export function useWeatherForecast(): UseWeatherResult {
     coords,
   };
 }
+
+/**
+ * Chosen once at module load from the build-time WEATHER_ENABLED switch, so the
+ * hook identity never changes between renders.
+ */
+export const useWeatherForecast: () => UseWeatherResult = WEATHER_ENABLED
+  ? useLiveWeatherForecast
+  : useDisabledWeatherForecast;

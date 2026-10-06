@@ -5,9 +5,10 @@ import { Text, View } from 'react-native';
 import { useWeatherForecast } from '../../hooks/use-weather-forecast';
 
 export const WeatherStrip = memo(function WeatherStrip() {
-  const { data, isLoading } = useWeatherForecast();
+  const { enabled, data, isLoading } = useWeatherForecast();
 
-  if (isLoading || !data?.headline) return null;
+  // Weather is switched off (WEATHER_ENABLED, #272) or not ready: render nothing.
+  if (!enabled || isLoading || !data?.headline) return null;
 
   return (
     <View

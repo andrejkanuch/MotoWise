@@ -12,6 +12,11 @@ jest.mock('expo-location', () => ({
   Accuracy: { Low: 1 },
 }));
 
+// These tests pin the provider code kept behind the switch (#272), so they run
+// with weather forced ON. The real build ships it OFF; see
+// weather-disabled.test.ts for the zero-request guarantee.
+jest.mock('../../config/feature-flags', () => ({ WEATHER_ENABLED: true }));
+
 // react-query is imported by the hook module; stub so importing doesn't pull native deps.
 jest.mock('@tanstack/react-query', () => ({ useQuery: jest.fn() }));
 

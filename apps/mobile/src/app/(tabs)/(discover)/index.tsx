@@ -53,6 +53,7 @@ import { NearYouSection } from '../../../components/discover/near-you-section';
 import { DraftTripStrip } from '../../../components/discover/planner/draft-trip-strip';
 import { TypeaheadSearch } from '../../../components/discover/typeahead-search';
 import { WeatherStrip } from '../../../components/discover/weather-strip';
+import { WEATHER_ENABLED } from '../../../config/feature-flags';
 import { useUserCountry } from '../../../hooks/use-user-country';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -487,10 +488,10 @@ const DiscoverHeader = memo(function DiscoverHeader({
 
       {showBelowFold && (
         <>
-          {/* Bike banner + weather */}
+          {/* Bike banner + weather (weather off until a licensed provider, #272) */}
           <View style={{ gap: 10 }}>
             <BikeBanner />
-            <WeatherStrip />
+            {WEATHER_ENABLED && <WeatherStrip />}
           </View>
 
           {/* Drafts */}
