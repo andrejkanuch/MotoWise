@@ -1894,8 +1894,25 @@ type SitemapTripEntry {
 }
 
 type SpendingSummary {
+  """
+  All-time spend in the most-used currency only, never a cross-currency sum. Display allTimeByCurrency instead.
+  """
   allTime: Float!
+
+  """
+  All-time spend per currency, most-used first. Empty when there is none.
+  """
+  allTimeByCurrency: [CurrencyTotal!]!
+
+  """
+  This year's spend in the most-used currency only, never a cross-currency sum. Display thisYearByCurrency instead.
+  """
   thisYear: Float!
+
+  """
+  This year's spend per currency, most-used first. Empty when there is none.
+  """
+  thisYearByCurrency: [CurrencyTotal!]!
 }
 
 type Sponsorship {

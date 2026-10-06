@@ -104,3 +104,44 @@ describe('generateMaintenanceHistoryHTML — date range filter', () => {
     expect(imperial).not.toContain('16,093 km');
   });
 });
+
+describe('generateMaintenanceHistoryHTML — total spend', () => {
+  /** The value printed in the "Total documented maintenance spend" box. */
+  function totalSpend(html: string): string | null {
+    return html.match(/<div class="cost-summary-value">([^<]*)<\/div>/)?.[1] ?? null;
+  }
+
+  it('prints one plain total for a single currency', () => {
+    const html = generateMaintenanceHistoryHTML(
+      BIKE,
+      [
+        task({ title: 'Oil', completedAt: '2026-01-10', cost: 50, currency: 'EUR' }),
+        task({ title: 'Chain', completedAt: '2026-02-10', cost: 70.5, currency: 'EUR' }),
+      ],
+      'metric',
+    );
+    expect(totalSpend(html)).toBe('€120.50');
+  });
+
+  it('never sums different currencies (€50 + $40 is two totals, not 90)', () => {
+    const html = generateMaintenanceHistoryHTML(
+      BIKE,
+      [
+        task({ title: 'Oil', completedAt: '2026-01-10', cost: 50, currency: 'EUR' }),
+        task({ title: 'Tyres', completedAt: '2026-01-12', cost: 10, currency: 'EUR' }),
+        task({ title: 'Chain', completedAt: '2026-02-10', cost: 40, currency: 'USD' }),
+      ],
+      'metric',
+    );
+    expect(totalSpend(html)).toBe('€60.00 · $40.00');
+  });
+
+  it('prints no total when nothing was spent', () => {
+    const html = generateMaintenanceHistoryHTML(
+      BIKE,
+      [task({ title: 'Oil', completedAt: '2026-01-10' })],
+      'metric',
+    );
+    expect(totalSpend(html)).toBeNull();
+  });
+});
