@@ -19,6 +19,7 @@ import {
   MyMotorcyclesDocument,
   SavedTripsDocument,
 } from '@motovault/graphql';
+import { breakdownTotals, CURRENCY_TOTALS_SEPARATOR, dashboardBreakdowns } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertTriangle,
@@ -45,6 +46,13 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useProStatus } from '@/hooks/use-pro-status';
 import { trackEvent, WebEvent } from '@/lib/analytics';
+import {
+  currencySymbol,
+  DEFAULT_MONEY_CURRENCY,
+  formatMoneyTotalsShort,
+  formatWholeAmount,
+  ytdPanelBreakdown,
+} from '@/lib/expense-money';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { garageQueryKeys } from './query-keys';
 import './garage.css';
@@ -116,11 +124,6 @@ function _formatCurrency(amount: number, currency = 'USD'): string {
     currency,
     maximumFractionDigits: 0,
   }).format(amount);
-}
-
-function formatCurrencyShort(amount: number): string {
-  if (amount >= 10000) return `$${(amount / 1000).toFixed(1)}k`;
-  return `$${amount.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 }
 
 /**
@@ -561,7 +564,12 @@ export function GarageDashboard() {
         {/* ─── Section A: Quick Stats ─── */}
         <QuickStats
           bikeCount={bikes.length}
-          ytdSpend={dashboard?.currentYearTotal ?? 0}
+          ytdSpend={formatMoneyTotalsShort(
+            breakdownTotals(
+              dashboardBreakdowns(dashboard, DEFAULT_MONEY_CURRENCY),
+              (b) => b.currentYearTotal,
+            ),
+          )}
           pendingTaskCount={pendingTasks.length}
           overdueCount={overdueTasks.length}
           totalRides={rideStats?.totalRides ?? 0}
@@ -673,7 +681,8 @@ function QuickStats({
   isPro,
 }: {
   bikeCount: number;
-  ytdSpend: number;
+  /** Formatted per currency ("€320 · $45"), never a cross-currency sum. */
+  ytdSpend: string;
   pendingTaskCount: number;
   overdueCount: number;
   totalRides: number;
@@ -703,7 +712,7 @@ function QuickStats({
           </div>
           <div className="stat-trend">{t('ytd')}</div>
         </div>
-        <div className="stat-num">{formatCurrencyShort(ytdSpend)}</div>
+        <div className="stat-num">{ytdSpend}</div>
         <div className="stat-lbl">{t('ytdSpend')}</div>
       </div>
 
@@ -884,7 +893,22 @@ function ExpenseDashboardPanel({
     );
   }
 
-  const { currentYearTotal, monthlyBuckets, categoryTotals } = dashboard;
+  // Amounts are never summed across currencies (no FX source). The headline
+  // lists every currency with spend this year; the trend, YoY and category
+  // breakdown are drawn for one of those (the most-used one with spend this
+  // year), labelled with its own symbol.
+  const breakdowns = dashboardBreakdowns(dashboard, DEFAULT_MONEY_CURRENCY);
+  const primary = ytdPanelBreakdown(breakdowns);
+  const primaryCurrency = primary?.currency ?? DEFAULT_MONEY_CURRENCY;
+  const symbol = currencySymbol(primaryCurrency);
+  const currentYearTotal = primary?.currentYearTotal ?? 0;
+  const previousYearTotal = primary?.previousYearTotal ?? 0;
+  const monthlyBuckets = primary?.monthlyBuckets ?? [];
+  const categoryTotals = primary?.categoryTotals ?? [];
+  const yearTotals = breakdownTotals(breakdowns, (b) => b.currentYearTotal);
+  const headlineTotals =
+    yearTotals.length > 0 ? yearTotals : [{ currency: primaryCurrency, total: 0 }];
+  const isMixedCurrency = yearTotals.length > 1;
 
   // Build 12-month array
   const monthlyTotals = Array.from({ length: 12 }, (_, i) => {
@@ -906,22 +930,21 @@ function ExpenseDashboardPanel({
       <div className="exp-left">
         <div className="exp-eyebrow">{t('yearToDate')}</div>
         <h4 className="exp-total">
-          <span className="currency">$</span>
-          {currentYearTotal.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+          {headlineTotals.map(({ currency, total }, i) => (
+            <span key={currency}>
+              {i > 0 && CURRENCY_TOTALS_SEPARATOR}
+              <span className="currency">{currencySymbol(currency)}</span>
+              {formatWholeAmount(total)}
+            </span>
+          ))}
         </h4>
         <p className="exp-total-meta">
-          {dashboard.previousYearTotal > 0 ? (
+          {!isMixedCurrency && previousYearTotal > 0 ? (
             <>
-              {currentYearTotal > dashboard.previousYearTotal
-                ? t('upVsLastYear')
-                : t('downVsLastYear')}{' '}
+              {currentYearTotal > previousYearTotal ? t('upVsLastYear') : t('downVsLastYear')}{' '}
               <strong>
                 {Math.abs(
-                  Math.round(
-                    ((currentYearTotal - dashboard.previousYearTotal) /
-                      dashboard.previousYearTotal) *
-                      100,
-                  ),
+                  Math.round(((currentYearTotal - previousYearTotal) / previousYearTotal) * 100),
                 )}
                 %
               </strong>{' '}
@@ -936,7 +959,8 @@ function ExpenseDashboardPanel({
             <span>{t('monthly')}</span>
             {peakValue > 0 && (
               <span>
-                {t('peak')} &middot; ${formatNumber(peakValue)} ({MONTH_LABELS[peakMonth]})
+                {t('peak')} &middot; {symbol}
+                {formatNumber(peakValue)} ({MONTH_LABELS[peakMonth]})
               </span>
             )}
           </div>
@@ -968,7 +992,8 @@ function ExpenseDashboardPanel({
         <div className="cats-header">
           <h4>{t('byCategory')}</h4>
           <span className="total">
-            ${formatNumber(currentYearTotal)} &middot; {t('cats', { count: sortedCats.length })}
+            {symbol}
+            {formatNumber(currentYearTotal)} &middot; {t('cats', { count: sortedCats.length })}
           </span>
         </div>
 
@@ -993,7 +1018,10 @@ function ExpenseDashboardPanel({
                     <span className="cat-bar-fill" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
-                <div className="cat-amt">${formatNumber(cat.total)}</div>
+                <div className="cat-amt">
+                  {symbol}
+                  {formatNumber(cat.total)}
+                </div>
               </div>
             );
           })}

@@ -818,5 +818,59 @@ describe('MaintenanceTasksService', () => {
       expect(res.allTime).toBeCloseTo(341.46, 2);
       expect(res.thisYear).toBeCloseTo(241.46, 2);
     });
+
+    it('reports one total for a single currency, unchanged', async () => {
+      mockUserClient._pushResult({
+        data: [
+          { cost: 50, parts_cost: null, labor_cost: null, total_amount: null, currency: 'EUR' },
+          { cost: null, parts_cost: null, labor_cost: null, total_amount: 70, currency: 'EUR' },
+        ],
+      });
+      mockUserClient._pushResult({
+        data: [
+          { cost: 50, parts_cost: null, labor_cost: null, total_amount: null, currency: 'EUR' },
+        ],
+      });
+
+      const res = await service.getSpendingSummary(userId, motorcycleId);
+      expect(res.allTime).toBe(120);
+      expect(res.allTimeByCurrency).toEqual([{ currency: 'EUR', total: 120, count: 2 }]);
+      expect(res.thisYearByCurrency).toEqual([{ currency: 'EUR', total: 50, count: 1 }]);
+    });
+
+    it('never sums different currencies (€50 + $40 is two totals, not 90)', async () => {
+      const rows = [
+        { cost: 50, parts_cost: null, labor_cost: null, total_amount: null, currency: 'EUR' },
+        { cost: 10, parts_cost: null, labor_cost: null, total_amount: null, currency: 'EUR' },
+        { cost: 40, parts_cost: null, labor_cost: null, total_amount: null, currency: 'USD' },
+      ];
+      mockUserClient._pushResult({ data: rows });
+      mockUserClient._pushResult({ data: rows });
+
+      const res = await service.getSpendingSummary(userId, motorcycleId);
+      expect(res.allTimeByCurrency).toEqual([
+        { currency: 'EUR', total: 60, count: 2 },
+        { currency: 'USD', total: 40, count: 1 },
+      ]);
+      expect(res.allTime).toBe(60);
+      expect(res.thisYear).toBe(60);
+    });
+
+    it('returns zero and no currency totals when nothing was spent', async () => {
+      mockUserClient._pushResult({
+        data: [
+          { cost: null, parts_cost: null, labor_cost: null, total_amount: null, currency: 'USD' },
+        ],
+      });
+      mockUserClient._pushResult({ data: [] });
+
+      const res = await service.getSpendingSummary(userId, motorcycleId);
+      expect(res).toEqual({
+        thisYear: 0,
+        allTime: 0,
+        thisYearByCurrency: [],
+        allTimeByCurrency: [],
+      });
+    });
   });
 });

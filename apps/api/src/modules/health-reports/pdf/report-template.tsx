@@ -9,6 +9,7 @@
  */
 
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
+import { formatExpenseTotals } from './format-expense-totals';
 
 const styles = StyleSheet.create({
   page: {
@@ -107,8 +108,8 @@ export interface ReportData {
   bike: BikeData;
   tasks: MaintenanceTaskData[];
   generatedAt: string;
-  totalExpenses?: number;
-  currency?: string;
+  /** Per-currency totals, most-used first. Never one cross-currency sum. */
+  expenseTotals?: { currency: string; total: number }[];
 }
 
 export function ReportTemplate({ data }: { data: ReportData }) {
@@ -151,13 +152,10 @@ export function ReportTemplate({ data }: { data: ReportData }) {
               </Text>
             </View>
           )}
-          {data.totalExpenses != null && (
+          {data.expenseTotals != null && data.expenseTotals.length > 0 && (
             <View style={styles.row}>
               <Text style={styles.label}>Total Expenses</Text>
-              <Text style={styles.value}>
-                {data.currency ?? '$'}
-                {data.totalExpenses.toFixed(2)}
-              </Text>
+              <Text style={styles.value}>{formatExpenseTotals(data.expenseTotals)}</Text>
             </View>
           )}
         </View>

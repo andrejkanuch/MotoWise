@@ -2,5 +2,15 @@ query SpendingSummary($motorcycleId: String!) {
   spendingSummary(motorcycleId: $motorcycleId) {
     thisYear
     allTime
+    thisYearByCurrency {
+      currency
+      total
+      count
+    }
+    allTimeByCurrency {
+      currency
+      total
+      count
+    }
   }
 }

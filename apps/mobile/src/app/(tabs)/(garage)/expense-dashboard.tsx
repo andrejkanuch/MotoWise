@@ -4,7 +4,7 @@ import {
   type ExpensesByMotorcycleQuery,
   MyMotorcyclesDocument,
 } from '@motovault/graphql';
-import { type ExpenseCategory, splitExpenseTotals } from '@motovault/types';
+import { type ExpenseCategory, resolveCurrency, splitExpenseTotals } from '@motovault/types';
 import * as Sentry from '@sentry/react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -40,6 +40,7 @@ import {
   CATEGORY_COLORS,
   CATEGORY_LABELS,
   dominantCurrency,
+  formatCurrencyTotals,
   formatMoney,
 } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -274,6 +275,9 @@ export default function ExpenseDashboardScreen() {
 
   const [period, setPeriod] = useState<Period>('thisYear');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  // Which currency the charts and derived stats show when the bike has
+  // expenses in several (null = the user's display currency if present).
+  const [chartCurrency, setChartCurrency] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isRefreshingRef = useRef(false);
   const { t: theme, isDark } = useEditorialTheme();
@@ -281,7 +285,6 @@ export default function ExpenseDashboardScreen() {
   const queryClient = useQueryClient();
 
   const { dashboard, isPending, isError, refetch } = useExpenseDashboard(motorcycleId);
-  const { filteredBuckets, periodTotal, categoryTotals } = useDashboardData(dashboard, period);
 
   useEffect(() => {
     trackEvent(AnalyticsEvent.EXPENSE_DASHBOARD_VIEWED);
@@ -312,14 +315,9 @@ export default function ExpenseDashboardScreen() {
     return cat?.expenses ?? [];
   }, [selectedCategory, expensesData]);
 
-  // Dashboard totals are server-summed with no currency dimension. Derive the
-  // currency that dominates this bike's actual expenses (from the drill-down
-  // query we already fetch) so aggregate amounts carry the right symbol in the
-  // common single-currency case — not the user's display currency. No FX: if a
-  // bike genuinely mixes currencies the summed total is approximate (a true
-  // per-currency dashboard needs backend aggregation — out of scope here). The
-  // drill-down list below still renders each row in its own stored currency.
-  const dashboardCurrency = useMemo(() => {
+  // Fallback label for a dashboard from an API that predates per-currency
+  // aggregates: the currency most of this bike's expense rows use.
+  const legacyCurrency = useMemo(() => {
     const records =
       (expensesData as ExpensesByMotorcycleQuery | undefined)?.expenses?.categories?.flatMap(
         (c) => c.expenses,
@@ -327,10 +325,25 @@ export default function ExpenseDashboardScreen() {
     return dominantCurrency(records, displayCurrency);
   }, [expensesData, displayCurrency]);
 
+  // Amounts are never summed across currencies (no FX source). `periodTotals`
+  // is one total per currency for the hero; the charts and derived stats are
+  // for ONE currency, `selected`, switchable when the bike has several.
+  const { breakdowns, selected, filteredBuckets, periodTotal, periodTotals, categoryTotals } =
+    useDashboardData(dashboard, period, {
+      currency: chartCurrency ?? displayCurrency,
+      legacyCurrency,
+    });
+  const dashboardCurrency = resolveCurrency(selected?.currency, displayCurrency);
+
   const formatAgg = useCallback(
     (amount: number) => formatMoney(amount, dashboardCurrency, displayCurrency),
     [dashboardCurrency, displayCurrency],
   );
+
+  const handleCurrencyChange = useCallback((currency: string) => {
+    if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
+    setChartCurrency(currency);
+  }, []);
 
   const handleCategoryPress = useCallback((category: string) => {
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -429,7 +442,7 @@ export default function ExpenseDashboardScreen() {
   }
 
   // Empty state
-  if (!dashboard || dashboard.expenseCount === 0) {
+  if (!dashboard || dashboard.expenseCount === 0 || !selected) {
     return <EmptyState motorcycleId={motorcycleId} />;
   }
 
@@ -449,22 +462,20 @@ export default function ExpenseDashboardScreen() {
   const topCategoryPct =
     topCategory && periodTotal > 0 ? ((topCategory.total / periodTotal) * 100).toFixed(0) : null;
 
-  const previousYearTotal = dashboard.previousYearTotal;
+  const previousYearTotal = selected.previousYearTotal;
   const yoyChange =
     previousYearTotal > 0 ? ((periodTotal - previousYearTotal) / previousYearTotal) * 100 : null;
 
   const costPerUnit =
-    mileageNum != null && mileageNum > 0 ? dashboard.allTimeTotal / mileageNum : null;
+    mileageNum != null && mileageNum > 0 ? selected.allTimeTotal / mileageNum : null;
 
   // What the machine kept vs what riding used up. Deliberately reads
-  // `dashboard.categoryTotals` (all-time, straight from the RPC) and NOT the
+  // `selected.categoryTotals` (all-time, straight from the RPC) and NOT the
   // `categoryTotals` in scope above, which useDashboardData narrows to the
   // selected period — this sits inside the all-time cost-of-ownership card, so a
   // period-scoped split would not add up to the total printed above it.
-  const { invested, consumed } = splitExpenseTotals(
-    dashboard.categoryTotals ?? [],
-    purchasePrice ?? 0,
-  );
+  const { invested, consumed } = splitExpenseTotals(selected.categoryTotals, purchasePrice ?? 0);
+  const heroTotal = formatCurrencyTotals(periodTotals, dashboardCurrency);
   const unitLabel = mileageUnit === 'km' ? 'COST/KM' : 'COST/MI';
 
   const periodContextLabel =
@@ -564,6 +575,49 @@ export default function ExpenseDashboardScreen() {
         </View>
       </Animated.View>
 
+      {/* Currency selector: only when the bike has expenses in several
+          currencies. The hero lists every currency; this picks the one the
+          charts and stats below are drawn in. */}
+      {breakdowns.length > 1 && (
+        <Animated.View
+          entering={FadeInUp.delay(60).duration(300)}
+          accessibilityRole="tablist"
+          style={{ marginTop: 12, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}
+        >
+          {breakdowns.map((breakdown) => {
+            const isSelected = breakdown.currency === selected.currency;
+            return (
+              <Pressable
+                key={breakdown.currency}
+                onPress={() => handleCurrencyChange(breakdown.currency)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected }}
+                accessibilityLabel={t('expenses.showInCurrency', { currency: breakdown.currency })}
+                style={{
+                  paddingHorizontal: 14,
+                  paddingVertical: 7,
+                  borderRadius: 20,
+                  borderCurve: 'continuous',
+                  borderWidth: 1,
+                  borderColor: isSelected ? theme.warm : theme.line,
+                  backgroundColor: isSelected ? tint(theme.warm, 0.15) : theme.surface,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: isSelected ? '600' : '500',
+                    color: isSelected ? theme.ink : theme.ink3,
+                  }}
+                >
+                  {breakdown.currency}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </Animated.View>
+      )}
+
       {/* Hero Total */}
       <Animated.View entering={FadeInUp.delay(80).duration(300)} style={{ marginTop: 28 }}>
         <Text
@@ -578,7 +632,7 @@ export default function ExpenseDashboardScreen() {
         <Text
           adjustsFontSizeToFit
           numberOfLines={1}
-          accessibilityLabel={`Total: ${formatAgg(periodTotal)}`}
+          accessibilityLabel={`Total: ${heroTotal}`}
           style={{
             fontFamily: 'InstrumentSerif-Regular',
             fontSize: 48,
@@ -587,7 +641,7 @@ export default function ExpenseDashboardScreen() {
             marginTop: 2,
           }}
         >
-          {formatAgg(periodTotal)}
+          {heroTotal}
         </Text>
 
         {period === 'thisYear' && yoyChange !== null && previousYearTotal > 0 && (
@@ -702,7 +756,7 @@ export default function ExpenseDashboardScreen() {
                 letterSpacing: -0.5,
               }}
             >
-              {formatAgg(purchasePrice + dashboard.allTimeTotal)}
+              {formatAgg(purchasePrice + selected.allTimeTotal)}
             </Text>
             <View
               style={{
@@ -720,7 +774,7 @@ export default function ExpenseDashboardScreen() {
               <StatColumn
                 theme={theme}
                 label={t('expenses.allExpenses')}
-                value={formatAgg(dashboard.allTimeTotal)}
+                value={formatAgg(selected.allTimeTotal)}
               />
             </View>
             {/* What a buyer would pay for vs what owning it cost. Riders

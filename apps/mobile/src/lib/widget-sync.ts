@@ -13,7 +13,13 @@ import {
   RideOverviewDocument,
   type RideOverviewQuery,
 } from '@motovault/graphql';
-import { CURRENCY_SYMBOLS, mileageUnitLabel } from '@motovault/types';
+import {
+  CURRENCY_SYMBOLS,
+  dashboardBreakdowns,
+  mileageUnitLabel,
+  resolveCurrency,
+  selectBreakdown,
+} from '@motovault/types';
 import { Platform } from 'react-native';
 import { useAuthStore } from '../stores/auth.store';
 import {
@@ -159,9 +165,17 @@ export async function syncWidgets(
 
   // ── Expenses → ExpenseTrackerWidget ──────────────────────────
   const expenseResult = results[1];
-  if (expenseResult.status === 'fulfilled' && expenseResult.value) {
-    const dashboard = expenseResult.value;
-    const symbol = CURRENCY_SYMBOLS[currency] || currency;
+  const expenseBreakdown =
+    expenseResult.status === 'fulfilled' && expenseResult.value
+      ? // The widget has room for one currency: the user's display currency when
+        // the bike has expenses in it, else the most-used one. Never a sum
+        // across currencies (no FX source).
+        selectBreakdown(dashboardBreakdowns(expenseResult.value, currency), currency)
+      : undefined;
+  if (expenseBreakdown) {
+    const dashboard = expenseBreakdown;
+    const breakdownCurrency = resolveCurrency(dashboard.currency, currency);
+    const symbol = CURRENCY_SYMBOLS[breakdownCurrency] || breakdownCurrency;
     const now = new Date();
 
     // Current month bucket

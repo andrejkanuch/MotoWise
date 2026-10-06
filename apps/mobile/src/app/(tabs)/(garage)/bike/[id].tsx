@@ -711,7 +711,7 @@ export default function BikeDetailScreen() {
           motorcycleId={id}
           currentMileage={bike.currentMileage ?? undefined}
           mileageUnit={mileageUnit}
-          ytdTotal={statsExpenseData?.expenses?.ytdTotal ?? 0}
+          currencyTotals={statsExpenseData?.expenses?.currencyTotals ?? []}
           ridesCount={ridesData?.myRides?.totalCount ?? 0}
           delay={120}
         />

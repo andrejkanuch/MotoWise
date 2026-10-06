@@ -1,5 +1,11 @@
-import { type Currency, type MeasurementSystem, mileageUnitLabel } from '@motovault/types';
-import { formatCurrency } from './expense-constants';
+import {
+  type Currency,
+  groupTotalsByCurrency,
+  type MeasurementSystem,
+  mileageUnitLabel,
+  resolveCurrency,
+} from '@motovault/types';
+import { formatCurrency, formatCurrencyTotals } from './expense-constants';
 
 export interface PdfBike {
   make: string;
@@ -196,8 +202,16 @@ export function generateMaintenanceHistoryHTML(
   const activeTasks = filtered.filter((t) => t.status !== 'completed');
 
   // Cost summary (completed tasks only — these are the resale-documentation value)
-  const totalCost = completedTasks.reduce((sum, t) => sum + (t.cost ?? 0), 0);
-  const costCurrency = completedTasks.find((t) => t.currency)?.currency ?? 'USD';
+  // Per currency, never one sum across currencies (no FX source): €50 + $40
+  // prints "€50.00 · $40.00", a single currency prints its plain total. Tasks
+  // without a currency (legacy rows) count as the first currency on record.
+  const costCurrency = resolveCurrency(completedTasks.find((t) => t.currency)?.currency, 'USD');
+  const costTotals = groupTotalsByCurrency(
+    completedTasks
+      .filter((t) => (t.cost ?? 0) !== 0)
+      .map((t) => ({ amount: t.cost, currency: t.currency })),
+    costCurrency,
+  );
   const hasCosts = completedTasks.some((t) => (t.cost ?? 0) > 0);
 
   const renderSection = (title: string, sectionTasks: PdfTask[]): string => {
@@ -414,7 +428,7 @@ export function generateMaintenanceHistoryHTML(
     hasCosts
       ? `<div class="cost-summary">
            <div class="cost-summary-label">Total documented maintenance spend</div>
-           <div class="cost-summary-value">${formatCost(totalCost, costCurrency)}</div>
+           <div class="cost-summary-value">${formatCurrencyTotals(costTotals, costCurrency)}</div>
          </div>`
       : ''
   }

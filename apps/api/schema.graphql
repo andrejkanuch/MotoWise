@@ -492,6 +492,15 @@ input CreateWaypointInput {
   type: String!
 }
 
+type CurrencyTotal {
+  """Number of expenses summed into total"""
+  count: Int!
+
+  """ISO 4217 code"""
+  currency: String!
+  total: Float!
+}
+
 type DailyDistance {
   date: String!
   distanceM: Float!
@@ -607,13 +616,42 @@ type Expense {
 
 type ExpenseCategory {
   category: String!
+
+  """Per-currency totals, most-used currency first"""
+  currencyTotals: [CurrencyTotal!]!
   expenses: [Expense!]!
+
+  """
+  This category's spend in the bike's legacy currency (the one with the largest total, the same currency as ExpenseSummary.ytdTotal); 0 when the category has none. Never a cross-currency sum. Display currencyTotals instead.
+  """
   total: Float!
+}
+
+type ExpenseCurrencyBreakdown {
+  allTimeTotal: Float!
+  categoryTotals: [CategoryTotal!]!
+
+  """ISO 4217 code every figure in this breakdown is in"""
+  currency: String!
+  currentYearTotal: Float!
+  expenseCount: Int!
+  monthlyBuckets: [MonthlyBucket!]!
+  previousYearTotal: Float!
 }
 
 type ExpenseDashboardSummary {
   allTimeTotal: Float!
   categoryTotals: [CategoryTotal!]!
+
+  """
+  One breakdown per currency, most-used first. Empty when there are no expenses.
+  """
+  currencies: [ExpenseCurrencyBreakdown!]!
+
+  """
+  Currency of the top-level money fields (the breakdown with the largest all-time total). Null when there are no expenses or the per-currency aggregate is unavailable.
+  """
+  currency: String
   currentYearTotal: Float!
   expenseCount: Int!
   monthlyBuckets: [MonthlyBucket!]!
@@ -632,6 +670,15 @@ type ExpensePhoto {
 
 type ExpenseSummary {
   categories: [ExpenseCategory!]!
+
+  """
+  Per-currency totals, most-used currency first. Empty when there are no expenses.
+  """
+  currencyTotals: [CurrencyTotal!]!
+
+  """
+  Total of the bike's currency with the largest total only, never a cross-currency sum. Display currencyTotals instead.
+  """
   ytdTotal: Float!
 }
 
@@ -1847,8 +1894,25 @@ type SitemapTripEntry {
 }
 
 type SpendingSummary {
+  """
+  All-time spend in the most-used currency only, never a cross-currency sum. Display allTimeByCurrency instead.
+  """
   allTime: Float!
+
+  """
+  All-time spend per currency, most-used first. Empty when there is none.
+  """
+  allTimeByCurrency: [CurrencyTotal!]!
+
+  """
+  This year's spend in the most-used currency only, never a cross-currency sum. Display thisYearByCurrency instead.
+  """
   thisYear: Float!
+
+  """
+  This year's spend per currency, most-used first. Empty when there is none.
+  """
+  thisYearByCurrency: [CurrencyTotal!]!
 }
 
 type Sponsorship {
