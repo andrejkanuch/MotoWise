@@ -13,7 +13,7 @@ const MAX_RECALLS_RETURNED = 5;
 
 /**
  * Onboarding "Bike Dossier" Reveal. PUBLIC — onboarding users are anonymous
- * (no JWT, see auth-and-paywall-timing.md). All four facts come from
+ * (no JWT, see docs/archive/onboarding-2026-06/auth-and-paywall-timing.md). All four facts come from
  * authoritative sources; `insights` is the only AI-authored, hedged block and
  * degrades to status 'pending'/'failed' (client hides the card) without ever
  * blocking the screen.

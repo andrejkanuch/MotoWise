@@ -669,9 +669,6 @@ export const AnalyticsEvent = {
   RIDES_OVERVIEW_REFRESHED: 'rides_overview_refreshed',
   RECORD_BADGE_VIEWED: 'record_badge_viewed',
   RECORD_BADGE_TAPPED: 'record_badge_tapped',
-  PB_TOAST_SEEN: 'pb_toast_seen',
-  PB_TOAST_TAPPED: 'pb_toast_tapped',
-  PB_TOAST_DISMISSED: 'pb_toast_dismissed',
   ELEVATION_CHART_VIEWED: 'elevation_chart_viewed',
   LEAN_ANGLE_TOOLTIP_OPENED: 'lean_angle_tooltip_opened',
   RIDE_FLYOVER_STARTED: 'ride_flyover_started',
@@ -679,7 +676,6 @@ export const AnalyticsEvent = {
   RIDE_FLYOVER_EXITED: 'ride_flyover_exited',
   RIDE_FLYOVER_SPEED_CHANGED: 'ride_flyover_speed_changed',
   SHARE_CARD_GENERATED: 'share_card_generated',
-  SHARE_CARD_FAILED: 'share_card_failed',
   SHARE_COMPLETED: 'share_completed',
   SHARE_RESULT: 'share_result',
 

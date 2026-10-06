@@ -25,6 +25,9 @@ const SKIPPED_DIRS = ['__tests__', '__mocks__', 'test'];
 const HISTORY_ONLY_ALLOWLIST: readonly string[] = [
   // Retired 2026-08-24; signup is counted server-side now (see the constant's doc).
   'ACCOUNT_CREATED',
+  // Retired 2026-10-06 with the unmounted share-card and GPX-export components; 5 and 3 historical events.
+  'SHARE_CARD_GENERATED',
+  'ROUTE_GPX_EXPORTED',
 ];
 
 function catalogKeys(): string[] {

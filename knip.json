@@ -25,7 +25,11 @@
       "project": ["src/**/*.{ts,tsx}"]
     },
     "apps/mobile": {
-      "entry": ["src/**/__tests__/**/*.{ts,tsx}", "src/**/*.{test,spec}.{ts,tsx}"],
+      "entry": [
+        "src/**/__tests__/**/*.{ts,tsx}",
+        "src/**/*.{test,spec}.{ts,tsx}",
+        "src/test/mocks.ts"
+      ],
       "project": ["src/**/*.{ts,tsx}"],
       "ignore": ["src/**/*.web.{ts,tsx}"]
     },
