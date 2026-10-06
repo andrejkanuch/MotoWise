@@ -76,14 +76,16 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
         {/* Free user upgrade link — gated on !isLoading so Pro users don't get
             a one-tick "Upgrade" flash before status resolves post-hydration. */}
         {!isLoading && !isPro && !isTrialing && (
-          <a href="/pro" className="nav-upgrade">
+          <a href="/pro" className="nav-upgrade nav-desktop-only">
             {t('upgrade')} <span style={{ fontSize: '11px' }}>&rarr;</span>
           </a>
         )}
 
         <div className="nav-user">
           <div className="nav-avatar">{initial}</div>
-          <span className="nav-name-text">{displayName ?? t('rider')}</span>
+          <span className="nav-name-text" title={displayName ?? undefined}>
+            {displayName ?? t('rider')}
+          </span>
 
           {/* Pro badge */}
           {isPro && !isTrialing && (
@@ -101,8 +103,12 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
               <span className="nav-crown">
                 <Crown />
               </span>
-              {t('trial')}{' '}
-              {trialDaysLeft != null ? `\u00B7 ${t('daysLeft', { days: trialDaysLeft })}` : ''}
+              {t('trial')}
+              {trialDaysLeft != null && (
+                <span className="nav-trial-days">
+                  {` \u00B7 ${t('daysLeft', { days: trialDaysLeft })}`}
+                </span>
+              )}
             </span>
           )}
         </div>
@@ -111,7 +117,7 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
           type="button"
           onClick={handleSignOut}
           disabled={signingOut}
-          className="nav-signout-btn"
+          className="nav-signout-btn nav-desktop-only"
         >
           {signingOut ? t('signingOut') : t('signOut')}
         </button>
@@ -120,8 +126,7 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
         <button
           type="button"
           onClick={() => setMenuOpen(!menuOpen)}
-          className="flex h-9 w-9 items-center justify-center rounded-lg sm:hidden"
-          style={{ color: 'var(--mv-ink-2)', background: 'transparent', border: 'none' }}
+          className="nav-menu-btn"
           aria-expanded={menuOpen}
           aria-label="Toggle navigation menu"
         >
@@ -162,6 +167,9 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
             zIndex: 50,
           }}
         >
+          {/* Below 720px the bar keeps only the brand, avatar and menu button so
+              it fits a 320px phone; the name, upgrade link and sign-out live here. */}
+          <p className="nav-menu-name">{displayName ?? t('rider')}</p>
           {NAV_LINKS.map((link) => (
             <a
               key={link.href}
@@ -177,6 +185,25 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
               {t(link.labelKey)}
             </a>
           ))}
+          {!isLoading && !isPro && !isTrialing && (
+            <a
+              href="/pro"
+              onClick={() => setMenuOpen(false)}
+              className="nav-upgrade"
+              style={{ padding: '10px 0' }}
+            >
+              {t('upgrade')} <span style={{ fontSize: '11px' }}>&rarr;</span>
+            </a>
+          )}
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="nav-signout-btn"
+            style={{ display: 'block', marginTop: '8px' }}
+          >
+            {signingOut ? t('signingOut') : t('signOut')}
+          </button>
         </div>
       )}
     </nav>

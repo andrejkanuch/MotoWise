@@ -2897,7 +2897,10 @@
     "catTolls": "Tolls",
     "catParking": "Parking",
     "catModifications": "Modifications",
-    "catTraining": "Training"
+    "catTraining": "Training",
+    "catAccessories": "Accessories",
+    "catTaxesFees": "Taxes & Fees",
+    "catOther": "Other"
   },
   "Profile": {
     "failedToLoad": "Failed to load profile",

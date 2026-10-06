@@ -2897,7 +2897,10 @@
     "catTolls": "Maut",
     "catParking": "Parken",
     "catModifications": "Umbauten",
-    "catTraining": "Training"
+    "catTraining": "Training",
+    "catAccessories": "Zubehör",
+    "catTaxesFees": "Steuern & Gebühren",
+    "catOther": "Sonstiges"
   },
   "Profile": {
     "failedToLoad": "Profil konnte nicht geladen werden",

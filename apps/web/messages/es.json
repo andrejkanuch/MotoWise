@@ -2897,7 +2897,10 @@
     "catTolls": "Peajes",
     "catParking": "Aparcamiento",
     "catModifications": "Modificaciones",
-    "catTraining": "Formación"
+    "catTraining": "Formación",
+    "catAccessories": "Accesorios",
+    "catTaxesFees": "Impuestos y tasas",
+    "catOther": "Otros"
   },
   "Profile": {
     "failedToLoad": "No se pudo cargar el perfil",
