@@ -1645,6 +1645,7 @@ button.prof-banner-manage:disabled {
   display: flex;
   align-items: center;
   gap: 14px;
+  min-width: 0;
 }
 
 .nav-user {
@@ -1655,6 +1656,13 @@ button.prof-banner-manage:disabled {
   border-radius: 999px;
   border: 1px solid var(--mv-line);
   background: oklch(1 0 0 / 0.02);
+  min-width: 0;
+}
+
+.nav-avatar,
+.nav-badge,
+.nav-brand {
+  flex-shrink: 0;
 }
 
 .nav-avatar {
@@ -1671,9 +1679,15 @@ button.prof-banner-manage:disabled {
   border: 1px solid var(--mv-line);
 }
 
+/* Usually an email address: never let it set the bar's width. */
 .nav-name-text {
   font-size: 13px;
   color: var(--mv-ink-2);
+  max-width: 220px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .nav-badge {
@@ -1744,12 +1758,68 @@ button.prof-banner-manage:disabled {
   height: 11px;
 }
 
-/* mobile nav */
+.nav-menu-btn {
+  display: none;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--mv-ink-2);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-menu-name {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: var(--mv-ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* mobile nav — the bar keeps brand, avatar (+ plan badge) and the menu button;
+   the name, upgrade link and sign-out move into the menu so it fits 320px. */
 @media (max-width: 720px) {
   .community-nav {
     padding: 12px 16px;
+    gap: 12px;
   }
-  .nav-pill {
+  .nav-pill,
+  .nav-desktop-only,
+  .nav-name-text,
+  .nav-trial-days {
+    display: none;
+  }
+  .nav-right {
+    gap: 8px;
+  }
+  .nav-user {
+    padding: 4px;
+    gap: 6px;
+  }
+  .nav-menu-btn {
+    display: flex;
+  }
+}
+
+/* The menu belongs to the narrow layout only: if the viewport widens while it
+   is open (rotation, resize), hide it instead of showing a second Upgrade and
+   Sign out next to the desktop ones. */
+@media (min-width: 721px) {
+  .nav-mobile-menu {
+    display: none;
+  }
+}
+
+/* Longer trial labels (pl "Okres próbny", de "Testphase", pt-BR "Avaliação")
+   push the badge into the menu button on the narrowest phones; the mark alone
+   still identifies the brand. */
+@media (max-width: 380px) {
+  .nav-brand-word {
     display: none;
   }
 }

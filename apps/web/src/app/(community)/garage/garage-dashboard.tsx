@@ -17,7 +17,12 @@ import {
   MyMotorcyclesDocument,
   SavedTripsDocument,
 } from '@motovault/graphql';
-import { breakdownTotals, CURRENCY_TOTALS_SEPARATOR, dashboardBreakdowns } from '@motovault/types';
+import {
+  breakdownTotals,
+  CURRENCY_TOTALS_SEPARATOR,
+  dashboardBreakdowns,
+  EXPENSE_CATEGORY_META,
+} from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import {
   AlertTriangle,
@@ -42,6 +47,7 @@ import { useEffect } from 'react';
 import { DoInAppHint } from '@/components/do-in-app-hint';
 import { useProStatus } from '@/hooks/use-pro-status';
 import { trackEvent, WebEvent } from '@/lib/analytics';
+import { expenseCategoryMessageKey } from '@/lib/expense-category-label';
 import {
   currencySymbol,
   DEFAULT_MONEY_CURRENCY,
@@ -609,6 +615,14 @@ function ExpenseDashboardPanel({
   const t = useTranslations('Garage');
   const currentMonth = new Date().getMonth(); // 0-indexed
 
+  // A category the messages do not know (one added to the shared enum before
+  // its translations) falls back to the enum's English label, never a raw key.
+  const categoryLabel = (category: string): string => {
+    const key = expenseCategoryMessageKey(category);
+    if (t.has(key)) return t(key as Parameters<typeof t>[0]);
+    return EXPENSE_CATEGORY_META.find((m) => m.key === category)?.label ?? category;
+  };
+
   if (!dashboard) {
     return (
       <div className="exp-grid" style={{ minHeight: '200px' }}>
@@ -737,11 +751,7 @@ function ExpenseDashboardPanel({
                 </div>
                 <div className="cat-mid">
                   <div className="cat-name">
-                    {t(
-                      `cat${cat.category.charAt(0).toUpperCase()}${cat.category.slice(1)}` as Parameters<
-                        typeof t
-                      >[0],
-                    )}
+                    {categoryLabel(cat.category)}
                     <span className="cat-pct">{pct}%</span>
                   </div>
                   <div className="cat-bar">

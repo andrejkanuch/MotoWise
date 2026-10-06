@@ -2485,7 +2485,10 @@
     "catTolls": "通行料",
     "catParking": "駐車",
     "catModifications": "改造",
-    "catTraining": "トレーニング"
+    "catTraining": "トレーニング",
+    "catAccessories": "アクセサリー",
+    "catTaxesFees": "税金・手数料",
+    "catOther": "その他"
   },
   "CompareAlternatives": {
     "title": "バイクアプリの代替アプリ — あなたのライディングに最適なアプリを見つけよう",

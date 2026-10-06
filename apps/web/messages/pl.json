@@ -2485,7 +2485,10 @@
     "catTolls": "Opłaty drogowe",
     "catParking": "Parking",
     "catModifications": "Modyfikacje",
-    "catTraining": "Szkolenie"
+    "catTraining": "Szkolenie",
+    "catAccessories": "Akcesoria",
+    "catTaxesFees": "Podatki i opłaty",
+    "catOther": "Inne"
   },
   "CompareAlternatives": {
     "title": "Alternatywy dla aplikacji motocyklowych — znajdź odpowiednią aplikację na każdą trasę",

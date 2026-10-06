@@ -2485,7 +2485,10 @@
     "catTolls": "Pedágios",
     "catParking": "Estacionamento",
     "catModifications": "Modificações",
-    "catTraining": "Treinamento"
+    "catTraining": "Treinamento",
+    "catAccessories": "Acessórios",
+    "catTaxesFees": "Impostos e taxas",
+    "catOther": "Outros"
   },
   "CompareAlternatives": {
     "title": "Alternativas de apps para motociclistas — encontre o app certo para suas pedaladas",
