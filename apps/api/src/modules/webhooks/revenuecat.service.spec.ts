@@ -134,11 +134,13 @@ describe('RevenueCatService.processEvent', () => {
     });
   });
 
-  describe('CANCELLATION + EXPIRATION delivered together (Stripe cancel immediately)', () => {
-    // The order-independent state machine lives in process_revenuecat_event
-    // (00185: a CANCELLATION never leaves 'expired', and one whose expiry is
-    // already past records free/expired). The service must hand both events to
-    // the RPC with the event's own (past) expiry, in whichever order they land.
+  describe('CANCELLATION + EXPIRATION delivered together: RPC pass-through only', () => {
+    // RPC pass-through only: the RPC is mocked, so this proves nothing about the
+    // resulting row. The order-independent state machine lives in
+    // process_revenuecat_event (00185) and is checked by
+    // supabase/checks/process_revenuecat_event.sql (run supabase/checks/run.sh).
+    // Here the service must hand both events to the RPC with the event's own
+    // (past) expiry, in whichever order they land.
     const pastMs = Date.UTC(2026, 9, 6, 6, 54, 7);
     const cancellation = baseEvent({
       id: 'evt-cancel',
