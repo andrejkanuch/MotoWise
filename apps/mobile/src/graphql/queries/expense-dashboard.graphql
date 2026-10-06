@@ -1,5 +1,6 @@
 query ExpenseDashboard($motorcycleId: String!) {
   expenseDashboard(motorcycleId: $motorcycleId) {
+    currency
     currentYearTotal
     previousYearTotal
     allTimeTotal
@@ -16,6 +17,26 @@ query ExpenseDashboard($motorcycleId: String!) {
     categoryTotals {
       category
       total
+    }
+    currencies {
+      currency
+      currentYearTotal
+      previousYearTotal
+      allTimeTotal
+      expenseCount
+      monthlyBuckets {
+        month
+        year
+        categories {
+          category
+          total
+        }
+        total
+      }
+      categoryTotals {
+        category
+        total
+      }
     }
   }
 }

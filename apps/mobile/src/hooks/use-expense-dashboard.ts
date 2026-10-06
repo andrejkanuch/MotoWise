@@ -1,14 +1,21 @@
-import { ExpenseDashboardDocument } from '@motovault/graphql';
+import { ExpenseDashboardDocument, type ExpenseDashboardQuery } from '@motovault/graphql';
+import { breakdownTotals, dashboardBreakdowns, selectBreakdown } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import {
+  categoryTotalsFromBuckets,
+  filterBucketsForPeriod,
+  PERIOD_OPTIONS,
+  type Period,
+  periodTotalOf,
+} from '../lib/expense-dashboard-period';
 import { gqlFetcher } from '../lib/graphql-client';
 import { queryKeys } from '../lib/query-keys';
 
-const PERIOD_OPTIONS = ['thisYear', 'lastYear', 'allTime'] as const;
-type Period = (typeof PERIOD_OPTIONS)[number];
-
 export type { Period };
 export { PERIOD_OPTIONS };
+
+type ExpenseDashboard = ExpenseDashboardQuery['expenseDashboard'];
 
 export function useExpenseDashboard(motorcycleId: string | undefined) {
   const { data, isPending, isError, refetch } = useQuery({
@@ -28,62 +35,53 @@ export function useExpenseDashboard(motorcycleId: string | undefined) {
   };
 }
 
+/**
+ * Period view of the expense dashboard. Amounts are never summed across
+ * currencies: `periodTotals` has one entry per currency (render with
+ * formatCurrencyTotals), while the charts and derived stats (`filteredBuckets`,
+ * `periodTotal`, `categoryTotals`) are for ONE currency, `selected`.
+ *
+ * `currency` picks that breakdown (falls back to the most-used one).
+ * `legacyCurrency` labels a dashboard from an API that predates per-currency
+ * aggregates.
+ */
 export function useDashboardData(
-  dashboard: NonNullable<ReturnType<typeof useExpenseDashboard>['dashboard']> | undefined,
+  dashboard: ExpenseDashboard | undefined,
   period: Period,
+  options: { currency?: string | null; legacyCurrency: string },
 ) {
+  const { currency, legacyCurrency } = options;
   const currentYear = new Date().getFullYear();
-  const previousYear = currentYear - 1;
 
-  const filteredBuckets = useMemo(() => {
-    if (!dashboard) return [];
-    const { monthlyBuckets } = dashboard;
+  const breakdowns = useMemo(
+    () => dashboardBreakdowns(dashboard, legacyCurrency),
+    [dashboard, legacyCurrency],
+  );
+  const selected = useMemo(() => selectBreakdown(breakdowns, currency), [breakdowns, currency]);
 
-    switch (period) {
-      case 'thisYear':
-        return monthlyBuckets.filter((b) => b.year === currentYear);
-      case 'lastYear':
-        return monthlyBuckets.filter((b) => b.year === previousYear);
-      case 'allTime': {
-        // Most recent 12 months
-        const sorted = [...monthlyBuckets].sort(
-          (a, b) => b.year * 12 + b.month - (a.year * 12 + a.month),
-        );
-        return sorted.slice(0, 12).reverse();
-      }
-    }
-  }, [dashboard, period, currentYear, previousYear]);
+  const filteredBuckets = useMemo(
+    () => filterBucketsForPeriod(selected?.monthlyBuckets ?? [], period, currentYear),
+    [selected, period, currentYear],
+  );
 
-  const periodTotal = useMemo(() => {
-    if (!dashboard) return 0;
-    switch (period) {
-      case 'thisYear':
-        return dashboard.currentYearTotal;
-      case 'lastYear':
-        return dashboard.previousYearTotal;
-      case 'allTime':
-        return dashboard.allTimeTotal;
-    }
-  }, [dashboard, period]);
+  const periodTotal = selected ? periodTotalOf(selected, period) : 0;
 
-  const categoryTotals = useMemo(() => {
-    if (!dashboard || !filteredBuckets.length) return [];
+  const periodTotals = useMemo(
+    () => breakdownTotals(breakdowns, (b) => periodTotalOf(b, period)),
+    [breakdowns, period],
+  );
 
-    const totals: Record<string, number> = {};
-    for (const bucket of filteredBuckets) {
-      for (const { category, total } of bucket.categories) {
-        totals[category] = (totals[category] ?? 0) + total;
-      }
-    }
-
-    return Object.entries(totals)
-      .filter(([, total]) => total > 0)
-      .map(([category, total]) => ({ category, total: Math.round(total * 100) / 100 }));
-  }, [dashboard, filteredBuckets]);
+  const categoryTotals = useMemo(
+    () => categoryTotalsFromBuckets(filteredBuckets),
+    [filteredBuckets],
+  );
 
   return {
+    breakdowns,
+    selected,
     filteredBuckets,
     periodTotal,
+    periodTotals,
     categoryTotals,
   };
 }

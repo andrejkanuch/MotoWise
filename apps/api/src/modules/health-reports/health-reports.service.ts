@@ -1,4 +1,4 @@
-import { MeasurementSystem, mileageUnitLabel } from '@motovault/types';
+import { groupTotalsByCurrency, MeasurementSystem, mileageUnitLabel } from '@motovault/types';
 import {
   ForbiddenException,
   Inject,
@@ -48,7 +48,8 @@ interface TaskRow {
 
 /** Shape returned by the expenses select */
 interface ExpenseRow {
-  amount: number;
+  amount: number | string; // DECIMAL comes back as string from PostgREST
+  currency: string | null;
 }
 
 @Injectable()
@@ -113,7 +114,7 @@ export class HealthReportsService {
           .order('created_at', { ascending: false }),
         this.supabaseAdmin
           .from('expenses')
-          .select('amount')
+          .select('amount, currency')
           .eq('motorcycle_id', bikeId)
           .is('deleted_at', null),
       ]);
@@ -127,7 +128,9 @@ export class HealthReportsService {
       }));
 
       const expenses = (expensesResult.data ?? []) as unknown as ExpenseRow[];
-      const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount ?? 0), 0);
+      // Per currency: expenses are stored in the currency they were logged in
+      // and there is no FX source, so €50 + $40 is two totals, not 90.
+      const expenseTotals = groupTotalsByCurrency(expenses).filter((g) => g.total > 0);
 
       // Odometer is stored RAW in the owner's measurement system — only the
       // unit label follows the global measurement_system, never the
@@ -156,7 +159,7 @@ export class HealthReportsService {
         },
         tasks,
         generatedAt: new Date().toISOString(),
-        totalExpenses: totalExpenses > 0 ? totalExpenses : undefined,
+        expenseTotals: expenseTotals.length > 0 ? expenseTotals : undefined,
       };
 
       // 4. Render PDF

@@ -492,6 +492,15 @@ input CreateWaypointInput {
   type: String!
 }
 
+type CurrencyTotal {
+  """Number of expenses summed into total"""
+  count: Int!
+
+  """ISO 4217 code"""
+  currency: String!
+  total: Float!
+}
+
 type DailyDistance {
   date: String!
   distanceM: Float!
@@ -607,13 +616,42 @@ type Expense {
 
 type ExpenseCategory {
   category: String!
+
+  """Per-currency totals, most-used currency first"""
+  currencyTotals: [CurrencyTotal!]!
   expenses: [Expense!]!
+
+  """
+  Total of this category's most-used currency only, never a cross-currency sum. Display currencyTotals instead.
+  """
   total: Float!
+}
+
+type ExpenseCurrencyBreakdown {
+  allTimeTotal: Float!
+  categoryTotals: [CategoryTotal!]!
+
+  """ISO 4217 code every figure in this breakdown is in"""
+  currency: String!
+  currentYearTotal: Float!
+  expenseCount: Int!
+  monthlyBuckets: [MonthlyBucket!]!
+  previousYearTotal: Float!
 }
 
 type ExpenseDashboardSummary {
   allTimeTotal: Float!
   categoryTotals: [CategoryTotal!]!
+
+  """
+  One breakdown per currency, most-used first. Empty when there are no expenses.
+  """
+  currencies: [ExpenseCurrencyBreakdown!]!
+
+  """
+  Currency of the top-level money fields (the primary breakdown). Null when there are no expenses or the per-currency aggregate is unavailable.
+  """
+  currency: String
   currentYearTotal: Float!
   expenseCount: Int!
   monthlyBuckets: [MonthlyBucket!]!
@@ -632,6 +670,15 @@ type ExpensePhoto {
 
 type ExpenseSummary {
   categories: [ExpenseCategory!]!
+
+  """
+  Per-currency totals, most-used currency first. Empty when there are no expenses.
+  """
+  currencyTotals: [CurrencyTotal!]!
+
+  """
+  Total of the bike's most-used currency only, never a cross-currency sum. Display currencyTotals instead.
+  """
   ytdTotal: Float!
 }
 

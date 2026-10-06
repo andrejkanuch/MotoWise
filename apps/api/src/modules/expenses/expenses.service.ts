@@ -1,3 +1,4 @@
+import { groupTotalsByCurrency, primaryCurrencyTotal } from '@motovault/types';
 import {
   BadRequestException,
   Inject,
@@ -21,6 +22,7 @@ import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { Expense } from './models/expense.model';
 import type {
   CategoryTotal,
+  ExpenseCurrencyBreakdown,
   ExpenseDashboardSummary,
   MonthlyBucket,
 } from './models/expense-dashboard.model';
@@ -54,8 +56,22 @@ interface DashboardAggregateBucket {
   total: number;
 }
 
-/** JSONB payload returned by the expense_dashboard_aggregates RPC. */
+/** One currency's dashboard as returned in the RPC's `currencies` array (00186). */
+interface DashboardCurrencyBreakdown {
+  currency: string;
+  currentYearTotal: number;
+  previousYearTotal: number;
+  allTimeTotal: number;
+  expenseCount: number;
+  monthlyBuckets: DashboardAggregateBucket[];
+  categoryTotals: { category: string; total: number }[];
+}
+
+/** JSONB payload returned by the expense_dashboard_aggregates RPC. The legacy
+ *  top-level keys mirror the primary currency since 00186 (a cross-currency sum
+ *  before it); `currencies` is absent until 00186 is applied. */
 interface DashboardAggregateResult {
+  currencies?: DashboardCurrencyBreakdown[];
   currentYearTotal: number;
   previousYearTotal: number;
   allTimeTotal: number;
@@ -142,16 +158,23 @@ export class ExpensesService {
       categoryMap.set(expense.category, existing);
     }
 
+    // Amounts are stored in the currency they were logged in and there is no
+    // FX source, so totals are per currency — €50 + $40 is two totals, not 90.
+    // The scalar `total`/`ytdTotal` keep their pre-currency shape for older
+    // clients but carry the most-used currency only, never a mixed sum.
     const categories: ExpenseCategory[] = [];
-    let ytdTotal = 0;
-
     for (const [category, expenses] of categoryMap) {
-      const total = expenses.reduce((sum, e) => sum + e.amount, 0);
-      ytdTotal += total;
-      categories.push({ category, total, expenses });
+      const currencyTotals = groupTotalsByCurrency(expenses);
+      categories.push({
+        category,
+        total: primaryCurrencyTotal(currencyTotals),
+        currencyTotals,
+        expenses,
+      });
     }
 
-    return { ytdTotal, categories };
+    const currencyTotals = groupTotalsByCurrency(rows);
+    return { ytdTotal: primaryCurrencyTotal(currencyTotals), currencyTotals, categories };
   }
 
   async create(
@@ -363,23 +386,50 @@ export class ExpensesService {
 
     const result = (data ?? {}) as DashboardAggregateResult;
 
-    const monthlyBuckets: MonthlyBucket[] = (result.monthlyBuckets ?? []).map((bucket) =>
-      this.mapMonthlyBucket(bucket),
+    // 00186 adds `currencies` (one breakdown per currency, most-used first)
+    // because summing amounts across currencies is meaningless without FX.
+    // Before that migration is applied the RPC returns only the legacy
+    // top-level keys, which are a cross-currency sum: still serve them (the
+    // dashboard must not break mid-deploy), but with `currency: null` and no
+    // breakdowns, so clients fall back to their per-row currency heuristic.
+    const currencies = (result.currencies ?? []).map((breakdown) =>
+      this.mapCurrencyBreakdown(breakdown),
     );
-
-    const categoryTotals: CategoryTotal[] = (result.categoryTotals ?? []).map((c) => ({
-      category: c.category,
-      total: roundCurrency(c.total),
-    }));
+    const primary = currencies[0];
 
     return {
-      currentYearTotal: roundCurrency(result.currentYearTotal ?? 0),
-      previousYearTotal: roundCurrency(result.previousYearTotal ?? 0),
-      allTimeTotal: roundCurrency(result.allTimeTotal ?? 0),
+      currency: primary?.currency ?? null,
+      currencies,
+      currentYearTotal: primary?.currentYearTotal ?? roundCurrency(result.currentYearTotal ?? 0),
+      previousYearTotal: primary?.previousYearTotal ?? roundCurrency(result.previousYearTotal ?? 0),
+      allTimeTotal: primary?.allTimeTotal ?? roundCurrency(result.allTimeTotal ?? 0),
+      // A count, not money: summed across every currency.
       expenseCount: result.expenseCount ?? 0,
-      monthlyBuckets,
-      categoryTotals,
+      monthlyBuckets:
+        primary?.monthlyBuckets ??
+        (result.monthlyBuckets ?? []).map((bucket) => this.mapMonthlyBucket(bucket)),
+      categoryTotals:
+        primary?.categoryTotals ?? this.mapCategoryTotals(result.categoryTotals ?? []),
     };
+  }
+
+  /** Maps one per-currency RPC breakdown into the GraphQL shape. */
+  private mapCurrencyBreakdown(breakdown: DashboardCurrencyBreakdown): ExpenseCurrencyBreakdown {
+    return {
+      currency: breakdown.currency,
+      currentYearTotal: roundCurrency(breakdown.currentYearTotal ?? 0),
+      previousYearTotal: roundCurrency(breakdown.previousYearTotal ?? 0),
+      allTimeTotal: roundCurrency(breakdown.allTimeTotal ?? 0),
+      expenseCount: breakdown.expenseCount ?? 0,
+      monthlyBuckets: (breakdown.monthlyBuckets ?? []).map((bucket) =>
+        this.mapMonthlyBucket(bucket),
+      ),
+      categoryTotals: this.mapCategoryTotals(breakdown.categoryTotals ?? []),
+    };
+  }
+
+  private mapCategoryTotals(totals: { category: string; total: number }[]): CategoryTotal[] {
+    return totals.map((c) => ({ category: c.category, total: roundCurrency(c.total) }));
   }
 
   /** Maps one SQL month bucket (category→amount map) into the GraphQL shape.
