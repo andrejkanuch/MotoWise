@@ -1,9 +1,10 @@
 import { palette } from '@motovault/design-system';
+import type { HealthGrade } from '@motovault/types';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import Animated, { useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
-import type { HealthGrade } from '../lib/health-score';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export function HealthScoreRing({ score, grade, hasData, isDark, size = SIZE }: Props) {
+  const { t } = useTranslation();
   const clampedScore = Math.min(100, Math.max(0, score));
   const scale = size / SIZE;
   const strokeWidth = Math.max(4, Math.round(STROKE_WIDTH * scale));
@@ -72,7 +74,7 @@ export function HealthScoreRing({ score, grade, hasData, isDark, size = SIZE }: 
               color: palette.neutral400,
             }}
           >
-            No Data
+            {t('home.noData')}
           </Text>
         </View>
       </View>

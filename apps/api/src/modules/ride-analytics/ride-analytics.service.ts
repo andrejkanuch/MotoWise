@@ -24,6 +24,7 @@ export class RideAnalyticsService {
       last30Days,
       thisWeek,
       thisMonth,
+      thisYear,
       dailyDistances,
       currentStreak,
       personalRecords,
@@ -33,6 +34,7 @@ export class RideAnalyticsService {
       this.getLast30Days(userId),
       this.getThisWeek(userId),
       this.getThisMonth(userId),
+      this.getThisYear(userId),
       this.getDailyDistances(userId),
       this.getCurrentStreak(userId),
       this.getPersonalRecords(userId),
@@ -44,6 +46,7 @@ export class RideAnalyticsService {
       last30Days,
       thisWeek,
       thisMonth,
+      thisYear,
       dailyDistances,
       currentStreak,
       personalRecords,
@@ -133,6 +136,12 @@ export class RideAnalyticsService {
   private async getThisMonth(userId: string): Promise<RidePeriodSummary> {
     const now = new Date();
     const cutoff = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`;
+
+    return this.aggregateRollups(userId, cutoff);
+  }
+
+  private async getThisYear(userId: string): Promise<RidePeriodSummary> {
+    const cutoff = `${new Date().getUTCFullYear()}-01-01`;
 
     return this.aggregateRollups(userId, cutoff);
   }

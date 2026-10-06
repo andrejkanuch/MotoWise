@@ -6,6 +6,7 @@ import {
   type MyRidesQuery,
   MyTripsDocument,
 } from '@motovault/graphql';
+import { computeHealthScore } from '@motovault/types';
 import { onlineManager, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -13,7 +14,7 @@ import { AlertTriangle, CheckCircle2, Wrench } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { gqlFetcher } from '../../lib/graphql-client';
-import { computeHealthScore, getRelativeDueDate } from '../../lib/health-score';
+import { getRelativeDueDate } from '../../lib/health-score';
 import { reconcileMaintenanceReminders } from '../../lib/notifications';
 import { queryKeys } from '../../lib/query-keys';
 import { meOptions } from '../../lib/query-options';

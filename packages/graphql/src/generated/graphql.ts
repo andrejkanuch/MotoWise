@@ -2644,6 +2644,7 @@ export type RideOverview = {
   personalRecords: Array<RideRecord>;
   thisMonth: RidePeriodSummary;
   thisWeek: RidePeriodSummary;
+  thisYear: RidePeriodSummary;
 };
 
 export type RidePeriodSummary = {

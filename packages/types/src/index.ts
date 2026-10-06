@@ -13,6 +13,7 @@ export * from './utils/blog-text';
 export * from './utils/country-name';
 export * from './utils/currency-totals';
 export * from './utils/expense-dashboard-breakdowns';
+export * from './utils/health-score';
 export * from './utils/service-type-classify';
 export * from './validators/affiliate';
 export * from './validators/article';
