@@ -46,7 +46,7 @@ jest.mock('../../lib/analytics', () => ({
   captureException: jest.fn(),
   addBreadcrumb: jest.fn(),
   trackEvent: jest.fn(),
-  AnalyticsEvent: { RIDE_AUTO_SAVED: 'ride_auto_saved' },
+  AnalyticsEvent: { RIDE_AUTO_SAVED: 'ride_auto_saved', RIDE_COMPLETED: 'ride_completed' },
 }));
 jest.mock('../ride-reminders', () => ({
   noteRideMovement: jest.fn(),
@@ -212,6 +212,7 @@ describe('stopGPSListener', () => {
 describe('autoEndRide (30 min without movement)', () => {
   it('ends trimmed to the stop, records it, tells the rider, and leaves nothing behind', () => {
     rideMMKV.setStartedAt(T0 - 3_600_000);
+    rideMMKV.setMotorcycleId('bike-under-test');
     const idleSince = T0 - 1_800_000;
 
     autoEndRide(idleSince);
@@ -232,6 +233,18 @@ describe('autoEndRide (30 min without movement)', () => {
       'ride_auto_saved',
       expect.objectContaining({ ride_id: RIDE_ID, idle_minutes: 30 }),
     );
+    // The canonical "ride saved" event fires too, flagged as an auto-end and
+    // timed to the stop (30 min ridden, not the hour since start).
+    expect(trackEvent).toHaveBeenCalledWith(
+      'ride_completed',
+      expect.objectContaining({
+        ride_id: RIDE_ID,
+        motorcycle_id: 'bike-under-test',
+        duration_s: 1_800,
+        save_trigger: 'auto_end',
+        auto_ended: true,
+      }),
+    );
     expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledWith(
       expect.objectContaining({
         content: expect.objectContaining({
@@ -248,5 +261,6 @@ describe('autoEndRide (30 min without movement)', () => {
     autoEndRide(T0);
     expect(enqueueOrExecute).not.toHaveBeenCalled();
     expect(Notifications.scheduleNotificationAsync).not.toHaveBeenCalled();
+    expect(trackEvent).not.toHaveBeenCalled();
   });
 });

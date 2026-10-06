@@ -17,7 +17,6 @@ const RECORD_LABELS: Record<string, string> = {
   longest_duration: 'Longest duration',
   top_speed: 'Top speed',
   max_elevation_gain: 'Most elevation',
-  longest_streak: 'Longest streak',
 };
 
 interface PbToastProps {
