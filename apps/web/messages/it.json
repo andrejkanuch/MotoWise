@@ -3182,5 +3182,51 @@
     "getApp": "Scarica l'app",
     "getAppLabel": "Scarica MotoVault per iPhone o Android",
     "continue": "Continua al tuo garage sul web"
+  },
+  "AuthV2": {
+    "homeLabel": "Home di MotoVault",
+    "orWithEmail": "oppure con email",
+    "google": "Google",
+    "apple": "Apple",
+    "continueWithGoogle": "Continua con Google",
+    "continueWithApple": "Continua con Apple",
+    "redirecting": "Reindirizzamento...",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Password",
+    "showPassword": "Mostra password",
+    "hidePassword": "Nascondi password",
+    "legal": "Continuando confermi di aver letto e accettato i nostri <terms>Termini</terms> e l’<privacy>Informativa sulla privacy</privacy>.",
+    "resendConfirmation": "Invia di nuovo l’email di conferma",
+    "resendSending": "Invio…",
+    "resendSent": "Email di conferma inviata: controlla la posta in arrivo.",
+    "signIn": {
+      "eyebrow": "Accedi",
+      "title": "Bentornato<serif>.</serif>",
+      "subtitle": "Riprendi da dove avevi lasciato: garage, percorsi e cronologia sono sincronizzati su tutti i dispositivi.",
+      "forgot": "Dimenticata?",
+      "submit": "Accedi",
+      "submitting": "Un attimo…",
+      "resetPassword": "Reimposta la password",
+      "altPrompt": "Non hai un account?",
+      "altCta": "Crea account"
+    },
+    "signUp": {
+      "eyebrow": "Crea account",
+      "title": "Inizia il tuo <serif>diario.</serif>",
+      "subtitle": "Registrare è gratis per sempre. Pro rimuove i limiti.",
+      "passwordPlaceholder": "Almeno 6 caratteri",
+      "confirmPasswordLabel": "Conferma password",
+      "submit": "Crea account",
+      "submitting": "Creazione account…",
+      "altPrompt": "Sei già dei nostri?",
+      "altCta": "Accedi"
+    },
+    "checkEmail": {
+      "title": "Controlla la tua <serif>email.</serif>",
+      "body": "Controlla la tua email: ti abbiamo inviato un link di conferma per completare la registrazione.",
+      "nothingArrived": "Non è arrivato nulla?",
+      "differentEmail": "Usa un’altra email"
+    }
   }
 }

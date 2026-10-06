@@ -3207,5 +3207,51 @@
     "getApp": "アプリを入手",
     "getAppLabel": "iPhone または Android 版 MotoVault を入手",
     "continue": "Web のガレージへ進む"
+  },
+  "AuthV2": {
+    "homeLabel": "MotoVault ホーム",
+    "orWithEmail": "またはメールで",
+    "google": "Google",
+    "apple": "Apple",
+    "continueWithGoogle": "Google で続ける",
+    "continueWithApple": "Apple で続ける",
+    "redirecting": "リダイレクト中...",
+    "emailLabel": "メールアドレス",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "パスワード",
+    "showPassword": "パスワードを表示",
+    "hidePassword": "パスワードを隠す",
+    "legal": "続行すると、<terms>利用規約</terms>と<privacy>プライバシーポリシー</privacy>を読み、同意したものとみなされます。",
+    "resendConfirmation": "確認メールを再送信",
+    "resendSending": "送信中…",
+    "resendSent": "確認メールを送信しました。受信トレイをご確認ください。",
+    "signIn": {
+      "eyebrow": "ログイン",
+      "title": "おかえり<serif>なさい。</serif>",
+      "subtitle": "続きからどうぞ。ガレージ、ルート、履歴はすべてのデバイスで同期されます。",
+      "forgot": "お忘れですか?",
+      "submit": "ログイン",
+      "submitting": "少々お待ちください…",
+      "resetPassword": "パスワードをリセット",
+      "altPrompt": "アカウントをお持ちでない方",
+      "altCta": "アカウントを作成"
+    },
+    "signUp": {
+      "eyebrow": "アカウント作成",
+      "title": "記録を<serif>はじめよう。</serif>",
+      "subtitle": "記録はずっと無料。Pro なら制限がなくなります。",
+      "passwordPlaceholder": "6 文字以上",
+      "confirmPasswordLabel": "パスワード(確認)",
+      "submit": "アカウントを作成",
+      "submitting": "アカウントを作成中…",
+      "altPrompt": "すでにアカウントをお持ちの方",
+      "altCta": "ログイン"
+    },
+    "checkEmail": {
+      "title": "メールを<serif>ご確認ください。</serif>",
+      "body": "登録を完了するための確認リンクをメールでお送りしました。",
+      "nothingArrived": "届いていませんか?",
+      "differentEmail": "別のメールアドレスを使う"
+    }
   }
 }

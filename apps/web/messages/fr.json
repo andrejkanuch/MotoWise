@@ -3167,5 +3167,51 @@
     "getApp": "Obtenir l'app",
     "getAppLabel": "Obtenir MotoVault pour iPhone ou Android",
     "continue": "Continuer vers votre garage sur le web"
+  },
+  "AuthV2": {
+    "homeLabel": "Accueil MotoVault",
+    "orWithEmail": "ou par e-mail",
+    "google": "Google",
+    "apple": "Apple",
+    "continueWithGoogle": "Continuer avec Google",
+    "continueWithApple": "Continuer avec Apple",
+    "redirecting": "Redirection...",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Mot de passe",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
+    "legal": "En continuant, vous confirmez avoir lu et accepté nos <terms>Conditions</terms> et notre <privacy>Politique de confidentialité</privacy>.",
+    "resendConfirmation": "Renvoyer l'e-mail de confirmation",
+    "resendSending": "Envoi…",
+    "resendSent": "E-mail de confirmation envoyé — vérifiez votre boîte de réception.",
+    "signIn": {
+      "eyebrow": "Connexion",
+      "title": "Bon <serif>retour.</serif>",
+      "subtitle": "Reprenez là où vous en étiez — garage, itinéraires et historique se synchronisent sur tous vos appareils.",
+      "forgot": "Oublié ?",
+      "submit": "Se connecter",
+      "submitting": "Un instant…",
+      "resetPassword": "Réinitialiser le mot de passe",
+      "altPrompt": "Pas encore de compte ?",
+      "altCta": "Créer un compte"
+    },
+    "signUp": {
+      "eyebrow": "Créer un compte",
+      "title": "Ouvrez votre <serif>carnet.</serif>",
+      "subtitle": "L'enregistrement est gratuit pour toujours. Pro lève les limites.",
+      "passwordPlaceholder": "Au moins 6 caractères",
+      "confirmPasswordLabel": "Confirmer le mot de passe",
+      "submit": "Créer un compte",
+      "submitting": "Création du compte…",
+      "altPrompt": "Déjà inscrit ?",
+      "altCta": "Se connecter"
+    },
+    "checkEmail": {
+      "title": "Vérifiez vos <serif>e-mails.</serif>",
+      "body": "Consultez vos e-mails : un lien de confirmation vous attend pour finaliser votre inscription.",
+      "nothingArrived": "Rien reçu ?",
+      "differentEmail": "Utiliser un autre e-mail"
+    }
   }
 }

@@ -3207,5 +3207,51 @@
     "getApp": "Baixe o app",
     "getAppLabel": "Baixe o MotoVault para iPhone ou Android",
     "continue": "Continuar para sua garagem na web"
+  },
+  "AuthV2": {
+    "homeLabel": "Página inicial do MotoVault",
+    "orWithEmail": "ou com e-mail",
+    "google": "Google",
+    "apple": "Apple",
+    "continueWithGoogle": "Continuar com Google",
+    "continueWithApple": "Continuar com Apple",
+    "redirecting": "Redirecionando...",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Senha",
+    "showPassword": "Mostrar senha",
+    "hidePassword": "Ocultar senha",
+    "legal": "Ao continuar, você confirma que leu e aceitou nossos <terms>Termos</terms> e a <privacy>Política de Privacidade</privacy>.",
+    "resendConfirmation": "Reenviar e-mail de confirmação",
+    "resendSending": "Enviando…",
+    "resendSent": "E-mail de confirmação enviado — confira sua caixa de entrada.",
+    "signIn": {
+      "eyebrow": "Entrar",
+      "title": "Bem-vindo <serif>de volta.</serif>",
+      "subtitle": "Continue de onde parou — sua garagem, rotas e histórico sincronizam em todos os dispositivos.",
+      "forgot": "Esqueceu?",
+      "submit": "Entrar",
+      "submitting": "Um momento…",
+      "resetPassword": "Redefinir sua senha",
+      "altPrompt": "Ainda não tem conta?",
+      "altCta": "Criar conta"
+    },
+    "signUp": {
+      "eyebrow": "Criar conta",
+      "title": "Comece seu <serif>diário de bordo.</serif>",
+      "subtitle": "Registrar é grátis para sempre. O Pro remove os limites.",
+      "passwordPlaceholder": "Pelo menos 6 caracteres",
+      "confirmPasswordLabel": "Confirmar senha",
+      "submit": "Criar conta",
+      "submitting": "Criando conta…",
+      "altPrompt": "Já é motociclista daqui?",
+      "altCta": "Entrar"
+    },
+    "checkEmail": {
+      "title": "Confira seu <serif>e-mail.</serif>",
+      "body": "Confira seu e-mail: enviamos um link de confirmação para concluir o cadastro.",
+      "nothingArrived": "Não chegou nada?",
+      "differentEmail": "Usar outro e-mail"
+    }
   }
 }

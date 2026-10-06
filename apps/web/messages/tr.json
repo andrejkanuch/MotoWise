@@ -1083,5 +1083,51 @@
     "getApp": "Uygulamayı edinin",
     "getAppLabel": "iPhone veya Android için MotoVault'u edinin",
     "continue": "Web'deki garajınıza devam edin"
+  },
+  "AuthV2": {
+    "homeLabel": "MotoVault ana sayfa",
+    "orWithEmail": "veya e-posta ile",
+    "google": "Google",
+    "apple": "Apple",
+    "continueWithGoogle": "Google ile devam et",
+    "continueWithApple": "Apple ile devam et",
+    "redirecting": "Yönlendiriliyor...",
+    "emailLabel": "E-posta",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Şifre",
+    "showPassword": "Şifreyi göster",
+    "hidePassword": "Şifreyi gizle",
+    "legal": "Devam ederek <terms>Koşullarımızı</terms> ve <privacy>Gizlilik Politikamızı</privacy> okuyup kabul ettiğinizi onaylarsınız.",
+    "resendConfirmation": "Onay e-postasını yeniden gönder",
+    "resendSending": "Gönderiliyor…",
+    "resendSent": "Onay e-postası gönderildi — gelen kutunuzu kontrol edin.",
+    "signIn": {
+      "eyebrow": "Giriş yap",
+      "title": "Tekrar <serif>hoş geldin.</serif>",
+      "subtitle": "Kaldığın yerden devam et — garajın, rotaların ve geçmişin tüm cihazlarda senkronize.",
+      "forgot": "Unuttun mu?",
+      "submit": "Giriş yap",
+      "submitting": "Bir saniye…",
+      "resetPassword": "Şifreni sıfırla",
+      "altPrompt": "Henüz hesabın yok mu?",
+      "altCta": "Hesap oluştur"
+    },
+    "signUp": {
+      "eyebrow": "Hesap oluştur",
+      "title": "<serif>Seyir defterini</serif> başlat.",
+      "subtitle": "Kayıt tutmak sonsuza dek ücretsiz. Pro sınırları kaldırır.",
+      "passwordPlaceholder": "En az 6 karakter",
+      "confirmPasswordLabel": "Şifreyi onayla",
+      "submit": "Hesap oluştur",
+      "submitting": "Hesap oluşturuluyor…",
+      "altPrompt": "Zaten sürücü müsün?",
+      "altCta": "Giriş yap"
+    },
+    "checkEmail": {
+      "title": "<serif>E-postanı</serif> kontrol et.",
+      "body": "Kaydını tamamlamak için e-postandaki onay bağlantısını kontrol et.",
+      "nothingArrived": "Bir şey gelmedi mi?",
+      "differentEmail": "Başka bir e-posta kullan"
+    }
   }
 }

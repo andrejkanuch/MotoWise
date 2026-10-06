@@ -1083,5 +1083,51 @@
     "getApp": "รับแอป",
     "getAppLabel": "รับ MotoVault สำหรับ iPhone หรือ Android",
     "continue": "ไปที่โรงรถของคุณบนเว็บ"
+  },
+  "AuthV2": {
+    "homeLabel": "หน้าแรก MotoVault",
+    "orWithEmail": "หรือใช้อีเมล",
+    "google": "Google",
+    "apple": "Apple",
+    "continueWithGoogle": "ดำเนินการต่อด้วย Google",
+    "continueWithApple": "ดำเนินการต่อด้วย Apple",
+    "redirecting": "กำลังเปลี่ยนเส้นทาง...",
+    "emailLabel": "อีเมล",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "รหัสผ่าน",
+    "showPassword": "แสดงรหัสผ่าน",
+    "hidePassword": "ซ่อนรหัสผ่าน",
+    "legal": "การดำเนินการต่อถือว่าคุณได้อ่านและยอมรับ<terms>ข้อกำหนด</terms>และ<privacy>นโยบายความเป็นส่วนตัว</privacy>ของเราแล้ว",
+    "resendConfirmation": "ส่งอีเมลยืนยันอีกครั้ง",
+    "resendSending": "กำลังส่ง…",
+    "resendSent": "ส่งอีเมลยืนยันแล้ว — ตรวจสอบกล่องจดหมายของคุณ",
+    "signIn": {
+      "eyebrow": "เข้าสู่ระบบ",
+      "title": "ยินดีต้อนรับ<serif>กลับมา</serif>",
+      "subtitle": "ทำต่อจากที่ค้างไว้ — โรงรถ เส้นทาง และประวัติของคุณซิงค์ทุกอุปกรณ์",
+      "forgot": "ลืม?",
+      "submit": "เข้าสู่ระบบ",
+      "submitting": "รอสักครู่…",
+      "resetPassword": "รีเซ็ตรหัสผ่าน",
+      "altPrompt": "ยังไม่มีบัญชี?",
+      "altCta": "สร้างบัญชี"
+    },
+    "signUp": {
+      "eyebrow": "สร้างบัญชี",
+      "title": "เริ่ม<serif>สมุดบันทึก</serif>ของคุณ",
+      "subtitle": "บันทึกได้ฟรีตลอดไป Pro ปลดล็อกข้อจำกัด",
+      "passwordPlaceholder": "อย่างน้อย 6 ตัวอักษร",
+      "confirmPasswordLabel": "ยืนยันรหัสผ่าน",
+      "submit": "สร้างบัญชี",
+      "submitting": "กำลังสร้างบัญชี…",
+      "altPrompt": "เป็นไรเดอร์อยู่แล้ว?",
+      "altCta": "เข้าสู่ระบบ"
+    },
+    "checkEmail": {
+      "title": "ตรวจสอบ<serif>อีเมล</serif>ของคุณ",
+      "body": "ตรวจสอบอีเมลของคุณเพื่อหาลิงก์ยืนยันและทำการลงทะเบียนให้เสร็จสมบูรณ์",
+      "nothingArrived": "ไม่ได้รับอะไรเลย?",
+      "differentEmail": "ใช้อีเมลอื่น"
+    }
   }
 }

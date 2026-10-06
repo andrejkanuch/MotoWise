@@ -3207,5 +3207,51 @@
     "getApp": "Pobierz aplikację",
     "getAppLabel": "Pobierz MotoVault na iPhone'a lub Androida",
     "continue": "Przejdź do swojego garażu w przeglądarce"
+  },
+  "AuthV2": {
+    "homeLabel": "Strona główna MotoVault",
+    "orWithEmail": "lub e-mailem",
+    "google": "Google",
+    "apple": "Apple",
+    "continueWithGoogle": "Kontynuuj z Google",
+    "continueWithApple": "Kontynuuj z Apple",
+    "redirecting": "Przekierowanie...",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Hasło",
+    "showPassword": "Pokaż hasło",
+    "hidePassword": "Ukryj hasło",
+    "legal": "Kontynuując, potwierdzasz, że przeczytałeś i akceptujesz nasz <terms>Regulamin</terms> oraz <privacy>Politykę prywatności</privacy>.",
+    "resendConfirmation": "Wyślij ponownie e-mail potwierdzający",
+    "resendSending": "Wysyłanie…",
+    "resendSent": "E-mail potwierdzający wysłany — sprawdź skrzynkę.",
+    "signIn": {
+      "eyebrow": "Zaloguj się",
+      "title": "Witaj <serif>ponownie.</serif>",
+      "subtitle": "Wróć tam, gdzie skończyłeś — garaż, trasy i historia synchronizują się na wszystkich urządzeniach.",
+      "forgot": "Nie pamiętasz?",
+      "submit": "Zaloguj się",
+      "submitting": "Chwileczkę…",
+      "resetPassword": "Zresetuj hasło",
+      "altPrompt": "Nie masz konta?",
+      "altCta": "Utwórz konto"
+    },
+    "signUp": {
+      "eyebrow": "Utwórz konto",
+      "title": "Zacznij swój <serif>dziennik.</serif>",
+      "subtitle": "Zapisywanie jest zawsze darmowe. Pro znosi limity.",
+      "passwordPlaceholder": "Co najmniej 6 znaków",
+      "confirmPasswordLabel": "Potwierdź hasło",
+      "submit": "Utwórz konto",
+      "submitting": "Tworzenie konta…",
+      "altPrompt": "Masz już konto?",
+      "altCta": "Zaloguj się"
+    },
+    "checkEmail": {
+      "title": "Sprawdź swoją <serif>pocztę.</serif>",
+      "body": "Sprawdź pocztę — wysłaliśmy link potwierdzający, aby dokończyć rejestrację.",
+      "nothingArrived": "Nic nie dotarło?",
+      "differentEmail": "Użyj innego e-maila"
+    }
   }
 }
