@@ -10,6 +10,7 @@ import {
   MyRidesDocument,
   UpdateMotorcycleDocument,
 } from '@motovault/graphql';
+import { computeHealthScore } from '@motovault/types';
 import * as Sentry from '@sentry/react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -52,7 +53,6 @@ import { useMotorcycleDocuments } from '../../../../hooks/use-motorcycle-documen
 
 import { AnalyticsEvent, trackEvent } from '../../../../lib/analytics';
 import { gqlFetcher } from '../../../../lib/graphql-client';
-import { computeHealthScore } from '../../../../lib/health-score';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../../lib/image-upload';
 import { cancelDocumentNotificationsForBike } from '../../../../lib/notifications';
 import { queryKeys } from '../../../../lib/query-keys';

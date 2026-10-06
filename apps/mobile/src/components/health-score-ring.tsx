@@ -1,9 +1,9 @@
 import { palette } from '@motovault/design-system';
+import type { HealthGrade } from '@motovault/types';
 import { useEffect } from 'react';
 import { Text, View } from 'react-native';
 import Animated, { useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
-import type { HealthGrade } from '../lib/health-score';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 

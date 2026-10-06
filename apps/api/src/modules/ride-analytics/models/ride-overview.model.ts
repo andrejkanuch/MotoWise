@@ -63,6 +63,9 @@ export class RideOverview {
   @Field(() => RidePeriodSummary)
   thisMonth: RidePeriodSummary;
 
+  @Field(() => RidePeriodSummary)
+  thisYear: RidePeriodSummary;
+
   @Field(() => [DailyDistance])
   dailyDistances: DailyDistance[];
 

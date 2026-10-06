@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { computeHealthScore } from '../health-score';
 
 // Build an ISO timestamp at local midnight ± deltaDays so the diff against the
