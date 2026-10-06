@@ -250,8 +250,8 @@ export function GarageView({
             <EmptyStartHero account={account} promoted={promoted} />
             <BikePreview />
           </div>
-          {/* Rides exist without a bike only when the bike was deleted: still the rider's data. */}
-          {rides.hasRides && ridesCard}
+          {/* Rides exist without a bike only when the bike was deleted: still the rider's data. A failed load shows its failed card: presence is then unknown. */}
+          {(rides.hasRides || ridesState === RidesCardState.Failed) && ridesCard}
           <AccountSection account={account} />
         </div>
       </div>
