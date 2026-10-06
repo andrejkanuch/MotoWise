@@ -7,7 +7,7 @@ import type { OemSchedule } from '../oem-schedules/models/oem-schedule.model';
  * round figures — the Reveal copy hedges ("about €X") and the goal is an
  * order-of-magnitude "first year costs roughly this", not a quote.
  *
- * Source: the cost ranges in onboarding-aha-moment.md; refine into a DB table
+ * Source: the cost ranges in docs/archive/onboarding-2026-06/onboarding-aha-moment.md; refine into a DB table
  * with regional pricing later (tracked in the plan, W6 note).
  */
 const TASK_COST_EUR: ReadonlyArray<{ match: RegExp; cost: number }> = [
