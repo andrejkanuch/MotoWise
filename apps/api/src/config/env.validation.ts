@@ -29,6 +29,21 @@ export const envSchema = z.object({
   CORS_ORIGINS: z.string().default('http://localhost:8081,http://localhost:3000'),
   REVENUECAT_WEBHOOK_SECRET: optionalString,
   REVENUECAT_SECRET_API_KEY: optionalString,
+  // Comma-separated user ids (UUIDs) whose RevenueCat SANDBOX purchases may
+  // write entitlements: Stripe test cards, App Store sandbox / TestFlight and
+  // Play license testers all arrive as environment=SANDBOX. Every other sandbox
+  // event is logged and ignored, so a test card cannot grant real Pro.
+  // Unset/empty → no sandbox event ever changes a user's tier.
+  REVENUECAT_SANDBOX_ALLOWED_USER_IDS: z
+    .string()
+    .optional()
+    .transform((value) =>
+      (value ?? '')
+        .split(',')
+        .map((id) => id.trim().toLowerCase())
+        .filter((id) => id.length > 0),
+    )
+    .pipe(z.array(z.string().uuid())),
   // MOT-278: shared secret for the maintenance-due push trigger endpoint; must
   // match the Supabase Vault secret `maintenance_push_secret`. Endpoint fails
   // closed when unset.
