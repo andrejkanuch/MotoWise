@@ -17,6 +17,8 @@
         "tsconfig.json",
         "tsconfig.*.json",
         "next.config.*",
+        // apps/web runs it after `next build`; a change to the guard must re-run the build.
+        "scripts/check-route-css.mjs",
         "app.json"
       ],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"],

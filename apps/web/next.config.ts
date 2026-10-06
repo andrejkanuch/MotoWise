@@ -63,6 +63,15 @@ const nextConfig: NextConfig = {
   // FCP savings measured via Lighthouse on the homepage). Production builds only.
   experimental: {
     inlineCss: true,
+    // Turbopack's persistent BUILD cache (default-on since Next 16.3) is off.
+    // Vercel restores .next/cache from the previous deployment, and the PR #285
+    // production build reused a stale compile of globals.css: the new
+    // `@import ".../mv-tokens.css"` never reached the output, the global CSS
+    // chunk came out byte-identical to the previous deployment's, and
+    // /login, /signup, /garage and /welcome shipped without the --mv-* tokens.
+    // A cold compile is ~12s; a silently wrong build is not worth that saving.
+    // scripts/check-route-css.mjs (run by `build`) fails the build if it recurs.
+    turbopackFileSystemCacheForBuild: false,
   },
   // Strip the `x-powered-by: Next.js` response header to avoid fingerprinting.
   poweredByHeader: false,

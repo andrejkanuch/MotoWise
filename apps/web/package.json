@@ -4,7 +4,7 @@
   "version": "1.3.0",
   "scripts": {
     "dev": "next dev --port 3000",
-    "build": "next build",
+    "build": "next build && node scripts/check-route-css.mjs",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
