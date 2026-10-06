@@ -195,6 +195,8 @@ export default function AddMaintenanceTaskScreen() {
         has_due_date: !!dueDate,
         mode,
       });
+      // Meta mirror only (FB SDK, ad optimisation) — never PostHog. The PostHog
+      // event is maintenance_task_created above; see its doc in lib/analytics.ts.
       MetaAnalytics.trackLogMaintenance(title.trim());
       // Logging past work is a serviced bike; planning a future task is not.
       if (isLog) recordCoreAction(CORE_ACTION_KIND.SERVICE_LOGGED);

@@ -18,6 +18,7 @@ import {
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { bestEffortNativeCall, NativeSideEffect } from '../../lib/best-effort-native';
 import { useRideStore } from '../../stores/ride.store';
+import { MIN_RIDE_DISTANCE_M, MIN_RIDE_ELAPSED_S } from '../../utils/ride-constants';
 import { toggleBatterySaver } from '../../utils/ride-location';
 import { getPointBuffer, getWaypointChunks, rideMMKV, rideStorage } from '../../utils/ride-storage';
 import { hasPendingSyncWork } from '../../utils/ride-sync-queue';
@@ -45,9 +46,6 @@ function persistLayout(layout: HudLayout) {
 
 const APP_STATE_ACTIVE = 'active';
 
-/** End-ride guard: under either floor, confirm before ending. */
-const MIN_RIDE_ELAPSED_S = 30;
-const MIN_RIDE_DISTANCE_M = 50;
 /** Past this, a ride under the distance floor is not a mis-tap — the GPS recorded
  *  nothing (approximate location, no sky view, a killed background task). Saying
  *  "your ride was very short" to someone who rode for 40 minutes is wrong. */
