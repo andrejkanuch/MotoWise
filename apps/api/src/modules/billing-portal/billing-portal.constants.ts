@@ -27,6 +27,13 @@ export const STRIPE_TEST_KEY_MARKER = '_test_';
 /** A Stripe subscription id; anything else never reaches a Stripe URL path. */
 export const STRIPE_SUBSCRIPTION_ID_RX = /^sub_[A-Za-z0-9]+$/;
 
+/**
+ * A Stripe subscription *item* id. RevenueCat's v2 `store_subscription_identifier`
+ * for a `stripe` subscription is the item (si_…), not the subscription (sub_…),
+ * so the item is resolved to its subscription first.
+ */
+export const STRIPE_SUBSCRIPTION_ITEM_ID_RX = /^si_[A-Za-z0-9]+$/;
+
 /** Where the portal sends the rider back to. */
 export const BILLING_PORTAL_RETURN_PATH = '/profile';
 export const DEFAULT_WEB_APP_URL = 'https://motovault.app';

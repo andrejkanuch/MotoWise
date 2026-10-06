@@ -40,6 +40,7 @@ function routeKey(url: string): string {
 function rcSub(id: string | null, overrides: Record<string, unknown> = {}) {
   return {
     customer_id: USER_ID,
+    original_customer_id: USER_ID,
     store: 'stripe',
     store_subscription_identifier: id,
     environment: 'production',
@@ -91,15 +92,17 @@ describe('BillingPortalService', () => {
 
   describe('primary path: RevenueCat v2', () => {
     it("opens the portal for the customer on the user's newest RevenueCat Stripe subscription", async () => {
+      // RevenueCat v2 names the Stripe subscription *item* (si_…), as it does live.
       routes[`rc:${RC_PATH}`] = {
         body: {
           items: [
-            rcSub('sub_old', { starts_at: 100 }),
-            rcSub('sub_new', { starts_at: 200 }),
+            rcSub('si_old', { starts_at: 100 }),
+            rcSub('si_new', { starts_at: 200 }),
             rcSub('GPA.1234', { store: 'play_store', starts_at: 300 }),
           ],
         },
       };
+      routes['stripe:/subscription_items/si_new'] = { body: { subscription: 'sub_new' } };
       routes['stripe:/subscriptions/sub_new'] = { body: { customer: 'cus_rc', created: 1 } };
       routes['stripe:/billing_portal/sessions'] = { body: { url: PORTAL_URL } };
 
@@ -115,6 +118,13 @@ describe('BillingPortalService', () => {
       expect((calls[0].init.headers as Record<string, string>).Authorization).toBe(
         `Bearer ${RC_KEY}`,
       );
+      // item -> subscription -> customer -> portal, newest item only.
+      expect(calls.map((c) => routeKey(c.url))).toEqual([
+        `rc:${RC_PATH}`,
+        'stripe:/subscription_items/si_new',
+        'stripe:/subscriptions/sub_new',
+        'stripe:/billing_portal/sessions',
+      ]);
       expect(portalCustomer()).toBe('cus_rc');
       expect((portalPosts()[0].init.body as URLSearchParams).get('return_url')).toBe(
         'https://motovault.app/profile',
@@ -123,9 +133,20 @@ describe('BillingPortalService', () => {
       expect(calls.some((c) => c.url.includes('/search'))).toBe(false);
     });
 
+    it('also accepts a Stripe subscription id (sub_) from RevenueCat directly', async () => {
+      routes[`rc:${RC_PATH}`] = { body: { items: [rcSub('sub_direct')] } };
+      routes['stripe:/subscriptions/sub_direct'] = { body: { customer: 'cus_direct', created: 1 } };
+      routes['stripe:/billing_portal/sessions'] = { body: { url: PORTAL_URL } };
+      const result = await makeService({ STRIPE_BILLING_PORTAL_KEY: KEY, ...RC_ENV }).createSession(
+        USER_ID,
+      );
+      expect(result.status).toBe(BillingPortalStatusEnum.ok);
+      expect(portalCustomer()).toBe('cus_direct');
+      expect(calls.some((c) => c.url.includes('/subscription_items/'))).toBe(false);
+    });
+
     it('asks RevenueCat for sandbox subscriptions when the Stripe key is test-mode', async () => {
       routes[`rc:${RC_PATH}`] = { body: { items: [] } };
-      routes['stripe:/subscriptions/search'] = { body: { data: [] } };
       await makeService({ STRIPE_BILLING_PORTAL_KEY: TEST_KEY, ...RC_ENV }).createSession(USER_ID);
       expect(new URL(calls[0].url).searchParams.get('environment')).toBe('sandbox');
     });
@@ -134,18 +155,75 @@ describe('BillingPortalService', () => {
       routes[`rc:${RC_PATH}`] = {
         body: {
           items: [
-            rcSub('sub_other', { customer_id: 'someone-else' }),
+            rcSub('si_other', { customer_id: 'someone-else' }),
+            // Transferred to this user by RevenueCat: the Stripe customer is the
+            // original buyer's, so it must never open for the new owner.
+            rcSub('si_transferred', { original_customer_id: 'original-buyer' }),
             rcSub('sub_x/../../customers', { starts_at: 5 }),
+            rcSub('si_x/../../customers', { starts_at: 6 }),
             rcSub(null),
           ],
         },
       };
-      routes['stripe:/subscriptions/search'] = { body: { data: [] } };
+      const result = await makeService({ STRIPE_BILLING_PORTAL_KEY: KEY, ...RC_ENV }).createSession(
+        USER_ID,
+      );
+      expect(result.status).toBe(BillingPortalStatusEnum.not_found);
+      // RevenueCat answered, so only RevenueCat was asked.
+      expect(calls.map((c) => routeKey(c.url))).toEqual([`rc:${RC_PATH}`]);
+    });
+
+    it('never puts a non-sub_ value from a subscription item into a Stripe URL', async () => {
+      routes[`rc:${RC_PATH}`] = { body: { items: [rcSub('si_odd')] } };
+      routes['stripe:/subscription_items/si_odd'] = {
+        body: { subscription: 'sub_x/../../customers' },
+      };
       const result = await makeService({ STRIPE_BILLING_PORTAL_KEY: KEY, ...RC_ENV }).createSession(
         USER_ID,
       );
       expect(result.status).toBe(BillingPortalStatusEnum.not_found);
       expect(calls.some((c) => c.url.includes('/subscriptions/sub_'))).toBe(false);
+    });
+
+    it('treats an answered RevenueCat lookup as final: no metadata search can override it', async () => {
+      routes[`rc:${RC_PATH}`] = { body: { items: [] } };
+      // A subscription tagged with this user's id exists in Stripe, but RevenueCat
+      // (authoritative) says the user has no Stripe subscription.
+      routes['stripe:/subscriptions/search'] = {
+        body: { data: [{ customer: 'cus_tagged', created: 1 }] },
+      };
+      routes['stripe:/billing_portal/sessions'] = { body: { url: PORTAL_URL } };
+      const result = await makeService({ STRIPE_BILLING_PORTAL_KEY: KEY, ...RC_ENV }).createSession(
+        USER_ID,
+      );
+      expect(result).toEqual({ status: BillingPortalStatusEnum.not_found, url: null });
+      expect(calls.some((c) => c.url.includes('/search'))).toBe(false);
+      expect(portalPosts()).toHaveLength(0);
+    });
+
+    it('treats a customer RevenueCat does not know (404) as an answer, not a failure', async () => {
+      routes[`rc:${RC_PATH}`] = { status: 404, body: {} };
+      const result = await makeService({ STRIPE_BILLING_PORTAL_KEY: KEY, ...RC_ENV }).createSession(
+        USER_ID,
+      );
+      expect(result).toEqual({ status: BillingPortalStatusEnum.not_found, url: null });
+      expect(calls).toHaveLength(1);
+      expect(Sentry.captureException).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['only the project id', { REVENUECAT_PROJECT_ID: PROJECT_ID }],
+      ['only the v2 key', { REVENUECAT_V2_API_KEY: RC_KEY }],
+    ])('skips RevenueCat and uses the metadata search when %s is set', async (_label, rcEnv) => {
+      routes['stripe:/subscriptions/search'] = {
+        body: { data: [{ customer: 'cus_meta', created: 1 }] },
+      };
+      routes['stripe:/billing_portal/sessions'] = { body: { url: PORTAL_URL } };
+      const result = await makeService({ STRIPE_BILLING_PORTAL_KEY: KEY, ...rcEnv }).createSession(
+        USER_ID,
+      );
+      expect(result.status).toBe(BillingPortalStatusEnum.ok);
+      expect(calls.some((c) => c.url.startsWith(REVENUECAT_API_V2_BASE))).toBe(false);
     });
 
     it('falls back to subscription metadata search when RevenueCat fails, and reports it', async () => {
@@ -162,14 +240,54 @@ describe('BillingPortalService', () => {
       expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     });
 
-    it('skips a RevenueCat subscription Stripe does not know (other mode) and falls through', async () => {
-      routes[`rc:${RC_PATH}`] = { body: { items: [rcSub('sub_gone')] } };
+    it('skips a subscription item Stripe does not know (other mode) and tries the next one', async () => {
+      routes[`rc:${RC_PATH}`] = {
+        body: {
+          items: [rcSub('si_gone', { starts_at: 200 }), rcSub('si_live', { starts_at: 100 })],
+        },
+      };
+      routes['stripe:/subscription_items/si_gone'] = { status: 404, body: {} };
+      routes['stripe:/subscription_items/si_live'] = { body: { subscription: 'sub_live' } };
+      routes['stripe:/subscriptions/sub_live'] = { body: { customer: 'cus_live', created: 1 } };
+      routes['stripe:/billing_portal/sessions'] = { body: { url: PORTAL_URL } };
+      const result = await makeService({ STRIPE_BILLING_PORTAL_KEY: KEY, ...RC_ENV }).createSession(
+        USER_ID,
+      );
+      expect(result.status).toBe(BillingPortalStatusEnum.ok);
+      expect(portalCustomer()).toBe('cus_live');
+    });
+
+    it('skips a subscription Stripe does not know (other mode) and reports not_found', async () => {
+      routes[`rc:${RC_PATH}`] = { body: { items: [rcSub('si_gone')] } };
+      routes['stripe:/subscription_items/si_gone'] = { body: { subscription: 'sub_gone' } };
       routes['stripe:/subscriptions/sub_gone'] = { status: 404, body: {} };
-      routes['stripe:/subscriptions/search'] = { body: { data: [] } };
       const result = await makeService({ STRIPE_BILLING_PORTAL_KEY: KEY, ...RC_ENV }).createSession(
         USER_ID,
       );
       expect(result).toEqual({ status: BillingPortalStatusEnum.not_found, url: null });
+    });
+
+    // Stripe failing on a subscription RevenueCat named is an outage, not a
+    // reason to try the weaker metadata path: unavailable, no portal.
+    it.each([
+      ['subscription item', 'stripe:/subscription_items/si_1'],
+      ['subscription', 'stripe:/subscriptions/sub_1'],
+    ])('degrades to unavailable, without a portal or metadata search, when Stripe fails on the %s', async (_hop, failing) => {
+      routes[`rc:${RC_PATH}`] = { body: { items: [rcSub('si_1')] } };
+      routes['stripe:/subscription_items/si_1'] = { body: { subscription: 'sub_1' } };
+      routes['stripe:/subscriptions/sub_1'] = { body: { customer: 'cus_1', created: 1 } };
+      routes[failing] = { status: 500, body: {} };
+      routes['stripe:/subscriptions/search'] = {
+        body: { data: [{ customer: 'cus_meta', created: 1 }] },
+      };
+      routes['stripe:/billing_portal/sessions'] = { body: { url: PORTAL_URL } };
+      const result = await makeService({ STRIPE_BILLING_PORTAL_KEY: KEY, ...RC_ENV }).createSession(
+        USER_ID,
+      );
+      expect(result).toEqual({ status: BillingPortalStatusEnum.unavailable, url: null });
+      expect(portalPosts()).toHaveLength(0);
+      expect(calls.some((c) => c.url.includes('/search'))).toBe(false);
+      expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -229,11 +347,12 @@ describe('BillingPortalService', () => {
   });
 
   it('bounds every outbound request with a timeout signal', async () => {
-    routes[`rc:${RC_PATH}`] = { body: { items: [rcSub('sub_1')] } };
+    routes[`rc:${RC_PATH}`] = { body: { items: [rcSub('si_1')] } };
+    routes['stripe:/subscription_items/si_1'] = { body: { subscription: 'sub_1' } };
     routes['stripe:/subscriptions/sub_1'] = { body: { customer: 'cus_1', created: 1 } };
     routes['stripe:/billing_portal/sessions'] = { body: { url: PORTAL_URL } };
     await makeService({ STRIPE_BILLING_PORTAL_KEY: KEY, ...RC_ENV }).createSession(USER_ID);
-    expect(calls).toHaveLength(3);
+    expect(calls).toHaveLength(4);
     for (const call of calls) expect(call.init.signal).toBeInstanceOf(AbortSignal);
   });
 

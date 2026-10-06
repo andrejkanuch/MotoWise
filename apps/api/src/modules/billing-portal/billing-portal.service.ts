@@ -14,6 +14,7 @@ import {
   STRIPE_API_BASE,
   STRIPE_SEARCH_LIMIT,
   STRIPE_SUBSCRIPTION_ID_RX,
+  STRIPE_SUBSCRIPTION_ITEM_ID_RX,
   STRIPE_TEST_KEY_MARKER,
 } from './billing-portal.constants';
 import type { BillingPortalSession } from './models/billing-portal-session.model';
@@ -22,6 +23,10 @@ import type { BillingPortalSession } from './models/billing-portal-session.model
 const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const HTTP_NOT_FOUND = 404;
+
+/** RevenueCat names a Stripe subscription (sub_…) or, in practice, its item (si_…). */
+const isStripeSubscriptionRef = (id: string): boolean =>
+  STRIPE_SUBSCRIPTION_ID_RX.test(id) || STRIPE_SUBSCRIPTION_ITEM_ID_RX.test(id);
 
 interface StripeSearchResult<T> {
   data: T[];
@@ -32,12 +37,17 @@ interface StripeSubscription {
   created: number;
 }
 
+interface StripeSubscriptionItem {
+  subscription: string;
+}
+
 interface StripePortalSession {
   url: string;
 }
 
 interface RcSubscription {
   customer_id: string;
+  original_customer_id: string;
   store: string;
   store_subscription_identifier?: string | null;
   environment: string;
@@ -47,6 +57,12 @@ interface RcSubscription {
 interface RcList<T> {
   items: T[];
 }
+
+/**
+ * RevenueCat's answer for this user. `answered: false` means RevenueCat is not
+ * configured or failed, the only cases where the secondary path may run.
+ */
+type RevenueCatLookup = { answered: false } | { answered: true; customer: string | null };
 
 class BillingRequestError extends Error {
   constructor(
@@ -71,9 +87,14 @@ class BillingRequestError extends Error {
  * customer metadata (the browser can write that through checkout metadata):
  *   1. Primary, when REVENUECAT_PROJECT_ID + REVENUECAT_V2_API_KEY are set: ask
  *      RevenueCat (authoritative) for the user's `stripe` subscriptions, then
- *      read the customer off the Stripe subscription it names.
- *   2. Secondary: Stripe subscription search on the `rc_customer_id` metadata
- *      RevenueCat writes server-side.
+ *      read the customer off the Stripe subscription it names (RevenueCat names
+ *      the subscription item, si_…, which is resolved to its subscription).
+ *      Only subscriptions the user both owns and originally bought count, so a
+ *      RevenueCat transfer never opens the original buyer's portal.
+ *   2. Secondary, ONLY when RevenueCat is not configured or failed: Stripe
+ *      subscription search on the `rc_customer_id` metadata RevenueCat writes
+ *      server-side. When RevenueCat answered, its answer is final — the weaker
+ *      metadata path never overrides an authoritative "no Stripe subscription".
  * No match → `not_found`, and the web shows the receipt-email / support fallback.
  *
  * Needs STRIPE_BILLING_PORTAL_KEY: a RESTRICTED Stripe key with only
@@ -92,9 +113,10 @@ export class BillingPortalService {
     if (!UUID_RX.test(userId)) return { status: BillingPortalStatusEnum.not_found, url: null };
 
     try {
-      const customerId =
-        (await this.customerFromRevenueCat(key, userId)) ??
-        (await this.customerFromSubscriptionMetadata(key, userId));
+      const lookup = await this.customerFromRevenueCat(key, userId);
+      const customerId = lookup.answered
+        ? lookup.customer
+        : await this.customerFromSubscriptionMetadata(key, userId);
       if (!customerId) return { status: BillingPortalStatusEnum.not_found, url: null };
 
       const returnUrl = `${this.webAppUrl()}${BILLING_PORTAL_RETURN_PATH}`;
@@ -110,15 +132,17 @@ export class BillingPortalService {
   }
 
   /**
-   * RevenueCat knows which Stripe subscriptions belong to this app user. Returns
-   * null when RevenueCat is not configured, has no Stripe subscription for the
-   * user, or fails — a RevenueCat outage falls through to the secondary path
-   * instead of blocking the cancel path.
+   * RevenueCat knows which Stripe subscriptions belong to this app user. Not
+   * answered when RevenueCat is not configured or fails — an outage falls
+   * through to the secondary path instead of blocking the cancel path.
    */
-  private async customerFromRevenueCat(stripeKey: string, userId: string): Promise<string | null> {
+  private async customerFromRevenueCat(
+    stripeKey: string,
+    userId: string,
+  ): Promise<RevenueCatLookup> {
     const projectId = this.config.get<string>('REVENUECAT_PROJECT_ID');
     const rcKey = this.config.get<string>('REVENUECAT_V2_API_KEY');
-    if (!projectId || !rcKey) return null;
+    if (!projectId || !rcKey) return { answered: false };
 
     let subscriptionIds: string[];
     try {
@@ -130,14 +154,14 @@ export class BillingPortalService {
       );
     } catch (err) {
       this.report(userId, err, 'revenueCatSubscriptions');
-      return null;
+      return { answered: false };
     }
 
-    for (const subscriptionId of subscriptionIds) {
-      const customer = await this.customerOfSubscription(stripeKey, subscriptionId);
-      if (customer) return customer;
+    for (const subscriptionRef of subscriptionIds) {
+      const customer = await this.customerOfSubscription(stripeKey, subscriptionRef);
+      if (customer) return { answered: true, customer };
     }
-    return null;
+    return { answered: true, customer: null };
   }
 
   private async revenueCatStripeSubscriptionIds(
@@ -162,20 +186,50 @@ export class BillingPortalService {
         (sub) =>
           sub.store === RC_STORE_STRIPE &&
           sub.customer_id === userId &&
-          STRIPE_SUBSCRIPTION_ID_RX.test(sub.store_subscription_identifier ?? ''),
+          sub.original_customer_id === userId &&
+          isStripeSubscriptionRef(sub.store_subscription_identifier ?? ''),
       )
       .sort((a, b) => b.starts_at - a.starts_at)
       .map((sub) => sub.store_subscription_identifier as string);
   }
 
-  /** The customer on a Stripe subscription; null when Stripe does not know it (e.g. other mode). */
+  /**
+   * The customer on the Stripe subscription RevenueCat names, given as a
+   * subscription (sub_…) or a subscription item (si_…, what RevenueCat v2
+   * actually returns): item -> subscription -> customer. Null when Stripe does
+   * not know an id on either hop (e.g. the other mode). Any other Stripe failure
+   * propagates: Stripe failing is an outage, not a reason to try a weaker path.
+   */
   private async customerOfSubscription(
     key: string,
-    subscriptionId: string,
+    subscriptionRef: string,
   ): Promise<string | null> {
+    const subscriptionId = STRIPE_SUBSCRIPTION_ITEM_ID_RX.test(subscriptionRef)
+      ? await this.subscriptionOfItem(key, subscriptionRef)
+      : subscriptionRef;
+    if (!subscriptionId) return null;
+
+    const sub = await this.stripeUnlessNotFound<StripeSubscription>(
+      key,
+      `/subscriptions/${subscriptionId}`,
+    );
+    return sub?.customer || null;
+  }
+
+  /** The subscription a Stripe subscription item belongs to, validated before it reaches a URL. */
+  private async subscriptionOfItem(key: string, itemId: string): Promise<string | null> {
+    const item = await this.stripeUnlessNotFound<StripeSubscriptionItem>(
+      key,
+      `/subscription_items/${itemId}`,
+    );
+    const subscriptionId = item?.subscription ?? '';
+    return STRIPE_SUBSCRIPTION_ID_RX.test(subscriptionId) ? subscriptionId : null;
+  }
+
+  /** A Stripe GET that maps 404 to null; every other failure is rethrown. */
+  private async stripeUnlessNotFound<T>(key: string, path: string): Promise<T | null> {
     try {
-      const sub = await this.stripe<StripeSubscription>(key, `/subscriptions/${subscriptionId}`);
-      return sub.customer || null;
+      return await this.stripe<T>(key, path);
     } catch (err) {
       if (err instanceof BillingRequestError && err.status === HTTP_NOT_FOUND) return null;
       throw err;
@@ -183,8 +237,9 @@ export class BillingPortalService {
   }
 
   /**
-   * Secondary path: the newest Stripe subscription whose `rc_customer_id`
-   * metadata (written by RevenueCat, server-side) is this user. Stripe search
+   * Secondary path, only when RevenueCat is not configured or failed: the newest
+   * Stripe subscription whose `rc_customer_id` metadata (written by RevenueCat,
+   * server-side) is this user. Stripe search
    * has no ordering guarantee, so sort by created. There is deliberately no
    * customer-metadata fallback — that metadata is browser-writable.
    */
