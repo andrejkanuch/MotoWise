@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CHECKOUT_FAILURE_REASON,
   describeCheckoutError,
+  isReportableCheckoutFailure,
   RC_BACKEND_ERROR,
   RC_SDK_ERROR,
   SUPPORT_EMAIL,
@@ -32,14 +33,44 @@ describe('describeCheckoutError', () => {
   it('maps SDK-only failures', () => {
     const cases: [number, string][] = [
       [RC_SDK_ERROR.NETWORK, CHECKOUT_FAILURE_REASON.NETWORK],
-      [RC_SDK_ERROR.PAYMENT_PENDING, CHECKOUT_FAILURE_REASON.PAYMENT_PENDING],
       [RC_SDK_ERROR.PRODUCT_ALREADY_PURCHASED, CHECKOUT_FAILURE_REASON.ALREADY_SUBSCRIBED],
-      [RC_SDK_ERROR.STORE_PROBLEM, CHECKOUT_FAILURE_REASON.PAYMENT_DECLINED],
       [RC_SDK_ERROR.PRODUCT_NOT_AVAILABLE, CHECKOUT_FAILURE_REASON.PLAN_UNAVAILABLE],
     ];
     for (const [errorCode, reason] of cases) {
       expect(describeCheckoutError({ errorCode, backendErrorCode: null }).reason).toBe(reason);
     }
+  });
+
+  // Shapes purchases-js 1.46 actually rejects purchase() with: SDK code only,
+  // no backend code (getForPurchasesFlowError drops `extra`).
+  it('treats a failed charge (SDK code 20) as a decline, never as "still processing"', () => {
+    const failure = describeCheckoutError({
+      errorCode: RC_SDK_ERROR.PAYMENT_PENDING,
+      backendErrorCode: null,
+    });
+    expect(failure.reason).toBe(CHECKOUT_FAILURE_REASON.PAYMENT_DECLINED);
+    expect(failure.message).toMatch(/another card/);
+    expect(failure.message).not.toMatch(/processing|pay again/);
+    expect(isReportableCheckoutFailure(failure.reason)).toBe(false);
+  });
+
+  it('treats a checkout setup failure (SDK code 2) as our problem and reports it', () => {
+    const failure = describeCheckoutError({
+      errorCode: RC_SDK_ERROR.STORE_PROBLEM,
+      backendErrorCode: null,
+    });
+    expect(failure.reason).toBe(CHECKOUT_FAILURE_REASON.CHECKOUT_SETUP);
+    expect(failure.message).toMatch(/weren't charged/);
+    expect(failure.message).not.toMatch(/another card|bank/);
+    expect(failure.message).toContain(SUPPORT_EMAIL);
+    expect(isReportableCheckoutFailure(failure.reason)).toBe(true);
+  });
+
+  it('reports only setup and unknown failures to Sentry', () => {
+    const reportable = Object.values(CHECKOUT_FAILURE_REASON).filter(isReportableCheckoutFailure);
+    expect(reportable.sort()).toEqual(
+      [CHECKOUT_FAILURE_REASON.CHECKOUT_SETUP, CHECKOUT_FAILURE_REASON.UNKNOWN].sort(),
+    );
   });
 
   it('falls back to a support message that carries the code', () => {

@@ -10,7 +10,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { getCampaignParams } from '@/lib/campaign';
-import { CHECKOUT_FAILURE_REASON, describeCheckoutError } from '@/lib/checkout-errors';
+import {
+  describeCheckoutError,
+  isReportableCheckoutFailure,
+  SUPPORT_EMAIL,
+} from '@/lib/checkout-errors';
 import { gqlFetcher } from '@/lib/graphql-client';
 import {
   annualSavingsPercent,
@@ -99,6 +103,9 @@ function CheckoutContent() {
   const [authChecked, setAuthChecked] = useState(false);
   const [webOffering, setWebOffering] = useState<Offering | null>(null);
   const [offeringStatus, setOfferingStatus] = useState<OfferingStatus>(OFFERING_STATUS.LOADING);
+  // Bumped by "Try again" so a transient offering-load failure is recoverable
+  // without a full page reload.
+  const [offeringAttempt, setOfferingAttempt] = useState(0);
   // One trial per person, on any platform (docs/RevenueCat-Trial-Audit-2026-09-19.md).
   // Starts true so the page never promises a trial before the answer is in.
   const [hasUsedTrial, setHasUsedTrial] = useState(true);
@@ -126,6 +133,7 @@ function CheckoutContent() {
   // Resolve what this customer can actually buy: the RevenueCat offering (whose
   // trial phase reflects Web Billing's own eligibility) and our cross-store
   // trial history. Either failing leaves the no-trial copy, never the reverse.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: offeringAttempt is the "Try again" trigger, intentionally not read
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
@@ -165,7 +173,12 @@ function CheckoutContent() {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, offeringAttempt]);
+
+  const retryOfferingLoad = useCallback(() => {
+    setOfferingStatus(OFFERING_STATUS.LOADING);
+    setOfferingAttempt((attempt) => attempt + 1);
+  }, []);
 
   const plan = PLAN_CONFIG[selectedPlan];
   const rcPackage = packageFor(webOffering, selectedPlan);
@@ -253,7 +266,7 @@ function CheckoutContent() {
         backend_error_code: backendErrorCode,
         status_code: statusCode,
       });
-      if (failure.reason === CHECKOUT_FAILURE_REASON.UNKNOWN) {
+      if (isReportableCheckoutFailure(failure.reason)) {
         Sentry.captureException(err, {
           tags: { area: 'checkout', op: 'purchase' },
           extra: { plan: selectedPlan, errorCode, backendErrorCode, statusCode },
@@ -383,10 +396,19 @@ function CheckoutContent() {
 
           {/* Offering could not be loaded: say so instead of a dead Pay button. */}
           {offeringStatus === OFFERING_STATUS.UNAVAILABLE && !error && (
-            <p role="alert" className="mb-4 text-sm text-danger-500">
-              Checkout is temporarily unavailable. Please try again in a few minutes, or contact
-              support@motovault.app.
-            </p>
+            <div role="alert" className="mb-4 text-sm text-danger-500">
+              <p>
+                Checkout is temporarily unavailable. Please try again in a few minutes, or contact{' '}
+                {SUPPORT_EMAIL}.
+              </p>
+              <button
+                type="button"
+                onClick={retryOfferingLoad}
+                className="mt-2 font-medium text-neutral-300 underline underline-offset-2 transition-colors hover:text-neutral-50"
+              >
+                Try again
+              </button>
+            </div>
           )}
 
           {/* Error */}
@@ -431,7 +453,7 @@ function CheckoutContent() {
               Privacy Policy
             </Link>
             <a
-              href="mailto:support@motovault.app"
+              href={`mailto:${SUPPORT_EMAIL}`}
               className="transition-colors hover:text-neutral-300"
             >
               Refund Policy
