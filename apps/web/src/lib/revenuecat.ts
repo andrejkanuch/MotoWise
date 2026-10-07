@@ -108,9 +108,13 @@ async function resolveCustomerInfo(apiKey: string, appUserId: string): Promise<C
 
 /**
  * Paywall ids reported to RevenueCat for paywalls we render ourselves (RevenueCat
- * Paywalls track their own views). Experiments and paywall analytics count only
+ * Paywalls track their own views). RevenueCat's paywall analytics count only
  * customers with an impression, so without one every web checkout visitor would
  * look like someone who never saw a paywall.
+ *
+ * Experiments: the web checkout renders a fixed offering id, not the one a
+ * targeting rule makes current, so its impressions carry no placement/targeting
+ * context and cannot attribute an experiment variant.
  */
 export const CUSTOM_PAYWALL_IDS = {
   WEB_CHECKOUT: 'web_checkout',

@@ -2,7 +2,7 @@
  * Web (RevenueCat Web Billing / Stripe) plan pricing.
  *
  * The checkout page renders prices from the RevenueCat package
- * (`webBillingProduct.currentPrice`) — that is what Stripe actually charges.
+ * (`product.currentPrice`) — that is what Stripe actually charges.
  * The static /pro marketing page cannot load the SDK at render time, so it
  * shows WEB_FALLBACK_PRICES. Keep these equal to the `default-web` offering's
  * products in RevenueCat; they are the only hardcoded web prices.

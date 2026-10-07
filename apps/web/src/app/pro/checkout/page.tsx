@@ -26,7 +26,7 @@ import {
 
 /**
  * Display names and billing periods only. Prices come from the RevenueCat
- * package (`webBillingProduct.currentPrice`) — what Stripe will actually charge.
+ * package (`product.currentPrice`) — what Stripe will actually charge.
  */
 const PLAN_CONFIG = {
   [WEB_PLAN_IDS.MONTHLY]: { name: 'Pro Monthly', period: 'month' },
@@ -51,7 +51,7 @@ function packageFor(offering: Offering | null, plan: PlanId): Package | null {
 }
 
 function priceOf(pkg: Package | null): WebPrice | null {
-  const price = pkg?.webBillingProduct.currentPrice;
+  const price = pkg?.product.currentPrice;
   return price ? { amountMicros: price.amountMicros, currency: price.currency } : null;
 }
 
@@ -173,7 +173,7 @@ function CheckoutContent() {
       setWebOffering(resolved);
       setOfferingStatus(resolved ? OFFERING_STATUS.READY : OFFERING_STATUS.UNAVAILABLE);
       // The paywall is on screen once its prices are: report the view to
-      // RevenueCat so experiments and paywall analytics count this visitor.
+      // RevenueCat so its paywall analytics count this visitor.
       if (resolved && !impressionTracked.current) {
         impressionTracked.current = true;
         void trackCustomPaywallImpression(CUSTOM_PAYWALL_IDS.WEB_CHECKOUT, resolved).then(
@@ -202,7 +202,7 @@ function CheckoutContent() {
 
   const plan = PLAN_CONFIG[selectedPlan];
   const rcPackage = packageFor(webOffering, selectedPlan);
-  const planPrice = rcPackage?.webBillingProduct.currentPrice.formattedPrice ?? PRICE_PLACEHOLDER;
+  const planPrice = rcPackage?.product.currentPrice.formattedPrice ?? PRICE_PLACEHOLDER;
   const savingsPercent = annualSavingsPercent(
     priceOf(packageFor(webOffering, WEB_PLAN_IDS.MONTHLY)),
     priceOf(packageFor(webOffering, WEB_PLAN_IDS.ANNUAL)),
@@ -210,7 +210,7 @@ function CheckoutContent() {
   const canPurchase = offeringStatus === OFFERING_STATUS.READY && rcPackage !== null;
   const trialDays = hasUsedTrial
     ? null
-    : durationToDays(rcPackage?.webBillingProduct.freeTrialPhase?.periodDuration);
+    : durationToDays(rcPackage?.product.freeTrialPhase?.periodDuration);
 
   const trialEndDate = useMemo(() => {
     if (!trialDays) return null;
