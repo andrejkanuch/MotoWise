@@ -37,7 +37,7 @@ env:
 
 # 2. Open the bike hub. The Garage tab a11y text carries a badge count.
 - tapOn:
-    text: ".*Garage.*"
+    text: "Garage(,.*)?" # the tab; ".*Garage.*" also matched Home's "Today in your garage." (Maestro text matching ignores case)
 - tapOn:
     text: ".*Honda.*"
 - extendedWaitUntil:
@@ -110,9 +110,9 @@ env:
     timeout: 10000
 - scrollUntilVisible:
     element:
-      text: ${NOTE_TEXT}
+      text: ".*${NOTE_TEXT}.*"
     direction: DOWN
-- assertVisible: ${NOTE_TEXT}
+- assertVisible: ".*${NOTE_TEXT}.*"
 
 # 6. Notes screen: the note is listed; delete it through the long-press menu and
 #    take it back with Undo.
@@ -121,19 +121,19 @@ env:
     visible:
       id: "notes-search"
     timeout: 10000
-- assertVisible: ${NOTE_TEXT}
-- longPressOn: ${NOTE_TEXT}
+- assertVisible: ".*${NOTE_TEXT}.*"
+- longPressOn: ".*${NOTE_TEXT}.*"
 - tapOn: "Delete"
 - assertVisible: "Note deleted"
-- assertNotVisible: ${NOTE_TEXT}
+- assertNotVisible: ".*${NOTE_TEXT}.*"
 - takeScreenshot: bike-hub-notes-undo
 - tapOn: "Undo"
-- assertVisible: ${NOTE_TEXT}
+- assertVisible: ".*${NOTE_TEXT}.*"
 - assertNotVisible: "Note deleted"
 
 # 7. Cleanup — delete the note for real: delete, then leave the screen (leaving
 #    closes the undo window and sends the delete).
-- longPressOn: ${NOTE_TEXT}
+- longPressOn: ".*${NOTE_TEXT}.*"
 - tapOn: "Delete"
 - tapOn:
     id: "notes-back"

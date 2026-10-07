@@ -39,7 +39,7 @@ env:
 
 # 2. Set Imperial, then confirm the bike hub odometer chip reads "mi".
 - tapOn:
-    text: ".*Profile.*"
+    text: "Profile(,.*)?" # the tab; ".*Profile.*" also matched Home's "Complete your bike profile"
 - scrollUntilVisible:
     element:
       text: "Units"
@@ -47,7 +47,7 @@ env:
 - tapOn:
     text: ".*Imperial.*" # Imperial (mi, °F)
 - tapOn:
-    text: ".*Garage.*"
+    text: "Garage(,.*)?" # the tab; ".*Garage.*" also matched Home's "Today in your garage." (Maestro text matching ignores case)
 - tapOn:
     text: ".*Honda.*"
 - extendedWaitUntil:
@@ -87,7 +87,7 @@ env:
 
 # 3. Switch to Metric; the SAME bike's odometer chip must now read "km".
 - tapOn:
-    text: ".*Profile.*"
+    text: "Profile(,.*)?" # the tab; ".*Profile.*" also matched Home's "Complete your bike profile"
 - scrollUntilVisible:
     element:
       text: "Units"
@@ -95,7 +95,7 @@ env:
 - tapOn:
     text: ".*Metric.*" # Metric (km, °C)
 - tapOn:
-    text: ".*Garage.*"
+    text: "Garage(,.*)?" # the tab; ".*Garage.*" also matched Home's "Today in your garage." (Maestro text matching ignores case)
 - tapOn:
     text: ".*Honda.*"
 - extendedWaitUntil:

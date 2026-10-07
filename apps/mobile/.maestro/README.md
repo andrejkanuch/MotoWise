@@ -194,3 +194,29 @@ Hard-won specifics for THIS app — check these first when a flow "should work" 
   resolution-sensitive; prefer a real selector whenever `inspect_screen` exposes one.
 - **GPS-dependent flows need `setLocation`.** The ride pre-flight GPS check and recording need a fix;
   set one at the top of the flow (a stationary sim logs ~0 distance, which still saves).
+
+## Verified on a local stack (2026-10-07)
+
+All ten bike flows (`add-expense`, `complete-maintenance-task`, `bike-hub-overview`,
+`units-display-toggle`, `delete-expense`, `delete-expense-long-press`, `expense-detail`,
+`expense-service-record`, `edit-maintenance-task`, `log-past-work`) were run end to end on an
+iOS 27 simulator against a Release build pointed at a local Supabase + API
+(`features/bike-detail-shell-overview/local-stack.md`). Lessons that shaped the selectors:
+
+- **Text matching ignores case.** `".*Garage.*"` matched Home's "Today in your garage." and
+  `".*Profile.*"` matched "Complete your bike profile". Anchor tab taps: `"Garage(,.*)?"`.
+- **iOS merges a pressable's child texts into one label** ("E2E Complete Me, HIGH",
+  "No expenses yet, Track your fuel…"). Match row titles with `"${TITLE}(,.*)?"` (keeps an
+  edited title distinct) or `".*${TEXT}.*"` when the title is not first.
+- **Onboarding must pick a model.** `complete_onboarding` creates the bike only when make, model
+  and year are all set; a make-only "Add to my garage" leaves the garage empty. Tap the model
+  chip directly — typing a query makes the search field's value match too.
+- **Consent screen** ("Help shape MotoVault") follows Welcome where the country rule asks; the
+  flow declines it.
+- **Review soft-ask** ("Enjoying MotoVault?" → "Help us improve?") can follow any save and
+  overlays the hub; dismiss "Not really" then "Not now" (both optional).
+- **Alerts on iOS 27**: wait for the message before tapping, and beware an expanded task card's
+  own "Delete" under the alert matching `rightOf: Cancel`.
+- **Build**: a sim build needs ad-hoc signing (`CODE_SIGN_IDENTITY=-`, `CODE_SIGNING_ALLOWED=YES`)
+  or SecureStore cannot persist the session ("Your session has expired" right after sign-in), and
+  `SENTRY_DISABLE_AUTO_UPLOAD=true` or the bundle phase fails without a Sentry token.

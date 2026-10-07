@@ -17,7 +17,7 @@ env:
 - runFlow: onboarding.yaml
 
 - tapOn:
-    text: ".*Garage.*"
+    text: "Garage(,.*)?" # the tab; ".*Garage.*" also matched Home's "Today in your garage." (Maestro text matching ignores case)
 - tapOn:
     text: ".*Honda.*"
 - extendedWaitUntil:
@@ -44,6 +44,14 @@ env:
 - tapOn:
     text: "Not Now"
     optional: true
+# in-app soft-ask ("Enjoying MotoVault?") can follow a save; it overlays the hub.
+- tapOn:
+    text: "Not really"
+    optional: true
+# …which then asks "Help us improve?" — decline that too.
+- tapOn:
+    text: "Not now"
+    optional: true
 
 # Expand + Done
 - tapOn:
@@ -51,13 +59,13 @@ env:
     optional: true
 - scrollUntilVisible:
     element:
-      text: ${TASK_TITLE}
+      text: "${TASK_TITLE}(,.*)?"
     direction: DOWN
-- tapOn: ${TASK_TITLE}
+- tapOn: "${TASK_TITLE}(,.*)?"
 - tapOn:
     text: "Done"
     below:
-      text: ${TASK_TITLE}
+      text: "${TASK_TITLE}(,.*)?"
 
 # Complete with cost (creates linked expense)
 - extendedWaitUntil:
@@ -81,6 +89,14 @@ env:
 - tapOn:
     text: "Not Now"
     optional: true
+# in-app soft-ask ("Enjoying MotoVault?") can follow a save; it overlays the hub.
+- tapOn:
+    text: "Not really"
+    optional: true
+# …which then asks "Help us improve?" — decline that too.
+- tapOn:
+    text: "Not now"
+    optional: true
 
 # Back on the hub (Service segment). The expense created by completion carries
 # the task title as its description (expenses.service createFromTask) and lives
@@ -92,12 +108,14 @@ env:
     visible:
       id: "segment-panel-costs"
     timeout: 10000
+# The expense row's label carries the task title among other parts (amount,
+# category), so match it anywhere in the merged label.
 - scrollUntilVisible:
     element:
-      text: ${TASK_TITLE}
+      text: ".*${TASK_TITLE}.*"
     direction: DOWN
     timeout: 20000
-- tapOn: ${TASK_TITLE}
+- tapOn: ".*${TASK_TITLE}.*"
 
 # Detail: Service record section
 - extendedWaitUntil:
@@ -105,13 +123,13 @@ env:
     timeout: 20000
 - assertVisible: ".*88.*"
 - assertVisible: "Service record"
-- assertVisible: "View full service record"
+- assertVisible: ".*View full service record.*" # merged into the service-record card label
 - takeScreenshot: expense-service-record-open
 
-- tapOn: "View full service record"
+- tapOn: ".*View full service record.*"
 - extendedWaitUntil:
     visible: ${TASK_TITLE}
     timeout: 20000
 # Completed filter should surface the task
-- assertVisible: ${TASK_TITLE}
+- assertVisible: "${TASK_TITLE}(,.*)?"
 - takeScreenshot: expense-service-record-tasks
