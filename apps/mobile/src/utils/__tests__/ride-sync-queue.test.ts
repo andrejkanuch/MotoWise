@@ -445,6 +445,25 @@ describe('ordering hardening (MOT-262)', () => {
     expect(listener.mock.calls).toEqual([['uploadWaypoints'], ['endRide']]);
   });
 
+  it('a throwing delivered listener never turns a delivered op into a failure', async () => {
+    setDeliveredListener(() => {
+      throw new Error('listener bug');
+    });
+    enqueue('endRide', { variables: { input: {} } });
+    enqueue('updateRide', { variables: { input: {} } });
+    mockGqlFetcher.mockResolvedValue({});
+
+    await drainQueue();
+
+    expect(queue()).toEqual([]);
+    expect(deadLetter()).toEqual([]);
+    expect(mockGqlFetcher).toHaveBeenCalledTimes(2);
+    expect(mockCapture).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ source: 'ride-sync-queue.onDelivered' }),
+    );
+  });
+
   it('notifies the dead-letter listener with the current count', async () => {
     const listener = jest.fn();
     setDeadLetterListener(listener);

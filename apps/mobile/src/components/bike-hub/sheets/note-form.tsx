@@ -228,14 +228,24 @@ export function NoteForm({
    * are removed.
    */
   const uploadedPaths = useRef(new Map<string, PendingNotePhoto>());
+  /**
+   * The photo upload/attach run in progress, if any. The sheet can be dismissed
+   * mid-save (Discard, swipe-down) while `addNotePhoto` is still in flight; the
+   * unmount cleanup waits for it, so it never removes a file that is about to be
+   * attached, and still collects uploads that finish after the sheet is gone.
+   */
+  const photosInFlight = useRef<Promise<unknown>>(Promise.resolve());
   // Cleanup runs on unmount, so it covers every way out — Cancel, Done and a
   // swipe-down of the sheet — exactly once.
   useEffect(() => {
     const pendingPhotos = uploadedPaths.current;
+    const inFlight = photosInFlight;
     return () => {
-      const pending = [...pendingPhotos.values()];
-      pendingPhotos.clear();
-      if (pending.length > 0) void removeUnattachedNotePhotos(pending);
+      void inFlight.current.then(() => {
+        const pending = [...pendingPhotos.values()];
+        pendingPhotos.clear();
+        if (pending.length > 0) return removeUnattachedNotePhotos(pending);
+      });
     };
   }, []);
 
@@ -289,6 +299,17 @@ export function NoteForm({
 
   /** Uploads the given photos to the saved note; returns the ones that failed. */
   const uploadPhotos = async (
+    noteId: string,
+    motorcycleId: string,
+    uris: readonly string[],
+    owner: string,
+  ): Promise<string[]> => {
+    const run = uploadPhotosNow(noteId, motorcycleId, uris, owner);
+    photosInFlight.current = run.catch(() => undefined);
+    return run;
+  };
+
+  const uploadPhotosNow = async (
     noteId: string,
     motorcycleId: string,
     uris: readonly string[],

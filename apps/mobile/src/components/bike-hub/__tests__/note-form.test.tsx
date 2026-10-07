@@ -350,6 +350,48 @@ describe('NoteForm — new note', () => {
     expect(mockRemoveObject).not.toHaveBeenCalled();
   });
 
+  it('dismissed while addNotePhoto is in flight: waits for it and keeps the attached file', async () => {
+    const view = await renderForm({ draft: 'With a photo' });
+    await fireEvent.press(screen.getByTestId('note-add-photo'));
+    await act(async () => {});
+    let attached = false;
+    let finishAttach: () => void = () => {};
+    const succeed = mockFetcher.getMockImplementation();
+    mockFetcher.mockImplementation((document: unknown, variables: unknown) => {
+      if (document === AddNotePhotoDocument) {
+        return new Promise((resolve) => {
+          finishAttach = () => {
+            attached = true;
+            resolve({ addNotePhoto: { id: 'p1', storagePath: ORPHAN } });
+          };
+        });
+      }
+      if (document === NotesByMotorcycleDocument) {
+        return Promise.resolve({
+          notes: attached
+            ? [{ ...NOTES[0], id: 'note-new', photos: [{ id: 'p1', storagePath: ORPHAN }] }]
+            : [],
+        });
+      }
+      return succeed?.(document, variables);
+    });
+    // Not awaited: the save is parked on the pending attach.
+    const saving = fireEvent.press(screen.getByTestId('note-save'));
+    await waitFor(() =>
+      expect(mockFetcher).toHaveBeenCalledWith(AddNotePhotoDocument, expect.anything()),
+    );
+
+    // Swipe-down mid-save: the cleanup must not run before the attach settles.
+    await act(async () => view.unmount());
+    await act(async () => {});
+    expect(mockFetcher).not.toHaveBeenCalledWith(NotesByMotorcycleDocument, expect.anything());
+
+    await act(async () => finishAttach());
+    await saving;
+    await act(async () => {});
+    expect(mockRemoveObject).not.toHaveBeenCalled();
+  });
+
   it('keeps the file when the attached photos cannot be checked', async () => {
     const view = await saveWithFailedAttach(() => Promise.reject(new Error('offline')));
     await act(async () => view.unmount());

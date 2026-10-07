@@ -181,6 +181,19 @@ export function setDeliveredListener(listener: ((type: SyncOperationType) => voi
   onDelivered = listener;
 }
 
+/** A delivered op is final: a throwing listener must never turn it into a
+ *  failure (and dead-letter it with its dependents), so its errors stop here. */
+function notifyDelivered(type: SyncOperationType): void {
+  try {
+    onDelivered?.(type);
+  } catch (error) {
+    captureException(error instanceof Error ? error : new Error(String(error)), {
+      source: 'ride-sync-queue.onDelivered',
+      type,
+    });
+  }
+}
+
 // --- Monotonic sequence counter ---
 
 function nextSeq(): number {
@@ -603,7 +616,7 @@ async function drainPass(): Promise<void> {
       await executeSyncOperation(op);
       // Delivered — drop just this op from the live queue and advance.
       removeOpBySeq(op.seq);
-      onDelivered?.(op.type);
+      notifyDelivered(op.type);
     } catch (error) {
       if (isNetworkError(error) || isAuthError(error)) {
         // Transient outage: stop draining and leave this op + everything after
