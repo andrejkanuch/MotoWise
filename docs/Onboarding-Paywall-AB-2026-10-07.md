@@ -48,7 +48,7 @@ Both ship with the same onboarding fixes: no invented rider count on reveal, bik
 
 - **A store build.** Fresh installs run the bundle inside the binary on first launch, and that launch persists the variant before any OTA can apply. An OTA to 3.21.0 would lock every new install into `shipped`. The experiment starts when the next store build is live in both stores.
 - **RevenueCat onboarding placements checked:** close button visible from the start and lifetime present (owner decisions 2026-10-07). These are dashboard settings this change does not touch.
-- The Android onboarding paywall error investigation (U5) is resolved or understood.
+- Android onboarding paywall errors (investigated 2026-10-07): 18 errors out of 277 Android onboarding paywall results in 90 days (6.5%; iOS 0), from 16 riders. 12 are Play billing unavailable (Madagascar, Iran, one rider whose Play account cannot buy), already classified as expected and not sent to Sentry. 4 are purchase failures inside the store sheet (one rider already owned Pro). 2 failed within milliseconds of presenting (Colombia, Brazil): possibly a present-too-early race, unconfirmed because `error_stage`/`error_code` only ship from 3.20.0. Onboarding advances in every case. Re-check the 2 instant failures once 3.20.0+ data exists. Paywalls stay enabled in every market (owner decision).
 
 ## Reading the result
 
