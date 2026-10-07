@@ -1,0 +1,476 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "AddTask.dc.html": {
+      "h": 844,
+      "title": "Add task sheet",
+      "w": 390,
+      "x": 470,
+      "y": 2288
+    },
+    "Bike.dc.html": {
+      "h": 844,
+      "title": "Bike — documents, safety, facts (top)",
+      "w": 390,
+      "x": 0,
+      "y": 4576
+    },
+    "BikeDetails.dc.html": {
+      "h": 844,
+      "title": "Bike — facts, schedule, edit (scrolled)",
+      "w": 390,
+      "x": 470,
+      "y": 4576
+    },
+    "CompleteTask.dc.html": {
+      "h": 844,
+      "title": "Mark done sheet",
+      "w": 390,
+      "x": 1410,
+      "y": 2288
+    },
+    "Components.dc.html": {
+      "h": 1180,
+      "title": "Component sheet",
+      "w": 1240,
+      "x": 0,
+      "y": 5720
+    },
+    "Costs.dc.html": {
+      "h": 844,
+      "title": "Costs — top",
+      "w": 390,
+      "x": 0,
+      "y": 3432
+    },
+    "CostsScrolled.dc.html": {
+      "h": 844,
+      "title": "Costs — breakdown & trend",
+      "w": 390,
+      "x": 470,
+      "y": 3432
+    },
+    "EditBike.dc.html": {
+      "h": 844,
+      "title": "Edit bike",
+      "w": 390,
+      "x": 940,
+      "y": 4576
+    },
+    "EditTask.dc.html": {
+      "h": 844,
+      "title": "Edit task sheet",
+      "w": 390,
+      "x": 940,
+      "y": 2288
+    },
+    "HomeCard.dc.html": {
+      "h": 300,
+      "title": "Home — This month card (fix)",
+      "w": 390,
+      "x": 1320,
+      "y": 5720
+    },
+    "LogSheet.dc.html": {
+      "h": 844,
+      "title": "Log sheet",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "h": 844,
+      "title": "Overview — top",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "Notes.dc.html": {
+      "h": 844,
+      "title": "Notes",
+      "w": 390,
+      "x": 1410,
+      "y": 3432
+    },
+    "OverviewEmpty.dc.html": {
+      "h": 844,
+      "title": "Overview — new bike (empty)",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "OverviewScrolled.dc.html": {
+      "h": 844,
+      "title": "Overview — scrolled",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "Recalls.dc.html": {
+      "h": 844,
+      "title": "Safety recalls",
+      "w": 390,
+      "x": 940,
+      "y": 3432
+    },
+    "ServiceActive.dc.html": {
+      "h": 844,
+      "title": "Service — active (km)",
+      "w": 390,
+      "x": 0,
+      "y": 1144
+    },
+    "ServiceHistory.dc.html": {
+      "h": 844,
+      "title": "Service — history",
+      "w": 390,
+      "x": 1410,
+      "y": 1144
+    },
+    "ServiceHistoryLong.dc.html": {
+      "h": 844,
+      "title": "Service — ten-year history",
+      "w": 390,
+      "x": 1880,
+      "y": 1144
+    },
+    "ServiceMiles.dc.html": {
+      "h": 844,
+      "title": "Service — critical overdue + lows (miles)",
+      "w": 390,
+      "x": 470,
+      "y": 1144
+    },
+    "ServiceReorder.dc.html": {
+      "h": 844,
+      "title": "Service — my order (grip left, done stays)",
+      "w": 390,
+      "x": 940,
+      "y": 1144
+    },
+    "TaskDetail.dc.html": {
+      "h": 844,
+      "title": "Task — opened",
+      "w": 390,
+      "x": 0,
+      "y": 2288
+    },
+    "OdometerSheet.dc.html": {
+      "x": 0,
+      "y": 7200,
+      "w": 390,
+      "h": 844,
+      "title": "Odometer sheet"
+    },
+    "ServiceDone.dc.html": {
+      "x": 470,
+      "y": 7200,
+      "w": 390,
+      "h": 844,
+      "title": "Service — just marked done, undo"
+    },
+    "TaskSelect.dc.html": {
+      "x": 940,
+      "y": 7200,
+      "w": 390,
+      "h": 844,
+      "title": "Service — select mode, bulk actions"
+    },
+    "BulkComplete.dc.html": {
+      "x": 1410,
+      "y": 7200,
+      "w": 390,
+      "h": 844,
+      "title": "Mark several done sheet"
+    },
+    "LogPastWork.dc.html": {
+      "x": 1880,
+      "y": 7200,
+      "w": 390,
+      "h": 844,
+      "title": "Log past work sheet"
+    },
+    "JobDetail.dc.html": {
+      "x": 2350,
+      "y": 7200,
+      "w": 390,
+      "h": 844,
+      "title": "Completed job — detail"
+    },
+    "AddExpense.dc.html": {
+      "x": 0,
+      "y": 8344,
+      "w": 390,
+      "h": 844,
+      "title": "Add expense sheet"
+    },
+    "ExpenseDetail.dc.html": {
+      "x": 470,
+      "y": 8344,
+      "w": 390,
+      "h": 844,
+      "title": "Expense — detail & edit"
+    },
+    "AllExpenses.dc.html": {
+      "x": 940,
+      "y": 8344,
+      "w": 390,
+      "h": 844,
+      "title": "All expenses — filtered list"
+    },
+    "AddDocument.dc.html": {
+      "x": 1410,
+      "y": 8344,
+      "w": 390,
+      "h": 844,
+      "title": "Add document sheet"
+    },
+    "DocumentDetail.dc.html": {
+      "x": 1880,
+      "y": 8344,
+      "w": 390,
+      "h": 844,
+      "title": "Document — viewer & renewal"
+    },
+    "DeleteBike.dc.html": {
+      "x": 2350,
+      "y": 8344,
+      "w": 390,
+      "h": 844,
+      "title": "Delete bike — typed confirm"
+    },
+    "ImportSchedule.dc.html": {
+      "x": 2820,
+      "y": 8344,
+      "w": 390,
+      "h": 844,
+      "title": "Manufacturer schedule import"
+    },
+    "CategoryGear.dc.html": {
+      "x": 3290,
+      "y": 8344,
+      "w": 390,
+      "h": 844,
+      "title": "Category drill-down — Gear"
+    },
+    "CostsEmpty.dc.html": {
+      "x": 0,
+      "y": 9488,
+      "w": 390,
+      "h": 844,
+      "title": "Costs — nothing logged"
+    },
+    "CostsAllTime.dc.html": {
+      "x": 470,
+      "y": 9488,
+      "w": 390,
+      "h": 844,
+      "title": "Costs — all time"
+    },
+    "ScanReceipt.dc.html": {
+      "x": 940,
+      "y": 9488,
+      "w": 390,
+      "h": 844,
+      "title": "Scan receipt — camera"
+    },
+    "ScanReview.dc.html": {
+      "x": 1410,
+      "y": 9488,
+      "w": 390,
+      "h": 844,
+      "title": "Scan receipt — check & save"
+    },
+    "CategoryPicker.dc.html": {
+      "x": 1880,
+      "y": 9488,
+      "w": 390,
+      "h": 844,
+      "title": "Category picker"
+    },
+    "ManageCategories.dc.html": {
+      "x": 2350,
+      "y": 9488,
+      "w": 390,
+      "h": 844,
+      "title": "Manage categories"
+    },
+    "EditCategory.dc.html": {
+      "x": 2820,
+      "y": 9488,
+      "w": 390,
+      "h": 844,
+      "title": "Edit category"
+    },
+    "EditExpense.dc.html": {
+      "x": 3290,
+      "y": 9488,
+      "w": 390,
+      "h": 844,
+      "title": "Edit expense"
+    },
+    "LinkJob.dc.html": {
+      "x": 3760,
+      "y": 9488,
+      "w": 390,
+      "h": 844,
+      "title": "Link expense to a job"
+    },
+    "MonthAugust.dc.html": {
+      "x": 4230,
+      "y": 9488,
+      "w": 390,
+      "h": 844,
+      "title": "Month drill-down — August"
+    },
+    "TcoExplainer.dc.html": {
+      "x": 4700,
+      "y": 9488,
+      "w": 390,
+      "h": 844,
+      "title": "Cost of ownership — what counts"
+    },
+    "NoteSheet.dc.html": {
+      "x": 5170,
+      "y": 9488,
+      "w": 390,
+      "h": 844,
+      "title": "New note sheet"
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-02T10:05:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "r0": {
+      "kind": "title1",
+      "maxW": 1800,
+      "text": "1 · Bike detail — Overview segment (first screen, scrolled, empty bike, Log sheet)",
+      "w": 240,
+      "x": 0,
+      "y": -250
+    },
+    "r1": {
+      "kind": "title1",
+      "maxW": 2270,
+      "text": "2 · Service segment — active tasks, priority + lateness, miles, manual order, history",
+      "w": 240,
+      "x": 0,
+      "y": 894
+    },
+    "r2": {
+      "kind": "title1",
+      "maxW": 1800,
+      "text": "3 · Task flows — opened task, add, edit, mark done",
+      "w": 240,
+      "x": 0,
+      "y": 2038
+    },
+    "r3": {
+      "kind": "title1",
+      "maxW": 1800,
+      "text": "4 · Costs (full analytics), Safety recalls, Notes",
+      "w": 240,
+      "x": 0,
+      "y": 3182
+    },
+    "r4": {
+      "kind": "title1",
+      "maxW": 1800,
+      "text": "5 · Bike segment — documents, recalls, facts, schedule, edit",
+      "w": 240,
+      "x": 0,
+      "y": 4326
+    },
+    "r5": {
+      "kind": "title1",
+      "maxW": 1710,
+      "text": "6 · Component sheet and the Home “This month” card fix",
+      "w": 240,
+      "x": 0,
+      "y": 5470
+    },
+    "r6": {
+      "x": 0,
+      "y": 6950,
+      "text": "7 · Review fixes — odometer sheet, instant done + undo, multi-select and bulk complete, log past work, completed job",
+      "kind": "title1",
+      "maxW": 2740,
+      "w": 240
+    },
+    "r7": {
+      "x": 0,
+      "y": 8094,
+      "text": "8 · Review fixes — expense leaves (add, detail, list, category drill-down), document add/viewer, delete-bike confirm, schedule import",
+      "kind": "title1",
+      "maxW": 3680,
+      "w": 240
+    },
+    "r8": {
+      "x": 0,
+      "y": 9238,
+      "text": "9 · Costs, complete flow — empty, all time, scan, categories, edit, link, month, what counts · plus the note sheet",
+      "kind": "title1",
+      "maxW": 5560,
+      "w": 240
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "OverviewScrolled.dc.html",
+    "OverviewEmpty.dc.html",
+    "LogSheet.dc.html",
+    "ServiceActive.dc.html",
+    "ServiceMiles.dc.html",
+    "ServiceReorder.dc.html",
+    "ServiceHistory.dc.html",
+    "ServiceHistoryLong.dc.html",
+    "TaskDetail.dc.html",
+    "AddTask.dc.html",
+    "EditTask.dc.html",
+    "CompleteTask.dc.html",
+    "Costs.dc.html",
+    "CostsScrolled.dc.html",
+    "Recalls.dc.html",
+    "Notes.dc.html",
+    "Bike.dc.html",
+    "BikeDetails.dc.html",
+    "EditBike.dc.html",
+    "Components.dc.html",
+    "HomeCard.dc.html",
+    "OdometerSheet.dc.html",
+    "ServiceDone.dc.html",
+    "TaskSelect.dc.html",
+    "BulkComplete.dc.html",
+    "LogPastWork.dc.html",
+    "JobDetail.dc.html",
+    "AddExpense.dc.html",
+    "ExpenseDetail.dc.html",
+    "AllExpenses.dc.html",
+    "AddDocument.dc.html",
+    "DocumentDetail.dc.html",
+    "DeleteBike.dc.html",
+    "ImportSchedule.dc.html",
+    "CategoryGear.dc.html",
+    "CostsEmpty.dc.html",
+    "CostsAllTime.dc.html",
+    "ScanReceipt.dc.html",
+    "ScanReview.dc.html",
+    "CategoryPicker.dc.html",
+    "ManageCategories.dc.html",
+    "EditCategory.dc.html",
+    "EditExpense.dc.html",
+    "LinkJob.dc.html",
+    "MonthAugust.dc.html",
+    "TcoExplainer.dc.html",
+    "NoteSheet.dc.html"
+  ],
+  "pages": [],
+  "title": "MotoVault — Bike detail redesign"
+}

@@ -5,11 +5,18 @@ import { useAuthStore } from '../stores/auth.store';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function extractRoute(data: Record<string, unknown> | undefined): Href | null {
+/**
+ * A maintenance reminder carries the task it is about (`taskId`): the bike opens
+ * on its Service segment with that task expanded. Other notifications carry only
+ * the bike and land by the hub's default rule. Exported for tests.
+ */
+export function extractRoute(data: Record<string, unknown> | undefined): Href | null {
   if (!data?.motorcycleId) return null;
   const id = String(data.motorcycleId);
   if (!UUID_RE.test(id)) return null; // Security: validate UUID
-  return `/(tabs)/(garage)/bike/${id}`;
+  const taskId = typeof data.taskId === 'string' && UUID_RE.test(data.taskId) ? data.taskId : null;
+  if (!taskId) return `/(tabs)/(garage)/bike/${id}`;
+  return { pathname: '/(tabs)/(garage)/bike/[id]', params: { id, highlightTask: taskId } };
 }
 
 export function useNotificationDeepLink() {

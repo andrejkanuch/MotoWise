@@ -276,6 +276,9 @@ export default function PersonalizingScreen() {
           input: { measurementSystem: onboardingSystem },
         });
         queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
+        // The 00180 sync trigger just rewrote the new bike's distance_unit; the
+        // bike was cached (by completeOnboarding's refetch) in the old unit.
+        queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
       } catch (err) {
         logger.warn('[Personalizing] measurement_system update skipped:', err);
       }

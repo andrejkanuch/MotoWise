@@ -17,7 +17,12 @@ import type { Query } from '@tanstack/react-query';
 import { Alert } from 'react-native';
 import { addBreadcrumb, captureException } from '../analytics';
 import { GRAPHQL_ERROR_CODE } from '../graphql-error-classification';
-import { DOWNGRADE_REASON, downgradeReasonFor, queryClient } from '../query-client';
+import {
+  DOWNGRADE_REASON,
+  downgradeReasonFor,
+  queryClient,
+  resolveFailureHandling,
+} from '../query-client';
 import { QUERY_CRITICALITY, type QueryCriticality, resolveCriticality } from '../query-criticality';
 import { UPSTREAM_SERVICE, UpstreamHttpError } from '../upstream-http-error';
 
@@ -128,6 +133,72 @@ describe('downgradeReasonFor', () => {
 describe('resolveCriticality', () => {
   it('defaults to CRITICAL — silence is opt-in', () => {
     expect(resolveCriticality(undefined)).toBe(QUERY_CRITICALITY.CRITICAL);
+  });
+});
+
+describe('resolveFailureHandling — decided over every observer, never the last-rendered meta', () => {
+  const OPT_OUT = { showErrorAlert: false };
+  const ENHANCEMENT = { criticality: QUERY_CRITICALITY.ENHANCEMENT };
+  const observing = (...metas: Array<Record<string, unknown> | undefined>) => ({
+    // `query.meta` is whatever the last-rendered observer wrote — deliberately
+    // contradicting the observers here, to prove it is not what decides.
+    meta: OPT_OUT,
+    observers: metas.map((meta) => ({ options: { meta } })),
+  });
+
+  it.each([
+    ['opt-out, plain', [OPT_OUT, undefined]],
+    ['plain, opt-out', [undefined, OPT_OUT]],
+    ['enhancement, plain', [ENHANCEMENT, undefined]],
+  ])('keeps the alert when any observer lacks its own error UI (%s)', (_name, metas) => {
+    expect(resolveFailureHandling(observing(...metas)).alertOptOut).toBe(false);
+  });
+
+  it('opts out when every observer renders the failure itself (opt-out or ENHANCEMENT)', () => {
+    expect(resolveFailureHandling(observing(OPT_OUT, ENHANCEMENT, OPT_OUT)).alertOptOut).toBe(true);
+  });
+
+  it('is ENHANCEMENT only when every observer declares it — CRITICAL wins', () => {
+    expect(resolveFailureHandling(observing(ENHANCEMENT, ENHANCEMENT)).criticality).toBe(
+      QUERY_CRITICALITY.ENHANCEMENT,
+    );
+    expect(resolveFailureHandling(observing(ENHANCEMENT, OPT_OUT)).criticality).toBe(
+      QUERY_CRITICALITY.CRITICAL,
+    );
+  });
+
+  it('ignores a disabled observer: it never asked for the fetch, so it cannot veto the opt-out', () => {
+    // Home: its own read opts out; the onboarding checklist's read of the same
+    // key (no meta) is disabled until the expense item is on the checklist.
+    const home = { meta: OPT_OUT, observers: [{ options: { meta: OPT_OUT } }] };
+    const disabledPlain = { options: { meta: undefined, enabled: false } };
+    expect(
+      resolveFailureHandling({ ...home, observers: [...home.observers, disabledPlain] })
+        .alertOptOut,
+    ).toBe(true);
+    // Enabled (or function-valued `enabled`) without meta still keeps the alert.
+    for (const enabled of [true, undefined, () => true]) {
+      const plain = { options: { meta: undefined, enabled } };
+      expect(
+        resolveFailureHandling({ ...home, observers: [...home.observers, plain] }).alertOptOut,
+      ).toBe(false);
+    }
+  });
+
+  it('with only disabled observers, falls back to the query’s own meta like a prefetch', () => {
+    const disabled = { options: { meta: undefined, enabled: false } };
+    expect(resolveFailureHandling({ meta: OPT_OUT, observers: [disabled] }).alertOptOut).toBe(true);
+    expect(resolveFailureHandling({ meta: undefined, observers: [disabled] }).alertOptOut).toBe(
+      false,
+    );
+  });
+
+  it('falls back to the query’s own meta when nothing observes it (prefetch, fetchQuery)', () => {
+    expect(resolveFailureHandling({ meta: OPT_OUT, observers: [] }).alertOptOut).toBe(true);
+    expect(resolveFailureHandling({ meta: undefined, observers: [] })).toEqual({
+      alertOptOut: false,
+      criticality: QUERY_CRITICALITY.CRITICAL,
+    });
   });
 });
 

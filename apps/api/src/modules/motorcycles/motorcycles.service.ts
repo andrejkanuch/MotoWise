@@ -18,7 +18,7 @@ import { RecallResult } from './models/recall.model';
 import { NhtsaService } from './nhtsa.service';
 
 const MOTORCYCLE_SELECT =
-  'id, user_id, make, model, year, nickname, variant, is_primary, primary_photo_url, current_mileage, mileage_unit, mileage_updated_at, type, engine_cc, purchase_price, purchase_date, vin, recall_count, recall_last_checked_at, odometer_sync_source, odometer_last_ride_id, created_at';
+  'id, user_id, make, model, year, nickname, variant, is_primary, primary_photo_url, current_mileage, mileage_unit, distance_unit, mileage_updated_at, type, engine_cc, purchase_price, purchase_date, vin, recall_count, recall_last_checked_at, odometer_sync_source, odometer_last_ride_id, created_at';
 
 @Injectable()
 export class MotorcyclesService {
@@ -279,6 +279,7 @@ export class MotorcyclesService {
       | 'primary_photo_url'
       | 'current_mileage'
       | 'mileage_unit'
+      | 'distance_unit'
       | 'mileage_updated_at'
       | 'type'
       | 'engine_cc'
@@ -304,6 +305,7 @@ export class MotorcyclesService {
       primaryPhotoUrl: row.primary_photo_url ?? undefined,
       currentMileage: row.current_mileage ?? undefined,
       mileageUnit: row.mileage_unit ?? undefined,
+      distanceUnit: row.distance_unit,
       mileageUpdatedAt: row.mileage_updated_at ?? undefined,
       type: row.type ?? undefined,
       engineCc: row.engine_cc ?? undefined,

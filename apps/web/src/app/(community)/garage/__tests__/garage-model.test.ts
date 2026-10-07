@@ -33,6 +33,7 @@ function bike(overrides: Partial<Bike> = {}): Bike {
     year: 2022,
     isPrimary: false,
     currentMileage: 38_423,
+    distanceUnit: 'km',
     createdAt: '2026-01-01T00:00:00Z',
     ...overrides,
   };

@@ -113,21 +113,6 @@ export function formatCurrencyTotals(
     .join(CURRENCY_TOTALS_SEPARATOR);
 }
 
-/** Cost per distance unit, one figure per currency ("€0.12 · $0.03"), or
- *  null when there is no distance or no spend to divide. */
-export function formatCostPerDistance(
-  totals: ReadonlyArray<{ currency: string; total: number }>,
-  distance: number | null | undefined,
-  fallback: Currency = 'USD',
-): string | null {
-  const spent = totals.filter((g) => g.total > 0);
-  if (!distance || distance <= 0 || spent.length === 0) return null;
-  return formatCurrencyTotals(
-    spent.map((g) => ({ currency: g.currency, total: g.total / distance })),
-    fallback,
-  );
-}
-
 export function formatExpenseDate(dateStr: string) {
   const d = new Date(dateStr);
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });

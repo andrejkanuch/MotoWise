@@ -33,8 +33,17 @@ export class Motorcycle {
   @Field(() => Int, { nullable: true })
   currentMileage?: number;
 
-  @Field({ nullable: true })
+  @Field({
+    nullable: true,
+    deprecationReason:
+      'Unreliable legacy column (defaults to mi). Use distanceUnit. Dropped in the R6 cleanup.',
+  })
   mileageUnit?: string;
+
+  // Label only (00180): currentMileage and task distances are raw values in this
+  // unit and are never converted. 'km' | 'mi'.
+  @Field()
+  distanceUnit: string;
 
   @Field({ nullable: true })
   mileageUpdatedAt?: string;

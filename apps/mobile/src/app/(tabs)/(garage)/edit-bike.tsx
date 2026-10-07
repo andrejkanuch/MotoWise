@@ -294,6 +294,8 @@ export default function EditBikeScreen() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+      // An edited mileage is logged as an odometer reading (00181 trigger).
+      queryClient.invalidateQueries({ queryKey: queryKeys.odometer.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.all });
       isDirtyRef.current = false;
       triggerNotification(Haptics.NotificationFeedbackType.Success);

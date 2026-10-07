@@ -12,10 +12,9 @@
 # (preview/standalone build + provisioned user — dev-client/Metro is unsupported
 # because onboarding.yaml uses clearState; see .maestro/README.md).
 #
-# Device notes (see README gotchas): the single-ScrollView hub places expense
-# rows in the floating tab-bar overlap zone, so scroll a below-Expenses section
-# (Documents) into view to lift the row clear before tapping it. The custom
-# keyboard ignores hideKeyboard — dismiss it by tapping a non-interactive label.
+# Device notes (see README gotchas): expenses live on the bike hub's Costs
+# segment. The custom keyboard ignores hideKeyboard — dismiss it by tapping a
+# non-interactive label.
 appId: ${APP_ID}
 env:
   APP_ID: com.motovault.app
@@ -30,25 +29,35 @@ env:
 
 # 2. Open the bike hub (Garage tab a11y carries a badge → partial regex).
 - tapOn:
-    text: ".*Garage.*"
+    text: "Garage(,.*)?" # the tab; ".*Garage.*" also matched Home's "Today in your garage." (Maestro text matching ignores case)
 - tapOn:
     text: ".*Honda.*"
 - extendedWaitUntil:
-    visible: "Expenses"
+    visible: "Overview" # the bike hub's first segment — the header and segment bar are up
     timeout: 20000
+# Expenses live on the Costs segment of the bike hub.
+- tapOn:
+    id: "segment-costs"
+- extendedWaitUntil:
+    visible:
+      id: "segment-panel-costs"
+    timeout: 10000
 
 # 3. CREATE the expense to open (deterministic precondition) via the empty-state
 #    card that routes to Add Expense.
 - scrollUntilVisible:
     element:
-      text: "No expenses yet" # expenses.empty
+      text: "No expenses yet(,.*)?" # expenses.empty
     direction: DOWN
-- tapOn: "No expenses yet"
+- tapOn: "No expenses yet(,.*)?"
 - assertVisible: "AMOUNT" # confirms the Add Expense screen
 - inputText: ${EXPENSE_AMOUNT} # amount field is autoFocused
+- tapOn:
+    text: "CATEGORY" # non-interactive label — dismisses the custom amount keypad first
+    optional: true
 - scrollUntilVisible:
     element:
-      text: "Item name"
+      text: "ITEM NAME.*" # section label (rendered upper-case; merged with "OPTIONAL")
     direction: DOWN
 - tapOn:
     text: ".*What did you buy.*" # itemName placeholder (default category)
@@ -68,21 +77,34 @@ env:
 - tapOn:
     text: "Not Now" # optional store-review prompt
     optional: true
-- extendedWaitUntil:
-    visible: "Done"
+# in-app soft-ask ("Enjoying MotoVault?") can follow a save; it overlays the hub.
+- tapOn:
+    text: "Not really"
+    optional: true
+# …which then asks "Help us improve?" — decline that too.
+- tapOn:
+    text: "Not now"
+    optional: true
+# After saving, the form scrolls back to the top; "Done" replaces the Save
+# button below the fold, so scroll to it rather than wait for it on screen.
+- scrollUntilVisible:
+    element:
+      text: "Done"
+    direction: DOWN
     timeout: 20000
 - tapOn: "Done" # returns to the hub (router.back)
 
-# 4. Lift the row clear of the floating tab bar (bring Documents into view), then
-#    OPEN the detail screen by tapping the row.
+# 4. Back on the Costs segment (the hub remembers it); OPEN the detail screen by
+#    tapping the row. The segment's content is short, so the row sits well above
+#    the action pill and the tab bar.
 - scrollUntilVisible:
     element:
-      text: ".*Documents.*"
+      text: ".*${EXPENSE_ITEM}.*"
     direction: DOWN
 # Row title prefers itemName over description (getExpenseTitle).
-- assertVisible: ${EXPENSE_ITEM}
+- assertVisible: ".*${EXPENSE_ITEM}.*"
 - tapOn:
-    text: ${EXPENSE_ITEM}
+    text: ".*${EXPENSE_ITEM}.*"
 
 # 5. Assert the detail screen rendered its core fields. The header title is
 #    "Expense"; itemName is the hero subtitle; DetailRows include Item name +
@@ -90,14 +112,14 @@ env:
 - extendedWaitUntil:
     visible: "Expense"
     timeout: 20000
-- assertVisible: ${EXPENSE_ITEM}
-- assertVisible: ${EXPENSE_LABEL}
+- assertVisible: ".*${EXPENSE_ITEM}.*"
+- assertVisible: ".*${EXPENSE_LABEL}.*"
 # Amount hero — catch param/hydration bugs that still pass Date/Category asserts.
 - assertVisible: ".*73\\.50.*"
 - assertVisible: "Date"
 - assertVisible: "Category"
 - assertVisible: "Item name"
-- assertVisible: "Delete"
+- assertVisible: "Delete( expense)?" # a11y label expenses.deleteExpense → "Delete expense"
 - takeScreenshot: expense-detail-open
 
 # 6. Back out to the hub — the row is still there (detail is read/act, not a
@@ -108,4 +130,4 @@ env:
 #    on the native back affordance instead.
 - tapOn:
     text: ".*Bike Details.*" # detail screen back-button label (garage stack)
-- assertVisible: ${EXPENSE_ITEM}
+- assertVisible: ".*${EXPENSE_ITEM}.*"

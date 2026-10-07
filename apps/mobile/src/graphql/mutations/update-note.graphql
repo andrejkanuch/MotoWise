@@ -1,0 +1,20 @@
+mutation UpdateNote($id: String!, $input: UpdateNoteInput!) {
+  updateNote(id: $id, input: $input) {
+    id
+    motorcycleId
+    text
+    odometer
+    createdAt
+    updatedAt
+    linkedTaskId
+    linkedTaskTitle
+    linkedExpenseId
+    linkedExpenseAmount
+    linkedExpenseCurrency
+    photos {
+      id
+      storagePath
+      publicUrl
+    }
+  }
+}

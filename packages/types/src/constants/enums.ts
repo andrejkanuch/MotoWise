@@ -155,6 +155,27 @@ export const MileageUnit = {
 } as const;
 export type MileageUnit = (typeof MileageUnit)[keyof typeof MileageUnit];
 
+/**
+ * Type of `motorcycles.distance_unit` (00180). Deliberately an alias of
+ * `MileageUnit`, not a second enum: both are `'mi' | 'km'`. Label only — odometer
+ * and interval values are stored raw in this unit and never converted.
+ */
+export type DistanceUnit = MileageUnit;
+
+/** `odometer_readings.source` (00181). Mirrors the SQL CHECK constraint. */
+export const OdometerReadingSource = {
+  /** Entered by the rider (OdometerSheet, or the legacy edit-bike field). */
+  MANUAL: 'manual',
+  /** Added automatically from a tracked ride's distance at ride end. */
+  GPS_RIDE: 'gps_ride',
+  /** The value a bike was created with. */
+  INITIAL: 'initial',
+  /** Seeded by migration 00181 from the bike's odometer at that time. */
+  BACKFILL: 'backfill',
+} as const;
+export type OdometerReadingSource =
+  (typeof OdometerReadingSource)[keyof typeof OdometerReadingSource];
+
 export const MeasurementSystem = {
   METRIC: 'metric',
   IMPERIAL: 'imperial',

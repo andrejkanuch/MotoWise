@@ -39,15 +39,20 @@ env:
 # 2. Open the bike hub from the Garage tab. The tab label carries a badge count
 #    (e.g. "1, Garage"), so match it as a partial regex.
 - tapOn:
-    text: ".*Garage.*"
+    text: "Garage(,.*)?" # the tab; ".*Garage.*" also matched Home's "Today in your garage." (Maestro text matching ignores case)
 - tapOn:
     text: ".*Honda.*" # the bike added during onboarding setup
 - extendedWaitUntil:
-    visible: "Add task"
+    visible: "Overview" # the bike hub's first segment — the header and segment bar are up
     timeout: 20000
 
 # 3. Create a task with a known title (deterministic precondition for the edit).
-- tapOn: "Add task"
+# The bike hub opens on Overview. Tasks live on the Service segment, whose action
+# pill (icon-only, a11y label "Add a maintenance task") opens the add-task form.
+- tapOn:
+    id: "segment-service"
+- tapOn:
+    id: "action-pill-service"
 - assertVisible: "Priority" # single-element label confirms the add-task screen
 - inputText: ${TASK_TITLE} # title input is autoFocused on open
 - tapOn: "High" # priority pill
@@ -63,6 +68,14 @@ env:
 - tapOn:
     text: "Not Now"
     optional: true
+# in-app soft-ask ("Enjoying MotoVault?") can follow a save; it overlays the hub.
+- tapOn:
+    text: "Not really"
+    optional: true
+# …which then asks "Help us improve?" — decline that too.
+- tapOn:
+    text: "Not now"
+    optional: true
 
 # 4. Find the task and open Edit. "See all" opens the full All Tasks list when
 #    the hub truncates to the top few; harmless no-op (optional) otherwise. The
@@ -72,17 +85,20 @@ env:
     optional: true
 - scrollUntilVisible:
     element:
-      text: ${TASK_TITLE}
+      text: "${TASK_TITLE}(,.*)?"
     direction: DOWN
+# The card's Edit/Done/Delete row only renders once the card is expanded
+# (swipeable-task-card.tsx), so tap the title first.
+- tapOn: "${TASK_TITLE}(,.*)?"
 - tapOn:
     text: "Edit"
     below:
-      text: ${TASK_TITLE}
+      text: "${TASK_TITLE}(,.*)?"
 
 # 5. Verify prefill, then change the title and priority.
-- assertVisible: ${TASK_TITLE} # title prefilled from the cached task
+- assertVisible: "${TASK_TITLE}(,.*)?" # title prefilled from the cached task
 - tapOn:
-    text: ${TASK_TITLE} # focus the title field
+    text: "${TASK_TITLE}(,.*)?" # focus the title field
 - eraseText:
     charactersToErase: 40
 - inputText: ${TASK_TITLE_EDITED}
@@ -102,18 +118,47 @@ env:
 - extendedWaitUntil:
     visible: ${TASK_TITLE_EDITED}
     timeout: 30000
-- assertVisible: ${TASK_TITLE_EDITED}
+- assertVisible: "${TASK_TITLE_EDITED}(,.*)?"
 - assertVisible: ".*Critical.*" # priority badge on the edited card (was High -> Critical)
 - takeScreenshot: edit-maintenance-task-done
 
 # 7. Cleanup — delete the task this flow created so reruns stay deterministic.
+# Expand the edited card if saving collapsed it.
+- runFlow:
+    when:
+      notVisible:
+        text: "Delete"
+        below:
+          text: "${TASK_TITLE_EDITED}(,.*)?"
+    commands:
+      - tapOn: "${TASK_TITLE_EDITED}(,.*)?"
 - tapOn:
     text: "Delete"
     below:
-      text: ${TASK_TITLE_EDITED}
+      text: "${TASK_TITLE_EDITED}(,.*)?"
+# Wait for the confirm alert to finish presenting — a tap during its entrance
+# animation is dropped on iOS 27. The expanded card's own "Delete" action sits
+# under the alert, right of its Cancel, so "Delete" rightOf "Cancel" matches the
+# card first; the alert's button is the second match (index 1). Fall back to
+# the plain selector if the alert is still up (a single match).
+- extendedWaitUntil:
+    visible: "Are you sure.*"
+    timeout: 10000
 - tapOn:
     text: "Delete"
     rightOf:
       text: "Cancel"
-- assertNotVisible:
-    text: ${TASK_TITLE_EDITED}
+    index: 1
+    optional: true
+- runFlow:
+    when:
+      visible: "Are you sure.*"
+    commands:
+      - tapOn:
+          text: "Delete"
+          rightOf:
+            text: "Cancel"
+# The card animates out after the confirm — wait for it rather than assert at once.
+- extendedWaitUntil:
+    notVisible: "${TASK_TITLE_EDITED}(,.*)?"
+    timeout: 15000

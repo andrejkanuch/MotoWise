@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { AlertTriangle, CheckCircle2, Wrench } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { BIKE_ORIGIN } from '../../lib/bike-hub/constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { computeHealthScore, getRelativeDueDate } from '../../lib/health-score';
 import { reconcileMaintenanceReminders } from '../../lib/notifications';
@@ -70,6 +71,7 @@ export function useHomeData() {
     Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me }),
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.odometer.all }),
       queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser }),
       // Broaden to the rides root so every ride-list variant refreshes (MOT-268).
       queryClient.invalidateQueries({ queryKey: queryKeys.rides.all }),
@@ -210,6 +212,7 @@ export function useHomeData() {
             params: {
               id: task.motorcycleId,
               highlightTask: task.id,
+              from: BIKE_ORIGIN.HOME,
               _ts: Date.now().toString(),
             },
           }),
@@ -236,6 +239,7 @@ export function useHomeData() {
             params: {
               id: task.motorcycleId,
               highlightTask: task.id,
+              from: BIKE_ORIGIN.HOME,
               _ts: Date.now().toString(),
             },
           }),

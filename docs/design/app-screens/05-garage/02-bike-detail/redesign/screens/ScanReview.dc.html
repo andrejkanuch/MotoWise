@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scan a receipt — check what was read</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#141210;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#F3EEE6}
+a{color:#F3EEE6;text-decoration:none}a:hover{color:#FFFFFF}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
+input{font-family:inherit;color:#F3EEE6;background:#141210;border:1px solid rgba(255,255,255,0.1);border-radius:12px;font-size:15px;padding:0 14px;box-sizing:border-box;width:100%;height:48px}
+.mono{font-family:'Geist Mono',ui-monospace,monospace}
+.serif{font-family:'Instrument Serif',Georgia,serif}
+.eyebrow{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#9C958A}
+.muted{color:#9C958A}.dim{color:#B5ADA2}.ok{color:#5FC8A0}.soon{color:#F0A050}
+.lbl{font-size:13px;font-weight:600;color:#B5ADA2}
+.field{display:flex;flex-direction:column;gap:6px}
+.read{border-color:rgba(95,200,160,0.45)}
+.unsure{border-color:rgba(240,160,80,0.6)}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;background:#141210">
+<div style="position:absolute;inset:0;background:rgba(10,9,8,0.5)"></div>
+<div style="position:absolute;left:0;right:0;top:64px;bottom:0;background:#1E1C19;border-radius:24px 24px 0 0;display:flex;flex-direction:column;border-top:1px solid rgba(255,255,255,0.08)">
+<div style="display:flex;align-items:center;padding:14px 8px 6px 8px">
+<a href="ScanReceipt.dc.html" style="height:44px;padding:0 10px;display:flex;align-items:center;font-size:15px;font-weight:600;color:#B5ADA2">Retake</a>
+<div class="serif" style="flex:1;text-align:center;font-size:24px">Check the receipt</div>
+<div style="width:72px"></div>
+</div>
+
+<div style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:14px;padding:6px 16px 0 16px">
+
+<div style="display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:14px;background:#141210;border:1px solid rgba(255,255,255,0.06)">
+<div style="width:56px;height:72px;border-radius:8px;background:#EDE8DF;flex:none" aria-label="Receipt photo"></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:3px"><div style="font-size:14px;font-weight:600">Read 4 of 5 fields</div><div class="muted" style="font-size:12px;line-height:16px"><span class="ok">Green</span> = confident · <span class="soon">amber</span> = please check. Nothing is saved until you tap Save.</div></div>
+</div>
+
+<div style="display:flex;gap:8px">
+<div class="field" style="flex:1"><label class="lbl" for="r-amt">Amount <span class="ok">✓</span></label><div style="position:relative"><span class="mono muted" style="position:absolute;left:14px;top:12px;font-size:18px">€</span><input id="r-amt" type="text" class="mono read" value="29.74" style="padding-left:34px;font-size:20px"></div></div>
+<div class="field" style="flex:1"><label class="lbl" for="r-date">Date <span class="ok">✓</span></label><input id="r-date" type="text" class="read" value="Sep 6, 2026"></div>
+</div>
+
+<div style="display:flex;gap:8px">
+<div class="field" style="flex:1"><label class="lbl" for="r-shop">Shop <span class="ok">✓</span></label><input id="r-shop" type="text" class="read" value="Repsol · E.S. Zaragoza"></div>
+<div class="field" style="width:110px"><label class="lbl" for="r-l">Litres <span class="ok">✓</span></label><div style="position:relative"><input id="r-l" type="text" class="mono read" value="18.21"><span class="mono muted" style="position:absolute;right:14px;top:14px;font-size:14px">L</span></div></div>
+</div>
+
+<div class="field"><div class="lbl">Category <span class="soon">· guessed from “sin plomo”</span></div>
+<a href="CategoryPicker.dc.html" class="unsure" style="height:48px;border-radius:12px;background:#141210;border:1px solid;display:flex;align-items:center;gap:10px;padding:0 14px"><span style="width:10px;height:10px;border-radius:3px;background:#E8A040"></span><span style="flex:1;font-size:15px;font-weight:600">Fuel</span><span class="muted" style="font-size:13px">change</span></a>
+</div>
+
+<div class="field"><label class="lbl" for="r-item">Item <span class="muted" style="font-weight:500">· from the receipt line</span></label><input id="r-item" type="text" value="Sin plomo 98"></div>
+
+<div class="field"><label class="lbl" for="r-odo">Odometer <span class="muted" style="font-weight:500">· prefilled from the bike</span></label><div style="position:relative"><input id="r-odo" type="text" class="mono" value="38,167"><span class="mono muted" style="position:absolute;right:14px;top:14px;font-size:14px">km</span></div></div>
+
+<div class="muted" style="font-size:12px;line-height:16px">The photo is attached as the receipt. 2 free scans left after this one; typing is always free.</div>
+
+</div>
+
+<div style="padding:12px 16px 34px 16px;border-top:1px solid rgba(255,255,255,0.06)">
+<a href="CostsScrolled.dc.html" style="height:52px;border-radius:14px;background:#D4622E;color:#1A1410;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center">Save expense · €29.74</a>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

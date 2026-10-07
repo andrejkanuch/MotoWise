@@ -109,6 +109,7 @@ function invalidateForRecord(recordType: string, motorcycleId: string, odometerT
   }
   if (odometerTouched) {
     queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.odometer.all });
   }
 }
 
