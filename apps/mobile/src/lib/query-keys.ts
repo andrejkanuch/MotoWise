@@ -55,6 +55,17 @@ export const queryKeys = {
   expensePhotos: {
     byExpense: (expenseId: string) => ['expense-photos', expenseId] as const,
   },
+  odometer: {
+    /** Prefix of every odometer key — invalidate it after any write that moves `currentMileage`. */
+    all: ['odometer'] as const,
+    readings: (motorcycleId: string) =>
+      [...queryKeys.odometer.all, 'readings', motorcycleId] as const,
+    pendingRides: (motorcycleId: string) =>
+      [...queryKeys.odometer.all, 'pendingRides', motorcycleId] as const,
+  },
+  notes: {
+    byMotorcycle: (motorcycleId: string) => ['notes', 'byMotorcycle', motorcycleId] as const,
+  },
   receiptScans: {
     /** Server-authoritative monthly used-count (drives the client paywall gate). */
     quota: ['receipt-scans', 'quota'] as const,

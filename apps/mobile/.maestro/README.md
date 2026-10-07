@@ -64,6 +64,24 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   on-device 2026-07-15.** Uses `setLocation` for a GPS fix; ends via a long-press ("Hold to end
   ride") + a point-tap on the "End Anyway" bottom-sheet confirm (buttons not in the a11y tree).
   `test:e2e:log-ride`.
+- **`flows/bike-hub-overview.yaml`** — the redesigned bike screen (bike-detail redesign R1): four
+  segments, Overview "Log" pill → Log sheet → Note sheet → save, the Notes screen with delete + Undo,
+  and the Odometer sheet from the header chip. Needs a backend with migrations 00180–00182 (see
+  `features/bike-detail-shell-overview/local-stack.md`). **Authored from source 2026-10-02, pending
+  on-device validation.** `test:e2e:bike-hub`.
+  The same redesign moved the entry points the older bike flows use — there is no quick-action grid
+  and no More (⋯) menu any more. `add-expense`, `complete-maintenance-task`, `edit-maintenance-task`,
+  `log-past-work` and `units-display-toggle` now wait for the **"Overview"** segment, switch with
+  `id: segment-<overview|service|costs|bike>` and open forms through the action pill
+  (`id: action-pill-<segment>`; icon-only except on Overview) or the Log sheet
+  (`id: log-option-<expense|task|past_work|note|document>`). `delete-expense`,
+  `delete-expense-long-press`, `expense-detail` and `expense-service-record` reach expenses through
+  `id: segment-costs` (the expense rows are no longer at the bottom of one long scroll, so the old
+  "scroll Documents into view to lift the row clear of the tab bar" step is gone). Task-card
+  Edit/Done/Delete render only once the card is expanded — tap the title first. The header odometer
+  chip's iOS accessibility label is "Odometer <value> <unit>, tap to update", so assert it by
+  `id: bike-header-odometer` with a pattern that accepts both forms. Their updated steps are **not
+  yet re-validated on a device**.
 - **`flows/units-display-toggle.yaml`** — odometer unit label (PR #165). Odometer values are stored
   RAW in the user's global unit (no km normalization), so toggling the global Units preference flips
   the bike-hub odometer **label** between **mi** and **km** on the same bike (guards the hardcoded-"km"
@@ -176,3 +194,29 @@ Hard-won specifics for THIS app — check these first when a flow "should work" 
   resolution-sensitive; prefer a real selector whenever `inspect_screen` exposes one.
 - **GPS-dependent flows need `setLocation`.** The ride pre-flight GPS check and recording need a fix;
   set one at the top of the flow (a stationary sim logs ~0 distance, which still saves).
+
+## Verified on a local stack (2026-10-07)
+
+All ten bike flows (`add-expense`, `complete-maintenance-task`, `bike-hub-overview`,
+`units-display-toggle`, `delete-expense`, `delete-expense-long-press`, `expense-detail`,
+`expense-service-record`, `edit-maintenance-task`, `log-past-work`) were run end to end on an
+iOS 27 simulator against a Release build pointed at a local Supabase + API
+(`features/bike-detail-shell-overview/local-stack.md`). Lessons that shaped the selectors:
+
+- **Text matching ignores case.** `".*Garage.*"` matched Home's "Today in your garage." and
+  `".*Profile.*"` matched "Complete your bike profile". Anchor tab taps: `"Garage(,.*)?"`.
+- **iOS merges a pressable's child texts into one label** ("E2E Complete Me, HIGH",
+  "No expenses yet, Track your fuel…"). Match row titles with `"${TITLE}(,.*)?"` (keeps an
+  edited title distinct) or `".*${TEXT}.*"` when the title is not first.
+- **Onboarding must pick a model.** `complete_onboarding` creates the bike only when make, model
+  and year are all set; a make-only "Add to my garage" leaves the garage empty. Tap the model
+  chip directly — typing a query makes the search field's value match too.
+- **Consent screen** ("Help shape MotoVault") follows Welcome where the country rule asks; the
+  flow declines it.
+- **Review soft-ask** ("Enjoying MotoVault?" → "Help us improve?") can follow any save and
+  overlays the hub; dismiss "Not really" then "Not now" (both optional).
+- **Alerts on iOS 27**: wait for the message before tapping, and beware an expanded task card's
+  own "Delete" under the alert matching `rightOf: Cancel`.
+- **Build**: a sim build needs ad-hoc signing (`CODE_SIGN_IDENTITY=-`, `CODE_SIGNING_ALLOWED=YES`)
+  or SecureStore cannot persist the session ("Your session has expired" right after sign-in), and
+  `SENTRY_DISABLE_AUTO_UPLOAD=true` or the bundle phase fails without a Sentry token.

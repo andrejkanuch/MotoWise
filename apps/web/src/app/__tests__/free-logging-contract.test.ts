@@ -209,7 +209,7 @@ describe('price copy contract (web)', () => {
       .replace("'$0.00'", '');
     expect(src).not.toMatch(/\$\d+\.\d{2}/);
     expect(src).not.toMatch(/-30%/);
-    expect(src).toContain('webBillingProduct.currentPrice');
+    expect(src).toContain('product.currentPrice');
   });
 
   it('the static /pro page reads prices only from lib/web-pricing', () => {

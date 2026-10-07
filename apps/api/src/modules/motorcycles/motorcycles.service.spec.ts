@@ -23,6 +23,7 @@ describe('MotorcyclesService', () => {
     primary_photo_url: 'https://example.com/photo.jpg',
     current_mileage: 5000,
     mileage_unit: 'km',
+    distance_unit: 'km',
     mileage_updated_at: '2024-06-01T00:00:00Z',
     type: 'sport',
     engine_cc: 471,
@@ -40,6 +41,7 @@ describe('MotorcyclesService', () => {
     primaryPhotoUrl: 'https://example.com/photo.jpg',
     currentMileage: 5000,
     mileageUnit: 'km',
+    distanceUnit: 'km',
     mileageUpdatedAt: '2024-06-01T00:00:00Z',
     type: 'sport',
     engineCc: 471,
@@ -71,6 +73,28 @@ describe('MotorcyclesService', () => {
       // Garage list must filter out soft-deleted bikes (deleted_at IS NULL)
       expect(isMock).toHaveBeenCalledWith('deleted_at', null);
       expect(result).toEqual([expectedMapped]);
+    });
+
+    it('maps distance_unit to distanceUnit and selects the column', async () => {
+      const selectMock = vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          is: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue({
+                // The deprecated mileage_unit disagrees on purpose: it must not leak in.
+                data: [{ ...sampleRow, mileage_unit: 'km', distance_unit: 'mi' }],
+                error: null,
+              }),
+            }),
+          }),
+        }),
+      });
+      (mockUserClient.from as ReturnType<typeof vi.fn>).mockReturnValue({ select: selectMock });
+
+      const [bike] = await service.findByUser('user-1');
+
+      expect(bike.distanceUnit).toBe('mi');
+      expect(selectMock).toHaveBeenCalledWith(expect.stringContaining('distance_unit'));
     });
 
     it('should throw InternalServerErrorException on query error', async () => {

@@ -22,9 +22,14 @@
 # per .maestro/README.md: tab a11y labels carry a badge (match tabs as partial
 # regex); the odometer value + unit are sibling Text nodes, so assert the unit
 # node ("mi"/"km") on its own rather than a combined regex.
-# TO VERIFY ON DEVICE: that exactly one standalone "mi"/"km" node is the odometer
-# chip (if the OEM maintenance-interval rows also surface a bare unit node, anchor
-# the assertion with `below:`/`rightOf:` a stable nearby label).
+# Bike hub (bike-detail redesign R1): the header odometer chip (testID
+# bike-header-odometer) reads "<value> <unit>", or "Set odometer" when the bike
+# has no reading. Its accessibility label is "Odometer <value> <unit>, tap to
+# update", which is what Maestro sees on iOS, so the assertion pins the chip by id
+# and accepts either form. The flow first records a reading through the
+# Odometer sheet so the chip carries a unit at all. The unit is the bike's
+# distance_unit, which the 00180 sync trigger keeps equal to the profile unit;
+# the profile mutation refetches bikes so the hub follows the toggle.
 appId: ${APP_ID}
 env:
   APP_ID: com.motovault.app
@@ -34,7 +39,7 @@ env:
 
 # 2. Set Imperial, then confirm the bike hub odometer chip reads "mi".
 - tapOn:
-    text: ".*Profile.*"
+    text: "Profile(,.*)?" # the tab; ".*Profile.*" also matched Home's "Complete your bike profile"
 - scrollUntilVisible:
     element:
       text: "Units"
@@ -42,19 +47,47 @@ env:
 - tapOn:
     text: ".*Imperial.*" # Imperial (mi, °F)
 - tapOn:
-    text: ".*Garage.*"
+    text: "Garage(,.*)?" # the tab; ".*Garage.*" also matched Home's "Today in your garage." (Maestro text matching ignores case)
 - tapOn:
     text: ".*Honda.*"
 - extendedWaitUntil:
-    visible: "Add task"
+    visible: "Overview" # the bike hub's first segment — the header and segment bar are up
     timeout: 20000
-- assertVisible:
-    text: "mi"
+# Give the bike a reading so the chip shows "<value> <unit>" (the app's own
+# keypad — no system keyboard). If the bike already had a higher reading, the
+# optional "Save" answers the lower-than-last confirmation.
+- tapOn:
+    id: "bike-header-odometer"
+- extendedWaitUntil:
+    visible:
+      id: "odometer-save"
+    timeout: 10000
+- tapOn:
+    id: "key-1"
+- tapOn:
+    id: "key-2"
+- tapOn:
+    id: "key-3"
+- tapOn:
+    id: "key-4"
+- tapOn:
+    id: "key-5"
+- waitForAnimationToEnd # Save stays disabled until the readings history has loaded
+- tapOn:
+    id: "odometer-save"
+- tapOn:
+    text: "Save" # lower-than-last confirmation (common.save)
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "bike-header-odometer"
+      text: "(Odometer )?[0-9,.]+ mi(,.*)?" # "<value> mi" or its a11y label
+    timeout: 10000
 - takeScreenshot: units-label-imperial
 
 # 3. Switch to Metric; the SAME bike's odometer chip must now read "km".
 - tapOn:
-    text: ".*Profile.*"
+    text: "Profile(,.*)?" # the tab; ".*Profile.*" also matched Home's "Complete your bike profile"
 - scrollUntilVisible:
     element:
       text: "Units"
@@ -62,12 +95,15 @@ env:
 - tapOn:
     text: ".*Metric.*" # Metric (km, °C)
 - tapOn:
-    text: ".*Garage.*"
+    text: "Garage(,.*)?" # the tab; ".*Garage.*" also matched Home's "Today in your garage." (Maestro text matching ignores case)
 - tapOn:
     text: ".*Honda.*"
 - extendedWaitUntil:
-    visible: "Add task"
+    visible: "Overview" # the bike hub's first segment — the header and segment bar are up
     timeout: 20000
-- assertVisible:
-    text: "km"
+- extendedWaitUntil:
+    visible:
+      id: "bike-header-odometer"
+      text: "(Odometer )?[0-9,.]+ km(,.*)?" # same reading, now labelled km
+    timeout: 10000
 - takeScreenshot: units-label-metric

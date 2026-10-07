@@ -119,6 +119,41 @@ export async function uploadMaintenancePhoto(
 }
 
 /**
+ * Upload a photo for a bike note.
+ *
+ * Same public 'maintenance-photos' bucket and compression as task photos, under
+ * `{userId}/notes/{noteId}/…` — the prefix `addNotePhoto` requires. The bucket
+ * policy only checks that the first folder is the uid, so no new policy.
+ */
+export async function uploadNotePhoto(
+  uri: string,
+  userId: string,
+  noteId: string,
+): Promise<{ storagePath: string; fileSizeBytes: number }> {
+  const bytes = await readImageBytes(uri);
+  const filePath = `${userId}/notes/${noteId}/${Date.now()}.webp`;
+  const { error } = await supabase.storage.from(MAINTENANCE_PHOTOS_BUCKET).upload(filePath, bytes, {
+    contentType: WEBP_CONTENT_TYPE,
+    upsert: false,
+  });
+  if (error) throw error;
+  return { storagePath: filePath, fileSizeBytes: bytes.byteLength };
+}
+
+/**
+ * Best-effort removal of a note photo object that never got its `note_photos`
+ * row (the upload worked, `addNotePhoto` did not). Never throws: the worst case
+ * is the orphan this tries to clean up.
+ */
+export async function removeNotePhotoObject(storagePath: string): Promise<void> {
+  try {
+    await supabase.storage.from(MAINTENANCE_PHOTOS_BUCKET).remove([storagePath]);
+  } catch {
+    // Orphan stays; nothing references it.
+  }
+}
+
+/**
  * Upload a scanned receipt to the PRIVATE `receipts` bucket (KTD-8/KTD-2).
  *
  * Path is exactly `{userId}/{scanId}.webp` — the server derives the same path

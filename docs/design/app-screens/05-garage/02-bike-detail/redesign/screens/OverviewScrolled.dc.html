@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bike detail — Overview, scrolled</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#141210;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#F3EEE6}
+a{color:#F3EEE6;text-decoration:none}a:hover{color:#FFFFFF}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
+.mono{font-family:'Geist Mono',ui-monospace,monospace}
+.serif{font-family:'Instrument Serif',Georgia,serif}
+.card{background:#1E1C19;border:1px solid rgba(255,255,255,0.06);border-radius:16px}
+.eyebrow{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#9C958A}
+.tag{font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:0.06em;font-weight:500;padding:3px 6px;border-radius:5px;line-height:12px}
+.t-crit{background:#3A1A16;color:#FF7A6B}.t-high{background:#3A2412;color:#F0A050}.t-med{background:#172538;color:#7DA9F0}.t-low{background:#2A2824;color:#A39B8F}
+.late{color:#FF7A6B}.soon{color:#F0A050}.ok{color:#5FC8A0}.muted{color:#9C958A}.dim{color:#B5ADA2}
+.seg{flex:none;height:36px;padding:0 14px;min-width:72px;box-sizing:border-box;border-radius:10px;font-size:13px;font-weight:600;color:#B5ADA2;display:flex;align-items:center;justify-content:center;gap:6px}
+.seg-on{background:#2A2724;color:#F3EEE6}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:500;color:#9C958A}
+.stat{flex:1;display:flex;flex-direction:column;gap:2px}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;background:#141210;display:flex;flex-direction:column">
+
+<div style="padding:54px 12px 0 12px;background:#141210;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;align-items:center;gap:4px;height:48px">
+<a href="Main.dc.html" aria-label="Back to Garage" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:12px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></a>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center">
+<div class="serif" style="font-size:22px;line-height:24px">Africa Twin</div>
+<div class="eyebrow" style="font-size:10px">2022 · Honda</div>
+</div>
+<a href="OdometerSheet.dc.html" class="mono" aria-label="Odometer 38,167 km, tap to update" style="height:36px;padding:0 12px;border-radius:10px;background:#1E1C19;border:1px solid rgba(255,255,255,0.08);font-size:13px;font-weight:500;color:#F3EEE6;display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9C958A" stroke-width="2" stroke-linecap="round"><path d="M4 16a8 8 0 1 1 16 0"/><path d="M12 16l4-5"/></svg>38,167 km</a>
+</div>
+<div style="display:flex;gap:6px;padding:0 4px 8px 4px;overflow-x:auto">
+<a class="seg seg-on" href="Main.dc.html">Overview</a>
+<a class="seg" href="ServiceActive.dc.html">Service<span class="mono" style="min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#3A1A16;color:#FF7A6B;font-size:11px;display:flex;align-items:center;justify-content:center">1</span></a>
+<a class="seg" href="Costs.dc.html">Costs</a>
+<a class="seg" href="Bike.dc.html">Bike</a>
+</div>
+</div>
+
+<div style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:12px 16px 0 16px">
+
+<!-- Costs summary -->
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;align-items:baseline;justify-content:space-between;padding:4px 2px 0 2px">
+<div class="eyebrow">Costs · 2026</div>
+<a href="Costs.dc.html" style="font-size:13px;font-weight:600;color:#E07A48">Full analytics</a>
+</div>
+<a href="Costs.dc.html" class="card" style="display:flex;flex-direction:column;gap:14px;padding:16px">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+<div style="display:flex;flex-direction:column;gap:2px">
+<div class="mono" style="font-size:32px;line-height:34px;font-weight:500;letter-spacing:-0.02em">€1,960.62</div>
+<div style="font-size:13px"><span class="soon">▲ 12%</span><span class="muted"> vs same period of 2025</span></div>
+</div>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C958A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+</div>
+<div style="height:8px;border-radius:4px;overflow:hidden;display:flex;gap:2px">
+<div style="width:25%;background:#8B7CE8"></div>
+<div style="width:20%;background:#3FBF9A"></div>
+<div style="width:13%;background:#E8A040"></div>
+<div style="width:12%;background:#5B8DEF"></div>
+<div style="width:12%;background:#D4622E"></div>
+<div style="width:18%;background:#4A4640"></div>
+</div>
+<div style="display:flex;gap:12px;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px">
+<div class="stat"><div class="eyebrow" style="font-size:10px">This month</div><div class="mono" style="font-size:16px;font-weight:500">€0.00</div></div>
+<div class="stat"><div class="eyebrow" style="font-size:10px">Per month · 2026</div><div class="mono" style="font-size:16px;font-weight:500">€218</div></div>
+<div class="stat"><div class="eyebrow" style="font-size:10px">Top category</div><div style="font-size:14px;font-weight:600;color:#B9AEF5">Insurance 25%</div></div>
+</div>
+</a>
+</div>
+
+<!-- Notes -->
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;align-items:baseline;justify-content:space-between;padding:4px 2px 0 2px">
+<div class="eyebrow">Notes · 5</div>
+<a href="Notes.dc.html" style="font-size:13px;font-weight:600;color:#E07A48">All notes</a>
+</div>
+<div class="card" style="display:flex;flex-direction:column">
+<a href="Notes.dc.html" style="display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.06)">
+<div style="font-size:14px;line-height:19px">Rear preload felt soft two-up on the Pyrenees run — check sag before the next trip.</div>
+<div class="muted mono" style="font-size:12px">Sep 28 · 38,100 km</div>
+</a>
+<a href="Notes.dc.html" style="display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.06)">
+<div style="font-size:14px;line-height:19px">Pattex Nural 50 on the pannier bracket, cured fine. Keep an eye on the left mount.</div>
+<div class="muted mono" style="font-size:12px">Aug 26 · 37,950 km</div>
+</a>
+<div style="display:flex;align-items:center;gap:10px;padding:10px 14px">
+<label for="quick-note" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Add a note</label>
+<input id="quick-note" type="text" placeholder="Jot something down…" style="flex:1;height:36px;background:#141210;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:0 12px;color:#F3EEE6;font-family:inherit;font-size:14px">
+<a href="NoteSheet.dc.html" aria-label="Write a longer note" style="height:36px;padding:0 12px;border-radius:10px;background:#D4622E;color:#1A1410;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Note</a>
+</div>
+</div>
+</div>
+
+<!-- Documents + Bike rows -->
+<div style="display:flex;flex-direction:column;gap:8px">
+<div class="eyebrow" style="padding:4px 2px 0 2px">Papers &amp; bike</div>
+<div class="card" style="display:flex;flex-direction:column">
+<a href="Bike.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 12px 12px 14px;border-bottom:1px solid rgba(255,255,255,0.06)">
+<div style="width:36px;height:36px;border-radius:10px;background:#2A2724;display:flex;align-items:center;justify-content:center;flex:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B5ADA2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:3px"><div style="font-size:15px;font-weight:600">Documents</div><div style="font-size:13px"><span class="soon">Insurance expires in 12 days</span><span class="muted"> · 4 stored</span></div></div>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C958A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+</a>
+<a href="BikeDetails.dc.html" style="display:flex;align-items:center;gap:12px;padding:12px 12px 12px 14px">
+<div style="width:36px;height:36px;border-radius:10px;background:#2A2724;display:flex;align-items:center;justify-content:center;flex:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B5ADA2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3"/><circle cx="18.5" cy="17.5" r="3"/><path d="M5.5 17.5 9 10h6l3.5 7.5M9 10l-2-3h3"/></svg></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:3px"><div style="font-size:15px;font-weight:600">2022 Honda Africa Twin</div><div class="dim" style="font-size:13px">CRF1100L · bought June 2022 · €11,800</div></div>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C958A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+</a>
+</div>
+</div>
+
+</div>
+
+<a href="LogSheet.dc.html" style="position:absolute;right:16px;bottom:104px;height:52px;padding:0 20px 0 16px;border-radius:26px;background:#D4622E;color:#1A1410;font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,0.45)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Log</a>
+
+<div style="position:absolute;left:0;right:0;bottom:0;height:88px;background:rgba(20,18,16,0.96);border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:flex-start;padding:10px 8px 0 8px">
+<div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</div>
+<div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15 9-2 6-4 0 2-6z"/></svg>Discover</div>
+<div class="tab"><div style="width:56px;height:56px;border-radius:28px;background:#2E8B57;margin-top:-26px;display:flex;align-items:center;justify-content:center;border:3px solid #141210"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg></div></div>
+<div class="tab" style="color:#E07A48"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3"/><circle cx="18.5" cy="17.5" r="3"/><path d="M5.5 17.5 9 10h6l3.5 7.5M9 10l-2-3h3"/></svg>Garage</div>
+<div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Profile</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

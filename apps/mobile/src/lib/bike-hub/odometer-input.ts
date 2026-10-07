@@ -1,0 +1,176 @@
+import { ODOMETER_MAX } from '@motovault/types';
+import { differenceInCalendarDays, endOfDay, isSameDay } from 'date-fns';
+import {
+  DELTA_DIRECTION,
+  type DeltaDirection,
+  ODOMETER_CONFIRM,
+  ODOMETER_ERROR,
+  ODOMETER_KEY,
+  ODOMETER_MAX_DIGITS,
+  type OdometerConfirm,
+  type OdometerError,
+  type OdometerKey,
+} from './constants';
+
+const KEY_HANDLERS: Record<
+  (typeof ODOMETER_KEY)[keyof typeof ODOMETER_KEY],
+  (digits: string) => string
+> = {
+  [ODOMETER_KEY.DELETE]: (digits) => digits.slice(0, -1),
+  [ODOMETER_KEY.CLEAR]: () => '',
+};
+
+function isControlKey(key: OdometerKey): key is keyof typeof KEY_HANDLERS {
+  return key in KEY_HANDLERS;
+}
+
+/**
+ * Next keypad entry after a key press. At most `ODOMETER_MAX_DIGITS` digits and
+ * no leading zero: a lone "0" is replaced by the next digit.
+ */
+export function applyKey(digits: string, key: OdometerKey): string {
+  if (isControlKey(key)) return KEY_HANDLERS[key](digits);
+  if (digits === '0') return key;
+  if (digits.length >= ODOMETER_MAX_DIGITS) return digits;
+  return `${digits}${key}`;
+}
+
+/** The keypad entry as a number; `null` when nothing is entered. */
+export function parseEntry(digits: string): number | null {
+  return digits === '' ? null : Number.parseInt(digits, 10);
+}
+
+/**
+ * A quick-add chip adds to the current entry; from an empty entry it adds to the
+ * last reading. Capped at `ODOMETER_MAX`.
+ */
+export function applyQuickAdd(
+  entry: number | null,
+  lastValue: number | null | undefined,
+  delta: number,
+): number {
+  return Math.min(ODOMETER_MAX, (entry ?? lastValue ?? 0) + delta);
+}
+
+export type ReadingValidation =
+  | { ok: true; backdated: boolean }
+  | { ok: false; needsConfirm: OdometerConfirm }
+  | { ok: false; error: OdometerError };
+
+export interface ReadingInput {
+  value: number | null;
+  lastValue: number | null | undefined;
+  /** The day the rider picked. */
+  recordedAt: Date;
+  /** `recordedAt` of the latest logged reading — an exact timestamp. */
+  lastRecordedAt: Date | null | undefined;
+  today: Date;
+}
+
+/**
+ * The timestamp a reading is saved with. Today's reading is stamped by the
+ * server at save time (`null` here); a reading for an earlier day is stamped at
+ * the END of that local day, so it sorts after anything already logged that day.
+ */
+export function readingTimestamp(pickedDay: Date, today: Date): Date | null {
+  return isSameDay(pickedDay, today) ? null : endOfDay(pickedDay);
+}
+
+/**
+ * True when the server will log the reading without moving the bike's odometer:
+ * `log_odometer_reading` (00181) only applies a reading when no logged reading
+ * has a later timestamp. Decided on the timestamp that is actually sent, not on
+ * calendar days — a reading for "yesterday" after yesterday's 18:00 reading
+ * still applies; one for yesterday when a reading exists from this morning does not.
+ */
+export function isBackdated(
+  pickedDay: Date,
+  lastRecordedAt: Date | null | undefined,
+  today: Date,
+): boolean {
+  const sentAt = readingTimestamp(pickedDay, today);
+  // Today's reading is stamped "now" by the server: never older than a logged one.
+  if (!sentAt || !lastRecordedAt) return false;
+  return sentAt.getTime() < lastRecordedAt.getTime();
+}
+
+/**
+ * Checks a reading before it is saved. A back-dated reading (see `isBackdated`)
+ * is history being filled in — it is accepted as is and does not move the bike's
+ * odometer. Otherwise an unchanged value is rejected and a lower one needs the
+ * rider's confirmation (a typo must stay correctable).
+ */
+export function validateReading(input: ReadingInput): ReadingValidation {
+  const { value, lastValue, recordedAt, lastRecordedAt, today } = input;
+  if (value === null) return { ok: false, error: ODOMETER_ERROR.EMPTY };
+  if (differenceInCalendarDays(recordedAt, today) > 0) {
+    return { ok: false, error: ODOMETER_ERROR.FUTURE_DATE };
+  }
+  const backdated = isBackdated(recordedAt, lastRecordedAt, today);
+  if (backdated || lastValue == null) return { ok: true, backdated };
+  if (value === lastValue) return { ok: false, error: ODOMETER_ERROR.UNCHANGED };
+  if (value < lastValue) return { ok: false, needsConfirm: ODOMETER_CONFIRM.LOWER_THAN_LAST };
+  return { ok: true, backdated: false };
+}
+
+export interface OdometerDelta {
+  direction: DeltaDirection;
+  /** Absolute difference to the last reading. */
+  amount: number;
+}
+
+/** Difference between the entry and the last reading; `null` without a last reading. */
+export function describeDelta(
+  value: number | null,
+  lastValue: number | null | undefined,
+): OdometerDelta | null {
+  if (value === null || lastValue == null) return null;
+  const difference = value - lastValue;
+  if (difference === 0) return { direction: DELTA_DIRECTION.FLAT, amount: 0 };
+  return {
+    direction: difference > 0 ? DELTA_DIRECTION.UP : DELTA_DIRECTION.DOWN,
+    amount: Math.abs(difference),
+  };
+}
+
+/**
+ * The reading a new entry is compared with: the higher of the latest logged
+ * reading and the bike's odometer (`null` when neither is known). A ride end or
+ * receipt scan can move the odometer before the readings query refetches.
+ */
+export function odometerBaseline(
+  logged: number | null | undefined,
+  current: number | null | undefined,
+): number | null {
+  const known = [logged, current].filter((value): value is number => value != null);
+  return known.length > 0 ? Math.max(...known) : null;
+}
+
+export interface BaselineTimeInput {
+  /** The latest logged reading from the (possibly stale) readings query. */
+  latest: { value: number; recordedAt: string } | null | undefined;
+  /** The bike's odometer and when it last moved (`motorcycles.mileage_updated_at`). */
+  currentMileage: number | null | undefined;
+  mileageUpdatedAt: string | null | undefined;
+  /** Used when the time is unknown: every past day then counts as back-dated. */
+  now: Date;
+}
+
+/**
+ * When the baseline (`odometerBaseline`) was recorded — what back-dating is
+ * judged against. When the bike's odometer is ahead of the latest logged
+ * reading, the readings cache is stale (a ride end or receipt scan logged a
+ * newer one): the bike's `mileageUpdatedAt` stands in for that reading's time.
+ * If even that is missing, `now` is returned, so a past-dated entry gets the
+ * safe "logged as history" notice rather than a promise the server won't keep.
+ */
+export function baselineRecordedAt(input: BaselineTimeInput): Date | null {
+  const { latest, currentMileage, mileageUpdatedAt, now } = input;
+  const loggedAt = latest ? new Date(latest.recordedAt) : null;
+  // 0 / null is a never-set odometer (no reading to be stale against).
+  const cacheIsStale = (currentMileage ?? 0) > (latest?.value ?? 0);
+  if (!cacheIsStale) return loggedAt;
+  if (!mileageUpdatedAt) return now;
+  const movedAt = new Date(mileageUpdatedAt);
+  return loggedAt && loggedAt > movedAt ? loggedAt : movedAt;
+}

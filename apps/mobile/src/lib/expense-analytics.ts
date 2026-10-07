@@ -11,6 +11,8 @@ import { AnalyticsEvent, trackEvent } from './analytics';
 export const EXPENSE_ENTRY_SOURCE = {
   /** The Add Expense form, opened from the garage / dashboard / quick actions. */
   MANUAL: 'manual',
+  /** The Add Expense form opened from the bike hub (Log sheet, Costs pill, Costs segment). */
+  BIKE_HUB: 'bike_hub',
   /** The Add Expense form pre-filled from a failed or partial receipt scan. */
   RECEIPT_SCAN_FALLBACK: 'receipt_scan_fallback',
   /** The quick logger on the ride summary. */

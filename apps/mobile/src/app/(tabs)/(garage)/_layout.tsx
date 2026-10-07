@@ -1,6 +1,7 @@
 import { palette } from '@motovault/design-system';
 import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { HUB_SHEET_RADIUS, hub } from '../../../components/bike-hub/ui/tokens';
 import { ErrorFallback } from '../../../components/error-fallback';
 import { captureException } from '../../../lib/analytics';
 import { useEditorialTheme } from '../../../theme/editorial';
@@ -17,6 +18,7 @@ export default function GarageLayout() {
   const sheetSurface = isDark ? palette.neutral900 : palette.neutral50;
   const sheetContentStyle = { backgroundColor: sheetSurface };
   const sheetHeaderStyle = { backgroundColor: sheetSurface };
+  const hubSheetContentStyle = { backgroundColor: hub.card };
 
   return (
     <Stack
@@ -37,6 +39,49 @@ export default function GarageLayout() {
         options={{
           title: t('garage.bikeDetails', { defaultValue: 'Bike Details' }),
           headerShown: false,
+        }}
+      />
+      {/* Bike hub sheets (bike-detail redesign R1). Dark hub card surface in both
+          colour schemes; each screen draws its own title row. */}
+      <Stack.Screen
+        name="log-entry"
+        options={{
+          presentation: 'formSheet',
+          headerShown: false,
+          sheetGrabberVisible: true,
+          sheetCornerRadius: HUB_SHEET_RADIUS,
+          sheetAllowedDetents: 'fitToContents',
+          contentStyle: hubSheetContentStyle,
+        }}
+      />
+      <Stack.Screen
+        name="odometer"
+        options={{
+          presentation: 'formSheet',
+          headerShown: false,
+          sheetGrabberVisible: true,
+          sheetCornerRadius: HUB_SHEET_RADIUS,
+          sheetAllowedDetents: 'fitToContents',
+          contentStyle: hubSheetContentStyle,
+        }}
+      />
+      <Stack.Screen
+        name="note"
+        options={{
+          presentation: 'formSheet',
+          headerShown: false,
+          sheetGrabberVisible: true,
+          sheetCornerRadius: HUB_SHEET_RADIUS,
+          sheetAllowedDetents: [1.0],
+          contentStyle: hubSheetContentStyle,
+        }}
+      />
+      <Stack.Screen
+        name="notes"
+        options={{
+          presentation: 'card',
+          headerShown: false,
+          contentStyle: { backgroundColor: hub.ground },
         }}
       />
       <Stack.Screen

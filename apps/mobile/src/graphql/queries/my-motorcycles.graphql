@@ -11,6 +11,7 @@ query MyMotorcycles {
     primaryPhotoUrl
     currentMileage
     mileageUnit
+    distanceUnit
     mileageUpdatedAt
     purchasePrice
     purchaseDate

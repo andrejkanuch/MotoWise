@@ -1,11 +1,18 @@
+import type { Offering } from '@revenuecat/purchases-js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getRevenueCatCustomerInfo, resetRevenueCatReadCacheForTests } from '../revenuecat';
+import {
+  CUSTOM_PAYWALL_IDS,
+  getRevenueCatCustomerInfo,
+  resetRevenueCatReadCacheForTests,
+  trackCustomPaywallImpression,
+} from '../revenuecat';
 
 const { isConfigured, configure, getSharedInstance, instance } = vi.hoisted(() => {
   const instance = {
     getCustomerInfo: vi.fn(),
     getAppUserId: vi.fn(),
     changeUser: vi.fn(),
+    trackCustomPaywallImpression: vi.fn(),
   };
   return {
     isConfigured: vi.fn(),
@@ -146,5 +153,43 @@ describe('getRevenueCatCustomerInfo', () => {
     await expect(getRevenueCatCustomerInfo('user-a')).rejects.toThrow('network');
     await expect(getRevenueCatCustomerInfo('user-a')).resolves.toBe(info);
     expect(instance.getCustomerInfo).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('trackCustomPaywallImpression', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const offering = { identifier: 'default-web' } as unknown as Offering;
+
+  it('reports the paywall id and the offering that rendered it', async () => {
+    isConfigured.mockReturnValue(true);
+    await expect(
+      trackCustomPaywallImpression(CUSTOM_PAYWALL_IDS.WEB_CHECKOUT, offering),
+    ).resolves.toBe(true);
+    expect(instance.trackCustomPaywallImpression).toHaveBeenCalledTimes(1);
+    expect(instance.trackCustomPaywallImpression).toHaveBeenCalledWith({
+      paywallId: 'web_checkout',
+      offering,
+    });
+  });
+
+  it('does nothing when the SDK is not configured', async () => {
+    isConfigured.mockReturnValue(false);
+    await expect(
+      trackCustomPaywallImpression(CUSTOM_PAYWALL_IDS.WEB_CHECKOUT, offering),
+    ).resolves.toBe(false);
+    expect(instance.trackCustomPaywallImpression).not.toHaveBeenCalled();
+  });
+
+  it('never throws when the SDK call fails', async () => {
+    isConfigured.mockReturnValue(true);
+    instance.trackCustomPaywallImpression.mockImplementationOnce(() => {
+      throw new Error('boom');
+    });
+    await expect(
+      trackCustomPaywallImpression(CUSTOM_PAYWALL_IDS.WEB_CHECKOUT, offering),
+    ).resolves.toBe(false);
   });
 });

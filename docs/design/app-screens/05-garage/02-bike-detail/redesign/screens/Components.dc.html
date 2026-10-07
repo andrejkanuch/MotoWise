@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Component sheet — bike detail</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#141210;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#F3EEE6}
+a{color:#F3EEE6;text-decoration:none}a:hover{color:#FFFFFF}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
+.mono{font-family:'Geist Mono',ui-monospace,monospace}
+.serif{font-family:'Instrument Serif',Georgia,serif}
+.card{background:#1E1C19;border:1px solid rgba(255,255,255,0.06);border-radius:16px}
+.eyebrow{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#9C958A}
+.tag{font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:0.06em;font-weight:500;padding:3px 0;border-radius:5px;line-height:12px;width:44px;text-align:center;flex:none}
+.t-crit{background:#3A1A16;color:#FF7A6B}.t-high{background:#3A2412;color:#F0A050}.t-med{background:#172538;color:#7DA9F0}.t-low{background:#2A2824;color:#A39B8F}
+.late{color:#FF7A6B}.soon{color:#F0A050}.ok{color:#5FC8A0}.muted{color:#9C958A}.dim{color:#B5ADA2}
+.sec{display:flex;flex-direction:column;gap:10px}
+.h{font-family:'Instrument Serif',Georgia,serif;font-size:24px}
+.rule{font-size:12px;line-height:17px;color:#B5ADA2}
+.task{display:flex;align-items:center;gap:12px;padding:10px 6px 10px 12px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.task:last-child{border-bottom:0}
+.done{width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex:none}
+.done span{width:26px;height:26px;border-radius:13px;border:1.5px solid #9C958A;display:block}
+.ttl{font-size:15px;font-weight:600;line-height:18px}.due{font-size:13px;line-height:16px}
+.sw{display:flex;flex-direction:column;gap:4px;flex:1}
+.sw div{height:34px;border-radius:8px}
+.sw span{font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;color:#9C958A}
+</style>
+</helmet>
+<div style="width:1240px;height:1180px;box-sizing:border-box;padding:40px;background:#141210;display:flex;flex-direction:column;gap:28px">
+
+<div style="display:flex;align-items:baseline;justify-content:space-between">
+<div style="display:flex;flex-direction:column;gap:4px"><h1 class="serif" style="margin:0;font-size:40px;font-weight:400">Bike detail — components</h1><div class="dim" style="font-size:14px">Plus Jakarta Sans for interface · Instrument Serif for the bike name, sheet titles and ride status only · Geist Mono for every number, tag and eyebrow.</div></div>
+<div class="eyebrow">MotoVault · dark · Oct 2026</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:28px">
+
+<!-- Column 1 -->
+<div style="display:flex;flex-direction:column;gap:24px">
+
+<div class="sec">
+<div class="h">Surfaces &amp; signal colours</div>
+<div style="display:flex;gap:6px">
+<div class="sw"><div style="background:#141210;border:1px solid rgba(255,255,255,0.08)"></div><span>ground 141210</span></div>
+<div class="sw"><div style="background:#1E1C19"></div><span>card 1E1C19</span></div>
+<div class="sw"><div style="background:#2A2724"></div><span>raised 2A2724</span></div>
+<div class="sw"><div style="background:#D4622E"></div><span>copper D4622E</span></div>
+</div>
+<div style="display:flex;gap:6px">
+<div class="sw"><div style="background:#FF7A6B"></div><span>late / critical</span></div>
+<div class="sw"><div style="background:#F0A050"></div><span>soon / high</span></div>
+<div class="sw"><div style="background:#7DA9F0"></div><span>medium</span></div>
+<div class="sw"><div style="background:#5FC8A0"></div><span>ready / ok</span></div>
+</div>
+<div class="rule">Copper is for actions only — never for status, never a chart highlight. Status colours carry text, dots and tag fills; they never flood a whole card. Under deuteranopia and in amber night mode the late/soon/ok hues converge, so colour never carries meaning alone: every status has words beside it and both charts carry per-bar accessibility labels. Muted grey is #9C958A (4.5:1 on raised surfaces); circle strokes and grips use it too.</div>
+</div>
+
+<div class="sec">
+<div class="h">Priority tag &amp; due text</div>
+<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;gap:8px;align-items:center"><span class="tag t-crit">CRIT</span><span class="tag t-high">HIGH</span><span class="tag t-med">MED</span><span class="tag t-low">LOW</span><span class="muted" style="font-size:12px">44 px wide, mono, fixed column</span></div>
+<div style="display:flex;flex-direction:column;gap:4px;font-size:13px">
+<div><span class="late">201 days late</span><span class="muted"> · 3,933 km to target</span></div>
+<div><span class="soon">In 2 days</span><span class="muted"> · or in 8,733 km</span></div>
+<div class="dim">In 9,833 km<span class="muted"> · Honda schedule</span></div>
+</div>
+</div>
+<div class="rule">Priority is always the tag; lateness is always the due line. They never replace each other. The due line leads with whichever limit is closer (time or distance) as remaining or elapsed, in the rider's unit, then the other limit in grey. Colour: red when past, amber within 30 days or 2,000 km (1,200 mi), otherwise plain.</div>
+</div>
+
+<div class="sec">
+<div class="h">Section header</div>
+<div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 2px"><div class="eyebrow">Needs attention · 6</div><a href="Components.dc.html" style="font-size:13px;font-weight:600;color:#E07A48">All</a></div>
+<div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 2px"><div class="eyebrow late">Overdue · 4</div><div class="muted" style="font-size:12px">priority, then lateness</div></div>
+<div class="rule">One header style everywhere: mono eyebrow with a count, optional copper text action on the right or a grey rule-of-sorting hint. No serif section titles — the serif is reserved for the bike name, sheet titles and the ride-status line.</div>
+</div>
+
+</div>
+
+<!-- Column 2 -->
+<div style="display:flex;flex-direction:column;gap:24px">
+
+<div class="sec">
+<div class="h">Task row</div>
+<div class="card" style="display:flex;flex-direction:column;overflow:hidden">
+<div class="task" style="background:#241715"><span class="tag t-crit">CRIT</span><div style="flex:1;display:flex;flex-direction:column;gap:3px"><div class="ttl">Rear brake shoes</div><div class="due"><span class="late">38 days late · 420 mi past target</span></div></div><button class="done" aria-label="Mark done"><span style="border-color:#FF7A6B"></span></button></div>
+<div class="task"><span class="tag t-low">LOW</span><div style="flex:1;display:flex;flex-direction:column;gap:3px"><div class="ttl">Chain tension</div><div class="due"><span class="late">12 days late</span><span class="muted"> · 180 mi to target</span></div></div><button class="done" aria-label="Mark done"><span></span></button></div>
+<div class="task"><span class="tag t-high">HIGH</span><div style="flex:1;display:flex;flex-direction:column;gap:3px"><div class="ttl">Engine oil &amp; filter</div><div class="due"><span class="soon">In 1,833 km</span><span class="muted"> · or by Jan 10</span></div></div><button class="done" aria-label="Mark done"><span></span></button></div>
+<div class="task"><span class="tag t-med">MED</span><div style="flex:1;display:flex;flex-direction:column;gap:3px"><div class="ttl">Brake fluid</div><div class="due dim">Mar 2027<span class="muted"> · Honda schedule</span></div></div><button class="done" aria-label="Mark done"><span></span></button></div>
+<div class="task"><span class="mono" style="width:46px;flex:none;font-size:13px;font-weight:500">Jul 16</span><div style="flex:1;display:flex;flex-direction:column;gap:2px"><div class="ttl">2nd scheduled service</div><div class="due dim">37,300 km · dealer · oil, filter, inspection</div></div><span class="mono" style="font-size:14px;padding-right:8px">€241.46</span></div>
+</div>
+<div class="rule">Four states, one anatomy: tag · title + due · mark-done circle (44 px, thumb side). Only an overdue <em>Critical</em> row gets a tinted background; an overdue Low keeps a plain card so the list stays ranked, not alarmed. History rows swap the tag for the date and the circle for the cost — full-contrast text, no strikethrough. In code the row is a View with two sibling Pressables (title block opens the task; the circle completes it) plus accessibilityActions “Mark done” and “Reorder” — never a button inside a link. Tap the circle = instant complete with today + current odometer, success haptic, 180 ms fill, then a 5 s snackbar “Done · Add details · Undo”. Swipe right also completes; swipe left reveals Edit · Delete; long-press opens a context menu with preview. In “My order” a grip appears <em>left</em> of the tag; the circle stays. Long-press (Android) or “Select” in the sort menu (iOS) enters multi-select.</div>
+</div>
+
+<div class="sec">
+<div class="h">Alert</div>
+<div class="card" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-color:rgba(240,160,80,0.35);background:#241D15"><div style="width:10px;height:10px;border-radius:5px;background:#F0A050"></div><div style="flex:1;display:flex;flex-direction:column;gap:2px"><div class="serif" style="font-size:22px;line-height:24px">Check before riding</div><div class="dim" style="font-size:13px">2 open recalls · 1 overdue high-priority task</div></div></div>
+<div style="display:flex;gap:8px">
+<div class="card" style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px;border-color:rgba(255,122,107,0.35);background:#2A1512"><div style="width:10px;height:10px;border-radius:5px;background:#FF5A4A"></div><div class="serif" style="font-size:18px">Not ready</div></div>
+<div class="card" style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px;border-color:rgba(95,200,160,0.3);background:#152019"><div style="width:10px;height:10px;border-radius:5px;background:#5FC8A0"></div><div class="serif" style="font-size:18px">Ready to ride</div></div>
+</div>
+<a href="Components.dc.html" class="card" style="display:flex;align-items:center;gap:12px;padding:12px 12px 12px 14px"><div style="width:36px;height:36px;border-radius:10px;background:#3A1A16;display:flex;align-items:center;justify-content:center;flex:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF7A6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4M12 16h.01"/></svg></div><div style="flex:1;display:flex;flex-direction:column;gap:3px"><div class="ttl">2 open safety recalls</div><div class="late" style="font-size:13px">Fuel-injection ECU stall · handlebar switch</div></div><span class="tag t-crit">SAFETY</span></a>
+<div class="rule">Ride status is three words, not a percentage: <em>Not ready</em> = an overdue Critical task or an expired document the law requires (insurance, inspection, registration); <em>Check before riding</em> = an open recall, an overdue High, or a required document expiring within 30 days; <em>Ready</em> otherwise; a bike with nothing tracked shows neutral “Nothing tracked yet”. Overdue Low and Medium never change it. The card links to the top attention row. Attention rows rank: recalls → overdue Critical/High → expiring documents → other overdue → due-soon; max three, then a “N more” row. The Service badge counts only overdue Critical/High. A recall carries a per-rider state — open, fixed (date, shop, odometer, linked to history), not my VIN, or snoozed four weeks — so the status can return to Ready; open recalls that mention stall, brakes, steering, fuel or fire are CRIT, the rest HIGH.</div>
+</div>
+
+</div>
+
+<!-- Column 3 -->
+<div style="display:flex;flex-direction:column;gap:24px">
+
+<div class="sec">
+<div class="h">Stat</div>
+<div class="card" style="display:flex;overflow:hidden">
+<div style="flex:1;display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-right:1px solid rgba(255,255,255,0.06)"><div class="eyebrow" style="font-size:10px">This month</div><div class="mono" style="font-size:17px;font-weight:500">€0.00</div><div class="muted" style="font-size:11px">Sep: €65.62</div></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:3px;padding:12px 14px"><div class="eyebrow" style="font-size:10px">Per month</div><div class="mono" style="font-size:17px;font-weight:500">€218</div><div class="muted" style="font-size:11px">9 months</div></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:2px;padding:4px 2px"><div class="eyebrow">Spent Jan 1 – Oct 2, 2026</div><div class="mono" style="font-size:34px;line-height:36px;font-weight:500;letter-spacing:-0.02em">€1,960.62</div><div style="font-size:13px"><span class="soon">▲ €212 · 12%</span><span class="muted"> more than the same period of 2025</span></div></div>
+<div class="rule">A stat is eyebrow · mono value · one-line basis. The basis line is mandatory: it says what period and what denominator, so the three money figures on the bike page can never disagree silently. No cost-per-distance figure anywhere — riders do not think in money per kilometre. Stats are never tappable on their own; the card that holds them is.</div>
+</div>
+
+<div class="sec">
+<div class="h">Buttons</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<button style="height:52px;border-radius:14px;background:#D4622E;color:#1A1410;font-size:16px;font-weight:700">Primary · Save task</button>
+<div style="display:flex;gap:8px">
+<button style="flex:1;height:48px;border-radius:14px;background:#2A2724;font-size:15px;font-weight:600">Secondary</button>
+<button style="height:48px;padding:0 14px;border-radius:12px;background:#2A2724;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>Small</button>
+<button style="height:52px;padding:0 20px 0 16px;border-radius:26px;background:#D4622E;color:#1A1410;font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Log</button>
+</div>
+<div style="display:flex;gap:16px;align-items:center;padding:4px 2px"><a href="Components.dc.html" style="font-size:13px;font-weight:600;color:#E07A48">Text action</a><button style="font-size:14px;font-weight:600;color:#FF7A6B">Delete task</button></div>
+</div>
+<div class="rule">One primary per screen, always copper with dark ink (4.8:1 — white on copper fails). Secondary is the raised grey. Destructive is red text only, never a filled button, and lives at the bottom of a sheet or detail; tasks, notes and expenses delete with a 5 s Undo snackbar instead of a dialog, documents and the bike keep a typed confirm. The floating action sits above the tab bar, thumb side, with a 96 px list inset under it: labelled “Log” on Overview (it opens a chooser), icon-only on Service / Costs / Bike where it opens that segment’s form directly. Every control is at least 44 pt (48 dp on Android) with hitSlop on the small chips. Height 52 / 48 / 36 for primary / secondary / small; radius 14 on continuous curves.</div>
+</div>
+
+<div class="sec">
+<div class="h">Header &amp; segments</div>
+<div style="display:flex;flex-direction:column;gap:8px;padding:8px 8px 8px 8px;border-radius:14px;background:#141210;border:1px solid rgba(255,255,255,0.08)">
+<div style="display:flex;align-items:center;gap:4px;height:44px"><div style="width:44px;display:flex;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div><div style="flex:1;display:flex;flex-direction:column;align-items:center"><div class="serif" style="font-size:22px;line-height:24px">Africa Twin</div><div class="eyebrow" style="font-size:10px">2022 · Honda</div></div><div class="mono" style="height:36px;padding:0 12px;border-radius:10px;background:#1E1C19;border:1px solid rgba(255,255,255,0.08);font-size:13px;display:flex;align-items:center">38,167 km</div></div>
+<div style="display:flex;gap:4px"><div style="flex:1;height:36px;border-radius:10px;background:#2A2724;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center">Overview</div><div style="flex:1;height:36px;border-radius:10px;font-size:13px;font-weight:600;color:#B5ADA2;display:flex;align-items:center;justify-content:center;gap:6px">Service<span class="mono" style="min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#3A1A16;color:#FF7A6B;font-size:11px;display:flex;align-items:center;justify-content:center">1</span></div><div style="flex:1;height:36px;border-radius:10px;font-size:13px;font-weight:600;color:#B5ADA2;display:flex;align-items:center;justify-content:center">Costs</div><div style="flex:1;height:36px;border-radius:10px;font-size:13px;font-weight:600;color:#B5ADA2;display:flex;align-items:center;justify-content:center">Bike</div></div>
+</div>
+<div class="rule">The header never scrolls away; on scroll the name and chip merge into one 44 px row. Back label is origin-aware (Garage, Home, Profile). The odometer chip is the only odometer on the page and the only place to edit it — a sheet with a numeric pad, on both platforms. Distance unit is a property of the bike (km or mi, set in Edit bike), never converted on the bike’s own screens; only Home totals convert to the profile unit. Segments have 14 px side padding and the bar scrolls horizontally when a badge or large text makes it wider than the screen; on Android it renders as Material tabs. The Service segment carries the overdue Critical/High count; nothing else gets a badge.</div>
+</div>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1240,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

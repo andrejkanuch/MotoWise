@@ -18,7 +18,12 @@ import { useAuthStore } from '../stores/auth.store';
 
 // --- Types ---
 
-type SyncOperationType = 'startRide' | 'uploadWaypoints' | 'endRide' | 'updateRide' | 'deleteRide';
+export type SyncOperationType =
+  | 'startRide'
+  | 'uploadWaypoints'
+  | 'endRide'
+  | 'updateRide'
+  | 'deleteRide';
 
 // Lookup map: resolve GraphQL documents from operation type string.
 // TypedDocumentNode objects can't be serialized to MMKV JSON, so we
@@ -164,6 +169,29 @@ let onDeadLetter: ((deadLetterCount: number) => void) | null = null;
 
 export function setDeadLetterListener(listener: ((deadLetterCount: number) => void) | null): void {
   onDeadLetter = listener;
+}
+
+// Notified after each op reaches the server, so the app can refresh what it
+// changed — `endRide` moves the bike's odometer (and logs a reading, 00181), and
+// an offline ride's endRide lands long after the summary screen's own refetch.
+// Registered once from the root layout.
+let onDelivered: ((type: SyncOperationType) => void) | null = null;
+
+export function setDeliveredListener(listener: ((type: SyncOperationType) => void) | null): void {
+  onDelivered = listener;
+}
+
+/** A delivered op is final: a throwing listener must never turn it into a
+ *  failure (and dead-letter it with its dependents), so its errors stop here. */
+function notifyDelivered(type: SyncOperationType): void {
+  try {
+    onDelivered?.(type);
+  } catch (error) {
+    captureException(error instanceof Error ? error : new Error(String(error)), {
+      source: 'ride-sync-queue.onDelivered',
+      type,
+    });
+  }
 }
 
 // --- Monotonic sequence counter ---
@@ -588,6 +616,7 @@ async function drainPass(): Promise<void> {
       await executeSyncOperation(op);
       // Delivered — drop just this op from the live queue and advance.
       removeOpBySeq(op.seq);
+      notifyDelivered(op.type);
     } catch (error) {
       if (isNetworkError(error) || isAuthError(error)) {
         // Transient outage: stop draining and leave this op + everything after

@@ -30,27 +30,61 @@ env:
     timeout: 120000
 - tapOn: "Let's get started"
 
+# 1b. Analytics consent (block C, #261) — shown where the country rule asks for
+# it. Decline so the run sends no analytics.
+- extendedWaitUntil:
+    visible: ".*How long have you.*|Help shape MotoVault"
+    timeout: 15000
+- runFlow:
+    when:
+      visible: "Help shape MotoVault"
+    commands:
+      - tapOn: "Don't allow"
+
 # 2. Experience (auto-advances after selecting)
 - assertVisible: ".*How long have you.*"
 - tapOn: ".*Just getting started.*"
 
-# 3. Frequency (auto-advances)
-- tapOn: ".*Almost daily.*"
-
-# 4. Stay-on-top (multi-select → Continue)
-- tapOn: ".*Never miss a service.*"
-- tapOn: "Continue"
-
-# 5. Last service (pick a chip → Continue)
-- tapOn: ".*Just did it.*"
-- tapOn: "Continue"
+# 3–5. Frequency, stay-on-top and last-service screens. The current onboarding
+# order goes from Experience straight to Bike setup; these run only if a variant
+# still shows them.
+- runFlow:
+    when:
+      visible: ".*Almost daily.*"
+    commands:
+      - tapOn: ".*Almost daily.*"
+- runFlow:
+    when:
+      visible: ".*Never miss a service.*"
+    commands:
+      - tapOn: ".*Never miss a service.*"
+      - tapOn: "Continue"
+- runFlow:
+    when:
+      visible: ".*Just did it.*"
+    commands:
+      - tapOn: ".*Just did it.*"
+      - tapOn: "Continue"
 
 # 6. Bike setup — MUST add a bike to keep bike-dependent screens reachable.
 # Fail-open regression (P2): with no web intent seeded, bike-setup MUST render
 # the normal make grid, never the "Is this your ride?" intent confirmation.
-- assertVisible: "Popular makes"
+- extendedWaitUntil:
+    visible: "(?i)Popular makes"
+    timeout: 15000
 - assertNotVisible: "Is this your ride?"
 - tapOn: ".*Honda.*"
+# Pick a MODEL too: complete_onboarding only creates the bike when make, model
+# and year are all set — a make-only "Add to my garage" leaves the garage empty
+# and every bike flow composed on this one fails.
+# Tap the model chip directly (no typing — a typed query makes the search
+# field's own value match "Africa Twin" too).
+- scrollUntilVisible:
+    element: "Africa Twin"
+    direction: DOWN
+    timeout: 20000
+- tapOn: "Africa Twin"
+- assertVisible: ".*Africa Twin.*"
 - tapOn: "Add to my garage"
 
 # 7. Building plan (auto) → 8. Reveal

@@ -40,6 +40,7 @@ import { MAINTENANCE_COMPLETION_SURFACE } from '../../../lib/maintenance-analyti
 import { cancelTaskNotification } from '../../../lib/notifications';
 import { queryKeys } from '../../../lib/query-keys';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
+import { invalidateAfterTaskCompletion } from '../../../lib/task-completion-cache';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 import { convertIntervalDistance } from '../../../utils/maintenance-interval';
@@ -143,11 +144,8 @@ export default function CompleteTaskScreen() {
       setTimeout(() => router.back(), 800);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.maintenanceTasks.allUser,
+      invalidateAfterTaskCompletion(queryClient, motorcycleId, {
+        hasCost: taskCompletionExpenseAmount(cost) !== null,
       });
     },
     onError: (_err: Error) => {
