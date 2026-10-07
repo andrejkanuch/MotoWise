@@ -6,15 +6,16 @@ import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 /**
  * How the variant was decided.
  *
- * `shipped` is the only source new installs produce, as of the 2026-08-24
- * experiment retirement — one flow ships, so there is nothing to evaluate and
- * nothing to fall back from.
+ * Onboarding paywall A/B (2026-10-07): `posthog` = the flag answered with an
+ * arm; `fallback` = the flag answered with a disabled/unknown value (kill
+ * switch); `local` = PostHog could not be asked (analytics off before consent,
+ * or the fetch failed) so the arm was drawn on-device.
  *
- * `posthog` and `fallback` are RETIRED but must stay in the union: ~423 installs
- * have one of them persisted in MMKV, and narrowing the type would make those
- * stored records fail to parse.
+ * `shipped` is the 2026-08-24 → 2026-10-07 source and stays in the union for
+ * the installs that persisted it, as do the earlier `posthog`/`fallback` records
+ * of the retired 2026 experiment.
  */
-export type VariantSource = 'shipped' | 'posthog' | 'fallback' | 'override';
+export type VariantSource = 'shipped' | 'posthog' | 'fallback' | 'local' | 'override';
 
 interface ExperimentState {
   /**

@@ -331,6 +331,7 @@ describe('analytics contract survives the retirement', () => {
   });
 
   it('attaches variant, step, and step_index to every onboarding event', async () => {
+    useExperimentStore.getState().assignVariant(OB_VARIANT.SHIPPED, 'shipped');
     await resolveOnboardingVariant();
 
     trackOnboardingEvent('onboarding_step_viewed', OB_SCREEN.REVEAL, { foo: 'bar' });
@@ -372,25 +373,19 @@ describe('getPrimaryConcern', () => {
   });
 });
 
-describe('resolveOnboardingVariant after the retirement', () => {
-  it('assigns `shipped` to a new install without touching PostHog', async () => {
+// New-install assignment (PostHog flag, kill switch, local draw) is covered in
+// onboarding-paywall-ab.test.ts. This block keeps the guarantees for installs
+// that persisted a value before 2026-10-07.
+describe('resolveOnboardingVariant for installs assigned before 2026-10-07', () => {
+  it('returns a persisted `shipped` untouched and re-registers it', async () => {
+    useExperimentStore.getState().assignVariant(OB_VARIANT.SHIPPED, 'shipped');
+
     const variant = await resolveOnboardingVariant();
 
     expect(variant).toBe('shipped');
-    expect(useExperimentStore.getState().onboardingVariant).toBe('shipped');
     expect(useExperimentStore.getState().source).toBe('shipped');
-    // No flag fetch: there is nothing left to evaluate, so onboarding no longer
-    // waits on the network at all.
     expect(mockPosthog.reloadFeatureFlagsAsync).not.toHaveBeenCalled();
-  });
-
-  it('stops emitting $feature_flag_called for the stopped experiment', async () => {
-    await resolveOnboardingVariant();
     expect(mockPosthog.capture).not.toHaveBeenCalled();
-  });
-
-  it('registers onboarding_variant as a super AND person property', async () => {
-    await resolveOnboardingVariant();
     expect(mockPosthog.register).toHaveBeenCalledWith({ onboarding_variant: 'shipped' });
     expect(mockSetUserProperties).toHaveBeenCalledWith({ onboarding_variant: 'shipped' });
   });
@@ -412,24 +407,11 @@ describe('resolveOnboardingVariant after the retirement', () => {
   });
 
   it('is sticky across repeated calls', async () => {
+    useExperimentStore.getState().assignVariant(OB_VARIANT.SHIPPED, 'shipped');
     const first = await resolveOnboardingVariant();
     const second = await resolveOnboardingVariant();
     expect(second).toBe(first);
     expect(useExperimentStore.getState().source).toBe('shipped');
-  });
-
-  it('assigns even when analytics consent is off', async () => {
-    // Assignment must not depend on reporting. (Note: this is NOT the
-    // explanation for the 33 null-variant users seen in PostHog — those are all
-    // on builds 3.8.0/3.9.0/3.3.0, which predate the assignment code. A
-    // consent-off user emits no events at all, so cannot appear there.)
-    mockAnalyticsEnabled = false;
-
-    const variant = await resolveOnboardingVariant();
-
-    expect(variant).toBe('shipped');
-    expect(useExperimentStore.getState().onboardingVariant).toBe('shipped');
-    expect(mockPosthog.register).not.toHaveBeenCalled();
   });
 
   it('dev EXPO_PUBLIC_OB_VARIANT override still forces a legacy arm for QA', async () => {
@@ -453,7 +435,7 @@ describe('resolveOnboardingVariant after the retirement', () => {
 
 describe('flow config invariants', () => {
   it('exposes a flow for every declared variant', () => {
-    expect(Object.keys(ONBOARDING_FLOWS).sort()).toEqual(ALL_VARIANTS.slice().sort());
+    expect(Object.keys(ONBOARDING_FLOWS).sort()).toEqual(Object.values(OB_VARIANT).sort());
   });
 
   it('has no duplicate screens in the flow', () => {

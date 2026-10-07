@@ -2,8 +2,7 @@ import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import {
   getNextRoute,
-  getStepIndex,
-  getTotalScreens,
+  getVisibleProgress,
   OB_VARIANT,
   type ObVariant,
   type OnboardingRoute,
@@ -12,23 +11,24 @@ import { useExperimentStore } from '../stores/experiment.store';
 import { useOnboardingStore } from '../stores/onboarding.store';
 
 /**
- * Reactive onboarding variant. CONTROL while unassigned — pre-experiment users
- * and any path that races assignment degrade to the V4 behavior. In practice
- * `(onboarding)/_layout` blocks rendering until assignment, so step screens
- * always see the real variant.
+ * Reactive onboarding variant. `shipped` (the paywall-free flow) while
+ * unassigned, matching `getOnboardingVariant`. In practice `(onboarding)/_layout`
+ * blocks rendering until assignment, so step screens always see the real variant.
  */
 export function useOnboardingVariant(): ObVariant {
-  return useExperimentStore((s) => s.onboardingVariant) ?? OB_VARIANT.CONTROL;
+  return useExperimentStore((s) => s.onboardingVariant) ?? OB_VARIANT.SHIPPED;
 }
 
-/** Progress-bar coordinates of a screen within the active variant's flow. */
+/**
+ * Progress-bar coordinates of a screen over the screens this rider actually
+ * sees (bike state decides whether reveal/commitment or no-bike-value show), so
+ * the bar ends full instead of skipping or overshooting segments.
+ */
 export function useOnboardingStep(route: OnboardingRoute) {
   const variant = useOnboardingVariant();
-  return {
-    variant,
-    stepIndex: getStepIndex(variant, route),
-    totalScreens: getTotalScreens(variant),
-  };
+  const hasBike = useOnboardingStore((s) => !!s.bikeData?.make);
+  const { index, total } = getVisibleProgress(variant, route, { hasBike });
+  return { variant, stepIndex: index, totalScreens: total };
 }
 
 /**

@@ -1,55 +1,48 @@
-import { isObVariant, OB_VARIANT, type ObVariant } from '../config/onboarding';
+import {
+  type AssignableObVariant,
+  isAssignableObVariant,
+  isObVariant,
+  OB_VARIANT,
+  type ObVariant,
+  ONBOARDING_EXPERIMENT,
+} from '../config/onboarding';
 import { useExperimentStore, type VariantSource } from '../stores/experiment.store';
 import { isAnalyticsEnabled, posthogClient, setUserProperties } from './analytics';
 
 // -------------------------------------------------------------------
-// Onboarding variant resolution — post-experiment
+// Onboarding variant resolution — onboarding paywall A/B (2026-10-07)
 // -------------------------------------------------------------------
-// The 2026 A/B experiment (PostHog 83476, flag `onboarding_ab_2026`) is RETIRED
-// as of 2026-08-24: `lean` won on onboarding completion (40.5% vs 29.4%) and
-// bike-add (75.2% vs 64.7%), each at roughly p≈0.02, and one flow now ships.
+// History: the 2026 A/B experiment (PostHog 83476, flag `onboarding_ab_2026`)
+// was retired on 2026-08-24 and every new install got the paywall-free
+// `shipped` flow. On 2026-10-07 the owner overruled the paywall removal, and new
+// installs are again split — between `garage_first` and `commit_first` — by the
+// flag in `ONBOARDING_EXPERIMENT.FLAG_KEY`.
 //
-// What that means here:
-//   * assignment no longer consults PostHog at all. There is no flag fetch, no
-//     2s network budget, and no offline-fallback branch — a single flow cannot
-//     fail to be assigned, so `resolveOnboardingVariant` is now synchronous
-//     work wrapped in a resolved promise. New installs get `shipped`.
-//   * the READ path is untouched. ~423 installs have `lean`, `invested` or
-//     `control` persisted in MMKV, and every one of those values still resolves
-//     (all four map to the same flow in ONBOARDING_FLOWS). Nobody is re-rolled,
-//     reset, or stranded mid-onboarding.
-//   * `onboarding_variant` is still registered as a super property and a person
-//     property. Deliberately: it is the only record of which flow a given user
-//     went through, and clearing it would destroy the ability to read the arms'
-//     retention retrospectively. Retiring the arms is not deleting the concept.
-//   * `$feature_flag_called` is no longer emitted. The flag is stopped, so
-//     continuing to report exposures for it would add rows to a series nobody
-//     can act on and make the stopped experiment look live.
+// Rules:
+//   * Assignment is sticky per install (first write wins in the store) and is
+//     never re-rolled. `shipped` and the three retired arms stay valid
+//     read-only values; installs holding one keep their paywall-free flow.
+//   * PostHog answers with an assignable value → that value, source `posthog`.
+//   * PostHog answers with anything else (flag disabled, deleted, unknown
+//     value) → the kill switch, `garage_first`, source `fallback`.
+//   * PostHog cannot be asked (analytics off — every EEA/UK/CH install before
+//     consent — or the fetch fails/times out) → uniform on-device draw, source
+//     `local`. A fixed default here would put all of Europe in one arm and turn
+//     the comparison into a market comparison.
+//   * `$feature_flag_called` is emitted for every assignment made while
+//     analytics is on, with `locally_defaulted` marking non-PostHog values.
 //
-// On the "33 NULL variant" users the plan flagged: NOT an assignment failure.
-// Checked against PostHog 2026-08-24 — all 33 are on app versions 3.8.0 (29),
-// 3.9.0 (3) and 3.3.0 (1), i.e. builds that predate the assignment code
-// entirely. They are the slow-updating tail, not a bug.
-//
-// It is specifically NOT analytics consent, which was the intuitive guess: with
-// consent off `trackEvent` no-ops (see analytics.ts), so those users emit no
-// events at all and cannot show up in PostHog as a null-variant cohort.
-//
-// Assignment is total by construction now — every install gets a value on first
-// launch, and an unassigned read degrades to `shipped` rather than to a variant
-// whose flow no longer exists.
-//
-// Related: `control` accumulated 8 users despite a 0% rollout, via the old
-// "flag fetched but disabled/unknown value" branch. That branch is gone.
+// Only a store binary that contains this code can enroll fresh installs: the
+// first launch persists a variant before any OTA could apply.
 // -------------------------------------------------------------------
 
 const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
 
 /**
- * Dev-only variant override, kept so QA can still exercise a LEGACY value and
- * confirm a persisted `invested` / `control` install completes the shipped flow
- * without a reset. Set `EXPO_PUBLIC_OB_VARIANT=invested` in the dev shell. No
- * effect in release builds.
+ * Dev-only variant override so QA can exercise either experiment arm (or a
+ * legacy value). Set `EXPO_PUBLIC_OB_VARIANT=commit_first` in the dev shell. No
+ * effect in release builds — PostHog is disabled in __DEV__ (analytics.ts), so
+ * without this every dev install would draw locally.
  */
 function getDevVariantOverride(): ObVariant | null {
   if (!isDev) return null;
@@ -68,17 +61,79 @@ function registerVariantWithAnalytics(variant: ObVariant) {
   setUserProperties({ onboarding_variant: variant });
 }
 
-/** Source recorded for a post-experiment assignment. */
-const SHIPPED_SOURCE: VariantSource = 'shipped';
+const FETCH_TIMEOUT = Symbol('flag-fetch-timeout');
+
+async function reloadFlagsWithTimeout(): Promise<Record<string, boolean | string> | undefined> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const result = await Promise.race([
+      posthogClient.reloadFeatureFlagsAsync(),
+      new Promise<typeof FETCH_TIMEOUT>((resolve) => {
+        timer = setTimeout(
+          () => resolve(FETCH_TIMEOUT),
+          ONBOARDING_EXPERIMENT.FLAG_FETCH_TIMEOUT_MS,
+        );
+      }),
+    ]);
+    if (result === FETCH_TIMEOUT) throw new Error('PostHog flag fetch timed out');
+    return result;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+/** Uniform on-device draw over the assignable variants. */
+function drawLocalVariant(): AssignableObVariant {
+  const arms = ONBOARDING_EXPERIMENT.ASSIGNABLE;
+  return arms[Math.min(Math.floor(Math.random() * arms.length), arms.length - 1)];
+}
+
+/**
+ * Exposure event (`$feature_flag_called`), emitted manually so PostHog-evaluated
+ * and locally drawn installs both appear in the experiment's exposure series.
+ * Registered variant is attached as a super property just before this call.
+ */
+function captureExposure(variant: ObVariant, locallyDefaulted: boolean) {
+  if (!isAnalyticsEnabled()) return;
+  posthogClient.capture('$feature_flag_called', {
+    $feature_flag: ONBOARDING_EXPERIMENT.FLAG_KEY,
+    $feature_flag_response: variant,
+    onboarding_variant: variant,
+    locally_defaulted: locallyDefaulted,
+  });
+}
+
+async function decideVariant(): Promise<{ variant: ObVariant; source: VariantSource }> {
+  if (!isAnalyticsEnabled()) return { variant: drawLocalVariant(), source: 'local' };
+  try {
+    const flags = await reloadFlagsWithTimeout();
+    const value = flags?.[ONBOARDING_EXPERIMENT.FLAG_KEY];
+    return isAssignableObVariant(value)
+      ? { variant: value, source: 'posthog' }
+      : { variant: ONBOARDING_EXPERIMENT.KILL_SWITCH, source: 'fallback' };
+  } catch {
+    return { variant: drawLocalVariant(), source: 'local' };
+  }
+}
+
+let inFlight: Promise<ObVariant> | null = null;
+
+async function assignNewInstall(): Promise<ObVariant> {
+  const { variant, source } = await decideVariant();
+  const store = useExperimentStore.getState();
+  store.assignVariant(variant, source);
+  // First write wins: read back what is actually stored.
+  const assigned = useExperimentStore.getState().onboardingVariant ?? variant;
+  // Register BEFORE the exposure so `$feature_flag_called` carries the variant.
+  registerVariantWithAnalytics(assigned);
+  captureExposure(assigned, source !== 'posthog');
+  return assigned;
+}
 
 /**
  * Resolve (or recall) the onboarding variant. Idempotent: after the first
- * assignment it returns the persisted value untouched.
- *
- * Still returns a promise. The signature is load-bearing for the caller —
- * `(onboarding)/_layout` awaits this before rendering any step screen — and
- * keeping it async means the retirement is a one-file change rather than a
- * refactor of the layout's gating.
+ * assignment it returns the persisted value without touching the network.
+ * `(onboarding)/_layout` awaits this before rendering any step screen.
  */
 export function resolveOnboardingVariant(): Promise<ObVariant> {
   // Dev override wins over persistence so QA can switch arms by changing the env
@@ -100,15 +155,19 @@ export function resolveOnboardingVariant(): Promise<ObVariant> {
     return Promise.resolve(persisted);
   }
 
-  useExperimentStore.getState().assignVariant(OB_VARIANT.SHIPPED, SHIPPED_SOURCE);
-  registerVariantWithAnalytics(OB_VARIANT.SHIPPED);
-  return Promise.resolve(OB_VARIANT.SHIPPED);
+  if (!inFlight) {
+    inFlight = assignNewInstall().finally(() => {
+      inFlight = null;
+    });
+  }
+  return inFlight;
 }
 
 /**
  * Synchronous read for code that runs after assignment (step screens, config
- * helpers). Degrades to `shipped` when unassigned — the flow every variant
- * resolves to anyway, and the only value guaranteed to exist post-retirement.
+ * helpers). Degrades to `shipped` when unassigned — a paywall-free flow that
+ * every pre-experiment install already uses, so a race never shows a paywall to
+ * someone who was not enrolled.
  */
 export function getOnboardingVariant(): ObVariant {
   return useExperimentStore.getState().onboardingVariant ?? OB_VARIANT.SHIPPED;
