@@ -74,8 +74,14 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   `log-past-work` and `units-display-toggle` now wait for the **"Overview"** segment, switch with
   `id: segment-<overview|service|costs|bike>` and open forms through the action pill
   (`id: action-pill-<segment>`; icon-only except on Overview) or the Log sheet
-  (`id: log-option-<expense|task|past_work|note|document>`). Their updated steps are **not yet
-  re-validated on a device**.
+  (`id: log-option-<expense|task|past_work|note|document>`). `delete-expense`,
+  `delete-expense-long-press`, `expense-detail` and `expense-service-record` reach expenses through
+  `id: segment-costs` (the expense rows are no longer at the bottom of one long scroll, so the old
+  "scroll Documents into view to lift the row clear of the tab bar" step is gone). Task-card
+  Edit/Done/Delete render only once the card is expanded — tap the title first. The header odometer
+  chip's iOS accessibility label is "Odometer <value> <unit>, tap to update", so assert it by
+  `id: bike-header-odometer` with a pattern that accepts both forms. Their updated steps are **not
+  yet re-validated on a device**.
 - **`flows/units-display-toggle.yaml`** — odometer unit label (PR #165). Odometer values are stored
   RAW in the user's global unit (no km normalization), so toggling the global Units preference flips
   the bike-hub odometer **label** between **mi** and **km** on the same bike (guards the hardcoded-"km"

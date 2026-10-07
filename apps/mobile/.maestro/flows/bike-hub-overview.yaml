@@ -168,6 +168,10 @@ env:
     text: "Save"
     optional: true
 - extendedWaitUntil:
-    visible: "98,765.*" # header chip now shows the new reading with the bike's unit
+    visible:
+      id: "bike-header-odometer"
+      # "98,765 km" — or, as Maestro reads it on iOS, the chip's accessibility
+      # label "Odometer 98,765 km, tap to update".
+      text: "(Odometer )?98,765 (km|mi)(,.*)?"
     timeout: 10000
 - takeScreenshot: bike-hub-odometer-saved

@@ -19,8 +19,15 @@ env:
 - tapOn:
     text: ".*Honda.*"
 - extendedWaitUntil:
-    visible: "Expenses"
+    visible: "Overview" # the bike hub's first segment — the header and segment bar are up
     timeout: 20000
+# Expenses live on the Costs segment of the bike hub.
+- tapOn:
+    id: "segment-costs"
+- extendedWaitUntil:
+    visible:
+      id: "segment-panel-costs"
+    timeout: 10000
 
 - scrollUntilVisible:
     element:
@@ -48,9 +55,11 @@ env:
     timeout: 20000
 - tapOn: "Done"
 
+# Back on the Costs segment (the hub remembers it). The segment's content is
+# short, so the row sits well above the action pill and the tab bar.
 - scrollUntilVisible:
     element:
-      text: ".*Documents.*"
+      text: ${EXPENSE_LABEL}
     direction: DOWN
 - assertVisible: ${EXPENSE_LABEL}
 

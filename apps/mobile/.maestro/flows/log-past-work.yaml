@@ -137,7 +137,16 @@ env:
 - takeScreenshot: log-past-work-done
 
 # 10. Cleanup — delete the logged record so reruns stay deterministic. The
-#     confirm Alert reuses "Delete", so target it rightOf "Cancel".
+#     confirm Alert reuses "Delete", so target it rightOf "Cancel". Delete lives
+#     in the card's expanded action row (swipeable-task-card.tsx).
+- runFlow:
+    when:
+      notVisible:
+        text: "Delete"
+        below:
+          text: ${TASK_TITLE}
+    commands:
+      - tapOn: ${TASK_TITLE}
 - tapOn:
     text: "Delete"
     below:

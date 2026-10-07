@@ -21,11 +21,15 @@ env:
 - tapOn:
     text: ".*Honda.*"
 - extendedWaitUntil:
-    visible: "Add task"
+    visible: "Overview" # the bike hub's first segment — the header and segment bar are up
     timeout: 20000
 
-# Create task
-- tapOn: "Add task"
+# Create task — tasks live on the Service segment, whose action pill (icon-only,
+# a11y label "Add a maintenance task") opens the add-task form.
+- tapOn:
+    id: "segment-service"
+- tapOn:
+    id: "action-pill-service"
 - assertVisible: "Priority"
 - inputText: ${TASK_TITLE}
 - tapOn: "High"
@@ -78,26 +82,21 @@ env:
     text: "Not Now"
     optional: true
 
-# Back on hub — open the expense created from completion (title often matches task)
-- scrollUntilVisible:
-    element:
-      text: ".*Documents.*"
-    direction: DOWN
+# Back on the hub (Service segment). The expense created by completion carries
+# the task title as its description (expenses.service createFromTask) and lives
+# on the Costs segment — only the active segment is visible to accessibility, so
+# the completed task card on Service cannot be matched by mistake.
+- tapOn:
+    id: "segment-costs"
+- extendedWaitUntil:
+    visible:
+      id: "segment-panel-costs"
+    timeout: 10000
 - scrollUntilVisible:
     element:
       text: ${TASK_TITLE}
-    direction: UP
-    optional: true
-- extendedWaitUntil:
-    visible: ${TASK_TITLE}
+    direction: DOWN
     timeout: 20000
-# Prefer the expense row under Expenses (same title as task after completion).
-# If History still shows the task above, scroll to Expenses and tap the amount/row.
-- scrollUntilVisible:
-    element:
-      text: "Expenses"
-    direction: UP
-    optional: true
 - tapOn: ${TASK_TITLE}
 
 # Detail: Service record section

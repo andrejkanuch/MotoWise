@@ -79,6 +79,9 @@ env:
     element:
       text: ${TASK_TITLE}
     direction: DOWN
+# The card's Edit/Done/Delete row only renders once the card is expanded
+# (swipeable-task-card.tsx), so tap the title first.
+- tapOn: ${TASK_TITLE}
 - tapOn:
     text: "Edit"
     below:
@@ -112,6 +115,15 @@ env:
 - takeScreenshot: edit-maintenance-task-done
 
 # 7. Cleanup — delete the task this flow created so reruns stay deterministic.
+# Expand the edited card if saving collapsed it.
+- runFlow:
+    when:
+      notVisible:
+        text: "Delete"
+        below:
+          text: ${TASK_TITLE_EDITED}
+    commands:
+      - tapOn: ${TASK_TITLE_EDITED}
 - tapOn:
     text: "Delete"
     below:
