@@ -228,11 +228,20 @@ export function updateStoreFromCustomerInfo(info: {
  * since a notification failure must never break entitlement hydration. Loaded
  * lazily so this module does not pull the notification/storage natives in.
  */
+/**
+ * How the trial-reminder module is loaded. An object so tests can replace the
+ * dynamic import, which this repo's Jest setup does not transform.
+ */
+export const trialReminderLoader = {
+  load: () => import('./trial-reminder'),
+};
+
 function syncTrialReminder(info: {
   entitlements: { active: Record<string, TrialEntitlementSnapshot> };
 }) {
   const entitlement = info.entitlements.active[REVENUECAT_ENTITLEMENT_PRO];
-  import('./trial-reminder')
+  trialReminderLoader
+    .load()
     .then(({ reconcileTrialReminder }) => reconcileTrialReminder(entitlement))
     .catch((e) => logger.warn('[RevenueCat] Trial reminder reconcile failed:', e));
 }

@@ -58,6 +58,11 @@ export function trialReminderFireDate(
   return isAfter(fireAt, now) ? fireAt : null;
 }
 
+/**
+ * Conditional by design: a rider who cancelled in the store's settings and has
+ * not opened the app since still holds the scheduled reminder (nothing
+ * reconciled it), so the copy must not promise a charge.
+ */
 function trialReminderContent(): Notifications.NotificationContentInput {
   return {
     title: i18n.t('notifications.trialReminder.title', {
@@ -65,7 +70,7 @@ function trialReminderContent(): Notifications.NotificationContentInput {
     }),
     body: i18n.t('notifications.trialReminder.body', {
       defaultValue:
-        "You'll be billed when it ends. Manage or cancel anytime in your store's subscription settings.",
+        "If you keep Pro, your subscription starts when it ends. Manage or cancel anytime in your store's subscription settings.",
     }),
     data: { kind: NOTIFICATION_KIND.TRIAL_REMINDER },
   };

@@ -1659,7 +1659,7 @@
     "promotionalDesc": "Special offers and announcements",
     "trialReminder": {
       "title": "Your Pro trial ends in 2 days",
-      "body": "You'll be billed when it ends. Manage or cancel anytime in your store's subscription settings.",
+      "body": "If you keep Pro, your subscription starts when it ends. Manage or cancel anytime in your store's subscription settings.",
       "channelName": "Account & subscription"
     }
   },

@@ -33,9 +33,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
-import { getPrimaryGoal, OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
+import { getPrimaryGoal, getTotalScreens, OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent, captureException, setUserPropertiesOnce } from '../../lib/analytics';
+import { createGaragePaywallHandoff } from '../../lib/garage-paywall-handoff';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { uploadBikePhoto } from '../../lib/image-upload';
 import { detectCurrency } from '../../lib/locale-detection';
@@ -136,6 +137,7 @@ export default function PersonalizingScreen() {
     heardFrom,
     pendingIntent,
     setAwaitingGarageCta,
+    setCompletionSent,
     reset,
   } = useOnboardingStore();
   // garage_first presents the onboarding paywall from the payoff CTA. Never on
@@ -154,6 +156,10 @@ export default function PersonalizingScreen() {
 
   const setOnboardingCompleted = useAuthStore((s) => s.setOnboardingCompleted);
   const [mutationDone, setMutationDone] = useState(false);
+  /** Set once the rider leaves for the garage (CTA, escape or Skip). */
+  const leftOnboarding = useRef(false);
+  /** Set by the first run() to finish; a concurrent Retry run reports nothing. */
+  const completionReported = useRef(false);
   const [animationDone, setAnimationDone] = useState(isResumed);
   const [showDone, setShowDone] = useState(false);
   const [showRetry, setShowRetry] = useState(false);
@@ -202,6 +208,20 @@ export default function PersonalizingScreen() {
   // biome-ignore lint/correctness/useExhaustiveDependencies: fire on mount and on manual retry
   useEffect(() => {
     const run = async () => {
+      // Set before the first await: Skip (reset()) can land while the setup is
+      // still saving, and reset() must win. Set after an await, a stalled run
+      // would re-arm the hold after the rider entered the garage, and the root
+      // gate would send them back into onboarding on every later launch.
+      if (showsGaragePaywall) setAwaitingGarageCta(true);
+
+      // Resume after a kill on the payoff screen: the setup is already saved.
+      // Running it again would re-upload the photo and send a second
+      // onboarding_completed and Meta CompleteRegistration (new event id).
+      if (useOnboardingStore.getState().completionSent) {
+        setMutationDone(true);
+        return;
+      }
+
       // Read Meta click ID for CAPI attribution (P1 fix)
       const fbclid = await getStoredFbclid();
 
@@ -281,10 +301,18 @@ export default function PersonalizingScreen() {
         void setSelfReportedSource(heardFrom);
       }
 
-      // Must be set before the server marks onboarding complete — see the gate in
-      // the root layout and `awaitingGarageCta` in the onboarding store.
-      if (showsGaragePaywall) setAwaitingGarageCta(true);
       await completeOnboarding(input);
+
+      // A Retry tapped while this run was still saving starts a second run; only
+      // the first to finish reports the completion.
+      if (completionReported.current) {
+        setMutationDone(true);
+        return;
+      }
+      completionReported.current = true;
+      // Not after the rider already left for the garage: reset() cleared the
+      // store, and a marker written now would outlive this onboarding run.
+      if (!leftOnboarding.current) setCompletionSent(true);
 
       // Persist the global measurement system so display units match what the user
       // picked (complete_onboarding does not touch users.measurement_system, which
@@ -304,10 +332,10 @@ export default function PersonalizingScreen() {
         logger.warn('[Personalizing] measurement_system update skipped:', err);
       }
 
-      // garage_first: onboarding is complete when the rider leaves the paywall
-      // for the garage, so the event fires from finishGaragePaywallOnce. Both
-      // arms then count completion at the same point (reaching the garage).
-      if (!showsGaragePaywall) trackOnboardingCompleted();
+      // Every variant counts completion at the same point: the setup is saved.
+      // The garage_first paywall comes after this, and its result is the
+      // paywall step event, so the completion guardrail compares like with like.
+      trackOnboardingCompleted();
       MetaAnalytics.trackCompleteRegistration(eventId);
 
       // Initialize checklist store based on user goals
@@ -384,6 +412,7 @@ export default function PersonalizingScreen() {
   // makes the root guard redirect to OB_ROUTE.HOME. Used by the payoff CTA and the
   // retry/safety-net skip link (both before any navigation).
   const handleContinue = () => {
+    leftOnboarding.current = true;
     reset();
     setOnboardingCompleted(true);
   };
@@ -396,7 +425,9 @@ export default function PersonalizingScreen() {
       goals_count: ridingGoals.length,
       goals: ridingGoals.join(','),
       primary_goal: primaryGoal,
-      total_screens: totalScreens,
+      // Full-flow length, as before the progress bar counted visible screens.
+      total_screens: getTotalScreens(variant),
+      visible_screens: totalScreens,
       ...(bikeData && {
         bike_make: bikeData.make,
         bike_model: bikeData.model,
@@ -408,8 +439,6 @@ export default function PersonalizingScreen() {
 
   // garage_first: "Open my garage" presents the onboarding paywall, then opens
   // the garage whatever the result (purchase, close, not presented, error).
-  const garagePaywallStarted = useRef(false);
-  const garagePaywallSettled = useRef(false);
   const [garagePaywallPending, setGaragePaywallPending] = useState(false);
   const [showGarageEscape, setShowGarageEscape] = useState(false);
 
@@ -430,44 +459,45 @@ export default function PersonalizingScreen() {
     };
   })();
 
-  const finishGaragePaywallOnce = (paywallResult: string) => {
-    if (garagePaywallSettled.current) return;
-    garagePaywallSettled.current = true;
-    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.PAYWALL, {
-      ...garagePaywallFields,
-      paywall_result: paywallResult,
+  // The handoff is created once; its callbacks read the latest render's values.
+  const garagePaywallLatest = useRef({ garagePaywallInput, garagePaywallFields, handleContinue });
+  garagePaywallLatest.current = { garagePaywallInput, garagePaywallFields, handleContinue };
+  const garagePaywall = useRef<ReturnType<typeof createGaragePaywallHandoff> | null>(null);
+  if (!garagePaywall.current) {
+    garagePaywall.current = createGaragePaywallHandoff({
+      present: (shouldAbort) =>
+        presentOnboardingPaywall(garagePaywallLatest.current.garagePaywallInput, {
+          surface: ONBOARDING_PAYWALL_SURFACE.GARAGE_READY,
+          shouldAbort,
+        }),
+      onStart: () => {
+        setGaragePaywallPending(true);
+        trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.PAYWALL, {
+          surface: ONBOARDING_PAYWALL_SURFACE.GARAGE_READY,
+        });
+      },
+      onSettled: (paywallResult) => {
+        trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.PAYWALL, {
+          ...garagePaywallLatest.current.garagePaywallFields,
+          paywall_result: paywallResult,
+        });
+        garagePaywallLatest.current.handleContinue();
+      },
+      // presentPaywall resolves its own failures; reaching here means a bug, and
+      // the rider still gets into their garage.
+      onError: (err) => captureException(err, { screen: OB_SCREEN.PERSONALIZING }),
     });
-    trackOnboardingCompleted();
-    handleContinue();
-  };
+  }
 
   const handleOpenGarage = () => {
     if (!showsGaragePaywall) {
       handleContinue();
       return;
     }
-    if (garagePaywallStarted.current) return;
-    garagePaywallStarted.current = true;
-    setGaragePaywallPending(true);
-
-    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.PAYWALL, {
-      surface: garagePaywallFields.surface,
-    });
-
-    presentOnboardingPaywall(garagePaywallInput, {
-      surface: ONBOARDING_PAYWALL_SURFACE.GARAGE_READY,
-      shouldAbort: () => garagePaywallSettled.current,
-    })
-      .then((result) => finishGaragePaywallOnce(result))
-      .catch((err) => {
-        // presentPaywall resolves its own failures; reaching here means a bug, and
-        // the rider must still get into their garage.
-        captureException(err, { screen: OB_SCREEN.PERSONALIZING });
-        finishGaragePaywallOnce('presentation_failed');
-      });
+    garagePaywall.current?.open();
   };
 
-  const handleGarageEscape = () => finishGaragePaywallOnce('escape_hatch');
+  const handleGarageEscape = () => garagePaywall.current?.escape();
 
   // Cold-start resume: the staged setup UI must not appear on app load. Hold a
   // bare background while the mutation completes silently (then the root guard
@@ -568,6 +598,8 @@ export default function PersonalizingScreen() {
             <OnboardingContinueButton
               label={t('onboarding.personalizingDoneCta' as never)}
               onPress={handleOpenGarage}
+              // Disabled while the paywall loads, so the tap visibly registered.
+              disabled={garagePaywallPending}
             />
           </Animated.View>
           {showGarageEscape ? (

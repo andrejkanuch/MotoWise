@@ -30,8 +30,10 @@ import { withTimeout } from './with-timeout';
 //     consent — or the fetch fails/times out) → uniform on-device draw, source
 //     `local`. A fixed default here would put all of Europe in one arm and turn
 //     the comparison into a market comparison.
-//   * `$feature_flag_called` is emitted for every assignment made while
-//     analytics is on, with `locally_defaulted` marking non-PostHog values.
+//   * `$feature_flag_called` is emitted for every assignment, with
+//     `locally_defaulted` marking non-PostHog values. An assignment made while
+//     analytics is off is marked pending and emitted once analytics is enabled
+//     (`flushPendingExposure`), so pre-consent installs reach the exposure series.
 //
 // Only a store binary that contains this code can enroll fresh installs: the
 // first launch persists a variant before any OTA could apply.
@@ -110,10 +112,28 @@ async function assignNewInstall(): Promise<ObVariant> {
   useExperimentStore.getState().assignVariant(variant, source);
   // First write wins: read back what is actually stored.
   const assigned = useExperimentStore.getState().onboardingVariant ?? variant;
+  if (!isAnalyticsEnabled()) {
+    useExperimentStore.getState().setExposurePending(true);
+    return assigned;
+  }
   // Register BEFORE the exposure so `$feature_flag_called` carries the variant.
   registerVariantWithAnalytics(assigned);
   captureExposure(assigned, source !== 'posthog');
   return assigned;
+}
+
+/**
+ * Send the exposure of an install assigned while analytics was off. Called when
+ * the rider enables analytics; a no-op when nothing is pending. Also registers
+ * the variant super property, which a pre-consent launch could not register.
+ */
+export function flushPendingExposure() {
+  const { exposurePending, onboardingVariant, source, setExposurePending } =
+    useExperimentStore.getState();
+  if (!exposurePending || !onboardingVariant || !isAnalyticsEnabled()) return;
+  registerVariantWithAnalytics(onboardingVariant);
+  captureExposure(onboardingVariant, source !== 'posthog');
+  setExposurePending(false);
 }
 
 /**

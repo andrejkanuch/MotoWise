@@ -46,7 +46,7 @@ const {
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { useExperimentStore } = require('../stores/experiment.store');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { resolveOnboardingVariant } = require('../lib/onboarding-experiment');
+const { flushPendingExposure, resolveOnboardingVariant } = require('../lib/onboarding-experiment');
 
 const withBike = { hasBike: true };
 const noBike = { hasBike: false };
@@ -273,5 +273,56 @@ describe('resolveOnboardingVariant for new installs', () => {
 
     await expect(resolveOnboardingVariant()).resolves.toBe('shipped');
     expect(mockPosthog.reloadFeatureFlagsAsync).not.toHaveBeenCalled();
+  });
+});
+
+describe('exposure for installs assigned before analytics consent', () => {
+  it('marks the exposure pending and sends it once analytics is enabled', async () => {
+    mockAnalyticsEnabled = false;
+    const random = jest.spyOn(Math, 'random').mockReturnValue(0.6);
+
+    await expect(resolveOnboardingVariant()).resolves.toBe('commit_first');
+    random.mockRestore();
+    expect(mockPosthog.capture).not.toHaveBeenCalled();
+    expect(useExperimentStore.getState().exposurePending).toBe(true);
+
+    mockAnalyticsEnabled = true;
+    flushPendingExposure();
+
+    expect(mockPosthog.register).toHaveBeenCalledWith({ onboarding_variant: 'commit_first' });
+    expect(mockPosthog.capture).toHaveBeenCalledTimes(1);
+    expect(mockPosthog.capture).toHaveBeenCalledWith('$feature_flag_called', {
+      $feature_flag: ONBOARDING_EXPERIMENT.FLAG_KEY,
+      $feature_flag_response: 'commit_first',
+      onboarding_variant: 'commit_first',
+      locally_defaulted: true,
+    });
+    expect(useExperimentStore.getState().exposurePending).toBe(false);
+
+    // Enabling analytics again later sends nothing more.
+    flushPendingExposure();
+    expect(mockPosthog.capture).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the exposure pending while analytics is still off', async () => {
+    mockAnalyticsEnabled = false;
+    await resolveOnboardingVariant();
+
+    flushPendingExposure();
+
+    expect(mockPosthog.capture).not.toHaveBeenCalled();
+    expect(useExperimentStore.getState().exposurePending).toBe(true);
+  });
+
+  it('an install assigned with analytics on has nothing pending', async () => {
+    mockPosthog.reloadFeatureFlagsAsync.mockResolvedValue({
+      [ONBOARDING_EXPERIMENT.FLAG_KEY]: 'garage_first',
+    });
+
+    await resolveOnboardingVariant();
+    flushPendingExposure();
+
+    expect(useExperimentStore.getState().exposurePending).toBe(false);
+    expect(mockPosthog.capture).toHaveBeenCalledTimes(1);
   });
 });

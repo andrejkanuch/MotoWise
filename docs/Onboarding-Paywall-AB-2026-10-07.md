@@ -37,10 +37,10 @@ Both ship with the same onboarding fixes: no invented rider count on reveal, bik
 ## Owner setup in PostHog (not done by this change)
 
 1. Create a multivariate feature flag `onboarding_paywall_2026q4` with variants `garage_first` (50%) and `commit_first` (50%), rollout 100%, no property filters except an app version filter of `>=` the first store build containing this code.
-2. Create an experiment on that flag. Exposure: `$feature_flag_called` with `$feature_flag = onboarding_paywall_2026q4`.
+2. Create an experiment on that flag. Exposure: `$feature_flag_called` with `$feature_flag = onboarding_paywall_2026q4`. Installs assigned before analytics consent send that exposure (with `locally_defaulted = true`) the moment the rider enables analytics, so their exposure can be timestamped after their onboarding events. Read the arm from the exposure's `$feature_flag_response`, not from a later flag evaluation.
 3. Exclude the internal/test cohort and `$geoip_country_code = SK`.
 4. Primary metric: trial start or purchase (`purchase_completed`) within 7 days of `onboarding_started`, per rider who started onboarding.
-5. Guardrail metrics: onboarding completion (`onboarding_completed` per starter) and first core action within 7 days (first ride completed, expense added or maintenance logged).
+5. Guardrail metrics: onboarding completion (`onboarding_completed` per starter) — fired in every variant when personalizing has saved the setup, i.e. before the `garage_first` paywall, whose outcome is the paywall step event; `total_screens` is the full-flow length and `visible_screens` the screens this rider saw and first core action within 7 days (first ride completed, expense added or maintenance logged).
 6. Secondary: paywall view → trial start by surface (`onboarding_paywall`, `onboarding_garage_ready`), trial → paid, refunds (read 3+ weeks after trials end).
 7. Add an annotation on the launch date.
 

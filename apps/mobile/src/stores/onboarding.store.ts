@@ -97,6 +97,21 @@ interface OnboardingState {
    */
   awaitingGarageCta: boolean;
   setAwaitingGarageCta: (awaiting: boolean) => void;
+  /**
+   * True once personalizing's `completeOnboarding` resolved for this onboarding
+   * run. Persisted so a kill on the payoff screen does not re-run the completion
+   * on resume (a second photo upload, `onboarding_completed` and Meta
+   * CompleteRegistration). Cleared by reset() when the rider enters the garage.
+   */
+  completionSent: boolean;
+  setCompletionSent: (sent: boolean) => void;
+  /**
+   * Clears the flags tied to the signed-in account's onboarding completion
+   * (`awaitingGarageCta`, `completionSent`) without dropping the rider's
+   * answers. Called on sign-out, so a flag left by one account can never hold
+   * the root gate or skip completion for the next.
+   */
+  clearAccountCompletionState: () => void;
   setIntentResolved: (resolved: boolean) => void;
   setAcceptedOemScheduleIds: (ids: string[]) => void;
   setExperienceLevel: (level: ExperienceLevel) => void;
@@ -143,6 +158,7 @@ const initialState = {
   pendingIntent: null as PendingIntent | null,
   intentResolved: false,
   awaitingGarageCta: false,
+  completionSent: false,
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -171,6 +187,8 @@ export const useOnboardingStore = create<OnboardingState>()(
       setPendingIntent: (pendingIntent) => set({ pendingIntent }),
       setIntentResolved: (intentResolved) => set({ intentResolved }),
       setAwaitingGarageCta: (awaitingGarageCta) => set({ awaitingGarageCta }),
+      setCompletionSent: (completionSent) => set({ completionSent }),
+      clearAccountCompletionState: () => set({ awaitingGarageCta: false, completionSent: false }),
       reset: () => set(store.getInitialState(), true),
     }),
     {
@@ -199,6 +217,8 @@ export const useOnboardingStore = create<OnboardingState>()(
         setPendingIntent,
         setIntentResolved,
         setAwaitingGarageCta,
+        setCompletionSent,
+        clearAccountCompletionState,
         // intentResolved is a per-process resolution flag — never persist it, or a
         // stale `true` would let a later launch skip waiting for the fresh read.
         intentResolved,

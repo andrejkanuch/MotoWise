@@ -31,6 +31,13 @@ interface ExperimentState {
   onboardingVariant: ObVariant | null;
   assignedAt: string | null;
   source: VariantSource | null;
+  /**
+   * The install was assigned while analytics was off (pre-consent EEA/UK/CH), so
+   * its `$feature_flag_called` exposure could not be sent. Persisted until the
+   * exposure goes out once analytics is enabled (`flushPendingExposure`).
+   */
+  exposurePending: boolean;
+  setExposurePending: (pending: boolean) => void;
   assignVariant: (variant: ObVariant, source: VariantSource) => void;
   /** Test/dev only — production code must never un-assign a variant. */
   reset: () => void;
@@ -40,6 +47,7 @@ const initialState = {
   onboardingVariant: null as ObVariant | null,
   assignedAt: null as string | null,
   source: null as VariantSource | null,
+  exposurePending: false,
 };
 
 export const useExperimentStore = create<ExperimentState>()(
@@ -51,13 +59,14 @@ export const useExperimentStore = create<ExperimentState>()(
         if (get().onboardingVariant) return;
         set({ onboardingVariant: variant, source, assignedAt: new Date().toISOString() });
       },
+      setExposurePending: (exposurePending) => set({ exposurePending }),
       reset: () => set(store.getInitialState(), true),
     }),
     {
       name: 'experiment-state',
       version: 1,
       storage: createJSONStorage(() => createZustandMMKVStorage('experiment-store')),
-      partialize: ({ assignVariant, reset, ...data }) => data,
+      partialize: ({ assignVariant, setExposurePending, reset, ...data }) => data,
     },
   ),
 );

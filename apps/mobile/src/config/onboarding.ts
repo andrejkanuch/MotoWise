@@ -263,8 +263,9 @@ export const OB_STEP_NAME: Record<OnboardingRoute, string> = {
 };
 
 /**
- * Zero-based position of a screen within its variant's flow — drives the
- * `step_index` analytics property and the progress bar. Returns -1 for
+ * Zero-based position of a screen within its variant's full flow — drives the
+ * `step_index` analytics property only; the progress bar counts the screens the
+ * rider actually sees (`getVisibleProgress`). Returns -1 for
  * screens not in the variant's flow (e.g. the standalone sign-in surface).
  */
 export function getStepIndex(variant: ObVariant, route: OnboardingRoute): number {

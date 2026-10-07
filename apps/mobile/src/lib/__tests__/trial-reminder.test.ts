@@ -180,4 +180,52 @@ describe('reconcileTrialReminder', () => {
     await expect(reconcileTrialReminder(renewingTrial, NOW)).resolves.toBeUndefined();
     expect(schedule).not.toHaveBeenCalled();
   });
+
+  it('cancels a reminder by kind when its id never reached storage', async () => {
+    // A kill between scheduleNotificationAsync and the storage write leaves an
+    // OS reminder the stored state does not know about.
+    osHas('orphan-1');
+
+    await reconcileTrialReminder({ ...renewingTrial, willRenew: false }, NOW);
+
+    expect(cancel).toHaveBeenCalledWith('orphan-1');
+  });
+
+  it('replaces an orphaned reminder instead of scheduling a second one', async () => {
+    osHas('orphan-1');
+
+    await reconcileTrialReminder(renewingTrial, NOW);
+
+    expect(cancel).toHaveBeenCalledWith('orphan-1');
+    expect(schedule).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips the reminder when the iOS budget is full of other notifications', async () => {
+    getScheduled.mockResolvedValue(
+      Array.from({ length: 60 }, (_, i) => ({
+        identifier: `maint-${i}`,
+        content: { data: { kind: 'maintenance' } },
+      })),
+    );
+
+    await expect(reconcileTrialReminder(renewingTrial, NOW)).resolves.toBeUndefined();
+
+    expect(schedule).not.toHaveBeenCalled();
+    expect(storage.size).toBe(0);
+  });
+
+  it('still schedules when only its own old reminder fills the last budget slot', async () => {
+    getScheduled.mockResolvedValue([
+      ...Array.from({ length: 59 }, (_, i) => ({
+        identifier: `maint-${i}`,
+        content: { data: { kind: 'maintenance' } },
+      })),
+      { identifier: 'old-trial', content: { data: { kind: 'trial_reminder' } } },
+    ]);
+
+    await reconcileTrialReminder(renewingTrial, NOW);
+
+    expect(cancel).toHaveBeenCalledWith('old-trial');
+    expect(schedule).toHaveBeenCalledTimes(1);
+  });
 });

@@ -708,6 +708,10 @@ function RootLayout() {
           clearParkedScans();
           clearAllReceiptSaveUndo();
           clearScanConsent();
+          // The garage_first gate hold and the completion marker belong to the
+          // account that set them; a stale `awaitingGarageCta` would keep the next
+          // account out of the garage on every launch.
+          useOnboardingStore.getState().clearAccountCompletionState();
         }
       }
 
