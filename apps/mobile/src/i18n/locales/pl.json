@@ -1928,6 +1928,14 @@
     "findRiders": "Odkryj motocyklistów"
   },
   "whatsNew": {
+    "v3220": {
+      "overviewTitle": "Twój motocykl w pigułce",
+      "overviewDesc": "Każdy motocykl otwiera się teraz na Przeglądzie: co wymaga uwagi, co czeka w następnej kolejności, wydatki, a do tego notatki i dokumenty. Serwis, Koszty i Motocykl są o jedno dotknięcie na pasku u góry.",
+      "notesTitle": "Notatki ze zdjęciami",
+      "notesDesc": "Trzymaj numery części, ciśnienie w oponach i dane warsztatu przy właściwym motocyklu. Dodaj zdjęcie do notatki, przeszukuj notatki później albo zamień jedną w zadanie.",
+      "logTitle": "Wpisuj prosto z motocykla",
+      "logDesc": "Stuknij „Dodaj wpis” przy motocyklu, aby dodać wydatek, zadanie, wykonaną już pracę, notatkę lub dokument. Przebieg wpisujesz teraz z klawiatury numerycznej, na iPhonie i na Androidzie."
+    },
     "badge": "Nowości",
     "next": "Next",
     "getStarted": "Let's Go",

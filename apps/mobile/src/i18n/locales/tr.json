@@ -1892,6 +1892,14 @@
     "findRiders": "Sürücüleri Keşfet"
   },
   "whatsNew": {
+    "v3220": {
+      "overviewTitle": "Motosikletin tek bakışta",
+      "overviewDesc": "Her motosiklet artık Genel bakış ile açılıyor: ilgilenmen gerekenler, sıradaki işler, harcamaların, notların ve belgelerin. Servis, Masraflar ve Motosiklet üstteki çubukta tek dokunuş uzağında.",
+      "notesTitle": "Fotoğraflı notlar",
+      "notesDesc": "Parça numaralarını, lastik basınçlarını ve servis bilgilerini ilgili motosikletle birlikte sakla. Nota fotoğraf ekle, notlarını sonra ara ya da birini göreve dönüştür.",
+      "logTitle": "Doğrudan motosikletten kaydet",
+      "logDesc": "Bir motosiklette Kayıt ekle’ye dokunarak masraf, görev, yapılmış iş, not veya belge ekle. Kilometre sayacı artık iPhone’da da Android’de de tuş takımıyla güncelleniyor."
+    },
     "badge": "What's New",
     "next": "Next",
     "getStarted": "Let's Go",

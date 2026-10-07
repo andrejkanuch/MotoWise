@@ -1928,6 +1928,14 @@
     "findRiders": "Objavte jazdcov"
   },
   "whatsNew": {
+    "v3220": {
+      "overviewTitle": "Tvoja motorka na prvý pohľad",
+      "overviewDesc": "Každá motorka sa teraz otvorí na Prehľade: čo potrebuje pozornosť, čo je na rade, tvoje výdavky, plus tvoje poznámky a doklady. Servis, Náklady a Motorka sú hore na jedno ťuknutie.",
+      "notesTitle": "Poznámky s fotkami",
+      "notesDesc": "Maj čísla dielov, tlak v pneumatikách a kontakty na servis pri správnej motorke. Pridaj k poznámke fotku, neskôr si poznámky vyhľadaj alebo z jednej sprav úlohu.",
+      "logTitle": "Zapisuj priamo pri motorke",
+      "logDesc": "Ťukni na Zapísať pri motorke a pridaj výdavok, úlohu, už hotovú prácu, poznámku alebo doklad. Stav tachometra teraz zadáš cez číselnú klávesnicu na iPhone aj Androide."
+    },
     "badge": "Novinky",
     "next": "Next",
     "getStarted": "Let's Go",

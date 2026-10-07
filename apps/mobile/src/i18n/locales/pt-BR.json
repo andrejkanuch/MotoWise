@@ -1893,6 +1893,14 @@
     "findRiders": "Descobrir motociclistas"
   },
   "whatsNew": {
+    "v3220": {
+      "overviewTitle": "Sua moto em um relance",
+      "overviewDesc": "Cada moto agora abre em uma Visão geral: o que precisa de atenção, o que vence em seguida, quanto você gastou, além das suas notas e documentos. Manutenção, Custos e Moto ficam a um toque na barra do topo.",
+      "notesTitle": "Notas, com fotos",
+      "notesDesc": "Guarde códigos de peças, calibragem dos pneus e dados da oficina junto com a moto certa. Adicione uma foto a uma nota, pesquise suas notas depois ou transforme uma em tarefa.",
+      "logTitle": "Registre direto na moto",
+      "logDesc": "Toque em Registrar em uma moto para adicionar um gasto, uma tarefa, um serviço já feito, uma nota ou um documento. Atualizar o hodômetro agora usa um teclado numérico, no iPhone e no Android."
+    },
     "badge": "Novidades",
     "next": "Next",
     "getStarted": "Let's Go",

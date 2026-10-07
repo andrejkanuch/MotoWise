@@ -1893,6 +1893,14 @@
     "findRiders": "Découvrir des motards"
   },
   "whatsNew": {
+    "v3220": {
+      "overviewTitle": "Votre moto en un coup d’œil",
+      "overviewDesc": "Chaque moto s’ouvre désormais sur un Aperçu : ce qui demande votre attention, la prochaine échéance, vos dépenses, ainsi que vos notes et papiers. Entretien, Coûts et Moto sont à portée de doigt dans la barre du haut.",
+      "notesTitle": "Des notes, avec photos",
+      "notesDesc": "Gardez références de pièces, pressions des pneus et coordonnées de l’atelier avec la moto concernée. Ajoutez une photo à une note, retrouvez vos notes par la recherche ou transformez-en une en tâche.",
+      "logTitle": "Tout consigner depuis la moto",
+      "logDesc": "Touchez Consigner sur une moto pour ajouter une dépense, une tâche, des travaux déjà faits, une note ou un document. Le compteur se met désormais à jour avec un pavé numérique, sur iPhone comme sur Android."
+    },
     "badge": "Nouveautés",
     "next": "Next",
     "getStarted": "Let's Go",
