@@ -10,6 +10,7 @@ mutation UpdateMotorcycle($id: String!, $input: UpdateMotorcycleInput!) {
     primaryPhotoUrl
     currentMileage
     mileageUnit
+    distanceUnit
     mileageUpdatedAt
     purchasePrice
     purchaseDate

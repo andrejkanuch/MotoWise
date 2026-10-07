@@ -36,8 +36,13 @@ export function useProfileData({ t, isPro }: UseProfileDataParams) {
   const updatePreferenceMutation = useMutation({
     mutationFn: (input: { currency?: string; measurementSystem?: string }) =>
       gqlFetcher(UpdateUserDocument, { input }),
-    onSuccess: () => {
+    onSuccess: (_data, input) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
+      // A unit change rewrites every bike's distance_unit server-side (00180
+      // sync trigger), and the bike hub labels distances from the cached bike.
+      if (input.measurementSystem) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+      }
     },
   });
 

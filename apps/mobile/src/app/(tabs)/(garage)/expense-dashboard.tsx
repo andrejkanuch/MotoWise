@@ -78,8 +78,7 @@ const STAT_VALUE_STYLE = {
  * One label/value cell in the cost-of-ownership card. The card carries four of
  * them across two rows (purchase + all expenses, then invested + cost of
  * riding); inlining the styles four times is what the mobile "inline unless
- * reused" rule stops covering. Mirrors LABEL_STYLE/VALUE_STYLE in
- * components/bike-hub/bike-stats-row.tsx.
+ * reused" rule stops covering.
  */
 function StatColumn({
   theme,

@@ -15,20 +15,34 @@ env:
 - runFlow: onboarding.yaml
 
 - tapOn:
-    text: ".*Garage.*"
+    text: "Garage(,.*)?" # the tab; ".*Garage.*" also matched Home's "Today in your garage." (Maestro text matching ignores case)
 - tapOn:
     text: ".*Honda.*"
 - extendedWaitUntil:
-    visible: "Expenses"
+    visible: "Overview" # the bike hub's first segment — the header and segment bar are up
     timeout: 20000
+# Expenses live on the Costs segment of the bike hub.
+- tapOn:
+    id: "segment-costs"
+- extendedWaitUntil:
+    visible:
+      id: "segment-panel-costs"
+    timeout: 10000
 
 - scrollUntilVisible:
     element:
-      text: "No expenses yet"
+      text: "No expenses yet(,.*)?"
     direction: DOWN
-- tapOn: "No expenses yet"
+- tapOn: "No expenses yet(,.*)?"
 - assertVisible: "AMOUNT"
 - inputText: "18.25"
+- tapOn:
+    text: "CATEGORY" # non-interactive label — dismisses the custom amount keypad first
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "DETAILS"
+    direction: DOWN
 - tapOn:
     text: ".*What was this expense for.*"
 - inputText: ${EXPENSE_LABEL}
@@ -43,20 +57,34 @@ env:
 - tapOn:
     text: "Not Now"
     optional: true
-- extendedWaitUntil:
-    visible: "Done"
+# in-app soft-ask ("Enjoying MotoVault?") can follow a save; it overlays the hub.
+- tapOn:
+    text: "Not really"
+    optional: true
+# …which then asks "Help us improve?" — decline that too.
+- tapOn:
+    text: "Not now"
+    optional: true
+# After saving, the form scrolls back to the top; "Done" replaces the Save
+# button below the fold, so scroll to it rather than wait for it on screen.
+- scrollUntilVisible:
+    element:
+      text: "Done"
+    direction: DOWN
     timeout: 20000
 - tapOn: "Done"
 
+# Back on the Costs segment (the hub remembers it). The segment's content is
+# short, so the row sits well above the action pill and the tab bar.
 - scrollUntilVisible:
     element:
-      text: ".*Documents.*"
+      text: ".*${EXPENSE_LABEL}.*"
     direction: DOWN
-- assertVisible: ${EXPENSE_LABEL}
+- assertVisible: ".*${EXPENSE_LABEL}.*"
 
 # Long-press the row → native Delete Expense alert (does not open detail).
 - longPressOn:
-    text: ${EXPENSE_LABEL}
+    text: ".*${EXPENSE_LABEL}.*"
 - tapOn:
     text: "Delete"
     rightOf:
@@ -67,4 +95,4 @@ env:
     notVisible: ${EXPENSE_LABEL}
     timeout: 30000
 - assertNotVisible:
-    text: ${EXPENSE_LABEL}
+    text: ".*${EXPENSE_LABEL}.*"

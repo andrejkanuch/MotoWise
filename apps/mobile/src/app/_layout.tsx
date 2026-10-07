@@ -1,8 +1,14 @@
 import '../global.css';
+import { GeistMono_400Regular } from '@expo-google-fonts/geist-mono/400Regular';
+import { GeistMono_500Medium } from '@expo-google-fonts/geist-mono/500Medium';
 import {
   InstrumentSerif_400Regular,
   InstrumentSerif_400Regular_Italic,
 } from '@expo-google-fonts/instrument-serif';
+import { PlusJakartaSans_400Regular } from '@expo-google-fonts/plus-jakarta-sans/400Regular';
+import { PlusJakartaSans_500Medium } from '@expo-google-fonts/plus-jakarta-sans/500Medium';
+import { PlusJakartaSans_600SemiBold } from '@expo-google-fonts/plus-jakarta-sans/600SemiBold';
+import { PlusJakartaSans_700Bold } from '@expo-google-fonts/plus-jakarta-sans/700Bold';
 import { palette } from '@motovault/design-system';
 import { CompleteMaintenanceTaskDocument } from '@motovault/graphql';
 import { Currency, MeasurementSystem } from '@motovault/types';
@@ -45,6 +51,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SessionRestoring } from '../components/auth/session-restoring';
+import { HUB_FONT } from '../components/bike-hub/ui/tokens';
 import { OB_VARIANT } from '../config/onboarding';
 import { getWhatsNewRelease } from '../data/whats-new-releases';
 import { refreshCarPlayHeadsUpData } from '../features/carplay/carplay-coordinator';
@@ -135,6 +142,7 @@ import { queryKeys } from '../lib/query-keys';
 import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
 import { meOptions } from '../lib/query-options';
 import { clearPersistedQueryCache } from '../lib/query-persist';
+import { refreshAfterSyncedOp } from '../lib/ride-sync-refresh';
 import {
   configureRevenueCatAnonymously,
   initRevenueCat,
@@ -155,6 +163,7 @@ import {
   redriveDeadLetterQueue,
   redriveDeadLetterQueueOnce,
   setDeadLetterListener,
+  setDeliveredListener,
 } from '../utils/ride-sync-queue';
 
 // Native splash is the ONLY splash: hold it while the app boots (auth hydration
@@ -525,6 +534,17 @@ function RootLayout() {
   useFonts({
     'InstrumentSerif-Regular': InstrumentSerif_400Regular,
     'InstrumentSerif-Italic': InstrumentSerif_400Regular_Italic,
+    // Bike hub only (HUB_FONT in components/bike-hub/ui/tokens.ts). Registered
+    // under hub-specific keys on purpose: the ~130 older usages of the never-
+    // loaded `GeistMono*` / `PlusJakartaSans*` names must keep rendering in the
+    // system font until the owner decides to restyle them. Per-weight imports
+    // keep the unused weights of the two packages out of the bundle.
+    [HUB_FONT.mono]: GeistMono_400Regular,
+    [HUB_FONT.monoMedium]: GeistMono_500Medium,
+    [HUB_FONT.sans]: PlusJakartaSans_400Regular,
+    [HUB_FONT.sansMedium]: PlusJakartaSans_500Medium,
+    [HUB_FONT.sansSemiBold]: PlusJakartaSans_600SemiBold,
+    [HUB_FONT.sansBold]: PlusJakartaSans_700Bold,
   });
   const navigationRef = useNavigationContainerRef();
 
@@ -839,6 +859,7 @@ function RootLayout() {
     }
 
     setDeadLetterListener(showDeadLetterAlert);
+    setDeliveredListener(refreshAfterSyncedOp);
 
     const appSub = AppState.addEventListener('change', (state: string) => {
       if (state === 'active') {
@@ -860,6 +881,7 @@ function RootLayout() {
       netSub.remove();
       clearTimeout(debounceTimer);
       setDeadLetterListener(null);
+      setDeliveredListener(null);
     };
   }, []);
 

@@ -112,3 +112,15 @@ export const AI_BUDGET_LIMITS = {
   /** Global daily spend cap in cents before circuit breaker trips ($50) */
   GLOBAL_DAILY_SPEND_CAP_CENTS: 5000,
 } as const;
+
+/** Notes on a bike (00182). `NOTE_TEXT_MAX` mirrors the SQL CHECK on `notes.body`. */
+export const NOTE_TEXT_MAX = 4000;
+export const NOTE_PHOTOS_MAX = 3;
+
+/** Upper bound for an odometer value in either unit (seven digits). */
+export const ODOMETER_MAX = 9_999_999;
+/**
+ * How far ahead of the server clock a reading's timestamp may be. Mirrors the
+ * `interval '5 minutes'` in `log_odometer_reading` (00181).
+ */
+export const ODOMETER_FUTURE_TOLERANCE_MS = 5 * 60 * 1000;

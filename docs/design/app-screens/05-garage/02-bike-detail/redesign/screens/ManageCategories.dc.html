@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Expense categories — manage</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#141210;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#F3EEE6}
+a{color:#F3EEE6;text-decoration:none}a:hover{color:#FFFFFF}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
+.mono{font-family:'Geist Mono',ui-monospace,monospace}
+.serif{font-family:'Instrument Serif',Georgia,serif}
+.card{background:#1E1C19;border:1px solid rgba(255,255,255,0.06);border-radius:16px}
+.eyebrow{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#9C958A}
+.muted{color:#9C958A}.dim{color:#B5ADA2}
+.row{display:flex;align-items:center;gap:10px;padding:8px 6px 8px 14px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.row:last-child{border-bottom:0}
+.dot{width:12px;height:12px;border-radius:4px;flex:none}
+.nm{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0}
+.grip{width:40px;height:44px;display:flex;align-items:center;justify-content:center;flex:none;color:#9C958A}
+.amt{font-family:'Geist Mono',ui-monospace,monospace;font-size:12px;color:#9C958A;flex:none}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;background:#141210;display:flex;flex-direction:column">
+
+<div style="padding:54px 8px 0 8px;display:flex;align-items:center;height:48px;border-bottom:1px solid rgba(255,255,255,0.06)">
+<a href="CostsScrolled.dc.html" style="height:44px;padding:0 8px 0 4px;display:flex;align-items:center;gap:2px;font-size:15px;font-weight:600;color:#E07A48"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Costs</a>
+<div style="flex:1;text-align:center;font-size:15px;font-weight:600">Categories</div>
+<a href="EditCategory.dc.html" style="height:44px;padding:0 10px;display:flex;align-items:center;font-size:15px;font-weight:600;color:#E07A48">New</a>
+</div>
+
+<div style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:14px 16px 0 16px">
+
+<div class="dim" style="font-size:13px;line-height:17px;padding:0 2px">Categories are yours across all bikes. Drag to set the order the picker shows them in. The bucket decides how cost of ownership adds them up.</div>
+
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 2px"><div class="eyebrow">Running costs · 10</div><div class="muted" style="font-size:12px">2026 spend</div></div>
+<div class="card" style="display:flex;flex-direction:column;overflow:hidden">
+<a href="EditCategory.dc.html" class="row"><span class="dot" style="background:#E8A040"></span><div class="nm"><div style="font-size:15px;font-weight:600">Fuel</div><div class="muted" style="font-size:12px">asks for litres</div></div><span class="amt">€254.61</span><button class="grip" aria-label="Reorder Fuel"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/></svg></button></a>
+<a href="EditCategory.dc.html" class="row"><span class="dot" style="background:#5B8DEF"></span><div class="nm"><div style="font-size:15px;font-weight:600">Service</div><div class="muted" style="font-size:12px">default for completed jobs</div></div><span class="amt">€241.46</span><button class="grip" aria-label="Reorder Service"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/></svg></button></a>
+<a href="EditCategory.dc.html" class="row"><span class="dot" style="background:#8B7CE8"></span><div class="nm"><div style="font-size:15px;font-weight:600">Insurance</div></div><span class="amt">€492.44</span><button class="grip" aria-label="Reorder Insurance"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/></svg></button></a>
+<a href="EditCategory.dc.html" class="row"><span class="dot" style="background:#B8B2A8"></span><div class="nm"><div style="font-size:15px;font-weight:600">Tires</div></div><span class="amt">€165.90</span><button class="grip" aria-label="Reorder Tires"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/></svg></button></a>
+<a href="EditCategory.dc.html" class="row"><span class="dot" style="background:#D4622E"></span><div class="nm"><div style="font-size:15px;font-weight:600">Gear</div><div class="muted" style="font-size:12px">rider gear, stays with you</div></div><span class="amt">€240.08</span><button class="grip" aria-label="Reorder Gear"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/></svg></button></a>
+<a href="EditCategory.dc.html" class="row"><span class="dot" style="background:#3FBF9A"></span><div class="nm"><div style="font-size:15px;font-weight:600">Parts</div></div><span class="amt">€48.63</span><button class="grip" aria-label="Reorder Parts"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/></svg></button></a>
+<a href="EditCategory.dc.html" class="row"><span class="dot" style="background:#6F685E"></span><div class="nm"><div style="font-size:15px;font-weight:600">Taxes &amp; fees · Registration · Tolls · Parking</div><div class="muted" style="font-size:12px">4 more</div></div><span class="amt">€128.00</span><span style="width:40px"></span></a>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 2px"><div class="eyebrow">Invested in the bike · 2</div><div class="muted" style="font-size:12px">counts in TCO as invested</div></div>
+<div class="card" style="display:flex;flex-direction:column;overflow:hidden">
+<a href="EditCategory.dc.html" class="row"><span class="dot" style="background:#3FBF9A"></span><div class="nm"><div style="font-size:15px;font-weight:600">Accessories</div><div class="muted" style="font-size:12px">panniers, crash bars, screens</div></div><span class="amt">€389.50</span><button class="grip" aria-label="Reorder Accessories"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/></svg></button></a>
+<a href="EditCategory.dc.html" class="row"><span class="dot" style="background:#C9A86A"></span><div class="nm"><div style="font-size:15px;font-weight:600">Upgrades</div><div class="muted" style="font-size:12px">your category · suspension, exhaust</div></div><span class="amt">—</span><button class="grip" aria-label="Reorder Upgrades"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/></svg></button></a>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:6px">
+<div class="eyebrow" style="padding:0 2px">Archived · 2</div>
+<div class="card" style="display:flex;flex-direction:column;overflow:hidden;opacity:0.7">
+<a href="EditCategory.dc.html" class="row"><span class="dot" style="background:#4A4640"></span><div class="nm"><div style="font-size:15px;font-weight:600;color:#B5ADA2">Track days · Rentals</div><div class="muted" style="font-size:12px">hidden from the picker, old entries keep them</div></div><span style="width:40px"></span></a>
+</div>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

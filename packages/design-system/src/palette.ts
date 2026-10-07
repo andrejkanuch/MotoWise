@@ -246,6 +246,55 @@ export const palette = {
   shareCreamText: '#1a1612',
   shareTextLight: '#f2efe9',
   sharePrBg: '#0b0907',
+
+  // ── Bike hub redesign ──
+  // Dark-only tokens of the bike-detail redesign (DESIGN-SPEC.md §2). Ground,
+  // card and copper reuse surfaceDark / cardDark / signature500.
+  /** Raised surface: selected segment, secondary button, keypad key, icon tile */
+  hubRaised: '#2A2724',
+  /** Log sheet option row */
+  hubOption: '#26231F',
+  /** Sheet grabber, switch off, "other" share of the category bar */
+  hubTrack: '#4A4640',
+  hubText: '#F3EEE6',
+  /** Note body */
+  hubTextSoft: '#E6E0D6',
+  /** Secondary text */
+  hubDim: '#B5ADA2',
+  /** Eyebrows, meta, chevrons (4.5:1 on raised surfaces) */
+  hubMuted: '#9C958A',
+  /** Ink on copper — white on copper fails contrast */
+  hubInk: '#1A1410',
+  /** Copper text actions, active chip border (with alpha) */
+  hubCopperText: '#E07A48',
+  /** Past due, CRIT tag text */
+  hubLate: '#FF7A6B',
+  /** Due soon, HIGH tag text */
+  hubSoon: '#F0A050',
+  /** MED tag text */
+  hubMedium: '#7DA9F0',
+  /** LOW tag text */
+  hubLow: '#A39B8F',
+  /** Ready / ok */
+  hubOk: '#5FC8A0',
+  /** "Not ready" dot */
+  hubNotReadyDot: '#FF5A4A',
+  hubTagCritBg: '#3A1A16',
+  hubTagHighBg: '#3A2412',
+  hubTagMedBg: '#172538',
+  hubTagLowBg: '#2A2824',
+  /** "Check before riding" card */
+  hubCardCheck: '#241D15',
+  /** "Not ready" card */
+  hubCardNotReady: '#2A1512',
+  /** "Ready to ride" card */
+  hubCardReady: '#152019',
+  /** Overdue Critical task row (used from R2) */
+  hubRowCritical: '#241715',
+  /** Selected chip in sheets */
+  hubChipOn: '#2A2017',
+  /** Dashed "Add a photo" border */
+  whiteAlpha18: 'rgba(255,255,255,0.18)',
 } as const;
 
 export type Palette = typeof palette;

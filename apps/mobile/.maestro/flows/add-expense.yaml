@@ -49,16 +49,20 @@ env:
 # 2. Open the bike hub from the Garage tab. The tab label carries a badge count
 #    (e.g. "Garage, 1 due"), so match it as a partial regex.
 - tapOn:
-    text: ".*Garage.*"
+    text: "Garage(,.*)?" # the tab; ".*Garage.*" also matched Home's "Today in your garage." (Maestro text matching ignores case)
 - tapOn:
     text: ".*Honda.*" # the bike added during onboarding setup
-# The quick-actions grid (Add task / Add Expense) sits just below the hero.
+# The bike hub opens on Overview (header + segment bar).
 - extendedWaitUntil:
-    visible: "Add Expense"
+    visible: "Overview"
     timeout: 20000
 
-# 3. Open the Add Expense screen (garage.addExpense → "Add Expense").
-- tapOn: "Add Expense"
+# 3. Open the Add Expense screen from the Costs segment: its action pill is
+#    icon-only (a11y label "Add an expense"), so target it by testID.
+- tapOn:
+    id: "segment-costs"
+- tapOn:
+    id: "action-pill-costs"
 - assertVisible: "AMOUNT" # single-element section label confirms the add-expense screen
 
 # 4. Enter a distinctive amount. The amount TextInput is autoFocused on open, so
@@ -98,11 +102,23 @@ env:
 - tapOn:
     text: "Not Now"
     optional: true
+# in-app soft-ask ("Enjoying MotoVault?") can follow a save; it overlays the hub.
+- tapOn:
+    text: "Not really"
+    optional: true
+# …which then asks "Help us improve?" — decline that too.
+- tapOn:
+    text: "Not now"
+    optional: true
 
 # 8. On success the screen stays open with the button flipped to "Done"
 #    (common.done). Tap it to pop back to the bike hub (router.back()).
-- extendedWaitUntil:
-    visible: "Done"
+# After saving, the form scrolls back to the top; "Done" replaces the Save
+# button below the fold, so scroll to it rather than wait for it on screen.
+- scrollUntilVisible:
+    element:
+      text: "Done"
+    direction: DOWN
     timeout: 30000
 - tapOn: "Done"
 
@@ -111,9 +127,9 @@ env:
 #    renders in the row + category legend but the note is the cleanest single element.
 - scrollUntilVisible:
     element:
-      text: ${EXPENSE_NOTE}
+      text: ".*${EXPENSE_NOTE}.*"
     direction: DOWN
-- assertVisible: ${EXPENSE_NOTE}
+- assertVisible: ".*${EXPENSE_NOTE}.*"
 - takeScreenshot: add-expense-done
 
 # No in-flow cleanup needed: the onboarding runner provisions a throwaway Supabase

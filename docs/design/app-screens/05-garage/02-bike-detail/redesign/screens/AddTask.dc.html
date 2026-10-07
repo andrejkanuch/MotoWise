@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Add task sheet</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#141210;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#F3EEE6}
+a{color:#F3EEE6;text-decoration:none}a:hover{color:#FFFFFF}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
+input,textarea,select{font-family:inherit;color:#F3EEE6;background:#141210;border:1px solid rgba(255,255,255,0.1);border-radius:12px;font-size:15px;padding:0 14px;box-sizing:border-box;width:100%}
+input{height:48px}textarea{padding:12px 14px;resize:none}
+.mono{font-family:'Geist Mono',ui-monospace,monospace}
+.serif{font-family:'Instrument Serif',Georgia,serif}
+.eyebrow{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#9C958A}
+.muted{color:#9C958A}.dim{color:#B5ADA2}
+.lbl{font-size:13px;font-weight:600;color:#B5ADA2}
+.pri{flex:1;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);font-family:'Geist Mono',ui-monospace,monospace;font-size:12px;letter-spacing:0.05em;display:flex;align-items:center;justify-content:center;color:#B5ADA2;background:#141210}
+.field{display:flex;flex-direction:column;gap:6px}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;background:#141210">
+<div style="position:absolute;inset:0;padding:54px 12px 0 12px;opacity:0.3;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;align-items:center;gap:4px;height:48px"><div style="width:44px;height:44px"></div><div style="flex:1;display:flex;flex-direction:column;align-items:center"><div class="serif" style="font-size:22px;line-height:24px">Africa Twin</div><div class="eyebrow" style="font-size:10px">2022 · Honda</div></div><div class="mono" style="height:36px;padding:0 12px;border-radius:10px;background:#1E1C19;font-size:13px;display:flex;align-items:center">38,167 km</div></div>
+<div style="height:36px;border-radius:10px;background:#1E1C19;margin:0 4px"></div>
+</div>
+<div style="position:absolute;inset:0;background:rgba(10,9,8,0.5)"></div>
+
+<!-- Form sheet -->
+<div style="position:absolute;left:0;right:0;top:64px;bottom:0;background:#1E1C19;border-radius:24px 24px 0 0;display:flex;flex-direction:column;border-top:1px solid rgba(255,255,255,0.08)">
+<div style="display:flex;align-items:center;padding:14px 8px 6px 8px">
+<a href="ServiceActive.dc.html" style="height:44px;padding:0 10px;display:flex;align-items:center;font-size:15px;font-weight:600;color:#B5ADA2">Cancel</a>
+<div class="serif" style="flex:1;text-align:center;font-size:24px">New task</div>
+<div style="width:72px"></div>
+</div>
+
+<div style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:16px;padding:6px 16px 0 16px">
+
+<div style="display:flex;gap:2px;padding:2px;border-radius:11px;background:#141210;border:1px solid rgba(255,255,255,0.06)">
+<a href="AddTask.dc.html" style="flex:1;height:32px;border-radius:9px;background:#2A2724;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center">Plan a task</a>
+<a href="CompleteTask.dc.html" style="flex:1;height:32px;border-radius:9px;font-size:13px;font-weight:600;color:#B5ADA2;display:flex;align-items:center;justify-content:center">Log past work</a>
+</div>
+
+<div class="field"><label class="lbl" for="t-title">Title</label><input id="t-title" type="text" placeholder="e.g. Rear brake pads"></div>
+
+<div class="field"><div class="lbl">Priority</div>
+<div style="display:flex;gap:6px">
+<button class="pri">LOW</button>
+<button class="pri" style="background:#172538;border-color:rgba(125,169,240,0.5);color:#7DA9F0">MED</button>
+<button class="pri">HIGH</button>
+<button class="pri">CRIT</button>
+</div>
+<div class="muted" style="font-size:12px;line-height:16px">Critical or High overdue changes the bike's ride status. Low and Medium never do.</div>
+</div>
+
+<div class="field"><div class="lbl">Due — whichever comes first</div>
+<div style="display:flex;gap:8px">
+<div style="flex:1;display:flex;flex-direction:column;gap:4px"><label class="eyebrow" for="t-date" style="font-size:10px">By date</label><input id="t-date" type="text" placeholder="Optional" value="Nov 15, 2026"></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:4px"><label class="eyebrow" for="t-km" style="font-size:10px">At odometer</label><div style="position:relative"><input id="t-km" type="text" class="mono" placeholder="Optional" value="40,000"><span class="mono muted" style="position:absolute;right:14px;top:14px;font-size:14px">km</span></div></div>
+</div>
+<div class="dim" style="font-size:12px">In 44 days · or in 1,833 km from today's 38,167 km</div>
+</div>
+
+<div class="field"><div class="lbl">Repeat</div>
+<div style="display:flex;gap:8px;align-items:center">
+<div style="flex:1;position:relative"><label for="t-rkm" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Repeat every, kilometres</label><input id="t-rkm" type="text" class="mono" placeholder="—" value="12,000"><span class="mono muted" style="position:absolute;right:14px;top:14px;font-size:14px">km</span></div>
+<span class="muted" style="font-size:13px">or</span>
+<div style="flex:1;position:relative"><label for="t-rmo" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Repeat every, months</label><input id="t-rmo" type="text" class="mono" placeholder="—" value="12"><span class="mono muted" style="position:absolute;right:14px;top:14px;font-size:14px">mo</span></div>
+</div>
+</div>
+
+<div class="field"><label class="lbl" for="t-desc">What to do <span class="muted" style="font-weight:500">· optional</span></label><textarea id="t-desc" rows="2" placeholder="Steps, torque values, part numbers…"></textarea></div>
+
+</div>
+
+<div style="padding:12px 16px 34px 16px;border-top:1px solid rgba(255,255,255,0.06)">
+<button style="width:100%;height:52px;border-radius:14px;background:#D4622E;color:#1A1410;font-size:16px;font-weight:700">Save task</button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

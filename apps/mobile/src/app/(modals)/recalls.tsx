@@ -9,6 +9,7 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { QUERY_META } from '../../lib/query-meta';
 import { useEditorialTheme } from '../../theme/editorial';
 
 /**
@@ -33,6 +34,9 @@ export default function RecallsScreen() {
     queryFn: () => gqlFetcher(MotorcycleRecallsDocument, { motorcycleId }),
     enabled: !!motorcycleId,
     staleTime: 60 * 60 * 1000, // 1 hour client-side (server caches 24h)
+    // Renders its own error banner. The bike hub's Overview observes this key
+    // with the same opt-out; the global handler needs every observer to agree.
+    meta: QUERY_META.OWN_ERROR_UI,
   });
 
   const result = data?.motorcycleRecalls;

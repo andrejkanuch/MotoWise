@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Document — insurance policy</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#141210;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#F3EEE6}
+a{color:#F3EEE6;text-decoration:none}a:hover{color:#FFFFFF}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
+.mono{font-family:'Geist Mono',ui-monospace,monospace}
+.serif{font-family:'Instrument Serif',Georgia,serif}
+.card{background:#1E1C19;border:1px solid rgba(255,255,255,0.06);border-radius:16px}
+.eyebrow{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#9C958A}
+.muted{color:#9C958A}.dim{color:#B5ADA2}.soon{color:#F0A050}
+.kv{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.kv:last-child{border-bottom:0}
+.btn2{flex:1;height:48px;border-radius:14px;background:#2A2724;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;background:#141210;display:flex;flex-direction:column">
+
+<div style="padding:54px 8px 0 8px;display:flex;align-items:center;height:48px;border-bottom:1px solid rgba(255,255,255,0.06)">
+<a href="Bike.dc.html" style="height:44px;padding:0 8px 0 4px;display:flex;align-items:center;gap:2px;font-size:15px;font-weight:600;color:#E07A48"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Bike</a>
+<div style="flex:1;text-align:center;font-size:15px;font-weight:600">Africa Twin</div>
+<a href="AddDocument.dc.html" style="height:44px;padding:0 10px;display:flex;align-items:center;font-size:15px;font-weight:600;color:#E07A48">Edit</a>
+</div>
+
+<div style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:14px;padding:18px 16px 0 16px">
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;gap:6px;align-items:center"><span class="mono" style="font-size:10px;letter-spacing:0.06em;padding:3px 7px;border-radius:5px;background:#3A2412;color:#F0A050">INSURANCE</span><span class="muted" style="font-size:12px">required to ride</span></div>
+<h1 style="margin:0;font-size:22px;line-height:27px;font-weight:600">Mapfre · third party + theft</h1>
+<div style="font-size:15px"><span class="soon" style="font-weight:600">Expires in 12 days</span><span class="muted"> · Oct 14, 2026 · policy 48-2210-77</span></div>
+</div>
+
+<div style="height:300px;border-radius:14px;background:#2A2724;display:flex;align-items:center;justify-content:center;color:#9C958A;font-size:13px;position:relative" aria-label="Policy PDF, page 1 of 3">
+<span>PDF · page 1 of 3 · pinch to zoom</span>
+<div style="position:absolute;right:10px;bottom:10px;display:flex;gap:6px"><button aria-label="Share" style="width:36px;height:36px;border-radius:10px;background:rgba(20,18,16,0.8);display:flex;align-items:center;justify-content:center;color:#F3EEE6"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M16 6l-4-4-4 4M12 2v13"/></svg></button></div>
+</div>
+
+<div style="display:flex;gap:8px">
+<a href="AddDocument.dc.html" class="btn2" style="background:#D4622E;color:#1A1410;font-weight:700">Upload the renewal</a>
+<button class="btn2">Remind me later</button>
+</div>
+
+<div class="card" style="display:flex;flex-direction:column;overflow:hidden">
+<a href="ExpenseDetail.dc.html" class="kv"><div class="eyebrow" style="width:72px;flex:none">Cost</div><div style="flex:1;font-size:14px">€492.44 · logged Feb 3 as Insurance</div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9C958A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></a>
+<div class="kv"><div class="eyebrow" style="width:72px;flex:none">History</div><div style="flex:1;font-size:14px;color:#B5ADA2">2025 policy · €461.10 · replaced Oct 14, 2025</div></div>
+<div class="kv"><div class="eyebrow" style="width:72px;flex:none">Added</div><div style="flex:1;font-size:14px;color:#B5ADA2">Oct 12, 2025 · PDF, 3 pages</div></div>
+</div>
+
+</div>
+
+<div style="padding:12px 16px 34px 16px;display:flex;flex-direction:column;gap:6px;background:#141210;border-top:1px solid rgba(255,255,255,0.06)">
+<button style="height:44px;font-size:14px;font-weight:600;color:#FF7A6B">Delete document…</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

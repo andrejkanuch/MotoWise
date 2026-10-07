@@ -1,0 +1,10 @@
+mutation LogOdometerReading($input: LogOdometerReadingInput!) {
+  logOdometerReading(input: $input) {
+    id
+    currentMileage
+    distanceUnit
+    mileageUpdatedAt
+    odometerSyncSource
+    odometerLastRideId
+  }
+}

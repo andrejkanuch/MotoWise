@@ -36,8 +36,12 @@ export function useUpdateUserPreferences(): {
         queryClient.setQueryData(queryKeys.user.me, context.snapshot);
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, { input }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
+      // A unit change rewrites every bike's distance_unit (00180 sync trigger).
+      if (input.measurementSystem !== undefined) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+      }
       if (process.env.EXPO_OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }

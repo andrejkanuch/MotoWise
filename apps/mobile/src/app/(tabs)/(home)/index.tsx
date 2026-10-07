@@ -24,6 +24,7 @@ import { ReceiptScanRecoveryCard } from '../../../features/receipt-scan/receipt-
 import { SCAN_ENTRY_SURFACE } from '../../../features/receipt-scan/scan-flow-constants';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { useProGate } from '../../../hooks/use-pro-gate';
+import { BIKE_ORIGIN } from '../../../lib/bike-hub/constants';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
 
 type FocusTab = 'stats' | 'trip' | 'history';
@@ -387,6 +388,7 @@ export default function HomeScreen() {
                   pathname: '/(tabs)/(garage)/bike/[id]',
                   params: {
                     id: activeBike.id,
+                    from: BIKE_ORIGIN.HOME,
                     _ts: Date.now().toString(),
                   },
                 })
@@ -852,6 +854,7 @@ export default function HomeScreen() {
                         params: {
                           id: task.motorcycleId,
                           highlightTask: task.id,
+                          from: BIKE_ORIGIN.HOME,
                           _ts: Date.now().toString(),
                         },
                       })

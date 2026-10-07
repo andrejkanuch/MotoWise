@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Odometer sheet</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#141210;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#F3EEE6}
+a{color:#F3EEE6;text-decoration:none}a:hover{color:#FFFFFF}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
+.mono{font-family:'Geist Mono',ui-monospace,monospace}
+.serif{font-family:'Instrument Serif',Georgia,serif}
+.eyebrow{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#9C958A}
+.muted{color:#9C958A}.dim{color:#B5ADA2}
+.key{height:56px;border-radius:14px;background:#2A2724;font-family:'Geist Mono',ui-monospace,monospace;font-size:24px;font-weight:500;display:flex;align-items:center;justify-content:center}
+.chip{height:40px;padding:0 14px;border-radius:11px;background:#141210;border:1px solid rgba(255,255,255,0.1);font-family:'Geist Mono',ui-monospace,monospace;font-size:13px;display:flex;align-items:center;gap:6px}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;background:#141210">
+<div style="position:absolute;inset:0;padding:54px 12px 0 12px;opacity:0.3;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;align-items:center;gap:4px;height:48px"><div style="width:44px"></div><div style="flex:1;display:flex;flex-direction:column;align-items:center"><div class="serif" style="font-size:22px;line-height:24px">Africa Twin</div><div class="eyebrow" style="font-size:10px">2022 · Honda</div></div><div class="mono" style="height:36px;padding:0 12px;border-radius:10px;background:#1E1C19;font-size:13px;display:flex;align-items:center">38,167 km</div></div>
+</div>
+<div style="position:absolute;inset:0;background:rgba(10,9,8,0.5)"></div>
+
+<div style="position:absolute;left:0;right:0;bottom:0;background:#1E1C19;border-radius:24px 24px 0 0;padding:10px 16px 34px 16px;display:flex;flex-direction:column;gap:14px;border-top:1px solid rgba(255,255,255,0.08)">
+<div style="width:36px;height:4px;border-radius:2px;background:#4A4640;align-self:center"></div>
+<div style="display:flex;align-items:center;justify-content:space-between"><div class="serif" style="font-size:26px">Odometer</div><a href="Main.dc.html" style="font-size:14px;font-weight:600;color:#B5ADA2;padding:8px 4px">Cancel</a></div>
+
+<div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">
+<div class="eyebrow">New reading</div>
+<div style="display:flex;align-items:baseline;gap:8px"><div class="mono" style="font-size:44px;line-height:46px;font-weight:500;letter-spacing:-0.02em">39,4<span style="border-right:2px solid #D4622E;padding-right:1px">0</span>7</div><div class="mono muted" style="font-size:18px">km</div></div>
+<div style="font-size:13px"><span class="dim">+1,240 km since Sep 28 · was 38,167</span></div>
+</div>
+
+<div style="display:flex;gap:6px;overflow-x:auto">
+<button class="chip" style="border-color:rgba(224,122,72,0.5);color:#E07A48">+1,240 from 4 tracked rides</button>
+<button class="chip">+50</button><button class="chip">+100</button><button class="chip">+250</button>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:8px">
+<button class="key">1</button><button class="key">2</button><button class="key">3</button>
+<button class="key">4</button><button class="key">5</button><button class="key">6</button>
+<button class="key">7</button><button class="key">8</button><button class="key">9</button>
+<button class="key" style="background:transparent;font-size:14px;font-family:inherit;color:#B5ADA2">Date · today</button><button class="key">0</button><button class="key" aria-label="Delete digit" style="background:transparent"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="m18 9-6 6M12 9l6 6"/></svg></button>
+</div>
+
+<div class="muted" style="font-size:12px;line-height:16px">Readings are kept as a log, so “due soon at your pace” uses real distance. A reading lower than the last asks before saving.</div>
+<button style="height:52px;border-radius:14px;background:#D4622E;color:#1A1410;font-size:16px;font-weight:700">Save 39,407 km</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

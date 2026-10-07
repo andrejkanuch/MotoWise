@@ -1,0 +1,11 @@
+mutation AddNotePhoto($input: AddNotePhotoInput!) {
+  addNotePhoto(input: $input) {
+    id
+    noteId
+    storagePath
+    publicUrl
+    fileSizeBytes
+    mimeType
+    createdAt
+  }
+}
