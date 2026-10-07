@@ -214,10 +214,40 @@ export default function PersonalizingScreen() {
       // gate would send them back into onboarding on every later launch.
       if (showsGaragePaywall) setAwaitingGarageCta(true);
 
+      // Resolve the user's global measurement system from the onboarding unit
+      // toggle (falling back to the device-derived store default). The odometer is
+      // stored raw in that unit; we persist measurement_system to match.
+      const chosenUnit = bikeData?.mileageUnit ?? preBikeMileageUnit ?? null;
+      const onboardingSystem: MeasurementSystem = chosenUnit
+        ? UNIT_TO_SYSTEM[chosenUnit]
+        : useAuthStore.getState().measurementSystem;
+
+      // Persist the global measurement system so display units match what the user
+      // picked (complete_onboarding does not touch users.measurement_system, which
+      // otherwise stays the 'metric' default and mislabels imperial riders).
+      // Best-effort and idempotent: never block onboarding on it; also set the
+      // store so the app renders correctly before the next `me` refetch.
+      const syncMeasurementSystem = async () => {
+        try {
+          useAuthStore.getState().setMeasurementSystem(onboardingSystem);
+          await gqlFetcher(UpdateUserDocument, {
+            input: { measurementSystem: onboardingSystem },
+          });
+          queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
+          // The 00180 sync trigger just rewrote the new bike's distance_unit; the
+          // bike was cached (by completeOnboarding's refetch) in the old unit.
+          queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+        } catch (err) {
+          logger.warn('[Personalizing] measurement_system update skipped:', err);
+        }
+      };
+
       // Resume after a kill on the payoff screen: the setup is already saved.
       // Running it again would re-upload the photo and send a second
       // onboarding_completed and Meta CompleteRegistration (new event id).
+      // The unit sync is re-run: a kill while it was in flight would lose it.
       if (useOnboardingStore.getState().completionSent) {
+        await syncMeasurementSystem();
         setMutationDone(true);
         return;
       }
@@ -246,14 +276,6 @@ export default function PersonalizingScreen() {
           logger.warn('[Personalizing] bike photo upload skipped:', err);
         }
       }
-
-      // Resolve the user's global measurement system from the onboarding unit
-      // toggle (falling back to the device-derived store default). The odometer is
-      // stored raw in that unit; we persist measurement_system to match.
-      const chosenUnit = bikeData?.mileageUnit ?? preBikeMileageUnit ?? null;
-      const onboardingSystem: MeasurementSystem = chosenUnit
-        ? UNIT_TO_SYSTEM[chosenUnit]
-        : useAuthStore.getState().measurementSystem;
 
       const input: CompleteOnboardingInput = {
         experienceLevel: experienceLevel ?? 'beginner',
@@ -310,36 +332,21 @@ export default function PersonalizingScreen() {
         return;
       }
       completionReported.current = true;
+
+      // Report synchronously, before the marker and before any further await, so
+      // no kill can land between the save and its reporting. Every variant counts
+      // completion at the same point: the setup is saved. The garage_first paywall
+      // comes after this, and its result is the paywall step event, so the
+      // completion guardrail compares like with like.
+      trackOnboardingCompleted();
+      MetaAnalytics.trackCompleteRegistration(eventId);
+      useChecklistStore.getState().initialize(ridingGoals);
+
       // Not after the rider already left for the garage: reset() cleared the
       // store, and a marker written now would outlive this onboarding run.
       if (!leftOnboarding.current) setCompletionSent(true);
 
-      // Persist the global measurement system so display units match what the user
-      // picked (complete_onboarding does not touch users.measurement_system, which
-      // otherwise stays the 'metric' default and mislabels imperial riders).
-      // Best-effort: never block onboarding on it; also set the store so the app
-      // renders correctly before the next `me` refetch.
-      try {
-        useAuthStore.getState().setMeasurementSystem(onboardingSystem);
-        await gqlFetcher(UpdateUserDocument, {
-          input: { measurementSystem: onboardingSystem },
-        });
-        queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
-        // The 00180 sync trigger just rewrote the new bike's distance_unit; the
-        // bike was cached (by completeOnboarding's refetch) in the old unit.
-        queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
-      } catch (err) {
-        logger.warn('[Personalizing] measurement_system update skipped:', err);
-      }
-
-      // Every variant counts completion at the same point: the setup is saved.
-      // The garage_first paywall comes after this, and its result is the
-      // paywall step event, so the completion guardrail compares like with like.
-      trackOnboardingCompleted();
-      MetaAnalytics.trackCompleteRegistration(eventId);
-
-      // Initialize checklist store based on user goals
-      useChecklistStore.getState().initialize(ridingGoals);
+      await syncMeasurementSystem();
 
       setMutationDone(true);
     };
