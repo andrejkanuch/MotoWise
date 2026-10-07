@@ -117,6 +117,7 @@ describe(`date-only strings are local days (${childZone ?? 'machine zone'})`, ()
         }),
         previousYearExpenses: null,
         today,
+        fallbackCurrency: 'EUR',
       });
       expect(summary.thisMonth).toBe(40);
     });
@@ -132,6 +133,7 @@ describe(`date-only strings are local days (${childZone ?? 'machine zone'})`, ()
           ],
         }),
         today,
+        fallbackCurrency: 'EUR',
       });
       expect(summary.total).toBe(100);
       expect(summary.samePeriodLastYear).toBe(30);

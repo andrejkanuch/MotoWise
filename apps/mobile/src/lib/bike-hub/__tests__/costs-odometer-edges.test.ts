@@ -38,6 +38,7 @@ describe('summariseCosts — year over year, same period', () => {
       currentYearExpenses: EXPENSES_2026,
       previousYearExpenses: EXPENSES_2025,
       today: TODAY,
+      fallbackCurrency: 'EUR',
     });
     expect(total).toBeCloseTo(1960.62, 2);
     expect(samePeriodLastYear).toBeCloseTo(1748.62, 2);
@@ -56,6 +57,7 @@ describe('summariseCosts — year over year, same period', () => {
       currentYearExpenses: EXPENSES_2026,
       previousYearExpenses,
       today: TODAY,
+      fallbackCurrency: 'EUR',
     });
     expect(summary.samePeriodLastYear).toBe(0);
     expect(summary.yoy).toBeNull();
@@ -76,6 +78,7 @@ describe('summariseCosts — year over year, same period', () => {
         currentYearExpenses: EXPENSES_2026,
         previousYearExpenses,
         today,
+        fallbackCurrency: 'EUR',
       });
       expect(summary.samePeriodLastYear).toBe(100);
     }
@@ -86,6 +89,7 @@ describe('summariseCosts — year over year, same period', () => {
       currentYearExpenses: expenseYear({ fuel: [['2026-02-01', 80]] }),
       previousYearExpenses: expenseYear({ fuel: [['2025-02-01', 80]] }),
       today: TODAY,
+      fallbackCurrency: 'EUR',
     });
     expect(summary.yoy).toEqual({ direction: DELTA_DIRECTION.FLAT, amount: 0, percent: 0 });
   });
@@ -95,6 +99,7 @@ describe('summariseCosts — year over year, same period', () => {
       currentYearExpenses: null,
       previousYearExpenses: expenseYear({ fuel: [['2025-02-01', 80]] }),
       today: TODAY,
+      fallbackCurrency: 'EUR',
     });
     expect(summary.yoy).toEqual({ direction: DELTA_DIRECTION.DOWN, amount: 80, percent: 100 });
   });
@@ -104,6 +109,7 @@ describe('summariseCosts — year over year, same period', () => {
       currentYearExpenses: expenseYear({ fuel: [['2026-02-01', 225]] }),
       previousYearExpenses: expenseYear({ fuel: [['2025-02-01', 200]] }),
       today: TODAY,
+      fallbackCurrency: 'EUR',
     });
     expect(summary.yoy?.percent).toBe(13);
   });
@@ -113,6 +119,7 @@ describe('summariseCosts — year over year, same period', () => {
       currentYearExpenses: expenseYear({ fuel: [['2026-02-01', 500]] }),
       previousYearExpenses: expenseYear({ fuel: [['2025-02-01', 100]] }),
       today: TODAY,
+      fallbackCurrency: 'EUR',
     });
     expect(summary.yoy).toEqual({ direction: DELTA_DIRECTION.UP, amount: 400, percent: 400 });
   });
@@ -129,8 +136,12 @@ describe('summariseCosts — per month divides by completed months, at least 1',
     ['Dec 31', new Date(2026, 11, 31), 11],
   ])('on %s the denominator is %i', (_label, today, months) => {
     expect(
-      summariseCosts({ currentYearExpenses: null, previousYearExpenses: null, today })
-        .monthsCounted,
+      summariseCosts({
+        currentYearExpenses: null,
+        previousYearExpenses: null,
+        today,
+        fallbackCurrency: 'EUR',
+      }).monthsCounted,
     ).toBe(months);
   });
 
@@ -139,6 +150,7 @@ describe('summariseCosts — per month divides by completed months, at least 1',
       currentYearExpenses: EXPENSES_2026,
       previousYearExpenses: EXPENSES_2025,
       today: TODAY,
+      fallbackCurrency: 'EUR',
     });
     expect(Math.round(summary.perMonth)).toBe(218);
   });
@@ -151,6 +163,7 @@ describe('summariseCosts — per month divides by completed months, at least 1',
       }),
       previousYearExpenses: null,
       today: new Date(2026, 0, 15),
+      fallbackCurrency: 'EUR',
     });
     expect(summary.monthsCounted).toBe(1);
     expect(summary.perMonth).toBeCloseTo(550.16, 2);
@@ -171,6 +184,7 @@ describe('summariseCosts — this month', () => {
       }),
       previousYearExpenses: null,
       today: TODAY,
+      fallbackCurrency: 'EUR',
     });
     expect(summary.thisMonth).toBe(60);
   });
@@ -180,6 +194,7 @@ describe('summariseCosts — this month', () => {
       currentYearExpenses: null,
       previousYearExpenses: expenseYear({ fuel: [['2025-10-02', 300]] }),
       today: TODAY,
+      fallbackCurrency: 'EUR',
     });
     expect(summary.thisMonth).toBe(0);
   });
@@ -194,6 +209,7 @@ describe('summariseCosts — this month', () => {
       }),
       previousYearExpenses: null,
       today: new Date(2026, 0, 15),
+      fallbackCurrency: 'EUR',
     });
     expect(summary.thisMonth).toBe(20);
   });
@@ -205,6 +221,7 @@ describe('summariseCosts — top category and shares', () => {
       currentYearExpenses: expenseYear(categories),
       previousYearExpenses: null,
       today: TODAY,
+      fallbackCurrency: 'EUR',
     });
 
   it('Insurance leads the Africa Twin’s year with 25 %', () => {
@@ -212,6 +229,7 @@ describe('summariseCosts — top category and shares', () => {
       currentYearExpenses: EXPENSES_2026,
       previousYearExpenses: EXPENSES_2025,
       today: TODAY,
+      fallbackCurrency: 'EUR',
     });
     expect(summary.topCategory).toEqual({ key: 'insurance', percent: 25 });
     expect(summary.shares.reduce((acc, share) => acc + share.percent, 0)).toBe(100);

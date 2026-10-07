@@ -7,6 +7,10 @@ jest.mock('expo-haptics', () => ({
   ImpactFeedbackStyle: { Light: 'light' },
 }));
 jest.mock('expo-image', () => ({ Image: () => null }));
+jest.mock('../../../stores/auth.store', () => ({
+  useAuthStore: (selector: (state: unknown) => unknown) =>
+    selector({ currency: 'EUR', session: { user: { id: 'user-1' } } }),
+}));
 
 const mockFetcher = jest.fn();
 jest.mock('../../../lib/graphql-client', () => ({

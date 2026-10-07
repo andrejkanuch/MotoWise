@@ -147,16 +147,22 @@ export const BIKE_B = {
 };
 
 let expenseId = 0;
-/** One year of `expenses(motorcycleId, year)`: category → [date, amount] rows. */
-export function expenseYear(categories: Record<string, Array<[date: string, amount: number]>>) {
+/** One year of `expenses(motorcycleId, year)`: category → [date, amount, currency?] rows
+ *  (currency defaults to EUR; `null` = a legacy row with no stored currency). */
+export function expenseYear(
+  categories: Record<
+    string,
+    Array<[date: string, amount: number] | [date: string, amount: number, currency: string | null]>
+  >,
+) {
   return {
     ytdTotal: 0,
     categories: Object.entries(categories).map(([category, rows]) => ({
       category,
       total: rows.reduce((acc, [, amount]) => acc + amount, 0),
-      expenses: rows.map(([date, amount]) => {
+      expenses: rows.map(([date, amount, currency = 'EUR']) => {
         expenseId += 1;
-        return { id: `e${expenseId}`, amount, category, currency: 'EUR', date, createdAt: date };
+        return { id: `e${expenseId}`, amount, category, currency, date, createdAt: date };
       }),
     })),
   };

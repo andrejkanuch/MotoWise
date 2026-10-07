@@ -67,6 +67,7 @@ describe('summariseCosts — bike A', () => {
     currentYearExpenses: YEAR_2026,
     previousYearExpenses: YEAR_2025,
     today: TODAY,
+    fallbackCurrency: 'EUR',
   });
 
   it('totals €1,960.62', () => {
@@ -106,6 +107,7 @@ describe('summariseCosts — edges', () => {
       currentYearExpenses: YEAR_2026,
       previousYearExpenses: year({ fuel: [['2025-11-01', 90]] }),
       today: TODAY,
+      fallbackCurrency: 'EUR',
     });
     expect(summary.samePeriodLastYear).toBe(0);
     expect(summary.yoy).toBeNull();
@@ -116,6 +118,7 @@ describe('summariseCosts — edges', () => {
       currentYearExpenses: year({ fuel: [['2026-02-01', 50]] }),
       previousYearExpenses: year({ fuel: [['2025-02-01', 200]] }),
       today: TODAY,
+      fallbackCurrency: 'EUR',
     });
     expect(summary.yoy).toEqual({ direction: DELTA_DIRECTION.DOWN, amount: 150, percent: 75 });
   });
@@ -125,6 +128,7 @@ describe('summariseCosts — edges', () => {
       currentYearExpenses: null,
       previousYearExpenses: undefined,
       today: new Date(2026, 0, 15),
+      fallbackCurrency: 'EUR',
     });
     expect(summary).toMatchObject({
       total: 0,
@@ -141,6 +145,7 @@ describe('summariseCosts — edges', () => {
       currentYearExpenses: year({ fuel: [['2026-02-01', 50]] }),
       previousYearExpenses: null,
       today: TODAY,
+      fallbackCurrency: 'EUR',
     });
     expect(summary.shares).toEqual([{ key: 'fuel', total: 50, percent: 100 }]);
   });
@@ -155,6 +160,7 @@ describe('summariseCosts — edges', () => {
         ],
       }),
       today: new Date(2028, 1, 29),
+      fallbackCurrency: 'EUR',
     });
     expect(summary.samePeriodLastYear).toBe(40);
   });

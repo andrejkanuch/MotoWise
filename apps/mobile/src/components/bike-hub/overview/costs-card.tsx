@@ -1,4 +1,4 @@
-import type { Currency } from '@motovault/types';
+import { CURRENCY_TOTALS_SEPARATOR, type Currency } from '@motovault/types';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
@@ -9,7 +9,7 @@ import {
   type DeltaDirection,
 } from '../../../lib/bike-hub/constants';
 import type { CostsShare, CostsSummary } from '../../../lib/bike-hub/costs-summary';
-import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../../lib/expense-constants';
+import { CATEGORY_COLORS, CATEGORY_LABELS, formatCurrency } from '../../../lib/expense-constants';
 import { HubCard } from '../ui/hub-card';
 import { REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { RowChevron } from '../ui/row-chevron';
@@ -70,7 +70,11 @@ export function CostsCard({
   onPress,
 }: CostsCardProps) {
   const { t } = useTranslation();
-  const { currency, format } = useCurrency();
+  // The rider's display currency only prices the bike; spend is shown in the
+  // currency it was recorded in (`summary.currency`).
+  const { currency: userCurrency } = useCurrency();
+  const { currency } = summary;
+  const format = (amount: number) => formatCurrency(amount, currency);
   const title = t('bikeHub.costs.title');
 
   if (isLoading) {
@@ -115,7 +119,11 @@ export function CostsCard({
     );
   }
 
-  const total = format(summary.total);
+  // Spend in other currencies is listed beside the headline, never added to it.
+  const total = [
+    format(summary.total),
+    ...summary.otherCurrencyTotals.map((group) => formatCurrency(group.total, group.currency)),
+  ].join(CURRENCY_TOTALS_SEPARATOR);
 
   if (summary.total === 0) {
     return (
@@ -138,7 +146,9 @@ export function CostsCard({
           </Text>
           <Text style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 17, color: hub.dim }}>
             {purchasePrice
-              ? t('bikeHub.costs.emptyWithPrice', { price: formatWhole(purchasePrice, currency) })
+              ? t('bikeHub.costs.emptyWithPrice', {
+                  price: formatWhole(purchasePrice, userCurrency),
+                })
               : t('bikeHub.costs.empty')}
           </Text>
         </HubCard>

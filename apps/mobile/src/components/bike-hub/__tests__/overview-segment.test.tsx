@@ -53,6 +53,7 @@ import {
   ECU_RECALL,
   EXPENSES_2025,
   EXPENSES_2026,
+  expenseYear,
   NOTES,
   TODAY,
   task,
@@ -298,6 +299,24 @@ describe('Overview — bike A', () => {
     expect(costs.getByText('Insurance 25%')).toBeOnTheScreen();
     expect(costs.getByLabelText('Fuel 20%')).toBeOnTheScreen();
     expect(costs.getByLabelText('Other 18%')).toBeOnTheScreen();
+  });
+
+  it('costs: never adds currencies — EUR figures, USD listed beside the total', async () => {
+    await renderOverview({
+      expenses: {
+        2026: expenseYear({
+          fuel: [
+            ['2026-10-01', 40, 'EUR'],
+            ['2026-09-01', 60, 'EUR'],
+          ],
+          parts: [['2026-10-01', 500, 'USD']],
+        }),
+      },
+    });
+    const costs = within(await screen.findByTestId('costs-card'));
+    expect(costs.getByText('€100.00 · $500.00')).toBeOnTheScreen();
+    expect(costs.getByText('€40.00')).toBeOnTheScreen();
+    expect(costs.getByText('Fuel 100%')).toBeOnTheScreen();
   });
 
   it('notes: "Notes · 5" with the two newest', async () => {

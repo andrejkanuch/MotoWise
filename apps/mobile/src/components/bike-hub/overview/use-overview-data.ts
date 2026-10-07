@@ -5,6 +5,7 @@ import {
 } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { useCurrency } from '../../../hooks/use-currency';
 import { type AttentionResult, getNextUp, rankAttention } from '../../../lib/bike-hub/attention';
 import type { HubUnit } from '../../../lib/bike-hub/constants';
 import { type CostsSummary, summariseCosts } from '../../../lib/bike-hub/costs-summary';
@@ -140,14 +141,16 @@ export function useOverviewData(
     };
   }, [tasks, documents, categories, recalls, recallCount, odometer, today, unit]);
 
+  const { currency: fallbackCurrency } = useCurrency();
   const summary = useMemo(
     () =>
       summariseCosts({
         currentYearExpenses: currentYear.data?.expenses,
         previousYearExpenses: previousYear.data?.expenses,
         today,
+        fallbackCurrency,
       }),
-    [currentYear.data, previousYear.data, today],
+    [currentYear.data, previousYear.data, today, fallbackCurrency],
   );
 
   return {

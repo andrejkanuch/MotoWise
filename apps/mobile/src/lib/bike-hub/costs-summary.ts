@@ -1,4 +1,10 @@
 import type { ExpensesByMotorcycleQuery } from '@motovault/graphql';
+import {
+  type Currency,
+  type CurrencyTotal,
+  groupTotalsByCurrency,
+  resolveCurrency,
+} from '@motovault/types';
 import { endOfDay, isSameMonth, parseISO, subYears } from 'date-fns';
 import {
   COSTS_REST_KEY,
@@ -29,6 +35,14 @@ export interface CostsYoy {
 }
 
 export interface CostsSummary {
+  /**
+   * The currency every figure below is in: the year's most-used currency. Amounts
+   * in different currencies are never added together (#275) — there is no FX
+   * source.
+   */
+  currency: Currency;
+  /** The year's totals in every OTHER currency, most-used first. Usually empty. */
+  otherCurrencyTotals: CurrencyTotal[];
   total: number;
   samePeriodLastYear: number;
   /** `null` when last year's same period has no spend (nothing to compare with). */
@@ -47,16 +61,25 @@ export interface CostsSummaryInput {
   currentYearExpenses: CostsYearInput | null | undefined;
   previousYearExpenses: CostsYearInput | null | undefined;
   today: Date;
+  /** Currency of legacy rows with no stored currency, and of an empty year. */
+  fallbackCurrency: Currency;
 }
 
 interface FlatExpense {
+  category: string;
   amount: number;
+  currency: Currency;
   date: Date;
 }
 
-function flatten(year: CostsYearInput | null | undefined): FlatExpense[] {
+function flatten(year: CostsYearInput | null | undefined, fallback: Currency): FlatExpense[] {
   return (year?.categories ?? []).flatMap((category) =>
-    category.expenses.map((expense) => ({ amount: expense.amount, date: parseISO(expense.date) })),
+    category.expenses.map((expense) => ({
+      category: category.category,
+      amount: expense.amount,
+      currency: resolveCurrency(expense.currency, fallback),
+      date: parseISO(expense.date),
+    })),
   );
 }
 
@@ -74,13 +97,17 @@ function directionOf(difference: number): DeltaDirection {
   return DELTA_DIRECTION.FLAT;
 }
 
-function buildShares(year: CostsYearInput | null | undefined, total: number): CostsShare[] {
-  const ranked = (year?.categories ?? [])
+function buildShares(expenses: readonly FlatExpense[], total: number): CostsShare[] {
+  const byCategory = new Map<string, number>();
+  for (const expense of expenses) {
+    byCategory.set(expense.category, (byCategory.get(expense.category) ?? 0) + expense.amount);
+  }
+  const ranked = [...byCategory]
+    .map(([key, categoryTotal]) => ({ key, total: categoryTotal }))
     .filter((category) => category.total > 0)
     .sort((a, b) => b.total - a.total);
   const top = ranked.slice(0, COSTS_TOP_SHARES).map((category) => ({
-    key: category.category,
-    total: category.total,
+    ...category,
     percent: percentOf(category.total, total),
   }));
   const rest = ranked.slice(COSTS_TOP_SHARES);
@@ -101,15 +128,26 @@ function buildShares(year: CostsYearInput | null | undefined, total: number): Co
  * Figures of the Overview costs card. "Same period" = last year's expenses dated
  * on or before today's month-day (Feb 29 clamps to Feb 28). "Per month" divides
  * by the completed calendar months of the year (minimum 1).
+ *
+ * Every figure is in ONE currency — this year's most-used, else last year's,
+ * else `fallbackCurrency`; the year's totals in any other currency are returned
+ * separately in `otherCurrencyTotals`.
  */
 export function summariseCosts(input: CostsSummaryInput): CostsSummary {
-  const { currentYearExpenses, previousYearExpenses, today } = input;
-  const current = flatten(currentYearExpenses);
+  const { currentYearExpenses, previousYearExpenses, today, fallbackCurrency } = input;
+  const allCurrent = flatten(currentYearExpenses, fallbackCurrency);
+  const allPrevious = flatten(previousYearExpenses, fallbackCurrency);
+  const currentTotals = groupTotalsByCurrency(allCurrent, fallbackCurrency);
+  const currency =
+    currentTotals[0]?.currency ??
+    groupTotalsByCurrency(allPrevious, fallbackCurrency)[0]?.currency ??
+    fallbackCurrency;
+  const current = allCurrent.filter((expense) => expense.currency === currency);
   const total = sum(current);
 
   const cutoff = endOfDay(subYears(today, 1));
   const samePeriodLastYear = sum(
-    flatten(previousYearExpenses).filter((expense) => expense.date <= cutoff),
+    allPrevious.filter((expense) => expense.currency === currency && expense.date <= cutoff),
   );
   const difference = total - samePeriodLastYear;
   const yoy: CostsYoy | null =
@@ -122,10 +160,12 @@ export function summariseCosts(input: CostsSummaryInput): CostsSummary {
       : null;
 
   const monthsCounted = Math.max(1, today.getMonth());
-  const shares = buildShares(currentYearExpenses, total);
+  const shares = buildShares(current, total);
   const top = shares.find((share) => share.key !== COSTS_REST_KEY);
 
   return {
+    currency,
+    otherCurrencyTotals: currentTotals.filter((group) => group.currency !== currency),
     total,
     samePeriodLastYear,
     yoy,
