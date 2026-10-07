@@ -14,7 +14,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: getAppName(),
   slug: 'motowise',
   description: 'AI-powered motorcycle maintenance, diagnostics & expense tracking',
-  version: '3.20.0',
+  version: '3.21.0',
   // 'default' (not 'portrait') so Android emits NO android:screenOrientation
   // restriction. Android 16 ignores orientation/resizability locks on large-screen
   // devices (foldables, tablets) and Play Console flags the restriction as a
@@ -111,7 +111,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-location',
       {
         locationAlwaysAndWhenInUsePermission:
-          'MotoVault uses your location to record ride routes, show nearby routes, and display local weather for trip planning.',
+          'MotoVault uses your location to record ride routes and show nearby routes.',
         // Background recording: keep tracking distance/speed/route while the app is
         // backgrounded or the screen is locked (e.g. riding with CarPlay up). Adds
         // the iOS `location` background mode + Android ACCESS_BACKGROUND_LOCATION +
@@ -304,7 +304,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       // because Expo's mod runs last and wins.)
       UISupportedInterfaceOrientations: ['UIInterfaceOrientationPortrait'],
       NSLocationWhenInUseUsageDescription:
-        'MotoVault uses your location to record ride routes, show nearby routes, and display local weather for trip planning.',
+        'MotoVault uses your location to record ride routes and show nearby routes.',
       NSCameraUsageDescription: 'MotoVault needs camera access for diagnostic photo capture.',
       NSPhotoLibraryUsageDescription:
         'MotoVault needs photo library access to upload diagnostic images.',

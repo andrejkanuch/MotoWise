@@ -8,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { AlertTriangle, ArrowLeft, Database, Shield } from 'lucide-react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -19,8 +19,14 @@ import {
   setAnalyticsEnabled,
   setCrashReportingEnabled,
   trackEvent,
-  trackScreen,
 } from '../../../lib/analytics';
+import {
+  type AccountPrivacyPreference,
+  buildPrivacyUpdate,
+  type ConsentDecision,
+  getStoredAnalyticsConsent,
+  type PrivacyChange,
+} from '../../../lib/analytics-consent';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { isAccountAlreadyDeleted, userFriendlyError } from '../../../lib/graphql-errors';
 import { queryKeys } from '../../../lib/query-keys';
@@ -33,10 +39,18 @@ type PrivacyPrefs = {
   crashReportingEnabled: boolean;
 };
 
-const DEFAULTS: PrivacyPrefs = {
-  analyticsEnabled: true,
-  crashReportingEnabled: true,
-};
+/**
+ * Defaults for a rider with no saved server preference. Analytics follows the
+ * on-device consent decision rather than defaulting on: in an opt-in region a
+ * rider who has not accepted must not be opted in by opening this screen (the
+ * mount effect below pushes these values into the SDKs).
+ */
+function privacyDefaults(): PrivacyPrefs {
+  return {
+    analyticsEnabled: getStoredAnalyticsConsent(),
+    crashReportingEnabled: true,
+  };
+}
 
 function haptic() {
   if (process.env.EXPO_OS === 'ios') {
@@ -119,32 +133,44 @@ export default function PrivacyScreen() {
 
   const meQuery = useQuery(meOptions());
 
-  const prefs = (meQuery.data?.me?.preferences as { privacy?: Partial<PrivacyPrefs> } | null)
+  const prefs = (meQuery.data?.me?.preferences as { privacy?: AccountPrivacyPreference } | null)
     ?.privacy;
 
-  const [state, setState] = useState<PrivacyPrefs>(DEFAULTS);
+  const [state, setState] = useState<PrivacyPrefs>(privacyDefaults);
+  /** The privacy object most recently sent from this screen (each update builds on it). */
+  const lastSentRef = useRef<AccountPrivacyPreference | null>(null);
   const [initialized, setInitialized] = useState(false);
-
-  // Track screen view on mount
-  useEffect(() => {
-    trackScreen('Privacy');
-  }, []);
 
   useEffect(() => {
     if (meQuery.data && !initialized) {
-      const merged = { ...DEFAULTS, ...prefs };
+      // The analytics toggle shows what is in force on this device: the root
+      // layout has already reconciled it with the account, and the raw account
+      // value may be an untrusted legacy "yes". Opening this screen never
+      // records a decision (it used to save the default "yes").
+      const merged: PrivacyPrefs = {
+        analyticsEnabled: getStoredAnalyticsConsent(),
+        crashReportingEnabled:
+          typeof prefs?.crashReportingEnabled === 'boolean'
+            ? prefs.crashReportingEnabled
+            : privacyDefaults().crashReportingEnabled,
+      };
       setState(merged);
       setInitialized(true);
-
-      // Sync initial privacy state to SDKs
-      setAnalyticsEnabled(merged.analyticsEnabled);
       setCrashReportingEnabled(merged.crashReportingEnabled);
     }
   }, [meQuery.data, prefs, initialized]);
 
   const updateMutation = useMutation({
-    mutationFn: (privacy: PrivacyPrefs) =>
-      gqlFetcher(UpdateUserDocument, { input: { preferences: { privacy } } }),
+    // Only the toggled setting changes (buildPrivacyUpdate); an analytics toggle
+    // is a real, timestamped decision.
+    mutationFn: (change: PrivacyChange) => {
+      // Build on what was last SENT, not the cached `me`: a second toggle before
+      // the refetch lands would otherwise resend the first setting's old value
+      // (the server replaces `privacy` whole).
+      const privacy = buildPrivacyUpdate(lastSentRef.current ?? prefs, change);
+      lastSentRef.current = privacy;
+      return gqlFetcher(UpdateUserDocument, { input: { preferences: { privacy } } });
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.user.me }),
   });
 
@@ -152,18 +178,20 @@ export default function PrivacyScreen() {
     (key: keyof PrivacyPrefs, value: boolean) => {
       const next = { ...state, [key]: value };
       setState(next);
-      updateMutation.mutate(next);
 
       // Sync with Sentry / PostHog
       if (key === 'analyticsEnabled') {
-        if (value) setAnalyticsEnabled(true);
+        const decision: ConsentDecision = { enabled: value, decidedAt: Date.now() };
+        updateMutation.mutate({ analytics: decision });
+        if (value) setAnalyticsEnabled(true, decision.decidedAt);
         trackEvent(AnalyticsEvent.SETTINGS_CHANGED, {
           setting: key,
           value,
           source: 'privacy',
         });
-        if (!value) setAnalyticsEnabled(false);
+        if (!value) setAnalyticsEnabled(false, decision.decidedAt);
       } else if (key === 'crashReportingEnabled') {
+        updateMutation.mutate({ crashReportingEnabled: value });
         setCrashReportingEnabled(value);
         trackEvent(AnalyticsEvent.SETTINGS_CHANGED, {
           setting: key,
@@ -172,7 +200,7 @@ export default function PrivacyScreen() {
         });
       }
     },
-    [state, updateMutation],
+    [state, updateMutation.mutate],
   );
 
   const exportMutation = useMutation({

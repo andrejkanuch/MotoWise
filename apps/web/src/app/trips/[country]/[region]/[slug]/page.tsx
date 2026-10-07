@@ -8,9 +8,11 @@ import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { cache } from 'react';
 import { GpxDownloadButton } from '@/components/gpx-download-button';
+import { StoreLink } from '@/components/marketing/store-buttons';
 import { SiblingRoutesSection } from '@/components/trip-detail/sibling-routes-section';
 import { TripDetailMap } from '@/components/trip-detail/trip-detail-map';
 import { BASE_URL } from '@/lib/constants';
+import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 import {
   fetchPublishedTripSlugRefs,
   fetchTripTemplatesByCountry,
@@ -538,11 +540,12 @@ export default async function TripPage({ params }: PageParams) {
 
           <div className="rh-actions">
             <div className="rh-cta-row">
-              <a
+              <StoreLink
+                platform={StorePlatform.Unknown}
+                pageType={CtaPageType.Trip}
+                placement={CtaPlacement.Hero}
+                slug={slug}
                 className="rh-icon-btn"
-                href="https://apps.apple.com/us/app/motovault-motorcycle-garage/id6760291360"
-                target="_blank"
-                rel="noopener noreferrer"
               >
                 <svg
                   width="14"
@@ -559,7 +562,7 @@ export default async function TripPage({ params }: PageParams) {
                   <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                 </svg>
                 Clone in App
-              </a>
+              </StoreLink>
               <a className="rh-icon-btn" href={`/trips/${country}/${region}/${slug}`}>
                 <svg
                   width="14"
@@ -604,14 +607,15 @@ export default async function TripPage({ params }: PageParams) {
               {sec.label} <span className="num">{sec.num}</span>
             </a>
           ))}
-          <a
+          <StoreLink
+            platform={StorePlatform.Unknown}
+            pageType={CtaPageType.Trip}
+            placement={CtaPlacement.Navbar}
+            slug={slug}
             className="tabnav-cta"
-            href="https://apps.apple.com/us/app/motovault-motorcycle-garage/id6760291360"
-            target="_blank"
-            rel="noopener noreferrer"
           >
             Open in app &rarr;
-          </a>
+          </StoreLink>
         </div>
       </nav>
 
@@ -956,11 +960,12 @@ export default async function TripPage({ params }: PageParams) {
           Clone it to your planner, customize dates and stops, then ride. All free.
         </p>
         <div className="end-cta-actions">
-          <a
-            href="https://apps.apple.com/us/app/motovault-motorcycle-garage/id6760291360"
+          <StoreLink
+            platform={StorePlatform.Unknown}
+            pageType={CtaPageType.Trip}
+            placement={CtaPlacement.EndArticle}
+            slug={slug}
             className="mv-btn mv-btn-primary"
-            target="_blank"
-            rel="noopener noreferrer"
           >
             <span>
               Get the app
@@ -979,7 +984,7 @@ export default async function TripPage({ params }: PageParams) {
                 <polyline points="12 5 19 12 12 19" />
               </svg>
             </span>
-          </a>
+          </StoreLink>
           <a href="/explore" className="mv-btn mv-btn-ghost">
             More routes &rarr;
           </a>
@@ -1008,13 +1013,16 @@ export default async function TripPage({ params }: PageParams) {
           <div style={{ fontSize: 14, fontWeight: 600 }}>Open in MotoVault</div>
           <div style={{ fontSize: 12, color: 'var(--mv-ink-3)' }}>Navigate this route with GPS</div>
         </div>
-        <a
-          href="https://apps.apple.com/us/app/motovault-motorcycle-garage/id6760291360"
+        <StoreLink
+          platform={StorePlatform.Unknown}
+          pageType={CtaPageType.Trip}
+          placement={CtaPlacement.StickyBar}
+          slug={slug}
           className="mv-btn mv-btn-primary"
           style={{ padding: '10px 20px', fontSize: 13 }}
         >
           <span>Open</span>
-        </a>
+        </StoreLink>
       </div>
     </>
   );

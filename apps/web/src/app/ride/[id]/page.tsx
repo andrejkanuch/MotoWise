@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { StoreLink } from '@/components/marketing/store-buttons';
+import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 import { fetchRide } from '../../../lib/fetch-ride';
 import { formatDate, formatDistance, formatDuration } from '../../../lib/format-utils';
 
@@ -93,12 +95,15 @@ export default async function RidePage({ params }: { params: Promise<{ id: strin
             >
               Open in App
             </a>
-            <a
-              href="https://apps.apple.com/us/app/motovault/id6760291360"
+            <StoreLink
+              platform={StorePlatform.Unknown}
+              pageType={CtaPageType.Ride}
+              placement={CtaPlacement.Footer}
+              slug={ride.id}
               className="inline-flex items-center rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50"
             >
               Get MotoVault
-            </a>
+            </StoreLink>
           </div>
         </div>
       </footer>

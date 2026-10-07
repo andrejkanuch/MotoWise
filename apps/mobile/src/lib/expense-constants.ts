@@ -1,11 +1,19 @@
 import { palette } from '@motovault/design-system';
 import {
   CURRENCY_SYMBOLS,
+  CURRENCY_TOTALS_SEPARATOR,
   type Currency,
+  type CurrencyTotal,
   EXPENSE_CATEGORY_META,
   type ExpenseCategory,
+  groupTotalsByCurrency,
 } from '@motovault/types';
 import type { TFunction } from 'i18next';
+
+export type { CurrencyTotal };
+// Per-currency grouping lives in @motovault/types so the API, mobile and web
+// agree on it (same totals, same most-used-first order).
+export { groupTotalsByCurrency };
 
 // Colours, labels and the primary chip set all derive from the single source of
 // truth (packages/types EXPENSE_CATEGORY_META). `colorToken` is a palette key,
@@ -82,33 +90,8 @@ export function formatMoney(
   return formatCurrency(amount, resolved);
 }
 
-export interface CurrencyTotal {
-  currency: Currency;
-  total: number;
-}
-
-/** Sum amounts grouped by their stored currency (blank -> `fallback`), sorted by
- *  total desc so the dominant currency comes first. The single-currency case
- *  (the norm) yields exactly one group whose total equals the plain sum. */
-export function groupTotalsByCurrency(
-  items: ReadonlyArray<{ amount: number; currency?: string | null }>,
-  fallback: Currency = 'USD',
-): CurrencyTotal[] {
-  const totals = new Map<Currency, number>();
-  for (const { amount, currency } of items) {
-    const key: Currency =
-      currency && currency in CURRENCY_SYMBOLS ? (currency as Currency) : fallback;
-    totals.set(key, (totals.get(key) ?? 0) + amount);
-  }
-  return [...totals.entries()]
-    .map(([currency, total]) => ({ currency, total }))
-    .sort((a, b) => b.total - a.total);
-}
-
-/** The currency accounting for the largest summed amount (blank -> `fallback`).
- *  Used to label server-summed aggregates that carry no per-currency dimension
- *  (dashboard totals) — best-effort so the symbol matches the underlying data in
- *  the common single-currency case instead of the user's display currency. */
+/** The bike's most-used currency (blank -> `fallback`). Only used to label a
+ *  dashboard served by an API that predates per-currency aggregates. */
 export function dominantCurrency(
   items: ReadonlyArray<{ amount: number; currency?: string | null }>,
   fallback: Currency = 'USD',
@@ -120,9 +103,29 @@ export function dominantCurrency(
  *  formatted total (unchanged from before). Mixed currencies -> each subtotal
  *  joined by " · " (e.g. "$1,200.00 · €340.00"), since summing across currencies
  *  without FX would be meaningless. */
-export function formatCurrencyTotals(groups: CurrencyTotal[], fallback: Currency = 'USD'): string {
+export function formatCurrencyTotals(
+  groups: ReadonlyArray<{ currency: string; total: number }>,
+  fallback: Currency = 'USD',
+): string {
   if (groups.length === 0) return formatMoney(0, fallback, fallback);
-  return groups.map((g) => formatMoney(g.total, g.currency, fallback)).join(' · ');
+  return groups
+    .map((g) => formatMoney(g.total, g.currency, fallback))
+    .join(CURRENCY_TOTALS_SEPARATOR);
+}
+
+/** Cost per distance unit, one figure per currency ("€0.12 · $0.03"), or
+ *  null when there is no distance or no spend to divide. */
+export function formatCostPerDistance(
+  totals: ReadonlyArray<{ currency: string; total: number }>,
+  distance: number | null | undefined,
+  fallback: Currency = 'USD',
+): string | null {
+  const spent = totals.filter((g) => g.total > 0);
+  if (!distance || distance <= 0 || spent.length === 0) return null;
+  return formatCurrencyTotals(
+    spent.map((g) => ({ currency: g.currency, total: g.total / distance })),
+    fallback,
+  );
 }
 
 export function formatExpenseDate(dateStr: string) {

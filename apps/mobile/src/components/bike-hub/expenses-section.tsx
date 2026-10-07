@@ -77,7 +77,6 @@ export function ExpensesSection({
   const deleteMutation = useDeleteExpense({ motorcycleId });
 
   const expenses = data?.expenses;
-  const ytdTotal = expenses?.ytdTotal ?? 0;
   const categories = expenses?.categories ?? [];
 
   // Flatten all expenses for the list
@@ -89,14 +88,31 @@ export function ExpensesSection({
     [categories],
   );
 
-  // Currency-aware totals: recomputed client-side from each expense's own stored
-  // `currency` (the server `ytdTotal`/`cat.total` are currency-blind sums). Single
-  // currency (the norm) -> one group whose total matches the server sum; mixed ->
-  // per-currency subtotals so a $ amount is never shown with a € symbol.
+  // Currency-aware totals from each expense's own stored `currency`. Single
+  // currency (the norm) -> one group equal to the plain sum; mixed -> one
+  // subtotal per currency, never added together (no FX source).
   const totalGroups = useMemo(
     () => groupTotalsByCurrency(allExpenses, displayCurrency),
     [allExpenses, displayCurrency],
   );
+  const hasSpend = totalGroups.some((g) => g.total > 0);
+
+  // The segment bar shows category shares of ONE currency, the most-used one —
+  // a share of a mixed-currency sum would be meaningless. Categories with no
+  // spend in it get no segment but keep their legend entry.
+  const categoryShares = useMemo(() => {
+    const primary = totalGroups[0];
+    const shares = new Map<string, number>();
+    if (!primary || primary.total <= 0) return shares;
+    for (const cat of categories) {
+      const inPrimary =
+        groupTotalsByCurrency(cat.expenses, displayCurrency).find(
+          (g) => g.currency === primary.currency,
+        )?.total ?? 0;
+      shares.set(cat.category, (inPrimary / primary.total) * 100);
+    }
+    return shares;
+  }, [categories, totalGroups, displayCurrency]);
 
   const displayedExpenses = showAll ? allExpenses : allExpenses.slice(0, 5);
 
@@ -138,7 +154,7 @@ export function ExpensesSection({
           >
             {t('expenses.title', { defaultValue: 'Expenses' })}
           </Text>
-          {ytdTotal > 0 && (
+          {hasSpend && (
             <Text
               style={{
                 fontSize: 14,
@@ -321,7 +337,7 @@ export function ExpensesSection({
       )}
 
       {/* Category breakdown bar */}
-      {!isLoading && allExpenses.length > 0 && ytdTotal > 0 && (
+      {!isLoading && allExpenses.length > 0 && hasSpend && (
         <Animated.View entering={FadeInUp.duration(250)}>
           <View
             style={{
@@ -345,8 +361,8 @@ export function ExpensesSection({
               }}
             >
               {categories.map((cat) => {
-                const pct = ytdTotal > 0 ? (cat.total / ytdTotal) * 100 : 0;
-                if (pct === 0) return null;
+                const pct = categoryShares.get(cat.category) ?? 0;
+                if (pct <= 0) return null;
                 return (
                   <View
                     key={cat.category}
@@ -362,7 +378,7 @@ export function ExpensesSection({
             {/* Category legend */}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
               {categories.map((cat) => {
-                if (cat.total === 0) return null;
+                if (!cat.expenses.some((e) => e.amount !== 0)) return null;
                 return (
                   <View
                     key={cat.category}

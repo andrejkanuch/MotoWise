@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { CommunityNav } from '@/components/community-nav';
+import { mvFontsClassName } from '@/lib/fonts';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 export default async function CommunityLayout({ children }: { children: React.ReactNode }) {
@@ -22,7 +23,12 @@ export default async function CommunityLayout({ children }: { children: React.Re
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <div style={{ minHeight: '100vh', background: 'oklch(0.085 0.008 55)' }}>
+      {/* mvFontsClassName: Instrument Serif + the --mv-font-* tokens resolved on
+          this wrapper (see lib/fonts.ts). */}
+      <div
+        className={mvFontsClassName}
+        style={{ minHeight: '100vh', background: 'var(--mv-page)' }}
+      >
         <CommunityNav displayName={displayName} />
         <main>{children}</main>
       </div>

@@ -40,10 +40,12 @@ import { NativeToggle } from '../../components/ui/native-toggle';
 import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
+import { CORE_ACTION_KIND, recordCoreAction } from '../../lib/core-action-milestones';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { queryKeys } from '../../lib/query-keys';
+import { RIDE_SAVE_TRIGGER, trackRideCompleted } from '../../lib/ride-analytics';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../../lib/store-review';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
@@ -263,7 +265,13 @@ export default function RideSummaryScreen() {
     }
   }, [distanceM, durationS, system]);
 
+  // `handleSave` never awaits, so `isSaving` cannot disable the button before a
+  // second tap lands; a ref guards it synchronously. Reset only on failure: on
+  // success the screen is replaced, and a re-run would count the ride twice.
+  const savingRef = useRef(false);
   const handleSave = useCallback(async () => {
+    if (savingRef.current) return;
+    savingRef.current = true;
     setIsSaving(true);
     try {
       triggerNotification(Haptics.NotificationFeedbackType.Success);
@@ -282,16 +290,20 @@ export default function RideSummaryScreen() {
       // Invalidate rides cache so the list shows the new ride
       queryClient.invalidateQueries({ queryKey: queryKeys.rides.all });
 
-      trackEvent(AnalyticsEvent.RIDE_COMPLETED, {
-        ride_id: rideId,
-        motorcycle_id: motorcycleId || null,
-        distance_m: distanceM,
-        duration_s: durationS,
-        max_speed_kmh: Math.round(maxSpeedMps * 3.6),
-        avg_speed_kmh: Math.round(avgSpeedMps * 3.6),
-        shared_to_discover: shareToDiscover,
+      trackRideCompleted({
+        trigger: RIDE_SAVE_TRIGGER.SUMMARY,
+        rideId,
+        motorcycleId,
+        distanceM,
+        durationS,
+        properties: {
+          max_speed_kmh: Math.round(maxSpeedMps * 3.6),
+          avg_speed_kmh: Math.round(avgSpeedMps * 3.6),
+          shared_to_discover: shareToDiscover,
+        },
       });
       MetaAnalytics.trackLogRide();
+      recordCoreAction(CORE_ACTION_KIND.RIDE_SAVED);
       maybeRequestReview(REVIEW_MILESTONE.RIDE_COMPLETED);
 
       // Share to Discover (fire-and-forget, non-blocking)
@@ -307,6 +319,7 @@ export default function RideSummaryScreen() {
 
       router.replace('/(tabs)/(profile)');
     } catch (error) {
+      savingRef.current = false;
       captureException(error, { source: 'ride-summary.saveRide', rideId });
     } finally {
       setIsSaving(false);

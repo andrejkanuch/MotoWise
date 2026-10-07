@@ -498,7 +498,8 @@
     "roadsTitle": "Jalan yang telah kulalui",
     "roadsSubtitle": "Heatmap sepanjang masa & rekap tahunan",
     "savedRoutesTitle": "Rute Tersimpan",
-    "savedRoutesSubtitle": "Rute yang ingin kamu lalui nanti"
+    "savedRoutesSubtitle": "Rute yang ingin kamu lalui nanti",
+    "redeemCode": "Tukarkan kode"
   },
   "onboarding": {
     "welcomeTitle": "Selamat Datang di MotoVault",
@@ -706,9 +707,6 @@
     "v2BikeSetupOther": "Lainnya",
     "v2NotificationsTitle": "Pantau kondisi motormu",
     "v2NotificationsSubtitle": "Dapatkan ringkasan mingguan perjalananmu dan peringatan sebelum servis jatuh tempo.",
-    "v2NotificationsBenefit1": "Pengingat perawatan sebelum terlambat",
-    "v2NotificationsBenefit2": "Statistik dan rentetan perjalanan mingguan",
-    "v2NotificationsBenefit3": "Rute baru di sekitarmu",
     "v2NotificationsEnable": "Aktifkan Notifikasi",
     "v2NotificationsMaybeLater": "Mungkin nanti",
     "heardAboutTitle": "Dari mana Anda",
@@ -1008,7 +1006,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "Di mana? (opsional)",
+    "heardAboutOtherContinue": "Lanjutkan"
   },
   "bikeHub": {
     "upcoming": "Akan Datang",
@@ -1720,6 +1722,7 @@
     "investedInBike": "Investasi di Motor",
     "runningCosts": "Biaya Rutin",
     "addPurchasePriceHint": "Tambahkan harga beli motormu di Edit Motor untuk melihat total biaya kepemilikan",
+    "showInCurrency": "Tampilkan grafik dalam {{currency}}",
     "byCategory": "Per kategori",
     "monthlyTrend": "Tren bulanan",
     "category_accessories": "Aksesori",
@@ -1882,7 +1885,6 @@
     "pastReports": "Laporan Sebelumnya",
     "pending": "Membuat...",
     "completed": "Siap",
-    "purchaseFirst": "Beli Laporan Kesehatan untuk memulai",
     "description": "Laporan lengkap riwayat perawatan, pengeluaran, dan kondisi motor Anda.",
     "downloadReport": "Unduh Laporan",
     "failedMessage": "Gagal membuat laporan. Silakan coba lagi.",
@@ -1925,7 +1927,7 @@
     },
     "v380": {
       "analyticsTitle": "Analisis perjalanan",
-      "analyticsDesc": "Total jarak, waktu berkendara, streak, dan rekor pribadi — semua diperbarui setelah setiap perjalanan. Statistikmu dalam sekali pandang.",
+      "analyticsDesc": "Total jarak, waktu berkendara, dan rekor pribadi — semua diperbarui setelah setiap perjalanan. Statistikmu dalam sekali pandang.",
       "redesignedRidesTitle": "Perjalanan didesain ulang",
       "redesignedRidesDesc": "Semua layar perjalanan dibangun ulang — banner peta, lencana rekor, tampilan detail lebih bersih, dan alur penyimpanan lebih lancar.",
       "flyoverTitle": "Terbang 3D",
@@ -2115,7 +2117,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "Masih berkendara?",
-    "forgotToStopBody": "Kamu berhenti selama {{minutes}} menit. Ketuk untuk mengakhiri atau lanjutkan.",
     "gpsLostTitle": "Pelacakan GPS berhenti",
     "gpsLostBody": "Izin lokasi dimatikan, jadi perjalananmu tidak lagi direkam. Ketuk untuk memperbaikinya atau mengakhiri perjalanan.",
     "dist": "JARAK",
@@ -2135,7 +2136,19 @@
     "shortRideWarning": "Perjalanan Anda sangat singkat ({{seconds}}d, {{meters}}m). Anda yakin?",
     "gpsTip": "Tip: Pastikan ponsel Anda memiliki pandangan langit yang jelas untuk pelacakan GPS",
     "keepRiding": "Lanjutkan berkendara",
-    "endAnyway": "Tetap akhiri"
+    "endAnyway": "Tetap akhiri",
+    "reminderNudgeBody": "Perjalanan Anda masih direkam, tetapi Anda tidak bergerak selama {{minutes}} menit. Akhiri atau lanjutkan.",
+    "reminderFinalTitle": "Perjalanan Anda masih direkam",
+    "reminderFinalBody": "Tidak ada pergerakan selama {{minutes}} menit. Akhiri perjalanan untuk menyimpannya seperti saat Anda berhenti.",
+    "actionEndRide": "Akhiri perjalanan",
+    "actionKeepRiding": "Masih berkendara",
+    "rideAlertsChannel": "Peringatan perjalanan",
+    "autoEndedTitle": "Perjalanan disimpan",
+    "autoEndedBody": "Anda tidak bergerak selama {{minutes}} menit, jadi kami mengakhiri perjalanan dan menyimpannya sampai titik Anda berhenti.",
+    "serviceTitle": "MotoVault sedang merekam perjalanan Anda",
+    "serviceBody": "Ketuk untuk kembali ke perjalanan. Akhiri saat Anda turun dari motor.",
+    "noGpsTitle": "Kami tidak dapat melacak perjalanan ini",
+    "noGpsBody": "{{minutes}} menit terekam, tetapi hampir tanpa jarak. GPS mungkin terhalang, mati, atau diatur ke lokasi perkiraan."
   },
   "rideSummary": {
     "namePlaceholder": "Beri nama perjalananmu...",
@@ -2238,9 +2251,6 @@
     "recentRides": "Perjalanan terbaru",
     "newestFirst": "Terbaru duluan ↓",
     "oldestFirst": "Terlama duluan ↑",
-    "streakWeek": "week streak",
-    "streakWeeks": "week streak",
-    "streakDesc": "Consecutive weeks with a ride",
     "thisMonth": "This month",
     "thisYear": "This year",
     "vsLastWeek": "vs last week",
@@ -2312,7 +2322,10 @@
     "disclosureBody": "MotoVault merekam rute, jarak, dan kecepatan Anda saat berkendara — termasuk di latar belakang ketika aplikasi ditutup atau layar Anda mati, agar seluruh perjalanan Anda terekam. Lokasi hanya digunakan selama perjalanan sedang berlangsung.",
     "disclosureSettingsNote": "Anda mungkin akan diarahkan ke Pengaturan — pilih “Izinkan sepanjang waktu” agar perekaman tetap berjalan di latar belakang.",
     "disclosureContinue": "Lanjutkan",
-    "disclosureNotNow": "Nanti saja"
+    "disclosureNotNow": "Nanti saja",
+    "approximateTitle": "Lokasi akurat nonaktif",
+    "approximateBody": "Dengan lokasi perkiraan, MotoVault tidak dapat merekam rute atau jarak. Aktifkan Lokasi Akurat untuk MotoVault di Pengaturan.",
+    "rideAnyway": "Tetap berkendara"
   },
   "preFlight": {
     "title": "Pra-perjalanan",
@@ -2694,5 +2707,14 @@
     "feedbackYes": "Kirim masukan",
     "feedbackNo": "Nanti saja",
     "feedbackSubject": "Masukan MotoVault"
+  },
+  "analyticsConsent": {
+    "title": "Bantu bentuk MotoVault",
+    "body": "Dengan izinmu, kami mengumpulkan data penggunaan aplikasi ini untuk menentukan apa yang dibuat selanjutnya.",
+    "pointWhat": "Fitur yang kamu gunakan, dan tautan atau postingan yang membawamu ke sini.",
+    "pointNever": "Tidak pernah dijual, tidak pernah dipakai untuk iklan.",
+    "pointChange": "Ubah kapan saja di Profil → Privasi.",
+    "allow": "Izinkan",
+    "decline": "Jangan izinkan"
   }
 }

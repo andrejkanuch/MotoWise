@@ -498,7 +498,8 @@
     "roadsTitle": "Sürdüğüm yollar",
     "roadsSubtitle": "Tüm zamanların ısı haritası ve yıl özeti",
     "savedRoutesTitle": "Kayıtlı Rotalar",
-    "savedRoutesSubtitle": "Daha sonra sürmek istediğin rotalar"
+    "savedRoutesSubtitle": "Daha sonra sürmek istediğin rotalar",
+    "redeemCode": "Kod kullan"
   },
   "onboarding": {
     "welcomeTitle": "MotoVault'a Hosgeldin",
@@ -706,9 +707,6 @@
     "v2BikeSetupOther": "Diğer",
     "v2NotificationsTitle": "Motorunun sağlığını takipte kal",
     "v2NotificationsSubtitle": "Sürüşlerinin haftalık özetini ve servis zamanı gelmeden önce bir uyarı al.",
-    "v2NotificationsBenefit1": "Gecikmeden önce bakım hatırlatmaları",
-    "v2NotificationsBenefit2": "Haftalık sürüş istatistikleri ve seriler",
-    "v2NotificationsBenefit3": "Bölgendeki yeni rotalar",
     "v2NotificationsEnable": "Bildirimleri Aç",
     "v2NotificationsMaybeLater": "Belki sonra",
     "heardAboutTitle": "Bizi nereden",
@@ -1008,7 +1006,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "Nerede? (isteğe bağlı)",
+    "heardAboutOtherContinue": "Devam"
   },
   "bikeHub": {
     "upcoming": "Yaklasan",
@@ -1720,6 +1722,7 @@
     "investedInBike": "Motosiklete Yatırım",
     "runningCosts": "İşletme Giderleri",
     "addPurchasePriceHint": "Toplam sahip olma maliyetini görmek için Motoru Düzenle'den motorunun alış fiyatını ekle",
+    "showInCurrency": "Grafikleri {{currency}} olarak göster",
     "byCategory": "Kategoriye göre",
     "monthlyTrend": "Aylık eğilim",
     "category_accessories": "Aksesuarlar",
@@ -1882,7 +1885,6 @@
     "pastReports": "Önceki Raporlar",
     "pending": "Oluşturuluyor...",
     "completed": "Hazır",
-    "purchaseFirst": "Başlamak için bir Sağlık Raporu satın al",
     "description": "Motosikletinin bakım geçmişi, harcamaları ve durumunun kapsamlı raporu.",
     "downloadReport": "Raporu İndir",
     "failedMessage": "Rapor oluşturma başarısız. Lütfen tekrar dene.",
@@ -1925,7 +1927,7 @@
     },
     "v380": {
       "analyticsTitle": "Sürüş analizi",
-      "analyticsDesc": "Toplam mesafe, sürüş süresi, seriler ve kişisel rekorlar — her sürüşten sonra güncellenir. İstatistiklerin bir bakışta.",
+      "analyticsDesc": "Toplam mesafe, sürüş süresi ve kişisel rekorlar — her sürüşten sonra güncellenir. İstatistiklerin bir bakışta.",
       "redesignedRidesTitle": "Yenilenen sürüşler",
       "redesignedRidesDesc": "Tüm sürüş ekranları sıfırdan yeniden inşa edildi — harita afişleri, rekor rozetleri, daha temiz detay görünümleri ve daha akıcı kayıt akışı.",
       "flyoverTitle": "3D uçuş",
@@ -2115,7 +2117,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "Hâlâ yolda mısın?",
-    "forgotToStopBody": "{{minutes}} dakikadır duruyorsun. Bitirmek için dokun ya da devam et.",
     "gpsLostTitle": "GPS takibi durdu",
     "gpsLostBody": "Konum izni kapatıldı, bu yüzden sürüşün artık kaydedilmiyor. Düzeltmek veya sürüşü bitirmek için dokun.",
     "dist": "MSFE",
@@ -2135,7 +2136,19 @@
     "shortRideWarning": "Sürüşün çok kısaydı ({{seconds}}sn, {{meters}}m). Emin misin?",
     "gpsTip": "İpucu: GPS takibi için telefonunun gökyüzünü net gördüğünden emin ol",
     "keepRiding": "Sürüşe devam et",
-    "endAnyway": "Yine de bitir"
+    "endAnyway": "Yine de bitir",
+    "reminderNudgeBody": "Sürüşün hâlâ kaydediliyor ama {{minutes}} dakikadır hareket etmedin. Bitir ya da devam et.",
+    "reminderFinalTitle": "Sürüşün hâlâ kaydediliyor",
+    "reminderFinalBody": "{{minutes}} dakikadır hareket yok. Sürüşü durduğun andaki hâliyle kaydetmek için bitir.",
+    "actionEndRide": "Sürüşü bitir",
+    "actionKeepRiding": "Hâlâ sürüyorum",
+    "rideAlertsChannel": "Sürüş uyarıları",
+    "autoEndedTitle": "Sürüş kaydedildi",
+    "autoEndedBody": "{{minutes}} dakikadır hareket etmediğin için sürüşünü bitirdik ve durduğun yere kadar kaydettik.",
+    "serviceTitle": "MotoVault sürüşünü kaydediyor",
+    "serviceBody": "Sürüşe dönmek için dokun. Motordan inince bitir.",
+    "noGpsTitle": "Bu sürüş takip edilemedi",
+    "noGpsBody": "{{minutes}} dk kaydedildi ama neredeyse hiç mesafe yok. GPS engellenmiş, kapalı ya da yaklaşık konuma ayarlı olabilir."
   },
   "rideSummary": {
     "namePlaceholder": "Surusune isim ver...",
@@ -2238,9 +2251,6 @@
     "recentRides": "Son sürüşler",
     "newestFirst": "En yeniler önce ↓",
     "oldestFirst": "En eskiler önce ↑",
-    "streakWeek": "week streak",
-    "streakWeeks": "week streak",
-    "streakDesc": "Consecutive weeks with a ride",
     "thisMonth": "This month",
     "thisYear": "This year",
     "vsLastWeek": "vs last week",
@@ -2312,7 +2322,10 @@
     "disclosureBody": "MotoVault, sürüş sırasında rotanızı, mesafenizi ve hızınızı kaydeder. Sürüşün tamamını kaydetmek için uygulama kapalıyken veya ekranınız kapalıyken arka planda da çalışır. Konum yalnızca etkin bir sürüş sırasında kullanılır.",
     "disclosureSettingsNote": "Ayarlara yönlendirilebilirsiniz — arka planda kayda devam etmek için “Her zaman izin ver” seçeneğini belirleyin.",
     "disclosureContinue": "Devam et",
-    "disclosureNotNow": "Şimdi değil"
+    "disclosureNotNow": "Şimdi değil",
+    "approximateTitle": "Kesin konum kapalı",
+    "approximateBody": "Yaklaşık konumla MotoVault rotanı ya da mesafeni kaydedemez. Ayarlar'dan MotoVault için Kesin Konum'u aç.",
+    "rideAnyway": "Yine de sür"
   },
   "preFlight": {
     "title": "Ön kontrol",
@@ -2694,5 +2707,14 @@
     "feedbackYes": "Geri bildirim gönder",
     "feedbackNo": "Şimdi değil",
     "feedbackSubject": "MotoVault geri bildirim"
+  },
+  "analyticsConsent": {
+    "title": "MotoVault'u birlikte şekillendirelim",
+    "body": "İzninle, sırada ne yapacağımıza karar vermek için bu uygulamanın kullanım verilerini topluyoruz.",
+    "pointWhat": "Hangi özellikleri kullandığın ve seni buraya getiren bağlantı ya da gönderi.",
+    "pointNever": "Asla satılmaz, asla reklam için kullanılmaz.",
+    "pointChange": "Profil → Gizlilik bölümünden istediğin zaman değiştir.",
+    "allow": "İzin ver",
+    "decline": "İzin verme"
   }
 }

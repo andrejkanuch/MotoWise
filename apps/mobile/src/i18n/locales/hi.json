@@ -498,7 +498,8 @@
     "roadsTitle": "मैंने जिन रास्तों पर सवारी की",
     "roadsSubtitle": "आजीवन हीटमैप और वार्षिक सारांश",
     "savedRoutesTitle": "सहेजे गए रूट",
-    "savedRoutesSubtitle": "वे रूट जिन पर आप बाद में सवारी करना चाहते हैं"
+    "savedRoutesSubtitle": "वे रूट जिन पर आप बाद में सवारी करना चाहते हैं",
+    "redeemCode": "कोड रिडीम करें"
   },
   "onboarding": {
     "welcomeTitle": "MotoVault में आपका स्वागत है",
@@ -706,9 +707,6 @@
     "v2BikeSetupOther": "अन्य",
     "v2NotificationsTitle": "अपनी बाइक की सेहत पर नज़र रखें",
     "v2NotificationsSubtitle": "अपनी राइड्स का साप्ताहिक सारांश और सर्विस ड्यू होने से पहले अलर्ट पाएं।",
-    "v2NotificationsBenefit1": "ओवरड्यू होने से पहले रखरखाव रिमाइंडर",
-    "v2NotificationsBenefit2": "साप्ताहिक राइड आँकड़े और स्ट्रीक",
-    "v2NotificationsBenefit3": "आपके इलाके में नए रूट",
     "v2NotificationsEnable": "नोटिफिकेशन चालू करें",
     "v2NotificationsMaybeLater": "शायद बाद में",
     "heardAboutTitle": "आपने हमारे बारे में",
@@ -1008,7 +1006,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "कहाँ? (वैकल्पिक)",
+    "heardAboutOtherContinue": "जारी रखें"
   },
   "bikeHub": {
     "upcoming": "आगामी",
@@ -1720,6 +1722,7 @@
     "investedInBike": "बाइक में निवेश",
     "runningCosts": "चालू खर्च",
     "addPurchasePriceHint": "स्वामित्व की कुल लागत देखने के लिए Edit Bike में अपनी बाइक का खरीद मूल्य जोड़ें",
+    "showInCurrency": "चार्ट {{currency}} में दिखाएँ",
     "byCategory": "श्रेणी के अनुसार",
     "monthlyTrend": "मासिक रुझान",
     "category_accessories": "सहायक उपकरण",
@@ -1882,7 +1885,6 @@
     "pastReports": "पिछली रिपोर्ट्स",
     "pending": "बनाई जा रही है...",
     "completed": "तैयार",
-    "purchaseFirst": "शुरू करने के लिए हेल्थ रिपोर्ट खरीदें",
     "description": "आपकी बाइक की मेंटेनेंस हिस्ट्री, खर्च और स्थिति की विस्तृत रिपोर्ट।",
     "downloadReport": "रिपोर्ट डाउनलोड करें",
     "failedMessage": "रिपोर्ट बनाने में विफल। कृपया फिर कोशिश करें।",
@@ -1925,7 +1927,7 @@
     },
     "v380": {
       "analyticsTitle": "राइड एनालिटिक्स",
-      "analyticsDesc": "कुल दूरी, राइडिंग समय, स्ट्रीक और पर्सनल बेस्ट — हर राइड के बाद अपडेट होता है। आपके आँकड़े एक नज़र में।",
+      "analyticsDesc": "कुल दूरी, राइडिंग समय और पर्सनल बेस्ट — हर राइड के बाद अपडेट होता है। आपके आँकड़े एक नज़र में।",
       "redesignedRidesTitle": "नया डिज़ाइन राइड्स",
       "redesignedRidesDesc": "सभी राइड स्क्रीन नए सिरे से बनाई गईं — मैप बैनर, रिकॉर्ड बैज, साफ़ डिटेल व्यू और बेहतर सेव फ़्लो।",
       "flyoverTitle": "3D फ़्लाइओवर",
@@ -2115,7 +2117,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "अभी भी राइड पर हैं?",
-    "forgotToStopBody": "आप {{minutes}} मिनट से रुके हैं। राइड समाप्त करने के लिए टैप करें या चलते रहें।",
     "gpsLostTitle": "GPS ट्रैकिंग बंद हो गई",
     "gpsLostBody": "लोकेशन की अनुमति बंद कर दी गई, इसलिए आपकी राइड अब रिकॉर्ड नहीं हो रही है। ठीक करने या राइड समाप्त करने के लिए टैप करें।",
     "dist": "दूरी",
@@ -2135,7 +2136,19 @@
     "shortRideWarning": "आपकी राइड बहुत छोटी थी ({{seconds}}से, {{meters}}मी). क्या आप निश्चित हैं?",
     "gpsTip": "सुझाव: GPS ट्रैकिंग के लिए सुनिश्चित करें कि आपके फ़ोन को खुला आसमान दिखे",
     "keepRiding": "राइड जारी रखें",
-    "endAnyway": "फिर भी समाप्त करें"
+    "endAnyway": "फिर भी समाप्त करें",
+    "reminderNudgeBody": "आपकी राइड अभी भी रिकॉर्ड हो रही है, लेकिन आप {{minutes}} मिनट से नहीं चले हैं। इसे खत्म करें या चलते रहें।",
+    "reminderFinalTitle": "आपकी राइड अभी भी रिकॉर्ड हो रही है",
+    "reminderFinalBody": "{{minutes}} मिनट से कोई हलचल नहीं। राइड को वैसे ही सेव करने के लिए खत्म करें जैसी वह रुकते समय थी।",
+    "actionEndRide": "राइड खत्म करें",
+    "actionKeepRiding": "अभी चला रहा हूँ",
+    "rideAlertsChannel": "राइड अलर्ट",
+    "autoEndedTitle": "राइड सेव हो गई",
+    "autoEndedBody": "आप {{minutes}} मिनट से नहीं चले थे, इसलिए हमने आपकी राइड खत्म करके आपके रुकने तक सेव कर दी।",
+    "serviceTitle": "MotoVault आपकी राइड रिकॉर्ड कर रहा है",
+    "serviceBody": "राइड पर लौटने के लिए टैप करें। बाइक से उतरने पर इसे खत्म करें।",
+    "noGpsTitle": "हम यह राइड ट्रैक नहीं कर सके",
+    "noGpsBody": "{{minutes}} मिनट रिकॉर्ड हुए, लेकिन लगभग कोई दूरी नहीं। GPS शायद ब्लॉक, बंद या अनुमानित लोकेशन पर था।"
   },
   "rideSummary": {
     "namePlaceholder": "राइड को नाम दें...",
@@ -2238,9 +2251,6 @@
     "recentRides": "हाल की राइड्स",
     "newestFirst": "नवीनतम पहले ↓",
     "oldestFirst": "पुरानी पहले ↑",
-    "streakWeek": "week streak",
-    "streakWeeks": "week streak",
-    "streakDesc": "Consecutive weeks with a ride",
     "thisMonth": "This month",
     "thisYear": "This year",
     "vsLastWeek": "vs last week",
@@ -2312,7 +2322,10 @@
     "disclosureBody": "MotoVault आपके राइड के दौरान आपका रूट, दूरी और गति रिकॉर्ड करता है — इसमें बैकग्राउंड भी शामिल है जब ऐप बंद हो या आपकी स्क्रीन बंद हो, ताकि आपकी पूरी राइड कैप्चर हो सके। स्थान का उपयोग केवल तभी होता है जब कोई राइड सक्रिय हो।",
     "disclosureSettingsNote": "आपको सेटिंग्स पर भेजा जा सकता है — बैकग्राउंड में रिकॉर्डिंग जारी रखने के लिए “हमेशा अनुमति दें” चुनें।",
     "disclosureContinue": "जारी रखें",
-    "disclosureNotNow": "अभी नहीं"
+    "disclosureNotNow": "अभी नहीं",
+    "approximateTitle": "सटीक लोकेशन बंद है",
+    "approximateBody": "अनुमानित लोकेशन के साथ MotoVault आपका रूट या दूरी रिकॉर्ड नहीं कर सकता। सेटिंग्स में MotoVault के लिए सटीक लोकेशन चालू करें।",
+    "rideAnyway": "फिर भी राइड करें"
   },
   "preFlight": {
     "title": "प्री-फ्लाइट",
@@ -2694,5 +2707,14 @@
     "feedbackYes": "फ़ीडबैक भेजें",
     "feedbackNo": "अभी नहीं",
     "feedbackSubject": "MotoVault फ़ीडबैक"
+  },
+  "analyticsConsent": {
+    "title": "MotoVault को बेहतर बनाने में मदद करें",
+    "body": "आपकी अनुमति से, हम आगे क्या बनाना है तय करने के लिए इस ऐप का उपयोग डेटा इकट्ठा करते हैं।",
+    "pointWhat": "आप कौन-सी सुविधाएँ इस्तेमाल करते हैं, और कौन-सा लिंक या पोस्ट आपको यहाँ लाया।",
+    "pointNever": "कभी बेचा नहीं जाता, कभी विज्ञापनों के लिए इस्तेमाल नहीं होता।",
+    "pointChange": "इसे कभी भी प्रोफ़ाइल → गोपनीयता में बदलें।",
+    "allow": "अनुमति दें",
+    "decline": "अनुमति न दें"
   }
 }

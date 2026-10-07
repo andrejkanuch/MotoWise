@@ -1,8 +1,51 @@
 import * as Location from 'expo-location';
-import { captureException } from '../lib/analytics';
+import { AnalyticsEvent, captureException, isAnalyticsEnabled, trackEvent } from '../lib/analytics';
 import { rideStorage } from './ride-storage';
 
 export type PermissionLevel = 'full' | 'foreground_only' | 'denied';
+
+/** Which location permission a ride asked the OS for. */
+export const RIDE_LOCATION_PERMISSION = {
+  FOREGROUND: 'foreground',
+  BACKGROUND: 'background',
+} as const;
+
+type RideLocationPermission =
+  (typeof RIDE_LOCATION_PERMISSION)[keyof typeof RIDE_LOCATION_PERMISSION];
+
+/** Last status reported per permission, so an unchanged answer is not re-sent. */
+const LAST_REPORTED_STATUS_KEY = 'permissions.last_reported_status.';
+
+/**
+ * Report what the rider answered. Only called after a real request — reading an
+ * already-granted permission is not a result. The grant rate here is the ceiling
+ * on every ride metric: a denied foreground request means no ride at all, a
+ * denied background one means a ride that stops when the screen locks.
+ *
+ * Reported only when the status differs from the last one
+ * reported on this install. Every ride start re-requests, and the OS often
+ * answers without showing anything — after a permanent "no", or on iOS, where
+ * expo-location forgets in each new process that it already asked for "Always"
+ * and re-resolves a "While Using" rider as a silent denial. `canAskAgain` cannot
+ * tell those apart, so the event counts real changes of answer instead.
+ */
+function trackPermissionResult(
+  permission: RideLocationPermission,
+  result: Location.LocationPermissionResponse,
+): void {
+  // Nothing is sent while analytics is off, so nothing is marked as reported
+  // either: an answer given before consent is reported on the next request.
+  if (!isAnalyticsEnabled()) return;
+  const key = `${LAST_REPORTED_STATUS_KEY}${permission}`;
+  if (rideStorage.getString(key) === result.status) return;
+  rideStorage.set(key, result.status);
+  trackEvent(AnalyticsEvent.RIDE_LOCATION_PERMISSION_RESULT, {
+    permission,
+    granted: result.granted,
+    status: result.status,
+    can_ask_again: result.canAskAgain,
+  });
+}
 
 const COOLDOWN_KEY = 'permissions.pre_prompt_dismissed_at';
 const FOREGROUND_RIDE_COUNT_KEY = 'permissions.foreground_ride_count';
@@ -16,6 +59,7 @@ export async function checkAndRequestPermissions(): Promise<PermissionLevel> {
     // The caller (Start Ride flow) shows the prominent-disclosure modal before
     // reaching here — see LocationDisclosureModal + hasAllLocationPermissions.
     const result = await Location.requestForegroundPermissionsAsync();
+    trackPermissionResult(RIDE_LOCATION_PERMISSION.FOREGROUND, result);
     if (!result.granted) return 'denied';
   }
 
@@ -28,6 +72,7 @@ export async function checkAndRequestPermissions(): Promise<PermissionLevel> {
     const background = await Location.getBackgroundPermissionsAsync();
     if (!background.granted) {
       const bgResult = await Location.requestBackgroundPermissionsAsync();
+      trackPermissionResult(RIDE_LOCATION_PERMISSION.BACKGROUND, bgResult);
       if (!bgResult.granted) {
         return 'foreground_only';
       }
@@ -86,6 +131,22 @@ export async function hasAllLocationPermissions(): Promise<boolean> {
 
     const background = await Location.getBackgroundPermissionsAsync();
     return background.granted;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * True when location is granted but only approximately (iOS "Precise: Off", Android
+ * "Approximate"). Such fixes are kilometres wide, so the GPS filter rejects every one
+ * and the ride records no route and no distance. A failed read counts as precise:
+ * this is an advisory check and must never block a start on its own.
+ */
+export async function isApproximateLocation(): Promise<boolean> {
+  try {
+    const { granted, ios, android } = await Location.getForegroundPermissionsAsync();
+    if (!granted) return false;
+    return ios?.accuracy === 'reduced' || android?.accuracy === 'coarse';
   } catch {
     return false;
   }

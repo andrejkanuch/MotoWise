@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useCurrency } from '../../hooks/use-currency';
+import { formatCostPerDistance } from '../../lib/expense-constants';
 import { useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
 
@@ -23,27 +24,29 @@ const VALUE_STYLE = {
 
 /**
  * Three-up stats row for the bike hub: lifetime cost-per-distance-unit, ride
- * count, and a tappable Analytics card that opens the expense dashboard. Money
- * renders in the user's display currency.
+ * count, and a tappable Analytics card that opens the expense dashboard. Cost
+ * is per currency the bike's expenses were logged in ("€0.12 · $0.03" when
+ * mixed), never a cross-currency sum.
  */
 export function BikeStatsRow({
   motorcycleId,
   currentMileage,
   mileageUnit,
-  ytdTotal,
+  currencyTotals,
   ridesCount,
   delay = 120,
 }: {
   motorcycleId: string;
   currentMileage?: number | null;
   mileageUnit: string;
-  ytdTotal: number;
+  /** All-time expense totals, one per currency. */
+  currencyTotals: ReadonlyArray<{ currency: string; total: number }>;
   ridesCount: number;
   delay?: number;
 }) {
   const { t } = useTranslation();
   const { t: theme } = useEditorialTheme();
-  const { format: formatCurrency } = useCurrency();
+  const { currency: displayCurrency } = useCurrency();
 
   const cardStyle = {
     flex: 1,
@@ -55,8 +58,7 @@ export function BikeStatsRow({
     borderColor: theme.line,
   };
 
-  const costPerUnit =
-    currentMileage && ytdTotal > 0 ? formatCurrency(ytdTotal / currentMileage) : '—';
+  const costPerUnit = formatCostPerDistance(currencyTotals, currentMileage, displayCurrency) ?? '—';
 
   return (
     <Animated.View
@@ -70,7 +72,9 @@ export function BikeStatsRow({
             unit: mileageUnit.toUpperCase(),
           })}
         </Text>
-        <Text style={{ ...VALUE_STYLE, color: theme.ink }}>{costPerUnit}</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit style={{ ...VALUE_STYLE, color: theme.ink }}>
+          {costPerUnit}
+        </Text>
       </View>
 
       <View style={cardStyle}>

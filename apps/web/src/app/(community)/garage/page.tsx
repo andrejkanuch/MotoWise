@@ -4,33 +4,35 @@ import {
   GetRiderProfileDocument,
   MeDocument,
   MyMotorcyclesDocument,
-  SavedTripsDocument,
+  MyRideCountDocument,
+  RideOverviewDocument,
 } from '@motovault/graphql';
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
+import { signInMethodFromProvider } from '@/components/garage-ui/handoff';
 import { gqlServerFetcherAuthed } from '@/lib/graphql-server';
-import { GarageDashboard } from './garage-dashboard';
+import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { isoDayUtc, pickLeadBike } from './garage-model';
+import { GarageView } from './garage-view';
 import { garageQueryKeys } from './query-keys';
 
 /**
- * Server entry for /garage. Prefetches the dashboard's data with the user's
- * forwarded JWT, dehydrates the cache, and hands it to the client dashboard via
- * HydrationBoundary so it paints with content on first render (no spinner gate).
+ * Server entry for /garage: the read-only garage. Prefetches every card's data
+ * with the user's forwarded JWT, dehydrates the cache, and hands it to the
+ * client view via HydrationBoundary, so it paints with content on first render.
  *
- * Auth is already enforced by (community)/layout.tsx (redirects unauthenticated
- * users), so a session is expected here. Prefetch failures degrade gracefully:
- * fetchQuery errors are caught and prefetchQuery swallows them, so only
- * successful queries dehydrate and the client refetches anything missing.
+ * Auth is enforced by (community)/layout.tsx (redirects unauthenticated users).
+ * Prefetch failures degrade gracefully: fetchQuery errors are caught and
+ * prefetchQuery swallows them, so only successful queries dehydrate and the
+ * client refetches (and shows its skeleton for) anything missing.
  *
- * Query keys MUST stay identical to the useQuery keys in garage-dashboard.tsx,
- * or the dehydrated cache won't match and the client would refetch (reintro the
- * flash).
+ * No loading.tsx may sit above this route (see the 404 contract in CLAUDE.md).
  */
 export default async function GaragePage() {
   const queryClient = new QueryClient();
 
-  // Level 1 — independent. Fetch into the cache AND read back so we can resolve
-  // the dependent queries' keys (primary bike id, public username).
-  const [meData, bikesData] = await Promise.all([
+  // Level 1: independent. Fetch into the cache AND read back so the dependent
+  // keys (lead bike id, public username) can be resolved.
+  const [meData, bikesData, claims] = await Promise.all([
     queryClient
       .fetchQuery({
         queryKey: garageQueryKeys.me,
@@ -43,21 +45,28 @@ export default async function GaragePage() {
         queryFn: () => gqlServerFetcherAuthed(MyMotorcyclesDocument),
       })
       .catch(() => null),
+    // Display only (which sign-in button to name in the handoff); the layout
+    // already authenticated the rider. getClaims verifies the access token
+    // locally against the cached JWKS (asymmetric signing keys; a legacy HS256
+    // project falls back to a getUser round trip); reading `session.user` from getSession()
+    // instead made supabase-js log an "insecure user object" warning on every
+    // render (replayed into the browser console in dev).
+    getSupabaseServerClient()
+      .then((supabase) => supabase.auth.getClaims())
+      .then(({ data }) => data?.claims ?? null)
+      .catch(() => null),
   ]);
 
-  const bikes = bikesData?.myMotorcycles ?? [];
-  const primaryBike = bikes.find((b) => b.isPrimary) ?? bikes[0];
+  const lead = pickLeadBike(bikesData?.myMotorcycles ?? []);
   const username = meData?.me?.publicUsername;
 
-  // Level 2 — depends on level-1 results. Keys mirror garage-dashboard.tsx
-  // exactly (expenses is keyed by the resolved primary bike id; profile by the
-  // public username), matching the client's `enabled`-gated queries.
+  // Level 2: keys mirror garage-view.tsx exactly.
   await Promise.all([
-    primaryBike
+    lead
       ? queryClient.prefetchQuery({
-          queryKey: garageQueryKeys.expenses(primaryBike.id),
+          queryKey: garageQueryKeys.expenses(lead.id),
           queryFn: () =>
-            gqlServerFetcherAuthed(ExpenseDashboardDocument, { motorcycleId: primaryBike.id }),
+            gqlServerFetcherAuthed(ExpenseDashboardDocument, { motorcycleId: lead.id }),
         })
       : Promise.resolve(),
     queryClient.prefetchQuery({
@@ -65,8 +74,12 @@ export default async function GaragePage() {
       queryFn: () => gqlServerFetcherAuthed(AllMaintenanceTasksDocument),
     }),
     queryClient.prefetchQuery({
-      queryKey: garageQueryKeys.trips,
-      queryFn: () => gqlServerFetcherAuthed(SavedTripsDocument, { first: 10 }),
+      queryKey: garageQueryKeys.rideOverview,
+      queryFn: () => gqlServerFetcherAuthed(RideOverviewDocument),
+    }),
+    queryClient.prefetchQuery({
+      queryKey: garageQueryKeys.rideCount,
+      queryFn: () => gqlServerFetcherAuthed(MyRideCountDocument),
     }),
     username
       ? queryClient.prefetchQuery({
@@ -78,7 +91,13 @@ export default async function GaragePage() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <GarageDashboard />
+      <GarageView
+        initialToday={isoDayUtc()}
+        account={{
+          method: signInMethodFromProvider(claims?.app_metadata?.provider),
+          email: claims?.email ?? meData?.me?.email ?? null,
+        }}
+      />
     </HydrationBoundary>
   );
 }

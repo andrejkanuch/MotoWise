@@ -45,6 +45,13 @@ jest.mock('expo-constants', () => ({
 
 const mockSetStoredConsent = jest.fn();
 jest.mock('../analytics-consent', () => ({
+  CONSENT_STATE: {
+    GRANTED: 'granted',
+    DENIED: 'denied',
+    UNDECIDED: 'undecided',
+    UNKNOWN: 'unknown',
+  },
+  resolveLaunchConsent: jest.fn(() => 'undecided'),
   getStoredAnalyticsConsent: jest.fn(() => false),
   setStoredAnalyticsConsent: (...a: unknown[]) => mockSetStoredConsent(...a),
 }));
@@ -62,16 +69,27 @@ jest.mock('../subscription', () => ({
 }));
 
 import {
+  AnalyticsEvent,
   sentryBeforeSend,
   setAnalyticsEnabled,
   setUserProperties,
   setUserPropertiesOnce,
+  trackEvent,
 } from '../analytics';
 
 beforeEach(() => {
   jest.clearAllMocks();
   setAnalyticsEnabled(true); // reset module state to enabled
   mockCapture.mockClear();
+});
+
+describe('trackEvent', () => {
+  it('captures the event once — no Meta-named alias duplicate goes to PostHog', () => {
+    trackEvent(AnalyticsEvent.DIAGNOSTIC_STARTED, { source: 'test' });
+
+    expect(mockCapture).toHaveBeenCalledTimes(1);
+    expect(mockCapture).toHaveBeenCalledWith('diagnostic_started', { source: 'test' });
+  });
 });
 
 describe('setUserPropertiesOnce', () => {
@@ -125,11 +143,17 @@ describe('setAnalyticsEnabled consent persistence (KTD-9)', () => {
   // synchronous contract: consent is persisted so the gates inside those targets pass.
   it('persists consent synchronously so opt-in unblocks the attribution gates', () => {
     setAnalyticsEnabled(true);
-    expect(mockSetStoredConsent).toHaveBeenLastCalledWith(true);
+    // decidedAt defaults to "now" inside setStoredAnalyticsConsent.
+    expect(mockSetStoredConsent).toHaveBeenLastCalledWith(true, undefined);
+  });
+
+  it('persists a decision taken over from the account with its own timestamp', () => {
+    setAnalyticsEnabled(true, 1234);
+    expect(mockSetStoredConsent).toHaveBeenLastCalledWith(true, 1234);
   });
 
   it('persists withdrawal synchronously', () => {
     setAnalyticsEnabled(false);
-    expect(mockSetStoredConsent).toHaveBeenLastCalledWith(false);
+    expect(mockSetStoredConsent).toHaveBeenLastCalledWith(false, undefined);
   });
 });

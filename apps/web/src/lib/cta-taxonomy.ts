@@ -19,6 +19,17 @@ export const CtaPageType = {
   Compare: 'compare',
   Feature: 'feature',
   Tool: 'tool',
+  /** `/get` — the social bio-link landing page. */
+  Get: 'get',
+  /** Shareable pages a rider sends around: ride, rider/profile, shared trip. */
+  Ride: 'ride',
+  Rider: 'rider',
+  SharedTrip: 'shared_trip',
+  /** Public trip/route guides under /trips and /explore. */
+  Trip: 'trip',
+  Explore: 'explore',
+  /** Signed-in read-only web garage/profile (app handoff rail, band, bar). */
+  Garage: 'garage',
 } as const;
 export type CtaPageType = (typeof CtaPageType)[keyof typeof CtaPageType];
 
@@ -30,6 +41,7 @@ export const CtaPlacement = {
   StickyBar: 'sticky_bar',
   Inline: 'inline',
   Footer: 'footer',
+  Navbar: 'navbar',
 } as const;
 export type CtaPlacement = (typeof CtaPlacement)[keyof typeof CtaPlacement];
 
@@ -41,6 +53,15 @@ const SEGMENT_PAGE_TYPE: Record<string, CtaPageType> = {
   compare: CtaPageType.Compare,
   features: CtaPageType.Feature,
   tools: CtaPageType.Tool,
+  get: CtaPageType.Get,
+  ride: CtaPageType.Ride,
+  rider: CtaPageType.Rider,
+  u: CtaPageType.Rider,
+  t: CtaPageType.SharedTrip,
+  trips: CtaPageType.Trip,
+  explore: CtaPageType.Explore,
+  garage: CtaPageType.Garage,
+  profile: CtaPageType.Garage,
 };
 
 /**

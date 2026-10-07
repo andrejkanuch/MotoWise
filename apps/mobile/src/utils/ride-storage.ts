@@ -29,6 +29,8 @@ export const RIDE_KEYS = {
   GPS_PERMISSION_LOST: 'ride.gps_permission_lost',
   HUD_LAYOUT: 'ride.hud_layout',
   WAYPOINT_COUNT: 'ride.waypoint_count',
+  LAST_MOVEMENT_AT: 'ride.last_movement_at',
+  REMINDER_IDS: 'ride.reminder_ids',
 } as const;
 
 const waypointChunkKey = (rideId: string, chunkIndex: number) => `ride:${rideId}:wp:${chunkIndex}`;
@@ -113,6 +115,28 @@ export const rideMMKV = {
   // zero and walk straight past the cap.
   getWaypointCount: () => rideStorage.getNumber(RIDE_KEYS.WAYPOINT_COUNT) ?? 0,
   setWaypointCount: (count: number) => rideStorage.set(RIDE_KEYS.WAYPOINT_COUNT, count),
+
+  // Epoch ms of the last GPS fix the filter accepted as real movement. Persisted so
+  // a ride ended from a "still riding?" notification — possibly after an app kill —
+  // can be trimmed to where the rider actually stopped instead of to the tap.
+  getLastMovementAt: () => rideStorage.getNumber(RIDE_KEYS.LAST_MOVEMENT_AT) ?? 0,
+  setLastMovementAt: (ms: number) => rideStorage.set(RIDE_KEYS.LAST_MOVEMENT_AT, ms),
+
+  // Ids of the scheduled "still riding?" reminders, so a re-arm or an end can cancel
+  // exactly those and never another feature's notifications. Persisted because the
+  // OS keeps them across an app kill, and so must our handle on them.
+  getReminderIds: (): string[] => {
+    const raw = rideStorage.getString(RIDE_KEYS.REMINDER_IDS);
+    if (!raw) return [];
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'string') : [];
+    } catch {
+      return [];
+    }
+  },
+  setReminderIds: (ids: readonly string[]) =>
+    rideStorage.set(RIDE_KEYS.REMINDER_IDS, JSON.stringify(ids)),
 } as const;
 
 // --- Waypoint budget (client-side cap + progressive decimation) ---
@@ -194,6 +218,10 @@ export function appendWaypoint(rideId: string, waypoint: Waypoint): Waypoint[] |
     const chunk = pointBuffer;
     const chunkIndex = getNextChunkIndex(rideId);
     rideStorage.set(waypointChunkKey(rideId, chunkIndex), JSON.stringify(chunk));
+    // The partial buffer persisted by the periodic flush now duplicates this chunk.
+    // Left behind, a restore after a kill would re-add these points: a route that
+    // doubles back, double-counted distance, and the same waypoints uploaded twice.
+    rideStorage.remove(waypointBufferKey(rideId));
     pointBuffer = [];
     return chunk; // Caller should queue for upload
   }

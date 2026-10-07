@@ -20,7 +20,10 @@ import {
   type MaintenanceLineItemInput,
   MaintenanceLineItemsService,
 } from './services/maintenance-line-items.service';
-import { MaintenanceSpendingService } from './services/maintenance-spending.service';
+import {
+  MaintenanceSpendingService,
+  type SpendingSummaryResult,
+} from './services/maintenance-spending.service';
 import { MaintenanceTaskPhotosService } from './services/maintenance-task-photos.service';
 
 const MAINTENANCE_TASKS_TABLE = 'maintenance_tasks';
@@ -578,10 +581,7 @@ export class MaintenanceTasksService {
 
   // ── Spend rollups (delegated) ──────────────────────────────────────
 
-  getSpendingSummary(
-    userId: string,
-    motorcycleId: string,
-  ): Promise<{ thisYear: number; allTime: number }> {
+  getSpendingSummary(userId: string, motorcycleId: string): Promise<SpendingSummaryResult> {
     return this.spendingService.getSpendingSummary(userId, motorcycleId);
   }
 

@@ -10,8 +10,8 @@ const MIN_SEGMENT_FLEX = 2;
 interface CategoryDonutProps {
   categoryTotals: Array<{ category: string; total: number }>;
   totalAmount: number;
-  /** Currency for these server-summed category totals (dominant currency of the
-   *  bike's expenses — see expense-dashboard). No FX, so one currency is assumed. */
+  /** Currency of these category totals: the dashboard's selected per-currency
+   *  breakdown (see expense-dashboard). Every total passed in is in it. */
   currency: Currency;
   isDark: boolean;
   selectedCategory?: string | null;

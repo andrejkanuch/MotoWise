@@ -1,4 +1,6 @@
 import type { TripByShareTokenQuery } from '@motovault/graphql';
+import { StoreLink } from '@/components/marketing/store-buttons';
+import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 
 type SharedTrip = NonNullable<TripByShareTokenQuery['tripByShareToken']>;
 
@@ -113,18 +115,24 @@ export function SharedTripView({ data }: { data: SharedTrip }) {
             >
               Open in App
             </a>
-            <a
-              href="https://apps.apple.com/us/app/motovault/id6760291360"
+            <StoreLink
+              platform={StorePlatform.Ios}
+              pageType={CtaPageType.SharedTrip}
+              placement={CtaPlacement.Footer}
+              slug={data.id}
               className="inline-flex items-center rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50"
             >
               App Store
-            </a>
-            <a
-              href="https://play.google.com/store/apps/details?id=com.motovault.app"
+            </StoreLink>
+            <StoreLink
+              platform={StorePlatform.Android}
+              pageType={CtaPageType.SharedTrip}
+              placement={CtaPlacement.Footer}
+              slug={data.id}
               className="inline-flex items-center rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50"
             >
               Google Play
-            </a>
+            </StoreLink>
           </div>
         </div>
       </footer>

@@ -1,7 +1,10 @@
 'use client';
 
 import { palette } from '@motovault/design-system';
+import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { StoreLink } from '@/components/marketing/store-buttons';
+import { CtaPlacement, pageContextFromPathname, StorePlatform } from '@/lib/cta-taxonomy';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 const NAV_LINKS = [
@@ -14,6 +17,7 @@ export function PublicNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const scrolledRef = useRef(false);
+  const { pageType, slug } = pageContextFromPathname(usePathname() ?? '');
 
   const onScroll = useCallback(() => {
     const y = window.scrollY;
@@ -83,13 +87,16 @@ export function PublicNavbar() {
               Sign in
             </a>
           ) : null}
-          <a
-            href="https://apps.apple.com/us/app/motovault/id6760291360"
+          <StoreLink
+            platform={StorePlatform.Unknown}
+            pageType={pageType}
+            placement={CtaPlacement.Navbar}
+            slug={slug}
             className="rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors"
             style={{ backgroundColor: palette.signature500, color: palette.white }}
           >
             Get the App
-          </a>
+          </StoreLink>
         </div>
 
         {/* Mobile hamburger */}
@@ -159,13 +166,16 @@ export function PublicNavbar() {
               Sign in
             </a>
           ) : null}
-          <a
-            href="https://apps.apple.com/us/app/motovault/id6760291360"
+          <StoreLink
+            platform={StorePlatform.Unknown}
+            pageType={pageType}
+            placement={CtaPlacement.Navbar}
+            slug={slug}
             className="mt-2 block rounded-lg px-4 py-2.5 text-center text-sm font-medium"
             style={{ backgroundColor: palette.signature500, color: palette.white }}
           >
             Get the App
-          </a>
+          </StoreLink>
         </div>
       )}
     </header>

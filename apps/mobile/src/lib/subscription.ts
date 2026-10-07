@@ -286,15 +286,25 @@ export async function configureRevenueCatAnonymously(posthogDistinctId?: string)
   if (isExpoGo()) return;
   const cleanup = await initRevenueCat();
   if (!cleanup || !posthogDistinctId) return;
-  try {
-    const Purchases = await getPurchases();
-    // Only stamp while still anonymous — never clobber an identified customer.
+  await stampAnonymousPosthogId(posthogDistinctId);
+}
+
+/**
+ * Stamp `$posthogUserId` on an ANONYMOUS RevenueCat customer, so a purchase
+ * made before sign-in joins the PostHog person. Also called when consent is
+ * granted mid-session: in an opt-in region the id is unavailable until then,
+ * so the launch-time stamp in {@link configureRevenueCatAnonymously} was skipped.
+ * Never touches an identified customer. Never throws.
+ */
+export async function stampAnonymousPosthogId(
+  posthogDistinctId: string | undefined,
+): Promise<void> {
+  if (!posthogDistinctId) return;
+  await withRevenueCat('stampAnonymousPosthogId', async (Purchases) => {
     if (await Purchases.isAnonymous()) {
       await Purchases.setAttributes({ $posthogUserId: posthogDistinctId });
     }
-  } catch (e) {
-    reportRevenueCatError(e, 'revenuecat.configureRevenueCatAnonymously');
-  }
+  });
 }
 
 export async function loginRevenueCat(userId: string) {
@@ -335,6 +345,40 @@ async function withRevenueCat(
   } catch (e) {
     reportRevenueCatError(e, `revenuecat.${label}`);
   }
+}
+
+/** Google Play's own page for redeeming a promo code. */
+const PLAY_REDEEM_URL = 'https://play.google.com/redeem';
+
+/** Where a code redemption was opened from, on `code_redemption_opened`. */
+export const CODE_REDEMPTION_SURFACE = {
+  PROFILE: 'profile',
+} as const;
+export type CodeRedemptionSurface =
+  (typeof CODE_REDEMPTION_SURFACE)[keyof typeof CODE_REDEMPTION_SURFACE];
+
+/**
+ * Open the store's code redemption, for the per-platform offer codes on social
+ * posts. iOS shows Apple's offer-code sheet through RevenueCat, which refreshes
+ * CustomerInfo once the code is applied (the listener in `doInit` picks it up).
+ * Android opens Google Play's redeem page — Play promo codes can also be entered
+ * on the Play purchase sheet itself. Never throws.
+ */
+export async function presentCodeRedemption(surface: CodeRedemptionSurface): Promise<void> {
+  trackEvent(AnalyticsEvent.CODE_REDEMPTION_OPENED, {
+    surface,
+    platform: process.env.EXPO_OS ?? 'unknown',
+  });
+  if (process.env.EXPO_OS === 'android') {
+    const Linking = await import('expo-linking');
+    await Linking.openURL(PLAY_REDEEM_URL).catch((e: unknown) =>
+      captureException(e, { source: 'revenuecat.presentCodeRedemption.android' }),
+    );
+    return;
+  }
+  await withRevenueCat('presentCodeRedemption', (Purchases) =>
+    Purchases.presentCodeRedemptionSheet(),
+  );
 }
 
 /**

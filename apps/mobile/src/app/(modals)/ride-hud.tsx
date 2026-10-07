@@ -18,6 +18,7 @@ import {
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { bestEffortNativeCall, NativeSideEffect } from '../../lib/best-effort-native';
 import { useRideStore } from '../../stores/ride.store';
+import { MIN_RIDE_DISTANCE_M, MIN_RIDE_ELAPSED_S } from '../../utils/ride-constants';
 import { toggleBatterySaver } from '../../utils/ride-location';
 import { getPointBuffer, getWaypointChunks, rideMMKV, rideStorage } from '../../utils/ride-storage';
 import { hasPendingSyncWork } from '../../utils/ride-sync-queue';
@@ -44,6 +45,21 @@ function persistLayout(layout: HudLayout) {
 }
 
 const APP_STATE_ACTIVE = 'active';
+
+/** Past this, a ride under the distance floor is not a mis-tap — the GPS recorded
+ *  nothing (approximate location, no sky view, a killed background task). Saying
+ *  "your ride was very short" to someone who rode for 40 minutes is wrong. */
+const NO_GPS_MIN_ELAPSED_S = 120;
+
+function isNoGpsRide(elapsedS: number): boolean {
+  return elapsedS >= NO_GPS_MIN_ELAPSED_S;
+}
+
+function guardEvent(elapsedS: number) {
+  return isNoGpsRide(elapsedS)
+    ? AnalyticsEvent.RIDE_ZERO_DISTANCE_SHOWN
+    : AnalyticsEvent.RIDE_TOO_SHORT_SHOWN;
+}
 
 export default function RideHudScreen() {
   const { t } = useTranslation();
@@ -229,10 +245,10 @@ export default function RideHudScreen() {
     const dist = useRideStore.getState().distance;
 
     // Minimum ride guard: check if ride is too short
-    if (elapsed < 30 || dist < 50) {
+    if (elapsed < MIN_RIDE_ELAPSED_S || dist < MIN_RIDE_DISTANCE_M) {
       setGuardData({ elapsed_s: elapsed, distance_m: Math.round(dist) });
       guardSheetRef.current?.expand();
-      trackEvent(AnalyticsEvent.RIDE_TOO_SHORT_SHOWN, {
+      trackEvent(guardEvent(elapsed), {
         ride_id: rideMMKV.getCurrentId() ?? null,
         elapsed_s: elapsed,
         distance_m: Math.round(dist),
@@ -246,7 +262,7 @@ export default function RideHudScreen() {
 
   const handleGuardKeepRiding = useCallback(() => {
     if (guardData) {
-      trackEvent(AnalyticsEvent.RIDE_TOO_SHORT_SHOWN, {
+      trackEvent(guardEvent(guardData.elapsed_s), {
         ride_id: rideMMKV.getCurrentId() ?? null,
         elapsed_s: guardData.elapsed_s,
         distance_m: guardData.distance_m,
@@ -259,7 +275,7 @@ export default function RideHudScreen() {
 
   const handleGuardEndAnyway = useCallback(() => {
     if (guardData) {
-      trackEvent(AnalyticsEvent.RIDE_TOO_SHORT_SHOWN, {
+      trackEvent(guardEvent(guardData.elapsed_s), {
         ride_id: rideMMKV.getCurrentId() ?? null,
         elapsed_s: guardData.elapsed_s,
         distance_m: guardData.distance_m,
@@ -291,6 +307,7 @@ export default function RideHudScreen() {
   const avgSpeedDisplay = elapsedSeconds > 0 && distance > 0 ? distance / elapsedSeconds : 0;
 
   const [showGuardTip] = useState(() => !rideStorage.getString('rideGuardTipShown'));
+  const isNoGpsGuard = guardData != null && isNoGpsRide(guardData.elapsed_s);
 
   return (
     <View style={{ flex: 1, backgroundColor: bgColor }}>
@@ -379,7 +396,7 @@ export default function RideHudScreen() {
               marginBottom: 8,
             }}
           >
-            {t('rideHud.endRideTitle')}
+            {isNoGpsGuard ? t('rideHud.noGpsTitle') : t('rideHud.endRideTitle')}
           </Text>
           <Text
             style={{
@@ -389,13 +406,17 @@ export default function RideHudScreen() {
               marginBottom: 16,
             }}
           >
-            {t('rideHud.shortRideWarning', {
-              seconds: guardData?.elapsed_s ?? 0,
-              meters: guardData?.distance_m ?? 0,
-            })}
+            {isNoGpsGuard
+              ? t('rideHud.noGpsBody', {
+                  minutes: Math.round((guardData?.elapsed_s ?? 0) / 60),
+                })
+              : t('rideHud.shortRideWarning', {
+                  seconds: guardData?.elapsed_s ?? 0,
+                  meters: guardData?.distance_m ?? 0,
+                })}
           </Text>
 
-          {showGuardTip && (
+          {(showGuardTip || isNoGpsGuard) && (
             <View
               style={{
                 backgroundColor: palette.neutral800,

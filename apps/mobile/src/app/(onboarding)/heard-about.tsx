@@ -1,8 +1,10 @@
 import { NotificationFeedbackType } from 'expo-haptics';
 import {
+  Facebook,
   Globe,
   HelpCircle,
   Instagram,
+  MessagesSquare,
   MoreHorizontal,
   Music2,
   Newspaper,
@@ -13,10 +15,11 @@ import {
 } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
@@ -35,7 +38,9 @@ import { triggerNotification } from '../../utils/haptics';
 const HEARD_ABOUT_OPTIONS = [
   { id: 'tiktok', labelKey: 'heardAboutTiktok', icon: Music2 },
   { id: 'instagram', labelKey: 'heardAboutInstagram', icon: Instagram },
+  { id: 'facebook', labelKey: 'heardAboutFacebook', icon: Facebook },
   { id: 'youtube', labelKey: 'heardAboutYoutube', icon: Youtube },
+  { id: 'reddit', labelKey: 'heardAboutReddit', icon: MessagesSquare },
   { id: 'friend', labelKey: 'heardAboutFriend', icon: Users },
   { id: 'app_store_search', labelKey: 'heardAboutAppStore', icon: Search },
   { id: 'google_search', labelKey: 'heardAboutGoogle', icon: Globe },
@@ -47,6 +52,14 @@ const HEARD_ABOUT_OPTIONS = [
   { id: 'other', labelKey: 'heardAboutOther', icon: MoreHorizontal },
 ] as const;
 
+type HeardAboutId = (typeof HEARD_ABOUT_OPTIONS)[number]['id'];
+
+/** The option that opens a free-text answer instead of advancing on tap. */
+const OTHER_OPTION: HeardAboutId = 'other';
+
+/** Longest free-text "other" answer kept — a channel name, not an essay. */
+const OTHER_TEXT_MAX_LENGTH = 80;
+
 const ADVANCE_DELAY_MS = 600;
 
 export default function HeardAboutScreen() {
@@ -57,7 +70,8 @@ export default function HeardAboutScreen() {
   const setHeardFrom = useOnboardingStore((s) => s.setHeardFrom);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
 
-  const [pending, setPending] = useState<string | null>(null);
+  const [pending, setPending] = useState<HeardAboutId | null>(null);
+  const [otherText, setOtherText] = useState('');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Synchronous one-shot guard: `pending` is React state read from the render
   // closure, so two taps in the same frame (option+option, or option+skip) would
@@ -71,7 +85,12 @@ export default function HeardAboutScreen() {
     };
   }, []);
 
-  const handleSelect = (id: string) => {
+  /**
+   * Record the answer and advance. `other` carries the rider's own words as
+   * `heard_from_other`, so channels missing from the list (a forum, a dealer,
+   * a podcast) surface instead of collapsing into one bucket.
+   */
+  const commit = (id: HeardAboutId, detail?: string) => {
     if (advancedRef.current) return;
     advancedRef.current = true;
     triggerNotification(NotificationFeedbackType.Success);
@@ -80,12 +99,30 @@ export default function HeardAboutScreen() {
     setLastCompletedScreen(OB_SCREEN.HEARD_ABOUT);
     trackOnboardingEvent(AnalyticsEvent.REFERRAL_SOURCE_SELECTED, OB_SCREEN.HEARD_ABOUT, {
       referral_source: id,
+      ...(detail ? { referral_source_other: detail } : {}),
     });
     // Fire-and-forget — do not block navigation on these writes (KTD-10/KTD-2).
-    setUserPropertiesOnce({ heard_from: id });
+    setUserPropertiesOnce({ heard_from: id, ...(detail ? { heard_from_other: detail } : {}) });
     void setSelfReportedSource(id);
     timerRef.current = setTimeout(goNext, ADVANCE_DELAY_MS);
   };
+
+  const handleSelect = (id: HeardAboutId) => {
+    if (advancedRef.current) return;
+    // "Other" opens a text field rather than advancing; Continue commits it.
+    if (id === OTHER_OPTION) {
+      setPending(OTHER_OPTION);
+      return;
+    }
+    commit(id);
+  };
+
+  const handleOtherContinue = () => {
+    const detail = otherText.trim().slice(0, OTHER_TEXT_MAX_LENGTH);
+    commit(OTHER_OPTION, detail || undefined);
+  };
+
+  const otherOpen = pending === OTHER_OPTION && !advancedRef.current;
 
   // Skip advances without recording a source — `heard_from` stays unset (KTD-10),
   // but we DO emit a skip event so the skip rate is measurable (MOT-272). A high
@@ -109,6 +146,7 @@ export default function HeardAboutScreen() {
           paddingBottom: insets.bottom + 32,
         }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         <Animated.View entering={FadeInDown.duration(300)}>
           <Text
@@ -144,6 +182,7 @@ export default function HeardAboutScreen() {
             const Icon = option.icon;
             const active = pending === option.id;
             const dimmed = pending !== null && !active;
+            const showOtherInput = option.id === OTHER_OPTION && otherOpen;
             return (
               <Animated.View
                 key={option.id}
@@ -197,6 +236,40 @@ export default function HeardAboutScreen() {
                     {t(`onboarding.${option.labelKey}`)}
                   </Text>
                 </Pressable>
+                {showOtherInput ? (
+                  <Animated.View
+                    entering={FadeInUp.duration(250)}
+                    style={{ gap: 10, marginTop: 10 }}
+                  >
+                    <TextInput
+                      value={otherText}
+                      onChangeText={setOtherText}
+                      placeholder={t('onboarding.heardAboutOtherPlaceholder')}
+                      placeholderTextColor={ONBOARDING_COLORS.textMuted}
+                      maxLength={OTHER_TEXT_MAX_LENGTH}
+                      autoFocus
+                      returnKeyType="done"
+                      onSubmitEditing={handleOtherContinue}
+                      accessibilityLabel={t('onboarding.heardAboutOtherPlaceholder')}
+                      style={{
+                        backgroundColor: ONBOARDING_COLORS.cardBg,
+                        borderWidth: 1,
+                        borderColor: ONBOARDING_COLORS.cardBorderDefault,
+                        borderRadius: 14,
+                        borderCurve: 'continuous',
+                        paddingHorizontal: 16,
+                        paddingVertical: 15,
+                        fontSize: 15,
+                        color: ONBOARDING_COLORS.textPrimary,
+                      }}
+                    />
+                    <OnboardingContinueButton
+                      label={t('onboarding.heardAboutOtherContinue')}
+                      onPress={handleOtherContinue}
+                      showIcon={false}
+                    />
+                  </Animated.View>
+                ) : null}
               </Animated.View>
             );
           })}

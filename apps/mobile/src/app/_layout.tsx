@@ -41,7 +41,6 @@ import {
   type Href,
   Stack,
   useNavigationContainerRef,
-  usePathname,
   useRouter,
   useSegments,
 } from 'expo-router';
@@ -63,7 +62,14 @@ import { ReceiptScanSaveSnackbar } from '../features/receipt-scan/receipt-scan-s
 import { clearAllReceiptSaveUndo } from '../features/receipt-scan/receipt-scan-undo-store';
 import { SCAN_RESUME_SOURCE } from '../features/receipt-scan/scan-flow-constants';
 import { clearScanConsent } from '../features/receipt-scan/scan-preferences';
+import {
+  receiveRideIdleResponse,
+  rideIdleResponseKey,
+} from '../features/ride/ride-notification-response';
+import { useAnalyticsSuperProperties } from '../hooks/use-analytics-super-properties';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
+import { useRideIdleResponses } from '../hooks/use-ride-idle-responses';
+import { useScreenTracking } from '../hooks/use-screen-tracking';
 import i18n from '../i18n';
 import {
   AnalyticsEvent,
@@ -79,9 +85,17 @@ import {
   setCrashReportingEnabled,
   setUserProperties,
   trackEvent,
-  trackScreen,
   withSentry,
 } from '../lib/analytics';
+import {
+  type AccountPrivacyPreference,
+  accountConsentDecision,
+  deviceConsentDecision,
+  getStoredAnalyticsConsent,
+  isConsentPromptOwed,
+  reconcileConsent,
+  storedTimestampFor,
+} from '../lib/analytics-consent';
 import {
   AUTH_HYDRATION_TIMEOUT_MESSAGE,
   AUTH_HYDRATION_TIMEOUT_MS,
@@ -98,8 +112,12 @@ import {
   SIGNOUT_UNSYNCED_SOURCE,
 } from '../lib/auth-state-change';
 import { bestEffortNativeCall, NativeSideEffect } from '../lib/best-effort-native';
+import { saveConsentToAccount } from '../lib/consent-account-sync';
+import { canShowConsentPrompt } from '../lib/consent-prompt';
+import { CORE_ACTION_KIND, recordCoreAction } from '../lib/core-action-milestones';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
+import { MAINTENANCE_COMPLETION_SURFACE } from '../lib/maintenance-analytics';
 import { captureMetaAttribution } from '../lib/meta-attribution';
 import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
 import {
@@ -134,7 +152,6 @@ import { supabase } from '../lib/supabase';
 import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
 import { useAuthStore } from '../stores/auth.store';
 import { useExperimentStore } from '../stores/experiment.store';
-import { useSubscriptionStore } from '../stores/subscription.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
 import { rideMMKV } from '../utils/ride-storage';
 import {
@@ -199,6 +216,13 @@ setupOnlineManager();
 // Module-scoped guard: survives React 19 StrictMode double-mount so the
 // What's New modal is only pushed once per app cold-start.
 let whatsNewPushed = false;
+// Same module-scoped one-shot pattern for the analytics consent screen. Set only
+// once the push is made, so a check that fails when the timer fires is retried.
+let consentPromptPushed = false;
+let consentPromptScheduled = false;
+
+/** Later than What's New (500 ms) so, if both are owed, consent sits on top. */
+const CONSENT_PROMPT_DELAY_MS = 700;
 
 function NavigationGate({ onSettled }: { onSettled: () => void }) {
   const {
@@ -250,32 +274,55 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
 
   // Sync user properties to PostHog for segmentation
   const meData = meQuery.data?.me;
-  const isPro = useSubscriptionStore((s) => s.isPro);
   const userPreferences = meData?.preferences as Record<string, unknown> | null | undefined;
 
   useEffect(() => {
-    const privacy = userPreferences?.privacy as
-      | { analyticsEnabled?: boolean; crashReportingEnabled?: boolean }
-      | undefined;
+    const privacy = userPreferences?.privacy as AccountPrivacyPreference | undefined;
 
-    if (typeof privacy?.analyticsEnabled === 'boolean') {
-      setAnalyticsEnabled(privacy.analyticsEnabled);
+    // Once the account is loaded, reconcile its analytics decision with this
+    // device's: the newer explicit decision wins (a tie goes to "no"), and a
+    // decision only one side has goes to the other. The account's decision only
+    // counts when this device can trust it (accountConsentDecision); the device's
+    // only when the rider actually chose (deviceConsentDecision). Uploading
+    // matters beyond this device: the server-side signup event reads it.
+    if (session && userPreferences !== undefined) {
+      const { apply, upload } = reconcileConsent(
+        deviceConsentDecision(),
+        accountConsentDecision(privacy),
+      );
+      // A legacy account "yes" is taken over as the automatic grant; once stored
+      // it reconciles as "no device decision" again, so skip re-applying it.
+      const alreadyInForce = apply?.legacy && apply.enabled && getStoredAnalyticsConsent();
+      if (apply && !alreadyInForce) {
+        setAnalyticsEnabled(apply.enabled, storedTimestampFor(apply));
+      }
+      if (upload) {
+        void saveConsentToAccount(upload, privacy).then((saved) => {
+          if (saved) void queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
+        });
+      }
     }
     if (typeof privacy?.crashReportingEnabled === 'boolean') {
       setCrashReportingEnabled(privacy.crashReportingEnabled);
     }
-  }, [userPreferences]);
+  }, [userPreferences, session]);
 
   useEffect(() => {
     if (!session?.user?.id || !meData) return;
     setUserProperties({
       experience_level: (userPreferences?.experienceLevel as string) ?? null,
-      is_pro: isPro,
+      // is_pro is mirrored by useAnalyticsSuperProperties once RevenueCat has
+      // verified it; sending the store's unverified `false` here tagged Pro riders free.
       currency: meData.currency ?? null,
       locale: useAuthStore.getState().locale,
       app_version: Application.nativeApplicationVersion ?? null,
     });
-  }, [session?.user?.id, meData, userPreferences, isPro]);
+  }, [session?.user?.id, meData, userPreferences]);
+
+  // Tier / garage / units / onboarding-goal / platform on every event (and on the
+  // person). Mounted after the privacy sync above so a consent change in the same
+  // commit is already applied when it registers.
+  useAnalyticsSuperProperties();
 
   // --- What's New modal trigger ---
   // Module-scoped `whatsNewPushed` flag survives React 19 StrictMode
@@ -300,6 +347,32 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
     trackEvent(AnalyticsEvent.WHATS_NEW_VIEWED, { version: currentVersion });
     setTimeout(() => router.push('/(modals)/whats-new'), 500);
   }, [isLoading, session, onboardingCompleted, segments, lastSeenVersion, router]);
+
+  // --- Analytics consent (opt-in regions) ---
+  // Riders in the EEA/UK/Switzerland who have not answered see the consent
+  // screen once they leave the onboarding welcome screen (or on launch, for an
+  // existing rider); nothing is sent to PostHog until they answer. Outside those
+  // regions consent defaults on and this never fires. See lib/analytics-consent.ts.
+  const meSettled = meQuery.isFetched;
+  // Latest route, for the re-check when the delayed push fires.
+  const segmentsRef = useRef<readonly string[]>(segments);
+  segmentsRef.current = segments;
+  useEffect(() => {
+    if (consentPromptPushed || consentPromptScheduled || isLoading) return;
+    // A signed-in rider may already have answered on another device — the
+    // preference effect above applies it once `me` loads, so wait for that.
+    if (session && !meSettled) return;
+    if (!canShowConsentPrompt(segments) || !isConsentPromptOwed()) return;
+    consentPromptScheduled = true;
+    setTimeout(() => {
+      consentPromptScheduled = false;
+      // Re-check: the rider may have started a ride, or answered elsewhere, in
+      // the delay. A failed check leaves the prompt owed for the next change.
+      if (!canShowConsentPrompt(segmentsRef.current) || !isConsentPromptOwed()) return;
+      consentPromptPushed = true;
+      router.push('/analytics-consent');
+    }, CONSENT_PROMPT_DELAY_MS);
+  }, [isLoading, session, meSettled, segments, router]);
 
   // --- Anonymous-first onboarding (A/B 2026) ---
   // Fresh installs (never authenticated on this install) onboard BEFORE auth:
@@ -413,6 +486,13 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
       {/* Public share-link routes — always accessible to anonymous AND
           authenticated users (even mid-onboarding). Declared last so they are
           never resolved as the default landing screen. */}
+      {/* Reachable from every state — onboarding, sign-in and tabs — because the
+          consent question is owed before anything is sent. Not swipe-dismissable;
+          the screen also swallows Android back. */}
+      <Stack.Screen
+        name="analytics-consent"
+        options={{ presentation: 'fullScreenModal', gestureEnabled: false }}
+      />
       <Stack.Screen name="t/[token]/index" />
       <Stack.Screen name="ride/[id]" />
       <Stack.Screen name="route/[country]/[region]/[slug]" />
@@ -465,17 +545,10 @@ function RootLayout() {
     [HUB_FONT.sansBold]: PlusJakartaSans_700Bold,
   });
   const navigationRef = useNavigationContainerRef();
-  const pathname = usePathname();
-  const previousPathname = useRef<string | undefined>(undefined);
 
   useNotificationDeepLink();
-
-  useEffect(() => {
-    if (previousPathname.current !== pathname) {
-      trackScreen(pathname, { previous_screen: previousPathname.current ?? null });
-      previousPathname.current = pathname;
-    }
-  }, [pathname]);
+  useRideIdleResponses();
+  useScreenTracking();
 
   useEffect(() => {
     if (navigationRef) {
@@ -903,19 +976,13 @@ function RootLayout() {
           action: actionId,
         });
 
-        // Forgotten-ride nudge — from the local auto-pause machine OR the server
-        // sweep, which send an identical payload. Two destinations:
-        //   * still recording  -> the live HUD, where Stop is one tap away
-        //   * already ended    -> the saved ride, so the rider can see what we kept
-        // Deliberately no auto-stop on tap: ending someone's ride from a notification
-        // press, when they may have opened it to say "no, I'm still out", would be
-        // the wrong default.
+        // Forgotten-ride reminder — scheduled locally off the last movement, or
+        // pushed by the server sweep with the same payload. "End ride" ends it
+        // trimmed to the last movement, "Still riding" restarts the clock, and a
+        // plain tap only navigates (see handleRideIdleResponse).
         if (data?.kind === NOTIFICATION_KIND.RIDE_IDLE) {
-          if (data.autoEnded && data.rideId) {
-            expoRouter.push(`/ride/${data.rideId}` as Href);
-          } else {
-            expoRouter.push('/(modals)/ride-hud' as Href);
-          }
+          // Deferred until navigation can land — see useRideIdleResponses.
+          receiveRideIdleResponse(rideIdleResponseKey(response), actionId, data);
           return;
         }
 
@@ -949,7 +1016,16 @@ function RootLayout() {
 
         if (actionId === NOTIFICATION_ACTION.MARK_DONE) {
           try {
-            await gqlFetcher(CompleteMaintenanceTaskDocument, { id: data.taskId });
+            const completion = await gqlFetcher(CompleteMaintenanceTaskDocument, {
+              id: data.taskId,
+            });
+            trackEvent(AnalyticsEvent.MAINTENANCE_TASK_COMPLETED, {
+              has_cost: false,
+              // The server schedules the next occurrence of a recurring task by default.
+              scheduled_next: !!completion.completeMaintenanceTask.nextOccurrence,
+              surface: MAINTENANCE_COMPLETION_SURFACE.REMINDER_NOTIFICATION,
+            });
+            recordCoreAction(CORE_ACTION_KIND.SERVICE_LOGGED);
             // Cancel any remaining reminder stages for the now-completed task.
             await cancelTaskNotification(data.taskId);
             queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
@@ -986,7 +1062,12 @@ function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PostHogProvider
         client={posthogClient}
-        autocapture={{ captureScreens: false, captureTouches: true }}
+        // Both off. Screens come from useScreenTracking (route-template names,
+        // feature_area) — SDK screen capture would double-count them under raw
+        // navigator names. Touch capture produced ~36k unlabeled `$autocapture`
+        // events a month that no insight could use; product actions are tracked
+        // explicitly with trackEvent.
+        autocapture={{ captureScreens: false, captureTouches: false }}
       >
         {/* Renders PostHog-managed popover surveys natively. Display timing,
             targeting, and appearance are all configured server-side in PostHog;

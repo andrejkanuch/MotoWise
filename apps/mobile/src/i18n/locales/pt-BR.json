@@ -499,7 +499,8 @@
     "roadsTitle": "Estradas que percorri",
     "roadsSubtitle": "Mapa de calor e retrospectiva do ano",
     "savedRoutesTitle": "Rotas salvas",
-    "savedRoutesSubtitle": "Rotas que você quer percorrer depois"
+    "savedRoutesSubtitle": "Rotas que você quer percorrer depois",
+    "redeemCode": "Resgatar um código"
   },
   "onboarding": {
     "welcomeTitle": "Bem-vindo ao MotoVault",
@@ -707,9 +708,6 @@
     "v2BikeSetupOther": "Outra",
     "v2NotificationsTitle": "Fique de olho na saúde da sua moto",
     "v2NotificationsSubtitle": "Receba um resumo semanal das suas pilotagens e um aviso antes da revisão vencer.",
-    "v2NotificationsBenefit1": "Lembretes de manutenção antes de atrasarem",
-    "v2NotificationsBenefit2": "Estatísticas e sequências de pilotagem semanais",
-    "v2NotificationsBenefit3": "Novas rotas na sua região",
     "v2NotificationsEnable": "Ativar notificações",
     "v2NotificationsMaybeLater": "Talvez depois",
     "heardAboutTitle": "Como você",
@@ -1009,7 +1007,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "Onde? (opcional)",
+    "heardAboutOtherContinue": "Continuar"
   },
   "bikeHub": {
     "upcoming": "Próximas",
@@ -1721,6 +1723,7 @@
     "investedInBike": "Investido na moto",
     "runningCosts": "Custos correntes",
     "addPurchasePriceHint": "Adicione o preço de compra da sua moto em Editar Moto para ver o custo total de propriedade",
+    "showInCurrency": "Mostrar gráficos em {{currency}}",
     "byCategory": "Por categoria",
     "monthlyTrend": "Tendência mensal",
     "category_accessories": "Acessórios",
@@ -1883,7 +1886,6 @@
     "pastReports": "Relatórios anteriores",
     "pending": "Gerando...",
     "completed": "Pronto",
-    "purchaseFirst": "Compre um relatório de saúde para começar",
     "description": "Um relatório completo do histórico de manutenção, despesas e condição da sua moto.",
     "downloadReport": "Baixar relatório",
     "failedMessage": "Falha ao gerar o relatório. Tente novamente.",
@@ -1926,7 +1928,7 @@
     },
     "v380": {
       "analyticsTitle": "Análise de percursos",
-      "analyticsDesc": "Distância total, tempo de pilotagem, sequências e recordes pessoais — tudo atualizado após cada percurso. Suas estatísticas de relance.",
+      "analyticsDesc": "Distância total, tempo de pilotagem e recordes pessoais — tudo atualizado após cada percurso. Suas estatísticas de relance.",
       "redesignedRidesTitle": "Percursos redesenhados",
       "redesignedRidesDesc": "Todas as telas de percursos reconstruídas do zero — banners de mapa, badges de recorde, visualizações mais limpas e um fluxo de salvamento mais fluido.",
       "flyoverTitle": "Sobrevoo 3D",
@@ -2116,7 +2118,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "Ainda pilotando?",
-    "forgotToStopBody": "Você está parado há {{minutes}} minutos. Toque para encerrar ou continue.",
     "gpsLostTitle": "Rastreamento GPS parado",
     "gpsLostBody": "A permissão de localização foi desativada, então seu trajeto não está mais sendo gravado. Toque para corrigir ou encerrar o trajeto.",
     "dist": "DIST",
@@ -2136,7 +2137,19 @@
     "shortRideWarning": "Seu percurso foi muito curto ({{seconds}}s, {{meters}}m). Tem certeza?",
     "gpsTip": "Dica: certifique-se de que seu telefone tenha visão livre do céu para o rastreamento por GPS",
     "keepRiding": "Continuar pilotando",
-    "endAnyway": "Encerrar mesmo assim"
+    "endAnyway": "Encerrar mesmo assim",
+    "reminderNudgeBody": "Seu passeio ainda está sendo gravado, mas você está parado há {{minutes}} minutos. Encerre ou continue.",
+    "reminderFinalTitle": "Seu passeio ainda está sendo gravado",
+    "reminderFinalBody": "Sem movimento há {{minutes}} minutos. Encerre o passeio para salvá-lo como estava quando você parou.",
+    "actionEndRide": "Encerrar passeio",
+    "actionKeepRiding": "Ainda rodando",
+    "rideAlertsChannel": "Alertas de passeio",
+    "autoEndedTitle": "Passeio salvo",
+    "autoEndedBody": "Você estava parado há {{minutes}} minutos, então encerramos o passeio e o salvamos até onde você parou.",
+    "serviceTitle": "O MotoVault está gravando seu passeio",
+    "serviceBody": "Toque para voltar ao passeio. Encerre ao descer da moto.",
+    "noGpsTitle": "Não conseguimos registrar este passeio",
+    "noGpsBody": "{{minutes}} min gravados, mas quase nenhuma distância. O GPS pode ter sido bloqueado, desligado ou definido como localização aproximada."
   },
   "rideSummary": {
     "namePlaceholder": "Dê um nome ao seu passeio...",
@@ -2240,9 +2253,6 @@
     "recentRides": "Passeios recentes",
     "newestFirst": "Mais recentes primeiro ↓",
     "oldestFirst": "Mais antigos primeiro ↑",
-    "streakWeek": "week streak",
-    "streakWeeks": "week streak",
-    "streakDesc": "Consecutive weeks with a ride",
     "thisMonth": "This month",
     "thisYear": "This year",
     "vsLastWeek": "vs last week",
@@ -2314,7 +2324,10 @@
     "disclosureBody": "O MotoVault registra seu trajeto, distância e velocidade enquanto você pilota, inclusive em segundo plano quando o app está fechado ou a tela desligada, para capturar todo o percurso. A localização só é usada durante um trajeto ativo.",
     "disclosureSettingsNote": "Você pode ser levado às Configurações: escolha “Permitir o tempo todo” para continuar gravando em segundo plano.",
     "disclosureContinue": "Continuar",
-    "disclosureNotNow": "Agora não"
+    "disclosureNotNow": "Agora não",
+    "approximateTitle": "A localização precisa está desativada",
+    "approximateBody": "Com a localização aproximada, o MotoVault não consegue registrar sua rota nem a distância. Ative a Localização Precisa para o MotoVault em Ajustes.",
+    "rideAnyway": "Rodar mesmo assim"
   },
   "preFlight": {
     "title": "Pré-viagem",
@@ -2697,5 +2710,14 @@
     "feedbackYes": "Enviar feedback",
     "feedbackNo": "Agora não",
     "feedbackSubject": "Feedback do MotoVault"
+  },
+  "analyticsConsent": {
+    "title": "Ajude a construir o MotoVault",
+    "body": "Com a sua permissão, coletamos dados de uso deste app para decidir o que construir a seguir.",
+    "pointWhat": "Quais recursos você usa e o link ou post que trouxe você até aqui.",
+    "pointNever": "Nunca vendidos, nunca usados para anúncios.",
+    "pointChange": "Altere quando quiser em Perfil → Privacidade.",
+    "allow": "Permitir",
+    "decline": "Não permitir"
   }
 }

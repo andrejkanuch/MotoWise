@@ -181,7 +181,7 @@
       },
       {
         "question": "Apakah MotoVault gratis?",
-        "answer": "Ya! MotoVault menawarkan paket gratis yang mencakup konten pembelajaran dasar, satu motor di garasi, dan diagnostik AI terbatas. Untuk diagnostik tak terbatas, semua konten pembelajaran, dan motor tak terbatas, upgrade ke MotoVault Pro di dalam aplikasi."
+        "answer": "Ya! MotoVault gratis: satu motor di garasi, pencatatan perawatan dan pengeluaran tanpa batas, perekaman perjalanan, perencanaan trip, dan satu diagnostik AI per bulan. Untuk motor tak terbatas, diagnostik AI dan pemindaian struk tak terbatas, lebih banyak artikel AI, ekspor GPX, dan peta trip offline, upgrade ke MotoVault Pro di dalam aplikasi."
       },
       {
         "question": "Motor apa saja yang didukung?",
@@ -197,7 +197,7 @@
       },
       {
         "question": "Apa saja yang termasuk MotoVault Pro?",
-        "answer": "MotoVault Pro membuka diagnostik AI tak terbatas, akses ke semua pelajaran dan kursus, motor tak terbatas di garasi, dukungan prioritas, dan konten eksklusif. Berlangganan bulanan atau tahunan dari dalam aplikasi."
+        "answer": "MotoVault Pro membuka motor tak terbatas di garasi, diagnostik AI tak terbatas, lebih banyak artikel AI, pertanyaan asisten trip, dan ringkasan perjalanan AI, pemindaian struk tak terbatas, ekspor GPX, serta peta trip offline. Pencatatan perawatan dan pengeluaran tetap gratis. Berlangganan bulanan atau tahunan dari dalam aplikasi."
       }
     ]
   },
@@ -347,7 +347,7 @@
     "faq2Question": "Bagaimana cara kerja diagnostik AI?",
     "faq2Answer": "Ambil foto komponen motor atau jelaskan gejala. AI kami menganalisis gambar dan memberikan penilaian diagnostik dengan rating keparahan dan tindakan yang direkomendasikan.",
     "faq3Question": "Apakah MotoVault gratis?",
-    "faq3Answer": "Ya! MotoVault menawarkan paket gratis dengan konten pembelajaran dasar, satu motor di garasi, dan diagnostik AI terbatas. Upgrade ke MotoVault Pro untuk akses tak terbatas ke semua fitur.",
+    "faq3Answer": "Ya! MotoVault menawarkan paket gratis dengan konten pembelajaran dasar, satu motor di garasi, dan diagnostik AI terbatas. Pencatatan perawatan dan pengeluaran, perekaman perjalanan, dan perencanaan trip gratis untuk semua. MotoVault Pro menambahkan motor tak terbatas, diagnostik AI dan pemindaian struk tak terbatas, ekspor GPX, serta peta trip offline.",
     "faq4Question": "Bagaimana cara membatalkan langganan?",
     "faq4Answer": "Langganan MotoVault Pro dikelola melalui App Store (iOS) atau Google Play (Android). Buka pengaturan langganan di perangkat untuk membatalkan atau mengelola paket.",
     "faq5Question": "Bisa hapus akun saya?",
@@ -1024,5 +1024,110 @@
     "message": "Seluruh hidup bermotormu dalam satu aplikasi.",
     "cta": "Dapatkan MotoVault",
     "dismiss": "Tutup"
+  },
+  "AppHandoff": {
+    "qrAlt": "Kode QR menuju motovault.app/get",
+    "scanToOpen": "Pindai untuk membuka MotoVault",
+    "signInSameAccount": "Masuk dengan akun yang sama: <b>{email}</b>",
+    "signInSameAccountNoEmail": "Masuk dengan akun yang sama.",
+    "signInGoogle": "Di aplikasi, ketuk <b>Lanjutkan dengan Google</b>",
+    "signInApple": "Di aplikasi, ketuk <b>Lanjutkan dengan Apple</b>",
+    "copy": "Salin",
+    "copied": "Disalin",
+    "copyLabel": "Salin tautan ke aplikasi",
+    "linkCopied": "Tautan disalin",
+    "onThisTablet": "Di tablet ini?",
+    "appStore": "App Store",
+    "googlePlay": "Google Play",
+    "railEyebrow": "iPhone & Android",
+    "openIn": "Buka di",
+    "theApp": "aplikasi",
+    "betterInApp": "Lebih baik di aplikasi",
+    "openMotoVault": "Buka MotoVault →",
+    "reasonRecordRidesTitle": "Rekam perjalanan",
+    "reasonRecordRidesBody": "Hanya ponsel yang punya GPS.",
+    "reasonServiceRemindersTitle": "Pengingat servis",
+    "reasonServiceRemindersBody": "Notifikasi push, sebelum jatuh tempo.",
+    "reasonScanReceiptsTitle": "Pindai struk",
+    "reasonScanReceiptsBody": "Kamera mengisi pengeluaran.",
+    "reasonMarkServiceDoneTitle": "Tandai servis selesai",
+    "reasonMarkServiceDoneBody": "Tandai selesai di aplikasi.",
+    "promotedOverdueTitle": "{task} terlambat",
+    "promotedNoRidesTitle": "Belum ada perjalanan",
+    "promotedNoRidesBody": "Rekam perjalanan berikutnya. Hanya ponsel yang punya GPS.",
+    "promotedNoExpensesTitle": "Belum ada catatan di {year}",
+    "promotedNoExpensesBody": "Foto struk di aplikasi dan terisi otomatis.",
+    "barOverdue": "{task} terlambat.",
+    "barNoRides": "Belum ada perjalanan.",
+    "barNoExpenses": "Belum ada catatan di {year}.",
+    "barDefault": "Lebih baik di aplikasi.",
+    "barOpen": "Buka aplikasi",
+    "barDismiss": "Tutup",
+    "barRegion": "Dapatkan aplikasi"
+  },
+  "Welcome": {
+    "metaTitle": "Dapatkan aplikasinya",
+    "homeLabel": "Beranda MotoVault",
+    "signedInAs": "Masuk sebagai <b>{email}</b>",
+    "eyebrow": "Akun dibuat",
+    "title": "Anda sudah masuk. Sekarang bawa MotoVault <serif>di saku Anda.</serif>",
+    "reasonsLabel": "Yang ditambahkan aplikasi",
+    "ridesTitle": "Rekam perjalanan dengan GPS",
+    "ridesTag": "GPS",
+    "remindersTitle": "Dapatkan pengingat servis sebelum jatuh tempo",
+    "remindersTag": "Push",
+    "receiptsTitle": "Pindai struk dengan kamera",
+    "receiptsTag": "Kamera",
+    "qrTitle": "Pindai dengan ponsel Anda",
+    "qrBody": "Membuka App Store atau Google Play di ponsel Anda.",
+    "getApp": "Dapatkan aplikasinya",
+    "getAppLabel": "Dapatkan MotoVault untuk iPhone atau Android",
+    "continue": "Lanjut ke garasi Anda di web"
+  },
+  "AuthV2": {
+    "homeLabel": "Beranda MotoVault",
+    "orWithEmail": "atau dengan email",
+    "google": "Google",
+    "apple": "Apple",
+    "continueWithGoogle": "Lanjutkan dengan Google",
+    "continueWithApple": "Lanjutkan dengan Apple",
+    "redirecting": "Mengalihkan...",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Kata sandi",
+    "showPassword": "Tampilkan kata sandi",
+    "hidePassword": "Sembunyikan kata sandi",
+    "legal": "Dengan melanjutkan, Anda mengonfirmasi telah membaca dan menyetujui <terms>Ketentuan</terms> dan <privacy>Kebijakan Privasi</privacy> kami.",
+    "resendConfirmation": "Kirim ulang email konfirmasi",
+    "resendSending": "Mengirim…",
+    "resendSent": "Email konfirmasi terkirim — cek kotak masuk Anda.",
+    "signIn": {
+      "eyebrow": "Masuk",
+      "title": "Selamat datang <serif>kembali.</serif>",
+      "subtitle": "Lanjutkan dari terakhir kali — garasi, rute, dan riwayat Anda tersinkron di semua perangkat.",
+      "forgot": "Lupa?",
+      "submit": "Masuk",
+      "submitting": "Sebentar…",
+      "resetPassword": "Atur ulang kata sandi",
+      "altPrompt": "Belum punya akun?",
+      "altCta": "Buat akun"
+    },
+    "signUp": {
+      "eyebrow": "Buat akun",
+      "title": "Mulai <serif>logbook</serif> Anda.",
+      "subtitle": "Pencatatan gratis selamanya. Pro menghapus batasannya.",
+      "passwordPlaceholder": "Minimal 6 karakter",
+      "confirmPasswordLabel": "Konfirmasi kata sandi",
+      "submit": "Buat akun",
+      "submitting": "Membuat akun…",
+      "altPrompt": "Sudah jadi rider?",
+      "altCta": "Masuk"
+    },
+    "checkEmail": {
+      "title": "Cek <serif>email</serif> Anda.",
+      "body": "Cek email Anda untuk tautan konfirmasi guna menyelesaikan pendaftaran.",
+      "nothingArrived": "Tidak ada yang masuk?",
+      "differentEmail": "Gunakan email lain"
+    }
   }
 }

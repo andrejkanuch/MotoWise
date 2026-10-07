@@ -498,7 +498,8 @@
     "roadsTitle": "走った道",
     "roadsSubtitle": "生涯のヒートマップと年間まとめ",
     "savedRoutesTitle": "保存したルート",
-    "savedRoutesSubtitle": "あとで走りたいルート"
+    "savedRoutesSubtitle": "あとで走りたいルート",
+    "redeemCode": "コードを利用"
   },
   "onboarding": {
     "welcomeTitle": "MotoVaultへようこそ",
@@ -706,9 +707,6 @@
     "v2BikeSetupOther": "その他",
     "v2NotificationsTitle": "バイクの状態を把握しよう",
     "v2NotificationsSubtitle": "ライドの週次まとめと、整備時期が来る前のお知らせを受け取れます。",
-    "v2NotificationsBenefit1": "期限が過ぎる前のメンテナンスリマインダー",
-    "v2NotificationsBenefit2": "週次のライド統計と連続記録",
-    "v2NotificationsBenefit3": "近くの新しいルート",
     "v2NotificationsEnable": "通知を有効にする",
     "v2NotificationsMaybeLater": "あとで",
     "heardAboutTitle": "どこで私たちを",
@@ -1008,7 +1006,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "どこで？（任意）",
+    "heardAboutOtherContinue": "続ける"
   },
   "bikeHub": {
     "upcoming": "予定",
@@ -1680,6 +1682,7 @@
     "investedInBike": "バイクへの投資",
     "runningCosts": "維持費",
     "addPurchasePriceHint": "総所有コストを表示するには、バイクの編集で購入価格を追加してください",
+    "showInCurrency": "グラフを{{currency}}で表示",
     "byCategory": "カテゴリー別",
     "monthlyTrend": "月別の推移",
     "title": "費用",
@@ -1882,7 +1885,6 @@
     "pastReports": "過去のレポート",
     "pending": "作成中...",
     "completed": "完了",
-    "purchaseFirst": "ヘルスレポートを購入して始めましょう",
     "description": "バイクのメンテナンス履歴、費用、状態の包括的なレポートです。",
     "downloadReport": "レポートをダウンロード",
     "failedMessage": "レポート作成に失敗しました。もう一度お試しください。",
@@ -1925,7 +1927,7 @@
     },
     "v380": {
       "analyticsTitle": "ライド分析",
-      "analyticsDesc": "総距離、走行時間、連続記録、自己ベスト — すべてライドごとに更新。統計を一目で確認。",
+      "analyticsDesc": "総距離、走行時間、自己ベスト — すべてライドごとに更新。統計を一目で確認。",
       "redesignedRidesTitle": "リニューアルされたライド",
       "redesignedRidesDesc": "すべてのライド画面を一新 — マップバナー、記録バッジ、より見やすい詳細画面、スムーズな保存フロー。",
       "flyoverTitle": "3Dフライオーバー",
@@ -2115,7 +2117,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "まだ走行中ですか？",
-    "forgotToStopBody": "{{minutes}}分間停止しています。タップして終了、または走行を続けてください。",
     "gpsLostTitle": "GPS記録を停止しました",
     "gpsLostBody": "位置情報の許可がオフになったため、ライドは記録されていません。タップして設定を直すか、ライドを終了してください。",
     "dist": "距離",
@@ -2135,7 +2136,19 @@
     "shortRideWarning": "ライドが非常に短いです（{{seconds}}秒、{{meters}}m）。よろしいですか？",
     "gpsTip": "ヒント: GPS追跡のため、スマートフォンが空をはっきり見渡せるようにしてください",
     "keepRiding": "ライドを続ける",
-    "endAnyway": "終了する"
+    "endAnyway": "終了する",
+    "reminderNudgeBody": "ライドはまだ記録中ですが、{{minutes}}分間移動していません。終了するか、走行を続けてください。",
+    "reminderFinalTitle": "ライドはまだ記録中です",
+    "reminderFinalBody": "{{minutes}}分間移動がありません。停車時点のライドを保存するには終了してください。",
+    "actionEndRide": "ライドを終了",
+    "actionKeepRiding": "走行中",
+    "rideAlertsChannel": "ライド通知",
+    "autoEndedTitle": "ライドを保存しました",
+    "autoEndedBody": "{{minutes}}分間移動がなかったため、ライドを終了し、停車した地点まで保存しました。",
+    "serviceTitle": "MotoVaultがライドを記録中",
+    "serviceBody": "タップしてライドに戻ります。バイクを降りたら終了してください。",
+    "noGpsTitle": "このライドを記録できませんでした",
+    "noGpsBody": "{{minutes}}分記録されましたが、距離がほとんどありません。GPSが遮られていたか、オフ、またはおおよその位置情報に設定されていた可能性があります。"
   },
   "rideSummary": {
     "namePlaceholder": "ライドに名前をつける...",
@@ -2238,9 +2251,6 @@
     "recentRides": "最近のライド",
     "newestFirst": "新しい順 ↓",
     "oldestFirst": "古い順 ↑",
-    "streakWeek": "week streak",
-    "streakWeeks": "week streak",
-    "streakDesc": "Consecutive weeks with a ride",
     "thisMonth": "This month",
     "thisYear": "This year",
     "vsLastWeek": "vs last week",
@@ -2312,7 +2322,10 @@
     "disclosureBody": "MotoVault は走行中にルート、距離、速度を記録します。アプリを閉じているときや画面がオフのときでもバックグラウンドで記録し、ライド全体を記録します。位置情報はライド中のみ使用されます。",
     "disclosureSettingsNote": "設定画面に移動する場合があります。バックグラウンドで記録を続けるには「常に許可」を選択してください。",
     "disclosureContinue": "続ける",
-    "disclosureNotNow": "今はしない"
+    "disclosureNotNow": "今はしない",
+    "approximateTitle": "正確な位置情報がオフです",
+    "approximateBody": "おおよその位置情報では、MotoVaultはルートや距離を記録できません。設定でMotoVaultの「正確な位置情報」をオンにしてください。",
+    "rideAnyway": "このまま走行"
   },
   "preFlight": {
     "title": "プリフライト",
@@ -2694,5 +2707,14 @@
     "feedbackYes": "フィードバックを送る",
     "feedbackNo": "今はしない",
     "feedbackSubject": "MotoVault フィードバック"
+  },
+  "analyticsConsent": {
+    "title": "MotoVaultづくりにご協力ください",
+    "body": "同意いただいた場合、次に何を作るかを決めるため、このアプリの利用データを収集します。",
+    "pointWhat": "使っている機能と、ここに来るきっかけになったリンクや投稿。",
+    "pointNever": "販売や広告に使うことはありません。",
+    "pointChange": "プロフィール → プライバシーでいつでも変更できます。",
+    "allow": "許可する",
+    "decline": "許可しない"
   }
 }

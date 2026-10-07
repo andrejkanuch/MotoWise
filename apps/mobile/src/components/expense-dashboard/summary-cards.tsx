@@ -9,8 +9,8 @@ interface SummaryCardsProps {
   expenseCount: number;
   costPerUnit: number | null;
   unitLabel: string;
-  /** Currency for these server-summed aggregates (dominant currency of the bike's
-   *  expenses \u2014 see expense-dashboard). No FX, so a single currency is assumed. */
+  /** Currency of these figures: the dashboard's selected per-currency breakdown
+   *  (see expense-dashboard). Every figure passed in is in this one currency. */
   currency: Currency;
   isDark: boolean;
 }

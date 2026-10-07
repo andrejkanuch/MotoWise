@@ -3,7 +3,13 @@ import * as Sentry from '@sentry/react-native';
 import Constants from 'expo-constants';
 import PostHog from 'posthog-react-native';
 import { Settings } from 'react-native-fbsdk-next';
-import { getStoredAnalyticsConsent, setStoredAnalyticsConsent } from './analytics-consent';
+import {
+  CONSENT_STATE,
+  type ConsentState,
+  getStoredAnalyticsConsent,
+  resolveLaunchConsent,
+  setStoredAnalyticsConsent,
+} from './analytics-consent';
 import {
   describeGraphQLError,
   describeGraphQLErrorFromMessage,
@@ -31,10 +37,32 @@ const SENTRY_DSN = Constants.expoConfig?.extra?.sentryDsn ?? '';
 const POSTHOG_API_KEY = Constants.expoConfig?.extra?.posthogApiKey ?? '';
 const POSTHOG_HOST = Constants.expoConfig?.extra?.posthogHost ?? 'https://eu.i.posthog.com';
 
+// The consent decision for this launch, resolved synchronously BEFORE the client
+// exists so nothing — not even the SDK's own lifecycle events — leaves the
+// device in an opt-in region until the rider accepts. See analytics-consent.ts.
+const launchConsent: ConsentState = resolveLaunchConsent();
+
+// Events wait for the same decision as attribution and replay. UNKNOWN (a
+// locked keychain on a background launch) starts off and then follows the
+// SDK's own persisted opt state, which mirrors the last decision because every
+// decision goes through `setAnalyticsEnabled` → optIn/optOut. Declared before
+// the client so the `before_send` guard below can read it from the first event.
+let analyticsEnabled = launchConsent === CONSENT_STATE.GRANTED;
+
 // Eagerly initialize PostHog so the instance can be passed to PostHogProvider.
 // The client is disabled when no API key is configured, so events are no-ops.
 export const posthogClient: PostHog = new PostHog(POSTHOG_API_KEY || 'placeholder', {
   host: POSTHOG_HOST,
+  // Fresh installs (nothing persisted yet) start opted out unless consent is
+  // already granted. A persisted opt state from an earlier launch overrides
+  // this default, so it is re-applied below once storage has loaded.
+  defaultOptIn: launchConsent === CONSENT_STATE.GRANTED,
+  // Last line of defence: drop anything captured while analytics is off. An
+  // install opted in under the pre-3.21 model keeps that opt-in persisted until
+  // the re-apply below runs, and the SDK captures lifecycle events
+  // ("Application Updated") while loading storage — before that re-apply — and
+  // flushes without re-checking opt-out. Nothing passes until consent is given.
+  before_send: (event) => (analyticsEnabled ? event : null),
   // `captureAppLifecycleEvents` is intentionally left at its SDK default (`true`):
   // `Application Installed`/`Opened`/`Backgrounded` already flow to PostHog and are
   // relied on as the install-count denominator. Do NOT set it to false. (Note: the
@@ -83,7 +111,37 @@ if (!__DEV__ && POSTHOG_API_KEY) {
   }
 }
 
-let analyticsEnabled = true;
+/** Set once `setAnalyticsEnabled` runs, so the launch value never overrides it. */
+let consentAppliedThisRun = false;
+
+/** Launch states whose decision is re-applied to the SDK's persisted opt state. */
+const ENFORCED_OPT_STATE: Partial<Record<ConsentState, boolean>> = {
+  [CONSENT_STATE.GRANTED]: true,
+  [CONSENT_STATE.DENIED]: false,
+  [CONSENT_STATE.UNDECIDED]: false,
+};
+
+if (!__DEV__ && POSTHOG_API_KEY) {
+  // `defaultOptIn` only applies while nothing is persisted, and persisted
+  // storage loads asynchronously — so an install that was opted IN under the
+  // old model (events before consent) would keep sending. Re-apply the launch
+  // decision once storage is ready.
+  void posthogClient
+    .ready()
+    .then(() => {
+      if (consentAppliedThisRun) return;
+      const optIn = ENFORCED_OPT_STATE[launchConsent];
+      if (optIn === undefined) {
+        analyticsEnabled = !posthogClient.optedOut;
+        return;
+      }
+      if (optIn) posthogClient.optIn();
+      else posthogClient.optOut();
+    })
+    .catch(() => {
+      // Storage failed to load — the SDK falls back to `defaultOptIn`.
+    });
+}
 let crashReportingEnabled = true;
 
 export function isAnalyticsEnabled() {
@@ -281,12 +339,17 @@ export function initPostHog() {
 
 // ---- Privacy Controls -----------------------------------------------
 
-export function setAnalyticsEnabled(enabled: boolean) {
+/**
+ * Apply an explicit analytics decision. `decidedAt` defaults to now; pass the
+ * account's timestamp when taking over the account's decision.
+ */
+export function setAnalyticsEnabled(enabled: boolean, decidedAt?: number | null) {
   analyticsEnabled = enabled;
+  consentAppliedThisRun = true;
   // Persist consent so the recorder can be gated synchronously on the next
   // cold start, before the server `me` query resolves (closes the pre-consent
   // recording window — todo 184).
-  setStoredAnalyticsConsent(enabled);
+  setStoredAnalyticsConsent(enabled, decidedAt);
   if (enabled) {
     // Consent just granted — wire attribution that was suppressed pre-consent
     // (KTD-9). Lazy imports avoid a static analytics↔subscription cycle; consent
@@ -294,7 +357,15 @@ export function setAnalyticsEnabled(enabled: boolean) {
     // wires RevenueCat; captureMetaAttribution re-fires the PostHog install emit
     // same-session (its memo was released because the pre-consent run did not emit).
     void import('./subscription')
-      .then((m) => m.configureRcAttribution())
+      .then((m) =>
+        Promise.all([
+          m.configureRcAttribution(),
+          // The anonymous-purchase join id is only readable once analytics is
+          // on, so an opt-in rider's launch-time stamp was skipped (see
+          // stampAnonymousPosthogId). `analyticsEnabled` is already true here.
+          m.stampAnonymousPosthogId(getAnalyticsDistinctId()),
+        ]),
+      )
       .catch((e) => captureException(e, { source: 'analytics.setAnalyticsEnabled.rcAttribution' }));
     void import('./meta-attribution')
       .then((m) => m.captureMetaAttribution())
@@ -404,6 +475,17 @@ export function registerSuperProperties(properties: Record<string, JsonType>) {
   posthogClient.register(properties);
 }
 
+/**
+ * Remove a super property from this device. Omitting a key from a later
+ * `registerSuperProperties` call does not remove it, so a value that no longer
+ * applies (another account's goal) must be unregistered explicitly. Not
+ * consent-gated: removing data is always allowed.
+ */
+export function unregisterSuperProperty(name: string) {
+  if (!posthogClient) return;
+  void posthogClient.unregister(name);
+}
+
 export function getAnalyticsDistinctId(): string | undefined {
   if (!analyticsEnabled || !posthogClient) return undefined;
   return posthogClient.getDistinctId();
@@ -445,7 +527,6 @@ export const AnalyticsEvent = {
   ONBOARDING_COMPLETED: 'onboarding_completed',
   // Activation Goal 7 — a receipt scan completed during onboarding (KTD-10 quota-exempt).
   ONBOARDING_SCAN_COMPLETED: 'receipt_scan_onboarding_completed',
-  ONBOARDING_DROPPED_OFF: 'onboarding_dropped_off',
   ONBOARDING_RESUMED: 'onboarding_resumed',
   // Onboarding A/B (2026) funnel — see docs/onboarding-ab-event-schema.md
   BIKE_ADDED: 'bike_added',
@@ -490,10 +571,22 @@ export const AnalyticsEvent = {
   // Feature usage — Garage
   GARAGE_BIKE_ADDED: 'garage_bike_added',
   GARAGE_BIKE_REMOVED: 'garage_bike_removed',
+  /**
+   * CANONICAL PostHog maintenance events: `maintenance_task_created` (a task or
+   * logged service was added) and `maintenance_task_completed` (marked done, from
+   * the form or the reminder's "Mark done"). Analyse maintenance on these names.
+   *
+   * `maintenance_log_added` is NOT a PostHog event any more — it was a Meta-named
+   * alias of `maintenance_task_created` captured a second time into PostHog (and
+   * still arrives from builds before 3.21.0, so exclude it from insights). Meta's
+   * own copy goes through `MetaAnalytics.trackLogMaintenance` (the FB SDK, event
+   * `fb_mobile_spent_credits`), which is untouched by PostHog.
+   */
   MAINTENANCE_TASK_CREATED: 'maintenance_task_created',
   MAINTENANCE_TASK_UPDATED: 'maintenance_task_updated',
   MAINTENANCE_TASK_COMPLETED: 'maintenance_task_completed',
   MAINTENANCE_TASK_DELETED: 'maintenance_task_deleted',
+  /** CANONICAL "expense created" — every path, split by `entry_source` (lib/expense-analytics.ts). */
   EXPENSE_ADDED: 'expense_added',
   EXPENSE_QUICK_ADD_TAPPED: 'expense_quick_add_tapped',
   EXPENSE_DASHBOARD_VIEWED: 'expense_dashboard_viewed',
@@ -542,7 +635,8 @@ export const AnalyticsEvent = {
   BIKE_LOG_OPTION_SELECTED: 'bike_log_option_selected',
   ODOMETER_UPDATED: 'odometer_updated',
 
-  // Rides — lifecycle
+  // Rides — lifecycle. `ride_started` counts Start taps (test taps included);
+  // `ride_completed` is the CANONICAL "ride saved" event — see lib/ride-analytics.ts.
   RIDE_STARTED: 'ride_started',
   RIDE_PAUSED: 'ride_paused',
   RIDE_RESUMED: 'ride_resumed',
@@ -560,6 +654,12 @@ export const AnalyticsEvent = {
   RIDE_AUTO_SAVED: 'ride_auto_saved',
   RIDE_GPS_READINESS: 'ride_gps_readiness',
   RIDE_ZERO_DISTANCE_SHOWN: 'ride_zero_distance_shown',
+  /**
+   * Outcome of each foreground/background location request made to record a
+   * ride (`permission`, `granted`, `status`, `can_ask_again`). Only fires when
+   * the OS was actually asked — an already-granted read is not a result.
+   */
+  RIDE_LOCATION_PERMISSION_RESULT: 'ride_location_permission_result',
   // Rides — engagement
   RIDE_HUD_LAYOUT_SWITCHED: 'ride_hud_layout_switched',
   RIDE_NAME_EDITED: 'ride_name_edited',
@@ -590,10 +690,6 @@ export const AnalyticsEvent = {
   SHARE_RESULT: 'share_result',
 
   // Routes (discovery)
-  ROUTE_VIEWED: 'route_viewed',
-  ROUTE_SAVED: 'route_saved',
-  ROUTE_UNSAVED: 'route_unsaved',
-  ROUTE_SHARED: 'route_shared',
   ROUTE_GPX_EXPORTED: 'route_gpx_exported',
 
   // Discovery
@@ -634,10 +730,11 @@ export const AnalyticsEvent = {
   PAYWALL_VIEWED: 'paywall_viewed',
   PAYWALL_DISMISSED: 'paywall_dismissed',
   PAYWALL_RESULT: 'paywall_result',
-  PURCHASE_STARTED: 'purchase_started',
   PURCHASE_COMPLETED: 'purchase_completed',
   PURCHASE_CANCELLED: 'purchase_cancelled',
   SUBSCRIPTION_RESTORED: 'subscription_restored',
+  /** The store's offer-code redemption was opened (sheet on iOS, Play page on Android). */
+  CODE_REDEMPTION_OPENED: 'code_redemption_opened',
 
   // Notifications & reminders (lifecycle) — grant rate gates the retention bets
   NOTIFICATION_PERMISSION_REQUESTED: 'notification_permission_requested',
@@ -647,6 +744,8 @@ export const AnalyticsEvent = {
 
   // Privacy
   DATA_EXPORT_REQUESTED: 'data_export_requested',
+  /** Accepted on the opt-in consent screen. A refusal is never sent, by design. */
+  ANALYTICS_CONSENT_GRANTED: 'analytics_consent_granted',
 
   // What's New
   WHATS_NEW_VIEWED: 'whats_new_viewed',
@@ -663,29 +762,27 @@ export const AnalyticsEvent = {
 
   // Checklist
   CHECKLIST_ITEM_COMPLETED: 'checklist_item_completed',
+
+  /**
+   * The rider's Nth saved ride / logged service (`kind`, `count`), fired once
+   * per kind at the milestone count. Exists for PostHog survey targeting — see
+   * lib/core-action-milestones.ts.
+   */
+  CORE_ACTION_MILESTONE: 'core_action_milestone',
 } as const;
 
 export type AnalyticsEventName = (typeof AnalyticsEvent)[keyof typeof AnalyticsEvent];
 
-// Meta scoring aliases — maps existing events to Meta-required names (MOT-212).
-// Fired automatically inside trackEvent so components don't need duplicate calls.
-const META_ALIASES: Partial<Record<AnalyticsEventName, string>> = {
-  diagnostic_started: 'ai_diagnosis_started',
-  diagnostic_completed: 'ai_diagnosis_completed',
-  maintenance_task_created: 'maintenance_log_added',
-  trip_viewed: 'trip_plan_viewed',
-};
-
+// No Meta-named alias events go to PostHog any more. They used to be captured a
+// second time under Meta's names (`ai_diagnosis_started`, `maintenance_log_added`,
+// …, tagged `_meta_alias`) — duplicates every insight had to filter out, and
+// PostHog is not where Meta reads them: the Meta SDK (lib/meta-analytics.ts) and
+// the API's server-side Conversions API send their own events.
 export function trackEvent(event: AnalyticsEventName, properties?: Record<string, JsonType>) {
   if (!analyticsEnabled) return;
 
   if (posthogClient) {
     posthogClient.capture(event, properties);
-    const alias = META_ALIASES[event];
-    // Tag alias captures so PostHog insights can exclude them (filter `_meta_alias`
-    // is not set). They exist only to satisfy Meta Conversions API naming (MOT-212);
-    // always analyze diagnostic/trip/maintenance activity on the ORIGINAL event name.
-    if (alias) posthogClient.capture(alias, { ...properties, _meta_alias: true });
   }
 }
 
@@ -693,6 +790,12 @@ export function trackEvent(event: AnalyticsEventName, properties?: Record<string
 // _layout.tsx — display timing, targeting, and capture (`survey shown/sent/
 // dismissed`) are handled by the SDK. No app-side survey trigger logic.
 
+/**
+ * Capture a `$screen` view. Called from ONE place — hooks/use-screen-tracking.ts,
+ * mounted in the root layout — with the route-template name and `feature_area`
+ * (lib/analytics-screen.ts). Screens must not call this themselves; that is how
+ * the same screen ended up under two names (`/privacy` and `Privacy`).
+ */
 export function trackScreen(screenName: string, properties?: Record<string, JsonType>) {
   if (!analyticsEnabled) return;
 

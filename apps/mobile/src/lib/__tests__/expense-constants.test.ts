@@ -67,19 +67,23 @@ describe('groupTotalsByCurrency', () => {
       ],
       'EUR',
     );
-    expect(groups).toEqual([{ currency: 'USD', total: 120.5 }]);
+    expect(groups).toEqual([{ currency: 'USD', total: 120.5, count: 2 }]);
   });
 
-  it('splits mixed currencies and sorts by total desc', () => {
+  it('splits mixed currencies (never sums them) and puts the most-used first', () => {
     const groups = groupTotalsByCurrency([
       { amount: 40, currency: 'EUR' },
       { amount: 100, currency: 'USD' },
       { amount: 10, currency: 'EUR' },
     ]);
     expect(groups).toEqual([
-      { currency: 'USD', total: 100 },
-      { currency: 'EUR', total: 50 },
+      { currency: 'EUR', total: 50, count: 2 },
+      { currency: 'USD', total: 100, count: 1 },
     ]);
+  });
+
+  it('returns no groups for no expenses', () => {
+    expect(groupTotalsByCurrency([], 'EUR')).toEqual([]);
   });
 
   it('buckets blank/unsupported currencies under the fallback', () => {
@@ -90,7 +94,7 @@ describe('groupTotalsByCurrency', () => {
       ],
       'GBP',
     );
-    expect(groups).toEqual([{ currency: 'GBP', total: 100 }]);
+    expect(groups).toEqual([{ currency: 'GBP', total: 100, count: 2 }]);
   });
 });
 

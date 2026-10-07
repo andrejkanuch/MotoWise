@@ -133,38 +133,33 @@ FREE_TIER_BLOCKS = {
         'Free forever includes {bikes} bike, unlimited maintenance and expense logging, '
         'unlimited ride recording, {ai} AI diagnostic scan per month, and {scans} receipt '
         'scans per month. MotoVault Pro unlocks additional bikes, unlimited AI diagnostics, '
-        'unlimited receipt scans, advanced rider analytics, unlimited GPX exports, and '
-        'extended ride statistics, on a monthly or annual plan. The price is shown in the '
-        'app before you confirm.'
+        'unlimited receipt scans, unlimited GPX exports, and offline trip maps, on a '
+        'monthly or annual plan. The price is shown in the app before you confirm.'
     ),
     'en-CA': (
         'Free forever includes {bikes} bike, unlimited maintenance and expense logging, '
         'unlimited ride recording, {ai} AI diagnostic scan per month, and {scans} receipt '
         'scans per month. MotoVault Pro unlocks additional bikes, unlimited AI diagnostics, '
-        'unlimited receipt scans, advanced rider analytics, unlimited GPX exports, and '
-        'extended ride statistics, on a monthly or annual plan. The price is shown in the '
-        'app before you confirm.'
+        'unlimited receipt scans, unlimited GPX exports, and offline trip maps, on a '
+        'monthly or annual plan. The price is shown in the app before you confirm.'
     ),
     'en-GB': (
         'Free forever includes {bikes} bike, unlimited maintenance and expense logging, '
         'unlimited ride recording, {ai} AI diagnostic scan per month and {scans} receipt '
         'scans per month. MotoVault Pro unlocks additional bikes, unlimited AI diagnostics, '
-        'unlimited receipt scans, advanced rider analytics, unlimited GPX exports and '
-        'extended ride statistics.'
+        'unlimited receipt scans, unlimited GPX exports and offline trip maps.'
     ),
     'en-AU': (
         'Free forever includes {bikes} bike, unlimited maintenance and expense logging, '
         'unlimited ride recording, {ai} AI diagnostic scan per month and {scans} receipt '
         'scans per month. MotoVault Pro unlocks additional bikes, unlimited AI diagnostics, '
-        'unlimited receipt scans, advanced rider analytics, unlimited GPX exports and '
-        'extended ride statistics.'
+        'unlimited receipt scans, unlimited GPX exports and offline trip maps.'
     ),
     'en-IN': (
         'Free forever includes {bikes} bike, unlimited maintenance and expense logging, '
         'unlimited ride recording, {ai} AI diagnostic scan per month and {scans} receipt '
         'scans per month. MotoVault Pro unlocks additional bikes, unlimited AI diagnostics, '
-        'unlimited receipt scans, advanced rider analytics, unlimited GPX exports and '
-        'extended ride statistics.'
+        'unlimited receipt scans, unlimited GPX exports and offline trip maps.'
     ),
     # --- Germanic -----------------------------------------------------------
     'de-DE': (
@@ -175,32 +170,31 @@ FREE_TIER_BLOCKS = {
         'Gratis blijft gratis: {bikes} motor, onbeperkt onderhoud en kosten vastleggen, '
         'onbeperkt ritten opnemen, {ai} AI-diagnose en {scans} bonnetjes scannen per maand. '
         'MotoVault Pro geeft je meer motoren, onbeperkte AI-diagnoses, onbeperkt scannen, '
-        'uitgebreide rijstatistieken, onbeperkte GPX-exports en extra ritgegevens.'
+        'onbeperkte GPX-exports en offline routekaarten.'
     ),
     'da-DK': (
         'Gratis for altid: {bikes} motorcykel, ubegrænset servicelog og udgifter, '
         'ubegrænset turoptagelse, {ai} AI-diagnose og {scans} kvitteringsscanninger om '
         'måneden. MotoVault Pro giver flere motorcykler, ubegrænsede AI-diagnoser, '
-        'ubegrænsede scanninger, avanceret statistik, ubegrænset GPX-eksport og udvidede '
-        'turdata.'
+        'ubegrænsede scanninger, ubegrænset GPX-eksport og offline turkort.'
     ),
     'no-NO': (
         'Gratis for alltid: {bikes} motorsykkel, ubegrenset servicelogg og utgifter, '
         'ubegrenset turopptak, {ai} AI-diagnose og {scans} kvitteringsskanninger i måneden. '
         'MotoVault Pro gir flere motorsykler, ubegrensede AI-diagnoser, ubegrensede '
-        'skanninger, avansert statistikk, ubegrenset GPX-eksport og utvidede turdata.'
+        'skanninger, ubegrenset GPX-eksport og offline turkart.'
     ),
     'sv-SE': (
         'Gratis för alltid: {bikes} motorcykel, obegränsad servicelogg och utgifter, '
         'obegränsad turinspelning, {ai} AI-diagnos och {scans} kvittoskanningar per månad. '
         'MotoVault Pro ger fler motorcyklar, obegränsade AI-diagnoser, obegränsade '
-        'skanningar, avancerad statistik, obegränsad GPX-export och utökade turdata.'
+        'skanningar, obegränsad GPX-export och offlinekartor för turer.'
     ),
     'fi-FI': (
         'Ilmainen ikuisesti: {bikes} pyörä, rajaton huoltokirja ja kulut, rajaton ajojen '
         'tallennus, {ai} AI-diagnoosi ja {scans} kuittiskannausta kuukaudessa. MotoVault '
         'Pro lisää useampia pyöriä, rajattomat AI-diagnoosit, rajattomat skannaukset, '
-        'tarkat tilastot, rajattoman GPX-viennin ja laajemmat ajotiedot.'
+        'rajattoman GPX-viennin ja offline-reittikartat.'
     ),
     # --- Romance ------------------------------------------------------------
     'fr-FR': (
@@ -217,15 +211,15 @@ FREE_TIER_BLOCKS = {
         'Gratis para siempre incluye {bikes} moto, registro ilimitado de mantenimiento y '
         'gastos, grabación ilimitada de recorridos, {ai} diagnóstico con IA y {scans} '
         'escaneos de recibos por mes. MotoVault Pro agrega más motos, diagnósticos con IA '
-        'ilimitados, escaneos ilimitados, estadísticas avanzadas, exportaciones GPX '
-        'ilimitadas y más datos de tus recorridos.'
+        'ilimitados, escaneos ilimitados, exportaciones GPX ilimitadas y mapas de viaje sin '
+        'conexión.'
     ),
     'es-US': (
         'Gratis para siempre incluye {bikes} moto, registro ilimitado de mantenimiento y '
         'gastos, grabación ilimitada de recorridos, {ai} diagnóstico con IA y {scans} '
         'escaneos de recibos por mes. MotoVault Pro agrega más motos, diagnósticos con IA '
-        'ilimitados, escaneos ilimitados, estadísticas avanzadas, exportaciones GPX '
-        'ilimitadas y más datos de tus recorridos.'
+        'ilimitados, escaneos ilimitados, exportaciones GPX ilimitadas y mapas de viaje sin '
+        'conexión.'
     ),
     'it-IT': (
         'Gratis per sempre: {bikes} moto, gestione manutenzione e\n'
@@ -239,30 +233,30 @@ FREE_TIER_BLOCKS = {
     ),
     'pt-PT': (
         'A versão gratuita inclui {bikes} mota, registo ilimitado de manutenção e despesas, '
-        'gravação ilimitada de viagens, {ai} diagnóstico com IA e {scans} digitalizações de '
-        'recibos por mês. O MotoVault Pro acrescenta mais motas, diagnósticos com IA '
-        'ilimitados, digitalizações ilimitadas, estatísticas avançadas, exportações GPX '
-        'ilimitadas e mais dados das viagens.'
+        'gravação ilimitada de viagens, {ai} diagnóstico com IA e {scans} digitalizações '
+        'de recibos por mês. O MotoVault Pro acrescenta mais motas, diagnósticos com IA '
+        'ilimitados, digitalizações ilimitadas, exportações GPX ilimitadas e mapas de '
+        'viagem offline.'
     ),
     'ro': (
         'Gratuit pentru totdeauna include {bikes} motocicletă, jurnal nelimitat de '
         'întreținere și cheltuieli, înregistrare nelimitată a traseelor, {ai} diagnosticare '
         'AI și {scans} scanări de bonuri pe lună. MotoVault Pro adaugă mai multe '
-        'motociclete, diagnosticări AI nelimitate, scanări nelimitate, statistici avansate, '
-        'exporturi GPX nelimitate și date extinse despre trasee.'
+        'motociclete, diagnosticări AI nelimitate, scanări nelimitate, exporturi GPX '
+        'nelimitate și hărți offline pentru trasee.'
     ),
     # --- Slavic -------------------------------------------------------------
     'cs-CZ': (
         'Zdarma navždy: {bikes} motorka, neomezený servisní zápis a výdaje, neomezený '
         'záznam jízd, {ai} AI diagnostika a {scans} skeny účtenek měsíčně. MotoVault Pro '
-        'přidá další motorky, neomezené AI diagnostiky, neomezené skeny účtenek, podrobné '
-        'statistiky, neomezený export GPX a rozšířené údaje o jízdách.'
+        'přidá další motorky, neomezené AI diagnostiky, neomezené skeny účtenek, neomezený '
+        'export GPX a offline mapy výletů.'
     ),
     'sk': (
         'Zdarma navždy: {bikes} motorka, neobmedzený servisný záznam a výdavky, neobmedzený '
         'záznam jázd, {ai} AI diagnostika a {scans} skeny účteniek mesačne. MotoVault Pro '
         'pridá ďalšie motorky, neobmedzené AI diagnostiky, neobmedzené skeny účteniek, '
-        'podrobné štatistiky, neobmedzený export GPX a rozšírené údaje o jazdách.'
+        'neobmedzený export GPX a offline mapy výletov.'
     ),
     'pl-PL': (
         'Bezpłatnie na zawsze: {bikes} motocykl, nieograniczony rejestr serwisu i wydatków, '
@@ -273,87 +267,79 @@ FREE_TIER_BLOCKS = {
         'Brezplačno za vedno: {bikes} motor, neomejen servisni dnevnik in stroški, '
         'neomejeno snemanje voženj, {ai} AI diagnostika in {scans} skeniranja računov na '
         'mesec. MotoVault Pro doda več motorjev, neomejene AI diagnostike, neomejena '
-        'skeniranja, napredno statistiko, neomejen izvoz GPX in razširjene podatke o '
-        'vožnjah.'
+        'skeniranja, neomejen izvoz GPX in zemljevide izletov brez povezave.'
     ),
     'hr': (
         'Besplatno zauvijek uključuje {bikes} motocikl, neograničen servisni zapis i '
         'troškove, neograničeno snimanje vožnji, {ai} AI dijagnostiku i {scans} skeniranja '
         'računa mjesečno. MotoVault Pro dodaje više motocikala, neograničene AI '
-        'dijagnostike, neograničena skeniranja, napredne statistike, neograničen GPX izvoz '
-        'i dodatne podatke o vožnjama.'
+        'dijagnostike, neograničena skeniranja, neograničen GPX izvoz i izvanmrežne karte '
+        'putovanja.'
     ),
     'sr': (
         'Бесплатно заувек: {bikes} мотоцикл, неограничен сервисни запис и трошкови, '
         'неограничено снимање вожњи, {ai} AI дијагностика и {scans} скенирања рачуна '
         'месечно. MotoVault Pro додаје још мотоцикала, неограничене AI дијагностике, '
-        'неограничена скенирања, напредну статистику, неограничен GPX извоз и додатне '
-        'податке о вожњама.'
+        'неограничена скенирања, неограничен GPX извоз и офлајн мапе путовања.'
     ),
     'mk-MK': (
         'Бесплатно засекогаш: {bikes} мотор, неограничен сервисен запис и трошоци, '
         'неограничено снимање возења, {ai} AI дијагностика и {scans} скенирања на фискални '
         'сметки месечно. MotoVault Pro додава повеќе мотори, неограничени AI дијагностики, '
-        'неограничени скенирања, напредна статистика, неограничен GPX извоз и повеќе '
-        'податоци за возењата.'
+        'неограничени скенирања, неограничен GPX извоз и офлајн мапи за патувања.'
     ),
     'bg': (
         'Безплатно завинаги: {bikes} мотор, неограничен сервизен дневник и разходи, '
         'неограничен запис на пътувания, {ai} AI диагностика и {scans} сканирания на касови '
         'бележки на месец. MotoVault Pro добавя още мотори, неограничени AI диагностики, '
-        'неограничени сканирания, разширена статистика, неограничен GPX експорт и повече '
-        'данни за пътуванията.'
+        'неограничени сканирания, неограничен GPX експорт и офлайн карти за пътуванията.'
     ),
     'ru-RU': (
         'Бесплатно навсегда: {bikes} мотоцикл, неограниченный сервисный журнал и расходы, '
         'неограниченная запись поездок, {ai} AI-диагностика и {scans} сканирования чеков в '
         'месяц. MotoVault Pro добавляет больше мотоциклов, неограниченные AI-диагностики, '
-        'неограниченные сканирования, расширенную статистику, неограниченный экспорт GPX и '
-        'подробные данные поездок.'
+        'неограниченные сканирования, неограниченный экспорт GPX и офлайн-карты поездок.'
     ),
     'uk': (
         'Безкоштовно назавжди: {bikes} мотоцикл, необмежений сервісний журнал і витрати, '
         'необмежений запис поїздок, {ai} AI-діагностика та {scans} сканування чеків на '
         'місяць. MotoVault Pro додає більше мотоциклів, необмежені AI-діагностики, '
-        'необмежені сканування, розширену статистику, необмежений експорт GPX і докладніші '
-        'дані поїздок.'
+        'необмежені сканування, необмежений експорт GPX і офлайн-карти поїздок.'
     ),
     # --- Baltic / Finno-Ugric ----------------------------------------------
     'lt': (
         'Nemokamai visada: {bikes} motociklas, neribota serviso ir išlaidų apskaita, '
         'neribotas važiavimų įrašymas, {ai} AI diagnostika ir {scans} kvitų nuskaitymai per '
         'mėnesį. MotoVault Pro suteikia daugiau motociklų, neribotas AI diagnostikas, '
-        'neribotus nuskaitymus, išsamią statistiką, neribotą GPX eksportą ir platesnius '
-        'važiavimų duomenis.'
+        'neribotus nuskaitymus, neribotą GPX eksportą ir kelionių žemėlapius be interneto.'
     ),
     'lv': (
         'Bez maksas vienmēr: {bikes} motocikls, neierobežota servisa un izdevumu uzskaite, '
         'neierobežota braucienu ierakstīšana, {ai} AI diagnostika un {scans} kvīšu '
         'skenēšanas mēnesī. MotoVault Pro pievieno vairāk motociklu, neierobežotas AI '
-        'diagnostikas, neierobežotu skenēšanu, detalizētu statistiku, neierobežotu GPX '
-        'eksportu un plašākus braucienu datus.'
+        'diagnostikas, neierobežotu skenēšanu, neierobežotu GPX eksportu un bezsaistes '
+        'ceļojumu kartes.'
     ),
     'et': (
         'Tasuta igavesti: {bikes} ratas, piiramatu hooldus- ja kuluarvestus, piiramatu '
         'sõitude salvestamine, {ai} AI-diagnostika ja {scans} kviitungiskannimist kuus. '
         'MotoVault Pro lisab rohkem rattaid, piiramatud AI-diagnostikad, piiramatud '
-        'skannimised, põhjaliku statistika, piiramatu GPX-ekspordi ja laiendatud '
-        'sõiduandmed.'
+        'skannimised, piiramatu GPX-ekspordi ja võrguühenduseta reisikaardid.'
     ),
     'hu-HU': (
-        'Az ingyenes verzió {bikes} motort, korlátlan karbantartás- és költségnyilvántartást, '
-        'korlátlan menetrögzítést, havi {ai} AI diagnosztikát és {scans} bizonylat-beolvasást '
-        'tartalmaz. A MotoVault Pro további motorokat, korlátlan AI diagnosztikát, korlátlan '
-        'beolvasást, részletes statisztikákat, korlátlan GPX exportot és bővített '
-        'menetadatokat nyit meg.'
+        'Az ingyenes verzió {bikes} motort, korlátlan karbantartás- és '
+        'költségnyilvántartást, korlátlan menetrögzítést, havi {ai} AI diagnosztikát és '
+        '{scans} bizonylat-beolvasást tartalmaz. A MotoVault Pro további motorokat, '
+        'korlátlan AI diagnosztikát, korlátlan beolvasást, korlátlan GPX exportot és '
+        'offline túratérképeket nyit meg.'
     ),
     # --- Greek / Turkish ----------------------------------------------------
     'el-GR': (
         'Δωρεάν για πάντα: {bikes} μοτοσυκλέτα, απεριόριστο ιστορικό σέρβις και εξόδων, '
         'απεριόριστη καταγραφή διαδρομών, {ai} διάγνωση AI και {scans} σαρώσεις αποδείξεων '
         'τον μήνα. Το MotoVault Pro προσθέτει περισσότερες μοτοσυκλέτες, απεριόριστες '
-        'διαγνώσεις AI, απεριόριστες σαρώσεις, προηγμένα στατιστικά, απεριόριστες εξαγωγές '
-        'GPX και εκτεταμένα δεδομένα διαδρομών.'
+        'διαγνώσεις AI, απεριόριστες σαρώσεις, απεριόριστες εξαγωγές GPX και χάρτες '
+        'ταξιδιών εκτός σύνδεσης.'
     ),
     'tr-TR': (
         'Sonsuza kadar ücretsiz: {bikes} motosiklet, sınırsız bakım ve masraf kaydı, '
@@ -361,24 +347,21 @@ FREE_TIER_BLOCKS = {
     ),
     # --- Asian --------------------------------------------------------------
     'ja-JP': (
-        '無料のままで、バイク{bikes}台、整備記録と費用管理は無制限、走行記録も無制限、AI診断が毎月{ai}回、'
-        'レシートスキャンが毎月{scans}回使えます。MotoVault Proではバイクを追加でき、AI診断とレシート'
-        'スキャンが無制限になり、詳細なライダー分析、GPXエクスポート無制限、拡張走行統計が使えます。'
+        '無料のままで、バイク{bikes}台、整備記録と費用管理は無制限、走行記録も無制限、AI診断が毎月{ai}回、レシートスキャンが毎月{scans}回使えます。Mot'
+        'oVault Proではバイクを追加でき、AI診断とレシートスキャンが無制限になり、GPXエクスポート無制限、オフラインのツーリングマップが使えます。'
     ),
     'ko-KR': (
-        '무료로 계속 쓸 수 있습니다: 바이크 {bikes}대, 정비 기록과 지출 기록 무제한, 주행 기록 무제한, '
-        '매월 AI 진단 {ai}회, 영수증 스캔 {scans}회. MotoVault Pro는 바이크 추가, 무제한 AI 진단, '
-        '무제한 영수증 스캔, 상세 주행 분석, 무제한 GPX 내보내기, 확장 주행 통계를 제공합니다.'
+        '무료로 계속 쓸 수 있습니다: 바이크 {bikes}대, 정비 기록과 지출 기록 무제한, 주행 기록 무제한, 매월 AI 진단 {ai}회, 영수증 스캔 '
+        '{scans}회. MotoVault Pro는 바이크 추가, 무제한 AI 진단, 무제한 영수증 스캔, 무제한 GPX 내보내기, 오프라인 여행 지도를 '
+        '제공합니다.'
     ),
     'zh-CN': (
-        '永久免费包含：{bikes} 辆摩托车、不限次数的保养记录与费用记录、不限次数的骑行记录，'
-        '以及每月 {ai} 次 AI 诊断和 {scans} 次收据扫描。MotoVault Pro 可添加更多摩托车，'
-        '解锁不限次数的 AI 诊断和收据扫描、进阶骑行分析、不限次数的 GPX 导出和更详细的骑行统计。'
+        '永久免费包含：{bikes} 辆摩托车、不限次数的保养记录与费用记录、不限次数的骑行记录，以及每月 {ai} 次 AI 诊断和 {scans} '
+        '次收据扫描。MotoVault Pro 可添加更多摩托车，解锁不限次数的 AI 诊断和收据扫描、不限次数的 GPX 导出和离线行程地图。'
     ),
     'zh-TW': (
-        '永久免費包含：{bikes} 輛機車、不限次數的保養紀錄與費用紀錄、不限次數的騎乘紀錄，'
-        '以及每月 {ai} 次 AI 診斷和 {scans} 次收據掃描。MotoVault Pro 可新增更多機車，'
-        '解鎖不限次數的 AI 診斷和收據掃描、進階騎乘分析、不限次數的 GPX 匯出與更詳細的騎乘統計。'
+        '永久免費包含：{bikes} 輛機車、不限次數的保養紀錄與費用紀錄、不限次數的騎乘紀錄，以及每月 {ai} 次 AI 診斷和 {scans} '
+        '次收據掃描。MotoVault Pro 可新增更多機車，解鎖不限次數的 AI 診斷和收據掃描、不限次數的 GPX 匯出與離線行程地圖。'
     ),
     'th': (
         'ฟรีตลอดไป: มอเตอร์ไซค์ {bikes} คัน บันทึกการซ่อมบำรุงและค่าใช้จ่ายไม่จำกัด '
@@ -388,7 +371,7 @@ FREE_TIER_BLOCKS = {
         'Miễn phí mãi mãi: {bikes} xe, ghi chép bảo dưỡng và chi phí không giới hạn, ghi '
         'hành trình không giới hạn, {ai} lần chẩn đoán AI và {scans} lần quét hóa đơn mỗi '
         'tháng. MotoVault Pro thêm nhiều xe hơn, chẩn đoán AI không giới hạn, quét không '
-        'giới hạn, thống kê nâng cao, xuất GPX không giới hạn và dữ liệu hành trình mở rộng.'
+        'giới hạn, xuất GPX không giới hạn và bản đồ chuyến đi ngoại tuyến.'
     ),
     'id': (
         'Gratis selamanya: {bikes} motor di garasi Anda, pencatatan perawatan dan '
@@ -397,17 +380,16 @@ FREE_TIER_BLOCKS = {
     ),
     'ms': (
         'Percuma selamanya: {bikes} motosikal, rekod penyelenggaraan dan perbelanjaan tanpa '
-        'had, rakaman perjalanan tanpa had, {ai} diagnostik AI dan {scans} pengimbasan resit '
-        'sebulan. MotoVault Pro menambah lebih banyak motosikal, diagnostik AI tanpa had, '
-        'pengimbasan tanpa had, analitik lanjutan, eksport GPX tanpa had dan data perjalanan '
-        'yang lebih lengkap.'
+        'had, rakaman perjalanan tanpa had, {ai} diagnostik AI dan {scans} pengimbasan '
+        'resit sebulan. MotoVault Pro menambah lebih banyak motosikal, diagnostik AI tanpa '
+        'had, pengimbasan tanpa had, eksport GPX tanpa had dan peta perjalanan luar talian.'
     ),
     'fil': (
         'Libre habambuhay: {bikes} motor, walang limitasyong maintenance at gastos record, '
-        'walang limitasyong pagre-record ng ride, {ai} AI diagnostic at {scans} receipt scan '
-        'kada buwan. Ang MotoVault Pro ay nagdadagdag ng mas maraming motor, walang '
-        'limitasyong AI diagnostics, walang limitasyong scan, malalim na analytics, walang '
-        'limitasyong GPX export at mas maraming datos ng ride.'
+        'walang limitasyong pagre-record ng ride, {ai} AI diagnostic at {scans} receipt '
+        'scan kada buwan. Ang MotoVault Pro ay nagdadagdag ng mas maraming motor, walang '
+        'limitasyong AI diagnostics, walang limitasyong scan, walang limitasyong GPX export '
+        'at offline na mapa ng trip.'
     ),
     'hi-IN': (
         'हमेशा मुफ्त: आपके गैराज में {bikes} बाइक, असीमित रखरखाव और खर्च रिकॉर्ड, असीमित राइड '
@@ -416,8 +398,8 @@ FREE_TIER_BLOCKS = {
     'ar': (
         'المجاني للأبد يشمل {bikes} دراجة، وسجل صيانة ومصروفات غير محدود، وتسجيل رحلات غير '
         'محدود، و{ai} عملية تشخيص ذكي و{scans} عمليات مسح للفواتير شهريًا. ويمنحك MotoVault '
-        'Pro دراجات إضافية وتشخيصًا ذكيًا غير محدود ومسحًا غير محدود للفواتير وتحليلات متقدمة '
-        'وتصدير GPX غير محدود وإحصاءات رحلات موسّعة.'
+        'Pro دراجات إضافية وتشخيصًا ذكيًا غير محدود ومسحًا غير محدود للفواتير وتصدير GPX '
+        'غير محدود وخرائط رحلات بلا اتصال.'
     ),
 }
 
@@ -475,19 +457,20 @@ def claim_hash(text):
 #   python3 store/play/free_tier_claims.py --list-unacknowledged
 # ---------------------------------------------------------------------------
 ACKNOWLEDGED_CLAIMS = {
-    # These three locales use an older description template whose "MOTOVAULT PRO"
-    # section lists unlimited motorcycles as a Pro benefit. That is correct — Pro
-    # really does lift MAX_BIKES — and the sentence sits under a Pro heading, so
-    # the "unlimited" and the bike word co-occur legitimately. Reviewed 2026-08-24.
-    'fr-FR': {
-        '7d998b20f231': 'Pro benefit, under the MOTOVAULT PRO heading — correct.',
-    },
-    'hi-IN': {
-        'af20fe7a730a': 'Pro benefit, under the MOTOVAULT PRO heading — correct.',
-    },
-    'id': {
-        '6176b52de3c8': 'Pro benefit, under the MOTOVAULT PRO heading — correct.',
-    },
+    # Every entry below sits under a "MOTOVAULT PRO" heading and lists what Pro
+    # unlocks. "Unlimited / more bikes" there is correct — Pro really does lift
+    # MAX_BIKES. Re-reviewed 2026-10-05 when the Pro sentences were rewritten to
+    # drop benefits Pro never had (advanced/extended ride statistics, weekly
+    # reports, detailed expense reports, priority access, PDF export, reminders
+    # for every bike) — see the store/play README.
+    'de-DE': {'57036ffdf8bd': 'Pro benefit, under the MOTOVAULT PRO heading — correct.'},
+    'es-ES': {'74c786864c57': 'Pro benefit, under the MOTOVAULT PRO heading — correct.'},
+    'fr-FR': {'ae9f593b5235': 'Pro benefit, under the MOTOVAULT PRO heading — correct.'},
+    'hi-IN': {'9643bf4ca1cb': 'Pro benefit, under the MOTOVAULT PRO heading — correct.'},
+    'id': {'8a70d883c5fe': 'Pro benefit, under the MOTOVAULT PRO heading — correct.'},
+    'pl-PL': {'310d84b0f618': 'Pro benefit, under the MOTOVAULT PRO heading — correct.'},
+    'th': {'35f1eb37234d': 'Pro benefit, under the MOTOVAULT PRO heading — correct.'},
+    'tr-TR': {'b9d58e3a9bdc': 'Pro benefit, under the MOTOVAULT PRO heading — correct.'},
     # NOTE: pt-PT is deliberately absent. This check found a false free-tier bullet
     # there ("Motas ilimitadas … sempre grátis") that a hand survey had missed
     # because its bike word was "motas". It was rewritten rather than acknowledged.

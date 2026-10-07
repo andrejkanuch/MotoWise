@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { StoreLink } from '@/components/marketing/store-buttons';
+import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 import { fetchProfile } from '../../../lib/fetch-profile';
 
 export default async function UserProfileLayout({
@@ -74,18 +76,24 @@ export default async function UserProfileLayout({
             Save routes, track rides, maintain your bike — all in one app
           </p>
           <div className="mt-6 flex items-center justify-center gap-3">
-            <a
-              href="https://apps.apple.com/us/app/motovault/id6760291360"
+            <StoreLink
+              platform={StorePlatform.Ios}
+              pageType={CtaPageType.Rider}
+              placement={CtaPlacement.Footer}
+              slug={handle}
               className="inline-flex items-center rounded-xl bg-neutral-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
             >
               Download on iOS
-            </a>
-            <a
-              href="https://play.google.com/store/apps/details?id=com.motovault.app"
+            </StoreLink>
+            <StoreLink
+              platform={StorePlatform.Android}
+              pageType={CtaPageType.Rider}
+              placement={CtaPlacement.Footer}
+              slug={handle}
               className="inline-flex items-center rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50"
             >
               Get on Android
-            </a>
+            </StoreLink>
           </div>
         </div>
       </footer>

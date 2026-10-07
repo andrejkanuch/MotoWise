@@ -1,3 +1,4 @@
+import { type CurrencyTotal, groupTotalsByCurrency, primaryCurrencyTotal } from '@motovault/types';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { unwrap } from '../../../common/supabase/unwrap';
@@ -8,7 +9,7 @@ const MAINTENANCE_TASKS_TABLE = 'maintenance_tasks';
  * Money columns summed per completed task. `total_amount` (authoritative,
  * receipt-scan wrapper) when set, else the additive cost+parts+labor breakdown.
  */
-const MONEY_COLS = 'cost, parts_cost, labor_cost, total_amount';
+const MONEY_COLS = 'cost, parts_cost, labor_cost, total_amount, currency';
 
 /**
  * Effective money for a completed task: the authoritative gross `total_amount`
@@ -24,6 +25,27 @@ export function effectiveTaskTotal(row: Record<string, unknown>): number {
 }
 
 /**
+ * Sums completed tasks' effective money per currency (never across currencies:
+ * there is no FX source). Tasks with no money are left out so they do not
+ * decide which currency counts as most-used.
+ */
+export function spendByCurrency(rows: ReadonlyArray<Record<string, unknown>>): CurrencyTotal[] {
+  return groupTotalsByCurrency(
+    rows
+      .map((row) => ({ amount: effectiveTaskTotal(row), currency: row.currency as string | null }))
+      .filter(({ amount }) => amount !== 0),
+  );
+}
+
+/** Completed-maintenance spend, per currency plus the legacy scalar fields. */
+export interface SpendingSummaryResult {
+  thisYear: number;
+  allTime: number;
+  thisYearByCurrency: CurrencyTotal[];
+  allTimeByCurrency: CurrencyTotal[];
+}
+
+/**
  * Maintenance spend rollups. Split out of the monolithic MaintenanceTasksService
  * (services/ shape, mirrors trips/).
  */
@@ -33,10 +55,7 @@ export class MaintenanceSpendingService {
 
   constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
 
-  async getSpendingSummary(
-    userId: string,
-    motorcycleId: string,
-  ): Promise<{ thisYear: number; allTime: number }> {
+  async getSpendingSummary(userId: string, motorcycleId: string): Promise<SpendingSummaryResult> {
     const currentYear = new Date().getFullYear();
     const yearStart = `${currentYear}-01-01`;
 
@@ -55,9 +74,8 @@ export class MaintenanceSpendingService {
       },
     );
 
-    const allTime = (allTimeData ?? []).reduce(
-      (sum, row) => sum + effectiveTaskTotal(row as unknown as Record<string, unknown>),
-      0,
+    const allTimeByCurrency = spendByCurrency(
+      (allTimeData ?? []) as unknown as Record<string, unknown>[],
     );
 
     const yearData = unwrap(
@@ -76,11 +94,16 @@ export class MaintenanceSpendingService {
       },
     );
 
-    const thisYear = (yearData ?? []).reduce(
-      (sum, row) => sum + effectiveTaskTotal(row as unknown as Record<string, unknown>),
-      0,
+    const thisYearByCurrency = spendByCurrency(
+      (yearData ?? []) as unknown as Record<string, unknown>[],
     );
 
-    return { thisYear, allTime };
+    // The scalars carry the most-used currency only — never a mixed sum.
+    return {
+      thisYear: primaryCurrencyTotal(thisYearByCurrency),
+      allTime: primaryCurrencyTotal(allTimeByCurrency),
+      thisYearByCurrency,
+      allTimeByCurrency,
+    };
   }
 }

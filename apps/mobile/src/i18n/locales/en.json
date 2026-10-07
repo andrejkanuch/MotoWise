@@ -498,7 +498,8 @@
     "roadsTitle": "Roads I've ridden",
     "roadsSubtitle": "Lifetime heatmap & year recap",
     "savedRoutesTitle": "Saved Routes",
-    "savedRoutesSubtitle": "Routes you want to ride later"
+    "savedRoutesSubtitle": "Routes you want to ride later",
+    "redeemCode": "Redeem a code"
   },
   "onboarding": {
     "welcomeTitle": "Welcome to MotoVault",
@@ -716,9 +717,6 @@
     "v2BikeSetupOther": "Other",
     "v2NotificationsTitle": "Stay on top of your bike's health",
     "v2NotificationsSubtitle": "Get a weekly summary of your rides and a heads-up before service is due.",
-    "v2NotificationsBenefit1": "Maintenance reminders before they're overdue",
-    "v2NotificationsBenefit2": "Weekly ride stats and streaks",
-    "v2NotificationsBenefit3": "New routes in your area",
     "v2NotificationsEnable": "Enable Notifications",
     "v2NotificationsMaybeLater": "Maybe later",
     "heardAboutTitle": "Where did you first",
@@ -1008,7 +1006,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "Where? (optional)",
+    "heardAboutOtherContinue": "Continue"
   },
   "checklist": {
     "getStarted": "Get Started",
@@ -1726,6 +1728,7 @@
     "investedInBike": "Invested in Bike",
     "runningCosts": "Running Costs",
     "addPurchasePriceHint": "Add your bike's purchase price in Edit Bike to see total cost of ownership",
+    "showInCurrency": "Show charts in {{currency}}",
     "byCategory": "By category",
     "monthlyTrend": "Monthly trend",
     "category_accessories": "Accessories",
@@ -1888,7 +1891,6 @@
     "pastReports": "Past Reports",
     "pending": "Generating...",
     "completed": "Ready",
-    "purchaseFirst": "Purchase a Health Report to get started",
     "description": "A comprehensive report of your bike's maintenance history, expenses, and condition.",
     "downloadReport": "Download Report",
     "failedMessage": "Report generation failed. Please try again.",
@@ -1911,7 +1913,7 @@
     "getStarted": "Let's Ride",
     "v380": {
       "analyticsTitle": "Ride Analytics",
-      "analyticsDesc": "Total distance, riding time, streaks, and personal bests — all updating after every ride. Your stats, at a glance.",
+      "analyticsDesc": "Total distance, riding time and personal bests — all updating after every ride. Your stats, at a glance.",
       "redesignedRidesTitle": "Redesigned Rides",
       "redesignedRidesDesc": "Every ride screen rebuilt from scratch — map banners, record badges, cleaner detail views, and a smoother save flow.",
       "flyoverTitle": "3D Flyover",
@@ -2135,9 +2137,6 @@
     "recentRides": "Recent rides",
     "newestFirst": "Newest first ↓",
     "oldestFirst": "Oldest first ↑",
-    "streakWeek": "week streak",
-    "streakWeeks": "week streak",
-    "streakDesc": "Consecutive weeks with a ride",
     "thisMonth": "This month",
     "thisYear": "This year",
     "vsLastWeek": "vs last week",
@@ -2209,7 +2208,10 @@
     "disclosureBody": "MotoVault records your route, distance, and speed while you ride — including in the background when the app is closed or your screen is off, so your whole ride is captured. Location is only used while a ride is active.",
     "disclosureSettingsNote": "You may be taken to Settings — choose “Allow all the time” to keep recording in the background.",
     "disclosureContinue": "Continue",
-    "disclosureNotNow": "Not now"
+    "disclosureNotNow": "Not now",
+    "approximateTitle": "Precise location is off",
+    "approximateBody": "With approximate location, MotoVault can't record your route or distance. Turn on Precise Location for MotoVault in Settings.",
+    "rideAnyway": "Ride anyway"
   },
   "preFlight": {
     "title": "Pre-flight",
@@ -2230,7 +2232,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "Still riding?",
-    "forgotToStopBody": "You've been stopped for {{minutes}} minutes. Tap to end your ride or keep going.",
     "gpsLostTitle": "GPS tracking stopped",
     "gpsLostBody": "Location permission was turned off, so your ride is no longer recording. Tap to fix it or end the ride.",
     "dist": "DIST",
@@ -2250,7 +2251,19 @@
     "shortRideWarning": "Your ride was very short ({{seconds}}s, {{meters}}m). Are you sure?",
     "gpsTip": "Tip: Make sure your phone has clear sky view for GPS tracking",
     "keepRiding": "Keep Riding",
-    "endAnyway": "End Anyway"
+    "endAnyway": "End Anyway",
+    "reminderNudgeBody": "Your ride is still recording, but you haven't moved for {{minutes}} minutes. End it or keep going.",
+    "reminderFinalTitle": "Your ride is still recording",
+    "reminderFinalBody": "No movement for {{minutes}} minutes. End the ride to save it as it was when you stopped.",
+    "actionEndRide": "End ride",
+    "actionKeepRiding": "Still riding",
+    "rideAlertsChannel": "Ride alerts",
+    "autoEndedTitle": "Ride saved",
+    "autoEndedBody": "You hadn't moved for {{minutes}} minutes, so we ended your ride and saved it up to where you stopped.",
+    "serviceTitle": "MotoVault is recording your ride",
+    "serviceBody": "Tap to return to your ride. End it when you get off the bike.",
+    "noGpsTitle": "We couldn't track this ride",
+    "noGpsBody": "{{minutes}} min recorded, but almost no distance. GPS may have been blocked, switched off or set to approximate location."
   },
   "rideSummary": {
     "namePlaceholder": "Name your ride...",
@@ -2689,5 +2702,14 @@
     "feedbackYes": "Send feedback",
     "feedbackNo": "Not now",
     "feedbackSubject": "MotoVault feedback"
+  },
+  "analyticsConsent": {
+    "title": "Help shape MotoVault",
+    "body": "With your OK, we collect usage data from this app to decide what to build next.",
+    "pointWhat": "Which features you use, and the link or post that brought you here.",
+    "pointNever": "Never sold, never used for ads.",
+    "pointChange": "Change it anytime in Profile → Privacy.",
+    "allow": "Allow",
+    "decline": "Don't allow"
   }
 }

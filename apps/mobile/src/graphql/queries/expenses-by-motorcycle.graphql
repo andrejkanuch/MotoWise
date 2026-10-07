@@ -1,9 +1,19 @@
 query ExpensesByMotorcycle($motorcycleId: String!, $year: Int!) {
   expenses(motorcycleId: $motorcycleId, year: $year) {
     ytdTotal
+    currencyTotals {
+      currency
+      total
+      count
+    }
     categories {
       category
       total
+      currencyTotals {
+        currency
+        total
+        count
+      }
       expenses {
         id
         amount

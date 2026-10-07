@@ -21,7 +21,7 @@ overrides:
   graphql: ^16.14.2
   lightningcss: 1.30.1
   protobufjs: '>=7.6.4'
-  shell-quote: '>=1.9.0'
+  shell-quote: '>=1.11.0'
   # Xcode 27 (required by @iternio/react-native-auto-play 0.7.0, #247): expo-modules-jsi
   # 57.0.4's "Build ExpoModulesJSI xcframework" phase prints Xcode 27's new foreign
   # reference ownership warnings as errors while exiting 0, which fails `xcodebuild

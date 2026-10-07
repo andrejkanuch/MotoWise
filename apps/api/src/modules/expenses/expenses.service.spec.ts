@@ -34,6 +34,34 @@ function createSupabaseMock() {
   return { from, chain, rpc, storage, createSignedUrl, remove };
 }
 
+/** An expenses row as PostgREST returns it (DECIMAL amount as a string). */
+function expenseRow(fields: { id: string; amount: string; category: string; currency: string }) {
+  return {
+    user_id: 'u1',
+    motorcycle_id: 'm1',
+    date: '2025-03-01',
+    description: null,
+    item_name: null,
+    maintenance_task_id: null,
+    created_at: '2025-03-01T00:00:00Z',
+    ...fields,
+  };
+}
+
+/** One per-currency breakdown as the 00186 RPC returns it: a single January
+ *  fuel bucket in `year` holding the whole `total`. */
+function dashboardBreakdown(currency: string, year: number, total: number, expenseCount: number) {
+  return {
+    currency,
+    currentYearTotal: total,
+    previousYearTotal: 0,
+    allTimeTotal: total,
+    expenseCount,
+    monthlyBuckets: [{ year, month: 1, categories: { fuel: total }, total }],
+    categoryTotals: [{ category: 'fuel', total }],
+  };
+}
+
 describe('ExpensesService', () => {
   let service: ExpensesService;
   let mock: ReturnType<typeof createSupabaseMock>;
@@ -110,6 +138,90 @@ describe('ExpensesService', () => {
       const maint = result.categories.find((c) => c.category === 'maintenance');
       expect(maint?.total).toBe(120);
       expect(maint?.expenses).toHaveLength(1);
+    });
+
+    it('reports one currency total equal to the plain sum for a single currency', async () => {
+      mock.chain.order.mockResolvedValueOnce({
+        data: [
+          expenseRow({ id: '1', amount: '50.00', category: 'fuel', currency: 'EUR' }),
+          expenseRow({ id: '2', amount: '25.50', category: 'parts', currency: 'EUR' }),
+        ],
+        error: null,
+      });
+
+      const result = await service.findByMotorcycle('u1', 'm1');
+
+      expect(result.currencyTotals).toEqual([{ currency: 'EUR', total: 75.5, count: 2 }]);
+      expect(result.ytdTotal).toBe(75.5);
+    });
+
+    it('never sums different currencies (€50 + $40 is two totals, not 90)', async () => {
+      mock.chain.order.mockResolvedValueOnce({
+        data: [
+          expenseRow({ id: '1', amount: '50.00', category: 'fuel', currency: 'EUR' }),
+          expenseRow({ id: '2', amount: '30.00', category: 'parts', currency: 'EUR' }),
+          expenseRow({ id: '3', amount: '40.00', category: 'fuel', currency: 'USD' }),
+        ],
+        error: null,
+      });
+
+      const result = await service.findByMotorcycle('u1', 'm1');
+
+      expect(result.currencyTotals).toEqual([
+        { currency: 'EUR', total: 80, count: 2 },
+        { currency: 'USD', total: 40, count: 1 },
+      ]);
+      // The legacy scalar carries one currency only (here EUR, the largest total).
+      expect(result.ytdTotal).toBe(80);
+
+      const fuel = result.categories.find((c) => c.category === 'fuel');
+      expect(fuel?.total).not.toBe(90);
+      expect(fuel?.currencyTotals).toEqual(
+        expect.arrayContaining([
+          { currency: 'EUR', total: 50, count: 1 },
+          { currency: 'USD', total: 40, count: 1 },
+        ]),
+      );
+    });
+
+    it('keeps every legacy category total in the same currency as ytdTotal (3.20.0 bar shares)', async () => {
+      // EUR is most-used (5 rows) but USD holds the largest total. 3.20.0 draws
+      // each category bar as total / ytdTotal, so both must be in one currency.
+      mock.chain.order.mockResolvedValueOnce({
+        data: [
+          ...Array.from({ length: 5 }, (_, i) =>
+            expenseRow({ id: `f${i}`, amount: '20.00', category: 'fuel', currency: 'EUR' }),
+          ),
+          expenseRow({ id: 'p1', amount: '900.00', category: 'parts', currency: 'USD' }),
+          expenseRow({ id: 'p2', amount: '10.00', category: 'parts', currency: 'EUR' }),
+        ],
+        error: null,
+      });
+
+      const result = await service.findByMotorcycle('u1', 'm1');
+
+      // New clients: per-currency, most-used first.
+      expect(result.currencyTotals.map((g) => g.currency)).toEqual(['EUR', 'USD']);
+      // Legacy scalars: all in USD (largest total), shares add up to 100%.
+      expect(result.ytdTotal).toBe(900);
+      const parts = result.categories.find((c) => c.category === 'parts');
+      const fuel = result.categories.find((c) => c.category === 'fuel');
+      expect(parts?.total).toBe(900);
+      // Fuel has no USD spend, so its legacy total is 0, never the EUR figure.
+      expect(fuel?.total).toBe(0);
+      expect(fuel?.currencyTotals).toEqual([{ currency: 'EUR', total: 100, count: 5 }]);
+      const legacySum = result.categories.reduce((sum, c) => sum + c.total, 0);
+      expect(legacySum).toBe(result.ytdTotal);
+    });
+
+    it('returns no currency totals and a zero total when there are no expenses', async () => {
+      mock.chain.order.mockResolvedValueOnce({ data: [], error: null });
+
+      const result = await service.findByMotorcycle('u1', 'm1');
+
+      expect(result.currencyTotals).toEqual([]);
+      expect(result.ytdTotal).toBe(0);
+      expect(result.categories).toEqual([]);
     });
 
     it('maps amount string to number correctly ("99.99" -> 99.99)', async () => {
@@ -615,6 +727,126 @@ describe('ExpensesService', () => {
       expect(fuelCat?.total).toBe(150);
     });
 
+    it('serves one breakdown per currency and never sums currencies together', async () => {
+      const currentYear = new Date().getFullYear();
+      mock.rpc.mockResolvedValueOnce({
+        data: {
+          currencies: [
+            dashboardBreakdown('EUR', currentYear, 50, 2),
+            dashboardBreakdown('USD', currentYear, 40, 1),
+          ],
+          // Since 00186 the legacy keys mirror the primary currency.
+          currentYearTotal: 50,
+          previousYearTotal: 0,
+          allTimeTotal: 50,
+          expenseCount: 3,
+          monthlyBuckets: [],
+          categoryTotals: [],
+        },
+        error: null,
+      });
+
+      const result = await service.getDashboard('u1', 'm1');
+
+      expect(result.currency).toBe('EUR');
+      expect(result.currencies.map((c) => [c.currency, c.allTimeTotal])).toEqual([
+        ['EUR', 50],
+        ['USD', 40],
+      ]);
+      expect(result.allTimeTotal).toBe(50);
+      expect(result.currentYearTotal).toBe(50);
+      expect(result.allTimeTotal).not.toBe(90);
+      // A count, not money — summed across currencies.
+      expect(result.expenseCount).toBe(3);
+      expect(result.monthlyBuckets).toEqual(result.currencies[0].monthlyBuckets);
+      expect(result.categoryTotals).toEqual([{ category: 'fuel', total: 50 }]);
+    });
+
+    it('fills the legacy fields from the largest-total currency, as 3.20.0 labels them', async () => {
+      const currentYear = new Date().getFullYear();
+      mock.rpc.mockResolvedValueOnce({
+        data: {
+          // Most-used first: EUR (10 rows) before JPY (1 row).
+          currencies: [
+            dashboardBreakdown('EUR', currentYear, 500, 10),
+            dashboardBreakdown('JPY', currentYear, 30000, 1),
+          ],
+          currentYearTotal: 30000,
+          previousYearTotal: 0,
+          allTimeTotal: 30000,
+          expenseCount: 11,
+          monthlyBuckets: [],
+          categoryTotals: [],
+        },
+        error: null,
+      });
+
+      const result = await service.getDashboard('u1', 'm1');
+
+      // The per-currency list keeps its most-used-first order for new clients.
+      expect(result.currencies.map((c) => c.currency)).toEqual(['EUR', 'JPY']);
+      // 3.20.0 labels the legacy fields with its dominantCurrency (largest
+      // summed amount = JPY), so they must hold the JPY figures, not EUR's.
+      expect(result.currency).toBe('JPY');
+      expect(result.allTimeTotal).toBe(30000);
+      expect(result.currentYearTotal).toBe(30000);
+      expect(result.monthlyBuckets).toEqual(result.currencies[1].monthlyBuckets);
+      expect(result.categoryTotals).toEqual(result.currencies[1].categoryTotals);
+      expect(result.expenseCount).toBe(11);
+    });
+
+    it('serves a single-currency dashboard unchanged, with its currency named', async () => {
+      const currentYear = new Date().getFullYear();
+      mock.rpc.mockResolvedValueOnce({
+        data: {
+          currencies: [dashboardBreakdown('GBP', currentYear, 120.456, 4)],
+          currentYearTotal: 120.456,
+          previousYearTotal: 0,
+          allTimeTotal: 120.456,
+          expenseCount: 4,
+          monthlyBuckets: [],
+          categoryTotals: [],
+        },
+        error: null,
+      });
+
+      const result = await service.getDashboard('u1', 'm1');
+
+      expect(result.currency).toBe('GBP');
+      expect(result.currencies).toHaveLength(1);
+      expect(result.allTimeTotal).toBe(120.46);
+      expect(result.currentYearTotal).toBe(120.46);
+      expect(result.monthlyBuckets).toEqual([
+        {
+          year: currentYear,
+          month: 1,
+          categories: [{ category: 'fuel', total: 120.46 }],
+          total: 120.46,
+        },
+      ]);
+    });
+
+    it('falls back to the legacy keys with no currency before 00186 is applied', async () => {
+      mock.rpc.mockResolvedValueOnce({
+        data: {
+          currentYearTotal: 90,
+          previousYearTotal: 0,
+          allTimeTotal: 90,
+          expenseCount: 2,
+          monthlyBuckets: [],
+          categoryTotals: [{ category: 'fuel', total: 90 }],
+        },
+        error: null,
+      });
+
+      const result = await service.getDashboard('u1', 'm1');
+
+      expect(result.currency).toBeNull();
+      expect(result.currencies).toEqual([]);
+      expect(result.allTimeTotal).toBe(90);
+      expect(result.categoryTotals).toEqual([{ category: 'fuel', total: 90 }]);
+    });
+
     it('handles an empty dashboard (RPC returns zeros + empty arrays)', async () => {
       mock.rpc.mockResolvedValueOnce({
         data: {
@@ -624,12 +856,15 @@ describe('ExpensesService', () => {
           expenseCount: 0,
           monthlyBuckets: [],
           categoryTotals: [],
+          currencies: [],
         },
         error: null,
       });
 
       const result = await service.getDashboard('u1', 'm1');
 
+      expect(result.currency).toBeNull();
+      expect(result.currencies).toEqual([]);
       expect(result.currentYearTotal).toBe(0);
       expect(result.previousYearTotal).toBe(0);
       expect(result.allTimeTotal).toBe(0);

@@ -22,7 +22,7 @@ FUNKCIJAS
 BEZ MAKSAS UN PRO
 ──────────────
 
-Bez maksas vienmēr: 1 motocikls, neierobežota servisa un izdevumu uzskaite, neierobežota braucienu ierakstīšana, 1 AI diagnostika un 3 kvīšu skenēšanas mēnesī. MotoVault Pro pievieno vairāk motociklu, neierobežotas AI diagnostikas, neierobežotu skenēšanu, detalizētu statistiku, neierobežotu GPX eksportu un plašākus braucienu datus.
+Bez maksas vienmēr: 1 motocikls, neierobežota servisa un izdevumu uzskaite, neierobežota braucienu ierakstīšana, 1 AI diagnostika un 3 kvīšu skenēšanas mēnesī. MotoVault Pro pievieno vairāk motociklu, neierobežotas AI diagnostikas, neierobežotu skenēšanu, neierobežotu GPX eksportu un bezsaistes ceļojumu kartes.
 
 Pieejams mēneša un gada plāns; cena tiek parādīta lietotnē pirms apstiprināšanas. Abonementi atjaunojas automātiski, ja vien tie netiek atcelti vismaz 24 stundas pirms perioda beigām. Pārvaldīt vai atcelt varat jebkurā laikā Google Play konta iestatījumos.
 

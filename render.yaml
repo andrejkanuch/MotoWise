@@ -57,6 +57,25 @@ envVarGroups:
         sync: false
       - key: REVENUECAT_WEBHOOK_SECRET
         sync: false
+      # Comma-separated user UUIDs whose RevenueCat SANDBOX events (Stripe test
+      # cards, TestFlight / App Store sandbox, Play testers) may write
+      # entitlements. Unset → every sandbox event is ignored. Optional.
+      - key: REVENUECAT_SANDBOX_ALLOWED_USER_IDS
+        sync: false
+      # Stripe Customer Portal for web subscribers: a RESTRICTED key (rk_...) with
+      # only Customer portal: Write + Subscriptions: Read. Unset → feature off.
+      - key: STRIPE_BILLING_PORTAL_KEY
+        sync: false
+      # RevenueCat REST API v2 lookup of the rider's Stripe subscription (primary
+      # path). Needs a v2 secret key (v1 keys don't work on v2) with
+      # customer_information:subscriptions:read. Optional.
+      - key: REVENUECAT_PROJECT_ID
+        sync: false
+      - key: REVENUECAT_V2_API_KEY
+        sync: false
+      # Public web origin the billing portal returns to (default https://motovault.app).
+      - key: WEB_APP_URL
+        sync: false
       # MOT-278: shared secret for the maintenance-due push trigger endpoint; must
       # match the Supabase Vault secret `maintenance_push_secret`. The endpoint fails
       # closed when unset. Value is set in the Render dashboard (sync: false).

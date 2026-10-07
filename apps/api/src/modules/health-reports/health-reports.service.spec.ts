@@ -141,7 +141,10 @@ describe('HealthReportsService', () => {
 
       // Admin client result 2: expenses query (thenable)
       mockAdminClient._pushResult({
-        data: [{ amount: 45.5 }, { amount: 120.0 }],
+        data: [
+          { amount: 45.5, currency: 'USD' },
+          { amount: 120.0, currency: 'USD' },
+        ],
       });
 
       // Admin client result 3: users.measurement_system read (.single())
@@ -157,6 +160,42 @@ describe('HealthReportsService', () => {
       expect(result.motorcycleId).toBe(bikeId);
       expect(result.status).toBe('completed');
       expect(result.pdfUrl).toBeDefined();
+    });
+
+    it.each([
+      {
+        name: 'a single currency as one total',
+        rows: [
+          { amount: '50.00', currency: 'EUR' },
+          { amount: '25.50', currency: 'EUR' },
+        ],
+        expected: [{ currency: 'EUR', total: 75.5, count: 2 }],
+      },
+      {
+        name: 'mixed currencies as separate totals, never one sum',
+        rows: [
+          { amount: '50.00', currency: 'EUR' },
+          { amount: '40.00', currency: 'USD' },
+        ],
+        expected: [
+          { currency: 'EUR', total: 50, count: 1 },
+          { currency: 'USD', total: 40, count: 1 },
+        ],
+      },
+      { name: 'no expenses as no total', rows: [], expected: undefined },
+    ])('passes $name to the PDF', async ({ rows, expected }) => {
+      mockUserClient._pushResult({ data: fakeBike });
+      mockAdminClient._pushResult({ data: fakePendingReport });
+      mockAdminClient._pushResult({ data: [] });
+      mockAdminClient._pushResult({ data: rows });
+      mockAdminClient._pushResult({ data: { measurement_system: 'metric' } });
+      mockAdminClient._pushResult({ data: fakeCompletedReport });
+
+      await service.generateReport(userId, bikeId);
+
+      // biome-ignore lint/suspicious/noExplicitAny: reading the mocked private renderPdf
+      const renderPdf = (service as any).renderPdf as ReturnType<typeof vi.fn>;
+      expect(renderPdf.mock.calls[0][0].expenseTotals).toEqual(expected);
     });
 
     it('should throw InternalServerErrorException when report insert fails', async () => {

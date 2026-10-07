@@ -1,4 +1,6 @@
 import { palette } from '@motovault/design-system';
+import { breakdownTotals } from '@motovault/types';
+import { getMonth, getYear, subMonths } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { DollarSign } from 'lucide-react-native';
 import { useEffect } from 'react';
@@ -14,7 +16,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useCurrency } from '../../hooks/use-currency';
 import { useDashboardData, useExpenseDashboard } from '../../hooks/use-expense-dashboard';
-import { CATEGORY_COLORS } from '../../lib/expense-constants';
+import { CATEGORY_COLORS, formatCurrencyTotals, formatMoney } from '../../lib/expense-constants';
+import { monthTotalOf } from '../../lib/expense-dashboard-period';
 import { CardWrapper } from './card-wrapper';
 import { SectionHeader } from './section-header';
 
@@ -94,15 +97,20 @@ function BikeExpenseCard({
   onPress: () => void;
 }) {
   const { t } = useTranslation();
-  const { format } = useCurrency();
+  const { currency: displayCurrency } = useCurrency();
   const { dashboard, isPending } = useExpenseDashboard(bike.id);
+  const { breakdowns } = useDashboardData(dashboard, 'thisYear', {
+    currency: displayCurrency,
+    legacyCurrency: displayCurrency,
+  });
 
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
-  const monthBucket = dashboard?.monthlyBuckets.find(
-    (b) => b.month === currentMonth && b.year === currentYear,
+  // One total per currency, never summed across them.
+  const monthlyLabel = formatCurrencyTotals(
+    breakdownTotals(breakdowns, (b) => monthTotalOf(b, currentYear, currentMonth)),
+    displayCurrency,
   );
-  const monthlyTotal = monthBucket?.total ?? 0;
   const hasData = dashboard && dashboard.expenseCount > 0;
 
   return (
@@ -113,7 +121,7 @@ function BikeExpenseCard({
           onPress();
         }}
         accessibilityRole="button"
-        accessibilityLabel={`${getBikeName(bike)} expenses: ${hasData ? format(monthlyTotal) : 'no data'}`}
+        accessibilityLabel={`${getBikeName(bike)} expenses: ${hasData ? monthlyLabel : 'no data'}`}
         style={({ pressed }) => ({
           padding: 14,
           transform: [{ scale: pressed ? 0.97 : 1 }],
@@ -135,6 +143,8 @@ function BikeExpenseCard({
         ) : hasData ? (
           <>
             <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
               style={{
                 fontSize: 22,
                 fontWeight: '700',
@@ -142,7 +152,7 @@ function BikeExpenseCard({
                 fontVariant: ['tabular-nums'],
               }}
             >
-              {format(monthlyTotal)}
+              {monthlyLabel}
             </Text>
             <Text
               style={{
@@ -247,9 +257,16 @@ function SingleBikeExpenseContent({
   onViewDetails: () => void;
 }) {
   const { t } = useTranslation();
-  const { format } = useCurrency();
+  const { currency: displayCurrency } = useCurrency();
   const { dashboard, isPending } = useExpenseDashboard(motorcycleId);
-  const { periodTotal, categoryTotals } = useDashboardData(dashboard, 'thisYear');
+  // Hero figures list every currency; the month-over-month change and the
+  // category bars are for ONE currency (the display currency when the bike has
+  // it), since shares of a mixed-currency sum would be meaningless.
+  const { breakdowns, selected, periodTotals, categoryTotals } = useDashboardData(
+    dashboard,
+    'thisYear',
+    { currency: displayCurrency, legacyCurrency: displayCurrency },
+  );
 
   if (isPending) {
     return (
@@ -261,23 +278,23 @@ function SingleBikeExpenseContent({
     );
   }
 
-  if (!dashboard || dashboard.expenseCount === 0) {
+  if (!dashboard || dashboard.expenseCount === 0 || !selected) {
     return <EmptyExpenseCard isDark={isDark} />;
   }
 
-  const currentMonth = new Date().getMonth() + 1;
-  const currentYear = new Date().getFullYear();
-  const currentMonthBucket = dashboard.monthlyBuckets.find(
-    (b) => b.month === currentMonth && b.year === currentYear,
-  );
-  const previousMonthBucket = dashboard.monthlyBuckets.find((b) =>
-    currentMonth === 1
-      ? b.month === 12 && b.year === currentYear - 1
-      : b.month === currentMonth - 1 && b.year === currentYear,
-  );
+  const now = new Date();
+  const currentMonth = getMonth(now) + 1;
+  const currentYear = getYear(now);
+  const previousMonthDate = subMonths(now, 1);
+  const previousMonth = getMonth(previousMonthDate) + 1;
+  const previousYear = getYear(previousMonthDate);
 
-  const monthlyTotal = currentMonthBucket?.total ?? 0;
-  const prevMonthTotal = previousMonthBucket?.total ?? 0;
+  const monthlyLabel = formatCurrencyTotals(
+    breakdownTotals(breakdowns, (b) => monthTotalOf(b, currentYear, currentMonth)),
+    displayCurrency,
+  );
+  const monthlyTotal = monthTotalOf(selected, currentYear, currentMonth);
+  const prevMonthTotal = monthTotalOf(selected, previousYear, previousMonth);
   const pctChange =
     prevMonthTotal > 0 ? ((monthlyTotal - prevMonthTotal) / prevMonthTotal) * 100 : 0;
   const isUp = pctChange > 0;
@@ -293,7 +310,7 @@ function SingleBikeExpenseContent({
           onViewDetails();
         }}
         accessibilityRole="button"
-        accessibilityLabel={`Monthly expenses: ${format(monthlyTotal)}`}
+        accessibilityLabel={`Monthly expenses: ${monthlyLabel}`}
         style={({ pressed }) => ({
           padding: 16,
           transform: [{ scale: pressed ? 0.98 : 1 }],
@@ -308,7 +325,7 @@ function SingleBikeExpenseContent({
               fontVariant: ['tabular-nums'],
             }}
           >
-            {format(monthlyTotal)}
+            {monthlyLabel}
           </Text>
           <Text style={{ fontSize: 12, fontWeight: '500', color: palette.neutral500 }}>
             {t('home.thisMonth')}
@@ -353,7 +370,7 @@ function SingleBikeExpenseContent({
                       fontVariant: ['tabular-nums'],
                     }}
                   >
-                    {format(cat.total)}
+                    {formatMoney(cat.total, selected.currency, displayCurrency)}
                   </Text>
                 </View>
                 <View
@@ -380,7 +397,7 @@ function SingleBikeExpenseContent({
           style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
         >
           <Text style={{ fontSize: 12, fontWeight: '500', color: palette.neutral500 }}>
-            {t('home.ytd', { amount: format(periodTotal) })}
+            {t('home.ytd', { amount: formatCurrencyTotals(periodTotals, displayCurrency) })}
           </Text>
           <Text style={{ fontSize: 13, fontWeight: '600', color: palette.primary500 }}>
             {t('home.viewDetails')}

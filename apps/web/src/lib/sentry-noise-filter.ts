@@ -28,6 +28,33 @@ interface NoiseException {
 }
 
 /**
+ * Filenames that say nothing about where a frame's code came from: Safari's
+ * `[native code]`, V8's `<anonymous>`, and Sentry's placeholders. A stack made of
+ * these can be our own code (e.g. an unhandled `res.json()` rejection in Safari),
+ * so they never count as evidence that a frame is external.
+ */
+const UNINFORMATIVE_FILENAME_RE = /^(?:\[native code\]|<anonymous>|native|undefined|\?)$/i;
+
+/**
+ * Code we load from outside `/_next/` on purpose. mapbox-gl comes from the
+ * Mapbox CDN (`api.mapbox.com/mapbox-gl-js/...`), so a Mapbox error that our map
+ * lifecycle triggers has only Mapbox frames, and it must still report.
+ */
+const FIRST_PARTY_EXTERNAL_RE = /\/mapbox-gl(?:-js)?\//;
+
+/**
+ * True only for a frame we can positively place outside our own code: an
+ * informative filename that is neither under `/_next/` nor a library we load
+ * from a CDN. A missing, blank or synthetic filename is unknown origin, and
+ * unknown origin keeps the event.
+ */
+function isKnownExternalFrame(frame: { filename?: string }): boolean {
+  const filename = frame.filename?.trim();
+  if (!filename || UNINFORMATIVE_FILENAME_RE.test(filename)) return false;
+  return !filename.includes('/_next/') && !FIRST_PARTY_EXTERNAL_RE.test(filename);
+}
+
+/**
  * The shared drop decision. Operates on the exception list common to both
  * Sentry and PostHog; the per-provider adapters below extract it.
  */
@@ -131,6 +158,34 @@ function shouldDropExceptions(exceptions: NoiseException[] | undefined): boolean
         !e.stacktrace?.frames?.some((f) => f.filename),
     )
   ) {
+    return true;
+  }
+
+  // Wallet-extension failures (MOTOVAULT-WEB-1N "Failed to connect to MetaMask",
+  // chained to "MetaMask extension not found" from `scripts/inpage.js`). The
+  // wallet's own in-page provider throws when its extension is missing or locked;
+  // we never call a wallet API.
+  if (!hasFirstPartyFrame && exceptions.some((e) => e.value?.includes('MetaMask'))) {
+    return true;
+  }
+
+  // Injected-script errors that reach the global handlers with a stack that lies
+  // entirely outside our bundle (MOTOVAULT-WEB-1H, -1J, -1P). In-app browsers
+  // (the Google app, Chrome on iOS) inject minified scripts whose frames Sentry
+  // attributes to the page document itself — `app:///blog/<slug>:226:63` on a
+  // document that has 211 lines — and automation tools inject their own files
+  // (`app:///executors/200.js`, which the site does not serve). Every first-party
+  // module is served from `/_next/`, and the only first-party inline scripts are
+  // one-line constants (the theme class, the console banner, JSON-LD) that cannot
+  // throw, so a global-handler event whose every frame is positively external
+  // (see isKnownExternalFrame) is not ours. Scoped to the global handlers so an error we capture
+  // ourselves always reports.
+  const isGlobalHandler = exceptions.some((e) => {
+    const mechanism = e.mechanism?.type ?? '';
+    return mechanism.endsWith('onerror') || mechanism.endsWith('onunhandledrejection');
+  });
+  const frames = exceptions.flatMap((e) => e.stacktrace?.frames ?? []);
+  if (isGlobalHandler && frames.length > 0 && frames.every(isKnownExternalFrame)) {
     return true;
   }
 

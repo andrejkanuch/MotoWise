@@ -498,7 +498,8 @@
     "roadsTitle": "Befahrene Strecken",
     "roadsSubtitle": "Lebenslange Heatmap & Jahresrückblick",
     "savedRoutesTitle": "Gespeicherte Routen",
-    "savedRoutesSubtitle": "Routen, die du später fahren möchtest"
+    "savedRoutesSubtitle": "Routen, die du später fahren möchtest",
+    "redeemCode": "Code einlösen"
   },
   "onboarding": {
     "welcomeTitle": "Willkommen bei MotoVault",
@@ -706,9 +707,6 @@
     "v2BikeSetupOther": "Andere",
     "v2NotificationsTitle": "Behalte die Gesundheit deines Motorrads im Blick",
     "v2NotificationsSubtitle": "Erhalte eine wöchentliche Zusammenfassung deiner Fahrten und einen Hinweis, bevor der Service fällig ist.",
-    "v2NotificationsBenefit1": "Wartungserinnerungen, bevor sie überfällig sind",
-    "v2NotificationsBenefit2": "Wöchentliche Fahrtstatistiken und Serien",
-    "v2NotificationsBenefit3": "Neue Routen in deiner Gegend",
     "v2NotificationsEnable": "Benachrichtigungen aktivieren",
     "v2NotificationsMaybeLater": "Vielleicht später",
     "heardAboutTitle": "Wie hast du",
@@ -1008,7 +1006,11 @@
     "scanCta": "Scan a receipt",
     "scanSkip": "Maybe later",
     "scanBulletExtract": "AI pulls out the amount, date, and vendor",
-    "scanBulletFast": "Logged in seconds — no typing"
+    "scanBulletFast": "Logged in seconds — no typing",
+    "heardAboutFacebook": "Facebook",
+    "heardAboutReddit": "Reddit",
+    "heardAboutOtherPlaceholder": "Wo? (optional)",
+    "heardAboutOtherContinue": "Weiter"
   },
   "bikeHub": {
     "upcoming": "Anstehend",
@@ -1680,6 +1682,7 @@
     "investedInBike": "Ins Motorrad investiert",
     "runningCosts": "Laufende Kosten",
     "addPurchasePriceHint": "Füge den Kaufpreis deines Motorrads unter „Motorrad bearbeiten“ hinzu, um die Gesamtkosten zu sehen",
+    "showInCurrency": "Diagramme in {{currency}} anzeigen",
     "byCategory": "Nach Kategorie",
     "monthlyTrend": "Monatlicher Trend",
     "title": "Ausgaben",
@@ -1882,7 +1885,6 @@
     "pastReports": "Frühere Berichte",
     "pending": "Wird erstellt...",
     "completed": "Bereit",
-    "purchaseFirst": "Kaufe einen Zustandsbericht, um loszulegen",
     "description": "Ein umfassender Bericht über Wartungshistorie, Ausgaben und Zustand deines Motorrads.",
     "downloadReport": "Bericht herunterladen",
     "failedMessage": "Berichterstellung fehlgeschlagen. Bitte versuche es erneut.",
@@ -1925,7 +1927,7 @@
     },
     "v380": {
       "analyticsTitle": "Fahrtanalyse",
-      "analyticsDesc": "Gesamtstrecke, Fahrzeit, Serien und persönliche Bestleistungen — alles aktualisiert sich nach jeder Fahrt. Deine Statistiken auf einen Blick.",
+      "analyticsDesc": "Gesamtstrecke, Fahrzeit und persönliche Bestleistungen — alles aktualisiert sich nach jeder Fahrt. Deine Statistiken auf einen Blick.",
       "redesignedRidesTitle": "Überarbeitete Fahrten",
       "redesignedRidesDesc": "Alle Fahrt-Bildschirme komplett neu aufgebaut — Kartenbanner, Rekord-Badges, übersichtlichere Detailansichten und ein flüssigerer Speichervorgang.",
       "flyoverTitle": "3D-Überflug",
@@ -2115,7 +2117,6 @@
   },
   "rideHud": {
     "forgotToStopTitle": "Noch unterwegs?",
-    "forgotToStopBody": "Du stehst seit {{minutes}} Minuten. Zum Beenden tippen oder weiterfahren.",
     "gpsLostTitle": "GPS-Aufzeichnung gestoppt",
     "gpsLostBody": "Die Standortberechtigung wurde deaktiviert, deine Fahrt wird nicht mehr aufgezeichnet. Tippe, um das zu beheben oder die Fahrt zu beenden.",
     "dist": "DIST",
@@ -2135,7 +2136,19 @@
     "shortRideWarning": "Deine Fahrt war sehr kurz ({{seconds}}s, {{meters}}m). Bist du sicher?",
     "gpsTip": "Tipp: Achte auf freie Sicht zum Himmel für das GPS-Tracking",
     "keepRiding": "Weiterfahren",
-    "endAnyway": "Trotzdem beenden"
+    "endAnyway": "Trotzdem beenden",
+    "reminderNudgeBody": "Deine Fahrt wird noch aufgezeichnet, aber du hast dich seit {{minutes}} Minuten nicht bewegt. Beende sie oder fahr weiter.",
+    "reminderFinalTitle": "Deine Fahrt wird noch aufgezeichnet",
+    "reminderFinalBody": "Seit {{minutes}} Minuten keine Bewegung. Beende die Fahrt, um sie so zu speichern, wie sie beim Anhalten war.",
+    "actionEndRide": "Fahrt beenden",
+    "actionKeepRiding": "Fahre noch",
+    "rideAlertsChannel": "Fahrt-Hinweise",
+    "autoEndedTitle": "Fahrt gespeichert",
+    "autoEndedBody": "Du hast dich {{minutes}} Minuten nicht bewegt. Wir haben deine Fahrt beendet und bis zu deinem Halt gespeichert.",
+    "serviceTitle": "MotoVault zeichnet deine Fahrt auf",
+    "serviceBody": "Tippe, um zur Fahrt zurückzukehren. Beende sie, wenn du absteigst.",
+    "noGpsTitle": "Diese Fahrt konnte nicht aufgezeichnet werden",
+    "noGpsBody": "{{minutes}} Min. aufgezeichnet, aber kaum Strecke. GPS war vielleicht blockiert, ausgeschaltet oder auf ungefähren Standort gestellt."
   },
   "rideSummary": {
     "namePlaceholder": "Benenne deine Fahrt...",
@@ -2238,9 +2251,6 @@
     "recentRides": "Letzte Fahrten",
     "newestFirst": "Neueste zuerst ↓",
     "oldestFirst": "Älteste zuerst ↑",
-    "streakWeek": "week streak",
-    "streakWeeks": "week streak",
-    "streakDesc": "Consecutive weeks with a ride",
     "thisMonth": "This month",
     "thisYear": "This year",
     "vsLastWeek": "vs last week",
@@ -2312,7 +2322,10 @@
     "disclosureBody": "MotoVault zeichnet während der Fahrt deine Route, Distanz und Geschwindigkeit auf – auch im Hintergrund, wenn die App geschlossen oder der Bildschirm aus ist, damit die gesamte Fahrt erfasst wird. Der Standort wird nur während einer aktiven Fahrt verwendet.",
     "disclosureSettingsNote": "Du wirst möglicherweise zu den Einstellungen weitergeleitet – wähle „Immer zulassen“, um die Aufzeichnung im Hintergrund fortzusetzen.",
     "disclosureContinue": "Weiter",
-    "disclosureNotNow": "Jetzt nicht"
+    "disclosureNotNow": "Jetzt nicht",
+    "approximateTitle": "Genauer Standort ist aus",
+    "approximateBody": "Mit ungefährem Standort kann MotoVault weder Route noch Strecke aufzeichnen. Aktiviere „Genauer Standort“ für MotoVault in den Einstellungen.",
+    "rideAnyway": "Trotzdem fahren"
   },
   "preFlight": {
     "title": "Vorab-Check",
@@ -2694,5 +2707,14 @@
     "feedbackYes": "Feedback senden",
     "feedbackNo": "Jetzt nicht",
     "feedbackSubject": "MotoVault Feedback"
+  },
+  "analyticsConsent": {
+    "title": "Gestalte MotoVault mit",
+    "body": "Mit deiner Zustimmung erfassen wir Nutzungsdaten dieser App, um zu entscheiden, was wir als Nächstes bauen.",
+    "pointWhat": "Welche Funktionen du nutzt und über welchen Link oder Beitrag du hierher gekommen bist.",
+    "pointNever": "Niemals verkauft, niemals für Werbung genutzt.",
+    "pointChange": "Jederzeit änderbar unter Profil → Datenschutz.",
+    "allow": "Erlauben",
+    "decline": "Nicht erlauben"
   }
 }

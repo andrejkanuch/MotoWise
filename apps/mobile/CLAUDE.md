@@ -36,6 +36,7 @@
 - Import generated types from @motovault/graphql
 - Auth gating in root _layout.tsx (Redirect to (auth) if no session)
 - Navigation casts (`as any`/`as never` on `router.push/replace/navigate` / `<Redirect>`) are BANNED — `typedRoutes: true` validates route literals at compile time; type dynamic hrefs as `Href` from `expo-router` instead (guard: `scripts/check-no-router-any.sh`)
+- Analytics (PostHog): screens are tracked ONCE, by `hooks/use-screen-tracking.ts` in the root layout — the `$screen` name is the Expo Router route template (`/(tabs)/(garage)/bike/[id]`), ids go in `route_<param>` properties and every screen carries `feature_area` (map in `lib/analytics-screen.ts`; add new routes there). Never call `trackScreen` from a screen. Touch autocapture is off — track actions with `trackEvent`. Every `AnalyticsEvent` constant needs a call site (`analytics-event-catalog.test.ts` fails otherwise). Anything that creates an expense fires `trackExpenseAdded` with an `EXPENSE_ENTRY_SOURCE`.
 - Use process.env.EXPO_OS not Platform.OS
 - Use borderCurve: 'continuous' for rounded corners
 - Use headerSearchBarOptions for search (not custom search bar)

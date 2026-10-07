@@ -9,12 +9,12 @@ import { useEditorialTheme } from '../../theme/editorial';
 interface MonthlyBucket {
   month: number;
   year: number;
-  categories: { category: string; total: number }[];
+  categories: ReadonlyArray<{ category: string; total: number }>;
   total: number;
 }
 
 interface MonthlyTrendProps {
-  buckets: MonthlyBucket[];
+  buckets: ReadonlyArray<MonthlyBucket>;
   isDark: boolean;
 }
 

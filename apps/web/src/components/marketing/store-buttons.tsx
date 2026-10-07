@@ -3,12 +3,7 @@
 import { trackStoreCtaClick } from '@/lib/analytics';
 import { buildPlayReferrer, getCampaignParams } from '@/lib/campaign';
 import { CtaPlacement, type StoreCtaContext, StorePlatform } from '@/lib/cta-taxonomy';
-import { detectPlatform } from '@/lib/store-links';
-
-const STORE_LINKS = {
-  appStore: 'https://apps.apple.com/us/app/motovault/id6760291360',
-  googlePlay: 'https://play.google.com/store/apps/details?id=com.motovault.app',
-} as const;
+import { detectPlatform, STORE_LINKS } from '@/lib/store-links';
 
 export { STORE_LINKS };
 

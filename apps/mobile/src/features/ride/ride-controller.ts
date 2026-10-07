@@ -14,34 +14,41 @@ import {
 } from '@motovault/graphql';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
+import * as Notifications from 'expo-notifications';
 import type { Href } from 'expo-router';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
+import { activeRideSeconds } from '../../utils/ride-duration';
 import { encodePolyline } from '../../utils/ride-heatmap';
 import { distanceMeters, startGPSListener, stopGPSListener } from '../../utils/ride-location';
 import {
   checkAndRequestPermissions,
+  isApproximateLocation,
   type PermissionLevel,
   readPermissionLevel,
 } from '../../utils/ride-permissions';
+import { armRideReminders, cancelRideReminders } from '../../utils/ride-reminders';
 import {
   flushBufferToMMKV,
   getPointBuffer,
   getWaypointChunks,
   removeWaypointBuffer,
   resetWaypointBudget,
+  restoreBufferFromMMKV,
   rideMMKV,
 } from '../../utils/ride-storage';
 import { enqueueOrExecute, enqueueWaypointUpload } from '../../utils/ride-sync-queue';
 
 export type RideSource = 'phone' | 'carplay';
 
+export type RideStartFailureReason = 'denied' | 'gps_failed' | 'approximate';
+
 export type RideStartResult =
   | { ok: true; rideId: string }
-  | { ok: false; reason: 'denied' | 'gps_failed' };
+  | { ok: false; reason: RideStartFailureReason };
 
 // Which surface may prompt for location. The phone shows the disclosure modal first
 // and owns every request; CarPlay only reads, so a head-unit Start never raises an
@@ -56,6 +63,24 @@ export interface StartRideOptions {
   source: RideSource;
   /** Optional, analytics only. */
   motorcycleMake?: string | null;
+  /** Start even though the OS only grants approximate location (rider chose to). */
+  allowApproximate?: boolean;
+}
+
+/**
+ * Ask for notification permission at the moment it is obviously useful — the rider
+ * is starting a ride and the "still riding?" reminders depend on it. Onboarding was
+ * the only other place it was asked, so anyone who skipped it never got a reminder
+ * (and on Android 13+ never saw the recording notification either). Never re-asks a
+ * rider who already said no; never blocks the start.
+ */
+async function ensureNotificationPermission(): Promise<void> {
+  try {
+    const { status, canAskAgain } = await Notifications.getPermissionsAsync();
+    if (status === 'undetermined' && canAskAgain) await Notifications.requestPermissionsAsync();
+  } catch (err) {
+    captureException(err, { source: 'ride-controller.ensureNotificationPermission' });
+  }
 }
 
 /**
@@ -90,9 +115,19 @@ export async function startRideSession({
   motorcycleId,
   source,
   motorcycleMake = null,
+  allowApproximate = false,
 }: StartRideOptions): Promise<RideStartResult> {
   const level = await RESOLVE_PERMISSION_LEVEL[source]();
   if (level === 'denied') return { ok: false, reason: 'denied' };
+
+  // Approximate location fixes are ~1-3 km wide; the GPS filter rejects anything
+  // over 50 m, so such a ride records 0 waypoints and 0 m — and then the rider is
+  // told it was "too short". Say so up front instead. CarPlay can't show the
+  // choice, so it records anyway (same as before).
+  if (source === 'phone' && !allowApproximate && (await isApproximateLocation())) {
+    return { ok: false, reason: 'approximate' };
+  }
+  if (source === 'phone') await ensureNotificationPermission();
 
   // No bike explicitly chosen (CarPlay has no picker; phone "Quick Ride") → attribute
   // to the primary bike so the odometer still tracks on ride-end (the API applies
@@ -125,8 +160,12 @@ export async function startRideSession({
     captureException(err, { source: 'ride-controller.startRideSession' });
     rideMMKV.setCurrentId('');
     store.endRide();
+    void cancelRideReminders();
     return { ok: false, reason: 'gps_failed' };
   }
+
+  // Start the forgotten-ride clock: if the bike never moves, the rider still hears.
+  void armRideReminders();
 
   // Haptic confirms the start on the phone; on CarPlay the phone may be pocketed.
   if (source === 'phone' && process.env.EXPO_OS === 'ios') {
@@ -166,14 +205,25 @@ export interface RideEndSummary {
 
 /** Elapsed riding seconds derived from persisted timestamps (no UI timer needed). */
 export function elapsedRideSeconds(now: number = Date.now()): number {
-  const startedAt = rideMMKV.getStartedAt();
-  if (!startedAt) return 0;
   // Subtract banked pauses plus any pause currently in progress, so the clock
   // freezes while paused — from either surface — without a live UI timer running.
-  const pausedAt = rideMMKV.getPausedAt();
-  const inProgressPauseMs = pausedAt > 0 ? now - pausedAt : 0;
-  const totalPausedMs = rideMMKV.getTotalPausedMs() + inProgressPauseMs;
-  return Math.max(0, Math.round((now - startedAt - totalPausedMs) / 1000));
+  return activeRideSeconds(
+    {
+      startedAt: rideMMKV.getStartedAt(),
+      totalPausedMs: rideMMKV.getTotalPausedMs(),
+      pausedAt: rideMMKV.getPausedAt(),
+    },
+    now,
+  );
+}
+
+export interface EndRideOptions {
+  /**
+   * Epoch ms the ride really ended — the last movement, when ended from a
+   * "still riding?" reminder. Defaults to now. Duration and `endedAt` both use it,
+   * so a ride forgotten for an hour does not report an hour of standing still.
+   */
+  endAt?: number;
 }
 
 /**
@@ -182,7 +232,10 @@ export function elapsedRideSeconds(now: number = Date.now()): number {
  * summary for the caller to render/navigate with, or null when no ride is active.
  * Pure of navigation so it can run from CarPlay with no phone UI mounted.
  */
-export function endRideSession(source: RideSource = 'phone'): RideEndSummary | null {
+export function endRideSession(
+  source: RideSource = 'phone',
+  { endAt }: EndRideOptions = {},
+): RideEndSummary | null {
   const rideId = rideMMKV.getCurrentId();
   if (!rideId) return null;
 
@@ -193,6 +246,10 @@ export function endRideSession(source: RideSource = 'phone'): RideEndSummary | n
   // Once the store is 'ended', bail.
   if (useRideStore.getState().status === 'ended') return null;
 
+  // After an app kill (ending from a reminder, or from the unfinished-ride banner)
+  // the in-memory buffer is empty and the partial chunk only exists on disk —
+  // load it, or those points silently drop out of the distance and route.
+  if (getPointBuffer().length === 0) restoreBufferFromMMKV(rideId);
   flushBufferToMMKV(rideId);
 
   const chunks = getWaypointChunks(rideId);
@@ -237,12 +294,15 @@ export function endRideSession(source: RideSource = 'phone'): RideEndSummary | n
   const avgSpeed = speedCount > 0 ? speedSum / speedCount : 0;
   // If the ride is ended while still paused, bank the in-progress pause first so
   // both the derived duration and pausedDurationS account for it.
+  // A trimmed end banks only the part of the pause before the end point.
+  const endedAtMs = endAt ?? Date.now();
   const pausedAtEnd = rideMMKV.getPausedAt();
   if (pausedAtEnd > 0) {
-    rideMMKV.setTotalPausedMs(rideMMKV.getTotalPausedMs() + (Date.now() - pausedAtEnd));
+    const bankedMs = Math.max(0, endedAtMs - pausedAtEnd);
+    rideMMKV.setTotalPausedMs(rideMMKV.getTotalPausedMs() + bankedMs);
     rideMMKV.setPausedAt(0);
   }
-  const durationS = elapsedRideSeconds();
+  const durationS = elapsedRideSeconds(endedAtMs);
   const totalPausedMs = rideMMKV.getTotalPausedMs();
   const totalAutoPausedMs = rideMMKV.getTotalAutoPausedMs();
   // Capture identity before store.endRide() — the ride-summary screen owns MMKV
@@ -253,7 +313,7 @@ export function endRideSession(source: RideSource = 'phone'): RideEndSummary | n
   const maxLeanAngle = store.maxLeanAngle;
   const isNightMode = store.isNightMode;
   const isBatterySaver = store.isBatterySaver;
-  const endedAt = new Date().toISOString();
+  const endedAt = new Date(endedAtMs).toISOString();
 
   store.endRide();
   void stopGPSListener();
@@ -272,6 +332,7 @@ export function endRideSession(source: RideSource = 'phone'): RideEndSummary | n
     avg_speed_kmh: Math.round(avgSpeed * 3.6),
     waypoint_count: combined.length,
     source,
+    trimmed_s: Math.max(0, Math.round((Date.now() - endedAtMs) / 1000)),
   });
 
   const polyline =

@@ -27,8 +27,16 @@ import { useCurrency } from '../../../hooks/use-currency';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
+import { CORE_ACTION_KIND, recordCoreAction } from '../../../lib/core-action-milestones';
+import {
+  EXPENSE_ENTRY_SOURCE,
+  MAINTENANCE_EXPENSE_CATEGORY,
+  taskCompletionExpenseAmount,
+  trackExpenseAdded,
+} from '../../../lib/expense-analytics';
 import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { MAINTENANCE_COMPLETION_SURFACE } from '../../../lib/maintenance-analytics';
 import { cancelTaskNotification } from '../../../lib/notifications';
 import { queryKeys } from '../../../lib/query-keys';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
@@ -111,7 +119,19 @@ export default function CompleteTaskScreen() {
       trackEvent(AnalyticsEvent.MAINTENANCE_TASK_COMPLETED, {
         has_cost: !!cost,
         scheduled_next: task?.isRecurring ? scheduleNext : false,
+        surface: MAINTENANCE_COMPLETION_SURFACE.COMPLETE_TASK_SCREEN,
       });
+      // A cost makes the server add a linked expense — count it like any other.
+      const costValue = taskCompletionExpenseAmount(cost);
+      if (costValue !== null) {
+        trackExpenseAdded({
+          entrySource: EXPENSE_ENTRY_SOURCE.MAINTENANCE_COST,
+          bikeId: motorcycleId,
+          date: new Date(),
+          properties: { category: MAINTENANCE_EXPENSE_CATEGORY, amount: costValue, currency },
+        });
+      }
+      recordCoreAction(CORE_ACTION_KIND.SERVICE_LOGGED);
       setCompleted(true);
       buttonScale.value = withSequence(
         withSpring(1.08, { damping: 8, stiffness: 200 }),

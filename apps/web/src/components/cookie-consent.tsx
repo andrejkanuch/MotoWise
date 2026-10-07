@@ -3,6 +3,8 @@
 import { useTranslations } from 'next-intl';
 import posthog from 'posthog-js';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { clearAccountConsent, writeAccountConsent } from '@/lib/account-consent';
+import { clearFirstTouch, firstTouchProperties, persistFirstTouch } from '@/lib/campaign';
 
 // ---------------------------------------------------------------------------
 // Consent primitives (cookie read/write, PostHog opt-in/out, geo detection)
@@ -13,14 +15,30 @@ const COOKIE_MAX_AGE = 15_552_000; // 6 months in seconds
 
 type Decision = 'accepted' | 'rejected';
 
-function parseConsent(): Decision | null {
+/**
+ * How the decision came about, stored as the cookie's 5th field. `implied` is
+ * the automatic grant outside the EU (no banner shown): a default, not a choice,
+ * so it must never be written to the rider's account as their decision.
+ */
+const CONSENT_SOURCE = {
+  EXPLICIT: 'explicit',
+  IMPLIED: 'implied',
+} as const;
+type ConsentSource = (typeof CONSENT_SOURCE)[keyof typeof CONSENT_SOURCE];
+
+/** The cookie's fields: `v1:<decision>:<epoch>:EU[:<source>]`. */
+function readConsentCookie(): string[] | null {
   if (typeof document === 'undefined') return null;
   const match = document.cookie.match(new RegExp(`(?:^|; )${CONSENT_COOKIE}=([^;]*)`));
   if (!match) return null;
   const parts = decodeURIComponent(match[1]).split(':');
   if (parts.length < 2 || parts[0] !== 'v1') return null;
-  if (parts[1] === 'accepted' || parts[1] === 'rejected') return parts[1];
-  return null;
+  return parts;
+}
+
+function parseConsent(): Decision | null {
+  const decision = readConsentCookie()?.[1];
+  return decision === 'accepted' || decision === 'rejected' ? decision : null;
 }
 
 function isConsentRequired(): boolean {
@@ -29,24 +47,79 @@ function isConsentRequired(): boolean {
   return !match || match[1] === 'EU';
 }
 
-function writeConsent(decision: Decision) {
+/**
+ * Whether the stored decision was a click. Cookies written before the source
+ * field existed: a "no" is always a choice (the automatic grant only ever says
+ * yes), and a "yes" is ALWAYS treated as implied — it may be an old automatic
+ * grant, and the region cookie can since have flipped to EU. Genuine old EU
+ * clicks lose nothing but the account sync; they are asked again (see mount).
+ */
+function isExplicitDecision(parts: string[], decision: Decision): boolean {
+  const source = parts[4];
+  return source === undefined ? decision === 'rejected' : source === CONSENT_SOURCE.EXPLICIT;
+}
+
+/**
+ * The visitor's banner decision, read from the shared cookie at call time (so
+ * every tab sees the same value), or null unless they actually CHOSE it.
+ */
+export function readExplicitConsent(): boolean | null {
+  const parts = readConsentCookie();
+  const decision = parseConsent();
+  if (!parts || !decision || !isExplicitDecision(parts, decision)) return null;
+  return decision === 'accepted';
+}
+
+/**
+ * An automatic "yes" that no longer applies: the visitor is now in an opt-in
+ * region (e.g. the region cookie was refreshed to EU), so they must be asked.
+ */
+function isImpliedYesInOptInRegion(): boolean {
+  const parts = readConsentCookie();
+  const decision = parseConsent();
+  return (
+    !!parts &&
+    decision === 'accepted' &&
+    !isExplicitDecision(parts, decision) &&
+    isConsentRequired()
+  );
+}
+
+function writeConsent(decision: Decision, source: ConsentSource) {
   const epoch = Math.floor(Date.now() / 1000);
-  const value = `v1:${decision}:${epoch}:EU`;
+  const value = `v1:${decision}:${epoch}:EU:${source}`;
   const secure =
     typeof location !== 'undefined' && location.protocol === 'https:' ? '; Secure' : '';
   // biome-ignore lint/suspicious/noDocumentCookie: this IS the consent primitive itself
   document.cookie = `${CONSENT_COOKIE}=${value}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
 }
 
-export function applyPostHogConsent(granted: boolean) {
+/** Super property marking that this browser's first touch already reached PostHog. */
+const FIRST_TOUCH_SENT = 'ft_sent';
+
+/**
+ * Apply the stored consent decision to PostHog. Runs on every page load for a
+ * visitor who already decided, so `announce` is true only when the decision is
+ * made right now — `$consent_granted` fires once per person, not once per page.
+ */
+export function applyPostHogConsent(granted: boolean, { announce = false } = {}) {
   if (typeof window === 'undefined') return;
   try {
     if (granted) {
       posthog.set_config({ persistence: 'localStorage+cookie' });
       posthog.opt_in_capturing();
-      posthog.capture('$consent_granted');
+      if (announce) posthog.capture('$consent_granted');
+      const touch = persistFirstTouch();
+      if (touch && posthog.get_property(FIRST_TOUCH_SENT) === undefined) {
+        const props = firstTouchProperties(touch);
+        // Super properties put the source on every later event (store click,
+        // checkout); $set_once keeps the person's first source permanently.
+        posthog.register({ ...props, [FIRST_TOUCH_SENT]: true });
+        posthog.setPersonProperties(undefined, props);
+      }
     } else {
       posthog.opt_out_capturing();
+      clearFirstTouch();
     }
   } catch {
     // In private mode / blocked-storage, set_config + opt_in/out_capturing touch
@@ -64,7 +137,14 @@ type ConsentContextValue = {
   consent: boolean | null;
   accept: () => void;
   deny: () => void;
+  /** Withdraw the decision entirely (the banner's Undo): back to "not decided". */
+  reset: () => void;
 };
+
+function clearConsentCookie() {
+  // biome-ignore lint/suspicious/noDocumentCookie: clearing the consent primitive
+  document.cookie = `${CONSENT_COOKIE}=; path=/; max-age=0`;
+}
 
 const ConsentContext = createContext<ConsentContextValue | null>(null);
 
@@ -72,32 +152,53 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
   const [consent, setConsentState] = useState<boolean | null>(null);
 
   useEffect(() => {
+    if (isImpliedYesInOptInRegion()) {
+      // Ask again: drop the automatic grant and stop capturing until they choose.
+      // The account is not touched — an implied yes was never written to it.
+      clearConsentCookie();
+      applyPostHogConsent(false);
+      return;
+    }
     const current = parseConsent();
     if (current !== null) {
       const asBool = current === 'accepted';
       setConsentState(asBool);
       applyPostHogConsent(asBool);
     } else if (!isConsentRequired()) {
-      writeConsent('accepted');
+      writeConsent('accepted', CONSENT_SOURCE.IMPLIED);
       setConsentState(true);
-      applyPostHogConsent(true);
+      applyPostHogConsent(true, { announce: true });
     }
   }, []);
 
+  // A click is a deliberate choice, so it goes straight to a signed-in account,
+  // including a "no" → "yes" change the background sync will never make.
   const accept = useCallback(() => {
-    writeConsent('accepted');
+    writeConsent('accepted', CONSENT_SOURCE.EXPLICIT);
     setConsentState(true);
-    applyPostHogConsent(true);
+    applyPostHogConsent(true, { announce: true });
+    void writeAccountConsent(true);
   }, []);
 
   const deny = useCallback(() => {
-    writeConsent('rejected');
+    writeConsent('rejected', CONSENT_SOURCE.EXPLICIT);
     setConsentState(false);
     applyPostHogConsent(false);
+    void writeAccountConsent(false);
+  }, []);
+
+  const reset = useCallback(() => {
+    clearConsentCookie();
+    setConsentState(null);
+    // Undecided means nothing is captured, the same as a "no" for PostHog.
+    applyPostHogConsent(false);
+    void clearAccountConsent();
   }, []);
 
   return (
-    <ConsentContext.Provider value={{ consent, accept, deny }}>{children}</ConsentContext.Provider>
+    <ConsentContext.Provider value={{ consent, accept, deny, reset }}>
+      {children}
+    </ConsentContext.Provider>
   );
 }
 
@@ -150,7 +251,7 @@ const T = {
 type CookieToggles = { pref: boolean; telemetry: boolean; replay: boolean };
 
 export function CookieConsentBanner() {
-  const { consent, accept, deny } = useCookieConsent();
+  const { consent, accept, deny, reset } = useCookieConsent();
   const t = useTranslations('CookieBanner');
   const [mounted, setMounted] = useState(false);
   const [view, setView] = useState<'main' | 'list' | 'settled'>('main');
@@ -185,11 +286,10 @@ export function CookieConsentBanner() {
   }, [settle, t, accept]);
 
   const handleUndo = useCallback(() => {
-    // biome-ignore lint/suspicious/noDocumentCookie: clearing consent cookie
-    document.cookie = `${CONSENT_COOKIE}=; path=/; max-age=0`;
+    reset();
     setView('main');
     setToggles({ pref: true, telemetry: false, replay: false });
-  }, []);
+  }, [reset]);
 
   const toggle = useCallback((key: keyof CookieToggles) => {
     setToggles((prev) => ({ ...prev, [key]: !prev[key] }));

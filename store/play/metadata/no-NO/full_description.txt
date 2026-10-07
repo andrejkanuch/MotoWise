@@ -22,7 +22,7 @@ FUNKSJONER
 GRATIS OG PRO
 ──────────────
 
-Gratis for alltid: 1 motorsykkel, ubegrenset servicelogg og utgifter, ubegrenset turopptak, 1 AI-diagnose og 3 kvitteringsskanninger i måneden. MotoVault Pro gir flere motorsykler, ubegrensede AI-diagnoser, ubegrensede skanninger, avansert statistikk, ubegrenset GPX-eksport og utvidede turdata.
+Gratis for alltid: 1 motorsykkel, ubegrenset servicelogg og utgifter, ubegrenset turopptak, 1 AI-diagnose og 3 kvitteringsskanninger i måneden. MotoVault Pro gir flere motorsykler, ubegrensede AI-diagnoser, ubegrensede skanninger, ubegrenset GPX-eksport og offline turkart.
 
 Det finnes måneds- og årsabonnement; prisen vises i appen før du bekrefter. Abonnementer fornyes automatisk med mindre de sies opp minst 24 timer før perioden er over. Administrer eller si opp når som helst i innstillingene for Google Play-kontoen din.
 

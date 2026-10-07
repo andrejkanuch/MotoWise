@@ -221,21 +221,20 @@ export default function RidesScreen() {
     trackEvent(AnalyticsEvent.RIDES_HISTORY_VIEWED);
   }, []);
 
-  // Server-side analytics overview (last ride, 7-day summary, streak, records)
+  // Server-side analytics overview (last ride, 7-day summary, records)
   const { data: overviewData } = useQuery<RideOverviewQuery>({
     queryKey: queryKeys.rides.overview,
     queryFn: () => gqlFetcher(RideOverviewDocument),
   });
   const overview = overviewData?.rideOverview;
 
-  // Fire once when the overview block (streak / records / summary) is actually
+  // Fire once when the overview block (records / summary) is actually
   // populated — lets us measure how often the rich header is seen vs the raw list.
   const overviewViewedRef = useRef(false);
   useEffect(() => {
     if (overview && !overviewViewedRef.current) {
       overviewViewedRef.current = true;
       trackEvent(AnalyticsEvent.OVERVIEW_VIEWED, {
-        has_streak: (overview.currentStreak ?? 0) > 0,
         record_count: overview.personalRecords?.length ?? 0,
       });
     }
@@ -733,41 +732,6 @@ export default function RidesScreen() {
           ))}
         </View>
 
-        {/* Streak + records row */}
-        {overview && overview.currentStreak > 0 && (
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 8,
-              backgroundColor: theme.surface,
-              borderWidth: 1,
-              borderColor: theme.line,
-              borderRadius: 16,
-              borderCurve: 'continuous',
-              padding: 12,
-            }}
-          >
-            <Text style={{ fontSize: 20 }}>🔥</Text>
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '700',
-                  color: theme.ink,
-                  fontVariant: ['tabular-nums'],
-                }}
-              >
-                {overview.currentStreak}{' '}
-                {overview.currentStreak === 1 ? t('myRides.streakWeek') : t('myRides.streakWeeks')}
-              </Text>
-              <Text style={{ fontSize: 11, color: theme.ink3, marginTop: 2 }}>
-                {t('myRides.streakDesc')}
-              </Text>
-            </View>
-          </View>
-        )}
-
         {/* Section header */}
         <View
           style={{
@@ -820,7 +784,7 @@ export default function RidesScreen() {
         </View>
       </Animated.View>
     ),
-    [stats, system, theme, periodMetaLabel, trendLabel, heroSubText, t, sortNewest, overview],
+    [stats, system, theme, periodMetaLabel, trendLabel, heroSubText, t, sortNewest],
   );
 
   const renderEmpty = useCallback(() => {

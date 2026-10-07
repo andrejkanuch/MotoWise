@@ -2,6 +2,13 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
+import { hasAnalyticsConsent, NO_CONSENT_PROPERTIES } from './analytics-consent';
+import {
+  type PostHogCaptureEvent,
+  postHogCaptureTarget,
+  SERVER_EVENT_PROPERTIES,
+  sendPostHogBatch,
+} from './posthog-capture';
 
 /**
  * The one canonical signup event. See migration 00174 for why this is a sweep
@@ -9,9 +16,6 @@ import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
  * this unit's real acceptance gate.
  */
 export const SIGNUP_EVENT = 'signup_completed' as const;
-
-/** Default PostHog capture host. EU project (155556), matching the mobile client. */
-const DEFAULT_POSTHOG_HOST = 'https://eu.i.posthog.com';
 
 /**
  * Single constant bucket for users who declined analytics. Not an identifier: it
@@ -25,8 +29,6 @@ export const MAX_SIGNUPS_PER_RUN = 200;
 /** PostHog's batch endpoint accepts many events per request; keep payloads modest. */
 const CAPTURE_BATCH_SIZE = 50;
 
-const CAPTURE_TIMEOUT_MS = 10_000;
-
 /**
  * A user claimed for emission, as returned by `claim_pending_signup_events`.
  * snake_case because it is a raw RPC row; mapped to camelCase below.
@@ -35,6 +37,10 @@ interface PendingSignupRow {
   user_id: string;
   created_at: string;
   auth_method: string | null;
+  /**
+   * The rider's decision: the account's, else the one sent with sign-up; NULL
+   * when neither exists (00184). See `hasAnalyticsConsent`.
+   */
   analytics_enabled: boolean | null;
   currency: string | null;
   measurement_system: string | null;
@@ -96,8 +102,8 @@ export class SignupEventsService {
       outcome,
     });
 
-    const token = this.config.get<string>('POSTHOG_PROJECT_TOKEN');
-    if (!token) {
+    const target = postHogCaptureTarget(this.config);
+    if (!target) {
       // Fail closed WITHOUT claiming. Claiming first and then discovering there is
       // nowhere to send would silently burn every pending user's one-and-only
       // emission, which the PK on signup_event_log makes unrecoverable except by
@@ -118,9 +124,9 @@ export class SignupEventsService {
     if (rows.length === 0) return empty(SWEEP_OUTCOME.OK);
 
     const events = rows.map((row) => this.buildEvent(row));
-    const identified = rows.filter((row) => row.analytics_enabled !== false).length;
+    const identified = rows.filter((row) => hasAnalyticsConsent(row.analytics_enabled)).length;
 
-    const delivered = await this.capture(events, token);
+    const delivered = await this.capture(events, target);
     if (!delivered) {
       // Give the claims back so the next tick retries rather than losing them.
       const released = await this.releaseClaims(rows.map((row) => row.user_id));
@@ -160,10 +166,12 @@ export class SignupEventsService {
    *  2. `timestamp` is the row's `created_at`, not now(). This is what makes the
    *     sweep's schedule an irrelevance rather than a measurement artefact.
    *
-   * Consent: a user who explicitly set `analyticsEnabled: false` still needs to
-   * be COUNTED — otherwise the reconciliation gate can never pass — but must not
-   * be identifiable. So they are emitted under a single constant bucket with
-   * person processing off, which is a tally, not a profile. Emitting an
+   * Consent: a user who saved `analyticsEnabled: false` still needs to be
+   * COUNTED — otherwise the reconciliation gate can never pass — but must not be
+   * identifiable. No saved decision is treated as consent for now; see
+   * `hasAnalyticsConsent`. So they are emitted under a single constant bucket with
+   * person processing off, which is a tally, not a profile. The rule itself
+   * lives in `analytics-consent.ts`, shared with the RevenueCat webhook. Emitting an
    * identified event for someone who declined analytics would contradict the
    * app's own privacy toggle regardless of legal basis.
    *
@@ -173,8 +181,8 @@ export class SignupEventsService {
    * already on the identified person from client-side events, which is the right
    * place for them.
    */
-  private buildEvent(row: PendingSignupRow) {
-    const consented = row.analytics_enabled !== false;
+  private buildEvent(row: PendingSignupRow): PostHogCaptureEvent {
+    const consented = hasAnalyticsConsent(row.analytics_enabled);
     const properties: Record<string, unknown> = {
       auth_method: row.auth_method ?? 'email',
       currency: row.currency ?? undefined,
@@ -182,11 +190,9 @@ export class SignupEventsService {
       // Lets an analyst tell this apart from the legacy client-side events while
       // both series exist.
       emitted_by: 'server_sweep',
+      ...SERVER_EVENT_PROPERTIES,
     };
-    if (!consented) {
-      properties.$process_person_profile = false;
-      properties.analytics_consent = false;
-    }
+    if (!consented) Object.assign(properties, NO_CONSENT_PROPERTIES);
     return {
       event: SIGNUP_EVENT,
       distinct_id: consented ? row.user_id : ANONYMOUS_DISTINCT_ID,
@@ -197,29 +203,13 @@ export class SignupEventsService {
 
   /** Returns true when every batch was accepted. */
   private async capture(
-    events: ReturnType<SignupEventsService['buildEvent']>[],
-    token: string,
+    events: PostHogCaptureEvent[],
+    target: { url: string; token: string },
   ): Promise<boolean> {
-    const host = this.config.get<string>('POSTHOG_HOST') ?? DEFAULT_POSTHOG_HOST;
-    const url = `${host.replace(/\/+$/, '')}/batch/`;
-
     for (let i = 0; i < events.length; i += CAPTURE_BATCH_SIZE) {
-      const batch = events.slice(i, i + CAPTURE_BATCH_SIZE);
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ api_key: token, batch }),
-          signal: AbortSignal.timeout(CAPTURE_TIMEOUT_MS),
-        });
-        if (!response.ok) {
-          this.logger.error(`PostHog batch capture returned ${response.status}`);
-          return false;
-        }
-      } catch (e) {
-        this.logger.error(
-          `PostHog batch capture failed: ${e instanceof Error ? e.message : String(e)}`,
-        );
+      const failure = await sendPostHogBatch(target, events.slice(i, i + CAPTURE_BATCH_SIZE));
+      if (failure) {
+        this.logger.error(`PostHog batch capture ${failure}`);
         return false;
       }
     }

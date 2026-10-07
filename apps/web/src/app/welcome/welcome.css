@@ -1,0 +1,472 @@
+/* ═══════════════════════════════════════════════════════════════
+   Post-signup "Get the app" screen (/welcome).
+   Spec: Handoff-1440 / Handoff-768 / Handoff-390, values 1:1.
+   Colours only from the --mv-* tokens. Class prefix: wl-.
+
+     ≥ 1024   two columns: lead (intro, reasons, continue) | QR card
+     768–1023 one 600px column: intro, reasons, QR card (row), continue
+     < 768    phone: no QR (cannot scan its own screen); a button to
+              motovault.app/get + the account line instead
+   ═══════════════════════════════════════════════════════════════ */
+
+.wl-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--mv-page);
+  color: var(--mv-ink);
+  font-family: var(--mv-font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Header ────────────────────────────────────────────────────── */
+
+.wl-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 28px;
+  border-bottom: 1px solid var(--mv-line);
+}
+.wl-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--mv-ink);
+  text-decoration: none;
+  border-radius: 4px;
+}
+.wl-brand-mark {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: linear-gradient(135deg, var(--mv-warm-400), var(--mv-warm-500));
+  color: var(--mv-on-accent);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.wl-signed-in {
+  margin: 0;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--mv-ink-2);
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+.wl-signed-in strong {
+  font-weight: 400;
+  color: var(--mv-ink);
+}
+
+/* ── Layout ────────────────────────────────────────────────────── */
+
+.wl-main {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 96px 48px;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 88px;
+  align-items: center;
+}
+.wl-lead {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  min-width: 0;
+}
+
+/* ── Intro ─────────────────────────────────────────────────────── */
+
+.wl-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.wl-eyebrow {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--mv-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mv-ink-2);
+}
+.wl-eyebrow::before {
+  content: "";
+  flex: none;
+  width: 24px;
+  height: 1px;
+  background: var(--mv-ink-3);
+}
+.wl-title {
+  margin: 0;
+  font-size: 64px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+/* Instrument Serif accent: upright (.mvg-serif sets font-style: normal). */
+.wl-serif {
+  letter-spacing: -0.02em;
+  font-size: 1.08em;
+}
+
+/* ── Reasons list ──────────────────────────────────────────────── */
+
+.wl-reasons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--mv-line);
+}
+.wl-reason {
+  display: grid;
+  grid-template-columns: 40px 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--mv-line);
+}
+.wl-reason-num {
+  font-family: var(--mv-font-mono);
+  font-size: 13px;
+  color: var(--mv-copper-400);
+}
+.wl-reason-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--mv-fill-icon);
+  color: var(--mv-ink-2);
+}
+.wl-reason-icon svg {
+  width: 20px;
+  height: 20px;
+}
+.wl-reason-title {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.wl-reason-tag {
+  font-family: var(--mv-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mv-ink-2);
+}
+
+/* ── Continue link ─────────────────────────────────────────────── */
+
+.wl-continue {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--mv-ink-2);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--mv-ink-3);
+  border-radius: 4px;
+  transition: color 150ms var(--mv-ease);
+}
+.wl-continue:hover {
+  color: var(--mv-ink);
+}
+
+/* ── QR card (≥ 768) ───────────────────────────────────────────── */
+
+.wl-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 36px;
+  border-radius: var(--mv-radius-card);
+  background: var(--mv-surface-2);
+  border: 1px solid var(--mv-line);
+}
+.wl-card-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+}
+.wl-card-text {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+.wl-card-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.wl-card-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.wl-card-body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--mv-ink-2);
+}
+.wl-linkfield {
+  text-align: left;
+}
+
+/* ── Account line ──────────────────────────────────────────────── */
+
+.wl-signin {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--mv-ink-2);
+  text-align: left;
+}
+.wl-signin strong {
+  font-weight: 600;
+  color: var(--mv-ink);
+  overflow-wrap: anywhere;
+}
+.wl-signin-icon {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--mv-fill-icon);
+  color: var(--mv-ink-2);
+}
+.wl-signin--card {
+  padding-top: 20px;
+  border-top: 1px solid var(--mv-line);
+}
+.wl-signin--box {
+  margin-top: 4px;
+  padding: 14px 16px;
+  border-radius: var(--mv-radius-inner);
+  background: var(--mv-line-2);
+  border: 1px solid var(--mv-line);
+  font-size: 13.5px;
+}
+.wl-signin--box .wl-signin-icon {
+  width: 32px;
+  height: 32px;
+}
+
+/* ── Phone CTA (< 768) ─────────────────────────────────────────── */
+
+.wl-phone {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+.wl-get {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 56px;
+  padding: 0 20px;
+  border-radius: var(--mv-radius-inner);
+  background: var(--mv-page);
+  border: 1px solid var(--mv-field-line);
+  color: var(--mv-ink);
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 150ms var(--mv-ease);
+}
+.wl-get:hover {
+  border-color: var(--mv-ink-3);
+}
+.wl-get svg + svg {
+  margin-left: -4px;
+}
+
+/* ── Tablet (768–1023) ─────────────────────────────────────────── */
+
+@media (max-width: 1023px) {
+  .wl-header {
+    padding: 14px 24px;
+  }
+  .wl-main {
+    max-width: 600px;
+    padding: 72px 0 88px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 36px;
+  }
+  /* The lead's children join the single column so the card can sit
+     between the reasons and the continue link. */
+  .wl-lead {
+    display: contents;
+  }
+  .wl-intro {
+    order: 1;
+    gap: 18px;
+  }
+  .wl-reasons {
+    order: 2;
+  }
+  .wl-card,
+  .wl-phone {
+    order: 3;
+  }
+  .wl-continue {
+    order: 4;
+    align-self: center;
+  }
+  .wl-title {
+    font-size: 52px;
+    line-height: 1.03;
+  }
+  .wl-reason {
+    grid-template-columns: 32px 40px minmax(0, 1fr) auto;
+    gap: 14px;
+    padding: 18px 0;
+  }
+  .wl-reason-title {
+    font-size: 17px;
+    letter-spacing: 0;
+  }
+  .wl-card {
+    gap: 20px;
+    padding: 28px;
+  }
+  .wl-card-row {
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+  }
+  .wl-card-text {
+    align-self: auto;
+    flex: 1;
+    gap: 12px;
+  }
+  .wl-card-copy {
+    gap: 12px;
+  }
+  .wl-card-title {
+    font-size: 22px;
+  }
+  .wl-card .mvg-qr--spotlight {
+    flex: none;
+    padding: 14px;
+    border-radius: 14px;
+  }
+  .wl-card .mvg-qr--spotlight svg {
+    width: 148px;
+    height: 148px;
+  }
+  .wl-signin--card {
+    padding-top: 16px;
+  }
+}
+
+/* ── Phone (< 768) ─────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .wl-header {
+    padding: 6px 16px;
+  }
+  /* The artboard drops "Signed in as" here; the account line below names
+     the address instead. */
+  .wl-signed-in {
+    display: none;
+  }
+  .wl-main {
+    max-width: none;
+    padding: 40px 16px 56px;
+    gap: 28px;
+  }
+  .wl-intro {
+    gap: 14px;
+  }
+  .wl-eyebrow {
+    gap: 10px;
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+  }
+  .wl-eyebrow::before {
+    width: 20px;
+  }
+  .wl-title {
+    font-size: 38px;
+    line-height: 1.05;
+  }
+  .wl-reason {
+    grid-template-columns: 24px 36px minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px 0;
+  }
+  .wl-reason-num {
+    font-size: 12px;
+  }
+  .wl-reason-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+  .wl-reason-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .wl-reason-title {
+    font-size: 15px;
+  }
+  .wl-reason-tag {
+    display: none;
+  }
+  .wl-card {
+    display: none;
+  }
+  .wl-phone {
+    display: flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wl-continue,
+  .wl-get {
+    transition: none;
+  }
+}

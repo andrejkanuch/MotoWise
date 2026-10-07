@@ -3,7 +3,9 @@ import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 import createIntlMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
+import { REGION_COOKIE, regionCookieUpdate } from './lib/consent-region';
 import { resolveUuidToSlug } from './lib/redirect/uuid-to-slug';
+import { THEME_INIT_SCRIPT_CSP_HASH } from './lib/theme-init-script';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
@@ -121,8 +123,12 @@ function buildCsp(scriptInlineToken: string): string {
   ].join('; ');
 }
 
+// The root layout's inline theme script carries no nonce (it is raw inline
+// HTML, not a Next-managed script), so the strict CSP allows it by hash. Only
+// here: next to 'unsafe-inline' a hash would make browsers ignore
+// 'unsafe-inline' and break every other inline script on nonce-free routes.
 function buildCspHeader(nonce: string): string {
-  return buildCsp(`'nonce-${nonce}'`);
+  return buildCsp(`'nonce-${nonce}' ${THEME_INIT_SCRIPT_CSP_HASH}`);
 }
 
 // Nonce-free CSP (the DEFAULT). A nonce-based CSP only works on dynamically
@@ -162,7 +168,7 @@ function applySecurityHeaders(response: NextResponse, nonce: string | null) {
 const MARKETING_CACHEABLE_RE =
   /^\/($|explore|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|piel|(?:en|de|fr|es|it|ja|pl|pt-BR)(?:\/|$))/;
 
-const NOINDEX_PREFIXES = ['/login', '/signup', '/forgot-password', '/explore/search'];
+const NOINDEX_PREFIXES = ['/login', '/signup', '/forgot-password', '/explore/search', '/get'];
 
 function isNoIndexRoute(pathname: string): boolean {
   return NOINDEX_PREFIXES.some(
@@ -265,7 +271,9 @@ async function adminAuth(request: NextRequest) {
   return response;
 }
 
-const PROTECTED_PREFIXES = ['/feed', '/garage', '/profile'];
+// '/welcome' is the post-signup "Get the app" screen: auth-gated and
+// dynamic like the garage, and it lives outside the [locale] tree.
+const PROTECTED_PREFIXES = ['/feed', '/garage', '/profile', '/welcome'];
 
 const PUBLIC_PREFIXES = [
   '/rider/',
@@ -352,57 +360,20 @@ async function communityAuth(request: NextRequest) {
   return supabaseResponse;
 }
 
-// EU/EEA + UK + CH — visitors from these countries require GDPR consent
-// before analytics tracking. Everyone else gets auto-opted-in.
-const CONSENT_REQUIRED_COUNTRIES = new Set([
-  // EU 27
-  'AT',
-  'BE',
-  'BG',
-  'HR',
-  'CY',
-  'CZ',
-  'DK',
-  'EE',
-  'FI',
-  'FR',
-  'DE',
-  'GR',
-  'HU',
-  'IE',
-  'IT',
-  'LV',
-  'LT',
-  'LU',
-  'MT',
-  'NL',
-  'PL',
-  'PT',
-  'RO',
-  'SK',
-  'SI',
-  'ES',
-  'SE',
-  // EEA
-  'IS',
-  'LI',
-  'NO',
-  // UK (UK GDPR) + Switzerland (FADP)
-  'GB',
-  'CH',
-]);
-
 function applyRegionCookie(request: NextRequest, response: NextResponse) {
-  // Skip if the cookie already exists — only set once per browser.
-  if (request.cookies.has('mv_region')) return;
-
-  const country = request.headers.get('x-vercel-ip-country') ?? '';
-  const region = CONSENT_REQUIRED_COUNTRIES.has(country) ? 'EU' : 'OTHER';
+  // Set once, then rewritten only when the visitor's geo region no longer
+  // matches it (e.g. a country newly added to the opt-in list). No geo header →
+  // keep what is stored.
+  const region = regionCookieUpdate(
+    request.cookies.get(REGION_COOKIE)?.value,
+    request.headers.get('x-vercel-ip-country'),
+  );
+  if (!region) return;
   const secure = request.nextUrl.protocol === 'https:' ? '; Secure' : '';
   // 1-year lifetime — region doesn't change often.
   response.headers.append(
     'Set-Cookie',
-    `mv_region=${region}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`,
+    `${REGION_COOKIE}=${region}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`,
   );
 }
 
@@ -471,10 +442,11 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/trips') ||
     pathname.startsWith('/pro') ||
     pathname.startsWith('/piel') ||
+    pathname === '/get' ||
     pathname.startsWith('/ingest')
   ) {
-    // Auth + public community routes + explore + route/trip detail + pro + PostHog proxy (/ingest → next.config rewrites): skip locale processing.
-    // NOTE: the indexable root-only sections here (trips/route/routes/ride/rider/pro)
+    // Auth + public community routes + explore + route/trip detail + pro + /get bio link + PostHog proxy (/ingest → next.config rewrites): skip locale processing.
+    // NOTE: the root-only sections here (trips/route/routes/ride/rider/pro/get)
     // are mirrored by NON_LOCALIZED_ROUTE_SECTIONS in next.config.ts, which strips
     // stray locale prefixes off them. Keep the two lists aligned so /{locale}/… of a
     // root-only section 308-consolidates instead of 404ing.
