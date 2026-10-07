@@ -572,6 +572,7 @@ const AUTO_ADVANCE_SCREENS: ReadonlySet<OnboardingRoute> = new Set([OB_SCREEN.PA
 export function getPreviousRoute(
   variant: ObVariant,
   current: OnboardingRoute,
+  ctx?: OnboardingNavContext,
 ): OnboardingRoutePath | null {
   const flow = ONBOARDING_FLOWS[variant];
   let previousIndex = flow.indexOf(current) - 1;
@@ -580,7 +581,13 @@ export function getPreviousRoute(
     // in both cases there is no previous step to derive.
     return null;
   }
-  while (previousIndex > 0 && AUTO_ADVANCE_SCREENS.has(flow[previousIndex])) {
+  // Skip auto-advancing screens, and screens the rider's bike state routes past
+  // (a bike-less rider never saw commitment, so Back from account is goals).
+  while (
+    previousIndex > 0 &&
+    (AUTO_ADVANCE_SCREENS.has(flow[previousIndex]) ||
+      (ctx !== undefined && isSkippedForBikeState(flow[previousIndex], ctx.hasBike)))
+  ) {
     previousIndex--;
   }
   return routeForScreen(flow[previousIndex]);

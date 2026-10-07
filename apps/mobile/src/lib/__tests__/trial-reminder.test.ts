@@ -126,6 +126,20 @@ describe('reconcileTrialReminder', () => {
     expect(schedule).not.toHaveBeenCalled();
   });
 
+  it('retries a cancellation the OS refused instead of forgetting the reminder', async () => {
+    await reconcileTrialReminder(renewingTrial, NOW);
+    const id = await schedule.mock.results[0].value;
+    osHas(id);
+    cancel.mockImplementationOnce(() => Promise.reject(new Error('os refused')));
+
+    await reconcileTrialReminder({ ...renewingTrial, willRenew: false }, NOW);
+    cancel.mockClear();
+    await reconcileTrialReminder({ ...renewingTrial, willRenew: false }, NOW);
+
+    // The stored id survived the failed attempt, so the retry targets it again.
+    expect(cancel).toHaveBeenCalledWith(id);
+  });
+
   it('schedules nothing for a NORMAL period', async () => {
     await reconcileTrialReminder({ ...renewingTrial, periodType: 'NORMAL' }, NOW);
     expect(schedule).not.toHaveBeenCalled();

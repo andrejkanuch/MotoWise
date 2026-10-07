@@ -93,10 +93,12 @@ async function scheduledTrialReminders(): Promise<{
   return { trial, total: all.length };
 }
 
-async function cancelIds(ids: readonly string[]): Promise<void> {
-  await Promise.all(
-    ids.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})),
+/** Cancel each id; returns true only when every cancellation succeeded. */
+async function cancelIds(ids: readonly string[]): Promise<boolean> {
+  const results = await Promise.allSettled(
+    ids.map((id) => Notifications.cancelScheduledNotificationAsync(id)),
   );
+  return results.every((r) => r.status === 'fulfilled');
 }
 
 async function reconcile(entitlement: TrialEntitlementSnapshot | undefined, now: Date) {
@@ -109,8 +111,10 @@ async function reconcile(entitlement: TrialEntitlementSnapshot | undefined, now:
   const existing = stored ? [...new Set([...trial, stored.id])] : trial;
 
   if (!fireAt) {
-    await cancelIds(existing);
-    await AsyncStorage.removeItem(TRIAL_REMINDER_STORAGE_KEY);
+    // Keep the stored id when the OS refused a cancellation, so the next
+    // reconcile retries instead of believing the "you'll be billed" reminder
+    // is gone.
+    if (await cancelIds(existing)) await AsyncStorage.removeItem(TRIAL_REMINDER_STORAGE_KEY);
     return;
   }
 
@@ -120,7 +124,8 @@ async function reconcile(entitlement: TrialEntitlementSnapshot | undefined, now:
   const target = fireAt.toISOString();
   if (stored?.fireAt === target && trial.includes(stored.id)) return;
 
-  await cancelIds(existing);
+  // Never schedule a second reminder next to one the OS would not cancel.
+  if (!(await cancelIds(existing))) return;
   await AsyncStorage.removeItem(TRIAL_REMINDER_STORAGE_KEY);
 
   if (total - trial.length >= IOS_NOTIFICATION_BUDGET) {

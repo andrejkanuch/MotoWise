@@ -224,6 +224,11 @@ export default function CommitmentScreen() {
           disabled={sealed}
           accessibilityRole="button"
           accessibilityLabel={t('onboarding.obCommitButtonIdle')}
+          // Screen readers activate with a single action, not a timed hold.
+          accessibilityActions={[{ name: 'activate' }]}
+          onAccessibilityAction={(event) => {
+            if (event.nativeEvent.actionName === 'activate') seal();
+          }}
           style={{
             height: 58,
             borderRadius: 16,

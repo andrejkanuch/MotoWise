@@ -123,6 +123,15 @@ describe('commit_first flow', () => {
     );
   });
 
+  it('Back from account skips commitment for a bike-less rider', () => {
+    expect(getPreviousRoute(OB_VARIANT.COMMIT_FIRST, OB_SCREEN.ACCOUNT, noBike)).toBe(
+      '/(onboarding)/goals',
+    );
+    expect(getPreviousRoute(OB_VARIANT.COMMIT_FIRST, OB_SCREEN.ACCOUNT, withBike)).toBe(
+      '/(onboarding)/commitment',
+    );
+  });
+
   it('resuming after a kill on the paywall continues to heard-about', () => {
     expect(getResumeRoute(OB_VARIANT.COMMIT_FIRST, OB_SCREEN.PAYWALL, withBike)).toBe(
       '/(onboarding)/heard-about',

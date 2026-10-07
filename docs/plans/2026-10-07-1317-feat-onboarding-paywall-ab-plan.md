@@ -50,7 +50,7 @@ Research: session dossiers 04-onboarding-code.md (code audit) and 05-onboarding-
 ### Acceptance Examples
 
 - AE1. Fresh install, flag returns `commit_first`: after creating an account the RevenueCat paywall appears; closing it lands on heard-about. Back from heard-about goes to account, not the paywall.
-- AE2. Fresh install, flag times out: variant `garage_first`, source `fallback`; on "Garage ready", tapping "Open my garage" shows the paywall; closing it opens the garage.
+- AE2. Fresh install, flag fetch times out (or resolves with no flags): the install is drawn on-device 50/50 with source `local`, so either arm is valid. A `garage_first` rider who reaches "Garage ready" and taps "Open my garage" sees the paywall; closing it opens the garage.
 - AE3. Existing install with `shipped` persisted mid-onboarding: continues the shipped flow, sees no new paywall step.
 - AE4. Rider starts a 7-day annual trial on day 0 with notifications granted: one reminder is scheduled for day 5; cancelling the trial in the store removes it on next app launch/customer-info update.
 - AE5. Pro rider (existing subscriber) signing up on a new device: paywall step is skipped silently in both variants.

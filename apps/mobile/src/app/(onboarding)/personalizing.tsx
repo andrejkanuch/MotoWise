@@ -301,21 +301,10 @@ export default function PersonalizingScreen() {
         logger.warn('[Personalizing] measurement_system update skipped:', err);
       }
 
-      trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {
-        experience_level: experienceLevel ?? 'beginner',
-        has_bike: !!bikeData,
-        has_photo: !!bikeData?.photoUri,
-        goals_count: ridingGoals.length,
-        goals: ridingGoals.join(','),
-        primary_goal: primaryGoal,
-        total_screens: totalScreens,
-        ...(bikeData && {
-          bike_make: bikeData.make,
-          bike_model: bikeData.model,
-          bike_year: bikeData.year,
-        }),
-        accepted_maintenance_count: acceptedOemScheduleIds.length,
-      });
+      // garage_first: onboarding is complete when the rider leaves the paywall
+      // for the garage, so the event fires from finishGaragePaywallOnce. Both
+      // arms then count completion at the same point (reaching the garage).
+      if (!showsGaragePaywall) trackOnboardingCompleted();
       MetaAnalytics.trackCompleteRegistration(eventId);
 
       // Initialize checklist store based on user goals
@@ -396,6 +385,24 @@ export default function PersonalizingScreen() {
     setOnboardingCompleted(true);
   };
 
+  const trackOnboardingCompleted = () => {
+    trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {
+      experience_level: experienceLevel ?? 'beginner',
+      has_bike: !!bikeData,
+      has_photo: !!bikeData?.photoUri,
+      goals_count: ridingGoals.length,
+      goals: ridingGoals.join(','),
+      primary_goal: primaryGoal,
+      total_screens: totalScreens,
+      ...(bikeData && {
+        bike_make: bikeData.make,
+        bike_model: bikeData.model,
+        bike_year: bikeData.year,
+      }),
+      accepted_maintenance_count: acceptedOemScheduleIds.length,
+    });
+  };
+
   // garage_first: "Open my garage" presents the onboarding paywall, then opens
   // the garage whatever the result (purchase, close, not presented, error).
   const garagePaywallStarted = useRef(false);
@@ -427,6 +434,7 @@ export default function PersonalizingScreen() {
       ...garagePaywallFields,
       paywall_result: paywallResult,
     });
+    trackOnboardingCompleted();
     handleContinue();
   };
 
