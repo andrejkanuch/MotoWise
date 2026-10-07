@@ -878,7 +878,6 @@
     "obCommitTitle": "Je suis prêt à prendre",
     "obCommitTitleOf": "soin de ma",
     "obCommitSupportA": "Les pilotes qui s'engagent ici ont bien plus de chances de garder leur moto au top.",
-    "obCommitSupportB": "Signez pour sceller votre engagement — ceux qui le font gardent bien plus souvent leur moto en parfait état.",
     "obCommitButtonIdle": "Appuie & maintiens — j'en suis",
     "obCommitButtonHolding": "Continue de maintenir…",
     "obCommitButtonDone": "J'en suis",
@@ -903,10 +902,6 @@
     "obPaywallEscape": "Continuer sans Pro",
     "obSignInTitle": "Bon retour",
     "obSignInSubtitle": "Connecte-toi pour accéder à ton garage sur cet appareil.",
-    "obCommitSignHint": "Signez ici",
-    "obCommitSignCaption": "Signez ci-dessus pour sceller votre engagement",
-    "obCommitSeal": "Sceller mon engagement",
-    "obCommitClear": "Effacer",
     "expAdvancedTenure": "10+ ans",
     "expPowerMode": "Mode expert",
     "expAffirmAdvanced": "Respect — on te configure vite.",
@@ -1417,7 +1412,12 @@
     "appUpdates": "Mises à jour de l'app",
     "appUpdatesDesc": "Nouvelles fonctionnalités et améliorations",
     "promotional": "Promotionnel",
-    "promotionalDesc": "Offres spéciales et annonces"
+    "promotionalDesc": "Offres spéciales et annonces",
+    "trialReminder": {
+      "title": "Votre essai Pro se termine dans 2 jours",
+      "body": "Vous serez facturé à la fin de l'essai. Gérez ou annulez à tout moment dans les réglages d'abonnement de votre store.",
+      "channelName": "Compte et abonnement"
+    }
   },
   "expenses": {
     "expensesEyebrow": "— DÉPENSES",

@@ -877,7 +877,6 @@
     "obCommitTitle": "大切にする",
     "obCommitTitleOf": "準備ができた、私の",
     "obCommitSupportA": "ここで誓ったライダーは、バイクを最高の状態に保つ可能性がはるかに高くなります。",
-    "obCommitSupportB": "署名して誓いを立てましょう。署名したライダーは、バイクを最高の状態に保てる可能性がはるかに高まります。",
     "obCommitButtonIdle": "長押し — 決めた",
     "obCommitButtonHolding": "そのまま押し続けて…",
     "obCommitButtonDone": "決めた",
@@ -902,10 +901,6 @@
     "obPaywallEscape": "Proなしで続ける",
     "obSignInTitle": "おかえりなさい",
     "obSignInSubtitle": "このデバイスでガレージにアクセスするにはサインインしてください。",
-    "obCommitSignHint": "ここに署名",
-    "obCommitSignCaption": "上に署名して誓いを確定しましょう",
-    "obCommitSeal": "誓いを確定する",
-    "obCommitClear": "消去",
     "expAdvancedTenure": "10年以上",
     "expPowerMode": "パワーモード",
     "expAffirmAdvanced": "さすがです — すぐにセットアップします。",
@@ -1416,7 +1411,12 @@
     "appUpdates": "アプリのアップデート",
     "appUpdatesDesc": "新機能と改善",
     "promotional": "プロモーション",
-    "promotionalDesc": "特別オファーとお知らせ"
+    "promotionalDesc": "特別オファーとお知らせ",
+    "trialReminder": {
+      "title": "Proの無料トライアルはあと2日で終了します",
+      "body": "終了時に請求が開始されます。ストアのサブスクリプション設定からいつでも管理・解約できます。",
+      "channelName": "アカウントとサブスクリプション"
+    }
   },
   "expenses": {
     "expensesEyebrow": "— 費用",

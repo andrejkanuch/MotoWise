@@ -879,7 +879,6 @@
     "obCommitTitle": "Jestem gotów zadbać",
     "obCommitTitleOf": "o mój",
     "obCommitSupportA": "Motocykliści, którzy się tu zobowiązują, znacznie częściej utrzymują motocykl w świetnej formie.",
-    "obCommitSupportB": "Podpisz się, aby przypieczętować zobowiązanie — kierowcy, którzy to robią, znacznie częściej utrzymują motocykl w doskonałej formie.",
     "obCommitButtonIdle": "Naciśnij i przytrzymaj — wchodzę w to",
     "obCommitButtonHolding": "Trzymaj dalej…",
     "obCommitButtonDone": "Wchodzę w to",
@@ -904,10 +903,6 @@
     "obPaywallEscape": "Kontynuuj bez Pro",
     "obSignInTitle": "Witaj z powrotem",
     "obSignInSubtitle": "Zaloguj się, aby uzyskać dostęp do garażu na tym urządzeniu.",
-    "obCommitSignHint": "Podpisz tutaj",
-    "obCommitSignCaption": "Podpisz powyżej, aby przypieczętować zobowiązanie",
-    "obCommitSeal": "Przypieczętuj zobowiązanie",
-    "obCommitClear": "Wyczyść",
     "expAdvancedTenure": "10+ lat",
     "expPowerMode": "Tryb eksperta",
     "expAffirmAdvanced": "Szacunek — szybko Cię skonfigurujemy.",
@@ -1418,7 +1413,12 @@
     "appUpdates": "Aktualizacje aplikacji",
     "appUpdatesDesc": "Nowe funkcje i ulepszenia",
     "promotional": "Promocyjne",
-    "promotionalDesc": "Oferty specjalne i ogloszenia"
+    "promotionalDesc": "Oferty specjalne i ogloszenia",
+    "trialReminder": {
+      "title": "Twój okres próbny Pro kończy się za 2 dni",
+      "body": "Po jego zakończeniu zostanie pobrana opłata. Zarządzaj subskrypcją lub anuluj ją w dowolnej chwili w ustawieniach subskrypcji w swoim sklepie.",
+      "channelName": "Konto i subskrypcja"
+    }
   },
   "expenses": {
     "title": "Wydatki",
