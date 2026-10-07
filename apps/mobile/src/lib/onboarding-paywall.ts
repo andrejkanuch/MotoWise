@@ -73,8 +73,14 @@ export async function presentOnboardingPaywall(
     experience: input.experienceLevel,
   };
 
-  await setOnboardingAttributes(personalization);
+  // Login first, so the attributes land on the signed-in customer rather than the
+  // anonymous one being replaced.
   await waitForRevenueCatLogin(REVENUECAT_LOGIN_WAIT_MS);
+  await setOnboardingAttributes(personalization);
+
+  // The rider may have taken the escape link while we waited. Bail before
+  // presentPaywall emits a present request into the funnel.
+  if (options.shouldAbort()) return 'not_presented';
 
   return presentPaywall({
     requiredEntitlementIdentifier: REVENUECAT_ENTITLEMENT_PRO,

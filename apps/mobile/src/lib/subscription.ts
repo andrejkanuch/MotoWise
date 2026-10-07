@@ -237,6 +237,19 @@ function syncTrialReminder(info: {
     .catch((e) => logger.warn('[RevenueCat] Trial reminder reconcile failed:', e));
 }
 
+/**
+ * Re-run the trial-reminder reconcile with fresh customer info. Call after
+ * notification permission is granted: a rider who started a trial before
+ * granting it (commit_first shows the paywall before the notifications step)
+ * would otherwise get no reminder until the next customer-info update. Never
+ * throws.
+ */
+export async function resyncTrialReminder(): Promise<void> {
+  await withRevenueCat('resyncTrialReminder', async (Purchases) => {
+    syncTrialReminder(await Purchases.getCustomerInfo());
+  });
+}
+
 async function doInit(): Promise<(() => void) | null> {
   try {
     const Purchases = await getPurchases();

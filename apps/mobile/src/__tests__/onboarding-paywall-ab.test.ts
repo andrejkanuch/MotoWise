@@ -42,7 +42,6 @@ const {
   getPreviousRoute,
   getResumeRoute,
   getVisibleProgress,
-  isRetiredScreen,
 } = require('../config/onboarding');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { useExperimentStore } = require('../stores/experiment.store');
@@ -112,8 +111,7 @@ describe('commit_first flow', () => {
   });
 
   it('the paywall is a real step, not a retired pass-through, for commit_first', () => {
-    expect(isRetiredScreen(OB_SCREEN.PAYWALL, OB_VARIANT.COMMIT_FIRST)).toBe(false);
-    expect(isRetiredScreen(OB_SCREEN.PAYWALL, OB_VARIANT.SHIPPED)).toBe(true);
+    expect(getFlowScreens(OB_VARIANT.COMMIT_FIRST)).toContain(OB_SCREEN.PAYWALL);
     expect(getNextRoute(OB_VARIANT.COMMIT_FIRST, OB_SCREEN.PAYWALL, withBike)).toBe(
       '/(onboarding)/heard-about',
     );
@@ -222,6 +220,16 @@ describe('resolveOnboardingVariant for new installs', () => {
       '$feature_flag_called',
       expect.objectContaining({ locally_defaulted: true }),
     );
+    random.mockRestore();
+  });
+
+  it('a fetch that resolves with no flags (network/API failure) draws locally', async () => {
+    // posthog-core reports a failed request by resolving undefined, not rejecting.
+    mockPosthog.reloadFeatureFlagsAsync.mockResolvedValue(undefined);
+    const random = jest.spyOn(Math, 'random').mockReturnValue(0.9);
+
+    await expect(resolveOnboardingVariant()).resolves.toBe('commit_first');
+    expect(useExperimentStore.getState().source).toBe('local');
     random.mockRestore();
   });
 

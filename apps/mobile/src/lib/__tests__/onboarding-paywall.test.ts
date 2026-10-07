@@ -78,6 +78,10 @@ describe('presentOnboardingPaywall', () => {
     });
 
     expect(order).toEqual(['login', 'present']);
+    // Attributes are written after login, onto the signed-in customer.
+    expect(mockWaitForRevenueCatLogin.mock.invocationCallOrder[0]).toBeLessThan(
+      mockSetOnboardingAttributes.mock.invocationCallOrder[0],
+    );
     expect(result).toBe('not_presented');
   });
 
@@ -111,6 +115,23 @@ describe('presentOnboardingPaywall', () => {
     expect(shouldAbort()).toBe(false);
     aborted = true;
     expect(shouldAbort()).toBe(true);
+  });
+});
+
+describe('presentOnboardingPaywall when the rider escaped during the wait', () => {
+  it('returns not_presented without calling presentPaywall', async () => {
+    let escaped = false;
+    mockWaitForRevenueCatLogin.mockImplementation(async () => {
+      escaped = true;
+    });
+
+    const result = await presentOnboardingPaywall(baseInput, {
+      surface: ONBOARDING_PAYWALL_SURFACE.STEP,
+      shouldAbort: () => escaped,
+    });
+
+    expect(result).toBe('not_presented');
+    expect(mockPresentPaywall).not.toHaveBeenCalled();
   });
 });
 

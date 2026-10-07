@@ -8,6 +8,7 @@ import {
 } from '../config/onboarding';
 import { useExperimentStore, type VariantSource } from '../stores/experiment.store';
 import { isAnalyticsEnabled, posthogClient, setUserProperties } from './analytics';
+import { withTimeout } from './with-timeout';
 
 // -------------------------------------------------------------------
 // Onboarding variant resolution — onboarding paywall A/B (2026-10-07)
@@ -61,31 +62,10 @@ function registerVariantWithAnalytics(variant: ObVariant) {
   setUserProperties({ onboarding_variant: variant });
 }
 
-const FETCH_TIMEOUT = Symbol('flag-fetch-timeout');
-
-async function reloadFlagsWithTimeout(): Promise<Record<string, boolean | string> | undefined> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  try {
-    const result = await Promise.race([
-      posthogClient.reloadFeatureFlagsAsync(),
-      new Promise<typeof FETCH_TIMEOUT>((resolve) => {
-        timer = setTimeout(
-          () => resolve(FETCH_TIMEOUT),
-          ONBOARDING_EXPERIMENT.FLAG_FETCH_TIMEOUT_MS,
-        );
-      }),
-    ]);
-    if (result === FETCH_TIMEOUT) throw new Error('PostHog flag fetch timed out');
-    return result;
-  } finally {
-    if (timer) clearTimeout(timer);
-  }
-}
-
 /** Uniform on-device draw over the assignable variants. */
 function drawLocalVariant(): AssignableObVariant {
   const arms = ONBOARDING_EXPERIMENT.ASSIGNABLE;
-  return arms[Math.min(Math.floor(Math.random() * arms.length), arms.length - 1)];
+  return arms[Math.floor(Math.random() * arms.length)];
 }
 
 /**
@@ -106,8 +86,15 @@ function captureExposure(variant: ObVariant, locallyDefaulted: boolean) {
 async function decideVariant(): Promise<{ variant: ObVariant; source: VariantSource }> {
   if (!isAnalyticsEnabled()) return { variant: drawLocalVariant(), source: 'local' };
   try {
-    const flags = await reloadFlagsWithTimeout();
-    const value = flags?.[ONBOARDING_EXPERIMENT.FLAG_KEY];
+    const flags = await withTimeout(
+      posthogClient.reloadFeatureFlagsAsync(),
+      ONBOARDING_EXPERIMENT.FLAG_FETCH_TIMEOUT_MS,
+      'PostHog flag fetch timed out',
+    );
+    // posthog-core resolves (not rejects) with no flags when the request fails,
+    // is quota-limited or the client is disabled: PostHog could not be asked.
+    if (!flags) return { variant: drawLocalVariant(), source: 'local' };
+    const value = flags[ONBOARDING_EXPERIMENT.FLAG_KEY];
     return isAssignableObVariant(value)
       ? { variant: value, source: 'posthog' }
       : { variant: ONBOARDING_EXPERIMENT.KILL_SWITCH, source: 'fallback' };
@@ -120,8 +107,7 @@ let inFlight: Promise<ObVariant> | null = null;
 
 async function assignNewInstall(): Promise<ObVariant> {
   const { variant, source } = await decideVariant();
-  const store = useExperimentStore.getState();
-  store.assignVariant(variant, source);
+  useExperimentStore.getState().assignVariant(variant, source);
   // First write wins: read back what is actually stored.
   const assigned = useExperimentStore.getState().onboardingVariant ?? variant;
   // Register BEFORE the exposure so `$feature_flag_called` carries the variant.

@@ -440,15 +440,13 @@ const RETIRED_SCREEN_SUCCESSOR: Partial<Record<OnboardingRoute, OnboardingRoute>
 };
 
 /**
- * True when `screen` is a retired step for `variant`: it has a recorded
- * successor and is not part of that variant's flow. The paywall is retired for
- * the shipped/legacy flows but a real step in `commit_first`.
+ * True when `screen` has a recorded successor because some flow retired it. The
+ * paywall is retired for the shipped/legacy flows but a real step in
+ * `commit_first`: `getNextRoute` only consults the successor when the screen is
+ * missing from the variant's flow.
  */
-export function isRetiredScreen(
-  screen: OnboardingRoute,
-  variant: ObVariant = OB_VARIANT.SHIPPED,
-): boolean {
-  return screen in RETIRED_SCREEN_SUCCESSOR && !ONBOARDING_FLOWS[variant].includes(screen);
+export function isRetiredScreen(screen: OnboardingRoute): boolean {
+  return screen in RETIRED_SCREEN_SUCCESSOR;
 }
 
 /**

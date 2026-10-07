@@ -71,6 +71,7 @@ import {
   configureRcAttribution,
   loginRevenueCat,
   logoutRevenueCat,
+  resyncTrialReminder,
   setOnboardingAttributes,
   setSelfReportedSource,
   waitForRevenueCatLogin,
@@ -171,6 +172,13 @@ describe('waitForRevenueCatLogin', () => {
     jest.advanceTimersByTime(3001);
     await expect(wait).resolves.toBeUndefined();
     jest.useRealTimers();
+  });
+});
+
+describe('resyncTrialReminder', () => {
+  it('re-reads customer info so a trial bought before permission gets its reminder', async () => {
+    await resyncTrialReminder();
+    expect(mockGetCustomerInfo).toHaveBeenCalled();
   });
 });
 

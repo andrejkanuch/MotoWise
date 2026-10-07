@@ -409,10 +409,24 @@ export default function PersonalizingScreen() {
     return () => clearTimeout(id);
   }, [garagePaywallPending]);
 
-  const finishGaragePaywallOnce = (properties: Record<string, string>) => {
+  const garagePaywallInput = { ridingGoals, bikeData, experienceLevel, pendingIntent };
+  const garagePaywallFields = (() => {
+    const { primaryGoal, placement, goals } = resolveOnboardingPaywallPlacement(garagePaywallInput);
+    return {
+      goals,
+      primary_goal: primaryGoal,
+      placement,
+      surface: ONBOARDING_PAYWALL_SURFACE.GARAGE_READY,
+    };
+  })();
+
+  const finishGaragePaywallOnce = (paywallResult: string) => {
     if (garagePaywallSettled.current) return;
     garagePaywallSettled.current = true;
-    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.PAYWALL, properties);
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.PAYWALL, {
+      ...garagePaywallFields,
+      paywall_result: paywallResult,
+    });
     handleContinue();
   };
 
@@ -425,37 +439,24 @@ export default function PersonalizingScreen() {
     garagePaywallStarted.current = true;
     setGaragePaywallPending(true);
 
-    const paywallInput = { ridingGoals, bikeData, experienceLevel, pendingIntent };
-    const { primaryGoal, placement, goals } = resolveOnboardingPaywallPlacement(paywallInput);
-    const analytics = {
-      goals,
-      primary_goal: primaryGoal,
-      placement,
-      surface: ONBOARDING_PAYWALL_SURFACE.GARAGE_READY,
-    };
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.PAYWALL, {
-      surface: ONBOARDING_PAYWALL_SURFACE.GARAGE_READY,
+      surface: garagePaywallFields.surface,
     });
 
-    presentOnboardingPaywall(paywallInput, {
+    presentOnboardingPaywall(garagePaywallInput, {
       surface: ONBOARDING_PAYWALL_SURFACE.GARAGE_READY,
       shouldAbort: () => garagePaywallSettled.current,
     })
-      .then((result) => finishGaragePaywallOnce({ ...analytics, paywall_result: result }))
+      .then((result) => finishGaragePaywallOnce(result))
       .catch((err) => {
         // presentPaywall resolves its own failures; reaching here means a bug, and
         // the rider must still get into their garage.
         captureException(err, { screen: OB_SCREEN.PERSONALIZING });
-        finishGaragePaywallOnce({ ...analytics, paywall_result: 'presentation_failed' });
+        finishGaragePaywallOnce('presentation_failed');
       });
   };
 
-  const handleGarageEscape = () => {
-    finishGaragePaywallOnce({
-      paywall_result: 'escape_hatch',
-      surface: ONBOARDING_PAYWALL_SURFACE.GARAGE_READY,
-    });
-  };
+  const handleGarageEscape = () => finishGaragePaywallOnce('escape_hatch');
 
   // Cold-start resume: the staged setup UI must not appear on app load. Hold a
   // bare background while the mutation completes silently (then the root guard

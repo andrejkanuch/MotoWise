@@ -18,6 +18,7 @@ import { AnalyticsEvent } from '../../lib/analytics';
 import { setupNotificationChannels } from '../../lib/notifications';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { registerForPushNotifications } from '../../lib/push-token';
+import { resyncTrialReminder } from '../../lib/subscription';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
@@ -231,7 +232,12 @@ export default function NotificationsScreen() {
         await setupNotificationChannels();
       }
       // MOT-278: register the device's Expo push token for server-sent reminders.
-      if (granted) void registerForPushNotifications();
+      if (granted) {
+        void registerForPushNotifications();
+        // A trial started on the commit_first paywall (before this step) can
+        // only get its day-5 reminder now that permission exists.
+        void resyncTrialReminder();
+      }
     } catch {
       // Request (or Android channel setup) rejected — treat as not granted and
       // continue. RESULT still fires below so it always pairs with REQUESTED.
