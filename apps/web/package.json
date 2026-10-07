@@ -16,7 +16,7 @@
     "@motovault/graphql": "workspace:*",
     "@motovault/types": "workspace:*",
     "@next/third-parties": "^16.3.8",
-    "@revenuecat/purchases-js": "^1.46.0",
+    "@revenuecat/purchases-js": "^1.68.0",
     "@sentry/nextjs": "^10.50.0",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",

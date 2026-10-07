@@ -523,8 +523,8 @@ importers:
         specifier: ^16.3.8
         version: 16.3.8(next@16.3.8(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.1)(@types/node@22.20.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
       '@revenuecat/purchases-js':
-        specifier: ^1.46.0
-        version: 1.46.0
+        specifier: ^1.68.0
+        version: 1.68.0
       '@sentry/nextjs':
         specifier: ^10.50.0
         version: 10.50.0(@opentelemetry/core@2.7.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.7.0(@opentelemetry/api@1.9.1))(next@16.3.8(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.1)(@types/node@22.20.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.104.1(lightningcss@1.30.1)(postcss@8.5.15))
@@ -4532,11 +4532,11 @@ packages:
   '@revenuecat/purchases-js-hybrid-mappings@18.19.0':
     resolution: {integrity: sha512-Oa9wKcOeax/ZDpF7l5mGZ9OWO0mVru+64lyg3bL45mL/cPqvam33CEY/JU7EDYKzj6xmVlNv5Xbe+hwtVLOO5Q==}
 
-  '@revenuecat/purchases-js@1.46.0':
-    resolution: {integrity: sha512-uhCUTrtQTcJ8LE2UD8k0HDB8SX9PMjkbD9923v9QoHYEZUAK+S2EpImCM0qiYHbowDzJZrlowitnrn8xpWn6JQ==}
-
   '@revenuecat/purchases-js@1.47.0':
     resolution: {integrity: sha512-bytRHMnz4LKSeZLNE4crLo6FjbS2f80iJO+P4ZJ6U+qMJNMtWTkURVufCM3tHszVizhLtW8JYe8TdbLNADhiEQ==}
+
+  '@revenuecat/purchases-js@1.68.0':
+    resolution: {integrity: sha512-1z8S2PWp2EJNljxZbrxY7hU+JrAgEl1kYKZ/xF82t6LVuLQFJrlTSihjC44Zp16i5A6LR4SB8FLANN2UIh9Fvg==}
 
   '@revenuecat/purchases-typescript-internal@18.19.0':
     resolution: {integrity: sha512-XKOJ2CS+hYXnv0EUoQ7hV3AvHBcx0HqkLpnqYVMaAQyZ/BT/+CmUexVbXSfRAXGPBw0LTqR2gBQ4JrZEsYPxpw==}
@@ -16488,9 +16488,9 @@ snapshots:
     dependencies:
       '@revenuecat/purchases-js': 1.47.0
 
-  '@revenuecat/purchases-js@1.46.0': {}
-
   '@revenuecat/purchases-js@1.47.0': {}
+
+  '@revenuecat/purchases-js@1.68.0': {}
 
   '@revenuecat/purchases-typescript-internal@18.19.0': {}
 
