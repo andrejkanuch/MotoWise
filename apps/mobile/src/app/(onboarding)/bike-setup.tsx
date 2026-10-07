@@ -48,6 +48,7 @@ import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { resolveMakeFromIntent } from '../../lib/pending-intent';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { isValidMakeName } from '../../utils/bike-make';
 import { triggerImpact } from '../../utils/haptics';
 
 const currentYear = new Date().getFullYear();
@@ -138,9 +139,7 @@ export default function BikeSetupScreen() {
   // ── Derived ─────────────────────────────────────────────────
   const yearNum = Number.parseInt(year, 10);
   const isValidYear = year.length === 4 && yearNum >= 1970 && yearNum <= currentYear + 1;
-  const activeMakeName = isCustomMake ? customMakeName : selectedMake?.makeName;
-  const hasMake = !!(selectedMake || (isCustomMake && customMakeName.trim()));
-  const canContinue = isValidYear && hasMake;
+  const activeMakeName = isCustomMake ? customMakeName.trim() : selectedMake?.makeName;
   // Intent confirmation gate (P2 T3) — shown once the stored pendingIntent's make
   // has been resolved against the loaded make list (below) into `selectedMake`.
   const showIntentConfirm = !!pendingIntent && !dismissedIntent && !!selectedMake;
@@ -149,12 +148,28 @@ export default function BikeSetupScreen() {
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.BIKE_SETUP);
   }, []);
 
+  // ── Queries ─────────────────────────────────────────────────
+  const makesResult = useQuery({
+    queryKey: queryKeys.nhtsa.makes,
+    queryFn: () => gqlFetcher(MotorcycleMakesDocument),
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+  const makesData = makesResult.data?.motorcycleMakes;
+  const makes = useMemo(() => makesData ?? [], [makesData]);
+
+  // A picked make is real by construction; a free-typed one must pass the
+  // length/list check so 1–2 character junk ("H", "ab") can't become a bike.
+  const makeNames = useMemo(() => makes.map((m) => m.makeName), [makes]);
+  const isCustomMakeValid = isCustomMake && isValidMakeName(customMakeName, makeNames);
+  const hasMake = !!selectedMake || isCustomMakeValid;
+  const canContinue = isValidYear && hasMake;
+
   // ── Stage: make selected vs not ─────────────────────────────
   // Leave the grid (Stage A) once a make is picked OR "Other make" is tapped —
   // the latter reveals the custom-name input even before a name is typed.
   const showMakeDetails = !!selectedMake || isCustomMake;
-  // Brand hero/headline only once we actually have a name to show.
-  const showBrandHero = !!selectedMake || (isCustomMake && !!customMakeName.trim());
+  // Brand hero/headline only once we actually have a valid name to show.
+  const showBrandHero = hasMake;
 
   // ── Dynamic headline + reward subtitle (empty → picked) ─────
   const headline = useMemo(() => {
@@ -183,14 +198,6 @@ export default function BikeSetupScreen() {
       sub: t('onboarding.v2BikeSetupSubtitleReward' as never),
     };
   }, [showIntentConfirm, showBrandHero, activeMakeName, isCustomMake, t]);
-
-  // ── Queries ─────────────────────────────────────────────────
-  const makesResult = useQuery({
-    queryKey: queryKeys.nhtsa.makes,
-    queryFn: () => gqlFetcher(MotorcycleMakesDocument),
-    staleTime: Number.POSITIVE_INFINITY,
-  });
-  const makes = makesResult.data?.motorcycleMakes ?? [];
 
   // Resolve the web→app intent (P2 T3): once the make list has loaded, match the
   // stored pendingIntent's make and pre-fill the selection so the one-tap
@@ -474,8 +481,9 @@ export default function BikeSetupScreen() {
               {/* Model year stepper */}
               <YearStepper value={year} onChange={setYear} onStep={triggerImpact} />
 
-              {/* Custom make name input (only for "Other") */}
-              {isCustomMake && !customMakeName.trim() && (
+              {/* Custom make name input (only for "Other"). Stays mounted while
+                  typing — it used to unmount after the first character. */}
+              {isCustomMake && (
                 <View>
                   <Text style={sectionLabel}>{t('onboarding.v2BikeSetupMakeName')}</Text>
                   <TextInput
@@ -501,8 +509,8 @@ export default function BikeSetupScreen() {
                 </View>
               )}
 
-              {/* Brand hero (only when we have a name) */}
-              {activeMakeName && (
+              {/* Brand hero (only when we have a valid name) */}
+              {showBrandHero && activeMakeName && (
                 <>
                   <BrandHero
                     makeName={activeMakeName}
