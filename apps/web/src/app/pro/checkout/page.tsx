@@ -7,7 +7,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { Crown, Lock, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { getCampaignParams } from '@/lib/campaign';
 import {
@@ -16,6 +16,7 @@ import {
   SUPPORT_EMAIL,
 } from '@/lib/checkout-errors';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { CUSTOM_PAYWALL_IDS, trackCustomPaywallImpression } from '@/lib/revenuecat';
 import {
   annualSavingsPercent,
   WEB_PLAN_IDS,
@@ -109,6 +110,9 @@ function CheckoutContent() {
   // One trial per person, on any platform (docs/RevenueCat-Trial-Audit-2026-09-19.md).
   // Starts true so the page never promises a trial before the answer is in.
   const [hasUsedTrial, setHasUsedTrial] = useState(true);
+  // One RevenueCat impression per visit: "Try again" and Strict Mode re-run the
+  // offering effect, and every call would count as another paywall view.
+  const impressionTracked = useRef(false);
 
   // Check auth on mount
   useEffect(() => {
@@ -168,6 +172,22 @@ function CheckoutContent() {
       }
       setWebOffering(resolved);
       setOfferingStatus(resolved ? OFFERING_STATUS.READY : OFFERING_STATUS.UNAVAILABLE);
+      // The paywall is on screen once its prices are: report the view to
+      // RevenueCat so experiments and paywall analytics count this visitor.
+      if (resolved && !impressionTracked.current) {
+        impressionTracked.current = true;
+        void trackCustomPaywallImpression(CUSTOM_PAYWALL_IDS.WEB_CHECKOUT, resolved).then(
+          (tracked) => {
+            if (!tracked) {
+              Sentry.captureMessage('RevenueCat custom paywall impression not tracked', {
+                level: 'warning',
+                tags: { area: 'checkout', op: 'trackCustomPaywallImpression' },
+                extra: { offeringId: resolved.identifier },
+              });
+            }
+          },
+        );
+      }
       setHasUsedTrial(eligibility?.me.hasUsedTrial !== false);
     })();
     return () => {

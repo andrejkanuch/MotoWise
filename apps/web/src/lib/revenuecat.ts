@@ -1,4 +1,4 @@
-import type { CustomerInfo } from '@revenuecat/purchases-js';
+import type { CustomerInfo, Offering } from '@revenuecat/purchases-js';
 
 /**
  * Serializes all SDK access. The web `Purchases` singleton must be configured
@@ -104,4 +104,39 @@ async function resolveCustomerInfo(apiKey: string, appUserId: string): Promise<C
   }
 
   return instance.getCustomerInfo();
+}
+
+/**
+ * Paywall ids reported to RevenueCat for paywalls we render ourselves (RevenueCat
+ * Paywalls track their own views). Experiments and paywall analytics count only
+ * customers with an impression, so without one every web checkout visitor would
+ * look like someone who never saw a paywall.
+ */
+export const CUSTOM_PAYWALL_IDS = {
+  WEB_CHECKOUT: 'web_checkout',
+} as const;
+
+export type CustomPaywallId = (typeof CUSTOM_PAYWALL_IDS)[keyof typeof CUSTOM_PAYWALL_IDS];
+
+/**
+ * Report one view of a custom paywall to RevenueCat. Call it once per
+ * presentation, after the offering that renders the paywall has loaded: each
+ * call is a separate impression, and passing the offering keeps its placement
+ * and targeting attribution.
+ *
+ * Analytics only — it never throws. Returns false when the SDK is not configured
+ * or the call failed, so the caller can report it.
+ */
+export async function trackCustomPaywallImpression(
+  paywallId: CustomPaywallId,
+  offering: Offering,
+): Promise<boolean> {
+  try {
+    const { Purchases } = await import('@revenuecat/purchases-js');
+    if (!Purchases.isConfigured()) return false;
+    Purchases.getSharedInstance().trackCustomPaywallImpression({ paywallId, offering });
+    return true;
+  } catch {
+    return false;
+  }
 }
