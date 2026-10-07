@@ -50,13 +50,16 @@ describe('NotesService', () => {
   let service: NotesService;
   let mock: ReturnType<typeof createSupabaseMock>;
   let adminMock: ReturnType<typeof createSupabaseMock>;
-  let tasksService: { create: ReturnType<typeof vi.fn> };
+  let tasksService: { create: ReturnType<typeof vi.fn>; softDelete: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     vi.clearAllMocks();
     mock = createSupabaseMock();
     adminMock = createSupabaseMock();
-    tasksService = { create: vi.fn().mockResolvedValue({ id: TASK_ID }) };
+    tasksService = {
+      create: vi.fn().mockResolvedValue({ id: TASK_ID }),
+      softDelete: vi.fn().mockResolvedValue(true),
+    };
     const configMock = { getOrThrow: vi.fn().mockReturnValue(SUPABASE_URL) };
     service = new NotesService(
       mock as never,
@@ -159,15 +162,14 @@ describe('NotesService', () => {
     });
 
     it('alsoCreateTask creates one low-priority undated task and links it', async () => {
-      mock.chain.single
-        .mockResolvedValueOnce({ data: noteRow(), error: null })
-        .mockResolvedValueOnce({
-          data: noteRow({
-            linked_task_id: TASK_ID,
-            linked_task: { title: 'Rear preload felt soft two-up on the Pyrenees run' },
-          }),
-          error: null,
-        });
+      mock.chain.single.mockResolvedValueOnce({ data: noteRow(), error: null });
+      mock.chain.maybeSingle.mockResolvedValueOnce({
+        data: noteRow({
+          linked_task_id: TASK_ID,
+          linked_task: { title: 'Rear preload felt soft two-up on the Pyrenees run' },
+        }),
+        error: null,
+      });
 
       const note = await service.create(USER_ID, {
         motorcycleId: BIKE_ID,
@@ -183,6 +185,8 @@ describe('NotesService', () => {
         notes: FIXTURE_TEXT,
       });
       expect(mock.chain.update).toHaveBeenCalledWith({ linked_task_id: TASK_ID });
+      // Compare-and-set: only links a note that is still unlinked.
+      expect(mock.chain.is).toHaveBeenCalledWith('linked_task_id', null);
       expect(note.linkedTaskId).toBe(TASK_ID);
     });
 
@@ -317,11 +321,12 @@ describe('NotesService', () => {
     });
 
     it('creates and links a task for an unlinked note', async () => {
-      mock.chain.maybeSingle.mockResolvedValueOnce({ data: noteRow(), error: null });
-      mock.chain.single.mockResolvedValueOnce({
-        data: noteRow({ linked_task_id: TASK_ID, linked_task: { title: 'T' } }),
-        error: null,
-      });
+      mock.chain.maybeSingle
+        .mockResolvedValueOnce({ data: noteRow(), error: null })
+        .mockResolvedValueOnce({
+          data: noteRow({ linked_task_id: TASK_ID, linked_task: { title: 'T' } }),
+          error: null,
+        });
 
       const note = await service.createTaskFromNote(USER_ID, NOTE_ID);
 
@@ -330,18 +335,51 @@ describe('NotesService', () => {
     });
 
     it('replaces a link whose task was deleted', async () => {
-      mock.chain.maybeSingle.mockResolvedValueOnce({
-        data: noteRow({ linked_task_id: 'gone', linked_task: null }),
-        error: null,
-      });
-      mock.chain.single.mockResolvedValueOnce({
-        data: noteRow({ linked_task_id: TASK_ID, linked_task: { title: 'T' } }),
-        error: null,
-      });
+      mock.chain.maybeSingle
+        .mockResolvedValueOnce({
+          data: noteRow({ linked_task_id: 'gone', linked_task: null }),
+          error: null,
+        })
+        .mockResolvedValueOnce({
+          data: noteRow({ linked_task_id: TASK_ID, linked_task: { title: 'T' } }),
+          error: null,
+        });
 
       await service.createTaskFromNote(USER_ID, NOTE_ID);
 
       expect(tasksService.create).toHaveBeenCalledTimes(1);
+      expect(mock.chain.eq).toHaveBeenCalledWith('linked_task_id', 'gone');
+    });
+
+    it('a concurrent link wins: drops the task it just created and returns the winner', async () => {
+      mock.chain.maybeSingle
+        .mockResolvedValueOnce({ data: noteRow(), error: null })
+        // The compare-and-set matched no row: another request linked first.
+        .mockResolvedValueOnce({ data: null, error: null })
+        .mockResolvedValueOnce({
+          data: noteRow({ linked_task_id: 'task-winner', linked_task: { title: 'W' } }),
+          error: null,
+        });
+
+      const note = await service.createTaskFromNote(USER_ID, NOTE_ID);
+
+      expect(tasksService.softDelete).toHaveBeenCalledWith(USER_ID, TASK_ID);
+      expect(note.linkedTaskId).toBe('task-winner');
+    });
+
+    it('still returns the winner when dropping the duplicate task fails', async () => {
+      tasksService.softDelete.mockRejectedValueOnce(new Error('boom'));
+      mock.chain.maybeSingle
+        .mockResolvedValueOnce({ data: noteRow(), error: null })
+        .mockResolvedValueOnce({ data: null, error: null })
+        .mockResolvedValueOnce({
+          data: noteRow({ linked_task_id: 'task-winner', linked_task: { title: 'W' } }),
+          error: null,
+        });
+
+      const note = await service.createTaskFromNote(USER_ID, NOTE_ID);
+
+      expect(note.linkedTaskId).toBe('task-winner');
     });
 
     it("throws NotFoundException for a note that is not the caller's", async () => {
@@ -378,6 +416,22 @@ describe('NotesService', () => {
         `Maximum of ${NOTE_PHOTOS_MAX} photos per note`,
       );
       expect(mock.chain.insert).not.toHaveBeenCalled();
+    });
+
+    it('reports the cap when a concurrent add wins the race (00182 trigger, 23514)', async () => {
+      mock.chain.maybeSingle.mockResolvedValueOnce({ data: noteRow(), error: null });
+      mock.chain.eq
+        .mockReturnValueOnce(mock.chain)
+        .mockReturnValueOnce(mock.chain)
+        .mockResolvedValueOnce({ count: 2, error: null });
+      mock.chain.single.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'note_photos_limit', code: '23514' },
+      });
+
+      await expect(service.addPhoto(USER_ID, NOTE_ID, validPath)).rejects.toThrow(
+        `Maximum of ${NOTE_PHOTOS_MAX} photos per note`,
+      );
     });
 
     it('inserts the link row and returns the public URL', async () => {
@@ -434,6 +488,20 @@ describe('NotesService', () => {
       expect(adminMock.storage.from).toHaveBeenCalledWith('maintenance-photos');
       expect(adminMock.remove).toHaveBeenCalledWith([path]);
       expect(mock.chain.delete).toHaveBeenCalled();
+    });
+
+    it.each([
+      ['another user', `user-2/notes/${NOTE_ID}/1.webp`],
+      ['another note of the same user', `${USER_ID}/notes/note-2/1.webp`],
+      ['a parent segment', `${USER_ID}/notes/${NOTE_ID}/../../user-2/1.webp`],
+    ])('refuses to remove a storage path in %s', async (_label, path) => {
+      mock.chain.maybeSingle.mockResolvedValueOnce({
+        data: { id: 'photo-1', note_id: NOTE_ID, user_id: USER_ID, storage_path: path },
+        error: null,
+      });
+
+      await expect(service.deletePhoto(USER_ID, 'photo-1')).rejects.toThrow(NotFoundException);
+      expect(adminMock.storage.from).not.toHaveBeenCalled();
     });
 
     it('throws NotFoundException for a photo the caller cannot see', async () => {

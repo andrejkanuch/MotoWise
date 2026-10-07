@@ -206,9 +206,7 @@ export class NotesService {
     // A path that is not already in normal form (`..`, `.`, `//`) is refused
     // outright: `uid/notes/id/../../x` passes a naive startsWith and resolves
     // outside the note's folder.
-    const isNormalised =
-      posix.normalize(storagePath) === storagePath && !storagePath.includes(PARENT_SEGMENT);
-    if (!isNormalised || !storagePath.startsWith(`${userId}/notes/${noteId}/`)) {
+    if (!this.isNotePhotoPath(storagePath, userId, noteId)) {
       this.logger.warn(`addPhoto: rejected storage path outside the note prefix. userId=${userId}`);
       throw new BadRequestException('Invalid storage path');
     }
@@ -240,6 +238,10 @@ export class NotesService {
 
     if (error || !data) {
       this.throwIfRlsRejected(error, 'addPhoto');
+      // A concurrent add raced past the count above; the 00182 trigger caught it.
+      if (error?.code === PG_ERROR.CHECK_VIOLATION) {
+        throw new BadRequestException(`Maximum of ${NOTE_PHOTOS_MAX} photos per note`);
+      }
       this.logger.error(`addPhoto failed: ${error?.message} (${error?.code})`);
       throw new BadRequestException('Failed to add photo');
     }
@@ -258,9 +260,10 @@ export class NotesService {
     if (photoError || !photo) throw new NotFoundException('Photo not found');
     const row = photo as NotePhotoRow;
 
-    // Defence in depth before the path reaches the admin client's storage.remove.
-    if (!row.storage_path.startsWith(`${userId}/`)) {
-      this.logger.warn(`deletePhoto: rejected path outside the user prefix. userId=${userId}`);
+    // Defence in depth before the path reaches the admin client's storage.remove:
+    // the same rule addPhoto applies (00182 also CHECKs it on the row).
+    if (!this.isNotePhotoPath(row.storage_path, userId, row.note_id)) {
+      this.logger.warn(`deletePhoto: rejected path outside the note prefix. userId=${userId}`);
       throw new NotFoundException('Photo not found');
     }
 
@@ -301,6 +304,13 @@ export class NotesService {
     return map;
   }
 
+  /** In normal form (no `..`, `.`, `//`) and inside `{userId}/notes/{noteId}/`. */
+  private isNotePhotoPath(storagePath: string, userId: string, noteId: string): boolean {
+    const isNormalised =
+      posix.normalize(storagePath) === storagePath && !storagePath.includes(PARENT_SEGMENT);
+    return isNormalised && storagePath.startsWith(`${userId}/notes/${noteId}/`);
+  }
+
   /**
    * A write refused by row-level security (42501) is an ownership failure — the
    * bike, the note or a linked row is not the caller's — not a malformed
@@ -312,7 +322,12 @@ export class NotesService {
     throw new ForbiddenException('You do not have access to this motorcycle or note');
   }
 
-  /** Creates the low-priority, undated task for a note and stores the link. */
+  /**
+   * Creates the low-priority, undated task for a note and stores the link. The
+   * link is a compare-and-set on the link the note had when it was read, so two
+   * concurrent "Make it a task" calls (double tap, retry) cannot both link: the
+   * loser soft-deletes the task it just created and returns the winner's note.
+   */
   private async linkNewTask(userId: string, row: NoteRow): Promise<Note> {
     const task = await this.maintenanceTasksService.create(userId, {
       motorcycleId: row.motorcycle_id,
@@ -321,19 +336,36 @@ export class NotesService {
       notes: row.body.slice(0, TASK_NOTES_MAX),
     });
 
-    const { data, error } = await this.supabase
+    const link = this.supabase
       .from(NOTES_TABLE)
       .update({ linked_task_id: task.id })
       .eq('id', row.id)
-      .eq('user_id', userId)
+      .eq('user_id', userId);
+    const { data, error } = await (row.linked_task_id
+      ? link.eq('linked_task_id', row.linked_task_id)
+      : link.is('linked_task_id', null)
+    )
       .select(NOTE_SELECT)
-      .single();
+      .maybeSingle();
 
-    if (error || !data) {
-      this.logger.error(`linkNewTask failed: ${error?.message} (${error?.code})`);
+    if (error) {
+      this.logger.error(`linkNewTask failed: ${error.message} (${error.code})`);
       throw new InternalServerErrorException('Failed to link the task to the note');
     }
-    return this.mapRow(data as unknown as NoteRow);
+    if (data) return this.mapRow(data as unknown as NoteRow);
+
+    // Another request linked a task first: drop ours so the rider has one.
+    this.logger.warn(
+      `linkNewTask: note ${row.id} was linked concurrently; dropping task ${task.id}`,
+    );
+    try {
+      await this.maintenanceTasksService.softDelete(userId, task.id);
+    } catch (deleteError) {
+      this.logger.error(
+        `linkNewTask: duplicate task ${task.id} not removed: ${(deleteError as Error).message}`,
+      );
+    }
+    return this.mapRow(await this.findRow(userId, row.id));
   }
 
   private async findRow(userId: string, noteId: string): Promise<NoteRow> {

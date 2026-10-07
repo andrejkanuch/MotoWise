@@ -264,9 +264,11 @@ describe('NotesResolver — through the real service', () => {
     });
 
     it('returns the saved note, unlinked, when the task exists but the link cannot be stored', async () => {
-      db.chain.single
-        .mockResolvedValueOnce({ data: noteRow(), error: null })
-        .mockResolvedValueOnce({ data: null, error: { message: 'timeout', code: '57014' } });
+      db.chain.single.mockResolvedValueOnce({ data: noteRow(), error: null });
+      db.chain.maybeSingle.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'timeout', code: '57014' },
+      });
 
       const note = await resolver.createNote(USER, input);
 
@@ -275,12 +277,11 @@ describe('NotesResolver — through the real service', () => {
     });
 
     it('links the task when it is created', async () => {
-      db.chain.single
-        .mockResolvedValueOnce({ data: noteRow(), error: null })
-        .mockResolvedValueOnce({
-          data: noteRow({ linked_task_id: TASK_ID, linked_task: { title: 'Rear preload' } }),
-          error: null,
-        });
+      db.chain.single.mockResolvedValueOnce({ data: noteRow(), error: null });
+      db.chain.maybeSingle.mockResolvedValueOnce({
+        data: noteRow({ linked_task_id: TASK_ID, linked_task: { title: 'Rear preload' } }),
+        error: null,
+      });
 
       const note = await resolver.createNote(USER, input);
 

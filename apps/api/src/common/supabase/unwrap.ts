@@ -19,6 +19,8 @@ export const PG_ERROR = {
   UNIQUE_VIOLATION: '23505',
   /** Postgres foreign-key violation (e.g. ON DELETE RESTRICT blocks a delete). */
   FOREIGN_KEY_VIOLATION: '23503',
+  /** Postgres check_violation — a CHECK constraint, or a trigger raising it (00182 photo cap). */
+  CHECK_VIOLATION: '23514',
   /**
    * Postgres insufficient_privilege. In practice: a row-level security policy
    * rejected the write ("new row violates row-level security policy").

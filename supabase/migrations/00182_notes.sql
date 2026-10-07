@@ -75,11 +75,23 @@ CREATE TABLE public.note_photos (
   storage_path text NOT NULL,
   file_size_bytes int,
   mime_type text NOT NULL DEFAULT 'image/webp',
-  created_at timestamptz NOT NULL DEFAULT now()
+  created_at timestamptz NOT NULL DEFAULT now(),
+  -- The object must sit in the owner's folder for this note, in normal form.
+  -- notes.service checks the same before its admin-client storage.remove; this
+  -- keeps a direct PostgREST insert from registering any other path.
+  CONSTRAINT note_photos_storage_path_in_note_folder CHECK (
+    left(storage_path, length(user_id::text || '/notes/' || note_id::text || '/'))
+      = user_id::text || '/notes/' || note_id::text || '/'
+    AND length(storage_path) > length(user_id::text || '/notes/' || note_id::text || '/')
+    AND position('..' IN storage_path) = 0
+    AND position('//' IN storage_path) = 0
+    AND position('/./' IN storage_path) = 0
+    AND right(storage_path, 1) <> '/'
+  )
 );
 
 COMMENT ON TABLE public.note_photos IS
-  'Photo attachments on notes. Files live in the maintenance-photos bucket under {userId}/notes/{noteId}/. Max 3 per note enforced at application layer.';
+  'Photo attachments on notes. Files live in the maintenance-photos bucket under {userId}/notes/{noteId}/. Max 3 per note (trigger enforce_note_photos_limit; NOTE_PHOTOS_MAX in @motovault/types).';
 
 CREATE INDEX idx_note_photos_note ON public.note_photos (note_id);
 CREATE INDEX idx_note_photos_user ON public.note_photos (user_id);
@@ -169,6 +181,32 @@ CREATE POLICY "Users own note photos" ON public.note_photos
       WHERE n.id = note_id AND n.user_id = (SELECT auth.uid())
     )
   );
+
+-- Max 3 photos per note, enforced here as well as in notes.service, so a direct
+-- PostgREST insert cannot exceed it. The advisory lock serialises concurrent
+-- inserts for one note (the count would otherwise race). SECURITY DEFINER so the
+-- count sees every row of the note, not only the ones RLS shows the caller.
+CREATE FUNCTION public.enforce_note_photos_limit()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  PERFORM pg_advisory_xact_lock(hashtextextended('note_photos:' || NEW.note_id::text, 0));
+  IF (SELECT count(*) FROM public.note_photos p WHERE p.note_id = NEW.note_id) >= 3 THEN
+    RAISE EXCEPTION 'note_photos_limit' USING ERRCODE = '23514',
+      DETAIL = 'A note can have at most 3 photos.';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.enforce_note_photos_limit() FROM PUBLIC, anon, authenticated;
+
+CREATE TRIGGER trg_note_photos_limit
+  BEFORE INSERT ON public.note_photos
+  FOR EACH ROW EXECUTE FUNCTION public.enforce_note_photos_limit();
 
 CREATE TRIGGER notes_updated_at
   BEFORE UPDATE ON public.notes

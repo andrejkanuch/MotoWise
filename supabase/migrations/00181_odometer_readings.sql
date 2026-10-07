@@ -32,6 +32,10 @@
 -- already pass the API server's "now", so the stamp moves from the database
 -- clock to the API clock and nothing else. INSERT behaviour is unchanged.
 --
+-- WRITE PATH: clients get SELECT only on odometer_readings. Both writers are
+-- SECURITY DEFINER, so a rider cannot insert readings with an arbitrary source,
+-- ride or date through PostgREST.
+--
 -- ACL: Supabase's default privileges grant EXECUTE on every new function to
 -- anon, authenticated and service_role, so anon is named in each REVOKE (00176).
 --
@@ -63,17 +67,12 @@ CREATE POLICY "Users read own odometer readings" ON public.odometer_readings
   FOR SELECT TO authenticated
   USING ((SELECT auth.uid()) = user_id);
 
-CREATE POLICY "Users insert own odometer readings" ON public.odometer_readings
-  FOR INSERT TO authenticated
-  WITH CHECK (
-    (SELECT auth.uid()) = user_id
-    AND EXISTS (
-      SELECT 1 FROM public.motorcycles m
-      WHERE m.id = motorcycle_id
-        AND m.user_id = (SELECT auth.uid())
-        AND m.deleted_at IS NULL
-    )
-  );
+-- No INSERT/UPDATE/DELETE policy and no write privilege for clients: the only
+-- writers are the two SECURITY DEFINER functions below. A direct PostgREST
+-- insert could otherwise log any source, any ride_id (even another rider's,
+-- since the FK check runs as the table owner) and a far-future recorded_at that
+-- would make log_odometer_reading() treat every later entry as history.
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON public.odometer_readings FROM anon, authenticated;
 
 -- Backfill: one row per bike that has an odometer, stamped with when it was
 -- last set. Runs before the trigger exists and does not touch motorcycles.
@@ -100,8 +99,10 @@ BEGIN
 END;
 $$;
 
--- SECURITY INVOKER: RLS on odometer_readings and motorcycles stays in force, so
--- ownership is enforced by the policies as well as by the check below.
+-- SECURITY DEFINER: clients hold no write privilege on odometer_readings (see
+-- above), so this function is the rider's only way in. auth.uid() is pinned as
+-- the owner and the bike must be the caller's and not deleted; service-role
+-- calls (auth.uid() NULL) are refused.
 CREATE FUNCTION public.log_odometer_reading(
   p_motorcycle_id uuid,
   p_value integer,
@@ -109,7 +110,7 @@ CREATE FUNCTION public.log_odometer_reading(
 )
 RETURNS uuid
 LANGUAGE plpgsql
-SECURITY INVOKER
+SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
@@ -125,11 +126,22 @@ BEGIN
   IF v_recorded_at > now() + interval '5 minutes' THEN
     RAISE EXCEPTION 'recorded_at_in_future' USING ERRCODE = '22023';
   END IF;
+  -- Within the tolerance, a fast clock counts as "now": otherwise a correction
+  -- sent a minute later (stamped with the server's now) would rank as older and
+  -- silently not move the odometer.
+  v_recorded_at := LEAST(v_recorded_at, now());
 
-  IF NOT EXISTS (
-    SELECT 1 FROM public.motorcycles m
-    WHERE m.id = p_motorcycle_id AND m.user_id = v_uid AND m.deleted_at IS NULL
-  ) THEN
+  IF p_value IS NULL OR p_value < 0 THEN
+    RAISE EXCEPTION 'invalid_value' USING ERRCODE = '22023';
+  END IF;
+
+  -- Row lock: two concurrent readings for one bike (double tap, two devices,
+  -- a ride ending) are serialised, so the "later reading exists" check below
+  -- sees the other's row and the newest recorded_at wins, not the last commit.
+  PERFORM 1 FROM public.motorcycles m
+  WHERE m.id = p_motorcycle_id AND m.user_id = v_uid AND m.deleted_at IS NULL
+  FOR UPDATE;
+  IF NOT FOUND THEN
     RAISE EXCEPTION 'motorcycle_not_found' USING ERRCODE = 'P0002';
   END IF;
 
@@ -173,6 +185,9 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
+DECLARE
+  v_source text;
+  v_ride_id uuid;
 BEGIN
   -- Everything sits inside the handler: nothing here may fail the odometer write.
   BEGIN
@@ -192,15 +207,23 @@ BEGIN
       RETURN NULL;
     END IF;
 
+    -- A reading is GPS only when THIS update set a new ride (rides.service.endRide
+    -- writes gps_ride + the ride id). Any other write that leaves those columns
+    -- as they were (complete_onboarding, legacy updateMotorcycle) is manual, not
+    -- a stale copy of the last ride.
+    IF TG_OP = 'INSERT' THEN
+      v_source := 'initial';
+    ELSIF NEW.odometer_sync_source = 'gps_ride'
+      AND NEW.odometer_last_ride_id IS NOT NULL
+      AND NEW.odometer_last_ride_id IS DISTINCT FROM OLD.odometer_last_ride_id THEN
+      v_source := 'gps_ride';
+      v_ride_id := NEW.odometer_last_ride_id;
+    ELSE
+      v_source := 'manual';
+    END IF;
+
     INSERT INTO public.odometer_readings (user_id, motorcycle_id, value, recorded_at, source, ride_id)
-    VALUES (
-      NEW.user_id,
-      NEW.id,
-      NEW.current_mileage,
-      now(),
-      CASE WHEN TG_OP = 'INSERT' THEN 'initial' ELSE NEW.odometer_sync_source END,
-      CASE WHEN TG_OP = 'INSERT' THEN NULL ELSE NEW.odometer_last_ride_id END
-    );
+    VALUES (NEW.user_id, NEW.id, NEW.current_mileage, now(), v_source, v_ride_id);
   EXCEPTION WHEN OTHERS THEN
     RAISE WARNING 'log_motorcycle_odometer_change: reading not logged for motorcycle %: % (%)',
       NEW.id, SQLERRM, SQLSTATE;
