@@ -402,7 +402,6 @@
     "totalKilometres": "Kilometros totales",
     "oldestBike": "Moto mas antigua",
     "openTasks": "Tareas abiertas",
-    "percentReady": "{{score}}% listo",
     "purchasePrice": "Precio de compra",
     "purchaseDate": "Fecha de compra",
     "bike": "moto",
@@ -1025,15 +1024,6 @@
     "allTime": "Total",
     "noExpenses": "Sin gastos registrados",
     "startTracking": "Completa una tarea con costo para comenzar",
-    "updateMileage": "Actualizar kilometraje",
-    "enterCurrentMileage": "Ingresa la lectura actual del odometro ({{unit}})",
-    "noMileage": "Sin kilometraje",
-    "neverUpdated": "Nunca actualizado",
-    "updatedToday": "Actualizado hoy",
-    "updatedYesterday": "Actualizado ayer",
-    "updatedDaysAgo": "Actualizado hace {{days}}d",
-    "mileageWarning": "Kilometraje menor?",
-    "mileageWarningMessage": "La nueva lectura es menor que la actual. Estas seguro?",
     "cost": "Costo",
     "partsCost": "Repuestos",
     "laborCost": "Mano de obra",
@@ -1043,9 +1033,6 @@
     "details": "Detalles",
     "hideDetails": "Ocultar detalles",
     "costPerKm": "Costo / km",
-    "rides": "Rutas",
-    "analytics": "Estadisticas",
-    "viewAnalytics": "Ver →",
     "autoUpdated": "Actualizado automáticamente",
     "manualEntry": "Entrada manual",
     "updatedTodayFrom": "Actualizado hoy desde {{source}}",
@@ -1255,7 +1242,8 @@
       "backdatedNotice": "Fecha anterior a tu última lectura: se registra y el odómetro se queda en {{last}} {{unit}}.",
       "futureDate": "La fecha no puede estar en el futuro.",
       "saveFailed": "No se pudo guardar la lectura. Inténtalo de nuevo.",
-      "lastReadingNoDate": "Última lectura {{last}} {{unit}}"
+      "lastReadingNoDate": "Última lectura {{last}} {{unit}}",
+      "historyUnavailable": "No se pudieron cargar las lecturas anteriores, así que solo se puede guardar la de hoy. Toca para reintentar."
     },
     "noteSheet": {
       "new": "Nueva nota",
@@ -1275,7 +1263,9 @@
       "photoFailed": "Nota guardada, la foto falló",
       "taskNotCreated": "Nota guardada. No se pudo crear la tarea: usa «Convertir en tarea» en la nota.",
       "photoLimit": "Hasta {{max}} fotos por nota",
-      "alsoTaskSubNamed": "Crea «{{title}}» · Baja · sin fecha, con esta nota adjunta"
+      "alsoTaskSubNamed": "Crea «{{title}}» · Baja · sin fecha, con esta nota adjunta",
+      "photoRemoveFailed": "Nota guardada, pero no se pudo quitar una foto",
+      "photoNeedsSignIn": "Vuelve a iniciar sesión para añadir fotos. Quita las fotos para guardar la nota sin ellas."
     },
     "notesScreen": {
       "title": "Notas · {{name}}",

@@ -15,6 +15,7 @@ import {
   Wrench,
 } from 'lucide-react-native';
 import { ADD_TASK_MODE, LOG_OPTION, type LogOption } from '../../../lib/bike-hub/constants';
+import { EXPENSE_ENTRY_SOURCE } from '../../../lib/expense-analytics';
 import { type HubCopyKey, hub } from '../ui/tokens';
 
 export interface LogOptionDefinition {
@@ -64,7 +65,10 @@ export const LOG_OPTIONS: readonly LogOptionDefinition[] = [
     tileBackground: hub.tagHighBg,
     titleKey: 'bikeHub.log.expense',
     subKey: 'bikeHub.log.expenseSub',
-    href: (params) => ({ pathname: '/(tabs)/(garage)/add-expense', params }),
+    href: (params) => ({
+      pathname: '/(tabs)/(garage)/add-expense',
+      params: { ...params, entrySource: EXPENSE_ENTRY_SOURCE.BIKE_HUB },
+    }),
   },
   {
     id: LOG_OPTION.TASK,

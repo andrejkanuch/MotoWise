@@ -141,6 +141,19 @@ export async function uploadNotePhoto(
 }
 
 /**
+ * Best-effort removal of a note photo object that never got its `note_photos`
+ * row (the upload worked, `addNotePhoto` did not). Never throws: the worst case
+ * is the orphan this tries to clean up.
+ */
+export async function removeNotePhotoObject(storagePath: string): Promise<void> {
+  try {
+    await supabase.storage.from(MAINTENANCE_PHOTOS_BUCKET).remove([storagePath]);
+  } catch {
+    // Orphan stays; nothing references it.
+  }
+}
+
+/**
  * Upload a scanned receipt to the PRIVATE `receipts` bucket (KTD-8/KTD-2).
  *
  * Path is exactly `{userId}/{scanId}.webp` — the server derives the same path

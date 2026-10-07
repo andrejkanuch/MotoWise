@@ -2,7 +2,7 @@ import { expenseYear, TODAY } from '../../../test/bike-hub-fixtures';
 import { DELTA_DIRECTION } from '../constants';
 import { summariseCosts } from '../costs-summary';
 
-// Amounts in different currencies are never added together (#275): the card
+// Amounts in different currencies are never added together (PR 275): the card
 // works in the year's most-used currency and lists the others beside it.
 describe('summariseCosts — currencies', () => {
   it('keeps every figure in the most-used currency and lists the rest separately', () => {

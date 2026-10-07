@@ -401,7 +401,6 @@
     "totalKilometres": "Toplam kilometre",
     "oldestBike": "En eski motor",
     "openTasks": "Acik gorevler",
-    "percentReady": "%{{score}} hazir",
     "purchasePrice": "Alis fiyati",
     "purchaseDate": "Alis tarihi",
     "bike": "motor",
@@ -1024,15 +1023,6 @@
     "allTime": "Tum Zamanlar",
     "noExpenses": "Kayitli harcama yok",
     "startTracking": "Takibi baslatmak icin maliyetli bir gorev tamamla",
-    "updateMileage": "Kilometreyi Guncelle",
-    "enterCurrentMileage": "Mevcut kilometre sayacini gir ({{unit}})",
-    "noMileage": "Kilometre yok",
-    "neverUpdated": "Hic guncellenmedi",
-    "updatedToday": "Bugun guncellendi",
-    "updatedYesterday": "Dun guncellendi",
-    "updatedDaysAgo": "{{days}} gun once guncellendi",
-    "mileageWarning": "Dusuk kilometre mi?",
-    "mileageWarningMessage": "Yeni deger mevcut degerden dusuk. Emin misiniz?",
     "cost": "Maliyet",
     "partsCost": "Parcalar",
     "laborCost": "Iscilik",
@@ -1042,9 +1032,6 @@
     "details": "Detaylar",
     "hideDetails": "Detaylari Gizle",
     "costPerKm": "Maliyet / km",
-    "rides": "Surusler",
-    "analytics": "Analiz",
-    "viewAnalytics": "Gor →",
     "autoUpdated": "Otomatik güncellendi",
     "manualEntry": "Manuel giriş",
     "updatedTodayFrom": "Bugün {{source}} üzerinden güncellendi",
@@ -1254,7 +1241,8 @@
       "backdatedNotice": "Son değerden önceki bir tarih: kaydedilir, kilometre sayacı {{last}} {{unit}} olarak kalır.",
       "futureDate": "Tarih gelecekte olamaz.",
       "saveFailed": "Değer kaydedilemedi. Tekrar deneyin.",
-      "lastReadingNoDate": "Son değer {{last}} {{unit}}"
+      "lastReadingNoDate": "Son değer {{last}} {{unit}}",
+      "historyUnavailable": "Önceki okumalar yüklenemedi, bu yüzden yalnızca bugünkü okuma kaydedilebilir. Yeniden denemek için dokunun."
     },
     "noteSheet": {
       "new": "Yeni not",
@@ -1274,7 +1262,9 @@
       "photoFailed": "Not kaydedildi, fotoğraf yüklenemedi",
       "taskNotCreated": "Not kaydedildi. Görev oluşturulamadı — notta “Görev yap” seçeneğini kullanın.",
       "photoLimit": "Not başına en fazla {{max}} fotoğraf",
-      "alsoTaskSubNamed": "“{{title}}” oluşturur · Düşük · tarihsiz, bu not ekli"
+      "alsoTaskSubNamed": "“{{title}}” oluşturur · Düşük · tarihsiz, bu not ekli",
+      "photoRemoveFailed": "Not kaydedildi ancak bir fotoğraf kaldırılamadı",
+      "photoNeedsSignIn": "Fotoğraf eklemek için yeniden oturum açın. Notu fotoğrafsız kaydetmek için fotoğrafları kaldırın."
     },
     "notesScreen": {
       "title": "Notlar · {{name}}",

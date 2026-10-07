@@ -56,8 +56,12 @@ export const queryKeys = {
     byExpense: (expenseId: string) => ['expense-photos', expenseId] as const,
   },
   odometer: {
-    readings: (motorcycleId: string) => ['odometer', 'readings', motorcycleId] as const,
-    pendingRides: (motorcycleId: string) => ['odometer', 'pendingRides', motorcycleId] as const,
+    /** Prefix of every odometer key — invalidate it after any write that moves `currentMileage`. */
+    all: ['odometer'] as const,
+    readings: (motorcycleId: string) =>
+      [...queryKeys.odometer.all, 'readings', motorcycleId] as const,
+    pendingRides: (motorcycleId: string) =>
+      [...queryKeys.odometer.all, 'pendingRides', motorcycleId] as const,
   },
   notes: {
     byMotorcycle: (motorcycleId: string) => ['notes', 'byMotorcycle', motorcycleId] as const,

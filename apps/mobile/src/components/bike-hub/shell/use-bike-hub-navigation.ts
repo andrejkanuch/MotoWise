@@ -7,6 +7,7 @@ import {
   type BikeSegment,
 } from '../../../lib/bike-hub/constants';
 import { ownerSegmentOf } from '../../../lib/bike-hub/segments';
+import { EXPENSE_ENTRY_SOURCE } from '../../../lib/expense-analytics';
 import type { HubBike } from './use-bike-hub-data';
 
 export interface BikeHubNavigation {
@@ -61,7 +62,7 @@ export function buildBikeHubNavigation(
     addExpense: () =>
       openLeaf(BIKE_LEAF.ADD_EXPENSE, {
         pathname: '/(tabs)/(garage)/add-expense',
-        params: formParams,
+        params: { ...formParams, entrySource: EXPENSE_ENTRY_SOURCE.BIKE_HUB },
       }),
     addDocument: () =>
       openLeaf(BIKE_LEAF.ADD_DOCUMENT, {

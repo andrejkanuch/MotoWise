@@ -21,6 +21,7 @@ import {
   type DueTone,
   type HubUnit,
 } from './constants';
+import { hasOdometer } from './format';
 
 type Task = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
 
@@ -101,7 +102,9 @@ function distanceLimit(
   odometer: number | null | undefined,
 ): DueLimit | null {
   if (targetMileage == null) return null;
-  if (odometer == null) {
+  // A never-set odometer (null or the 0 a new bike starts at) gives no distance
+  // to go: show the target itself ("at 40,000 km"), not "in 40,000 km".
+  if (!hasOdometer(odometer)) {
     return {
       dimension: DUE_DIMENSION.DISTANCE,
       direction: DUE_DIRECTION.AHEAD,

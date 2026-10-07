@@ -9,6 +9,7 @@ import { ODOMETER_SOURCE } from '../../../lib/bike-hub/constants';
 import { readingTimestamp } from '../../../lib/bike-hub/odometer-input';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { QUERY_META } from '../../../lib/query-meta';
 
 const LATEST_ONLY = 1;
 /**
@@ -18,7 +19,7 @@ const LATEST_ONLY = 1;
  * the API was down: both queries fail with nothing cached, and their retries
  * end a few seconds after the sheet opens.
  */
-const OWN_ERROR_UI = { showErrorAlert: false } as const;
+const { OWN_ERROR_UI } = QUERY_META;
 
 /** The latest logged reading and the ride distance not yet on the odometer. */
 export function useOdometerContext(motorcycleId: string) {
@@ -37,6 +38,9 @@ export function useOdometerContext(motorcycleId: string) {
   return {
     latest: readings.data?.odometerReadings[0] ?? null,
     readingsLoading: readings.isLoading,
+    /** No reading history: the first load failed and nothing is cached. */
+    readingsError: readings.isError && !readings.data,
+    refetchReadings: () => void readings.refetch(),
     pendingRides: pendingRides.data?.pendingRideDistance ?? null,
   };
 }

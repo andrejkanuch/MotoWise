@@ -17,6 +17,7 @@ import {
   type WhatsNewSlide,
 } from '../../data/whats-new-releases';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { BIKE_SEGMENT } from '../../lib/bike-hub/constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useWhatsNewStore } from '../../stores/whats-new.store';
@@ -76,7 +77,11 @@ export default function WhatsNewModal() {
       router.back();
       if (action === 'open-document-vault') {
         const href: Href = target
-          ? { pathname: '/(tabs)/(garage)/bike/[id]', params: { id: target.id } }
+          ? {
+              pathname: '/(tabs)/(garage)/bike/[id]',
+              // Documents live on the Bike segment of the hub.
+              params: { id: target.id, segment: BIKE_SEGMENT.BIKE },
+            }
           : '/(tabs)/(garage)';
         setTimeout(() => router.push(href), 60);
       }

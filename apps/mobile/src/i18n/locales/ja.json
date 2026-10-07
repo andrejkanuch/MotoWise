@@ -404,7 +404,6 @@
     "totalKilometres": "総走行距離",
     "oldestBike": "最も古いバイク",
     "openTasks": "未完了タスク",
-    "percentReady": "{{score}}% 準備完了",
     "purchasePrice": "購入価格",
     "purchaseDate": "購入日",
     "bike": "バイク",
@@ -1024,15 +1023,6 @@
     "allTime": "全期間",
     "noExpenses": "記録された費用はありません",
     "startTracking": "費用付きのタスクを完了して追跡を開始しましょう",
-    "updateMileage": "走行距離を更新",
-    "enterCurrentMileage": "現在のオドメーター値を入力（{{unit}}）",
-    "noMileage": "走行距離なし",
-    "neverUpdated": "未更新",
-    "updatedToday": "今日更新済み",
-    "updatedYesterday": "昨日更新済み",
-    "updatedDaysAgo": "{{days}}日前に更新",
-    "mileageWarning": "走行距離が少ない？",
-    "mileageWarningMessage": "新しい値が現在の値より低いです。よろしいですか？",
     "cost": "費用",
     "partsCost": "パーツ",
     "laborCost": "工賃",
@@ -1042,9 +1032,6 @@
     "details": "詳細",
     "hideDetails": "詳細を隠す",
     "costPerKm": "コスト / km",
-    "rides": "ライド",
-    "analytics": "分析",
-    "viewAnalytics": "見る →",
     "autoUpdated": "自動更新済み",
     "manualEntry": "手動入力",
     "updatedTodayFrom": "今日{{source}}から更新",
@@ -1254,7 +1241,8 @@
       "backdatedNotice": "最新の記録より前の日付です。記録されますが、オドメーターは {{last}} {{unit}} のままです。",
       "futureDate": "未来の日付は指定できません。",
       "saveFailed": "値を保存できませんでした。もう一度お試しください。",
-      "lastReadingNoDate": "前回の値 {{last}} {{unit}}"
+      "lastReadingNoDate": "前回の値 {{last}} {{unit}}",
+      "historyUnavailable": "過去の記録を読み込めなかったため、今日の記録のみ保存できます。タップして再試行してください。"
     },
     "noteSheet": {
       "new": "新しいメモ",
@@ -1274,7 +1262,9 @@
       "photoFailed": "メモは保存済み、写真は失敗しました",
       "taskNotCreated": "メモは保存されました。タスクを作成できませんでした。メモの「タスクにする」をお使いください。",
       "photoLimit": "メモ1件につき写真は{{max}}枚まで",
-      "alsoTaskSubNamed": "「{{title}}」を作成・優先度低・期限なし、このメモを添付"
+      "alsoTaskSubNamed": "「{{title}}」を作成・優先度低・期限なし、このメモを添付",
+      "photoRemoveFailed": "メモは保存されましたが、写真を削除できませんでした",
+      "photoNeedsSignIn": "写真を追加するには再度サインインしてください。写真なしで保存するには写真を削除してください。"
     },
     "notesScreen": {
       "title": "メモ · {{name}}",

@@ -71,6 +71,7 @@ export function useHomeData() {
     Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me }),
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.odometer.all }),
       queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser }),
       // Broaden to the rides root so every ride-list variant refreshes (MOT-268).
       queryClient.invalidateQueries({ queryKey: queryKeys.rides.all }),

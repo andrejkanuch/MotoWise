@@ -22,6 +22,7 @@ import {
   applyQuickAdd,
   describeDelta,
   isBackdated,
+  odometerBaseline,
   parseEntry,
   type ReadingInput,
   readingTimestamp,
@@ -626,5 +627,22 @@ describe('midSentence — lower-casing with the German exception', () => {
     expect(midSentence('SİGORTA', 'tr')).toBe('sigorta');
     expect(midSentence('ISI', 'tr')).toBe('ısı');
     expect(midSentence('ISI', 'en')).toBe('isi');
+  });
+});
+
+describe('odometerBaseline', () => {
+  it.each([
+    [
+      'the bike is ahead of the latest reading (ride end not refetched yet)',
+      38_167,
+      38_500,
+      38_500,
+    ],
+    ['the latest reading is ahead of a stale bike', 38_500, 38_167, 38_500],
+    ['only the bike value is known', null, 1_240, 1_240],
+    ['only a reading is known', 900, undefined, 900],
+    ['nothing is known', null, null, null],
+  ])('%s', (_label, logged, current, expected) => {
+    expect(odometerBaseline(logged, current)).toBe(expected);
   });
 });

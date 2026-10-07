@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState } from 'react-native';
+import { AppState, type AppStateStatus } from 'react-native';
 import { UNDO_WINDOW_MS } from '../../../lib/bike-hub/constants';
 import { usePendingDeleteStore } from '../../../stores/pending-delete.store';
+
+const APP_STATE_BACKGROUND: AppStateStatus = 'background';
 
 interface DeferredDeleteOptions {
   /** The real delete. Called once per id when its undo window closes. */
@@ -81,8 +83,11 @@ export function useDeferredDelete({
   }, [clearTimer, unhide]);
 
   useEffect(() => {
+    // Only a real trip to the background sends the delete: iOS also reports
+    // 'inactive' for Control Center, the notification shade or a call banner,
+    // and the undo window must survive those.
     const subscription = AppState.addEventListener('change', (status) => {
-      if (status !== 'active') flush();
+      if (status === APP_STATE_BACKGROUND) flush();
     });
     return () => {
       subscription.remove();

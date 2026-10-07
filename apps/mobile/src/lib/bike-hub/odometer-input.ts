@@ -132,3 +132,16 @@ export function describeDelta(
     amount: Math.abs(difference),
   };
 }
+
+/**
+ * The reading a new entry is compared with: the higher of the latest logged
+ * reading and the bike's odometer (`null` when neither is known). A ride end or
+ * receipt scan can move the odometer before the readings query refetches.
+ */
+export function odometerBaseline(
+  logged: number | null | undefined,
+  current: number | null | undefined,
+): number | null {
+  const known = [logged, current].filter((value): value is number => value != null);
+  return known.length > 0 ? Math.max(...known) : null;
+}

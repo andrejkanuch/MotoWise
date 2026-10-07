@@ -195,6 +195,16 @@ describe('getTaskDue — rules', () => {
     expect(due.state).toBe(DUE_STATE.LATER);
     expect(due.primary).toMatchObject({ display: DUE_DISPLAY.ABSOLUTE, amount: 500 });
   });
+
+  // A new bike's odometer starts at 0: that is "never set", not "0 km ridden".
+  it('treats an odometer of 0 as never set: "at 40,000", not "in 40,000"', () => {
+    const due = getTaskDue(task({ id: 'a', title: 't', targetMileage: 40_000 }), {
+      ...KM,
+      odometer: 0,
+    });
+    expect(due.state).toBe(DUE_STATE.LATER);
+    expect(due.primary).toMatchObject({ display: DUE_DISPLAY.ABSOLUTE, amount: 40_000 });
+  });
 });
 
 describe('compareTasksForAttention', () => {

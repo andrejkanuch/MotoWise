@@ -14,6 +14,7 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useCurrency } from '../../hooks/use-currency';
 import { useDeleteExpense } from '../../hooks/use-delete-expense';
+import { EXPENSE_ENTRY_SOURCE } from '../../lib/expense-analytics';
 import {
   CATEGORY_COLORS,
   CATEGORY_LABELS,
@@ -233,7 +234,7 @@ export function ExpensesSection({
               }
               router.push({
                 pathname: '/(tabs)/(garage)/add-expense',
-                params: { motorcycleId },
+                params: { motorcycleId, entrySource: EXPENSE_ENTRY_SOURCE.BIKE_HUB },
               });
             }}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -287,7 +288,7 @@ export function ExpensesSection({
               }
               router.push({
                 pathname: '/(tabs)/(garage)/add-expense',
-                params: { motorcycleId },
+                params: { motorcycleId, entrySource: EXPENSE_ENTRY_SOURCE.BIKE_HUB },
               });
             }}
             style={{

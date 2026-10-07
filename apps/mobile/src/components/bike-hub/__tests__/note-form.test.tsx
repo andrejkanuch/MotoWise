@@ -16,9 +16,10 @@ jest.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Success: 'success', Warning: 'warning' },
 }));
 jest.mock('expo-image', () => ({ Image: () => null }));
+let mockSession: { user: { id: string } } | null = { user: { id: 'user-1' } };
 jest.mock('../../../stores/auth.store', () => ({
   useAuthStore: (selector: (state: unknown) => unknown) =>
-    selector({ currency: 'EUR', session: { user: { id: 'user-1' } } }),
+    selector({ currency: 'EUR', session: mockSession }),
 }));
 jest.mock('../../ui/native-toggle', () => {
   const { Pressable } = require('react-native');
@@ -35,10 +36,12 @@ jest.mock('../../ui/native-toggle', () => {
 
 const mockUpload = jest.fn();
 const mockPick = jest.fn();
+const mockRemoveObject = jest.fn();
 jest.mock('../../../lib/image-upload', () => ({
   pickImage: () => mockPick(),
   takePhoto: jest.fn(),
   uploadNotePhoto: (...args: unknown[]) => mockUpload(...args),
+  removeNotePhotoObject: (...args: unknown[]) => mockRemoveObject(...args),
 }));
 // The action sheet is native; choose "Choose from Library" (the second option) straight away.
 jest.mock('../../../utils/action-sheet', () => ({
@@ -51,7 +54,12 @@ jest.mock('../../../lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
-import { AddNotePhotoDocument, CreateNoteDocument, UpdateNoteDocument } from '@motovault/graphql';
+import {
+  AddNotePhotoDocument,
+  CreateNoteDocument,
+  DeleteNotePhotoDocument,
+  UpdateNoteDocument,
+} from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { Alert, StyleSheet } from 'react-native';
@@ -115,6 +123,7 @@ const created = () =>
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockSession = { user: { id: 'user-1' } };
   mockPick.mockResolvedValue('file:///photo-1.jpg');
   mockUpload.mockResolvedValue({ storagePath: 'user-1/notes/note-new/1.webp', fileSizeBytes: 10 });
 });
@@ -229,6 +238,96 @@ describe('NoteForm — new note', () => {
     expect(mockUpload).toHaveBeenCalledTimes(2);
   });
 
+  it('a second tap while the note is still saving does not create another', async () => {
+    await renderForm({ draft: 'Tapped twice' });
+    const succeed = mockFetcher.getMockImplementation();
+    let release: () => void = () => {};
+    mockFetcher.mockImplementation((document: unknown, variables: unknown) =>
+      document === CreateNoteDocument
+        ? new Promise((resolve) => {
+            release = () => resolve(succeed?.(document, variables));
+          })
+        : succeed?.(document, variables),
+    );
+    // Both taps land in the same frame, before React re-renders Save as disabled
+    // (`fireEvent.press` would re-render between them and test `disabled` instead).
+    const { onClick } = screen.getByTestId('note-save').props as {
+      onClick: (event: { nativeEvent: object }) => void;
+    };
+    await act(async () => {
+      onClick({ nativeEvent: {} });
+      onClick({ nativeEvent: {} });
+    });
+    await act(async () => release());
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+    expect(
+      mockFetcher.mock.calls.filter(([document]) => document === CreateNoteDocument),
+    ).toHaveLength(1);
+  });
+
+  it('a failed createNote is not retried (it may have saved server-side)', async () => {
+    await renderForm({ draft: 'Once only' });
+    mockFetcher.mockImplementation(() => Promise.reject(new Error('response lost')));
+    await fireEvent.press(screen.getByTestId('note-save'));
+    expect(await screen.findByTestId('note-save-error')).toBeOnTheScreen();
+    expect(
+      mockFetcher.mock.calls.filter(([document]) => document === CreateNoteDocument),
+    ).toHaveLength(1);
+  });
+
+  it('when addNotePhoto fails, Retry re-attaches the same stored file instead of uploading again', async () => {
+    await renderForm({ draft: 'With a photo' });
+    await fireEvent.press(screen.getByTestId('note-add-photo'));
+    await act(async () => {});
+    const succeed = mockFetcher.getMockImplementation();
+    mockFetcher.mockImplementation((document: unknown, variables: unknown) =>
+      document === AddNotePhotoDocument
+        ? Promise.reject(new Error('api down'))
+        : succeed?.(document, variables),
+    );
+    await fireEvent.press(screen.getByTestId('note-save'));
+    expect(await screen.findByText('Note saved, photo failed')).toBeOnTheScreen();
+    mockFetcher.mockImplementation((document: unknown, variables: unknown) =>
+      succeed?.(document, variables),
+    );
+    await fireEvent.press(screen.getByTestId('note-retry-photos'));
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+    expect(mockUpload).toHaveBeenCalledTimes(1);
+    const attaches = mockFetcher.mock.calls.filter(
+      ([document]) => document === AddNotePhotoDocument,
+    );
+    expect(attaches).toHaveLength(2);
+    expect(attaches[1]?.[1]).toEqual(attaches[0]?.[1]);
+    expect(mockRemoveObject).not.toHaveBeenCalled();
+  });
+
+  it('closing with a stored-but-unattached photo removes the orphaned file', async () => {
+    await renderForm({ draft: 'With a photo' });
+    await fireEvent.press(screen.getByTestId('note-add-photo'));
+    await act(async () => {});
+    const succeed = mockFetcher.getMockImplementation();
+    mockFetcher.mockImplementation((document: unknown, variables: unknown) =>
+      document === AddNotePhotoDocument
+        ? Promise.reject(new Error('api down'))
+        : succeed?.(document, variables),
+    );
+    await fireEvent.press(screen.getByTestId('note-save'));
+    expect(await screen.findByText('Note saved, photo failed')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId('note-save'));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(mockRemoveObject).toHaveBeenCalledWith('user-1/notes/note-new/1.webp');
+  });
+
+  it('without a session, a note with photos is not saved and says why', async () => {
+    mockSession = null;
+    await renderForm({ draft: 'With a photo' });
+    await fireEvent.press(screen.getByTestId('note-add-photo'));
+    await act(async () => {});
+    await fireEvent.press(screen.getByTestId('note-save'));
+    expect(screen.getByTestId('note-save-error')).toHaveTextContent(/Sign in again to add photos/);
+    expect(mockFetcher).not.toHaveBeenCalledWith(CreateNoteDocument, expect.anything());
+  });
+
   it('a failed save keeps the text and shows the error', async () => {
     await renderForm({ draft: 'Will fail' });
     mockFetcher.mockImplementation(() => Promise.reject(new Error('offline')));
@@ -245,6 +344,33 @@ describe('NoteForm — new note', () => {
 });
 
 describe('NoteForm — edit', () => {
+  it('a photo that could not be removed is reported, and Retry removes it', async () => {
+    const note = {
+      ...NOTES[0],
+      photos: [{ id: 'photo-1', storagePath: 'p', publicUrl: 'https://example.test/p.webp' }],
+    } as unknown as HubNote;
+    await renderForm({ note });
+    const succeed = mockFetcher.getMockImplementation();
+    mockFetcher.mockImplementation((document: unknown, variables: unknown) =>
+      document === DeleteNotePhotoDocument
+        ? Promise.reject(new Error('api down'))
+        : succeed?.(document, variables),
+    );
+    await fireEvent.press(screen.getByRole('button', { name: 'Remove photo' }));
+    await fireEvent.press(screen.getByTestId('note-save'));
+    expect(await screen.findByTestId('note-photo-error')).toHaveTextContent(
+      "Note saved, but a photo couldn't be removed",
+    );
+    expect(onClose).not.toHaveBeenCalled();
+    mockFetcher.mockImplementation((document: unknown, variables: unknown) =>
+      document === DeleteNotePhotoDocument
+        ? Promise.resolve({ deleteNotePhoto: true })
+        : succeed?.(document, variables),
+    );
+    await fireEvent.press(screen.getByTestId('note-retry-photos'));
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+  });
+
   it('pre-fills the note and calls updateNote', async () => {
     const note = NOTES[0] as unknown as HubNote;
     await renderForm({ note });

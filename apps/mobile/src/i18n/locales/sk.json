@@ -403,7 +403,6 @@
     "totalKilometres": "Celkove kilometre",
     "oldestBike": "Najstarsia motorka",
     "openTasks": "Otvorene ulohy",
-    "percentReady": "{{score}}% pripraveny",
     "purchasePrice": "Kupna cena",
     "purchaseDate": "Datum kupy",
     "bike": "motorka",
@@ -1026,15 +1025,6 @@
     "allTime": "Celkovo",
     "noExpenses": "Žiadne zaznamenané výdavky",
     "startTracking": "Dokončite úlohu s nákladmi pre začatie sledovania",
-    "updateMileage": "Aktualizovať km stav",
-    "enterCurrentMileage": "Zadaj aktuálny stav odometra ({{unit}})",
-    "noMileage": "Žiadny km stav",
-    "neverUpdated": "Nikdy neaktualizované",
-    "updatedToday": "Aktualizované dnes",
-    "updatedYesterday": "Aktualizované včera",
-    "updatedDaysAgo": "Aktualizované pred {{days}} d",
-    "mileageWarning": "Nižší km stav?",
-    "mileageWarningMessage": "Nový údaj je nižší ako aktuálny. Si si istý?",
     "cost": "Náklady",
     "partsCost": "Diely",
     "laborCost": "Práca",
@@ -1044,9 +1034,6 @@
     "details": "Detaily",
     "hideDetails": "Skryť detaily",
     "costPerKm": "Naklady / km",
-    "rides": "Jazdy",
-    "analytics": "Analyzy",
-    "viewAnalytics": "Zobrazit →",
     "autoUpdated": "Automaticky aktualizované",
     "manualEntry": "Manuálny zápis",
     "updatedTodayFrom": "Aktualizované dnes z {{source}}",
@@ -1288,7 +1275,8 @@
       "backdatedNotice": "Dátum pred posledným stavom: zapíše sa a tachometer zostane na {{last}} {{unit}}.",
       "futureDate": "Dátum nemôže byť v budúcnosti.",
       "saveFailed": "Stav sa nepodarilo uložiť. Skúste to znova.",
-      "lastReadingNoDate": "Posledný stav {{last}} {{unit}}"
+      "lastReadingNoDate": "Posledný stav {{last}} {{unit}}",
+      "historyUnavailable": "Predchádzajúce stavy sa nepodarilo načítať, preto sa dá uložiť len dnešný stav. Ťuknutím to skúste znova."
     },
     "noteSheet": {
       "new": "Nová poznámka",
@@ -1308,7 +1296,9 @@
       "photoFailed": "Poznámka uložená, fotka zlyhala",
       "taskNotCreated": "Poznámka uložená. Úlohu sa nepodarilo vytvoriť — použite „Vytvoriť úlohu“ pri poznámke.",
       "photoLimit": "Najviac {{max}} fotky na poznámku",
-      "alsoTaskSubNamed": "Vytvorí „{{title}}“ · Nízka · bez termínu, s touto poznámkou"
+      "alsoTaskSubNamed": "Vytvorí „{{title}}“ · Nízka · bez termínu, s touto poznámkou",
+      "photoRemoveFailed": "Poznámka je uložená, ale fotku sa nepodarilo odstrániť",
+      "photoNeedsSignIn": "Ak chcete pridať fotky, prihláste sa znova. Ak chcete poznámku uložiť bez nich, fotky odstráňte."
     },
     "notesScreen": {
       "title": "Poznámky · {{name}}",

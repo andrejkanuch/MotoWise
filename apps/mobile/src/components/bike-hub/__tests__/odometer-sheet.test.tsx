@@ -57,11 +57,13 @@ interface Scenario {
   now?: Date;
   pending?: { rideCount: number; distance: number };
   saveFails?: boolean;
+  readingsFail?: boolean;
 }
 
 async function renderSheet(scenario: Scenario = {}) {
   mockFetcher.mockImplementation((document: unknown) => {
     if (document === OdometerReadingsDocument) {
+      if (scenario.readingsFail) return Promise.reject(new Error('offline'));
       return Promise.resolve({ odometerReadings: scenario.readings ?? [LATEST] });
     }
     if (document === PendingRideDistanceDocument) {
@@ -222,6 +224,77 @@ describe('OdometerSheet', () => {
     await act(async () => buttons.find((button) => button.text === 'Save')?.onPress?.());
     await waitFor(() => expect(saved()).toHaveLength(1));
     expect(saved()[0]?.[1]).toMatchObject({ input: { value: 38_000 } });
+  });
+
+  // A ride end or receipt scan moves the odometer before the readings query
+  // refetches: the bike's own value is the baseline then, not the stale reading.
+  it('compares against the bike odometer when it is ahead of the latest logged reading', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    await renderSheet({ bike: { currentMileage: 38_500 } });
+    expect(screen.getByText('Last reading 38,500 km')).toBeOnTheScreen();
+    await type('38300');
+    await fireEvent.press(screen.getByTestId('odometer-save'));
+    expect(saved()).toHaveLength(0);
+    expect(alert).toHaveBeenCalledWith(
+      'Lower than the last reading',
+      'The last reading was 38,500 km. Save 38,300 km anyway?',
+      expect.any(Array),
+    );
+  });
+
+  it('quick-add starts from the bike odometer when it is ahead of the latest reading', async () => {
+    await renderSheet({ bike: { currentMileage: 38_500 } });
+    await fireEvent.press(screen.getByTestId('chip-100'));
+    expect(screen.getByTestId('odometer-entry')).toHaveTextContent('38,600');
+  });
+
+  it('keeps Save disabled while the reading history is still loading', async () => {
+    const waiting: Array<(value: unknown) => void> = [];
+    const finishLoading = (value: unknown) => {
+      for (const resolve of waiting.splice(0)) resolve(value);
+    };
+    mockFetcher.mockImplementation((document: unknown) =>
+      document === OdometerReadingsDocument
+        ? new Promise((resolve) => {
+            waiting.push(resolve);
+          })
+        : Promise.resolve({ pendingRideDistance: { rideCount: 0, distance: 0 } }),
+    );
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { gcTime: 0 } },
+    });
+    clients.push(client);
+    await render(
+      <QueryClientProvider client={client}>
+        <OdometerSheet bike={BIKE_A as unknown as HubBike} onClose={onClose} now={TODAY} />
+      </QueryClientProvider>,
+    );
+    await type('39407');
+    expect(screen.getByTestId('odometer-save')).toBeDisabled();
+    await act(async () => finishLoading({ odometerReadings: [LATEST] }));
+    await waitFor(() => expect(screen.getByTestId('odometer-save')).toBeEnabled());
+  });
+
+  it('without reading history a today reading can still be saved', async () => {
+    await renderSheet({ readingsFail: true });
+    await type('39407');
+    expect(screen.getByTestId('odometer-save')).toBeEnabled();
+    await fireEvent.press(screen.getByTestId('odometer-save'));
+    await waitFor(() => expect(saved()).toHaveLength(1));
+  });
+
+  it('without reading history a past date is blocked with a retry notice', async () => {
+    await renderSheet({ readingsFail: true });
+    await type('39407');
+    await pickDate(new Date(2026, 8, 20));
+    expect(screen.getByTestId('odometer-save')).toBeDisabled();
+    const notice = screen.getByTestId('odometer-notice');
+    expect(notice).toHaveTextContent(/only today's reading can be saved/);
+    mockFetcher.mockClear();
+    await fireEvent.press(notice);
+    expect(
+      mockFetcher.mock.calls.filter(([document]) => document === OdometerReadingsDocument),
+    ).toHaveLength(1);
   });
 
   it('an equal value keeps Save disabled', async () => {

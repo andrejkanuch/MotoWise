@@ -401,7 +401,6 @@
     "totalKilometres": "Total kilometer",
     "oldestBike": "Motor tertua",
     "openTasks": "Tugas terbuka",
-    "percentReady": "{{score}}% siap",
     "purchasePrice": "Harga beli",
     "purchaseDate": "Tanggal beli",
     "bike": "motor",
@@ -1024,15 +1023,6 @@
     "allTime": "Sepanjang Waktu",
     "noExpenses": "Belum ada pengeluaran tercatat",
     "startTracking": "Selesaikan tugas dengan biaya untuk mulai melacak",
-    "updateMileage": "Perbarui Jarak Tempuh",
-    "enterCurrentMileage": "Masukkan pembacaan odometer saat ini ({{unit}})",
-    "noMileage": "Tidak ada jarak tempuh",
-    "neverUpdated": "Belum pernah diperbarui",
-    "updatedToday": "Diperbarui hari ini",
-    "updatedYesterday": "Diperbarui kemarin",
-    "updatedDaysAgo": "Diperbarui {{days}} hari lalu",
-    "mileageWarning": "Jarak tempuh lebih rendah?",
-    "mileageWarningMessage": "Pembacaan baru lebih rendah dari saat ini. Apakah kamu yakin?",
     "cost": "Biaya",
     "partsCost": "Suku Cadang",
     "laborCost": "Jasa",
@@ -1042,9 +1032,6 @@
     "details": "Detail",
     "hideDetails": "Sembunyikan Detail",
     "costPerKm": "Biaya / km",
-    "rides": "Perjalanan",
-    "analytics": "Analitik",
-    "viewAnalytics": "Lihat →",
     "autoUpdated": "Diperbarui otomatis",
     "manualEntry": "Input manual",
     "updatedTodayFrom": "Diperbarui hari ini dari {{source}}",
@@ -1254,7 +1241,8 @@
       "backdatedNotice": "Bertanggal sebelum angka terakhir: tetap dicatat, dan odometer tetap {{last}} {{unit}}.",
       "futureDate": "Tanggal tidak boleh di masa depan.",
       "saveFailed": "Angka tidak dapat disimpan. Coba lagi.",
-      "lastReadingNoDate": "Angka terakhir {{last}} {{unit}}"
+      "lastReadingNoDate": "Angka terakhir {{last}} {{unit}}",
+      "historyUnavailable": "Pembacaan sebelumnya gagal dimuat, jadi hanya pembacaan hari ini yang bisa disimpan. Ketuk untuk mencoba lagi."
     },
     "noteSheet": {
       "new": "Catatan baru",
@@ -1274,7 +1262,9 @@
       "photoFailed": "Catatan tersimpan, foto gagal",
       "taskNotCreated": "Catatan tersimpan. Tugas tidak dapat dibuat — gunakan “Jadikan tugas” pada catatan.",
       "photoLimit": "Maksimal {{max}} foto per catatan",
-      "alsoTaskSubNamed": "Membuat “{{title}}” · Rendah · tanpa tenggat, dengan catatan ini terlampir"
+      "alsoTaskSubNamed": "Membuat “{{title}}” · Rendah · tanpa tenggat, dengan catatan ini terlampir",
+      "photoRemoveFailed": "Catatan disimpan, tetapi satu foto tidak bisa dihapus",
+      "photoNeedsSignIn": "Masuk lagi untuk menambahkan foto. Hapus fotonya untuk menyimpan catatan tanpa foto."
     },
     "notesScreen": {
       "title": "Catatan · {{name}}",

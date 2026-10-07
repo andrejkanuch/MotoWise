@@ -405,7 +405,6 @@
     "totalKilometres": "Kilometres totaux",
     "oldestBike": "Moto la plus ancienne",
     "openTasks": "Taches ouvertes",
-    "percentReady": "{{score}}% pret",
     "purchasePrice": "Prix d'achat",
     "purchaseDate": "Date d'achat",
     "bike": "moto",
@@ -1025,15 +1024,6 @@
     "allTime": "Tout",
     "noExpenses": "Aucune dépense enregistrée",
     "startTracking": "Termine une tâche avec un coût pour commencer le suivi",
-    "updateMileage": "Mettre à jour le kilométrage",
-    "enterCurrentMileage": "Saisis le relevé actuel du compteur ({{unit}})",
-    "noMileage": "Pas de kilométrage",
-    "neverUpdated": "Jamais mis à jour",
-    "updatedToday": "Mis à jour aujourd'hui",
-    "updatedYesterday": "Mis à jour hier",
-    "updatedDaysAgo": "Mis à jour il y a {{days}} j",
-    "mileageWarning": "Kilométrage inférieur ?",
-    "mileageWarningMessage": "Le nouveau relevé est inférieur au précédent. Es-tu sûr ?",
     "cost": "Coût",
     "partsCost": "Pièces",
     "laborCost": "Main-d'œuvre",
@@ -1043,9 +1033,6 @@
     "details": "Détails",
     "hideDetails": "Masquer les détails",
     "costPerKm": "Cout / km",
-    "rides": "Balades",
-    "analytics": "Statistiques",
-    "viewAnalytics": "Voir →",
     "autoUpdated": "Mis à jour automatiquement",
     "manualEntry": "Saisie manuelle",
     "updatedTodayFrom": "Mis à jour aujourd'hui depuis {{source}}",
@@ -1255,7 +1242,8 @@
       "backdatedNotice": "Antérieur à votre dernier relevé : il est consigné et le compteur reste à {{last}} {{unit}}.",
       "futureDate": "La date ne peut pas être dans le futur.",
       "saveFailed": "Impossible d'enregistrer le relevé. Réessayez.",
-      "lastReadingNoDate": "Dernier relevé {{last}} {{unit}}"
+      "lastReadingNoDate": "Dernier relevé {{last}} {{unit}}",
+      "historyUnavailable": "Impossible de charger les relevés précédents : seul le relevé du jour peut être enregistré. Touchez pour réessayer."
     },
     "noteSheet": {
       "new": "Nouvelle note",
@@ -1275,7 +1263,9 @@
       "photoFailed": "Note enregistrée, échec de la photo",
       "taskNotCreated": "Note enregistrée. La tâche n’a pas pu être créée : utilisez « En faire une tâche » sur la note.",
       "photoLimit": "Jusqu'à {{max}} photos par note",
-      "alsoTaskSubNamed": "Crée « {{title}} » · Basse · sans échéance, avec cette note jointe"
+      "alsoTaskSubNamed": "Crée « {{title}} » · Basse · sans échéance, avec cette note jointe",
+      "photoRemoveFailed": "Note enregistrée, mais une photo n’a pas pu être retirée",
+      "photoNeedsSignIn": "Reconnectez-vous pour ajouter des photos. Retirez-les pour enregistrer la note sans elles."
     },
     "notesScreen": {
       "title": "Notes · {{name}}",

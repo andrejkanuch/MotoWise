@@ -37,7 +37,7 @@ export interface CostsYoy {
 export interface CostsSummary {
   /**
    * The currency every figure below is in: the year's most-used currency. Amounts
-   * in different currencies are never added together (#275) — there is no FX
+   * in different currencies are never added together (PR 275) — there is no FX
    * source.
    */
   currency: Currency;

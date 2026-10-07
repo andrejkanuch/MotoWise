@@ -404,7 +404,6 @@
     "totalKilometres": "Gesamtkilometer",
     "oldestBike": "Aeltestes Motorrad",
     "openTasks": "Offene Aufgaben",
-    "percentReady": "{{score}}% bereit",
     "purchasePrice": "Kaufpreis",
     "purchaseDate": "Kaufdatum",
     "bike": "Motorrad",
@@ -1024,15 +1023,6 @@
     "allTime": "Gesamt",
     "noExpenses": "Keine Ausgaben erfasst",
     "startTracking": "Schliesse eine Aufgabe mit Kosten ab um zu beginnen",
-    "updateMileage": "Kilometerstand aktualisieren",
-    "enterCurrentMileage": "Aktuellen Kilometerstand eingeben ({{unit}})",
-    "noMileage": "Kein Kilometerstand",
-    "neverUpdated": "Nie aktualisiert",
-    "updatedToday": "Heute aktualisiert",
-    "updatedYesterday": "Gestern aktualisiert",
-    "updatedDaysAgo": "Vor {{days}} Tagen aktualisiert",
-    "mileageWarning": "Niedrigerer Kilometerstand?",
-    "mileageWarningMessage": "Der neue Wert ist niedriger als der aktuelle. Bist du sicher?",
     "cost": "Kosten",
     "partsCost": "Teile",
     "laborCost": "Arbeit",
@@ -1042,9 +1032,6 @@
     "details": "Details",
     "hideDetails": "Details ausblenden",
     "costPerKm": "Kosten / km",
-    "rides": "Fahrten",
-    "analytics": "Analyse",
-    "viewAnalytics": "Anzeigen →",
     "autoUpdated": "Automatisch aktualisiert",
     "manualEntry": "Manueller Eintrag",
     "updatedTodayFrom": "Heute aktualisiert von {{source}}",
@@ -1254,7 +1241,8 @@
       "backdatedNotice": "Liegt vor deinem letzten Stand: Er wird gespeichert, der Kilometerstand bleibt bei {{last}} {{unit}}.",
       "futureDate": "Das Datum darf nicht in der Zukunft liegen.",
       "saveFailed": "Der Stand konnte nicht gespeichert werden. Versuch es noch einmal.",
-      "lastReadingNoDate": "Letzter Stand {{last}} {{unit}}"
+      "lastReadingNoDate": "Letzter Stand {{last}} {{unit}}",
+      "historyUnavailable": "Frühere Stände konnten nicht geladen werden, daher kann nur der heutige Stand gespeichert werden. Zum Wiederholen tippen."
     },
     "noteSheet": {
       "new": "Neue Notiz",
@@ -1274,7 +1262,9 @@
       "photoFailed": "Notiz gespeichert, Foto fehlgeschlagen",
       "taskNotCreated": "Notiz gespeichert. Die Aufgabe konnte nicht angelegt werden – nutze „Als Aufgabe anlegen“ an der Notiz.",
       "photoLimit": "Bis zu {{max}} Fotos pro Notiz",
-      "alsoTaskSubNamed": "Legt „{{title}}“ an · Niedrig · ohne Termin, mit dieser Notiz"
+      "alsoTaskSubNamed": "Legt „{{title}}“ an · Niedrig · ohne Termin, mit dieser Notiz",
+      "photoRemoveFailed": "Notiz gespeichert, aber ein Foto konnte nicht entfernt werden",
+      "photoNeedsSignIn": "Melde dich erneut an, um Fotos hinzuzufügen. Entferne die Fotos, um die Notiz ohne sie zu speichern."
     },
     "notesScreen": {
       "title": "Notizen · {{name}}",

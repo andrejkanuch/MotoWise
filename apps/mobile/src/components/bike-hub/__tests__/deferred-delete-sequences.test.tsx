@@ -281,16 +281,27 @@ describe('useDeferredDelete — leaving, blur and the app state', () => {
     expect(commit).toHaveBeenCalledTimes(1);
   });
 
-  it.each<AppStateStatus>([
-    'background',
-    'inactive',
-  ])('the app becoming %s closes the window at once', async (status) => {
+  it('the app going to the background closes the window at once', async () => {
     const { result, commit } = await setup();
     await act(async () => result.current.request('note-1'));
-    await emitAppState(status);
+    await emitAppState('background');
     expect(commit).toHaveBeenCalledTimes(1);
     await advance(UNDO_WINDOW_MS);
     expect(commit).toHaveBeenCalledTimes(1);
+  });
+
+  // Control Center, the notification shade and call banners report 'inactive'
+  // without leaving the app: the rider can still tap Undo.
+  it('the app becoming inactive keeps the undo window open', async () => {
+    const { result, commit } = await setup();
+    await act(async () => result.current.request('note-1'));
+    await emitAppState('inactive');
+    expect(commit).not.toHaveBeenCalled();
+    expect(result.current.pendingId).toBe('note-1');
+    await emitAppState('active');
+    await act(async () => result.current.undo());
+    await advance(UNDO_WINDOW_MS);
+    expect(commit).not.toHaveBeenCalled();
   });
 
   it('the app becoming active again does not close the window', async () => {

@@ -289,6 +289,9 @@ export default function RideSummaryScreen() {
 
       // Invalidate rides cache so the list shows the new ride
       queryClient.invalidateQueries({ queryKey: queryKeys.rides.all });
+      // Ending the ride moved the bike's odometer server-side (and logged a reading).
+      queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.odometer.all });
 
       trackRideCompleted({
         trigger: RIDE_SAVE_TRIGGER.SUMMARY,

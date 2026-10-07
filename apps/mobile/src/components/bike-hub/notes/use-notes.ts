@@ -12,6 +12,7 @@ import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import type { NoteSource } from '../../../lib/bike-hub/constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { QUERY_META } from '../../../lib/query-meta';
 import { usePendingDeleteStore } from '../../../stores/pending-delete.store';
 
 export type HubNote = NotesByMotorcycleQuery['notes'][number];
@@ -24,7 +25,7 @@ const OPTIMISTIC_PREFIX = 'optimistic-';
  * out of the way. For mutations it only skips those with `onError` in their
  * options; for queries it fires on any first-load failure.
  */
-const OWN_ERROR_UI = { showErrorAlert: false } as const;
+const { OWN_ERROR_UI } = QUERY_META;
 
 export function isOptimisticNote(note: Pick<HubNote, 'id'>): boolean {
   return note.id.startsWith(OPTIMISTIC_PREFIX);
@@ -72,6 +73,9 @@ export interface CreateNoteVariables {
 export function useCreateNote() {
   const queryClient = useQueryClient();
   return useMutation({
+    // Not idempotent: a retry after the server saved the note (the response was
+    // lost) would create a second note. The sheet keeps the text for a manual retry.
+    retry: false,
     mutationFn: ({ motorcycleId, text, odometer, alsoCreateTask }: CreateNoteVariables) =>
       gqlFetcher(CreateNoteDocument, {
         // `createNote` takes a number or nothing: an explicit null is rejected by
@@ -176,6 +180,8 @@ export function useCreateTaskFromNote(motorcycleId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     meta: OWN_ERROR_UI,
+    // Not idempotent either: a retried call can create a second task.
+    retry: false,
     mutationFn: (noteId: string) => gqlFetcher(CreateTaskFromNoteDocument, { noteId }),
     onSuccess: (data) => {
       const key = queryKeys.notes.byMotorcycle(motorcycleId);

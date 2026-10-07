@@ -403,7 +403,6 @@
     "totalKilometres": "Laczne kilometry",
     "oldestBike": "Najstarszy motocykl",
     "openTasks": "Otwarte zadania",
-    "percentReady": "{{score}}% gotowy",
     "purchasePrice": "Cena zakupu",
     "purchaseDate": "Data zakupu",
     "bike": "motocykl",
@@ -1026,15 +1025,6 @@
     "allTime": "Od poczatku",
     "noExpenses": "Brak zarejestrowanych wydatkow",
     "startTracking": "Wykonaj zadanie z kosztem, aby rozpoczac sledzenie",
-    "updateMileage": "Zaktualizuj przebieg",
-    "enterCurrentMileage": "Podaj aktualny odczyt licznika ({{unit}})",
-    "noMileage": "Brak przebiegu",
-    "neverUpdated": "Nigdy nie aktualizowane",
-    "updatedToday": "Zaktualizowane dzisiaj",
-    "updatedYesterday": "Zaktualizowane wczoraj",
-    "updatedDaysAgo": "Zaktualizowane {{days}} dni temu",
-    "mileageWarning": "Nizszy przebieg?",
-    "mileageWarningMessage": "Nowy odczyt jest nizszy od aktualnego. Jestes pewien?",
     "cost": "Koszt",
     "partsCost": "Czesci",
     "laborCost": "Robocizna",
@@ -1044,9 +1034,6 @@
     "details": "Szczegoly",
     "hideDetails": "Ukryj szczegoly",
     "costPerKm": "Koszt / km",
-    "rides": "Jazdy",
-    "analytics": "Analizy",
-    "viewAnalytics": "Zobacz →",
     "autoUpdated": "Automatycznie zaktualizowane",
     "manualEntry": "Ręczny wpis",
     "updatedTodayFrom": "Zaktualizowane dziś z {{source}}",
@@ -1288,7 +1275,8 @@
       "backdatedNotice": "Data sprzed ostatniego odczytu: wpis zostanie zapisany, a przebieg pozostanie {{last}} {{unit}}.",
       "futureDate": "Data nie może być z przyszłości.",
       "saveFailed": "Nie udało się zapisać odczytu. Spróbuj ponownie.",
-      "lastReadingNoDate": "Ostatni odczyt {{last}} {{unit}}"
+      "lastReadingNoDate": "Ostatni odczyt {{last}} {{unit}}",
+      "historyUnavailable": "Nie udało się wczytać wcześniejszych odczytów, więc można zapisać tylko dzisiejszy odczyt. Dotknij, aby spróbować ponownie."
     },
     "noteSheet": {
       "new": "Nowa notatka",
@@ -1308,7 +1296,9 @@
       "photoFailed": "Notatka zapisana, zdjęcie nie",
       "taskNotCreated": "Notatka zapisana. Nie udało się utworzyć zadania — użyj „Utwórz zadanie” przy notatce.",
       "photoLimit": "Maksymalnie {{max}} zdjęcia na notatkę",
-      "alsoTaskSubNamed": "Tworzy „{{title}}” · Niski · bez terminu, z dołączoną notatką"
+      "alsoTaskSubNamed": "Tworzy „{{title}}” · Niski · bez terminu, z dołączoną notatką",
+      "photoRemoveFailed": "Notatka zapisana, ale nie udało się usunąć zdjęcia",
+      "photoNeedsSignIn": "Zaloguj się ponownie, aby dodać zdjęcia. Usuń zdjęcia, aby zapisać notatkę bez nich."
     },
     "notesScreen": {
       "title": "Notatki · {{name}}",

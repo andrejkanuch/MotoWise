@@ -401,7 +401,6 @@
     "totalKilometres": "Total kilometres",
     "oldestBike": "Oldest bike",
     "openTasks": "Open tasks",
-    "percentReady": "{{score}}% ready",
     "purchasePrice": "Purchase Price",
     "purchaseDate": "Purchase Date",
     "bike": "bike",
@@ -1035,15 +1034,6 @@
     "allTime": "All Time",
     "noExpenses": "No expenses recorded",
     "startTracking": "Complete a task with cost to start tracking",
-    "updateMileage": "Update Mileage",
-    "enterCurrentMileage": "Enter current odometer reading ({{unit}})",
-    "noMileage": "No mileage",
-    "neverUpdated": "Never updated",
-    "updatedToday": "Updated today",
-    "updatedYesterday": "Updated yesterday",
-    "updatedDaysAgo": "Updated {{days}}d ago",
-    "mileageWarning": "Lower mileage?",
-    "mileageWarningMessage": "The new reading is lower than current. Are you sure?",
     "cost": "Cost",
     "partsCost": "Parts",
     "laborCost": "Labor",
@@ -1053,9 +1043,6 @@
     "details": "Details",
     "hideDetails": "Hide Details",
     "costPerKm": "Cost / km",
-    "rides": "Rides",
-    "analytics": "Analytics",
-    "viewAnalytics": "View →",
     "maintenance": "Maintenance",
     "allTasks": "All Tasks",
     "segment": {
@@ -1260,7 +1247,8 @@
       "backdatedNotice": "Dated before your latest reading: it is logged, and the odometer stays at {{last}} {{unit}}.",
       "futureDate": "The date can't be in the future.",
       "saveFailed": "Couldn't save the reading. Try again.",
-      "lastReadingNoDate": "Last reading {{last}} {{unit}}"
+      "lastReadingNoDate": "Last reading {{last}} {{unit}}",
+      "historyUnavailable": "Couldn't load past readings, so only today's reading can be saved. Tap to retry."
     },
     "noteSheet": {
       "new": "New note",
@@ -1280,7 +1268,9 @@
       "photoFailed": "Note saved, photo failed",
       "taskNotCreated": "Note saved. The task could not be created — use “Make it a task” on the note.",
       "photoLimit": "Up to {{max}} photos per note",
-      "alsoTaskSubNamed": "Creates “{{title}}” · Low · no due date, with this note attached"
+      "alsoTaskSubNamed": "Creates “{{title}}” · Low · no due date, with this note attached",
+      "photoRemoveFailed": "Note saved, but a photo couldn't be removed",
+      "photoNeedsSignIn": "Sign in again to add photos. Remove the photos to save the note without them."
     },
     "notesScreen": {
       "title": "Notes · {{name}}",

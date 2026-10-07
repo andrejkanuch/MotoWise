@@ -23,6 +23,7 @@ import {
   applyQuickAdd,
   describeDelta,
   type OdometerDelta,
+  odometerBaseline,
   parseEntry,
   validateReading,
 } from '../../../lib/bike-hub/odometer-input';
@@ -98,7 +99,8 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
   const language = i18n.language;
   const unit = toHubUnit(bike.distanceUnit);
   const today = useToday(now);
-  const { latest, readingsLoading, pendingRides } = useOdometerContext(bike.id);
+  const { latest, readingsLoading, readingsError, refetchReadings, pendingRides } =
+    useOdometerContext(bike.id);
   const logOdometer = useLogOdometer(bike.id);
 
   const [digits, setDigits] = useState('');
@@ -109,16 +111,24 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
   const [usedQuickAdd, setUsedQuickAdd] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
 
-  // 0 (or nothing) with no reading means the odometer was never set.
-  const loggedValue = latest?.value ?? bike.currentMileage;
-  const lastValue = hasOdometer(loggedValue) ? loggedValue : null;
+  // The baseline is the higher of the latest logged reading and the bike's
+  // odometer: a ride end or receipt scan can move `currentMileage` before the
+  // readings query refetches. 0 (or nothing) means the odometer was never set.
+  const baseline = odometerBaseline(latest?.value, bike.currentMileage);
+  const lastValue = hasOdometer(baseline) ? baseline : null;
   const lastRecordedAt = latest ? new Date(latest.recordedAt) : null;
+  // Back-dating is judged against the latest reading's time. With no history
+  // loaded that is unknown, so only a today reading (stamped "now", always the
+  // latest) is safe to save; a past date waits for the history.
+  const historyUnknown = readingsError && !isSameCalendarDay(recordedAt, today);
   const value = parseEntry(digits);
   const validation = validateReading({ value, lastValue, recordedAt, lastRecordedAt, today });
   const backdated = validation.ok && validation.backdated;
   const delta = describeDelta(value, lastValue);
   const lastText = lastValue == null ? '' : formatOdometer(lastValue, language);
-  const since = lastRecordedAt ? formatShortDate(lastRecordedAt, language) : null;
+  // The date only belongs to the baseline when the baseline IS that reading.
+  const since =
+    lastRecordedAt && latest?.value === baseline ? formatShortDate(lastRecordedAt, language) : null;
 
   const emptyDetail = (): string => {
     if (lastValue == null) return t('bikeHub.odometer.first');
@@ -198,8 +208,10 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
     );
   };
 
-  const blocked = !validation.ok && 'error' in validation;
-  const futureDate = blocked && validation.error === ODOMETER_ERROR.FUTURE_DATE;
+  const blocked = (!validation.ok && 'error' in validation) || historyUnknown;
+  const saveDisabled = blocked || readingsLoading || logOdometer.isPending;
+  const futureDate =
+    !validation.ok && 'error' in validation && validation.error === ODOMETER_ERROR.FUTURE_DATE;
   const entryText = value === null ? lastText || '0' : formatOdometer(value, language);
   const dateLabel = isSameCalendarDay(recordedAt, today)
     ? t('bikeHub.odometer.dateToday')
@@ -349,19 +361,25 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
           fontFamily: HUB_FONT.sans,
           fontSize: 12,
           lineHeight: 16,
-          color: saveFailed || futureDate ? hub.late : hub.muted,
+          color: saveFailed || futureDate || historyUnknown ? hub.late : hub.muted,
         }}
+        {...(historyUnknown
+          ? { onPress: refetchReadings, accessibilityRole: 'button' as const }
+          : {})}
       >
-        {noticeText({ t, saveFailed, futureDate })}
+        {noticeText({ t, saveFailed, futureDate, historyUnknown })}
       </Text>
 
       <Pressable
         testID="odometer-save"
         onPress={onSavePress}
-        disabled={blocked || logOdometer.isPending}
+        disabled={saveDisabled}
         accessibilityRole="button"
         accessibilityLabel={saveLabel}
-        accessibilityState={{ disabled: blocked, busy: logOdometer.isPending }}
+        accessibilityState={{
+          disabled: saveDisabled,
+          busy: logOdometer.isPending || readingsLoading,
+        }}
         style={({ pressed }) => ({
           height: HUB_HEIGHT.primary,
           borderRadius: HUB_RADIUS.button,
@@ -369,7 +387,7 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
           backgroundColor: hub.copper,
           alignItems: 'center',
           justifyContent: 'center',
-          opacity: blocked || logOdometer.isPending ? 0.4 : pressed ? 0.85 : 1,
+          opacity: saveDisabled ? 0.4 : pressed ? 0.85 : 1,
         })}
       >
         <Text
@@ -388,10 +406,16 @@ function isSameCalendarDay(a: Date, b: Date): boolean {
 }
 
 /** The footnote. A back-dated reading is explained on the detail line under the entry. */
-function noticeText(input: { t: TFunction; saveFailed: boolean; futureDate: boolean }): string {
-  const { t, saveFailed, futureDate } = input;
+function noticeText(input: {
+  t: TFunction;
+  saveFailed: boolean;
+  futureDate: boolean;
+  historyUnknown: boolean;
+}): string {
+  const { t, saveFailed, futureDate, historyUnknown } = input;
   if (saveFailed) return t('bikeHub.odometer.saveFailed');
   if (futureDate) return t('bikeHub.odometer.futureDate');
+  if (historyUnknown) return t('bikeHub.odometer.historyUnavailable');
   return t('bikeHub.odometer.helper');
 }
 

@@ -27,7 +27,12 @@ import {
 } from '../../../lib/bike-hub/format';
 import { normaliseNoteText } from '../../../lib/bike-hub/notes';
 import { gqlFetcher } from '../../../lib/graphql-client';
-import { pickImage, takePhoto, uploadNotePhoto } from '../../../lib/image-upload';
+import {
+  pickImage,
+  removeNotePhotoObject,
+  takePhoto,
+  uploadNotePhoto,
+} from '../../../lib/image-upload';
 import { queryKeys } from '../../../lib/query-keys';
 import { useAuthStore } from '../../../stores/auth.store';
 import { showActionSheet } from '../../../utils/action-sheet';
@@ -53,6 +58,21 @@ const FOOTER_KEYBOARD_GAP = 12;
 const FOOTER_FALLBACK_HEIGHT = 12 + HUB_HEIGHT.primary + FOOTER_KEYBOARD_GAP;
 /** Room between the focused field's caret and the top of the Save bar. */
 const CARET_MARGIN = 8;
+
+interface UploadedPhoto {
+  storagePath: string;
+  fileSizeBytes: number;
+}
+
+/** What still needs the rider's eye after the note itself saved. */
+interface SavedState {
+  noteId: string;
+  /** Local uris of new photos that are not attached yet. */
+  failedPhotos: string[];
+  /** Ids of photos the rider removed that are still attached. */
+  failedRemovals: string[];
+  taskMissing: boolean;
+}
 
 interface NoteFormProps {
   /** The bike the sheet was opened for. */
@@ -150,13 +170,21 @@ export function NoteForm({
   const [newPhotos, setNewPhotos] = useState<string[]>([]);
   const [removedPhotoIds, setRemovedPhotoIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  // State updates land a render later; two taps in the same frame both see
+  // `saving === false`. The ref closes that window so a note is created once.
+  const savingRef = useRef(false);
   const [saveFailed, setSaveFailed] = useState(false);
+  /** New photos were added but there is no session to upload them under. */
+  const [noSession, setNoSession] = useState(false);
   /** Set once the note itself is saved but something after it needs the rider's eye. */
-  const [saved, setSaved] = useState<{
-    noteId: string;
-    failedPhotos: string[];
-    taskMissing: boolean;
-  } | null>(null);
+  const [saved, setSaved] = useState<SavedState | null>(null);
+  /**
+   * Photos whose file is already in storage but whose `addNotePhoto` failed, by
+   * local uri. A retry only re-sends `addNotePhoto` for the same object (no new
+   * upload, no second orphan); objects still unattached when the sheet closes
+   * are removed.
+   */
+  const uploadedPaths = useRef(new Map<string, UploadedPhoto>());
 
   // The bike the sheet was opened for comes first (and is preselected).
   const attachChoices = [bike, ...bikes.filter((candidate) => candidate.id !== bike.id)];
@@ -207,13 +235,19 @@ export function NoteForm({
   }, [openPhotoPicker]);
 
   /** Uploads the given photos to the saved note; returns the ones that failed. */
-  const uploadPhotos = async (noteId: string, uris: readonly string[]): Promise<string[]> => {
-    if (!userId) return [...uris];
+  const uploadPhotos = async (
+    noteId: string,
+    uris: readonly string[],
+    owner: string,
+  ): Promise<string[]> => {
     const failed: string[] = [];
     for (const uri of uris) {
       try {
-        const { storagePath, fileSizeBytes } = await uploadNotePhoto(uri, userId, noteId);
-        await gqlFetcher(AddNotePhotoDocument, { input: { noteId, storagePath, fileSizeBytes } });
+        const uploaded =
+          uploadedPaths.current.get(uri) ?? (await uploadNotePhoto(uri, owner, noteId));
+        uploadedPaths.current.set(uri, uploaded);
+        await gqlFetcher(AddNotePhotoDocument, { input: { noteId, ...uploaded } });
+        uploadedPaths.current.delete(uri);
       } catch (_error) {
         failed.push(uri);
       }
@@ -221,31 +255,60 @@ export function NoteForm({
     return failed;
   };
 
+  /** Removes the given saved photos; returns the ids that could not be removed. */
+  const removePhotos = async (photoIds: readonly string[]): Promise<string[]> => {
+    const results = await Promise.allSettled(
+      photoIds.map((photoId) => gqlFetcher(DeleteNotePhotoDocument, { photoId })),
+    );
+    return photoIds.filter((_id, index) => results[index]?.status === 'rejected');
+  };
+
+  /** Storage objects that never got attached are deleted when the sheet goes away. */
+  const close = () => {
+    for (const { storagePath } of uploadedPaths.current.values()) {
+      void removeNotePhotoObject(storagePath);
+    }
+    uploadedPaths.current.clear();
+    onClose();
+  };
+
   const createNote = useCreateNote();
   const updateNote = useUpdateNote(bike.id);
 
-  const finish = (noteId: string, failedPhotos: string[], taskMissing: boolean) => {
+  const finish = (next: SavedState) => {
     queryClient.invalidateQueries({ queryKey: queryKeys.notes.byMotorcycle(targetId) });
-    if (failedPhotos.length === 0 && !taskMissing) {
+    if (next.failedPhotos.length === 0 && next.failedRemovals.length === 0 && !next.taskMissing) {
       triggerNotification(Haptics.NotificationFeedbackType.Success);
-      onClose();
+      close();
       return;
     }
-    setSaved({ noteId, failedPhotos, taskMissing });
+    setSaved(next);
   };
 
   const save = async () => {
-    if (!cleanText || saving) return;
+    if (!cleanText || savingRef.current) return;
+    // Photos are stored under the rider's id: without a session they could
+    // never upload (and Retry could never succeed), so say so before saving.
+    if (newPhotos.length > 0 && !userId) {
+      setNoSession(true);
+      return;
+    }
+    savingRef.current = true;
     setSaving(true);
     setSaveFailed(false);
+    setNoSession(false);
     const odometer = stampOn ? (stampValue ?? null) : null;
+    const owner = userId ?? '';
     try {
       if (isEdit) {
         await updateNote.mutateAsync({ id: note.id, text: cleanText, odometer });
-        await Promise.allSettled(
-          removedPhotoIds.map((photoId) => gqlFetcher(DeleteNotePhotoDocument, { photoId })),
-        );
-        finish(note.id, await uploadPhotos(note.id, newPhotos), false);
+        const failedRemovals = await removePhotos(removedPhotoIds);
+        finish({
+          noteId: note.id,
+          failedPhotos: await uploadPhotos(note.id, newPhotos, owner),
+          failedRemovals,
+          taskMissing: false,
+        });
         return;
       }
       const { createNote: created } = await createNote.mutateAsync({
@@ -257,31 +320,39 @@ export function NoteForm({
         hasPhoto: newPhotos.length > 0,
       });
       // The API keeps the note when the task could not be created; say so, do not fail.
-      finish(
-        created.id,
-        await uploadPhotos(created.id, newPhotos),
-        alsoTask && !created.linkedTaskId,
-      );
+      finish({
+        noteId: created.id,
+        failedPhotos: await uploadPhotos(created.id, newPhotos, owner),
+        failedRemovals: [],
+        taskMissing: alsoTask && !created.linkedTaskId,
+      });
     } catch (_error) {
       setSaveFailed(true);
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };
 
   const retryPhotos = async () => {
-    if (!saved || saving) return;
+    if (!saved || savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
-    const failedPhotos = await uploadPhotos(saved.noteId, saved.failedPhotos);
-    setSaving(false);
-    finish(saved.noteId, failedPhotos, saved.taskMissing);
+    try {
+      const failedRemovals = await removePhotos(saved.failedRemovals);
+      const failedPhotos = await uploadPhotos(saved.noteId, saved.failedPhotos, userId ?? '');
+      finish({ ...saved, failedPhotos, failedRemovals });
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
   };
 
   const cancel = () => {
-    if (!dirty || saved) return onClose();
+    if (!dirty || saved) return close();
     Alert.alert(t('bikeHub.noteSheet.discardTitle'), undefined, [
       { text: t('bikeHub.noteSheet.discardKeep'), style: 'cancel' },
-      { text: t('bikeHub.noteSheet.discard'), style: 'destructive', onPress: onClose },
+      { text: t('bikeHub.noteSheet.discard'), style: 'destructive', onPress: close },
     ]);
   };
 
@@ -514,10 +585,15 @@ export function NoteForm({
                 {t('bikeHub.noteSheet.taskNotCreated')}
               </Text>
             ) : null}
-            {saved.failedPhotos.length > 0 ? (
+            {saved.failedPhotos.length > 0 || saved.failedRemovals.length > 0 ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <Text style={{ flex: 1, fontFamily: HUB_FONT.sans, fontSize: 13, color: hub.soon }}>
-                  {t('bikeHub.noteSheet.photoFailed')}
+                <Text
+                  testID="note-photo-error"
+                  style={{ flex: 1, fontFamily: HUB_FONT.sans, fontSize: 13, color: hub.soon }}
+                >
+                  {saved.failedPhotos.length > 0
+                    ? t('bikeHub.noteSheet.photoFailed')
+                    : t('bikeHub.noteSheet.photoRemoveFailed')}
                 </Text>
                 <Pressable
                   testID="note-retry-photos"
@@ -560,18 +636,18 @@ export function NoteForm({
         >
           {/* In the keyboard-attached footer, right above the button it explains:
               inside the scroll area it sat below the fold with the keyboard open. */}
-          {saveFailed ? (
+          {saveFailed || noSession ? (
             <Text
               testID="note-save-error"
               accessibilityLiveRegion="polite"
               style={{ fontFamily: HUB_FONT.sans, fontSize: 13, color: hub.late, marginBottom: 8 }}
             >
-              {t('bikeHub.notes.saveFailed')}
+              {noSession ? t('bikeHub.noteSheet.photoNeedsSignIn') : t('bikeHub.notes.saveFailed')}
             </Text>
           ) : null}
           <Pressable
             testID="note-save"
-            onPress={saved ? onClose : save}
+            onPress={saved ? close : save}
             disabled={!saved && (!cleanText || saving)}
             accessibilityRole="button"
             accessibilityState={{ disabled: !saved && !cleanText, busy: saving }}

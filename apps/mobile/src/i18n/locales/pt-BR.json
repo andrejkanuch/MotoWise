@@ -402,7 +402,6 @@
     "totalKilometres": "Quilometros totais",
     "oldestBike": "Moto mais antiga",
     "openTasks": "Tarefas abertas",
-    "percentReady": "{{score}}% pronto",
     "purchasePrice": "Preco de compra",
     "purchaseDate": "Data de compra",
     "bike": "moto",
@@ -1025,15 +1024,6 @@
     "allTime": "Todo o Período",
     "noExpenses": "Nenhuma despesa registrada",
     "startTracking": "Conclua uma tarefa com custo para começar a rastrear",
-    "updateMileage": "Atualizar Quilometragem",
-    "enterCurrentMileage": "Insira a leitura atual do odômetro ({{unit}})",
-    "noMileage": "Sem quilometragem",
-    "neverUpdated": "Nunca atualizado",
-    "updatedToday": "Atualizado hoje",
-    "updatedYesterday": "Atualizado ontem",
-    "updatedDaysAgo": "Atualizado há {{days}}d",
-    "mileageWarning": "Quilometragem menor?",
-    "mileageWarningMessage": "A nova leitura é menor que a atual. Tem certeza?",
     "cost": "Custo",
     "partsCost": "Peças",
     "laborCost": "Mão de obra",
@@ -1043,9 +1033,6 @@
     "details": "Detalhes",
     "hideDetails": "Ocultar Detalhes",
     "costPerKm": "Custo / km",
-    "rides": "Roles",
-    "analytics": "Estatisticas",
-    "viewAnalytics": "Ver →",
     "autoUpdated": "Atualizado automaticamente",
     "manualEntry": "Entrada manual",
     "updatedTodayFrom": "Atualizado hoje de {{source}}",
@@ -1255,7 +1242,8 @@
       "backdatedNotice": "Anterior à sua última leitura: ela é registrada e o hodômetro continua em {{last}} {{unit}}.",
       "futureDate": "A data não pode estar no futuro.",
       "saveFailed": "Não foi possível salvar a leitura. Tente novamente.",
-      "lastReadingNoDate": "Última leitura {{last}} {{unit}}"
+      "lastReadingNoDate": "Última leitura {{last}} {{unit}}",
+      "historyUnavailable": "Não foi possível carregar as leituras anteriores, então só a leitura de hoje pode ser salva. Toque para tentar de novo."
     },
     "noteSheet": {
       "new": "Nova nota",
@@ -1275,7 +1263,9 @@
       "photoFailed": "Nota salva, a foto falhou",
       "taskNotCreated": "Nota salva. Não foi possível criar a tarefa — use “Criar tarefa” na nota.",
       "photoLimit": "Até {{max}} fotos por nota",
-      "alsoTaskSubNamed": "Cria “{{title}}” · Baixa · sem prazo, com esta nota anexada"
+      "alsoTaskSubNamed": "Cria “{{title}}” · Baixa · sem prazo, com esta nota anexada",
+      "photoRemoveFailed": "Nota salva, mas não foi possível remover uma foto",
+      "photoNeedsSignIn": "Entre novamente para adicionar fotos. Remova as fotos para salvar a nota sem elas."
     },
     "notesScreen": {
       "title": "Notas · {{name}}",

@@ -283,7 +283,11 @@ describe('BikeHubScreen — segments', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Add an expense' }));
     expect(mockRouter.push).toHaveBeenCalledWith({
       pathname: '/(tabs)/(garage)/add-expense',
-      params: { motorcycleId: BIKE_ID, bikeName: '2022 Honda Africa Twin' },
+      params: {
+        motorcycleId: BIKE_ID,
+        bikeName: '2022 Honda Africa Twin',
+        entrySource: 'bike_hub',
+      },
     });
   });
 

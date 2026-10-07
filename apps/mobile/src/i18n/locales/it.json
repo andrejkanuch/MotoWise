@@ -402,7 +402,6 @@
     "totalKilometres": "Chilometri totali",
     "oldestBike": "Moto piu vecchia",
     "openTasks": "Attivita aperte",
-    "percentReady": "{{score}}% pronto",
     "purchasePrice": "Prezzo di acquisto",
     "purchaseDate": "Data di acquisto",
     "bike": "moto",
@@ -1025,15 +1024,6 @@
     "allTime": "Totale",
     "noExpenses": "Nessuna spesa registrata",
     "startTracking": "Completa un'attività con un costo per iniziare il tracciamento",
-    "updateMileage": "Aggiorna chilometraggio",
-    "enterCurrentMileage": "Inserisci la lettura attuale del contachilometri ({{unit}})",
-    "noMileage": "Nessun chilometraggio",
-    "neverUpdated": "Mai aggiornato",
-    "updatedToday": "Aggiornato oggi",
-    "updatedYesterday": "Aggiornato ieri",
-    "updatedDaysAgo": "Aggiornato {{days}}g fa",
-    "mileageWarning": "Chilometraggio inferiore?",
-    "mileageWarningMessage": "La nuova lettura è inferiore alla precedente. Sei sicuro?",
     "cost": "Costo",
     "partsCost": "Ricambi",
     "laborCost": "Manodopera",
@@ -1043,9 +1033,6 @@
     "details": "Dettagli",
     "hideDetails": "Nascondi dettagli",
     "costPerKm": "Costo / km",
-    "rides": "Uscite",
-    "analytics": "Statistiche",
-    "viewAnalytics": "Vedi →",
     "autoUpdated": "Aggiornato automaticamente",
     "manualEntry": "Inserimento manuale",
     "updatedTodayFrom": "Aggiornato oggi da {{source}}",
@@ -1255,7 +1242,8 @@
       "backdatedNotice": "Precedente all’ultima lettura: viene registrata e il contachilometri resta a {{last}} {{unit}}.",
       "futureDate": "La data non può essere nel futuro.",
       "saveFailed": "Impossibile salvare la lettura. Riprova.",
-      "lastReadingNoDate": "Ultima lettura {{last}} {{unit}}"
+      "lastReadingNoDate": "Ultima lettura {{last}} {{unit}}",
+      "historyUnavailable": "Impossibile caricare le letture precedenti, quindi si può salvare solo la lettura di oggi. Tocca per riprovare."
     },
     "noteSheet": {
       "new": "Nuova nota",
@@ -1275,7 +1263,9 @@
       "photoFailed": "Nota salvata, foto non riuscita",
       "taskNotCreated": "Nota salvata. Non è stato possibile creare l’attività: usa «Rendila un’attività» sulla nota.",
       "photoLimit": "Fino a {{max}} foto per nota",
-      "alsoTaskSubNamed": "Crea “{{title}}” · Bassa · senza scadenza, con questa nota allegata"
+      "alsoTaskSubNamed": "Crea “{{title}}” · Bassa · senza scadenza, con questa nota allegata",
+      "photoRemoveFailed": "Nota salvata, ma non è stato possibile rimuovere una foto",
+      "photoNeedsSignIn": "Accedi di nuovo per aggiungere foto. Rimuovi le foto per salvare la nota senza di esse."
     },
     "notesScreen": {
       "title": "Note · {{name}}",

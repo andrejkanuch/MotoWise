@@ -135,7 +135,11 @@ describe('Log sheet', () => {
     expect(mockRouter.push).toHaveBeenCalledTimes(1);
     expect(mockRouter.push).toHaveBeenCalledWith({
       pathname: '/(tabs)/(garage)/add-expense',
-      params: { motorcycleId: BIKE_A.id, bikeName: '2022 Honda Africa Twin' },
+      params: {
+        motorcycleId: BIKE_A.id,
+        bikeName: '2022 Honda Africa Twin',
+        entrySource: 'bike_hub',
+      },
     });
     // The fallback timer must not open it a second time.
     await act(async () => jest.advanceTimersByTimeAsync(2000));

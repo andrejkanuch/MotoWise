@@ -112,6 +112,8 @@ export function useBikeHubData(id: string): BikeHubData {
       queryKeys.documents.byMotorcycle(id),
       queryKeys.notes.byMotorcycle(id),
       queryKeys.motorcycleRecalls.byMotorcycle(id),
+      queryKeys.odometer.readings(id),
+      queryKeys.odometer.pendingRides(id),
     ];
     try {
       await Promise.allSettled(

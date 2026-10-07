@@ -401,7 +401,6 @@
     "totalKilometres": "कुल किलोमीटर",
     "oldestBike": "सबसे पुरानी बाइक",
     "openTasks": "खुले टास्क",
-    "percentReady": "{{score}}% तैयार",
     "purchasePrice": "खरीद मूल्य",
     "purchaseDate": "खरीद तिथि",
     "bike": "बाइक",
@@ -1024,15 +1023,6 @@
     "allTime": "पूरे समय",
     "noExpenses": "कोई खर्च रिकॉर्ड नहीं",
     "startTracking": "ट्रैकिंग शुरू करने के लिए कॉस्ट वाला टास्क पूरा करें",
-    "updateMileage": "माइलेज अपडेट करें",
-    "enterCurrentMileage": "मौजूदा ओडोमीटर रीडिंग डालें ({{unit}})",
-    "noMileage": "कोई माइलेज नहीं",
-    "neverUpdated": "कभी अपडेट नहीं हुआ",
-    "updatedToday": "आज अपडेट हुआ",
-    "updatedYesterday": "कल अपडेट हुआ",
-    "updatedDaysAgo": "{{days}} दिन पहले अपडेट हुआ",
-    "mileageWarning": "कम माइलेज?",
-    "mileageWarningMessage": "नई रीडिंग मौजूदा से कम है। क्या आप पक्के हैं?",
     "cost": "लागत",
     "partsCost": "पार्ट्स",
     "laborCost": "लेबर",
@@ -1042,9 +1032,6 @@
     "details": "विवरण",
     "hideDetails": "विवरण छुपाएं",
     "costPerKm": "लागत / km",
-    "rides": "राइड्स",
-    "analytics": "एनालिटिक्स",
-    "viewAnalytics": "देखें →",
     "autoUpdated": "ऑटो-अपडेट",
     "manualEntry": "मैनुअल एंट्री",
     "updatedTodayFrom": "आज {{source}} से अपडेट किया",
@@ -1254,7 +1241,8 @@
       "backdatedNotice": "आपकी नवीनतम रीडिंग से पहले की तारीख: यह लॉग होगी और ओडोमीटर {{last}} {{unit}} पर ही रहेगा।",
       "futureDate": "तारीख भविष्य की नहीं हो सकती।",
       "saveFailed": "रीडिंग सेव नहीं हो सकी। फिर से कोशिश करें।",
-      "lastReadingNoDate": "पिछली रीडिंग {{last}} {{unit}}"
+      "lastReadingNoDate": "पिछली रीडिंग {{last}} {{unit}}",
+      "historyUnavailable": "पिछली रीडिंग लोड नहीं हो सकीं, इसलिए केवल आज की रीडिंग सहेजी जा सकती है। फिर से कोशिश करने के लिए टैप करें।"
     },
     "noteSheet": {
       "new": "नया नोट",
@@ -1274,7 +1262,9 @@
       "photoFailed": "नोट सेव हो गया, फ़ोटो विफल रही",
       "taskNotCreated": "नोट सेव हो गया। कार्य नहीं बन सका — नोट पर “इसे कार्य बनाएँ” का उपयोग करें।",
       "photoLimit": "प्रति नोट अधिकतम {{max}} फ़ोटो",
-      "alsoTaskSubNamed": "“{{title}}” बनाता है · निम्न · बिना नियत तारीख, इस नोट के साथ"
+      "alsoTaskSubNamed": "“{{title}}” बनाता है · निम्न · बिना नियत तारीख, इस नोट के साथ",
+      "photoRemoveFailed": "नोट सहेजा गया, लेकिन एक फ़ोटो हटाई नहीं जा सकी",
+      "photoNeedsSignIn": "फ़ोटो जोड़ने के लिए फिर से साइन इन करें। फ़ोटो के बिना नोट सहेजने के लिए उन्हें हटा दें।"
     },
     "notesScreen": {
       "title": "नोट्स · {{name}}",

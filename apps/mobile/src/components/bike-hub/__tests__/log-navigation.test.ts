@@ -1,9 +1,13 @@
+// The expense option carries an EXPENSE_ENTRY_SOURCE (lib/expense-analytics → analytics).
+jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+
 import {
   ADD_TASK_MODE,
   BIKE_LEAF,
   BIKE_SEGMENT,
   LOG_OPTION,
 } from '../../../lib/bike-hub/constants';
+import { EXPENSE_ENTRY_SOURCE } from '../../../lib/expense-analytics';
 import { LOG_OPTIONS } from '../sheets/log-options';
 import { buildBikeHubNavigation } from '../shell/use-bike-hub-navigation';
 
@@ -24,7 +28,10 @@ describe('LOG_OPTIONS', () => {
   it('each option resolves to its typed route with the bike pre-selected', () => {
     const hrefs = Object.fromEntries(LOG_OPTIONS.map((option) => [option.id, option.href(TARGET)]));
     expect(hrefs).toEqual({
-      [LOG_OPTION.EXPENSE]: { pathname: '/(tabs)/(garage)/add-expense', params: TARGET },
+      [LOG_OPTION.EXPENSE]: {
+        pathname: '/(tabs)/(garage)/add-expense',
+        params: { ...TARGET, entrySource: EXPENSE_ENTRY_SOURCE.BIKE_HUB },
+      },
       [LOG_OPTION.TASK]: { pathname: '/(tabs)/(garage)/add-maintenance-task', params: TARGET },
       [LOG_OPTION.PAST_WORK]: {
         pathname: '/(tabs)/(garage)/add-maintenance-task',
@@ -51,7 +58,10 @@ describe('buildBikeHubNavigation', () => {
     const { navigation, showSegment, push } = setup();
     navigation.addExpense();
     expect(showSegment).toHaveBeenCalledWith(BIKE_SEGMENT.COSTS);
-    expect(push).toHaveBeenCalledWith({ pathname: '/(tabs)/(garage)/add-expense', params: TARGET });
+    expect(push).toHaveBeenCalledWith({
+      pathname: '/(tabs)/(garage)/add-expense',
+      params: { ...TARGET, entrySource: EXPENSE_ENTRY_SOURCE.BIKE_HUB },
+    });
     expect(showSegment.mock.invocationCallOrder[0]).toBeLessThan(push.mock.invocationCallOrder[0]);
   });
 

@@ -4,7 +4,7 @@ import {
   type ExpenseBreakdownLike,
   selectBreakdown,
 } from '@motovault/types';
-import { formatCostPerDistance, formatCurrencyTotals } from '../expense-constants';
+import { formatCurrencyTotals } from '../expense-constants';
 import {
   categoryTotalsFromBuckets,
   filterBucketsForPeriod,
@@ -111,29 +111,5 @@ describe('expense dashboard period view', () => {
     ]);
     expect(periodTotalOf(eur, 'lastYear')).toBe(100);
     expect(periodTotalOf(eur, 'allTime')).toBe(420);
-  });
-});
-
-describe('formatCostPerDistance', () => {
-  it('divides a single currency', () => {
-    expect(formatCostPerDistance([{ currency: 'EUR', total: 1200 }], 10_000)).toBe('€0.12');
-  });
-
-  it('keeps currencies apart', () => {
-    expect(
-      formatCostPerDistance(
-        [
-          { currency: 'EUR', total: 1200 },
-          { currency: 'USD', total: 300 },
-        ],
-        10_000,
-      ),
-    ).toBe('€0.12 · $0.03');
-  });
-
-  it('returns null without spend or distance', () => {
-    expect(formatCostPerDistance([], 10_000)).toBeNull();
-    expect(formatCostPerDistance([{ currency: 'EUR', total: 100 }], 0)).toBeNull();
-    expect(formatCostPerDistance([{ currency: 'EUR', total: 100 }], null)).toBeNull();
   });
 });
