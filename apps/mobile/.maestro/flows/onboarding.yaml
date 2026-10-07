@@ -72,21 +72,16 @@ env:
     text: "Continue"
     optional: true
 
-# 11. Commitment (skip the signature pledge)
+# 11. Commitment (commit_first only; skip it)
 - tapOn:
     text: "Not now"
     optional: true
 
-# 12. Paywall (native RevenueCat overlay) → wait for the account screen to appear.
-#     If the RC template needs manual dismissal, close it first (optional).
-# Wait for the native RC paywall (close "×") OR the account screen, then dismiss
-# the paywall if it's up. Handles RC's async present + builds where it auto-skips.
-- extendedWaitUntil:
-    visible: "[×✕]|Continue with email"
-    timeout: 90000
-- tapOn:
-    text: "[×✕]"
-    optional: true
+# 12. Account screen. The onboarding paywall now comes AFTER account (onboarding
+#     paywall A/B, 2026-10-07): commit_first shows it right after account,
+#     garage_first on "Open my garage". The signed-in test account is an existing
+#     user and is usually routed straight out of onboarding, so both paywall
+#     dismissals below are optional.
 - extendedWaitUntil:
     visible: "Continue with email"
     timeout: 60000
@@ -117,8 +112,12 @@ env:
 # Handle the optional tail only if it appears; the single hard success check is
 # reaching the Home dashboard.
 - extendedWaitUntil:
-    visible: ".*hear about us.*|.*Today in your garage.*"
+    visible: "[×✕]|.*hear about us.*|.*Today in your garage.*"
     timeout: 90000
+# commit_first: close the native RevenueCat paywall shown after account.
+- tapOn:
+    text: "[×✕]"
+    optional: true
 - runFlow:
     when:
       visible: ".*hear about us.*"
@@ -135,6 +134,10 @@ env:
           optional: true
       - tapOn:
           text: "Open my garage"
+          optional: true
+      # garage_first: close the paywall presented by "Open my garage".
+      - tapOn:
+          text: "[×✕]"
           optional: true
 
 # Success: onboarding complete -> Home dashboard.
