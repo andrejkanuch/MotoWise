@@ -69,9 +69,11 @@ jest.mock('../../stores/subscription.store', () => ({
 
 import {
   configureRcAttribution,
+  loginRevenueCat,
   logoutRevenueCat,
   setOnboardingAttributes,
   setSelfReportedSource,
+  waitForRevenueCatLogin,
 } from '../subscription';
 
 beforeAll(() => {
@@ -129,6 +131,46 @@ describe('logoutRevenueCat', () => {
     expect(mockLogOut).not.toHaveBeenCalled();
 
     Constants.appOwnership = null;
+  });
+});
+
+describe('waitForRevenueCatLogin', () => {
+  it('resolves immediately when no login is in flight', async () => {
+    await expect(waitForRevenueCatLogin(10_000)).resolves.toBeUndefined();
+  });
+
+  it('waits for an in-flight logIn to finish', async () => {
+    let finishLogIn: () => void = () => {};
+    mockPurchases.logIn.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          finishLogIn = resolve;
+        }),
+    );
+    const login = loginRevenueCat('user-1');
+    let waited = false;
+    const wait = waitForRevenueCatLogin(10_000).then(() => {
+      waited = true;
+    });
+
+    // Let init + getPurchases settle so logIn is actually pending.
+    for (let i = 0; i < 10; i++) await Promise.resolve();
+    expect(waited).toBe(false);
+
+    finishLogIn();
+    await login;
+    await wait;
+    expect(waited).toBe(true);
+  });
+
+  it('gives up after the timeout when logIn hangs', async () => {
+    jest.useFakeTimers();
+    mockPurchases.logIn.mockImplementation(() => new Promise(() => {}));
+    loginRevenueCat('user-2');
+    const wait = waitForRevenueCatLogin(3000);
+    jest.advanceTimersByTime(3001);
+    await expect(wait).resolves.toBeUndefined();
+    jest.useRealTimers();
   });
 });
 

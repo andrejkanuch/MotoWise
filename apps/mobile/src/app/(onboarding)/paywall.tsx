@@ -1,23 +1,16 @@
 /**
- * OFF-FLOW as of 2026-08-24 (U6). This screen is in NO onboarding flow.
+ * Onboarding paywall STEP — `commit_first` only (onboarding paywall A/B,
+ * 2026-10-07). It sits straight after the account step, so a purchase always
+ * belongs to a signed-in rider. `garage_first` presents the same paywall from
+ * the personalizing payoff instead (see `lib/onboarding-paywall.ts`).
  *
- * It sat at step 5 of onboarding — BEFORE the account step — and 395 of the 692
- * riders who started onboarding saw it. Selling before the app had delivered
- * anything is the single change this work exists to make. Paid conversion is now
- * driven only by gated-feature triggers, which already existed and already fire:
- * `presentPaywall({ placement: 'feature_gate' })` from `use-pro-gate`.
+ * For the shipped and legacy flows this screen is not a step: `getNextRoute`
+ * resolves it forward to `account` (RETIRED_SCREEN_SUCCESSOR), so a stale deep
+ * link arriving here is a pass-through, not a trap.
  *
- * The file is retained rather than deleted because the route is still reachable:
- * the retired V1 screen chain ends with `insights.tsx` doing a hardcoded
- * `router.replace('/(onboarding)/paywall')`, and a stale deep link could too.
- * `getNextRoute` resolves this screen forward to `account`
- * (RETIRED_SCREEN_SUCCESSOR), so arriving here is a pass-through, not a trap.
- * `useOnboardingStep` returns stepIndex -1 for an off-flow screen.
- *
- * Do NOT add it back to a flow. If the paywall-timing question is revisited, the
- * treatment belongs after first value, not during onboarding.
+ * The screen presents on mount, so Back never lands on it: `getPreviousRoute`
+ * skips it (AUTO_ADVANCE_SCREENS) and it advances with `replace`.
  */
-import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import Constants from 'expo-constants';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -26,17 +19,15 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import {
-  GOAL_TO_PLACEMENT,
-  getPrimaryGoal,
-  MAINTENANCE_INTENT_PLACEMENT,
-  OB_SCREEN,
-} from '../../config/onboarding';
+import { OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent, captureException } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
-import { isMaintenanceIntent } from '../../lib/pending-intent';
-import { presentPaywall, setOnboardingAttributes } from '../../lib/subscription';
+import {
+  ONBOARDING_PAYWALL_SURFACE,
+  presentOnboardingPaywall,
+  resolveOnboardingPaywallPlacement,
+} from '../../lib/onboarding-paywall';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
 const isExpoGo = Constants.appOwnership === 'expo';
@@ -84,7 +75,7 @@ export default function PaywallScreen() {
     if (advanced.current) return;
     advanced.current = true;
     // REPLACE, not push — this screen is in AUTO_ADVANCE_SCREENS and must not stay
-    // in history (building-plan, the other member, replaces for the same reason).
+    // in history.
     // A pushed paywall lingers as a spent instance: `presented`/`advanced` are both
     // latched, so Back onto it early-returns from the effect AND from the escape
     // link — a bare spinner behind `gestureEnabled: false`, no Back, and a visible
@@ -115,15 +106,12 @@ export default function PaywallScreen() {
     if (presented.current || (!intentResolved && !intentTimedOut)) return;
     presented.current = true;
 
-    const primaryGoal = getPrimaryGoal(ridingGoals);
-    // Maintenance-intent riders (arrived from a bike's service-schedule article)
-    // get the reminder-led paywall placement instead of the goal-derived one
-    // (P3.2). Placement only — this does not reorder the flow. Falls back to the
-    // current offering if the placement is absent.
-    const placement = isMaintenanceIntent(pendingIntent)
-      ? MAINTENANCE_INTENT_PLACEMENT
-      : GOAL_TO_PLACEMENT[primaryGoal];
-    const goalsJoined = ridingGoals.join(',');
+    const paywallInput = { ridingGoals, bikeData, experienceLevel, pendingIntent };
+    const {
+      primaryGoal,
+      placement,
+      goals: goalsJoined,
+    } = resolveOnboardingPaywallPlacement(paywallInput);
 
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.PAYWALL);
 
@@ -150,39 +138,13 @@ export default function PaywallScreen() {
     setLastCompletedScreen(OB_SCREEN.PAYWALL);
 
     (async () => {
-      const personalization = {
-        primaryGoal,
-        bikeMake: bikeData?.make,
-        bikeModel: bikeData?.model,
-        bikeYear: bikeData?.year,
-        experience: experienceLevel,
-      };
-
-      // Customer attributes drive targeting (placement/audiences); they are NOT
-      // substituted into paywall text.
-      await setOnboardingAttributes(personalization);
-
-      // The escape hatch races this whole async path. An RC init stall can outlast
-      // ESCAPE_HATCH_DELAY_MS — that stall is precisely why the hatch exists — so by
-      // now the rider may already be a screen further on, and presenting would drop a
-      // native modal over the next onboarding step. A purchase is not lost by skipping
-      // it: the RevenueCat listener reconciles entitlements on launch.
-      if (advanced.current) return;
-
-      // Paywall copy is personalized via custom variables ({{ custom.* }}) — the
-      // same answers are passed through `personalization` here.
-      const result = await presentPaywall({
-        requiredEntitlementIdentifier: REVENUECAT_ENTITLEMENT_PRO,
-        placement,
-        personalization,
-        source: 'onboarding',
-        feature: 'subscription',
-        surface: 'onboarding_paywall',
-        silentOnError: true,
-        // The check above only covers a stall in `setOnboardingAttributes`. The
-        // offerings fetch happens INSIDE presentPaywall, so it is the likelier stall
-        // point and lands past every guard we can place out here — hence the callback,
-        // re-read at the last moment before the native present.
+      // The escape hatch races this whole async path, and presentOnboardingPaywall
+      // re-checks `shouldAbort` at the last moment before the native present (the
+      // offerings fetch inside it is the likeliest stall), so a rider who escaped
+      // never gets a modal dropped over the next onboarding step. A purchase is not
+      // lost by skipping: the RevenueCat listener reconciles entitlements on launch.
+      const result = await presentOnboardingPaywall(paywallInput, {
+        surface: ONBOARDING_PAYWALL_SURFACE.STEP,
         shouldAbort: () => advanced.current,
       });
 

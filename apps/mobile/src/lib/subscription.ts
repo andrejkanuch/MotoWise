@@ -14,6 +14,7 @@ import { getStoredUtmProperties } from './meta-attribution';
 import { isNetworkError } from './network-error';
 import { showPaywallUnavailable } from './paywall-error-alert';
 import { isExpectedRevenueCatError, revenueCatErrorProperties } from './revenuecat-errors';
+import type { TrialEntitlementSnapshot } from './trial-reminder';
 
 // Module-level cached import — resolve once, reuse everywhere
 let PurchasesModule: typeof import('react-native-purchases') | null = null;
@@ -221,6 +222,21 @@ export function updateStoreFromCustomerInfo(info: {
   store.setVerified(true);
 }
 
+/**
+ * Keep the day-5 trial-ending reminder in step with customer info (R8). Separate
+ * from updateStoreFromCustomerInfo so that stays synchronous; fire-and-forget,
+ * since a notification failure must never break entitlement hydration. Loaded
+ * lazily so this module does not pull the notification/storage natives in.
+ */
+function syncTrialReminder(info: {
+  entitlements: { active: Record<string, TrialEntitlementSnapshot> };
+}) {
+  const entitlement = info.entitlements.active[REVENUECAT_ENTITLEMENT_PRO];
+  import('./trial-reminder')
+    .then(({ reconcileTrialReminder }) => reconcileTrialReminder(entitlement))
+    .catch((e) => logger.warn('[RevenueCat] Trial reminder reconcile failed:', e));
+}
+
 async function doInit(): Promise<(() => void) | null> {
   try {
     const Purchases = await getPurchases();
@@ -251,10 +267,14 @@ async function doInit(): Promise<(() => void) | null> {
     // Set up listener — store the reference for cleanup
     const listener = (info: {
       entitlements: {
-        active: Record<string, { periodType?: string; expirationDate?: string | null }>;
+        active: Record<
+          string,
+          { periodType?: string; expirationDate?: string | null; willRenew?: boolean }
+        >;
       };
     }) => {
       updateStoreFromCustomerInfo(info);
+      syncTrialReminder(info);
     };
 
     Purchases.addCustomerInfoUpdateListener(listener);
@@ -262,6 +282,7 @@ async function doInit(): Promise<(() => void) | null> {
     // Hydrate store with initial state
     const customerInfo = await Purchases.getCustomerInfo();
     updateStoreFromCustomerInfo(customerInfo);
+    syncTrialReminder(customerInfo);
 
     // Return cleanup function for useEffect
     return () => {
@@ -307,7 +328,37 @@ export async function stampAnonymousPosthogId(
   });
 }
 
-export async function loginRevenueCat(userId: string) {
+/** The `logIn` currently in flight, so callers can wait for the customer switch. */
+let loginInFlight: Promise<void> | null = null;
+
+/**
+ * Wait (bounded) for an in-flight {@link loginRevenueCat} to finish. Used before
+ * presenting a paywall right after sign-up, so entitlement checks evaluate the
+ * signed-in customer rather than the anonymous one. Resolves immediately when no
+ * login is running; never rejects.
+ */
+export async function waitForRevenueCatLogin(timeoutMs: number): Promise<void> {
+  const pending = loginInFlight;
+  if (!pending) return;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  await Promise.race([
+    pending,
+    new Promise<void>((resolve) => {
+      timer = setTimeout(resolve, timeoutMs);
+    }),
+  ]);
+  if (timer) clearTimeout(timer);
+}
+
+export function loginRevenueCat(userId: string): Promise<void> {
+  const run = doLoginRevenueCat(userId).finally(() => {
+    if (loginInFlight === run) loginInFlight = null;
+  });
+  loginInFlight = run;
+  return run;
+}
+
+async function doLoginRevenueCat(userId: string) {
   if (isExpoGo()) return;
   // Wait for configure() to complete before calling logIn()
   const cleanup = await initRevenueCat();

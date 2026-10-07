@@ -123,6 +123,7 @@ import {
   snoozeTaskNotification,
 } from '../lib/notifications';
 import { resolveOnboardingVariant } from '../lib/onboarding-experiment';
+import { isServerOnboardingComplete } from '../lib/onboarding-paywall';
 import { resolvePendingIntent } from '../lib/pending-intent-reader';
 import {
   clearLastUserId,
@@ -145,6 +146,7 @@ import { supabase } from '../lib/supabase';
 import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
 import { useAuthStore } from '../stores/auth.store';
 import { useExperimentStore } from '../stores/experiment.store';
+import { useOnboardingStore } from '../stores/onboarding.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
 import { rideMMKV } from '../utils/ride-storage';
 import {
@@ -235,7 +237,10 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
     | { onboardingCompleted?: boolean }
     | null
     | undefined;
-  const serverOnboardingCompleted = preferences?.onboardingCompleted === true;
+  // garage_first: hold the server's "completed" flag back until the rider has
+  // tapped "Open my garage" and seen the paywall (see `awaitingGarageCta`).
+  const awaitingGarageCta = useOnboardingStore((s) => s.awaitingGarageCta);
+  const serverOnboardingCompleted = isServerOnboardingComplete(preferences, awaitingGarageCta);
   const onboardingCompleted = storeOnboardingCompleted || serverOnboardingCompleted;
 
   // Sync server state to store
@@ -991,6 +996,12 @@ function RootLayout() {
             source: SCAN_RESUME_SOURCE.NOTIFICATION,
           });
           expoRouter.push('/(tabs)/(home)' as Href);
+          return;
+        }
+
+        // Trial-ending reminder: Profile holds the subscription section.
+        if (data?.kind === NOTIFICATION_KIND.TRIAL_REMINDER) {
+          expoRouter.push('/(tabs)/(profile)' as Href);
           return;
         }
 

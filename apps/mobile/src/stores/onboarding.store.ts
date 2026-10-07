@@ -87,6 +87,16 @@ interface OnboardingState {
    * can't miss the maintenance placement behind the one-shot present latch.
    */
   intentResolved: boolean;
+  /**
+   * `garage_first` only: true from the moment personalizing starts saving the
+   * rider's setup until they tap "Open my garage" and the paywall resolves.
+   * Saving marks onboarding complete on the server, and the root gate would
+   * otherwise switch to (tabs) as soon as the `me` refetch lands — before the
+   * payoff CTA and its paywall. Persisted so a kill mid-paywall still resumes
+   * into personalizing, whose resume path resets the store (clearing it).
+   */
+  awaitingGarageCta: boolean;
+  setAwaitingGarageCta: (awaiting: boolean) => void;
   setIntentResolved: (resolved: boolean) => void;
   setAcceptedOemScheduleIds: (ids: string[]) => void;
   setExperienceLevel: (level: ExperienceLevel) => void;
@@ -132,6 +142,7 @@ const initialState = {
   heardFrom: null as string | null,
   pendingIntent: null as PendingIntent | null,
   intentResolved: false,
+  awaitingGarageCta: false,
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -159,6 +170,7 @@ export const useOnboardingStore = create<OnboardingState>()(
       setHeardFrom: (heardFrom) => set({ heardFrom }),
       setPendingIntent: (pendingIntent) => set({ pendingIntent }),
       setIntentResolved: (intentResolved) => set({ intentResolved }),
+      setAwaitingGarageCta: (awaitingGarageCta) => set({ awaitingGarageCta }),
       reset: () => set(store.getInitialState(), true),
     }),
     {
@@ -186,6 +198,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         setHeardFrom,
         setPendingIntent,
         setIntentResolved,
+        setAwaitingGarageCta,
         // intentResolved is a per-process resolution flag — never persist it, or a
         // stale `true` would let a later launch skip waiting for the fresh read.
         intentResolved,

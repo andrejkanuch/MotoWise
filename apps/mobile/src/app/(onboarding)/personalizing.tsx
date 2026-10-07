@@ -18,7 +18,7 @@ import {
   Wallet,
   Wrench,
 } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
@@ -33,7 +33,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
-import { getPrimaryGoal, OB_SCREEN } from '../../config/onboarding';
+import { getPrimaryGoal, OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent, captureException, setUserPropertiesOnce } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -43,6 +43,11 @@ import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { clearStoredFbclid, getStoredFbclid } from '../../lib/meta-attribution';
 import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
+import {
+  ONBOARDING_PAYWALL_SURFACE,
+  presentOnboardingPaywall,
+  resolveOnboardingPaywallPlacement,
+} from '../../lib/onboarding-paywall';
 import { queryKeys } from '../../lib/query-keys';
 import { setSelfReportedSource } from '../../lib/subscription';
 import { useAuthStore } from '../../stores/auth.store';
@@ -74,7 +79,15 @@ const GOAL_STEP_CONFIG: Record<string, { i18nKey: string; icon: typeof MapPin }>
   just_exploring: { i18nKey: 'v2PersonalizingStepExploring', icon: Sparkles },
 };
 
-const MIN_ANIMATION_MS = 2500;
+const MIN_ANIMATION_MS = 1600;
+
+/**
+ * garage_first: how long "Open my garage" may wait for the paywall before an
+ * escape link appears. The native modal normally covers the screen within a
+ * second; the link exists for an RC init/offerings stall, which would otherwise
+ * leave the rider tapping a button that seems to do nothing.
+ */
+const GARAGE_PAYWALL_ESCAPE_DELAY_MS = 6000;
 
 const SERIF_REGULAR = 'InstrumentSerif-Regular' as const;
 const SERIF_ITALIC = 'InstrumentSerif-Italic' as const;
@@ -96,7 +109,7 @@ function buildBikeLabel(bike: BikeLike): string | null {
 
 export default function PersonalizingScreen() {
   const { t } = useTranslation();
-  const { totalScreens } = useOnboardingStep(OB_SCREEN.PERSONALIZING);
+  const { totalScreens, variant } = useOnboardingStep(OB_SCREEN.PERSONALIZING);
   // Resume-after-kill entry (welcome's resume replace) — the rider already sat
   // through the staged setup once; don't replay it on app load. Skip the
   // minimum-animation gate and complete straight into the garage on mutation
@@ -121,8 +134,13 @@ export default function PersonalizingScreen() {
     lastServiceDate,
     currency,
     heardFrom,
+    pendingIntent,
+    setAwaitingGarageCta,
     reset,
   } = useOnboardingStore();
+  // garage_first presents the onboarding paywall from the payoff CTA. Never on
+  // the cold-start resume path: that rider already finished, it completes silently.
+  const showsGaragePaywall = variant === OB_VARIANT.GARAGE_FIRST && !isResumed;
   const queryClient = useQueryClient();
 
   const { mutateAsync: completeOnboarding } = useMutation({
@@ -263,6 +281,9 @@ export default function PersonalizingScreen() {
         void setSelfReportedSource(heardFrom);
       }
 
+      // Must be set before the server marks onboarding complete — see the gate in
+      // the root layout and `awaitingGarageCta` in the onboarding store.
+      if (showsGaragePaywall) setAwaitingGarageCta(true);
       await completeOnboarding(input);
 
       // Persist the global measurement system so display units match what the user
@@ -375,6 +396,67 @@ export default function PersonalizingScreen() {
     setOnboardingCompleted(true);
   };
 
+  // garage_first: "Open my garage" presents the onboarding paywall, then opens
+  // the garage whatever the result (purchase, close, not presented, error).
+  const garagePaywallStarted = useRef(false);
+  const garagePaywallSettled = useRef(false);
+  const [garagePaywallPending, setGaragePaywallPending] = useState(false);
+  const [showGarageEscape, setShowGarageEscape] = useState(false);
+
+  useEffect(() => {
+    if (!garagePaywallPending) return;
+    const id = setTimeout(() => setShowGarageEscape(true), GARAGE_PAYWALL_ESCAPE_DELAY_MS);
+    return () => clearTimeout(id);
+  }, [garagePaywallPending]);
+
+  const finishGaragePaywallOnce = (properties: Record<string, string>) => {
+    if (garagePaywallSettled.current) return;
+    garagePaywallSettled.current = true;
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.PAYWALL, properties);
+    handleContinue();
+  };
+
+  const handleOpenGarage = () => {
+    if (!showsGaragePaywall) {
+      handleContinue();
+      return;
+    }
+    if (garagePaywallStarted.current) return;
+    garagePaywallStarted.current = true;
+    setGaragePaywallPending(true);
+
+    const paywallInput = { ridingGoals, bikeData, experienceLevel, pendingIntent };
+    const { primaryGoal, placement, goals } = resolveOnboardingPaywallPlacement(paywallInput);
+    const analytics = {
+      goals,
+      primary_goal: primaryGoal,
+      placement,
+      surface: ONBOARDING_PAYWALL_SURFACE.GARAGE_READY,
+    };
+    trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.PAYWALL, {
+      surface: ONBOARDING_PAYWALL_SURFACE.GARAGE_READY,
+    });
+
+    presentOnboardingPaywall(paywallInput, {
+      surface: ONBOARDING_PAYWALL_SURFACE.GARAGE_READY,
+      shouldAbort: () => garagePaywallSettled.current,
+    })
+      .then((result) => finishGaragePaywallOnce({ ...analytics, paywall_result: result }))
+      .catch((err) => {
+        // presentPaywall resolves its own failures; reaching here means a bug, and
+        // the rider must still get into their garage.
+        captureException(err, { screen: OB_SCREEN.PERSONALIZING });
+        finishGaragePaywallOnce({ ...analytics, paywall_result: 'presentation_failed' });
+      });
+  };
+
+  const handleGarageEscape = () => {
+    finishGaragePaywallOnce({
+      paywall_result: 'escape_hatch',
+      surface: ONBOARDING_PAYWALL_SURFACE.GARAGE_READY,
+    });
+  };
+
   // Cold-start resume: the staged setup UI must not appear on app load. Hold a
   // bare background while the mutation completes silently (then the root guard
   // flips to the garage). Only if the silent completion errors or stalls past
@@ -473,9 +555,18 @@ export default function PersonalizingScreen() {
           <Animated.View entering={FadeInUp.delay(200).duration(300)} style={{ width: '100%' }}>
             <OnboardingContinueButton
               label={t('onboarding.personalizingDoneCta' as never)}
-              onPress={handleContinue}
+              onPress={handleOpenGarage}
             />
           </Animated.View>
+          {showGarageEscape ? (
+            <Animated.View entering={FadeIn.duration(240)} style={{ marginTop: 16 }}>
+              <Pressable onPress={handleGarageEscape} hitSlop={12} accessibilityRole="button">
+                <Text style={{ fontSize: 13.5, color: ONBOARDING_COLORS.textMuted }}>
+                  {t('onboarding.obPaywallEscape')}
+                </Text>
+              </Pressable>
+            </Animated.View>
+          ) : null}
         </Animated.View>
       </View>
     );
