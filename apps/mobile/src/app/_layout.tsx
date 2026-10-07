@@ -142,6 +142,7 @@ import { queryKeys } from '../lib/query-keys';
 import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
 import { meOptions } from '../lib/query-options';
 import { clearPersistedQueryCache } from '../lib/query-persist';
+import { refreshAfterSyncedOp } from '../lib/ride-sync-refresh';
 import {
   configureRevenueCatAnonymously,
   initRevenueCat,
@@ -162,6 +163,7 @@ import {
   redriveDeadLetterQueue,
   redriveDeadLetterQueueOnce,
   setDeadLetterListener,
+  setDeliveredListener,
 } from '../utils/ride-sync-queue';
 
 // Native splash is the ONLY splash: hold it while the app boots (auth hydration
@@ -857,6 +859,7 @@ function RootLayout() {
     }
 
     setDeadLetterListener(showDeadLetterAlert);
+    setDeliveredListener(refreshAfterSyncedOp);
 
     const appSub = AppState.addEventListener('change', (state: string) => {
       if (state === 'active') {
@@ -878,6 +881,7 @@ function RootLayout() {
       netSub.remove();
       clearTimeout(debounceTimer);
       setDeadLetterListener(null);
+      setDeliveredListener(null);
     };
   }, []);
 

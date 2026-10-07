@@ -1,4 +1,8 @@
-import { AddNotePhotoDocument, DeleteNotePhotoDocument } from '@motovault/graphql';
+import {
+  AddNotePhotoDocument,
+  DeleteNotePhotoDocument,
+  NotesByMotorcycleDocument,
+} from '@motovault/graphql';
 import {
   deriveTaskTitleFromNote,
   NOTE_PHOTOS_MAX,
@@ -64,9 +68,48 @@ interface UploadedPhoto {
   fileSizeBytes: number;
 }
 
+/** An uploaded object whose `addNotePhoto` has not been confirmed. */
+export interface PendingNotePhoto extends UploadedPhoto {
+  /** Bike of the note — the notes query that lists the note's attached photos. */
+  motorcycleId: string;
+}
+
+/**
+ * Deletes uploaded objects that never got a `note_photos` row. An unconfirmed
+ * `addNotePhoto` may still have committed (its response lost), so each path is
+ * checked against the note's attached photos first; a path that is attached, or
+ * that cannot be checked, is left alone — a leaked object is better than a
+ * saved photo whose file is gone.
+ */
+export async function removeUnattachedNotePhotos(
+  pending: readonly PendingNotePhoto[],
+): Promise<void> {
+  const byBike = new Map<string, PendingNotePhoto[]>();
+  for (const photo of pending) {
+    byBike.set(photo.motorcycleId, [...(byBike.get(photo.motorcycleId) ?? []), photo]);
+  }
+  await Promise.all(
+    [...byBike].map(async ([motorcycleId, photos]) => {
+      let attached: Set<string>;
+      try {
+        const { notes } = await gqlFetcher(NotesByMotorcycleDocument, { motorcycleId });
+        attached = new Set(notes.flatMap((note) => note.photos.map((photo) => photo.storagePath)));
+      } catch {
+        return;
+      }
+      await Promise.all(
+        photos
+          .filter((photo) => !attached.has(photo.storagePath))
+          .map((photo) => removeNotePhotoObject(photo.storagePath)),
+      );
+    }),
+  );
+}
+
 /** What still needs the rider's eye after the note itself saved. */
 interface SavedState {
   noteId: string;
+  motorcycleId: string;
   /** Local uris of new photos that are not attached yet. */
   failedPhotos: string[];
   /** Ids of photos the rider removed that are still attached. */
@@ -184,7 +227,17 @@ export function NoteForm({
    * upload, no second orphan); objects still unattached when the sheet closes
    * are removed.
    */
-  const uploadedPaths = useRef(new Map<string, UploadedPhoto>());
+  const uploadedPaths = useRef(new Map<string, PendingNotePhoto>());
+  // Cleanup runs on unmount, so it covers every way out — Cancel, Done and a
+  // swipe-down of the sheet — exactly once.
+  useEffect(() => {
+    const pendingPhotos = uploadedPaths.current;
+    return () => {
+      const pending = [...pendingPhotos.values()];
+      pendingPhotos.clear();
+      if (pending.length > 0) void removeUnattachedNotePhotos(pending);
+    };
+  }, []);
 
   // The bike the sheet was opened for comes first (and is preselected).
   const attachChoices = [bike, ...bikes.filter((candidate) => candidate.id !== bike.id)];
@@ -237,16 +290,27 @@ export function NoteForm({
   /** Uploads the given photos to the saved note; returns the ones that failed. */
   const uploadPhotos = async (
     noteId: string,
+    motorcycleId: string,
     uris: readonly string[],
     owner: string,
   ): Promise<string[]> => {
     const failed: string[] = [];
     for (const uri of uris) {
       try {
-        const uploaded =
-          uploadedPaths.current.get(uri) ?? (await uploadNotePhoto(uri, owner, noteId));
+        const uploaded = uploadedPaths.current.get(uri) ?? {
+          ...(await uploadNotePhoto(uri, owner, noteId)),
+          motorcycleId,
+        };
         uploadedPaths.current.set(uri, uploaded);
-        await gqlFetcher(AddNotePhotoDocument, { input: { noteId, ...uploaded } });
+        // Idempotent per storagePath on the server, so a retry after a lost
+        // response returns the row the first call committed.
+        await gqlFetcher(AddNotePhotoDocument, {
+          input: {
+            noteId,
+            storagePath: uploaded.storagePath,
+            fileSizeBytes: uploaded.fileSizeBytes,
+          },
+        });
         uploadedPaths.current.delete(uri);
       } catch (_error) {
         failed.push(uri);
@@ -263,14 +327,8 @@ export function NoteForm({
     return photoIds.filter((_id, index) => results[index]?.status === 'rejected');
   };
 
-  /** Storage objects that never got attached are deleted when the sheet goes away. */
-  const close = () => {
-    for (const { storagePath } of uploadedPaths.current.values()) {
-      void removeNotePhotoObject(storagePath);
-    }
-    uploadedPaths.current.clear();
-    onClose();
-  };
+  /** Unattached uploads are cleaned up on unmount (see the effect above). */
+  const close = () => onClose();
 
   const createNote = useCreateNote();
   const updateNote = useUpdateNote(bike.id);
@@ -305,7 +363,8 @@ export function NoteForm({
         const failedRemovals = await removePhotos(removedPhotoIds);
         finish({
           noteId: note.id,
-          failedPhotos: await uploadPhotos(note.id, newPhotos, owner),
+          motorcycleId: note.motorcycleId,
+          failedPhotos: await uploadPhotos(note.id, note.motorcycleId, newPhotos, owner),
           failedRemovals,
           taskMissing: false,
         });
@@ -322,7 +381,8 @@ export function NoteForm({
       // The API keeps the note when the task could not be created; say so, do not fail.
       finish({
         noteId: created.id,
-        failedPhotos: await uploadPhotos(created.id, newPhotos, owner),
+        motorcycleId: targetId,
+        failedPhotos: await uploadPhotos(created.id, targetId, newPhotos, owner),
         failedRemovals: [],
         taskMissing: alsoTask && !created.linkedTaskId,
       });
@@ -340,7 +400,12 @@ export function NoteForm({
     setSaving(true);
     try {
       const failedRemovals = await removePhotos(saved.failedRemovals);
-      const failedPhotos = await uploadPhotos(saved.noteId, saved.failedPhotos, userId ?? '');
+      const failedPhotos = await uploadPhotos(
+        saved.noteId,
+        saved.motorcycleId,
+        saved.failedPhotos,
+        userId ?? '',
+      );
       finish({ ...saved, failedPhotos, failedRemovals });
     } finally {
       savingRef.current = false;

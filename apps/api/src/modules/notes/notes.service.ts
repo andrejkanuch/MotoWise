@@ -213,6 +213,12 @@ export class NotesService {
 
     await this.findRow(userId, noteId);
 
+    // Idempotent per object: a retry whose first response was lost finds the row
+    // the first call committed (storage_path is UNIQUE, 00182) — before the cap
+    // check, which would otherwise refuse the retry of a note's third photo.
+    const existing = await this.findPhotoByPath(userId, noteId, storagePath);
+    if (existing) return existing;
+
     const { count, error: countError } = await this.supabase
       .from(NOTE_PHOTOS_TABLE)
       .select('id', { count: 'exact', head: true })
@@ -238,6 +244,12 @@ export class NotesService {
 
     if (error || !data) {
       this.throwIfRlsRejected(error, 'addPhoto');
+      // A concurrent retry of the same object committed first.
+      if (error?.code === PG_ERROR.UNIQUE_VIOLATION) {
+        const winner = await this.findPhotoByPath(userId, noteId, storagePath);
+        if (winner) return winner;
+        throw new BadRequestException('Failed to add photo');
+      }
       // A concurrent add raced past the count above; the 00182 trigger caught it.
       if (error?.code === PG_ERROR.CHECK_VIOLATION) {
         throw new BadRequestException(`Maximum of ${NOTE_PHOTOS_MAX} photos per note`);
@@ -302,6 +314,23 @@ export class NotesService {
       map.get(row.note_id)?.push(this.mapPhotoRow(row));
     }
     return map;
+  }
+
+  /** The caller's photo row for `storagePath` on this note, or null. */
+  private async findPhotoByPath(
+    userId: string,
+    noteId: string,
+    storagePath: string,
+  ): Promise<NotePhoto | null> {
+    const { data, error } = await this.supabase
+      .from(NOTE_PHOTOS_TABLE)
+      .select(NOTE_PHOTO_SELECT)
+      .eq('storage_path', storagePath)
+      .eq('note_id', noteId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) throw new InternalServerErrorException('Failed to check photo');
+    return data ? this.mapPhotoRow(data as NotePhotoRow) : null;
   }
 
   /** In normal form (no `..`, `.`, `//`) and inside `{userId}/notes/{noteId}/`. */

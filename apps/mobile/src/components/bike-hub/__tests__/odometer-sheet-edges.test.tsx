@@ -235,6 +235,28 @@ describe('OdometerSheet — a back-dated reading', () => {
   });
 });
 
+describe('OdometerSheet — readings cache behind the bike (ride end not refetched yet)', () => {
+  // The cache still holds Sep 28 / 38,167; a ride ended Oct 1 18:00 and moved the bike to 38,400.
+  const RIDE_ENDED = new Date(2026, 9, 1, 18).toISOString();
+  const SEPTEMBER_30 = new Date(2026, 8, 30, 9);
+  const NOTICE_400 =
+    'Dated before your latest reading: it is logged, and the odometer stays at 38,400 km.';
+
+  it("judges back-dating against the bike's mileageUpdatedAt, as the server will", async () => {
+    await renderSheet({ bike: { currentMileage: 38_400, mileageUpdatedAt: RIDE_ENDED } });
+    await pickDate(SEPTEMBER_30);
+    await type('38300');
+    expect(screen.getByTestId('odometer-delta')).toHaveTextContent(NOTICE_400);
+  });
+
+  it('with no mileageUpdatedAt, any past day is treated as back-dated', async () => {
+    await renderSheet({ bike: { currentMileage: 38_400, mileageUpdatedAt: null } });
+    await pickDate(SEPTEMBER_30);
+    await type('38500');
+    expect(screen.getByTestId('odometer-delta')).toHaveTextContent(NOTICE_400);
+  });
+});
+
 describe('OdometerSheet — the day of the latest reading', () => {
   // The latest reading was logged in the evening; the rider picks that same day.
   const EVENING: Reading = { ...LATEST, recordedAt: new Date(2026, 8, 28, 18, 30).toISOString() };

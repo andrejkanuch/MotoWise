@@ -20,6 +20,7 @@ import { midSentence } from '../format';
 import {
   applyKey,
   applyQuickAdd,
+  baselineRecordedAt,
   describeDelta,
   isBackdated,
   odometerBaseline,
@@ -644,5 +645,23 @@ describe('odometerBaseline', () => {
     ['nothing is known', null, null, null],
   ])('%s', (_label, logged, current, expected) => {
     expect(odometerBaseline(logged, current)).toBe(expected);
+  });
+});
+
+describe('baselineRecordedAt', () => {
+  const NOW = new Date(2026, 9, 2, 12);
+  const latest = { value: 38_167, recordedAt: '2026-09-28T10:00:00.000Z' };
+  const MOVED = '2026-10-01T16:00:00.000Z';
+
+  it.each([
+    ['the cache is current', latest, 38_167, MOVED, new Date(latest.recordedAt)],
+    ['the bike moved past the cache', latest, 38_400, MOVED, new Date(MOVED)],
+    ['the bike moved, time unknown', latest, 38_400, null, NOW],
+    ['a never-set odometer', null, 0, null, null],
+    ['no readings yet, bike stamped', null, 1_200, MOVED, new Date(MOVED)],
+  ])('%s', (_label, reading, currentMileage, mileageUpdatedAt, expected) => {
+    expect(
+      baselineRecordedAt({ latest: reading, currentMileage, mileageUpdatedAt, now: NOW }),
+    ).toEqual(expected);
   });
 });

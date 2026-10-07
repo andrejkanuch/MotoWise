@@ -145,3 +145,32 @@ export function odometerBaseline(
   const known = [logged, current].filter((value): value is number => value != null);
   return known.length > 0 ? Math.max(...known) : null;
 }
+
+export interface BaselineTimeInput {
+  /** The latest logged reading from the (possibly stale) readings query. */
+  latest: { value: number; recordedAt: string } | null | undefined;
+  /** The bike's odometer and when it last moved (`motorcycles.mileage_updated_at`). */
+  currentMileage: number | null | undefined;
+  mileageUpdatedAt: string | null | undefined;
+  /** Used when the time is unknown: every past day then counts as back-dated. */
+  now: Date;
+}
+
+/**
+ * When the baseline (`odometerBaseline`) was recorded — what back-dating is
+ * judged against. When the bike's odometer is ahead of the latest logged
+ * reading, the readings cache is stale (a ride end or receipt scan logged a
+ * newer one): the bike's `mileageUpdatedAt` stands in for that reading's time.
+ * If even that is missing, `now` is returned, so a past-dated entry gets the
+ * safe "logged as history" notice rather than a promise the server won't keep.
+ */
+export function baselineRecordedAt(input: BaselineTimeInput): Date | null {
+  const { latest, currentMileage, mileageUpdatedAt, now } = input;
+  const loggedAt = latest ? new Date(latest.recordedAt) : null;
+  // 0 / null is a never-set odometer (no reading to be stale against).
+  const cacheIsStale = (currentMileage ?? 0) > (latest?.value ?? 0);
+  if (!cacheIsStale) return loggedAt;
+  if (!mileageUpdatedAt) return now;
+  const movedAt = new Date(mileageUpdatedAt);
+  return loggedAt && loggedAt > movedAt ? loggedAt : movedAt;
+}

@@ -58,6 +58,7 @@ import {
   AddNotePhotoDocument,
   CreateNoteDocument,
   DeleteNotePhotoDocument,
+  NotesByMotorcycleDocument,
   UpdateNoteDocument,
 } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -301,21 +302,62 @@ describe('NoteForm — new note', () => {
     expect(mockRemoveObject).not.toHaveBeenCalled();
   });
 
-  it('closing with a stored-but-unattached photo removes the orphaned file', async () => {
-    await renderForm({ draft: 'With a photo' });
+  /** Saves a note whose addNotePhoto fails; resolves once "photo failed" shows. */
+  async function saveWithFailedAttach(notesAfter: () => Promise<unknown>) {
+    const view = await renderForm({ draft: 'With a photo' });
     await fireEvent.press(screen.getByTestId('note-add-photo'));
     await act(async () => {});
     const succeed = mockFetcher.getMockImplementation();
-    mockFetcher.mockImplementation((document: unknown, variables: unknown) =>
-      document === AddNotePhotoDocument
-        ? Promise.reject(new Error('api down'))
-        : succeed?.(document, variables),
-    );
+    mockFetcher.mockImplementation((document: unknown, variables: unknown) => {
+      if (document === AddNotePhotoDocument) return Promise.reject(new Error('response lost'));
+      if (document === NotesByMotorcycleDocument) return notesAfter();
+      return succeed?.(document, variables);
+    });
     await fireEvent.press(screen.getByTestId('note-save'));
     expect(await screen.findByText('Note saved, photo failed')).toBeOnTheScreen();
+    return view;
+  }
+
+  const ORPHAN = 'user-1/notes/note-new/1.webp';
+
+  it('closing with a stored-but-unattached photo removes the orphaned file', async () => {
+    const view = await saveWithFailedAttach(() => Promise.resolve({ notes: [] }));
     await fireEvent.press(screen.getByTestId('note-save'));
     expect(onClose).toHaveBeenCalledTimes(1);
-    expect(mockRemoveObject).toHaveBeenCalledWith('user-1/notes/note-new/1.webp');
+    await act(async () => view.unmount());
+    await waitFor(() => expect(mockRemoveObject).toHaveBeenCalledWith(ORPHAN));
+    expect(mockRemoveObject).toHaveBeenCalledTimes(1);
+  });
+
+  it('a swipe-down (unmount without Done) cleans up too', async () => {
+    const view = await saveWithFailedAttach(() => Promise.resolve({ notes: [] }));
+    await act(async () => view.unmount());
+    expect(onClose).not.toHaveBeenCalled();
+    await waitFor(() => expect(mockRemoveObject).toHaveBeenCalledWith(ORPHAN));
+  });
+
+  it('keeps a file whose addNotePhoto committed even though the response was lost', async () => {
+    const view = await saveWithFailedAttach(() =>
+      Promise.resolve({
+        notes: [{ ...NOTES[0], id: 'note-new', photos: [{ id: 'p1', storagePath: ORPHAN }] }],
+      }),
+    );
+    await act(async () => view.unmount());
+    await waitFor(() =>
+      expect(mockFetcher).toHaveBeenCalledWith(NotesByMotorcycleDocument, expect.anything()),
+    );
+    await act(async () => {});
+    expect(mockRemoveObject).not.toHaveBeenCalled();
+  });
+
+  it('keeps the file when the attached photos cannot be checked', async () => {
+    const view = await saveWithFailedAttach(() => Promise.reject(new Error('offline')));
+    await act(async () => view.unmount());
+    await waitFor(() =>
+      expect(mockFetcher).toHaveBeenCalledWith(NotesByMotorcycleDocument, expect.anything()),
+    );
+    await act(async () => {});
+    expect(mockRemoveObject).not.toHaveBeenCalled();
   });
 
   it('without a session, a note with photos is not saved and says why', async () => {

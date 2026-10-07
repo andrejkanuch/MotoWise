@@ -355,10 +355,15 @@ describe('NotesResolver — through the real service', () => {
 
     it(`refuses photo number ${NOTE_PHOTOS_MAX + 1}`, async () => {
       // Arrange
-      db.chain.maybeSingle.mockResolvedValueOnce({ data: noteRow(), error: null });
+      db.chain.maybeSingle
+        .mockResolvedValueOnce({ data: noteRow(), error: null })
+        .mockResolvedValueOnce({ data: null, error: null }); // no row for this path yet
       db.chain.eq
         .mockReturnValueOnce(db.chain) // notes: id
         .mockReturnValueOnce(db.chain) // notes: user_id
+        .mockReturnValueOnce(db.chain) // note_photos: storage_path
+        .mockReturnValueOnce(db.chain) // note_photos: note_id
+        .mockReturnValueOnce(db.chain) // note_photos: user_id
         .mockResolvedValueOnce({ count: NOTE_PHOTOS_MAX, error: null });
 
       // Act + Assert
@@ -369,10 +374,15 @@ describe('NotesResolver — through the real service', () => {
     });
 
     it(`accepts photo number ${NOTE_PHOTOS_MAX} and returns its public URL`, async () => {
-      db.chain.maybeSingle.mockResolvedValueOnce({ data: noteRow(), error: null });
+      db.chain.maybeSingle
+        .mockResolvedValueOnce({ data: noteRow(), error: null })
+        .mockResolvedValueOnce({ data: null, error: null }); // no row for this path yet
       db.chain.eq
         .mockReturnValueOnce(db.chain)
         .mockReturnValueOnce(db.chain)
+        .mockReturnValueOnce(db.chain) // note_photos: storage_path
+        .mockReturnValueOnce(db.chain) // note_photos: note_id
+        .mockReturnValueOnce(db.chain) // note_photos: user_id
         .mockResolvedValueOnce({ count: NOTE_PHOTOS_MAX - 1, error: null });
       db.chain.single.mockResolvedValueOnce({
         data: {

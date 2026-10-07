@@ -82,6 +82,7 @@ import {
   redriveDeadLetterQueue,
   redriveDeadLetterQueueOnce,
   setDeadLetterListener,
+  setDeliveredListener,
 } from '../ride-sync-queue';
 
 const mockCapture = captureException as jest.Mock;
@@ -165,6 +166,7 @@ beforeEach(() => {
   mockGqlFetcher.mockReset();
   mockCapture.mockReset();
   setDeadLetterListener(null);
+  setDeliveredListener(null);
   mockGetNetworkStateAsync.mockReset().mockResolvedValue(ONLINE);
 });
 
@@ -424,6 +426,23 @@ describe('ordering hardening (MOT-262)', () => {
     expect(getQueueLength()).toBe(0);
     expect(deadLetter()).toHaveLength(1);
     expect(mockCapture).toHaveBeenCalled();
+  });
+
+  it('notifies the delivered listener per op, only once it reached the server', async () => {
+    const listener = jest.fn();
+    setDeliveredListener(listener);
+    enqueue('uploadWaypoints', { variables: { input: {} } });
+    enqueue('endRide', { variables: { input: {} } });
+    mockGqlFetcher
+      .mockResolvedValueOnce({}) // uploadWaypoints delivers
+      .mockRejectedValueOnce(new Error('Network request failed')); // endRide is offline
+
+    await drainQueue();
+    expect(listener.mock.calls).toEqual([['uploadWaypoints']]);
+
+    mockGqlFetcher.mockResolvedValueOnce({});
+    await drainQueue();
+    expect(listener.mock.calls).toEqual([['uploadWaypoints'], ['endRide']]);
   });
 
   it('notifies the dead-letter listener with the current count', async () => {

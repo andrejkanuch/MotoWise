@@ -21,6 +21,7 @@ import {
 import {
   applyKey,
   applyQuickAdd,
+  baselineRecordedAt,
   describeDelta,
   type OdometerDelta,
   odometerBaseline,
@@ -116,7 +117,12 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
   // readings query refetches. 0 (or nothing) means the odometer was never set.
   const baseline = odometerBaseline(latest?.value, bike.currentMileage);
   const lastValue = hasOdometer(baseline) ? baseline : null;
-  const lastRecordedAt = latest ? new Date(latest.recordedAt) : null;
+  const lastRecordedAt = baselineRecordedAt({
+    latest,
+    currentMileage: bike.currentMileage,
+    mileageUpdatedAt: bike.mileageUpdatedAt,
+    now: today,
+  });
   // Back-dating is judged against the latest reading's time. With no history
   // loaded that is unknown, so only a today reading (stamped "now", always the
   // latest) is safe to save; a past date waits for the history.
@@ -128,7 +134,9 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
   const lastText = lastValue == null ? '' : formatOdometer(lastValue, language);
   // The date only belongs to the baseline when the baseline IS that reading.
   const since =
-    lastRecordedAt && latest?.value === baseline ? formatShortDate(lastRecordedAt, language) : null;
+    latest && latest.value === baseline
+      ? formatShortDate(new Date(latest.recordedAt), language)
+      : null;
 
   const emptyDetail = (): string => {
     if (lastValue == null) return t('bikeHub.odometer.first');

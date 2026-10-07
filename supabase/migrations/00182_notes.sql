@@ -76,6 +76,10 @@ CREATE TABLE public.note_photos (
   file_size_bytes int,
   mime_type text NOT NULL DEFAULT 'image/webp',
   created_at timestamptz NOT NULL DEFAULT now(),
+  -- One row per object: a retried AddNotePhoto whose first response was lost
+  -- resolves to the existing row (notes.service.addPhoto) instead of a second
+  -- row sharing — and on delete, destroying — the same object.
+  CONSTRAINT note_photos_storage_path_key UNIQUE (storage_path),
   -- The object must sit in the owner's folder for this note, in normal form.
   -- notes.service checks the same before its admin-client storage.remove; this
   -- keeps a direct PostgREST insert from registering any other path.
@@ -169,11 +173,17 @@ CREATE POLICY "Users update own notes" ON public.notes
 
 -- No DELETE policy: notes are soft-deleted through soft_delete_note().
 
+-- No UPDATE policy: a photo row is never edited (the API only inserts and
+-- deletes). Without one a client cannot PATCH a row onto another note and slip
+-- past the INSERT-only photo cap below.
+CREATE POLICY "Users read own note photos" ON public.note_photos
+  FOR SELECT TO authenticated
+  USING ((SELECT auth.uid()) = user_id);
+
 -- WITH CHECK also ties the photo to one of the caller's own (live) notes:
 -- user_id alone would let a caller attach a row to any note id they can guess.
-CREATE POLICY "Users own note photos" ON public.note_photos
-  FOR ALL TO authenticated
-  USING ((SELECT auth.uid()) = user_id)
+CREATE POLICY "Users add photos to own notes" ON public.note_photos
+  FOR INSERT TO authenticated
   WITH CHECK (
     (SELECT auth.uid()) = user_id
     AND EXISTS (
@@ -181,6 +191,10 @@ CREATE POLICY "Users own note photos" ON public.note_photos
       WHERE n.id = note_id AND n.user_id = (SELECT auth.uid())
     )
   );
+
+CREATE POLICY "Users delete own note photos" ON public.note_photos
+  FOR DELETE TO authenticated
+  USING ((SELECT auth.uid()) = user_id);
 
 -- Max 3 photos per note, enforced here as well as in notes.service, so a direct
 -- PostgREST insert cannot exceed it. The advisory lock serialises concurrent

@@ -405,11 +405,16 @@ describe('NotesService', () => {
     });
 
     it('rejects a 4th photo', async () => {
-      mock.chain.maybeSingle.mockResolvedValueOnce({ data: noteRow(), error: null });
+      mock.chain.maybeSingle
+        .mockResolvedValueOnce({ data: noteRow(), error: null })
+        .mockResolvedValueOnce({ data: null, error: null }); // no row for this path yet
       // .select('id', { count, head }).eq('note_id') resolves on the final eq.
       mock.chain.eq
         .mockReturnValueOnce(mock.chain) // notes: id
         .mockReturnValueOnce(mock.chain) // notes: user_id
+        .mockReturnValueOnce(mock.chain) // note_photos: storage_path
+        .mockReturnValueOnce(mock.chain) // note_photos: note_id
+        .mockReturnValueOnce(mock.chain) // note_photos: user_id
         .mockResolvedValueOnce({ count: NOTE_PHOTOS_MAX, error: null });
 
       await expect(service.addPhoto(USER_ID, NOTE_ID, validPath)).rejects.toThrow(
@@ -419,10 +424,15 @@ describe('NotesService', () => {
     });
 
     it('reports the cap when a concurrent add wins the race (00182 trigger, 23514)', async () => {
-      mock.chain.maybeSingle.mockResolvedValueOnce({ data: noteRow(), error: null });
+      mock.chain.maybeSingle
+        .mockResolvedValueOnce({ data: noteRow(), error: null })
+        .mockResolvedValueOnce({ data: null, error: null }); // no row for this path yet
       mock.chain.eq
         .mockReturnValueOnce(mock.chain)
         .mockReturnValueOnce(mock.chain)
+        .mockReturnValueOnce(mock.chain) // note_photos: storage_path
+        .mockReturnValueOnce(mock.chain) // note_photos: note_id
+        .mockReturnValueOnce(mock.chain) // note_photos: user_id
         .mockResolvedValueOnce({ count: 2, error: null });
       mock.chain.single.mockResolvedValueOnce({
         data: null,
@@ -435,10 +445,15 @@ describe('NotesService', () => {
     });
 
     it('inserts the link row and returns the public URL', async () => {
-      mock.chain.maybeSingle.mockResolvedValueOnce({ data: noteRow(), error: null });
+      mock.chain.maybeSingle
+        .mockResolvedValueOnce({ data: noteRow(), error: null })
+        .mockResolvedValueOnce({ data: null, error: null }); // no row for this path yet
       mock.chain.eq
         .mockReturnValueOnce(mock.chain)
         .mockReturnValueOnce(mock.chain)
+        .mockReturnValueOnce(mock.chain) // note_photos: storage_path
+        .mockReturnValueOnce(mock.chain) // note_photos: note_id
+        .mockReturnValueOnce(mock.chain) // note_photos: user_id
         .mockResolvedValueOnce({ count: 2, error: null });
       mock.chain.single.mockResolvedValueOnce({
         data: {
@@ -465,6 +480,60 @@ describe('NotesService', () => {
       expect(photo.publicUrl).toBe(
         `${SUPABASE_URL}/storage/v1/object/public/maintenance-photos/${validPath}`,
       );
+    });
+
+    it('returns the existing row when a retry re-sends a committed path (lost response)', async () => {
+      mock.chain.maybeSingle
+        .mockResolvedValueOnce({ data: noteRow(), error: null })
+        .mockResolvedValueOnce({
+          data: {
+            id: 'photo-1',
+            note_id: NOTE_ID,
+            user_id: USER_ID,
+            storage_path: validPath,
+            file_size_bytes: 2048,
+            mime_type: 'image/webp',
+            created_at: '2026-10-02T09:00:00Z',
+          },
+          error: null,
+        });
+
+      const photo = await service.addPhoto(USER_ID, NOTE_ID, validPath, 2048);
+
+      expect(photo.id).toBe('photo-1');
+      expect(mock.chain.insert).not.toHaveBeenCalled();
+    });
+
+    it('returns the winner when a concurrent retry of the same path commits first (23505)', async () => {
+      mock.chain.maybeSingle
+        .mockResolvedValueOnce({ data: noteRow(), error: null })
+        .mockResolvedValueOnce({ data: null, error: null })
+        .mockResolvedValueOnce({
+          data: {
+            id: 'photo-1',
+            note_id: NOTE_ID,
+            user_id: USER_ID,
+            storage_path: validPath,
+            file_size_bytes: 2048,
+            mime_type: 'image/webp',
+            created_at: '2026-10-02T09:00:00Z',
+          },
+          error: null,
+        });
+      mock.chain.eq
+        .mockReturnValueOnce(mock.chain)
+        .mockReturnValueOnce(mock.chain)
+        .mockReturnValueOnce(mock.chain)
+        .mockReturnValueOnce(mock.chain)
+        .mockReturnValueOnce(mock.chain)
+        .mockResolvedValueOnce({ count: 2, error: null });
+      mock.chain.single.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'duplicate key value', code: '23505' },
+      });
+
+      const photo = await service.addPhoto(USER_ID, NOTE_ID, validPath, 2048);
+      expect(photo.id).toBe('photo-1');
     });
 
     it("throws NotFoundException when the note is not the caller's", async () => {
