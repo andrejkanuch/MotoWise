@@ -1892,6 +1892,14 @@
     "findRiders": "Temukan Pengendara"
   },
   "whatsNew": {
+    "v3220": {
+      "overviewTitle": "Motor Anda, sekilas pandang",
+      "overviewDesc": "Setiap motor kini terbuka di Ringkasan: yang perlu diperhatikan, jadwal berikutnya, pengeluaran Anda, plus catatan dan dokumen. Servis, Biaya, dan Motor tinggal satu ketukan di bilah atas.",
+      "notesTitle": "Catatan, dengan foto",
+      "notesDesc": "Simpan nomor suku cadang, tekanan ban, dan info bengkel bersama motor yang tepat. Tambahkan foto ke catatan, cari catatan nanti, atau ubah menjadi tugas.",
+      "logTitle": "Catat langsung dari motor",
+      "logDesc": "Ketuk Catat pada motor untuk menambahkan pengeluaran, tugas, pekerjaan yang sudah selesai, catatan, atau dokumen. Memperbarui odometer kini memakai keypad, di iPhone maupun Android."
+    },
     "badge": "What's New",
     "next": "Next",
     "getStarted": "Let's Go",

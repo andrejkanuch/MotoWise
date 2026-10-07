@@ -1893,6 +1893,14 @@
     "findRiders": "Descubrir motoristas"
   },
   "whatsNew": {
+    "v3220": {
+      "overviewTitle": "Tu moto, de un vistazo",
+      "overviewDesc": "Cada moto se abre ahora con un Resumen: lo que necesita atención, lo próximo que toca, lo que has gastado, además de tus notas y papeles. Servicio, Gastos y Moto están a un toque en la barra superior.",
+      "notesTitle": "Notas, con fotos",
+      "notesDesc": "Guarda referencias de piezas, presiones de neumáticos y datos del taller junto a la moto correspondiente. Añade una foto a una nota, busca en tus notas más tarde o conviértela en una tarea.",
+      "logTitle": "Regístralo desde la moto",
+      "logDesc": "Toca Registrar en una moto para añadir un gasto, una tarea, un trabajo ya hecho, una nota o un documento. Actualizar el odómetro ahora usa un teclado numérico, tanto en iPhone como en Android."
+    },
     "badge": "Novedades",
     "next": "Next",
     "getStarted": "Let's Go",

@@ -14,7 +14,7 @@ import {
  * is what these cover.
  */
 describe('whats-new releases', () => {
-  const CURRENT = '3.19.1';
+  const CURRENT = '3.22.0';
 
   it('has an entry for the shipping version', () => {
     expect(getWhatsNewRelease(CURRENT, SLIDE_PLATFORM.IOS)).not.toBeNull();
@@ -28,9 +28,19 @@ describe('whats-new releases', () => {
     expect(getWhatsNewRelease('0.0.0', SLIDE_PLATFORM.IOS)).toBeNull();
   });
 
+  it('shows every slide of the shipping release on both platforms', () => {
+    // The bike-screen redesign shipped everywhere, so nothing in it is gated.
+    for (const os of [SLIDE_PLATFORM.IOS, SLIDE_PLATFORM.ANDROID]) {
+      expect(visibleSlides(getLatestRelease(os), os)).toHaveLength(3);
+    }
+  });
+
   describe('platform gating', () => {
-    /** Reads the shipping release off the array directly, so no null-assert is needed. */
-    const release = WHATS_NEW_RELEASES[0];
+    /** 3.19.1 carries the only iOS-only slide (CarPlay), so the gate is exercised against it. */
+    const GATED = '3.19.1';
+    const release = WHATS_NEW_RELEASES.find(
+      (r) => r.version === GATED,
+    ) as (typeof WHATS_NEW_RELEASES)[number];
 
     it('shows both the receipt and CarPlay slides on iOS', () => {
       const keys = visibleSlides(release, SLIDE_PLATFORM.IOS).map((s) => s.titleKey);
@@ -43,7 +53,7 @@ describe('whats-new releases', () => {
     });
 
     it('still shows the release on Android, because receipt scanning is cross-platform', () => {
-      expect(getWhatsNewRelease(CURRENT, SLIDE_PLATFORM.ANDROID)).not.toBeNull();
+      expect(getWhatsNewRelease(GATED, SLIDE_PLATFORM.ANDROID)).not.toBeNull();
     });
 
     it('treats a slide with no `platforms` as universal', () => {

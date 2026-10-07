@@ -1892,6 +1892,14 @@
     "findRiders": "Fahrer entdecken"
   },
   "whatsNew": {
+    "v3220": {
+      "overviewTitle": "Dein Motorrad auf einen Blick",
+      "overviewDesc": "Jedes Motorrad öffnet jetzt mit einer Übersicht: was Aufmerksamkeit braucht, was als Nächstes fällig ist, was du ausgegeben hast, dazu deine Notizen und Papiere. Service, Kosten und Motorrad sind oben nur einen Tipp entfernt.",
+      "notesTitle": "Notizen mit Fotos",
+      "notesDesc": "Bewahre Teilenummern, Reifendruck und Werkstattinfos direkt beim richtigen Motorrad auf. Hänge ein Foto an eine Notiz, durchsuche deine Notizen später oder mach eine Aufgabe daraus.",
+      "logTitle": "Direkt am Motorrad eintragen",
+      "logDesc": "Tippe bei einem Motorrad auf „Eintragen“, um eine Ausgabe, eine Aufgabe, bereits erledigte Arbeiten, eine Notiz oder ein Dokument hinzuzufügen. Den Kilometerstand trägst du jetzt auf iPhone und Android über ein Ziffernfeld ein."
+    },
     "badge": "Neuigkeiten",
     "next": "Next",
     "getStarted": "Let's Go",

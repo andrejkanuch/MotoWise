@@ -1893,6 +1893,14 @@
     "findRiders": "Scopri motociclisti"
   },
   "whatsNew": {
+    "v3220": {
+      "overviewTitle": "La tua moto a colpo d’occhio",
+      "overviewDesc": "Ogni moto ora si apre con una Panoramica: cosa richiede attenzione, la prossima scadenza, quanto hai speso, più le tue note e i documenti. Manutenzione, Costi e Moto sono a un tocco nella barra in alto.",
+      "notesTitle": "Note, con foto",
+      "notesDesc": "Conserva codici ricambio, pressioni delle gomme e dati dell’officina insieme alla moto giusta. Aggiungi una foto a una nota, cerca tra le note in seguito o trasformane una in un’attività.",
+      "logTitle": "Registra dalla moto",
+      "logDesc": "Tocca Registra su una moto per aggiungere una spesa, un’attività, un lavoro già fatto, una nota o un documento. Ora il contachilometri si aggiorna con un tastierino, su iPhone come su Android."
+    },
     "badge": "Novità",
     "next": "Next",
     "getStarted": "Let's Go",

@@ -1898,6 +1898,14 @@
     "findRiders": "Discover Riders"
   },
   "whatsNew": {
+    "v3220": {
+      "overviewTitle": "Your Bike, at a Glance",
+      "overviewDesc": "Every bike now opens on an Overview: what needs attention, what’s due next, what you’ve spent, plus your notes and papers. Service, Costs and Bike are one tap away in the bar at the top.",
+      "notesTitle": "Notes, with Photos",
+      "notesDesc": "Keep part numbers, tire pressures and shop details with the bike they belong to. Add a photo to a note, search your notes later, or turn one into a task.",
+      "logTitle": "Log It from the Bike",
+      "logDesc": "Tap Log on a bike to add an expense, a task, work you’ve already done, a note or a document. Updating the odometer now uses a keypad on iPhone and Android alike."
+    },
     "badge": "What's New",
     "next": "Next",
     "getStarted": "Let's Ride",
