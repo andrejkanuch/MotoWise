@@ -180,7 +180,7 @@ function HubDock() {
         right: 0,
         bottom: 0,
         height: tabBarBottomOffset(insets.bottom) + height + HUB_DOCK_OVERHANG,
-        backgroundColor: hub.tabBar,
+        backgroundColor: hub.ground,
       }}
     />
   );
