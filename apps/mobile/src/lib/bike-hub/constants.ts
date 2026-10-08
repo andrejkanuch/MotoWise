@@ -263,3 +263,20 @@ export const ODOMETER_ENTRY_PLACEHOLDER = '— — —';
 
 /** Platforms whose form sheet can refuse a swipe-down (react-native-screens `preventNativeDismiss`). */
 export const SHEET_DISMISS_GUARD_PLATFORMS: ReadonlySet<string> = new Set(['ios']);
+
+/**
+ * How a hub form sheet (Note, Odometer) was left. A native dismissal the guard
+ * could not hold back (Android drag-down) leaves it `OPEN`: nothing decided.
+ */
+export const SHEET_EXIT = {
+  OPEN: 'open',
+  SAVED: 'saved',
+  DISCARDED: 'discarded',
+} as const;
+export type SheetExit = (typeof SHEET_EXIT)[keyof typeof SHEET_EXIT];
+
+/** Parts of a parked Note draft's key: one slot per bike for a new note, one per edited note. */
+export const SHEET_DRAFT_KEY = {
+  NEW_NOTE: 'new',
+  SEPARATOR: ':',
+} as const;

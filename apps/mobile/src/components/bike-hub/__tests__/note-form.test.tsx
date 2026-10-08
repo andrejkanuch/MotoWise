@@ -95,6 +95,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-
 import { Alert, StyleSheet } from 'react-native';
 import { useKeyboardState } from 'react-native-keyboard-controller';
 import '../../../i18n';
+import { useSheetDraftStore } from '../../../stores/sheet-draft.store';
 import { BIKE_A, BIKE_B, NOTES } from '../../../test/bike-hub-fixtures';
 import {
   DRAFT_OUTCOME,
@@ -158,6 +159,8 @@ const created = () =>
 
 beforeEach(() => {
   jest.clearAllMocks();
+  // Parked drafts are module state: every test starts from an empty store.
+  useSheetDraftStore.setState({ notes: {}, readings: {} });
   mockNavigation.dispatch.mockImplementation((action: MockAction) => mockRemoved(action));
   // `onClose` is the route's `router.back()`: it goes through the guard.
   onClose.mockImplementation(() => mockAttemptRemove(GO_BACK));
@@ -990,7 +993,12 @@ describe('NoteForm — reports the handed-off draft (#3)', () => {
     await act(async () => second.unmount());
     await act(async () => release(false));
     await failing;
-    expect(outcomes).toEqual([['Bought oil', DRAFT_OUTCOME.DISCARDED]]);
+    // Not discarded: the work was parked on the way out, so the hand-off stays
+    // pending — the restored draft, saved later, still clears the field.
+    expect(outcomes).toEqual([]);
+    expect(Object.values(useSheetDraftStore.getState().notes)).toEqual([
+      expect.objectContaining({ text: 'Bought oil', handoff: 'Bought oil' }),
+    ]);
   });
 
   it('an edit, or a sheet opened without a draft, reports nothing', async () => {

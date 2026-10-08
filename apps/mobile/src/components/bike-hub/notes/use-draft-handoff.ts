@@ -55,6 +55,14 @@ const ON_OUTCOME: Record<DraftOutcome, { clear: boolean }> = {
  * The host does NOT disarm when it regains focus: a sheet dismissed mid-save
  * (an Android drag-down cannot be held back) reports SAVED after the host is
  * back on screen, and that report must still clear the field.
+ *
+ * A sheet dragged away with unsaved work (Android) parks it in the sheet-draft
+ * store instead of reporting DISCARDED, so the hand-off stays armed: when the
+ * parked draft is restored and saved — even by a sheet opened without a draft —
+ * it reports SAVED for the text it was handed, and the field clears. "Clear" on
+ * the restored draft (or Discard) reports DISCARDED. Handing off the same text
+ * again restores the parked draft; handing off different text wins over it
+ * (`restorableNoteDraft`).
  */
 export function useDraftHandoff(clearDraft: () => void) {
   const armed = useRef<string | null>(null);

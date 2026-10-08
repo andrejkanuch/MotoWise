@@ -12,6 +12,8 @@ import {
   ODOMETER_ERROR,
   ODOMETER_QUICK_ADD,
   type OdometerKey,
+  SHEET_EXIT,
+  type SheetExit,
 } from '../../../lib/bike-hub/constants';
 import {
   formatOdometer,
@@ -29,10 +31,12 @@ import {
   parseEntry,
   validateReading,
 } from '../../../lib/bike-hub/odometer-input';
+import { restorableOdometerDraft, useSheetDraftStore } from '../../../stores/sheet-draft.store';
 import { triggerNotification, triggerSelection } from '../../../utils/haptics';
 import type { HubBike } from '../shell/use-bike-hub-data';
 import { useToday } from '../shell/use-today';
 import { HUB_CHROME_MAX_FONT_SCALE, HUB_FONT, HUB_HEIGHT, HUB_RADIUS, hub } from '../ui/tokens';
+import { DraftRestoredNotice } from './draft-restored-notice';
 import { OdometerDateChip } from './odometer-date-chip';
 import { OdometerKeypad } from './odometer-keypad';
 import {
@@ -43,6 +47,7 @@ import {
 } from './sheet-header';
 import { SheetScroll, sheetBottomPadding } from './sheet-scroll';
 import { useLogOdometer, useOdometerContext } from './use-log-odometer';
+import { useParkDraftOnExit } from './use-park-draft';
 
 const CHIP_HEIGHT = 40;
 /**
@@ -135,6 +140,13 @@ interface OdometerSheetProps {
   onDirtyChange?: (dirty: boolean) => void;
   /** Whether the reading is saving — the route locks dismissal while it is. */
   onSavingChange?: (saving: boolean) => void;
+  /**
+   * How the sheet was left (the route's discard guard). Set = a reading left
+   * behind by a dismissal nobody could ask about (Android drag-down) is parked
+   * and restored the next time the sheet opens for this bike. Without it the
+   * sheet neither parks nor restores.
+   */
+  exit?: () => SheetExit;
   /** Tests pin the date; the screen omits it. */
   now?: Date;
 }
@@ -152,6 +164,7 @@ export function OdometerSheet({
   onCancel,
   onDirtyChange,
   onSavingChange,
+  exit,
   now,
 }: OdometerSheetProps) {
   const { t, i18n } = useTranslation();
@@ -163,11 +176,17 @@ export function OdometerSheet({
     useOdometerContext(bike.id);
   const logOdometer = useLogOdometer(bike.id);
 
-  const [digits, setDigits] = useState('');
+  const parksDrafts = exit !== undefined;
+  // Read once: the sheet opens either empty or with what a dismissal left behind.
+  const [restored] = useState(() => (parksDrafts ? restorableOdometerDraft(bike.id) : null));
+  const [showRestored, setShowRestored] = useState(restored !== null);
+  const [digits, setDigits] = useState(restored?.digits ?? '');
   // `null` = the rider has not picked a date: the reading is for today.
-  const [pickedDate, setPickedDate] = useState<Date | null>(null);
+  const [pickedDate, setPickedDate] = useState<Date | null>(() =>
+    restored?.pickedDate == null ? null : new Date(restored.pickedDate),
+  );
   const recordedAt = pickedDate ?? today;
-  const [usedQuickAdd, setUsedQuickAdd] = useState(false);
+  const [usedQuickAdd, setUsedQuickAdd] = useState(restored?.usedQuickAdd ?? false);
   const [saveFailed, setSaveFailed] = useState(false);
 
   const dirty = digits !== '' || pickedDate !== null;
@@ -176,6 +195,31 @@ export function OdometerSheet({
   // saved must be the value shown.
   const saving = logOdometer.isPending;
   useEffect(() => onSavingChange?.(saving), [saving, onSavingChange]);
+
+  // A reading still saving is parked too: `useLogOdometer` clears it when the
+  // save lands, so only a failed save leaves it to be restored.
+  const draftSlot = useParkDraftOnExit({
+    restored: restored !== null,
+    exit: exit ?? (() => SHEET_EXIT.OPEN),
+    pending: () => parksDrafts && (dirty || saving),
+    park: () =>
+      useSheetDraftStore.getState().parkReading(bike.id, {
+        digits,
+        pickedDate: pickedDate?.getTime() ?? null,
+        usedQuickAdd,
+      }),
+    clear: () => useSheetDraftStore.getState().clearReading(bike.id),
+  });
+
+  /** "Clear" on the restored line: back to an empty entry for today. */
+  const clearRestored = () => {
+    draftSlot.clearOwned();
+    setDigits('');
+    setPickedDate(null);
+    setUsedQuickAdd(false);
+    setSaveFailed(false);
+    setShowRestored(false);
+  };
 
   // The baseline is the higher of the latest logged reading and the bike's
   // odometer: a ride end or receipt scan can move `currentMileage` before the
@@ -321,6 +365,15 @@ export function OdometerSheet({
         cancelDisabled={saving}
         cancelTestID="odometer-cancel"
       />
+      {showRestored ? (
+        <DraftRestoredNotice
+          testID="odometer-restored"
+          message={t('bikeHub.sheetDraft.readingRestored')}
+          clearAccessibilityLabel={t('bikeHub.sheetDraft.clearReadingA11y')}
+          onClear={clearRestored}
+          disabled={saving}
+        />
+      ) : null}
 
       <View style={{ gap: 2 }}>
         <View

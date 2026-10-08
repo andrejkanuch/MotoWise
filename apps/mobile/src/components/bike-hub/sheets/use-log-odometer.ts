@@ -14,6 +14,7 @@ import { readingTimestamp } from '../../../lib/bike-hub/odometer-input';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { QUERY_META } from '../../../lib/query-meta';
+import { useSheetDraftStore } from '../../../stores/sheet-draft.store';
 import { useSheetDiscardGuard } from './use-sheet-discard-guard';
 
 const LATEST_ONLY = 1;
@@ -80,6 +81,9 @@ export function useLogOdometer(motorcycleId: string) {
         },
       }),
     onSuccess: (_data, variables) => {
+      // The reading is saved: a draft parked by a dismissal mid-save is not work any more.
+      // (Mutation-level, so it runs even when the sheet is already gone.)
+      useSheetDraftStore.getState().clearReading(motorcycleId);
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.odometer.readings(motorcycleId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.odometer.pendingRides(motorcycleId) });
@@ -131,5 +135,7 @@ export function useDiscardReadingGuard(dirty: boolean, saving = false) {
     closeAfterSave: () => {
       guard.leaveAfterSave(() => router.back());
     },
+    /** How the sheet was left — the sheet parks or clears its draft on it. */
+    exit: guard.exit,
   };
 }

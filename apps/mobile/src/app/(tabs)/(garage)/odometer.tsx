@@ -13,7 +13,8 @@ const PLACEHOLDER_HEIGHT = 240;
  * Odometer sheet route (formSheet, fit to contents). Opened from the header's
  * odometer chip and from the Log sheet. A typed reading is guarded: swipe-down
  * (iOS), Cancel and Android Back ask "Discard reading?" first; while it saves
- * the sheet cannot be left at all.
+ * the sheet cannot be left at all. An Android drag-down cannot be held back: the
+ * reading is parked and restored the next time the sheet opens for this bike.
  */
 export default function OdometerScreen() {
   const { motorcycleId } = useLocalSearchParams<{ motorcycleId: string }>();
@@ -44,6 +45,7 @@ export default function OdometerScreen() {
       onCancel={guard.cancel}
       onDirtyChange={setDirty}
       onSavingChange={setSaving}
+      exit={guard.exit}
     />
   );
 }

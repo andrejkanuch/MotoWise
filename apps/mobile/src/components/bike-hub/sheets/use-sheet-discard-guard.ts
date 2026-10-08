@@ -4,7 +4,11 @@ import {
   usePreventRemove,
 } from 'expo-router/react-navigation';
 import { useEffect, useRef } from 'react';
-import { SHEET_DISMISS_GUARD_PLATFORMS } from '../../../lib/bike-hub/constants';
+import {
+  SHEET_DISMISS_GUARD_PLATFORMS,
+  SHEET_EXIT,
+  type SheetExit,
+} from '../../../lib/bike-hub/constants';
 
 /** The one navigation action a native sheet sends after it has ALREADY gone. */
 const NATIVE_POP_ACTION = 'POP';
@@ -43,6 +47,12 @@ export interface SheetDiscardGuard {
   leaveAfterSave: (back: () => void) => boolean;
   /** False once the sheet has unmounted. */
   isMounted: () => boolean;
+  /**
+   * How the sheet was left: SAVED (`leaveAfterSave`), DISCARDED (the rider
+   * chose Discard), or still OPEN — which, read on unmount, means a native
+   * dismissal nobody could ask about (Android drag-down). Kept after unmount.
+   */
+  exit: () => SheetExit;
 }
 
 /**
@@ -55,7 +65,9 @@ export interface SheetDiscardGuard {
  * iOS: while the guard is on, native-stack sets `preventNativeDismiss`, UIKit
  * refuses the swipe (the sheet springs back) and the attempt lands here as a
  * `POP`. Android: Cancel and Back are held here; a drag-down has already
- * dismissed the sheet and is let through (`sheetAlreadyDismissed`).
+ * dismissed the sheet and is let through (`sheetAlreadyDismissed`) — the sheet
+ * then parks its work (`useParkDraftOnExit`, `exit()` still OPEN) instead of
+ * losing it.
  *
  * While a save is in flight the guard stays on and stays quiet: the removal is
  * swallowed (no prompt, no navigation) — the save closes the sheet itself. A
@@ -70,6 +82,7 @@ export function useSheetDiscardGuard({
   const navigation = useNavigation();
   const mounted = useRef(true);
   const leaving = useRef(false);
+  const exitRef = useRef<SheetExit>(SHEET_EXIT.OPEN);
   // Read when an event arrives, not when the callback was created.
   const savingRef = useRef(saving);
   savingRef.current = saving;
@@ -91,6 +104,7 @@ export function useSheetDiscardGuard({
     confirmDiscard(() => {
       // The sheet saved (and left) or is gone while the prompt was up.
       if (leaving.current || !mounted.current || savingRef.current) return;
+      exitRef.current = SHEET_EXIT.DISCARDED;
       navigation.dispatch(action);
     });
   });
@@ -99,9 +113,11 @@ export function useSheetDiscardGuard({
     leaveAfterSave: (back) => {
       if (!mounted.current) return false;
       leaving.current = true;
+      exitRef.current = SHEET_EXIT.SAVED;
       back();
       return true;
     },
     isMounted: () => mounted.current,
+    exit: () => exitRef.current,
   };
 }

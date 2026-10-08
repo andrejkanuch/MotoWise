@@ -29,7 +29,7 @@ import {
   useKeyboardState,
 } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { NOTE_SOURCE } from '../../../lib/bike-hub/constants';
+import { NOTE_SOURCE, SHEET_EXIT } from '../../../lib/bike-hub/constants';
 import {
   bikeDisplayName,
   formatOdometer,
@@ -46,6 +46,12 @@ import {
 } from '../../../lib/image-upload';
 import { queryKeys } from '../../../lib/query-keys';
 import { useAuthStore } from '../../../stores/auth.store';
+import {
+  type NoteDraft,
+  noteDraftKey,
+  restorableNoteDraft,
+  useSheetDraftStore,
+} from '../../../stores/sheet-draft.store';
 import { showActionSheet } from '../../../utils/action-sheet';
 import { triggerImpact, triggerNotification, triggerSelection } from '../../../utils/haptics';
 import { NativeToggle } from '../../ui/native-toggle';
@@ -61,7 +67,9 @@ import {
   HUB_TOUCH_TARGET,
   hub,
 } from '../ui/tokens';
+import { DraftRestoredNotice } from './draft-restored-notice';
 import { SHEET_CANCEL_PLACEMENT, SHEET_LOCKED_OPACITY, SheetHeader } from './sheet-header';
+import { useParkDraftOnExit } from './use-park-draft';
 import { useSheetDiscardGuard } from './use-sheet-discard-guard';
 
 const CHIP_SLOP = Math.ceil((HUB_TOUCH_TARGET - HUB_HEIGHT.small) / 2);
@@ -288,6 +296,12 @@ function AddPhotoChip({
  * belongs to and "also make it a task". Save is attached to the keyboard. The
  * note is saved first and photos after it, so a failed photo never loses the
  * note. Nothing here is gated.
+ *
+ * Work left behind by a dismissal nobody could ask about (an Android drag-down)
+ * is parked in the sheet-draft store and restored the next time the sheet opens
+ * for the same bike (new note) or note (edit), under a quiet "Restored …" line
+ * with Clear. A quick-add hand-off wins over a parked draft unless the draft
+ * grew from that same hand-off (`restorableNoteDraft`).
  */
 export function NoteForm({
   bike,
@@ -308,12 +322,26 @@ export function NoteForm({
   // the last row can always be scrolled clear of it.
   const [footerHeight, setFooterHeight] = useState(0);
 
-  const [text, setText] = useState(note?.text ?? draft ?? '');
-  const [targetId, setTargetId] = useState(bike.id);
-  const [stampOn, setStampOn] = useState(isEdit ? note.odometer != null : true);
-  const [alsoTask, setAlsoTask] = useState(false);
-  const [newPhotos, setNewPhotos] = useState<string[]>([]);
-  const [removedPhotoIds, setRemovedPhotoIds] = useState<string[]>([]);
+  const draftKey = noteDraftKey(bike.id, note?.id);
+  // Read once: the sheet opens either fresh or from what a dismissal left behind.
+  const [restored] = useState(() =>
+    restorableNoteDraft({
+      key: draftKey,
+      bikeId: bike.id,
+      bikeIds: bikes.map((candidate) => candidate.id),
+      handoff: isEdit ? undefined : draft,
+    }),
+  );
+  const [showRestored, setShowRestored] = useState(restored !== null);
+  const initialText = note?.text ?? draft ?? '';
+  const initialStampOn = isEdit ? note.odometer != null : true;
+
+  const [text, setText] = useState(restored?.text ?? initialText);
+  const [targetId, setTargetId] = useState(restored?.targetId ?? bike.id);
+  const [stampOn, setStampOn] = useState(restored?.stampOn ?? initialStampOn);
+  const [alsoTask, setAlsoTask] = useState(restored?.alsoTask ?? false);
+  const [newPhotos, setNewPhotos] = useState<string[]>(restored?.newPhotos ?? []);
+  const [removedPhotoIds, setRemovedPhotoIds] = useState<string[]>(restored?.removedPhotoIds ?? []);
   const [saving, setSaving] = useState(false);
   /** Photo attaches of the save in progress; `null` while the note itself saves. */
   const [photoProgress, setPhotoProgress] = useState<PhotoProgress | null>(null);
@@ -368,9 +396,8 @@ export function NoteForm({
   // The API's fallback title is the English 'Note'; a note with no words shows
   // the plain localised copy instead of naming it.
   const derivedTaskTitle = cleanText ? deriveTaskTitleFromNote(cleanText) : null;
-  const initialStampOn = isEdit ? note.odometer != null : true;
   const dirty =
-    text !== (note?.text ?? draft ?? '') ||
+    text !== initialText ||
     newPhotos.length > 0 ||
     removedPhotoIds.length > 0 ||
     stampOn !== initialStampOn ||
@@ -502,26 +529,80 @@ export function NoteForm({
   const updateNote = useUpdateNote(bike.id);
 
   /**
-   * A new note opened with a quick-add draft reports, once, whether a note was
-   * created from it, so the field that handed it off clears (SAVED) or keeps it
-   * and stops waiting (DISCARDED). Edits and draft-less sheets report nothing.
+   * The quick-add text this sheet answers for: the one it was opened with, or —
+   * opened without one — the one a restored draft grew from. A new note reports,
+   * once, whether a note was created from it, so the field that handed it off
+   * clears (SAVED) or keeps it and stops waiting (DISCARDED). Edits and
+   * draft-less sheets report nothing.
    */
-  const draftSettled = useRef(isEdit || !draft);
+  const handoff = useRef(isEdit ? undefined : draft || restored?.handoff);
+  const draftSettled = useRef(!handoff.current);
   const settleDraft = (outcome: DraftOutcome) => {
     if (draftSettled.current) return;
     draftSettled.current = true;
-    publishDraftOutcome(draft, outcome);
+    publishDraftOutcome(handoff.current, outcome);
   };
-  const settleDraftRef = useRef(settleDraft);
-  settleDraftRef.current = settleDraft;
+
+  /**
+   * Unsaved work a dismissal now would lose: typed and not saved, or the first
+   * save still in flight (it may yet fail). Once the note is on the server
+   * (`saved`) nothing is parked — a Retry only re-attaches photos.
+   */
+  const pendingWork = () => !saved && (dirty || savingRef.current);
+  const snapshot = (): NoteDraft => ({
+    text,
+    stampOn,
+    alsoTask,
+    targetId,
+    newPhotos,
+    removedPhotoIds,
+    handoff: handoff.current,
+  });
+  const draftSlot = useParkDraftOnExit({
+    restored: restored !== null,
+    exit: guard.exit,
+    pending: pendingWork,
+    park: () => useSheetDraftStore.getState().parkNote(draftKey, snapshot()),
+    clear: () => useSheetDraftStore.getState().clearNote(draftKey),
+  });
+
+  const leaveRef = useRef<{ settleDraft: typeof settleDraft; parks: () => boolean }>({
+    settleDraft,
+    parks: () => false,
+  });
+  leaveRef.current = {
+    settleDraft,
+    parks: () => guard.exit() === SHEET_EXIT.OPEN && pendingWork(),
+  };
   // Closed without a note: discarded — unless a save is still in flight, which
-  // settles it either way when it ends.
+  // settles it either way when it ends, or the work was parked: the hand-off is
+  // still pending then, so a restored draft that is saved later clears the field.
   useEffect(
     () => () => {
-      if (!savingRef.current) settleDraftRef.current(DRAFT_OUTCOME.DISCARDED);
+      const { settleDraft: settle, parks } = leaveRef.current;
+      if (savingRef.current || parks()) return;
+      settle(DRAFT_OUTCOME.DISCARDED);
     },
     [],
   );
+
+  /** "Clear" on the restored line: back to how the sheet would have opened. */
+  const clearRestored = () => {
+    // A hand-off known only from the parked draft is dropped with it; the field
+    // that handed it off keeps its text and stops waiting.
+    if (!draft) settleDraft(DRAFT_OUTCOME.DISCARDED);
+    handoff.current = isEdit ? undefined : draft;
+    draftSlot.clearOwned();
+    setText(initialText);
+    setTargetId(bike.id);
+    setStampOn(initialStampOn);
+    setAlsoTask(false);
+    setNewPhotos([]);
+    setRemovedPhotoIds([]);
+    setSaveFailed(false);
+    setNoSession(false);
+    setShowRestored(false);
+  };
 
   const finish = (next: SavedState) => {
     queryClient.invalidateQueries({ queryKey: queryKeys.notes.byMotorcycle(next.motorcycleId) });
@@ -555,6 +636,7 @@ export function NoteForm({
     try {
       if (isEdit) {
         await updateNote.mutateAsync({ id: note.id, text: cleanText, odometer });
+        draftSlot.clearOwned();
         const failedRemovals = await removePhotos(removedPhotoIds);
         finish({
           noteId: note.id,
@@ -573,8 +655,10 @@ export function NoteForm({
         source: NOTE_SOURCE.SHEET,
         hasPhoto: newPhotos.length > 0,
       });
-      // The note exists (on this bike or another): the handed-off draft is saved.
+      // The note exists (on this bike or another): the handed-off draft is saved,
+      // and so is any parked draft — also when the sheet was dismissed mid-save.
       settleDraft(DRAFT_OUTCOME.SAVED);
+      draftSlot.clearOwned();
       // The API keeps the note when the task could not be created; say so, do not fail.
       finish({
         noteId: created.id,
@@ -584,8 +668,9 @@ export function NoteForm({
         taskMissing: alsoTask && !created.linkedTaskId,
       });
     } catch (_error) {
-      // Dismissed mid-save and the note was not created: the draft stays the field's.
-      if (!guard.isMounted()) settleDraft(DRAFT_OUTCOME.DISCARDED);
+      // Dismissed mid-save and the note was not created: the work was parked on
+      // the way out (`useParkDraftOnExit`), so the hand-off stays pending — the
+      // restored draft, saved later, still clears the field that handed it off.
       setSaveFailed(true);
     } finally {
       savingRef.current = false;
@@ -674,6 +759,15 @@ export function NoteForm({
         extraKeyboardSpace={footerAboveKeyboard}
         contentContainerStyle={{ gap: 12, paddingTop: 6, paddingHorizontal: 16, paddingBottom: 24 }}
       >
+        {showRestored ? (
+          <DraftRestoredNotice
+            testID="note-restored"
+            message={t('bikeHub.sheetDraft.noteRestored')}
+            clearAccessibilityLabel={t('bikeHub.sheetDraft.clearNoteA11y')}
+            onClear={clearRestored}
+            disabled={locked}
+          />
+        ) : null}
         <TextInput
           keyboardAppearance="dark"
           selectionColor={hub.copper}
