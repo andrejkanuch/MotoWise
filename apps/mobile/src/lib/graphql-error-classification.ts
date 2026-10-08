@@ -128,6 +128,47 @@ export function isMissingGqlSessionError(error: unknown): boolean {
   return false;
 }
 
+/**
+ * Prefix of `GqlRequestTimeoutError.message` (and the storage upload timeout in
+ * `image-upload.ts`). Deliberately the same wording iOS
+ * uses for an OS-level timeout ("The request timed out"), so `isNetworkError`
+ * already classifies it as a transient connectivity failure (no Sentry report,
+ * offline queues retry it) and the trailing "timeout" keeps `userFriendlyError`
+ * on its "Connection error" copy.
+ */
+export const REQUEST_TIMEOUT_MESSAGE = 'The request timed out';
+
+/**
+ * Thrown by `gqlFetcher` when a request has not settled within its timeout. The
+ * underlying fetch is aborted; the rejection is what lets callers that lock UI
+ * while a mutation is pending (the Note / Odometer sheets swallow dismissal
+ * while saving) fall through to their `onError` / save-failed path instead of
+ * waiting for the OS network timeout.
+ */
+export class GqlRequestTimeoutError extends Error {
+  readonly isGqlRequestTimeout = true;
+  readonly operationName: string | undefined;
+  readonly timeoutMs: number;
+
+  constructor(timeoutMs: number, operationName?: string) {
+    super(
+      `${REQUEST_TIMEOUT_MESSAGE} (${operationName ?? 'anonymous operation'}, timeout ${timeoutMs}ms)`,
+    );
+    this.name = 'GqlRequestTimeoutError';
+    this.operationName = operationName;
+    this.timeoutMs = timeoutMs;
+  }
+}
+
+export function isGqlRequestTimeoutError(error: unknown): error is GqlRequestTimeoutError {
+  if (error instanceof GqlRequestTimeoutError) return true;
+  return (
+    !!error &&
+    typeof error === 'object' &&
+    (error as { isGqlRequestTimeout?: unknown }).isGqlRequestTimeout === true
+  );
+}
+
 /** What we can learn about a failed GraphQL request, for filtering + grouping. */
 export interface GraphQLErrorDescriptor {
   /** `extensions.code` of the first GraphQL error, when present. */

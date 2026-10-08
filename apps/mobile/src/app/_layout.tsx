@@ -414,8 +414,9 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
    * `SPLASH_FAILSAFE_MS` hides the native splash; it does not settle the gate. A
    * signed-in rider whose `me` request never returns therefore watched the splash
    * fade to a blank screen — `holding` stays true while `meQuery.isLoading` is
-   * true, and the gate renders `null`. Nothing forces that query to settle:
-   * neither `meOptions()` nor `gqlFetcher` sets a timeout or an AbortSignal.
+   * true, and the gate renders `null`. `gqlFetcher` does bound the request
+   * (`GQL_TIMEOUT_MS.DEFAULT`, 30 s), but that is far longer than a splash may
+   * hold, so this gate keeps its own, shorter deadline.
    *
    * Giving up on `me` is safe because it is only a confirmation: `onboardingCompleted`
    * falls back to the persisted store value, so a returning rider still lands in

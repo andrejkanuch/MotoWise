@@ -2,6 +2,7 @@ import * as Crypto from 'expo-crypto';
 import { File } from 'expo-file-system';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
+import { REQUEST_TIMEOUT_MESSAGE } from './graphql-error-classification';
 import { supabase } from './supabase';
 
 const WEBP_CONTENT_TYPE = 'image/webp';
@@ -13,6 +14,67 @@ const RECEIPTS_BUCKET = 'receipts';
  *  legible, so it is NOT the lossy 1200px/0.7 gallery profile. */
 const RECEIPT_MAX_WIDTH = 1920;
 const RECEIPT_COMPRESS = 0.85;
+
+/**
+ * Upper bound on one Storage upload. Photos are compressed to ~100–400 KB WebP
+ * before upload (receipts up to ~1 MB), so a minute covers a slow cellular link;
+ * past that the save is treated as failed so the sheet that is waiting on it
+ * unlocks instead of hanging until the OS network timeout.
+ */
+export const STORAGE_UPLOAD_TIMEOUT_MS = 60_000;
+
+/**
+ * A Storage upload did not settle within `STORAGE_UPLOAD_TIMEOUT_MS`. Its
+ * message starts with `REQUEST_TIMEOUT_MESSAGE`, so `isNetworkError` and
+ * `userFriendlyError` treat it like any other transient connectivity failure.
+ */
+export class StorageUploadTimeoutError extends Error {
+  readonly isStorageUploadTimeout = true;
+
+  constructor(bucket: string, timeoutMs: number) {
+    super(`${REQUEST_TIMEOUT_MESSAGE} (storage upload to ${bucket}, timeout ${timeoutMs}ms)`);
+    this.name = 'StorageUploadTimeoutError';
+  }
+}
+
+type UploadOptions = { contentType: string; upsert: boolean };
+
+/**
+ * `supabase.storage.from(bucket).upload` with a deadline.
+ *
+ * Why a race and not an AbortSignal: storage-js 2.108's `upload(path, fileBody,
+ * fileOptions)` has no fetch-parameters argument and `FileOptions` has no
+ * `signal` (only download/info/exists/list-style calls take one), so the request
+ * cannot be cancelled from here. On timeout the caller gets a rejection and the
+ * HTTP request is left to finish or fail on its own. If it does land late, the
+ * object is an orphan with no DB row — the same harmless case
+ * `removeNotePhotoObject` describes — and a retry never collides with it:
+ * shared-folder photos get a fresh `uniquePhotoName()`, and the bike hero and
+ * receipt paths upload with `upsert: true`.
+ */
+async function uploadWithTimeout(
+  bucket: string,
+  filePath: string,
+  bytes: Uint8Array,
+  options: UploadOptions,
+): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new StorageUploadTimeoutError(bucket, STORAGE_UPLOAD_TIMEOUT_MS)),
+      STORAGE_UPLOAD_TIMEOUT_MS,
+    );
+  });
+  try {
+    const { error } = await Promise.race([
+      supabase.storage.from(bucket).upload(filePath, bytes, options),
+      deadline,
+    ]);
+    if (error) throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 /**
  * File name of a photo in a shared folder (a task's or a note's). Photos of one
@@ -99,11 +161,10 @@ export async function uploadBikePhoto(
 ): Promise<{ publicUrl: string }> {
   const bytes = await readImageBytes(uri);
   const filePath = `${userId}/${motorcycleId ?? 'onboarding'}/hero.webp`;
-  const { error } = await supabase.storage.from(BIKE_PHOTOS_BUCKET).upload(filePath, bytes, {
+  await uploadWithTimeout(BIKE_PHOTOS_BUCKET, filePath, bytes, {
     contentType: WEBP_CONTENT_TYPE,
     upsert: true,
   });
-  if (error) throw error;
   const {
     data: { publicUrl },
   } = supabase.storage.from(BIKE_PHOTOS_BUCKET).getPublicUrl(filePath);
@@ -118,11 +179,10 @@ export async function uploadMaintenancePhoto(
 ): Promise<{ storagePath: string; fileSizeBytes: number }> {
   const bytes = await readImageBytes(uri);
   const filePath = `${userId}/${taskId}/${uniquePhotoName()}`;
-  const { error } = await supabase.storage.from(MAINTENANCE_PHOTOS_BUCKET).upload(filePath, bytes, {
+  await uploadWithTimeout(MAINTENANCE_PHOTOS_BUCKET, filePath, bytes, {
     contentType: WEBP_CONTENT_TYPE,
     upsert: false,
   });
-  if (error) throw error;
   return {
     storagePath: filePath,
     fileSizeBytes: bytes.byteLength,
@@ -143,11 +203,10 @@ export async function uploadNotePhoto(
 ): Promise<{ storagePath: string; fileSizeBytes: number }> {
   const bytes = await readImageBytes(uri);
   const filePath = `${userId}/notes/${noteId}/${uniquePhotoName()}`;
-  const { error } = await supabase.storage.from(MAINTENANCE_PHOTOS_BUCKET).upload(filePath, bytes, {
+  await uploadWithTimeout(MAINTENANCE_PHOTOS_BUCKET, filePath, bytes, {
     contentType: WEBP_CONTENT_TYPE,
     upsert: false,
   });
-  if (error) throw error;
   return { storagePath: filePath, fileSizeBytes: bytes.byteLength };
 }
 
@@ -181,11 +240,10 @@ export async function uploadReceiptPhoto(
 ): Promise<{ storagePath: string; fileSizeBytes: number }> {
   const bytes = await readImageBytes(uri, compressReceiptImage);
   const filePath = `${userId}/${scanId}.webp`;
-  const { error } = await supabase.storage.from(RECEIPTS_BUCKET).upload(filePath, bytes, {
+  await uploadWithTimeout(RECEIPTS_BUCKET, filePath, bytes, {
     contentType: WEBP_CONTENT_TYPE,
     upsert: true,
   });
-  if (error) throw error;
   return {
     storagePath: filePath,
     fileSizeBytes: bytes.byteLength,
@@ -206,11 +264,10 @@ export async function uploadExpensePhoto(
 ): Promise<{ storagePath: string; fileSizeBytes: number }> {
   const bytes = await readImageBytes(uri);
   const filePath = `${userId}/expenses/${expenseId}/${uniquePhotoName()}`;
-  const { error } = await supabase.storage.from(MAINTENANCE_PHOTOS_BUCKET).upload(filePath, bytes, {
+  await uploadWithTimeout(MAINTENANCE_PHOTOS_BUCKET, filePath, bytes, {
     contentType: WEBP_CONTENT_TYPE,
     upsert: false,
   });
-  if (error) throw error;
   return {
     storagePath: filePath,
     fileSizeBytes: bytes.byteLength,
