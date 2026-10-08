@@ -891,7 +891,6 @@
     "obCommitTitle": "Bakmaya hazırım",
     "obCommitTitleOf": "benim",
     "obCommitSupportA": "Burada söz veren sürücüler motorlarını en iyi durumda tutma olasılığı çok daha yüksek.",
-    "obCommitSupportB": "Sözünü mühürlemek için imzala — bunu yapan sürücüler motosikletlerini çok daha iyi durumda tutuyor.",
     "obCommitButtonIdle": "Basılı tut — varım",
     "obCommitButtonHolding": "Tutmaya devam et…",
     "obCommitButtonDone": "Varım",
@@ -916,10 +915,6 @@
     "obPaywallEscape": "Pro olmadan devam et",
     "obSignInTitle": "Tekrar hoş geldin",
     "obSignInSubtitle": "Bu cihazda garajına erişmek için giriş yap.",
-    "obCommitSignHint": "Buraya imzala",
-    "obCommitSignCaption": "Sözünü mühürlemek için yukarıya imzala",
-    "obCommitSeal": "Sözümü mühürle",
-    "obCommitClear": "Temizle",
     "expAdvancedTenure": "10+ yıl",
     "expPowerMode": "Uzman modu",
     "expAffirmAdvanced": "Saygılar — seni hızlıca ayarlayalım.",
@@ -1754,7 +1749,12 @@
     "appUpdates": "Uygulama Guncellemeleri",
     "appUpdatesDesc": "Yeni ozellikler ve iyilestirmeler",
     "promotional": "Promosyon",
-    "promotionalDesc": "Ozel teklifler ve duyurular"
+    "promotionalDesc": "Ozel teklifler ve duyurular",
+    "trialReminder": {
+      "title": "Pro deneme süren 2 gün içinde bitiyor",
+      "body": "Pro'yu kullanmaya devam edersen, deneme bittiğinde aboneliğin başlar. Mağazanın abonelik ayarlarından istediğin zaman yönetebilir veya iptal edebilirsin.",
+      "channelName": "Hesap ve abonelik"
+    }
   },
   "expenses": {
     "category": "Kategori",

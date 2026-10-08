@@ -892,7 +892,6 @@
     "obCommitTitle": "Estou pronto para cuidar",
     "obCommitTitleOf": "da minha",
     "obCommitSupportA": "Pilotos que se comprometem aqui têm muito mais chances de manter a moto em ótima forma.",
-    "obCommitSupportB": "Assine para selar seu compromisso — quem faz isso tem muito mais chances de manter a moto em ótimo estado.",
     "obCommitButtonIdle": "Pressione & segure — tô dentro",
     "obCommitButtonHolding": "Continue segurando…",
     "obCommitButtonDone": "Tô dentro",
@@ -917,10 +916,6 @@
     "obPaywallEscape": "Continuar sem o Pro",
     "obSignInTitle": "Bem-vindo de volta",
     "obSignInSubtitle": "Entre para acessar sua garagem neste dispositivo.",
-    "obCommitSignHint": "Assine aqui",
-    "obCommitSignCaption": "Assine acima para selar seu compromisso",
-    "obCommitSeal": "Selar meu compromisso",
-    "obCommitClear": "Limpar",
     "expAdvancedTenure": "10+ anos",
     "expPowerMode": "Modo expert",
     "expAffirmAdvanced": "Respeito — vamos te configurar rápido.",
@@ -1755,7 +1750,12 @@
     "appUpdates": "Atualizações do App",
     "appUpdatesDesc": "Novas funcionalidades e melhorias",
     "promotional": "Promocional",
-    "promotionalDesc": "Ofertas especiais e anúncios"
+    "promotionalDesc": "Ofertas especiais e anúncios",
+    "trialReminder": {
+      "title": "Seu teste do Pro termina em 2 dias",
+      "body": "Se você mantiver o Pro, sua assinatura começa quando ele terminar. Gerencie ou cancele quando quiser nas configurações de assinatura da sua loja.",
+      "channelName": "Conta e assinatura"
+    }
   },
   "expenses": {
     "category": "Categoria",

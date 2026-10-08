@@ -891,7 +891,6 @@
     "obCommitTitle": "Aku siap merawat",
     "obCommitTitleOf": "motorku",
     "obCommitSupportA": "Rider yang berkomitmen di sini jauh lebih mungkin menjaga motornya dalam kondisi prima.",
-    "obCommitSupportB": "Tanda tangani untuk meneguhkan ikrarmu — pengendara yang melakukannya jauh lebih mungkin menjaga motornya tetap prima.",
     "obCommitButtonIdle": "Tekan & tahan — aku ikut",
     "obCommitButtonHolding": "Terus tahan…",
     "obCommitButtonDone": "Aku ikut",
@@ -916,10 +915,6 @@
     "obPaywallEscape": "Lanjutkan tanpa Pro",
     "obSignInTitle": "Selamat datang kembali",
     "obSignInSubtitle": "Masuk untuk mengakses garasimu di perangkat ini.",
-    "obCommitSignHint": "Tanda tangan di sini",
-    "obCommitSignCaption": "Tanda tangani di atas untuk meneguhkan ikrarmu",
-    "obCommitSeal": "Teguhkan ikrarku",
-    "obCommitClear": "Hapus",
     "expAdvancedTenure": "10+ thn",
     "expPowerMode": "Mode ahli",
     "expAffirmAdvanced": "Salut — kami siapkan kamu dengan cepat.",
@@ -1754,7 +1749,12 @@
     "appUpdates": "Pembaruan Aplikasi",
     "appUpdatesDesc": "Fitur baru dan peningkatan",
     "promotional": "Promosi",
-    "promotionalDesc": "Penawaran khusus dan pengumuman"
+    "promotionalDesc": "Penawaran khusus dan pengumuman",
+    "trialReminder": {
+      "title": "Uji coba Pro kamu berakhir dalam 2 hari",
+      "body": "Jika kamu tetap memakai Pro, langgananmu dimulai saat uji coba berakhir. Kelola atau batalkan kapan saja di pengaturan langganan toko aplikasimu.",
+      "channelName": "Akun & langganan"
+    }
   },
   "expenses": {
     "category": "Kategori",

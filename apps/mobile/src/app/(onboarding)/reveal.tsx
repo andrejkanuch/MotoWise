@@ -1,10 +1,6 @@
-import {
-  GetOnboardingRevealDocument,
-  type GetOnboardingRevealQuery,
-  OemSchedulesPreviewDocument,
-} from '@motovault/graphql';
+import { GetOnboardingRevealDocument, type GetOnboardingRevealQuery } from '@motovault/graphql';
 import { MotorcycleType } from '@motovault/types';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { DollarSign, Lightbulb, ShieldCheck, Users, Wrench } from 'lucide-react-native';
@@ -31,6 +27,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { getRevealRiderCount } from '../../utils/onboarding-reveal';
 
 type RevealData = GetOnboardingRevealQuery['onboardingReveal'];
 
@@ -92,31 +89,6 @@ export default function RevealScreen() {
   const insightsReady =
     reveal?.insights.status === 'ready' && reveal.insights.knownIssues.length > 0;
 
-  // Warm the Maintenance screen's OEM-schedule query while the rider reads the
-  // Reveal and picks Goals — by the time they reach Maintenance it's cached, so
-  // it renders instantly instead of showing a multi-second spinner. Key + vars
-  // mirror Maintenance exactly (queryKeys.onboarding.oemSchedules) or the
-  // prefetch silently misses.
-  const queryClient = useQueryClient();
-  useEffect(() => {
-    if (!make) return;
-    const obModel = bikeData?.model ?? undefined;
-    const obYear = bikeData?.year ?? undefined;
-    const obVariant = bikeData?.variant ?? undefined;
-    void queryClient.prefetchQuery({
-      // Key + vars MUST mirror Maintenance (incl. variant) or the prefetch misses.
-      queryKey: queryKeys.onboarding.oemSchedules(make, obModel, obYear, obVariant),
-      queryFn: () =>
-        gqlFetcher(OemSchedulesPreviewDocument, {
-          make,
-          model: obModel,
-          year: obYear,
-          variant: obVariant,
-        }),
-      staleTime: Number.POSITIVE_INFINITY,
-    });
-  }, [queryClient, make, bikeData?.model, bikeData?.year, bikeData?.variant]);
-
   useEffect(() => {
     setLastCompletedScreen(OB_SCREEN.REVEAL);
   }, [setLastCompletedScreen]);
@@ -133,7 +105,7 @@ export default function RevealScreen() {
     });
   }, [isPending, reveal, insightsReady, projectionLed]);
 
-  const riderCount = reveal?.riderCount && reveal.riderCount > 0 ? reveal.riderCount : 9;
+  const riderCount = getRevealRiderCount(reveal?.riderCount);
 
   // ── proof blocks, ordered by variant ─────────────────────────────
   const costProof =
@@ -283,22 +255,28 @@ export default function RevealScreen() {
     </Animated.View>
   ) : null;
 
-  const communityProof = (
-    <Animated.View
-      key="community"
-      entering={FadeInUp.delay(510).duration(360)}
-      style={{ flexDirection: 'row', alignItems: 'center', gap: 13 }}
-    >
-      <ProofIcon color={ONBOARDING_COLORS.accentBlue}>
-        <Users size={18} color={ONBOARDING_COLORS.accentBlue} />
-      </ProofIcon>
-      <Text
-        style={{ flex: 1, fontSize: 13.5, color: ONBOARDING_COLORS.textSecondary, lineHeight: 19 }}
+  const communityProof =
+    riderCount != null ? (
+      <Animated.View
+        key="community"
+        entering={FadeInUp.delay(510).duration(360)}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: 13 }}
       >
-        {t('onboarding.obRevealCommunity', { count: riderCount, make })}
-      </Text>
-    </Animated.View>
-  );
+        <ProofIcon color={ONBOARDING_COLORS.accentBlue}>
+          <Users size={18} color={ONBOARDING_COLORS.accentBlue} />
+        </ProofIcon>
+        <Text
+          style={{
+            flex: 1,
+            fontSize: 13.5,
+            color: ONBOARDING_COLORS.textSecondary,
+            lineHeight: 19,
+          }}
+        >
+          {t('onboarding.obRevealCommunity', { count: riderCount, make })}
+        </Text>
+      </Animated.View>
+    ) : null;
 
   const scheduleProof = (
     <Animated.View

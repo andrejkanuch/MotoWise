@@ -87,6 +87,31 @@ interface OnboardingState {
    * can't miss the maintenance placement behind the one-shot present latch.
    */
   intentResolved: boolean;
+  /**
+   * `garage_first` only: true from the moment personalizing starts saving the
+   * rider's setup until they tap "Open my garage" and the paywall resolves.
+   * Saving marks onboarding complete on the server, and the root gate would
+   * otherwise switch to (tabs) as soon as the `me` refetch lands — before the
+   * payoff CTA and its paywall. Persisted so a kill mid-paywall still resumes
+   * into personalizing, whose resume path resets the store (clearing it).
+   */
+  awaitingGarageCta: boolean;
+  setAwaitingGarageCta: (awaiting: boolean) => void;
+  /**
+   * True once personalizing's `completeOnboarding` resolved for this onboarding
+   * run. Persisted so a kill on the payoff screen does not re-run the completion
+   * on resume (a second photo upload, `onboarding_completed` and Meta
+   * CompleteRegistration). Cleared by reset() when the rider enters the garage.
+   */
+  completionSent: boolean;
+  setCompletionSent: (sent: boolean) => void;
+  /**
+   * Clears the flags tied to the signed-in account's onboarding completion
+   * (`awaitingGarageCta`, `completionSent`) without dropping the rider's
+   * answers. Called on sign-out, so a flag left by one account can never hold
+   * the root gate or skip completion for the next.
+   */
+  clearAccountCompletionState: () => void;
   setIntentResolved: (resolved: boolean) => void;
   setAcceptedOemScheduleIds: (ids: string[]) => void;
   setExperienceLevel: (level: ExperienceLevel) => void;
@@ -132,6 +157,8 @@ const initialState = {
   heardFrom: null as string | null,
   pendingIntent: null as PendingIntent | null,
   intentResolved: false,
+  awaitingGarageCta: false,
+  completionSent: false,
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -159,6 +186,9 @@ export const useOnboardingStore = create<OnboardingState>()(
       setHeardFrom: (heardFrom) => set({ heardFrom }),
       setPendingIntent: (pendingIntent) => set({ pendingIntent }),
       setIntentResolved: (intentResolved) => set({ intentResolved }),
+      setAwaitingGarageCta: (awaitingGarageCta) => set({ awaitingGarageCta }),
+      setCompletionSent: (completionSent) => set({ completionSent }),
+      clearAccountCompletionState: () => set({ awaitingGarageCta: false, completionSent: false }),
       reset: () => set(store.getInitialState(), true),
     }),
     {
@@ -186,6 +216,9 @@ export const useOnboardingStore = create<OnboardingState>()(
         setHeardFrom,
         setPendingIntent,
         setIntentResolved,
+        setAwaitingGarageCta,
+        setCompletionSent,
+        clearAccountCompletionState,
         // intentResolved is a per-process resolution flag — never persist it, or a
         // stale `true` would let a later launch skip waiting for the fresh read.
         intentResolved,

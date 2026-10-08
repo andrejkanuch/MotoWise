@@ -6,15 +6,16 @@ import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 /**
  * How the variant was decided.
  *
- * `shipped` is the only source new installs produce, as of the 2026-08-24
- * experiment retirement — one flow ships, so there is nothing to evaluate and
- * nothing to fall back from.
+ * Onboarding paywall A/B (2026-10-07): `posthog` = the flag answered with an
+ * arm; `fallback` = the flag answered with a disabled/unknown value (kill
+ * switch); `local` = PostHog could not be asked (analytics off before consent,
+ * or the fetch failed) so the arm was drawn on-device.
  *
- * `posthog` and `fallback` are RETIRED but must stay in the union: ~423 installs
- * have one of them persisted in MMKV, and narrowing the type would make those
- * stored records fail to parse.
+ * `shipped` is the 2026-08-24 → 2026-10-07 source and stays in the union for
+ * the installs that persisted it, as do the earlier `posthog`/`fallback` records
+ * of the retired 2026 experiment.
  */
-export type VariantSource = 'shipped' | 'posthog' | 'fallback' | 'override';
+export type VariantSource = 'shipped' | 'posthog' | 'fallback' | 'local' | 'override';
 
 interface ExperimentState {
   /**
@@ -30,6 +31,13 @@ interface ExperimentState {
   onboardingVariant: ObVariant | null;
   assignedAt: string | null;
   source: VariantSource | null;
+  /**
+   * The install was assigned while analytics was off (pre-consent EEA/UK/CH), so
+   * its `$feature_flag_called` exposure could not be sent. Persisted until the
+   * exposure goes out once analytics is enabled (`flushPendingExposure`).
+   */
+  exposurePending: boolean;
+  setExposurePending: (pending: boolean) => void;
   assignVariant: (variant: ObVariant, source: VariantSource) => void;
   /** Test/dev only — production code must never un-assign a variant. */
   reset: () => void;
@@ -39,6 +47,7 @@ const initialState = {
   onboardingVariant: null as ObVariant | null,
   assignedAt: null as string | null,
   source: null as VariantSource | null,
+  exposurePending: false,
 };
 
 export const useExperimentStore = create<ExperimentState>()(
@@ -50,13 +59,14 @@ export const useExperimentStore = create<ExperimentState>()(
         if (get().onboardingVariant) return;
         set({ onboardingVariant: variant, source, assignedAt: new Date().toISOString() });
       },
+      setExposurePending: (exposurePending) => set({ exposurePending }),
       reset: () => set(store.getInitialState(), true),
     }),
     {
       name: 'experiment-state',
       version: 1,
       storage: createJSONStorage(() => createZustandMMKVStorage('experiment-store')),
-      partialize: ({ assignVariant, reset, ...data }) => data,
+      partialize: ({ assignVariant, setExposurePending, reset, ...data }) => data,
     },
   ),
 );

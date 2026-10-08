@@ -14,6 +14,7 @@ import { getStoredUtmProperties } from './meta-attribution';
 import { isNetworkError } from './network-error';
 import { showPaywallUnavailable } from './paywall-error-alert';
 import { isExpectedRevenueCatError, revenueCatErrorProperties } from './revenuecat-errors';
+import type { TrialEntitlementSnapshot } from './trial-reminder';
 
 // Module-level cached import — resolve once, reuse everywhere
 let PurchasesModule: typeof import('react-native-purchases') | null = null;
@@ -221,6 +222,43 @@ export function updateStoreFromCustomerInfo(info: {
   store.setVerified(true);
 }
 
+/**
+ * Keep the day-5 trial-ending reminder in step with customer info (R8). Separate
+ * from updateStoreFromCustomerInfo so that stays synchronous; fire-and-forget,
+ * since a notification failure must never break entitlement hydration. Loaded
+ * lazily so this module does not pull the notification/storage natives in.
+ */
+/**
+ * How the trial-reminder module is loaded. An object so tests can replace the
+ * dynamic import, which this repo's Jest setup does not transform.
+ */
+export const trialReminderLoader = {
+  load: () => import('./trial-reminder'),
+};
+
+function syncTrialReminder(info: {
+  entitlements: { active: Record<string, TrialEntitlementSnapshot> };
+}) {
+  const entitlement = info.entitlements.active[REVENUECAT_ENTITLEMENT_PRO];
+  trialReminderLoader
+    .load()
+    .then(({ reconcileTrialReminder }) => reconcileTrialReminder(entitlement))
+    .catch((e) => logger.warn('[RevenueCat] Trial reminder reconcile failed:', e));
+}
+
+/**
+ * Re-run the trial-reminder reconcile with fresh customer info. Call after
+ * notification permission is granted: a rider who started a trial before
+ * granting it (commit_first shows the paywall before the notifications step)
+ * would otherwise get no reminder until the next customer-info update. Never
+ * throws.
+ */
+export async function resyncTrialReminder(): Promise<void> {
+  await withRevenueCat('resyncTrialReminder', async (Purchases) => {
+    syncTrialReminder(await Purchases.getCustomerInfo());
+  });
+}
+
 async function doInit(): Promise<(() => void) | null> {
   try {
     const Purchases = await getPurchases();
@@ -248,20 +286,34 @@ async function doInit(): Promise<(() => void) | null> {
       );
     }
 
+    // Listener updates that arrived while the initial fetch was pending are newer
+    // than its snapshot; the SDK does not order the two.
+    let listenerUpdates = 0;
+
     // Set up listener — store the reference for cleanup
     const listener = (info: {
       entitlements: {
-        active: Record<string, { periodType?: string; expirationDate?: string | null }>;
+        active: Record<
+          string,
+          { periodType?: string; expirationDate?: string | null; willRenew?: boolean }
+        >;
       };
     }) => {
+      listenerUpdates += 1;
       updateStoreFromCustomerInfo(info);
+      syncTrialReminder(info);
     };
 
     Purchases.addCustomerInfoUpdateListener(listener);
 
-    // Hydrate store with initial state
+    // Hydrate store with initial state — unless a listener update already
+    // delivered fresher info, which a stale snapshot must not overwrite (it
+    // could re-arm the trial reminder of a rider who just cancelled).
     const customerInfo = await Purchases.getCustomerInfo();
-    updateStoreFromCustomerInfo(customerInfo);
+    if (listenerUpdates === 0) {
+      updateStoreFromCustomerInfo(customerInfo);
+      syncTrialReminder(customerInfo);
+    }
 
     // Return cleanup function for useEffect
     return () => {
@@ -307,6 +359,28 @@ export async function stampAnonymousPosthogId(
   });
 }
 
+/** The `logIn` currently in flight, so callers can wait for the customer switch. */
+let loginInFlight: Promise<void> | null = null;
+
+/**
+ * Wait (bounded) for an in-flight {@link loginRevenueCat} to finish. Used before
+ * presenting a paywall right after sign-up, so entitlement checks evaluate the
+ * signed-in customer rather than the anonymous one. Resolves immediately when no
+ * login is running; never rejects.
+ */
+export async function waitForRevenueCatLogin(timeoutMs: number): Promise<void> {
+  const pending = loginInFlight;
+  if (!pending) return;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  await Promise.race([
+    pending,
+    new Promise<void>((resolve) => {
+      timer = setTimeout(resolve, timeoutMs);
+    }),
+  ]);
+  if (timer) clearTimeout(timer);
+}
+
 /**
  * Identify the RevenueCat customer as the Supabase user. When the session
  * carries an email it is written as the `$email` attribute so support can find
@@ -316,7 +390,15 @@ export async function stampAnonymousPosthogId(
  * succeeded, so it can never land on the anonymous or previous customer.
  * Never throws.
  */
-export async function loginRevenueCat(userId: string, email?: string | null) {
+export function loginRevenueCat(userId: string, email?: string | null): Promise<void> {
+  const run = doLoginRevenueCat(userId, email).finally(() => {
+    if (loginInFlight === run) loginInFlight = null;
+  });
+  loginInFlight = run;
+  return run;
+}
+
+async function doLoginRevenueCat(userId: string, email?: string | null) {
   if (isExpoGo()) return;
   // Wait for configure() to complete before calling logIn()
   const cleanup = await initRevenueCat();

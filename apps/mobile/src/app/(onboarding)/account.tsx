@@ -44,6 +44,7 @@ import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { meOptions } from '../../lib/query-options';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/auth.store';
+import { useOnboardingStore } from '../../stores/onboarding.store';
 import { useSubscriptionStore } from '../../stores/subscription.store';
 
 /**
@@ -83,7 +84,8 @@ export default function AccountScreen() {
       backFromCodeStep();
       return;
     }
-    const previous = getPreviousRoute(variant, OB_SCREEN.ACCOUNT);
+    const hasBike = !!useOnboardingStore.getState().bikeData?.make;
+    const previous = getPreviousRoute(variant, OB_SCREEN.ACCOUNT, { hasBike });
     if (previous) router.replace(previous);
   };
 

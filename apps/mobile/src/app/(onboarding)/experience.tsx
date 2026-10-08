@@ -33,6 +33,9 @@ import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerNotification } from '../../utils/haptics';
 
+/** Pause after a pick before auto-advancing, so the affirmation registers. */
+const AUTO_ADVANCE_MS = 600;
+
 /* ─── Experience options matching V3 prototype ─── */
 
 const EXPERIENCE_OPTIONS: {
@@ -667,10 +670,10 @@ export default function ExperienceScreen() {
       experience_level: id,
     });
 
-    // Longer delay so the affirmation text can be read
+    // Long enough for the affirmation to land, short enough not to stall the flow.
     autoAdvanceRef.current = setTimeout(() => {
       goNext();
-    }, 1400);
+    }, AUTO_ADVANCE_MS);
   };
 
   const onBack = useOnboardingBack(OB_SCREEN.EXPERIENCE);

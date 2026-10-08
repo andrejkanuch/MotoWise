@@ -891,7 +891,6 @@
     "obCommitTitle": "Ich bin bereit, mich zu",
     "obCommitTitleOf": "kümmern um mein",
     "obCommitSupportA": "Fahrer, die sich hier festlegen, halten ihr Motorrad viel eher in Top-Zustand.",
-    "obCommitSupportB": "Unterschreibe, um das Versprechen abzugeben – Fahrer, die das tun, halten ihr Motorrad viel eher in Topform.",
     "obCommitButtonIdle": "Drücken & halten — ich bin dabei",
     "obCommitButtonHolding": "Weiter halten…",
     "obCommitButtonDone": "Ich bin dabei",
@@ -916,10 +915,6 @@
     "obPaywallEscape": "Ohne Pro fortfahren",
     "obSignInTitle": "Willkommen zurück",
     "obSignInSubtitle": "Melde dich an, um auf diesem Gerät auf deine Garage zuzugreifen.",
-    "obCommitSignHint": "Hier unterschreiben",
-    "obCommitSignCaption": "Unterschreibe oben, um dein Versprechen zu besiegeln",
-    "obCommitSeal": "Versprechen besiegeln",
-    "obCommitClear": "Löschen",
     "expAdvancedTenure": "10+ J.",
     "expPowerMode": "Profi-Modus",
     "expAffirmAdvanced": "Respekt — richten wir dich schnell ein.",
@@ -1754,7 +1749,12 @@
     "appUpdates": "App-Updates",
     "appUpdatesDesc": "Neue Funktionen und Verbesserungen",
     "promotional": "Werbung",
-    "promotionalDesc": "Sonderangebote und Ankündigungen"
+    "promotionalDesc": "Sonderangebote und Ankündigungen",
+    "trialReminder": {
+      "title": "Dein Pro-Test endet in 2 Tagen",
+      "body": "Wenn du Pro behältst, beginnt danach dein Abo. Verwalten oder kündigen kannst du jederzeit in den Abo-Einstellungen deines Stores.",
+      "channelName": "Konto & Abo"
+    }
   },
   "expenses": {
     "expensesEyebrow": "— AUSGABEN",

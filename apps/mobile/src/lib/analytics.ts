@@ -377,6 +377,11 @@ export function setAnalyticsEnabled(enabled: boolean, decidedAt?: number | null)
     // referrer is one-shot (marked checked), so without this the cohort tag is lost
     // for the whole funnel. Re-derive from the persisted pending intent. Lazy
     // imports avoid a static analytics↔store cycle.
+    // An install assigned to the onboarding experiment before consent could not
+    // send its exposure then; send it now that analytics is on.
+    void import('./onboarding-experiment')
+      .then((m) => m.flushPendingExposure())
+      .catch((e) => captureException(e, { source: 'analytics.setAnalyticsEnabled.exposure' }));
     void Promise.all([import('./pending-intent'), import('../stores/onboarding.store')])
       .then(([intentMod, storeMod]) => {
         const intent = storeMod.useOnboardingStore.getState().pendingIntent;

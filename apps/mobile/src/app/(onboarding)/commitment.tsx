@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Check, Eraser } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
@@ -15,39 +15,31 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { SignaturePad, type SignaturePadHandle } from '../../components/onboarding/signature-pad';
 import { getBikeImage } from '../../config/bike-images';
 import { getBrandColor } from '../../config/brand-dna';
-import { OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
+import { OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
-import {
-  useOnboardingNext,
-  useOnboardingStep,
-  useOnboardingVariant,
-} from '../../hooks/use-onboarding-flow';
+import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerNotification } from '../../utils/haptics';
 
-/** A's pledge is a single press-and-hold; B signs (a deliberately higher-effort gesture). */
-const HOLD_MS = 850;
-const SEAL_PAUSE_MS = 950;
-
-/** B's commitment style; A keeps the press-and-hold. */
-type CommitmentStyle = 'hold' | 'signature';
+/** The pledge is a short press-and-hold — deliberate, but never a wait. */
+const HOLD_MS = 500;
+/** Beat on the sealed state before advancing. */
+const SEAL_PAUSE_MS = 450;
+/** `commitment_style` analytics value; kept so the event stays comparable with the retired signature arm. */
+const COMMITMENT_STYLE_HOLD = 'hold';
 
 export default function CommitmentScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const variant = useOnboardingVariant();
   const onBack = useOnboardingBack(OB_SCREEN.COMMITMENT);
   const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.COMMITMENT);
   const goNext = useOnboardingNext(OB_SCREEN.COMMITMENT);
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
-
-  const isInvested = variant === OB_VARIANT.INVESTED;
 
   const make = bikeData?.make ?? '';
   const model = bikeData?.model || undefined;
@@ -58,14 +50,9 @@ export default function CommitmentScreen() {
   const [sealed, setSealed] = useState(false);
   const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // A — press-and-hold state
   const [holding, setHolding] = useState(false);
   const fill = useSharedValue(0);
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // B — signature state
-  const [signed, setSigned] = useState(false);
-  const signatureRef = useRef<SignaturePadHandle>(null);
 
   useEffect(() => {
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.COMMITMENT);
@@ -77,23 +64,22 @@ export default function CommitmentScreen() {
 
   const fillStyle = useAnimatedStyle(() => ({ width: `${fill.value * 100}%` }));
 
-  /** Shared seal: lock the pledge, celebrate, record, advance after the beat. */
-  const seal = (style: CommitmentStyle) => {
+  /** Lock the pledge, celebrate, record, advance after the beat. */
+  const seal = () => {
     if (sealed) return;
     setSealed(true);
     triggerNotification(Haptics.NotificationFeedbackType.Success);
     setLastCompletedScreen(OB_SCREEN.COMMITMENT);
     trackOnboardingEvent(AnalyticsEvent.COMMITMENT_COMPLETED, OB_SCREEN.COMMITMENT, {
-      commitment_style: style,
+      commitment_style: COMMITMENT_STYLE_HOLD,
     });
     advanceTimer.current = setTimeout(goNext, SEAL_PAUSE_MS);
   };
 
-  // --- A: press-and-hold ---
   const completeHold = () => {
     setHolding(false);
     fill.value = withTiming(1, { duration: 120 });
-    seal('hold');
+    seal();
   };
 
   const startHold = () => {
@@ -109,17 +95,6 @@ export default function CommitmentScreen() {
     setHolding(false);
     if (holdTimer.current) clearTimeout(holdTimer.current);
     fill.value = withTiming(0, { duration: 280 });
-  };
-
-  // --- B: signature ---
-  const clearSignature = () => {
-    signatureRef.current?.clear();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  };
-
-  const sealSignature = () => {
-    if (!signed) return;
-    seal('signature');
   };
 
   const skip = () => {
@@ -237,178 +212,96 @@ export default function CommitmentScreen() {
             marginTop: 13,
           }}
         >
-          {isInvested ? t('onboarding.obCommitSupportB') : t('onboarding.obCommitSupportA')}
+          {t('onboarding.obCommitSupportA')}
         </Animated.Text>
       </View>
 
       <View style={{ paddingHorizontal: 24, paddingBottom: insets.bottom + 24 }}>
-        {isInvested ? (
-          <Animated.View entering={FadeInUp.delay(220).duration(400)}>
-            {/* B — drawn signature */}
-            <SignaturePad
-              ref={signatureRef}
-              color={brandColor}
-              hint={t('onboarding.obCommitSignHint')}
-              disabled={sealed}
-              onSignedChange={setSigned}
-            />
-
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginTop: 12,
-                marginBottom: 14,
-                minHeight: 20,
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: 'GeistMono-Medium',
-                  fontSize: 10,
-                  letterSpacing: 1.4,
-                  textTransform: 'uppercase',
-                  color: sealed ? ONBOARDING_COLORS.warm2 : ONBOARDING_COLORS.textMuted,
-                }}
-              >
-                {sealed ? t('onboarding.obCommitPledged') : t('onboarding.obCommitSignCaption')}
-              </Text>
-              {signed && !sealed ? (
-                <Pressable
-                  onPress={clearSignature}
-                  hitSlop={10}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('onboarding.obCommitClear')}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}
+        {/* press-and-hold pledge */}
+        <Pressable
+          onPressIn={startHold}
+          onPressOut={cancelHold}
+          disabled={sealed}
+          accessibilityRole="button"
+          accessibilityLabel={t('onboarding.obCommitButtonIdle')}
+          // Screen readers activate with a single action, not a timed hold.
+          accessibilityActions={[{ name: 'activate' }]}
+          onAccessibilityAction={(event) => {
+            if (event.nativeEvent.actionName === 'activate') seal();
+          }}
+          style={{
+            height: 58,
+            borderRadius: 16,
+            borderCurve: 'continuous',
+            overflow: 'hidden',
+            backgroundColor: ONBOARDING_COLORS.cardBg,
+            borderWidth: 1,
+            borderColor: sealed ? 'transparent' : ONBOARDING_COLORS.warm,
+          }}
+        >
+          <Animated.View
+            style={[
+              {
+                position: 'absolute',
+                top: 0,
+                bottom: 0,
+                left: 0,
+                backgroundColor: ONBOARDING_COLORS.warm,
+              },
+              fillStyle,
+            ]}
+          />
+          <View
+            style={{
+              flex: 1,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 9,
+            }}
+          >
+            {sealed ? (
+              <>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '700',
+                    color: ONBOARDING_COLORS.textOnAccent,
+                  }}
                 >
-                  <Eraser size={13} color={ONBOARDING_COLORS.textMuted} />
-                  <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.textMuted }}>
-                    {t('onboarding.obCommitClear')}
-                  </Text>
-                </Pressable>
-              ) : null}
-            </View>
-
-            <Pressable
-              onPress={sealSignature}
-              disabled={!signed || sealed}
-              accessibilityRole="button"
-              accessibilityLabel={t('onboarding.obCommitSeal')}
-              style={{
-                height: 58,
-                borderRadius: 16,
-                borderCurve: 'continuous',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 9,
-                backgroundColor:
-                  signed || sealed ? ONBOARDING_COLORS.warm : ONBOARDING_COLORS.cardBg,
-                borderWidth: 1,
-                borderColor: signed || sealed ? 'transparent' : ONBOARDING_COLORS.cardBorderDefault,
-                opacity: signed || sealed ? 1 : 0.6,
-              }}
-            >
+                  {t('onboarding.obCommitButtonDone')}
+                </Text>
+                <Check size={19} color={ONBOARDING_COLORS.textOnAccent} strokeWidth={2.6} />
+              </>
+            ) : (
               <Text
                 style={{
                   fontSize: 16,
                   fontWeight: '700',
-                  color:
-                    signed || sealed ? ONBOARDING_COLORS.textOnAccent : ONBOARDING_COLORS.textMuted,
+                  color: ONBOARDING_COLORS.textPrimary,
                 }}
               >
-                {sealed ? t('onboarding.obCommitButtonDone') : t('onboarding.obCommitSeal')}
+                {holding
+                  ? t('onboarding.obCommitButtonHolding')
+                  : t('onboarding.obCommitButtonIdle')}
               </Text>
-              {sealed ? (
-                <Check size={19} color={ONBOARDING_COLORS.textOnAccent} strokeWidth={2.6} />
-              ) : null}
-            </Pressable>
-          </Animated.View>
-        ) : (
-          <>
-            {/* A — press-and-hold pledge */}
-            <Pressable
-              onPressIn={startHold}
-              onPressOut={cancelHold}
-              disabled={sealed}
-              accessibilityRole="button"
-              accessibilityLabel={t('onboarding.obCommitButtonIdle')}
-              style={{
-                height: 58,
-                borderRadius: 16,
-                borderCurve: 'continuous',
-                overflow: 'hidden',
-                backgroundColor: ONBOARDING_COLORS.cardBg,
-                borderWidth: 1,
-                borderColor: sealed ? 'transparent' : ONBOARDING_COLORS.warm,
-              }}
-            >
-              <Animated.View
-                style={[
-                  {
-                    position: 'absolute',
-                    top: 0,
-                    bottom: 0,
-                    left: 0,
-                    backgroundColor: ONBOARDING_COLORS.warm,
-                  },
-                  fillStyle,
-                ]}
-              />
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 9,
-                }}
-              >
-                {sealed ? (
-                  <>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: '700',
-                        color: ONBOARDING_COLORS.textOnAccent,
-                      }}
-                    >
-                      {t('onboarding.obCommitButtonDone')}
-                    </Text>
-                    <Check size={19} color={ONBOARDING_COLORS.textOnAccent} strokeWidth={2.6} />
-                  </>
-                ) : (
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: '700',
-                      color: ONBOARDING_COLORS.textPrimary,
-                    }}
-                  >
-                    {holding
-                      ? t('onboarding.obCommitButtonHolding')
-                      : t('onboarding.obCommitButtonIdle')}
-                  </Text>
-                )}
-              </View>
-            </Pressable>
+            )}
+          </View>
+        </Pressable>
 
-            <Text
-              style={{
-                fontFamily: 'GeistMono-Medium',
-                fontSize: 10,
-                letterSpacing: 1.4,
-                textTransform: 'uppercase',
-                textAlign: 'center',
-                color: sealed ? ONBOARDING_COLORS.warm2 : ONBOARDING_COLORS.textMuted,
-                marginTop: 11,
-              }}
-            >
-              {sealed ? t('onboarding.obCommitPledged') : t('onboarding.obCommitHint')}
-            </Text>
-          </>
-        )}
+        <Text
+          style={{
+            fontFamily: 'GeistMono-Medium',
+            fontSize: 10,
+            letterSpacing: 1.4,
+            textTransform: 'uppercase',
+            textAlign: 'center',
+            color: sealed ? ONBOARDING_COLORS.warm2 : ONBOARDING_COLORS.textMuted,
+            marginTop: 11,
+          }}
+        >
+          {sealed ? t('onboarding.obCommitPledged') : t('onboarding.obCommitHint')}
+        </Text>
 
         {!sealed ? (
           <Pressable onPress={skip} hitSlop={8} style={{ marginTop: 10, alignSelf: 'center' }}>

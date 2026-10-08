@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { getPreviousRoute, type OnboardingRoute } from '../config/onboarding';
+import { useOnboardingStore } from '../stores/onboarding.store';
 import { useOnboardingVariant } from './use-onboarding-flow';
 
 /**
@@ -22,7 +23,8 @@ export function useOnboardingBack(current: OnboardingRoute) {
       router.back();
       return;
     }
-    const previous = getPreviousRoute(variant, current);
+    const hasBike = !!useOnboardingStore.getState().bikeData?.make;
+    const previous = getPreviousRoute(variant, current, { hasBike });
     if (previous) router.replace(previous);
   }, [router, variant, current]);
 }

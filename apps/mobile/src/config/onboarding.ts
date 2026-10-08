@@ -20,7 +20,20 @@
  * stranded or reset mid-onboarding.
  */
 export const OB_VARIANT = {
-  /** The single shipped flow. Every new install gets this. */
+  /**
+   * Onboarding paywall A/B (2026-10-07). Paywall on "Open my garage" at the end
+   * of onboarding; no commitment screen. Also the kill-switch value.
+   */
+  GARAGE_FIRST: 'garage_first',
+  /**
+   * Onboarding paywall A/B (2026-10-07). Commitment → account → paywall step,
+   * then heard-about / notifications / personalizing.
+   */
+  COMMIT_FIRST: 'commit_first',
+  /**
+   * The paywall-free flow shipped 2026-08-24 → 2026-10-07. No longer assigned to
+   * new installs; read-only for the installs that persisted it.
+   */
   SHIPPED: 'shipped',
   /** RETIRED 2026-08-24 — the winning experiment arm. Read-only. */
   LEAN: 'lean',
@@ -34,6 +47,34 @@ export type ObVariant = (typeof OB_VARIANT)[keyof typeof OB_VARIANT];
 
 export function isObVariant(value: unknown): value is ObVariant {
   return typeof value === 'string' && Object.values(OB_VARIANT).includes(value as ObVariant);
+}
+
+/**
+ * The onboarding paywall experiment (2026-10-07). The owner overruled the
+ * 2026-08-24 removal of the onboarding paywall; two post-account positions are
+ * tested against each other. See docs/Onboarding-Paywall-AB-2026-10-07.md.
+ *
+ * New installs are assigned from the PostHog multivariate flag `FLAG_KEY` whose
+ * variant keys equal the `ASSIGNABLE` values. When PostHog cannot be asked
+ * (analytics off before consent, or the fetch fails/times out) the install is
+ * assigned on-device with a uniform draw so both arms keep the same market mix.
+ * When PostHog answers with a disabled or unknown value, `KILL_SWITCH` is used.
+ */
+export const ONBOARDING_EXPERIMENT = {
+  FLAG_KEY: 'onboarding_paywall_2026q4',
+  ASSIGNABLE: [OB_VARIANT.GARAGE_FIRST, OB_VARIANT.COMMIT_FIRST],
+  KILL_SWITCH: OB_VARIANT.GARAGE_FIRST,
+  /** Budget for the flag fetch — onboarding must never block on the network. */
+  FLAG_FETCH_TIMEOUT_MS: 2000,
+} as const;
+
+export type AssignableObVariant = (typeof ONBOARDING_EXPERIMENT.ASSIGNABLE)[number];
+
+export function isAssignableObVariant(value: unknown): value is AssignableObVariant {
+  return (
+    typeof value === 'string' &&
+    (ONBOARDING_EXPERIMENT.ASSIGNABLE as readonly string[]).includes(value)
+  );
 }
 
 /**
@@ -65,6 +106,11 @@ export const OB_SCREEN = {
   // Standalone: returning-user sign-in, entered from Welcome "Log in".
   SIGN_IN: 'sign-in',
 
+  // Onboarding paywall. Retired from every flow 2026-08-24; back as a real step
+  // in `commit_first` only (2026-10-07). `garage_first` presents the same
+  // paywall from the personalizing payoff instead of as a step.
+  PAYWALL: 'paywall',
+
   // --- RETIRED 2026-08-24 — in NO flow ------------------------------------
   // Kept as identifiers for two reasons, both load-bearing:
   //   (a) `OB_STEP_NAME` must still resolve them, so historical
@@ -74,12 +120,10 @@ export const OB_SCREEN = {
   //       `lastCompletedScreen` forward when this ships as an OTA.
   // Do NOT add any of these back to a flow.
   //
-  // maintenance / paywall / scan-receipt still have route files (reachable in
-  // principle by a deep link, and `insights.tsx` in the dead V1 chain still
-  // hardcodes a jump to the paywall). The four invested-arm screens do not —
-  // their files were deleted with the arm.
+  // maintenance / scan-receipt still have route files (reachable in principle
+  // by a deep link). The four invested-arm screens do not — their files were
+  // deleted with the arm.
   MAINTENANCE: 'maintenance',
-  PAYWALL: 'paywall',
   SCAN_RECEIPT: 'scan-receipt',
   FREQUENCY: 'frequency',
   STAY_ON_TOP: 'stay-on-top',
@@ -121,12 +165,52 @@ const SHIPPED_FLOW = [
 ] as const satisfies ReadonlyArray<OnboardingRoute>;
 
 /**
- * Every variant value resolves to the same flow. This is what "retire the arms
- * without resetting anyone" means concretely: a rider who is mid-onboarding with
- * `invested` persisted in MMKV keeps a valid flow and simply continues, rather
- * than hitting an undefined lookup or being re-rolled onto a different path.
+ * `garage_first`: the shipped flow without the commitment screen. The paywall is
+ * not a step — personalizing presents it when the rider taps "Open my garage",
+ * after the account exists and the bike is saved server-side.
+ */
+const GARAGE_FIRST_FLOW = [
+  OB_SCREEN.WELCOME,
+  OB_SCREEN.EXPERIENCE,
+  OB_SCREEN.BIKE_SETUP,
+  OB_SCREEN.REVEAL,
+  OB_SCREEN.NO_BIKE_VALUE,
+  OB_SCREEN.GOALS,
+  OB_SCREEN.ACCOUNT,
+  OB_SCREEN.HEARD_ABOUT,
+  OB_SCREEN.NOTIFICATIONS,
+  OB_SCREEN.PERSONALIZING,
+] as const satisfies ReadonlyArray<OnboardingRoute>;
+
+/**
+ * `commit_first`: the shipped flow with the paywall as a step straight after
+ * account. Never before account — a purchase there could belong to a rider who
+ * then abandons sign-up and cannot enter the app (the 2026-08 position).
+ */
+const COMMIT_FIRST_FLOW = [
+  OB_SCREEN.WELCOME,
+  OB_SCREEN.EXPERIENCE,
+  OB_SCREEN.BIKE_SETUP,
+  OB_SCREEN.REVEAL,
+  OB_SCREEN.NO_BIKE_VALUE,
+  OB_SCREEN.GOALS,
+  OB_SCREEN.COMMITMENT,
+  OB_SCREEN.ACCOUNT,
+  OB_SCREEN.PAYWALL,
+  OB_SCREEN.HEARD_ABOUT,
+  OB_SCREEN.NOTIFICATIONS,
+  OB_SCREEN.PERSONALIZING,
+] as const satisfies ReadonlyArray<OnboardingRoute>;
+
+/**
+ * Flow per variant. The four pre-2026-10-07 values (`shipped` and the three
+ * retired A/B arms) all keep the paywall-free shipped flow: a rider who is
+ * mid-onboarding with one persisted keeps a valid flow and simply continues,
+ * rather than hitting an undefined lookup or being re-rolled onto a new path.
  */
 export const ONBOARDING_FLOWS: Record<ObVariant, ReadonlyArray<OnboardingRoute>> = {
+  [OB_VARIANT.GARAGE_FIRST]: GARAGE_FIRST_FLOW,
+  [OB_VARIANT.COMMIT_FIRST]: COMMIT_FIRST_FLOW,
   [OB_VARIANT.SHIPPED]: SHIPPED_FLOW,
   [OB_VARIANT.LEAN]: SHIPPED_FLOW,
   [OB_VARIANT.INVESTED]: SHIPPED_FLOW,
@@ -179,8 +263,9 @@ export const OB_STEP_NAME: Record<OnboardingRoute, string> = {
 };
 
 /**
- * Zero-based position of a screen within its variant's flow — drives the
- * `step_index` analytics property and the progress bar. Returns -1 for
+ * Zero-based position of a screen within its variant's full flow — drives the
+ * `step_index` analytics property only; the progress bar counts the screens the
+ * rider actually sees (`getVisibleProgress`). Returns -1 for
  * screens not in the variant's flow (e.g. the standalone sign-in surface).
  */
 export function getStepIndex(variant: ObVariant, route: OnboardingRoute): number {
@@ -355,7 +440,12 @@ const RETIRED_SCREEN_SUCCESSOR: Partial<Record<OnboardingRoute, OnboardingRoute>
   [OB_SCREEN.SCAN_RECEIPT]: OB_SCREEN.PERSONALIZING,
 };
 
-/** True when `screen` is no longer in the shipped flow. */
+/**
+ * True when `screen` has a recorded successor because some flow retired it. The
+ * paywall is retired for the shipped/legacy flows but a real step in
+ * `commit_first`: `getNextRoute` only consults the successor when the screen is
+ * missing from the variant's flow.
+ */
 export function isRetiredScreen(screen: OnboardingRoute): boolean {
   return screen in RETIRED_SCREEN_SUCCESSOR;
 }
@@ -450,32 +540,56 @@ export function getResumeRoute(
 }
 
 /**
+ * Progress-bar coordinates over the screens this rider will actually see: the
+ * variant's flow minus the screens their bike state routes past. Index and total
+ * come from the same list, so the last visible screen is always `total - 1`.
+ * Returns index -1 for a screen that is not visible in this flow.
+ */
+export function getVisibleProgress(
+  variant: ObVariant,
+  route: OnboardingRoute,
+  ctx: OnboardingNavContext,
+): { index: number; total: number } {
+  const visible = ONBOARDING_FLOWS[variant].filter(
+    (screen) => !isSkippedForBikeState(screen, ctx.hasBike),
+  );
+  return { index: visible.indexOf(route), total: visible.length };
+}
+
+/**
+ * Screens that act on mount and bounce the rider forward. Landing on one via
+ * Back would re-trigger it — for the paywall, re-present the RevenueCat modal,
+ * which is what once trapped riders in a paywall↔account loop. Back skips them.
+ */
+const AUTO_ADVANCE_SCREENS: ReadonlySet<OnboardingRoute> = new Set([OB_SCREEN.PAYWALL]);
+
+/**
  * Full route path for the screen immediately before `current`, or null if it is
  * the first screen. Used as a fallback for Back when there is no navigation
  * history to pop (e.g. after resume-after-kill drops the user onto a mid-flow
  * screen) — `router.back()` would otherwise throw "GO_BACK was not handled".
- *
- * This used to skip an `AUTO_ADVANCE_SCREENS` set — screens that act on mount and
- * bounce the rider forward, so landing on one from Back created a loop. That set
- * held exactly two entries and BOTH are now gone from every flow: `paywall`
- * (removed in U6 — it re-presented the RevenueCat modal on mount, which is what
- * trapped riders in a paywall↔account loop) and `building-plan` (invested-only,
- * retired with the arm). The skip loop therefore had nothing left to skip, so it
- * is removed rather than left pointing at screens no flow contains.
- *
- * If a future step ever auto-advances on mount, reintroduce the set — do not
- * quietly rely on this being a plain decrement.
+ * Auto-advancing screens (AUTO_ADVANCE_SCREENS) are skipped.
  */
 export function getPreviousRoute(
   variant: ObVariant,
   current: OnboardingRoute,
+  ctx?: OnboardingNavContext,
 ): OnboardingRoutePath | null {
   const flow = ONBOARDING_FLOWS[variant];
-  const currentIndex = flow.indexOf(current);
-  if (currentIndex <= 0) {
+  let previousIndex = flow.indexOf(current) - 1;
+  if (previousIndex < 0) {
     // First step, or a retired screen that is no longer in the flow at all —
     // in both cases there is no previous step to derive.
     return null;
   }
-  return routeForScreen(flow[currentIndex - 1]);
+  // Skip auto-advancing screens, and screens the rider's bike state routes past
+  // (a bike-less rider never saw commitment, so Back from account is goals).
+  while (
+    previousIndex > 0 &&
+    (AUTO_ADVANCE_SCREENS.has(flow[previousIndex]) ||
+      (ctx !== undefined && isSkippedForBikeState(flow[previousIndex], ctx.hasBike)))
+  ) {
+    previousIndex--;
+  }
+  return routeForScreen(flow[previousIndex]);
 }

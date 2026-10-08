@@ -68,12 +68,16 @@ jest.mock('../../stores/subscription.store', () => ({
   },
 }));
 
+import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import {
   configureRcAttribution,
   loginRevenueCat,
   logoutRevenueCat,
+  resyncTrialReminder,
   setOnboardingAttributes,
   setSelfReportedSource,
+  trialReminderLoader,
+  waitForRevenueCatLogin,
 } from '../subscription';
 
 beforeAll(() => {
@@ -131,6 +135,94 @@ describe('logoutRevenueCat', () => {
     expect(mockLogOut).not.toHaveBeenCalled();
 
     Constants.appOwnership = null;
+  });
+});
+
+describe('waitForRevenueCatLogin', () => {
+  it('resolves immediately when no login is in flight', async () => {
+    await expect(waitForRevenueCatLogin(10_000)).resolves.toBeUndefined();
+  });
+
+  it('waits for an in-flight logIn to finish', async () => {
+    let finishLogIn: () => void = () => {};
+    mockPurchases.logIn.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishLogIn = resolve;
+        }),
+    );
+    const login = loginRevenueCat('user-1');
+    let waited = false;
+    const wait = waitForRevenueCatLogin(10_000).then(() => {
+      waited = true;
+    });
+
+    // Let init + getPurchases settle so logIn is actually pending.
+    for (let i = 0; i < 10; i++) await Promise.resolve();
+    expect(waited).toBe(false);
+
+    finishLogIn();
+    await login;
+    await wait;
+    expect(waited).toBe(true);
+  });
+
+  it('gives up after the timeout when logIn hangs', async () => {
+    let finishLogIn: () => void = () => {};
+    mockPurchases.logIn.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishLogIn = resolve;
+        }),
+    );
+    const login = loginRevenueCat('user-2');
+    jest.useFakeTimers();
+    try {
+      // Let init + getPurchases settle so logIn is actually pending.
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+      const wait = waitForRevenueCatLogin(3000);
+      jest.advanceTimersByTime(3001);
+      await expect(wait).resolves.toBeUndefined();
+    } finally {
+      jest.useRealTimers();
+      // Settle the hung login so no in-flight state leaks into later tests.
+      finishLogIn();
+      await login;
+    }
+  });
+});
+
+describe('resyncTrialReminder', () => {
+  const mockReconcileTrialReminder = jest.fn().mockResolvedValue(undefined);
+  const flush = () => new Promise((resolve) => setImmediate(resolve));
+
+  beforeEach(() => {
+    trialReminderLoader.load = jest.fn(() =>
+      Promise.resolve({
+        reconcileTrialReminder: mockReconcileTrialReminder,
+      } as unknown as typeof import('../trial-reminder')),
+    );
+  });
+
+  it('reconciles the reminder with the Pro entitlement from fresh customer info', async () => {
+    const pro = { periodType: 'TRIAL', willRenew: true, expirationDate: '2026-10-14T10:00:00Z' };
+    mockGetCustomerInfo.mockResolvedValueOnce({
+      entitlements: { active: { [REVENUECAT_ENTITLEMENT_PRO]: pro } },
+    });
+
+    await resyncTrialReminder();
+    await flush();
+
+    expect(mockReconcileTrialReminder).toHaveBeenCalledWith(pro);
+  });
+
+  it('reconciles with no entitlement when the rider is not Pro, so a reminder is cleared', async () => {
+    mockGetCustomerInfo.mockResolvedValueOnce({ entitlements: { active: {} } });
+
+    await resyncTrialReminder();
+    await flush();
+
+    expect(mockReconcileTrialReminder).toHaveBeenCalledWith(undefined);
   });
 });
 

@@ -892,7 +892,6 @@
     "obCommitTitle": "Sono pronto a prendermi",
     "obCommitTitleOf": "cura della mia",
     "obCommitSupportA": "I motociclisti che si impegnano qui hanno molte più probabilità di mantenere la moto in forma smagliante.",
-    "obCommitSupportB": "Firma per suggellare il tuo impegno: chi lo fa ha molte più probabilità di mantenere la moto in perfetta forma.",
     "obCommitButtonIdle": "Premi & tieni — ci sto",
     "obCommitButtonHolding": "Continua a tenere…",
     "obCommitButtonDone": "Ci sto",
@@ -917,10 +916,6 @@
     "obPaywallEscape": "Continua senza Pro",
     "obSignInTitle": "Bentornato",
     "obSignInSubtitle": "Accedi per consultare il tuo garage su questo dispositivo.",
-    "obCommitSignHint": "Firma qui",
-    "obCommitSignCaption": "Firma sopra per suggellare il tuo impegno",
-    "obCommitSeal": "Suggella il mio impegno",
-    "obCommitClear": "Cancella",
     "expAdvancedTenure": "10+ anni",
     "expPowerMode": "Modalità esperto",
     "expAffirmAdvanced": "Rispetto — ti configuriamo in fretta.",
@@ -1755,7 +1750,12 @@
     "appUpdates": "Aggiornamenti app",
     "appUpdatesDesc": "Nuove funzionalità e miglioramenti",
     "promotional": "Promozionale",
-    "promotionalDesc": "Offerte speciali e annunci"
+    "promotionalDesc": "Offerte speciali e annunci",
+    "trialReminder": {
+      "title": "La tua prova Pro termina tra 2 giorni",
+      "body": "Se mantieni Pro, al termine inizierà il tuo abbonamento. Puoi gestirlo o annullarlo in qualsiasi momento nelle impostazioni abbonamenti del tuo store.",
+      "channelName": "Account e abbonamento"
+    }
   },
   "expenses": {
     "category": "Categoria",

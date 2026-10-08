@@ -893,7 +893,6 @@
     "obCommitTitle": "Som pripravený starať sa",
     "obCommitTitleOf": "o svoju",
     "obCommitSupportA": "Jazdci, ktorí sa tu zaviažu, oveľa pravdepodobnejšie udržia motorku v špičkovej forme.",
-    "obCommitSupportB": "Podpíš sa a spečať svoj sľub — jazdci, ktorí to urobia, oveľa častejšie udržia svoj motocykel v perfektnom stave.",
     "obCommitButtonIdle": "Stlač a podrž — idem do toho",
     "obCommitButtonHolding": "Drž ďalej…",
     "obCommitButtonDone": "Idem do toho",
@@ -918,10 +917,6 @@
     "obPaywallEscape": "Pokračovať bez Pro",
     "obSignInTitle": "Vitaj späť",
     "obSignInSubtitle": "Prihlás sa, aby si na tomto zariadení získal prístup k svojej garáži.",
-    "obCommitSignHint": "Podpíš sa tu",
-    "obCommitSignCaption": "Podpíš sa vyššie a spečať svoj sľub",
-    "obCommitSeal": "Spečatiť môj sľub",
-    "obCommitClear": "Vymazať",
     "expAdvancedTenure": "10+ r.",
     "expPowerMode": "Expertný režim",
     "expAffirmAdvanced": "Rešpekt — nastavíme ťa rýchlo.",
@@ -1794,7 +1789,12 @@
     "appUpdates": "Aktualizácie aplikácie",
     "appUpdatesDesc": "Nové funkcie a vylepšenia",
     "promotional": "Propagačné",
-    "promotionalDesc": "Špeciálne ponuky a oznámenia"
+    "promotionalDesc": "Špeciálne ponuky a oznámenia",
+    "trialReminder": {
+      "title": "Tvoja skúšobná verzia Pro končí o 2 dni",
+      "body": "Ak si Pro ponecháš, po jej skončení sa začne tvoje predplatné. Spravovať alebo zrušiť ho môžeš kedykoľvek v nastaveniach predplatného vo svojom obchode.",
+      "channelName": "Účet a predplatné"
+    }
   },
   "expenses": {
     "category": "Kategória",

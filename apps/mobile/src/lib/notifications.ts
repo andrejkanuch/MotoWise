@@ -22,6 +22,8 @@ export const NOTIFICATION_KIND = {
    * @motovault/types, which the API sends.
    */
   RIDE_IDLE: 'ride_idle',
+  /** Pro trial ends in 2 days (scheduled from RevenueCat customer info, lib/trial-reminder). */
+  TRIAL_REMINDER: 'trial_reminder',
 } as const;
 
 /** iOS UNNotificationCategory identifiers (also the Android channel-less category key). */
@@ -39,6 +41,8 @@ export const NOTIFICATION_CHANNEL = {
   RECEIPT_SCANS: 'receipt-scans',
   /** Forgotten-ride reminders and the "ride saved" notice. HIGH so it heads up. */
   RIDE_ALERTS: 'ride-alerts',
+  /** Subscription/billing notices — the trial-ending reminder. */
+  ACCOUNT: 'account',
 } as const;
 
 /** Notification action-button identifiers — shared with the tap handler in _layout. */
@@ -91,7 +95,7 @@ async function removeNotificationIds(taskId: string): Promise<void> {
 // iOS hard-limits an app to 64 pending local notifications. Stay under it with
 // headroom so a burst of tasks/documents never silently overflows — once the OS
 // cap is hit, further scheduleNotificationAsync calls are dropped without error.
-const IOS_NOTIFICATION_BUDGET = 60;
+export const IOS_NOTIFICATION_BUDGET = 60;
 
 /** Current count of pending scheduled notifications (across all features). */
 async function getScheduledCount(): Promise<number> {
@@ -202,6 +206,14 @@ export async function setupNotificationChannels(): Promise<void> {
     name: i18n.t('rideHud.rideAlertsChannel', { defaultValue: 'Ride alerts' }),
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
+    lightColor: palette.signature500,
+    // See note above — omit `sound` for the OS default channel sound.
+  });
+  await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL.ACCOUNT, {
+    name: i18n.t('notifications.trialReminder.channelName', {
+      defaultValue: 'Account & subscription',
+    }),
+    importance: Notifications.AndroidImportance.DEFAULT,
     lightColor: palette.signature500,
     // See note above — omit `sound` for the OS default channel sound.
   });

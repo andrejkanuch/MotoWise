@@ -18,6 +18,9 @@ import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
+/** How long the affirmation shows before navigating on. */
+const AFFIRMATION_MS = 300;
+
 const GOAL_OPTIONS = [
   {
     key: 'track_rides' as RidingGoal,
@@ -126,7 +129,7 @@ export default function GoalsScreen() {
     setShowAffirmation(true);
     navigateTimerRef.current = setTimeout(() => {
       goNext();
-    }, 500);
+    }, AFFIRMATION_MS);
   };
 
   const canContinue = selected.size > 0;

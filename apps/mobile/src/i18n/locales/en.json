@@ -891,7 +891,6 @@
     "obCommitTitle": "I'm ready to take care",
     "obCommitTitleOf": "of my",
     "obCommitSupportA": "Riders who commit here are far more likely to keep their bike in top shape.",
-    "obCommitSupportB": "Sign your name to make the pledge — riders who do are far more likely to keep their bike in top shape.",
     "obCommitButtonIdle": "Press & hold — I'm in",
     "obCommitButtonHolding": "Keep holding…",
     "obCommitButtonDone": "I'm in",
@@ -916,10 +915,6 @@
     "obPaywallEscape": "Continue without Pro",
     "obSignInTitle": "Welcome back",
     "obSignInSubtitle": "Sign in to access your garage on this device.",
-    "obCommitSignHint": "Sign your name",
-    "obCommitSignCaption": "Sign above to seal your pledge",
-    "obCommitSeal": "Seal my pledge",
-    "obCommitClear": "Clear",
     "expAdvancedTenure": "10+ yrs",
     "expPowerMode": "Power mode",
     "expAffirmAdvanced": "Respect — let's set you up fast.",
@@ -1760,7 +1755,12 @@
     "appUpdates": "App Updates",
     "appUpdatesDesc": "New features and improvements",
     "promotional": "Promotional",
-    "promotionalDesc": "Special offers and announcements"
+    "promotionalDesc": "Special offers and announcements",
+    "trialReminder": {
+      "title": "Your Pro trial ends in 2 days",
+      "body": "If you keep Pro, your subscription starts when it ends. Manage or cancel anytime in your store's subscription settings.",
+      "channelName": "Account & subscription"
+    }
   },
   "expenses": {
     "category": "Category",

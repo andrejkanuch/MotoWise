@@ -26,6 +26,8 @@ export function trackOnboardingEvent(
   trackEvent(event, {
     variant,
     step: OB_STEP_NAME[screen],
+    // Full-flow position, deliberately not the progress bar's visible index:
+    // funnels compare step_index across bike/no-bike riders and over time.
     step_index: getStepIndex(variant, screen),
     ...properties,
   });

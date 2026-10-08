@@ -18,7 +18,7 @@ import {
   Wallet,
   Wrench,
 } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
@@ -33,9 +33,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
-import { getPrimaryGoal, OB_SCREEN } from '../../config/onboarding';
+import { getPrimaryGoal, getTotalScreens, OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent, captureException, setUserPropertiesOnce } from '../../lib/analytics';
+import { createGaragePaywallHandoff } from '../../lib/garage-paywall-handoff';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { uploadBikePhoto } from '../../lib/image-upload';
 import { detectCurrency } from '../../lib/locale-detection';
@@ -43,6 +44,11 @@ import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { clearStoredFbclid, getStoredFbclid } from '../../lib/meta-attribution';
 import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
+import {
+  ONBOARDING_PAYWALL_SURFACE,
+  presentOnboardingPaywall,
+  resolveOnboardingPaywallPlacement,
+} from '../../lib/onboarding-paywall';
 import { queryKeys } from '../../lib/query-keys';
 import { setSelfReportedSource } from '../../lib/subscription';
 import { useAuthStore } from '../../stores/auth.store';
@@ -74,7 +80,15 @@ const GOAL_STEP_CONFIG: Record<string, { i18nKey: string; icon: typeof MapPin }>
   just_exploring: { i18nKey: 'v2PersonalizingStepExploring', icon: Sparkles },
 };
 
-const MIN_ANIMATION_MS = 2500;
+const MIN_ANIMATION_MS = 1600;
+
+/**
+ * garage_first: how long "Open my garage" may wait for the paywall before an
+ * escape link appears. The native modal normally covers the screen within a
+ * second; the link exists for an RC init/offerings stall, which would otherwise
+ * leave the rider tapping a button that seems to do nothing.
+ */
+const GARAGE_PAYWALL_ESCAPE_DELAY_MS = 6000;
 
 const SERIF_REGULAR = 'InstrumentSerif-Regular' as const;
 const SERIF_ITALIC = 'InstrumentSerif-Italic' as const;
@@ -96,7 +110,7 @@ function buildBikeLabel(bike: BikeLike): string | null {
 
 export default function PersonalizingScreen() {
   const { t } = useTranslation();
-  const { totalScreens } = useOnboardingStep(OB_SCREEN.PERSONALIZING);
+  const { totalScreens, variant } = useOnboardingStep(OB_SCREEN.PERSONALIZING);
   // Resume-after-kill entry (welcome's resume replace) — the rider already sat
   // through the staged setup once; don't replay it on app load. Skip the
   // minimum-animation gate and complete straight into the garage on mutation
@@ -121,8 +135,14 @@ export default function PersonalizingScreen() {
     lastServiceDate,
     currency,
     heardFrom,
+    pendingIntent,
+    setAwaitingGarageCta,
+    setCompletionSent,
     reset,
   } = useOnboardingStore();
+  // garage_first presents the onboarding paywall from the payoff CTA. Never on
+  // the cold-start resume path: that rider already finished, it completes silently.
+  const showsGaragePaywall = variant === OB_VARIANT.GARAGE_FIRST && !isResumed;
   const queryClient = useQueryClient();
 
   const { mutateAsync: completeOnboarding } = useMutation({
@@ -136,6 +156,10 @@ export default function PersonalizingScreen() {
 
   const setOnboardingCompleted = useAuthStore((s) => s.setOnboardingCompleted);
   const [mutationDone, setMutationDone] = useState(false);
+  /** Set once the rider leaves for the garage (CTA, escape or Skip). */
+  const leftOnboarding = useRef(false);
+  /** Set by the first run() to finish; a concurrent Retry run reports nothing. */
+  const completionReported = useRef(false);
   const [animationDone, setAnimationDone] = useState(isResumed);
   const [showDone, setShowDone] = useState(false);
   const [showRetry, setShowRetry] = useState(false);
@@ -184,6 +208,50 @@ export default function PersonalizingScreen() {
   // biome-ignore lint/correctness/useExhaustiveDependencies: fire on mount and on manual retry
   useEffect(() => {
     const run = async () => {
+      // Set before the first await: Skip (reset()) can land while the setup is
+      // still saving, and reset() must win. Set after an await, a stalled run
+      // would re-arm the hold after the rider entered the garage, and the root
+      // gate would send them back into onboarding on every later launch.
+      if (showsGaragePaywall) setAwaitingGarageCta(true);
+
+      // Resolve the user's global measurement system from the onboarding unit
+      // toggle (falling back to the device-derived store default). The odometer is
+      // stored raw in that unit; we persist measurement_system to match.
+      const chosenUnit = bikeData?.mileageUnit ?? preBikeMileageUnit ?? null;
+      const onboardingSystem: MeasurementSystem = chosenUnit
+        ? UNIT_TO_SYSTEM[chosenUnit]
+        : useAuthStore.getState().measurementSystem;
+
+      // Persist the global measurement system so display units match what the user
+      // picked (complete_onboarding does not touch users.measurement_system, which
+      // otherwise stays the 'metric' default and mislabels imperial riders).
+      // Best-effort and idempotent: never block onboarding on it; also set the
+      // store so the app renders correctly before the next `me` refetch.
+      const syncMeasurementSystem = async () => {
+        try {
+          useAuthStore.getState().setMeasurementSystem(onboardingSystem);
+          await gqlFetcher(UpdateUserDocument, {
+            input: { measurementSystem: onboardingSystem },
+          });
+          queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
+          // The 00180 sync trigger just rewrote the new bike's distance_unit; the
+          // bike was cached (by completeOnboarding's refetch) in the old unit.
+          queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+        } catch (err) {
+          logger.warn('[Personalizing] measurement_system update skipped:', err);
+        }
+      };
+
+      // Resume after a kill on the payoff screen: the setup is already saved.
+      // Running it again would re-upload the photo and send a second
+      // onboarding_completed and Meta CompleteRegistration (new event id).
+      // The unit sync is re-run: a kill while it was in flight would lose it.
+      if (useOnboardingStore.getState().completionSent) {
+        await syncMeasurementSystem();
+        setMutationDone(true);
+        return;
+      }
+
       // Read Meta click ID for CAPI attribution (P1 fix)
       const fbclid = await getStoredFbclid();
 
@@ -208,14 +276,6 @@ export default function PersonalizingScreen() {
           logger.warn('[Personalizing] bike photo upload skipped:', err);
         }
       }
-
-      // Resolve the user's global measurement system from the onboarding unit
-      // toggle (falling back to the device-derived store default). The odometer is
-      // stored raw in that unit; we persist measurement_system to match.
-      const chosenUnit = bikeData?.mileageUnit ?? preBikeMileageUnit ?? null;
-      const onboardingSystem: MeasurementSystem = chosenUnit
-        ? UNIT_TO_SYSTEM[chosenUnit]
-        : useAuthStore.getState().measurementSystem;
 
       const input: CompleteOnboardingInput = {
         experienceLevel: experienceLevel ?? 'beginner',
@@ -265,43 +325,28 @@ export default function PersonalizingScreen() {
 
       await completeOnboarding(input);
 
-      // Persist the global measurement system so display units match what the user
-      // picked (complete_onboarding does not touch users.measurement_system, which
-      // otherwise stays the 'metric' default and mislabels imperial riders).
-      // Best-effort: never block onboarding on it; also set the store so the app
-      // renders correctly before the next `me` refetch.
-      try {
-        useAuthStore.getState().setMeasurementSystem(onboardingSystem);
-        await gqlFetcher(UpdateUserDocument, {
-          input: { measurementSystem: onboardingSystem },
-        });
-        queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
-        // The 00180 sync trigger just rewrote the new bike's distance_unit; the
-        // bike was cached (by completeOnboarding's refetch) in the old unit.
-        queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
-      } catch (err) {
-        logger.warn('[Personalizing] measurement_system update skipped:', err);
+      // A Retry tapped while this run was still saving starts a second run; only
+      // the first to finish reports the completion.
+      if (completionReported.current) {
+        setMutationDone(true);
+        return;
       }
+      completionReported.current = true;
 
-      trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {
-        experience_level: experienceLevel ?? 'beginner',
-        has_bike: !!bikeData,
-        has_photo: !!bikeData?.photoUri,
-        goals_count: ridingGoals.length,
-        goals: ridingGoals.join(','),
-        primary_goal: primaryGoal,
-        total_screens: totalScreens,
-        ...(bikeData && {
-          bike_make: bikeData.make,
-          bike_model: bikeData.model,
-          bike_year: bikeData.year,
-        }),
-        accepted_maintenance_count: acceptedOemScheduleIds.length,
-      });
+      // Report synchronously, before the marker and before any further await, so
+      // no kill can land between the save and its reporting. Every variant counts
+      // completion at the same point: the setup is saved. The garage_first paywall
+      // comes after this, and its result is the paywall step event, so the
+      // completion guardrail compares like with like.
+      trackOnboardingCompleted();
       MetaAnalytics.trackCompleteRegistration(eventId);
-
-      // Initialize checklist store based on user goals
       useChecklistStore.getState().initialize(ridingGoals);
+
+      // Not after the rider already left for the garage: reset() cleared the
+      // store, and a marker written now would outlive this onboarding run.
+      if (!leftOnboarding.current) setCompletionSent(true);
+
+      await syncMeasurementSystem();
 
       setMutationDone(true);
     };
@@ -374,9 +419,92 @@ export default function PersonalizingScreen() {
   // makes the root guard redirect to OB_ROUTE.HOME. Used by the payoff CTA and the
   // retry/safety-net skip link (both before any navigation).
   const handleContinue = () => {
+    leftOnboarding.current = true;
     reset();
     setOnboardingCompleted(true);
   };
+
+  const trackOnboardingCompleted = () => {
+    trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {
+      experience_level: experienceLevel ?? 'beginner',
+      has_bike: !!bikeData,
+      has_photo: !!bikeData?.photoUri,
+      goals_count: ridingGoals.length,
+      goals: ridingGoals.join(','),
+      primary_goal: primaryGoal,
+      // Full-flow length, as before the progress bar counted visible screens.
+      total_screens: getTotalScreens(variant),
+      visible_screens: totalScreens,
+      ...(bikeData && {
+        bike_make: bikeData.make,
+        bike_model: bikeData.model,
+        bike_year: bikeData.year,
+      }),
+      accepted_maintenance_count: acceptedOemScheduleIds.length,
+    });
+  };
+
+  // garage_first: "Open my garage" presents the onboarding paywall, then opens
+  // the garage whatever the result (purchase, close, not presented, error).
+  const [garagePaywallPending, setGaragePaywallPending] = useState(false);
+  const [showGarageEscape, setShowGarageEscape] = useState(false);
+
+  useEffect(() => {
+    if (!garagePaywallPending) return;
+    const id = setTimeout(() => setShowGarageEscape(true), GARAGE_PAYWALL_ESCAPE_DELAY_MS);
+    return () => clearTimeout(id);
+  }, [garagePaywallPending]);
+
+  const garagePaywallInput = { ridingGoals, bikeData, experienceLevel, pendingIntent };
+  const garagePaywallFields = (() => {
+    const { primaryGoal, placement, goals } = resolveOnboardingPaywallPlacement(garagePaywallInput);
+    return {
+      goals,
+      primary_goal: primaryGoal,
+      placement,
+      surface: ONBOARDING_PAYWALL_SURFACE.GARAGE_READY,
+    };
+  })();
+
+  // The handoff is created once; its callbacks read the latest render's values.
+  const garagePaywallLatest = useRef({ garagePaywallInput, garagePaywallFields, handleContinue });
+  garagePaywallLatest.current = { garagePaywallInput, garagePaywallFields, handleContinue };
+  const garagePaywall = useRef<ReturnType<typeof createGaragePaywallHandoff> | null>(null);
+  if (!garagePaywall.current) {
+    garagePaywall.current = createGaragePaywallHandoff({
+      present: (shouldAbort) =>
+        presentOnboardingPaywall(garagePaywallLatest.current.garagePaywallInput, {
+          surface: ONBOARDING_PAYWALL_SURFACE.GARAGE_READY,
+          shouldAbort,
+        }),
+      onStart: () => {
+        setGaragePaywallPending(true);
+        trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.PAYWALL, {
+          surface: ONBOARDING_PAYWALL_SURFACE.GARAGE_READY,
+        });
+      },
+      onSettled: (paywallResult) => {
+        trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.PAYWALL, {
+          ...garagePaywallLatest.current.garagePaywallFields,
+          paywall_result: paywallResult,
+        });
+        garagePaywallLatest.current.handleContinue();
+      },
+      // presentPaywall resolves its own failures; reaching here means a bug, and
+      // the rider still gets into their garage.
+      onError: (err) => captureException(err, { screen: OB_SCREEN.PERSONALIZING }),
+    });
+  }
+
+  const handleOpenGarage = () => {
+    if (!showsGaragePaywall) {
+      handleContinue();
+      return;
+    }
+    garagePaywall.current?.open();
+  };
+
+  const handleGarageEscape = () => garagePaywall.current?.escape();
 
   // Cold-start resume: the staged setup UI must not appear on app load. Hold a
   // bare background while the mutation completes silently (then the root guard
@@ -476,9 +604,20 @@ export default function PersonalizingScreen() {
           <Animated.View entering={FadeInUp.delay(200).duration(300)} style={{ width: '100%' }}>
             <OnboardingContinueButton
               label={t('onboarding.personalizingDoneCta' as never)}
-              onPress={handleContinue}
+              onPress={handleOpenGarage}
+              // Disabled while the paywall loads, so the tap visibly registered.
+              disabled={garagePaywallPending}
             />
           </Animated.View>
+          {showGarageEscape ? (
+            <Animated.View entering={FadeIn.duration(240)} style={{ marginTop: 16 }}>
+              <Pressable onPress={handleGarageEscape} hitSlop={12} accessibilityRole="button">
+                <Text style={{ fontSize: 13.5, color: ONBOARDING_COLORS.textMuted }}>
+                  {t('onboarding.obPaywallEscape')}
+                </Text>
+              </Pressable>
+            </Animated.View>
+          ) : null}
         </Animated.View>
       </View>
     );

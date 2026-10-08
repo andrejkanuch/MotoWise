@@ -1,3 +1,5 @@
+> **Superseded 2026-10-07:** the owner overruled this decision; the onboarding paywall returns after the account step as an A/B test. See `docs/Onboarding-Paywall-AB-2026-10-07.md`.
+
 # Paywall timing — experiment declined, plus the stop-loss for shipping untested
 
 **Date:** 2026-08-24
