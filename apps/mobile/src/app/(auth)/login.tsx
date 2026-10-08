@@ -5,12 +5,11 @@ import { Link } from 'expo-router';
 
 const logo = require('../../assets/images/motovault-logo.webp');
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
-  BackHandler,
   KeyboardAvoidingView,
   Pressable,
   ScrollView,
@@ -24,6 +23,7 @@ import {
   EMAIL_CODE_STEP_THEME,
   EmailCodeStep,
 } from '../../components/auth/email-code-step';
+import { useEmailCodeStep } from '../../hooks/use-email-code-step';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { classifyAuthError, EMAIL_AUTH_ERROR, sendSignupCode } from '../../lib/email-confirmation';
 import { userFriendlyError } from '../../lib/graphql-errors';
@@ -31,36 +31,20 @@ import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '..
 import { presentOAuthError } from '../../lib/oauth-error-alert';
 import { supabase } from '../../lib/supabase';
 
-/** The code step replaces the form; the password stays in memory only. */
-interface CodeStepState {
-  email: string;
-  password: string;
-  initialCooldownMs?: number;
-}
-
 export default function LoginScreen() {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [codeStep, setCodeStep] = useState<CodeStepState | null>(null);
 
   // Back from the code step returns to this form: the email stays, the password
   // is cleared. Android hardware back does the same instead of leaving the screen.
-  const closeCodeStep = () => {
-    setCodeStep(null);
-    setPassword('');
-  };
-
-  useEffect(() => {
-    if (!codeStep) return;
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      setCodeStep(null);
-      setPassword('');
-      return true;
-    });
-    return () => sub.remove();
-  }, [codeStep]);
+  const {
+    codeStep,
+    open: openCodeStep,
+    openRateLimited: openCodeStepRateLimited,
+    close: closeCodeStep,
+  } = useEmailCodeStep({ clearPassword: () => setPassword('') });
 
   // The account exists but was never confirmed: send a fresh code and open the
   // code step. A failed send keeps the rider on this form.
@@ -73,12 +57,12 @@ export default function LoginScreen() {
     }
     if (!error) {
       trackEvent(AnalyticsEvent.EMAIL_CODE_SENT, { source: EMAIL_CODE_SOURCE.SIGNIN_UNCONFIRMED });
-      setCodeStep({ email, password });
+      openCodeStep({ email, password });
       return;
     }
     const failure = classifyAuthError(error);
     if (failure.kind === EMAIL_AUTH_ERROR.RATE_LIMITED) {
-      setCodeStep({ email, password, initialCooldownMs: failure.retryAfterMs });
+      openCodeStepRateLimited(email, password, failure.retryAfterMs);
       return;
     }
     Alert.alert(t('common.error'), t('auth.codeSendFailed'));

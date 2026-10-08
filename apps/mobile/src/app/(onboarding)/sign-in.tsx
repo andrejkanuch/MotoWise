@@ -1,12 +1,11 @@
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
-  BackHandler,
   KeyboardAvoidingView,
   Pressable,
   ScrollView,
@@ -26,6 +25,7 @@ import { OnboardingBackButton } from '../../components/onboarding/onboarding-bac
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OB_ROUTE } from '../../config/onboarding';
+import { useEmailCodeStep } from '../../hooks/use-email-code-step';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { classifyAuthError, EMAIL_AUTH_ERROR, sendSignupCode } from '../../lib/email-confirmation';
 import { userFriendlyError } from '../../lib/graphql-errors';
@@ -33,13 +33,6 @@ import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '..
 import { presentOAuthError } from '../../lib/oauth-error-alert';
 import { trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { supabase } from '../../lib/supabase';
-
-/** The code step replaces the form; the password stays in memory only. */
-interface CodeStepState {
-  email: string;
-  password: string;
-  initialCooldownMs?: number;
-}
 
 /**
  * Returning-user sign-in, reachable from Welcome's "Log in" and the account
@@ -58,24 +51,15 @@ export default function OnboardingSignInScreen() {
   const [busy, setBusy] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [sendFailed, setSendFailed] = useState(false);
-  const [codeStep, setCodeStep] = useState<CodeStepState | null>(null);
 
   // Back from the code step returns to this form: the email stays, the password
   // is cleared. Android hardware back does the same instead of leaving sign-in.
-  const closeCodeStep = () => {
-    setCodeStep(null);
-    setPassword('');
-  };
-
-  useEffect(() => {
-    if (!codeStep) return;
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      setCodeStep(null);
-      setPassword('');
-      return true;
-    });
-    return () => sub.remove();
-  }, [codeStep]);
+  const {
+    codeStep,
+    open: openCodeStep,
+    openRateLimited: openCodeStepRateLimited,
+    close: closeCodeStep,
+  } = useEmailCodeStep({ clearPassword: () => setPassword('') });
 
   // The account exists but was never confirmed: send a fresh code and open the
   // code step. A failed send keeps the rider on this form — never "no account found".
@@ -88,12 +72,12 @@ export default function OnboardingSignInScreen() {
     }
     if (!error) {
       trackEvent(AnalyticsEvent.EMAIL_CODE_SENT, { source: EMAIL_CODE_SOURCE.SIGNIN_UNCONFIRMED });
-      setCodeStep({ email, password });
+      openCodeStep({ email, password });
       return;
     }
     const failure = classifyAuthError(error);
     if (failure.kind === EMAIL_AUTH_ERROR.RATE_LIMITED) {
-      setCodeStep({ email, password, initialCooldownMs: failure.retryAfterMs });
+      openCodeStepRateLimited(email, password, failure.retryAfterMs);
       return;
     }
     setSendFailed(true);

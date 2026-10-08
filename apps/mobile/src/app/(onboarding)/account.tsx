@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
-  BackHandler,
   KeyboardAvoidingView,
   Pressable,
   ScrollView,
@@ -29,6 +28,7 @@ import { OnboardingContinueButton } from '../../components/onboarding/onboarding
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { AUTH_EMAIL_REDIRECT_TO } from '../../config/auth';
 import { getPreviousRoute, OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
+import { useEmailCodeStep } from '../../hooks/use-email-code-step';
 import {
   useOnboardingNext,
   useOnboardingStep,
@@ -45,17 +45,6 @@ import { meOptions } from '../../lib/query-options';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/auth.store';
 import { useSubscriptionStore } from '../../stores/subscription.store';
-
-/**
- * An email signup waiting for its emailed code. Component state only (KTD4): the
- * password stays in memory for the already-confirmed recovery and is never
- * persisted. A relaunch reaches the code step again by signing up or in again.
- */
-interface CodeStep {
-  email: string;
-  password: string;
-  initialCooldownMs?: number;
-}
 
 /**
  * Post-paywall account step. Onboarding + the paywall run anonymously; the
@@ -89,7 +78,7 @@ export default function AccountScreen() {
    * the last real question instead.
    */
   const handleBack = () => {
-    // From the code step, Back means "change email", never leaving onboarding (R10).
+    // From the code step, Back means "change email", never leaving onboarding.
     if (codeStep) {
       closeCodeStep();
       return;
@@ -102,31 +91,18 @@ export default function AccountScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
-  const [codeStep, setCodeStep] = useState<CodeStep | null>(null);
   const advancedRef = useRef(false);
 
-  /** Back to the email form: the address stays, the password is typed again. */
-  const closeCodeStep = () => {
-    setCodeStep(null);
-    setPassword('');
-  };
-
-  // Android hardware back on the code step returns to the form instead of
+  // Back from the code step returns to the email form: the address stays, the
+  // password is typed again. Android hardware back does the same instead of
   // popping the screen. Once a session exists the screen is advancing; the back
   // press is swallowed, matching the hidden Back button.
-  const hasCodeStep = codeStep !== null;
-  const hasSession = !!session;
-  useEffect(() => {
-    if (!hasCodeStep) return;
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (!hasSession) {
-        setCodeStep(null);
-        setPassword('');
-      }
-      return true;
-    });
-    return () => sub.remove();
-  }, [hasCodeStep, hasSession]);
+  const {
+    codeStep,
+    open: openCodeStep,
+    openRateLimited: openCodeStepRateLimited,
+    close: closeCodeStep,
+  } = useEmailCodeStep({ clearPassword: () => setPassword(''), backLocked: !!session });
 
   useEffect(() => {
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.ACCOUNT, {
@@ -214,8 +190,8 @@ export default function AccountScreen() {
         const failure = classifyAuthError(error);
         if (failure.kind === EMAIL_AUTH_ERROR.RATE_LIMITED) {
           // A code went out moments ago (this is a repeat signup): enter it,
-          // with the resend countdown already running (R12).
-          setCodeStep({ email: address, password, initialCooldownMs: failure.retryAfterMs });
+          // with the resend countdown already running.
+          openCodeStepRateLimited(address, password, failure.retryAfterMs);
         } else {
           Alert.alert(t('common.error'), userFriendlyError(error));
         }
@@ -231,8 +207,8 @@ export default function AccountScreen() {
           ]);
         } else {
           // New (or still-unconfirmed) account: Supabase sent a code. The code
-          // step confirms it and fires USER_SIGNED_UP on success (KTD7).
-          setCodeStep({ email: address, password });
+          // step confirms it and fires USER_SIGNED_UP on success.
+          openCodeStep({ email: address, password });
           trackEvent(AnalyticsEvent.EMAIL_CODE_SENT, { source: EMAIL_CODE_SOURCE.SIGNUP });
         }
       } else if (data.session) {
@@ -319,36 +295,45 @@ export default function AccountScreen() {
             </Animated.View>
           ) : null}
 
-          <Animated.Text
-            entering={FadeInUp.delay(60).duration(320)}
-            style={{
-              fontFamily: 'InstrumentSerif-Regular',
-              fontSize: 34,
-              lineHeight: 37,
-              color: ONBOARDING_COLORS.textPrimary,
-              letterSpacing: -0.7,
-              marginBottom: 10,
-            }}
-          >
-            {isPro ? t('onboarding.obAccountTitlePro') : t('onboarding.obAccountTitleFree')}{' '}
-            <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
-              {isPro
-                ? t('onboarding.obAccountTitleProItalic')
-                : t('onboarding.obAccountTitleFreeItalic')}
-            </Text>
-          </Animated.Text>
-          <Animated.Text
-            entering={FadeInUp.delay(120).duration(320)}
-            style={{
-              fontSize: 14.5,
-              color: ONBOARDING_COLORS.textSecondary,
-              lineHeight: 21,
-              maxWidth: 330,
-              marginBottom: 26,
-            }}
-          >
-            {isPro ? t('onboarding.obAccountSubtitlePro') : t('onboarding.obAccountSubtitleFree')}
-          </Animated.Text>
+          {/* EmailCodeStep has its own header; the screen's heading steps aside. */}
+          {codeStep ? null : (
+            <>
+              <Animated.Text
+                entering={FadeInUp.delay(60).duration(320)}
+                style={{
+                  fontFamily: 'InstrumentSerif-Regular',
+                  fontSize: 34,
+                  lineHeight: 37,
+                  color: ONBOARDING_COLORS.textPrimary,
+                  letterSpacing: -0.7,
+                  marginBottom: 10,
+                }}
+              >
+                {isPro ? t('onboarding.obAccountTitlePro') : t('onboarding.obAccountTitleFree')}{' '}
+                <Text
+                  style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}
+                >
+                  {isPro
+                    ? t('onboarding.obAccountTitleProItalic')
+                    : t('onboarding.obAccountTitleFreeItalic')}
+                </Text>
+              </Animated.Text>
+              <Animated.Text
+                entering={FadeInUp.delay(120).duration(320)}
+                style={{
+                  fontSize: 14.5,
+                  color: ONBOARDING_COLORS.textSecondary,
+                  lineHeight: 21,
+                  maxWidth: 330,
+                  marginBottom: 26,
+                }}
+              >
+                {isPro
+                  ? t('onboarding.obAccountSubtitlePro')
+                  : t('onboarding.obAccountSubtitleFree')}
+              </Animated.Text>
+            </>
+          )}
 
           {codeStep ? (
             <EmailCodeStep

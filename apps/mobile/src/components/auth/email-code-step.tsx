@@ -200,7 +200,7 @@ export function EmailCodeStep({
       case EMAIL_AUTH_ERROR.INVALID_OR_EXPIRED: {
         setCode('');
         show(MESSAGE.WRONG_OR_EXPIRED);
-        // KTD5: the code may have been consumed by the fallback link. Try once.
+        // The code may have been consumed by the fallback link. Try once.
         if (password && !autoRecoveryTriedRef.current) {
           autoRecoveryTriedRef.current = true;
           return (await recover(password)) === null;

@@ -5,12 +5,11 @@ import { Link, useRouter } from 'expo-router';
 
 const logo = require('../../assets/images/motovault-logo.webp');
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
-  BackHandler,
   KeyboardAvoidingView,
   Pressable,
   ScrollView,
@@ -25,6 +24,7 @@ import {
   EmailCodeStep,
 } from '../../components/auth/email-code-step';
 import { AUTH_EMAIL_REDIRECT_TO } from '../../config/auth';
+import { useEmailCodeStep } from '../../hooks/use-email-code-step';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { signUpConsentMetadata } from '../../lib/analytics-consent';
 import { classifyAuthError, EMAIL_AUTH_ERROR } from '../../lib/email-confirmation';
@@ -33,13 +33,6 @@ import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '..
 import { presentOAuthError } from '../../lib/oauth-error-alert';
 import { supabase } from '../../lib/supabase';
 
-/** The code step replaces the form; the password stays in memory only. */
-interface CodeStepState {
-  email: string;
-  password: string;
-  initialCooldownMs?: number;
-}
-
 export default function RegisterScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -47,24 +40,15 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [codeStep, setCodeStep] = useState<CodeStepState | null>(null);
 
   // Back from the code step returns to this form: the email stays, the password
   // is cleared. Android hardware back does the same instead of leaving the screen.
-  const closeCodeStep = () => {
-    setCodeStep(null);
-    setPassword('');
-  };
-
-  useEffect(() => {
-    if (!codeStep) return;
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      setCodeStep(null);
-      setPassword('');
-      return true;
-    });
-    return () => sub.remove();
-  }, [codeStep]);
+  const {
+    codeStep,
+    open: openCodeStep,
+    openRateLimited: openCodeStepRateLimited,
+    close: closeCodeStep,
+  } = useEmailCodeStep({ clearPassword: () => setPassword('') });
 
   const handleRegister = async () => {
     if (process.env.EXPO_OS === 'ios') {
@@ -85,14 +69,14 @@ export default function RegisterScreen() {
         // The confirmation email could not be sent yet: open the code step with
         // the wait already running, so the rider can resend once it is over.
         if (failure.kind === EMAIL_AUTH_ERROR.RATE_LIMITED) {
-          setCodeStep({ email, password, initialCooldownMs: failure.retryAfterMs });
+          openCodeStepRateLimited(email, password, failure.retryAfterMs);
         } else {
           Alert.alert(t('common.error'), userFriendlyError(error));
         }
       } else if (data.user && !data.session) {
         // USER_SIGNED_UP fires from the code step once the account is confirmed.
         trackEvent(AnalyticsEvent.EMAIL_CODE_SENT, { source: EMAIL_CODE_SOURCE.SIGNUP });
-        setCodeStep({ email, password });
+        openCodeStep({ email, password });
       } else if (data.user && data.session) {
         trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'email' });
       }

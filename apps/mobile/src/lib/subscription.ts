@@ -310,7 +310,7 @@ export async function stampAnonymousPosthogId(
 /**
  * Identify the RevenueCat customer as the Supabase user. When the session
  * carries an email it is written as the `$email` attribute so support can find
- * the customer in the RevenueCat dashboard (R13). An Apple relay sign-in may
+ * the customer in the RevenueCat dashboard. An Apple relay sign-in may
  * have no email claim — then the attribute is left alone. The email write is
  * best-effort through {@link withRevenueCat} and only runs after `logIn`
  * succeeded, so it can never land on the anonymous or previous customer.
