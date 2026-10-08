@@ -92,10 +92,10 @@ jest.mock('../../stores/subscription.store', () => {
 import { AuthApiError } from '@supabase/supabase-js';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Alert, BackHandler } from 'react-native';
+import AccountScreen from '../../app/(onboarding)/account';
 import { OB_ROUTE } from '../../config/onboarding';
 import i18n from '../../i18n';
 import { useAuthStore } from '../../stores/auth.store';
-import AccountScreen from '../../app/(onboarding)/account';
 
 const EMAIL = 'rider@example.com';
 const PASSWORD = 'hunter22';
