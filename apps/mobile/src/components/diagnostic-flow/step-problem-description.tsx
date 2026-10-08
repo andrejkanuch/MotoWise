@@ -228,9 +228,10 @@ export function StepProblemDescription() {
   const isBeginner = experienceLevel === 'beginner';
 
   // Set default mode based on experience
+  // Only on a fresh visit: coming back from review must keep the mode the rider answered in.
   useEffect(() => {
-    if (experienceLevel === 'advanced') setInputMode('freetext');
-  }, [experienceLevel, setInputMode]);
+    if (experienceLevel === 'advanced' && !editingFromReview) setInputMode('freetext');
+  }, [experienceLevel, editingFromReview, setInputMode]);
 
   const currentStep = WIZARD_STEPS[wizardSubStep];
   const currentKey = currentStep?.key ?? 'symptoms';
@@ -246,12 +247,13 @@ export function StepProblemDescription() {
   const [customInput, setCustomInput] = useState('');
 
   // Step 2 is where the problem is collected, so it is the step that refuses to move on
-  // without one (MOTO-VAULT-REACT-NATIVE-3Q). The wizard only needs the symptoms answer —
-  // "I'm not sure" counts — and location/timing stay optional.
+  // without one (MOTO-VAULT-REACT-NATIVE-3Q). An answer from either mode counts — both are
+  // sent — so switching modes never strands a rider. The wizard only gates its symptoms
+  // sub-step ("I'm not sure" counts); location and timing stay optional.
   const canContinue =
-    inputMode === 'wizard'
-      ? wizardSubStep > 0 || wizardAnswers.symptoms.length > 0
-      : freeTextDescription.trim().length > 0;
+    (inputMode === 'wizard' && wizardSubStep > 0) ||
+    wizardAnswers.symptoms.length > 0 ||
+    freeTextDescription.trim().length > 0;
 
   const handleWizardNext = () => {
     if (!canContinue) return;
