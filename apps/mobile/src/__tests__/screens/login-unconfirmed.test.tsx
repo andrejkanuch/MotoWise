@@ -41,9 +41,11 @@ jest.mock('../../lib/supabase', () => ({
 }));
 
 const mockSendSignupCode = jest.fn();
+const mockVerifySignupCode = jest.fn();
 jest.mock('../../lib/email-confirmation', () => ({
   ...jest.requireActual('../../lib/email-confirmation'),
   sendSignupCode: (...args: unknown[]) => mockSendSignupCode(...args),
+  verifySignupCode: (...args: unknown[]) => mockVerifySignupCode(...args),
 }));
 
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js';
@@ -91,6 +93,7 @@ beforeEach(() => {
   mockTrackEvent.mockReset();
   mockSignInWithPassword.mockReset();
   mockSendSignupCode.mockReset();
+  mockVerifySignupCode.mockReset();
   alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
   backHandlers = [];
   jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_event, handler) => {
@@ -186,6 +189,26 @@ describe('Login with an unconfirmed account', () => {
     expect(screen.queryByText(CODE_TITLE())).toBeNull();
     expect(screen.getByPlaceholderText(t('auth.email')).props.value).toBe(EMAIL);
     expect(screen.getByPlaceholderText(t('auth.password')).props.value).toBe('');
+  });
+
+  it('Android hardware back during a pending verify keeps the code step', async () => {
+    mockSignInWithPassword.mockResolvedValue({ data: {}, error: notConfirmed() });
+    mockSendSignupCode.mockResolvedValue({ error: null });
+    mockVerifySignupCode.mockReturnValue(new Promise(() => {}));
+    await signIn();
+
+    await fireEvent.changeText(screen.getByLabelText(t('auth.codeInputLabel')), '482913');
+    await flush();
+    expect(mockVerifySignupCode).toHaveBeenCalledWith(EMAIL, '482913');
+
+    let handled: boolean | null | undefined;
+    await act(async () => {
+      handled = backHandlers[backHandlers.length - 1]?.();
+    });
+
+    expect(handled).toBe(true);
+    expect(screen.getByText(CODE_TITLE())).toBeTruthy();
+    expect(screen.getByText(t('auth.codeVerifying'))).toBeTruthy();
   });
 
   it('a direct sign-in still fires USER_SIGNED_IN', async () => {

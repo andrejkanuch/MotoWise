@@ -165,6 +165,28 @@ describe('Register with email confirmation', () => {
     expect(screen.queryByText(CODE_TITLE())).toBeNull();
   });
 
+  it('an already-registered email offers sign-in instead of a code step that never arrives', async () => {
+    // Supabase's enumeration protection: an obfuscated user with no identities, no email sent.
+    mockSignUp.mockResolvedValue({
+      data: { user: { id: 'u1', identities: [] }, session: null },
+      error: null,
+    });
+
+    await register();
+
+    expect(screen.queryByText(CODE_TITLE())).toBeNull();
+    expect(eventsNamed('EMAIL_CODE_SENT')).toEqual([]);
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    const [title, message, buttons] = alertSpy.mock.calls[0] ?? [];
+    expect(title).toBe(t('auth.accountExistsTitle'));
+    expect(message).toBe(t('auth.accountExistsMessage'));
+    const signInAction = (buttons as Array<{ text: string; onPress?: () => void }>).find(
+      (button) => button.text === t('auth.signIn'),
+    );
+    signInAction?.onPress?.();
+    expect(mockRouter.replace).toHaveBeenCalledWith('/(auth)/login');
+  });
+
   it('Change email returns to the form with the email kept and the password cleared', async () => {
     mockSignUp.mockResolvedValue(noSession);
     await register();

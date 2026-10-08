@@ -84,6 +84,8 @@ export interface EmailCodeStepProps {
   onBack: () => void;
   /** "Already confirmed" with no password in memory: take the rider to sign-in. */
   onNeedsSignIn: () => void;
+  /** Reports whether a verify or recovery is in flight (e.g. to hold Android back). */
+  onBusyChange?: (busy: boolean) => void;
 }
 
 const MESSAGE = {
@@ -146,6 +148,7 @@ export function EmailCodeStep({
   theme,
   onBack,
   onNeedsSignIn,
+  onBusyChange,
 }: EmailCodeStepProps) {
   const { t } = useTranslation();
   const address = normalizeEmail(email);
@@ -153,10 +156,16 @@ export function EmailCodeStep({
   const [busy, setBusy] = useState(false);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState<StepMessage | null>(null);
+  // The last verify was throttled: its kept digits can be retried once the wait is over.
+  const [verifyThrottled, setVerifyThrottled] = useState(false);
   const resendCooldown = useResendCooldown(initialCooldownMs);
   const throttle = useResendCooldown();
   const inFlightRef = useRef(false);
   const autoRecoveryTriedRef = useRef(false);
+
+  useEffect(() => {
+    onBusyChange?.(busy);
+  }, [busy, onBusyChange]);
 
   // The throttled message describes the wait; drop it once the wait is over.
   useEffect(() => {
@@ -210,6 +219,7 @@ export function EmailCodeStep({
       case EMAIL_AUTH_ERROR.THROTTLED:
       case EMAIL_AUTH_ERROR.RATE_LIMITED:
         throttle.start(VERIFY_THROTTLE_WAIT_MS);
+        setVerifyThrottled(true);
         show(MESSAGE.TOO_MANY_ATTEMPTS);
         return false;
       case EMAIL_AUTH_ERROR.NETWORK:
@@ -225,6 +235,7 @@ export function EmailCodeStep({
     inFlightRef.current = true;
     setBusy(true);
     setMessage(null);
+    setVerifyThrottled(false);
     let error: unknown;
     try {
       ({ error } = await verifySignupCode(address, digits));
@@ -292,12 +303,13 @@ export function EmailCodeStep({
   };
 
   const fieldDisabled = busy || throttle.isCoolingDown;
-  // A failed verify that keeps the digits (connection, throttle wait over, unknown
-  // error) can be retried as-is; a wrong code clears the field instead.
+  // A failed verify that keeps the digits (connection, unknown error, or a throttle
+  // whose wait is over — `fieldDisabled` covers the wait) can be retried as-is; a
+  // wrong code clears the field instead.
   const canRetry =
     !fieldDisabled &&
     code.length === EMAIL_OTP_LENGTH &&
-    (message?.key === MESSAGE.CONNECTION || message?.key === MESSAGE.GENERIC);
+    (verifyThrottled || message?.key === MESSAGE.CONNECTION || message?.key === MESSAGE.GENERIC);
   const resendDisabled = busy || sending || resendCooldown.isCoolingDown;
   const resendLabel = resendCooldown.isCoolingDown
     ? t('auth.codeResendIn', { seconds: resendCooldown.remainingSeconds })

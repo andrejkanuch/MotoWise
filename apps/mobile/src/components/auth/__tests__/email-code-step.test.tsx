@@ -235,6 +235,26 @@ describe('EmailCodeStep', () => {
     ).toBe(false);
   });
 
+  it('retries the kept code once the throttle wait is over', async () => {
+    mockVerifySignupCode.mockResolvedValueOnce({ error: throttled() }).mockResolvedValueOnce(ok);
+    await renderStep();
+
+    await fireEvent.changeText(codeInput(), '482913');
+    await flush();
+    expect(screen.queryByText(t('common.tryAgain'))).toBeNull();
+
+    await act(async () => jest.advanceTimersByTime(60_000));
+    expect(screen.queryByText(t('auth.codeTooManyAttempts'))).toBeNull();
+    expect(codeInput().props.value).toBe('482913');
+
+    await fireEvent.press(screen.getByText(t('common.tryAgain')));
+    await flush();
+
+    expect(mockVerifySignupCode).toHaveBeenCalledTimes(2);
+    expect(mockVerifySignupCode).toHaveBeenLastCalledWith(EMAIL, '482913');
+    expect(mockTrackEvent).toHaveBeenCalledWith('EMAIL_CODE_VERIFIED', { source: 'signup' });
+  });
+
   it('network failure on verify keeps the digits and is not reported as a wrong code', async () => {
     mockVerifySignupCode.mockResolvedValue({ error: networkError() });
     await renderStep();

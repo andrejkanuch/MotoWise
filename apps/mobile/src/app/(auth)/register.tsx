@@ -48,6 +48,7 @@ export default function RegisterScreen() {
     open: openCodeStep,
     openRateLimited: openCodeStepRateLimited,
     close: closeCodeStep,
+    onBusyChange: onCodeStepBusyChange,
   } = useEmailCodeStep({ clearPassword: () => setPassword('') });
 
   const handleRegister = async () => {
@@ -74,9 +75,19 @@ export default function RegisterScreen() {
           Alert.alert(t('common.error'), userFriendlyError(error));
         }
       } else if (data.user && !data.session) {
-        // USER_SIGNED_UP fires from the code step once the account is confirmed.
-        trackEvent(AnalyticsEvent.EMAIL_CODE_SENT, { source: EMAIL_CODE_SOURCE.SIGNUP });
-        openCodeStep({ email, password });
+        // An empty `identities` array is Supabase's signal that this email is
+        // ALREADY registered: it suppresses the email (enumeration protection),
+        // so a code step would wait for a code that never comes. Offer sign-in.
+        if (data.user.identities?.length === 0) {
+          Alert.alert(t('auth.accountExistsTitle'), t('auth.accountExistsMessage'), [
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('auth.signIn'), onPress: () => router.replace('/(auth)/login') },
+          ]);
+        } else {
+          // USER_SIGNED_UP fires from the code step once the account is confirmed.
+          trackEvent(AnalyticsEvent.EMAIL_CODE_SENT, { source: EMAIL_CODE_SOURCE.SIGNUP });
+          openCodeStep({ email, password });
+        }
       } else if (data.user && data.session) {
         trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'email' });
       }
@@ -174,6 +185,7 @@ export default function RegisterScreen() {
               initialCooldownMs={codeStep.initialCooldownMs}
               theme={EMAIL_CODE_STEP_THEME.auth}
               onBack={closeCodeStep}
+              onBusyChange={onCodeStepBusyChange}
               onNeedsSignIn={() => router.replace('/(auth)/login')}
             />
           ) : (

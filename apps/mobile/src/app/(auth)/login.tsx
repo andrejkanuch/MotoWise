@@ -44,6 +44,7 @@ export default function LoginScreen() {
     open: openCodeStep,
     openRateLimited: openCodeStepRateLimited,
     close: closeCodeStep,
+    onBusyChange: onCodeStepBusyChange,
   } = useEmailCodeStep({ clearPassword: () => setPassword('') });
 
   // The account exists but was never confirmed: send a fresh code and open the
@@ -183,6 +184,7 @@ export default function LoginScreen() {
               initialCooldownMs={codeStep.initialCooldownMs}
               theme={EMAIL_CODE_STEP_THEME.auth}
               onBack={closeCodeStep}
+              onBusyChange={onCodeStepBusyChange}
               onNeedsSignIn={closeCodeStep}
             />
           ) : (

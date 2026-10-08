@@ -102,6 +102,7 @@ export default function AccountScreen() {
     open: openCodeStep,
     openRateLimited: openCodeStepRateLimited,
     close: closeCodeStep,
+    onBusyChange: onCodeStepBusyChange,
   } = useEmailCodeStep({ clearPassword: () => setPassword(''), backLocked: !!session });
 
   useEffect(() => {
@@ -343,6 +344,7 @@ export default function AccountScreen() {
               initialCooldownMs={codeStep.initialCooldownMs}
               theme={EMAIL_CODE_STEP_THEME.onboarding}
               onBack={closeCodeStep}
+              onBusyChange={onCodeStepBusyChange}
               onNeedsSignIn={() => router.push(OB_ROUTE.SIGN_IN)}
             />
           ) : emailMode ? (

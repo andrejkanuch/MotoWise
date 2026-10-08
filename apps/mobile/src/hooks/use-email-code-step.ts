@@ -29,12 +29,18 @@ export interface EmailCodeStepControls {
   openRateLimited: (email: string, password: string, retryAfterMs: number) => void;
   /** Back to the form: closes the step and clears the password. */
   close: () => void;
+  /**
+   * Pass to `EmailCodeStep`'s `onBusyChange`: while a verify or recovery is in
+   * flight, Android hardware back is swallowed instead of closing the step.
+   */
+  onBusyChange: (busy: boolean) => void;
 }
 
 /**
  * Shared open/close state for the email code step that replaces an auth form.
  * While a step is open, Android hardware back returns to the form instead of
- * popping the screen.
+ * popping the screen — unless the step is busy or `backLocked` is set, when it
+ * is swallowed (the in-flight sign-in would land after the form is back).
  */
 export function useEmailCodeStep({
   clearPassword,
@@ -44,16 +50,25 @@ export function useEmailCodeStep({
 
   const clearPasswordRef = useRef(clearPassword);
   clearPasswordRef.current = clearPassword;
+  // Read only by the back handler, so a ref: no re-render on every verify.
+  const busyRef = useRef(false);
+
+  const onBusyChange = useCallback((busy: boolean) => {
+    busyRef.current = busy;
+  }, []);
 
   const open = useCallback((state: CodeStepState) => {
+    busyRef.current = false;
     setCodeStep(state);
   }, []);
 
   const openRateLimited = useCallback((email: string, password: string, retryAfterMs: number) => {
+    busyRef.current = false;
     setCodeStep({ email, password, initialCooldownMs: retryAfterMs });
   }, []);
 
   const close = useCallback(() => {
+    busyRef.current = false;
     setCodeStep(null);
     clearPasswordRef.current();
   }, []);
@@ -62,11 +77,11 @@ export function useEmailCodeStep({
   useEffect(() => {
     if (!hasCodeStep) return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (!backLocked) close();
+      if (!backLocked && !busyRef.current) close();
       return true;
     });
     return () => sub.remove();
   }, [hasCodeStep, backLocked, close]);
 
-  return { codeStep, open, openRateLimited, close };
+  return { codeStep, open, openRateLimited, close, onBusyChange };
 }

@@ -100,4 +100,27 @@ describe('useEmailCodeStep', () => {
     expect(clearPassword).not.toHaveBeenCalled();
     expect(backListeners).toHaveLength(1);
   });
+
+  it('swallows hardware back without closing while the step reports busy', async () => {
+    const clearPassword = jest.fn();
+    const { result } = await renderHook(() => useEmailCodeStep({ clearPassword }));
+
+    await act(async () => result.current.open({ ...STEP }));
+    await act(async () => result.current.onBusyChange(true));
+
+    let handled = false;
+    await act(async () => {
+      handled = pressAndroidBack();
+    });
+    expect(handled).toBe(true);
+    expect(result.current.codeStep).toEqual(STEP);
+    expect(clearPassword).not.toHaveBeenCalled();
+
+    await act(async () => result.current.onBusyChange(false));
+    await act(async () => {
+      handled = pressAndroidBack();
+    });
+    expect(handled).toBe(true);
+    expect(result.current.codeStep).toBeNull();
+  });
 });
