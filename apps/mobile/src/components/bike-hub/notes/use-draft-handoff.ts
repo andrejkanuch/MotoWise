@@ -62,7 +62,9 @@ const ON_OUTCOME: Record<DraftOutcome, { clear: boolean }> = {
  * it reports SAVED for the text it was handed, and the field clears. "Clear" on
  * the restored draft (or Discard) reports DISCARDED. Handing off the same text
  * again restores the parked draft; handing off different text wins over it
- * (`restorableNoteDraft`).
+ * (`restorableNoteDraft`) but never parks over it: that sheet, dragged away,
+ * reports DISCARDED and its field keeps the text. A sheet dragged away while
+ * its save is in flight parks only if the save then fails (`useNoteDraft`).
  */
 export function useDraftHandoff(clearDraft: () => void) {
   const armed = useRef<string | null>(null);

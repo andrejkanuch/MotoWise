@@ -29,8 +29,6 @@ export const STORAGE_UPLOAD_TIMEOUT_MS = 60_000;
  * `userFriendlyError` treat it like any other transient connectivity failure.
  */
 export class StorageUploadTimeoutError extends Error {
-  readonly isStorageUploadTimeout = true;
-
   constructor(bucket: string, timeoutMs: number) {
     super(`${REQUEST_TIMEOUT_MESSAGE} (storage upload to ${bucket}, timeout ${timeoutMs}ms)`);
     this.name = 'StorageUploadTimeoutError';
@@ -46,11 +44,20 @@ type UploadOptions = { contentType: string; upsert: boolean };
  * fileOptions)` has no fetch-parameters argument and `FileOptions` has no
  * `signal` (only download/info/exists/list-style calls take one), so the request
  * cannot be cancelled from here. On timeout the caller gets a rejection and the
- * HTTP request is left to finish or fail on its own. If it does land late, the
- * object is an orphan with no DB row — the same harmless case
- * `removeNotePhotoObject` describes — and a retry never collides with it:
- * shared-folder photos get a fresh `uniquePhotoName()`, and the bike hero and
- * receipt paths upload with `upsert: true`.
+ * HTTP request is left to finish or fail on its own. What a late landing does
+ * depends on the path:
+ * - Shared-folder photos (task, note, expense) get a fresh `uniquePhotoName()`
+ *   per call: a late object is an orphan with no DB row (the harmless case
+ *   `removeNotePhotoObject` describes) and never collides with a retry.
+ * - A receipt is keyed by its `scanId` and a retry sends the same image, so a
+ *   late `upsert: true` landing rewrites identical content.
+ * - The bike hero has ONE fixed path per bike (`upsert: true`). If the rider
+ *   retries with a DIFFERENT photo and the timed-out first upload lands after
+ *   the retry, the first photo silently wins. Accepted residual: it needs a
+ *   stalled upload that outlives the deadline and then completes, followed by a
+ *   different pick, and the rider can set the photo again. Guarding it would
+ *   mean per-upload paths for the hero (and cleaning up the old object), which
+ *   the onboarding `{userId}/onboarding/hero.webp` hand-off does not allow today.
  */
 async function uploadWithTimeout(
   bucket: string,

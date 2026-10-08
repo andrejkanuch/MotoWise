@@ -1,7 +1,7 @@
 import { isSameDay } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import type { TFunction } from 'i18next';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, type DimensionValue, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -31,7 +31,11 @@ import {
   parseEntry,
   validateReading,
 } from '../../../lib/bike-hub/odometer-input';
-import { restorableOdometerDraft, useSheetDraftStore } from '../../../stores/sheet-draft.store';
+import {
+  type OdometerDraft,
+  restorableOdometerDraft,
+  useSheetDraftStore,
+} from '../../../stores/sheet-draft.store';
 import { triggerNotification, triggerSelection } from '../../../utils/haptics';
 import type { HubBike } from '../shell/use-bike-hub-data';
 import { useToday } from '../shell/use-today';
@@ -178,8 +182,9 @@ export function OdometerSheet({
 
   const parksDrafts = exit !== undefined;
   // Read once: the sheet opens either empty or with what a dismissal left behind.
-  const [restored] = useState(() => (parksDrafts ? restorableOdometerDraft(bike.id) : null));
-  const [showRestored, setShowRestored] = useState(restored !== null);
+  const [parkedDraft] = useState(() => (parksDrafts ? restorableOdometerDraft(bike.id) : null));
+  const restored = parkedDraft?.draft;
+  const [showRestored, setShowRestored] = useState(parkedDraft !== null);
   const [digits, setDigits] = useState(restored?.digits ?? '');
   // `null` = the rider has not picked a date: the reading is for today.
   const [pickedDate, setPickedDate] = useState<Date | null>(() =>
@@ -196,19 +201,27 @@ export function OdometerSheet({
   const saving = logOdometer.isPending;
   useEffect(() => onSavingChange?.(saving), [saving, onSavingChange]);
 
-  // A reading still saving is parked too: `useLogOdometer` clears it when the
-  // save lands, so only a failed save leaves it to be restored.
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  const reading = (): OdometerDraft => ({
+    digits,
+    pickedDate: pickedDate?.getTime() ?? null,
+    usedQuickAdd,
+  });
+  // A reading still saving is not parked: a sheet reopened meanwhile must not
+  // offer a reading that may already be logged. `useLogOdometer` parks it if
+  // the save then fails (`draft` in the mutation variables).
   const draftSlot = useParkDraftOnExit({
-    restored: restored !== null,
+    restoredToken: parkedDraft?.token,
     exit: exit ?? (() => SHEET_EXIT.OPEN),
-    pending: () => parksDrafts && (dirty || saving),
-    park: () =>
-      useSheetDraftStore.getState().parkReading(bike.id, {
-        digits,
-        pickedDate: pickedDate?.getTime() ?? null,
-        usedQuickAdd,
-      }),
-    clear: () => useSheetDraftStore.getState().clearReading(bike.id),
+    pending: () => parksDrafts && dirty && !saving,
+    park: (token) => useSheetDraftStore.getState().parkReading(bike.id, reading(), token),
+    clear: (token) => useSheetDraftStore.getState().clearReading(bike.id, token),
   });
 
   /** "Clear" on the restored line: back to an empty entry for today. */
@@ -301,6 +314,9 @@ export function OdometerSheet({
         delta: lastValue == null ? null : value - lastValue,
         backdated,
         usedQuickAdd,
+        draft: parksDrafts
+          ? { reading: reading(), token: draftSlot.token, sheetGone: () => !mounted.current }
+          : undefined,
       },
       {
         onSuccess: () => {

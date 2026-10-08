@@ -14,7 +14,7 @@ import { readingTimestamp } from '../../../lib/bike-hub/odometer-input';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { QUERY_META } from '../../../lib/query-meta';
-import { useSheetDraftStore } from '../../../stores/sheet-draft.store';
+import { type OdometerDraft, useSheetDraftStore } from '../../../stores/sheet-draft.store';
 import { useSheetDiscardGuard } from './use-sheet-discard-guard';
 
 const LATEST_ONLY = 1;
@@ -59,6 +59,18 @@ export interface LogOdometerVariables {
   delta: number | null;
   backdated: boolean;
   usedQuickAdd: boolean;
+  /**
+   * The sheet's parked-draft slot. Mutation-level, so it is honoured after the
+   * sheet is gone: a save that fails once its sheet was dismissed parks the
+   * reading (a save in flight is never parked — a sheet reopened meanwhile must
+   * not offer a reading that may already be logged), and one that lands clears
+   * only the slot `token` holds, never a reading a later sheet parked.
+   */
+  draft?: {
+    reading: OdometerDraft;
+    token: string;
+    sheetGone: () => boolean;
+  };
 }
 
 /**
@@ -80,10 +92,15 @@ export function useLogOdometer(motorcycleId: string) {
           recordedAt: readingTimestamp(recordedAt, today)?.toISOString(),
         },
       }),
+    onError: (_error, { draft }) => {
+      if (!draft?.sheetGone()) return;
+      useSheetDraftStore.getState().parkReading(motorcycleId, draft.reading, draft.token);
+    },
     onSuccess: (_data, variables) => {
-      // The reading is saved: a draft parked by a dismissal mid-save is not work any more.
-      // (Mutation-level, so it runs even when the sheet is already gone.)
-      useSheetDraftStore.getState().clearReading(motorcycleId);
+      // The reading is saved: the draft this sheet restored is not work any more.
+      if (variables.draft) {
+        useSheetDraftStore.getState().clearReading(motorcycleId, variables.draft.token);
+      }
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.odometer.readings(motorcycleId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.odometer.pendingRides(motorcycleId) });

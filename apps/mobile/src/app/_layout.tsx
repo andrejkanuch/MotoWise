@@ -153,6 +153,7 @@ import { supabase } from '../lib/supabase';
 import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
 import { useAuthStore } from '../stores/auth.store';
 import { useExperimentStore } from '../stores/experiment.store';
+import { useSheetDraftStore } from '../stores/sheet-draft.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
 import { rideMMKV } from '../utils/ride-storage';
 import {
@@ -704,6 +705,8 @@ function RootLayout() {
           clearParkedScans();
           clearAllReceiptSaveUndo();
           clearScanConsent();
+          // Note/Odometer work a drag-down parked belongs to the session that wrote it.
+          useSheetDraftStore.getState().clearAll();
         }
       }
 

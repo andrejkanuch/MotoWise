@@ -170,7 +170,7 @@ async function dragDown(view: { unmount: () => void }) {
 }
 
 const NEW_KEY = noteDraftKey(BIKE_A.id);
-const parked = (key = NEW_KEY) => useSheetDraftStore.getState().notes[key];
+const parked = (key = NEW_KEY) => useSheetDraftStore.getState().notes[key]?.draft;
 const textValue = () => screen.getByTestId('note-text').props.value;
 
 /** Writes "Chain is loud", picks two photos (one of which a cache purge will remove), and so on. */
@@ -382,7 +382,7 @@ describe('Note sheet — a quick-add hand-off and a parked draft', () => {
     expect(parked()).toMatchObject({ text: 'Bought oil', handoff: 'Bought oil' });
   });
 
-  it('dragged away mid-save and the save lands: SAVED, and the parked copy is cleared', async () => {
+  it('dragged away mid-save and the save lands: SAVED, and nothing was ever parked', async () => {
     let release: () => void = () => {};
     const view = await renderForm({ draft: 'Bought oil' });
     const answer = mockFetcher.getMockImplementation();
@@ -396,11 +396,163 @@ describe('Note sheet — a quick-add hand-off and a parked draft', () => {
     const saving = fireEvent.press(screen.getByTestId('note-save'));
     await screen.findByText('Saving…');
     await dragDown(view);
-    expect(parked()?.text).toBe('Bought oil');
+    // A save in flight is not parked: a sheet reopened now must not offer it.
+    expect(parked()).toBeUndefined();
     await act(async () => release());
     await saving;
     expect(outcomes).toEqual([['Bought oil', DRAFT_OUTCOME.SAVED]]);
     expect(parked()).toBeUndefined();
+  });
+
+  it('a different hand-off dragged away while another draft is parked: the parked one is kept', async () => {
+    await parkFromHandoff();
+    const view = await renderForm({ draft: 'Bought oil' });
+    await fireEvent.changeText(screen.getByTestId('note-text'), 'Bought oil and filter');
+    await dragDown(view);
+    // Not parked over: the older draft stays, and the field that handed off
+    // "Bought oil" keeps its text and stops waiting.
+    expect(parked()).toMatchObject({
+      text: 'Check chain and sprockets',
+      handoff: 'Check chain',
+    });
+    expect(outcomes).toEqual([['Bought oil', DRAFT_OUTCOME.DISCARDED]]);
+    // The kept draft is still the one the original hand-off restores.
+    await renderForm({ draft: 'Check chain' });
+    expect(textValue()).toBe('Check chain and sprockets');
+  });
+});
+
+describe('Note sheet — reopened while the dismissed sheet still saves', () => {
+  beforeEach(asAndroid);
+
+  /** Makes `createNote` wait until the returned `settle(ok)` is called. */
+  function holdCreate() {
+    let settle: (ok: boolean) => void = () => {};
+    const answer = mockFetcher.getMockImplementation();
+    mockFetcher.mockImplementation((document: unknown, variables: unknown) =>
+      document === CreateNoteDocument
+        ? new Promise((resolve, reject) => {
+            settle = (ok) =>
+              ok ? resolve(answer?.(document, variables)) : reject(new Error('offline'));
+          })
+        : answer?.(document, variables),
+    );
+    return (ok: boolean) => settle(ok);
+  }
+
+  async function dragAwayMidSave() {
+    const first = await renderForm();
+    await fireEvent.changeText(screen.getByTestId('note-text'), 'Chain is loud');
+    const settle = holdCreate();
+    const saving = fireEvent.press(screen.getByTestId('note-save'));
+    await screen.findByText('Saving…');
+    await dragDown(first);
+    return { settle, saving };
+  }
+
+  const creates = () =>
+    mockFetcher.mock.calls.filter(([document]) => document === CreateNoteDocument);
+
+  it('lands: the reopened sheet starts fresh (no duplicate), and its own parked draft survives', async () => {
+    const { settle, saving } = await dragAwayMidSave();
+    const second = await renderForm();
+    // Nothing restored: the first save may already be on the server.
+    expect(screen.queryByTestId('note-restored')).toBeNull();
+    expect(textValue()).toBe('');
+    await fireEvent.changeText(screen.getByTestId('note-text'), 'Front tyre at 2.1 bar');
+    await dragDown(second);
+    expect(parked()?.text).toBe('Front tyre at 2.1 bar');
+
+    await act(async () => settle(true));
+    await saving;
+    expect(creates()).toHaveLength(1);
+    // The first save's success clears only what it owns.
+    expect(parked()?.text).toBe('Front tyre at 2.1 bar');
+  });
+
+  it('fails: parked once, after the failure, and restored by the next sheet', async () => {
+    const { settle, saving } = await dragAwayMidSave();
+    const second = await renderForm();
+    expect(screen.queryByTestId('note-restored')).toBeNull();
+    await act(async () => second.unmount());
+
+    await act(async () => settle(false));
+    await saving;
+    expect(creates()).toHaveLength(1);
+    expect(Object.keys(useSheetDraftStore.getState().notes)).toEqual([NEW_KEY]);
+    expect(parked()?.text).toBe('Chain is loud');
+    await renderForm();
+    expect(textValue()).toBe('Chain is loud');
+    expect(screen.getByTestId('note-restored')).toBeTruthy();
+  });
+
+  it('fails while a later sheet has parked its own draft: that draft is not overwritten', async () => {
+    const { settle, saving } = await dragAwayMidSave();
+    const second = await renderForm();
+    await fireEvent.changeText(screen.getByTestId('note-text'), 'Front tyre at 2.1 bar');
+    await dragDown(second);
+
+    await act(async () => settle(false));
+    await saving;
+    expect(parked()?.text).toBe('Front tyre at 2.1 bar');
+  });
+
+  it('a restored draft dragged away mid-save is not offered again while it saves', async () => {
+    const first = await renderForm();
+    await fireEvent.changeText(screen.getByTestId('note-text'), 'Chain is loud');
+    await dragDown(first);
+    const restoredSheet = await renderForm();
+    expect(textValue()).toBe('Chain is loud');
+    const settle = holdCreate();
+    const saving = fireEvent.press(screen.getByTestId('note-save'));
+    await screen.findByText('Saving…');
+    await dragDown(restoredSheet);
+    expect(parked()).toBeUndefined();
+
+    await renderForm();
+    expect(screen.queryByTestId('note-restored')).toBeNull();
+    await act(async () => settle(true));
+    await saving;
+    expect(creates()).toHaveLength(1);
+  });
+});
+
+describe('Note sheet — photos of a note saved after its sheet was dragged away', () => {
+  beforeEach(asAndroid);
+
+  it('photos that fail to upload are parked on the saved note and offered when it is edited', async () => {
+    const first = await renderForm();
+    await fireEvent.changeText(screen.getByTestId('note-text'), 'Chain is loud');
+    mockPick.mockResolvedValueOnce('file:///kept.jpg');
+    await fireEvent.press(screen.getByTestId('note-add-photo'));
+    let settle: () => void = () => {};
+    const answer = mockFetcher.getMockImplementation();
+    mockFetcher.mockImplementation((document: unknown, variables: unknown) =>
+      document === CreateNoteDocument
+        ? new Promise((resolve) => {
+            settle = () => resolve(answer?.(document, variables));
+          })
+        : answer?.(document, variables),
+    );
+    mockUpload.mockRejectedValue(new Error('The request timed out'));
+    const saving = fireEvent.press(screen.getByTestId('note-save'));
+    await screen.findByText('Saving…');
+    await dragDown(first);
+
+    await act(async () => settle());
+    await saving;
+    // The note itself is saved: nothing on the new-note slot.
+    expect(parked()).toBeUndefined();
+    const savedNoteKey = noteDraftKey(BIKE_A.id, 'note-new');
+    expect(parked(savedNoteKey)).toMatchObject({
+      text: 'Chain is loud',
+      newPhotos: ['file:///kept.jpg'],
+      removedPhotoIds: [],
+    });
+
+    await renderForm({ note: { ...EDITED, id: 'note-new', text: 'Chain is loud' } });
+    expect(screen.getByTestId('note-restored')).toBeTruthy();
+    expect(screen.getAllByLabelText('Remove photo')).toHaveLength(EDITED.photos.length + 1);
   });
 });
 

@@ -1,44 +1,56 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SHEET_EXIT, type SheetExit } from '../../../lib/bike-hub/constants';
+import { newDraftToken } from '../../../stores/sheet-draft.store';
 
 interface ParkDraftOptions {
-  /** This sheet opened by restoring the parked draft: the slot is its own. */
-  restored: boolean;
+  /**
+   * The token of the parked draft this sheet opened by restoring (the slot is
+   * then its own), or `undefined` for a sheet that opened fresh.
+   */
+  restoredToken: string | undefined;
   /** How the sheet was left (`SheetDiscardGuard.exit`). */
   exit: () => SheetExit;
-  /** Work a dismissal now would lose: typed and unsaved, or a save still in flight. */
+  /**
+   * Work a dismissal now would lose: typed and unsaved. A save still in flight
+   * is NOT pending work — a later sheet must never restore what may already be
+   * on the server; the save parks it itself if it fails (`parkUnlessTaken`).
+   */
   pending: () => boolean;
-  /** Writes the sheet's current work to the draft store. */
-  park: () => void;
-  /** Removes this sheet's slot from the draft store. */
-  clear: () => void;
+  /** Writes the sheet's current work under `token`; false when another sheet holds the slot. */
+  park: (token: string) => boolean;
+  /** Empties the slot if `token` holds it. */
+  clear: (token: string) => void;
+  /** Runs once on unmount, after the exit was handled: whether the work was parked. */
+  onLeave?: (parked: boolean) => void;
 }
 
 interface ExitContext {
   pending: () => boolean;
-  park: () => void;
+  park: () => boolean;
   clear: () => void;
-  owns: boolean;
-  claim: () => void;
 }
 
-/** What leaving does to the parked draft, by how the sheet was left. */
-const ON_EXIT: Record<SheetExit, (context: ExitContext) => void> = {
+/**
+ * What leaving does to the parked draft, by how the sheet was left; returns
+ * whether the work was parked. `park` and `clear` act only on a slot this sheet
+ * holds (or a free one, for `park`), so a draft it chose not to restore — or one
+ * a later sheet parked — is never lost to it.
+ */
+const ON_EXIT: Record<SheetExit, (context: ExitContext) => boolean> = {
   // A native dismissal nobody could ask about (Android drag-down): keep the work.
   [SHEET_EXIT.OPEN]: (context) => {
-    if (context.pending()) {
-      context.park();
-      context.claim();
-      return;
-    }
-    // Closed clean after restoring — the rider emptied it: nothing left to keep.
-    if (context.owns) context.clear();
+    if (context.pending()) return context.park();
+    // Closed clean after restoring (the rider emptied it), or mid-save: nothing to keep.
+    context.clear();
+    return false;
   },
   [SHEET_EXIT.SAVED]: (context) => {
-    if (context.owns) context.clear();
+    context.clear();
+    return false;
   },
   [SHEET_EXIT.DISCARDED]: (context) => {
-    if (context.owns) context.clear();
+    context.clear();
+    return false;
   },
 };
 
@@ -46,8 +58,13 @@ const ON_EXIT: Record<SheetExit, (context: ExitContext) => void> = {
  * Parks a sheet's unsaved work when it leaves the screen undecided, so an
  * Android drag-down (which react-native-screens 4.26 cannot hold back) keeps
  * what was typed for the next time the sheet opens. An explicit Discard or a
- * save clears it. A sheet only ever clears a slot it owns — one it restored,
- * or parked itself — so a draft it chose not to restore is never lost to it.
+ * save clears it.
+ *
+ * Ownership is a token: the restored draft's, or a fresh one. The store only
+ * lets the token that holds a slot overwrite or clear it, so a save that lands
+ * after its sheet is gone clears only its own draft, and a sheet that did not
+ * restore the parked draft (a different quick-add hand-off) never parks over it
+ * — its work is then dropped (`onLeave(false)`), the older draft kept.
  *
  * On iOS a dirty sheet cannot leave without Discard or Save, so this only ever
  * clears there (a parked draft cannot arise, but would be harmless).
@@ -55,31 +72,33 @@ const ON_EXIT: Record<SheetExit, (context: ExitContext) => void> = {
 export function useParkDraftOnExit(options: ParkDraftOptions) {
   const latest = useRef(options);
   latest.current = options;
-  const owns = useRef(options.restored);
+  const [token] = useState(() => options.restoredToken ?? newDraftToken());
 
   useEffect(
     () => () => {
-      const { exit, pending, park, clear } = latest.current;
-      ON_EXIT[exit()]({
+      const { exit, pending, park, clear, onLeave } = latest.current;
+      const parked = ON_EXIT[exit()]({
         pending,
-        park,
-        clear,
-        owns: owns.current,
-        claim: () => {
-          owns.current = true;
-        },
+        park: () => park(token),
+        clear: () => clear(token),
       });
+      onLeave?.(parked);
     },
-    [],
+    [token],
   );
 
   return {
+    /** The token this sheet parks under (for a park done outside this hook). */
+    token,
     /**
      * After a save lands (also once the sheet is gone) or the rider taps Clear:
-     * empties the slot if this sheet owns it.
+     * empties the slot if this sheet holds it.
      */
-    clearOwned: () => {
-      if (owns.current) latest.current.clear();
-    },
+    clearOwned: () => latest.current.clear(token),
+    /**
+     * A save failed after the sheet was dismissed mid-save: parks the work now,
+     * unless another sheet has parked in the slot since. Returns whether it did.
+     */
+    parkUnlessTaken: () => latest.current.park(token),
   };
 }

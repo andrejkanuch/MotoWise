@@ -17,17 +17,26 @@ jest.mock('graphql-request', () => ({
 }));
 
 const mockRefreshGqlSession = jest.fn<Promise<boolean>, []>();
+const mockBuildHeaders = jest.fn<Promise<Record<string, string>>, []>();
 jest.mock('../gql-auth-session', () => ({
-  buildGqlRequestHeaders: jest.fn().mockResolvedValue({ 'x-locale': 'en' }),
+  buildGqlRequestHeaders: () => mockBuildHeaders(),
   refreshGqlSession: () => mockRefreshGqlSession(),
 }));
 
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
-import { SubmitDiagnosticDocument } from '@motovault/graphql';
+import {
+  AskTripAssistantDocument,
+  GenerateArticleDocument,
+  GenerateBikeHealthReportDocument,
+  GenerateOnboardingInsightsDocument,
+  RegenerateRideSummaryDocument,
+  ScanReceiptDocument,
+  SubmitDiagnosticDocument,
+} from '@motovault/graphql';
 import { GQL_TIMEOUT_MS, gqlFetcher } from '../graphql-client';
 import {
+  GqlRequestTimeoutError,
   GRAPHQL_ERROR_CODE,
-  isGqlRequestTimeoutError,
   isMissingGqlSessionError,
 } from '../graphql-error-classification';
 import { hasGraphQLCode, userFriendlyError } from '../graphql-errors';
@@ -63,6 +72,7 @@ function unauthenticated() {
 beforeEach(() => {
   mockRequest.mockReset();
   mockRefreshGqlSession.mockReset();
+  mockBuildHeaders.mockReset().mockResolvedValue({ 'x-locale': 'en' });
 });
 
 afterEach(() => {
@@ -165,7 +175,7 @@ describe('gqlFetcher timeout', () => {
     await jest.advanceTimersByTimeAsync(1);
 
     const error = await settled;
-    expect(isGqlRequestTimeoutError(error)).toBe(true);
+    expect(error).toBeInstanceOf(GqlRequestTimeoutError);
     expect((error as Error).message).toContain('MyMotorcycles');
     expect(signals[0].aborted).toBe(true);
     // Existing handlers treat it as a transient connectivity failure: no Sentry
@@ -184,22 +194,32 @@ describe('gqlFetcher timeout', () => {
     expect(jest.getTimerCount()).toBe(0);
   });
 
-  it('gives LLM-backed operations the long-running timeout', async () => {
+  // Every LLM-backed / report-generating document: one dropped from
+  // LONG_RUNNING_DOCUMENTS would silently get the 30 s default.
+  it.each([
+    ['SubmitDiagnostic', SubmitDiagnosticDocument],
+    ['ScanReceipt', ScanReceiptDocument],
+    ['AskTripAssistant', AskTripAssistantDocument],
+    ['GenerateArticle', GenerateArticleDocument],
+    ['GenerateOnboardingInsights', GenerateOnboardingInsightsDocument],
+    ['GenerateBikeHealthReport', GenerateBikeHealthReportDocument],
+    ['RegenerateRideSummary', RegenerateRideSummaryDocument],
+  ] as const)('gives %s the long-running timeout', async (_name, document) => {
     jest.useFakeTimers();
     hangUntilAborted();
 
     let error: unknown;
-    const settled = gqlFetcher(SubmitDiagnosticDocument, {
-      input: {} as never,
-    }).catch((e: unknown) => {
-      error = e;
-    });
+    const settled = gqlFetcher(document as TypedDocumentNode<unknown, unknown>, {}).catch(
+      (e: unknown) => {
+        error = e;
+      },
+    );
     await jest.advanceTimersByTimeAsync(GQL_TIMEOUT_MS.DEFAULT);
     expect(error).toBeUndefined();
 
     await jest.advanceTimersByTimeAsync(GQL_TIMEOUT_MS.LONG_RUNNING - GQL_TIMEOUT_MS.DEFAULT);
     await settled;
-    expect(isGqlRequestTimeoutError(error)).toBe(true);
+    expect(error).toBeInstanceOf(GqlRequestTimeoutError);
   });
 
   it('honours an explicit timeoutMs option', async () => {
@@ -217,6 +237,79 @@ describe('gqlFetcher timeout', () => {
 
     await jest.advanceTimersByTimeAsync(GQL_TIMEOUT_MS.LONG_RUNNING);
     await settled;
-    expect(isGqlRequestTimeoutError(error)).toBe(true);
+    expect(error).toBeInstanceOf(GqlRequestTimeoutError);
+  });
+
+  it('one deadline covers the UNAUTHENTICATED refresh and the retry', async () => {
+    jest.useFakeTimers();
+    const signals: AbortSignal[] = [];
+    mockRequest
+      .mockRejectedValueOnce(unauthenticated())
+      .mockImplementationOnce(({ signal }: { signal: AbortSignal }) => {
+        signals.push(signal);
+        return new Promise(() => {});
+      });
+    // The refresh takes most of the budget; the retry must not get a fresh 30 s.
+    mockRefreshGqlSession.mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve(true), GQL_TIMEOUT_MS.DEFAULT / 2)),
+    );
+
+    let error: unknown;
+    const settled = gqlFetcher(DOCUMENT).catch((e: unknown) => {
+      error = e;
+    });
+    await jest.advanceTimersByTimeAsync(GQL_TIMEOUT_MS.DEFAULT / 2);
+    expect(mockRequest).toHaveBeenCalledTimes(2);
+    expect(error).toBeUndefined();
+    await jest.advanceTimersByTimeAsync(GQL_TIMEOUT_MS.DEFAULT / 2);
+    await settled;
+
+    expect(error).toBeInstanceOf(GqlRequestTimeoutError);
+    expect(signals[0]?.aborted).toBe(true);
+  });
+
+  it('times out a header build that never settles, and sends nothing', async () => {
+    jest.useFakeTimers();
+    mockBuildHeaders.mockReturnValue(new Promise(() => {}));
+
+    const settled = gqlFetcher(DOCUMENT).catch((e: unknown) => e);
+    await jest.advanceTimersByTimeAsync(GQL_TIMEOUT_MS.DEFAULT);
+
+    expect(await settled).toBeInstanceOf(GqlRequestTimeoutError);
+    expect(mockRequest).not.toHaveBeenCalled();
+  });
+
+  it('times out a session refresh that never settles', async () => {
+    jest.useFakeTimers();
+    mockRequest.mockRejectedValue(unauthenticated());
+    mockRefreshGqlSession.mockReturnValue(new Promise(() => {}));
+
+    const settled = gqlFetcher(DOCUMENT).catch((e: unknown) => e);
+    await jest.advanceTimersByTimeAsync(GQL_TIMEOUT_MS.DEFAULT);
+
+    expect(await settled).toBeInstanceOf(GqlRequestTimeoutError);
+    expect(mockRequest).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not send a request whose headers arrive after the deadline', async () => {
+    jest.useFakeTimers();
+    mockBuildHeaders.mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve({}), GQL_TIMEOUT_MS.DEFAULT + 1)),
+    );
+
+    const settled = gqlFetcher(DOCUMENT).catch((e: unknown) => e);
+    await jest.advanceTimersByTimeAsync(GQL_TIMEOUT_MS.DEFAULT + 1);
+
+    expect(await settled).toBeInstanceOf(GqlRequestTimeoutError);
+    expect(mockRequest).not.toHaveBeenCalled();
+  });
+});
+
+describe('GqlRequestTimeoutError', () => {
+  it('is classified as a transient network error by message alone', () => {
+    expect(
+      isNetworkError(new GqlRequestTimeoutError(GQL_TIMEOUT_MS.DEFAULT, 'MyMotorcycles')),
+    ).toBe(true);
+    expect(isNetworkError(new GqlRequestTimeoutError(GQL_TIMEOUT_MS.DEFAULT))).toBe(true);
   });
 });

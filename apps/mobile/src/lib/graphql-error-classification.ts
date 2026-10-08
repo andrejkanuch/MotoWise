@@ -146,7 +146,6 @@ export const REQUEST_TIMEOUT_MESSAGE = 'The request timed out';
  * waiting for the OS network timeout.
  */
 export class GqlRequestTimeoutError extends Error {
-  readonly isGqlRequestTimeout = true;
   readonly operationName: string | undefined;
   readonly timeoutMs: number;
 
@@ -158,15 +157,6 @@ export class GqlRequestTimeoutError extends Error {
     this.operationName = operationName;
     this.timeoutMs = timeoutMs;
   }
-}
-
-export function isGqlRequestTimeoutError(error: unknown): error is GqlRequestTimeoutError {
-  if (error instanceof GqlRequestTimeoutError) return true;
-  return (
-    !!error &&
-    typeof error === 'object' &&
-    (error as { isGqlRequestTimeout?: unknown }).isGqlRequestTimeout === true
-  );
 }
 
 /** What we can learn about a failed GraphQL request, for filtering + grouping. */

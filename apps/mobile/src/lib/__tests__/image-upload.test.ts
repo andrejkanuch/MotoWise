@@ -4,7 +4,13 @@
 // covers the upload deadline that keeps a stalled upload from holding a sheet.
 
 const mockUpload = jest.fn();
-const mockFrom = jest.fn((_bucket: string) => ({ upload: mockUpload }));
+const mockGetPublicUrl = jest.fn((path: string) => ({
+  data: { publicUrl: `https://cdn.example/${path}` },
+}));
+const mockFrom = jest.fn((_bucket: string) => ({
+  upload: mockUpload,
+  getPublicUrl: mockGetPublicUrl,
+}));
 jest.mock('../supabase', () => ({
   supabase: { storage: { from: (bucket: string) => mockFrom(bucket) } },
 }));
@@ -32,9 +38,11 @@ import {
   STORAGE_UPLOAD_TIMEOUT_MS,
   StorageUploadTimeoutError,
   uniquePhotoName,
+  uploadBikePhoto,
   uploadExpensePhoto,
   uploadMaintenancePhoto,
   uploadNotePhoto,
+  uploadReceiptPhoto,
 } from '../image-upload';
 import { isNetworkError } from '../network-error';
 
@@ -131,5 +139,65 @@ describe('upload deadline', () => {
       expect.objectContaining({ fileSizeBytes: mockBytes.byteLength }),
     );
     expect(jest.getTimerCount()).toBe(0);
+  });
+});
+
+// The fixed-path uploads (bike hero, receipt) overwrite with `upsert: true` and
+// go through the same deadline as the shared-folder photos.
+describe.each([
+  [
+    'uploadBikePhoto',
+    () => uploadBikePhoto('file:///hero.jpg', USER_ID, 'bike-1'),
+    'bike-photos',
+    `${USER_ID}/bike-1/hero.webp`,
+  ],
+  [
+    'uploadBikePhoto (onboarding)',
+    () => uploadBikePhoto('file:///hero.jpg', USER_ID),
+    'bike-photos',
+    `${USER_ID}/onboarding/hero.webp`,
+  ],
+  [
+    'uploadReceiptPhoto',
+    () => uploadReceiptPhoto('file:///receipt.jpg', USER_ID, 'scan-1'),
+    'receipts',
+    `${USER_ID}/scan-1.webp`,
+  ],
+] as const)('%s', (_name, upload, bucket, path) => {
+  it('uploads to its fixed path with upsert', async () => {
+    await upload();
+
+    expect(mockFrom).toHaveBeenCalledWith(bucket);
+    expect(mockUpload).toHaveBeenCalledWith(path, mockBytes, {
+      contentType: 'image/webp',
+      upsert: true,
+    });
+  });
+
+  it('rejects with the upload timeout when the upload never settles', async () => {
+    jest.useFakeTimers();
+    mockUpload.mockReturnValue(new Promise(() => {}));
+
+    const settled = upload().catch((e: unknown) => e);
+    await jest.advanceTimersByTimeAsync(STORAGE_UPLOAD_TIMEOUT_MS);
+
+    const error = await settled;
+    expect(error).toBeInstanceOf(StorageUploadTimeoutError);
+    expect((error as Error).message).toContain(bucket);
+  });
+
+  it('rethrows a Storage error', async () => {
+    const storageError = new Error('Payload too large');
+    mockUpload.mockResolvedValue({ data: null, error: storageError });
+
+    await expect(upload()).rejects.toBe(storageError);
+  });
+});
+
+describe('StorageUploadTimeoutError', () => {
+  it('is classified as a transient network error by message alone', () => {
+    expect(
+      isNetworkError(new StorageUploadTimeoutError('receipts', STORAGE_UPLOAD_TIMEOUT_MS)),
+    ).toBe(true);
   });
 });

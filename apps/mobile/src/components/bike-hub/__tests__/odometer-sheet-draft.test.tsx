@@ -168,7 +168,7 @@ async function leaveTypedReading() {
   await dragDown(view);
 }
 
-const parked = () => useSheetDraftStore.getState().readings[BIKE_A.id];
+const parked = () => useSheetDraftStore.getState().readings[BIKE_A.id]?.draft;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -239,23 +239,84 @@ describe('Odometer sheet — Android drag-down keeps the reading', () => {
     expect(parked()).toBeUndefined();
   });
 
-  it('dragged away mid-save: parked, then cleared when the save lands', async () => {
-    const view = await renderRoute();
-    let release: () => void = () => {};
+  /** Makes `logOdometerReading` wait until the returned `settle(ok)` is called. */
+  function holdLog() {
+    let settle: (ok: boolean) => void = () => {};
     const answer = mockFetcher.getMockImplementation();
     mockFetcher.mockImplementation((document: unknown, variables: unknown) =>
       document === LogOdometerReadingDocument
-        ? new Promise((resolve) => {
-            release = () => resolve({ logOdometerReading: { id: 'reading-1' } });
+        ? new Promise((resolve, reject) => {
+            settle = (ok) =>
+              ok
+                ? resolve({ logOdometerReading: { id: 'reading-1' } })
+                : reject(new Error('offline'));
           })
         : answer?.(document, variables),
     );
+    return (ok: boolean) => settle(ok);
+  }
+
+  const logs = () =>
+    mockFetcher.mock.calls.filter(([document]) => document === LogOdometerReadingDocument);
+
+  async function dragAwayMidSave() {
+    const view = await renderRoute();
+    const settle = holdLog();
     await typeReading();
     await fireEvent.press(screen.getByTestId('odometer-save'));
     await dragDown(view);
-    expect(parked()?.digits).toBe('999999');
-    await act(async () => release());
-    await waitFor(() => expect(parked()).toBeUndefined());
+    return settle;
+  }
+
+  it('dragged away mid-save: nothing parked while it saves, nothing left when it lands', async () => {
+    const settle = await dragAwayMidSave();
+    expect(parked()).toBeUndefined();
+    await act(async () => settle(true));
+    expect(parked()).toBeUndefined();
+  });
+
+  it('dragged away mid-save and the save fails: the reading is parked then', async () => {
+    const settle = await dragAwayMidSave();
+    await act(async () => settle(false));
+    await waitFor(() => expect(parked()?.digits).toBe('999999'));
+    await renderRoute();
+    expect(screen.getByTestId('odometer-restored')).toBeTruthy();
+    expect(screen.getByTestId('odometer-entry')).toHaveTextContent('999,999');
+  });
+
+  it('reopened while the save is pending: starts empty (no duplicate); its own draft survives the landing', async () => {
+    const settle = await dragAwayMidSave();
+    const second = await renderRoute();
+    expect(screen.queryByTestId('odometer-restored')).toBeNull();
+    expect(screen.getByTestId('odometer-entry')).toHaveTextContent('— — —');
+    await fireEvent.press(screen.getByTestId('key-1'));
+    await dragDown(second);
+    expect(parked()?.digits).toBe('1');
+
+    await act(async () => settle(true));
+    expect(logs()).toHaveLength(1);
+    expect(parked()?.digits).toBe('1');
+  });
+
+  it('reopened while the save is pending, then it fails: a later draft is not overwritten', async () => {
+    const settle = await dragAwayMidSave();
+    const second = await renderRoute();
+    await fireEvent.press(screen.getByTestId('key-1'));
+    await dragDown(second);
+
+    await act(async () => settle(false));
+    expect(logs()).toHaveLength(1);
+    expect(parked()?.digits).toBe('1');
+  });
+
+  it('a mounted sheet whose save fails keeps the entry and parks nothing', async () => {
+    await renderRoute();
+    const settle = holdLog();
+    await typeReading();
+    await fireEvent.press(screen.getByTestId('odometer-save'));
+    await act(async () => settle(false));
+    expect(screen.getByTestId('odometer-entry')).toHaveTextContent('999,999');
+    expect(parked()).toBeUndefined();
   });
 
   it('a clean sheet parks nothing', async () => {

@@ -993,10 +993,10 @@ describe('NoteForm — reports the handed-off draft (#3)', () => {
     await act(async () => second.unmount());
     await act(async () => release(false));
     await failing;
-    // Not discarded: the work was parked on the way out, so the hand-off stays
+    // Not discarded: the failed save parked the work, so the hand-off stays
     // pending — the restored draft, saved later, still clears the field.
     expect(outcomes).toEqual([]);
-    expect(Object.values(useSheetDraftStore.getState().notes)).toEqual([
+    expect(Object.values(useSheetDraftStore.getState().notes).map((slot) => slot.draft)).toEqual([
       expect.objectContaining({ text: 'Bought oil', handoff: 'Bought oil' }),
     ]);
   });

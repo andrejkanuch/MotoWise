@@ -83,9 +83,9 @@ function operationNameOf(document: unknown): string | undefined {
 }
 
 /**
- * Run one request with a deadline. On expiry the fetch is aborted AND the
- * returned promise rejects with `GqlRequestTimeoutError` — the rejection does
- * not depend on the transport honouring the signal.
+ * Run `send` with a deadline. On expiry the signal is aborted AND the returned
+ * promise rejects with `GqlRequestTimeoutError` — the rejection does not depend
+ * on the transport (or the auth-session calls) honouring the signal.
  *
  * AbortController + setTimeout rather than `AbortSignal.timeout()`: React
  * Native 0.86 installs the `abort-controller` polyfill as the global
@@ -108,6 +108,12 @@ function withTimeout<T>(
   return Promise.race([send(controller.signal), deadline]).finally(() => clearTimeout(timer));
 }
 
+/**
+ * One deadline per call, covering everything the caller waits on: building the
+ * auth headers (which can refresh a near-expiry token), the request, the
+ * UNAUTHENTICATED refresh and the retry. A session refresh that stalls would
+ * otherwise hold a sheet that locks while saving just as long as a hung request.
+ */
 export async function gqlFetcher<TData, TVariables>(
   document: TypedDocumentNode<TData, TVariables>,
   variables?: TVariables,
@@ -116,38 +122,41 @@ export async function gqlFetcher<TData, TVariables>(
   const timeoutMs = resolveTimeoutMs(document, options);
   const operationName = operationNameOf(document);
 
-  const run = async () => {
-    const requestHeaders = await buildGqlRequestHeaders();
-    return withTimeout(
-      (signal) =>
-        client.request<TData>({
+  return withTimeout(
+    async (signal) => {
+      const run = async () => {
+        const requestHeaders = await buildGqlRequestHeaders();
+        // The deadline passed while the headers were built: send nothing.
+        if (signal.aborted) throw new GqlRequestTimeoutError(timeoutMs, operationName);
+        return client.request<TData>({
           document,
           variables: variables as Record<string, unknown>,
           requestHeaders,
           signal,
-        }),
-      timeoutMs,
-      operationName,
-    );
-  };
+        });
+      };
 
-  try {
-    return await run();
-  } catch (error) {
-    if (!hasGraphQLCode(error, GRAPHQL_ERROR_CODE.UNAUTHENTICATED)) throw error;
+      try {
+        return await run();
+      } catch (error) {
+        if (!hasGraphQLCode(error, GRAPHQL_ERROR_CODE.UNAUTHENTICATED)) throw error;
 
-    // Single de-duped refresh across concurrent callers. `refreshGqlSession`
-    // reports whether a usable access token now exists.
-    const hasSession = await refreshGqlSession();
-    if (!hasSession) {
-      // Nobody is signed in (or the refresh token is gone). Retrying would send
-      // a second header-less request and collect a second identical
-      // "Missing authorization header" from the API — that retry loop is what
-      // produced ~2.7k events on MOTO-VAULT-REACT-NATIVE-1J from background
-      // paths (CarPlay heads-up load, ride-sync drains) firing while signed out
-      // or before the session had hydrated from SecureStore.
-      throw new MissingGqlSessionError(operationName);
-    }
-    return await run();
-  }
+        // Single de-duped refresh across concurrent callers. `refreshGqlSession`
+        // reports whether a usable access token now exists.
+        const hasSession = await refreshGqlSession();
+        if (!hasSession) {
+          // Nobody is signed in (or the refresh token is gone). Retrying would send
+          // a second header-less request and collect a second identical
+          // "Missing authorization header" from the API — that retry loop is what
+          // produced ~2.7k events on MOTO-VAULT-REACT-NATIVE-1J from background
+          // paths (CarPlay heads-up load, ride-sync drains) firing while signed out
+          // or before the session had hydrated from SecureStore.
+          throw new MissingGqlSessionError(operationName);
+        }
+        return await run();
+      }
+    },
+    timeoutMs,
+    operationName,
+  );
 }
