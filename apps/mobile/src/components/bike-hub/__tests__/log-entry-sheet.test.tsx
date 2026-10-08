@@ -47,7 +47,7 @@ import '../../../i18n';
 import { LOG_OPTION } from '../../../lib/bike-hub/constants';
 import { useAuthStore } from '../../../stores/auth.store';
 import { BIKE_A } from '../../../test/bike-hub-fixtures';
-import { SHEET_TOP_CLEARANCE } from '../sheets/sheet-scroll';
+import { SHEET_BOTTOM_PADDING, SHEET_TOP_CLEARANCE } from '../sheets/sheet-scroll';
 
 const clients: QueryClient[] = [];
 
@@ -73,17 +73,21 @@ afterEach(() => {
 });
 
 describe('Log sheet', () => {
-  it('titles the sheet with the bike and lists the five options in order', async () => {
+  it('titles the sheet with the bike and lists the six options in order', async () => {
     await renderSheet();
     await act(async () => jest.advanceTimersByTimeAsync(0));
     expect(await screen.findByText('Log on the Africa Twin')).toBeOnTheScreen();
     expect(screen.getAllByTestId(/^log-option-/).map((row) => row.props.testID)).toEqual([
       'log-option-expense',
-      'log-option-task',
       'log-option-past_work',
+      'log-option-odometer',
       'log-option-note',
+      'log-option-task',
       'log-option-document',
     ]);
+    // Planning reads as planning, not as one more thing to log.
+    expect(screen.getByText('Plan a task')).toBeOnTheScreen();
+    expect(screen.queryByText('Maintenance task')).toBeNull();
   });
 
   it('uses the nickname in quotes when the bike has one', async () => {
@@ -126,6 +130,29 @@ describe('Log sheet', () => {
     expect(mockRouter.replace).toHaveBeenCalledWith({
       pathname: '/(tabs)/(garage)/note',
       params: { motorcycleId: BIKE_A.id },
+    });
+  });
+
+  it('Odometer opens the odometer sheet with ONE replace — never back() then push()', async () => {
+    await renderSheet();
+    await act(async () => jest.advanceTimersByTimeAsync(0));
+    await screen.findByText('Log on the Africa Twin');
+    expect(
+      screen.getByRole('button', { name: 'Odometer. Update the reading from your dash' }),
+    ).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId('log-option-odometer'));
+    await act(async () => jest.advanceTimersByTimeAsync(2000));
+    expect(mockRouter.replace).toHaveBeenCalledTimes(1);
+    expect(mockRouter.replace).toHaveBeenCalledWith({
+      pathname: '/(tabs)/(garage)/odometer',
+      params: { motorcycleId: BIKE_A.id },
+    });
+    expect(mockRouter.back).not.toHaveBeenCalled();
+    expect(mockRouter.push).not.toHaveBeenCalled();
+    const { trackEvent } = jest.requireMock('../../../lib/analytics') as { trackEvent: jest.Mock };
+    expect(trackEvent).toHaveBeenCalledWith('BIKE_LOG_OPTION_SELECTED', {
+      motorcycle_id: BIKE_A.id,
+      option: LOG_OPTION.ODOMETER,
     });
   });
 
@@ -175,17 +202,29 @@ describe('Log sheet — largest text sizes (visual QA round 2)', () => {
     // Android: the form sheet's drag must not steal this scroll view's pan.
     expect(scroll.props.nestedScrollEnabled).toBe(true);
     expect(within(scroll).getByText('Log on the Africa Twin')).toBeOnTheScreen();
-    // The fifth option is inside it, so it can be scrolled to at AX5.
+    // The last option is inside it, so it can be scrolled to at AX5.
     expect(within(scroll).getByTestId('log-option-document')).toBeOnTheScreen();
   });
 
-  it('option titles and sub-lines are capped at 1.3x, so "Maintenance task" does not break mid-word', async () => {
+  it('option titles and sub-lines are capped at 1.3x, so no title breaks mid-word', async () => {
     await renderSheet();
     await act(async () => jest.advanceTimersByTimeAsync(0));
-    expect((await screen.findByText('Maintenance task')).props.maxFontSizeMultiplier).toBe(1.3);
+    expect((await screen.findByText('Plan a task')).props.maxFontSizeMultiplier).toBe(1.3);
     expect(
       screen.getByText('Something to do, due by date or distance').props.maxFontSizeMultiplier,
     ).toBe(1.3);
+  });
+});
+
+describe('Log sheet — no dead space under the last option', () => {
+  it('iOS lifts the sheet above the home indicator itself: no safe-area inset added on top', async () => {
+    await renderSheet();
+    await act(async () => jest.advanceTimersByTimeAsync(0));
+    const scroll = await screen.findByTestId('log-sheet-scroll');
+    const content = StyleSheet.flatten(scroll.props.contentContainerStyle);
+    // The inset (34) is not added; was 34 + 8.
+    expect(content.paddingBottom).toBe(SHEET_BOTTOM_PADDING);
+    expect(content.gap).toBe(8);
   });
 });
 

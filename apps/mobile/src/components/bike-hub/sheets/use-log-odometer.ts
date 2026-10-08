@@ -4,8 +4,14 @@ import {
   PendingRideDistanceDocument,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { router } from 'expo-router';
+import { useNavigation, usePreventRemove } from 'expo-router/react-navigation';
+import type { TFunction } from 'i18next';
+import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Alert, BackHandler } from 'react-native';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import { ODOMETER_SOURCE } from '../../../lib/bike-hub/constants';
+import { ODOMETER_SOURCE, SHEET_DISMISS_GUARD_PLATFORMS } from '../../../lib/bike-hub/constants';
 import { readingTimestamp } from '../../../lib/bike-hub/odometer-input';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
@@ -90,4 +96,65 @@ export function useLogOdometer(motorcycleId: string) {
       });
     },
   });
+}
+
+/** "Discard reading?" — Keep editing (cancel) / Discard (destructive). */
+export function confirmDiscardReading(t: TFunction, onDiscard: () => void): void {
+  Alert.alert(t('bikeHub.odometer.discardTitle'), t('bikeHub.odometer.discardMessage'), [
+    { text: t('bikeHub.odometer.keepEditing'), style: 'cancel' },
+    { text: t('bikeHub.odometer.discard'), style: 'destructive', onPress: onDiscard },
+  ]);
+}
+
+/**
+ * Keeps a typed reading (digits or a picked date) from being lost to a stray
+ * swipe or Cancel: the rider is asked "Discard reading?" first, and Discard
+ * leaves with exactly ONE navigation action (the sheet's modal-update race,
+ * software-mansion/react-native-screens#4446, makes a second one unsafe).
+ *
+ * iOS: `usePreventRemove` sets react-native-screens' `preventNativeDismiss` on
+ * the form sheet. UIKit then refuses the swipe-down (the sheet springs back),
+ * screens reports `onNativeDismissCancelled`, native-stack dispatches a pop,
+ * and the prevented pop lands in the callback below. Cancel takes the same
+ * path through `router.back()`. Discard re-dispatches that very pop — which
+ * the guard lets through — so the sheet leaves once.
+ *
+ * Android: screens 4.26 ignores `preventNativeDismiss` (the bottom sheet hides
+ * itself before JS hears of it), so a prevented pop would leave JS holding a
+ * sheet the OS already dismissed. There the guard covers Cancel and the
+ * hardware Back button; a swipe-down still closes without asking.
+ */
+export function useDiscardReadingGuard(dirty: boolean) {
+  const { t } = useTranslation();
+  const navigation = useNavigation();
+  const saved = useRef(false);
+  const nativeGuard = SHEET_DISMISS_GUARD_PLATFORMS.has(process.env.EXPO_OS ?? '');
+
+  usePreventRemove(nativeGuard && dirty, ({ data }) => {
+    const leave = () => navigation.dispatch(data.action);
+    if (saved.current) return leave();
+    confirmDiscardReading(t, leave);
+  });
+
+  useEffect(() => {
+    if (nativeGuard || !dirty) return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      confirmDiscardReading(t, () => router.back());
+      return true;
+    });
+    return () => subscription.remove();
+  }, [nativeGuard, dirty, t]);
+
+  return {
+    /** Cancel: asks first when something was typed. */
+    cancel: () => {
+      if (dirty && !nativeGuard) return confirmDiscardReading(t, () => router.back());
+      router.back();
+    },
+    /** After a successful save: leaves without asking. */
+    closeAfterSave: () => {
+      saved.current = true;
+      router.back();
+    },
+  };
 }

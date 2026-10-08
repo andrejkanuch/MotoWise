@@ -6,6 +6,20 @@ import { hub } from '../ui/tokens';
 /** Room the system keeps between the status bar and a full-height sheet's top edge. */
 export const SHEET_TOP_CLEARANCE = 16;
 
+/** Space under the last control of a fit-to-contents sheet. */
+export const SHEET_BOTTOM_PADDING = 16;
+
+/**
+ * Bottom padding of a fit-to-contents sheet. iOS already lifts a form sheet's
+ * content clear of the home indicator, so adding the safe-area inset there left
+ * ~70 pt of dead space under Save and under the last Log option. Android draws
+ * the sheet edge to edge, behind the navigation bar, so the inset is kept.
+ */
+export function sheetBottomPadding(bottomInset: number): number {
+  if (process.env.EXPO_OS === 'ios') return SHEET_BOTTOM_PADDING;
+  return Math.max(bottomInset, SHEET_BOTTOM_PADDING);
+}
+
 interface SheetScrollProps {
   children: ReactNode;
   contentContainerStyle: ViewStyle;

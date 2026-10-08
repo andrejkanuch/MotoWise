@@ -3,6 +3,7 @@ import type { Href } from 'expo-router';
 import {
   Check,
   FileText,
+  Gauge,
   type LucideIcon,
   PenLine,
   Receipt,
@@ -52,61 +53,87 @@ export function expenseIconFor(currency: Currency): LucideIcon {
   return RECEIPT_BY_CURRENCY[currency] ?? ReceiptText;
 }
 
+const EXPENSE: LogOptionDefinition = {
+  id: LOG_OPTION.EXPENSE,
+  icon: ReceiptText,
+  iconFor: expenseIconFor,
+  iconColor: hub.soon,
+  tileBackground: hub.tagHighBg,
+  titleKey: 'bikeHub.log.expense',
+  subKey: 'bikeHub.log.expenseSub',
+  href: (params) => ({
+    pathname: '/(tabs)/(garage)/add-expense',
+    params: { ...params, entrySource: EXPENSE_ENTRY_SOURCE.BIKE_HUB },
+  }),
+};
+
+const PAST_WORK: LogOptionDefinition = {
+  id: LOG_OPTION.PAST_WORK,
+  icon: Check,
+  iconColor: hub.ok,
+  tileBackground: hub.raised,
+  titleKey: 'bikeHub.log.pastWork',
+  subKey: 'bikeHub.log.pastWorkSub',
+  href: (params) => ({
+    pathname: '/(tabs)/(garage)/add-maintenance-task',
+    params: { ...params, mode: ADD_TASK_MODE.LOG },
+  }),
+};
+
+const ODOMETER: LogOptionDefinition = {
+  id: LOG_OPTION.ODOMETER,
+  icon: Gauge,
+  iconColor: hub.text,
+  tileBackground: hub.raised,
+  titleKey: 'bikeHub.log.odometer',
+  subKey: 'bikeHub.log.odometerSub',
+  href: ({ motorcycleId }) => ({
+    pathname: '/(tabs)/(garage)/odometer',
+    params: { motorcycleId },
+  }),
+};
+
+const NOTE: LogOptionDefinition = {
+  id: LOG_OPTION.NOTE,
+  icon: PenLine,
+  iconColor: hub.dim,
+  tileBackground: hub.raised,
+  titleKey: 'bikeHub.log.note',
+  subKey: 'bikeHub.log.noteSub',
+  href: ({ motorcycleId }) => ({ pathname: '/(tabs)/(garage)/note', params: { motorcycleId } }),
+};
+
+/** Planning, not logging: it records something still to do. */
+const TASK: LogOptionDefinition = {
+  id: LOG_OPTION.TASK,
+  icon: Wrench,
+  iconColor: hub.dim,
+  tileBackground: hub.raised,
+  titleKey: 'bikeHub.log.planTask',
+  subKey: 'bikeHub.log.taskSub',
+  href: (params) => ({ pathname: '/(tabs)/(garage)/add-maintenance-task', params }),
+};
+
+const DOCUMENT: LogOptionDefinition = {
+  id: LOG_OPTION.DOCUMENT,
+  icon: FileText,
+  iconColor: hub.dim,
+  tileBackground: hub.raised,
+  titleKey: 'bikeHub.log.document',
+  subKey: 'bikeHub.log.documentSub',
+  href: (params) => ({ pathname: '/(tabs)/(garage)/add-document', params }),
+};
+
 /**
- * The five things a rider can log, in the order they are drawn. None of them is
- * gated: logging is always free.
+ * The six things a rider can log, in the order they are drawn: what just
+ * happened first (money, work done, the odometer), then notes, then planning
+ * and paperwork. None of them is gated: logging is always free.
  */
 export const LOG_OPTIONS: readonly LogOptionDefinition[] = [
-  {
-    id: LOG_OPTION.EXPENSE,
-    icon: ReceiptText,
-    iconFor: expenseIconFor,
-    iconColor: hub.soon,
-    tileBackground: hub.tagHighBg,
-    titleKey: 'bikeHub.log.expense',
-    subKey: 'bikeHub.log.expenseSub',
-    href: (params) => ({
-      pathname: '/(tabs)/(garage)/add-expense',
-      params: { ...params, entrySource: EXPENSE_ENTRY_SOURCE.BIKE_HUB },
-    }),
-  },
-  {
-    id: LOG_OPTION.TASK,
-    icon: Wrench,
-    iconColor: hub.text,
-    tileBackground: hub.raised,
-    titleKey: 'bikeHub.log.task',
-    subKey: 'bikeHub.log.taskSub',
-    href: (params) => ({ pathname: '/(tabs)/(garage)/add-maintenance-task', params }),
-  },
-  {
-    id: LOG_OPTION.PAST_WORK,
-    icon: Check,
-    iconColor: hub.ok,
-    tileBackground: hub.raised,
-    titleKey: 'bikeHub.log.pastWork',
-    subKey: 'bikeHub.log.pastWorkSub',
-    href: (params) => ({
-      pathname: '/(tabs)/(garage)/add-maintenance-task',
-      params: { ...params, mode: ADD_TASK_MODE.LOG },
-    }),
-  },
-  {
-    id: LOG_OPTION.NOTE,
-    icon: PenLine,
-    iconColor: hub.dim,
-    tileBackground: hub.raised,
-    titleKey: 'bikeHub.log.note',
-    subKey: 'bikeHub.log.noteSub',
-    href: ({ motorcycleId }) => ({ pathname: '/(tabs)/(garage)/note', params: { motorcycleId } }),
-  },
-  {
-    id: LOG_OPTION.DOCUMENT,
-    icon: FileText,
-    iconColor: hub.dim,
-    tileBackground: hub.raised,
-    titleKey: 'bikeHub.log.document',
-    subKey: 'bikeHub.log.documentSub',
-    href: (params) => ({ pathname: '/(tabs)/(garage)/add-document', params }),
-  },
+  EXPENSE,
+  PAST_WORK,
+  ODOMETER,
+  NOTE,
+  TASK,
+  DOCUMENT,
 ];

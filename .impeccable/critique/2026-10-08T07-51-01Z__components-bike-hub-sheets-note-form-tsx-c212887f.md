@@ -10,6 +10,7 @@ target_fingerprint: "sha256:667f080e1a2a7f7f17e56ce7600af3aaa883474b7a41208be7ab
 target_path: /Users/andrejmacm5/personal/MotoWise-bike-hub-ux/apps/mobile/src/components/bike-hub/sheets/note-form.tsx
 timestamp: 2026-10-08T07-51-01Z
 slug: components-bike-hub-sheets-note-form-tsx-c212887f
+closed: true
 ---
 Method: dual-agent. Score 26/40 (Acceptable).
 H1 3, H2 3, H3 2 (swipe-down discards), H4 2 (own header vs SheetHeader), H5 2 (editable during save), H6 3, H7 3, H8 3, H9 2, H10 3.

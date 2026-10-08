@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { HUB_CHROME_MAX_FONT_SCALE, HUB_FONT, HUB_TOUCH_TARGET, hub } from '../ui/tokens';
@@ -19,14 +20,76 @@ export function SheetGrabber() {
   );
 }
 
+/**
+ * Where "Cancel" sits. A sheet that also has a Save button puts it LEADING (the
+ * iOS convention: Cancel left, title centred, the confirming action elsewhere);
+ * a chooser with no Save (Log) keeps it TRAILING beside a left-aligned title.
+ */
+export const SHEET_CANCEL_PLACEMENT = {
+  LEADING: 'leading',
+  TRAILING: 'trailing',
+} as const;
+export type SheetCancelPlacement =
+  (typeof SHEET_CANCEL_PLACEMENT)[keyof typeof SHEET_CANCEL_PLACEMENT];
+
+/** Serif sheet title (DESIGN.md `serif-sheet`, 26/30). */
+const TITLE_SIZE = 26;
+const TITLE_LINE_HEIGHT = 30;
+const TITLE_LINES = 2;
+/** Dimmed Cancel while it cannot be used (a save in flight). */
+const DISABLED_OPACITY = 0.4;
+const PRESSED_OPACITY = 0.6;
+
 interface SheetHeaderProps {
   title: string;
   onCancel: () => void;
+  /** Defaults to trailing (Log and Odometer sheets). */
+  cancelPlacement?: SheetCancelPlacement;
+  /** Cancel does nothing and reads as disabled (e.g. while a save is in flight). */
+  cancelDisabled?: boolean;
+  cancelTestID?: string;
 }
 
-/** Serif sheet title with "Cancel" on the right (Log and Odometer sheets). */
-export function SheetHeader({ title, onCancel }: SheetHeaderProps) {
+/** One header design for every hub sheet: serif title plus "Cancel". */
+export function SheetHeader({
+  title,
+  onCancel,
+  cancelPlacement = SHEET_CANCEL_PLACEMENT.TRAILING,
+  cancelDisabled = false,
+  cancelTestID,
+}: SheetHeaderProps) {
   const { t } = useTranslation();
+  const leading = cancelPlacement === SHEET_CANCEL_PLACEMENT.LEADING;
+  // With Cancel leading, the title is centred on the sheet: a spacer as wide as
+  // Cancel (measured, so a long translation or a larger text size stays centred)
+  // balances the row.
+  const [cancelWidth, setCancelWidth] = useState(0);
+
+  const cancel = (
+    <Pressable
+      testID={cancelTestID}
+      onPress={onCancel}
+      disabled={cancelDisabled}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: cancelDisabled }}
+      onLayout={leading ? (event) => setCancelWidth(event.nativeEvent.layout.width) : undefined}
+      style={({ pressed }) => ({
+        minHeight: HUB_TOUCH_TARGET,
+        justifyContent: 'center',
+        paddingHorizontal: 4,
+        opacity: cancelDisabled ? DISABLED_OPACITY : pressed ? PRESSED_OPACITY : 1,
+      })}
+    >
+      <Text
+        maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+        numberOfLines={1}
+        style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.dim }}
+      >
+        {t('common.cancel')}
+      </Text>
+    </Pressable>
+  );
+
   return (
     <View
       style={{
@@ -37,37 +100,23 @@ export function SheetHeader({ title, onCancel }: SheetHeaderProps) {
         paddingHorizontal: 2,
       }}
     >
+      {leading ? cancel : null}
       <Text
         maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
         accessibilityRole="header"
-        numberOfLines={2}
+        numberOfLines={TITLE_LINES}
         style={{
           flex: 1,
+          textAlign: leading ? 'center' : 'left',
           fontFamily: HUB_FONT.serif,
-          fontSize: 26,
-          lineHeight: 30,
+          fontSize: TITLE_SIZE,
+          lineHeight: TITLE_LINE_HEIGHT,
           color: hub.text,
         }}
       >
         {title}
       </Text>
-      <Pressable
-        onPress={onCancel}
-        accessibilityRole="button"
-        style={({ pressed }) => ({
-          minHeight: HUB_TOUCH_TARGET,
-          justifyContent: 'center',
-          paddingHorizontal: 4,
-          opacity: pressed ? 0.6 : 1,
-        })}
-      >
-        <Text
-          maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-          style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.dim }}
-        >
-          {t('common.cancel')}
-        </Text>
-      </Pressable>
+      {leading ? <View style={{ width: cancelWidth }} /> : cancel}
     </View>
   );
 }

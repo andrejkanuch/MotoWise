@@ -66,16 +66,14 @@ function Key({
 
 interface OdometerKeypadProps {
   onKey: (key: OdometerKey) => void;
-  /** "Date · today" / "Date · Sep 28". */
-  dateLabel: string;
-  onDatePress: () => void;
 }
 
 /**
  * The app's own numeric pad — identical on both platforms, no system keyboard.
- * Bottom row: date · 0 · delete (long-press clears).
+ * Bottom row: Clear · 0 · delete (long-press on delete clears too). The date
+ * lives in a chip beside the reading, not in the pad.
  */
-export function OdometerKeypad({ onKey, dateLabel, onDatePress }: OdometerKeypadProps) {
+export function OdometerKeypad({ onKey }: OdometerKeypadProps) {
   const { t } = useTranslation();
   const digit = (value: OdometerDigit) => (
     <Key
@@ -100,14 +98,19 @@ export function OdometerKeypad({ onKey, dateLabel, onDatePress }: OdometerKeypad
         </View>
       ))}
       <View style={ROW}>
-        <Key testID="key-date" filled={false} accessibilityLabel={dateLabel} onPress={onDatePress}>
+        <Key
+          testID="key-clear"
+          filled={false}
+          accessibilityLabel={t('bikeHub.odometer.clearA11y')}
+          onPress={() => onKey(ODOMETER_KEY.CLEAR)}
+        >
           <Text
             maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
             numberOfLines={1}
             adjustsFontSizeToFit
-            style={{ fontFamily: HUB_FONT.sansMedium, fontSize: 14, color: hub.dim }}
+            style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, color: hub.dim }}
           >
-            {dateLabel}
+            {t('bikeHub.odometer.clear')}
           </Text>
         </Key>
         {digit('0')}

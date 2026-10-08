@@ -8,7 +8,7 @@ import {
   type LogOptionDefinition,
 } from '../../../components/bike-hub/sheets/log-options';
 import { SheetGrabber, SheetHeader } from '../../../components/bike-hub/sheets/sheet-header';
-import { SheetScroll } from '../../../components/bike-hub/sheets/sheet-scroll';
+import { SheetScroll, sheetBottomPadding } from '../../../components/bike-hub/sheets/sheet-scroll';
 import { useHubBike } from '../../../components/bike-hub/shell/use-hub-bike';
 import { HUB_CHROME_MAX_FONT_SCALE, HUB_FONT, hub } from '../../../components/bike-hub/ui/tokens';
 import { useCurrency } from '../../../hooks/use-currency';
@@ -16,7 +16,10 @@ import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { bikeDisplayName } from '../../../lib/bike-hub/format';
 import { triggerImpact } from '../../../utils/haptics';
 
-const OPTION_MIN_HEIGHT = 64;
+const OPTION_MIN_HEIGHT = 60;
+/** Between options: tight enough that six fit without crowding the sheet. */
+const OPTION_GAP = 8;
+const TITLE_EXTRA_SPACE = 4;
 
 /**
  * Log sheet: the chooser behind the Overview's "Log" pill. Picking an option
@@ -59,16 +62,16 @@ export default function LogEntrySheet() {
     );
   };
 
-  // Capped at the hub's 1.3x and scrollable: at the largest text sizes all five
-  // options stay reachable and "Maintenance task" never breaks mid-word.
+  // Capped at the hub's 1.3x and scrollable: at the largest text sizes all six
+  // options stay reachable and no title breaks mid-word.
   return (
     <SheetScroll
       testID="log-sheet-scroll"
       contentContainerStyle={{
         paddingTop: 16,
         paddingHorizontal: 16,
-        paddingBottom: Math.max(insets.bottom, 16) + 8,
-        gap: 10,
+        paddingBottom: sheetBottomPadding(insets.bottom),
+        gap: OPTION_GAP,
       }}
     >
       <SheetGrabber />
@@ -80,6 +83,8 @@ export default function LogEntrySheet() {
           router.back();
         }}
       />
+      {/* The title sits further from the list than the rows sit from each other. */}
+      <View style={{ height: TITLE_EXTRA_SPACE }} />
       {LOG_OPTIONS.map((option) => {
         const Icon = option.iconFor?.(currency) ?? option.icon;
         const title = t(option.titleKey);
@@ -96,7 +101,7 @@ export default function LogEntrySheet() {
               flexDirection: 'row',
               alignItems: 'center',
               gap: 14,
-              paddingVertical: 14,
+              paddingVertical: 12,
               paddingHorizontal: 16,
               borderRadius: 14,
               borderCurve: 'continuous',

@@ -214,6 +214,7 @@ export const LOG_OPTION = {
   PAST_WORK: 'past_work',
   NOTE: 'note',
   DOCUMENT: 'document',
+  ODOMETER: 'odometer',
 } as const;
 export type LogOption = (typeof LOG_OPTION)[keyof typeof LOG_OPTION];
 
@@ -253,3 +254,12 @@ export const NOTE_LINK_TONE = {
   QUIET: 'quiet',
 } as const;
 export type NoteLinkTone = (typeof NOTE_LINK_TONE)[keyof typeof NOTE_LINK_TONE];
+
+/**
+ * What the Odometer sheet's entry shows before the first digit: a dim
+ * placeholder, never the last reading (that read as an editable value).
+ */
+export const ODOMETER_ENTRY_PLACEHOLDER = '— — —';
+
+/** Platforms whose form sheet can refuse a swipe-down (react-native-screens `preventNativeDismiss`). */
+export const SHEET_DISMISS_GUARD_PLATFORMS: ReadonlySet<string> = new Set(['ios']);

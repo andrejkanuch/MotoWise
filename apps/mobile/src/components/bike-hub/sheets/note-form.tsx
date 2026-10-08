@@ -11,8 +11,13 @@ import {
 } from '@motovault/types';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import { Camera, Gauge, X } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import {
+  type NavigationAction,
+  useNavigation,
+  usePreventRemove,
+} from 'expo-router/react-navigation';
+import { Check, CircleAlert, Gauge, ImagePlus, X } from 'lucide-react-native';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -52,7 +57,15 @@ import { NativeToggle } from '../../ui/native-toggle';
 import { NotePhoto, rememberLocalNotePhoto } from '../notes/note-photo';
 import { type HubNote, useCreateNote, useUpdateNote } from '../notes/use-notes';
 import type { HubBike } from '../shell/use-bike-hub-data';
-import { HUB_FONT, HUB_HEIGHT, HUB_RADIUS, HUB_TOUCH_TARGET, hub } from '../ui/tokens';
+import {
+  HUB_CHROME_MAX_FONT_SCALE,
+  HUB_FONT,
+  HUB_HEIGHT,
+  HUB_RADIUS,
+  HUB_TOUCH_TARGET,
+  hub,
+} from '../ui/tokens';
+import { SHEET_CANCEL_PLACEMENT, SheetHeader } from './sheet-header';
 
 const CHIP_SLOP = Math.ceil((HUB_TOUCH_TARGET - HUB_HEIGHT.small) / 2);
 const THUMBNAIL = 64;
@@ -70,6 +83,20 @@ const FOOTER_KEYBOARD_GAP = 12;
 const FOOTER_FALLBACK_HEIGHT = 12 + HUB_HEIGHT.primary + FOOTER_KEYBOARD_GAP;
 /** Room between the focused field's caret and the top of the Save bar. */
 const CARET_MARGIN = 8;
+/** Controls that cannot be used while the note saves (or after it saved) are dimmed to this. */
+const LOCKED_OPACITY = 0.45;
+/** The one navigation action a native sheet sends after it has ALREADY gone (see `usePreventRemove` below). */
+const NATIVE_POP_ACTION = 'POP';
+
+/**
+ * Android's form sheet is a draggable bottom sheet that react-native-screens
+ * cannot hold back (`preventNativeDismiss` is iOS-only): a drag-down dismisses it
+ * natively and only then reports a `POP`. Prompting at that point would leave a
+ * route in JS with no sheet on screen, so that one is let through.
+ */
+function sheetAlreadyDismissed(action: NavigationAction): boolean {
+  return process.env.EXPO_OS === 'android' && action.type === NATIVE_POP_ACTION;
+}
 
 interface UploadedPhoto {
   storagePath: string;
@@ -114,9 +141,9 @@ export async function removeUnattachedNotePhotos(
   );
 }
 
-/** What still needs the rider's eye after the note itself saved. */
+/** Photos of the save in progress: how many are attached to the note so far. */
 interface PhotoProgress {
-  done: number;
+  attached: number;
   total: number;
 }
 
@@ -143,19 +170,37 @@ interface NoteFormProps {
    * the route sets it after the form sheet's presenting transition has ended.
    */
   openPhotoPicker?: boolean;
+  /**
+   * Leaves the sheet with ONE navigation action (the route's `router.back()`).
+   * While there is unsaved work the form's own remove guard intercepts it and
+   * asks first, exactly as it does for a swipe-down or system Back.
+   */
   onClose: () => void;
 }
 
 interface ChipProps {
   label: string;
   selected?: boolean;
+  disabled?: boolean;
   onPress: () => void;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
+  /** Geist Mono label (an odometer stamp: every number is mono). */
+  mono?: boolean;
   accessibilityLabel?: string;
   testID?: string;
 }
 
-function Chip({ label, selected = false, onPress, icon, accessibilityLabel, testID }: ChipProps) {
+/** A choice chip: selected = chip-on fill + copper border, as DESIGN.md's sheet chips. */
+function Chip({
+  label,
+  selected = false,
+  disabled = false,
+  onPress,
+  icon,
+  mono = false,
+  accessibilityLabel,
+  testID,
+}: ChipProps) {
   return (
     <Pressable
       testID={testID}
@@ -163,12 +208,14 @@ function Chip({ label, selected = false, onPress, icon, accessibilityLabel, test
         triggerSelection();
         onPress();
       }}
+      disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
-      accessibilityState={{ selected }}
+      accessibilityState={{ selected, disabled }}
       hitSlop={{ top: CHIP_SLOP, bottom: CHIP_SLOP }}
       style={{
-        height: HUB_HEIGHT.small,
+        minHeight: HUB_HEIGHT.small,
+        paddingVertical: 6,
         paddingHorizontal: 12,
         borderRadius: HUB_RADIUS.chip,
         borderCurve: 'continuous',
@@ -178,15 +225,72 @@ function Chip({ label, selected = false, onPress, icon, accessibilityLabel, test
         flexDirection: 'row',
         alignItems: 'center',
         gap: 6,
+        opacity: disabled ? LOCKED_OPACITY : 1,
       }}
     >
       {icon}
       <Text
+        maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+        numberOfLines={1}
         style={{
-          fontFamily: HUB_FONT.sansSemiBold,
+          fontFamily: mono ? HUB_FONT.monoMedium : HUB_FONT.sansSemiBold,
           fontSize: 13,
           color: selected ? hub.text : hub.dim,
         }}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+/**
+ * "Add photo": an action, not a toggle, so it never wears the toggle chip's
+ * look — the dashed outline is the hub's "add a photo" vocabulary (DESIGN.md).
+ */
+function AddPhotoChip({
+  label,
+  disabled,
+  onPress,
+}: {
+  label: string;
+  disabled: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      testID="note-add-photo"
+      onPress={() => {
+        triggerImpact();
+        onPress();
+      }}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      hitSlop={{ top: CHIP_SLOP, bottom: CHIP_SLOP }}
+      style={({ pressed }) => ({
+        minHeight: HUB_HEIGHT.small,
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: HUB_RADIUS.chip,
+        borderCurve: 'continuous',
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderColor: hub.dashed,
+        // The sheet's own surface: the dashed outline alone marks it as an action.
+        backgroundColor: pressed ? hub.raised : hub.card,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        opacity: disabled ? LOCKED_OPACITY : 1,
+      })}
+    >
+      <ImagePlus size={14} color={hub.text} strokeWidth={1.8} />
+      <Text
+        maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+        numberOfLines={1}
+        style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 13, color: hub.text }}
       >
         {label}
       </Text>
@@ -211,6 +315,7 @@ export function NoteForm({
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
+  const navigation = useNavigation();
   const userId = useAuthStore((state) => state.session?.user?.id);
   const isEdit = !!note;
   const keyboardOpen = useKeyboardState((state) => state.isVisible);
@@ -226,11 +331,13 @@ export function NoteForm({
   const [newPhotos, setNewPhotos] = useState<string[]>([]);
   const [removedPhotoIds, setRemovedPhotoIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
-  /** Photo uploads of the save in progress; `null` while the note itself saves. */
+  /** Photo attaches of the save in progress; `null` while the note itself saves. */
   const [photoProgress, setPhotoProgress] = useState<PhotoProgress | null>(null);
   // State updates land a render later; two taps in the same frame both see
   // `saving === false`. The ref closes that window so a note is created once.
   const savingRef = useRef(false);
+  /** Set right before a successful save closes the sheet, so the guard lets it go. */
+  const leavingRef = useRef(false);
   const [saveFailed, setSaveFailed] = useState(false);
   /** New photos were added but there is no session to upload them under. */
   const [noSession, setNoSession] = useState(false);
@@ -245,9 +352,10 @@ export function NoteForm({
   const uploadedPaths = useRef(new Map<string, PendingNotePhoto>());
   /**
    * The photo upload/attach run in progress, if any. The sheet can be dismissed
-   * mid-save (Discard, swipe-down) while `addNotePhoto` is still in flight; the
-   * unmount cleanup waits for it, so it never removes a file that is about to be
-   * attached, and still collects uploads that finish after the sheet is gone.
+   * mid-save (an Android drag-down cannot be held back) while `addNotePhoto` is
+   * still in flight; the unmount cleanup waits for it, so it never removes a file
+   * that is about to be attached, and still collects uploads that finish after
+   * the sheet is gone.
    */
   const photosInFlight = useRef<Promise<unknown>>(Promise.resolve());
   // Cleanup runs on unmount, so it covers every way out — Cancel, Done and a
@@ -285,6 +393,42 @@ export function NoteForm({
     removedPhotoIds.length > 0 ||
     stampOn !== initialStampOn ||
     alsoTask;
+  /**
+   * While the note saves, and once it is on the server, the form is read-only:
+   * an edit made then would silently not be part of the note.
+   */
+  const locked = saving || !!saved;
+
+  const confirmDiscard = (discard: () => void) => {
+    Alert.alert(t('bikeHub.noteSheet.discardTitle'), undefined, [
+      { text: t('bikeHub.noteSheet.discardKeep'), style: 'cancel' },
+      { text: t('bikeHub.noteSheet.discard'), style: 'destructive', onPress: discard },
+    ]);
+  };
+
+  /**
+   * The one unsaved-work guard for every way out: Cancel (`onClose` →
+   * `router.back()`), the iOS swipe-down and the system Back.
+   *
+   * iOS: while this is on, native-stack sets `preventNativeDismiss` on the
+   * screen, so react-native-screens answers `presentationControllerShouldDismiss`
+   * with NO — the swiped sheet springs back — and reports the attempt
+   * (`onNativeDismissCancelled`) as a `POP`, which lands here. Discard then
+   * dispatches THAT pending action: one navigation action per decision, never a
+   * second `back()` (react-native-screens#4446). A re-dispatched action is
+   * marked as already seen by this route, so it is not intercepted again.
+   */
+  usePreventRemove(!saved && (dirty || saving), ({ data }) => {
+    const { action } = data;
+    // A successful save is closing the sheet, or Android already dismissed it.
+    if (leavingRef.current || sheetAlreadyDismissed(action)) {
+      navigation.dispatch(action);
+      return;
+    }
+    // A save is in flight: the sheet stays (the Save bar says what it is doing).
+    if (savingRef.current) return;
+    confirmDiscard(() => navigation.dispatch(action));
+  });
 
   const addPhoto = () => {
     if (photoCount >= NOTE_PHOTOS_MAX) {
@@ -331,8 +475,10 @@ export function NoteForm({
     owner: string,
   ): Promise<string[]> => {
     if (uris.length === 0) return [];
-    let uploadedCount = 0;
-    setPhotoProgress({ done: 0, total: uris.length });
+    // Progress counts photos ATTACHED to the note, never mere uploads: the label
+    // must not read "2 of 2" while the last one is still being attached.
+    let attachedCount = 0;
+    setPhotoProgress({ attached: 0, total: uris.length });
     // The uploads are the slow part, so they run side by side; each settles on
     // its own, so one failure never holds the others back.
     const uploads = await Promise.allSettled(
@@ -343,8 +489,6 @@ export function NoteForm({
         };
         uploadedPaths.current.set(uri, uploaded);
         rememberLocalNotePhoto(uploaded.storagePath, uri);
-        uploadedCount += 1;
-        setPhotoProgress({ done: uploadedCount, total: uris.length });
         return uploaded;
       }),
     );
@@ -367,6 +511,8 @@ export function NoteForm({
           },
         });
         uploadedPaths.current.delete(uri);
+        attachedCount += 1;
+        setPhotoProgress({ attached: attachedCount, total: uris.length });
       } catch (_error) {
         failed.push(uri);
       }
@@ -392,9 +538,11 @@ export function NoteForm({
     queryClient.invalidateQueries({ queryKey: queryKeys.notes.byMotorcycle(targetId) });
     if (next.failedPhotos.length === 0 && next.failedRemovals.length === 0 && !next.taskMissing) {
       triggerNotification(Haptics.NotificationFeedbackType.Success);
+      leavingRef.current = true;
       close();
       return;
     }
+    triggerNotification(Haptics.NotificationFeedbackType.Warning);
     setSaved(next);
   };
 
@@ -470,21 +618,27 @@ export function NoteForm({
     }
   };
 
-  const cancel = () => {
-    if (!dirty || saved) return close();
-    Alert.alert(t('bikeHub.noteSheet.discardTitle'), undefined, [
-      { text: t('bikeHub.noteSheet.discardKeep'), style: 'cancel' },
-      { text: t('bikeHub.noteSheet.discard'), style: 'destructive', onPress: close },
-    ]);
-  };
+  const failedPhotoCount = saved ? saved.failedPhotos.length + saved.failedRemovals.length : 0;
+  const retryable = failedPhotoCount > 0;
 
-  /** The note saves first, then its photos upload — the button says which. */
-  const saveLabel = (): string => {
+  /** What the primary button says: the note saves first, then its photos attach. */
+  const primaryLabel = (): string => {
+    if (saving && photoProgress) {
+      return t('bikeHub.noteSheet.addingPhotos', {
+        done: photoProgress.attached,
+        total: photoProgress.total,
+      });
+    }
+    if (saving) return t('bikeHub.noteSheet.saving');
+    if (retryable) return t('bikeHub.noteSheet.retryPhotos', { count: failedPhotoCount });
     if (saved) return t('common.done');
-    if (!saving) return t('bikeHub.noteSheet.save');
-    if (photoProgress) return t('bikeHub.noteSheet.uploadingPhotos', { ...photoProgress });
-    return t('bikeHub.noteSheet.saving');
+    return t('bikeHub.noteSheet.save');
   };
+  // After a partial failure Retry is the primary action and Done the secondary.
+  const onPrimary = retryable ? retryPhotos : saved ? close : save;
+  const primaryDisabled = saving || (!saved && !cleanText);
+  // Nothing to save yet: a neutral raised button with dim text, not faded copper.
+  const primaryInert = !saving && !saved && !cleanText;
 
   const footerPadding = Math.max(insets.bottom, 16);
   // With the keyboard up the bar is pushed down by its own safe-area padding
@@ -495,45 +649,27 @@ export function NoteForm({
   const footerAboveKeyboard =
     footerHeight > 0 ? Math.max(0, footerHeight - stickyOpenedOffset) : FOOTER_FALLBACK_HEIGHT;
 
+  const stampOdometer = stampValue != null ? formatOdometer(stampValue, i18n.language) : '';
+  const stampLabel = (): string => {
+    if (!stampOn) return t('bikeHub.noteSheet.stampOff');
+    if (isEdit) return `${stampOdometer} ${unit}`;
+    return t('bikeHub.noteSheet.stamp', { odometer: stampOdometer, unit });
+  };
+  const failedUris = new Set(saved?.failedPhotos ?? []);
+
   return (
     <View style={{ flex: 1, backgroundColor: hub.card }}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingTop: 14,
-          paddingBottom: 6,
-          paddingHorizontal: 8,
-        }}
-      >
-        <Pressable
-          testID="note-cancel"
-          onPress={cancel}
-          accessibilityRole="button"
-          style={{
-            minHeight: HUB_TOUCH_TARGET,
-            minWidth: 72,
-            paddingHorizontal: 10,
-            justifyContent: 'center',
-          }}
-        >
-          <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, color: hub.dim }}>
-            {t('common.cancel')}
-          </Text>
-        </Pressable>
-        <Text
-          accessibilityRole="header"
-          style={{
-            flex: 1,
-            textAlign: 'center',
-            fontFamily: HUB_FONT.serif,
-            fontSize: 24,
-            color: hub.text,
-          }}
-        >
-          {isEdit ? t('bikeHub.noteSheet.edit') : t('bikeHub.noteSheet.new')}
-        </Text>
-        <View style={{ width: 72 }} />
+      <View style={{ paddingTop: 14, paddingBottom: 6, paddingHorizontal: 12 }}>
+        <SheetHeader
+          title={isEdit ? t('bikeHub.noteSheet.edit') : t('bikeHub.noteSheet.new')}
+          // One back action; the remove guard above asks first when there is unsaved work.
+          onCancel={close}
+          cancelPlacement={SHEET_CANCEL_PLACEMENT.LEADING}
+          // A save in flight cannot be discarded (the note may already be on the
+          // server); Cancel waits for it. Once saved, Cancel simply closes.
+          cancelDisabled={saving}
+          cancelTestID="note-cancel"
+        />
       </View>
 
       <KeyboardAwareScrollView
@@ -553,11 +689,12 @@ export function NoteForm({
           }}
           multiline
           autoFocus={!isEdit}
-          editable={!saved}
+          editable={!locked}
           maxLength={NOTE_TEXT_MAX}
           placeholder={t('bikeHub.noteSheet.placeholder')}
           placeholderTextColor={hub.muted}
           accessibilityLabel={t('bikeHub.log.note')}
+          accessibilityState={{ disabled: locked }}
           textAlignVertical="top"
           style={{
             minHeight: keyboardOpen ? MIN_INPUT_HEIGHT_TYPING : MIN_INPUT_HEIGHT,
@@ -567,7 +704,7 @@ export function NoteForm({
             borderWidth: 1,
             borderColor: hub.ripple,
             backgroundColor: hub.ground,
-            color: hub.text,
+            color: locked ? hub.dim : hub.text,
             fontFamily: HUB_FONT.sans,
             fontSize: 16,
             lineHeight: INPUT_LINE_HEIGHT,
@@ -578,40 +715,45 @@ export function NoteForm({
           horizontal
           showsHorizontalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ gap: 6 }}
+          contentContainerStyle={{ gap: 6, alignItems: 'center' }}
         >
           {stampValue != null ? (
             <Chip
               testID="note-stamp"
               selected={stampOn}
+              disabled={locked}
+              mono={stampOn}
               onPress={() => setStampOn((on) => !on)}
-              icon={<Gauge size={14} color={stampOn ? hub.text : hub.dim} strokeWidth={2} />}
-              label={
-                isEdit
-                  ? `${formatOdometer(stampValue, i18n.language)} ${unit}`
-                  : t('bikeHub.noteSheet.stamp', {
-                      odometer: formatOdometer(stampValue, i18n.language),
-                      unit,
-                    })
+              // The icon changes with the state, so on/off reads without colour.
+              icon={
+                stampOn ? (
+                  <Check size={14} color={hub.text} strokeWidth={2.5} />
+                ) : (
+                  <Gauge size={14} color={hub.dim} strokeWidth={2} />
+                )
               }
-              accessibilityLabel={t('bikeHub.noteSheet.stampA11y')}
+              label={stampLabel()}
+              accessibilityLabel={t(
+                stampOn ? 'bikeHub.noteSheet.stampA11yOn' : 'bikeHub.noteSheet.stampA11yOff',
+                { odometer: stampOdometer, unit },
+              )}
             />
           ) : null}
-          <Chip
-            testID="note-add-photo"
+          <AddPhotoChip
+            label={t('bikeHub.noteSheet.addPhoto')}
+            disabled={locked}
             onPress={addPhoto}
-            icon={<Camera size={14} color={hub.dim} strokeWidth={1.8} />}
-            label={t('bikeHub.noteSheet.photo')}
           />
         </ScrollView>
 
         {photoCount > 0 ? (
-          <View style={{ flexDirection: 'row', gap: 8 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingTop: 6 }}>
             {keptPhotos.map((photo) => (
               <Thumbnail
                 key={photo.id}
                 photo={{ storagePath: photo.storagePath, uri: photo.publicUrl }}
                 removeLabel={t('bikeHub.noteSheet.removePhotoA11y')}
+                disabled={locked}
                 onRemove={() => setRemovedPhotoIds((ids) => [...ids, photo.id])}
               />
             ))}
@@ -620,6 +762,10 @@ export function NoteForm({
                 key={uri}
                 photo={{ uri }}
                 removeLabel={t('bikeHub.noteSheet.removePhotoA11y')}
+                failedLabel={
+                  failedUris.has(uri) ? t('bikeHub.noteSheet.photoNotAddedA11y') : undefined
+                }
+                disabled={locked}
                 onRemove={() => setNewPhotos((uris) => uris.filter((other) => other !== uri))}
               />
             ))}
@@ -629,6 +775,7 @@ export function NoteForm({
         {!isEdit && bikes.length > 1 ? (
           <View style={{ gap: 6 }}>
             <Text
+              maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
               style={{
                 fontFamily: HUB_FONT.mono,
                 fontSize: 11,
@@ -651,6 +798,7 @@ export function NoteForm({
                   key={candidate.id}
                   testID={`note-bike-${candidate.id}`}
                   selected={candidate.id === targetId}
+                  disabled={locked}
                   onPress={() => setTargetId(candidate.id)}
                   label={bikeDisplayName(candidate)}
                 />
@@ -673,6 +821,7 @@ export function NoteForm({
               backgroundColor: hub.ground,
               borderWidth: 1,
               borderColor: hub.hairline,
+              opacity: locked ? LOCKED_OPACITY : 1,
             }}
           >
             <View style={{ flex: 1, gap: 2 }}>
@@ -699,11 +848,18 @@ export function NoteForm({
               accessible
               accessibilityRole="switch"
               accessibilityLabel={t('bikeHub.noteSheet.alsoTask')}
-              accessibilityState={{ checked: alsoTask }}
+              accessibilityState={{ checked: alsoTask, disabled: locked }}
               accessibilityActions={[{ name: 'activate' }]}
-              onAccessibilityAction={() => setAlsoTask((on) => !on)}
+              onAccessibilityAction={() => {
+                if (!locked) setAlsoTask((on) => !on);
+              }}
             >
-              <NativeToggle value={alsoTask} onValueChange={setAlsoTask} tint={hub.copper} />
+              <NativeToggle
+                value={alsoTask}
+                onValueChange={setAlsoTask}
+                tint={hub.copper}
+                disabled={locked}
+              />
             </View>
           </View>
         ) : null}
@@ -717,36 +873,34 @@ export function NoteForm({
                 {t('bikeHub.noteSheet.taskNotCreated')}
               </Text>
             ) : null}
-            {saved.failedPhotos.length > 0 || saved.failedRemovals.length > 0 ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <Text
-                  testID="note-photo-error"
-                  style={{ flex: 1, fontFamily: HUB_FONT.sans, fontSize: 13, color: hub.soon }}
-                >
-                  {saved.failedPhotos.length > 0
-                    ? t('bikeHub.noteSheet.photoFailed')
-                    : t('bikeHub.noteSheet.photoRemoveFailed')}
-                </Text>
-                <Pressable
-                  testID="note-retry-photos"
-                  onPress={retryPhotos}
-                  accessibilityRole="button"
-                  style={{
-                    minHeight: HUB_TOUCH_TARGET,
-                    justifyContent: 'center',
-                    paddingHorizontal: 8,
-                  }}
-                >
+            {retryable ? (
+              <View testID="note-photo-error" style={{ gap: 4 }}>
+                {saved.failedPhotos.length > 0 ? (
                   <Text
                     style={{
-                      fontFamily: HUB_FONT.sansSemiBold,
-                      fontSize: 14,
-                      color: hub.copperText,
+                      fontFamily: HUB_FONT.sans,
+                      fontSize: 13,
+                      lineHeight: 18,
+                      color: hub.late,
                     }}
                   >
-                    {t('common.retry')}
+                    {t('bikeHub.noteSheet.photosNotAdded', { count: saved.failedPhotos.length })}
                   </Text>
-                </Pressable>
+                ) : null}
+                {saved.failedRemovals.length > 0 ? (
+                  <Text
+                    style={{
+                      fontFamily: HUB_FONT.sans,
+                      fontSize: 13,
+                      lineHeight: 18,
+                      color: hub.late,
+                    }}
+                  >
+                    {t('bikeHub.noteSheet.photosNotRemoved', {
+                      count: saved.failedRemovals.length,
+                    })}
+                  </Text>
+                ) : null}
               </View>
             ) : null}
           </View>
@@ -764,6 +918,7 @@ export function NoteForm({
             borderTopWidth: 1,
             borderTopColor: hub.hairline,
             backgroundColor: hub.card,
+            gap: 8,
           }}
         >
           {/* In the keyboard-attached footer, right above the button it explains:
@@ -772,43 +927,75 @@ export function NoteForm({
             <Text
               testID="note-save-error"
               accessibilityLiveRegion="polite"
-              style={{ fontFamily: HUB_FONT.sans, fontSize: 13, color: hub.late, marginBottom: 8 }}
+              style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 18, color: hub.late }}
             >
               {noSession ? t('bikeHub.noteSheet.photoNeedsSignIn') : t('bikeHub.notes.saveFailed')}
             </Text>
           ) : null}
           <Pressable
             testID="note-save"
-            onPress={saved ? close : save}
-            disabled={!saved && (!cleanText || saving)}
+            onPress={onPrimary}
+            disabled={primaryDisabled}
             accessibilityRole="button"
-            accessibilityState={{ disabled: !saved && !cleanText, busy: saving }}
+            accessibilityState={{ disabled: primaryDisabled, busy: saving }}
             style={({ pressed }) => ({
-              height: HUB_HEIGHT.primary,
+              minHeight: HUB_HEIGHT.primary,
+              paddingVertical: 10,
+              paddingHorizontal: 16,
               borderRadius: HUB_RADIUS.button,
               borderCurve: 'continuous',
-              backgroundColor: hub.copper,
+              backgroundColor: primaryInert ? hub.raised : hub.copper,
               alignItems: 'center',
               justifyContent: 'center',
               // Busy keeps full strength: the spinner and label carry the state.
-              opacity: !saved && !cleanText ? 0.4 : pressed && !saving ? 0.85 : 1,
+              opacity: pressed && !primaryDisabled ? 0.85 : 1,
             })}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               {saving ? <ActivityIndicator size="small" color={hub.ink} /> : null}
               <Text
                 testID="note-save-label"
+                maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+                numberOfLines={2}
                 style={{
+                  flexShrink: 1,
+                  textAlign: 'center',
                   fontFamily: HUB_FONT.sansBold,
                   fontSize: 16,
-                  color: hub.ink,
+                  color: primaryInert ? hub.muted : hub.ink,
                   fontVariant: ['tabular-nums'],
                 }}
               >
-                {saveLabel()}
+                {primaryLabel()}
               </Text>
             </View>
           </Pressable>
+          {retryable ? (
+            <Pressable
+              testID="note-done"
+              onPress={close}
+              disabled={saving}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: saving }}
+              style={({ pressed }) => ({
+                minHeight: HUB_HEIGHT.secondary,
+                paddingVertical: 8,
+                borderRadius: HUB_RADIUS.button,
+                borderCurve: 'continuous',
+                backgroundColor: hub.raised,
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: saving ? LOCKED_OPACITY : pressed ? 0.85 : 1,
+              })}
+            >
+              <Text
+                maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+                style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, color: hub.text }}
+              >
+                {t('common.done')}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       </KeyboardStickyView>
     </View>
@@ -819,23 +1006,66 @@ function Thumbnail({
   photo,
   onRemove,
   removeLabel,
+  failedLabel,
+  disabled,
 }: {
   photo: { storagePath?: string; uri: string };
   onRemove: () => void;
   removeLabel: string;
+  /** Set = this photo was not attached; it is outlined and badged in the error colour. */
+  failedLabel?: string;
+  disabled: boolean;
 }) {
   return (
-    <View style={{ width: THUMBNAIL, height: THUMBNAIL }}>
-      <NotePhoto photo={photo} size={THUMBNAIL} />
+    <View
+      testID={failedLabel ? 'note-photo-failed' : undefined}
+      style={{ width: THUMBNAIL, height: THUMBNAIL }}
+    >
+      <NotePhoto photo={photo} size={THUMBNAIL} accessibilityLabel={failedLabel} />
+      {failedLabel ? (
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderRadius: HUB_RADIUS.tile,
+            borderCurve: 'continuous',
+            borderWidth: 2,
+            borderColor: hub.late,
+            alignItems: 'flex-start',
+            justifyContent: 'flex-end',
+            padding: 4,
+          }}
+        >
+          <View
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: 10,
+              backgroundColor: hub.photoChip,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <CircleAlert size={14} color={hub.late} strokeWidth={2.5} />
+          </View>
+        </View>
+      ) : null}
       <Pressable
         onPress={() => {
           triggerImpact();
           onRemove();
         }}
+        disabled={disabled}
         accessibilityRole="button"
         accessibilityLabel={removeLabel}
+        accessibilityState={{ disabled }}
         hitSlop={12}
         style={{
+          opacity: disabled ? LOCKED_OPACITY : 1,
           position: 'absolute',
           top: -6,
           right: -6,
