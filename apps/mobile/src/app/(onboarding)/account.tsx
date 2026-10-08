@@ -21,6 +21,7 @@ import { OnboardingBackButton } from '../../components/onboarding/onboarding-bac
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { AUTH_EMAIL_REDIRECT_TO } from '../../config/auth';
 import { getPreviousRoute, OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
 import {
   useOnboardingNext,
@@ -157,7 +158,7 @@ export default function AccountScreen() {
         options: {
           // The rider's analytics decision, for the server-side signup event.
           data: signUpConsentMetadata(),
-          emailRedirectTo: 'https://motovault.app/auth/callback?redirect=motovault://auth/callback',
+          emailRedirectTo: AUTH_EMAIL_REDIRECT_TO,
         },
       });
       if (error) {

@@ -18,6 +18,7 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { AUTH_EMAIL_REDIRECT_TO } from '../../config/auth';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { signUpConsentMetadata } from '../../lib/analytics-consent';
 import { userFriendlyError } from '../../lib/graphql-errors';
@@ -43,7 +44,7 @@ export default function RegisterScreen() {
         password,
         options: {
           data: { full_name: fullName, ...signUpConsentMetadata() },
-          emailRedirectTo: 'https://motovault.app/auth/callback?redirect=motovault://auth/callback',
+          emailRedirectTo: AUTH_EMAIL_REDIRECT_TO,
         },
       });
       if (error) {
