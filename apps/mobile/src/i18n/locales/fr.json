@@ -1257,6 +1257,8 @@
       "alsoTask": "En faire aussi une tâche",
       "alsoTaskSub": "Crée une tâche de priorité basse sans échéance, avec cette note jointe",
       "save": "Enregistrer la note",
+      "saving": "Enregistrement…",
+      "uploadingPhotos": "Envoi des photos {{done}}/{{total}}…",
       "discardTitle": "Abandonner cette note ?",
       "discardKeep": "Continuer la modification",
       "discard": "Abandonner",

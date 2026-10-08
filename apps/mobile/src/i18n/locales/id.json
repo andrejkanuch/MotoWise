@@ -1256,6 +1256,8 @@
       "alsoTask": "Jadikan tugas juga",
       "alsoTaskSub": "Membuat tugas prioritas rendah tanpa tenggat, dengan catatan ini terlampir",
       "save": "Simpan catatan",
+      "saving": "Menyimpan…",
+      "uploadingPhotos": "Mengunggah foto {{done}}/{{total}}…",
       "discardTitle": "Buang catatan ini?",
       "discardKeep": "Lanjutkan mengedit",
       "discard": "Buang",

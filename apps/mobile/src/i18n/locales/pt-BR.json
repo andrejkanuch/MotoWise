@@ -1257,6 +1257,8 @@
       "alsoTask": "Também criar uma tarefa",
       "alsoTaskSub": "Cria uma tarefa de baixa prioridade sem prazo, com esta nota anexada",
       "save": "Salvar nota",
+      "saving": "Salvando…",
+      "uploadingPhotos": "Enviando fotos {{done}}/{{total}}…",
       "discardTitle": "Descartar esta nota?",
       "discardKeep": "Continuar editando",
       "discard": "Descartar",

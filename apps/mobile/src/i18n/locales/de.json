@@ -1256,6 +1256,8 @@
       "alsoTask": "Auch als Aufgabe anlegen",
       "alsoTaskSub": "Legt eine Aufgabe mit niedriger Priorität ohne Termin an, mit dieser Notiz",
       "save": "Notiz speichern",
+      "saving": "Wird gespeichert…",
+      "uploadingPhotos": "Fotos werden hochgeladen {{done}}/{{total}}…",
       "discardTitle": "Diese Notiz verwerfen?",
       "discardKeep": "Weiter bearbeiten",
       "discard": "Verwerfen",

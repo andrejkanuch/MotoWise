@@ -33,9 +33,10 @@ const mockRouter = {
   canGoBack: jest.fn(() => true),
   canDismiss: jest.fn(() => true),
 };
+let mockIsFocused = true;
 jest.mock('expo-router', () => ({
   useRouter: () => mockRouter,
-  useIsFocused: () => true,
+  useIsFocused: () => mockIsFocused,
 }));
 
 const mockFetcher = jest.fn();
@@ -55,6 +56,8 @@ jest.mock('../../../stores/auth.store', () => ({
     selector({ session: { user: { id: 'user-1' } } }),
 }));
 jest.mock('../../../theme/editorial', () => ({
+  EDITORIAL_SCHEME: { DARK: 'dark', LIGHT: 'light' },
+  EditorialSchemeProvider: ({ children }: { children: unknown }) => children,
   useEditorialTheme: () => ({ t: { bg: 'legacy-bg' }, isDark: true }),
 }));
 
@@ -95,6 +98,8 @@ import { useBikeHubStore } from '../../../stores/bike-hub.store';
 import { BikeHubScreen, type BikeHubScreenProps } from '../shell/bike-hub-screen';
 
 const BIKE_ID = 'bike-a';
+/** Past the hub's double-tap window for leaf opens. */
+const LATER_TAP_MS = 1_000;
 const BIKE = {
   id: BIKE_ID,
   userId: 'user-1',
@@ -167,6 +172,7 @@ afterEach(() => {
 });
 
 beforeEach(() => {
+  mockIsFocused = true;
   jest.clearAllMocks();
   useBikeHubStore.setState({ lastSegmentByBike: {}, pendingTask: null });
   respondWith();
@@ -279,8 +285,11 @@ describe('BikeHubScreen — segments', () => {
       params: { motorcycleId: BIKE_ID },
     });
 
+    // A separate tap, later than the double-tap window.
+    const now = jest.spyOn(Date, 'now').mockReturnValue(Date.now() + LATER_TAP_MS);
     await fireEvent.press(screen.getByRole('tab', { name: 'Costs' }));
     await fireEvent.press(screen.getByRole('button', { name: 'Add an expense' }));
+    now.mockRestore();
     expect(mockRouter.push).toHaveBeenCalledWith({
       pathname: '/(tabs)/(garage)/add-expense',
       params: {
@@ -289,6 +298,23 @@ describe('BikeHubScreen — segments', () => {
         entrySource: 'bike_hub',
       },
     });
+  });
+
+  it('a double-tap on a leaf opens it once', async () => {
+    await renderHub();
+    const log = await screen.findByRole('button', { name: 'Log something on this bike' });
+    await fireEvent.press(log);
+    await fireEvent.press(log);
+    expect(mockRouter.push).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens no leaf while another screen is on top of the hub', async () => {
+    const { rerender, client } = await renderHub();
+    const log = await screen.findByRole('button', { name: 'Log something on this bike' });
+    mockIsFocused = false;
+    await rerender(hub({}, client));
+    await fireEvent.press(log);
+    expect(mockRouter.push).not.toHaveBeenCalled();
   });
 
   it.each([

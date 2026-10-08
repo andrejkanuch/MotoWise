@@ -1,4 +1,3 @@
-import { Image } from 'expo-image';
 import { Pencil, Trash2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
@@ -14,6 +13,7 @@ import { showActionSheet } from '../../../utils/action-sheet';
 import { triggerImpact } from '../../../utils/haptics';
 import { noteMeta } from '../overview/notes-block';
 import { HUB_FONT, HUB_TOUCH_TARGET, hub } from '../ui/tokens';
+import { NotePhoto } from './note-photo';
 import type { HubNote } from './use-notes';
 
 const ACTION_WIDTH = 72;
@@ -191,12 +191,11 @@ export function NoteRow({
           {note.photos.length > 0 ? (
             <View style={{ flexDirection: 'row', gap: 6 }}>
               {note.photos.map((photo) => (
-                <Image
+                <NotePhoto
                   key={photo.id}
-                  source={{ uri: photo.publicUrl }}
+                  photo={{ storagePath: photo.storagePath, uri: photo.publicUrl }}
+                  size={PHOTO_SIZE}
                   accessibilityLabel={t('bikeHub.notesScreen.photoA11y')}
-                  style={{ width: PHOTO_SIZE, height: PHOTO_SIZE, borderRadius: 10 }}
-                  contentFit="cover"
                 />
               ))}
             </View>

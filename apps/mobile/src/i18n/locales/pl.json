@@ -1290,6 +1290,8 @@
       "alsoTask": "Utwórz też zadanie",
       "alsoTaskSub": "Tworzy zadanie o niskim priorytecie bez terminu, z dołączoną notatką",
       "save": "Zapisz notatkę",
+      "saving": "Zapisywanie…",
+      "uploadingPhotos": "Przesyłanie zdjęć {{done}}/{{total}}…",
       "discardTitle": "Odrzucić tę notatkę?",
       "discardKeep": "Edytuj dalej",
       "discard": "Odrzuć",

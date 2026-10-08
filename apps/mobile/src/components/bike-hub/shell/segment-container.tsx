@@ -21,8 +21,6 @@ function collapseFor(offsetY: number): number {
 
 export interface SegmentDefinition {
   render: () => ReactNode;
-  /** Ground colour of the segment's scroll view. Hub ground by default. */
-  background?: string;
 }
 
 interface SegmentContainerProps {
@@ -83,10 +81,7 @@ function SegmentScroll({
       importantForAccessibility={isActive ? 'auto' : 'no-hide-descendants'}
       style={isActive ? { flex: 1 } : { display: 'none' }}
     >
-      <KeyboardAvoidingView
-        behavior="padding"
-        style={{ flex: 1, backgroundColor: definition.background ?? hub.ground }}
-      >
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: hub.ground }}>
         <Animated.ScrollView
           testID={`segment-scroll-${segment}`}
           onScroll={onScroll}

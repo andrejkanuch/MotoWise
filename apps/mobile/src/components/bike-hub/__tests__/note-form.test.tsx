@@ -226,6 +226,60 @@ describe('NoteForm — new note', () => {
     });
   });
 
+  it('says what it is doing while the note saves, then while its photos upload', async () => {
+    let finishUpload: () => void = () => {};
+    mockUpload.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishUpload = () =>
+            resolve({ storagePath: 'user-1/notes/note-new/1.webp', fileSizeBytes: 10 });
+        }),
+    );
+    await renderForm({ draft: 'With a photo' });
+    await fireEvent.press(screen.getByTestId('note-add-photo'));
+    await act(async () => {});
+    // Not awaited: the save is parked on the pending upload.
+    const saving = fireEvent.press(screen.getByTestId('note-save'));
+    expect(await screen.findByText('Uploading photos 0/1…')).toBeOnTheScreen();
+    await act(async () => finishUpload());
+    await saving;
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+  });
+
+  it('uploads several photos side by side and attaches them in the order added', async () => {
+    mockPick
+      .mockResolvedValueOnce('file:///photo-1.jpg')
+      .mockResolvedValueOnce('file:///photo-2.jpg');
+    const releases: Array<() => void> = [];
+    mockUpload.mockImplementation(
+      (uri: string) =>
+        new Promise((resolve) => {
+          releases.push(() =>
+            resolve({ storagePath: `user-1/notes/note-new/${uri.slice(-5)}`, fileSizeBytes: 10 }),
+          );
+        }),
+    );
+    await renderForm({ draft: 'Two photos' });
+    await fireEvent.press(screen.getByTestId('note-add-photo'));
+    await act(async () => {});
+    await fireEvent.press(screen.getByTestId('note-add-photo'));
+    await act(async () => {});
+    // Not awaited: the save is parked on the pending uploads.
+    const saving = fireEvent.press(screen.getByTestId('note-save'));
+    // Both uploads start before either finishes.
+    await waitFor(() => expect(mockUpload).toHaveBeenCalledTimes(2));
+    // The second finishes first; attaching still follows the rider's order.
+    await act(async () => releases[1]?.());
+    expect(await screen.findByText('Uploading photos 1/2…')).toBeOnTheScreen();
+    await act(async () => releases[0]?.());
+    await saving;
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    const attached = mockFetcher.mock.calls
+      .filter(([document]) => document === AddNotePhotoDocument)
+      .map(([, variables]) => (variables as { input: { storagePath: string } }).input.storagePath);
+    expect(attached).toEqual(['user-1/notes/note-new/1.jpg', 'user-1/notes/note-new/2.jpg']);
+  });
+
   it('a failed photo keeps the note and offers Retry', async () => {
     mockUpload.mockRejectedValueOnce(new Error('storage down'));
     await renderForm({ draft: 'With a photo' });

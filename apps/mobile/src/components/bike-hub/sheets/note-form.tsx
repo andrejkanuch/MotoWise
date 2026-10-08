@@ -11,11 +11,18 @@ import {
 } from '@motovault/types';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import { Image } from 'expo-image';
 import { Camera, Gauge, X } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import {
   KeyboardAwareScrollView,
   KeyboardStickyView,
@@ -42,6 +49,7 @@ import { useAuthStore } from '../../../stores/auth.store';
 import { showActionSheet } from '../../../utils/action-sheet';
 import { triggerImpact, triggerNotification, triggerSelection } from '../../../utils/haptics';
 import { NativeToggle } from '../../ui/native-toggle';
+import { NotePhoto, rememberLocalNotePhoto } from '../notes/note-photo';
 import { type HubNote, useCreateNote, useUpdateNote } from '../notes/use-notes';
 import type { HubBike } from '../shell/use-bike-hub-data';
 import { HUB_FONT, HUB_HEIGHT, HUB_RADIUS, HUB_TOUCH_TARGET, hub } from '../ui/tokens';
@@ -107,6 +115,11 @@ export async function removeUnattachedNotePhotos(
 }
 
 /** What still needs the rider's eye after the note itself saved. */
+interface PhotoProgress {
+  done: number;
+  total: number;
+}
+
 interface SavedState {
   noteId: string;
   motorcycleId: string;
@@ -213,6 +226,8 @@ export function NoteForm({
   const [newPhotos, setNewPhotos] = useState<string[]>([]);
   const [removedPhotoIds, setRemovedPhotoIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  /** Photo uploads of the save in progress; `null` while the note itself saves. */
+  const [photoProgress, setPhotoProgress] = useState<PhotoProgress | null>(null);
   // State updates land a render later; two taps in the same frame both see
   // `saving === false`. The ref closes that window so a note is created once.
   const savingRef = useRef(false);
@@ -315,21 +330,40 @@ export function NoteForm({
     uris: readonly string[],
     owner: string,
   ): Promise<string[]> => {
-    const failed: string[] = [];
-    for (const uri of uris) {
-      try {
+    if (uris.length === 0) return [];
+    let uploadedCount = 0;
+    setPhotoProgress({ done: 0, total: uris.length });
+    // The uploads are the slow part, so they run side by side; each settles on
+    // its own, so one failure never holds the others back.
+    const uploads = await Promise.allSettled(
+      uris.map(async (uri) => {
         const uploaded = uploadedPaths.current.get(uri) ?? {
           ...(await uploadNotePhoto(uri, owner, noteId)),
           motorcycleId,
         };
         uploadedPaths.current.set(uri, uploaded);
+        rememberLocalNotePhoto(uploaded.storagePath, uri);
+        uploadedCount += 1;
+        setPhotoProgress({ done: uploadedCount, total: uris.length });
+        return uploaded;
+      }),
+    );
+    // Attached one by one, in the order the rider added them.
+    const failed: string[] = [];
+    for (const [index, uri] of uris.entries()) {
+      const upload = uploads[index];
+      if (upload?.status !== 'fulfilled') {
+        failed.push(uri);
+        continue;
+      }
+      try {
         // Idempotent per storagePath on the server, so a retry after a lost
         // response returns the row the first call committed.
         await gqlFetcher(AddNotePhotoDocument, {
           input: {
             noteId,
-            storagePath: uploaded.storagePath,
-            fileSizeBytes: uploaded.fileSizeBytes,
+            storagePath: upload.value.storagePath,
+            fileSizeBytes: upload.value.fileSizeBytes,
           },
         });
         uploadedPaths.current.delete(uri);
@@ -412,6 +446,7 @@ export function NoteForm({
     } finally {
       savingRef.current = false;
       setSaving(false);
+      setPhotoProgress(null);
     }
   };
 
@@ -431,6 +466,7 @@ export function NoteForm({
     } finally {
       savingRef.current = false;
       setSaving(false);
+      setPhotoProgress(null);
     }
   };
 
@@ -440,6 +476,14 @@ export function NoteForm({
       { text: t('bikeHub.noteSheet.discardKeep'), style: 'cancel' },
       { text: t('bikeHub.noteSheet.discard'), style: 'destructive', onPress: close },
     ]);
+  };
+
+  /** The note saves first, then its photos upload — the button says which. */
+  const saveLabel = (): string => {
+    if (saved) return t('common.done');
+    if (!saving) return t('bikeHub.noteSheet.save');
+    if (photoProgress) return t('bikeHub.noteSheet.uploadingPhotos', { ...photoProgress });
+    return t('bikeHub.noteSheet.saving');
   };
 
   const footerPadding = Math.max(insets.bottom, 16);
@@ -564,7 +608,7 @@ export function NoteForm({
             {keptPhotos.map((photo) => (
               <Thumbnail
                 key={photo.id}
-                uri={photo.publicUrl}
+                photo={{ storagePath: photo.storagePath, uri: photo.publicUrl }}
                 removeLabel={t('bikeHub.noteSheet.removePhotoA11y')}
                 onRemove={() => setRemovedPhotoIds((ids) => [...ids, photo.id])}
               />
@@ -572,7 +616,7 @@ export function NoteForm({
             {newPhotos.map((uri) => (
               <Thumbnail
                 key={uri}
-                uri={uri}
+                photo={{ uri }}
                 removeLabel={t('bikeHub.noteSheet.removePhotoA11y')}
                 onRemove={() => setNewPhotos((uris) => uris.filter((other) => other !== uri))}
               />
@@ -744,12 +788,24 @@ export function NoteForm({
               backgroundColor: hub.copper,
               alignItems: 'center',
               justifyContent: 'center',
-              opacity: !saved && (!cleanText || saving) ? 0.4 : pressed ? 0.85 : 1,
+              // Busy keeps full strength: the spinner and label carry the state.
+              opacity: !saved && !cleanText ? 0.4 : pressed && !saving ? 0.85 : 1,
             })}
           >
-            <Text style={{ fontFamily: HUB_FONT.sansBold, fontSize: 16, color: hub.ink }}>
-              {saved ? t('common.done') : t('bikeHub.noteSheet.save')}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              {saving ? <ActivityIndicator size="small" color={hub.ink} /> : null}
+              <Text
+                testID="note-save-label"
+                style={{
+                  fontFamily: HUB_FONT.sansBold,
+                  fontSize: 16,
+                  color: hub.ink,
+                  fontVariant: ['tabular-nums'],
+                }}
+              >
+                {saveLabel()}
+              </Text>
+            </View>
           </Pressable>
         </View>
       </KeyboardStickyView>
@@ -758,21 +814,17 @@ export function NoteForm({
 }
 
 function Thumbnail({
-  uri,
+  photo,
   onRemove,
   removeLabel,
 }: {
-  uri: string;
+  photo: { storagePath?: string; uri: string };
   onRemove: () => void;
   removeLabel: string;
 }) {
   return (
     <View style={{ width: THUMBNAIL, height: THUMBNAIL }}>
-      <Image
-        source={{ uri }}
-        style={{ width: THUMBNAIL, height: THUMBNAIL, borderRadius: 10 }}
-        contentFit="cover"
-      />
+      <NotePhoto photo={photo} size={THUMBNAIL} />
       <Pressable
         onPress={() => {
           triggerImpact();

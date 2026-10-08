@@ -1262,6 +1262,8 @@
       "alsoTask": "Also make it a task",
       "alsoTaskSub": "Creates a low-priority task with no due date, with this note attached",
       "save": "Save note",
+      "saving": "Saving…",
+      "uploadingPhotos": "Uploading photos {{done}}/{{total}}…",
       "discardTitle": "Discard this note?",
       "discardKeep": "Keep editing",
       "discard": "Discard",

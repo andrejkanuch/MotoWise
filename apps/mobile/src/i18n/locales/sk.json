@@ -1290,6 +1290,8 @@
       "alsoTask": "Vytvoriť aj úlohu",
       "alsoTaskSub": "Vytvorí úlohu s nízkou prioritou bez termínu, s touto poznámkou",
       "save": "Uložiť poznámku",
+      "saving": "Ukladá sa…",
+      "uploadingPhotos": "Nahrávajú sa fotky {{done}}/{{total}}…",
       "discardTitle": "Zahodiť túto poznámku?",
       "discardKeep": "Pokračovať v úprave",
       "discard": "Zahodiť",

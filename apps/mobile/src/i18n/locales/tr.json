@@ -1256,6 +1256,8 @@
       "alsoTask": "Görev olarak da ekle",
       "alsoTaskSub": "Bu notun eklendiği, tarihsiz ve düşük öncelikli bir görev oluşturur",
       "save": "Notu kaydet",
+      "saving": "Kaydediliyor…",
+      "uploadingPhotos": "Fotoğraflar yükleniyor {{done}}/{{total}}…",
       "discardTitle": "Bu not silinsin mi?",
       "discardKeep": "Düzenlemeye devam et",
       "discard": "Sil",

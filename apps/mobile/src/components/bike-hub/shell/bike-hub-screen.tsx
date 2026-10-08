@@ -9,7 +9,7 @@ import { type SharedValue, useSharedValue } from 'react-native-reanimated';
 import { BIKE_SEGMENT, type BikeSegment } from '../../../lib/bike-hub/constants';
 import { parseOrigin, resolveInitialSegment } from '../../../lib/bike-hub/segments';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
-import { useEditorialTheme } from '../../../theme/editorial';
+import { EDITORIAL_SCHEME, EditorialSchemeProvider } from '../../../theme/editorial';
 import { OverviewSegment } from '../overview/overview-segment';
 import { BikeSegment as BikeSegmentPanel } from '../segments/bike-segment';
 import { CostsSegment } from '../segments/costs-segment';
@@ -57,6 +57,17 @@ function landingKey({ ts, highlightTask, segment }: BikeHubScreenProps): string 
   return `${ts ?? ''}|${highlightTask ?? ''}|${segment ?? ''}`;
 }
 
+/**
+ * The sections Service / Costs / Bike still wrap (until R2–R5) follow the
+ * editorial theme; the hub is dark in both schemes, so pin them dark to sit on
+ * the hub's ground instead of flipping to light panels on a light-mode phone.
+ */
+function LegacySegment({ children }: { children: React.ReactNode }) {
+  return (
+    <EditorialSchemeProvider value={EDITORIAL_SCHEME.DARK}>{children}</EditorialSchemeProvider>
+  );
+}
+
 function CentredState({ children }: { children: React.ReactNode }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 }}>
@@ -75,7 +86,6 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
   const { t } = useTranslation();
   const bottomLayout = useHubBottomLayout();
   const isFocused = useIsFocused();
-  const { t: legacyTheme } = useEditorialTheme();
   const origin = parseOrigin(from);
   const goBack = useBikeBack(origin);
   const data = useBikeHubData(id);
@@ -176,7 +186,6 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
           active={active}
           landing={landing}
           collapse={collapse}
-          legacyBackground={legacyTheme.bg}
           bottomInset={bottomLayout.contentInset}
           pillBottom={bottomLayout.pillBottom}
           onRemoved={goBack}
@@ -236,7 +245,6 @@ interface LoadedHubProps {
   active: BikeSegment;
   landing: Landing;
   collapse: SharedValue<number>;
-  legacyBackground: string;
   bottomInset: number;
   pillBottom: number;
   onRemoved: () => void;
@@ -254,7 +262,6 @@ function LoadedHub({
   active,
   landing,
   collapse,
-  legacyBackground,
   bottomInset,
   pillBottom,
   onRemoved,
@@ -293,30 +300,35 @@ function LoadedHub({
       ),
     },
     [BIKE_SEGMENT.SERVICE]: {
-      background: legacyBackground,
       render: () => (
-        <ServiceSegment
-          bike={bike}
-          tasks={data.tasks}
-          unit={data.unit}
-          highlightTaskId={landing.highlightTaskId}
-          highlightKey={landing.key}
-        />
+        <LegacySegment>
+          <ServiceSegment
+            bike={bike}
+            tasks={data.tasks}
+            unit={data.unit}
+            highlightTaskId={landing.highlightTaskId}
+            highlightKey={landing.key}
+          />
+        </LegacySegment>
       ),
     },
     [BIKE_SEGMENT.COSTS]: {
-      background: legacyBackground,
-      render: () => <CostsSegment bike={bike} unit={data.unit} />,
+      render: () => (
+        <LegacySegment>
+          <CostsSegment bike={bike} unit={data.unit} />
+        </LegacySegment>
+      ),
     },
     [BIKE_SEGMENT.BIKE]: {
-      background: legacyBackground,
       render: () => (
-        <BikeSegmentPanel
-          bike={bike}
-          actions={actions}
-          onChangePhoto={photo.changePhoto}
-          isUploadingPhoto={photo.uploading}
-        />
+        <LegacySegment>
+          <BikeSegmentPanel
+            bike={bike}
+            actions={actions}
+            onChangePhoto={photo.changePhoto}
+            isUploadingPhoto={photo.uploading}
+          />
+        </LegacySegment>
       ),
     },
   };

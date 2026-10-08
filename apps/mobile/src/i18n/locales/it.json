@@ -1257,6 +1257,8 @@
       "alsoTask": "Rendila anche un’attività",
       "alsoTaskSub": "Crea un’attività a bassa priorità senza scadenza, con questa nota allegata",
       "save": "Salva nota",
+      "saving": "Salvataggio…",
+      "uploadingPhotos": "Caricamento foto {{done}}/{{total}}…",
       "discardTitle": "Scartare questa nota?",
       "discardKeep": "Continua a modificare",
       "discard": "Scarta",

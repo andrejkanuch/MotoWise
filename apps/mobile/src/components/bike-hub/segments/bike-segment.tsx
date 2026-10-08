@@ -134,9 +134,8 @@ export function BikeSegment({ bike, actions, onChangePhoto, isUploadingPhoto }: 
       />
       <BikeDetailsCard bike={bike} delay={0} />
 
-      {/* Same ground as the wrapped sections above (they follow the system
-          scheme), so the tab reads as one surface. The eyebrow takes the legacy
-          theme's muted ink to stay readable on a light ground. */}
+      {/* The hub pins the wrapped sections above to the dark editorial scheme;
+          the eyebrow takes that theme's muted ink so the tab reads as one surface. */}
       <View style={{ marginTop: 24, paddingHorizontal: 16, paddingBottom: 16, gap: 8 }}>
         <SectionHeader label={t('bikeHub.bikeActions.title')} color={theme.ink3} />
         <HubCard style={{ overflow: 'hidden' }}>

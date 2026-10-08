@@ -1257,6 +1257,8 @@
       "alsoTask": "Convertirla también en tarea",
       "alsoTaskSub": "Crea una tarea de prioridad baja sin fecha, con esta nota adjunta",
       "save": "Guardar nota",
+      "saving": "Guardando…",
+      "uploadingPhotos": "Subiendo fotos {{done}}/{{total}}…",
       "discardTitle": "¿Descartar esta nota?",
       "discardKeep": "Seguir editando",
       "discard": "Descartar",
