@@ -29,7 +29,7 @@ const TITLE_EXTRA_SPACE = 4;
  * Never `router.back()` here followed by a later `router.push()`. That sends
  * react-native-screens two separate modal updates, and the second one can land
  * while the first dismissal is still finishing. 4.26.2 does not handle that
- * overlap (see software-mansion/react-native-screens#4446): the dismissed sheet
+ * overlap (see software-mansion/react-native-screens issue 4446): the dismissed sheet
  * stays presented natively while JS has dropped it, and `_updatingModals` can
  * stay set for good, so every later sheet open/close is ignored until relaunch.
  * There is also no signal to wait for: this route unmounts as soon as it is

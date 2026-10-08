@@ -60,7 +60,7 @@ export interface SheetDiscardGuard {
  * way out — Cancel (`router.back()`), the iOS swipe-down and the system Back —
  * reaches `usePreventRemove`, and each decision leaves with exactly ONE
  * navigation action: Discard re-dispatches the held action, never a second
- * `back()` (react-native-screens#4446).
+ * `back()` (react-native-screens issue 4446).
  *
  * iOS: while the guard is on, native-stack sets `preventNativeDismiss`, UIKit
  * refuses the swipe (the sheet springs back) and the attempt lands here as a

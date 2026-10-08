@@ -140,7 +140,7 @@ export function confirmDiscardReading(t: TFunction, onDiscard: () => void): void
  * Keeps a typed reading (digits or a picked date) from being lost to a stray
  * swipe, Cancel or Back: the rider is asked "Discard reading?" first, through
  * the hub's one sheet guard (`useSheetDiscardGuard` — one navigation action per
- * decision, react-native-screens#4446). While the reading saves the sheet is
+ * decision, react-native-screens issue 4446). While the reading saves the sheet is
  * locked: a swipe or Back is swallowed without a prompt, and the save closes
  * the sheet itself. A save that lands after the sheet is gone navigates nowhere.
  */

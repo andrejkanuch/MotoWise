@@ -116,7 +116,7 @@ describe('Log sheet', () => {
       option: LOG_OPTION.EXPENSE,
     });
     // Never a dismiss followed by a later push: two separate modal updates can
-    // overlap natively and leave the sheet stack desynced (screens#4446).
+    // overlap natively and leave the sheet stack desynced (screens issue 4446).
     await act(async () => jest.advanceTimersByTimeAsync(2000));
     expect(mockRouter.back).not.toHaveBeenCalled();
     expect(mockRouter.push).not.toHaveBeenCalled();
