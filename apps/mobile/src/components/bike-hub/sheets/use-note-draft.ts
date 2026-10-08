@@ -9,6 +9,7 @@ import {
   restorableNoteDraft,
   useSheetDraftStore,
 } from '../../../stores/sheet-draft.store';
+import { parkNoteDraft } from '../notes/unattached-note-photos';
 import { DRAFT_OUTCOME, type DraftOutcome, publishDraftOutcome } from '../notes/use-draft-handoff';
 import { useParkDraftOnExit } from './use-park-draft';
 
@@ -84,9 +85,7 @@ export function useNoteDraft(options: NoteDraftOptions) {
     exit: options.exit,
     pending: options.pending,
     park: (token) =>
-      useSheetDraftStore
-        .getState()
-        .parkNote(key, { ...latest.current.snapshot(), handoff: handoff.current }, token),
+      parkNoteDraft(key, { ...latest.current.snapshot(), handoff: handoff.current }, token),
     clear: (token) => useSheetDraftStore.getState().clearNote(key, token),
     onLeave: (parked) => {
       // A save in flight settles the hand-off when it ends; parked work keeps it pending.
@@ -117,7 +116,10 @@ export function useNoteDraft(options: NoteDraftOptions) {
 interface UnattachedPhotos {
   noteId: string;
   motorcycleId: string;
-  /** The note's text and stamp as saved, so the edit sheet opens unchanged but for the photos. */
+  /**
+   * The note's text and stamp as saved. Kept for the record only: the draft is
+   * photos-only, so the edit sheet opens with the note's text as it is THEN.
+   */
   text: string;
   stampOn: boolean;
   /** Local uris of photos that never attached. */
@@ -134,11 +136,13 @@ interface UnattachedPhotos {
  * They are parked as an edit draft of that note, so opening the note again
  * offers them back under the restored notice — beside any draft already
  * waiting in that note's slot. A photo whose file is already in storage keeps
- * its object, so the restored sheet attaches it without a second upload.
+ * its object, so the restored sheet attaches it without a second upload. The
+ * draft is photos-only: restoring it never carries this text back over newer
+ * text another sheet saved meanwhile.
  */
 export function parkUnattachedPhotos(input: UnattachedPhotos): void {
   if (input.photos.length === 0 && input.removals.length === 0) return;
-  useSheetDraftStore.getState().parkNote(
+  parkNoteDraft(
     noteDraftKey(input.motorcycleId, input.noteId),
     {
       text: input.text,
@@ -148,6 +152,7 @@ export function parkUnattachedPhotos(input: UnattachedPhotos): void {
       newPhotos: [...input.photos],
       removedPhotoIds: [...input.removals],
       uploaded: { ...input.uploaded },
+      photosOnly: true,
     },
     newDraftToken(),
   );

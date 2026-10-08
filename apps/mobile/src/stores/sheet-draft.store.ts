@@ -40,6 +40,13 @@ export interface NoteDraft {
   handoff?: string;
   /** By local uri: photos of `newPhotos` whose file is already in storage. */
   uploaded?: Record<string, ParkedPhotoUpload>;
+  /**
+   * Edit only: the draft changes the note's photos, not its words. A restored
+   * sheet then starts from the note's CURRENT text and stamp (`text` and
+   * `stampOn` here are ignored), so restoring it can never revert text another
+   * sheet saved after it was parked.
+   */
+  photosOnly?: boolean;
 }
 
 export interface OdometerDraft {
@@ -75,14 +82,22 @@ type Slots<T> = Record<string, Stack<T>>;
 interface SheetDraftState {
   notes: Slots<NoteDraft>;
   readings: Slots<OdometerDraft>;
-  /** Parks `draft` as the newest of the slot, replacing `token`'s own earlier entry. */
-  parkNote: (key: string, draft: NoteDraft, token: string) => void;
+  /**
+   * Parks `draft` as the newest of the slot, replacing `token`'s own earlier
+   * entry. Returns the drafts pushed out past `DRAFT_STACK_MAX` — no sheet
+   * holds them any more, so the caller releases their stored photos
+   * (`releaseDroppedNoteDrafts`).
+   */
+  parkNote: (key: string, draft: NoteDraft, token: string) => NoteDraft[];
   /** Removes `token`'s entry only; the slot's other drafts stay. */
   clearNote: (key: string, token: string) => void;
   parkReading: (bikeId: string, draft: OdometerDraft, token: string) => void;
   clearReading: (bikeId: string, token: string) => void;
-  /** Sign-out: drafts belong to the session that wrote them. */
-  clearAll: () => void;
+  /**
+   * Sign-out: drafts belong to the session that wrote them. Returns the Note
+   * drafts it dropped, for the caller to release their stored photos.
+   */
+  clearAll: () => NoteDraft[];
 }
 
 function withStack<T>(slots: Slots<T>, key: string, stack: Stack<T>): Slots<T> {
@@ -95,9 +110,18 @@ function withoutToken<T>(stack: Stack<T> | undefined, token: string): Stack<T> {
   return (stack ?? []).filter((entry) => entry.token !== token);
 }
 
-function pushed<T>(slots: Slots<T>, key: string, draft: T, token: string): Slots<T> {
-  const stack = [{ draft, token }, ...withoutToken(slots[key], token)].slice(0, DRAFT_STACK_MAX);
-  return withStack(slots, key, stack);
+interface Pushed<T> {
+  slots: Slots<T>;
+  /** Drafts pushed out past the cap, oldest last. */
+  dropped: T[];
+}
+
+function pushed<T>(slots: Slots<T>, key: string, draft: T, token: string): Pushed<T> {
+  const stack = [{ draft, token }, ...withoutToken(slots[key], token)];
+  return {
+    slots: withStack(slots, key, stack.slice(0, DRAFT_STACK_MAX)),
+    dropped: stack.slice(DRAFT_STACK_MAX).map((entry) => entry.draft),
+  };
 }
 
 function cleared<T>(slots: Slots<T>, key: string, token: string): Slots<T> {
@@ -105,17 +129,24 @@ function cleared<T>(slots: Slots<T>, key: string, token: string): Slots<T> {
   return withStack(slots, key, withoutToken(slots[key], token));
 }
 
-export const useSheetDraftStore = create<SheetDraftState>()((set) => ({
+export const useSheetDraftStore = create<SheetDraftState>()((set, get) => ({
   notes: {},
   readings: {},
-  parkNote: (key, draft, token) =>
-    set((state) => ({ notes: pushed(state.notes, key, draft, token) })),
+  parkNote: (key, draft, token) => {
+    const { slots, dropped } = pushed(get().notes, key, draft, token);
+    set({ notes: slots });
+    return dropped;
+  },
   clearNote: (key, token) => set((state) => ({ notes: cleared(state.notes, key, token) })),
   parkReading: (bikeId, draft, token) =>
-    set((state) => ({ readings: pushed(state.readings, bikeId, draft, token) })),
+    set((state) => ({ readings: pushed(state.readings, bikeId, draft, token).slots })),
   clearReading: (bikeId, token) =>
     set((state) => ({ readings: cleared(state.readings, bikeId, token) })),
-  clearAll: () => set({ notes: {}, readings: {} }),
+  clearAll: () => {
+    const dropped = Object.values(get().notes).flatMap((stack) => stack.map(({ draft }) => draft));
+    set({ notes: {}, readings: {} });
+    return dropped;
+  },
 }));
 
 /** Storage paths of every uploaded photo a parked Note draft still points at. */

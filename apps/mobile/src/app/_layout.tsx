@@ -51,6 +51,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SessionRestoring } from '../components/auth/session-restoring';
+import { clearSheetDrafts } from '../components/bike-hub/notes/unattached-note-photos';
 import { HUB_FONT } from '../components/bike-hub/ui/tokens';
 import { OB_VARIANT } from '../config/onboarding';
 import { getWhatsNewRelease } from '../data/whats-new-releases';
@@ -153,7 +154,6 @@ import { supabase } from '../lib/supabase';
 import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
 import { useAuthStore } from '../stores/auth.store';
 import { useExperimentStore } from '../stores/experiment.store';
-import { useSheetDraftStore } from '../stores/sheet-draft.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
 import { rideMMKV } from '../utils/ride-storage';
 import {
@@ -706,7 +706,7 @@ function RootLayout() {
           clearAllReceiptSaveUndo();
           clearScanConsent();
           // Note/Odometer work a drag-down parked belongs to the session that wrote it.
-          useSheetDraftStore.getState().clearAll();
+          clearSheetDrafts();
         }
       }
 

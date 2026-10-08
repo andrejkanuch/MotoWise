@@ -322,6 +322,9 @@ export function OdometerSheet({
         draft: parksDrafts
           ? { reading: reading(), token: draftSlot.token, sheetGone: () => !isMounted() }
           : undefined,
+        releaseSave: () => {
+          savingRef.current = false;
+        },
       },
       {
         onSuccess: () => {

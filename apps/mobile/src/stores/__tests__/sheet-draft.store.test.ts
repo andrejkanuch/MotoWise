@@ -82,6 +82,17 @@ describe('sheet-draft store — a newest-first stack per slot', () => {
     expect(restorableOdometerDraft(BIKE)?.draft.digits).toBe('6');
   });
 
+  it('parkNote returns the Note drafts it pushed out past the cap (none below it)', () => {
+    const tokens = Array.from({ length: DRAFT_STACK_MAX + 1 }, () => newDraftToken());
+    const dropped = tokens.map((token, index) =>
+      store().parkNote(KEY, { ...NOTE, text: String(index) }, token),
+    );
+    expect(dropped.slice(0, DRAFT_STACK_MAX)).toEqual(Array(DRAFT_STACK_MAX).fill([]));
+    expect(dropped.at(-1)).toEqual([{ ...NOTE, text: '0' }]);
+    // A token re-parking its own entry at the cap replaces it: nothing is pushed out.
+    expect(store().parkNote(KEY, { ...NOTE, text: 'again' }, tokens.at(-1) ?? '')).toEqual([]);
+  });
+
   it('every sheet gets a distinct token', () => {
     expect(newDraftToken()).not.toBe(newDraftToken());
   });
@@ -89,7 +100,8 @@ describe('sheet-draft store — a newest-first stack per slot', () => {
   it('clearAll (sign-out) drops every parked draft', () => {
     store().parkNote(KEY, NOTE, newDraftToken());
     store().parkReading(BIKE, READING, newDraftToken());
-    store().clearAll();
+    // It hands back the Note drafts it dropped, for their stored photos to be released.
+    expect(store().clearAll()).toEqual([NOTE]);
     expect(store().notes).toEqual({});
     expect(store().readings).toEqual({});
   });

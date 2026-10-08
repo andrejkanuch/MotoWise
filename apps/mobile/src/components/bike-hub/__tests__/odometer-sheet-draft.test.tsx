@@ -88,7 +88,7 @@ import {
   OdometerReadingsDocument,
   PendingRideDistanceDocument,
 } from '@motovault/graphql';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MutationCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { useState } from 'react';
 import { Alert, type AlertButton } from 'react-native';
@@ -129,7 +129,11 @@ function Route() {
   );
 }
 
-async function renderRoute() {
+/**
+ * `onMutationError` runs in the mutation cache's own `onSettled` for a failed
+ * save: after the hook's `onError`, before the sheet's per-call callbacks.
+ */
+async function renderRoute({ onMutationError }: { onMutationError?: () => void } = {}) {
   mockFetcher.mockImplementation((document: unknown) => {
     if (document === OdometerReadingsDocument) return Promise.resolve({ odometerReadings: [] });
     if (document === PendingRideDistanceDocument) {
@@ -140,7 +144,14 @@ async function renderRoute() {
     }
     return Promise.resolve(undefined);
   });
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+    mutationCache: new MutationCache({
+      onSettled: (_data, error) => {
+        if (error) onMutationError?.();
+      },
+    }),
+  });
   const view = await render(
     <QueryClientProvider client={client}>
       <Route />
@@ -386,7 +397,7 @@ describe('Odometer sheet — Android drag-down keeps the reading', () => {
     expect(parked()).toBeUndefined();
   });
 
-  it('a mounted sheet whose save fails keeps the entry and parks nothing', async () => {
+  it('a mounted sheet whose save fails keeps the entry, parks nothing, and Save works again', async () => {
     await renderRoute();
     const settle = holdLog();
     await typeReading();
@@ -394,6 +405,47 @@ describe('Odometer sheet — Android drag-down keeps the reading', () => {
     await act(async () => settle(false));
     expect(screen.getByTestId('odometer-entry')).toHaveTextContent('999,999');
     expect(parked()).toBeUndefined();
+
+    // The failure unlocked Save: a second tap logs the reading again.
+    const retry = holdLog();
+    await waitFor(() => expect(screen.getByTestId('odometer-save')).toBeEnabled());
+    await fireEvent.press(screen.getByTestId('odometer-save'));
+    expect(logs()).toHaveLength(2);
+    await act(async () => retry(true));
+    await waitFor(() => expect(mockRouter.back).toHaveBeenCalledTimes(1));
+  });
+
+  it('two Save taps in the same frame log the reading once', async () => {
+    await renderRoute();
+    const settle = holdLog();
+    await typeReading();
+    // Called directly: no render between the taps, so only the synchronous flag sees the first.
+    const save = screen.getByTestId('odometer-save');
+    await act(async () => {
+      save.props.onClick({ nativeEvent: {} });
+      save.props.onClick({ nativeEvent: {} });
+    });
+    expect(logs()).toHaveLength(1);
+    await act(async () => settle(true));
+    expect(logs()).toHaveLength(1);
+  });
+
+  it('a failed save unlocks the sheet before its own callbacks run: a drag-down then parks the reading', async () => {
+    let view: { unmount: () => void } | null = null;
+    // The drag-down lands after the hook saw the failure (the sheet was still up,
+    // so it parked nothing) and before the sheet's per-call callbacks.
+    view = await renderRoute({
+      onMutationError: () => {
+        mockPreventRemove.callback?.({ data: { action: POP } });
+        view?.unmount();
+      },
+    });
+    const settle = holdLog();
+    await typeReading();
+    await fireEvent.press(screen.getByTestId('odometer-save'));
+    await act(async () => settle(false));
+    expect(mockDispatch).toHaveBeenCalledWith(POP);
+    expect(parked()?.digits).toBe('999999');
   });
 
   it('a clean sheet parks nothing', async () => {

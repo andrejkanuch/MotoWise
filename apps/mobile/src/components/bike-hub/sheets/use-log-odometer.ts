@@ -72,6 +72,14 @@ export interface LogOdometerVariables {
     token: string;
     sheetGone: () => boolean;
   };
+  /**
+   * Unlocks the sheet's Save once the save has failed. Runs in the mutation's
+   * own `onError` — before the per-call callbacks, which reach the sheet a
+   * scheduler tick later — so a drag-down in that gap already sees the reading
+   * as unsaved work and parks it. Not on success: the sheet stays locked until
+   * it closes, so a second tap cannot log the reading twice.
+   */
+  releaseSave?: () => void;
 }
 
 /**
@@ -93,7 +101,8 @@ export function useLogOdometer(motorcycleId: string) {
           recordedAt: readingTimestamp(recordedAt, today)?.toISOString(),
         },
       }),
-    onError: (_error, { draft }) => {
+    onError: (_error, { draft, releaseSave }) => {
+      releaseSave?.();
       if (!draft?.sheetGone()) return;
       useSheetDraftStore.getState().parkReading(motorcycleId, draft.reading, draft.token);
     },

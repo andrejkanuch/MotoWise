@@ -117,7 +117,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { Alert, type AlertButton } from 'react-native';
 import '../../../i18n';
-import { newDraftToken, noteDraftKey, useSheetDraftStore } from '../../../stores/sheet-draft.store';
+import {
+  type NoteDraft,
+  newDraftToken,
+  noteDraftKey,
+  useSheetDraftStore,
+} from '../../../stores/sheet-draft.store';
 import { BIKE_A, BIKE_B, NOTES } from '../../../test/bike-hub-fixtures';
 import {
   DRAFT_OUTCOME,
@@ -224,6 +229,7 @@ describe('Note sheet — Android drag-down keeps the note', () => {
       removedPhotoIds: [],
       handoff: undefined,
       uploaded: {},
+      photosOnly: false,
     });
 
     await renderForm();
@@ -643,6 +649,8 @@ describe('Note sheet — photos of a note saved after its sheet was dragged away
       text: 'Chain is loud',
       newPhotos: ['file:///kept.jpg'],
       removedPhotoIds: [],
+      // Restored, it starts from the note's text as it is then.
+      photosOnly: true,
     });
 
     await renderForm({ note: { ...EDITED, id: 'note-new', text: 'Chain is loud' } });
@@ -766,6 +774,97 @@ describe('Note sheet — a stored photo parked after its sheet was dragged away'
     await waitFor(() => expect(mockRemoveObject).toHaveBeenCalledWith(STORED));
     expect(mockUpload).not.toHaveBeenCalled();
     expect(parked(editKey)).toBeUndefined();
+  });
+});
+
+describe('Note sheet — a restored draft that carries a stored photo', () => {
+  beforeEach(asAndroid);
+
+  const STORED = 'user-1/notes/note-1/1.webp';
+  const EDIT_KEY = noteDraftKey(BIKE_A.id, EDITED.id);
+  const UPLOADED = {
+    'file:///kept.jpg': { storagePath: STORED, fileSizeBytes: 1234, motorcycleId: BIKE_A.id },
+  };
+  /** An edit draft whose one new photo is already in storage. */
+  const storedDraft = (extra: Partial<NoteDraft> = {}): NoteDraft => ({
+    text: EDITED.text,
+    stampOn: EDITED.odometer != null,
+    alsoTask: false,
+    targetId: BIKE_A.id,
+    newPhotos: ['file:///kept.jpg'],
+    removedPhotoIds: [],
+    uploaded: UPLOADED,
+    ...extra,
+  });
+  const parkStored = (extra: Partial<NoteDraft> = {}) =>
+    useSheetDraftStore.getState().parkNote(EDIT_KEY, storedDraft(extra), newDraftToken());
+
+  it('dragged away again unedited: the object is kept and the draft still carries it', async () => {
+    parkStored();
+    const view = await renderForm({ note: EDITED });
+    expect(screen.getByTestId('note-restored')).toBeTruthy();
+    await dragDown(view);
+    // The unmount's release runs a tick later, after the re-park.
+    await act(async () => {});
+    expect(mockRemoveObject).not.toHaveBeenCalled();
+    expect(parked(EDIT_KEY)?.uploaded).toEqual(UPLOADED);
+    expect(mockFetcher).not.toHaveBeenCalledWith(NotesByMotorcycleDocument, expect.anything());
+  });
+
+  it('Clear, then leaving: the object nothing carries any more is removed', async () => {
+    parkStored();
+    const view = await renderForm({ note: EDITED });
+    await fireEvent.press(screen.getByTestId('note-restored-clear'));
+    expect(parked(EDIT_KEY)).toBeUndefined();
+    expect(mockRemoveObject).not.toHaveBeenCalled();
+    await act(async () => view.unmount());
+    await waitFor(() => expect(mockRemoveObject).toHaveBeenCalledWith(STORED));
+  });
+
+  it('Cancel → Discard, then leaving: the object is removed', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    parkStored();
+    const view = await renderForm({ note: EDITED });
+    await fireEvent.press(screen.getByTestId('note-cancel'));
+    await act(async () => alertButtons(alert)[1]?.onPress?.());
+    await act(async () => view.unmount());
+    expect(parked(EDIT_KEY)).toBeUndefined();
+    await waitFor(() => expect(mockRemoveObject).toHaveBeenCalledWith(STORED));
+  });
+
+  it('Clear keeps an object an older draft of the same note still carries', async () => {
+    parkStored();
+    parkStored({ text: 'Newer words' });
+    const view = await renderForm({ note: EDITED });
+    expect(textValue()).toBe('Newer words');
+    await fireEvent.press(screen.getByTestId('note-restored-clear'));
+    await act(async () => view.unmount());
+    await act(async () => {});
+    expect(mockRemoveObject).not.toHaveBeenCalled();
+    expect(parkedTexts(EDIT_KEY)).toEqual([EDITED.text]);
+    expect(parked(EDIT_KEY)?.uploaded).toEqual(UPLOADED);
+  });
+
+  it("a photos-only draft restores onto the note's current text, never the text it was parked with", async () => {
+    parkStored({ text: 'Text as first saved', photosOnly: true });
+    await renderForm({ note: { ...EDITED, text: 'Newer text' } });
+    expect(screen.getByTestId('note-restored')).toBeTruthy();
+    expect(textValue()).toBe('Newer text');
+    expect(screen.getAllByLabelText('Remove photo')).toHaveLength(EDITED.photos.length + 1);
+  });
+
+  it('an edit that changed only photos parks as photos-only; one that changed the text does not', async () => {
+    const photosOnly = await renderForm({ note: EDITED });
+    mockPick.mockResolvedValueOnce('file:///kept.jpg');
+    await fireEvent.press(screen.getByTestId('note-add-photo'));
+    await dragDown(photosOnly);
+    expect(parked(EDIT_KEY)?.photosOnly).toBe(true);
+
+    useSheetDraftStore.setState({ notes: {}, readings: {} });
+    const edited = await renderForm({ note: EDITED });
+    await fireEvent.changeText(screen.getByTestId('note-text'), 'Edited text');
+    await dragDown(edited);
+    expect(parked(EDIT_KEY)).toMatchObject({ text: 'Edited text', photosOnly: false });
   });
 });
 

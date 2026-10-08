@@ -1,8 +1,4 @@
-import {
-  AddNotePhotoDocument,
-  DeleteNotePhotoDocument,
-  NotesByMotorcycleDocument,
-} from '@motovault/graphql';
+import { AddNotePhotoDocument, DeleteNotePhotoDocument } from '@motovault/graphql';
 import {
   deriveTaskTitleFromNote,
   NOTE_PHOTOS_MAX,
@@ -38,12 +34,7 @@ import {
 } from '../../../lib/bike-hub/format';
 import { normaliseNoteText } from '../../../lib/bike-hub/notes';
 import { gqlFetcher } from '../../../lib/graphql-client';
-import {
-  pickImage,
-  removeNotePhotoObject,
-  takePhoto,
-  uploadNotePhoto,
-} from '../../../lib/image-upload';
+import { pickImage, takePhoto, uploadNotePhoto } from '../../../lib/image-upload';
 import { queryKeys } from '../../../lib/query-keys';
 import { useAuthStore } from '../../../stores/auth.store';
 import { type ParkedPhotoUpload, parkedPhotoPaths } from '../../../stores/sheet-draft.store';
@@ -51,6 +42,7 @@ import { showActionSheet } from '../../../utils/action-sheet';
 import { triggerImpact, triggerNotification, triggerSelection } from '../../../utils/haptics';
 import { NativeToggle } from '../../ui/native-toggle';
 import { NotePhoto, rememberLocalNotePhoto } from '../notes/note-photo';
+import { removeUnattachedNotePhotos } from '../notes/unattached-note-photos';
 import { DRAFT_OUTCOME } from '../notes/use-draft-handoff';
 import { type HubNote, useCreateNote, useUpdateNote } from '../notes/use-notes';
 import type { HubBike } from '../shell/use-bike-hub-data';
@@ -88,38 +80,6 @@ const LOCKED_OPACITY = SHEET_LOCKED_OPACITY;
 
 /** An uploaded object whose `addNotePhoto` has not been confirmed. */
 export type PendingNotePhoto = ParkedPhotoUpload;
-
-/**
- * Deletes uploaded objects that never got a `note_photos` row. An unconfirmed
- * `addNotePhoto` may still have committed (its response lost), so each path is
- * checked against the note's attached photos first; a path that is attached, or
- * that cannot be checked, is left alone — a leaked object is better than a
- * saved photo whose file is gone.
- */
-export async function removeUnattachedNotePhotos(
-  pending: readonly PendingNotePhoto[],
-): Promise<void> {
-  const byBike = new Map<string, PendingNotePhoto[]>();
-  for (const photo of pending) {
-    byBike.set(photo.motorcycleId, [...(byBike.get(photo.motorcycleId) ?? []), photo]);
-  }
-  await Promise.all(
-    [...byBike].map(async ([motorcycleId, photos]) => {
-      let attached: Set<string>;
-      try {
-        const { notes } = await gqlFetcher(NotesByMotorcycleDocument, { motorcycleId });
-        attached = new Set(notes.flatMap((note) => note.photos.map((photo) => photo.storagePath)));
-      } catch {
-        return;
-      }
-      await Promise.all(
-        photos
-          .filter((photo) => !attached.has(photo.storagePath))
-          .map((photo) => removeNotePhotoObject(photo.storagePath)),
-      );
-    }),
-  );
-}
 
 /** Photos of the save in progress: how many are attached to the note so far. */
 interface PhotoProgress {
@@ -316,13 +276,16 @@ export function NoteForm({
     draft,
   });
   const restored = parkedDraft?.draft;
+  // A photos-only draft carries no words of its own: the note's current text
+  // and stamp stand, so restoring it never reverts text saved after it parked.
+  const restoredWords = restored?.photosOnly ? undefined : restored;
   const [showRestored, setShowRestored] = useState(parkedDraft !== null);
   const initialText = note?.text ?? draft ?? '';
   const initialStampOn = isEdit ? note.odometer != null : true;
 
-  const [text, setText] = useState(restored?.text ?? initialText);
+  const [text, setText] = useState(restoredWords?.text ?? initialText);
   const [targetId, setTargetId] = useState(restored?.targetId ?? bike.id);
-  const [stampOn, setStampOn] = useState(restored?.stampOn ?? initialStampOn);
+  const [stampOn, setStampOn] = useState(restoredWords?.stampOn ?? initialStampOn);
   const [alsoTask, setAlsoTask] = useState(restored?.alsoTask ?? false);
   const [newPhotos, setNewPhotos] = useState<string[]>(restored?.newPhotos ?? []);
   const [removedPhotoIds, setRemovedPhotoIds] = useState<string[]>(restored?.removedPhotoIds ?? []);
@@ -505,13 +468,6 @@ export function NoteForm({
   const createNote = useCreateNote();
   const updateNote = useUpdateNote(bike.id);
 
-  /**
-   * Unsaved work a dismissal now would lose: typed, not saved, and no save in
-   * flight. A save in flight is not parked — a sheet reopened meanwhile must not
-   * restore work that may already be on the server; it is parked only if it
-   * fails (`saveFailedAfterLeaving`). Once the note is on the server (`saved`)
-   * nothing is parked — a Retry only re-attaches photos.
-   */
   /** The uploaded-but-unattached objects of these photos, by local uri. */
   const uploadedOf = (uris: readonly string[]): Record<string, ParkedPhotoUpload> =>
     Object.fromEntries(
@@ -520,6 +476,13 @@ export function NoteForm({
         return upload ? [[uri, upload]] : [];
       }),
     );
+  /**
+   * Unsaved work a dismissal now would lose: typed, not saved, and no save in
+   * flight. A save in flight is not parked — a sheet reopened meanwhile must not
+   * restore work that may already be on the server; it is parked only if it
+   * fails (`saveFailedAfterLeaving`). Once the note is on the server (`saved`)
+   * nothing is parked — a Retry only re-attaches photos.
+   */
   const pendingWork = () => !saved && !savingRef.current && dirty;
   const noteDraft = useNoteDraft({
     key: draftKey,
@@ -537,6 +500,9 @@ export function NoteForm({
       newPhotos,
       removedPhotoIds,
       uploaded: uploadedOf(newPhotos),
+      // An edit that left the words alone parks as photos-only: restored, it
+      // starts from the note's text as it is then, not as it was now.
+      photosOnly: isEdit && text === initialText && stampOn === initialStampOn,
     }),
   });
 
