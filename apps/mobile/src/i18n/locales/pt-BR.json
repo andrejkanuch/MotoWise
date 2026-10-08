@@ -46,7 +46,22 @@
     "accountExistsTitle": "A conta já existe",
     "accountExistsMessage": "Este e-mail já está registrado. Faça login em vez disso.",
     "restoringSession": "Restaurando sua sessão…",
-    "signInInstead": "Entrar"
+    "signInInstead": "Entrar",
+    "codeTitle": "Digite seu código",
+    "codeSentTo": "Enviamos um código de {{digits}} dígitos para {{email}}",
+    "codeInputLabel": "Código de confirmação",
+    "codeVerifying": "Verificando…",
+    "codeResend": "Reenviar código",
+    "codeResendIn": "Reenviar em {{seconds}} s",
+    "codeResent": "Novo código enviado — use o e-mail mais recente.",
+    "codeWrongOrExpired": "O código está incorreto ou expirou. Confira o e-mail mais recente ou reenvie.",
+    "codeTooManyAttempts": "Muitas tentativas. Aguarde um momento e tente de novo.",
+    "codeConnectionError": "Sem conexão. Verifique sua conexão e tente de novo.",
+    "codeGenericError": "Algo deu errado. Tente de novo.",
+    "codeNotConfirmedYet": "Seu e-mail ainda não foi confirmado. Digite o código do e-mail mais recente.",
+    "codeAlreadyConfirmed": "Já confirmei pelo link",
+    "codeChangeEmail": "Alterar e-mail",
+    "codeSendFailed": "Não conseguimos enviar o código. Verifique sua conexão e tente de novo."
   },
   "tabs": {
     "home": "Início",
@@ -1012,8 +1027,6 @@
     "overdue": "Atrasadas",
     "totalSpend": "Gastos",
     "upcomingTasks": "Próximas",
-    "allCaughtUp": "Tudo em dia!",
-    "seeAll": "Ver todas as tarefas",
     "spending": "Gastos",
     "thisYear": "Este Ano",
     "allTime": "Todo o Período",
@@ -1033,7 +1046,6 @@
     "updatedTodayFrom": "Atualizado hoje de {{source}}",
     "updatedYesterdayFrom": "Atualizado ontem de {{source}}",
     "updatedDaysAgoFrom": "Atualizado há {{days}}d de {{source}}",
-    "maintenance": "Manutenção",
     "allTasks": "Todas as tarefas",
     "segment": {
       "overview": "Visão geral",
@@ -1041,8 +1053,8 @@
       "costs": "Custos",
       "bike": "Moto",
       "listA11y": "Seções da moto",
-      "serviceBadgeA11y_one": "Manutenção, {{count}} tarefa atrasada de alta prioridade",
-      "serviceBadgeA11y_other": "Manutenção, {{count}} tarefas atrasadas de alta prioridade"
+      "serviceOverdueA11y_one": "Manutenção, {{count}} tarefa atrasada",
+      "serviceOverdueA11y_other": "Manutenção, {{count}} tarefas atrasadas"
     },
     "header": {
       "backTo": "Voltar para {{origin}}",
@@ -1111,7 +1123,10 @@
       "logA11y": "Registrar algo nesta moto",
       "addTaskA11y": "Adicionar uma tarefa de manutenção",
       "addExpenseA11y": "Adicionar uma despesa",
-      "addDocumentA11y": "Adicionar um documento"
+      "addDocumentA11y": "Adicionar um documento",
+      "task": "Tarefa",
+      "expense": "Despesa",
+      "document": "Documento"
     },
     "state": {
       "notFound": "Esta moto não está mais na sua garagem.",
@@ -1155,7 +1170,9 @@
       "more_other": "mais {{count}}",
       "listAnd": "{{first}} e {{last}}",
       "loadError": "Não foi possível carregar as tarefas",
-      "docActionInsurance": "renove ou envie a nova apólice"
+      "docActionInsurance": "renove ou envie a nova apólice",
+      "overdueCount_one": "{{count}} atrasada",
+      "overdueCount_other": "{{count}} atrasadas"
     },
     "nextUp": {
       "title": "A seguir"
@@ -1189,11 +1206,11 @@
       "title": "Notas",
       "all": "Todas as notas",
       "placeholder": "Anote algo…",
-      "noteButton": "Nota",
       "noteButtonA11y": "Escrever uma nota mais longa",
       "inputA11y": "Adicionar uma nota",
       "saveFailed": "Não foi possível salvar a nota. Tente novamente.",
-      "loadError": "Não foi possível carregar as notas"
+      "loadError": "Não foi possível carregar as notas",
+      "saveA11y": "Salvar nota"
     },
     "papers": {
       "title": "Documentos e moto",
@@ -1207,66 +1224,91 @@
       "title": "Registrar na {{name}}",
       "expense": "Despesa",
       "expenseSub": "Combustível, peças, seguro, pedágios",
-      "task": "Tarefa de manutenção",
       "taskSub": "Algo a fazer, com prazo por data ou distância",
       "pastWork": "Trabalho já feito",
       "pastWorkSub": "Vai direto para o histórico de manutenção, com o custo se houver",
       "note": "Nota",
       "noteSub": "Uma ideia, um número de peça, algo para lembrar",
       "document": "Documento",
-      "documentSub": "Seguro, licenciamento, documento, registro de manutenção"
+      "documentSub": "Seguro, licenciamento, documento, registro de manutenção",
+      "planTask": "Planejar uma tarefa",
+      "odometer": "Hodômetro",
+      "odometerSub": "Atualize a leitura do painel"
     },
     "odometer": {
       "title": "Hodômetro",
       "newReading": "Nova leitura",
-      "deltaUp": "+{{delta}} {{unit}} desde {{date}} · antes {{last}}",
-      "deltaUpNoDate": "+{{delta}} {{unit}} · antes {{last}}",
-      "deltaDown": "−{{delta}} {{unit}} · antes {{last}}",
-      "unchanged": "Igual à última leitura · {{last}}",
       "first": "Primeira leitura desta moto",
-      "lastReading": "Última leitura {{last}} {{unit}} · {{date}}",
       "ridesChip_one": "+{{distance}} de {{count}} rolê registrado",
       "ridesChip_other": "+{{distance}} de {{count}} rolês registrados",
-      "dateToday": "Data · hoje",
-      "dateOn": "Data · {{date}}",
       "deleteA11y": "Apagar dígito",
-      "helper": "As leituras ficam em um histórico. Uma leitura menor que a última pede confirmação antes de salvar.",
       "save": "Salvar {{value}} {{unit}}",
-      "lowerTitle": "Menor que a última leitura",
-      "lowerMessage": "A última leitura foi {{last}} {{unit}}. Salvar {{value}} {{unit}} mesmo assim?",
       "backdatedNotice": "Anterior à sua última leitura: ela é registrada e o hodômetro continua em {{last}} {{unit}}.",
       "futureDate": "A data não pode estar no futuro.",
       "saveFailed": "Não foi possível salvar a leitura. Tente novamente.",
-      "lastReadingNoDate": "Última leitura {{last}} {{unit}}",
-      "historyUnavailable": "Não foi possível carregar as leituras anteriores, então só a leitura de hoje pode ser salva. Toque para tentar de novo."
+      "historyUnavailable": "Não foi possível carregar as leituras anteriores, então só a leitura de hoje pode ser salva. Toque para tentar de novo.",
+      "entryEmptyA11y": "Nova leitura, vazia",
+      "entryA11y": "Nova leitura {{value}} {{unit}}",
+      "lastLine": "Última · {{last}} {{unit}} · {{date}}",
+      "lastLineNoDate": "Última · {{last}} {{unit}}",
+      "deltaSince": "+{{delta}} {{unit}} desde {{date}}",
+      "deltaPlus": "+{{delta}} {{unit}}",
+      "deltaBelow": "−{{delta}} {{unit}} abaixo da última leitura",
+      "sameAsLast": "Igual à última leitura — digite a nova",
+      "lowerThan": "Menor que {{last}} {{unit}}",
+      "lowerOneLine": "Salve só se a última leitura estava errada.",
+      "fixIt": "Corrigir",
+      "discardTitle": "Descartar a leitura?",
+      "discardMessage": "O número digitado não será salvo.",
+      "discard": "Descartar",
+      "keepEditing": "Continuar editando",
+      "clear": "Limpar",
+      "clearA11y": "Limpar a leitura",
+      "today": "Hoje",
+      "dateA11y": "Data da leitura: {{date}}"
     },
     "noteSheet": {
       "new": "Nova nota",
       "edit": "Editar nota",
       "placeholder": "O que você quer lembrar?",
       "stamp": "{{odometer}} {{unit}} · hoje",
-      "stampA11y": "Marca do hodômetro",
-      "photo": "Foto",
       "removePhotoA11y": "Remover foto",
       "attachTo": "Anexar a",
       "alsoTask": "Também criar uma tarefa",
       "alsoTaskSub": "Cria uma tarefa de baixa prioridade sem prazo, com esta nota anexada",
       "save": "Salvar nota",
+      "saving": "Salvando…",
       "discardTitle": "Descartar esta nota?",
       "discardKeep": "Continuar editando",
       "discard": "Descartar",
-      "photoFailed": "Nota salva, a foto falhou",
       "taskNotCreated": "Nota salva. Não foi possível criar a tarefa — use “Criar tarefa” na nota.",
       "photoLimit": "Até {{max}} fotos por nota",
       "alsoTaskSubNamed": "Cria “{{title}}” · Baixa · sem prazo, com esta nota anexada",
-      "photoRemoveFailed": "Nota salva, mas não foi possível remover uma foto",
-      "photoNeedsSignIn": "Entre novamente para adicionar fotos. Remova as fotos para salvar a nota sem elas."
+      "photoNeedsSignIn": "Entre novamente para adicionar fotos. Remova as fotos para salvar a nota sem elas.",
+      "stampOff": "Sem hodômetro",
+      "stampA11yOn": "Hodômetro, {{odometer}} {{unit}}, ativado",
+      "stampA11yOff": "Hodômetro, {{odometer}} {{unit}}, desativado",
+      "addPhoto": "Adicionar foto",
+      "addingPhotos": "Adicionando fotos · {{done}} de {{total}}",
+      "photoNotAddedA11y": "Foto não adicionada",
+      "photosNotAdded_one": "Nota salva. {{count}} foto não foi adicionada.",
+      "photosNotAdded_few": "Nota salva. {{count}} fotos não foram adicionadas.",
+      "photosNotAdded_many": "Nota salva. {{count}} fotos não foram adicionadas.",
+      "photosNotAdded_other": "Nota salva. {{count}} fotos não foram adicionadas.",
+      "photosNotRemoved_one": "Nota salva. Não foi possível remover {{count}} foto.",
+      "photosNotRemoved_few": "Nota salva. Não foi possível remover {{count}} fotos.",
+      "photosNotRemoved_many": "Nota salva. Não foi possível remover {{count}} fotos.",
+      "photosNotRemoved_other": "Nota salva. Não foi possível remover {{count}} fotos.",
+      "retryPhotos_one": "Tentar {{count}} foto de novo",
+      "retryPhotos_few": "Tentar {{count}} fotos de novo",
+      "retryPhotos_many": "Tentar {{count}} fotos de novo",
+      "retryPhotos_other": "Tentar {{count}} fotos de novo",
+      "discardMessage": "O que você escreveu não será salvo."
     },
     "notesScreen": {
       "title": "Notas · {{name}}",
       "count_one": "{{count}} nota",
       "count_other": "{{count}} notas",
-      "hint": "mais recentes primeiro · deslize para editar · excluir",
       "searchPlaceholder": "Buscar números de peças, pressões, oficinas…",
       "searchA11y": "Buscar nas notas",
       "makeTask": "Criar tarefa",
@@ -1274,18 +1316,72 @@
       "deleted": "Nota excluída",
       "deleteFailed": "Não foi possível excluir a nota.",
       "makeTaskFailed": "Não foi possível criar a tarefa.",
-      "empty": "Ainda sem notas",
-      "emptySub": "Anote números de peças, pressões e o que lembrar sobre esta moto.",
       "noMatch": "Nenhuma nota corresponde a “{{query}}”",
       "composerAdd": "Adicionar",
       "attachPhotoA11y": "Anexar uma foto",
-      "photoA11y": "Foto da nota"
+      "rowHint": "Abre a nota para editar",
+      "photoOf": "Foto {{index}} de {{count}}",
+      "photoCount_one": "{{count}} foto",
+      "photoCount_other": "{{count}} fotos",
+      "photoCount_few": "{{count}} fotos",
+      "photoCount_many": "{{count}} fotos",
+      "matchCount_one": "{{count}} nota encontrada",
+      "matchCount_other": "{{count}} notas encontradas",
+      "matchCount_few": "{{count}} notas encontradas",
+      "matchCount_many": "{{count}} notas encontradas",
+      "clearSearch": "Limpar busca",
+      "emptyTitle": "Guarde o que você esqueceria",
+      "emptyBodyStamped": "Pressão dos pneus, um número de peça, a oficina que fez as válvulas. Digite abaixo — cada nota recebe o odômetro de hoje.",
+      "emptyBody": "Pressão dos pneus, um número de peça, a oficina que fez as válvulas. Digite abaixo e fica guardado com esta moto.",
+      "taskLink": "Tarefa · {{status}}",
+      "linkedTask": "Tarefa vinculada",
+      "taskLinkA11y": "Tarefa vinculada “{{title}}”, {{status}}",
+      "linkedTaskA11y": "Tarefa vinculada “{{title}}”",
+      "taskStatus": {
+        "open": "aberta",
+        "inProgress": "em andamento",
+        "done": "concluída",
+        "skipped": "ignorada"
+      },
+      "viewerCloseA11y": "Fechar fotos",
+      "viewerCounter": "{{index}} de {{count}}"
     },
     "refreshFailed": "Não foi possível atualizar",
     "refreshRetryA11y": {
       "attention": "Tentar novamente: precisa de atenção",
       "costs": "Tentar novamente: custos",
       "notes": "Tentar novamente: notas"
+    },
+    "service": {
+      "group": {
+        "overdue": "Atrasadas",
+        "soon": "Vencem em breve",
+        "later": "Mais tarde",
+        "someday": "Sem prazo"
+      },
+      "noOpenTasks": "Nenhuma tarefa em aberto",
+      "priorityA11y": "prioridade {{priority}}",
+      "markDone": "Marcar como feita",
+      "markDoneA11y": "Marcar “{{title}}” como feita",
+      "doneOn": "Feita em {{date}}",
+      "seeAllHistory_one": "Ver {{count}} tarefa feita",
+      "seeAllHistory_other": "Ver todas as {{count}} tarefas feitas",
+      "serviceItems": "Itens do serviço"
+    },
+    "costsSegment": {
+      "spentIn": "Gasto em {{year}}",
+      "spentAllTime": "Gasto total",
+      "recent": "Recentes"
+    },
+    "bikeSegment": {
+      "categories": "Categorias"
+    },
+    "sheetDraft": {
+      "noteRestored": "Recuperamos o que você estava escrevendo",
+      "readingRestored": "Recuperamos sua leitura",
+      "clear": "Limpar",
+      "clearNoteA11y": "Limpar a nota recuperada",
+      "clearReadingA11y": "Limpar a leitura recuperada"
     }
   },
   "maintenance": {
@@ -1633,7 +1729,10 @@
     "charCount_one": "{{count}} / {{max}}",
     "charCount_other": "{{count}} / {{max}}",
     "charCount_few": "{{count}} / {{max}}",
-    "charCount_many": "{{count}} / {{max}}"
+    "charCount_many": "{{count}} / {{max}}",
+    "problemRequired": "Descreva o problema ou adicione uma foto para analisar. Toque para editar.",
+    "symptomsRequired": "Escolha o que você percebe ou “Não tenho certeza”.",
+    "descriptionRequired": "Descreva o que está acontecendo para continuar."
   },
   "notifications": {
     "title": "Notificações",
@@ -1659,8 +1758,6 @@
     }
   },
   "expenses": {
-    "title": "Despesas",
-    "allTime": "Todo o período",
     "category": "Categoria",
     "createFailed": "Falha ao salvar a despesa. Tente novamente.",
     "date": "Data",
@@ -1893,6 +1990,14 @@
     "findRiders": "Descobrir motociclistas"
   },
   "whatsNew": {
+    "v3220": {
+      "overviewTitle": "Sua moto em um relance",
+      "overviewDesc": "Cada moto agora abre em uma Visão geral: o que precisa de atenção, o que vence em seguida, quanto você gastou, além das suas notas e documentos. Manutenção, Custos e Moto ficam a um toque na barra do topo.",
+      "notesTitle": "Notas, com fotos",
+      "notesDesc": "Guarde códigos de peças, calibragem dos pneus e dados da oficina junto com a moto certa. Adicione uma foto a uma nota, pesquise suas notas depois ou transforme uma em tarefa.",
+      "logTitle": "Registre direto na moto",
+      "logDesc": "Toque em Registrar em uma moto para adicionar um gasto, uma tarefa, um serviço já feito, uma nota ou um documento. Atualizar o hodômetro agora usa um teclado numérico, no iPhone e no Android."
+    },
     "badge": "Novidades",
     "next": "Next",
     "getStarted": "Let's Go",

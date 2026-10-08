@@ -46,7 +46,22 @@
     "accountExistsTitle": "खाता पहले से मौजूद है",
     "accountExistsMessage": "यह ईमेल पहले से पंजीकृत है। कृपया इसके बजाय साइन इन करें।",
     "restoringSession": "आपका सत्र पुनः प्राप्त किया जा रहा है…",
-    "signInInstead": "इसके बजाय साइन इन करें"
+    "signInInstead": "इसके बजाय साइन इन करें",
+    "codeTitle": "अपना कोड डालें",
+    "codeSentTo": "हमने {{email}} पर {{digits}} अंकों का कोड भेजा है",
+    "codeInputLabel": "पुष्टिकरण कोड",
+    "codeVerifying": "जाँच हो रही है…",
+    "codeResend": "कोड फिर से भेजें",
+    "codeResendIn": "{{seconds}} सेकंड में फिर से भेजें",
+    "codeResent": "नया कोड भेज दिया गया है — सबसे नए ईमेल का इस्तेमाल करें।",
+    "codeWrongOrExpired": "यह कोड गलत है या इसकी समय-सीमा खत्म हो गई है। सबसे नया ईमेल देखें या कोड फिर से भेजें।",
+    "codeTooManyAttempts": "बहुत ज़्यादा कोशिशें हो गईं। थोड़ी देर रुककर फिर से कोशिश करें।",
+    "codeConnectionError": "कनेक्ट नहीं हो पा रहा। अपना कनेक्शन जाँचें और फिर से कोशिश करें।",
+    "codeGenericError": "कुछ गड़बड़ हो गई। कृपया फिर से कोशिश करें।",
+    "codeNotConfirmedYet": "आपका ईमेल अभी तक कन्फर्म नहीं हुआ है। सबसे नए ईमेल का कोड डालें।",
+    "codeAlreadyConfirmed": "मैंने लिंक से पहले ही कन्फर्म कर दिया है",
+    "codeChangeEmail": "ईमेल बदलें",
+    "codeSendFailed": "हम कोड नहीं भेज सके। अपना कनेक्शन जाँचें और फिर से कोशिश करें।"
   },
   "tabs": {
     "home": "होम",
@@ -1011,8 +1026,6 @@
     "overdue": "ओवरड्यू",
     "totalSpend": "खर्च",
     "upcomingTasks": "आगामी",
-    "allCaughtUp": "सब अप टू डेट!",
-    "seeAll": "सभी टास्क देखें",
     "spending": "खर्च",
     "thisYear": "इस साल",
     "allTime": "पूरे समय",
@@ -1032,7 +1045,6 @@
     "updatedTodayFrom": "आज {{source}} से अपडेट किया",
     "updatedYesterdayFrom": "कल {{source}} से अपडेट किया",
     "updatedDaysAgoFrom": "{{days}} दिन पहले {{source}} से अपडेट किया",
-    "maintenance": "मेंटेनेंस",
     "allTasks": "सभी टास्क",
     "segment": {
       "overview": "अवलोकन",
@@ -1040,8 +1052,8 @@
       "costs": "खर्च",
       "bike": "बाइक",
       "listA11y": "बाइक के अनुभाग",
-      "serviceBadgeA11y_one": "सर्विस, उच्च प्राथमिकता का {{count}} लंबित कार्य",
-      "serviceBadgeA11y_other": "सर्विस, उच्च प्राथमिकता के {{count}} लंबित कार्य"
+      "serviceOverdueA11y_one": "सर्विस, {{count}} अतिदेय कार्य",
+      "serviceOverdueA11y_other": "सर्विस, {{count}} अतिदेय कार्य"
     },
     "header": {
       "backTo": "{{origin}} पर वापस जाएँ",
@@ -1110,7 +1122,10 @@
       "logA11y": "इस बाइक के लिए कुछ लॉग करें",
       "addTaskA11y": "मेंटेनेंस कार्य जोड़ें",
       "addExpenseA11y": "खर्च जोड़ें",
-      "addDocumentA11y": "दस्तावेज़ जोड़ें"
+      "addDocumentA11y": "दस्तावेज़ जोड़ें",
+      "task": "कार्य",
+      "expense": "खर्च",
+      "document": "दस्तावेज़"
     },
     "state": {
       "notFound": "यह बाइक अब आपके गैराज में नहीं है।",
@@ -1154,7 +1169,9 @@
       "more_other": "{{count}} और",
       "listAnd": "{{first}} और {{last}}",
       "loadError": "कार्य लोड नहीं हो सके",
-      "docActionInsurance": "नवीनीकरण करें या नई पॉलिसी अपलोड करें"
+      "docActionInsurance": "नवीनीकरण करें या नई पॉलिसी अपलोड करें",
+      "overdueCount_one": "{{count}} अतिदेय",
+      "overdueCount_other": "{{count}} अतिदेय"
     },
     "nextUp": {
       "title": "आगे"
@@ -1188,11 +1205,11 @@
       "title": "नोट्स",
       "all": "सभी नोट्स",
       "placeholder": "कुछ लिखें…",
-      "noteButton": "नोट",
       "noteButtonA11y": "लंबा नोट लिखें",
       "inputA11y": "नोट जोड़ें",
       "saveFailed": "नोट सेव नहीं हो सका। फिर से कोशिश करें।",
-      "loadError": "नोट्स लोड नहीं हो सके"
+      "loadError": "नोट्स लोड नहीं हो सके",
+      "saveA11y": "नोट सहेजें"
     },
     "papers": {
       "title": "कागज़ात और बाइक",
@@ -1206,66 +1223,91 @@
       "title": "{{name}} के लिए लॉग करें",
       "expense": "खर्च",
       "expenseSub": "ईंधन, पार्ट्स, बीमा, टोल",
-      "task": "मेंटेनेंस कार्य",
       "taskSub": "कुछ करने को, तारीख या दूरी के अनुसार देय",
       "pastWork": "पहले हो चुका काम",
       "pastWorkSub": "सीधे सर्विस हिस्ट्री में जाता है, लागत के साथ यदि हो",
       "note": "नोट",
       "noteSub": "कोई विचार, पार्ट नंबर, याद रखने की बात",
       "document": "दस्तावेज़",
-      "documentSub": "बीमा, रजिस्ट्रेशन, स्वामित्व, सर्विस रिकॉर्ड"
+      "documentSub": "बीमा, रजिस्ट्रेशन, स्वामित्व, सर्विस रिकॉर्ड",
+      "planTask": "कार्य प्लान करें",
+      "odometer": "ओडोमीटर",
+      "odometerSub": "डैश से रीडिंग अपडेट करें"
     },
     "odometer": {
       "title": "ओडोमीटर",
       "newReading": "नई रीडिंग",
-      "deltaUp": "{{date}} से +{{delta}} {{unit}} · पहले {{last}}",
-      "deltaUpNoDate": "+{{delta}} {{unit}} · पहले {{last}}",
-      "deltaDown": "−{{delta}} {{unit}} · पहले {{last}}",
-      "unchanged": "पिछली रीडिंग जैसी ही · {{last}}",
       "first": "इस बाइक की पहली रीडिंग",
-      "lastReading": "पिछली रीडिंग {{last}} {{unit}} · {{date}}",
       "ridesChip_one": "{{count}} ट्रैक की गई राइड से +{{distance}}",
       "ridesChip_other": "{{count}} ट्रैक की गई राइड से +{{distance}}",
-      "dateToday": "तारीख · आज",
-      "dateOn": "तारीख · {{date}}",
       "deleteA11y": "अंक हटाएँ",
-      "helper": "रीडिंग लॉग के रूप में रखी जाती हैं। पिछली से कम रीडिंग सेव करने से पहले पूछा जाएगा।",
       "save": "{{value}} {{unit}} सेव करें",
-      "lowerTitle": "पिछली रीडिंग से कम",
-      "lowerMessage": "पिछली रीडिंग {{last}} {{unit}} थी। फिर भी {{value}} {{unit}} सेव करें?",
       "backdatedNotice": "आपकी नवीनतम रीडिंग से पहले की तारीख: यह लॉग होगी और ओडोमीटर {{last}} {{unit}} पर ही रहेगा।",
       "futureDate": "तारीख भविष्य की नहीं हो सकती।",
       "saveFailed": "रीडिंग सेव नहीं हो सकी। फिर से कोशिश करें।",
-      "lastReadingNoDate": "पिछली रीडिंग {{last}} {{unit}}",
-      "historyUnavailable": "पिछली रीडिंग लोड नहीं हो सकीं, इसलिए केवल आज की रीडिंग सहेजी जा सकती है। फिर से कोशिश करने के लिए टैप करें।"
+      "historyUnavailable": "पिछली रीडिंग लोड नहीं हो सकीं, इसलिए केवल आज की रीडिंग सहेजी जा सकती है। फिर से कोशिश करने के लिए टैप करें।",
+      "entryEmptyA11y": "नई रीडिंग, खाली",
+      "entryA11y": "नई रीडिंग {{value}} {{unit}}",
+      "lastLine": "पिछली · {{last}} {{unit}} · {{date}}",
+      "lastLineNoDate": "पिछली · {{last}} {{unit}}",
+      "deltaSince": "{{date}} से +{{delta}} {{unit}}",
+      "deltaPlus": "+{{delta}} {{unit}}",
+      "deltaBelow": "पिछली रीडिंग से −{{delta}} {{unit}} कम",
+      "sameAsLast": "पिछली रीडिंग जैसी ही है — नई रीडिंग लिखें",
+      "lowerThan": "{{last}} {{unit}} से कम",
+      "lowerOneLine": "इसे तभी सेव करें जब पिछली रीडिंग गलत थी।",
+      "fixIt": "ठीक करें",
+      "discardTitle": "रीडिंग हटाएं?",
+      "discardMessage": "आपकी लिखी संख्या सेव नहीं होगी।",
+      "discard": "हटाएं",
+      "keepEditing": "संपादन जारी रखें",
+      "clear": "साफ़ करें",
+      "clearA11y": "रीडिंग साफ़ करें",
+      "today": "आज",
+      "dateA11y": "रीडिंग की तारीख: {{date}}"
     },
     "noteSheet": {
       "new": "नया नोट",
       "edit": "नोट संपादित करें",
       "placeholder": "आप क्या याद रखना चाहते हैं?",
       "stamp": "{{odometer}} {{unit}} · आज",
-      "stampA11y": "ओडोमीटर स्टैम्प",
-      "photo": "फ़ोटो",
       "removePhotoA11y": "फ़ोटो हटाएँ",
       "attachTo": "इससे जोड़ें",
       "alsoTask": "इसे कार्य भी बनाएँ",
       "alsoTaskSub": "बिना नियत तारीख का निम्न प्राथमिकता वाला कार्य बनाता है, इस नोट के साथ",
       "save": "नोट सेव करें",
+      "saving": "सेव हो रहा है…",
       "discardTitle": "यह नोट छोड़ दें?",
       "discardKeep": "संपादन जारी रखें",
       "discard": "छोड़ दें",
-      "photoFailed": "नोट सेव हो गया, फ़ोटो विफल रही",
       "taskNotCreated": "नोट सेव हो गया। कार्य नहीं बन सका — नोट पर “इसे कार्य बनाएँ” का उपयोग करें।",
       "photoLimit": "प्रति नोट अधिकतम {{max}} फ़ोटो",
       "alsoTaskSubNamed": "“{{title}}” बनाता है · निम्न · बिना नियत तारीख, इस नोट के साथ",
-      "photoRemoveFailed": "नोट सहेजा गया, लेकिन एक फ़ोटो हटाई नहीं जा सकी",
-      "photoNeedsSignIn": "फ़ोटो जोड़ने के लिए फिर से साइन इन करें। फ़ोटो के बिना नोट सहेजने के लिए उन्हें हटा दें।"
+      "photoNeedsSignIn": "फ़ोटो जोड़ने के लिए फिर से साइन इन करें। फ़ोटो के बिना नोट सहेजने के लिए उन्हें हटा दें।",
+      "stampOff": "ओडोमीटर नहीं",
+      "stampA11yOn": "ओडोमीटर स्टैम्प, {{odometer}} {{unit}}, चालू",
+      "stampA11yOff": "ओडोमीटर स्टैम्प, {{odometer}} {{unit}}, बंद",
+      "addPhoto": "फ़ोटो जोड़ें",
+      "addingPhotos": "फ़ोटो जोड़ी जा रही हैं · {{total}} में से {{done}}",
+      "photoNotAddedA11y": "फ़ोटो नहीं जुड़ी",
+      "photosNotAdded_one": "नोट सहेजा गया। {{count}} फ़ोटो नहीं जुड़ी।",
+      "photosNotAdded_few": "नोट सहेजा गया। {{count}} फ़ोटो नहीं जुड़ीं।",
+      "photosNotAdded_many": "नोट सहेजा गया। {{count}} फ़ोटो नहीं जुड़ीं।",
+      "photosNotAdded_other": "नोट सहेजा गया। {{count}} फ़ोटो नहीं जुड़ीं।",
+      "photosNotRemoved_one": "नोट सहेजा गया। {{count}} फ़ोटो हटाई नहीं जा सकी।",
+      "photosNotRemoved_few": "नोट सहेजा गया। {{count}} फ़ोटो हटाई नहीं जा सकीं।",
+      "photosNotRemoved_many": "नोट सहेजा गया। {{count}} फ़ोटो हटाई नहीं जा सकीं।",
+      "photosNotRemoved_other": "नोट सहेजा गया। {{count}} फ़ोटो हटाई नहीं जा सकीं।",
+      "retryPhotos_one": "{{count}} फ़ोटो फिर से आज़माएँ",
+      "retryPhotos_few": "{{count}} फ़ोटो फिर से आज़माएँ",
+      "retryPhotos_many": "{{count}} फ़ोटो फिर से आज़माएँ",
+      "retryPhotos_other": "{{count}} फ़ोटो फिर से आज़माएँ",
+      "discardMessage": "आपका लिखा हुआ सेव नहीं होगा।"
     },
     "notesScreen": {
       "title": "नोट्स · {{name}}",
       "count_one": "{{count}} नोट",
       "count_other": "{{count}} नोट",
-      "hint": "नए पहले · संपादित करने · हटाने के लिए स्वाइप करें",
       "searchPlaceholder": "पार्ट नंबर, प्रेशर, वर्कशॉप खोजें…",
       "searchA11y": "नोट्स खोजें",
       "makeTask": "इसे कार्य बनाएँ",
@@ -1273,18 +1315,72 @@
       "deleted": "नोट हटाया गया",
       "deleteFailed": "नोट हटाया नहीं जा सका।",
       "makeTaskFailed": "कार्य नहीं बन सका।",
-      "empty": "अभी कोई नोट नहीं",
-      "emptySub": "इस बाइक के पार्ट नंबर, प्रेशर और याद रखने की बातें लिखें।",
       "noMatch": "“{{query}}” से कोई नोट मेल नहीं खाता",
       "composerAdd": "जोड़ें",
       "attachPhotoA11y": "फ़ोटो संलग्न करें",
-      "photoA11y": "नोट की फ़ोटो"
+      "rowHint": "नोट को संपादित करने के लिए खोलता है",
+      "photoOf": "{{count}} में से फ़ोटो {{index}}",
+      "photoCount_one": "{{count}} फ़ोटो",
+      "photoCount_other": "{{count}} फ़ोटो",
+      "photoCount_few": "{{count}} फ़ोटो",
+      "photoCount_many": "{{count}} फ़ोटो",
+      "matchCount_one": "{{count}} मिलता-जुलता नोट",
+      "matchCount_other": "{{count}} मिलते-जुलते नोट",
+      "matchCount_few": "{{count}} मिलते-जुलते नोट",
+      "matchCount_many": "{{count}} मिलते-जुलते नोट",
+      "clearSearch": "खोज साफ़ करें",
+      "emptyTitle": "जो भूल सकते हैं, उसे यहाँ रखें",
+      "emptyBodyStamped": "टायर प्रेशर, पार्ट नंबर, वह वर्कशॉप जिसने वाल्व ठीक किए। नीचे लिखें — हर नोट पर आज का ओडोमीटर दर्ज होता है।",
+      "emptyBody": "टायर प्रेशर, पार्ट नंबर, वह वर्कशॉप जिसने वाल्व ठीक किए। नीचे लिखें, यह इसी बाइक के साथ रहेगा।",
+      "taskLink": "कार्य · {{status}}",
+      "linkedTask": "लिंक किया गया कार्य",
+      "taskLinkA11y": "लिंक किया गया कार्य “{{title}}”, {{status}}",
+      "linkedTaskA11y": "लिंक किया गया कार्य “{{title}}”",
+      "taskStatus": {
+        "open": "खुला",
+        "inProgress": "प्रगति में",
+        "done": "पूरा",
+        "skipped": "छोड़ा गया"
+      },
+      "viewerCloseA11y": "फ़ोटो बंद करें",
+      "viewerCounter": "{{count}} में से {{index}}"
     },
     "refreshFailed": "रीफ़्रेश नहीं हो सका",
     "refreshRetryA11y": {
       "attention": "ध्यान दें फिर से लोड करें",
       "costs": "खर्च फिर से लोड करें",
       "notes": "नोट्स फिर से लोड करें"
+    },
+    "service": {
+      "group": {
+        "overdue": "अतिदेय",
+        "soon": "जल्द देय",
+        "later": "बाद में",
+        "someday": "कोई नियत तारीख नहीं"
+      },
+      "noOpenTasks": "कोई खुला कार्य नहीं",
+      "priorityA11y": "{{priority}} प्राथमिकता",
+      "markDone": "पूरा चिह्नित करें",
+      "markDoneA11y": "{{title}} को पूरा चिह्नित करें",
+      "doneOn": "{{date}} को पूरा",
+      "seeAllHistory_one": "{{count}} पूरा कार्य देखें",
+      "seeAllHistory_other": "सभी {{count}} पूरे कार्य देखें",
+      "serviceItems": "सर्विस आइटम"
+    },
+    "costsSegment": {
+      "spentIn": "{{year}} में खर्च",
+      "spentAllTime": "कुल खर्च",
+      "recent": "हाल के"
+    },
+    "bikeSegment": {
+      "categories": "श्रेणियाँ"
+    },
+    "sheetDraft": {
+      "noteRestored": "आप जो लिख रहे थे, उसे वापस लाया गया",
+      "readingRestored": "आपकी रीडिंग वापस लाई गई",
+      "clear": "हटाएँ",
+      "clearNoteA11y": "वापस लाया गया नोट हटाएँ",
+      "clearReadingA11y": "वापस लाई गई रीडिंग हटाएँ"
     }
   },
   "maintenance": {
@@ -1632,7 +1728,10 @@
     "charCount_one": "{{count}} / {{max}}",
     "charCount_other": "{{count}} / {{max}}",
     "charCount_few": "{{count}} / {{max}}",
-    "charCount_many": "{{count}} / {{max}}"
+    "charCount_many": "{{count}} / {{max}}",
+    "problemRequired": "विश्लेषण के लिए समस्या का वर्णन करें या फ़ोटो जोड़ें। संपादित करने के लिए टैप करें।",
+    "symptomsRequired": "जो आप महसूस करते हैं उसे चुनें, या “मुझे पक्का नहीं”।",
+    "descriptionRequired": "जारी रखने के लिए बताएं कि क्या हो रहा है।"
   },
   "notifications": {
     "title": "नोटिफिकेशन",
@@ -1658,8 +1757,6 @@
     }
   },
   "expenses": {
-    "title": "खर्चे",
-    "allTime": "पूरे समय",
     "category": "श्रेणी",
     "createFailed": "खर्चा सेव करने में विफल। कृपया फिर कोशिश करें।",
     "date": "तारीख",
@@ -1892,6 +1989,14 @@
     "findRiders": "राइडर खोजें"
   },
   "whatsNew": {
+    "v3220": {
+      "overviewTitle": "आपकी बाइक, एक नज़र में",
+      "overviewDesc": "हर बाइक अब अवलोकन से खुलती है: किस पर ध्यान देना है, आगे क्या ड्यू है, कितना खर्च हुआ, साथ में आपके नोट्स और कागज़ात। सर्विस, खर्च और बाइक ऊपर की बार में बस एक टैप दूर हैं।",
+      "notesTitle": "फ़ोटो के साथ नोट्स",
+      "notesDesc": "पार्ट नंबर, टायर प्रेशर और गैराज की जानकारी सही बाइक के साथ रखें। नोट में फ़ोटो जोड़ें, बाद में नोट्स खोजें, या किसी नोट को टास्क बना दें।",
+      "logTitle": "बाइक से ही लॉग करें",
+      "logDesc": "किसी बाइक पर लॉग करें टैप करके खर्च, टास्क, पहले से किया गया काम, नोट या दस्तावेज़ जोड़ें। ओडोमीटर अब iPhone और Android दोनों पर कीपैड से अपडेट होता है।"
+    },
     "badge": "What's New",
     "next": "Next",
     "getStarted": "Let's Go",

@@ -33,17 +33,31 @@ interface ReceiptScanEntryProps {
  * Logging is never paywalled — this sells the metered *scan* convenience; the
  * manual-entry path stays co-equal everywhere this appears.
  */
-export function ReceiptScanEntry({ motorcycleId, surface, delay = 0 }: ReceiptScanEntryProps) {
-  const { t } = useTranslation();
+export interface ReceiptScanEntryState {
+  /** Opens the scan flow, or the paywall once the free scans are used up. */
+  open: () => void;
+  /** Free scans left this month; shown as "N free" beside the scan action. */
+  remaining: number;
+  /** Free with scans left: show the "N free" count. */
+  showFreeBadge: boolean;
+  /** Free and used up: the press leads to the upsell. */
+  showUpsellBadge: boolean;
+}
+
+/**
+ * The behaviour of the scan entry, shared by the banner below and by surfaces
+ * that draw their own (the bike hub's quiet Costs row): quota state and the
+ * press that opens the scan — or the paywall when the free scans are used up.
+ */
+export function useReceiptScanEntry({
+  motorcycleId,
+  surface,
+}: Pick<ReceiptScanEntryProps, 'motorcycleId' | 'surface'>): ReceiptScanEntryState {
   const router = useRouter();
-  const { t: theme } = useEditorialTheme();
   const { requireAccess } = useProGate();
   const quota = useReceiptScanQuota();
 
-  const showFreeBadge = !quota.isPro && Number.isFinite(quota.remaining) && quota.remaining > 0;
-  const showUpsellBadge = !quota.isPro && quota.isExhausted;
-
-  const onPress = () => {
+  const open = () => {
     triggerImpact();
     // 0-state → paywall (upsell), never a dead modal. requireAccess presents the
     // RevenueCat paywall (and fires paywall_present_requested + paywall_viewed) and
@@ -54,6 +68,24 @@ export function ReceiptScanEntry({ motorcycleId, surface, delay = 0 }: ReceiptSc
       params: { ...(motorcycleId ? { motorcycleId } : {}), surface },
     } as Href);
   };
+
+  return {
+    open,
+    remaining: quota.remaining,
+    showFreeBadge: !quota.isPro && Number.isFinite(quota.remaining) && quota.remaining > 0,
+    showUpsellBadge: !quota.isPro && quota.isExhausted,
+  };
+}
+
+export function ReceiptScanEntry({ motorcycleId, surface, delay = 0 }: ReceiptScanEntryProps) {
+  const { t } = useTranslation();
+  const { t: theme } = useEditorialTheme();
+  const {
+    open: onPress,
+    remaining,
+    showFreeBadge,
+    showUpsellBadge,
+  } = useReceiptScanEntry({ motorcycleId, surface });
 
   return (
     <Animated.View entering={FadeInUp.delay(delay).duration(300)}>
@@ -109,7 +141,7 @@ export function ReceiptScanEntry({ motorcycleId, surface, delay = 0 }: ReceiptSc
             }}
           >
             <Text style={{ fontSize: 12, fontWeight: '700', color: palette.signature500 }}>
-              {t('receiptScan.entry.freeBadge', { count: quota.remaining })}
+              {t('receiptScan.entry.freeBadge', { count: remaining })}
             </Text>
           </View>
         )}

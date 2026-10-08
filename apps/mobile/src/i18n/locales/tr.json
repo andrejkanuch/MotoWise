@@ -46,7 +46,22 @@
     "accountExistsTitle": "Hesap zaten mevcut",
     "accountExistsMessage": "Bu e-posta zaten kayıtlı. Lütfen giriş yapın.",
     "restoringSession": "Oturumunuz geri yükleniyor…",
-    "signInInstead": "Bunun yerine giriş yap"
+    "signInInstead": "Bunun yerine giriş yap",
+    "codeTitle": "Kodunu gir",
+    "codeSentTo": "{{email}} adresine {{digits}} haneli bir kod gönderdik",
+    "codeInputLabel": "Doğrulama kodu",
+    "codeVerifying": "Doğrulanıyor…",
+    "codeResend": "Kodu yeniden gönder",
+    "codeResendIn": "{{seconds}} sn sonra yeniden gönder",
+    "codeResent": "Yeni kod gönderildi — en son gelen e-postayı kullan.",
+    "codeWrongOrExpired": "Kod yanlış veya süresi dolmuş. En son e-postayı kontrol et ya da yeniden gönder.",
+    "codeTooManyAttempts": "Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.",
+    "codeConnectionError": "Bağlantı kurulamadı. Bağlantını kontrol edip tekrar dene.",
+    "codeGenericError": "Bir şeyler ters gitti. Lütfen tekrar dene.",
+    "codeNotConfirmedYet": "E-postan henüz doğrulanmadı. En son e-postadaki kodu gir.",
+    "codeAlreadyConfirmed": "Bağlantı ile zaten doğruladım",
+    "codeChangeEmail": "E-postayı değiştir",
+    "codeSendFailed": "Kodu gönderemedik. Bağlantını kontrol edip tekrar dene."
   },
   "tabs": {
     "home": "Ana Sayfa",
@@ -1011,8 +1026,6 @@
     "overdue": "Geciken",
     "totalSpend": "Harcama",
     "upcomingTasks": "Yaklasan",
-    "allCaughtUp": "Her sey tamam!",
-    "seeAll": "Tum gorevleri gor",
     "spending": "Harcamalar",
     "thisYear": "Bu Yil",
     "allTime": "Tum Zamanlar",
@@ -1032,7 +1045,6 @@
     "updatedTodayFrom": "Bugün {{source}} üzerinden güncellendi",
     "updatedYesterdayFrom": "Dün {{source}} üzerinden güncellendi",
     "updatedDaysAgoFrom": "{{days}} gün önce {{source}} üzerinden güncellendi",
-    "maintenance": "Bakım",
     "allTasks": "Tüm Görevler",
     "segment": {
       "overview": "Genel bakış",
@@ -1040,8 +1052,8 @@
       "costs": "Masraflar",
       "bike": "Motosiklet",
       "listA11y": "Motosiklet bölümleri",
-      "serviceBadgeA11y_one": "Servis, {{count}} gecikmiş yüksek öncelikli görev",
-      "serviceBadgeA11y_other": "Servis, {{count}} gecikmiş yüksek öncelikli görev"
+      "serviceOverdueA11y_one": "Servis, {{count}} gecikmiş görev",
+      "serviceOverdueA11y_other": "Servis, {{count}} gecikmiş görev"
     },
     "header": {
       "backTo": "{{origin}} sayfasına dön",
@@ -1110,7 +1122,10 @@
       "logA11y": "Bu motosiklet için kayıt ekle",
       "addTaskA11y": "Bakım görevi ekle",
       "addExpenseA11y": "Masraf ekle",
-      "addDocumentA11y": "Belge ekle"
+      "addDocumentA11y": "Belge ekle",
+      "task": "Görev",
+      "expense": "Gider",
+      "document": "Belge"
     },
     "state": {
       "notFound": "Bu motosiklet artık garajınızda değil.",
@@ -1154,7 +1169,9 @@
       "more_other": "{{count}} tane daha",
       "listAnd": "{{first}} ve {{last}}",
       "loadError": "Görevler yüklenemedi",
-      "docActionInsurance": "yenileyin veya yeni poliçeyi yükleyin"
+      "docActionInsurance": "yenileyin veya yeni poliçeyi yükleyin",
+      "overdueCount_one": "{{count}} gecikmiş",
+      "overdueCount_other": "{{count}} gecikmiş"
     },
     "nextUp": {
       "title": "Sırada"
@@ -1188,11 +1205,11 @@
       "title": "Notlar",
       "all": "Tüm notlar",
       "placeholder": "Bir şeyler not al…",
-      "noteButton": "Not",
       "noteButtonA11y": "Daha uzun bir not yaz",
       "inputA11y": "Not ekle",
       "saveFailed": "Not kaydedilemedi. Tekrar deneyin.",
-      "loadError": "Notlar yüklenemedi"
+      "loadError": "Notlar yüklenemedi",
+      "saveA11y": "Notu kaydet"
     },
     "papers": {
       "title": "Evraklar ve motosiklet",
@@ -1206,66 +1223,91 @@
       "title": "{{name}} için kayıt ekle",
       "expense": "Masraf",
       "expenseSub": "Yakıt, parça, sigorta, geçiş ücretleri",
-      "task": "Bakım görevi",
       "taskSub": "Yapılacak bir iş, tarihe veya mesafeye göre",
       "pastWork": "Yapılmış iş",
       "pastWorkSub": "Doğrudan servis geçmişine eklenir, varsa maliyetiyle",
       "note": "Not",
       "noteSub": "Bir fikir, parça numarası, hatırlanacak bir şey",
       "document": "Belge",
-      "documentSub": "Sigorta, ruhsat, mülkiyet, servis kaydı"
+      "documentSub": "Sigorta, ruhsat, mülkiyet, servis kaydı",
+      "planTask": "Görev planla",
+      "odometer": "Kilometre sayacı",
+      "odometerSub": "Göstergedeki değeri güncelleyin"
     },
     "odometer": {
       "title": "Kilometre sayacı",
       "newReading": "Yeni değer",
-      "deltaUp": "{{date}} tarihinden beri +{{delta}} {{unit}} · önceki {{last}}",
-      "deltaUpNoDate": "+{{delta}} {{unit}} · önceki {{last}}",
-      "deltaDown": "−{{delta}} {{unit}} · önceki {{last}}",
-      "unchanged": "Son değerle aynı · {{last}}",
       "first": "Bu motosikletin ilk değeri",
-      "lastReading": "Son değer {{last}} {{unit}} · {{date}}",
       "ridesChip_one": "{{count}} kayıtlı sürüşten +{{distance}}",
       "ridesChip_other": "{{count}} kayıtlı sürüşten +{{distance}}",
-      "dateToday": "Tarih · bugün",
-      "dateOn": "Tarih · {{date}}",
       "deleteA11y": "Rakamı sil",
-      "helper": "Değerler kayıt olarak saklanır. Son değerden düşük bir değer kaydedilmeden önce sorulur.",
       "save": "{{value}} {{unit}} kaydet",
-      "lowerTitle": "Son değerden düşük",
-      "lowerMessage": "Son değer {{last}} {{unit}} idi. Yine de {{value}} {{unit}} kaydedilsin mi?",
       "backdatedNotice": "Son değerden önceki bir tarih: kaydedilir, kilometre sayacı {{last}} {{unit}} olarak kalır.",
       "futureDate": "Tarih gelecekte olamaz.",
       "saveFailed": "Değer kaydedilemedi. Tekrar deneyin.",
-      "lastReadingNoDate": "Son değer {{last}} {{unit}}",
-      "historyUnavailable": "Önceki okumalar yüklenemedi, bu yüzden yalnızca bugünkü okuma kaydedilebilir. Yeniden denemek için dokunun."
+      "historyUnavailable": "Önceki okumalar yüklenemedi, bu yüzden yalnızca bugünkü okuma kaydedilebilir. Yeniden denemek için dokunun.",
+      "entryEmptyA11y": "Yeni değer, boş",
+      "entryA11y": "Yeni değer {{value}} {{unit}}",
+      "lastLine": "Son · {{last}} {{unit}} · {{date}}",
+      "lastLineNoDate": "Son · {{last}} {{unit}}",
+      "deltaSince": "{{date}} tarihinden beri +{{delta}} {{unit}}",
+      "deltaPlus": "+{{delta}} {{unit}}",
+      "deltaBelow": "Son değerin −{{delta}} {{unit}} altında",
+      "sameAsLast": "Son değerle aynı — yenisini yazın",
+      "lowerThan": "{{last}} {{unit}} değerinden düşük",
+      "lowerOneLine": "Yalnızca son değer yanlışsa kaydedin.",
+      "fixIt": "Düzelt",
+      "discardTitle": "Değer silinsin mi?",
+      "discardMessage": "Yazdığınız sayı kaydedilmeyecek.",
+      "discard": "Sil",
+      "keepEditing": "Düzenlemeye devam et",
+      "clear": "Temizle",
+      "clearA11y": "Değeri temizle",
+      "today": "Bugün",
+      "dateA11y": "Değer tarihi: {{date}}"
     },
     "noteSheet": {
       "new": "Yeni not",
       "edit": "Notu düzenle",
       "placeholder": "Neyi hatırlamak istiyorsunuz?",
       "stamp": "{{odometer}} {{unit}} · bugün",
-      "stampA11y": "Kilometre damgası",
-      "photo": "Fotoğraf",
       "removePhotoA11y": "Fotoğrafı kaldır",
       "attachTo": "Şuna ekle",
       "alsoTask": "Görev olarak da ekle",
       "alsoTaskSub": "Bu notun eklendiği, tarihsiz ve düşük öncelikli bir görev oluşturur",
       "save": "Notu kaydet",
+      "saving": "Kaydediliyor…",
       "discardTitle": "Bu not silinsin mi?",
       "discardKeep": "Düzenlemeye devam et",
       "discard": "Sil",
-      "photoFailed": "Not kaydedildi, fotoğraf yüklenemedi",
       "taskNotCreated": "Not kaydedildi. Görev oluşturulamadı — notta “Görev yap” seçeneğini kullanın.",
       "photoLimit": "Not başına en fazla {{max}} fotoğraf",
       "alsoTaskSubNamed": "“{{title}}” oluşturur · Düşük · tarihsiz, bu not ekli",
-      "photoRemoveFailed": "Not kaydedildi ancak bir fotoğraf kaldırılamadı",
-      "photoNeedsSignIn": "Fotoğraf eklemek için yeniden oturum açın. Notu fotoğrafsız kaydetmek için fotoğrafları kaldırın."
+      "photoNeedsSignIn": "Fotoğraf eklemek için yeniden oturum açın. Notu fotoğrafsız kaydetmek için fotoğrafları kaldırın.",
+      "stampOff": "Kilometre yok",
+      "stampA11yOn": "Kilometre kaydı, {{odometer}} {{unit}}, açık",
+      "stampA11yOff": "Kilometre kaydı, {{odometer}} {{unit}}, kapalı",
+      "addPhoto": "Fotoğraf ekle",
+      "addingPhotos": "Fotoğraflar ekleniyor · {{done}}/{{total}}",
+      "photoNotAddedA11y": "Fotoğraf eklenmedi",
+      "photosNotAdded_one": "Not kaydedildi. {{count}} fotoğraf eklenemedi.",
+      "photosNotAdded_few": "Not kaydedildi. {{count}} fotoğraf eklenemedi.",
+      "photosNotAdded_many": "Not kaydedildi. {{count}} fotoğraf eklenemedi.",
+      "photosNotAdded_other": "Not kaydedildi. {{count}} fotoğraf eklenemedi.",
+      "photosNotRemoved_one": "Not kaydedildi. {{count}} fotoğraf kaldırılamadı.",
+      "photosNotRemoved_few": "Not kaydedildi. {{count}} fotoğraf kaldırılamadı.",
+      "photosNotRemoved_many": "Not kaydedildi. {{count}} fotoğraf kaldırılamadı.",
+      "photosNotRemoved_other": "Not kaydedildi. {{count}} fotoğraf kaldırılamadı.",
+      "retryPhotos_one": "{{count}} fotoğrafı yeniden dene",
+      "retryPhotos_few": "{{count}} fotoğrafı yeniden dene",
+      "retryPhotos_many": "{{count}} fotoğrafı yeniden dene",
+      "retryPhotos_other": "{{count}} fotoğrafı yeniden dene",
+      "discardMessage": "Yazdıklarınız kaydedilmeyecek."
     },
     "notesScreen": {
       "title": "Notlar · {{name}}",
       "count_one": "{{count}} not",
       "count_other": "{{count}} not",
-      "hint": "önce en yeni · düzenlemek · silmek için kaydır",
       "searchPlaceholder": "Parça numarası, basınç, servis ara…",
       "searchA11y": "Notlarda ara",
       "makeTask": "Görev yap",
@@ -1273,18 +1315,72 @@
       "deleted": "Not silindi",
       "deleteFailed": "Not silinemedi.",
       "makeTaskFailed": "Görev oluşturulamadı.",
-      "empty": "Henüz not yok",
-      "emptySub": "Parça numaralarını, basınçları ve bu motosikletle ilgili hatırlanacakları not alın.",
       "noMatch": "“{{query}}” ile eşleşen not yok",
       "composerAdd": "Ekle",
       "attachPhotoA11y": "Fotoğraf ekle",
-      "photoA11y": "Not fotoğrafı"
+      "rowHint": "Notu düzenlemek için açar",
+      "photoOf": "Fotoğraf {{index}}/{{count}}",
+      "photoCount_one": "{{count}} fotoğraf",
+      "photoCount_other": "{{count}} fotoğraf",
+      "photoCount_few": "{{count}} fotoğraf",
+      "photoCount_many": "{{count}} fotoğraf",
+      "matchCount_one": "{{count}} eşleşen not",
+      "matchCount_other": "{{count}} eşleşen not",
+      "matchCount_few": "{{count}} eşleşen not",
+      "matchCount_many": "{{count}} eşleşen not",
+      "clearSearch": "Aramayı temizle",
+      "emptyTitle": "Unutacağın şeyleri burada tut",
+      "emptyBodyStamped": "Lastik basınçları, bir parça numarası, supapları yapan servis. Aşağıya yaz — her not bugünkü kilometreyle kaydedilir.",
+      "emptyBody": "Lastik basınçları, bir parça numarası, supapları yapan servis. Aşağıya yaz, bu motosikletle birlikte saklanır.",
+      "taskLink": "Görev · {{status}}",
+      "linkedTask": "Bağlı görev",
+      "taskLinkA11y": "Bağlı görev “{{title}}”, {{status}}",
+      "linkedTaskA11y": "Bağlı görev “{{title}}”",
+      "taskStatus": {
+        "open": "açık",
+        "inProgress": "devam ediyor",
+        "done": "tamamlandı",
+        "skipped": "atlandı"
+      },
+      "viewerCloseA11y": "Fotoğrafları kapat",
+      "viewerCounter": "{{index}}/{{count}}"
     },
     "refreshFailed": "Yenilenemedi",
     "refreshRetryA11y": {
       "attention": "İlgi bekleyenleri yeniden dene",
       "costs": "Masrafları yeniden dene",
       "notes": "Notları yeniden dene"
+    },
+    "service": {
+      "group": {
+        "overdue": "Gecikmiş",
+        "soon": "Yakında",
+        "later": "Daha sonra",
+        "someday": "Tarih yok"
+      },
+      "noOpenTasks": "Açık görev yok",
+      "priorityA11y": "{{priority}} öncelik",
+      "markDone": "Tamamlandı olarak işaretle",
+      "markDoneA11y": "{{title}} görevini tamamlandı olarak işaretle",
+      "doneOn": "{{date}} tarihinde tamamlandı",
+      "seeAllHistory_one": "Tamamlanan {{count}} görevi gör",
+      "seeAllHistory_other": "Tamamlanan {{count}} görevin tümünü gör",
+      "serviceItems": "Servis kalemleri"
+    },
+    "costsSegment": {
+      "spentIn": "{{year}} harcaması",
+      "spentAllTime": "Toplam harcama",
+      "recent": "Son giderler"
+    },
+    "bikeSegment": {
+      "categories": "Kategoriler"
+    },
+    "sheetDraft": {
+      "noteRestored": "Yazdıklarınız geri yüklendi",
+      "readingRestored": "Girdiğiniz değer geri yüklendi",
+      "clear": "Temizle",
+      "clearNoteA11y": "Geri yüklenen notu temizle",
+      "clearReadingA11y": "Geri yüklenen değeri temizle"
     }
   },
   "maintenance": {
@@ -1632,7 +1728,10 @@
     "charCount_one": "{{count}} / {{max}}",
     "charCount_other": "{{count}} / {{max}}",
     "charCount_few": "{{count}} / {{max}}",
-    "charCount_many": "{{count}} / {{max}}"
+    "charCount_many": "{{count}} / {{max}}",
+    "problemRequired": "Analiz için sorunu açıklayın veya fotoğraf ekleyin. Düzenlemek için dokunun.",
+    "symptomsRequired": "Fark ettiğiniz şeyi seçin veya “Emin degilim”.",
+    "descriptionRequired": "Devam etmek için ne olduğunu açıklayın."
   },
   "notifications": {
     "title": "Bildirimler",
@@ -1658,8 +1757,6 @@
     }
   },
   "expenses": {
-    "title": "Harcamalar",
-    "allTime": "Tum Zamanlar",
     "category": "Kategori",
     "createFailed": "Harcama kaydedilemedi. Lutfen tekrar dene.",
     "date": "Tarih",
@@ -1892,6 +1989,14 @@
     "findRiders": "Sürücüleri Keşfet"
   },
   "whatsNew": {
+    "v3220": {
+      "overviewTitle": "Motosikletin tek bakışta",
+      "overviewDesc": "Her motosiklet artık Genel bakış ile açılıyor: ilgilenmen gerekenler, sıradaki işler, harcamaların, notların ve belgelerin. Servis, Masraflar ve Motosiklet üstteki çubukta tek dokunuş uzağında.",
+      "notesTitle": "Fotoğraflı notlar",
+      "notesDesc": "Parça numaralarını, lastik basınçlarını ve servis bilgilerini ilgili motosikletle birlikte sakla. Nota fotoğraf ekle, notlarını sonra ara ya da birini göreve dönüştür.",
+      "logTitle": "Doğrudan motosikletten kaydet",
+      "logDesc": "Bir motosiklette Kayıt ekle’ye dokunarak masraf, görev, yapılmış iş, not veya belge ekle. Kilometre sayacı artık iPhone’da da Android’de de tuş takımıyla güncelleniyor."
+    },
     "badge": "What's New",
     "next": "Next",
     "getStarted": "Let's Go",

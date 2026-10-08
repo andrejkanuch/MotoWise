@@ -12,14 +12,25 @@ jest.mock('expo-haptics', () => ({
   ImpactFeedbackStyle: { Light: 'light' },
   NotificationFeedbackType: { Success: 'success', Warning: 'warning' },
 }));
-// The picker is native; capture its props so a test can "pick" a day.
-let mockPicker: { onChange: (event: { type: string }, date?: Date) => void } | undefined;
-jest.mock('@expo/ui/community/datetime-picker', () => ({
-  __esModule: true,
-  default: (props: typeof mockPicker) => {
-    mockPicker = props;
+// iOS date chip: the system compact picker. The stand-in hands its props to the test.
+interface MockDatePickerProps {
+  selection: Date;
+  range?: { start?: Date; end?: Date };
+  onDateChange: (date: Date) => void;
+}
+let mockDatePicker: MockDatePickerProps | null = null;
+jest.mock('@expo/ui/swift-ui', () => ({
+  Host: ({ children }: { children: unknown }) => children,
+  DatePicker: (props: MockDatePickerProps) => {
+    mockDatePicker = props;
     return null;
   },
+}));
+jest.mock('@expo/ui/swift-ui/modifiers', () => ({
+  datePickerStyle: (style: string) => ({ style }),
+  environment: (key: string, value: string) => ({ key, value }),
+  labelsHidden: () => ({}),
+  tint: (color: string) => ({ color }),
 }));
 
 const mockFetcher = jest.fn();
@@ -40,6 +51,7 @@ import { BIKE_A, TODAY } from '../../../test/bike-hub-fixtures';
 import { OdometerSheet } from '../sheets/odometer-sheet';
 import { SHEET_TOP_CLEARANCE } from '../sheets/sheet-scroll';
 import type { HubBike } from '../shell/use-bike-hub-data';
+import { hub } from '../ui/tokens';
 
 const LATEST = {
   id: 'reading-1',
@@ -49,6 +61,8 @@ const LATEST = {
   rideId: null,
 };
 const clients: QueryClient[] = [];
+/** The delta line is hidden from assistive tech while it is empty. */
+const HIDDEN = { includeHiddenElements: true } as const;
 const onClose = jest.fn();
 
 interface Scenario {
@@ -131,7 +145,7 @@ describe('OdometerSheet', () => {
     await renderSheet();
     await type('39407');
     expect(screen.getByTestId('odometer-entry')).toHaveTextContent('39,407');
-    expect(screen.getByText('+1,240 km since Sep 28 · was 38,167')).toBeOnTheScreen();
+    expect(screen.getByTestId('odometer-delta')).toHaveTextContent('+1,240 km since Sep 28');
     expect(screen.getByRole('button', { name: 'Save 39,407 km' })).toBeEnabled();
     expect(screen.getByText('+1,240 from 4 tracked rides')).toBeOnTheScreen();
   });
@@ -189,8 +203,8 @@ describe('OdometerSheet', () => {
     await type('38000');
     await fireEvent.press(screen.getByTestId('odometer-save'));
     const [title, body] = alert.mock.calls[0] ?? [];
-    expect(title).toBe('Lower than the last reading');
-    expect(body).toBe('The last reading was 38,167 km. Save 38,000 km anyway?');
+    expect(title).toBe('Lower than 38,167 km');
+    expect(body).toBe('Save it only if the last reading was wrong.');
     expect(body).not.toContain(title as string);
   });
 
@@ -212,16 +226,23 @@ describe('OdometerSheet', () => {
     const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     await renderSheet();
     await type('38000');
-    expect(screen.getByText('−167 km · was 38,167')).toBeOnTheScreen();
+    expect(screen.getByTestId('odometer-delta')).toHaveTextContent(
+      '−167 km below the last reading',
+    );
     await fireEvent.press(screen.getByTestId('odometer-save'));
     expect(saved()).toHaveLength(0);
     expect(alert).toHaveBeenCalledWith(
-      'Lower than the last reading',
-      'The last reading was 38,167 km. Save 38,000 km anyway?',
+      'Lower than 38,167 km',
+      'Save it only if the last reading was wrong.',
       expect.any(Array),
     );
     const buttons = alert.mock.calls[0]?.[2] ?? [];
-    await act(async () => buttons.find((button) => button.text === 'Save')?.onPress?.());
+    // "Fix it" goes back to the pad; the other button names the value it saves.
+    expect(buttons.map((button) => [button.text, button.style])).toEqual([
+      ['Fix it', 'cancel'],
+      ['Save 38,000 km', undefined],
+    ]);
+    await act(async () => buttons.find((button) => button.text === 'Save 38,000 km')?.onPress?.());
     await waitFor(() => expect(saved()).toHaveLength(1));
     expect(saved()[0]?.[1]).toMatchObject({ input: { value: 38_000 } });
   });
@@ -231,13 +252,13 @@ describe('OdometerSheet', () => {
   it('compares against the bike odometer when it is ahead of the latest logged reading', async () => {
     const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     await renderSheet({ bike: { currentMileage: 38_500 } });
-    expect(screen.getByText('Last reading 38,500 km')).toBeOnTheScreen();
+    expect(screen.getByTestId('odometer-last')).toHaveTextContent('Last · 38,500 km');
     await type('38300');
     await fireEvent.press(screen.getByTestId('odometer-save'));
     expect(saved()).toHaveLength(0);
     expect(alert).toHaveBeenCalledWith(
-      'Lower than the last reading',
-      'The last reading was 38,500 km. Save 38,300 km anyway?',
+      'Lower than 38,500 km',
+      'Save it only if the last reading was wrong.',
       expect.any(Array),
     );
   });
@@ -297,17 +318,56 @@ describe('OdometerSheet', () => {
     ).toHaveLength(1);
   });
 
-  it('an equal value keeps Save disabled', async () => {
+  it('an equal value keeps Save off, and the footer says why', async () => {
     await renderSheet();
     await type('38167');
-    expect(screen.getByText('Same as the last reading · 38,167')).toBeOnTheScreen();
     expect(screen.getByTestId('odometer-save')).toBeDisabled();
+    expect(screen.getByTestId('odometer-notice')).toHaveTextContent(
+      'Same as the last reading — type the new one',
+    );
+    // Said once: the delta line stays empty (and silent) rather than repeat it.
+    expect(screen.getByTestId('odometer-delta', HIDDEN)).toHaveTextContent('');
   });
 
-  it('an empty entry keeps Save disabled and shows the last reading', async () => {
+  it('the entry starts EMPTY: a dim placeholder, the last reading on its own line, no repeat', async () => {
     await renderSheet();
+    const entry = screen.getByTestId('odometer-entry');
+    expect(entry).toHaveTextContent('— — —');
+    expect(entry).toHaveAccessibleName('New reading, empty');
+    expect(entry.props.accessibilityLiveRegion).toBe('polite');
+    expect(screen.getByTestId('odometer-last')).toHaveTextContent('Last · 38,167 km · Sep 28');
+    // The last reading appears once — not in the entry, not in the delta line.
+    expect(screen.getAllByText(/38,167/)).toHaveLength(1);
+    const delta = screen.getByTestId('odometer-delta', HIDDEN);
+    expect(delta).toHaveTextContent('');
+    expect(delta.props.accessibilityLiveRegion).toBe('polite');
+    // Empty, it is laid out (the pad does not jump) but not read out.
+    expect(screen.queryByTestId('odometer-delta')).toBeNull();
     expect(screen.getByTestId('odometer-save')).toBeDisabled();
-    expect(screen.getByText('Last reading 38,167 km · Sep 28')).toBeOnTheScreen();
+    // Nothing to explain yet: no footnote under the pad.
+    expect(screen.queryByTestId('odometer-notice')).toBeNull();
+    await type('3');
+    expect(screen.getByTestId('odometer-delta')).toBeOnTheScreen();
+  });
+
+  it('the caret sits before the placeholder, and after a typed value', async () => {
+    await renderSheet();
+    const row = () => screen.getByTestId('odometer-entry').parent;
+    const ids = () =>
+      (row()?.children ?? []).map((child) =>
+        typeof child === 'string' ? child : child.props.testID,
+      );
+    expect(ids()).toEqual(['odometer-caret', 'odometer-entry']);
+    await type('39120');
+    expect(ids()).toEqual(['odometer-entry', 'odometer-caret']);
+    expect(screen.getByTestId('odometer-entry')).toHaveAccessibleName('New reading 39,120 km');
+  });
+
+  it('a typed value is never compared in a second "was" line', async () => {
+    await renderSheet();
+    await type('39120');
+    expect(screen.getByTestId('odometer-delta')).toHaveTextContent('+953 km since Sep 28');
+    expect(screen.queryByText(/was 38,167/)).toBeNull();
   });
 
   it('delete removes a digit; long-press clears', async () => {
@@ -319,10 +379,34 @@ describe('OdometerSheet', () => {
     expect(screen.getByTestId('odometer-save')).toBeDisabled();
   });
 
+  it('a visible Clear key empties the entry', async () => {
+    await renderSheet();
+    await type('394');
+    await fireEvent.press(screen.getByRole('button', { name: 'Clear the reading' }));
+    expect(screen.getByTestId('odometer-entry')).toHaveTextContent('— — —');
+    expect(within(screen.getByTestId('key-clear')).getByText('Clear')).toBeOnTheScreen();
+  });
+
+  it('Save off is a neutral raised key with dim text, not faded copper', async () => {
+    await renderSheet();
+    const saveStyle = () => {
+      const save = screen.getByTestId('odometer-save');
+      return StyleSheet.flatten(save.props.style);
+    };
+    const labelColor = (name: string) =>
+      StyleSheet.flatten(screen.getByText(name).props.style).color;
+    expect(saveStyle()).toMatchObject({ backgroundColor: hub.raised, opacity: 1 });
+    expect(labelColor('Save')).toBe(hub.muted);
+    await type('39120');
+    expect(saveStyle()).toMatchObject({ backgroundColor: hub.copper, opacity: 1 });
+    expect(labelColor('Save 39,120 km')).toBe(hub.ink);
+  });
+
   it('a miles bike shows mi everywhere — the value is not converted', async () => {
     await renderSheet({ bike: { distanceUnit: 'mi' } });
     await type('39407');
-    expect(screen.getByText('+1,240 mi since Sep 28 · was 38,167')).toBeOnTheScreen();
+    expect(screen.getByTestId('odometer-delta')).toHaveTextContent('+1,240 mi since Sep 28');
+    expect(screen.getByTestId('odometer-last')).toHaveTextContent('Last · 38,167 mi · Sep 28');
     expect(screen.getByRole('button', { name: 'Save 39,407 mi' })).toBeOnTheScreen();
   });
 
@@ -343,10 +427,9 @@ describe('OdometerSheet', () => {
   });
 });
 
+/** Chooses `date` in the date chip's native picker, as iOS would report it. */
 async function pickDate(date: Date) {
-  await fireEvent.press(screen.getByTestId('key-date'));
-  await act(async () => mockPicker?.onChange({ type: 'set' }, date));
-  await fireEvent.press(screen.getByText('Done'));
+  await act(async () => mockDatePicker?.onDateChange(date));
 }
 
 describe('OdometerSheet — a reading on the day of the latest one (M2)', () => {
@@ -358,7 +441,7 @@ describe('OdometerSheet — a reading on the day of the latest one (M2)', () => 
     await renderSheet({ now: NOW, readings: reading(new Date(2026, 9, 1, 18, 0)) });
     await pickDate(YESTERDAY);
     await type('38300');
-    expect(screen.getByTestId('odometer-notice')).not.toHaveTextContent(/Dated before/);
+    expect(screen.queryByTestId('odometer-notice')).toBeNull();
     await fireEvent.press(screen.getByTestId('odometer-save'));
     await waitFor(() => expect(saved()).toHaveLength(1));
     // After the 18:00 reading, so the server applies it to the bike.
@@ -381,12 +464,12 @@ describe('OdometerSheet — a reading on the day of the latest one (M2)', () => 
     await pickDate(YESTERDAY);
     await type('38300');
     // On the detail line, in place of a "since" delta that would compare it
-    // with a later reading; the footnote goes back to the helper.
+    // with a later reading; no footnote repeats it.
     expect(screen.getByTestId('odometer-delta')).toHaveTextContent(
       'Dated before your latest reading: it is logged, and the odometer stays at 38,167 km.',
     );
     expect(screen.getByTestId('odometer-delta')).not.toHaveTextContent(/since/);
-    expect(screen.getByTestId('odometer-notice')).not.toHaveTextContent(/Dated before/);
+    expect(screen.queryByTestId('odometer-notice')).toBeNull();
     await fireEvent.press(screen.getByTestId('odometer-save'));
     await waitFor(() => expect(saved()).toHaveLength(1));
     const { trackEvent } = jest.requireMock('../../../lib/analytics') as { trackEvent: jest.Mock };
@@ -400,16 +483,16 @@ describe('OdometerSheet — a reading on the day of the latest one (M2)', () => 
 describe('OdometerSheet — unset odometer (0 or null, no reading)', () => {
   it('0 with no reading reads "First reading for this bike", with no dangling separator', async () => {
     await renderSheet({ bike: { currentMileage: 0 }, readings: [] });
-    expect(screen.getByTestId('odometer-delta')).toHaveTextContent('First reading for this bike');
+    expect(screen.getByTestId('odometer-last')).toHaveTextContent('First reading for this bike');
     await type('12');
-    expect(screen.getByTestId('odometer-delta')).toHaveTextContent('First reading for this bike');
+    expect(screen.getByTestId('odometer-last')).toHaveTextContent('First reading for this bike');
+    expect(screen.getByTestId('odometer-delta', HIDDEN)).toHaveTextContent('');
     expect(screen.getByRole('button', { name: 'Save 12 km' })).toBeEnabled();
   });
 
   it('a bike value without a logged reading shows the last reading without a date', async () => {
     await renderSheet({ readings: [] });
-    expect(screen.getByTestId('odometer-delta')).toHaveTextContent('Last reading 38,167 km');
-    expect(screen.getByTestId('odometer-delta')).not.toHaveTextContent(/·/);
+    expect(screen.getByTestId('odometer-last')).toHaveTextContent('Last · 38,167 km');
   });
 });
 
@@ -449,18 +532,29 @@ describe('OdometerSheet — layout that cannot escape the sheet (visual QA round
     });
   });
 
-  it('keeps the design order: detail line, chips, keypad, notice, Save', async () => {
+  it('keeps the design order: entry, last line, delta line, chips, keypad, notice, Save', async () => {
     await renderSheet();
+    await type('38167');
     const order = screen
-      .getAllByTestId(/^(odometer-delta|odometer-chips|key-1|odometer-notice|odometer-save)$/)
+      .getAllByTestId(
+        /^(odometer-entry|odometer-last|odometer-delta|odometer-chips|key-1|odometer-notice|odometer-save)$/,
+        HIDDEN,
+      )
       .map((node) => node.props.testID);
     expect(order).toEqual([
+      'odometer-entry',
+      'odometer-last',
       'odometer-delta',
       'odometer-chips',
       'key-1',
       'odometer-notice',
       'odometer-save',
     ]);
+  });
+
+  it('no permanent footnote pre-explains the lower-reading check', async () => {
+    await renderSheet();
+    expect(screen.queryByText(/lower than the last asks/i)).toBeNull();
   });
 
   it('stops growing at the top of the screen and scrolls from there (window − top inset − clearance)', async () => {
@@ -473,11 +567,12 @@ describe('OdometerSheet — layout that cannot escape the sheet (visual QA round
 
   it('caps every text at 1.3x, so Save stays reachable at AX5 (the detail line and footnote were uncapped)', async () => {
     await renderSheet();
+    await type('38167');
     const texts = hostTexts(screen.toJSON());
     expect(texts.length).toBeGreaterThan(10);
     for (const text of texts) expect(text.props.maxFontSizeMultiplier).toBe(1.3);
     expect(screen.getByTestId('odometer-notice').props.maxFontSizeMultiplier).toBe(1.3);
-    expect(screen.getByTestId('odometer-delta').props.maxFontSizeMultiplier).toBe(1.3);
+    expect(screen.getByTestId('odometer-delta', HIDDEN).props.maxFontSizeMultiplier).toBe(1.3);
   });
 
   it('the rides chip takes at most 45% of the row and wraps its label, so +50 / +100 / +250 stay beside it', async () => {

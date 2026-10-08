@@ -4,13 +4,16 @@ import {
   BellRing,
   Bike,
   Car,
+  CirclePlus,
   FileText,
   Gauge,
+  LayoutDashboard,
   LayoutGrid,
   Map as MapIcon,
   MessageCircle,
   Mountain,
   Navigation,
+  NotebookPen,
   Paintbrush,
   Route,
   ScanLine,
@@ -67,6 +70,29 @@ export interface WhatsNewRelease {
  * the current app version is shown.
  */
 export const WHATS_NEW_RELEASES = [
+  {
+    version: '3.22.0',
+    slides: [
+      {
+        icon: LayoutDashboard,
+        iconColor: palette.signature400,
+        titleKey: 'whatsNew.v3220.overviewTitle' as const,
+        descriptionKey: 'whatsNew.v3220.overviewDesc' as const,
+      },
+      {
+        icon: NotebookPen,
+        iconColor: palette.accent400,
+        titleKey: 'whatsNew.v3220.notesTitle' as const,
+        descriptionKey: 'whatsNew.v3220.notesDesc' as const,
+      },
+      {
+        icon: CirclePlus,
+        iconColor: palette.primary400,
+        titleKey: 'whatsNew.v3220.logTitle' as const,
+        descriptionKey: 'whatsNew.v3220.logDesc' as const,
+      },
+    ],
+  },
   {
     // Both features shipped earlier without ever being announced in-app — this
     // array had no entry between 3.11.0 and here, so the modal stayed dormant

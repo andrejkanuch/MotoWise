@@ -1,0 +1,808 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-08T07:38:32+00:00",
+  "title": "Design System: MotoVault Mobile — Bike Hub",
+  "extensions": {
+    "colorMeta": {
+      "copper": {
+        "role": "primary",
+        "displayName": "Exhaust Copper",
+        "source": "palette.signature500 — the one primary action fill",
+        "canonical": "#D4622E",
+        "oklch": "oklch(62.8% 0.158 43)",
+        "tonalRamp": [
+          "oklch(15% 0.158 43)",
+          "oklch(25% 0.158 43)",
+          "oklch(36% 0.158 43)",
+          "oklch(47% 0.158 43)",
+          "oklch(58% 0.158 43)",
+          "oklch(70% 0.158 43)",
+          "oklch(82% 0.158 43)",
+          "oklch(95% 0.158 43)"
+        ]
+      },
+      "copper-text": {
+        "role": "primary",
+        "displayName": "Heated Copper",
+        "source": "palette.hubCopperText — copper as text on dark",
+        "canonical": "#E07A48",
+        "oklch": "oklch(68.4% 0.142 45)",
+        "tonalRamp": [
+          "oklch(15% 0.142 45)",
+          "oklch(25% 0.142 45)",
+          "oklch(36% 0.142 45)",
+          "oklch(47% 0.142 45)",
+          "oklch(58% 0.142 45)",
+          "oklch(70% 0.142 45)",
+          "oklch(82% 0.142 45)",
+          "oklch(95% 0.142 45)"
+        ]
+      },
+      "copper-ink": {
+        "role": "primary",
+        "displayName": "Copper Ink",
+        "source": "palette.hubInk — text/icons on copper",
+        "canonical": "#1A1410",
+        "oklch": "oklch(19.7% 0.013 56)",
+        "tonalRamp": [
+          "oklch(15% 0.013 56)",
+          "oklch(25% 0.013 56)",
+          "oklch(36% 0.013 56)",
+          "oklch(47% 0.013 56)",
+          "oklch(58% 0.013 56)",
+          "oklch(70% 0.013 56)",
+          "oklch(82% 0.013 56)",
+          "oklch(95% 0.013 56)"
+        ]
+      },
+      "ground": {
+        "role": "neutral",
+        "displayName": "Workshop Black",
+        "source": "palette.surfaceDark",
+        "canonical": "#141210",
+        "oklch": "oklch(18.4% 0.005 67)",
+        "tonalRamp": [
+          "oklch(15% 0.005 67)",
+          "oklch(25% 0.005 67)",
+          "oklch(36% 0.005 67)",
+          "oklch(47% 0.005 67)",
+          "oklch(58% 0.005 67)",
+          "oklch(70% 0.005 67)",
+          "oklch(82% 0.005 67)",
+          "oklch(95% 0.005 67)"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Warm Graphite",
+        "source": "palette.cardDark",
+        "canonical": "#1E1C19",
+        "oklch": "oklch(22.8% 0.006 78)",
+        "tonalRamp": [
+          "oklch(15% 0.006 78)",
+          "oklch(25% 0.006 78)",
+          "oklch(36% 0.006 78)",
+          "oklch(47% 0.006 78)",
+          "oklch(58% 0.006 78)",
+          "oklch(70% 0.006 78)",
+          "oklch(82% 0.006 78)",
+          "oklch(95% 0.006 78)"
+        ]
+      },
+      "raised": {
+        "role": "neutral",
+        "displayName": "Raised Graphite",
+        "source": "palette.hubRaised",
+        "canonical": "#2A2724",
+        "oklch": "oklch(27.5% 0.007 68)",
+        "tonalRamp": [
+          "oklch(15% 0.007 68)",
+          "oklch(25% 0.007 68)",
+          "oklch(36% 0.007 68)",
+          "oklch(47% 0.007 68)",
+          "oklch(58% 0.007 68)",
+          "oklch(70% 0.007 68)",
+          "oklch(82% 0.007 68)",
+          "oklch(95% 0.007 68)"
+        ]
+      },
+      "option": {
+        "role": "neutral",
+        "displayName": "Option Graphite",
+        "source": "palette.hubOption",
+        "canonical": "#26231F",
+        "oklch": "oklch(25.8% 0.009 75)",
+        "tonalRamp": [
+          "oklch(15% 0.009 75)",
+          "oklch(25% 0.009 75)",
+          "oklch(36% 0.009 75)",
+          "oklch(47% 0.009 75)",
+          "oklch(58% 0.009 75)",
+          "oklch(70% 0.009 75)",
+          "oklch(82% 0.009 75)",
+          "oklch(95% 0.009 75)"
+        ]
+      },
+      "track": {
+        "role": "neutral",
+        "displayName": "Track Grey",
+        "source": "palette.hubTrack",
+        "canonical": "#4A4640",
+        "oklch": "oklch(39.6% 0.011 78)",
+        "tonalRamp": [
+          "oklch(15% 0.011 78)",
+          "oklch(25% 0.011 78)",
+          "oklch(36% 0.011 78)",
+          "oklch(47% 0.011 78)",
+          "oklch(58% 0.011 78)",
+          "oklch(70% 0.011 78)",
+          "oklch(82% 0.011 78)",
+          "oklch(95% 0.011 78)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Bone",
+        "source": "palette.hubText",
+        "canonical": "#F3EEE6",
+        "oklch": "oklch(95.1% 0.012 80)",
+        "tonalRamp": [
+          "oklch(15% 0.012 80)",
+          "oklch(25% 0.012 80)",
+          "oklch(36% 0.012 80)",
+          "oklch(47% 0.012 80)",
+          "oklch(58% 0.012 80)",
+          "oklch(70% 0.012 80)",
+          "oklch(82% 0.012 80)",
+          "oklch(95% 0.012 80)"
+        ]
+      },
+      "text-soft": {
+        "role": "neutral",
+        "displayName": "Soft Bone",
+        "source": "palette.hubTextSoft",
+        "canonical": "#E6E0D6",
+        "oklch": "oklch(90.9% 0.015 81)",
+        "tonalRamp": [
+          "oklch(15% 0.015 81)",
+          "oklch(25% 0.015 81)",
+          "oklch(36% 0.015 81)",
+          "oklch(47% 0.015 81)",
+          "oklch(58% 0.015 81)",
+          "oklch(70% 0.015 81)",
+          "oklch(82% 0.015 81)",
+          "oklch(95% 0.015 81)"
+        ]
+      },
+      "dim": {
+        "role": "neutral",
+        "displayName": "Dust",
+        "source": "palette.hubDim",
+        "canonical": "#B5ADA2",
+        "oklch": "oklch(75.1% 0.018 76)",
+        "tonalRamp": [
+          "oklch(15% 0.018 76)",
+          "oklch(25% 0.018 76)",
+          "oklch(36% 0.018 76)",
+          "oklch(47% 0.018 76)",
+          "oklch(58% 0.018 76)",
+          "oklch(70% 0.018 76)",
+          "oklch(82% 0.018 76)",
+          "oklch(95% 0.018 76)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Stone",
+        "source": "palette.hubMuted",
+        "canonical": "#9C958A",
+        "oklch": "oklch(67.3% 0.018 79)",
+        "tonalRamp": [
+          "oklch(15% 0.018 79)",
+          "oklch(25% 0.018 79)",
+          "oklch(36% 0.018 79)",
+          "oklch(47% 0.018 79)",
+          "oklch(58% 0.018 79)",
+          "oklch(70% 0.018 79)",
+          "oklch(82% 0.018 79)",
+          "oklch(95% 0.018 79)"
+        ]
+      },
+      "late": {
+        "role": "secondary",
+        "displayName": "Warning-Light Coral",
+        "source": "palette.hubLate — past due, CRIT",
+        "canonical": "#FF7A6B",
+        "oklch": "oklch(73.2% 0.165 28)",
+        "tonalRamp": [
+          "oklch(15% 0.165 28)",
+          "oklch(25% 0.165 28)",
+          "oklch(36% 0.165 28)",
+          "oklch(47% 0.165 28)",
+          "oklch(58% 0.165 28)",
+          "oklch(70% 0.165 28)",
+          "oklch(82% 0.165 28)",
+          "oklch(95% 0.165 28)"
+        ]
+      },
+      "soon": {
+        "role": "secondary",
+        "displayName": "Amber Lamp",
+        "source": "palette.hubSoon — due soon, HIGH",
+        "canonical": "#F0A050",
+        "oklch": "oklch(77.0% 0.135 63)",
+        "tonalRamp": [
+          "oklch(15% 0.135 63)",
+          "oklch(25% 0.135 63)",
+          "oklch(36% 0.135 63)",
+          "oklch(47% 0.135 63)",
+          "oklch(58% 0.135 63)",
+          "oklch(70% 0.135 63)",
+          "oklch(82% 0.135 63)",
+          "oklch(95% 0.135 63)"
+        ]
+      },
+      "medium": {
+        "role": "secondary",
+        "displayName": "Gauge Blue",
+        "source": "palette.hubMedium — MED tag",
+        "canonical": "#7DA9F0",
+        "oklch": "oklch(73.2% 0.114 260)",
+        "tonalRamp": [
+          "oklch(15% 0.114 260)",
+          "oklch(25% 0.114 260)",
+          "oklch(36% 0.114 260)",
+          "oklch(47% 0.114 260)",
+          "oklch(58% 0.114 260)",
+          "oklch(70% 0.114 260)",
+          "oklch(82% 0.114 260)",
+          "oklch(95% 0.114 260)"
+        ]
+      },
+      "low": {
+        "role": "neutral",
+        "displayName": "Low Grey",
+        "source": "palette.hubLow",
+        "canonical": "#A39B8F",
+        "oklch": "oklch(69.3% 0.020 78)",
+        "tonalRamp": [
+          "oklch(15% 0.020 78)",
+          "oklch(25% 0.020 78)",
+          "oklch(36% 0.020 78)",
+          "oklch(47% 0.020 78)",
+          "oklch(58% 0.020 78)",
+          "oklch(70% 0.020 78)",
+          "oklch(82% 0.020 78)",
+          "oklch(95% 0.020 78)"
+        ]
+      },
+      "ok": {
+        "role": "secondary",
+        "displayName": "Ready Green",
+        "source": "palette.hubOk — ready",
+        "canonical": "#5FC8A0",
+        "oklch": "oklch(75.9% 0.115 166)",
+        "tonalRamp": [
+          "oklch(15% 0.115 166)",
+          "oklch(25% 0.115 166)",
+          "oklch(36% 0.115 166)",
+          "oklch(47% 0.115 166)",
+          "oklch(58% 0.115 166)",
+          "oklch(70% 0.115 166)",
+          "oklch(82% 0.115 166)",
+          "oklch(95% 0.115 166)"
+        ]
+      },
+      "not-ready-dot": {
+        "role": "secondary",
+        "displayName": "Not-Ready Signal",
+        "source": "palette.hubNotReadyDot",
+        "canonical": "#FF5A4A",
+        "oklch": "oklch(68.6% 0.203 29)",
+        "tonalRamp": [
+          "oklch(15% 0.170 29)",
+          "oklch(25% 0.170 29)",
+          "oklch(36% 0.170 29)",
+          "oklch(47% 0.170 29)",
+          "oklch(58% 0.170 29)",
+          "oklch(70% 0.170 29)",
+          "oklch(82% 0.170 29)",
+          "oklch(95% 0.170 29)"
+        ]
+      },
+      "tag-crit-bg": {
+        "role": "tertiary",
+        "displayName": "CRIT Tag Fill",
+        "source": "palette.hubTagCritBg",
+        "canonical": "#3A1A16",
+        "oklch": "oklch(26.3% 0.052 28)",
+        "tonalRamp": [
+          "oklch(15% 0.052 28)",
+          "oklch(25% 0.052 28)",
+          "oklch(36% 0.052 28)",
+          "oklch(47% 0.052 28)",
+          "oklch(58% 0.052 28)",
+          "oklch(70% 0.052 28)",
+          "oklch(82% 0.052 28)",
+          "oklch(95% 0.052 28)"
+        ]
+      },
+      "tag-high-bg": {
+        "role": "tertiary",
+        "displayName": "HIGH Tag Fill",
+        "source": "palette.hubTagHighBg",
+        "canonical": "#3A2412",
+        "oklch": "oklch(28.3% 0.045 59)",
+        "tonalRamp": [
+          "oklch(15% 0.045 59)",
+          "oklch(25% 0.045 59)",
+          "oklch(36% 0.045 59)",
+          "oklch(47% 0.045 59)",
+          "oklch(58% 0.045 59)",
+          "oklch(70% 0.045 59)",
+          "oklch(82% 0.045 59)",
+          "oklch(95% 0.045 59)"
+        ]
+      },
+      "tag-med-bg": {
+        "role": "tertiary",
+        "displayName": "MED Tag Fill",
+        "source": "palette.hubTagMedBg",
+        "canonical": "#172538",
+        "oklch": "oklch(26.2% 0.041 256)",
+        "tonalRamp": [
+          "oklch(15% 0.041 256)",
+          "oklch(25% 0.041 256)",
+          "oklch(36% 0.041 256)",
+          "oklch(47% 0.041 256)",
+          "oklch(58% 0.041 256)",
+          "oklch(70% 0.041 256)",
+          "oklch(82% 0.041 256)",
+          "oklch(95% 0.041 256)"
+        ]
+      },
+      "tag-low-bg": {
+        "role": "tertiary",
+        "displayName": "LOW Tag Fill",
+        "source": "palette.hubTagLowBg",
+        "canonical": "#2A2824",
+        "oklch": "oklch(27.8% 0.008 85)",
+        "tonalRamp": [
+          "oklch(15% 0.008 85)",
+          "oklch(25% 0.008 85)",
+          "oklch(36% 0.008 85)",
+          "oklch(47% 0.008 85)",
+          "oklch(58% 0.008 85)",
+          "oklch(70% 0.008 85)",
+          "oklch(82% 0.008 85)",
+          "oklch(95% 0.008 85)"
+        ]
+      },
+      "status-not-ready": {
+        "role": "tertiary",
+        "displayName": "Not-Ready Card",
+        "source": "palette.hubCardNotReady",
+        "canonical": "#2A1512",
+        "oklch": "oklch(22.4% 0.035 29)",
+        "tonalRamp": [
+          "oklch(15% 0.035 29)",
+          "oklch(25% 0.035 29)",
+          "oklch(36% 0.035 29)",
+          "oklch(47% 0.035 29)",
+          "oklch(58% 0.035 29)",
+          "oklch(70% 0.035 29)",
+          "oklch(82% 0.035 29)",
+          "oklch(95% 0.035 29)"
+        ]
+      },
+      "status-check": {
+        "role": "tertiary",
+        "displayName": "Check Card",
+        "source": "palette.hubCardCheck",
+        "canonical": "#241D15",
+        "oklch": "oklch(23.6% 0.018 71)",
+        "tonalRamp": [
+          "oklch(15% 0.018 71)",
+          "oklch(25% 0.018 71)",
+          "oklch(36% 0.018 71)",
+          "oklch(47% 0.018 71)",
+          "oklch(58% 0.018 71)",
+          "oklch(70% 0.018 71)",
+          "oklch(82% 0.018 71)",
+          "oklch(95% 0.018 71)"
+        ]
+      },
+      "status-ready": {
+        "role": "tertiary",
+        "displayName": "Ready Card",
+        "source": "palette.hubCardReady",
+        "canonical": "#152019",
+        "oklch": "oklch(23.0% 0.021 156)",
+        "tonalRamp": [
+          "oklch(15% 0.021 156)",
+          "oklch(25% 0.021 156)",
+          "oklch(36% 0.021 156)",
+          "oklch(47% 0.021 156)",
+          "oklch(58% 0.021 156)",
+          "oklch(70% 0.021 156)",
+          "oklch(82% 0.021 156)",
+          "oklch(95% 0.021 156)"
+        ]
+      },
+      "row-critical": {
+        "role": "tertiary",
+        "displayName": "Critical Row",
+        "source": "palette.hubRowCritical",
+        "canonical": "#241715",
+        "oklch": "oklch(22.1% 0.022 29)",
+        "tonalRamp": [
+          "oklch(15% 0.022 29)",
+          "oklch(25% 0.022 29)",
+          "oklch(36% 0.022 29)",
+          "oklch(47% 0.022 29)",
+          "oklch(58% 0.022 29)",
+          "oklch(70% 0.022 29)",
+          "oklch(82% 0.022 29)",
+          "oklch(95% 0.022 29)"
+        ]
+      },
+      "chip-on": {
+        "role": "tertiary",
+        "displayName": "Selected Chip",
+        "source": "palette.hubChipOn",
+        "canonical": "#2A2017",
+        "oklch": "oklch(25.3% 0.022 64)",
+        "tonalRamp": [
+          "oklch(15% 0.022 64)",
+          "oklch(25% 0.022 64)",
+          "oklch(36% 0.022 64)",
+          "oklch(47% 0.022 64)",
+          "oklch(58% 0.022 64)",
+          "oklch(70% 0.022 64)",
+          "oklch(82% 0.022 64)",
+          "oklch(95% 0.022 64)"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "source": "palette.whiteAlpha06 (hub.hairline)",
+        "canonical": "rgba(255,255,255,0.06)"
+      },
+      "hairline-strong": {
+        "role": "neutral",
+        "displayName": "Strong Hairline",
+        "source": "palette.whiteAlpha08 (hub.hairlineStrong)",
+        "canonical": "rgba(255,255,255,0.08)"
+      },
+      "field-border": {
+        "role": "neutral",
+        "displayName": "Field Border",
+        "source": "palette.whiteAlpha10 (hub.ripple)",
+        "canonical": "rgba(255,255,255,0.1)"
+      },
+      "dashed": {
+        "role": "neutral",
+        "displayName": "Dashed Border",
+        "source": "palette.whiteAlpha18 (hub.dashed)",
+        "canonical": "rgba(255,255,255,0.18)"
+      },
+      "photo-chip": {
+        "role": "neutral",
+        "displayName": "Photo Chip Scrim",
+        "source": "withAlpha(palette.surfaceDark, 0.78)",
+        "canonical": "rgba(20,18,16,0.78)"
+      },
+      "tab-bar": {
+        "role": "neutral",
+        "displayName": "Tab Bar Scrim",
+        "source": "withAlpha(palette.surfaceDark, 0.96)",
+        "canonical": "rgba(20,18,16,0.96)"
+      }
+    },
+    "typographyMeta": {
+      "numeral-display": {
+        "displayName": "Numeral display",
+        "purpose": "Odometer entry in the Odometer sheet; one per screen."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Year cost total in the Costs card (28/30 in the empty state)."
+      },
+      "serif-page": {
+        "displayName": "Serif page title",
+        "purpose": "Notes page title."
+      },
+      "serif-sheet": {
+        "displayName": "Serif sheet title",
+        "purpose": "Log and Odometer sheet titles (Note sheet uses 24)."
+      },
+      "serif-status": {
+        "displayName": "Serif verdict",
+        "purpose": "Ride-status card verdict."
+      },
+      "serif-name": {
+        "displayName": "Serif bike name",
+        "purpose": "Header bike name; scales to 17 on collapse."
+      },
+      "keypad": {
+        "displayName": "Keypad numeral",
+        "purpose": "Odometer keypad digits."
+      },
+      "stat-value": {
+        "displayName": "Stat value",
+        "purpose": "Stat values (Costs card overrides to 16)."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Action pill and composer Add."
+      },
+      "button-sheet": {
+        "displayName": "Sheet button",
+        "purpose": "Sheet Save buttons."
+      },
+      "title": {
+        "displayName": "Row title",
+        "purpose": "List-row titles, two lines max."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Note body text in Soft Bone."
+      },
+      "body-sm": {
+        "displayName": "Body small",
+        "purpose": "Note previews, status error, field text."
+      },
+      "sub": {
+        "displayName": "Sub-line",
+        "purpose": "Row sub-lines and due lines, two lines max."
+      },
+      "action-text": {
+        "displayName": "Text action",
+        "purpose": "Copper text actions in cards and sheets."
+      },
+      "segment-label": {
+        "displayName": "Segment label",
+        "purpose": "iOS segment pills (14 on Android tabs)."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Hints, notices, inline errors, note meta."
+      },
+      "odometer-chip": {
+        "displayName": "Odometer chip",
+        "purpose": "Header odometer value."
+      },
+      "eyebrow": {
+        "displayName": "Eyebrow",
+        "purpose": "Section headers and sheet field labels; uppercase."
+      },
+      "eyebrow-sm": {
+        "displayName": "Eyebrow small",
+        "purpose": "Header year·make line and stat eyebrows; uppercase."
+      },
+      "tag": {
+        "displayName": "Tag",
+        "purpose": "Priority and variant tags."
+      }
+    },
+    "shadows": [
+      {
+        "name": "floating-pill",
+        "value": "0 8px 24px rgba(12,10,8,0.45)",
+        "purpose": "Action pill only (RN: shadowColor palette.black, offset 0/8, opacity 0.45, radius 12; Android elevation 6)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "block-enter",
+        "value": "FadeInUp 200ms, delay index*15ms",
+        "purpose": "Overview blocks on mount."
+      },
+      {
+        "name": "snackbar-enter",
+        "value": "FadeInUp 250ms",
+        "purpose": "Undo snackbar appears."
+      },
+      {
+        "name": "snackbar-exit",
+        "value": "FadeOutDown 200ms",
+        "purpose": "Undo snackbar leaves."
+      },
+      {
+        "name": "segment-indicator",
+        "value": "withTiming 200ms",
+        "purpose": "Android tab indicator slide."
+      },
+      {
+        "name": "header-collapse-sync",
+        "value": "withTiming 150ms; scroll-driven over 40pt",
+        "purpose": "Header name 22→17, eyebrow fade, row 48→44 on segment switch."
+      },
+      {
+        "name": "row-swipe-snap",
+        "value": "withTiming 180ms",
+        "purpose": "Note row swipe open/close."
+      },
+      {
+        "name": "photo-fade",
+        "value": "180–200ms",
+        "purpose": "Note photo and photo band image fade-in."
+      },
+      {
+        "name": "press",
+        "value": "scale 0.98 (HUB_PRESSED_SCALE) or opacity 0.6–0.85",
+        "purpose": "Pressed state of cards, pill, rows and text actions."
+      }
+    ],
+    "breakpoints": [],
+    "platform": {
+      "touchTarget": {
+        "ios": "44pt",
+        "android": "48dp"
+      },
+      "chromeMaxFontScale": 1.3,
+      "sheet": "native formSheet, radius 24, content background card",
+      "segmentBar": {
+        "ios": "scrollable 36px pills",
+        "android": "48dp Material tabs, 2dp copper indicator, ripple whiteAlpha10"
+      },
+      "haptics": "iOS only: impact(light) on press, selection on segment/keypad, notification on outcomes"
+    }
+  },
+  "components": [
+    {
+      "name": "Action Pill",
+      "kind": "button",
+      "refersTo": "action-pill",
+      "description": "The segment's one primary action, floating above the tab bar; \"Log\" on Overview.",
+      "html": "<button class=\"ds-pill\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#1A1410\" stroke-width=\"2.5\" stroke-linecap=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg><span>Log</span></button>",
+      "css": ".ds-pill{display:inline-flex;align-items:center;gap:8px;height:52px;padding:0 20px 0 16px;border:none;border-radius:26px;background:#D4622E;color:#1A1410;font-family:'Plus Jakarta Sans', system-ui, sans-serif;font-weight:700;font-size:15px;box-shadow:0 8px 24px rgba(12,10,8,0.45);transition:transform .12s;cursor:pointer} .ds-pill:hover{background:#E8723A} .ds-pill:active{transform:scale(0.98)} .ds-pill:focus-visible{outline:2px solid #E07A48;outline-offset:3px}"
+    },
+    {
+      "name": "Primary Button (Sheet Save)",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Full-width copper Save at the bottom of a sheet.",
+      "html": "<button class=\"ds-btn-primary\">Save reading</button>",
+      "css": ".ds-btn-primary{width:100%;max-width:340px;height:52px;border:none;border-radius:14px;background:#D4622E;color:#1A1410;font-family:'Plus Jakarta Sans', system-ui, sans-serif;font-weight:700;font-size:16px;cursor:pointer;transition:opacity .12s} .ds-btn-primary:hover{opacity:.92} .ds-btn-primary:active{opacity:.85} .ds-btn-primary:disabled{opacity:.4} .ds-btn-primary:focus-visible{outline:2px solid #E07A48;outline-offset:3px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Tonal raised button for non-primary actions.",
+      "html": "<button class=\"ds-btn-secondary\">Done</button>",
+      "css": ".ds-btn-secondary{width:100%;max-width:340px;height:48px;border:none;border-radius:14px;background:#2A2724;color:#F3EEE6;font-family:'Plus Jakarta Sans', system-ui, sans-serif;font-weight:600;font-size:15px;cursor:pointer} .ds-btn-secondary:hover{background:#332F2B} .ds-btn-secondary:active{opacity:.7} .ds-btn-secondary:focus-visible{outline:2px solid #E07A48;outline-offset:3px}"
+    },
+    {
+      "name": "Segment Bar (iOS)",
+      "kind": "nav",
+      "refersTo": "segment-pill-selected",
+      "description": "Overview · Service · Costs · Bike; Service carries the overdue Critical/High badge.",
+      "html": "<div class=\"ds-seg\" role=\"tablist\"><button class=\"ds-seg-pill on\" role=\"tab\">Overview</button><button class=\"ds-seg-pill\" role=\"tab\">Service <span class=\"ds-seg-badge\">2</span></button><button class=\"ds-seg-pill\" role=\"tab\">Costs</button><button class=\"ds-seg-pill\" role=\"tab\">Bike</button></div>",
+      "css": ".ds-seg{display:flex;gap:6px;padding:8px 16px;background:#141210} .ds-seg-pill{display:inline-flex;align-items:center;gap:6px;min-width:72px;justify-content:center;height:36px;padding:0 14px;border:none;border-radius:10px;background:transparent;color:#B5ADA2;font-family:'Plus Jakarta Sans', system-ui, sans-serif;font-weight:600;font-size:13px;cursor:pointer} .ds-seg-pill:hover{color:#F3EEE6} .ds-seg-pill.on{background:#2A2724;color:#F3EEE6} .ds-seg-pill:focus-visible{outline:2px solid #E07A48;outline-offset:2px} .ds-seg-badge{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#3A1A16;color:#FF7A6B;font-family:'Geist Mono', ui-monospace, monospace;font-size:11px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}"
+    },
+    {
+      "name": "Bike Header",
+      "kind": "nav",
+      "refersTo": "odometer-chip",
+      "description": "Back · serif bike name over mono eyebrow · the one odometer chip.",
+      "html": "<div class=\"ds-head\"><button class=\"ds-head-back\" aria-label=\"Back to Garage\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#F3EEE6\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 18l-6-6 6-6\"/></svg></button><div class=\"ds-head-title\"><div class=\"ds-head-name\">Africa Twin</div><div class=\"ds-head-eyebrow\">2022 · Honda</div></div><button class=\"ds-odo\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#9C958A\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M12 14l4-4\"/><path d=\"M3.34 19a10 10 0 1 1 17.32 0\"/></svg><span>23,716 km</span></button></div>",
+      "css": ".ds-head{display:flex;align-items:center;gap:4px;height:48px;padding:0 12px;background:#141210;border-bottom:1px solid rgba(255,255,255,0.06);max-width:402px} .ds-head-back{width:44px;height:44px;border:none;background:none;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center} .ds-head-back:hover{opacity:.6} .ds-head-title{flex:1;text-align:center} .ds-head-name{font-family:'Instrument Serif', Georgia, serif;font-size:22px;line-height:24px;color:#F3EEE6} .ds-head-eyebrow{font-family:'Geist Mono', ui-monospace, monospace;font-size:10px;line-height:13px;letter-spacing:.08em;text-transform:uppercase;color:#9C958A} .ds-odo{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:10px;background:#1E1C19;border:1px solid rgba(255,255,255,0.08);color:#F3EEE6;font-family:'Geist Mono', ui-monospace, monospace;font-weight:500;font-size:13px;cursor:pointer} .ds-odo:hover{opacity:.7} .ds-odo:focus-visible,.ds-head-back:focus-visible{outline:2px solid #E07A48;outline-offset:2px}"
+    },
+    {
+      "name": "Hub Card with List Rows",
+      "kind": "card",
+      "refersTo": "hub-card",
+      "description": "Section header eyebrow over a hairline-bordered card of rows: tag · title/due line · chevron.",
+      "html": "<div class=\"ds-sec\"><div class=\"ds-sec-head\"><span class=\"ds-eyebrow\">Needs attention · 3</span><button class=\"ds-link\">See all</button></div><div class=\"ds-card\"><button class=\"ds-row\"><span class=\"ds-tag crit\">CRIT</span><span class=\"ds-row-body\"><span class=\"ds-row-title\">Brake fluid</span><span class=\"ds-row-sub\"><span style=\"color:#FF7A6B\">201 days late</span><span style=\"color:#9C958A\"> · 3,933 km to target</span></span></span><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#9C958A\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 18l6-6-6-6\"/></svg></button><button class=\"ds-row\"><span class=\"ds-tag high\">HIGH</span><span class=\"ds-row-body\"><span class=\"ds-row-title\">Chain clean &amp; lube</span><span class=\"ds-row-sub\"><span style=\"color:#F0A050\">In 2 days</span><span style=\"color:#9C958A\"> · or in 380 km</span></span></span><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#9C958A\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 18l6-6-6-6\"/></svg></button><button class=\"ds-row last\"><span class=\"ds-tag med\">MED</span><span class=\"ds-row-body\"><span class=\"ds-row-title\">Valve clearance</span><span class=\"ds-row-sub\"><span style=\"color:#B5ADA2\">In 9,833 km</span><span style=\"color:#9C958A\"> · Honda schedule</span></span></span><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#9C958A\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 18l6-6-6-6\"/></svg></button></div></div>",
+      "css": ".ds-sec{display:flex;flex-direction:column;gap:8px;max-width:370px;padding:16px;background:#141210} .ds-sec-head{display:flex;justify-content:space-between;align-items:baseline;padding:4px 2px 0} .ds-eyebrow{font-family:'Geist Mono', ui-monospace, monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9C958A} .ds-link{border:none;background:none;color:#E07A48;font-family:'Plus Jakarta Sans', system-ui, sans-serif;font-weight:600;font-size:13px;cursor:pointer} .ds-link:hover{opacity:.6} .ds-card{background:#1E1C19;border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden} .ds-row{display:flex;align-items:center;gap:12px;width:100%;padding:12px 12px 12px 14px;border:none;border-bottom:1px solid rgba(255,255,255,0.06);background:none;text-align:left;cursor:pointer} .ds-row.last{border-bottom:none} .ds-row:hover{background:rgba(255,255,255,0.04)} .ds-row:active{opacity:.7} .ds-row:focus-visible{outline:2px solid #E07A48;outline-offset:-2px} .ds-row-body{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0} .ds-row-title{font-family:'Plus Jakarta Sans', system-ui, sans-serif;font-weight:600;font-size:15px;line-height:18px;color:#F3EEE6} .ds-row-sub{font-family:'Plus Jakarta Sans', system-ui, sans-serif;font-size:13px;line-height:16px} .ds-tag{width:44px;flex-shrink:0;text-align:center;padding:3px 0;border-radius:5px;font-family:'Geist Mono', ui-monospace, monospace;font-weight:500;font-size:10px;line-height:12px;letter-spacing:.06em} .ds-tag.crit{background:#3A1A16;color:#FF7A6B} .ds-tag.high{background:#3A2412;color:#F0A050} .ds-tag.med{background:#172538;color:#7DA9F0}"
+    },
+    {
+      "name": "Ride-Status Card",
+      "kind": "card",
+      "refersTo": "ride-status-check",
+      "description": "Three-word serif verdict in a tinted card at the top of Overview.",
+      "html": "<button class=\"ds-status\"><span class=\"ds-status-dot\"></span><span class=\"ds-status-body\"><span class=\"ds-status-title\">Check before riding</span><span class=\"ds-status-sub\">Chain due in 2 days · insurance expires in 12 days</span></span><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#9C958A\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 18l6-6-6-6\"/></svg></button>",
+      "css": ".ds-status{display:flex;align-items:center;gap:12px;width:100%;max-width:370px;padding:14px 14px 14px 16px;border-radius:16px;background:#241D15;border:1px solid rgba(240,160,80,0.35);text-align:left;cursor:pointer;transition:transform .12s} .ds-status:active{transform:scale(0.98)} .ds-status:focus-visible{outline:2px solid #E07A48;outline-offset:2px} .ds-status-dot{width:10px;height:10px;border-radius:5px;background:#F0A050;flex-shrink:0} .ds-status-body{flex:1;display:flex;flex-direction:column;gap:2px} .ds-status-title{font-family:'Instrument Serif', Georgia, serif;font-size:24px;line-height:26px;color:#F3EEE6} .ds-status-sub{font-family:'Plus Jakarta Sans', system-ui, sans-serif;font-size:13px;line-height:17px;color:#B5ADA2}"
+    },
+    {
+      "name": "Priority Tags",
+      "kind": "chip",
+      "refersTo": "tag-crit",
+      "description": "Mono priority tags: priority is always the tag, lateness always the due line.",
+      "html": "<div class=\"ds-tags\"><span class=\"ds-ptag\" style=\"background:#3A1A16;color:#FF7A6B\">CRIT</span><span class=\"ds-ptag\" style=\"background:#3A2412;color:#F0A050\">HIGH</span><span class=\"ds-ptag\" style=\"background:#172538;color:#7DA9F0\">MED</span><span class=\"ds-ptag\" style=\"background:#2A2824;color:#A39B8F\">LOW</span><span class=\"ds-ptag\" style=\"background:#3A2412;color:#F0A050\">SAFETY</span></div>",
+      "css": ".ds-tags{display:flex;gap:8px;padding:12px;background:#1E1C19;border-radius:16px;width:max-content} .ds-ptag{padding:3px 6px;border-radius:5px;font-family:'Geist Mono', ui-monospace, monospace;font-weight:500;font-size:10px;line-height:12px;letter-spacing:.06em}"
+    },
+    {
+      "name": "Quick Note Field",
+      "kind": "input",
+      "refersTo": "field-quick-note",
+      "description": "Inset 36 px field on a card with the small copper Note button.",
+      "html": "<div class=\"ds-qn\"><input class=\"ds-qn-input\" placeholder=\"Quick note…\" /><button class=\"ds-qn-btn\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#1A1410\" stroke-width=\"2.5\" stroke-linecap=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg>Note</button></div>",
+      "css": ".ds-qn{display:flex;gap:8px;padding:12px 14px;background:#1E1C19;border:1px solid rgba(255,255,255,0.06);border-radius:16px;max-width:370px} .ds-qn-input{flex:1;height:36px;padding:0 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:#141210;color:#F3EEE6;font-family:'Plus Jakarta Sans', system-ui, sans-serif;font-size:14px;outline:none} .ds-qn-input::placeholder{color:#9C958A} .ds-qn-input:focus-visible{border-color:rgba(224,122,72,0.5)} .ds-qn-btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border:none;border-radius:10px;background:#D4622E;color:#1A1410;font-family:'Plus Jakarta Sans', system-ui, sans-serif;font-weight:700;font-size:13px;cursor:pointer} .ds-qn-btn:active{opacity:.8} .ds-qn-btn:focus-visible{outline:2px solid #E07A48;outline-offset:2px}"
+    },
+    {
+      "name": "Undo Snackbar",
+      "kind": "custom",
+      "refersTo": "undo-snackbar",
+      "description": "Five-second undo for deleted tasks, notes and expenses; no confirmation dialog.",
+      "html": "<div class=\"ds-snack\" role=\"alert\"><span class=\"ds-snack-msg\">Note deleted</span><button class=\"ds-snack-act\">Undo</button></div>",
+      "css": ".ds-snack{display:flex;align-items:center;gap:16px;min-height:48px;padding:10px 16px;box-sizing:border-box;max-width:370px;border-radius:14px;background:#2A2724;border:1px solid rgba(255,255,255,0.08)} .ds-snack-msg{flex:1;font-family:'Plus Jakarta Sans', system-ui, sans-serif;font-weight:500;font-size:14px;color:#F3EEE6} .ds-snack-act{border:none;background:none;color:#E07A48;font-family:'Plus Jakarta Sans', system-ui, sans-serif;font-weight:700;font-size:14px;cursor:pointer} .ds-snack-act:hover{opacity:.6} .ds-snack-act:focus-visible{outline:2px solid #E07A48;outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Instrument Cluster",
+    "overview": "The bike hub reads like the dash of a well-made motorcycle at dusk: a warm near-black ground, a few lit readouts, and one copper control you reach for. Numbers are set in a monospace like gauge digits; the bike's name and the one-line ride verdict are set in a soft editorial serif, the only place the UI raises its voice. Everything else is quiet, warm-tinted sans on dark graphite. Information is ranked, not decorated: ride status first, then what needs attention, then what is next, then money, then notes and papers.\n\nDensity is confident rather than sparse. Cards hold several rows separated by hairlines, every row has a title plus a two-line sub-line, and money figures always carry their basis line. Colour is semantic and rationed: red-coral and amber mean late and soon, green means ready, blue means medium priority, and copper means \"press here\". Depth comes from tonal steps of warm graphite and 6–8 % white hairlines, not shadows; the floating action pill is the one lifted object.\n\nThe hub is dark in both system colour schemes; there is no light hub yet. It replaces the legacy \"editorial\" layer (`theme/editorial.ts`): the Service, Costs and Bike segments still wrap the old `MaintenanceSection`, `ExpensesSection`, `DocumentsSection` and `BikeDetailsCard`, pinned dark through `EditorialSchemeProvider` so they sit on the same ground. Those sections are off-system (system font with `fontWeight`, editorial ink/warm tokens, blue `primary500` actions, a serif-italic section title) and are slated for replacement in phases 2–5; do not copy them.",
+    "keyCharacteristics": [
+      "Dark-only, warm-tinted surfaces: ground → card → raised, each a few lightness points apart.",
+      "Three typefaces with fixed jobs: Geist Mono for every number, tag and eyebrow; Plus Jakarta Sans for UI; Instrument Serif for the bike name, sheet titles, the ride-status verdict and the Notes page title.",
+      "Copper is action-only: one filled copper control per screen region, dark ink on it.",
+      "Status colour always has words beside it; priority is a tag, lateness is a due line.",
+      "Continuous (squircle) corners on every rounded surface; 16 px cards, 14 px buttons, 26 px pill.",
+      "Haptics on iOS for every press; Material tabs and ripple on Android."
+    ],
+    "rules": [
+      {
+        "name": "The Copper Is a Button Rule",
+        "body": "Copper means \"press this\". It never marks status, never highlights a chart bar and never decorates a heading. If it is copper and not tappable, it is a bug.",
+        "section": "colors"
+      },
+      {
+        "name": "The Words Beside the Colour Rule",
+        "body": "No colour carries meaning alone: every status dot sits beside the verdict, every tag has its label, every category bar segment has an accessibility label.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Literals Rule",
+        "body": "Components read `hub.*` from `ui/tokens.ts`; tints are derived with `withAlpha(palette.x, a)`. A hex or `rgba()` literal in a hub component fails review.",
+        "section": "colors"
+      },
+      {
+        "name": "The Every-Number-Is-Mono Rule",
+        "body": "Odometer, money, counts, dates in stamps, tags and eyebrows are Geist Mono. A number in sans is a bug (the one sanctioned exception is the Top-category stat, which is a word plus a percentage).",
+        "section": "typography"
+      },
+      {
+        "name": "The Three-Serif-Moments Rule",
+        "body": "Instrument Serif is for the bike's name, sheet and page titles, and the ride-status verdict. Never a section heading: section headers are mono eyebrows.",
+        "section": "typography"
+      },
+      {
+        "name": "The Chrome Cap Rule",
+        "body": "Text inside fixed-size chrome (header, odometer chip, segment labels, action pill, sheet titles, keypad, sheet bodies) sets `maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}` (1.3). Body content (rows, cards, notes) is uncapped and must reflow; the hub is verified at AX5.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Lifted Object Rule",
+        "body": "Only the floating action pill casts a shadow. Cards, rows, sheets and the snackbar are flat; separate them with tone and hairlines.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** take every colour from `hub` in `components/bike-hub/ui/tokens.ts` (backed by `palette.hub*`), and derive tints with `withAlpha`.",
+      "**Do** set `borderCurve: 'continuous'` beside every `borderRadius`, and use `HUB_RADIUS` (card 16, button 14, pill 26, segment/chip/tile 10, tag 5, photo chip 7) and `HUB_SHEET_RADIUS` (24).",
+      "**Do** use `HUB_FONT` families, one per weight, with no `fontWeight`; Geist Mono for every number, tag and eyebrow.",
+      "**Do** keep one copper fill per screen region and put Copper Ink (`hub.ink`) on it.",
+      "**Do** give every control `HUB_TOUCH_TARGET` (44 pt iOS / 48 dp Android), using hit slop on 36 px chips and text actions.",
+      "**Do** fire `triggerImpact()` on presses and `triggerSelection()` on segment and keypad changes; the helpers are iOS-only by design.",
+      "**Do** cap chrome text at `HUB_CHROME_MAX_FONT_SCALE` (1.3) and let body rows wrap to `HUB_ROW_SUB_LINES` (2).",
+      "**Do** use `SectionHeader` (mono 11 eyebrow, optional count, copper text action) for every section, and `HubCard` + `ListRow` for every list.",
+      "**Do** put a basis line under every money stat and words beside every status colour.",
+      "**Do** use native `formSheet` with Warm Graphite content for create/edit, and the 5-second `UndoSnackbar` for deleting tasks, notes and expenses."
+    ],
+    "donts": [
+      "**Don't** use copper for status, chart bars, headings or any non-tappable element.",
+      "**Don't** add drop shadows to cards, rows, sheets or the snackbar; only the floating action pill casts one.",
+      "**Don't** write hex or `rgba()` literals in components, or reach for `palette.*` directly from a hub component instead of `hub.*`.",
+      "**Don't** use Instrument Serif for section headings, or sans for numbers.",
+      "**Don't** put white text on copper.",
+      "**Don't** add an \"OVERDUE\" pill: priority is the tag, lateness is the due line.",
+      "**Don't** copy the legacy editorial sections (`maintenance-section`, `expenses-section`, `documents-section`, `bike-details-card`, `swipeable-task-card`): system font with `fontWeight`, `palette.primary500` blue actions, `InstrumentSerif-Italic` section titles and editorial ink tokens are the layer being replaced.",
+      "**Don't** use the RN `Animated` API, or any transition longer than 300 ms.",
+      "**Don't** add badges, streaks or celebratory illustration: no gamification.",
+      "**Don't** nest a pressable inside a pressable `HubCard`; split the row into sibling Pressables instead."
+    ]
+  }
+}

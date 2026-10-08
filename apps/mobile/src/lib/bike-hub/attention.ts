@@ -204,13 +204,49 @@ export function getNextUp<T extends AttentionTaskInput>(
   return upcoming[0] ?? null;
 }
 
-/** Service segment badge: overdue Critical / High tasks only. */
+/**
+ * THE HUB'S ONE COUNT — "overdue tasks".
+ *
+ * Every number the bike hub shows for "what the rider has to act on" uses this
+ * basis, so the three places that show it always agree:
+ *  - the Service segment badge (`getServiceBadgeCount`),
+ *  - the Service segment's "Overdue · N" group eyebrow (the same rows, listed),
+ *  - Overview "Needs attention · N overdue" (`countOverdueAttentionItems`).
+ *
+ * Basis: active (pending / in progress) tasks whose `getTaskDue` state is
+ * OVERDUE — the date has passed OR the odometer has reached the target — of
+ * ANY priority. Priority is shown by each row's tag, never folded into the
+ * count. Recalls, documents and due-soon tasks can still appear as rows in
+ * Needs attention, but are never counted in this number.
+ *
+ * (Until 2026-10 the badge counted overdue Critical / High only, while Service
+ * showed every overdue task and Needs attention counted all of its rows —
+ * three numbers for one screen: 1 / 5 / 6 on the test bike.)
+ */
+export function countOverdueTasks(
+  tasks: readonly Pick<Task, 'status' | 'dueDate' | 'targetMileage' | 'source'>[],
+  context: DueContext,
+): number {
+  return tasks.filter(
+    (task) => isActiveTask(task) && getTaskDue(task, context).state === DUE_STATE.OVERDUE,
+  ).length;
+}
+
+/** Service segment badge — see `countOverdueTasks` for the basis. */
 export function getServiceBadgeCount(
   tasks: readonly Pick<Task, 'priority' | 'status' | 'dueDate' | 'targetMileage' | 'source'>[],
   context: DueContext,
 ): number {
-  return tasks.filter(
-    (task) =>
-      isActiveTask(task) && isUrgent(task) && getTaskDue(task, context).state === DUE_STATE.OVERDUE,
+  return countOverdueTasks(tasks, context);
+}
+
+/**
+ * The overdue tasks among ranked attention rows — equal to `countOverdueTasks`
+ * for the same tasks (`rankAttention` keeps every overdue task; only the
+ * not-overdue Next-up task is ever excluded).
+ */
+export function countOverdueAttentionItems(items: readonly AttentionItem[]): number {
+  return items.filter(
+    (item) => item.kind === ATTENTION_KIND.TASK && item.due.state === DUE_STATE.OVERDUE,
   ).length;
 }

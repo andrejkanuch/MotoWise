@@ -1,14 +1,11 @@
-import { palette } from '@motovault/design-system';
 import {
   ExpensesByMotorcycleDocument,
   MaintenanceTasksByMotorcycleDocument,
 } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-
-import { BarChart3, ChevronDown, Plus, Receipt } from 'lucide-react-native';
-import { useCallback, useMemo, useState } from 'react';
+import { Receipt } from 'lucide-react-native';
+import { type ReactNode, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -16,7 +13,6 @@ import { useCurrency } from '../../hooks/use-currency';
 import { useDeleteExpense } from '../../hooks/use-delete-expense';
 import { EXPENSE_ENTRY_SOURCE } from '../../lib/expense-analytics';
 import {
-  CATEGORY_COLORS,
   CATEGORY_LABELS,
   formatCurrencyTotals,
   groupTotalsByCurrency,
@@ -24,24 +20,62 @@ import {
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { QUERY_META } from '../../lib/query-meta';
+import { triggerImpact } from '../../utils/haptics';
 import { SwipeableExpense } from '../shared/swipeable-expense';
 import { LoadError } from './load-error';
+import { useSegmentInteractive } from './shell/segment-interactive';
+import { HubCard } from './ui/hub-card';
+import { SectionHeader } from './ui/section-header';
+import {
+  HUB_FONT,
+  HUB_RADIUS,
+  HUB_TOUCH_TARGET,
+  type HubCopyKey,
+  hub,
+  hubCategoryColor,
+} from './ui/tokens';
+
+/** `year` value that means every year. */
+const ALL_TIME = 0;
+/** Rows shown before "See all". */
+const RECENT_LIMIT = 5;
+const YEAR_CHIP_HEIGHT = 32;
+const YEAR_TRACK_PADDING = 2;
+/** Vertical slop that grows a year chip to a full touch target. */
+const YEAR_CHIP_SLOP = Math.ceil((HUB_TOUCH_TARGET - YEAR_CHIP_HEIGHT) / 2);
 
 interface ExpensesSectionProps {
   motorcycleId: string;
   isDark: boolean;
   currentMileage?: number;
   mileageUnit?: string;
+  /** Rendered under the summary (the Costs segment's quiet scan-a-receipt row). */
+  afterSummary?: ReactNode;
 }
 
+interface YearOption {
+  value: number;
+  label: string;
+  mono: boolean;
+}
+
+/**
+ * The Costs segment's expense list (interim until R4): a year / all-time
+ * switch, the period total with its category split, and the recent expenses.
+ * Adding an expense is the segment's action pill — this section has no add
+ * button of its own.
+ */
 export function ExpensesSection({
   motorcycleId,
   isDark,
   currentMileage,
   mileageUnit,
+  afterSummary,
 }: ExpensesSectionProps) {
   const { t } = useTranslation();
   const { currency: displayCurrency } = useCurrency();
+  // Off while the Costs segment is hidden or the hub is covered — see useSegmentInteractive.
+  const rowsInteractive = useSegmentInteractive();
   const currentYear = new Date().getFullYear();
 
   const [year, setYear] = useState(currentYear);
@@ -115,9 +149,7 @@ export function ExpensesSection({
     return shares;
   }, [categories, totalGroups, displayCurrency]);
 
-  const displayedExpenses = showAll ? allExpenses : allExpenses.slice(0, 5);
-
-  const cardBg = isDark ? palette.neutral800 : palette.white;
+  const displayedExpenses = showAll ? allExpenses : allExpenses.slice(0, RECENT_LIMIT);
 
   const handleDelete = useCallback(
     (id: string) => {
@@ -126,149 +158,107 @@ export function ExpensesSection({
     [deleteMutation],
   );
 
-  const toggleYear = () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    setYear((prev) => (prev === currentYear ? 0 : currentYear));
+  const yearOptions: YearOption[] = [
+    { value: currentYear, label: String(currentYear), mono: true },
+    { value: ALL_TIME, label: t('common.all'), mono: false },
+  ];
+
+  const selectYear = (value: number) => {
+    if (value === year) return;
+    triggerImpact();
+    setYear(value);
     setShowAll(false);
   };
 
+  const openInsights = () => {
+    router.push({
+      pathname: '/(tabs)/(garage)/expense-dashboard',
+      params: {
+        motorcycleId,
+        currentMileage: currentMileage ? String(currentMileage) : '',
+        mileageUnit: mileageUnit ?? 'mi',
+      },
+    });
+  };
+
+  const addExpense = () => {
+    triggerImpact();
+    router.push({
+      pathname: '/(tabs)/(garage)/add-expense',
+      params: { motorcycleId, entrySource: EXPENSE_ENTRY_SOURCE.BIKE_HUB },
+    });
+  };
+
+  const categoryLabel = (key: string) =>
+    t(`expenses.category_${key}` as HubCopyKey, { defaultValue: CATEGORY_LABELS[key] ?? key });
+
+  const periodLabel =
+    year === ALL_TIME
+      ? t('bikeHub.costsSegment.spentAllTime')
+      : t('bikeHub.costsSegment.spentIn', { year });
+
   return (
-    <View style={{ paddingHorizontal: 20 }}>
-      {/* Section header */}
+    <View style={{ paddingHorizontal: 16, gap: 12 }}>
+      {/* Year / all-time switch */}
       <View
+        accessibilityRole="tablist"
         style={{
           flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 12,
+          gap: YEAR_TRACK_PADDING,
+          padding: YEAR_TRACK_PADDING,
+          borderRadius: HUB_RADIUS.segment + YEAR_TRACK_PADDING,
+          borderCurve: 'continuous',
+          backgroundColor: hub.card,
+          borderWidth: 1,
+          borderColor: hub.hairline,
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: '700',
-              color: isDark ? palette.neutral50 : palette.neutral950,
-            }}
-          >
-            {t('expenses.title', { defaultValue: 'Expenses' })}
-          </Text>
-          {hasSpend && (
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: '800',
-                color: isDark ? palette.neutral50 : palette.neutral950,
-              }}
+        {yearOptions.map((option) => {
+          const selected = option.value === year;
+          return (
+            <Pressable
+              key={option.value}
+              testID={`expenses-year-${option.value === ALL_TIME ? 'all' : option.value}`}
+              onPress={() => selectYear(option.value)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected }}
+              hitSlop={{ top: YEAR_CHIP_SLOP, bottom: YEAR_CHIP_SLOP }}
+              style={({ pressed }) => ({
+                flex: 1,
+                minHeight: YEAR_CHIP_HEIGHT,
+                paddingHorizontal: 8,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: HUB_RADIUS.segment - 1,
+                borderCurve: 'continuous',
+                backgroundColor: selected ? hub.raised : undefined,
+                opacity: pressed && !selected ? 0.7 : 1,
+              })}
             >
-              {formatCurrencyTotals(totalGroups, displayCurrency)}
-            </Text>
-          )}
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          {/* Year filter pill */}
-          <Pressable
-            onPress={toggleYear}
-            hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: 10,
-              paddingVertical: 5,
-              borderRadius: 8,
-              borderCurve: 'continuous',
-              backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
-              gap: 4,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: '600',
-                color: isDark ? palette.neutral300 : palette.neutral600,
-              }}
-            >
-              {year === 0
-                ? t('expenses.allTime', { defaultValue: 'All Time' })
-                : String(currentYear)}
-            </Text>
-            <ChevronDown size={12} color={palette.neutral400} strokeWidth={2} />
-          </Pressable>
-
-          {/* Insights button */}
-          <Pressable
-            onPress={() => {
-              if (process.env.EXPO_OS === 'ios') {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              }
-              router.push({
-                pathname: '/(tabs)/(garage)/expense-dashboard',
-                params: {
-                  motorcycleId,
-                  currentMileage: currentMileage ? String(currentMileage) : '',
-                  mileageUnit: mileageUnit ?? 'mi',
-                },
-              });
-            }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 8,
-              borderCurve: 'continuous',
-              backgroundColor: isDark ? palette.neutral700 : palette.neutral200,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <BarChart3 size={14} color={palette.primary400} strokeWidth={2.5} />
-          </Pressable>
-
-          {/* Add button */}
-          <Pressable
-            onPress={() => {
-              if (process.env.EXPO_OS === 'ios') {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              }
-              router.push({
-                pathname: '/(tabs)/(garage)/add-expense',
-                params: { motorcycleId, entrySource: EXPENSE_ENTRY_SOURCE.BIKE_HUB },
-              });
-            }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 8,
-              borderCurve: 'continuous',
-              backgroundColor: palette.primary500,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Plus size={16} color={palette.white} strokeWidth={2.5} />
-          </Pressable>
-        </View>
+              <Text
+                style={{
+                  fontFamily: option.mono
+                    ? selected
+                      ? HUB_FONT.monoMedium
+                      : HUB_FONT.mono
+                    : HUB_FONT.sansSemiBold,
+                  fontSize: 13,
+                  color: selected ? hub.text : hub.dim,
+                }}
+              >
+                {option.label}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
 
-      {/* Loading state */}
       {isLoading && (
-        <View
-          style={{
-            backgroundColor: cardBg,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            padding: 32,
-            alignItems: 'center',
-          }}
-        >
-          <ActivityIndicator color={palette.primary500} />
-        </View>
+        <HubCard style={{ padding: 32, alignItems: 'center' }}>
+          <ActivityIndicator color={hub.dim} accessibilityLabel={t('common.loading')} />
+        </HubCard>
       )}
 
-      {/* Error state */}
       {loadFailed && (
         <LoadError
           testID="expenses-load-error"
@@ -280,85 +270,86 @@ export function ExpensesSection({
 
       {/* Empty state */}
       {!isLoading && !loadFailed && allExpenses.length === 0 && (
-        <Animated.View entering={FadeInUp.duration(300)}>
-          <Pressable
-            onPress={() => {
-              if (process.env.EXPO_OS === 'ios') {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              }
-              router.push({
-                pathname: '/(tabs)/(garage)/add-expense',
-                params: { motorcycleId, entrySource: EXPENSE_ENTRY_SOURCE.BIKE_HUB },
-              });
-            }}
-            style={{
-              backgroundColor: cardBg,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              padding: 24,
-              alignItems: 'center',
-            }}
+        <Animated.View entering={FadeInUp.duration(250)}>
+          <HubCard
+            onPress={addExpense}
+            accessibilityLabel={`${t('expenses.empty')}. ${t('expenses.emptyHint')}`}
+            style={{ paddingVertical: 24, paddingHorizontal: 16, alignItems: 'center', gap: 4 }}
           >
             <View
               style={{
-                width: 48,
-                height: 48,
-                borderRadius: 14,
+                width: 44,
+                height: 44,
+                marginBottom: 8,
+                borderRadius: HUB_RADIUS.tile,
                 borderCurve: 'continuous',
-                backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
+                backgroundColor: hub.raised,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Receipt size={22} color={palette.neutral400} strokeWidth={1.5} />
+              <Receipt size={20} color={hub.dim} strokeWidth={1.8} />
             </View>
             <Text
               style={{
+                fontFamily: HUB_FONT.sansSemiBold,
                 fontSize: 15,
-                fontWeight: '700',
-                color: isDark ? palette.neutral200 : palette.neutral800,
-                marginTop: 12,
+                lineHeight: 20,
+                color: hub.text,
                 textAlign: 'center',
               }}
             >
-              {t('expenses.empty', { defaultValue: 'No expenses yet' })}
+              {t('expenses.empty')}
             </Text>
             <Text
               style={{
+                fontFamily: HUB_FONT.sans,
                 fontSize: 13,
-                color: palette.neutral500,
-                marginTop: 4,
+                lineHeight: 17,
+                color: hub.dim,
                 textAlign: 'center',
               }}
             >
-              {t('expenses.emptyHint', { defaultValue: 'Tap to log parts, service, or gear.' })}
+              {t('expenses.emptyHint')}
             </Text>
-          </Pressable>
+          </HubCard>
         </Animated.View>
       )}
 
-      {/* Category breakdown bar */}
+      {/* Period total + category split */}
       {!isLoading && allExpenses.length > 0 && hasSpend && (
-        <Animated.View entering={FadeInUp.duration(250)}>
-          <View
-            style={{
-              backgroundColor: cardBg,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              padding: 14,
-              marginBottom: 10,
-              boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
-            }}
-          >
-            {/* Segment bar */}
+        <Animated.View entering={FadeInUp.duration(200)} style={{ gap: 8 }}>
+          <SectionHeader
+            label={periodLabel}
+            action={{ label: t('bikeHub.costs.full'), onPress: openInsights }}
+          />
+          <HubCard style={{ padding: 16, gap: 14 }}>
+            <Text
+              testID="expenses-total"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              style={{
+                fontFamily: HUB_FONT.monoMedium,
+                fontSize: 32,
+                lineHeight: 34,
+                letterSpacing: -0.64,
+                color: hub.text,
+              }}
+            >
+              {formatCurrencyTotals(totalGroups, displayCurrency)}
+            </Text>
+
+            {/* The legend below names every segment, so the bar itself is hidden from screen readers. */}
             <View
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
               style={{
                 flexDirection: 'row',
                 height: 8,
+                gap: 2,
                 borderRadius: 4,
                 borderCurve: 'continuous',
                 overflow: 'hidden',
-                marginBottom: 10,
               }}
             >
               {categories.map((cat) => {
@@ -368,98 +359,105 @@ export function ExpensesSection({
                   <View
                     key={cat.category}
                     style={{
-                      width: `${pct}%`,
-                      backgroundColor: CATEGORY_COLORS[cat.category] ?? palette.neutral400,
+                      flexGrow: pct,
+                      flexBasis: 0,
+                      backgroundColor: hubCategoryColor(cat.category),
                     }}
                   />
                 );
               })}
             </View>
 
-            {/* Category legend */}
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                columnGap: 14,
+                rowGap: 8,
+                borderTopWidth: 1,
+                borderTopColor: hub.hairline,
+                paddingTop: 12,
+              }}
+            >
               {categories.map((cat) => {
                 if (!cat.expenses.some((e) => e.amount !== 0)) return null;
                 return (
                   <View
                     key={cat.category}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                    accessible
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
                   >
                     <View
                       style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: 3,
-                        backgroundColor: CATEGORY_COLORS[cat.category] ?? palette.neutral400,
+                        width: 8,
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor: hubCategoryColor(cat.category),
                       }}
                     />
-                    <Text style={{ fontSize: 11, color: palette.neutral500, fontWeight: '500' }}>
-                      {CATEGORY_LABELS[cat.category] ?? cat.category}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 11,
-                        fontWeight: '700',
-                        color: isDark ? palette.neutral300 : palette.neutral700,
-                      }}
-                    >
-                      {formatCurrencyTotals(
-                        groupTotalsByCurrency(cat.expenses, displayCurrency),
-                        displayCurrency,
-                      )}
+                    <Text style={{ fontFamily: HUB_FONT.sans, fontSize: 13, color: hub.dim }}>
+                      {categoryLabel(cat.category)}{' '}
+                      <Text style={{ fontFamily: HUB_FONT.mono, color: hub.text }}>
+                        {formatCurrencyTotals(
+                          groupTotalsByCurrency(cat.expenses, displayCurrency),
+                          displayCurrency,
+                        )}
+                      </Text>
                     </Text>
                   </View>
                 );
               })}
             </View>
-          </View>
+          </HubCard>
         </Animated.View>
       )}
 
-      {/* Expense list */}
-      {!isLoading && allExpenses.length > 0 && (
-        <View style={{ gap: 6 }}>
-          {displayedExpenses.map((expense, index) => (
-            <SwipeableExpense
-              key={expense.id}
-              expense={expense}
-              motorcycleId={motorcycleId}
-              isDark={isDark}
-              onDelete={handleDelete}
-              index={index}
-              hasServiceRecord={
-                !!expense.maintenanceTaskId && liveTaskIds.has(expense.maintenanceTaskId)
-              }
-            />
-          ))}
+      {afterSummary}
 
-          {/* See all / Show less */}
-          {allExpenses.length > 5 && (
-            <Pressable
-              onPress={() => {
-                if (process.env.EXPO_OS === 'ios') {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      {/* Recent expenses */}
+      {!isLoading && allExpenses.length > 0 && (
+        <View style={{ gap: 8 }}>
+          <SectionHeader label={t('bikeHub.costsSegment.recent')} count={allExpenses.length} />
+          <HubCard style={{ overflow: 'hidden' }}>
+            {displayedExpenses.map((expense, index) => (
+              <SwipeableExpense
+                key={expense.id}
+                expense={expense}
+                motorcycleId={motorcycleId}
+                isDark={isDark}
+                onDelete={handleDelete}
+                index={index}
+                divider={index < displayedExpenses.length - 1}
+                enabled={rowsInteractive}
+                hasServiceRecord={
+                  !!expense.maintenanceTaskId && liveTaskIds.has(expense.maintenanceTaskId)
                 }
+              />
+            ))}
+          </HubCard>
+
+          {allExpenses.length > RECENT_LIMIT && (
+            <Pressable
+              testID="expenses-see-all"
+              onPress={() => {
+                triggerImpact();
                 setShowAll((prev) => !prev);
               }}
-              style={{
-                paddingVertical: 10,
+              accessibilityRole="button"
+              accessibilityState={{ expanded: showAll }}
+              style={({ pressed }) => ({
+                minHeight: HUB_TOUCH_TARGET,
                 alignItems: 'center',
-              }}
+                justifyContent: 'center',
+                opacity: pressed ? 0.6 : 1,
+              })}
             >
               <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: '600',
-                  color: palette.primary500,
-                }}
+                style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.copperText }}
               >
                 {showAll
-                  ? t('expenses.showLess', { defaultValue: 'Show less' })
-                  : t('expenses.seeAll', {
-                      defaultValue: 'See all ({{count}})',
-                      count: allExpenses.length,
-                    })}
+                  ? t('expenses.showLess')
+                  : t('expenses.seeAll', { count: allExpenses.length })}
               </Text>
             </Pressable>
           )}

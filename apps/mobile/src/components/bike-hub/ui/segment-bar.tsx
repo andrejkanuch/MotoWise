@@ -26,6 +26,15 @@ export const SEGMENT_LABEL_KEY: Record<BikeSegment, HubCopyKey> = {
 };
 
 const PILL_SLOP = Math.ceil((HUB_TOUCH_TARGET - HUB_HEIGHT.small) / 2);
+/**
+ * Pill padding and gap, sized so all four labels fit a 402 pt phone at the
+ * chrome cap (Overview · Service + badge · Costs · Bike ≈ 380 pt). Narrower
+ * phones or longer translations scroll, with the same 16 pt edge inset at both
+ * ends so the last pill never sits on the screen edge.
+ */
+const PILL_PADDING_X = 12;
+const PILL_GAP = 4;
+const BAR_INSET_X = 16;
 const ANDROID_TAB_HEIGHT = 48;
 const INDICATOR_HEIGHT = 2;
 const INDICATOR_MS = 200;
@@ -33,7 +42,11 @@ const INDICATOR_MS = 200;
 export interface SegmentBarProps {
   active: BikeSegment;
   onChange: (segment: BikeSegment) => void;
-  /** Overdue Critical / High tasks — shown on the Service segment only, hidden at 0. */
+  /**
+   * Overdue tasks of any priority (`countOverdueTasks` — the hub's one count,
+   * the same number as Service's "Overdue · N" eyebrow and Overview's "Needs
+   * attention · N overdue"). Shown on the Service segment only, hidden at 0.
+   */
   serviceBadge?: number;
 }
 
@@ -67,7 +80,7 @@ function useSegmentCopy(serviceBadge: number) {
       const label = t(SEGMENT_LABEL_KEY[segment]);
       const badge = segment === BIKE_SEGMENT.SERVICE ? serviceBadge : 0;
       const accessibilityLabel =
-        badge > 0 ? t('bikeHub.segment.serviceBadgeA11y', { count: badge }) : label;
+        badge > 0 ? t('bikeHub.segment.serviceOverdueA11y', { count: badge }) : label;
       return { label, badge, accessibilityLabel };
     },
     [t, serviceBadge],
@@ -84,7 +97,8 @@ function PillBar({ active, onChange, serviceBadge = 0 }: SegmentBarProps) {
   // Under large text the bar is wider than the screen: keep the selection visible.
   useEffect(() => {
     const x = offsets.current[active];
-    if (x !== undefined) scrollRef.current?.scrollTo({ x: Math.max(0, x - 16), animated: true });
+    if (x !== undefined)
+      scrollRef.current?.scrollTo({ x: Math.max(0, x - BAR_INSET_X), animated: true });
   }, [active]);
 
   return (
@@ -95,7 +109,12 @@ function PillBar({ active, onChange, serviceBadge = 0 }: SegmentBarProps) {
       accessibilityRole="tablist"
       accessibilityLabel={t('bikeHub.segment.listA11y')}
       style={{ flexGrow: 0 }}
-      contentContainerStyle={{ gap: 6, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}
+      contentContainerStyle={{
+        gap: PILL_GAP,
+        paddingHorizontal: BAR_INSET_X,
+        paddingTop: 8,
+        paddingBottom: 8,
+      }}
     >
       {BIKE_SEGMENT_ORDER.map((segment) => {
         const selected = segment === active;
@@ -120,7 +139,7 @@ function PillBar({ active, onChange, serviceBadge = 0 }: SegmentBarProps) {
               // Grows with the (capped) label instead of clipping it.
               minHeight: HUB_HEIGHT.small,
               minWidth: 72,
-              paddingHorizontal: 14,
+              paddingHorizontal: PILL_PADDING_X,
               borderRadius: HUB_RADIUS.segment,
               borderCurve: 'continuous',
               backgroundColor: selected ? hub.raised : undefined,
@@ -132,6 +151,7 @@ function PillBar({ active, onChange, serviceBadge = 0 }: SegmentBarProps) {
           >
             <Text
               maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+              numberOfLines={1}
               style={{
                 fontFamily: HUB_FONT.sansSemiBold,
                 fontSize: 13,
@@ -230,7 +250,7 @@ function MaterialTabs({ active, onChange, serviceBadge = 0 }: SegmentBarProps) {
 
 /**
  * The four segments of the bike hub. Only Service carries a badge (overdue
- * Critical / High tasks). `accessibilityRole` tablist / tab with the selected
+ * tasks — see `countOverdueTasks`). `accessibilityRole` tablist / tab with the selected
  * state; the badge count is part of the Service tab's label.
  */
 export function SegmentBar(props: SegmentBarProps) {

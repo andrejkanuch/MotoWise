@@ -1,16 +1,19 @@
-import DateTimePicker from '@expo/ui/community/datetime-picker';
+import { isSameDay } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import type { TFunction } from 'i18next';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, type DimensionValue, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   DELTA_DIRECTION,
   type HubUnit,
+  ODOMETER_ENTRY_PLACEHOLDER,
   ODOMETER_ERROR,
   ODOMETER_QUICK_ADD,
   type OdometerKey,
+  SHEET_EXIT,
+  type SheetExit,
 } from '../../../lib/bike-hub/constants';
 import {
   formatOdometer,
@@ -28,14 +31,27 @@ import {
   parseEntry,
   validateReading,
 } from '../../../lib/bike-hub/odometer-input';
+import {
+  type OdometerDraft,
+  restorableOdometerDraft,
+  useSheetDraftStore,
+} from '../../../stores/sheet-draft.store';
 import { triggerNotification, triggerSelection } from '../../../utils/haptics';
 import type { HubBike } from '../shell/use-bike-hub-data';
 import { useToday } from '../shell/use-today';
 import { HUB_CHROME_MAX_FONT_SCALE, HUB_FONT, HUB_HEIGHT, HUB_RADIUS, hub } from '../ui/tokens';
+import { DraftRestoredNotice } from './draft-restored-notice';
+import { OdometerDateChip } from './odometer-date-chip';
 import { OdometerKeypad } from './odometer-keypad';
-import { SheetGrabber, SheetHeader } from './sheet-header';
-import { SheetScroll } from './sheet-scroll';
+import {
+  SHEET_CANCEL_PLACEMENT,
+  SHEET_LOCKED_OPACITY,
+  SheetGrabber,
+  SheetHeader,
+} from './sheet-header';
+import { SheetScroll, sheetBottomPadding } from './sheet-scroll';
 import { useLogOdometer, useOdometerContext } from './use-log-odometer';
+import { useParkDraftOnExit } from './use-park-draft';
 
 const CHIP_HEIGHT = 40;
 /**
@@ -46,55 +62,124 @@ const CHIP_HEIGHT = 40;
 const RIDES_CHIP_MAX_WIDTH = '45%';
 const CHIP_LINE_HEIGHT = 17;
 
+/** The entry's size (DESIGN.md "numeral display"). */
+const ENTRY_SIZE = 44;
+const ENTRY_TRACKING = -0.88;
+/**
+ * A mono separator takes a full digit cell, so "38,550" read as "38 , 550".
+ * The digit before it and the separator itself give back this much each.
+ */
+const SEPARATOR_PULL = 7;
+const CARET = { width: 2, height: 36 } as const;
+const LINE_HEIGHT = 18;
+
+interface EntryRun {
+  text: string;
+  tight: boolean;
+}
+
+const isDigit = (char: string | undefined) => char !== undefined && char >= '0' && char <= '9';
+
+/**
+ * The formatted entry split into runs, so the grouping separator (",", ".", a
+ * narrow space — whatever the locale uses) can sit closer to its digits.
+ */
+export function entryRuns(text: string): EntryRun[] {
+  const runs: EntryRun[] = [];
+  [...text].forEach((char, index, chars) => {
+    const tight = !isDigit(char) || !isDigit(chars[index + 1] ?? '0');
+    const last = runs[runs.length - 1];
+    if (last && last.tight === tight) last.text += char;
+    else runs.push({ text: char, tight });
+  });
+  return runs;
+}
+
 interface DeltaContext {
   t: TFunction;
   unit: HubUnit;
-  last: string;
   since: string | null;
   language: string;
 }
 
-/** The line under the entry: what the new reading means against the last one. */
-function deltaLine(
-  delta: OdometerDelta | null,
-  context: DeltaContext,
-): { text: string; warn: boolean } {
-  const { t, unit, last, since, language } = context;
-  if (!delta) return { text: t('bikeHub.odometer.first'), warn: false };
+interface Line {
+  text: string;
+  warn: boolean;
+}
+
+const NO_LINE: Line = { text: '', warn: false };
+
+/**
+ * The line under "Last · …": what the typed reading means against the last one.
+ * Empty when there is nothing to compare — and for an unchanged value, which
+ * the footer explains instead (it is why Save is off).
+ */
+function deltaLine(delta: OdometerDelta | null, context: DeltaContext): Line {
+  const { t, unit, since, language } = context;
+  if (!delta) return NO_LINE;
   const amount = formatOdometer(delta.amount, language);
-  const copy: Record<typeof delta.direction, () => { text: string; warn: boolean }> = {
+  const copy: Record<typeof delta.direction, () => Line> = {
     [DELTA_DIRECTION.UP]: () => ({
       text: since
-        ? t('bikeHub.odometer.deltaUp', { delta: amount, unit, date: since, last })
-        : t('bikeHub.odometer.deltaUpNoDate', { delta: amount, unit, last }),
+        ? t('bikeHub.odometer.deltaSince', { delta: amount, unit, date: since })
+        : t('bikeHub.odometer.deltaPlus', { delta: amount, unit }),
       warn: false,
     }),
     [DELTA_DIRECTION.DOWN]: () => ({
-      text: t('bikeHub.odometer.deltaDown', { delta: amount, unit, last }),
+      text: t('bikeHub.odometer.deltaBelow', { delta: amount, unit }),
       warn: true,
     }),
-    [DELTA_DIRECTION.FLAT]: () => ({
-      text: t('bikeHub.odometer.unchanged', { last }),
-      warn: false,
-    }),
+    [DELTA_DIRECTION.FLAT]: () => NO_LINE,
   };
   return copy[delta.direction]();
 }
 
 interface OdometerSheetProps {
   bike: HubBike;
+  /** After a successful save. */
   onClose: () => void;
+  /** Cancel. Defaults to `onClose`; the route passes its discard guard. */
+  onCancel?: () => void;
+  /** Whether something was typed or a date picked — the route guards dismissal on it. */
+  onDirtyChange?: (dirty: boolean) => void;
+  /** Whether the reading is saving — the route locks dismissal while it is. */
+  onSavingChange?: (saving: boolean) => void;
+  /**
+   * How the sheet was left (the route's discard guard). Set = a reading left
+   * behind by a dismissal nobody could ask about (Android drag-down) is parked
+   * and restored the next time the sheet opens for this bike. Without it the
+   * sheet neither parks nor restores.
+   */
+  exit?: () => SheetExit;
+  /**
+   * False once the route has unmounted (the route's discard guard). A save that
+   * fails after that parks the reading. Required with `exit`.
+   */
+  isMounted?: () => boolean;
   /** Tests pin the date; the screen omits it. */
   now?: Date;
 }
 
+/** A sheet rendered without the route's guard never parks, so it never "leaves". */
+const alwaysMounted = () => true;
+
 /**
  * Odometer sheet: the only place the bike's odometer is edited, on both
- * platforms. A numeric pad, quick-add chips, a date, and a confirmation before
- * a reading lower than the last one is saved. Every save is an
- * `odometer_readings` row; nothing is converted between units.
+ * platforms. The entry starts empty, the last reading sits on its own line, and
+ * a numeric pad, quick-add chips and a date chip fill it in. A reading lower
+ * than the last one is confirmed first. Every save is an `odometer_readings`
+ * row; nothing is converted between units.
  */
-export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
+export function OdometerSheet({
+  bike,
+  onClose,
+  onCancel,
+  onDirtyChange,
+  onSavingChange,
+  exit,
+  isMounted = alwaysMounted,
+  now,
+}: OdometerSheetProps) {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const language = i18n.language;
@@ -104,13 +189,54 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
     useOdometerContext(bike.id);
   const logOdometer = useLogOdometer(bike.id);
 
-  const [digits, setDigits] = useState('');
+  const parksDrafts = exit !== undefined;
+  // Read once: the sheet opens either empty or with what a dismissal left behind.
+  const [parkedDraft] = useState(() => (parksDrafts ? restorableOdometerDraft(bike.id) : null));
+  const restored = parkedDraft?.draft;
+  const [showRestored, setShowRestored] = useState(parkedDraft !== null);
+  const [digits, setDigits] = useState(restored?.digits ?? '');
   // `null` = the rider has not picked a date: the reading is for today.
-  const [pickedDate, setPickedDate] = useState<Date | null>(null);
+  const [pickedDate, setPickedDate] = useState<Date | null>(() =>
+    restored?.pickedDate == null ? null : new Date(restored.pickedDate),
+  );
   const recordedAt = pickedDate ?? today;
-  const [pickingDate, setPickingDate] = useState(false);
-  const [usedQuickAdd, setUsedQuickAdd] = useState(false);
+  const [usedQuickAdd, setUsedQuickAdd] = useState(restored?.usedQuickAdd ?? false);
   const [saveFailed, setSaveFailed] = useState(false);
+
+  const dirty = digits !== '' || pickedDate !== null;
+  useEffect(() => onDirtyChange?.(dirty), [dirty, onDirtyChange]);
+  // While the reading saves, nothing that changes it may be used: the value
+  // saved must be the value shown.
+  const saving = logOdometer.isPending;
+  useEffect(() => onSavingChange?.(saving), [saving, onSavingChange]);
+  // `saving` lands a render later: a drag-down in the same frame as Save (or a
+  // second tap) must already see the save in flight.
+  const savingRef = useRef(false);
+  const reading = (): OdometerDraft => ({
+    digits,
+    pickedDate: pickedDate?.getTime() ?? null,
+    usedQuickAdd,
+  });
+  // A reading still saving is not parked: a sheet reopened meanwhile must not
+  // offer a reading that may already be logged. `useLogOdometer` parks it if
+  // the save then fails (`draft` in the mutation variables).
+  const draftSlot = useParkDraftOnExit({
+    restoredToken: parkedDraft?.token,
+    exit: exit ?? (() => SHEET_EXIT.OPEN),
+    pending: () => parksDrafts && dirty && !savingRef.current,
+    park: (token) => useSheetDraftStore.getState().parkReading(bike.id, reading(), token),
+    clear: (token) => useSheetDraftStore.getState().clearReading(bike.id, token),
+  });
+
+  /** "Clear" on the restored line: back to an empty entry for today. */
+  const clearRestored = () => {
+    draftSlot.clearOwned();
+    setDigits('');
+    setPickedDate(null);
+    setUsedQuickAdd(false);
+    setSaveFailed(false);
+    setShowRestored(false);
+  };
 
   // The baseline is the higher of the latest logged reading and the bike's
   // odometer: a ride end or receipt scan can move `currentMileage` before the
@@ -126,32 +252,32 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
   // Back-dating is judged against the latest reading's time. With no history
   // loaded that is unknown, so only a today reading (stamped "now", always the
   // latest) is safe to save; a past date waits for the history.
-  const historyUnknown = readingsError && !isSameCalendarDay(recordedAt, today);
+  const isToday = isSameDay(recordedAt, today);
+  const historyUnknown = readingsError && !isToday;
   const value = parseEntry(digits);
   const validation = validateReading({ value, lastValue, recordedAt, lastRecordedAt, today });
   const backdated = validation.ok && validation.backdated;
   const delta = describeDelta(value, lastValue);
   const lastText = lastValue == null ? '' : formatOdometer(lastValue, language);
+  const valueText = value === null ? '' : formatOdometer(value, language);
   // The date only belongs to the baseline when the baseline IS that reading.
   const since =
     latest && latest.value === baseline
       ? formatShortDate(new Date(latest.recordedAt), language)
       : null;
 
-  const emptyDetail = (): string => {
+  const lastLine = (): string => {
     if (lastValue == null) return t('bikeHub.odometer.first');
     return since
-      ? t('bikeHub.odometer.lastReading', { last: lastText, unit, date: since })
-      : t('bikeHub.odometer.lastReadingNoDate', { last: lastText, unit });
+      ? t('bikeHub.odometer.lastLine', { last: lastText, unit, date: since })
+      : t('bikeHub.odometer.lastLineNoDate', { last: lastText, unit });
   };
   // A back-dated reading is not compared with the latest one ("+250 km since
   // Oct 1" for a Sep 27 reading is wrong): the line says what happens to it.
-  const detail =
-    value === null
-      ? { text: emptyDetail(), warn: false }
-      : backdated
-        ? { text: t('bikeHub.odometer.backdatedNotice', { last: lastText, unit }), warn: true }
-        : deltaLine(delta, { t, unit, last: lastText, since, language });
+  const detail: Line =
+    value !== null && backdated
+      ? { text: t('bikeHub.odometer.backdatedNotice', { last: lastText, unit }), warn: true }
+      : deltaLine(delta, { t, unit, since, language });
 
   const onKey = (key: OdometerKey) => {
     setSaveFailed(false);
@@ -175,8 +301,15 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
     setDigits(String(applyQuickAdd(null, lastValue, distance)));
   };
 
+  const pickDate = (date: Date) => {
+    triggerSelection();
+    setSaveFailed(false);
+    setPickedDate(date);
+  };
+
   const save = () => {
-    if (value === null) return;
+    if (value === null || savingRef.current) return;
+    savingRef.current = true;
     setSaveFailed(false);
     logOdometer.mutate(
       {
@@ -186,48 +319,58 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
         delta: lastValue == null ? null : value - lastValue,
         backdated,
         usedQuickAdd,
+        draft: parksDrafts
+          ? { reading: reading(), token: draftSlot.token, sheetGone: () => !isMounted() }
+          : undefined,
+        releaseSave: () => {
+          savingRef.current = false;
+        },
       },
       {
         onSuccess: () => {
           triggerNotification(Haptics.NotificationFeedbackType.Success);
           onClose();
         },
-        // The sheet stays open and the entry is kept.
+        // The sheet stays open and the entry is kept. `releaseSave` already
+        // unlocked Save; after a success it stays locked until the sheet closes.
         onError: () => setSaveFailed(true),
       },
     );
   };
+
+  const saveLabel =
+    value === null ? t('common.save') : t('bikeHub.odometer.save', { value: valueText, unit });
 
   const onSavePress = () => {
     if (validation.ok) return save();
     if (!('needsConfirm' in validation) || value === null) return;
     // A lower reading is allowed — a typo has to stay correctable — but asked first.
     Alert.alert(
-      t('bikeHub.odometer.lowerTitle'),
-      t('bikeHub.odometer.lowerMessage', {
-        last: lastText,
-        value: formatOdometer(value, language),
-        unit,
-      }),
+      t('bikeHub.odometer.lowerThan', { last: lastText, unit }),
+      t('bikeHub.odometer.lowerOneLine'),
       [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('common.save'), onPress: save },
+        { text: t('bikeHub.odometer.fixIt'), style: 'cancel' },
+        { text: saveLabel, onPress: save },
       ],
     );
   };
 
-  const blocked = (!validation.ok && 'error' in validation) || historyUnknown;
-  const saveDisabled = blocked || readingsLoading || logOdometer.isPending;
-  const futureDate =
-    !validation.ok && 'error' in validation && validation.error === ODOMETER_ERROR.FUTURE_DATE;
-  const entryText = value === null ? lastText || '0' : formatOdometer(value, language);
-  const dateLabel = isSameCalendarDay(recordedAt, today)
-    ? t('bikeHub.odometer.dateToday')
-    : t('bikeHub.odometer.dateOn', { date: formatShortDate(recordedAt, language) });
-  const saveLabel =
+  const error = !validation.ok && 'error' in validation ? validation.error : null;
+  const blocked = error !== null || historyUnknown;
+  const saveDisabled = blocked || readingsLoading || saving;
+  const notice = noticeText({
+    t,
+    saveFailed,
+    futureDate: error === ODOMETER_ERROR.FUTURE_DATE,
+    historyUnknown,
+    unchanged: error === ODOMETER_ERROR.UNCHANGED,
+  });
+  const noticeIsError = notice !== null && error !== ODOMETER_ERROR.UNCHANGED;
+  const dateLabel = isToday ? t('bikeHub.odometer.today') : formatShortDate(recordedAt, language);
+  const entryLabel =
     value === null
-      ? t('common.save')
-      : t('bikeHub.odometer.save', { value: formatOdometer(value, language), unit });
+      ? t('bikeHub.odometer.entryEmptyA11y')
+      : t('bikeHub.odometer.entryA11y', { value: valueText, unit });
 
   return (
     <SheetScroll
@@ -235,59 +378,133 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
       contentContainerStyle={{
         paddingTop: 16,
         paddingHorizontal: 16,
-        paddingBottom: Math.max(insets.bottom, 16) + 8,
+        paddingBottom: sheetBottomPadding(insets.bottom),
         gap: 14,
       }}
     >
       <SheetGrabber />
-      <SheetHeader title={t('bikeHub.odometer.title')} onCancel={onClose} />
+      <SheetHeader
+        title={t('bikeHub.odometer.title')}
+        onCancel={onCancel ?? onClose}
+        cancelPlacement={SHEET_CANCEL_PLACEMENT.LEADING}
+        cancelDisabled={saving}
+        cancelTestID="odometer-cancel"
+      />
+      {showRestored ? (
+        <DraftRestoredNotice
+          testID="odometer-restored"
+          message={t('bikeHub.sheetDraft.readingRestored')}
+          clearAccessibilityLabel={t('bikeHub.sheetDraft.clearReadingA11y')}
+          onClear={clearRestored}
+          disabled={saving}
+        />
+      ) : null}
 
-      <View style={{ gap: 4, paddingVertical: 6 }}>
-        <Text
-          maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+      <View style={{ gap: 2 }}>
+        <View
           style={{
-            fontFamily: HUB_FONT.mono,
-            fontSize: 11,
-            letterSpacing: 0.88,
-            textTransform: 'uppercase',
-            color: hub.muted,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            minHeight: HUB_HEIGHT.small,
           }}
         >
-          {t('bikeHub.odometer.newReading')}
-        </Text>
+          <Text
+            maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+            style={{
+              flexShrink: 1,
+              fontFamily: HUB_FONT.mono,
+              fontSize: 11,
+              letterSpacing: 0.88,
+              textTransform: 'uppercase',
+              color: hub.muted,
+            }}
+          >
+            {t('bikeHub.odometer.newReading')}
+          </Text>
+          <OdometerDateChip
+            value={recordedAt}
+            today={today}
+            label={dateLabel}
+            onPick={pickDate}
+            disabled={saving}
+          />
+        </View>
+
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 1 }}>
+            {value === null ? <Caret /> : null}
             <Text
-              maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
               testID="odometer-entry"
-              accessibilityLabel={`${entryText} ${unit}`}
+              accessibilityLabel={entryLabel}
+              accessibilityLiveRegion="polite"
+              maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+              numberOfLines={1}
+              adjustsFontSizeToFit
               style={{
                 fontFamily: HUB_FONT.monoMedium,
-                fontSize: 44,
+                fontSize: ENTRY_SIZE,
                 lineHeight: 46,
-                letterSpacing: -0.88,
+                letterSpacing: ENTRY_TRACKING,
                 color: value === null ? hub.muted : hub.text,
+                marginLeft: value === null ? 4 : 0,
               }}
             >
-              {entryText}
+              {value === null
+                ? ODOMETER_ENTRY_PLACEHOLDER
+                : entryRuns(valueText).map((run, index) => (
+                    <Text
+                      // Runs are positional and re-split on every key press.
+                      // biome-ignore lint/suspicious/noArrayIndexKey: positional runs
+                      key={index}
+                      maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+                      style={
+                        run.tight ? { letterSpacing: ENTRY_TRACKING - SEPARATOR_PULL } : undefined
+                      }
+                    >
+                      {run.text}
+                    </Text>
+                  ))}
             </Text>
-            <View style={{ width: 2, height: 36, marginLeft: 2, backgroundColor: hub.copper }} />
+            {value === null ? null : <Caret />}
           </View>
           <Text
+            accessibilityElementsHidden
+            importantForAccessibility="no"
             maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
             style={{ fontFamily: HUB_FONT.mono, fontSize: 18, color: hub.muted }}
           >
             {unit}
           </Text>
         </View>
+
         <Text
-          testID="odometer-delta"
+          testID="odometer-last"
           maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
           style={{
             fontFamily: HUB_FONT.sans,
             fontSize: 13,
-            color: detail.warn ? hub.soon : hub.dim,
+            lineHeight: LINE_HEIGHT,
+            color: hub.dim,
             opacity: readingsLoading ? 0.4 : 1,
+          }}
+        >
+          {lastLine()}
+        </Text>
+        {/* Always laid out, so the keypad does not jump when the first digit lands. */}
+        <Text
+          testID="odometer-delta"
+          accessibilityLiveRegion="polite"
+          accessibilityElementsHidden={detail.text === ''}
+          importantForAccessibility={detail.text === '' ? 'no-hide-descendants' : 'auto'}
+          maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+          style={{
+            minHeight: LINE_HEIGHT,
+            fontFamily: HUB_FONT.sansMedium,
+            fontSize: 13,
+            lineHeight: LINE_HEIGHT,
+            color: detail.warn ? hub.soon : hub.text,
           }}
         >
           {detail.text}
@@ -303,6 +520,7 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
             testID="chip-rides"
             highlighted
             maxWidth={RIDES_CHIP_MAX_WIDTH}
+            disabled={saving}
             label={t('bikeHub.odometer.ridesChip', {
               count: pendingRides.rideCount,
               distance: formatOdometer(pendingRides.distance, language),
@@ -315,68 +533,32 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
             key={amount}
             testID={`chip-${amount}`}
             label={`+${amount}`}
+            disabled={saving}
             onPress={() => quickAdd(amount)}
           />
         ))}
       </View>
 
-      {pickingDate ? (
-        <View style={{ gap: 8 }}>
-          <DateTimePicker
-            value={recordedAt}
-            mode="date"
-            maximumDate={today}
-            display={process.env.EXPO_OS === 'ios' ? 'inline' : 'default'}
-            onChange={(event, selected) => {
-              if (process.env.EXPO_OS === 'android') setPickingDate(false);
-              if (event.type === 'set' && selected) setPickedDate(selected);
-            }}
-            style={process.env.EXPO_OS === 'ios' ? { height: 320 } : undefined}
-          />
-          <Pressable
-            onPress={() => setPickingDate(false)}
-            accessibilityRole="button"
-            style={{
-              height: HUB_HEIGHT.secondary,
-              borderRadius: HUB_RADIUS.button,
-              borderCurve: 'continuous',
-              backgroundColor: hub.raised,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text
-              maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-              style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, color: hub.text }}
-            >
-              {t('common.done')}
-            </Text>
-          </Pressable>
-        </View>
-      ) : (
-        <OdometerKeypad
-          onKey={onKey}
-          dateLabel={dateLabel}
-          onDatePress={() => setPickingDate(true)}
-        />
-      )}
+      <OdometerKeypad onKey={onKey} disabled={saving} />
 
-      <Text
-        testID="odometer-notice"
-        accessibilityLiveRegion="polite"
-        maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-        style={{
-          fontFamily: HUB_FONT.sans,
-          fontSize: 12,
-          lineHeight: 16,
-          color: saveFailed || futureDate || historyUnknown ? hub.late : hub.muted,
-        }}
-        {...(historyUnknown
-          ? { onPress: refetchReadings, accessibilityRole: 'button' as const }
-          : {})}
-      >
-        {noticeText({ t, saveFailed, futureDate, historyUnknown })}
-      </Text>
+      {notice === null ? null : (
+        <Text
+          testID="odometer-notice"
+          accessibilityLiveRegion="polite"
+          maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+          style={{
+            fontFamily: HUB_FONT.sans,
+            fontSize: 13,
+            lineHeight: LINE_HEIGHT,
+            color: noticeIsError ? hub.late : hub.dim,
+          }}
+          {...(historyUnknown
+            ? { onPress: refetchReadings, accessibilityRole: 'button' as const }
+            : {})}
+        >
+          {notice}
+        </Text>
+      )}
 
       <Pressable
         testID="odometer-save"
@@ -386,21 +568,26 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
         accessibilityLabel={saveLabel}
         accessibilityState={{
           disabled: saveDisabled,
-          busy: logOdometer.isPending || readingsLoading,
+          busy: saving || readingsLoading,
         }}
         style={({ pressed }) => ({
           height: HUB_HEIGHT.primary,
           borderRadius: HUB_RADIUS.button,
           borderCurve: 'continuous',
-          backgroundColor: hub.copper,
+          // Off = a neutral raised key, not a faded copper one (that read as broken).
+          backgroundColor: saveDisabled ? hub.raised : hub.copper,
           alignItems: 'center',
           justifyContent: 'center',
-          opacity: saveDisabled ? 0.4 : pressed ? 0.85 : 1,
+          opacity: pressed && !saveDisabled ? 0.85 : 1,
         })}
       >
         <Text
           maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-          style={{ fontFamily: HUB_FONT.sansBold, fontSize: 16, color: hub.ink }}
+          style={{
+            fontFamily: HUB_FONT.sansBold,
+            fontSize: 16,
+            color: saveDisabled ? hub.muted : hub.ink,
+          }}
         >
           {saveLabel}
         </Text>
@@ -409,40 +596,58 @@ export function OdometerSheet({ bike, onClose, now }: OdometerSheetProps) {
   );
 }
 
-function isSameCalendarDay(a: Date, b: Date): boolean {
-  return a.toDateString() === b.toDateString();
+function Caret() {
+  return (
+    <View
+      testID="odometer-caret"
+      style={{
+        width: CARET.width,
+        height: CARET.height,
+        marginLeft: 2,
+        backgroundColor: hub.copper,
+      }}
+    />
+  );
 }
 
-/** The footnote. A back-dated reading is explained on the detail line under the entry. */
+/**
+ * The footnote above Save: only there when something needs saying — an error,
+ * or why Save is off. A back-dated reading is explained under the entry.
+ */
 function noticeText(input: {
   t: TFunction;
   saveFailed: boolean;
   futureDate: boolean;
   historyUnknown: boolean;
-}): string {
-  const { t, saveFailed, futureDate, historyUnknown } = input;
+  unchanged: boolean;
+}): string | null {
+  const { t, saveFailed, futureDate, historyUnknown, unchanged } = input;
   if (saveFailed) return t('bikeHub.odometer.saveFailed');
   if (futureDate) return t('bikeHub.odometer.futureDate');
   if (historyUnknown) return t('bikeHub.odometer.historyUnavailable');
-  return t('bikeHub.odometer.helper');
+  if (unchanged) return t('bikeHub.odometer.sameAsLast');
+  return null;
 }
 
 interface ChipProps {
   label: string;
   onPress: () => void;
   highlighted?: boolean;
+  disabled: boolean;
   /** Set = the label wraps inside this width instead of widening the chip. */
   maxWidth?: DimensionValue;
   testID: string;
 }
 
-function Chip({ label, onPress, highlighted = false, maxWidth, testID }: ChipProps) {
+function Chip({ label, onPress, highlighted = false, disabled, maxWidth, testID }: ChipProps) {
   return (
     <Pressable
       testID={testID}
       onPress={onPress}
+      disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled }}
       hitSlop={{ top: 4, bottom: 4 }}
       style={({ pressed }) => ({
         minHeight: CHIP_HEIGHT,
@@ -456,7 +661,7 @@ function Chip({ label, onPress, highlighted = false, maxWidth, testID }: ChipPro
         borderColor: highlighted ? hub.chipOnBorder : hub.ripple,
         alignItems: 'center',
         justifyContent: 'center',
-        opacity: pressed ? 0.7 : 1,
+        opacity: disabled ? SHEET_LOCKED_OPACITY : pressed ? 0.7 : 1,
       })}
     >
       <Text

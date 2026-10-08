@@ -293,6 +293,24 @@ export const palette = {
   hubRowCritical: '#241715',
   /** Selected chip in sheets */
   hubChipOn: '#2A2017',
+  // Expense category colours of the hub's charts and dots. One hue per category
+  // (oklch, L 0.66–0.82, C 0.11–0.14, ≥5.5:1 on cardDark), kept clear of copper
+  // (action only) and of the status hues late / soon / ok / medium.
+  hubCatFuel: '#E5C057',
+  hubCatTraining: '#B3B144',
+  hubCatAccessories: '#A7CE65',
+  hubCatTolls: '#6EB26D',
+  hubCatParts: '#54CEC2',
+  hubCatRegistration: '#2CB2BE',
+  hubCatService: '#48C1E9',
+  hubCatParking: '#419BD4',
+  hubCatInsurance: '#9899F4',
+  hubCatGear: '#C3A5F9',
+  hubCatMods: '#BC7AD0',
+  hubCatTaxes: '#E899D5',
+  hubCatTires: '#DC7AA4',
+  /** "Other" — the one neutral category */
+  hubCatOther: '#B8B2A8',
   /** Dashed "Add a photo" border */
   whiteAlpha18: 'rgba(255,255,255,0.18)',
 } as const;

@@ -46,7 +46,22 @@
     "accountExistsTitle": "Konto existiert bereits",
     "accountExistsMessage": "Diese E-Mail ist bereits registriert. Bitte melde dich stattdessen an.",
     "restoringSession": "Sitzung wird wiederhergestellt…",
-    "signInInstead": "Stattdessen anmelden"
+    "signInInstead": "Stattdessen anmelden",
+    "codeTitle": "Code eingeben",
+    "codeSentTo": "Wir haben einen {{digits}}-stelligen Code an {{email}} gesendet",
+    "codeInputLabel": "Bestätigungscode",
+    "codeVerifying": "Wird geprüft…",
+    "codeResend": "Code erneut senden",
+    "codeResendIn": "Erneut senden in {{seconds}} s",
+    "codeResent": "Neuer Code gesendet – nutze die neueste E-Mail.",
+    "codeWrongOrExpired": "Der Code ist falsch oder abgelaufen. Prüfe die neueste E-Mail oder fordere einen neuen an.",
+    "codeTooManyAttempts": "Zu viele Versuche. Warte kurz und versuche es erneut.",
+    "codeConnectionError": "Keine Verbindung. Prüfe deine Verbindung und versuche es erneut.",
+    "codeGenericError": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+    "codeNotConfirmedYet": "Deine E-Mail ist noch nicht bestätigt. Gib den Code aus der neuesten E-Mail ein.",
+    "codeAlreadyConfirmed": "Ich habe schon über den Link bestätigt",
+    "codeChangeEmail": "E-Mail ändern",
+    "codeSendFailed": "Wir konnten den Code nicht senden. Prüfe deine Verbindung und versuche es erneut."
   },
   "tabs": {
     "home": "Start",
@@ -1011,8 +1026,6 @@
     "overdue": "Ueberfaellig",
     "totalSpend": "Ausgaben",
     "upcomingTasks": "Anstehend",
-    "allCaughtUp": "Alles erledigt!",
-    "seeAll": "Alle Aufgaben anzeigen",
     "spending": "Ausgaben",
     "thisYear": "Dieses Jahr",
     "allTime": "Gesamt",
@@ -1032,7 +1045,6 @@
     "updatedTodayFrom": "Heute aktualisiert von {{source}}",
     "updatedYesterdayFrom": "Gestern aktualisiert von {{source}}",
     "updatedDaysAgoFrom": "Vor {{days}} T. aktualisiert von {{source}}",
-    "maintenance": "Wartung",
     "allTasks": "Alle Aufgaben",
     "segment": {
       "overview": "Übersicht",
@@ -1040,8 +1052,8 @@
       "costs": "Kosten",
       "bike": "Motorrad",
       "listA11y": "Motorrad-Bereiche",
-      "serviceBadgeA11y_one": "Service, {{count}} überfällige Aufgabe mit hoher Priorität",
-      "serviceBadgeA11y_other": "Service, {{count}} überfällige Aufgaben mit hoher Priorität"
+      "serviceOverdueA11y_one": "Service, {{count}} überfällige Aufgabe",
+      "serviceOverdueA11y_other": "Service, {{count}} überfällige Aufgaben"
     },
     "header": {
       "backTo": "Zurück zu {{origin}}",
@@ -1110,7 +1122,10 @@
       "logA11y": "Etwas für dieses Motorrad eintragen",
       "addTaskA11y": "Wartungsaufgabe hinzufügen",
       "addExpenseA11y": "Ausgabe hinzufügen",
-      "addDocumentA11y": "Dokument hinzufügen"
+      "addDocumentA11y": "Dokument hinzufügen",
+      "task": "Aufgabe",
+      "expense": "Ausgabe",
+      "document": "Dokument"
     },
     "state": {
       "notFound": "Dieses Motorrad ist nicht mehr in deiner Garage.",
@@ -1154,7 +1169,9 @@
       "more_other": "{{count}} weitere",
       "listAnd": "{{first}} und {{last}}",
       "loadError": "Aufgaben konnten nicht geladen werden",
-      "docActionInsurance": "verlängern oder neue Police hochladen"
+      "docActionInsurance": "verlängern oder neue Police hochladen",
+      "overdueCount_one": "{{count}} überfällig",
+      "overdueCount_other": "{{count}} überfällig"
     },
     "nextUp": {
       "title": "Als Nächstes"
@@ -1188,11 +1205,11 @@
       "title": "Notizen",
       "all": "Alle Notizen",
       "placeholder": "Etwas notieren…",
-      "noteButton": "Notiz",
       "noteButtonA11y": "Längere Notiz schreiben",
       "inputA11y": "Notiz hinzufügen",
       "saveFailed": "Die Notiz konnte nicht gespeichert werden. Versuch es noch einmal.",
-      "loadError": "Notizen konnten nicht geladen werden"
+      "loadError": "Notizen konnten nicht geladen werden",
+      "saveA11y": "Notiz speichern"
     },
     "papers": {
       "title": "Papiere & Motorrad",
@@ -1206,66 +1223,91 @@
       "title": "Eintragen für {{name}}",
       "expense": "Ausgabe",
       "expenseSub": "Kraftstoff, Teile, Versicherung, Maut",
-      "task": "Wartungsaufgabe",
       "taskSub": "Etwas zu erledigen, fällig nach Datum oder Strecke",
       "pastWork": "Bereits erledigte Arbeit",
       "pastWorkSub": "Kommt direkt in die Servicehistorie, mit Kosten falls vorhanden",
       "note": "Notiz",
       "noteSub": "Eine Idee, eine Teilenummer, etwas zum Merken",
       "document": "Dokument",
-      "documentSub": "Versicherung, Zulassung, Fahrzeugbrief, Servicenachweis"
+      "documentSub": "Versicherung, Zulassung, Fahrzeugbrief, Servicenachweis",
+      "planTask": "Aufgabe planen",
+      "odometer": "Kilometerstand",
+      "odometerSub": "Den Stand vom Tacho eintragen"
     },
     "odometer": {
       "title": "Kilometerstand",
       "newReading": "Neuer Stand",
-      "deltaUp": "+{{delta}} {{unit}} seit {{date}} · vorher {{last}}",
-      "deltaUpNoDate": "+{{delta}} {{unit}} · vorher {{last}}",
-      "deltaDown": "−{{delta}} {{unit}} · vorher {{last}}",
-      "unchanged": "Wie der letzte Stand · {{last}}",
       "first": "Erster Stand für dieses Motorrad",
-      "lastReading": "Letzter Stand {{last}} {{unit}} · {{date}}",
       "ridesChip_one": "+{{distance}} aus {{count}} aufgezeichneten Fahrt",
       "ridesChip_other": "+{{distance}} aus {{count}} aufgezeichneten Fahrten",
-      "dateToday": "Datum · heute",
-      "dateOn": "Datum · {{date}}",
       "deleteA11y": "Ziffer löschen",
-      "helper": "Stände werden als Verlauf gespeichert. Bei einem niedrigeren Stand als zuletzt wird vor dem Speichern nachgefragt.",
       "save": "{{value}} {{unit}} speichern",
-      "lowerTitle": "Niedriger als der letzte Stand",
-      "lowerMessage": "Der letzte Stand war {{last}} {{unit}}. Trotzdem {{value}} {{unit}} speichern?",
       "backdatedNotice": "Liegt vor deinem letzten Stand: Er wird gespeichert, der Kilometerstand bleibt bei {{last}} {{unit}}.",
       "futureDate": "Das Datum darf nicht in der Zukunft liegen.",
       "saveFailed": "Der Stand konnte nicht gespeichert werden. Versuch es noch einmal.",
-      "lastReadingNoDate": "Letzter Stand {{last}} {{unit}}",
-      "historyUnavailable": "Frühere Stände konnten nicht geladen werden, daher kann nur der heutige Stand gespeichert werden. Zum Wiederholen tippen."
+      "historyUnavailable": "Frühere Stände konnten nicht geladen werden, daher kann nur der heutige Stand gespeichert werden. Zum Wiederholen tippen.",
+      "entryEmptyA11y": "Neuer Stand, leer",
+      "entryA11y": "Neuer Stand {{value}} {{unit}}",
+      "lastLine": "Zuletzt · {{last}} {{unit}} · {{date}}",
+      "lastLineNoDate": "Zuletzt · {{last}} {{unit}}",
+      "deltaSince": "+{{delta}} {{unit}} seit {{date}}",
+      "deltaPlus": "+{{delta}} {{unit}}",
+      "deltaBelow": "−{{delta}} {{unit}} unter dem letzten Stand",
+      "sameAsLast": "Gleich wie der letzte Stand – gib den neuen ein",
+      "lowerThan": "Niedriger als {{last}} {{unit}}",
+      "lowerOneLine": "Speichere ihn nur, wenn der letzte Stand falsch war.",
+      "fixIt": "Korrigieren",
+      "discardTitle": "Stand verwerfen?",
+      "discardMessage": "Die eingegebene Zahl wird nicht gespeichert.",
+      "discard": "Verwerfen",
+      "keepEditing": "Weiter bearbeiten",
+      "clear": "Leeren",
+      "clearA11y": "Eingabe leeren",
+      "today": "Heute",
+      "dateA11y": "Datum des Stands: {{date}}"
     },
     "noteSheet": {
       "new": "Neue Notiz",
       "edit": "Notiz bearbeiten",
       "placeholder": "Was möchtest du festhalten?",
       "stamp": "{{odometer}} {{unit}} · heute",
-      "stampA11y": "Kilometerstand-Stempel",
-      "photo": "Foto",
       "removePhotoA11y": "Foto entfernen",
       "attachTo": "Zuordnen zu",
       "alsoTask": "Auch als Aufgabe anlegen",
       "alsoTaskSub": "Legt eine Aufgabe mit niedriger Priorität ohne Termin an, mit dieser Notiz",
       "save": "Notiz speichern",
+      "saving": "Wird gespeichert…",
       "discardTitle": "Diese Notiz verwerfen?",
       "discardKeep": "Weiter bearbeiten",
       "discard": "Verwerfen",
-      "photoFailed": "Notiz gespeichert, Foto fehlgeschlagen",
       "taskNotCreated": "Notiz gespeichert. Die Aufgabe konnte nicht angelegt werden – nutze „Als Aufgabe anlegen“ an der Notiz.",
       "photoLimit": "Bis zu {{max}} Fotos pro Notiz",
       "alsoTaskSubNamed": "Legt „{{title}}“ an · Niedrig · ohne Termin, mit dieser Notiz",
-      "photoRemoveFailed": "Notiz gespeichert, aber ein Foto konnte nicht entfernt werden",
-      "photoNeedsSignIn": "Melde dich erneut an, um Fotos hinzuzufügen. Entferne die Fotos, um die Notiz ohne sie zu speichern."
+      "photoNeedsSignIn": "Melde dich erneut an, um Fotos hinzuzufügen. Entferne die Fotos, um die Notiz ohne sie zu speichern.",
+      "stampOff": "Kein Kilometerstand",
+      "stampA11yOn": "Kilometerstand, {{odometer}} {{unit}}, an",
+      "stampA11yOff": "Kilometerstand, {{odometer}} {{unit}}, aus",
+      "addPhoto": "Foto hinzufügen",
+      "addingPhotos": "Fotos werden hinzugefügt · {{done}} von {{total}}",
+      "photoNotAddedA11y": "Foto nicht hinzugefügt",
+      "photosNotAdded_one": "Notiz gespeichert. {{count}} Foto wurde nicht hinzugefügt.",
+      "photosNotAdded_few": "Notiz gespeichert. {{count}} Fotos wurden nicht hinzugefügt.",
+      "photosNotAdded_many": "Notiz gespeichert. {{count}} Fotos wurden nicht hinzugefügt.",
+      "photosNotAdded_other": "Notiz gespeichert. {{count}} Fotos wurden nicht hinzugefügt.",
+      "photosNotRemoved_one": "Notiz gespeichert. {{count}} Foto konnte nicht entfernt werden.",
+      "photosNotRemoved_few": "Notiz gespeichert. {{count}} Fotos konnten nicht entfernt werden.",
+      "photosNotRemoved_many": "Notiz gespeichert. {{count}} Fotos konnten nicht entfernt werden.",
+      "photosNotRemoved_other": "Notiz gespeichert. {{count}} Fotos konnten nicht entfernt werden.",
+      "retryPhotos_one": "{{count}} Foto erneut versuchen",
+      "retryPhotos_few": "{{count}} Fotos erneut versuchen",
+      "retryPhotos_many": "{{count}} Fotos erneut versuchen",
+      "retryPhotos_other": "{{count}} Fotos erneut versuchen",
+      "discardMessage": "Was du geschrieben hast, wird nicht gespeichert."
     },
     "notesScreen": {
       "title": "Notizen · {{name}}",
       "count_one": "{{count}} Notiz",
       "count_other": "{{count}} Notizen",
-      "hint": "neueste zuerst · wischen zum Bearbeiten · Löschen",
       "searchPlaceholder": "Teilenummern, Reifendrücke, Werkstätten suchen…",
       "searchA11y": "Notizen durchsuchen",
       "makeTask": "Als Aufgabe anlegen",
@@ -1273,18 +1315,72 @@
       "deleted": "Notiz gelöscht",
       "deleteFailed": "Die Notiz konnte nicht gelöscht werden.",
       "makeTaskFailed": "Die Aufgabe konnte nicht angelegt werden.",
-      "empty": "Noch keine Notizen",
-      "emptySub": "Notiere Teilenummern, Reifendrücke und alles Wissenswerte zu diesem Motorrad.",
       "noMatch": "Keine Notiz passt zu „{{query}}“",
       "composerAdd": "Hinzufügen",
       "attachPhotoA11y": "Foto anhängen",
-      "photoA11y": "Foto der Notiz"
+      "rowHint": "Öffnet die Notiz zum Bearbeiten",
+      "photoOf": "Foto {{index}} von {{count}}",
+      "photoCount_one": "{{count}} Foto",
+      "photoCount_other": "{{count}} Fotos",
+      "photoCount_few": "{{count}} Fotos",
+      "photoCount_many": "{{count}} Fotos",
+      "matchCount_one": "{{count}} passende Notiz",
+      "matchCount_other": "{{count}} passende Notizen",
+      "matchCount_few": "{{count}} passende Notizen",
+      "matchCount_many": "{{count}} passende Notizen",
+      "clearSearch": "Suche löschen",
+      "emptyTitle": "Halte fest, was du sonst vergisst",
+      "emptyBodyStamped": "Reifendrücke, eine Teilenummer, die Werkstatt, die die Ventile gemacht hat. Tipp es unten ein – jede Notiz bekommt den heutigen Kilometerstand.",
+      "emptyBody": "Reifendrücke, eine Teilenummer, die Werkstatt, die die Ventile gemacht hat. Tipp es unten ein – es bleibt bei diesem Motorrad.",
+      "taskLink": "Aufgabe · {{status}}",
+      "linkedTask": "Verknüpfte Aufgabe",
+      "taskLinkA11y": "Verknüpfte Aufgabe „{{title}}“, {{status}}",
+      "linkedTaskA11y": "Verknüpfte Aufgabe „{{title}}“",
+      "taskStatus": {
+        "open": "offen",
+        "inProgress": "in Arbeit",
+        "done": "erledigt",
+        "skipped": "übersprungen"
+      },
+      "viewerCloseA11y": "Fotos schließen",
+      "viewerCounter": "{{index}} von {{count}}"
     },
     "refreshFailed": "Aktualisierung fehlgeschlagen",
     "refreshRetryA11y": {
       "attention": "Braucht Aufmerksamkeit erneut laden",
       "costs": "Kosten erneut laden",
       "notes": "Notizen erneut laden"
+    },
+    "service": {
+      "group": {
+        "overdue": "Überfällig",
+        "soon": "Bald fällig",
+        "later": "Später",
+        "someday": "Kein Termin"
+      },
+      "noOpenTasks": "Keine offenen Aufgaben",
+      "priorityA11y": "Priorität {{priority}}",
+      "markDone": "Als erledigt markieren",
+      "markDoneA11y": "„{{title}}“ als erledigt markieren",
+      "doneOn": "Erledigt am {{date}}",
+      "seeAllHistory_one": "{{count}} erledigte Aufgabe ansehen",
+      "seeAllHistory_other": "Alle {{count}} erledigten Aufgaben ansehen",
+      "serviceItems": "Serviceposten"
+    },
+    "costsSegment": {
+      "spentIn": "Ausgaben {{year}}",
+      "spentAllTime": "Ausgaben gesamt",
+      "recent": "Neueste"
+    },
+    "bikeSegment": {
+      "categories": "Kategorien"
+    },
+    "sheetDraft": {
+      "noteRestored": "Dein Entwurf wurde wiederhergestellt",
+      "readingRestored": "Dein Kilometerstand wurde wiederhergestellt",
+      "clear": "Verwerfen",
+      "clearNoteA11y": "Wiederhergestellte Notiz verwerfen",
+      "clearReadingA11y": "Wiederhergestellten Kilometerstand verwerfen"
     }
   },
   "maintenance": {
@@ -1632,7 +1728,10 @@
     "charCount_one": "{{count}} / {{max}}",
     "charCount_other": "{{count}} / {{max}}",
     "charCount_few": "{{count}} / {{max}}",
-    "charCount_many": "{{count}} / {{max}}"
+    "charCount_many": "{{count}} / {{max}}",
+    "problemRequired": "Beschreibe das Problem oder füge ein Foto hinzu, um es zu analysieren. Zum Bearbeiten tippen.",
+    "symptomsRequired": "Wähle, was dir auffällt, oder „Ich bin nicht sicher“.",
+    "descriptionRequired": "Beschreibe, was passiert, um fortzufahren."
   },
   "notifications": {
     "title": "Benachrichtigungen",
@@ -1675,8 +1774,6 @@
     "showInCurrency": "Diagramme in {{currency}} anzeigen",
     "byCategory": "Nach Kategorie",
     "monthlyTrend": "Monatlicher Trend",
-    "title": "Ausgaben",
-    "allTime": "Gesamt",
     "category": "Kategorie",
     "createFailed": "Ausgabe konnte nicht gespeichert werden. Bitte versuche es erneut.",
     "date": "Datum",
@@ -1892,6 +1989,14 @@
     "findRiders": "Fahrer entdecken"
   },
   "whatsNew": {
+    "v3220": {
+      "overviewTitle": "Dein Motorrad auf einen Blick",
+      "overviewDesc": "Jedes Motorrad öffnet jetzt mit einer Übersicht: was Aufmerksamkeit braucht, was als Nächstes fällig ist, was du ausgegeben hast, dazu deine Notizen und Papiere. Service, Kosten und Motorrad sind oben nur einen Tipp entfernt.",
+      "notesTitle": "Notizen mit Fotos",
+      "notesDesc": "Bewahre Teilenummern, Reifendruck und Werkstattinfos direkt beim richtigen Motorrad auf. Hänge ein Foto an eine Notiz, durchsuche deine Notizen später oder mach eine Aufgabe daraus.",
+      "logTitle": "Direkt am Motorrad eintragen",
+      "logDesc": "Tippe bei einem Motorrad auf „Eintragen“, um eine Ausgabe, eine Aufgabe, bereits erledigte Arbeiten, eine Notiz oder ein Dokument hinzuzufügen. Den Kilometerstand trägst du jetzt auf iPhone und Android über ein Ziffernfeld ein."
+    },
     "badge": "Neuigkeiten",
     "next": "Next",
     "getStarted": "Let's Go",

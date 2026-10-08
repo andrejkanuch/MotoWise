@@ -372,15 +372,24 @@ export async function waitForRevenueCatLogin(timeoutMs: number): Promise<void> {
   if (timer) clearTimeout(timer);
 }
 
-export function loginRevenueCat(userId: string): Promise<void> {
-  const run = doLoginRevenueCat(userId).finally(() => {
+/**
+ * Identify the RevenueCat customer as the Supabase user. When the session
+ * carries an email it is written as the `$email` attribute so support can find
+ * the customer in the RevenueCat dashboard. An Apple relay sign-in may
+ * have no email claim — then the attribute is left alone. The email write is
+ * best-effort through {@link withRevenueCat} and only runs after `logIn`
+ * succeeded, so it can never land on the anonymous or previous customer.
+ * Never throws.
+ */
+export function loginRevenueCat(userId: string, email?: string | null): Promise<void> {
+  const run = doLoginRevenueCat(userId, email).finally(() => {
     if (loginInFlight === run) loginInFlight = null;
   });
   loginInFlight = run;
   return run;
 }
 
-async function doLoginRevenueCat(userId: string) {
+async function doLoginRevenueCat(userId: string, email?: string | null) {
   if (isExpoGo()) return;
   // Wait for configure() to complete before calling logIn()
   const cleanup = await initRevenueCat();
@@ -391,6 +400,9 @@ async function doLoginRevenueCat(userId: string) {
     // Set PostHog user ID so the RevenueCat → PostHog integration can
     // match server-side subscription events to the correct PostHog user.
     await Purchases.setAttributes({ $posthogUserId: userId });
+    if (email) {
+      await withRevenueCat('setEmail', (rc) => rc.setEmail(email));
+    }
     await Purchases.syncAttributesAndOfferingsIfNeeded?.();
   } catch (e) {
     reportRevenueCatError(e, 'revenuecat.loginRevenueCat');

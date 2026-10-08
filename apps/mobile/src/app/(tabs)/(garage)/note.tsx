@@ -24,7 +24,11 @@ interface TransitionEvents {
   ) => () => void;
 }
 
-/** Note sheet route (formSheet, large detent): new note, or edit with `noteId`. */
+/**
+ * Note sheet route (formSheet, large detent): new note, or edit with `noteId`.
+ * Work an Android drag-down took away is restored by the form itself, per bike
+ * (new note) or per note (edit) — see `NoteForm` and `restorableNoteDraft`.
+ */
 export default function NoteScreen() {
   const { motorcycleId, noteId, draft, photo } = useLocalSearchParams<NoteRouteParams>();
   const navigation = useNavigation();

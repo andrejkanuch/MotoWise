@@ -17,6 +17,7 @@ const mockPurchases = {
   logIn: jest.fn(),
   syncAttributesAndOfferingsIfNeeded: jest.fn(),
   setAttributes: jest.fn(),
+  setEmail: jest.fn(),
   collectDeviceIdentifiers: jest.fn().mockResolvedValue(undefined),
   enableAdServicesAttributionTokenCollection: jest.fn().mockResolvedValue(undefined),
 };
@@ -144,7 +145,7 @@ describe('waitForRevenueCatLogin', () => {
 
   it('waits for an in-flight logIn to finish', async () => {
     let finishLogIn: () => void = () => {};
-    mockPurchases.logIn.mockImplementation(
+    mockPurchases.logIn.mockImplementationOnce(
       () =>
         new Promise<void>((resolve) => {
           finishLogIn = resolve;
@@ -168,7 +169,7 @@ describe('waitForRevenueCatLogin', () => {
 
   it('gives up after the timeout when logIn hangs', async () => {
     let finishLogIn: () => void = () => {};
-    mockPurchases.logIn.mockImplementation(
+    mockPurchases.logIn.mockImplementationOnce(
       () =>
         new Promise<void>((resolve) => {
           finishLogIn = resolve;
@@ -222,6 +223,40 @@ describe('resyncTrialReminder', () => {
     await flush();
 
     expect(mockReconcileTrialReminder).toHaveBeenCalledWith(undefined);
+  });
+});
+
+describe('loginRevenueCat', () => {
+  const USER_ID = 'user-123';
+  const EMAIL = 'rider@example.com';
+
+  it('calls logIn and then setEmail(email) once when an email is present', async () => {
+    await loginRevenueCat(USER_ID, EMAIL);
+
+    expect(mockPurchases.logIn).toHaveBeenCalledWith(USER_ID);
+    expect(mockPurchases.setEmail).toHaveBeenCalledTimes(1);
+    expect(mockPurchases.setEmail).toHaveBeenCalledWith(EMAIL);
+    const logInOrder = mockPurchases.logIn.mock.invocationCallOrder[0];
+    const setEmailOrder = mockPurchases.setEmail.mock.invocationCallOrder[0];
+    expect(logInOrder).toBeLessThan(setEmailOrder);
+  });
+
+  it('skips setEmail when the session has no email', async () => {
+    await loginRevenueCat(USER_ID, undefined);
+
+    expect(mockPurchases.logIn).toHaveBeenCalledWith(USER_ID);
+    expect(mockPurchases.setEmail).not.toHaveBeenCalled();
+  });
+
+  it('reports a setEmail failure and does not throw', async () => {
+    const error = new Error('setEmail failed');
+    mockPurchases.setEmail.mockRejectedValueOnce(error);
+
+    await expect(loginRevenueCat(USER_ID, EMAIL)).resolves.toBeUndefined();
+
+    expect(mockCaptureException).toHaveBeenCalledWith(error, {
+      source: 'revenuecat.setEmail',
+    });
   });
 });
 

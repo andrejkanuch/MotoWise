@@ -46,7 +46,22 @@
     "accountExistsTitle": "Le compte existe déjà",
     "accountExistsMessage": "Cet e-mail est déjà enregistré. Connecte-toi à la place.",
     "restoringSession": "Restauration de votre session…",
-    "signInInstead": "Se connecter"
+    "signInInstead": "Se connecter",
+    "codeTitle": "Saisis ton code",
+    "codeSentTo": "Nous avons envoyé un code à {{digits}} chiffres à {{email}}",
+    "codeInputLabel": "Code de confirmation",
+    "codeVerifying": "Vérification…",
+    "codeResend": "Renvoyer le code",
+    "codeResendIn": "Renvoyer dans {{seconds}} s",
+    "codeResent": "Nouveau code envoyé : utilise l'e-mail le plus récent.",
+    "codeWrongOrExpired": "Ce code est incorrect ou a expiré. Vérifie l'e-mail le plus récent ou renvoie un code.",
+    "codeTooManyAttempts": "Trop de tentatives. Patiente un instant et réessaie.",
+    "codeConnectionError": "Connexion impossible. Vérifie ta connexion et réessaie.",
+    "codeGenericError": "Un problème est survenu. Réessaie.",
+    "codeNotConfirmedYet": "Ton e-mail n'est pas encore confirmé. Saisis le code de l'e-mail le plus récent.",
+    "codeAlreadyConfirmed": "J'ai déjà confirmé via le lien",
+    "codeChangeEmail": "Modifier l'e-mail",
+    "codeSendFailed": "Impossible d'envoyer le code. Vérifie ta connexion et réessaie."
   },
   "tabs": {
     "home": "Accueil",
@@ -1012,8 +1027,6 @@
     "overdue": "En retard",
     "totalSpend": "Dépenses",
     "upcomingTasks": "À venir",
-    "allCaughtUp": "Tout est à jour !",
-    "seeAll": "Voir toutes les tâches",
     "spending": "Dépenses",
     "thisYear": "Cette année",
     "allTime": "Tout",
@@ -1033,7 +1046,6 @@
     "updatedTodayFrom": "Mis à jour aujourd'hui depuis {{source}}",
     "updatedYesterdayFrom": "Mis à jour hier depuis {{source}}",
     "updatedDaysAgoFrom": "Mis à jour il y a {{days}} j depuis {{source}}",
-    "maintenance": "Entretien",
     "allTasks": "Toutes les tâches",
     "segment": {
       "overview": "Aperçu",
@@ -1041,8 +1053,8 @@
       "costs": "Coûts",
       "bike": "Moto",
       "listA11y": "Sections de la moto",
-      "serviceBadgeA11y_one": "Entretien, {{count}} tâche en retard de priorité élevée",
-      "serviceBadgeA11y_other": "Entretien, {{count}} tâches en retard de priorité élevée"
+      "serviceOverdueA11y_one": "Entretien, {{count}} tâche en retard",
+      "serviceOverdueA11y_other": "Entretien, {{count}} tâches en retard"
     },
     "header": {
       "backTo": "Retour à {{origin}}",
@@ -1111,7 +1123,10 @@
       "logA11y": "Consigner quelque chose pour cette moto",
       "addTaskA11y": "Ajouter une tâche d'entretien",
       "addExpenseA11y": "Ajouter une dépense",
-      "addDocumentA11y": "Ajouter un document"
+      "addDocumentA11y": "Ajouter un document",
+      "task": "Tâche",
+      "expense": "Dépense",
+      "document": "Document"
     },
     "state": {
       "notFound": "Cette moto n'est plus dans votre garage.",
@@ -1155,7 +1170,9 @@
       "more_other": "{{count}} autres",
       "listAnd": "{{first}} et {{last}}",
       "loadError": "Impossible de charger les tâches",
-      "docActionInsurance": "renouvelez ou ajoutez la nouvelle police"
+      "docActionInsurance": "renouvelez ou ajoutez la nouvelle police",
+      "overdueCount_one": "{{count}} en retard",
+      "overdueCount_other": "{{count}} en retard"
     },
     "nextUp": {
       "title": "À venir"
@@ -1189,11 +1206,11 @@
       "title": "Notes",
       "all": "Toutes les notes",
       "placeholder": "Notez quelque chose…",
-      "noteButton": "Note",
       "noteButtonA11y": "Écrire une note plus longue",
       "inputA11y": "Ajouter une note",
       "saveFailed": "Impossible d'enregistrer la note. Réessayez.",
-      "loadError": "Impossible de charger les notes"
+      "loadError": "Impossible de charger les notes",
+      "saveA11y": "Enregistrer la note"
     },
     "papers": {
       "title": "Papiers et moto",
@@ -1207,66 +1224,91 @@
       "title": "Consigner pour {{name}}",
       "expense": "Dépense",
       "expenseSub": "Carburant, pièces, assurance, péages",
-      "task": "Tâche d'entretien",
       "taskSub": "Quelque chose à faire, à échéance par date ou distance",
       "pastWork": "Travail déjà fait",
       "pastWorkSub": "Va directement dans l'historique d'entretien, avec le coût le cas échéant",
       "note": "Note",
       "noteSub": "Une idée, une référence de pièce, une chose à retenir",
       "document": "Document",
-      "documentSub": "Assurance, carte grise, titre, justificatif d'entretien"
+      "documentSub": "Assurance, carte grise, titre, justificatif d'entretien",
+      "planTask": "Planifier une tâche",
+      "odometer": "Compteur",
+      "odometerSub": "Mettez à jour le relevé du tableau de bord"
     },
     "odometer": {
       "title": "Compteur",
       "newReading": "Nouveau relevé",
-      "deltaUp": "+{{delta}} {{unit}} depuis le {{date}} · avant {{last}}",
-      "deltaUpNoDate": "+{{delta}} {{unit}} · avant {{last}}",
-      "deltaDown": "−{{delta}} {{unit}} · avant {{last}}",
-      "unchanged": "Identique au dernier relevé · {{last}}",
       "first": "Premier relevé pour cette moto",
-      "lastReading": "Dernier relevé {{last}} {{unit}} · {{date}}",
       "ridesChip_one": "+{{distance}} de {{count}} sortie enregistrée",
       "ridesChip_other": "+{{distance}} de {{count}} sorties enregistrées",
-      "dateToday": "Date · aujourd'hui",
-      "dateOn": "Date · {{date}}",
       "deleteA11y": "Supprimer le chiffre",
-      "helper": "Les relevés sont conservés dans un journal. Un relevé inférieur au dernier demande confirmation avant l'enregistrement.",
       "save": "Enregistrer {{value}} {{unit}}",
-      "lowerTitle": "Inférieur au dernier relevé",
-      "lowerMessage": "Le dernier relevé était de {{last}} {{unit}}. Enregistrer {{value}} {{unit}} quand même ?",
       "backdatedNotice": "Antérieur à votre dernier relevé : il est consigné et le compteur reste à {{last}} {{unit}}.",
       "futureDate": "La date ne peut pas être dans le futur.",
       "saveFailed": "Impossible d'enregistrer le relevé. Réessayez.",
-      "lastReadingNoDate": "Dernier relevé {{last}} {{unit}}",
-      "historyUnavailable": "Impossible de charger les relevés précédents : seul le relevé du jour peut être enregistré. Touchez pour réessayer."
+      "historyUnavailable": "Impossible de charger les relevés précédents : seul le relevé du jour peut être enregistré. Touchez pour réessayer.",
+      "entryEmptyA11y": "Nouveau relevé, vide",
+      "entryA11y": "Nouveau relevé {{value}} {{unit}}",
+      "lastLine": "Dernier · {{last}} {{unit}} · {{date}}",
+      "lastLineNoDate": "Dernier · {{last}} {{unit}}",
+      "deltaSince": "+{{delta}} {{unit}} depuis le {{date}}",
+      "deltaPlus": "+{{delta}} {{unit}}",
+      "deltaBelow": "−{{delta}} {{unit}} sous le dernier relevé",
+      "sameAsLast": "Identique au dernier relevé : saisissez le nouveau",
+      "lowerThan": "Inférieur à {{last}} {{unit}}",
+      "lowerOneLine": "Enregistrez-le seulement si le dernier relevé était faux.",
+      "fixIt": "Corriger",
+      "discardTitle": "Abandonner le relevé ?",
+      "discardMessage": "Le nombre saisi ne sera pas enregistré.",
+      "discard": "Abandonner",
+      "keepEditing": "Continuer",
+      "clear": "Effacer",
+      "clearA11y": "Effacer le relevé",
+      "today": "Aujourd'hui",
+      "dateA11y": "Date du relevé : {{date}}"
     },
     "noteSheet": {
       "new": "Nouvelle note",
       "edit": "Modifier la note",
       "placeholder": "Que voulez-vous retenir ?",
       "stamp": "{{odometer}} {{unit}} · aujourd'hui",
-      "stampA11y": "Marque du compteur",
-      "photo": "Photo",
       "removePhotoA11y": "Retirer la photo",
       "attachTo": "Associer à",
       "alsoTask": "En faire aussi une tâche",
       "alsoTaskSub": "Crée une tâche de priorité basse sans échéance, avec cette note jointe",
       "save": "Enregistrer la note",
+      "saving": "Enregistrement…",
       "discardTitle": "Abandonner cette note ?",
       "discardKeep": "Continuer la modification",
       "discard": "Abandonner",
-      "photoFailed": "Note enregistrée, échec de la photo",
       "taskNotCreated": "Note enregistrée. La tâche n’a pas pu être créée : utilisez « En faire une tâche » sur la note.",
       "photoLimit": "Jusqu'à {{max}} photos par note",
       "alsoTaskSubNamed": "Crée « {{title}} » · Basse · sans échéance, avec cette note jointe",
-      "photoRemoveFailed": "Note enregistrée, mais une photo n’a pas pu être retirée",
-      "photoNeedsSignIn": "Reconnectez-vous pour ajouter des photos. Retirez-les pour enregistrer la note sans elles."
+      "photoNeedsSignIn": "Reconnectez-vous pour ajouter des photos. Retirez-les pour enregistrer la note sans elles.",
+      "stampOff": "Sans compteur",
+      "stampA11yOn": "Relevé du compteur, {{odometer}} {{unit}}, activé",
+      "stampA11yOff": "Relevé du compteur, {{odometer}} {{unit}}, désactivé",
+      "addPhoto": "Ajouter une photo",
+      "addingPhotos": "Ajout des photos · {{done}} sur {{total}}",
+      "photoNotAddedA11y": "Photo non ajoutée",
+      "photosNotAdded_one": "Note enregistrée. {{count}} photo n'a pas été ajoutée.",
+      "photosNotAdded_few": "Note enregistrée. {{count}} photos n'ont pas été ajoutées.",
+      "photosNotAdded_many": "Note enregistrée. {{count}} photos n'ont pas été ajoutées.",
+      "photosNotAdded_other": "Note enregistrée. {{count}} photos n'ont pas été ajoutées.",
+      "photosNotRemoved_one": "Note enregistrée. {{count}} photo n'a pas pu être retirée.",
+      "photosNotRemoved_few": "Note enregistrée. {{count}} photos n'ont pas pu être retirées.",
+      "photosNotRemoved_many": "Note enregistrée. {{count}} photos n'ont pas pu être retirées.",
+      "photosNotRemoved_other": "Note enregistrée. {{count}} photos n'ont pas pu être retirées.",
+      "retryPhotos_one": "Réessayer {{count}} photo",
+      "retryPhotos_few": "Réessayer {{count}} photos",
+      "retryPhotos_many": "Réessayer {{count}} photos",
+      "retryPhotos_other": "Réessayer {{count}} photos",
+      "discardMessage": "Ce que vous avez écrit ne sera pas enregistré."
     },
     "notesScreen": {
       "title": "Notes · {{name}}",
       "count_one": "{{count}} note",
       "count_other": "{{count}} notes",
-      "hint": "plus récentes d'abord · balayez pour modifier · supprimer",
       "searchPlaceholder": "Rechercher références, pressions, ateliers…",
       "searchA11y": "Rechercher dans les notes",
       "makeTask": "En faire une tâche",
@@ -1274,18 +1316,72 @@
       "deleted": "Note supprimée",
       "deleteFailed": "Impossible de supprimer la note.",
       "makeTaskFailed": "Impossible de créer la tâche.",
-      "empty": "Pas encore de notes",
-      "emptySub": "Notez des références de pièces, des pressions et tout ce qu’il faut retenir sur cette moto.",
       "noMatch": "Aucune note ne correspond à « {{query}} »",
       "composerAdd": "Ajouter",
       "attachPhotoA11y": "Joindre une photo",
-      "photoA11y": "Photo de la note"
+      "rowHint": "Ouvre la note pour la modifier",
+      "photoOf": "Photo {{index}} sur {{count}}",
+      "photoCount_one": "{{count}} photo",
+      "photoCount_other": "{{count}} photos",
+      "photoCount_few": "{{count}} photos",
+      "photoCount_many": "{{count}} photos",
+      "matchCount_one": "{{count}} note correspondante",
+      "matchCount_other": "{{count}} notes correspondantes",
+      "matchCount_few": "{{count}} notes correspondantes",
+      "matchCount_many": "{{count}} notes correspondantes",
+      "clearSearch": "Effacer la recherche",
+      "emptyTitle": "Gardez ce que vous oublieriez sinon",
+      "emptyBodyStamped": "Pressions des pneus, une référence de pièce, l’atelier qui a fait les soupapes. Tapez-le ci-dessous : chaque note garde le compteur du jour.",
+      "emptyBody": "Pressions des pneus, une référence de pièce, l’atelier qui a fait les soupapes. Tapez-le ci-dessous, il restera avec cette moto.",
+      "taskLink": "Tâche · {{status}}",
+      "linkedTask": "Tâche liée",
+      "taskLinkA11y": "Tâche liée « {{title}} », {{status}}",
+      "linkedTaskA11y": "Tâche liée « {{title}} »",
+      "taskStatus": {
+        "open": "ouverte",
+        "inProgress": "en cours",
+        "done": "terminée",
+        "skipped": "ignorée"
+      },
+      "viewerCloseA11y": "Fermer les photos",
+      "viewerCounter": "{{index}} sur {{count}}"
     },
     "refreshFailed": "Échec de l'actualisation",
     "refreshRetryA11y": {
       "attention": "Réessayer À traiter",
       "costs": "Réessayer les coûts",
       "notes": "Réessayer les notes"
+    },
+    "service": {
+      "group": {
+        "overdue": "En retard",
+        "soon": "Bientôt dues",
+        "later": "Plus tard",
+        "someday": "Sans échéance"
+      },
+      "noOpenTasks": "Aucune tâche en cours",
+      "priorityA11y": "priorité {{priority}}",
+      "markDone": "Marquer comme faite",
+      "markDoneA11y": "Marquer « {{title}} » comme faite",
+      "doneOn": "Faite le {{date}}",
+      "seeAllHistory_one": "Voir {{count}} tâche faite",
+      "seeAllHistory_other": "Voir les {{count}} tâches faites",
+      "serviceItems": "Opérations"
+    },
+    "costsSegment": {
+      "spentIn": "Dépensé en {{year}}",
+      "spentAllTime": "Dépensé au total",
+      "recent": "Récentes"
+    },
+    "bikeSegment": {
+      "categories": "Catégories"
+    },
+    "sheetDraft": {
+      "noteRestored": "Ce que vous écriviez a été restauré",
+      "readingRestored": "Votre relevé a été restauré",
+      "clear": "Effacer",
+      "clearNoteA11y": "Effacer la note restaurée",
+      "clearReadingA11y": "Effacer le relevé restauré"
     }
   },
   "maintenance": {
@@ -1633,7 +1729,10 @@
     "charCount_one": "{{count}} / {{max}}",
     "charCount_other": "{{count}} / {{max}}",
     "charCount_few": "{{count}} / {{max}}",
-    "charCount_many": "{{count}} / {{max}}"
+    "charCount_many": "{{count}} / {{max}}",
+    "problemRequired": "Décrivez le problème ou ajoutez une photo pour lancer l'analyse. Touchez pour modifier.",
+    "symptomsRequired": "Choisissez ce que vous remarquez, ou « Je ne suis pas sûr ».",
+    "descriptionRequired": "Décrivez ce qui se passe pour continuer."
   },
   "notifications": {
     "title": "Notifications",
@@ -1676,8 +1775,6 @@
     "showInCurrency": "Afficher les graphiques en {{currency}}",
     "byCategory": "Par catégorie",
     "monthlyTrend": "Tendance mensuelle",
-    "title": "Dépenses",
-    "allTime": "Tout",
     "category": "Catégorie",
     "createFailed": "Impossible d'enregistrer la dépense. Réessaie.",
     "date": "Date",
@@ -1893,6 +1990,14 @@
     "findRiders": "Découvrir des motards"
   },
   "whatsNew": {
+    "v3220": {
+      "overviewTitle": "Votre moto en un coup d’œil",
+      "overviewDesc": "Chaque moto s’ouvre désormais sur un Aperçu : ce qui demande votre attention, la prochaine échéance, vos dépenses, ainsi que vos notes et papiers. Entretien, Coûts et Moto sont à portée de doigt dans la barre du haut.",
+      "notesTitle": "Des notes, avec photos",
+      "notesDesc": "Gardez références de pièces, pressions des pneus et coordonnées de l’atelier avec la moto concernée. Ajoutez une photo à une note, retrouvez vos notes par la recherche ou transformez-en une en tâche.",
+      "logTitle": "Tout consigner depuis la moto",
+      "logDesc": "Touchez Consigner sur une moto pour ajouter une dépense, une tâche, des travaux déjà faits, une note ou un document. Le compteur se met désormais à jour avec un pavé numérique, sur iPhone comme sur Android."
+    },
     "badge": "Nouveautés",
     "next": "Next",
     "getStarted": "Let's Go",

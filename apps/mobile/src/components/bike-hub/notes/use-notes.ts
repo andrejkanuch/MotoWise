@@ -2,6 +2,8 @@ import {
   CreateNoteDocument,
   CreateTaskFromNoteDocument,
   DeleteNoteDocument,
+  type MaintenanceTaskStatus,
+  MaintenanceTasksByMotorcycleDocument,
   NotesByMotorcycleDocument,
   type NotesByMotorcycleQuery,
   UpdateNoteDocument,
@@ -50,7 +52,32 @@ export function useNotes(motorcycleId: string) {
     /** Notes are shown from the cache: the latest refetch failed. */
     refreshFailed: query.isError && !!query.data,
     refetch: () => void query.refetch(),
+    /** Pull-to-refresh: resolves when the refetch settles (failures surface as `refreshFailed`). */
+    refresh: async () => {
+      await query.refetch();
+    },
   };
+}
+
+/**
+ * Status of each of the bike's tasks, by id — lets a note's task link say
+ * whether the task is still open instead of repeating its title. Shares the
+ * hub's tasks query (same key), so it is usually a cache hit; a failure only
+ * means the link falls back to a plain "Linked task".
+ */
+export function useTaskStatuses(motorcycleId: string): ReadonlyMap<string, MaintenanceTaskStatus> {
+  const query = useQuery({
+    queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
+    queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId }),
+    enabled: !!motorcycleId,
+    // Same meta as the hub's observer of this key; a failure leaves the plain link.
+    meta: OWN_ERROR_UI,
+  });
+  const tasks = query.data?.maintenanceTasks;
+  return useMemo(
+    () => new Map((tasks ?? []).map((task) => [task.id, task.status] as const)),
+    [tasks],
+  );
 }
 
 export interface CreateNoteVariables {

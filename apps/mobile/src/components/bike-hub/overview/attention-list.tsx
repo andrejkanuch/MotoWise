@@ -3,13 +3,14 @@ import type { TFunction } from 'i18next';
 import { FileText, type LucideIcon, Shield, ShieldAlert, Wrench } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import type {
-  AttentionItem,
-  AttentionOverflow,
-  AttentionResult,
-  DocumentAttentionItem,
-  RecallAttentionItem,
-  TaskAttentionItem,
+import {
+  type AttentionItem,
+  type AttentionOverflow,
+  type AttentionResult,
+  countOverdueAttentionItems,
+  type DocumentAttentionItem,
+  type RecallAttentionItem,
+  type TaskAttentionItem,
 } from '../../../lib/bike-hub/attention';
 import {
   ATTENTION_KIND,
@@ -234,7 +235,7 @@ interface AttentionListProps {
 }
 
 /**
- * "Needs attention · N": the ranked rows (max three) and one "N more" row.
+ * "Needs attention · N overdue": the ranked rows (max three) and one "N more" row.
  * Hidden entirely when nothing needs attention.
  */
 export function AttentionList({
@@ -298,12 +299,20 @@ export function AttentionList({
 
   const context: RowContext = { t, language: i18n.language, unit, make, onPress: onPressItem };
   const { overflow } = result;
+  // The eyebrow counts overdue tasks only — the hub's one count, the same
+  // number as the Service badge and Service's "Overdue · N" (see
+  // `countOverdueTasks`). Recall, document and due-soon rows are listed but
+  // not counted, so the number means one thing wherever it appears.
+  const overdue = countOverdueAttentionItems(result.items);
+  const eyebrow =
+    overdue > 0
+      ? `${title}${SEPARATOR}${t('bikeHub.attention.overdueCount', { count: overdue })}`
+      : title;
 
   return (
     <View testID="attention-list" style={{ gap: 8 }}>
       <SectionHeader
-        label={title}
-        count={result.total}
+        label={eyebrow}
         action={{
           label: t('bikeHub.attention.all'),
           accessibilityLabel: t('bikeHub.attention.allA11y'),

@@ -33,8 +33,10 @@ const mockRouter = {
   replace: jest.fn(),
   canGoBack: jest.fn(() => true),
 };
+let mockIsFocused = true;
 jest.mock('expo-router', () => ({
   useRouter: () => mockRouter,
+  useIsFocused: () => mockIsFocused,
   useFocusEffect: (effect: () => undefined | (() => void)) => {
     const { useEffect } = require('react');
     useEffect(effect, [effect]);
@@ -50,26 +52,54 @@ import {
   CreateNoteDocument,
   CreateTaskFromNoteDocument,
   DeleteNoteDocument,
+  MaintenanceTaskStatus,
+  MaintenanceTasksByMotorcycleDocument,
   NotesByMotorcycleDocument,
 } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import '../../../i18n';
 import { NOTE_SOURCE, NOTES_SEARCH_DEBOUNCE_MS } from '../../../lib/bike-hub/constants';
+import { queryKeys } from '../../../lib/query-keys';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
 import { usePendingDeleteStore } from '../../../stores/pending-delete.store';
 import { BIKE_A, NOTES } from '../../../test/bike-hub-fixtures';
 import { NotesScreen } from '../notes/notes-screen';
+import { DRAFT_OUTCOME, publishDraftOutcome } from '../notes/use-draft-handoff';
 import type { HubBike } from '../shell/use-bike-hub-data';
 
 const clients: QueryClient[] = [];
 
-async function renderNotes(options: { notes?: unknown[]; from?: string; fail?: boolean } = {}) {
+const PHOTO_NOTE = {
+  ...NOTES[2],
+  id: 'note-photos',
+  photos: [
+    { id: 'photo-a', storagePath: 'u/a.jpg', publicUrl: 'https://cdn/a.jpg' },
+    { id: 'photo-b', storagePath: 'u/b.jpg', publicUrl: 'https://cdn/b.jpg' },
+  ],
+};
+
+async function renderNotes(
+  options: {
+    notes?: unknown[];
+    from?: string;
+    fail?: boolean;
+    taskStatus?: MaintenanceTaskStatus;
+    bike?: Partial<HubBike>;
+  } = {},
+) {
   mockFetcher.mockImplementation((document: unknown) => {
     if (document === NotesByMotorcycleDocument) {
       return options.fail
         ? Promise.reject(new Error('offline'))
         : Promise.resolve({ notes: options.notes ?? NOTES });
+    }
+    if (document === MaintenanceTasksByMotorcycleDocument) {
+      return Promise.resolve({
+        maintenanceTasks: [
+          { id: 'task-service', status: options.taskStatus ?? MaintenanceTaskStatus.Pending },
+        ],
+      });
     }
     if (document === CreateNoteDocument) {
       return Promise.resolve({
@@ -94,7 +124,10 @@ async function renderNotes(options: { notes?: unknown[]; from?: string; fail?: b
   clients.push(client);
   const view = await render(
     <QueryClientProvider client={client}>
-      <NotesScreen bike={BIKE_A as unknown as HubBike} from={options.from} />
+      <NotesScreen
+        bike={{ ...(BIKE_A as unknown as HubBike), ...options.bike }}
+        from={options.from}
+      />
     </QueryClientProvider>,
   );
   await waitFor(() => expect(client.isFetching()).toBe(0));
@@ -111,6 +144,7 @@ const settle = (ms: number) =>
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockIsFocused = true;
   usePendingDeleteStore.setState({ hiddenIds: {} });
   useBikeHubStore.setState({ pendingTask: null });
   mockRouter.canGoBack.mockReturnValue(true);
@@ -127,15 +161,28 @@ describe('NotesScreen', () => {
     expect(screen.getAllByTestId(/^note-row-/).map((row) => row.props.testID)).toEqual(
       NOTES.map((note) => `note-row-${note.id}`),
     );
-    expect(screen.getByText('Jul 20')).toBeOnTheScreen();
-    expect(screen.getByText('Jul 16 · 37,300 km')).toBeOnTheScreen();
+    // The meta line is drawn for sight and read as part of the row's label.
+    expect(screen.getByText('Jul 20', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(
+      screen.getByText('Jul 16 · 37,300 km', { includeHiddenElements: true }),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('note-row-note-5').props.accessibilityLabel).toBe(
+      'Dealer (Motos Ebro) said the clutch lever free play should be 10–20 mm. Jul 16 · 37,300 km.',
+    );
   });
 
   it('shows the three link variants', async () => {
     await renderNotes();
     expect(screen.getByTestId('note-link-note-1')).toHaveTextContent('Make it a task');
     expect(screen.getByTestId('note-link-note-2')).toHaveTextContent('Linked expense · €29.73');
-    expect(screen.getByTestId('note-link-note-5')).toHaveTextContent('2nd scheduled service');
+    expect(screen.getByTestId('note-link-note-5')).toHaveTextContent('Task · open');
+  });
+
+  it('a linked task link says where the task stands, and names the task to a screen reader', async () => {
+    await renderNotes({ taskStatus: MaintenanceTaskStatus.Completed });
+    const link = screen.getByTestId('note-link-note-5');
+    expect(link).toHaveTextContent('Task · done');
+    expect(link.props.accessibilityLabel).toBe('Linked task “2nd scheduled service”, done');
   });
 
   it('a linked task goes BACK to the hub beneath and asks it for the task — no second hub', async () => {
@@ -189,7 +236,7 @@ describe('NotesScreen', () => {
       screen
         .getByTestId('note-row-note-1')
         .props.accessibilityActions.map((a: { name: string }) => a.name),
-    ).toEqual(['edit', 'delete', 'link']);
+    ).toEqual(['activate', 'edit', 'delete']);
   });
 
   it('the search field uses the design placeholder', async () => {
@@ -204,16 +251,16 @@ describe('NotesScreen', () => {
     expect(screen.getByTestId('notes-composer-input').props.maxLength).toBe(4000);
   });
 
-  it('"Make it a task" creates the task and the link then shows its title', async () => {
+  it('"Make it a task" creates the task and the link then points at it', async () => {
     await renderNotes();
     await fireEvent.press(screen.getByTestId('note-link-note-1'));
     await waitFor(() =>
       expect(mockFetcher).toHaveBeenCalledWith(CreateTaskFromNoteDocument, { noteId: 'note-1' }),
     );
+    // The new task is not in the (mocked) task list: the link stays generic
+    // rather than repeating the note's own words.
     await waitFor(() =>
-      expect(screen.getByTestId('note-link-note-1')).toHaveTextContent(
-        'Rear preload felt soft two-up on the Pyrenees run',
-      ),
+      expect(screen.getByTestId('note-link-note-1')).toHaveTextContent('Linked task'),
     );
   });
 
@@ -224,9 +271,14 @@ describe('NotesScreen', () => {
     expect(screen.getAllByTestId(/^note-row-/)).toHaveLength(1);
     expect(screen.getByTestId('note-row-note-3')).toBeOnTheScreen();
 
+    expect(screen.getByTestId('notes-match-count')).toHaveTextContent('1 matching note');
+
     await fireEvent.changeText(screen.getByTestId('notes-search'), 'carburettor');
     await settle(NOTES_SEARCH_DEBOUNCE_MS + 50);
     expect(screen.getByText('No notes match “carburettor”')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Clear search' }));
+    expect(screen.getByTestId('notes-search').props.value).toBe('');
+    expect(screen.getAllByTestId(/^note-row-/)).toHaveLength(NOTES.length);
   });
 
   it('composer Add with text creates the note from the composer', async () => {
@@ -252,18 +304,143 @@ describe('NotesScreen', () => {
     );
   });
 
-  it('composer Add with an empty field opens the Note sheet; the photo button opens it with the picker', async () => {
+  it('copper Add only saves: disabled with an empty field, never opens the sheet', async () => {
     await renderNotes();
-    await fireEvent.press(screen.getByTestId('notes-composer-add'));
+    const add = screen.getByTestId('notes-composer-add');
+    expect(add.props.accessibilityState).toEqual(expect.objectContaining({ disabled: true }));
+    await fireEvent.press(add);
+    expect(mockRouter.push).not.toHaveBeenCalled();
+    await fireEvent.changeText(screen.getByTestId('notes-composer-input'), 'Chain lube');
+    expect(screen.getByTestId('notes-composer-add').props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: false }),
+    );
+  });
+
+  it('the expand button opens the Note sheet with the draft; the photo button adds the picker', async () => {
+    const now = jest.spyOn(Date, 'now').mockReturnValue(10_000);
+    await renderNotes();
+    await fireEvent.press(screen.getByRole('button', { name: 'Write a longer note' }));
     expect(mockRouter.push).toHaveBeenLastCalledWith({
       pathname: '/(tabs)/(garage)/note',
       params: { motorcycleId: BIKE_A.id },
     });
+    // Past the double-tap cooldown.
+    now.mockReturnValue(20_000);
     await fireEvent.changeText(screen.getByTestId('notes-composer-input'), 'Draft');
     await fireEvent.press(screen.getByRole('button', { name: 'Attach a photo' }));
     expect(mockRouter.push).toHaveBeenLastCalledWith({
       pathname: '/(tabs)/(garage)/note',
       params: { motorcycleId: BIKE_A.id, draft: 'Draft', photo: '1' },
+    });
+    now.mockRestore();
+  });
+
+  it('the camera keeps the typed draft until THAT sheet reports it saved a note', async () => {
+    await renderNotes();
+    await fireEvent.changeText(screen.getByTestId('notes-composer-input'), 'Brake fluid dark');
+    await fireEvent.press(screen.getByRole('button', { name: 'Attach a photo' }));
+    // The sheet is open: the draft is still in the field.
+    expect(screen.getByTestId('notes-composer-input').props.value).toBe('Brake fluid dark');
+    // An unrelated note saved elsewhere does not clear it.
+    await act(async () => publishDraftOutcome('Bought oil', DRAFT_OUTCOME.SAVED));
+    expect(screen.getByTestId('notes-composer-input').props.value).toBe('Brake fluid dark');
+    // The sheet saved the handed-off draft (edited there, or sent to another bike).
+    await act(async () => publishDraftOutcome('  Brake fluid dark ', DRAFT_OUTCOME.SAVED));
+    expect(screen.getByTestId('notes-composer-input').props.value).toBe('');
+  });
+
+  it('a cancelled hand-off keeps the draft, and a later note with the same words does not clear it', async () => {
+    await renderNotes();
+    await fireEvent.changeText(screen.getByTestId('notes-composer-input'), 'Check chain');
+    await fireEvent.press(screen.getByRole('button', { name: 'Write a longer note' }));
+    await act(async () => publishDraftOutcome('Check chain', DRAFT_OUTCOME.DISCARDED));
+    expect(screen.getByTestId('notes-composer-input').props.value).toBe('Check chain');
+    // Disarmed: a SAVED report for the same text (another sheet) leaves the field alone.
+    await act(async () => publishDraftOutcome('Check chain', DRAFT_OUTCOME.SAVED));
+    expect(screen.getByTestId('notes-composer-input').props.value).toBe('Check chain');
+  });
+
+  it('editing the field after a hand-off disarms it', async () => {
+    await renderNotes();
+    await fireEvent.changeText(screen.getByTestId('notes-composer-input'), 'Check chain');
+    await fireEvent.press(screen.getByRole('button', { name: 'Write a longer note' }));
+    await fireEvent.changeText(
+      screen.getByTestId('notes-composer-input'),
+      'Check chain and sprockets',
+    );
+    await act(async () => publishDraftOutcome('Check chain', DRAFT_OUTCOME.SAVED));
+    expect(screen.getByTestId('notes-composer-input').props.value).toBe(
+      'Check chain and sprockets',
+    );
+  });
+
+  it('a quick Add landing while another draft is handed off does not clear that draft', async () => {
+    const view = await renderNotes();
+    await fireEvent.changeText(screen.getByTestId('notes-composer-input'), 'Draft A');
+    await fireEvent.press(screen.getByTestId('notes-composer-add'));
+    await fireEvent.changeText(screen.getByTestId('notes-composer-input'), 'Draft B');
+    await fireEvent.press(screen.getByRole('button', { name: 'Write a longer note' }));
+    // Draft A's create returns: a new saved note shows up in the list.
+    const client = clients[clients.length - 1];
+    await act(async () => {
+      client.setQueryData(queryKeys.notes.byMotorcycle(BIKE_A.id), {
+        notes: [{ ...NOTES[0], id: 'note-a', text: 'Draft A' }, ...NOTES],
+      });
+    });
+    view.rerender(
+      <QueryClientProvider client={client}>
+        <NotesScreen bike={BIKE_A as unknown as HubBike} />
+      </QueryClientProvider>,
+    );
+    expect(screen.getByTestId('notes-composer-input').props.value).toBe('Draft B');
+  });
+
+  it('a double tap on a row opens one Note sheet', async () => {
+    await renderNotes();
+    await fireEvent.press(screen.getByTestId('note-open-note-3'));
+    await fireEvent.press(screen.getByTestId('note-open-note-3'));
+    expect(mockRouter.push).toHaveBeenCalledTimes(1);
+  });
+
+  it('nothing opens while the screen is not focused (a sheet is already up)', async () => {
+    mockIsFocused = false;
+    await renderNotes();
+    await fireEvent.press(screen.getByTestId('note-open-note-3'));
+    await fireEvent.changeText(screen.getByTestId('notes-composer-input'), 'Draft');
+    await fireEvent.press(screen.getByRole('button', { name: 'Attach a photo' }));
+    expect(mockRouter.push).not.toHaveBeenCalled();
+  });
+
+  it('tapping a note opens it in the Note sheet for editing', async () => {
+    await renderNotes();
+    await fireEvent.press(screen.getByTestId('note-open-note-3'));
+    expect(mockRouter.push).toHaveBeenLastCalledWith({
+      pathname: '/(tabs)/(garage)/note',
+      params: { motorcycleId: BIKE_A.id, noteId: 'note-3' },
+    });
+  });
+
+  it('a screen reader double-tap on a note edits it too', async () => {
+    await renderNotes();
+    await fireEvent(screen.getByTestId('note-row-note-3'), 'accessibilityAction', {
+      nativeEvent: { actionName: 'activate' },
+    });
+    expect(mockRouter.push).toHaveBeenLastCalledWith({
+      pathname: '/(tabs)/(garage)/note',
+      params: { motorcycleId: BIKE_A.id, noteId: 'note-3' },
+    });
+  });
+
+  it('photos are labelled buttons that open the viewer on that photo', async () => {
+    await renderNotes({ notes: [PHOTO_NOTE] });
+    expect(screen.getByTestId('note-row-note-photos').props.accessibilityLabel).toMatch(
+      /36,400 km\. 2 photos$/,
+    );
+    const second = screen.getByRole('imagebutton', { name: 'Photo 2 of 2' });
+    await fireEvent.press(second);
+    expect(mockRouter.push).toHaveBeenLastCalledWith({
+      pathname: '/(tabs)/(garage)/note-photos',
+      params: { motorcycleId: BIKE_A.id, noteId: 'note-photos', index: '1' },
     });
   });
 
@@ -317,10 +494,35 @@ describe('NotesScreen', () => {
     expect(screen.getByRole('button', { name: 'Back to Overview' })).toBeOnTheScreen();
   });
 
-  it('empty: "No notes yet" with the composer still present', async () => {
+  it('empty: no zero count and no search — copy that points at the composer', async () => {
     await renderNotes({ notes: [] });
-    expect(screen.getByText('No notes yet')).toBeOnTheScreen();
+    expect(screen.getByText("Keep what you'd otherwise forget")).toBeOnTheScreen();
+    expect(screen.getByTestId('notes-screen-empty')).toHaveTextContent(
+      /stamped with today's odometer/,
+    );
+    expect(screen.queryByText('0 notes')).toBeNull();
+    expect(screen.queryByTestId('notes-search')).toBeNull();
     expect(screen.getByTestId('notes-composer-input')).toBeOnTheScreen();
+  });
+
+  it('empty on a bike without an odometer promises no stamp', async () => {
+    await renderNotes({ notes: [], bike: { currentMileage: 0 } });
+    expect(screen.getByTestId('notes-screen-empty')).toHaveTextContent(/stays with this bike/);
+  });
+
+  it('a failed refetch keeps the notes and says they may be stale', async () => {
+    await renderNotes();
+    mockFetcher.mockImplementation((document: unknown) =>
+      document === NotesByMotorcycleDocument
+        ? Promise.reject(new Error('offline'))
+        : Promise.resolve({ maintenanceTasks: [] }),
+    );
+    const client = clients[clients.length - 1];
+    await act(async () => {
+      await client.refetchQueries({ queryKey: queryKeys.notes.byMotorcycle(BIKE_A.id) });
+    });
+    expect(await screen.findByTestId('notes-screen-refresh-failed')).toBeOnTheScreen();
+    expect(screen.getByTestId('note-row-note-1')).toBeOnTheScreen();
   });
 
   it('error: message and Retry', async () => {

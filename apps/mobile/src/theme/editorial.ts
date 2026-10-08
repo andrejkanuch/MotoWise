@@ -9,6 +9,7 @@
 
 import { palette } from '@motovault/design-system';
 import { useColorScheme } from 'nativewind';
+import { createContext, useContext } from 'react';
 
 const dark = {
   bg: palette.editorialDarkBg,
@@ -54,9 +55,21 @@ export type EditorialTokens = typeof dark;
 
 export const editorialThemes = { dark, light } as const;
 
+export const EDITORIAL_SCHEME = { DARK: 'dark', LIGHT: 'light' } as const;
+export type EditorialScheme = (typeof EDITORIAL_SCHEME)[keyof typeof EDITORIAL_SCHEME];
+
+/**
+ * Pins the editorial scheme for a subtree, whatever the system scheme is. The
+ * bike hub is dark in both schemes, so the legacy sections it wraps render
+ * under `EDITORIAL_SCHEME.DARK` to read as one surface with it.
+ */
+const EditorialSchemeContext = createContext<EditorialScheme | null>(null);
+export const EditorialSchemeProvider = EditorialSchemeContext.Provider;
+
 export function useEditorialTheme() {
   const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const pinned = useContext(EditorialSchemeContext);
+  const isDark = (pinned ?? colorScheme) === EDITORIAL_SCHEME.DARK;
   return { t: isDark ? dark : light, isDark } as const;
 }
 

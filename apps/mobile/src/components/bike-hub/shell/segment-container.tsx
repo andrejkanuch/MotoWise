@@ -9,6 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { BIKE_SEGMENT_ORDER, type BikeSegment } from '../../../lib/bike-hub/constants';
 import { hub } from '../ui/tokens';
+import { SegmentInteractiveContext } from './segment-interactive';
 
 /** Scroll distance over which the header collapses into one row. */
 const COLLAPSE_DISTANCE = 40;
@@ -21,8 +22,6 @@ function collapseFor(offsetY: number): number {
 
 export interface SegmentDefinition {
   render: () => ReactNode;
-  /** Ground colour of the segment's scroll view. Hub ground by default. */
-  background?: string;
 }
 
 interface SegmentContainerProps {
@@ -34,17 +33,22 @@ interface SegmentContainerProps {
   onRefresh: () => void;
   /** Bottom padding of every segment: tab bar + action-pill clearance. */
   bottomInset: number;
+  /** False while another screen or sheet sits over the hub. */
+  focused?: boolean;
 }
 
-interface SegmentScrollProps extends Omit<SegmentContainerProps, 'active' | 'segments'> {
+interface SegmentScrollProps
+  extends Omit<SegmentContainerProps, 'active' | 'segments' | 'focused'> {
   segment: BikeSegment;
   isActive: boolean;
+  interactive: boolean;
   definition: SegmentDefinition;
 }
 
 function SegmentScroll({
   segment,
   isActive,
+  interactive,
   definition,
   collapse,
   refreshing,
@@ -73,8 +77,9 @@ function SegmentScroll({
     // The hiding wrapper is a plain View: `display: 'none'` on it is honoured by
     // the layout engine, and `pointerEvents="none"` keeps a hidden panel from
     // ever receiving a touch even if a platform still hit-tests it. It is also
-    // taken out of the accessibility tree. The panel stays mounted, so its
-    // scroll position survives.
+    // taken out of the accessibility tree. The panel stays mounted in React, so
+    // its state and queries survive. Gesture-handler gestures inside it are
+    // switched off through `SegmentInteractiveContext` (see segment-interactive.ts).
     <View
       testID={`segment-panel-${segment}`}
       pointerEvents={isActive ? 'auto' : 'none'}
@@ -83,10 +88,7 @@ function SegmentScroll({
       importantForAccessibility={isActive ? 'auto' : 'no-hide-descendants'}
       style={isActive ? { flex: 1 } : { display: 'none' }}
     >
-      <KeyboardAvoidingView
-        behavior="padding"
-        style={{ flex: 1, backgroundColor: definition.background ?? hub.ground }}
-      >
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: hub.ground }}>
         <Animated.ScrollView
           testID={`segment-scroll-${segment}`}
           onScroll={onScroll}
@@ -98,7 +100,9 @@ function SegmentScroll({
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={hub.copper} />
           }
         >
-          {definition.render()}
+          <SegmentInteractiveContext.Provider value={interactive}>
+            {definition.render()}
+          </SegmentInteractiveContext.Provider>
         </Animated.ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -111,7 +115,12 @@ function SegmentScroll({
  * scroll position natively and its queries stay warm. Each panel shrinks above
  * the keyboard, so the Overview's quick-note field is never covered.
  */
-export function SegmentContainer({ active, segments, ...scrollProps }: SegmentContainerProps) {
+export function SegmentContainer({
+  active,
+  segments,
+  focused = true,
+  ...scrollProps
+}: SegmentContainerProps) {
   const [mounted, setMounted] = useState<readonly BikeSegment[]>([active]);
   if (!mounted.includes(active)) setMounted([...mounted, active]);
 
@@ -123,6 +132,7 @@ export function SegmentContainer({ active, segments, ...scrollProps }: SegmentCo
             key={segment}
             segment={segment}
             isActive={segment === active}
+            interactive={segment === active && focused}
             definition={segments[segment]}
             {...scrollProps}
           />

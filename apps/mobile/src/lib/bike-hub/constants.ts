@@ -214,6 +214,7 @@ export const LOG_OPTION = {
   PAST_WORK: 'past_work',
   NOTE: 'note',
   DOCUMENT: 'document',
+  ODOMETER: 'odometer',
 } as const;
 export type LogOption = (typeof LOG_OPTION)[keyof typeof LOG_OPTION];
 
@@ -233,3 +234,49 @@ export type NoteLinkKind = (typeof NOTE_LINK)[keyof typeof NOTE_LINK];
 
 /** Debounce of the Notes search field. */
 export const NOTES_SEARCH_DEBOUNCE_MS = 200;
+
+/**
+ * Garage-stack routes that draw the bike hub (and its sheets). The hub is dark
+ * in both colour schemes, so the tab bar is pinned dark while one is on top.
+ */
+export const BIKE_HUB_ROUTES: ReadonlySet<string> = new Set([
+  'bike/[id]',
+  'notes',
+  'note',
+  'log-entry',
+  'odometer',
+  'note-photos',
+]);
+
+/** Tone of the link on a note's meta row: an existing link, or the quiet "Make it a task" offer. */
+export const NOTE_LINK_TONE = {
+  LINK: 'link',
+  QUIET: 'quiet',
+} as const;
+export type NoteLinkTone = (typeof NOTE_LINK_TONE)[keyof typeof NOTE_LINK_TONE];
+
+/**
+ * What the Odometer sheet's entry shows before the first digit: a dim
+ * placeholder, never the last reading (that read as an editable value).
+ */
+export const ODOMETER_ENTRY_PLACEHOLDER = '— — —';
+
+/** Platforms whose form sheet can refuse a swipe-down (react-native-screens `preventNativeDismiss`). */
+export const SHEET_DISMISS_GUARD_PLATFORMS: ReadonlySet<string> = new Set(['ios']);
+
+/**
+ * How a hub form sheet (Note, Odometer) was left. A native dismissal the guard
+ * could not hold back (Android drag-down) leaves it `OPEN`: nothing decided.
+ */
+export const SHEET_EXIT = {
+  OPEN: 'open',
+  SAVED: 'saved',
+  DISCARDED: 'discarded',
+} as const;
+export type SheetExit = (typeof SHEET_EXIT)[keyof typeof SHEET_EXIT];
+
+/** Parts of a parked Note draft's key: one slot per bike for a new note, one per edited note. */
+export const SHEET_DRAFT_KEY = {
+  NEW_NOTE: 'new',
+  SEPARATOR: ':',
+} as const;

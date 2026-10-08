@@ -512,6 +512,24 @@ export const AnalyticsEvent = {
   USER_SIGNED_IN: 'user_signed_in',
   USER_SIGNED_UP: 'user_signed_up',
   /**
+   * An email confirmation code was sent from the app. `source`: `signup`,
+   * `signin_unconfirmed` (sign-in to an unconfirmed account) or `resend`.
+   * With the three below, makes stranding on the code step measurable.
+   */
+  EMAIL_CODE_SENT: 'email_code_sent',
+  /** The emailed code was verified and the rider has a session. Carries `source`. */
+  EMAIL_CODE_VERIFIED: 'email_code_verified',
+  /**
+   * A code verify failed. `reason` is the classified error kind
+   * (`invalid_or_expired`, `throttled`, `network`, `generic`, …).
+   */
+  EMAIL_CODE_FAILED: 'email_code_failed',
+  /**
+   * The rider got in from the code step without a code: the email was already
+   * confirmed elsewhere (fallback link, other device), proven by a password sign-in.
+   */
+  EMAIL_CODE_RECOVERED: 'email_code_recovered',
+  /**
    * Auth hydration exceeded AUTH_HYDRATION_TIMEOUT_MS on a foregrounded launch.
    * A latency signal, not a defect: what matters is its RATE against launches,
    * which is why it lives here and not in Sentry's issue stream. (BUG-4 Q2)

@@ -9,7 +9,7 @@ import { type SharedValue, useSharedValue } from 'react-native-reanimated';
 import { BIKE_SEGMENT, type BikeSegment } from '../../../lib/bike-hub/constants';
 import { parseOrigin, resolveInitialSegment } from '../../../lib/bike-hub/segments';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
-import { useEditorialTheme } from '../../../theme/editorial';
+import { EDITORIAL_SCHEME, EditorialSchemeProvider } from '../../../theme/editorial';
 import { OverviewSegment } from '../overview/overview-segment';
 import { BikeSegment as BikeSegmentPanel } from '../segments/bike-segment';
 import { CostsSegment } from '../segments/costs-segment';
@@ -39,12 +39,24 @@ export interface BikeHubScreenProps {
   ts?: string;
 }
 
-/** Segment → its one primary action. Labelled on Overview (a chooser), icon-only elsewhere. */
-const PILL: Record<BikeSegment, { labelKey?: HubCopyKey; a11yKey: HubCopyKey }> = {
+/**
+ * Segment → its one primary action, always labelled with what it adds ("Log"
+ * on Overview opens the chooser). It is the only add trigger on each segment.
+ */
+const PILL: Record<BikeSegment, { labelKey: HubCopyKey; a11yKey: HubCopyKey }> = {
   [BIKE_SEGMENT.OVERVIEW]: { labelKey: 'bikeHub.action.log', a11yKey: 'bikeHub.action.logA11y' },
-  [BIKE_SEGMENT.SERVICE]: { a11yKey: 'bikeHub.action.addTaskA11y' },
-  [BIKE_SEGMENT.COSTS]: { a11yKey: 'bikeHub.action.addExpenseA11y' },
-  [BIKE_SEGMENT.BIKE]: { a11yKey: 'bikeHub.action.addDocumentA11y' },
+  [BIKE_SEGMENT.SERVICE]: {
+    labelKey: 'bikeHub.action.task',
+    a11yKey: 'bikeHub.action.addTaskA11y',
+  },
+  [BIKE_SEGMENT.COSTS]: {
+    labelKey: 'bikeHub.action.expense',
+    a11yKey: 'bikeHub.action.addExpenseA11y',
+  },
+  [BIKE_SEGMENT.BIKE]: {
+    labelKey: 'bikeHub.action.document',
+    a11yKey: 'bikeHub.action.addDocumentA11y',
+  },
 };
 
 interface Landing {
@@ -55,6 +67,17 @@ interface Landing {
 
 function landingKey({ ts, highlightTask, segment }: BikeHubScreenProps): string {
   return `${ts ?? ''}|${highlightTask ?? ''}|${segment ?? ''}`;
+}
+
+/**
+ * The sections Service / Costs / Bike still wrap (until R2–R5) follow the
+ * editorial theme; the hub is dark in both schemes, so pin them dark to sit on
+ * the hub's ground instead of flipping to light panels on a light-mode phone.
+ */
+function LegacySegment({ children }: { children: React.ReactNode }) {
+  return (
+    <EditorialSchemeProvider value={EDITORIAL_SCHEME.DARK}>{children}</EditorialSchemeProvider>
+  );
 }
 
 function CentredState({ children }: { children: React.ReactNode }) {
@@ -75,7 +98,6 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
   const { t } = useTranslation();
   const bottomLayout = useHubBottomLayout();
   const isFocused = useIsFocused();
-  const { t: legacyTheme } = useEditorialTheme();
   const origin = parseOrigin(from);
   const goBack = useBikeBack(origin);
   const data = useBikeHubData(id);
@@ -176,7 +198,6 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
           active={active}
           landing={landing}
           collapse={collapse}
-          legacyBackground={legacyTheme.bg}
           bottomInset={bottomLayout.contentInset}
           pillBottom={bottomLayout.pillBottom}
           onRemoved={goBack}
@@ -184,6 +205,7 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
           onSelectSegment={selectSegment}
           onOpenTask={openTask}
           navigationRef={setNavigation}
+          focused={isFocused}
         />
       ) : data.isLoading ? (
         <CentredState>
@@ -236,7 +258,6 @@ interface LoadedHubProps {
   active: BikeSegment;
   landing: Landing;
   collapse: SharedValue<number>;
-  legacyBackground: string;
   bottomInset: number;
   pillBottom: number;
   onRemoved: () => void;
@@ -246,6 +267,8 @@ interface LoadedHubProps {
   onSelectSegment: (segment: BikeSegment) => void;
   onOpenTask: (taskId: string) => void;
   navigationRef: (navigation: BikeHubNavigation) => void;
+  /** False while a leaf or sheet sits over the hub: segment gestures switch off. */
+  focused: boolean;
 }
 
 function LoadedHub({
@@ -254,7 +277,6 @@ function LoadedHub({
   active,
   landing,
   collapse,
-  legacyBackground,
   bottomInset,
   pillBottom,
   onRemoved,
@@ -262,6 +284,7 @@ function LoadedHub({
   onSelectSegment,
   onOpenTask,
   navigationRef,
+  focused,
 }: LoadedHubProps) {
   const { t } = useTranslation();
   const actions = useBikeActions(bike, onRemoved);
@@ -293,30 +316,35 @@ function LoadedHub({
       ),
     },
     [BIKE_SEGMENT.SERVICE]: {
-      background: legacyBackground,
       render: () => (
-        <ServiceSegment
-          bike={bike}
-          tasks={data.tasks}
-          unit={data.unit}
-          highlightTaskId={landing.highlightTaskId}
-          highlightKey={landing.key}
-        />
+        <LegacySegment>
+          <ServiceSegment
+            bike={bike}
+            tasks={data.tasks}
+            unit={data.unit}
+            highlightTaskId={landing.highlightTaskId}
+            highlightKey={landing.key}
+          />
+        </LegacySegment>
       ),
     },
     [BIKE_SEGMENT.COSTS]: {
-      background: legacyBackground,
-      render: () => <CostsSegment bike={bike} unit={data.unit} />,
+      render: () => (
+        <LegacySegment>
+          <CostsSegment bike={bike} unit={data.unit} />
+        </LegacySegment>
+      ),
     },
     [BIKE_SEGMENT.BIKE]: {
-      background: legacyBackground,
       render: () => (
-        <BikeSegmentPanel
-          bike={bike}
-          actions={actions}
-          onChangePhoto={photo.changePhoto}
-          isUploadingPhoto={photo.uploading}
-        />
+        <LegacySegment>
+          <BikeSegmentPanel
+            bike={bike}
+            actions={actions}
+            onChangePhoto={photo.changePhoto}
+            isUploadingPhoto={photo.uploading}
+          />
+        </LegacySegment>
       ),
     },
   };
@@ -332,6 +360,7 @@ function LoadedHub({
         refreshing={data.isRefreshing}
         onRefresh={() => void data.refresh()}
         bottomInset={bottomInset}
+        focused={focused}
       />
       {/* Out of the way while typing a quick note. */}
       {keyboardVisible ? null : (
@@ -339,7 +368,7 @@ function LoadedHub({
           <ActionPill
             testID={`action-pill-${active}`}
             icon={Plus}
-            label={pill.labelKey ? t(pill.labelKey) : undefined}
+            label={t(pill.labelKey)}
             accessibilityLabel={t(pill.a11yKey)}
             onPress={pillAction[active]}
           />

@@ -1,18 +1,28 @@
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback } from 'react';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { OdometerSheet } from '../../../components/bike-hub/sheets/odometer-sheet';
+import { useDiscardReadingGuard } from '../../../components/bike-hub/sheets/use-log-odometer';
 import { useHubBike } from '../../../components/bike-hub/shell/use-hub-bike';
 import { refreshToday } from '../../../components/bike-hub/shell/use-today';
 import { hub } from '../../../components/bike-hub/ui/tokens';
 
 const PLACEHOLDER_HEIGHT = 240;
 
-/** Odometer sheet route (formSheet, fit to contents). Opened from the header's odometer chip. */
+/**
+ * Odometer sheet route (formSheet, fit to contents). Opened from the header's
+ * odometer chip and from the Log sheet. A typed reading is guarded: swipe-down
+ * (iOS), Cancel and Android Back ask "Discard reading?" first; while it saves
+ * the sheet cannot be left at all. An Android drag-down cannot be held back: the
+ * reading is parked and restored the next time the sheet opens for this bike.
+ */
 export default function OdometerScreen() {
   const { motorcycleId } = useLocalSearchParams<{ motorcycleId: string }>();
   const { bike } = useHubBike(motorcycleId);
-  // "Date · today" and the future-date check must use the day the sheet is opened on.
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const guard = useDiscardReadingGuard(dirty, saving);
+  // "Today" and the future-date check must use the day the sheet is opened on.
   useFocusEffect(useCallback(() => refreshToday(), []));
   if (!bike) {
     return (
@@ -28,5 +38,15 @@ export default function OdometerScreen() {
       </View>
     );
   }
-  return <OdometerSheet bike={bike} onClose={() => router.back()} />;
+  return (
+    <OdometerSheet
+      bike={bike}
+      onClose={guard.closeAfterSave}
+      onCancel={guard.cancel}
+      onDirtyChange={setDirty}
+      onSavingChange={setSaving}
+      exit={guard.exit}
+      isMounted={guard.isMounted}
+    />
+  );
 }

@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, Pressable, Text, View } from 'react-native';
-import { useEditorialTheme } from '../../theme/editorial';
-import { HUB_TOUCH_TARGET } from './ui/tokens';
+import { HUB_FONT, HUB_RADIUS, HUB_TOUCH_TARGET, hub } from './ui/tokens';
 
 interface LoadErrorProps {
   message: string;
@@ -14,8 +13,9 @@ interface LoadErrorProps {
 }
 
 /**
- * "Couldn't load … · Retry" for the legacy sections the interim segments reuse
- * (Expenses, Documents): one look, one Retry colour, and announced when it
+ * "Couldn't load … · Retry" for the sections the interim segments reuse
+ * (Expenses, Documents), on the hub's card with the hub's copper text Retry —
+ * the same look as the Overview's Costs error — and announced when it
  * appears — a live region on Android, an explicit announcement on iOS (which
  * has no live regions).
  */
@@ -27,7 +27,6 @@ export function LoadError({
   retryAccessibilityLabel,
 }: LoadErrorProps) {
   const { t } = useTranslation();
-  const { t: theme } = useEditorialTheme();
 
   useEffect(() => {
     if (process.env.EXPO_OS === 'ios') AccessibilityInfo.announceForAccessibility(message);
@@ -42,10 +41,21 @@ export function LoadError({
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: 12,
-        paddingHorizontal: 2,
+        paddingVertical: 2,
+        paddingLeft: 16,
+        paddingRight: 8,
+        backgroundColor: hub.card,
+        borderWidth: 1,
+        borderColor: hub.hairline,
+        borderRadius: HUB_RADIUS.card,
+        borderCurve: 'continuous',
       }}
     >
-      <Text style={{ flex: 1, fontSize: 14, color: theme.ink2 }}>{message}</Text>
+      <Text
+        style={{ flex: 1, fontFamily: HUB_FONT.sans, fontSize: 14, lineHeight: 19, color: hub.dim }}
+      >
+        {message}
+      </Text>
       <Pressable
         testID={retryTestID}
         onPress={onRetry}
@@ -58,7 +68,7 @@ export function LoadError({
           opacity: pressed ? 0.6 : 1,
         })}
       >
-        <Text style={{ fontSize: 14, fontWeight: '600', color: theme.warm }}>
+        <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.copperText }}>
           {t('common.retry')}
         </Text>
       </Pressable>

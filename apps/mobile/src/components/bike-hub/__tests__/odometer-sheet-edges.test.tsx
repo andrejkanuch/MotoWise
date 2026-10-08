@@ -13,19 +13,25 @@ jest.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Success: 'success', Warning: 'warning' },
 }));
 
-interface PickerProps {
-  value: Date;
-  maximumDate?: Date;
-  onChange: (event: { type: string }, selected?: Date) => void;
+// iOS date chip: the system compact picker. The stand-in hands its props to the test.
+interface MockDatePickerProps {
+  selection: Date;
+  range?: { start?: Date; end?: Date };
+  onDateChange: (date: Date) => void;
 }
-// The native picker is replaced by a stand-in that hands its props to the test.
-let mockPicker: PickerProps | null = null;
-jest.mock('@expo/ui/community/datetime-picker', () => ({
-  __esModule: true,
-  default: (props: PickerProps) => {
-    mockPicker = props;
+let mockDatePicker: MockDatePickerProps | null = null;
+jest.mock('@expo/ui/swift-ui', () => ({
+  Host: ({ children }: { children: unknown }) => children,
+  DatePicker: (props: MockDatePickerProps) => {
+    mockDatePicker = props;
     return null;
   },
+}));
+jest.mock('@expo/ui/swift-ui/modifiers', () => ({
+  datePickerStyle: (style: string) => ({ style }),
+  environment: (key: string, value: string) => ({ key, value }),
+  labelsHidden: () => ({}),
+  tint: (color: string) => ({ color }),
 }));
 
 const mockFetcher = jest.fn();
@@ -110,11 +116,9 @@ async function type(digits: string) {
   for (const digit of digits) await fireEvent.press(screen.getByTestId(`key-${digit}`));
 }
 
-/** Opens the date picker and chooses `date`, as the native picker would report it. */
+/** Chooses `date` in the date chip's native picker, as iOS would report it. */
 async function pickDate(date: Date) {
-  await fireEvent.press(screen.getByTestId('key-date'));
-  await act(async () => mockPicker?.onChange({ type: 'set' }, date));
-  await fireEvent.press(screen.getByRole('button', { name: 'Done' }));
+  await act(async () => mockDatePicker?.onDateChange(date));
 }
 
 const savedInputs = (): LogOdometerReadingMutationVariables['input'][] =>
@@ -124,7 +128,7 @@ const savedInputs = (): LogOdometerReadingMutationVariables['input'][] =>
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockPicker = null;
+  mockDatePicker = null;
 });
 afterEach(() => {
   for (const client of clients.splice(0)) client.clear();
@@ -161,7 +165,7 @@ describe('OdometerSheet — a back-dated reading', () => {
     await pickDate(AUGUST_1);
     await type('37000');
     expect(screen.getByTestId('odometer-delta')).toHaveTextContent(BACKDATED_NOTICE);
-    expect(screen.getByTestId('key-date')).toHaveAccessibleName('Date · Aug 1');
+    expect(mockDatePicker?.selection).toEqual(AUGUST_1);
   });
 
   it('reports the save as back-dated', async () => {
@@ -193,7 +197,7 @@ describe('OdometerSheet — a back-dated reading', () => {
     await fireEvent.press(screen.getByTestId('odometer-save'));
     expect(alert).toHaveBeenCalledTimes(1);
     expect(savedInputs()).toHaveLength(0);
-    expect(screen.getByTestId('key-date')).toHaveAccessibleName('Date · today');
+    expect(mockDatePicker?.selection).toEqual(TODAY);
   });
 
   it('a lower value dated after the latest reading, but before today, still asks', async () => {
@@ -203,25 +207,25 @@ describe('OdometerSheet — a back-dated reading', () => {
     await type('38000');
     await fireEvent.press(screen.getByTestId('odometer-save'));
     expect(alert).toHaveBeenCalledWith(
-      'Lower than the last reading',
-      'The last reading was 38,167 km. Save 38,000 km anyway?',
+      'Lower than 38,167 km',
+      'Save it only if the last reading was wrong.',
       expect.any(Array),
     );
     expect(savedInputs()).toHaveLength(0);
   });
 
-  it('dismissing the picker without choosing keeps the date', async () => {
+  it('the date sits in the reading row and the keypad stays put — no key, no "Done"', async () => {
     await renderSheet();
-    await fireEvent.press(screen.getByTestId('key-date'));
-    await act(async () => mockPicker?.onChange({ type: 'dismissed' }, AUGUST_1));
-    await fireEvent.press(screen.getByRole('button', { name: 'Done' }));
-    expect(screen.getByTestId('key-date')).toHaveAccessibleName('Date · today');
+    expect(screen.queryByTestId('key-date')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Done' })).toBeNull();
+    await pickDate(AUGUST_1);
+    expect(screen.getByTestId('key-1')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: 'Done' })).toBeNull();
   });
 
   it('the picker cannot go past today', async () => {
     await renderSheet();
-    await fireEvent.press(screen.getByTestId('key-date'));
-    expect(mockPicker?.maximumDate).toEqual(TODAY);
+    expect(mockDatePicker?.range?.end).toEqual(TODAY);
   });
 
   it('a future date, should the picker ever hand one over, blocks Save and says why', async () => {
@@ -330,7 +334,8 @@ describe('OdometerSheet — lower than the last reading', () => {
     expect(screen.getByTestId('odometer-save')).toBeDisabled();
     await fireEvent(screen.getByTestId('key-delete'), 'longPress');
     await type('39407');
-    expect(screen.getByText('+1,240 km · was 38,167')).toBeOnTheScreen();
+    expect(screen.getByTestId('odometer-delta')).toHaveTextContent('+1,240 km');
+    expect(screen.queryByText(/was 38,167/)).toBeNull();
   });
 });
 
@@ -372,12 +377,10 @@ describe('OdometerSheet — tracked rides chip', () => {
     expect(screen.getByText('+85 from 1 tracked ride')).toBeOnTheScreen();
   });
 
-  it('adding the rides gives "+1,240 km since Sep 28 · was 38,167" and "Save 39,407 km"', async () => {
+  it('adding the rides gives "+1,240 km since Sep 28" and "Save 39,407 km"', async () => {
     await renderSheet({ pending: { rideCount: 4, distance: 1240 } });
     await fireEvent.press(screen.getByTestId('chip-rides'));
-    expect(screen.getByTestId('odometer-delta')).toHaveTextContent(
-      '+1,240 km since Sep 28 · was 38,167',
-    );
+    expect(screen.getByTestId('odometer-delta')).toHaveTextContent('+1,240 km since Sep 28');
     expect(screen.getByRole('button', { name: 'Save 39,407 km' })).toBeEnabled();
   });
 

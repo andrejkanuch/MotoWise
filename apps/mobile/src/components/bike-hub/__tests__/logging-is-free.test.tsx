@@ -26,14 +26,13 @@ jest.mock('../../../hooks/use-pro-gate', () => ({
   useProGate: (...args: unknown[]) => mockUseProGate(...args),
 }));
 
-const mockRouter = { push: jest.fn(), back: jest.fn() };
+const mockRouter = { push: jest.fn(), back: jest.fn(), replace: jest.fn() };
 jest.mock('expo-router', () => ({
   // A getter: the factory runs at import time, before `mockRouter` is initialised.
   get router() {
     return mockRouter;
   },
   useLocalSearchParams: () => ({ motorcycleId: 'bike-a' }),
-  useNavigation: () => ({ addListener: () => () => {} }),
 }));
 
 const mockFetcher = jest.fn();
@@ -53,7 +52,7 @@ import { BIKE_A } from '../../../test/bike-hub-fixtures';
 import { LOG_OPTIONS } from '../sheets/log-options';
 
 const SRC = path.resolve(__dirname, '../../..');
-/** Longer than the sheet's dismissal fallback, so the form has been opened. */
+/** Long enough for any deferred navigation to have run; the sheet must navigate once. */
 const AFTER_DISMISSAL_MS = 1000;
 
 const clients: QueryClient[] = [];
@@ -104,8 +103,8 @@ describe('Log sheet — a free rider', () => {
       await jest.advanceTimersByTimeAsync(AFTER_DISMISSAL_MS);
     });
 
-    // Assert
-    expect(mockRouter.push).toHaveBeenCalledTimes(1);
+    // Assert: the sheet is replaced by the form (one navigation action).
+    expect(mockRouter.replace).toHaveBeenCalledTimes(1);
     expect(mockPresentPaywall).not.toHaveBeenCalled();
     expect(mockUseProGate).not.toHaveBeenCalled();
   });

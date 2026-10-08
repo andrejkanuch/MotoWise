@@ -51,6 +51,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SessionRestoring } from '../components/auth/session-restoring';
+import { clearSheetDrafts } from '../components/bike-hub/notes/unattached-note-photos';
 import { HUB_FONT } from '../components/bike-hub/ui/tokens';
 import { OB_VARIANT } from '../config/onboarding';
 import { getWhatsNewRelease } from '../data/whats-new-releases';
@@ -419,8 +420,9 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
    * `SPLASH_FAILSAFE_MS` hides the native splash; it does not settle the gate. A
    * signed-in rider whose `me` request never returns therefore watched the splash
    * fade to a blank screen — `holding` stays true while `meQuery.isLoading` is
-   * true, and the gate renders `null`. Nothing forces that query to settle:
-   * neither `meOptions()` nor `gqlFetcher` sets a timeout or an AbortSignal.
+   * true, and the gate renders `null`. `gqlFetcher` does bound the request
+   * (`GQL_TIMEOUT_MS.DEFAULT`, 30 s), but that is far longer than a splash may
+   * hold, so this gate keeps its own, shorter deadline.
    *
    * Giving up on `me` is safe because it is only a confirmation: `onboardingCompleted`
    * falls back to the persisted store value, so a returning rider still lands in
@@ -620,7 +622,7 @@ function RootLayout() {
       });
 
       if (sessionUserId) {
-        loginRevenueCat(sessionUserId);
+        loginRevenueCat(sessionUserId, session?.user?.email);
         if (decision.shouldIdentify) {
           // identify() merges the current anonymous distinct_id onto the user,
           // so pre-signup events (install, /login views) attach to the person.
@@ -712,6 +714,10 @@ function RootLayout() {
           // account that set them; a stale `awaitingGarageCta` would keep the next
           // account out of the garage on every launch.
           useOnboardingStore.getState().clearAccountCompletionState();
+          // Note/Odometer work a drag-down parked belongs to the session that wrote it.
+          // Store-only: a user sign-out released its photos before the session ended
+          // (`releaseSheetDraftsForSignOut`); a forced one cannot, so they stay.
+          clearSheetDrafts();
         }
       }
 

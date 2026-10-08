@@ -46,7 +46,22 @@
     "accountExistsTitle": "Account already exists",
     "accountExistsMessage": "This email is already registered. Sign in instead.",
     "restoringSession": "Restoring your session…",
-    "signInInstead": "Sign in instead"
+    "signInInstead": "Sign in instead",
+    "codeTitle": "Enter your code",
+    "codeSentTo": "We sent a {{digits}}-digit code to {{email}}",
+    "codeInputLabel": "Confirmation code",
+    "codeVerifying": "Verifying…",
+    "codeResend": "Resend code",
+    "codeResendIn": "Resend in {{seconds}}s",
+    "codeResent": "New code sent — use the newest email.",
+    "codeWrongOrExpired": "That code is wrong or has expired. Check the newest email or resend.",
+    "codeTooManyAttempts": "Too many attempts. Wait a moment and try again.",
+    "codeConnectionError": "Can't connect. Check your connection and try again.",
+    "codeGenericError": "Something went wrong. Please try again.",
+    "codeNotConfirmedYet": "Your email isn't confirmed yet. Enter the code from the newest email.",
+    "codeAlreadyConfirmed": "I already confirmed via the link",
+    "codeChangeEmail": "Change email",
+    "codeSendFailed": "We couldn't send the code. Check your connection and try again."
   },
   "tabs": {
     "home": "Home",
@@ -1022,8 +1037,6 @@
     "overdue": "Overdue",
     "totalSpend": "Spend",
     "upcomingTasks": "Upcoming",
-    "allCaughtUp": "All caught up!",
-    "seeAll": "See all tasks",
     "spending": "Spending",
     "thisYear": "This Year",
     "allTime": "All Time",
@@ -1038,7 +1051,6 @@
     "details": "Details",
     "hideDetails": "Hide Details",
     "costPerKm": "Cost / km",
-    "maintenance": "Maintenance",
     "allTasks": "All Tasks",
     "segment": {
       "overview": "Overview",
@@ -1046,8 +1058,8 @@
       "costs": "Costs",
       "bike": "Bike",
       "listA11y": "Bike sections",
-      "serviceBadgeA11y_one": "Service, {{count}} overdue high-priority task",
-      "serviceBadgeA11y_other": "Service, {{count}} overdue high-priority tasks"
+      "serviceOverdueA11y_one": "Service, {{count}} overdue task",
+      "serviceOverdueA11y_other": "Service, {{count}} overdue tasks"
     },
     "header": {
       "backTo": "Back to {{origin}}",
@@ -1116,7 +1128,10 @@
       "logA11y": "Log something on this bike",
       "addTaskA11y": "Add a maintenance task",
       "addExpenseA11y": "Add an expense",
-      "addDocumentA11y": "Add a document"
+      "addDocumentA11y": "Add a document",
+      "task": "Task",
+      "expense": "Expense",
+      "document": "Document"
     },
     "state": {
       "notFound": "This bike is no longer in your garage.",
@@ -1160,7 +1175,9 @@
       "more_other": "{{count}} more",
       "listAnd": "{{first}} and {{last}}",
       "loadError": "Couldn't load tasks",
-      "docActionInsurance": "renew or upload the new policy"
+      "docActionInsurance": "renew or upload the new policy",
+      "overdueCount_one": "{{count}} overdue",
+      "overdueCount_other": "{{count}} overdue"
     },
     "nextUp": {
       "title": "Next up"
@@ -1194,11 +1211,11 @@
       "title": "Notes",
       "all": "All notes",
       "placeholder": "Jot something down…",
-      "noteButton": "Note",
       "noteButtonA11y": "Write a longer note",
       "inputA11y": "Add a note",
       "saveFailed": "Couldn't save the note. Try again.",
-      "loadError": "Couldn't load notes"
+      "loadError": "Couldn't load notes",
+      "saveA11y": "Save note"
     },
     "papers": {
       "title": "Papers & bike",
@@ -1212,66 +1229,91 @@
       "title": "Log on the {{name}}",
       "expense": "Expense",
       "expenseSub": "Fuel, parts, insurance, tolls",
-      "task": "Maintenance task",
       "taskSub": "Something to do, due by date or distance",
       "pastWork": "Work already done",
       "pastWorkSub": "Goes straight into the service history, with cost if any",
       "note": "Note",
       "noteSub": "An idea, a part number, a thing to remember",
       "document": "Document",
-      "documentSub": "Insurance, registration, title, service record"
+      "documentSub": "Insurance, registration, title, service record",
+      "planTask": "Plan a task",
+      "odometer": "Odometer",
+      "odometerSub": "Update the reading from your dash"
     },
     "odometer": {
       "title": "Odometer",
       "newReading": "New reading",
-      "deltaUp": "+{{delta}} {{unit}} since {{date}} · was {{last}}",
-      "deltaUpNoDate": "+{{delta}} {{unit}} · was {{last}}",
-      "deltaDown": "−{{delta}} {{unit}} · was {{last}}",
-      "unchanged": "Same as the last reading · {{last}}",
       "first": "First reading for this bike",
-      "lastReading": "Last reading {{last}} {{unit}} · {{date}}",
       "ridesChip_one": "+{{distance}} from {{count}} tracked ride",
       "ridesChip_other": "+{{distance}} from {{count}} tracked rides",
-      "dateToday": "Date · today",
-      "dateOn": "Date · {{date}}",
       "deleteA11y": "Delete digit",
-      "helper": "Readings are kept as a log. A reading lower than the last asks before saving.",
       "save": "Save {{value}} {{unit}}",
-      "lowerTitle": "Lower than the last reading",
-      "lowerMessage": "The last reading was {{last}} {{unit}}. Save {{value}} {{unit}} anyway?",
       "backdatedNotice": "Dated before your latest reading: it is logged, and the odometer stays at {{last}} {{unit}}.",
       "futureDate": "The date can't be in the future.",
       "saveFailed": "Couldn't save the reading. Try again.",
-      "lastReadingNoDate": "Last reading {{last}} {{unit}}",
-      "historyUnavailable": "Couldn't load past readings, so only today's reading can be saved. Tap to retry."
+      "historyUnavailable": "Couldn't load past readings, so only today's reading can be saved. Tap to retry.",
+      "entryEmptyA11y": "New reading, empty",
+      "entryA11y": "New reading {{value}} {{unit}}",
+      "lastLine": "Last · {{last}} {{unit}} · {{date}}",
+      "lastLineNoDate": "Last · {{last}} {{unit}}",
+      "deltaSince": "+{{delta}} {{unit}} since {{date}}",
+      "deltaPlus": "+{{delta}} {{unit}}",
+      "deltaBelow": "−{{delta}} {{unit}} below the last reading",
+      "sameAsLast": "Same as the last reading — type the new one",
+      "lowerThan": "Lower than {{last}} {{unit}}",
+      "lowerOneLine": "Save it only if the last reading was wrong.",
+      "fixIt": "Fix it",
+      "discardTitle": "Discard reading?",
+      "discardMessage": "The number you typed won't be saved.",
+      "discard": "Discard",
+      "keepEditing": "Keep editing",
+      "clear": "Clear",
+      "clearA11y": "Clear the reading",
+      "today": "Today",
+      "dateA11y": "Reading date: {{date}}"
     },
     "noteSheet": {
       "new": "New note",
       "edit": "Edit note",
       "placeholder": "What do you want to remember?",
       "stamp": "{{odometer}} {{unit}} · today",
-      "stampA11y": "Odometer stamp",
-      "photo": "Photo",
       "removePhotoA11y": "Remove photo",
       "attachTo": "Attach to",
       "alsoTask": "Also make it a task",
       "alsoTaskSub": "Creates a low-priority task with no due date, with this note attached",
       "save": "Save note",
+      "saving": "Saving…",
       "discardTitle": "Discard this note?",
       "discardKeep": "Keep editing",
       "discard": "Discard",
-      "photoFailed": "Note saved, photo failed",
       "taskNotCreated": "Note saved. The task could not be created — use “Make it a task” on the note.",
       "photoLimit": "Up to {{max}} photos per note",
       "alsoTaskSubNamed": "Creates “{{title}}” · Low · no due date, with this note attached",
-      "photoRemoveFailed": "Note saved, but a photo couldn't be removed",
-      "photoNeedsSignIn": "Sign in again to add photos. Remove the photos to save the note without them."
+      "photoNeedsSignIn": "Sign in again to add photos. Remove the photos to save the note without them.",
+      "stampOff": "No odometer",
+      "stampA11yOn": "Odometer stamp, {{odometer}} {{unit}}, on",
+      "stampA11yOff": "Odometer stamp, {{odometer}} {{unit}}, off",
+      "addPhoto": "Add photo",
+      "addingPhotos": "Adding photos · {{done}} of {{total}}",
+      "photoNotAddedA11y": "Photo not added",
+      "photosNotAdded_one": "Note saved. {{count}} photo wasn't added.",
+      "photosNotAdded_few": "Note saved. {{count}} photos weren't added.",
+      "photosNotAdded_many": "Note saved. {{count}} photos weren't added.",
+      "photosNotAdded_other": "Note saved. {{count}} photos weren't added.",
+      "photosNotRemoved_one": "Note saved. {{count}} photo couldn't be removed.",
+      "photosNotRemoved_few": "Note saved. {{count}} photos couldn't be removed.",
+      "photosNotRemoved_many": "Note saved. {{count}} photos couldn't be removed.",
+      "photosNotRemoved_other": "Note saved. {{count}} photos couldn't be removed.",
+      "retryPhotos_one": "Retry {{count}} photo",
+      "retryPhotos_few": "Retry {{count}} photos",
+      "retryPhotos_many": "Retry {{count}} photos",
+      "retryPhotos_other": "Retry {{count}} photos",
+      "discardMessage": "What you wrote won't be saved."
     },
     "notesScreen": {
       "title": "Notes · {{name}}",
       "count_one": "{{count}} note",
       "count_other": "{{count}} notes",
-      "hint": "newest first · swipe for edit · delete",
       "searchPlaceholder": "Search part numbers, pressures, shops…",
       "searchA11y": "Search notes",
       "makeTask": "Make it a task",
@@ -1279,18 +1321,72 @@
       "deleted": "Note deleted",
       "deleteFailed": "Couldn't delete the note.",
       "makeTaskFailed": "Couldn't create the task.",
-      "empty": "No notes yet",
-      "emptySub": "Jot down part numbers, pressures and things to remember about this bike.",
       "noMatch": "No notes match “{{query}}”",
       "composerAdd": "Add",
       "attachPhotoA11y": "Attach a photo",
-      "photoA11y": "Note photo"
+      "rowHint": "Opens the note to edit",
+      "photoOf": "Photo {{index}} of {{count}}",
+      "photoCount_one": "{{count}} photo",
+      "photoCount_other": "{{count}} photos",
+      "photoCount_few": "{{count}} photos",
+      "photoCount_many": "{{count}} photos",
+      "matchCount_one": "{{count}} matching note",
+      "matchCount_other": "{{count}} matching notes",
+      "matchCount_few": "{{count}} matching notes",
+      "matchCount_many": "{{count}} matching notes",
+      "clearSearch": "Clear search",
+      "emptyTitle": "Keep what you'd otherwise forget",
+      "emptyBodyStamped": "Tyre pressures, a part number, the shop that did the valves. Type it below — each note is stamped with today's odometer.",
+      "emptyBody": "Tyre pressures, a part number, the shop that did the valves. Type it below and it stays with this bike.",
+      "taskLink": "Task · {{status}}",
+      "linkedTask": "Linked task",
+      "taskLinkA11y": "Linked task “{{title}}”, {{status}}",
+      "linkedTaskA11y": "Linked task “{{title}}”",
+      "taskStatus": {
+        "open": "open",
+        "inProgress": "in progress",
+        "done": "done",
+        "skipped": "skipped"
+      },
+      "viewerCloseA11y": "Close photos",
+      "viewerCounter": "{{index}} of {{count}}"
     },
     "refreshFailed": "Couldn't refresh",
     "refreshRetryA11y": {
       "attention": "Retry needs attention",
       "costs": "Retry costs",
       "notes": "Retry notes"
+    },
+    "service": {
+      "group": {
+        "overdue": "Overdue",
+        "soon": "Due soon",
+        "later": "Later",
+        "someday": "No due date"
+      },
+      "noOpenTasks": "No open tasks",
+      "priorityA11y": "{{priority}} priority",
+      "markDone": "Mark done",
+      "markDoneA11y": "Mark {{title}} done",
+      "doneOn": "Done {{date}}",
+      "seeAllHistory_one": "See {{count}} completed task",
+      "seeAllHistory_other": "See all {{count}} completed tasks",
+      "serviceItems": "Service items"
+    },
+    "costsSegment": {
+      "spentIn": "Spent in {{year}}",
+      "spentAllTime": "Spent, all time",
+      "recent": "Recent"
+    },
+    "bikeSegment": {
+      "categories": "Categories"
+    },
+    "sheetDraft": {
+      "noteRestored": "Restored what you were writing",
+      "readingRestored": "Restored your reading",
+      "clear": "Clear",
+      "clearNoteA11y": "Clear the restored note",
+      "clearReadingA11y": "Clear the restored reading"
     }
   },
   "maintenance": {
@@ -1638,7 +1734,10 @@
     "charCount_one": "{{count}} / {{max}}",
     "charCount_other": "{{count}} / {{max}}",
     "charCount_few": "{{count}} / {{max}}",
-    "charCount_many": "{{count}} / {{max}}"
+    "charCount_many": "{{count}} / {{max}}",
+    "problemRequired": "Describe the problem or add a photo to analyze. Tap to edit.",
+    "symptomsRequired": "Pick what you notice, or “I'm not sure”.",
+    "descriptionRequired": "Describe what's happening to continue."
   },
   "notifications": {
     "title": "Notifications",
@@ -1664,8 +1763,6 @@
     }
   },
   "expenses": {
-    "title": "Expenses",
-    "allTime": "All Time",
     "category": "Category",
     "createFailed": "Failed to save expense. Please try again.",
     "date": "Date",
@@ -1898,6 +1995,14 @@
     "findRiders": "Discover Riders"
   },
   "whatsNew": {
+    "v3220": {
+      "overviewTitle": "Your Bike, at a Glance",
+      "overviewDesc": "Every bike now opens on an Overview: what needs attention, what’s due next, what you’ve spent, plus your notes and papers. Service, Costs and Bike are one tap away in the bar at the top.",
+      "notesTitle": "Notes, with Photos",
+      "notesDesc": "Keep part numbers, tire pressures and shop details with the bike they belong to. Add a photo to a note, search your notes later, or turn one into a task.",
+      "logTitle": "Log It from the Bike",
+      "logDesc": "Tap Log on a bike to add an expense, a task, work you’ve already done, a note or a document. Updating the odometer now uses a keypad on iPhone and Android alike."
+    },
     "badge": "What's New",
     "next": "Next",
     "getStarted": "Let's Ride",

@@ -4,12 +4,18 @@ import {
   PendingRideDistanceDocument,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { router } from 'expo-router';
+import type { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
+import { Alert } from 'react-native';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { ODOMETER_SOURCE } from '../../../lib/bike-hub/constants';
 import { readingTimestamp } from '../../../lib/bike-hub/odometer-input';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { QUERY_META } from '../../../lib/query-meta';
+import { type OdometerDraft, useSheetDraftStore } from '../../../stores/sheet-draft.store';
+import { useSheetDiscardGuard } from './use-sheet-discard-guard';
 
 const LATEST_ONLY = 1;
 /**
@@ -53,6 +59,27 @@ export interface LogOdometerVariables {
   delta: number | null;
   backdated: boolean;
   usedQuickAdd: boolean;
+  /**
+   * The sheet's parked-draft slot. Mutation-level, so it is honoured after the
+   * sheet is gone: a save that fails once its sheet was dismissed parks the
+   * reading as the bike's newest draft, beside any a sheet reopened meanwhile
+   * parked (a save in flight is never parked — a reopened sheet must not offer
+   * a reading that may already be logged), and one that lands removes only the
+   * entry `token` parked, never a reading a later sheet parked.
+   */
+  draft?: {
+    reading: OdometerDraft;
+    token: string;
+    sheetGone: () => boolean;
+  };
+  /**
+   * Unlocks the sheet's Save once the save has failed. Runs in the mutation's
+   * own `onError` — before the per-call callbacks, which reach the sheet a
+   * scheduler tick later — so a drag-down in that gap already sees the reading
+   * as unsaved work and parks it. Not on success: the sheet stays locked until
+   * it closes, so a second tap cannot log the reading twice.
+   */
+  releaseSave?: () => void;
 }
 
 /**
@@ -74,7 +101,16 @@ export function useLogOdometer(motorcycleId: string) {
           recordedAt: readingTimestamp(recordedAt, today)?.toISOString(),
         },
       }),
+    onError: (_error, { draft, releaseSave }) => {
+      releaseSave?.();
+      if (!draft?.sheetGone()) return;
+      useSheetDraftStore.getState().parkReading(motorcycleId, draft.reading, draft.token);
+    },
     onSuccess: (_data, variables) => {
+      // The reading is saved: the draft this sheet restored is not work any more.
+      if (variables.draft) {
+        useSheetDraftStore.getState().clearReading(motorcycleId, variables.draft.token);
+      }
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.odometer.readings(motorcycleId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.odometer.pendingRides(motorcycleId) });
@@ -90,4 +126,45 @@ export function useLogOdometer(motorcycleId: string) {
       });
     },
   });
+}
+
+/** "Discard reading?" — Keep editing (cancel) / Discard (destructive). */
+export function confirmDiscardReading(t: TFunction, onDiscard: () => void): void {
+  Alert.alert(t('bikeHub.odometer.discardTitle'), t('bikeHub.odometer.discardMessage'), [
+    { text: t('bikeHub.odometer.keepEditing'), style: 'cancel' },
+    { text: t('bikeHub.odometer.discard'), style: 'destructive', onPress: onDiscard },
+  ]);
+}
+
+/**
+ * Keeps a typed reading (digits or a picked date) from being lost to a stray
+ * swipe, Cancel or Back: the rider is asked "Discard reading?" first, through
+ * the hub's one sheet guard (`useSheetDiscardGuard` — one navigation action per
+ * decision, react-native-screens issue 4446). While the reading saves the sheet is
+ * locked: a swipe or Back is swallowed without a prompt, and the save closes
+ * the sheet itself. A save that lands after the sheet is gone navigates nowhere.
+ */
+export function useDiscardReadingGuard(dirty: boolean, saving = false) {
+  const { t } = useTranslation();
+  const guard = useSheetDiscardGuard({
+    unsaved: dirty,
+    saving,
+    confirmDiscard: (discard) => confirmDiscardReading(t, discard),
+  });
+
+  return {
+    /** Cancel: one `router.back()`; the guard asks first when something was typed. */
+    cancel: () => {
+      if (saving) return;
+      router.back();
+    },
+    /** After a successful save: leaves without asking (only while the sheet is up). */
+    closeAfterSave: () => {
+      guard.leaveAfterSave(() => router.back());
+    },
+    /** How the sheet was left — the sheet parks or clears its draft on it. */
+    exit: guard.exit,
+    /** False once the sheet has unmounted: a save settling then parks a failed reading. */
+    isMounted: guard.isMounted,
+  };
 }
