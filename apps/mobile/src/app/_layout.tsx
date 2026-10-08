@@ -706,6 +706,8 @@ function RootLayout() {
           clearAllReceiptSaveUndo();
           clearScanConsent();
           // Note/Odometer work a drag-down parked belongs to the session that wrote it.
+          // Store-only: a user sign-out released its photos before the session ended
+          // (`releaseSheetDraftsForSignOut`); a forced one cannot, so they stay.
           clearSheetDrafts();
         }
       }

@@ -331,11 +331,9 @@ export function OdometerSheet({
           triggerNotification(Haptics.NotificationFeedbackType.Success);
           onClose();
         },
-        // The sheet stays open and the entry is kept.
+        // The sheet stays open and the entry is kept. `releaseSave` already
+        // unlocked Save; after a success it stays locked until the sheet closes.
         onError: () => setSaveFailed(true),
-        onSettled: () => {
-          savingRef.current = false;
-        },
       },
     );
   };

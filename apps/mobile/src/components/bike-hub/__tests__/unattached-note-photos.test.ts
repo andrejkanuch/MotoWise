@@ -21,7 +21,12 @@ import {
   noteDraftKey,
   useSheetDraftStore,
 } from '../../../stores/sheet-draft.store';
-import { clearSheetDrafts, parkNoteDraft } from '../notes/unattached-note-photos';
+import {
+  clearSheetDrafts,
+  parkNoteDraft,
+  releaseSheetDraftsForSignOut,
+  SIGN_OUT_RELEASE_TIMEOUT_MS,
+} from '../notes/unattached-note-photos';
 
 const BIKE = 'bike-a';
 const KEY = noteDraftKey(BIKE);
@@ -102,7 +107,7 @@ describe('a Note draft pushed past the cap', () => {
   });
 });
 
-describe('sign-out (clearSheetDrafts)', () => {
+describe('user sign-out (releaseSheetDraftsForSignOut, session still valid)', () => {
   it('drops every draft and releases the stored objects that never attached', async () => {
     parkNoteDraft(KEY, storedDraft([ONLY_DROPPED, ATTACHED]), newDraftToken());
     parkNoteDraft(OTHER_KEY, storedDraft([STILL_PARKED]), newDraftToken());
@@ -110,16 +115,46 @@ describe('sign-out (clearSheetDrafts)', () => {
       .getState()
       .parkReading(BIKE, { digits: '1', pickedDate: null, usedQuickAdd: false }, newDraftToken());
 
-    clearSheetDrafts();
+    await releaseSheetDraftsForSignOut();
     expect(useSheetDraftStore.getState().notes).toEqual({});
     expect(useSheetDraftStore.getState().readings).toEqual({});
-    await waitFor(() => expect(removed().sort()).toEqual([ONLY_DROPPED, STILL_PARKED].sort()));
+    expect(removed().sort()).toEqual([ONLY_DROPPED, STILL_PARKED].sort());
     expect(removed()).not.toContain(ATTACHED);
   });
 
   it('nothing parked: removes nothing and queries nothing', async () => {
+    await releaseSheetDraftsForSignOut();
+    expect(mockFetcher).not.toHaveBeenCalled();
+    expect(mockRemoveObject).not.toHaveBeenCalled();
+  });
+
+  it('a hanging network does not hold sign-out past the timeout', async () => {
+    jest.useFakeTimers();
+    try {
+      mockFetcher.mockImplementation(() => new Promise(() => {}));
+      parkNoteDraft(KEY, storedDraft([ONLY_DROPPED]), newDraftToken());
+      const released = releaseSheetDraftsForSignOut();
+      jest.advanceTimersByTime(SIGN_OUT_RELEASE_TIMEOUT_MS);
+      await expect(released).resolves.toBeUndefined();
+      expect(useSheetDraftStore.getState().notes).toEqual({});
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+});
+
+describe('session already gone (clearSheetDrafts)', () => {
+  it('drops every draft without trying to remove anything', async () => {
+    parkNoteDraft(KEY, storedDraft([ONLY_DROPPED]), newDraftToken());
+    useSheetDraftStore
+      .getState()
+      .parkReading(BIKE, { digits: '1', pickedDate: null, usedQuickAdd: false }, newDraftToken());
+
     clearSheetDrafts();
+    expect(useSheetDraftStore.getState().notes).toEqual({});
+    expect(useSheetDraftStore.getState().readings).toEqual({});
     await settle();
+    // Without a session the attached-check and the delete are both refused.
     expect(mockFetcher).not.toHaveBeenCalled();
     expect(mockRemoveObject).not.toHaveBeenCalled();
   });

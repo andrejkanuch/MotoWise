@@ -50,4 +50,6 @@
 - Not handling loading/error states in TanStack Query hooks
 - Missing expo-camera permissions in app.json
 - Storing tokens in AsyncStorage instead of expo-secure-store
+- An RNGH gesture inside a bike-hub segment that does not gate `.enabled()` on `useSegmentInteractive()` — hidden segments' recognisers leak onto recycled native views (`docs/solutions/ui-bugs/hidden-segment-rows-still-receive-taps-gesture-handler.md`)
+- `router.back()` then `router.push()` from a formSheet — use one `router.replace`; in code comments write "issue 4446", never the hash form (the colour guard reads it as hex) (`docs/solutions/ui-bugs/sheet-navigation-race-react-native-screens-4446.md`)
 - Using @expo/vector-icons (use lucide-react-native). iOS quick actions may use `symbol:…` strings (SF Symbols) via expo-quick-actions — that is not the removed `expo-symbols` package.
