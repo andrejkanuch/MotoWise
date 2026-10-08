@@ -21,10 +21,15 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlobalCarPlayBanner } from '../../components/carplay/global-carplay-banner';
 import { ErrorFallback } from '../../components/error-fallback';
+import { BIKE_HUB_ROUTES } from '../../lib/bike-hub/constants';
 import { maintenanceBadgeOptions } from '../../lib/query-options';
 import { useRideStore } from '../../stores/ride.store';
 import { tabBarBottomOffset, useTabBarStore } from '../../stores/tab-bar.store';
-import { useEditorialTheme } from '../../theme/editorial';
+import {
+  EDITORIAL_SCHEME,
+  EditorialSchemeProvider,
+  useEditorialTheme,
+} from '../../theme/editorial';
 
 const TAB_CONFIG = [
   { name: '(home)', icon: Home, labelKey: 'tabs.home' },
@@ -120,7 +125,28 @@ function RideFAB() {
   );
 }
 
-function IslandTabBar({ state, navigation }: BottomTabBarProps) {
+/** Name of the route on top of the focused tab's stack, if it has one. */
+function topRouteName(state: BottomTabBarProps['state']): string | undefined {
+  const tab = state.routes[state.index]?.state;
+  if (!tab?.routes) return undefined;
+  return tab.routes[tab.index ?? tab.routes.length - 1]?.name;
+}
+
+/**
+ * The bar follows the system scheme, except over the bike hub, which is dark in
+ * both: a light bar under it read as a different app.
+ */
+function IslandTabBar(props: BottomTabBarProps) {
+  const route = topRouteName(props.state);
+  const overHub = route !== undefined && BIKE_HUB_ROUTES.has(route);
+  return (
+    <EditorialSchemeProvider value={overHub ? EDITORIAL_SCHEME.DARK : null}>
+      <IslandTabBarContent {...props} />
+    </EditorialSchemeProvider>
+  );
+}
+
+function IslandTabBarContent({ state, navigation }: BottomTabBarProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { t: theme, isDark } = useEditorialTheme();

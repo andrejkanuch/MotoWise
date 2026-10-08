@@ -52,6 +52,8 @@ export function NotesComposer({ onSubmit, onOpenSheet }: NotesComposerProps) {
       ) : null}
       <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8 }}>
         <TextInput
+          keyboardAppearance="dark"
+          selectionColor={hub.copper}
           testID="notes-composer-input"
           value={draft}
           onChangeText={(text) => {

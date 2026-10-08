@@ -233,3 +233,15 @@ export type NoteLinkKind = (typeof NOTE_LINK)[keyof typeof NOTE_LINK];
 
 /** Debounce of the Notes search field. */
 export const NOTES_SEARCH_DEBOUNCE_MS = 200;
+
+/**
+ * Garage-stack routes that draw the bike hub (and its sheets). The hub is dark
+ * in both colour schemes, so the tab bar is pinned dark while one is on top.
+ */
+export const BIKE_HUB_ROUTES: ReadonlySet<string> = new Set([
+  'bike/[id]',
+  'notes',
+  'note',
+  'log-entry',
+  'odometer',
+]);

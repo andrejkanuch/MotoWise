@@ -176,6 +176,8 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
         </Text>
       </View>
       <TextInput
+        keyboardAppearance="dark"
+        selectionColor={hub.copper}
         testID="notes-search"
         value={query}
         onChangeText={setQuery}

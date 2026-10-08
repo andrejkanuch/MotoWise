@@ -190,6 +190,8 @@ export function NotesBlock({
           }}
         >
           <TextInput
+            keyboardAppearance="dark"
+            selectionColor={hub.copper}
             testID="quick-note-input"
             value={draft}
             onChangeText={(text) => {

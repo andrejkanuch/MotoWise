@@ -543,6 +543,8 @@ export function NoteForm({
         contentContainerStyle={{ gap: 12, paddingTop: 6, paddingHorizontal: 16, paddingBottom: 24 }}
       >
         <TextInput
+          keyboardAppearance="dark"
+          selectionColor={hub.copper}
           testID="note-text"
           value={text}
           onChangeText={(next) => {
