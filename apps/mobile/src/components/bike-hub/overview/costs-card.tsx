@@ -9,17 +9,19 @@ import {
   type DeltaDirection,
 } from '../../../lib/bike-hub/constants';
 import type { CostsShare, CostsSummary } from '../../../lib/bike-hub/costs-summary';
-import { CATEGORY_COLORS, CATEGORY_LABELS, formatCurrency } from '../../../lib/expense-constants';
+import { CATEGORY_LABELS, formatCurrency } from '../../../lib/expense-constants';
 import { HubCard } from '../ui/hub-card';
 import { REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { RowChevron } from '../ui/row-chevron';
 import { SectionHeader } from '../ui/section-header';
 import { Stat } from '../ui/stat';
-import { HUB_FONT, HUB_TOUCH_TARGET, type HubCopyKey, hub } from '../ui/tokens';
+import { HUB_FONT, HUB_TOUCH_TARGET, type HubCopyKey, hub, hubCategoryColor } from '../ui/tokens';
 
+// Spending more is not "due soon" and spending less is not "ready": the change
+// is a fact, so it reads in Bone with its arrow, never in a status colour.
 const YOY_STYLE: Record<DeltaDirection, { arrow: string; color: string }> = {
-  [DELTA_DIRECTION.UP]: { arrow: '▲', color: hub.soon },
-  [DELTA_DIRECTION.DOWN]: { arrow: '▼', color: hub.ok },
+  [DELTA_DIRECTION.UP]: { arrow: '▲', color: hub.text },
+  [DELTA_DIRECTION.DOWN]: { arrow: '▼', color: hub.text },
   [DELTA_DIRECTION.FLAT]: { arrow: '=', color: hub.dim },
 };
 
@@ -38,7 +40,7 @@ function categoryLabel(key: string, t: TFunction): string {
 }
 
 function shareColor(share: CostsShare): string {
-  return share.key === COSTS_REST_KEY ? hub.track : (CATEGORY_COLORS[share.key] ?? hub.track);
+  return share.key === COSTS_REST_KEY ? hub.track : hubCategoryColor(share.key);
 }
 
 interface CostsCardProps {
@@ -263,7 +265,7 @@ export function CostsCard({
               valueStyle={{
                 fontFamily: HUB_FONT.sansSemiBold,
                 fontSize: 14,
-                color: CATEGORY_COLORS[topCategory.key] ?? hub.text,
+                color: hub.text,
               }}
             />
           ) : null}

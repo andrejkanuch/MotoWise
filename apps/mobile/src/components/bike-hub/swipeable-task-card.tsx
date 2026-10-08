@@ -22,6 +22,7 @@ import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
 import { TaskPhotoGallery } from '../task-photo-gallery';
 import { EPriority } from '../ui/editorial';
+import { effectiveTaskTotal } from './service/group-tasks';
 
 export const PRIORITY_ORDER: Record<string, number> = {
   critical: 0,
@@ -29,18 +30,6 @@ export const PRIORITY_ORDER: Record<string, number> = {
   medium: 2,
   low: 3,
 };
-
-type TaskRow = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
-
-/**
- * Effective money paid for a completed task: the authoritative gross
- * `totalAmount` (receipt-scan financial wrapper) when present, else the additive
- * cost + parts + labor breakdown — mirrors the API's effectiveTaskTotal.
- */
-function effectiveTaskTotal(task: TaskRow): number {
-  if (task.totalAmount != null) return task.totalAmount;
-  return (task.cost ?? 0) + (task.partsCost ?? 0) + (task.laborCost ?? 0);
-}
 
 /** Swipeable task card with left/right actions */
 export const SwipeableTaskCard = memo(function SwipeableTaskCard({

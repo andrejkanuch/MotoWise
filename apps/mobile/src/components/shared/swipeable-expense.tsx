@@ -1,9 +1,9 @@
 import { palette } from '@motovault/design-system';
 import { type Href, router } from 'expo-router';
 import { ChevronRight, Trash2, Wrench } from 'lucide-react-native';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
+import { Text, type TextStyle, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   FadeInUp,
@@ -23,6 +23,7 @@ import {
 } from '../../lib/expense-constants';
 import { confirmDeleteExpenseAlert } from '../../lib/expense-delete';
 import { triggerImpact } from '../../utils/haptics';
+import { HUB_FONT, hub, hubCategoryColor } from '../bike-hub/ui/tokens';
 
 export interface SwipeableExpenseProps {
   expense: {
@@ -41,7 +42,61 @@ export interface SwipeableExpenseProps {
   index: number;
   /** True only when maintenanceTaskId resolves to a live task (matches detail). */
   hasServiceRecord?: boolean;
+  /** Dark rows sit flush in one hub card: a hairline under every row but the last. */
+  divider?: boolean;
+  /**
+   * False while the row cannot be seen or touched (a hidden hub segment, a
+   * sheet or screen over the hub). Switches the swipe / long-press / tap
+   * recognisers off natively and refuses navigation: on iOS Fabric a hidden
+   * row's recogniser can outlive its view on a recycled UIView elsewhere on
+   * screen (see `useSegmentInteractive`).
+   */
+  enabled?: boolean;
 }
+
+interface RowLook {
+  rowBg: string;
+  radius: number;
+  title: TextStyle;
+  meta: TextStyle;
+  amount: TextStyle;
+  badgeBg: string;
+  badgeIcon: string;
+  chevron: string;
+  deleteBg: string;
+  deleteIcon: string;
+}
+
+/**
+ * Dark = the bike hub's row (one card, hairline dividers, hub type with mono
+ * figures, hub category colours); light = the original standalone row.
+ */
+const LOOK: Record<'dark' | 'light', RowLook> = {
+  dark: {
+    rowBg: hub.card,
+    radius: 0,
+    title: { fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, lineHeight: 18, color: hub.text },
+    meta: { fontFamily: HUB_FONT.mono, fontSize: 12, lineHeight: 16, color: hub.muted },
+    amount: { fontFamily: HUB_FONT.monoMedium, fontSize: 15, color: hub.text },
+    badgeBg: hub.raised,
+    badgeIcon: hub.dim,
+    chevron: hub.muted,
+    deleteBg: hub.late,
+    deleteIcon: hub.ink,
+  },
+  light: {
+    rowBg: palette.white,
+    radius: 10,
+    title: { fontSize: 14, fontWeight: '600', color: palette.neutral950 },
+    meta: { fontSize: 12, color: palette.neutral500 },
+    amount: { fontSize: 15, fontWeight: '700', color: palette.neutral950 },
+    badgeBg: palette.neutral100,
+    badgeIcon: palette.neutral500,
+    chevron: palette.neutral400,
+    deleteBg: palette.danger500,
+    deleteIcon: palette.white,
+  },
+};
 
 export function SwipeableExpense({
   expense,
@@ -50,15 +105,31 @@ export function SwipeableExpense({
   onDelete,
   index,
   hasServiceRecord = false,
+  divider = false,
+  enabled = true,
 }: SwipeableExpenseProps) {
+  const look = LOOK[isDark ? 'dark' : 'light'];
   const { t } = useTranslation();
   const { formatFor } = useCurrency();
+  const amountText = formatFor(expense.amount, expense.currency);
+  const title = getExpenseTitle(
+    expense,
+    t(`expenses.category_${expense.category}`, {
+      defaultValue: CATEGORY_LABELS[expense.category] ?? expense.category,
+    }),
+  );
   const translateX = useSharedValue(0);
   const deleteThreshold = -80;
 
   // Tapping the row opens expense-detail, which hydrates from the expenses cache
   // by id — only pass ids (no spoofable amount/title params).
+  // Read at call time: a gesture's JS callback can land after the row was
+  // hidden, before the native `enabled` update reached the recogniser.
+  const enabledRef = useRef(enabled);
+  enabledRef.current = enabled;
+
   const openDetail = useCallback(() => {
+    if (!enabledRef.current) return;
     triggerImpact();
     const href: Href = {
       pathname: '/(tabs)/(garage)/expense-detail',
@@ -71,6 +142,10 @@ export function SwipeableExpense({
   }, [expense.id, motorcycleId]);
 
   const confirmDelete = useCallback(() => {
+    if (!enabledRef.current) {
+      translateX.value = withSpring(0);
+      return;
+    }
     confirmDeleteExpenseAlert(t, {
       onCancel: () => {
         translateX.value = withSpring(0);
@@ -83,6 +158,7 @@ export function SwipeableExpense({
   }, [expense.id, onDelete, t, translateX]);
 
   const panGesture = Gesture.Pan()
+    .enabled(enabled)
     .activeOffsetX([-10, 10])
     .failOffsetY([-5, 5])
     .onUpdate((event) => {
@@ -99,6 +175,7 @@ export function SwipeableExpense({
     });
 
   const longPressGesture = Gesture.LongPress()
+    .enabled(enabled)
     .minDuration(500)
     .onEnd((_event, success) => {
       if (success) {
@@ -106,9 +183,12 @@ export function SwipeableExpense({
       }
     });
 
-  const tapGesture = Gesture.Tap().onEnd(() => {
-    runOnJS(openDetail)();
-  });
+  const tapGesture = Gesture.Tap()
+    .enabled(enabled)
+    .withTestId(`expense-row-tap-${expense.id}`)
+    .onEnd((_event, success) => {
+      if (success) runOnJS(openDetail)();
+    });
 
   const composedGesture = Gesture.Race(panGesture, longPressGesture, tapGesture);
 
@@ -120,7 +200,9 @@ export function SwipeableExpense({
     opacity: interpolate(translateX.value, [-80, -20, 0], [1, 1, 0], 'clamp'),
   }));
 
-  const catColor = CATEGORY_COLORS[expense.category] ?? palette.neutral500;
+  const catColor = isDark
+    ? hubCategoryColor(expense.category)
+    : (CATEGORY_COLORS[expense.category] ?? palette.neutral500);
 
   return (
     <Animated.View entering={FadeInUp.delay(Math.min(index, 5) * 50).duration(250)}>
@@ -134,8 +216,8 @@ export function SwipeableExpense({
               top: 0,
               bottom: 0,
               width: 80,
-              backgroundColor: palette.danger500,
-              borderRadius: 10,
+              backgroundColor: look.deleteBg,
+              borderRadius: look.radius,
               borderCurve: 'continuous',
               alignItems: 'center',
               justifyContent: 'center',
@@ -143,22 +225,36 @@ export function SwipeableExpense({
             deleteButtonStyle,
           ]}
         >
-          <Trash2 size={18} color={palette.white} strokeWidth={2} />
+          <Trash2 size={18} color={look.deleteIcon} strokeWidth={2} />
         </Animated.View>
 
         {/* Expense row */}
         <GestureDetector gesture={composedGesture}>
           <Animated.View
+            accessible
+            accessibilityRole="button"
+            accessibilityLabel={`${title}, ${amountText}, ${formatExpenseDate(expense.date)}`}
+            // Swipe and long-press have no screen-reader equivalent; these do.
+            accessibilityActions={[
+              { name: 'activate' },
+              { name: 'delete', label: t('common.delete') },
+            ]}
+            onAccessibilityAction={(event) =>
+              event.nativeEvent.actionName === 'delete' ? confirmDelete() : openDetail()
+            }
             style={[
               {
                 flexDirection: 'row',
                 alignItems: 'center',
                 paddingVertical: 12,
-                paddingHorizontal: 12,
-                backgroundColor: isDark ? palette.neutral800 : palette.white,
-                borderRadius: 10,
+                paddingLeft: isDark ? 14 : 12,
+                paddingRight: 12,
+                backgroundColor: look.rowBg,
+                borderRadius: look.radius,
                 borderCurve: 'continuous',
-                gap: 10,
+                borderBottomWidth: divider ? 1 : 0,
+                borderBottomColor: hub.hairline,
+                gap: isDark ? 12 : 10,
               },
               animatedStyle,
             ]}
@@ -174,21 +270,8 @@ export function SwipeableExpense({
             />
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text
-                  style={{
-                    flexShrink: 1,
-                    fontSize: 14,
-                    fontWeight: '600',
-                    color: isDark ? palette.neutral50 : palette.neutral950,
-                  }}
-                  numberOfLines={1}
-                >
-                  {getExpenseTitle(
-                    expense,
-                    t(`expenses.category_${expense.category}`, {
-                      defaultValue: CATEGORY_LABELS[expense.category] ?? expense.category,
-                    }),
-                  )}
+                <Text style={[{ flexShrink: 1 }, look.title]} numberOfLines={isDark ? 2 : 1}>
+                  {title}
                 </Text>
                 {hasServiceRecord && (
                   <View
@@ -197,7 +280,7 @@ export function SwipeableExpense({
                       height: 18,
                       borderRadius: 5,
                       borderCurve: 'continuous',
-                      backgroundColor: isDark ? palette.neutral700 : palette.neutral100,
+                      backgroundColor: look.badgeBg,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
@@ -205,24 +288,16 @@ export function SwipeableExpense({
                       defaultValue: 'Has service record',
                     })}
                   >
-                    <Wrench size={11} color={palette.neutral500} strokeWidth={2} />
+                    <Wrench size={11} color={look.badgeIcon} strokeWidth={2} />
                   </View>
                 )}
               </View>
-              <Text style={{ fontSize: 12, color: palette.neutral500, marginTop: 1 }}>
+              <Text style={[{ marginTop: isDark ? 3 : 1 }, look.meta]}>
                 {formatExpenseDate(expense.date)}
               </Text>
             </View>
-            <Text
-              style={{
-                fontSize: 15,
-                fontWeight: '700',
-                color: isDark ? palette.neutral50 : palette.neutral950,
-              }}
-            >
-              {formatFor(expense.amount, expense.currency)}
-            </Text>
-            <ChevronRight size={16} color={palette.neutral400} strokeWidth={2} />
+            <Text style={look.amount}>{amountText}</Text>
+            <ChevronRight size={16} color={look.chevron} strokeWidth={2} />
           </Animated.View>
         </GestureDetector>
       </View>

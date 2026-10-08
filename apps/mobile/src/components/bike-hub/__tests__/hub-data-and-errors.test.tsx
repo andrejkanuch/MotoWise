@@ -119,13 +119,16 @@ describe('useBikeHubData — the Service badge follows the shared "today"', () =
 
 describe('hub mutations keep the global error alert out of the way', () => {
   // The query client alerts "Error" for any failed mutation without `onError`
-  // in its options, unless it opts out. These four show their own error UI.
+  // in its options, unless it opts out. These four show their own error UI and
+  // opt out through `meta`, not through an incidental `onError` — except
+  // `useLogOdometer`, whose `onError` parks a reading whose sheet is gone (it
+  // shows no UI, so the opt-out must still come from `meta`).
   it.each([
-    ['useUpdateNote', () => useUpdateNote(BIKE_A.id)],
-    ['useDeleteNote', () => useDeleteNote(BIKE_A.id)],
-    ['useCreateTaskFromNote', () => useCreateTaskFromNote(BIKE_A.id)],
-    ['useLogOdometer', () => useLogOdometer(BIKE_A.id)],
-  ] as const)('%s opts out with meta.showErrorAlert = false', async (_name, useHook) => {
+    ['useUpdateNote', () => useUpdateNote(BIKE_A.id), false],
+    ['useDeleteNote', () => useDeleteNote(BIKE_A.id), false],
+    ['useCreateTaskFromNote', () => useCreateTaskFromNote(BIKE_A.id), false],
+    ['useLogOdometer', () => useLogOdometer(BIKE_A.id), true],
+  ] as const)('%s opts out with meta.showErrorAlert = false', async (_name, useHook, parks) => {
     mockFetcher.mockRejectedValue(new Error('offline'));
     const client = newClient();
     const { result } = await renderHook(() => useHook(), { wrapper: wrapperFor(client) });
@@ -142,6 +145,6 @@ describe('hub mutations keep the global error alert out of the way', () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
     const [mutation] = client.getMutationCache().getAll();
     expect(mutation?.meta).toEqual({ showErrorAlert: false });
-    expect(mutation?.options.onError).toBeUndefined();
+    expect(mutation?.options.onError === undefined).toBe(!parks);
   });
 });

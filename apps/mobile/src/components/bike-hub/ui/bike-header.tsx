@@ -169,6 +169,8 @@ export function BikeHeader({
               backgroundColor: hub.card,
               borderWidth: 1,
               borderColor: hub.hairlineStrong,
+              // The name gives way, never the reading: "38,550 km" keeps its unit.
+              flexShrink: 0,
               flexDirection: 'row',
               alignItems: 'center',
               gap: 6,
@@ -178,6 +180,7 @@ export function BikeHeader({
             <Gauge size={14} color={hub.muted} strokeWidth={2} />
             <Text
               maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+              numberOfLines={1}
               style={{ fontFamily: HUB_FONT.monoMedium, fontSize: 13, color: hub.text }}
             >
               {chipLabel}

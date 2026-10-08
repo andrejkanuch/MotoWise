@@ -1,5 +1,6 @@
 import { palette, withAlpha } from '@motovault/design-system';
 import { MaintenancePriority } from '@motovault/graphql';
+import type { ExpenseCategory } from '@motovault/types';
 import type { ParseKeys } from 'i18next';
 import {
   DUE_TONE,
@@ -224,3 +225,39 @@ export const DUE_TONE_COLOR: Record<DueTone, string> = {
   [DUE_TONE.SOON]: palette.hubSoon,
   [DUE_TONE.PLAIN]: palette.hubDim,
 };
+
+/**
+ * Expense category → its chart / dot colour inside the hub. One hue per
+ * category, none of them copper (action only) or a status colour (late, soon,
+ * ok, medium), so a bar segment never reads as a warning or a button. The
+ * category name always sits beside the colour.
+ */
+export const HUB_CATEGORY_COLOR: Record<ExpenseCategory, string> = {
+  fuel: palette.hubCatFuel,
+  maintenance: palette.hubCatService,
+  parts: palette.hubCatParts,
+  tires: palette.hubCatTires,
+  gear: palette.hubCatGear,
+  accessories: palette.hubCatAccessories,
+  modifications: palette.hubCatMods,
+  insurance: palette.hubCatInsurance,
+  registration: palette.hubCatRegistration,
+  taxes_fees: palette.hubCatTaxes,
+  tolls: palette.hubCatTolls,
+  parking: palette.hubCatParking,
+  training: palette.hubCatTraining,
+  other: palette.hubCatOther,
+};
+
+/** A category's hub colour; a key retired from the category table reads as "Other". */
+export function hubCategoryColor(category: string): string {
+  return (HUB_CATEGORY_COLOR as Record<string, string>)[category] ?? palette.hubCatOther;
+}
+
+/**
+ * From this font scale (iOS accessibility sizes start at ≈1.65; Android's
+ * largest is 2.0) a list row stops putting its tag beside the title and
+ * stacks it above, so the title keeps the full width instead of breaking
+ * letter by letter.
+ */
+export const HUB_STACK_FONT_SCALE = 1.5;

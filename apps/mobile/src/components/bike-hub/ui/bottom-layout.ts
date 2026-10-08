@@ -7,15 +7,21 @@ export interface HubBottomLayout {
   tabBarClearance: number;
   /** `bottom` of the floating action pill. */
   pillBottom: number;
-  /** Bottom padding of scrolling content, so its last row clears the pill. */
+  /**
+   * Bottom padding of scrolling content, so its last row scrolls fully clear
+   * of the pill (and the tab bar's opaque dock below it). At rest the pill may
+   * float over a row — the floating-action pattern; scrolling to the end always
+   * reveals it, trailing value and chevron included.
+   */
   contentInset: number;
 }
 
 /**
  * Where the hub's floating chrome goes, from the bottom safe-area inset and the
  * tab bar's MEASURED height (`null` before its first layout → the default-size
- * fallback). The bar grows with the system text size and its label is not
- * capped, so a fixed height let the pill overlap it at the largest sizes.
+ * fallback). The bar grows with the system text size (its label is capped at
+ * the chrome scale but the bar still gets taller), so a fixed height let the
+ * pill overlap it at the largest sizes.
  */
 export function hubBottomLayout(
   insetBottom: number,

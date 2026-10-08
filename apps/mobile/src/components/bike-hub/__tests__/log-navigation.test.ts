@@ -15,12 +15,13 @@ const TARGET = { motorcycleId: 'bike-a', bikeName: '2022 Honda Africa Twin' };
 const BIKE = { id: 'bike-a', year: 2022, make: 'Honda', model: 'Africa Twin', nickname: null };
 
 describe('LOG_OPTIONS', () => {
-  it('lists the five options in the drawn order', () => {
+  it('lists the six options in the drawn order: what happened first, planning after', () => {
     expect(LOG_OPTIONS.map((option) => option.id)).toEqual([
       LOG_OPTION.EXPENSE,
-      LOG_OPTION.TASK,
       LOG_OPTION.PAST_WORK,
+      LOG_OPTION.ODOMETER,
       LOG_OPTION.NOTE,
+      LOG_OPTION.TASK,
       LOG_OPTION.DOCUMENT,
     ]);
   });
@@ -38,6 +39,11 @@ describe('LOG_OPTIONS', () => {
         params: { ...TARGET, mode: ADD_TASK_MODE.LOG },
       },
       [LOG_OPTION.NOTE]: { pathname: '/(tabs)/(garage)/note', params: { motorcycleId: 'bike-a' } },
+      // The same route and params the header's odometer chip opens.
+      [LOG_OPTION.ODOMETER]: {
+        pathname: '/(tabs)/(garage)/odometer',
+        params: { motorcycleId: 'bike-a' },
+      },
       [LOG_OPTION.DOCUMENT]: { pathname: '/(tabs)/(garage)/add-document', params: TARGET },
     });
   });

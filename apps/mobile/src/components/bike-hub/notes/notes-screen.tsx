@@ -1,8 +1,9 @@
+import { MaintenanceTaskStatus } from '@motovault/graphql';
 import { type Href, useFocusEffect, useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { Alert, FlatList, Pressable, RefreshControl, Text, TextInput, View } from 'react-native';
 import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCurrency } from '../../../hooks/use-currency';
@@ -10,6 +11,7 @@ import {
   BIKE_SEGMENT,
   type BikeSegment,
   NOTE_LINK,
+  NOTE_LINK_TONE,
   NOTE_SOURCE,
   NOTES_SEARCH_DEBOUNCE_MS,
   type NoteLinkKind,
@@ -19,9 +21,17 @@ import { filterNotes, getNoteLink } from '../../../lib/bike-hub/notes';
 import { isBikeSegment } from '../../../lib/bike-hub/segments';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
 import type { HubBike } from '../shell/use-bike-hub-data';
+import { useGuardedPush } from '../shell/use-guarded-push';
 import { useHubBottomLayout } from '../ui/bottom-layout';
+import { REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { SEGMENT_LABEL_KEY } from '../ui/segment-bar';
-import { HUB_FONT, HUB_TOUCH_TARGET, hub } from '../ui/tokens';
+import {
+  HUB_CHROME_MAX_FONT_SCALE,
+  HUB_FONT,
+  HUB_TOUCH_TARGET,
+  type HubCopyKey,
+  hub,
+} from '../ui/tokens';
 import { UndoSnackbar } from '../ui/undo-snackbar';
 import { useDeferredDelete } from '../ui/use-deferred-delete';
 import { NoteRow, type NoteRowLink } from './note-row';
@@ -33,9 +43,21 @@ import {
   useCreateTaskFromNote,
   useDeleteNote,
   useNotes,
+  useTaskStatuses,
 } from './use-notes';
 
 const SKELETON_ROWS = 3;
+const HEADER_SIDE_WIDTH = 92;
+/** Room between the composer bar and the keyboard while the keyboard is up. */
+const COMPOSER_KEYBOARD_GAP = 10;
+
+/** A linked task's status, as the word its link shows. */
+const TASK_STATUS_KEY: Record<MaintenanceTaskStatus, HubCopyKey> = {
+  [MaintenanceTaskStatus.Pending]: 'bikeHub.notesScreen.taskStatus.open',
+  [MaintenanceTaskStatus.InProgress]: 'bikeHub.notesScreen.taskStatus.inProgress',
+  [MaintenanceTaskStatus.Completed]: 'bikeHub.notesScreen.taskStatus.done',
+  [MaintenanceTaskStatus.Skipped]: 'bikeHub.notesScreen.taskStatus.skipped',
+};
 
 interface NotesScreenProps {
   bike: HubBike;
@@ -44,17 +66,23 @@ interface NotesScreenProps {
 }
 
 /**
- * All notes of a bike: newest first, searchable, swipe for edit / delete (with
- * a 5 s undo), and a composer bar that stays above the keyboard and the tab bar.
+ * All notes of a bike: newest first, searchable, pull to refresh. Tap a note to
+ * edit it in the Note sheet; swipe it for edit / delete (5 s undo), one row
+ * open at a time; tap a photo for the full-screen viewer. The composer bar
+ * stays above the keyboard and the tab bar.
  */
 export function NotesScreen({ bike, from }: NotesScreenProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  // Row taps, composer buttons and photos open sheets/leaves through the hub's
+  // focus + cooldown guard: a fast double tap never stacks two sheets.
+  const push = useGuardedPush();
   const insets = useSafeAreaInsets();
   const { formatFor } = useCurrency();
   const unit = toHubUnit(bike.distanceUnit);
   const origin: BikeSegment = isBikeSegment(from) ? from : BIKE_SEGMENT.OVERVIEW;
-  const { notes, isLoading, isError, refetch } = useNotes(bike.id);
+  const { notes, isLoading, isError, refreshFailed, refetch, refresh } = useNotes(bike.id);
+  const taskStatuses = useTaskStatuses(bike.id);
   const createNote = useCreateNote();
   const createTask = useCreateTaskFromNote(bike.id);
   const { mutateAsync: deleteNote } = useDeleteNote(bike.id);
@@ -75,7 +103,35 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
   useFocusEffect(useCallback(() => flush, [flush]));
 
   const visible = filterNotes(notes, search);
-  const { tabBarClearance } = useHubBottomLayout();
+  const searching = search.trim().length > 0;
+  // The composer clears the floating tab bar (and its opaque dock) by the same
+  // gap as the hub's floating action pill.
+  const { pillBottom: composerBottom } = useHubBottomLayout();
+
+  // At most one row is swiped open; scrolling or tapping another row shuts it.
+  const [swipeOpenId, setSwipeOpenId] = useState<string | null>(null);
+  const pressRow = (noteId: string) => {
+    if (swipeOpenId) {
+      setSwipeOpenId(null);
+      return;
+    }
+    openSheet({ noteId });
+  };
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refresh();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const clearSearch = () => {
+    setQuery('');
+    setSearch('');
+  };
 
   const openSheet = (params: { noteId?: string; draft?: string; photo?: boolean }) => {
     const href: Href = {
@@ -87,7 +143,7 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
         ...(params.photo ? { photo: '1' } : {}),
       },
     };
-    router.push(href);
+    push(href);
   };
 
   // This screen sits on top of the bike hub. Going back to that hub and asking
@@ -107,24 +163,47 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
     });
   };
 
+  const openPhoto = (noteId: string, index: number) =>
+    push({
+      pathname: '/(tabs)/(garage)/note-photos',
+      params: { motorcycleId: bike.id, noteId, index: String(index) },
+    });
+
+  const taskLink = (note: HubNote): NoteRowLink => {
+    // A task made from a note carries the note's own words as its title, so the
+    // link says where the task stands instead of repeating the text.
+    const status = note.linkedTaskId ? taskStatuses.get(note.linkedTaskId) : undefined;
+    const title = note.linkedTaskTitle ?? '';
+    const statusWord = status ? t(TASK_STATUS_KEY[status]) : null;
+    return {
+      label: statusWord
+        ? t('bikeHub.notesScreen.taskLink', { status: statusWord })
+        : t('bikeHub.notesScreen.linkedTask'),
+      accessibilityLabel: statusWord
+        ? t('bikeHub.notesScreen.taskLinkA11y', { title, status: statusWord })
+        : t('bikeHub.notesScreen.linkedTaskA11y', { title }),
+      tone: NOTE_LINK_TONE.LINK,
+      onPress: () => openLinkedTask(note.linkedTaskId ?? ''),
+    };
+  };
+
   const linkFor = (note: HubNote): NoteRowLink | null => {
     if (isOptimisticNote(note)) return null;
     const links: Record<NoteLinkKind, () => NoteRowLink> = {
-      [NOTE_LINK.TASK]: () => ({
-        label: note.linkedTaskTitle ?? t('bikeHub.log.task'),
-        onPress: () => openLinkedTask(note.linkedTaskId ?? ''),
-      }),
+      [NOTE_LINK.TASK]: () => taskLink(note),
       [NOTE_LINK.EXPENSE]: () => ({
+        tone: NOTE_LINK_TONE.LINK,
         label: t('bikeHub.notesScreen.linkedExpense', {
           amount: formatFor(note.linkedExpenseAmount ?? 0, note.linkedExpenseCurrency),
         }),
         onPress: () =>
-          router.push({
+          push({
             pathname: '/(tabs)/(garage)/expense-detail',
             params: { expenseId: note.linkedExpenseId ?? '', motorcycleId: bike.id },
           }),
       }),
       [NOTE_LINK.MAKE_TASK]: () => ({
+        tone: NOTE_LINK_TONE.QUIET,
         label: t('bikeHub.notesScreen.makeTask'),
         busy: createTask.isPending && createTask.variables === note.id,
         onPress: () =>
@@ -151,57 +230,76 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
     }
   };
 
-  const listHeader = (
-    <View style={{ gap: 12, paddingBottom: 12 }}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'baseline',
-          justifyContent: 'space-between',
-          gap: 12,
-          paddingHorizontal: 2,
-        }}
-      >
-        <Text
-          accessibilityRole="header"
-          style={{ fontFamily: HUB_FONT.serif, fontSize: 30, color: hub.text }}
-        >
-          {t('bikeHub.notesScreen.count', { count: notes.length })}
-        </Text>
-        <Text
-          numberOfLines={1}
-          style={{ flexShrink: 1, fontFamily: HUB_FONT.sans, fontSize: 12, color: hub.muted }}
-        >
-          {t('bikeHub.notesScreen.hint')}
-        </Text>
+  const hasNotes = notes.length > 0;
+  // Nothing to search or count yet: the empty state and the composer lead.
+  const listHeader =
+    hasNotes || searching || refreshFailed ? (
+      <View style={{ gap: 12, paddingBottom: 12 }}>
+        {refreshFailed ? (
+          <RefreshFailed
+            block={REFRESH_BLOCK.NOTES}
+            testID="notes-screen-refresh-failed"
+            onRetry={refetch}
+          />
+        ) : null}
+        {hasNotes ? (
+          <Text
+            accessibilityRole="header"
+            style={{
+              paddingHorizontal: 2,
+              fontFamily: HUB_FONT.serif,
+              fontSize: 30,
+              color: hub.text,
+            }}
+          >
+            {t('bikeHub.notesScreen.count', { count: notes.length })}
+          </Text>
+        ) : null}
+        {hasNotes || searching ? (
+          <TextInput
+            keyboardAppearance="dark"
+            selectionColor={hub.copper}
+            testID="notes-search"
+            value={query}
+            onChangeText={setQuery}
+            onFocus={() => setSwipeOpenId(null)}
+            placeholder={t('bikeHub.notesScreen.searchPlaceholder')}
+            placeholderTextColor={hub.muted}
+            accessibilityLabel={t('bikeHub.notesScreen.searchA11y')}
+            returnKeyType="search"
+            clearButtonMode="while-editing"
+            autoCorrect={false}
+            style={{
+              minHeight: HUB_TOUCH_TARGET,
+              paddingVertical: 10,
+              paddingHorizontal: 12,
+              borderRadius: 11,
+              borderCurve: 'continuous',
+              borderWidth: 1,
+              borderColor: hub.hairlineStrong,
+              backgroundColor: hub.card,
+              color: hub.text,
+              fontFamily: HUB_FONT.sans,
+              fontSize: 14,
+            }}
+          />
+        ) : null}
+        {searching && visible.length > 0 ? (
+          <Text
+            testID="notes-match-count"
+            accessibilityLiveRegion="polite"
+            style={{
+              paddingHorizontal: 2,
+              fontFamily: HUB_FONT.sans,
+              fontSize: 13,
+              color: hub.dim,
+            }}
+          >
+            {t('bikeHub.notesScreen.matchCount', { count: visible.length })}
+          </Text>
+        ) : null}
       </View>
-      <TextInput
-        testID="notes-search"
-        value={query}
-        onChangeText={setQuery}
-        placeholder={t('bikeHub.notesScreen.searchPlaceholder')}
-        placeholderTextColor={hub.muted}
-        accessibilityLabel={t('bikeHub.notesScreen.searchA11y')}
-        returnKeyType="search"
-        clearButtonMode="while-editing"
-        autoCorrect={false}
-        hitSlop={{ top: 2, bottom: 2 }}
-        style={{
-          height: 40,
-          paddingVertical: 0,
-          paddingHorizontal: 12,
-          borderRadius: 11,
-          borderCurve: 'continuous',
-          borderWidth: 1,
-          borderColor: hub.hairlineStrong,
-          backgroundColor: hub.card,
-          color: hub.text,
-          fontFamily: HUB_FONT.sans,
-          fontSize: 14,
-        }}
-      />
-    </View>
-  );
+    ) : null;
 
   const emptyState = () => {
     if (isLoading) {
@@ -225,13 +323,24 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
         />
       );
     }
-    if (search.trim()) {
-      return <StateMessage title={t('bikeHub.notesScreen.noMatch', { query: search.trim() })} />;
+    if (searching) {
+      return (
+        <StateMessage
+          title={t('bikeHub.notesScreen.noMatch', { query: search.trim() })}
+          action={{ label: t('bikeHub.notesScreen.clearSearch'), onPress: clearSearch }}
+        />
+      );
     }
+    // First use: say what belongs here, and point at the field right below.
     return (
       <StateMessage
-        title={t('bikeHub.notesScreen.empty')}
-        body={t('bikeHub.notesScreen.emptySub')}
+        testID="notes-screen-empty"
+        title={t('bikeHub.notesScreen.emptyTitle')}
+        body={t(
+          hasOdometer(bike.currentMileage)
+            ? 'bikeHub.notesScreen.emptyBodyStamped'
+            : 'bikeHub.notesScreen.emptyBody',
+        )}
       />
     );
   };
@@ -246,7 +355,7 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
           borderBottomColor: hub.hairline,
         }}
       >
-        <View style={{ height: 48, flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center' }}>
           <Pressable
             testID="notes-back"
             onPress={() => router.back()}
@@ -255,8 +364,8 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
               origin: t(SEGMENT_LABEL_KEY[origin]),
             })}
             style={({ pressed }) => ({
-              minWidth: 92,
-              height: HUB_TOUCH_TARGET,
+              minWidth: HEADER_SIDE_WIDTH,
+              minHeight: HUB_TOUCH_TARGET,
               paddingLeft: 4,
               paddingRight: 8,
               flexDirection: 'row',
@@ -267,12 +376,16 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
           >
             <ChevronLeft size={22} color={hub.copperText} strokeWidth={2.2} />
             <Text
+              maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+              numberOfLines={1}
               style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, color: hub.copperText }}
             >
               {t(SEGMENT_LABEL_KEY[origin])}
             </Text>
           </Pressable>
           <Text
+            accessibilityRole="header"
+            maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
             numberOfLines={1}
             style={{
               flex: 1,
@@ -284,7 +397,7 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
           >
             {t('bikeHub.notesScreen.title', { name: bikeDisplayName(bike) })}
           </Text>
-          <View style={{ width: 92 }} />
+          <View style={{ width: HEADER_SIDE_WIDTH }} />
         </View>
       </View>
 
@@ -293,7 +406,20 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
         keyExtractor={(note) => note.id}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
-        contentContainerStyle={{ padding: 16 }}
+        // `flexGrow` lets the empty state fill (and scroll within) the room above
+        // the composer; at the largest text sizes it scrolls instead of being
+        // cut off behind the bar.
+        contentContainerStyle={{ padding: 16, flexGrow: 1 }}
+        onScrollBeginDrag={() => setSwipeOpenId(null)}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={hub.copper}
+            colors={[hub.copper]}
+            progressBackgroundColor={hub.raised}
+          />
+        }
         ListHeaderComponent={listHeader}
         ListEmptyComponent={emptyState}
         renderItem={({ item, index }) => (
@@ -305,19 +431,25 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
             readOnly={isOptimisticNote(item)}
             isFirst={index === 0}
             isLast={index === visible.length - 1}
+            onPress={() => pressRow(item.id)}
             onEdit={() => openSheet({ noteId: item.id })}
             onDelete={() => deferred.request(item.id)}
+            onOpenPhoto={(photoIndex) => openPhoto(item.id, photoIndex)}
+            isSwipeOpen={swipeOpenId === item.id}
+            onSwipeChange={(open) =>
+              setSwipeOpenId((current) => (open ? item.id : current === item.id ? null : current))
+            }
           />
         )}
       />
 
-      <KeyboardStickyView offset={{ closed: 0, opened: tabBarClearance }}>
+      <KeyboardStickyView offset={{ closed: 0, opened: composerBottom - COMPOSER_KEYBOARD_GAP }}>
         <View
           style={{
             gap: 8,
             paddingTop: 10,
             paddingHorizontal: 16,
-            paddingBottom: tabBarClearance + 10,
+            paddingBottom: composerBottom,
             borderTopWidth: 1,
             borderTopColor: hub.hairline,
             backgroundColor: hub.ground,
@@ -343,14 +475,20 @@ function StateMessage({
   title,
   body,
   action,
+  testID,
 }: {
   title: string;
   body?: string;
   action?: { label: string; onPress: () => void };
+  testID?: string;
 }) {
   return (
-    <View style={{ alignItems: 'center', gap: 6, paddingVertical: 32, paddingHorizontal: 16 }}>
+    <View
+      testID={testID}
+      style={{ alignItems: 'center', gap: 6, paddingVertical: 32, paddingHorizontal: 16 }}
+    >
       <Text
+        accessibilityRole="header"
         style={{
           fontFamily: HUB_FONT.sansSemiBold,
           fontSize: 15,
@@ -368,6 +506,7 @@ function StateMessage({
             lineHeight: 18,
             color: hub.dim,
             textAlign: 'center',
+            maxWidth: 320,
           }}
         >
           {body}

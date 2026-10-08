@@ -244,8 +244,8 @@ describe('getNextUp / getServiceBadgeCount', () => {
     expect(getNextUp([BRAKE_PADS, task({ id: 'x', title: 'someday' })], KM)).toBeNull();
   });
 
-  it('the Service badge counts overdue Critical / High only: 1 on bike A', () => {
-    expect(getServiceBadgeCount(BIKE_A_TASKS, KM)).toBe(1);
+  it('the Service badge counts every overdue task: 4 on bike A', () => {
+    expect(getServiceBadgeCount(BIKE_A_TASKS, KM)).toBe(4);
   });
 });
 

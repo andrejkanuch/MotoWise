@@ -1,4 +1,4 @@
-import { type Href, useRouter } from 'expo-router';
+import type { Href } from 'expo-router';
 import { useMemo } from 'react';
 import {
   ADD_TASK_MODE,
@@ -9,6 +9,7 @@ import {
 import { ownerSegmentOf } from '../../../lib/bike-hub/segments';
 import { EXPENSE_ENTRY_SOURCE } from '../../../lib/expense-analytics';
 import type { HubBike } from './use-bike-hub-data';
+import { useGuardedPush } from './use-guarded-push';
 
 export interface BikeHubNavigation {
   /**
@@ -106,9 +107,13 @@ export function useBikeHubNavigation(
   activeSegment: BikeSegment,
   showSegment: (segment: BikeSegment) => void,
 ): BikeHubNavigation {
-  const router = useRouter();
+  // Focus + cooldown guard: see `useGuardedPush`.
+  const push = useGuardedPush();
   return useMemo(
-    () => buildBikeHubNavigation(bike, activeSegment, showSegment, (href) => router.push(href)),
-    [bike, activeSegment, showSegment, router],
+    () =>
+      buildBikeHubNavigation(bike, activeSegment, showSegment, (href) => {
+        push(href);
+      }),
+    [bike, activeSegment, showSegment, push],
   );
 }

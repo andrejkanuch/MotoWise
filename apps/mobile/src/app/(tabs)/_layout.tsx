@@ -19,12 +19,18 @@ import Animated, {
   ZoomIn,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { HUB_CHROME_MAX_FONT_SCALE, hub } from '../../components/bike-hub/ui/tokens';
 import { GlobalCarPlayBanner } from '../../components/carplay/global-carplay-banner';
 import { ErrorFallback } from '../../components/error-fallback';
+import { BIKE_HUB_ROUTES } from '../../lib/bike-hub/constants';
 import { maintenanceBadgeOptions } from '../../lib/query-options';
 import { useRideStore } from '../../stores/ride.store';
 import { tabBarBottomOffset, useTabBarStore } from '../../stores/tab-bar.store';
-import { useEditorialTheme } from '../../theme/editorial';
+import {
+  EDITORIAL_SCHEME,
+  EditorialSchemeProvider,
+  useEditorialTheme,
+} from '../../theme/editorial';
 
 const TAB_CONFIG = [
   { name: '(home)', icon: Home, labelKey: 'tabs.home' },
@@ -32,6 +38,20 @@ const TAB_CONFIG = [
   { name: '(garage)', icon: Bike, labelKey: 'tabs.garage' },
   { name: '(profile)', icon: User, labelKey: 'tabs.profile' },
 ] as const;
+
+/**
+ * Tab labels stop scaling at the hub's chrome cap: four labels and the ride
+ * button share ~350 pt, so an uncapped label broke mid-word ("Gara/ge") at
+ * accessibility sizes. Past the cap the label shrinks to fit, never wraps.
+ */
+const TAB_LABEL_MAX_FONT_SCALE = HUB_CHROME_MAX_FONT_SCALE;
+const TAB_LABEL_MIN_SCALE = 0.75;
+
+/**
+ * Over the bike hub the island sits on an opaque full-width dock so list rows
+ * do not show beside and below it. It starts this far above the island's top.
+ */
+const HUB_DOCK_OVERHANG = 8;
 
 function formatElapsed(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -120,7 +140,53 @@ function RideFAB() {
   );
 }
 
-function IslandTabBar({ state, navigation }: BottomTabBarProps) {
+/** Name of the route on top of the focused tab's stack, if it has one. */
+function topRouteName(state: BottomTabBarProps['state']): string | undefined {
+  const tab = state.routes[state.index]?.state;
+  if (!tab?.routes) return undefined;
+  return tab.routes[tab.index ?? tab.routes.length - 1]?.name;
+}
+
+/**
+ * The bar follows the system scheme, except over the bike hub, which is dark in
+ * both: a light bar under it read as a different app.
+ */
+function IslandTabBar(props: BottomTabBarProps) {
+  const route = topRouteName(props.state);
+  const overHub = route !== undefined && BIKE_HUB_ROUTES.has(route);
+  return (
+    <EditorialSchemeProvider value={overHub ? EDITORIAL_SCHEME.DARK : null}>
+      {overHub ? <HubDock /> : null}
+      <IslandTabBarContent {...props} />
+    </EditorialSchemeProvider>
+  );
+}
+
+/**
+ * Opaque backing under the island on hub routes: from just above the bar to
+ * the screen's bottom edge. The hub's content inset (`useHubBottomLayout`)
+ * already lets the last row scroll clear of it.
+ */
+function HubDock() {
+  const insets = useSafeAreaInsets();
+  const height = useTabBarStore((s) => s.height);
+  if (height === null) return null;
+  return (
+    <View
+      testID="hub-tab-dock"
+      style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        height: tabBarBottomOffset(insets.bottom) + height + HUB_DOCK_OVERHANG,
+        backgroundColor: hub.ground,
+      }}
+    />
+  );
+}
+
+function IslandTabBarContent({ state, navigation }: BottomTabBarProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { t: theme, isDark } = useEditorialTheme();
@@ -256,6 +322,7 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
                   }}
                 >
                   <Text
+                    maxFontSizeMultiplier={TAB_LABEL_MAX_FONT_SCALE}
                     style={{
                       fontSize: 10,
                       fontWeight: '800',
@@ -268,6 +335,10 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
               )}
             </View>
             <Text
+              maxFontSizeMultiplier={TAB_LABEL_MAX_FONT_SCALE}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={TAB_LABEL_MIN_SCALE}
               style={{
                 fontSize: 10,
                 fontWeight: isFocused ? '700' : '500',
@@ -277,6 +348,8 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
                     : theme.ink
                   : theme.ink3,
                 marginTop: 3,
+                // Bounds the label to its tab so `adjustsFontSizeToFit` has a width to fit.
+                maxWidth: '100%',
               }}
             >
               {label}
