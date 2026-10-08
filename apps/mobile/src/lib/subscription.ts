@@ -286,6 +286,10 @@ async function doInit(): Promise<(() => void) | null> {
       );
     }
 
+    // Listener updates that arrived while the initial fetch was pending are newer
+    // than its snapshot; the SDK does not order the two.
+    let listenerUpdates = 0;
+
     // Set up listener — store the reference for cleanup
     const listener = (info: {
       entitlements: {
@@ -295,16 +299,21 @@ async function doInit(): Promise<(() => void) | null> {
         >;
       };
     }) => {
+      listenerUpdates += 1;
       updateStoreFromCustomerInfo(info);
       syncTrialReminder(info);
     };
 
     Purchases.addCustomerInfoUpdateListener(listener);
 
-    // Hydrate store with initial state
+    // Hydrate store with initial state — unless a listener update already
+    // delivered fresher info, which a stale snapshot must not overwrite (it
+    // could re-arm the trial reminder of a rider who just cancelled).
     const customerInfo = await Purchases.getCustomerInfo();
-    updateStoreFromCustomerInfo(customerInfo);
-    syncTrialReminder(customerInfo);
+    if (listenerUpdates === 0) {
+      updateStoreFromCustomerInfo(customerInfo);
+      syncTrialReminder(customerInfo);
+    }
 
     // Return cleanup function for useEffect
     return () => {
