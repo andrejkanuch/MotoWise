@@ -1314,7 +1314,8 @@
       "retryPhotos_one": "{{count}} fotoğrafı yeniden dene",
       "retryPhotos_few": "{{count}} fotoğrafı yeniden dene",
       "retryPhotos_many": "{{count}} fotoğrafı yeniden dene",
-      "retryPhotos_other": "{{count}} fotoğrafı yeniden dene"
+      "retryPhotos_other": "{{count}} fotoğrafı yeniden dene",
+      "discardMessage": "Yazdıklarınız kaydedilmeyecek."
     },
     "notesScreen": {
       "title": "Notlar · {{name}}",

@@ -1314,7 +1314,8 @@
       "retryPhotos_one": "{{count}} Foto erneut versuchen",
       "retryPhotos_few": "{{count}} Fotos erneut versuchen",
       "retryPhotos_many": "{{count}} Fotos erneut versuchen",
-      "retryPhotos_other": "{{count}} Fotos erneut versuchen"
+      "retryPhotos_other": "{{count}} Fotos erneut versuchen",
+      "discardMessage": "Was du geschrieben hast, wird nicht gespeichert."
     },
     "notesScreen": {
       "title": "Notizen · {{name}}",

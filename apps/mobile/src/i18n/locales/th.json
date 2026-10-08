@@ -1314,7 +1314,8 @@
       "retryPhotos_one": "ลองรูปภาพ {{count}} รูปอีกครั้ง",
       "retryPhotos_few": "ลองรูปภาพ {{count}} รูปอีกครั้ง",
       "retryPhotos_many": "ลองรูปภาพ {{count}} รูปอีกครั้ง",
-      "retryPhotos_other": "ลองรูปภาพ {{count}} รูปอีกครั้ง"
+      "retryPhotos_other": "ลองรูปภาพ {{count}} รูปอีกครั้ง",
+      "discardMessage": "สิ่งที่คุณเขียนจะไม่ถูกบันทึก"
     },
     "notesScreen": {
       "title": "โน้ต · {{name}}",

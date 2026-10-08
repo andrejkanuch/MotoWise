@@ -33,8 +33,10 @@ const mockRouter = {
   replace: jest.fn(),
   canGoBack: jest.fn(() => true),
 };
+let mockIsFocused = true;
 jest.mock('expo-router', () => ({
   useRouter: () => mockRouter,
+  useIsFocused: () => mockIsFocused,
   useFocusEffect: (effect: () => undefined | (() => void)) => {
     const { useEffect } = require('react');
     useEffect(effect, [effect]);
@@ -63,6 +65,7 @@ import { useBikeHubStore } from '../../../stores/bike-hub.store';
 import { usePendingDeleteStore } from '../../../stores/pending-delete.store';
 import { BIKE_A, NOTES } from '../../../test/bike-hub-fixtures';
 import { NotesScreen } from '../notes/notes-screen';
+import { DRAFT_OUTCOME, publishDraftOutcome } from '../notes/use-draft-handoff';
 import type { HubBike } from '../shell/use-bike-hub-data';
 
 const clients: QueryClient[] = [];
@@ -141,6 +144,7 @@ const settle = (ms: number) =>
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockIsFocused = true;
   usePendingDeleteStore.setState({ hiddenIds: {} });
   useBikeHubStore.setState({ pendingTask: null });
   mockRouter.canGoBack.mockReturnValue(true);
@@ -313,32 +317,74 @@ describe('NotesScreen', () => {
   });
 
   it('the expand button opens the Note sheet with the draft; the photo button adds the picker', async () => {
+    const now = jest.spyOn(Date, 'now').mockReturnValue(10_000);
     await renderNotes();
     await fireEvent.press(screen.getByRole('button', { name: 'Write a longer note' }));
     expect(mockRouter.push).toHaveBeenLastCalledWith({
       pathname: '/(tabs)/(garage)/note',
       params: { motorcycleId: BIKE_A.id },
     });
+    // Past the double-tap cooldown.
+    now.mockReturnValue(20_000);
     await fireEvent.changeText(screen.getByTestId('notes-composer-input'), 'Draft');
     await fireEvent.press(screen.getByRole('button', { name: 'Attach a photo' }));
     expect(mockRouter.push).toHaveBeenLastCalledWith({
       pathname: '/(tabs)/(garage)/note',
       params: { motorcycleId: BIKE_A.id, draft: 'Draft', photo: '1' },
     });
+    now.mockRestore();
   });
 
-  it('the camera keeps the typed draft until the sheet has saved a note', async () => {
-    const view = await renderNotes();
+  it('the camera keeps the typed draft until THAT sheet reports it saved a note', async () => {
+    await renderNotes();
     await fireEvent.changeText(screen.getByTestId('notes-composer-input'), 'Brake fluid dark');
     await fireEvent.press(screen.getByRole('button', { name: 'Attach a photo' }));
-    // Closing the sheet without saving: the draft is still there.
+    // The sheet is open: the draft is still in the field.
     expect(screen.getByTestId('notes-composer-input').props.value).toBe('Brake fluid dark');
+    // An unrelated note saved elsewhere does not clear it.
+    await act(async () => publishDraftOutcome('Bought oil', DRAFT_OUTCOME.SAVED));
+    expect(screen.getByTestId('notes-composer-input').props.value).toBe('Brake fluid dark');
+    // The sheet saved the handed-off draft (edited there, or sent to another bike).
+    await act(async () => publishDraftOutcome('  Brake fluid dark ', DRAFT_OUTCOME.SAVED));
+    expect(screen.getByTestId('notes-composer-input').props.value).toBe('');
+  });
 
-    // The sheet saves: a new saved note shows up in the bike's notes.
+  it('a cancelled hand-off keeps the draft, and a later note with the same words does not clear it', async () => {
+    await renderNotes();
+    await fireEvent.changeText(screen.getByTestId('notes-composer-input'), 'Check chain');
+    await fireEvent.press(screen.getByRole('button', { name: 'Write a longer note' }));
+    await act(async () => publishDraftOutcome('Check chain', DRAFT_OUTCOME.DISCARDED));
+    expect(screen.getByTestId('notes-composer-input').props.value).toBe('Check chain');
+    // Disarmed: a SAVED report for the same text (another sheet) leaves the field alone.
+    await act(async () => publishDraftOutcome('Check chain', DRAFT_OUTCOME.SAVED));
+    expect(screen.getByTestId('notes-composer-input').props.value).toBe('Check chain');
+  });
+
+  it('editing the field after a hand-off disarms it', async () => {
+    await renderNotes();
+    await fireEvent.changeText(screen.getByTestId('notes-composer-input'), 'Check chain');
+    await fireEvent.press(screen.getByRole('button', { name: 'Write a longer note' }));
+    await fireEvent.changeText(
+      screen.getByTestId('notes-composer-input'),
+      'Check chain and sprockets',
+    );
+    await act(async () => publishDraftOutcome('Check chain', DRAFT_OUTCOME.SAVED));
+    expect(screen.getByTestId('notes-composer-input').props.value).toBe(
+      'Check chain and sprockets',
+    );
+  });
+
+  it('a quick Add landing while another draft is handed off does not clear that draft', async () => {
+    const view = await renderNotes();
+    await fireEvent.changeText(screen.getByTestId('notes-composer-input'), 'Draft A');
+    await fireEvent.press(screen.getByTestId('notes-composer-add'));
+    await fireEvent.changeText(screen.getByTestId('notes-composer-input'), 'Draft B');
+    await fireEvent.press(screen.getByRole('button', { name: 'Write a longer note' }));
+    // Draft A's create returns: a new saved note shows up in the list.
     const client = clients[clients.length - 1];
     await act(async () => {
       client.setQueryData(queryKeys.notes.byMotorcycle(BIKE_A.id), {
-        notes: [{ ...NOTES[0], id: 'note-from-sheet', text: 'Brake fluid dark' }, ...NOTES],
+        notes: [{ ...NOTES[0], id: 'note-a', text: 'Draft A' }, ...NOTES],
       });
     });
     view.rerender(
@@ -346,7 +392,23 @@ describe('NotesScreen', () => {
         <NotesScreen bike={BIKE_A as unknown as HubBike} />
       </QueryClientProvider>,
     );
-    await waitFor(() => expect(screen.getByTestId('notes-composer-input').props.value).toBe(''));
+    expect(screen.getByTestId('notes-composer-input').props.value).toBe('Draft B');
+  });
+
+  it('a double tap on a row opens one Note sheet', async () => {
+    await renderNotes();
+    await fireEvent.press(screen.getByTestId('note-open-note-3'));
+    await fireEvent.press(screen.getByTestId('note-open-note-3'));
+    expect(mockRouter.push).toHaveBeenCalledTimes(1);
+  });
+
+  it('nothing opens while the screen is not focused (a sheet is already up)', async () => {
+    mockIsFocused = false;
+    await renderNotes();
+    await fireEvent.press(screen.getByTestId('note-open-note-3'));
+    await fireEvent.changeText(screen.getByTestId('notes-composer-input'), 'Draft');
+    await fireEvent.press(screen.getByRole('button', { name: 'Attach a photo' }));
+    expect(mockRouter.push).not.toHaveBeenCalled();
   });
 
   it('tapping a note opens it in the Note sheet for editing', async () => {

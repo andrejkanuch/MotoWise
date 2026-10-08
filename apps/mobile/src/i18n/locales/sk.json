@@ -1352,7 +1352,8 @@
       "retryPhotos_one": "Skúsiť znova {{count}} fotku",
       "retryPhotos_few": "Skúsiť znova {{count}} fotky",
       "retryPhotos_many": "Skúsiť znova {{count}} fotiek",
-      "retryPhotos_other": "Skúsiť znova {{count}} fotiek"
+      "retryPhotos_other": "Skúsiť znova {{count}} fotiek",
+      "discardMessage": "To, čo ste napísali, sa neuloží."
     },
     "notesScreen": {
       "title": "Poznámky · {{name}}",

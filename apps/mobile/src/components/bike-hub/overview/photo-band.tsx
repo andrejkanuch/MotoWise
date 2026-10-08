@@ -3,10 +3,18 @@ import { Camera } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { triggerImpact } from '../../../utils/haptics';
-import { HUB_FONT, HUB_PRESSED_SCALE, HUB_RADIUS, hub } from '../ui/tokens';
+import {
+  HUB_CHROME_MAX_FONT_SCALE,
+  HUB_FONT,
+  HUB_PRESSED_SCALE,
+  HUB_RADIUS,
+  hub,
+} from '../ui/tokens';
 
 const BAND_HEIGHT = 150;
 const EMPTY_HEIGHT = 120;
+const CHIP_INSET = 12;
+const CHIP_GAP = 8;
 
 interface PhotoBandProps {
   photoUrl: string | null | undefined;
@@ -30,7 +38,14 @@ function Chip({ label }: { label: string }) {
         backgroundColor: hub.photoChip,
       }}
     >
-      <Text style={{ fontFamily: HUB_FONT.mono, fontSize: 11, color: hub.text }}>{label}</Text>
+      {/* Overlay chrome on a fixed 150 px band: capped so the chips stay chips. */}
+      <Text
+        maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+        numberOfLines={1}
+        style={{ fontFamily: HUB_FONT.mono, fontSize: 11, color: hub.text }}
+      >
+        {label}
+      </Text>
     </View>
   );
 }
@@ -116,7 +131,15 @@ export function PhotoBand({
       {chips.length > 0 ? (
         <View
           testID="photo-band-chips"
-          style={{ position: 'absolute', left: 12, bottom: 10, flexDirection: 'row', gap: 6 }}
+          style={{
+            position: 'absolute',
+            left: CHIP_INSET,
+            right: CHIP_INSET,
+            bottom: 10,
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: CHIP_GAP,
+          }}
         >
           {chips.map((chip) => (
             <Chip key={chip} label={chip} />

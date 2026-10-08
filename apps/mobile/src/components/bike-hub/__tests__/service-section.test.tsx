@@ -236,6 +236,18 @@ describe('Service — History', () => {
   });
 });
 
+describe('Service — Active / History switch', () => {
+  it('its labels are capped chrome on one line, so "Active · N" never breaks in two', async () => {
+    await renderSection(ACTIVE);
+    for (const id of ['service-tab-active', 'service-tab-history']) {
+      // The outer label ("Active · 3"); its count is a nested mono span.
+      const label = within(screen.getByTestId(id)).getByText(/^(Active|History) ·/);
+      expect(label.props.maxFontSizeMultiplier).toBe(1.3);
+      expect(label.props.numberOfLines).toBe(1);
+    }
+  });
+});
+
 describe('Service — empty', () => {
   it('a bike without tasks says so', async () => {
     await renderSection([]);

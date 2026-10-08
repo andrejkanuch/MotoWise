@@ -154,4 +154,18 @@ describe('largest Dynamic Type: the chrome stops growing at 1.3×', () => {
     expect(pill.minHeight).toBe(36);
     expect(pill.height).toBeUndefined();
   });
+
+  it('segment labels stay on one line (the bar scrolls instead of wrapping)', async () => {
+    await render(<SegmentBar active={BIKE_SEGMENT.OVERVIEW} onChange={jest.fn()} />);
+    for (const text of ['Overview', 'Service', 'Costs', 'Bike']) {
+      expect(screen.getByText(text).props.numberOfLines).toBe(1);
+    }
+  });
+
+  it('the odometer chip never gives way to the name: one line, no shrink, unit kept', async () => {
+    await render(header());
+    expect(screen.getByText('38,167 km').props.numberOfLines).toBe(1);
+    const chip = StyleSheet.flatten(screen.getByTestId('bike-header-odometer').props.style);
+    expect(chip.flexShrink).toBe(0);
+  });
 });

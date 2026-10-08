@@ -32,6 +32,9 @@ export const SHEET_CANCEL_PLACEMENT = {
 export type SheetCancelPlacement =
   (typeof SHEET_CANCEL_PLACEMENT)[keyof typeof SHEET_CANCEL_PLACEMENT];
 
+/** Controls of a hub sheet that cannot be used while it saves (or after it saved). */
+export const SHEET_LOCKED_OPACITY = 0.45;
+
 /** Serif sheet title (DESIGN.md `serif-sheet`, 26/30). */
 const TITLE_SIZE = 26;
 const TITLE_LINE_HEIGHT = 30;

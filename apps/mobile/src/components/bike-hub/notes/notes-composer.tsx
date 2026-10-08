@@ -23,8 +23,6 @@ const MAX_INPUT_HEIGHT = 120;
 const STACK_FONT_SCALE = HUB_CHROME_MAX_FONT_SCALE;
 
 interface NotesComposerProps {
-  /** The bike's notes — a new saved one means the Note sheet saved the handed-off draft. */
-  notes: readonly { id: string }[];
   /** Saves the text as a note. Resolves `false` when the save failed (the text is kept). */
   onSubmit: (text: string) => Promise<boolean>;
   /** Opens the Note sheet with the draft; `withPhoto` also opens its photo picker. */
@@ -36,15 +34,15 @@ interface NotesComposerProps {
  * take the draft to the full Note sheet (with a photo, or to write more), and
  * the copper "Add" that saves the text right now. Copper always means "save
  * this text": with an empty field it is disabled, never a hidden "open sheet".
- * The draft stays in the field while the sheet is open, so closing the sheet
- * without saving loses nothing.
+ * The draft stays in the field until that sheet reports it saved a note, so
+ * closing the sheet without saving loses nothing.
  */
-export function NotesComposer({ notes, onSubmit, onOpenSheet }: NotesComposerProps) {
+export function NotesComposer({ onSubmit, onOpenSheet }: NotesComposerProps) {
   const { t } = useTranslation();
   const { fontScale } = useWindowDimensions();
   const [draft, setDraft] = useState('');
   const [failed, setFailed] = useState(false);
-  const handoff = useDraftHandoff(notes, () => {
+  const handoff = useDraftHandoff(() => {
     setDraft('');
     setFailed(false);
   });
@@ -54,7 +52,7 @@ export function NotesComposer({ notes, onSubmit, onOpenSheet }: NotesComposerPro
   const add = async () => {
     if (!text) return;
     triggerImpact();
-    handoff.reset();
+    handoff.disarm();
     setDraft('');
     setFailed(false);
     const ok = await onSubmit(text);
@@ -65,7 +63,7 @@ export function NotesComposer({ notes, onSubmit, onOpenSheet }: NotesComposerPro
 
   const openSheet = (withPhoto: boolean) => {
     triggerImpact();
-    handoff.handOff();
+    handoff.handOff(draft);
     onOpenSheet(draft, withPhoto);
   };
 
@@ -77,6 +75,7 @@ export function NotesComposer({ notes, onSubmit, onOpenSheet }: NotesComposerPro
       value={draft}
       onChangeText={(next) => {
         setDraft(next);
+        handoff.disarm();
         if (failed) setFailed(false);
       }}
       multiline

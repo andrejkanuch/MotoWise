@@ -21,6 +21,7 @@ import { filterNotes, getNoteLink } from '../../../lib/bike-hub/notes';
 import { isBikeSegment } from '../../../lib/bike-hub/segments';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
 import type { HubBike } from '../shell/use-bike-hub-data';
+import { useGuardedPush } from '../shell/use-guarded-push';
 import { useHubBottomLayout } from '../ui/bottom-layout';
 import { REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { SEGMENT_LABEL_KEY } from '../ui/segment-bar';
@@ -47,6 +48,8 @@ import {
 
 const SKELETON_ROWS = 3;
 const HEADER_SIDE_WIDTH = 92;
+/** Room between the composer bar and the keyboard while the keyboard is up. */
+const COMPOSER_KEYBOARD_GAP = 10;
 
 /** A linked task's status, as the word its link shows. */
 const TASK_STATUS_KEY: Record<MaintenanceTaskStatus, HubCopyKey> = {
@@ -71,6 +74,9 @@ interface NotesScreenProps {
 export function NotesScreen({ bike, from }: NotesScreenProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  // Row taps, composer buttons and photos open sheets/leaves through the hub's
+  // focus + cooldown guard: a fast double tap never stacks two sheets.
+  const push = useGuardedPush();
   const insets = useSafeAreaInsets();
   const { formatFor } = useCurrency();
   const unit = toHubUnit(bike.distanceUnit);
@@ -98,7 +104,9 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
 
   const visible = filterNotes(notes, search);
   const searching = search.trim().length > 0;
-  const { tabBarClearance } = useHubBottomLayout();
+  // The composer clears the floating tab bar (and its opaque dock) by the same
+  // gap as the hub's floating action pill.
+  const { pillBottom: composerBottom } = useHubBottomLayout();
 
   // At most one row is swiped open; scrolling or tapping another row shuts it.
   const [swipeOpenId, setSwipeOpenId] = useState<string | null>(null);
@@ -135,7 +143,7 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
         ...(params.photo ? { photo: '1' } : {}),
       },
     };
-    router.push(href);
+    push(href);
   };
 
   // This screen sits on top of the bike hub. Going back to that hub and asking
@@ -156,7 +164,7 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
   };
 
   const openPhoto = (noteId: string, index: number) =>
-    router.push({
+    push({
       pathname: '/(tabs)/(garage)/note-photos',
       params: { motorcycleId: bike.id, noteId, index: String(index) },
     });
@@ -189,7 +197,7 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
           amount: formatFor(note.linkedExpenseAmount ?? 0, note.linkedExpenseCurrency),
         }),
         onPress: () =>
-          router.push({
+          push({
             pathname: '/(tabs)/(garage)/expense-detail',
             params: { expenseId: note.linkedExpenseId ?? '', motorcycleId: bike.id },
           }),
@@ -398,7 +406,10 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
         keyExtractor={(note) => note.id}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
-        contentContainerStyle={{ padding: 16 }}
+        // `flexGrow` lets the empty state fill (and scroll within) the room above
+        // the composer; at the largest text sizes it scrolls instead of being
+        // cut off behind the bar.
+        contentContainerStyle={{ padding: 16, flexGrow: 1 }}
         onScrollBeginDrag={() => setSwipeOpenId(null)}
         refreshControl={
           <RefreshControl
@@ -432,13 +443,13 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
         )}
       />
 
-      <KeyboardStickyView offset={{ closed: 0, opened: tabBarClearance }}>
+      <KeyboardStickyView offset={{ closed: 0, opened: composerBottom - COMPOSER_KEYBOARD_GAP }}>
         <View
           style={{
             gap: 8,
             paddingTop: 10,
             paddingHorizontal: 16,
-            paddingBottom: tabBarClearance + 10,
+            paddingBottom: composerBottom,
             borderTopWidth: 1,
             borderTopColor: hub.hairline,
             backgroundColor: hub.ground,
@@ -451,7 +462,6 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
             />
           ) : null}
           <NotesComposer
-            notes={notes}
             onSubmit={submit}
             onOpenSheet={(draft, withPhoto) => openSheet({ draft, photo: withPhoto })}
           />

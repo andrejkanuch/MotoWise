@@ -1314,7 +1314,8 @@
       "retryPhotos_one": "写真{{count}}枚を再試行",
       "retryPhotos_few": "写真{{count}}枚を再試行",
       "retryPhotos_many": "写真{{count}}枚を再試行",
-      "retryPhotos_other": "写真{{count}}枚を再試行"
+      "retryPhotos_other": "写真{{count}}枚を再試行",
+      "discardMessage": "入力した内容は保存されません。"
     },
     "notesScreen": {
       "title": "メモ · {{name}}",

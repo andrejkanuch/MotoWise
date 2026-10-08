@@ -35,7 +35,12 @@ import { useToday } from '../shell/use-today';
 import { HUB_CHROME_MAX_FONT_SCALE, HUB_FONT, HUB_HEIGHT, HUB_RADIUS, hub } from '../ui/tokens';
 import { OdometerDateChip } from './odometer-date-chip';
 import { OdometerKeypad } from './odometer-keypad';
-import { SHEET_CANCEL_PLACEMENT, SheetGrabber, SheetHeader } from './sheet-header';
+import {
+  SHEET_CANCEL_PLACEMENT,
+  SHEET_LOCKED_OPACITY,
+  SheetGrabber,
+  SheetHeader,
+} from './sheet-header';
 import { SheetScroll, sheetBottomPadding } from './sheet-scroll';
 import { useLogOdometer, useOdometerContext } from './use-log-odometer';
 
@@ -128,6 +133,8 @@ interface OdometerSheetProps {
   onCancel?: () => void;
   /** Whether something was typed or a date picked — the route guards dismissal on it. */
   onDirtyChange?: (dirty: boolean) => void;
+  /** Whether the reading is saving — the route locks dismissal while it is. */
+  onSavingChange?: (saving: boolean) => void;
   /** Tests pin the date; the screen omits it. */
   now?: Date;
 }
@@ -139,7 +146,14 @@ interface OdometerSheetProps {
  * than the last one is confirmed first. Every save is an `odometer_readings`
  * row; nothing is converted between units.
  */
-export function OdometerSheet({ bike, onClose, onCancel, onDirtyChange, now }: OdometerSheetProps) {
+export function OdometerSheet({
+  bike,
+  onClose,
+  onCancel,
+  onDirtyChange,
+  onSavingChange,
+  now,
+}: OdometerSheetProps) {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const language = i18n.language;
@@ -158,6 +172,10 @@ export function OdometerSheet({ bike, onClose, onCancel, onDirtyChange, now }: O
 
   const dirty = digits !== '' || pickedDate !== null;
   useEffect(() => onDirtyChange?.(dirty), [dirty, onDirtyChange]);
+  // While the reading saves, nothing that changes it may be used: the value
+  // saved must be the value shown.
+  const saving = logOdometer.isPending;
+  useEffect(() => onSavingChange?.(saving), [saving, onSavingChange]);
 
   // The baseline is the higher of the latest logged reading and the bike's
   // odometer: a ride end or receipt scan can move `currentMileage` before the
@@ -270,7 +288,7 @@ export function OdometerSheet({ bike, onClose, onCancel, onDirtyChange, now }: O
 
   const error = !validation.ok && 'error' in validation ? validation.error : null;
   const blocked = error !== null || historyUnknown;
-  const saveDisabled = blocked || readingsLoading || logOdometer.isPending;
+  const saveDisabled = blocked || readingsLoading || saving;
   const notice = noticeText({
     t,
     saveFailed,
@@ -300,7 +318,7 @@ export function OdometerSheet({ bike, onClose, onCancel, onDirtyChange, now }: O
         title={t('bikeHub.odometer.title')}
         onCancel={onCancel ?? onClose}
         cancelPlacement={SHEET_CANCEL_PLACEMENT.LEADING}
-        cancelDisabled={logOdometer.isPending}
+        cancelDisabled={saving}
         cancelTestID="odometer-cancel"
       />
 
@@ -327,7 +345,13 @@ export function OdometerSheet({ bike, onClose, onCancel, onDirtyChange, now }: O
           >
             {t('bikeHub.odometer.newReading')}
           </Text>
-          <OdometerDateChip value={recordedAt} today={today} label={dateLabel} onPick={pickDate} />
+          <OdometerDateChip
+            value={recordedAt}
+            today={today}
+            label={dateLabel}
+            onPick={pickDate}
+            disabled={saving}
+          />
         </View>
 
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
@@ -418,6 +442,7 @@ export function OdometerSheet({ bike, onClose, onCancel, onDirtyChange, now }: O
             testID="chip-rides"
             highlighted
             maxWidth={RIDES_CHIP_MAX_WIDTH}
+            disabled={saving}
             label={t('bikeHub.odometer.ridesChip', {
               count: pendingRides.rideCount,
               distance: formatOdometer(pendingRides.distance, language),
@@ -430,12 +455,13 @@ export function OdometerSheet({ bike, onClose, onCancel, onDirtyChange, now }: O
             key={amount}
             testID={`chip-${amount}`}
             label={`+${amount}`}
+            disabled={saving}
             onPress={() => quickAdd(amount)}
           />
         ))}
       </View>
 
-      <OdometerKeypad onKey={onKey} />
+      <OdometerKeypad onKey={onKey} disabled={saving} />
 
       {notice === null ? null : (
         <Text
@@ -464,7 +490,7 @@ export function OdometerSheet({ bike, onClose, onCancel, onDirtyChange, now }: O
         accessibilityLabel={saveLabel}
         accessibilityState={{
           disabled: saveDisabled,
-          busy: logOdometer.isPending || readingsLoading,
+          busy: saving || readingsLoading,
         }}
         style={({ pressed }) => ({
           height: HUB_HEIGHT.primary,
@@ -529,18 +555,21 @@ interface ChipProps {
   label: string;
   onPress: () => void;
   highlighted?: boolean;
+  disabled: boolean;
   /** Set = the label wraps inside this width instead of widening the chip. */
   maxWidth?: DimensionValue;
   testID: string;
 }
 
-function Chip({ label, onPress, highlighted = false, maxWidth, testID }: ChipProps) {
+function Chip({ label, onPress, highlighted = false, disabled, maxWidth, testID }: ChipProps) {
   return (
     <Pressable
       testID={testID}
       onPress={onPress}
+      disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled }}
       hitSlop={{ top: 4, bottom: 4 }}
       style={({ pressed }) => ({
         minHeight: CHIP_HEIGHT,
@@ -554,7 +583,7 @@ function Chip({ label, onPress, highlighted = false, maxWidth, testID }: ChipPro
         borderColor: highlighted ? hub.chipOnBorder : hub.ripple,
         alignItems: 'center',
         justifyContent: 'center',
-        opacity: pressed ? 0.7 : 1,
+        opacity: disabled ? SHEET_LOCKED_OPACITY : pressed ? 0.7 : 1,
       })}
     >
       <Text

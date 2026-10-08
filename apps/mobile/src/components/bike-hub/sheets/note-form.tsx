@@ -11,11 +11,6 @@ import {
 } from '@motovault/types';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import {
-  type NavigationAction,
-  useNavigation,
-  usePreventRemove,
-} from 'expo-router/react-navigation';
 import { Check, CircleAlert, Gauge, ImagePlus, X } from 'lucide-react-native';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -55,6 +50,7 @@ import { showActionSheet } from '../../../utils/action-sheet';
 import { triggerImpact, triggerNotification, triggerSelection } from '../../../utils/haptics';
 import { NativeToggle } from '../../ui/native-toggle';
 import { NotePhoto, rememberLocalNotePhoto } from '../notes/note-photo';
+import { DRAFT_OUTCOME, type DraftOutcome, publishDraftOutcome } from '../notes/use-draft-handoff';
 import { type HubNote, useCreateNote, useUpdateNote } from '../notes/use-notes';
 import type { HubBike } from '../shell/use-bike-hub-data';
 import {
@@ -65,7 +61,8 @@ import {
   HUB_TOUCH_TARGET,
   hub,
 } from '../ui/tokens';
-import { SHEET_CANCEL_PLACEMENT, SheetHeader } from './sheet-header';
+import { SHEET_CANCEL_PLACEMENT, SHEET_LOCKED_OPACITY, SheetHeader } from './sheet-header';
+import { useSheetDiscardGuard } from './use-sheet-discard-guard';
 
 const CHIP_SLOP = Math.ceil((HUB_TOUCH_TARGET - HUB_HEIGHT.small) / 2);
 const THUMBNAIL = 64;
@@ -84,19 +81,7 @@ const FOOTER_FALLBACK_HEIGHT = 12 + HUB_HEIGHT.primary + FOOTER_KEYBOARD_GAP;
 /** Room between the focused field's caret and the top of the Save bar. */
 const CARET_MARGIN = 8;
 /** Controls that cannot be used while the note saves (or after it saved) are dimmed to this. */
-const LOCKED_OPACITY = 0.45;
-/** The one navigation action a native sheet sends after it has ALREADY gone (see `usePreventRemove` below). */
-const NATIVE_POP_ACTION = 'POP';
-
-/**
- * Android's form sheet is a draggable bottom sheet that react-native-screens
- * cannot hold back (`preventNativeDismiss` is iOS-only): a drag-down dismisses it
- * natively and only then reports a `POP`. Prompting at that point would leave a
- * route in JS with no sheet on screen, so that one is let through.
- */
-function sheetAlreadyDismissed(action: NavigationAction): boolean {
-  return process.env.EXPO_OS === 'android' && action.type === NATIVE_POP_ACTION;
-}
+const LOCKED_OPACITY = SHEET_LOCKED_OPACITY;
 
 interface UploadedPhoto {
   storagePath: string;
@@ -315,7 +300,6 @@ export function NoteForm({
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
-  const navigation = useNavigation();
   const userId = useAuthStore((state) => state.session?.user?.id);
   const isEdit = !!note;
   const keyboardOpen = useKeyboardState((state) => state.isVisible);
@@ -336,8 +320,6 @@ export function NoteForm({
   // State updates land a render later; two taps in the same frame both see
   // `saving === false`. The ref closes that window so a note is created once.
   const savingRef = useRef(false);
-  /** Set right before a successful save closes the sheet, so the guard lets it go. */
-  const leavingRef = useRef(false);
   const [saveFailed, setSaveFailed] = useState(false);
   /** New photos were added but there is no session to upload them under. */
   const [noSession, setNoSession] = useState(false);
@@ -399,35 +381,20 @@ export function NoteForm({
    */
   const locked = saving || !!saved;
 
-  const confirmDiscard = (discard: () => void) => {
-    Alert.alert(t('bikeHub.noteSheet.discardTitle'), undefined, [
-      { text: t('bikeHub.noteSheet.discardKeep'), style: 'cancel' },
-      { text: t('bikeHub.noteSheet.discard'), style: 'destructive', onPress: discard },
-    ]);
-  };
-
   /**
    * The one unsaved-work guard for every way out: Cancel (`onClose` →
-   * `router.back()`), the iOS swipe-down and the system Back.
-   *
-   * iOS: while this is on, native-stack sets `preventNativeDismiss` on the
-   * screen, so react-native-screens answers `presentationControllerShouldDismiss`
-   * with NO — the swiped sheet springs back — and reports the attempt
-   * (`onNativeDismissCancelled`) as a `POP`, which lands here. Discard then
-   * dispatches THAT pending action: one navigation action per decision, never a
-   * second `back()` (react-native-screens#4446). A re-dispatched action is
-   * marked as already seen by this route, so it is not intercepted again.
+   * `router.back()`), the iOS swipe-down and the system Back. It stays on for
+   * every save in flight — the first save AND a Retry after the note is on the
+   * server — so the sheet cannot be left half-way through attaching photos.
    */
-  usePreventRemove(!saved && (dirty || saving), ({ data }) => {
-    const { action } = data;
-    // A successful save is closing the sheet, or Android already dismissed it.
-    if (leavingRef.current || sheetAlreadyDismissed(action)) {
-      navigation.dispatch(action);
-      return;
-    }
-    // A save is in flight: the sheet stays (the Save bar says what it is doing).
-    if (savingRef.current) return;
-    confirmDiscard(() => navigation.dispatch(action));
+  const guard = useSheetDiscardGuard({
+    unsaved: !saved && dirty,
+    saving,
+    confirmDiscard: (discard) =>
+      Alert.alert(t('bikeHub.noteSheet.discardTitle'), t('bikeHub.noteSheet.discardMessage'), [
+        { text: t('bikeHub.noteSheet.discardKeep'), style: 'cancel' },
+        { text: t('bikeHub.noteSheet.discard'), style: 'destructive', onPress: discard },
+      ]),
   });
 
   const addPhoto = () => {
@@ -534,12 +501,37 @@ export function NoteForm({
   const createNote = useCreateNote();
   const updateNote = useUpdateNote(bike.id);
 
+  /**
+   * A new note opened with a quick-add draft reports, once, whether a note was
+   * created from it, so the field that handed it off clears (SAVED) or keeps it
+   * and stops waiting (DISCARDED). Edits and draft-less sheets report nothing.
+   */
+  const draftSettled = useRef(isEdit || !draft);
+  const settleDraft = (outcome: DraftOutcome) => {
+    if (draftSettled.current) return;
+    draftSettled.current = true;
+    publishDraftOutcome(draft, outcome);
+  };
+  const settleDraftRef = useRef(settleDraft);
+  settleDraftRef.current = settleDraft;
+  // Closed without a note: discarded — unless a save is still in flight, which
+  // settles it either way when it ends.
+  useEffect(
+    () => () => {
+      if (!savingRef.current) settleDraftRef.current(DRAFT_OUTCOME.DISCARDED);
+    },
+    [],
+  );
+
   const finish = (next: SavedState) => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.notes.byMotorcycle(targetId) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.notes.byMotorcycle(next.motorcycleId) });
+    // Dismissed while saving (an Android drag-down cannot be held back): the
+    // note is saved, but the sheet is gone — `close()` would pop the screen
+    // that is now on top.
+    if (!guard.isMounted()) return;
     if (next.failedPhotos.length === 0 && next.failedRemovals.length === 0 && !next.taskMissing) {
       triggerNotification(Haptics.NotificationFeedbackType.Success);
-      leavingRef.current = true;
-      close();
+      guard.leaveAfterSave(close);
       return;
     }
     triggerNotification(Haptics.NotificationFeedbackType.Warning);
@@ -581,6 +573,8 @@ export function NoteForm({
         source: NOTE_SOURCE.SHEET,
         hasPhoto: newPhotos.length > 0,
       });
+      // The note exists (on this bike or another): the handed-off draft is saved.
+      settleDraft(DRAFT_OUTCOME.SAVED);
       // The API keeps the note when the task could not be created; say so, do not fail.
       finish({
         noteId: created.id,
@@ -590,6 +584,8 @@ export function NoteForm({
         taskMissing: alsoTask && !created.linkedTaskId,
       });
     } catch (_error) {
+      // Dismissed mid-save and the note was not created: the draft stays the field's.
+      if (!guard.isMounted()) settleDraft(DRAFT_OUTCOME.DISCARDED);
       setSaveFailed(true);
     } finally {
       savingRef.current = false;
@@ -854,11 +850,14 @@ export function NoteForm({
                 if (!locked) setAlsoTask((on) => !on);
               }}
             >
+              {/* The sheet is dark in both schemes: the off track must read on it. */}
               <NativeToggle
                 value={alsoTask}
                 onValueChange={setAlsoTask}
                 tint={hub.copper}
                 disabled={locked}
+                darkSurface
+                offTrack={hub.track}
               />
             </View>
           </View>

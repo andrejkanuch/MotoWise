@@ -1,3 +1,4 @@
+import * as Crypto from 'expo-crypto';
 import { File } from 'expo-file-system';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
@@ -12,6 +13,16 @@ const RECEIPTS_BUCKET = 'receipts';
  *  legible, so it is NOT the lossy 1200px/0.7 gallery profile. */
 const RECEIPT_MAX_WIDTH = 1920;
 const RECEIPT_COMPRESS = 0.85;
+
+/**
+ * File name of a photo in a shared folder (a task's or a note's). Photos of one
+ * save upload side by side, so a timestamp alone can repeat within the same
+ * millisecond and the second `upsert: false` upload would fail; the UUID keeps
+ * every name unique while the timestamp keeps them in upload order.
+ */
+export function uniquePhotoName(): string {
+  return `${Date.now()}-${Crypto.randomUUID()}.webp`;
+}
 
 export async function pickImage(): Promise<string | null> {
   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -106,7 +117,7 @@ export async function uploadMaintenancePhoto(
   taskId: string,
 ): Promise<{ storagePath: string; fileSizeBytes: number }> {
   const bytes = await readImageBytes(uri);
-  const filePath = `${userId}/${taskId}/${Date.now()}.webp`;
+  const filePath = `${userId}/${taskId}/${uniquePhotoName()}`;
   const { error } = await supabase.storage.from(MAINTENANCE_PHOTOS_BUCKET).upload(filePath, bytes, {
     contentType: WEBP_CONTENT_TYPE,
     upsert: false,
@@ -131,7 +142,7 @@ export async function uploadNotePhoto(
   noteId: string,
 ): Promise<{ storagePath: string; fileSizeBytes: number }> {
   const bytes = await readImageBytes(uri);
-  const filePath = `${userId}/notes/${noteId}/${Date.now()}.webp`;
+  const filePath = `${userId}/notes/${noteId}/${uniquePhotoName()}`;
   const { error } = await supabase.storage.from(MAINTENANCE_PHOTOS_BUCKET).upload(filePath, bytes, {
     contentType: WEBP_CONTENT_TYPE,
     upsert: false,
@@ -194,7 +205,7 @@ export async function uploadExpensePhoto(
   expenseId: string,
 ): Promise<{ storagePath: string; fileSizeBytes: number }> {
   const bytes = await readImageBytes(uri);
-  const filePath = `${userId}/expenses/${expenseId}/${Date.now()}.webp`;
+  const filePath = `${userId}/expenses/${expenseId}/${uniquePhotoName()}`;
   const { error } = await supabase.storage.from(MAINTENANCE_PHOTOS_BUCKET).upload(filePath, bytes, {
     contentType: WEBP_CONTENT_TYPE,
     upsert: false,

@@ -180,6 +180,17 @@ describe('PhotoBand', () => {
     expect(screen.getByRole('button', { name: 'Bike photo, open bike details' })).toBeOnTheScreen();
   });
 
+  it('at accessibility sizes the chips stop growing and wrap instead of touching', async () => {
+    await render(<PhotoBand {...base} isPrimary ridesCount={11} />);
+    for (const text of ['PRIMARY', '11 rides']) {
+      expect(screen.getByText(text).props.maxFontSizeMultiplier).toBe(1.3);
+      expect(screen.getByText(text).props.numberOfLines).toBe(1);
+    }
+    const row = screen.getByTestId('photo-band-chips').props.style;
+    expect(row.flexWrap).toBe('wrap');
+    expect(row.right).toBe(row.left);
+  });
+
   it('non-primary with 0 rides renders no chip row', async () => {
     await render(<PhotoBand {...base} isPrimary={false} ridesCount={0} />);
     expect(screen.queryByTestId('photo-band-chips')).toBeNull();

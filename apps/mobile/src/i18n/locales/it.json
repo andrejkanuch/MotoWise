@@ -1315,7 +1315,8 @@
       "retryPhotos_one": "Riprova {{count}} foto",
       "retryPhotos_few": "Riprova {{count}} foto",
       "retryPhotos_many": "Riprova {{count}} foto",
-      "retryPhotos_other": "Riprova {{count}} foto"
+      "retryPhotos_other": "Riprova {{count}} foto",
+      "discardMessage": "Quello che hai scritto non verrà salvato."
     },
     "notesScreen": {
       "title": "Note · {{name}}",

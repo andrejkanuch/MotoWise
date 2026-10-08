@@ -96,6 +96,11 @@ import { Alert, StyleSheet } from 'react-native';
 import { useKeyboardState } from 'react-native-keyboard-controller';
 import '../../../i18n';
 import { BIKE_A, BIKE_B, NOTES } from '../../../test/bike-hub-fixtures';
+import {
+  DRAFT_OUTCOME,
+  type DraftOutcome,
+  subscribeDraftOutcome,
+} from '../notes/use-draft-handoff';
 import type { HubNote } from '../notes/use-notes';
 import { NoteForm } from '../sheets/note-form';
 import type { HubBike } from '../shell/use-bike-hub-data';
@@ -578,7 +583,11 @@ describe('NoteForm — unset odometer, unsaved changes, photo picker', () => {
     await renderForm({ note: NOTES[0] as unknown as HubNote });
     await fireEvent.press(screen.getByTestId('note-stamp'));
     await fireEvent.press(screen.getByTestId('note-cancel'));
-    expect(alert).toHaveBeenCalledWith('Discard this note?', undefined, expect.any(Array));
+    expect(alert).toHaveBeenCalledWith(
+      'Discard this note?',
+      "What you wrote won't be saved.",
+      expect.any(Array),
+    );
     expect(mockRemoved).not.toHaveBeenCalled();
     alert.mockRestore();
   });
@@ -715,7 +724,11 @@ describe('NoteForm — swipe-down / Back guard', () => {
     await fireEvent.changeText(screen.getByTestId('note-text'), 'Chain slack 30 mm');
     expect(mockGuard.prevent).toBe(true);
     await act(async () => mockAttemptRemove(NATIVE_SWIPE));
-    expect(alert).toHaveBeenCalledWith('Discard this note?', undefined, expect.any(Array));
+    expect(alert).toHaveBeenCalledWith(
+      'Discard this note?',
+      "What you wrote won't be saved.",
+      expect.any(Array),
+    );
     await act(async () => alertButton(alert, 'Keep editing')?.onPress?.());
     expect(mockRemoved).not.toHaveBeenCalled();
     expect(screen.getByTestId('note-text').props.value).toBe('Chain slack 30 mm');
@@ -832,5 +845,159 @@ describe('NoteForm — odometer stamp and Save states', () => {
     ) as { backgroundColor?: string; opacity?: number };
     expect(style.backgroundColor).toBe(palette.hubRaised);
     expect(style.opacity).toBe(1);
+  });
+});
+
+describe('NoteForm — a save that outlives the sheet (#4)', () => {
+  /** Parks `document` until `release()`; everything else answers at once. */
+  function park(document: unknown, outcome: 'resolve' | 'reject' = 'resolve') {
+    const succeed = mockFetcher.getMockImplementation();
+    const gate = { release: () => {} };
+    mockFetcher.mockImplementation((doc: unknown, variables: unknown) =>
+      doc === document
+        ? new Promise((resolve, reject) => {
+            gate.release = () =>
+              outcome === 'resolve'
+                ? resolve(succeed?.(doc, variables))
+                : reject(new Error('offline'));
+          })
+        : succeed?.(doc, variables),
+    );
+    return gate;
+  }
+
+  it('dismissed while the note saves: the note is saved, but nothing navigates afterwards', async () => {
+    const view = await renderForm({ draft: 'Saved after the sheet left' });
+    const gate = park(CreateNoteDocument);
+    const saving = fireEvent.press(screen.getByTestId('note-save'));
+    await screen.findByText('Saving…');
+    // Android drag-down: the sheet is already gone.
+    await act(async () => mockAttemptRemove(NATIVE_SWIPE));
+    await act(async () => view.unmount());
+    mockRemoved.mockClear();
+
+    await act(async () => gate.release());
+    await saving;
+    await act(async () => {});
+    expect(created()).toBeDefined();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(mockRemoved).not.toHaveBeenCalled();
+  });
+
+  it('Retry keeps the sheet locked: a swipe is held without a prompt', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    mockUpload.mockRejectedValueOnce(new Error('storage down'));
+    await renderForm({ draft: 'With a photo' });
+    await fireEvent.press(screen.getByTestId('note-add-photo'));
+    await act(async () => {});
+    await fireEvent.press(screen.getByTestId('note-save'));
+    expect(await screen.findByText("Note saved. 1 photo wasn't added.")).toBeOnTheScreen();
+    expect(mockGuard.prevent).toBe(false);
+
+    const gate = park(AddNotePhotoDocument);
+    const retry = fireEvent.press(screen.getByTestId('note-save'));
+    await waitFor(() => expect(mockGuard.prevent).toBe(true));
+    await act(async () => mockAttemptRemove(NATIVE_SWIPE));
+    expect(alert).not.toHaveBeenCalled();
+    expect(mockRemoved).not.toHaveBeenCalled();
+
+    await act(async () => gate.release());
+    await retry;
+    // Every photo attached: the sheet closes itself, once.
+    await waitFor(() => expect(mockRemoved).toHaveBeenCalledTimes(1));
+    alert.mockRestore();
+  });
+
+  it('dismissed during Retry: the photos attach, and nothing navigates afterwards', async () => {
+    mockUpload.mockRejectedValueOnce(new Error('storage down'));
+    const view = await renderForm({ draft: 'With a photo' });
+    await fireEvent.press(screen.getByTestId('note-add-photo'));
+    await act(async () => {});
+    await fireEvent.press(screen.getByTestId('note-save'));
+    await screen.findByText("Note saved. 1 photo wasn't added.");
+
+    const gate = park(AddNotePhotoDocument);
+    const retry = fireEvent.press(screen.getByTestId('note-save'));
+    await waitFor(() =>
+      expect(mockFetcher).toHaveBeenCalledWith(AddNotePhotoDocument, expect.anything()),
+    );
+    await act(async () => view.unmount());
+    await act(async () => gate.release());
+    await retry;
+    await act(async () => {});
+    expect(onClose).not.toHaveBeenCalled();
+    expect(mockRemoved).not.toHaveBeenCalled();
+  });
+});
+
+describe('NoteForm — reports the handed-off draft (#3)', () => {
+  const outcomes: Array<[string, DraftOutcome]> = [];
+  let unsubscribe: () => void = () => {};
+  beforeEach(() => {
+    outcomes.length = 0;
+    unsubscribe = subscribeDraftOutcome((draft, outcome) => outcomes.push([draft, outcome]));
+  });
+  afterEach(() => unsubscribe());
+
+  it('SAVED once the note exists — also when it went to another bike via "Attach to"', async () => {
+    await renderForm({ draft: ' Check chain ', bikes: [A, B] });
+    await fireEvent.press(screen.getByTestId(`note-bike-${BIKE_B.id}`));
+    await fireEvent.changeText(screen.getByTestId('note-text'), 'Check chain and sprockets');
+    await fireEvent.press(screen.getByTestId('note-save'));
+    await waitFor(() => expect(outcomes).toEqual([['Check chain', DRAFT_OUTCOME.SAVED]]));
+    expect(created()?.input.motorcycleId).toBe(BIKE_B.id);
+  });
+
+  it('DISCARDED when the sheet closes without a note', async () => {
+    const view = await renderForm({ draft: 'Check chain' });
+    await act(async () => view.unmount());
+    expect(outcomes).toEqual([['Check chain', DRAFT_OUTCOME.DISCARDED]]);
+  });
+
+  it('dismissed mid-save: SAVED when the create lands, DISCARDED when it fails', async () => {
+    let release: (ok: boolean) => void = () => {};
+    const view = await renderForm({ draft: 'Check chain' });
+    const answer = mockFetcher.getMockImplementation();
+    mockFetcher.mockImplementation((document: unknown, variables: unknown) =>
+      document === CreateNoteDocument
+        ? new Promise((resolve, reject) => {
+            release = (ok) =>
+              ok ? resolve(answer?.(document, variables)) : reject(new Error('offline'));
+          })
+        : answer?.(document, variables),
+    );
+    const saving = fireEvent.press(screen.getByTestId('note-save'));
+    await screen.findByText('Saving…');
+    await act(async () => view.unmount());
+    // Still in flight: nothing reported yet.
+    expect(outcomes).toEqual([]);
+    await act(async () => release(true));
+    await saving;
+    expect(outcomes).toEqual([['Check chain', DRAFT_OUTCOME.SAVED]]);
+
+    outcomes.length = 0;
+    const second = await renderForm({ draft: 'Bought oil' });
+    const ok = mockFetcher.getMockImplementation();
+    mockFetcher.mockImplementation((document: unknown, variables: unknown) =>
+      document === CreateNoteDocument
+        ? new Promise((_resolve, reject) => {
+            release = () => reject(new Error('offline'));
+          })
+        : ok?.(document, variables),
+    );
+    const failing = fireEvent.press(screen.getByTestId('note-save'));
+    await screen.findByText('Saving…');
+    await act(async () => second.unmount());
+    await act(async () => release(false));
+    await failing;
+    expect(outcomes).toEqual([['Bought oil', DRAFT_OUTCOME.DISCARDED]]);
+  });
+
+  it('an edit, or a sheet opened without a draft, reports nothing', async () => {
+    const edit = await renderForm({ note: NOTES[0] as unknown as HubNote });
+    await act(async () => edit.unmount());
+    const blank = await renderForm();
+    await act(async () => blank.unmount());
+    expect(outcomes).toEqual([]);
   });
 });

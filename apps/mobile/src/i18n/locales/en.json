@@ -1320,7 +1320,8 @@
       "retryPhotos_one": "Retry {{count}} photo",
       "retryPhotos_few": "Retry {{count}} photos",
       "retryPhotos_many": "Retry {{count}} photos",
-      "retryPhotos_other": "Retry {{count}} photos"
+      "retryPhotos_other": "Retry {{count}} photos",
+      "discardMessage": "What you wrote won't be saved."
     },
     "notesScreen": {
       "title": "Notes · {{name}}",

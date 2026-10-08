@@ -58,6 +58,7 @@ import {
   TODAY,
   task,
 } from '../../../test/bike-hub-fixtures';
+import { DRAFT_OUTCOME, publishDraftOutcome } from '../notes/use-draft-handoff';
 import { OverviewSegment } from '../overview/overview-segment';
 import type { BikeActions } from '../shell/use-bike-actions';
 import type { BikeHubData, HubBike, HubTask } from '../shell/use-bike-hub-data';
@@ -448,6 +449,24 @@ describe('Overview — quick note', () => {
     expect(navigation.openNoteSheet).toHaveBeenCalledWith('Longer thought');
     // Closing the sheet without saving loses nothing.
     expect(screen.getByTestId('quick-note-input').props.value).toBe('Longer thought');
+  });
+
+  it('a cancelled hand-off keeps the draft when an unrelated note is saved later', async () => {
+    await renderOverview();
+    await fireEvent.changeText(screen.getByTestId('quick-note-input'), 'check chain');
+    await fireEvent.press(screen.getByRole('button', { name: 'Write a longer note' }));
+    // The sheet is cancelled, then "bought oil" is saved via Log → Note.
+    await act(async () => publishDraftOutcome('check chain', DRAFT_OUTCOME.DISCARDED));
+    await act(async () => publishDraftOutcome('bought oil', DRAFT_OUTCOME.SAVED));
+    expect(screen.getByTestId('quick-note-input').props.value).toBe('check chain');
+  });
+
+  it('the sheet saving the handed-off draft (to any bike) clears the field', async () => {
+    await renderOverview();
+    await fireEvent.changeText(screen.getByTestId('quick-note-input'), 'check chain');
+    await fireEvent.press(screen.getByRole('button', { name: 'Write a longer note' }));
+    await act(async () => publishDraftOutcome('check chain', DRAFT_OUTCOME.SAVED));
+    expect(screen.getByTestId('quick-note-input').props.value).toBe('');
   });
 
   it('copper Add saves the text now; with an empty field it is disabled', async () => {

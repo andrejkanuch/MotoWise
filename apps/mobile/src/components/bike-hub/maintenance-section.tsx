@@ -18,7 +18,13 @@ import type { HubTask } from './shell/use-bike-hub-data';
 import { useToday } from './shell/use-today';
 import { HubCard } from './ui/hub-card';
 import { SectionHeader } from './ui/section-header';
-import { HUB_FONT, HUB_RADIUS, HUB_TOUCH_TARGET, hub } from './ui/tokens';
+import {
+  HUB_CHROME_MAX_FONT_SCALE,
+  HUB_FONT,
+  HUB_RADIUS,
+  HUB_TOUCH_TARGET,
+  hub,
+} from './ui/tokens';
 
 /** Completed tasks shown before "See all" opens the full list. */
 const HISTORY_PREVIEW = 5;
@@ -104,7 +110,11 @@ function ServiceTabs({
               justifyContent: 'center',
             }}
           >
+            {/* Segmented-control chrome: capped like the segment bar, one line —
+                "Active · 10" broke into two at accessibility sizes. */}
             <Text
+              maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+              numberOfLines={1}
               style={{
                 textAlign: 'center',
                 fontFamily: HUB_FONT.sansSemiBold,

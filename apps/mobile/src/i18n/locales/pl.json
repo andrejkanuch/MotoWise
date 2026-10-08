@@ -1352,7 +1352,8 @@
       "retryPhotos_one": "Ponów {{count}} zdjęcie",
       "retryPhotos_few": "Ponów {{count}} zdjęcia",
       "retryPhotos_many": "Ponów {{count}} zdjęć",
-      "retryPhotos_other": "Ponów {{count}} zdjęcia"
+      "retryPhotos_other": "Ponów {{count}} zdjęcia",
+      "discardMessage": "To, co napisano, nie zostanie zapisane."
     },
     "notesScreen": {
       "title": "Notatki · {{name}}",

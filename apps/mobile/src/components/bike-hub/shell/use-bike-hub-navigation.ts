@@ -1,5 +1,5 @@
-import { type Href, useIsFocused, useRouter } from 'expo-router';
-import { useMemo, useRef } from 'react';
+import type { Href } from 'expo-router';
+import { useMemo } from 'react';
 import {
   ADD_TASK_MODE,
   BIKE_LEAF,
@@ -9,6 +9,7 @@ import {
 import { ownerSegmentOf } from '../../../lib/bike-hub/segments';
 import { EXPENSE_ENTRY_SOURCE } from '../../../lib/expense-analytics';
 import type { HubBike } from './use-bike-hub-data';
+import { useGuardedPush } from './use-guarded-push';
 
 export interface BikeHubNavigation {
   /**
@@ -101,33 +102,18 @@ export function buildBikeHubNavigation(
   };
 }
 
-/**
- * Two leaf opens this close together are one double-tap (or a tap landing while
- * the first push is still animating): only the first one navigates.
- */
-const LEAF_PUSH_COOLDOWN_MS = 600;
-
 export function useBikeHubNavigation(
   bike: Pick<HubBike, 'id' | 'year' | 'make' | 'model' | 'nickname'>,
   activeSegment: BikeSegment,
   showSegment: (segment: BikeSegment) => void,
 ): BikeHubNavigation {
-  const router = useRouter();
-  // Read at press time: the header chip stays mounted (and, mid-transition,
-  // tappable) under a screen being pushed; a sheet pushed from a hub that is no
-  // longer on top stacked over that screen and could not be dismissed.
-  const isFocused = useIsFocused();
-  const focusedRef = useRef(isFocused);
-  focusedRef.current = isFocused;
-  const lastPushAt = useRef(0);
+  // Focus + cooldown guard: see `useGuardedPush`.
+  const push = useGuardedPush();
   return useMemo(
     () =>
       buildBikeHubNavigation(bike, activeSegment, showSegment, (href) => {
-        const now = Date.now();
-        if (!focusedRef.current || now - lastPushAt.current < LEAF_PUSH_COOLDOWN_MS) return;
-        lastPushAt.current = now;
-        router.push(href);
+        push(href);
       }),
-    [bike, activeSegment, showSegment, router],
+    [bike, activeSegment, showSegment, push],
   );
 }

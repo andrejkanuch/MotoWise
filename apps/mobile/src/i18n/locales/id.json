@@ -1314,7 +1314,8 @@
       "retryPhotos_one": "Coba lagi {{count}} foto",
       "retryPhotos_few": "Coba lagi {{count}} foto",
       "retryPhotos_many": "Coba lagi {{count}} foto",
-      "retryPhotos_other": "Coba lagi {{count}} foto"
+      "retryPhotos_other": "Coba lagi {{count}} foto",
+      "discardMessage": "Yang Anda tulis tidak akan disimpan."
     },
     "notesScreen": {
       "title": "Catatan · {{name}}",

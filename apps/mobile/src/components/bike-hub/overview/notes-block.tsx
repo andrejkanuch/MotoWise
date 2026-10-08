@@ -56,7 +56,8 @@ interface NotesBlockProps {
  * Return) saves the text now with the current odometer stamp — copper always
  * means "save this text", so it is disabled while the field is empty. The quiet
  * expand button takes the draft to the full Note sheet; the draft stays in the
- * field until the sheet has saved, so closing the sheet loses nothing.
+ * field until that sheet reports it saved a note, so closing the sheet loses
+ * nothing and an unrelated note never clears it.
  */
 export function NotesBlock({
   motorcycleId,
@@ -75,7 +76,7 @@ export function NotesBlock({
   const [failed, setFailed] = useState(false);
   const createNote = useCreateNote();
   const shown = notes.slice(0, OVERVIEW_NOTES_SHOWN);
-  const handoff = useDraftHandoff(notes, () => {
+  const handoff = useDraftHandoff(() => {
     setDraft('');
     setFailed(false);
   });
@@ -83,7 +84,7 @@ export function NotesBlock({
 
   const send = () => {
     if (!text) return;
-    handoff.reset();
+    handoff.disarm();
     setDraft('');
     setFailed(false);
     triggerImpact();
@@ -212,6 +213,7 @@ export function NotesBlock({
             value={draft}
             onChangeText={(text) => {
               setDraft(text);
+              handoff.disarm();
               if (failed) setFailed(false);
             }}
             onSubmitEditing={send}
@@ -241,7 +243,7 @@ export function NotesBlock({
             testID="quick-note-open-sheet"
             onPress={() => {
               triggerImpact();
-              handoff.handOff();
+              handoff.handOff(draft);
               onOpenNoteSheet(draft);
             }}
             accessibilityRole="button"

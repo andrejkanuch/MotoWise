@@ -72,7 +72,11 @@ jest.mock('../../../lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
-import { OdometerReadingsDocument, PendingRideDistanceDocument } from '@motovault/graphql';
+import {
+  LogOdometerReadingDocument,
+  OdometerReadingsDocument,
+  PendingRideDistanceDocument,
+} from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react-native';
 import { Alert, type AlertButton, StyleSheet } from 'react-native';
@@ -81,6 +85,7 @@ import { BIKE_A, TODAY } from '../../../test/bike-hub-fixtures';
 import { AndroidOdometerDateChip } from '../sheets/odometer-date-chip';
 import { entryRuns, OdometerSheet } from '../sheets/odometer-sheet';
 import { useDiscardReadingGuard } from '../sheets/use-log-odometer';
+import { sheetAlreadyDismissed } from '../sheets/use-sheet-discard-guard';
 import type { HubBike } from '../shell/use-bike-hub-data';
 
 const POP = { type: 'POP' };
@@ -155,8 +160,79 @@ describe('useDiscardReadingGuard (iOS form sheet)', () => {
   });
 });
 
+describe('useDiscardReadingGuard — locked while the reading saves (#6)', () => {
+  const GO_BACK = { type: 'GO_BACK' };
+
+  it('a swipe during the save is held without "Discard reading?"', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    await renderHook(() => useDiscardReadingGuard(true, true));
+    expect(mockPreventRemove.prevent).toBe(true);
+    await act(async () => mockPreventRemove.callback?.({ data: { action: POP } }));
+    expect(alert).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('Cancel does nothing while saving', async () => {
+    const { result } = await renderHook(() => useDiscardReadingGuard(true, true));
+    await act(async () => result.current.cancel());
+    expect(mockRouter.back).not.toHaveBeenCalled();
+  });
+
+  it('the save closing the sheet under an open prompt: Discard then does nothing', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    const { result } = await renderHook(() => useDiscardReadingGuard(true));
+    await act(async () => mockPreventRemove.callback?.({ data: { action: GO_BACK } }));
+    await act(async () => result.current.closeAfterSave());
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+    await act(async () => alertButtons(alert)[1]?.onPress?.());
+    // The stale action is never re-dispatched: no second back pops the hub.
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('a save that lands after the sheet is gone navigates nowhere', async () => {
+    const { result, unmount } = await renderHook(() => useDiscardReadingGuard(true));
+    const { closeAfterSave } = result.current;
+    await act(async () => unmount());
+    closeAfterSave();
+    expect(mockRouter.back).not.toHaveBeenCalled();
+  });
+});
+
+describe('useDiscardReadingGuard — system Back (one rule with the Note sheet)', () => {
+  const GO_BACK = { type: 'GO_BACK' };
+
+  it('Back with a typed reading asks first; Discard re-dispatches that Back once', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    await renderHook(() => useDiscardReadingGuard(true));
+    await act(async () => mockPreventRemove.callback?.({ data: { action: GO_BACK } }));
+    expect(alert).toHaveBeenCalledTimes(1);
+    await act(async () => alertButtons(alert)[1]?.onPress?.());
+    expect(mockDispatch).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).toHaveBeenCalledWith(GO_BACK);
+    expect(mockRouter.back).not.toHaveBeenCalled();
+  });
+
+  it('Back while saving is swallowed', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    await renderHook(() => useDiscardReadingGuard(true, true));
+    await act(async () => mockPreventRemove.callback?.({ data: { action: GO_BACK } }));
+    expect(alert).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('a POP means "already dismissed" only where the sheet cannot refuse a swipe (Android)', () => {
+    expect(sheetAlreadyDismissed(POP, 'android')).toBe(true);
+    expect(sheetAlreadyDismissed(POP, 'ios')).toBe(false);
+    expect(sheetAlreadyDismissed(GO_BACK, 'android')).toBe(false);
+  });
+});
+
 describe('OdometerSheet — reports what the guard needs', () => {
-  async function renderSheet(props: { onDirtyChange: jest.Mock; onCancel?: jest.Mock }) {
+  async function renderSheet(props: {
+    onDirtyChange: jest.Mock;
+    onCancel?: jest.Mock;
+    onSavingChange?: jest.Mock;
+  }) {
     mockFetcher.mockImplementation((document: unknown) => {
       if (document === OdometerReadingsDocument) return Promise.resolve({ odometerReadings: [] });
       if (document === PendingRideDistanceDocument) {
@@ -188,6 +264,35 @@ describe('OdometerSheet — reports what the guard needs', () => {
     expect(onDirtyChange).toHaveBeenLastCalledWith(false);
     await act(async () => mockDatePicker?.onDateChange(new Date(2026, 8, 1)));
     expect(onDirtyChange).toHaveBeenLastCalledWith(true);
+  });
+
+  it('while saving: reports it, and the keypad, chips and date are locked', async () => {
+    const onSavingChange = jest.fn();
+    await renderSheet({ onDirtyChange: jest.fn(), onSavingChange });
+    expect(onSavingChange).toHaveBeenLastCalledWith(false);
+    let release: () => void = () => {};
+    const answer = mockFetcher.getMockImplementation();
+    mockFetcher.mockImplementation((document: unknown, variables: unknown) =>
+      document === LogOdometerReadingDocument
+        ? new Promise((resolve) => {
+            release = () => resolve({ logOdometerReading: { id: 'reading-1' } });
+          })
+        : answer?.(document, variables),
+    );
+    // Above any last reading, so Save goes straight through.
+    for (let digit = 0; digit < 6; digit += 1) await fireEvent.press(screen.getByTestId('key-9'));
+    await fireEvent.press(screen.getByTestId('odometer-save'));
+    await waitFor(() => expect(onSavingChange).toHaveBeenLastCalledWith(true));
+    for (const id of ['key-1', 'key-clear', 'key-delete', 'chip-50', 'odometer-cancel']) {
+      expect(screen.getByTestId(id)).toBeDisabled();
+    }
+    expect(screen.getByTestId('odometer-date-lock').props.accessibilityState).toEqual({
+      disabled: true,
+    });
+    await fireEvent.press(screen.getByTestId('key-1'));
+    expect(screen.getByTestId('odometer-entry')).toHaveTextContent('999,999');
+    await act(async () => release());
+    await waitFor(() => expect(onSavingChange).toHaveBeenLastCalledWith(false));
   });
 
   it('Cancel goes to the guard, not straight to close', async () => {

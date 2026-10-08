@@ -1,7 +1,7 @@
 /**
  * The hub's action pill and content inset sit above the floating tab bar, whose
- * height grows with the system text size (its label is not capped — the tab
- * bar is out of this redesign's scope). They follow the bar's MEASURED height,
+ * height grows with the system text size (its label grows up to the chrome cap,
+ * which still makes it taller). They follow the bar's MEASURED height,
  * with the default-size constant only until the first layout.
  */
 let mockInsetBottom = 34;

@@ -4,7 +4,7 @@ import { datePickerStyle, environment, labelsHidden, tint } from '@expo/ui/swift
 import { ChevronDown } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
   HUB_FONT,
@@ -13,6 +13,7 @@ import {
   HUB_TOUCH_TARGET,
   hub,
 } from '../ui/tokens';
+import { SHEET_LOCKED_OPACITY } from './sheet-header';
 
 export interface OdometerDateChipProps {
   /** The reading's day. */
@@ -22,6 +23,8 @@ export interface OdometerDateChipProps {
   /** "Today" / "Oct 3" — what the chip says. */
   label: string;
   onPick: (date: Date) => void;
+  /** Locked while the reading saves. */
+  disabled?: boolean;
 }
 
 const CHIP_HIT_SLOP = (HUB_TOUCH_TARGET - HUB_HEIGHT.small) / 2;
@@ -30,25 +33,40 @@ const CHIP_HIT_SLOP = (HUB_TOUCH_TARGET - HUB_HEIGHT.small) / 2;
  * iOS: the system's compact date control. It sits in the reading's row, and
  * its calendar opens as a popover over the sheet — the keypad never moves.
  */
-export function IosOdometerDateChip({ value, today, onPick }: OdometerDateChipProps) {
+export function IosOdometerDateChip({
+  value,
+  today,
+  onPick,
+  disabled = false,
+}: OdometerDateChipProps) {
   const { i18n } = useTranslation();
   return (
-    <Host matchContents>
-      <DatePicker
-        testID="odometer-date"
-        selection={value}
-        range={{ end: today }}
-        displayedComponents={['date']}
-        onDateChange={onPick}
-        modifiers={[
-          datePickerStyle('compact'),
-          labelsHidden(),
-          tint(hub.copperText),
-          environment('colorScheme', 'dark'),
-          environment('locale', i18n.language),
-        ]}
-      />
-    </Host>
+    // The native control has no RN `disabled`: a locked chip takes no touches.
+    <View
+      testID="odometer-date-lock"
+      accessibilityState={{ disabled }}
+      style={{
+        opacity: disabled ? SHEET_LOCKED_OPACITY : 1,
+        pointerEvents: disabled ? 'none' : 'auto',
+      }}
+    >
+      <Host matchContents>
+        <DatePicker
+          testID="odometer-date"
+          selection={value}
+          range={{ end: today }}
+          displayedComponents={['date']}
+          onDateChange={onPick}
+          modifiers={[
+            datePickerStyle('compact'),
+            labelsHidden(),
+            tint(hub.copperText),
+            environment('colorScheme', 'dark'),
+            environment('locale', i18n.language),
+          ]}
+        />
+      </Host>
+    </View>
   );
 }
 
@@ -56,7 +74,13 @@ export function IosOdometerDateChip({ value, today, onPick }: OdometerDateChipPr
  * Android: a chip ("Today ▾") that opens the Material date dialog over the
  * sheet. The dialog confirms or cancels on its own — no "Done" in the sheet.
  */
-export function AndroidOdometerDateChip({ value, today, label, onPick }: OdometerDateChipProps) {
+export function AndroidOdometerDateChip({
+  value,
+  today,
+  label,
+  onPick,
+  disabled = false,
+}: OdometerDateChipProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
@@ -64,8 +88,10 @@ export function AndroidOdometerDateChip({ value, today, label, onPick }: Odomete
       <Pressable
         testID="odometer-date"
         onPress={() => setOpen(true)}
+        disabled={disabled}
         accessibilityRole="button"
         accessibilityLabel={t('bikeHub.odometer.dateA11y', { date: label })}
+        accessibilityState={{ disabled }}
         hitSlop={CHIP_HIT_SLOP}
         android_ripple={{ color: hub.ripple, borderless: false }}
         style={{
@@ -81,6 +107,7 @@ export function AndroidOdometerDateChip({ value, today, label, onPick }: Odomete
           borderColor: hub.ripple,
           backgroundColor: hub.ground,
           overflow: 'hidden',
+          opacity: disabled ? SHEET_LOCKED_OPACITY : 1,
         }}
       >
         <Text

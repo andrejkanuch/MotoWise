@@ -1314,7 +1314,8 @@
       "retryPhotos_one": "{{count}} फ़ोटो फिर से आज़माएँ",
       "retryPhotos_few": "{{count}} फ़ोटो फिर से आज़माएँ",
       "retryPhotos_many": "{{count}} फ़ोटो फिर से आज़माएँ",
-      "retryPhotos_other": "{{count}} फ़ोटो फिर से आज़माएँ"
+      "retryPhotos_other": "{{count}} फ़ोटो फिर से आज़माएँ",
+      "discardMessage": "आपका लिखा हुआ सेव नहीं होगा।"
     },
     "notesScreen": {
       "title": "नोट्स · {{name}}",

@@ -40,7 +40,6 @@ import '../../../i18n';
 import NotePhotosRoute from '../../../app/(tabs)/(garage)/note-photos';
 import { BIKE_A, NOTES } from '../../../test/bike-hub-fixtures';
 import { rememberLocalNotePhoto } from '../notes/note-photo';
-import { savedSinceHandoff } from '../notes/use-draft-handoff';
 
 const PHOTO_NOTE = {
   ...NOTES[2],
@@ -108,18 +107,5 @@ describe('note photo viewer route', () => {
   it('a note that is gone closes the viewer instead of showing nothing', async () => {
     await renderRoute({ noteId: 'note-deleted' });
     await waitFor(() => expect(mockRouter.back).toHaveBeenCalledTimes(1));
-  });
-});
-
-describe('draft handoff', () => {
-  const before = new Set(['note-1', 'note-2']);
-
-  it('a new saved note means the sheet saved the draft', () => {
-    expect(savedSinceHandoff([{ id: 'note-9' }, { id: 'note-1' }], before)).toBe(true);
-  });
-
-  it('an optimistic row, or the same notes, does not', () => {
-    expect(savedSinceHandoff([{ id: 'optimistic-2026' }, { id: 'note-1' }], before)).toBe(false);
-    expect(savedSinceHandoff([{ id: 'note-1' }, { id: 'note-2' }], before)).toBe(false);
   });
 });

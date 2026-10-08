@@ -70,7 +70,9 @@ export function completedTasks(tasks: readonly HubTask[]): HubTask[] {
  * (receipt-scan financial wrapper) when present, else the additive cost +
  * parts + labor breakdown — mirrors the API's effectiveTaskTotal.
  */
-export function effectiveTaskTotal(task: HubTask): number {
+export function effectiveTaskTotal(
+  task: Pick<HubTask, 'totalAmount' | 'cost' | 'partsCost' | 'laborCost'>,
+): number {
   if (task.totalAmount != null) return task.totalAmount;
   return (task.cost ?? 0) + (task.partsCost ?? 0) + (task.laborCost ?? 0);
 }
