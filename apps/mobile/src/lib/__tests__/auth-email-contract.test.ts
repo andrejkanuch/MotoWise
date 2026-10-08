@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { AUTH_EMAIL_REDIRECT_TO } from '../../config/auth';
 
 // Every app-requested confirmation email must carry AUTH_EMAIL_REDIRECT_TO: the
 // production "Confirm signup" template compares `{{ .RedirectTo }}` to it to
@@ -43,6 +44,19 @@ describe('app auth-email redirect contract', () => {
     calls.map(({ file, call }) => [file, call]),
   )('%s passes AUTH_EMAIL_REDIRECT_TO', (_file, call) => {
     expect(call).toContain('AUTH_EMAIL_REDIRECT_TO');
+  });
+
+  it('matches the redirect the Supabase confirmation template and subject branch on', () => {
+    const repoRoot = join(SRC, '..', '..', '..');
+    const template = readFileSync(
+      join(repoRoot, 'supabase', 'templates', 'confirmation.html'),
+      'utf8',
+    );
+    const config = readFileSync(join(repoRoot, 'supabase', 'config.toml'), 'utf8');
+
+    expect(template).toContain(`eq .RedirectTo "${AUTH_EMAIL_REDIRECT_TO}"`);
+    expect(template).toContain('{{ .Token }}');
+    expect(config).toContain(`eq .RedirectTo \\"${AUTH_EMAIL_REDIRECT_TO}\\"`);
   });
 
   it('keeps the redirect URL literal only in config/auth.ts', () => {
