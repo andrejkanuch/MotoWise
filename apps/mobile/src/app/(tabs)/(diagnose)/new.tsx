@@ -145,7 +145,7 @@ export default function NewDiagnosticScreen() {
     // (FREE_TIER_LIMITS.MAX_AI_DIAGNOSTICS_PER_MONTH, and the store listings say so).
     // The server counts and answers FORBIDDEN once it is used — see the catch below.
     const state = store.getState();
-    if (state.isSubmitting) return;
+    if (state.isSubmitting || !state.hasProblemInput()) return;
     state.setIsSubmitting(true);
     state.setSubmitError(null);
     trackEvent(AnalyticsEvent.DIAGNOSTIC_SUBMITTED, { has_photo: !!state.photoUri });

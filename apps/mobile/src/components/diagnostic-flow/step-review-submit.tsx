@@ -120,6 +120,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
       includeMaintenanceHistory: s.includeMaintenanceHistory,
       isSubmitting: s.isSubmitting,
       submitError: s.submitError,
+      hasProblemInput: s.hasProblemInput(),
       goToStepFromReview: s.goToStepFromReview,
       setDataSharingOptedIn: s.setDataSharingOptedIn,
       setIncludeMaintenanceHistory: s.setIncludeMaintenanceHistory,
@@ -418,6 +419,20 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
           backgroundColor: colors.background,
         }}
       >
+        {!store.hasProblemInput && (
+          <Pressable onPress={() => editStep(2)} accessibilityRole="button">
+            <Text
+              style={{
+                fontSize: 14,
+                color: colors.textMuted,
+                textAlign: 'center',
+                marginBottom: 8,
+              }}
+            >
+              {t('diagnoseV2.problemRequired')}
+            </Text>
+          </Pressable>
+        )}
         {store.submitError && (
           <Text
             style={{
@@ -438,11 +453,13 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
             flexDirection: 'row',
             justifyContent: 'center',
             gap: 8,
-            backgroundColor: store.isSubmitting ? colors.submittingBg : colors.accent,
+            backgroundColor:
+              store.isSubmitting || !store.hasProblemInput ? colors.submittingBg : colors.accent,
             borderCurve: 'continuous',
           }}
           onPress={onSubmit}
-          disabled={store.isSubmitting}
+          disabled={store.isSubmitting || !store.hasProblemInput}
+          accessibilityState={{ disabled: store.isSubmitting || !store.hasProblemInput }}
         >
           {store.isSubmitting ? (
             <>

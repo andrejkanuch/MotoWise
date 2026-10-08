@@ -1733,7 +1733,10 @@
     "charCount_one": "{{count}} / {{max}}",
     "charCount_other": "{{count}} / {{max}}",
     "charCount_few": "{{count}} / {{max}}",
-    "charCount_many": "{{count}} / {{max}}"
+    "charCount_many": "{{count}} / {{max}}",
+    "problemRequired": "Jelaskan masalahnya atau tambahkan foto untuk dianalisis. Ketuk untuk mengedit.",
+    "symptomsRequired": "Pilih yang Anda rasakan, atau “Saya tidak yakin”.",
+    "descriptionRequired": "Jelaskan apa yang terjadi untuk melanjutkan."
   },
   "notifications": {
     "title": "Notifikasi",

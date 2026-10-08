@@ -1734,7 +1734,10 @@
     "charCount_one": "{{count}} / {{max}}",
     "charCount_other": "{{count}} / {{max}}",
     "charCount_few": "{{count}} / {{max}}",
-    "charCount_many": "{{count}} / {{max}}"
+    "charCount_many": "{{count}} / {{max}}",
+    "problemRequired": "Describe el problema o añade una foto para analizarlo. Toca para editar.",
+    "symptomsRequired": "Elige lo que notas o «No estoy seguro».",
+    "descriptionRequired": "Describe lo que ocurre para continuar."
   },
   "notifications": {
     "title": "Notificaciones",

@@ -1733,7 +1733,10 @@
     "charCount_one": "{{count}} / {{max}}",
     "charCount_other": "{{count}} / {{max}}",
     "charCount_few": "{{count}} / {{max}}",
-    "charCount_many": "{{count}} / {{max}}"
+    "charCount_many": "{{count}} / {{max}}",
+    "problemRequired": "विश्लेषण के लिए समस्या का वर्णन करें या फ़ोटो जोड़ें। संपादित करने के लिए टैप करें।",
+    "symptomsRequired": "जो आप महसूस करते हैं उसे चुनें, या “मुझे पक्का नहीं”।",
+    "descriptionRequired": "जारी रखने के लिए बताएं कि क्या हो रहा है।"
   },
   "notifications": {
     "title": "नोटिफिकेशन",

@@ -1733,7 +1733,10 @@
     "charCount_one": "{{count}} / {{max}}",
     "charCount_other": "{{count}} / {{max}}",
     "charCount_few": "{{count}} / {{max}}",
-    "charCount_many": "{{count}} / {{max}}"
+    "charCount_many": "{{count}} / {{max}}",
+    "problemRequired": "分析するには、症状を入力するか写真を追加してください。タップして編集。",
+    "symptomsRequired": "気になる症状を選ぶか、「わかりません」を選んでください。",
+    "descriptionRequired": "続けるには、症状を入力してください。"
   },
   "notifications": {
     "title": "通知",

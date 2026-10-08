@@ -122,6 +122,7 @@ interface DiagnosticFlowState {
   getProgress: () => number;
   reset: () => void;
   hasAnyData: () => boolean;
+  hasProblemInput: () => boolean;
 }
 
 const initialState = {
@@ -283,6 +284,20 @@ export const useDiagnosticFlowStore = create<DiagnosticFlowState>()((set, get) =
       s.photoUri ||
       s.additionalNotes.trim() ||
       s.urgency ||
+      s.wizardAnswers.symptoms.length > 0 ||
+      s.wizardAnswers.location.length > 0 ||
+      s.wizardAnswers.timing.length > 0
+    );
+  },
+
+  // Mirrors SubmitDiagnosticSchema's refine in @motovault/types: the server rejects a
+  // submission with no photo, description, notes or wizard answer (BAD_REQUEST).
+  hasProblemInput: () => {
+    const s = get();
+    return !!(
+      s.photoUri ||
+      s.freeTextDescription.trim() ||
+      s.additionalNotes.trim() ||
       s.wizardAnswers.symptoms.length > 0 ||
       s.wizardAnswers.location.length > 0 ||
       s.wizardAnswers.timing.length > 0

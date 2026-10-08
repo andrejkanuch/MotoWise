@@ -245,7 +245,16 @@ export function StepProblemDescription() {
 
   const [customInput, setCustomInput] = useState('');
 
+  // Step 2 is where the problem is collected, so it is the step that refuses to move on
+  // without one (MOTO-VAULT-REACT-NATIVE-3Q). The wizard only needs the symptoms answer —
+  // "I'm not sure" counts — and location/timing stay optional.
+  const canContinue =
+    inputMode === 'wizard'
+      ? wizardSubStep > 0 || wizardAnswers.symptoms.length > 0
+      : freeTextDescription.trim().length > 0;
+
   const handleWizardNext = () => {
+    if (!canContinue) return;
     if (wizardSubStep < WIZARD_STEPS.length - 1) {
       setWizardSubStep((wizardSubStep + 1) as 0 | 1 | 2);
     } else if (editingFromReview) {
@@ -261,6 +270,7 @@ export function StepProblemDescription() {
   };
 
   const handleFreeTextNext = () => {
+    if (!canContinue) return;
     if (editingFromReview) backToReview();
     else goNext();
   };
@@ -625,15 +635,32 @@ export function StepProblemDescription() {
             <Text style={{ fontSize: 14, color: colors.textMuted }}>{t('diagnoseV2.back')}</Text>
           </Pressable>
         )}
+        {!canContinue && (
+          <Text
+            style={{
+              fontSize: 14,
+              color: colors.textMuted,
+              textAlign: 'center',
+              marginBottom: 8,
+            }}
+          >
+            {inputMode === 'wizard'
+              ? t('diagnoseV2.symptomsRequired')
+              : t('diagnoseV2.descriptionRequired')}
+          </Text>
+        )}
         <Pressable
           style={{
-            backgroundColor: colors.accent,
+            backgroundColor: canContinue ? colors.accent : colors.submittingBg,
             borderRadius: 16,
             paddingVertical: 16,
             alignItems: 'center',
             borderCurve: 'continuous',
           }}
           onPress={inputMode === 'wizard' ? handleWizardNext : handleFreeTextNext}
+          disabled={!canContinue}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !canContinue }}
         >
           <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>
             {editingFromReview ? t('diagnoseV2.backToReview') : t('diagnoseV2.next')}

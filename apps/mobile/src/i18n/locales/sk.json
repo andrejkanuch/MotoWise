@@ -1773,7 +1773,10 @@
     "charCount_one": "{{count}} / {{max}}",
     "charCount_other": "{{count}} / {{max}}",
     "charCount_few": "{{count}} / {{max}}",
-    "charCount_many": "{{count}} / {{max}}"
+    "charCount_many": "{{count}} / {{max}}",
+    "problemRequired": "Opíšte problém alebo pridajte fotku, aby sme ho mohli analyzovať. Ťuknutím upravíte.",
+    "symptomsRequired": "Vyberte, čo spozorujete, alebo „Nie som si istý“.",
+    "descriptionRequired": "Ak chcete pokračovať, opíšte, čo sa deje."
   },
   "notifications": {
     "title": "Notifikácie",
