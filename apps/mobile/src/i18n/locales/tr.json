@@ -46,7 +46,22 @@
     "accountExistsTitle": "Hesap zaten mevcut",
     "accountExistsMessage": "Bu e-posta zaten kayıtlı. Lütfen giriş yapın.",
     "restoringSession": "Oturumunuz geri yükleniyor…",
-    "signInInstead": "Bunun yerine giriş yap"
+    "signInInstead": "Bunun yerine giriş yap",
+    "codeTitle": "Kodunu gir",
+    "codeSentTo": "{{email}} adresine {{digits}} haneli bir kod gönderdik",
+    "codeInputLabel": "Doğrulama kodu",
+    "codeVerifying": "Doğrulanıyor…",
+    "codeResend": "Kodu yeniden gönder",
+    "codeResendIn": "{{seconds}} sn sonra yeniden gönder",
+    "codeResent": "Yeni kod gönderildi — en son gelen e-postayı kullan.",
+    "codeWrongOrExpired": "Kod yanlış veya süresi dolmuş. En son e-postayı kontrol et ya da yeniden gönder.",
+    "codeTooManyAttempts": "Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.",
+    "codeConnectionError": "Bağlantı kurulamadı. Bağlantını kontrol edip tekrar dene.",
+    "codeGenericError": "Bir şeyler ters gitti. Lütfen tekrar dene.",
+    "codeNotConfirmedYet": "E-postan henüz doğrulanmadı. En son e-postadaki kodu gir.",
+    "codeAlreadyConfirmed": "Bağlantı ile zaten doğruladım",
+    "codeChangeEmail": "E-postayı değiştir",
+    "codeSendFailed": "Kodu gönderemedik. Bağlantını kontrol edip tekrar dene."
   },
   "tabs": {
     "home": "Ana Sayfa",

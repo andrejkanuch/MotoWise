@@ -46,7 +46,22 @@
     "accountExistsTitle": "Account already exists",
     "accountExistsMessage": "This email is already registered. Sign in instead.",
     "restoringSession": "Restoring your session…",
-    "signInInstead": "Sign in instead"
+    "signInInstead": "Sign in instead",
+    "codeTitle": "Enter your code",
+    "codeSentTo": "We sent a {{digits}}-digit code to {{email}}",
+    "codeInputLabel": "Confirmation code",
+    "codeVerifying": "Verifying…",
+    "codeResend": "Resend code",
+    "codeResendIn": "Resend in {{seconds}}s",
+    "codeResent": "New code sent — use the newest email.",
+    "codeWrongOrExpired": "That code is wrong or has expired. Check the newest email or resend.",
+    "codeTooManyAttempts": "Too many attempts. Wait a moment and try again.",
+    "codeConnectionError": "Can't connect. Check your connection and try again.",
+    "codeGenericError": "Something went wrong. Please try again.",
+    "codeNotConfirmedYet": "Your email isn't confirmed yet. Enter the code from the newest email.",
+    "codeAlreadyConfirmed": "I already confirmed via the link",
+    "codeChangeEmail": "Change email",
+    "codeSendFailed": "We couldn't send the code. Check your connection and try again."
   },
   "tabs": {
     "home": "Home",

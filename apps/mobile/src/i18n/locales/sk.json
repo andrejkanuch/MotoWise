@@ -46,7 +46,22 @@
     "accountExistsTitle": "Účet už existuje",
     "accountExistsMessage": "Tento e-mail je už zaregistrovaný. Radšej sa prihlás.",
     "restoringSession": "Obnovujeme tvoju reláciu…",
-    "signInInstead": "Prihlásiť sa"
+    "signInInstead": "Prihlásiť sa",
+    "codeTitle": "Zadaj kód",
+    "codeSentTo": "Poslali sme {{digits}}-miestny kód na {{email}}",
+    "codeInputLabel": "Potvrdzovací kód",
+    "codeVerifying": "Overuje sa…",
+    "codeResend": "Poslať kód znova",
+    "codeResendIn": "Poslať znova o {{seconds}} s",
+    "codeResent": "Nový kód je odoslaný — použi najnovší email.",
+    "codeWrongOrExpired": "Kód je nesprávny alebo vypršal. Pozri najnovší email alebo si pošli nový.",
+    "codeTooManyAttempts": "Príliš veľa pokusov. Chvíľu počkaj a skús to znova.",
+    "codeConnectionError": "Nedá sa pripojiť. Skontroluj pripojenie a skús to znova.",
+    "codeGenericError": "Niečo sa pokazilo. Skús to znova.",
+    "codeNotConfirmedYet": "Tvoj email ešte nie je potvrdený. Zadaj kód z najnovšieho emailu.",
+    "codeAlreadyConfirmed": "Email už mám potvrdený cez odkaz",
+    "codeChangeEmail": "Zmeniť email",
+    "codeSendFailed": "Kód sa nepodarilo poslať. Skontroluj pripojenie a skús to znova."
   },
   "tabs": {
     "home": "Domov",
