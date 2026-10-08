@@ -27,7 +27,7 @@ import { AUTH_EMAIL_REDIRECT_TO } from '../../config/auth';
 import { useEmailCodeStep } from '../../hooks/use-email-code-step';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { signUpConsentMetadata } from '../../lib/analytics-consent';
-import { classifyAuthError, EMAIL_AUTH_ERROR } from '../../lib/email-confirmation';
+import { classifyAuthError, EMAIL_AUTH_ERROR, normalizeEmail } from '../../lib/email-confirmation';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { presentOAuthError } from '../../lib/oauth-error-alert';
@@ -56,9 +56,11 @@ export default function RegisterScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     setLoading(true);
+    // The code step verifies against the normalized address; sign up with the same one.
+    const address = normalizeEmail(email);
     try {
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: address,
         password,
         options: {
           data: { full_name: fullName, ...signUpConsentMetadata() },
@@ -70,7 +72,7 @@ export default function RegisterScreen() {
         // The confirmation email could not be sent yet: open the code step with
         // the wait already running, so the rider can resend once it is over.
         if (failure.kind === EMAIL_AUTH_ERROR.RATE_LIMITED) {
-          openCodeStepRateLimited(email, password, failure.retryAfterMs);
+          openCodeStepRateLimited(address, password, failure.retryAfterMs);
         } else {
           Alert.alert(t('common.error'), userFriendlyError(error));
         }
@@ -86,7 +88,7 @@ export default function RegisterScreen() {
         } else {
           // USER_SIGNED_UP fires from the code step once the account is confirmed.
           trackEvent(AnalyticsEvent.EMAIL_CODE_SENT, { source: EMAIL_CODE_SOURCE.SIGNUP });
-          openCodeStep({ email, password });
+          openCodeStep({ email: address, password });
         }
       } else if (data.user && data.session) {
         trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'email' });

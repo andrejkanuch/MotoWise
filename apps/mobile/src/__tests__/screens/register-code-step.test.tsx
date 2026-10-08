@@ -120,6 +120,23 @@ afterEach(() => {
 });
 
 describe('Register with email confirmation', () => {
+  it('signs up and opens the code step with the trimmed, lowercased email', async () => {
+    mockSignUp.mockResolvedValue(noSession);
+    await render(<RegisterScreen />);
+    await fireEvent.changeText(screen.getByPlaceholderText(t('auth.fullName')), NAME);
+    await fireEvent.changeText(
+      screen.getByPlaceholderText(t('auth.email')),
+      ` ${EMAIL.toUpperCase()} `,
+    );
+    await fireEvent.changeText(screen.getByPlaceholderText(t('auth.password')), PASSWORD);
+    const labels = screen.getAllByText(t('auth.signUp'));
+    await fireEvent.press(labels[labels.length - 1]);
+    await flush();
+
+    expect(mockSignUp).toHaveBeenCalledWith(expect.objectContaining({ email: EMAIL }));
+    expect(screen.getByText(t('auth.codeSentTo', { digits: 6, email: EMAIL }))).toBeTruthy();
+  });
+
   it('opens the code step on a no-session signup and fires USER_SIGNED_UP only after verify', async () => {
     mockSignUp.mockResolvedValue(noSession);
     mockVerifySignupCode.mockResolvedValue({ error: null });
