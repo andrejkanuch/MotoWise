@@ -34,8 +34,17 @@ double_confirm_changes = true
 enable_confirmations = true
 secure_password_change = true
 max_frequency = "1m0s"
-otp_length = 8
+otp_length = 6
 otp_expiry = 3600
+
+# Confirmation email: app signups (redirect_to = the app redirect constant in
+# apps/mobile/src/config/auth.ts) get a 6-digit code, everything else gets the
+# original link email. Production is applied via the Management API — see
+# docs/runbooks/supabase-confirmation-template.md. content_path is relative to
+# the project root.
+[auth.email.template.confirmation]
+subject = "{{ if eq .RedirectTo \"https://motovault.app/auth/callback?redirect=motovault://auth/callback\" }}Your MotoVault code: {{ .Token }}{{ else }}Confirm Your Signup{{ end }}"
+content_path = "./supabase/templates/confirmation.html"
 
 # Production sends confirmation / password-reset email via Resend (custom SMTP),
 # applied to the linked project through the Management API — see

@@ -1,0 +1,47 @@
+{{ if eq .RedirectTo "https://motovault.app/auth/callback?redirect=motovault://auth/callback" }}<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light only" />
+    <title>Your MotoVault code</title>
+  </head>
+  <body style="margin:0;padding:0;background-color:#F5F3F0;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F5F3F0;">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;background-color:#FFFFFF;border-radius:12px;">
+            <tr>
+              <td style="padding:32px 28px 8px 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1E1C19;">
+                <p style="margin:0 0 24px 0;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A84A1C;">MotoVault</p>
+                <h1 style="margin:0 0 12px 0;font-size:22px;line-height:28px;font-weight:700;color:#1E1C19;">Confirm your email</h1>
+                <p style="margin:0 0 24px 0;font-size:16px;line-height:24px;color:#4A4642;">Enter this code in the MotoVault app to finish creating your account.</p>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding:0 28px;">
+                <div style="display:inline-block;padding:16px 24px;border:2px solid #D4622E;border-radius:10px;font-family:'SFMono-Regular',Menlo,Consolas,'Liberation Mono',monospace;font-size:36px;line-height:40px;font-weight:700;letter-spacing:8px;color:#1E1C19;">{{ .Token }}</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 28px 8px 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#4A4642;">
+                <p style="margin:0 0 8px 0;font-size:15px;line-height:22px;">This code is valid for 1 hour.</p>
+                <p style="margin:0 0 24px 0;font-size:15px;line-height:22px;">If you requested more than one code, use the one in the newest email. Older codes no longer work.</p>
+                <p style="margin:0 0 24px 0;font-size:13px;line-height:20px;color:#6B655F;">If you did not sign up for MotoVault, you can ignore this email.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 28px 28px 28px;border-top:1px solid #E8E4DF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+                <p style="margin:0;font-size:13px;line-height:20px;color:#6B655F;">Using an older version of MotoVault without a code field? Update the app, or <a href="{{ .ConfirmationURL }}" style="color:#A84A1C;text-decoration:underline;">tap this link</a> and then sign in in the app.</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+{{ else }}<h2>Confirm your signup</h2>
+
+<p>Follow this link to confirm your user:</p>
+<p><a href="{{ .ConfirmationURL }}">Confirm your mail</a></p>{{ end }}

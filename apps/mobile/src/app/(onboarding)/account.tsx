@@ -16,12 +16,19 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  EMAIL_CODE_SOURCE,
+  EMAIL_CODE_STEP_THEME,
+  EmailCodeStep,
+} from '../../components/auth/email-code-step';
 import { AppleGlyph, GoogleGlyph } from '../../components/onboarding/oauth-glyphs';
 import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { AUTH_EMAIL_REDIRECT_TO } from '../../config/auth';
 import { getPreviousRoute, OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
+import { useEmailCodeStep } from '../../hooks/use-email-code-step';
 import {
   useOnboardingNext,
   useOnboardingStep,
@@ -29,6 +36,7 @@ import {
 } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { signUpConsentMetadata } from '../../lib/analytics-consent';
+import { classifyAuthError, EMAIL_AUTH_ERROR, normalizeEmail } from '../../lib/email-confirmation';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { presentOAuthError } from '../../lib/oauth-error-alert';
@@ -70,6 +78,11 @@ export default function AccountScreen() {
    * the last real question instead.
    */
   const handleBack = () => {
+    // From the code step, Back means "change email", never leaving onboarding.
+    if (codeStep) {
+      backFromCodeStep();
+      return;
+    }
     const previous = getPreviousRoute(variant, OB_SCREEN.ACCOUNT);
     if (previous) router.replace(previous);
   };
@@ -79,6 +92,19 @@ export default function AccountScreen() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const advancedRef = useRef(false);
+
+  // Back from the code step returns to the email form: the address stays, the
+  // password is typed again. Android hardware back does the same instead of
+  // popping the screen. Once a session exists the screen is advancing; the back
+  // press is swallowed, matching the hidden Back button.
+  const {
+    codeStep,
+    open: openCodeStep,
+    openRateLimited: openCodeStepRateLimited,
+    close: closeCodeStep,
+    back: backFromCodeStep,
+    onBusyChange: onCodeStepBusyChange,
+  } = useEmailCodeStep({ clearPassword: () => setPassword(''), backLocked: !!session });
 
   useEffect(() => {
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.ACCOUNT, {
@@ -150,18 +176,27 @@ export default function AccountScreen() {
 
   const handleEmail = async () => {
     setBusy(true);
+    // The code step verifies against this exact address, so sign up with it too.
+    const address = normalizeEmail(email);
     try {
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: address,
         password,
         options: {
           // The rider's analytics decision, for the server-side signup event.
           data: signUpConsentMetadata(),
-          emailRedirectTo: 'https://motovault.app/auth/callback?redirect=motovault://auth/callback',
+          emailRedirectTo: AUTH_EMAIL_REDIRECT_TO,
         },
       });
       if (error) {
-        Alert.alert(t('common.error'), userFriendlyError(error));
+        const failure = classifyAuthError(error);
+        if (failure.kind === EMAIL_AUTH_ERROR.RATE_LIMITED) {
+          // A code went out moments ago (this is a repeat signup): enter it,
+          // with the resend countdown already running.
+          openCodeStepRateLimited(address, password, failure.retryAfterMs);
+        } else {
+          Alert.alert(t('common.error'), userFriendlyError(error));
+        }
       } else if (data.user && !data.session) {
         // An empty `identities` array is Supabase's signal that this email is
         // ALREADY registered: with confirmations on, it suppresses the email
@@ -173,11 +208,15 @@ export default function AccountScreen() {
             { text: t('auth.signIn'), onPress: () => router.push(OB_ROUTE.SIGN_IN) },
           ]);
         } else {
-          // Genuinely new account — email confirmation required before proceeding.
-          Alert.alert(t('auth.checkEmail'), t('auth.confirmationSent'));
+          // New (or still-unconfirmed) account: Supabase sent a code. The code
+          // step confirms it and fires USER_SIGNED_UP on success.
+          openCodeStep({ email: address, password });
+          trackEvent(AnalyticsEvent.EMAIL_CODE_SENT, { source: EMAIL_CODE_SOURCE.SIGNUP });
         }
       } else if (data.session) {
-        // New account with an active session (no email confirmation needed).
+        // New account with an active session (no email confirmation needed, e.g.
+        // confirmations off locally). Never passes through the code step, so
+        // this is the one USER_SIGNED_UP for the account.
         // OAuth paths fire USER_SIGNED_UP in oauth.ts; the email-in-onboarding
         // path must too, otherwise onboarding email signups never reach the
         // canonical signup metric (the Executive "Daily Signups" denominator).
@@ -258,38 +297,58 @@ export default function AccountScreen() {
             </Animated.View>
           ) : null}
 
-          <Animated.Text
-            entering={FadeInUp.delay(60).duration(320)}
-            style={{
-              fontFamily: 'InstrumentSerif-Regular',
-              fontSize: 34,
-              lineHeight: 37,
-              color: ONBOARDING_COLORS.textPrimary,
-              letterSpacing: -0.7,
-              marginBottom: 10,
-            }}
-          >
-            {isPro ? t('onboarding.obAccountTitlePro') : t('onboarding.obAccountTitleFree')}{' '}
-            <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
-              {isPro
-                ? t('onboarding.obAccountTitleProItalic')
-                : t('onboarding.obAccountTitleFreeItalic')}
-            </Text>
-          </Animated.Text>
-          <Animated.Text
-            entering={FadeInUp.delay(120).duration(320)}
-            style={{
-              fontSize: 14.5,
-              color: ONBOARDING_COLORS.textSecondary,
-              lineHeight: 21,
-              maxWidth: 330,
-              marginBottom: 26,
-            }}
-          >
-            {isPro ? t('onboarding.obAccountSubtitlePro') : t('onboarding.obAccountSubtitleFree')}
-          </Animated.Text>
+          {/* EmailCodeStep has its own header; the screen's heading steps aside. */}
+          {codeStep ? null : (
+            <>
+              <Animated.Text
+                entering={FadeInUp.delay(60).duration(320)}
+                style={{
+                  fontFamily: 'InstrumentSerif-Regular',
+                  fontSize: 34,
+                  lineHeight: 37,
+                  color: ONBOARDING_COLORS.textPrimary,
+                  letterSpacing: -0.7,
+                  marginBottom: 10,
+                }}
+              >
+                {isPro ? t('onboarding.obAccountTitlePro') : t('onboarding.obAccountTitleFree')}{' '}
+                <Text
+                  style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}
+                >
+                  {isPro
+                    ? t('onboarding.obAccountTitleProItalic')
+                    : t('onboarding.obAccountTitleFreeItalic')}
+                </Text>
+              </Animated.Text>
+              <Animated.Text
+                entering={FadeInUp.delay(120).duration(320)}
+                style={{
+                  fontSize: 14.5,
+                  color: ONBOARDING_COLORS.textSecondary,
+                  lineHeight: 21,
+                  maxWidth: 330,
+                  marginBottom: 26,
+                }}
+              >
+                {isPro
+                  ? t('onboarding.obAccountSubtitlePro')
+                  : t('onboarding.obAccountSubtitleFree')}
+              </Animated.Text>
+            </>
+          )}
 
-          {emailMode ? (
+          {codeStep ? (
+            <EmailCodeStep
+              email={codeStep.email}
+              source={EMAIL_CODE_SOURCE.SIGNUP}
+              password={codeStep.password}
+              initialCooldownMs={codeStep.initialCooldownMs}
+              theme={EMAIL_CODE_STEP_THEME.onboarding}
+              onBack={closeCodeStep}
+              onBusyChange={onCodeStepBusyChange}
+              onNeedsSignIn={() => router.push(OB_ROUTE.SIGN_IN)}
+            />
+          ) : emailMode ? (
             <Animated.View entering={FadeInUp.duration(280)} style={{ gap: 12 }}>
               <TextInput
                 value={email}
