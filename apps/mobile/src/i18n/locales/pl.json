@@ -1400,7 +1400,10 @@
     "charCount_one": "{{count}} / {{max}}",
     "charCount_other": "{{count}} / {{max}}",
     "charCount_few": "{{count}} / {{max}}",
-    "charCount_many": "{{count}} / {{max}}"
+    "charCount_many": "{{count}} / {{max}}",
+    "problemRequired": "Opisz problem lub dodaj zdjęcie, aby przeprowadzić analizę. Stuknij, aby edytować.",
+    "symptomsRequired": "Wybierz, co zauważasz, lub „Nie jestem pewien”.",
+    "descriptionRequired": "Opisz, co się dzieje, aby kontynuować."
   },
   "notifications": {
     "title": "Powiadomienia",

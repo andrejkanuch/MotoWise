@@ -1398,7 +1398,10 @@
     "charCount_one": "{{count}} / {{max}}",
     "charCount_other": "{{count}} / {{max}}",
     "charCount_few": "{{count}} / {{max}}",
-    "charCount_many": "{{count}} / {{max}}"
+    "charCount_many": "{{count}} / {{max}}",
+    "problemRequired": "อธิบายปัญหาหรือเพิ่มรูปภาพเพื่อวิเคราะห์ แตะเพื่อแก้ไข",
+    "symptomsRequired": "เลือกอาการที่สังเกตเห็น หรือ “ไม่แน่ใจ”",
+    "descriptionRequired": "อธิบายสิ่งที่เกิดขึ้นเพื่อดำเนินการต่อ"
   },
   "notifications": {
     "title": "การแจ้งเตือน",

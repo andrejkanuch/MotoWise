@@ -1398,7 +1398,10 @@
     "charCount_one": "{{count}} / {{max}}",
     "charCount_other": "{{count}} / {{max}}",
     "charCount_few": "{{count}} / {{max}}",
-    "charCount_many": "{{count}} / {{max}}"
+    "charCount_many": "{{count}} / {{max}}",
+    "problemRequired": "Analiz için sorunu açıklayın veya fotoğraf ekleyin. Düzenlemek için dokunun.",
+    "symptomsRequired": "Fark ettiğiniz şeyi seçin veya “Emin degilim”.",
+    "descriptionRequired": "Devam etmek için ne olduğunu açıklayın."
   },
   "notifications": {
     "title": "Bildirimler",

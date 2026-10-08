@@ -1399,7 +1399,10 @@
     "charCount_one": "{{count}} / {{max}}",
     "charCount_other": "{{count}} / {{max}}",
     "charCount_few": "{{count}} / {{max}}",
-    "charCount_many": "{{count}} / {{max}}"
+    "charCount_many": "{{count}} / {{max}}",
+    "problemRequired": "Descrivi il problema o aggiungi una foto per analizzarlo. Tocca per modificare.",
+    "symptomsRequired": "Scegli cosa noti, oppure «Non sono sicuro».",
+    "descriptionRequired": "Descrivi cosa succede per continuare."
   },
   "notifications": {
     "title": "Notifiche",
