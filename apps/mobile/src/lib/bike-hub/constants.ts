@@ -244,4 +244,12 @@ export const BIKE_HUB_ROUTES: ReadonlySet<string> = new Set([
   'note',
   'log-entry',
   'odometer',
+  'note-photos',
 ]);
+
+/** Tone of the link on a note's meta row: an existing link, or the quiet "Make it a task" offer. */
+export const NOTE_LINK_TONE = {
+  LINK: 'link',
+  QUIET: 'quiet',
+} as const;
+export type NoteLinkTone = (typeof NOTE_LINK_TONE)[keyof typeof NOTE_LINK_TONE];

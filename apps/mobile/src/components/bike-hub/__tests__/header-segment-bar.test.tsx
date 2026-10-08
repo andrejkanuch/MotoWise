@@ -124,9 +124,14 @@ describe('SegmentBar', () => {
       <SegmentBar active={BIKE_SEGMENT.OVERVIEW} onChange={jest.fn()} serviceBadge={1} />,
     );
     expect(screen.getByText('1')).toBeOnTheScreen();
-    expect(
-      screen.getByRole('tab', { name: 'Service, 1 overdue high-priority task' }),
-    ).toBeOnTheScreen();
+    expect(screen.getByRole('tab', { name: 'Service, 1 overdue task' })).toBeOnTheScreen();
+  });
+
+  it('pluralises the badge label (the count is overdue tasks of any priority)', async () => {
+    await render(
+      <SegmentBar active={BIKE_SEGMENT.OVERVIEW} onChange={jest.fn()} serviceBadge={5} />,
+    );
+    expect(screen.getByRole('tab', { name: 'Service, 5 overdue tasks' })).toBeOnTheScreen();
   });
 });
 

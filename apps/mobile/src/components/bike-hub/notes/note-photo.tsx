@@ -17,16 +17,26 @@ export function rememberLocalNotePhoto(storagePath: string, localUri: string): v
   localUriByStoragePath.set(storagePath, localUri);
 }
 
+/** A saved photo (`storagePath` + `publicUrl`) or a local file not uploaded yet. */
+export interface NotePhotoSource {
+  storagePath?: string;
+  uri: string;
+}
+
+/** The uri to draw: the rider's own local file when this session uploaded it, else the remote one. */
+export function notePhotoUri(photo: NotePhotoSource): string {
+  const local = photo.storagePath ? localUriByStoragePath.get(photo.storagePath) : undefined;
+  return local ?? photo.uri;
+}
+
 interface NotePhotoProps {
-  /** A saved photo (`storagePath` + `publicUrl`) or a local file not uploaded yet. */
-  photo: { storagePath?: string; uri: string };
+  photo: NotePhotoSource;
   size: number;
   accessibilityLabel?: string;
 }
 
 /** One square note photo: a raised placeholder until the image fades in. */
 export function NotePhoto({ photo, size, accessibilityLabel }: NotePhotoProps) {
-  const local = photo.storagePath ? localUriByStoragePath.get(photo.storagePath) : undefined;
   // The rounded, raised frame shows until the image fades in; expo-image's own
   // style has no `borderCurve`, so the frame clips it.
   return (
@@ -41,7 +51,7 @@ export function NotePhoto({ photo, size, accessibilityLabel }: NotePhotoProps) {
       }}
     >
       <Image
-        source={{ uri: local ?? photo.uri }}
+        source={{ uri: notePhotoUri(photo) }}
         accessibilityLabel={accessibilityLabel}
         transition={FADE_IN_MS}
         contentFit="cover"

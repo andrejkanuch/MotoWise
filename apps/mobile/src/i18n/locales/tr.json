@@ -1046,7 +1046,9 @@
       "bike": "Motosiklet",
       "listA11y": "Motosiklet bölümleri",
       "serviceBadgeA11y_one": "Servis, {{count}} gecikmiş yüksek öncelikli görev",
-      "serviceBadgeA11y_other": "Servis, {{count}} gecikmiş yüksek öncelikli görev"
+      "serviceBadgeA11y_other": "Servis, {{count}} gecikmiş yüksek öncelikli görev",
+      "serviceOverdueA11y_one": "Servis, {{count}} gecikmiş görev",
+      "serviceOverdueA11y_other": "Servis, {{count}} gecikmiş görev"
     },
     "header": {
       "backTo": "{{origin}} sayfasına dön",
@@ -1115,7 +1117,10 @@
       "logA11y": "Bu motosiklet için kayıt ekle",
       "addTaskA11y": "Bakım görevi ekle",
       "addExpenseA11y": "Masraf ekle",
-      "addDocumentA11y": "Belge ekle"
+      "addDocumentA11y": "Belge ekle",
+      "task": "Görev",
+      "expense": "Gider",
+      "document": "Belge"
     },
     "state": {
       "notFound": "Bu motosiklet artık garajınızda değil.",
@@ -1159,7 +1164,9 @@
       "more_other": "{{count}} tane daha",
       "listAnd": "{{first}} ve {{last}}",
       "loadError": "Görevler yüklenemedi",
-      "docActionInsurance": "yenileyin veya yeni poliçeyi yükleyin"
+      "docActionInsurance": "yenileyin veya yeni poliçeyi yükleyin",
+      "overdueCount_one": "{{count}} gecikmiş",
+      "overdueCount_other": "{{count}} gecikmiş"
     },
     "nextUp": {
       "title": "Sırada"
@@ -1197,7 +1204,8 @@
       "noteButtonA11y": "Daha uzun bir not yaz",
       "inputA11y": "Not ekle",
       "saveFailed": "Not kaydedilemedi. Tekrar deneyin.",
-      "loadError": "Notlar yüklenemedi"
+      "loadError": "Notlar yüklenemedi",
+      "saveA11y": "Notu kaydet"
     },
     "papers": {
       "title": "Evraklar ve motosiklet",
@@ -1285,13 +1293,63 @@
       "noMatch": "“{{query}}” ile eşleşen not yok",
       "composerAdd": "Ekle",
       "attachPhotoA11y": "Fotoğraf ekle",
-      "photoA11y": "Not fotoğrafı"
+      "photoA11y": "Not fotoğrafı",
+      "rowHint": "Notu düzenlemek için açar",
+      "photoOf": "Fotoğraf {{index}}/{{count}}",
+      "photoCount_one": "{{count}} fotoğraf",
+      "photoCount_other": "{{count}} fotoğraf",
+      "photoCount_few": "{{count}} fotoğraf",
+      "photoCount_many": "{{count}} fotoğraf",
+      "matchCount_one": "{{count}} eşleşen not",
+      "matchCount_other": "{{count}} eşleşen not",
+      "matchCount_few": "{{count}} eşleşen not",
+      "matchCount_many": "{{count}} eşleşen not",
+      "clearSearch": "Aramayı temizle",
+      "emptyTitle": "Unutacağın şeyleri burada tut",
+      "emptyBodyStamped": "Lastik basınçları, bir parça numarası, supapları yapan servis. Aşağıya yaz — her not bugünkü kilometreyle kaydedilir.",
+      "emptyBody": "Lastik basınçları, bir parça numarası, supapları yapan servis. Aşağıya yaz, bu motosikletle birlikte saklanır.",
+      "taskLink": "Görev · {{status}}",
+      "linkedTask": "Bağlı görev",
+      "taskLinkA11y": "Bağlı görev “{{title}}”, {{status}}",
+      "linkedTaskA11y": "Bağlı görev “{{title}}”",
+      "taskStatus": {
+        "open": "açık",
+        "inProgress": "devam ediyor",
+        "done": "tamamlandı",
+        "skipped": "atlandı"
+      },
+      "viewerCloseA11y": "Fotoğrafları kapat",
+      "viewerCounter": "{{index}}/{{count}}"
     },
     "refreshFailed": "Yenilenemedi",
     "refreshRetryA11y": {
       "attention": "İlgi bekleyenleri yeniden dene",
       "costs": "Masrafları yeniden dene",
       "notes": "Notları yeniden dene"
+    },
+    "service": {
+      "group": {
+        "overdue": "Gecikmiş",
+        "soon": "Yakında",
+        "later": "Daha sonra",
+        "someday": "Tarih yok"
+      },
+      "noOpenTasks": "Açık görev yok",
+      "priorityA11y": "{{priority}} öncelik",
+      "markDone": "Tamamlandı olarak işaretle",
+      "markDoneA11y": "{{title}} görevini tamamlandı olarak işaretle",
+      "doneOn": "{{date}} tarihinde tamamlandı",
+      "seeAllHistory_one": "Tamamlanan {{count}} görevi gör",
+      "seeAllHistory_other": "Tamamlanan {{count}} görevin tümünü gör",
+      "serviceItems": "Servis kalemleri"
+    },
+    "costsSegment": {
+      "spentIn": "{{year}} harcaması",
+      "spentAllTime": "Toplam harcama",
+      "recent": "Son giderler"
+    },
+    "bikeSegment": {
+      "categories": "Kategoriler"
     }
   },
   "maintenance": {

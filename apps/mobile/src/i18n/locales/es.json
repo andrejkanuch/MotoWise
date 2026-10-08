@@ -1047,7 +1047,9 @@
       "bike": "Moto",
       "listA11y": "Secciones de la moto",
       "serviceBadgeA11y_one": "Servicio, {{count}} tarea vencida de prioridad alta",
-      "serviceBadgeA11y_other": "Servicio, {{count}} tareas vencidas de prioridad alta"
+      "serviceBadgeA11y_other": "Servicio, {{count}} tareas vencidas de prioridad alta",
+      "serviceOverdueA11y_one": "Servicio, {{count}} tarea vencida",
+      "serviceOverdueA11y_other": "Servicio, {{count}} tareas vencidas"
     },
     "header": {
       "backTo": "Volver a {{origin}}",
@@ -1116,7 +1118,10 @@
       "logA11y": "Registrar algo en esta moto",
       "addTaskA11y": "Añadir una tarea de mantenimiento",
       "addExpenseA11y": "Añadir un gasto",
-      "addDocumentA11y": "Añadir un documento"
+      "addDocumentA11y": "Añadir un documento",
+      "task": "Tarea",
+      "expense": "Gasto",
+      "document": "Documento"
     },
     "state": {
       "notFound": "Esta moto ya no está en tu garaje.",
@@ -1160,7 +1165,9 @@
       "more_other": "{{count}} más",
       "listAnd": "{{first}} y {{last}}",
       "loadError": "No se pudieron cargar las tareas",
-      "docActionInsurance": "renuévalo o sube la nueva póliza"
+      "docActionInsurance": "renuévalo o sube la nueva póliza",
+      "overdueCount_one": "{{count}} vencida",
+      "overdueCount_other": "{{count}} vencidas"
     },
     "nextUp": {
       "title": "Lo próximo"
@@ -1198,7 +1205,8 @@
       "noteButtonA11y": "Escribir una nota más larga",
       "inputA11y": "Añadir una nota",
       "saveFailed": "No se pudo guardar la nota. Inténtalo de nuevo.",
-      "loadError": "No se pudieron cargar las notas"
+      "loadError": "No se pudieron cargar las notas",
+      "saveA11y": "Guardar nota"
     },
     "papers": {
       "title": "Papeles y moto",
@@ -1286,13 +1294,63 @@
       "noMatch": "Ninguna nota coincide con «{{query}}»",
       "composerAdd": "Añadir",
       "attachPhotoA11y": "Adjuntar una foto",
-      "photoA11y": "Foto de la nota"
+      "photoA11y": "Foto de la nota",
+      "rowHint": "Abre la nota para editarla",
+      "photoOf": "Foto {{index}} de {{count}}",
+      "photoCount_one": "{{count}} foto",
+      "photoCount_other": "{{count}} fotos",
+      "photoCount_few": "{{count}} fotos",
+      "photoCount_many": "{{count}} fotos",
+      "matchCount_one": "{{count}} nota coincide",
+      "matchCount_other": "{{count}} notas coinciden",
+      "matchCount_few": "{{count}} notas coinciden",
+      "matchCount_many": "{{count}} notas coinciden",
+      "clearSearch": "Borrar búsqueda",
+      "emptyTitle": "Guarda lo que, si no, olvidarías",
+      "emptyBodyStamped": "Presiones de neumáticos, una referencia de pieza, el taller que hizo las válvulas. Escríbelo abajo: cada nota guarda el cuentakilómetros de hoy.",
+      "emptyBody": "Presiones de neumáticos, una referencia de pieza, el taller que hizo las válvulas. Escríbelo abajo y quedará guardado con esta moto.",
+      "taskLink": "Tarea · {{status}}",
+      "linkedTask": "Tarea vinculada",
+      "taskLinkA11y": "Tarea vinculada «{{title}}», {{status}}",
+      "linkedTaskA11y": "Tarea vinculada «{{title}}»",
+      "taskStatus": {
+        "open": "abierta",
+        "inProgress": "en curso",
+        "done": "hecha",
+        "skipped": "omitida"
+      },
+      "viewerCloseA11y": "Cerrar fotos",
+      "viewerCounter": "{{index}} de {{count}}"
     },
     "refreshFailed": "No se pudo actualizar",
     "refreshRetryA11y": {
       "attention": "Reintentar requiere atención",
       "costs": "Reintentar gastos",
       "notes": "Reintentar notas"
+    },
+    "service": {
+      "group": {
+        "overdue": "Vencidas",
+        "soon": "Próximas",
+        "later": "Más adelante",
+        "someday": "Sin fecha"
+      },
+      "noOpenTasks": "No hay tareas pendientes",
+      "priorityA11y": "prioridad {{priority}}",
+      "markDone": "Marcar como hecha",
+      "markDoneA11y": "Marcar «{{title}}» como hecha",
+      "doneOn": "Hecha el {{date}}",
+      "seeAllHistory_one": "Ver {{count}} tarea hecha",
+      "seeAllHistory_other": "Ver las {{count}} tareas hechas",
+      "serviceItems": "Trabajos realizados"
+    },
+    "costsSegment": {
+      "spentIn": "Gastado en {{year}}",
+      "spentAllTime": "Gastado en total",
+      "recent": "Recientes"
+    },
+    "bikeSegment": {
+      "categories": "Categorías"
     }
   },
   "maintenance": {

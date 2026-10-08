@@ -1046,7 +1046,9 @@
       "bike": "Motor",
       "listA11y": "Bagian motor",
       "serviceBadgeA11y_one": "Servis, {{count}} tugas prioritas tinggi yang terlambat",
-      "serviceBadgeA11y_other": "Servis, {{count}} tugas prioritas tinggi yang terlambat"
+      "serviceBadgeA11y_other": "Servis, {{count}} tugas prioritas tinggi yang terlambat",
+      "serviceOverdueA11y_one": "Servis, {{count}} tugas terlambat",
+      "serviceOverdueA11y_other": "Servis, {{count}} tugas terlambat"
     },
     "header": {
       "backTo": "Kembali ke {{origin}}",
@@ -1115,7 +1117,10 @@
       "logA11y": "Catat sesuatu untuk motor ini",
       "addTaskA11y": "Tambah tugas perawatan",
       "addExpenseA11y": "Tambah pengeluaran",
-      "addDocumentA11y": "Tambah dokumen"
+      "addDocumentA11y": "Tambah dokumen",
+      "task": "Tugas",
+      "expense": "Biaya",
+      "document": "Dokumen"
     },
     "state": {
       "notFound": "Motor ini sudah tidak ada di garasi Anda.",
@@ -1159,7 +1164,9 @@
       "more_other": "{{count}} lagi",
       "listAnd": "{{first}} dan {{last}}",
       "loadError": "Tidak dapat memuat tugas",
-      "docActionInsurance": "perpanjang atau unggah polis baru"
+      "docActionInsurance": "perpanjang atau unggah polis baru",
+      "overdueCount_one": "{{count}} terlambat",
+      "overdueCount_other": "{{count}} terlambat"
     },
     "nextUp": {
       "title": "Berikutnya"
@@ -1197,7 +1204,8 @@
       "noteButtonA11y": "Tulis catatan lebih panjang",
       "inputA11y": "Tambah catatan",
       "saveFailed": "Catatan tidak dapat disimpan. Coba lagi.",
-      "loadError": "Tidak dapat memuat catatan"
+      "loadError": "Tidak dapat memuat catatan",
+      "saveA11y": "Simpan catatan"
     },
     "papers": {
       "title": "Dokumen & motor",
@@ -1285,13 +1293,63 @@
       "noMatch": "Tidak ada catatan yang cocok dengan “{{query}}”",
       "composerAdd": "Tambah",
       "attachPhotoA11y": "Lampirkan foto",
-      "photoA11y": "Foto catatan"
+      "photoA11y": "Foto catatan",
+      "rowHint": "Membuka catatan untuk diedit",
+      "photoOf": "Foto {{index}} dari {{count}}",
+      "photoCount_one": "{{count}} foto",
+      "photoCount_other": "{{count}} foto",
+      "photoCount_few": "{{count}} foto",
+      "photoCount_many": "{{count}} foto",
+      "matchCount_one": "{{count}} catatan cocok",
+      "matchCount_other": "{{count}} catatan cocok",
+      "matchCount_few": "{{count}} catatan cocok",
+      "matchCount_many": "{{count}} catatan cocok",
+      "clearSearch": "Hapus pencarian",
+      "emptyTitle": "Simpan hal yang biasanya terlupa",
+      "emptyBodyStamped": "Tekanan ban, nomor suku cadang, bengkel yang mengerjakan klep. Ketik di bawah — setiap catatan ditandai dengan odometer hari ini.",
+      "emptyBody": "Tekanan ban, nomor suku cadang, bengkel yang mengerjakan klep. Ketik di bawah dan tersimpan bersama motor ini.",
+      "taskLink": "Tugas · {{status}}",
+      "linkedTask": "Tugas tertaut",
+      "taskLinkA11y": "Tugas tertaut “{{title}}”, {{status}}",
+      "linkedTaskA11y": "Tugas tertaut “{{title}}”",
+      "taskStatus": {
+        "open": "terbuka",
+        "inProgress": "sedang dikerjakan",
+        "done": "selesai",
+        "skipped": "dilewati"
+      },
+      "viewerCloseA11y": "Tutup foto",
+      "viewerCounter": "{{index}} dari {{count}}"
     },
     "refreshFailed": "Gagal memperbarui",
     "refreshRetryA11y": {
       "attention": "Coba lagi perlu perhatian",
       "costs": "Coba lagi biaya",
       "notes": "Coba lagi catatan"
+    },
+    "service": {
+      "group": {
+        "overdue": "Terlambat",
+        "soon": "Segera jatuh tempo",
+        "later": "Nanti",
+        "someday": "Tanpa tenggat"
+      },
+      "noOpenTasks": "Tidak ada tugas terbuka",
+      "priorityA11y": "prioritas {{priority}}",
+      "markDone": "Tandai selesai",
+      "markDoneA11y": "Tandai {{title}} selesai",
+      "doneOn": "Selesai {{date}}",
+      "seeAllHistory_one": "Lihat {{count}} tugas selesai",
+      "seeAllHistory_other": "Lihat semua {{count}} tugas selesai",
+      "serviceItems": "Item servis"
+    },
+    "costsSegment": {
+      "spentIn": "Pengeluaran {{year}}",
+      "spentAllTime": "Total pengeluaran",
+      "recent": "Terbaru"
+    },
+    "bikeSegment": {
+      "categories": "Kategori"
     }
   },
   "maintenance": {

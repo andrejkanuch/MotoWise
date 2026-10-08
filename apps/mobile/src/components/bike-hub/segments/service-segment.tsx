@@ -9,9 +9,8 @@ import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import type { HubUnit } from '../../../lib/bike-hub/constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerNotification } from '../../../utils/haptics';
-import { OemDisclaimerCard } from '../../maintenance/oem-disclaimer-card';
+import { OEM_DISCLAIMER_VARIANT, OemDisclaimerCard } from '../../maintenance/oem-disclaimer-card';
 import { MaintenanceSection } from '../maintenance-section';
 import type { HubBike, HubTask } from '../shell/use-bike-hub-data';
 
@@ -26,9 +25,16 @@ interface ServiceSegmentProps {
 }
 
 /**
- * Interim Service segment (R1): today's `MaintenanceSection` and OEM disclaimer,
- * unchanged, with the complete / edit / delete handlers that used to live on the
- * bike screen. R2 replaces it with the Active / History redesign.
+ * Service segment: the hub task list (`MaintenanceSection` — Active due groups
+ * and History, hub rows) and the OEM disclaimer as a quiet footnote, with the
+ * complete / edit / delete handlers that used to live on the bike screen.
+ *
+ * Delete keeps its confirmation dialog for now. The spec's 5 s undo
+ * (`useDeferredDelete` + `UndoSnackbar`) needs two things this segment does
+ * not own: a snackbar layer above the action pill (the shell's bottom layout)
+ * and the shell's task list, badge and Overview filtering out ids that are
+ * inside their undo window. Without the second, a "deleted" task would keep
+ * counting in the badge for five seconds. It lands with the R2 mark-done undo.
  */
 export function ServiceSegment({
   bike,
@@ -40,7 +46,6 @@ export function ServiceSegment({
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isDark } = useEditorialTheme();
   const id = bike.id;
   const bikeName = `${bike.year} ${bike.make} ${bike.model}`;
 
@@ -105,23 +110,25 @@ export function ServiceSegment({
   );
 
   return (
-    <View style={{ paddingTop: 16 }}>
+    <View style={{ paddingTop: 12 }}>
       <MaintenanceSection
         // Remounts on a new highlight request: the section only honours
         // `initialExpandedId` once per mount.
         key={highlightKey}
         tasks={tasks}
-        isDark={isDark}
         motorcycleId={id}
+        odometer={bike.currentMileage}
+        make={bike.make}
         initialExpandedId={highlightTaskId}
         onComplete={handleComplete}
         onDelete={handleDelete}
         onEdit={handleEdit}
         mileageUnit={unit}
       />
-      <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
-        <OemDisclaimerCard isDark={isDark} delay={0} />
-      </View>
+      <OemDisclaimerCard
+        variant={OEM_DISCLAIMER_VARIANT.QUIET}
+        style={{ paddingHorizontal: 16, marginTop: 20 }}
+      />
     </View>
   );
 }

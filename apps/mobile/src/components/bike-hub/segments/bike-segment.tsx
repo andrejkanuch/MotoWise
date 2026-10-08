@@ -8,7 +8,6 @@ import {
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { useEditorialTheme } from '../../../theme/editorial';
 import { BikeDetailsCard } from '../bike-details-card';
 import { DocumentsSection } from '../documents-section';
 import type { BikeActions } from '../shell/use-bike-actions';
@@ -48,7 +47,7 @@ function ActionListRow({ row, isLast }: { row: ActionRow; isLast: boolean }) {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 12,
-        paddingVertical: 8,
+        paddingVertical: 12,
         paddingLeft: 14,
         paddingRight: 12,
         borderBottomWidth: isLast ? 0 : 1,
@@ -73,7 +72,15 @@ function ActionListRow({ row, isLast }: { row: ActionRow; isLast: boolean }) {
           <Icon size={18} color={hub.dim} strokeWidth={2} />
         )}
       </View>
-      <Text style={{ flex: 1, fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, color: hub.text }}>
+      <Text
+        style={{
+          flex: 1,
+          fontFamily: HUB_FONT.sansSemiBold,
+          fontSize: 15,
+          lineHeight: 18,
+          color: hub.text,
+        }}
+      >
         {row.label}
       </Text>
       <RowChevron />
@@ -82,14 +89,14 @@ function ActionListRow({ row, isLast }: { row: ActionRow; isLast: boolean }) {
 }
 
 /**
- * Interim Bike segment (R1): today's `DocumentsSection` and details card,
- * unchanged, plus an action list so nothing reachable on the old screen is lost
- * now that its ⋯ menu, hero camera button and Service Report card are gone.
- * R5 replaces the list with the Bike / BikeDetails screens.
+ * Interim Bike segment: Documents, the Details disclosure and the bike's action
+ * list, on the hub's system (16 px gutter, mono eyebrows, one card per list) so
+ * nothing reachable on the old screen is lost now that its ⋯ menu, hero camera
+ * button and Service Report card are gone. Adding a document is the action
+ * pill. R5 replaces the list with the Bike / BikeDetails screens.
  */
 export function BikeSegment({ bike, actions, onChangePhoto, isUploadingPhoto }: BikeSegmentProps) {
   const { t } = useTranslation();
-  const { t: theme } = useEditorialTheme();
 
   const rows: ActionRow[] = [
     {
@@ -127,17 +134,15 @@ export function BikeSegment({ bike, actions, onChangePhoto, isUploadingPhoto }: 
   ];
 
   return (
-    <View style={{ paddingTop: 16 }}>
+    <View style={{ paddingTop: 12, paddingHorizontal: 16, paddingBottom: 16, gap: 12 }}>
       <DocumentsSection
         motorcycleId={bike.id}
         bikeName={bike.nickname ?? `${bike.make} ${bike.model}`}
       />
-      <BikeDetailsCard bike={bike} delay={0} />
+      <BikeDetailsCard bike={bike} />
 
-      {/* The hub pins the wrapped sections above to the dark editorial scheme;
-          the eyebrow takes that theme's muted ink so the tab reads as one surface. */}
-      <View style={{ marginTop: 24, paddingHorizontal: 16, paddingBottom: 16, gap: 8 }}>
-        <SectionHeader label={t('bikeHub.bikeActions.title')} color={theme.ink3} />
+      <View style={{ gap: 8 }}>
+        <SectionHeader label={t('bikeHub.bikeActions.title')} />
         <HubCard style={{ overflow: 'hidden' }}>
           {rows.map((row, index) => (
             <ActionListRow key={row.id} row={row} isLast={index === rows.length - 1} />
@@ -151,7 +156,7 @@ export function BikeSegment({ bike, actions, onChangePhoto, isUploadingPhoto }: 
           accessibilityRole="button"
           style={({ pressed }) => ({
             minHeight: HUB_TOUCH_TARGET,
-            marginTop: 8,
+            marginTop: 12,
             alignItems: 'center',
             justifyContent: 'center',
             opacity: pressed ? 0.6 : 1,

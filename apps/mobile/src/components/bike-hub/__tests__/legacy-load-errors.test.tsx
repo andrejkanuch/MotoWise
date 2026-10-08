@@ -1,6 +1,6 @@
 /**
  * The legacy Expenses and Documents sections (interim Costs and Bike segments)
- * share one load-error look: the same Retry colour, announced on both
+ * share one load-error look: the hub's copper Retry, announced on both
  * platforms. A categories failure no longer hides the documents themselves.
  */
 jest.mock('expo-localization', () => ({
@@ -40,9 +40,9 @@ import { AccessibilityInfo, Alert, StyleSheet } from 'react-native';
 import '../../../i18n';
 import { queryClient } from '../../../lib/query-client';
 import { BIKE_A } from '../../../test/bike-hub-fixtures';
-import { useEditorialTheme } from '../../../theme/editorial';
 import { DocumentsSection } from '../documents-section';
 import { ExpensesSection } from '../expenses-section';
+import { hub } from '../ui/tokens';
 
 /** Every retry of the app client: 2 + 4 + 8 s. */
 const ALL_RETRIES_MS = 30_000;
@@ -86,12 +86,6 @@ const withClient = (children: ReactNode) => (
   <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 );
 
-let warm = '';
-function ThemeProbe() {
-  warm = useEditorialTheme().t.warm;
-  return null;
-}
-
 describe('DocumentsSection — only the categories fail', () => {
   beforeEach(() => {
     mockFetcher.mockImplementation((document: unknown) =>
@@ -108,8 +102,8 @@ describe('DocumentsSection — only the categories fail', () => {
     expect(screen.getByTestId('documents-categories-error')).toHaveTextContent(
       /Couldn't load categories/,
     );
-    expect(screen.getByText('Pinned')).toBeOnTheScreen();
-    expect(screen.getByText('All documents')).toBeOnTheScreen();
+    expect(screen.getByText('Pinned · 1')).toBeOnTheScreen();
+    expect(screen.getByText('All documents · 2')).toBeOnTheScreen();
     expect(screen.getAllByText('Mapfre')).toHaveLength(2); // pinned + the list
     expect(screen.getByText('Owner manual')).toBeOnTheScreen();
     expect(alert).not.toHaveBeenCalled();
@@ -126,9 +120,9 @@ describe('DocumentsSection — only the categories fail', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Retry categories' }));
     await settle();
     expect(screen.queryByTestId('documents-categories-error')).toBeNull();
-    expect(screen.queryByText('All documents')).toBeNull();
-    expect(screen.getByText('Insurance')).toBeOnTheScreen();
-    expect(screen.getByText('Manual')).toBeOnTheScreen();
+    expect(screen.queryByText(/^All documents/)).toBeNull();
+    expect(screen.getByText('Insurance · 1')).toBeOnTheScreen();
+    expect(screen.getByText('Manual · 1')).toBeOnTheScreen();
   });
 });
 
@@ -148,21 +142,14 @@ describe('Expenses and Documents load errors look and sound the same', () => {
       () => <DocumentsSection motorcycleId={BIKE_A.id} bikeName="Africa Twin" />,
       "Couldn't load documents",
     ],
-  ] as const)('%s: warm Retry, live region, announced on iOS', async (_name, testID, Section, message) => {
-    await render(
-      withClient(
-        <>
-          <ThemeProbe />
-          <Section />
-        </>,
-      ),
-    );
+  ] as const)('%s: copper Retry, live region, announced on iOS', async (_name, testID, Section, message) => {
+    await render(withClient(<Section />));
     await settle();
     const error = screen.getByTestId(testID);
     expect(error.props.accessibilityLiveRegion).toBe('polite');
     expect(announce).toHaveBeenCalledWith(message);
     const retry = within(error).getByText('Retry');
-    expect(StyleSheet.flatten(retry.props.style).color).toBe(warm);
+    expect(StyleSheet.flatten(retry.props.style).color).toBe(hub.copperText);
     expect(alert).not.toHaveBeenCalled();
   });
 });

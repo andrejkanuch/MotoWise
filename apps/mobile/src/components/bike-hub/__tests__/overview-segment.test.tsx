@@ -185,9 +185,9 @@ describe('Overview — bike A', () => {
     ).toBeOnTheScreen();
   });
 
-  it('needs attention: count 6, recall → Brake pads → Insurance, then the overflow row', async () => {
+  it('needs attention: 6 rows, counted as 4 overdue (the badge basis); recall → Brake pads → Insurance, then the overflow row', async () => {
     await renderOverview();
-    expect(await screen.findByText('Needs attention · 6')).toBeOnTheScreen();
+    expect(await screen.findByText('Needs attention · 4 overdue')).toBeOnTheScreen();
     const list = within(screen.getByTestId('attention-list'));
     expect(list.getByText('Open safety recall · ECU')).toBeOnTheScreen();
     expect(list.getByText('Free dealer fix')).toBeOnTheScreen();
@@ -339,7 +339,7 @@ describe('Overview — bike A', () => {
 
   it('is ordered photo → status → attention → next up → costs → notes → papers', async () => {
     await renderOverview();
-    await screen.findByText('Needs attention · 6');
+    await screen.findByText('Needs attention · 4 overdue');
     expect(screen.getAllByTestId(/^overview-block-/).map((block) => block.props.testID)).toEqual([
       'overview-block-photo',
       'overview-block-status',
@@ -441,11 +441,28 @@ describe('Overview — quick note', () => {
     expect(mockFetcher).not.toHaveBeenCalledWith(CreateNoteDocument, expect.anything());
   });
 
-  it('"Note" opens the sheet carrying the typed draft', async () => {
+  it('the quiet expand button opens the sheet with the draft and keeps it in the field', async () => {
     await renderOverview();
     await fireEvent.changeText(screen.getByTestId('quick-note-input'), 'Longer thought');
     await fireEvent.press(screen.getByRole('button', { name: 'Write a longer note' }));
     expect(navigation.openNoteSheet).toHaveBeenCalledWith('Longer thought');
+    // Closing the sheet without saving loses nothing.
+    expect(screen.getByTestId('quick-note-input').props.value).toBe('Longer thought');
+  });
+
+  it('copper Add saves the text now; with an empty field it is disabled', async () => {
+    await renderOverview();
+    const add = () => screen.getByRole('button', { name: 'Save note' });
+    expect(add().props.accessibilityState).toEqual(expect.objectContaining({ disabled: true }));
+    await fireEvent.changeText(screen.getByTestId('quick-note-input'), 'Chain at 30 mm');
+    await fireEvent.press(add());
+    await waitFor(() =>
+      expect(mockFetcher).toHaveBeenCalledWith(
+        CreateNoteDocument,
+        expect.objectContaining({ input: expect.objectContaining({ text: 'Chain at 30 mm' }) }),
+      ),
+    );
+    expect(navigation.openNoteSheet).not.toHaveBeenCalled();
   });
 });
 
@@ -462,7 +479,7 @@ describe('Overview — status variants', () => {
     await renderOverview({ ...quiet, tasks: [critical], bike: { ...BIKE_A, recallCount: 0 } });
     expect(await screen.findByText('Not ready')).toBeOnTheScreen();
     expect(screen.getByText('1 overdue critical task')).toBeOnTheScreen();
-    expect(screen.getByText('Needs attention · 1')).toBeOnTheScreen();
+    expect(screen.getByText('Needs attention · 1 overdue')).toBeOnTheScreen();
     expect(screen.queryByTestId('attention-overflow')).toBeNull();
   });
 
@@ -616,7 +633,7 @@ describe('Overview — status variants', () => {
 
   it('a failed refetch over cached tasks keeps the rows and says "Couldn\'t refresh · Retry"', async () => {
     await renderOverview({ tasksRefreshFailed: true });
-    expect(await screen.findByText('Needs attention · 6')).toBeOnTheScreen();
+    expect(await screen.findByText('Needs attention · 4 overdue')).toBeOnTheScreen();
     const line = within(screen.getByTestId('attention-refresh-failed'));
     expect(line.getByText(/^Couldn't refresh/)).toBeOnTheScreen();
     await fireEvent.press(line.getByRole('button', { name: 'Retry needs attention' }));
@@ -627,7 +644,7 @@ describe('Overview — status variants', () => {
 
   it('shows no refresh line when nothing failed', async () => {
     await renderOverview();
-    await screen.findByText('Needs attention · 6');
+    await screen.findByText('Needs attention · 4 overdue');
     expect(screen.queryByText(/^Couldn't refresh/)).toBeNull();
   });
 

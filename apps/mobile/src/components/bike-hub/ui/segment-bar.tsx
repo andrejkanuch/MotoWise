@@ -33,7 +33,11 @@ const INDICATOR_MS = 200;
 export interface SegmentBarProps {
   active: BikeSegment;
   onChange: (segment: BikeSegment) => void;
-  /** Overdue Critical / High tasks — shown on the Service segment only, hidden at 0. */
+  /**
+   * Overdue tasks of any priority (`countOverdueTasks` — the hub's one count,
+   * the same number as Service's "Overdue · N" eyebrow and Overview's "Needs
+   * attention · N overdue"). Shown on the Service segment only, hidden at 0.
+   */
   serviceBadge?: number;
 }
 
@@ -67,7 +71,7 @@ function useSegmentCopy(serviceBadge: number) {
       const label = t(SEGMENT_LABEL_KEY[segment]);
       const badge = segment === BIKE_SEGMENT.SERVICE ? serviceBadge : 0;
       const accessibilityLabel =
-        badge > 0 ? t('bikeHub.segment.serviceBadgeA11y', { count: badge }) : label;
+        badge > 0 ? t('bikeHub.segment.serviceOverdueA11y', { count: badge }) : label;
       return { label, badge, accessibilityLabel };
     },
     [t, serviceBadge],
@@ -230,7 +234,7 @@ function MaterialTabs({ active, onChange, serviceBadge = 0 }: SegmentBarProps) {
 
 /**
  * The four segments of the bike hub. Only Service carries a badge (overdue
- * Critical / High tasks). `accessibilityRole` tablist / tab with the selected
+ * tasks — see `countOverdueTasks`). `accessibilityRole` tablist / tab with the selected
  * state; the badge count is part of the Service tab's label.
  */
 export function SegmentBar(props: SegmentBarProps) {

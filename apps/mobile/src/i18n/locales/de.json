@@ -1046,7 +1046,9 @@
       "bike": "Motorrad",
       "listA11y": "Motorrad-Bereiche",
       "serviceBadgeA11y_one": "Service, {{count}} überfällige Aufgabe mit hoher Priorität",
-      "serviceBadgeA11y_other": "Service, {{count}} überfällige Aufgaben mit hoher Priorität"
+      "serviceBadgeA11y_other": "Service, {{count}} überfällige Aufgaben mit hoher Priorität",
+      "serviceOverdueA11y_one": "Service, {{count}} überfällige Aufgabe",
+      "serviceOverdueA11y_other": "Service, {{count}} überfällige Aufgaben"
     },
     "header": {
       "backTo": "Zurück zu {{origin}}",
@@ -1115,7 +1117,10 @@
       "logA11y": "Etwas für dieses Motorrad eintragen",
       "addTaskA11y": "Wartungsaufgabe hinzufügen",
       "addExpenseA11y": "Ausgabe hinzufügen",
-      "addDocumentA11y": "Dokument hinzufügen"
+      "addDocumentA11y": "Dokument hinzufügen",
+      "task": "Aufgabe",
+      "expense": "Ausgabe",
+      "document": "Dokument"
     },
     "state": {
       "notFound": "Dieses Motorrad ist nicht mehr in deiner Garage.",
@@ -1159,7 +1164,9 @@
       "more_other": "{{count}} weitere",
       "listAnd": "{{first}} und {{last}}",
       "loadError": "Aufgaben konnten nicht geladen werden",
-      "docActionInsurance": "verlängern oder neue Police hochladen"
+      "docActionInsurance": "verlängern oder neue Police hochladen",
+      "overdueCount_one": "{{count}} überfällig",
+      "overdueCount_other": "{{count}} überfällig"
     },
     "nextUp": {
       "title": "Als Nächstes"
@@ -1197,7 +1204,8 @@
       "noteButtonA11y": "Längere Notiz schreiben",
       "inputA11y": "Notiz hinzufügen",
       "saveFailed": "Die Notiz konnte nicht gespeichert werden. Versuch es noch einmal.",
-      "loadError": "Notizen konnten nicht geladen werden"
+      "loadError": "Notizen konnten nicht geladen werden",
+      "saveA11y": "Notiz speichern"
     },
     "papers": {
       "title": "Papiere & Motorrad",
@@ -1285,13 +1293,63 @@
       "noMatch": "Keine Notiz passt zu „{{query}}“",
       "composerAdd": "Hinzufügen",
       "attachPhotoA11y": "Foto anhängen",
-      "photoA11y": "Foto der Notiz"
+      "photoA11y": "Foto der Notiz",
+      "rowHint": "Öffnet die Notiz zum Bearbeiten",
+      "photoOf": "Foto {{index}} von {{count}}",
+      "photoCount_one": "{{count}} Foto",
+      "photoCount_other": "{{count}} Fotos",
+      "photoCount_few": "{{count}} Fotos",
+      "photoCount_many": "{{count}} Fotos",
+      "matchCount_one": "{{count}} passende Notiz",
+      "matchCount_other": "{{count}} passende Notizen",
+      "matchCount_few": "{{count}} passende Notizen",
+      "matchCount_many": "{{count}} passende Notizen",
+      "clearSearch": "Suche löschen",
+      "emptyTitle": "Halte fest, was du sonst vergisst",
+      "emptyBodyStamped": "Reifendrücke, eine Teilenummer, die Werkstatt, die die Ventile gemacht hat. Tipp es unten ein – jede Notiz bekommt den heutigen Kilometerstand.",
+      "emptyBody": "Reifendrücke, eine Teilenummer, die Werkstatt, die die Ventile gemacht hat. Tipp es unten ein – es bleibt bei diesem Motorrad.",
+      "taskLink": "Aufgabe · {{status}}",
+      "linkedTask": "Verknüpfte Aufgabe",
+      "taskLinkA11y": "Verknüpfte Aufgabe „{{title}}“, {{status}}",
+      "linkedTaskA11y": "Verknüpfte Aufgabe „{{title}}“",
+      "taskStatus": {
+        "open": "offen",
+        "inProgress": "in Arbeit",
+        "done": "erledigt",
+        "skipped": "übersprungen"
+      },
+      "viewerCloseA11y": "Fotos schließen",
+      "viewerCounter": "{{index}} von {{count}}"
     },
     "refreshFailed": "Aktualisierung fehlgeschlagen",
     "refreshRetryA11y": {
       "attention": "Braucht Aufmerksamkeit erneut laden",
       "costs": "Kosten erneut laden",
       "notes": "Notizen erneut laden"
+    },
+    "service": {
+      "group": {
+        "overdue": "Überfällig",
+        "soon": "Bald fällig",
+        "later": "Später",
+        "someday": "Kein Termin"
+      },
+      "noOpenTasks": "Keine offenen Aufgaben",
+      "priorityA11y": "Priorität {{priority}}",
+      "markDone": "Als erledigt markieren",
+      "markDoneA11y": "„{{title}}“ als erledigt markieren",
+      "doneOn": "Erledigt am {{date}}",
+      "seeAllHistory_one": "{{count}} erledigte Aufgabe ansehen",
+      "seeAllHistory_other": "Alle {{count}} erledigten Aufgaben ansehen",
+      "serviceItems": "Serviceposten"
+    },
+    "costsSegment": {
+      "spentIn": "Ausgaben {{year}}",
+      "spentAllTime": "Ausgaben gesamt",
+      "recent": "Neueste"
+    },
+    "bikeSegment": {
+      "categories": "Kategorien"
     }
   },
   "maintenance": {

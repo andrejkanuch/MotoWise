@@ -1047,7 +1047,9 @@
       "bike": "Moto",
       "listA11y": "Sections de la moto",
       "serviceBadgeA11y_one": "Entretien, {{count}} tâche en retard de priorité élevée",
-      "serviceBadgeA11y_other": "Entretien, {{count}} tâches en retard de priorité élevée"
+      "serviceBadgeA11y_other": "Entretien, {{count}} tâches en retard de priorité élevée",
+      "serviceOverdueA11y_one": "Entretien, {{count}} tâche en retard",
+      "serviceOverdueA11y_other": "Entretien, {{count}} tâches en retard"
     },
     "header": {
       "backTo": "Retour à {{origin}}",
@@ -1116,7 +1118,10 @@
       "logA11y": "Consigner quelque chose pour cette moto",
       "addTaskA11y": "Ajouter une tâche d'entretien",
       "addExpenseA11y": "Ajouter une dépense",
-      "addDocumentA11y": "Ajouter un document"
+      "addDocumentA11y": "Ajouter un document",
+      "task": "Tâche",
+      "expense": "Dépense",
+      "document": "Document"
     },
     "state": {
       "notFound": "Cette moto n'est plus dans votre garage.",
@@ -1160,7 +1165,9 @@
       "more_other": "{{count}} autres",
       "listAnd": "{{first}} et {{last}}",
       "loadError": "Impossible de charger les tâches",
-      "docActionInsurance": "renouvelez ou ajoutez la nouvelle police"
+      "docActionInsurance": "renouvelez ou ajoutez la nouvelle police",
+      "overdueCount_one": "{{count}} en retard",
+      "overdueCount_other": "{{count}} en retard"
     },
     "nextUp": {
       "title": "À venir"
@@ -1198,7 +1205,8 @@
       "noteButtonA11y": "Écrire une note plus longue",
       "inputA11y": "Ajouter une note",
       "saveFailed": "Impossible d'enregistrer la note. Réessayez.",
-      "loadError": "Impossible de charger les notes"
+      "loadError": "Impossible de charger les notes",
+      "saveA11y": "Enregistrer la note"
     },
     "papers": {
       "title": "Papiers et moto",
@@ -1286,13 +1294,63 @@
       "noMatch": "Aucune note ne correspond à « {{query}} »",
       "composerAdd": "Ajouter",
       "attachPhotoA11y": "Joindre une photo",
-      "photoA11y": "Photo de la note"
+      "photoA11y": "Photo de la note",
+      "rowHint": "Ouvre la note pour la modifier",
+      "photoOf": "Photo {{index}} sur {{count}}",
+      "photoCount_one": "{{count}} photo",
+      "photoCount_other": "{{count}} photos",
+      "photoCount_few": "{{count}} photos",
+      "photoCount_many": "{{count}} photos",
+      "matchCount_one": "{{count}} note correspondante",
+      "matchCount_other": "{{count}} notes correspondantes",
+      "matchCount_few": "{{count}} notes correspondantes",
+      "matchCount_many": "{{count}} notes correspondantes",
+      "clearSearch": "Effacer la recherche",
+      "emptyTitle": "Gardez ce que vous oublieriez sinon",
+      "emptyBodyStamped": "Pressions des pneus, une référence de pièce, l’atelier qui a fait les soupapes. Tapez-le ci-dessous : chaque note garde le compteur du jour.",
+      "emptyBody": "Pressions des pneus, une référence de pièce, l’atelier qui a fait les soupapes. Tapez-le ci-dessous, il restera avec cette moto.",
+      "taskLink": "Tâche · {{status}}",
+      "linkedTask": "Tâche liée",
+      "taskLinkA11y": "Tâche liée « {{title}} », {{status}}",
+      "linkedTaskA11y": "Tâche liée « {{title}} »",
+      "taskStatus": {
+        "open": "ouverte",
+        "inProgress": "en cours",
+        "done": "terminée",
+        "skipped": "ignorée"
+      },
+      "viewerCloseA11y": "Fermer les photos",
+      "viewerCounter": "{{index}} sur {{count}}"
     },
     "refreshFailed": "Échec de l'actualisation",
     "refreshRetryA11y": {
       "attention": "Réessayer À traiter",
       "costs": "Réessayer les coûts",
       "notes": "Réessayer les notes"
+    },
+    "service": {
+      "group": {
+        "overdue": "En retard",
+        "soon": "Bientôt dues",
+        "later": "Plus tard",
+        "someday": "Sans échéance"
+      },
+      "noOpenTasks": "Aucune tâche en cours",
+      "priorityA11y": "priorité {{priority}}",
+      "markDone": "Marquer comme faite",
+      "markDoneA11y": "Marquer « {{title}} » comme faite",
+      "doneOn": "Faite le {{date}}",
+      "seeAllHistory_one": "Voir {{count}} tâche faite",
+      "seeAllHistory_other": "Voir les {{count}} tâches faites",
+      "serviceItems": "Opérations"
+    },
+    "costsSegment": {
+      "spentIn": "Dépensé en {{year}}",
+      "spentAllTime": "Dépensé au total",
+      "recent": "Récentes"
+    },
+    "bikeSegment": {
+      "categories": "Catégories"
     }
   },
   "maintenance": {

@@ -1,5 +1,5 @@
 import { NOTE_TEXT_MAX } from '@motovault/types';
-import { Plus } from 'lucide-react-native';
+import { Maximize2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, TextInput, View } from 'react-native';
@@ -7,11 +7,19 @@ import { type HubUnit, NOTE_SOURCE, OVERVIEW_NOTES_SHOWN } from '../../../lib/bi
 import { formatOdometer, formatShortDate, hasOdometer } from '../../../lib/bike-hub/format';
 import { normaliseNoteText } from '../../../lib/bike-hub/notes';
 import { triggerImpact } from '../../../utils/haptics';
+import { useDraftHandoff } from '../notes/use-draft-handoff';
 import { type HubNote, useCreateNote } from '../notes/use-notes';
 import { HubCard } from '../ui/hub-card';
 import { REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { SectionHeader } from '../ui/section-header';
-import { HUB_FONT, HUB_HEIGHT, HUB_RADIUS, HUB_TOUCH_TARGET, hub } from '../ui/tokens';
+import {
+  HUB_CHROME_MAX_FONT_SCALE,
+  HUB_FONT,
+  HUB_HEIGHT,
+  HUB_RADIUS,
+  HUB_TOUCH_TARGET,
+  hub,
+} from '../ui/tokens';
 
 const SEPARATOR = ' · ';
 const INPUT_SLOP = Math.ceil((HUB_TOUCH_TARGET - HUB_HEIGHT.small) / 2);
@@ -44,8 +52,11 @@ interface NotesBlockProps {
 }
 
 /**
- * "Notes · N": the two newest notes and a quick-add row. Return sends the note
- * with the current odometer stamp; "Note" opens the full sheet with the draft.
+ * "Notes · N": the two newest notes and a quick-add row. The copper "Add" (or
+ * Return) saves the text now with the current odometer stamp — copper always
+ * means "save this text", so it is disabled while the field is empty. The quiet
+ * expand button takes the draft to the full Note sheet; the draft stays in the
+ * field until the sheet has saved, so closing the sheet loses nothing.
  */
 export function NotesBlock({
   motorcycleId,
@@ -64,10 +75,15 @@ export function NotesBlock({
   const [failed, setFailed] = useState(false);
   const createNote = useCreateNote();
   const shown = notes.slice(0, OVERVIEW_NOTES_SHOWN);
+  const handoff = useDraftHandoff(notes, () => {
+    setDraft('');
+    setFailed(false);
+  });
+  const text = normaliseNoteText(draft);
 
   const send = () => {
-    const text = normaliseNoteText(draft);
     if (!text) return;
+    handoff.reset();
     setDraft('');
     setFailed(false);
     triggerImpact();
@@ -208,8 +224,8 @@ export function NotesBlock({
             hitSlop={{ top: INPUT_SLOP, bottom: INPUT_SLOP }}
             style={{
               flex: 1,
-              height: HUB_HEIGHT.small,
-              paddingVertical: 0,
+              minHeight: HUB_HEIGHT.small,
+              paddingVertical: 6,
               paddingHorizontal: 12,
               borderRadius: HUB_RADIUS.chip,
               borderCurve: 'continuous',
@@ -225,27 +241,54 @@ export function NotesBlock({
             testID="quick-note-open-sheet"
             onPress={() => {
               triggerImpact();
+              handoff.handOff();
               onOpenNoteSheet(draft);
-              setDraft('');
             }}
             accessibilityRole="button"
             accessibilityLabel={t('bikeHub.notes.noteButtonA11y')}
-            hitSlop={{ top: INPUT_SLOP, bottom: INPUT_SLOP }}
+            hitSlop={{ top: INPUT_SLOP, bottom: INPUT_SLOP, left: 4, right: 4 }}
             style={({ pressed }) => ({
+              width: HUB_HEIGHT.small,
               height: HUB_HEIGHT.small,
-              paddingHorizontal: 12,
               borderRadius: HUB_RADIUS.chip,
               borderCurve: 'continuous',
-              backgroundColor: hub.copper,
-              flexDirection: 'row',
+              borderWidth: 1,
+              borderColor: hub.hairlineStrong,
               alignItems: 'center',
-              gap: 6,
+              justifyContent: 'center',
+              opacity: pressed ? 0.6 : 1,
+            })}
+          >
+            <Maximize2 size={16} color={hub.dim} strokeWidth={1.8} />
+          </Pressable>
+          <Pressable
+            testID="quick-note-add"
+            onPress={send}
+            disabled={!text}
+            accessibilityRole="button"
+            accessibilityLabel={t('bikeHub.notes.saveA11y')}
+            accessibilityState={{ disabled: !text }}
+            hitSlop={{ top: INPUT_SLOP, bottom: INPUT_SLOP }}
+            style={({ pressed }) => ({
+              minHeight: HUB_HEIGHT.small,
+              paddingHorizontal: 14,
+              borderRadius: HUB_RADIUS.chip,
+              borderCurve: 'continuous',
+              backgroundColor: text ? hub.copper : hub.raised,
+              alignItems: 'center',
+              justifyContent: 'center',
               opacity: pressed ? 0.8 : 1,
             })}
           >
-            <Plus size={16} color={hub.ink} strokeWidth={2.5} />
-            <Text style={{ fontFamily: HUB_FONT.sansBold, fontSize: 13, color: hub.ink }}>
-              {t('bikeHub.notes.noteButton')}
+            <Text
+              maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
+              style={{
+                fontFamily: HUB_FONT.sansBold,
+                fontSize: 13,
+                color: text ? hub.ink : hub.muted,
+              }}
+            >
+              {t('bikeHub.notesScreen.composerAdd')}
             </Text>
           </Pressable>
         </View>

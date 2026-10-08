@@ -1,32 +1,197 @@
-import { palette } from '@motovault/design-system';
-import type { MaintenanceTasksByMotorcycleQuery } from '@motovault/graphql';
 import { useRouter } from 'expo-router';
 import { Wrench } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-import { triggerImpact } from '../../utils/haptics';
-import { PRIORITY_ORDER, SwipeableTaskCard } from './swipeable-task-card';
+import type { HubUnit } from '../../lib/bike-hub/constants';
+import { triggerImpact, triggerSelection } from '../../utils/haptics';
+import {
+  completedTasks,
+  groupActiveTasks,
+  isCriticalOverdue,
+  type ServiceGroup,
+  type ServiceTaskItem,
+} from './service/group-tasks';
+import { HistoryTaskRow, ServiceTaskRow } from './service/task-row';
+import type { HubTask } from './shell/use-bike-hub-data';
+import { useToday } from './shell/use-today';
+import { HubCard } from './ui/hub-card';
+import { SectionHeader } from './ui/section-header';
+import { HUB_FONT, HUB_RADIUS, HUB_TOUCH_TARGET, hub } from './ui/tokens';
 
-type Task = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
+/** Completed tasks shown before "See all" opens the full list. */
+const HISTORY_PREVIEW = 5;
+const ENTER_MS = 200;
+const STAGGER_MS = 15;
+const ACTION_LINE_HEIGHT = 18;
+const ACTION_SLOP = Math.ceil((HUB_TOUCH_TARGET - ACTION_LINE_HEIGHT) / 2);
+const SEE_ALL_FILTER = 'completed';
+
+const SERVICE_TAB = { ACTIVE: 'active', HISTORY: 'history' } as const;
+type ServiceTab = (typeof SERVICE_TAB)[keyof typeof SERVICE_TAB];
+const SERVICE_TABS: readonly ServiceTab[] = [SERVICE_TAB.ACTIVE, SERVICE_TAB.HISTORY];
+const TAB_LABEL_KEY = {
+  [SERVICE_TAB.ACTIVE]: 'maintenance.activeTasks',
+  [SERVICE_TAB.HISTORY]: 'maintenance.history',
+} as const;
 
 interface MaintenanceSectionProps {
-  tasks: Task[];
-  isDark: boolean;
+  tasks: HubTask[];
   motorcycleId: string;
+  /** The bike's odometer, RAW in its own unit — for "3,550 km to target". */
+  odometer: number | null | undefined;
+  /** The bike's make, for "Honda schedule". */
+  make: string;
   /** Deep-link: expand this task once when tasks are available. */
   initialExpandedId?: string | null;
   onComplete: (id: string) => void;
   onDelete: (id: string, title: string) => void;
   onEdit?: (id: string) => void;
-  mileageUnit: string;
+  /** The bike's unit — a label only, nothing is converted. */
+  mileageUnit: HubUnit;
 }
 
+/** Active · 10 | History · 10 — a two-option segmented control in hub tokens. */
+function ServiceTabs({
+  active,
+  counts,
+  onChange,
+}: {
+  active: ServiceTab;
+  counts: Record<ServiceTab, number>;
+  onChange: (tab: ServiceTab) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <View
+      accessibilityRole="tablist"
+      style={{
+        flexDirection: 'row',
+        gap: 2,
+        padding: 2,
+        borderRadius: HUB_RADIUS.chip + 1,
+        borderCurve: 'continuous',
+        backgroundColor: hub.card,
+        borderWidth: 1,
+        borderColor: hub.hairline,
+      }}
+    >
+      {SERVICE_TABS.map((tab) => {
+        const selected = tab === active;
+        const label = t(TAB_LABEL_KEY[tab]);
+        return (
+          <Pressable
+            key={tab}
+            testID={`service-tab-${tab}`}
+            onPress={() => {
+              if (selected) return;
+              triggerSelection();
+              onChange(tab);
+            }}
+            accessibilityRole="tab"
+            accessibilityLabel={`${label}, ${counts[tab]}`}
+            accessibilityState={{ selected }}
+            style={{
+              flex: 1,
+              minHeight: HUB_TOUCH_TARGET - 4,
+              paddingHorizontal: 8,
+              paddingVertical: 6,
+              borderRadius: HUB_RADIUS.chip - 1,
+              borderCurve: 'continuous',
+              backgroundColor: selected ? hub.raised : undefined,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text
+              style={{
+                textAlign: 'center',
+                fontFamily: HUB_FONT.sansSemiBold,
+                fontSize: 13,
+                lineHeight: 17,
+                color: selected ? hub.text : hub.dim,
+              }}
+            >
+              {label}
+              <Text style={{ fontFamily: HUB_FONT.monoMedium }}>{` · ${counts[tab]}`}</Text>
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/** Empty states sit on a plain card: an icon tile, what is true, what to do. */
+function EmptyCard({ title, sub }: { title: string; sub?: string }) {
+  return (
+    <Animated.View entering={FadeIn.duration(ENTER_MS)}>
+      <HubCard
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+          paddingVertical: 14,
+          paddingHorizontal: 14,
+        }}
+      >
+        <View
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: HUB_RADIUS.tile,
+            borderCurve: 'continuous',
+            backgroundColor: hub.raised,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Wrench size={18} color={hub.dim} strokeWidth={2} />
+        </View>
+        <View style={{ flex: 1, gap: 3 }}>
+          <Text
+            style={{
+              fontFamily: HUB_FONT.sansSemiBold,
+              fontSize: 15,
+              lineHeight: 18,
+              color: hub.text,
+            }}
+          >
+            {title}
+          </Text>
+          {sub ? (
+            <Text
+              style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 16, color: hub.dim }}
+            >
+              {sub}
+            </Text>
+          ) : null}
+        </View>
+      </HubCard>
+    </Animated.View>
+  );
+}
+
+const CRITICAL_CARD = {
+  backgroundColor: hub.rowCritical,
+  borderColor: hub.rowCriticalBorder,
+  overflow: 'hidden',
+} as const;
+
+/**
+ * Service segment content (R2 row, interim list): Active tasks in their due
+ * groups — Overdue / Due soon / Later / No due date — or the latest completed
+ * work. The "Overdue · N" eyebrow is the same number, on the same basis, as the
+ * Service badge and Overview's "Needs attention · N overdue" (see
+ * `countOverdueTasks` in `lib/bike-hub/attention.ts`): every overdue task is
+ * listed here, none is folded away.
+ */
 export function MaintenanceSection({
   tasks,
-  isDark,
   motorcycleId,
+  odometer,
+  make,
   initialExpandedId = null,
   onComplete,
   onDelete,
@@ -35,263 +200,158 @@ export function MaintenanceSection({
 }: MaintenanceSectionProps) {
   const { t } = useTranslation();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
+  const today = useToday();
+  const [activeTab, setActiveTab] = useState<ServiceTab>(SERVICE_TAB.ACTIVE);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const hasHighlighted = useRef(false);
 
-  useEffect(() => {
-    if (initialExpandedId && tasks.length > 0 && !hasHighlighted.current) {
-      hasHighlighted.current = true;
-      setExpandedId(initialExpandedId);
-    }
-  }, [initialExpandedId, tasks.length]);
+  const groups = useMemo(
+    () => groupActiveTasks(tasks, { odometer, today, unit: mileageUnit }),
+    [tasks, odometer, today, mileageUnit],
+  );
+  const history = useMemo(() => completedTasks(tasks), [tasks]);
+  const activeCount = groups.reduce((sum, group) => sum + group.items.length, 0);
 
-  const onToggleExpand = useCallback((taskId: string) => {
-    setExpandedId((prev) => (prev === taskId ? null : taskId));
+  // A task opened from elsewhere (Overview, Home, a notification) is expanded
+  // once — on History when it has already been done.
+  useEffect(() => {
+    if (!initialExpandedId || tasks.length === 0 || hasHighlighted.current) return;
+    hasHighlighted.current = true;
+    setExpandedId(initialExpandedId);
+    if (history.some((task) => task.id === initialExpandedId)) setActiveTab(SERVICE_TAB.HISTORY);
+  }, [initialExpandedId, tasks.length, history]);
+
+  const onToggle = useCallback((taskId: string) => {
+    setExpandedId((previous) => (previous === taskId ? null : taskId));
   }, []);
 
-  const { activeTasks, overdueCount } = useMemo(() => {
-    const now = Date.now();
-    let overdue = 0;
-    const active = tasks
-      .filter((task) => task.status === 'pending' || task.status === 'in_progress')
-      .sort((a, b) => {
-        // Overdue first
-        const aOverdue = a.dueDate ? new Date(a.dueDate).getTime() < now : false;
-        const bOverdue = b.dueDate ? new Date(b.dueDate).getTime() < now : false;
-        if (aOverdue && !bOverdue) return -1;
-        if (!aOverdue && bOverdue) return 1;
-
-        // Then by date
-        if (a.dueDate && b.dueDate) {
-          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-        }
-        if (a.dueDate && !b.dueDate) return -1;
-        if (!a.dueDate && b.dueDate) return 1;
-
-        // Then by priority
-        return (PRIORITY_ORDER[a.priority] ?? 99) - (PRIORITY_ORDER[b.priority] ?? 99);
-      });
-
-    for (const task of active) {
-      if (task.dueDate && new Date(task.dueDate).getTime() < now) {
-        overdue++;
-      }
-    }
-
-    return { activeTasks: active, overdueCount: overdue };
-  }, [tasks]);
-
-  const completedTasks = useMemo(
-    () =>
-      tasks
-        .filter((task) => task.status === 'completed')
-        .sort((a, b) => {
-          const aDate = a.completedAt ? new Date(a.completedAt).getTime() : 0;
-          const bDate = b.completedAt ? new Date(b.completedAt).getTime() : 0;
-          return bDate - aDate;
-        }),
-    [tasks],
-  );
-
-  const displayedTasks =
-    activeTab === 'active' ? activeTasks.slice(0, 5) : completedTasks.slice(0, 5);
-  const totalCount = activeTab === 'active' ? activeTasks.length : completedTasks.length;
-  const hasMore = totalCount > 5;
-
-  const handleSeeAll = () => {
+  const openAllHistory = () => {
     triggerImpact();
     router.push({
       pathname: '/(tabs)/(garage)/bike-tasks',
-      params: { motorcycleId, mileageUnit },
+      params: { motorcycleId, initialFilter: SEE_ALL_FILTER },
     });
   };
 
   if (tasks.length === 0) {
     return (
-      <Animated.View
-        entering={FadeInUp.duration(400)}
-        style={{ paddingHorizontal: 20, alignItems: 'center', paddingVertical: 30 }}
-      >
-        <Wrench size={32} color={palette.neutral400} strokeWidth={1.5} />
-        <Text
-          style={{
-            fontSize: 15,
-            fontWeight: '600',
-            color: isDark ? palette.neutral300 : palette.neutral600,
-            marginTop: 12,
-          }}
-        >
-          {t('maintenance.noTasks', { defaultValue: 'No maintenance tasks yet' })}
-        </Text>
-        <Text
-          style={{
-            fontSize: 13,
-            color: palette.neutral500,
-            marginTop: 4,
-            textAlign: 'center',
-          }}
-        >
-          {t('maintenance.addFirstTask', { defaultValue: 'Add your first maintenance task' })}
-        </Text>
-      </Animated.View>
+      <View style={{ paddingHorizontal: 16 }}>
+        <EmptyCard title={t('maintenance.noTasks')} sub={t('maintenance.addFirstTask')} />
+      </View>
     );
   }
 
+  const rowProps = {
+    unit: mileageUnit,
+    make,
+    onToggle,
+    onComplete,
+    onEdit,
+    onDelete,
+    motorcycleId,
+  };
+
+  const renderRows = (items: readonly ServiceTaskItem[]) =>
+    items.map((item, index) => (
+      <ServiceTaskRow
+        key={item.task.id}
+        item={item}
+        expanded={expandedId === item.task.id}
+        divider={index < items.length - 1}
+        {...rowProps}
+      />
+    ));
+
+  const renderGroup = (group: ServiceGroup, groupIndex: number) => {
+    // Spec §2: an overdue Critical task is the only row with a tinted surface,
+    // each on its own card above the rest of its group.
+    const critical = group.items.filter(isCriticalOverdue);
+    const rest = group.items.filter((item) => !isCriticalOverdue(item));
+    return (
+      <Animated.View
+        key={group.state}
+        testID={`service-group-${group.state}`}
+        entering={FadeInUp.duration(ENTER_MS).delay(groupIndex * STAGGER_MS)}
+        style={{ gap: 6 }}
+      >
+        <SectionHeader label={t(group.labelKey)} count={group.items.length} tone={group.tone} />
+        {critical.map((item) => (
+          <HubCard key={item.task.id} style={CRITICAL_CARD}>
+            <ServiceTaskRow
+              item={item}
+              expanded={expandedId === item.task.id}
+              divider={false}
+              {...rowProps}
+            />
+          </HubCard>
+        ))}
+        {rest.length > 0 ? (
+          <HubCard style={{ overflow: 'hidden' }}>{renderRows(rest)}</HubCard>
+        ) : null}
+      </Animated.View>
+    );
+  };
+
+  const shownHistory = history.slice(0, HISTORY_PREVIEW);
+
   return (
-    <View style={{ paddingHorizontal: 20 }}>
-      {/* Section header */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 12,
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Text
-            style={{
-              fontFamily: 'InstrumentSerif-Italic',
-              fontSize: 24,
-              color: isDark ? palette.neutral50 : palette.neutral950,
-              lineHeight: 28,
-            }}
-          >
-            {t('bikeHub.maintenance', { defaultValue: 'Maintenance' })}
-          </Text>
-          {overdueCount > 0 && (
-            <View
-              style={{
-                backgroundColor: palette.danger500,
-                borderRadius: 10,
-                borderCurve: 'continuous',
-                paddingHorizontal: 7,
-                paddingVertical: 2,
-                minWidth: 20,
-                alignItems: 'center',
-              }}
-            >
-              <Text style={{ fontSize: 11, fontWeight: '700', color: palette.white }}>
-                {overdueCount}
-              </Text>
-            </View>
-          )}
-        </View>
-      </View>
+    <View style={{ paddingHorizontal: 16, gap: 16 }}>
+      <ServiceTabs
+        active={activeTab}
+        counts={{ [SERVICE_TAB.ACTIVE]: activeCount, [SERVICE_TAB.HISTORY]: history.length }}
+        onChange={setActiveTab}
+      />
 
-      {/* Tabs */}
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
-          borderRadius: 10,
-          borderCurve: 'continuous',
-          padding: 3,
-          marginBottom: 12,
-        }}
-      >
-        {(['active', 'history'] as const).map((tab) => {
-          const isSelected = activeTab === tab;
-          const label =
-            tab === 'active'
-              ? t('maintenance.activeTasks', { defaultValue: 'Active' })
-              : t('maintenance.history', { defaultValue: 'History' });
-          const count = tab === 'active' ? activeTasks.length : completedTasks.length;
-
-          return (
+      {activeTab === SERVICE_TAB.ACTIVE ? (
+        groups.length === 0 ? (
+          <EmptyCard title={t('bikeHub.service.noOpenTasks')} />
+        ) : (
+          groups.map(renderGroup)
+        )
+      ) : history.length === 0 ? (
+        <EmptyCard title={t('maintenance.noHistory')} />
+      ) : (
+        <View style={{ gap: 8 }}>
+          <HubCard style={{ overflow: 'hidden' }}>
+            {shownHistory.map((task, index) => (
+              <HistoryTaskRow
+                key={task.id}
+                task={task}
+                unit={mileageUnit}
+                expanded={expandedId === task.id}
+                divider={index < shownHistory.length - 1}
+                onToggle={onToggle}
+                onDelete={onDelete}
+                motorcycleId={motorcycleId}
+              />
+            ))}
+          </HubCard>
+          {history.length > HISTORY_PREVIEW ? (
             <Pressable
-              key={tab}
-              onPress={() => {
-                triggerImpact();
-                setActiveTab(tab);
-              }}
-              style={{
-                flex: 1,
-                paddingVertical: 8,
-                borderRadius: 8,
-                borderCurve: 'continuous',
-                backgroundColor: isSelected
-                  ? isDark
-                    ? palette.neutral700
-                    : palette.white
-                  : 'transparent',
-                alignItems: 'center',
-              }}
+              testID="service-history-see-all"
+              onPress={openAllHistory}
+              accessibilityRole="button"
+              hitSlop={{ top: ACTION_SLOP, bottom: ACTION_SLOP }}
+              style={({ pressed }) => ({
+                alignSelf: 'center',
+                paddingHorizontal: 12,
+                opacity: pressed ? 0.6 : 1,
+              })}
             >
               <Text
                 style={{
-                  fontSize: 13,
-                  fontWeight: '600',
-                  color: isSelected
-                    ? isDark
-                      ? palette.neutral50
-                      : palette.neutral950
-                    : palette.neutral500,
+                  fontFamily: HUB_FONT.sansSemiBold,
+                  fontSize: 14,
+                  lineHeight: ACTION_LINE_HEIGHT,
+                  textAlign: 'center',
+                  color: hub.copperText,
                 }}
               >
-                {label} ({count})
+                {t('bikeHub.service.seeAllHistory', { count: history.length })}
               </Text>
             </Pressable>
-          );
-        })}
-      </View>
-
-      {/* Task list */}
-      {displayedTasks.length === 0 ? (
-        <Animated.View
-          entering={FadeIn.duration(200)}
-          style={{
-            alignItems: 'center',
-            paddingVertical: 24,
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 14,
-              color: palette.neutral500,
-            }}
-          >
-            {activeTab === 'active'
-              ? t('bikeHub.allCaughtUp', { defaultValue: 'All caught up!' })
-              : t('maintenance.noHistory', { defaultValue: 'No completed tasks yet' })}
-          </Text>
-        </Animated.View>
-      ) : (
-        displayedTasks.map((task, index) => (
-          <SwipeableTaskCard
-            key={task.id}
-            task={task}
-            index={index}
-            isDark={isDark}
-            isExpanded={expandedId === task.id}
-            motorcycleId={motorcycleId}
-            onToggleExpand={onToggleExpand}
-            onComplete={onComplete}
-            onDelete={onDelete}
-            onEdit={onEdit}
-            mileageUnit={mileageUnit}
-          />
-        ))
-      )}
-
-      {/* See all link */}
-      {hasMore && (
-        <Pressable
-          onPress={handleSeeAll}
-          style={{
-            alignItems: 'center',
-            paddingVertical: 10,
-            marginTop: 4,
-          }}
-        >
-          <Text style={{ fontSize: 14, fontWeight: '600', color: palette.primary500 }}>
-            {t('bikeHub.seeAll', { defaultValue: 'See all tasks' })} ({totalCount})
-          </Text>
-        </Pressable>
+          ) : null}
+        </View>
       )}
     </View>
   );

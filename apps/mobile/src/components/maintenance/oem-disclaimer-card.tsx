@@ -1,27 +1,71 @@
 import { palette, spacing } from '@motovault/design-system';
-import { AlertTriangle } from 'lucide-react-native';
+import { AlertTriangle, Info } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
+import { Text, View, type ViewStyle } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { HUB_FONT, hub } from '../bike-hub/ui/tokens';
+
+export const OEM_DISCLAIMER_VARIANT = {
+  /** Amber warning card — onboarding, where the schedule is first imported. */
+  CARD: 'card',
+  /** A muted footnote in hub tokens — the bike hub's Service segment. */
+  QUIET: 'quiet',
+} as const;
+export type OemDisclaimerVariant =
+  (typeof OEM_DISCLAIMER_VARIANT)[keyof typeof OEM_DISCLAIMER_VARIANT];
 
 interface OemDisclaimerCardProps {
-  /** Surface theme. Defaults to dark (mobile is dark-first). */
+  /** Surface theme for the card variant. Defaults to dark (mobile is dark-first). */
   isDark?: boolean;
-  /** Stagger delay (ms) for the FadeInUp entrance. */
+  /** Stagger delay (ms) for the card variant's FadeInUp entrance. */
   delay?: number;
   /** Optional extra layout style (margins/padding) for the host surface. */
-  style?: object;
+  style?: ViewStyle;
+  variant?: OemDisclaimerVariant;
 }
 
 /**
- * Release-blocking spec-data disclaimer card (R5 / plan U6). Mirrors the
- * canonical diagnose-screen disclaimer card (FadeInUp, AlertTriangle, warm
- * amber tint, continuous border curve, selectable copy) and renders the shared
- * `oem.disclaimer` copy. Used on every spec-bearing maintenance surface so the
- * "informative only / verify against the manual" caveat is always present.
+ * The hub's footnote: same copy, no alarm. Next to a task list the caveat is
+ * reference material, not a warning — amber there would compete with the
+ * Due-soon colour.
  */
-export function OemDisclaimerCard({ isDark = true, delay = 0, style }: OemDisclaimerCardProps) {
+function QuietDisclaimer({ style }: { style?: ViewStyle }) {
   const { t } = useTranslation();
+  return (
+    <View style={[{ flexDirection: 'row', gap: 8, paddingHorizontal: 2 }, style]}>
+      <Info size={14} color={hub.muted} strokeWidth={2} style={{ marginTop: 1 }} />
+      <Text
+        selectable
+        style={{
+          flex: 1,
+          fontFamily: HUB_FONT.sans,
+          fontSize: 12,
+          lineHeight: 16,
+          color: hub.muted,
+        }}
+      >
+        {t('oem.disclaimer')}
+      </Text>
+    </View>
+  );
+}
+
+/**
+ * Release-blocking spec-data disclaimer (R5 / plan U6), rendering the shared
+ * `oem.disclaimer` copy on every spec-bearing maintenance surface so the
+ * "informative only / verify against the manual" caveat is always present.
+ * The card variant mirrors the diagnose-screen disclaimer (FadeInUp,
+ * AlertTriangle, warm amber tint); the quiet variant is the bike hub's footnote.
+ */
+export function OemDisclaimerCard({
+  isDark = true,
+  delay = 0,
+  style,
+  variant = OEM_DISCLAIMER_VARIANT.CARD,
+}: OemDisclaimerCardProps) {
+  const { t } = useTranslation();
+
+  if (variant === OEM_DISCLAIMER_VARIANT.QUIET) return <QuietDisclaimer style={style} />;
 
   return (
     <Animated.View entering={FadeInUp.delay(delay).duration(400)} style={style}>

@@ -1046,7 +1046,9 @@
       "bike": "बाइक",
       "listA11y": "बाइक के अनुभाग",
       "serviceBadgeA11y_one": "सर्विस, उच्च प्राथमिकता का {{count}} लंबित कार्य",
-      "serviceBadgeA11y_other": "सर्विस, उच्च प्राथमिकता के {{count}} लंबित कार्य"
+      "serviceBadgeA11y_other": "सर्विस, उच्च प्राथमिकता के {{count}} लंबित कार्य",
+      "serviceOverdueA11y_one": "सर्विस, {{count}} अतिदेय कार्य",
+      "serviceOverdueA11y_other": "सर्विस, {{count}} अतिदेय कार्य"
     },
     "header": {
       "backTo": "{{origin}} पर वापस जाएँ",
@@ -1115,7 +1117,10 @@
       "logA11y": "इस बाइक के लिए कुछ लॉग करें",
       "addTaskA11y": "मेंटेनेंस कार्य जोड़ें",
       "addExpenseA11y": "खर्च जोड़ें",
-      "addDocumentA11y": "दस्तावेज़ जोड़ें"
+      "addDocumentA11y": "दस्तावेज़ जोड़ें",
+      "task": "कार्य",
+      "expense": "खर्च",
+      "document": "दस्तावेज़"
     },
     "state": {
       "notFound": "यह बाइक अब आपके गैराज में नहीं है।",
@@ -1159,7 +1164,9 @@
       "more_other": "{{count}} और",
       "listAnd": "{{first}} और {{last}}",
       "loadError": "कार्य लोड नहीं हो सके",
-      "docActionInsurance": "नवीनीकरण करें या नई पॉलिसी अपलोड करें"
+      "docActionInsurance": "नवीनीकरण करें या नई पॉलिसी अपलोड करें",
+      "overdueCount_one": "{{count}} अतिदेय",
+      "overdueCount_other": "{{count}} अतिदेय"
     },
     "nextUp": {
       "title": "आगे"
@@ -1197,7 +1204,8 @@
       "noteButtonA11y": "लंबा नोट लिखें",
       "inputA11y": "नोट जोड़ें",
       "saveFailed": "नोट सेव नहीं हो सका। फिर से कोशिश करें।",
-      "loadError": "नोट्स लोड नहीं हो सके"
+      "loadError": "नोट्स लोड नहीं हो सके",
+      "saveA11y": "नोट सहेजें"
     },
     "papers": {
       "title": "कागज़ात और बाइक",
@@ -1285,13 +1293,63 @@
       "noMatch": "“{{query}}” से कोई नोट मेल नहीं खाता",
       "composerAdd": "जोड़ें",
       "attachPhotoA11y": "फ़ोटो संलग्न करें",
-      "photoA11y": "नोट की फ़ोटो"
+      "photoA11y": "नोट की फ़ोटो",
+      "rowHint": "नोट को संपादित करने के लिए खोलता है",
+      "photoOf": "{{count}} में से फ़ोटो {{index}}",
+      "photoCount_one": "{{count}} फ़ोटो",
+      "photoCount_other": "{{count}} फ़ोटो",
+      "photoCount_few": "{{count}} फ़ोटो",
+      "photoCount_many": "{{count}} फ़ोटो",
+      "matchCount_one": "{{count}} मिलता-जुलता नोट",
+      "matchCount_other": "{{count}} मिलते-जुलते नोट",
+      "matchCount_few": "{{count}} मिलते-जुलते नोट",
+      "matchCount_many": "{{count}} मिलते-जुलते नोट",
+      "clearSearch": "खोज साफ़ करें",
+      "emptyTitle": "जो भूल सकते हैं, उसे यहाँ रखें",
+      "emptyBodyStamped": "टायर प्रेशर, पार्ट नंबर, वह वर्कशॉप जिसने वाल्व ठीक किए। नीचे लिखें — हर नोट पर आज का ओडोमीटर दर्ज होता है।",
+      "emptyBody": "टायर प्रेशर, पार्ट नंबर, वह वर्कशॉप जिसने वाल्व ठीक किए। नीचे लिखें, यह इसी बाइक के साथ रहेगा।",
+      "taskLink": "कार्य · {{status}}",
+      "linkedTask": "लिंक किया गया कार्य",
+      "taskLinkA11y": "लिंक किया गया कार्य “{{title}}”, {{status}}",
+      "linkedTaskA11y": "लिंक किया गया कार्य “{{title}}”",
+      "taskStatus": {
+        "open": "खुला",
+        "inProgress": "प्रगति में",
+        "done": "पूरा",
+        "skipped": "छोड़ा गया"
+      },
+      "viewerCloseA11y": "फ़ोटो बंद करें",
+      "viewerCounter": "{{count}} में से {{index}}"
     },
     "refreshFailed": "रीफ़्रेश नहीं हो सका",
     "refreshRetryA11y": {
       "attention": "ध्यान दें फिर से लोड करें",
       "costs": "खर्च फिर से लोड करें",
       "notes": "नोट्स फिर से लोड करें"
+    },
+    "service": {
+      "group": {
+        "overdue": "अतिदेय",
+        "soon": "जल्द देय",
+        "later": "बाद में",
+        "someday": "कोई नियत तारीख नहीं"
+      },
+      "noOpenTasks": "कोई खुला कार्य नहीं",
+      "priorityA11y": "{{priority}} प्राथमिकता",
+      "markDone": "पूरा चिह्नित करें",
+      "markDoneA11y": "{{title}} को पूरा चिह्नित करें",
+      "doneOn": "{{date}} को पूरा",
+      "seeAllHistory_one": "{{count}} पूरा कार्य देखें",
+      "seeAllHistory_other": "सभी {{count}} पूरे कार्य देखें",
+      "serviceItems": "सर्विस आइटम"
+    },
+    "costsSegment": {
+      "spentIn": "{{year}} में खर्च",
+      "spentAllTime": "कुल खर्च",
+      "recent": "हाल के"
+    },
+    "bikeSegment": {
+      "categories": "श्रेणियाँ"
     }
   },
   "maintenance": {

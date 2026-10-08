@@ -1046,7 +1046,9 @@
       "bike": "バイク",
       "listA11y": "バイクのセクション",
       "serviceBadgeA11y_one": "整備、優先度の高い期限切れタスク{{count}}件",
-      "serviceBadgeA11y_other": "整備、優先度の高い期限切れタスク{{count}}件"
+      "serviceBadgeA11y_other": "整備、優先度の高い期限切れタスク{{count}}件",
+      "serviceOverdueA11y_one": "整備、期限超過のタスク{{count}}件",
+      "serviceOverdueA11y_other": "整備、期限超過のタスク{{count}}件"
     },
     "header": {
       "backTo": "{{origin}}に戻る",
@@ -1115,7 +1117,10 @@
       "logA11y": "このバイクに記録を追加",
       "addTaskA11y": "整備タスクを追加",
       "addExpenseA11y": "費用を追加",
-      "addDocumentA11y": "書類を追加"
+      "addDocumentA11y": "書類を追加",
+      "task": "タスク",
+      "expense": "支出",
+      "document": "書類"
     },
     "state": {
       "notFound": "このバイクはガレージにありません。",
@@ -1159,7 +1164,9 @@
       "more_other": "ほか{{count}}件",
       "listAnd": "{{first}}・{{last}}",
       "loadError": "タスクを読み込めませんでした",
-      "docActionInsurance": "更新するか新しい保険証券をアップロード"
+      "docActionInsurance": "更新するか新しい保険証券をアップロード",
+      "overdueCount_one": "期限超過{{count}}件",
+      "overdueCount_other": "期限超過{{count}}件"
     },
     "nextUp": {
       "title": "次の予定"
@@ -1197,7 +1204,8 @@
       "noteButtonA11y": "長いメモを書く",
       "inputA11y": "メモを追加",
       "saveFailed": "メモを保存できませんでした。もう一度お試しください。",
-      "loadError": "メモを読み込めませんでした"
+      "loadError": "メモを読み込めませんでした",
+      "saveA11y": "メモを保存"
     },
     "papers": {
       "title": "書類とバイク",
@@ -1285,13 +1293,63 @@
       "noMatch": "「{{query}}」に一致するメモはありません",
       "composerAdd": "追加",
       "attachPhotoA11y": "写真を添付",
-      "photoA11y": "メモの写真"
+      "photoA11y": "メモの写真",
+      "rowHint": "メモを開いて編集します",
+      "photoOf": "写真 {{index}}/{{count}}",
+      "photoCount_one": "写真{{count}}枚",
+      "photoCount_other": "写真{{count}}枚",
+      "photoCount_few": "写真{{count}}枚",
+      "photoCount_many": "写真{{count}}枚",
+      "matchCount_one": "一致するメモ{{count}}件",
+      "matchCount_other": "一致するメモ{{count}}件",
+      "matchCount_few": "一致するメモ{{count}}件",
+      "matchCount_many": "一致するメモ{{count}}件",
+      "clearSearch": "検索をクリア",
+      "emptyTitle": "忘れがちなことを残しておこう",
+      "emptyBodyStamped": "タイヤの空気圧、部品番号、バルブ調整をしたショップ。下に入力すると、各メモに今日の走行距離が記録されます。",
+      "emptyBody": "タイヤの空気圧、部品番号、バルブ調整をしたショップ。下に入力すると、このバイクに保存されます。",
+      "taskLink": "タスク · {{status}}",
+      "linkedTask": "関連するタスク",
+      "taskLinkA11y": "関連するタスク「{{title}}」、{{status}}",
+      "linkedTaskA11y": "関連するタスク「{{title}}」",
+      "taskStatus": {
+        "open": "未完了",
+        "inProgress": "進行中",
+        "done": "完了",
+        "skipped": "スキップ"
+      },
+      "viewerCloseA11y": "写真を閉じる",
+      "viewerCounter": "{{index}}/{{count}}"
     },
     "refreshFailed": "更新できませんでした",
     "refreshRetryA11y": {
       "attention": "要対応を再読み込み",
       "costs": "費用を再読み込み",
       "notes": "メモを再読み込み"
+    },
+    "service": {
+      "group": {
+        "overdue": "期限超過",
+        "soon": "まもなく期限",
+        "later": "その後",
+        "someday": "期限なし"
+      },
+      "noOpenTasks": "未完了のタスクはありません",
+      "priorityA11y": "優先度: {{priority}}",
+      "markDone": "完了にする",
+      "markDoneA11y": "{{title}}を完了にする",
+      "doneOn": "{{date}}に完了",
+      "seeAllHistory_one": "完了したタスク{{count}}件を表示",
+      "seeAllHistory_other": "完了したタスク{{count}}件をすべて表示",
+      "serviceItems": "整備項目"
+    },
+    "costsSegment": {
+      "spentIn": "{{year}}年の支出",
+      "spentAllTime": "これまでの支出",
+      "recent": "最近"
+    },
+    "bikeSegment": {
+      "categories": "カテゴリ"
     }
   },
   "maintenance": {

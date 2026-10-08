@@ -1046,7 +1046,9 @@
       "bike": "รถ",
       "listA11y": "ส่วนต่าง ๆ ของรถ",
       "serviceBadgeA11y_one": "ซ่อมบำรุง งานสำคัญสูงที่เลยกำหนด {{count}} รายการ",
-      "serviceBadgeA11y_other": "ซ่อมบำรุง งานสำคัญสูงที่เลยกำหนด {{count}} รายการ"
+      "serviceBadgeA11y_other": "ซ่อมบำรุง งานสำคัญสูงที่เลยกำหนด {{count}} รายการ",
+      "serviceOverdueA11y_one": "ซ่อมบำรุง งานที่เลยกำหนด {{count}} รายการ",
+      "serviceOverdueA11y_other": "ซ่อมบำรุง งานที่เลยกำหนด {{count}} รายการ"
     },
     "header": {
       "backTo": "กลับไปที่{{origin}}",
@@ -1115,7 +1117,10 @@
       "logA11y": "บันทึกข้อมูลของรถคันนี้",
       "addTaskA11y": "เพิ่มงานซ่อมบำรุง",
       "addExpenseA11y": "เพิ่มค่าใช้จ่าย",
-      "addDocumentA11y": "เพิ่มเอกสาร"
+      "addDocumentA11y": "เพิ่มเอกสาร",
+      "task": "งาน",
+      "expense": "ค่าใช้จ่าย",
+      "document": "เอกสาร"
     },
     "state": {
       "notFound": "รถคันนี้ไม่อยู่ในโรงรถของคุณแล้ว",
@@ -1159,7 +1164,9 @@
       "more_other": "อีก {{count}} รายการ",
       "listAnd": "{{first}} และ {{last}}",
       "loadError": "โหลดงานไม่สำเร็จ",
-      "docActionInsurance": "ต่ออายุหรืออัปโหลดกรมธรรม์ใหม่"
+      "docActionInsurance": "ต่ออายุหรืออัปโหลดกรมธรรม์ใหม่",
+      "overdueCount_one": "เลยกำหนด {{count}} รายการ",
+      "overdueCount_other": "เลยกำหนด {{count}} รายการ"
     },
     "nextUp": {
       "title": "ถัดไป"
@@ -1197,7 +1204,8 @@
       "noteButtonA11y": "เขียนโน้ตยาวขึ้น",
       "inputA11y": "เพิ่มโน้ต",
       "saveFailed": "บันทึกโน้ตไม่สำเร็จ ลองอีกครั้ง",
-      "loadError": "โหลดโน้ตไม่สำเร็จ"
+      "loadError": "โหลดโน้ตไม่สำเร็จ",
+      "saveA11y": "บันทึกโน้ต"
     },
     "papers": {
       "title": "เอกสารและรถ",
@@ -1285,13 +1293,63 @@
       "noMatch": "ไม่มีโน้ตที่ตรงกับ “{{query}}”",
       "composerAdd": "เพิ่ม",
       "attachPhotoA11y": "แนบรูป",
-      "photoA11y": "รูปในโน้ต"
+      "photoA11y": "รูปในโน้ต",
+      "rowHint": "เปิดโน้ตเพื่อแก้ไข",
+      "photoOf": "รูปที่ {{index}} จาก {{count}}",
+      "photoCount_one": "{{count}} รูป",
+      "photoCount_other": "{{count}} รูป",
+      "photoCount_few": "{{count}} รูป",
+      "photoCount_many": "{{count}} รูป",
+      "matchCount_one": "โน้ตที่ตรงกัน {{count}} รายการ",
+      "matchCount_other": "โน้ตที่ตรงกัน {{count}} รายการ",
+      "matchCount_few": "โน้ตที่ตรงกัน {{count}} รายการ",
+      "matchCount_many": "โน้ตที่ตรงกัน {{count}} รายการ",
+      "clearSearch": "ล้างการค้นหา",
+      "emptyTitle": "จดสิ่งที่คุณอาจลืมไว้ที่นี่",
+      "emptyBodyStamped": "ลมยาง หมายเลขอะไหล่ ร้านที่ตั้งวาล์ว พิมพ์ไว้ด้านล่าง — ทุกโน้ตจะบันทึกเลขไมล์ของวันนี้",
+      "emptyBody": "ลมยาง หมายเลขอะไหล่ ร้านที่ตั้งวาล์ว พิมพ์ไว้ด้านล่าง แล้วจะเก็บไว้กับรถคันนี้",
+      "taskLink": "งาน · {{status}}",
+      "linkedTask": "งานที่เชื่อมโยง",
+      "taskLinkA11y": "งานที่เชื่อมโยง “{{title}}” {{status}}",
+      "linkedTaskA11y": "งานที่เชื่อมโยง “{{title}}”",
+      "taskStatus": {
+        "open": "ยังไม่เสร็จ",
+        "inProgress": "กำลังทำ",
+        "done": "เสร็จแล้ว",
+        "skipped": "ข้ามแล้ว"
+      },
+      "viewerCloseA11y": "ปิดรูปภาพ",
+      "viewerCounter": "{{index}} จาก {{count}}"
     },
     "refreshFailed": "รีเฟรชไม่สำเร็จ",
     "refreshRetryA11y": {
       "attention": "ลองโหลดรายการที่ต้องดูแลอีกครั้ง",
       "costs": "ลองโหลดค่าใช้จ่ายอีกครั้ง",
       "notes": "ลองโหลดโน้ตอีกครั้ง"
+    },
+    "service": {
+      "group": {
+        "overdue": "เลยกำหนด",
+        "soon": "ใกล้ถึงกำหนด",
+        "later": "ภายหลัง",
+        "someday": "ไม่มีกำหนด"
+      },
+      "noOpenTasks": "ไม่มีงานค้าง",
+      "priorityA11y": "ความสำคัญ{{priority}}",
+      "markDone": "ทำเครื่องหมายว่าเสร็จ",
+      "markDoneA11y": "ทำเครื่องหมาย {{title}} ว่าเสร็จ",
+      "doneOn": "เสร็จเมื่อ {{date}}",
+      "seeAllHistory_one": "ดูงานที่เสร็จแล้ว {{count}} รายการ",
+      "seeAllHistory_other": "ดูงานที่เสร็จแล้วทั้งหมด {{count}} รายการ",
+      "serviceItems": "รายการบริการ"
+    },
+    "costsSegment": {
+      "spentIn": "ค่าใช้จ่ายปี {{year}}",
+      "spentAllTime": "ค่าใช้จ่ายทั้งหมด",
+      "recent": "ล่าสุด"
+    },
+    "bikeSegment": {
+      "categories": "หมวดหมู่"
     }
   },
   "maintenance": {

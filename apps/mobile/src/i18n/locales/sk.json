@@ -1050,7 +1050,11 @@
       "serviceBadgeA11y_one": "Servis, {{count}} úloha s vysokou prioritou po termíne",
       "serviceBadgeA11y_few": "Servis, {{count}} úlohy s vysokou prioritou po termíne",
       "serviceBadgeA11y_many": "Servis, {{count}} úlohy s vysokou prioritou po termíne",
-      "serviceBadgeA11y_other": "Servis, {{count}} úloh s vysokou prioritou po termíne"
+      "serviceBadgeA11y_other": "Servis, {{count}} úloh s vysokou prioritou po termíne",
+      "serviceOverdueA11y_one": "Servis, {{count}} úloha po termíne",
+      "serviceOverdueA11y_other": "Servis, {{count}} úloh po termíne",
+      "serviceOverdueA11y_few": "Servis, {{count}} úlohy po termíne",
+      "serviceOverdueA11y_many": "Servis, {{count}} úlohy po termíne"
     },
     "header": {
       "backTo": "Späť na {{origin}}",
@@ -1135,7 +1139,10 @@
       "logA11y": "Zapísať niečo k tejto motorke",
       "addTaskA11y": "Pridať servisnú úlohu",
       "addExpenseA11y": "Pridať výdavok",
-      "addDocumentA11y": "Pridať dokument"
+      "addDocumentA11y": "Pridať dokument",
+      "task": "Úloha",
+      "expense": "Výdavok",
+      "document": "Dokument"
     },
     "state": {
       "notFound": "Táto motorka už nie je vo vašej garáži.",
@@ -1189,7 +1196,11 @@
       "more_other": "{{count}} ďalších",
       "listAnd": "{{first}} a {{last}}",
       "loadError": "Úlohy sa nepodarilo načítať",
-      "docActionInsurance": "obnovte alebo nahrajte novú poistku"
+      "docActionInsurance": "obnovte alebo nahrajte novú poistku",
+      "overdueCount_one": "{{count}} po termíne",
+      "overdueCount_other": "{{count}} po termíne",
+      "overdueCount_few": "{{count}} po termíne",
+      "overdueCount_many": "{{count}} po termíne"
     },
     "nextUp": {
       "title": "Nasleduje"
@@ -1227,7 +1238,8 @@
       "noteButtonA11y": "Napísať dlhšiu poznámku",
       "inputA11y": "Pridať poznámku",
       "saveFailed": "Poznámku sa nepodarilo uložiť. Skúste to znova.",
-      "loadError": "Poznámky sa nepodarilo načítať"
+      "loadError": "Poznámky sa nepodarilo načítať",
+      "saveA11y": "Uložiť poznámku"
     },
     "papers": {
       "title": "Doklady a motorka",
@@ -1321,13 +1333,65 @@
       "noMatch": "Žiadna poznámka nezodpovedá „{{query}}“",
       "composerAdd": "Pridať",
       "attachPhotoA11y": "Priložiť fotku",
-      "photoA11y": "Fotka poznámky"
+      "photoA11y": "Fotka poznámky",
+      "rowHint": "Otvorí poznámku na úpravu",
+      "photoOf": "Fotka {{index}} z {{count}}",
+      "photoCount_one": "{{count}} fotka",
+      "photoCount_other": "{{count}} fotiek",
+      "photoCount_few": "{{count}} fotky",
+      "photoCount_many": "{{count}} fotky",
+      "matchCount_one": "{{count}} zodpovedajúca poznámka",
+      "matchCount_other": "{{count}} zodpovedajúcich poznámok",
+      "matchCount_few": "{{count}} zodpovedajúce poznámky",
+      "matchCount_many": "{{count}} zodpovedajúcej poznámky",
+      "clearSearch": "Vymazať hľadanie",
+      "emptyTitle": "Zapíšte si, na čo by ste inak zabudli",
+      "emptyBodyStamped": "Tlaky v pneumatikách, číslo dielu, servis, ktorý robil ventily. Napíšte to nižšie — každá poznámka dostane dnešný stav tachometra.",
+      "emptyBody": "Tlaky v pneumatikách, číslo dielu, servis, ktorý robil ventily. Napíšte to nižšie a zostane pri tejto motorke.",
+      "taskLink": "Úloha · {{status}}",
+      "linkedTask": "Prepojená úloha",
+      "taskLinkA11y": "Prepojená úloha „{{title}}“, {{status}}",
+      "linkedTaskA11y": "Prepojená úloha „{{title}}“",
+      "taskStatus": {
+        "open": "otvorená",
+        "inProgress": "prebieha",
+        "done": "hotová",
+        "skipped": "preskočená"
+      },
+      "viewerCloseA11y": "Zavrieť fotky",
+      "viewerCounter": "{{index}} z {{count}}"
     },
     "refreshFailed": "Nepodarilo sa obnoviť",
     "refreshRetryA11y": {
       "attention": "Znova načítať Vyžaduje pozornosť",
       "costs": "Znova načítať náklady",
       "notes": "Znova načítať poznámky"
+    },
+    "service": {
+      "group": {
+        "overdue": "Po termíne",
+        "soon": "Čoskoro",
+        "later": "Neskôr",
+        "someday": "Bez termínu"
+      },
+      "noOpenTasks": "Žiadne otvorené úlohy",
+      "priorityA11y": "priorita: {{priority}}",
+      "markDone": "Označiť ako hotové",
+      "markDoneA11y": "Označiť „{{title}}“ ako hotové",
+      "doneOn": "Hotové {{date}}",
+      "seeAllHistory_one": "Zobraziť {{count}} hotovú úlohu",
+      "seeAllHistory_other": "Zobraziť všetkých {{count}} hotových úloh",
+      "seeAllHistory_few": "Zobraziť všetky {{count}} hotové úlohy",
+      "seeAllHistory_many": "Zobraziť {{count}} hotovej úlohy",
+      "serviceItems": "Servisné položky"
+    },
+    "costsSegment": {
+      "spentIn": "Výdavky za {{year}}",
+      "spentAllTime": "Výdavky celkom",
+      "recent": "Posledné"
+    },
+    "bikeSegment": {
+      "categories": "Kategórie"
     }
   },
   "maintenance": {

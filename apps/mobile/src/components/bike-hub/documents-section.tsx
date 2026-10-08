@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import {
   DeleteDocumentDocument,
   DocumentCategoriesDocument,
@@ -7,21 +6,32 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { type Href, router } from 'expo-router';
-import { ChevronRight, FileText, Pin, Plus, Settings2 } from 'lucide-react-native';
+import { FileText, Pin } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useMotorcycleDocuments } from '../../hooks/use-motorcycle-documents';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
-import { documentExpiryStatus } from '../../lib/document-expiry';
+import { type DocumentExpiryLevel, documentExpiryStatus } from '../../lib/document-expiry';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { cancelDocumentNotifications } from '../../lib/notifications';
 import { queryKeys } from '../../lib/query-keys';
 import { QUERY_META } from '../../lib/query-meta';
-import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 import { LoadError } from './load-error';
+import { HubCard } from './ui/hub-card';
+import { RowBody } from './ui/list-row';
+import { RowChevron } from './ui/row-chevron';
+import { SectionHeader } from './ui/section-header';
+import {
+  HUB_FONT,
+  HUB_RADIUS,
+  HUB_ROW_SUB_LINES,
+  HUB_TOUCH_TARGET,
+  type HubCopyKey,
+  hub,
+} from './ui/tokens';
 
 type DocumentItem = DocumentsByMotorcycleQuery['documents'][number];
 
@@ -30,14 +40,13 @@ const UNGROUPED = 'ungrouped';
 
 interface DocumentsSectionProps {
   motorcycleId: string;
-  // Retained for caller compatibility; theming now comes from useEditorialTheme.
+  // Retained for caller compatibility; the section always renders on the hub's dark ground.
   isDark?: boolean;
   bikeName?: string;
 }
 
 export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionProps) {
   const { t } = useTranslation();
-  const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
   const [showHidden, setShowHidden] = useState(false);
 
@@ -156,6 +165,18 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
     );
   };
 
+  const addDocument = () => {
+    router.push(
+      `/(tabs)/(garage)/add-document?motorcycleId=${motorcycleId}&bikeName=${encodeURIComponent(
+        bikeName ?? '',
+      )}` as Href,
+    );
+  };
+
+  const openCategories = () => {
+    router.push('/(tabs)/(garage)/manage-document-categories' as Href);
+  };
+
   const openDocument = (doc: DocumentItem) => {
     triggerImpact();
     // String href cast (new routes aren't in the generated typed-routes until the
@@ -168,160 +189,96 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
   };
 
   return (
-    <View style={{ paddingHorizontal: 20 }}>
-      {/* Header */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 12,
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 18,
-            fontWeight: '700',
-            color: theme.ink,
+    <View style={{ gap: 12 }}>
+      {/* Adding a document is the segment's action pill; the header only manages categories. */}
+      <View style={{ gap: 8 }}>
+        <SectionHeader
+          label={t('documents.title')}
+          count={!loadFailed && !isLoading && documents.length > 0 ? documents.length : undefined}
+          action={{
+            label: t('bikeHub.bikeSegment.categories'),
+            accessibilityLabel: t('documents.manageCategories'),
+            onPress: openCategories,
           }}
-        >
-          {t('documents.title', { defaultValue: 'Documents' })}
-        </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Pressable
-            onPress={() => {
-              triggerImpact();
-              router.push('/(tabs)/(garage)/manage-document-categories' as Href);
-            }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 8,
-              borderCurve: 'continuous',
-              backgroundColor: theme.surface2,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Settings2 size={14} color={theme.warm} strokeWidth={2.5} />
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              triggerImpact();
-              router.push(
-                `/(tabs)/(garage)/add-document?motorcycleId=${motorcycleId}&bikeName=${encodeURIComponent(
-                  bikeName ?? '',
-                )}` as Href,
-              );
-            }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 8,
-              borderCurve: 'continuous',
-              backgroundColor: theme.warm,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Plus size={16} color={palette.white} strokeWidth={2.5} />
-          </Pressable>
-        </View>
+        />
+
+        {loadFailed && (
+          <LoadError
+            testID="documents-load-error"
+            message={t('bikeHub.papers.loadError')}
+            onRetry={retryLoad}
+          />
+        )}
+
+        {!loadFailed && isLoading && (
+          <HubCard style={{ padding: 32, alignItems: 'center' }}>
+            <ActivityIndicator color={hub.dim} accessibilityLabel={t('common.loading')} />
+          </HubCard>
+        )}
+
+        {!loadFailed && !isLoading && documents.length === 0 && (
+          <Animated.View entering={FadeInUp.duration(250)}>
+            <HubCard
+              onPress={addDocument}
+              accessibilityLabel={`${t('documents.empty')}. ${t('documents.emptyHint')}`}
+              style={{ paddingVertical: 24, paddingHorizontal: 16, alignItems: 'center', gap: 4 }}
+            >
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  marginBottom: 8,
+                  borderRadius: HUB_RADIUS.tile,
+                  borderCurve: 'continuous',
+                  backgroundColor: hub.raised,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <FileText size={20} color={hub.dim} strokeWidth={1.8} />
+              </View>
+              <Text
+                style={{
+                  fontFamily: HUB_FONT.sansSemiBold,
+                  fontSize: 15,
+                  lineHeight: 20,
+                  color: hub.text,
+                  textAlign: 'center',
+                }}
+              >
+                {t('documents.empty')}
+              </Text>
+              <Text
+                style={{
+                  fontFamily: HUB_FONT.sans,
+                  fontSize: 13,
+                  lineHeight: 17,
+                  color: hub.dim,
+                  textAlign: 'center',
+                }}
+              >
+                {t('documents.emptyHint')}
+              </Text>
+            </HubCard>
+          </Animated.View>
+        )}
+
+        {!loadFailed && !isLoading && documents.length > 0 && categoriesError && (
+          <LoadError
+            testID="documents-categories-error"
+            message={t('documents.categoriesLoadError')}
+            onRetry={() => void categoriesQuery.refetch()}
+            retryAccessibilityLabel={t('documents.categoriesRetryA11y')}
+          />
+        )}
       </View>
 
-      {loadFailed && (
-        <LoadError
-          testID="documents-load-error"
-          message={t('bikeHub.papers.loadError')}
-          onRetry={retryLoad}
-        />
-      )}
-
-      {!loadFailed && isLoading && (
-        <View
-          style={{
-            backgroundColor: theme.surface,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            borderWidth: 1,
-            borderColor: theme.line,
-            padding: 32,
-            alignItems: 'center',
-          }}
-        >
-          <ActivityIndicator color={theme.warm} />
-        </View>
-      )}
-
-      {!loadFailed && !isLoading && documents.length === 0 && (
-        <Animated.View entering={FadeInUp.duration(300)}>
-          <Pressable
-            onPress={() =>
-              router.push(
-                `/(tabs)/(garage)/add-document?motorcycleId=${motorcycleId}&bikeName=${encodeURIComponent(
-                  bikeName ?? '',
-                )}` as Href,
-              )
-            }
-            style={{
-              backgroundColor: theme.surface,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              borderWidth: 1,
-              borderColor: theme.line,
-              padding: 24,
-              alignItems: 'center',
-            }}
-          >
-            <View
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: 14,
-                borderCurve: 'continuous',
-                backgroundColor: tint(theme.warm, 0.12),
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <FileText size={22} color={theme.warm} strokeWidth={1.5} />
-            </View>
-            <Text
-              style={{
-                fontSize: 15,
-                fontWeight: '700',
-                color: theme.ink,
-                marginTop: 12,
-              }}
-            >
-              {t('documents.empty', { defaultValue: 'No documents yet' })}
-            </Text>
-            <Text style={{ fontSize: 13, color: theme.ink3, marginTop: 4, textAlign: 'center' }}>
-              {t('documents.emptyHint', {
-                defaultValue: 'Store insurance, registration, title, and service records.',
-              })}
-            </Text>
-          </Pressable>
-        </Animated.View>
-      )}
-
       {!loadFailed && !isLoading && documents.length > 0 && (
-        <View style={{ gap: 16 }}>
-          {categoriesError && (
-            <LoadError
-              testID="documents-categories-error"
-              message={t('documents.categoriesLoadError')}
-              onRetry={() => void categoriesQuery.refetch()}
-              retryAccessibilityLabel={t('documents.categoriesRetryA11y')}
-            />
-          )}
-
+        <>
           {/* Pinned subsection — roadside fast-retrieval surface (R14) */}
           {pinned.length > 0 && (
             <DocumentGroup
-              label={t('documents.pinned', { defaultValue: 'Pinned' })}
+              label={t('documents.pinned')}
               docs={pinned}
               category={undefined}
               categoryById={categoryById}
@@ -336,7 +293,7 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
               label={
                 g.categoryId === UNGROUPED
                   ? t('documents.allDocuments')
-                  : (g.category?.name ?? t('documents.uncategorized', { defaultValue: 'Other' }))
+                  : (g.category?.name ?? t('documents.uncategorized'))
               }
               docs={g.docs}
               category={g.category}
@@ -348,17 +305,27 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
 
           {hasHiddenWithDocs && (
             <Pressable
-              onPress={() => setShowHidden((p) => !p)}
-              style={{ paddingVertical: 8, alignItems: 'center' }}
+              onPress={() => {
+                triggerImpact();
+                setShowHidden((p) => !p);
+              }}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: showHidden }}
+              style={({ pressed }) => ({
+                minHeight: HUB_TOUCH_TARGET,
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: pressed ? 0.6 : 1,
+              })}
             >
-              <Text style={{ fontSize: 13, fontWeight: '600', color: theme.warm }}>
-                {showHidden
-                  ? t('documents.hideHidden', { defaultValue: 'Hide hidden categories' })
-                  : t('documents.showHidden', { defaultValue: 'Show hidden categories' })}
+              <Text
+                style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.copperText }}
+              >
+                {showHidden ? t('documents.hideHidden') : t('documents.showHidden')}
               </Text>
             </Pressable>
           )}
-        </View>
+        </>
       )}
     </View>
   );
@@ -375,40 +342,26 @@ interface DocumentGroupProps {
 
 function DocumentGroup({ label, docs, category, onOpen, onDelete }: DocumentGroupProps) {
   const { t } = useTranslation();
-  const { t: theme } = useEditorialTheme();
   return (
-    <View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-        <Text
-          style={{
-            fontSize: 13,
-            fontWeight: '700',
-            color: theme.ink3,
-            textTransform: 'uppercase',
-            letterSpacing: 0.5,
-          }}
-        >
-          {label}
-        </Text>
-        <Text style={{ fontSize: 12, color: theme.ink4 }}>{docs.length}</Text>
-        {category?.isHidden && (
-          <Text style={{ fontSize: 11, color: theme.ink4, fontStyle: 'italic' }}>
-            {t('documents.hiddenTag', { defaultValue: 'hidden' })}
-          </Text>
-        )}
-      </View>
-      <View style={{ gap: 6 }}>
+    <View style={{ gap: 8 }}>
+      <SectionHeader
+        label={label}
+        count={docs.length}
+        hint={category?.isHidden ? t('documents.hiddenTag') : undefined}
+      />
+      <HubCard style={{ overflow: 'hidden' }}>
         {docs.map((doc, index) => (
           <DocumentRow
             key={doc.id}
             doc={doc}
             promptsExpiry={category?.promptsExpiry ?? false}
             index={index}
+            divider={index < docs.length - 1}
             onOpen={onOpen}
             onDelete={onDelete}
           />
         ))}
-      </View>
+      </HubCard>
     </View>
   );
 }
@@ -417,110 +370,105 @@ interface DocumentRowProps {
   doc: DocumentItem;
   promptsExpiry: boolean;
   index: number;
+  divider: boolean;
   onOpen: (doc: DocumentItem) => void;
   onDelete: (doc: DocumentItem) => void;
 }
 
-function DocumentRow({ doc, promptsExpiry, index, onOpen, onDelete }: DocumentRowProps) {
+/** Expiry level → how the row's status reads. Expired and soon are real status; a future date is plain. */
+const EXPIRY_LOOK: Record<
+  DocumentExpiryLevel,
+  { key: HubCopyKey; color: string; tileBg: string; tileIcon: string }
+> = {
+  expired: {
+    key: 'documents.expired',
+    color: hub.late,
+    tileBg: hub.tagCritBg,
+    tileIcon: hub.late,
+  },
+  soon: {
+    key: 'documents.expiresInDays',
+    color: hub.soon,
+    tileBg: hub.tagHighBg,
+    tileIcon: hub.soon,
+  },
+  future: {
+    key: 'documents.expiresOn',
+    color: hub.dim,
+    tileBg: hub.raised,
+    tileIcon: hub.dim,
+  },
+};
+
+function DocumentRow({ doc, promptsExpiry, index, divider, onOpen, onDelete }: DocumentRowProps) {
   const { t } = useTranslation();
-  const { t: theme } = useEditorialTheme();
-  const status = expiryStatus(doc.expiryDate ?? null);
+  const status = documentExpiryStatus(doc.expiryDate ?? null);
+  const look = status ? EXPIRY_LOOK[status.level] : null;
   const showNoReminder = promptsExpiry && !doc.expiryDate;
+  const files = t('documents.fileCount', { count: doc.files.length });
+  const statusText =
+    status && look ? t(look.key, { days: status.days, date: doc.expiryDate }) : null;
+  const meta = [files, showNoReminder ? t('documents.noReminder') : null]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
-    <Animated.View entering={FadeInUp.delay(index * 50).duration(300)}>
+    <Animated.View entering={FadeInUp.delay(Math.min(index, 5) * 50).duration(250)}>
       <Pressable
+        testID={`document-row-${doc.id}`}
         onPress={() => onOpen(doc)}
         onLongPress={() => onDelete(doc)}
-        style={{
+        accessibilityRole="button"
+        accessibilityLabel={[
+          doc.title,
+          doc.isPinned ? t('documents.pinned') : null,
+          statusText,
+          meta,
+        ]
+          .filter(Boolean)
+          .join(', ')}
+        accessibilityActions={[{ name: 'activate' }, { name: 'delete', label: t('common.delete') }]}
+        onAccessibilityAction={(event) =>
+          event.nativeEvent.actionName === 'delete' ? onDelete(doc) : onOpen(doc)
+        }
+        style={({ pressed }) => ({
           flexDirection: 'row',
           alignItems: 'center',
           gap: 12,
-          backgroundColor: theme.surface,
-          borderRadius: 12,
-          borderCurve: 'continuous',
-          borderWidth: 1,
-          borderColor: theme.line,
-          padding: 12,
-        }}
+          paddingVertical: 12,
+          paddingLeft: 14,
+          paddingRight: 12,
+          borderBottomWidth: divider ? 1 : 0,
+          borderBottomColor: hub.hairline,
+          opacity: pressed ? 0.7 : 1,
+        })}
       >
-        <View
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 9,
-            borderCurve: 'continuous',
-            backgroundColor: tint(theme.warm, 0.12),
-            alignItems: 'center',
-            justifyContent: 'center',
+        <RowBody
+          icon={{
+            icon: FileText,
+            color: look?.tileIcon ?? hub.dim,
+            background: look?.tileBg ?? hub.raised,
           }}
-        >
-          <FileText size={18} color={theme.warm} strokeWidth={2} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          title={doc.title}
+          sub={
             <Text
-              numberOfLines={1}
-              style={{
-                fontSize: 15,
-                fontWeight: '600',
-                color: theme.ink,
-                flexShrink: 1,
-              }}
+              numberOfLines={HUB_ROW_SUB_LINES}
+              style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 16, color: hub.muted }}
             >
-              {doc.title}
+              {statusText && look ? (
+                <Text style={{ color: look.color }}>{`${statusText} · `}</Text>
+              ) : null}
+              {meta}
             </Text>
-            {doc.isPinned && <Pin size={12} color={theme.warm} strokeWidth={2.5} />}
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
-            <Text style={{ fontSize: 12, color: theme.ink3 }}>
-              {t('documents.fileCount', {
-                defaultValue: '{{count}} file(s)',
-                count: doc.files.length,
-              })}
-            </Text>
-            {status && (
-              <Text style={{ fontSize: 12, fontWeight: '700', color: status.color }}>
-                · {t(status.key, status.opts)}
-              </Text>
-            )}
-            {showNoReminder && (
-              <Text style={{ fontSize: 12, fontWeight: '600', color: theme.ink4 }}>
-                · {t('documents.noReminder', { defaultValue: 'No reminder set' })}
-              </Text>
-            )}
-          </View>
-        </View>
-        <ChevronRight size={18} color={theme.ink3} strokeWidth={2} />
+          }
+          trailing={
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              {doc.isPinned ? <Pin size={14} color={hub.muted} strokeWidth={2} /> : null}
+              <RowChevron />
+            </View>
+          }
+        />
       </Pressable>
     </Animated.View>
   );
-}
-
-/** Maps the shared expiry classification to a badge color + i18n key/opts so the
- * row renders t() directly. Classification thresholds live in lib/document-expiry. */
-function expiryStatus(
-  expiryDate: string | null,
-): { color: string; key: string; opts: { defaultValue: string } & Record<string, unknown> } | null {
-  const status = documentExpiryStatus(expiryDate);
-  if (!status) return null;
-  if (status.level === 'expired') {
-    return {
-      color: palette.danger500,
-      key: 'documents.expired',
-      opts: { defaultValue: 'Expired' },
-    };
-  }
-  if (status.level === 'soon') {
-    return {
-      color: palette.warning500,
-      key: 'documents.expiresInDays',
-      opts: { defaultValue: 'Expires in {{days}}d', days: status.days },
-    };
-  }
-  return {
-    color: palette.neutral500,
-    key: 'documents.expiresOn',
-    opts: { defaultValue: 'Expires {{date}}', date: expiryDate as string },
-  };
 }

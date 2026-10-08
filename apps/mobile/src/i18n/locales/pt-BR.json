@@ -1047,7 +1047,9 @@
       "bike": "Moto",
       "listA11y": "Seções da moto",
       "serviceBadgeA11y_one": "Manutenção, {{count}} tarefa atrasada de alta prioridade",
-      "serviceBadgeA11y_other": "Manutenção, {{count}} tarefas atrasadas de alta prioridade"
+      "serviceBadgeA11y_other": "Manutenção, {{count}} tarefas atrasadas de alta prioridade",
+      "serviceOverdueA11y_one": "Manutenção, {{count}} tarefa atrasada",
+      "serviceOverdueA11y_other": "Manutenção, {{count}} tarefas atrasadas"
     },
     "header": {
       "backTo": "Voltar para {{origin}}",
@@ -1116,7 +1118,10 @@
       "logA11y": "Registrar algo nesta moto",
       "addTaskA11y": "Adicionar uma tarefa de manutenção",
       "addExpenseA11y": "Adicionar uma despesa",
-      "addDocumentA11y": "Adicionar um documento"
+      "addDocumentA11y": "Adicionar um documento",
+      "task": "Tarefa",
+      "expense": "Despesa",
+      "document": "Documento"
     },
     "state": {
       "notFound": "Esta moto não está mais na sua garagem.",
@@ -1160,7 +1165,9 @@
       "more_other": "mais {{count}}",
       "listAnd": "{{first}} e {{last}}",
       "loadError": "Não foi possível carregar as tarefas",
-      "docActionInsurance": "renove ou envie a nova apólice"
+      "docActionInsurance": "renove ou envie a nova apólice",
+      "overdueCount_one": "{{count}} atrasada",
+      "overdueCount_other": "{{count}} atrasadas"
     },
     "nextUp": {
       "title": "A seguir"
@@ -1198,7 +1205,8 @@
       "noteButtonA11y": "Escrever uma nota mais longa",
       "inputA11y": "Adicionar uma nota",
       "saveFailed": "Não foi possível salvar a nota. Tente novamente.",
-      "loadError": "Não foi possível carregar as notas"
+      "loadError": "Não foi possível carregar as notas",
+      "saveA11y": "Salvar nota"
     },
     "papers": {
       "title": "Documentos e moto",
@@ -1286,13 +1294,63 @@
       "noMatch": "Nenhuma nota corresponde a “{{query}}”",
       "composerAdd": "Adicionar",
       "attachPhotoA11y": "Anexar uma foto",
-      "photoA11y": "Foto da nota"
+      "photoA11y": "Foto da nota",
+      "rowHint": "Abre a nota para editar",
+      "photoOf": "Foto {{index}} de {{count}}",
+      "photoCount_one": "{{count}} foto",
+      "photoCount_other": "{{count}} fotos",
+      "photoCount_few": "{{count}} fotos",
+      "photoCount_many": "{{count}} fotos",
+      "matchCount_one": "{{count}} nota encontrada",
+      "matchCount_other": "{{count}} notas encontradas",
+      "matchCount_few": "{{count}} notas encontradas",
+      "matchCount_many": "{{count}} notas encontradas",
+      "clearSearch": "Limpar busca",
+      "emptyTitle": "Guarde o que você esqueceria",
+      "emptyBodyStamped": "Pressão dos pneus, um número de peça, a oficina que fez as válvulas. Digite abaixo — cada nota recebe o odômetro de hoje.",
+      "emptyBody": "Pressão dos pneus, um número de peça, a oficina que fez as válvulas. Digite abaixo e fica guardado com esta moto.",
+      "taskLink": "Tarefa · {{status}}",
+      "linkedTask": "Tarefa vinculada",
+      "taskLinkA11y": "Tarefa vinculada “{{title}}”, {{status}}",
+      "linkedTaskA11y": "Tarefa vinculada “{{title}}”",
+      "taskStatus": {
+        "open": "aberta",
+        "inProgress": "em andamento",
+        "done": "concluída",
+        "skipped": "ignorada"
+      },
+      "viewerCloseA11y": "Fechar fotos",
+      "viewerCounter": "{{index}} de {{count}}"
     },
     "refreshFailed": "Não foi possível atualizar",
     "refreshRetryA11y": {
       "attention": "Tentar novamente: precisa de atenção",
       "costs": "Tentar novamente: custos",
       "notes": "Tentar novamente: notas"
+    },
+    "service": {
+      "group": {
+        "overdue": "Atrasadas",
+        "soon": "Vencem em breve",
+        "later": "Mais tarde",
+        "someday": "Sem prazo"
+      },
+      "noOpenTasks": "Nenhuma tarefa em aberto",
+      "priorityA11y": "prioridade {{priority}}",
+      "markDone": "Marcar como feita",
+      "markDoneA11y": "Marcar “{{title}}” como feita",
+      "doneOn": "Feita em {{date}}",
+      "seeAllHistory_one": "Ver {{count}} tarefa feita",
+      "seeAllHistory_other": "Ver todas as {{count}} tarefas feitas",
+      "serviceItems": "Itens do serviço"
+    },
+    "costsSegment": {
+      "spentIn": "Gasto em {{year}}",
+      "spentAllTime": "Gasto total",
+      "recent": "Recentes"
+    },
+    "bikeSegment": {
+      "categories": "Categorias"
     }
   },
   "maintenance": {

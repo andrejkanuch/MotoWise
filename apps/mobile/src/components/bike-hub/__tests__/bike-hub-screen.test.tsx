@@ -75,9 +75,18 @@ jest.mock('../overview/overview-segment', () => ({
 jest.mock('../expenses-section', () => ({ ExpensesSection: () => null }));
 jest.mock('../documents-section', () => ({ DocumentsSection: () => null }));
 jest.mock('../bike-details-card', () => ({ BikeDetailsCard: () => null }));
-jest.mock('../../maintenance/oem-disclaimer-card', () => ({ OemDisclaimerCard: () => null }));
+jest.mock('../../maintenance/oem-disclaimer-card', () => ({
+  OEM_DISCLAIMER_VARIANT: { CARD: 'card', QUIET: 'quiet' },
+  OemDisclaimerCard: () => null,
+}));
 jest.mock('../../../features/receipt-scan/receipt-scan-entry', () => ({
   ReceiptScanEntry: () => null,
+  useReceiptScanEntry: () => ({
+    open: jest.fn(),
+    remaining: 3,
+    showFreeBadge: true,
+    showUpsellBadge: false,
+  }),
 }));
 
 import {
@@ -90,7 +99,7 @@ import {
   MyRidesDocument,
 } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import '../../../i18n';
 import { ADD_TASK_MODE, BIKE_ORIGIN, BIKE_SEGMENT } from '../../../lib/bike-hub/constants';
@@ -190,9 +199,7 @@ describe('BikeHubScreen — landing', () => {
 
   it('with highlightTask opens on Service and hands the task to MaintenanceSection', async () => {
     await renderHub({ highlightTask: 'task-1' });
-    expect(
-      await screen.findByRole('tab', { name: 'Service, 1 overdue high-priority task' }),
-    ).toBeSelected();
+    expect(await screen.findByRole('tab', { name: 'Service, 1 overdue task' })).toBeSelected();
     expect(mockMaintenanceSection).toHaveBeenLastCalledWith(
       expect.objectContaining({
         initialExpandedId: 'task-1',
@@ -272,7 +279,7 @@ describe('BikeHubScreen — segments', () => {
     expect(paddingBottom).toBeGreaterThan(pillTop + 40);
   });
 
-  it('Overview shows the labelled "Log" pill; other segments an icon-only one', async () => {
+  it('Overview shows the labelled "Log" pill', async () => {
     await renderHub();
     expect(
       await screen.findByRole('button', { name: 'Log something on this bike' }),
@@ -298,6 +305,18 @@ describe('BikeHubScreen — segments', () => {
         entrySource: 'bike_hub',
       },
     });
+  });
+
+  it.each([
+    [/^Service/, 'Task', 'Add a maintenance task'],
+    ['Costs', 'Expense', 'Add an expense'],
+    ['Bike', 'Document', 'Add a document'],
+  ])('the %s pill is labelled with what it adds', async (tab, label, a11y) => {
+    await renderHub();
+    await fireEvent.press(await screen.findByRole('tab', { name: tab }));
+    const pill = screen.getByRole('button', { name: a11y });
+    expect(within(pill).getByText(label)).toBeOnTheScreen();
+    expect(screen.queryByText('Log')).toBeNull();
   });
 
   it('a double-tap on a leaf opens it once', async () => {

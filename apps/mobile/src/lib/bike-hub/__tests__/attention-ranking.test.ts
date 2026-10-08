@@ -13,7 +13,14 @@ import {
   TODAY,
   task,
 } from '../../../test/bike-hub-fixtures';
-import { type AttentionInput, getNextUp, getServiceBadgeCount, rankAttention } from '../attention';
+import {
+  type AttentionInput,
+  countOverdueAttentionItems,
+  countOverdueTasks,
+  getNextUp,
+  getServiceBadgeCount,
+  rankAttention,
+} from '../attention';
 import { ATTENTION_KIND, ATTENTION_MAX_ROWS, HUB_UNIT } from '../constants';
 import type { DueContext } from '../task-due';
 
@@ -324,17 +331,17 @@ describe('getNextUp', () => {
   });
 });
 
-describe('getServiceBadgeCount — overdue Critical and High only', () => {
+describe("getServiceBadgeCount — overdue tasks of any priority (the hub's one count)", () => {
   it.each([
     [MaintenancePriority.Critical, 1],
     [MaintenancePriority.High, 1],
-    [MaintenancePriority.Medium, 0],
-    [MaintenancePriority.Low, 0],
+    [MaintenancePriority.Medium, 1],
+    [MaintenancePriority.Low, 1],
   ])('one overdue %s task → %i', (priority, expected) => {
     expect(getServiceBadgeCount([late('t', priority, 10)], KM)).toBe(expected);
   });
 
-  it('counts each overdue Critical and High task once', () => {
+  it('counts each overdue task once, whatever its priority', () => {
     const tasks = [
       late('c1', MaintenancePriority.Critical, 1),
       late('c2', MaintenancePriority.Critical, 90),
@@ -342,7 +349,7 @@ describe('getServiceBadgeCount — overdue Critical and High only', () => {
       late('m1', MaintenancePriority.Medium, 5),
       late('l1', MaintenancePriority.Low, 500),
     ];
-    expect(getServiceBadgeCount(tasks, KM)).toBe(3);
+    expect(getServiceBadgeCount(tasks, KM)).toBe(5);
   });
 
   it.each([
@@ -357,7 +364,7 @@ describe('getServiceBadgeCount — overdue Critical and High only', () => {
       'skipped',
       { ...late('t', MaintenancePriority.High, 10), status: MaintenanceTaskStatus.Skipped },
     ],
-  ])('a Critical/High task that is %s is not counted', (_label, notCounted) => {
+  ])('a task that is %s is not counted', (_label, notCounted) => {
     expect(getServiceBadgeCount([notCounted], KM)).toBe(0);
   });
 
@@ -384,8 +391,14 @@ describe('getServiceBadgeCount — overdue Critical and High only', () => {
   });
 
   it('does not count recalls or documents — the badge is about tasks', () => {
-    // The Africa Twin has a recall and an expiring document; its badge is still 1.
-    expect(getServiceBadgeCount(BIKE_A_TASKS, KM)).toBe(1);
+    // The Africa Twin has a recall and an expiring document; its badge counts its 4 overdue tasks.
+    expect(getServiceBadgeCount(BIKE_A_TASKS, KM)).toBe(4);
+  });
+
+  it('equals the overdue rows of Needs attention for the same bike', () => {
+    const result = rank({ tasks: BIKE_A_TASKS });
+    expect(countOverdueAttentionItems(result.items)).toBe(getServiceBadgeCount(BIKE_A_TASKS, KM));
+    expect(countOverdueTasks(BIKE_A_TASKS, KM)).toBe(4);
   });
 });
 

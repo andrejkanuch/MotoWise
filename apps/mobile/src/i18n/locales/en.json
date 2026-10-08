@@ -1052,7 +1052,9 @@
       "bike": "Bike",
       "listA11y": "Bike sections",
       "serviceBadgeA11y_one": "Service, {{count}} overdue high-priority task",
-      "serviceBadgeA11y_other": "Service, {{count}} overdue high-priority tasks"
+      "serviceBadgeA11y_other": "Service, {{count}} overdue high-priority tasks",
+      "serviceOverdueA11y_one": "Service, {{count}} overdue task",
+      "serviceOverdueA11y_other": "Service, {{count}} overdue tasks"
     },
     "header": {
       "backTo": "Back to {{origin}}",
@@ -1121,7 +1123,10 @@
       "logA11y": "Log something on this bike",
       "addTaskA11y": "Add a maintenance task",
       "addExpenseA11y": "Add an expense",
-      "addDocumentA11y": "Add a document"
+      "addDocumentA11y": "Add a document",
+      "task": "Task",
+      "expense": "Expense",
+      "document": "Document"
     },
     "state": {
       "notFound": "This bike is no longer in your garage.",
@@ -1165,7 +1170,9 @@
       "more_other": "{{count}} more",
       "listAnd": "{{first}} and {{last}}",
       "loadError": "Couldn't load tasks",
-      "docActionInsurance": "renew or upload the new policy"
+      "docActionInsurance": "renew or upload the new policy",
+      "overdueCount_one": "{{count}} overdue",
+      "overdueCount_other": "{{count}} overdue"
     },
     "nextUp": {
       "title": "Next up"
@@ -1203,7 +1210,8 @@
       "noteButtonA11y": "Write a longer note",
       "inputA11y": "Add a note",
       "saveFailed": "Couldn't save the note. Try again.",
-      "loadError": "Couldn't load notes"
+      "loadError": "Couldn't load notes",
+      "saveA11y": "Save note"
     },
     "papers": {
       "title": "Papers & bike",
@@ -1291,13 +1299,63 @@
       "noMatch": "No notes match “{{query}}”",
       "composerAdd": "Add",
       "attachPhotoA11y": "Attach a photo",
-      "photoA11y": "Note photo"
+      "photoA11y": "Note photo",
+      "rowHint": "Opens the note to edit",
+      "photoOf": "Photo {{index}} of {{count}}",
+      "photoCount_one": "{{count}} photo",
+      "photoCount_other": "{{count}} photos",
+      "photoCount_few": "{{count}} photos",
+      "photoCount_many": "{{count}} photos",
+      "matchCount_one": "{{count}} matching note",
+      "matchCount_other": "{{count}} matching notes",
+      "matchCount_few": "{{count}} matching notes",
+      "matchCount_many": "{{count}} matching notes",
+      "clearSearch": "Clear search",
+      "emptyTitle": "Keep what you'd otherwise forget",
+      "emptyBodyStamped": "Tyre pressures, a part number, the shop that did the valves. Type it below — each note is stamped with today's odometer.",
+      "emptyBody": "Tyre pressures, a part number, the shop that did the valves. Type it below and it stays with this bike.",
+      "taskLink": "Task · {{status}}",
+      "linkedTask": "Linked task",
+      "taskLinkA11y": "Linked task “{{title}}”, {{status}}",
+      "linkedTaskA11y": "Linked task “{{title}}”",
+      "taskStatus": {
+        "open": "open",
+        "inProgress": "in progress",
+        "done": "done",
+        "skipped": "skipped"
+      },
+      "viewerCloseA11y": "Close photos",
+      "viewerCounter": "{{index}} of {{count}}"
     },
     "refreshFailed": "Couldn't refresh",
     "refreshRetryA11y": {
       "attention": "Retry needs attention",
       "costs": "Retry costs",
       "notes": "Retry notes"
+    },
+    "service": {
+      "group": {
+        "overdue": "Overdue",
+        "soon": "Due soon",
+        "later": "Later",
+        "someday": "No due date"
+      },
+      "noOpenTasks": "No open tasks",
+      "priorityA11y": "{{priority}} priority",
+      "markDone": "Mark done",
+      "markDoneA11y": "Mark {{title}} done",
+      "doneOn": "Done {{date}}",
+      "seeAllHistory_one": "See {{count}} completed task",
+      "seeAllHistory_other": "See all {{count}} completed tasks",
+      "serviceItems": "Service items"
+    },
+    "costsSegment": {
+      "spentIn": "Spent in {{year}}",
+      "spentAllTime": "Spent, all time",
+      "recent": "Recent"
+    },
+    "bikeSegment": {
+      "categories": "Categories"
     }
   },
   "maintenance": {

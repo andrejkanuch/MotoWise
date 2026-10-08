@@ -84,6 +84,16 @@ export default function GarageLayout() {
           contentStyle: { backgroundColor: hub.ground },
         }}
       />
+      {/* A note's photos, full screen on the dark ground (system Back closes it). */}
+      <Stack.Screen
+        name="note-photos"
+        options={{
+          presentation: 'fullScreenModal',
+          animation: 'fade',
+          headerShown: false,
+          contentStyle: { backgroundColor: hub.ground },
+        }}
+      />
       <Stack.Screen
         name="add-bike"
         options={{

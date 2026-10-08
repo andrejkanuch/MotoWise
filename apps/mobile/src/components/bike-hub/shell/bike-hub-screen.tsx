@@ -39,12 +39,24 @@ export interface BikeHubScreenProps {
   ts?: string;
 }
 
-/** Segment → its one primary action. Labelled on Overview (a chooser), icon-only elsewhere. */
-const PILL: Record<BikeSegment, { labelKey?: HubCopyKey; a11yKey: HubCopyKey }> = {
+/**
+ * Segment → its one primary action, always labelled with what it adds ("Log"
+ * on Overview opens the chooser). It is the only add trigger on each segment.
+ */
+const PILL: Record<BikeSegment, { labelKey: HubCopyKey; a11yKey: HubCopyKey }> = {
   [BIKE_SEGMENT.OVERVIEW]: { labelKey: 'bikeHub.action.log', a11yKey: 'bikeHub.action.logA11y' },
-  [BIKE_SEGMENT.SERVICE]: { a11yKey: 'bikeHub.action.addTaskA11y' },
-  [BIKE_SEGMENT.COSTS]: { a11yKey: 'bikeHub.action.addExpenseA11y' },
-  [BIKE_SEGMENT.BIKE]: { a11yKey: 'bikeHub.action.addDocumentA11y' },
+  [BIKE_SEGMENT.SERVICE]: {
+    labelKey: 'bikeHub.action.task',
+    a11yKey: 'bikeHub.action.addTaskA11y',
+  },
+  [BIKE_SEGMENT.COSTS]: {
+    labelKey: 'bikeHub.action.expense',
+    a11yKey: 'bikeHub.action.addExpenseA11y',
+  },
+  [BIKE_SEGMENT.BIKE]: {
+    labelKey: 'bikeHub.action.document',
+    a11yKey: 'bikeHub.action.addDocumentA11y',
+  },
 };
 
 interface Landing {
@@ -351,7 +363,7 @@ function LoadedHub({
           <ActionPill
             testID={`action-pill-${active}`}
             icon={Plus}
-            label={pill.labelKey ? t(pill.labelKey) : undefined}
+            label={t(pill.labelKey)}
             accessibilityLabel={t(pill.a11yKey)}
             onPress={pillAction[active]}
           />
