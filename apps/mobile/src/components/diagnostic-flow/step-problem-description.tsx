@@ -228,10 +228,18 @@ export function StepProblemDescription() {
   const isBeginner = experienceLevel === 'beginner';
 
   // Set default mode based on experience
-  // Only on a fresh visit: coming back from review must keep the mode the rider answered in.
+  // Default advanced riders to free text only before they have answered anything: coming
+  // back to this step (from review or from step 3) keeps the mode they answered in.
   useEffect(() => {
-    if (experienceLevel === 'advanced' && !editingFromReview) setInputMode('freetext');
-  }, [experienceLevel, editingFromReview, setInputMode]);
+    if (experienceLevel !== 'advanced') return;
+    const { wizardAnswers: answers, wizardSubStep: subStep } = useDiagnosticFlowStore.getState();
+    const hasWizardProgress =
+      subStep > 0 ||
+      answers.symptoms.length > 0 ||
+      answers.location.length > 0 ||
+      answers.timing.length > 0;
+    if (!hasWizardProgress) setInputMode('freetext');
+  }, [experienceLevel, setInputMode]);
 
   const currentStep = WIZARD_STEPS[wizardSubStep];
   const currentKey = currentStep?.key ?? 'symptoms';
@@ -248,12 +256,10 @@ export function StepProblemDescription() {
 
   // Step 2 is where the problem is collected, so it is the step that refuses to move on
   // without one (MOTO-VAULT-REACT-NATIVE-3Q). An answer from either mode counts — both are
-  // sent — so switching modes never strands a rider. The wizard only gates its symptoms
-  // sub-step ("I'm not sure" counts); location and timing stay optional.
-  const canContinue =
-    (inputMode === 'wizard' && wizardSubStep > 0) ||
-    wizardAnswers.symptoms.length > 0 ||
-    freeTextDescription.trim().length > 0;
+  // sent — so switching modes never strands a rider. In the wizard the symptoms answer is
+  // the requirement ("I'm not sure" counts); location and timing add to it but never
+  // replace it.
+  const canContinue = wizardAnswers.symptoms.length > 0 || freeTextDescription.trim().length > 0;
 
   const handleWizardNext = () => {
     if (!canContinue) return;
